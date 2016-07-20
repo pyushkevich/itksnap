@@ -62,6 +62,9 @@ public:
   /** Apply a rotation around a fixed angle */
   void ApplyRotation(const Vector3d &axis, double theta);
 
+  /** Apply a translation (specified in physical ITK space) */
+  void ApplyTranslation(const Vector3d &tran);
+
   /** Get a pointer to the selected moving wrapper, or NULL if none selected */
   ImageWrapperBase *GetMovingLayerWrapper();
 
@@ -85,6 +88,11 @@ protected:
 
   void SetRotationCenter(const Vector3ui &pos);
 
+  // Get the transform currently stored in the moving layer
+  void GetMovingTransform(ITKMatrixType &matrix, ITKVectorType &offset);
+
+  // Set the transform in the moving layer
+  void SetMovingTransform(const ITKMatrixType &matrix, const ITKVectorType &offset);
 
   SmartPtr<AbstractLayerSelectionModel> m_MovingLayerModel;
   bool GetMovingLayerValueAndRange(unsigned long &value, LayerSelectionDomain *range);

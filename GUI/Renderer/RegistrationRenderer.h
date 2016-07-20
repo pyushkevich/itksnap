@@ -22,6 +22,8 @@ protected:
   ~RegistrationRenderer();
 
   InteractiveRegistrationModel *m_Model;
+private:
+  void DrawRotationWidget();
 };
 
 #endif // REGISTRATIONRENDERER_H

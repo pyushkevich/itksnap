@@ -74,27 +74,15 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
     return;
     }
 
-  // Get the transform
-  ImageWrapperBase::ITKTransformType *transform = layer->GetITKTransform();
-
   // Check if the data we have is already current
   if(!force_update &&
      m_MovingLayerId == m_ManualParam.LayerID &&
-     transform->GetMTime() <= m_ManualParam.UpdateTime)
+     layer->GetITKTransform()->GetTimeStamp() <= m_ManualParam.UpdateTime)
     return;
 
-  // TODO: in the future it might make more sense to stick to a single kind of
-  // transform in the ImageWrapper instead of allowing different transform
-  // classes. Using multiple classes seems pointless.
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformBase;
-  TransformBase *tb = dynamic_cast<TransformBase *>(transform);
-  TransformBase::MatrixType matrix; matrix.SetIdentity();
-  TransformBase::OffsetType offset; offset.Fill(0.0);
-  if(tb)
-    {
-    matrix = tb->GetMatrix();
-    offset = tb->GetOffset();
-    }
+  // Get the current transform
+  ITKMatrixType matrix; ITKVectorType offset;
+  this->GetMovingTransform(matrix, offset);
 
   // Decompose the transform into relevant parts
   // first, there is the polar decomposition
@@ -105,8 +93,8 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
   // Perform polar decomposition
   vnl_svd<double> svd(matrix.GetVnlMatrix());
 
-  TransformBase::MatrixType rotation = svd.U() * svd.V().transpose();
-  TransformBase::MatrixType shear = svd.V() * svd.W() * svd.V().transpose();
+  ITKMatrixType rotation = svd.U() * svd.V().transpose();
+  ITKMatrixType shear = svd.V() * svd.W() * svd.V().transpose();
 
   // Get the rotation center in world coordinates
   itk::Point<double, 3> ptCenter;
@@ -149,7 +137,7 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
 
   m_ManualParam.TranslationRange.Set(-ext_range, ext_range, Vector3d(tran_step, tran_step, tran_step));
   m_ManualParam.LayerID = m_MovingLayerId;
-  m_ManualParam.UpdateTime = transform->GetTimeStamp();
+  m_ManualParam.UpdateTime = layer->GetITKTransform()->GetTimeStamp();
 
   this->InvokeEvent(ModelUpdateEvent());
 }
@@ -198,36 +186,33 @@ void RegistrationModel::ApplyRotation(const Vector3d &axis, double theta)
   layer->GetReferenceSpace()->TransformIndexToPhysicalPoint(
         to_itkIndex(m_RotationCenter), ptCenter);
 
-  rotation->SetCenter(ptCenter);
   rotation->SetRotation(quat);
+  rotation->SetCenter(ptCenter);
 
   // Get the current transform
-  // TODO: in the future it might make more sense to stick to a single kind of
-  // transform in the ImageWrapper instead of allowing different transform
-  // classes. Using multiple classes seems pointless.
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformBase;
-  TransformBase *tb = dynamic_cast<TransformBase *>(layer->GetITKTransform());
-  TransformBase::MatrixType matrix; matrix.SetIdentity();
-  TransformBase::OffsetType offset; offset.Fill(0.0);
-  if(tb)
-    {
-    matrix = tb->GetMatrix();
-    offset = tb->GetOffset();
-    }
+  ITKMatrixType matrix; ITKVectorType offset;
+  this->GetMovingTransform(matrix, offset);
 
-  // Create a new transform
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
-  AffineTransform::Pointer affine = AffineTransform::New();
+  // Update the transform
+  this->SetMovingTransform(
+        rotation->GetMatrix() * matrix,
+        rotation->GetMatrix() * offset + rotation->GetOffset());
+}
 
-  // Set the matrix of the new transform y = R ( A x + b ) + z
-  affine->SetMatrix(rotation->GetMatrix() * matrix);
-  affine->SetOffset(rotation->GetMatrix() * offset + rotation->GetOffset());
+void RegistrationModel::ApplyTranslation(const Vector3d &tran)
+{
+  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
+  assert(layer);
 
-  // Create a new euler transform
-  layer->SetITKTransform(layer->GetReferenceSpace(), affine);
+  // Get the current transform
+  ITKMatrixType matrix; ITKVectorType offset;
+  this->GetMovingTransform(matrix, offset);
 
-  // Update our parameters
-  this->UpdateManualParametersFromWrapper();
+  // Add the translation to the offset
+  offset.SetVnlVector(offset.GetVnlVector() - tran);
+
+  // Update the offset
+  this->SetMovingTransform(matrix, offset);
 }
 
 
@@ -236,6 +221,44 @@ void RegistrationModel::SetRotationCenter(const Vector3ui &pos)
 {
   m_RotationCenter = pos;
   this->UpdateManualParametersFromWrapper(true);
+}
+
+void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixType &matrix, const RegistrationModel::ITKVectorType &offset)
+{
+  // Create a new transform
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
+  AffineTransform::Pointer affine = AffineTransform::New();
+
+  // Set the matrix of the new transform y = R ( A x + b ) + z
+  affine->SetMatrix(matrix);
+  affine->SetOffset(offset);
+
+  // Create a new euler transform
+  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
+  layer->SetITKTransform(layer->GetReferenceSpace(), affine);
+
+  // Update our parameters
+  this->UpdateManualParametersFromWrapper();
+}
+
+void RegistrationModel::GetMovingTransform(ITKMatrixType &matrix, ITKVectorType &offset)
+{
+  // Get the transform
+  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
+  ImageWrapperBase::ITKTransformType *transform = layer->GetITKTransform();
+
+  // TODO: in the future it might make more sense to stick to a single kind of
+  // transform in the ImageWrapper instead of allowing different transform
+  // classes. Using multiple classes seems pointless.
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformBase;
+  TransformBase *tb = dynamic_cast<TransformBase *>(transform);
+  matrix.SetIdentity();
+  offset.Fill(0.0);
+  if(tb)
+    {
+    matrix = tb->GetMatrix();
+    offset = tb->GetOffset();
+    }
 }
 
 ImageWrapperBase *RegistrationModel::GetMovingLayerWrapper()
@@ -288,8 +311,9 @@ void RegistrationModel::OnUpdate()
     // Check if the active layer is still available
     if(!m_Driver->GetCurrentImageData()->FindLayer(m_MovingLayerId, false, OVERLAY_ROLE))
       {
-      // Is this enough? Do we need to notify
-      m_MovingLayerId = NOID;
+      // Set the moving layer ID to the first available overlay
+      LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(OVERLAY_ROLE);
+      m_MovingLayerId = it.IsAtEnd() ? NOID : it.GetLayer()->GetUniqueId();
       }
     }
 

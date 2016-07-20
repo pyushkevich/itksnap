@@ -303,6 +303,19 @@ GenericSliceModel
   return m_DisplayToImageTransform.TransformPoint(xSlice);
 }
 
+Vector3d GenericSliceModel::MapSliceToImagePhysical(const Vector3f &xSlice)
+{
+  Vector3f xImage = this->MapSliceToImage(xSlice);
+  itk::ContinuousIndex<double, 3> cix = to_itkContinuousIndex(xImage);
+  itk::Point<double, 3> pt;
+
+  this->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
+      ->TransformContinuousIndexToPhysicalPoint(cix, pt);
+
+  Vector3d xPhys = pt.GetVnlVector();
+  return xPhys;
+}
+
 /**
  * Map a point in image coordinates to slice coordinates
  */

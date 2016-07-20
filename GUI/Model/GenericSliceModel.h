@@ -190,6 +190,12 @@ public:
   Vector3f MapSliceToImage(const Vector3f &xSlice);
 
   /**
+   * Map a point in slice coordinates to a point in image physical coordinates
+   * (the ITK LPS coordinate system)
+   */
+  Vector3d MapSliceToImagePhysical(const Vector3f &xSlice);
+
+  /**
    * Map a point in image coordinates to slice coordinates
    */
   Vector3f MapImageToSlice(const Vector3f &xImage);

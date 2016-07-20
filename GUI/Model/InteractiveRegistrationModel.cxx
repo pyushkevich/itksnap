@@ -125,7 +125,11 @@ bool InteractiveRegistrationModel::ProcessPushEvent(const Vector3d &xSlice)
     m_LastTheta = 0;
     return true;
     }
-  return false;
+  else
+    {
+    m_LastDisplacement = 0;
+    return true;
+    }
 }
 
 bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, const Vector3d &xDragStart)
@@ -148,9 +152,6 @@ bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, cons
     // Map the center of rotation into the slice coordinates
     Vector3f rot_ctr_slice = smodel->MapImageToSlice(to_float(rot_ctr_image));
 
-    // Check the distance to the widget
-    double radius = this->GetRotationWidgetRadius() / 2.0;
-
     // Compute the rotation angle
     double dx0 = (xDragStart[0] - rot_ctr_slice[0]) * smodel->GetSliceSpacing()[0];
     double dy0 = (xDragStart[1] - rot_ctr_slice[1]) * smodel->GetSliceSpacing()[1];
@@ -165,6 +166,21 @@ bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, cons
     m_LastTheta = theta;
 
     return true;
+    }
+  else
+    {
+    // Find the physical coordinates of the start and end points of the drag
+    Vector3d xDrag2 = smodel->MapSliceToImagePhysical(to_float(xSlice));
+    Vector3d xDrag1 = smodel->MapSliceToImagePhysical(to_float(xDragStart));
+
+    // Total displacement so far
+    Vector3d xDispTotal = xDrag2 - xDrag1;
+
+    // Apply the delta displacement
+    rmodel->ApplyTranslation(xDispTotal - m_LastDisplacement);
+
+    // Store the displacement
+    m_LastDisplacement = xDispTotal;
     }
 
   return false;
@@ -201,5 +217,12 @@ bool InteractiveRegistrationModel::ProcessMouseMoveEvent(const Vector3d &xSlice)
     }
 
   return true;
+}
+
+bool InteractiveRegistrationModel::ProcessReleaseEvent(const Vector3d &xSlice, const Vector3d &xDragStart)
+{
+  bool status = this->ProcessDragEvent(xSlice, xDragStart);
+  m_LastTheta = 0;
+  return status;
 }
 

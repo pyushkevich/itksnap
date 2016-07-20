@@ -68,6 +68,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
   QStandardItem *itemReg = append_category_item(model->invisibleRootItem(), "Registration Tool");
   append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS, "Registration Widgets");
+  append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_GRID, "Registration Grid Lines");
 
   ui->treeVisualElements->setModel(model);
   ui->treeVisualElements->expandAll();

@@ -55,13 +55,15 @@ public:
   bool ProcessPushEvent(const Vector3d &xSlice);
   bool ProcessDragEvent(const Vector3d &xSlice, const Vector3d &xDragStart);
   bool ProcessMouseMoveEvent(const Vector3d &xSlice);
-  bool ProcessReleaseEvent(const Vector3d &xSlice);
+  bool ProcessReleaseEvent(const Vector3d &xSlice, const Vector3d &xDragStart);
 
   double GetRotationWidgetRadius();
 
   void RotateByTheta(double theta);
 
   irisIsMacro(HoveringOverRotationWidget)
+
+  irisGetMacro(LastTheta, double)
 
 
 protected:
@@ -80,6 +82,9 @@ protected:
 
   // During dragging, this stores the last theta rotation applied
   double m_LastTheta;
+
+  // The last displacement vector
+  Vector3d m_LastDisplacement;
 };
 
 #endif // INTERACTIVEREGISTRATIONMODEL_H

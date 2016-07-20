@@ -85,7 +85,7 @@ void RegistrationInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 {
   if(this->isDragging())
     {
-    if(m_Model->ProcessDragEvent(m_XSlice, m_LastPressXSlice))
+    if(m_Model->ProcessReleaseEvent(m_XSlice, m_LastPressXSlice))
       ev->accept();
     }
 }

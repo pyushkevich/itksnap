@@ -216,6 +216,15 @@ SNAPAppearanceSettings
   elt->SetVisible(true);
   elt->SetAlphaBlending(true);
 
+  // Registration widget
+  elt = m_DefaultElementSettings[REGISTRATION_GRID];
+  elt->SetNormalColor(Vector3d(0.8, 0.8, 0.8));
+  elt->SetActiveColor(Vector3d(1.0, 1.0, 1.0));
+  elt->SetLineThickness(0.5);
+  elt->SetDashSpacing(0.0);
+  elt->SetFontSize(0);
+  elt->SetVisible(true);
+  elt->SetAlphaBlending(true);
 }
 
 const char *
@@ -225,7 +234,7 @@ SNAPAppearanceSettings
     "ZOOM_THUMBNAIL", "CROSSHAIRS_3D", "CROSSHAIRS_THUMB", "IMAGE_BOX_3D",
     "ROI_BOX_3D", "RULER", "PAINTBRUSH_OUTLINE", 
     "POLY_DRAW_MAIN", "POLY_DRAW_CLOSE", "POLY_EDIT",
-    "REGISTRATION_WIDGETS"};
+    "REGISTRATION_WIDGETS", "REGISTRATION_GRID"};
 
 SNAPAppearanceSettings
 ::SNAPAppearanceSettings()

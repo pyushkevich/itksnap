@@ -16,6 +16,29 @@ RegistrationRenderer::~RegistrationRenderer()
 
 }
 
+void RegistrationRenderer::DrawRotationWidget()
+{
+  // Draw the main line
+  glBegin(GL_LINE_LOOP);
+  for(int i = 0; i < 360; i++)
+    {
+    double alpha = i * vnl_math::pi / 180;
+    glVertex2d(cos(alpha), sin(alpha));
+    }
+  glEnd();
+
+  // Draw the hash marks at 5 degree intervals
+  glBegin(GL_LINES);
+  for(int i = 0; i < 360; i+=5)
+    {
+    double alpha = i * vnl_math::pi / 180;
+    double x = cos(alpha), y = sin(alpha);
+    glVertex2d(0.95 * x, 0.95 * y);
+    glVertex2d(1.05 * x, 1.05 * y);
+    }
+  glEnd();
+}
+
 void RegistrationRenderer::paintGL()
 {
   assert(m_Model);
@@ -38,6 +61,10 @@ void RegistrationRenderer::paintGL()
   OpenGLAppearanceElement *eltWidgets =
     as->GetUIElement(SNAPAppearanceSettings::REGISTRATION_WIDGETS);
 
+  // Get the registration grid lines
+  OpenGLAppearanceElement *eltGrid =
+    as->GetUIElement(SNAPAppearanceSettings::REGISTRATION_GRID);
+
   // TODO: it would be nice to only draw the rotation widget when rendering the moving
   // image layer and none of the other layers. But for now we draw this in every tile
 
@@ -53,6 +80,38 @@ void RegistrationRenderer::paintGL()
   // Map the center of rotation into the slice coordinates
   Vector3f rot_ctr_slice = smodel->MapImageToSlice(to_float(rot_ctr_image));
 
+  // How to draw the registration grid? Should it just be every 5 voxels?
+  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+  glPushMatrix();
+  glLoadIdentity();
+
+  // Apply the grid settings
+  eltGrid->ApplyLineSettings();
+  glColor3dv(eltGrid->GetNormalColor().data_block());
+
+  // Draw gridlines at regular intervals (this is dumb)
+  Vector2ui canvas = smodel->GetCanvasSize();
+
+  int spacing = 16 * smodel->GetSizeReporter()->GetViewportPixelRatio();
+
+  glBegin(GL_LINES);
+  for(int i = 0; i <= canvas[0]; i+=spacing)
+    {
+    glVertex2i(i, 0);
+    glVertex2i(i, canvas[1]);
+    }
+
+  for(int i = 0; i <= canvas[1]; i+=spacing)
+    {
+    glVertex2i(0, i);
+    glVertex2i(canvas[0], i);
+    }
+
+  glEnd();
+  glPopMatrix();
+  glPopAttrib();
+
+
   // Set line properties
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
   glPushMatrix();
@@ -65,32 +124,30 @@ void RegistrationRenderer::paintGL()
   glScaled(0.5 * radius / smodel->GetSliceSpacing()[0], 0.5 * radius / smodel->GetSliceSpacing()[1], 1.0);
 
   // Draw a white circle
-  if(m_Model->IsHoveringOverRotationWidget())
-    glColor3dv(eltWidgets->GetActiveColor().data_block());
-  else
-    glColor3dv(eltWidgets->GetNormalColor().data_block());
   eltWidgets->ApplyLineSettings();
 
-  // Draw the main line
-  glBegin(GL_LINE_LOOP);
-  for(int i = 0; i < 360; i++)
+  if(m_Model->IsHoveringOverRotationWidget())
     {
-    double alpha = i * vnl_math::pi / 180;
-    glVertex2d(cos(alpha), sin(alpha));
-    }
-  glEnd();
+    if(m_Model->GetLastTheta() != 0.0)
+      {
+      glColor3dv(eltWidgets->GetNormalColor().data_block());
+      this->DrawRotationWidget();
 
-  // Draw the hash marks at 5 degree intervals
-  glBegin(GL_LINES);
-  for(int i = 0; i < 360; i+=5)
+      glColor3dv(eltWidgets->GetActiveColor().data_block());
+      glRotated(m_Model->GetLastTheta() * 180 / vnl_math::pi, 0.0, 0.0, 1.0);
+      this->DrawRotationWidget();
+      }
+    else
+      {
+      glColor3dv(eltWidgets->GetActiveColor().data_block());
+      this->DrawRotationWidget();
+      }
+    }
+  else
     {
-    double alpha = i * vnl_math::pi / 180;
-    double x = cos(alpha), y = sin(alpha);
-    glVertex2d(0.95 * x, 0.95 * y);
-    glVertex2d(1.05 * x, 1.05 * y);
+    glColor3dv(eltWidgets->GetNormalColor().data_block());
+    this->DrawRotationWidget();
     }
-  glEnd();
-
 
   glPopMatrix();
   glPopAttrib();
