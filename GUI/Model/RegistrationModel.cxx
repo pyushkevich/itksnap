@@ -339,7 +339,13 @@ void RegistrationModel::SetCenterOfRotationToCursor()
 
 void RegistrationModel::ResetTransformToIdentity()
 {
+  ITKMatrixType matrix;
+  ITKVectorType offset;
 
+  matrix.SetIdentity();
+  offset.Fill(0.0);
+
+  this->SetMovingTransform(matrix, offset);
 }
 
 
