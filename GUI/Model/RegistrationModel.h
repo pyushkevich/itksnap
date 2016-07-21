@@ -3,16 +3,12 @@
 
 #include "AbstractModel.h"
 #include "PropertyModel.h"
+#include "itkMatrix.h"
+#include "itkVector.h"
 
 class GlobalUIModel;
 class IRISApplication;
 class ImageWrapperBase;
-
-namespace itk
-{
-  template<typename T, unsigned int D1, unsigned int D2> class Matrix;
-  template<typename T, unsigned int D1> class Vector;
-}
 
 class RegistrationModel : public AbstractModel
 {
@@ -83,7 +79,12 @@ protected:
 
   void ResetOnMainImageChange();
 
+  // This method is used to updated the cached matrix/offset and the parameters such
+  // as Euler angles from the information in the moving image wrapper
   void UpdateManualParametersFromWrapper(bool force_update = false);
+
+  // This method is called to recompute the transform in the moving image wrapper from
+  // parameters including scaling, euler angles, and translation
   void UpdateWrapperFromManualParameters();
 
   void SetRotationCenter(const Vector3ui &pos);
@@ -119,11 +120,21 @@ protected:
   // The components of the transform that are presented to the user by this widget
   struct TransformManualParameters
   {
+    // The affine matrix/offset from which the parameters were generated
+    ITKMatrixType AffineMatrix;
+    ITKVectorType AffineOffset;
+
     // Euler angles
     Vector3d EulerAngles;
 
     // Translation
     Vector3d Translation;
+
+    // Scaling
+    Vector3d Scaling;
+
+    // Shearing
+    vnl_matrix_fixed<double, 3, 3> ShearingMatrix;
 
     // Range of translation
     NumericValueRange<Vector3d> TranslationRange;

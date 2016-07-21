@@ -81,8 +81,7 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
     return;
 
   // Get the current transform
-  ITKMatrixType matrix; ITKVectorType offset;
-  this->GetMovingTransform(matrix, offset);
+  this->GetMovingTransform(m_ManualParam.AffineMatrix, m_ManualParam.AffineOffset);
 
   // Decompose the transform into relevant parts
   // first, there is the polar decomposition
@@ -91,10 +90,9 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
   //     = RS(x - c) + RSc + b
 
   // Perform polar decomposition
-  vnl_svd<double> svd(matrix.GetVnlMatrix());
+  vnl_svd<double> svd(m_ManualParam.AffineMatrix.GetVnlMatrix());
 
   ITKMatrixType rotation = svd.U() * svd.V().transpose();
-  ITKMatrixType shear = svd.V() * svd.W() * svd.V().transpose();
 
   // Get the rotation center in world coordinates
   itk::Point<double, 3> ptCenter;
@@ -106,7 +104,7 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
   EulerTransform::Pointer euler = EulerTransform::New();
   euler->SetCenter(ptCenter);
   euler->SetMatrix(rotation);
-  euler->SetOffset(offset);
+  euler->SetOffset(m_ManualParam.AffineOffset);
 
   m_ManualParam.EulerAngles[0] = euler->GetAngleX();
   m_ManualParam.EulerAngles[1] = euler->GetAngleY();
@@ -115,6 +113,16 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
   m_ManualParam.Translation[0] = euler->GetTranslation()[0];
   m_ManualParam.Translation[1] = euler->GetTranslation()[1];
   m_ManualParam.Translation[2] = euler->GetTranslation()[2];
+
+  // The scaling factors are the diagonal entries of the W matrix
+  m_ManualParam.Scaling[0] = svd.W()(0,0);
+  m_ManualParam.Scaling[1] = svd.W()(1,1);
+  m_ManualParam.Scaling[2] = svd.W()(2,2);
+
+  // The shearing rotation matrix can be represented as Euler angles or quaternion
+  // or whatever, but since we never present these parameters to the user, it is easier
+  // to just cache it in matrix format
+  m_ManualParam.ShearingMatrix = svd.V();
 
   // Compute the range of the translation. This is based on the bounding box
   // that contains both images in their native space
@@ -163,6 +171,27 @@ void RegistrationModel::UpdateWrapperFromManualParameters()
   translation.SetVnlVector(m_ManualParam.Translation);
   euler->SetTranslation(translation);
 
+
+  // Compute the scaling and shearing matrix
+  vnl_matrix_fixed<double, 3, 3> scaling;
+  scaling.fill(0.0);
+  scaling.set_diagonal(m_ManualParam.Scaling);
+
+  vnl_matrix_fixed<double, 3, 3> scale_shear =
+      m_ManualParam.ShearingMatrix * scaling * m_ManualParam.ShearingMatrix.transpose();
+
+  m_ManualParam.AffineMatrix = euler->GetMatrix().GetVnlMatrix(); // * scale_shear;
+  m_ManualParam.AffineOffset = euler->GetOffset();
+
+  // Create a new transform
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
+  AffineTransform::Pointer affine = AffineTransform::New();
+
+  // Set the matrix of the new transform y = R ( A x + b ) + z
+  affine->SetMatrix(m_ManualParam.AffineMatrix);
+  affine->SetOffset(m_ManualParam.AffineOffset);
+
+  // Update the layer's transform
   layer->SetITKTransform(layer->GetReferenceSpace(), euler);
 
   // Update the state of the cache
@@ -189,14 +218,10 @@ void RegistrationModel::ApplyRotation(const Vector3d &axis, double theta)
   rotation->SetRotation(quat);
   rotation->SetCenter(ptCenter);
 
-  // Get the current transform
-  ITKMatrixType matrix; ITKVectorType offset;
-  this->GetMovingTransform(matrix, offset);
-
   // Update the transform
   this->SetMovingTransform(
-        rotation->GetMatrix() * matrix,
-        rotation->GetMatrix() * offset + rotation->GetOffset());
+        rotation->GetMatrix() * m_ManualParam.AffineMatrix,
+        rotation->GetMatrix() * m_ManualParam.AffineOffset + rotation->GetOffset());
 }
 
 void RegistrationModel::ApplyTranslation(const Vector3d &tran)
