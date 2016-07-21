@@ -216,12 +216,21 @@ void RegistrationModel::ApplyRotation(const Vector3d &axis, double theta)
         to_itkIndex(m_RotationCenter), ptCenter);
 
   rotation->SetRotation(quat);
-  rotation->SetCenter(ptCenter);
+
+  // Figure out the center of rotation. The center of rotation should be preserved by
+  // the rotation, i.e. A * ptCenter + b = R(A * ptCenter + b) + \beta
+  vnl_matrix_fixed<double, 3, 3> A = m_ManualParam.AffineMatrix.GetVnlMatrix();
+  vnl_matrix_fixed<double, 3, 3> R = rotation->GetMatrix().GetVnlMatrix();
+  vnl_vector_fixed<double, 3> b = m_ManualParam.AffineOffset.GetVnlVector();
+  vnl_vector_fixed<double, 3> C = ptCenter.GetVnlVector();
+
+  m_ManualParam.AffineMatrix = A * R;
+  m_ManualParam.AffineOffset.SetVnlVector(A * C + b - A * (R * C));
 
   // Update the transform
   this->SetMovingTransform(
-        rotation->GetMatrix() * m_ManualParam.AffineMatrix,
-        rotation->GetMatrix() * m_ManualParam.AffineOffset + rotation->GetOffset());
+        m_ManualParam.AffineMatrix,
+        m_ManualParam.AffineOffset);
 }
 
 void RegistrationModel::ApplyTranslation(const Vector3d &tran)
@@ -234,7 +243,7 @@ void RegistrationModel::ApplyTranslation(const Vector3d &tran)
   this->GetMovingTransform(matrix, offset);
 
   // Add the translation to the offset
-  offset.SetVnlVector(offset.GetVnlVector() - tran);
+  offset.SetVnlVector(offset.GetVnlVector() - matrix.GetVnlMatrix() * tran);
 
   // Update the offset
   this->SetMovingTransform(matrix, offset);
