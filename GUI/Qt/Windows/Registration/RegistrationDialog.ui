@@ -89,14 +89,65 @@ QToolButton::pressed {
    <item row="3" column="0" colspan="2">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
-     <widget class="QWidget" name="tabWidgetPage1">
+     <widget class="QWidget" name="pgAuto">
       <attribute name="title">
        <string>Automatic</string>
       </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="leftMargin">
+        <number>4</number>
+       </property>
+       <property name="rightMargin">
+        <number>4</number>
+       </property>
+       <property name="bottomMargin">
+        <number>4</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label_2">
+         <property name="text">
+          <string>Transformation model:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="inTransformation"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Image similarity metric:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="inSimilarityMetric"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnRunRegistration">
+         <property name="text">
+          <string>Run Registration</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
      </widget>
-     <widget class="QWidget" name="tabWidgetPage2">
+     <widget class="QWidget" name="pgManual">
       <attribute name="title">
        <string>Manual</string>
       </attribute>
@@ -303,7 +354,7 @@ QToolButton::pressed {
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="grpTranslation_2">
+        <widget class="QGroupBox" name="grpScaling">
          <property name="title">
           <string>Scaling:</string>
          </property>

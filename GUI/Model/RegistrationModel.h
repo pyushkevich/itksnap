@@ -24,6 +24,12 @@ public:
     UIF_MOVING_SELECTED
   };
 
+  /** Allowed transformation models - to be expanded in the future */
+  enum Transformation { RIGID = 0, AFFINE, INVALID_MODE };
+
+  /** Image similarity metrics */
+  enum SimilarityMetric { NMI = 0, NCC, SSD, INVALID_METRIC };
+
   /**
     Check the state flags above
     */
@@ -43,8 +49,14 @@ public:
   /** Euler angles */
   irisGetMacro(EulerAnglesModel, AbstractRangedDoubleVec3Property *)
 
-  /** Euler angles */
+  /** Translation */
   irisGetMacro(TranslationModel, AbstractRangedDoubleVec3Property *)
+
+  /** Scaling factor */
+  irisGetMacro(ScalingModel, AbstractRangedDoubleVec3Property *)
+
+  /** Logarithm of the scaling factor - for the slider */
+  irisGetMacro(LogScalingModel, AbstractRangedDoubleVec3Property *)
 
   /** Interactive registration tool button */
   irisGetMacro(InteractiveToolModel, AbstractSimpleBooleanProperty *)
@@ -66,6 +78,17 @@ public:
 
   /** Get the center of rotation, in voxel units of the main image */
   irisGetMacro(RotationCenter, Vector3ui)
+
+  // Automatic registration parameter domains
+  typedef SimpleItemSetDomain<Transformation, std::string> TransformationDomain;
+  typedef SimpleItemSetDomain<SimilarityMetric, std::string> SimilarityMetricDomain;
+
+  // Access to registration models
+  irisGenericPropertyAccessMacro(Transformation, Transformation, TransformationDomain)
+  irisGenericPropertyAccessMacro(SimilarityMetric, SimilarityMetric, SimilarityMetricDomain)
+
+  void RunAutoRegistration();
+
 
 protected:
   RegistrationModel();
@@ -110,6 +133,21 @@ protected:
   SmartPtr<AbstractRangedDoubleVec3Property> m_TranslationModel;
   bool GetTranslationValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *range);
   void SetTranslationValue(Vector3d value);
+
+  SmartPtr<AbstractRangedDoubleVec3Property> m_ScalingModel;
+  bool GetScalingValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *range);
+  void SetScalingValue(Vector3d value);
+
+  SmartPtr<AbstractRangedDoubleVec3Property> m_LogScalingModel;
+  bool GetLogScalingValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *range);
+  void SetLogScalingValue(Vector3d value);
+
+  typedef ConcretePropertyModel<Transformation, TransformationDomain> TransformationModel;
+  SmartPtr<TransformationModel> m_TransformationModel;
+
+  typedef ConcretePropertyModel<SimilarityMetric, SimilarityMetricDomain> SimilarityMetricModel;
+  SmartPtr<SimilarityMetricModel> m_SimilarityMetricModel;
+
 
   // Value corresponding to no layer selected
   static const unsigned long NOID;

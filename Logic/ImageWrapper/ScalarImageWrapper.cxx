@@ -232,6 +232,71 @@ ScalarImageWrapper<TTraits, TBase>::CreateCastToDoublePipeline() const
   return output;
 }
 
+template<class TWrappedFunctor>
+class ScalarToVectorFunctor
+{
+public:
+  typedef ScalarToVectorFunctor<TWrappedFunctor> Self;
+  typedef itk::VariableLengthVector<double> VectorType;
+
+  void SetFunctor(const TWrappedFunctor &f) { m_Functor = f; }
+  const TWrappedFunctor &GetFunctor() const { return m_Functor; }
+
+  bool operator != (const Self &other) const { return m_Functor != other.m_Functor; }
+
+  VectorType operator() (double value)
+  {
+    VectorType v(1);
+    v[0] = m_Functor(value);
+    return v;
+  }
+
+protected:
+  TWrappedFunctor m_Functor;
+};
+
+template<class TTraits, class TBase>
+SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::FloatVectorImageSource>
+ScalarImageWrapper<TTraits, TBase>::CreateCastToFloatVectorPipeline() const
+{
+  // The kind of mini-pipeline that is created here depends on whether the
+  // internal image is a floating point image or not, and whether the native
+  // to intensity mapping is identity or not. We use template specialization to
+  // select the right behavior
+  typedef ScalarToVectorFunctor<NativeIntensityMapping> FunctorType;
+  typedef itk::UnaryFunctorImageFilter<ImageType, FloatVectorImageType, FunctorType> FilterType;
+  SmartPtr<FilterType> filter = FilterType::New();
+  filter->SetInput(this->m_Image);
+
+  // TODO: this is messy because it results in an allocation of vectors - inefficient
+  FunctorType vfunctor;
+  vfunctor.SetFunctor(this->m_NativeMapping);
+  filter->SetFunctor(vfunctor);
+
+  SmartPtr<FloatVectorImageSource> output = filter.GetPointer();
+  return output;
+}
+
+template<class TTraits, class TBase>
+SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::DoubleVectorImageSource>
+ScalarImageWrapper<TTraits, TBase>::CreateCastToDoubleVectorPipeline() const
+{
+  // The kind of mini-pipeline that is created here depends on whether the
+  // internal image is a floating point image or not, and whether the native
+  // to intensity mapping is identity or not. We use template specialization to
+  // select the right behavior
+  typedef ScalarToVectorFunctor<NativeIntensityMapping> FunctorType;
+  typedef itk::UnaryFunctorImageFilter<ImageType, DoubleVectorImageType, FunctorType> FilterType;
+  SmartPtr<FilterType> filter = FilterType::New();
+  filter->SetInput(this->m_Image);
+
+  FunctorType vfunctor;
+  vfunctor.SetFunctor(this->m_NativeMapping);
+  filter->SetFunctor(vfunctor);
+
+  SmartPtr<DoubleVectorImageSource> output = filter.GetPointer();
+  return output;
+}
 
 template<class TTraits, class TBase>
 double 

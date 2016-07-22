@@ -947,12 +947,18 @@ SET(SNAP_SYSTEM_LIBS
   ${SYSTEM_LIBS}
 )
 
+# TODO: this is temporary until we integrate greedy into the source tree
+FIND_LIBRARY(GREEDY_LIB greedyapi)
+FIND_PATH(GREEDY_INCLUDE_DIR GreedyAPI.h)
+INCLUDE_DIRECTORIES(${GREEDY_INCLUDE_DIR})
+
 # Designate the external libraries used by SNAP
 SET(SNAP_EXTERNAL_LIBS 
   ${SNAP_C3D_LIBS}
   ${SNAP_ITK_LIBS} 
   ${SNAP_VTK_LIBS} 
   ${SNAP_SYSTEM_LIBS}
+  ${GREEDY_LIB}
 )
 
 #--------------------------------------------------------------------------------

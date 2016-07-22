@@ -57,28 +57,9 @@ void RegistrationRenderer::paintGL()
   SNAPAppearanceSettings *as =
       smodel->GetParentUI()->GetAppearanceSettings();
 
-  // Get the line color, thickness and dash spacing for the rotation widget
-  OpenGLAppearanceElement *eltWidgets =
-    as->GetUIElement(SNAPAppearanceSettings::REGISTRATION_WIDGETS);
-
   // Get the registration grid lines
   OpenGLAppearanceElement *eltGrid =
     as->GetUIElement(SNAPAppearanceSettings::REGISTRATION_GRID);
-
-  // TODO: it would be nice to only draw the rotation widget when rendering the moving
-  // image layer and none of the other layers. But for now we draw this in every tile
-
-  // The rotation widget is a circular arc that is drawn around the center of rotation
-  // The radius of the arc is chosen so that there is maximum overlap between the arc
-  // and the screen area, minus a margin. For now though, we compute the radius in a
-  // very heuristic way
-  double radius = m_Model->GetRotationWidgetRadius();
-
-  // Get the center of rotation
-  Vector3ui rot_ctr_image = rmodel->GetRotationCenter();
-
-  // Map the center of rotation into the slice coordinates
-  Vector3f rot_ctr_slice = smodel->MapImageToSlice(to_float(rot_ctr_image));
 
   // How to draw the registration grid? Should it just be every 5 voxels?
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
@@ -111,45 +92,67 @@ void RegistrationRenderer::paintGL()
   glPopMatrix();
   glPopAttrib();
 
-
-  // Set line properties
-  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-  glPushMatrix();
-
-  // The matrix is configured in the slice coordinate system. However, to draw the
-  // circle, we should be in a coordinate system where the origin is the center of
-  // rotation,
-
-  glTranslated(rot_ctr_slice[0], rot_ctr_slice[1], 0.0);
-  glScaled(0.5 * radius / smodel->GetSliceSpacing()[0], 0.5 * radius / smodel->GetSliceSpacing()[1], 1.0);
-
-  // Draw a white circle
-  eltWidgets->ApplyLineSettings();
-
-  if(m_Model->IsHoveringOverRotationWidget())
+  // Should we draw the widget? Yes, if we are in tiled mode and are viewing the moving layer,
+  // and yes if we are in non-tiled mode.
+  if(!smodel->IsTiling() ||
+     this->m_ParentRenderer->GetDrawingViewport()->layer_id ==
+     rmodel->GetMovingLayerWrapper()->GetUniqueId())
     {
-    if(m_Model->GetLastTheta() != 0.0)
-      {
-      glColor3dv(eltWidgets->GetNormalColor().data_block());
-      this->DrawRotationWidget();
+    // Get the line color, thickness and dash spacing for the rotation widget
+    OpenGLAppearanceElement *eltWidgets =
+      as->GetUIElement(SNAPAppearanceSettings::REGISTRATION_WIDGETS);
 
-      glColor3dv(eltWidgets->GetActiveColor().data_block());
-      glRotated(m_Model->GetLastTheta() * 180 / vnl_math::pi, 0.0, 0.0, 1.0);
-      this->DrawRotationWidget();
+    // The rotation widget is a circular arc that is drawn around the center of rotation
+    // The radius of the arc is chosen so that there is maximum overlap between the arc
+    // and the screen area, minus a margin. For now though, we compute the radius in a
+    // very heuristic way
+    double radius = m_Model->GetRotationWidgetRadius();
+
+    // Get the center of rotation
+    Vector3ui rot_ctr_image = rmodel->GetRotationCenter();
+
+    // Map the center of rotation into the slice coordinates
+    Vector3f rot_ctr_slice = smodel->MapImageToSlice(to_float(rot_ctr_image));
+
+    // Set line properties
+    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+    glPushMatrix();
+
+    // The matrix is configured in the slice coordinate system. However, to draw the
+    // circle, we should be in a coordinate system where the origin is the center of
+    // rotation,
+
+    glTranslated(rot_ctr_slice[0], rot_ctr_slice[1], 0.0);
+    glScaled(0.5 * radius / smodel->GetSliceSpacing()[0], 0.5 * radius / smodel->GetSliceSpacing()[1], 1.0);
+
+    // Draw a white circle
+    eltWidgets->ApplyLineSettings();
+
+    if(m_Model->IsHoveringOverRotationWidget())
+      {
+      if(m_Model->GetLastTheta() != 0.0)
+        {
+        glColor3dv(eltWidgets->GetNormalColor().data_block());
+        this->DrawRotationWidget();
+
+        glColor3dv(eltWidgets->GetActiveColor().data_block());
+        glRotated(m_Model->GetLastTheta() * 180 / vnl_math::pi, 0.0, 0.0, 1.0);
+        this->DrawRotationWidget();
+        }
+      else
+        {
+        glColor3dv(eltWidgets->GetActiveColor().data_block());
+        this->DrawRotationWidget();
+        }
       }
     else
       {
-      glColor3dv(eltWidgets->GetActiveColor().data_block());
+      glColor3dv(eltWidgets->GetNormalColor().data_block());
       this->DrawRotationWidget();
       }
-    }
-  else
-    {
-    glColor3dv(eltWidgets->GetNormalColor().data_block());
-    this->DrawRotationWidget();
-    }
 
-  glPopMatrix();
-  glPopAttrib();
+    glPopMatrix();
+    glPopAttrib();
+    }
 }
 

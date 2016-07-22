@@ -44,6 +44,7 @@ GenericSliceRenderer
 {
   this->m_DrawingZoomThumbnail = false;
   this->m_DrawingLayerThumbnail = false;
+  this->m_DrawingViewportIndex = -1;
 }
 
 void
@@ -186,6 +187,9 @@ GenericSliceRenderer
         // Set the thumbnail flag
         m_DrawingLayerThumbnail = vp.isThumbnail;
 
+        // Set the current vp index
+        m_DrawingViewportIndex = k;
+
         // We don't want to draw segmentation over the speed image and other
         // SNAP-mode layers.
         this->DrawSegmentationTexture();
@@ -291,8 +295,9 @@ GenericSliceRenderer
         }
       }
 
-    // No longer drawing thumbnails
+    // No longer drawing thumbnails or viewports
     m_DrawingLayerThumbnail = false;
+    m_DrawingViewportIndex = -1;
 
     // Set the viewport and projection to original dimensions
     glViewport(0, 0, vp_full[0], vp_full[1]);
@@ -330,6 +335,17 @@ GenericSliceRenderer
 
   // Display!
   glFlush();
+}
+
+const GenericSliceRenderer::ViewportType *
+GenericSliceRenderer
+::GetDrawingViewport() const
+{
+  if(m_DrawingViewportIndex < 0)
+    return NULL;
+  else
+    return &m_Model->GetViewportLayout().vpList[m_DrawingViewportIndex];
+
 }
 
 void

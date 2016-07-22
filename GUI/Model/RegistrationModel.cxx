@@ -35,7 +35,33 @@ RegistrationModel::RegistrationModel()
         &Self::GetTranslationValueAndRange,
         &Self::SetTranslationValue);
 
+  m_ScalingModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetScalingValueAndRange,
+        &Self::SetScalingValue);
+
+  m_LogScalingModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetLogScalingValueAndRange,
+        &Self::SetLogScalingValue);
+
   m_RotationCenter = Vector3ui(0, 0, 0);
+
+  // Set up the automatic registration parameters
+
+  // Registration mode
+  // TODO: add the other modes
+  TransformationDomain transform_domain;
+  transform_domain[RIGID] = "Rigid";
+  transform_domain[AFFINE] = "Affine";
+  m_TransformationModel = NewConcreteProperty(RIGID, transform_domain);
+
+  // Registration metric
+  SimilarityMetricDomain metric_domain;
+  metric_domain[NMI] = "Normalized mutual information";
+  metric_domain[NCC] = "Normalized cross-correlation";
+  metric_domain[SSD] = "Squared intensity difference";
+  m_SimilarityMetricModel = NewConcreteProperty(NMI, metric_domain);
 
   // Initialize the moving layer ID to be -1
   m_MovingLayerId = NOID;
@@ -180,7 +206,7 @@ void RegistrationModel::UpdateWrapperFromManualParameters()
   vnl_matrix_fixed<double, 3, 3> scale_shear =
       m_ManualParam.ShearingMatrix * scaling * m_ManualParam.ShearingMatrix.transpose();
 
-  m_ManualParam.AffineMatrix = euler->GetMatrix().GetVnlMatrix(); // * scale_shear;
+  m_ManualParam.AffineMatrix = euler->GetMatrix().GetVnlMatrix() * scale_shear;
   m_ManualParam.AffineOffset = euler->GetOffset();
 
   // Create a new transform
@@ -192,7 +218,7 @@ void RegistrationModel::UpdateWrapperFromManualParameters()
   affine->SetOffset(m_ManualParam.AffineOffset);
 
   // Update the layer's transform
-  layer->SetITKTransform(layer->GetReferenceSpace(), euler);
+  layer->SetITKTransform(layer->GetReferenceSpace(), affine);
 
   // Update the state of the cache
   m_ManualParam.LayerID = m_MovingLayerId;
@@ -301,6 +327,95 @@ ImageWrapperBase *RegistrationModel::GetMovingLayerWrapper()
     return NULL;
 
   return m_Driver->GetCurrentImageData()->FindLayer(m_MovingLayerId, false, OVERLAY_ROLE);
+}
+
+#include "GreedyAPI.h"
+void RegistrationModel::RunAutoRegistration()
+{
+  // Obtain the fixed and moving images.
+  ImageWrapperBase *fixed = this->GetParent()->GetDriver()->GetCurrentImageData()->GetMain();
+  ImageWrapperBase *moving = this->GetMovingLayerWrapper();
+
+  // TODO: for now, we are not supporting vector image registration, only registration between
+  // scalar components; and we use the default scalar component.
+  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castFixed =
+      fixed->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
+  castFixed->UpdateOutputInformation();
+
+  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castMoving =
+      moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
+  castMoving->UpdateOutputInformation();
+
+  // Set up the parameters for greedy registration
+  GreedyParameters param;
+  GreedyParameters::SetToDefaults(param);
+
+  // Create an API object
+  typedef GreedyApproach<3, float> API;
+  API api;
+
+  // Configure the fixed and moving images
+  ImagePairSpec ip;
+  ip.weight = 1.0;
+  ip.fixed = "FIXED_IMAGE";
+  ip.moving = "MOVING_IMAGE";
+  param.inputs.push_back(ip);
+
+  // Pass the actual images to the cache
+  api.AddCachedInputObject(ip.fixed, castFixed->GetOutput());
+  api.AddCachedInputObject(ip.moving, castMoving->GetOutput());
+
+  // Pass the output filename
+  param.output = "result.mat";
+
+  // Set up the metric
+  switch(m_SimilarityMetricModel->GetValue())
+    {
+    case NCC:
+      param.metric = GreedyParameters::NCC;
+      param.metric_radius = std::vector<int>(3, 4);
+      break;
+    case NMI:
+      param.metric = GreedyParameters::NMI;
+      break;
+    default:
+      param.metric = GreedyParameters::SSD;
+      break;
+    };
+
+  // Set up the degrees of freedom
+  if(m_TransformationModel->GetValue() == RIGID)
+    param.affine_dof = GreedyParameters::DOF_RIGID;
+  else
+    param.affine_dof = GreedyParameters::DOF_AFFINE;
+
+  // TODO: how to specify iterations per level?
+  param.iter_per_level.clear();
+  param.iter_per_level.push_back(100);
+  param.iter_per_level.push_back(100);
+  param.iter_per_level.push_back(0);
+  param.iter_per_level.push_back(0);
+
+  // Create a transform spec
+  param.affine_init_mode = RAS_FILENAME;
+  param.affine_init_transform.filename = "INPUT_TRANSFORM";
+  param.affine_init_transform.exponent = 1;
+
+  // Pass the input transformation object to the cache
+  ITKMatrixType matrix; ITKVectorType offset;
+  this->GetMovingTransform(matrix, offset);
+
+  // Unfortunately, we have to cast to float, argh!
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformType;
+  TransformType::Pointer tran = TransformType::New();
+  tran->SetMatrix(matrix);
+  tran->SetOffset(offset);
+
+  // Finally pass the float transform to the API
+  api.AddCachedInputObject(param.affine_init_transform.filename, tran);
+
+  // Run the registration
+  api.RunAffine(param);
 }
 
 bool RegistrationModel::CheckState(RegistrationModel::UIState state)
@@ -486,4 +601,59 @@ void RegistrationModel::SetTranslationValue(Vector3d value)
   // Update the transform
   this->UpdateWrapperFromManualParameters();
 }
+
+bool RegistrationModel::GetScalingValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *range)
+{
+  // Make sure that the manual parameters are valid
+  if(m_ManualParam.LayerID == NOID)
+    return false;
+
+  // Assign the value trivially
+  value = m_ManualParam.Scaling;
+
+  // Handle the range
+  if(range)
+    {
+    range->Set(Vector3d(0.01, 0.01, 0.01), Vector3d(100.0, 100.0, 100.0), Vector3d(0.01, 0.01, 0.01));
+    }
+  return true;
+}
+
+void RegistrationModel::SetScalingValue(Vector3d value)
+{
+  // Update the translation vector
+  m_ManualParam.Scaling = value;
+
+  // Update the transform
+  this->UpdateWrapperFromManualParameters();
+}
+
+bool RegistrationModel::GetLogScalingValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *range)
+{
+  // Make sure that the manual parameters are valid
+  if(m_ManualParam.LayerID == NOID)
+    return false;
+
+  // Assign the value trivially
+  for(int i = 0; i < 3; i++)
+    value[i] = log10(m_ManualParam.Scaling[i]);
+
+  // Handle the range
+  if(range)
+    {
+    range->Set(Vector3d(-1., -1., -1.), Vector3d(1., 1., 1.), Vector3d(0.01, 0.01, 0.01));
+    }
+  return true;
+}
+
+void RegistrationModel::SetLogScalingValue(Vector3d value)
+{
+  // Update the translation vector
+  for(int i = 0; i < 3; i++)
+    m_ManualParam.Scaling[i] = pow(10.0, value[i]);
+
+  // Update the transform
+  this->UpdateWrapperFromManualParameters();
+}
+
 

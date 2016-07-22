@@ -299,6 +299,11 @@ public:
    */
   Vector2ui GetCanvasSize();
 
+  /**
+   * Whether rendering in tiled mode
+   */
+  bool IsTiling() const;
+
   /** Has the slice model been initialized with image data? */
   irisIsMacro(SliceInitialized)
 

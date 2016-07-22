@@ -672,6 +672,11 @@ Vector2ui GenericSliceModel::GetCanvasSize()
   return m_ViewportLayout.vpList.front().size;
 }
 
+bool GenericSliceModel::IsTiling() const
+{
+  return m_Driver->GetGlobalState()->GetSliceViewLayerLayout() == LAYOUT_TILED;
+}
+
 void GenericSliceModel::GetNonThumbnailViewport(Vector2ui &pos, Vector2ui &size)
 {
   // Initialize to the entire view

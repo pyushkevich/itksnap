@@ -70,6 +70,16 @@ public:
   /** This flag is on while the layer thumbnail is being painted */
   irisIsMacro(DrawingLayerThumbnail)
 
+  // Viewport object
+  typedef SliceViewportLayout::SubViewport ViewportType;
+
+  /**
+   * Get a pointer to the viewport that is currently being drawn, or
+   * NULL if a viewport is not being drawn
+   */
+  const ViewportType *GetDrawingViewport() const;
+
+
   typedef std::list<SliceRendererDelegate *> RendererDelegateList;
 
   // Get a reference to the list of overlays stored in here
@@ -103,8 +113,6 @@ protected:
   void DrawTiledOverlays();
   void DrawGlobalOverlays();
 
-  // Viewport object
-  typedef SliceViewportLayout::SubViewport ViewportType;
 
   // Draw the image and overlays either on top of each other or separately
   // in individual cells. Returns true if a layer was drawn, false if not,
@@ -122,6 +130,9 @@ protected:
 
   // Whether rendering to thumbnail or not
   bool m_DrawingZoomThumbnail, m_DrawingLayerThumbnail;
+
+  // The index of the viewport that is currently being drawn - for use in child renderers
+  int m_DrawingViewportIndex;
 
   // A dynamic association between various image layers and texture objects
   typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
