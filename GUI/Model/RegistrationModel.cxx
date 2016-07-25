@@ -329,6 +329,11 @@ ImageWrapperBase *RegistrationModel::GetMovingLayerWrapper()
   return m_Driver->GetCurrentImageData()->FindLayer(m_MovingLayerId, false, OVERLAY_ROLE);
 }
 
+void RegistrationModel::SetIterationCommand(itk::Command *command)
+{
+  m_IterationCommand = command;
+}
+
 #include "GreedyAPI.h"
 void RegistrationModel::RunAutoRegistration()
 {
@@ -365,9 +370,6 @@ void RegistrationModel::RunAutoRegistration()
   api.AddCachedInputObject(ip.fixed, castFixed->GetOutput());
   api.AddCachedInputObject(ip.moving, castMoving->GetOutput());
 
-  // Pass the output filename
-  param.output = "result.mat";
-
   // Set up the metric
   switch(m_SimilarityMetricModel->GetValue())
     {
@@ -401,6 +403,10 @@ void RegistrationModel::RunAutoRegistration()
   param.affine_init_transform.filename = "INPUT_TRANSFORM";
   param.affine_init_transform.exponent = 1;
 
+  // TODO: this is temporary - it's better to have affine jitter, but it
+  // seems to add quite a bit of overhead to the registration
+  param.affine_jitter = 0.0;
+
   // Pass the input transformation object to the cache
   ITKMatrixType matrix; ITKVectorType offset;
   this->GetMovingTransform(matrix, offset);
@@ -414,8 +420,24 @@ void RegistrationModel::RunAutoRegistration()
   // Finally pass the float transform to the API
   api.AddCachedInputObject(param.affine_init_transform.filename, tran);
 
+  // Pass the output string - same as the input transform
+  param.output = param.affine_init_transform.filename;
+
+  // Handle intermediate data
+  if(m_IterationCommand)
+    {
+    typedef itk::MemberCommand<Self> CommandType;
+    CommandType::Pointer cmd = CommandType::New();
+    cmd->SetCallbackFunction(this, &RegistrationModel::IterationCallback);
+    param.output_intermediate = param.affine_init_transform.filename;
+    tran->AddObserver(itk::ModifiedEvent(), cmd);
+    }
+
   // Run the registration
   api.RunAffine(param);
+
+  // Now, the transform tran should hold our matrix and offset
+  this->SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
 }
 
 bool RegistrationModel::CheckState(RegistrationModel::UIState state)
@@ -655,5 +677,21 @@ void RegistrationModel::SetLogScalingValue(Vector3d value)
   // Update the transform
   this->UpdateWrapperFromManualParameters();
 }
+
+void RegistrationModel::IterationCallback(const itk::Object *object, const itk::EventObject &event)
+{
+  // Get the transform parameters
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformType;
+  const TransformType *tran = dynamic_cast<const TransformType *>(object);
+
+  // Apply the transform
+  this->SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
+
+  // Fire the iteration command - this is to force the GUI to process events, instead of
+  // just putting the above ModelUpdateEvent() into a bucket
+  if(m_IterationCommand)
+    m_IterationCommand->Execute(object, event);
+}
+
 
 

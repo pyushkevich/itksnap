@@ -19,6 +19,7 @@ public:
 
   void SetModel(RegistrationModel *model);
 
+
 private slots:
   void on_pushButton_clicked();
 

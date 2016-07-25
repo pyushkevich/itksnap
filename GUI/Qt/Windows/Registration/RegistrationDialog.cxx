@@ -25,6 +25,37 @@ RegistrationDialog::~RegistrationDialog()
   delete ui;
 }
 
+#include "itkCommand.h"
+
+class ProcessEventsITKCommand : public itk::Command
+{
+public:
+  /** Standard class typedefs. */
+  typedef ProcessEventsITKCommand Self;
+  typedef itk::SmartPointer< Self >     Pointer;
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(ProcessEventsITKCommand, itk::Command)
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self)
+
+  /** Abstract method that defines the action to be taken by the command. */
+  virtual void Execute(itk::Object *caller, const itk::EventObject & event)
+  {
+    QCoreApplication::processEvents();
+  }
+
+  /** Abstract method that defines the action to be taken by the command.
+   * This variant is expected to be used when requests comes from a
+   * const Object */
+  virtual void Execute(const itk::Object *caller, const itk::EventObject & event)
+  {
+    QCoreApplication::processEvents();
+  }
+};
+
+
 void RegistrationDialog::SetModel(RegistrationModel *model)
 {
   m_Model = model;
@@ -60,6 +91,10 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
                  RegistrationModel::UIF_MOVING_SELECTION_AVAILABLE);
   activateOnFlag(ui->pgManual, m_Model,
                  RegistrationModel::UIF_MOVING_SELECTED);
+
+  ProcessEventsITKCommand::Pointer cmdProcEvents = ProcessEventsITKCommand::New();
+  m_Model->SetIterationCommand(cmdProcEvents);
+
 }
 
 void RegistrationDialog::on_pushButton_clicked()
