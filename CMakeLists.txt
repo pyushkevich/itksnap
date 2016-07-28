@@ -270,6 +270,8 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkBinaryDiamondStructuringElement.txx
   Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.h
   Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.txx
+  Common/ITKExtras/itkMorphologicalContourInterpolator.h
+  Common/ITKExtras/itkMorphologicalContourInterpolator.hxx
   Common/ITKExtras/itkParallelSparseFieldLevelSetImageFilterBugFix.h
   Common/ITKExtras/itkParallelSparseFieldLevelSetImageFilterBugFix.txx
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.h

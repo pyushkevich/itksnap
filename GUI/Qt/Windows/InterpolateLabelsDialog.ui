@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>537</width>
-    <height>544</height>
+    <width>536</width>
+    <height>615</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,7 +31,8 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>This tool can be used to fill in sparsely drawn segmentations, called a scaffold. For example, you can label a structure on every fifth slice, and use this tool to fill in the segmentation in the slices in between. </string>
+      <string>This tool can be used to fill in sparsely drawn segmentations, called a scaffold. For example, you can label a structure on every fifth slice, and use this tool to fill in the segmentation in the slices in between. 
+</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -121,28 +122,35 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Interpolation Parameters</string>
+      <string>Interpolation Method</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
+       <widget class="QComboBox" name="interpolationMethod">
+        <item>
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Level set</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Morphological</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
        <widget class="QStackedWidget" name="stackedWidget">
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
-        <widget class="QWidget" name="page">
-         <layout class="QFormLayout" name="formLayout_3">
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
+        <widget class="QWidget" name="pageDefault">
+         <layout class="QFormLayout" name="formLayout_2">
           <item row="0" column="0">
            <widget class="QLabel" name="label_7">
             <property name="text">
@@ -151,28 +159,109 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QDoubleSpinBox" name="inDistanceSmoothing"/>
+           <widget class="QDoubleSpinBox" name="inDefaultDistanceSmoothing"/>
           </item>
-          <item row="2" column="1">
+         </layout>
+        </widget>
+        <widget class="QWidget" name="pageLevelSet">
+         <layout class="QFormLayout" name="formLayout_4">
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_9">
+            <property name="text">
+             <string>Smoothing (voxels):</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QDoubleSpinBox" name="inLevelSetDistanceSmoothing"/>
+          </item>
+          <item row="1" column="1">
            <widget class="QDoubleSpinBox" name="inLevelSetCurv"/>
           </item>
-          <item row="2" column="0">
+          <item row="1" column="0">
            <widget class="QLabel" name="label_8">
             <property name="text">
              <string>Level set curvature term:</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="chkUseLevelSet">
-            <property name="text">
-             <string>Use level set method</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="page_2"/>
+        <widget class="QWidget" name="pageMorphology">
+         <widget class="QCheckBox" name="chkMorphologyUseDistance">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>9</y>
+            <width>204</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="toolTip">
+           <string>Use an alternative signed distance function-based method.  Slightly faster, but can fail for twisted shapes.</string>
+          </property>
+          <property name="text">
+           <string>Use signed distance function</string>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="chkMorphologyUseOptimalAlignment">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>32</y>
+            <width>195</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="toolTip">
+           <string>Use optimal slice alignment instead of the default heuristic.  This can take a long time.</string>
+          </property>
+          <property name="text">
+           <string>Use optimal slice alignment</string>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="chkMorphologyInterpolateOneAxis">
+          <property name="geometry">
+           <rect>
+            <x>10</x>
+            <y>55</y>
+            <width>209</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="toolTip">
+           <string>Use optimal slice alignment instead of the default heuristic.  This can take a long time.</string>
+          </property>
+          <property name="text">
+           <string>Interpolate along a single axis</string>
+          </property>
+         </widget>
+         <widget class="QComboBox" name="morphologyInterpolationAxis">
+          <property name="geometry">
+           <rect>
+            <x>30</x>
+            <y>80</y>
+            <width>81</width>
+            <height>26</height>
+           </rect>
+          </property>
+          <item>
+           <property name="text">
+            <string>Axial</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Sagittal</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Coronal</string>
+           </property>
+          </item>
+         </widget>
+        </widget>
        </widget>
       </item>
      </layout>
