@@ -2,6 +2,7 @@
 #include "ui_RegistrationDialog.h"
 
 #include "QtComboBoxCoupling.h"
+#include "QtCheckBoxCoupling.h"
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtSliderCoupling.h"
 #include "QtAbstractButtonCoupling.h"
@@ -86,6 +87,7 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
   // Automatic page couplings
   makeCoupling(ui->inTransformation, m_Model->GetTransformationModel());
   makeCoupling(ui->inSimilarityMetric, m_Model->GetSimilarityMetricModel());
+  makeCoupling(ui->inUseMask, m_Model->GetUseSegmentationAsMaskModel());
 
   activateOnFlag(ui->inMovingLayer, m_Model,
                  RegistrationModel::UIF_MOVING_SELECTION_AVAILABLE);
@@ -111,4 +113,55 @@ void RegistrationDialog::on_btnRunRegistration_clicked()
 {
   QtCursorOverride cursor(Qt::WaitCursor);
   m_Model->RunAutoRegistration();
+}
+
+void RegistrationDialog::on_btnLoad_clicked()
+{
+  // Ask for a filename
+  QString selection = ShowSimpleOpenDialogWithHistory(
+        this, m_Model->GetParent(), "AffineTransform",
+        "Open Transform - ITK-SNAP",
+        "Transform File",
+        "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)");
+
+  // Open
+  if(selection.length())
+    {
+    try
+      {
+      std::string utf = to_utf8(selection);
+      m_Model->LoadTransform(utf.c_str());
+      }
+    catch(std::exception &exc)
+      {
+      ReportNonLethalException(this, exc, "Transform IO Error",
+                               QString("Failed to load transform file"));
+      }
+    }
+}
+
+void RegistrationDialog::on_btnSave_clicked()
+{
+  // Ask for a filename
+  QString selection = ShowSimpleSaveDialogWithHistory(
+        this, m_Model->GetParent(), "AffineTransform",
+        "Save Transform - ITK-SNAP",
+        "Transform File",
+        "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)", true);
+
+
+  // Save
+  if(selection.length())
+    {
+    try
+      {
+      std::string utf = to_utf8(selection);
+      m_Model->SaveTransform(utf.c_str());
+      }
+    catch(std::exception &exc)
+      {
+      ReportNonLethalException(this, exc, "Transform IO Error",
+                               QString("Failed to save transform file"));
+      }
+    }
 }

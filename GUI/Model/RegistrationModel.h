@@ -91,12 +91,15 @@ public:
   // Access to registration models
   irisGenericPropertyAccessMacro(Transformation, Transformation, TransformationDomain)
   irisGenericPropertyAccessMacro(SimilarityMetric, SimilarityMetric, SimilarityMetricDomain)
+  irisSimplePropertyAccessMacro(UseSegmentationAsMask, bool)
 
   void SetIterationCommand(itk::Command *command);
 
   void RunAutoRegistration();
 
+  void LoadTransform(const char *filename);
 
+  void SaveTransform(const char *filename);
 
 
 protected:
@@ -156,6 +159,8 @@ protected:
 
   typedef ConcretePropertyModel<SimilarityMetric, SimilarityMetricDomain> SimilarityMetricModel;
   SmartPtr<SimilarityMetricModel> m_SimilarityMetricModel;
+
+  SmartPtr<ConcreteSimpleBooleanProperty> m_UseSegmentationAsMaskModel;
 
 
   // Value corresponding to no layer selected

@@ -27,6 +27,10 @@ private slots:
 
   void on_btnRunRegistration_clicked();
 
+  void on_btnLoad_clicked();
+
+  void on_btnSave_clicked();
+
 private:
   Ui::RegistrationDialog *ui;
 

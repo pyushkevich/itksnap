@@ -15,7 +15,13 @@ class SimpleFileDialogWithHistory : public QDialog
   
 public:
 
-  static QString showOpenDialog(
+  struct QueryResult
+  {
+    QString filename;
+    QString activeFormat;
+  };
+
+  static QueryResult showOpenDialog(
       QWidget *parent,
       GlobalUIModel *model,
       QString window_title,
@@ -24,7 +30,7 @@ public:
       QString file_pattern,
       QString init_file = QString());
   
-  static QString showSaveDialog(
+  static QueryResult showSaveDialog(
       QWidget *parent,
       GlobalUIModel *model,
       QString window_title, QString file_title,

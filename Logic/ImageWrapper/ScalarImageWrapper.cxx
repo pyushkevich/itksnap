@@ -232,46 +232,101 @@ ScalarImageWrapper<TTraits, TBase>::CreateCastToDoublePipeline() const
   return output;
 }
 
-template<class TWrappedFunctor>
-class ScalarToVectorFunctor
+template <class TInputImage, class TOutputImage, class TFunctor>
+class UnaryFunctorImageToSingleComponentVectorImageFilter
+    : public itk::ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
-  typedef ScalarToVectorFunctor<TWrappedFunctor> Self;
-  typedef itk::VariableLengthVector<double> VectorType;
+  typedef UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, TFunctor> Self;
+  typedef itk::ImageToImageFilter<TInputImage, TOutputImage> Superclass;
+  typedef itk::SmartPointer<Self> Pointer;
+  typedef itk::SmartPointer< const Self >  ConstPointer;
 
-  void SetFunctor(const TWrappedFunctor &f) { m_Functor = f; }
-  const TWrappedFunctor &GetFunctor() const { return m_Functor; }
+  typedef TInputImage InputImageType;
+  typedef TOutputImage OutputImageType;
+  typedef TFunctor FunctorType;
 
-  bool operator != (const Self &other) const { return m_Functor != other.m_Functor; }
+  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
 
-  VectorType operator() (double value)
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(UnaryFunctorImageToSingleComponentVectorImageFilter, ImageToImageFilter)
+  itkNewMacro(Self)
+
+  /** ImageDimension constants */
+  itkStaticConstMacro(InputImageDimension, unsigned int,
+                      TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int,
+                      TOutputImage::ImageDimension);
+
+  void SetFunctor(const FunctorType &functor)
   {
-    VectorType v(1);
-    v[0] = m_Functor(value);
-    return v;
+    if(m_Functor != functor)
+      {
+      m_Functor = functor;
+      this->Modified();
+      }
   }
 
+  itkGetConstReferenceMacro(Functor, FunctorType)
+
+  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+                            itk::ThreadIdType threadId);
+
+
 protected:
-  TWrappedFunctor m_Functor;
+
+  UnaryFunctorImageToSingleComponentVectorImageFilter() {}
+  virtual ~UnaryFunctorImageToSingleComponentVectorImageFilter() {}
+
+  FunctorType m_Functor;
+
 };
+
+#include "ImageRegionConstIteratorWithIndexOverride.h"
+
+template <class TInputImage, class TOutputImage, class TFunctor>
+void
+UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, TFunctor>
+::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+{
+  // Use our fast iterators for vector images
+  typedef itk::ImageLinearIteratorWithIndex<OutputImageType> IterBase;
+  typedef IteratorExtender<IterBase> IterType;
+
+  typedef typename OutputImageType::InternalPixelType OutputComponentType;
+  typedef typename InputImageType::InternalPixelType InputComponentType;
+
+  // Define the iterators
+  IterType outputIt(this->GetOutput(), outputRegionForThread);
+  int line_len = outputRegionForThread.GetSize(0);
+
+  // Using a generic ITK iterator for the input because it supports RLE images and adaptors
+  itk::ImageScanlineConstIterator< InputImageType > inputIt(this->GetInput(), outputRegionForThread);
+
+  while ( !inputIt.IsAtEnd() )
+    {
+    // Get the pointer to the input and output pixel lines
+    OutputComponentType *out = outputIt.GetPixelPointer(this->GetOutput());
+
+    for(int i = 0; i < line_len; i++, ++inputIt)
+      {
+      out[i] = m_Functor(inputIt.Get());
+      }
+
+    outputIt.NextLine();
+    inputIt.NextLine();
+    }
+}
 
 template<class TTraits, class TBase>
 SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::FloatVectorImageSource>
 ScalarImageWrapper<TTraits, TBase>::CreateCastToFloatVectorPipeline() const
 {
-  // The kind of mini-pipeline that is created here depends on whether the
-  // internal image is a floating point image or not, and whether the native
-  // to intensity mapping is identity or not. We use template specialization to
-  // select the right behavior
-  typedef ScalarToVectorFunctor<NativeIntensityMapping> FunctorType;
-  typedef itk::UnaryFunctorImageFilter<ImageType, FloatVectorImageType, FunctorType> FilterType;
+  typedef UnaryFunctorImageToSingleComponentVectorImageFilter<
+      ImageType, FloatVectorImageType, NativeIntensityMapping> FilterType;
   SmartPtr<FilterType> filter = FilterType::New();
   filter->SetInput(this->m_Image);
-
-  // TODO: this is messy because it results in an allocation of vectors - inefficient
-  FunctorType vfunctor;
-  vfunctor.SetFunctor(this->m_NativeMapping);
-  filter->SetFunctor(vfunctor);
+  filter->SetFunctor(this->m_NativeMapping);
 
   SmartPtr<FloatVectorImageSource> output = filter.GetPointer();
   return output;
@@ -281,18 +336,11 @@ template<class TTraits, class TBase>
 SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::DoubleVectorImageSource>
 ScalarImageWrapper<TTraits, TBase>::CreateCastToDoubleVectorPipeline() const
 {
-  // The kind of mini-pipeline that is created here depends on whether the
-  // internal image is a floating point image or not, and whether the native
-  // to intensity mapping is identity or not. We use template specialization to
-  // select the right behavior
-  typedef ScalarToVectorFunctor<NativeIntensityMapping> FunctorType;
-  typedef itk::UnaryFunctorImageFilter<ImageType, DoubleVectorImageType, FunctorType> FilterType;
+  typedef UnaryFunctorImageToSingleComponentVectorImageFilter<
+      ImageType, DoubleVectorImageType, NativeIntensityMapping> FilterType;
   SmartPtr<FilterType> filter = FilterType::New();
   filter->SetInput(this->m_Image);
-
-  FunctorType vfunctor;
-  vfunctor.SetFunctor(this->m_NativeMapping);
-  filter->SetFunctor(vfunctor);
+  filter->SetFunctor(this->m_NativeMapping);
 
   SmartPtr<DoubleVectorImageSource> output = filter.GetPointer();
   return output;

@@ -420,8 +420,11 @@ QString ShowSimpleSaveDialogWithHistory(
     QString file_pattern, bool force_extension,
     QString init_file)
 {
-  return SimpleFileDialogWithHistory::showSaveDialog(
+  SimpleFileDialogWithHistory::QueryResult result =
+      SimpleFileDialogWithHistory::showSaveDialog(
         parent, model, window_title, file_title, hist_category, file_pattern, force_extension,init_file);
+
+  return result.filename;
 }
 
 /** Show a generic file open dialog with a history dropdown */
@@ -430,8 +433,11 @@ QString ShowSimpleOpenDialogWithHistory(
     QString window_title, QString file_title, QString file_pattern,
     QString init_file)
 {
-  return SimpleFileDialogWithHistory::showOpenDialog(
+  SimpleFileDialogWithHistory::QueryResult result =
+      SimpleFileDialogWithHistory::showOpenDialog(
         parent, model, window_title, file_title, hist_category, file_pattern, init_file);
+
+  return result.filename;
 }
 
 bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,

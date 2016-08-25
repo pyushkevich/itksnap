@@ -63,6 +63,9 @@ RegistrationModel::RegistrationModel()
   metric_domain[SSD] = "Squared intensity difference";
   m_SimilarityMetricModel = NewConcreteProperty(NMI, metric_domain);
 
+  // Mask model
+  m_UseSegmentationAsMaskModel = NewSimpleConcreteProperty(false);
+
   // Initialize the moving layer ID to be -1
   m_MovingLayerId = NOID;
 
@@ -370,6 +373,16 @@ void RegistrationModel::RunAutoRegistration()
   api.AddCachedInputObject(ip.fixed, castFixed->GetOutput());
   api.AddCachedInputObject(ip.moving, castMoving->GetOutput());
 
+  // Mask image
+  if(this->GetUseSegmentationAsMask())
+    {
+    param.gradient_mask = "GRADIENT_MASK";
+    ImageWrapperBase *seg = this->GetParent()->GetDriver()->GetCurrentImageData()->GetSegmentation();
+    SmartPtr<ScalarImageWrapperBase::FloatImageSource> castMask =
+        seg->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline();
+    api.AddCachedInputObject(param.gradient_mask, castMask->GetOutput());
+    }
+
   // Set up the metric
   switch(m_SimilarityMetricModel->GetValue())
     {
@@ -438,6 +451,18 @@ void RegistrationModel::RunAutoRegistration()
 
   // Now, the transform tran should hold our matrix and offset
   this->SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
+}
+
+void RegistrationModel::LoadTransform(const char *filename)
+{
+
+}
+
+void RegistrationModel::SaveTransform(const char *filename)
+{
+  ITKMatrixType matrix;
+  ITKVectorType offset;
+  this->GetMovingTransform(matrix, offset);
 }
 
 bool RegistrationModel::CheckState(RegistrationModel::UIState state)

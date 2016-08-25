@@ -156,6 +156,14 @@ void QtSystemInfoDelegate
   image->SetRegions(region);
   image->Allocate();
 
+  GrayscaleImage::SpacingType spacing;
+  spacing.Fill(1.0);
+  image->SetSpacing(spacing);
+
+  GrayscaleImage::DirectionType direction;
+  direction.SetIdentity();
+  image->SetDirection(direction);
+
   // Fill the image buffer
   for(itk::ImageRegionIteratorWithIndex<GrayscaleImage> it(image, region);
       !it.IsAtEnd(); ++it)
