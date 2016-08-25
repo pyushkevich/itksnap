@@ -48,6 +48,7 @@
 #include "itkDataObjectDecorator.h"
 
 using itk::DataObjectDecorator;
+using itk::ProcessObject;
 
 template <typename TPixel, unsigned int VDim, typename CounterType> class RLEImage;
 template <typename TImage, typename TFloat, unsigned int VDim> class FastLinearInterpolator;
