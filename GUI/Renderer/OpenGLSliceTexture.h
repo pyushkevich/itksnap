@@ -54,39 +54,43 @@
  * The calls to Update will make sure that the texture is up to date.  
  */
 template <class TPixel>
-class OpenGLSliceTexture 
+class OpenGLSliceTexture : public itk::Object
 {
 public:
+
+  irisITKObjectMacro(OpenGLSliceTexture, itk::Object)
+
   // Image typedefs
   typedef itk::Image<TPixel, 2> ImageType;
-  typedef typename itk::SmartPointer<ImageType> ImagePointer;
+  typedef SmartPtr<ImageType> ImagePointer;
 
-  /** Constructor, initializes the texture object */
-  OpenGLSliceTexture();
-  OpenGLSliceTexture(GLuint, GLenum);
+  /** Initialize the texture object */
+  void SetDepth(GLuint, GLenum);
 
-  /** Destructor, deallocates texture memory */
-  virtual ~OpenGLSliceTexture();
-  
-  irisGetMacro(Image, const ImageType *);
+  /** Set the image from which the texture is initialized */
+  irisGetMacro(Image, const ImageType *)
 
   /** Pass in a pointer to a 2D image */
   void SetImage(ImageType *inImage);
 
+  /** Set the mip mapping behavior */
+  irisGetMacro(MipMapping, bool)
+  void SetMipMapping(bool state);
+
   /** Get the dimensions of the texture image, which are powers of 2 */
-  irisGetMacro(TextureSize,Vector2ui);
+  irisGetMacro(TextureSize,Vector2ui)
 
   /** Get the GL texture number automatically allocated by this object */
-  irisGetMacro(TextureIndex,int);
+  irisGetMacro(TextureIndex,int)
 
   /** Set the number of components used in call to glTextureImage */
-  irisSetMacro(GlComponents,GLuint);
+  irisSetMacro(GlComponents,GLuint)
 
   /** Get the format (e.g. GL_LUMINANCE) in call to glTextureImage */
-  irisSetMacro(GlFormat,GLenum);
+  irisSetMacro(GlFormat,GLenum)
 
   /** Get the type (e.g. GL_UNSIGNED_INT) in call to glTextureImage */
-  irisSetMacro(GlType,GLenum);
+  irisSetMacro(GlType,GLenum)
 
   /**
    * Make sure that the texture is up to date (reflects the image)
@@ -111,6 +115,11 @@ public:
    */
   void DrawTransparent(double alpha);
 
+protected:
+
+  OpenGLSliceTexture();
+  ~OpenGLSliceTexture();
+
 private:
   
   // The dimensions of the texture as stored in memory
@@ -124,6 +133,9 @@ private:
 
   // Has the texture been initialized?
   bool m_IsTextureInitalized;
+
+  // Are mip-maps required
+  bool m_MipMapping;
 
   // The pipeline time of the source image (vs. our pipeline time)
   unsigned long m_UpdateTime;

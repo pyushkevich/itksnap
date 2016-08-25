@@ -185,6 +185,7 @@ SET(LOGIC_CXX
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
   Common/HistoryManager.cxx
+  Common/ImageFunctions.cxx
   Common/IPCHandler.cxx
   Common/IRISException.cxx
   Common/Rebroadcaster.cxx
@@ -259,6 +260,7 @@ SET(LOGIC_HEADERS
   Common/CommandLineArgumentParser.h
   Common/Credits.h
   Common/HistoryManager.h
+  Common/ImageFunctions.h
   Common/IPCHandler.h
   Common/IRISException.h
   Common/IRISVectorTypes.h
@@ -324,6 +326,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
   Logic/ImageWrapper/ImageWrapperTraits.h
+  Logic/ImageWrapper/VectorToScalarImageAccessor.h
   Logic/RLEImage/RLEImage.h
   Logic/RLEImage/RLEImage.txx
   Logic/RLEImage/RLEImageConstIterator.h
@@ -379,6 +382,8 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMM/KMeansPlusPlus.h
   Logic/Preprocessing/GMM/UnsupervisedClustering.h
   Logic/Preprocessing/Texture/MomentTextures.h
+  Logic/Slicing/ImageRegionConstIteratorWithIndexOverride.h
+  Logic/Slicing/FastLinearInterpolator.h
   Logic/Slicing/IRISSlicer.h
   Logic/Slicing/IRISSlicer.txx
   Logic/Slicing/IRISSlicer_RLE.txx
@@ -386,6 +391,8 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
+  Logic/Slicing/NonOrthogonalSlicer.h
+  Logic/Slicing/NonOrthogonalSlicer.txx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.h
 )
 
@@ -405,6 +412,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ImageInfoModel.cxx
   GUI/Model/ImageRegistrationManager.cxx
   GUI/Model/IntensityCurveModel.cxx
+  GUI/Model/InteractiveRegistrationModel.cxx
   GUI/Model/InterpolateLabelModel.cxx
   GUI/Model/LabelEditorModel.cxx
   GUI/Model/LayerGeneralPropertiesModel.cxx
@@ -416,6 +424,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/PaintbrushSettingsModel.cxx
   GUI/Model/PolygonDrawingModel.cxx
   GUI/Model/PolygonSettingsModel.cxx
+  GUI/Model/RegistrationModel.cxx
   GUI/Model/ReorientImageModel.cxx
   GUI/Model/SaveModifiedLayersModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
@@ -445,6 +454,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/PaintbrushRenderer.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
   GUI/Renderer/PolygonScanConvert.cxx
+  GUI/Renderer/RegistrationRenderer.cxx
   GUI/Renderer/SliceWindowDecorationRenderer.cxx
   GUI/Renderer/SnakeParameterPreviewRenderer.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
@@ -476,6 +486,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ImageIOWizardModel.h
   GUI/Model/ImageRegistrationManager.h
   GUI/Model/IntensityCurveModel.h
+  GUI/Model/InteractiveRegistrationModel.h
   GUI/Model/InterpolateLabelModel.h
   GUI/Model/LabelEditorModel.h
   GUI/Model/LayerGeneralPropertiesModel.h
@@ -487,6 +498,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/PaintbrushSettingsModel.h
   GUI/Model/PolygonSettingsModel.h
   GUI/Model/PolygonDrawingModel.h
+  GUI/Model/RegistrationModel.h
   GUI/Model/ReorientImageModel.h
   GUI/Model/SaveModifiedLayersModel.h
   GUI/Model/SNAPUIFlag.h
@@ -519,6 +531,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/PaintbrushRenderer.h
   GUI/Renderer/PolygonDrawingRenderer.h
   GUI/Renderer/PolygonScanConvert.h
+  GUI/Renderer/RegistrationRenderer.h
   GUI/Renderer/SliceWindowDecorationRenderer.h
   GUI/Renderer/SnakeParameterPreviewRenderer.h
   GUI/Renderer/SnakeROIRenderer.h
@@ -589,6 +602,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/QtVTKRenderWindowBox.cxx
   GUI/Qt/View/PaintbrushInteractionMode.cxx
   GUI/Qt/View/PolygonDrawingInteractionMode.cxx
+  GUI/Qt/View/RegistrationInteractionMode.cxx
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.cxx
   GUI/Qt/View/SnakeROIInteractionMode.cxx
   GUI/Qt/View/ThumbnailInteractionMode.cxx
@@ -617,6 +631,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.cxx
+  GUI/Qt/Windows/Registration/RegistrationDialog.cxx
   Testing/GUI/Qt/SNAPTestQt.cxx
 )
 
@@ -673,6 +688,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/QtVTKRenderWindowBox.h
   GUI/Qt/View/PaintbrushInteractionMode.h
   GUI/Qt/View/PolygonDrawingInteractionMode.h
+  GUI/Qt/View/RegistrationInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
   GUI/Qt/View/ThumbnailInteractionMode.h
@@ -700,6 +716,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.h
+  GUI/Qt/Windows/Registration/RegistrationDialog.h
   Testing/GUI/Qt/SNAPTestQt.h
 )
 
@@ -777,6 +794,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.ui
+  GUI/Qt/Windows/Registration/RegistrationDialog.ui
 )
 
 SET(UI_RESOURCES
@@ -868,6 +886,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/View
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/MeshExportWizard
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/Registration
     ${SNAP_SOURCE_DIR}/Testing/Logic
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt
     ${SNAP_BINARY_DIR}
@@ -930,12 +949,18 @@ SET(SNAP_SYSTEM_LIBS
   ${SYSTEM_LIBS}
 )
 
+# TODO: this is temporary until we integrate greedy into the source tree
+FIND_LIBRARY(GREEDY_LIB greedyapi)
+FIND_PATH(GREEDY_INCLUDE_DIR GreedyAPI.h)
+INCLUDE_DIRECTORIES(${GREEDY_INCLUDE_DIR})
+
 # Designate the external libraries used by SNAP
 SET(SNAP_EXTERNAL_LIBS 
   ${SNAP_C3D_LIBS}
   ${SNAP_ITK_LIBS} 
   ${SNAP_VTK_LIBS} 
   ${SNAP_SYSTEM_LIBS}
+  ${GREEDY_LIB}
 )
 
 #--------------------------------------------------------------------------------

@@ -54,20 +54,13 @@ OpenGLSliceTexture<TPixel>
 }
 
 template<class TPixel>
+void
 OpenGLSliceTexture<TPixel>
-::OpenGLSliceTexture(GLuint components, GLenum format)
+::SetDepth(GLuint components, GLenum format)
 {
-  // Set to -1 to force a call to 'generate'
-  m_IsTextureInitalized = false;
-
-  // Set the update time to -1
-  m_UpdateTime = 0;
-
   // Init the GL settings to uchar, luminance defautls, which are harmless
   m_GlComponents = components;
   m_GlFormat = format;
-  m_GlType = GL_UNSIGNED_BYTE;
-  m_InterpolationMode = GL_NEAREST;
 }
 
 template<class TPixel>
@@ -91,6 +84,7 @@ OpenGLSliceTexture<TPixel>
     }
 }
 
+#include "itkImageFileWriter.h"
 
 template<class TPixel>
 void
@@ -134,6 +128,10 @@ OpenGLSliceTexture<TPixel>
   glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
   glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_InterpolationMode );
   glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_InterpolationMode );
+
+  // TODO: figure out how this can be applied in a fully compatible way
+  // glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+  // glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
 
   // Turn off modulo-4 rounding in GL
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -179,7 +177,9 @@ OpenGLSliceTexture<TPixel>
   double tx = w * 1.0 / m_TextureSize(0);
   double ty = h * 1.0 / m_TextureSize(1);
 
-  // Draw quad 
+  glPushMatrix();
+
+  // Draw quad
   glBegin(GL_QUADS);
   glTexCoord2d(0,0);
   glVertex2d(0,0);
@@ -190,6 +190,8 @@ OpenGLSliceTexture<TPixel>
   glTexCoord2d(tx,0);
   glVertex2d(w,0);
   glEnd();
+
+  glPopMatrix();
 
   glPopAttrib();
 }
@@ -243,9 +245,21 @@ OpenGLSliceTexture<TPixel>
 template<class TPixel>
 void OpenGLSliceTexture<TPixel>::SetImage(ImageType *inImage)
 {
+  // Assign the image
   m_Image = inImage;
   m_Image->GetSource()->UpdateLargestPossibleRegion();
   m_UpdateTime = 0;
+}
+
+template<class TPixel>
+void OpenGLSliceTexture<TPixel>::SetMipMapping(bool state)
+{
+  // Set the mipmapping state
+  if(m_MipMapping != state)
+    {
+    m_MipMapping = state;
+    m_UpdateTime = 0;
+    }
 }
 
 // Explicit instantiation of templates

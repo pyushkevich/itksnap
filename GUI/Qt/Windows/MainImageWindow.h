@@ -40,11 +40,13 @@ class EventBucket;
 class QModelIndex;
 class QProgressDialog;
 class AboutDialog;
+class QStackedWidget;
 
 class LabelEditorDialog;
 class LayerInspectorDialog;
 class QtProgressReporterDelegate;
 class ReorientImageDialog;
+class RegistrationDialog;
 class DropActionDialog;
 class MainControlPanel;
 class StatisticsDialog;
@@ -282,6 +284,8 @@ private slots:
 
   void on_actionInterpolate_Labels_triggered();
 
+  void on_actionRegistration_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
@@ -321,6 +325,9 @@ private:
   // Left and right docks
   QDockWidget *m_DockLeft, *m_DockRight;
 
+  // A stack widget for the right dock
+  QStackedWidget *m_RightDockStack;
+
   // Size before the right dock is shown
   QSize m_SizeWithoutRightDock;
 
@@ -358,6 +365,8 @@ private:
   PreferencesDialog *m_PreferencesDialog;
 
   InterpolateLabelsDialog *m_InterpolateLabelsDialog;
+
+  RegistrationDialog *m_RegistrationDialog;
 
   // A timer used to animate components
   QTimer *m_AnimateTimer;

@@ -44,18 +44,13 @@ GenericSliceRenderer
 {
   this->m_DrawingZoomThumbnail = false;
   this->m_DrawingLayerThumbnail = false;
+  this->m_DrawingViewportIndex = -1;
 }
 
 void
 GenericSliceRenderer::SetModel(GenericSliceModel *model)
 {
   this->m_Model = model;
-
-  // Build the texture map
-  OpenGLTextureAssociationFactory texFactoryDelegate = { this };
-  m_Texture.SetDelegate(texFactoryDelegate);
-  m_Texture.SetSource(model->GetDriver());
-  this->UpdateTextureMap();
 
   // Record and rebroadcast changes in the model
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
@@ -106,12 +101,6 @@ void GenericSliceRenderer::OnUpdate()
 
   // Also make sure to update the display layout model
   m_Model->GetParentUI()->GetDisplayLayoutModel()->Update();
-
-  // Only update the texture map in response to "big" events
-  if(m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model))
-    {
-    this->UpdateTextureMap();
-    }
 }
 
 void
@@ -166,6 +155,7 @@ GenericSliceRenderer
       glMatrixMode(GL_MODELVIEW);
       glPushMatrix();
       glLoadIdentity();
+
       glPushMatrix();
 
       // First set of transforms
@@ -192,10 +182,13 @@ GenericSliceRenderer
 
       // Draw the main layers for this row/column combination
       ImageWrapperBase *layer = id->FindLayer(vp.layer_id, false);
-      if(layer && this->DrawImageLayers(layer, !vp.isThumbnail))
+      if(layer && this->DrawImageLayers(layer, vp))
         {
         // Set the thumbnail flag
         m_DrawingLayerThumbnail = vp.isThumbnail;
+
+        // Set the current vp index
+        m_DrawingViewportIndex = k;
 
         // We don't want to draw segmentation over the speed image and other
         // SNAP-mode layers.
@@ -302,8 +295,9 @@ GenericSliceRenderer
         }
       }
 
-    // No longer drawing thumbnails
+    // No longer drawing thumbnails or viewports
     m_DrawingLayerThumbnail = false;
+    m_DrawingViewportIndex = -1;
 
     // Set the viewport and projection to original dimensions
     glViewport(0, 0, vp_full[0], vp_full[1]);
@@ -343,6 +337,17 @@ GenericSliceRenderer
   glFlush();
 }
 
+const GenericSliceRenderer::ViewportType *
+GenericSliceRenderer
+::GetDrawingViewport() const
+{
+  if(m_DrawingViewportIndex < 0)
+    return NULL;
+  else
+    return &m_Model->GetViewportLayout().vpList[m_DrawingViewportIndex];
+
+}
+
 void
 GenericSliceRenderer
 ::resizeGL(int w, int h, int device_pixel_ratio)
@@ -358,7 +363,7 @@ GenericSliceRenderer
   glLoadIdentity();
 }
 
-bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool drawStickies)
+bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, const ViewportType &vp)
 {
   // Get the image data
   GenericImageData *id = m_Model->GetImageData();
@@ -366,7 +371,7 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
   // If drawing the thumbnail, only draw the main layer
   if(m_DrawingZoomThumbnail)
     {
-    DrawTextureForLayer(base_layer, false);
+    DrawTextureForLayer(base_layer, vp, false);
     return true;
     }
 
@@ -374,10 +379,10 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
   if(!this->IsTiledMode())
     {
     // Draw the base layer without transparency
-    DrawTextureForLayer(base_layer, false);
+    DrawTextureForLayer(base_layer, vp, false);
 
     // Now draw all the sticky layers on top
-    if(drawStickies)
+    if(!vp.isThumbnail)
       {
         for(LayerIterator it(id); !it.IsAtEnd(); ++it)
         {
@@ -387,7 +392,7 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
            && layer->IsSticky()
            && layer->GetAlpha() > 0)
           {
-          DrawTextureForLayer(layer, true);
+          DrawTextureForLayer(layer, vp, true);
           }
         }
       }
@@ -397,10 +402,10 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
   else
     {
     // Draw the particular layer
-    DrawTextureForLayer(base_layer, false);
+    DrawTextureForLayer(base_layer, vp, false);
 
     // Now draw all the non-sticky layers
-    if(drawStickies)
+    if(!vp.isThumbnail)
       {
       for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
         {
@@ -409,7 +414,7 @@ bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool dr
            && itov.GetLayer()->IsDrawable()
            && itov.GetLayer()->GetAlpha() > 0)
           {
-          DrawTextureForLayer(itov.GetLayer(), true);
+          DrawTextureForLayer(itov.GetLayer(), vp, true);
           }
         }
       }
@@ -427,28 +432,53 @@ bool GenericSliceRenderer::IsTiledMode() const
 
 
 
-
-
-
-void GenericSliceRenderer::DrawMainTexture()
+GenericSliceRenderer::Texture *
+GenericSliceRenderer
+::GetTextureForLayer(ImageWrapperBase *layer)
 {
-  // Get the image data
-  GenericImageData *id = m_Model->GetImageData();
+  const char *user_data_ids[] = {
+    "OpenGLTexture[0]",
+    "OpenGLTexture[1]",
+    "OpenGLTexture[2]"
+  };
+  const char *user_data_id = user_data_ids[m_Model->GetId()];
 
-  // Draw the main texture
-  if (id->IsMainLoaded())
-    DrawTextureForLayer(id->GetMain(), false);
+  // If layer uninitialized, return NULL
+  if(!layer->IsInitialized())
+    return NULL;
 
-  // Draw each of the overlays
-  if (!m_DrawingZoomThumbnail)
+  // Retrieve the texture
+  SmartPtr<Texture> tex = static_cast<Texture *>(layer->GetUserData(user_data_id));
+
+  // Get the image that should be associated with the texture
+  Texture::ImageType *slice = layer->GetDisplaySlice(m_Model->GetId()).GetPointer();
+
+  // If the texture does not exist - or if the image has changed for some reason, update it
+  if(!tex || tex->GetImage() != slice)
     {
-    for(LayerIterator it(id, OVERLAY_ROLE); !it.IsAtEnd(); ++it)
-      DrawTextureForLayer(it.GetLayer(), true);
+    tex = Texture::New();
+    tex->SetDepth(4, GL_RGBA);
+    tex->SetImage(slice);
+
+    layer->SetUserData(user_data_id, tex.GetPointer());
     }
+
+  // Configure the texture parameters
+  const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
+  GLint imode =
+      (gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR)
+      ? GL_LINEAR : GL_NEAREST;
+  tex->SetInterpolation(imode);
+
+  // Set the mip-mapping behaviour depending on whether the image wrapper is rendering
+  // in image space or in display space
+  tex->SetMipMapping(layer->IsSlicingOrthogonal());
+
+  return tex;
 }
 
 void GenericSliceRenderer::DrawTextureForLayer(
-    ImageWrapperBase *layer, bool use_transparency)
+    ImageWrapperBase *layer, const ViewportType &vp, bool use_transparency)
 {
   // Get the appearance settings pointer since we use it a lot
   SNAPAppearanceSettings *as =
@@ -464,7 +494,26 @@ void GenericSliceRenderer::DrawTextureForLayer(
       ? GL_LINEAR : GL_NEAREST;
 
   // Get the texture
-  Texture *tex = m_Texture[layer];
+  Texture *tex = this->GetTextureForLayer(layer);
+
+  // Set up the drawing mode
+  glPushMatrix();
+
+  // If a layer is sliced orthogonally, it's sliced in its native voxel space
+  // and we rely on OpenGL for scaling into display space
+  // Otherwise there is a 1:1 mapping from slice pixels to display pixels
+  if(!layer->IsSlicingOrthogonal())
+    {
+    glLoadIdentity();
+    if(vp.isThumbnail)
+      {
+      double scale_x = vp.size[0] * 1.0 / m_Model->GetCanvasSize()[0];
+      double scale_y = vp.size[1] * 1.0 / m_Model->GetCanvasSize()[1];
+      double zoom = std::max(scale_x, scale_y);
+      glScalef(zoom, zoom, 0);
+      }
+
+    }
 
   // Paint the texture with alpha
   if(tex)
@@ -482,6 +531,9 @@ void GenericSliceRenderer::DrawTextureForLayer(
       tex->Draw(clrBackground);
       }
     }
+
+  // Pop the matrix
+  glPopMatrix();
 }
 
 
@@ -492,7 +544,7 @@ void GenericSliceRenderer::DrawSegmentationTexture()
 
   if (id->IsSegmentationLoaded() && alpha > 0)
     {
-    Texture *texture = m_Texture[id->GetSegmentation()];
+    Texture *texture = this->GetTextureForLayer(id->GetSegmentation());
     texture->DrawTransparent(alpha);
     }
   }
@@ -525,7 +577,11 @@ void GenericSliceRenderer::DrawThumbnail()
   glScalef(m_Model->GetSliceSpacing()[0],m_Model->GetSliceSpacing()[1],1.0);
 
   // Draw the Main image (the background will be picked automatically)
-  DrawMainTexture();
+  if (m_Model->GetImageData()->IsMainLoaded())
+    {
+    ViewportType vp = m_Model->GetViewportLayout().vpList.front();
+    DrawTextureForLayer(m_Model->GetImageData()->GetMain(), vp, false);
+    }
 
   // Draw the overlays that are shown on the thumbnail
   DrawTiledOverlays();
@@ -568,69 +624,6 @@ void GenericSliceRenderer::DrawThumbnail()
   m_DrawingZoomThumbnail = false;
   }
 
-GenericSliceRenderer::Texture *
-GenericSliceRenderer::CreateTexture(ImageWrapperBase *iw)
-{
-  if(iw->IsInitialized())
-    {
-    Texture *texture = new Texture(4, GL_RGBA);
-    texture->SetImage(iw->GetDisplaySlice(m_Model->GetId()).GetPointer());
-
-    const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
-
-    GLint imode =
-        (gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR)
-        ? GL_LINEAR : GL_NEAREST;
-
-    texture->SetInterpolation(imode);
-    return texture;
-    }
-  else return NULL;
-}
-
-/*
-void GenericSliceRenderer::AssociateTexture(
-  ImageWrapperBase *iw, TextureMap &src, TextureMap &trg)
-{
-  if(iw->IsInitialized())
-    {
-    TextureMap::iterator it = src.find(iw);
-    Texture *texture;
-
-    if (it != src.end())
-      {
-      texture = it->second;
-      itk::ImageBase<2> *b1 = iw->GetDisplaySlice(m_Model->GetId()).GetPointer();
-      const itk::ImageBase<2> *b2 = texture->GetImage();
-      std::cout << "TEX1 " << b1 << "   TEX2" << b2 << std::endl;
-      src.erase(it);
-      }
-    else
-      {
-      texture = new Texture(4, GL_RGBA);
-      texture->SetImage(iw->GetDisplaySlice(m_Model->GetId()).GetPointer());
-      }
-
-    // Set the interpolation approach
-    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-    GLint imode = as->GetGreyInterpolationMode() == SNAPAppearanceSettings::LINEAR
-        ? GL_LINEAR : GL_NEAREST;
-    texture->SetInterpolation(imode);
-
-    // Store the texture association
-    trg[iw] = texture;
-    }
-}
-
-*/
-
-void GenericSliceRenderer::UpdateTextureMap()
-{
-  if(m_Model->IsSliceInitialized())
-    {
-    m_Texture.Update();
-    }
-}
 
 void GenericSliceRenderer::initializeGL()
 {
@@ -657,17 +650,4 @@ void GenericSliceRenderer::DrawGlobalOverlays()
     (*it)->paintGL();
     }
 }
-
-OpenGLTextureAssociationFactory::Texture *
-OpenGLTextureAssociationFactory
-::New(ImageWrapperBase *layer)
-{
-  return m_Renderer->CreateTexture(layer);
-}
-
-
-template class LayerAssociation<GenericSliceRenderer::Texture,
-                                ImageWrapperBase,
-                                OpenGLTextureAssociationFactory>;
-
 

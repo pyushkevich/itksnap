@@ -232,6 +232,119 @@ ScalarImageWrapper<TTraits, TBase>::CreateCastToDoublePipeline() const
   return output;
 }
 
+template <class TInputImage, class TOutputImage, class TFunctor>
+class UnaryFunctorImageToSingleComponentVectorImageFilter
+    : public itk::ImageToImageFilter<TInputImage, TOutputImage>
+{
+public:
+  typedef UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, TFunctor> Self;
+  typedef itk::ImageToImageFilter<TInputImage, TOutputImage> Superclass;
+  typedef itk::SmartPointer<Self> Pointer;
+  typedef itk::SmartPointer< const Self >  ConstPointer;
+
+  typedef TInputImage InputImageType;
+  typedef TOutputImage OutputImageType;
+  typedef TFunctor FunctorType;
+
+  typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(UnaryFunctorImageToSingleComponentVectorImageFilter, ImageToImageFilter)
+  itkNewMacro(Self)
+
+  /** ImageDimension constants */
+  itkStaticConstMacro(InputImageDimension, unsigned int,
+                      TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int,
+                      TOutputImage::ImageDimension);
+
+  void SetFunctor(const FunctorType &functor)
+  {
+    if(m_Functor != functor)
+      {
+      m_Functor = functor;
+      this->Modified();
+      }
+  }
+
+  itkGetConstReferenceMacro(Functor, FunctorType)
+
+  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
+                            itk::ThreadIdType threadId);
+
+
+protected:
+
+  UnaryFunctorImageToSingleComponentVectorImageFilter() {}
+  virtual ~UnaryFunctorImageToSingleComponentVectorImageFilter() {}
+
+  FunctorType m_Functor;
+
+};
+
+#include "ImageRegionConstIteratorWithIndexOverride.h"
+
+template <class TInputImage, class TOutputImage, class TFunctor>
+void
+UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, TFunctor>
+::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+{
+  // Use our fast iterators for vector images
+  typedef itk::ImageLinearIteratorWithIndex<OutputImageType> IterBase;
+  typedef IteratorExtender<IterBase> IterType;
+
+  typedef typename OutputImageType::InternalPixelType OutputComponentType;
+  typedef typename InputImageType::InternalPixelType InputComponentType;
+
+  // Define the iterators
+  IterType outputIt(this->GetOutput(), outputRegionForThread);
+  int line_len = outputRegionForThread.GetSize(0);
+
+  // Using a generic ITK iterator for the input because it supports RLE images and adaptors
+  itk::ImageScanlineConstIterator< InputImageType > inputIt(this->GetInput(), outputRegionForThread);
+
+  while ( !inputIt.IsAtEnd() )
+    {
+    // Get the pointer to the input and output pixel lines
+    OutputComponentType *out = outputIt.GetPixelPointer(this->GetOutput());
+
+    for(int i = 0; i < line_len; i++, ++inputIt)
+      {
+      out[i] = m_Functor(inputIt.Get());
+      }
+
+    outputIt.NextLine();
+    inputIt.NextLine();
+    }
+}
+
+template<class TTraits, class TBase>
+SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::FloatVectorImageSource>
+ScalarImageWrapper<TTraits, TBase>::CreateCastToFloatVectorPipeline() const
+{
+  typedef UnaryFunctorImageToSingleComponentVectorImageFilter<
+      ImageType, FloatVectorImageType, NativeIntensityMapping> FilterType;
+  SmartPtr<FilterType> filter = FilterType::New();
+  filter->SetInput(this->m_Image);
+  filter->SetFunctor(this->m_NativeMapping);
+
+  SmartPtr<FloatVectorImageSource> output = filter.GetPointer();
+  return output;
+}
+
+template<class TTraits, class TBase>
+SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::DoubleVectorImageSource>
+ScalarImageWrapper<TTraits, TBase>::CreateCastToDoubleVectorPipeline() const
+{
+  typedef UnaryFunctorImageToSingleComponentVectorImageFilter<
+      ImageType, DoubleVectorImageType, NativeIntensityMapping> FilterType;
+  SmartPtr<FilterType> filter = FilterType::New();
+  filter->SetInput(this->m_Image);
+  filter->SetFunctor(this->m_NativeMapping);
+
+  SmartPtr<DoubleVectorImageSource> output = filter.GetPointer();
+  return output;
+}
 
 template<class TTraits, class TBase>
 double 
@@ -278,21 +391,29 @@ ScalarImageWrapper<TTraits,TBase>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
-  // Make sure the display slice is updated
-  this->GetDisplaySlice(0)->GetSource()->UpdateLargestPossibleRegion();
-
-  // Find the correct voxel in the space of the first display slice
-  Vector3ui idxDisp =
-      this->GetImageToDisplayTransform(0).TransformVoxelIndex(this->GetSliceIndex());
-
+  // Get the display slice
   DisplaySliceType *slice = this->GetDisplaySlice(0);
 
-  // Get the RGB value
-  typename DisplaySliceType::IndexType idx2D = {{idxDisp[0], idxDisp[1]}};
-  out_appearance = slice->GetPixel(idx2D);
+  // Make sure the display slice is updated
+  slice->GetSource()->UpdateLargestPossibleRegion();
 
-  // Get the numerical value
-  PixelType val_raw = this->GetSlicer(0)->GetOutput()->GetPixel(idx2D);
+  // Map the location of the cursor into the display slice index.
+  Vector2d xDisp = this->MapImageIndexToDisplaySliceIndex(0, this->GetSliceIndex());
+
+  // Convert the location to an index.
+  // TODO: this is somewhat imperfect for non-orthogonal slicing, because we are not
+  // ideally interpolating the image at the cursor location. Instead we are using the
+  // intensity of the nearest voxel.
+  //
+  // TODO: we need to deal with cases when cursor is outside of the image for non-orthog
+  // slicing situations!
+  itk::Index<2> idxDisp = to_itkIndex(xDisp);
+
+  // Get the RGB value
+  out_appearance = slice->GetPixel(idxDisp);
+
+  // The the raw value
+  PixelType val_raw = this->GetSlice(0)->GetPixel(idxDisp);
   out_value.set_size(1);
   out_value[0] = this->m_NativeMapping(val_raw);
 }

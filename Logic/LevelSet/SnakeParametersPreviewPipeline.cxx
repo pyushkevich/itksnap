@@ -408,10 +408,9 @@ SnakeParametersPreviewPipeline
     typedef itk::GradientImageFilter<ShortImageType> GradientFilter;
     GradientFilter::Pointer filter = GradientFilter::New();
 
-    // Set up and run the filter
     filter->SetInput(m_SpeedImage);
-    m_GradientImage = filter->GetOutput();
     filter->Update();
+    m_GradientImage = filter->GetOutput();
 
     // Pass the image to the display functor
     m_DisplayMapper->SetInput(m_SpeedImage);

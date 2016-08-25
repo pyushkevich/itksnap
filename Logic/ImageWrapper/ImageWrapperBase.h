@@ -10,6 +10,7 @@
 namespace itk {
   template <unsigned int VDim> class ImageBase;
   template <class TPixel, unsigned int VDim> class Image;
+  template <class TPixel, unsigned int VDim> class VectorImage;
   template <class TPixel> class RGBAPixel;
   template <class TOutputImage> class ImageSource;
   template <class TScalar, unsigned int V1, unsigned int V2> class Transform;
@@ -155,6 +156,15 @@ public:
    */
   virtual void SetSliceIndex(const Vector3ui &) = 0;
 
+  /**
+   * Set the viewport rectangle onto which the three display slices
+   * will be rendered
+   */
+  virtual void SetDisplayViewportGeometry(
+      unsigned int index,
+      ImageBaseType *viewport_image) = 0;
+
+
   /** Return some image info independently of pixel type */
   irisVirtualGetMacro(ImageBase, ImageBaseType *)
 
@@ -198,6 +208,13 @@ public:
    * yet computed, in which case they should not yet be drawn.
    */
   irisVirtualIsMacro(Drawable)
+
+  /**
+   * Whether the layer is initialized to use orthogonal slicing or non-orthogonal
+   * slicing. There are two slicing pipelines, one for the images whose slicing
+   * directions are parallel to the display planes, and one for the opposite case.
+   */
+  irisVirtualIsMacro(SlicingOrthogonal)
 
   /**
    * Get the buffered region of the image
@@ -398,6 +415,16 @@ public:
    */
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) = 0;
 
+  /**
+   * Get the ITK transform between this image and the reference space
+   */
+  virtual ITKTransformType *GetITKTransform() const = 0;
+
+  /**
+   * Get the reference space space in which this image is defined
+   */
+  virtual ImageBaseType* GetReferenceSpace() const = 0;
+
 protected:
 
 };
@@ -409,10 +436,16 @@ public:
   // A common image format to which the contents of the scalar image wrapper
   // may be cast for downstream processing
   typedef itk::Image<GreyType, 3>                      CommonFormatImageType;
+
   typedef itk::Image<float, 3>                                FloatImageType;
   typedef itk::ImageSource<FloatImageType>                  FloatImageSource;
   typedef itk::Image<double, 3>                              DoubleImageType;
   typedef itk::ImageSource<DoubleImageType>                DoubleImageSource;
+
+  typedef itk::VectorImage<float, 3>                    FloatVectorImageType;
+  typedef itk::ImageSource<FloatVectorImageType>      FloatVectorImageSource;
+  typedef itk::VectorImage<double, 3>                  DoubleVectorImageType;
+  typedef itk::ImageSource<DoubleVectorImageType>    DoubleVectorImageSource;
 
   /**
    * An enum of export channel types. Export channels are used to present the
@@ -499,6 +532,12 @@ public:
 
   /** Same as CreateCastToFloatPipeline, but for double precision */
   virtual SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const = 0;
+
+  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
+  virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const = 0;
+
+  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
+  virtual SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const = 0;
 
   /**
    * Get the intensity curve used to map raw intensities to color map inputs.

@@ -25,7 +25,7 @@ SimpleFileDialogWithHistory::~SimpleFileDialogWithHistory()
   delete ui;
 }
 
-QString
+SimpleFileDialogWithHistory::QueryResult
 SimpleFileDialogWithHistory
 ::showOpenDialog(QWidget *parent,
                  GlobalUIModel *model,
@@ -34,6 +34,8 @@ SimpleFileDialogWithHistory
                  QString history_name,
                  QString file_pattern, QString init_file)
 {
+  QueryResult result;
+
   // Configure the dialog
   SimpleFileDialogWithHistory *dialog = new SimpleFileDialogWithHistory(parent);
   dialog->ui->filePanel->initializeForOpenFile(model, file_title, history_name, file_pattern, init_file);
@@ -42,22 +44,25 @@ SimpleFileDialogWithHistory
   // Launch the dialog
   if(dialog->exec() == QDialog::Accepted)
     {
-    return dialog->ui->filePanel->absoluteFilename();
+    result.filename = dialog->ui->filePanel->absoluteFilename();
+    result.activeFormat = dialog->ui->filePanel->activeFormat();
     }
-  else return QString();
+
+  return result;
 }
 
 #include <QMessageBox>
 
-QString
-SimpleFileDialogWithHistory
-::showSaveDialog(QWidget *parent, GlobalUIModel *model,
+SimpleFileDialogWithHistory::QueryResult
+SimpleFileDialogWithHistory::showSaveDialog(QWidget *parent, GlobalUIModel *model,
                  QString window_title,
                  QString file_title,
                  QString history_name,
                  QString file_pattern, bool force_extension,
                  QString init_file)
 {
+  QueryResult result;
+
   // Configure the dialog
   SimpleFileDialogWithHistory *dialog = new SimpleFileDialogWithHistory(parent);
   dialog->setWindowTitle(window_title);
@@ -67,9 +72,11 @@ SimpleFileDialogWithHistory
   // Launch the dialog
   if(dialog->exec() == QDialog::Accepted)
     {
-    return dialog->ui->filePanel->absoluteFilename();
+    result.filename = dialog->ui->filePanel->absoluteFilename();
+    result.activeFormat = dialog->ui->filePanel->activeFormat();
     }
-  else return QString();
+
+  return result;
 }
 
 

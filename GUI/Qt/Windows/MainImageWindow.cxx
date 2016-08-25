@@ -58,8 +58,6 @@
 #include "DefaultBehaviorSettings.h"
 #include "SynchronizationModel.h"
 
-
-
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
 #include <QtWidgetCoupling.h>
@@ -72,7 +70,7 @@
 #include <PreferencesDialog.h>
 #include "SaveModifiedLayersDialog.h"
 #include <InterpolateLabelsDialog.h>
-
+#include "RegistrationDialog.h"
 
 #include <QAbstractListModel>
 #include <QItemDelegate>
@@ -215,6 +213,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_InterpolateLabelsDialog = new InterpolateLabelsDialog(this);
   m_InterpolateLabelsDialog->setModal(false);
 
+  m_RegistrationDialog = new RegistrationDialog(this);
+  m_RegistrationDialog->setModal(false);
+
   // Initialize the docked panels
   m_DockLeft = new QDockWidget(this);
   m_DockLeft->setAllowedAreas(Qt::LeftDockWidgetArea);
@@ -228,13 +229,21 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_ControlPanel = new MainControlPanel(this);
   m_DockLeft->setWidget(m_ControlPanel);
 
+  // Set up the right hand side dock widget
   m_DockRight = new QDockWidget("Segment 3D", this);
-  m_SnakeWizard = new SnakeWizardPanel(this);
-  m_DockRight->setWidget(m_SnakeWizard);
+
   m_DockRight->setAllowedAreas(Qt::RightDockWidgetArea);
   m_DockRight->setFeatures(
         QDockWidget::DockWidgetFloatable |
         QDockWidget::DockWidgetMovable);
+
+  m_RightDockStack = new QStackedWidget(m_DockRight);
+  m_DockRight->setWidget(m_RightDockStack);
+
+  m_SnakeWizard = new SnakeWizardPanel(this);
+  m_RightDockStack->addWidget(m_SnakeWizard);
+  m_RightDockStack->addWidget(m_RegistrationDialog);
+
   this->addDockWidget(Qt::RightDockWidgetArea, m_DockRight);
 
   // Set up the recent items panels
@@ -454,6 +463,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_StatisticsDialog->SetModel(model);
   m_PreferencesDialog->SetModel(model->GetGlobalPreferencesModel());
   m_InterpolateLabelsDialog->SetModel(model->GetInterpolateLabelModel());
+  m_RegistrationDialog->SetModel(model->GetRegistrationModel());
 
   // Initialize the docked panels
   m_ControlPanel->SetModel(model);
@@ -589,7 +599,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionColor_Map_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionImage_Information, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionRegistration, m_Model, UIF_IRIS_WITH_OVERLAY_LOADED);
 
   activateOnFlag(ui->actionReorient_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
@@ -1050,6 +1060,8 @@ void MainImageWindow::OpenSnakeWizard()
   m_SizeWithoutRightDock = this->size();
 
   // Make the dock containing the wizard visible
+  m_DockRight->setWindowTitle("Segment 3D");
+  m_RightDockStack->setCurrentWidget(m_SnakeWizard);
   m_DockRight->setVisible(true);
 }
 
@@ -2113,4 +2125,11 @@ void MainImageWindow::on_actionActivatePreviousLayer_triggered()
 void MainImageWindow::on_actionInterpolate_Labels_triggered()
 {
   RaiseDialog(m_InterpolateLabelsDialog);
+}
+
+void MainImageWindow::on_actionRegistration_triggered()
+{
+  m_DockRight->setWindowTitle("Registration");
+  m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
+  m_DockRight->setVisible(true);
 }

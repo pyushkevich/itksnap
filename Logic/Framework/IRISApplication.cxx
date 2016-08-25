@@ -1460,11 +1460,9 @@ IRISApplication
 
   // TODO: in situations where the size is the same and spacing is different, we may want to ask the
   // user how to handle it, or at least display a warning?
-
-  // Call the correct method
-  if(same_size && same_space)
+  /*if(same_size && same_space)
     m_IRISImageData->AddOverlay(io);
-  else
+  else*/
     m_IRISImageData->AddCoregOverlay(io);
 
   ImageWrapperBase *layer = m_IRISImageData->GetLastOverlay();
@@ -1498,8 +1496,10 @@ IRISApplication
   if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
     AutoContrastLayerOnLoad(layer);
 
-  // Set the selected layer ID to be the new overlay
-  m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
+  // Set the selected layer ID to be the new selected overlay - but only if it is
+  // not sticky!
+  if(!layer->IsSticky())
+    m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
@@ -1534,7 +1534,8 @@ IRISApplication
     AutoContrastLayerOnLoad(layer);
 
   // Set the selected layer ID to be the new overlay
-  m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
+  if(!layer->IsSticky())
+    m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());

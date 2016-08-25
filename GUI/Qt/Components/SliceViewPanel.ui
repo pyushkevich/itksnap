@@ -838,6 +838,9 @@ p, li { white-space: pre-wrap; }
       <item>
        <widget class="AnnotationInteractionMode" name="imAnnotation" native="true"/>
       </item>
+      <item>
+       <widget class="RegistrationInteractionMode" name="imRegistration" native="true"/>
+      </item>
      </layout>
     </widget>
    </item>
@@ -1189,6 +1192,12 @@ p, li { white-space: pre-wrap; }
    <class>AnnotationInteractionMode</class>
    <extends>QWidget</extends>
    <header>AnnotationInteractionMode.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>RegistrationInteractionMode</class>
+   <extends>QWidget</extends>
+   <header>RegistrationInteractionMode.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

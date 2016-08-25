@@ -206,6 +206,8 @@ public:
 
   virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
 
+  virtual void SetDisplayViewportGeometry(unsigned int index, ImageBaseType *viewport_image);
+
   virtual void SetDirectionMatrix(const vnl_matrix<double> &direction);
 
   virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source);

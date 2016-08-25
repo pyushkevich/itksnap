@@ -87,6 +87,12 @@ public:
   typedef itk::Image<double, 3>                                DoubleImageType;
   typedef itk::ImageSource<DoubleImageType>                  DoubleImageSource;
 
+  // Vector image types
+  typedef itk::VectorImage<float, 3>                      FloatVectorImageType;
+  typedef itk::ImageSource<FloatVectorImageType>        FloatVectorImageSource;
+  typedef itk::VectorImage<double, 3>                    DoubleVectorImageType;
+  typedef itk::ImageSource<DoubleVectorImageType>      DoubleVectorImageSource;
+
   // Slice image type
   typedef typename Superclass::SliceType                             SliceType;
   typedef typename Superclass::SlicePointer                       SlicePointer;
@@ -239,6 +245,12 @@ public:
   /** Same as above, but casts to double. For compatibility with C3D, until we
    * safely switch C3D to use float instead of double */
   SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const;
+
+  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
+  SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const;
+
+  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
+  SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const;
 
   /**
    * Get an image cast to a common representation.

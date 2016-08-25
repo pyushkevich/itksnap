@@ -49,6 +49,7 @@
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "IRISSlicer.h"
+#include "NonOrthogonalSlicer.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
 #include "ImageCoordinateGeometry.h"
@@ -70,6 +71,7 @@
 #include "ScalarImageHistogram.h"
 #include "GuidedNativeImageIO.h"
 #include "itkTransform.h"
+#include "itkExtractImageFilter.h"
 
 
 #include <vnl/vnl_inverse.h>
@@ -90,6 +92,8 @@ public:
 };
 
 
+
+
 /**
  * Some functions in the image wrapper are only defined for 'concrete' image
  * wrappers, i.e., those that store an image or a vectorimage. These functions
@@ -104,6 +108,9 @@ public:
   typedef TImage ImageType;
   typedef typename TImage::PixelType PixelType;
 
+  typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
+  typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
+
   static void FillBuffer(ImageType *image, PixelType)
   {
     throw IRISException("FillBuffer unsupported for class %s",
@@ -117,7 +124,10 @@ public:
   }
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        ImageBaseType *ref_space,
+                                        TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
+                                        bool force_resampling,
                                         itk::Command *progressCommand)
   {
     throw IRISException("CopyRegion unsupported for class %s",
@@ -132,6 +142,8 @@ class ImageWrapperPartialSpecializationTraitsCommon
 public:
   typedef TImage ImageType;
   typedef typename TImage::PixelType PixelType;
+  typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
+  typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
 
   static void FillBuffer(ImageType *image, PixelType p)
   {
@@ -156,17 +168,20 @@ public:
   template <class TInterpolateFunction>
   static SmartPtr<ImageType> DeepCopyImageRegion(
       ImageType *image,
+      ImageBaseType *refspace,
+      TransformType *transform,
       TInterpolateFunction *interp,
       const SNAPSegmentationROISettings &roi,
+      bool force_resampling,
       itk::Command *progressCommand)
   {
     // Check if there is a difference in voxel size, i.e., user wants resampling
-    Vector3d vOldSpacing = image->GetSpacing();
-    Vector3d vOldOrigin = image->GetOrigin();
+    Vector3d vOldSpacing = refspace->GetSpacing();
+    Vector3d vOldOrigin = refspace->GetOrigin();
     Vector3i vROIIndex(roi.GetROI().GetIndex());
     Vector3ui vROISize(roi.GetROI().GetSize());
 
-    if(roi.IsResampling())
+    if(force_resampling || roi.IsResampling())
       {
       // Compute the number of voxels in the output
       typedef typename itk::ImageRegion<3> RegionType;
@@ -175,7 +190,7 @@ public:
       // We need to compute the new spacing and origin of the resampled
       // ROI piece. To do this, we need the direction matrix
       typedef typename ImageType::DirectionType DirectionType;
-      const DirectionType &dm = image->GetDirection();
+      const DirectionType &dm = refspace->GetDirection();
 
       // The spacing of the new ROI
       Vector3d vNewSpacing =
@@ -194,14 +209,14 @@ public:
 
       // Initialize the resampling filter
       fltSample->SetInput(image);
-      fltSample->SetTransform(itk::IdentityTransform<double,3>::New());
+      fltSample->SetTransform(transform);
       fltSample->SetInterpolator(interp);
 
       // Set the image sizes and spacing
       fltSample->SetSize(to_itkSize(roi.GetResampleDimensions()));
       fltSample->SetOutputSpacing(vNewSpacing.data_block());
       fltSample->SetOutputOrigin(vNewOrigin.data_block());
-      fltSample->SetOutputDirection(image->GetDirection());
+      fltSample->SetOutputDirection(refspace->GetDirection());
 
       // Set the progress bar
       if(progressCommand)
@@ -244,7 +259,10 @@ public:
   typedef ImageWrapperPartialSpecializationTraitsCommon<ImageType> Superclass;
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        typename Superclass::ImageBaseType *refspace,
+                                        typename Superclass::TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
+                                        bool force_resampling,
                                         itk::Command *progressCommand)
   {
     typedef itk::InterpolateImageFunction<ImageType> Interpolator;
@@ -279,7 +297,7 @@ public:
         break;
       };
 
-    return Superclass::template DeepCopyImageRegion<Interpolator>(image,interp,roi,progressCommand);
+    return Superclass::template DeepCopyImageRegion<Interpolator>(image,refspace,transform,interp,roi,force_resampling,progressCommand);
   }
 };
 
@@ -299,7 +317,10 @@ public:
   }
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        typename Superclass::ImageBaseType *refspace,
+                                        typename Superclass::TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
+                                        bool force_resampling,
                                         itk::Command *progressCommand)
   {
     typedef itk::InterpolateImageFunction<ImageType> Interpolator;
@@ -322,7 +343,7 @@ public:
         throw IRISException("Higher-order interpolation for vector images is unsupported.");
       };
 
-    return Superclass::template DeepCopyImageRegion<Interpolator>(image,interp,roi,progressCommand);
+    return Superclass::template DeepCopyImageRegion<Interpolator>(image,refspace,transform,interp,roi,force_resampling,progressCommand);
   }
 
 };
@@ -336,6 +357,8 @@ public:
   typedef RLEImage<TPixel, VDim, CounterType> ImageType;
   typedef itk::Image<TPixel, VDim> UncompressedType;
   typedef typename ImageType::PixelType PixelType;
+  typedef itk::ImageBase<VDim> ImageBaseType;
+  typedef itk::Transform<double, VDim, VDim> TransformType;
 
   static void FillBuffer(ImageType *image, PixelType p)
   {
@@ -368,8 +391,11 @@ public:
   template <class TInterpolateFunction>
   static SmartPtr<ImageType> DeepCopyImageRegion(
       ImageType *image,
+      ImageBaseType *ref_space,
+      TransformType *transform,
       TInterpolateFunction *interp,
       const SNAPSegmentationROISettings &roi,
+      bool force_resampling,
       itk::Command *progressCommand)
   {
       // Check if there is a difference in voxel size, i.e., user wants resampling
@@ -378,7 +404,7 @@ public:
       Vector3i vROIIndex(roi.GetROI().GetIndex());
       Vector3ui vROISize(roi.GetROI().GetSize());
 
-      if (roi.IsResampling())
+      if (force_resampling || roi.IsResampling())
       {
           // Compute the number of voxels in the output
           typedef typename itk::ImageRegion<3> RegionType;
@@ -387,7 +413,7 @@ public:
           // We need to compute the new spacing and origin of the resampled
           // ROI piece. To do this, we need the direction matrix
           typedef typename ImageType::DirectionType DirectionType;
-          const DirectionType &dm = image->GetDirection();
+          const DirectionType &dm = ref_space->GetDirection();
 
           // The spacing of the new ROI
           Vector3d vNewSpacing =
@@ -414,14 +440,14 @@ public:
 
           // Initialize the resampling filter
           fltSample->SetInput(imgUncompressed);
-          fltSample->SetTransform(itk::IdentityTransform<double, 3>::New());
+          fltSample->SetTransform(transform);
           fltSample->SetInterpolator(interp);
 
           // Set the image sizes and spacing
           fltSample->SetSize(to_itkSize(roi.GetResampleDimensions()));
           fltSample->SetOutputSpacing(vNewSpacing.data_block());
           fltSample->SetOutputOrigin(vNewOrigin.data_block());
-          fltSample->SetOutputDirection(image->GetDirection());
+          fltSample->SetOutputDirection(ref_space->GetDirection());
 
           // Set the progress bar
           if (progressCommand)
@@ -452,7 +478,10 @@ public:
   }
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
+                                        ImageBaseType *refspace,
+                                        TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
+                                        bool force_resampling,
                                         itk::Command *progressCommand)
   {
     //the interpolator will operate on uncompressed region
@@ -488,7 +517,7 @@ public:
           break;
       };
 
-    return Self::template DeepCopyImageRegion<Interpolator>(image, interp, roi, progressCommand);
+    return Self::template DeepCopyImageRegion<Interpolator>(image, refspace, transform, interp, roi, force_resampling, progressCommand);
   }
 };
 
@@ -779,20 +808,37 @@ ImageWrapper<TTraits,TBase>
       // Set the input to the dummy image
       m_Slicer[i]->SetInput(dummy);
 
-      // Create an itk reslicing filter
-      m_ResampleFilter[i] = ResampleFilter::New();
-      m_ResampleFilter[i]->SetInput(newImage);
-      m_ResampleFilter[i]->SetTransform(transform);
-      m_ResampleFilter[i]->SetOutputParametersFromImage(referenceSpace);
-      m_Slicer[i]->SetPreviewInput(m_ResampleFilter[i]->GetOutput());
+      // Create an advanced slicer
+      m_AdvancedSlicer[i] = NonOrthogonalSlicerType::New();
+      m_AdvancedSlicer[i]->SetInput(newImage);
+      m_AdvancedSlicer[i]->SetTransform(transform);
+
+      // Create another set that work with the older slicers - this is temporary
+      // TODO: get rid of this
+      m_ResampleFilter[i+3] = ResampleFilter::New();
+      m_ResampleFilter[i+3]->SetInput(newImage);
+      m_ResampleFilter[i+3]->SetTransform(transform);
+      m_ResampleFilter[i+3]->SetOutputParametersFromImage(referenceSpace);
+      m_Slicer[i]->SetPreviewInput(m_ResampleFilter[i+3]->GetOutput());
       m_Slicer[i]->SetBypassMainInput(true);
       }
     }
+
 
   // Update the image
   this->m_ReferenceSpace = referenceSpace;
   this->m_ImageBase = newImage;
   this->m_Image = newImage;
+
+  // Update the transforms
+  if(transform)
+    this->m_Transform = transform;
+  else
+    {
+    typedef itk::IdentityTransform<double, 3> IdTransformType;
+    typename IdTransformType::Pointer idTran = IdTransformType::New();
+    this->m_Transform = idTran.GetPointer();
+    }
 
   // Mark the image as Modified to enforce correct sequence of
   // operations with MinMaxCalc
@@ -837,7 +883,13 @@ ImageWrapper<TTraits,TBase>
   SetSliceIndex(source->GetSliceIndex());
 }
 
-
+template<class TTraits, class TBase>
+bool
+ImageWrapper<TTraits,TBase>
+::IsSlicingOrthogonal() const
+{
+  return m_AdvancedSlicer[0].IsNull();
+}
 
 template<class TTraits, class TBase>
 void
@@ -887,15 +939,45 @@ void
 ImageWrapper<TTraits,TBase>
 ::SetITKTransform(ImageBaseType *refSpace, ITKTransformType *transform)
 {
-  // TODO: this is a hack, to get around the display slices not updating...
-  Vector3ui index = this->GetSliceIndex();
-  UpdateImagePointer(m_Image, refSpace, transform);
-  this->SetSliceIndex(Vector3ui(0u));
-  this->SetSliceIndex(index);
-  this->InvokeEvent(WrapperDisplayMappingChangeEvent());
+  // Check if the reference space has changed
+  if(m_ReferenceSpace != refSpace)
+    {
+    // Force a reinitialization of this layer
+    this->UpdateImagePointer(m_Image, refSpace, transform);
+    }
+  else if(!this->IsSlicingOrthogonal())
+    {
+    // Simply update the transforms
+    for(int i = 0; i < 3; i++)
+      {
+      m_AdvancedSlicer[i]->SetTransform(transform);
+      m_ResampleFilter[i+3]->SetTransform(transform);
+      }
+    this->m_Transform = transform;
+    this->InvokeEvent(WrapperDisplayMappingChangeEvent());
+    }
+  else
+    {
+    // TODO: handle switching between orthogonal and non-orthogonal based on transform, etc.
+    }
+}
+
+template<class TTraits, class TBase>
+typename ImageWrapper<TTraits,TBase>::ITKTransformType *
+ImageWrapper<TTraits,TBase>
+::GetITKTransform() const
+{
+  return m_Transform;
 }
 
 
+template<class TTraits, class TBase>
+typename ImageWrapper<TTraits,TBase>::ImageBaseType *
+ImageWrapper<TTraits,TBase>
+::GetReferenceSpace() const
+{
+  return m_ReferenceSpace;
+}
 
 template<class TTraits, class TBase>
 void 
@@ -1003,6 +1085,19 @@ ImageWrapper<TTraits,TBase>
     // Set the slice using that axis
     m_Slicer[i]->SetSliceIndex(cursor[axis]);
   }
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::SetDisplayViewportGeometry(
+    unsigned int index,
+    ImageBaseType *viewport_image)
+{
+  if(m_AdvancedSlicer[index])
+    {
+    m_AdvancedSlicer[index]->SetReferenceImage(viewport_image);
+    }
 }
 
 
@@ -1144,7 +1239,12 @@ typename ImageWrapper<TTraits,TBase>::SliceType*
 ImageWrapper<TTraits,TBase>
 ::GetSlice(unsigned int dimension)
 {
-  return m_Slicer[dimension]->GetOutput();
+  if(m_AdvancedSlicer[dimension].IsNotNull())
+    {
+    return m_AdvancedSlicer[dimension]->GetOutput();
+    }
+  else
+    return m_Slicer[dimension]->GetOutput();
 }
 
 // template<class TTraits, class TBase>
@@ -1155,6 +1255,37 @@ ImageWrapper<TTraits,TBase>
   // return m_Image->GetBufferPointer();
 // }
 
+template<class TTraits, class TBase>
+Vector2d
+ImageWrapper<TTraits,TBase>
+::MapImageIndexToDisplaySliceIndex(int display_id, const Vector3ui &pos)
+{
+  // The output value
+  Vector2d idxDisplay2D;
+
+  if(this->IsSlicingOrthogonal())
+    {
+    // Find the correct voxel in the space of the first display slice
+    Vector3ui idxDisplay3D =
+        this->GetImageToDisplayTransform(display_id).TransformVoxelIndex(pos);
+
+    idxDisplay2D[0] = idxDisplay3D[0];
+    idxDisplay2D[1] = idxDisplay3D[1];
+    }
+  else
+    {
+    // Use the appropriate mapping
+    typename ImageType::PointType xPhysical;
+    itk::ContinuousIndex<double, 3> idxDisplay3D;
+    m_ReferenceSpace->TransformIndexToPhysicalPoint(to_itkIndex(pos), xPhysical);
+    m_AdvancedSlicer[display_id]->GetReferenceImage()->TransformPhysicalPointToContinuousIndex(xPhysical, idxDisplay3D);
+
+    idxDisplay2D[0] = idxDisplay3D[0];
+    idxDisplay2D[1] = idxDisplay3D[1];
+    }
+
+  return idxDisplay2D;
+}
 
 // TODO: this should take advantage of an in-place filter!
 template<class TTraits, class TBase>
@@ -1549,11 +1680,14 @@ ImageWrapper<TTraits,TBase>
 ::DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                  itk::Command *progressCommand) const
 {
+  // If the image in this wrapper is not the same as the reference space,
+  // we must force resampling to occur
+  bool force_resampling = !this->IsSlicingOrthogonal();
 
   // We use partial template specialization here because region copy is
   // only supported for images that are concrete (Image, VectorImage)
   typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
-  return Specialization::CopyRegion(m_Image, roi, progressCommand);
+  return Specialization::CopyRegion(m_Image, m_ReferenceSpace, m_Transform, roi, force_resampling, progressCommand);
 }
 
 

@@ -91,6 +91,11 @@ GenericImageData
 
   // Create empty annotations
   m_Annotations = ImageAnnotationData::New();
+
+  // Initialize the display viewport geometry objects
+  m_DisplayViewportGeometry[0] = ImageBaseType::New();
+  m_DisplayViewportGeometry[1] = ImageBaseType::New();
+  m_DisplayViewportGeometry[2] = ImageBaseType::New();
 }
 
 GenericImageData
@@ -171,9 +176,12 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceA
     SmartPtr<AnatomicImageWrapper> wrapper = AnatomicImageWrapper::New();
 
     // Set properties
-    wrapper->SetDisplayGeometry(m_Parent->GetDisplayGeometry());
+    wrapper->SetDisplayGeometry(m_DisplayGeometry);
     wrapper->SetImage(image, refSpace, transform);
     wrapper->SetNativeMapping(mapper);
+    for(int i = 0; i < 3; i++)
+      wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
+
     out_wrapper = wrapper.GetPointer();
     }
 
@@ -194,9 +202,13 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceA
     SmartPtr<AnatomicScalarImageWrapper> wrapper = AnatomicScalarImageWrapper::New();
 
     // Set properties
-    wrapper->SetDisplayGeometry(m_Parent->GetDisplayGeometry());
+    wrapper->SetDisplayGeometry(m_DisplayGeometry);
     wrapper->SetImage(image, refSpace, transform);
     wrapper->SetNativeMapping(mapper);
+
+    for(int i = 0; i < 3; i++)
+      wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
+
     out_wrapper = wrapper.GetPointer();
     }
 
@@ -396,6 +408,11 @@ void GenericImageData::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
       // Set the direction matrix in the image
       lit.GetLayer()->SetDisplayGeometry(m_Parent->GetDisplayGeometry());
       }
+}
+
+GenericImageData::ImageBaseType *GenericImageData::GetDisplayViewportGeometry(int index)
+{
+  return m_DisplayViewportGeometry[index];
 }
 
 void GenericImageData::SetDirectionMatrix(const vnl_matrix<double> &direction)

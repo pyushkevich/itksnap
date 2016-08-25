@@ -49,6 +49,9 @@ template <class TInputImage, class TOutputImage, class TPreviewImage> class IRIS
 template <class TFunctor> class UnaryValueToValueFilter;
 
 class SNAPSegmentationROISettings;
+template <typename TInputImage,
+          typename TOutputImage> class NonOrthogonalSlicer;
+
 namespace itk {
   template <unsigned int VDimension> class ImageBase;
   template <class TImage> class ImageSource;
@@ -57,6 +60,8 @@ namespace itk {
            typename TOutputImage,
            typename TInterpolatorPrecisionType,
            typename TTransformPrecisionType> class ResampleImageFilter;
+  template<typename TInputImage,
+           typename TOutputImage> class ExtractImageFilter;
 }
 
 #include <itkImageSource.h>
@@ -175,6 +180,11 @@ public:
   irisGetMacro(UniqueId, unsigned long)
 
   /**
+    Does this wrapper use the non-orthogonal slicing pipeline?
+    */
+  virtual bool IsSlicingOrthogonal() const;
+
+  /**
    * Clear the data associated with storing an image
    */
   virtual void Reset();
@@ -207,8 +217,15 @@ public:
   irisGetMacro(ImageGeometry, const ImageCoordinateGeometry &)
 
 
-  /** Get the current slice index */
+  /** Get the current slice index - which really means cursor position */
   irisGetMacro(SliceIndex, Vector3ui)
+
+  /**
+   * Map a position in image space to a position in display slice space. This
+   * method returns a correct position regardless of whether the orthogonal or
+   * non-orthogonal slicing method is used
+   */
+  Vector2d MapImageIndexToDisplaySliceIndex(int display_id, const Vector3ui &pos);
 
   /** Return some image info independently of pixel type */
   ImageBaseType* GetImageBase() const { return m_Image; }
@@ -313,6 +330,10 @@ public:
    */
   virtual void SetSliceIndex(const Vector3ui &cursor);
 
+  virtual void SetDisplayViewportGeometry(
+      unsigned int index,
+      ImageBaseType *viewport_image);
+
   /**
    * Get an ITK pipeline object holding the minimum value in the image. For
    * multi-component images, this is the minimum value over all components.
@@ -367,6 +388,16 @@ public:
    * main reference space
    */
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform);
+
+  /**
+   * Get the ITK transform between this layer and its reference space
+   */
+  virtual ITKTransformType *GetITKTransform() const;
+
+  /**
+   * Get the reference space space in which this image is defined
+   */
+  virtual ImageBaseType* GetReferenceSpace() const;
 
   /**
    * Extract a region of interest from the image wrapper, as a new wrapper of
@@ -552,6 +583,9 @@ protected:
   /** The reference space - this is the space into which the image is sliced */
   SmartPtr<ImageBaseType> m_ReferenceSpace;
 
+  /** The transform relative to the reference space */
+  SmartPtr<ITKTransformType> m_Transform;
+
   /** The current cursor position (slice index) in image dimensions */
   Vector3ui m_SliceIndex;
 
@@ -644,10 +678,16 @@ protected:
 
   /**
    * Resampling filter data type. These filters are used when slicing is required in
-   * non-orthogonal directions
+   * non-orthogonal directions. There are four of these filters, and they are used to
+   * produce three display slices and also a complete image that matches the dimensions
+   * of the main image (this is for feature extraction, etc.)
    */
   typedef itk::ResampleImageFilter<ImageType, PreviewImageType, double, double> ResampleFilter;
-  SmartPtr<ResampleFilter> m_ResampleFilter[3];
+  SmartPtr<ResampleFilter> m_ResampleFilter[6];
+
+  // TODO: in the future replace this with a true in-place filter that collapses the last dimension
+  typedef NonOrthogonalSlicer<ImageType, SliceType> NonOrthogonalSlicerType;
+  SmartPtr<NonOrthogonalSlicerType> m_AdvancedSlicer[3];
 };
 
 #endif // __ImageWrapper_h_

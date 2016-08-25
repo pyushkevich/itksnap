@@ -58,7 +58,8 @@ itkEventMacro(SliceModelGeometryChangeEvent, IRISEvent)
 struct SliceViewportLayout
 {
 public:
-  struct SubViewport {
+  struct SubViewport
+  {
     // Size and position of the viewport
     Vector2ui pos, size;
 
@@ -83,6 +84,29 @@ public:
   coordinates between slice space and image space, and other bits of
   information. Ideally, you should be able to store and retrieve the
   state of this object between sessions.
+
+  This class utilizes multiple coordinate systems, described below:
+
+  WINDOW COORDINATE SYSTEM
+  ------------------------
+  This is a 2D coordinate system describing the primary viewport in the 2D
+  slice window. The origin (0, 0) of this coordinate system is the bottom
+  left corner of the active viewport. The upper right corner of the active
+  viewport has window coordinate obtained from GetCanvasSize()
+
+  SLICE COORDINATE SYSTEM
+  -----------------------
+  This is a 3D coordinate system relative to the image slice displayed in
+  the window.
+    x: in units of pixels along the horizontal axis of the window
+    y: in units of pixels along the vertical axis of the window
+    z: slice index of the currently displayed slice
+
+  Coordinate x=0, y=0 corresponds to the (0,0) voxel in the displayed slice
+
+  IMAGE COORDINATE SYSTEM
+  -----------------------
+  This is the ITK image coordinate system
 
   This class is meant to be used with arbitrary GUI environments. It is
   unaware of Qt, FLTK, etc.
@@ -164,6 +188,12 @@ public:
    * Map a point in slice coordinates to a point in the image coordinates
    */
   Vector3f MapSliceToImage(const Vector3f &xSlice);
+
+  /**
+   * Map a point in slice coordinates to a point in image physical coordinates
+   * (the ITK LPS coordinate system)
+   */
+  Vector3d MapSliceToImagePhysical(const Vector3f &xSlice);
 
   /**
    * Map a point in image coordinates to slice coordinates
@@ -268,6 +298,11 @@ public:
    * new is in main/thumbnail mode, this reports the size of the main view
    */
   Vector2ui GetCanvasSize();
+
+  /**
+   * Whether rendering in tiled mode
+   */
+  bool IsTiling() const;
 
   /** Has the slice model been initialized with image data? */
   irisIsMacro(SliceInitialized)
@@ -433,6 +468,7 @@ protected:
 
   /** Update the state of the viewport based on current layout settings */
   void UpdateViewportLayout();
+  void UpdateUpstreamViewportGeometry();
 };
 
 #endif // GENERICSLICEMODEL_H

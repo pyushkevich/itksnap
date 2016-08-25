@@ -35,6 +35,9 @@ public:
   inline ExternalType Get(const ActualPixelType &input) const
     { return m_Functor.Get(input); }
 
+  inline ExternalType Get(const InternalType *incomp) const
+    { return m_Functor.Get(incomp, Superclass::GetVectorLength()); }
+
   inline ExternalType Get(const InternalType &input,
                           const SizeValueType offset) const
     { return Get(Superclass::Get(input, offset)); }
@@ -44,6 +47,11 @@ public:
     m_Functor.SetVectorLength(l);
     Superclass::SetVectorLength(l);
     }
+
+  VectorLengthType GetVectorLength() const
+  {
+    return Superclass::GetVectorLength();
+  }
 
   /**
    * Set the linear mapping from the vector image internal values to the
@@ -115,10 +123,16 @@ class VectorToScalarMagnitudeFunctor : public AbstractVectorToDerivedQuantityFun
 public:
   typedef TInputPixel InputPixelType;
   typedef TOutputPixel OutputPixelType;
+
   OutputPixelType Get(const itk::VariableLengthVector<InputPixelType> &input) const
   {
+    return this->Get(input.GetDataPointer(), input.Size());
+  }
+
+  OutputPixelType Get(const InputPixelType *input, int n_comp) const
+  {
     double sumT2 = 0.0, sumT = 0.0;
-    for(int i = 0; i < input.Size(); i++)
+    for(int i = 0; i < n_comp; i++)
       {
       double t = input[i];
       sumT2 += t * t;
@@ -152,8 +166,13 @@ public:
   typedef TOutputPixel OutputPixelType;
   OutputPixelType Get(const itk::VariableLengthVector<InputPixelType> &input) const
   {
+    return this->Get(input.GetDataPointer(), input.Size());
+  }
+
+  OutputPixelType Get(const InputPixelType *input, int n_comp) const
+  {
     InputPixelType mymax = input[0];
-    for(int i = 1; i < input.Size(); i++)
+    for(int i = 1; i < n_comp; i++)
       mymax = std::max(input[i], mymax);
     return static_cast<OutputPixelType>(mymax * this->m_Scale + this->m_Shift);
   }
@@ -168,10 +187,15 @@ public:
 
   OutputPixelType Get(const itk::VariableLengthVector<InputPixelType> &input) const
   {
+    return this->Get(input.GetDataPointer(), input.Size());
+  }
+
+  OutputPixelType Get(const InputPixelType *input, int n_comp) const
+  {
     double mean = 0.0;
-    for(int i = 0; i < input.Size(); i++)
+    for(int i = 0; i < n_comp; i++)
       mean += input[i];
-    mean /= input.Size();
+    mean /= n_comp;
     return static_cast<OutputPixelType>(mean * this->m_Scale + this->m_Shift);
   }
 };

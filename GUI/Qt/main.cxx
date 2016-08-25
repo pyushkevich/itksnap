@@ -182,6 +182,7 @@ void usage(const char *progname)
   cout << "Additional Options:" << endl;
   cout << "   -z FACTOR            : Specify initial zoom in screen pixels/mm" << endl;
   cout << "   --cwd PATH           : Start with PATH as the initial directory" << endl;
+  cout << "   --threads N          : Limit maximum number of CPU cores used to N." << endl;
   cout << "Debugging/Testing Options:" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
@@ -236,9 +237,12 @@ public:
   // GUI related
   std::string style;
 
+  // Number of threads
+  int nThreads;
+
   CommandLineRequest()
     : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0),
-      flagX11DoubleBuffer(false)
+      flagX11DoubleBuffer(false), nThreads(0)
     {
 #if QT_VERSION >= 0x050000
     style = "fusion";
@@ -345,6 +349,10 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--test", 1);
   parser.AddOption("--testdir", 1);
   parser.AddOption("--testacc", 1);
+
+  // Restrict number of threads
+  // TODO: use and document this
+  parser.AddOption("--threads", 1);
 
   // Current working directory
   parser.AddOption("--cwd", 1);
@@ -517,8 +525,12 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
     argdata.style = parseResult.GetOptionParameter("--style");
 
   // Enable double buffering on X11
-  if(parseResult.IsOptionPresent("x11-db"))
+  if(parseResult.IsOptionPresent("--x11-db"))
     argdata.flagX11DoubleBuffer = true;
+
+  // Number of threads
+  if(parseResult.IsOptionPresent("--threads"))
+    argdata.nThreads = atoi(parseResult.GetOptionParameter("--threads"));
 
   return 0;
 }
@@ -557,6 +569,10 @@ int main(int argc, char *argv[])
 
   // Setup crash signal handlers
   SetupSignalHandlers();
+
+  // Deal with threads
+  if(argdata.nThreads > 0)
+    itk::MultiThreader::SetGlobalMaximumNumberOfThreads(argdata.nThreads);
 
   // Turn off ITK and VTK warning windows
   itk::Object::GlobalWarningDisplayOff();

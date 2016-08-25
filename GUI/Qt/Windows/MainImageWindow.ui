@@ -230,7 +230,7 @@ color:rgb(103, 103, 103);
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap>:/root/logo_square_shadow.png</pixmap>
+                  <pixmap resource="../Resources/SNAPResources.qrc">:/root/logo_square_shadow.png</pixmap>
                  </property>
                 </widget>
                </item>
@@ -503,6 +503,7 @@ color:rgb(103, 103, 103);
     <addaction name="menuActive_3D_Tool"/>
     <addaction name="separator"/>
     <addaction name="actionReorient_Image"/>
+    <addaction name="actionRegistration"/>
     <addaction name="separator"/>
     <addaction name="actionInterpolate_Labels"/>
     <addaction name="separator"/>
@@ -766,7 +767,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionLabel_Editor">
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/icons8_palette_16.png</normaloff>:/root/icons8_palette_16.png</iconset>
    </property>
    <property name="text">
@@ -808,7 +809,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionUndo">
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/icons8_undo-48.png</normaloff>:/root/icons8_undo-48.png</iconset>
    </property>
    <property name="text">
@@ -823,7 +824,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionRedo">
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/icons8_redo-48.png</normaloff>:/root/icons8_redo-48.png</iconset>
    </property>
    <property name="text">
@@ -963,7 +964,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionLayerInspector">
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/icons8_layers_16.png</normaloff>:/root/icons8_layers_16.png</iconset>
    </property>
    <property name="text">
@@ -984,7 +985,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/crosshair.gif</normaloff>:/root/crosshair.gif</iconset>
    </property>
    <property name="text">
@@ -1002,7 +1003,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/zoom.gif</normaloff>:/root/zoom.gif</iconset>
    </property>
    <property name="text">
@@ -1020,7 +1021,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/poly.gif</normaloff>:/root/poly.gif</iconset>
    </property>
    <property name="text">
@@ -1038,7 +1039,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/paintbrush.gif</normaloff>:/root/paintbrush.gif</iconset>
    </property>
    <property name="text">
@@ -1056,7 +1057,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/snake.gif</normaloff>:/root/snake.gif</iconset>
    </property>
    <property name="text">
@@ -1082,7 +1083,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/rotate3d.gif</normaloff>:/root/rotate3d.gif</iconset>
    </property>
    <property name="text">
@@ -1097,7 +1098,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/crosshair3D.gif</normaloff>:/root/crosshair3D.gif</iconset>
    </property>
    <property name="text">
@@ -1112,7 +1113,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/scalpel.gif</normaloff>:/root/scalpel.gif</iconset>
    </property>
    <property name="text">
@@ -1127,7 +1128,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/spray.gif</normaloff>:/root/spray.gif</iconset>
    </property>
    <property name="text">
@@ -1427,7 +1428,7 @@ color:rgb(103, 103, 103);
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="../Resources/SNAPResources.qrc">
      <normaloff>:/root/annotation_28.png</normaloff>:/root/annotation_28.png</iconset>
    </property>
    <property name="text">
@@ -1472,6 +1473,14 @@ color:rgb(103, 103, 103);
     <string>Interpolate Labels...</string>
    </property>
   </action>
+  <action name="actionRegistration">
+   <property name="text">
+    <string>Registration ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Perform image registration</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -1499,7 +1508,9 @@ color:rgb(103, 103, 103);
   <tabstop>btnLoadWorkspace</tabstop>
   <tabstop>tabSplash</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../Resources/SNAPResources.qrc"/>
+ </resources>
  <connections/>
  <designerdata>
   <property name="gridDeltaX">
