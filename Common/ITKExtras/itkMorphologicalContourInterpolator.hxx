@@ -857,7 +857,7 @@ MorphologicalContourInterpolator<TImage>
     } //iterator destroyed here
 
   //recurse if needed
-  if (abs(i - j) > 2)
+  if (abs((int)(i - j)) > 2)
     {
       PixelList regionIDs;
       regionIDs.push_back(1);
@@ -868,8 +868,8 @@ MorphologicalContourInterpolator<TImage>
         (j > reqRegion.GetIndex(axis) + reqRegion.GetSize(axis) ? +1 : 0);
       int mReq = mid < reqRegion.GetIndex(axis) ? -1 :
         (mid > reqRegion.GetIndex(axis) + reqRegion.GetSize(axis) ? +1 : 0);
-      bool first = abs(i - mid) > 1 && abs(iReq + mReq) <= 1; //i-mid?
-      bool second = abs(j - mid) > 1 && abs(jReq + mReq) <= 1; //j-mid?
+      bool first = abs((int)(i - mid)) > 1 && abs(iReq + mReq) <= 1; //i-mid?
+      bool second = abs((int)(j - mid)) > 1 && abs(jReq + mReq) <= 1; //j-mid?
 
       if (first)
         {
@@ -1258,8 +1258,8 @@ MorphologicalContourInterpolator<TImage>
       }
 
     //we breadth this search
-    if (!m_HeuristicAlignment || maxScore == 0 || iter<=minIter
-        || score > maxScore*0.9 && iter <= maxIter)
+    if ((!m_HeuristicAlignment || maxScore == 0 || iter<=minIter
+        || score > maxScore*0.9) && iter <= maxIter)
       {
       for (unsigned d = 0; d < SliceType::ImageDimension; d++)
         {
