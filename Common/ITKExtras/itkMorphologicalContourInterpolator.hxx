@@ -155,8 +155,8 @@ MorphologicalContourInterpolator<TImage>
   m_UseBallStructuringElement(false),
   m_UseCustomSlicePositions(false),
   m_ThreadCount(MultiThreader::GetGlobalDefaultNumberOfThreads()),
-  m_MinAlignIters(pow(2, TImage::ImageDimension)), //smaller of this and pixel count of the search image
-  m_MaxAlignIters(pow(6, TImage::ImageDimension)), //bigger of this and root of pixel count of the search image
+  m_MinAlignIters(pow(2.0, (double) TImage::ImageDimension)), //smaller of this and pixel count of the search image
+  m_MaxAlignIters(pow(6.0, (double) TImage::ImageDimension)), //bigger of this and root of pixel count of the search image
   m_LabeledSlices(TImage::ImageDimension) //initialize with empty sets
 {
   //set up pipeline for regioned connected components
