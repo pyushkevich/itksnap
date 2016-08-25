@@ -92,6 +92,10 @@ if(NOT EXISTS "${SNAP_SOURCE_DIR}/Submodules/c3d/CMakeLists.txt")
   MESSAGE(SEND_ERROR "Submodule c3d has not been initialized/updated. Git users, see README.git")
 endif()
 
+if(NOT EXISTS "${SNAP_SOURCE_DIR}/Submodules/greedy/CMakeLists.txt")
+  MESSAGE(SEND_ERROR "Submodule greedy has not been initialized/updated. Git users, see README.git")
+endif()
+
 #--------------------------------------------------------------------------------
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS 
 #--------------------------------------------------------------------------------
@@ -872,6 +876,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Slicing
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
     ${SNAP_SOURCE_DIR}/Submodules/c3d/api
+    ${SNAP_SOURCE_DIR}/Submodules/greedy/src
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
@@ -937,10 +942,12 @@ SET(SNAP_VTK_LIBS
   vtkIOLegacy
 )
 
-SET(SNAP_C3D_LIBS
+# Libraries provided by the submodules
+SET(SNAP_SUBMODULE_LIBS
   cnd_api
   cnd_driver
-  cnd_adapters)
+  cnd_adapters
+  greedyapi)
 
 # System libraries
 SET(SNAP_SYSTEM_LIBS
@@ -949,18 +956,12 @@ SET(SNAP_SYSTEM_LIBS
   ${SYSTEM_LIBS}
 )
 
-# TODO: this is temporary until we integrate greedy into the source tree
-FIND_LIBRARY(GREEDY_LIB greedyapi)
-FIND_PATH(GREEDY_INCLUDE_DIR GreedyAPI.h)
-INCLUDE_DIRECTORIES(${GREEDY_INCLUDE_DIR})
-
 # Designate the external libraries used by SNAP
 SET(SNAP_EXTERNAL_LIBS 
-  ${SNAP_C3D_LIBS}
+  ${SNAP_SUBMODULE_LIBS}
   ${SNAP_ITK_LIBS} 
   ${SNAP_VTK_LIBS} 
   ${SNAP_SYSTEM_LIBS}
-  ${GREEDY_LIB}
 )
 
 #--------------------------------------------------------------------------------
@@ -971,6 +972,16 @@ SET(CONVERT3D_BINARY_DIR ${SNAP_BINARY_DIR}/Submodules/c3d)
 
 SET(CONVERT3D_BUILD_AS_SUBPROJECT ON)
 ADD_SUBDIRECTORY(${CONVERT3D_SOURCE_DIR})
+
+#--------------------------------------------------------------------------------
+# Include Greedy Library as submodule
+#--------------------------------------------------------------------------------
+SET(GREEDY_TOOL_SOURCE_DIR ${SNAP_SOURCE_DIR}/Submodules/greedy)
+SET(GREEDY_TOOL_BINARY_DIR ${SNAP_BINARY_DIR}/Submodules/greedy)
+
+SET(GREEDY_TOOL_BUILD_AS_SUBPROJECT ON)
+ADD_SUBDIRECTORY(${GREEDY_TOOL_SOURCE_DIR})
+
 
 #--------------------------------------------------------------------------------
 # Define SNAP library targets (logic and UI)
