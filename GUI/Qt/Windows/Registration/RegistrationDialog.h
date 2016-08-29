@@ -35,6 +35,9 @@ private:
   Ui::RegistrationDialog *ui;
 
   RegistrationModel *m_Model;
+
+  int GetTransformFormat(QString &format);
+
 };
 
 #endif // REGISTRATIONDIALOG_H

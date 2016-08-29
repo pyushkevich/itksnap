@@ -25,6 +25,14 @@ void InterpolateLabelModel::SetParentModel(GlobalUIModel *parent)
   m_DrawOverFilterModel->Initialize(parent->GetDriver()->GetColorLabelTable());
 }
 
+void InterpolateLabelModel::UpdateOnShow()
+{
+  // What we want to do here is syncronize labels with existing selections for active and draw over
+  this->SetDrawingLabel(m_Parent->GetGlobalState()->GetDrawingColorLabel());
+  this->SetInterpolateLabel(m_Parent->GetGlobalState()->GetDrawingColorLabel());
+  this->SetDrawOverFilter(m_Parent->GetGlobalState()->GetDrawOverFilter());
+}
+
 void InterpolateLabelModel::Interpolate()
 {
   // Get the segmentation wrapper
@@ -48,113 +56,114 @@ void InterpolateLabelModel::Interpolate()
   SmartPtr<APIType::ImageType> image;
 
   switch (this->GetInterpolationMethod())
-  {
-      case MORPHOLOGY:
+    {
+    case MORPHOLOGY:
       {
-          typedef itk::MorphologicalContourInterpolator<GenericImageData::LabelImageType> MCIType;
-          SmartPtr<MCIType> mci = MCIType::New();
+      typedef itk::MorphologicalContourInterpolator<GenericImageData::LabelImageType> MCIType;
+      SmartPtr<MCIType> mci = MCIType::New();
 
-          mci->SetInput(liw->GetImage());
-          mci->SetUseDistanceTransform(false);
+      mci->SetInput(liw->GetImage());
+      mci->SetUseDistanceTransform(false);
 
-          if (!this->GetInterpolateAll())
-            mci->SetLabel(this->GetInterpolateLabel());
+      if (!this->GetInterpolateAll())
+        mci->SetLabel(this->GetInterpolateLabel());
 
-          if (this->GetMorphologyInterpolateOneAxis())
-          {
-              int axis = this->m_Parent->GetDriver()->GetImageDirectionForAnatomicalDirection(this->GetMorphologyInterpolationAxis());
-              mci->SetAxis(axis);
-          }
+      if (this->GetMorphologyInterpolateOneAxis())
+        {
+        int axis = this->m_Parent->GetDriver()->GetImageDirectionForAnatomicalDirection(this->GetMorphologyInterpolationAxis());
+        mci->SetAxis(axis);
+        }
 
-          mci->SetUseDistanceTransform(this->GetMorphologyUseDistance());
-          mci->Update();
+      mci->SetUseDistanceTransform(this->GetMorphologyUseDistance());
+      mci->Update();
 
-          // Need to get the output back into the same format the other methods output
-          typedef itk::UnaryFunctorImageFilter<LabelImageWrapper::ImageType,
-                                               LabelImageWrapper::DoubleImageType,
-                                               LabelImageWrapper::NativeIntensityMapping> FilterType;
-          SmartPtr<FilterType> filter = FilterType::New();
-          filter->SetInput(mci->GetOutput());
-          filter->SetFunctor(liw->GetNativeMapping());
-          filter->Update();
+      // Need to get the output back into the same format the other methods output
+      typedef itk::UnaryFunctorImageFilter<LabelImageWrapper::ImageType,
+          LabelImageWrapper::DoubleImageType,
+          LabelImageWrapper::NativeIntensityMapping> FilterType;
+      SmartPtr<FilterType> filter = FilterType::New();
+      filter->SetInput(mci->GetOutput());
+      filter->SetFunctor(liw->GetNativeMapping());
+      filter->Update();
 
-          image = filter->GetOutput();
-          rc = true;
+      image = filter->GetOutput();
+      rc = true;
 
-          break;
+      break;
       }
 
-      case LEVEL_SET:
+    case LEVEL_SET:
       {
-          sprintf(command,"c3d \
-               -verbose -push S \
-               -threshold %d %d 1 0 \
-               -as R -trim 4vox -as T \
-               -dilate 0 0x1x1 -dilate 1 0x3x3 \
-               -push T -dilate 0 1x0x1 -dilate 1 3x0x3 \
-               -push T -dilate 0 1x1x0 -dilate 1 3x3x0 \
-               -add -add -thresh 1 inf -1 0 -push T -scale 2 -add -as SROI \
-               -insert R 1 -reslice-identity -as SPEED -clear \
-               -push SROI -thresh 1 1 1 0 -sdt -smooth %fvox \
-               -push SROI -thresh -1 -1 1 0 -sdt -smooth %fvox \
-               -vote -insert R 1 -reslice-identity -as INIT \
-               -type char \
-               -clear -push SPEED -shift 0.02 -push INIT \
-               -replace 1 -1 0 1 -levelset-curvature %f -levelset 400 \
-               -thresh -inf 0 1 0 \
-               -as Z",
-                this->GetInterpolateLabel(), this->GetInterpolateLabel(),
-                this->GetLevelSetSmoothing(), this->GetLevelSetSmoothing(),
-                this->GetLevelSetCurvature());
-          rc = api.Execute(command, std::cout);
-          image = api.GetImage("Z");
+      sprintf(command,"c3d \
+              -verbose -push S \
+              -threshold %d %d 1 0 \
+              -as R -trim 4vox -as T \
+              -dilate 0 0x1x1 -dilate 1 0x3x3 \
+              -push T -dilate 0 1x0x1 -dilate 1 3x0x3 \
+              -push T -dilate 0 1x1x0 -dilate 1 3x3x0 \
+              -add -add -thresh 1 inf -1 0 -push T -scale 2 -add -as SROI \
+              -insert R 1 -reslice-identity -as SPEED -clear \
+              -push SROI -thresh 1 1 1 0 -sdt -smooth %fvox \
+              -push SROI -thresh -1 -1 1 0 -sdt -smooth %fvox \
+              -vote -insert R 1 -reslice-identity -as INIT \
+              -type char \
+              -clear -push SPEED -shift 0.02 -push INIT \
+              -replace 1 -1 0 1 -levelset-curvature %f -levelset 400 \
+              -thresh -inf 0 1 0 \
+              -as Z",
+              this->GetInterpolateLabel(), this->GetInterpolateLabel(),
+              this->GetLevelSetSmoothing(), this->GetLevelSetSmoothing(),
+              this->GetLevelSetCurvature());
+      rc = api.Execute(command, std::cout);
+      image = api.GetImage("Z");
 
-          break;
+      break;
       }
 
-      case DEFAULT:
+    case DISTANCE_MAP:
       {
-          sprintf(command,"c3d \
-                -push S -info -thresh %d %d 1 0 -info -as R -trim 4vox -info -as T \
-                -dilate 0 0x1x1 -dilate 1 0x400x400 \
-                -push T -dilate 0 1x0x1 -dilate 1 400x0x400 \
-                -push T -dilate 0 1x1x0 -dilate 1 400x400x0 \
-                -add -add -thresh 1 inf -1 0 -push T -scale 2 -add -as SROI \
-                -insert R 1 -reslice-identity -as SPEED -clear \
-                -push SROI -thresh 1 1 1 0 -sdt -smooth %fvox \
-                -push SROI -thresh -1 -1 1 0 -sdt -smooth %fvox \
-                -vote -insert R 1 -reslice-identity \
-                -as Z",
-                this->GetInterpolateLabel(), this->GetInterpolateLabel(),
-                this->GetDefaultSmoothing(), this->GetDefaultSmoothing());
-          rc = api.Execute(command, std::cout);
-          image = api.GetImage("Z");
-          break;
+      sprintf(command,"c3d \
+              -push S -info -thresh %d %d 1 0 -info -as R -trim 4vox -info -as T \
+              -dilate 0 0x1x1 -dilate 1 0x400x400 \
+              -push T -dilate 0 1x0x1 -dilate 1 400x0x400 \
+              -push T -dilate 0 1x1x0 -dilate 1 400x400x0 \
+              -add -add -thresh 1 inf -1 0 -push T -scale 2 -add -as SROI \
+              -insert R 1 -reslice-identity -as SPEED -clear \
+              -push SROI -thresh 1 1 1 0 -sdt -smooth %fvox \
+              -push SROI -thresh -1 -1 1 0 -sdt -smooth %fvox \
+              -vote -insert R 1 -reslice-identity \
+              -as Z",
+              this->GetInterpolateLabel(), this->GetInterpolateLabel(),
+              this->GetDefaultSmoothing(), this->GetDefaultSmoothing());
+      rc = api.Execute(command, std::cout);
+      image = api.GetImage("Z");
+      break;
       }
-  }
+    }
 
   // Did we get a result?
   if(rc && image)
-  {
+    {
     SegmentationUpdateIterator it_trg(liw->GetImage(), liw->GetImage()->GetBufferedRegion(),
                                       this->GetDrawingLabel(), this->GetDrawOverFilter());
 
-    itk::ImageRegionConstIterator<APIType::ImageType>it_src(image, image->GetBufferedRegion());
+    itk::ImageRegionConstIterator<APIType::ImageType> it_src(image, image->GetBufferedRegion());
 
 
     bool clear_scaffold = !this->GetRetainScaffold();
     LabelType label_to_clear = this->GetInterpolateLabel();
     for(; !it_trg.IsAtEnd(); ++it_trg, ++it_src)
-    {
-    if(it_src.Value())
-    it_trg.PaintAsForeground();
-    else if(clear_scaffold)
-    it_trg.ReplaceLabel(label_to_clear, 0);
-    }
+      {
+      if(it_src.Value())
+        it_trg.PaintAsForeground();
+      else if(clear_scaffold)
+        it_trg.ReplaceLabel(label_to_clear, 0);
+      }
 
+    it_trg.Finalize();
     id->StoreUndoPoint("Interpolate label", it_trg.RelinquishDelta());
     this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
-   }
+    }
 
 }
 
@@ -168,10 +177,10 @@ InterpolateLabelModel::InterpolateLabelModel()
   m_RetainScaffoldModel = NewSimpleConcreteProperty(false);
 
   RegistryEnumMap<InterpolationType> emap_interp;
-  emap_interp.AddPair(DEFAULT,"Default");
+  emap_interp.AddPair(MORPHOLOGY,"Morphological");
   emap_interp.AddPair(LEVEL_SET,"Level set");
-  emap_interp.AddPair(MORPHOLOGY,"Morphology");
-  m_InterpolationMethodModel = NewSimpleEnumProperty("InterpolationType", DEFAULT, emap_interp);
+  emap_interp.AddPair(DISTANCE_MAP,"Distance map");
+  m_InterpolationMethodModel = NewSimpleEnumProperty("InterpolationType", MORPHOLOGY, emap_interp);
 
   m_DefaultSmoothingModel = NewRangedConcreteProperty(3.0, 0.0, 20.0, 0.01);
 

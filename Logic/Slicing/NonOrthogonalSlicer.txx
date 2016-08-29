@@ -192,7 +192,8 @@ NonOrthogonalSlicer<TInputImage, TOutputImage>
       {
       double x0 = cixCubeStart[d], x1 = cixCubeEnd[d], dx = cixStep[d], x = cixSample[d];
 
-      if(dx == 0)
+      // TODO: this may behave badly for small voxel sizes
+      if(fabs(dx) < 1.0e-5)
         {
         if(x < x0 || x > x1)
           {

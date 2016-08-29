@@ -49,9 +49,9 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
   makeCoupling(ui->chkMorphologyInterpolateOneAxis, m_Model->GetMorphologyInterpolateOneAxisModel());
 
   ui->interpolationMethod->clear();
-  ui->interpolationMethod->addItem("Default", QVariant::fromValue(InterpolateLabelModel::DEFAULT));
-  ui->interpolationMethod->addItem("Level set", QVariant::fromValue(InterpolateLabelModel::LEVEL_SET));
   ui->interpolationMethod->addItem("Morphology", QVariant::fromValue(InterpolateLabelModel::MORPHOLOGY));
+  ui->interpolationMethod->addItem("Level set", QVariant::fromValue(InterpolateLabelModel::LEVEL_SET));
+  ui->interpolationMethod->addItem("Default", QVariant::fromValue(InterpolateLabelModel::DISTANCE_MAP));
   makeCoupling(ui->interpolationMethod, m_Model->GetInterpolationMethodModel());
 
   ui->morphologyInterpolationAxis->clear();
@@ -73,5 +73,14 @@ void InterpolateLabelsDialog::on_btnClose_clicked()
 
 void InterpolateLabelsDialog::on_interpolationMethod_activated(int index)
 {
-    ui->stackedWidget->setCurrentIndex(index);
+  ui->stackedWidget->setCurrentIndex(index);
+}
+
+void InterpolateLabelsDialog::showEvent(QShowEvent *e)
+{
+  // Call parent method
+  QDialog::showEvent(e);
+
+  // If the widget is not currently showing, update it's state
+  m_Model->UpdateOnShow();
 }

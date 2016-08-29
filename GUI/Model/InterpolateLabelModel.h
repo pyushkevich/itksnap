@@ -17,7 +17,7 @@ public:
 
   enum InterpolationType
   {
-      DEFAULT = 0, LEVEL_SET, MORPHOLOGY
+      DISTANCE_MAP = 0, LEVEL_SET, MORPHOLOGY
   };
 
   // Standard ITK stuff
@@ -59,6 +59,9 @@ public:
   /** Which axis to interpolate along */
   irisSimplePropertyAccessMacro(MorphologyInterpolateOneAxis, bool)
   irisSimplePropertyAccessMacro(MorphologyInterpolationAxis, AnatomicalDirection)
+
+  /** Update the state of the widget whenever it is shown */
+  void UpdateOnShow();
 
   /** Perform the actual interpolation */
   void Interpolate();

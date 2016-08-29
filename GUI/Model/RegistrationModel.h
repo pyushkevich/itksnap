@@ -35,6 +35,9 @@ public:
   /** Image similarity metrics */
   enum SimilarityMetric { NMI = 0, NCC, SSD, INVALID_METRIC };
 
+  /** Types of transform file */
+  enum TransformFormat { FORMAT_ITK = 0, FORMAT_C3D };
+
   /**
     Check the state flags above
     */
@@ -97,9 +100,9 @@ public:
 
   void RunAutoRegistration();
 
-  void LoadTransform(const char *filename);
+  void LoadTransform(const char *filename, TransformFormat format);
 
-  void SaveTransform(const char *filename);
+  void SaveTransform(const char *filename, TransformFormat format);
 
 
 protected:

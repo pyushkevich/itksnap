@@ -3,12 +3,16 @@
 #include "GenericImageData.h"
 #include "IRISImageData.h"
 #include "GlobalUIModel.h"
+#include "SystemInterface.h"
+#include "HistoryManager.h"
 #include "itkQuaternionRigidTransform.h"
+#include "itkTransformFileWriter.h"
+#include "itkTransformFileReader.h"
+#include "itkTransformFactory.h"
 
 #include "ImageFunctions.h"
 #include "itkEuler3DTransform.h"
 #include "vnl/algo/vnl_svd.h"
-
 
 
 const unsigned long RegistrationModel::NOID = (unsigned long)(-1);
@@ -453,16 +457,119 @@ void RegistrationModel::RunAutoRegistration()
   this->SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
 }
 
-void RegistrationModel::LoadTransform(const char *filename)
+void RegistrationModel::LoadTransform(const char *filename, TransformFormat format)
 {
+  // Get the current transform to store
+  ITKMatrixType matrix;
+  ITKVectorType offset;
 
+  // Load based on the transform type
+  if(format == FORMAT_C3D)
+    {
+    // Read the matrix file
+    vnl_matrix<double> Q(4, 4);
+    std::ifstream fin(filename);
+    for(size_t i = 0; i < 4; i++)
+      for(size_t j = 0; j < 4; j++)
+        if(fin.good())
+          {
+          fin >> Q[i][j];
+          }
+        else
+          {
+          fin.close();
+          throw IRISException("Unable to read 4x4 matrix from file %s", filename);
+          }
+    fin.close();
+
+    // Flip between RAS and LPS
+    Q(2,0) *= -1; Q(2,1) *= -1;
+    Q(0,2) *= -1; Q(1,2) *= -1;
+    Q(0,3) *= -1; Q(1,3) *= -1;
+
+    // Populate the matrix and offset components
+    matrix.GetVnlMatrix() = Q.extract(3, 3, 0, 0);
+    offset.SetVnlVector(Q.get_column(3).extract(3, 0));
+    }
+  else // (format == FORMAT_ITK)
+    {
+    // The transform format we expect
+    typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformBase;
+
+    // Create a factory for reading base transforms
+    itk::TransformFactory<TransformBase>::RegisterTransform();
+
+    // Read the trasnform
+    itk::TransformFileReader::Pointer reader = itk::TransformFileReader::New();
+    reader->SetFileName(filename);
+    reader->Update();
+
+    // Get the transform pointer
+    TransformBase *tran = NULL;
+    if(reader->GetTransformList()->size())
+      tran = dynamic_cast<TransformBase *>(reader->GetTransformList()->front().GetPointer());
+
+    if(tran == NULL)
+      throw IRISException("Failed to read linear transform from file %s", filename);
+
+    // Assign the matrix/offset
+    matrix = tran->GetMatrix();
+    offset = tran->GetOffset();
+    }
+
+  // Update the history
+  this->GetParent()->GetSystemInterface()
+      ->GetHistoryManager()->UpdateHistory("AffineTransform", filename, true);
+
+  // Now, the transform tran should hold our matrix and offset
+  this->SetMovingTransform(matrix, offset);
 }
 
-void RegistrationModel::SaveTransform(const char *filename)
+void RegistrationModel::SaveTransform(const char *filename, TransformFormat format)
 {
+  // Get the current transform to store
   ITKMatrixType matrix;
   ITKVectorType offset;
   this->GetMovingTransform(matrix, offset);
+
+  // Save based on the transform type
+  if(format == FORMAT_C3D)
+    {
+    // Create a 4x4 matrix in RAS coordinate space
+    vnl_matrix<double> Q(4, 4);
+    vnl_matrix<double> v(offset.GetVnlVector().data_block(), 3, 1);
+    Q.set_identity();
+    Q.update(matrix.GetVnlMatrix(), 0, 0);
+    Q.update(v, 0, 3);
+
+    // Flip between RAS and LPS
+    Q(2,0) *= -1; Q(2,1) *= -1;
+    Q(0,2) *= -1; Q(1,2) *= -1;
+    Q(0,3) *= -1; Q(1,3) *= -1;
+
+    // Write the matrix
+    std::ofstream matrixFile;
+    matrixFile.open(filename);
+    matrixFile << Q;
+    matrixFile.close();
+    }
+  else // (format == FORMAT_ITK)
+    {
+    typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformBase;
+    TransformBase::Pointer transform = TransformBase::New();
+
+    transform->SetMatrix(matrix);
+    transform->SetOffset(offset);
+
+    itk::TransformFileWriter::Pointer writer = itk::TransformFileWriter::New();
+    writer->SetFileName(filename);
+    writer->SetInput(transform);
+    writer->Update();
+    }
+
+  // Update the history
+  this->GetParent()->GetSystemInterface()
+      ->GetHistoryManager()->UpdateHistory("AffineTransform", filename, true);
 }
 
 bool RegistrationModel::CheckState(RegistrationModel::UIState state)

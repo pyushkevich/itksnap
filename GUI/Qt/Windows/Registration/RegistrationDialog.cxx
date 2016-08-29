@@ -10,6 +10,7 @@
 #include "RegistrationModel.h"
 #include "QtWidgetActivator.h"
 #include "QtCursorOverride.h"
+#include "SimpleFileDialogWithHistory.h"
 
 Q_DECLARE_METATYPE(RegistrationModel::Transformation)
 Q_DECLARE_METATYPE(RegistrationModel::SimilarityMetric)
@@ -115,22 +116,37 @@ void RegistrationDialog::on_btnRunRegistration_clicked()
   m_Model->RunAutoRegistration();
 }
 
+int RegistrationDialog::GetTransformFormat(QString &format)
+{
+  if(format == "ITK Transform Files")
+    return RegistrationModel::FORMAT_ITK;
+  else if(format == "Convert3D Transform Files")
+    return RegistrationModel::FORMAT_C3D;
+  else
+    return RegistrationModel::FORMAT_ITK;
+}
+
 void RegistrationDialog::on_btnLoad_clicked()
 {
   // Ask for a filename
-  QString selection = ShowSimpleOpenDialogWithHistory(
-        this, m_Model->GetParent(), "AffineTransform",
-        "Open Transform - ITK-SNAP",
+  SimpleFileDialogWithHistory::QueryResult result =
+      SimpleFileDialogWithHistory::showOpenDialog(
+        this, m_Model->GetParent(),
+        "Open Transform - ITK-SNAP", "AffineTransform",
         "Transform File",
         "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)");
 
+  RegistrationModel::TransformFormat format =
+      (RegistrationModel::TransformFormat) this->GetTransformFormat(result.activeFormat);
+
+
   // Open
-  if(selection.length())
+  if(result.filename.length())
     {
     try
       {
-      std::string utf = to_utf8(selection);
-      m_Model->LoadTransform(utf.c_str());
+      std::string utf = to_utf8(result.filename);
+      m_Model->LoadTransform(utf.c_str(), format);
       }
     catch(std::exception &exc)
       {
@@ -143,20 +159,23 @@ void RegistrationDialog::on_btnLoad_clicked()
 void RegistrationDialog::on_btnSave_clicked()
 {
   // Ask for a filename
-  QString selection = ShowSimpleSaveDialogWithHistory(
-        this, m_Model->GetParent(), "AffineTransform",
-        "Save Transform - ITK-SNAP",
+  SimpleFileDialogWithHistory::QueryResult result =
+      SimpleFileDialogWithHistory::showSaveDialog(
+        this, m_Model->GetParent(),
+        "Save Transform - ITK-SNAP", "AffineTransform",
         "Transform File",
         "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)", true);
 
+  RegistrationModel::TransformFormat format =
+      (RegistrationModel::TransformFormat) this->GetTransformFormat(result.activeFormat);
 
   // Save
-  if(selection.length())
+  if(result.filename.length())
     {
     try
       {
-      std::string utf = to_utf8(selection);
-      m_Model->SaveTransform(utf.c_str());
+      std::string utf = to_utf8(result.filename);
+      m_Model->SaveTransform(utf.c_str(), format);
       }
     catch(std::exception &exc)
       {

@@ -31,6 +31,8 @@ private:
   Ui::InterpolateLabelsDialog *ui;
 
   SmartPtr<InterpolateLabelModel> m_Model;
+
+  virtual void showEvent(QShowEvent *e);
 };
 
 #endif // INTERPOLATELABELSDIALOG_H
