@@ -519,7 +519,6 @@ IRISApplication
   LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
 
   // Turn the 2D region of the drawing into a 3D region in the segmentation
-  LabelImageType::IndexType ix0, ix1;
   IRISApplication::SliceBinaryImageType::RegionType r_draw = drawing->GetBufferedRegion();
 
   // Array of corners of the drawing region

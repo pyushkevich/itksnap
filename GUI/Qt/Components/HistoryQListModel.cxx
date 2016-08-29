@@ -95,7 +95,7 @@ void HistoryQListItem::onTimer()
       this->setIcon(QIcon(load_pixmap));
       QPixmapCache::insert(key, load_pixmap);
       }
-    catch(itk::ExceptionObject &exc)
+    catch(itk::ExceptionObject &)
       {
       QPixmap dummy(128, 128);
       dummy.fill(Qt::black);

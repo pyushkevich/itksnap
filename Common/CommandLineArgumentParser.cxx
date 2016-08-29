@@ -162,7 +162,7 @@ CommandLineArgumentParseResult
 ::GetNumberOfOptionParameters(const char *option)
 {
   assert(IsOptionPresent(option));
-  return m_OptionMap[string(option)].size();
+  return (int) m_OptionMap[string(option)].size();
 }
 
 void  
