@@ -709,10 +709,10 @@ protected:
   typedef ImageWrapperBase::ITKTransformType ITKTransformType;
 
   // Read transform from project registry
-  SmartPtr<ITKTransformType> ReadTransform(Registry &reg, bool &is_identity);
+  SmartPtr<ITKTransformType> ReadTransform(Registry *reg, bool &is_identity);
 
   // Write transform to project registry
-  void WriteTransform(Registry &reg, const ITKTransformType *transform);
+  void WriteTransform(Registry *reg, const ITKTransformType *transform);
 };
 
 #endif // __IRISApplication_h_

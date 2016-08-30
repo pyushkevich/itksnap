@@ -1428,19 +1428,22 @@ IRISApplication
 
 SmartPtr<IRISApplication::ITKTransformType>
 IRISApplication
-::ReadTransform(Registry &reg, bool &is_identity)
+::ReadTransform(Registry *reg, bool &is_identity)
 {
   typedef itk::IdentityTransform<double, 3> IdTransform;
+  SmartPtr<IdTransform> id_transform = IdTransform::New();
+  SmartPtr<ITKTransformType> transform = id_transform.GetPointer();
+  is_identity = true;
 
-  Registry &folder = reg.Folder("Transform");
-  SmartPtr<ITKTransformType> transform;
+  // No registry? Return identity transform
+  if(!reg)
+    return transform;
 
   // Is the transform identity
+  Registry &folder = reg->Folder("ImageTransform");
   is_identity = folder["IsIdentity"][true];
   if(is_identity)
     {
-    SmartPtr<IdTransform> id_transform = IdTransform::New();
-    transform = id_transform.GetPointer();
     return transform;
     }
 
@@ -1464,12 +1467,10 @@ IRISApplication
   if(matrix.GetVnlMatrix().is_identity() && offset.GetVnlVector().is_zero())
     {
     is_identity = true;
-    SmartPtr<IdTransform> id_transform = IdTransform::New();
-    transform = id_transform.GetPointer();
     return transform;
     }
 
-
+  // Use the matrix/offset transform
   SmartPtr<MOTBTransformType> motb = MOTBTransformType::New();
   motb->SetMatrix(matrix);
   motb->SetOffset(offset);
@@ -1479,10 +1480,10 @@ IRISApplication
 
 void
 IRISApplication
-::WriteTransform(Registry &reg, const ITKTransformType *transform)
+::WriteTransform(Registry *reg, const ITKTransformType *transform)
 {
   // Get the target folder
-  Registry &folder = reg.Folder("Transform");
+  Registry &folder = reg->Folder("ImageTransform");
 
   // Cast the transform to the matrix/offset type
   typedef itk::MatrixOffsetTransformBase<double, 3, 3> MOTBTransformType;
@@ -1524,9 +1525,10 @@ IRISApplication
   // Now test the 3D geometry of the image to see if it occupies the same space
   bool same_space = true;
 
-  // Read the transform from the registry
-  bool id_transform;
-  SmartPtr<ITKTransformType> transform = this->ReadTransform(*metadata, id_transform);
+  // Read the transform from the registry. This method will return an identity transform
+  // even if no registry was provided
+  bool id_transform = true;
+  SmartPtr<ITKTransformType> transform = this->ReadTransform(metadata, id_transform);
 
   // We use a tolerance for header comparisons here
   double tol = 1e-5;
@@ -2035,7 +2037,7 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
     // Save the layer transform - relevant only for overlays
     if(it.GetRole() == OVERLAY_ROLE)
       {
-      this->WriteTransform(folder, layer->GetITKTransform());
+      this->WriteTransform(&folder, layer->GetITKTransform());
       }
     }
 
