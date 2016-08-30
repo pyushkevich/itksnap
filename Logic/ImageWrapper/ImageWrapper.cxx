@@ -72,6 +72,7 @@
 #include "GuidedNativeImageIO.h"
 #include "itkTransform.h"
 #include "itkExtractImageFilter.h"
+#include "itkMatrixOffsetTransformBase.h"
 
 
 #include <vnl/vnl_inverse.h>

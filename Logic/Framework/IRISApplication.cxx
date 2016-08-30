@@ -1424,6 +1424,90 @@ IRISApplication
   return 0;
 }
 
+#include "itkMatrixOffsetTransformBase.h"
+
+SmartPtr<IRISApplication::ITKTransformType>
+IRISApplication
+::ReadTransform(Registry &reg, bool &is_identity)
+{
+  typedef itk::IdentityTransform<double, 3> IdTransform;
+
+  Registry &folder = reg.Folder("Transform");
+  SmartPtr<ITKTransformType> transform;
+
+  // Is the transform identity
+  is_identity = folder["IsIdentity"][true];
+  if(is_identity)
+    {
+    SmartPtr<IdTransform> id_transform = IdTransform::New();
+    transform = id_transform.GetPointer();
+    return transform;
+    }
+
+  // Not an identity transform - so read the parameters
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> MOTBTransformType;
+  typedef MOTBTransformType::MatrixType MatrixType;
+  typedef MOTBTransformType::OffsetType OffsetType;
+
+  // Read the matrix, defaulting to identity
+  MatrixType matrix; matrix.SetIdentity();
+  OffsetType offset; offset.Fill(0.0);
+
+  for(int i = 0; i < 3; i++)
+    {
+    offset[i] = folder[folder.Key("Offset.Element[%d]",i)][offset[i]];
+    for(int j = 0; j < 3; j++)
+      matrix(i, j) = folder[folder.Key("Matrix.Element[%d][%d]",i,j)][matrix(i,j)];
+    }
+
+  // Check the matrix and offset for being identity
+  if(matrix.GetVnlMatrix().is_identity() && offset.GetVnlVector().is_zero())
+    {
+    is_identity = true;
+    SmartPtr<IdTransform> id_transform = IdTransform::New();
+    transform = id_transform.GetPointer();
+    return transform;
+    }
+
+
+  SmartPtr<MOTBTransformType> motb = MOTBTransformType::New();
+  motb->SetMatrix(matrix);
+  motb->SetOffset(offset);
+  transform = motb.GetPointer();
+  return transform;
+}
+
+void
+IRISApplication
+::WriteTransform(Registry &reg, const ITKTransformType *transform)
+{
+  // Get the target folder
+  Registry &folder = reg.Folder("Transform");
+
+  // Cast the transform to the matrix/offset type
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> MOTBTransformType;
+  const MOTBTransformType *motb = dynamic_cast<const MOTBTransformType *>(transform);
+
+  // Check for identity
+  if(!motb || (motb->GetMatrix().GetVnlMatrix().is_identity() &&
+               motb->GetOffset().GetVnlVector().is_zero()))
+    {
+    folder["IsIdentity"] << true;
+    folder.RemoveKeys("Matrix");
+    folder.RemoveKeys("Offset");
+    }
+  else
+    {
+    folder["IsIdentity"] << false;
+
+    for(int i = 0; i < 3; i++)
+      {
+      folder[folder.Key("Offset.Element[%d]",i)] << motb->GetOffset()[i];
+      for(int j = 0; j < 3; j++)
+        folder[folder.Key("Matrix.Element[%d][%d]",i,j)] << motb->GetMatrix()(i,j);
+      }
+    }
+}
 
 void
 IRISApplication
@@ -1435,11 +1519,14 @@ IRISApplication
 
   // Test if the image is in the same size as the main image
   ImageWrapperBase *main = this->m_IRISImageData->GetMain();
-
   bool same_size = (main->GetSize() == io->GetDimensionsOfNativeImage());
 
   // Now test the 3D geometry of the image to see if it occupies the same space
   bool same_space = true;
+
+  // Read the transform from the registry
+  bool id_transform;
+  SmartPtr<ITKTransformType> transform = this->ReadTransform(*metadata, id_transform);
 
   // We use a tolerance for header comparisons here
   double tol = 1e-5;
@@ -1457,12 +1544,13 @@ IRISApplication
       }
     }
 
-  // TODO: in situations where the size is the same and spacing is different, we may want to ask the
-  // user how to handle it, or at least display a warning?
-  /*if(same_size && same_space)
+  // TODO: in situations where the size is the same and space is different, we may want
+  // to ask the user how to handle it, or at least display a warning? For now, we just use
+  // the header information, which may be different from how old ITK-SNAP handled this
+  if(same_size && same_space && id_transform)
     m_IRISImageData->AddOverlay(io);
-  else*/
-    m_IRISImageData->AddCoregOverlay(io);
+  else
+    m_IRISImageData->AddCoregOverlay(io, transform);
 
   ImageWrapperBase *layer = m_IRISImageData->GetLastOverlay();
 
@@ -1535,55 +1623,6 @@ IRISApplication
   // Set the selected layer ID to be the new overlay
   if(!layer->IsSticky())
     m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
-
-  // Fire event
-  InvokeEvent(LayerChangeEvent());
-}
-
-// TODO: this code is 99% same as above - fix it!
-void
-IRISApplication
-::AddIRISCoregOverlayImage(GuidedNativeImageIO *io, Registry *metadata)
-{
-  assert(!IsSnakeModeActive());
-  assert(m_IRISImageData->IsMainLoaded());
-  assert(io->IsNativeImageLoaded());
-
-  // Add the image as the current grayscale overlay
-  m_IRISImageData->AddCoregOverlay(io);
-
-  // Set the filename of the overlay
-  // TODO: this is cumbersome, could we just initialize the wrapper from the
-  // GuidedNativeImageIO without passing all this junk around?
-  m_IRISImageData->GetLastOverlay()->SetFileName(io->GetFileNameOfNativeImage());
-
-  // Add the overlay to the history
-  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), true);
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
-
-  // Apply the default color map for overlays
-  std::string deflt_preset =
-      m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
-  m_ColorMapPresetManager->SetToPreset(
-        m_IRISImageData->GetLastOverlay()->GetDisplayMapping()->GetColorMap(),
-        deflt_preset);
-
-  // Initialize the layer-specific segmentation parameters
-  CreateSegmentationSettings(m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE);
-
-  // Read and apply the project-level settings associated with the main image
-  LoadMetaDataAssociatedWithLayer(
-        m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE, metadata);
-
-  // If the default is to auto-contrast, perform the contrast adjustment
-  // operation on the image
-  if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
-    {
-    AutoContrastLayerOnLoad(m_IRISImageData->GetLastOverlay());
-    }
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
@@ -1992,6 +2031,12 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
 
     // Save the metadata associated with the layer
     SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
+
+    // Save the layer transform - relevant only for overlays
+    if(it.GetRole() == OVERLAY_ROLE)
+      {
+      this->WriteTransform(folder, layer->GetITKTransform());
+      }
     }
 
   // Save the annotations in the workspace

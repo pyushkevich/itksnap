@@ -301,6 +301,9 @@ public:
   typedef UndoDataManager<LabelType> UndoManagerType;
   typedef UndoManagerType::Delta     UndoManagerDelta;
 
+  // Transforms
+  typedef ImageWrapperBase::ITKTransformType ITKTransformType;
+
 
   /**
    * Set the parent driver
@@ -436,7 +439,7 @@ public:
    * Add an overlay that is obtained from the image referenced by *io by applying
    * a spatial transformation.
    */
-  void AddCoregOverlay(GuidedNativeImageIO *io);
+  void AddCoregOverlay(GuidedNativeImageIO *io, ITKTransformType *transform);
 
   /**
    * Change the ordering of the layers within a particular role (for now just
@@ -573,8 +576,12 @@ protected:
   friend class SNAPImageData;
   friend class LayerIterator;
 
-  // Create a wrapper (vector or scalar) from native format stored in the IO
-  SmartPtr<ImageWrapperBase> CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceAsMainWrapper);
+  // Create a wrapper (vector or scalar) from native format stored in the IO, with the
+  // specified transform. Null transform indicates that the wrapper is in the space space
+  // as the main wrapper
+  SmartPtr<ImageWrapperBase> CreateAnatomicWrapper(
+      GuidedNativeImageIO *io,
+      ITKTransformType *transform = NULL);
 
   // Update the main image
   virtual void SetMainImageInternal(ImageWrapperBase *wrapper);

@@ -91,6 +91,7 @@ template <typename TIn, typename TVIn, typename TOut> class GMMClassifyImageFilt
 namespace itk {
   template <class TPixel, unsigned int VDimension> class Image;
   template <class TPixel, unsigned int VDimension> class VectorImage;
+  template <class TParametersValueType> class TransformBaseTemplate;
 }
 
 
@@ -226,13 +227,6 @@ public:
    * Add an overlay image into IRIS.
    */
   void AddIRISOverlayImage(GuidedNativeImageIO *nativeIO, Registry *metadata = NULL);
-
-  /**
-   * Add an overlay image that resides in its native space, but is transformed into
-   * the space of the main image using a set of transformation parameters (e.g., rigid
-   * transform)
-   */
-  void AddIRISCoregOverlayImage(GuidedNativeImageIO *io, Registry *metadata);
 
   /**
    * Add a 'derived' overlay, i.e., an overlay generated using image processing from one
@@ -712,7 +706,13 @@ protected:
   // Auto-adjust contrast of a layer on load
   void AutoContrastLayerOnLoad(ImageWrapperBase *layer);
 
+  typedef ImageWrapperBase::ITKTransformType ITKTransformType;
 
+  // Read transform from project registry
+  SmartPtr<ITKTransformType> ReadTransform(Registry &reg, bool &is_identity);
+
+  // Write transform to project registry
+  void WriteTransform(Registry &reg, const ITKTransformType *transform);
 };
 
 #endif // __IRISApplication_h_

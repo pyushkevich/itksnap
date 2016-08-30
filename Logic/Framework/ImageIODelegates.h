@@ -107,27 +107,6 @@ protected:
 };
 
 
-class LoadCoregisteredOverlayImageDelegate : public LoadAnatomicImageDelegate
-{
-public:
-
-  irisITKObjectMacro(LoadCoregisteredOverlayImageDelegate, LoadAnatomicImageDelegate)
-
-  void UnloadCurrentImage();
-  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
-  void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
-
-  virtual bool GetUseRegistration() const { return true; }
-  virtual bool IsOverlay() const { return true; }
-
-
-protected:
-  LoadCoregisteredOverlayImageDelegate() { }
-  virtual ~LoadCoregisteredOverlayImageDelegate() {}
-};
-
-
-
 class LoadSegmentationImageDelegate : public AbstractLoadImageDelegate
 {
 public:

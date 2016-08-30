@@ -142,21 +142,13 @@ GenericImageData
 #include "itkIdentityTransform.h"
 
 SmartPtr<ImageWrapperBase>
-GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, bool sameSpaceAsMainWrapper)
+GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformType *transform)
 {
   // The output wrapper
   SmartPtr<ImageWrapperBase> out_wrapper;
 
-  // Determine the reference image and transform
-  ImageBaseType *refSpace = NULL;
-  typedef itk::IdentityTransform<double, 3> TransformType;
-  SmartPtr<TransformType> transform = NULL;
-
-  if(!sameSpaceAsMainWrapper)
-    {
-    refSpace = this->GetMain()->GetImageBase();
-    transform = TransformType::New();
-    }
+  // If the transform is not NULL, the reference space must be specified
+  ImageBaseType *refSpace = (transform) ? this->GetMain()->GetImageBase() : NULL;
 
   // Split depending on whether the image is scalar or vector
   if(io->GetNumberOfComponentsInNativeImage() > 1)
@@ -220,7 +212,7 @@ void GenericImageData::SetMainImage(GuidedNativeImageIO *io)
 {
   // Create the wrapper from the Native IO (the wrapper will either be a scalar
   // or a vector-valued image, depending on the number of components)
-  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, true);
+  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, NULL);
 
   // Assign this wrapper to the main image
   this->SetMainImageInternal(wrapper);
@@ -267,7 +259,7 @@ GenericImageData
 {
   // Create the wrapper from the Native IO (the wrapper will either be a scalar
   // or a vector-valued image, depending on the number of components)
-  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, true);
+  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, NULL);
 
   // Assign this wrapper to the main image
   this->AddOverlayInternal(wrapper);
@@ -275,11 +267,11 @@ GenericImageData
 
 void
 GenericImageData
-::AddCoregOverlay(GuidedNativeImageIO *io)
+::AddCoregOverlay(GuidedNativeImageIO *io, ITKTransformType *transform)
 {
   // Create the wrapper from the Native IO (the wrapper will either be a scalar
   // or a vector-valued image, depending on the number of components)
-  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, false);
+  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, transform);
 
   // Assign this wrapper to the main image
   this->AddOverlayInternal(wrapper, false);

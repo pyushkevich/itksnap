@@ -100,33 +100,6 @@ LoadOverlayImageDelegate
   */
 }
 
-
-
-/* =============================
-   Co-Registered Overlay Image
-   ============================= */
-
-void
-LoadCoregisteredOverlayImageDelegate
-::UnloadCurrentImage()
-{
-}
-
-ImageWrapperBase *LoadCoregisteredOverlayImageDelegate::UpdateApplicationWithImage(GuidedNativeImageIO *io)
-{
-  m_Driver->AddIRISCoregOverlayImage(io, this->GetMetaDataRegistry());
-  return m_Driver->GetIRISImageData()->GetLastOverlay();
-}
-
-
-void
-LoadCoregisteredOverlayImageDelegate
-::ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl)
-{
-  // Do the parent's check
-  LoadAnatomicImageDelegate::ValidateHeader(io, wl);
-}
-
 /* =============================
    SEGMENTATION Image
    ============================= */
