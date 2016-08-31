@@ -73,7 +73,7 @@ void OrientationGraphicRenderer::OnUpdate()
       {
       for(nJ = 0; nJ < 3; nJ++)
         {
-        (*pMatrix4x4)[nI][nJ] = dm[nI][nJ];
+        pMatrix4x4->SetElement(nI, nJ, dm[nI][nJ]);
         }
     }
     m_ReorientProps.Update(pMatrix4x4);

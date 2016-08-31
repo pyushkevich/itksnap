@@ -35,7 +35,7 @@ OrientationWidgetGUI::OrientationWidgetGUI()
   {
 	for(nJ = 0; nJ < 4; nJ++)
     {
-	  double dbEquals = (*pMatrix)[nI][nJ];
+      double dbEquals = pMatrix->GetElement(nI, nJ);
 
 	  QTableWidgetItem* pItem= new QTableWidgetItem();
 	  pItem->setText(QString::number(dbEquals));
@@ -73,7 +73,7 @@ vtkSmartPointer < vtkMatrix4x4 > OrientationWidgetGUI::getMtrx4x4GUI()
 	for(nJ = 0; nJ < 4; nJ++)
     {
 	  QTableWidgetItem* pItem = m_pTableWidget->item(nI, nJ);
-	  (*pMatrix4x4)[nI][nJ] = pItem->text().toDouble(); 
+      pMatrix4x4->SetElement(nI, nJ, pItem->text().toDouble());
     }
   }
   return(pMatrix4x4);
@@ -102,17 +102,17 @@ void OrientationWidgetGUI::slotPhiThetaPsi(double adbValue)
 
   //Formulas taken from http://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions
   vtkSmartPointer < vtkMatrix4x4 > pMatrix4x4 = vtkSmartPointer < vtkMatrix4x4 >::New();
-  (*pMatrix4x4)[0][0] = cosTheta  * cosPsi;
-  (*pMatrix4x4)[0][1] = cosPhi    * sinPsi + sinPhi * sinTheta * cosPsi;
-  (*pMatrix4x4)[0][2] = sinPhi    * sinPsi - cosPhi * sinTheta * cosPsi;
+  pMatrix4x4->SetElement(0,0, cosTheta * cosPsi);
+  pMatrix4x4->SetElement(0,1, cosPhi   * sinPsi + sinPhi * sinTheta * cosPsi);
+  pMatrix4x4->SetElement(0,2, sinPhi   * sinPsi - cosPhi * sinTheta * cosPsi);
 
-  (*pMatrix4x4)[1][0] = -cosTheta * sinPsi;
-  (*pMatrix4x4)[1][1] =  cosPhi   * cosPsi - sinPhi * sinTheta * sinPsi;
-  (*pMatrix4x4)[1][2] =  sinPhi   * cosPsi + cosPhi * sinTheta * sinPsi;
+  pMatrix4x4->SetElement(1, 0, -cosTheta * sinPsi);
+  pMatrix4x4->SetElement(1, 1, cosPhi    * cosPsi - sinPhi * sinTheta * sinPsi);
+  pMatrix4x4->SetElement(1, 2, sinPhi    * cosPsi + cosPhi * sinTheta * sinPsi);
 
-  (*pMatrix4x4)[2][0] = sinTheta;
-  (*pMatrix4x4)[2][1] = -sinPhi   * cosTheta;
-  (*pMatrix4x4)[2][2] = cosPhi    * cosTheta;
+  pMatrix4x4->SetElement(2, 0, sinTheta);
+  pMatrix4x4->SetElement(2, 1, -sinPhi   * cosTheta);
+  pMatrix4x4->SetElement(2, 2, cosPhi    * cosTheta);
 
   int nI, nJ;
   for(nI = 0; nI < 4; nI++)
@@ -120,7 +120,7 @@ void OrientationWidgetGUI::slotPhiThetaPsi(double adbValue)
 	for(nJ = 0; nJ < 4; nJ++)
     {
 	  QTableWidgetItem* pItem = m_pTableWidget->item(nI, nJ);
-	  pItem->setText(QString::number((*pMatrix4x4)[nI][nJ]));
+      pItem->setText(QString::number(pMatrix4x4->GetElement(nI, nJ)));
     }
   }
   pMatrix4x4->Transpose();
