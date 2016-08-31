@@ -63,8 +63,3 @@ ENDIF(NOT SNAP_USE_QT4)
 
 # Look for OpenGL.
 FIND_PACKAGE(OpenGL REQUIRED)
-
-# Link libraries from the parent CMAKE file
-#LINK_LIBRARIES(ITKAlgorithms ITKCommon ITKBasicFilters)
-
-

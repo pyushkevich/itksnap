@@ -924,23 +924,7 @@ ENDIF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Stud
 SET(SNAP_ITK_LIBS ${ITK_LIBRARIES})
 
 # Core VTK libraries
-SET(SNAP_VTK_LIBS
-  vtkChartsCore
-  vtkCommonCore
-  vtkRenderingCore
-  vtkRenderingFreeType
-  vtkRenderingOpenGL
-  vtkRenderingVolume
-  vtkRenderingVolumeOpenGL
-  vtkFiltersCore
-  vtkImagingCore
-  vtkViewsCore
-  vtkViewsContext2D
-  vtkIOCore
-  vtkIOExport
-  vtkIOGeometry
-  vtkIOLegacy
-)
+SET(SNAP_VTK_LIBS ${VTK_LIBRARIES})
 
 # Libraries provided by the submodules
 SET(SNAP_SUBMODULE_LIBS
