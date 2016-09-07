@@ -94,9 +94,14 @@ void RegistrationRenderer::paintGL()
 
   // Should we draw the widget? Yes, if we are in tiled mode and are viewing the moving layer,
   // and yes if we are in non-tiled mode.
-  if(!smodel->IsTiling() ||
-     this->m_ParentRenderer->GetDrawingViewport()->layer_id ==
-     rmodel->GetMovingLayerWrapper()->GetUniqueId())
+
+  // If tiling and moving layer is drawing
+  // If stacked and moving layer is drawing
+  // If moving layer is an overlay
+  unsigned long moving_id = rmodel->GetMovingLayerWrapper()->GetUniqueId();
+  unsigned long drawing_id = this->m_ParentRenderer->GetDrawingViewport()->layer_id;
+
+  if(moving_id == drawing_id || rmodel->GetMovingLayerWrapper()->IsSticky())
     {
     // Get the line color, thickness and dash spacing for the rotation widget
     OpenGLAppearanceElement *eltWidgets =
