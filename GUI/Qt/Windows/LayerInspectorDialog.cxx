@@ -28,6 +28,7 @@
 #include "QtActionCoupling.h"
 #include "QtActionGroupCoupling.h"
 #include "DisplayLayoutModel.h"
+#include "QShortcut"
 
 #include <QMenu>
 

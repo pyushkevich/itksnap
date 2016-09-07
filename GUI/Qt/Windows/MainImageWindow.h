@@ -131,6 +131,9 @@ public slots:
   void onModelUpdate(const EventBucket &b);
 
 private slots:
+
+  void onActiveChanged();
+
   void on_actionQuit_triggered();
 
   void on_actionLoad_from_Image_triggered();
@@ -283,6 +286,8 @@ private slots:
   void on_actionInterpolate_Labels_triggered();
 
   void on_actionRegistration_triggered();
+
+  void on_actionClose_Window_triggered();
 
 protected:
 

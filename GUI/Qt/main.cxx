@@ -32,6 +32,8 @@
 #include <iostream>
 #include "SNAPTestQt.h"
 
+#include <QShortcutEvent>
+
 using namespace std;
 
 // Interrupt handler. This will attempt to clean up
@@ -128,6 +130,7 @@ public:
 
   virtual bool event(QEvent *event)
   {
+    // Handle file drops
     if (event->type() == QEvent::FileOpen && m_MainWindow)
       {
       QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
@@ -152,6 +155,7 @@ public:
       m_MainWindow->LoadDroppedFile(file);
       return true;
       }
+
     else return QApplication::event(event);
   }
 

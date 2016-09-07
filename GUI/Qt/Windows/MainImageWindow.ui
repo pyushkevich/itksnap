@@ -421,6 +421,7 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="menuExport"/>
     <addaction name="separator"/>
+    <addaction name="actionClose_Window"/>
     <addaction name="actionUnload_Last_Overlay"/>
     <addaction name="actionUnload_All"/>
     <addaction name="separator"/>
@@ -1479,6 +1480,14 @@ color:rgb(103, 103, 103);
    </property>
    <property name="toolTip">
     <string>Perform image registration</string>
+   </property>
+  </action>
+  <action name="actionClose_Window">
+   <property name="text">
+    <string>Close Window</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
    </property>
   </action>
  </widget>

@@ -419,6 +419,12 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 #ifndef __APPLE__
   TranslateChildTooltipKeyModifiers(this);
 #endif
+
+  // Listen to changes in the active window. This affects the behavior of the "close" shortcut
+  connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(onActiveChanged()));
+
+  // Start with the "close window" menu item hidden
+  ui->actionClose_Window->setVisible(false);
 }
 
 
@@ -682,6 +688,20 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
                 m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel()))
     {
     this->UpdateSelectedLayerActions();
+    }
+}
+
+void MainImageWindow::onActiveChanged()
+{
+  if(this->isActiveWindow())
+    {
+    ui->actionUnload_Last_Overlay->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
+    ui->actionClose_Window->setVisible(false);
+    }
+  else
+    {
+    ui->actionUnload_Last_Overlay->setShortcut(QKeySequence());
+    ui->actionClose_Window->setVisible(true);
     }
 }
 
@@ -2064,6 +2084,18 @@ void MainImageWindow::changeEvent(QEvent *)
     m_Model->GetSynchronizationModel()->SetCanBroadcast(this->isActiveWindow());
 }
 
+void MainImageWindow::on_actionClose_Window_triggered()
+{
+  // If main window is not the active window, close the active window instead of closing
+  // any images. This is because Ctrl-W shortcut should be reserved for closign windows
+  if(QApplication::activeWindow() != this)
+    {
+    QApplication::activeWindow()->close();
+    return;
+    }
+}
+
+
 void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
 {
   // Get the selected ID
@@ -2118,3 +2150,4 @@ void MainImageWindow::on_actionRegistration_triggered()
   m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
   m_DockRight->setVisible(true);
 }
+
