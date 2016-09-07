@@ -44,6 +44,7 @@ using namespace std;
 
 #include <signal.h>
 #include <execinfo.h>
+#include <clocale>
 
 void SegmentationFaultHandler(int sig)
 {
@@ -589,6 +590,9 @@ int main(int argc, char *argv[])
   SNAPQApplication app(argc, argv);
   Q_INIT_RESOURCE(SNAPResources);
   Q_INIT_RESOURCE(TestingScripts);
+
+  // Reset the locale to posix to avoid weird issues with NRRD files
+  std::setlocale(LC_NUMERIC, "POSIX");
 
   // Force use of native OpenGL, since all of our functions and VTK use native
   // and cannot use ANGLE
