@@ -60,6 +60,7 @@
 #include "itkImageFileWriter.h"
 #include "itkFlipImageFilter.h"
 #include "itkConstantBoundaryCondition.h"
+#include "itkSimpleDataObjectDecorator.h"
 #include <itksys/SystemTools.hxx>
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"
@@ -1803,6 +1804,13 @@ void IRISApplication
   // Write the metadata for the specific layer
   layer->WriteMetaData(folder->Folder("LayerMetaData"));
 
+  // Write the layer IO hints
+  typedef itk::SimpleDataObjectDecorator<Registry> RegistryObject;
+  RegistryObject::Pointer regObj =
+      dynamic_cast<RegistryObject *>(layer->GetUserData("IOHints"));
+  if(regObj)
+    folder->Folder("IOHints").Update(regObj->Get());
+
   // For the main image layer, write the project-level settings
   if(role == MAIN_ROLE)
     {
@@ -1871,20 +1879,26 @@ IRISApplication
 void IRISApplication
 ::LoadImageViaDelegate(const char *fname,
                        AbstractLoadImageDelegate *del,
-                       IRISWarningList &wl)
+                       IRISWarningList &wl,
+                       Registry *ioHints)
 {
-  // Load the settings associated with this file
-  Registry reg;
-  m_SystemInterface->FindRegistryAssociatedWithFile(fname, reg);
+  Registry regAssoc;
 
-  // Get the folder dealing with grey image properties
-  Registry &folder = reg.Folder("Files.Grey");
+  // When hints are not provided, we load them using the association system
+  if(!ioHints)
+    {
+    // Load the settings associated with this file
+    m_SystemInterface->FindRegistryAssociatedWithFile(fname, regAssoc);
+
+    // Get the folder dealing with grey image properties
+    ioHints = &regAssoc.Folder("Files.Grey");
+    }
 
   // Create a native image IO object
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
   // Load the header of the image
-  io->ReadNativeImageHeader(fname, folder);
+  io->ReadNativeImageHeader(fname, *ioHints);
 
   // Validate the header
   del->ValidateHeader(io, wl);
@@ -1899,12 +1913,19 @@ void IRISApplication
   del->ValidateImage(io, wl);
 
   // Put the image in the right place
-  del->UpdateApplicationWithImage(io);
+  ImageWrapperBase *layer = del->UpdateApplicationWithImage(io);
+
+  // Store the IO hints inside of the image - in case it ever gets added
+  // to a project
+  typedef itk::SimpleDataObjectDecorator<Registry> RegistryObject;
+  RegistryObject::Pointer regObj = RegistryObject::New();
+  regObj->Set(*ioHints);
+  layer->SetUserData("IOHints", regObj.GetPointer());
 }
 
 void IRISApplication
-::LoadImage(const char *fname, LayerRole role,
-            IRISWarningList &wl, Registry *meta_data_reg)
+::LoadImage(const char *fname, LayerRole role, IRISWarningList &wl,
+            Registry *meta_data_reg, Registry *io_hints_reg)
 {
   // Pointer to the delegate
   SmartPtr<AbstractLoadImageDelegate> delegate;
@@ -1927,7 +1948,9 @@ void IRISApplication
   delegate->Initialize(this);
   if(meta_data_reg)
     delegate->SetMetaDataRegistry(meta_data_reg);
-  this->LoadImageViaDelegate(fname, delegate, wl);
+
+  // Load via delegate, providing the IO hints
+  this->LoadImageViaDelegate(fname, delegate, wl, io_hints_reg);
 }
 
 SmartPtr<AbstractSaveImageDelegate>
@@ -2139,8 +2162,15 @@ void IRISApplication::OpenProject(
         layer_file_full = moved_file_full;
       }
 
+    // Load the IO hints for the image from the project - but only if this
+    // folder is actually present (otherwise some projects from before 2016
+    // will not load hints)
+    Registry *io_hints = NULL;
+    if(folder.HasFolder("IOHints"))
+      io_hints = &folder.Folder("IOHints");
+
     // Load the image and its metadata
-    LoadImage(layer_file_full.c_str(), role, warn, &folder);
+    LoadImage(layer_file_full.c_str(), role, warn, &folder, io_hints);
 
     // Check if the main has been loaded
     if(role == MAIN_ROLE)

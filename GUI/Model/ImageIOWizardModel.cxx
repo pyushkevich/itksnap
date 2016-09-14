@@ -5,13 +5,16 @@
 #include "SystemInterface.h"
 #include "ImageCoordinateGeometry.h"
 #include <itksys/SystemTools.hxx>
-#include "HistoryManager.h"
+#include "itkSimpleDataObjectDecorator.h"
+
 #include "ColorMap.h"
+#include "ImageIODelegates.h"
+#include "HistoryManager.h"
+#include "GenericImageData.h"
 
 #include "IRISException.h"
 #include <sstream>
 
-#include "ImageIODelegates.h"
 
 ImageIOWizardModel::ImageIOWizardModel()
 {
@@ -322,7 +325,7 @@ ImageIOWizardModel::FileFormat ImageIOWizardModel::GetSelectedFormat()
   return GuidedNativeImageIO::GetFileFormat(m_Registry);
 }
 
-#include "GenericImageData.h"
+
 
 void ImageIOWizardModel::LoadImage(std::string filename)
 {
@@ -361,6 +364,12 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     regAssoc.Folder("Files.Grey").Update(m_Registry);
     si->AssociateRegistryWithFile(
           m_GuidedIO->GetFileNameOfNativeImage().c_str(), regAssoc);
+
+    // Also place the IO hints into the layer as associated data
+    typedef itk::SimpleDataObjectDecorator<Registry> RegistryObject;
+    RegistryObject::Pointer regObj = RegistryObject::New();
+    regObj->Set(m_Registry);
+    m_LoadedImage->SetUserData("IOHints", regObj.GetPointer());
   }
   catch(IRISException &excIRIS)
   {

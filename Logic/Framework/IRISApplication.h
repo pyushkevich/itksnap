@@ -192,10 +192,16 @@ public:
    * of this class to different layer roles (main image, overlay). The warnings
    * generated in the course of the IO operation are stored in the passed in
    * warning list object;
+   *
+   * By default the IO hints are obtained from the association files, i.e. by
+   * looking up the hints associated with fname in the user's application data
+   * directory. But it is also possible to provide a pointer to the ioHints, i.e.,
+   * if the image is being as part of loading a workspace.
    */
   void LoadImageViaDelegate(const char *fname,
                             AbstractLoadImageDelegate *del,
-                            IRISWarningList &wl);
+                            IRISWarningList &wl,
+                            Registry *ioHints = NULL);
 
   /**
    * Load an image for a particular role using the default delegate for this role.
@@ -205,7 +211,9 @@ public:
    * the provided Registry object.
    */
   void LoadImage(const char *fname, LayerRole role,
-                 IRISWarningList &wl, Registry *meta_data_reg = NULL);
+                 IRISWarningList &wl,
+                 Registry *meta_data_reg = NULL,
+                 Registry *io_hints_reg = NULL);
 
   /**
    * Create a delegate for saving an image interactively or non-interactively
