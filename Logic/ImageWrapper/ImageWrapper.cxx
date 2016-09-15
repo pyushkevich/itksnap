@@ -536,6 +536,7 @@ ImageWrapper<TTraits,TBase>
 ::~ImageWrapper()
 {
   Reset();
+  delete m_IOHints;
 }
 
 template<class TTraits, class TBase>
@@ -551,6 +552,9 @@ ImageWrapper<TTraits,TBase>
   // Set initial state
   m_Initialized = false;
   m_PipelineReady = false;
+
+  // Create empty IO hints
+  m_IOHints = new Registry();
 
   // Create slicer objects
   m_Slicer[0] = SlicerType::New();
@@ -588,6 +592,9 @@ ImageWrapper<TTraits,TBase>
     ImagePointer newImage = roi->GetOutput();
     UpdateImagePointer(newImage);
     }
+
+  // Copy IO hints
+  *m_IOHints = copy.GetIOHints();
 }
 
 template<class TTraits, class TBase>
@@ -1391,6 +1398,21 @@ ImageWrapper<TTraits, TBase>
   this->InvokeEvent(WrapperMetadataChangeEvent());
 }
 
+template<class TTraits, class TBase>
+const Registry &
+ImageWrapper<TTraits, TBase>
+::GetIOHints() const
+{
+  return *this->m_IOHints;
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits, TBase>
+::SetIOHints(const Registry &io_hints)
+{
+  *this->m_IOHints = io_hints;
+}
 
 // The method that can be called for some wrappers, not others
 template <class TImage>

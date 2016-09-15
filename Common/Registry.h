@@ -335,6 +335,12 @@ public:
   /** Constructor loads a registry from a file */
   Registry(const char *fname);
 
+  /** Copy constructor - copy entire registry by value */
+  Registry(const Registry &source);
+
+  /** Assignment operator - copy entire registry by value */
+  void operator = (const Registry &source);
+
   /** Destructor */
   virtual ~Registry();
 
@@ -372,6 +378,9 @@ public:
 
   /** Empty the contents of the registry */
   void Clear();
+
+  /** Check if the folder is empty */
+  bool IsEmpty() const;
 
   /** Get a list of all keys that have values contained in this registry
    * and all subfolders (recursive operation).  Prefix is used internally,
@@ -460,6 +469,7 @@ public:
   };
 
 private:
+
   // Hashtable type definition
   typedef std::map<StringType, Registry *> FolderMapType;
   typedef std::map<StringType, RegistryValue> EntryMapType;

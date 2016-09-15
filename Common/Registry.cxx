@@ -434,6 +434,11 @@ Registry
   m_FolderMap.clear();
 }
 
+bool Registry::IsEmpty() const
+{
+  return m_EntryMap.size() == 0 && m_FolderMap.size() == 0;
+}
+
 Registry::StringType
 Registry
 ::EncodeXML(const StringType &input)
@@ -645,12 +650,25 @@ Registry
   ReadFromFile(fname);
 }
 
+Registry::Registry(const Registry &source)
+{
+  *this = source;
+}
+
+void Registry::operator =(const Registry &source)
+{
+  this->Clear();
+  this->Update(source);
+  this->m_AddIfNotFound = source.m_AddIfNotFound;
+}
+
+
 Registry::
 ~Registry() 
 {
   // Delete all the sub-folders
-  // for(FolderIterator itf = m_FolderMap.begin(); itf != m_FolderMap.end(); ++itf)
-  //  delete itf->second;
+  for(FolderIterator itf = m_FolderMap.begin(); itf != m_FolderMap.end(); ++itf)
+    delete itf->second;
 }
 
 bool Registry::operator == (const Registry &other) const

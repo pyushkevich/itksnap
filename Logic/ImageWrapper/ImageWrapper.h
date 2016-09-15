@@ -503,6 +503,18 @@ public:
   virtual void SetCustomNickname(const std::string &nickname);
   irisGetMacro(CustomNickname, const std::string &);
 
+  /**
+   * Access the "IO hints" registry associated with this wrapper. The IO hints
+   * are used to help read the image when the filename alone is not sufficient.
+   * For example, it may contain the DICOM series ID of the image, or for a raw
+   * image the dimensions.
+   */
+  virtual const Registry &GetIOHints() const;
+
+  /**
+   * Set the IO hints
+   */
+  virtual void SetIOHints(const Registry &io_hints);
 
   /**
    * Write the image to disk with the help of the GuidedNativeImageIO object
@@ -645,6 +657,8 @@ protected:
   typedef std::map<std::string, SmartPtr<itk::Object> > UserDataMapType;
   UserDataMapType m_UserDataMap;
 
+  // IO Hints registry
+  Registry *m_IOHints;
 
   /**
    * Handle a change in the image pointer (i.e., a load operation on the image or 

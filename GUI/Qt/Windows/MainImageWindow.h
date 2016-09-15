@@ -126,6 +126,7 @@ public slots:
   void LoadRecentActionTriggered();
   void LoadRecentOverlayActionTriggered();
   void LoadRecentProjectActionTriggered();
+  void LoadAnotherDicomActionTriggered();
 
   void AdjustMarginsForDocks();
   void onModelUpdate(const EventBucket &b);
@@ -304,6 +305,7 @@ private:
   void UpdateRecentProjectsMenu();
   void UpdateLayerLayoutActions();
   void UpdateSelectedLayerActions();
+  void UpdateDICOMContentsMenu();
 
   // Save the segmentation (interactively or not). Return true if save was
   // successful

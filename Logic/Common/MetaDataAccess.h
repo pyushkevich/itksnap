@@ -19,6 +19,8 @@ public:
   std::vector<std::string> GetKeysAsArray();
   std::string GetValueAsString(const std::string &key);
 
+  bool HasKey(const std::string &key) const;
+
   // Useful routine for mapping orientation strings to text
   static std::string GetRAICode(
       itk::SpatialOrientation::ValidCoordinateOrientationFlags code);

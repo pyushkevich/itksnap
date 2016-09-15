@@ -5,7 +5,6 @@
 #include "SystemInterface.h"
 #include "ImageCoordinateGeometry.h"
 #include <itksys/SystemTools.hxx>
-#include "itkSimpleDataObjectDecorator.h"
 
 #include "ColorMap.h"
 #include "ImageIODelegates.h"
@@ -365,11 +364,8 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     si->AssociateRegistryWithFile(
           m_GuidedIO->GetFileNameOfNativeImage().c_str(), regAssoc);
 
-    // Also place the IO hints into the layer as associated data
-    typedef itk::SimpleDataObjectDecorator<Registry> RegistryObject;
-    RegistryObject::Pointer regObj = RegistryObject::New();
-    regObj->Set(m_Registry);
-    m_LoadedImage->SetUserData("IOHints", regObj.GetPointer());
+    // Also place the IO hints into the layer
+    m_LoadedImage->SetIOHints(m_Registry);
   }
   catch(IRISException &excIRIS)
   {
@@ -442,6 +438,16 @@ void ImageIOWizardModel
   m_Registry.Folder("DICOM.SeriesFiles").PutArray(
         m_DicomContents[series].Folder("SeriesFiles").GetArray(std::string()));
 
+  // Store information about the entire dicom diretory into a separate subfolder.
+  // This is to allow subsequent quick loading of other DICOM series in the same
+  // directory, e.g., through a menu item on the main menu
+  m_Registry["DICOM.DirectoryInfo.ArraySize"] << m_DicomContents.size();
+  for(int i = 0; i < m_DicomContents.size(); i++)
+    {
+    Registry &r = m_Registry.Folder(m_Registry.Key("DICOM.DirectoryInfo.Entry[%d]", i));
+    r.Update(m_DicomContents[i]);
+    }
+
   // Set the format to DICOM
   SetSelectedFormat(GuidedNativeImageIO::FORMAT_DICOM_DIR);
 
@@ -450,6 +456,13 @@ void ImageIOWizardModel
 
   // Call the main load method
   this->LoadImage(dir);
+
+  // DICOM filenames are meaningless. Assign a nickname based on series name
+  if(m_LoadedImage->GetCustomNickname().length() == 0)
+    {
+    m_LoadedImage->SetCustomNickname(m_DicomContents[series]["SeriesDescription"][""]);
+    }
+
 }
 
 unsigned long ImageIOWizardModel::GetFileSizeInBytes(const std::string &file)

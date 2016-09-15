@@ -411,8 +411,16 @@ color:rgb(103, 103, 103);
      <addaction name="menuScreenshot"/>
      <addaction name="menuScreenshot_Series"/>
     </widget>
+    <widget class="QMenu" name="menuAddAnotherDicomImage">
+     <property name="title">
+      <string>Add Another DICOM Series</string>
+     </property>
+     <addaction name="actionDicomDummy"/>
+    </widget>
     <addaction name="actionOpenMain"/>
     <addaction name="menuRecent_Images"/>
+    <addaction name="separator"/>
+    <addaction name="menuAddAnotherDicomImage"/>
     <addaction name="separator"/>
     <addaction name="actionAdd_Overlay"/>
     <addaction name="menuRecent_Overlays"/>
@@ -1488,6 +1496,11 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionDicomDummy">
+   <property name="text">
+    <string>Dummy</string>
    </property>
   </action>
  </widget>

@@ -496,9 +496,9 @@ SystemInterface
   return names;
 }
 
-Registry 
+void
 SystemInterface
-::ReadSavedObject(const char *category, const char *name)
+::ReadSavedObject(const char *category, const char *name, Registry &out_folder)
 {
   // Make sure we have a directory for this category
   std::string appdir = GetApplicationDataDirectory();
@@ -515,9 +515,7 @@ SystemInterface
   if(!SystemTools::FileExists(fname.c_str(), true))
     throw IRISException("Saved object file does not exist");
 
-  Registry reg;
-  reg.ReadFromXMLFile(fname.c_str());
-  return reg;
+  out_folder.ReadFromXMLFile(fname.c_str());
 }
 
 void 

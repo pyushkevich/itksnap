@@ -351,6 +351,19 @@ public:
   virtual void WriteThumbnail(const char *filename, unsigned int maxdim) = 0;
 
   /**
+   * Access the "IO hints" registry associated with this wrapper. The IO hints
+   * are used to help read the image when the filename alone is not sufficient.
+   * For example, it may contain the DICOM series ID of the image, or for a raw
+   * image the dimensions.
+   */
+  virtual const Registry &GetIOHints() const = 0;
+
+  /**
+   * Set the IO hints
+   */
+  virtual void SetIOHints(const Registry &io_hints) = 0;
+
+  /**
    * Write the image to disk with the help of the GuidedNativeImageIO object
    */
   virtual void WriteToFile(const char *filename, Registry &hints) = 0;

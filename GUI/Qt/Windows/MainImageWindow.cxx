@@ -633,6 +633,7 @@ void MainImageWindow::ShowFirstTime()
   this->UpdateWindowTitle();
   this->UpdateLayerLayoutActions();
   this->UpdateSelectedLayerActions();
+  this->UpdateDICOMContentsMenu();
 
   // Show the window
   this->show();
@@ -662,6 +663,7 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
      b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("MainImage")))
     {
     this->UpdateRecentMenu();
+    this->UpdateDICOMContentsMenu();
     }
 
   if(b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("Project")))
@@ -671,6 +673,7 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 
   if(b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetProjectFilenameModel()))
     {
+    this->UpdateWindowTitle();
     this->UpdateProjectMenuItems();
     }
 
@@ -827,6 +830,59 @@ void MainImageWindow::UpdateSelectedLayerActions()
     }
 }
 
+#include "Registry.h"
+
+void MainImageWindow::UpdateDICOMContentsMenu()
+{
+  // A list of menu items generated from DICOM data
+  QList<QAction *> menu_items;
+
+  // Is there an image even loaded?
+  if(m_Model->GetDriver()->IsMainImageLoaded())
+    {
+    // Get the IO hints registry
+    Registry io_hints = m_Model->GetDriver()->GetIRISImageData()->GetMain()->GetIOHints();
+
+    // Get the number of DICOM elements
+    int n_entries = io_hints["DICOM.DirectoryInfo.ArraySize"][0];
+
+    // Get the series ID of the loaded image
+    string main_series_id = io_hints["DICOM.SeriesId"][""];
+
+    // For each entry, check it against the loaded images
+    for(int i = 0; i < n_entries; i++)
+      {
+      // Read the entry for this ID
+      Registry &r = io_hints.Folder(io_hints.Key("DICOM.DirectoryInfo.Entry[%d]", i));
+      string series_id = r["SeriesId"][""];
+      if(series_id.length() && series_id != main_series_id)
+        {
+        string series_desc = r["SeriesDescription"][""];
+        string series_dim = r["Dimensions"][""];
+
+        // Create a new action
+        QAction *action = new QAction(this);
+        action->setData(from_utf8(series_id));
+        action->setText(QString("%1 [%2]").arg(from_utf8(series_desc)).arg(from_utf8(series_dim)));
+
+        // Connect this action to its slot
+        connect(action, SIGNAL(triggered()),
+                this, SLOT(LoadAnotherDicomActionTriggered()));
+
+        // Add the action to the menu
+        menu_items.push_back(action);
+        }
+      }
+    }
+
+  // Add the actions
+  ui->menuAddAnotherDicomImage->clear();
+  ui->menuAddAnotherDicomImage->addActions(menu_items);
+
+  // Hide or show the menu based on availability of actions
+  ui->menuAddAnotherDicomImage->menuAction()->setVisible(menu_items.size() > 0);
+}
+
 void MainImageWindow::UpdateRecentMenu()
 {
   // Menus to populate
@@ -855,6 +911,9 @@ void MainImageWindow::UpdateRecentMenu()
       }
     }
 
+  // Toggle the visibility of the dropdown
+  ui->menuRecent_Images->menuAction()->setVisible(recent.size() > 0);
+
   // Do the same for the overlay menus
   QAction *omenus[] = {
     ui->actionRecentOverlay_1,
@@ -881,6 +940,9 @@ void MainImageWindow::UpdateRecentMenu()
       }
     }
 
+  // Toggle the visibility of the dropdown
+  ui->menuRecent_Overlays->menuAction()->setVisible(
+        recent.size() > 0 && m_Model->GetDriver()->IsMainImageLoaded());
 }
 
 void MainImageWindow::UpdateRecentProjectsMenu()
@@ -1307,6 +1369,35 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
                              QString("Failed to load overlay image %1").arg(file));
     }
 }
+
+void MainImageWindow::LoadAnotherDicomActionTriggered()
+{
+  // Request to load another DICOM from the main image's folder
+  QAction *action = qobject_cast<QAction *>(sender());
+
+  // Get the series ID for this image
+  string series_id = to_utf8(action->data().toString());
+
+  // Try to load a DICOM with this series ID
+  try
+    {
+    // Change cursor for this operation
+    QtCursorOverride c(Qt::WaitCursor);
+    IRISWarningList warnings;
+    SmartPtr<LoadOverlayImageDelegate> del = LoadOverlayImageDelegate::New();
+    del->Initialize(m_Model->GetDriver());
+    m_Model->GetDriver()->LoadAnotherDicomSeriesViaDelegate(
+          series_id.c_str(), del, warnings);
+    }
+  catch(exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Image IO Error",
+                             QString("Failed to load overlay image %1").arg(action->text()));
+    }
+
+}
+
+
 
 void MainImageWindow::LoadProject(const QString &file)
 {

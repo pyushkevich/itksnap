@@ -89,6 +89,11 @@ std::string MetaDataAccess::GetValueAsString(const std::string &key)
   return value;
 }
 
+bool MetaDataAccess::HasKey(const string &key) const
+{
+  return m_Image->GetMetaDataDictionary().HasKey(key);
+}
+
 std::string MetaDataAccess::MapKeyToDICOM(std::string key)
 {
   // Try to remap the key to DICOM

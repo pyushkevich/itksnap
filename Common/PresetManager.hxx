@@ -39,7 +39,8 @@ PresetManager<TManagedObjectTraits>
   // Load each of the presets from the registry
   for(int j = 0; j < m_PresetUser.size(); j++)
     {
-    Registry reg = m_System->ReadSavedObject(m_Category.c_str(), m_PresetUser[j].c_str());
+    Registry reg;
+    m_System->ReadSavedObject(m_Category.c_str(), m_PresetUser[j].c_str(), reg);
     ManagedTypePtr mtp = ManagedType::New();
     TManagedObjectTraits::ReadFromRegistry(mtp, reg);
     m_PresetMap[m_PresetUser[j]] = mtp;

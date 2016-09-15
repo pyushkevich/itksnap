@@ -198,10 +198,25 @@ public:
    * directory. But it is also possible to provide a pointer to the ioHints, i.e.,
    * if the image is being as part of loading a workspace.
    */
-  void LoadImageViaDelegate(const char *fname,
-                            AbstractLoadImageDelegate *del,
-                            IRISWarningList &wl,
-                            Registry *ioHints = NULL);
+  ImageWrapperBase* LoadImageViaDelegate(const char *fname,
+                                         AbstractLoadImageDelegate *del,
+                                         IRISWarningList &wl,
+                                         Registry *ioHints = NULL);
+
+  /**
+   * Load another dicom series via delegate. This is similar to LoadImageViaDelegate
+   * but the input is a SeriesId assumed to be in the same DICOM directory as the
+   * main image
+   */
+  void LoadAnotherDicomSeriesViaDelegate(const char *series_id,
+                                         AbstractLoadImageDelegate *del,
+                                         IRISWarningList &wl);
+
+  /**
+   * Assign a nickname to an image layer based on its DICOM metadata. For now this
+   * implementation uses just the "Series Description" field.
+   */
+  void AssignNicknameFromDicomMetadata(ImageWrapperBase *layer);
 
   /**
    * Load an image for a particular role using the default delegate for this role.

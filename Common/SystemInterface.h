@@ -130,7 +130,7 @@ public:
    * SNAP options are less likely to interfere with each other.
    */
   std::vector<std::string> GetSavedObjectNames(const char *category);
-  Registry ReadSavedObject(const char *category, const char *name);
+  void ReadSavedObject(const char *category, const char *name, Registry &out_folder);
   void UpdateSavedObject(const char *category, const char *name, Registry &folder);
   void DeleteSavedObject(const char *category, const char *name);
   static std::string DecodeObjectName(std::string fname);

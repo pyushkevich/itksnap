@@ -60,7 +60,6 @@
 #include "itkImageFileWriter.h"
 #include "itkFlipImageFilter.h"
 #include "itkConstantBoundaryCondition.h"
-#include "itkSimpleDataObjectDecorator.h"
 #include <itksys/SystemTools.hxx>
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"
@@ -1804,12 +1803,12 @@ void IRISApplication
   // Write the metadata for the specific layer
   layer->WriteMetaData(folder->Folder("LayerMetaData"));
 
-  // Write the layer IO hints
-  typedef itk::SimpleDataObjectDecorator<Registry> RegistryObject;
-  RegistryObject::Pointer regObj =
-      dynamic_cast<RegistryObject *>(layer->GetUserData("IOHints"));
-  if(regObj)
-    folder->Folder("IOHints").Update(regObj->Get());
+  // Write the layer IO hints - overriding the association file data
+  if(!layer->GetIOHints().IsEmpty())
+    {
+    folder->Folder("IOHints").Clear();
+    folder->Folder("IOHints").Update(layer->GetIOHints());
+    }
 
   // For the main image layer, write the project-level settings
   if(role == MAIN_ROLE)
@@ -1876,7 +1875,8 @@ IRISApplication
   InvokeEvent(MainImageDimensionsChangeEvent());
 }
 
-void IRISApplication
+ImageWrapperBase *
+IRISApplication
 ::LoadImageViaDelegate(const char *fname,
                        AbstractLoadImageDelegate *del,
                        IRISWarningList &wl,
@@ -1917,10 +1917,44 @@ void IRISApplication
 
   // Store the IO hints inside of the image - in case it ever gets added
   // to a project
-  typedef itk::SimpleDataObjectDecorator<Registry> RegistryObject;
-  RegistryObject::Pointer regObj = RegistryObject::New();
-  regObj->Set(*ioHints);
-  layer->SetUserData("IOHints", regObj.GetPointer());
+  layer->SetIOHints(*ioHints);
+
+  return layer;
+}
+
+#include "MetaDataAccess.h"
+
+void IRISApplication
+::AssignNicknameFromDicomMetadata(ImageWrapperBase *layer)
+{
+  const std::string tag = "0008|103e";
+  MetaDataAccess mda(layer->GetImageBase());
+  if(mda.HasKey(tag))
+    layer->SetCustomNickname(mda.GetValueAsString(tag));
+}
+
+void IRISApplication
+::LoadAnotherDicomSeriesViaDelegate(const char *series_id,
+                             AbstractLoadImageDelegate *del,
+                             IRISWarningList &wl)
+{
+  // We will use the main image's IO hints to create the IO hints for the
+  // image that is being loaded.
+  ImageWrapperBase *main = this->GetCurrentImageData()->GetMain();
+
+  // Create a copy of these hints for the new image we are loading
+  Registry io_hints = main->GetIOHints();
+
+  // Replace the SeriesID with the one we are intending to load
+  io_hints["DICOM.SeriesId"] << series_id;
+
+  // Use the current filename of the main image
+  ImageWrapperBase *layer =
+      this->LoadImageViaDelegate(main->GetFileName(), del, wl, &io_hints);
+
+  // Assign the series ID of the loaded image as the nickname
+  if(layer->GetCustomNickname().length() == 0)
+    this->AssignNicknameFromDicomMetadata(layer);
 }
 
 void IRISApplication
