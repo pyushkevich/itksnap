@@ -125,7 +125,8 @@ void SaveModifiedLayersModel::SetCurrentItemValue(int value)
   InvokeEvent(StateMachineChangeEvent());
 }
 
-void SaveModifiedLayersModel::BuildUnsavedItemsList(std::list<ImageWrapperBase *> layers)
+void SaveModifiedLayersModel::BuildUnsavedItemsList(std::list<ImageWrapperBase *> layers,
+                                                    bool force_exclude_workspace)
 {
   // Clear the list
   m_UnsavedItems.clear();
@@ -173,7 +174,8 @@ void SaveModifiedLayersModel::BuildUnsavedItemsList(std::list<ImageWrapperBase *
   // unloaded. Otherwise, any changes (loading/unloading) should be considered as
   // part of editing the workspace, and thus we should not be prompting to save the
   // workspace. Also, the workspace must already exist.
-  if(flag_main_included && m_ParentModel->GetGlobalState()->GetProjectFilename().size())
+  if(!force_exclude_workspace &&
+     flag_main_included && m_ParentModel->GetGlobalState()->GetProjectFilename().size())
     {
     // Additional conditions are that either the project has unsaved changes, or one of
     // the items proposed for saving does not have a filename yet (and so saving it would
@@ -197,7 +199,9 @@ void SaveModifiedLayersModel::BuildUnsavedItemsList(std::list<ImageWrapperBase *
   m_CurrentItem = 0;
 }
 
-void SaveModifiedLayersModel::Initialize(GlobalUIModel *parent, std::list<ImageWrapperBase *> layers)
+void SaveModifiedLayersModel::Initialize(GlobalUIModel *parent,
+                                         std::list<ImageWrapperBase *> layers,
+                                         bool force_exclude_workspace)
 {
   m_ParentModel = parent;
 
@@ -205,7 +209,7 @@ void SaveModifiedLayersModel::Initialize(GlobalUIModel *parent, std::list<ImageW
   // it supports is meant to be modal, i.e. the user can't make changes.
 
   // Update the list of unsaved items
-  BuildUnsavedItemsList(layers);
+  BuildUnsavedItemsList(layers, force_exclude_workspace);
 }
 
 bool SaveModifiedLayersModel::CheckState(SaveModifiedLayersModel::UIState state)

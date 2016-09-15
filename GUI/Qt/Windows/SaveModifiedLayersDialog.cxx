@@ -121,7 +121,7 @@ bool SaveModifiedLayersDialog
 
   // Create and configure the model
   SmartPtr<SaveModifiedLayersModel> saveModel = SaveModifiedLayersModel::New();
-  saveModel->Initialize(model, layers);
+  saveModel->Initialize(model, layers, opts.testFlag(ProjectsDisabled));
   saveModel->SetUIDelegate(&cb_delegate);
 
   // Check if there is anything to save
