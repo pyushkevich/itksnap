@@ -121,6 +121,7 @@ public:
   bool validatePage();
 
   bool isComplete() const;
+  void cleanupPage();
 private:
 
   QTableWidget *m_Table;

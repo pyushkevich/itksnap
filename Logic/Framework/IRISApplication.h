@@ -138,6 +138,18 @@ public:
   // Bubble array
   typedef std::vector<Bubble> BubbleArray;
 
+  // Structure for listing DICOM series ids (SeriesId/LayerId pair)
+  struct DicomSeriesDescriptor
+  {
+    std::string series_id;
+    std::string series_desc;
+    std::string dimensions;
+    unsigned long layer_uid;  // links back to the loaded layer
+  };
+
+  typedef std::list<DicomSeriesDescriptor> DicomSeriesListing;
+  typedef std::map<std::string, DicomSeriesListing> DicomSeriesTree;
+
   // Classifier stuff
   typedef RFClassificationEngine<GreyType, LabelType, 3> RFEngine;
   typedef RandomForestClassifier<GreyType, LabelType, 3> RFClassifier;
@@ -204,11 +216,19 @@ public:
                                          Registry *ioHints = NULL);
 
   /**
+   * List available additional DICOM series that can be loaded given the currently
+   * loaded DICOM images. This creates a listing of 'sibling' DICOM series Ids,
+   * grouped by the directory of the DICOM data
+   */
+  DicomSeriesTree ListAvailableSiblingDicomSeries();
+
+  /**
    * Load another dicom series via delegate. This is similar to LoadImageViaDelegate
    * but the input is a SeriesId assumed to be in the same DICOM directory as the
    * main image
    */
-  void LoadAnotherDicomSeriesViaDelegate(const char *series_id,
+  void LoadAnotherDicomSeriesViaDelegate(unsigned long reference_layer_id,
+                                         const char *series_id,
                                          AbstractLoadImageDelegate *del,
                                          IRISWarningList &wl);
 

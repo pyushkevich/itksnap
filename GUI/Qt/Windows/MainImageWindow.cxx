@@ -830,57 +830,58 @@ void MainImageWindow::UpdateSelectedLayerActions()
     }
 }
 
-#include "Registry.h"
+Q_DECLARE_METATYPE(IRISApplication::DicomSeriesDescriptor)
 
 void MainImageWindow::UpdateDICOMContentsMenu()
 {
-  // A list of menu items generated from DICOM data
-  QList<QAction *> menu_items;
+  // Clear the menu
+  ui->menuAddAnotherDicomImage->clear();
 
-  // Is there an image even loaded?
-  if(m_Model->GetDriver()->IsMainImageLoaded())
+  // Any actions added?
+  bool have_actions = false;
+
+  // Get the list of dicom series grouped by filename
+  IRISApplication::DicomSeriesTree dicoms =
+      m_Model->GetDriver()->ListAvailableSiblingDicomSeries();
+
+  // Iterate over all of these
+  for(IRISApplication::DicomSeriesTree::const_iterator it_map = dicoms.begin();
+      it_map != dicoms.end(); ++it_map)
     {
-    // Get the IO hints registry
-    Registry io_hints = m_Model->GetDriver()->GetIRISImageData()->GetMain()->GetIOHints();
-
-    // Get the number of DICOM elements
-    int n_entries = io_hints["DICOM.DirectoryInfo.ArraySize"][0];
-
-    // Get the series ID of the loaded image
-    string main_series_id = io_hints["DICOM.SeriesId"][""];
-
-    // For each entry, check it against the loaded images
-    for(int i = 0; i < n_entries; i++)
+    // Create a submenu or point to the menu itself
+    QMenu *target_menu = ui->menuAddAnotherDicomImage;
+    if(dicoms.size() > 1)
       {
-      // Read the entry for this ID
-      Registry &r = io_hints.Folder(io_hints.Key("DICOM.DirectoryInfo.Entry[%d]", i));
-      string series_id = r["SeriesId"][""];
-      if(series_id.length() && series_id != main_series_id)
-        {
-        string series_desc = r["SeriesDescription"][""];
-        string series_dim = r["Dimensions"][""];
+      target_menu = new QMenu(from_utf8(it_map->first), ui->menuAddAnotherDicomImage);
+      ui->menuAddAnotherDicomImage->addMenu(target_menu);
+      }
 
-        // Create a new action
-        QAction *action = new QAction(this);
-        action->setData(from_utf8(series_id));
-        action->setText(QString("%1 [%2]").arg(from_utf8(series_desc)).arg(from_utf8(series_dim)));
+    // Add all the series_ids as actions
+    for(IRISApplication::DicomSeriesListing::const_iterator it_list =
+        it_map->second.begin(); it_list != it_map->second.end(); it_list++)
+      {
+      // Create a new action
+      QAction *action = new QAction(this);
+      QVariant user_data; user_data.setValue(*it_list);
+      action->setData(user_data);
+      action->setText(QString("%1 [%2]")
+                      .arg(from_utf8(it_list->series_desc))
+                      .arg(from_utf8(it_list->dimensions)));
 
-        // Connect this action to its slot
-        connect(action, SIGNAL(triggered()),
-                this, SLOT(LoadAnotherDicomActionTriggered()));
+      // Connect this action to its slot
+      connect(action, SIGNAL(triggered()),
+              this, SLOT(LoadAnotherDicomActionTriggered()));
 
-        // Add the action to the menu
-        menu_items.push_back(action);
-        }
+      // Add the action to the menu
+      target_menu->addAction(action);
+
+      // We have some actions!
+      have_actions = true;
       }
     }
 
-  // Add the actions
-  ui->menuAddAnotherDicomImage->clear();
-  ui->menuAddAnotherDicomImage->addActions(menu_items);
-
   // Hide or show the menu based on availability of actions
-  ui->menuAddAnotherDicomImage->menuAction()->setVisible(menu_items.size() > 0);
+  ui->menuAddAnotherDicomImage->menuAction()->setVisible(have_actions);
 }
 
 void MainImageWindow::UpdateRecentMenu()
@@ -1375,8 +1376,9 @@ void MainImageWindow::LoadAnotherDicomActionTriggered()
   // Request to load another DICOM from the main image's folder
   QAction *action = qobject_cast<QAction *>(sender());
 
-  // Get the series ID for this image
-  string series_id = to_utf8(action->data().toString());
+  // Get the dicom descriptor
+  IRISApplication::DicomSeriesDescriptor desc =
+      action->data().value<IRISApplication::DicomSeriesDescriptor>();
 
   // Try to load a DICOM with this series ID
   try
@@ -1387,7 +1389,7 @@ void MainImageWindow::LoadAnotherDicomActionTriggered()
     SmartPtr<LoadOverlayImageDelegate> del = LoadOverlayImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
     m_Model->GetDriver()->LoadAnotherDicomSeriesViaDelegate(
-          series_id.c_str(), del, warnings);
+          desc.layer_uid, desc.series_id.c_str(), del, warnings);
     }
   catch(exception &exc)
     {

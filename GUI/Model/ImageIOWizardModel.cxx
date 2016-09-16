@@ -417,6 +417,7 @@ void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename)
   // Get the registry
   try
   {
+    m_DicomContents.clear();
     m_GuidedIO->ParseDicomDirectory(dir, m_DicomContents, req);
   }
   catch (IRISException &ei)

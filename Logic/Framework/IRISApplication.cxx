@@ -1922,6 +1922,81 @@ IRISApplication
   return layer;
 }
 
+IRISApplication::DicomSeriesTree
+IRISApplication::ListAvailableSiblingDicomSeries()
+{
+  // Create an empty listing
+  DicomSeriesTree available_dicoms;
+
+  // Create a structure to keep track of already loaded DICOM series so they
+  // are not included
+  std::map< std::string, std::set<std::string> > loaded_dicoms;
+
+  // Iterate through the loaded image layers
+  LayerIterator it = this->GetIRISImageData()->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+  for(; !it.IsAtEnd(); ++it)
+    {
+    // Get the IO hints registry
+    Registry io_hints = it.GetLayer()->GetIOHints();
+
+    // Is this image a DICOM?
+    if(io_hints.HasFolder("DICOM"))
+      {
+      // Get the directory of the DICOM files
+      std::string layer_fn = it.GetLayer()->GetFileName();
+      if(!itksys::SystemTools::FileIsDirectory(layer_fn))
+        layer_fn = itksys::SystemTools::GetParentDirectory(layer_fn);
+
+      // Get the series ID of the DICOM files
+      std::string layer_series_id = io_hints["DICOM.SeriesId"][""];
+      loaded_dicoms[layer_fn].insert(layer_series_id);
+
+      // Has this directory already been included? Then we can skip the rest
+      if(available_dicoms.find(layer_fn) == available_dicoms.end())
+        {
+        // Get the number of DICOM siblings
+        int n_entries = io_hints["DICOM.DirectoryInfo.ArraySize"][0];
+        for(int i = 0; i < n_entries; i++)
+          {
+          // Read the entry for this ID
+          DicomSeriesDescriptor desc;
+          Registry &r = io_hints.Folder(io_hints.Key("DICOM.DirectoryInfo.Entry[%d]", i));
+          desc.series_id = r["SeriesId"][""];
+          if(desc.series_id.length())
+            {
+            desc.series_desc = r["SeriesDescription"][""];
+            desc.dimensions = r["Dimensions"][""];
+            desc.layer_uid = it.GetLayer()->GetUniqueId();
+            available_dicoms[layer_fn].push_back(desc);
+            }
+          }
+        }
+      }
+    }
+
+  // Loop again and remove series that are already loaded
+  DicomSeriesTree::iterator it_map = available_dicoms.begin();
+  while(it_map != available_dicoms.end())
+    {
+    DicomSeriesListing::iterator it_list = it_map->second.begin();
+    while(it_list != it_map->second.end())
+      {
+      if(loaded_dicoms[it_map->first].count(it_list->series_id))
+        it_map->second.erase(it_list++);
+      else
+        it_list++;
+      }
+
+    if(it_map->second.size() == 0)
+      available_dicoms.erase(it_map++);
+    else
+      it_map++;
+    }
+
+  // Return the map
+  return available_dicoms;
+}
+
 #include "MetaDataAccess.h"
 
 void IRISApplication
@@ -1934,27 +2009,32 @@ void IRISApplication
 }
 
 void IRISApplication
-::LoadAnotherDicomSeriesViaDelegate(const char *series_id,
-                             AbstractLoadImageDelegate *del,
-                             IRISWarningList &wl)
+::LoadAnotherDicomSeriesViaDelegate(unsigned long reference_layer_id,
+                                    const char *series_id,
+                                    AbstractLoadImageDelegate *del,
+                                    IRISWarningList &wl)
 {
   // We will use the main image's IO hints to create the IO hints for the
   // image that is being loaded.
-  ImageWrapperBase *main = this->GetCurrentImageData()->GetMain();
+  ImageWrapperBase *ref =
+      this->GetIRISImageData()->FindLayer(reference_layer_id, false);
 
-  // Create a copy of these hints for the new image we are loading
-  Registry io_hints = main->GetIOHints();
+  if(ref)
+    {
+    // Create a copy of these hints for the new image we are loading
+    Registry io_hints = ref->GetIOHints();
 
-  // Replace the SeriesID with the one we are intending to load
-  io_hints["DICOM.SeriesId"] << series_id;
+    // Replace the SeriesID with the one we are intending to load
+    io_hints["DICOM.SeriesId"] << series_id;
 
-  // Use the current filename of the main image
-  ImageWrapperBase *layer =
-      this->LoadImageViaDelegate(main->GetFileName(), del, wl, &io_hints);
+    // Use the current filename of the main image
+    ImageWrapperBase *layer =
+        this->LoadImageViaDelegate(ref->GetFileName(), del, wl, &io_hints);
 
-  // Assign the series ID of the loaded image as the nickname
-  if(layer->GetCustomNickname().length() == 0)
-    this->AssignNicknameFromDicomMetadata(layer);
+    // Assign the series ID of the loaded image as the nickname
+    if(layer->GetCustomNickname().length() == 0)
+      this->AssignNicknameFromDicomMetadata(layer);
+    }
 }
 
 void IRISApplication

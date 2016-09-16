@@ -493,6 +493,11 @@ void DICOMPage::initializePage()
   */
 }
 
+void DICOMPage::cleanupPage()
+{
+  AbstractPage::cleanupPage();
+}
+
 bool DICOMPage::validatePage()
 {
   // Clear error state
