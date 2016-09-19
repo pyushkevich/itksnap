@@ -39,6 +39,10 @@ public:
    */
   irisGetSetMacro(MetaDataRegistry, Registry *)
 
+  irisGetSetMacro(HistoryName, const std::string &)
+
+  irisGetSetMacro(DisplayName, const std::string &)
+
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void UnloadCurrentImage() = 0;
@@ -57,6 +61,12 @@ protected:
   virtual ~AbstractLoadImageDelegate() {}
 
   IRISApplication *m_Driver;
+
+  // Name of the history associated with this delegate
+  std::string m_HistoryName;
+
+  // Display name associated with this delegate
+  std::string m_DisplayName;
 
 private:
   Registry *m_MetaDataRegistry;
@@ -85,7 +95,7 @@ public:
   ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:
-  LoadMainImageDelegate() {}
+  LoadMainImageDelegate();
   virtual ~LoadMainImageDelegate() {}
 
 };
@@ -102,7 +112,7 @@ public:
   virtual bool IsOverlay() const { return true; }
 
 protected:
-  LoadOverlayImageDelegate() { }
+  LoadOverlayImageDelegate();
   virtual ~LoadOverlayImageDelegate() {}
 };
 
@@ -119,7 +129,7 @@ public:
   ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:
-  LoadSegmentationImageDelegate() {}
+  LoadSegmentationImageDelegate();
   virtual ~LoadSegmentationImageDelegate() {}
 };
 

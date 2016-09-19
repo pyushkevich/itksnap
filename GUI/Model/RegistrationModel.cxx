@@ -358,6 +358,9 @@ void RegistrationModel::RunAutoRegistration()
       moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
   castMoving->UpdateOutputInformation();
 
+  // Caster for the mask image - declared here so that SmartPtr does not go out of scope
+  SmartPtr<ScalarImageWrapperBase::FloatImageSource> castMask;
+
   // Set up the parameters for greedy registration
   GreedyParameters param;
   GreedyParameters::SetToDefaults(param);
@@ -382,8 +385,8 @@ void RegistrationModel::RunAutoRegistration()
     {
     param.gradient_mask = "GRADIENT_MASK";
     ImageWrapperBase *seg = this->GetParent()->GetDriver()->GetCurrentImageData()->GetSegmentation();
-    SmartPtr<ScalarImageWrapperBase::FloatImageSource> castMask =
-        seg->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline();
+    castMask = seg->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline();
+    castMask->UpdateLargestPossibleRegion();
     api.AddCachedInputObject(param.gradient_mask, castMask->GetOutput());
     }
 

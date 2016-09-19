@@ -55,6 +55,9 @@ public:
   // Get the filename selected
   QString absoluteFilename() const;
 
+  // Set the absolute filename
+  void setFilename(QString filename);
+
   // Get teh active format
   QString activeFormat() const;
 

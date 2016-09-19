@@ -318,6 +318,11 @@ QString FileChooserPanelWithHistory::absoluteFilename() const
   return fi2.absoluteFilePath();
 }
 
+void FileChooserPanelWithHistory::setFilename(QString filename)
+{
+  this->updateFilename(filename);
+}
+
 QString FileChooserPanelWithHistory::absoluteFilenameKeepExtension() const
 {
   QFileInfo fi(ui->inFilename->text());

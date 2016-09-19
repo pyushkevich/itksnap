@@ -48,8 +48,7 @@ public:
   // using a smart pointer, so its ownership can be relinquished to the
   // wizard.
   void InitializeForLoad(GlobalUIModel *parent,
-                         AbstractLoadImageDelegate *delegate,
-                         const char *name, const char *dispName);
+                         AbstractLoadImageDelegate *delegate);
 
   void InitializeForSave(GlobalUIModel *parent,
                          AbstractSaveImageDelegate *delegate,

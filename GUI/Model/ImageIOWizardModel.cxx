@@ -91,14 +91,12 @@ ImageIOWizardModel
 void
 ImageIOWizardModel
 ::InitializeForLoad(GlobalUIModel *parent,
-                    AbstractLoadImageDelegate *delegate,
-                    const char *name,
-                    const char *dispName)
+                    AbstractLoadImageDelegate *delegate)
 {
   m_Parent = parent;
   m_Mode = LOAD;
-  m_HistoryName = name;
-  m_DisplayName = dispName;
+  m_HistoryName = delegate->GetHistoryName();
+  m_DisplayName = delegate->GetDisplayName();
   m_GuidedIO = GuidedNativeImageIO::New();
   m_LoadDelegate = delegate;
   m_SaveDelegate = NULL;

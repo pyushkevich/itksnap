@@ -74,6 +74,10 @@ class SelectFilePage : public AbstractPage
 public:
   explicit SelectFilePage(QWidget *parent = 0);
 
+  // Externally set the filename
+  void SetFilename(const std::string &filename,
+                   GuidedNativeImageIO::FileFormat format);
+
   void initializePage();
   bool validatePage();
   // bool isComplete() const;
@@ -170,6 +174,9 @@ public:
   explicit ImageIOWizard(QWidget *parent = 0);
 
   void SetModel(ImageIOWizardModel *model);
+
+  void SetFilename(const std::string &filename,
+                   GuidedNativeImageIO::FileFormat format = GuidedNativeImageIO::FORMAT_COUNT);
 
   virtual int nextId() const;
 

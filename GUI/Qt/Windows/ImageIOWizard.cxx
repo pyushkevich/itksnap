@@ -172,6 +172,13 @@ SelectFilePage::SelectFilePage(QWidget *parent)
   connect(wiz, SIGNAL(accepted()), m_FilePanel, SLOT(onFilenameAccept()));
 }
 
+void SelectFilePage::SetFilename(
+    const std::string &filename,
+    GuidedNativeImageIO::FileFormat format)
+{
+  m_FilePanel->setFilename(from_utf8(filename));
+}
+
 /*
 class QtRegistryTableModel : public QAbstractTableModel
 {
@@ -288,32 +295,9 @@ bool SelectFilePage::validatePage()
 
 void SelectFilePage::onFilenameChanged(QString absoluteFilename)
 {
-  bool file_exists = false;
-
-  // The file format for the checkbox
-  /*
-  GuidedNativeImageIO::FileFormat fmt =
-      m_Model->GuessFileFormat(to_utf8(absoluteFilename), file_exists);
-
-  if(fmt != GuidedNativeImageIO::FORMAT_COUNT)
-    m_FilePanel->setActiveFormat(m_InFormat->currentText());
-    */
-
   // Is it a directory?
   if(QFileInfo(absoluteFilename).isDir())
     return;
-/*
-  // Add some messages to help the user
-  if(fmt == GuidedNativeImageIO::FORMAT_COUNT)
-    {
-    if(!m_FilePanel->errorText().length())
-      m_FilePanel->setErrorText("The format can not be determined from the file name.");
-    }
-  else if(!m_Model->CanHandleFileFormat(fmt))
-    {
-    if(!m_FilePanel->errorText().length())
-      m_FilePanel->setErrorText("The format is not supported for this operation.");
-    }*/
 
   emit completeChanged();
 }
@@ -796,6 +780,13 @@ void ImageIOWizard::SetModel(ImageIOWizardModel *model)
     this->setWindowTitle("Open Image - ITK-SNAP");
   else
     this->setWindowTitle("Save Image - ITK-SNAP");
+}
+
+void ImageIOWizard::SetFilename(const std::string &filename,
+                                GuidedNativeImageIO::FileFormat format)
+{
+  SelectFilePage *pFile = static_cast<SelectFilePage *>(this->page(Page_File));
+  pFile->SetFilename(filename, format);
 }
 
 int ImageIOWizard::nextId() const

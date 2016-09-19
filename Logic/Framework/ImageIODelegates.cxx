@@ -49,6 +49,12 @@ ImageWrapperBase *LoadMainImageDelegate::UpdateApplicationWithImage(GuidedNative
   return m_Driver->GetIRISImageData()->GetMain();
 }
 
+LoadMainImageDelegate::LoadMainImageDelegate()
+{
+  this->m_HistoryName = "AnatomicImage";
+  this->m_DisplayName = "Main Image";
+}
+
 
 /* =============================
    OVERLAY Image
@@ -98,6 +104,12 @@ LoadOverlayImageDelegate
         szMain[0], szMain[1], szMain[2]);
     }
   */
+}
+
+LoadOverlayImageDelegate::LoadOverlayImageDelegate()
+{
+  this->m_HistoryName = "AnatomicImage";
+  this->m_DisplayName = "Additional Image";
 }
 
 /* =============================
@@ -202,6 +214,12 @@ ImageWrapperBase *LoadSegmentationImageDelegate::UpdateApplicationWithImage(Guid
     m_Driver->UpdateIRISSegmentationImage(io);
 
   return m_Driver->GetCurrentImageData()->GetSegmentation();
+}
+
+LoadSegmentationImageDelegate::LoadSegmentationImageDelegate()
+{
+  this->m_HistoryName = "LabelImage";
+  this->m_DisplayName = "Segmentation Image";
 }
 
 void

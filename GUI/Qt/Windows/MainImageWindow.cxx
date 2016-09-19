@@ -1092,7 +1092,7 @@ void MainImageWindow::on_actionLoad_from_Image_triggered()
   delegate->Initialize(m_Model->GetDriver());
 
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, delegate, "LabelImage", "Segmentation Image");
+  model->InitializeForLoad(m_Model, delegate);
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);
@@ -1526,8 +1526,7 @@ void MainImageWindow::on_actionOpenMain_triggered()
   SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
   delegate->Initialize(m_Model->GetDriver());
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, delegate,
-                           "AnatomicImage", "Main Image");
+  model->InitializeForLoad(m_Model, delegate);
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);
@@ -1540,8 +1539,7 @@ void MainImageWindow::on_actionAdd_Overlay_triggered()
   SmartPtr<LoadOverlayImageDelegate> delegate = LoadOverlayImageDelegate::New();
   delegate->Initialize(m_Model->GetDriver());
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
-  model->InitializeForLoad(m_Model, delegate,
-                           "AnatomicImage", "Additional Image");
+  model->InitializeForLoad(m_Model, delegate);
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);

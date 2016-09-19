@@ -11,6 +11,7 @@
 #include "MainImageWindow.h"
 #include "SaveModifiedLayersDialog.h"
 #include "IRISImageData.h"
+#include "GuidedNativeImageIO.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -86,22 +87,73 @@ void DropActionDialog::on_btnLoadNew_clicked()
     }
 }
 
+#include "ImageIOWizardModel.h"
+#include "ImageIOWizard.h"
+
 void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
 {
+  // File being loaded
   std::string file = to_utf8(ui->outFilename->text());
-  QtCursorOverride c(Qt::WaitCursor);
-  try
+
+  // We need to handle the special case when the filename is a DICOM file or
+  // a folder containing DICOM files. In this case, instead of just directly
+  // opening the file, we use the wizard.
+
+  // Load the settings associated with this file
+  Registry regAssoc;
+  m_Model->GetDriver()->GetSystemInterface()
+      ->FindRegistryAssociatedWithFile(file.c_str(), regAssoc);
+
+  // Get the folder dealing with grey image properties
+  Registry &ioHints = regAssoc.Folder("Files.Grey");
+  
+  // Is this a file with a known format?
+  GuidedNativeImageIO::FileFormat fmt = GuidedNativeImageIO::GetFileFormat(ioHints);
+
+  // If not, peek at the header to see if it's DICOM or unknown
+  if(fmt == GuidedNativeImageIO::FORMAT_COUNT)
+    fmt = GuidedNativeImageIO::GuessFormatForFileName(file, true);
+
+  // If this has been determined to be a DICOM directory, let's go to the DICOM page
+  if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR || fmt == GuidedNativeImageIO::FORMAT_COUNT)
     {
-    IRISWarningList warnings;
-    m_Model->GetDriver()->LoadImageViaDelegate(file.c_str(), delegate, warnings);
+    // Create the wizard model
+    SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+    model->InitializeForLoad(m_Model, delegate);
+    model->SetSuggestedFilename(file);
+    model->SetSelectedFormat(fmt);
+
+    // Execute the IO wizard
+    ImageIOWizard wiz(this);
+    wiz.SetModel(model);
+    // wiz.SetFilename(file);
+
+    // For DICOM we can move ahead to the second ppage
+    if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
+      {
+      wiz.next();
+      }
+
     this->accept();
+    wiz.exec();
     }
-  catch(exception &exc)
+  else
     {
-    QMessageBox b(this);
-    b.setText(QString("Failed to load image %1").arg(ui->outFilename->text()));
-    b.setDetailedText(exc.what());
-    b.setIcon(QMessageBox::Critical);
-    b.exec();
-  }
+    // Load without the wizard
+    QtCursorOverride c(Qt::WaitCursor);
+    try
+      {
+      IRISWarningList warnings;
+      m_Model->GetDriver()->LoadImageViaDelegate(file.c_str(), delegate, warnings, &ioHints);
+      this->accept();
+      }
+    catch(exception &exc)
+      {
+      QMessageBox b(this);
+      b.setText(QString("Failed to load image %1").arg(ui->outFilename->text()));
+      b.setDetailedText(exc.what());
+      b.setIcon(QMessageBox::Critical);
+      b.exec();
+      }
+    }
 }
