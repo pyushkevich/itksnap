@@ -28,7 +28,14 @@ public:
   void SetDroppedFilename(QString name);
 
   void SetModel(GlobalUIModel *model);
-  
+
+  /**
+   * Attempt to load the main image directly, without showing the dialog,
+   * but showing the ImageIOWizard if there is ambiguity about how to load
+   * the image
+   */
+  void LoadMainImage(QString name);
+
 private slots:
   void on_btnLoadMain_clicked();
 
@@ -38,12 +45,16 @@ private slots:
 
   void on_btnLoadNew_clicked();
 
+  /**
+   * This method loads the dropped image.
+   */
+  void LoadCommon(AbstractLoadImageDelegate *delegate);
+
 
 private:
   Ui::DropActionDialog *ui;
   GlobalUIModel *m_Model;
 
-  void LoadCommon(AbstractLoadImageDelegate *delegate);
 };
 
 #endif // DROPACTIONDIALOG_H

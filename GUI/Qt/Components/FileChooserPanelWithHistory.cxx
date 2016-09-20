@@ -31,6 +31,9 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
 
   // Connect up the format selector to the filename
   connect(ui->inFormat, SIGNAL(activated(QString)), this, SLOT(setActiveFormat(QString)));
+
+  // This flag should be false almost always
+  m_keepActiveFormatOnFilenameUpdate = false;
 }
 
 FileChooserPanelWithHistory::~FileChooserPanelWithHistory()
@@ -187,11 +190,21 @@ void FileChooserPanelWithHistory::initializeForOpenFile(
   // Set the initial file
   if(initialFile.length())
     {
-    this->updateFilename(initialFile);
-    }
+    // If activeFormat was specified, we want to prevent the command from guessing
+    // the format from the filename, we want it to trust the activeFormat provided
+    // by the user instead
+    if(activeFormat.length())
+      m_keepActiveFormatOnFilenameUpdate = true;
 
-  // Update the display
-  on_inFilename_textChanged(ui->inFilename->text());
+    this->updateFilename(initialFile);
+
+    m_keepActiveFormatOnFilenameUpdate = false;
+    }
+  else
+    {
+    // Update the display
+    on_inFilename_textChanged(ui->inFilename->text());
+    }
 }
 
 void FileChooserPanelWithHistory::initializeForSaveFile(
@@ -562,7 +575,15 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
   // The filename has changed. The first thing we do is to see if the filename has
   // an extension that matches one of our supported extensions. If it does, then
   // we change the active format to be that format
-  QString format = guessFormat(absoluteFilenameKeepExtension());
+  QString format;
+
+  // Do we want to trust the currently set format (i.e., provided by caller when
+  // calling initialize)
+  if(m_keepActiveFormatOnFilenameUpdate)
+    format = m_defaultFormat;
+  else
+    format = guessFormat(absoluteFilenameKeepExtension());
+
   if(format.length())
     {
     m_defaultFormat = format;

@@ -23,6 +23,7 @@ class QDoubleSpinBox;
 class FileChooserPanelWithHistory;
 class OptimizationProgressRenderer;
 class QtVTKRenderWindowBox;
+class DICOMListingTable;
 
 // Helper classes in their own namespace, so I can use simple class names
 namespace imageiowiz
@@ -128,7 +129,7 @@ public:
   void cleanupPage();
 private:
 
-  QTableWidget *m_Table;
+  DICOMListingTable *m_Table;
 };
 
 class RawPage : public AbstractPage

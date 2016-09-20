@@ -185,6 +185,8 @@ public:
 
   irisGetSetMacro(SuggestedFilename, std::string)
 
+  irisGetSetMacro(SuggestedFormat, GuidedNativeImageIO::FileFormat)
+
   /**
     Access the registry stored in the model and used for providing hints to
     the image IO.
@@ -284,6 +286,9 @@ protected:
 
   // Suggested filename
   std::string m_SuggestedFilename;
+
+  // Suggested format
+  GuidedNativeImageIO::FileFormat m_SuggestedFormat;
 
   // DICOM support
   GuidedNativeImageIO::RegistryArray m_DicomContents;

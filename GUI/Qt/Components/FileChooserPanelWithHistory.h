@@ -106,6 +106,10 @@ private:
   bool m_directoryMode;
   bool m_forceExtension;
 
+  // Prevent auto-determination of format when calling updateFilename, meant
+  // to be used inside of initialize calls
+  bool m_keepActiveFormatOnFilenameUpdate;
+
   QString m_historyCategory;
   QString m_filePattern;
   QString m_workingDir;

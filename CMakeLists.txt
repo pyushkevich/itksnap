@@ -559,6 +559,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ContrastInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
   GUI/Qt/Components/DisplayLayoutInspector.cxx
+  GUI/Qt/Components/DICOMListingTable.cxx
   GUI/Qt/Components/FileChooserPanelWithHistory.cxx
   GUI/Qt/Components/HistoryQListModel.cxx
   GUI/Qt/Components/ImageInfoInspector.cxx
@@ -647,6 +648,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/ColorMapInspector.h
   GUI/Qt/Components/ContrastInspector.h
   GUI/Qt/Components/CursorInspector.h
+  GUI/Qt/Components/DICOMListingTable.h
   GUI/Qt/Components/DisplayLayoutInspector.h
   GUI/Qt/Components/FileChooserPanelWithHistory.h
   GUI/Qt/Components/HistoryQListModel.h

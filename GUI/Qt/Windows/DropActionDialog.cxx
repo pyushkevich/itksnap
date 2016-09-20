@@ -12,6 +12,7 @@
 #include "SaveModifiedLayersDialog.h"
 #include "IRISImageData.h"
 #include "GuidedNativeImageIO.h"
+#include <QTimer>
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -37,6 +38,12 @@ void DropActionDialog::SetDroppedFilename(QString name)
 void DropActionDialog::SetModel(GlobalUIModel *model)
 {
   m_Model = model;
+}
+
+void DropActionDialog::LoadMainImage(QString name)
+{
+  this->SetDroppedFilename(name);
+  this->on_btnLoadMain_clicked();
 }
 
 void DropActionDialog::on_btnLoadMain_clicked()
@@ -121,17 +128,17 @@ void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
     SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
     model->InitializeForLoad(m_Model, delegate);
     model->SetSuggestedFilename(file);
-    model->SetSelectedFormat(fmt);
+    model->SetSuggestedFormat(fmt);
 
     // Execute the IO wizard
     ImageIOWizard wiz(this);
     wiz.SetModel(model);
-    // wiz.SetFilename(file);
 
-    // For DICOM we can move ahead to the second ppage
+    // For DICOM we can move ahead to the second ppage. We do this using a singleshot
+    // timer
     if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
       {
-      wiz.next();
+      QTimer::singleShot(0, &wiz, SLOT(next()));
       }
 
     this->accept();

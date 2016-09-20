@@ -25,6 +25,9 @@ ImageIOWizardModel::ImageIOWizardModel()
   m_UseRegistration = false;
   m_LoadedImage = NULL;
 
+  // Suggested format is empty
+  m_SuggestedFormat = GuidedNativeImageIO::FORMAT_COUNT;
+
   // Initialize various property models
   m_StickyOverlayModel = wrapGetterSetterPairAsProperty(
                            this,

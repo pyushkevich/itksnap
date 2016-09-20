@@ -109,7 +109,18 @@
 			<array>
 				<string>gz</string>
 			</array>
-		</dict>
-	</array>
+    </dict>
+    <dict>
+      <key>CFBundleTypeName</key>
+      <string>DICOM Image</string>
+      <key>CFBundleTypeExtensions</key>
+      <array>
+        <string>dcm</string>
+        <string>*</string>
+      </array>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+    </dict>
+  </array>
 </dict>
 </plist>

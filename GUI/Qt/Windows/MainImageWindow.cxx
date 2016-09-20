@@ -1218,8 +1218,8 @@ void MainImageWindow::LoadDroppedFile(QString file)
       }
     else
       {
-      // Otherwise, attempt to load the image
-      this->LoadMainImage(file);
+      // Otherwise, load the main image directly
+      m_DropDialog->LoadMainImage(file);
       }
     }
 }

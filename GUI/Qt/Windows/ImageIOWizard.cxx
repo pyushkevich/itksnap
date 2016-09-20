@@ -37,6 +37,8 @@
 #include "ImageIOWizard/RegistrationPage.h"
 #include "ImageIOWizard/OverlayRolePage.h"
 
+#include "DICOMListingTable.h"
+
 
 namespace imageiowiz {
 
@@ -177,6 +179,7 @@ void SelectFilePage::SetFilename(
     GuidedNativeImageIO::FileFormat format)
 {
   m_FilePanel->setFilename(from_utf8(filename));
+  m_FilePanel->setActiveFormat(from_utf8(m_Model->GetFileFormatName(format)));
 }
 
 /*
@@ -219,10 +222,18 @@ void SelectFilePage::initializePage()
 
   // Determine the active format to use
   QString activeFormat;
+
   if(m_Model->IsSaveMode())
     activeFormat = from_utf8(m_Model->GetDefaultFormatForSave());
+
   if(m_Model->GetSelectedFormat() < GuidedNativeImageIO::FORMAT_COUNT)
+    {
     activeFormat = from_utf8(m_Model->GetFileFormatName(m_Model->GetSelectedFormat()));
+    }
+  else if(m_Model->GetSuggestedFormat() < GuidedNativeImageIO::FORMAT_COUNT)
+    {
+    activeFormat = from_utf8(m_Model->GetFileFormatName(m_Model->GetSuggestedFormat()));
+    }
 
   // Initialize the file panel
   if(m_Model->IsLoadMode())
@@ -414,16 +425,10 @@ DICOMPage::DICOMPage(QWidget *parent)
   : AbstractPage(parent)
 {
   // Set up a table widget
-  m_Table = new QTableWidget();
+  m_Table = new DICOMListingTable();
   QVBoxLayout *lo = new QVBoxLayout(this);
   lo->addWidget(m_Table);
   lo->addWidget(m_OutMessage);
-
-  m_Table->setSelectionBehavior(QAbstractItemView::SelectRows);
-  m_Table->setSelectionMode(QAbstractItemView::SingleSelection);
-  m_Table->setAlternatingRowColors(true);
-  m_Table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-  m_Table->verticalHeader()->hide();
 
   connect(m_Table->selectionModel(),
           SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
@@ -437,44 +442,7 @@ void DICOMPage::initializePage()
 
   // Populate the DICOM page
   const std::vector<Registry> &reg = m_Model->GetDicomContents();
-
-  m_Table->setRowCount(reg.size());
-  m_Table->setColumnCount(4);
-  m_Table->setHorizontalHeaderItem(0, new QTableWidgetItem("Series Number"));
-  m_Table->setHorizontalHeaderItem(1, new QTableWidgetItem("Description"));
-  m_Table->setHorizontalHeaderItem(2, new QTableWidgetItem("Dimensions"));
-  m_Table->setHorizontalHeaderItem(3, new QTableWidgetItem("Number of Images"));
-
-  for(size_t i = 0; i < reg.size(); i++)
-    {
-    Registry r = reg[i];
-    m_Table->setItem(i, 0, new QTableWidgetItem(r["SeriesNumber"][""]));
-    m_Table->setItem(i, 1, new QTableWidgetItem(r["SeriesDescription"][""]));
-    m_Table->setItem(i, 2, new QTableWidgetItem(r["Dimensions"][""]));
-    m_Table->setItem(i, 3, new QTableWidgetItem(r["NumberOfImages"][""]));
-    }
-
-  m_Table->resizeColumnsToContents();
-  m_Table->resizeRowsToContents();
-
-  // If only one sequence selected, pick it
-  if(reg.size() == 1)
-    {
-    m_Table->selectRow(0);
-    }
-
-  // Choose the sequence previously loaded
-  // TODO:
-
-  /*
-  // See if one of the sequences in the registry matches
-  StringType last = m_Registry["DICOM.SequenceId"]["NULL"];
-  const Fl_Menu_Item *lastpos = m_InDICOMPageSequenceId->find_item(last.c_str());
-  if(lastpos)
-    m_InDICOMPageSequenceId->value(lastpos);
-  else
-    m_InDICOMPageSequenceId->value(0);
-  */
+  m_Table->setData(reg);
 }
 
 void DICOMPage::cleanupPage()
