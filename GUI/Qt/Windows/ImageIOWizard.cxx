@@ -291,7 +291,7 @@ bool SelectFilePage::validatePage()
     QtCursorOverride curse(Qt::WaitCursor);
     try
       {
-      m_Model->ProcessDicomDirectory(to_utf8(m_FilePanel->absoluteFilename()));
+      m_Model->ProcessDicomDirectory(to_utf8(m_FilePanel->absoluteFilename()), NULL);
       return true;
       }
     catch(IRISException &exc)

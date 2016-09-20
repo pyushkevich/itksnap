@@ -56,6 +56,7 @@
 #include "itkImageSeriesReader.h"
 #include "itkImageIOFactory.h"
 #include "itkGDCMSeriesFileNames.h"
+#include "itkCommand.h"
 #include "gdcmFile.h"
 #include "gdcmReader.h"
 #include "gdcmStringFilter.h"
@@ -426,6 +427,40 @@ GuidedNativeImageIO
     }
 }
 
+/**
+ * This is basically to just expose AddFileName
+ */
+class ExtendedGDCMSerieHelper : public gdcm::SerieHelper
+{
+public:
+  ExtendedGDCMSerieHelper() : gdcm::SerieHelper() {}
+
+  void SetFilesAndOrder(std::vector<std::string> &files)
+  {
+    this->Clear();
+    this->SetUseSeriesDetails(true);
+
+    for(int i = 0; i < files.size(); i++)
+      this->AddFileName(files[i]);
+
+    gdcm::FileList *flist = this->GetFirstSingleSerieUIDFileSet();
+
+    if(flist->size() != files.size())
+      throw(IRISException(
+          "Mismatch in number of DICOM files parsed (%d vs. %d). "),
+        flist->size(), files.size());
+
+    this->OrderFileList(flist);
+
+    files.clear();
+    for(int i = 0; i < flist->size(); i++)
+      {
+      gdcm::FileWithName *header = (*flist)[i];
+      files.push_back(header->filename);
+      }
+  }
+};
+
 
 void
 GuidedNativeImageIO
@@ -450,41 +485,42 @@ GuidedNativeImageIO
     if(!itksys::SystemTools::FileIsDirectory(FileName))
       SeriesDir = itksys::SystemTools::GetParentDirectory(FileName);
 
-    // NOTE: for the time being, we are relying on GDCMSeriesFileNames for
-    // proper sorting of the DICOM data. This is marked as deprecated in GDCM 2
-    if(m_GDCMSeries.IsNull() || m_GDCMSeriesDirectory != SeriesDir)
+    // Have we already parsed this directory?
+    if(m_LastDicomParseResult.Directory != SeriesDir)
       {
-      m_GDCMSeries = itk::GDCMSeriesFileNames::New();
-      m_GDCMSeries->SetUseSeriesDetails(true);
-      m_GDCMSeries->SetDirectory(SeriesDir);
-      m_GDCMSeriesDirectory = SeriesDir;
+      // Parse the specified directory
+      this->ParseDicomDirectory(SeriesDir);
       }
 
     // Select which series
     std::string SeriesID = m_Hints["DICOM.SeriesId"][""];
     if(SeriesID.length() == 0)
       {
-      // Get the list of series in the directory
-      const itk::SerieUIDContainer &sids = m_GDCMSeries->GetSeriesUIDs();
-
-      // There must be at least of series
-      if(sids.size() == 0)
+      // There must be at least one series
+      if(m_LastDicomParseResult.SeriesMap.size() == 0)
         throw IRISException("Error: DICOM series not found. "
                             "Directory '%s' does not appear to contain a "
-                            "series of DICOM images.",FileName);
+                            "series of DICOM images.", FileName);
 
-      // Read the first DICOM series in the directory
-      SeriesID = sids.front();
+      // Take the first series ID we have
+      SeriesID = m_LastDicomParseResult.SeriesMap.begin()->first;
       }
 
-    // Use the series provided by the user
-    m_DICOMFiles = m_GDCMSeries->GetFileNames(SeriesID.c_str());
+    // Obtain the filename for this series
+    m_DICOMFiles = m_LastDicomParseResult.SeriesMap[SeriesID].FileList;
 
     // Read the information from the first filename
     if(m_DICOMFiles.size() == 0)
       throw IRISException("Error: DICOM series not found. "
                           "Directory '%s' does not appear to contain a "
                           "series of DICOM images.",FileName);
+
+    // Following this quick parsing of the directory, we need to actually
+    // load the image data and sort it in a meaningful order. This is too
+    // complicated to replicate here so we revert to gdcm::SerieHelper, but
+    // we only have it parse the filenames for the current SeriesId
+    ExtendedGDCMSerieHelper helper;
+    helper.SetFilesAndOrder(m_DICOMFiles);
 
     m_IOBase->SetFileName(m_DICOMFiles[0]);
     m_IOBase->ReadImageInformation();
@@ -1262,18 +1298,176 @@ GuidedNativeImageIO::GuessFormatForFileName(
 const gdcm::Tag GuidedNativeImageIO::m_tagRows(0x0028, 0x0010);
 const gdcm::Tag GuidedNativeImageIO::m_tagCols(0x0028, 0x0011);
 const gdcm::Tag GuidedNativeImageIO::m_tagDesc(0x0008, 0x103e);
-const gdcm::Tag GuidedNativeImageIO::m_tagTextDesc(0x0028, 0x0010);
 const gdcm::Tag GuidedNativeImageIO::m_tagSeriesInstanceUID(0x0020,0x000E);
 const gdcm::Tag GuidedNativeImageIO::m_tagSeriesNumber(0x0020,0x0011);
 const gdcm::Tag GuidedNativeImageIO::m_tagAcquisitionNumber(0x0020,0x0012);
 const gdcm::Tag GuidedNativeImageIO::m_tagInstanceNumber(0x0020,0x0013);
+const gdcm::Tag GuidedNativeImageIO::m_tagSequenceName(0x0018, 0x0024);
+const gdcm::Tag GuidedNativeImageIO::m_tagSliceThickness(0x0018, 0x0050);
 
 
+#include "gdcmDirectory.h"
+#include "gdcmImageReader.h"
 
-void GuidedNativeImageIO::ParseDicomDirectory(
-    const std::string &dir,
-    GuidedNativeImageIO::RegistryArray &reg,
-    const GuidedNativeImageIO::DicomRequest &req)
+void
+GuidedNativeImageIO
+::ParseDicomDirectory(const std::string &dir, itk::Command *progressCommand)
+{
+  // We will parse the DICOM directory manually to avoid extra time opening
+  // files and also to allow progress reporting
+
+  // Must have a directory
+  if(!itksys::SystemTools::FileIsDirectory(dir.c_str()))
+    throw IRISException(
+        "Error: Not a directory. "
+        "Trying to look for DICOM series in '%s', which is not a directory",
+        dir.c_str());
+
+  // List of tags used for refined grouping of files - order matters!
+  std::vector<gdcm::Tag> tags_refine;
+  tags_refine.push_back(m_tagSeriesNumber);
+  tags_refine.push_back(m_tagSequenceName);
+  tags_refine.push_back(m_tagSliceThickness);
+  tags_refine.push_back(m_tagRows);
+  tags_refine.push_back(m_tagCols);
+
+  // List of tags that we want to parse - everything else may be ignored
+  std::set<gdcm::Tag> tags_all;
+  tags_all.insert(tags_refine.begin(), tags_refine.end());
+  tags_all.insert(m_tagDesc);
+  tags_all.insert(m_tagSeriesInstanceUID);
+
+  // Clear the information about the last parse
+  m_LastDicomParseResult.Reset();
+  m_LastDicomParseResult.Directory = dir;
+
+  // GDCM directory listing
+  gdcm::Directory dirList;
+
+  // Load the directory - this should be quick
+  dirList.Load(dir, false);
+  gdcm::Directory::FilenamesType const &filenames = dirList.GetFilenames();
+  for(gdcm::Directory::FilenamesType::const_iterator it = filenames.begin();
+    it != filenames.end(); ++it)
+    {
+    // Process each filename in the directory
+    gdcm::Reader reader;
+    reader.SetFileName(it->c_str());
+
+    // Try reading this file. Fail quietly.
+    bool read = false;
+    try { read = reader.ReadSelectedTags(tags_all, true); }
+    catch(...) {}
+
+    // If nothing read, keep going
+    if(!read)
+      continue;
+
+    // Create a string filter to get tags
+    gdcm::StringFilter sf;
+    sf.SetFile(reader.GetFile());
+
+    // Start with the ID being the UID
+    std::string uid = sf.ToString(m_tagSeriesInstanceUID);
+    std::string full_id = uid;
+
+    // Iterate over the tags in the refine list
+    for(int iTag = 0; iTag < tags_refine.size(); iTag++)
+      {
+      // Read the tag value
+      std::string s = sf.ToString(tags_refine[iTag]);
+
+      // This code is from gdcmSerieHelper
+      if( full_id == uid && !s.empty() )
+        {
+        full_id += "."; // add separator
+        }
+      full_id += s;
+      }
+
+    // Eliminate non-alnum characters, including whitespace...
+    //   that may have been introduced by concats.
+    for(size_t i=0; i<full_id.size(); i++)
+      {
+      while(i<full_id.size()
+        && !( full_id[i] == '.'
+          || (full_id[i] >= 'a' && full_id[i] <= 'z')
+          || (full_id[i] >= '0' && full_id[i] <= '9')
+          || (full_id[i] >= 'A' && full_id[i] <= 'Z')))
+        {
+        full_id.erase(i, 1);
+        }
+      }
+
+    // The info for the current series
+    DicomDirectoryParseResult::DicomSeriesInfo &series_info
+        = m_LastDicomParseResult.SeriesMap[full_id];
+
+    // The registry for the current series
+    Registry &r = series_info.MetaData;
+
+    // Have we found this ID before?
+    if(r.IsEmpty())
+      {
+      r["SeriesId"] << full_id;
+
+      // Read series description
+      r["SeriesDescription"] << sf.ToString(m_tagDesc);
+      r["SeriesNumber"] << sf.ToString(m_tagSeriesNumber);
+
+      // Read the dimensions
+      r["Rows"] << std::atoi(sf.ToString(m_tagRows).c_str());
+      r["Columns"] << std::atoi(sf.ToString(m_tagCols).c_str());
+      r["NumberOfImages"] << 1;
+      }
+    else
+      {
+      // Increement the number of images
+      r["NumberOfImages"] << r["NumberOfImages"][0] + 1;
+      }
+
+    // Update the dimensions string
+    ostringstream oss;
+    oss << r["Rows"][0] << " x " << r["Columns"][0] << " x " << r["NumberOfImages"][0];
+    r["Dimensions"] << oss.str();
+
+    // Update the filelist
+    series_info.FileList.push_back(*it);
+
+    // TODO: do something with progress...
+
+    }
+
+  // Complain if no series have been found
+  if(m_LastDicomParseResult.SeriesMap.size() == 0)
+    throw IRISException(
+        "Error: DICOM series not found. "
+        "Directory '%s' does not appear to contain a DICOM series.", dir.c_str());
+}
+
+// TODO: this is passing registry array by value, which is wasteful
+const GuidedNativeImageIO::RegistryArray
+GuidedNativeImageIO::GetLastDicomParseRegistry() const
+{
+  RegistryArray regArray;
+  for(DicomDirectoryParseResult::SeriesMapType::const_iterator it =
+      m_LastDicomParseResult.SeriesMap.begin();
+      it != m_LastDicomParseResult.SeriesMap.end(); ++it)
+    {
+    regArray.push_back(it->second.MetaData);
+    }
+
+  return regArray;
+}
+
+
+void GuidedNativeImageIO::DicomDirectoryParseResult::Reset()
+{
+  Directory.clear();
+  SeriesMap.clear();
+}
+
+/*
 {
   // Must have a directory
   if(!itksys::SystemTools::FileIsDirectory(dir.c_str()))
@@ -1339,6 +1533,8 @@ void GuidedNativeImageIO::ParseDicomDirectory(
 
       // Add the registry to the list
       reg.push_back(r);
+
+      progressCommand->Execute(this, itk::ProgressEvent());
       }
     }
   
@@ -1348,6 +1544,8 @@ void GuidedNativeImageIO::ParseDicomDirectory(
         "Error: DICOM series not found. "
         "Directory '%s' does not appear to contain a DICOM series.", dir.c_str());
 }
+
+*/
 
 /*
 

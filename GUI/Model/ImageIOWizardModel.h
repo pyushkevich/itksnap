@@ -170,7 +170,7 @@ public:
   /**
     Load relevant information from DICOM directory
     */
-  void ProcessDicomDirectory(const std::string &filename);
+  void ProcessDicomDirectory(const std::string &filename, itk::Command *progressCommand);
 
   /**
     Get the DICOM directory contents

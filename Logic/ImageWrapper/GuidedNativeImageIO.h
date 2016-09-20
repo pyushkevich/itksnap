@@ -48,6 +48,7 @@ namespace itk
 {
   template<class TPixel, unsigned int VDim> class Image;
   class ImageIOBase;
+  class Command;
 }
 
 
@@ -211,41 +212,28 @@ public:
   /** Set the file format in a registry */
   static void SetPixelType(Registry &folder, RawPixelType type);
 
-  /** A field used to request DICOM fields */
-  struct DicomRequestField
-  {
-    short group, elem;
-    std::string code;
-    DicomRequestField(short g, short e, std::string c)
-      : group(g), elem(e), code(c) {}
-    DicomRequestField()
-      : group(0), elem(0) {}
-  };
-
-  /** A parameter for ParseDicomDirectory */
-  typedef std::vector<DicomRequestField> DicomRequest;
-
   /** Output for ParseDicomDirectory */
   typedef std::vector<Registry> RegistryArray;
 
   /**
    * Get series information from a DICOM directory. This will list all the
    * files in the DICOM directory and generate a registry for each series in
-   * the directory. By default, the following registry entries are generated
-   * for each series:
+   * the directory. The following registry entries are generated for each series:
    *   - SeriesDescription
    *   - Dimensions
    *   - NumberOfImages
    *   - SeriesId
    *   - SeriesFiles (an array with filenames)
-   * You can also ask for additional DICOM entries to be extracted by giving
-   * a list of DICOM keys in the third optional parameter.
+   *
+   * To obtain the result of the parsing call GetLastDicomParseRegistry()
    */
   void ParseDicomDirectory(
-      const std::string &dir,
-      RegistryArray &reg,
-      const DicomRequest &req = DicomRequest());
+      const std::string &dir, itk::Command *progressCommand = NULL);
 
+  /**
+   * Get the result of the last DICOM parse operation
+   */
+  const RegistryArray GetLastDicomParseRegistry() const;
 
   /**
    * Create an ImageIO object using a registry folder. Second parameter is
@@ -280,9 +268,30 @@ protected:
   // The IO base used to read the files
   IOBasePointer m_IOBase;
 
-  // GDCM series reader/parser (for DICOM)
-  SmartPtr<itk::GDCMSeriesFileNames> m_GDCMSeries;
-  std::string m_GDCMSeriesDirectory;
+  // Structure describing last parsed DICOM directory
+  struct DicomDirectoryParseResult
+  {
+    typedef std::vector<std::string> FileListType;
+
+    // Structure describing one DICOM series
+    struct DicomSeriesInfo {
+      Registry MetaData;
+      FileListType FileList;
+    };
+
+    typedef std::map<std::string, DicomSeriesInfo> SeriesMapType;
+
+    // Directory that was parsed
+    std::string Directory;
+
+    // Filenames of the images for each series ID
+    SeriesMapType SeriesMap;
+
+    void Reset();
+  };
+
+  // DICOM directory last processed by ParseDicomSeries
+  DicomDirectoryParseResult m_LastDicomParseResult;
 
   // This information is copied from IOBase in order to delete IOBase at the 
   // earliest possible point, so as to conserve memory
@@ -314,12 +323,13 @@ protected:
   static const gdcm::Tag m_tagRows;
   static const gdcm::Tag m_tagCols;
   static const gdcm::Tag m_tagDesc;
-  static const gdcm::Tag m_tagTextDesc;
   static const gdcm::Tag m_tagSeriesInstanceUID;
   static const gdcm::Tag m_tagSeriesNumber;
   static const gdcm::Tag m_tagAcquisitionNumber;
   static const gdcm::Tag m_tagInstanceNumber;
-  
+  static const gdcm::Tag m_tagSequenceName;
+  static const gdcm::Tag m_tagSliceThickness;
+
 };
 
 

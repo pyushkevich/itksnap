@@ -405,21 +405,17 @@ void ImageIOWizardModel::Reset()
   m_Registry.Clear();
 }
 
-void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename)
+void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename,
+                                               itk::Command *progressCommand)
 {
-  // Here is a request
-  GuidedNativeImageIO::DicomRequest req;
-  req.push_back(GuidedNativeImageIO::DicomRequestField(
-                  0x0020, 0x0011, "SeriesNumber"));
-
   // Get the directory
   std::string dir = GetBrowseDirectory(filename);
 
   // Get the registry
   try
   {
-    m_DicomContents.clear();
-    m_GuidedIO->ParseDicomDirectory(dir, m_DicomContents, req);
+    m_GuidedIO->ParseDicomDirectory(dir, progressCommand);
+    m_DicomContents = m_GuidedIO->GetLastDicomParseRegistry();
   }
   catch (IRISException &ei)
   {
