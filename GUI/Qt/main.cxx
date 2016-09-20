@@ -1,7 +1,13 @@
 #include <QApplication>
 #include <QSettings>
+#include <QAction>
+#include <QShortcutEvent>
+#include <QStyleFactory>
+#include <QUrl>
+
 #include "MainImageWindow.h"
 #include "SliceViewPanel.h"
+#include "ImageIODelegates.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "SNAPAppearanceSettings.h"
@@ -12,6 +18,7 @@
 #include "QtIPCManager.h"
 #include "QtCursorOverride.h"
 #include "SNAPQtCommon.h"
+#include "SNAPTestQt.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -23,16 +30,8 @@
 #include "itkCommand.h"
 #include "vtkObject.h"
 
-#include <QStyleFactory>
-#include <QAction>
-#include <QUrl>
-
-#include "ImageIODelegates.h"
-
 #include <iostream>
-#include "SNAPTestQt.h"
-
-#include <QShortcutEvent>
+#include <clocale>
 
 using namespace std;
 
@@ -44,7 +43,6 @@ using namespace std;
 
 #include <signal.h>
 #include <execinfo.h>
-#include <clocale>
 
 void SegmentationFaultHandler(int sig)
 {
