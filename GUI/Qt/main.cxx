@@ -149,6 +149,9 @@ public:
           }
         }
 
+      // Accept the event
+      event->accept();
+
       // Ok, we passed the check, now it's safe to actually open the file
       m_MainWindow->raise();
       m_MainWindow->LoadDroppedFile(file);

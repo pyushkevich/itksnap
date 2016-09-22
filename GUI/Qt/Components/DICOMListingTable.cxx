@@ -12,7 +12,6 @@ DICOMListingTable::DICOMListingTable(QWidget *parent)
   this->setEditTriggers(QAbstractItemView::NoEditTriggers);
   this->verticalHeader()->hide();
 
-  this->setSortingEnabled(true);
 }
 
 DICOMListingTable::~DICOMListingTable()
@@ -22,12 +21,16 @@ DICOMListingTable::~DICOMListingTable()
 
 void DICOMListingTable::setData(const std::vector<Registry> &reg)
 {
+  this->clear();
+  this->setSortingEnabled(false);
+
   this->setRowCount(reg.size());
   this->setColumnCount(4);
   this->setHorizontalHeaderItem(0, new QTableWidgetItem("Series Number"));
   this->setHorizontalHeaderItem(1, new QTableWidgetItem("Description"));
   this->setHorizontalHeaderItem(2, new QTableWidgetItem("Dimensions"));
   this->setHorizontalHeaderItem(3, new QTableWidgetItem("Number of Images"));
+
 
   for(size_t i = 0; i < reg.size(); i++)
     {
@@ -59,6 +62,7 @@ void DICOMListingTable::setData(const std::vector<Registry> &reg)
     }
 
   // Sort by number
-  this->sortByColumn(0);
+  this->setSortingEnabled(true);
+  this->sortByColumn(0, Qt::AscendingOrder);
 }
 
