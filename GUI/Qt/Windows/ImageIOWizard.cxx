@@ -444,6 +444,10 @@ void DICOMPage::processDicomDirectory()
 {
   // Change cursor until this object moves out of scope
   QtCursorOverride curse(Qt::WaitCursor); (void) curse;
+
+  // Disable the buttons until we finish loading
+  this->setEnabled(false);
+
   try
     {
     // Callback that will handle progress of DICOM loading
@@ -467,7 +471,10 @@ void DICOMPage::processDicomDirectory()
   catch(IRISException &exc)
     {
     ErrorMessage(exc);
-  }
+    }
+
+  // Enable the buttons until we finish loading
+  this->setEnabled(true);
 }
 
 void DICOMPage::updateTable()

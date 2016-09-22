@@ -32,12 +32,21 @@ void DICOMListingTable::setData(const std::vector<Registry> &reg)
   for(size_t i = 0; i < reg.size(); i++)
     {
     Registry r = reg[i];
-    this->setItem(i, 0, new QTableWidgetItem(r["SeriesNumber"][""]));
+
+    // Series number
+    QTableWidgetItem *iSN = new QTableWidgetItem();
+    iSN->setData(Qt::EditRole, r["SeriesNumber"][0]);
+    iSN->setData(Qt::UserRole, from_utf8(r["SeriesId"][""]));
+    this->setItem(i, 0, iSN);
+
+    // Strings
     this->setItem(i, 1, new QTableWidgetItem(r["SeriesDescription"][""]));
     this->setItem(i, 2, new QTableWidgetItem(r["Dimensions"][""]));
-    this->setItem(i, 3, new QTableWidgetItem(r["NumberOfImages"][""]));
 
-    this->item(i, 0)->setData(Qt::UserRole, from_utf8(r["SeriesId"][""]));
+    // Number of images
+    QTableWidgetItem *iNI = new QTableWidgetItem();
+    iNI->setData(Qt::EditRole, r["NumberOfImages"][0]);
+    this->setItem(i, 3, iNI);
     }
 
   this->resizeColumnsToContents();
@@ -48,5 +57,8 @@ void DICOMListingTable::setData(const std::vector<Registry> &reg)
     {
     this->selectRow(0);
     }
+
+  // Sort by number
+  this->sortByColumn(0);
 }
 
