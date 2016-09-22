@@ -1297,8 +1297,8 @@ void MainImageWindow::dropEvent(QDropEvent *event)
 #endif
 
   QString file = url.toLocalFile();
-  LoadDroppedFile(file);
   event->acceptProposedAction();
+  LoadDroppedFile(file);
 }
 
 QActionGroup *MainImageWindow::GetMainToolActionGroup()

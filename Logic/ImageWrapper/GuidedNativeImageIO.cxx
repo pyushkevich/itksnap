@@ -1434,8 +1434,9 @@ GuidedNativeImageIO
     // Update the filelist
     series_info.FileList.push_back(*it);
 
-    // TODO: do something with progress...
-
+    // Indicate some progress
+    if(progressCommand)
+      progressCommand->Execute(this, itk::ProgressEvent());
     }
 
   // Complain if no series have been found
@@ -1444,22 +1445,6 @@ GuidedNativeImageIO
         "Error: DICOM series not found. "
         "Directory '%s' does not appear to contain a DICOM series.", dir.c_str());
 }
-
-// TODO: this is passing registry array by value, which is wasteful
-const GuidedNativeImageIO::RegistryArray
-GuidedNativeImageIO::GetLastDicomParseRegistry() const
-{
-  RegistryArray regArray;
-  for(DicomDirectoryParseResult::SeriesMapType::const_iterator it =
-      m_LastDicomParseResult.SeriesMap.begin();
-      it != m_LastDicomParseResult.SeriesMap.end(); ++it)
-    {
-    regArray.push_back(it->second.MetaData);
-    }
-
-  return regArray;
-}
-
 
 void GuidedNativeImageIO::DicomDirectoryParseResult::Reset()
 {

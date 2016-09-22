@@ -93,6 +93,32 @@ public:
     bool TestFilename(std::string fname);
   };
 
+  /**
+   * Structure describing last parsed DICOM directory - basically
+   * a map from SeriesId to MetaData registry and a list of files
+   * that is not ordered until the image is actually loaded.
+   */
+  struct DicomDirectoryParseResult
+  {
+    typedef std::vector<std::string> FileListType;
+
+    // Structure describing one DICOM series
+    struct DicomSeriesInfo {
+      Registry MetaData;
+      FileListType FileList;
+    };
+
+    typedef std::map<std::string, DicomSeriesInfo> SeriesMapType;
+
+    // Directory that was parsed
+    std::string Directory;
+
+    // Filenames of the images for each series ID
+    SeriesMapType SeriesMap;
+
+    void Reset();
+  };
+
 
   // Image type. This is only for 3D images.
   typedef itk::ImageIOBase IOBase;
@@ -231,9 +257,11 @@ public:
       const std::string &dir, itk::Command *progressCommand = NULL);
 
   /**
-   * Get the result of the last DICOM parse operation
+   * Get the result of the last parse operation. This should be safe to
+   * call from the callback of progressCommand in ParseDicomDirectory(),
+   * and can be done to update a GUI on the fly, as images are being parsed
    */
-  const RegistryArray GetLastDicomParseRegistry() const;
+  itkGetConstReferenceMacro(LastDicomParseResult, DicomDirectoryParseResult)
 
   /**
    * Create an ImageIO object using a registry folder. Second parameter is
@@ -267,28 +295,6 @@ protected:
 
   // The IO base used to read the files
   IOBasePointer m_IOBase;
-
-  // Structure describing last parsed DICOM directory
-  struct DicomDirectoryParseResult
-  {
-    typedef std::vector<std::string> FileListType;
-
-    // Structure describing one DICOM series
-    struct DicomSeriesInfo {
-      Registry MetaData;
-      FileListType FileList;
-    };
-
-    typedef std::map<std::string, DicomSeriesInfo> SeriesMapType;
-
-    // Directory that was parsed
-    std::string Directory;
-
-    // Filenames of the images for each series ID
-    SeriesMapType SeriesMap;
-
-    void Reset();
-  };
 
   // DICOM directory last processed by ParseDicomSeries
   DicomDirectoryParseResult m_LastDicomParseResult;

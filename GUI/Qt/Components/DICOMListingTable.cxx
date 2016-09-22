@@ -1,6 +1,7 @@
 #include "DICOMListingTable.h"
 #include "QHeaderView"
 #include "Registry.h"
+#include "SNAPQtCommon.h"
 
 DICOMListingTable::DICOMListingTable(QWidget *parent)
   : QTableWidget(parent)
@@ -10,6 +11,8 @@ DICOMListingTable::DICOMListingTable(QWidget *parent)
   this->setAlternatingRowColors(true);
   this->setEditTriggers(QAbstractItemView::NoEditTriggers);
   this->verticalHeader()->hide();
+
+  this->setSortingEnabled(true);
 }
 
 DICOMListingTable::~DICOMListingTable()
@@ -33,6 +36,8 @@ void DICOMListingTable::setData(const std::vector<Registry> &reg)
     this->setItem(i, 1, new QTableWidgetItem(r["SeriesDescription"][""]));
     this->setItem(i, 2, new QTableWidgetItem(r["Dimensions"][""]));
     this->setItem(i, 3, new QTableWidgetItem(r["NumberOfImages"][""]));
+
+    this->item(i, 0)->setData(Qt::UserRole, from_utf8(r["SeriesId"][""]));
     }
 
   this->resizeColumnsToContents();

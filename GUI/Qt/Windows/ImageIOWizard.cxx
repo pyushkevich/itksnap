@@ -20,6 +20,7 @@
 #include <QGridLayout>
 #include <QSpinBox>
 #include <QFrame>
+#include <QTimer>
 
 
 #include <QtCursorOverride.h>
@@ -286,19 +287,7 @@ bool SelectFilePage::validatePage()
 
   // If format is DICOM, process the DICOM directory
   if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
-    {
-    // Change cursor until this object moves out of scope
-    QtCursorOverride curse(Qt::WaitCursor);
-    try
-      {
-      m_Model->ProcessDicomDirectory(to_utf8(m_FilePanel->absoluteFilename()), NULL);
-      return true;
-      }
-    catch(IRISException &exc)
-      {
-      return ErrorMessage(exc);
-      }
-    }
+    return true;
 
   // Save or load the image
   return this->PerformIO();
@@ -440,9 +429,8 @@ void DICOMPage::initializePage()
   // Set the title, subtitle
   setTitle("Select DICOM series to open");
 
-  // Populate the DICOM page
-  const std::vector<Registry> &reg = m_Model->GetDicomContents();
-  m_Table->setData(reg);
+  // Process the DICOM directory on a timer - so that the GUI shows first
+  QTimer::singleShot(0, this, SLOT(processDicomDirectory()));
 }
 
 void DICOMPage::cleanupPage()
@@ -450,18 +438,67 @@ void DICOMPage::cleanupPage()
   AbstractPage::cleanupPage();
 }
 
+#include "ProcessEventsITKCommand.h"
+
+void DICOMPage::processDicomDirectory()
+{
+  // Change cursor until this object moves out of scope
+  QtCursorOverride curse(Qt::WaitCursor); (void) curse;
+  try
+    {
+    // Callback that will handle progress of DICOM loading
+    SmartPtr<ProcessEventsITKCommand> cmd = ProcessEventsITKCommand::New();
+
+    // Timer that will call a slot at regular intervals to update the table
+    QTimer timer;
+    connect(&timer, SIGNAL(timeout()), this, SLOT(updateTable()));
+    timer.start(100);
+
+    // Get the DICOM directory contents. The command and the timer make sure
+    // that the table of DICOM entries is updated every 100 ms
+    m_Model->ProcessDicomDirectory(to_utf8(field("Filename").toString()), cmd);
+
+    // Stop the timer
+    timer.stop();
+
+    // Update the data
+    this->updateTable();
+    }
+  catch(IRISException &exc)
+    {
+    ErrorMessage(exc);
+  }
+}
+
+void DICOMPage::updateTable()
+{
+  // Get the list of existing series
+  // TODO: this is a cluge!
+  std::list<std::string> series_ids = m_Model->GetFoundDicomSeriesIds();
+  std::vector<Registry> reg;
+  for(std::list<std::string>::const_iterator it = series_ids.begin();
+      it != series_ids.end(); ++it)
+    {
+    reg.push_back(m_Model->GetFoundDicomSeriesMetaData(*it));
+    }
+
+  m_Table->setData(reg);
+}
+
 bool DICOMPage::validatePage()
 {
   // Clear error state
   m_OutMessage->clear();
 
-  // Add registry entries for the selected DICOM series
+  // Get the data associated with the selected row
   int row = m_Table->selectionModel()->selectedRows().front().row();
+  std::string series_id =
+      to_utf8(m_Table->item(row, 0)->data(Qt::UserRole).toString());
 
   try
     {
     QtCursorOverride curse(Qt::WaitCursor);
-    m_Model->LoadDicomSeries(to_utf8(this->field("Filename").toString()), row);
+    m_Model->LoadDicomSeries(to_utf8(this->field("Filename").toString()), series_id);
     }
   catch(IRISException &exc)
     {

@@ -173,14 +173,21 @@ public:
   void ProcessDicomDirectory(const std::string &filename, itk::Command *progressCommand);
 
   /**
-    Get the DICOM directory contents
-    */
-  irisGetMacro(DicomContents, const GuidedNativeImageIO::RegistryArray &)
+   * Get a list of loaded Dicom SeriesIDs. This can be called from the
+   * callback of progressCommand, allowing on the fly updates
+   */
+  std::list<std::string> GetFoundDicomSeriesIds();
+
+  /**
+   * Get the metadata for a single found series Id
+   */
+  Registry GetFoundDicomSeriesMetaData(const std::string &series_id);
 
   /**
     Load n-th series from DICOM directory
     */
-  void LoadDicomSeries(const std::string &filename, int series);
+  void LoadDicomSeries(const std::string &filename,
+                       const std::string &series_id);
 
 
   irisGetSetMacro(SuggestedFilename, std::string)
@@ -289,9 +296,6 @@ protected:
 
   // Suggested format
   GuidedNativeImageIO::FileFormat m_SuggestedFormat;
-
-  // DICOM support
-  GuidedNativeImageIO::RegistryArray m_DicomContents;
 
   // Overlay display behavior models
   SmartPtr<AbstractSimpleBooleanProperty> m_StickyOverlayModel;

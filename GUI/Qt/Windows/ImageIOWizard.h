@@ -127,6 +127,12 @@ public:
 
   bool isComplete() const;
   void cleanupPage();
+
+public slots:
+
+  void processDicomDirectory();
+  void updateTable();
+
 private:
 
   DICOMListingTable *m_Table;

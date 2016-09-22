@@ -415,7 +415,6 @@ void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename,
   try
   {
     m_GuidedIO->ParseDicomDirectory(dir, progressCommand);
-    m_DicomContents = m_GuidedIO->GetLastDicomParseRegistry();
   }
   catch (IRISException &ei)
   {
@@ -428,22 +427,71 @@ void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename,
   }
 }
 
-void ImageIOWizardModel
-::LoadDicomSeries(const std::string &filename, int series)
+std::list<std::string>
+ImageIOWizardModel
+::GetFoundDicomSeriesIds()
 {
+  // Get the DICOM registry from the GuidedIO
+  typedef GuidedNativeImageIO::DicomDirectoryParseResult ParseResult;
+  const ParseResult &pr = m_GuidedIO->GetLastDicomParseResult();
+
+  std::list<std::string> result;
+  for(ParseResult::SeriesMapType::const_iterator it = pr.SeriesMap.begin();
+      it != pr.SeriesMap.end(); ++it)
+    result.push_back(it->first);
+
+  return result;
+}
+
+Registry
+ImageIOWizardModel
+::GetFoundDicomSeriesMetaData(const std::string &series_id)
+{
+  // Get the DICOM registry from the GuidedIO
+  typedef GuidedNativeImageIO::DicomDirectoryParseResult ParseResult;
+  const ParseResult &pr = m_GuidedIO->GetLastDicomParseResult();
+
+  // Registry result
+  Registry r;
+
+  // Find the metadata
+  ParseResult::SeriesMapType::const_iterator it = pr.SeriesMap.find(series_id);
+  if(it != pr.SeriesMap.end())
+    r.Update(it->second.MetaData);
+
+  return r;
+}
+
+void ImageIOWizardModel
+::LoadDicomSeries(const std::string &filename,
+                  const std::string &series_id)
+{
+  // Get the DICOM registry from the GuidedIO
+  typedef GuidedNativeImageIO::DicomDirectoryParseResult ParseResult;
+  const ParseResult &pr = m_GuidedIO->GetLastDicomParseResult();
+
+  // Get the metadata for the current series
+  ParseResult::SeriesMapType::const_iterator itc = pr.SeriesMap.find(series_id);
+  if(itc == pr.SeriesMap.end())
+    throw IRISException("DICOM series id %s not found, logic error",
+                        series_id.c_str());
+  Registry meta_current = itc->second.MetaData;
+
   // Set up the registry for DICOM IO
-  m_Registry["DICOM.SeriesId"] << m_DicomContents[series]["SeriesId"][""];
+  m_Registry["DICOM.SeriesId"] << meta_current["SeriesId"][""];
   m_Registry.Folder("DICOM.SeriesFiles").PutArray(
-        m_DicomContents[series].Folder("SeriesFiles").GetArray(std::string()));
+        meta_current.Folder("SeriesFiles").GetArray(std::string()));
 
   // Store information about the entire dicom diretory into a separate subfolder.
   // This is to allow subsequent quick loading of other DICOM series in the same
   // directory, e.g., through a menu item on the main menu
-  m_Registry["DICOM.DirectoryInfo.ArraySize"] << m_DicomContents.size();
-  for(int i = 0; i < m_DicomContents.size(); i++)
+  m_Registry["DICOM.DirectoryInfo.ArraySize"] << pr.SeriesMap.size();
+  int i = 0;
+  for(ParseResult::SeriesMapType::const_iterator it = pr.SeriesMap.begin();
+      it != pr.SeriesMap.end(); ++it, ++i)
     {
     Registry &r = m_Registry.Folder(m_Registry.Key("DICOM.DirectoryInfo.Entry[%d]", i));
-    r.Update(m_DicomContents[i]);
+    r.Update(it->second.MetaData);
     }
 
   // Set the format to DICOM
@@ -458,7 +506,7 @@ void ImageIOWizardModel
   // DICOM filenames are meaningless. Assign a nickname based on series name
   if(m_LoadedImage->GetCustomNickname().length() == 0)
     {
-    m_LoadedImage->SetCustomNickname(m_DicomContents[series]["SeriesDescription"][""]);
+    m_LoadedImage->SetCustomNickname(meta_current["SeriesDescription"][""]);
     }
 
 }
