@@ -414,7 +414,6 @@ SET(UI_GENERIC_CXX
   GUI/Model/GlobalUIModel.cxx
   GUI/Model/ImageIOWizardModel.cxx
   GUI/Model/ImageInfoModel.cxx
-  GUI/Model/ImageRegistrationManager.cxx
   GUI/Model/IntensityCurveModel.cxx
   GUI/Model/InteractiveRegistrationModel.cxx
   GUI/Model/InterpolateLabelModel.cxx
@@ -488,7 +487,6 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/GlobalUIModel.h
   GUI/Model/ImageInfoModel.h
   GUI/Model/ImageIOWizardModel.h
-  GUI/Model/ImageRegistrationManager.h
   GUI/Model/IntensityCurveModel.h
   GUI/Model/InteractiveRegistrationModel.h
   GUI/Model/InterpolateLabelModel.h
@@ -616,7 +614,6 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.cxx
-  GUI/Qt/Windows/ImageIOWizard/RegistrationPage.cxx
   GUI/Qt/Windows/InterpolateLabelsDialog.cxx
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
@@ -703,7 +700,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.h
-  GUI/Qt/Windows/ImageIOWizard/RegistrationPage.h
   GUI/Qt/Windows/InterpolateLabelsDialog.h
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
@@ -782,7 +778,6 @@ SET(UI_FORMS
   GUI/Qt/Windows/DropActionDialog.ui
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.ui
-  GUI/Qt/Windows/ImageIOWizard/RegistrationPage.ui
   GUI/Qt/Windows/InterpolateLabelsDialog.ui
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui

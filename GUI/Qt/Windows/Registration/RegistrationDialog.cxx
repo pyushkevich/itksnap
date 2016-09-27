@@ -1,8 +1,10 @@
 #include "RegistrationDialog.h"
 #include "ui_RegistrationDialog.h"
 
+#include <QVBoxLayout>
 #include "QtComboBoxCoupling.h"
 #include "QtCheckBoxCoupling.h"
+#include "QtLineEditCoupling.h"
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtSliderCoupling.h"
 #include "QtAbstractButtonCoupling.h"
@@ -12,15 +14,18 @@
 #include "QtCursorOverride.h"
 #include "SimpleFileDialogWithHistory.h"
 #include "ProcessEventsITKCommand.h"
+#include "OptimizationProgressRenderer.h"
+
+#include "QtVTKRenderWindowBox.h"
 
 Q_DECLARE_METATYPE(RegistrationModel::Transformation)
 Q_DECLARE_METATYPE(RegistrationModel::SimilarityMetric)
 
 RegistrationDialog::RegistrationDialog(QWidget *parent) :
-  QDialog(parent),
+  SNAPComponent(parent),
   ui(new Ui::RegistrationDialog)
 {
-  ui->setupUi(this);
+  ui->setupUi(this);  
 }
 
 RegistrationDialog::~RegistrationDialog()
@@ -67,6 +72,8 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
   activateOnFlag(ui->pgManual, m_Model,
                  RegistrationModel::UIF_MOVING_SELECTED);
 
+  // This command just updates the GUI after each iteration - causing the images to
+  // jitter over different iterations
   ProcessEventsITKCommand::Pointer cmdProcEvents = ProcessEventsITKCommand::New();
   m_Model->SetIterationCommand(cmdProcEvents);
 
@@ -84,7 +91,41 @@ void RegistrationDialog::on_pushButton_2_clicked()
 
 void RegistrationDialog::on_btnRunRegistration_clicked()
 {
+  // Create the render panels based on the number of iterations
+  std::vector<int> pyramid = m_Model->GetIterationPyramid();
+
+  // Delete all existing render boxes
+  QList<QtVTKRenderWindowBox *> bx = ui->grpPlots->findChildren<QtVTKRenderWindowBox*>();
+  foreach (QtVTKRenderWindowBox * w, bx)
+    delete w;
+
+  // Turn on the wait cursor
   QtCursorOverride cursor(Qt::WaitCursor);
+
+  // Update the user interface
+  QCoreApplication::processEvents();
+
+  // Vector of renderers - so they don't disappear
+  m_PlotRenderers.clear();
+  m_PlotRenderers.resize(pyramid.size());
+
+  // Vector of box widgets
+  for(int i = 0; i < pyramid.size(); i++)
+    {
+    if(pyramid[i] > 0)
+      {
+      // Create a new VTK box
+      QtVTKRenderWindowBox *plot = new QtVTKRenderWindowBox(NULL);
+      m_PlotRenderers[i] = OptimizationProgressRenderer::New();
+      m_PlotRenderers[i]->SetModel(m_Model);
+      m_PlotRenderers[i]->SetPyramidLevel(i);
+      plot->SetRenderer(m_PlotRenderers[i]);
+      plot->setMinimumHeight(80);
+
+      ui->grpPlots->layout()->addWidget(plot);
+      }
+    }
+
   m_Model->RunAutoRegistration();
 }
 
@@ -155,4 +196,13 @@ void RegistrationDialog::on_btnSave_clicked()
                                QString("Failed to save transform file"));
       }
     }
+}
+
+void RegistrationDialog::on_buttonBox_clicked(QAbstractButton *button)
+{
+  // Tell the model the dialog is closing
+  m_Model->OnDialogClosed();
+
+  // The only button is close
+  emit wizardFinished();
 }

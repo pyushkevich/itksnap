@@ -14,6 +14,8 @@
 #include "itkEuler3DTransform.h"
 #include "vnl/algo/vnl_svd.h"
 
+#include "OptimizationProgressRenderer.h"
+
 
 const unsigned long RegistrationModel::NOID = (unsigned long)(-1);
 
@@ -70,11 +72,24 @@ RegistrationModel::RegistrationModel()
   // Mask model
   m_UseSegmentationAsMaskModel = NewSimpleConcreteProperty(false);
 
+  m_LastMetricValueModel = NewSimpleConcreteProperty(0.0);
+
   // Initialize the moving layer ID to be -1
   m_MovingLayerId = NOID;
 
+  // Set up the metric renderer
+  m_RegistrationProgressRenderer = OptimizationProgressRenderer::New();
+  m_RegistrationProgressRenderer->SetModel(this);
+
   m_Driver = NULL;
   m_Parent = NULL;
+  m_GreedyAPI = NULL;
+
+  // TODO: this should not be a hard-coded black box!
+  m_IterationPyramid.push_back(100);
+  m_IterationPyramid.push_back(100);
+  m_IterationPyramid.push_back(0);
+  m_IterationPyramid.push_back(0);
 }
 
 RegistrationModel::~RegistrationModel()
@@ -366,8 +381,7 @@ void RegistrationModel::RunAutoRegistration()
   GreedyParameters::SetToDefaults(param);
 
   // Create an API object
-  typedef GreedyApproach<3, float> API;
-  API api;
+  m_GreedyAPI = new GreedyAPI();
 
   // Configure the fixed and moving images
   ImagePairSpec ip;
@@ -377,8 +391,8 @@ void RegistrationModel::RunAutoRegistration()
   param.inputs.push_back(ip);
 
   // Pass the actual images to the cache
-  api.AddCachedInputObject(ip.fixed, castFixed->GetOutput());
-  api.AddCachedInputObject(ip.moving, castMoving->GetOutput());
+  m_GreedyAPI->AddCachedInputObject(ip.fixed, castFixed->GetOutput());
+  m_GreedyAPI->AddCachedInputObject(ip.moving, castMoving->GetOutput());
 
   // Mask image
   if(this->GetUseSegmentationAsMask())
@@ -387,7 +401,7 @@ void RegistrationModel::RunAutoRegistration()
     ImageWrapperBase *seg = this->GetParent()->GetDriver()->GetCurrentImageData()->GetSegmentation();
     castMask = seg->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline();
     castMask->UpdateLargestPossibleRegion();
-    api.AddCachedInputObject(param.gradient_mask, castMask->GetOutput());
+    m_GreedyAPI->AddCachedInputObject(param.gradient_mask, castMask->GetOutput());
     }
 
   // Set up the metric
@@ -412,11 +426,7 @@ void RegistrationModel::RunAutoRegistration()
     param.affine_dof = GreedyParameters::DOF_AFFINE;
 
   // TODO: how to specify iterations per level?
-  param.iter_per_level.clear();
-  param.iter_per_level.push_back(100);
-  param.iter_per_level.push_back(100);
-  param.iter_per_level.push_back(0);
-  param.iter_per_level.push_back(0);
+  param.iter_per_level = m_IterationPyramid;
 
   // Create a transform spec
   param.affine_init_mode = RAS_FILENAME;
@@ -438,7 +448,7 @@ void RegistrationModel::RunAutoRegistration()
   tran->SetOffset(offset);
 
   // Finally pass the float transform to the API
-  api.AddCachedInputObject(param.affine_init_transform.filename, tran);
+  m_GreedyAPI->AddCachedInputObject(param.affine_init_transform.filename, tran);
 
   // Pass the output string - same as the input transform
   param.output = param.affine_init_transform.filename;
@@ -454,10 +464,13 @@ void RegistrationModel::RunAutoRegistration()
     }
 
   // Run the registration
-  api.RunAffine(param);
+  m_GreedyAPI->RunAffine(param);
 
   // Now, the transform tran should hold our matrix and offset
   this->SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
+
+  // Delete the API
+  delete(m_GreedyAPI); m_GreedyAPI = NULL;
 }
 
 void RegistrationModel::LoadTransform(const char *filename, TransformFormat format)
@@ -575,6 +588,18 @@ void RegistrationModel::SaveTransform(const char *filename, TransformFormat form
       ->GetHistoryManager()->UpdateHistory("AffineTransform", filename, true);
 }
 
+const std::vector<std::vector<double> > &RegistrationModel::GetRegistrationMetricLog() const
+{
+  return m_GreedyAPI->GetMetricLog();
+}
+
+void RegistrationModel::OnDialogClosed()
+{
+  // Don't leave the interactive mode on
+  if(m_InteractiveToolModel->GetValue())
+    m_InteractiveToolModel->SetValue(false);
+}
+
 bool RegistrationModel::CheckState(RegistrationModel::UIState state)
 {
   switch(state)
@@ -636,6 +661,11 @@ void RegistrationModel::OnUpdate()
     // This will update the cached parameters
     this->UpdateManualParametersFromWrapper();
     }
+}
+
+const std::vector<int> &RegistrationModel::GetIterationPyramid() const
+{
+  return m_IterationPyramid;
 }
 
 void RegistrationModel::SetCenterOfRotationToCursor()
@@ -821,6 +851,15 @@ void RegistrationModel::IterationCallback(const itk::Object *object, const itk::
 
   // Apply the transform
   this->SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
+
+  // Update the last metric value
+  const GreedyAPI::MetricLogType &metric_log = m_GreedyAPI->GetMetricLog();
+  if(metric_log.size())
+    {
+    const std::vector<double> &last_log = metric_log.back();
+    if(last_log.size())
+      m_LastMetricValueModel->SetValue(last_log.back());
+    }
 
   // Fire the iteration command - this is to force the GUI to process events, instead of
   // just putting the above ModelUpdateEvent() into a bucket

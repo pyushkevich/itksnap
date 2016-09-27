@@ -69,15 +69,18 @@ void RegistrationInteractionMode::mousePressEvent(QMouseEvent *ev)
 void RegistrationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   ev->ignore();
-  if(this->isHovering())
+  if(this->IsMouseOverFullLayer())
     {
-    if(m_Model->ProcessMouseMoveEvent(m_XSlice))
-      ev->accept();
-    }
-  else if(this->isDragging())
-    {
-    if(m_Model->ProcessDragEvent(m_XSlice, m_LastPressXSlice))
-      ev->accept();
+    if(this->isDragging())
+      {
+      if(m_Model->ProcessDragEvent(m_XSlice, m_LastPressXSlice))
+        ev->accept();
+      }
+    else
+      {
+      if(m_Model->ProcessMouseMoveEvent(m_XSlice, this->m_HoverOverLayer->GetUniqueId()))
+        ev->accept();
+      }
     }
 }
 

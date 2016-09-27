@@ -76,6 +76,9 @@ QtAbstractOpenGLBox
 
 void QtAbstractOpenGLBox::paintGL()
 {
+  if(!GetRenderer())
+    return;
+
   // Update the renderer. This will cause the renderer to update itself
   // based on any events that it has received upstream.
   GetRenderer()->Update();
@@ -114,17 +117,23 @@ void QtAbstractOpenGLBox::paintGL()
 
 void QtAbstractOpenGLBox::resizeGL(int w, int h)
 {
-  int wp = (int) this->size().width() * this->devicePixelRatio();
-  int hp = (int) this->size().height() * this->devicePixelRatio();
+  if(GetRenderer())
+    {
+    int wp = (int) this->size().width() * this->devicePixelRatio();
+    int hp = (int) this->size().height() * this->devicePixelRatio();
 
-  GetRenderer()->Update();
-  GetRenderer()->resizeGL(wp, hp, this->devicePixelRatio());
+    GetRenderer()->Update();
+    GetRenderer()->resizeGL(wp, hp, this->devicePixelRatio());
+    }
 }
 
 void QtAbstractOpenGLBox::initializeGL()
 {
-  GetRenderer()->Update();
-  GetRenderer()->initializeGL();
+  if(GetRenderer())
+    {
+    GetRenderer()->Update();
+    GetRenderer()->initializeGL();
+    }
 }
 
 /*

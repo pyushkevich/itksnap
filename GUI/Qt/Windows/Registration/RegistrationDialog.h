@@ -1,15 +1,18 @@
 #ifndef REGISTRATIONDIALOG_H
 #define REGISTRATIONDIALOG_H
 
-#include <QDialog>
+#include <SNAPComponent.h>
+#include <SNAPCommon.h>
 
 class RegistrationModel;
+class QAbstractButton;
+class OptimizationProgressRenderer;
 
 namespace Ui {
 class RegistrationDialog;
 }
 
-class RegistrationDialog : public QDialog
+class RegistrationDialog : public SNAPComponent
 {
   Q_OBJECT
 
@@ -19,6 +22,9 @@ public:
 
   void SetModel(RegistrationModel *model);
 
+signals:
+
+  void wizardFinished();
 
 private slots:
   void on_pushButton_clicked();
@@ -31,12 +37,21 @@ private slots:
 
   void on_btnSave_clicked();
 
+  void on_buttonBox_clicked(QAbstractButton *button);
+
 private:
   Ui::RegistrationDialog *ui;
 
   RegistrationModel *m_Model;
 
   int GetTransformFormat(QString &format);
+
+  // This is a bit unfortunate but we need to keep a list of renderers for the
+  // plot widgets currently shown
+  typedef SmartPtr<OptimizationProgressRenderer> RendererPtr;
+
+  std::vector<RendererPtr> m_PlotRenderers;
+
 
 };
 

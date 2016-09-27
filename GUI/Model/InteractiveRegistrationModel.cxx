@@ -53,9 +53,13 @@ double InteractiveRegistrationModel::GetRotationWidgetRadius()
   // at the compass directions of the viewport, we will find the one farthest away
   // from the rotation center, and draw a circle through it
   int margin = 10;
-  Vector2ui u0(vp.pos[0] + margin, vp.pos[1] + margin);
-  Vector2ui u1(vp.pos[0] + vp.size[0] / 2, vp.pos[1] + vp.size[1] / 2);
-  Vector2ui u2(vp.pos[0] + vp.size[0] - margin, vp.pos[1] + vp.size[1] - margin);
+  Vector2ui u0(margin, margin);
+  Vector2ui u1(vp.size[0] / 2, vp.size[1] / 2);
+  Vector2ui u2(vp.size[0] - margin, vp.size[1] - margin);
+
+  // Vector2ui u0(vp.pos[0] + margin, vp.pos[1] + margin);
+  // Vector2ui u1(vp.pos[0] + vp.size[0] / 2, vp.pos[1] + vp.size[1] / 2);
+  // Vector2ui u2(vp.pos[0] + vp.size[0] - margin, vp.pos[1] + vp.size[1] - margin);
 
   std::vector<Vector2ui> xProbe;
   xProbe.push_back(Vector2ui(u0[0], u0[1]));
@@ -107,7 +111,7 @@ void InteractiveRegistrationModel::RotateByTheta(double theta)
 }
 
 InteractiveRegistrationModel::InteractiveRegistrationModel()
-  : m_HoveringOverRotationWidget(false)
+  : m_HoveringOverRotationWidget(false), m_HoveringOverMovingLayer(false)
 {
 
 }
@@ -125,10 +129,16 @@ bool InteractiveRegistrationModel::ProcessPushEvent(const Vector3d &xSlice)
     m_LastTheta = 0;
     return true;
     }
-  else
+  else if(m_HoveringOverMovingLayer)
     {
     m_LastDisplacement = 0;
     return true;
+    }
+  else
+    {
+    // Don't handle events occurring over fixed / other layers, so that the user
+    // can still move the cursor
+    return false;
     }
 }
 
@@ -139,7 +149,7 @@ bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, cons
   GenericSliceModel *smodel = this->GetParent();
   ImageWrapperBase *moving = rmodel->GetMovingLayerWrapper();
 
-  if(!moving)
+  if(!moving || !m_HoveringOverMovingLayer)
     return false;
 
   if(m_HoveringOverRotationWidget)
@@ -164,8 +174,6 @@ bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, cons
 
     // Set the last theta
     m_LastTheta = theta;
-
-    return true;
     }
   else
     {
@@ -183,18 +191,41 @@ bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, cons
     m_LastDisplacement = xDispTotal;
     }
 
-  return false;
+  return true;
 }
 
-bool InteractiveRegistrationModel::ProcessMouseMoveEvent(const Vector3d &xSlice)
+bool
+InteractiveRegistrationModel
+::GetDoProcessInteractionOverLayer(unsigned long layer_id)
+{
+  RegistrationModel *rmodel = this->GetRegistrationModel();
+  ImageWrapperBase *moving = rmodel->GetMovingLayerWrapper();
+
+  // If tiling and moving layer is drawing
+  // If stacked and moving layer is drawing
+  // If moving layer is an overlay
+  return moving && (moving->GetUniqueId() == layer_id || moving->IsSticky());
+}
+
+bool
+InteractiveRegistrationModel
+::ProcessMouseMoveEvent(
+    const Vector3d &xSlice, unsigned long hover_layer_id)
 {
   // The user is moving the mouse. We just want to check if we are close to the rotation widget
   RegistrationModel *rmodel = this->GetRegistrationModel();
   GenericSliceModel *smodel = this->GetParent();
-  ImageWrapperBase *moving = rmodel->GetMovingLayerWrapper();
 
-  if(!moving)
+  // Does this interaction fall into our provenance?
+  if(!this->GetDoProcessInteractionOverLayer(hover_layer_id))
+    {
+    m_HoveringOverMovingLayer = false;
+    m_HoveringOverRotationWidget = false;
     return false;
+    }
+
+  // We are hovering over the moving layer
+  m_HoveringOverMovingLayer = true;
 
   // Get the center of rotation
   Vector3ui rot_ctr_image = rmodel->GetRotationCenter();

@@ -35,7 +35,6 @@
 #include "SNAPQtCommon.h"
 #include "FileChooserPanelWithHistory.h"
 
-#include "ImageIOWizard/RegistrationPage.h"
 #include "ImageIOWizard/OverlayRolePage.h"
 
 #include "DICOMListingTable.h"
@@ -772,7 +771,6 @@ ImageIOWizard::ImageIOWizard(QWidget *parent) :
   setPage(Page_Summary, new SummaryPage(this));
   setPage(Page_DICOM, new DICOMPage(this));
   setPage(Page_Raw, new RawPage(this));
-  setPage(Page_Coreg, new RegistrationPage(this));
   setPage(Page_OverlayRole, new OverlayRolePage(this));
 
 }
@@ -825,10 +823,6 @@ int ImageIOWizard::nextId() const
     if(m_Model->IsOverlay())
       pages.push_back(Page_OverlayRole);
 
-    // Registration page
-    if(m_Model->GetUseRegistration())
-      pages.push_back(Page_Coreg);
-
     // Summary page
     pages.push_back(Page_Summary);
     pages.push_back(-1);
@@ -853,9 +847,7 @@ int ImageIOWizard::nextId() const
 
 int ImageIOWizard::nextPageAfterLoad()
 {
-  if(m_Model->GetUseRegistration())
-    return ImageIOWizard::Page_Coreg;
-  else if(m_Model->IsOverlay() && m_Model->IsLoadMode())
+  if(m_Model->IsOverlay() && m_Model->IsLoadMode())
     return ImageIOWizard::Page_OverlayRole;
   else
     return ImageIOWizard::Page_Summary;

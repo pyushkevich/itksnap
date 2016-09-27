@@ -143,7 +143,7 @@ private slots:
 
   void on_actionLabel_Editor_triggered();
 
-  void onSnakeWizardFinished();
+  void onRightDockDialogFinished();
 
   void on_actionUnload_All_triggered();
 
@@ -289,6 +289,8 @@ private slots:
   void on_actionRegistration_triggered();
 
   void on_actionClose_Window_triggered();
+
+  void onRightDockCurrentChanged(int);
 
 protected:
 

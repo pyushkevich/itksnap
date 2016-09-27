@@ -213,8 +213,6 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_InterpolateLabelsDialog = new InterpolateLabelsDialog(this);
   m_InterpolateLabelsDialog->setModal(false);
 
-  m_RegistrationDialog = new RegistrationDialog(this);
-  m_RegistrationDialog->setModal(false);
 
   // Initialize the docked panels
   m_DockLeft = new QDockWidget(this);
@@ -238,9 +236,14 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
         QDockWidget::DockWidgetMovable);
 
   m_RightDockStack = new QStackedWidget(m_DockRight);
+  connect(m_RightDockStack, SIGNAL(currentChanged(int)),
+          this, SLOT(onRightDockCurrentChanged(int)));
+
   m_DockRight->setWidget(m_RightDockStack);
 
   m_SnakeWizard = new SnakeWizardPanel(this);
+  m_RegistrationDialog = new RegistrationDialog(this);
+
   m_RightDockStack->addWidget(m_SnakeWizard);
   m_RightDockStack->addWidget(m_RegistrationDialog);
 
@@ -268,7 +271,10 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Hide the dock when the wizard finishes
   connect(m_SnakeWizard, SIGNAL(wizardFinished()),
-          this, SLOT(onSnakeWizardFinished()));
+          this, SLOT(onRightDockDialogFinished()));
+
+  connect(m_RegistrationDialog, SIGNAL(wizardFinished()),
+          this, SLOT(onRightDockDialogFinished()));
 
   // Make the margins adjust when the docks are attached
   connect(m_DockLeft, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)),
@@ -1439,13 +1445,14 @@ void MainImageWindow::LoadRecentProjectActionTriggered()
 }
 
 
-void MainImageWindow::onSnakeWizardFinished()
+void MainImageWindow::onRightDockDialogFinished()
 {
   // Make the dock containing the wizard visible
   m_DockRight->setVisible(false);
 
   // Auto-adjust the canvas size
-  this->UpdateCanvasDimensions();
+  QTimer::singleShot(0, this, SLOT(UpdateCanvasDimensions()));
+  // this->UpdateCanvasDimensions();
 }
 
 void MainImageWindow::on_actionUnload_All_triggered()
@@ -2186,6 +2193,13 @@ void MainImageWindow::on_actionClose_Window_triggered()
     }
 }
 
+void MainImageWindow::onRightDockCurrentChanged(int)
+{
+  // Adjust the width of the stack to match the current widget
+  m_RightDockStack->setMaximumWidth(
+        m_RightDockStack->currentWidget()->maximumWidth());
+}
+
 
 void MainImageWindow::on_actionUnload_Last_Overlay_triggered()
 {
@@ -2237,6 +2251,9 @@ void MainImageWindow::on_actionInterpolate_Labels_triggered()
 
 void MainImageWindow::on_actionRegistration_triggered()
 {
+  // Remember the size of the window before the right dock was shown
+  m_SizeWithoutRightDock = this->size();
+
   m_DockRight->setWindowTitle("Registration");
   m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
   m_DockRight->setVisible(true);

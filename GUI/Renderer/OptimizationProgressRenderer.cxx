@@ -1,6 +1,6 @@
 #include "OptimizationProgressRenderer.h"
 
-#include "ImageIOWizardModel.h"
+#include "RegistrationModel.h"
 
 #include <vtkChartXY.h>
 #include <vtkPlot.h>
@@ -46,9 +46,9 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   m_Plot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
   m_Plot->GetYAxis()->SetMinimum(-0.05);
   m_Plot->GetYAxis()->SetMaximum(1.05);
-  m_Plot->GetXAxis()->SetTitle("Optimization iteration");
+  m_Plot->GetXAxis()->SetTitle("Iteration");
   m_Plot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
-  m_Plot->GetYAxis()->SetTitle("Metric value");
+  m_Plot->GetYAxis()->SetTitle("Metric");
 
   // Set the background to white
   m_BackgroundColor.fill(1.0);
@@ -57,40 +57,54 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   this->m_RenderWindow->SetMultiSamples(0);
   this->m_RenderWindow->SetLineSmoothing(1);
   this->m_RenderWindow->SetPolygonSmoothing(1);
+
+  m_PyramidLevel = 0;
 }
 
-void OptimizationProgressRenderer::SetModel(ImageIOWizardModel *model)
+void OptimizationProgressRenderer::SetModel(RegistrationModel *model)
 {
   m_Model = model;
 
   // Rebroadcast the relevant events from the model in order for the
   // widget that uses this renderer to cause an update
-  Rebroadcast(model, ImageIOWizardModel::RegistrationProgressEvent(), ModelUpdateEvent());
-
-  // Reset value range
+  Rebroadcast(model->GetLastMetricValueModel(), ValueChangedEvent(), ModelUpdateEvent());
 
 }
 
 void OptimizationProgressRenderer::OnUpdate()
 {
-  int x = m_DataX->GetNumberOfTuples()+1;
-  double y = m_Model->GetRegistrationObjective();
+  // Get the metric log
+  typedef std::vector< std::vector<double> >  MetricLog;
+  const MetricLog &mlog = m_Model->GetRegistrationMetricLog();
 
-  m_DataX->InsertNextValue(x);
-  m_DataY->InsertNextValue(y);
+  // Set the data points
+  m_DataX->Reset();
+  m_DataY->Reset();
+
+  int x = 0;
+  if(mlog.size() > m_PyramidLevel)
+    {
+    for(int i = 0; i < mlog[m_PyramidLevel].size(); i++, x++)
+      {
+      double y = mlog[m_PyramidLevel][i];
+      m_DataX->InsertNextValue(x);
+      m_DataY->InsertNextValue(y);
+
+      m_MinValue = (x == 0) ? y : std::min(m_MinValue, y);
+      m_MaxValue = (x == 0) ? y : std::max(m_MaxValue, y);
+      }
+    }
+
   m_PlotTable->Modified();
 
-  m_Plot->GetXAxis()->SetRange(0.0, ((x + 5) / 40 + 1) * 40.0);
+  m_Plot->GetXAxis()->SetRange(0.0, ((m_DataX->GetNumberOfTuples()+ 5) / 20 + 1) * 20.0);
 
+  double min_rnd = (((int) floor(m_MinValue * 10)) - 1) * 0.1;
+  double max_rnd = (((int) ceil(m_MaxValue * 10)) + 1) * 0.1;
 
-  if (x == 1 || y <= m_MinValue)
-    {
-    m_MinValue = (((int) floor(y * 10)) - 1) * 0.1;
-    }
-  if (x == 1 || y >= m_MaxValue)
-    {
-    m_MaxValue = (((int) ceil(y * 10)) + 1) * 0.1;
-    }
+  m_Plot->GetYAxis()->SetRange(min_rnd, max_rnd);
 
-  m_Plot->GetYAxis()->SetRange(m_MinValue, m_MaxValue);
+  char plotLabel[64];
+  sprintf(plotLabel, "%dx Resolution", 1 << m_PyramidLevel);
+  m_Plot->SetLabel(plotLabel);
 }

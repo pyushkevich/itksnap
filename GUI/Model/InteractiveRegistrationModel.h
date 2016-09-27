@@ -54,17 +54,25 @@ public:
 
   bool ProcessPushEvent(const Vector3d &xSlice);
   bool ProcessDragEvent(const Vector3d &xSlice, const Vector3d &xDragStart);
-  bool ProcessMouseMoveEvent(const Vector3d &xSlice);
+  bool ProcessMouseMoveEvent(const Vector3d &xSlice, unsigned long hover_layer_id);
   bool ProcessReleaseEvent(const Vector3d &xSlice, const Vector3d &xDragStart);
 
   double GetRotationWidgetRadius();
 
   void RotateByTheta(double theta);
 
+  irisIsMacro(HoveringOverMovingLayer)
+
   irisIsMacro(HoveringOverRotationWidget)
 
   irisGetMacro(LastTheta, double)
 
+  /**
+   * Check for a particular layer id whether the interactive registration widget
+   * should be shown over that layer and whether mouse events over this layer are
+   * processed as interactive registration events
+   */
+  bool GetDoProcessInteractionOverLayer(unsigned long layer_id);
 
 protected:
 
@@ -76,6 +84,9 @@ protected:
 
   // Radius of the rotation widget circle in slice coordinates
   double m_RotationWidgetRadius;
+
+  // Whether we are hovering over the moving widget
+  bool m_HoveringOverMovingLayer;
 
   // Whether we are hovering over the rotation widget radius (so it should be highlighted)
   bool m_HoveringOverRotationWidget;

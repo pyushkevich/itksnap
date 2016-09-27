@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>RegistrationDialog</class>
- <widget class="QDialog" name="RegistrationDialog">
+ <widget class="QWidget" name="RegistrationDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>264</width>
+    <width>216</width>
     <height>762</height>
    </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>216</width>
+    <height>16777215</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
@@ -78,6 +84,12 @@ QToolButton::pressed {
    </item>
    <item row="3" column="0" colspan="2">
     <widget class="QTabWidget" name="tabWidget">
+     <property name="styleSheet">
+      <string notr="true">QDoubleSpinBox {
+  font-size: 10px;
+}
+</string>
+     </property>
      <property name="currentIndex">
       <number>0</number>
      </property>
@@ -120,6 +132,9 @@ QToolButton::pressed {
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this is checked, the current segmentation in ITK-SNAP will be used as a mask  for the registration. This means that the similarity between the main image and the moving image layer will only be computed at the voxels assigned a segmentation label.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
+         <property name="styleSheet">
+          <string notr="true">font-size:11px;</string>
+         </property>
          <property name="text">
           <string>Use segmentation as mask</string>
          </property>
@@ -146,6 +161,27 @@ QToolButton::pressed {
          <property name="text">
           <string>Run Registration</string>
          </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="grpPlots" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="spacing">
+           <number>4</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+         </layout>
         </widget>
        </item>
        <item>
@@ -179,6 +215,11 @@ QToolButton::pressed {
        </property>
        <item>
         <widget class="QGroupBox" name="grpRotation">
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+  font-size: 11px;
+}</string>
+         </property>
          <property name="title">
           <string>Rotation (euler angles):</string>
          </property>
@@ -187,16 +228,16 @@ QToolButton::pressed {
            <number>0</number>
           </property>
           <property name="leftMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <property name="topMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <property name="rightMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <property name="bottomMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <item>
            <widget class="QWidget" name="widget_2" native="true">
@@ -213,7 +254,10 @@ QToolButton::pressed {
              <property name="bottomMargin">
               <number>0</number>
              </property>
-             <property name="spacing">
+             <property name="horizontalSpacing">
+              <number>2</number>
+             </property>
+             <property name="verticalSpacing">
               <number>4</number>
              </property>
              <item row="0" column="0">
@@ -275,6 +319,11 @@ QToolButton::pressed {
        </item>
        <item>
         <widget class="QGroupBox" name="grpTranslation">
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+  font-size: 11px;
+}</string>
+         </property>
          <property name="title">
           <string>Translation (mm):</string>
          </property>
@@ -283,16 +332,16 @@ QToolButton::pressed {
            <number>0</number>
           </property>
           <property name="leftMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <property name="topMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <property name="rightMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <property name="bottomMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <item>
            <widget class="QWidget" name="widget_3" native="true">
@@ -309,7 +358,10 @@ QToolButton::pressed {
              <property name="bottomMargin">
               <number>0</number>
              </property>
-             <property name="spacing">
+             <property name="horizontalSpacing">
+              <number>2</number>
+             </property>
+             <property name="verticalSpacing">
               <number>4</number>
              </property>
              <item row="0" column="0">
@@ -371,6 +423,11 @@ QToolButton::pressed {
        </item>
        <item>
         <widget class="QGroupBox" name="grpScaling">
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+  font-size: 11px;
+}</string>
+         </property>
          <property name="title">
           <string>Scaling:</string>
          </property>
@@ -379,16 +436,16 @@ QToolButton::pressed {
            <number>0</number>
           </property>
           <property name="leftMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <property name="topMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <property name="rightMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <property name="bottomMargin">
-           <number>4</number>
+           <number>2</number>
           </property>
           <item>
            <widget class="QWidget" name="widget_4" native="true">
@@ -405,7 +462,10 @@ QToolButton::pressed {
              <property name="bottomMargin">
               <number>0</number>
              </property>
-             <property name="spacing">
+             <property name="horizontalSpacing">
+              <number>2</number>
+             </property>
+             <property name="verticalSpacing">
               <number>4</number>
              </property>
              <item row="0" column="0">
@@ -608,8 +668,8 @@ QToolButton::pressed {
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
+     <x>190</x>
+     <y>761</y>
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
@@ -624,11 +684,11 @@ QToolButton::pressed {
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
+     <x>190</x>
+     <y>761</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
+     <x>190</x>
      <y>274</y>
     </hint>
    </hints>
