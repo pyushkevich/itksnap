@@ -52,6 +52,10 @@ class GenericSliceRenderer : public AbstractRenderer
 {
 public:
 
+  // texture type
+  typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
+
+
   irisITKObjectMacro(GenericSliceRenderer, AbstractModel)
 
   FIRES(ModelUpdateEvent)
@@ -99,6 +103,9 @@ public:
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
 
+  // Get (creating if necessary) and configure the texture for a given layer
+  Texture *GetTextureForLayer(ImageWrapperBase *iw);
+
 
 protected:
 
@@ -133,12 +140,6 @@ protected:
 
   // The index of the viewport that is currently being drawn - for use in child renderers
   int m_DrawingViewportIndex;
-
-  // A dynamic association between various image layers and texture objects
-  typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
-
-  // Get (creating if necessary) and configure the texture for a given layer
-  Texture *GetTextureForLayer(ImageWrapperBase *iw);
 
   // A list of overlays that the user can configure
   RendererDelegateList m_TiledOverlays, m_GlobalOverlays;

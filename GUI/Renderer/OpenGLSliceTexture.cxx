@@ -196,6 +196,62 @@ OpenGLSliceTexture<TPixel>
   glPopAttrib();
 }
 
+template<class TPixel>
+void
+OpenGLSliceTexture<TPixel>
+::DrawCheckerboard(int rows, int cols)
+{
+  // Update the texture
+  Update();
+
+  // Should have a texture number
+  assert(m_IsTextureInitalized);
+
+  // GL settings
+  glPushAttrib(GL_TEXTURE_BIT);
+  glEnable(GL_TEXTURE_2D);
+
+  // Select our texture
+  glBindTexture(GL_TEXTURE_2D,m_TextureIndex);
+
+  int w = m_Image->GetBufferedRegion().GetSize()[0];
+  int h = m_Image->GetBufferedRegion().GetSize()[1];
+  double tx = w * 1.0 / m_TextureSize(0);
+  double ty = h * 1.0 / m_TextureSize(1);
+
+  glPushMatrix();
+  glBegin(GL_QUADS);
+
+  // Repeat for each checkerboard
+  for(int iy = 0; iy < rows; iy++)
+    {
+    for(int ix = 0; ix < cols; ix++)
+      {
+      if((ix + iy) % 2 == 0)
+        {
+        double x0 = ix * 1.0 / cols;
+        double x1 = (ix + 1) * 1.0 / cols;
+        double y0 = iy * 1.0 / rows;
+        double y1 = (iy + 1) * 1.0 / rows;
+
+        // Draw quad
+        glTexCoord2d(x0 * tx, y0 * ty);
+        glVertex2d(x0 * w, y0 * h);
+        glTexCoord2d(x0 * tx, y1 * ty);
+        glVertex2d(x0 * w, y1 * h);
+        glTexCoord2d(x1 * tx, y1 * ty);
+        glVertex2d(x1 * w, y1 * h);
+        glTexCoord2d(x1 * tx, y0 * ty);
+        glVertex2d(x1 * w, y0 * h);
+        }
+      }
+    }
+
+  glEnd();
+  glPopMatrix();
+
+  glPopAttrib();
+}
 
 template<class TPixel>
 void

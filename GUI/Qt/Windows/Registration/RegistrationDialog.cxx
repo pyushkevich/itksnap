@@ -206,3 +206,10 @@ void RegistrationDialog::on_buttonBox_clicked(QAbstractButton *button)
   // The only button is close
   emit wizardFinished();
 }
+
+void RegistrationDialog::on_tabWidget_currentChanged(int index)
+{
+  // Activate the interactive tool when the user switches to the manual page
+  if(ui->tabWidget->currentWidget() == ui->pgManual)
+    m_Model->GetInteractiveToolModel()->SetValue(true);
+}

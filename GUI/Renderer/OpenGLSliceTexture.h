@@ -115,6 +115,11 @@ public:
    */
   void DrawTransparent(double alpha);
 
+  /**
+   * Draw the texture as a checkerboard
+   */
+  void DrawCheckerboard(int rows, int cols);
+
 protected:
 
   OpenGLSliceTexture();

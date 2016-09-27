@@ -5,6 +5,10 @@
 #include "SNAPAppearanceSettings.h"
 #include "SNAPOpenGL.h"
 #include "GlobalUIModel.h"
+#include "IRISApplication.h"
+#include "GenericImageData.h"
+#include "ImageWrapperBase.h"
+#include "OpenGLSliceTexture.h"
 
 RegistrationRenderer::RegistrationRenderer()
 {
