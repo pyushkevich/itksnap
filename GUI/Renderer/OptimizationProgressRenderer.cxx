@@ -13,6 +13,8 @@
 #include <vtkContextMouseEvent.h>
 #include "vtkGenericOpenGLRenderWindow.h"
 
+#include <cstdlib>
+#include <algorithm>
 
 OptimizationProgressRenderer::OptimizationProgressRenderer()
 {
