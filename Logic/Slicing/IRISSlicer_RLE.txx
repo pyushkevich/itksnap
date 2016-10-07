@@ -218,7 +218,11 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
 
   this->AllocateOutputs();
 
-  typename InputImageType::SizeType szVol = inputPtr->GetBufferedRegion().GetSize();
+  // typename InputImageType::SizeType szVol = inputPtr->GetBufferedRegion().GetSize();
+  long szVol[3];
+  szVol[0] = inputPtr->GetBufferedRegion().GetSize()[0];
+  szVol[1] = inputPtr->GetBufferedRegion().GetSize()[1];
+  szVol[2] = inputPtr->GetBufferedRegion().GetSize()[2];
 
   typename TOutputImage::IndexType oStartInd;
   if (m_LineTraverseForward)
@@ -256,7 +260,9 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
     }
   else if (m_SliceDirectionImageAxis == 1) //slicing along y
     {
-#pragma omp parallel for
+//#pragma omp parallel for
+    int s_line = (m_LineTraverseForward) ? 1 : -1;
+    int s_pixel = (m_PixelTraverseForward) ? 1 : -1;
     for (int z = 0; z < szVol[2]; z++)
       {
       typename InputImageType::BufferType::IndexType lineIndex = { { m_SliceIndex, z } };
@@ -264,14 +270,12 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
       if (m_LineDirectionImageAxis == 2) //z is line coordinate
         {
         assert(m_PixelDirectionImageAxis == 0); //x is pixel coordinate
-        uncompressLine(line, outSlice + sign(m_LineTraverseForward)*z*szVol[0],
-            sign(m_PixelTraverseForward) * 1);
+        uncompressLine(line, outSlice + s_line*z*szVol[0], s_pixel * 1);
         }
       else if (m_LineDirectionImageAxis == 0) //x is line coordinate
         {
         assert(m_PixelDirectionImageAxis == 2); //z is pixel coordinate
-        uncompressLine(line, outSlice + sign(m_PixelTraverseForward)*z,
-                       sign(m_LineTraverseForward)*szVol[2]);
+        uncompressLine(line, outSlice + s_pixel*z, s_line*szVol[2]);
         }
       else
         throw itk::ExceptionObject(__FILE__, __LINE__, "SliceDirectionImageAxis and SliceDirectionImageAxis cannot both have a value of 1!", __FUNCTION__);
