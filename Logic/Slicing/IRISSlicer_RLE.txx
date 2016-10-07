@@ -263,7 +263,7 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
     }
   else if (m_SliceDirectionImageAxis == 1) //slicing along y
     {
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int z = 0; z < szVol[2]; z++)
       {
       typename InputImageType::BufferType::IndexType lineIndex = { { m_SliceIndex, z } };
