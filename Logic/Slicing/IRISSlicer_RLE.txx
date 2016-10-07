@@ -295,14 +295,16 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
             if (m_LineDirectionImageAxis == 2) //z is line coordinate
               {
               assert(m_PixelDirectionImageAxis == 1); //y is pixel coordinate
-              *(outSlice + sign(m_LineTraverseForward)*z*szVol[1]
-                  + sign(m_PixelTraverseForward) *y) = line[x].second;
+              int offset = sign(m_LineTraverseForward)*z*szVol[1] + sign(m_PixelTraverseForward) *y;
+              TPixel value = line[x].second;
+              *(outSlice + offset) = value;
               }
             else if (m_LineDirectionImageAxis == 1) //y is line coordinate
               {
               assert(m_PixelDirectionImageAxis == 2); //z is pixel coordinate
-              *(outSlice + sign(m_PixelTraverseForward)*z
-                  + sign(m_LineTraverseForward) *y*szVol[2]) = line[x].second;
+              int offset = sign(m_PixelTraverseForward)*z + sign(m_LineTraverseForward) *y*szVol[2];
+              TPixel value = line[x].second;
+              *(outSlice + offset) = value;
               }
             else
               throw itk::ExceptionObject(__FILE__, __LINE__, "SliceDirectionImageAxis and SliceDirectionImageAxis cannot both have a value of 0!", __FUNCTION__);
