@@ -218,21 +218,26 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
 
   this->AllocateOutputs();
 
-  // typename InputImageType::SizeType szVol = inputPtr->GetBufferedRegion().GetSize();
+  // Important: the size needs to be cast to long to avoid problems with
+  // pointer arithmetic on some MSVC versions!
   long szVol[3];
-  szVol[0] = inputPtr->GetBufferedRegion().GetSize()[0];
-  szVol[1] = inputPtr->GetBufferedRegion().GetSize()[1];
-  szVol[2] = inputPtr->GetBufferedRegion().GetSize()[2];
+  szVol[0] = inputPtr->GetBufferedRegion().GetSize(0);
+  szVol[1] = inputPtr->GetBufferedRegion().GetSize(1);
+  szVol[2] = inputPtr->GetBufferedRegion().GetSize(2);
+
+  // Also cast the output size to long
+  long szSlice[2];
+  szSlice[0] = outputPtr->GetBufferedRegion().GetSize(0);
+  szSlice[1] = outputPtr->GetBufferedRegion().GetSize(1);
+
+  // The sign of the line and pixel traversal directions
+  int s_line = (m_LineTraverseForward) ? 1 : -1;
+  int s_pixel = (m_PixelTraverseForward) ? 1 : -1;
 
   typename TOutputImage::IndexType oStartInd;
-  if (m_LineTraverseForward)
-    oStartInd[1] = 0;
-  else
-    oStartInd[1] = outputPtr->GetBufferedRegion().GetSize(1) - 1;
-  if (m_PixelTraverseForward)
-    oStartInd[0] = 0;
-  else
-    oStartInd[0] = outputPtr->GetBufferedRegion().GetSize(0) - 1;
+  oStartInd[1] = (m_LineTraverseForward) ? 0 : szSlice[1] - 1;
+  oStartInd[0] = (m_PixelTraverseForward) ? 0 : szSlice[0] - 1;
+
   typename OutputImageType::PixelType *outSlice = &outputPtr->GetPixel(oStartInd);
 
   if (m_SliceDirectionImageAxis == 2) //slicing along z
@@ -245,14 +250,12 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
       if (m_LineDirectionImageAxis == 1) //y is line coordinate
         {
         assert(m_PixelDirectionImageAxis == 0); //x is pixel coordinate
-		int blop = sign(m_LineTraverseForward)*y*szVol[0];
-        uncompressLine(line, outSlice + blop, sign(m_PixelTraverseForward) * 1);
+        uncompressLine(line, outSlice + s_line*y*szVol[0], s_pixel * 1);
         }
       else if (m_LineDirectionImageAxis == 0) //x is line coordinate
         {
         assert(m_PixelDirectionImageAxis == 1); //y is pixel coordinate
-        uncompressLine(line, outSlice + sign(m_PixelTraverseForward)*y,
-                       sign(m_LineTraverseForward)*szVol[1]);
+        uncompressLine(line, outSlice + s_pixel*y, s_line*szVol[1]);
         }
       else
         throw itk::ExceptionObject(__FILE__, __LINE__, "SliceDirectionImageAxis and SliceDirectionImageAxis cannot both have a value of 2!", __FUNCTION__);
@@ -261,8 +264,6 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
   else if (m_SliceDirectionImageAxis == 1) //slicing along y
     {
 //#pragma omp parallel for
-    int s_line = (m_LineTraverseForward) ? 1 : -1;
-    int s_pixel = (m_PixelTraverseForward) ? 1 : -1;
     for (int z = 0; z < szVol[2]; z++)
       {
       typename InputImageType::BufferType::IndexType lineIndex = { { m_SliceIndex, z } };
@@ -299,16 +300,12 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
             if (m_LineDirectionImageAxis == 2) //z is line coordinate
               {
               assert(m_PixelDirectionImageAxis == 1); //y is pixel coordinate
-              int offset = sign(m_LineTraverseForward)*z*szVol[1] + sign(m_PixelTraverseForward) *y;
-              TPixel value = line[x].second;
-              *(outSlice + offset) = value;
+              *(outSlice + s_line*z*szVol[1] + s_pixel *y) = line[x].second;;
               }
             else if (m_LineDirectionImageAxis == 1) //y is line coordinate
               {
               assert(m_PixelDirectionImageAxis == 2); //z is pixel coordinate
-              int offset = sign(m_PixelTraverseForward)*z + sign(m_LineTraverseForward) *y*szVol[2];
-              TPixel value = line[x].second;
-              *(outSlice + offset) = value;
+              *(outSlice + s_pixel*z + s_line *y*szVol[2]) = line[x].second;
               }
             else
               throw itk::ExceptionObject(__FILE__, __LINE__, "SliceDirectionImageAxis and SliceDirectionImageAxis cannot both have a value of 0!", __FUNCTION__);

@@ -92,8 +92,11 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
 
   // Couple the edge preprocessing widgets
   makeCoupling(ui->inEdgeSmoothing, model->GetEdgePreprocessingSigmaModel());
+  makeCoupling(ui->inEdgeSmoothingSlider, model->GetEdgePreprocessingSigmaModel());
   makeCoupling(ui->inEdgeKappa, model->GetEdgePreprocessingKappaModel());
+  makeCoupling(ui->inEdgeKappaSlider, model->GetEdgePreprocessingKappaModel());
   makeCoupling(ui->inEdgeExponent, model->GetEdgePreprocessingExponentModel());
+  makeCoupling(ui->inEdgeExponentSlider, model->GetEdgePreprocessingExponentModel());
 
   // Couple the clustering widgets
   makeCoupling(ui->inNumClusters, model->GetNumberOfClustersModel());
