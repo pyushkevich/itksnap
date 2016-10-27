@@ -1552,10 +1552,12 @@ IRISApplication
   // TODO: in situations where the size is the same and space is different, we may want
   // to ask the user how to handle it, or at least display a warning? For now, we just use
   // the header information, which may be different from how old ITK-SNAP handled this
-  if(same_size && same_space && id_transform)
-    m_IRISImageData->AddOverlay(io);
-  else
-    m_IRISImageData->AddCoregOverlay(io, transform);
+
+  // Old code - prevented registration of same-size images
+  // if(same_size && same_space && id_transform)
+  //  m_IRISImageData->AddOverlay(io);
+  // else
+  m_IRISImageData->AddCoregOverlay(io, transform);
 
   ImageWrapperBase *layer = m_IRISImageData->GetLastOverlay();
 
