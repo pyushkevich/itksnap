@@ -72,7 +72,7 @@ void ZoomInspector::SetModel(GlobalUIModel *model)
 
   // Couple zoom widget to the linked zoom level
   makeCoupling(ui->inZoom,
-               model->GetSliceCoordinator()->GetCommonZoomFactorModel());
+               model->GetSliceCoordinator()->GetCommonZoomFactorInLogicalPixelsModel());
 }
 
 void ZoomInspector::on_chkLinkedZoom_stateChanged(int state)
@@ -82,15 +82,15 @@ void ZoomInspector::on_chkLinkedZoom_stateChanged(int state)
 
 void ZoomInspector::on_btnZoom1_pressed()
 {
-  m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(1);
+  m_Model->GetSliceCoordinator()->SetZoomPercentageInLogicalPixelsInAllWindows(1);
 }
 
 void ZoomInspector::on_btnZoom2_pressed()
 {
-  m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(2);
+  m_Model->GetSliceCoordinator()->SetZoomPercentageInLogicalPixelsInAllWindows(2);
 }
 
 void ZoomInspector::on_btnZoom4_pressed()
 {
-  m_Model->GetSliceCoordinator()->SetZoomPercentageInAllWindows(4);
+  m_Model->GetSliceCoordinator()->SetZoomPercentageInLogicalPixelsInAllWindows(4);
 }

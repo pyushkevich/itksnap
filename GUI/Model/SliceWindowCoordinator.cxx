@@ -50,6 +50,10 @@ SliceWindowCoordinator
         this, &Self::GetCommonZoomValueAndRange, &Self::SetCommonZoomValue,
         ZoomLevelUpdateEvent(), ZoomLevelUpdateEvent());
 
+  m_CommonZoomFactorInLogicalPixelsModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetCommonZoomInLogicalPixelsValueAndRange, &Self::SetCommonZoomInLogicalPixelsValue,
+        ZoomLevelUpdateEvent(), ZoomLevelUpdateEvent());
+
   m_LinkedZoomModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetLinkedZoomValue, &Self::SetLinkedZoomValue,
         ZoomLevelUpdateEvent(), ZoomLevelUpdateEvent());
@@ -196,6 +200,13 @@ void SliceWindowCoordinator
   SetZoomLevelAllWindows(x / m_SliceModel[0]->GetSliceSpacing().min_value());
 }
 
+void SliceWindowCoordinator::SetZoomPercentageInLogicalPixelsInAllWindows(float x)
+{
+  // x screen pixels = smallest voxel dimension
+  // zf = x / (smallest voxel dimension)
+  SetZoomLevelInLogicalPixelsAllWindows(x / m_SliceModel[0]->GetSliceSpacing().min_value());
+}
+
 void 
 SliceWindowCoordinator
 ::SetZoomFactorAllWindows(float factor)
@@ -226,6 +237,23 @@ SliceWindowCoordinator
   for(unsigned int i=0;i<3;i++)
     {
     m_SliceModel[i]->SetViewZoom(level);
+    }
+
+  // Invoke event
+  if(m_LinkedZoom)
+    {
+    InvokeEvent(ZoomLevelUpdateEvent());
+    }
+}
+
+void
+SliceWindowCoordinator
+::SetZoomLevelInLogicalPixelsAllWindows(float level)
+{
+  // Now scale the zoom in each window
+  for(unsigned int i=0;i<3;i++)
+    {
+    m_SliceModel[i]->SetViewZoomInLogicalPixels(level);
     }
 
   // Invoke event
@@ -325,6 +353,13 @@ SliceWindowCoordinator
   else return std::numeric_limits<float>::quiet_NaN();
 }
 
+float SliceWindowCoordinator::GetCommonZoomLevelInLogicalPixels()
+{
+  if(m_LinkedZoom && m_WindowsRegistered)
+    return m_SliceModel[0]->GetViewZoomInLogicalPixels();
+  else return std::numeric_limits<float>::quiet_NaN();
+}
+
 float
 SliceWindowCoordinator
 ::GetCommonOptimalFitZoomLevel()
@@ -348,6 +383,36 @@ SliceWindowCoordinator
       {
       double w = (double) m_SliceModel[i]->GetSize()[0];
       double h = (double) m_SliceModel[i]->GetSize()[1];
+
+      // Maximum zoom is constrained by the requirement that at least four
+      // pixels are visible in at least one dimensions
+      float zMax1 = 0.25 * w / m_SliceModel[i]->GetSliceSpacing()[0];
+      float zMax2 = 0.25 * h / m_SliceModel[i]->GetSliceSpacing()[1];
+      float zMax = zMax1 > zMax2 ? zMax1 : zMax2;
+      maxZoom = (maxZoom == 0.0f || maxZoom < zMax) ? zMax : maxZoom;
+
+      // Minimum zoom is just 0.25 of the optimal zoom
+      float zMin = 0.25 * m_SliceModel[i]->GetOptimalZoom();
+      minZoom = (minZoom == 0.0f || minZoom > zMin) ? zMin : minZoom;
+      }
+    }
+}
+
+void
+SliceWindowCoordinator
+::GetZoomRangeInLogicalPixels(unsigned int window, float &minZoom, float &maxZoom)
+{
+  assert(m_WindowsRegistered);
+
+  maxZoom = 0.0f;
+  minZoom = 0.0f;
+
+  for(unsigned int i=0;i<3;i++)
+    {
+    if(m_LinkedZoom || window == i)
+      {
+      double w = (double) m_SliceModel[i]->GetSizeInLogicalPixels()[0];
+      double h = (double) m_SliceModel[i]->GetSizeInLogicalPixels()[1];
 
       // Maximum zoom is constrained by the requirement that at least four
       // pixels are visible in at least one dimensions
@@ -426,6 +491,40 @@ bool SliceWindowCoordinator::GetCommonZoomValueAndRange(
 void SliceWindowCoordinator::SetCommonZoomValue(double zoom)
 {
   this->SetZoomLevelAllWindows((float) zoom);
+}
+
+bool SliceWindowCoordinator
+::GetCommonZoomInLogicalPixelsValueAndRange(double &zoom, NumericValueRange<double> *range)
+{
+  // Linked zoom required
+  if(!GetLinkedZoom() || !m_ParentModel->GetDriver()->IsMainImageLoaded())
+    return false;
+
+  // Get the zoom
+  zoom = (double) GetCommonZoomLevelInLogicalPixels();
+
+  // Get the range
+  if(range)
+    {
+    float fmin, fmax;
+    GetZoomRangeInLogicalPixels(0, fmin, fmax);
+
+    range->Minimum = fmin;
+    range->Maximum = fmax;
+
+    // Compute a reasonable step value. This is tricky, because zoom is not
+    // really a linear variable, at high zoom levels, you want steps to be
+    // larger than at small zoom levels. So how about a step that's just on
+    // the order of one hundredth of the current level?
+    range->StepSize = CalculatePowerOfTenStepSize(0, zoom, 10);
+    }
+
+  return true;
+}
+
+void SliceWindowCoordinator::SetCommonZoomInLogicalPixelsValue(double zoom)
+{
+  this->SetZoomLevelInLogicalPixelsAllWindows((float) zoom);
 }
 
 bool SliceWindowCoordinator::GetLinkedZoomValue(bool &out_value)

@@ -442,6 +442,9 @@ IRISApplication
   inConv->Update();
   LabelImageType::Pointer imgLabel = inConv->GetOutput();
   imgUncompressed = NULL; //deallocate intermediate image to save memory
+
+  // Disconnect from the pipeline right away
+  imgLabel->DisconnectPipeline();
   
   // The header of the label image is made to match that of the grey image
   imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());

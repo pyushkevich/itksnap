@@ -255,6 +255,9 @@ public:
    * image space */
   void SetViewZoom(float zoom);
 
+  /** Set the zoom factor in logical units (accounting for Retina displays) */
+  void SetViewZoomInLogicalPixels(float zoom);
+
   /**
    * Zoom in/out by a specified factor. This method will 'stop' at the optimal
    * zoom if it's between the old zoom and the new zoom
@@ -264,6 +267,9 @@ public:
   /** Get the zoom factor (number of pixels on the screen per millimeter in
    * image space */
   irisGetMacro(ViewZoom,float)
+
+  /** Get the logical zoom factor (for retina-style displays) */
+  float GetViewZoomInLogicalPixels() const;
 
   /** Computes the zoom that gives the best fit for the window */
   void ComputeOptimalZoom();
@@ -291,6 +297,9 @@ public:
 
   /** Get the physical size of the window (updated from widget via events) */
   Vector2ui GetSize();
+
+  /** Get the physical size of the window (updated from widget via events) */
+  Vector2ui GetSizeInLogicalPixels();
 
   /**
    * Get the size of the canvas on which the slice will be rendered. When the

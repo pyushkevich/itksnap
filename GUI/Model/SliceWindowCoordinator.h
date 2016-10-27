@@ -84,6 +84,9 @@ public:
   /** Set the zoom to an absolute value in all windows */
   void SetZoomLevelAllWindows(float level);
 
+  /** Set the zoom to an absolute value in all windows */
+  void SetZoomLevelInLogicalPixelsAllWindows(float level);
+
   /**
     This sets the zoom 'percentage'. For example, if x=1, the zoom is set
     such that one screen pixel is matched to the smallest of voxel dims. If
@@ -92,6 +95,12 @@ public:
     aliasing the displayed image
     */
   void SetZoomPercentageInAllWindows(float x);
+
+  /**
+   * This sets zoom percentage, but using logical (Retina) rather than physical
+   * pixel units. This keeps behavior the same on Retina and non-retina screens
+   */
+  void SetZoomPercentageInLogicalPixelsInAllWindows(float x);
 
   /** Reset the zoom in all windows to an optimal value, ie, such a zoom
    * that the image fits into each of the windows.  Depending on whether 
@@ -123,17 +132,26 @@ public:
   /** Get the common zoom factor */
   float GetCommonZoomLevel();
 
+  /** Get the common zoom factor - accounting for Retina scaling */
+  float GetCommonZoomLevelInLogicalPixels();
+
   /** Get the zoom factor that will fit all three slices optimally */
   float GetCommonOptimalFitZoomLevel();
 
   /** Get the model representing the optimal zoom */
   irisGetMacro(CommonZoomFactorModel, AbstractRangedDoubleProperty*)
 
+  /** Get the model representing the optimal zoom */
+  irisGetMacro(CommonZoomFactorInLogicalPixelsModel, AbstractRangedDoubleProperty*)
+
   /** Constrain a zoom factor to reasonable limits */
   float ClampZoom(unsigned int window,float zoom);
 
   /** Get the range of zoom allowed */
   void GetZoomRange(unsigned int window, float &minZoom, float &maxZoom);
+
+  /** Get the range of zoom allowed */
+  void GetZoomRangeInLogicalPixels(unsigned int window, float &minZoom, float &maxZoom);
 
   /** Get the window number n */
   GenericSliceModel *GetSliceModel(unsigned int window)
@@ -173,6 +191,14 @@ protected:
   bool GetCommonZoomValueAndRange(double &zoom,
                                   NumericValueRange<double> *range);
   void SetCommonZoomValue(double zoom);
+
+  // Child model governing linked zoom properties
+  SmartPtr<AbstractRangedDoubleProperty> m_CommonZoomFactorInLogicalPixelsModel;
+
+  // Methods that the model above wraps around
+  bool GetCommonZoomInLogicalPixelsValueAndRange(double &zoom,
+                                                 NumericValueRange<double> *range);
+  void SetCommonZoomInLogicalPixelsValue(double zoom);
 
   // Child model for the linked zoom flag
   SmartPtr<AbstractSimpleBooleanProperty> m_LinkedZoomModel;

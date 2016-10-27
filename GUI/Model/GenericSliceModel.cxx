@@ -490,6 +490,11 @@ void GenericSliceModel::SetViewZoom(float zoom)
   this->InvokeEvent(SliceModelGeometryChangeEvent());
 }
 
+void GenericSliceModel::SetViewZoomInLogicalPixels(float zoom)
+{
+  this->SetViewZoom(zoom * m_SizeReporter->GetViewportPixelRatio());
+}
+
 void GenericSliceModel::ZoomInOrOut(float factor)
 {
   float oldzoom = m_ViewZoom;
@@ -502,6 +507,12 @@ void GenericSliceModel::ZoomInOrOut(float factor)
     }
 
   SetViewZoom(newzoom);
+}
+
+float GenericSliceModel::GetViewZoomInLogicalPixels() const
+{
+  double zoom_physical = this->GetViewZoom();
+  return zoom_physical / m_SizeReporter->GetViewportPixelRatio();
 }
 
 /*
@@ -663,6 +674,14 @@ Vector2ui GenericSliceModel::GetSize()
   Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
   unsigned int rows = layout[0], cols = layout[1];
   return Vector2ui(viewport[0] / cols, viewport[1] / rows);
+}
+
+Vector2ui GenericSliceModel::GetSizeInLogicalPixels()
+{
+  Vector2ui size = this->GetSize();
+  size[0] = (unsigned int) (size[0] / m_SizeReporter->GetViewportPixelRatio());
+  size[1] = (unsigned int) (size[1] / m_SizeReporter->GetViewportPixelRatio());
+  return size;
 }
 
 Vector2ui GenericSliceModel::GetCanvasSize()
