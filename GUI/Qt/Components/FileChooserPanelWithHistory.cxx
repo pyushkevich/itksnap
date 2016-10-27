@@ -465,6 +465,7 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
   QStringList flatExtensionList;
   QStringList formatList;
   QString formatEntry;
+  QString defaultExtension;
   bool have_empty = false;
   foreach(QString format, m_Filter.keys())
     {
@@ -497,7 +498,10 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
     formatList << line;
 
     if(m_defaultFormat == format)
+      {
       formatEntry = line;
+      defaultExtension = m_Filter[format].first();
+      }
     }
 
   if(m_openMode)
@@ -510,8 +514,14 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
     }
   else
     {
+#ifdef __APPLE__
+    // On MacOS, compound extensions are a problem, see Qt bug QTBUG-44227
+    dialog.setDefaultSuffix(defaultExtension);
+
+#else
     dialog.setNameFilters(formatList);
     dialog.selectNameFilter(formatEntry);
+#endif
     }
 
   if(dialog.exec() && dialog.selectedFiles().size())
