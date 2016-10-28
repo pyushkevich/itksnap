@@ -193,6 +193,8 @@ OpenGLSliceTexture<TPixel>
 
   glPopMatrix();
 
+  // Even though we use glPushAttrib, on some graphics cards, the texture bit remains set
+  glDisable(GL_TEXTURE_2D);
   glPopAttrib();
 }
 
@@ -250,6 +252,9 @@ OpenGLSliceTexture<TPixel>
   glEnd();
   glPopMatrix();
 
+  // Even though we use glPushAttrib, on some graphics cards, the texture bit remains set
+  glDisable(GL_TEXTURE_2D);
+
   glPopAttrib();
 }
 
@@ -294,6 +299,10 @@ OpenGLSliceTexture<TPixel>
   glTexCoord2d(tx,0);
   glVertex2d(w,0);
   glEnd();
+
+  // Even though we use glPushAttrib, on some graphics cards, the texture bit remains set
+  glDisable(GL_BLEND);
+  glDisable(GL_TEXTURE_2D);
 
   glPopAttrib();
 }

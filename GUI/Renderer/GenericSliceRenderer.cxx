@@ -107,9 +107,6 @@ void
 GenericSliceRenderer
 ::paintGL()
 {
-  int stack_depth_begin, stack_depth_end;
-  glGetIntegerv(GL_ATTRIB_STACK_DEPTH, &stack_depth_begin);
-
   // Get the current image data
   GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
 
