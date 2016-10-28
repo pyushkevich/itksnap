@@ -106,6 +106,8 @@ public:
   // Get (creating if necessary) and configure the texture for a given layer
   Texture *GetTextureForLayer(ImageWrapperBase *iw);
 
+  // Set list of child renderers
+  void SetChildRenderers(std::list<AbstractRenderer *> renderers);
 
 protected:
 
@@ -143,6 +145,9 @@ protected:
 
   // A list of overlays that the user can configure
   RendererDelegateList m_TiledOverlays, m_GlobalOverlays;
+
+  // List of child renderers
+  std::list<AbstractRenderer *>m_ChildRenderers;
 };
 
 

@@ -772,34 +772,109 @@ ImageWrapper<TTraits,TBase>
   std::cout << "------------------------" << std::endl;
 }
 
+
+template<class TTraits, class TBase>
+bool
+ImageWrapper<TTraits,TBase>
+::CompareGeometry(
+    ImageBaseType *image1,
+    ImageBaseType *image2,
+    double tol)
+{
+  // If one of the images is NULL return false
+  if(!image1 || !image2)
+    return false;
+
+  // Check if the images have same dimensions
+  bool same_size = (image1->GetBufferedRegion() == image2->GetBufferedRegion());
+
+  // Now test the 3D geometry of the image to see if it occupies the same space
+  bool same_space = true;
+
+  for(int i = 0; i < 3; i++)
+    {
+    if(fabs(image1->GetOrigin()[i] - image2->GetOrigin()[i]) > tol)
+      same_space = false;
+    if(fabs(image1->GetSpacing()[i] - image2->GetSpacing()[i]) > tol)
+      same_space = false;
+    for(int j = 0; j < 3; j++)
+      {
+      if(fabs(image1->GetDirection()[i][j] - image2->GetDirection()[i][j]) > tol)
+        same_space = false;
+      }
+    }
+
+  return same_size && same_space;
+}
+
+
+template<class TTraits, class TBase>
+bool
+ImageWrapper<TTraits,TBase>
+::CanOrthogonalSlicingBeUsed(
+    ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform)
+{
+  // For orthogonal slicing to be usable, two conditions must be met
+  //   1. The reference space and the new image must have the same geometry
+  //   2. The transform must be identity
+
+  // Check if the images have same dimensions
+  double tol = 1e-5;
+  bool same_geom = CompareGeometry(image, referenceSpace, tol);
+
+  // Get the transform matrix and offset
+  // TODO: this is silly and unnecessary. We should always use one Transform class
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformBase;
+  TransformBase *tb = dynamic_cast<TransformBase *>(transform);
+  typename TransformBase::MatrixType matrix;
+  typename TransformBase::OffsetType offset;
+  matrix.SetIdentity();
+  offset.Fill(0.0);
+  if(tb)
+    {
+    matrix = tb->GetMatrix();
+    offset = tb->GetOffset();
+    }
+
+  // Check if transform is identity.
+  bool is_identity = true;
+
+  for(int i = 0; i < 3; i++)
+    {
+    if(fabs(offset[i]) > tol)
+      is_identity = false;
+    for(int j = 0; j < 3; j++)
+      {
+      if(fabs(matrix(i,j) - (i==j ? 1.0 : 0.0)) > tol)
+        is_identity = false;
+      }
+    }
+
+  return same_geom && is_identity;
+}
+
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::UpdateImagePointer(ImageType *newImage, ImageBaseType *referenceSpace, ITKTransformType *transform)
+::UpdateSlicingPipelines(ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
-  // If there is no reference space, we assume that the reference space is the same as the image
-  referenceSpace = referenceSpace ? referenceSpace : newImage;
-
-  // Check if the image size or image direction matrix has changed
-  bool hasSizeChanged = true, hasDirectionChanged = true;
-  if(m_ReferenceSpace && m_ReferenceSpace != referenceSpace)
-    {
-    hasSizeChanged = referenceSpace->GetLargestPossibleRegion().GetSize()
-        != m_ReferenceSpace->GetLargestPossibleRegion().GetSize();
-
-    hasDirectionChanged = referenceSpace->GetDirection()
-        != m_ReferenceSpace->GetDirection();
-    }
+  // Can we use orthogonal spacing
+  bool ortho = CanOrthogonalSlicingBeUsed(image, referenceSpace, transform);
 
   // Set the input of the slicers, depending on whether the image is subject to transformation
-  if(transform == NULL)
+  if(ortho)
     {
     // Slicers take their input directly from the new image
     for(int i = 0; i < 3; i++)
       {
-      m_Slicer[i]->SetInput(newImage);
+      // Set up the basic slicing pipeline
+      m_Slicer[i]->SetInput(image);
       m_Slicer[i]->SetPreviewInput(NULL);
       m_Slicer[i]->SetBypassMainInput(false);
+
+      // Drop the advanced slicing pipeline
+      m_AdvancedSlicer[i] = NULL;
+      m_ResampleFilter[i+3] = NULL;
       }
     }
   else
@@ -818,20 +893,32 @@ ImageWrapper<TTraits,TBase>
 
       // Create an advanced slicer
       m_AdvancedSlicer[i] = NonOrthogonalSlicerType::New();
-      m_AdvancedSlicer[i]->SetInput(newImage);
+      m_AdvancedSlicer[i]->SetInput(image);
       m_AdvancedSlicer[i]->SetTransform(transform);
+      m_AdvancedSlicer[i]->SetReferenceImage(m_DisplayViewportGeometryReference[i]);
 
       // Create another set that work with the older slicers - this is temporary
       // TODO: get rid of this
       m_ResampleFilter[i+3] = ResampleFilter::New();
-      m_ResampleFilter[i+3]->SetInput(newImage);
+      m_ResampleFilter[i+3]->SetInput(image);
       m_ResampleFilter[i+3]->SetTransform(transform);
       m_ResampleFilter[i+3]->SetOutputParametersFromImage(referenceSpace);
       m_Slicer[i]->SetPreviewInput(m_ResampleFilter[i+3]->GetOutput());
       m_Slicer[i]->SetBypassMainInput(true);
       }
     }
+}
 
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::UpdateImagePointer(ImageType *newImage, ImageBaseType *referenceSpace, ITKTransformType *transform)
+{
+  // If there is no reference space, we assume that the reference space is the same as the image
+  referenceSpace = referenceSpace ? referenceSpace : newImage;
+
+  // Check if the image size or image direction matrix has changed
+  bool isReferenceGeometrySame = CompareGeometry(m_ReferenceSpace, referenceSpace);
 
   // Update the image
   this->m_ReferenceSpace = referenceSpace;
@@ -840,13 +927,18 @@ ImageWrapper<TTraits,TBase>
 
   // Update the transforms
   if(transform)
+    {
     this->m_Transform = transform;
+    }
   else
     {
     typedef itk::IdentityTransform<double, 3> IdTransformType;
     typename IdTransformType::Pointer idTran = IdTransformType::New();
     this->m_Transform = idTran.GetPointer();
     }
+
+  // Update the slicing pipelines
+  UpdateSlicingPipelines(this->m_Image, this->m_ReferenceSpace, this->m_Transform);
 
   // Mark the image as Modified to enforce correct sequence of
   // operations with MinMaxCalc
@@ -856,7 +948,7 @@ ImageWrapper<TTraits,TBase>
   m_DisplayMapping->UpdateImagePointer(m_Image);
 
   // Update the image coordinate geometry
-  if(hasSizeChanged || hasDirectionChanged)
+  if(!isReferenceGeometrySame)
     {
     // Reset the transform to identity
     this->UpdateImageGeometry();
@@ -947,26 +1039,37 @@ void
 ImageWrapper<TTraits,TBase>
 ::SetITKTransform(ImageBaseType *refSpace, ITKTransformType *transform)
 {
+
   // Check if the reference space has changed
   if(m_ReferenceSpace != refSpace)
     {
     // Force a reinitialization of this layer
     this->UpdateImagePointer(m_Image, refSpace, transform);
     }
-  else if(!this->IsSlicingOrthogonal())
-    {
-    // Simply update the transforms
-    for(int i = 0; i < 3; i++)
-      {
-      m_AdvancedSlicer[i]->SetTransform(transform);
-      m_ResampleFilter[i+3]->SetTransform(transform);
-      }
-    this->m_Transform = transform;
-    this->InvokeEvent(WrapperDisplayMappingChangeEvent());
-    }
   else
     {
-    // TODO: handle switching between orthogonal and non-orthogonal based on transform, etc.
+    bool ortho_old = CanOrthogonalSlicingBeUsed(m_Image, refSpace, m_Transform);
+    bool ortho_new = CanOrthogonalSlicingBeUsed(m_Image, refSpace, transform);
+    if(ortho_old != ortho_new)
+      {
+      // Slicing mode needs to change, this requires a full reinitialization
+      this->UpdateImagePointer(m_Image, refSpace, transform);
+      }
+    else
+      {
+      // Store the transform
+      this->m_Transform = transform;
+
+      if(!this->IsSlicingOrthogonal())
+        {
+        for(int i = 0; i < 3; i++)
+          {
+          m_AdvancedSlicer[i]->SetTransform(transform);
+          m_ResampleFilter[i+3]->SetTransform(transform);
+          }
+        this->InvokeEvent(WrapperDisplayMappingChangeEvent());
+        }
+      }
     }
 }
 
@@ -1102,6 +1205,7 @@ ImageWrapper<TTraits,TBase>
     unsigned int index,
     ImageBaseType *viewport_image)
 {
+  m_DisplayViewportGeometryReference[index] = viewport_image;
   if(m_AdvancedSlicer[index])
     {
     m_AdvancedSlicer[index]->SetReferenceImage(viewport_image);

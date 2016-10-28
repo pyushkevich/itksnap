@@ -699,9 +699,23 @@ protected:
   typedef itk::ResampleImageFilter<ImageType, PreviewImageType, double, double> ResampleFilter;
   SmartPtr<ResampleFilter> m_ResampleFilter[6];
 
-  // TODO: in the future replace this with a true in-place filter that collapses the last dimension
+  // Slicer for when slicing is not along orthogonal axes
   typedef NonOrthogonalSlicer<ImageType, SliceType> NonOrthogonalSlicerType;
   SmartPtr<NonOrthogonalSlicerType> m_AdvancedSlicer[3];
+
+  // Viewport geometry images needed by the advanced slicers
+  SmartPtr<ImageBaseType> m_DisplayViewportGeometryReference[3];
+
+  // Compare the geometry (size and header) of two images. Returns true if the headers are
+  // within tolerance of each other.
+  static bool CompareGeometry(ImageBaseType *image1, ImageBaseType *image2, double tol = 0.0);
+
+  // Check if the orthogonal slicer can be used for the given image, ref space and transform
+  static bool CanOrthogonalSlicingBeUsed(
+      ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform);
+
+  // Update the orthogonal and/or non-orthogonal slicing pipelines
+  void UpdateSlicingPipelines(ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform);
 };
 
 #endif // __ImageWrapper_h_
