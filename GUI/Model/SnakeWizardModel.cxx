@@ -1166,10 +1166,26 @@ void SnakeWizardModel::SetPreprocessingModeValue(PreprocessingMode value)
 void SnakeWizardModel::CompletePreprocessing()
 {
   // If we are in classification pre-segmentation mode, set the active drawing label
-  // to match the foreground class - otherwise it's confusing to the user
+  // to match the foreground class(es) - otherwise it's confusing to the user
   if(m_Driver->GetPreprocessingMode() == PREPROCESS_RF)
-    m_Parent->GetGlobalState()->SetDrawingColorLabel(
-          this->GetClassiferFirstForegroundLabel());
+    {
+    // What is the current drawing label?
+    LabelType label = m_Parent->GetGlobalState()->GetDrawingColorLabel();
+
+    // Is the current label one of the foreground classes?
+    ClassifierLabelForegroundMap fbtable = this->GetClassifierLabelForeground();
+    ClassifierLabelForegroundMap::const_iterator itLabel = fbtable.find(label);
+    if(itLabel == fbtable.end() || itLabel->second == false)
+      {
+      // No, it's not one of the foreground classes. So find the first foreground class
+      for(ClassifierLabelForegroundMap::const_iterator it = fbtable.begin(); it != fbtable.end(); ++it)
+        if(it->second)
+          {
+          m_Parent->GetGlobalState()->SetDrawingColorLabel(it->first);
+          break;
+          }
+      }
+    }
 
   // Disconnect preview pipeline
   m_Driver->EnterPreprocessingMode(PREPROCESS_NONE);
