@@ -46,6 +46,10 @@ The main focus of this release is on making it easier to work with multiple imag
 - Fixed issue with loading of NRRD images on some systems due to non-US locale (thx Johan B)
 - Fixed behavior of *Ctrl-W*, so that when there are open dialog windows this keystroke closes them rather than the current image layer (thx Karl B)
 - Fixed issue with multi-component images, where every 100th component showed up as 'Magnitude' (this Phil. C)
+- Fixed OpenGL rendering issues on Windows 10 on some cards
+- Fixed computation of zoom factor on Retina displays
+- Fixed behavior of File Save browse dialogs on MacOS when saving .nii.gz files
+- Fixed issues with unnecessary prompting to save segmentations
 - Several other fixes for specific crashes.
 
 ### Known Issues
