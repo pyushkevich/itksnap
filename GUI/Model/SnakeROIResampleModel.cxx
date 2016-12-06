@@ -46,7 +46,7 @@ void SnakeROIResampleModel::Reset()
 {
   SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
   m_ResampleDimensions = roi.GetROI().GetSize();
-  m_InterpolationModeModel->SetValue(SNAPSegmentationROISettings::TRILINEAR);
+  m_InterpolationModeModel->SetValue(TRILINEAR);
   InvokeEvent(ModelUpdateEvent());
 }
 
@@ -114,9 +114,9 @@ void SnakeROIResampleModel::ComputeCachedDomains()
   // vector images. This is a problem and should be fixed
 
   // Set up the interpolation mode map
-  m_InterpolationModeDomain[SNAPSegmentationROISettings::NEAREST_NEIGHBOR] =
+  m_InterpolationModeDomain[NEAREST_NEIGHBOR] =
       "Nearest neighbor (fast)";
-  m_InterpolationModeDomain[SNAPSegmentationROISettings::TRILINEAR] =
+  m_InterpolationModeDomain[TRILINEAR] =
       "Linear interpolation (better quality)";
   // m_InterpolationModeDomain[SNAPSegmentationROISettings::TRICUBIC] =
   //     "Cubic interpolation (high quality)";

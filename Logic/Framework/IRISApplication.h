@@ -275,7 +275,9 @@ public:
    * Add a 'derived' overlay, i.e., an overlay generated using image processing from one
    * of the existing image layers
    */
-  void AddDerivedOverlayImage(ImageWrapperBase *overlay);
+  void AddDerivedOverlayImage(const ImageWrapperBase *sourceLayer,
+                              ImageWrapperBase *overlay,
+                              bool inherit_colormap);
 
   /**
    * Remove a specific overlay

@@ -81,6 +81,9 @@ public:
   /** Reset the rotation to identity */
   void ResetTransformToIdentity();
 
+  /** Match image centers */
+  void MatchImageCenters();
+
   /** Apply a rotation around a fixed angle */
   void ApplyRotation(const Vector3d &axis, double theta);
 
@@ -120,6 +123,8 @@ public:
   /** Cleanup on dialog closed (but not necessarily destroyed) */
   void OnDialogClosed();
 
+  /** Reslice moving image */
+  void ResliceMovingImage(InterpolationMethod method);
 
 
 protected:

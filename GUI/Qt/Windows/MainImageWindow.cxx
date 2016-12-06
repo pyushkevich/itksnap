@@ -227,6 +227,10 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_ControlPanel = new MainControlPanel(this);
   m_DockLeft->setWidget(m_ControlPanel);
 
+  // Connect left dock to its menu item
+  connect(m_DockLeft, SIGNAL(visibilityChanged(bool)),
+          ui->actionMainControlPanel, SLOT(setChecked(bool)));
+
   // Set up the right hand side dock widget
   m_DockRight = new QDockWidget("Segment 3D", this);
 
@@ -2259,3 +2263,11 @@ void MainImageWindow::on_actionRegistration_triggered()
   m_DockRight->setVisible(true);
 }
 
+
+void MainImageWindow::on_actionMainControlPanel_triggered()
+{
+  if(ui->actionMainControlPanel->isChecked())
+    m_DockLeft->show();
+  else
+    m_DockLeft->hide();
+}

@@ -30,9 +30,8 @@ public:
 
   irisSimplePropertyAccessMacro(FixedAspectRatio, bool)
 
-  typedef SNAPSegmentationROISettings::InterpolationMethod InterpolationMode;
-  typedef SimpleItemSetDomain<InterpolationMode, std::string> InterpolationModeDomain;
-  typedef AbstractPropertyModel<InterpolationMode, InterpolationModeDomain> AbstractInterpolationModeModel;
+  typedef SimpleItemSetDomain<InterpolationMethod, std::string> InterpolationModeDomain;
+  typedef AbstractPropertyModel<InterpolationMethod, InterpolationModeDomain> AbstractInterpolationModeModel;
 
   irisGetMacro(InterpolationModeModel, AbstractInterpolationModeModel *)
 
@@ -93,7 +92,7 @@ protected:
   InterpolationModeDomain m_InterpolationModeDomain;
 
   // Model for the interpolation modes
-  typedef ConcretePropertyModel<InterpolationMode, InterpolationModeDomain> ConcreteInterpolationModeModel;
+  typedef ConcretePropertyModel<InterpolationMethod, InterpolationModeDomain> ConcreteInterpolationModeModel;
   SmartPtr<ConcreteInterpolationModeModel> m_InterpolationModeModel;
 };
 

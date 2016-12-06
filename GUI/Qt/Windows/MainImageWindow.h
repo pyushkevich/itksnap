@@ -292,6 +292,8 @@ private slots:
 
   void onRightDockCurrentChanged(int);
 
+  void on_actionMainControlPanel_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

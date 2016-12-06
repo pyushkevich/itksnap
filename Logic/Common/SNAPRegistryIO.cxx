@@ -50,7 +50,7 @@
 RegistryEnumMap<CoverageModeType> SNAPRegistryIO::m_EnumMapCoverage;
 RegistryEnumMap<SnakeParameters::SolverType> SNAPRegistryIO::m_EnumMapSolver;
 RegistryEnumMap<SnakeParameters::SnakeType> SNAPRegistryIO::m_EnumMapSnakeType;
-RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> SNAPRegistryIO::m_EnumMapROI;
+RegistryEnumMap<InterpolationMethod> SNAPRegistryIO::m_EnumMapROI;
 RegistryEnumMap<LayerRole> SNAPRegistryIO::m_EnumMapLayerRole;
 RegistryEnumMap<LayerLayout> SNAPRegistryIO::m_EnumMapLayerLayout;
 
@@ -195,7 +195,7 @@ RegistryEnumMap<SnakeParameters::SnakeType> &SNAPRegistryIO::GetEnumMapSnakeType
   return m_EnumMapSnakeType;
 }
 
-RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> &SNAPRegistryIO::GetEnumMapROI()
+RegistryEnumMap<InterpolationMethod> &SNAPRegistryIO::GetEnumMapROI()
 {
   BuildEnums();
   return m_EnumMapROI;
@@ -444,10 +444,10 @@ void SNAPRegistryIO::BuildEnums()
   m_EnumMapSnakeType.AddPair(SnakeParameters::EDGE_SNAKE,"EdgeStopping");
   m_EnumMapSnakeType.AddPair(SnakeParameters::REGION_SNAKE,"RegionCompetition");
 
-  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::NEAREST_NEIGHBOR,"Nearest");
-  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::TRILINEAR,"TriLinear");
-  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::TRICUBIC,"Cubic");
-  m_EnumMapROI.AddPair(SNAPSegmentationROISettings::SINC_WINDOW_05,"Sinc05");
+  m_EnumMapROI.AddPair(NEAREST_NEIGHBOR,"Nearest");
+  m_EnumMapROI.AddPair(TRILINEAR,"TriLinear");
+  m_EnumMapROI.AddPair(TRICUBIC,"Cubic");
+  m_EnumMapROI.AddPair(SINC_WINDOW_05,"Sinc05");
 
   m_EnumMapLayerRole.AddPair(MAIN_ROLE, "MainRole");
   m_EnumMapLayerRole.AddPair(OVERLAY_ROLE, "OverlayRole");

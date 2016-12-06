@@ -159,6 +159,8 @@
         <file>icons8_palette_16.png</file>
         <file>icons8_layers_16@2x.png</file>
         <file>icons8_layers_16.png</file>
+        <file>reslice_16@2x.png</file>
+        <file>reslice_16.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

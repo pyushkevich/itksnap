@@ -547,7 +547,7 @@ color:rgb(103, 103, 103);
     </widget>
     <widget class="QMenu" name="menuZoom">
      <property name="title">
-      <string>View Zoom</string>
+      <string>Zoom</string>
      </property>
      <addaction name="actionZoomToFitInAllViews"/>
      <addaction name="separator"/>
@@ -570,17 +570,23 @@ color:rgb(103, 103, 103);
      <addaction name="actionOverlayVisibilityIncreaseAll"/>
      <addaction name="actionOverlayVisibilityDecreaseAll"/>
     </widget>
+    <widget class="QMenu" name="menuViews">
+     <property name="title">
+      <string>Views</string>
+     </property>
+     <addaction name="actionMainControlPanel"/>
+    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
     <addaction name="menuForeground_Label"/>
     <addaction name="menuBackground_Label"/>
     <addaction name="separator"/>
+    <addaction name="menuZoom"/>
+    <addaction name="menuLayers"/>
     <addaction name="menuSlice_Annotations"/>
     <addaction name="separator"/>
-    <addaction name="menuZoom"/>
-    <addaction name="separator"/>
-    <addaction name="menuLayers"/>
+    <addaction name="menuViews"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1501,6 +1507,14 @@ color:rgb(103, 103, 103);
   <action name="actionDicomDummy">
    <property name="text">
     <string>Dummy</string>
+   </property>
+  </action>
+  <action name="actionMainControlPanel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Main Control Panel</string>
    </property>
   </action>
  </widget>

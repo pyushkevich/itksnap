@@ -311,7 +311,11 @@ public:
   DisplayMapping *GetDisplayMapping()
     { return m_DisplayMapping; }
 
-  /** 
+  /** Get the intensity to display mapping */
+  const DisplayMapping *GetDisplayMapping() const
+    { return m_DisplayMapping; }
+
+  /**
    * Return the pointed to the ITK image encapsulated by this wrapper.
    */
   virtual ImageType *GetImage() const

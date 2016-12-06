@@ -90,7 +90,7 @@ public:
   static RegistryEnumMap<CoverageModeType> &GetEnumMapCoverage();
   static RegistryEnumMap<SnakeParameters::SolverType> &GetEnumMapSolver();
   static RegistryEnumMap<SnakeParameters::SnakeType> &GetEnumMapSnakeType();
-  static RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> &GetEnumMapROI();
+  static RegistryEnumMap<InterpolationMethod> &GetEnumMapROI();
   static RegistryEnumMap<LayerRole> &GetEnumMapLayerRole();
   static RegistryEnumMap<LayerLayout> &GetEnumMapLayerLayout();
 
@@ -103,7 +103,7 @@ protected:
   static RegistryEnumMap<CoverageModeType> m_EnumMapCoverage;
   static RegistryEnumMap<SnakeParameters::SolverType> m_EnumMapSolver;
   static RegistryEnumMap<SnakeParameters::SnakeType> m_EnumMapSnakeType;
-  static RegistryEnumMap<SNAPSegmentationROISettings::InterpolationMethod> m_EnumMapROI;
+  static RegistryEnumMap<InterpolationMethod> m_EnumMapROI;
   static RegistryEnumMap<LayerRole> m_EnumMapLayerRole;
   static RegistryEnumMap<LayerLayout> m_EnumMapLayerLayout;
 

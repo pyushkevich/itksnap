@@ -329,6 +329,12 @@ public:
    */
   virtual AbstractDisplayMappingPolicy *GetDisplayMapping() = 0;
 
+  /**
+   * Get the display mapping policy. This policy differs from wrapper to wrapper
+   * and may involve using color labels or color maps.
+   */
+  virtual const AbstractDisplayMappingPolicy *GetDisplayMapping() const = 0;
+
   // Access the filename
   irisVirtualGetStringMacro(FileName)
   irisVirtualSetStringMacro(FileName)

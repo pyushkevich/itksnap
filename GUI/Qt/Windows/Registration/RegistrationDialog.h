@@ -41,6 +41,10 @@ private slots:
 
   void on_tabWidget_currentChanged(int index);
 
+  void on_btnReslice_clicked();
+
+  void on_btnMatchCenters_clicked();
+
 private:
   Ui::RegistrationDialog *ui;
 

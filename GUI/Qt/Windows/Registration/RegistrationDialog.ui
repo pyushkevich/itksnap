@@ -221,7 +221,7 @@ QToolButton::pressed {
 }</string>
          </property>
          <property name="title">
-          <string>Rotation (euler angles):</string>
+          <string>Rotation (Euler angles):</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <property name="spacing">
@@ -629,6 +629,33 @@ QToolButton::pressed {
         <property name="icon">
          <iconset resource="../../Resources/SNAPResources.qrc">
           <normaloff>:/root/save_22.png</normaloff>:/root/save_22.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>4</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnReslice">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reslice the moving image into the space of the main image&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../../Resources/SNAPResources.qrc">
+          <normaloff>:/root/reslice_16.png</normaloff>:/root/reslice_16.png</iconset>
         </property>
        </widget>
       </item>

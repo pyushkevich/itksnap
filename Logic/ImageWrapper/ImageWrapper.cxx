@@ -272,22 +272,22 @@ public:
     // Choose the interpolator
     switch(roi.GetInterpolationMethod())
       {
-      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
+      case NEAREST_NEIGHBOR :
         typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double> NNInterpolatorType;
         interp = NNInterpolatorType::New().GetPointer();
         break;
 
-      case SNAPSegmentationROISettings::TRILINEAR :
+      case TRILINEAR :
         typedef itk::LinearInterpolateImageFunction<ImageType,double> LinearInterpolatorType;
         interp = LinearInterpolatorType::New().GetPointer();
         break;
 
-      case SNAPSegmentationROISettings::TRICUBIC :
+      case TRICUBIC :
         typedef itk::BSplineInterpolateImageFunction<ImageType,double> CubicInterpolatorType;
         interp = CubicInterpolatorType::New().GetPointer();
         break;
 
-      case SNAPSegmentationROISettings::SINC_WINDOW_05 :
+      case SINC_WINDOW_05 :
         // More typedefs are needed for the sinc interpolator
         static const unsigned int VRadius = 5;
         typedef itk::Function::HammingWindowFunction<VRadius> WindowFunction;
@@ -330,12 +330,12 @@ public:
     // Choose the interpolator
     switch(roi.GetInterpolationMethod())
       {
-      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
+      case NEAREST_NEIGHBOR :
         typedef itk::NearestNeighborInterpolateImageFunction<ImageType> NNInterpolatorType;
         interp = NNInterpolatorType::New().GetPointer();
         break;
 
-      case SNAPSegmentationROISettings::TRILINEAR :
+      case TRILINEAR :
         typedef itk::LinearInterpolateImageFunction<ImageType> LinearInterpolatorType;
         interp = LinearInterpolatorType::New().GetPointer();
         break;
@@ -492,22 +492,22 @@ public:
     // Choose the interpolator
     switch(roi.GetInterpolationMethod())
       {
-      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
+      case NEAREST_NEIGHBOR :
         typedef itk::NearestNeighborInterpolateImageFunction<UncompressedType, double> NNInterpolatorType;
         interp = NNInterpolatorType::New().GetPointer();
         break;
 
-      case SNAPSegmentationROISettings::TRILINEAR:
+      case TRILINEAR:
           typedef itk::LinearInterpolateImageFunction<UncompressedType, double> LinearInterpolatorType;
           interp = LinearInterpolatorType::New().GetPointer();
           break;
 
-      case SNAPSegmentationROISettings::TRICUBIC:
+      case TRICUBIC:
           typedef itk::BSplineInterpolateImageFunction<UncompressedType, double> CubicInterpolatorType;
           interp = CubicInterpolatorType::New().GetPointer();
           break;
 
-      case SNAPSegmentationROISettings::SINC_WINDOW_05:
+      case SINC_WINDOW_05:
           // More typedefs are needed for the sinc interpolator
           static const unsigned int VRadius = 5;
           typedef itk::Function::HammingWindowFunction<VRadius> WindowFunction;

@@ -8,7 +8,7 @@
 #include "QtComboBoxCoupling.h"
 #include <QMenu>
 
-Q_DECLARE_METATYPE(SNAPSegmentationROISettings::InterpolationMethod)
+Q_DECLARE_METATYPE(InterpolationMethod)
 
 ResampleDialog::ResampleDialog(QWidget *parent) :
   QDialog(parent),

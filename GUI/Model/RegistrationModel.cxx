@@ -600,6 +600,27 @@ void RegistrationModel::OnDialogClosed()
     m_InteractiveToolModel->SetValue(false);
 }
 
+void RegistrationModel
+::ResliceMovingImage(InterpolationMethod method)
+{
+  ImageWrapperBase *moving = this->GetMovingLayerWrapper();
+  assert(moving);
+
+  // We can take advantage of existing facilities for interpolation and reslicing
+  // in the ImageWrapper class
+  SNAPSegmentationROISettings roi;
+  roi.SetInterpolationMethod(method);
+  roi.SetROI(m_Driver->GetCurrentImageData()->GetMain()->GetBufferedRegion());
+  SmartPtr<ImageWrapperBase> reslice =
+      moving->ExtractROI(roi, m_Parent->GetProgressCommand());
+
+  // Give it a nickname
+  reslice->SetCustomNickname(std::string("resliced ") + moving->GetNickname());
+
+  // This wrapper can now be added to the main list of wrappers
+  m_Driver->AddDerivedOverlayImage(moving, reslice, true);
+}
+
 bool RegistrationModel::CheckState(RegistrationModel::UIState state)
 {
   switch(state)
@@ -680,6 +701,40 @@ void RegistrationModel::ResetTransformToIdentity()
 
   matrix.SetIdentity();
   offset.Fill(0.0);
+
+  this->SetMovingTransform(matrix, offset);
+}
+
+void RegistrationModel::MatchImageCenters()
+{
+  // Set the transforms so that the center voxels of the two images are matched
+  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
+  assert(layer);
+
+  // Get the reference space - should match main image
+  ImageWrapperBase::ImageBaseType *refspc = layer->GetReferenceSpace();
+  ImageWrapperBase::ImageBaseType *movspc = layer->GetImageBase();
+
+
+  // Compute the world coordinates of the image centers
+  itk::Index<3> ciRef, ciMov;
+  for(int d = 0; d < 3; d++)
+    {
+    ciRef[d] = refspc->GetLargestPossibleRegion().GetSize()[d] / 2;
+    ciMov[d] = movspc->GetLargestPossibleRegion().GetSize()[d] / 2;
+    }
+
+  // Get the rotation center in world coordinates
+  itk::Point<double, 3> cpRef, cpMov;
+  refspc->TransformIndexToPhysicalPoint(ciRef, cpRef);
+  movspc->TransformIndexToPhysicalPoint(ciMov, cpMov);
+
+  // Translation should take cpRef to cpMov
+  ITKMatrixType matrix;
+  ITKVectorType offset;
+  this->GetMovingTransform(matrix, offset);
+
+  offset = cpMov - matrix * cpRef;
 
   this->SetMovingTransform(matrix, offset);
 }

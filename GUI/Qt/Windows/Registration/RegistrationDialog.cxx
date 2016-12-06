@@ -213,3 +213,64 @@ void RegistrationDialog::on_tabWidget_currentChanged(int index)
   if(ui->tabWidget->currentWidget() == ui->pgManual)
     m_Model->GetInteractiveToolModel()->SetValue(true);
 }
+
+#include <QDialog>
+#include <QFormLayout>
+#include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QDialogButtonBox>
+
+void RegistrationDialog::on_btnReslice_clicked()
+{
+  // Prompt the user for the kind of reslicing to do
+  QDialog *dialog = new QDialog(this);
+  QFormLayout *lo = new QFormLayout();
+
+  dialog->setWindowTitle("Reslicing Options - ITK-SNAP");
+
+  // Set up interpolation options
+  QComboBox *cbInterp = new QComboBox(dialog);
+  cbInterp->addItem("Nearest Neighbor", QVariant(NEAREST_NEIGHBOR));
+  cbInterp->addItem("Linear", QVariant(TRILINEAR));
+  cbInterp->setCurrentIndex(1);
+  lo->addRow("&Interpolation:", cbInterp);
+
+  // Set up background value (currently unimplemented)
+  /*
+  QDoubleSpinBox *inBkValue = new QDoubleSpinBox(dialog);
+  inBkValue->setValue(0.0);
+  inBkValue->setToolTip(
+        "Intensity value that will be assigned to voxels that are "
+        "outside of the image domain.");
+  lo->addRow("&Background intensity:", inBkValue);
+  */
+
+  QLabel *label = new QLabel;
+  label->setText("The resliced image will be created as an addtional\n"
+                 "image layer. You can save the resliced image using\n"
+                 "the context menu.");
+  lo->addRow(label);
+
+  QDialogButtonBox *bbox =
+      new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+  connect(bbox, SIGNAL(accepted()), dialog, SLOT(accept()));
+  connect(bbox, SIGNAL(rejected()), dialog, SLOT(reject()));
+  lo->addRow(bbox);
+
+  dialog->setLayout(lo);
+
+
+  // Get the selected values
+  if(dialog->exec() == QDialog::Accepted)
+    {
+    bool is_linear = (cbInterp->currentText() == "Linear");
+    m_Model->ResliceMovingImage(is_linear ? TRILINEAR : NEAREST_NEIGHBOR);
+    }
+
+  delete dialog;
+}
+
+void RegistrationDialog::on_btnMatchCenters_clicked()
+{
+  m_Model->MatchImageCenters();
+}

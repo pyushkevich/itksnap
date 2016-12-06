@@ -193,7 +193,7 @@ IRISApplication
   // Override the interpolator in ROI for label interpolation, or we will get
   // nonsense
   SNAPSegmentationROISettings roiLabel = roi;
-  roiLabel.SetInterpolationMethod(SNAPSegmentationROISettings::NEAREST_NEIGHBOR);
+  roiLabel.SetInterpolationMethod(NEAREST_NEIGHBOR);
 
   // Get chunk of the label image
   LabelImageType::Pointer imgNewLabel = 
@@ -656,19 +656,19 @@ IRISApplication
     // Choose the interpolator
     switch(roi.GetInterpolationMethod())
       {
-      case SNAPSegmentationROISettings::NEAREST_NEIGHBOR :
+      case NEAREST_NEIGHBOR :
         fltSample->SetInterpolator(NNInterpolatorType::New());
         break;
 
-      case SNAPSegmentationROISettings::TRILINEAR : 
+      case TRILINEAR :
         fltSample->SetInterpolator(LinearInterpolatorType::New());
         break;
 
-      case SNAPSegmentationROISettings::TRICUBIC :
+      case TRICUBIC :
         fltSample->SetInterpolator(CubicInterpolatorType::New());
         break;  
 
-      case SNAPSegmentationROISettings::SINC_WINDOW_05 :
+      case SINC_WINDOW_05 :
         fltSample->SetInterpolator(SincInterpolatorType::New());
         break;
       };
@@ -1601,10 +1601,12 @@ IRISApplication
 
 void
 IRISApplication
-::AddDerivedOverlayImage(ImageWrapperBase *overlay)
+::AddDerivedOverlayImage(
+    const ImageWrapperBase *sourceLayer,
+    ImageWrapperBase *overlay,
+    bool inherit_colormap)
 {
   assert(this->IsMainImageLoaded());
-  ImageWrapperBase *layer = m_CurrentImageData->GetLastOverlay();
 
   // Add the image as the current grayscale overlay
   m_CurrentImageData->AddOverlay(overlay);
@@ -1614,22 +1616,32 @@ IRISApplication
   m_CurrentImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
 
   // Apply the default color map for overlays
-  std::string deflt_preset =
-      m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
-  m_ColorMapPresetManager->SetToPreset(layer->GetDisplayMapping()->GetColorMap(),
-                                       deflt_preset);
+  if(inherit_colormap)
+    {
+    const ColorMap *cmSource = sourceLayer->GetDisplayMapping()->GetColorMap();
+    ColorMap *cmOverlay = overlay->GetDisplayMapping()->GetColorMap();
+    if(cmSource && cmOverlay)
+      cmOverlay->CopyInformation(cmSource);
+    }
+  else
+    {
+    std::string deflt_preset =
+        m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
+    m_ColorMapPresetManager->SetToPreset(overlay->GetDisplayMapping()->GetColorMap(),
+                                         deflt_preset);
+    }
 
   // Initialize the layer-specific segmentation parameters
-  CreateSegmentationSettings(layer, OVERLAY_ROLE);
+  CreateSegmentationSettings(overlay, OVERLAY_ROLE);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image
   if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
-    AutoContrastLayerOnLoad(layer);
+    AutoContrastLayerOnLoad(overlay);
 
   // Set the selected layer ID to be the new overlay
-  if(!layer->IsSticky())
-    m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
+  if(!overlay->IsSticky())
+    m_GlobalState->SetSelectedLayerId(overlay->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
