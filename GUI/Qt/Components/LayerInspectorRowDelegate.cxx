@@ -406,7 +406,7 @@ void LayerInspectorRowDelegate::UpdateComponentMenu()
     MultiChannelDisplayMode mode = *it;
 
     // Insert some separators into the menu
-    if(mode.SelectedScalarRep == SCALAR_REP_MAGNITUDE || mode.UseRGB)
+    if(mode.SelectedScalarRep == SCALAR_REP_MAGNITUDE || mode.RenderAsGrid)
       m_DisplayModeMenu->addSeparator();
 
     // Create an action

@@ -314,7 +314,7 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
       MultiChannelDisplayMode mode = dpolicy->GetDisplayMode();
 
       // Mode must be single component
-      if(!mode.UseRGB && mode.SelectedScalarRep == SCALAR_REP_COMPONENT)
+      if(mode.IsSingleComponent())
         {
         static double delta_accum = 0.0;
 

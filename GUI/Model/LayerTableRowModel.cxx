@@ -117,17 +117,21 @@ void LayerTableRowModel::UpdateDisplayModeList()
     {
     for(int i = 0; i < m_Layer->GetNumberOfComponents(); i++)
       m_AvailableDisplayModes.push_back(
-            MultiChannelDisplayMode(false, SCALAR_REP_COMPONENT, i));
+            MultiChannelDisplayMode(false, false, SCALAR_REP_COMPONENT, i));
     m_AvailableDisplayModes.push_back(
-          MultiChannelDisplayMode(false, SCALAR_REP_MAGNITUDE, 0));
+          MultiChannelDisplayMode(false, false, SCALAR_REP_MAGNITUDE, 0));
     m_AvailableDisplayModes.push_back(
-          MultiChannelDisplayMode(false, SCALAR_REP_MAX, 0));
+          MultiChannelDisplayMode(false, false, SCALAR_REP_MAX, 0));
     m_AvailableDisplayModes.push_back(
-          MultiChannelDisplayMode(false, SCALAR_REP_AVERAGE, 0));
+          MultiChannelDisplayMode(false, false, SCALAR_REP_AVERAGE, 0));
 
     if(m_Layer->GetNumberOfComponents() == 3)
+      {
       m_AvailableDisplayModes.push_back(
-            MultiChannelDisplayMode::DefaultForRGB());
+            MultiChannelDisplayMode(true, false, SCALAR_REP_COMPONENT));
+      m_AvailableDisplayModes.push_back(
+            MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT));
+      }
     }
 }
 
@@ -286,6 +290,11 @@ LayerTableRowModel::GetDisplayModeString(const MultiChannelDisplayMode &mode)
   if(mode.UseRGB)
     {
     return "RGB";
+    }
+
+  if(mode.RenderAsGrid)
+    {
+    return "Grid";
     }
 
   std::ostringstream oss;

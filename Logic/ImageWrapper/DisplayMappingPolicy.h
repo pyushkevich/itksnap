@@ -326,6 +326,11 @@ struct MultiChannelDisplayMode
   bool UseRGB;
 
   /**
+   * Special mode for rendering 3-component images as displacement grids
+   */
+  bool RenderAsGrid;
+
+  /**
    * When not in RGB mode, which scalar representation is selected for
    * display. Only used if UseRGB is false.
    */
@@ -341,7 +346,7 @@ struct MultiChannelDisplayMode
   MultiChannelDisplayMode();
 
   /** Default constructor - select first component */
-  MultiChannelDisplayMode(bool use_rgb,
+  MultiChannelDisplayMode(bool use_rgb, bool render_as_grid,
                           ScalarRepresentation rep,
                           int comp = 0);
 

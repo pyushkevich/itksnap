@@ -97,7 +97,7 @@ VectorImageWrapper<TTraits,TBase>
 {
   // Get the numerical value
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
-  if(mode.UseRGB)
+  if(mode.UseRGB || mode.RenderAsGrid)
     {
     // Get the display slice
     DisplaySliceType *display_slice = this->GetDisplaySlice(0);

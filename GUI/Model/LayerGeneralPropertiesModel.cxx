@@ -174,6 +174,10 @@ bool LayerGeneralPropertiesModel
     {
     value = MODE_RGB;
     }
+  else if(mode.RenderAsGrid)
+    {
+    value = MODE_GRID;
+    }
   else
     {
     switch(mode.SelectedScalarRep)
@@ -201,7 +205,10 @@ bool LayerGeneralPropertiesModel
 
     // RGB is available only if there are three components
     if(layer->GetNumberOfComponents() == 3)
+      {
       (*domain)[MODE_RGB] = "RGB Display";
+      (*domain)[MODE_GRID] = "Deformation Grid Display";
+      }
     }
 
   return true;
@@ -221,24 +228,35 @@ void LayerGeneralPropertiesModel
     case LayerGeneralPropertiesModel::MODE_COMPONENT:
       mode.SelectedScalarRep = SCALAR_REP_COMPONENT;
       mode.UseRGB = false;
+      mode.RenderAsGrid = false;
       break;
     case LayerGeneralPropertiesModel::MODE_MAGNITUDE:
       mode.SelectedScalarRep = SCALAR_REP_MAGNITUDE;
       mode.SelectedComponent = 0;
       mode.UseRGB = false;
+      mode.RenderAsGrid = false;
       break;
     case LayerGeneralPropertiesModel::MODE_MAX:
       mode.SelectedScalarRep = SCALAR_REP_MAX;
       mode.SelectedComponent = 0;
       mode.UseRGB = false;
+      mode.RenderAsGrid = false;
       break;
     case LayerGeneralPropertiesModel::MODE_AVERAGE:
       mode.SelectedScalarRep = SCALAR_REP_AVERAGE;
       mode.SelectedComponent = 0;
       mode.UseRGB = false;
+      mode.RenderAsGrid = false;
       break;
     case LayerGeneralPropertiesModel::MODE_RGB:
       mode.UseRGB = true;
+      mode.RenderAsGrid = false;
+      mode.SelectedScalarRep = SCALAR_REP_COMPONENT;
+      mode.SelectedComponent = 0;
+      break;
+    case LayerGeneralPropertiesModel::MODE_GRID:
+      mode.UseRGB = false;
+      mode.RenderAsGrid = true;
       mode.SelectedScalarRep = SCALAR_REP_COMPONENT;
       mode.SelectedComponent = 0;
       break;
@@ -258,8 +276,7 @@ bool LayerGeneralPropertiesModel
   MultiChannelDisplayMode mode = GetMultiChannelDisplayPolicy()->GetDisplayMode();
 
   // Mode must be single component
-  if(mode.UseRGB ||
-     mode.SelectedScalarRep != SCALAR_REP_COMPONENT)
+  if(!mode.IsSingleComponent())
     return false;
 
   // Use 1-based indexing
@@ -294,8 +311,7 @@ bool LayerGeneralPropertiesModel
   MultiChannelDisplayMode mode = GetMultiChannelDisplayPolicy()->GetDisplayMode();
 
   // Animation is only possible when showing components
-  if(mode.UseRGB ||
-     mode.SelectedScalarRep != SCALAR_REP_COMPONENT)
+  if(!mode.IsSingleComponent())
     return false;
 
   value = GetMultiChannelDisplayPolicy()->GetAnimate();

@@ -477,6 +477,8 @@ GenericSliceRenderer
   return tex;
 }
 
+#include <itkImageLinearConstIteratorWithIndex.h>
+
 void GenericSliceRenderer::DrawTextureForLayer(
     ImageWrapperBase *layer, const ViewportType &vp, bool use_transparency)
 {
@@ -529,6 +531,79 @@ void GenericSliceRenderer::DrawTextureForLayer(
         ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL)->GetNormalColor()
         : Vector3d(1.0);
       tex->Draw(clrBackground);
+      }
+    }
+
+  // TODO: move this somewhere
+  AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
+      AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
+  if(dp && dp->GetDisplayMode().RenderAsGrid)
+    {
+    // Draw the texture for the layer
+    AnatomicImageWrapper *vecimg = dynamic_cast<AnatomicImageWrapper *>(layer);
+    if(vecimg && vecimg->GetNumberOfComponents() == 3)
+      {
+      // Get the slice
+      AnatomicImageWrapper::SliceType::Pointer slice = vecimg->GetSlice(m_Model->GetId());
+      slice->Update();
+
+      // Iterate line direction
+      for(int d = 0; d < 2; d++)
+        {
+
+        // The current matrix is such that we should be drawing in pixel coordinates.
+        typedef itk::ImageLinearConstIteratorWithIndex<AnatomicImageWrapper::SliceType> IterType;
+        IterType it1(slice, slice->GetBufferedRegion());
+        it1.SetDirection(d);
+        it1.GoToBegin();
+
+        while( !it1.IsAtEnd() )
+          {
+          glColor3d(1.0, 1.0, 0.0);
+          glBegin(GL_LINE_STRIP);
+
+          while( !it1.IsAtEndOfLine() )
+            {
+            // Read the pixel
+            AnatomicImageWrapper::SliceType::PixelType pix = it1.Get();
+
+            // The pixel must be mapped to native
+            Vector3d disp;
+            disp[0] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(pix[0]);
+            disp[1] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(pix[1]);
+            disp[2] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(pix[2]);
+
+            // The pixel gives the displacement in LPS coordinates (by ANTS/Greedy convention)
+            // We need to map it back into the slice domain. First, we need to know the 3D index
+            // of the current pixel in the image space
+            Vector3f xSlice;
+            xSlice[0] = it1.GetIndex()[0];
+            xSlice[1] = it1.GetIndex()[1];
+            xSlice[2] = m_Model->GetSliceIndex();
+
+            // This is the physical coordinate of the current pixel - in LPS
+            Vector3d xPhys = m_Model->MapSliceToImagePhysical(xSlice);
+
+            // Add displacement and map back to slice space
+            itk::ContinuousIndex<double, 3> cix;
+            itk::Point<double, 3> pt = to_itkPoint(xPhys + disp);
+
+            m_Model->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
+                ->TransformPhysicalPointToContinuousIndex(pt, cix);
+            Vector3f xDispSlice = m_Model->MapImageToSlice(Vector3f(cix));
+
+            glVertex2d(xDispSlice[0], xDispSlice[1]);
+
+            // Add the displacement
+            ++it1;
+            }
+
+          glEnd();
+
+          it1.NextLine();
+          }
+
+        }
       }
     }
 

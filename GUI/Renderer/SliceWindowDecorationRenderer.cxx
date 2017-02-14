@@ -109,6 +109,8 @@ std::string SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase *laye
     MultiChannelDisplayMode mode = policy->GetDisplayMode();
     if(mode.UseRGB)
       nickname += " [RGB]";
+    else if(mode.RenderAsGrid)
+      nickname += " [Grid]";
     else if(mode.SelectedScalarRep == SCALAR_REP_MAGNITUDE)
       nickname += " [Mag]";
     else if(mode.SelectedScalarRep == SCALAR_REP_MAX)

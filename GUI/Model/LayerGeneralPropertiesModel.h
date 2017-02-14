@@ -47,7 +47,7 @@ public:
    * is not a scalar representation).
    */
   enum DisplayMode {
-    MODE_COMPONENT = 0, MODE_MAGNITUDE, MODE_MAX, MODE_AVERAGE, MODE_RGB
+    MODE_COMPONENT = 0, MODE_MAGNITUDE, MODE_MAX, MODE_AVERAGE, MODE_RGB, MODE_GRID
   };
 
   /** States for this model */
