@@ -64,9 +64,9 @@ RegistrationModel::RegistrationModel()
 
   // Registration metric
   SimilarityMetricDomain metric_domain;
-  metric_domain[NMI] = "Normalized mutual information";
-  metric_domain[NCC] = "Normalized cross-correlation";
-  metric_domain[SSD] = "Squared intensity difference";
+  metric_domain[NMI] = "Mutual information";
+  metric_domain[NCC] = "Cross-correlation";
+  metric_domain[SSD] = "Intensity difference";
   m_SimilarityMetricModel = NewConcreteProperty(NMI, metric_domain);
 
   // Mask model
@@ -432,10 +432,6 @@ void RegistrationModel::RunAutoRegistration()
   param.affine_init_mode = RAS_FILENAME;
   param.affine_init_transform.filename = "INPUT_TRANSFORM";
   param.affine_init_transform.exponent = 1;
-
-  // TODO: this is temporary - it's better to have affine jitter, but it
-  // seems to add quite a bit of overhead to the registration
-  param.affine_jitter = 0.0;
 
   // Pass the input transformation object to the cache
   ITKMatrixType matrix; ITKVectorType offset;
