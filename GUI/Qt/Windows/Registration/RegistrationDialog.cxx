@@ -156,8 +156,8 @@ void RegistrationDialog::on_btnLoad_clicked()
   SimpleFileDialogWithHistory::QueryResult result =
       SimpleFileDialogWithHistory::showOpenDialog(
         this, m_Model->GetParent(),
-        "Open Transform - ITK-SNAP", "AffineTransform",
-        "Transform File",
+        "Open Transform - ITK-SNAP", "Transform File",
+        "AffineTransform",
         "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)");
 
   RegistrationModel::TransformFormat format =
@@ -186,8 +186,8 @@ void RegistrationDialog::on_btnSave_clicked()
   SimpleFileDialogWithHistory::QueryResult result =
       SimpleFileDialogWithHistory::showSaveDialog(
         this, m_Model->GetParent(),
-        "Save Transform - ITK-SNAP", "AffineTransform",
-        "Transform File",
+        "Save Transform - ITK-SNAP", "Transform File",
+        "AffineTransform",
         "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)", true);
 
   RegistrationModel::TransformFormat format =
