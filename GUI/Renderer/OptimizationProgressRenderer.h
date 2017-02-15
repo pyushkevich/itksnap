@@ -24,6 +24,9 @@ public:
   itkGetMacro(PyramidLevel, int)
   itkSetMacro(PyramidLevel, int)
 
+  itkGetMacro(PyramidZoom, int)
+  itkSetMacro(PyramidZoom, int)
+
   void OnUpdate();
 
   void UpdatePlotValues();
@@ -46,7 +49,7 @@ protected:
   double m_MinValue, m_MaxValue;
 
   // Pyramid level that this plots
-  int m_PyramidLevel;
+  int m_PyramidLevel, m_PyramidZoom;
 };
 
 #endif // OPTIMIZATIONPROGRESSRENDERER_H

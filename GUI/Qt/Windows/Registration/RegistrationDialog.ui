@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>216</width>
+    <width>190</width>
     <height>762</height>
    </rect>
   </property>
   <property name="maximumSize">
    <size>
-    <width>216</width>
+    <width>192</width>
     <height>16777215</height>
    </size>
   </property>
@@ -40,7 +40,7 @@ QToolButton::pressed {
 }
 </string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_4">
    <property name="leftMargin">
     <number>6</number>
    </property>
@@ -53,20 +53,17 @@ QToolButton::pressed {
    <property name="bottomMargin">
     <number>6</number>
    </property>
-   <property name="spacing">
-    <number>4</number>
-   </property>
-   <item row="0" column="0" colspan="2">
+   <item>
     <widget class="QLabel" name="label">
      <property name="text">
       <string>Moving image layer:</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
+   <item>
     <widget class="QComboBox" name="inMovingLayer"/>
    </item>
-   <item row="2" column="0">
+   <item>
     <spacer name="verticalSpacer_2">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -82,7 +79,7 @@ QToolButton::pressed {
      </property>
     </spacer>
    </item>
-   <item row="3" column="0" colspan="2">
+   <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="styleSheet">
       <string notr="true">QDoubleSpinBox {
@@ -97,7 +94,7 @@ QToolButton::pressed {
       <attribute name="title">
        <string>Automatic</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout">
+      <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,0,0,0,0,0,1">
        <property name="leftMargin">
         <number>4</number>
        </property>
@@ -151,51 +148,207 @@ QToolButton::pressed {
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>20</height>
+           <height>12</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="styleSheet">
+          <string notr="true">QLabel {
+  font-size:11px;
+}
+
+QComboBox {
+  font-size:11px;
+}</string>
+         </property>
+         <property name="title">
+          <string>Multi-resolution schedule:</string>
+         </property>
+         <layout class="QFormLayout" name="formLayout">
+          <property name="fieldGrowthPolicy">
+           <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+          </property>
+          <property name="horizontalSpacing">
+           <number>4</number>
+          </property>
+          <property name="verticalSpacing">
+           <number>4</number>
+          </property>
+          <property name="leftMargin">
+           <number>20</number>
+          </property>
+          <property name="topMargin">
+           <number>2</number>
+          </property>
+          <property name="rightMargin">
+           <number>2</number>
+          </property>
+          <property name="bottomMargin">
+           <number>2</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>Coarsest level:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>Finest level:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="inCoarseLevel">
+            <property name="maximumSize">
+             <size>
+              <width>48</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the zoom factor used for the &lt;span style=&quot; font-weight:600;&quot;&gt;first&lt;/span&gt; stage of automatic segmentation. We recommend &lt;span style=&quot; font-weight:600;&quot;&gt;8x&lt;/span&gt; for images on the scale of 256x256x256. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="inFineLevel">
+            <property name="maximumSize">
+             <size>
+              <width>48</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the zoom factor used for the &lt;span style=&quot; font-weight:600;&quot;&gt;last&lt;/span&gt; stage of automatic segmentation. We recommend &lt;span style=&quot; font-weight:600;&quot;&gt;4x&lt;/span&gt; for images on the scale of 256x256x256. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>8</height>
           </size>
          </property>
         </spacer>
        </item>
        <item>
         <widget class="QPushButton" name="btnRunRegistration">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run automatic registration&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>Run Registration</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="grpPlots" native="true">
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <property name="spacing">
-           <number>4</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer_3">
+        <spacer name="verticalSpacer_6">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>40</height>
+           <height>8</height>
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QScrollArea" name="scrollPlots">
+         <property name="styleSheet">
+          <string notr="true">background-color: transparent;</string>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Box</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Plain</enum>
+         </property>
+         <property name="lineWidth">
+          <number>0</number>
+         </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
+         <property name="widgetResizable">
+          <bool>true</bool>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+         </property>
+         <widget class="QWidget" name="scrollAreaWidgetContents">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>157</width>
+            <height>242</height>
+           </rect>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QWidget" name="grpPlots" native="true">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <property name="spacing">
+               <number>4</number>
+              </property>
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -268,7 +421,14 @@ QToolButton::pressed {
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="inRotX"/>
+              <widget class="QDoubleSpinBox" name="inRotX">
+               <property name="maximumSize">
+                <size>
+                 <width>72</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item row="0" column="2">
               <widget class="QDoubleSlider" name="inRotXSlider">
@@ -285,7 +445,14 @@ QToolButton::pressed {
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="inRotY"/>
+              <widget class="QDoubleSpinBox" name="inRotY">
+               <property name="maximumSize">
+                <size>
+                 <width>72</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item row="1" column="2">
               <widget class="QDoubleSlider" name="inRotYSlider">
@@ -302,7 +469,14 @@ QToolButton::pressed {
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="inRotZ"/>
+              <widget class="QDoubleSpinBox" name="inRotZ">
+               <property name="maximumSize">
+                <size>
+                 <width>72</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item row="2" column="2">
               <widget class="QDoubleSlider" name="inRotZSlider">
@@ -372,7 +546,14 @@ QToolButton::pressed {
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="inTranX"/>
+              <widget class="QDoubleSpinBox" name="inTranX">
+               <property name="maximumSize">
+                <size>
+                 <width>72</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item row="0" column="2">
               <widget class="QDoubleSlider" name="inTranXSlider">
@@ -389,7 +570,14 @@ QToolButton::pressed {
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="inTranY"/>
+              <widget class="QDoubleSpinBox" name="inTranY">
+               <property name="maximumSize">
+                <size>
+                 <width>72</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item row="1" column="2">
               <widget class="QDoubleSlider" name="inTranYSlider">
@@ -406,7 +594,14 @@ QToolButton::pressed {
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="inTranZ"/>
+              <widget class="QDoubleSpinBox" name="inTranZ">
+               <property name="maximumSize">
+                <size>
+                 <width>72</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item row="2" column="2">
               <widget class="QDoubleSlider" name="inTranZSlider">
@@ -476,7 +671,14 @@ QToolButton::pressed {
               </widget>
              </item>
              <item row="0" column="1">
-              <widget class="QDoubleSpinBox" name="inScaleX"/>
+              <widget class="QDoubleSpinBox" name="inScaleX">
+               <property name="maximumSize">
+                <size>
+                 <width>72</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item row="0" column="2">
               <widget class="QDoubleSlider" name="inScaleXSlider">
@@ -493,7 +695,14 @@ QToolButton::pressed {
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QDoubleSpinBox" name="inScaleY"/>
+              <widget class="QDoubleSpinBox" name="inScaleY">
+               <property name="maximumSize">
+                <size>
+                 <width>72</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item row="1" column="2">
               <widget class="QDoubleSlider" name="inScaleYSlider">
@@ -510,7 +719,14 @@ QToolButton::pressed {
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QDoubleSpinBox" name="inScaleZ"/>
+              <widget class="QDoubleSpinBox" name="inScaleZ">
+               <property name="maximumSize">
+                <size>
+                 <width>72</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+              </widget>
              </item>
              <item row="2" column="2">
               <widget class="QDoubleSlider" name="inScaleZSlider">
@@ -576,17 +792,7 @@ QToolButton::pressed {
      </widget>
     </widget>
    </item>
-   <item row="5" column="0" colspan="2">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Close</set>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0" colspan="2">
+   <item>
     <widget class="QWidget" name="widget" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">
@@ -673,6 +879,16 @@ QToolButton::pressed {
        </spacer>
       </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Close</set>
+     </property>
     </widget>
    </item>
   </layout>
