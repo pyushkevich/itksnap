@@ -645,7 +645,7 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
     else if(ui->inFormat->currentIndex() == -1 && ui->inFilename->text().length())
       ui->outError->setText("Unable to recognize file format");
     else if(isFilenameNonAscii(fiwd.absoluteFilePath()))
-      ui->outError->setText("The file name has characters that are unsupported by the ITK IO libraries");
+      ui->outError->setText("The filename contains unsupported characters");
     else
       ui->outError->setText("");
 
@@ -676,8 +676,8 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
         }
 
       // Does the file exist?
-      if(isFilenameNonAscii(ui->inFilename->text()))
-        ui->outError->setText("The file name has characters that are unsupported by the ITK IO libraries");
+	  if (isFilenameNonAscii(fiwd.absoluteFilePath()))
+		ui->outError->setText("The filename contains unsupported characters");
       else if(fiwd.exists())
         ui->outError->setText("Existing file will be overwritten!");
       }
