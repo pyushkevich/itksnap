@@ -545,6 +545,8 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 
 #include <QDir>
 
+#include <QSurfaceFormat>
+
 int main(int argc, char *argv[])
 {  
   // Test object, which only is allocated if tests are requested. The
@@ -567,6 +569,19 @@ int main(int argc, char *argv[])
   // Debugging mechanism: if no-fork is on, sleep for 60 secs
   // if(argdata.flagNoFork)
   //  sleep(60);
+
+#if QT_VERSION > 0x050400
+
+  // Starting with Qt 5.6, the OpenGL implementation uses OpenGL 2.0
+  // In this version of OpenGL, transparency is handled differently and
+  // looks wrong.
+  QSurfaceFormat gl_fmt;
+  gl_fmt.setMajorVersion(1);
+  gl_fmt.setMinorVersion(3);
+  QSurfaceFormat::setDefaultFormat(gl_fmt);
+
+#endif
+
 
   // Turn off event debugging if needed
 #ifdef SNAP_DEBUG_EVENTS
