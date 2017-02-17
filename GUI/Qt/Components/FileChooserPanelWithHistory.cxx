@@ -644,7 +644,7 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
       ui->outError->setText("The file is not readable");
     else if(ui->inFormat->currentIndex() == -1 && ui->inFilename->text().length())
       ui->outError->setText("Unable to recognize file format");
-    else if(isFilenameNonAscii(ui->inFilename->text()))
+    else if(isFilenameNonAscii(fiwd.absoluteFilePath()))
       ui->outError->setText("The file name has characters that are unsupported by the ITK IO libraries");
     else
       ui->outError->setText("");
