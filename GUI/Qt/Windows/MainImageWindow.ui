@@ -26,6 +26,10 @@ height: 14px;
 QRadioButton::indicator {
 width: 14px;
 height: 14px;
+}
+
+QScrollBar:vertical {
+width:14px;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
