@@ -121,6 +121,7 @@ void QtProgressReporterDelegate::SetProgressDialog(QProgressDialog *dialog)
   m_Dialog->setMaximum(1000);
   m_Dialog->setWindowModality(Qt::WindowModal);
   m_Dialog->setLabelText("ITK-SNAP progress");
+  m_Dialog->reset();
 }
 
 #include <QDebug>
