@@ -245,7 +245,7 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
 #pragma omp parallel for
     for (int y = 0; y < szVol[1]; y++)
       {
-      typename InputImageType::BufferType::IndexType lineIndex = { { y, m_SliceIndex } };
+      typename InputImageType::BufferType::IndexType lineIndex = { { y, (int) m_SliceIndex } };
       const typename InputImageType::RLLine & line = inputPtr->GetBuffer()->GetPixel(lineIndex);
       if (m_LineDirectionImageAxis == 1) //y is line coordinate
         {
@@ -266,7 +266,7 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
 #pragma omp parallel for
     for (int z = 0; z < szVol[2]; z++)
       {
-      typename InputImageType::BufferType::IndexType lineIndex = { { m_SliceIndex, z } };
+      typename InputImageType::BufferType::IndexType lineIndex = { { (int) m_SliceIndex, z } };
       const typename InputImageType::RLLine & line = inputPtr->GetBuffer()->GetPixel(lineIndex);
       if (m_LineDirectionImageAxis == 2) //z is line coordinate
         {
