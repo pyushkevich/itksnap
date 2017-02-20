@@ -1,6 +1,7 @@
 #include "RegistrationDialog.h"
 #include "ui_RegistrationDialog.h"
 
+#include <QMenu>
 #include <QVBoxLayout>
 #include "QtComboBoxCoupling.h"
 #include "QtCheckBoxCoupling.h"
@@ -26,6 +27,13 @@ RegistrationDialog::RegistrationDialog(QWidget *parent) :
   ui(new Ui::RegistrationDialog)
 {
   ui->setupUi(this);  
+
+  // Set up a menu
+  QMenu *menuMatch = new QMenu(this);
+  menuMatch->addAction(ui->actionImage_Centers);
+  menuMatch->addAction(ui->actionCenters_of_Mass);
+  menuMatch->addAction(ui->actionMoments_of_Inertia);
+  ui->btnMatchCenters->setMenu(menuMatch);
 }
 
 RegistrationDialog::~RegistrationDialog()
@@ -281,7 +289,21 @@ void RegistrationDialog::on_btnReslice_clicked()
   delete dialog;
 }
 
-void RegistrationDialog::on_btnMatchCenters_clicked()
+void RegistrationDialog::on_actionImage_Centers_triggered()
 {
   m_Model->MatchImageCenters();
+}
+
+void RegistrationDialog::on_actionCenters_of_Mass_triggered()
+{
+  // Turn on the wait cursor
+  QtCursorOverride cursor(Qt::WaitCursor);
+  m_Model->MatchByMoments(1);
+}
+
+void RegistrationDialog::on_actionMoments_of_Inertia_triggered()
+{
+  // Turn on the wait cursor
+  QtCursorOverride cursor(Qt::WaitCursor);
+  m_Model->MatchByMoments(2);
 }

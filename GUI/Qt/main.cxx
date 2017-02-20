@@ -197,6 +197,7 @@ void usage(const char *progname)
   cout << "   --test TESTID        : Execute a test. " << endl;
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
   cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., 0.5). " << endl;
+  cout << "   --css file           : Read stylesheet from file." << endl;
   cout << "Platform-Specific Options:" << endl;
 #if QT_VERSION < 0x050000
 #ifdef Q_WS_X11
@@ -241,7 +242,7 @@ public:
   std::string cwd;
 
   // GUI related
-  std::string style;
+  std::string style, cssfile;
 
   // Number of threads
   int nThreads;
@@ -372,6 +373,9 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--style", 1);
 
   parser.AddOption("--x11-db",0);
+
+  parser.AddOption("--css", 1);
+
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -530,6 +534,9 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   if(parseResult.IsOptionPresent("--style"))
     argdata.style = parseResult.GetOptionParameter("--style");
 
+  if(parseResult.IsOptionPresent("--css"))
+    argdata.cssfile = parseResult.GetOptionParameter("--css");
+
   // Enable double buffering on X11
   if(parseResult.IsOptionPresent("--x11-db"))
     argdata.flagX11DoubleBuffer = true;
@@ -546,6 +553,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 #include <QDir>
 
 #include <QSurfaceFormat>
+#include <QFileSystemWatcher>
 
 int main(int argc, char *argv[])
 {  
@@ -670,6 +678,15 @@ int main(int argc, char *argv[])
     // Create the main window
     MainImageWindow *mainwin = new MainImageWindow();
     mainwin->Initialize(gui);
+
+    // Load stylesheet
+    if(argdata.cssfile.size())
+      {
+      QFileSystemWatcher *watcher = new QFileSystemWatcher(mainwin);
+      watcher->addPath(from_utf8(argdata.cssfile));
+      QObject::connect(watcher, SIGNAL(fileChanged(QString)),
+              mainwin, SLOT(externalStyleSheetFileChanged(QString)));
+      }
 
     // Disable double buffering in X11 to avoid flickering issues. The documentation
     // says this only happens on X11. For the time being, we are only implementing this

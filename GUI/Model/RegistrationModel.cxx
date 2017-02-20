@@ -509,6 +509,90 @@ void RegistrationModel::RunAutoRegistration()
   delete(m_GreedyAPI); m_GreedyAPI = NULL;
 }
 
+void RegistrationModel::MatchByMoments(int order)
+{
+  // Obtain the fixed and moving images.
+  ImageWrapperBase *fixed = this->GetParent()->GetDriver()->GetCurrentImageData()->GetMain();
+  ImageWrapperBase *moving = this->GetMovingLayerWrapper();
+
+  // TODO: for now, we are not supporting vector image registration, only registration between
+  // scalar components; and we use the default scalar component.
+  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castFixed =
+      fixed->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
+  castFixed->UpdateOutputInformation();
+
+  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castMoving =
+      moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
+  castMoving->UpdateOutputInformation();
+
+  // Set up the parameters for greedy registration
+  GreedyParameters param;
+  GreedyParameters::SetToDefaults(param);
+
+  // Create an API object
+  m_GreedyAPI = new GreedyAPI();
+
+  // Configure the fixed and moving images
+  ImagePairSpec ip;
+  ip.weight = 1.0;
+  ip.fixed = "FIXED_IMAGE";
+  ip.moving = "MOVING_IMAGE";
+  param.inputs.push_back(ip);
+
+  // Pass the actual images to the cache
+  m_GreedyAPI->AddCachedInputObject(ip.fixed, castFixed->GetOutput());
+  m_GreedyAPI->AddCachedInputObject(ip.moving, castMoving->GetOutput());
+
+  // Set up the metric
+  switch(m_SimilarityMetricModel->GetValue())
+    {
+    case NCC:
+      param.metric = GreedyParameters::NCC;
+      param.metric_radius = std::vector<int>(3, 4);
+      break;
+    case NMI:
+      param.metric = GreedyParameters::NMI;
+      break;
+    default:
+      param.metric = GreedyParameters::SSD;
+      break;
+    };
+
+  // Create a transform spec
+  param.affine_init_mode = RAS_FILENAME;
+  param.affine_init_transform.filename = "INPUT_TRANSFORM";
+  param.affine_init_transform.exponent = 1;
+
+  // Pass the input transformation object to the cache
+  ITKMatrixType matrix; ITKVectorType offset;
+  this->GetMovingTransform(matrix, offset);
+
+  // Unfortunately, we have to cast to float, argh!
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformType;
+  TransformType::Pointer tran = TransformType::New();
+  tran->SetMatrix(matrix);
+  tran->SetOffset(offset);
+
+  // Finally pass the float transform to the API
+  m_GreedyAPI->AddCachedInputObject(param.affine_init_transform.filename, tran);
+
+  // Pass the output string - same as the input transform
+  param.output = param.affine_init_transform.filename;
+
+  // Set the order of the moments match
+  param.moments_order = order;
+
+  // Run the registration
+  m_GreedyAPI->RunAlignMoments(param);
+
+  // Now, the transform tran should hold our matrix and offset
+  this->SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
+
+  // Delete the API
+  delete(m_GreedyAPI); m_GreedyAPI = NULL;
+}
+
+
 void RegistrationModel::LoadTransform(const char *filename, TransformFormat format)
 {
   // Get the current transform to store
@@ -769,6 +853,7 @@ void RegistrationModel::MatchImageCenters()
 
   this->SetMovingTransform(matrix, offset);
 }
+
 
 
 bool RegistrationModel::GetMovingLayerValueAndRange(unsigned long &value, RegistrationModel::LayerSelectionDomain *range)

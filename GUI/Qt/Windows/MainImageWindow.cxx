@@ -704,6 +704,13 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     }
 }
 
+void MainImageWindow::externalStyleSheetFileChanged(const QString &file)
+{
+  QFile File(file);
+  File.open(QFile::ReadOnly);
+  this->setStyleSheet(QLatin1String(File.readAll()));
+}
+
 void MainImageWindow::onActiveChanged()
 {
   if(this->isActiveWindow())

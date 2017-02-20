@@ -81,6 +81,9 @@ public:
   /** Match image centers */
   void MatchImageCenters();
 
+  /** Match moments of inertia */
+  void MatchByMoments(int order);
+
   /** Apply a rotation around a fixed angle */
   void ApplyRotation(const Vector3d &axis, double theta);
 
