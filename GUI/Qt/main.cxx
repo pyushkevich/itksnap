@@ -546,6 +546,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 #include <QDir>
 
 #include <QSurfaceFormat>
+#include <QProcessEnvironment>
 
 int main(int argc, char *argv[])
 {  
@@ -582,7 +583,6 @@ int main(int argc, char *argv[])
 
 #endif
 
-
   // Turn off event debugging if needed
 #ifdef SNAP_DEBUG_EVENTS
   flag_snap_debug_events = argdata.flagDebugEvents;
@@ -614,6 +614,9 @@ int main(int argc, char *argv[])
   // and cannot use ANGLE
   // TODO: we haven't proven that this actually helps with anything so hold off..
   // app.setAttribute(Qt::AA_UseDesktopOpenGL);
+
+  // System-supplied DPI screws up widget and font scaling horribly
+  app.setAttribute(Qt::AA_Use96Dpi);
 
   // Set the application style
   app.setStyle(QStyleFactory::create(argdata.style.c_str()));
