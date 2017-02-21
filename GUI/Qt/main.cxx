@@ -189,6 +189,7 @@ void usage(const char *progname)
   cout << "   -z FACTOR            : Specify initial zoom in screen pixels/mm" << endl;
   cout << "   --cwd PATH           : Start with PATH as the initial directory" << endl;
   cout << "   --threads N          : Limit maximum number of CPU cores used to N." << endl;
+  cout << "   --scale N            : Scale all GUI elements by factor of N (e.g., 2)." << endl;
   cout << "Debugging/Testing Options:" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
@@ -247,9 +248,12 @@ public:
   // Number of threads
   int nThreads;
 
+  // GUI scaling
+  int nDevicePixelRatio;
+
   CommandLineRequest()
     : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0),
-      flagX11DoubleBuffer(false), nThreads(0)
+      flagX11DoubleBuffer(false), nThreads(0), nDevicePixelRatio(0)
     {
 #if QT_VERSION >= 0x050000
     style = "fusion";
@@ -376,6 +380,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   parser.AddOption("--css", 1);
 
+  parser.AddOption("--scale", 1);
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -545,6 +550,10 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   if(parseResult.IsOptionPresent("--threads"))
     argdata.nThreads = atoi(parseResult.GetOptionParameter("--threads"));
 
+  // Number of threads
+  if(parseResult.IsOptionPresent("--scale"))
+    argdata.nDevicePixelRatio = atoi(parseResult.GetOptionParameter("--scale"));
+
   return 0;
 }
 
@@ -578,6 +587,7 @@ int main(int argc, char *argv[])
   // if(argdata.flagNoFork)
   //  sleep(60);
 
+
 #if QT_VERSION > 0x050400
 
   // Starting with Qt 5.6, the OpenGL implementation uses OpenGL 2.0
@@ -588,7 +598,43 @@ int main(int argc, char *argv[])
   gl_fmt.setMinorVersion(3);
   QSurfaceFormat::setDefaultFormat(gl_fmt);
 
+  // Environment variable for the scale factor
+  const char *QT_SCALE_FACTOR = "QT_SCALE_FACTOR";
+
+#else
+
+  const char *QT_SCALE_FACTOR = "QT_DEVICE_PIXEL_RATIO";
+
 #endif
+
+  /* -----------------------------
+   * DEAL WITH PIXEL RATIO SCALING
+   * ----------------------------- */
+#ifdef WIN32
+  char *env = _getenv("ITKSNAP_SCALE_FACTOR");
+#else
+  char *env = getenv("ITKSNAP_SCALE_FACTOR");
+#endif
+
+  // Read the pixel ratio from environment or command line
+  int devicePixelRatio = 0;
+  if(argdata.nDevicePixelRatio > 0)
+    devicePixelRatio = argdata.nDevicePixelRatio;
+  else if(env)
+    devicePixelRatio = atoi(env);
+
+  // Set the environment variable
+  if(devicePixelRatio > 0)
+    {
+    char buffer[128];
+    sprintf(buffer, "%s=%d", QT_SCALE_FACTOR, devicePixelRatio);
+
+#ifdef WIN32
+    _putenv(buffer);
+#else
+    putenv(buffer);
+#endif
+    }
 
   // Turn off event debugging if needed
 #ifdef SNAP_DEBUG_EVENTS
@@ -613,6 +659,7 @@ int main(int argc, char *argv[])
   SNAPQApplication app(argc, argv);
   Q_INIT_RESOURCE(SNAPResources);
   Q_INIT_RESOURCE(TestingScripts);
+
 
   // Reset the locale to posix to avoid weird issues with NRRD files
   std::setlocale(LC_NUMERIC, "POSIX");
