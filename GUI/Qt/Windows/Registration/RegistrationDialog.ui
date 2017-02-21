@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>190</width>
+    <width>192</width>
     <height>762</height>
    </rect>
   </property>
@@ -88,7 +88,7 @@ QToolButton::pressed {
 </string>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="pgAuto">
       <attribute name="title">
@@ -302,8 +302,8 @@ QComboBox {
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>157</width>
-            <height>242</height>
+            <width>161</width>
+            <height>214</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -771,7 +771,7 @@ QComboBox {
        <item>
         <widget class="QPushButton" name="btnMatchCenters">
          <property name="text">
-          <string>Match centers</string>
+          <string>Match by ...</string>
          </property>
         </widget>
        </item>
@@ -892,6 +892,30 @@ QComboBox {
     </widget>
    </item>
   </layout>
+  <action name="actionImage_Centers">
+   <property name="text">
+    <string>Image Centers</string>
+   </property>
+   <property name="toolTip">
+    <string>Aligns the center voxel of the moving image with the center voxel of the fixed image</string>
+   </property>
+  </action>
+  <action name="actionCenters_of_Mass">
+   <property name="text">
+    <string>Centers of Mass</string>
+   </property>
+   <property name="toolTip">
+    <string>Aligns the center of mass of the moving image with the center of mass of the fixed image</string>
+   </property>
+  </action>
+  <action name="actionMoments_of_Inertia">
+   <property name="text">
+    <string>Moments of Inertia</string>
+   </property>
+   <property name="toolTip">
+    <string>Aligns the centers of mass and the second moments of inertia tensors between fixed and moving images. This involves rotation, translation and flipping.</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
