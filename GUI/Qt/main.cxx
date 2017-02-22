@@ -32,6 +32,7 @@
 
 #include <iostream>
 #include <clocale>
+#include <cstdlib>
 
 using namespace std;
 
@@ -61,6 +62,7 @@ void SetupSignalHandlers()
   signal(SIGSEGV, SegmentationFaultHandler);
 }
 
+
 #else
 
 void SetupSignalHandlers()
@@ -69,6 +71,34 @@ void SetupSignalHandlers()
 }
 
 #endif
+
+
+
+// Setting environment variables
+
+#ifdef WIN32
+
+template<typename TVal>
+void itksnap_putenv(const std::string &var, TVal value)
+{
+  std::ostringstream s;
+  s << var << "=" << value;
+  _putenv(s.str().c_str());
+}
+
+#else
+
+template<typename TVal>
+void itksnap_putenv(const std::string &var, TVal value)
+{
+  std::ostringstream s;
+  s << var << "=" << value;
+  putenv(s.str().c_str());
+}
+
+#endif
+
+
 
 
 /*
@@ -600,40 +630,36 @@ int main(int argc, char *argv[])
 
   // Environment variable for the scale factor
   const char *QT_SCALE_FACTOR = "QT_SCALE_FACTOR";
+  const char *QT_SCALE_AUTO_VAR = "QT_AUTO_SCREEN_SCALE_FACTOR";
+  const char *QT_SCALE_AUTO_VALUE = "1";
 
 #else
 
   const char *QT_SCALE_FACTOR = "QT_DEVICE_PIXEL_RATIO";
+  const char *QT_SCALE_AUTO_VAR = "QT_DEVICE_PIXEL_RATIO";
+  const char *QT_SCALE_AUTO_VALUE = "auto";
 
 #endif
 
   /* -----------------------------
    * DEAL WITH PIXEL RATIO SCALING
    * ----------------------------- */
-#ifdef WIN32
-  char *env = _getenv("ITKSNAP_SCALE_FACTOR");
-#else
-  char *env = getenv("ITKSNAP_SCALE_FACTOR");
-#endif
 
   // Read the pixel ratio from environment or command line
   int devicePixelRatio = 0;
   if(argdata.nDevicePixelRatio > 0)
     devicePixelRatio = argdata.nDevicePixelRatio;
-  else if(env)
-    devicePixelRatio = atoi(env);
+  else if(getenv("ITKSNAP_SCALE_FACTOR"))
+    devicePixelRatio = atoi(getenv("ITKSNAP_SCALE_FACTOR"));
 
   // Set the environment variable
   if(devicePixelRatio > 0)
     {
-    char buffer[128];
-    sprintf(buffer, "%s=%d", QT_SCALE_FACTOR, devicePixelRatio);
-
-#ifdef WIN32
-    _putenv(buffer);
-#else
-    putenv(buffer);
-#endif
+    itksnap_putenv(QT_SCALE_FACTOR,devicePixelRatio);
+    }
+  else
+    {
+    itksnap_putenv(QT_SCALE_AUTO_VAR, QT_SCALE_AUTO_VALUE);
     }
 
   // Turn off event debugging if needed
