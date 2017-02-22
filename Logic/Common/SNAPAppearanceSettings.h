@@ -124,7 +124,6 @@ public:
   irisSimplePropertyAccessMacro(FlagLayoutPatientRightShownLeft, bool)
   irisSimplePropertyAccessMacro(SliceLayout, UISliceLayout)
   irisSimplePropertyAccessMacro(LayerLayout, LayerLayout)
-  irisRangedPropertyAccessMacro(DevicePixelRatio, int)
 
   /**
    * This method uses SliceLayout, FlagLayoutPatientAnteriorShownLeft and
@@ -143,7 +142,6 @@ protected:
   SmartPtr<ConcreteRangedIntProperty> m_ZoomThumbnailMaximumSizeModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientAnteriorShownLeftModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientRightShownLeftModel;
-  SmartPtr<ConcreteRangedIntProperty> m_DevicePixelRatioModel;
 
   typedef ConcretePropertyModel<UIGreyInterpolation, TrivialDomain> ConcreteInterpolationModel;
   SmartPtr<ConcreteInterpolationModel> m_GreyInterpolationModeModel;

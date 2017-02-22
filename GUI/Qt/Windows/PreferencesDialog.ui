@@ -335,53 +335,6 @@
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_4">
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>40</height>
-              </size>
-             </property>
-             <property name="title">
-              <string>Application Size:</string>
-             </property>
-             <layout class="QFormLayout" name="formLayout_10">
-              <property name="fieldGrowthPolicy">
-               <enum>QFormLayout::FieldsStayAtSizeHint</enum>
-              </property>
-              <property name="formAlignment">
-               <set>Qt::AlignHCenter|Qt::AlignTop</set>
-              </property>
-              <property name="leftMargin">
-               <number>12</number>
-              </property>
-              <property name="rightMargin">
-               <number>24</number>
-              </property>
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>Display pixel scaling (requires application restart):</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="1">
-               <widget class="QSpinBox" name="inDevicePixelRatio">
-                <property name="minimumSize">
-                 <size>
-                  <width>80</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">This setting scales the size of all ITK-SNAP user interface components by the provided factor. This is intended for high-DPI screens where ITK-SNAP controls appear too small</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
             <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Vertical</enum>

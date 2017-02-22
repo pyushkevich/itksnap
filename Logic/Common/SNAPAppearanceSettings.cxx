@@ -336,9 +336,6 @@ GlobalDisplaySettings::GlobalDisplaySettings()
 
   m_LayerLayoutModel =
       NewSimpleEnumProperty("LayerLayout", LAYOUT_STACKED, emap_layer_layout);
-
-  m_DevicePixelRatioModel =
-      NewRangedProperty("DevicePixelRatio", 1, 1, 4, 1);
 }
 
 void GlobalDisplaySettings

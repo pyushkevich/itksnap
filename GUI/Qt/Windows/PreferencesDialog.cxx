@@ -132,9 +132,6 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   UpdateColorMapPresets();
   makeCoupling(ui->inDefaultColorMap, dbs->GetOverlayColorMapPresetModel());
 
-  // Pixel scaling
-  makeCoupling(ui->inDevicePixelRatio, gds->GetDevicePixelRatioModel());
-
   // We also want to monitor changes to the color map presets. If these changes
   // occur, we have to modify the list of presets.
   LatentITKEventNotifier::connect(m_Model->GetParentModel()->GetColorMapModel(),
