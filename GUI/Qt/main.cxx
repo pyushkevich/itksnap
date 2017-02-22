@@ -92,8 +92,8 @@ template<typename TVal>
 void itksnap_putenv(const std::string &var, TVal value)
 {
   std::ostringstream s;
-  s << var << "=" << value;
-  putenv(s.str().c_str());
+  s << value;
+  setenv(var.c_str(), s.str().c_str(), 1);
 }
 
 #endif
@@ -618,7 +618,8 @@ int main(int argc, char *argv[])
   //  sleep(60);
 
 
-#if QT_VERSION > 0x050400
+
+#if QT_VERSION > 0x050000
 
   // Starting with Qt 5.6, the OpenGL implementation uses OpenGL 2.0
   // In this version of OpenGL, transparency is handled differently and
@@ -627,6 +628,10 @@ int main(int argc, char *argv[])
   gl_fmt.setMajorVersion(1);
   gl_fmt.setMinorVersion(3);
   QSurfaceFormat::setDefaultFormat(gl_fmt);
+
+#endif
+
+#if QT_VERSION > 0x050400
 
   // Environment variable for the scale factor
   const char *QT_SCALE_FACTOR = "QT_SCALE_FACTOR";
