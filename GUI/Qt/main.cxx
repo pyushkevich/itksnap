@@ -229,6 +229,7 @@ void usage(const char *progname)
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
   cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., 0.5). " << endl;
   cout << "   --css file           : Read stylesheet from file." << endl;
+  cout << "   --opengl MAJOR MINOR : Set the OpenGL major and minor version. Experimental." << endl;
   cout << "Platform-Specific Options:" << endl;
 #if QT_VERSION < 0x050000
 #ifdef Q_WS_X11
@@ -275,6 +276,9 @@ public:
   // GUI related
   std::string style, cssfile;
 
+  // OpenGL version preferred
+  int opengl_major, opengl_minor;
+
   // Number of threads
   int nThreads;
 
@@ -290,6 +294,8 @@ public:
 #else
     style = "plastique";
 #endif
+    opengl_major = 1;
+    opengl_minor = 3;
     }
 };
 
@@ -411,6 +417,8 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--css", 1);
 
   parser.AddOption("--scale", 1);
+
+  parser.AddOption("--opengl", 2);
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -572,6 +580,12 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   if(parseResult.IsOptionPresent("--css"))
     argdata.cssfile = parseResult.GetOptionParameter("--css");
 
+  if(parseResult.IsOptionPresent("--opengl"))
+    {
+    argdata.opengl_major = atoi(parseResult.GetOptionParameter("--opengl", 0));
+    argdata.opengl_minor = atoi(parseResult.GetOptionParameter("--opengl", 1));
+    }
+
   // Enable double buffering on X11
   if(parseResult.IsOptionPresent("--x11-db"))
     argdata.flagX11DoubleBuffer = true;
@@ -625,8 +639,18 @@ int main(int argc, char *argv[])
   // In this version of OpenGL, transparency is handled differently and
   // looks wrong.
   QSurfaceFormat gl_fmt;
-  gl_fmt.setMajorVersion(1);
-  gl_fmt.setMinorVersion(3);
+  gl_fmt.setMajorVersion(argdata.opengl_major);
+  gl_fmt.setMinorVersion(argdata.opengl_minor);
+  /*
+  gl_fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+  gl_fmt.setRedBufferSize(1);
+  gl_fmt.setGreenBufferSize(1);
+  gl_fmt.setBlueBufferSize(1);
+  gl_fmt.setDepthBufferSize(1);
+  gl_fmt.setStencilBufferSize(0);
+  gl_fmt.setAlphaBufferSize(0);
+  */
+
   QSurfaceFormat::setDefaultFormat(gl_fmt);
 
 #endif
