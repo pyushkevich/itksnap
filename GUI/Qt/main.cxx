@@ -4,6 +4,12 @@
 #include <QShortcutEvent>
 #include <QStyleFactory>
 #include <QUrl>
+#include <QDir>
+#include <QFileSystemWatcher>
+
+#if QT_VERSION > 0x050000
+#include <QSurfaceFormat>
+#endif
 
 #include "MainImageWindow.h"
 #include "SliceViewPanel.h"
@@ -125,6 +131,9 @@ public:
 #if QT_VERSION >= 0x050000
     // Allow @x2 pixmaps for icons for retina displays
     this->setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+
+    // System-supplied DPI screws up widget and font scaling horribly
+    this->setAttribute(Qt::AA_Use96Dpi, true);
 #endif
 
     m_MainWindow = NULL;
@@ -603,10 +612,6 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 
 
 
-#include <QDir>
-
-#include <QSurfaceFormat>
-#include <QFileSystemWatcher>
 
 int main(int argc, char *argv[])
 {  
@@ -724,8 +729,6 @@ int main(int argc, char *argv[])
   // TODO: we haven't proven that this actually helps with anything so hold off..
   // app.setAttribute(Qt::AA_UseDesktopOpenGL);
 
-  // System-supplied DPI screws up widget and font scaling horribly
-  app.setAttribute(Qt::AA_Use96Dpi);
 
   // Set the application style
   app.setStyle(QStyleFactory::create(argdata.style.c_str()));
