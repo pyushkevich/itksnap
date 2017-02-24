@@ -43,7 +43,7 @@ void IPCHandler::Attach(const char *path, short version, size_t message_size)
 #ifdef WIN32
   // Create a shared memory block (key based on the preferences file)
   m_Handle = CreateFileMapping(
-    INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, msize, path);
+    INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, (DWORD) msize, path);
 
   // If the return value is NULL, something failed
   if(m_Handle)

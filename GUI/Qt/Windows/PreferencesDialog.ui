@@ -221,6 +221,12 @@
               <property name="fieldGrowthPolicy">
                <enum>QFormLayout::FieldsStayAtSizeHint</enum>
               </property>
+              <property name="formAlignment">
+               <set>Qt::AlignHCenter|Qt::AlignTop</set>
+              </property>
+              <property name="rightMargin">
+               <number>24</number>
+              </property>
               <item row="0" column="0">
                <widget class="QLabel" name="label_5">
                 <property name="text">
@@ -257,7 +263,7 @@
            <item>
             <widget class="QGroupBox" name="groupBox_6">
              <property name="title">
-              <string>Zoom Thumbnail</string>
+              <string>Zoom Thumbnail:</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_10">
               <item>

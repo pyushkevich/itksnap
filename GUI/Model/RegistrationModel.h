@@ -72,9 +72,6 @@ public:
   /** Interactive registration tool button */
   irisGetMacro(InteractiveToolModel, AbstractSimpleBooleanProperty *)
 
-  /** Get the iteration pyramid scheme */
-  const std::vector<int> &GetIterationPyramid() const;
-
   /** Set the center of rotation to current cross-hairs position */
   void SetCenterOfRotationToCursor();
 
@@ -83,6 +80,9 @@ public:
 
   /** Match image centers */
   void MatchImageCenters();
+
+  /** Match moments of inertia */
+  void MatchByMoments(int order);
 
   /** Apply a rotation around a fixed angle */
   void ApplyRotation(const Vector3d &axis, double theta);
@@ -99,11 +99,14 @@ public:
   // Automatic registration parameter domains
   typedef SimpleItemSetDomain<Transformation, std::string> TransformationDomain;
   typedef SimpleItemSetDomain<SimilarityMetric, std::string> SimilarityMetricDomain;
+  typedef SimpleItemSetDomain<int, std::string> ResolutionLevelDomain;
 
   // Access to registration models
   irisGenericPropertyAccessMacro(Transformation, Transformation, TransformationDomain)
   irisGenericPropertyAccessMacro(SimilarityMetric, SimilarityMetric, SimilarityMetricDomain)
   irisSimplePropertyAccessMacro(UseSegmentationAsMask, bool)
+  irisGenericPropertyAccessMacro(CoarsestResolutionLevel, int, ResolutionLevelDomain)
+  irisGenericPropertyAccessMacro(FinestResolutionLevel, int, ResolutionLevelDomain)
 
   void SetIterationCommand(itk::Command *command);
 
@@ -192,6 +195,20 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_UseSegmentationAsMaskModel;
 
   SmartPtr<ConcreteSimpleDoubleProperty> m_LastMetricValueModel;
+
+  // Multi-resolution schedule - coarsest and finest levels
+  int m_CoarsestResolutionLevel, m_FinestResolutionLevel;
+  ResolutionLevelDomain m_ResolutionLevelDomain;
+
+  typedef AbstractPropertyModel<int, ResolutionLevelDomain> ResolutionLevelModel;
+  SmartPtr<ResolutionLevelModel> m_CoarsestResolutionLevelModel;
+  SmartPtr<ResolutionLevelModel> m_FinestResolutionLevelModel;
+
+  bool GetCoarsestResolutionLevelValueAndRange(int &value, ResolutionLevelDomain *domain);
+  void SetCoarsestResolutionLevelValue(int value);
+
+  bool GetFinestResolutionLevelValueAndRange(int &value, ResolutionLevelDomain *domain);
+  void SetFinestResolutionLevelValue(int value);
 
   // Value corresponding to no layer selected
   static const unsigned long NOID;

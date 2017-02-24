@@ -144,7 +144,7 @@ font-size: 11px;
         <bool>true</bool>
        </property>
        <property name="styleSheet">
-        <string notr="true">font-size:9pt;</string>
+        <string notr="true">font-size:9px;</string>
        </property>
        <property name="text">
         <string> px/mm</string>

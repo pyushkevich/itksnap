@@ -314,7 +314,10 @@ bool Generic3DModel::AcceptAction()
 
     // Map these properties into the image coordinates
     Vector3d xi = affine_transform_point(m_WorldMatrixInverse, xw);
-    Vector3d ni = affine_transform_vector(m_WorldMatrixInverse, nw);
+
+    // Normal is a covariant tensor and has to be transformed by (M^-1)'
+    vnl_matrix<double> Madj = m_WorldMatrix.extract(3,3).transpose();
+    Vector3d ni = Madj * nw;
 
     // Use the driver to relabel the plane
     int nMod = app->RelabelSegmentationWithCutPlane(ni, dot_product(xi, ni));

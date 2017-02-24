@@ -2,6 +2,7 @@
 #include "AbstractVTKRenderer.h"
 #include "QtVTKInteractionDelegateWidget.h"
 #include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
 #include "vtkCommand.h"
 #include "QtReporterDelegates.h"
 
@@ -28,17 +29,17 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractRenderer *renderer)
     // Hook up the interaction delegate
     m_InteractionDelegate->SetVTKInteractor(renvtk->GetRenderWindowInteractor());
 
+    // Disable rendering directly in the interactor
+    renvtk->GetRenderWindowInteractor()->EnableRenderOff();
+
+    // Disable buffer swapping in render window
+    renvtk->GetRenderWindow()->SwapBuffersOff();
+
     // Create a size reporter
+    renvtk->GetRenderWindowInteractor()->AddObserver(
+          vtkCommand::RenderEvent,
+          this, &QtVTKRenderWindowBox::RendererCallback);
     }
-
-  // Hook up context-related events (is this needed?)
-  renvtk->GetRenderWindow()->AddObserver(
-        vtkCommand::WindowMakeCurrentEvent,
-        this, &QtVTKRenderWindowBox::RendererCallback);
-
-  renvtk->GetRenderWindow()->AddObserver(
-        vtkCommand::WindowIsCurrentEvent,
-        this, &QtVTKRenderWindowBox::RendererCallback);
 
   // Call parent method
   QtSimpleOpenGLBox::SetRenderer(renderer);
@@ -50,14 +51,9 @@ QtVTKRenderWindowBox
 ::RendererCallback(
     vtkObject *src, unsigned long event, void *data)
 {
-  if(event == vtkCommand::WindowMakeCurrentEvent)
+  if(event == vtkCommand::RenderEvent)
     {
-    this->makeCurrent();
-    }
-  else if(event == vtkCommand::WindowIsCurrentEvent)
-    {
-    bool *result = static_cast<bool *>(data);
-    *result = QOpenGLContext::currentContext() == this->context();
+    this->update();
     }
 }
 

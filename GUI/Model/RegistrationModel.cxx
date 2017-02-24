@@ -64,15 +64,26 @@ RegistrationModel::RegistrationModel()
 
   // Registration metric
   SimilarityMetricDomain metric_domain;
-  metric_domain[NMI] = "Normalized mutual information";
-  metric_domain[NCC] = "Normalized cross-correlation";
-  metric_domain[SSD] = "Squared intensity difference";
+  metric_domain[NMI] = "Mutual information";
+  metric_domain[NCC] = "Cross-correlation";
+  metric_domain[SSD] = "Intensity difference";
   m_SimilarityMetricModel = NewConcreteProperty(NMI, metric_domain);
 
   // Mask model
   m_UseSegmentationAsMaskModel = NewSimpleConcreteProperty(false);
 
   m_LastMetricValueModel = NewSimpleConcreteProperty(0.0);
+
+  // Multi-resolution
+  m_CoarsestResolutionLevelModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetCoarsestResolutionLevelValueAndRange,
+        &Self::SetCoarsestResolutionLevelValue);
+
+  m_FinestResolutionLevelModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetFinestResolutionLevelValueAndRange,
+        &Self::SetFinestResolutionLevelValue);
 
   // Initialize the moving layer ID to be -1
   m_MovingLayerId = NOID;
@@ -84,12 +95,6 @@ RegistrationModel::RegistrationModel()
   m_Driver = NULL;
   m_Parent = NULL;
   m_GreedyAPI = NULL;
-
-  // TODO: this should not be a hard-coded black box!
-  m_IterationPyramid.push_back(100);
-  m_IterationPyramid.push_back(100);
-  m_IterationPyramid.push_back(0);
-  m_IterationPyramid.push_back(0);
 }
 
 RegistrationModel::~RegistrationModel()
@@ -101,12 +106,40 @@ void RegistrationModel::ResetOnMainImageChange()
 {
   if(m_Driver->GetIRISImageData()->IsMainLoaded())
     {
+    ImageWrapperBase* main_img = m_Driver->GetIRISImageData()->GetMain();
+    Vector3ui main_dim = main_img->GetSize();
+
     // Reset the center of rotation
     Vector3ui center;
     for(int i = 0; i < 3; i++)
-      center[i] = m_Driver->GetIRISImageData()->GetMain()->GetSize()[i] / 2;
+      center[i] = main_dim[i] / 2;
     this->SetRotationCenter(center);
 
+    // Reset the multi-resolution pyramid based on some heuristics
+    int dim_min = main_dim.min_value();
+    int dim_max = main_dim.max_value();
+
+    // The coarsest factor may not exceed smallest image dimension
+    int coarse_ub_1 = (int) (log2(dim_min));
+
+    // It does not make sense to do multi-resolution after the largest
+    // dimension has been reduced below 32. For example, for an image
+    // 300x140x120, 8x gives 37x17x15 but 16x would be pointless. But
+    // for an image that's 512x512x200 we want to offer 16x
+    int coarse_ub_2 = (int) (log2(dim_max / 32));
+
+    // We typically want to do registration at the at most two coarsest levels
+    m_CoarsestResolutionLevel = std::max(0, std::min(coarse_ub_1, coarse_ub_2));
+    m_FinestResolutionLevel = std::max(0, m_CoarsestResolutionLevel - 1);
+
+    // Update the domain with "1x", "2x", and so on
+    m_ResolutionLevelDomain.clear();
+    for(int i = 0; i <= m_CoarsestResolutionLevel; i++)
+      {
+      std::ostringstream oss;
+      oss << (1 << i) << "x";
+      m_ResolutionLevelDomain[i] = oss.str();
+      }
     }
 }
 
@@ -425,17 +458,20 @@ void RegistrationModel::RunAutoRegistration()
   else
     param.affine_dof = GreedyParameters::DOF_AFFINE;
 
-  // TODO: how to specify iterations per level?
-  param.iter_per_level = m_IterationPyramid;
+  // Set up the pyramid
+  param.iter_per_level.clear();
+  for(int k = m_CoarsestResolutionLevel; k >= 0; k--)
+    {
+    if(k >= m_FinestResolutionLevel)
+      param.iter_per_level.push_back(100);
+    else
+      param.iter_per_level.push_back(0);
+    }
 
   // Create a transform spec
   param.affine_init_mode = RAS_FILENAME;
   param.affine_init_transform.filename = "INPUT_TRANSFORM";
   param.affine_init_transform.exponent = 1;
-
-  // TODO: this is temporary - it's better to have affine jitter, but it
-  // seems to add quite a bit of overhead to the registration
-  param.affine_jitter = 0.0;
 
   // Pass the input transformation object to the cache
   ITKMatrixType matrix; ITKVectorType offset;
@@ -472,6 +508,90 @@ void RegistrationModel::RunAutoRegistration()
   // Delete the API
   delete(m_GreedyAPI); m_GreedyAPI = NULL;
 }
+
+void RegistrationModel::MatchByMoments(int order)
+{
+  // Obtain the fixed and moving images.
+  ImageWrapperBase *fixed = this->GetParent()->GetDriver()->GetCurrentImageData()->GetMain();
+  ImageWrapperBase *moving = this->GetMovingLayerWrapper();
+
+  // TODO: for now, we are not supporting vector image registration, only registration between
+  // scalar components; and we use the default scalar component.
+  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castFixed =
+      fixed->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
+  castFixed->UpdateOutputInformation();
+
+  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castMoving =
+      moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
+  castMoving->UpdateOutputInformation();
+
+  // Set up the parameters for greedy registration
+  GreedyParameters param;
+  GreedyParameters::SetToDefaults(param);
+
+  // Create an API object
+  m_GreedyAPI = new GreedyAPI();
+
+  // Configure the fixed and moving images
+  ImagePairSpec ip;
+  ip.weight = 1.0;
+  ip.fixed = "FIXED_IMAGE";
+  ip.moving = "MOVING_IMAGE";
+  param.inputs.push_back(ip);
+
+  // Pass the actual images to the cache
+  m_GreedyAPI->AddCachedInputObject(ip.fixed, castFixed->GetOutput());
+  m_GreedyAPI->AddCachedInputObject(ip.moving, castMoving->GetOutput());
+
+  // Set up the metric
+  switch(m_SimilarityMetricModel->GetValue())
+    {
+    case NCC:
+      param.metric = GreedyParameters::NCC;
+      param.metric_radius = std::vector<int>(3, 4);
+      break;
+    case NMI:
+      param.metric = GreedyParameters::NMI;
+      break;
+    default:
+      param.metric = GreedyParameters::SSD;
+      break;
+    };
+
+  // Create a transform spec
+  param.affine_init_mode = RAS_FILENAME;
+  param.affine_init_transform.filename = "INPUT_TRANSFORM";
+  param.affine_init_transform.exponent = 1;
+
+  // Pass the input transformation object to the cache
+  ITKMatrixType matrix; ITKVectorType offset;
+  this->GetMovingTransform(matrix, offset);
+
+  // Unfortunately, we have to cast to float, argh!
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformType;
+  TransformType::Pointer tran = TransformType::New();
+  tran->SetMatrix(matrix);
+  tran->SetOffset(offset);
+
+  // Finally pass the float transform to the API
+  m_GreedyAPI->AddCachedInputObject(param.affine_init_transform.filename, tran);
+
+  // Pass the output string - same as the input transform
+  param.output = param.affine_init_transform.filename;
+
+  // Set the order of the moments match
+  param.moments_order = order;
+
+  // Run the registration
+  m_GreedyAPI->RunAlignMoments(param);
+
+  // Now, the transform tran should hold our matrix and offset
+  this->SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
+
+  // Delete the API
+  delete(m_GreedyAPI); m_GreedyAPI = NULL;
+}
+
 
 void RegistrationModel::LoadTransform(const char *filename, TransformFormat format)
 {
@@ -684,11 +804,6 @@ void RegistrationModel::OnUpdate()
     }
 }
 
-const std::vector<int> &RegistrationModel::GetIterationPyramid() const
-{
-  return m_IterationPyramid;
-}
-
 void RegistrationModel::SetCenterOfRotationToCursor()
 {
   this->SetRotationCenter(m_Driver->GetCursorPosition());
@@ -738,6 +853,7 @@ void RegistrationModel::MatchImageCenters()
 
   this->SetMovingTransform(matrix, offset);
 }
+
 
 
 bool RegistrationModel::GetMovingLayerValueAndRange(unsigned long &value, RegistrationModel::LayerSelectionDomain *range)
@@ -896,6 +1012,54 @@ void RegistrationModel::SetLogScalingValue(Vector3d value)
 
   // Update the transform
   this->UpdateWrapperFromManualParameters();
+}
+
+bool RegistrationModel::GetCoarsestResolutionLevelValueAndRange(
+    int &value, ResolutionLevelDomain *domain)
+{
+  // Is there a moving image?
+  if(!this->GetMovingLayerWrapper())
+    return false;
+
+  value = m_CoarsestResolutionLevel;
+  if(domain)
+    *domain = m_ResolutionLevelDomain;
+
+  return true;
+}
+
+void RegistrationModel::SetCoarsestResolutionLevelValue(int value)
+{
+  m_CoarsestResolutionLevel = value;
+  if(m_FinestResolutionLevel > value)
+    {
+    m_FinestResolutionLevelModel->SetValue(value);
+    this->InvokeEvent(ModelUpdateEvent());
+    }
+}
+
+bool RegistrationModel::GetFinestResolutionLevelValueAndRange(
+    int &value, ResolutionLevelDomain *domain)
+{
+  // Is there a moving image?
+  if(!this->GetMovingLayerWrapper())
+    return false;
+
+  value = m_FinestResolutionLevel;
+  if(domain)
+    *domain = m_ResolutionLevelDomain;
+
+  return true;
+}
+
+void RegistrationModel::SetFinestResolutionLevelValue(int value)
+{
+  m_FinestResolutionLevel = value;
+  if(m_CoarsestResolutionLevel < value)
+    {
+    m_CoarsestResolutionLevelModel->SetValue(value);
+    this->InvokeEvent(ModelUpdateEvent());
+    }
 }
 
 void RegistrationModel::IterationCallback(const itk::Object *object, const itk::EventObject &event)

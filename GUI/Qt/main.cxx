@@ -4,6 +4,12 @@
 #include <QShortcutEvent>
 #include <QStyleFactory>
 #include <QUrl>
+#include <QDir>
+#include <QFileSystemWatcher>
+
+#if QT_VERSION > 0x050000
+#include <QSurfaceFormat>
+#endif
 
 #include "MainImageWindow.h"
 #include "SliceViewPanel.h"
@@ -32,6 +38,7 @@
 
 #include <iostream>
 #include <clocale>
+#include <cstdlib>
 
 using namespace std;
 
@@ -61,6 +68,7 @@ void SetupSignalHandlers()
   signal(SIGSEGV, SegmentationFaultHandler);
 }
 
+
 #else
 
 void SetupSignalHandlers()
@@ -69,6 +77,34 @@ void SetupSignalHandlers()
 }
 
 #endif
+
+
+
+// Setting environment variables
+
+#ifdef WIN32
+
+template<typename TVal>
+void itksnap_putenv(const std::string &var, TVal value)
+{
+  std::ostringstream s;
+  s << var << "=" << value;
+  _putenv(s.str().c_str());
+}
+
+#else
+
+template<typename TVal>
+void itksnap_putenv(const std::string &var, TVal value)
+{
+  std::ostringstream s;
+  s << value;
+  setenv(var.c_str(), s.str().c_str(), 1);
+}
+
+#endif
+
+
 
 
 /*
@@ -95,6 +131,9 @@ public:
 #if QT_VERSION >= 0x050000
     // Allow @x2 pixmaps for icons for retina displays
     this->setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+
+    // System-supplied DPI screws up widget and font scaling horribly
+    this->setAttribute(Qt::AA_Use96Dpi, true);
 #endif
 
     m_MainWindow = NULL;
@@ -189,6 +228,7 @@ void usage(const char *progname)
   cout << "   -z FACTOR            : Specify initial zoom in screen pixels/mm" << endl;
   cout << "   --cwd PATH           : Start with PATH as the initial directory" << endl;
   cout << "   --threads N          : Limit maximum number of CPU cores used to N." << endl;
+  cout << "   --scale N            : Scale all GUI elements by factor of N (e.g., 2)." << endl;
   cout << "Debugging/Testing Options:" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
@@ -197,6 +237,8 @@ void usage(const char *progname)
   cout << "   --test TESTID        : Execute a test. " << endl;
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
   cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., 0.5). " << endl;
+  cout << "   --css file           : Read stylesheet from file." << endl;
+  cout << "   --opengl MAJOR MINOR : Set the OpenGL major and minor version. Experimental." << endl;
   cout << "Platform-Specific Options:" << endl;
 #if QT_VERSION < 0x050000
 #ifdef Q_WS_X11
@@ -241,20 +283,28 @@ public:
   std::string cwd;
 
   // GUI related
-  std::string style;
+  std::string style, cssfile;
+
+  // OpenGL version preferred
+  int opengl_major, opengl_minor;
 
   // Number of threads
   int nThreads;
 
+  // GUI scaling
+  int nDevicePixelRatio;
+
   CommandLineRequest()
     : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0),
-      flagX11DoubleBuffer(false), nThreads(0)
+      flagX11DoubleBuffer(false), nThreads(0), nDevicePixelRatio(0)
     {
 #if QT_VERSION >= 0x050000
     style = "fusion";
 #else
     style = "plastique";
 #endif
+    opengl_major = 1;
+    opengl_minor = 3;
     }
 };
 
@@ -372,6 +422,12 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--style", 1);
 
   parser.AddOption("--x11-db",0);
+
+  parser.AddOption("--css", 1);
+
+  parser.AddOption("--scale", 1);
+
+  parser.AddOption("--opengl", 2);
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -530,6 +586,15 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   if(parseResult.IsOptionPresent("--style"))
     argdata.style = parseResult.GetOptionParameter("--style");
 
+  if(parseResult.IsOptionPresent("--css"))
+    argdata.cssfile = parseResult.GetOptionParameter("--css");
+
+  if(parseResult.IsOptionPresent("--opengl"))
+    {
+    argdata.opengl_major = atoi(parseResult.GetOptionParameter("--opengl", 0));
+    argdata.opengl_minor = atoi(parseResult.GetOptionParameter("--opengl", 1));
+    }
+
   // Enable double buffering on X11
   if(parseResult.IsOptionPresent("--x11-db"))
     argdata.flagX11DoubleBuffer = true;
@@ -538,12 +603,15 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   if(parseResult.IsOptionPresent("--threads"))
     argdata.nThreads = atoi(parseResult.GetOptionParameter("--threads"));
 
+  // Number of threads
+  if(parseResult.IsOptionPresent("--scale"))
+    argdata.nDevicePixelRatio = atoi(parseResult.GetOptionParameter("--scale"));
+
   return 0;
 }
 
 
 
-#include <QDir>
 
 int main(int argc, char *argv[])
 {  
@@ -567,6 +635,66 @@ int main(int argc, char *argv[])
   // Debugging mechanism: if no-fork is on, sleep for 60 secs
   // if(argdata.flagNoFork)
   //  sleep(60);
+
+
+
+#if QT_VERSION > 0x050000
+
+  // Starting with Qt 5.6, the OpenGL implementation uses OpenGL 2.0
+  // In this version of OpenGL, transparency is handled differently and
+  // looks wrong.
+  QSurfaceFormat gl_fmt;
+  gl_fmt.setMajorVersion(argdata.opengl_major);
+  gl_fmt.setMinorVersion(argdata.opengl_minor);
+  /*
+  gl_fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+  gl_fmt.setRedBufferSize(1);
+  gl_fmt.setGreenBufferSize(1);
+  gl_fmt.setBlueBufferSize(1);
+  gl_fmt.setDepthBufferSize(1);
+  gl_fmt.setStencilBufferSize(0);
+  gl_fmt.setAlphaBufferSize(0);
+  */
+
+  QSurfaceFormat::setDefaultFormat(gl_fmt);
+
+#endif
+
+#if QT_VERSION > 0x050400
+
+  // Environment variable for the scale factor
+  const char *QT_SCALE_FACTOR = "QT_SCALE_FACTOR";
+  const char *QT_SCALE_AUTO_VAR = "QT_AUTO_SCREEN_SCALE_FACTOR";
+  const char *QT_SCALE_AUTO_VALUE = "1";
+
+#else
+
+  const char *QT_SCALE_FACTOR = "QT_DEVICE_PIXEL_RATIO";
+  const char *QT_SCALE_AUTO_VAR = "QT_DEVICE_PIXEL_RATIO";
+  const char *QT_SCALE_AUTO_VALUE = "auto";
+
+#endif
+
+  /* -----------------------------
+   * DEAL WITH PIXEL RATIO SCALING
+   * ----------------------------- */
+
+  // Read the pixel ratio from environment or command line
+  int devicePixelRatio = 0;
+  if(argdata.nDevicePixelRatio > 0)
+    devicePixelRatio = argdata.nDevicePixelRatio;
+  else if(getenv("ITKSNAP_SCALE_FACTOR"))
+    devicePixelRatio = atoi(getenv("ITKSNAP_SCALE_FACTOR"));
+
+  // Set the environment variable
+  if(devicePixelRatio > 0)
+    {
+    itksnap_putenv(QT_SCALE_FACTOR,devicePixelRatio);
+    }
+  else
+    {
+    itksnap_putenv(QT_SCALE_AUTO_VAR, QT_SCALE_AUTO_VALUE);
+    }
 
   // Turn off event debugging if needed
 #ifdef SNAP_DEBUG_EVENTS
@@ -592,6 +720,7 @@ int main(int argc, char *argv[])
   Q_INIT_RESOURCE(SNAPResources);
   Q_INIT_RESOURCE(TestingScripts);
 
+
   // Reset the locale to posix to avoid weird issues with NRRD files
   std::setlocale(LC_NUMERIC, "POSIX");
 
@@ -599,6 +728,7 @@ int main(int argc, char *argv[])
   // and cannot use ANGLE
   // TODO: we haven't proven that this actually helps with anything so hold off..
   // app.setAttribute(Qt::AA_UseDesktopOpenGL);
+
 
   // Set the application style
   app.setStyle(QStyleFactory::create(argdata.style.c_str()));
@@ -655,6 +785,15 @@ int main(int argc, char *argv[])
     // Create the main window
     MainImageWindow *mainwin = new MainImageWindow();
     mainwin->Initialize(gui);
+
+    // Load stylesheet
+    if(argdata.cssfile.size())
+      {
+      QFileSystemWatcher *watcher = new QFileSystemWatcher(mainwin);
+      watcher->addPath(from_utf8(argdata.cssfile));
+      QObject::connect(watcher, SIGNAL(fileChanged(QString)),
+              mainwin, SLOT(externalStyleSheetFileChanged(QString)));
+      }
 
     // Disable double buffering in X11 to avoid flickering issues. The documentation
     // says this only happens on X11. For the time being, we are only implementing this

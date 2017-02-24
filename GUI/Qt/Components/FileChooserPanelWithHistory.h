@@ -128,6 +128,7 @@ private:
   const char *m_oracleSlot;
   QString guessFormat(const QString &text);
   void setCurrentFormatText(const QString &format);
+  bool isFilenameNonAscii(const QString &text);
 };
 
 #endif // FILECHOOSERPANELWITHHISTORY_H

@@ -336,7 +336,6 @@ GlobalDisplaySettings::GlobalDisplaySettings()
 
   m_LayerLayoutModel =
       NewSimpleEnumProperty("LayerLayout", LAYOUT_STACKED, emap_layer_layout);
-
 }
 
 void GlobalDisplaySettings

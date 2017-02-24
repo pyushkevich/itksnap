@@ -1,6 +1,7 @@
 #include "RegistrationDialog.h"
 #include "ui_RegistrationDialog.h"
 
+#include <QMenu>
 #include <QVBoxLayout>
 #include "QtComboBoxCoupling.h"
 #include "QtCheckBoxCoupling.h"
@@ -26,6 +27,13 @@ RegistrationDialog::RegistrationDialog(QWidget *parent) :
   ui(new Ui::RegistrationDialog)
 {
   ui->setupUi(this);  
+
+  // Set up a menu
+  QMenu *menuMatch = new QMenu(this);
+  menuMatch->addAction(ui->actionImage_Centers);
+  menuMatch->addAction(ui->actionCenters_of_Mass);
+  menuMatch->addAction(ui->actionMoments_of_Inertia);
+  ui->btnMatchCenters->setMenu(menuMatch);
 }
 
 RegistrationDialog::~RegistrationDialog()
@@ -67,6 +75,9 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
   makeCoupling(ui->inSimilarityMetric, m_Model->GetSimilarityMetricModel());
   makeCoupling(ui->inUseMask, m_Model->GetUseSegmentationAsMaskModel());
 
+  makeCoupling(ui->inCoarseLevel, m_Model->GetCoarsestResolutionLevelModel());
+  makeCoupling(ui->inFineLevel, m_Model->GetFinestResolutionLevelModel());
+
   activateOnFlag(ui->inMovingLayer, m_Model,
                  RegistrationModel::UIF_MOVING_SELECTION_AVAILABLE);
   activateOnFlag(ui->pgManual, m_Model,
@@ -92,7 +103,10 @@ void RegistrationDialog::on_pushButton_2_clicked()
 void RegistrationDialog::on_btnRunRegistration_clicked()
 {
   // Create the render panels based on the number of iterations
-  std::vector<int> pyramid = m_Model->GetIterationPyramid();
+  int coarsest = m_Model->GetCoarsestResolutionLevel();
+  int finest = m_Model->GetFinestResolutionLevel();
+  int n_levels = 1 + (coarsest - finest);
+  assert(n_levels > 0);
 
   // Delete all existing render boxes
   QList<QtVTKRenderWindowBox *> bx = ui->grpPlots->findChildren<QtVTKRenderWindowBox*>();
@@ -107,23 +121,28 @@ void RegistrationDialog::on_btnRunRegistration_clicked()
 
   // Vector of renderers - so they don't disappear
   m_PlotRenderers.clear();
-  m_PlotRenderers.resize(pyramid.size());
+  m_PlotRenderers.resize(n_levels);
+
+  // Background color
+  QPalette pMain = ui->pgAuto->palette(), pScroll = ui->scrollPlots->palette();
+  pScroll.setBrush(QPalette::Window, pMain.background());
+  ui->scrollPlots->setPalette(pScroll);
+  ui->scrollAreaWidgetContents->setPalette(pScroll);
 
   // Vector of box widgets
-  for(int i = 0; i < pyramid.size(); i++)
+  for(int k = 0; k < n_levels; k++)
     {
-    if(pyramid[i] > 0)
-      {
-      // Create a new VTK box
-      QtVTKRenderWindowBox *plot = new QtVTKRenderWindowBox(NULL);
-      m_PlotRenderers[i] = OptimizationProgressRenderer::New();
-      m_PlotRenderers[i]->SetModel(m_Model);
-      m_PlotRenderers[i]->SetPyramidLevel(i);
-      plot->SetRenderer(m_PlotRenderers[i]);
-      plot->setMinimumHeight(80);
+    // Create a new VTK box
+    QtVTKRenderWindowBox *plot = new QtVTKRenderWindowBox(NULL);
+    m_PlotRenderers[k] = OptimizationProgressRenderer::New();
+    m_PlotRenderers[k]->SetModel(m_Model);
+    m_PlotRenderers[k]->SetPyramidLevel(k);
+    m_PlotRenderers[k]->SetPyramidZoom(1 << (coarsest - k));
+    plot->SetRenderer(m_PlotRenderers[k]);
+    plot->setMinimumHeight(76);
+    plot->setMaximumHeight(76);
 
-      ui->grpPlots->layout()->addWidget(plot);
-      }
+    ui->grpPlots->layout()->addWidget(plot);
     }
 
   m_Model->RunAutoRegistration();
@@ -145,8 +164,8 @@ void RegistrationDialog::on_btnLoad_clicked()
   SimpleFileDialogWithHistory::QueryResult result =
       SimpleFileDialogWithHistory::showOpenDialog(
         this, m_Model->GetParent(),
-        "Open Transform - ITK-SNAP", "AffineTransform",
-        "Transform File",
+        "Open Transform - ITK-SNAP", "Transform File",
+        "AffineTransform",
         "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)");
 
   RegistrationModel::TransformFormat format =
@@ -175,8 +194,8 @@ void RegistrationDialog::on_btnSave_clicked()
   SimpleFileDialogWithHistory::QueryResult result =
       SimpleFileDialogWithHistory::showSaveDialog(
         this, m_Model->GetParent(),
-        "Save Transform - ITK-SNAP", "AffineTransform",
-        "Transform File",
+        "Save Transform - ITK-SNAP", "Transform File",
+        "AffineTransform",
         "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)", true);
 
   RegistrationModel::TransformFormat format =
@@ -270,7 +289,21 @@ void RegistrationDialog::on_btnReslice_clicked()
   delete dialog;
 }
 
-void RegistrationDialog::on_btnMatchCenters_clicked()
+void RegistrationDialog::on_actionImage_Centers_triggered()
 {
   m_Model->MatchImageCenters();
+}
+
+void RegistrationDialog::on_actionCenters_of_Mass_triggered()
+{
+  // Turn on the wait cursor
+  QtCursorOverride cursor(Qt::WaitCursor);
+  m_Model->MatchByMoments(1);
+}
+
+void RegistrationDialog::on_actionMoments_of_Inertia_triggered()
+{
+  // Turn on the wait cursor
+  QtCursorOverride cursor(Qt::WaitCursor);
+  m_Model->MatchByMoments(2);
 }

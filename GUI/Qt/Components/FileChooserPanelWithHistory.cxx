@@ -580,6 +580,19 @@ void FileChooserPanelWithHistory::setCurrentFormatText(const QString &format)
 #endif
 }
 
+bool FileChooserPanelWithHistory::isFilenameNonAscii(const QString &text)
+{
+#ifdef WIN32
+  for(int i = 0; i < text.length(); i++)
+    {
+    if(text[i].unicode() > 127)
+      return true;
+    }
+#endif
+
+  return false;
+}
+
 void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
 {
   // The filename has changed. The first thing we do is to see if the filename has
@@ -631,6 +644,8 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
       ui->outError->setText("The file is not readable");
     else if(ui->inFormat->currentIndex() == -1 && ui->inFilename->text().length())
       ui->outError->setText("Unable to recognize file format");
+    else if(isFilenameNonAscii(fiwd.absoluteFilePath()))
+      ui->outError->setText("The filename contains unsupported characters");
     else
       ui->outError->setText("");
 
@@ -661,7 +676,9 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
         }
 
       // Does the file exist?
-      if(fiwd.exists())
+	  if (isFilenameNonAscii(fiwd.absoluteFilePath()))
+		ui->outError->setText("The filename contains unsupported characters");
+      else if(fiwd.exists())
         ui->outError->setText("Existing file will be overwritten!");
       }
     }

@@ -23,7 +23,7 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   // Set up the scene for rendering
   m_Chart = vtkSmartPointer<vtkChartXY>::New();
   m_Chart->SetActionToButton(vtkChartXY::PAN, vtkContextMouseEvent::LEFT_BUTTON);
-  m_Chart->SetActionToButton(vtkChartXY::ZOOM, vtkContextMouseEvent::RIGHT_BUTTON);
+  m_Chart->SetActionToButton(vtkChartXY::ZOOM_AXIS, vtkContextMouseEvent::RIGHT_BUTTON);
 
   // Add the chart to the renderer
   m_ContextView->GetScene()->AddItem(m_Chart);
@@ -107,6 +107,6 @@ void OptimizationProgressRenderer::OnUpdate()
   m_Plot->GetYAxis()->SetRange(min_rnd, max_rnd);
 
   char plotLabel[64];
-  sprintf(plotLabel, "%dx Resolution", 1 << m_PyramidLevel);
-  m_Plot->SetLabel(plotLabel);
+  sprintf(plotLabel, "%dx Level", m_PyramidZoom);
+  m_Chart->SetTitle(plotLabel);
 }

@@ -131,6 +131,8 @@ public slots:
   void AdjustMarginsForDocks();
   void onModelUpdate(const EventBucket &b);
 
+  void externalStyleSheetFileChanged(const QString &file);
+
 private slots:
 
   void onActiveChanged();

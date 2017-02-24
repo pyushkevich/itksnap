@@ -43,7 +43,11 @@ private slots:
 
   void on_btnReslice_clicked();
 
-  void on_btnMatchCenters_clicked();
+  void on_actionImage_Centers_triggered();
+
+  void on_actionCenters_of_Mass_triggered();
+
+  void on_actionMoments_of_Inertia_triggered();
 
 private:
   Ui::RegistrationDialog *ui;
