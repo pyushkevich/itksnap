@@ -56,11 +56,11 @@ endforeach()
 SET(SNAP_VERSION_MAJOR 3)
 SET(SNAP_VERSION_MINOR 6)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "-rc1")
+SET(SNAP_VERSION_QUALIFIER "-rc2")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20161206")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Dec 6, 2016")
+SET(SNAP_VERSION_RELEASE_DATE "20170224")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Feb 22, 2017")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
