@@ -694,6 +694,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/RegistrationInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
+  GUI/Qt/View/TestOpenGLDialog.h
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/AboutDialog.h
   GUI/Qt/Windows/DropActionDialog.h

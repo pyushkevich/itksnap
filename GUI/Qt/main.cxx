@@ -25,6 +25,7 @@
 #include "QtCursorOverride.h"
 #include "SNAPQtCommon.h"
 #include "SNAPTestQt.h"
+#include "TestOpenGLDialog.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -239,6 +240,7 @@ void usage(const char *progname)
   cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., 0.5). " << endl;
   cout << "   --css file           : Read stylesheet from file." << endl;
   cout << "   --opengl MAJOR MINOR : Set the OpenGL major and minor version. Experimental." << endl;
+  cout << "   --testgl             : Diagnose OpenGL/VTK issues." << endl;
   cout << "Platform-Specific Options:" << endl;
 #if QT_VERSION < 0x050000
 #ifdef Q_WS_X11
@@ -287,6 +289,7 @@ public:
 
   // OpenGL version preferred
   int opengl_major, opengl_minor;
+  bool flagTestOpenGL;
 
   // Number of threads
   int nThreads;
@@ -296,7 +299,7 @@ public:
 
   CommandLineRequest()
     : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0),
-      flagX11DoubleBuffer(false), nThreads(0), nDevicePixelRatio(0)
+      flagX11DoubleBuffer(false), nThreads(0), nDevicePixelRatio(0), flagTestOpenGL(false)
     {
 #if QT_VERSION >= 0x050000
     style = "fusion";
@@ -428,6 +431,8 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--scale", 1);
 
   parser.AddOption("--opengl", 2);
+
+  parser.AddOption("--testgl", 0);
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -595,6 +600,10 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
     argdata.opengl_minor = atoi(parseResult.GetOptionParameter("--opengl", 1));
     }
 
+  if(parseResult.IsOptionPresent("--testgl"))
+    argdata.flagTestOpenGL = true;
+
+
   // Enable double buffering on X11
   if(parseResult.IsOptionPresent("--x11-db"))
     argdata.flagX11DoubleBuffer = true;
@@ -611,7 +620,12 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 }
 
 
-
+int test_opengl()
+{
+  TestOpenGLDialog *dialog = new TestOpenGLDialog();
+  dialog->show();
+  return QApplication::exec();
+}
 
 int main(int argc, char *argv[])
 {  
@@ -737,6 +751,12 @@ int main(int argc, char *argv[])
     QPalette fpal(QColor(232,232,232));
     fpal.setColor(QPalette::Normal, QPalette::Highlight, QColor(70, 136, 228));
     app.setPalette(fpal);
+    }
+
+  // Test OpenGL?
+  if(argdata.flagTestOpenGL)
+    {
+    return test_opengl();
     }
 
   // Before we can create any of the framework classes, we need to get some
