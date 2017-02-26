@@ -479,6 +479,38 @@ GenericSliceRenderer
 
 #include <itkImageLinearConstIteratorWithIndex.h>
 
+Vector3f GenericSliceRenderer::ComputeGridPosition(
+    const Vector3f &disp_pix,
+    const itk::Index<2> &slice_index,
+    ImageWrapperBase *vecimg)
+{
+  // The pixel must be mapped to native
+  Vector3d disp;
+  disp[0] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(disp_pix[0]);
+  disp[1] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(disp_pix[1]);
+  disp[2] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(disp_pix[2]);
+
+  // The pixel gives the displacement in LPS coordinates (by ANTS/Greedy convention)
+  // We need to map it back into the slice domain. First, we need to know the 3D index
+  // of the current pixel in the image space
+  Vector3f xSlice;
+  xSlice[0] = slice_index[0];
+  xSlice[1] = slice_index[1];
+  xSlice[2] = m_Model->GetSliceIndex();
+
+  // This is the physical coordinate of the current pixel - in LPS
+  Vector3d xPhys = m_Model->MapSliceToImagePhysical(xSlice);
+
+  // Add displacement and map back to slice space
+  itk::ContinuousIndex<double, 3> cix;
+  itk::Point<double, 3> pt = to_itkPoint(xPhys + disp);
+
+  m_Model->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
+      ->TransformPhysicalPointToContinuousIndex(pt, cix);
+  return m_Model->MapImageToSlice(Vector3f(cix));
+}
+
+
 void GenericSliceRenderer::DrawTextureForLayer(
     ImageWrapperBase *layer, const ViewportType &vp, bool use_transparency)
 {
@@ -566,31 +598,8 @@ void GenericSliceRenderer::DrawTextureForLayer(
             {
             // Read the pixel
             AnatomicImageWrapper::SliceType::PixelType pix = it1.Get();
-
-            // The pixel must be mapped to native
-            Vector3d disp;
-            disp[0] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(pix[0]);
-            disp[1] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(pix[1]);
-            disp[2] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(pix[2]);
-
-            // The pixel gives the displacement in LPS coordinates (by ANTS/Greedy convention)
-            // We need to map it back into the slice domain. First, we need to know the 3D index
-            // of the current pixel in the image space
-            Vector3f xSlice;
-            xSlice[0] = it1.GetIndex()[0];
-            xSlice[1] = it1.GetIndex()[1];
-            xSlice[2] = m_Model->GetSliceIndex();
-
-            // This is the physical coordinate of the current pixel - in LPS
-            Vector3d xPhys = m_Model->MapSliceToImagePhysical(xSlice);
-
-            // Add displacement and map back to slice space
-            itk::ContinuousIndex<double, 3> cix;
-            itk::Point<double, 3> pt = to_itkPoint(xPhys + disp);
-
-            m_Model->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
-                ->TransformPhysicalPointToContinuousIndex(pt, cix);
-            Vector3f xDispSlice = m_Model->MapImageToSlice(Vector3f(cix));
+            Vector3f xpix; xpix[0] = pix[0]; xpix[1] = pix[1]; xpix[2] = pix[2];
+            Vector3f xDispSlice = ComputeGridPosition(xpix, it1.GetIndex(), vecimg);
 
             glVertex2d(xDispSlice[0], xDispSlice[1]);
 

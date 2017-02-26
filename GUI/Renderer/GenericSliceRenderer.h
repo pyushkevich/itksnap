@@ -148,6 +148,8 @@ protected:
 
   // List of child renderers
   std::list<AbstractRenderer *>m_ChildRenderers;
+
+  Vector3f ComputeGridPosition(const Vector3f &disp_pix, const itk::Index<2> &slice_index, ImageWrapperBase *vecimg);
 };
 
 
