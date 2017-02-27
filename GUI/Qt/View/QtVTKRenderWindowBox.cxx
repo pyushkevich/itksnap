@@ -33,7 +33,7 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractRenderer *renderer)
     renvtk->GetRenderWindowInteractor()->EnableRenderOff();
 
     // Disable buffer swapping in render window
-    renvtk->GetRenderWindow()->SwapBuffersOff();
+    renvtk->GetRenderWindow()->SwapBuffersOn();
 
     // Create a size reporter
     renvtk->GetRenderWindowInteractor()->AddObserver(

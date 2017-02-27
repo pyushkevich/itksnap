@@ -146,6 +146,7 @@ void RendererCallback(
   if(event == vtkCommand::RenderEvent)
     {
     std::cout << "Received Render Event" << std::endl;
+    this->update();
     }
 }
 
@@ -200,7 +201,7 @@ void mousePressEvent(QMouseEvent *ev)
   else if(ev->button() == Qt::MiddleButton)
     m_Interactor->MiddleButtonPressEvent();
 
-  this->update();
+  // this->update();
 }
 
 void mouseReleaseEvent(QMouseEvent *ev)
@@ -216,7 +217,7 @@ void mouseReleaseEvent(QMouseEvent *ev)
   else if(ev->button() == Qt::MiddleButton)
     m_Interactor->MiddleButtonReleaseEvent();
 
-  this->update();
+  // this->update();
 }
 
 void mouseMoveEvent(QMouseEvent *ev)
@@ -225,7 +226,7 @@ void mouseMoveEvent(QMouseEvent *ev)
   SetVTKEventState(ev);
   m_Interactor->MouseMoveEvent();
 
-  this->update();
+  // this->update();
 }
 
   virtual ~TestOpenGLDialog() {}
