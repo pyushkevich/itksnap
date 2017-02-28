@@ -24,10 +24,10 @@ protected:
   virtual ~AnnotationRenderer() {}
 
   AnnotationModel *m_Model;
-  void DrawLineLength(const Vector3f &xSlice1, const Vector3f &xSlice2,
+  void DrawLineLength(const Vector3d &xSlice1, const Vector3d &xSlice2,
                       const Vector3d &color, double alpha);
 
-  void DrawSelectionHandle(const Vector3f &xSlice);
+  void DrawSelectionHandle(const Vector3d &xSlice);
 };
 
 #endif // ANNOTATIONRENDERER_H

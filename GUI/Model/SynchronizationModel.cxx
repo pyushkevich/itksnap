@@ -127,7 +127,7 @@ void SynchronizationModel::OnUpdate()
     // Map the cursor to NIFTI coordinates
     ImageWrapperBase *iw = app->GetCurrentImageData()->GetMain();
     message.cursor =
-        iw->TransformVoxelIndexToNIFTICoordinates(
+        iw->TransformVoxelCIndexToNIFTICoordinates(
           to_double(app->GetCursorPosition()));
     }
 
@@ -140,7 +140,7 @@ void SynchronizationModel::OnUpdate()
     if(bc_zoom)
       message.zoom_level[dir] = gsm->GetViewZoom();
     if(bc_pan)
-      message.viewPositionRelative[dir] = gsm->GetViewPositionRelativeToCursor();
+      message.viewPositionRelative[dir] = to_float(gsm->GetViewPositionRelativeToCursor());
     }
 
   // 3D viewpoint
@@ -170,7 +170,7 @@ void SynchronizationModel::ReadIPCState()
       // Map the cursor position to the image coordinates
       GenericImageData *id = app->GetCurrentImageData();
       Vector3d vox =
-          id->GetMain()->TransformNIFTICoordinatesToVoxelIndex(message.cursor);
+          id->GetMain()->TransformNIFTICoordinatesToVoxelCIndex(message.cursor);
 
       // Round the cursor to integer value
       itk::Index<3> pos; Vector3ui vpos;
@@ -201,9 +201,9 @@ void SynchronizationModel::ReadIPCState()
 
       if(m_SyncPanModel->GetValue()
          && gsm->IsSliceInitialized()
-         && gsm->GetViewPositionRelativeToCursor() != message.viewPositionRelative[dir])
+         && to_float(gsm->GetViewPositionRelativeToCursor()) != message.viewPositionRelative[dir])
         {
-        gsm->SetViewPositionRelativeToCursor(message.viewPositionRelative[dir]);
+        gsm->SetViewPositionRelativeToCursor(to_double(message.viewPositionRelative[dir]));
         }
       }
 

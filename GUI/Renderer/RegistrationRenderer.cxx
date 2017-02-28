@@ -115,7 +115,7 @@ void RegistrationRenderer::paintGL()
     Vector3ui rot_ctr_image = rmodel->GetRotationCenter();
 
     // Map the center of rotation into the slice coordinates
-    Vector3f rot_ctr_slice = smodel->MapImageToSlice(to_float(rot_ctr_image));
+    Vector3d rot_ctr_slice = smodel->MapImageToSlice(to_double(rot_ctr_image));
 
     // Set line properties
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);

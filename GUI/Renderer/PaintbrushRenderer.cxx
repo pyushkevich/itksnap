@@ -102,7 +102,7 @@ void PaintbrushRenderer::paintGL()
   elt->ApplyLineSettings();
 
   // Get the brush position
-  Vector3f xPos = m_Model->GetCenterOfPaintbrushInSliceSpace();
+  Vector3d xPos = m_Model->GetCenterOfPaintbrushInSliceSpace();
 
   // Refit matrix so that the lines are centered on the current pixel
   glPushMatrix();

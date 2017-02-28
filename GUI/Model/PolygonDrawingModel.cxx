@@ -43,20 +43,19 @@ PolygonDrawingModel
 
 }
 
-Vector2f
-PolygonDrawingModel::GetPixelSize()
+Vector2d PolygonDrawingModel::GetPixelSize()
 {
-  float vppr = m_Parent->GetSizeReporter()->GetViewportPixelRatio();
-  Vector3f x =
-    m_Parent->MapWindowToSlice(Vector2f(vppr)) -
-    m_Parent->MapWindowToSlice(Vector2f(0.0f));
+  double vppr = m_Parent->GetSizeReporter()->GetViewportPixelRatio();
+  Vector3d x =
+    m_Parent->MapWindowToSlice(Vector2d(vppr)) -
+    m_Parent->MapWindowToSlice(Vector2d(0.0));
 
-  return Vector2f(x[0],x[1]);
+  return Vector2d(x[0],x[1]);
 }
 
 bool
 PolygonDrawingModel
-::CheckNearFirstVertex(float x, float y, float pixel_x, float pixel_y)
+::CheckNearFirstVertex(double x, double y, double pixel_x, double pixel_y)
 {
   if(m_Vertices.size() > 2)
     {
@@ -71,12 +70,12 @@ PolygonDrawingModel
 
 bool
 PolygonDrawingModel
-::ProcessPushEvent(float x, float y,
+::ProcessPushEvent(double x, double y,
                    bool shift_state)
 {
   bool handled = false;
-  Vector2f pxsize = GetPixelSize();
-  float pixel_x = pxsize(0), pixel_y = pxsize(1);
+  Vector2d pxsize = GetPixelSize();
+  double pixel_x = pxsize(0), pixel_y = pxsize(1);
 
   if(m_State == INACTIVE_STATE)
     {
@@ -163,13 +162,13 @@ PolygonDrawingModel
 
 bool
 PolygonDrawingModel
-::ProcessMouseMoveEvent(float x, float y)
+::ProcessMouseMoveEvent(double x, double y)
 {
   if(m_State == DRAWING_STATE)
     {
     // Check if we are hovering over the starting vertex
-    Vector2f pxsize = GetPixelSize();
-    float pixel_x = pxsize(0), pixel_y = pxsize(1);
+    Vector2d pxsize = GetPixelSize();
+    double pixel_x = pxsize(0), pixel_y = pxsize(1);
     bool hover = CheckNearFirstVertex(x, y, pixel_x, pixel_y);
 
     if(hover != m_HoverOverFirstVertex)
@@ -184,7 +183,7 @@ PolygonDrawingModel
 
 bool
 PolygonDrawingModel
-::ProcessDragEvent(float x, float y)
+::ProcessDragEvent(double x, double y)
 {
   bool handled = false;
   if(m_State == DRAWING_STATE)
@@ -205,7 +204,7 @@ PolygonDrawingModel
         }
       else
         {
-        Vector2f pxsize = GetPixelSize();
+        Vector2d pxsize = GetPixelSize();
         Vertex &v = m_Vertices.back();
         double dx = (v.x-x) / pxsize[0];
         double dy = (v.y-y) / pxsize[1];
@@ -256,11 +255,11 @@ PolygonDrawingModel
 
 bool
 PolygonDrawingModel
-::ProcessReleaseEvent(float x, float y)
+::ProcessReleaseEvent(double x, double y)
 {
   bool handled = false;
-  Vector2f pxsize = GetPixelSize();
-  float pixel_x = pxsize(0), pixel_y = pxsize(1);
+  Vector2d pxsize = GetPixelSize();
+  double pixel_x = pxsize(0), pixel_y = pxsize(1);
 
   if(m_State == DRAWING_STATE)
     {
@@ -283,7 +282,7 @@ PolygonDrawingModel
       {
       m_DraggingPickBox = false;
 
-      float temp;
+      double temp;
       if (m_SelectionBox[0] > m_SelectionBox[1])
         {
         temp = m_SelectionBox[0];
@@ -646,7 +645,7 @@ PolygonDrawingModel
 
   // There may still be duplicates in the array, in which case we should
   // add a tiny offset to them. Thanks to Jeff Tsao for this bug fix!
-  std::set< std::pair<float, float> > xVertexSet;
+  std::set< std::pair<double, double> > xVertexSet;
   vnl_random rnd;
   for(VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
     {
@@ -729,8 +728,7 @@ PolygonDrawingModel
  */
 bool
 PolygonDrawingModel
-::CheckClickOnVertex(
-  float x, float y, float pixel_x, float pixel_y, int k)
+::CheckClickOnVertex(double x, double y, double pixel_x, double pixel_y, int k)
 {
   // check if clicked within 4 pixels of a node (use closest node)
   VertexIterator itmin = m_Vertices.end();
@@ -763,7 +761,7 @@ PolygonDrawingModel
 bool
 PolygonDrawingModel
 ::CheckClickOnLineSegment(
-  float x, float y, float pixel_x, float pixel_y, int k)
+  double x, double y, double pixel_x, double pixel_y, int k)
 {
   // check if clicked near a line segment
   VertexIterator itmin1 = m_Vertices.end(), itmin2 = m_Vertices.end();

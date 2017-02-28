@@ -61,8 +61,8 @@ double Window3DPicker::IntersectWithLine(
   ImageWrapperBase *main = app->GetCurrentImageData()->GetMain();
 
   // Transform the points into voxel space
-  Vector3d x0 = main->TransformNIFTICoordinatesToVoxelIndex(Vector3d(p1));
-  Vector3d x1 = main->TransformNIFTICoordinatesToVoxelIndex(Vector3d(p2));
+  Vector3d x0 = main->TransformNIFTICoordinatesToVoxelCIndex(Vector3d(p1));
+  Vector3d x1 = main->TransformNIFTICoordinatesToVoxelCIndex(Vector3d(p2));
 
   Vector3i pos;
   int result = -1;

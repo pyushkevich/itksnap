@@ -81,7 +81,7 @@ bool ImageInfoModel
 {
   if(!this->GetLayer()) return false;
   Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
-  value = GetLayer()->TransformVoxelIndexToPosition(cursor);
+  value = GetLayer()->TransformVoxelIndexToPosition(to_int(cursor));
   return true;
 }
 
@@ -90,7 +90,7 @@ bool ImageInfoModel
 {
   if(!this->GetLayer()) return false;
   Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
-  value = GetLayer()->TransformVoxelIndexToNIFTICoordinates(to_double(cursor));
+  value = GetLayer()->TransformVoxelCIndexToNIFTICoordinates(to_double(cursor));
   return true;
 }
 

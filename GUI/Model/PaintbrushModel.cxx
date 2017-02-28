@@ -119,13 +119,13 @@ PaintbrushModel::~PaintbrushModel()
   delete m_Watershed;
 }
 
-Vector3f PaintbrushModel::ComputeOffset()
+Vector3d PaintbrushModel::ComputeOffset()
 {
   // Get the paintbrush properties
   PaintbrushSettings pbs =
       m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
 
-  Vector3f offset(0.0);
+  Vector3d offset(0.0);
   if(fmod(pbs.radius,1.0)==0)
     {
     offset.fill(0.5);
@@ -135,7 +135,7 @@ Vector3f PaintbrushModel::ComputeOffset()
   return offset;
 }
 
-void PaintbrushModel::ComputeMousePosition(const Vector3f &xSlice)
+void PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
 {
   // Only when an image is loaded
   if(!m_Parent->GetDriver()->IsMainImageLoaded())
@@ -146,7 +146,7 @@ void PaintbrushModel::ComputeMousePosition(const Vector3f &xSlice)
       m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
 
   // Compute the new cross-hairs position in image space
-  Vector3f xCross = m_Parent->MapSliceToImage(xSlice);
+  Vector3d xCross = m_Parent->MapSliceToImage(xSlice);
 
   // Round the cross-hairs position down to integer
   Vector3i xCrossInteger = to_int(xCross + ComputeOffset());
@@ -181,7 +181,7 @@ bool PaintbrushModel::TestInside(const Vector3d &x, const PaintbrushSettings &ps
   Vector3d xTest = x;
   if(ps.isotropic)
     {
-    const Vector3f &spacing = m_Parent->GetSliceSpacing();
+    const Vector3d &spacing = m_Parent->GetSliceSpacing();
     double xMinVoxelDim = spacing.min_value();
     xTest(0) *= spacing(0) / xMinVoxelDim;
     xTest(1) *= spacing(1) / xMinVoxelDim;
@@ -201,7 +201,7 @@ bool PaintbrushModel::TestInside(const Vector3d &x, const PaintbrushSettings &ps
 
 bool
 PaintbrushModel
-::ProcessPushEvent(const Vector3f &xSlice, const Vector2ui &gridCell, bool reverse_mode)
+::ProcessPushEvent(const Vector3d &xSlice, const Vector2ui &gridCell, bool reverse_mode)
 {
   // Get the paintbrush properties (TODO: should we own them?)
   PaintbrushSettings pbs =
@@ -240,7 +240,7 @@ PaintbrushModel
 
 bool
 PaintbrushModel
-::ProcessDragEvent(const Vector3f &xSlice, const Vector3f &xSliceLast,
+::ProcessDragEvent(const Vector3d &xSlice, const Vector3d &xSliceLast,
                    double pixelsMoved, bool release)
 {
   IRISApplication *driver = m_Parent->GetDriver();
@@ -261,8 +261,8 @@ PaintbrushModel
         size_t nSteps = (int) ceil(pixelsMoved / pbs.radius);
         for(size_t i = 0; i < nSteps; i++)
           {
-          float t = (1.0 + i) / nSteps;
-          Vector3f X = t * m_LastApplyX + (1.0f - t) * xSlice;
+          double t = (1.0 + i) / nSteps;
+          Vector3d X = t * m_LastApplyX + (1.0 - t) * xSlice;
           ComputeMousePosition(X);
           ApplyBrush(m_ReverseMode, true);
           }
@@ -302,7 +302,7 @@ PaintbrushModel
     return 0;
 }
 
-bool PaintbrushModel::ProcessMouseMoveEvent(const Vector3f &xSlice)
+bool PaintbrushModel::ProcessMouseMoveEvent(const Vector3d &xSlice)
 {
   ComputeMousePosition(xSlice);
   return true;
@@ -397,7 +397,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
     }
 
   // Shift vector (different depending on whether the brush has odd/even diameter
-  Vector3f offset = ComputeOffset();
+  Vector3d offset = ComputeOffset();
 
   // Iterate over the region using
   SegmentationUpdateIterator it_update(
@@ -407,10 +407,10 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
     {
     SegmentationUpdateIterator::IndexType idx = it_update.GetIndex();
 
-    Vector3f xDelta =
+    Vector3d xDelta =
         offset
-        + to_float(Vector3l(idx.GetIndex()))
-        - to_float(m_MousePosition);
+        + to_double(Vector3l(idx.GetIndex()))
+        - to_double(m_MousePosition);
 
     Vector3d xDeltaSliceSpace = to_double(
           m_Parent->GetImageToDisplayTransform().TransformVector(xDelta));
@@ -450,13 +450,13 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
 }
 
 
-Vector3f PaintbrushModel::GetCenterOfPaintbrushInSliceSpace()
+Vector3d PaintbrushModel::GetCenterOfPaintbrushInSliceSpace()
 {
   PaintbrushSettings pbs =
       m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
 
   if(fmod(pbs.radius, 1.0) == 0)
-    return m_Parent->MapImageToSlice(to_float(m_MousePosition));
+    return m_Parent->MapImageToSlice(to_double(m_MousePosition));
   else
-    return m_Parent->MapImageToSlice(to_float(m_MousePosition) + Vector3f(0.5f));
+    return m_Parent->MapImageToSlice(to_double(m_MousePosition) + Vector3d(0.5));
 }

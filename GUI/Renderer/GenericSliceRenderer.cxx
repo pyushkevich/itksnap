@@ -479,8 +479,8 @@ GenericSliceRenderer
 
 #include <itkImageLinearConstIteratorWithIndex.h>
 
-Vector3f GenericSliceRenderer::ComputeGridPosition(
-    const Vector3f &disp_pix,
+Vector3d GenericSliceRenderer::ComputeGridPosition(
+    const Vector3d &disp_pix,
     const itk::Index<2> &slice_index,
     ImageWrapperBase *vecimg)
 {
@@ -493,9 +493,9 @@ Vector3f GenericSliceRenderer::ComputeGridPosition(
   // The pixel gives the displacement in LPS coordinates (by ANTS/Greedy convention)
   // We need to map it back into the slice domain. First, we need to know the 3D index
   // of the current pixel in the image space
-  Vector3f xSlice;
-  xSlice[0] = slice_index[0];
-  xSlice[1] = slice_index[1];
+  Vector3d xSlice;
+  xSlice[0] = slice_index[0] + 0.5;
+  xSlice[1] = slice_index[1] + 0.5;
   xSlice[2] = m_Model->GetSliceIndex();
 
   // This is the physical coordinate of the current pixel - in LPS
@@ -507,7 +507,7 @@ Vector3f GenericSliceRenderer::ComputeGridPosition(
 
   m_Model->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
       ->TransformPhysicalPointToContinuousIndex(pt, cix);
-  return m_Model->MapImageToSlice(Vector3f(cix));
+  return m_Model->MapImageToSlice(Vector3d(cix));
 }
 
 
@@ -569,7 +569,8 @@ void GenericSliceRenderer::DrawTextureForLayer(
   // TODO: move this somewhere
   AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
       AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
-  if(dp && dp->GetDisplayMode().RenderAsGrid)
+  if(dp && dp->GetDisplayMode().RenderAsGrid
+     && !this->IsDrawingZoomThumbnail() && !this->IsDrawingLayerThumbnail())
     {
     // Draw the texture for the layer
     AnatomicImageWrapper *vecimg = dynamic_cast<AnatomicImageWrapper *>(layer);
@@ -578,6 +579,44 @@ void GenericSliceRenderer::DrawTextureForLayer(
       // Get the slice
       AnatomicImageWrapper::SliceType::Pointer slice = vecimg->GetSlice(m_Model->GetId());
       slice->Update();
+
+      // Appearance settings for grid lines
+      SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
+      const OpenGLAppearanceElement *elt =
+          as->GetUIElement(SNAPAppearanceSettings::GRID_LINES);
+
+      // Line properties
+      glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+
+      elt->ApplyLineSettings();
+
+
+      // The mapping between (index, phi[index]) and on-screen coordinate for a grid
+      // point is linear (combines a bunch of transforms). To save time, we can
+      // compute this mapping once at the beginning of the loop. We also know that the
+      // index will only be going up by one at each iteration
+      itk::Index<2> ind;
+      Vector3d phi, G0, d_grid_d_phi[3], d_grid_d_ind[2];
+
+      // Compute the initial displacement G0
+      ind.Fill(0); phi.fill(0.0f);
+      G0 = ComputeGridPosition(phi, ind, vecimg);
+
+      // Compute derivative of grid displacement wrt warp components
+      for(int a = 0; a < 3; a++)
+        {
+        ind.Fill(0); phi.fill(0.0f);
+        phi[a] = 1.0f;
+        d_grid_d_phi[a] = ComputeGridPosition(phi, ind, vecimg) - G0;
+        }
+
+      // Compute derivative of grid displacement wrt index components
+      for(int b = 0; b < 2; b++)
+        {
+        ind.Fill(0); phi.fill(0.0f);
+        ind[b] = 1;
+        d_grid_d_ind[b] = ComputeGridPosition(phi, ind, vecimg) - G0;
+        }
 
       // Iterate line direction
       for(int d = 0; d < 2; d++)
@@ -589,30 +628,54 @@ void GenericSliceRenderer::DrawTextureForLayer(
         it1.SetDirection(d);
         it1.GoToBegin();
 
+        // Figure out how frequently to sample lines. The spacing on the screen should be at
+        // most every 4 pixels. Zoom is in units of px/mm. Spacing is in units of mm/vox, so
+        // zoom * spacing is (display pixels) / (image voxels).
+        double disp_pix_per_vox = m_Model->GetSliceSpacing()[d] * m_Model->GetViewZoom();
+        int vox_increment = (int) ceil(8.0 / disp_pix_per_vox);
+
         while( !it1.IsAtEnd() )
           {
-          glColor3d(1.0, 1.0, 0.0);
-          glBegin(GL_LINE_STRIP);
-
-          while( !it1.IsAtEndOfLine() )
+          // Do we draw this line?
+          if(it1.GetIndex()[1-d] % vox_increment == 0)
             {
-            // Read the pixel
-            AnatomicImageWrapper::SliceType::PixelType pix = it1.Get();
-            Vector3f xpix; xpix[0] = pix[0]; xpix[1] = pix[1]; xpix[2] = pix[2];
-            Vector3f xDispSlice = ComputeGridPosition(xpix, it1.GetIndex(), vecimg);
+            glColor3d(elt->GetNormalColor()[0], elt->GetNormalColor()[1], elt->GetNormalColor()[2]);
+            glBegin(GL_LINE_STRIP);
 
-            glVertex2d(xDispSlice[0], xDispSlice[1]);
+            // Set up the current position and increment
+            Vector3d G1 = G0 +
+                (d_grid_d_ind[0] * (double) (it1.GetIndex()[0])) +
+                (d_grid_d_ind[1] * (double) (it1.GetIndex()[1]));
 
-            // Add the displacement
-            ++it1;
+            while( !it1.IsAtEndOfLine() )
+              {
+              // Read the pixel
+              AnatomicImageWrapper::SliceType::PixelType pix = it1.Get();
+
+              // Alternative version
+              Vector3d xDispSlice = G1 +
+                  (d_grid_d_phi[0] * (double) (pix[0])) +
+                  (d_grid_d_phi[1] * (double) (pix[1])) +
+                  (d_grid_d_phi[2] * (double) (pix[2]));
+
+              glVertex2d(xDispSlice[0], xDispSlice[1]);
+
+              // Add the displacement
+              ++it1;
+
+              // Update the current position
+              G1 += d_grid_d_ind[d];
+              }
+
+            glEnd();
             }
-
-          glEnd();
 
           it1.NextLine();
           }
 
         }
+
+      glPopAttrib();
       }
     }
 

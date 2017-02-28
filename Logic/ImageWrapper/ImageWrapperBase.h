@@ -229,13 +229,22 @@ public:
       const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const = 0;
 
   /** Transform a voxel index into a spatial position */
-  virtual Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const = 0;
+  virtual Vector3d TransformVoxelIndexToPosition(const Vector3i &iVoxel) const = 0;
+
+  /** Transform a voxel index into a spatial position */
+  virtual Vector3d TransformVoxelCIndexToPosition(const Vector3d &iVoxel) const = 0;
+
+  /** Transform spatial position to voxel continuous index (LPS) */
+  virtual Vector3d TransformPositionToVoxelCIndex(const Vector3d &vLPS) const = 0;
+
+  /** Transform spatial position to voxel index (LPS) */
+  virtual Vector3i TransformPositionToVoxelIndex(const Vector3d &vLPS) const = 0;
 
   /** Transform a voxel index into NIFTI coordinates (RAS) */
-  virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const = 0;
+  virtual Vector3d TransformVoxelCIndexToNIFTICoordinates(const Vector3d &iVoxel) const = 0;
 
   /** Transform NIFTI coordinates to a continuous voxel index */
-  virtual Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const = 0;
+  virtual Vector3d TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const = 0;
 
   /** Get the NIFTI s-form matrix for this image */
   irisVirtualGetMacro(NiftiSform, TransformType)

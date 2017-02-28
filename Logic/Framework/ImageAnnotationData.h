@@ -13,7 +13,7 @@ class Registry;
 namespace annot
 {
 
-typedef Vector3f Point;
+typedef Vector3d Point;
 
 /**
  * @brief Slices where the annotation is displayed
@@ -55,10 +55,10 @@ public:
   virtual int GetSliceIndex(int plane) const = 0;
 
   /** Get the anchor point for the annotation in a given plane - used for sorting */
-  virtual Vector3f GetAnchorPoint(int plane) const = 0;
+  virtual Vector3d GetAnchorPoint(int plane) const = 0;
 
   /** Move the annotation by given amount in physical space */
-  virtual void MoveBy(const Vector3f &offset) = 0;
+  virtual void MoveBy(const Vector3d &offset) = 0;
 
   /** Save the annotation data to registry */
   virtual void Save(Registry &folder);
@@ -81,7 +81,7 @@ protected:
 };
 
 /** A simple line segment */
-typedef std::pair<Vector3f,Vector3f>           LineSegment;
+typedef std::pair<Vector3d,Vector3d>           LineSegment;
 
 class LineSegmentAnnotation : public AbstractAnnotation
 {
@@ -95,13 +95,13 @@ public:
   virtual void Save(Registry &folder);
   virtual void Load(Registry &folder);
 
-  virtual void MoveBy(const Vector3f &offset);
+  virtual void MoveBy(const Vector3d &offset);
 
 protected:
 
   virtual int GetSliceIndex(int plane) const;
 
-  virtual Vector3f GetAnchorPoint(int plane) const;
+  virtual Vector3d GetAnchorPoint(int plane) const;
 
   LineSegment m_Segment;
 };
@@ -112,8 +112,8 @@ protected:
 struct Landmark
 {
   std::string Text;
-  Vector3f Pos;
-  Vector2f Offset;
+  Vector3d Pos;
+  Vector2d Offset;
 };
 
 class LandmarkAnnotation : public AbstractAnnotation
@@ -129,9 +129,9 @@ public:
 protected:
 
   virtual int GetSliceIndex(int plane) const;
-  virtual Vector3f GetAnchorPoint(int plane) const;
+  virtual Vector3d GetAnchorPoint(int plane) const;
 
-  virtual void MoveBy(const Vector3f &offset);
+  virtual void MoveBy(const Vector3d &offset);
 
   virtual void Save(Registry &folder);
   virtual void Load(Registry &folder);

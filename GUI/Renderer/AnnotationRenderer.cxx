@@ -8,8 +8,8 @@
 #include "ImageAnnotationData.h"
 #include <iomanip>
 
-void AnnotationRenderer::DrawLineLength(const Vector3f &xSlice1,
-                                        const Vector3f &xSlice2,
+void AnnotationRenderer::DrawLineLength(const Vector3d &xSlice1,
+                                        const Vector3d &xSlice2,
                                         const Vector3d &color,
                                         double alpha)
 {
@@ -20,13 +20,13 @@ void AnnotationRenderer::DrawLineLength(const Vector3f &xSlice1,
   int vppr = m_ParentRenderer->GetModel()->GetSizeReporter()->GetViewportPixelRatio();
 
   // Shared settings for text drawing
-  Vector3f text_offset_slice =
+  Vector3d text_offset_slice =
       m_Model->GetParent()->MapWindowOffsetToSliceOffset(
-        Vector2f(5.f, 5.f) * (float) vppr);
+        Vector2d(5.0, 5.0) * (double) vppr);
 
-  Vector3f text_width_slice =
+  Vector3d text_width_slice =
       m_Model->GetParent()->MapWindowOffsetToSliceOffset(
-        Vector2f(96.f, 12.f) * (float) vppr);
+        Vector2d(96., 12.) * (double) vppr);
 
   // TODO: support other units
   std::ostringstream oss_length;
@@ -38,7 +38,7 @@ void AnnotationRenderer::DrawLineLength(const Vector3f &xSlice1,
           12 * vppr,
           false };
 
-  Vector3f curr_center = (xSlice1 + xSlice2) * 0.5f;
+  Vector3d curr_center = (xSlice1 + xSlice2) * 0.5;
 
   // Draw the length text
   m_PlatformSupport->RenderTextInOpenGL(
@@ -76,13 +76,13 @@ void AnnotationRenderer::paintGL()
   int vppr = m_ParentRenderer->GetModel()->GetSizeReporter()->GetViewportPixelRatio();
 
   // Shared settings for text drawing
-  Vector3f text_offset_slice =
+  Vector3d text_offset_slice =
       m_Model->GetParent()->MapWindowOffsetToSliceOffset(
-        Vector2f(5.f, 5.f) * (float) vppr);
+        Vector2d(5 * vppr, 5 * vppr));
 
-  Vector3f text_width_slice =
+  Vector3d text_width_slice =
       m_Model->GetParent()->MapWindowOffsetToSliceOffset(
-        Vector2f(96.f, 12.f) * (float) vppr);
+        Vector2d(96 * vppr , 12 * vppr));
 
   // Get the list of annotations
   const ImageAnnotationData *adata = m_Model->GetAnnotations();
@@ -154,8 +154,8 @@ void AnnotationRenderer::paintGL()
       if(lsa)
         {
         // Draw the line
-        Vector3f p1 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().first);
-        Vector3f p2 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().second);
+        Vector3d p1 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().first);
+        Vector3d p2 = m_Model->GetParent()->MapImageToSlice(lsa->GetSegment().second);
 
         glColor4d(lsa->GetColor()[0], lsa->GetColor()[1], lsa->GetColor()[2], alpha);
 
@@ -183,7 +183,7 @@ void AnnotationRenderer::paintGL()
           std::ostringstream oss_angle;
           oss_angle << std::setprecision(3) << angle << "°";
 
-          Vector3f line_center = m_Model->GetAnnotationCenter(lsa);
+          Vector3d line_center = m_Model->GetAnnotationCenter(lsa);
 
           // Set up the rendering properties
           AbstractRendererPlatformSupport::FontInfo font_info =
@@ -211,7 +211,7 @@ void AnnotationRenderer::paintGL()
       if(lma)
         {
         // Get the head and tail coordinate in slice units
-        Vector3f xHeadSlice, xTailSlice;
+        Vector3d xHeadSlice, xTailSlice;
         m_Model->GetLandmarkArrowPoints(lma->GetLandmark(), xHeadSlice, xTailSlice);
 
         std::string text = lma->GetLandmark().Text;
@@ -236,12 +236,12 @@ void AnnotationRenderer::paintGL()
         fi.bold = false;
 
         // Text box size in screen pixels
-        Vector2f xTextSizeWin;
+        Vector2d xTextSizeWin;
         xTextSizeWin[0] = this->m_PlatformSupport->MeasureTextWidth(text.c_str(), fi);
         xTextSizeWin[1] = fi.pixel_size * vppr;
 
         // Text box size in slice coordinate units
-        Vector3f xTextSizeSlice = m_Model->GetParent()->MapWindowOffsetToSliceOffset(xTextSizeWin);
+        Vector3d xTextSizeSlice = m_Model->GetParent()->MapWindowOffsetToSliceOffset(xTextSizeWin);
 
         // How to position the text
         double xbox, ybox;
@@ -291,11 +291,11 @@ void AnnotationRenderer::paintGL()
   glPopAttrib();
 }
 
-void AnnotationRenderer::DrawSelectionHandle(const Vector3f &xSlice)
+void AnnotationRenderer::DrawSelectionHandle(const Vector3d &xSlice)
 {
   // Determine the width of the line
-  float radius = 4 * m_Model->GetParent()->GetSizeReporter()->GetViewportPixelRatio();
-  Vector3f offset = m_Model->GetParent()->MapWindowOffsetToSliceOffset(Vector2f(radius, radius));
+  double radius = 4 * m_Model->GetParent()->GetSizeReporter()->GetViewportPixelRatio();
+  Vector3d offset = m_Model->GetParent()->MapWindowOffsetToSliceOffset(Vector2d(radius, radius));
 
   glColor4d(1, 1, 1, 0.5);
   glBegin(GL_QUADS);

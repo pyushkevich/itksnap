@@ -42,7 +42,7 @@ public:
   irisGetMacro(Parent, GenericSliceModel *)
 
   // Move 3D cursor to (x,y) point on the screen supplied by user
-  void UpdateCursor(Vector2f x);
+  void UpdateCursor(Vector2d x);
 
   // Start zoom operation
   void BeginZoom();
@@ -58,14 +58,14 @@ public:
 
   // Process zoom or pan operation (parameter is the gesture length,
   // which in theory should work both on desktop and on an iPhone).
-  void ProcessZoomGesture(float scaleFactor);
+  void ProcessZoomGesture(double scaleFactor);
 
   // Process pan operation (parameter is the gesture vector, i.e., mouse
   // drag or three-finger gesture)
-  void ProcessPanGesture(Vector2f uvOffset);
+  void ProcessPanGesture(Vector2d uvOffset);
 
   // Process a scrolling-type gesture (mouse wheel, or two-finger scroll)
-  void ProcessScrollGesture(float gLength);
+  void ProcessScrollGesture(double gLength);
 
   // Check if the user press position is inside the thumbnail
   bool CheckZoomThumbnail(Vector2i xCanvas);
@@ -82,8 +82,8 @@ protected:
   ~OrthogonalSliceCursorNavigationModel() {}
 
   // Zoom and pan factors at the beginning of interaction
-  Vector2f m_StartViewPosition;
-  float m_StartViewZoom;
+  Vector2d m_StartViewPosition;
+  double m_StartViewZoom;
 
   GenericSliceModel *m_Parent;
 

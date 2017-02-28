@@ -13,10 +13,10 @@ void AnnotationModel::SetParent(GenericSliceModel *model)
               ValueChangedEvent(), ModelUpdateEvent());
 }
 
-double AnnotationModel::GetLineLength(const Vector3f &xSliceA, const Vector3f &xSliceB)
+double AnnotationModel::GetLineLength(const Vector3d &xSliceA, const Vector3d &xSliceB)
 {
-  Vector2f pt1InAna = m_Parent->MapSliceToPhysicalWindow(xSliceA);
-  Vector2f pt2InAna = m_Parent->MapSliceToPhysicalWindow(xSliceB);
+  Vector2d pt1InAna = m_Parent->MapSliceToPhysicalWindow(xSliceA);
+  Vector2d pt2InAna = m_Parent->MapSliceToPhysicalWindow(xSliceB);
   double length = (pt1InAna[0] - pt2InAna[0]) * (pt1InAna[0] - pt2InAna[0])
                 + (pt1InAna[1] - pt2InAna[1]) * (pt1InAna[1] - pt2InAna[1]);
   length = sqrt(length);
@@ -30,7 +30,7 @@ double AnnotationModel::GetCurrentLineLength()
 
 double AnnotationModel::GetCurrentLineLengthInPixels()
 {
-  Vector2f screen_offset =
+  Vector2d screen_offset =
       m_Parent->MapSliceToWindow(m_CurrentLine.first) -
       m_Parent->MapSliceToWindow(m_CurrentLine.second);
 
@@ -40,12 +40,12 @@ double AnnotationModel::GetCurrentLineLengthInPixels()
 double AnnotationModel::GetAngleWithCurrentLine(const annot::LineSegmentAnnotation *lsa)
 {
   // Process the current line
-  Vector2f v1 = m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.first)
+  Vector2d v1 = m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.first)
                 - m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.second);
   v1 /= sqrt(v1[0]*v1[0] + v1[1]*v1[1]);
 
   // Process the annotation
-  Vector2f v2 = m_Parent->MapSliceToPhysicalWindow(
+  Vector2d v2 = m_Parent->MapSliceToPhysicalWindow(
                   m_Parent->MapImageToSlice(lsa->GetSegment().first))
                 -
                 m_Parent->MapSliceToPhysicalWindow(
@@ -63,15 +63,15 @@ void AnnotationModel::AdjustAngleToRoundDegree(LineSegment &line, int n_degrees)
 
   // Map the line segment from slice coordinates to window physical, where angles are
   // computed
-  Vector2f p1 = m_Parent->MapSliceToPhysicalWindow(line.first);
-  Vector2f p2 = m_Parent->MapSliceToPhysicalWindow(line.second);
+  Vector2d p1 = m_Parent->MapSliceToPhysicalWindow(line.first);
+  Vector2d p2 = m_Parent->MapSliceToPhysicalWindow(line.second);
 
   // Express the vector of the line in polar coordinates
   double p_rad = (p2 - p1).magnitude();
   double p_phase = atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180.0 / vnl_math::pi;
 
   // Current proposed adjustment
-  Vector2f p2_rot_best = p2;
+  Vector2d p2_rot_best = p2;
   double rot_best = std::numeric_limits<double>::infinity();
 
   // Loop over all the lines
@@ -83,9 +83,9 @@ void AnnotationModel::AdjustAngleToRoundDegree(LineSegment &line, int n_degrees)
     if(lsa && this->IsAnnotationVisible(lsa))
       {
       // Normalize the annotated line
-      Vector2f q1 = m_Parent->MapSliceToPhysicalWindow(
+      Vector2d q1 = m_Parent->MapSliceToPhysicalWindow(
                       m_Parent->MapImageToSlice(lsa->GetSegment().first));
-      Vector2f q2 = m_Parent->MapSliceToPhysicalWindow(
+      Vector2d q2 = m_Parent->MapSliceToPhysicalWindow(
                       m_Parent->MapImageToSlice(lsa->GetSegment().second));
 
       // Get the phase of the line
@@ -96,7 +96,7 @@ void AnnotationModel::AdjustAngleToRoundDegree(LineSegment &line, int n_degrees)
       double p_phase_shift = fabs(p_phase_round - p_phase);
 
       // Map the rounded phase to the new p2 position
-      Vector2f p2_prop(
+      Vector2d p2_prop(
             p1[0] + p_rad * cos(p_phase_round * vnl_math::pi / 180.0),
             p1[1] + p_rad * sin(p_phase_round * vnl_math::pi / 180.0));
 
@@ -113,32 +113,32 @@ void AnnotationModel::AdjustAngleToRoundDegree(LineSegment &line, int n_degrees)
   line.second = m_Parent->MapPhysicalWindowToSlice(p2_rot_best);
 }
 
-Vector3f AnnotationModel::GetAnnotationCenter(const AbstractAnnotation *annot)
+Vector3d AnnotationModel::GetAnnotationCenter(const AbstractAnnotation *annot)
 {
   const annot::LineSegmentAnnotation *lsa = dynamic_cast<const annot::LineSegmentAnnotation *>(annot);
   if(lsa)
     {
     return (m_Parent->MapImageToSlice(lsa->GetSegment().first)
-            + m_Parent->MapImageToSlice(lsa->GetSegment().second)) * 0.5f;
+            + m_Parent->MapImageToSlice(lsa->GetSegment().second)) * 0.5;
     }
 
 
-  return Vector3f(0.f);
+  return Vector3d(0.0);
 }
 
-double AnnotationModel::GetDistanceToLine(const Vector3f &x1, const Vector3f &x2, const Vector3d &point)
+double AnnotationModel::GetDistanceToLine(const Vector3d &x1, const Vector3d &x2, const Vector3d &point)
 {
-  Vector2f p0 = m_Parent->MapSliceToWindow(x1);
-  Vector2f p1 = m_Parent->MapSliceToWindow(x2);
-  Vector2f x = m_Parent->MapSliceToWindow(to_float(point));
+  Vector2d p0 = m_Parent->MapSliceToWindow(x1);
+  Vector2d p1 = m_Parent->MapSliceToWindow(x2);
+  Vector2d x = m_Parent->MapSliceToWindow(point);
 
-  float alpha = dot_product(x - p0, p1 - p0) / dot_product(p1 - p0, p1 - p0);
+  double alpha = dot_product(x - p0, p1 - p0) / dot_product(p1 - p0, p1 - p0);
   if(alpha < 0)
     alpha = 0;
   if(alpha > 1)
     alpha = 1;
 
-  Vector2f px = p0 * (1.0f - alpha) + p1 * alpha;
+  Vector2d px = p0 * (1.0f - alpha) + p1 * alpha;
   return (px - x).magnitude();
 
 }
@@ -175,8 +175,8 @@ double AnnotationModel
   if(lsa)
     {
     const annot::LineSegment &seg = lsa->GetSegment();
-    Vector3f s1 = m_Parent->MapImageToSlice(seg.first);
-    Vector3f s2 = m_Parent->MapImageToSlice(seg.second);
+    Vector3d s1 = m_Parent->MapImageToSlice(seg.first);
+    Vector3d s2 = m_Parent->MapImageToSlice(seg.second);
     return GetDistanceToLine(s1, s2, point);
     }
 
@@ -184,7 +184,7 @@ double AnnotationModel
   if(lma)
     {
     const annot::Landmark &landmark = lma->GetLandmark();
-    Vector3f s1, s2;
+    Vector3d s1, s2;
     this->GetLandmarkArrowPoints(landmark, s1, s2);
     return GetDistanceToLine(s1, s2, point);
     }
@@ -234,13 +234,13 @@ bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
     if(m_FlagDrawingLine)
       {
       // Complete drawing line
-      m_CurrentLine.second = to_float(xSlice);
+      m_CurrentLine.second = xSlice;
       handled = true;
       }
     else
       {
-      m_CurrentLine.first = to_float(xSlice);
-      m_CurrentLine.second = to_float(xSlice);
+      m_CurrentLine.first = xSlice;
+      m_CurrentLine.second = xSlice;
       m_FlagDrawingLine = true;
       handled = true;
       }
@@ -280,8 +280,8 @@ bool AnnotationModel::ProcessPushEvent(const Vector3d &xSlice, bool shift_mod)
     if(asel)
       {
       m_MovingSelection = true;
-      m_DragStart = to_float(xSlice);
-      m_DragLast = to_float(xSlice);
+      m_DragStart = xSlice;
+      m_DragLast = xSlice;
       m_MovingSelectionHandle = handle_idx;
       m_MovingSelectionHandleAnnot = asel;
       }
@@ -310,7 +310,7 @@ bool AnnotationModel::ProcessMoveEvent(const Vector3d &xSlice, bool shift_mod, b
     if(m_FlagDrawingLine)
       {
       // Accept the second point
-      m_CurrentLine.second = to_float(xSlice);
+      m_CurrentLine.second = xSlice;
 
       // If shift pressed, adjust the line to have a integral angle with one of existing
       // lines
@@ -326,9 +326,9 @@ bool AnnotationModel::ProcessMoveEvent(const Vector3d &xSlice, bool shift_mod, b
     {
 
     // Compute the amount to move the annotation by
-    Vector3f p_last = m_Parent->MapSliceToImage(m_DragLast);
-    Vector3f p_now = m_Parent->MapSliceToImage(to_float(xSlice));
-    Vector3f p_delta = p_now - p_last;
+    Vector3d p_last = m_Parent->MapSliceToImage(m_DragLast);
+    Vector3d p_now = m_Parent->MapSliceToImage(xSlice);
+    Vector3d p_delta = p_now - p_last;
 
     // Process the move command on selected annotations
     for(ImageAnnotationData::AnnotationIterator it = adata->GetAnnotations().begin();
@@ -350,7 +350,7 @@ bool AnnotationModel::ProcessMoveEvent(const Vector3d &xSlice, bool shift_mod, b
       }
 
     // Store the update point
-    m_DragLast = to_float(xSlice);
+    m_DragLast = xSlice;
 
     // Event has been handled
     handled = true;
@@ -418,10 +418,10 @@ void AnnotationModel::AcceptLine()
 
     // Set the default offset. The default offset corresponds to 5 screen pixels
     // to the top right. We need to map this into image units
-    Vector2f xHeadWin = m_Parent->MapSliceToWindow(m_CurrentLine.first);
-    Vector2f xTailWin = m_Parent->MapSliceToWindow(m_CurrentLine.second);
-    Vector2f xHeadWinPhys = m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.first);
-    Vector2f xTailWinPhys = m_Parent->MapSliceToPhysicalWindow(m_Parent->MapWindowToSlice(xTailWin));
+    Vector2d xHeadWin = m_Parent->MapSliceToWindow(m_CurrentLine.first);
+    Vector2d xTailWin = m_Parent->MapSliceToWindow(m_CurrentLine.second);
+    Vector2d xHeadWinPhys = m_Parent->MapSliceToPhysicalWindow(m_CurrentLine.first);
+    Vector2d xTailWinPhys = m_Parent->MapSliceToPhysicalWindow(m_Parent->MapWindowToSlice(xTailWin));
     lm.Offset = xTailWinPhys - xHeadWinPhys;
 
     // Add the line
@@ -514,8 +514,8 @@ void AnnotationModel::GoToNextOrPrevAnnotation(int direction)
     if(a->IsVisible(m_Parent->GetSliceDirectionInImageSpace()))
       {
       // Create a pair for the current annotation
-      Vector3f ank_img = a->GetAnchorPoint(m_Parent->GetSliceDirectionInImageSpace());
-      Vector3f ank_slice = m_Parent->MapImageToSlice(ank_img);
+      Vector3d ank_img = a->GetAnchorPoint(m_Parent->GetSliceDirectionInImageSpace());
+      Vector3d ank_slice = m_Parent->MapImageToSlice(ank_img);
 
       long hash = ank_slice[2] * 100000000l + ank_slice[1] * 10000l + ank_slice[0];
 
@@ -618,12 +618,12 @@ void AnnotationModel::GoToNextOrPrevAnnotation(int direction)
   this->InvokeEvent(ModelUpdateEvent());
 }
 
-bool AnnotationModel::TestPointInClickRadius(const Vector3f &xClickSlice,
-                                             const Vector3f &xPointSlice,
+bool AnnotationModel::TestPointInClickRadius(const Vector3d &xClickSlice,
+                                             const Vector3d &xPointSlice,
                                              int logical_pixels)
 {
-  Vector2f clickW = m_Parent->MapSliceToWindow(xClickSlice);
-  Vector2f pointW = m_Parent->MapSliceToWindow(xPointSlice);
+  Vector2d clickW = m_Parent->MapSliceToWindow(xClickSlice);
+  Vector2d pointW = m_Parent->MapSliceToWindow(xPointSlice);
   int vppr = m_Parent->GetSizeReporter()->GetViewportPixelRatio();
 
   return
@@ -632,8 +632,7 @@ bool AnnotationModel::TestPointInClickRadius(const Vector3f &xClickSlice,
       fabs(clickW[1] - pointW[1]) <= logical_pixels * vppr;
 }
 
-void AnnotationModel::MoveAnnotationHandle(
-    AnnotationModel::AbstractAnnotation *ann, int handle, const Vector3f &deltaPhys)
+void AnnotationModel::MoveAnnotationHandle(AnnotationModel::AbstractAnnotation *ann, int handle, const Vector3d &deltaPhys)
 {
   // Draw all the line segments
   annot::LineSegmentAnnotation *lsa =
@@ -660,13 +659,13 @@ void AnnotationModel::MoveAnnotationHandle(
       }
     else if(handle == 1)
       {
-      Vector3f headXSlice = m_Parent->MapImageToSlice(lm.Pos);
-      Vector3f tailXSlice = m_Parent->MapPhysicalWindowToSlice(
+      Vector3d headXSlice = m_Parent->MapImageToSlice(lm.Pos);
+      Vector3d tailXSlice = m_Parent->MapPhysicalWindowToSlice(
             m_Parent->MapSliceToPhysicalWindow(headXSlice) + lm.Offset);
-      Vector3f tailXImage = m_Parent->MapSliceToImage(tailXSlice);
-      Vector3f tailXImageMoved = tailXImage + deltaPhys;
-      Vector3f tailXSliceMoved = m_Parent->MapImageToSlice(tailXImageMoved);
-      Vector2f tailXPhysWinMoved = m_Parent->MapSliceToPhysicalWindow(tailXSliceMoved);
+      Vector3d tailXImage = m_Parent->MapSliceToImage(tailXSlice);
+      Vector3d tailXImageMoved = tailXImage + deltaPhys;
+      Vector3d tailXSliceMoved = m_Parent->MapImageToSlice(tailXImageMoved);
+      Vector2d tailXPhysWinMoved = m_Parent->MapSliceToPhysicalWindow(tailXSliceMoved);
       lm.Offset = tailXPhysWinMoved - m_Parent->MapSliceToPhysicalWindow(headXSlice);
       }
 
@@ -694,13 +693,13 @@ AnnotationModel::GetSelectedHandleUnderCusror(const Vector3d &xSlice, int &out_h
       if(lsa)
         {
         // Draw the line
-        Vector3f p1 = m_Parent->MapImageToSlice(lsa->GetSegment().first);
-        Vector3f p2 = m_Parent->MapImageToSlice(lsa->GetSegment().second);
+        Vector3d p1 = m_Parent->MapImageToSlice(lsa->GetSegment().first);
+        Vector3d p2 = m_Parent->MapImageToSlice(lsa->GetSegment().second);
 
         // Test if either of these points is close to the cursor
-        if(this->TestPointInClickRadius(to_float(xSlice), p1, 5))
+        if(this->TestPointInClickRadius(xSlice, p1, 5))
           out_handle = 0;
-        else if(this->TestPointInClickRadius(to_float(xSlice), p2, 5))
+        else if(this->TestPointInClickRadius(xSlice, p2, 5))
           out_handle = 1;
         }
 
@@ -708,14 +707,14 @@ AnnotationModel::GetSelectedHandleUnderCusror(const Vector3d &xSlice, int &out_h
           dynamic_cast<annot::LandmarkAnnotation *>(it->GetPointer());
       if(lma)
         {
-        Vector3f xHeadSlice, xTailSlice;
+        Vector3d xHeadSlice, xTailSlice;
         annot::Landmark lm = lma->GetLandmark();
         this->GetLandmarkArrowPoints(lm, xHeadSlice, xTailSlice);
 
         // Test if either of these points is close to the cursor
-        if(this->TestPointInClickRadius(to_float(xSlice), xHeadSlice, 5))
+        if(this->TestPointInClickRadius(xSlice, xHeadSlice, 5))
           out_handle = 0;
-        else if(this->TestPointInClickRadius(to_float(xSlice), xTailSlice, 5))
+        else if(this->TestPointInClickRadius(xSlice, xTailSlice, 5))
           out_handle = 1;
         }
 
@@ -756,7 +755,7 @@ bool AnnotationModel::IsHoveringOverAnnotation(const Vector3d &xSlice)
 }
 
 void AnnotationModel::GetLandmarkArrowPoints(const annot::Landmark &lm,
-                                             Vector3f &outHeadXSlice, Vector3f &outTailXSlice)
+                                             Vector3d &outHeadXSlice, Vector3d &outTailXSlice)
 {
   // Get the head coordinates in slice units
   outHeadXSlice = m_Parent->MapImageToSlice(lm.Pos);

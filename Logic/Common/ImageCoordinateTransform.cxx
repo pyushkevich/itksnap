@@ -40,7 +40,8 @@
 #include <IRISVectorTypes.h>
 
 Vector3ui IRISSNAPdummyVector;
-iris_vector_fixed<float,3> irissnapdummyvector = to_float<unsigned int,3>(IRISSNAPdummyVector);
+iris_vector_fixed<double,3> irissnapdummyvector
+  = to_double<unsigned int,3>(IRISSNAPdummyVector);
 
 
 ImageCoordinateTransform
@@ -80,7 +81,7 @@ ImageCoordinateTransform
     }
 
   // Initialize the offset vector
-  m_Offset = m_Transform * to_float(size);
+  m_Offset = m_Transform * to_double(size);
 
   for(i=0;i<3;i++)
     {
@@ -98,12 +99,12 @@ ImageCoordinateTransform
   // For this calculation we need the transpose of the matrix
   MatrixType T = m_Transform.transpose();
 
-  Vector3f map = T * Vector3f(0.0f,1.0f,2.0f);
+  Vector3d map = T * Vector3d(0.0, 1.0, 2.0);
   m_AxesIndex[0] = (unsigned int) fabs(map[0]);
   m_AxesIndex[1] = (unsigned int) fabs(map[1]);
   m_AxesIndex[2] = (unsigned int) fabs(map[2]);
 
-  m_AxesDirection = to_int(T * Vector3f(1.0f));
+  m_AxesDirection = to_int(T * Vector3d(1.0));
 }
 
 
@@ -165,31 +166,14 @@ ImageCoordinateTransform
   return prod;
 }
 
-Vector3f 
-ImageCoordinateTransform
-::TransformPoint(const Vector3f &x) const 
+Vector3d ImageCoordinateTransform::TransformPoint(const Vector3d &x) const
 {
   return m_Transform * x + m_Offset;
-/*  
-  // Transform the vector
-  Vector3f xVec = TransformVector(x);
-
-  // Transform the size 
-  Vector3f xSpace = TransformVector(xSourceVolumeSize);
-
-  // Compute an offset to add to the vector
-  if(xVec[0] < 0) xVec[0] -= xSpace[0];
-  if(xVec[1] < 0) xVec[1] -= xSpace[1];
-  if(xVec[2] < 0) xVec[2] -= xSpace[2];
-
-  // Return the result
-  return xVec;
-*/  
 }
 
-Vector3f 
+Vector3d
 ImageCoordinateTransform
-::TransformVector(const Vector3f &x) const 
+::TransformVector(const Vector3d &x) const
 {
   return m_Transform * x;
 }
@@ -198,7 +182,7 @@ Vector3ui
 ImageCoordinateTransform
 ::TransformSize(const Vector3ui &sz) const
 {
-  Vector3f szSigned = m_Transform * to_float(sz);
+  Vector3d szSigned = m_Transform * to_double(sz);
   return Vector3ui(
     (unsigned int)fabs(szSigned(0)),
     (unsigned int)fabs(szSigned(1)),
@@ -210,13 +194,13 @@ ImageCoordinateTransform
 ::TransformVoxelIndex(const Vector3ui &x) const 
 {
   // Convert to voxel center coordinates
-  Vector3f xVoxelCenter = to_float(x) + Vector3f(0.5);
+  Vector3d xVoxelCenter = to_double(x) + Vector3d(0.5);
 
   // Make sure the mapping is legit
-  Vector3f xMappedCenter = TransformPoint(xVoxelCenter);
-  assert(xMappedCenter(0) >= 0.0f && 
-         xMappedCenter(1) >= 0.0f &&
-         xMappedCenter(2) >= 0.0f);
+  Vector3d xMappedCenter = TransformPoint(xVoxelCenter);
+  assert(xMappedCenter(0) >= 0.0 &&
+         xMappedCenter(1) >= 0.0 &&
+         xMappedCenter(2) >= 0.0);
 
   // Compute the result and scale down to integers
   return to_unsigned_int(xMappedCenter);

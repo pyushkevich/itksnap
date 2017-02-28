@@ -75,13 +75,13 @@ void SnakeModeRenderer::DrawBubbles()
     cl.GetRGBVector(rgb);
 
     // Get the current crosshairs position
-    Vector3f cursorImage = to_float(app->GetCursorPosition()) + Vector3f(0.5f);
+    Vector3d cursorImage = to_double(app->GetCursorPosition()) + Vector3d(0.5);
 
     // Get the image space dimension that corresponds to this window
     int iid = sliceModel->GetSliceDirectionInImageSpace();
 
     // Get the other essentials from the parent
-    Vector3f scaling = sliceModel->GetSliceSpacing();
+    Vector3d scaling = sliceModel->GetSliceSpacing();
 
     // Turn on alpha blending
     glPushAttrib(GL_POLYGON_BIT | GL_COLOR_BUFFER_BIT);
@@ -97,11 +97,11 @@ void SnakeModeRenderer::DrawBubbles()
       {
 
       // Get the center and radius of the i-th bubble
-      Vector3f ctrImage = to_float(bubbles[i].center) + Vector3f(0.5f);
+      Vector3d ctrImage = to_double(bubbles[i].center) + Vector3d(0.5);
       double radius = bubbles[i].radius;
 
       // Remap the center into slice coordinates
-      Vector3f ctrSlice = sliceModel->MapImageToSlice(to_float(ctrImage));
+      Vector3d ctrSlice = sliceModel->MapImageToSlice(ctrImage);
 
       // Compute the offset from the center along the slice z-direction
       // in physical coordinates

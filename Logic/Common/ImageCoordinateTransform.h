@@ -74,10 +74,10 @@ public:
   ImageCoordinateTransform Product(const ImageCoordinateTransform &t1) const;
                                                                       
   /** Apply transform to a vector */
-  Vector3f TransformVector(const Vector3f &x) const;
+  Vector3d TransformVector(const Vector3d &x) const;
 
   /** Apply transform to a point. */
-  Vector3f TransformPoint(const Vector3f &x) const;
+  Vector3d TransformPoint(const Vector3d &x) const;
 
   /** Apply to an integer voxel index */
   Vector3ui TransformVoxelIndex(const Vector3ui &xVoxel) const;
@@ -98,13 +98,13 @@ public:
   }
 
 private:
-  typedef vnl_matrix_fixed<float,3,3> MatrixType;
+  typedef vnl_matrix_fixed<double,3,3> MatrixType;
 
   // A transform matrix
   MatrixType m_Transform;
   
   // An offset vector
-  Vector3f m_Offset;
+  Vector3d m_Offset;
 
   // The operation abs(i) - 1 applied to m_Mapping
   Vector3i m_AxesIndex;

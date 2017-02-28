@@ -532,7 +532,7 @@ void Generic3DRenderer::UpdateCamera(bool reset)
     Vector3d spacing = app->GetCurrentImageData()->GetImageSpacing();
     ImageWrapperBase *main = app->GetCurrentImageData()->GetMain();
     Vector3d dim = element_product(to_double(main->GetSize()), spacing);
-    Vector3d ctr = main->TransformVoxelIndexToNIFTICoordinates(to_double(cursor));
+    Vector3d ctr = main->TransformVoxelCIndexToNIFTICoordinates(to_double(cursor));
 
 
     if(reset)

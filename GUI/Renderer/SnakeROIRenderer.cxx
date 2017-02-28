@@ -28,7 +28,7 @@ void SnakeROIRenderer::paintGL()
   assert(gs->isSegmentationROIValid());
 
   // Compute the corners in slice coordinates
-  Vector3f corner[2];
+  Vector3d corner[2];
   m_Model->GetSystemROICorners(corner);
 
   // Check that the current slice is actually within the bounding box
@@ -65,12 +65,12 @@ void SnakeROIRenderer::paintGL()
       elt->GetActiveColor().data_block() : elt->GetNormalColor().data_block() );
 
     // Compute the vertices of the edge
-    Vector2f x0,x1;
+    Vector2d x0,x1;
     m_Model->GetEdgeVertices(dir,i,x0,x1,corner);
 
     // Draw the line
-    glVertex2f(x0[0],x0[1]);
-    glVertex2f(x1[0],x1[1]);
+    glVertex2d(x0[0],x0[1]);
+    glVertex2d(x1[0],x1[1]);
     }
   }
 

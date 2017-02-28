@@ -542,7 +542,7 @@ IRISApplication
     // Get the 3D coordinate of the corner
     Vector3ui idxVol = to_unsigned_int(
                          xfmSliceToImage.TransformPoint(
-                           Vector3f(corners[i][0] + 0.5, corners[i][1] + 0.5, zSlice)));
+                           Vector3d(corners[i][0] + 0.5, corners[i][1] + 0.5, zSlice)));
 
     if(i == 0)
       {
@@ -581,7 +581,8 @@ IRISApplication
     {
     // Find the coordinate of the voxel in the slice
     itk::Index<3> idx_vol = itVol.GetIndex();
-    Vector3f x_slice = xfmImageToSlice.TransformPoint(Vector3f(idx_vol[0] + 0.5, idx_vol[1] + 0.5, idx_vol[2] + 0.5));
+    Vector3d x_slice = xfmImageToSlice.TransformPoint(
+                         Vector3d(idx_vol[0] + 0.5, idx_vol[1] + 0.5, idx_vol[2] + 0.5));
     itk::Index<2> idx_slice;
     idx_slice[0] = (int) x_slice[0];
     idx_slice[1] = (int) x_slice[1];
@@ -909,10 +910,10 @@ IRISApplication
   Vector3d cursorSource = to_double(this->GetCursorPosition());
 
   Vector3d xyzSource =
-      source->GetMain()->TransformVoxelIndexToNIFTICoordinates(cursorSource);
+      source->GetMain()->TransformVoxelCIndexToNIFTICoordinates(cursorSource);
 
   itk::Index<3> indexTarget =
-      to_itkIndex(target->GetMain()->TransformNIFTICoordinatesToVoxelIndex(xyzSource));
+      to_itkIndex(target->GetMain()->TransformNIFTICoordinatesToVoxelCIndex(xyzSource));
 
   Vector3ui newCursor =
       target->GetMain()->GetBufferedRegion().IsInside(indexTarget)

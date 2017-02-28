@@ -26,7 +26,7 @@ void SnakeROIModel::SetParent(GenericSliceModel *parent)
 // Return true if the selection state has changed
 SnakeROISideSelectionState
 SnakeROIModel
-::ComputeSelection(Vector2f &uvSlice, Vector3f corners[])
+::ComputeSelection(Vector2d &uvSlice, Vector3d corners[])
 {
   // This code computes the current selection based on the mouse coordinates
   // Flag indicating whether we respond to this event or not
@@ -37,12 +37,12 @@ SnakeROIModel
     {
     // Variables used to find the closest edge that's within delta
     int iClosest = -1;
-    float dToClosest = m_PixelDelta;
+    double dToClosest = m_PixelDelta;
 
     // Search for the closest edge
     for(unsigned int i=0;i<2;i++)
       {
-      float d = GetEdgeDistance(dir,i,uvSlice,corners);
+      double d = GetEdgeDistance(dir,i,uvSlice,corners);
       if(d < dToClosest)
         {
         dToClosest = d;
@@ -76,10 +76,10 @@ SnakeROIModel
   return h;
 }
 
-bool SnakeROIModel::ProcessPushEvent(float x, float y)
+bool SnakeROIModel::ProcessPushEvent(double x, double y)
 {
   // Convert the event location into slice u,v coordinates
-  Vector2f uvSlice(x, y);
+  Vector2d uvSlice(x, y);
 
   // Record the system's corners at the time of drag start
   GetSystemROICorners(m_CornerDragStart);
@@ -98,10 +98,10 @@ bool SnakeROIModel::ProcessPushEvent(float x, float y)
 }
 
 bool SnakeROIModel
-::ProcessMoveEvent(float x, float y)
+::ProcessMoveEvent(double x, double y)
 {
   // Convert the event location into slice u,v coordinates
-  Vector2f uvSlice(x, y);
+  Vector2d uvSlice(x, y);
 
   // Record the system's corners at the time of drag start
   GetSystemROICorners(m_CornerDragStart);
@@ -117,14 +117,13 @@ bool SnakeROIModel
   return true;
 }
 
-bool SnakeROIModel::ProcessDragEvent(
-    float x, float y, float xStart, float yStart, bool release)
+bool SnakeROIModel::ProcessDragEvent(double x, double y, double xStart, double yStart, bool release)
 {
   // Only do something if there is a highlight
   if(m_Highlight.AnyHighlighted())
     {
     // Update the corners in response to the dragging
-    UpdateCorners(Vector2f(x, y), Vector2f(xStart,yStart));
+    UpdateCorners(Vector2d(x, y), Vector2d(xStart,yStart));
 
     // Event has been handled
     return true;
@@ -140,46 +139,44 @@ const unsigned int SnakeROIModel::m_PixelDelta = 8;
 
 void
 SnakeROIModel
-::GetEdgeVertices(unsigned int direction,unsigned int index,
-                  Vector2f &x0,Vector2f &x1,
-                  const Vector3f corner[2])
+::GetEdgeVertices(unsigned int direction, unsigned int index,
+                  Vector2d &x0, Vector2d &x1,
+                  const Vector3d corner[])
 {
   x0(direction) = corner[0](direction);
   x1(direction) = corner[1](direction);
   x0(1-direction) = x1(1-direction) = corner[index](1-direction);
 }
 
-float
-SnakeROIModel
-::GetEdgeDistance(unsigned int direction,
+double SnakeROIModel::GetEdgeDistance(unsigned int direction,
                   unsigned int index,
-                  const Vector2f &x,
-                  const Vector3f corner[2])
+                  const Vector2d &x,
+                  const Vector3d corner[])
 {
   // Compute the vertices of the edge
-  Vector2f x0,x1;
+  Vector2d x0,x1;
   GetEdgeVertices(direction,index,x0,x1,corner);
 
   // Compute the squared distance between the vertices
-  float l2 = (x1-x0).squared_magnitude();
-  float l = sqrt(l2);
+  double l2 = (x1-x0).squared_magnitude();
+  double l = sqrt(l2);
 
   // Compute the projection of x onto x1-x0
-  float p = dot_product(x-x0,x1-x0) / sqrt(l2);
-  float p2 = p*p;
+  double p = dot_product(x-x0,x1-x0) / sqrt(l2);
+  double p2 = p*p;
 
   // Compute the squared distance to the line of the edge
-  float q2 = (x-x0).squared_magnitude() - p2;
+  double q2 = (x-x0).squared_magnitude() - p2;
 
   // Compute the total distance
-  float d = sqrt(q2 + (p < 0 ? p2 : 0) + (p > l ? (p-l)*(p-l) : 0));
+  double d = sqrt(q2 + (p < 0 ? p2 : 0) + (p > l ? (p-l)*(p-l) : 0));
 
   // Return this distance
   return d;
 }
 
 void SnakeROIModel
-::GetSystemROICorners(Vector3f corner[2])
+::GetSystemROICorners(Vector3d corner[])
 {
   // Get the region of interest in image coordinates
   GlobalState *gs = m_Parent->GetDriver()->GetGlobalState();
@@ -192,32 +189,32 @@ void SnakeROIModel
   Vector3ul sz(roi.GetSize().GetSize());
 
   // Remap to slice coordinates
-  corner[0] = m_Parent->MapImageToSlice(to_float(ul));
-  corner[1] = m_Parent->MapImageToSlice(to_float(ul+to_long(sz)));
+  corner[0] = m_Parent->MapImageToSlice(to_double(ul));
+  corner[1] = m_Parent->MapImageToSlice(to_double(ul+to_long(sz)));
 }
 
 void SnakeROIModel
-::UpdateCorners(const Vector2f &uvSliceNow, const Vector2f &uvSlicePress)
+::UpdateCorners(const Vector2d &uvSliceNow, const Vector2d &uvSlicePress)
 {
   // Compute the corners in slice coordinates
-  Vector3f corner[2];
+  Vector3d corner[2];
   GetSystemROICorners(corner);
 
   // Get the current bounds and extents of the region of interest
-  Vector3f xCornerImage[2] = {
+  Vector3d xCornerImage[2] = {
     m_Parent->MapSliceToImage(corner[0]),
     m_Parent->MapSliceToImage(corner[1])
   };
 
-  Vector3f clamp[2][2] =
+  Vector3d clamp[2][2] =
   {
     {
-      Vector3f(0.0f,0.0f,0.0f),
-      xCornerImage[1] - Vector3f(1.0f,1.0f,1.0f)
+      Vector3d(0.0,0.0,0.0),
+      xCornerImage[1] - Vector3d(1.0,1.0,1.0)
     },
     {
-      xCornerImage[0] + Vector3f(1.0f,1.0f,1.0f),
-      to_float(m_Parent->GetDriver()->GetCurrentImageData()->GetVolumeExtents())
+      xCornerImage[0] + Vector3d(1.0,1.0,1.0),
+      to_double(m_Parent->GetDriver()->GetCurrentImageData()->GetVolumeExtents())
     }
   };
 
@@ -234,10 +231,10 @@ void SnakeROIModel
           m_CornerDragStart[i](1-dir) + uvSliceNow(1-dir) - uvSlicePress(1-dir);
 
         // Map the affected vertex to image space
-        Vector3f vImage = m_Parent->MapSliceToImage(corner[i]);
+        Vector3d vImage = m_Parent->MapSliceToImage(corner[i]);
 
         // Clamp the affected vertex in image space
-        Vector3f vImageClamped = vImage.clamp(clamp[i][0],clamp[i][1]);
+        Vector3d vImageClamped = vImage.clamp(clamp[i][0],clamp[i][1]);
 
         // Map the affected vertex back into slice space
         corner[i] = m_Parent->MapImageToSlice(vImageClamped);

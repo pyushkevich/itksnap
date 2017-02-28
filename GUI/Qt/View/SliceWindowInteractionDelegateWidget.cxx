@@ -30,8 +30,8 @@ void SliceWindowInteractionDelegateWidget::preprocessEvent(QEvent *ev)
      ev->type() == QEvent::ContextMenu)
     {
     // Compute the spatial location of the event
-    m_XSlice = to_double(m_ParentModel->MapWindowToSlice(
-                           to_float(Vector2d(m_XSpace.extract(2)))));
+    m_XSlice = m_ParentModel->MapWindowToSlice(
+                           Vector2d(m_XSpace.extract(2)));
 
     // Determine whether the mouse is over a layer, and if so what layer it is, and
     // whether the layer is shown as a thumbnail or not

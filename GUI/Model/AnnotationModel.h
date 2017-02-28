@@ -55,7 +55,7 @@ public:
   irisIsMacro(MovingSelection)
 
   /** Get the physical length of line segment */
-  double GetLineLength(const Vector3f &xSliceA, const Vector3f &xSliceB);
+  double GetLineLength(const Vector3d &xSliceA, const Vector3d &xSliceB);
 
   /** Get the physical length of current line */
   double GetCurrentLineLength();
@@ -102,9 +102,9 @@ public:
   /** Set the text assigned to the current annotation */
   irisGetSetMacro(CurrentAnnotationText, std::string)
 
-  Vector3f GetAnnotationCenter(const AbstractAnnotation *annot);
+  Vector3d GetAnnotationCenter(const AbstractAnnotation *annot);
 
-  void GetLandmarkArrowPoints(const annot::Landmark &lm, Vector3f &outHeadXSlice, Vector3f &outTailXSlice);
+  void GetLandmarkArrowPoints(const annot::Landmark &lm, Vector3d &outHeadXSlice, Vector3d &outTailXSlice);
 
 
 
@@ -121,7 +121,7 @@ protected:
   LineSegment m_CurrentLine;
 
   // Motion-related variables
-  Vector3f m_DragStart, m_DragLast;
+  Vector3d m_DragStart, m_DragLast;
   bool m_MovingSelection;
   int m_MovingSelectionHandle;
   annot::AbstractAnnotation *m_MovingSelectionHandleAnnot;
@@ -129,7 +129,7 @@ protected:
   // Text assigned to the currently drawn annotation
   std::string m_CurrentAnnotationText;
 
-  double GetDistanceToLine(const Vector3f &x1, const Vector3f &x2, const Vector3d &point);
+  double GetDistanceToLine(const Vector3d &x1, const Vector3d &x2, const Vector3d &point);
   double GetDistanceToLine(LineSegment &line, const Vector3d &point);
   double GetPixelDistanceToAnnotation(const AbstractAnnotation *annot, const Vector3d &point);
   void AdjustAngleToRoundDegree(LineSegment &ls, int n_degrees);
@@ -138,12 +138,12 @@ protected:
 
   annot::AbstractAnnotation *GetSelectedHandleUnderCusror(const Vector3d &xSlice, int &out_handle);
 
-  bool TestPointInClickRadius(const Vector3f &xClickSlice,
-                              const Vector3f &xPointSlice,
+  bool TestPointInClickRadius(const Vector3d &xClickSlice,
+                              const Vector3d &xPointSlice,
                               int logical_pixels);
 
   // Apply move command to annotation handle
-  void MoveAnnotationHandle(AbstractAnnotation *ann, int handle, const Vector3f &deltaPhys);
+  void MoveAnnotationHandle(AbstractAnnotation *ann, int handle, const Vector3d &deltaPhys);
 };
 
 #endif // ANNOTATIONMODEL_H

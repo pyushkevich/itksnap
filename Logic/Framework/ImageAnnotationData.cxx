@@ -55,10 +55,10 @@ int LineSegmentAnnotation::GetSliceIndex(int plane) const
   return (int) (m_Segment.first[plane]);
 }
 
-Vector3f LineSegmentAnnotation::GetAnchorPoint(int plane) const
+Vector3d LineSegmentAnnotation::GetAnchorPoint(int plane) const
 {
   // Use the midpoint
-  return (m_Segment.first + m_Segment.second) * 0.5f;
+  return (m_Segment.first + m_Segment.second) * 0.5;
 }
 
 void LineSegmentAnnotation::Save(Registry &folder)
@@ -72,13 +72,13 @@ void LineSegmentAnnotation::Save(Registry &folder)
 void LineSegmentAnnotation::Load(Registry &folder)
 {
   Superclass::Load(folder);
-  m_Segment.first = to_float(folder["Point1"][Vector3d(0.0)]);
-  m_Segment.second = to_float(folder["Point2"][Vector3d(0.0)]);
+  m_Segment.first = folder["Point1"][Vector3d(0.0)];
+  m_Segment.second = folder["Point2"][Vector3d(0.0)];
   if(m_Segment.first[this->m_Plane] != m_Segment.second[this->m_Plane])
     throw IRISException("Invalid line segment annotation detected in file.");
 }
 
-void LineSegmentAnnotation::MoveBy(const Vector3f &offset)
+void LineSegmentAnnotation::MoveBy(const Vector3d &offset)
 {
   m_Segment.first += offset;
   m_Segment.second += offset;
@@ -91,12 +91,12 @@ int LandmarkAnnotation::GetSliceIndex(int plane) const
   return (int) (m_Landmark.Pos[plane]);
 }
 
-Vector3f LandmarkAnnotation::GetAnchorPoint(int plane) const
+Vector3d LandmarkAnnotation::GetAnchorPoint(int plane) const
 {
   return m_Landmark.Pos;
 }
 
-void LandmarkAnnotation::MoveBy(const Vector3f &offset)
+void LandmarkAnnotation::MoveBy(const Vector3d &offset)
 {
   m_Landmark.Pos += offset;
 }
@@ -113,8 +113,8 @@ void LandmarkAnnotation::Save(Registry &folder)
 void LandmarkAnnotation::Load(Registry &folder)
 {
   Superclass::Load(folder);
-  m_Landmark.Pos = to_float(folder["Pos"][Vector3d(0.0)]);
-  m_Landmark.Offset = to_float(folder["Offset"][Vector2d(0.0)]);
+  m_Landmark.Pos = folder["Pos"][Vector3d(0.0)];
+  m_Landmark.Offset = folder["Offset"][Vector2d(0.0)];
   m_Landmark.Text = folder["Text"]["??? Landmark"];
 }
 

@@ -266,13 +266,22 @@ public:
   virtual itk::ImageRegion<3> GetBufferedRegion() const;
 
   /** Transform a voxel index into a spatial position */
-  virtual Vector3d TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const;
+  virtual Vector3d TransformVoxelIndexToPosition(const Vector3i &iVoxel) const ;
+
+  /** Transform a voxel index into a spatial position */
+  virtual Vector3d TransformVoxelCIndexToPosition(const Vector3d &iVoxel) const;
+
+  /** Transform spatial position to voxel continuous index (LPS) */
+  virtual Vector3d TransformPositionToVoxelCIndex(const Vector3d &vLPS) const;
+
+  /** Transform spatial position to voxel index (LPS) */
+  virtual Vector3i TransformPositionToVoxelIndex(const Vector3d &vLPS) const;
 
   /** Transform a voxel index into NIFTI coordinates (RAS) */
-  virtual Vector3d TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const;
+  virtual Vector3d TransformVoxelCIndexToNIFTICoordinates(const Vector3d &iVoxel) const;
 
   /** Transform NIFTI coordinates to a continuous voxel index */
-  virtual Vector3d TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const;
+  virtual Vector3d TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const;
 
   /** Get the NIFTI s-form matrix for this image */
   irisGetMacro(NiftiSform, TransformType)

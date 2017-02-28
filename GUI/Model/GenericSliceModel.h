@@ -161,50 +161,50 @@ public:
    * Map a point in window coordinates to a point in slice coordinates
    * (Window coordinates are the ones stored in FLTKEvent.xSpace)
    */
-  Vector3f MapWindowToSlice(const Vector2f &xWindow);
+  Vector3d MapWindowToSlice(const Vector2d &xWindow);
 
   /**
    * Map an offset in window coordinates to an offset in slice coordinates
    */
-  Vector3f MapWindowOffsetToSliceOffset(const Vector2f &xWindowOffset);
+  Vector3d MapWindowOffsetToSliceOffset(const Vector2d &xWindowOffset);
 
   /**
    * Map a point in slice coordinates to a point in window coordinates
    * (Window coordinates are the ones stored in FLTKEvent.xSpace)
    */
-  Vector2f MapSliceToWindow(const Vector3f &xSlice);
+  Vector2d MapSliceToWindow(const Vector3d &xSlice);
 
   /**
    * Map a point in slice coordinates to a point in PHYISCAL window coordinates
    */
-  Vector2f MapSliceToPhysicalWindow(const Vector3f &xSlice);
+  Vector2d MapSliceToPhysicalWindow(const Vector3d &xSlice);
 
   /**
    * Map a point in PHYISCAL window coordinates to a point in slice coordinates
    */
-  Vector3f MapPhysicalWindowToSlice(const Vector2f &uvPhysical);
+  Vector3d MapPhysicalWindowToSlice(const Vector2d &uvPhysical);
 
   /**
    * Map a point in slice coordinates to a point in the image coordinates
    */
-  Vector3f MapSliceToImage(const Vector3f &xSlice);
+  Vector3d MapSliceToImage(const Vector3d &xSlice);
 
   /**
    * Map a point in slice coordinates to a point in image physical coordinates
    * (the ITK LPS coordinate system)
    */
-  Vector3d MapSliceToImagePhysical(const Vector3f &xSlice);
+  Vector3d MapSliceToImagePhysical(const Vector3d &xSlice);
 
   /**
    * Map a point in image coordinates to slice coordinates
    */
-  Vector3f MapImageToSlice(const Vector3f &xImage);
+  Vector3d MapImageToSlice(const Vector3d &xImage);
 
   /**
    * Get the cursor position in slice coordinates, shifted to the center
    * of the voxel
    */
-  Vector3f GetCursorPositionInSliceCoordinates();
+  Vector3d GetCursorPositionInSliceCoordinates();
 
   /**
    * Get the slice index for this window
@@ -243,51 +243,51 @@ public:
   /** Return the offset from the center of the viewport to the cursor position
    * in slice units (#voxels * spacing). This is used to synchronize panning
    * across SNAP sessions */
-  Vector2f GetViewPositionRelativeToCursor();
+  Vector2d GetViewPositionRelativeToCursor();
 
   /** Set the offset from the center of the viewport to the cursor position */
-  void SetViewPositionRelativeToCursor(Vector2f offset);
+  void SetViewPositionRelativeToCursor(Vector2d offset);
 
   /** Center the view on the image crosshairs */
   void CenterViewOnCursor();
 
   /** Set the zoom factor (number of pixels on the screen per millimeter in
    * image space */
-  void SetViewZoom(float zoom);
+  void SetViewZoom(double zoom);
 
   /** Set the zoom factor in logical units (accounting for Retina displays) */
-  void SetViewZoomInLogicalPixels(float zoom);
+  void SetViewZoomInLogicalPixels(double zoom);
 
   /**
    * Zoom in/out by a specified factor. This method will 'stop' at the optimal
    * zoom if it's between the old zoom and the new zoom
    */
-  void ZoomInOrOut(float factor);
+  void ZoomInOrOut(double factor);
 
   /** Get the zoom factor (number of pixels on the screen per millimeter in
    * image space */
-  irisGetMacro(ViewZoom,float)
+  irisGetMacro(ViewZoom,double)
 
   /** Get the logical zoom factor (for retina-style displays) */
-  float GetViewZoomInLogicalPixels() const;
+  double GetViewZoomInLogicalPixels() const;
 
   /** Computes the zoom that gives the best fit for the window */
   void ComputeOptimalZoom();
 
   /** Compute the optimal zoom (best fit) */
-  irisGetMacro(OptimalZoom,float)
+  irisGetMacro(OptimalZoom,double)
 
   /** Set the zoom management flag */
   irisSetMacro(ManagedZoom,bool)
 
   /** Set the view position **/
-  void SetViewPosition(Vector2f);
+  void SetViewPosition(Vector2d pos);
 
   /** Get the view position **/
-  irisGetMacro(ViewPosition, Vector2f)
+  irisGetMacro(ViewPosition, Vector2d)
 
   /** Get the slice spacing in the display space orientation */
-  irisGetMacro(SliceSpacing,Vector3f)
+  irisGetMacro(SliceSpacing,Vector3d)
 
   /** Get the slice spacing in the display space orientation */
   irisGetMacro(SliceSize,Vector3i)
@@ -323,7 +323,7 @@ public:
 
   irisGetMacro(ZoomThumbnailPosition, Vector2i)
   irisGetMacro(ZoomThumbnailSize, Vector2i)
-  irisGetMacro(ThumbnailZoom, float)
+  irisGetMacro(ThumbnailZoom, double)
 
   irisGetMacro(ImageToDisplayTransform, const ImageCoordinateTransform &)
   irisGetMacro(DisplayToAnatomyTransform, const ImageCoordinateTransform &)
@@ -426,19 +426,19 @@ protected:
 
   // Pixel dimensions for the slice.  (the third component is the pixel
   // width in the slice direction)
-  Vector3f m_SliceSpacing;
+  Vector3d m_SliceSpacing;
 
   // Position of visible window in slice space coordinates
-  Vector2f m_ViewPosition;
+  Vector2d m_ViewPosition;
 
   // The view position where the slice wants to be
-  Vector2f m_OptimalViewPosition;
+  Vector2d m_OptimalViewPosition;
 
   // The number of screen pixels per mm of image
-  float m_ViewZoom;
+  double m_ViewZoom;
 
   // The zoom level at which the slice fits snugly into the window
-  float m_OptimalZoom;
+  double m_OptimalZoom;
 
   // Flag indicating whether the window's zooming is managed externally
   // by the SliceWindowCoordinator

@@ -43,7 +43,7 @@ double InteractiveRegistrationModel::GetRotationWidgetRadius()
   Vector3ui rot_ctr_image = rmodel->GetRotationCenter();
 
   // Map the center of rotation into the slice coordinates
-  Vector3f rot_ctr_slice = smodel->MapImageToSlice(to_float(rot_ctr_image));
+  Vector3d rot_ctr_slice = smodel->MapImageToSlice(to_double(rot_ctr_image));
 
   // Get the corners of the viewport in slice coordinate units
   const SliceViewportLayout::SubViewport &vp =
@@ -74,7 +74,7 @@ double InteractiveRegistrationModel::GetRotationWidgetRadius()
   double r = 0;
   for(int i = 0; i < xProbe.size(); i++)
     {
-    Vector3f x_probe_slice = smodel->MapWindowToSlice(to_float(xProbe[i]));
+    Vector3d x_probe_slice = smodel->MapWindowToSlice(to_double(xProbe[i]));
     double dx = (x_probe_slice[0] - rot_ctr_slice[0]) * smodel->GetSliceSpacing()[0];
     double dy = (x_probe_slice[1] - rot_ctr_slice[1]) * smodel->GetSliceSpacing()[1];
     double rtest = sqrt(dx * dx + dy * dy);
@@ -95,7 +95,7 @@ void InteractiveRegistrationModel::RotateByTheta(double theta)
   GenericSliceModel *smodel = this->GetParent();
 
   // Map a vector in the z direction into image coordinates
-  Vector3d v_image = to_double(smodel->GetDisplayToImageTransform().TransformVector(Vector3f(0, 0, -1)));
+  Vector3d v_image = to_double(smodel->GetDisplayToImageTransform().TransformVector(Vector3d(0, 0, -1)));
 
   // Transform this vector into physical space
   itk::Vector<double, 3> axis_image, axis_phys;
@@ -160,7 +160,7 @@ bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, cons
     Vector3ui rot_ctr_image = rmodel->GetRotationCenter();
 
     // Map the center of rotation into the slice coordinates
-    Vector3f rot_ctr_slice = smodel->MapImageToSlice(to_float(rot_ctr_image));
+    Vector3d rot_ctr_slice = smodel->MapImageToSlice(to_double(rot_ctr_image));
 
     // Compute the rotation angle
     double dx0 = (xDragStart[0] - rot_ctr_slice[0]) * smodel->GetSliceSpacing()[0];
@@ -178,8 +178,8 @@ bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, cons
   else
     {
     // Find the physical coordinates of the start and end points of the drag
-    Vector3d xDrag2 = smodel->MapSliceToImagePhysical(to_float(xSlice));
-    Vector3d xDrag1 = smodel->MapSliceToImagePhysical(to_float(xDragStart));
+    Vector3d xDrag2 = smodel->MapSliceToImagePhysical(xSlice);
+    Vector3d xDrag1 = smodel->MapSliceToImagePhysical(xDragStart);
 
     // Total displacement so far
     Vector3d xDispTotal = xDrag2 - xDrag1;
@@ -231,7 +231,7 @@ InteractiveRegistrationModel
   Vector3ui rot_ctr_image = rmodel->GetRotationCenter();
 
   // Map the center of rotation into the slice coordinates
-  Vector3f rot_ctr_slice = smodel->MapImageToSlice(to_float(rot_ctr_image));
+  Vector3d rot_ctr_slice = smodel->MapImageToSlice(to_double(rot_ctr_image));
 
   // Check the distance to the widget
   double radius = this->GetRotationWidgetRadius() / 2.0;

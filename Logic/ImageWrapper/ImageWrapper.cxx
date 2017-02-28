@@ -708,25 +708,68 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 Vector3d
 ImageWrapper<TTraits,TBase>
-::TransformVoxelIndexToPosition(const Vector3ui &iVoxel) const
+::TransformVoxelCIndexToPosition(const Vector3d &iVoxel) const
 {
   // Use the ITK method to do this
-  typename ImageBaseType::IndexType xIndex;
+  itk::ContinuousIndex<double, 3> xIndex;
   for(size_t d = 0; d < 3; d++) xIndex[d] = iVoxel[d];
 
   itk::Point<double, 3> xPoint;
-  m_ReferenceSpace->TransformIndexToPhysicalPoint(xIndex, xPoint);
+  m_ReferenceSpace->TransformContinuousIndexToPhysicalPoint(xIndex, xPoint);
 
-  Vector3d xOut;
-  for(unsigned int q = 0; q < 3; q++) xOut[q] = xPoint[q];
-
-  return xOut;
+  return Vector3d(xPoint);
 }
 
 template<class TTraits, class TBase>
 Vector3d
 ImageWrapper<TTraits,TBase>
-::TransformVoxelIndexToNIFTICoordinates(const Vector3d &iVoxel) const
+::TransformVoxelIndexToPosition(const Vector3i &iVoxel) const
+{
+  // Use the ITK method to do this
+  typename ImageBaseType::IndexType xIndex = to_itkIndex(iVoxel);
+
+  itk::Point<double, 3> xPoint;
+  m_ReferenceSpace->TransformIndexToPhysicalPoint(xIndex, xPoint);
+
+  return Vector3d(xPoint);
+}
+
+template<class TTraits, class TBase>
+Vector3d
+ImageWrapper<TTraits,TBase>
+::TransformPositionToVoxelCIndex(const Vector3d &vLPS) const
+{
+  itk::Point<double, 3> xPoint;
+  for(size_t d = 0; d < 3; d++) xPoint[d] = vLPS[d];
+
+  // Use the ITK method to do this
+  itk::ContinuousIndex<double, 3> xIndex;
+
+  m_ReferenceSpace->TransformPhysicalPointToContinuousIndex(xPoint, xIndex);
+
+  return Vector3d(xIndex);
+}
+
+template<class TTraits, class TBase>
+Vector3i
+ImageWrapper<TTraits,TBase>
+::TransformPositionToVoxelIndex(const Vector3d &vLPS) const
+{
+  itk::Point<double, 3> xPoint;
+  for(size_t d = 0; d < 3; d++) xPoint[d] = vLPS[d];
+
+  // Use the ITK method to do this
+  typename ImageBaseType::IndexType xIndex;
+
+  m_ReferenceSpace->TransformPhysicalPointToIndex(xPoint, xIndex);
+
+  return Vector3i(xIndex);
+}
+
+template<class TTraits, class TBase>
+Vector3d
+ImageWrapper<TTraits,TBase>
+::TransformVoxelCIndexToNIFTICoordinates(const Vector3d &iVoxel) const
 {
   // Create homogeneous vector
   vnl_vector_fixed<double, 4> x;
@@ -744,7 +787,7 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 Vector3d
 ImageWrapper<TTraits,TBase>
-::TransformNIFTICoordinatesToVoxelIndex(const Vector3d &vNifti) const
+::TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const
 {
   // Create homogeneous vector
   vnl_vector_fixed<double, 4> x;

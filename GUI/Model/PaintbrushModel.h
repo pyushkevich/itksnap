@@ -22,18 +22,18 @@ public:
 
   FIRES(PaintbrushMovedEvent)
 
-  bool ProcessPushEvent(const Vector3f &xSlice, const Vector2ui &gridCell, bool reverse_mode);
-  bool ProcessDragEvent(const Vector3f &xSlice, const Vector3f &xSliceLast,
+  bool ProcessPushEvent(const Vector3d &xSlice, const Vector2ui &gridCell, bool reverse_mode);
+  bool ProcessDragEvent(const Vector3d &xSlice, const Vector3d &xSliceLast,
                         double pixelsMoved, bool release);
 
-  bool ProcessMouseMoveEvent(const Vector3f &xSlice);
+  bool ProcessMouseMoveEvent(const Vector3d &xSlice);
   bool ProcessMouseLeaveEvent();
 
   void AcceptAtCursor();
 
   // Get the location in slice coordinates where the center of the paintbrush
   // should be rendered
-  Vector3f GetCenterOfPaintbrushInSliceSpace();
+  Vector3d GetCenterOfPaintbrushInSliceSpace();
 
 
 protected:
@@ -47,7 +47,7 @@ protected:
 
   // Mouse position in slice coordinates from which we need to draw the
   // next segment
-  Vector3f m_LastApplyX;
+  Vector3d m_LastApplyX;
 
   // Layer over which the drawing operation started
   unsigned long m_ContextLayerId;
@@ -58,8 +58,8 @@ protected:
   PaintbrushModel();
   virtual ~PaintbrushModel();
 
-  Vector3f ComputeOffset();
-  void ComputeMousePosition(const Vector3f &xSlice);
+  Vector3d ComputeOffset();
+  void ComputeMousePosition(const Vector3d &xSlice);
 
   bool ApplyBrush(bool reverse_mode, bool dragging);
   bool TestInside(const Vector2d &x, const PaintbrushSettings &ps);

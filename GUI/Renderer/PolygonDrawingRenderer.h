@@ -23,15 +23,15 @@ protected:
   PolygonDrawingRenderer();
   virtual ~PolygonDrawingRenderer() {}
 
-  void DrawBox(const vnl_vector_fixed<float, 4> &box,
-               float border_x = 0.0f, float border_y = 0.0f);
+  void DrawBox(const vnl_vector_fixed<double, 4> &box,
+               double border_x = 0.0, double border_y = 0.0);
 
   PolygonDrawingModel *m_Model;
 
   // Colors used to draw polygon
-  const static float m_DrawingModeColor[];
-  const static float m_EditModeSelectedColor[];
-  const static float m_EditModeNormalColor[];
+  const static double m_DrawingModeColor[];
+  const static double m_EditModeSelectedColor[];
+  const static double m_EditModeNormalColor[];
 };
 
 #endif // POLYGONDRAWINGRENDERER_H

@@ -108,7 +108,7 @@ void CrosshairsInteractionMode::mousePressEvent(QMouseEvent *ev)
     // Use model to envoke event
     if(btn == m_BtnCursor)
       {
-      m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
+      m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]));
       }
     else if(btn == m_BtnZoom)
       {
@@ -134,7 +134,7 @@ void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 
     if(m_LastPressEmulatedButton == m_BtnCursor)
       {
-      m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
+      m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]));
       }
     else if(m_LastPressEmulatedButton == m_BtnZoom)
       {
@@ -143,7 +143,7 @@ void CrosshairsInteractionMode::mouseMoveEvent(QMouseEvent *ev)
       }
     else if(m_LastPressEmulatedButton == m_BtnPan)
       {
-      m_Model->ProcessPanGesture(Vector2f(dx(0), dx(1)));
+      m_Model->ProcessPanGesture(Vector2d(dx(0), dx(1)));
       }
 
     // Eat this event
@@ -165,7 +165,7 @@ void CrosshairsInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
     {
       if(btn == m_BtnCursor)
       {
-      m_Model->UpdateCursor(Vector2f(m_XSpace[0], m_XSpace[1]));
+      m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]));
       }
     else if(btn == m_BtnZoom)
       {
@@ -208,47 +208,6 @@ bool CrosshairsInteractionMode::gestureEvent(QGestureEvent *ev)
     return true;
     }
 
-  /*
-
-  // Get the pan event
-  if(QPanGesture *pan =
-      static_cast<QPanGesture *>(ev->gesture(Qt::PanGesture)))
-    {
-    if(pan->state() == Qt::GestureStarted)
-      {
-      m_Model->BeginPan();
-      }
-    else if(pan->state() == Qt::GestureUpdated)
-      {
-      m_Model->ProcessPanGesture(Vector2f(pan->delta().x(), pan->delta().y()));
-      }
-    else if(pan->state() == Qt::GestureFinished)
-      {
-      m_Model->ProcessPanGesture(Vector2f(pan->delta().x(), pan->delta().y()));
-      m_Model->EndPan();
-      }
-    ev->accept();
-    return true;
-    }
-
-  // Get the swipe event
-  if(QSwipeGesture *swipe =
-      static_cast<QSwipeGesture *>(ev->gesture(Qt::SwipeGesture)))
-    {
-    if(swipe->verticalDirection() == QSwipeGesture::Down)
-      {
-      m_Model->ProcessScrollGesture(1);
-      }
-    else if(swipe->verticalDirection() == QSwipeGesture::Up)
-      {
-      m_Model->ProcessScrollGesture(-1);
-      }
-    ev->accept();
-    return true;
-    }
-  return false;
-
-  */
   else return false;
 }
 

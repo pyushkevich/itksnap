@@ -5,9 +5,9 @@
 
 
 // Default colors
-const float PolygonDrawingRenderer::m_DrawingModeColor[] = { 1.0f, 0.0f, 0.5f };
-const float PolygonDrawingRenderer::m_EditModeNormalColor[] = { 1.0f, 0.0f, 0.0f };
-const float PolygonDrawingRenderer::m_EditModeSelectedColor[] = { 0.0f, 1.0f, 0.0f };
+const double PolygonDrawingRenderer::m_DrawingModeColor[] = { 1.0f, 0.0f, 0.5f };
+const double PolygonDrawingRenderer::m_EditModeNormalColor[] = { 1.0f, 0.0f, 0.0f };
+const double PolygonDrawingRenderer::m_EditModeSelectedColor[] = { 0.0f, 1.0f, 0.0f };
 
 PolygonDrawingRenderer::PolygonDrawingRenderer()
 {
@@ -16,14 +16,14 @@ PolygonDrawingRenderer::PolygonDrawingRenderer()
 
 void
 PolygonDrawingRenderer
-::DrawBox(const vnl_vector_fixed<float, 4> &box,
-          float border_x, float border_y)
+::DrawBox(const vnl_vector_fixed<double, 4> &box,
+          double border_x, double border_y)
 {
   glBegin(GL_LINE_LOOP);
-  glVertex3f(box[0] - border_x, box[2] - border_y, 0.0);
-  glVertex3f(box[1] + border_x, box[2] - border_y, 0.0);
-  glVertex3f(box[1] + border_x, box[3] + border_y, 0.0);
-  glVertex3f(box[0] - border_x, box[3] + border_y, 0.0);
+  glVertex3d(box[0] - border_x, box[2] - border_y, 0.0);
+  glVertex3d(box[1] + border_x, box[2] - border_y, 0.0);
+  glVertex3d(box[1] + border_x, box[3] + border_y, 0.0);
+  glVertex3d(box[0] - border_x, box[3] + border_y, 0.0);
   glEnd();
 }
 
@@ -68,7 +68,7 @@ PolygonDrawingRenderer
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
   // Set line and point drawing parameters
-  float vppr = m_ParentRenderer->GetModel()->GetSizeReporter()->GetViewportPixelRatio();
+  double vppr = m_ParentRenderer->GetModel()->GetSizeReporter()->GetViewportPixelRatio();
   glPointSize(3 * vppr);
 
   // Draw the line segments
@@ -99,8 +99,8 @@ PolygonDrawingRenderer
         glColor3dv(aeEdit->GetNormalColor().data_block());
 
       // Draw the line
-      glVertex3f(it->x, it->y, 0);
-      glVertex3f(itNext->x, itNext->y, 0);
+      glVertex3d(it->x, it->y, 0);
+      glVertex3d(itNext->x, itNext->y, 0);
     }
     glEnd();
 
@@ -116,7 +116,7 @@ PolygonDrawingRenderer
     glBegin(GL_LINE_STRIP);
     glColor3dv(aeDrawColor.data_block());
     for(it = vx.begin(); it!=vx.end(); ++it)
-      glVertex3f(it->x, it->y, 0);
+      glVertex3d(it->x, it->y, 0);
     glEnd();
 
     // Draw the drag vertices
@@ -124,7 +124,7 @@ PolygonDrawingRenderer
       {
       glBegin(GL_LINE_STRIP);
       for(it = dvx.begin(); it != dvx.end(); ++it)
-        glVertex3f(it->x, it->y, 0);
+        glVertex3d(it->x, it->y, 0);
       glEnd();
       }
 
@@ -135,10 +135,10 @@ PolygonDrawingRenderer
       {
       glBegin(GL_LINES);
       if(dvx.size())
-        glVertex3f(dvx.back().x, dvx.back().y, 0);
+        glVertex3d(dvx.back().x, dvx.back().y, 0);
       else
-        glVertex3f(vx.back().x, vx.back().y, 0);
-      glVertex3f(vx.front().x, vx.front().y, 0);
+        glVertex3d(vx.back().x, vx.back().y, 0);
+      glVertex3d(vx.front().x, vx.front().y, 0);
       glEnd();
       }
 
@@ -151,10 +151,10 @@ PolygonDrawingRenderer
       glBegin(GL_LINES);
       glColor3dv(aeCloseColor.data_block());
       if(dvx.size())
-        glVertex3f(dvx.back().x, dvx.back().y, 0);
+        glVertex3d(dvx.back().x, dvx.back().y, 0);
       else
-        glVertex3f(vx.back().x, vx.back().y, 0);
-      glVertex3f(vx.front().x, vx.front().y, 0);
+        glVertex3d(vx.back().x, vx.back().y, 0);
+      glVertex3d(vx.front().x, vx.front().y, 0);
       glEnd();
       glPopAttrib();
       }
@@ -177,7 +177,7 @@ PolygonDrawingRenderer
       else
         glColor3dv(aeEdit->GetNormalColor().data_block());
 
-      glVertex3f(it->x,it->y,0.0f);
+      glVertex3d(it->x,it->y,0.0f);
       }
   }
 
@@ -186,7 +186,7 @@ PolygonDrawingRenderer
     {
     PolygonVertex last = dvx.back();
     glColor3dv(aeEdit->GetActiveColor().data_block());
-    glVertex3f(last.x, last.y, 0.0f);
+    glVertex3d(last.x, last.y, 0.0f);
     }
 
   glEnd();
@@ -209,9 +209,9 @@ PolygonDrawingRenderer
 
     glLineWidth(1);
     glColor3dv(aeEdit->GetActiveColor().data_block());
-    Vector2f border = m_Model->GetPixelSize() * 4.0f;
+    Vector2d border = m_Model->GetPixelSize() * 4.0;
     glLineWidth(1);
-    glColor3fv(m_EditModeSelectedColor);
+    glColor3dv(m_EditModeSelectedColor);
     DrawBox(m_Model->GetEditBox(), border[0], border[1]);
     glPopAttrib();
   }

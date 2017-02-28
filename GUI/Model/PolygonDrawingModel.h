@@ -15,13 +15,13 @@ class GenericSliceModel;
 
 struct PolygonVertex
 {
-  float x, y;
+  double x, y;
   bool selected;
   bool control;
-  PolygonVertex(float x_, float y_, bool on_, bool ctl_)
+  PolygonVertex(double x_, double y_, bool on_, bool ctl_)
     : x(x_), y(y_), selected(on_), control(ctl_) {}
-  PolygonVertex() : x(0.0f), y(0.0f), selected(false), control(true) {}
-  float &operator[](unsigned int i)
+  PolygonVertex() : x(0.0), y(0.0), selected(false), control(true) {}
+  double &operator[](unsigned int i)
   { return (i==0) ? x : y; }
 };
 
@@ -52,7 +52,7 @@ public:
   typedef VertexList::iterator VertexIterator;
   typedef VertexList::reverse_iterator VertexRIterator;
 
-  typedef vnl_vector_fixed<float, 4> BoxType;
+  typedef vnl_vector_fixed<double, 4> BoxType;
 
   /** States that the polygon drawing is in */
   enum PolygonState { INACTIVE_STATE = 0, DRAWING_STATE, EDITING_STATE };
@@ -119,19 +119,19 @@ public:
   /** Is the cursor hovering over the starting voxel */
   irisIsMacro(HoverOverFirstVertex)
 
-  bool ProcessPushEvent(float x, float y, bool shift_state);
+  bool ProcessPushEvent(double x, double y, bool shift_state);
 
-  bool ProcessDragEvent(float x, float y);
+  bool ProcessDragEvent(double x, double y);
 
-  bool ProcessMouseMoveEvent(float x, float y);
+  bool ProcessMouseMoveEvent(double x, double y);
 
-  bool ProcessReleaseEvent(float x, float y);
+  bool ProcessReleaseEvent(double x, double y);
 
   /**
    * Return the size of a screen logical pixel (as opposed to a physical
    * pixel on the retina screen) in slice coordinate units
    */
-  Vector2f GetPixelSize();
+  Vector2d GetPixelSize();
 
   bool CheckState(PolygonDrawingUIState state);
 
@@ -159,25 +159,25 @@ protected:
   // box the user drags to select new points
   BoxType m_SelectionBox;
 
-  float m_StartX, m_StartY;
+  double m_StartX, m_StartY;
 
   // Whether we are hovering over the starting vertex
   bool m_HoverOverFirstVertex;
 
 
   void ComputeEditBox();
-  void Add(float x, float y, int selected);
+  void Add(double x, double y, int selected);
   void ProcessFreehandCurve();
 
-  bool CheckClickOnVertex(float x, float y,
-                          float pixel_x, float pixel_y, int k);
+  bool CheckClickOnVertex(double x, double y,
+                          double pixel_x, double pixel_y, int k);
 
-  bool CheckClickOnLineSegment(float x, float y,
-                               float pixel_x, float pixel_y, int k);
+  bool CheckClickOnLineSegment(double x, double y,
+                               double pixel_x, double pixel_y, int k);
 
   // Check if the cursor (x,y) is near the first vertex (i.e., we should be
   // closing the polygon)
-  bool CheckNearFirstVertex(float x, float y, float pixel_x, float pixel_y);
+  bool CheckNearFirstVertex(double x, double y, double pixel_x, double pixel_y);
 
   int GetNumberOfSelectedSegments();
 

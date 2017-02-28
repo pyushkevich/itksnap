@@ -33,13 +33,13 @@
 #include "SliceWindowCoordinator.h"
 #include "ImageCoordinateTransform.h"
 
-void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2f x)
+void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2d x)
 {
   // Compute the position in slice coordinates
-  Vector3f xClick = m_Parent->MapWindowToSlice(x);
+  Vector3d xClick = m_Parent->MapWindowToSlice(x);
 
   // Compute the new cross-hairs position in image space
-  Vector3f xCross = m_Parent->MapSliceToImage(xClick);
+  Vector3d xCross = m_Parent->MapSliceToImage(xClick);
 
   // Round the cross-hairs position down to integer
   Vector3i xCrossInteger = to_int(xCross);
@@ -58,8 +58,8 @@ void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2f x)
 void OrthogonalSliceCursorNavigationModel::ProcessKeyNavigation(Vector3i dx)
 {
   // Get the displacement in image space
-  Vector3f dximg =
-      m_Parent->GetDisplayToImageTransform().TransformVector(to_float(dx));
+  Vector3d dximg =
+      m_Parent->GetDisplayToImageTransform().TransformVector(to_double(dx));
   Vector3i dximgi = to_int(dximg);
 
   // Update the cursor
@@ -85,7 +85,7 @@ void OrthogonalSliceCursorNavigationModel::EndZoom() { }
 void OrthogonalSliceCursorNavigationModel::EndPan() { }
 
 void OrthogonalSliceCursorNavigationModel
-::ProcessZoomGesture(float scaleFactor)
+::ProcessZoomGesture(double scaleFactor)
 {
   // Get the slice coordinator
   SliceWindowCoordinator *coordinator =
@@ -102,7 +102,7 @@ void OrthogonalSliceCursorNavigationModel
   else
     {
     // Compute the zoom factor (is this good?)
-    float zoom = m_StartViewZoom * scaleFactor;
+    double zoom = m_StartViewZoom * scaleFactor;
 
     // Clamp the zoom factor to reasonable limits
     zoom = coordinator->ClampZoom(m_Parent->GetId(), zoom);
@@ -121,11 +121,11 @@ void OrthogonalSliceCursorNavigationModel
 
 void
 OrthogonalSliceCursorNavigationModel
-::ProcessPanGesture(Vector2f uvOffset)
+::ProcessPanGesture(Vector2d uvOffset)
 {
   // Compute the start and end point in slice coordinates
-  Vector3f zOffset = m_Parent->MapWindowOffsetToSliceOffset(uvOffset);
-  Vector2f xOffset(zOffset[0] * m_Parent->GetSliceSpacing()[0],
+  Vector3d zOffset = m_Parent->MapWindowOffsetToSliceOffset(uvOffset);
+  Vector2d xOffset(zOffset[0] * m_Parent->GetSliceSpacing()[0],
                    zOffset[1] * m_Parent->GetSliceSpacing()[1]);
 
   // Under the left button, the tool changes the view_pos by the
@@ -134,14 +134,14 @@ OrthogonalSliceCursorNavigationModel
 }
 
 void OrthogonalSliceCursorNavigationModel
-::ProcessScrollGesture(float scrollAmount)
+::ProcessScrollGesture(double scrollAmount)
 {
   // Get the cross-hairs position in image space
   Vector3ui xCrossImage = m_Parent->GetDriver()->GetCursorPosition();
 
   // Map it into slice space
-  Vector3f xCrossSlice =
-    m_Parent->MapImageToSlice(to_float(xCrossImage) + Vector3f(0.5f));
+  Vector3d xCrossSlice =
+    m_Parent->MapImageToSlice(to_double(xCrossImage) + Vector3d(0.5));
 
   // Advance by the scroll amount
   xCrossSlice[2] += scrollAmount;
@@ -175,7 +175,7 @@ void OrthogonalSliceCursorNavigationModel
 ::ProcessThumbnailPanGesture(Vector2i uvOffset)
 {
   // Figure out how this movement translates to space units
-  Vector2f xOffset(
+  Vector2d xOffset(
     uvOffset[0] / m_Parent->GetThumbnailZoom(),
     uvOffset[1] / m_Parent->GetThumbnailZoom());
 

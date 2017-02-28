@@ -52,6 +52,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::MARKERS, "Anatomic Markers");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::ROI_BOX, "ROI Edges");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::PAINTBRUSH_OUTLINE, "Paintbrush");
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::GRID_LINES, "Deformation Grid");
 
   QStandardItem *item3DView = append_category_item(model->invisibleRootItem(), "3D View");
   append_appearance_item(item3DView, SNAPAppearanceSettings::BACKGROUND_3D, "Background");

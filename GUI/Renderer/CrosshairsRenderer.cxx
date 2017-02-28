@@ -60,10 +60,10 @@ void CrosshairsRenderer::paintGL()
 
   // Shift the cursor position by by 0.5 in order to have it appear
   // between voxels
-  Vector3f xCursorImage = to_float(xCursorInteger) + Vector3f(0.5f);
+  Vector3d xCursorImage = to_double(xCursorInteger) + Vector3d(0.5);
 
   // Get the cursor position on the slice
-  Vector3f xCursorSlice = parentModel->MapImageToSlice(xCursorImage);
+  Vector3d xCursorSlice = parentModel->MapImageToSlice(xCursorImage);
 
   // Upper and lober bounds to which the crosshairs are drawn
   Vector2i lower(0);
@@ -84,10 +84,10 @@ void CrosshairsRenderer::paintGL()
 
   // Paint the cross-hairs
   glBegin(GL_LINES);
-  glVertex2f(0, 0); glVertex2f(lower(0) - xCursorSlice(0), 0);
-  glVertex2f(0, 0); glVertex2f(upper(0) - xCursorSlice(0), 0);
-  glVertex2f(0, 0); glVertex2f(0, lower(1) - xCursorSlice(1));
-  glVertex2f(0, 0); glVertex2f(0, upper(1) - xCursorSlice(1));
+  glVertex2d(0, 0); glVertex2d(lower(0) - xCursorSlice(0), 0);
+  glVertex2d(0, 0); glVertex2d(upper(0) - xCursorSlice(0), 0);
+  glVertex2d(0, 0); glVertex2d(0, lower(1) - xCursorSlice(1));
+  glVertex2d(0, 0); glVertex2d(0, upper(1) - xCursorSlice(1));
   glEnd();
 
   glPopMatrix();
