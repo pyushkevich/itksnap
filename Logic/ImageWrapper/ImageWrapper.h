@@ -45,12 +45,13 @@
 #include <itkSimpleDataObjectDecorator.h>
 
 // Forward declarations to IRIS classes
-template <class TInputImage, class TOutputImage, class TPreviewImage> class IRISSlicer;
 template <class TFunctor> class UnaryValueToValueFilter;
 
+template <class TInputImage, class TOutputImage, class TTraits>
+class AdaptiveSlicingPipeline;
+
+
 class SNAPSegmentationROISettings;
-template <typename TInputImage,
-          typename TOutputImage> class NonOrthogonalSlicer;
 
 namespace itk {
   template <unsigned int VDimension> class ImageBase;
@@ -111,7 +112,7 @@ public:
   typedef itk::Image<PixelType, 3>                            PreviewImageType;
 
   // Slice image type
-  typedef itk::Image<PixelType,2>                                    SliceType;
+  typedef typename TTraits::SliceType                                SliceType;
   typedef SmartPtr<SliceType>                                     SlicePointer;
 
   // Display slice type - inherited
@@ -120,7 +121,7 @@ public:
   typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
 
   // Slicer type
-  typedef IRISSlicer<ImageType, SliceType, PreviewImageType>        SlicerType;
+  typedef AdaptiveSlicingPipeline<ImageType, SliceType, PreviewImageType> SlicerType;
   typedef SmartPtr<SlicerType>                                   SlicerPointer;
 
   // Preview source for preview pipelines
@@ -190,7 +191,7 @@ public:
   virtual void Reset();
 
   /** Get the coordinate transform for each display slice */
-  virtual const ImageCoordinateTransform &GetImageToDisplayTransform(
+  virtual const ImageCoordinateTransform *GetImageToDisplayTransform(
     unsigned int) const;
 
   /**
@@ -343,9 +344,11 @@ public:
    */
   virtual void SetSliceIndex(const Vector3ui &cursor);
 
+  const ImageBaseType* GetDisplayViewportGeometry(unsigned int index) const;
+
   virtual void SetDisplayViewportGeometry(
       unsigned int index,
-      ImageBaseType *viewport_image);
+      const ImageBaseType *viewport_image);
 
   /**
    * Get an ITK pipeline object holding the minimum value in the image. For
@@ -405,7 +408,7 @@ public:
   /**
    * Get the ITK transform between this layer and its reference space
    */
-  virtual ITKTransformType *GetITKTransform() const;
+  virtual const ITKTransformType *GetITKTransform() const;
 
   /**
    * Get the reference space space in which this image is defined
@@ -711,13 +714,6 @@ protected:
    */
   typedef itk::ResampleImageFilter<ImageType, PreviewImageType, double, double> ResampleFilter;
   SmartPtr<ResampleFilter> m_ResampleFilter[6];
-
-  // Slicer for when slicing is not along orthogonal axes
-  typedef NonOrthogonalSlicer<ImageType, SliceType> NonOrthogonalSlicerType;
-  SmartPtr<NonOrthogonalSlicerType> m_AdvancedSlicer[3];
-
-  // Viewport geometry images needed by the advanced slicers
-  SmartPtr<ImageBaseType> m_DisplayViewportGeometryReference[3];
 
   // Compare the geometry (size and header) of two images. Returns true if the headers are
   // within tolerance of each other.

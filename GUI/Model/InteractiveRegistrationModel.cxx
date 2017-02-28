@@ -95,7 +95,7 @@ void InteractiveRegistrationModel::RotateByTheta(double theta)
   GenericSliceModel *smodel = this->GetParent();
 
   // Map a vector in the z direction into image coordinates
-  Vector3d v_image = to_double(smodel->GetDisplayToImageTransform().TransformVector(Vector3d(0, 0, -1)));
+  Vector3d v_image = to_double(smodel->GetDisplayToImageTransform()->TransformVector(Vector3d(0, 0, -1)));
 
   // Transform this vector into physical space
   itk::Vector<double, 3> axis_image, axis_phys;

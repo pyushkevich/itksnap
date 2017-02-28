@@ -546,7 +546,7 @@ public:
     */
   unsigned int UpdateSegmentationWithSliceDrawing(
       SliceBinaryImageType *drawing,
-      const ImageCoordinateTransform &xfmSliceToImage,
+      const ImageCoordinateTransform *xfmSliceToImage,
       double zSlice,
       const std::string &undoTitle);
 

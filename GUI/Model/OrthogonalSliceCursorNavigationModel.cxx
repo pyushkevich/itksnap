@@ -59,7 +59,7 @@ void OrthogonalSliceCursorNavigationModel::ProcessKeyNavigation(Vector3i dx)
 {
   // Get the displacement in image space
   Vector3d dximg =
-      m_Parent->GetDisplayToImageTransform().TransformVector(to_double(dx));
+      m_Parent->GetDisplayToImageTransform()->TransformVector(to_double(dx));
   Vector3i dximgi = to_int(dximg);
 
   // Update the cursor

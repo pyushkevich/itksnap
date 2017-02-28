@@ -7,7 +7,9 @@
 
 class ImageWrapperBase;
 class ScalarImageWrapperBase;
-template <class TInputImage, class TOutputImage, class TPreviewImage> class IRISSlicer;
+
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+class AdaptiveSlicingPipeline;
 
 namespace itk {
   template<class TIn, class TOut> class StreamingImageFilter;
@@ -128,7 +130,7 @@ public:
 
   typedef typename TFilterConfigTraits::OutputWrapperType OutputWrapperType;
   typedef itk::Image<OutputPixelType, 2>                          SliceType;
-  typedef IRISSlicer<OutputImageType,SliceType,OutputImageType>  SlicerType;
+  typedef AdaptiveSlicingPipeline<OutputImageType,SliceType,OutputImageType>  SlicerType;
 
   typedef typename TFilterConfigTraits::ParameterType         ParameterType;
 

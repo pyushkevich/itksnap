@@ -88,7 +88,7 @@ QToolButton::pressed {
 </string>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="pgAuto">
       <attribute name="title">
@@ -302,8 +302,8 @@ QComboBox {
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>161</width>
-            <height>214</height>
+            <width>159</width>
+            <height>242</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">

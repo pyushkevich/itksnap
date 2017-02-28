@@ -220,6 +220,10 @@ VectorImageWrapper<TTraits,TBase>
   // Assign a parent wrapper to the derived wrapper
   wrapper->SetParentWrapper(this);
 
+  // Pass the display geometry to the component wrapper
+  for(int k = 0; k < 3; k++)
+    wrapper->SetDisplayViewportGeometry(k, this->GetDisplayViewportGeometry(k));
+
   SmartPtr<ScalarImageWrapperBase> ptrout = wrapper.GetPointer();
 
   // When creating derived wrappers, we need to rebroadcast the events from
@@ -251,6 +255,12 @@ VectorImageWrapper<TTraits,TBase>
 
     // Create a wrapper for this image and assign the component image
     SmartPtr<ComponentWrapperType> cw = ComponentWrapperType::New();
+
+    // Pass the display geometry to the component wrapper
+    for(int k = 0; k < 3; k++)
+      cw->SetDisplayViewportGeometry(k, this->GetDisplayViewportGeometry(k));
+
+    // Initialize referencing the current wrapper
     cw->InitializeToWrapper(this, comp, referenceSpace, transform);
 
     // Assign a parent wrapper to the derived wrapper
@@ -322,6 +332,19 @@ VectorImageWrapper<TTraits,TBase>
   Superclass::UpdateImagePointer(newImage, referenceSpace, transform);
 
 }
+
+template<class TTraits, class TBase>
+void
+VectorImageWrapper<TTraits,TBase>
+::SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform)
+{
+  Superclass::SetITKTransform(referenceSpace, transform);
+  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+    {
+    it->second->SetITKTransform(referenceSpace, transform);
+    }
+}
+
 
 template <class TTraits, class TBase>
 inline ScalarImageWrapperBase *

@@ -119,7 +119,7 @@ public:
   virtual void SetParentWrapper(ImageWrapperBase *parent) = 0;
 
   /** Get the coordinate transform for each display slice */
-  virtual const ImageCoordinateTransform &GetImageToDisplayTransform(
+  virtual const ImageCoordinateTransform *GetImageToDisplayTransform(
     unsigned int) const = 0;
 
   /**
@@ -162,7 +162,7 @@ public:
    */
   virtual void SetDisplayViewportGeometry(
       unsigned int index,
-      ImageBaseType *viewport_image) = 0;
+      const ImageBaseType *viewport_image) = 0;
 
 
   /** Return some image info independently of pixel type */
@@ -446,7 +446,7 @@ public:
   /**
    * Get the ITK transform between this image and the reference space
    */
-  virtual ITKTransformType *GetITKTransform() const = 0;
+  virtual const ITKTransformType *GetITKTransform() const = 0;
 
   /**
    * Get the reference space space in which this image is defined

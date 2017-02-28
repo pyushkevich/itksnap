@@ -47,6 +47,14 @@ ImageCoordinateGeometry
 ::ImageCoordinateGeometry()
 {
   // By default all transforms are identity.  Nothing to do here
+  m_ImageToAnatomyTransform = ImageCoordinateTransform::New();
+
+  for(int i = 0; i < 3; i++)
+    {
+    m_AnatomyToDisplayTransform[i] = ImageCoordinateTransform::New();
+    m_ImageToDisplayTransform[i] = ImageCoordinateTransform::New();
+    m_DisplayToImageTransform[i] = ImageCoordinateTransform::New();
+    }
 }
 
 ImageCoordinateGeometry
@@ -80,11 +88,11 @@ ImageCoordinateGeometry
                         imageAnatomyRAICode.c_str());
 
   // We can easily compute the image to anatomy transform
-  m_ImageToAnatomyTransform.SetTransform(
+  m_ImageToAnatomyTransform->SetTransform(
     ConvertRAIToCoordinateMapping(imageAnatomyRAICode.c_str()),imageSize);
 
   // Compute the size of the anatomy image in its coordinates
-  Vector3ui szAnatomy = m_ImageToAnatomyTransform.TransformSize(imageSize);
+  Vector3ui szAnatomy = m_ImageToAnatomyTransform->TransformSize(imageSize);
 
   // Compute the anatomy to display transform
   for(unsigned int slice=0;slice < 3;slice++)
@@ -95,17 +103,17 @@ ImageCoordinateGeometry
     // Make sure the code is valid
     assert(IsRAICodeValid(displayAnatomyRAICode));
 
-    m_AnatomyToDisplayTransform[slice].SetTransform(
+    m_AnatomyToDisplayTransform[slice]->SetTransform(
           InvertMappingVector(ConvertRAIToCoordinateMapping(displayAnatomyRAICode)),
           szAnatomy);
 
     // Compute the combined transform
-    m_ImageToDisplayTransform[slice] = 
-      m_AnatomyToDisplayTransform[slice].Product(m_ImageToAnatomyTransform);
-  
+    m_AnatomyToDisplayTransform[slice]->ComputeProduct(
+          m_ImageToAnatomyTransform, m_ImageToDisplayTransform[slice]);
+
     // Compute the opposite direction transform
-    m_DisplayToImageTransform[slice] = 
-      m_ImageToDisplayTransform[slice].Inverse();
+    m_ImageToDisplayTransform[slice]->ComputeInverse(
+          m_DisplayToImageTransform[slice]);
     }
 }
 

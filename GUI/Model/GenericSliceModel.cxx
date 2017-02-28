@@ -71,6 +71,10 @@ GenericSliceModel::GenericSliceModel()
   // Nothing is hovered over
   m_HoveredImageLayerIdModel = NewSimpleConcreteProperty(-1ul);
   m_HoveredImageIsThumbnailModel = NewSimpleConcreteProperty(false);
+
+  m_ImageToDisplayTransform = ImageCoordinateTransform::New();
+  m_DisplayToImageTransform = ImageCoordinateTransform::New();
+  m_DisplayToAnatomyTransform = ImageCoordinateTransform::New();
 }
 
 void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
@@ -229,12 +233,13 @@ GenericSliceModel
     }
 
   // Store the transforms between the display and image spaces
-  m_ImageToDisplayTransform =
-    imageData->GetImageGeometry().GetImageToDisplayTransform(m_Id);
-  m_DisplayToImageTransform =
-    imageData->GetImageGeometry().GetDisplayToImageTransform(m_Id);
-  m_DisplayToAnatomyTransform =
-    imageData->GetImageGeometry().GetAnatomyToDisplayTransform(m_Id).Inverse();
+  m_ImageToDisplayTransform->SetTransform(
+        imageData->GetImageGeometry().GetImageToDisplayTransform(m_Id));
+  m_DisplayToImageTransform->SetTransform(
+    imageData->GetImageGeometry().GetDisplayToImageTransform(m_Id));
+
+  imageData->GetImageGeometry().GetAnatomyToDisplayTransform(m_Id)->
+      ComputeInverse(m_DisplayToAnatomyTransform);
 
   // Get the volume extents & voxel scale factors
   Vector3ui imageSizeInImageSpace = m_ImageData->GetVolumeExtents();
@@ -245,7 +250,7 @@ GenericSliceModel
     {
     // Get the direction in image space that corresponds to the i'th
     // direction in slice space
-    m_ImageAxes[i] = m_DisplayToImageTransform.GetCoordinateIndexZeroBased(i);
+    m_ImageAxes[i] = m_DisplayToImageTransform->GetCoordinateIndexZeroBased(i);
 
     // Record the size and scaling of the slice
     m_SliceSize[i] = imageSizeInImageSpace[m_ImageAxes[i]];
@@ -298,7 +303,7 @@ Vector3d GenericSliceModel::MapSliceToImage(const Vector3d &xSlice)
   assert(IsSliceInitialized());
 
   // Get corresponding position in display space
-  return m_DisplayToImageTransform.TransformPoint(xSlice);
+  return m_DisplayToImageTransform->TransformPoint(xSlice);
 }
 
 Vector3d GenericSliceModel::MapSliceToImagePhysical(const Vector3d &xSlice)
@@ -316,7 +321,7 @@ Vector3d GenericSliceModel::MapImageToSlice(const Vector3d &xImage)
   assert(IsSliceInitialized());
 
   // Get corresponding position in display space
-  return  m_ImageToDisplayTransform.TransformPoint(xImage);
+  return  m_ImageToDisplayTransform->TransformPoint(xImage);
 }
 
 Vector2d GenericSliceModel::MapSliceToWindow(const Vector3d &xSlice)
@@ -528,7 +533,7 @@ Vector3d GenericSliceModel::GetCursorPositionInSliceCoordinates()
 {
   Vector3ui cursorImageSpace = m_Driver->GetCursorPosition();
   Vector3d cursorDisplaySpace =
-    m_ImageToDisplayTransform.TransformPoint(
+    m_ImageToDisplayTransform->TransformPoint(
       to_double(cursorImageSpace) + Vector3d(0.5));
   return cursorDisplaySpace;
 }
@@ -949,14 +954,14 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
   s[1] = this->MapWindowToSlice(u[1]);
   s[2] = this->MapWindowToSlice(u[2]);
   s[3] = this->MapWindowToSlice(u[0]);
-  s[3][2] += m_DisplayToImageTransform.GetCoordinateOrientation(2);
+  s[3][2] += m_DisplayToImageTransform->GetCoordinateOrientation(2);
 
   // Map these four points into the physical image space
   for(int i = 0; i < 4; i++)
     {
     // Shift by half-voxel in the in-plane dimensions
-    s[i][0] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(0) * 0.5;
-    s[i][1] -= this->GetDisplayToImageTransform().GetCoordinateOrientation(1) * 0.5;
+    s[i][0] -= this->GetDisplayToImageTransform()->GetCoordinateOrientation(0) * 0.5;
+    s[i][1] -= this->GetDisplayToImageTransform()->GetCoordinateOrientation(1) * 0.5;
 
     itk::ContinuousIndex<double, 3> j = to_itkContinuousIndex(this->MapSliceToImage(s[i]));
     itk::Point<double, 3> px;

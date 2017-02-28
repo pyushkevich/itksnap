@@ -413,7 +413,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
         - to_double(m_MousePosition);
 
     Vector3d xDeltaSliceSpace = to_double(
-          m_Parent->GetImageToDisplayTransform().TransformVector(xDelta));
+          m_Parent->GetImageToDisplayTransform()->TransformVector(xDelta));
 
     // Check if the pixel is inside
     if(!TestInside(xDeltaSliceSpace, pbs))

@@ -360,13 +360,13 @@ void RegistrationModel::GetMovingTransform(ITKMatrixType &matrix, ITKVectorType 
 {
   // Get the transform
   ImageWrapperBase *layer = this->GetMovingLayerWrapper();
-  ImageWrapperBase::ITKTransformType *transform = layer->GetITKTransform();
+  const ImageWrapperBase::ITKTransformType *transform = layer->GetITKTransform();
 
   // TODO: in the future it might make more sense to stick to a single kind of
   // transform in the ImageWrapper instead of allowing different transform
   // classes. Using multiple classes seems pointless.
   typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformBase;
-  TransformBase *tb = dynamic_cast<TransformBase *>(transform);
+  const TransformBase *tb = dynamic_cast<const TransformBase *>(transform);
   matrix.SetIdentity();
   offset.Fill(0.0);
   if(tb)

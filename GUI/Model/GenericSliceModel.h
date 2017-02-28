@@ -325,9 +325,9 @@ public:
   irisGetMacro(ZoomThumbnailSize, Vector2i)
   irisGetMacro(ThumbnailZoom, double)
 
-  irisGetMacro(ImageToDisplayTransform, const ImageCoordinateTransform &)
-  irisGetMacro(DisplayToAnatomyTransform, const ImageCoordinateTransform &)
-  irisGetMacro(DisplayToImageTransform, const ImageCoordinateTransform &)
+  irisGetMacro(ImageToDisplayTransform, const ImageCoordinateTransform *)
+  irisGetMacro(DisplayToAnatomyTransform, const ImageCoordinateTransform *)
+  irisGetMacro(DisplayToImageTransform, const ImageCoordinateTransform *)
 
   irisGetMacro(ViewportLayout, const SliceViewportLayout &)
 
@@ -412,13 +412,13 @@ protected:
   int m_ImageAxes[3];
 
   // The transform from image coordinates to display coordinates
-  ImageCoordinateTransform m_ImageToDisplayTransform;
+  SmartPtr<ImageCoordinateTransform> m_ImageToDisplayTransform;
 
   // The transform from display coordinates to image coordinates
-  ImageCoordinateTransform m_DisplayToImageTransform;
+  SmartPtr<ImageCoordinateTransform> m_DisplayToImageTransform;
 
   // The transform from display coordinates to patient coordinates
-  ImageCoordinateTransform m_DisplayToAnatomyTransform;
+  SmartPtr<ImageCoordinateTransform> m_DisplayToAnatomyTransform;
 
   // Dimensions of the current slice (the third component is the size
   // of the image in the slice direction)

@@ -77,14 +77,15 @@ public:
   void SetReferenceIntensityRange(double min, double max);
   void RemoveReferenceIntensityRange();
 
+  virtual void AllocateOutputs();
 
-  void GenerateOutputInformation();
+  virtual void GenerateOutputInformation();
 
-  void EnlargeOutputRequestedRegion(itk::DataObject *output);
+  virtual void EnlargeOutputRequestedRegion(itk::DataObject *output);
 
-  void GenerateInputRequestedRegion();
+  virtual void GenerateInputRequestedRegion();
 
-  void ThreadedGenerateData(const OutputImageRegionType &region,
+  virtual void ThreadedGenerateData(const OutputImageRegionType &region,
                             itk::ThreadIdType threadId);
 
 

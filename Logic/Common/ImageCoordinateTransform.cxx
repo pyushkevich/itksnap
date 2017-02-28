@@ -89,7 +89,24 @@ ImageCoordinateTransform
     m_Offset[i] = m_Offset[i] < 0 ? - m_Offset[i] : 0;
     }
 
-  ComputeSecondaryVectors();  
+  ComputeSecondaryVectors();
+}
+
+void
+ImageCoordinateTransform
+::SetTransform(const ImageCoordinateTransform::Self *other)
+{
+  // A transform matrix
+  m_Transform = other->m_Transform;
+
+  // An offset vector
+  m_Offset = other->m_Offset;
+
+  // The operation abs(i) - 1 applied to m_Mapping
+  m_AxesIndex = other->m_AxesIndex;
+
+  // The operation sign(i) applied to m_Mapping
+  m_AxesDirection = other->m_AxesDirection;
 }
 
 void
@@ -109,61 +126,26 @@ ImageCoordinateTransform
 
 
 
+void
 ImageCoordinateTransform
-ImageCoordinateTransform
-::Inverse() const
+::ComputeInverse(Self *result) const
 {
   // Compute the new transform's details
-  ImageCoordinateTransform inv;
-  inv.m_Transform = vnl_inverse(m_Transform);
-  inv.m_Offset = - inv.m_Transform * m_Offset;
+  result->m_Transform = vnl_inverse(m_Transform);
+  result->m_Offset = - result->m_Transform * m_Offset;
 
   // Compute additional quantities
-  inv.ComputeSecondaryVectors();
-
-  /*
-  // Compute the transpose of the transform
-  int newMapping[3];
-  for(int i=0;i<3;i++)
-    {
-    if(m_Mapping[i] > 0)
-      newMapping[m_Mapping[i]-1] = i+1;
-    else
-      newMapping[-1-m_Mapping[i]] = -i-1;
-    }
-
-  return ImageCoordinateTransform(newMapping[0],newMapping[1],newMapping[2]);
-  */
-
-  return inv;
+  result->ComputeSecondaryVectors();
 }
 
-ImageCoordinateTransform 
-ImageCoordinateTransform
-::Product(const ImageCoordinateTransform &t1) const
+void ImageCoordinateTransform::ComputeProduct(const Self *t1, Self *result) const
 {
   // Compute the new transform's details
-  ImageCoordinateTransform prod;
-  prod.m_Transform = m_Transform * t1.m_Transform;
-  prod.m_Offset = m_Transform * t1.m_Offset + m_Offset;
+  result->m_Transform = m_Transform * t1->m_Transform;
+  result->m_Offset = m_Transform * t1->m_Offset + m_Offset;
 
   // Compute additional quantities
-  prod.ComputeSecondaryVectors();
-/*
-  // Multiply two transforms
-  int newMapping[3];
-  for(int i=0;i<3;i++)
-    {
-    if(m_Mapping[i] > 0)
-      newMapping[i] = t1.m_Mapping[m_Mapping[i]-1];
-    else
-      newMapping[i] = -t1.m_Mapping[-1-m_Mapping[i]];
-    }
-
-  return ImageCoordinateTransform(newMapping[0],newMapping[1],newMapping[2]);
-*/
-
-  return prod;
+  result->ComputeSecondaryVectors();
 }
 
 Vector3d ImageCoordinateTransform::TransformPoint(const Vector3d &x) const

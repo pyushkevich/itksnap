@@ -83,25 +83,25 @@ public:
                    const Vector3ui &imageSize);
 
   /** Get the transform from image to patient coordinate system */
-  irisGetMacro(ImageToAnatomyTransform,const ImageCoordinateTransform &)
+  irisGetMacro(ImageToAnatomyTransform,const ImageCoordinateTransform *)
 
   /** Get the image to anatomy direction matrix */
   irisGetMacro(ImageDirectionCosineMatrix, DirectionMatrix)
 
   /** Get the transform from patient to display coordinate system */
-  const ImageCoordinateTransform & GetAnatomyToDisplayTransform(unsigned int i) const
+  const ImageCoordinateTransform *GetAnatomyToDisplayTransform(unsigned int i) const
   {
     return m_AnatomyToDisplayTransform[i];
   }
 
   /** Get the transform from image to display coordinate system */
-  const ImageCoordinateTransform & GetImageToDisplayTransform(unsigned int i) const
+  const ImageCoordinateTransform *GetImageToDisplayTransform(unsigned int i) const
   {
     return m_ImageToDisplayTransform[i];
   }
 
   /** Get the transform from display to image coordinate system */  
-  const ImageCoordinateTransform & GetDisplayToImageTransform(unsigned int i) const
+  const ImageCoordinateTransform *GetDisplayToImageTransform(unsigned int i) const
   {
     return m_DisplayToImageTransform[i];
   }
@@ -142,12 +142,12 @@ public:
 private:
 
   // Slice transform information
-  ImageCoordinateTransform m_ImageToAnatomyTransform;
-  ImageCoordinateTransform m_AnatomyToDisplayTransform[3];
+  SmartPtr<ImageCoordinateTransform> m_ImageToAnatomyTransform;
+  SmartPtr<ImageCoordinateTransform> m_AnatomyToDisplayTransform[3];
 
   // Three anatomy to display transforms (for each of the 3D slices)
-  ImageCoordinateTransform m_ImageToDisplayTransform[3];
-  ImageCoordinateTransform m_DisplayToImageTransform[3];
+  SmartPtr<ImageCoordinateTransform> m_ImageToDisplayTransform[3];
+  SmartPtr<ImageCoordinateTransform> m_DisplayToImageTransform[3];
 
   // The string representation of the display to anatomy RAI codes
   IRISDisplayGeometry m_DisplayGeometry;

@@ -48,8 +48,7 @@
 #include "itkNumericTraits.h"
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkIdentityTransform.h"
-#include "IRISSlicer.h"
-#include "NonOrthogonalSlicer.h"
+#include "AdaptiveSlicingPipeline.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
 #include "ImageCoordinateGeometry.h"
@@ -598,7 +597,7 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-const ImageCoordinateTransform &
+const ImageCoordinateTransform *
 ImageWrapper<TTraits,TBase>
 ::GetImageToDisplayTransform(unsigned int iSlice) const
 {
@@ -901,8 +900,17 @@ void
 ImageWrapper<TTraits,TBase>
 ::UpdateSlicingPipelines(ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
+  /*
   // Can we use orthogonal spacing
   bool ortho = CanOrthogonalSlicingBeUsed(image, referenceSpace, transform);
+
+  // Update each of the slicers
+  for(int i = 0; i < 3; i++)
+    {
+    m_Slicer[i]->SetInput(image);
+    m_Slicer[i]->SetPreviewImage(NULL);
+    m_Slicer[i]->SetTransform(transform);
+    }
 
   // Set the input of the slicers, depending on whether the image is subject to transformation
   if(ortho)
@@ -950,6 +958,7 @@ ImageWrapper<TTraits,TBase>
       m_Slicer[i]->SetBypassMainInput(true);
       }
     }
+    */
 }
 
 template<class TTraits, class TBase>
@@ -968,20 +977,26 @@ ImageWrapper<TTraits,TBase>
   this->m_ImageBase = newImage;
   this->m_Image = newImage;
 
-  // Update the transforms
-  if(transform)
-    {
-    this->m_Transform = transform;
-    }
-  else
+  // Create the transform if it does not exist
+  typename ITKTransformType::Pointer tran = transform;
+  if(tran.IsNull())
     {
     typedef itk::IdentityTransform<double, 3> IdTransformType;
     typename IdTransformType::Pointer idTran = IdTransformType::New();
-    this->m_Transform = idTran.GetPointer();
+    tran = idTran.GetPointer();
     }
 
-  // Update the slicing pipelines
-  UpdateSlicingPipelines(this->m_Image, this->m_ReferenceSpace, this->m_Transform);
+  // Which slicer should be used?
+  bool ortho = CanOrthogonalSlicingBeUsed(newImage, referenceSpace, tran);
+
+  // Update the slicers
+  for(int i = 0; i < 3; i++)
+    {
+    m_Slicer[i]->SetInput(newImage);
+    m_Slicer[i]->SetObliqueTransform(tran);
+    m_Slicer[i]->SetPreviewImage(NULL);
+    m_Slicer[i]->SetUseOrthogonalSlicing(ortho);
+    }
 
   // Mark the image as Modified to enforce correct sequence of
   // operations with MinMaxCalc
@@ -1031,7 +1046,7 @@ bool
 ImageWrapper<TTraits,TBase>
 ::IsSlicingOrthogonal() const
 {
-  return m_AdvancedSlicer[0].IsNull();
+  return m_Slicer[0]->GetUseOrthogonalSlicing();
 }
 
 template<class TTraits, class TBase>
@@ -1091,37 +1106,24 @@ ImageWrapper<TTraits,TBase>
     }
   else
     {
-    bool ortho_old = CanOrthogonalSlicingBeUsed(m_Image, refSpace, m_Transform);
-    bool ortho_new = CanOrthogonalSlicingBeUsed(m_Image, refSpace, transform);
-    if(ortho_old != ortho_new)
+    bool ortho = CanOrthogonalSlicingBeUsed(m_Image, refSpace, transform);
+    for(int i = 0; i < 3; i++)
       {
-      // Slicing mode needs to change, this requires a full reinitialization
-      this->UpdateImagePointer(m_Image, refSpace, transform);
-      }
-    else
-      {
-      // Store the transform
-      this->m_Transform = transform;
+      m_Slicer[i]->SetObliqueTransform(transform);
+      m_Slicer[i]->SetUseOrthogonalSlicing(ortho);
+      this->InvokeEvent(WrapperDisplayMappingChangeEvent());
 
-      if(!this->IsSlicingOrthogonal())
-        {
-        for(int i = 0; i < 3; i++)
-          {
-          m_AdvancedSlicer[i]->SetTransform(transform);
-          m_ResampleFilter[i+3]->SetTransform(transform);
-          }
-        this->InvokeEvent(WrapperDisplayMappingChangeEvent());
-        }
+      // m_ResampleFilter[i+3]->SetTransform(transform);
       }
     }
 }
 
 template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::ITKTransformType *
+const typename ImageWrapper<TTraits,TBase>::ITKTransformType *
 ImageWrapper<TTraits,TBase>
 ::GetITKTransform() const
 {
-  return m_Transform;
+  return m_Slicer[0]->GetObliqueTransform();
 }
 
 
@@ -1233,26 +1235,26 @@ ImageWrapper<TTraits,TBase>
   // Select the appropriate slice for each slicer
   for(unsigned int i=0;i<3;i++)
   {
-    // Which axis does this slicer slice?
-    unsigned int axis = m_Slicer[i]->GetSliceDirectionImageAxis();
-
     // Set the slice using that axis
-    m_Slicer[i]->SetSliceIndex(cursor[axis]);
+    m_Slicer[i]->SetSliceIndex(to_itkIndex(cursor));
   }
 }
 
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::SetDisplayViewportGeometry(
-    unsigned int index,
-    ImageBaseType *viewport_image)
+::SetDisplayViewportGeometry(unsigned int index,
+    const ImageBaseType *viewport_image)
 {
-  m_DisplayViewportGeometryReference[index] = viewport_image;
-  if(m_AdvancedSlicer[index])
-    {
-    m_AdvancedSlicer[index]->SetReferenceImage(viewport_image);
-    }
+  m_Slicer[index]->SetObliqueReferenceImage(viewport_image);
+}
+
+template<class TTraits, class TBase>
+const typename ImageWrapper<TTraits,TBase>::ImageBaseType*
+ImageWrapper<TTraits,TBase>
+::GetDisplayViewportGeometry(unsigned int index) const
+{
+  return m_Slicer[index]->GetObliqueReferenceImage();
 }
 
 
@@ -1281,26 +1283,11 @@ ImageWrapper<TTraits,TBase>
     // Update the geometry for each slice
     for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
       {
-      // Get the transform and its inverse
-      ImageCoordinateTransform tran = m_ImageGeometry.GetImageToDisplayTransform(iSlice);
-      ImageCoordinateTransform tinv = tran.Inverse();
+      // Assign the new geometry to the slicer
+      m_Slicer[iSlice]->SetOrthogonalTransform(
+            m_ImageGeometry.GetImageToDisplayTransform(iSlice));
 
-      // Tell slicer in which directions to slice
-      m_Slicer[iSlice]->SetSliceDirectionImageAxis(
-            tinv.GetCoordinateIndexZeroBased(2));
-
-      m_Slicer[iSlice]->SetLineDirectionImageAxis(
-            tinv.GetCoordinateIndexZeroBased(1));
-
-      m_Slicer[iSlice]->SetPixelDirectionImageAxis(
-            tinv.GetCoordinateIndexZeroBased(0));
-
-      m_Slicer[iSlice]->SetPixelTraverseForward(
-            tinv.GetCoordinateOrientation(0) > 0);
-
-      m_Slicer[iSlice]->SetLineTraverseForward(
-            tinv.GetCoordinateOrientation(1) > 0);
-
+      // TODO: is this necessary and the right place to do ut?
       // Invalidate the requested region in the display slice. This will
       // cause the RR to reset to largest possible region on next Update
       typename DisplaySliceType::RegionType invalidRegion;
@@ -1321,6 +1308,9 @@ ImageWrapper<TTraits,TBase>
 
     // Set the geometry to default values
     m_ImageGeometry.SetGeometry(dirmat.GetVnlMatrix(), m_DisplayGeometry, size);
+
+    // TODO: why are we not updating the slicers?
+    // TODO: does this code even get run?
     }
 }
 
@@ -1386,7 +1376,11 @@ unsigned int
 ImageWrapper<TTraits,TBase>
 ::GetDisplaySliceImageAxis(unsigned int iSlice)
 {
-  return m_Slicer[iSlice]->GetSliceDirectionImageAxis();
+  // TODO: this is wasteful computing inverse for something that should be cached
+  const ImageCoordinateTransform *tran = m_Slicer[iSlice]->GetOrthogonalTransform();
+  ImageCoordinateTransform::Pointer traninv = ImageCoordinateTransform::New();
+  tran->ComputeInverse(traninv);
+  return traninv->GetCoordinateIndexZeroBased(2);
 }
 
 template<class TTraits, class TBase>
@@ -1394,12 +1388,7 @@ typename ImageWrapper<TTraits,TBase>::SliceType*
 ImageWrapper<TTraits,TBase>
 ::GetSlice(unsigned int dimension)
 {
-  if(m_AdvancedSlicer[dimension].IsNotNull())
-    {
-    return m_AdvancedSlicer[dimension]->GetOutput();
-    }
-  else
-    return m_Slicer[dimension]->GetOutput();
+  return m_Slicer[dimension]->GetOutput();
 }
 
 // template<class TTraits, class TBase>
@@ -1422,7 +1411,7 @@ ImageWrapper<TTraits,TBase>
     {
     // Find the correct voxel in the space of the first display slice
     Vector3ui idxDisplay3D =
-        this->GetImageToDisplayTransform(display_id).TransformVoxelIndex(pos);
+        this->GetImageToDisplayTransform(display_id)->TransformVoxelIndex(pos);
 
     idxDisplay2D[0] = idxDisplay3D[0];
     idxDisplay2D[1] = idxDisplay3D[1];
@@ -1433,7 +1422,8 @@ ImageWrapper<TTraits,TBase>
     typename ImageType::PointType xPhysical;
     itk::ContinuousIndex<double, 3> idxDisplay3D;
     m_ReferenceSpace->TransformIndexToPhysicalPoint(to_itkIndex(pos), xPhysical);
-    m_AdvancedSlicer[display_id]->GetReferenceImage()->TransformPhysicalPointToContinuousIndex(xPhysical, idxDisplay3D);
+    m_Slicer[display_id]->GetObliqueReferenceImage()
+        ->TransformPhysicalPointToContinuousIndex(xPhysical, idxDisplay3D);
 
     idxDisplay2D[0] = idxDisplay3D[0];
     idxDisplay2D[1] = idxDisplay3D[1];
@@ -1640,7 +1630,7 @@ ImageWrapper<TTraits,TBase>
   for(int i = 0; i < 3; i++)
     {
     // Update the preview inputs to the slicers
-    m_Slicer[i]->SetPreviewInput(filter[i]->GetOutput());
+    m_Slicer[i]->SetPreviewImage(filter[i]->GetOutput());
 
     // Mark the preview filters as modified to ensure that the slicer
     // is going to use it. TODO: is this really needed?
@@ -1658,7 +1648,7 @@ ImageWrapper<TTraits,TBase>
 {
   for(int i = 0; i < 3; i++)
     {
-    m_Slicer[i]->SetPreviewInput(NULL);
+    m_Slicer[i]->SetPreviewImage(NULL);
     }
 }
 
@@ -1667,7 +1657,7 @@ bool
 ImageWrapper<TTraits,TBase>
 ::IsPreviewPipelineAttached() const
 {
-  return m_Slicer[0]->GetPreviewInput() != NULL;
+  return m_Slicer[0]->GetPreviewImage() != NULL;
 }
 
 
@@ -1690,7 +1680,8 @@ ImageWrapper<TTraits,TBase>
   // Get the display slice
   // For now, just use the z-axis for exporting the thumbnails
   DisplaySliceType *slice = this->GetDisplaySlice(2);
-  slice->Update();
+  slice->GetSource()->UpdateLargestPossibleRegion();
+  // slice->Update();
 
   // The size of the slice
   Vector2ui slice_dim = slice->GetBufferedRegion().GetSize();

@@ -578,7 +578,7 @@ void GenericSliceRenderer::DrawTextureForLayer(
       {
       // Get the slice
       AnatomicImageWrapper::SliceType::Pointer slice = vecimg->GetSlice(m_Model->GetId());
-      slice->Update();
+      slice->GetSource()->UpdateLargestPossibleRegion();
 
       // Appearance settings for grid lines
       SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();

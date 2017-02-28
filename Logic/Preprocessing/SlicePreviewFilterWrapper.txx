@@ -3,7 +3,7 @@
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "EdgePreprocessingImageFilter.h"
 #include "itkStreamingImageFilter.h"
-#include <IRISSlicer.h>
+#include <AdaptiveSlicingPipeline.h>
 #include <ColorMap.h>
 #include <itkTimeProbe.h>
 
@@ -109,7 +109,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
     for(unsigned int i = 0; i < 3; i++)
       {
       // Disconnect wrapper from this pipeline
-      m_OutputWrapper->GetSlicer(i)->SetPreviewInput(NULL);
+      m_OutputWrapper->GetSlicer(i)->SetPreviewImage(NULL);
       }
 
     // Undo the graft

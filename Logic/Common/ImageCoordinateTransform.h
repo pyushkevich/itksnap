@@ -37,6 +37,8 @@
 
 #include "SNAPCommon.h"
 #include <vnl/vnl_matrix_fixed.h>
+#include "itkObjectFactory.h"
+#include "itkSmartPointer.h"
 
 /**
  * \class ImageCoordinateTransform
@@ -54,24 +56,38 @@
  * mapping vector (example: (-1,3,-2) means x maps to -x, y to z and z to -y),
  * as well as the size of the image volume.
  */
-class ImageCoordinateTransform 
+class ImageCoordinateTransform : public itk::Object
 {
 public:
 
-  /** Default constructor creates an identity transform */
-  ImageCoordinateTransform();
-  
+  /** Standard class typedefs. */
+  typedef ImageCoordinateTransform       Self;
+  typedef itk::Object                    Superclass;
+  typedef itk::SmartPointer<Self>        Pointer;
+  typedef itk::SmartPointer<const Self>  ConstPointer;
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(ImageCoordinateTransform, itk::Object)
+
+  /** define the New method */
+  itkNewMacro(Self)
+
   /**
    * Initialize the transform with new singed coordinate mappings 
    * (1-based signed indices)
    */
   void SetTransform(const Vector3i &map, const Vector3ui &size);
 
+  /**
+   * Set to an existing transform
+   */
+  void SetTransform(const Self *other);
+
   /** Compute the inverse of this transform */
-  ImageCoordinateTransform Inverse() const;
+  void ComputeInverse(Self *result) const;
 
   /** Multiply by another transform */
-  ImageCoordinateTransform Product(const ImageCoordinateTransform &t1) const;
+  void ComputeProduct(const Self *t1, Self *result) const;
                                                                       
   /** Apply transform to a vector */
   Vector3d TransformVector(const Vector3d &x) const;
@@ -97,7 +113,12 @@ public:
     return m_AxesDirection[c];
   }
 
-private:
+protected:
+
+  /** Default constructor creates an identity transform */
+  ImageCoordinateTransform();
+  ~ImageCoordinateTransform() {}
+
   typedef vnl_matrix_fixed<double,3,3> MatrixType;
 
   // A transform matrix

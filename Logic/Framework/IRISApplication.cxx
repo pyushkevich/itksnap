@@ -514,7 +514,7 @@ unsigned int
 IRISApplication
 ::UpdateSegmentationWithSliceDrawing(
     IRISApplication::SliceBinaryImageType *drawing,
-    const ImageCoordinateTransform &xfmSliceToImage,
+    const ImageCoordinateTransform *xfmSliceToImage,
     double zSlice,
     const std::string &undoTitle)
 {
@@ -541,7 +541,7 @@ IRISApplication
     {
     // Get the 3D coordinate of the corner
     Vector3ui idxVol = to_unsigned_int(
-                         xfmSliceToImage.TransformPoint(
+                         xfmSliceToImage->TransformPoint(
                            Vector3d(corners[i][0] + 0.5, corners[i][1] + 0.5, zSlice)));
 
     if(i == 0)
@@ -574,14 +574,15 @@ IRISApplication
   bool invert = m_GlobalState->GetPolygonInvert();
 
   // Inverse transform
-  ImageCoordinateTransform xfmImageToSlice = xfmSliceToImage.Inverse();
+  ImageCoordinateTransform::Pointer xfmImageToSlice = ImageCoordinateTransform::New();
+  xfmSliceToImage->ComputeInverse(xfmImageToSlice);
 
   // Iterate over the volume region
   for(; !itVol.IsAtEnd(); ++itVol)
     {
     // Find the coordinate of the voxel in the slice
     itk::Index<3> idx_vol = itVol.GetIndex();
-    Vector3d x_slice = xfmImageToSlice.TransformPoint(
+    Vector3d x_slice = xfmImageToSlice->TransformPoint(
                          Vector3d(idx_vol[0] + 0.5, idx_vol[1] + 0.5, idx_vol[2] + 0.5));
     itk::Index<2> idx_slice;
     idx_slice[0] = (int) x_slice[0];

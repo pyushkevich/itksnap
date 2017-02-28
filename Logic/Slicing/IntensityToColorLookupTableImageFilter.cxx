@@ -63,6 +63,16 @@ AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 template<class TInputImage, class TOutputLUT, class TComponent>
 void
 AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+::AllocateOutputs()
+{
+  const InputImageType *inputPtr = dynamic_cast<const  InputImageType * >( this->GetInput() );
+  const LookupTableType *outputPtr = dynamic_cast<const  LookupTableType * >( this->GetOutput() );
+  Superclass::AllocateOutputs();
+}
+
+template<class TInputImage, class TOutputLUT, class TComponent>
+void
+AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 ::GenerateOutputInformation()
 {
   // Since this method could be called before the upstream pipeline has

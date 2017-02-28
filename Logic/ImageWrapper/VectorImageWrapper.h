@@ -243,6 +243,8 @@ protected:
                                   ImageBaseType *refSpace = NULL,
                                   ITKTransformType *tran = NULL);
 
+  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform);
+
   /** Destructor */
   virtual ~VectorImageWrapper();
 

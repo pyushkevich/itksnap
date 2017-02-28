@@ -39,6 +39,24 @@
 #include "itkVectorImage.h"
 #include "itkVectorImageToImageAdaptor.h"
 
+template <class TImage>
+class IRISSlicerComponentHelper
+{
+public:
+  static void SetImageComponents(TImage *image, unsigned int n) {}
+};
+
+template <class TPixel, unsigned int VDim>
+class IRISSlicerComponentHelper< itk::VectorImage<TPixel, VDim> >
+{
+public:
+  static void SetImageComponents(itk::VectorImage<TPixel, VDim> *image, unsigned int n)
+  {
+    image->SetNumberOfComponentsPerPixel(n);
+  }
+};
+
+
 template <class TInputImage, class TOutputImage, class TPreviewImage>
 IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
 ::IRISSlicer()
@@ -103,6 +121,11 @@ IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
   // Set the spacing and origin
   outputPtr->SetSpacing(outputSpacing);
   outputPtr->SetOrigin(outputOrigin);
+
+  // If the slice is a vector image, then we must set the number
+  // out output components appropriately
+  IRISSlicerComponentHelper<TOutputImage>::SetImageComponents(
+        outputPtr, inputPtr->GetNumberOfComponentsPerPixel());
 }
 
 template <class TInputImage, class TOutputImage, class TPreviewImage>
