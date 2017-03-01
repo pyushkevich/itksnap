@@ -404,18 +404,26 @@ ScalarImageWrapper<TTraits,TBase>
   // TODO: this is somewhat imperfect for non-orthogonal slicing, because we are not
   // ideally interpolating the image at the cursor location. Instead we are using the
   // intensity of the nearest voxel.
-  //
-  // TODO: we need to deal with cases when cursor is outside of the image for non-orthog
-  // slicing situations!
   itk::Index<2> idxDisp = to_itkIndex(xDisp);
 
   // Get the RGB value
-  out_appearance = slice->GetPixel(idxDisp);
+  if(slice->GetBufferedRegion().IsInside(idxDisp))
+    {
+    out_appearance = slice->GetPixel(idxDisp);
 
-  // The the raw value
-  PixelType val_raw = this->GetSlice(0)->GetPixel(idxDisp);
-  out_value.set_size(1);
-  out_value[0] = this->m_NativeMapping(val_raw);
+    // The the raw value
+    PixelType val_raw = this->GetSlice(0)->GetPixel(idxDisp);
+    out_value.set_size(1);
+    out_value[0] = this->m_NativeMapping(val_raw);
+    }
+  else
+    {
+    // TODO: we need to deal better with cases when cursor is outside of the image
+    // for non-orthog slicing situations!
+    out_appearance.Fill(0);
+    out_value.set_size(1);
+    out_value[0] = 0.0;
+    }
 }
 
 //template<class TTraits, class TBase>

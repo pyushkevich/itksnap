@@ -197,11 +197,11 @@ bool CrosshairsInteractionMode::gestureEvent(QGestureEvent *ev)
       }
     else if(pinch->state() == Qt::GestureUpdated)
       {
-      m_Model->ProcessZoomGesture(pinch->scaleFactor());
+      m_Model->ProcessZoomGesture(pinch->totalScaleFactor());
       }
     else if(pinch->state() == Qt::GestureFinished)
       {
-      m_Model->ProcessZoomGesture(pinch->scaleFactor());
+      m_Model->ProcessZoomGesture(pinch->totalScaleFactor());
       m_Model->EndZoom();
       }
     ev->accept();

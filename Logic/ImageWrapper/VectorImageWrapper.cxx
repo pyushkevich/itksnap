@@ -112,21 +112,30 @@ VectorImageWrapper<TTraits,TBase>
     // TODO: this is somewhat imperfect for non-orthogonal slicing, because we are not
     // ideally interpolating the image at the cursor location. Instead we are using the
     // intensity of the nearest voxel.
-    //
-    // TODO: we need to deal with cases when cursor is outside of the image for non-orthog
-    // slicing situations!
     itk::Index<2> idxDisp = to_itkIndex(xDisp);
 
-    // Get the RGB value
-    out_appearance = display_slice->GetPixel(idxDisp);
-
-    // Get the value vector in native range
-    out_value.set_size(this->GetNumberOfComponents());
-    for(int i = 0; i < this->GetNumberOfComponents(); i++)
+    if(display_slice->GetBufferedRegion().IsInside(idxDisp))
       {
-      InternalPixelType p =
-          this->GetComponentWrapper(i)->GetSlice(0)->GetPixel(idxDisp);
-      out_value[i] = this->m_NativeMapping(p);
+      // Get the RGB value
+      out_appearance = display_slice->GetPixel(idxDisp);
+
+      // Get the value vector in native range
+      out_value.set_size(this->GetNumberOfComponents());
+      for(int i = 0; i < this->GetNumberOfComponents(); i++)
+        {
+        InternalPixelType p =
+            this->GetComponentWrapper(i)->GetSlice(0)->GetPixel(idxDisp);
+        out_value[i] = this->m_NativeMapping(p);
+        }
+      }
+    else
+      {
+      // TODO: we need to deal better with cases when cursor is outside of the image
+      // for non-orthog slicing situations!
+      out_appearance.Fill(0);
+      out_value.set_size(this->GetNumberOfComponents());
+      for(int i = 0; i < this->GetNumberOfComponents(); i++)
+        out_value[i] = 0;
       }
     }
   else
