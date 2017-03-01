@@ -125,7 +125,7 @@ public:
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
                                         ImageBaseType *ref_space,
-                                        TransformType *transform,
+                                        const TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
                                         bool force_resampling,
                                         itk::Command *progressCommand)
@@ -169,7 +169,7 @@ public:
   static SmartPtr<ImageType> DeepCopyImageRegion(
       ImageType *image,
       ImageBaseType *refspace,
-      TransformType *transform,
+      const TransformType *transform,
       TInterpolateFunction *interp,
       const SNAPSegmentationROISettings &roi,
       bool force_resampling,
@@ -260,7 +260,7 @@ public:
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
                                         typename Superclass::ImageBaseType *refspace,
-                                        typename Superclass::TransformType *transform,
+                                        const typename Superclass::TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
                                         bool force_resampling,
                                         itk::Command *progressCommand)
@@ -318,7 +318,7 @@ public:
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
                                         typename Superclass::ImageBaseType *refspace,
-                                        typename Superclass::TransformType *transform,
+                                        const typename Superclass::TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
                                         bool force_resampling,
                                         itk::Command *progressCommand)
@@ -392,7 +392,7 @@ public:
   static SmartPtr<ImageType> DeepCopyImageRegion(
       ImageType *image,
       ImageBaseType *ref_space,
-      TransformType *transform,
+      const TransformType *transform,
       TInterpolateFunction *interp,
       const SNAPSegmentationROISettings &roi,
       bool force_resampling,
@@ -479,7 +479,7 @@ public:
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
                                         ImageBaseType *refspace,
-                                        TransformType *transform,
+                                        const TransformType *transform,
                                         const SNAPSegmentationROISettings &roi,
                                         bool force_resampling,
                                         itk::Command *progressCommand)
@@ -1848,7 +1848,10 @@ ImageWrapper<TTraits,TBase>
   // We use partial template specialization here because region copy is
   // only supported for images that are concrete (Image, VectorImage)
   typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
-  return Specialization::CopyRegion(m_Image, m_ReferenceSpace, m_Transform, roi, force_resampling, progressCommand);
+  return Specialization::CopyRegion(
+        m_Image, m_ReferenceSpace,
+        this->GetITKTransform(), roi,
+        force_resampling, progressCommand);
 }
 
 

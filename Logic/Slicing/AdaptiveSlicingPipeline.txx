@@ -68,8 +68,8 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
   if(m_UseOrthogonalSlicing)
     {
     m_OrthogonalSlicer->SetInput(this->GetInput());
-    m_OrthogonalSlicer->SetPreviewInput(NULL);
-    m_OrthogonalSlicer->SetBypassMainInput(false);
+    m_OrthogonalSlicer->SetPreviewInput(
+          const_cast<PreviewImageType *>(this->GetPreviewImage()));
 
     // Inverse transform
     ImageCoordinateTransform::Pointer tinv = ImageCoordinateTransform::New();

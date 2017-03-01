@@ -611,9 +611,6 @@ protected:
   /** The reference space - this is the space into which the image is sliced */
   SmartPtr<ImageBaseType> m_ReferenceSpace;
 
-  /** The transform relative to the reference space */
-  SmartPtr<ITKTransformType> m_Transform;
-
   /** The current cursor position (slice index) in image dimensions */
   Vector3ui m_SliceIndex;
 
