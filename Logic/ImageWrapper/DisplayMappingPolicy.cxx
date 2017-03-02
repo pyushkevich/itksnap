@@ -71,6 +71,17 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 }
 
 template<class TWrapperTraits>
+typename ColorLabelTableDisplayMappingPolicy<TWrapperTraits>::DisplayPixelType
+ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
+::MapPixel(const InputPixelType &val)
+{
+  DisplayPixelType pix;
+  ColorLabelTable *table = this->m_RGBAFilter[0]->GetColorTable();
+  table->GetColorLabel(val).GetRGBAVector(pix.GetDataPointer());
+  return pix;
+}
+
+template<class TWrapperTraits>
 void
 ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 ::SetLabelColorTable(ColorLabelTable *labels)
@@ -311,7 +322,14 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 }
 
 
-
+template<class TWrapperTraits>
+typename CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::DisplayPixelType
+CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
+::MapPixel(const PixelType &val)
+{
+  DisplayPixelType pix = m_IntensityFilter[0]->MapPixel(val);
+  return pix;
+}
 
 
 
@@ -492,6 +510,14 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
 
 
 
+template<class TWrapperTraits>
+typename LinearColorMapDisplayMappingPolicy<TWrapperTraits>::DisplayPixelType
+LinearColorMapDisplayMappingPolicy<TWrapperTraits>
+::MapPixel(const PixelType &val)
+{
+  DisplayPixelType pix = m_Functor(val);
+  return pix;
+}
 
 
 
@@ -822,6 +848,23 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     }
   else return NULL;
 }
+
+template<class TWrapperTraits>
+typename MultiChannelDisplayMappingPolicy<TWrapperTraits>::DisplayPixelType
+MultiChannelDisplayMappingPolicy<TWrapperTraits>
+::MapPixel(const PixelType &val)
+{
+  // This method should never be called directly for scalar modes (component, max, etc)
+  // because VectorImageWrapper should delegate calling this function to the
+  // appropriate scalar image wrapper.
+  assert(!m_ScalarRepresentation);
+
+  // Use the LUT
+  DisplayPixelType pix = m_RGBMapper[0]->MapPixel(val[0], val[1], val[2]);
+  return pix;
+}
+
+
 
 template <class TWrapperTraits>
 void

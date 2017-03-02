@@ -20,7 +20,7 @@
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkIdentityTransform.h"
-#include "IRISSlicer.h"
+#include "AdaptiveSlicingPipeline.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
 #include "ImageWrapperTraits.h"
@@ -99,44 +99,16 @@ VectorImageWrapper<TTraits,TBase>
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
   if(mode.UseRGB || mode.RenderAsGrid)
     {
-    // Get the display slice
-    DisplaySliceType *display_slice = this->GetDisplaySlice(0);
+    // Look up the actual intensity of the voxel from the slicer
+    PixelType pixel_value = this->m_Slicer[0]->LookupIntensityAtSliceIndex(this->m_ReferenceSpace);
 
-    // Make sure the display slice is updated
-    display_slice->GetSource()->UpdateLargestPossibleRegion();
+    // Set the output value
+    out_value.set_size(this->GetNumberOfComponents());
+    for(int i = 0; i < this->GetNumberOfComponents(); i++)
+      out_value[i] = this->m_NativeMapping(pixel_value[i]);
 
-    // Map the location of the cursor into the display slice index.
-    Vector2d xDisp = this->MapImageIndexToDisplaySliceIndex(0, this->GetSliceIndex());
-
-    // Convert the location to an index.
-    // TODO: this is somewhat imperfect for non-orthogonal slicing, because we are not
-    // ideally interpolating the image at the cursor location. Instead we are using the
-    // intensity of the nearest voxel.
-    itk::Index<2> idxDisp = to_itkIndex(xDisp);
-
-    if(display_slice->GetBufferedRegion().IsInside(idxDisp))
-      {
-      // Get the RGB value
-      out_appearance = display_slice->GetPixel(idxDisp);
-
-      // Get the value vector in native range
-      out_value.set_size(this->GetNumberOfComponents());
-      for(int i = 0; i < this->GetNumberOfComponents(); i++)
-        {
-        InternalPixelType p =
-            this->GetComponentWrapper(i)->GetSlice(0)->GetPixel(idxDisp);
-        out_value[i] = this->m_NativeMapping(p);
-        }
-      }
-    else
-      {
-      // TODO: we need to deal better with cases when cursor is outside of the image
-      // for non-orthog slicing situations!
-      out_appearance.Fill(0);
-      out_value.set_size(this->GetNumberOfComponents());
-      for(int i = 0; i < this->GetNumberOfComponents(); i++)
-        out_value[i] = 0;
-      }
+    // Use the display mapping to map to display pixel
+    out_appearance = this->m_DisplayMapping->MapPixel(pixel_value);
     }
   else
     {

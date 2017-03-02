@@ -149,6 +149,9 @@ public:
   void SetUseNearestNeighbor(bool flag);
   bool GetUseNearestNeighbor() const;
 
+  /** Look up intensity at the current slice index. This may update the filter */
+  OutputPixelType LookupIntensityAtSliceIndex(const itk::ImageBase<3> *ref_space);
+
 protected:
 
   AdaptiveSlicingPipeline();

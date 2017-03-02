@@ -1399,38 +1399,6 @@ ImageWrapper<TTraits,TBase>
   // return m_Image->GetBufferPointer();
 // }
 
-template<class TTraits, class TBase>
-Vector2d
-ImageWrapper<TTraits,TBase>
-::MapImageIndexToDisplaySliceIndex(int display_id, const Vector3ui &pos)
-{
-  // The output value
-  Vector2d idxDisplay2D;
-
-  if(this->IsSlicingOrthogonal())
-    {
-    // Find the correct voxel in the space of the first display slice
-    Vector3ui idxDisplay3D =
-        this->GetImageToDisplayTransform(display_id)->TransformVoxelIndex(pos);
-
-    idxDisplay2D[0] = idxDisplay3D[0];
-    idxDisplay2D[1] = idxDisplay3D[1];
-    }
-  else
-    {
-    // Use the appropriate mapping
-    typename ImageType::PointType xPhysical;
-    itk::ContinuousIndex<double, 3> idxDisplay3D;
-    m_ReferenceSpace->TransformIndexToPhysicalPoint(to_itkIndex(pos), xPhysical);
-    m_Slicer[display_id]->GetObliqueReferenceImage()
-        ->TransformPhysicalPointToContinuousIndex(xPhysical, idxDisplay3D);
-
-    idxDisplay2D[0] = idxDisplay3D[0];
-    idxDisplay2D[1] = idxDisplay3D[1];
-    }
-
-  return idxDisplay2D;
-}
 
 // TODO: this should take advantage of an in-place filter!
 template<class TTraits, class TBase>

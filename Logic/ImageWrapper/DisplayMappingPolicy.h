@@ -72,6 +72,9 @@ public:
   typedef ImageWrapperBase::DisplaySliceType DisplaySliceType;
   typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
 
+  typedef InputSliceType::PixelType InputPixelType;
+  typedef DisplaySliceType::PixelType DisplayPixelType;
+
   /**
    * Set the table of color labels used to produce color slice images
    */
@@ -92,6 +95,8 @@ public:
 
   virtual void Save(Registry &folder) {}
   virtual void Restore(Registry &folder) {}
+
+  virtual DisplayPixelType MapPixel(const InputPixelType &val);
 
 protected:
 
@@ -248,6 +253,8 @@ public:
 
   virtual void Save(Registry &folder);
   virtual void Restore(Registry &folder);
+
+  virtual DisplayPixelType MapPixel(const PixelType &val);
 
 
 protected:
@@ -433,7 +440,9 @@ public:
 
   irisGetMacro(ColorMap, ColorMap *)
 
-  protected:
+  DisplayPixelType MapPixel(const PixelType &xin);
+
+protected:
 
   LinearColorMapDisplayMappingPolicy();
   virtual ~LinearColorMapDisplayMappingPolicy();
@@ -530,6 +539,8 @@ public:
   virtual void AutoFitContrast();
 
   irisGetMacro(ScalarRepresentation, ScalarImageWrapperBase *)
+
+  DisplayPixelType MapPixel(const PixelType &val);
 
 protected:
 

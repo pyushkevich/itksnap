@@ -49,6 +49,9 @@ public:
   void ThreadedGenerateData(const OutputImageRegionType &region,
                             itk::ThreadIdType threadId);
 
+  /** Process a single pixel */
+  OutputPixelType MapPixel(const InputPixelType &pixel);
+
 protected:
 
   LookupTableIntensityMappingFilter();

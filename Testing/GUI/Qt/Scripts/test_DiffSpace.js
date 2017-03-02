@@ -26,13 +26,18 @@ engine.findChild(regpanel, "btnRunRegistration").click();
 engine.sleep(2000);
 
 //=== Play with the multi_chunk, make sure it can be resliced
-engine.findChild(regpanel, "inMovingLayer").value = 2;
-engine.findChild(regpanel, "inRotY").value = 16.0;
-engine.findChild(regpanel, "inTranZ").value = -12.0;
+engine.print(engine.findChild(regpanel, "tabWidget").currentIndex);
+engine.print(engine.findChild(regpanel, "tabWidget").currentTabText);
+engine.findChild(regpanel, "tabWidget").currentIndex = 1;
+engine.findChild(regpanel, "inMovingLayer").currentText = "multi_chunk";
+engine.findChild(regpanel, "inRotX").value = -52.0;
+engine.findChild(regpanel, "inRotY").value = 46.0;
+engine.findChild(regpanel, "inTranX").value = 12.0;
+engine.findChild(regpanel, "inTranY").value = 8.0;
+engine.findChild(regpanel, "inTranZ").value = -26.0;
 
-engine.sleep(50000);
 var value4 = readVoxelIntensity(2);
-engine.validateFloatValue(value4, 394, 10)
+engine.validateFloatValue(value4, 513, 10)
 
 // Probe the image intensity outside of the image range
 setCursor(4,17,14);

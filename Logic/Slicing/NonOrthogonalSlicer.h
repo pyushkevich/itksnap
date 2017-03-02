@@ -137,6 +137,9 @@ public:
   typedef typename InputImageType::RegionType             InputImageRegionType;
   typedef typename OutputImageType::RegionType           OutputImageRegionType;
 
+  /** The worker class */
+  typedef NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage> WorkerType;
+
   /** Reference image input */
   itkSetInputMacro(ReferenceImage, ReferenceImageBaseType)
   itkGetInputMacro(ReferenceImage, ReferenceImageBaseType)
@@ -155,7 +158,6 @@ protected:
   ~NonOrthogonalSlicer();
 
   /** The traits class */
-  typedef NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage> WorkerType;
 
   virtual void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
                                     itk::ThreadIdType threadId);

@@ -29,7 +29,7 @@
 #include "itkVTKImageExport.h"
 #include "itkStreamingImageFilter.h"
 
-#include "IRISSlicer.h"
+#include "AdaptiveSlicingPipeline.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
 #include "itkMinimumMaximumImageFilter.h"
@@ -391,39 +391,13 @@ ScalarImageWrapper<TTraits,TBase>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
-  // Get the display slice
-  DisplaySliceType *slice = this->GetDisplaySlice(0);
+  // Look up the actual intensity of the voxel from the slicer
+  out_value.set_size(1);
+  out_value[0] = this->m_NativeMapping(
+                   this->m_Slicer[0]->LookupIntensityAtSliceIndex(this->m_ReferenceSpace));
 
-  // Make sure the display slice is updated
-  slice->GetSource()->UpdateLargestPossibleRegion();
-
-  // Map the location of the cursor into the display slice index.
-  Vector2d xDisp = this->MapImageIndexToDisplaySliceIndex(0, this->GetSliceIndex());
-
-  // Convert the location to an index.
-  // TODO: this is somewhat imperfect for non-orthogonal slicing, because we are not
-  // ideally interpolating the image at the cursor location. Instead we are using the
-  // intensity of the nearest voxel.
-  itk::Index<2> idxDisp = to_itkIndex(xDisp);
-
-  // Get the RGB value
-  if(slice->GetBufferedRegion().IsInside(idxDisp))
-    {
-    out_appearance = slice->GetPixel(idxDisp);
-
-    // The the raw value
-    PixelType val_raw = this->GetSlice(0)->GetPixel(idxDisp);
-    out_value.set_size(1);
-    out_value[0] = this->m_NativeMapping(val_raw);
-    }
-  else
-    {
-    // TODO: we need to deal better with cases when cursor is outside of the image
-    // for non-orthog slicing situations!
-    out_appearance.Fill(0);
-    out_value.set_size(1);
-    out_value[0] = 0.0;
-    }
+  // Use the display mapping to map to display pixel
+  out_appearance = this->m_DisplayMapping->MapPixel(out_value[0]);
 }
 
 //template<class TTraits, class TBase>
