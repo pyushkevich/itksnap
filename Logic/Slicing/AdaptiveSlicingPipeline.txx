@@ -165,6 +165,10 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
     m_ObliqueSlicer->GetOutput()->SetRequestedRegionToLargestPossibleRegion();
     output->CopyInformation(m_ObliqueSlicer->GetOutput());
     }
+
+  // Copy information does not update the requested region, so we must update
+  // it by hand here
+  output->SetRequestedRegionToLargestPossibleRegion();
 }
 
 template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
@@ -219,6 +223,7 @@ typename AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::Outp
 AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
 ::LookupIntensityAtSliceIndex(const itk::ImageBase<3> *ref_space)
 {
+  OutputImageType *output = this->GetOutput();
   // Update the filter
   this->Update();
 

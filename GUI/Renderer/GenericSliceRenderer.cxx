@@ -490,16 +490,35 @@ Vector3d GenericSliceRenderer::ComputeGridPosition(
   disp[1] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(disp_pix[1]);
   disp[2] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(disp_pix[2]);
 
-  // The pixel gives the displacement in LPS coordinates (by ANTS/Greedy convention)
-  // We need to map it back into the slice domain. First, we need to know the 3D index
-  // of the current pixel in the image space
-  Vector3d xSlice;
-  xSlice[0] = slice_index[0] + 0.5;
-  xSlice[1] = slice_index[1] + 0.5;
-  xSlice[2] = m_Model->GetSliceIndex();
-
   // This is the physical coordinate of the current pixel - in LPS
-  Vector3d xPhys = m_Model->MapSliceToImagePhysical(xSlice);
+  Vector3d xPhys;
+  if(vecimg->IsSlicingOrthogonal())
+    {
+    // The pixel gives the displacement in LPS coordinates (by ANTS/Greedy convention)
+    // We need to map it back into the slice domain. First, we need to know the 3D index
+    // of the current pixel in the image space
+    Vector3d xSlice;
+    xSlice[0] = slice_index[0] + 0.5;
+    xSlice[1] = slice_index[1] + 0.5;
+    xSlice[2] = m_Model->GetSliceIndex();
+
+    // For orthogonal slicing, the input coordinates are in units of image voxels
+    xPhys = m_Model->MapSliceToImagePhysical(xSlice);
+    }
+  else
+    {
+    // Otherwise, the slice coordinates are relative to the rendered slice
+    GenericImageData *gid = m_Model->GetImageData();
+    GenericImageData::ImageBaseType *dispimg =
+        gid->GetDisplayViewportGeometry(m_Model->GetId());
+
+    // Use that image to transform coordinates
+    itk::Point<double, 3> pPhys;
+    itk::Index<3> index;
+    index[0] = slice_index[0]; index[1] = slice_index[1]; index[2] = 0;
+    dispimg->TransformIndexToPhysicalPoint(index, pPhys);
+    xPhys = pPhys;
+    }
 
   // Add displacement and map back to slice space
   itk::ContinuousIndex<double, 3> cix;
@@ -507,7 +526,25 @@ Vector3d GenericSliceRenderer::ComputeGridPosition(
 
   m_Model->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
       ->TransformPhysicalPointToContinuousIndex(pt, cix);
-  return m_Model->MapImageToSlice(Vector3d(cix));
+
+  // The displaced location in slice coordinates
+  Vector3d disp_slice = m_Model->MapImageToSlice(Vector3d(cix));
+
+  // What we return also depends on whether slicing is ortho or not. For ortho
+  // slicing, the renderer is configured in the "Slice" coordinate system (1 unit =
+  // 1 image voxel) while for oblique slicing, the renderer uses the window coordinate
+  // system (1 unit = 1 screen pixel). Whatever we return needs to be in those units.
+  if(vecimg->IsSlicingOrthogonal())
+    {
+    return disp_slice;
+    }
+  else
+    {
+    Vector3d win3d;
+    Vector2d win2d = m_Model->MapSliceToWindow(disp_slice);
+    win3d[0] = win2d[0]; win3d[1] = win2d[1]; win3d[2] = disp_slice[2];
+    return win3d;
+    }
 }
 
 
@@ -628,11 +665,20 @@ void GenericSliceRenderer::DrawTextureForLayer(
         it1.SetDirection(d);
         it1.GoToBegin();
 
-        // Figure out how frequently to sample lines. The spacing on the screen should be at
-        // most every 4 pixels. Zoom is in units of px/mm. Spacing is in units of mm/vox, so
-        // zoom * spacing is (display pixels) / (image voxels).
-        double disp_pix_per_vox = m_Model->GetSliceSpacing()[d] * m_Model->GetViewZoom();
-        int vox_increment = (int) ceil(8.0 / disp_pix_per_vox);
+        int vox_increment;
+        if(vecimg->IsSlicingOrthogonal())
+          {
+          // Figure out how frequently to sample lines. The spacing on the screen should be at
+          // most every 4 pixels. Zoom is in units of px/mm. Spacing is in units of mm/vox, so
+          // zoom * spacing is (display pixels) / (image voxels).
+          double disp_pix_per_vox = m_Model->GetSliceSpacing()[d] * m_Model->GetViewZoom();
+          vox_increment = (int) ceil(8.0 / disp_pix_per_vox);
+          }
+        else
+          {
+          // The slice is in screen pixel units already - so just 8!
+          vox_increment = 8;
+          }
 
         while( !it1.IsAtEnd() )
           {
