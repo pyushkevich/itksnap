@@ -5,7 +5,6 @@
 #include <AbstractVTKRenderer.h>
 #include <QApplication>
 #include <QMouseEvent>
-#include <QOpenGLContext>
 #include <QDebug>
 
 #include <vtkSphereSource.h>
