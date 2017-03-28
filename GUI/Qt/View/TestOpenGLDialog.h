@@ -160,9 +160,16 @@ void RendererCallback(
     std::cout << "Paint End" << std::endl;
   }
 
+#if QT_VERSION < 0x050000
+  virtual int devicePixelRatio()
+  {
+    return 1;
+  }
+#endif
+
   virtual void resizeGL(int w, int h)
   {
-    int dpr = this->window()->devicePixelRatio();
+    int dpr = this->devicePixelRatio();
     m_RenWin->SetSize(w * dpr, h * dpr);
 
     qDebug() << this->format();
