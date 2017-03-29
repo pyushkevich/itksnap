@@ -90,7 +90,7 @@ void ScanningROI::setPlanesNr(int anPlanesNr)
 
   int nI, nJ;
   
-  int nPlanesNr = m_arrpPairsPP_Axial.size();
+  int nPlanesNr = (int) m_arrpPairsPP_Axial.size();
   if(nPlanesNr != anPlanesNr)
     {
 
@@ -142,7 +142,7 @@ void ScanningROI::setPlanesNr(int anPlanesNr)
 
 int ScanningROI::getPlanesNr() const
 {
-  return(m_arrpPairsPP_Axial.size());
+  return (int) m_arrpPairsPP_Axial.size();
 }
 
 void ScanningROI::setSpacing(double adbX, double adbY, double adbZ)

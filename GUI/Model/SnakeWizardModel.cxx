@@ -677,6 +677,8 @@ bool SnakeWizardModel::CanGenerateSpeedVolume()
       return rfc->IsValidClassifier();
       }
     }
+
+  return false;
 }
 
 ScalarImageWrapperBase *SnakeWizardModel::GetSelectedScalarLayer()

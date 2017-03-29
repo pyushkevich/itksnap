@@ -189,7 +189,6 @@ SET(LOGIC_CXX
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
   Common/HistoryManager.cxx
-  Common/ImageFunctions.cxx
   Common/IPCHandler.cxx
   Common/IRISException.cxx
   Common/Rebroadcaster.cxx

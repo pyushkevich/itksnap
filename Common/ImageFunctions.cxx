@@ -1,4 +1,3 @@
-#include "ImageFunctions.h"
 /*=========================================================================
 
   Program:   ITK-SNAP
@@ -41,4 +40,4 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-
+#include "ImageFunctions.h"
