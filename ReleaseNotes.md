@@ -20,7 +20,7 @@ The main focus of this release is on making it easier to work with multiple imag
 
     - Automatic registration is quite fast. It allows rigid and affine registration. It supports mutual information (inter-modality) and patch cross-correlation (intra-modality) metrics. Optionally, a mask can be provided, over which the metric is computed. It is easy to generate masks using the segmentation interpolation tool (see below). Masks are useful when the extent of the images is different, e.g., one includes neck and another does not. 
     
-    - Registration results can be saved as matrix files compatible with ANTS, Convert3D and Greedy tools. Using Convert3D, they can be converted to FLIRT-compatible transform files. Registration results are also automatically saved in workspace files.
+    - Registration results can be saved as matrix files compatible with ANTS, Convert3D and Greedy tools. Using Convert3D, they can be converted to FLIRT-compatible transform files. Registration results are also automatically saved in workspace files. Images can also be resliced into the space of the main image.
     
 - DICOM functionality is greatly improved. 
 
@@ -32,12 +32,20 @@ The main focus of this release is on making it easier to work with multiple imag
     
 - A new tool for interpolating segmentations between slices under *Tools->Interpolate Labels*. 
 
-    - For images with thin slices and gradually changing anatomy, you can segment every fifth slice and fill in the missing slices using this new tool. Details of the algorithm are provided in an [Insight Journal article](http://insight-journal.org/browse/publication/977).
+    - For images with thin slices and gradually changing anatomy, you can segment every fifth slice and fill in the missing slices using this new tool. Details of the algorithm are provided in an [Insight Journal article](http://insight-journal.org/browse/publication/977). Interpolation can be performed for a specific label or for all labels.
     
 - Label visibility can be changed 'en masse' in the Label Editor, i.e., you can make all labels visible or hidden. This helps find a label in segmentation with many labels that occlude each other. 
 
+- A new ''grid'' mode is provided for visualizing displacement fields. Displacement fields in formats used by [ANTS](http://stnava.github.io/ANTs/) and [Greedy](https://sites.google.com/view/greedyreg/about) are currently supported.
+
+- The user interface automatically scales to reasonable size on very high DPI displays, such as the Miscrosoft Surface (tm). Environment flag QT_SCALE_FACTOR can be used to override.
+
 ### Programmatic Enhancements
 - ITK-SNAP now includes Convert3D and Greedy registration tools as submodules. This is already used to support registration functionality, but in the future we will be adding more Convert3D-based functionality, such as filtering, etc.
+
+- The ImageWrapper class includes a dual slicing module that selects between orthogonal and non-orthogonal slicing based on image orientation. This is significantly cleaned up relative to earlier versions.
+
+- ITK-SNAP now compatible with Qt 5.6, which is the standard for the next 3 years
 
 ### Bug Fixes 
 
@@ -50,6 +58,10 @@ The main focus of this release is on making it easier to work with multiple imag
 - Fixed computation of zoom factor on Retina displays
 - Fixed behavior of File Save browse dialogs on MacOS when saving .nii.gz files
 - Fixed issues with unnecessary prompting to save segmentations
+- Improved OpenGL compatibility, particularly in VTK-managed windows
+- Fixed issues with images >4GB not opening on Windows. This requires building ITK with ITK_USE_64BITS_IDS=TRUE
+- Fixed problems with histories not showing up in file dialogs
+- Fixed bug where scalpel tool did not work for anisotropic images
 - Several other fixes for specific crashes.
 
 ### Known Issues
