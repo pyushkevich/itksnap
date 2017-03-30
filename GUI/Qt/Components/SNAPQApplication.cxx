@@ -27,6 +27,7 @@
 #include "SNAPQtCommon.h"
 #include "SNAPQApplication.h"
 #include <QFileOpenEvent>
+#include <QUrl>
 
 SNAPQApplication
 ::SNAPQApplication(int &argc, char **argv)
