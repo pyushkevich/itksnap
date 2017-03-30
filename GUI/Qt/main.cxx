@@ -11,6 +11,7 @@
 #include <QSurfaceFormat>
 #endif
 
+#include "SNAPQApplication.h"
 #include "MainImageWindow.h"
 #include "SliceViewPanel.h"
 #include "ImageIODelegates.h"
@@ -119,93 +120,7 @@ void itksnap_putenv(const std::string &var, TVal value)
 #include <QTime>
 #include <QMessageBox>
 
-/** Class to handle exceptions in Qt callbacks */
-class SNAPQApplication : public QApplication
-{
-public:
-  SNAPQApplication(int &argc, char **argv) :
-    QApplication(argc, argv)
-    {
-    this->setApplicationName("ITK-SNAP");
-    this->setOrganizationName("itksnap.org");
 
-#if QT_VERSION >= 0x050000
-    // Allow @x2 pixmaps for icons for retina displays
-    this->setAttribute(Qt::AA_UseHighDpiPixmaps, true);
-
-    // System-supplied DPI screws up widget and font scaling horribly
-    this->setAttribute(Qt::AA_Use96Dpi, true);
-#endif
-
-    m_MainWindow = NULL;
-
-    // Store the command-line arguments
-    for(int i = 1; i < argc; i++)
-      m_Args.push_back(QString::fromUtf8(argv[i]));
-  }
-
-  void setMainWindow(MainImageWindow *mainwin)
-  {
-    m_MainWindow = mainwin;
-    m_StartupTime = QTime::currentTime();
-  }
-
-  bool notify(QObject *object, QEvent *event)
-  {
-    try { return QApplication::notify(object, event); }
-    catch(std::exception &exc)
-    {
-      // Crash!
-      ReportNonLethalException(NULL, exc, "Unexpected Error",
-                               "ITK-SNAP has crashed due to an unexpected error");
-
-      // Exit the application
-      QApplication::exit(-1);
-
-      return false;
-    }
-  }
-
-
-  virtual bool event(QEvent *event)
-  {
-    // Handle file drops
-    if (event->type() == QEvent::FileOpen && m_MainWindow)
-      {
-      QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
-      QString file = openEvent->url().path();
-
-      // MacOS bug - we get these open document events automatically generated
-      // from command-line parameters, and I have no idea why. To avoid this,
-      // if the event occurs at startup (within a second), we will check if
-      // the passed in URL matches the command-line arguments, and ignore it
-      // if it does
-      if(m_StartupTime.secsTo(QTime::currentTime()) < 1)
-        {
-        foreach(const QString &arg, m_Args)
-          {
-          if(arg == file)
-            return true;
-          }
-        }
-
-      // Accept the event
-      event->accept();
-
-      // Ok, we passed the check, now it's safe to actually open the file
-      m_MainWindow->raise();
-      m_MainWindow->LoadDroppedFile(file);
-      return true;
-      }
-
-    else return QApplication::event(event);
-  }
-
-private:
-  MainImageWindow *m_MainWindow;
-  QStringList m_Args;
-  QTime m_StartupTime;
-};
 
 
 #ifdef SNAP_DEBUG_EVENTS

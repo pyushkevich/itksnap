@@ -17,7 +17,7 @@
 #include <QApplication>
 #include <QKeySequence>
 #include <QDir>
-
+#include <SNAPQApplication.h>
 
 
 #include "SNAPQtCommon.h"
@@ -362,8 +362,8 @@ void TestWorker::run()
   // Run the top-level script
   source(m_MainScript);
 
-  // Once the test has completed, we can exit the application
-  ::exit(SNAPTestQt::SUCCESS);
+  // Exit script
+  application_exit(SNAPTestQt::SUCCESS);
 }
 
 void TestWorker::sleep_ms(unsigned int msec)
@@ -426,6 +426,13 @@ void TestWorker::readScript(QString script_url, QString &script)
   file.close();
 }
 
+void TestWorker::application_exit(int rc)
+{
+  QMetaObject::invokeMethod(
+        QCoreApplication::instance(), "quitWithReturnCode", Qt::QueuedConnection,
+        Q_ARG(int, rc));
+}
+
 void TestWorker::source(QString script_url)
 {
   // The test may be a path to an actual file
@@ -443,6 +450,6 @@ void TestWorker::source(QString script_url)
   if(rc.isError())
     {
     qWarning() << "JavaScript exception:" << rc.toString();
-    ::exit(SNAPTestQt::REGRESSION_TEST_FAILURE);
+    application_exit(SNAPTestQt::EXCEPTION_CAUGHT);
     }
 }

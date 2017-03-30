@@ -48,6 +48,8 @@ protected:
   double m_Acceleration;
 
   void readScript(QString script_url, QString &script);
+
+  void application_exit(int rc);
 };
 
 class SNAPTestQt : public QObject
