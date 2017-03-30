@@ -49,7 +49,6 @@ protected:
 
   void readScript(QString script_url, QString &script);
 
-  void application_exit(int rc);
 };
 
 class SNAPTestQt : public QObject
@@ -109,6 +108,8 @@ public slots:
   void postKeyEvent(QObject *object, QString key);
 
   void sleep(int milli_sec);
+
+  static void application_exit(int rc);
 
 protected:
 

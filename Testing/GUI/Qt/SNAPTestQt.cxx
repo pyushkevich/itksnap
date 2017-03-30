@@ -74,7 +74,7 @@ SNAPTestQt::LaunchTest(std::string test)
   if(test == "list")
     {
     ListTests();
-    ::exit(SUCCESS);
+    application_exit(SUCCESS);
     }
 
   // Create and run the thread
@@ -215,7 +215,7 @@ void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
     qWarning() << QString("Validation %1 == %2 failed!").arg(v1.toString(),v2.toString());
 
     // Exit with code corresponding to test failure
-    ::exit(REGRESSION_TEST_FAILURE);
+    application_exit(REGRESSION_TEST_FAILURE);
     }
   else
     {
@@ -223,6 +223,13 @@ void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
     qDebug() << QString("Validation %1 == %2 ok!").arg(v1.toString(),v2.toString());
     }
 
+}
+
+void SNAPTestQt::application_exit(int rc)
+{
+  QMetaObject::invokeMethod(
+        QCoreApplication::instance(), "quitWithReturnCode", Qt::QueuedConnection,
+        Q_ARG(int, rc));
 }
 
 void SNAPTestQt::sleep(int milli_sec)
@@ -245,7 +252,7 @@ void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
     qWarning() << QString("Validation %1 == %2 (with precision %3) failed!").arg(v1).arg(v2).arg(precision);
 
     // Exit with code corresponding to test failure
-    ::exit(REGRESSION_TEST_FAILURE);
+    application_exit(REGRESSION_TEST_FAILURE);
     }
   else
     {
@@ -257,7 +264,7 @@ void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
 void SNAPTestQt::testFailed(QString reason)
 {
   qWarning() << reason;
-  ::exit(REGRESSION_TEST_FAILURE);
+  application_exit(REGRESSION_TEST_FAILURE);
 }
 
 
@@ -363,7 +370,7 @@ void TestWorker::run()
   source(m_MainScript);
 
   // Exit script
-  application_exit(SNAPTestQt::SUCCESS);
+  SNAPTestQt::application_exit(SNAPTestQt::SUCCESS);
 }
 
 void TestWorker::sleep_ms(unsigned int msec)
@@ -383,7 +390,7 @@ void TestWorker::readScript(QString script_url, QString &script)
   if(!file.open(QIODevice::ReadOnly))
     {
     qWarning() << QString("Unable to read test script %1").arg(script_url);
-    ::exit(SNAPTestQt::NO_SUCH_TEST);
+    SNAPTestQt::application_exit(SNAPTestQt::NO_SUCH_TEST);
     }
 
   // Read the script
@@ -426,13 +433,6 @@ void TestWorker::readScript(QString script_url, QString &script)
   file.close();
 }
 
-void TestWorker::application_exit(int rc)
-{
-  QMetaObject::invokeMethod(
-        QCoreApplication::instance(), "quitWithReturnCode", Qt::QueuedConnection,
-        Q_ARG(int, rc));
-}
-
 void TestWorker::source(QString script_url)
 {
   // The test may be a path to an actual file
@@ -450,6 +450,6 @@ void TestWorker::source(QString script_url)
   if(rc.isError())
     {
     qWarning() << "JavaScript exception:" << rc.toString();
-    application_exit(SNAPTestQt::EXCEPTION_CAUGHT);
+    SNAPTestQt::application_exit(SNAPTestQt::EXCEPTION_CAUGHT);
     }
 }

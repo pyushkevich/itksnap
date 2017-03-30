@@ -24,7 +24,7 @@ var inpreset = engine.findChild(cmpcolormap, "inPreset");
 inpreset.setCurrentIndex(8);
 
 //=== Close the inspector dialog
-layerdialog.close();
+engine.invoke(layerdialog, "close");
 
 //=== Trigger the unload all action
 engine.findChild(mainwin,"actionUnload_All").trigger();
