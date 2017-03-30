@@ -2345,10 +2345,6 @@ bool IRISApplication::IsProjectUnsaved()
   Registry reg_current;
   SaveProjectToRegistry(reg_current, m_GlobalState->GetProjectFilename());
 
-  // TODO: delete this!
-  reg_current.WriteToXMLFile("/tmp/current.xml");
-  m_LastSavedProjectState.WriteToXMLFile("/tmp/prior.xml");
-
   // Compare with the last saved state
   return (reg_current != m_LastSavedProjectState);
 }

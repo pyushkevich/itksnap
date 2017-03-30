@@ -225,8 +225,14 @@ font-size: 11px;
         </property>
         <property name="icon">
          <iconset>
-          <normalon>:/root/screencapture2.gif</normalon>
+          <normalon>:/root/icons8_slr_camera_12.png</normalon>
          </iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>12</width>
+          <height>12</height>
+         </size>
         </property>
         <property name="autoRaise">
          <bool>true</bool>
