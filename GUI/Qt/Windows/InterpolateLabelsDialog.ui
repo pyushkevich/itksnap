@@ -6,33 +6,37 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>402</width>
+    <width>368</width>
     <height>615</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Interpolate Labels - ITK-SNAP</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QLabel" name="label">
      <property name="font">
       <font>
-       <pointsize>18</pointsize>
-       <weight>75</weight>
-       <bold>true</bold>
+       <pointsize>-1</pointsize>
       </font>
      </property>
+     <property name="styleSheet">
+      <string notr="true">font-size:16px;</string>
+     </property>
      <property name="text">
-      <string>Interpolate Labels</string>
+      <string>Morphological Interpolation</string>
      </property>
     </widget>
    </item>
    <item>
     <widget class="QLabel" name="label_2">
+     <property name="styleSheet">
+      <string notr="true">font-size:12px;
+color: gray;</string>
+     </property>
      <property name="text">
-      <string>This tool can be used to fill in sparsely drawn segmentations, called a scaffold. For example, you can label a structure on every fifth slice, and use this tool to fill in the segmentation in the slices in between. 
-</string>
+      <string>Use this tool to fill in sparsely drawn segmentations. For example, you can label a structure on every fifth slice and fill in the gaps using this tool. You can also create three-dimensional scaffolds and fill in the space in between.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
@@ -40,79 +44,59 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
+    <widget class="QWidget" name="widget_2" native="true">
+     <layout class="QFormLayout" name="formLayout">
+      <item row="0" column="1">
        <widget class="QRadioButton" name="btnInterpolateAll">
+        <property name="toolTip">
+         <string>All labels in the segmentation will be interpolated at the same time</string>
+        </property>
         <property name="text">
          <string>Interpolate all labels</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="1">
        <widget class="QRadioButton" name="btnInterpolateOne">
+        <property name="toolTip">
+         <string>A single label in the segmentation will be interpolated.</string>
+        </property>
         <property name="text">
-         <string>Interpolate one label</string>
+         <string>Interpolate a single label</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QWidget" name="widget_2" native="true">
-     <layout class="QFormLayout" name="formLayout">
-      <item row="0" column="0">
+      <item row="2" column="0">
        <widget class="QLabel" name="label_3">
         <property name="text">
          <string>Label to interpolate:</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
+      <item row="2" column="1">
        <widget class="QComboBox" name="inLabelToInterpolate">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Select the label which will be interpolated. Your segmentation should have two or more slices painted with that label.</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
-         <string>Label to interpolate with:</string>
+         <string>Interpolate with:</string>
         </property>
        </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QComboBox" name="inActiveLabel"/>
-      </item>
-      <item row="2" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Draw over</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QComboBox" name="inDrawOver"/>
       </item>
       <item row="3" column="1">
-       <widget class="QCheckBox" name="chkRetain">
-        <property name="text">
-         <string>Retain scaffold</string>
+       <widget class="QComboBox" name="inActiveLabel">
+        <property name="toolTip">
+         <string>Select the label which will be used to fill in the interpolated voxels. Normally this is the same label as the &quot;label to interpolate&quot; but you have the option of using a different label.</string>
         </property>
        </widget>
       </item>
@@ -122,162 +106,97 @@
    <item>
     <widget class="QGroupBox" name="groupBox">
      <property name="title">
-      <string>Interpolation Method</string>
+      <string>Advanced Options:</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>4</number>
+      </property>
       <item>
-       <widget class="QComboBox" name="interpolationMethod">
-        <item>
-         <property name="text">
-          <string>Default</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Level set</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>Morphological</string>
-         </property>
-        </item>
+       <widget class="QCheckBox" name="chkMorphologyUseDistance">
+        <property name="toolTip">
+         <string>Use an alternative signed distance function-based method.  Slightly faster, but can fail for twisted shapes.</string>
+        </property>
+        <property name="text">
+         <string>Use signed distance function</string>
+        </property>
        </widget>
       </item>
       <item>
-       <widget class="QStackedWidget" name="stackedWidget">
-        <property name="currentIndex">
-         <number>0</number>
+       <widget class="QCheckBox" name="chkMorphologyUseOptimalAlignment">
+        <property name="toolTip">
+         <string>Use optimal slice alignment instead of the default heuristic.  This can take a long time.</string>
         </property>
-        <widget class="QWidget" name="pageMorphology">
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QCheckBox" name="chkMorphologyUseDistance">
-            <property name="toolTip">
-             <string>Use an alternative signed distance function-based method.  Slightly faster, but can fail for twisted shapes.</string>
-            </property>
+        <property name="text">
+         <string>Use optimal slice alignment</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chkMorphologyInterpolateOneAxis">
+        <property name="toolTip">
+         <string>Interpolate slices along a single axis. By default, interpolation is applied along all three axes in the image.</string>
+        </property>
+        <property name="text">
+         <string>Interpolate along a single axis</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widget_4" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <property name="leftMargin">
+          <number>80</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QComboBox" name="morphologyInterpolationAxis">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <item>
             <property name="text">
-             <string>Use signed distance function</string>
+             <string>Axial</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="chkMorphologyUseOptimalAlignment">
-            <property name="toolTip">
-             <string>Use optimal slice alignment instead of the default heuristic.  This can take a long time.</string>
-            </property>
+           </item>
+           <item>
             <property name="text">
-             <string>Use optimal slice alignment</string>
+             <string>Sagittal</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="chkMorphologyInterpolateOneAxis">
-            <property name="toolTip">
-             <string>Use optimal slice alignment instead of the default heuristic.  This can take a long time.</string>
-            </property>
+           </item>
+           <item>
             <property name="text">
-             <string>Interpolate along a single axis</string>
+             <string>Coronal</string>
             </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QWidget" name="widget_4" native="true">
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="leftMargin">
-              <number>20</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>10</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QComboBox" name="morphologyInterpolationAxis">
-               <item>
-                <property name="text">
-                 <string>Axial</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Sagittal</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Coronal</string>
-                </property>
-               </item>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="pageLevelSet">
-         <layout class="QFormLayout" name="formLayout_4">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_9">
-            <property name="text">
-             <string>Smoothing (voxels):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QDoubleSpinBox" name="inLevelSetDistanceSmoothing"/>
-          </item>
-          <item row="1" column="1">
-           <widget class="QDoubleSpinBox" name="inLevelSetCurv"/>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Level set curvature term:</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-        <widget class="QWidget" name="pageDistanceMap">
-         <layout class="QFormLayout" name="formLayout_2">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_7">
-            <property name="text">
-             <string>Smoothing (voxels):</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QDoubleSpinBox" name="inDefaultDistanceSmoothing"/>
-          </item>
-         </layout>
-        </widget>
+           </item>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
     </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
    </item>
    <item>
     <widget class="QWidget" name="widget_3" native="true">
@@ -318,5 +237,54 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>btnInterpolateAll</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>inLabelToInterpolate</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>267</x>
+     <y>136</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>346</x>
+     <y>190</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnInterpolateAll</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>inActiveLabel</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>247</x>
+     <y>136</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>346</x>
+     <y>220</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chkMorphologyInterpolateOneAxis</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>morphologyInterpolationAxis</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>115</x>
+     <y>332</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>153</x>
+     <y>357</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

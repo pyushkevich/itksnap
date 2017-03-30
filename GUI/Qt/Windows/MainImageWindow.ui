@@ -191,7 +191,7 @@ QTextBrowser {
                   <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Helvetica Neue DeskInterface'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:12px; margin-bottom:4px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;Learn about the &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.NewFeaturesVersion30&quot;&gt;&lt;span style=&quot; font-size:11px; text-decoration: underline; color:#0000ff;&quot;&gt;new features&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:11px;&quot;&gt; in this version&lt;/span&gt;&lt;/li&gt;
 &lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:4px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;Read a &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.UpgradingTo30&quot;&gt;&lt;span style=&quot; font-size:11px; text-decoration: underline; color:#0000ff;&quot;&gt;quick transition guide&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:11px;&quot;&gt; for Version 2 users&lt;/span&gt;&lt;/li&gt;
@@ -344,7 +344,7 @@ color:rgb(103, 103, 103);
      <x>0</x>
      <y>0</y>
      <width>907</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -452,7 +452,18 @@ color:rgb(103, 103, 103);
      <addaction name="actionSegmentationIncreaseOpacity"/>
      <addaction name="actionSegmentationDecreaseOpacity"/>
     </widget>
+    <widget class="QMenu" name="menuRecent_Segmentations">
+     <property name="title">
+      <string>Recent Segmentations</string>
+     </property>
+     <addaction name="actionRecentSeg_1"/>
+     <addaction name="actionRecentSeg_2"/>
+     <addaction name="actionRecentSeg_3"/>
+     <addaction name="actionRecentSeg_4"/>
+     <addaction name="actionRecentSeg_5"/>
+    </widget>
     <addaction name="actionLoad_from_Image"/>
+    <addaction name="menuRecent_Segmentations"/>
     <addaction name="separator"/>
     <addaction name="actionSaveSegmentation"/>
     <addaction name="actionSaveSegmentationAs"/>
@@ -1517,6 +1528,31 @@ color:rgb(103, 103, 103);
    </property>
    <property name="text">
     <string>Main Control Panel</string>
+   </property>
+  </action>
+  <action name="actionRecentSeg_1">
+   <property name="text">
+    <string>Recent1</string>
+   </property>
+  </action>
+  <action name="actionRecentSeg_2">
+   <property name="text">
+    <string>Recent2</string>
+   </property>
+  </action>
+  <action name="actionRecentSeg_3">
+   <property name="text">
+    <string>Recent3</string>
+   </property>
+  </action>
+  <action name="actionRecentSeg_4">
+   <property name="text">
+    <string>Recent4</string>
+   </property>
+  </action>
+  <action name="actionRecentSeg_5">
+   <property name="text">
+    <string>Recent5</string>
    </property>
   </action>
  </widget>

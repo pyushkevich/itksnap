@@ -15,8 +15,6 @@ InterpolateLabelsDialog::InterpolateLabelsDialog(QWidget *parent) :
   ui(new Ui::InterpolateLabelsDialog)
 {
   ui->setupUi(this);
-
-  ui->stackedWidget->setCurrentIndex(0);
 }
 
 InterpolateLabelsDialog::~InterpolateLabelsDialog()
@@ -30,29 +28,13 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
 
   makeCoupling(ui->inActiveLabel, m_Model->GetDrawingLabelModel());
   makeCoupling(ui->inLabelToInterpolate, m_Model->GetInterpolateLabelModel());
-  makeCoupling(ui->inDrawOver, m_Model->GetDrawOverFilterModel());
 
   makeRadioGroupCoupling(ui->btnInterpolateAll, ui->btnInterpolateOne, m_Model->GetInterpolateAllModel());
-
-  makeCoupling(ui->chkRetain, m_Model->GetRetainScaffoldModel());
-
-  // Settings for default method
-  makeCoupling(ui->inDefaultDistanceSmoothing, m_Model->GetDefaultSmoothingModel());
-
-  // Settings for level set method
-  makeCoupling(ui->inLevelSetDistanceSmoothing, m_Model->GetLevelSetSmoothingModel());
-  makeCoupling(ui->inLevelSetCurv, m_Model->GetLevelSetCurvatureModel());
 
   // Settings for morphology method
   makeCoupling(ui->chkMorphologyUseDistance, m_Model->GetMorphologyUseDistanceModel());
   makeCoupling(ui->chkMorphologyUseOptimalAlignment, m_Model->GetMorphologyUseOptimalAlignmentModel());
   makeCoupling(ui->chkMorphologyInterpolateOneAxis, m_Model->GetMorphologyInterpolateOneAxisModel());
-
-  ui->interpolationMethod->clear();
-  ui->interpolationMethod->addItem("Morphology", QVariant::fromValue(InterpolateLabelModel::MORPHOLOGY));
-  ui->interpolationMethod->addItem("Level set", QVariant::fromValue(InterpolateLabelModel::LEVEL_SET));
-  ui->interpolationMethod->addItem("Default", QVariant::fromValue(InterpolateLabelModel::DISTANCE_MAP));
-  makeCoupling(ui->interpolationMethod, m_Model->GetInterpolationMethodModel());
 
   ui->morphologyInterpolationAxis->clear();
   ui->morphologyInterpolationAxis->addItem("Axial",QVariant::fromValue(ANATOMY_AXIAL));
@@ -69,11 +51,6 @@ void InterpolateLabelsDialog::on_btnInterpolate_clicked()
 void InterpolateLabelsDialog::on_btnClose_clicked()
 {
   this->close();
-}
-
-void InterpolateLabelsDialog::on_interpolationMethod_activated(int index)
-{
-  ui->stackedWidget->setCurrentIndex(index);
 }
 
 void InterpolateLabelsDialog::showEvent(QShowEvent *e)

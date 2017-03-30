@@ -14,6 +14,7 @@
 #include "itkMutexLockHolder.h"
 #include "MeshOptions.h"
 #include "ImageWrapperTraits.h"
+#include "SegmentationUpdateIterator.h"
 
 // All the VTK stuff
 #include "vtkPolyData.h"

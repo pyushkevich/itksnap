@@ -317,23 +317,6 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // We accept drop events
   setAcceptDrops(true);
 
-  // Connect recent file/project menu items
-  connect(ui->actionRecent_1, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
-  connect(ui->actionRecent_2, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
-  connect(ui->actionRecent_3, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
-  connect(ui->actionRecent_4, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
-  connect(ui->actionRecent_5, SIGNAL(triggered()), SLOT(LoadRecentActionTriggered()));
-  connect(ui->actionRecentOverlay_1, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
-  connect(ui->actionRecentOverlay_2, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
-  connect(ui->actionRecentOverlay_3, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
-  connect(ui->actionRecentOverlay_4, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
-  connect(ui->actionRecentOverlay_5, SIGNAL(triggered()), SLOT(LoadRecentOverlayActionTriggered()));
-  connect(ui->actionRecentWorkspace1, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
-  connect(ui->actionRecentWorkspace2, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
-  connect(ui->actionRecentWorkspace3, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
-  connect(ui->actionRecentWorkspace4, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
-  connect(ui->actionRecentWorkspace5, SIGNAL(triggered()), SLOT(LoadRecentProjectActionTriggered()));
-
   // Set up the animation timer
   m_AnimateTimer = new QTimer(this);
   m_AnimateTimer->setInterval(1000);
@@ -901,95 +884,49 @@ void MainImageWindow::UpdateDICOMContentsMenu()
   ui->menuAddAnotherDicomImage->menuAction()->setVisible(have_actions);
 }
 
+void MainImageWindow::CreateRecentMenu(
+    QMenu *submenu,
+    const char *history_category,
+    bool use_global_history,
+    int max_items,
+    const char *slot)
+{
+  // Delete all the menu items in the parent menu
+  submenu->clear();
+
+  // Get the recent history for this category
+  std::vector<std::string> recent =
+      m_Model->GetRecentHistoryItems(history_category, max_items, use_global_history);
+
+  // Create an action for each recent item
+  for(int i = 0; i < recent.size(); i++)
+    {
+    // Create an action for this file
+    QAction *action = submenu->addAction(from_utf8(recent[i]));
+    connect(action, SIGNAL(triggered(bool)), this, slot);
+    }
+
+  // Toggle the visibility of the submenu
+  submenu->menuAction()->setVisible(recent.size() > 0);
+}
+
 void MainImageWindow::UpdateRecentMenu()
 {
-  // Menus to populate
-  QAction *menus[] = {
-    ui->actionRecent_1,
-    ui->actionRecent_2,
-    ui->actionRecent_3,
-    ui->actionRecent_4,
-    ui->actionRecent_5};
+  // Create recent menus for various history categories
+  this->CreateRecentMenu(ui->menuRecent_Images, "MainImage", true, 5,
+                         SLOT(LoadRecentActionTriggered()));
 
-  // List of filenames
-  std::vector<std::string> recent = m_Model->GetRecentHistoryItems("MainImage", 5);
+  this->CreateRecentMenu(ui->menuRecent_Overlays, "AnatomicImage", false, 5,
+                         SLOT(LoadRecentOverlayActionTriggered()));
 
-  // Toggle the state of each menu item
-  for(int i = 0; i < 5; i++)
-    {
-    if(i < recent.size())
-      {
-      menus[i]->setText(from_utf8(recent[i]));
-      menus[i]->setEnabled(true);
-      }
-    else
-      {
-      menus[i]->setText("Not available");
-      menus[i]->setEnabled(false);
-      }
-    }
-
-  // Toggle the visibility of the dropdown
-  ui->menuRecent_Images->menuAction()->setVisible(recent.size() > 0);
-
-  // Do the same for the overlay menus
-  QAction *omenus[] = {
-    ui->actionRecentOverlay_1,
-    ui->actionRecentOverlay_2,
-    ui->actionRecentOverlay_3,
-    ui->actionRecentOverlay_4,
-    ui->actionRecentOverlay_5};
-
-  // List of filenames - from local history
-  recent = m_Model->GetRecentHistoryItems("AnatomicImage", 5, false);
-
-  // Toggle the state of each menu item
-  for(int i = 0; i < 5; i++)
-    {
-    if(i < recent.size())
-      {
-      omenus[i]->setText(from_utf8(recent[i]));
-      omenus[i]->setEnabled(true);
-      }
-    else
-      {
-      omenus[i]->setText("Not available");
-      omenus[i]->setEnabled(false);
-      }
-    }
-
-  // Toggle the visibility of the dropdown
-  ui->menuRecent_Overlays->menuAction()->setVisible(
-        recent.size() > 0 && m_Model->GetDriver()->IsMainImageLoaded());
+  this->CreateRecentMenu(ui->menuRecent_Segmentations, "LabelImage", false, 5,
+                         SLOT(LoadRecentSegmentationActionTriggered()));
 }
 
 void MainImageWindow::UpdateRecentProjectsMenu()
 {
-  // Menus to populate
-  QAction *menus[] = {
-    ui->actionRecentWorkspace1,
-    ui->actionRecentWorkspace2,
-    ui->actionRecentWorkspace3,
-    ui->actionRecentWorkspace4,
-    ui->actionRecentWorkspace5};
-
-  // List of filenames
-  std::vector<std::string> recent = m_Model->GetRecentHistoryItems("Project", 5);
-
-  // Toggle the state of each menu item
-  for(int i = 0; i < 5; i++)
-    {
-    if(i < recent.size())
-      {
-      menus[i]->setText(from_utf8(recent[i]));
-      menus[i]->setEnabled(true);
-      }
-    else
-      {
-      menus[i]->setText("Not available");
-      menus[i]->setEnabled(false);
-      }
-    }
+  this->CreateRecentMenu(ui->menuRecentWorkspaces, "Project", true, 5,
+                         SLOT(LoadRecentProjectActionTriggered()));
 }
 
 
@@ -1385,6 +1322,33 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
     {
     ReportNonLethalException(this, exc, "Image IO Error",
                              QString("Failed to load overlay image %1").arg(file));
+    }
+}
+
+void MainImageWindow::LoadRecentSegmentationActionTriggered()
+{
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString file = action->text();
+
+  // Prompt for unsaved changes
+  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+    return;
+
+  // Try loading the image
+  try
+    {
+    // Change cursor for this operation
+    QtCursorOverride c(Qt::WaitCursor);
+    IRISWarningList warnings;
+    SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
+    del->Initialize(m_Model->GetDriver());
+    m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
+    }
+  catch(exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Image IO Error",
+                             QString("Failed to load segmentation image %1").arg(file));
     }
 }
 

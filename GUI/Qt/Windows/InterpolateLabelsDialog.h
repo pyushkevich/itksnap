@@ -25,8 +25,6 @@ private slots:
 
   void on_btnClose_clicked();
 
-  void on_interpolationMethod_activated(int index);
-
 private:
   Ui::InterpolateLabelsDialog *ui;
 

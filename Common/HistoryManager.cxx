@@ -76,6 +76,37 @@ void HistoryManager
   model->SetValue(array);
 }
 
+void HistoryManager::PrintHistory(std::ostream &sout)
+{
+  // Print global history
+  sout << "GLOBAL HISTORY" << std::endl;
+  for(HistoryMap::const_iterator it = m_GlobalHistory.begin();
+      it != m_GlobalHistory.end(); ++it)
+    {
+    sout << "  " << it->first << std::endl;
+    HistoryListType hlist = it->second->GetValue();
+    for(HistoryListType::const_iterator hit = hlist.begin();
+        hit != hlist.end(); ++hit)
+      {
+      sout << "    " << *hit << std::endl;
+      }
+    }
+
+  sout << "LOCAL HISTORY" << std::endl;
+  for(HistoryMap::const_iterator it = m_LocalHistory.begin();
+      it != m_LocalHistory.end(); ++it)
+    {
+    sout << "  " << it->first << std::endl;
+    HistoryListType hlist = it->second->GetValue();
+    for(HistoryListType::const_iterator hit = hlist.begin();
+        hit != hlist.end(); ++hit)
+      {
+      sout << "    " << *hit << std::endl;
+      }
+    }
+
+}
+
 void HistoryManager::UpdateHistory(
     const std::string &category,
     const std::string &filename,

@@ -109,6 +109,9 @@ public:
 
   HistoryManager();
 
+  void PrintHistory(std::ostream &sout);
+
+
 protected:
 
   static const unsigned int HISTORY_SIZE_LOCAL, HISTORY_SIZE_GLOBAL;
@@ -127,6 +130,7 @@ protected:
 
   void UpdateHistoryList(
       ConcreteHistoryModel *model, const std::string &file, unsigned int maxsize);
+
 
   // The system interface class
   SystemInterface *m_SystemInterface;

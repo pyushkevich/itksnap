@@ -125,6 +125,7 @@ public slots:
 
   void LoadRecentActionTriggered();
   void LoadRecentOverlayActionTriggered();
+  void LoadRecentSegmentationActionTriggered();
   void LoadRecentProjectActionTriggered();
   void LoadAnotherDicomActionTriggered();
 
@@ -304,6 +305,11 @@ protected:
   virtual void changeEvent(QEvent *);
 
 private:
+
+  void CreateRecentMenu(QMenu *submenu,
+                        const char *history_category,
+                        bool use_global_history,
+                        int max_items, const char *slot);
 
   void UpdateRecentMenu();
   void UpdateWindowTitle();

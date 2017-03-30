@@ -84,7 +84,7 @@
 #include "RandomForestClassifyImageFilter.h"
 #include "LabelUseHistory.h"
 #include "ImageAnnotationData.h"
-
+#include "SegmentationUpdateIterator.h"
 
 
 #include <stdio.h>

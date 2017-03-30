@@ -97,6 +97,7 @@ protected:
 
   // The parent model
   GlobalUIModel *m_Parent;
+
 };
 
 #endif // INTERPOLATELABELMODEL_H

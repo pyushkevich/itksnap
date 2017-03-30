@@ -320,6 +320,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/LayerAssociation.h
   Logic/Framework/LayerAssociation.txx
   Logic/Framework/LayerIterator.h
+  Logic/Framework/SegmentationUpdateIterator.h
   Logic/Framework/SNAPImageData.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx

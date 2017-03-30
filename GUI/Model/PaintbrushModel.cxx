@@ -5,6 +5,7 @@
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "ImageWrapperTraits.h"
+#include "SegmentationUpdateIterator.h"
 
 #include "RLERegionOfInterestImageFilter.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
