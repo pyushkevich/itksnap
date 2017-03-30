@@ -79,13 +79,13 @@ public:
   /** Set the zoom to a fraction of the optimal zoom.  This makes 
    * the most sense when the zoom level is linked, but can be performed 
    * regardless */
-  void SetZoomFactorAllWindows(float factor);
+  void SetZoomFactorAllWindows(double factor);
 
   /** Set the zoom to an absolute value in all windows */
-  void SetZoomLevelAllWindows(float level);
+  void SetZoomLevelAllWindows(double level);
 
   /** Set the zoom to an absolute value in all windows */
-  void SetZoomLevelInLogicalPixelsAllWindows(float level);
+  void SetZoomLevelInLogicalPixelsAllWindows(double level);
 
   /**
     This sets the zoom 'percentage'. For example, if x=1, the zoom is set
@@ -94,13 +94,13 @@ public:
     if your image is isotropic, by setting x=1,2,4, etc., you can avoid
     aliasing the displayed image
     */
-  void SetZoomPercentageInAllWindows(float x);
+  void SetZoomPercentageInAllWindows(double x);
 
   /**
    * This sets zoom percentage, but using logical (Retina) rather than physical
    * pixel units. This keeps behavior the same on Retina and non-retina screens
    */
-  void SetZoomPercentageInLogicalPixelsInAllWindows(float x);
+  void SetZoomPercentageInLogicalPixelsInAllWindows(double x);
 
   /** Reset the zoom in all windows to an optimal value, ie, such a zoom
    * that the image fits into each of the windows.  Depending on whether 
@@ -114,7 +114,7 @@ public:
   void ResetViewToFitInOneWindow(unsigned int window);
 
   /** Update zoom by a specified factor in a window */
-  void ZoomInOrOutInOneWindow(unsigned int window, float factor);
+  void ZoomInOrOutInOneWindow(unsigned int window, double factor);
 
   /** Center the view on the cursor in all slice windows */
   void CenterViewOnCursorInAllWindows();
@@ -122,7 +122,7 @@ public:
   /** When one of the windows wants to change the zoom w.r.t. a user
    * action, this class will adjust, if necessary, the zoom in the other
    * windows */
-  void OnZoomUpdateInWindow(unsigned int window, float zoom);
+  void OnZoomUpdateInWindow(unsigned int window, double zoom);
 
   /** React to a resizing of the windows.  This will try to maintain the current view
    * depending on the state.  If the zooms are in 'reset' state, this will keep
@@ -130,13 +130,13 @@ public:
   void OnWindowResize();
 
   /** Get the common zoom factor */
-  float GetCommonZoomLevel();
+  double GetCommonZoomLevel();
 
   /** Get the common zoom factor - accounting for Retina scaling */
-  float GetCommonZoomLevelInLogicalPixels();
+  double GetCommonZoomLevelInLogicalPixels();
 
   /** Get the zoom factor that will fit all three slices optimally */
-  float GetCommonOptimalFitZoomLevel();
+  double GetCommonOptimalFitZoomLevel();
 
   /** Get the model representing the optimal zoom */
   irisGetMacro(CommonZoomFactorModel, AbstractRangedDoubleProperty*)
@@ -145,13 +145,13 @@ public:
   irisGetMacro(CommonZoomFactorInLogicalPixelsModel, AbstractRangedDoubleProperty*)
 
   /** Constrain a zoom factor to reasonable limits */
-  float ClampZoom(unsigned int window,float zoom);
+  double ClampZoom(unsigned int window, double zoom);
 
   /** Get the range of zoom allowed */
-  void GetZoomRange(unsigned int window, float &minZoom, float &maxZoom);
+  void GetZoomRange(unsigned int window, double &minZoom, double &maxZoom);
 
   /** Get the range of zoom allowed */
-  void GetZoomRangeInLogicalPixels(unsigned int window, float &minZoom, float &maxZoom);
+  void GetZoomRangeInLogicalPixels(unsigned int window, double &minZoom, double &maxZoom);
 
   /** Get the window number n */
   GenericSliceModel *GetSliceModel(unsigned int window)

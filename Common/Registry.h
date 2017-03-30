@@ -456,6 +456,15 @@ public:
     return result;
   }
 
+  /** Test if the folder contains just an empty array */
+  bool IsZeroSizeArray();
+
+  /** Remove all empty folders recursively (folders with no elements) */
+  void CleanEmptyFolders();
+
+  /** Remove all folders that are zero-length arrays */
+  void CleanZeroSizeArrays();
+
   /** An IO exception objects thrown by this class when reading from file*/
   class IOException : public StringType {
   public:

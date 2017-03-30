@@ -2200,6 +2200,10 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
   // Save the annotations in the workspace
   Registry &ann_folder = preg.Folder("Annotations");
   this->m_IRISImageData->GetAnnotations()->SaveAnnotations(ann_folder);
+
+  // Recursively search and delete empty folders
+  preg.CleanZeroSizeArrays();
+  preg.CleanEmptyFolders();
 }
 
 void IRISApplication::SaveProject(const std::string &proj_file)
@@ -2340,6 +2344,10 @@ bool IRISApplication::IsProjectUnsaved()
   // Place the current state of the project into the registry
   Registry reg_current;
   SaveProjectToRegistry(reg_current, m_GlobalState->GetProjectFilename());
+
+  // TODO: delete this!
+  reg_current.WriteToXMLFile("/tmp/current.xml");
+  m_LastSavedProjectState.WriteToXMLFile("/tmp/prior.xml");
 
   // Compare with the last saved state
   return (reg_current != m_LastSavedProjectState);

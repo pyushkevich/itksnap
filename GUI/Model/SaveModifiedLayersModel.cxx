@@ -180,7 +180,7 @@ void SaveModifiedLayersModel::BuildUnsavedItemsList(std::list<ImageWrapperBase *
     // Additional conditions are that either the project has unsaved changes, or one of
     // the items proposed for saving does not have a filename yet (and so saving it would
     // cause a modification to the workspace)
-    if(flag_unnamed_layers | m_ParentModel->GetDriver()->IsProjectUnsaved())
+    if(flag_unnamed_layers || m_ParentModel->GetDriver()->IsProjectUnsaved())
       {
       SmartPtr<WorkspaceSaveableItem> item = WorkspaceSaveableItem::New();
       item->Initialize(this);
