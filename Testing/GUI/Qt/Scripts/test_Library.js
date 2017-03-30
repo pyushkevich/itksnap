@@ -35,7 +35,7 @@ function openWorkspace(name)
   engine.findChild(dialog, "inFilename").text = datadir + "/" + name;
 
   //=== Accepting text
-  dialog.accept();
+  engine.invoke(dialog, "accept");
   engine.sleep(1000);
 }
 

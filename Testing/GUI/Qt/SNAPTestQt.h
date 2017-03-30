@@ -78,6 +78,9 @@ public slots:
   // Find a widget by name globally
   QWidget *findWidget(QString widgetName);
 
+  // Invoke a slot
+  void invoke(QObject *object, QString slot);
+
   // Return the contents of an item in a table
   QVariant tableItemText(QObject *table, int row, int col);
 

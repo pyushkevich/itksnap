@@ -16,6 +16,7 @@
 #include <QMouseEvent>
 #include <QApplication>
 #include <QKeySequence>
+#include <QDir>
 
 
 
@@ -135,6 +136,10 @@ QModelIndex SNAPTestQt::findItem(QObject *container, QVariant text)
   return QModelIndex();
 }
 
+void SNAPTestQt::invoke(QObject *object, QString slot)
+{
+  QMetaObject::invokeMethod(object, slot.toStdString().c_str(), Qt::QueuedConnection);
+}
 
 
 QVariant SNAPTestQt::findItemRow(QObject *container, QVariant text)
@@ -315,11 +320,24 @@ void SNAPTestQt::postKeyEvent(QObject *object, QString key)
     }
 }
 
+
 SNAPTestQt::ReturnCode
 SNAPTestQt::ListTests()
 {
+  QDir script_dir(":/scripts/Scripts");
+  QStringList filters; filters << "test_*.js";
+  script_dir.setNameFilters(filters);
+  QStringList files = script_dir.entryList();
+
+  QRegExp rx("test_(.*).js");
+
   cout << "Available Tests" << endl;
-  cout << "  SnakeThreshQt    : Test segmentation with thresholding option" << endl;
+  foreach(const QString &test, files)
+    {
+    if(rx.indexIn(test) >= 0)
+      cout << "  " << rx.cap(1).toStdString() << endl;
+    }
+
   return SUCCESS;
 }
 
