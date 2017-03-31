@@ -6,7 +6,6 @@ function setCursor(x, y, z)
   engine.findChild(mainwin, "inCursorZ").value = z;
   engine.sleep(200);
 }
-
 function openMainImage(name)
 {
   //=== Opening Dialog
@@ -24,7 +23,6 @@ function openMainImage(name)
   engine.findChild(dialog, "qt_wizard_finish").click();
   engine.sleep(1000);
 }
-
 function openWorkspace(name)
 {
   //=== Opening Dialog
@@ -36,9 +34,8 @@ function openWorkspace(name)
 
   //=== Accepting text
   engine.invoke(dialog, "accept");
-  engine.sleep(1000);
+  engine.sleep(4000);
 }
-
 function enterSnakeMode(pos_x, pos_y, pos_z, size_x, size_y, size_z)
 {
   //=== Entering snake mode
@@ -56,9 +53,8 @@ function enterSnakeMode(pos_x, pos_y, pos_z, size_x, size_y, size_z)
 
   //=== Pushing the Segment3D button
   engine.findChild(roipanel,"btnAuto").click();
-  engine.sleep(1000);
+  engine.sleep(2000);
 }
-
 function enterSnakeModeFullROI()
 {
   //=== Entering snake mode
@@ -71,9 +67,8 @@ function enterSnakeModeFullROI()
 
   //=== Pushing the Segment3D button
   engine.findChild(roipanel,"btnAuto").click();
-  engine.sleep(1000);
+  engine.sleep(2000);
 }
-
 function readVoxelIntensity(layer_row)
 {
   var voxtable = engine.findChild(mainwin, "tableVoxelUnderCursor");
@@ -81,21 +76,17 @@ function readVoxelIntensity(layer_row)
 
   return value;
 }
-
 function setForegroundLabel(label_text)
 {
   var combo = engine.findChild(mainwin,"inForeLabel");
   var index = engine.findItemRow(combo,label_text);
   engine.print("Setting foreground label to " + label_text + " at pos " + index)
   combo.setCurrentIndex(index);
-
 }
-
 function setBackgroundLabel(label_text)
 {
   var combo = engine.findChild(mainwin,"inBackLabel");
   var index = engine.findItemRow(combo,label_text);
   engine.print("Setting background label to " + label_text + " at pos " + index)
   combo.setCurrentIndex(index);
-
 }
