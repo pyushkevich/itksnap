@@ -155,7 +155,7 @@ public:
 protected:
 
   AdaptiveSlicingPipeline();
-  ~AdaptiveSlicingPipeline() {}
+  ~AdaptiveSlicingPipeline();
 
   virtual void VerifyInputInformation() { }
 

@@ -99,6 +99,15 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
 }
 
 template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
+::~AdaptiveSlicingPipeline()
+{
+  // Prevent crash from grafting child filter outputs
+  if(this->GetOutput())
+    this->GetOutput()->SetPixelContainer(NULL);
+}
+
+template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
 void
 AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
 ::MapInputsToSlicers()
