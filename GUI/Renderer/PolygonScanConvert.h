@@ -82,7 +82,7 @@ public:
     unsigned int height = image->GetBufferedRegion().GetSize()[1];
     PolygonScanConvertBase::RasterizeFilled(
       vArray, n, width, height, VGlPixelType, image->GetBufferPointer());
-    delete vArray;
+    delete[] vArray;
     }
 
 private:

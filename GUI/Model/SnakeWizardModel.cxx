@@ -1407,6 +1407,10 @@ void SnakeWizardModel::OnEvolutionPageEnter()
                         "Check that the initialization bubbles are "
                         "present and cover the image region.");
     }
+
+  // Hide the segmentation, because it distracts from the rendering of the
+  // active contour evolution.
+  m_Parent->SetSegmentationVisibility(false);
 }
 
 bool SnakeWizardModel::PerformEvolutionStep()
@@ -1456,6 +1460,9 @@ void SnakeWizardModel::OnEvolutionPageBack()
     }
 
   SetInteractionMode(MODE_BUBBLES);
+
+  // Ensure visibility of the segmentation
+  m_Parent->SetSegmentationVisibility(true);
 }
 
 void SnakeWizardModel::OnEvolutionPageFinish()
@@ -1470,6 +1477,9 @@ void SnakeWizardModel::OnEvolutionPageFinish()
   // Return to IRIS mode
   m_Driver->SetCurrentImageDataToIRIS();
   m_Driver->ReleaseSNAPImageData();
+
+  // Ensure visibility of the segmentation
+  m_Parent->SetSegmentationVisibility(true);
 }
 
 void SnakeWizardModel::OnCancelSegmentation()
@@ -1484,6 +1494,9 @@ void SnakeWizardModel::OnCancelSegmentation()
   // Return to IRIS mode
   m_Driver->SetCurrentImageDataToIRIS();
   m_Driver->ReleaseSNAPImageData();
+
+  // Ensure visibility of the segmentation
+  m_Parent->SetSegmentationVisibility(true);
 }
 
 void SnakeWizardModel::RewindEvolution()

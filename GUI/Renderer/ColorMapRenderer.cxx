@@ -61,7 +61,7 @@ void ColorMapRenderer::paintGL()
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, boxw, boxw, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, boxarr);
-    delete boxarr;
+    delete[] boxarr;
     }
 
   // Draw the background pattern
