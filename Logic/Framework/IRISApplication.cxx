@@ -715,6 +715,8 @@ IRISApplication
     float voxSNAP = itSource.Value();
     if((!invert && voxSNAP <= 0) || (invert && voxSNAP >= 0))
       itTarget.PaintAsForeground();
+    else
+      itTarget.PaintAsBackground();
 
     // Iterate
     ++itSource;
