@@ -1,6 +1,9 @@
 #include "PaintbrushSettingsModel.h"
 #include "GlobalUIModel.h"
 #include "GlobalState.h"
+#include "GlobalPreferencesModel.h"
+#include "DefaultBehaviorSettings.h"
+
 
 PaintbrushSettingsModel::PaintbrushSettingsModel()
 {
@@ -47,6 +50,33 @@ PaintbrushSettingsModel::PaintbrushSettingsModel()
         &Self::SetSmoothingIterationValue);
 }
 
+void PaintbrushSettingsModel::SetParentModel(GlobalUIModel *parent)
+{
+  m_ParentModel = parent;
+
+  // We need to watch for changes to the GlobalState defaults on paintbrush size
+  DefaultBehaviorSettings *dbs =
+      m_ParentModel->GetGlobalState()->GetDefaultBehaviorSettings();
+
+  // For the initial size, we actually need some custom code - to set the brush value to default
+  Rebroadcast(dbs->GetPaintbrushDefaultInitialSizeModel(), ValueChangedEvent(), ModelUpdateEvent());
+
+  // For the maximum size, we just need the size model to be updated, no custom code
+  m_BrushSizeModel->RebroadcastFromSourceProperty(dbs->GetPaintbrushDefaultMaximumSizeModel());
+}
+
+void PaintbrushSettingsModel::OnUpdate()
+{
+  DefaultBehaviorSettings *dbs =
+      m_ParentModel->GetGlobalState()->GetDefaultBehaviorSettings();
+
+  if(m_EventBucket->HasEvent(ValueChangedEvent(), dbs->GetPaintbrushDefaultInitialSizeModel()))
+    {
+    this->SetBrushSizeValue(dbs->GetPaintbrushDefaultInitialSizeModel()->GetValue());
+    }
+}
+
+
 PaintbrushSettingsModel::~PaintbrushSettingsModel()
 {
 }
@@ -62,6 +92,7 @@ void PaintbrushSettingsModel::SetPaintbrushSettings(PaintbrushSettings ps)
   InvokeEvent(ModelUpdateEvent());
 }
 
+
 bool PaintbrushSettingsModel
 ::GetBrushSizeValueAndRange(int &value, NumericValueRange<int> *domain)
 {
@@ -70,7 +101,12 @@ bool PaintbrushSettingsModel
   // Round just in case
   value = (int) (pbs.radius * 2 + 0.5);
   if(domain)
-    domain->Set(1, 40, 1);
+    {
+    int max_size = m_ParentModel->GetGlobalPreferencesModel()
+                   ->GetDefaultBehaviorSettings()->GetPaintbrushDefaultMaximumSize();
+
+    domain->Set(1, max_size, 1);
+    }
   return true;
 }
 

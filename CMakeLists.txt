@@ -55,8 +55,8 @@ endforeach()
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 3)
 SET(SNAP_VERSION_MINOR 6)
-SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_PATCH 2)
+SET(SNAP_VERSION_QUALIFIER "-alpha")
 
 # These fields should also be modified each time
 SET(SNAP_VERSION_RELEASE_DATE "20170401")

@@ -29,4 +29,8 @@ DefaultBehaviorSettings::DefaultBehaviorSettings()
   // Layer layout (uses enum)
   m_OverlayLayoutModel = NewSimpleEnumProperty("OverlayLayout", LAYOUT_STACKED,
                                                SNAPRegistryIO::GetEnumMapLayerLayout());
+
+  // Paintbrush defaults
+  m_PaintbrushDefaultInitialSizeModel = NewRangedProperty("PaintbrushDefaultInitialSize", 8, 1, 10000, 1);
+  m_PaintbrushDefaultMaximumSizeModel = NewRangedProperty("PaintbrushDefaultMaximumSize", 40, 10, 10000, 1);
 }

@@ -15,7 +15,10 @@ public:
   typedef AbstractPropertyModel<PaintbrushMode> AbstractPaintbrushModeModel;
   typedef ConcretePropertyModel<PaintbrushMode> ConcretePaintbrushModeModel;
 
-  irisGetSetMacro(ParentModel, GlobalUIModel *)
+  irisGetMacro(ParentModel, GlobalUIModel *)
+  void SetParentModel(GlobalUIModel *parent);
+
+  virtual void OnUpdate();
 
   irisGetMacro(PaintbrushModeModel, AbstractPaintbrushModeModel *)
 

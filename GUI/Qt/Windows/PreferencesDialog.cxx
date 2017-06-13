@@ -184,6 +184,10 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->inDecimateMaxError, mo->GetDecimateMaximumErrorModel());
   makeCoupling(ui->inDecimateTargetReduction, mo->GetDecimateTargetReductionModel());
   makeCoupling(ui->chkDecimatePreserveTopology, mo->GetDecimatePreserveTopologyModel());
+
+  // Tool page
+  makeCoupling(ui->inPaintBrushMaxSize, dbs->GetPaintbrushDefaultMaximumSizeModel());
+  makeCoupling(ui->inPaintBrushInitSize, dbs->GetPaintbrushDefaultInitialSizeModel());
 }
 
 void PreferencesDialog::ShowDialog()

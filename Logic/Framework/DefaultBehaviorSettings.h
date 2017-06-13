@@ -39,6 +39,10 @@ public:
   // Default layout
   irisSimplePropertyAccessMacro(OverlayLayout, LayerLayout)
 
+  // Defaults for the paintbrush tool
+  irisRangedPropertyAccessMacro(PaintbrushDefaultInitialSize, int)
+  irisRangedPropertyAccessMacro(PaintbrushDefaultMaximumSize, int)
+
 protected:
 
   // Default behaviors
@@ -58,6 +62,10 @@ protected:
 
   typedef ConcretePropertyModel<LayerLayout, TrivialDomain> ConcreteLayerLayoutModel;
   SmartPtr<ConcreteLayerLayoutModel> m_OverlayLayoutModel;
+
+  // Defaults for the paintbrush tool
+  SmartPtr<ConcreteRangedIntProperty> m_PaintbrushDefaultInitialSizeModel;
+  SmartPtr<ConcreteRangedIntProperty> m_PaintbrushDefaultMaximumSizeModel;
 
   // Constructor
   DefaultBehaviorSettings();
