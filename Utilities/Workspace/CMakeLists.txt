@@ -1,0 +1,3 @@
+ADD_EXECUTABLE(itksnap_ws WorkspaceTool.cxx)
+TARGET_LINK_LIBRARIES(itksnap_ws itksnaplogic ${ITK_LIBRARIES})
+
