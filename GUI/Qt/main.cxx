@@ -120,13 +120,6 @@ void itksnap_putenv(const std::string &var, TVal value)
 #include <QTime>
 #include <QMessageBox>
 
-
-
-
-#ifdef SNAP_DEBUG_EVENTS
-bool flag_snap_debug_events = false;
-#endif
-
 void usage(const char *progname)
 {
   // Print usage info and exit
