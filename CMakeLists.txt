@@ -1461,12 +1461,6 @@ ADD_CUSTOM_TARGET(upload_experimental
 #--------------------------------------------------------------------------------
 # ALFABIS utilities (experimental)
 #--------------------------------------------------------------------------------
-OPTION(BUILD_ALFABIS "Generate command-line ALFABIS tools for distributed segmentation" OFF)
-
-IF(BUILD_ALFABIS)
-  ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Alfabis)
-ENDIF(BUILD_ALFABIS)
-
 # Workspace tool is automatically included
 ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
 

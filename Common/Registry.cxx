@@ -308,6 +308,35 @@ Registry
 
 void
 Registry
+::Print(ostream &sout, StringType indent, StringType prefix)
+{
+  // Print the folders
+  for(FolderIterator itf = m_FolderMap.begin(); itf != m_FolderMap.end(); ++itf)
+    {
+    // Write the folder, python-like 
+    sout << prefix << itf->first << ":" << endl;
+
+    // Print the folder contents (recursive, contents prefixed with full path name)
+    itf->second->Print(sout, indent, prefix + indent);
+    }  
+
+  // Print the entries in this folder
+  for(EntryIterator ite = m_EntryMap.begin();ite != m_EntryMap.end(); ++ite)
+    {
+    // Only write the non-null entries
+    if(!ite->second.IsNull())
+      {
+      // Write the key = 
+      sout << prefix << ite->first << " = ";
+
+      // Write the encoded value
+      sout << ite->second.GetInternalString() << endl;
+      }
+    }
+}
+
+void
+Registry
 ::WriteXML(ostream &sout, const StringType &prefix)
 {
   // Write the entries in this folder

@@ -411,6 +411,8 @@ public:
   /** Read from XML file */
   void ReadFromXMLFile(const char *pathname);
 
+  /** Print the registry in a tab-formatted way */
+  void Print(std::ostream &sout, StringType indent = "  ", StringType prefix = "");
 
   /** Experimental */
   void SetFlagAddIfNotFound(bool yesno);

@@ -63,6 +63,8 @@
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkNumericTraits.h"
+#include <itkTimeProbe.h>
+#include "itksys/MD5.h"
 
 #include <itk_zlib.h>
 
@@ -564,31 +566,39 @@ GuidedNativeImageIO
   m_NativeNickname = m_Hints["Nickname"][""];
 }
 
+GuidedNativeImageIO::DispatchBase*
+GuidedNativeImageIO
+::CreateDispatch(itk::ImageIOBase::IOComponentType comp_type)
+{
+  // Based on the component type, read image in native mode
+  switch(comp_type)
+    {
+    case itk::ImageIOBase::UCHAR:  return new Dispatch<unsigned char>();   break;
+    case itk::ImageIOBase::CHAR:   return new Dispatch<char>();            break;
+    case itk::ImageIOBase::USHORT: return new Dispatch<unsigned short>();  break;
+    case itk::ImageIOBase::SHORT:  return new Dispatch<short>();           break;
+    case itk::ImageIOBase::UINT:   return new Dispatch<unsigned int>();    break;
+    case itk::ImageIOBase::INT:    return new Dispatch<int>();             break;
+    case itk::ImageIOBase::ULONG:  return new Dispatch<unsigned long>();   break;
+    case itk::ImageIOBase::LONG:   return new Dispatch<long>();            break;
+    case itk::ImageIOBase::FLOAT:  return new Dispatch<float>();           break;
+    case itk::ImageIOBase::DOUBLE: return new Dispatch<double>();          break;
+    default:
+      throw IRISException("Error: Unsupported voxel type."
+                          "Unsupported voxel type ('%s') encountered in GuidedNativeImageIO",
+                          m_IOBase->GetComponentTypeAsString(
+                            m_IOBase->GetComponentType()).c_str());
+    }
+}
+
 void
 GuidedNativeImageIO
 ::ReadNativeImageData()
 {
-  const char *fname = m_NativeFileName.c_str();
-
   // Based on the component type, read image in native mode
-  switch(m_IOBase->GetComponentType())
-    {
-    case itk::ImageIOBase::UCHAR:  DoReadNative<unsigned char>(fname, m_Hints);  break;
-    case itk::ImageIOBase::CHAR:   DoReadNative<signed char>(fname, m_Hints);    break;
-    case itk::ImageIOBase::USHORT: DoReadNative<unsigned short>(fname, m_Hints); break;
-    case itk::ImageIOBase::SHORT:  DoReadNative<signed short>(fname, m_Hints);   break;
-    case itk::ImageIOBase::UINT:   DoReadNative<unsigned int>(fname, m_Hints);   break;
-    case itk::ImageIOBase::INT:    DoReadNative<signed int>(fname, m_Hints);     break;
-    case itk::ImageIOBase::ULONG:  DoReadNative<unsigned long>(fname, m_Hints);  break;
-    case itk::ImageIOBase::LONG:   DoReadNative<signed long>(fname, m_Hints);    break;
-    case itk::ImageIOBase::FLOAT:  DoReadNative<float>(fname, m_Hints);          break;
-    case itk::ImageIOBase::DOUBLE: DoReadNative<double>(fname, m_Hints);         break;
-    default:
-      throw IRISException("Error: Unsupported voxel type."
-                          "Unsupported voxel type ('%s') when reading raw file.",
-                          m_IOBase->GetComponentTypeAsString(
-                            m_IOBase->GetComponentType()).c_str());
-    }
+  DispatchBase *dispatch = this->CreateDispatch(m_IOBase->GetComponentType());
+  dispatch->ReadNative(this, m_NativeFileName.c_str(), m_Hints);
+  delete dispatch;
 
   // Get rid of the IOBase, it may store useless data (in case of NIFTI)
   m_IOBase = NULL;
@@ -602,7 +612,6 @@ GuidedNativeImageIO
   this->ReadNativeImageData();
 }
 
-#include <itkTimeProbe.h>
 
 template<class TScalar>
 void
@@ -799,23 +808,33 @@ GuidedNativeImageIO
     }
 }
 
-/*
-template<typename TPixel>
-std::string
-GuidedImageIO<TPixel>
-::GetRAICode(ImageType *image, Registry &folder)
+void
+GuidedNativeImageIO
+::SaveNativeImage(const char *FileName, Registry &folder)
 {
-  // See what's stored in the registry
-  std::string rai_registry = folder["Orientation"][""];
-  if(ImageCoordinateGeometry::IsRAICodeValid(rai_registry.c_str()))
-    return rai_registry;
-
-  // Compute the RAI code from the direction cosines
-  return ImageCoordinateGeometry::
-    ConvertDirectionMatrixToClosestRAICode(
-      m_Image->GetDirection().GetVnlMatrix());
+  // Cast image from native format to TPixel
+  DispatchBase *dispatch = this->CreateDispatch(this->GetComponentTypeInNativeImage());
+  dispatch->SaveNative(this, FileName, folder);
+  delete dispatch;
 }
-*/
+
+template<typename TNative>
+void
+GuidedNativeImageIO
+::DoSaveNative(const char *FileName, Registry &folder)
+{
+  // Get the native image pointer
+  ImageBase *native = this->GetNativeImage();
+
+  // Get the native image
+  typedef itk::VectorImage<TNative, 3> InputImageType;
+  typename InputImageType::Pointer input = 
+    reinterpret_cast<InputImageType *>(native);
+  assert(input);
+
+  // Use the Save method
+  this->SaveImage<InputImageType>(FileName, folder, input);
+}
 
 template<typename TImageType>
 void
@@ -837,7 +856,46 @@ GuidedNativeImageIO
 }
 
 
+std::string
+GuidedNativeImageIO
+::GetNativeImageMD5Hash()
+{
+  std::string md5;
 
+  // Cast image from native format to TPixel
+  DispatchBase *dispatch = this->CreateDispatch(this->GetComponentTypeInNativeImage());
+  md5 = dispatch->GetNativeMD5Hash(this);
+  delete dispatch;
+
+  return md5;
+}
+
+template<typename TNative>
+std::string
+GuidedNativeImageIO
+::DoGetNativeMD5Hash()
+{
+  // Get the native image pointer
+  ImageBase *native = this->GetNativeImage();
+
+  // Get the native image
+  typedef itk::VectorImage<TNative, 3> InputImageType;
+  typename InputImageType::Pointer input = 
+    reinterpret_cast<InputImageType *>(native);
+  assert(input);
+
+  char hex_code[33];
+  hex_code[32] = 0;
+  itksysMD5 *md5 = itksysMD5_New();
+  itksysMD5_Initialize(md5);
+  itksysMD5_Append(md5, 
+    (unsigned char *) input->GetBufferPointer(), 
+    input->GetPixelContainer()->Size() * sizeof(TNative));
+  itksysMD5_FinalizeHex(md5, hex_code);
+  itksysMD5_Delete(md5);
+
+  return std::string(hex_code);
+}
 
 
 

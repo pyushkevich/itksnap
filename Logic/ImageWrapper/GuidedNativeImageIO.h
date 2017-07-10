@@ -194,6 +194,20 @@ public:
   bool IsNativeImageLoaded() const
     { return m_NativeImage.IsNotNull(); }
 
+  /** 
+   * Save the native image it its native format (to a different location and
+   * filename, presumably). This function is not meant as part of the normal
+   * ITK-SNAP image IO, but for exporting workspaces. This preserves the native
+   * format of the image, as opposed to "saving as" from ITK-SNAP, which would
+   * involve casting the image to the internal voxel type.
+   */
+  void SaveNativeImage(const char *FileName, Registry &folder);
+
+  /**
+   * Get an MD5 hash string of the native image data
+   */
+  std::string GetNativeImageMD5Hash();
+
   /**
    * Discard the native image. Use this once you've cast the native image to 
    * the format of interest.
@@ -283,6 +297,39 @@ protected:
 
   /** Templated function that reads a scalar image in its native datatype */
   template <typename TScalar> void DoReadNative(const char *fname, Registry &folder);
+
+  /** Templated function that reads a scalar image in its native datatype */
+  template <typename TScalar> void DoSaveNative(const char *fname, Registry &folder);
+
+  /** Templated function that computes an MD5 hash from the stored image */
+  template <typename TScalar> std::string DoGetNativeMD5Hash();
+
+  /** A dispatch class that calls templated functions in the main class. */
+  class DispatchBase {
+  public:
+    virtual void ReadNative(GuidedNativeImageIO *self, const char *fname, Registry &folder) = 0;
+    virtual void SaveNative(GuidedNativeImageIO *self, const char *fname, Registry &folder) = 0;
+    virtual std::string GetNativeMD5Hash(GuidedNativeImageIO *self) = 0;
+    virtual ~DispatchBase() {}
+  };
+
+  template <typename TScalar> class Dispatch : public DispatchBase {
+  public:
+    virtual void ReadNative(GuidedNativeImageIO *self, const char *fname, Registry &folder)
+      { self->DoReadNative<TScalar>(fname, folder); }
+    virtual void SaveNative(GuidedNativeImageIO *self, const char *fname, Registry &folder)
+      { self->DoSaveNative<TScalar>(fname, folder); }
+    virtual std::string GetNativeMD5Hash(GuidedNativeImageIO *self)
+      { return self->DoGetNativeMD5Hash<TScalar>(); }
+  };
+
+  /** 
+   * Get the dispatch class for the currently loaded native image. This avoids having
+   * to have multiple switch statements all over the code - just one switch statement!
+   *
+   * The dispatch should be deleted after it is used.
+   */
+  DispatchBase *CreateDispatch(itk::ImageIOBase::IOComponentType comp_type);
 
   /** 
    This is a vector image in native format. It stores the data read from the
