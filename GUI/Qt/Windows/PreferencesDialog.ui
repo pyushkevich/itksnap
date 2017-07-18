@@ -1364,9 +1364,6 @@ color:white;</string>
          <property name="currentIndex">
           <number>0</number>
          </property>
-         <property name="tabBarAutoHide">
-          <bool>false</bool>
-         </property>
          <widget class="QWidget" name="tabPaintbrush">
           <attribute name="title">
            <string>Paintbrush</string>
