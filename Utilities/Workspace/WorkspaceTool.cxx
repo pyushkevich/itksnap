@@ -35,6 +35,7 @@
 #include <fstream>
 #include <string>
 #include <cstdarg>
+#include <curl/curl.h>
 #include "CommandLineHelper.h"
 #include "Registry.h"
 #include "GuidedNativeImageIO.h"
@@ -59,14 +60,93 @@ int usage(int rc)
   cout << "Tag assignment commands: " << endl;
   cout << "  -add-tag <key> <tag>              : Add a tag to the folder 'key'" << endl;
   cout << "  -add-tag-excl <key> <tag>         : Add a tag that is exclusive to the folder 'key'" << endl;
-  cout << "Distributed segmentation server commands: " << endl;
+  cout << "Distributed segmentation server user commands: " << endl;
   cout << "  -dss-auth <url> [user] [passwd]   : Sign in to the server. This will create a token" << endl;
   cout << "                                      that may be used in future -dss calls" << endl;
   cout << "  -dss-services-list                : List all available segmentation services" << endl;
   cout << "  -dss-tickets-create <service>     : Create a new ticket using current workspace" << endl;
   cout << "  -dss-tickets-list                 : List all of your tickets" << endl;
+  cout << "Distributed segmentation server provider commands: " << endl;
+  cout << "  -dssp-services-list               : List all the services you are listed as provider for" << endl;
+  cout << "  -dssp-services-claim <svc> <code> : Claim the next available ticket for given service." << endl;
+  cout << "                                      The code is any string (e.g. to tell apart nodes)" << endl;
+  cout << "  -dssp-tickets-get <id> <dir>      : Download the files for claimed ticket id to dir" << endl;
+  cout << "  -dssp-tickets-progress <id> <val> : Set the progress for ticket to val" << endl;
   return rc;
 }
+
+/**
+ * CSV parser
+ */
+class CSVParser
+{
+public:
+  /** Parse the contents of a CSV encoded string with quote escapes */
+  void Parse(const std::string &str)
+    {
+    m_Data.clear();
+    m_Columns = 0;
+
+    istringstream iss(str);
+    string line, word;
+    while(getline(iss, line))
+      {
+      int iCol = 0;
+
+      bool in_quoted = false;
+      for(int k = 0; k < line.length(); k++)
+        {
+        // Get the next character
+        char c = line[k];
+
+        // If the character is a quote, it either starts/ends a quote or is 
+        // an escaped quite character
+        if(c == '"')
+          {
+          if(k+1 < line.length() && line[k+1] == '"')
+            {
+            // This is just an escaped quote, treat it like a normal character
+            ++k;
+            }
+          else
+            {
+            // Toggle the in_quoted state and continue to the next character
+            in_quoted = !in_quoted;
+            continue;
+            }
+          }
+
+        else if((c == ',' && !in_quoted) || c == '\n' || c == '\r')
+          {
+          // This is the end of a field
+          m_Data.push_back(word);
+          word = string();
+          iCol++;
+          continue;
+          }
+
+        // Normal character
+        word.push_back(c);
+        }
+
+      // Update the column count
+      if(m_Columns < iCol)
+        m_Columns = iCol;
+      }
+    }
+
+  int GetNumberOfColumns() const
+    { return m_Columns; }
+
+  const vector<string> &GetParsedStrings()  const
+    { return m_Data; }
+
+protected:
+
+  int m_Columns;
+  vector<string> m_Data;
+
+};
 
 /**
  * A helper class for formatting tables. You just specify the number of columns
@@ -76,44 +156,157 @@ int usage(int rc)
 class FormattedTable
 {
 public:
-  FormattedTable(int n_col, bool header)
-    : m_Width(n_col, 0), m_Columns(n_col), m_Header(header), m_CurrentColumn(0) {}
+  /** 
+   * Construct the table with a predefined number of columns
+   */
+  FormattedTable(int n_col)
+    {
+    m_Columns = n_col;
+    m_Width.resize(n_col, 0);
+    m_RowEnded = true;
+    }
+
+  /**
+   * Construct the table without a predefined number of columns. Instead
+   * the table will be constructed using calls to EndRow()
+   */
+  FormattedTable()
+    {
+    m_Columns = 0;
+    m_RowEnded = true;
+    }
 
   template <class TAtomic> FormattedTable& operator << (const TAtomic &datum)
     {
+    // Convert the datum to a string and measure its length
     ostringstream oss;
     oss << datum;
     int w = oss.str().length();
-    if(m_Width[m_CurrentColumn] < w)
-      m_Width[m_CurrentColumn] = w;
-    m_Data.push_back(oss.str());
-    m_CurrentColumn = (m_CurrentColumn + 1) % m_Columns;
+
+    // We need to add a new row in two cases: there is currently no row, or the
+    // current row has been filled to m_Columns
+    if(m_RowEnded)
+      {
+      m_Data.push_back(RowType());
+      if(m_Columns > 0)
+        m_Data.back().reserve(m_Columns);
+      m_RowEnded = false;
+      }
+
+    // Now we have a row to add to that is guaranteed to be under m_Columns
+    m_Data.back().push_back(oss.str());
+
+    // If the number of columns is fixed, then call EndRow() automatically
+    if(m_Columns > 0 && m_Data.back().size() >= m_Columns)
+      m_RowEnded = true;
+
+    // Now update the column width information
+    if(m_Width.size() < m_Data.back().size())
+      m_Width.push_back(w);
+    else
+      m_Width[m_Data.back().size() - 1] = std::max(w, m_Width[m_Data.back().size() - 1]);
+
     return *this;
     }
 
-  void Print(ostream &os)
+  void EndRow() 
+    {
+    m_RowEnded = true;
+    }
+
+  void Print(ostream &os) const
     {
     int iCol = 0;
-    for(list<string>::const_iterator it = m_Data.begin(); it != m_Data.end(); ++it)
+    for(int iRow = 0; iRow < m_Data.size(); iRow++)
       {
-      if(iCol == 0)
-        os << left;
+      const RowType &row = m_Data[iRow];
+      os << left;
+      for(int iCol = 0; iCol < row.size(); iCol++)
+        {
+        os << setw(m_Width[iCol] + 2) << row[iCol];
+        }
+      os << endl;
+      }
+    }
 
-      os << setw(m_Width[iCol] + 2) << *it;
+  int Rows() const { return m_Data.size(); }
 
-      iCol = (iCol + 1) % m_Columns;
+  int Columns() const{ return m_Width.size(); }
 
-      if(iCol == 0 || it == m_Data.end())
-        os << endl;
+  const std::string &operator() (int iRow, int iCol) const { return m_Data[iRow][iCol]; }
+
+  /** Parse the contents of a CSV encoded string with quote escapes */
+  void ParseCSV(const std::string &str)
+    {
+    istringstream iss(str);
+    string line, word;
+    while(getline(iss, line))
+      {
+      bool in_quoted = false;
+      for(int k = 0; k < line.length(); k++)
+        {
+        // Get the next character
+        char c = line[k];
+
+        // If the character is a quote, it either starts/ends a quote or is 
+        // an escaped quite character
+        if(c == '"')
+          {
+          if(k+1 < line.length() && line[k+1] == '"')
+            {
+            // This is just an escaped quote, treat it like a normal character
+            ++k;
+            }
+          else
+            {
+            // Toggle the in_quoted state and continue to the next character
+            in_quoted = !in_quoted;
+            continue;
+            }
+          }
+
+        else if((c == ',' && !in_quoted) || c == '\n' || c == '\r')
+          {
+          // This is the end of a field
+          (*this) << word;
+          word.clear();
+
+          // Endrow
+          if(c != ',' && m_Columns == 0)
+            EndRow();
+
+          continue;
+          }
+
+        // Normal character
+        word.push_back(c);
+        }
       }
     }
 
 protected:
-  list<string> m_Data;
+  typedef vector<string> RowType;
+  typedef vector<RowType> TableType;
+
+  // The data in the table
+  TableType m_Data;
+
+  // The string width measurements in the table
   vector<int> m_Width;
-  int m_Columns, m_CurrentColumn;
-  bool m_Header;
+
+  // The number of columns (may change dynamically)
+  int m_Columns;
+
+  // Was row just ended
+  bool m_RowEnded;
 };
+
+/*
+{
+  ft.Print(oss);
+  return oss;
+}*/
+
 
 /**
  * This class encapsulates an ITK-SNAP workspace. It is just a wrapper around 
@@ -246,7 +439,7 @@ public:
     int n_layers = this->GetNumberOfLayers();
 
     // Use a formatted table
-    FormattedTable table(5, true);
+    FormattedTable table(5);
 
     // Print the header information
     table << "Layer" << "Role" << "Nickname" << "Filename" << "Tags";
@@ -362,7 +555,6 @@ protected:
 
 };
 
-#include <curl/curl.h>
 
 
 /**
@@ -378,6 +570,7 @@ public:
     m_Curl = curl_easy_init();
     m_UploadMessageBuffer[0] = 0;
     m_MessageBuffer[0] = 0; 
+    m_OutputFile = NULL;
     }
 
   ~RESTClient()
@@ -388,6 +581,16 @@ public:
   void SetVerbose(bool verbose)
     {
     curl_easy_setopt(m_Curl, CURLOPT_VERBOSE, (long) verbose);
+    }
+
+  /** 
+   * Set a FILE * to which to write the output of the Get/Post. This overrides
+   * the default behaviour to capture the output in a string that can be accessed
+   * with GetOutput(). This is useful for downloading binary files
+   */
+  void SetOutputFile(FILE *outfile)
+    {
+    m_OutputFile = outfile;
     }
 
   /**
@@ -482,8 +685,18 @@ public:
 
     // Capture output
     m_Output.clear();
-    curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
-    curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
+
+    // If there is no output file, use the default callbacl
+    if(!m_OutputFile)
+      {
+      curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
+      curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
+      }
+    else
+      {
+      curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteToFileCallback);
+      curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, m_OutputFile);
+      }
 
     // Make request
     CURLcode res = curl_easy_perform(m_Curl);
@@ -586,6 +799,15 @@ public:
     return m_Output.c_str();
     }
 
+  std::string GetFormattedCSVOutput(bool header)
+    {
+    FormattedTable ft;
+    ft.ParseCSV(m_Output);
+    ostringstream oss;
+    ft.Print(oss);
+    return oss.str();
+    }
+
   const char *GetResponseText()
     {
     sprintf(m_MessageBuffer, "Response %ld, Text: %s", m_HTTPCode, m_Output.c_str());
@@ -601,6 +823,9 @@ protected:
 
   /** The CURL handle */
   CURL *m_Curl;
+
+  /** Optional file for output */
+  FILE *m_OutputFile;
 
   /** Output stream */
   string m_Output;
@@ -661,6 +886,12 @@ protected:
     string *buffer = static_cast<string *>(userp);
     buffer->append((char *) contents, size * nmemb);
     return size * nmemb;
+    }
+
+  static size_t WriteToFileCallback(void *contents, size_t size, size_t nmemb, void *userp)
+    {
+    FILE *file = static_cast<FILE *>(userp);
+    return fwrite(contents, size, nmemb, file);
     }
 
   static void dump(const char *text,
@@ -894,6 +1125,48 @@ void CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
   
 }
 
+void DownloadTicketFiles(int ticket_id, const char *outdir)
+{
+  // First off, get the list of all files for this ticket
+  RESTClient rc;
+  if(!rc.Get("api/pro/tickets/%d/files", ticket_id))
+    throw IRISException("Failed to get list of files for ticket %d (%s)", 
+      ticket_id, rc.GetResponseText());
+
+  // The output is in the form of a CSV, easiest to just parse it
+  FormattedTable ft;
+  ft.ParseCSV(rc.GetOutput());
+
+  // Are there any files?
+  if(ft.Rows() == 0 || ft.Columns() < 2)
+    throw IRISException("Empty or invalid list of files for ticket %d", ticket_id);
+
+  // Create the output directory
+  if(!itksys::SystemTools::MakeDirectory(outdir))
+    throw IRISException("Unable to create output directory %s", outdir);
+
+  // Iterate over the dictionary
+  for(int iFile = 0; iFile < ft.Rows(); iFile++)
+    {
+    // Where we will write this file to
+    int file_index = atoi(ft(iFile,0).c_str());
+    string file_name = ft(iFile, 1);
+    string file_path = itksys::SystemTools::CollapseFullPath(file_name.c_str(), outdir);
+
+    // Create a file handle
+    cout << "file_path = " << file_path << endl;
+    FILE *fout = fopen(file_path.c_str(), "wb");
+    rc.SetOutputFile(fout);
+
+    if(!rc.Get("api/pro/tickets/%d/files/%d", ticket_id, file_index))
+      throw IRISException("Failed to download file %s for ticket %d (%s)", 
+        file_name.c_str(), ticket_id, rc.GetResponseText());
+
+    rc.SetOutputFile(NULL);
+    fclose(fout);
+    }
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -965,7 +1238,7 @@ int main(int argc, char *argv[])
         {
         RESTClient rc;
         if(rc.Get("api/services"))
-          cout << rc.GetOutput();
+          cout << rc.GetFormattedCSVOutput(false);
         else
           throw IRISException("Error listing services: %s", rc.GetResponseText());
         }
@@ -978,9 +1251,34 @@ int main(int argc, char *argv[])
         {
         RESTClient rc;
         if(rc.Get("api/tickets"))
-          cout << rc.GetOutput();
+          cout << rc.GetFormattedCSVOutput(false);
         else
           throw IRISException("Error listing tickets: %s", rc.GetResponseText());
+        }
+      else if(arg == "-dssp-services-list")
+        {
+        RESTClient rc;
+        if(rc.Get("api/pro/services"))
+          cout << rc.GetFormattedCSVOutput(false);
+        else
+          throw IRISException("Error listing services: %s", rc.GetResponseText());
+        }
+      else if(arg == "-dssp-services-claim")
+        {
+        string service_name = cl.read_string();
+        string provider_code = cl.read_string();
+        RESTClient rc;
+        if(rc.Post("api/pro/services/%s/claims","code=%s",service_name.c_str(),provider_code.c_str()))
+          cout << rc.GetOutput() << endl;
+        else
+          throw IRISException("Error claiming ticket for service %s: %s", service_name.c_str(), rc.GetResponseText());
+        }
+      else if(arg == "-dssp-tickets-download")
+        {
+        int ticket_id = cl.read_integer();
+        string output_path = cl.read_string();
+        DownloadTicketFiles(ticket_id, output_path.c_str());
+
         }
       }
     catch(IRISException &exc)
