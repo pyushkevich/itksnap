@@ -41,9 +41,11 @@
 #include "GuidedNativeImageIO.h"
 #include "itksys/MD5.h"
 #include "itksys/Directory.hxx"
+#include "itksys/RegularExpression.hxx"
 #include "IRISException.h"
 
 using namespace std;
+using namespace itksys;
 
 int usage(int rc) 
 {
@@ -52,26 +54,65 @@ int usage(int rc)
   cout << "  itksnap_ws [commands]" << endl;
   cout << "I/O commands: " << endl;
   cout << "  -i <workspace>                    : Read workspace file" << endl;
-  cout << "  -a <outfile.zip>                  : Package workspace into an archive" << endl;
+  cout << "  -o <workspace>                    : Write workspace file (without touching external images)" << endl;
+  cout << "  -a <outfile.zip>                  : Package workspace into an archive (copy external images)" << endl;
+  cout << "  -p <prefix>                       : Set the output prefix for the next command only" << endl;
+  cout << "  -P                                : No printing of prefix for output commands" << endl;
   cout << "Informational commands: " << endl;
   cout << "  -dump                             : Dump workspace in human-readable format" << endl;
   cout << "  -get <key>                        : Get the value of a specified key" << endl;
-  cout << "  -list-layers                      : List all the layers in the workspace" << endl;
-  cout << "Tag assignment commands: " << endl;
-  cout << "  -add-tag <key> <tag>              : Add a tag to the folder 'key'" << endl;
-  cout << "  -add-tag-excl <key> <tag>         : Add a tag that is exclusive to the folder 'key'" << endl;
+  cout << "Commands for adding/setting/select image layers: " << endl;
+  cout << "  -layers-add <file>                : Add an image with specified nickname as next layer" << endl;
+  cout << "  -layers-set-main <file>           : Set the main image" << endl;
+  cout << "  -layers-set-seg <file>            : Set the segmentation image" << endl;
+  cout << "  -layers-list                      : List all the layers in the workspace" << endl;
+  cout << "  -layers-list-files <tag>          : List just the files associated with a specified tag" << endl;
+  cout << "  -layers-pick <layer_id>           : Pick image layer for subsequent prop commands" << endl;
+  cout << "  -layers-pick-by-tag <tag>         : Pick layer by tag, error if more than one has tag" << endl;
+  cout << "Commands for modifying picked layer properties:" << endl;
+  cout << "  -props-get-filename               : Print the filename of the picked layer" << endl;
+  cout << "  -props-set-nickname <name>        : Set the nickname of the selected layer" << endl;
+  cout << "  -props-set-colormap <preset>      : Set colormap to a given system preset" << endl;
+  cout << "  -props-set-contrast <map_spec>    : Set the contrast mapping specification" << endl;
+  cout << "  -props-set-sticky <on|off>        : Set the stickiness of the layer" << endl;
+  cout << "  -props-set-alpha <value>          : Set the alpha (transparency) of the layer" << endl;
+  cout << "Tag assignment commands (apply to picked layer/object): " << endl;
+  cout << "  -tags-add <tag>                   : Add a tag to the picked object" << endl;
+  cout << "  -tags-add-excl <tag>              : Add a tag that is exclusive to the object" << endl;
+  cout << "  -tags-del <tag>                   : Remove tag from the object" << endl;
   cout << "Distributed segmentation server user commands: " << endl;
   cout << "  -dss-auth <url> [user] [passwd]   : Sign in to the server. This will create a token" << endl;
   cout << "                                      that may be used in future -dss calls" << endl;
   cout << "  -dss-services-list                : List all available segmentation services" << endl;
   cout << "  -dss-tickets-create <service>     : Create a new ticket using current workspace" << endl;
   cout << "  -dss-tickets-list                 : List all of your tickets" << endl;
+  cout << "  -dss-tickets-log <id>             : Get the error/warning/info log for ticket 'id'" << endl;
+  cout << "  -dss-tickets-progress <id>        : Get the total progress for ticket 'id'" << endl;
   cout << "Distributed segmentation server provider commands: " << endl;
   cout << "  -dssp-services-list               : List all the services you are listed as provider for" << endl;
   cout << "  -dssp-services-claim <svc> <code> : Claim the next available ticket for given service." << endl;
   cout << "                                      The code is any string (e.g. to tell apart nodes)" << endl;
-  cout << "  -dssp-tickets-get <id> <dir>      : Download the files for claimed ticket id to dir" << endl;
-  cout << "  -dssp-tickets-progress <id> <val> : Set the progress for ticket to val" << endl;
+  cout << "  -dssp-tickets-download <id> <dir> : Download the files for claimed ticket id to dir" << endl;
+  cout << "  -dssp-tickets-fail <id> <msg>     : Mark the ticket as failed with provided message" << endl;
+  cout << "  -dssp-tickets-set-progress ...      " << endl;
+  cout << "      <id> <start> <end> <value>    : Set progress for ticket 'id'. Progress is specified as" << endl;
+  cout << "                                      chunk start, chunk end, and progress within chunk (all in [0 1])" << endl;
+  cout << "  -dssp-tickets-log ...               " << endl;
+  cout << "      <id> <type> <msg>             : Add a log message for ticket 'id'. Type is info|warning|error" << endl;
+  cout << "  -dssp-tickets-log-attach ...        " << endl;
+  cout << "      <desc> <file> [mimetype]      : Attach a file to subsequent -dssp-tickets-log command. The command" << endl;
+  cout << "                                      may be repeated multiple times to add multiple attachments" << endl;
+  cout << "Specifying Layer IDs:" << endl;
+  cout << "  ###                               : Selects any layer by number (e.g., 003)" << endl;
+  cout << "  M|main                            : Selects the main layer " << endl;
+  cout << "  S|seg                             : Selects the segmentation layer " << endl;
+  cout << "  <O|overlay>:N                     : Selects N-th overlay layer (N may be -1 for last)" << endl;
+  cout << "  <A|anat>:N                        : Selects N-th anatomical (main|overlay) layer" << endl;
+  cout << "Contrast Mapping Specification:" << endl;
+  cout << "  LINEAR N1 N2                      : Linear contrast between specified numbers" << endl;
+  cout << "  AUTO                              : Automatic, as determined by ITK-SNAP" << endl;
+  cout << "  DEFAULT                           : Default state, linear from 0 to 1" << endl;
+  cout << "  CURVE N t1 y1 ... tN yN           : Fully specified curve with N points" << endl; 
   return rc;
 }
 
@@ -214,13 +255,13 @@ public:
     m_RowEnded = true;
     }
 
-  void Print(ostream &os) const
+  void Print(ostream &os, const string &prefix = "") const
     {
     int iCol = 0;
     for(int iRow = 0; iRow < m_Data.size(); iRow++)
       {
       const RowType &row = m_Data[iRow];
-      os << left;
+      os << prefix << left;
       for(int iCol = 0; iCol < row.size(); iCol++)
         {
         os << setw(m_Width[iCol] + 2) << row[iCol];
@@ -326,10 +367,10 @@ public:
     m_Registry.ReadFromXMLFile(proj_file);
 
     // Get the full name of the project file
-    m_WorkspaceFilePath = itksys::SystemTools::CollapseFullPath(proj_file);
+    m_WorkspaceFilePath = SystemTools::CollapseFullPath(proj_file);
 
     // Get the directory in which the project will be saved
-    m_WorkspaceFileDir = itksys::SystemTools::GetParentDirectory(m_WorkspaceFilePath);
+    m_WorkspaceFileDir = SystemTools::GetParentDirectory(m_WorkspaceFilePath);
 
     // Read the location where the file was saved initially
     m_WorkspaceSavedDir = m_Registry["SaveLocation"][""];
@@ -351,10 +392,10 @@ public:
   void SaveAsXMLFile(const char *proj_file)
     {
     // Get the full name of the project file
-    string proj_file_full = itksys::SystemTools::CollapseFullPath(proj_file);
+    string proj_file_full = SystemTools::CollapseFullPath(proj_file);
 
     // Get the directory in which the project will be saved
-    string project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
+    string project_dir = SystemTools::GetParentDirectory(proj_file_full.c_str());
 
     // Update the save location
     m_Registry["SaveLocation"] << project_dir;
@@ -394,6 +435,25 @@ public:
     }
 
   /**
+   * Check if the provided key specifies a valid layer - a valid layer is specified
+   * as "Layers.Layer[xxx]" and contains an absolute filename and a role as the minimum
+   * required entries
+   */
+  bool IsKeyValidLayer(const string &key)
+    {
+    RegularExpression re("Layers.Layer\\[[0-9]+\\]");
+    if(!re.find(key))
+      return false;
+
+    if(!m_Registry.HasFolder(key))
+      return false;
+
+    Registry &folder = m_Registry.Folder(key);
+    
+    return folder.HasEntry("AbsolutePath") && folder.HasEntry("Role");
+    }
+
+  /**
    * Find a physical file corresponding to a file referenced by the project, accouting
    * for the possibility that the project may have been moved or copied
    */
@@ -405,13 +465,13 @@ public:
     // If the project has moved, try finding a relative location
     if(m_Moved)
       {
-      string relative_path = itksys::SystemTools::RelativePath(
+      string relative_path = SystemTools::RelativePath(
             m_WorkspaceSavedDir.c_str(), layer_file_full.c_str());
 
-      string moved_file_full = itksys::SystemTools::CollapseFullPath(
+      string moved_file_full = SystemTools::CollapseFullPath(
             relative_path.c_str(), m_WorkspaceFileDir.c_str());
 
-      if(itksys::SystemTools::FileExists(moved_file_full.c_str(), true))
+      if(SystemTools::FileExists(moved_file_full.c_str(), true))
         layer_file_full = moved_file_full;
       }
 
@@ -433,7 +493,7 @@ public:
     return io_hints;
     }
 
-  void PrintLayerList(std::ostream &os)
+  void PrintLayerList(std::ostream &os, const string &line_prefix = "")
     {
     // Iterate over all the layers stored in the workspace
     int n_layers = this->GetNumberOfLayers();
@@ -447,8 +507,8 @@ public:
     // Load all of the layers in the current project
     for(int i = 0; i < n_layers; i++)
       {
-      // Get the folder corresponding to the layer
-      Registry &f_layer = this->GetLayerFolder(i);
+      // Copy the folder corresponding to the layer - to avoid modifying the original
+      Registry f_layer = this->GetLayerFolder(i);
 
       // Get the role 
       string role = f_layer["Role"][""];
@@ -467,17 +527,44 @@ public:
         << f_layer["Tags"][""];
       }
 
-    table.Print(os);
+    table.Print(os, line_prefix);
+    }
+
+  /** List all layer files associated with a tag */
+  void ListLayerFilesForTag(const string &tag, ostream &sout, const string &prefix)
+    {
+    // Iterate over all the layers stored in the workspace
+    int n_layers = this->GetNumberOfLayers();
+
+    // Load all of the layers in the current project
+    for(int i = 0; i < n_layers; i++)
+      {
+      // Copy the folder corresponding to the layer - to avoid modifying the original
+      Registry &f_layer = this->GetLayerFolder(i);
+
+      // Get the tags for this folder
+      set<string> tags = this->GetTags(f_layer);
+
+      // Find the tag
+      if(tags.find(tag) != tags.end())
+        {
+        // Print the filename of this layer
+        sout << prefix << this->GetLayerActualPath(f_layer) << endl;
+        }
+      }
     }
 
   /** Get a list of tags from a particular folder */
   set<string> GetTags(Registry &folder)
     {
-    istringstream iss(folder["Tags"][""]);
-    string tag;
     set<string> tagset;
-    while(getline(iss,tag,','))
-      tagset.insert(tag);
+    if(folder.HasEntry("Tags"))
+      {
+      istringstream iss(folder["Tags"][""]);
+      string tag;
+      while(getline(iss,tag,','))
+        tagset.insert(tag);
+      }
 
     return tagset;
     }
@@ -528,11 +615,262 @@ public:
       this->RemoveTag(folder, tag);
     }
 
+  /**
+   * Recursive tag search
+   */
+  void FindTag(Registry &folder, const string &tag, list<string> &found_keys, const string &prefix)
+    {
+    // Go over all subfolders of the given folder, recursively
+    Registry::StringListType keys;
+    folder.GetFolderKeys(keys);
+    for(Registry::StringListType::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      this->FindTag(folder.Folder(*it), tag, found_keys, (prefix.length() ? prefix + "." + *it : *it));
+
+    // Do we have a tag entry
+    if(folder.HasEntry("Tags"))
+      {
+      set<string> tags = this->GetTags(folder);
+      if(tags.find(tag) != tags.end())
+        {
+        found_keys.push_back(prefix);
+        }
+      }
+    }
+
+  /** 
+   * Find a folder for a given tag. This will crash if the tag is missing or 
+   * if more than one object has the given tag
+   */
+  string FindFolderForUniqueTag(const string &tag)
+    {
+    list<string> found_keys;
+    this->FindTag(m_Registry, tag, found_keys, "");
+    if(found_keys.size() == 0)
+      throw IRISException("No folders with tag %s found in the workspace", tag.c_str());
+    else if(found_keys.size() > 1)
+      throw IRISException("Multiple folders with tag %s found in the workspace", tag.c_str());
+
+    return found_keys.back();
+    }
+
+  /**
+   * Find layer by role. If pos_in_role is negative, this looks from
+   * the end for that role
+   */
+  string FindLayerByRole(const string &role, int pos_in_role)
+    {
+    // Iterate over all the layers stored in the workspace
+    int n_layers = this->GetNumberOfLayers();
+
+    // Direction in which we traverse the layers
+    int start = (pos_in_role >= 0) ? 0 : n_layers - 1;
+    int end = (pos_in_role >= 0) ? n_layers : 0;
+    int step = (pos_in_role >= 0) ? 1 : -1;
+
+    // The role counter - how many have we seen for the specified role
+    int role_count = (pos_in_role >= 0) ? 0 : 1;
+
+    // Load all of the layers in the current project
+    for(int i = start; i != end; i += step)
+      {
+      // Get the folder corresponding to the layer
+      Registry &f_layer = this->GetLayerFolder(i);
+
+      // Is this the correct role?
+      string l_role = f_layer["Role"][""];
+      if(l_role == role
+        || (role == "AnatomicalRole" && (l_role == "MainRole" || l_role == "OverlayRole")) 
+        || (role == "AnyRole"))
+        {
+        if(role_count == abs(pos_in_role))
+          return Registry::Key("Layers.Layer[%03d]", i);
+        else
+          role_count++;
+        }
+      }
+
+    // We got to the end and have not found this role. That's a problem. We will
+    // return an empty string
+    return string();
+    }
+
+  /** 
+   * Translate a shorthand layer specifier to a folder ID. Will throw an exception if
+   * the layer specifier cannot be found or is out of range
+   */
+  string LayerSpecToKey(const string &layer_spec)
+    {
+    // Basic pattern (001)
+    RegularExpression reNum("^([0-9]+)$");
+
+    // String:Number pattern (A:-2)
+    RegularExpression reStrNum("^([a-zA-Z]+):(-*[0-9]+)$");
+
+    // Test for the numerical pattern
+    if(reNum.find(layer_spec.c_str()))
+      {
+      int layer_index = atoi(reNum.match(1).c_str());
+      string key = Registry::Key("Layers.Layer[%03d]", layer_index);
+      if(m_Registry.HasFolder(key))
+        return key;
+      }
+
+    // Test for 'main' or 'M'
+    else if(layer_spec == "M" || layer_spec == "m" || layer_spec == "main")
+      {
+      string key = this->FindLayerByRole("MainRole", 0);
+      if(key.length() && m_Registry.HasFolder(key))
+        return key;
+      }
+
+    // Test for 'seg' or 'S'
+    else if(layer_spec == "S" || layer_spec == "s" || layer_spec == "seg")
+      {
+      string key = this->FindLayerByRole("SegmentationRole", 0);
+      if(key.length() && m_Registry.HasFolder(key))
+        return key;
+      }
+
+    // Test for 'overlay' or 'O'
+    else if(reStrNum.find(layer_spec.c_str()))
+      {
+      string str_spec = reStrNum.match(1);
+      int index = atoi(reStrNum.match(2).c_str());
+      if(str_spec == "A" || str_spec == "a" || str_spec == "anat")
+        {
+        string key = this->FindLayerByRole("AnatomicalRole", index);
+        if(key.length() && m_Registry.HasFolder(key))
+          return key;
+        }
+      else if(str_spec == "O" || str_spec == "o" || str_spec == "overlay")
+        {
+        string key = this->FindLayerByRole("OverlayRole", index);
+        if(key.length() && m_Registry.HasFolder(key))
+          return key;
+        }
+      }
+
+    throw IRISException("Layer specification %s not found in workspace", layer_spec.c_str());
+    }
+
+  /** Add a layer to the workspace in a given role */
+  string AddLayer(string role, const string &filename)
+    {
+    // Validity checks
+
+    // May not have another layer in the main role
+    if((role == "MainRole" || role == "SegmentationRole") && this->FindLayerByRole(role, 0).length() > 0)
+        throw IRISException("A workspace cannot have more than one image in the %s role", role.c_str());
+
+    // Interpret the anatomical role
+    if(role == "AnatomicalRole")
+      role = this->FindLayerByRole("MainRole", 0).length() > 0 ? "OverlayRole" : "MainRole";
+
+    // May not add anything until the main image has been added
+    if(role != "MainRole" && this->FindLayerByRole("MainRole", 0).length() == 0)
+      throw IRISException("Cannot add image in %s role to a workspace without main image", role.c_str());
+
+    // Append a bare-bones folder
+    string key = Registry::Key("Layers.Layer[%03d]", this->GetNumberOfLayers());
+
+    // Create a folder for this key
+    Registry &folder = m_Registry.Folder(key);
+
+    // Add the filename and role
+    folder["AbsolutePath"] << filename;
+    folder["Role"] << role;
+
+    return key;
+    }
+
+  /** Assign a layer to a specific role (main/seg) */
+  string SetLayer(string role, const string &filename)
+    {
+    string key = this->FindLayerByRole(role, 0);
+
+    // If this role does not already exist, we use the 'Add' functionality
+    if(key.length() == 0)
+      this->AddLayer(role, filename);
+
+    // Otherwise, we trash the old folder associated with this role
+    Registry &folder = m_Registry.Folder(key);
+    folder.Clear();
+
+    // Add the filename and role
+    folder["AbsolutePath"] << filename;
+    folder["Role"] << role;
+
+    // Return the key
+    return key;
+    }
+
+  /** Write a control point sequence to the folder for a contrast mapping */
+  void WriteLayerContrastToRegistry(Registry &folder, int n, double *tarray, double *yarray)
+    {
+    folder.Clear();
+    folder["NumberOfControlPoints"] << n;
+    for(int i = 0; i < n; i++)
+      {
+      Registry &sub = folder.Folder(Registry::Key("ControlPoint[%d]",i));
+      sub["tValue"] << tarray[i];
+      sub["xValue"] << yarray[i];
+      }
+    }
+
+  /** Set some property of the layer */
+  template <class T>
+  void SetLayerProperty(const string &layer_key, const string &prop_key, const T& value)
+    {
+    if(!layer_key.length() || !m_Registry.HasFolder(layer_key))
+      throw IRISException("Layer folder %s does not exist", layer_key.c_str());
+
+    m_Registry.Folder(layer_key)[prop_key] << value;
+    }
+
+  /** Set layer nickname */
+  void SetLayerNickname(const string &layer_key, const string &value)
+    {
+    this->SetLayerProperty(layer_key, "LayerMetaData.CustomNickName", value);
+    }
+
+  /** Set layer nickname */
+  void SetLayerColormapPreset(const string &layer_key, const string &value)
+    {
+    this->SetLayerProperty(layer_key, "LayerMetaData.DisplayMapping.ColorMap.Preset", value);
+    }
+
+  /** Set the contrast mapping for the selected layer */
+  void SetLayerContrastToLinear(const string &layer_key, double t0, double t1)
+    {
+    if(!layer_key.length() || !m_Registry.HasFolder(layer_key))
+      throw IRISException("Layer folder %s does not exist", layer_key.c_str());
+
+    // Get the folder containing the curve
+    Registry &layer_folder = m_Registry.Folder(layer_key);
+    Registry &contrast_folder = layer_folder.Folder("LayerMetaData.DisplayMapping.Curve");
+    contrast_folder.Clear();
+
+    // Set up the control points
+    double tarray[3], yarray[3];
+    tarray[0] = t0;               yarray[0] = 0.0;
+    tarray[1] = (t1 + t0) / 2.0;  yarray[1] = 0.5;
+    tarray[2] = t1;               yarray[2] = 1.0;
+
+    // Write to the folder
+    this->WriteLayerContrastToRegistry(contrast_folder, 3, tarray, yarray);
+    }
+
   /** Get the project registry by reference */
   const Registry &GetRegistry() const { return m_Registry; }
 
   /** Get the project registry by reference */
   Registry &GetRegistry() { return m_Registry; }
+
+  /** Get a folder within the registry - this is just a helper */
+  Registry &GetFolder(const string &key) { return m_Registry.Folder(key); }
+
+  /** Get a folder within the registry - this is just a helper */
+  bool HasFolder(const string &key) { return m_Registry.HasFolder(key); }
 
   /** Get the absolute path to the directory where the project was loaded from */
   string GetWorkspaceActualDirectory()  const { return m_WorkspaceFileDir; }
@@ -712,14 +1050,14 @@ public:
     return m_HTTPCode == 200L;
     }
 
-  bool UploadFile(const char *rel_url, const char *filename, ...)
+  bool UploadFile(const char *rel_url, const char *filename, 
+    std::map<string,string> extra_fields, ...)
     {
     // Expand the URL
     va_list args;
-    va_start(args, filename);
+    va_start(args, extra_fields);
     char url_buffer[4096];
     vsprintf(url_buffer, rel_url, args);
-    va_end(args);
 
     // The URL to post to
     string url = this->GetServerURL() + "/" + url_buffer;
@@ -730,8 +1068,8 @@ public:
     curl_easy_setopt(m_Curl, CURLOPT_COOKIEFILE, cookie_jar.c_str());
 
     // Get the full path and just the name from the filename
-    string fn_full_path = itksys::SystemTools::CollapseFullPath(filename);
-    string fn_name = itksys::SystemTools::GetFilenameName(filename);
+    string fn_full_path = SystemTools::CollapseFullPath(filename);
+    string fn_name = SystemTools::GetFilenameName(filename);
 
     // Use the multi-part (-F) commands
     struct curl_httppost *formpost=NULL;
@@ -756,6 +1094,22 @@ public:
       CURLFORM_COPYNAME, "submit",
       CURLFORM_COPYCONTENTS, "send",
       CURLFORM_END);
+
+    /* Add the extra form fields */
+    for(std::map<string,string>::const_iterator it = extra_fields.begin();
+      it != extra_fields.end(); ++it)
+      {
+      char post_buffer[4096];
+      vsprintf(post_buffer, it->second.c_str(), args);
+
+      curl_formadd(&formpost, &lastptr,
+        CURLFORM_COPYNAME, it->first.c_str(),
+        CURLFORM_COPYCONTENTS, post_buffer,
+        CURLFORM_END);
+      }
+
+    // Done expanding args
+    va_end(args);
 
     /* initialize custom header list (stating that Expect: 100-continue is not wanted */ 
     headerlist = curl_slist_append(headerlist, buf);
@@ -843,28 +1197,28 @@ protected:
     {
     // Compute the platform-independent home directory
     vector<string> split_path;
-    itksys::SystemTools::SplitPath("~/.alfabis",split_path,true);
-    string ddir = itksys::SystemTools::JoinPath(split_path);
-    itksys::SystemTools::MakeDirectory(ddir.c_str());
+    SystemTools::SplitPath("~/.alfabis",split_path,true);
+    string ddir = SystemTools::JoinPath(split_path);
+    SystemTools::MakeDirectory(ddir.c_str());
     return ddir;
     }
 
   string GetCookieFile() 
     {
     string cfile = this->GetDataDirectory() + "/cookie.jar";
-    return itksys::SystemTools::ConvertToOutputPath(cfile);
+    return SystemTools::ConvertToOutputPath(cfile);
     }
 
   string GetServerURLFile()
     {
     string sfile = this->GetDataDirectory() + "/server";
-    return itksys::SystemTools::ConvertToOutputPath(sfile);
+    return SystemTools::ConvertToOutputPath(sfile);
     }
 
   string GetServerURL()
     {
     string sfile = this->GetServerURLFile();
-    if(!itksys::SystemTools::FileExists(sfile))
+    if(!SystemTools::FileExists(sfile))
       throw IRISException("A server has not been configured yet - please sign in");
     try
       {
@@ -1003,7 +1357,7 @@ void ExportWorkspace(const Workspace &ws, const char *new_workspace)
   Workspace wsexp = ws;
 
   // Get the directory where the new workspace will go
-  string wsdir = itksys::SystemTools::GetParentDirectory(new_workspace);
+  string wsdir = SystemTools::GetParentDirectory(new_workspace);
 
   // Iterate over all the layers stored in the workspace
   int n_layers = wsexp.GetNumberOfLayers();
@@ -1018,13 +1372,15 @@ void ExportWorkspace(const Workspace &ws, const char *new_workspace)
     string fn_layer = wsexp.GetLayerActualPath(f_layer);
 
     // The IO hints for the file
-    Registry *io_hints = wsexp.GetLayerIOHints(f_layer);
+    Registry io_hints, *layer_io_hints;
+    if((layer_io_hints = wsexp.GetLayerIOHints(f_layer)))
+      io_hints.Update(*layer_io_hints);
 
     // Create a native image IO object for this image
     SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
     // Load the header of the image and the image data
-    io->ReadNativeImage(fn_layer.c_str(), *io_hints);
+    io->ReadNativeImage(fn_layer.c_str(), io_hints);
 
     // Compute the hash of the image data to generate filename
     std::string image_md5 = io->GetNativeImageMD5Hash();
@@ -1076,7 +1432,7 @@ string GetTempDirName()
 /**
  * Export a workspace to a temporary directory and use it to create a new ticket
  */
-void CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
+int CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
 {
   // Create a new ticket
   RESTClient rc;
@@ -1089,7 +1445,7 @@ void CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
 
   // Create temporary directory for the export
   string tempdir = GetTempDirName();
-  itksys::SystemTools::MakeDirectory(tempdir);
+  SystemTools::MakeDirectory(tempdir);
 
   // Export the workspace file to the temporary directory
   char ws_fname_buffer[4096];
@@ -1099,16 +1455,18 @@ void CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
   cout << "Exported workspace to " << ws_fname_buffer << endl;
 
   // For each of the files in the directory upload it
-  itksys::Directory dir;
+  Directory dir;
   dir.Load(tempdir);
   for(int i = 0; i < dir.GetNumberOfFiles(); i++)
     {
     RESTClient rcu;
     const char *thisfile = dir.GetFile(i);
-    string file_full_path = itksys::SystemTools::CollapseFullPath(thisfile, dir.GetPath());
-    if(!itksys::SystemTools::FileIsDirectory(file_full_path))
+    string file_full_path = SystemTools::CollapseFullPath(thisfile, dir.GetPath());
+    if(!SystemTools::FileIsDirectory(file_full_path))
       {
-      if(!rcu.UploadFile("api/tickets/%d/files", file_full_path.c_str(), ticket_id))
+      // TODO: this is disgraceful!
+      std::map<string, string> empty_map;
+      if(!rcu.UploadFile("api/tickets/%d/files", file_full_path.c_str(), empty_map, ticket_id))
         throw IRISException("Failed up upload file %s (%s)", file_full_path.c_str(), rcu.GetResponseText());
 
       cout << "Upload " << thisfile << " (" << rcu.GetUploadStatistics() << ")" << endl;
@@ -1122,11 +1480,15 @@ void CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
     throw IRISException("Failed to mark ticket as ready (%s)", rc.GetResponseText());
 
   cout << "Changed ticket status to (" << rc.GetOutput() << ")" << endl;
-  
+
+  return ticket_id;
 }
 
-void DownloadTicketFiles(int ticket_id, const char *outdir)
+string DownloadTicketFiles(int ticket_id, const char *outdir)
 {
+  // Output string
+  ostringstream oss;
+
   // First off, get the list of all files for this ticket
   RESTClient rc;
   if(!rc.Get("api/pro/tickets/%d/files", ticket_id))
@@ -1142,7 +1504,7 @@ void DownloadTicketFiles(int ticket_id, const char *outdir)
     throw IRISException("Empty or invalid list of files for ticket %d", ticket_id);
 
   // Create the output directory
-  if(!itksys::SystemTools::MakeDirectory(outdir))
+  if(!SystemTools::MakeDirectory(outdir))
     throw IRISException("Unable to create output directory %s", outdir);
 
   // Iterate over the dictionary
@@ -1151,10 +1513,9 @@ void DownloadTicketFiles(int ticket_id, const char *outdir)
     // Where we will write this file to
     int file_index = atoi(ft(iFile,0).c_str());
     string file_name = ft(iFile, 1);
-    string file_path = itksys::SystemTools::CollapseFullPath(file_name.c_str(), outdir);
+    string file_path = SystemTools::CollapseFullPath(file_name.c_str(), outdir);
 
     // Create a file handle
-    cout << "file_path = " << file_path << endl;
     FILE *fout = fopen(file_path.c_str(), "wb");
     rc.SetOutputFile(fout);
 
@@ -1164,7 +1525,63 @@ void DownloadTicketFiles(int ticket_id, const char *outdir)
 
     rc.SetOutputFile(NULL);
     fclose(fout);
+
+    oss << file_path << endl;
     }
+
+  return oss.str();
+}
+
+void PostLogMessage(int ticket_id, string category, string message,
+  std::list< std::map <string, string> > attachments)
+{
+  RESTClient rc;
+  
+  // If there are no attachments, then this is a simple post
+  if(attachments.size() == 0)
+    {
+    if(!rc.Post("api/pro/tickets/%d/%s","message=%s",
+        ticket_id, category.c_str(), message.c_str()))
+      throw IRISException("Error posting message on ticket %d: %s", 
+        ticket_id, rc.GetResponseText());
+    return;
+    }
+  
+  // Create the log message and leave it open
+  if(!rc.Post("api/pro/tickets/%d/%s","message=%s&open=1",
+      ticket_id, category.c_str(), message.c_str()))
+    throw IRISException("Error opening log entry on ticket %d: %s", 
+      ticket_id, rc.GetResponseText());
+
+  // Get the log index
+  int log_id = atoi(rc.GetOutput());
+
+  // Upload each of the attachments
+  for(std::list< std::map <string, string> >::iterator it = attachments.begin();
+    it != attachments.end(); it++)
+    {
+    RESTClient rcu;
+    std::map<string, string> extra_param;
+    extra_param["desc"] = (*it)["desc"];
+    if( (*it).find("mime") != (*it).end())
+      extra_param["mime_type"] = (*it)["mime"];
+    if(!rcu.UploadFile("api/pro/tickets/logs/%d/attachments", 
+        (*it)["file"].c_str(), extra_param, log_id))
+      throw IRISException("Error uploading attachment %s on ticket %d: %s", 
+        ticket_id, (*it)["file"].c_str(), rcu.GetResponseText());
+    }
+
+  // Change the status of the log message to closed
+  if(!rc.Post("api/pro/tickets/logs/%d/status","status=closed", log_id))
+    throw IRISException("Error closing log entry on ticket %d", ticket_id);
+}
+
+void print_string_with_prefix(ostream &sout, const string &text, const string &prefix)
+{
+  istringstream iss(text);
+  string line, word;
+  while(getline(iss, line))
+    sout << prefix << line << endl;
 }
 
 
@@ -1177,53 +1594,185 @@ int main(int argc, char *argv[])
   // Command line parsing helper
   CommandLineHelper cl(argc, argv);
 
-  // Workspace object
+  // Current workspace object
   Workspace ws;
+
+  // Currently selected layer folder
+  string layer_folder;
+
+  // Index of the currently executed command
+  int cmd_index = 1;
+
+  // Whether printing of prefix has been disabled
+  bool prefix_disabled = false;
+
+  // Temporary prefix - only useful for a single command
+  string temp_prefix;
+
+  // The command index for which the temporary prefix should be used
+  int temp_prefix_cmd_index = -1;
+
+  // Log attachment list
+  typedef std::map<string, string> AttachmentData;
+  typedef std::list<AttachmentData> AttachmentList;
+  AttachmentList log_attach;
 
   // Parse the commands in order
   while(!cl.is_at_end())
     {
+    // Come up with a default prefix for the current command
+    string prefix = (cmd_index == temp_prefix_cmd_index) ? temp_prefix : 
+      (prefix_disabled ? "" : Registry::Key("%d> ", cmd_index));
+
+    // The argument
+    string arg;
+
     try 
       {
       // Read the next command
-      std::string arg = cl.read_command();
+      arg = cl.read_command();
 
       // Handle the various commands
+      
+      // Read a workspace
       if(arg == "-i")
         {
         ws.ReadFromXMLFile(cl.read_existing_filename().c_str());
         }
+
+      else if(arg == "-o")
+        {
+        ws.SaveAsXMLFile(cl.read_output_filename().c_str());
+        }
+
+      // Archive the current workspace build
       else if(arg == "-a")
         {
         // Create an archive
         ExportWorkspace(ws, cl.read_output_filename().c_str());
         }
+
+      // Prefix
+      else if(arg == "-p" || arg == "-prefix")
+        {
+        temp_prefix = cl.read_string();
+        temp_prefix_cmd_index = cmd_index + 1;
+        }
+
+      // Disable prefix printing
+      else if(arg == "-P")
+        {
+        prefix_disabled = true;
+        }
+
+      // Dump the workspace contents
       else if(arg == "-dump")
         {
-        ws.GetRegistry().Print(cout);
+        ws.GetRegistry().Print(cout, "  ", prefix);
         }
-      else if(arg == "-list-layers")
+
+      // List all layers
+      else if(arg == "-layers-list" || arg == "-ll")
         {
-        ws.PrintLayerList(cout);
+        ws.PrintLayerList(cout, prefix);
         }
-      else if(arg == "-add-tag")
+
+      // List the files associated with a specific tag
+      else if(arg == "-layers-list-files" || arg == "-llf")
         {
-        string key = cl.read_string();
+        ws.ListLayerFilesForTag(cl.read_string(), cout, prefix);
+        }
+
+      // Select a layer - the selected layer is target for various property commands
+      else if(arg == "-layers-pick" || arg == "-lp")
+        {
+        string layer_id = cl.read_string();
+        layer_folder = ws.LayerSpecToKey(layer_id.c_str());
+        cout << "INFO: picked layer " << layer_folder << endl;
+        }
+
+      else if(arg == "-layers-pick-by-tag" || arg == "-lpt" || arg == "-lpbt")
+        {
         string tag = cl.read_string();
-        ws.AddTag(ws.GetRegistry().Folder(key), tag);
+        layer_folder = ws.FindFolderForUniqueTag(tag);
+        if(!ws.IsKeyValidLayer(layer_folder))
+          throw IRISException("Folder %s with tag %s does not contain a valid layer", layer_folder.c_str(), tag.c_str());
+        cout << "INFO: picked layer " << layer_folder << endl;
         }
-      else if(arg == "-add-tag-excl")
+
+      // Add a layer - the layer will be added in the anatomical role (because this
+      // is the only role that is currently supported)
+      else if(arg == "-layers-add" || arg == "-la")
         {
-        string key = cl.read_string();
+        string filename = cl.read_existing_filename();
+        string key = ws.AddLayer("AnatomicalRole", filename.c_str());
+        layer_folder = key;
+        cout << "INFO: picked layer " << layer_folder << endl;
+        }
+
+      // Set the main layer
+      else if(arg == "-layers-set-main" || arg == "-ls-main" || arg == "-lsm")
+        {
+        string filename = cl.read_existing_filename();
+        string key = ws.SetLayer("MainRole", filename.c_str());
+        layer_folder = key;
+        cout << "INFO: picked layer " << layer_folder << endl;
+        }
+
+      // Set the main layer
+      else if(arg == "-layers-set-seg" || arg == "-ls-seg" || arg == "-lss")
+        {
+        string filename = cl.read_existing_filename();
+        string key = ws.SetLayer("SegmentationRole", filename.c_str());
+        layer_folder = key;
+        cout << "INFO: picked layer " << layer_folder << endl;
+        }
+
+      else if(arg == "-props-get-filename" || arg == "-pgf")
+        {
+        if(!ws.IsKeyValidLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
+
+        cout << prefix << ws.GetLayerActualPath(ws.GetFolder(layer_folder)) << endl;
+        }
+
+      // Set layer properties
+      else if(arg == "-props-set-nickname" || arg == "-psn")
+        {
+        ws.SetLayerNickname(layer_folder, cl.read_string());
+        }
+
+      else if(arg == "-props-set-colormap")
+        {
+        ws.SetLayerColormapPreset(layer_folder, cl.read_string());
+        }
+
+      else if(arg == "-props-set-contrast")
+        {
+        string mode = cl.read_string();
+        if(mode == "LINEAR" || mode == "L")
+          {
+          double t0 = cl.read_double();
+          double t1 = cl.read_double();
+          ws.SetLayerContrastToLinear(layer_folder, t0, t1);
+          }
+        }
+
+      else if(arg == "-tags-add" || arg == "-ta")
+        {
+        string tag = cl.read_string();
+        ws.AddTag(ws.GetRegistry().Folder(layer_folder), tag);
+        }
+      else if(arg == "-tags-add-exclusive" || arg == "-tax")
+        {
         string tag = cl.read_string();
         ws.ScrubTag(ws.GetRegistry(), tag);
-        ws.AddTag(ws.GetRegistry().Folder(key), tag);
+        ws.AddTag(ws.GetRegistry().Folder(layer_folder), tag);
         }
-      else if(arg == "-delete-tag")
+      else if(arg == "-tags-delete" || arg == "-td")
         {
-        string key = cl.read_string();
         string tag = cl.read_string();
-        ws.RemoveTag(ws.GetRegistry().Folder(key), tag);
+        ws.RemoveTag(ws.GetRegistry().Folder(layer_folder), tag);
         }
       else if(arg == "-dss-auth")
         {
@@ -1238,28 +1787,84 @@ int main(int argc, char *argv[])
         {
         RESTClient rc;
         if(rc.Get("api/services"))
-          cout << rc.GetFormattedCSVOutput(false);
+          print_string_with_prefix(cout, rc.GetFormattedCSVOutput(false), prefix);
         else
           throw IRISException("Error listing services: %s", rc.GetResponseText());
         }
       else if(arg == "-dss-tickets-create" || arg == "-dss-ticket-create")
         {
         string service_name = cl.read_string();
-        CreateWorkspaceTicket(ws, service_name.c_str());
+        int ticket_id = CreateWorkspaceTicket(ws, service_name.c_str());
+        cout << prefix << ticket_id << endl;
         }
-      else if(arg == "-dss-tickets-list")
+      else if(arg == "-dss-tickets-list" || arg == "-dtl")
         {
         RESTClient rc;
         if(rc.Get("api/tickets"))
-          cout << rc.GetFormattedCSVOutput(false);
+          print_string_with_prefix(cout, rc.GetFormattedCSVOutput(false), prefix);
         else
           throw IRISException("Error listing tickets: %s", rc.GetResponseText());
+        }
+      else if(arg == "-dss-tickets-log" || arg == "-dt-log")
+        {
+        int ticket_id = cl.read_integer();
+        RESTClient rc;
+        if(rc.Get("api/tickets/%d/log", ticket_id))
+          print_string_with_prefix(cout, rc.GetFormattedCSVOutput(false), prefix);
+        else
+          throw IRISException("Error getting log for ticket %d: %s", ticket_id, rc.GetResponseText());
+        }
+      else if(arg == "-dss-tickets-progress")
+        {
+        int ticket_id = cl.read_integer();
+        RESTClient rc;
+        if(rc.Get("api/tickets/%d/progress", ticket_id))
+          cout << prefix << rc.GetOutput() << endl;
+        else
+          throw IRISException("Error getting progress for ticket %d: %s", ticket_id, rc.GetResponseText());
+        }
+      else if(arg == "-dss-tickets-wait")
+        {
+        // Takes a ticket ID and timeout in seconds
+        int ticket_id = cl.read_integer();
+        int timeout = cl.read_integer();
+
+        // Loop
+        int tnow = 0;
+        RESTClient rc;
+        while(tnow < timeout)
+          {
+          // Read the progress 
+          if(!rc.Get("api/tickets/%d/progress", ticket_id))
+            throw IRISException("Error getting progress for ticket %d: %s", ticket_id, rc.GetResponseText());
+          string p_string = rc.GetOutput();
+          double p = atof(p_string.c_str());
+
+          // Read the status
+          if(!rc.Get("api/tickets/%d/status", ticket_id))
+            throw IRISException("Error getting status for ticket %d: %s", ticket_id, rc.GetResponseText());
+          string status = rc.GetOutput();
+
+          // If the status is not 'claimed', we are done
+          if(status != "claimed")
+            {
+            cout << "\n" << status << endl;
+            break;
+            }
+
+          // Print the progress
+          cout << 100 * p << endl;
+
+          // Wait
+          sleep(5);
+          tnow += 5;
+          }
         }
       else if(arg == "-dssp-services-list")
         {
         RESTClient rc;
         if(rc.Get("api/pro/services"))
-          cout << rc.GetFormattedCSVOutput(false);
+          print_string_with_prefix(cout, rc.GetFormattedCSVOutput(false), prefix);
         else
           throw IRISException("Error listing services: %s", rc.GetResponseText());
         }
@@ -1269,7 +1874,7 @@ int main(int argc, char *argv[])
         string provider_code = cl.read_string();
         RESTClient rc;
         if(rc.Post("api/pro/services/%s/claims","code=%s",service_name.c_str(),provider_code.c_str()))
-          cout << rc.GetOutput() << endl;
+          cout << prefix << rc.GetOutput() << endl;
         else
           throw IRISException("Error claiming ticket for service %s: %s", service_name.c_str(), rc.GetResponseText());
         }
@@ -1277,20 +1882,72 @@ int main(int argc, char *argv[])
         {
         int ticket_id = cl.read_integer();
         string output_path = cl.read_string();
-        DownloadTicketFiles(ticket_id, output_path.c_str());
-
+        string file_list = DownloadTicketFiles(ticket_id, output_path.c_str());
+        print_string_with_prefix(cout, file_list, prefix);
         }
+      else if(arg == "-dssp-tickets-fail")
+        {
+        int ticket_id = cl.read_integer();
+        string message = cl.read_string();
+
+        // Set the status of the ticket
+        PostLogMessage(ticket_id, "error", message, log_attach);
+
+        // Change the status of the ticket to failed
+        RESTClient rc;
+        if (rc.Post("api/pro/tickets/%d/status","status=failed", ticket_id))
+          {
+          cout << prefix << rc.GetOutput() << endl;
+          }
+        else
+          throw IRISException("Error marking ticket %d as failed: %s", ticket_id, rc.GetResponseText());
+        }
+      else if(arg == "-dssp-tickets-set-progress")
+        {
+        int ticket_id = cl.read_integer();
+        RESTClient rc;
+        if(rc.Post("api/pro/tickets/%d/progress","chunk_start=%f&chunk_end=%f&progress=%f", 
+          ticket_id, cl.read_double(), cl.read_double(), cl.read_double()))
+          cout << rc.GetOutput() << endl;
+        else
+          throw IRISException("Error setting progress for ticket %d: %s", ticket_id, rc.GetResponseText());
+        }
+      else if(arg == "-dssp-tickets-log-attach")
+        {
+        AttachmentData attach_data;
+        attach_data["desc"] = cl.read_string();
+        attach_data["file"] = cl.read_existing_filename();
+        attach_data["mime"] = (cl.command_arg_count() > 2) ? cl.read_string() : "";
+        log_attach.push_back(attach_data);
+        }
+      else if(arg == "-dssp-tickets-log")
+        {
+        // Read the command line parameters
+        int ticket_id = cl.read_integer();
+        string category = cl.read_string();
+        string message = cl.read_string();
+
+        // Post the log message
+        PostLogMessage(ticket_id, category, message, log_attach);
+        log_attach.clear();
+        }
+      else
+        throw IRISException("Unknown command %s", arg.c_str());
       }
     catch(IRISException &exc)
       {
-      cerr << "ITK-SNAP exception: " << exc.what() << endl;
+      cerr << "ITK-SNAP exception for command " << arg << " : " << exc.what() << endl;
       return -1;
       }
     catch(std::exception &sexc)
       {
-      cerr << "System exception: " << sexc.what() << endl;
+      cerr << "System exception for command " << arg << " : " << sexc.what() << endl;
+      return -1;
       }
+
+    // Increment the command index
+    cmd_index++;
     }
 
-
+  return 0;
 }

@@ -368,10 +368,10 @@ public:
   int GetFolderKeys(StringListType &keyList);
 
   /** Check if an entry with the given key exists */
-  bool HasEntry(const StringType &key);
+  bool HasEntry(const StringType &key) const;
 
   /** Check if a subfolder with the given key exists */
-  bool HasFolder(const StringType &key);
+  bool HasFolder(const StringType &key) const;
 
   /** Find a value in a folder or return "" */
   StringType FindValue(const StringType& value);
