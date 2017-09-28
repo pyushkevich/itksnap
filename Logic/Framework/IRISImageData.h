@@ -54,16 +54,16 @@ public:
    * We override the parent's SetSegmentationImage in order to initialize the
    * undo wrapper to match.
    */
-  void SetSegmentationImage(LabelImageType *newLabelImage);
+  void SetSegmentationImage(LabelImageType *newLabelImage) ITK_OVERRIDE;
 
   /**
    * We override the parent's ResetSegmentationImage in order to initialize the
    * undo wrapper to match.
    */
-  void ResetSegmentationImage();
+  void ResetSegmentationImage() ITK_OVERRIDE;
 
 
-  virtual void UnloadMainImage();
+  virtual void UnloadMainImage() ITK_OVERRIDE;
 
 protected:
 

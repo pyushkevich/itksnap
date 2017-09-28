@@ -97,11 +97,11 @@ public:
     /** Allocate the image memory. The size of the image must
     * already be set, e.g. by calling SetRegions().
     * Pixel values are initialized using default constructor. */
-    virtual void Allocate(bool initialize = false);
+    virtual void Allocate(bool initialize = false) ITK_OVERRIDE;
 
     /** Restore the data object to its initial state. This means releasing
     * memory. */
-    virtual void Initialize()
+    virtual void Initialize() ITK_OVERRIDE
     {
         // Call the superclass which should initialize the BufferedRegion ivar.
         Superclass::Initialize();
@@ -113,19 +113,19 @@ public:
     * first. */
     void FillBuffer(const TPixel & value);
 
-    virtual void SetLargestPossibleRegion(const RegionType & region)
+    virtual void SetLargestPossibleRegion(const RegionType & region) ITK_OVERRIDE
     {
         Superclass::SetLargestPossibleRegion(region);
         myBuffer->SetLargestPossibleRegion(truncateRegion(region));
     }
 
-    virtual void SetBufferedRegion(const RegionType & region)
+    virtual void SetBufferedRegion(const RegionType & region) ITK_OVERRIDE
     {
         Superclass::SetBufferedRegion(region);
         myBuffer->SetBufferedRegion(truncateRegion(region));
     }
 
-    virtual void SetRequestedRegion(const RegionType & region)
+    virtual void SetRequestedRegion(const RegionType & region) ITK_OVERRIDE
     {
         Superclass::SetRequestedRegion(region);
         myBuffer->SetRequestedRegion(truncateRegion(region));
@@ -163,7 +163,7 @@ public:
         return this->GetPixel(index);
     }
 
-    virtual unsigned int GetNumberOfComponentsPerPixel() const
+    virtual unsigned int GetNumberOfComponentsPerPixel() const ITK_OVERRIDE
     {
         // use the GetLength() method which works with variable length arrays,
         // to make it work with as much pixel types as possible
@@ -218,7 +218,7 @@ protected:
         m_OnTheFlyCleanup = true;
         myBuffer = BufferType::New();
     }
-    void PrintSelf(std::ostream & os, itk::Indent indent) const;
+    void PrintSelf(std::ostream & os, itk::Indent indent) const ITK_OVERRIDE;
 
     virtual ~RLEImage() {}
 
@@ -227,7 +227,7 @@ protected:
     * overloaded in derived classes in order to provide backward compatibility
     * behavior in classes that did not used to take image orientation into
     * account.  */
-    virtual void ComputeIndexToPhysicalPointMatrices()
+    virtual void ComputeIndexToPhysicalPointMatrices() ITK_OVERRIDE
     {
         this->Superclass::ComputeIndexToPhysicalPointMatrices();
     }

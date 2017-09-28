@@ -16,7 +16,7 @@ public:
   irisITKObjectMacro(SnakeModeRenderer, SliceRendererDelegate)
   irisGetSetMacro(Model, SnakeWizardModel *)
 
-  void paintGL();
+  void paintGL() ITK_OVERRIDE;
 
 protected:
 

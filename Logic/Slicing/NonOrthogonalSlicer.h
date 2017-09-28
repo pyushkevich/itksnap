@@ -160,13 +160,13 @@ protected:
   /** The traits class */
 
   virtual void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                                    itk::ThreadIdType threadId);
+                                    itk::ThreadIdType threadId) ITK_OVERRIDE;
 
-  virtual void VerifyInputInformation() { }
+  virtual void VerifyInputInformation() ITK_OVERRIDE { }
 
-  virtual void GenerateOutputInformation();
+  virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
-  virtual void GenerateInputRequestedRegion();
+  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
 private:
 

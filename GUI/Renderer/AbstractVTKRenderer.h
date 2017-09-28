@@ -30,9 +30,9 @@ public:
     NO_INTERACTION = 0, TRACKBALL_CAMERA, TRACKBALL_ACTOR, PICKER
   };
 
-  virtual void paintGL();
-  virtual void resizeGL(int w, int h, int device_pixel_ratio);
-  virtual void initializeGL();
+  virtual void paintGL() ITK_OVERRIDE;
+  virtual void resizeGL(int w, int h, int device_pixel_ratio) ITK_OVERRIDE;
+  virtual void initializeGL() ITK_OVERRIDE;
 
   vtkRenderWindow *GetRenderWindow();
   vtkRenderWindowInteractor *GetRenderWindowInteractor();

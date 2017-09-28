@@ -43,6 +43,7 @@
 #include "itksys/Directory.hxx"
 #include "itksys/RegularExpression.hxx"
 #include "IRISException.h"
+#include "ColorLabelTable.h"
 
 using namespace std;
 using namespace itksys;
@@ -55,7 +56,7 @@ int usage(int rc)
   cout << "I/O commands: " << endl;
   cout << "  -i <workspace>                    : Read workspace file" << endl;
   cout << "  -o <workspace>                    : Write workspace file (without touching external images)" << endl;
-  cout << "  -a <outfile.zip>                  : Package workspace into an archive (copy external images)" << endl;
+  cout << "  -a <dest_dir>                     : Package workspace into uploadable archive in dest_dir" << endl;
   cout << "  -p <prefix>                       : Set the output prefix for the next command only" << endl;
   cout << "  -P                                : No printing of prefix for output commands" << endl;
   cout << "Informational commands: " << endl;
@@ -80,6 +81,8 @@ int usage(int rc)
   cout << "  -tags-add <tag>                   : Add a tag to the picked object" << endl;
   cout << "  -tags-add-excl <tag>              : Add a tag that is exclusive to the object" << endl;
   cout << "  -tags-del <tag>                   : Remove tag from the object" << endl;
+  cout << "Segmentation label commands" << endl;
+  cout << "  -labels-set <labelfile>           : Read the labels from the labelfile specified" << endl;
   cout << "Distributed segmentation server user commands: " << endl;
   cout << "  -dss-auth <url> [user] [passwd]   : Sign in to the server. This will create a token" << endl;
   cout << "                                      that may be used in future -dss calls" << endl;
@@ -88,20 +91,23 @@ int usage(int rc)
   cout << "  -dss-tickets-list                 : List all of your tickets" << endl;
   cout << "  -dss-tickets-log <id>             : Get the error/warning/info log for ticket 'id'" << endl;
   cout << "  -dss-tickets-progress <id>        : Get the total progress for ticket 'id'" << endl;
+  cout << "  -dss-tickets-wait <id>            : Wait for the ticket 'id' to complete" << endl;
   cout << "Distributed segmentation server provider commands: " << endl;
   cout << "  -dssp-services-list               : List all the services you are listed as provider for" << endl;
-  cout << "  -dssp-services-claim <svc> <code> : Claim the next available ticket for given service." << endl;
-  cout << "                                      The code is any string (e.g. to tell apart nodes)" << endl;
+  cout << "  -dssp-services-claim <service> <instance_id> [timeout]" << endl;
+  cout << "                                    : Claim the next available ticket for given service." << endl;
+  cout << "                                      'instance_id' is a unique identifier for this service instance" << endl;
+  cout << "                                      if 'timeout' specified, command will halt until a ticket " << endl;
+  cout << "                                      can be claimed or 'timeout' seconds pass." << endl;
   cout << "  -dssp-tickets-download <id> <dir> : Download the files for claimed ticket id to dir" << endl;
   cout << "  -dssp-tickets-fail <id> <msg>     : Mark the ticket as failed with provided message" << endl;
-  cout << "  -dssp-tickets-set-progress ...      " << endl;
-  cout << "      <id> <start> <end> <value>    : Set progress for ticket 'id'. Progress is specified as" << endl;
-  cout << "                                      chunk start, chunk end, and progress within chunk (all in [0 1])" << endl;
-  cout << "  -dssp-tickets-log ...               " << endl;
-  cout << "      <id> <type> <msg>             : Add a log message for ticket 'id'. Type is info|warning|error" << endl;
-  cout << "  -dssp-tickets-log-attach ...        " << endl;
-  cout << "      <desc> <file> [mimetype]      : Attach a file to subsequent -dssp-tickets-log command. The command" << endl;
-  cout << "                                      may be repeated multiple times to add multiple attachments" << endl;
+  cout << "  -dssp-tickets-success <id>        : Mark the ticket as successfully completed " << endl;
+  cout << "  -dssp-tickets-set-progress ...    : Set progress for ticket 'id'. Progress is specified as" << endl;
+  cout << "      <id> <start> <end> <value>      chunk start, chunk end, and progress within chunk (all in [0 1])" << endl;
+  cout << "  -dssp-tickets-log ...             : Add a log message for ticket 'id'. Type is info|warning|error" << endl; 
+  cout << "      <id> <type> <msg>               " << endl;
+  cout << "  -dssp-tickets-attach ...          : Attach a file to the ticket <id>. The file will be linked to the next" << endl;
+  cout << "      <id> <desc> <file> [mimetype]   log command issued for this ticket" << endl;
   cout << "Specifying Layer IDs:" << endl;
   cout << "  ###                               : Selects any layer by number (e.g., 003)" << endl;
   cout << "  M|main                            : Selects the main layer " << endl;
@@ -255,19 +261,22 @@ public:
     m_RowEnded = true;
     }
 
-  void Print(ostream &os, const string &prefix = "") const
+  void PrintRow(ostream &os, int iRow, const string &prefix = "", std::vector<bool> col_filter = std::vector<bool>()) const
     {
-    int iCol = 0;
-    for(int iRow = 0; iRow < m_Data.size(); iRow++)
+    const RowType &row = m_Data[iRow];
+    os << prefix << left;
+    for(int iCol = 0; iCol < row.size(); iCol++)
       {
-      const RowType &row = m_Data[iRow];
-      os << prefix << left;
-      for(int iCol = 0; iCol < row.size(); iCol++)
-        {
+      if(col_filter.size() == 0 || col_filter[iCol])
         os << setw(m_Width[iCol] + 2) << row[iCol];
-        }
-      os << endl;
       }
+    os << endl;
+    }
+
+  void Print(ostream &os, const string &prefix = "", std::vector<bool> col_filter = std::vector<bool>()) const
+    {
+    for(int iRow = 0; iRow < m_Data.size(); iRow++)
+      this->PrintRow(os, iRow, prefix, col_filter);
     }
 
   int Rows() const { return m_Data.size(); }
@@ -753,6 +762,14 @@ public:
     throw IRISException("Layer specification %s not found in workspace", layer_spec.c_str());
     }
 
+  /**
+   * Get the folder id for the main image or throw exception if it does not exist
+   */
+  string GetMainLayerKey()
+  {
+    return this->LayerSpecToKey("M");
+  }
+
   /** Add a layer to the workspace in a given role */
   string AddLayer(string role, const string &filename)
     {
@@ -790,7 +807,7 @@ public:
 
     // If this role does not already exist, we use the 'Add' functionality
     if(key.length() == 0)
-      this->AddLayer(role, filename);
+      key = this->AddLayer(role, filename);
 
     // Otherwise, we trash the old folder associated with this role
     Registry &folder = m_Registry.Folder(key);
@@ -858,6 +875,25 @@ public:
 
     // Write to the folder
     this->WriteLayerContrastToRegistry(contrast_folder, 3, tarray, yarray);
+    }
+
+  /** Set labels from a label file */
+  void SetLabels(const string &label_file)
+    {
+    // Get the main layer
+    Registry &main = m_Registry.Folder(this->GetMainLayerKey());
+
+    // Get the subfolder that corresponds to the labels
+    Registry &label_reg = main.Folder("ProjectMetaData.IRIS.LabelTable");
+
+    // Load the label descriptions
+    SmartPtr<ColorLabelTable> clt = ColorLabelTable::New();
+    clt->LoadFromFile(label_file.c_str());
+
+    // Create a registry for the labels
+    label_reg.Clear();
+    clt->SaveToRegistry(label_reg);
+    label_reg.Print(cout, "......");
     }
 
   /** Get the project registry by reference */
@@ -1532,48 +1568,26 @@ string DownloadTicketFiles(int ticket_id, const char *outdir)
   return oss.str();
 }
 
-void PostLogMessage(int ticket_id, string category, string message,
-  std::list< std::map <string, string> > attachments)
+void PostAttachment(int ticket_id, string desc, string filename, string mimetype = "")
+{
+  RESTClient rcu;
+  std::map<string, string> extra_param;
+  extra_param["desc"] = desc;
+  if(mimetype.size())
+    extra_param["mime_type"] = mimetype;
+  if(!rcu.UploadFile("api/pro/tickets/%d/attachments",
+                     filename.c_str(), extra_param, ticket_id))
+    throw IRISException("Error uploading attachment %s on ticket %d: %s",
+                        ticket_id, filename.c_str(), rcu.GetResponseText());
+}
+
+void PostLogMessage(int ticket_id, string category, string message)
 {
   RESTClient rc;
-  
-  // If there are no attachments, then this is a simple post
-  if(attachments.size() == 0)
-    {
-    if(!rc.Post("api/pro/tickets/%d/%s","message=%s",
-        ticket_id, category.c_str(), message.c_str()))
-      throw IRISException("Error posting message on ticket %d: %s", 
-        ticket_id, rc.GetResponseText());
-    return;
-    }
-  
-  // Create the log message and leave it open
-  if(!rc.Post("api/pro/tickets/%d/%s","message=%s&open=1",
-      ticket_id, category.c_str(), message.c_str()))
-    throw IRISException("Error opening log entry on ticket %d: %s", 
-      ticket_id, rc.GetResponseText());
-
-  // Get the log index
-  int log_id = atoi(rc.GetOutput());
-
-  // Upload each of the attachments
-  for(std::list< std::map <string, string> >::iterator it = attachments.begin();
-    it != attachments.end(); it++)
-    {
-    RESTClient rcu;
-    std::map<string, string> extra_param;
-    extra_param["desc"] = (*it)["desc"];
-    if( (*it).find("mime") != (*it).end())
-      extra_param["mime_type"] = (*it)["mime"];
-    if(!rcu.UploadFile("api/pro/tickets/logs/%d/attachments", 
-        (*it)["file"].c_str(), extra_param, log_id))
-      throw IRISException("Error uploading attachment %s on ticket %d: %s", 
-        ticket_id, (*it)["file"].c_str(), rcu.GetResponseText());
-    }
-
-  // Change the status of the log message to closed
-  if(!rc.Post("api/pro/tickets/logs/%d/status","status=closed", log_id))
-    throw IRISException("Error closing log entry on ticket %d", ticket_id);
+  if(!rc.Post("api/pro/tickets/%d/%s","message=%s",
+              ticket_id, category.c_str(), message.c_str()))
+    throw IRISException("Error posting message on ticket %d: %s",
+                        ticket_id, rc.GetResponseText());
 }
 
 void print_string_with_prefix(ostream &sout, const string &text, const string &prefix)
@@ -1583,6 +1597,60 @@ void print_string_with_prefix(ostream &sout, const string &text, const string &p
   while(getline(iss, line))
     sout << prefix << line << endl;
 }
+
+/** 
+ * Print ticket log with attachments and nice formatting
+ */
+int PrintTicketLog(int ticket_id, int id_start = 0)
+{
+  RESTClient rc;
+
+  // Check for new log updates
+  if(!rc.Get("api/tickets/%d/log?since=%d", ticket_id, id_start))
+    throw IRISException("Error getting log for ticket %d: %s", ticket_id, rc.GetResponseText());
+
+  // Format as a table
+  FormattedTable ft;
+  ft.ParseCSV(rc.GetOutput());
+
+  // Create the filter for printing log rows
+  vector<bool> col_filter(ft.Columns(), true);
+  col_filter[0] = false; // log id 
+  col_filter[3] = false; // num_attach
+
+  // Process each row of the table
+  for(int i = 0; i < ft.Rows(); i++)
+    {
+    // TODO: we are hard-coding row meanings, which is not very smart in the client-server setting
+    
+    // Get the latest log_id for return value
+    id_start = atoi(ft(i, 0).c_str());
+
+    // Get the number of attachments
+    int n_attach = atoi(ft(i, 3).c_str());
+
+    // Print the row
+    ft.PrintRow(cout, i, "", col_filter);
+
+    // Process the attachments
+    if(n_attach > 0)
+      {
+      RESTClient rca;
+      if(!rca.Get("api/tickets/logs/%d/attachments", id_start))
+        throw IRISException("Error getting attachment for ticket %d: %s", ticket_id, rca.GetResponseText());
+
+      FormattedTable fta;
+      fta.ParseCSV(rca.GetOutput());
+
+      for(int k = 0; k < fta.Rows(); k++)
+        {
+        printf("  @ %s : %s\n", fta(k, 3).c_str(), fta(k, 1).c_str());
+        }
+      }
+    }
+
+  return id_start;
+} 
 
 
 int main(int argc, char *argv[])
@@ -1612,10 +1680,9 @@ int main(int argc, char *argv[])
   // The command index for which the temporary prefix should be used
   int temp_prefix_cmd_index = -1;
 
-  // Log attachment list
-  typedef std::map<string, string> AttachmentData;
-  typedef std::list<AttachmentData> AttachmentList;
-  AttachmentList log_attach;
+  // Context ticket id, i.e., the ticket id substituted for '--' in the input
+  // TODO: implement this
+  int context_ticket_id;
 
   // Parse the commands in order
   while(!cl.is_at_end())
@@ -1758,6 +1825,11 @@ int main(int argc, char *argv[])
           }
         }
 
+      else if(arg == "-labels-set")
+        {
+        ws.SetLabels(cl.read_existing_filename());
+        }
+
       else if(arg == "-tags-add" || arg == "-ta")
         {
         string tag = cl.read_string();
@@ -1827,38 +1899,104 @@ int main(int argc, char *argv[])
         {
         // Takes a ticket ID and timeout in seconds
         int ticket_id = cl.read_integer();
-        int timeout = cl.read_integer();
+        int timeout = cl.command_arg_count() > 0 ? cl.read_integer() : 1000;
 
         // Loop
-        int tnow = 0;
+        int tnow = 0, tprogress = 0;
+
+        // Current progress 
+        double p = 0;
         RESTClient rc;
+
+        // The ID of the last log entry
+        int last_log_id = 0;
+
+        // The queue position
+        int queue_pos = 0;
+
+        // The status of the ticket
+        string status;
+
         while(tnow < timeout)
           {
-          // Read the progress 
-          if(!rc.Get("api/tickets/%d/progress", ticket_id))
-            throw IRISException("Error getting progress for ticket %d: %s", ticket_id, rc.GetResponseText());
-          string p_string = rc.GetOutput();
-          double p = atof(p_string.c_str());
+          // Go to the begin of line - to erase the current progress
+          printf("\r");
 
-          // Read the status
-          if(!rc.Get("api/tickets/%d/status", ticket_id))
-            throw IRISException("Error getting status for ticket %d: %s", ticket_id, rc.GetResponseText());
-          string status = rc.GetOutput();
-
-          // If the status is not 'claimed', we are done
-          if(status != "claimed")
+          // Shoud we update the progress?
+          if(tnow - tprogress > 5 || tprogress == 0)
             {
-            cout << "\n" << status << endl;
+            // Check status
+            if(!rc.Get("api/tickets/%d/status", ticket_id))
+              throw IRISException("Error getting progress for ticket %d: %s", ticket_id, rc.GetResponseText());
+            status = rc.GetOutput();
+
+            // If the status is 'claimed', the ticket is in progress and we can show progress
+            // Likewise for success/fail, we want to show the user the progress
+            if(status == "claimed" || status == "success" || status == "failed")
+              {
+              // Check progress
+              if(!rc.Get("api/tickets/%d/progress", ticket_id))
+                throw IRISException("Error getting progress for ticket %d: %s", ticket_id, rc.GetResponseText());
+              string p_string = rc.GetOutput();
+              p = atof(p_string.c_str());
+              }
+
+            // The status is claimed or later - so we can read the log
+            if(status != "init" && status != "ready")
+              {
+              // Print the new ticket log if any
+              last_log_id = PrintTicketLog(ticket_id, last_log_id);
+
+              // We are not in the queue
+              queue_pos = 0;
+              }
+
+            else if(status == "ready")
+              {
+              // Get the queue position of the ticket
+              if(!rc.Get("api/tickets/%d/queuepos", ticket_id))
+                throw IRISException("Error getting queue position for ticket %d: %s", ticket_id, rc.GetResponseText());
+
+              // Get the queue position
+              queue_pos = atoi(rc.GetOutput());
+              }
+            }
+
+          // If we are in the queue, print queue position
+          if(queue_pos > 0)
+            {
+            printf("Ticket in queue position %d ... ", queue_pos);
+            }
+          else
+            {
+            // Display progress nicely
+            for(int i = 0; i < 78; i++)
+              if(i <=  p * 78)
+                printf("#");
+              else
+                printf(" ");
+            printf(" %3d%% ", (int) (100 * p));
+            }
+
+          // If terminal status, exit
+          if(status == "failed" || status == "success" || status == "timeout")
+            {
+            printf("\n");
             break;
             }
 
-          // Print the progress
-          cout << 100 * p << endl;
+          const char blop[] = "|/-\\";
+            printf("%c", blop[tnow % 4]);
+
+          fflush(stdout);
 
           // Wait
-          sleep(5);
-          tnow += 5;
+          sleep(1);
+          tnow ++;
           }
+
+        // Print additional information
+        printf("Ticket completed with status: %s\n", status.c_str());
         }
       else if(arg == "-dssp-services-list")
         {
@@ -1872,11 +2010,37 @@ int main(int argc, char *argv[])
         {
         string service_name = cl.read_string();
         string provider_code = cl.read_string();
-        RESTClient rc;
-        if(rc.Post("api/pro/services/%s/claims","code=%s",service_name.c_str(),provider_code.c_str()))
-          cout << prefix << rc.GetOutput() << endl;
-        else
-          throw IRISException("Error claiming ticket for service %s: %s", service_name.c_str(), rc.GetResponseText());
+        long timeout = cl.command_arg_count() > 0 ? cl.read_integer() : 0L;
+        long tnow = 0, twait = 30;
+        
+        while(true)
+          {
+          // Try claiming the ticket
+          RESTClient rc;
+          if(!rc.Post("api/pro/services/%s/claims","code=%s",service_name.c_str(),provider_code.c_str()))
+            throw IRISException("Error claiming ticket for service %s: %s", 
+              service_name.c_str(), rc.GetResponseText());
+
+          // Ticket id will be 0 if nothing is available, or the ticket id
+          int ticket_id = atoi(rc.GetOutput());
+
+          // If actual ticket, print it and we are done
+          if(ticket_id > 0) 
+            {
+            cout << prefix << ticket_id << endl;
+            context_ticket_id = ticket_id;
+            break;
+            }
+          else if(tnow + twait > timeout)
+            {
+            throw IRISException("No tickets available to claim for service %s", service_name.c_str());
+            }
+          else
+            {
+            tnow += 30;
+            sleep(30);
+            }
+          }
         }
       else if(arg == "-dssp-tickets-download")
         {
@@ -1891,7 +2055,7 @@ int main(int argc, char *argv[])
         string message = cl.read_string();
 
         // Set the status of the ticket
-        PostLogMessage(ticket_id, "error", message, log_attach);
+        PostLogMessage(ticket_id, "error", message);
 
         // Change the status of the ticket to failed
         RESTClient rc;
@@ -1900,7 +2064,21 @@ int main(int argc, char *argv[])
           cout << prefix << rc.GetOutput() << endl;
           }
         else
-          throw IRISException("Error marking ticket %d as failed: %s", ticket_id, rc.GetResponseText());
+          throw IRISException("Error marking ticket %d as failed: %s", 
+            ticket_id, rc.GetResponseText());
+        }
+      else if(arg == "-dssp-tickets-success")
+        {
+        int ticket_id = cl.read_integer();
+
+        RESTClient rc;
+        if (rc.Post("api/pro/tickets/%d/status","status=success", ticket_id))
+          {
+          cout << prefix << rc.GetOutput() << endl;
+          }
+        else
+          throw IRISException("Error marking ticket %d as completed: %s", 
+            ticket_id, rc.GetResponseText());
         }
       else if(arg == "-dssp-tickets-set-progress")
         {
@@ -1910,26 +2088,19 @@ int main(int argc, char *argv[])
           ticket_id, cl.read_double(), cl.read_double(), cl.read_double()))
           cout << rc.GetOutput() << endl;
         else
-          throw IRISException("Error setting progress for ticket %d: %s", ticket_id, rc.GetResponseText());
+          throw IRISException("Error setting progress for ticket %d: %s", 
+            ticket_id, rc.GetResponseText());
         }
-      else if(arg == "-dssp-tickets-log-attach")
+      else if(arg == "-dssp-tickets-attach")
         {
-        AttachmentData attach_data;
-        attach_data["desc"] = cl.read_string();
-        attach_data["file"] = cl.read_existing_filename();
-        attach_data["mime"] = (cl.command_arg_count() > 2) ? cl.read_string() : "";
-        log_attach.push_back(attach_data);
+        PostAttachment(
+              cl.read_integer(), cl.read_string(), cl.read_existing_filename(),
+              cl.command_arg_count() > 0 ? cl.read_string() : "");
         }
       else if(arg == "-dssp-tickets-log")
         {
-        // Read the command line parameters
-        int ticket_id = cl.read_integer();
-        string category = cl.read_string();
-        string message = cl.read_string();
-
         // Post the log message
-        PostLogMessage(ticket_id, category, message, log_attach);
-        log_attach.clear();
+        PostLogMessage(cl.read_integer(), cl.read_string(), cl.read_string());
         }
       else
         throw IRISException("Unknown command %s", arg.c_str());

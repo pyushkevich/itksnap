@@ -14,7 +14,7 @@ public:
   irisSetMacro(Model, InteractiveRegistrationModel *)
   irisGetMacro(Model, InteractiveRegistrationModel *)
 
-  void paintGL();
+  void paintGL() ITK_OVERRIDE;
 
 protected:
 

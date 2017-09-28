@@ -165,6 +165,18 @@ itkEventMacro(DisplayToAnatomyCoordinateMappingChangeEvent, IRISEvent)
       } \
 }
 
+// A setter method that fires events
+#define irisSetWithEventMacroWithOverride(name,type,event) \
+    virtual void Set##name (type _arg) ITK_OVERRIDE \
+{ \
+    if(this->m_##name != _arg) \
+      { \
+      this->m_##name = _arg; \
+      this->Modified(); \
+      this->InvokeEvent(event()); \
+      } \
+}
+
 // A macro to add observers to specific events to objects. This is here just
 // to make the code more readable, because otherwise you never know what class
 // fires what events without looking in the code.

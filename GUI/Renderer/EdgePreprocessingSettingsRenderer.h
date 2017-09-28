@@ -20,7 +20,7 @@ public:
 
   void SetModel(SnakeWizardModel *model);
 
-  void OnUpdate();
+  void OnUpdate() ITK_OVERRIDE;
 
   void UpdatePlotValues();
 
@@ -40,7 +40,7 @@ protected:
   vtkSmartPointer<vtkPlot> m_Plot;
   vtkSmartPointer<vtkFloatArray> m_DataX, m_DataY;
 
-  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio);
+  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio) ITK_OVERRIDE;
 };
 
 #endif // EDGEPREPROCESSINGSETTINGSRENDERER_H

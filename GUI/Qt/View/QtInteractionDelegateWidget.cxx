@@ -169,9 +169,9 @@ QtInteractionDelegateWidget
 
   // Unproject to get the coordinate of the event
   Vector3d xProjection;
-  gluUnProject(px, py, 0,
-               modelMatrix,projMatrix,viewport,
-               &xProjection[0], &xProjection[1], &xProjection[2]);
+  irisUnProject(px, py, 0,
+                modelMatrix,projMatrix,viewport,
+                &xProjection[0], &xProjection[1], &xProjection[2]);
   return xProjection;
 }
 

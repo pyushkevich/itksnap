@@ -77,16 +77,16 @@ public:
   void SetReferenceIntensityRange(double min, double max);
   void RemoveReferenceIntensityRange();
 
-  virtual void AllocateOutputs();
+  virtual void AllocateOutputs() ITK_OVERRIDE;
 
-  virtual void GenerateOutputInformation();
+  virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
-  virtual void EnlargeOutputRequestedRegion(itk::DataObject *output);
+  virtual void EnlargeOutputRequestedRegion(itk::DataObject *output) ITK_OVERRIDE;
 
-  virtual void GenerateInputRequestedRegion();
+  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
   virtual void ThreadedGenerateData(const OutputImageRegionType &region,
-                            itk::ThreadIdType threadId);
+                            itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 
 protected:
@@ -133,7 +133,7 @@ public:
   itkNewMacro(Self)
 
   /** Set the intensity remapping curve - for contrast adjustment */
-  void SetIntensityCurve(IntensityCurveInterface *curve);
+  void SetIntensityCurve(IntensityCurveInterface *curve) ITK_OVERRIDE;
 
   irisGetMacro(IntensityCurve, IntensityCurveInterface *)
 
@@ -145,7 +145,7 @@ protected:
   SmartPtr<IntensityCurveInterface> m_IntensityCurve;
   SmartPtr<ColorMap> m_ColorMap;
 
-  virtual OutputPixelType ComputeLUTValue(float inZeroOne);
+  virtual OutputPixelType ComputeLUTValue(float inZeroOne) ITK_OVERRIDE;
 };
 
 /**
@@ -175,7 +175,7 @@ public:
   itkNewMacro(Self)
 
   /** Set the intensity remapping curve - for contrast adjustment */
-  void SetIntensityCurve(IntensityCurveInterface *curve);
+  void SetIntensityCurve(IntensityCurveInterface *curve) ITK_OVERRIDE;
 
   irisGetMacro(IntensityCurve, IntensityCurveInterface *)
 	
@@ -183,7 +183,7 @@ protected:
 
   SmartPtr<IntensityCurveInterface> m_IntensityCurve;
 
-  virtual OutputPixelType ComputeLUTValue(float inZeroOne);
+  virtual OutputPixelType ComputeLUTValue(float inZeroOne) ITK_OVERRIDE;
 };
 
 

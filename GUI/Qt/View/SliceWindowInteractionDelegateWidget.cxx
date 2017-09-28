@@ -123,15 +123,15 @@ SliceWindowInteractionDelegateWidget
   // Convert the event coordinates into the model view coordinates
   double modelMatrix[16], projMatrix[16];
   // GLint viewport[] = { icol * sz[0], (nrows - 1 - irow) * sz[1], sz[0], sz[1] };
-  GLint viewport[] = { 0, 0, ncols * sz[0], nrows * sz[1] };
+  GLint viewport[] = { 0, 0, (GLint) (ncols * sz[0]), (GLint) (nrows * sz[1]) };
   glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
   glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
 
   // Unproject to get the coordinate of the event
   Vector3d xProjection;
-  gluUnProject(x, y, 0,
-               modelMatrix,projMatrix,viewport,
-               &xProjection[0], &xProjection[1], &xProjection[2]);
+  irisUnProject(x, y, 0,
+                modelMatrix,projMatrix,viewport,
+                &xProjection[0], &xProjection[1], &xProjection[2]);
 
   // Get the within-cell coordinates by subtracting the corner of the cell
   xProjection[0] -= icol * m_ParentModel->GetSize()[0];

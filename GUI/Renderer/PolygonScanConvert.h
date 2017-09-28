@@ -37,58 +37,63 @@
 
 #include "SNAPOpenGL.h"
 #include "itkImage.h"
+#include "itkImageRegionIteratorWithIndex.h"
+#include <vtkPolygon.h>
+#include <vtkPoints.h>
+#include <vtkSmartPointer.h>
 
-class PolygonScanConvertBase
+template<class TImage, class TVertex, class TVertexIterator>
+class PolygonScanConvert
 {
 public:
-  // Private version of the method, takes a flattened array of coordinates
-  // and is not templated
-  static void RasterizeFilled(
-    double *vArray, unsigned int nVertices, 
-    unsigned int width, unsigned int height, 
-    GLenum glType, void *buffer);
+  static void RasterizeFilled(TVertexIterator first, unsigned int n, TImage *image)
+  {
+    // Create a vtkPolygol
+    vtkSmartPointer<vtkPolygon> polygon = vtkPolygon::New();
 
-  // Callbacks for tesselation
-  static void ErrorCallback(GLenum errorCode);
-  static void CombineCallback(
-    GLdouble coords[3], GLdouble **vertex_data,  
-    GLfloat *weight, GLdouble **dataOut);
-};
 
-template<class TPixel, GLenum VGlPixelType, class TVertexIterator>
-class PolygonScanConvert : public PolygonScanConvertBase
-{
-public:
-  typedef itk::Image<TPixel, 2> ImageType;
+    // typedef itk::PolyLineParametricPath<TImage::ImageDimension> InputPolylineType;
+    // typedef typename InputPolylineType::VertexType VertexType;
+    // SmartPtr<InputPolylineType> path = InputPolylineType::New();
 
-  /** 
-   * This method uses OpenGL to scan-convert a polygonal curve. The input is a pair 
-   * of iterators (begin, end) to a list/array of double arrays or vectors, i.e., 
-   * objects for which indices [0] and [1] are supported.
-   */
-  static void RasterizeFilled(
-    TVertexIterator first, unsigned int n, ImageType *image)
-    {
-    double *vArray = new double[3 * (n + 1)], *vPointer = vArray;
+    // Get the image region
+    // itk::ImageRegion<2> region = image->GetBufferedRegion();
+
+    // Add points to the path
     for (unsigned int i = 0; i < n; ++i, ++first)
+      polygon->GetPoints()->InsertNextPoint((*first)[0], (*first)[1], 0.0);
+
+    // Get the raw point data
+    double *point_data =
+        static_cast<double*>(polygon->GetPoints()->GetData()->GetVoidPointer(0));
+    int np = polygon->GetPoints()->GetNumberOfPoints();
+
+    // Get the normal and bounds
+    double normal[3];
+    polygon->ComputeNormal(np, point_data, normal);
+
+    double bounds[6];
+    polygon->GetPoints()->GetBounds(bounds);
+
+    // Go through the image and test each point
+    typedef itk::ImageRegionIteratorWithIndex<TImage> IteratorType;
+    IteratorType it(image, image->GetBufferedRegion());
+    for(; !it.IsAtEnd(); ++it)
       {
-      *vPointer++ = (double) (*first)[0];
-      *vPointer++ = (double) (*first)[1];
-      *vPointer++ = 0.0;
+      double x[3];
+      x[0] = it.GetIndex()[0] + 0.5;
+      x[1] = it.GetIndex()[1] + 0.5;
+      x[2] = 0.0;
+
+      if(polygon->PointInPolygon(x, np, point_data, bounds, normal) == 1)
+        it.Set(1);
+      else
+        it.Set(0);
       }
-  
-    // Set up the image properties
-    unsigned int width  = image->GetBufferedRegion().GetSize()[0];
-    unsigned int height = image->GetBufferedRegion().GetSize()[1];
-    PolygonScanConvertBase::RasterizeFilled(
-      vArray, n, width, height, VGlPixelType, image->GetBufferPointer());
-    delete[] vArray;
-    }
-
-private:
-
-
+  }
 };
+
+
 
 #endif
 

@@ -767,7 +767,7 @@ GuidedNativeImageIO
       probe.Stop();
 
       std::cout << "Transpose of " << N << " by " << M << " matrix computed in " << probe.GetTotal() << " sec." << std::endl;
-      delete move;
+      delete[] move;
       }
 
     

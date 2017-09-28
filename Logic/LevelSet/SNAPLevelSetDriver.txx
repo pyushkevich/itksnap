@@ -76,6 +76,7 @@ public:
   typedef itk::ParallelSparseFieldLevelSetImageFilter< TInputImage, TOutputImage > Superclass;
   typedef itk::SmartPointer< Self >                                                Pointer;
   typedef itk::SmartPointer< const Self >                                          ConstPointer;
+  typedef typename Superclass::TimeStepType                                        TimeStepType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self)
@@ -84,10 +85,9 @@ public:
   itkTypeMacro(ParallelSparseFieldLevelSetImageFilterBugFix,
                itk::ParallelSparseFieldLevelSetImageFilter)
 
-  virtual typename Superclass::TimeStepType ThreadedCalculateChange(itk::ThreadIdType ThreadId)
+  virtual TimeStepType ThreadedCalculateChange(itk::ThreadIdType ThreadId) ITK_OVERRIDE
   {
-    typename Superclass::TimeStepType ts = Superclass::ThreadedCalculateChange(ThreadId);
-
+    TimeStepType ts = Superclass::ThreadedCalculateChange(ThreadId);
     if(ThreadId > 0 && this->m_Data[ThreadId].m_Count == 0)
       return 1.0;
     else

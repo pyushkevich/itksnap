@@ -879,6 +879,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
     ${SNAP_SOURCE_DIR}/Submodules/c3d/api
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src
+    ${SNAP_SOURCE_DIR}/Submodules/greedy/src/ITKFilters/include
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
@@ -937,8 +938,7 @@ SET(SNAP_SUBMODULE_LIBS
 
 # System libraries
 SET(SNAP_SYSTEM_LIBS
-  ${OPENGL_LIBRARIES}
-  ${OPENGL_glu_LIBRARY}
+  ${SNAP_OPENGL_LIBS}
   ${SYSTEM_LIBS}
 )
 

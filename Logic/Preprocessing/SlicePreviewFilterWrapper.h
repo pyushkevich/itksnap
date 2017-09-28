@@ -135,10 +135,10 @@ public:
   typedef typename TFilterConfigTraits::ParameterType         ParameterType;
 
   /** Is the preview mode on? */
-  irisIsMacro(PreviewMode)
+  irisIsMacroWithOverride(PreviewMode)
 
   /** Enter preview mode */
-  void SetPreviewMode(bool mode);
+  void SetPreviewMode(bool mode) ITK_OVERRIDE;
 
   /** Set the input image, etc */
   void AttachInputs(InputDataType *sid);
@@ -147,10 +147,10 @@ public:
   void AttachOutputWrapper(OutputWrapperType *wrapper);
 
   /** Select the active scalar layer (for filters that operate on only one) */
-  void SetActiveScalarLayer(ScalarImageWrapperBase *layer);
+  void SetActiveScalarLayer(ScalarImageWrapperBase *layer) ITK_OVERRIDE;
 
   /** Get the active scalar layer (for filters that operate on only one). */
-  irisGetMacro(ActiveScalarLayer, ScalarImageWrapperBase *)
+  irisGetMacroWithOverride(ActiveScalarLayer, ScalarImageWrapperBase *)
 
   /** Set the parameters */
   void SetParameters(ParameterType *param);
@@ -159,7 +159,7 @@ public:
   void DetachInputsAndOutputs();
 
   /** Compute the output volume (corresponds to the 'Apply' operation) */
-  void ComputeOutputVolume(itk::Command *progress);
+  void ComputeOutputVolume(itk::Command *progress) ITK_OVERRIDE;
 
 protected:
 

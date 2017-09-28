@@ -21,7 +21,7 @@ public:
 
   void SetModel(SnakeWizardModel *model);
 
-  void OnUpdate();
+  void OnUpdate() ITK_OVERRIDE;
 
   void UpdatePlotValues();
 protected:
@@ -43,7 +43,7 @@ protected:
   // Histogram rendering
   LayerHistogramPlotAssembly *m_HistogramAssembly;
 
-  void OnDevicePixelRatioChange(int old_ratio, int new_ratio);
+  void OnDevicePixelRatioChange(int old_ratio, int new_ratio) ITK_OVERRIDE;
 };
 
 #endif // THRESHOLDSETTINGSRENDERER_H

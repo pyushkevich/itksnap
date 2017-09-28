@@ -72,11 +72,11 @@ public:
 
 protected:
 
-  void PrintSelf(std::ostream& os, itk::Indent indent) const
+  void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE
     { os << indent << "LabelToRGBAFilter"; }
   
   /** Generate Data */
-  void GenerateData( void )
+  void GenerateData( void ) ITK_OVERRIDE
     {
     // Here's the input and output
     InputImageType::ConstPointer inputPtr = this->GetInput();

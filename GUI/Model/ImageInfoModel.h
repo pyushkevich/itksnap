@@ -31,14 +31,14 @@ public:
   FIRES(MetadataChangeEvent)
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(ImageWrapperBase *layer) {}
-  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) {}
+  void RegisterWithLayer(ImageWrapperBase *layer) ITK_OVERRIDE {}
+  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) ITK_OVERRIDE {}
 
   // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);
 
   // Function called in response to events
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   // Access the individual models
   irisGetMacro(ImageDimensionsModel, AbstractSimpleUIntVec3Property *)

@@ -43,7 +43,7 @@ public:
   void SetParentModel(GlobalUIModel *model);
   irisGetMacro(Parent, GlobalUIModel *)
 
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   // Interaction modes (correspond to wizard pages)
   enum InteractionMode {

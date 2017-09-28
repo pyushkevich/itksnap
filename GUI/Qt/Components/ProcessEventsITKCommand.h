@@ -23,7 +23,7 @@ public:
   itkNewMacro(Self)
 
   /** Abstract method that defines the action to be taken by the command. */
-  virtual void Execute(itk::Object *caller, const itk::EventObject & event)
+  virtual void Execute(itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
   {
     QCoreApplication::processEvents();
   }
@@ -31,7 +31,7 @@ public:
   /** Abstract method that defines the action to be taken by the command.
    * This variant is expected to be used when requests comes from a
    * const Object */
-  virtual void Execute(const itk::Object *caller, const itk::EventObject & event)
+  virtual void Execute(const itk::Object *caller, const itk::EventObject & event) ITK_OVERRIDE
   {
     QCoreApplication::processEvents();
   }

@@ -31,7 +31,7 @@ public:
   irisGetMacro(ParentModel, GlobalUIModel *)
   void SetParentModel(GlobalUIModel *model);
 
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   // State machine enums
   enum UIState {

@@ -63,10 +63,10 @@ protected:
 
   RegistryXMLFileReader() {}
 
-  virtual int CanReadFile(const char *name);
-  virtual void StartElement(const char *name, const char **atts);
-  virtual void EndElement(const char *name);
-  virtual void CharacterDataHandler(const char *inData, int inLength);
+  virtual int CanReadFile(const char *name) ITK_OVERRIDE;
+  virtual void StartElement(const char *name, const char **atts) ITK_OVERRIDE;
+  virtual void EndElement(const char *name) ITK_OVERRIDE;
+  virtual void CharacterDataHandler(const char *inData, int inLength) ITK_OVERRIDE;
 
   static int strcmpi(const char *str1, const char *str2)
   {

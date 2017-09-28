@@ -18,7 +18,7 @@ public:
   irisGetMacro(ParentModel, GlobalUIModel *)
   void SetParentModel(GlobalUIModel *parent);
 
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   irisGetMacro(PaintbrushModeModel, AbstractPaintbrushModeModel *)
 

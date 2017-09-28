@@ -401,7 +401,7 @@ PolygonDrawingModel
  */
 void
 PolygonDrawingModel
-::Delete()
+::DeleteSelected()
 {
   VertexIterator it=m_Vertices.begin();
   while(it!=m_Vertices.end())
@@ -442,7 +442,7 @@ PolygonDrawingModel
  */
 void
 PolygonDrawingModel
-::Insert()
+::SplitSelectedEdges()
 {
   // Insert a vertex between every pair of adjacent vertices
   VertexIterator it = m_Vertices.begin();
@@ -634,8 +634,8 @@ PolygonDrawingModel
 
   // Allocate the polygon to match current image size. This will only
   // allocate new memory if the slice size changed
-  itk::Size<2> sz =
-    {{ m_Parent->GetSliceSize()[0], m_Parent->GetSliceSize()[1] }};
+  itk::Size<2> sz = {{ (itk::SizeValueType) m_Parent->GetSliceSize()[0],
+                       (itk::SizeValueType) m_Parent->GetSliceSize()[1] }};
   m_PolygonSlice->SetRegions(sz);
   m_PolygonSlice->Allocate();
 
@@ -658,8 +658,7 @@ PolygonDrawingModel
     }
 
   // Scan convert the points into the slice
-  typedef PolygonScanConvert<
-    unsigned char, GL_UNSIGNED_BYTE, VertexIterator> ScanConvertType;
+  typedef PolygonScanConvert<PolygonSliceType, float, VertexIterator> ScanConvertType;
 
   ScanConvertType::RasterizeFilled(
     m_Vertices.begin(), m_Vertices.size(), m_PolygonSlice);

@@ -13,8 +13,8 @@ public:
 
   void SetModel(ColorMapModel *model);
 
-  void resizeGL(int w, int h, int device_pixel_ratio);
-  void paintGL();
+  void resizeGL(int w, int h, int device_pixel_ratio) ITK_OVERRIDE;
+  void paintGL() ITK_OVERRIDE;
 
 protected:
 

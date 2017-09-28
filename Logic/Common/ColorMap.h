@@ -153,7 +153,7 @@ public:
   /** Get the name of the system preset */
   static const char *GetPresetName(SystemPreset preset);
 
-  void PrintSelf(std::ostream & os, itk::Indent indent) const;
+  void PrintSelf(std::ostream & os, itk::Indent indent) const ITK_OVERRIDE;
 
   void SaveToRegistry(Registry &reg);
   void LoadFromRegistry(Registry &reg);
@@ -162,7 +162,7 @@ public:
     * Copy the colormap properties from another colormap into the current
     * colormap.
     */
-  void CopyInformation(const itk::DataObject *source);
+  void CopyInformation(const itk::DataObject *source) ITK_OVERRIDE;
 
 protected:
 

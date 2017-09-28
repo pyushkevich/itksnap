@@ -52,7 +52,7 @@ public:
     Rebroadcast(model, ValueChangedEvent(), ValueChangedEvent());
   }
 
-  virtual bool GetValueAndDomain(bool &value, TrivialDomain *)
+  virtual bool GetValueAndDomain(bool &value, TrivialDomain *) ITK_OVERRIDE
   {
     if(!m_ValueModel) return false;
 
@@ -64,7 +64,7 @@ public:
     return true;
   }
 
-  virtual void SetValue(bool value)
+  virtual void SetValue(bool value) ITK_OVERRIDE
   {
     if(!m_ValueModel) return;
 

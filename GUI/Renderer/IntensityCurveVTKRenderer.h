@@ -25,11 +25,11 @@ public:
 
   void SetModel(IntensityCurveModel *model);
 
-  void OnUpdate();
+  void OnUpdate() ITK_OVERRIDE;
 
   void UpdatePlotValues();
 
-  virtual void paintGL();
+  virtual void paintGL() ITK_OVERRIDE;
 
 protected:
 
@@ -58,7 +58,7 @@ protected:
 
   void OnCurrentControlPointChangedInScene(vtkObject *, unsigned long, void *);
 
-  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio);
+  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio) ITK_OVERRIDE;
 
 };
 

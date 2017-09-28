@@ -70,7 +70,7 @@ public:
   void SetParentModel(GlobalUIModel *model);
 
   /** Respond to updates */
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   /** Specify whether the coordinator should maintain linked zoom
    * in the three slice windows */

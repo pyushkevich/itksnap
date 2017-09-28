@@ -60,18 +60,18 @@ public:
   itkNewMacro(Self)
 
   // Defined in the parent class
-  void Initialize(unsigned int nControlPoints = 3);
-  void GetControlPoint(unsigned int iControlPoint, float &t, float &x) const;
-  void UpdateControlPoint(unsigned int iControlPoint, float t, float x);
-  bool IsMonotonic() const;
-  void ScaleControlPointsToWindow(float tMin, float tMax);
+  void Initialize(unsigned int nControlPoints = 3) ITK_OVERRIDE;
+  void GetControlPoint(unsigned int iControlPoint, float &t, float &x) const ITK_OVERRIDE;
+  void UpdateControlPoint(unsigned int iControlPoint, float t, float x) ITK_OVERRIDE;
+  bool IsMonotonic() const ITK_OVERRIDE;
+  void ScaleControlPointsToWindow(float tMin, float tMax) ITK_OVERRIDE;
 
-  unsigned int GetControlPointCount() const {
+  unsigned int GetControlPointCount() const ITK_OVERRIDE {
     return m_ControlPoints.size();
   }
 
   // Evaluate the curve
-  float Evaluate(const float &t) const {
+  float Evaluate(const float &t) const ITK_OVERRIDE {
     if(t < m_ControlPoints.front().t)
       return -.000001;
     else if(t > m_ControlPoints.back().t)
@@ -81,18 +81,18 @@ public:
   }
 
   // Load the curve from a registry
-  void LoadFromRegistry(Registry &registry);
+  void LoadFromRegistry(Registry &registry) ITK_OVERRIDE;
 
   // Save the curve to a registry
-  void SaveToRegistry(Registry &registry) const;
+  void SaveToRegistry(Registry &registry) const ITK_OVERRIDE;
 
   // Check if the curve is in default state (linear from 0 to 1)
-  bool IsInDefaultState();
+  bool IsInDefaultState() ITK_OVERRIDE;
 
 protected:
   IntensityCurveVTK();
   virtual ~IntensityCurveVTK();
-  void PrintSelf(std::ostream &s, itk::Indent indent) const;
+  void PrintSelf(std::ostream &s, itk::Indent indent) const ITK_OVERRIDE;
 
 private:
   IntensityCurveVTK(const Self& ); //purposely not implemented
