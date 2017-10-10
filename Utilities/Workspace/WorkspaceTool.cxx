@@ -63,9 +63,10 @@ int usage(int rc)
   cout << "  -dump                             : Dump workspace in human-readable format" << endl;
   cout << "  -get <key>                        : Get the value of a specified key" << endl;
   cout << "Commands for adding/setting/select image layers: " << endl;
-  cout << "  -layers-add <file>                : Add an image with specified nickname as next layer" << endl;
-  cout << "  -layers-set-main <file>           : Set the main image" << endl;
-  cout << "  -layers-set-seg <file>            : Set the segmentation image" << endl;
+  cout << "  -layers-add-anat <file>           : Add an image as next anatomical layer" << endl;
+  cout << "  -layers-add-seg <file>            : Add an image as next segmentation layer" << endl;
+  cout << "  -layers-set-main <file>           : Set the main anatomical image" << endl;
+  cout << "  -layers-set-seg <file>            : Set a single segmentation image - all other segs are trashed" << endl;
   cout << "  -layers-list                      : List all the layers in the workspace" << endl;
   cout << "  -layers-list-files <tag>          : List just the files associated with a specified tag" << endl;
   cout << "  -layers-pick <layer_id>           : Pick image layer for subsequent prop commands" << endl;
@@ -82,7 +83,10 @@ int usage(int rc)
   cout << "  -tags-add-excl <tag>              : Add a tag that is exclusive to the object" << endl;
   cout << "  -tags-del <tag>                   : Remove tag from the object" << endl;
   cout << "Segmentation label commands" << endl;
-  cout << "  -labels-set <labelfile>           : Read the labels from the labelfile specified" << endl;
+  cout << "  -labels-set <file>                : Read the labels from the labelfile specified" << endl;
+  cout << "  -labels-clear                     : Remove all labels except the default clear label" << endl;
+  cout << "  -labels-add <file> [offst] [ptrn] : Add labels from file, optionally shifting by offset and" << endl;
+  cout << "                                      renaming with C printf pattern (e.g. 'left %s')" << endl;
   cout << "Distributed segmentation server user commands: " << endl;
   cout << "  -dss-auth <url> [user] [passwd]   : Sign in to the server. This will create a token" << endl;
   cout << "                                      that may be used in future -dss calls" << endl;
@@ -409,6 +413,9 @@ public:
     // Update the save location
     m_Registry["SaveLocation"] << project_dir;
 
+    // Update all the paths
+    this->SetAllLayerPathsToActualPaths();
+
     // Write the registry
     m_Registry.WriteToXMLFile(proj_file_full.c_str());
 
@@ -487,6 +494,19 @@ public:
     // Return the file - no guarantee that it exists...
     return layer_file_full;
     }
+
+  /**
+   * Convert all layer paths in the workspace to actual paths - should be done
+   * when saving a project
+   */
+  void SetAllLayerPathsToActualPaths()
+  {
+    for(int i = 0; i < this->GetNumberOfLayers(); i++)
+      {
+      Registry &folder = this->GetLayerFolder(i);
+      folder["AbsolutePath"] << this->GetLayerActualPath(folder);
+      }
+  }
 
   /**
    * Get the IO hints for the layer, or NULL pointer if there are no IO hints stored
@@ -776,7 +796,7 @@ public:
     // Validity checks
 
     // May not have another layer in the main role
-    if((role == "MainRole" || role == "SegmentationRole") && this->FindLayerByRole(role, 0).length() > 0)
+    if((role == "MainRole") && this->FindLayerByRole(role, 0).length() > 0)
         throw IRISException("A workspace cannot have more than one image in the %s role", role.c_str());
 
     // Interpret the anatomical role
@@ -793,9 +813,21 @@ public:
     // Create a folder for this key
     Registry &folder = m_Registry.Folder(key);
 
+    // Try reading the file. This is not strictly required to create a workspace but without
+    // setting the image dimensions, older versions of SNAP will refuse to read some metadata
+    // from project files, which is a problem
+    // TODO: there has to be a way to supply some hints!
+    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+    Registry hints;
+    io->ReadNativeImageHeader(filename.c_str(), hints);
+    Vector3i dims(0);
+    for(int k = 0; k < io->GetIOBase()->GetNumberOfDimensions(); k++)
+      dims[k] = io->GetIOBase()->GetDimensions(k);
+
     // Add the filename and role
     folder["AbsolutePath"] << filename;
     folder["Role"] << role;
+    folder["Files.Grey.Dimensions"] << dims;
 
     return key;
     }
@@ -895,6 +927,55 @@ public:
     clt->SaveToRegistry(label_reg);
     }
 
+  /**
+   * Add labels with an offset and a prefix/suffix.
+   * Format of rename_pattern is "left %s" for example
+   */
+  void AddLabels(const string &label_file, int offset, const string &rename_pattern)
+    {
+    // Get the main layer
+    Registry &main = m_Registry.Folder(this->GetMainLayerKey());
+
+    // Read the existing labels
+    SmartPtr<ColorLabelTable> clt = ColorLabelTable::New();
+    clt->LoadFromRegistry(main.Folder("ProjectMetaData.IRIS.LabelTable"));
+
+    // Load the additional labels
+    SmartPtr<ColorLabelTable> delta = ColorLabelTable::New();
+    delta->LoadFromFile(label_file.c_str());
+
+    // Loop over the additional labels
+    const ColorLabelTable::ValidLabelMap &valmap = delta->GetValidLabels();
+    for(ColorLabelTable::ValidLabelConstIterator it = valmap.begin(); it != valmap.end(); it++)
+      {
+      if(it->first > 0)
+        {
+        ColorLabel cl = it->second;
+        char buffer[1024];
+        sprintf(buffer, rename_pattern.c_str(), cl.GetLabel());
+        cl.SetLabel(buffer);
+        clt->SetColorLabel(it->first + offset, cl);
+        }
+      }
+
+    // Store the new labels
+    clt->SaveToRegistry(main.Folder("ProjectMetaData.IRIS.LabelTable"));
+    }
+
+  /** Reset the labels - leaves only the clear label */
+  void ClearLabels()
+  {
+    // Get the main layer
+    Registry &main = m_Registry.Folder(this->GetMainLayerKey());
+
+    // Read the existing labels
+    SmartPtr<ColorLabelTable> clt = ColorLabelTable::New();
+    clt->RemoveAllLabels();
+
+    // Clear the label table
+    clt->SaveToRegistry(main.Folder("ProjectMetaData.IRIS.LabelTable"));
+  }
+
   /** Get the project registry by reference */
   const Registry &GetRegistry() const { return m_Registry; }
 
@@ -909,6 +990,7 @@ public:
 
   /** Get the absolute path to the directory where the project was loaded from */
   string GetWorkspaceActualDirectory()  const { return m_WorkspaceFileDir; }
+
 
 protected:
 
@@ -1766,12 +1848,20 @@ int main(int argc, char *argv[])
         cout << "INFO: picked layer " << layer_folder << endl;
         }
 
-      // Add a layer - the layer will be added in the anatomical role (because this
-      // is the only role that is currently supported)
-      else if(arg == "-layers-add" || arg == "-la")
+      // Add a layer - the layer will be added in the anatomical role
+      else if(arg == "-layers-add-anat" || arg == "-laa")
         {
         string filename = cl.read_existing_filename();
         string key = ws.AddLayer("AnatomicalRole", filename.c_str());
+        layer_folder = key;
+        cout << "INFO: picked layer " << layer_folder << endl;
+        }
+
+      // Add a layer - the layer will be added in the segmentation role
+      else if(arg == "-layers-add-seg" || arg == "-las")
+        {
+        string filename = cl.read_existing_filename();
+        string key = ws.AddLayer("SegmentationRole", filename.c_str());
         layer_folder = key;
         cout << "INFO: picked layer " << layer_folder << endl;
         }
@@ -1827,6 +1917,19 @@ int main(int argc, char *argv[])
       else if(arg == "-labels-set")
         {
         ws.SetLabels(cl.read_existing_filename());
+        }
+
+      else if(arg == "-labels-add")
+        {
+        string fn = cl.read_existing_filename();
+        int offset = cl.command_arg_count() > 0 ? cl.read_integer() : 0;
+        string rename_pattern = cl.command_arg_count() > 0 ? cl.read_string() : "%s";
+        ws.AddLabels(fn, offset, rename_pattern);
+        }
+
+      else if (arg == "-labels-clear")
+        {
+        ws.ClearLabels();
         }
 
       else if(arg == "-tags-add" || arg == "-ta")
