@@ -893,7 +893,6 @@ public:
     // Create a registry for the labels
     label_reg.Clear();
     clt->SaveToRegistry(label_reg);
-    label_reg.Print(cout, "......");
     }
 
   /** Get the project registry by reference */
