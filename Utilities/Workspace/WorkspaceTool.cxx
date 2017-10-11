@@ -95,7 +95,8 @@ int usage(int rc)
   cout << "  -dss-tickets-list                 : List all of your tickets" << endl;
   cout << "  -dss-tickets-log <id>             : Get the error/warning/info log for ticket 'id'" << endl;
   cout << "  -dss-tickets-progress <id>        : Get the total progress for ticket 'id'" << endl;
-  cout << "  -dss-tickets-wait <id>            : Wait for the ticket 'id' to complete" << endl;
+  cout << "  -dss-tickets-wait <id> [timeout]  : Wait for the ticket 'id' to complete" << endl;
+  cout << "  -dss-tickets-download <id> <dir>  : Download the result for ticket 'id' to directory 'dir'" << endl;
   cout << "Distributed segmentation server provider commands: " << endl;
   cout << "  -dssp-services-list               : List all the services you are listed as provider for" << endl;
   cout << "  -dssp-services-claim <service> <instance_id> [timeout]" << endl;
@@ -112,6 +113,7 @@ int usage(int rc)
   cout << "      <id> <type> <msg>               " << endl;
   cout << "  -dssp-tickets-attach ...          : Attach a file to the ticket <id>. The file will be linked to the next" << endl;
   cout << "      <id> <desc> <file> [mimetype]   log command issued for this ticket" << endl;
+  cout << "  -dssp-tickets-upload <id>         : Send the current workspace as the result for ticket 'id'" << endl;
   cout << "Specifying Layer IDs:" << endl;
   cout << "  ###                               : Selects any layer by number (e.g., 003)" << endl;
   cout << "  M|main                            : Selects the main layer " << endl;
@@ -790,6 +792,28 @@ public:
     return this->LayerSpecToKey("M");
   }
 
+  /**
+   * Set the main layer dimensions in the registry. This should be called whenever the
+   * main layer is assigned or changed
+   */
+  void UpdateMainLayerFieldsFromImage(Registry &main_layer_folder)
+  {
+    string filename = main_layer_folder["AbsolutePath"][""];
+
+    // Try reading the file. This is not strictly required to create a workspace but without
+    // setting the image dimensions, older versions of SNAP will refuse to read some metadata
+    // from project files, which is a problem
+    // TODO: there has to be a way to supply some hints!
+    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+    Registry hints;
+    io->ReadNativeImageHeader(filename.c_str(), hints);
+    Vector3i dims(0);
+    for(int k = 0; k < io->GetIOBase()->GetNumberOfDimensions(); k++)
+      dims[k] = io->GetIOBase()->GetDimensions(k);
+
+    main_layer_folder["ProjectMetaData.Files.Grey.Dimensions"] << dims;
+  }
+
   /** Add a layer to the workspace in a given role */
   string AddLayer(string role, const string &filename)
     {
@@ -813,21 +837,13 @@ public:
     // Create a folder for this key
     Registry &folder = m_Registry.Folder(key);
 
-    // Try reading the file. This is not strictly required to create a workspace but without
-    // setting the image dimensions, older versions of SNAP will refuse to read some metadata
-    // from project files, which is a problem
-    // TODO: there has to be a way to supply some hints!
-    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
-    Registry hints;
-    io->ReadNativeImageHeader(filename.c_str(), hints);
-    Vector3i dims(0);
-    for(int k = 0; k < io->GetIOBase()->GetNumberOfDimensions(); k++)
-      dims[k] = io->GetIOBase()->GetDimensions(k);
-
     // Add the filename and role
     folder["AbsolutePath"] << filename;
     folder["Role"] << role;
-    folder["Files.Grey.Dimensions"] << dims;
+
+    // If the role is 'main' then we need to write the dimensions of the image into projectmetadata
+    if(role == "MainRole")
+      this->UpdateMainLayerFieldsFromImage(folder);
 
     return key;
     }
@@ -848,6 +864,10 @@ public:
     // Add the filename and role
     folder["AbsolutePath"] << filename;
     folder["Role"] << role;
+
+    // If the role is 'main' then we need to write the dimensions of the image into projectmetadata
+    if(role == "MainRole")
+      this->UpdateMainLayerFieldsFromImage(folder);
 
     // Return the key
     return key;
@@ -1547,26 +1567,20 @@ string GetTempDirName()
 }
 
 /**
- * Export a workspace to a temporary directory and use it to create a new ticket
+ * Export a workspace to a temporary directory and upload it
  */
-int CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
+void UploadWorkspace(const Workspace &ws,
+                    const char *url,
+                    int ticket_id,
+                    const char *wsfile_suffix)
 {
-  // Create a new ticket
-  RESTClient rc;
-  if(!rc.Post("api/tickets","service=%s", service_name))
-    throw IRISException("Failed to create new ticket (%s)", rc.GetResponseText());
-
-  int ticket_id = atoi(rc.GetOutput());
-      
-  cout << "Created new ticket (" << ticket_id << ")" << endl;
-
   // Create temporary directory for the export
   string tempdir = GetTempDirName();
   SystemTools::MakeDirectory(tempdir);
 
   // Export the workspace file to the temporary directory
   char ws_fname_buffer[4096];
-  sprintf(ws_fname_buffer, "%s/ticket_%08d.itksnap", tempdir.c_str(), ticket_id);
+  sprintf(ws_fname_buffer, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
   ExportWorkspace(ws, ws_fname_buffer);
 
   cout << "Exported workspace to " << ws_fname_buffer << endl;
@@ -1583,7 +1597,7 @@ int CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
       {
       // TODO: this is disgraceful!
       std::map<string, string> empty_map;
-      if(!rcu.UploadFile("api/tickets/%d/files", file_full_path.c_str(), empty_map, ticket_id))
+      if(!rcu.UploadFile(url, file_full_path.c_str(), empty_map, ticket_id))
         throw IRISException("Failed up upload file %s (%s)", file_full_path.c_str(), rcu.GetResponseText());
 
       cout << "Upload " << thisfile << " (" << rcu.GetUploadStatistics() << ")" << endl;
@@ -1591,6 +1605,24 @@ int CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
     }
 
   // TODO: we should verify that all the files were successfully sent, via MD5
+}
+
+/**
+ * Export a workspace to a temporary directory and use it to create a new ticket
+ */
+int CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
+{
+  // Create a new ticket
+  RESTClient rc;
+  if(!rc.Post("api/tickets","service=%s", service_name))
+    throw IRISException("Failed to create new ticket (%s)", rc.GetResponseText());
+
+  int ticket_id = atoi(rc.GetOutput());
+      
+  cout << "Created new ticket (" << ticket_id << ")" << endl;
+
+  // Locally export and upload the workspace
+  UploadWorkspace(ws, "api/tickets/%d/files/input", ticket_id, "");
 
   // Mark this ticket as ready
   if(!rc.Post("api/tickets/%d/status","status=ready", ticket_id))
@@ -1601,14 +1633,30 @@ int CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
   return ticket_id;
 }
 
-string DownloadTicketFiles(int ticket_id, const char *outdir)
+/**
+ * Upload a workspace as the result for a ticket
+ */
+void UploadResultWorkspace(const Workspace &ws, int ticket_id)
+{
+  // Locally export and upload the workspace
+  UploadWorkspace(ws, "api/pro/tickets/%d/files/results", ticket_id, "_results");
+}
+
+/**
+ * Download ticket files to a directory. Flag provider_mode switches between
+ * behavior for users and providers. String area is one of (input|results)
+ */
+string DownloadTicketFiles(int ticket_id, const char *outdir, bool provider_mode, const char *area)
 {
   // Output string
   ostringstream oss;
 
+  // Provider mode-specific settings
+  const char *url_base = (provider_mode) ? "api/pro" : "api";
+
   // First off, get the list of all files for this ticket
   RESTClient rc;
-  if(!rc.Get("api/pro/tickets/%d/files", ticket_id))
+  if(!rc.Get("%s/tickets/%d/files/%s", url_base, ticket_id, area))
     throw IRISException("Failed to get list of files for ticket %d (%s)", 
       ticket_id, rc.GetResponseText());
 
@@ -1636,7 +1684,7 @@ string DownloadTicketFiles(int ticket_id, const char *outdir)
     FILE *fout = fopen(file_path.c_str(), "wb");
     rc.SetOutputFile(fout);
 
-    if(!rc.Get("api/pro/tickets/%d/files/%d", ticket_id, file_index))
+    if(!rc.Get("%s/tickets/%d/files/%s/%d", url_base, ticket_id, area, file_index))
       throw IRISException("Failed to download file %s for ticket %d (%s)", 
         file_name.c_str(), ticket_id, rc.GetResponseText());
 
@@ -1695,37 +1743,40 @@ int PrintTicketLog(int ticket_id, int id_start = 0)
   ft.ParseCSV(rc.GetOutput());
 
   // Create the filter for printing log rows
-  vector<bool> col_filter(ft.Columns(), true);
-  col_filter[0] = false; // log id 
-  col_filter[3] = false; // num_attach
-
-  // Process each row of the table
-  for(int i = 0; i < ft.Rows(); i++)
+  if(ft.Rows())
     {
-    // TODO: we are hard-coding row meanings, which is not very smart in the client-server setting
-    
-    // Get the latest log_id for return value
-    id_start = atoi(ft(i, 0).c_str());
+    vector<bool> col_filter(ft.Columns(), true);
+    col_filter[0] = false; // log id
+    col_filter[3] = false; // num_attach
 
-    // Get the number of attachments
-    int n_attach = atoi(ft(i, 3).c_str());
-
-    // Print the row
-    ft.PrintRow(cout, i, "", col_filter);
-
-    // Process the attachments
-    if(n_attach > 0)
+    // Process each row of the table
+    for(int i = 0; i < ft.Rows(); i++)
       {
-      RESTClient rca;
-      if(!rca.Get("api/tickets/logs/%d/attachments", id_start))
-        throw IRISException("Error getting attachment for ticket %d: %s", ticket_id, rca.GetResponseText());
+      // TODO: we are hard-coding row meanings, which is not very smart in the client-server setting
 
-      FormattedTable fta;
-      fta.ParseCSV(rca.GetOutput());
+      // Get the latest log_id for return value
+      id_start = atoi(ft(i, 0).c_str());
 
-      for(int k = 0; k < fta.Rows(); k++)
+      // Get the number of attachments
+      int n_attach = atoi(ft(i, 3).c_str());
+
+      // Print the row
+      ft.PrintRow(cout, i, "", col_filter);
+
+      // Process the attachments
+      if(n_attach > 0)
         {
-        printf("  @ %s : %s\n", fta(k, 3).c_str(), fta(k, 1).c_str());
+        RESTClient rca;
+        if(!rca.Get("api/tickets/logs/%d/attachments", id_start))
+          throw IRISException("Error getting attachment for ticket %d: %s", ticket_id, rca.GetResponseText());
+
+        FormattedTable fta;
+        fta.ParseCSV(rca.GetOutput());
+
+        for(int k = 0; k < fta.Rows(); k++)
+          {
+          printf("  @ %s : %s\n", fta(k, 3).c_str(), fta(k, 1).c_str());
+          }
         }
       }
     }
@@ -2001,7 +2052,7 @@ int main(int argc, char *argv[])
         {
         // Takes a ticket ID and timeout in seconds
         int ticket_id = cl.read_integer();
-        int timeout = cl.command_arg_count() > 0 ? cl.read_integer() : 1000;
+        int timeout = cl.command_arg_count() > 0 ? cl.read_integer() : 10000;
 
         // Loop
         int tnow = 0, tprogress = 0;
@@ -2098,7 +2149,10 @@ int main(int argc, char *argv[])
           }
 
         // Print additional information
-        printf("Ticket completed with status: %s\n", status.c_str());
+        if(tnow < timeout)
+          printf("\nTicket completed with status: %s\n", status.c_str());
+        else
+          printf("\nTimed out\n");
         }
       else if(arg == "-dssp-services-list")
         {
@@ -2144,11 +2198,18 @@ int main(int argc, char *argv[])
             }
           }
         }
+      else if(arg == "-dss-tickets-download")
+        {
+        int ticket_id = cl.read_integer();
+        string output_path = cl.read_string();
+        string file_list = DownloadTicketFiles(ticket_id, output_path.c_str(), false, "results");
+        print_string_with_prefix(cout, file_list, prefix);
+        }
       else if(arg == "-dssp-tickets-download")
         {
         int ticket_id = cl.read_integer();
         string output_path = cl.read_string();
-        string file_list = DownloadTicketFiles(ticket_id, output_path.c_str());
+        string file_list = DownloadTicketFiles(ticket_id, output_path.c_str(), true, "input");
         print_string_with_prefix(cout, file_list, prefix);
         }
       else if(arg == "-dssp-tickets-fail")
@@ -2203,6 +2264,11 @@ int main(int argc, char *argv[])
         {
         // Post the log message
         PostLogMessage(cl.read_integer(), cl.read_string(), cl.read_string());
+        }
+      else if(arg == "-dssp-tickets-upload")
+        {
+        // Upload the workspace as the result
+        UploadResultWorkspace(ws, cl.read_integer());
         }
       else
         throw IRISException("Unknown command %s", arg.c_str());
