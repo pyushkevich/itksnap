@@ -1108,7 +1108,7 @@ public:
   bool Get(const char *rel_url, ...)
     {
     // Handle the ...
-    va_list args;
+    std::va_list args;
     va_start(args, rel_url);
 
     // Expand the URL
@@ -1130,7 +1130,7 @@ public:
   bool Post(const char *rel_url, const char *post_string, ...)
     {
     // Handle the ...
-    va_list args;
+    std::va_list args;
     va_start(args, post_string);
 
     // Expand the URL
@@ -1191,7 +1191,7 @@ public:
     std::map<string,string> extra_fields, ...)
     {
     // Expand the URL
-    va_list args;
+    std::va_list args;
     va_start(args, extra_fields);
     char url_buffer[4096];
     vsprintf(url_buffer, rel_url, args);
@@ -2033,11 +2033,7 @@ int main(int argc, char *argv[])
       else if(arg == "-dss-tickets-log" || arg == "-dt-log")
         {
         int ticket_id = cl.read_integer();
-        RESTClient rc;
-        if(rc.Get("api/tickets/%d/log", ticket_id))
-          print_string_with_prefix(cout, rc.GetFormattedCSVOutput(false), prefix);
-        else
-          throw IRISException("Error getting log for ticket %d: %s", ticket_id, rc.GetResponseText());
+        PrintTicketLog(ticket_id);
         }
       else if(arg == "-dss-tickets-progress")
         {
@@ -2247,8 +2243,11 @@ int main(int argc, char *argv[])
         {
         int ticket_id = cl.read_integer();
         RESTClient rc;
+        double chunk_start = cl.read_double();
+        double chunk_end = cl.read_double();
+        double chunk_prog = cl.read_double();
         if(rc.Post("api/pro/tickets/%d/progress","chunk_start=%f&chunk_end=%f&progress=%f", 
-          ticket_id, cl.read_double(), cl.read_double(), cl.read_double()))
+            ticket_id, chunk_start, chunk_end, chunk_prog))
           cout << rc.GetOutput() << endl;
         else
           throw IRISException("Error setting progress for ticket %d: %s", 
@@ -2256,14 +2255,19 @@ int main(int argc, char *argv[])
         }
       else if(arg == "-dssp-tickets-attach")
         {
-        PostAttachment(
-              cl.read_integer(), cl.read_string(), cl.read_existing_filename(),
-              cl.command_arg_count() > 0 ? cl.read_string() : "");
+        int ticket_id = cl.read_integer();
+        string desc = cl.read_string();
+        string filename = cl.read_existing_filename();
+        string mimetype = cl.command_arg_count() > 0 ? cl.read_string() : "";
+        PostAttachment(ticket_id, desc, filename, mimetype);
         }
       else if(arg == "-dssp-tickets-log")
         {
         // Post the log message
-        PostLogMessage(cl.read_integer(), cl.read_string(), cl.read_string());
+        int ticket = cl.read_integer();
+        std::string type = cl.read_string();
+        std::string message = cl.read_string();
+        PostLogMessage(ticket,type,message);
         }
       else if(arg == "-dssp-tickets-upload")
         {
