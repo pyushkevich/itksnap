@@ -1073,7 +1073,7 @@ public:
    * session ID. The cookie and the server URL will be stored in a .alfabis directory
    * in user's home, so that subsequent calls do not require authentication
    */
-  void Authenticate(const char *baseurl, const char *user, const char *passwd)
+  void Authenticate(const char *baseurl, const char *token)
     {
     // Create and perform the request
     ostringstream o_url; o_url << baseurl << "/api/login";
@@ -1081,7 +1081,7 @@ public:
 
     // Data to post
     char post_buffer[1024];
-    sprintf(post_buffer, "email=%s&passwd=%s", user, passwd);
+    sprintf(post_buffer, "token=%s", token);
     curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_buffer);
 
     // Cookie file
@@ -2001,12 +2001,18 @@ int main(int argc, char *argv[])
         }
       else if(arg == "-dss-auth")
         {
-        // TODO: add ability to prompt for user and password with hidden password
+        // Read the url of the server
         string url = cl.read_string();
-        string email = cl.read_string();
-        string pass = cl.read_string();
+
+        // Tell the user where to go
+        string token_string;
+        printf("Paste this link into your browser to obtain a token:  %s/token\n", url.c_str());
+        printf("  Enter the token: ");
+        std::cin >> token_string;
+
+        // Authenticate with the token
         RESTClient rc;
-        rc.Authenticate(url.c_str(), email.c_str(), pass.c_str());
+        rc.Authenticate(url.c_str(), token_string.c_str());
         }
       else if(arg == "-dss-services-list")
         {
