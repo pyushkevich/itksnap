@@ -90,12 +90,18 @@ inline void glScale( const Vector3d &x ) { glScaled(x[0],x[1],x[2]); }
 
 void
 gl_draw_circle_with_border(double x, double y, double r,
-                           int vp_width, int vp_height,
-                           Vector3ui color);
+                           double scale_x, double scale_y,
+                           Vector3ui colorFill, unsigned int alphaFill,
+                           Vector3ui colorBorder,unsigned int alphaBorder,
+                           int n_segments = 20);
 
 Vector3d adjust_color_luminance(const Vector3d &color, double factor);
 
 // GLU functions are deprecated on Apple so we need our own versions
 void irisOrtho2D(double x, double w, double y, double h);
+
+void irisUnProject(GLdouble winX, GLdouble winY, GLdouble winZ,
+                   const GLdouble * model, const GLdouble * proj, GLint * view,
+                   GLdouble* objX, GLdouble* objY, GLdouble* objZ);
 
 #endif // __SNAPOpenGL_h_

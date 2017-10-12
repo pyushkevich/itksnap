@@ -54,7 +54,7 @@ public:
   /**
    * Generate the data - by selecting an input and presenting it as output
    */
-  void GenerateData();
+  void GenerateData() ITK_OVERRIDE;
 
 protected:
 

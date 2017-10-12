@@ -49,11 +49,11 @@ public:
 
   FIRES(CameraUpdateEvent)
 
-  void paintGL();
+  void paintGL() ITK_OVERRIDE;
 
   void SetModel(Generic3DModel *model);
 
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   void ResetView();
 

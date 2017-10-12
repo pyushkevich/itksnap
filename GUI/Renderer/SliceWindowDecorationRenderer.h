@@ -13,7 +13,7 @@ public:
 
   irisITKObjectMacro(SliceWindowDecorationRenderer, SliceRendererDelegate)
 
-  virtual void paintGL();
+  virtual void paintGL() ITK_OVERRIDE;
 
 protected:
 

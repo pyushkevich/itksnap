@@ -38,6 +38,58 @@ unsigned long
 UndoDataManager<TPixel>::Delta::m_UniqueIDCounter = 0;
 
 template<typename TPixel>
+UndoDataManager<TPixel>::Delta
+::Delta()
+{
+  m_CurrentLength = 0;
+  m_UniqueID = m_UniqueIDCounter++;
+}
+
+template<typename TPixel>
+void
+UndoDataManager<TPixel>::Delta
+::Encode(const TPixel &value)
+{
+  if(m_CurrentLength == 0)
+    {
+    m_LastValue = value;
+    m_CurrentLength = 1;
+    }
+  else if(value == m_LastValue)
+    {
+    m_CurrentLength++;
+    }
+  else
+    {
+    m_Array.push_back(std::make_pair(m_CurrentLength, m_LastValue));
+    m_CurrentLength = 1;
+    m_LastValue = value;
+    }
+}
+
+template<typename TPixel>
+void
+UndoDataManager<TPixel>::Delta
+::FinishEncoding()
+{
+  if(m_CurrentLength > 0)
+    m_Array.push_back(std::make_pair(m_CurrentLength, m_LastValue));
+}
+
+template<typename TPixel>
+typename UndoDataManager<TPixel>::Delta &
+UndoDataManager<TPixel>::Delta
+::operator = (const Delta &other)
+{
+  m_Array = other.m_Array;
+  m_CurrentLength = other.m_CurrentLength;
+  m_LastValue = other.m_LastValue;
+  m_Region = other.m_Region;
+  return *this;
+}
+
+
+template<typename TPixel>
 UndoDataManager<TPixel>
 ::UndoDataManager(size_t nMinCommits, size_t nMaxTotalSize)
 {

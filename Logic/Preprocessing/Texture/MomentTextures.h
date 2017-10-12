@@ -51,9 +51,9 @@ protected:
   ~MomentTextureFilter() {}
 
   virtual void ThreadedGenerateData(const RegionType & outputRegionForThread,
-                                    itk::ThreadIdType threadId);
+                                    itk::ThreadIdType threadId) ITK_OVERRIDE;
 
-  virtual void UpdateOutputInformation();
+  virtual void UpdateOutputInformation() ITK_OVERRIDE;
 
   // Highest degree for which to generate the textures
   unsigned int m_HighestDegree;

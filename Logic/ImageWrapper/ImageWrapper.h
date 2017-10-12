@@ -156,7 +156,7 @@ public:
    *
    * You should not have to call the SetParentWrapper method. It's used internally
    */
-  irisGetSetMacro(ParentWrapper, ImageWrapperBase *)
+  irisGetSetMacroWithOverride(ParentWrapper, ImageWrapperBase *)
 
   /**
    * Initialize the image wrapper to match another image wrapper, setting the
@@ -178,114 +178,114 @@ public:
     Get a unique id for this wrapper. All wrappers ever created have
     different ids.
     */
-  irisGetMacro(UniqueId, unsigned long)
+  irisGetMacroWithOverride(UniqueId, unsigned long)
 
   /**
     Does this wrapper use the non-orthogonal slicing pipeline?
     */
-  virtual bool IsSlicingOrthogonal() const;
+  virtual bool IsSlicingOrthogonal() const ITK_OVERRIDE;
 
   /**
    * Clear the data associated with storing an image
    */
-  virtual void Reset();
+  virtual void Reset() ITK_OVERRIDE;
 
   /** Get the coordinate transform for each display slice */
   virtual const ImageCoordinateTransform *GetImageToDisplayTransform(
-    unsigned int) const;
+    unsigned int) const ITK_OVERRIDE;
 
   /**
    * Set the coordinate transformation between the display coordinates and
    * the anatomical coordinates. This affects the behavior of the slicers
    */
-  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
+  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom) ITK_OVERRIDE;
 
   /** Get the display to anatomy coordinate mapping */
-  irisGetMacro(DisplayGeometry, const IRISDisplayGeometry &)
+  irisGetMacroWithOverride(DisplayGeometry, const IRISDisplayGeometry &)
 
   /** Set the direction matrix of the image */
-  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction);
+  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction) ITK_OVERRIDE;
 
   /**
    * Set the image coordinate transform (origin, spacing, direction) to
    * match those of a reference wrapper
    */
-  virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source);
+  virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) ITK_OVERRIDE;
 
   /**
    * Get the image geometry from the wrapper
    */
-  irisGetMacro(ImageGeometry, const ImageCoordinateGeometry &)
+  irisGetMacroWithOverride(ImageGeometry, const ImageCoordinateGeometry &)
 
 
   /** Get the current slice index - which really means cursor position */
-  irisGetMacro(SliceIndex, Vector3ui)
+  irisGetMacroWithOverride(SliceIndex, Vector3ui)
 
   /** Return some image info independently of pixel type */
-  ImageBaseType* GetImageBase() const { return m_Image; }
+  ImageBaseType* GetImageBase() const ITK_OVERRIDE { return m_Image; }
 
   /**
    * Is the image initialized?
    */
-  irisIsMacro(Initialized)
+  irisIsMacroWithOverride(Initialized)
 
   /**
    * Get the size of the image
    */
-  Vector3ui GetSize() const;
+  Vector3ui GetSize() const ITK_OVERRIDE;
 
   /** Get layer transparency */
-  irisSetWithEventMacro(Alpha, double, WrapperDisplayMappingChangeEvent)
+  irisSetWithEventMacroWithOverride(Alpha, double, WrapperDisplayMappingChangeEvent)
 
   /** Set layer transparency */
-  irisGetMacro(Alpha, double)
+  irisGetMacroWithOverride(Alpha, double)
 
   /**
    * Get layer stickiness. A sticky layer always is shown 'on top' of other
    * layers, e.g., the segmentation layer, or the level set image. A layer that
    * is not sticky is shown in its own tile when the display is in tiled mode
    */
-  irisSetWithEventMacro(Sticky, bool, WrapperVisibilityChangeEvent)
+  irisSetWithEventMacroWithOverride(Sticky, bool, WrapperVisibilityChangeEvent)
 
   /** Set layer stickiness */
-  irisIsMacro(Sticky)
+  irisIsMacroWithOverride(Sticky)
 
   /**
    * Whether the layer is drawable. Some layers may be initialized, but not
    * yet computed, in which case they should not yet be drawn.
    */
-  virtual bool IsDrawable() const;
+  virtual bool IsDrawable() const ITK_OVERRIDE;
 
   /** Get the buffered region of the image */
-  virtual itk::ImageRegion<3> GetBufferedRegion() const;
+  virtual itk::ImageRegion<3> GetBufferedRegion() const ITK_OVERRIDE;
 
   /** Transform a voxel index into a spatial position */
-  virtual Vector3d TransformVoxelIndexToPosition(const Vector3i &iVoxel) const ;
+  virtual Vector3d TransformVoxelIndexToPosition(const Vector3i &iVoxel) const ITK_OVERRIDE;
 
   /** Transform a voxel index into a spatial position */
-  virtual Vector3d TransformVoxelCIndexToPosition(const Vector3d &iVoxel) const;
+  virtual Vector3d TransformVoxelCIndexToPosition(const Vector3d &iVoxel) const ITK_OVERRIDE;
 
   /** Transform spatial position to voxel continuous index (LPS) */
-  virtual Vector3d TransformPositionToVoxelCIndex(const Vector3d &vLPS) const;
+  virtual Vector3d TransformPositionToVoxelCIndex(const Vector3d &vLPS) const ITK_OVERRIDE;
 
   /** Transform spatial position to voxel index (LPS) */
-  virtual Vector3i TransformPositionToVoxelIndex(const Vector3d &vLPS) const;
+  virtual Vector3i TransformPositionToVoxelIndex(const Vector3d &vLPS) const ITK_OVERRIDE;
 
   /** Transform a voxel index into NIFTI coordinates (RAS) */
-  virtual Vector3d TransformVoxelCIndexToNIFTICoordinates(const Vector3d &iVoxel) const;
+  virtual Vector3d TransformVoxelCIndexToNIFTICoordinates(const Vector3d &iVoxel) const ITK_OVERRIDE;
 
   /** Transform NIFTI coordinates to a continuous voxel index */
-  virtual Vector3d TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const;
+  virtual Vector3d TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const ITK_OVERRIDE;
 
   /** Get the NIFTI s-form matrix for this image */
-  irisGetMacro(NiftiSform, TransformType)
+  irisGetMacroWithOverride(NiftiSform, TransformType)
 
   /** Get the inverse NIFTI s-form matrix for this image */
-  irisGetMacro(NiftiInvSform, TransformType)
+  irisGetMacroWithOverride(NiftiInvSform, TransformType)
 
   /** Set the voxel at a given position.*/
-  void SetVoxel(const Vector3ui &index, const PixelType &value);
-  void SetVoxel(const itk::Index<3> &index, const PixelType &value);
+  virtual void SetVoxel(const Vector3ui &index, const PixelType &value);
+  virtual void SetVoxel(const itk::Index<3> &index, const PixelType &value);
 
   /**
    * Get a constant reference to a voxel at a given position.
@@ -303,7 +303,7 @@ public:
    * i.e., the range of values shown to the user. This may be a linear mapping
    * or an identity mapping. This method returns an abstract type;
    */
-  virtual const AbstractNativeIntensityMapping *GetNativeIntensityMapping() const
+  virtual const AbstractNativeIntensityMapping *GetNativeIntensityMapping() const ITK_OVERRIDE
     { return &m_NativeMapping; }
 
   /** These methods access the native mapping in its actual type */
@@ -311,17 +311,17 @@ public:
   irisSetMacro(NativeMapping, NativeIntensityMapping)
 
   /** Get the intensity to display mapping */
-  DisplayMapping *GetDisplayMapping()
+  DisplayMapping *GetDisplayMapping() ITK_OVERRIDE
     { return m_DisplayMapping; }
 
   /** Get the intensity to display mapping */
-  const DisplayMapping *GetDisplayMapping() const
+  const DisplayMapping *GetDisplayMapping() const ITK_OVERRIDE
     { return m_DisplayMapping; }
 
   /**
    * Return the pointed to the ITK image encapsulated by this wrapper.
    */
-  virtual ImageType *GetImage() const
+  virtual ImageType *GetImage() const 
     { return m_Image; }
 
   /** 
@@ -335,13 +335,13 @@ public:
    * be specified in the image coordinates, the slices will be generated
    * in accordance with the transforms that are specified
    */
-  virtual void SetSliceIndex(const Vector3ui &cursor);
+  virtual void SetSliceIndex(const Vector3ui &cursor) ITK_OVERRIDE;
 
   const ImageBaseType* GetDisplayViewportGeometry(unsigned int index) const;
 
   virtual void SetDisplayViewportGeometry(
       unsigned int index,
-      const ImageBaseType *viewport_image);
+      const ImageBaseType *viewport_image) ITK_OVERRIDE;
 
   /**
    * Get an ITK pipeline object holding the minimum value in the image. For
@@ -351,16 +351,16 @@ public:
   virtual ComponentTypeObject *GetImageMaxObject() const = 0;
 
   /** Return componentwise minimum cast to double, without mapping to native range */
-  virtual double GetImageMinAsDouble();
+  virtual double GetImageMinAsDouble() ITK_OVERRIDE;
 
   /** Return componentwise maximum cast to double, without mapping to native range */
-  virtual double GetImageMaxAsDouble();
+  virtual double GetImageMaxAsDouble() ITK_OVERRIDE;
 
   /** Return componentwise minimum cast to double, after mapping to native range */
-  virtual double GetImageMinNative();
+  virtual double GetImageMinNative() ITK_OVERRIDE;
 
   /** Return componentwise maximum cast to double, after mapping to native range */
-  virtual double GetImageMaxNative();
+  virtual double GetImageMaxNative() ITK_OVERRIDE;
 
   /**
    * Get a slice of the image in a given direction
@@ -373,7 +373,7 @@ public:
   //virtual InternalPixelType *GetVoxelPointer() const;
 
   /** Number of voxels */
-  virtual size_t GetNumberOfVoxels() const;
+  virtual size_t GetNumberOfVoxels() const ITK_OVERRIDE;
 
   /**
    * Pring debugging info
@@ -396,24 +396,24 @@ public:
    * Update the transform between the coordinate space of this image and the program's
    * main reference space
    */
-  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform);
+  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
 
   /**
    * Get the ITK transform between this layer and its reference space
    */
-  virtual const ITKTransformType *GetITKTransform() const;
+  virtual const ITKTransformType *GetITKTransform() const ITK_OVERRIDE;
 
   /**
    * Get the reference space space in which this image is defined
    */
-  virtual ImageBaseType* GetReferenceSpace() const;
+  virtual ImageBaseType* GetReferenceSpace() const ITK_OVERRIDE;
 
   /**
    * Extract a region of interest from the image wrapper, as a new wrapper of
    * the same type
    */
   virtual SmartPtr<ImageWrapperBase> ExtractROI(
-      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const;
+      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const ITK_OVERRIDE;
 
 
   /**
@@ -433,7 +433,7 @@ public:
   virtual Iterator GetImageIterator();
 
   /** For each slicer, find out which image dimension does is slice along */
-  unsigned int GetDisplaySliceImageAxis(unsigned int slice);
+  unsigned int GetDisplaySliceImageAxis(unsigned int slice) ITK_OVERRIDE;
 
   /** 
    * Replace all voxels with intensity values iOld with values iNew. 
@@ -450,7 +450,7 @@ public:
   /**
    * Get the display slice
    */
-  DisplaySlicePointer GetDisplaySlice(unsigned int dim);
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim) ITK_OVERRIDE;
 
   /**
     Attach a preview pipeline to the wrapper. This is used with wrappers that
@@ -480,23 +480,23 @@ public:
    * used to determine whether the layer is drawable (only relevant if the
    * pipeline is attached)
    */
-  irisIsMacro(PipelineReady)
-  irisSetMacro(PipelineReady, bool)
+  irisIsMacroWithOverride(PipelineReady)
+  irisSetMacroWithOverride(PipelineReady, bool)
 
   /**
    * Set the filename of the image wrapper. If the wrapper does not have a
    * nickname, the nickname will be changed to the file part of the filename.
    */
-  void SetFileName(const std::string &name);
+  void SetFileName(const std::string &name) ITK_OVERRIDE;
 
 
   // Access the filename
-  irisGetStringMacro(FileName)
+  irisGetStringMacroWithOverride(FileName)
 
   /**
    * Fallback nickname - shown if no filename and no custom nickname set.
    */
-  irisGetSetMacro(DefaultNickname, const std::string &)
+  irisGetSetMacroWithOverride(DefaultNickname, const std::string &)
 
   /**
    * Get the nickname of the image. A nickname is a shorter description of the
@@ -504,13 +504,13 @@ public:
    * defaults to the filename (without path). If there is no filename (i.e.,
    * the layer is internal), the default nickname is used.
    */
-  const std::string &GetNickname() const;
+  const std::string &GetNickname() const ITK_OVERRIDE;
 
   /**
    * Set the custom nickname for the wrapper.
    */
-  virtual void SetCustomNickname(const std::string &nickname);
-  irisGetMacro(CustomNickname, const std::string &);
+  virtual void SetCustomNickname(const std::string &nickname) ITK_OVERRIDE;
+  irisGetMacroWithOverride(CustomNickname, const std::string &);
 
   /**
    * Access the "IO hints" registry associated with this wrapper. The IO hints
@@ -518,22 +518,22 @@ public:
    * For example, it may contain the DICOM series ID of the image, or for a raw
    * image the dimensions.
    */
-  virtual const Registry &GetIOHints() const;
+  virtual const Registry &GetIOHints() const ITK_OVERRIDE;
 
   /**
    * Set the IO hints
    */
-  virtual void SetIOHints(const Registry &io_hints);
+  virtual void SetIOHints(const Registry &io_hints) ITK_OVERRIDE;
 
   /**
    * Write the image to disk with the help of the GuidedNativeImageIO object
    */
-  virtual void WriteToFile(const char *filename, Registry &hints);
+  virtual void WriteToFile(const char *filename, Registry &hints) ITK_OVERRIDE;
 
   /**
    * Create a thumbnail from the image and write it to a .png file
    */
-  void WriteThumbnail(const char *filename, unsigned int maxdim);
+  void WriteThumbnail(const char *filename, unsigned int maxdim) ITK_OVERRIDE;
 
   /**
    * Save metadata to a Registry file. The metadata are data that are not
@@ -541,17 +541,17 @@ public:
    * is reloaded. Currently, this mainly includes the display mapping, but
    * also the transparency, etc.
    */
-  virtual void WriteMetaData(Registry &reg);
+  virtual void WriteMetaData(Registry &reg) ITK_OVERRIDE;
 
   /**
    * Restore metadata from a registry
    */
-  virtual void ReadMetaData(Registry &reg);
+  virtual void ReadMetaData(Registry &reg) ITK_OVERRIDE;
 
   /**
    * Check if the image has unsaved changes
    */
-  virtual bool HasUnsavedChanges() const;
+  virtual bool HasUnsavedChanges() const ITK_OVERRIDE;
 
   /**
    * The image wrapper has a generic mechanism for associating data with it.
@@ -564,14 +564,14 @@ public:
    * associated object as events of type WrapperUserChangeEvent(). These
    * events will then propagate all the way up to the IRISApplication.
    */
-  void SetUserData(const std::string &role, itk::Object *data);
+  void SetUserData(const std::string &role, itk::Object *data) ITK_OVERRIDE;
 
   /**
    * Get the user data associated with this wrapper for a specific role. If
    * no association exists, NULL is returned. The method is templated over the
    * return type to avoid casting in user code.
    */
-  itk::Object* GetUserData(const std::string &role) const;
+  itk::Object* GetUserData(const std::string &role) const ITK_OVERRIDE;
 
 protected:
 

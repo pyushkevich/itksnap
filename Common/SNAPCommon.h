@@ -220,10 +220,27 @@ public:
 } 
 
 /**
+ * Set macro borrowed from VTK and modified.  Assumes m_ for private vars
+ */
+#define irisSetMacroWithOverride(name,type) \
+    virtual void Set##name (type _arg) ITK_OVERRIDE \
+{ \
+    this->m_##name = _arg; \
+} 
+
+/**
  * Get macro borrowed from VTK and modified.  Assumes m_ for private vars
  */
 #define irisGetMacro(name,type) \
     virtual type Get##name () const { \
+    return this->m_##name; \
+}
+
+/**
+ * Get macro borrowed from VTK and modified.  Assumes m_ for private vars
+ */
+#define irisGetMacroWithOverride(name,type) \
+    virtual type Get##name () const ITK_OVERRIDE { \
     return this->m_##name; \
 }
 
@@ -256,11 +273,23 @@ public:
   virtual type Get##name () const \
     { return this->m_##name; }
 
+#define irisGetSetMacroWithOverride(name,type) \
+  virtual void Set##name (type _arg) ITK_OVERRIDE\
+    { this->m_##name = _arg; } \
+  virtual type Get##name () const ITK_OVERRIDE\
+    { return this->m_##name; }
+
 /**
  * Set macro for strings
  */
 #define irisSetStringMacro(name) \
     virtual void Set##name (const std::string &_arg) \
+{ \
+    this->m_##name = _arg; \
+} 
+
+#define irisSetStringMacroWithOverride(name) \
+    virtual void Set##name (const std::string &_arg) ITK_OVERRIDE\
 { \
     this->m_##name = _arg; \
 } 
@@ -273,6 +302,10 @@ public:
     return this->m_##name.c_str(); \
 } 
 
+#define irisGetStringMacroWithOverride(name) \
+    virtual const char *Get##name () const ITK_OVERRIDE { \
+    return this->m_##name.c_str(); \
+} 
 /**
  * Set macro for strings
  */
@@ -294,6 +327,10 @@ public:
     return this->m_##name; \
 } 
 
+#define irisIsMacroWithOverride(name) \
+    virtual bool Is##name () const ITK_OVERRIDE { \
+    return this->m_##name; \
+} 
 /**
  * A get macro for boolean variables, IsXXX instead of GetXXX
  */

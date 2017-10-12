@@ -78,23 +78,23 @@ public:
   /**
    * Set the table of color labels used to produce color slice images
    */
-  void SetLabelColorTable(ColorLabelTable *labels);
+  void SetLabelColorTable(ColorLabelTable *labels) ITK_OVERRIDE;
 
   /**
    * Get the color label table
    */
-  ColorLabelTable *GetLabelColorTable() const;
+  ColorLabelTable *GetLabelColorTable() const ITK_OVERRIDE;
 
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
 
-  DisplaySlicePointer GetDisplaySlice(unsigned int slice);
+  DisplaySlicePointer GetDisplaySlice(unsigned int slice) ITK_OVERRIDE;
 
-  virtual IntensityCurveInterface *GetIntensityCurve() const { return NULL; }
-  virtual ColorMap *GetColorMap() const { return NULL; }
+  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE { return NULL; }
+  virtual ColorMap *GetColorMap() const ITK_OVERRIDE { return NULL; }
 
-  virtual void Save(Registry &folder) {}
-  virtual void Restore(Registry &folder) {}
+  virtual void Save(Registry &folder) ITK_OVERRIDE {}
+  virtual void Restore(Registry &folder) ITK_OVERRIDE {}
 
   virtual DisplayPixelType MapPixel(const InputPixelType &val);
 
@@ -119,8 +119,6 @@ class AbstractContinuousImageDisplayMappingPolicy : public AbstractDisplayMappin
 public:
   irisITKAbstractObjectMacro(AbstractContinuousImageDisplayMappingPolicy,
                              AbstractDisplayMappingPolicy)
-
-  virtual IntensityCurveInterface *GetIntensityCurve() const = 0;
 
   /**
    * @brief Get the intensity range relative to which the contrast mapping
@@ -220,28 +218,28 @@ public:
 
   void ClearReferenceIntensityRange();
 
-  Vector2d GetNativeImageRangeForCurve();
+  Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
 
-  virtual const ScalarImageHistogram *GetHistogram(int nBins);
+  virtual const ScalarImageHistogram *GetHistogram(int nBins) ITK_OVERRIDE;
 
 
   /**
    * Get the display slice in a given direction.  To change the
    * display slice, call parent's MoveToSlice() method
    */
-  DisplaySlicePointer GetDisplaySlice(unsigned int dim);
+  DisplaySlicePointer GetDisplaySlice(unsigned int dim) ITK_OVERRIDE;
 
   /**
     Get a pointer to the colormap
     */
-  ColorMap *GetColorMap () const;
+  ColorMap *GetColorMap () const ITK_OVERRIDE;
 
-  void SetColorMap(ColorMap *map);
+  void SetColorMap(ColorMap *map) ITK_OVERRIDE;
 
   /**
    * Get a pointer to the intensity curve
    */
-  virtual IntensityCurveInterface *GetIntensityCurve() const;
+  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE;
 
   /**
    * Set a new intensity curve
@@ -251,8 +249,8 @@ public:
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
 
-  virtual void Save(Registry &folder);
-  virtual void Restore(Registry &folder);
+  virtual void Save(Registry &folder) ITK_OVERRIDE;
+  virtual void Restore(Registry &folder) ITK_OVERRIDE;
 
   virtual DisplayPixelType MapPixel(const PixelType &val);
 
@@ -431,14 +429,14 @@ public:
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
 
-  virtual DisplaySlicePointer GetDisplaySlice(unsigned int slice);
+  virtual DisplaySlicePointer GetDisplaySlice(unsigned int slice) ITK_OVERRIDE;
 
-  virtual IntensityCurveInterface *GetIntensityCurve() const { return NULL; }
+  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE { return NULL; }
 
-  virtual void Save(Registry &folder);
-  virtual void Restore(Registry &folder);
+  virtual void Save(Registry &folder) ITK_OVERRIDE;
+  virtual void Restore(Registry &folder) ITK_OVERRIDE;
 
-  irisGetMacro(ColorMap, ColorMap *)
+  irisGetMacroWithOverride(ColorMap, ColorMap *)
 
   DisplayPixelType MapPixel(const PixelType &xin);
 
@@ -508,18 +506,18 @@ public:
   void UpdateImagePointer(ImageType *image);
 
   /** Set the display mode */
-  virtual void SetDisplayMode(MultiChannelDisplayMode mode);
+  virtual void SetDisplayMode(MultiChannelDisplayMode mode) ITK_OVERRIDE;
 
   /** Get the display mode */
-  irisGetMacro(DisplayMode, MultiChannelDisplayMode)
+  irisGetMacroWithOverride(DisplayMode, MultiChannelDisplayMode)
 
   /** Get/Set the animation status */
-  irisGetSetMacro(Animate, bool)
+  irisGetSetMacroWithOverride(Animate, bool)
 
-  DisplaySlicePointer GetDisplaySlice(unsigned int slice);
+  DisplaySlicePointer GetDisplaySlice(unsigned int slice) ITK_OVERRIDE;
 
-  Vector2d GetNativeImageRangeForCurve();
-  virtual const ScalarImageHistogram *GetHistogram(int nBins);
+  Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
+  virtual const ScalarImageHistogram *GetHistogram(int nBins) ITK_OVERRIDE;
 
   /**
    * @brief Returns true when the display mode is such that the image min, max
@@ -529,14 +527,14 @@ public:
    */
   bool IsContrastMultiComponent() const;
 
-  virtual IntensityCurveInterface *GetIntensityCurve() const;
-  virtual ColorMap *GetColorMap() const;
-  virtual void SetColorMap(ColorMap *map);
+  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE;
+  virtual ColorMap *GetColorMap() const ITK_OVERRIDE;
+  virtual void SetColorMap(ColorMap *map) ITK_OVERRIDE;
 
-  virtual void Save(Registry &folder);
-  virtual void Restore(Registry &folder);
+  virtual void Save(Registry &folder) ITK_OVERRIDE;
+  virtual void Restore(Registry &folder) ITK_OVERRIDE;
 
-  virtual void AutoFitContrast();
+  virtual void AutoFitContrast() ITK_OVERRIDE;
 
   irisGetMacro(ScalarRepresentation, ScalarImageWrapperBase *)
 

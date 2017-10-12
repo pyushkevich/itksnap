@@ -144,7 +144,7 @@ public:
   /**
     Update if necessary
     */
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   /**
    * Initialize the slice view with image data

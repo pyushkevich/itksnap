@@ -172,7 +172,7 @@ protected:
   void SetDisplayModeValue(MultiChannelDisplayMode value);
 
   // Update our state in response to events from the layer
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   // Update cached role information
   void UpdateRoleInfo();

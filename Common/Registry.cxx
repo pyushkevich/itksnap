@@ -63,10 +63,10 @@ protected:
 
   RegistryXMLFileReader() {}
 
-  virtual int CanReadFile(const char *name);
-  virtual void StartElement(const char *name, const char **atts);
-  virtual void EndElement(const char *name);
-  virtual void CharacterDataHandler(const char *inData, int inLength);
+  virtual int CanReadFile(const char *name) ITK_OVERRIDE;
+  virtual void StartElement(const char *name, const char **atts) ITK_OVERRIDE;
+  virtual void EndElement(const char *name) ITK_OVERRIDE;
+  virtual void CharacterDataHandler(const char *inData, int inLength) ITK_OVERRIDE;
 
   static int strcmpi(const char *str1, const char *str2)
   {
@@ -244,7 +244,7 @@ Registry
   return targetArray.size();
 }
 
-bool Registry::HasEntry(const Registry::StringType &key)
+bool Registry::HasEntry(const Registry::StringType &key) const
 {
   // Get the containing folder
   StringType::size_type iDot = key.find_first_of('.');
@@ -254,15 +254,22 @@ bool Registry::HasEntry(const Registry::StringType &key)
     {
     StringType child = key.substr(0,iDot);
     StringType childKey = key.substr(iDot+1);
-    return Folder(child).HasEntry(childKey);
-    }
 
-  // Search for the key and return it if found
-  EntryIterator it = m_EntryMap.find(key);
-  return it != m_EntryMap.end();
+    FolderIterator it = m_FolderMap.find(child);
+    if(it != m_FolderMap.end())
+      return it->second->HasEntry(childKey);
+    else
+      return false;
+    }
+  else
+    {
+    // Search for the key and return it if found
+    EntryConstIterator it = m_EntryMap.find(key);
+    return it != m_EntryMap.end();
+    }
 }
 
-bool Registry::HasFolder(const Registry::StringType &key)
+bool Registry::HasFolder(const Registry::StringType &key) const
 {
   // Get the containing folder
   StringType::size_type iDot = key.find_first_of('.');
@@ -272,12 +279,19 @@ bool Registry::HasFolder(const Registry::StringType &key)
     {
     StringType child = key.substr(0,iDot);
     StringType childKey = key.substr(iDot+1);
-    return Folder(child).HasFolder(childKey);
-    }
 
-  // Search for the key and return it if found
-  FolderIterator it = m_FolderMap.find(key);
-  return it != m_FolderMap.end();
+    FolderIterator it = m_FolderMap.find(child);
+    if(it != m_FolderMap.end())
+      return it->second->HasFolder(childKey);
+    else
+      return false;
+    }
+  else
+    {
+    // Search for the key and return it if found
+    FolderIterator it = m_FolderMap.find(key);
+    return it != m_FolderMap.end();
+    }
 }
 
 void
@@ -304,6 +318,35 @@ Registry
     // Write the folder contents (recursive, contents prefixed with full path name)
     itf->second->Write(sout, prefix + itf->first + "." );
     }  
+}
+
+void
+Registry
+::Print(ostream &sout, StringType indent, StringType prefix)
+{
+  // Print the folders
+  for(FolderIterator itf = m_FolderMap.begin(); itf != m_FolderMap.end(); ++itf)
+    {
+    // Write the folder, python-like 
+    sout << prefix << itf->first << ":" << endl;
+
+    // Print the folder contents (recursive, contents prefixed with full path name)
+    itf->second->Print(sout, indent, prefix + indent);
+    }  
+
+  // Print the entries in this folder
+  for(EntryIterator ite = m_EntryMap.begin();ite != m_EntryMap.end(); ++ite)
+    {
+    // Only write the non-null entries
+    if(!ite->second.IsNull())
+      {
+      // Write the key = 
+      sout << prefix << ite->first << " = ";
+
+      // Write the encoded value
+      sout << ite->second.GetInternalString() << endl;
+      }
+    }
 }
 
 void

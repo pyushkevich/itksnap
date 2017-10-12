@@ -166,7 +166,7 @@ void KMeansPlusPlus::Initialize(void)
     m_gmm->SetCovariance(i, tmpcovar);
     }
 
-  delete radius;
+  delete[] radius;
 
   for (int i = 0; i < m_numOfClusters; i++)
     {

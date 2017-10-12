@@ -158,13 +158,13 @@ void PolygonDrawingInteractionMode::onAcceptPolygon()
 
 void PolygonDrawingInteractionMode::onSplitSelected()
 {
-  m_Model->Insert();
+  m_Model->SplitSelectedEdges();
 }
 
 
 void PolygonDrawingInteractionMode::onDeleteSelected()
 {
-  m_Model->Delete();
+  m_Model->DeleteSelected();
 }
 
 

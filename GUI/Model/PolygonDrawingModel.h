@@ -64,10 +64,10 @@ public:
   void PastePolygon(void);
 
   /** Deletes selected vertices */
-  void Delete();
+  void DeleteSelected();
 
   /** Inserts vertices in selected edges */
-  void Insert();
+  void SplitSelectedEdges();
 
   /** Clears the drawing */
   void Reset();

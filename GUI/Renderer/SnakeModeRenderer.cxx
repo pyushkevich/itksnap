@@ -71,8 +71,9 @@ void SnakeModeRenderer::DrawBubbles()
     unsigned char alpha = (unsigned char)(255 * gs->GetSegmentationAlpha());
 
     // Get the color of the active color label
-    unsigned char rgb[3];
-    cl.GetRGBVector(rgb);
+    Vector3ui clrFill(cl.GetRGB(0),cl.GetRGB(1),cl.GetRGB(2));
+    Vector3ui clrWhite(255, 255, 255);
+    Vector3ui clrLine = clrWhite - (clrWhite - clrFill) / 2u;
 
     // Get the current crosshairs position
     Vector3d cursorImage = to_double(app->GetCursorPosition()) + Vector3d(0.5);
@@ -87,15 +88,14 @@ void SnakeModeRenderer::DrawBubbles()
     glPushAttrib(GL_POLYGON_BIT | GL_COLOR_BUFFER_BIT);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Create a filled circle object
-    GLUquadricObj *object = gluNewQuadric();
-    gluQuadricDrawStyle(object,GLU_FILL);
+    glEnable(GL_POLYGON_STIPPLE);
+    glEnable(GL_LINE_SMOOTH);
+    glLineWidth(1.5);
+    glPolygonStipple(stipple);
 
     // Draw each bubble
     for (int i = 0; i < numBubbles; i++)
       {
-
       // Get the center and radius of the i-th bubble
       Vector3d ctrImage = to_double(bubbles[i].center) + Vector3d(0.5);
       double radius = bubbles[i].radius;
@@ -113,51 +113,13 @@ void SnakeModeRenderer::DrawBubbles()
       // Compute the radius of the bubble in the cut plane
       double diskradius = sqrt(fabs(radius*radius - dcenter*dcenter));
 
-      // Draw the bubble
-      glColor4ub(rgb[0],rgb[1],rgb[2],alpha);
-      glPushMatrix();
-
-      if(activeBubble == i)
-        {
-        glEnable(GL_POLYGON_STIPPLE);
-        glPolygonStipple(stipple);
-        }
-
-      glTranslatef(ctrSlice[0], ctrSlice[1], 0.0f);
-      glScalef(1.0f / scaling(0),1.0f / scaling(1),1.0f);
-      gluDisk(object,0,diskradius,100,1);
-
-      // If the bubble is active, draw an outline around the bubble
-      if(activeBubble == i)
-        {
-        glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-
-        glEnable(GL_BLEND);
-        glEnable(GL_LINE_SMOOTH);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glLineWidth(1.5);
-
-        glColor4ub(
-              255 - (255 - rgb[0]) / 2,
-              255 - (255 - rgb[1]) / 2,
-              255 - (255 - rgb[2]) / 2, 255);
-
-        glBegin(GL_LINE_LOOP);
-        for(unsigned int d = 0; d < 360; d+=2)
-          {
-          double rad = d * vnl_math::pi / 180.0;
-          glVertex2f(diskradius * cos(rad), diskradius * sin(rad));
-          }
-        glEnd();
-        glPopAttrib();
-        }
-
-      glPopMatrix();
-
+      // Inner and outer colors of the bubble
+      gl_draw_circle_with_border(ctrSlice[0], ctrSlice[1], diskradius,
+          1.0 / scaling(0), 1.0 / scaling(1),
+          clrFill, alpha, clrLine, (activeBubble == i) ? 255 : 0,
+          100);
       }
 
-    gluDeleteQuadric(object);
-    glDisable(GL_BLEND);
     glPopAttrib();
     }
 }

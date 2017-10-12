@@ -13,7 +13,7 @@ public:
 
   irisGetSetMacro(Model, PaintbrushModel *)
 
-  void paintGL();
+  void paintGL() ITK_OVERRIDE;
 
 protected:
 

@@ -27,10 +27,10 @@ public:
   /** Set the display mode */
   irisSetMacro(ForceToDisplay,DisplayMode)
 
-  virtual void paintGL();
+  virtual void paintGL() ITK_OVERRIDE;
 
-  virtual void initializeGL();
-  virtual void resizeGL(int w, int h, int device_pixel_ratio);
+  virtual void initializeGL() ITK_OVERRIDE;
+  virtual void resizeGL(int w, int h, int device_pixel_ratio) ITK_OVERRIDE;
 
 protected:
 

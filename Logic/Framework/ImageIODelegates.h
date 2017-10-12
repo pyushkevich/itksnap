@@ -78,7 +78,7 @@ public:
 
   irisITKAbstractObjectMacro(LoadAnatomicImageDelegate, AbstractLoadImageDelegate)
 
-  virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
+  virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
 
 protected:
   LoadAnatomicImageDelegate() {}
@@ -91,8 +91,8 @@ public:
 
   irisITKObjectMacro(LoadMainImageDelegate, LoadAnatomicImageDelegate)
 
-  void UnloadCurrentImage();
-  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  void UnloadCurrentImage() ITK_OVERRIDE;
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) ITK_OVERRIDE;
 
 protected:
   LoadMainImageDelegate();
@@ -106,10 +106,10 @@ public:
 
   irisITKObjectMacro(LoadOverlayImageDelegate, LoadAnatomicImageDelegate)
 
-  void UnloadCurrentImage();
-  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
-  void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
-  virtual bool IsOverlay() const { return true; }
+  void UnloadCurrentImage() ITK_OVERRIDE;
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) ITK_OVERRIDE;
+  void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
+  virtual bool IsOverlay() const ITK_OVERRIDE { return true; }
 
 protected:
   LoadOverlayImageDelegate();
@@ -123,10 +123,10 @@ public:
 
   irisITKObjectMacro(LoadSegmentationImageDelegate, AbstractLoadImageDelegate)
 
-  virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
-  virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl);
-  void UnloadCurrentImage();
-  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
+  virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
+  void UnloadCurrentImage() ITK_OVERRIDE;
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) ITK_OVERRIDE;
 
 protected:
   LoadSegmentationImageDelegate();
@@ -186,15 +186,15 @@ public:
   // for multiple history names to be updated
   void AddHistoryName(const std::string &histname);
 
-  virtual const char *GetHistoryName();
+  virtual const char *GetHistoryName() ITK_OVERRIDE;
 
   virtual void SaveImage(
       const std::string &fname,
       GuidedNativeImageIO *io,
       Registry &reg,
-      IRISWarningList &wl);
+      IRISWarningList &wl) ITK_OVERRIDE;
 
-  virtual const char *GetCurrentFilename();
+  virtual const char *GetCurrentFilename() ITK_OVERRIDE;
 
 protected:
 

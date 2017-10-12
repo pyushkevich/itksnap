@@ -58,46 +58,17 @@ public:
   class Delta 
     {
     public:
-      Delta()
-        {
-        m_CurrentLength = 0;
-        m_UniqueID = m_UniqueIDCounter++;
-        }
+      Delta();
 
       void SetRegion(const RegionType &region)
-        {
-        this->m_Region = region;
-        }
+        { this->m_Region = region; }
 
       const RegionType &GetRegion()
-        {
-        return m_Region;
-        }
+        { return m_Region; }
       
-      void Encode(const TPixel &value)
-        {
-        if(m_CurrentLength == 0)
-          {
-          m_LastValue = value;
-          m_CurrentLength = 1;
-          }
-        else if(value == m_LastValue)
-          {
-          m_CurrentLength++;
-          }
-        else
-          {
-          m_Array.push_back(std::make_pair(m_CurrentLength, m_LastValue));
-          m_CurrentLength = 1;
-          m_LastValue = value;
-          }
-        }
+      void Encode(const TPixel &value);
 
-      void FinishEncoding()
-        {
-        if(m_CurrentLength > 0)
-          m_Array.push_back(std::make_pair(m_CurrentLength, m_LastValue));
-        }
+      void FinishEncoding();
 
       size_t GetNumberOfRLEs()
         { return m_Array.size(); }
@@ -111,14 +82,7 @@ public:
       unsigned long GetUniqueID() const
         { return m_UniqueID; }
 
-      Delta & operator = (const Delta &other)
-      {
-        m_Array = other.m_Array;
-        m_CurrentLength = other.m_CurrentLength;
-        m_LastValue = other.m_LastValue;
-        m_Region = other.m_Region;
-        return *this;
-      }
+      Delta & operator = (const Delta &other);
 
     protected:
       typedef std::pair<size_t, TPixel> RLEPair;

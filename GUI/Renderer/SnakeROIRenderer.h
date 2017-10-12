@@ -14,7 +14,7 @@ public:
 
   irisGetSetMacro(Model, SnakeROIModel *)
 
-  void paintGL();
+  void paintGL() ITK_OVERRIDE;
 
 protected:
 

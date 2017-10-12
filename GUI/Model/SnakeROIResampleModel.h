@@ -78,7 +78,7 @@ protected:
 
   void EnforceAspectRatio(int source_idx);
 
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   // Cached information about the ROI. This is where this model stores its
   // state until the user says 'ok'

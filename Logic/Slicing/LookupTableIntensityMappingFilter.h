@@ -47,7 +47,7 @@ public:
 
   /** The actual work */
   void ThreadedGenerateData(const OutputImageRegionType &region,
-                            itk::ThreadIdType threadId);
+                            itk::ThreadIdType threadId) ITK_OVERRIDE;
 
   /** Process a single pixel */
   OutputPixelType MapPixel(const InputPixelType &pixel);

@@ -276,7 +276,7 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
     AdaptiveSlicingPipeline_PixelFiller<OutputImageType>
         ::MakePixel(this->GetOutput(),pix, out_arr);
 
-    delete out_arr;
+    delete[] out_arr;
     return pix;
     }
 }

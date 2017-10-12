@@ -87,7 +87,7 @@ public:
 
   typedef typename Superclass::ITKTransformType               ITKTransformType;
 
-  virtual bool IsScalar() const { return false; }
+  virtual bool IsScalar() const ITK_OVERRIDE { return false; }
 
   /**
    * This function returns whatever scalar representation is current. The
@@ -97,27 +97,27 @@ public:
    * is also some ambiguity as to what the default scalar component should be.
    * @see ImageWrapperBase::GetScalarRepresentation
    */
-  ScalarImageWrapperBase *GetDefaultScalarRepresentation();
+  ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE;
 
   /**
    * Get a pointer to the given scalar representation of this vector image.
    */
   ScalarImageWrapperBase *GetScalarRepresentation(
       ScalarRepresentation type,
-      int index = 0);
+      int index = 0) ITK_OVERRIDE;
 
   /**
    * Access a scalar representation using an iterator
    */
   virtual ScalarImageWrapperBase *GetScalarRepresentation(
-      const ScalarRepresentationIterator &it);
+      const ScalarRepresentationIterator &it) ITK_OVERRIDE;
 
   /**
    * If scalar_rep is a scalar representation of the vector image wrapper, find
    * the type of the representation and the index. Otherwise return false;
    */
   bool FindScalarRepresentation(
-      ImageWrapperBase *scalar_rep, ScalarRepresentation &type, int &index) const;
+      ImageWrapperBase *scalar_rep, ScalarRepresentation &type, int &index) const ITK_OVERRIDE;
 
   /**
    * This returns the same as GetScalarRepresentation(SCALAR_REP_COMPONENT, i),
@@ -131,11 +131,11 @@ public:
    * voxel size
    */
   ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
-                              itk::Command *progressCommand = NULL) const;
+                              itk::Command *progressCommand = NULL) const ITK_OVERRIDE;
 
 
   /** This image type has only one component */
-  virtual size_t GetNumberOfComponents() const
+  virtual size_t GetNumberOfComponents() const ITK_OVERRIDE
   {
     return this->m_Image->GetNumberOfComponentsPerPixel();
   }
@@ -146,28 +146,28 @@ public:
   /** Voxel access */
   // virtual double GetVoxelAsDouble(const Vector3ui &v) const;
 
-  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const
+  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const ITK_OVERRIDE
   {
     const PixelType &p = Superclass::GetVoxel(x);
     for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
       out[i] = p[i];
   }
 
-  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const
+  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
   {
     const PixelType &p = Superclass::GetVoxel(idx);
     for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
       out[i] = p[i];
   }
 
-  virtual void GetVoxelMappedToNative(const Vector3ui &x, double *out) const
+  virtual void GetVoxelMappedToNative(const Vector3ui &x, double *out) const ITK_OVERRIDE
   {
     const PixelType &p = Superclass::GetVoxel(x);
     for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
       out[i] = this->m_NativeMapping(p[i]);
   }
 
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const
+  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
   {
     const PixelType &p = Superclass::GetVoxel(idx);
     for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
@@ -177,8 +177,8 @@ public:
   /**
    * Get the component-wise minimum and maximum of the image in native format
    */
-  virtual ComponentTypeObject *GetImageMinObject() const;
-  virtual ComponentTypeObject *GetImageMaxObject() const;
+  virtual ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
+  virtual ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
 
   /** Compute statistics over a run of voxels in the image starting at the index
    * startIdx. Appends the statistics to a running sum and sum of squared. The
@@ -186,7 +186,7 @@ public:
   virtual void GetRunLengthIntensityStatistics(
       const itk::ImageRegion<3> &region,
       const itk::Index<3> &startIdx, long runlength,
-      double *out_sum, double *out_sumsq) const;
+      double *out_sum, double *out_sumsq) const ITK_OVERRIDE;
 
   /**
    * This method returns a vector of values for the voxel under the cursor.
@@ -198,19 +198,19 @@ public:
    * the method returns the RGB appearance of the voxel under the cursor
    */
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
-      vnl_vector<double> &out_value, DisplayPixelType &out_appearance);
+      vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
 
-  virtual void SetNativeMapping(NativeIntensityMapping mapping);
+  virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
 
-  virtual void SetSliceIndex(const Vector3ui &cursor);
+  virtual void SetSliceIndex(const Vector3ui &cursor) ITK_OVERRIDE;
 
-  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
+  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom) ITK_OVERRIDE;
 
   virtual void SetDisplayViewportGeometry(unsigned int index, ImageBaseType *viewport_image);
 
-  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction);
+  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction) ITK_OVERRIDE;
 
-  virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source);
+  virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) ITK_OVERRIDE;
 
   /**
     Compute the image histogram. The histogram is cached inside of the
@@ -224,7 +224,7 @@ public:
 
     For multi-component data, the histogram is pooled over all components.
     */
-  const ScalarImageHistogram *GetHistogram(size_t nBins = 0);
+  const ScalarImageHistogram *GetHistogram(size_t nBins = 0) ITK_OVERRIDE;
 
 protected:
 
@@ -241,9 +241,9 @@ protected:
 
   virtual void UpdateImagePointer(ImageType *image,
                                   ImageBaseType *refSpace = NULL,
-                                  ITKTransformType *tran = NULL);
+                                  ITKTransformType *tran = NULL) ITK_OVERRIDE;
 
-  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform);
+  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
 
   /** Destructor */
   virtual ~VectorImageWrapper();

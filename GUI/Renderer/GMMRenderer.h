@@ -22,7 +22,7 @@ public:
 
   void SetModel(SnakeWizardModel *model);
 
-  void OnUpdate();
+  void OnUpdate() ITK_OVERRIDE;
 
   void UpdatePlotValues();
 
@@ -42,7 +42,7 @@ protected:
 
   static unsigned int NUM_POINTS;
 
-  void OnDevicePixelRatioChange(int old_ratio, int new_ratio);
+  void OnDevicePixelRatioChange(int old_ratio, int new_ratio) ITK_OVERRIDE;
 };
 
 #endif // GMMRENDERER_H

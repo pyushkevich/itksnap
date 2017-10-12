@@ -502,7 +502,7 @@ public:
   itkTypeMacro(ConcretePropertyModel, AbstractPropertyModel)
   itkNewMacro(Self)
 
-  virtual bool GetValueAndDomain(TVal &value, TDomain *domain)
+  virtual bool GetValueAndDomain(TVal &value, TDomain *domain) ITK_OVERRIDE
   {
     value = m_Value;
     if(domain)
@@ -510,7 +510,7 @@ public:
     return m_IsValid;
   }
 
-  irisSetWithEventMacro(Value, TVal, ValueChangedEvent)
+  irisSetWithEventMacroWithOverride(Value, TVal, ValueChangedEvent)
   irisSetWithEventMacro(Domain, TDomain, DomainChangedEvent)
   irisSetWithEventMacro(IsValid, bool, ValueChangedEvent)
 
@@ -757,7 +757,7 @@ public:
   }
 
 
-  bool GetValueAndDomain(TVal &value, TDomain *domain)
+  bool GetValueAndDomain(TVal &value, TDomain *domain) ITK_OVERRIDE
   {
     // This is important! Before calling the getter function, we should allow
     // the model to respond to whatever events it may have received that led
@@ -769,7 +769,7 @@ public:
     return m_GetterTraits.GetValueAndDomain(m_Model, m_Getter, value, domain);
   }
 
-  void SetValue(TVal value)
+  void SetValue(TVal value) ITK_OVERRIDE
   {
     if(m_Setter)
       {
@@ -1150,7 +1150,7 @@ public:
     AbstractModel::Rebroadcast(m_ParentModel, ValueChangedEvent(), ValueChangedEvent());
   }
 
-  bool GetValueAndDomain(TMember &value, TDomain *domain)
+  bool GetValueAndDomain(TMember &value, TDomain *domain) ITK_OVERRIDE
   {
     TStruct parentValue;
     if(m_ParentModel && m_ParentModel->GetValueAndDomain(parentValue,  NULL))
@@ -1169,7 +1169,7 @@ public:
     return false;
   }
 
-  void SetValue(TMember value)
+  void SetValue(TMember value) ITK_OVERRIDE
   {
     TStruct parentValue;
     if(m_ParentModel && m_ParentModel->GetValueAndDomain(parentValue,  NULL))

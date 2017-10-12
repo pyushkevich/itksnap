@@ -82,7 +82,7 @@ protected:
   virtual ~LevelSetExtensionFilter() {}
 
   /** Just a print method */
-  void PrintSelf(std::ostream& os, itk::Indent indent) const
+  void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE
   {
     Superclass::PrintSelf(os,indent);
   }

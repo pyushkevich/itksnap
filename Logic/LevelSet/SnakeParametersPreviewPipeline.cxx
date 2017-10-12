@@ -133,10 +133,8 @@ public:
 
         // Fill in the contour in the level set image
         m_LevelSetImage->FillBuffer(0.0f);
-        typedef PolygonScanConvert<
-          float, GL_FLOAT, std::vector<Vector2d>::iterator> ScanConvertType;
-        ScanConvertType::RasterizeFilled(
-          points.begin(), points.size(), m_LevelSetImage);
+        typedef PolygonScanConvert<FloatImageType, float, std::vector<Vector2d>::iterator> ScanConvertType;
+        ScanConvertType::RasterizeFilled(points.begin(), points.size(), m_LevelSetImage);
 
         // Ensure that the initial level set is zero
         typedef itk::ImageRegionIterator<FloatImageType> IteratorType;

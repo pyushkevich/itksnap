@@ -157,16 +157,17 @@ protected:
   AdaptiveSlicingPipeline();
   ~AdaptiveSlicingPipeline();
 
-  virtual void VerifyInputInformation() { }
+  virtual void VerifyInputInformation() ITK_OVERRIDE { }
 
-  virtual void GenerateOutputInformation();
+  virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
-  virtual void PropagateRequestedRegion(itk::DataObject *object);
+  virtual void PropagateRequestedRegion(itk::DataObject *object) ITK_OVERRIDE;
 
-  virtual void CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
-                                                 const OutputImageRegionType &srcRegion);
+  virtual void CallCopyOutputRegionToInputRegion(
+      InputImageRegionType &destRegion,
+      const OutputImageRegionType &srcRegion) ITK_OVERRIDE;
 
-  virtual void GenerateData();
+  virtual void GenerateData() ITK_OVERRIDE;
 
   itk::SmartPointer<OrthogonalSlicerType> m_OrthogonalSlicer;
   itk::SmartPointer<NonOrthogonalSlicerType> m_ObliqueSlicer;

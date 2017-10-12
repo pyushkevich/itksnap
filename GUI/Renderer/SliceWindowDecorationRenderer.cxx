@@ -80,7 +80,7 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
 
   // Create the font info
   AbstractRendererPlatformSupport::FontInfo font_info =
-        { AbstractRendererPlatformSupport::TYPEWRITER, elt->GetFontSize() * vppr, true };
+        { AbstractRendererPlatformSupport::TYPEWRITER, (int) (elt->GetFontSize() * vppr), true };
 
   // Use the delegate to draw text
   this->m_PlatformSupport->RenderTextInOpenGL(
@@ -183,7 +183,7 @@ void SliceWindowDecorationRenderer::DrawNicknames()
 
 
   AbstractRendererPlatformSupport::FontInfo font_info =
-        { AbstractRendererPlatformSupport::SANS, elt->GetFontSize() * vppr, false };
+        { AbstractRendererPlatformSupport::SANS, (int)(elt->GetFontSize() * vppr), false };
 
   // Find the longest nickname
   int maxwidth = 0;
@@ -325,7 +325,7 @@ void SliceWindowDecorationRenderer::DrawRulers()
 
   // Create the font info
   AbstractRendererPlatformSupport::FontInfo font_info =
-        { AbstractRendererPlatformSupport::SANS, font_size * vppr, false };
+        { AbstractRendererPlatformSupport::SANS, (int)(font_size * vppr), false };
 
   // See if we can squeeze the label under the ruler
   if(bw > font_size * 4)

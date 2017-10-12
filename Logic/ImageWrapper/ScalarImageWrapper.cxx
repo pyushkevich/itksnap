@@ -270,7 +270,7 @@ public:
   itkGetConstReferenceMacro(Functor, FunctorType)
 
   void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                            itk::ThreadIdType threadId);
+                            itk::ThreadIdType threadId) ITK_OVERRIDE;
 
 
 protected:

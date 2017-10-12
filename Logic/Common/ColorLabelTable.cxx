@@ -146,7 +146,7 @@ ColorLabelTable
         inputMap[idx] = cl;
 
       // Clean up the label
-      delete label;
+      delete[] label;
       }
     catch( std::exception )
       {

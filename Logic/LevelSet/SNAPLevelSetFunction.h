@@ -190,10 +190,10 @@ public:
     */
   virtual PixelType ComputeUpdate(const NeighborhoodType &neighborhood,
                                   void *globalData,
-                                  const FloatOffsetType &);
+                                  const FloatOffsetType &) ITK_OVERRIDE;
 
   // Inline function shared by the three XXXSpeed() functions
-  inline ScalarValueType GetSpeedWithExponent(
+  virtual ScalarValueType GetSpeedWithExponent(
       int exponent,
       const NeighborhoodType &neighbourhood,
       const FloatOffsetType &offset,
@@ -203,7 +203,7 @@ public:
   virtual ScalarValueType CurvatureSpeed(
     const NeighborhoodType &neighbourhood,
     const FloatOffsetType &offset, 
-    GlobalDataStruct * = 0 ) const
+    GlobalDataStruct * = 0 ) const ITK_OVERRIDE
   {
     return GetSpeedWithExponent(m_CurvatureSpeedExponent,
                                 neighbourhood, offset);
@@ -213,7 +213,7 @@ public:
   virtual ScalarValueType LaplacianSmoothingSpeed(
     const NeighborhoodType &neighbourhood,
     const FloatOffsetType &offset, 
-    GlobalDataStruct * = 0 ) const
+    GlobalDataStruct * = 0 ) const ITK_OVERRIDE
   {
     return GetSpeedWithExponent(m_LaplacianSmoothingSpeedExponent,
                                 neighbourhood, offset);
@@ -223,7 +223,7 @@ public:
   virtual ScalarValueType PropagationSpeed(
     const NeighborhoodType &neighbourhood,
     const FloatOffsetType &offset, 
-    GlobalDataStruct * = 0 ) const
+    GlobalDataStruct * = 0 ) const ITK_OVERRIDE
   {
     ScalarValueType v = GetSpeedWithExponent(m_PropagationSpeedExponent,
                                 neighbourhood, offset);
@@ -235,7 +235,7 @@ public:
   virtual VectorType AdvectionField(
     const NeighborhoodType &neighbourhood,
     const FloatOffsetType &offset, 
-    GlobalDataStruct * = 0 ) const;
+    GlobalDataStruct * = 0 ) const ITK_OVERRIDE;
 
   /** Set the exponent to which the speed image g() is taken
       when converted to the curvature speed */
@@ -289,7 +289,7 @@ public:
       passed on to this filter is equal to zero, this method will use the
       automatic time step calculation from the parent class.  If the value
       is non-zero, the fixed time step will be returned. */
-  virtual TimeStepType ComputeGlobalTimeStep(void *GlobalData) const
+  virtual TimeStepType ComputeGlobalTimeStep(void *GlobalData) const ITK_OVERRIDE
     { 
     TimeStepType step = Superclass::ComputeGlobalTimeStep(GlobalData);
     return m_TimeStepFactor == 0
@@ -301,7 +301,7 @@ protected:
 
   SNAPLevelSetFunction();
   ~SNAPLevelSetFunction();
-  void PrintSelf(std::ostream &s, itk::Indent indent) const;
+  void PrintSelf(std::ostream &s, itk::Indent indent) const ITK_OVERRIDE;
 
 private:
 

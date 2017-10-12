@@ -91,8 +91,8 @@ public:
   bool CheckState(UIState state);
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(ImageWrapperBase *layer);
-  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted);
+  void RegisterWithLayer(ImageWrapperBase *layer) ITK_OVERRIDE;
+  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
 
   /** Before using the model, it must be coupled with a size reporter */
   irisGetSetMacro(ViewportReporter, ViewportSizeReporter *)
@@ -105,7 +105,7 @@ public:
   bool ProcessMouseReleaseEvent(const Vector3d &x);
 
   /** Update the model in response to upstream events */
-  virtual void OnUpdate();
+  virtual void OnUpdate() ITK_OVERRIDE;
 
   typedef AbstractPropertyModel<Continuity> ContinuityValueModel;
   typedef AbstractPropertyModel<Side> SideValueModel;

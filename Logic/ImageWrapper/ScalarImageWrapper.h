@@ -126,14 +126,14 @@ public:
   typedef typename Superclass::ITKTransformType               ITKTransformType;
 
 
-  virtual bool IsScalar() const { return true; }
+  virtual bool IsScalar() const ITK_OVERRIDE { return true; }
 
   /**
    * This function just returns the pointer to itself, as the scalar representation
    * of a scalar image wrapper is itself.
    * @see ImageWrapperBase::GetScalarRepresentation
    */
-  ScalarImageWrapperBase *GetDefaultScalarRepresentation() { return this; }
+  ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE { return this; }
 
   /** Access the min/max filter */
   irisGetMacro(MinMaxFilter, MinMaxFilter *)
@@ -142,39 +142,39 @@ public:
    * Get the scaling factor used to convert between intensities stored
    * in this image and the 'true' image intensities
    */
-  virtual double GetImageScaleFactor();
+  virtual double GetImageScaleFactor() ITK_OVERRIDE;
 
   typedef typename ImageWrapperBase::ShortImageType ShortImageType;
 
   /** This image type has only one component */
-  virtual size_t GetNumberOfComponents() const { return 1; }
+  virtual size_t GetNumberOfComponents() const ITK_OVERRIDE { return 1; }
 
   /** Voxel access */
-  virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const
+  virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const ITK_OVERRIDE
     { return (double) Superclass::GetVoxel(idx); }
 
-  virtual double GetVoxelAsDouble(const Vector3ui &v) const
+  virtual double GetVoxelAsDouble(const Vector3ui &v) const ITK_OVERRIDE
     { return (double) Superclass::GetVoxel(v); }
 
-  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const
+  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const ITK_OVERRIDE
     { out[0] = Superclass::GetVoxel(x); }
 
-  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const
+  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
     { out[0] = Superclass::GetVoxel(idx); }
 
   /**
    * Get voxel intensity in native space
    */
-  double GetVoxelMappedToNative(const Vector3ui &vec) const
+  double GetVoxelMappedToNative(const Vector3ui &vec) const ITK_OVERRIDE
     { return this->m_NativeMapping(this->GetVoxel(vec)); }
 
-  double GetVoxelMappedToNative(const itk::Index<3> &idx) const
+  double GetVoxelMappedToNative(const itk::Index<3> &idx) const ITK_OVERRIDE
     { return this->m_NativeMapping(this->GetVoxel(idx)); }
 
-  virtual void GetVoxelMappedToNative(const Vector3ui &vec, double *out) const
+  virtual void GetVoxelMappedToNative(const Vector3ui &vec, double *out) const ITK_OVERRIDE
     { out[0] = this->m_NativeMapping(Superclass::GetVoxel(vec)); }
 
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const
+  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
     { out[0] = this->m_NativeMapping(Superclass::GetVoxel(idx)); }
 
   /** Compute statistics over a run of voxels in the image starting at the index
@@ -183,7 +183,7 @@ public:
   virtual void GetRunLengthIntensityStatistics(
       const itk::ImageRegion<3> &region,
       const itk::Index<3> &startIdx, long runlength,
-      double *out_sum, double *out_sumsq) const;
+      double *out_sum, double *out_sumsq) const ITK_OVERRIDE;
 
   /**
    * This method returns a vector of values for the voxel under the cursor.
@@ -195,11 +195,11 @@ public:
    * the method returns the RGB appearance of the voxel under the cursor
    */
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
-      vnl_vector<double> &out_value, DisplayPixelType &out_appearance);
+      vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
 
-  virtual ComponentTypeObject *GetImageMinObject() const;
+  virtual ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
 
-  virtual ComponentTypeObject *GetImageMaxObject() const;
+  virtual ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
 
   /**
     Compute the image histogram. The histogram is cached inside of the
@@ -213,7 +213,7 @@ public:
 
     For multi-component data, the histogram is pooled over all components.
     */
-  const ScalarImageHistogram *GetHistogram(size_t nBins = 0);
+  const ScalarImageHistogram *GetHistogram(size_t nBins = 0) ITK_OVERRIDE;
 
   /**
     Get the maximum possible value of the gradient magnitude. This will
@@ -221,12 +221,12 @@ public:
     and return the maximum. The value will be cached so repeated calls to
     this are not expensive.
     */
-  double GetImageGradientMagnitudeUpperLimit();
+  double GetImageGradientMagnitudeUpperLimit() ITK_OVERRIDE;
 
   /**
     Get the maximum possible value of the gradient magnitude in native units
     */
-  double GetImageGradientMagnitudeUpperLimitNative();
+  double GetImageGradientMagnitudeUpperLimitNative() ITK_OVERRIDE;
 
 
   /**
@@ -240,36 +240,36 @@ public:
     When you call Update() on the returned mini-pipeline, the data will be cast to
     floating point, and if necessary, converted to the native intensity range.
     */
-  SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const;
+  SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const ITK_OVERRIDE;
 
   /** Same as above, but casts to double. For compatibility with C3D, until we
    * safely switch C3D to use float instead of double */
-  SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const;
+  SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const ITK_OVERRIDE;
 
   /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const;
+  SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const ITK_OVERRIDE;
 
   /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const;
+  SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const ITK_OVERRIDE;
 
   /**
    * Get an image cast to a common representation.
    * @see ScalarImageWrapperBase::GetCommonFormatImage()
    */
   CommonFormatImageType* GetCommonFormatImage(
-      ExportChannel channel = ScalarImageWrapperBase::WHOLE_IMAGE);
+      ExportChannel channel = ScalarImageWrapperBase::WHOLE_IMAGE) ITK_OVERRIDE;
 
   /** Return the intensity curve for this layer if it exists */
-  virtual IntensityCurveInterface *GetIntensityCurve() const;
+  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE;
 
   /** Return the color map for this layer if it exists */
-  virtual ColorMap *GetColorMap() const;
+  virtual ColorMap *GetColorMap() const ITK_OVERRIDE;
 
   /** Get a version of this image that is usable in VTK pipelines */
-  vtkImageImport *GetVTKImporter();
+  vtkImageImport *GetVTKImporter() ITK_OVERRIDE;
 
   /** Extends parent method */
-  virtual void SetNativeMapping(NativeIntensityMapping mapping);
+  virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
 
 
 protected:
@@ -317,7 +317,7 @@ protected:
    */
   virtual void UpdateImagePointer(ImageType *image,
                                   ImageBaseType *refSpace = NULL,
-                                  ITKTransformType *tran = NULL);
+                                  ITKTransformType *tran = NULL) ITK_OVERRIDE;
 
 
   //typedef itk::VTKImageExport<ImageType> VTKExporter;

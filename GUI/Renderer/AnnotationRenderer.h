@@ -13,7 +13,7 @@ public:
 
   irisITKObjectMacro(AnnotationRenderer, SliceRendererDelegate)
 
-  virtual void paintGL();
+  virtual void paintGL() ITK_OVERRIDE;
 
   irisGetMacro(Model, AnnotationModel *)
   irisSetMacro(Model, AnnotationModel *)

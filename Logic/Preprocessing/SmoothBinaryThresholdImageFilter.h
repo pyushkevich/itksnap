@@ -137,9 +137,9 @@ protected:
 
   SmoothBinaryThresholdImageFilter();
   virtual ~SmoothBinaryThresholdImageFilter() {}
-  void PrintSelf(std::ostream& os, itk::Indent indent) const;
+  void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
-  void GenerateData();
+  void GenerateData() ITK_OVERRIDE;
 
   double m_InputImageMinimum, m_InputImageMaximum;
   

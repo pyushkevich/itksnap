@@ -20,7 +20,7 @@ public:
 
   void SetModel(DirectionMatrixModel *model);
 
-  void OnUpdate();
+  void OnUpdate() ITK_OVERRIDE;
 
   void Update(const vtkSmartPointer < vtkMatrix4x4 > apMatrix4x4);
 

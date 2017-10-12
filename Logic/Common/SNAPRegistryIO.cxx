@@ -326,10 +326,14 @@ SNAPRegistryIO
       : NULL;
 
   // First of all, make sure that the image referred to in the association file
-  // matches the image currently loaded
-  Vector3i dims = (registry["Files.Grey.Dimensions"])[Vector3i(0)];
-  if(dims != to_int(app->GetIRISImageData()->GetVolumeExtents()))
-    return false;
+  // matches the image currently loaded. If the association file does not list
+  // image dimensions, then we pass this check
+  if(registry.HasEntry("Files.Grey.Dimensions"))
+    {
+    Vector3i dims = (registry["Files.Grey.Dimensions"])[Vector3i(0)];
+    if(dims != to_int(app->GetIRISImageData()->GetVolumeExtents()))
+      return false;
+    }
 
   // Read the snake parameters (TODO: expand the parameters to include 
   // different settings for edge and in-out parameters)

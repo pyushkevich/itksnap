@@ -141,7 +141,7 @@ public:
 protected:
   IRISSlicer();
   virtual ~IRISSlicer() {};
-  void PrintSelf(std::ostream &s, itk::Indent indent) const;
+  void PrintSelf(std::ostream &s, itk::Indent indent) const ITK_OVERRIDE;
 
   /** 
    * IRISSlicer can produce an image which is a different
@@ -152,15 +152,15 @@ protected:
    * below.
    *
    * \sa ProcessObject::GenerateOutputInformaton()  */
-  virtual void GenerateOutputInformation();
+  virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
-  void GenerateInputRequestedRegion();
+  void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
   /**
    * This method maps an input region to an output region
    */
   virtual void CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
-                              const OutputImageRegionType &srcRegion);
+                              const OutputImageRegionType &srcRegion) ITK_OVERRIDE;
 
   /*
   void BeforeThreadedGenerateData();
@@ -172,7 +172,7 @@ protected:
    * IRISSlicer is not implemented as a multithreaded filter.
    * \sa ImageToImageFilter::GenerateData()  
    */
-  virtual void GenerateData();
+  virtual void GenerateData() ITK_OVERRIDE;
 
   template <class TSourceImage> void DoGenerateData(const TSourceImage *source);
 
@@ -295,7 +295,7 @@ protected:
 
   IRISSlicer();
   virtual ~IRISSlicer() {};
-  void PrintSelf(std::ostream &s, itk::Indent indent) const;
+  void PrintSelf(std::ostream &s, itk::Indent indent) const ITK_OVERRIDE;
 
   /**
     * IRISSlicer can produce an image which is a different
@@ -306,17 +306,17 @@ protected:
     * below.
     *
     * \sa ProcessObject::GenerateOutputInformaton()  */
-  virtual void GenerateOutputInformation();
+  virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
-  void GenerateInputRequestedRegion();
+  void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
   /**
     * This method maps an input region to an output region
     */
   virtual void CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
-                                                 const OutputImageRegionType &srcRegion);
+                                                 const OutputImageRegionType &srcRegion) ITK_OVERRIDE;
 
-  void GenerateData();
+  void GenerateData() ITK_OVERRIDE;
   //void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
   //    itk::ThreadIdType threadId);
 

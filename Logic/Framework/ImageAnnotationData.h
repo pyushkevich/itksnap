@@ -92,16 +92,16 @@ public:
 
   irisGetSetMacro(Segment, const LineSegment &)
 
-  virtual void Save(Registry &folder);
-  virtual void Load(Registry &folder);
+  virtual void Save(Registry &folder) ITK_OVERRIDE;
+  virtual void Load(Registry &folder) ITK_OVERRIDE;
 
-  virtual void MoveBy(const Vector3d &offset);
+  virtual void MoveBy(const Vector3d &offset) ITK_OVERRIDE;
 
 protected:
 
-  virtual int GetSliceIndex(int plane) const;
+  virtual int GetSliceIndex(int plane) const ITK_OVERRIDE;
 
-  virtual Vector3d GetAnchorPoint(int plane) const;
+  virtual Vector3d GetAnchorPoint(int plane) const ITK_OVERRIDE;
 
   LineSegment m_Segment;
 };
@@ -128,13 +128,13 @@ public:
 
 protected:
 
-  virtual int GetSliceIndex(int plane) const;
-  virtual Vector3d GetAnchorPoint(int plane) const;
+  virtual int GetSliceIndex(int plane) const ITK_OVERRIDE;
+  virtual Vector3d GetAnchorPoint(int plane) const ITK_OVERRIDE;
 
-  virtual void MoveBy(const Vector3d &offset);
+  virtual void MoveBy(const Vector3d &offset) ITK_OVERRIDE;
 
-  virtual void Save(Registry &folder);
-  virtual void Load(Registry &folder);
+  virtual void Save(Registry &folder) ITK_OVERRIDE;
+  virtual void Load(Registry &folder) ITK_OVERRIDE;
 
   Landmark m_Landmark;
 };
