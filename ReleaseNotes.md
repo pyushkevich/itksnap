@@ -1,6 +1,14 @@
 ITK-SNAP Release Notes - Version 3.6.0
 ======================================
 
+## Version 3.6.2
+----
+
+The main change in this version is the addition of the workspace building tool itksnap_ws. This tool will form the basis of the distributed segmentation system in ITK-SNAP.
+
+- Added tool itksnap_ws (in Utilities/Workspace)
+
+
 ## Version 3.6.0
 ----
 
