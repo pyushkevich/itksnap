@@ -7,3 +7,7 @@ ENDIF(CURL_FOUND)
 ADD_EXECUTABLE(itksnap_ws WorkspaceTool.cxx)
 TARGET_LINK_LIBRARIES(itksnap_ws itksnaplogic ${ITK_LIBRARIES} ${CURL_LIBRARIES})
 
+# Install the workspace tool
+IF(APPLE)
+  INSTALL(TARGETS itksnap_ws DESTINATION ITK-SNAP.app/Contents/MacOS/ COMPONENT Runtime)
+ENDIF(APPLE)
