@@ -35,7 +35,12 @@
 #include <fstream>
 #include <string>
 #include <cstdarg>
+
+#ifdef WIN32
+#define CURL_STATICLIB 
+#endif
 #include <curl/curl.h>
+
 #include "CommandLineHelper.h"
 #include "Registry.h"
 #include "GuidedNativeImageIO.h"
@@ -46,7 +51,20 @@
 #include "ColorLabelTable.h"
 
 using namespace std;
-using namespace itksys;
+using itksys::SystemTools;
+using itksys::RegularExpression;
+using itksys::Directory;
+
+#ifdef WIN32
+
+void sleep(int n_sec)
+{
+  Sleep(1000 * n_sec);
+}
+
+#else
+
+#endif
 
 int usage(int rc) 
 {

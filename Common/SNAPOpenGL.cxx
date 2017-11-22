@@ -91,8 +91,9 @@ void irisOrtho2D(double x, double w, double y, double h)
   gluOrtho2D(x,w,y,h);
 }
 
+
 void irisUnProject(GLdouble winX, GLdouble winY, GLdouble winZ,
-                   const GLdouble * model, const GLdouble * proj, const GLint * view,
+                   const GLdouble * model, const GLdouble * proj, GLint * view,
                    GLdouble* objX, GLdouble* objY, GLdouble* objZ)
 {
   gluUnProject(winX, winY, winZ, model, proj, view, objX, objY, objZ);
