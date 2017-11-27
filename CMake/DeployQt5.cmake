@@ -111,7 +111,7 @@
 # The functions defined in this file depend on the fixup_bundle function
 # (and others) found in BundleUtilities.cmake
 
-include(${CMAKE_CURRENT_LIST_DIR}/BundleUtilities2.cmake)
+include(BundleUtilities)
 set(DeployQt5_cmake_dir "${CMAKE_CURRENT_LIST_DIR}")
 set(DeployQt5_apple_plugins_dir "PlugIns")
 
@@ -148,13 +148,13 @@ function(fixup_qt5_executable executable_in)
 
   get_filename_component(executable "${executable_in}" ABSOLUTE)
 
-  message("fixup_qt5_executable")
-  message("  executable='${executable}'")
-  message("  qtplugins='${qtplugins}'")
-  message("  libs='${libs}'")
-  message("  dirs='${dirs}'")
-  message("  plugins_dir='${plugins_dir}'")
-  message("  request_qt_conf='${request_qt_conf}'")
+  message(STATUS "fixup_qt5_executable")
+  message(STATUS "  executable='${executable}'")
+  message(STATUS "  qtplugins='${qtplugins}'")
+  message(STATUS "  libs='${libs}'")
+  message(STATUS "  dirs='${dirs}'")
+  message(STATUS "  plugins_dir='${plugins_dir}'")
+  message(STATUS "  request_qt_conf='${request_qt_conf}'")
 
   if(QT_LIBRARY_DIR)
     list(APPEND dirs "${QT_LIBRARY_DIR}")
@@ -193,7 +193,7 @@ function(fixup_qt5_executable executable_in)
       message(FATAL_ERROR "Library does not exist: ${lib}")
     endif()
   endforeach()
-  message("LibAbs: ${libs_abs}")
+  message(STATUS "LibAbs: ${libs_abs}")
 
   resolve_qt5_paths(libs_abs "${executable_path}")
 
@@ -202,7 +202,7 @@ function(fixup_qt5_executable executable_in)
     write_qt5_conf("${qt_conf_dir}" "${qt_conf_contents}")
   endif()
 
-  message("Calling fixup_bundle(\"${executable}\" \"${libs_abs}\" \"${dirs}\")")
+  message(STATUS "Calling fixup_bundle(\"${executable}\" \"${libs_abs}\" \"${dirs}\")")
   fixup_bundle("${executable}" "${libs_abs}" "${dirs}")
 endfunction()
 

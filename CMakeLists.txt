@@ -1252,9 +1252,6 @@ IF(APPLE)
   # Install the main executable
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} DESTINATION ../MacOS COMPONENT Runtime)
 
-  # Identify the main executable for the bundle
-  SET(CPACK_BUNDLE_STARTUP_COMMAND ${SNAP_BUNDLE_NAME})
-
   # On apple, we put a binary script at the root of the .dmg that the user can drag
   # into the /usr/local/bin folder
   INSTALL(FILES
@@ -1276,44 +1273,14 @@ IF(APPLE)
 
   IF(NOT SNAP_USE_QT4)
 
-    IF(NOT BZOOTY)
+    # Include the qt4 dependent libraries
+    include(DeployQt5)
 
-      # This more direct approach (borrowed from librevault).
-      INCLUDE(InstallQt5Plugin)
-      SET(BUNDLE_PLUGINS_PATH "../PlugIns")
-      INSTALL_QT5_PLUGIN("Qt5::QMinimalIntegrationPlugin" QT_PLUGIN "${BUNDLE_PLUGINS_PATH}")
-      INSTALL_QT5_PLUGIN("Qt5::QCocoaIntegrationPlugin" QT_PLUGIN "${BUNDLE_PLUGINS_PATH}")
-      INSTALL_QT5_PLUGIN("Qt5::QGifPlugin" QT_PLUGIN "${BUNDLE_PLUGINS_PATH}")
+    # Make sure the GIF plugin is included
+    get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
 
-      # Directly call fuxup_bundle
-      install(CODE "
-        include(\${CMAKE_CURRENT_LIST_DIR}/../itksnap/CMake/BundleUtilities2.cmake)
-        #include(BundleUtilities2)
-        set(BU_CHMOD_BUNDLE_ITEMS ON)
-        set(QT_PLUGIN_IN_BUNDLE \"\")
-        foreach(f ${QT_PLUGIN})
-          get_filename_component(QT_PLUGIN_ABSOLUTE \"\${CMAKE_INSTALL_PREFIX}/\${f}\" ABSOLUTE)
-          list(APPEND QT_PLUGIN_IN_BUNDLE \"\${QT_PLUGIN_ABSOLUTE}\")
-        endforeach(f)
-        get_filename_component(BUNDLE_PATH \"\${CMAKE_INSTALL_PREFIX}/../..\" ABSOLUTE)
-        message(\"Calling FixupBundle on \${BUNDLE_PATH} \${QT_PLUGIN_IN_BUNDLE}\")
-        fixup_bundle(\"\${BUNDLE_PATH}\" \"\${QT_PLUGIN_IN_BUNDLE}\" \"/Users/pauly/Qt56/5.6/clang_64/lib;/Users/pauly/Qt56/5.6/clang_64/bin\")
-        ")
-
-    ELSE()
-
-      # Include the qt4 dependent libraries
-      include(DeployQt5)
-
-      # Make sure the GIF plugin is included
-      get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
-      set(CMAKE_SKIP_RPATH TRUE)
-
-      # Install with the plugin
-      ### INSTALL(CODE "MESSAGE(WARNING \"installing in \${CMAKE_INSTALL_PREFIX}\")")
-      install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
-
-    ENDIF()
+    # Install with the plugin
+    install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
 
   ELSE(NOT SNAP_USE_QT4)
 
