@@ -4,10 +4,9 @@ IF(CURL_FOUND)
   INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIR})
 ENDIF(CURL_FOUND)
 
-ADD_EXECUTABLE(itksnap_ws WorkspaceTool.cxx)
-TARGET_LINK_LIBRARIES(itksnap_ws itksnaplogic ${ITK_LIBRARIES} ${CURL_LIBRARIES})
+ADD_EXECUTABLE(itksnap-wt WorkspaceTool.cxx)
+TARGET_LINK_LIBRARIES(itksnap-wt itksnaplogic ${ITK_LIBRARIES} ${CURL_LIBRARIES})
 
 # Install the workspace tool
-IF(APPLE)
-  INSTALL(TARGETS itksnap_ws DESTINATION ITK-SNAP.app/Contents/MacOS/ COMPONENT Runtime)
-ENDIF(APPLE)
+SNAP_INSTALL_BINARY(itksnap-wt itksnap-wt "")
+

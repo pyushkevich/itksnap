@@ -36,6 +36,31 @@ MACRO (TODAY RESULT)
 	string(REPLACE " " "" ${RESULT} ${${RESULT}})
 ENDMACRO (TODAY)
 
+# This macro is used to install binary targets.
+MACRO(SNAP_INSTALL_BINARY NAME CLI_NAME CLI_OPTS)
+
+  IF(APPLE)
+
+    # Install the actual executable
+    INSTALL(TARGETS ${NAME} DESTINATION ../MacOS COMPONENT Runtime)
+
+    # Create a caller .sh
+    SET(EXENAME "MacOS/${NAME}")
+    SET(EXEOPTS "${CLI_OPTS}")
+    CONFIGURE_FILE(${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/execaller.sh ${SNAP_BINARY_DIR}/MacOS/Scripts/${CLI_NAME} @ONLY)
+    INSTALL(FILES
+            ${SNAP_BINARY_DIR}/MacOS/Scripts/${CLI_NAME}
+            DESTINATION ../../.. COMPONENT Runtime
+            PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                        GROUP_EXECUTE GROUP_READ)
+  ELSE()
+
+    INSTALL(TARGETS ${NAME} DESTINATION bin COMPONENT Runtime)
+
+  ENDIF()
+
+ENDMACRO()
+
 get_cmake_property(_variableNames VARIABLES)
 foreach (_variableName ${_variableNames})
     message(STATUS "${_variableName}=${${_variableName}}")
@@ -1250,22 +1275,10 @@ IF(APPLE)
   ENDIF()
 
   # Install the main executable
-  INSTALL(TARGETS ${SNAP_BUNDLE_NAME} DESTINATION ../MacOS COMPONENT Runtime)
-
-  # On apple, we put a binary script at the root of the .dmg that the user can drag
-  # into the /usr/local/bin folder
-  INSTALL(FILES
-          ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap
-          DESTINATION ../../.. COMPONENT Runtime
-          PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                      GROUP_EXECUTE GROUP_READ)
+  SNAP_INSTALL_BINARY(${SNAP_BUNDLE_NAME} itksnap "--console")
 
   # Try adding a link to /usr/local/bin
   INSTALL(CODE "EXECUTE_PROCESS(COMMAND ln -sf /usr/local/bin usr_local_bin WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/../../../)")
-
-  INSTALL(FILES
-          ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/README.txt
-          DESTINATION ../../../ COMPONENT Runtime)
 
   # Set the DS STORE
   SET(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt)

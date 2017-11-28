@@ -30,10 +30,10 @@ then
 fi
 
 # Try to find the binary to launch
-binary="$ITKSNAP_APP_DIR/ITK-SNAP.app/Contents/MacOS/ITK-SNAP"
+binary="$ITKSNAP_APP_DIR/ITK-SNAP.app/Contents/@EXENAME@"
 
 # Call the binary
-exec $binary --console ${1:+"$@"}
+exec $binary @EXEOPTS@ ${1:+"$@"}
 
 
 
