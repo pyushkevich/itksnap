@@ -1318,7 +1318,7 @@ ELSEIF(WIN32)
       get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
 
       # Install with the plugin
-      install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}")
+      install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
 
   ELSE(NOT SNAP_USE_QT4)
 
@@ -1329,11 +1329,13 @@ ELSEIF(WIN32)
   ENDIF(NOT SNAP_USE_QT4)
 
   # On windows, we have to configure NSIS
+  SET(CPACK_NSIS_MUI_ICON "${SNAP_SOURCE_DIR}/Utilities/Win32/snaplogo.ico")
   SET(CPACK_NSIS_INSTALLED_ICON_NAME "ITK-SNAP.exe")
   SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ITK-SNAP")
   SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.itksnap.org")
   SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.itksnap.org/credits.php")
-  SET(CPACK_NSIS_MODIFY_PATH OFF)
+  SET(CPACK_NSIS_MODIFY_PATH ON)
+  SET(CPACK_NSIS_MENU_LINKS "http://itksnap.org" "ITK-SNAP Web Site")
 
   # CMake does not yet know to install into (x64) program files or not
   IF(CMAKE_CL_64)
@@ -1479,5 +1481,3 @@ ADD_CUSTOM_TARGET(upload_experimental
 #--------------------------------------------------------------------------------
 # Workspace tool is automatically included
 ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
-
-
