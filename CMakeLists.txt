@@ -81,11 +81,11 @@ endforeach()
 SET(SNAP_VERSION_MAJOR 3)
 SET(SNAP_VERSION_MINOR 6)
 SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "-alpha")
+SET(SNAP_VERSION_QUALIFIER "-beta")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20170401")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 1, 2017")
+SET(SNAP_VERSION_RELEASE_DATE "20171129")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Nov 29, 2017")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
