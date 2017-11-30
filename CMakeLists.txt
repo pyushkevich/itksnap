@@ -203,6 +203,17 @@ CONFIGURE_FILE(
   ${SNAP_SOURCE_DIR}/Common/GPUSettings.h.in
   ${SNAP_BINARY_DIR}/GPUSettings.h @ONLY IMMEDIATE)
 
+# Configure version-specific Qt code
+IF(SNAP_USE_QT4)
+  CONFIGURE_FILE(
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Components/SNAPOpenGLWidget_Qt4.h.in
+    ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h @ONLY IMMEDIATE)
+ELSE()
+  CONFIGURE_FILE(
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Components/SNAPOpenGLWidget_Qt5.h.in
+    ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h @ONLY IMMEDIATE)
+ENDIF()
+
 # The part of the source code devoted to the SNAP application logic
 # is organized into a separate library
 SET(LOGIC_CXX
@@ -756,6 +767,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/SNAPQtCommon.h
+  ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h
   GUI/Qt/Coupling/QtAbstractButtonCoupling.h
   GUI/Qt/Coupling/QtAbstractItemViewCoupling.h
   GUI/Qt/Coupling/QtActionCoupling.h

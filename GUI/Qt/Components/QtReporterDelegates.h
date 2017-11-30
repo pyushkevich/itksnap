@@ -5,7 +5,6 @@
 #include "UIReporterDelegates.h"
 
 class QProgressDialog;
-class QGLWidget;
 
 /**
   An implementation of a viewport reporter for Qt.

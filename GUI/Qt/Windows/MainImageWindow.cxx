@@ -81,7 +81,6 @@
 #include <QDragEnterEvent>
 #include <QUrl>
 #include <QFileDialog>
-#include <QGLWidget>
 #include <QDesktopServices>
 #include <SNAPQtCommon.h>
 #include <QMimeData>
