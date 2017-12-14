@@ -1,11 +1,13 @@
 #include "QtRendererPlatformSupport.h"
-#include <QGLWidget>
+#include <SNAPOpenGLWidget.h>
 #include <QPainter>
 #include <QPixmap>
 #include <QFontMetrics>
 #include "SNAPQtCommon.h"
 #include <QDebug>
 #include <iostream>
+
+#include <QGLWidget>
 
 QRect
 QtRendererPlatformSupport::WorldRectangleToPixelRectangle(double wx, double wy, double ww, double wh)

@@ -27,7 +27,6 @@
 #ifndef GENERICSLICEVIEW_H
 #define GENERICSLICEVIEW_H
 
-#include <QGLWidget>
 #include <SNAPCommon.h>
 #include <GenericSliceModel.h>
 #include <GenericSliceRenderer.h>

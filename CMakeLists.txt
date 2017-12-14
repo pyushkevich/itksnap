@@ -81,11 +81,11 @@ endforeach()
 SET(SNAP_VERSION_MAJOR 3)
 SET(SNAP_VERSION_MINOR 6)
 SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "-alpha")
+SET(SNAP_VERSION_QUALIFIER "-beta")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20170401")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 1, 2017")
+SET(SNAP_VERSION_RELEASE_DATE "20171129")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Nov 29, 2017")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -202,6 +202,17 @@ OPTION(SNAP_USE_GPU "Use GPU in SNAP" OFF)
 CONFIGURE_FILE(
   ${SNAP_SOURCE_DIR}/Common/GPUSettings.h.in
   ${SNAP_BINARY_DIR}/GPUSettings.h @ONLY IMMEDIATE)
+
+# Configure version-specific Qt code
+IF(SNAP_USE_QT4)
+  CONFIGURE_FILE(
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Components/SNAPOpenGLWidget_Qt4.h.in
+    ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h @ONLY IMMEDIATE)
+ELSE()
+  CONFIGURE_FILE(
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Components/SNAPOpenGLWidget_Qt5.h.in
+    ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h @ONLY IMMEDIATE)
+ENDIF()
 
 # The part of the source code devoted to the SNAP application logic
 # is organized into a separate library
@@ -756,6 +767,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/SNAPQtCommon.h
+  ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h
   GUI/Qt/Coupling/QtAbstractButtonCoupling.h
   GUI/Qt/Coupling/QtAbstractItemViewCoupling.h
   GUI/Qt/Coupling/QtActionCoupling.h
@@ -1318,7 +1330,7 @@ ELSEIF(WIN32)
       get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
 
       # Install with the plugin
-      install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}")
+      install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
 
   ELSE(NOT SNAP_USE_QT4)
 
@@ -1329,11 +1341,13 @@ ELSEIF(WIN32)
   ENDIF(NOT SNAP_USE_QT4)
 
   # On windows, we have to configure NSIS
+  SET(CPACK_NSIS_MUI_ICON "${SNAP_SOURCE_DIR}/Utilities/Win32/snaplogo.ico")
   SET(CPACK_NSIS_INSTALLED_ICON_NAME "ITK-SNAP.exe")
   SET(CPACK_NSIS_DISPLAY_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} ITK-SNAP")
   SET(CPACK_NSIS_HELP_LINK "http:\\\\\\\\www.itksnap.org")
   SET(CPACK_NSIS_URL_INFO_ABOUT "http:\\\\\\\\www.itksnap.org/credits.php")
-  SET(CPACK_NSIS_MODIFY_PATH OFF)
+  SET(CPACK_NSIS_MODIFY_PATH ON)
+  SET(CPACK_NSIS_MENU_LINKS "http://itksnap.org" "ITK-SNAP Web Site")
 
   # CMake does not yet know to install into (x64) program files or not
   IF(CMAKE_CL_64)
@@ -1479,5 +1493,3 @@ ADD_CUSTOM_TARGET(upload_experimental
 #--------------------------------------------------------------------------------
 # Workspace tool is automatically included
 ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
-
-

@@ -38,13 +38,8 @@ class AbstractRenderer;
 
 namespace itk { class Object; }
 
-// Qt 4 compatibility
-#if QT_VERSION >= 0x050000
-  #include <QOpenGLWidget>
-#else
-  #include <QGLWidget>
-  #define QOpenGLWidget QGLWidget
-#endif
+// Include the right QOpenGLWidget class (created by CMake based on Qt version)
+#include <SNAPOpenGLWidget.h>
 
 class QtAbstractOpenGLBox : public QOpenGLWidget
 {
