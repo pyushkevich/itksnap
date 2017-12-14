@@ -109,7 +109,7 @@ int usage(int rc)
   cout << "  -dss-auth <url> [user] [passwd]   : Sign in to the server. This will create a token" << endl;
   cout << "                                      that may be used in future -dss calls" << endl;
   cout << "  -dss-services-list                : List all available segmentation services" << endl;
-  cout << "  -dss-tickets-create <service>     : Create a new ticket using current workspace" << endl;
+  cout << "  -dss-tickets-create <service_id>  : Create a new ticket using current workspace (id is githash)" << endl;
   cout << "  -dss-tickets-list                 : List all of your tickets" << endl;
   cout << "  -dss-tickets-log <id>             : Get the error/warning/info log for ticket 'id'" << endl;
   cout << "  -dss-tickets-progress <id>        : Get the total progress for ticket 'id'" << endl;
@@ -117,7 +117,7 @@ int usage(int rc)
   cout << "  -dss-tickets-download <id> <dir>  : Download the result for ticket 'id' to directory 'dir'" << endl;
   cout << "Distributed segmentation server provider commands: " << endl;
   cout << "  -dssp-services-list               : List all the services you are listed as provider for" << endl;
-  cout << "  -dssp-services-claim <service> <instance_id> [timeout]" << endl;
+  cout << "  -dssp-services-claim <service_hash> <provider> <instance_id> [timeout]" << endl;
   cout << "                                    : Claim the next available ticket for given service." << endl;
   cout << "                                      'instance_id' is a unique identifier for this service instance" << endl;
   cout << "                                      if 'timeout' specified, command will halt until a ticket " << endl;
@@ -1628,11 +1628,11 @@ void UploadWorkspace(const Workspace &ws,
 /**
  * Export a workspace to a temporary directory and use it to create a new ticket
  */
-int CreateWorkspaceTicket(const Workspace &ws, const char *service_name)
+int CreateWorkspaceTicket(const Workspace &ws, const char *service_githash)
 {
   // Create a new ticket
   RESTClient rc;
-  if(!rc.Post("api/tickets","service=%s", service_name))
+  if(!rc.Post("api/tickets","githash=%s", service_githash))
     throw IRISException("Failed to create new ticket (%s)", rc.GetResponseText());
 
   int ticket_id = atoi(rc.GetOutput());
@@ -2042,8 +2042,8 @@ int main(int argc, char *argv[])
         }
       else if(arg == "-dss-tickets-create" || arg == "-dss-ticket-create")
         {
-        string service_name = cl.read_string();
-        int ticket_id = CreateWorkspaceTicket(ws, service_name.c_str());
+        string service_githash = cl.read_string();
+        int ticket_id = CreateWorkspaceTicket(ws, service_githash.c_str());
         cout << prefix << ticket_id << endl;
         }
       else if(arg == "-dss-tickets-list" || arg == "-dtl")
@@ -2184,7 +2184,8 @@ int main(int argc, char *argv[])
         }
       else if(arg == "-dssp-services-claim")
         {
-        string service_name = cl.read_string();
+        string service_githash = cl.read_string();
+        string provider_name = cl.read_string();
         string provider_code = cl.read_string();
         long timeout = cl.command_arg_count() > 0 ? cl.read_integer() : 0L;
         long tnow = 0, twait = 30;
@@ -2193,9 +2194,10 @@ int main(int argc, char *argv[])
           {
           // Try claiming the ticket
           RESTClient rc;
-          if(!rc.Post("api/pro/services/%s/claims","code=%s",service_name.c_str(),provider_code.c_str()))
+          if(!rc.Post("api/pro/services/%s/claims","provider=%s,code=%s",
+                      service_githash.c_str(), provider_name.c_str(), provider_code.c_str()))
             throw IRISException("Error claiming ticket for service %s: %s", 
-              service_name.c_str(), rc.GetResponseText());
+              service_githash.c_str(), rc.GetResponseText());
 
           // Ticket id will be 0 if nothing is available, or the ticket id
           int ticket_id = atoi(rc.GetOutput());
@@ -2209,7 +2211,7 @@ int main(int argc, char *argv[])
             }
           else if(tnow + twait > timeout)
             {
-            throw IRISException("No tickets available to claim for service %s", service_name.c_str());
+            throw IRISException("No tickets available to claim for service %s", service_githash.c_str());
             }
           else
             {
