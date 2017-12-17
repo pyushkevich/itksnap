@@ -211,7 +211,7 @@ ImageWrapperBase *LoadSegmentationImageDelegate::UpdateApplicationWithImage(Guid
   if(m_Driver->IsSnakeModeActive())
     m_Driver->UpdateSNAPSegmentationImage(io);
   else
-    m_Driver->UpdateIRISSegmentationImage(io);
+    m_Driver->UpdateIRISSegmentationImage(io, m_AdditiveMode);
 
   return m_Driver->GetCurrentImageData()->GetSegmentation();
 }
@@ -220,6 +220,7 @@ LoadSegmentationImageDelegate::LoadSegmentationImageDelegate()
 {
   this->m_HistoryName = "LabelImage";
   this->m_DisplayName = "Segmentation Image";
+  this->m_AdditiveMode = false;
 }
 
 void

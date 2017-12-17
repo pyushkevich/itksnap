@@ -423,7 +423,7 @@ IRISApplication
 
 void
 IRISApplication
-::UpdateIRISSegmentationImage(GuidedNativeImageIO *io)
+::UpdateIRISSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing)
 {
   // This has to happen in 'pure' IRIS mode
   assert(!IsSnakeModeActive());
@@ -452,20 +452,31 @@ IRISApplication
   imgLabel->SetDirection(m_CurrentImageData->GetMain()->GetImageBase()->GetDirection());
 
   // Update the iris data
-  m_IRISImageData->SetSegmentationImage(imgLabel); 
+  LabelImageWrapper *seg_wrapper;
+  if(!add_to_existing)
+    {
+    // TODO: this should be eliminated
+    m_IRISImageData->SetSegmentationImage(imgLabel);
+    seg_wrapper = m_IRISImageData->GetSegmentation();
+    }
+  else
+    {
+    seg_wrapper = m_IRISImageData->AddSegmentationImage(imgLabel);
+    }
 
   // Update filenames
-  m_IRISImageData->GetSegmentation()->SetFileName(io->GetFileNameOfNativeImage());
+  seg_wrapper->SetFileName(io->GetFileNameOfNativeImage());
 
   // Update the history
   m_SystemInterface->GetHistoryManager()->UpdateHistory(
         "LabelImage", io->GetFileNameOfNativeImage(), true);
 
+  // Update the color label table with the segmentation values in the current segmentation
   // Iterate over the RLEs in the label image
   LabelType last_label = 0;
   typedef itk::ImageRegionConstIterator<LabelImageType::BufferType> RLLineIter;
-  RLLineIter rlit(m_IRISImageData->GetSegmentation()->GetImage()->GetBuffer(),
-                  m_IRISImageData->GetSegmentation()->GetImage()->GetBuffer()->GetBufferedRegion());
+  RLLineIter rlit(seg_wrapper->GetImage()->GetBuffer(),
+                  seg_wrapper->GetImage()->GetBuffer()->GetBufferedRegion());
   for(; !rlit.IsAtEnd(); ++rlit)
     {
     // Get the line
@@ -944,6 +955,9 @@ IRISApplication
 
     // Set the selected layer ID to the main image
     m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
+
+    // TODO: should we be selecting the first segmentation or the segmentation last selected?
+    m_GlobalState->SetSelectedSegmentationLayerId(m_IRISImageData->GetSegmentation()->GetUniqueId());
     }
 }
 
@@ -969,6 +983,10 @@ void IRISApplication
 
     // Set the selected layer ID to the main image
     m_GlobalState->SetSelectedLayerId(m_SNAPImageData->GetMain()->GetUniqueId());
+
+    // TODO: is this correct?
+    m_GlobalState->SetSelectedSegmentationLayerId(m_SNAPImageData->GetSegmentation()->GetUniqueId());
+
     }
 }
 
@@ -1753,6 +1771,9 @@ IRISApplication
 
   // Make the main image 'selected'
   m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
+
+  // Make the new segmentation selected
+  m_GlobalState->SetSelectedSegmentationLayerId(this->GetIRISImageData()->GetSegmentation()->GetUniqueId());
 }
 
 void IRISApplication::LoadMetaDataAssociatedWithLayer(
@@ -2060,7 +2081,7 @@ void IRISApplication
 
 void IRISApplication
 ::LoadImage(const char *fname, LayerRole role, IRISWarningList &wl,
-            Registry *meta_data_reg, Registry *io_hints_reg)
+            Registry *meta_data_reg, Registry *io_hints_reg, bool additive)
 {
   // Pointer to the delegate
   SmartPtr<AbstractLoadImageDelegate> delegate;
@@ -2074,7 +2095,11 @@ void IRISApplication
       delegate = LoadOverlayImageDelegate::New().GetPointer();
       break;
     case LABEL_ROLE:
-      delegate = LoadSegmentationImageDelegate::New().GetPointer();
+      {
+      SmartPtr<LoadSegmentationImageDelegate> d = LoadSegmentationImageDelegate::New();
+      d->SetAdditiveMode(additive);
+      delegate = d.GetPointer();
+      }
       break;
     default:
       throw IRISException("LoadImage does not support role %d", role);
@@ -2263,6 +2288,7 @@ void IRISApplication::OpenProject(
   // Read all the layers
   std::string key;
   bool main_loaded = false;
+  int n_segs_loaded = 0;
   for(int i = 0;
       preg.HasFolder(key = Registry::Key("Layers.Layer[%03d]", i));
       i++)
@@ -2281,8 +2307,7 @@ void IRISApplication::OpenProject(
     if(role != MAIN_ROLE && i == 0)
       throw IRISException("Layer 0 in a project must be of type 'Main Image'");
 
-    if(role != MAIN_ROLE && role != LABEL_ROLE
-       && role != OVERLAY_ROLE)
+    if(role != MAIN_ROLE && role != LABEL_ROLE && role != OVERLAY_ROLE)
       throw IRISException("Layer %d has an unrecognized type", i);
 
     // Get the filenames for the layer
@@ -2308,13 +2333,22 @@ void IRISApplication::OpenProject(
     if(folder.HasFolder("IOHints"))
       io_hints = &folder.Folder("IOHints");
 
+    // TODO: this is spaggetti code
+    bool load_additive = false;
+    if(role == LABEL_ROLE && n_segs_loaded > 0)
+      load_additive = true;
+
     // Load the image and its metadata
-    LoadImage(layer_file_full.c_str(), role, warn, &folder, io_hints);
+    LoadImage(layer_file_full.c_str(), role, warn, &folder, io_hints, load_additive);
 
     // Check if the main has been loaded
     if(role == MAIN_ROLE)
       {
       main_loaded = true;      
+      }
+    else if(role == LABEL_ROLE)
+      {
+      n_segs_loaded++;
       }
     }
 

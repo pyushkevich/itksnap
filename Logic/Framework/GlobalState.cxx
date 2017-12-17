@@ -127,6 +127,7 @@ GlobalState
   m_SliceViewLayerLayoutModel = NewSimpleConcreteProperty(LAYOUT_STACKED);
 
   m_SelectedLayerIdModel = NewSimpleConcreteProperty(0ul);
+  m_SelectedSegmentationLayerIdModel = NewSimpleConcreteProperty(0ul);
 
   // Set annotation defaults
   m_AnnotationSettings.shownOnAllSlices = false;

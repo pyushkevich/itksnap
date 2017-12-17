@@ -183,6 +183,10 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   connectITK(m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerIdModel(),
               ValueChangedEvent());
 
+  // Listen to changes in the currently selected layer in GlobalState
+  connectITK(m_Model->GetParentModel()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
+              ValueChangedEvent());
+
   // Update the color map menu
   UpdateColorMapMenu();
 
@@ -247,6 +251,7 @@ void LayerInspectorRowDelegate::UpdateBackgroundPalette()
 
 void LayerInspectorRowDelegate::setSelected(bool value)
 {
+  std::cout << "Selecting " << m_Model->GetLayer()->GetUniqueId() << std::endl;
   if(m_Selected != value)
     {
     m_Selected = value;
@@ -500,6 +505,12 @@ void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
     unsigned long sid = m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerId();
     this->setSelected(m_Model->GetLayer() && sid == m_Model->GetLayer()->GetUniqueId());
     }
+  if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetParentModel()->GetGlobalState()->GetSelectedSegmentationLayerIdModel()))
+    {
+    unsigned long sid = m_Model->GetParentModel()->GetGlobalState()->GetSelectedSegmentationLayerId();
+    this->setSelected(m_Model->GetLayer() && sid == m_Model->GetLayer()->GetUniqueId());
+    }
+
 }
 
 void LayerInspectorRowDelegate::mouseMoveEvent(QMouseEvent *)

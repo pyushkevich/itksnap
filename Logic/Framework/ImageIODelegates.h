@@ -123,12 +123,20 @@ public:
 
   irisITKObjectMacro(LoadSegmentationImageDelegate, AbstractLoadImageDelegate)
 
+  irisGetSetMacro(AdditiveMode, bool)
+
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
   void UnloadCurrentImage() ITK_OVERRIDE;
   ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) ITK_OVERRIDE;
 
 protected:
+  // TODO: this is probably a temporary band-aid. In some situations, we want to be
+  // able to load segmentation images as the one and only segmentation layer and in
+  // other situations we want to allow multiple segmentation layers to coexist. I am
+  // in the process of transitioning to multiple segmentations
+  bool m_AdditiveMode;
+
   LoadSegmentationImageDelegate();
   virtual ~LoadSegmentationImageDelegate() {}
 };

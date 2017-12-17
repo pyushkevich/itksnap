@@ -856,7 +856,7 @@ public:
     Registry &folder = m_Registry.Folder(key);
 
     // Add the filename and role
-    folder["AbsolutePath"] << filename;
+    folder["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
     folder["Role"] << role;
 
     // If the role is 'main' then we need to write the dimensions of the image into projectmetadata
@@ -880,7 +880,7 @@ public:
     folder.Clear();
 
     // Add the filename and role
-    folder["AbsolutePath"] << filename;
+    folder["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
     folder["Role"] << role;
 
     // If the role is 'main' then we need to write the dimensions of the image into projectmetadata

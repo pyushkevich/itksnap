@@ -244,11 +244,17 @@ public:
    * image types. This method loads the associated settings and metadata for the
    * image either from the user's image associations directory (default) or from
    * the provided Registry object.
+   *
+   * TODO: the additive flag is currently only for segmentations and it's a disaster
+   * and should be refactored into something more elegant. For example we could get
+   * rid of the overlay role completely and just label layers as anatomical/segment-n
+   * in which case the additive flag would actually begin to make some sense.
    */
   void LoadImage(const char *fname, LayerRole role,
                  IRISWarningList &wl,
                  Registry *meta_data_reg = NULL,
-                 Registry *io_hints_reg = NULL);
+                 Registry *io_hints_reg = NULL,
+                 bool additive = false);
 
   /**
    * Create a delegate for saving an image interactively or non-interactively
@@ -311,7 +317,7 @@ public:
    * Update the IRIS image data with an external segmentation image (e.g., 
    * loaded from a file).
    */
-  void UpdateIRISSegmentationImage(GuidedNativeImageIO *io);
+  void UpdateIRISSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing = false);
 
   /**
    * Update the SNAP image data with an external segmentation image (e.g.,

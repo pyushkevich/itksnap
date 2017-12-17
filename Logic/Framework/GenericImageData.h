@@ -255,6 +255,11 @@ public:
   virtual void SetSegmentationImage(LabelImageType *newLabelImage);
 
   /**
+   * Add a secondary segmentation image without overriding the main one
+   */
+  LabelImageWrapper* AddSegmentationImage(LabelImageType *addedLabelImage);
+
+  /**
    * Set voxel in segmentation image
    */
   void SetSegmentationVoxel(const Vector3ui &index, LabelType value);

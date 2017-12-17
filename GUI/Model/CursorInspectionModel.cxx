@@ -128,6 +128,10 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
         ValueChangedEvent(), DomainDescriptionChangedEvent());
 
   m_VoxelAtCursorModel->Rebroadcast(
+        app->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
+        ValueChangedEvent(), DomainDescriptionChangedEvent());
+
+  m_VoxelAtCursorModel->Rebroadcast(
         m_Parent->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel(),
         ValueChangedEvent(), DomainDescriptionChangedEvent());
 

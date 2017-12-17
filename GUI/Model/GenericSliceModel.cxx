@@ -110,6 +110,10 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   AbstractSimpleULongProperty *selLayerModel = m_Driver->GetGlobalState()->GetSelectedLayerIdModel();
   Rebroadcast(selLayerModel, ValueChangedEvent(), ModelUpdateEvent());
 
+  AbstractSimpleULongProperty *selSegLayerModel = m_Driver->GetGlobalState()->GetSelectedSegmentationLayerIdModel();
+  Rebroadcast(selSegLayerModel, ValueChangedEvent(), ModelUpdateEvent());
+
+
   // The current component in selected layer model depends both on the selected model
   // and on the layer metadata changes
   m_CurrentComponentInSelectedLayerModel->Rebroadcast(selLayerModel, ValueChangedEvent(), DomainChangedEvent());

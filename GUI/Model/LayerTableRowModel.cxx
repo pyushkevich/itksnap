@@ -204,7 +204,12 @@ void LayerTableRowModel::SetSelected(bool selected)
 {
   // If the layer is selected and is not sticky, we set is as the currently visible
   // layer in the render views
-  if(selected && !m_Layer->IsSticky())
+  if(m_LayerRole == LABEL_ROLE && selected)
+    {
+    std::cout << "Selected segmentation " << m_Layer->GetUniqueId() << std::endl;
+    m_ParentModel->GetGlobalState()->SetSelectedSegmentationLayerId(m_Layer->GetUniqueId());
+    }
+  else if(selected && !m_Layer->IsSticky())
     {
     m_ParentModel->GetGlobalState()->SetSelectedLayerId(m_Layer->GetUniqueId());
     }

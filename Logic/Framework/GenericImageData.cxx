@@ -351,6 +351,34 @@ GenericImageData
   m_UndoManager.Clear();
 }
 
+LabelImageWrapper *
+GenericImageData
+::AddSegmentationImage(LabelImageType *addedLabelImage)
+{
+  // Check that the image matches the size of the grey image
+  assert(m_MainImageWrapper->IsInitialized() &&
+    m_MainImageWrapper->GetBufferedRegion() ==
+         addedLabelImage->GetBufferedRegion());
+
+  // Create a new wrapper of label type
+  SmartPtr<LabelImageWrapper> seg_wrapper = LabelImageWrapper::New();
+  seg_wrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
+  seg_wrapper->SetImage(addedLabelImage);
+  seg_wrapper->SetDefaultNickname("Segmentation Image");
+
+  // Send the color table to the new wrapper
+  seg_wrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
+
+  // Sync up spacing between the main and label image
+  seg_wrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
+
+  // Add the segmentation label to the list of segmentation wrappers
+  PushBackImageWrapper(LABEL_ROLE, seg_wrapper);
+
+  // Return the newly added wrapper
+  return seg_wrapper;
+}
+
 GenericImageData::UndoManagerType::Delta *
 GenericImageData
 ::CompressLabelImage()
