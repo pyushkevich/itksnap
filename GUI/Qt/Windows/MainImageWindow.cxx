@@ -514,6 +514,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
         model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
         ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
 
+  LatentITKEventNotifier::connect(
+        model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
+        ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
+
+
   // Couple the visibility of each view panel to the correponding property
   // model in DisplayLayoutModel
   DisplayLayoutModel *layoutModel = m_Model->GetDisplayLayoutModel();
@@ -635,7 +640,23 @@ void MainImageWindow::ShowFirstTime()
 // Slot for model updates
 void MainImageWindow::onModelUpdate(const EventBucket &b)
 {
-  if(b.HasEvent(MainImageDimensionsChangeEvent()))
+  bool main_changed = b.HasEvent(MainImageDimensionsChangeEvent());
+  bool layers_changed = b.HasEvent(LayerChangeEvent());
+  bool layers_meta_changed = b.HasEvent(WrapperMetadataChangeEvent());
+  bool proj_file_changed =
+      b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetProjectFilenameModel());
+  bool main_history_changed =
+      b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("MainImage"));
+  bool proj_history_changed =
+      b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("Project"));
+  bool selected_layer_changed =
+      b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetSelectedLayerIdModel());
+  bool selected_seg_layer_changed =
+      b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetSelectedSegmentationLayerIdModel());
+  bool display_layout_changed = b.HasEvent(DisplayLayoutModel::DisplayLayoutChangeEvent());
+  bool layer_layout_changed = b.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
+
+  if(main_changed)
     {
     // Delaying the relayout of the main window seems to reduce the amount of
     // flashing that occurs when loading images.
@@ -644,46 +665,31 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     this->UpdateMainLayout();
     }
 
-  if(b.HasEvent(LayerChangeEvent()) || b.HasEvent(WrapperMetadataChangeEvent()))
-    {
-    // Update the window title
-    this->UpdateWindowTitle();
-    this->UpdateSelectedLayerActions();
-    }
-
-  if(b.HasEvent(LayerChangeEvent()) ||
-     b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("MainImage")))
+  if(layers_changed || main_history_changed)
     {
     this->UpdateRecentMenu();
     this->UpdateDICOMContentsMenu();
     }
 
-  if(b.HasEvent(ValueChangedEvent(), m_Model->GetHistoryModel("Project")))
-    {
+  if(proj_history_changed)
     this->UpdateRecentProjectsMenu();
-    }
 
-  if(b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetProjectFilenameModel()))
-    {
-    this->UpdateWindowTitle();
+  if(proj_file_changed)
     this->UpdateProjectMenuItems();
-    }
 
-  if(b.HasEvent(DisplayLayoutModel::DisplayLayoutChangeEvent()))
-    {
+  if(display_layout_changed)
     this->UpdateCanvasDimensions();
-    }
 
-  if(b.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()))
-    {
+  if(layer_layout_changed)
     this->UpdateLayerLayoutActions();
-    }
 
-  if(b.HasEvent(ValueChangedEvent(),
-                m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel()))
-    {
+  if(layers_changed || layers_meta_changed || selected_layer_changed)
     this->UpdateSelectedLayerActions();
-    }
+
+  if(layers_changed || layers_meta_changed || proj_file_changed || selected_seg_layer_changed)
+    this->UpdateWindowTitle();
+
+
 }
 
 void MainImageWindow::externalStyleSheetFileChanged(const QString &file)
@@ -937,7 +943,7 @@ void MainImageWindow::UpdateWindowTitle()
   if(gid && gid->IsMainLoaded())
     {
     mainfile = QFileInfo(from_utf8(gid->GetMain()->GetFileName())).fileName();
-    segfile = QFileInfo(from_utf8(gid->GetSegmentation()->GetFileName())).fileName();
+    segfile = QFileInfo(from_utf8(m_Model->GetDriver()->GetSelectedSegmentationLayer()->GetFileName())).fileName();
     }
 
   // If a project is loaded, we display the project title
@@ -947,7 +953,11 @@ void MainImageWindow::UpdateWindowTitle()
   // Set up the window title
   if(projfile.length())
     {
-    this->setWindowTitle(QString("%1 - ITK-SNAP").arg(projfile));
+    // If a project has multiple layers, we should indicate which segmentation image is being viewed
+    if(gid->GetNumberOfLayers(LABEL_ROLE) > 1)
+       this->setWindowTitle(QString("%1 - %2 - ITK-SNAP").arg(projfile).arg(segfile));
+    else
+      this->setWindowTitle(QString("%1 - ITK-SNAP").arg(projfile));
     }
   else if(mainfile.length() && segfile.length())
     {
@@ -2240,4 +2250,15 @@ void MainImageWindow::on_actionMainControlPanel_triggered()
     m_DockLeft->show();
   else
     m_DockLeft->hide();
+}
+
+void MainImageWindow::on_actionActivateNextSegmentationLayer_triggered()
+{
+  // Get the list of all the segmentation images
+  m_Model->CycleSelectedSegmentationLayer(1);
+}
+
+void MainImageWindow::on_actionActivatePreviousSegmentationLayer_triggered()
+{
+  m_Model->CycleSelectedSegmentationLayer(-1);
 }

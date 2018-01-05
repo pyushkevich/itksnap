@@ -79,7 +79,7 @@ double Window3DPicker::IntersectWithLine(
     }
   else
     {
-    LabelImageWrapper *layer = app->GetCurrentImageData()->GetSegmentation();
+    LabelImageWrapper *layer = app->GetSelectedSegmentationLayer();
     typedef ImageRayIntersectionFinder<LabelImageWrapperTraits::ImageType, LabelImageHitTester> Finder;
     Finder finder;
     LabelImageHitTester tester(app->GetColorLabelTable());

@@ -317,7 +317,12 @@ public:
    * Update the IRIS image data with an external segmentation image (e.g., 
    * loaded from a file).
    */
-  void UpdateIRISSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing = false);
+  void UpdateIRISSegmentationImage(GuidedNativeImageIO *io, Registry *metadata, bool add_to_existing = false);
+
+  /**
+   * This method gets the currently selected segmentation image
+   */
+  LabelImageWrapper *GetSelectedSegmentationLayer() const;
 
   /**
    * Update the SNAP image data with an external segmentation image (e.g.,
@@ -764,6 +769,10 @@ protected:
 
   // Write transform to project registry
   void WriteTransform(Registry *reg, const ITKTransformType *transform);
+
+  // -------------- Saving IRIS state during SNAP mode --------------------
+  unsigned long m_SavedIRISSelectedSegmentationLayerId;
+
 };
 
 #endif // __IRISApplication_h_

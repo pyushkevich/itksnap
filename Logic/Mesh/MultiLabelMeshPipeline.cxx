@@ -326,6 +326,9 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
 
   // Clean up the progress
   progress->UnregisterAllSources();
+
+  // Set the modified flag, so we can use the pipeline's MTime
+  this->Modified();
 }
 
 void 

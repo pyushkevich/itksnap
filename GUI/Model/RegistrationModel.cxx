@@ -431,7 +431,7 @@ void RegistrationModel::RunAutoRegistration()
   if(this->GetUseSegmentationAsMask())
     {
     param.gradient_mask = "GRADIENT_MASK";
-    ImageWrapperBase *seg = this->GetParent()->GetDriver()->GetCurrentImageData()->GetSegmentation();
+    ImageWrapperBase *seg = this->GetParent()->GetDriver()->GetSelectedSegmentationLayer();
     castMask = seg->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline();
     castMask->UpdateLargestPossibleRegion();
     m_GreedyAPI->AddCachedInputObject(param.gradient_mask, castMask->GetOutput());

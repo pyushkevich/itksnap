@@ -34,20 +34,26 @@
 =========================================================================*/
 #include "SegmentationStatistics.h"
 #include "GenericImageData.h"
+#include "IRISApplication.h"
 #include "ImageCollectionToImageFilter.h"
 
 #include <iostream>
 #include <iomanip>
 
+
 using namespace std;
 
 
-
+// TODO: improve efficiency by using filters to integrate label intensities
 void
 SegmentationStatistics
-::Compute(GenericImageData *id)
+::Compute(IRISApplication *app)
 {
-  // TODO: improve efficiency by using filters to integrate label intensities
+  // Get the current image data
+  GenericImageData *id = app->GetCurrentImageData();
+
+  // Get the selected segmentation layer
+  LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
 
   // A list of image sources
   vector<ScalarImageWrapperBase *> layers;
@@ -56,9 +62,7 @@ SegmentationStatistics
   m_ImageStatisticsColumnNames.clear();
 
   // Find all the images available for statistics computation
-  for(LayerIterator it(id, MAIN_ROLE |
-                           OVERLAY_ROLE);
-      !it.IsAtEnd(); ++it)
+  for(LayerIterator it(id, MAIN_ROLE | OVERLAY_ROLE); !it.IsAtEnd(); ++it)
     {
     ScalarImageWrapperBase *lscalar = it.GetLayerAsScalar();
     if(lscalar)
@@ -89,7 +93,7 @@ SegmentationStatistics
   m_Stats.clear();
 
   // Start the label image iteration
-  LabelImageWrapper::ConstIterator itLabel = id->GetSegmentation()->GetImageConstIterator();
+  LabelImageWrapper::ConstIterator itLabel = seg->GetImageConstIterator();
   itk::ImageRegion<3> region = itLabel.GetRegion();
 
   // Cache the entry to avoid many calls to std::map

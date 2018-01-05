@@ -251,7 +251,6 @@ void LayerInspectorRowDelegate::UpdateBackgroundPalette()
 
 void LayerInspectorRowDelegate::setSelected(bool value)
 {
-  std::cout << "Selecting " << m_Model->GetLayer()->GetUniqueId() << std::endl;
   if(m_Selected != value)
     {
     m_Selected = value;

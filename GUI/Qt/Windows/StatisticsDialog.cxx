@@ -48,7 +48,7 @@ void StatisticsDialog::Activate()
 void StatisticsDialog::FillTable()
 {
   // Compute the segmentation statistics
-  m_Stats->Compute(m_Model->GetDriver()->GetCurrentImageData());
+  m_Stats->Compute(m_Model->GetDriver());
 
   // Fill out the item model
   m_ItemModel->clear();

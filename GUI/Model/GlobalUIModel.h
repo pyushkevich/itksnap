@@ -325,6 +325,10 @@ public:
   /** Auto-adjust contrast in all image layers */
   void ResetContrastAllLayers();
 
+  /** A function for switching between segmentation layers when there multiple */
+  void CycleSelectedSegmentationLayer(int direction);
+
+
 protected:
 
   GlobalUIModel();
@@ -465,6 +469,7 @@ protected:
   // Callbacks for the opacity model
   bool GetSegmentationOpacityValueAndRange(int &value, NumericValueRange<int> *domain);
   void SetSegmentationOpacityValue(int value);
+
 
 };
 

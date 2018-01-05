@@ -211,9 +211,9 @@ ImageWrapperBase *LoadSegmentationImageDelegate::UpdateApplicationWithImage(Guid
   if(m_Driver->IsSnakeModeActive())
     m_Driver->UpdateSNAPSegmentationImage(io);
   else
-    m_Driver->UpdateIRISSegmentationImage(io, m_AdditiveMode);
+    m_Driver->UpdateIRISSegmentationImage(io, this->GetMetaDataRegistry(), m_AdditiveMode);
 
-  return m_Driver->GetCurrentImageData()->GetSegmentation();
+  return m_Driver->GetSelectedSegmentationLayer();
 }
 
 LoadSegmentationImageDelegate::LoadSegmentationImageDelegate()

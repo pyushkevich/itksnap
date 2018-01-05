@@ -217,6 +217,10 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
               ChildPropertyChangedEvent(), ModelUpdateEvent());
 
+  // Change in the selected segmentation layer affects what is rendered
+  Rebroadcast(app->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
+
   // Update the main components
   this->UpdateAxisRendering();
   this->UpdateCamera(true);
@@ -687,7 +691,7 @@ void Generic3DRenderer::OnUpdate()
   GlobalState *gs = app->GetGlobalState();
 
   // Get the mode
-  ToolbarMode3DType mode = m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3D();
+  ToolbarMode3DType mode = gs->GetToolbarMode3D();
 
   // Define a bunch of local flags to make this code easier to read
   bool main_changed = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
@@ -699,8 +703,7 @@ void Generic3DRenderer::OnUpdate()
   bool spray_action = m_EventBucket->HasEvent(Generic3DModel::SprayPaintEvent());
   bool scalpel_action = m_EventBucket->HasEvent(Generic3DModel::ScalpelEvent());
   bool mode_changed = m_EventBucket->HasEvent(
-        ValueChangedEvent(),
-        m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3DModel());
+        ValueChangedEvent(), gs->GetToolbarMode3DModel());
   bool segmentation_changed =
       m_EventBucket->HasEvent(SegmentationChangeEvent()) ||
       m_EventBucket->HasEvent(LevelSetImageChangeEvent());
@@ -709,8 +712,12 @@ void Generic3DRenderer::OnUpdate()
       m_EventBucket->HasEvent(ChildPropertyChangedEvent(),
                               m_Model->GetParentUI()->GetAppearanceSettings());
 
+  bool seg_layer_changed =
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              gs->GetSelectedSegmentationLayerIdModel());
+
   // Deal with the updates to the mesh state
-  if(mesh_updated || main_changed)
+  if(mesh_updated || main_changed || seg_layer_changed)
     {
     UpdateSegmentationMeshAssembly();
     }

@@ -722,6 +722,31 @@ void GlobalUIModel::SetSegmentationOpacityValue(int value)
   m_Driver->GetGlobalState()->SetSegmentationAlpha(value / 100.0);
 }
 
+void GlobalUIModel::CycleSelectedSegmentationLayer(int direction)
+{
+  // Get all the segmentation ids into a list and find the index of the current layer
+  LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(LABEL_ROLE);
+  std::vector<unsigned long> id_vec;
+  int cur_idx = -1;
+  for(; !it.IsAtEnd(); ++it)
+    {
+    id_vec.push_back(it.GetLayer()->GetUniqueId());
+    if(it.GetLayer()->GetUniqueId()
+       == m_Driver->GetGlobalState()->GetSelectedSegmentationLayerId())
+      cur_idx = id_vec.size() - 1;
+    }
+
+  // There must be at least two layers
+  if(id_vec.size() > 0)
+    {
+    // Select the new index
+    int index = (cur_idx < 0) ? 0 : (cur_idx + direction) % (int) id_vec.size();
+    if(index < 0)
+      index += id_vec.size();
+    m_Driver->GetGlobalState()->SetSelectedSegmentationLayerId(id_vec[index]);
+    }
+}
+
 
 std::vector<std::string>
 GlobalUIModel::GetRecentHistoryItems(const char *historyCategory, unsigned int k, bool global_history)

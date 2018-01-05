@@ -150,10 +150,10 @@ void CursorInspectionModel::SetParentModel(GlobalUIModel *parent)
 bool CursorInspectionModel::GetLabelUnderTheCursorIdValue(LabelType &value)
 {
   IRISApplication *app = m_Parent->GetDriver();
-  GenericImageData *id = app->GetCurrentImageData();
-  if(id->IsSegmentationLoaded())
+  LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
+  if(seg)
     {
-    value = id->GetSegmentation()->GetVoxel(app->GetCursorPosition());
+    value = seg->GetVoxel(app->GetCursorPosition());
     return true;
     }
   return false;
@@ -162,10 +162,10 @@ bool CursorInspectionModel::GetLabelUnderTheCursorIdValue(LabelType &value)
 bool CursorInspectionModel::GetLabelUnderTheCursorTitleValue(std::string &value)
 {
   IRISApplication *app = m_Parent->GetDriver();
-  GenericImageData *id = m_Parent->GetDriver()->GetCurrentImageData();
-  if(id->IsSegmentationLoaded())
+  LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
+  if(seg)
     {
-    LabelType label = id->GetSegmentation()->GetVoxel(app->GetCursorPosition());
+    LabelType label = seg->GetVoxel(app->GetCursorPosition());
     value = app->GetColorLabelTable()->GetColorLabel(label).GetLabel();
     return true;
     }

@@ -245,6 +245,11 @@ GenericImageData
   RemoveSingleImageWrapper(MAIN_ROLE);
   m_MainImageWrapper = NULL;
 
+  // TODO: this is kind of hacky...
+  // Remove all the extra segmentation images
+  while (m_Wrappers[LABEL_ROLE].size() > 1)
+    this->PopBackImageWrapper(LABEL_ROLE);
+
   // Reset the label wrapper
   RemoveSingleImageWrapper(LABEL_ROLE);
   m_LabelWrapper = NULL;

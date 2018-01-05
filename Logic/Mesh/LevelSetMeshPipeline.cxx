@@ -88,6 +88,9 @@ LevelSetMeshPipeline
 
   // Run the pipeline
   m_VTKPipeline->ComputeMesh(m_Mesh, lock);
+
+  // Set the modified flag so that we can use the MTime() of this object for dirty checks
+  this->Modified();
 }
 
 vtkPolyData *LevelSetMeshPipeline::GetMesh()

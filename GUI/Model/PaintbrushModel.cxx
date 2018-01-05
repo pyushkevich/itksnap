@@ -343,7 +343,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   GenericImageData *gid = driver->GetCurrentImageData();
 
   // Get the segmentation image
-  LabelImageWrapper *imgLabel = driver->GetCurrentImageData()->GetSegmentation();
+  LabelImageWrapper *imgLabel = driver->GetSelectedSegmentationLayer();
 
   // Get the paint properties
   LabelType drawing_color = gs->GetDrawingColorLabel();
@@ -391,7 +391,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
     // Precompute the watersheds
     m_Watershed->PrecomputeWatersheds(
           context_layer->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
-          driver->GetCurrentImageData()->GetSegmentation()->GetImage(),
+          driver->GetSelectedSegmentationLayer()->GetImage(),
           xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
 
     m_Watershed->RecomputeWatersheds(pbs.watershed.level);

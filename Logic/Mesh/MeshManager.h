@@ -93,9 +93,9 @@ public:
   bool IsMeshDirty();
 
   /**
-    Get the time that the mesh was built
-    */
-  irisGetMacro(BuildTime, unsigned long)
+   * Get the timestamp when the current mesh was built
+   */
+  itk::ModifiedTimeType GetBuildTime() const;
 
 protected:
 
@@ -116,9 +116,6 @@ protected:
 
   // Progress accumulator for multi-object rendering
   itk::SmartPointer<AllPurposeProgressAccumulator> m_Progress;
-
-  // Time when the mesh was last build
-  unsigned long m_BuildTime;
 
   //Check if apImage is a proper 3D, i.e. the third dimension is
   //different than 1

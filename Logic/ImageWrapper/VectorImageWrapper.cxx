@@ -72,19 +72,32 @@ VectorImageWrapper<TTraits, TBase>
     const itk::Index<3> &startIdx, long runlength,
     double *out_sum, double *out_sumsq) const
 {
-  ConstIterator it(this->m_Image, region);
-  it.SetIndex(startIdx);
-  size_t nc = this->GetNumberOfComponents();
-
-  // Perform the integration
-  for(long q = 0; q < runlength; q++, ++it)
+  if(this->IsSlicingOrthogonal())
     {
-    PixelType p = it.Get();
+    ConstIterator it(this->m_Image, region);
+    it.SetIndex(startIdx);
+    size_t nc = this->GetNumberOfComponents();
+
+    // Perform the integration
+    for(long q = 0; q < runlength; q++, ++it)
+      {
+      PixelType p = it.Get();
+      for(size_t c = 0; c < nc; c++)
+        {
+        double v = (double) p[c];
+        out_sum[c] += v;
+        out_sumsq[c] += v * v;
+        }
+      }
+    }
+  else
+    {
+    // TODO: implement non-orthogonal statistics
+    size_t nc = this->GetNumberOfComponents();
     for(size_t c = 0; c < nc; c++)
       {
-      double v = (double) p[c];
-      out_sum[c] += v;
-      out_sumsq[c] += v * v;
+      out_sum[c] += nan("");
+      out_sumsq[c] += nan("");
       }
     }
 }

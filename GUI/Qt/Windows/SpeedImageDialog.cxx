@@ -194,6 +194,6 @@ void SpeedImageDialog::on_btnClassifySave_clicked()
 {
   SaveImageLayer(
         m_Model->GetParent(),
-        m_Model->GetParent()->GetDriver()->GetCurrentImageData()->GetSegmentation(),
+        m_Model->GetParent()->GetDriver()->GetSelectedSegmentationLayer(),
         LABEL_ROLE, true, this);
 }

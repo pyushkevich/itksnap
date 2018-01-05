@@ -369,15 +369,24 @@ ScalarImageWrapper<TTraits, TBase>
     const itk::Index<3> &startIdx, long runlength,
     double *out_sum, double *out_sumsq) const
 {
-  ConstIterator it(this->m_Image, region);
-  it.SetIndex(startIdx);
-
-  // Perform the integration
-  for(long q = 0; q < runlength; q++, ++it)
+  if(this->IsSlicingOrthogonal())
     {
-    double p = (double) it.Get();
-    *out_sum += p;
-    *out_sumsq += p * p;
+    ConstIterator it(this->m_Image, region);
+    it.SetIndex(startIdx);
+
+    // Perform the integration
+    for(long q = 0; q < runlength; q++, ++it)
+      {
+      double p = (double) it.Get();
+      *out_sum += p;
+      *out_sumsq += p * p;
+      }
+    }
+  else
+    {
+    // TODO: implement non-orthogonal statistics
+    *out_sum += nan("");
+    *out_sumsq += nan("");
     }
 }
 

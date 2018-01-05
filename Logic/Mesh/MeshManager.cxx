@@ -86,7 +86,6 @@ MeshManager
 ::MeshManager()
 {
   m_Progress = AllPurposeProgressAccumulator::New();
-  m_BuildTime = 0;
 }
 
 MeshManager
@@ -141,7 +140,7 @@ MeshManager
   else
     {
     // Get the mesh pipeline associated with the level set image wrapper
-    LabelImageWrapper *wrapper = m_Driver->GetCurrentImageData()->GetSegmentation();
+    LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
     SmartPtr<MultiLabelMeshPipeline> pipeline =
         static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
 
@@ -166,11 +165,8 @@ MeshManager
     pipeline->UpdateMeshes(command);
     }
 
-  // Invoke a modified event (?)
+  // Fire a modified event as well
   this->Modified();
-
-  // Record the time that the mesh was built
-  m_BuildTime = this->GetMTime();
 }
 
 MeshManager::MeshCollection MeshManager::GetMeshes()
@@ -197,7 +193,7 @@ MeshManager::MeshCollection MeshManager::GetMeshes()
   else if(m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
     {
     // Get the mesh pipeline associated with the level set image wrapper
-    LabelImageWrapper *wrapper = m_Driver->GetCurrentImageData()->GetSegmentation();
+    LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
     SmartPtr<MultiLabelMeshPipeline> pipeline =
         static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
 
@@ -220,30 +216,87 @@ bool MeshManager::IsMeshDirty()
   if(!m_Driver->IsMainImageLoaded())
     return false;
 
-  // Image base
-  itk::ImageBase<3> *image = NULL;
+  // Timestamp of the source image and the pipeline
+  itk::ModifiedTimeType tsImage, tsPipeline;
 
   // Get the appropriate source image
   if(m_Driver->IsSnakeModeLevelSetActive())
     {
-    // We are in SNAP.  Use one of SNAP's images
-    SNAPImageData *snapData = m_Driver->GetSNAPImageData();
-    image = snapData->GetSnake()->GetImage();
+    // Get the mesh pipeline associated with the level set image wrapper
+    LevelSetImageWrapper *wrapper = m_Driver->GetSNAPImageData()->GetSnake();
+    SmartPtr<LevelSetMeshPipeline> pipeline =
+        static_cast<LevelSetMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
+
+    // No pipeline? That means the mesh has not been constructed yet
+    if(!pipeline)
+      return true;
+
+    // Get the pipelines
+    tsImage = wrapper->GetImageBase()->GetMTime();
+    tsPipeline = pipeline->GetMTime();
     }
   else
     {
-    image = m_Driver->GetCurrentImageData()->GetSegmentation()->GetImageBase();
+    // Get the mesh pipeline associated with the current segmentation wrapper
+    LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
+    SmartPtr<MultiLabelMeshPipeline> pipeline =
+        static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
+
+    // No pipeline? That means the mesh has not been constructed yet
+    if(!pipeline)
+      return true;
+
+    // Get the pipelines
+    tsImage = wrapper->GetImageBase()->GetMTime();
+    tsPipeline = pipeline->GetMTime();
     }
 
   // Compare the timestamps
-  if(image->GetMTime() > this->m_BuildTime)
+  if(tsImage > tsPipeline)
     return true;
 
   // Also check if the mesh options have been modified since
-  if(m_Driver->GetGlobalState()->GetMeshOptions()->GetMTime() > this->m_BuildTime)
+  if(m_Driver->GetGlobalState()->GetMeshOptions()->GetMTime() > tsPipeline)
     return true;
 
   return false;
+}
+
+itk::ModifiedTimeType MeshManager::GetBuildTime() const
+{
+  // If there is no image loaded, the mesh is not considered dirty
+  if(!m_Driver->IsMainImageLoaded())
+    return 0;
+
+  // Get the appropriate source image
+  if(m_Driver->IsSnakeModeLevelSetActive())
+    {
+    // Get the mesh pipeline associated with the level set image wrapper
+    LevelSetImageWrapper *wrapper = m_Driver->GetSNAPImageData()->GetSnake();
+    SmartPtr<LevelSetMeshPipeline> pipeline =
+        static_cast<LevelSetMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
+
+    // No pipeline? That means the mesh has not been constructed yet
+    if(!pipeline)
+      return 0;
+
+    // Get the timestamp of the pipeline
+    return pipeline->GetMTime();
+    }
+  else
+    {
+    // Get the mesh pipeline associated with the current segmentation wrapper
+    LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
+    SmartPtr<MultiLabelMeshPipeline> pipeline =
+        static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
+
+    // No pipeline? That means the mesh has not been constructed yet
+    if(!pipeline)
+      return 0;
+
+    // Get the timestamp of the pipeline.
+    return pipeline->GetMTime();
+    }
 }
 
 

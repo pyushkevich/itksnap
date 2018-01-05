@@ -44,6 +44,7 @@
 class GenericImageData;
 class ColorLabelTable;
 class ScalarImageWrapperBase;
+class IRISApplication;
 
 namespace itk {
   template <unsigned int VDim> class ImageRegion;
@@ -78,7 +79,7 @@ public:
   typedef std::map<LabelType, Entry> EntryMap;
 
   /* Compute statistics from a segmentation image */
-  void Compute(GenericImageData *id);
+  void Compute(IRISApplication *app);
   
   /* Export to a text file using legacy format */
   void ExportLegacy(std::ostream &oss, const ColorLabelTable &clt);

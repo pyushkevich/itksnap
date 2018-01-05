@@ -297,6 +297,10 @@ private slots:
 
   void on_actionMainControlPanel_triggered();
 
+  void on_actionActivateNextSegmentationLayer_triggered();
+
+  void on_actionActivatePreviousSegmentationLayer_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

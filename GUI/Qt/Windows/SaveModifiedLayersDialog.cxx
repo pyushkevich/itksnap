@@ -153,8 +153,7 @@ bool
 SaveModifiedLayersDialog
 ::PromptForUnsavedSegmentationChanges(GlobalUIModel *model)
 {
-  ImageWrapperBase *layer = model->GetDriver()->GetIRISImageData()->GetSegmentation();
-  return PromptForUnsavedChanges(model, layer);
+  return PromptForUnsavedChanges(model, LABEL_ROLE);
 }
 
 void SaveModifiedLayersDialog::onModelUpdate(const EventBucket &bucket)
