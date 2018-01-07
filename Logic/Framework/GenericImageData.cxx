@@ -61,33 +61,14 @@
 #include <iomanip>
 
 
-void 
-GenericImageData
-::SetSegmentationVoxel(const Vector3ui &index, LabelType value)
-{
-  // Make sure that the main image data and the segmentation data exist
-  assert(IsSegmentationLoaded());
-
-  // Store the voxel
-  m_LabelWrapper->SetVoxel(index, value);
-
-  // Mark the image as modified
-  m_LabelWrapper->GetImage()->Modified();
-}
-
 GenericImageData
 ::GenericImageData()
-  : m_UndoManager(4,200000)
 {
   // Make main image wrapper point to grey wrapper initially
   m_MainImageWrapper = NULL;
 
-  // Pass the label table from the parent to the label wrapper
-  m_LabelWrapper = NULL;
-  
   // Add to the relevant lists
   m_Wrappers[MAIN_ROLE].push_back(m_MainImageWrapper);
-  m_Wrappers[LABEL_ROLE].push_back(m_LabelWrapper.GetPointer());
 
   // Create empty annotations
   m_Annotations = ImageAnnotationData::New();
@@ -132,8 +113,8 @@ GenericImageData
   SetSingleImageWrapper(MAIN_ROLE, wrapper);
   m_MainImageWrapper = wrapper;
 
-  // Reset the segmentation image
-  ResetSegmentationImage();
+  // Reset the segmentation state to a single empty image
+  this->ResetSegmentations();
 
   // Set opaque
   m_MainImageWrapper->SetAlpha(255);
@@ -220,18 +201,21 @@ void GenericImageData::SetMainImage(GuidedNativeImageIO *io)
 
 void
 GenericImageData
-::ResetSegmentationImage()
+::ResetSegmentations()
 {
+  // The main image must be loaded
+  assert(this->IsMainLoaded());
+
+  // Unload all segmentations
+  this->RemoveAllWrappers(LABEL_ROLE);
+
   // Initialize the segmentation data to zeros
-  m_LabelWrapper = LabelImageWrapper::New();
-  m_LabelWrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
-  m_LabelWrapper->SetDefaultNickname("Segmentation Image");
+  LabelImageWrapper::Pointer seg = LabelImageWrapper::New();
+  seg->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
+  seg->SetDefaultNickname("Segmentation Image");
 
-  m_LabelWrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
-  SetSingleImageWrapper(LABEL_ROLE, m_LabelWrapper.GetPointer());
-
-  // Reset the undo manager
-  m_UndoManager.Clear();
+  seg->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
+  this->PushBackImageWrapper(LABEL_ROLE, seg.GetPointer());
 }
 
 void
@@ -245,18 +229,14 @@ GenericImageData
   RemoveSingleImageWrapper(MAIN_ROLE);
   m_MainImageWrapper = NULL;
 
-  // TODO: this is kind of hacky...
-  // Remove all the extra segmentation images
-  while (m_Wrappers[LABEL_ROLE].size() > 1)
-    this->PopBackImageWrapper(LABEL_ROLE);
-
-  // Reset the label wrapper
-  RemoveSingleImageWrapper(LABEL_ROLE);
-  m_LabelWrapper = NULL;
+  // Unload all the segmentations
+  this->RemoveAllWrappers(LABEL_ROLE);
 
   // Clear the annotations
   m_Annotations->Reset();
 }
+
+
 
 void
 GenericImageData
@@ -317,7 +297,7 @@ GenericImageData
 ::UnloadOverlayLast()
 {
   // Make sure at least one grey overlay is loaded
-  if (!IsOverlayLoaded())
+  if (!AreOverlaysLoaded())
     return;
 
   // Release the data associated with the last overlay
@@ -335,26 +315,18 @@ void GenericImageData
     overlays.erase(it);
 }
 
-void
+
+LabelImageWrapper *
 GenericImageData
-::SetSegmentationImage(LabelImageType *newLabelImage) 
+::SetSingleSegmentationImage(GenericImageData::LabelImageType *image)
 {
-  // Check that the image matches the size of the grey image
-  assert(m_MainImageWrapper->IsInitialized() &&
-    m_MainImageWrapper->GetBufferedRegion() == 
-         newLabelImage->GetBufferedRegion());
+  // Unload all segmentation wrappers
+  this->RemoveAllWrappers(LABEL_ROLE);
 
-  // Pass the image to the segmentation wrapper (why this and not create a
-  // new label wrapper? Why should a wrapper have longer lifetime than an
-  // image that it wraps around
-  m_LabelWrapper->SetImage(newLabelImage);
-
-  // Sync up spacing between the main and label image
-  m_LabelWrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
-
-  // Reset the undo manager
-  m_UndoManager.Clear();
+  // Add this segmentation
+  return this->AddSegmentationImage(image);
 }
+
 
 LabelImageWrapper *
 GenericImageData
@@ -380,39 +352,19 @@ GenericImageData
   // Add the segmentation label to the list of segmentation wrappers
   PushBackImageWrapper(LABEL_ROLE, seg_wrapper);
 
+  // Intensity changes in the image wrapper are broadcast as segmentation events
+  Rebroadcaster::Rebroadcast(seg_wrapper, WrapperImageChangeEvent(),
+                             this, SegmentationChangeEvent());
+
   // Return the newly added wrapper
   return seg_wrapper;
 }
 
-GenericImageData::UndoManagerType::Delta *
-GenericImageData
-::CompressLabelImage()
-{
-  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
-  LabelImageType *seg = this->GetSegmentation()->GetImage();
-
-  itk::ImageRegionConstIterator<LabelImageType> it(seg, seg->GetLargestPossibleRegion());
-  for (; !it.IsAtEnd(); ++it)
-    {
-    new_cumulative->Encode(it.Get());
-    }
-
-  new_cumulative->FinishEncoding();
-  return new_cumulative;
-}
-
 bool
 GenericImageData
-::IsOverlayLoaded()
+::AreOverlaysLoaded()
 {
   return (m_Wrappers[OVERLAY_ROLE].size() > 0);
-}
-
-bool
-GenericImageData
-::IsSegmentationLoaded()
-{
-  return m_LabelWrapper && m_LabelWrapper->IsInitialized();
 }
 
 void
@@ -456,118 +408,14 @@ const ImageCoordinateGeometry &GenericImageData::GetImageGeometry() const
   return m_MainImageWrapper->GetImageGeometry();
 }
 
-void GenericImageData::StoreIntermediateUndoDelta(UndoManagerDelta *delta)
-{
-  m_UndoManager.AddDeltaToStaging(delta);
-}
-
-void GenericImageData::StoreUndoPoint(const char *text, UndoManagerDelta *delta)
-{
-  // If there is a delta, add it to staging
-  if(delta)
-    m_UndoManager.AddDeltaToStaging(delta);
-
-  // Commit the deltas
-  m_UndoManager.CommitStaging(text);
-}
-
 void GenericImageData::ClearUndoPoints()
 {
-  m_UndoManager.Clear();
-}
-
-bool
-GenericImageData
-::IsUndoPossible()
-{
-  return m_UndoManager.IsUndoPossible();
-}
-
-void
-GenericImageData
-::Undo()
-{
-  // Get the commit for the undo
-  const UndoManagerType::Commit &commit = m_UndoManager.GetCommitForUndo();
-
-  // The label image that will undergo undo
-  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
-  LabelImageType *imSeg = this->GetSegmentation()->GetImage();
-
-  // Iterate over all the deltas in reverse order
-  UndoManagerType::DList::const_reverse_iterator dit = commit.GetDeltas().rbegin();
-  for(; dit != commit.GetDeltas().rend(); ++dit)
+  for(LayerIterator lit(this, LABEL_ROLE); !lit.IsAtEnd(); ++lit)
     {
-    // Apply the changes in the current delta
-    UndoManagerType::Delta *delta = *dit;
-
-    // Iterator for the relevant region in the label image
-    IteratorType lit(imSeg, delta->GetRegion());
-
-    // Iterate over the rles in the delta
-    for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
-      {
-      size_t n = delta->GetRLELength(i);
-      LabelType d = delta->GetRLEValue(i);
-      for(size_t j = 0; j < n; j++)
-        {
-        if(d != 0)
-          lit.Set(lit.Get() - d);
-        ++lit;
-        }
-      }
+    LabelImageWrapper *liw = dynamic_cast<LabelImageWrapper *>(lit.GetLayer());
+    if(liw)
+      liw->ClearUndoPoints();
     }
-
-  // Set modified flags
-  imSeg->Modified();
-  InvokeEvent(SegmentationChangeEvent());
-}
-
-bool
-GenericImageData
-::IsRedoPossible()
-{
-  return m_UndoManager.IsRedoPossible();
-}
-
-void
-GenericImageData
-::Redo()
-{
-  // Get the commit for the redo
-  const UndoManagerType::Commit &commit = m_UndoManager.GetCommitForRedo();
-
-  // The label image that will undergo redo
-  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
-  LabelImageType *imSeg = this->GetSegmentation()->GetImage();
-
-  // Iterate over all the deltas in reverse order
-  UndoManagerType::DList::const_iterator dit = commit.GetDeltas().begin();
-  for(; dit != commit.GetDeltas().end(); ++dit)
-    {
-    // Apply the changes in the current delta
-    UndoManagerType::Delta *delta = *dit;
-
-    // Iterator for the relevant region in the label image
-    IteratorType lit(imSeg, delta->GetRegion());
-
-    // Iterate over the rles in the delta
-    for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
-      {
-      size_t n = delta->GetRLELength(i);
-      LabelType d = delta->GetRLEValue(i);
-      for(size_t j = 0; j < n; j++)
-        {
-        if(d != 0)
-          lit.Set(lit.Get() + d);
-        ++lit;
-        }
-      }
-    }
-
-  // Set modified flags
-  imSeg->Modified();
-  InvokeEvent(SegmentationChangeEvent());
 }
 
 GenericImageData::RegionType
@@ -631,7 +479,13 @@ int GenericImageData::GetNumberOfOverlays()
 
 ImageWrapperBase *GenericImageData::GetLastOverlay()
 {
-    return m_Wrappers[OVERLAY_ROLE].back();
+  return m_Wrappers[OVERLAY_ROLE].back();
+}
+
+LabelImageWrapper *GenericImageData::GetFirstSegmentationLayer()
+{
+  assert(m_Wrappers[LABEL_ROLE].size() > 0);
+  return dynamic_cast<LabelImageWrapper *>(m_Wrappers[LABEL_ROLE].front().GetPointer());
 }
 
 
@@ -690,6 +544,12 @@ void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
 {
   assert(m_Wrappers[role].size() == 1);
   m_Wrappers[role].front() = NULL;
+}
+
+void GenericImageData::RemoveAllWrappers(LayerRole role)
+{
+  while(m_Wrappers[role].size() > 0)
+    this->PopBackImageWrapper(role);
 }
 
 

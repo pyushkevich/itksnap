@@ -41,6 +41,59 @@
 #include <RLEImage.h>
 
 /**
+ * The Delta class represents a difference between two images used in
+ * the Undo system. It only supports linear traversal of images and
+ * stores differences in an RLE (run length encoding) format.
+ */
+template <typename TPixel>
+class UndoDelta
+{
+public:
+  typedef itk::ImageRegion<3> RegionType;
+
+  UndoDelta();
+
+  void SetRegion(const RegionType &region)
+  { this->m_Region = region; }
+
+  const RegionType &GetRegion()
+  { return m_Region; }
+
+  void Encode(const TPixel &value);
+
+  void FinishEncoding();
+
+  size_t GetNumberOfRLEs()
+  { return m_Array.size(); }
+
+  TPixel GetRLEValue(size_t i)
+  { return m_Array[i].second; }
+
+  size_t GetRLELength(size_t i)
+  { return m_Array[i].first; }
+
+  unsigned long GetUniqueID() const
+  { return m_UniqueID; }
+
+  UndoDelta & operator = (const UndoDelta &other);
+
+protected:
+  typedef std::pair<size_t, TPixel> RLEPair;
+  typedef std::vector<RLEPair> RLEArray;
+  RLEArray m_Array;
+  size_t m_CurrentLength;
+  TPixel m_LastValue;
+
+  // The delta is associated with an image region
+  RegionType m_Region;
+
+  // Each delta is assigned a unique ID at creation
+  unsigned long m_UniqueID;
+  static unsigned long m_UniqueIDCounter;
+};
+
+
+/**
  * \class UndoDataManager
  * \brief Manages data (delta updates) for undo/redo in itk-snap
  */
@@ -50,56 +103,10 @@ public:
 
   typedef itk::ImageRegion<3> RegionType;
 
-  /**
-   * The Delta class represents a difference between two images used in
-   * the Undo system. It only supports linear traversal of images and
-   * stores differences in an RLE (run length encoding) format.
-   */
-  class Delta 
-    {
-    public:
-      Delta();
 
-      void SetRegion(const RegionType &region)
-        { this->m_Region = region; }
-
-      const RegionType &GetRegion()
-        { return m_Region; }
-      
-      void Encode(const TPixel &value);
-
-      void FinishEncoding();
-
-      size_t GetNumberOfRLEs()
-        { return m_Array.size(); }
-
-      TPixel GetRLEValue(size_t i)
-        { return m_Array[i].second; }
-
-      size_t GetRLELength(size_t i)
-        { return m_Array[i].first; }
-
-      unsigned long GetUniqueID() const
-        { return m_UniqueID; }
-
-      Delta & operator = (const Delta &other);
-
-    protected:
-      typedef std::pair<size_t, TPixel> RLEPair;
-      typedef std::vector<RLEPair> RLEArray;
-      RLEArray m_Array;
-      size_t m_CurrentLength;
-      TPixel m_LastValue;
-
-      // The delta is associated with an image region
-      RegionType m_Region;
-
-      // Each delta is assigned a unique ID at creation
-      unsigned long m_UniqueID;
-      static unsigned long m_UniqueIDCounter;
-    };
 
   /** List of deltas and related iterators */
+  typedef UndoDelta<TPixel> Delta;
   typedef std::list<Delta *> DList;
   typedef typename DList::iterator DIterator;
   typedef typename DList::const_iterator DConstIterator;

@@ -26,8 +26,7 @@ void InterpolateLabelModel::UpdateOnShow()
 void InterpolateLabelModel::Interpolate()
 {
   // Get the segmentation wrapper
-  GenericImageData *id = this->m_Parent->GetDriver()->GetCurrentImageData();
-  LabelImageWrapper *liw = id->GetSegmentation();
+  LabelImageWrapper *liw = m_Parent->GetDriver()->GetSelectedSegmentationLayer();
 
   // Create the morphological interpolation filter
   typedef itk::MorphologicalContourInterpolator<GenericImageData::LabelImageType> MCIType;
@@ -82,8 +81,10 @@ void InterpolateLabelModel::Interpolate()
 
   // Finish the segmentation editing and create an undo point
   it_trg.Finalize();
-  id->StoreUndoPoint("Interpolate label", it_trg.RelinquishDelta());
-  this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
+  liw->StoreUndoPoint("Interpolate label", it_trg.RelinquishDelta());
+
+  // TODO: this should not be needed because this should propagate from wrapper
+  // this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
 }
 
 

@@ -70,6 +70,7 @@ class GaussianMixtureModel;
 struct IRISDisplayGeometry;
 class LabelUseHistory;
 class ImageAnnotationData;
+class LabelImageWrapper;
 
 template <class TPixel, class TLabel, int VDim> class RandomForestClassifier;
 template <class TPixel, class TLabel, int VDim> class RFClassificationEngine;
@@ -317,7 +318,8 @@ public:
    * Update the IRIS image data with an external segmentation image (e.g., 
    * loaded from a file).
    */
-  void UpdateIRISSegmentationImage(GuidedNativeImageIO *io, Registry *metadata, bool add_to_existing = false);
+  LabelImageWrapper *UpdateIRISSegmentationImage(
+      GuidedNativeImageIO *io, Registry *metadata, bool add_to_existing = false);
 
   /**
    * This method gets the currently selected segmentation image
@@ -331,7 +333,7 @@ public:
    * TODO: this should probably change when we allow multiple concurrent segmentation
    * images to be used in SNAP mode.
    */
-  void UpdateSNAPSegmentationImage(GuidedNativeImageIO *io);
+  LabelImageWrapper * UpdateSNAPSegmentationImage(GuidedNativeImageIO *io);
 
 
   /** 
@@ -749,6 +751,9 @@ protected:
   // Helper functions for RF mode enter/exit
   void EnterRandomForestPreprocessingMode();
   void LeaveRandomForestPreprocessingMode();
+
+  // Go overall all labels in the segmentation wrapper and mark them as valid in the color table
+  void SetColorLabelsInSegmentationAsValid(LabelImageWrapper *seg);
 
   // ----------------------- Project support ------------------------------
 

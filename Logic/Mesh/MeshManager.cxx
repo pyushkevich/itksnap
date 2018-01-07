@@ -105,9 +105,6 @@ void
 MeshManager
 ::UpdateVTKMeshes(itk::Command *command)
 {
-  if(!m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
-    return;
-
   // The mesh is constructed differently depending on whether there is an
   // actively evolving level set or not SNAP mode or in IRIS mode
   if (m_Driver->IsSnakeModeLevelSetActive())
@@ -141,12 +138,14 @@ MeshManager
     {
     // Get the mesh pipeline associated with the level set image wrapper
     LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
+
+    // Make sure we have a workable image from which to extract mesh
+    if(!wrapper || !wrapper->GetImage() || !Is3DProper(wrapper->GetImage()))
+      return;
+
+    // Get the mesh generation pipeline associated with the layer
     SmartPtr<MultiLabelMeshPipeline> pipeline =
         static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
-
-    // TODO: this feels kind of awkward here
-    if(!wrapper->GetImage() || !Is3DProper(wrapper->GetImage()))
-      return;
 
     // If the pipeline does not exist, create it
     if(!pipeline)
@@ -171,6 +170,7 @@ MeshManager
 
 MeshManager::MeshCollection MeshManager::GetMeshes()
 {
+  // Empty collection that is returned by default
   MeshCollection meshes;
 
   if (m_Driver->IsSnakeModeLevelSetActive())
@@ -190,21 +190,20 @@ MeshManager::MeshCollection MeshManager::GetMeshes()
       return meshes;
       }
     }
-  else if(m_Driver->GetCurrentImageData()->IsSegmentationLoaded())
+  else
     {
     // Get the mesh pipeline associated with the level set image wrapper
     LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
+    if(!wrapper || !wrapper->GetImage() || !Is3DProper(wrapper->GetImage()))
+      return meshes;
+
+    // Get the pipeline storing the meshes
     SmartPtr<MultiLabelMeshPipeline> pipeline =
         static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
 
-    // TODO: this feels kind of awkward here
-    if(!wrapper->GetImage() || !Is3DProper(wrapper->GetImage()))
-      return meshes;
-
+    // Return the actual meshes in the pipeline
     if(pipeline)
-      {
       return pipeline->GetMeshCollection();
-      }
     }
 
   return meshes;

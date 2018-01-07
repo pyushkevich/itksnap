@@ -739,7 +739,7 @@ void GenericSliceRenderer::DrawSegmentationTexture()
   GenericImageData *id = m_Model->GetImageData();
   double alpha = m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
 
-  if (id->IsSegmentationLoaded() && alpha > 0)
+  if (alpha > 0)
     {
     // Search for the texture to draw
     ImageWrapperBase *seg_layer =

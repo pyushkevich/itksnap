@@ -175,7 +175,7 @@ SNAPImageData
 
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
-  LabelImageType::Pointer imgInput = m_LabelWrapper->GetImage();
+  LabelImageType::Pointer imgInput = this->GetFirstSegmentationLayer()->GetImage();
   FloatImageType::Pointer imgLevelSet = m_SnakeWrapper->GetImage();
 
   // Get the target region. This really should be a region relative to the IRIS image
@@ -512,11 +512,12 @@ SNAPImageData
   return m_LevelSetDriver->GetLevelSetFunction();
 }
 
+// TODO: this must go away!
 void SNAPImageData::SwapLabelImageWithCompressedAlternative()
 {
   // Create a compressed version of the current segmentation
   CompressedLabelImageType *save = new CompressedLabelImageType();
-  LabelImageWrapper *liw = this->GetSegmentation();
+  LabelImageWrapper *liw = this->GetFirstSegmentationLayer();
   for(LabelImageWrapper::ConstIterator iter(liw->GetImage(), liw->GetBufferedRegion());
       !iter.IsAtEnd(); ++iter)
     {
@@ -525,7 +526,7 @@ void SNAPImageData::SwapLabelImageWithCompressedAlternative()
   save->FinishEncoding();
 
   // Clear the undo manager
-  this->m_UndoManager.Clear();
+  liw->ClearUndoPoints();
 
   // Decompress the currently saved alternative
   if(m_CompressedAlternateLabelImage)

@@ -1738,7 +1738,7 @@ void MainImageWindow::on_actionVolumesAndStatistics_triggered()
 bool MainImageWindow::SaveSegmentation(bool interactive)
 {
   return SaveImageLayer(
-        m_Model, m_Model->GetDriver()->GetCurrentImageData()->GetSegmentation(),
+        m_Model, m_Model->GetDriver()->GetSelectedSegmentationLayer(),
         LABEL_ROLE, interactive, this);
 }
 

@@ -227,7 +227,7 @@ IRISApplication
   m_GlobalState->SetSnakeInitializedWithManualSegmentation(nCopied > 0);
 
   // Pass the cleaned up segmentation image to SNAP
-  m_SNAPImageData->SetSegmentationImage(imgNewLabel);
+  m_SNAPImageData->SetSingleSegmentationImage(imgNewLabel);
 
   // Pass the label description of the drawing label to the SNAP image data
   m_SNAPImageData->SetColorLabel(
@@ -365,7 +365,7 @@ IRISApplication
   assert(!IsSnakeModeActive());
 
   // Reset the segmentation image
-  this->m_IRISImageData->ResetSegmentationImage();
+  this->m_IRISImageData->ResetSegmentations();
 
   // Fire the appropriate event
   InvokeEvent(LayerChangeEvent());
@@ -379,16 +379,40 @@ IRISApplication
   assert(m_SNAPImageData);
 
   // Reset the segmentation image
-  m_SNAPImageData->ResetSegmentationImage();
+  m_SNAPImageData->ResetSegmentations();
 
   // Fire the appropriate event
   InvokeEvent(LayerChangeEvent());
   InvokeEvent(SegmentationChangeEvent());
 }
 
-void
-IRISApplication
-::UpdateSNAPSegmentationImage(GuidedNativeImageIO *io)
+void IRISApplication::SetColorLabelsInSegmentationAsValid(LabelImageWrapper *seg_wrapper)
+{
+  // Iterate over the RLEs in the label image
+  LabelType last_label = 0;
+  typedef itk::ImageRegionConstIterator<LabelImageType::BufferType> RLLineIter;
+  RLLineIter rlit(seg_wrapper->GetImage()->GetBuffer(),
+                  seg_wrapper->GetImage()->GetBuffer()->GetBufferedRegion());
+  for(; !rlit.IsAtEnd(); ++rlit)
+    {
+    // Get the line
+    const LabelImageType::RLLine &line = rlit.Value();
+
+    // Iterate over the entries
+    for(int i = 0; i < line.size(); i++)
+      {
+      LabelType label = line[i].second;
+      if(label != last_label)
+        {
+        m_ColorLabelTable->SetColorLabelValid(label, true);
+        last_label = label;
+        }
+      }
+    }
+}
+
+
+LabelImageWrapper *IRISApplication::UpdateSNAPSegmentationImage(GuidedNativeImageIO *io)
 {
   // This has to happen in 'pure' SNAP mode
   assert(IsSnakeModeActive());
@@ -414,24 +438,22 @@ IRISApplication
   imgLabel->SetDirection(m_CurrentImageData->GetMain()->GetImageBase()->GetDirection());
 
   // Update the iris data
-  m_CurrentImageData->SetSegmentationImage(imgLabel);
+  LabelImageWrapper *snap_seg = m_CurrentImageData->SetSingleSegmentationImage(imgLabel);
 
   // Update filenames
-  m_CurrentImageData->GetSegmentation()->SetFileName(io->GetFileNameOfNativeImage());
+  snap_seg->SetFileName(io->GetFileNameOfNativeImage());
 
-  // TODO: this is inefficient with the new representation
   // Set the loaded labels as valid
-  LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
-  typedef itk::ImageRegionConstIterator<LabelImageType> IteratorType;
-  IteratorType it(seg, seg->GetBufferedRegion());
-  for(; !it.IsAtEnd(); ++it)
-    m_ColorLabelTable->SetColorLabelValid(it.Get(), true);
+  this->SetColorLabelsInSegmentationAsValid(snap_seg);
 
   // Let the GUI know that segmentation changed
   InvokeEvent(SegmentationChangeEvent());
+
+  // Return pointer to the new layer
+  return snap_seg;
 }
 
-void
+LabelImageWrapper *
 IRISApplication
 ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io, Registry *metadata, bool add_to_existing)
 {
@@ -462,17 +484,10 @@ IRISApplication
   imgLabel->SetDirection(m_CurrentImageData->GetMain()->GetImageBase()->GetDirection());
 
   // Update the iris data
-  LabelImageWrapper *seg_wrapper;
-  if(!add_to_existing)
-    {
-    // TODO: this should be eliminated
-    m_IRISImageData->SetSegmentationImage(imgLabel);
-    seg_wrapper = m_IRISImageData->GetSegmentation();
-    }
-  else
-    {
-    seg_wrapper = m_IRISImageData->AddSegmentationImage(imgLabel);
-    }
+  LabelImageWrapper *seg_wrapper =
+      add_to_existing
+      ? m_IRISImageData->AddSegmentationImage(imgLabel)
+      : m_IRISImageData->SetSingleSegmentationImage(imgLabel);
 
   // Update filenames
   seg_wrapper->SetFileName(io->GetFileNameOfNativeImage());
@@ -486,30 +501,15 @@ IRISApplication
 
   // Update the color label table with the segmentation values in the current segmentation
   // Iterate over the RLEs in the label image
-  LabelType last_label = 0;
-  typedef itk::ImageRegionConstIterator<LabelImageType::BufferType> RLLineIter;
-  RLLineIter rlit(seg_wrapper->GetImage()->GetBuffer(),
-                  seg_wrapper->GetImage()->GetBuffer()->GetBufferedRegion());
-  for(; !rlit.IsAtEnd(); ++rlit)
-    {
-    // Get the line
-    const LabelImageType::RLLine &line = rlit.Value();
-
-    // Iterate over the entries
-    for(int i = 0; i < line.size(); i++)
-      {
-      LabelType label = line[i].second;
-      if(label != last_label)
-        {
-        m_ColorLabelTable->SetColorLabelValid(label, true);
-        last_label = label;
-        }
-      }
-    }
+  this->SetColorLabelsInSegmentationAsValid(seg_wrapper);
 
   // Let the GUI know that segmentation changed
   InvokeEvent(SegmentationChangeEvent());
+
+  // Return the pointer to the new layer
+  return seg_wrapper;
 }
+
 
 LabelImageWrapper *IRISApplication::GetSelectedSegmentationLayer() const
 {
@@ -633,7 +633,7 @@ IRISApplication
   // Store update
   if(itVol.GetNumberOfChangedVoxels() > 0)
     {
-    m_CurrentImageData->StoreUndoPoint(undoTitle.c_str(), itVol.RelinquishDelta());
+    this->GetSelectedSegmentationLayer()->StoreUndoPoint(undoTitle.c_str(), itVol.RelinquishDelta());
     this->RecordCurrentLabelUse();
     InvokeEvent(SegmentationChangeEvent());
     }
@@ -766,7 +766,7 @@ IRISApplication
   // Store the undo delta
   if(itTarget.GetNumberOfChangedVoxels() > 0)
     {
-    m_IRISImageData->StoreUndoPoint("Automatic Segmentation", itTarget.RelinquishDelta());
+    iris_seg->StoreUndoPoint("Automatic Segmentation", itTarget.RelinquishDelta());
     RecordCurrentLabelUse();
     InvokeEvent(SegmentationChangeEvent());
     }
@@ -816,58 +816,15 @@ bool
 IRISApplication
 ::IsUndoPossible()
 {
-  return m_CurrentImageData->IsUndoPossible();
+  LabelImageWrapper *seg = this->GetSelectedSegmentationLayer();
+  return seg && seg->IsUndoPossible();
 }
 
 void
 IRISApplication
 ::Undo()
 {
-  m_CurrentImageData->Undo();
-  /*
-=======
-  // In order to undo, we must take the 'current' delta and apply
-  // it to the image
-  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForUndo();
-  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
-
-  LabelImageType *imSeg = m_IRISImageData->GetSegmentation()->GetImage();
-  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
-  IteratorType it(imSeg, imSeg->GetLargestPossibleRegion());
-
-  // Applying the delta means adding
-  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
-    {
-    size_t n = delta->GetRLELength(i);
-    LabelType d = delta->GetRLEValue(i);
-    if(d == 0)
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        cumulative->Encode(it.Get());
-        ++it;
-        }
-      }
-    else
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        LabelType v = it.Get();
-        v -= d;
-        it.Set(v);
-        cumulative->Encode(v);
-        ++it;
-        }
-      }
-    }
-
-  cumulative->FinishEncoding();
-  m_UndoManager.SetCumulativeDelta(cumulative);
-
-  // Set modified flags
-  imSeg->Modified();
->>>>>>> dev_3.6
-*/
+  this->GetSelectedSegmentationLayer()->Undo();
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -875,58 +832,15 @@ bool
 IRISApplication
 ::IsRedoPossible()
 {
-  return m_CurrentImageData->IsRedoPossible();
+  LabelImageWrapper *seg = this->GetSelectedSegmentationLayer();
+  return seg && seg->IsRedoPossible();
 }
 
 void
 IRISApplication
 ::Redo()
 {
-  m_CurrentImageData->Redo();
-  /*
-=======
-  // In order to undo, we must take the 'current' delta and apply
-  // it to the image
-  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForRedo();
-  LabelImageType *imSeg = m_IRISImageData->GetSegmentation()->GetImage();
-  typedef itk::ImageRegionIterator<LabelImageType> IteratorType;
-  IteratorType it(imSeg, imSeg->GetLargestPossibleRegion());
-
-  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
-
-  // Applying the delta means adding
-  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
-    {
-    size_t n = delta->GetRLELength(i);
-    LabelType d = delta->GetRLEValue(i);
-    if(d == 0)
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        cumulative->Encode(it.Get());
-        ++it;
-        }
-      }
-    else
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        LabelType v = it.Get();
-        v += d;
-        it.Set(v);
-        cumulative->Encode(v);
-        ++it;
-        }
-      }
-    }
-
-  cumulative->FinishEncoding();
-  m_UndoManager.SetCumulativeDelta(cumulative);
-
-  // Set modified flags
-  imSeg->Modified();
->>>>>>> dev_3.6
-*/
+  this->GetSelectedSegmentationLayer()->Redo();
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -1013,7 +927,7 @@ void IRISApplication
 
     // Save the currently selected segmentation layer Id so that we can restore it later
     m_SavedIRISSelectedSegmentationLayerId = m_GlobalState->GetSelectedSegmentationLayerId();
-    m_GlobalState->SetSelectedSegmentationLayerId(m_SNAPImageData->GetSegmentation()->GetUniqueId());
+    m_GlobalState->SetSelectedSegmentationLayerId(m_SNAPImageData->GetFirstSegmentationLayer()->GetUniqueId());
     }
 }
 
@@ -1091,9 +1005,6 @@ void
 IRISApplication
 ::ExportSegmentationStatistics(const char *file)
 {
-  // Make sure that the segmentation image exists
-  assert(m_CurrentImageData->IsSegmentationLoaded());
-
   SegmentationStatistics stats;
   stats.Compute(this);
 
@@ -1264,16 +1175,23 @@ size_t
 IRISApplication
 ::GetNumberOfVoxelsWithLabel(LabelType label)
 {
-  // Get the label image
-  LabelImageType *seg = this->GetSelectedSegmentationLayer()->GetImage();
-
-  // Get the number of voxels
+  // Number of voxels matching current label
   size_t nvoxels = 0;
-  for(LabelImageWrapper::ConstIterator it(seg, seg->GetBufferedRegion());
+
+  // We must iterate over all the label images
+  for(LayerIterator it = this->GetCurrentImageData()->GetLayers(LABEL_ROLE);
       !it.IsAtEnd(); ++it)
     {
-    if(it.Get() == label)
-      ++nvoxels;
+    LabelImageWrapper *wrapper = dynamic_cast<LabelImageWrapper *>(it.GetLayer());
+    LabelImageType *seg = wrapper->GetImage();
+
+    // Get the number of voxels
+    for(LabelImageWrapper::ConstIterator it(seg, seg->GetBufferedRegion());
+        !it.IsAtEnd(); ++it)
+      {
+      if(it.Get() == label)
+        ++nvoxels;
+      }
     }
 
   return nvoxels;
@@ -1319,7 +1237,7 @@ IRISApplication
   // Store the undo point if needed
   if(it.GetNumberOfChangedVoxels() > 0)
     {
-    m_CurrentImageData->StoreUndoPoint("3D scalpel", it.RelinquishDelta());
+    this->GetSelectedSegmentationLayer()->StoreUndoPoint("3D scalpel", it.RelinquishDelta());
     RecordCurrentLabelUse();
     InvokeEvent(SegmentationChangeEvent());
     }
@@ -1796,7 +1714,8 @@ IRISApplication
   m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
 
   // Make the new segmentation selected (at this point there is only one to choose from)
-  m_GlobalState->SetSelectedSegmentationLayerId(this->GetIRISImageData()->GetSegmentation()->GetUniqueId());
+  m_GlobalState->SetSelectedSegmentationLayerId(
+        this->GetIRISImageData()->GetFirstSegmentationLayer()->GetUniqueId());
 }
 
 void IRISApplication::LoadMetaDataAssociatedWithLayer(
@@ -2378,6 +2297,10 @@ void IRISApplication::OpenProject(
   // If main has not been loaded, throw an exception
   if(!main_loaded)
     throw IRISException("Empty or invalid project (main image not found in the project file).");
+
+  // Set the selected segmentation layer to be the first one
+  m_GlobalState->SetSelectedSegmentationLayerId(
+        m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId());
 
   // Save the project filename
   m_GlobalState->SetProjectFilename(proj_file_full.c_str());

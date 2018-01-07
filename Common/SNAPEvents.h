@@ -130,6 +130,9 @@ itkEventMacro(WrapperDisplayMappingChangeEvent, WrapperChangeEvent)
 /** A change to wrapper-associated user data */
 itkEventMacro(WrapperUserDataChangeEvent, WrapperChangeEvent)
 
+/** A change to the intensity values in the wrapper */
+itkEventMacro(WrapperImageChangeEvent, WrapperChangeEvent)
+
 /** A change to wrapper-associated image processing settings */
 itkEventMacro(WrapperProcessingSettingsChangeEvent, WrapperUserDataChangeEvent)
 

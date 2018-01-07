@@ -45,25 +45,3 @@ IRISImageData::~IRISImageData()
 {
 }
 
-void
-IRISImageData
-::SetSegmentationImage(LabelImageType *newLabelImage)
-{
-  // Set the new segmentation image
-  GenericImageData::SetSegmentationImage(newLabelImage);
-}
-
-void
-IRISImageData
-::ResetSegmentationImage()
-{
-  GenericImageData::ResetSegmentationImage();
-}
-
-void
-IRISImageData
-::UnloadMainImage()
-{
-  GenericImageData::UnloadMainImage();
-}
-

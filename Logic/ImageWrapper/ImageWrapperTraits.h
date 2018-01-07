@@ -249,7 +249,6 @@ typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor>
 // Some global typedefs
 typedef AnatomicImageWrapperTraits<GreyType>::WrapperType AnatomicImageWrapper;
 typedef AnatomicScalarImageWrapperTraits<GreyType>::WrapperType AnatomicScalarImageWrapper;
-typedef LabelImageWrapperTraits::WrapperType LabelImageWrapper;
 typedef SpeedImageWrapperTraits::WrapperType SpeedImageWrapper;
 typedef LevelSetImageWrapperTraits::WrapperType LevelSetImageWrapper;
 

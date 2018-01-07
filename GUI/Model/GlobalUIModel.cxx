@@ -345,7 +345,7 @@ bool GlobalUIModel::CheckState(UIState state)
     case UIF_MESH_SAVEABLE:
       break;
     case UIF_OVERLAY_LOADED:
-      return m_Driver->GetCurrentImageData()->IsOverlayLoaded();
+      return m_Driver->GetCurrentImageData()->AreOverlaysLoaded();
     case UIF_SNAKE_MODE:
       return m_Driver->IsSnakeModeActive();
     case UIF_LEVEL_SET_ACTIVE:

@@ -36,4 +36,5 @@
 #include "UndoDataManager.h"
 #include "UndoDataManager.txx"
 
+template class UndoDelta<LabelType>;
 template class UndoDataManager<LabelType>;

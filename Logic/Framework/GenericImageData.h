@@ -47,12 +47,12 @@
 #include "RLEImageRegionIterator.h"
 #include "IRISException.h"
 #include "ImageWrapperTraits.h"
+#include "LabelImageWrapper.h"
 #include <itkObject.h>
 #include "GlobalState.h"
 #include "ImageCoordinateGeometry.h"
 #include <string>
 #include "LayerIterator.h"
-#include "UndoDataManager.h"
 
 class IRISApplication;
 class GenericImageData;
@@ -96,10 +96,6 @@ public:
   typedef std::vector<WrapperPointer> WrapperList;
   typedef WrapperList::iterator WrapperIterator;
   typedef WrapperList::const_iterator WrapperConstIterator;
-
-  // Segmentation undo support
-  typedef UndoDataManager<LabelType> UndoManagerType;
-  typedef UndoManagerType::Delta     UndoManagerDelta;
 
   // Transforms
   typedef ImageWrapperBase::ITKTransformType ITKTransformType;
@@ -175,14 +171,9 @@ public:
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;
 
   /**
-   * Access the segmentation image (read only access allowed 
-   * to preserve state)
+   * Get the first segmentation image.
    */
-  LabelImageWrapper* GetSegmentation()
-  {
-    assert(m_MainImageWrapper->IsInitialized() && m_LabelWrapper->IsInitialized());
-    return m_LabelWrapper;
-  }
+  LabelImageWrapper* GetFirstSegmentationLayer();
 
   /** 
    * Get the extents of the image volume
@@ -223,10 +214,21 @@ public:
   virtual void UnloadMainImage();
 
   /**
-   * Reset the segmentation wrapper. This happens when the main image is loaded
-   * or when the user asks for a new segmentation image
+   * Add a segmentation image as the only segmentation wrapper. The other
+   * segmentation wrappers will be removed.
    */
-  virtual void ResetSegmentationImage();
+  virtual LabelImageWrapper* SetSingleSegmentationImage(LabelImageType *image);
+
+  /**
+   * Add a secondary segmentation image without overriding the main one
+   */
+  LabelImageWrapper* AddSegmentationImage(LabelImageType *addedLabelImage);
+
+  /**
+   * Reset the segmentations to a single empty image of the same size as the
+   * main image. The existing segmentations are discarded
+   */
+  virtual void ResetSegmentations();
 
   /** Handle overlays */
   virtual void AddOverlay(GuidedNativeImageIO *io);
@@ -250,29 +252,9 @@ public:
   virtual void MoveLayer(ImageWrapperBase *layer, int direction);
 
   /**
-   * This method sets the segmentation image (see note for SetGrey).
-   */
-  virtual void SetSegmentationImage(LabelImageType *newLabelImage);
-
-  /**
-   * Add a secondary segmentation image without overriding the main one
-   */
-  LabelImageWrapper* AddSegmentationImage(LabelImageType *addedLabelImage);
-
-  /**
-   * Set voxel in segmentation image
-   */
-  void SetSegmentationVoxel(const Vector3ui &index, LabelType value);
-
-  /**
    * Check validity of overlay images
    */
-  bool IsOverlayLoaded();
-
-  /**
-   * Check validity of segmentation image
-   */
-  bool IsSegmentationLoaded();
+  bool AreOverlaysLoaded();
 
   /**
    * Set the cursor (crosshairs) position, in pixel coordinates
@@ -304,38 +286,8 @@ public:
   /** Get the list of annotations created by the user */
   irisGetMacro(Annotations, ImageAnnotationData *)
 
-  /**
-   * Store an intermediate delta without committing it as an undo point
-   * Multiple deltas can be stored and then committed with StoreUndoPoint()
-   */
-  void StoreIntermediateUndoDelta(UndoManagerDelta *delta);
-
-  /**
-   * Store an undo point. The first parameter is the description of the
-   * update, and the second parameter is the delta to be applied. The delta
-   * can be NULL. All deltas previously submitted with StoreIntermediateUndoDelta
-   * and the delta passed in to this method will be commited to this undo point.
-   */
-  void StoreUndoPoint(const char *text, UndoManagerDelta *delta = NULL);
-
-  /** Clear all undo points */
+  /** Clear all segmentation undo points in this layer collection */
   void ClearUndoPoints();
-
-  /** Check whether undo is possible */
-  bool IsUndoPossible();
-
-  /** Check whether undo is possible */
-  bool IsRedoPossible();
-
-  /** Undo (revert to last stored undo point) */
-  void Undo();
-
-  /** Redo (undo the undo) */
-  void Redo();
-
-  irisGetMacro(UndoManager, const UndoManagerType &);
-
-
 
 protected:
 
@@ -355,15 +307,6 @@ protected:
   // reference for all other images.
   // Equal to m_Wrappers[MAIN].first()
   ImageWrapperBase *m_MainImageWrapper;
-
-  // Wrapper around the segmentatoin image.
-  // Equal to m_Wrappers[SEGMENTATION].first()
-  SmartPtr<LabelImageWrapper> m_LabelWrapper;
-
-  // Undo data manager, stores 'deltas', i.e., differences between states of the segmentation
-  // image. These deltas are compressed, allowing us to store a bunch of
-  // undo steps with little cost in performance or memory
-  UndoManagerType m_UndoManager;
 
   // Parent object
   IRISApplication *m_Parent;
@@ -401,8 +344,8 @@ protected:
   void SetSingleImageWrapper(LayerRole, ImageWrapperBase *wrapper);
   void RemoveSingleImageWrapper(LayerRole);
 
-  // Used in the undo/redo process: RLE compresses current image
-  UndoManagerType::Delta *CompressLabelImage();
+  // Remove all wrappers for a role
+  void RemoveAllWrappers(LayerRole role);
 };
 
 #endif

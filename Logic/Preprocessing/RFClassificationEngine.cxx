@@ -66,7 +66,8 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
     delete m_Sample;
 
   // Get the segmentation image - which determines the samples
-  LabelImageWrapper *wrpSeg = m_DataSource->GetSegmentation();
+  // TODO: this is defaulting to the first image - is this correct?
+  LabelImageWrapper *wrpSeg = m_DataSource->GetFirstSegmentationLayer();
   LabelImageWrapper::ImagePointer imgSeg = wrpSeg->GetImage();
   typedef itk::ImageRegionConstIteratorWithIndex<LabelImageWrapper::ImageType> LabelIter;
 

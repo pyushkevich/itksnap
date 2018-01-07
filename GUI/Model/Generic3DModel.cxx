@@ -252,7 +252,8 @@ bool Generic3DModel::AcceptAction()
   IRISApplication *app = m_ParentUI->GetDriver();
 
   // Get the segmentation image
-  LabelImageWrapper::ImageType *imSeg = app->GetCurrentImageData()->GetSegmentation()->GetImage();
+  LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
+  LabelImageWrapper::ImageType *imSeg = seg->GetImage();
 
   // Accept the current action
   if(mode == SPRAYPAINT_MODE)
@@ -288,14 +289,14 @@ bool Generic3DModel::AcceptAction()
       if(it.GetNumberOfChangedVoxels() > 0)
         {
         update = true;
-        app->GetCurrentImageData()->StoreIntermediateUndoDelta(it.RelinquishDelta());
+        seg->StoreIntermediateUndoDelta(it.RelinquishDelta());
         }
       }
 
     // Store the undo point
     if(update)
       {
-      app->GetCurrentImageData()->StoreUndoPoint("3D spray paint");
+      seg->StoreUndoPoint("3D spray paint");
       app->RecordCurrentLabelUse();
 
       // Clear the spray points
@@ -424,7 +425,7 @@ bool Generic3DModel::IntersectSegmentation(int vx, int vy, Vector3i &hit)
     LabelImageHitTester tester(m_ParentUI->GetDriver()->GetColorLabelTable());
     caster.SetHitTester(tester);
     result = caster.FindIntersection(
-          m_ParentUI->GetDriver()->GetCurrentImageData()->GetSegmentation()->GetImage(),
+          m_ParentUI->GetDriver()->GetSelectedSegmentationLayer()->GetImage(),
           x_image, d_image, hit);
     }
 

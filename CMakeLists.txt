@@ -262,6 +262,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
   Logic/ImageWrapper/InputSelectionImageFilter.cxx
+  Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/ScalarImageHistogram.cxx
   Logic/ImageWrapper/ScalarImageWrapper.cxx
@@ -379,6 +380,7 @@ SET(LOGIC_HEADERS
   Logic/RLEImage/RLERegionOfInterestImageFilter.h
   Logic/RLEImage/RLERegionOfInterestImageFilter.txx
   Logic/ImageWrapper/InputSelectionImageFilter.h
+  Logic/ImageWrapper/LabelImageWrapper.h
   Logic/ImageWrapper/LabelToRGBAFilter.h
   Logic/ImageWrapper/NativeIntensityMappingPolicy.h
   Logic/ImageWrapper/ScalarImageHistogram.h
