@@ -365,7 +365,11 @@ IRISApplication
   assert(!IsSnakeModeActive());
 
   // Reset the segmentation image
-  this->m_IRISImageData->ResetSegmentations();
+  m_IRISImageData->ResetSegmentations();
+
+  // Update the selected segmentation image ID to that of the added blank image
+  m_GlobalState->SetSelectedSegmentationLayerId(
+        m_IRISImageData->GetFirstSegmentationLayer()->GetUniqueId());
 
   // Fire the appropriate event
   InvokeEvent(LayerChangeEvent());
@@ -380,6 +384,8 @@ IRISApplication
 
   // Reset the segmentation image
   m_SNAPImageData->ResetSegmentations();
+  m_GlobalState->SetSelectedSegmentationLayerId(
+        m_SNAPImageData->GetFirstSegmentationLayer()->GetUniqueId());
 
   // Fire the appropriate event
   InvokeEvent(LayerChangeEvent());
