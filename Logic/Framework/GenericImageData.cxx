@@ -201,25 +201,6 @@ void GenericImageData::SetMainImage(GuidedNativeImageIO *io)
 
 void
 GenericImageData
-::ResetSegmentations()
-{
-  // The main image must be loaded
-  assert(this->IsMainLoaded());
-
-  // Unload all segmentations
-  this->RemoveAllWrappers(LABEL_ROLE);
-
-  // Initialize the segmentation data to zeros
-  LabelImageWrapper::Pointer seg = LabelImageWrapper::New();
-  seg->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
-  seg->SetDefaultNickname("Segmentation Image");
-
-  seg->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
-  this->PushBackImageWrapper(LABEL_ROLE, seg.GetPointer());
-}
-
-void
-GenericImageData
 ::UnloadMainImage()
 {
   // First unload the overlays if exist
@@ -358,6 +339,41 @@ GenericImageData
 
   // Return the newly added wrapper
   return seg_wrapper;
+}
+
+void GenericImageData
+::UnloadSegmentation(ImageWrapperBase *seg)
+{
+  // Erase the segmentation image
+  WrapperList &all_segs = m_Wrappers[LABEL_ROLE];
+  WrapperIterator it =
+      std::find(all_segs.begin(), all_segs.end(), seg);
+  if(it != all_segs.end())
+    all_segs.erase(it);
+
+  // If main is loaded and this is the only segmentation, reset so that
+  // there is a blank segmentation left
+  if(this->IsMainLoaded() && this->GetNumberOfLayers(LABEL_ROLE) == 0)
+    ResetSegmentations();
+}
+
+void
+GenericImageData
+::ResetSegmentations()
+{
+  // The main image must be loaded
+  assert(this->IsMainLoaded());
+
+  // Unload all segmentations
+  this->RemoveAllWrappers(LABEL_ROLE);
+
+  // Initialize the segmentation data to zeros
+  LabelImageWrapper::Pointer seg = LabelImageWrapper::New();
+  seg->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
+  seg->SetDefaultNickname("Segmentation Image");
+
+  seg->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
+  this->PushBackImageWrapper(LABEL_ROLE, seg.GetPointer());
 }
 
 bool

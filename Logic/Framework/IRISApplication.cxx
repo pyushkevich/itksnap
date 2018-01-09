@@ -309,6 +309,27 @@ IRISApplication
     }
 }
 
+void IRISApplication::UnloadSegmentation(ImageWrapperBase *seg)
+{
+  // This has to happen in 'pure' IRIS mode, we are not allowed to just close segmentations in SNAP mode
+  assert(!IsSnakeModeActive());
+
+  // If the requested segmentation is the only segmentation, then call the reset method
+  m_IRISImageData->UnloadSegmentation(seg);
+
+  // Update the selected segmentation image ID to that of the added blank image
+  if(m_IRISImageData->FindLayer(
+       m_GlobalState->GetSelectedSegmentationLayerId(), false, LABEL_ROLE) == NULL)
+    {
+    m_GlobalState->SetSelectedSegmentationLayerId(
+     m_IRISImageData->GetFirstSegmentationLayer()->GetUniqueId());
+    }
+
+  // Fire the appropriate event
+  InvokeEvent(LayerChangeEvent());
+  InvokeEvent(SegmentationChangeEvent());
+}
+
 void IRISApplication::UnloadOverlay(ImageWrapperBase *ovl)
 {
   // Save the overlay associated settings
@@ -451,6 +472,9 @@ LabelImageWrapper *IRISApplication::UpdateSNAPSegmentationImage(GuidedNativeImag
 
   // Set the loaded labels as valid
   this->SetColorLabelsInSegmentationAsValid(snap_seg);
+
+  // Update the selected segmentation image
+  m_GlobalState->SetSelectedSegmentationLayerId(snap_seg->GetUniqueId());
 
   // Let the GUI know that segmentation changed
   InvokeEvent(SegmentationChangeEvent());

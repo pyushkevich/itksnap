@@ -170,11 +170,6 @@ public:
 
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;
 
-  /**
-   * Get the first segmentation image.
-   */
-  LabelImageWrapper* GetFirstSegmentationLayer();
-
   /** 
    * Get the extents of the image volume
    */
@@ -220,6 +215,11 @@ public:
   virtual LabelImageWrapper* SetSingleSegmentationImage(LabelImageType *image);
 
   /**
+   * Get the first segmentation image.
+   */
+  LabelImageWrapper* GetFirstSegmentationLayer();
+
+  /**
    * Add a secondary segmentation image without overriding the main one
    */
   LabelImageWrapper* AddSegmentationImage(LabelImageType *addedLabelImage);
@@ -229,6 +229,13 @@ public:
    * main image. The existing segmentations are discarded
    */
   virtual void ResetSegmentations();
+
+  /**
+   * Unload a specific segmentation image. If no segmentation images are left and
+   * the main image is present, a new empty segmentation will be created (same as
+   * calling ResetSegmentations)
+   */
+  void UnloadSegmentation(ImageWrapperBase *seg);
 
   /** Handle overlays */
   virtual void AddOverlay(GuidedNativeImageIO *io);

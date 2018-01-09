@@ -1669,6 +1669,12 @@ color: rgb(64, 64, 64);</string>
    <header location="global">QDoubleSlider.h</header>
   </customwidget>
   <customwidget>
+   <class>QtSimpleOpenGLBox</class>
+   <extends>QWidget</extends>
+   <header location="global">QtSimpleOpenGLBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>QDoubleSliderWithEditor</class>
    <extends>QSlider</extends>
    <header location="global">QDoubleSliderWithEditor.h</header>
@@ -1677,12 +1683,6 @@ color: rgb(64, 64, 64);</string>
    <class>QtVTKRenderWindowBox</class>
    <extends>QWidget</extends>
    <header location="global">QtVTKRenderWindowBox.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QtSimpleOpenGLBox</class>
-   <extends>QWidget</extends>
-   <header location="global">QtSimpleOpenGLBox.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

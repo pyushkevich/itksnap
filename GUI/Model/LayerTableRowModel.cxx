@@ -66,27 +66,24 @@ bool LayerTableRowModel::CheckState(UIState state)
     {
     // Opacity can be edited for all layers except the main image layer
     case LayerTableRowModel::UIF_OPACITY_EDITABLE:
-      return (m_Layer->IsSticky());
+      return (m_LayerRole != LABEL_ROLE && m_Layer->IsSticky());
 
     // Pinnable means it's not sticky and may be overlayed (i.e., not main)
     case LayerTableRowModel::UIF_PINNABLE:
-      return (m_LayerRole != MAIN_ROLE && !m_Layer->IsSticky());
+      return (m_LayerRole != MAIN_ROLE && m_LayerRole != LABEL_ROLE && !m_Layer->IsSticky());
 
     // Unpinnable means it's not sticky and may be overlayed (i.e., not main)
     case LayerTableRowModel::UIF_UNPINNABLE:
-      return (m_LayerRole != MAIN_ROLE && m_Layer->IsSticky());
+      return (m_LayerRole != MAIN_ROLE && m_LayerRole != LABEL_ROLE && m_Layer->IsSticky());
 
     case LayerTableRowModel::UIF_MOVABLE_UP:
-      return (m_LayerRole == OVERLAY_ROLE
-              && m_LayerPositionInRole > 0);
+      return (m_LayerRole == OVERLAY_ROLE && m_LayerPositionInRole > 0);
 
     case LayerTableRowModel::UIF_MOVABLE_DOWN:
-      return (m_LayerRole == OVERLAY_ROLE
-              && m_LayerPositionInRole < m_LayerNumberOfLayersInRole - 1);
+      return (m_LayerRole == OVERLAY_ROLE && m_LayerPositionInRole < m_LayerNumberOfLayersInRole - 1);
 
     case LayerTableRowModel::UIF_CLOSABLE:
-      return ((m_LayerRole == OVERLAY_ROLE
-               || m_LayerRole == MAIN_ROLE) && !snapmode);
+      return !snapmode;
 
     case LayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
       return (m_Layer && m_Layer->GetDisplayMapping()->GetIntensityCurve());
@@ -202,11 +199,14 @@ bool LayerTableRowModel::IsMainLayer()
 
 void LayerTableRowModel::SetSelected(bool selected)
 {
+  // Odd why this would ever happen, but it does...
+  if(!m_Layer)
+    return;
+
   // If the layer is selected and is not sticky, we set is as the currently visible
   // layer in the render views
   if(m_LayerRole == LABEL_ROLE && selected)
     {
-    std::cout << "Selected segmentation " << m_Layer->GetUniqueId() << std::endl;
     m_ParentModel->GetGlobalState()->SetSelectedSegmentationLayerId(m_Layer->GetUniqueId());
     }
   else if(selected && !m_Layer->IsSticky())
@@ -228,6 +228,13 @@ void LayerTableRowModel::CloseLayer()
   else if(m_LayerRole == MAIN_ROLE)
     {
     m_ParentModel->GetDriver()->UnloadMainImage();
+    m_Layer = NULL;
+    }
+
+  // Segmentations can be unloaded
+  else if (m_LayerRole == LABEL_ROLE)
+    {
+    m_ParentModel->GetDriver()->UnloadSegmentation(m_Layer);
     m_Layer = NULL;
     }
 }

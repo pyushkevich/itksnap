@@ -379,7 +379,7 @@ void LayerInspectorDialog::SetActiveLayer(ImageWrapperBase *layer)
   m_Model->GetColorMapModel()->SetLayer(layer);
 
   m_Model->GetIntensityCurveModel()->SetLayer(
-        layer->GetDisplayMapping()->GetIntensityCurve() ? layer : NULL);
+        (layer && layer->GetDisplayMapping()->GetIntensityCurve()) ? layer : NULL);
 
   m_Model->GetImageInfoModel()->SetLayer(layer);
   m_Model->GetLayerGeneralPropertiesModel()->SetLayer(layer);
