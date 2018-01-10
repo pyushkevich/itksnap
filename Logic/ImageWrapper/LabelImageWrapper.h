@@ -20,11 +20,11 @@ public:
   itkNewMacro(Self)
 
   // Image Types
-  typedef typename Superclass::ImageBaseType                     ImageBaseType;
-  typedef typename Superclass::ImageType                             ImageType;
-  typedef typename Superclass::ImagePointer                       ImagePointer;
-  typedef typename Superclass::PixelType                             PixelType;
-  typedef typename Superclass::ITKTransformType               ITKTransformType;
+  typedef Superclass::ImageBaseType                              ImageBaseType;
+  typedef Superclass::ImageType                                      ImageType;
+  typedef Superclass::ImagePointer                                ImagePointer;
+  typedef Superclass::PixelType                                      PixelType;
+  typedef Superclass::ITKTransformType                        ITKTransformType;
 
   // Undo manager typedefs
   typedef UndoDataManager<PixelType> UndoManagerType;
