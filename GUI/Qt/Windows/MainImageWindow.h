@@ -126,6 +126,7 @@ public slots:
   void LoadRecentActionTriggered();
   void LoadRecentOverlayActionTriggered();
   void LoadRecentSegmentationActionTriggered();
+  void LoadAnotherRecentSegmentationActionTriggered();
   void LoadRecentProjectActionTriggered();
   void LoadAnotherDicomActionTriggered();
 
@@ -301,6 +302,12 @@ private slots:
 
   void on_actionActivatePreviousSegmentationLayer_triggered();
 
+  void on_actionAddSegmentation_New_triggered();
+
+  void on_actionAddSegmentation_Open_triggered();
+
+  void on_actionClearActive_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
@@ -339,6 +346,9 @@ private:
   // Hookup check
   void HookupShortcutToAction(const QKeySequence &ks, QAction *action);
   void HookupSecondaryShortcutToAction(const QKeySequence &ks, QAction *action);
+
+  // Common method for loading recent segmentations (either open or add)
+  void LoadRecentSegmentation(QString file, bool additive);
 
   // For convenience, an array of the four panels (3 slice/1 3D)
   QWidget *m_ViewPanels[4];

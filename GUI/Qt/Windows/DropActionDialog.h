@@ -51,6 +51,8 @@ private slots:
   void LoadCommon(AbstractLoadImageDelegate *delegate);
 
 
+  void on_btnLoadAdditionalSegmentation_clicked();
+
 private:
   Ui::DropActionDialog *ui;
   GlobalUIModel *m_Model;

@@ -124,6 +124,9 @@ IRISApplication
   Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, WrapperChangeEvent(), this);
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, WrapperChangeEvent(), this);
 
+  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, LayerChangeEvent(), this);
+  Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LayerChangeEvent(), this);
+
   // TODO: should this also be a generic Wrapper Image Data change event?
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LevelSetImageChangeEvent(), this);
 
@@ -241,11 +244,6 @@ IRISApplication
 
   // Indicate that the speed image is invalid
   m_GlobalState->SetSpeedValid(false);
-
-  // TODO: we need to deal with the selected segmentation image!
-
-  // The set of layers has changed
-  InvokeEvent(LayerChangeEvent());
 }
 
 void 
@@ -326,7 +324,19 @@ void IRISApplication::UnloadSegmentation(ImageWrapperBase *seg)
     }
 
   // Fire the appropriate event
-  InvokeEvent(LayerChangeEvent());
+  InvokeEvent(SegmentationChangeEvent());
+}
+
+void IRISApplication::AddBlankSegmentation()
+{
+  // This has to happen in 'pure' IRIS mode, we are not allowed to just close segmentations in SNAP mode
+  assert(!IsSnakeModeActive());
+
+  // Add the blank layer and set it as selected
+  LabelImageWrapper *new_seg = m_IRISImageData->AddBlankSegmentation();
+  m_GlobalState->SetSelectedSegmentationLayerId(new_seg->GetUniqueId());
+
+  // Fire the appropriate event
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -346,9 +356,6 @@ void IRISApplication::UnloadOverlay(ImageWrapperBase *ovl)
   // Check if the selected layer needs to be updated (default to main)
   if(m_GlobalState->GetSelectedLayerId() == ovl_id)
     m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
-
-  // Fire event
-  InvokeEvent(LayerChangeEvent());
 }
 
 void IRISApplication::UnloadAllOverlays()
@@ -365,17 +372,12 @@ void IRISApplication::UnloadAllOverlays()
 
   // The selected layer should revert to main
   m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
-
-  // Fire event
-  InvokeEvent(LayerChangeEvent());
-
 }
 
 void IRISApplication
 ::ChangeOverlayPosition(ImageWrapperBase *overlay, int dir)
 {
   m_IRISImageData->MoveLayer(overlay, dir);
-  InvokeEvent(LayerChangeEvent());
 }
 
 void
@@ -393,7 +395,6 @@ IRISApplication
         m_IRISImageData->GetFirstSegmentationLayer()->GetUniqueId());
 
   // Fire the appropriate event
-  InvokeEvent(LayerChangeEvent());
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -409,7 +410,6 @@ IRISApplication
         m_SNAPImageData->GetFirstSegmentationLayer()->GetUniqueId());
 
   // Fire the appropriate event
-  InvokeEvent(LayerChangeEvent());
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -532,6 +532,9 @@ IRISApplication
   // Update the color label table with the segmentation values in the current segmentation
   // Iterate over the RLEs in the label image
   this->SetColorLabelsInSegmentationAsValid(seg_wrapper);
+
+  // Update the selected segmentation image
+  m_GlobalState->SetSelectedSegmentationLayerId(seg_wrapper->GetUniqueId());
 
   // Let the GUI know that segmentation changed
   InvokeEvent(SegmentationChangeEvent());
@@ -1587,9 +1590,6 @@ IRISApplication
   // not sticky!
   if(!layer->IsSticky())
     m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
-
-  // Fire event
-  InvokeEvent(LayerChangeEvent());
 }
 
 void
@@ -1635,9 +1635,6 @@ IRISApplication
   // Set the selected layer ID to be the new overlay
   if(!overlay->IsSticky())
     m_GlobalState->SetSelectedLayerId(overlay->GetUniqueId());
-
-  // Fire event
-  InvokeEvent(LayerChangeEvent());
 }
 
 void
@@ -2837,16 +2834,9 @@ IRISApplication::GetBubbleArray()
 bool IRISApplication::InitializeActiveContourPipeline()
 {
   // Initialize the segmentation with current bubbles and parameters
-  if(m_SNAPImageData->InitializeSegmentation(
-       m_GlobalState->GetSnakeParameters(),
-       m_BubbleArray, m_GlobalState->GetDrawingColorLabel()))
-    {
-    // Fire an event indicating the layers have changed
-    InvokeEvent(LayerChangeEvent());
-    return true;
-    }
-
-  return false;
+  return m_SNAPImageData->InitializeSegmentation(
+        m_GlobalState->GetSnakeParameters(),
+        m_BubbleArray, m_GlobalState->GetDrawingColorLabel());
 }
 
 

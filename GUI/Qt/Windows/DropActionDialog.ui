@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>622</width>
-    <height>305</height>
+    <width>538</width>
+    <height>365</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -71,12 +71,12 @@
      <property name="title">
       <string>Open it in the current window</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
-      <item>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
        <widget class="QPushButton" name="btnLoadMain">
         <property name="minimumSize">
          <size>
-          <width>192</width>
+          <width>224</width>
           <height>0</height>
          </size>
         </property>
@@ -94,11 +94,11 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="1" column="0">
        <widget class="QPushButton" name="btnLoadOverlay">
         <property name="minimumSize">
          <size>
-          <width>192</width>
+          <width>224</width>
           <height>0</height>
          </size>
         </property>
@@ -116,11 +116,11 @@
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="1">
        <widget class="QPushButton" name="btnLoadSegmentation">
         <property name="minimumSize">
          <size>
-          <width>192</width>
+          <width>224</width>
           <height>0</height>
          </size>
         </property>
@@ -135,6 +135,28 @@
         </property>
         <property name="text">
          <string>Load as Segmentation</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="btnLoadAdditionalSegmentation">
+        <property name="minimumSize">
+         <size>
+          <width>224</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>192</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>This will replace the current segmentation image with the dropped image.</string>
+        </property>
+        <property name="text">
+         <string>Load as Additional Segmentation</string>
         </property>
        </widget>
       </item>
@@ -251,11 +273,11 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>603</x>
-     <y>359</y>
+     <x>519</x>
+     <y>348</y>
     </hint>
     <hint type="destinationlabel">
-     <x>614</x>
+     <x>537</x>
      <y>232</y>
     </hint>
    </hints>

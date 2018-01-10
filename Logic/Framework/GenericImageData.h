@@ -100,6 +100,11 @@ public:
   // Transforms
   typedef ImageWrapperBase::ITKTransformType ITKTransformType;
 
+  /** This class fires a LayerChangeEvent when layers are added or removed */
+  FIRES(LayerChangeEvent)
+  
+  /** This class rebroadcasts WrapperChangeEvent from the contained layers */
+  FIRES(WrapperChangeEvent)
 
   /**
    * Set the parent driver
@@ -225,6 +230,11 @@ public:
   LabelImageWrapper* AddSegmentationImage(LabelImageType *addedLabelImage);
 
   /**
+   * Add a blank segmentation image
+   */
+  LabelImageWrapper *AddBlankSegmentation();
+
+  /**
    * Reset the segmentations to a single empty image of the same size as the
    * main image. The existing segmentations are discarded
    */
@@ -328,6 +338,10 @@ protected:
   // Image annotations - these are distinct from segmentations
   SmartPtr<ImageAnnotationData> m_Annotations;
 
+  // For each layer role, a counter that is incremented whenever a default nickname for
+  // this role is generated. The counters are reset when the main image is reloaded
+  std::map<LayerRole, int> m_NicknameCounter;
+
   friend class SNAPImageData;
   friend class LayerIterator;
 
@@ -353,6 +367,9 @@ protected:
 
   // Remove all wrappers for a role
   void RemoveAllWrappers(LayerRole role);
+
+  // Generate an appropriate default nickname for a particular role
+  std::string GenerateNickname(LayerRole role);
 };
 
 #endif

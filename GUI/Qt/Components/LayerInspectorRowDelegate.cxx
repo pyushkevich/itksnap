@@ -124,6 +124,8 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   // Initialize the state
   m_Selected = false;
   m_Hover = false;
+
+  // Paint the row
   UpdateBackgroundPalette();
 }
 
@@ -195,6 +197,9 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
 
   // Update the overlays
   this->UpdateOverlaysMenu();
+
+  // Update the appearance
+  this->UpdateTextFont();
 }
 
 ImageWrapperBase *LayerInspectorRowDelegate::GetLayer() const
@@ -239,12 +244,20 @@ void LayerInspectorRowDelegate::UpdateBackgroundPalette()
   QBrush brush(linearGradient);
   palette.setBrush(QPalette::Window, brush);
   ui->frame->setPalette(palette);
+}
+
+void LayerInspectorRowDelegate::UpdateTextFont()
+{
+  // Whether the row is shown in bold does not have to do with click-selection in the table, but
+  // with whether the layer is the currently selected anatomical layer or the currently selected
+  // segmentation layer.
+  bool activated = m_Model && m_Model->IsActivated();
 
   // Also set the font for the label
-  if(ui->outLayerNickname->font().bold() != m_Selected)
+  if(ui->outLayerNickname->font().bold() != activated)
     {
     QFont font = ui->outLayerNickname->font();
-    font.setBold(m_Selected);
+    font.setBold(activated);
     ui->outLayerNickname->setFont(font);
     }
 }
@@ -257,14 +270,16 @@ void LayerInspectorRowDelegate::setSelected(bool value)
     emit selectionChanged(value);
 
     // Update selection in the model
-    m_Model->SetSelected(value);
+    m_Model->SetActivated(value);
 
     // Update the look and feel
     this->UpdateBackgroundPalette();
+    this->UpdateTextFont();
 
     // Update!
     this->update();
     }
+
 }
 
 QAction *LayerInspectorRowDelegate::saveAction() const
@@ -482,6 +497,8 @@ void LayerInspectorRowDelegate::OnNicknameUpdate()
 
 void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
 {
+  IRISApplication *app = m_Model->GetParentModel()->GetDriver();
+  GlobalState *gs = app->GetGlobalState();
   if(bucket.HasEvent(WrapperDisplayMappingChangeEvent()))
     {
     this->ApplyColorMap();
@@ -494,20 +511,22 @@ void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
     {
     this->UpdateColorMapMenu();
     }
-  if(bucket.HasEvent(LayerChangeEvent(), m_Model->GetParentModel()->GetDriver())
-     || bucket.HasEvent(WrapperChangeEvent(), m_Model->GetParentModel()->GetDriver()))
+  if(bucket.HasEvent(LayerChangeEvent()) || bucket.HasEvent(WrapperChangeEvent()))
     {
     this->UpdateOverlaysMenu();
+    this->UpdateTextFont();
     }
-  if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerIdModel()))
+  if(bucket.HasEvent(ValueChangedEvent(), gs->GetSelectedLayerIdModel()))
     {
-    unsigned long sid = m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerId();
+    unsigned long sid = gs->GetSelectedLayerId();
     this->setSelected(m_Model->GetLayer() && sid == m_Model->GetLayer()->GetUniqueId());
+    this->UpdateTextFont();
     }
   if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetParentModel()->GetGlobalState()->GetSelectedSegmentationLayerIdModel()))
     {
-    unsigned long sid = m_Model->GetParentModel()->GetGlobalState()->GetSelectedSegmentationLayerId();
+    unsigned long sid = gs->GetSelectedSegmentationLayerId();
     this->setSelected(m_Model->GetLayer() && sid == m_Model->GetLayer()->GetUniqueId());
+    this->UpdateTextFont();
     }
 
 }

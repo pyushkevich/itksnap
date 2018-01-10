@@ -6,6 +6,7 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "DisplayLayoutModel.h"
+#include "GenericImageData.h"
 
 SliceWindowDecorationRenderer::SliceWindowDecorationRenderer()
 {
@@ -99,10 +100,27 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   glPopAttrib();
 }
 
-std::string SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase *layer)
+std::string
+SliceWindowDecorationRenderer::CapStringLength(const std::string &str, int max_size)
 {
-  std::string nickname = layer->GetNickname();
-  if(layer->GetNumberOfComponents() > 1)
+  if(str.size() <= max_size)
+    return str;
+
+  std::string strout = str.substr(0, max_size - 1);
+  strout += "\u2026";
+  return strout;
+}
+
+SliceWindowDecorationRenderer::StringList
+SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase *layer)
+{
+  // Lines to be returned
+  StringList lines;
+  int nc = layer->GetNumberOfComponents();
+
+  // Get the nickname of the layer itself - this is the first line
+  std::string nickname = CapStringLength(layer->GetNickname(), nc > 1 ? 20 : 28);
+  if(nc > 1)
     {
     AbstractMultiChannelDisplayMappingPolicy *policy =
         static_cast<AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
@@ -120,12 +138,18 @@ std::string SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase *laye
     else
       {
       std::ostringstream oss;
-      oss << " [" << mode.SelectedComponent + 1 << "/" << layer->GetNumberOfComponents() <<  "]";
+      oss << " [" << mode.SelectedComponent + 1 << "/" << nc <<  "]";
       nickname += oss.str();
       }
     }
+  lines.push_back(nickname);
 
-  return nickname;
+  // Get the nickname of the segmentation if there are multiple segmentations
+  IRISApplication *app = this->GetParentRenderer()->GetModel()->GetDriver();
+  if(app->GetCurrentImageData()->GetNumberOfLayers(LABEL_ROLE) > 1)
+    lines.push_back(CapStringLength(app->GetSelectedSegmentationLayer()->GetNickname(), 28));
+
+  return lines;
 }
 
 void SliceWindowDecorationRenderer::DrawNicknames()
@@ -197,11 +221,13 @@ void SliceWindowDecorationRenderer::DrawNicknames()
 
       if(layer)
         {
-        std::string nick_text = this->GetDisplayText(layer);
-        int fw = this->m_PlatformSupport->MeasureTextWidth(
-              nick_text.c_str(), font_info) / vppr;
-        if(fw > maxwidth)
-          maxwidth = fw;
+        StringList nick_lines = this->GetDisplayText(layer);
+        for(StringListCIter it = nick_lines.begin(); it != nick_lines.end(); ++it)
+          {
+          int fw = this->m_PlatformSupport->MeasureTextWidth(it->c_str(), font_info) / vppr;
+          if(fw > maxwidth)
+            maxwidth = fw;
+          }
         }
       }
     }
@@ -222,26 +248,30 @@ void SliceWindowDecorationRenderer::DrawNicknames()
           parentModel->GetLayerForNthTile(i, j);
       if(layer)
         {
-        std::string nick_text = this->GetDisplayText(layer);
-
-        // If there is only one column, we render the text on the left
-        if(ncols == 1)
+        StringList nick_lines = this->GetDisplayText(layer);
+        int v_offset = 0;
+        for(StringListCIter it = nick_lines.begin(); it != nick_lines.end(); ++it)
           {
-          this->m_PlatformSupport->RenderTextInOpenGL(
-                nick_text.c_str(),
-                left_margin, h * (nrows - i) - 18, w, 15, font_info,
-                AbstractRendererPlatformSupport::LEFT,
-                AbstractRendererPlatformSupport::TOP,
-                elt->GetNormalColor());
-          }
-        else
-          {
-          this->m_PlatformSupport->RenderTextInOpenGL(
-                nick_text.c_str(),
-                w * j, h * (nrows - i) - 20, w, 15, font_info,
-                AbstractRendererPlatformSupport::HCENTER,
-                AbstractRendererPlatformSupport::TOP,
-                elt->GetNormalColor());
+          // If there is only one column, we render the text on the left
+          if(ncols == 1)
+            {
+            this->m_PlatformSupport->RenderTextInOpenGL(
+                  it->c_str(),
+                  left_margin, h * (nrows - i) - 18 - v_offset, w, 15, font_info,
+                  AbstractRendererPlatformSupport::LEFT,
+                  AbstractRendererPlatformSupport::TOP,
+                  elt->GetNormalColor());
+            }
+          else
+            {
+            this->m_PlatformSupport->RenderTextInOpenGL(
+                  it->c_str(),
+                  w * j, h * (nrows - i) - 20 - v_offset, w, 15, font_info,
+                  AbstractRendererPlatformSupport::HCENTER,
+                  AbstractRendererPlatformSupport::TOP,
+                  elt->GetNormalColor());
+            }
+          v_offset += (int) (font_info.pixel_size * 1.34 / vppr);
           }
         }
       }

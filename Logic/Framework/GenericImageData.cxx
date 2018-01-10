@@ -106,8 +106,9 @@ void
 GenericImageData
 ::SetMainImageInternal(ImageWrapperBase *wrapper)
 {
-  // Set properties
-  wrapper->SetDefaultNickname("Main Image");
+  // Clear the nickname counters and assign a the default nickname
+  m_NicknameCounter.clear();
+  wrapper->SetDefaultNickname(this->GenerateNickname(MAIN_ROLE));
 
   // Make the wrapper the main image
   SetSingleImageWrapper(MAIN_ROLE, wrapper);
@@ -118,6 +119,7 @@ GenericImageData
 
   // Set opaque
   m_MainImageWrapper->SetAlpha(255);
+
 }
 
 #include "itkIdentityTransform.h"
@@ -255,7 +257,7 @@ GenericImageData
 
   // Pass the image to a Grey image wrapper
   overlay->SetAlpha(0.5);
-  overlay->SetDefaultNickname("Additional Image");
+  overlay->SetDefaultNickname(this->GenerateNickname(OVERLAY_ROLE));
 
   // Sync up spacing between the main and overlay image
   if(checkSpace)
@@ -288,12 +290,7 @@ GenericImageData
 void GenericImageData
 ::UnloadOverlay(ImageWrapperBase *overlay)
 {
-  // Erase the overlay
-  WrapperList &overlays = m_Wrappers[OVERLAY_ROLE];
-  WrapperIterator it =
-      std::find(overlays.begin(), overlays.end(), overlay);
-  if(it != overlays.end())
-    overlays.erase(it);
+  this->RemoveImageWrapper(OVERLAY_ROLE, overlay);
 }
 
 
@@ -322,7 +319,7 @@ GenericImageData
   SmartPtr<LabelImageWrapper> seg_wrapper = LabelImageWrapper::New();
   seg_wrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
   seg_wrapper->SetImage(addedLabelImage);
-  seg_wrapper->SetDefaultNickname("Segmentation Image");
+  seg_wrapper->SetDefaultNickname(this->GenerateNickname(LABEL_ROLE));
 
   // Send the color table to the new wrapper
   seg_wrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
@@ -341,15 +338,31 @@ GenericImageData
   return seg_wrapper;
 }
 
+LabelImageWrapper *GenericImageData::AddBlankSegmentation()
+{
+  assert(m_MainImageWrapper->IsInitialized());
+
+  // Initialize the segmentation data to zeros
+  LabelImageWrapper::Pointer seg = LabelImageWrapper::New();
+  seg->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
+  seg->SetDefaultNickname(this->GenerateNickname(LABEL_ROLE));
+
+  seg->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
+  this->PushBackImageWrapper(LABEL_ROLE, seg.GetPointer());
+
+  // Intensity changes in the image wrapper are broadcast as segmentation events
+  Rebroadcaster::Rebroadcast(seg, WrapperImageChangeEvent(),
+                             this, SegmentationChangeEvent());
+
+  // Return the added wrapper
+  return seg;
+}
+
 void GenericImageData
 ::UnloadSegmentation(ImageWrapperBase *seg)
 {
   // Erase the segmentation image
-  WrapperList &all_segs = m_Wrappers[LABEL_ROLE];
-  WrapperIterator it =
-      std::find(all_segs.begin(), all_segs.end(), seg);
-  if(it != all_segs.end())
-    all_segs.erase(it);
+  this->RemoveImageWrapper(LABEL_ROLE, seg);
 
   // If main is loaded and this is the only segmentation, reset so that
   // there is a blank segmentation left
@@ -367,13 +380,8 @@ GenericImageData
   // Unload all segmentations
   this->RemoveAllWrappers(LABEL_ROLE);
 
-  // Initialize the segmentation data to zeros
-  LabelImageWrapper::Pointer seg = LabelImageWrapper::New();
-  seg->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
-  seg->SetDefaultNickname("Segmentation Image");
-
-  seg->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
-  this->PushBackImageWrapper(LABEL_ROLE, seg.GetPointer());
+  // Add a new blank segmentation
+  this->AddBlankSegmentation();
 }
 
 bool
@@ -504,7 +512,6 @@ LabelImageWrapper *GenericImageData::GetFirstSegmentationLayer()
   return dynamic_cast<LabelImageWrapper *>(m_Wrappers[LABEL_ROLE].front().GetPointer());
 }
 
-
 void GenericImageData::PushBackImageWrapper(LayerRole role,
                                             ImageWrapperBase *wrapper)
 {
@@ -513,12 +520,17 @@ void GenericImageData::PushBackImageWrapper(LayerRole role,
 
   // Rebroadcast the wrapper-related events as our own events
   Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this);
+  
+  // Fire the layer change event
+  this->InvokeEvent(LayerChangeEvent());
 }
-
 
 void GenericImageData::PopBackImageWrapper(LayerRole role)
 {
   m_Wrappers[role].pop_back();
+
+  // Fire the layer change event
+  this->InvokeEvent(LayerChangeEvent());
 }
 
 void GenericImageData::MoveLayer(ImageWrapperBase *layer, int direction)
@@ -537,13 +549,23 @@ void GenericImageData::MoveLayer(ImageWrapperBase *layer, int direction)
     // Do the swap
     std::swap(wl[k], wl[k+direction]);
     }
+
+  // Fire the layer change event
+  this->InvokeEvent(LayerChangeEvent());
 }
 
 void GenericImageData::RemoveImageWrapper(LayerRole role,
                                           ImageWrapperBase *wrapper)
 {
-  m_Wrappers[role].erase(
-        std::find(m_Wrappers[role].begin(), m_Wrappers[role].end(), wrapper));
+  // Erase the segmentation image
+  WrapperList &wrappers = m_Wrappers[role];
+  WrapperIterator it =
+      std::find(wrappers.begin(), wrappers.end(), wrapper);
+  if(it != wrappers.end())
+    wrappers.erase(it);
+
+  // Fire the layer change event
+  this->InvokeEvent(LayerChangeEvent());
 }
 
 void GenericImageData::SetSingleImageWrapper(LayerRole role,
@@ -554,12 +576,18 @@ void GenericImageData::SetSingleImageWrapper(LayerRole role,
 
   // Rebroadcast the wrapper-related events as our own events
   Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this);
+
+  // Fire the layer change event
+  this->InvokeEvent(LayerChangeEvent());
 }
 
 void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
 {
   assert(m_Wrappers[role].size() == 1);
   m_Wrappers[role].front() = NULL;
+
+  // Fire the layer change event
+  this->InvokeEvent(LayerChangeEvent());
 }
 
 void GenericImageData::RemoveAllWrappers(LayerRole role)
@@ -568,11 +596,44 @@ void GenericImageData::RemoveAllWrappers(LayerRole role)
     this->PopBackImageWrapper(role);
 }
 
+std::string GenericImageData::GenerateNickname(LayerRole role)
+{
+  // Have we generated a nickname for this role already?
+  int count = 0;
+  if(m_NicknameCounter.find(role) != m_NicknameCounter.end())
+    count = m_NicknameCounter[role];
 
+  // Get the basename for the nickname
+  std::string name;
+  switch(role)
+    {
+    case MAIN_ROLE:
+      name = "Main Image";
+      break;
+    case OVERLAY_ROLE:
+      name = "Additional Image";
+      break;
+    case LABEL_ROLE:
+      name = "Segmentation Image";
+      break;
+    default:
+      name = "Undefined";
+      break;
+    }
 
+  // If the count is zero, nickname has never been generated
+  if(count > 0)
+    {
+    std::ostringstream oss;
+    oss << name << " " << count;
+    name = oss.str();
+    }
 
+  // Update the counter for this kind of image
+  m_NicknameCounter[role] = count + 1;
 
-
+  return name;
+}
 
 
 void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)

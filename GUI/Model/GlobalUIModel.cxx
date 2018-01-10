@@ -361,6 +361,8 @@ bool GlobalUIModel::CheckState(UIState state)
 
       return n > 1;
       }
+    case UIF_MULTIPLE_SEGMENTATION_LAYERS:
+      return m_Driver->GetCurrentImageData()->GetNumberOfLayers(LABEL_ROLE) > 1;
     }
 
   return false;

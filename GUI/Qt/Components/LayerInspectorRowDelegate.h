@@ -158,6 +158,7 @@ private:
   void UpdateColorMapMenu();
   void UpdateComponentMenu();
   void UpdateOverlaysMenu();
+  void UpdateTextFont();
   void OnNicknameUpdate();
 };
 

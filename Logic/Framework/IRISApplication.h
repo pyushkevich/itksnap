@@ -352,6 +352,11 @@ public:
   void UnloadSegmentation(ImageWrapperBase *seg);
 
   /**
+   * Add a new blank segmentation and select it
+   */
+  void AddBlankSegmentation();
+
+  /**
    * Update the SNAP image data with an external speed image (e.g., 
    * loaded from a file).
    */

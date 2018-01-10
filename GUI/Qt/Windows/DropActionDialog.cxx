@@ -68,6 +68,15 @@ void DropActionDialog::on_btnLoadSegmentation_clicked()
   this->LoadCommon(del);
 }
 
+
+void DropActionDialog::on_btnLoadAdditionalSegmentation_clicked()
+{
+  SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
+  del->Initialize(m_Model->GetDriver());
+  del->SetAdditiveMode(true);
+  this->LoadCommon(del);
+}
+
 void DropActionDialog::on_btnLoadOverlay_clicked()
 {
   SmartPtr<LoadOverlayImageDelegate > del = LoadOverlayImageDelegate ::New();
@@ -164,3 +173,4 @@ void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
       }
     }
 }
+

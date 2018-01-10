@@ -91,9 +91,16 @@ public:
   bool IsMainLayer();
 
   /**
-   * Mark the layer as selected
+   * Mark the layer as selected. For non-segmentation images this makes them be displayed in the
+   * non-tiled mode. For segmentation images, it makes it the segmentaiton image that is being edited
    */
-  void SetSelected(bool selected);
+  void SetActivated(bool activated);
+
+  /**
+   * Test if the layer is currently selected in its role or group of roles. We han have an anatomical
+   * image selected at the same time as a segmentation image is selected
+   */
+  bool IsActivated() const;
 
   /**
    * Close the current layer

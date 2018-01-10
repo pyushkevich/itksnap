@@ -197,7 +197,7 @@ bool LayerTableRowModel::IsMainLayer()
   return m_LayerRole == MAIN_ROLE;
 }
 
-void LayerTableRowModel::SetSelected(bool selected)
+void LayerTableRowModel::SetActivated(bool activated)
 {
   // Odd why this would ever happen, but it does...
   if(!m_Layer)
@@ -205,14 +205,39 @@ void LayerTableRowModel::SetSelected(bool selected)
 
   // If the layer is selected and is not sticky, we set is as the currently visible
   // layer in the render views
-  if(m_LayerRole == LABEL_ROLE && selected)
+  if(m_LayerRole == LABEL_ROLE && activated)
     {
     m_ParentModel->GetGlobalState()->SetSelectedSegmentationLayerId(m_Layer->GetUniqueId());
     }
-  else if(selected && !m_Layer->IsSticky())
+  else if(activated && !m_Layer->IsSticky())
     {
     m_ParentModel->GetGlobalState()->SetSelectedLayerId(m_Layer->GetUniqueId());
     }
+}
+
+bool LayerTableRowModel::IsActivated() const
+{
+  // Odd why this would ever happen, but it does...
+  if(!m_Layer)
+    return false;
+
+  // Selection is based on id
+  unsigned long uid = m_Layer->GetUniqueId();
+
+  // If the layer is selected and is not sticky, we set is as the currently visible
+  // layer in the render views
+  if(m_LayerRole == LABEL_ROLE)
+    {
+    if(uid == m_ParentModel->GetGlobalState()->GetSelectedSegmentationLayerId())
+      return true;
+    }
+  else
+    {
+    if(uid == m_ParentModel->GetGlobalState()->GetSelectedLayerId())
+      return true;
+    }
+
+  return false;
 }
 
 void LayerTableRowModel::CloseLayer()

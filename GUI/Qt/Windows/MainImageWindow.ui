@@ -462,13 +462,35 @@ color:rgb(103, 103, 103);
      <addaction name="actionRecentSeg_4"/>
      <addaction name="actionRecentSeg_5"/>
     </widget>
+    <widget class="QMenu" name="menuAddSegmentation">
+     <property name="title">
+      <string>Add Another Segmentation</string>
+     </property>
+     <widget class="QMenu" name="menuAddSegmentation_Recent">
+      <property name="title">
+       <string>Recent</string>
+      </property>
+      <addaction name="actionRecentAddSeg_1"/>
+      <addaction name="actionRecentAddSeg_2"/>
+      <addaction name="actionRecentAddSeg_3"/>
+      <addaction name="actionRecentAddSeg_4"/>
+      <addaction name="actionRecentAddSeg_5"/>
+     </widget>
+     <addaction name="actionAddSegmentation_New"/>
+     <addaction name="separator"/>
+     <addaction name="actionAddSegmentation_Open"/>
+     <addaction name="menuAddSegmentation_Recent"/>
+    </widget>
     <addaction name="actionLoad_from_Image"/>
     <addaction name="menuRecent_Segmentations"/>
+    <addaction name="separator"/>
+    <addaction name="menuAddSegmentation"/>
     <addaction name="separator"/>
     <addaction name="actionSaveSegmentation"/>
     <addaction name="actionSaveSegmentationAs"/>
     <addaction name="separator"/>
     <addaction name="actionClear"/>
+    <addaction name="actionClearActive"/>
     <addaction name="separator"/>
     <addaction name="actionSave_as_Mesh"/>
     <addaction name="separator"/>
@@ -663,6 +685,9 @@ color:rgb(103, 103, 103);
   <action name="actionLoad_from_Image">
    <property name="text">
     <string>Open Segmentation ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Load the segmentation image from disk</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -1572,6 +1597,58 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>{</string>
+   </property>
+  </action>
+  <action name="actionAddSegmentation_Open">
+   <property name="text">
+    <string>Open...</string>
+   </property>
+   <property name="toolTip">
+    <string>Add existing segmentation image to the workspace</string>
+   </property>
+  </action>
+  <action name="actionAddSegmentation_New">
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="toolTip">
+    <string>Add another blank segmentation to the current workspace</string>
+   </property>
+  </action>
+  <action name="actionRecentAddSeg_1">
+   <property name="text">
+    <string>Recent1</string>
+   </property>
+   <property name="toolTip">
+    <string>Recent1</string>
+   </property>
+  </action>
+  <action name="actionRecentAddSeg_2">
+   <property name="text">
+    <string>Recent2</string>
+   </property>
+  </action>
+  <action name="actionRecentAddSeg_3">
+   <property name="text">
+    <string>Recent3</string>
+   </property>
+  </action>
+  <action name="actionRecentAddSeg_4">
+   <property name="text">
+    <string>Recent4</string>
+   </property>
+  </action>
+  <action name="actionRecentAddSeg_5">
+   <property name="text">
+    <string>Recent5</string>
+   </property>
+  </action>
+  <action name="actionClearActive">
+   <property name="text">
+    <string>Unload Active Segmentation</string>
+   </property>
+   <property name="toolTip">
+    <string>Unload the segmentation that is currently being edited</string>
    </property>
   </action>
  </widget>

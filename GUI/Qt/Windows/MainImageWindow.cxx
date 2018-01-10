@@ -343,6 +343,8 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   this->HookupShortcutToAction(QKeySequence("\\"), ui->actionToggleLayerLayout);
   this->HookupShortcutToAction(QKeySequence("["), ui->actionActivatePreviousLayer);
   this->HookupShortcutToAction(QKeySequence("]"), ui->actionActivateNextLayer);
+  this->HookupShortcutToAction(QKeySequence("{"), ui->actionActivatePreviousSegmentationLayer);
+  this->HookupShortcutToAction(QKeySequence("}"), ui->actionActivateNextSegmentationLayer);
 
   // Common modifiers
   const QString mod_option(QChar(0x2325));
@@ -549,6 +551,8 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionToggleLayerLayout, m_Model, UIF_MULTIPLE_BASE_LAYERS);
   activateOnFlag(ui->actionActivateNextLayer, m_Model, UIF_MULTIPLE_BASE_LAYERS);
   activateOnFlag(ui->actionActivatePreviousLayer, m_Model, UIF_MULTIPLE_BASE_LAYERS);
+  activateOnFlag(ui->actionActivateNextSegmentationLayer, m_Model, UIF_MULTIPLE_SEGMENTATION_LAYERS);
+  activateOnFlag(ui->actionActivatePreviousSegmentationLayer, m_Model, UIF_MULTIPLE_SEGMENTATION_LAYERS);
 
   // Add actions that are not on the menu
   activateOnFlag(ui->actionZoomToFitInAllViews, m_Model, UIF_BASEIMG_LOADED);
@@ -561,6 +565,8 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Set up activations - Segmentation menu
   activateOnFlag(ui->actionLoad_from_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionClear, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionClearActive, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->menuAddSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSegmentationAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSave_as_Mesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -926,6 +932,9 @@ void MainImageWindow::UpdateRecentMenu()
 
   this->CreateRecentMenu(ui->menuRecent_Segmentations, "LabelImage", false, 5,
                          SLOT(LoadRecentSegmentationActionTriggered()));
+
+  this->CreateRecentMenu(ui->menuAddSegmentation_Recent, "LabelImage", false, 5,
+                         SLOT(LoadAnotherRecentSegmentationActionTriggered()));
 }
 
 void MainImageWindow::UpdateRecentProjectsMenu()
@@ -954,10 +963,7 @@ void MainImageWindow::UpdateWindowTitle()
   if(projfile.length())
     {
     // If a project has multiple layers, we should indicate which segmentation image is being viewed
-    if(gid->GetNumberOfLayers(LABEL_ROLE) > 1)
-       this->setWindowTitle(QString("%1 - %2 - ITK-SNAP").arg(projfile).arg(segfile));
-    else
-      this->setWindowTitle(QString("%1 - ITK-SNAP").arg(projfile));
+    this->setWindowTitle(QString("%1 - ITK-SNAP").arg(projfile));
     }
   else if(mainfile.length() && segfile.length())
     {
@@ -988,6 +994,22 @@ void MainImageWindow::UpdateWindowTitle()
     {
     ui->actionSaveSegmentation->setText(QString("Save"));
     ui->actionSaveSegmentationAs->setText(QString("Save as..."));
+    }
+
+  // Set up the segmentation items
+  if(gid->GetNumberOfLayers(LABEL_ROLE) > 1)
+    {
+    ui->actionClear->setText(QString("Unload All Segmentations"));
+    ui->actionClearActive->setVisible(true);
+    if(segfile.length())
+      ui->actionClearActive->setText(QString("Unload \"%1\"").arg(segfile));
+    else
+      ui->actionClearActive->setText(QString("Unload Active Segmentation"));
+    }
+  else
+    {
+    ui->actionClear->setText(QString("Unload Segmentation"));
+    ui->actionClearActive->setVisible(false);
     }
 }
 
@@ -1334,12 +1356,8 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
     }
 }
 
-void MainImageWindow::LoadRecentSegmentationActionTriggered()
+void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
 {
-  // Get the filename that wants to be loaded
-  QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
-
   // Prompt for unsaved changes
   if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
     return;
@@ -1352,6 +1370,7 @@ void MainImageWindow::LoadRecentSegmentationActionTriggered()
     IRISWarningList warnings;
     SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
+    del->SetAdditiveMode(additive);
     m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
     }
   catch(exception &exc)
@@ -1359,6 +1378,23 @@ void MainImageWindow::LoadRecentSegmentationActionTriggered()
     ReportNonLethalException(this, exc, "Image IO Error",
                              QString("Failed to load segmentation image %1").arg(file));
     }
+}
+
+
+void MainImageWindow::LoadRecentSegmentationActionTriggered()
+{
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString file = action->text();
+  LoadRecentSegmentation(file, false);
+}
+
+void MainImageWindow::LoadAnotherRecentSegmentationActionTriggered()
+{
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString file = action->text();
+  LoadRecentSegmentation(file, true);
 }
 
 void MainImageWindow::LoadAnotherDicomActionTriggered()
@@ -2261,4 +2297,40 @@ void MainImageWindow::on_actionActivateNextSegmentationLayer_triggered()
 void MainImageWindow::on_actionActivatePreviousSegmentationLayer_triggered()
 {
   m_Model->CycleSelectedSegmentationLayer(-1);
+}
+
+void MainImageWindow::on_actionAddSegmentation_New_triggered()
+{
+  // Create an empty new segmentation
+  m_Model->GetDriver()->AddBlankSegmentation();
+}
+
+void MainImageWindow::on_actionAddSegmentation_Open_triggered()
+{
+  // This is the same as opening segmentation, but with the "add" feature
+  // Create a model for IO
+  SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
+  delegate->Initialize(m_Model->GetDriver());
+  delegate->SetAdditiveMode(true);
+
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model, delegate);
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+}
+
+void MainImageWindow::on_actionClearActive_triggered()
+{
+  // This is the layer that needs to be closed
+  LabelImageWrapper *liw = m_Model->GetDriver()->GetSelectedSegmentationLayer();
+
+  // Prompt for unsaved changes
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model, liw))
+    return;
+
+  // Unload the wrapper
+  m_Model->GetDriver()->UnloadSegmentation(liw);
 }

@@ -17,7 +17,8 @@ enum UIState {
   UIF_MESH_SAVEABLE,
   UIF_SNAKE_MODE,
   UIF_LEVEL_SET_ACTIVE,
-  UIF_MULTIPLE_BASE_LAYERS       // i.e., more than one non-sticky layer
+  UIF_MULTIPLE_BASE_LAYERS,      // i.e., more than one non-sticky layer
+  UIF_MULTIPLE_SEGMENTATION_LAYERS
 };
 
 #endif // UISTATE_H

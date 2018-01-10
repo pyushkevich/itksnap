@@ -171,8 +171,6 @@ SNAPImageData
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
   m_SnakeWrapper->InitializeToWrapper(m_MainImageWrapper, OUTSIDE_VALUE);
 
-  InvokeEvent(LayerChangeEvent());
-
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
   LabelImageType::Pointer imgInput = this->GetFirstSegmentationLayer()->GetImage();
@@ -293,7 +291,6 @@ SNAPImageData
     {
     this->RemoveImageWrapper(SNAP_ROLE, m_SnakeWrapper);
     m_SnakeWrapper = NULL;
-    InvokeEvent(LayerChangeEvent());
     return false;
     }
 
