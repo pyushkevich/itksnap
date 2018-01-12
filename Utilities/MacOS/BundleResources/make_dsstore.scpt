@@ -32,7 +32,6 @@ on run argv
 				-- Move the icons; this is really finicky, the coordinates don't seem
 				-- to make much sense and if you go too far then ugly scrollbars will appear
 				set position of item "itksnap" to {280, 220}
-				set position of item "itksnap-wt" to {360, 220}
 				set position of item "ITK-SNAP.app" to {260, 80}
 				set position of item "Applications" to {40, 80}
         set position of item "usr_local_bin" to {40, 220}

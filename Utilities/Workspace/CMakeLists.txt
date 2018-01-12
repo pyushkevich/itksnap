@@ -8,5 +8,5 @@ ADD_EXECUTABLE(itksnap-wt WorkspaceTool.cxx)
 TARGET_LINK_LIBRARIES(itksnap-wt itksnaplogic ${ITK_LIBRARIES} ${CURL_LIBRARIES})
 
 # Install the workspace tool
-SNAP_INSTALL_BINARY(itksnap-wt itksnap-wt "")
+SNAP_INSTALL_CLI(itksnap-wt itksnap-wt "")
 

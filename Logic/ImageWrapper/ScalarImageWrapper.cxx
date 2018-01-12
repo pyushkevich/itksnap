@@ -39,6 +39,8 @@
 #include "VectorImageWrapper.h"
 #include "ScalarImageHistogram.h"
 #include "ThreadedHistogramImageFilter.h"
+#include "GuidedNativeImageIO.h"
+#include "itkImageFileWriter.h"
 
 #include "vtkImageImport.h"
 
@@ -493,6 +495,26 @@ ScalarImageWrapper<TTraits,TBase>
 
   m_HistogramFilter->Update();
   return m_HistogramFilter->GetHistogramOutput();
+}
+
+template<class TTraits, class TBase>
+void
+ScalarImageWrapper<TTraits, TBase>
+::WriteToFileAsFloat(const char *fname, Registry &hints)
+{
+  SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+  io->CreateImageIO(fname, hints, false);
+  itk::ImageIOBase *base = io->GetIOBase();
+
+  SmartPtr<FloatImageSource> pipeline = this->CreateCastToFloatPipeline();
+
+  typedef itk::ImageFileWriter<FloatImageType> WriterType;
+  SmartPtr<WriterType> writer = WriterType::New();
+  writer->SetFileName(fname);
+  if(base)
+    writer->SetImageIO(base);
+  writer->SetInput(pipeline->GetOutput());
+  writer->Update();
 }
 
 

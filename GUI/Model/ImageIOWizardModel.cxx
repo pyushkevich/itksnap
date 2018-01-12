@@ -56,6 +56,8 @@ ImageIOWizardModel
   m_SuggestedFilename = delegate->GetCurrentFilename();
   m_Overlay = false;
   m_LoadedImage = NULL;
+
+  m_SaveDelegate->ValidateBeforeSaving(m_SuggestedFilename, m_GuidedIO, m_Warnings);
 }
 
 void

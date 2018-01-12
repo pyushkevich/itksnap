@@ -154,8 +154,9 @@ SelectFilePage::SelectFilePage(QWidget *parent)
 
   // File input
   m_FilePanel = new FileChooserPanelWithHistory(this);
+  m_FilePanel->setSizePolicy(QSizePolicy(QSizePolicy::Preferred,QSizePolicy::Minimum));
   lo->addWidget(m_FilePanel);
-  lo->addSpacing(15);
+  //lo->addSpacing(15);
 
   // The output message
   lo->addStretch(1);
@@ -256,6 +257,8 @@ void SelectFilePage::initializePage()
           false,
           from_utf8(m_Model->GetSuggestedFilename()),
           activeFormat);
+
+    WarningMessage(m_Model->GetWarnings());
     }
 
   // Provide a callback for determining format from filename

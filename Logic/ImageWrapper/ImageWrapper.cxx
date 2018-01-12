@@ -119,7 +119,13 @@ public:
 
   static void Write(ImageType *image, const char *fname, Registry &hints)
   {
-    throw IRISException("FillBuffer unsupported for class %s",
+    throw IRISException("Write unsupported for class %s",
+                        image->GetNameOfClass());
+  }
+
+  static void WriteAsFloat(ImageType *image, const char *fname, Registry &hints, double shift, double scale)
+  {
+    throw IRISException("WriteAsFloat unsupported for class %s",
                         image->GetNameOfClass());
   }
 
@@ -1519,55 +1525,14 @@ ImageWrapper<TTraits, TBase>
   *this->m_IOHints = io_hints;
 }
 
-// The method that can be called for some wrappers, not others
-template <class TImage>
-static void DoWriteImage(TImage *image, const char *fname, Registry &hints)
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::WriteToFileInInternalFormat(const char *filename, Registry &hints)
 {
-  SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
-  io->CreateImageIO(fname, hints, false);
-  itk::ImageIOBase *base = io->GetIOBase();
-
-  typedef itk::ImageFileWriter<TImage> WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(fname);
-  if(base)
-    writer->SetImageIO(base);
-  writer->SetInput(image);
-  writer->Update();
+  typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
+  Specialization::Write(m_Image, filename, hints);
 }
-
-template<class TImage>
-class ImageWrapperWriteTraits
-{
-public:
-  static void Write(TImage *image, const char *fname, Registry &hints)
-  {
-    throw IRISException("FillBuffer unsupported for class %s",
-                        image->GetNameOfClass());
-  }
-};
-
-template<class TPixel, unsigned int VDim>
-class ImageWrapperWriteTraits< itk::Image<TPixel, VDim> >
-{
-public:
-  typedef itk::Image<TPixel, VDim> ImageType;
-  static void Write(ImageType *image, const char *fname, Registry &hints)
-  {
-    DoWriteImage(image, fname, hints);
-  }
-};
-
-template<class TPixel, unsigned int VDim>
-class ImageWrapperWriteTraits< itk::VectorImage<TPixel, VDim> >
-{
-public:
-  typedef itk::VectorImage<TPixel, VDim> ImageType;
-  static void Write(ImageType *image, const char *fname, Registry &hints)
-  {
-    DoWriteImage(image, fname, hints);
-  }
-};
 
 
 template<class TTraits, class TBase>
@@ -1575,9 +1540,17 @@ void
 ImageWrapper<TTraits,TBase>
 ::WriteToFile(const char *filename, Registry &hints)
 {
-  // Do the actual writing
-  typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
-  Specialization::Write(m_Image, filename, hints);
+  // What kind of mapping are we using
+  if(this->GetNativeMapping().IsIdentity())
+    {
+    // Do the actual writing
+    this->WriteToFileInInternalFormat(filename, hints);
+    }
+  else
+    {
+    // The image should be converted to float before writing it
+    this->WriteToFileAsFloat(filename, hints);
+    }
 
   // Store the filename
   m_FileName = itksys::SystemTools::GetFilenamePath(filename);

@@ -57,6 +57,20 @@ public:
   typedef typename Superclass::ImagePointer                       ImagePointer;
   typedef typename Superclass::PreviewImageType               PreviewImageType;
 
+  // Floating point image type
+  typedef itk::Image<float, 3>                                  FloatImageType;
+  typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
+
+  // Double precision floating point image type
+  typedef itk::Image<double, 3>                                DoubleImageType;
+  typedef itk::ImageSource<DoubleImageType>                  DoubleImageSource;
+
+  // Vector image types
+  typedef itk::VectorImage<float, 3>                      FloatVectorImageType;
+  typedef itk::ImageSource<FloatVectorImageType>        FloatVectorImageSource;
+  typedef itk::VectorImage<double, 3>                    DoubleVectorImageType;
+  typedef itk::ImageSource<DoubleVectorImageType>      DoubleVectorImageSource;
+
   // Pixel type
   typedef typename Superclass::PixelType                             PixelType;
   typedef typename ImageType::InternalPixelType              InternalPixelType;
@@ -226,6 +240,30 @@ public:
     */
   const ScalarImageHistogram *GetHistogram(size_t nBins = 0) ITK_OVERRIDE;
 
+
+  /**
+    This method creates an ITK mini-pipeline that can be used to cast the internal
+    image to a floating point image. The ownership of the mini-pipeline is passed
+    to the caller of this method. This method should be used with caution, since
+    there is potential to create duplicates of the internally stored image without
+    need. The best practice is to use this method with filters that only access a
+    portion of the casted image at a time, such as streaming filters.
+
+    When you call Update() on the returned mini-pipeline, the data will be cast to
+    floating point, and if necessary, converted to the native intensity range.
+    */
+  virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const ITK_OVERRIDE;
+
+  /** Same as above, but casts to double. For compatibility with C3D, until we
+   * safely switch C3D to use float instead of double */
+  virtual SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const ITK_OVERRIDE;
+
+  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
+  virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const ITK_OVERRIDE;
+
+  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
+  virtual SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const ITK_OVERRIDE;
+
 protected:
 
   /**
@@ -247,6 +285,9 @@ protected:
 
   /** Destructor */
   virtual ~VectorImageWrapper();
+
+  /** Write the image to disk as a floating point image (scalar or vector) */
+  virtual void WriteToFileAsFloat(const char *filename, Registry &hints) ITK_OVERRIDE;
 
   /** Create a derived wrapper of a certain type */
   template <class TFunctor>

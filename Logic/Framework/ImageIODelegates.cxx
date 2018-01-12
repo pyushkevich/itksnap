@@ -253,6 +253,25 @@ const char *DefaultSaveImageDelegate::GetHistoryName()
   return m_HistoryNames.front().c_str();
 }
 
+void DefaultSaveImageDelegate
+::ValidateBeforeSaving(
+    const std::string &fname, GuidedNativeImageIO *io, IRISWarningList &wl)
+{
+  if(!m_Wrapper->GetNativeIntensityMapping()->IsIdentity()
+     && strlen(m_Wrapper->GetFileName()) > 0)
+    {
+    // if the wrapper uses a non-identity native mapping, then there will be loss of
+    // precision relative to the input image
+    wl.push_back(
+          IRISWarning(
+            "Warning: Loss of Precision."
+            "ITK-SNAP represents images using 16-bit precision. The image you are saving "
+            "was previously loaded from an image file that used greater than 16-bit precision. "
+            "Voxel intensities may be changed in the saved image relative to the original image."
+            ));
+    }
+}
+
 
 void DefaultSaveImageDelegate
 ::SaveImage(const std::string &fname, GuidedNativeImageIO *io,

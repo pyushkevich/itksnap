@@ -151,6 +151,10 @@ public:
   virtual void Initialize(IRISApplication *driver)
     { m_Driver = driver; m_SaveSuccessful = false; }
 
+  virtual void ValidateBeforeSaving(const std::string &fname,
+                                    GuidedNativeImageIO *io,
+                                    IRISWarningList &wl) = 0;
+
   virtual void SaveImage(
       const std::string &fname,
       GuidedNativeImageIO *io,
@@ -195,6 +199,10 @@ public:
   void AddHistoryName(const std::string &histname);
 
   virtual const char *GetHistoryName() ITK_OVERRIDE;
+
+  virtual void ValidateBeforeSaving(const std::string &fname,
+                                    GuidedNativeImageIO *io,
+                                    IRISWarningList &wl) ITK_OVERRIDE;
 
   virtual void SaveImage(
       const std::string &fname,

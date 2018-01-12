@@ -65,6 +65,9 @@ protected:
   // responsible for placing this control on their layouts
   QLabel *m_OutMessage;
 
+  // Main area for children to layout
+  QWidget *m_Canvas;
+
   static const QString m_HtmlTemplate;
 };
 

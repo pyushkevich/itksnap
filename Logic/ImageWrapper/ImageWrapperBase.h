@@ -75,6 +75,16 @@ public:
   // Image base
   typedef itk::ImageBase<3> ImageBaseType;
 
+  // Floating point and double images and sources to which data may be cast
+  typedef itk::Image<float, 3>                                  FloatImageType;
+  typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
+  typedef itk::Image<double, 3>                                DoubleImageType;
+  typedef itk::ImageSource<DoubleImageType>                  DoubleImageSource;
+  typedef itk::VectorImage<float, 3>                      FloatVectorImageType;
+  typedef itk::ImageSource<FloatVectorImageType>        FloatVectorImageSource;
+  typedef itk::VectorImage<double, 3>                    DoubleVectorImageType;
+  typedef itk::ImageSource<DoubleVectorImageType>      DoubleVectorImageSource;
+
   // Transform matrices
   typedef vnl_matrix_fixed<double, 4, 4>                         TransformType;
 
@@ -453,7 +463,43 @@ public:
    */
   virtual ImageBaseType* GetReferenceSpace() const = 0;
 
+  /**
+    Cast the internally stored image to a floating point image. The returned
+    image is connected to the internally stored image by a mini-pipeline that
+    may include a cast filter or a scale/shift filter, depending on the internal
+    format of the image and the internal-to-native intensity mapping. This mini
+    pipeline is not memory managed by the wrapper, and as soon as the returned
+    image smartpointer goes out of scope, the mini-pipeline is deallocated.
+
+    The method is intended for use with external pipelines that don't know what
+    the internal data representation is for the image. There is a cost with using
+    this method in terms of memory, so the recommended use is in conjunction with
+    streaming filters, so that the cast mini-pipeline does not allocate the whole
+    floating point image all at once.
+
+    The mini-pipeline should not be kept around in memory after it's used. This would
+    result in unnecessary duplication of memory.
+    */
+  virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const = 0;
+
+  /** Same as CreateCastToFloatPipeline, but for double precision */
+  virtual SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const = 0;
+
+  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
+  virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const = 0;
+
+  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
+  virtual SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const = 0;
+
+
+
 protected:
+
+  /** Write the image to disk with whatever the internal format is */
+  virtual void WriteToFileInInternalFormat(const char *filename, Registry &hints) = 0;
+
+  /** Write the image to disk as a floating point image (scalar or vector) */
+  virtual void WriteToFileAsFloat(const char *filename, Registry &hints) = 0;
 
 };
 
@@ -464,16 +510,6 @@ public:
   // A common image format to which the contents of the scalar image wrapper
   // may be cast for downstream processing
   typedef itk::Image<GreyType, 3>                      CommonFormatImageType;
-
-  typedef itk::Image<float, 3>                                FloatImageType;
-  typedef itk::ImageSource<FloatImageType>                  FloatImageSource;
-  typedef itk::Image<double, 3>                              DoubleImageType;
-  typedef itk::ImageSource<DoubleImageType>                DoubleImageSource;
-
-  typedef itk::VectorImage<float, 3>                    FloatVectorImageType;
-  typedef itk::ImageSource<FloatVectorImageType>      FloatVectorImageSource;
-  typedef itk::VectorImage<double, 3>                  DoubleVectorImageType;
-  typedef itk::ImageSource<DoubleVectorImageType>    DoubleVectorImageSource;
 
   /**
    * An enum of export channel types. Export channels are used to present the
@@ -538,34 +574,6 @@ public:
    */
   virtual CommonFormatImageType* GetCommonFormatImage(
       ExportChannel channel = WHOLE_IMAGE) = 0;
-
-  /**
-    Cast the internally stored image to a floating point image. The returned
-    image is connected to the internally stored image by a mini-pipeline that
-    may include a cast filter or a scale/shift filter, depending on the internal
-    format of the image and the internal-to-native intensity mapping. This mini
-    pipeline is not memory managed by the wrapper, and as soon as the returned
-    image smartpointer goes out of scope, the mini-pipeline is deallocated.
-
-    The method is intended for use with external pipelines that don't know what
-    the internal data representation is for the image. There is a cost with using
-    this method in terms of memory, so the recommended use is in conjunction with
-    streaming filters, so that the cast mini-pipeline does not allocate the whole
-    floating point image all at once.
-
-    The mini-pipeline should not be kept around in memory after it's used. This would
-    result in unnecessary duplication of memory.
-    */
-  virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const = 0;
-
-  /** Same as CreateCastToFloatPipeline, but for double precision */
-  virtual SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const = 0;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const = 0;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  virtual SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const = 0;
 
   /**
    * Get the intensity curve used to map raw intensities to color map inputs.

@@ -17,6 +17,7 @@ public:
   virtual double MapNativeToInternal(double g) const = 0;
   virtual double GetScale() const = 0;
   virtual double GetShift() const = 0;
+  virtual bool IsIdentity() const = 0;
 };
 
 class LinearInternalToNativeIntensityMapping : public AbstractNativeIntensityMapping
@@ -45,6 +46,9 @@ public:
   bool operator != (const Self &other) const
     { return scale != other.scale || shift != other.shift; }
 
+  bool IsIdentity() const
+    { return scale == 1.0 && shift == 0.0; }
+
 protected:
   double scale;
   double shift;
@@ -66,7 +70,6 @@ public:
   }
 
   bool operator != (const Self &other) const { return false; }
-
 };
 
 class IdentityInternalToNativeIntensityMapping : public AbstractNativeIntensityMapping
@@ -89,6 +92,9 @@ public:
 
   virtual double GetScale() const { return 1; }
   virtual double GetShift() const { return 0; }
+
+  bool IsIdentity() const
+    { return true; }
 
   bool operator != (const Self &other) const { return false; }
 };

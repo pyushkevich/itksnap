@@ -304,6 +304,8 @@ protected:
 
   /** The intensity scaling factor */
   double m_ImageScaleFactor;
+
+  vtkSmartPointer<vtkImageImport> m_VTKImporter;
   
   /**
    * Compute the intensity range of the image if it's out of date.  
@@ -320,12 +322,9 @@ protected:
                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
 
 
-  //typedef itk::VTKImageExport<ImageType> VTKExporter;
-  //SmartPtr<VTKExporter> m_VTKExporter;
+  /** Write the image to disk as a floating point image (scalar or vector) */
+  virtual void WriteToFileAsFloat(const char *filename, Registry &hints) ITK_OVERRIDE;
 
-  vtkSmartPointer<vtkImageImport> m_VTKImporter;
-
-  //void SetupVTKImportExport();
 };
 
 #endif // __ScalarImageWrapper_h_

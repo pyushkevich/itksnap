@@ -29,6 +29,9 @@
 #include "ThreadedHistogramImageFilter.h"
 #include "ScalarImageHistogram.h"
 #include "Rebroadcaster.h"
+#include "UnaryFunctorVectorImageFilter.h"
+#include "GuidedNativeImageIO.h"
+#include "itkImageFileWriter.h"
 
 #include <iostream>
 
@@ -515,6 +518,104 @@ VectorImageWrapper<TImage,TBase>
   return (double) this->GetVoxel(x)[0];
 }
 */
+
+
+template<class TTraits, class TBase>
+SmartPtr<typename VectorImageWrapper<TTraits, TBase>::FloatImageSource>
+VectorImageWrapper<TTraits, TBase>::CreateCastToFloatPipeline() const
+{
+  // Just use the default representation
+  return NULL;
+}
+
+template<class TTraits, class TBase>
+SmartPtr<typename VectorImageWrapper<TTraits, TBase>::DoubleImageSource>
+VectorImageWrapper<TTraits, TBase>::CreateCastToDoublePipeline() const
+{
+  // Just use the default representation
+  return NULL;
+}
+
+template <class TInputPixel, class TOutputComponent, class TScalarFunctor>
+class MultiComponentChannelWiseFunctor
+{
+public:
+  typedef MultiComponentChannelWiseFunctor<TInputPixel,TOutputComponent,TScalarFunctor> Self;
+
+  void SetNumberOfComponentsPerPixel(unsigned int n) { m_Components = n; }
+  unsigned int GetNumberOfComponentsPerPixel() const { return m_Components; }
+
+  void SetFunctor(const TScalarFunctor &functor) { m_Functor = functor; }
+
+  void operator() (const TInputPixel &x, TOutputComponent *y) const
+  {
+    for(unsigned int k = 0; k < m_Components; k++)
+      y[k] = m_Functor(x[k]);
+  }
+
+  bool operator != (const Self &other) const
+  {
+    return m_Components != other.m_Components || m_Functor != other.m_Functor;
+  }
+
+protected:
+  unsigned int m_Components;
+  TScalarFunctor m_Functor;
+};
+
+template<class TTraits, class TBase>
+SmartPtr<typename VectorImageWrapper<TTraits, TBase>::FloatVectorImageSource>
+VectorImageWrapper<TTraits, TBase>::CreateCastToFloatVectorPipeline() const
+{
+  typedef MultiComponentChannelWiseFunctor<PixelType, float, NativeIntensityMapping> FunctorType;
+  typedef UnaryFunctorVectorImageFilter<ImageType, FloatVectorImageType, FunctorType> FilterType;
+  FunctorType functor;
+  functor.SetNumberOfComponentsPerPixel(this->GetNumberOfComponents());
+  functor.SetFunctor(this->m_NativeMapping);
+  SmartPtr<FilterType> filter = FilterType::New();
+  filter->SetInput(this->m_Image);
+  filter->SetFunctor(functor);
+
+  SmartPtr<FloatVectorImageSource> output = filter.GetPointer();
+  return output;
+}
+
+template<class TTraits, class TBase>
+SmartPtr<typename VectorImageWrapper<TTraits, TBase>::DoubleVectorImageSource>
+VectorImageWrapper<TTraits, TBase>::CreateCastToDoubleVectorPipeline() const
+{
+  typedef MultiComponentChannelWiseFunctor<PixelType, double, NativeIntensityMapping> FunctorType;
+  typedef UnaryFunctorVectorImageFilter<ImageType, DoubleVectorImageType, FunctorType> FilterType;
+  FunctorType functor;
+  functor.SetNumberOfComponentsPerPixel(this->GetNumberOfComponents());
+  functor.SetFunctor(this->m_NativeMapping);
+  SmartPtr<FilterType> filter = FilterType::New();
+  filter->SetInput(this->m_Image);
+  filter->SetFunctor(functor);
+
+  SmartPtr<DoubleVectorImageSource> output = filter.GetPointer();
+  return output;
+}
+
+template<class TTraits, class TBase>
+void
+VectorImageWrapper<TTraits, TBase>
+::WriteToFileAsFloat(const char *fname, Registry &hints)
+{
+  SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+  io->CreateImageIO(fname, hints, false);
+  itk::ImageIOBase *base = io->GetIOBase();
+
+  SmartPtr<FloatVectorImageSource> pipeline = this->CreateCastToFloatVectorPipeline();
+  typedef itk::ImageFileWriter<FloatVectorImageType> WriterType;
+  SmartPtr<WriterType> writer = WriterType::New();
+  writer->SetFileName(fname);
+  if(base)
+    writer->SetImageIO(base);
+  writer->SetInput(pipeline->GetOutput());
+  writer->Update();
+}
+
 
 template class VectorImageWrapper<AnatomicImageWrapperTraits<GreyType> >;
 

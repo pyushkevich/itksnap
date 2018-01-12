@@ -37,7 +37,7 @@ MACRO (TODAY RESULT)
 ENDMACRO (TODAY)
 
 # This macro is used to install binary targets.
-MACRO(SNAP_INSTALL_BINARY NAME CLI_NAME CLI_OPTS)
+MACRO(SNAP_INSTALL_GUI NAME CLI_NAME CLI_OPTS)
 
   IF(APPLE)
 
@@ -60,6 +60,18 @@ MACRO(SNAP_INSTALL_BINARY NAME CLI_NAME CLI_OPTS)
   ENDIF()
 
 ENDMACRO()
+
+# Macro to install one of the supplied command-line programs
+MACRO(SNAP_INSTALL_CLI NAME)
+  IF(APPLE)
+    INSTALL(TARGETS ${NAME} DESTINATION ../bin COMPONENT Runtime)
+  ELSE()
+    INSTALL(TARGETS ${NAME} DESTINATION bin COMPONENT Runtime)
+  ENDIF()
+ENDMACRO()
+
+
+  
 
 get_cmake_property(_variableNames VARIABLES)
 foreach (_variableName ${_variableNames})
@@ -913,6 +925,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/Texture
     ${SNAP_SOURCE_DIR}/Logic/RLEImage
     ${SNAP_SOURCE_DIR}/Logic/Slicing
+    ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
     ${SNAP_SOURCE_DIR}/Submodules/c3d/api
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src
@@ -994,7 +1007,16 @@ SET(CONVERT3D_SOURCE_DIR ${SNAP_SOURCE_DIR}/Submodules/c3d)
 SET(CONVERT3D_BINARY_DIR ${SNAP_BINARY_DIR}/Submodules/c3d)
 
 SET(CONVERT3D_BUILD_AS_SUBPROJECT ON)
+SET(CONVERT3D_SUBPROJECT_BUILD_CLI_TOOLS ON)
+
+# Define this macro so that the subproject knows how to create targets
+SET(CONVERT3D_SUBPROJECT_INSTALL_USE_CUSTOM_MACRO ON)
+MACRO(CONVERT3D_SUBPROJECT_INSTALL_MACRO TARGET_NAME)
+  SNAP_INSTALL_CLI(${TARGET_NAME} ${TARGET_NAME} "")
+ENDMACRO()
+
 ADD_SUBDIRECTORY(${CONVERT3D_SOURCE_DIR})
+
 
 #--------------------------------------------------------------------------------
 # Include Greedy Library as submodule
@@ -1289,7 +1311,7 @@ IF(APPLE)
   ENDIF()
 
   # Install the main executable
-  SNAP_INSTALL_BINARY(${SNAP_BUNDLE_NAME} itksnap "--console")
+  SNAP_INSTALL_GUI(${SNAP_BUNDLE_NAME} itksnap "--console")
 
   # Try adding a link to /usr/local/bin
   INSTALL(CODE "EXECUTE_PROCESS(COMMAND ln -sf /usr/local/bin usr_local_bin WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/../../../)")

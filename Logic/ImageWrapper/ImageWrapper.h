@@ -715,6 +715,9 @@ protected:
 
   // Update the orthogonal and/or non-orthogonal slicing pipelines
   void UpdateSlicingPipelines(ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform);
+
+  /** Write the image to disk with whatever the internal format is */
+  virtual void WriteToFileInInternalFormat(const char *filename, Registry &hints) ITK_OVERRIDE;
 };
 
 #endif // __ImageWrapper_h_
