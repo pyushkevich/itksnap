@@ -61,17 +61,12 @@ MACRO(SNAP_INSTALL_GUI NAME CLI_NAME CLI_OPTS)
 
 ENDMACRO()
 
-# Macro to install one of the supplied command-line programs
-MACRO(SNAP_INSTALL_CLI NAME)
-  IF(APPLE)
-    INSTALL(TARGETS ${NAME} DESTINATION ../bin COMPONENT Runtime)
-  ELSE()
-    INSTALL(TARGETS ${NAME} DESTINATION bin COMPONENT Runtime)
-  ENDIF()
-ENDMACRO()
-
-
-  
+# Install path for command-line tools
+IF(APPLE)
+  SET(SNAP_CLI_INSTALL_PATH "../bin")
+ELSE()
+  SET(SNAP_CLI_INSTALL_PATH "bin")
+ENDIF()
 
 get_cmake_property(_variableNames VARIABLES)
 foreach (_variableName ${_variableNames})
@@ -925,8 +920,10 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/Texture
     ${SNAP_SOURCE_DIR}/Logic/RLEImage
     ${SNAP_SOURCE_DIR}/Logic/Slicing
+    ${SNAP_SOURCE_DIR}/Submodules/c3d
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
+    ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/PovRayIO
     ${SNAP_SOURCE_DIR}/Submodules/c3d/api
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src/ITKFilters/include
@@ -1005,26 +1002,21 @@ SET(SNAP_EXTERNAL_LIBS
 #--------------------------------------------------------------------------------
 SET(CONVERT3D_SOURCE_DIR ${SNAP_SOURCE_DIR}/Submodules/c3d)
 SET(CONVERT3D_BINARY_DIR ${SNAP_BINARY_DIR}/Submodules/c3d)
-
 SET(CONVERT3D_BUILD_AS_SUBPROJECT ON)
 SET(CONVERT3D_SUBPROJECT_BUILD_CLI_TOOLS ON)
-
-# Define this macro so that the subproject knows how to create targets
-SET(CONVERT3D_SUBPROJECT_INSTALL_USE_CUSTOM_MACRO ON)
-MACRO(CONVERT3D_SUBPROJECT_INSTALL_MACRO TARGET_NAME)
-  SNAP_INSTALL_CLI(${TARGET_NAME} ${TARGET_NAME} "")
-ENDMACRO()
-
+SET(CONVERT3D_SUBPROJECT_INSTALL_CLI_TOOLS ON)
+SET(CONVERT3D_SUBPROJECT_CLI_INSTALL_PATH ${SNAP_CLI_INSTALL_PATH})
 ADD_SUBDIRECTORY(${CONVERT3D_SOURCE_DIR})
-
 
 #--------------------------------------------------------------------------------
 # Include Greedy Library as submodule
 #--------------------------------------------------------------------------------
 SET(GREEDY_TOOL_SOURCE_DIR ${SNAP_SOURCE_DIR}/Submodules/greedy)
 SET(GREEDY_TOOL_BINARY_DIR ${SNAP_BINARY_DIR}/Submodules/greedy)
-
 SET(GREEDY_TOOL_BUILD_AS_SUBPROJECT ON)
+SET(GREEDY_TOOL_SUBPROJECT_BUILD_CLI ON)
+SET(GREEDY_TOOL_SUBPROJECT_INSTALL_CLI ON)
+SET(GREEDY_TOOL_SUBPROJECT_CLI_INSTALL_PATH ${SNAP_CLI_INSTALL_PATH})
 ADD_SUBDIRECTORY(${GREEDY_TOOL_SOURCE_DIR})
 
 
@@ -1323,7 +1315,7 @@ IF(APPLE)
   IF(NOT SNAP_USE_QT4)
 
     # Include the qt4 dependent libraries
-    include(DeployQt5)
+    include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
     # Make sure the GIF plugin is included
     get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
@@ -1347,7 +1339,7 @@ ELSEIF(WIN32)
   IF(NOT SNAP_USE_QT4)
 
       # Include the qt4 dependent libraries
-      include(DeployQt5)
+      include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
       # Make sure the GIF plugin is included
       get_property(QT_WIN_PLUGIN TARGET Qt5::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
@@ -1409,7 +1401,7 @@ ELSE()
   IF(NOT SNAP_USE_QT4)
 
     # Include the qt4 dependent libraries
-    include(DeployQt5)
+    include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
     # Add an option to not package QT plugins. This is needed for some special builds,
     # for example on Debian
@@ -1497,14 +1489,14 @@ SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
 #--------------------------------------------------------------------------------
 # Create targets
 
-ADD_CUSTOM_TARGET(upload_nightly 
+ADD_CUSTOM_TARGET(itksnap_upload_nightly
   VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS}
   ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Nightly/${NIGHTLY_TARGET}
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
   COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${NIGHTLY_TARGET}")
 
-ADD_CUSTOM_TARGET(upload_experimental 
+ADD_CUSTOM_TARGET(itksnap_upload_experimental
   VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} 
     ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental/${EXPERIMENTAL_TARGET}
   DEPENDS ${CPACK_TARGET}
