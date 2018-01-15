@@ -878,6 +878,13 @@ SET(TESTING_HEADERS
 # Specify include path
 #--------------------------------------------------------------------------------
 
+# These are the syetem include directories
+SET(SNAP_SYSTEM_INCLUDE_DIRS
+  ${ITK_DIR}/Utilities/zlib
+  ${SNAP_BINARY_DIR}
+  ${OPENGL_INCLUDE_PATH}
+  ${SNAP_QT_INCLUDE_DIRS})
+
 # Due to a limitation in Visual studio 6.0 on the length of include directories
 # that can be specified, (here we are including all the include directories from
 # ITK, VTK, FLTK and SNAP), if the compiler is VS6, we copy the SNAP source files
@@ -895,18 +902,14 @@ IF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     SET( CONFIGURED_SOURCE_FILE "${CONFIGURED_SOURCE_DIRECTORY}/${CONFIGURED_SOURCE_FILE}" )
     CONFIGURE_FILE( ${SourceFile} ${CONFIGURED_SOURCE_FILE} COPYONLY IMMEDIATE )
   ENDFOREACH( SourceFile )
-  INCLUDE_DIRECTORIES(
+  SET(SNAP_INCLUDE_DIRS 
     ${CONFIGURED_SOURCE_DIRECTORY}
-    ${ITK_DIR}/Utilities/zlib
-    ${OPENGL_INCLUDE_PATH}
-    ${QT_QTSCRIPT_INCLUDE_DIR}
-    ${QT_QTSCRIPTTOOLS_INCLUDE_DIR})
+    ${SNAP_SYSTEM_INCLUDE_DIRS})
 
 ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
 
   # Include directories
-  INCLUDE_DIRECTORIES(
-    ${ITK_DIR}/Utilities/zlib
+  SET(SNAP_INCLUDE_DIRS
     ${SNAP_SOURCE_DIR}/Common
     ${SNAP_SOURCE_DIR}/Common/ITKExtras
     ${SNAP_SOURCE_DIR}/Logic
@@ -944,9 +947,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/Registration
     ${SNAP_SOURCE_DIR}/Testing/Logic
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt
-    ${SNAP_BINARY_DIR}
-    ${OPENGL_INCLUDE_PATH}
-    ${SNAP_QT_INCLUDE_DIRS}
+    ${SNAP_SYSTEM_INCLUDE_DIRS}
   )
 
 ENDIF( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
@@ -1056,6 +1057,11 @@ TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
 
+# Set up include directories for these targets
+FOREACH(target ${SNAP_INTERNAL_LIBS})
+  TARGET_INCLUDE_DIRECTORIES(${target} PUBLIC ${SNAP_INCLUDE_DIRS})
+ENDFOREACH()
+
 #--------------------------------------------------------------------------------
 # Define main SNAP executable
 #--------------------------------------------------------------------------------
@@ -1089,6 +1095,7 @@ SET(SNAP_BUNDLE_NAME ITK-SNAP)
 # Configure the executable's sources and libraries
 ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
+TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 
 #--------------------------------------------------------------------------------
 # Testing-related executables
@@ -1116,9 +1123,11 @@ set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)
 
 ADD_EXECUTABLE(SlicingPerformanceTest Testing/Logic/SlicingPerformanceTest.cxx)
 TARGET_LINK_LIBRARIES(SlicingPerformanceTest ${ITK_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(SlicingPerformanceTest PUBLIC ${SNAP_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(testRLE Testing/Logic/testRLE.cxx)
 TARGET_LINK_LIBRARIES(testRLE ${ITK_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(testRLE PUBLIC ${SNAP_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(iteratorTests
     Testing/Logic/itkRegionOfInterestImageFilterTest.cxx
@@ -1131,6 +1140,7 @@ ADD_EXECUTABLE(iteratorTests
     Testing/Logic/itkImageScanlineIteratorTest1.cxx
     Testing/Logic/iteratorTests.cxx)
 TARGET_LINK_LIBRARIES(iteratorTests ${ITK_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(iteratorTests PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME BasicSlicingTestX39 COMMAND itkTestDriver
   --compare ${TESTDATA_DIR}/X39.nii.gz ${TEMP}/X39.nii.gz
@@ -1184,6 +1194,7 @@ add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
 ADD_EXECUTABLE(logic_api_test
     Testing/Logic/IRISApplicationTest.cxx)
 TARGET_LINK_LIBRARIES(logic_api_test ${ITK_LIBRARIES} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(logic_api_test PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME IRISApplicationTest COMMAND logic_api_test)
 
@@ -1243,6 +1254,8 @@ TARGET_LINK_LIBRARIES(Test_OrientationWidget
   ${SNAP_INTERNAL_LIBS}
   ${SNAP_EXTERNAL_LIBS}
 )
+
+TARGET_INCLUDE_DIRECTORIES(Test_OrientationWidget PUBLIC ${SNAP_INCLUDE_DIRS})
 
 INCLUDE(CTest)
 
