@@ -14,9 +14,9 @@ on run argv
 			open
 			set current view of container window to icon view
 			set theViewOptions to the icon view options of container window
-			set background picture of theViewOptions to file ".background:background.png"
+			set background picture of theViewOptions to file ".background:background.tiff"
 			set arrangement of theViewOptions to not arranged
-			set icon size of theViewOptions to 48
+			set icon size of theViewOptions to 120
 			delay 5
 			close
 
@@ -31,10 +31,8 @@ on run argv
 
 				-- Move the icons; this is really finicky, the coordinates don't seem
 				-- to make much sense and if you go too far then ugly scrollbars will appear
-				set position of item "itksnap" to {280, 220}
-				set position of item "ITK-SNAP.app" to {260, 80}
-				set position of item "Applications" to {40, 80}
-        set position of item "usr_local_bin" to {40, 220}
+				set position of item "ITK-SNAP.app" to {100, 150}
+				set position of item "Applications" to {360, 150}
 
 				-- Move these out of the way for users with Finder configured to show all files
 				set position of item ".background" to {161, 500}

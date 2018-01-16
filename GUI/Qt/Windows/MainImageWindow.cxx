@@ -419,6 +419,14 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Start with the "close window" menu item hidden
   ui->actionClose_Window->setVisible(false);
+
+  // Configure the install command-line tools option
+  ui->actionInstallCLI->setVisible(false);
+#ifdef __APPLE__
+  QFileInfo fi(QCoreApplication::applicationDirPath(), "../bin/install_cmdl.sh");
+  if(fi.exists() && fi.isExecutable())
+    ui->actionInstallCLI->setVisible(true);
+#endif
 }
 
 
@@ -2333,4 +2341,28 @@ void MainImageWindow::on_actionClearActive_triggered()
 
   // Unload the wrapper
   m_Model->GetDriver()->UnloadSegmentation(liw);
+}
+
+void MainImageWindow::on_actionInstallCLI_triggered()
+{
+  QFileInfo fi(QCoreApplication::applicationDirPath(), "../bin/install_cmdl.sh");
+  if(fi.exists() && fi.isExecutable())
+    {
+    QString html =
+        "<p>ITK-SNAP is packaged with several useful command-line programs. "
+        "Visit <a href='http://itksnap.org/cmdl'>http://itksnap.org/cmdl</a> "
+        "for a listing of these tools. </p>"
+        "<p>To create links to these programs in <b>/usr/local/bin</b> "
+        "execute the following command in the Terminal App:</p>"
+        "<code> sudo %1 </code>"
+        "<p>To create links in another directory 'my_directory', execute </p>"
+        "<code> sudo %1 my_directory </code>";
+
+    QString html_full = html.arg(fi.absoluteFilePath());
+    QMessageBox msg;
+    msg.setText(html_full);
+    msg.setWindowTitle("Install Command-Line Tools -- ITK-SNAP");
+    msg.setStyleSheet("QLabel{min-width: 700px;}");
+    msg.exec();
+    }
 }

@@ -5,6 +5,7 @@
 # http://www.cmake.org/Wiki/BundleUtilitiesExample
 
 PROJECT(SNAP)
+MESSAGE(STATUS "ITK-SNAP Git Info:")
 
 #--------------------------------------------------------------------------------
 # CMAKE PRELIMINARIES                       
@@ -50,7 +51,7 @@ MACRO(SNAP_INSTALL_GUI NAME CLI_NAME CLI_OPTS)
     CONFIGURE_FILE(${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/execaller.sh ${SNAP_BINARY_DIR}/MacOS/Scripts/${CLI_NAME} @ONLY)
     INSTALL(FILES
             ${SNAP_BINARY_DIR}/MacOS/Scripts/${CLI_NAME}
-            DESTINATION ../../.. COMPONENT Runtime
+            DESTINATION ../bin COMPONENT Runtime
             PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
                         GROUP_EXECUTE GROUP_READ)
   ELSE()
@@ -68,10 +69,11 @@ ELSE()
   SET(SNAP_CLI_INSTALL_PATH "bin")
 ENDIF()
 
-get_cmake_property(_variableNames VARIABLES)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
+# The commented out code below is useful for debugging, it prints all variables in cache
+### get_cmake_property(_variableNames VARIABLES)
+### foreach (_variableName ${_variableNames})
+###     message(STATUS "${_variableName}=${${_variableName}}")
+### endforeach()
 
 
 #--------------------------------------------------------------------------------
@@ -91,8 +93,8 @@ SET(SNAP_VERSION_PATCH 2)
 SET(SNAP_VERSION_QUALIFIER "-beta")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20171129")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Nov 29, 2017")
+SET(SNAP_VERSION_RELEASE_DATE "20180116")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jan 16, 2018")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -113,9 +115,13 @@ get_git_head_revision(GIT_REFSPEC SNAP_VERSION_GIT_SHA1)
 # Get the current git branch
 include(GitBranch)
 get_git_branch(SNAP_VERSION_GIT_BRANCH)
+get_git_commit_date(${SNAP_VERSION_GIT_BRANCH} SNAP_VERSION_GIT_TIMESTAMP)
 
 # Print the Git information
-MESSAGE(STATUS "   GIT Info: BRANCH ${SNAP_VERSION_GIT_BRANCH}, SHA: ${SNAP_VERSION_GIT_SHA1}")
+MESSAGE(STATUS "ITK-SNAP Git Info:")
+MESSAGE(STATUS "  Branch : ${SNAP_VERSION_GIT_BRANCH}")
+MESSAGE(STATUS "  SHA    : ${SNAP_VERSION_GIT_SHA1}")
+MESSAGE(STATUS "  Date   : ${SNAP_VERSION_GIT_TIMESTAMP}")
 
 #--------------------------------------------------------------------------------
 # ENSURE THAT SUBMODULES HAVE BEEN INITIALIZED AND UPDATED
@@ -180,15 +186,11 @@ IF(CMAKE_SYSTEM_NAME MATCHES Darwin AND CMAKE_OSX_ARCHITECTURES)
   ENDIF()
 ENDIF()
 
-MESSAGE(STATUS "   CPACK_SYSTEM_NAME ${CPACK_SYSTEM_NAME}")
-
 IF(NOT SNAP_USE_QT4)
   SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
 ELSE(NOT SNAP_USE_QT4)
   SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}-qt4")
 ENDIF(NOT SNAP_USE_QT4)
-
-MESSAGE(STATUS "   CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME}")
 
 # Additional CPack resources
 SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
@@ -1283,9 +1285,6 @@ ENDFOREACH(DATAFILE)
 MESSAGE(STATUS "=== Installation Section ===")
 MESSAGE(STATUS "   CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR}")
 MESSAGE(STATUS "   CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
-MESSAGE(STATUS "   PACKAGE_DIR ${CPACK_PACKAGE_DIRECTORY}")
-MESSAGE(STATUS "   INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
-MESSAGE(STATUS "   DESTDIR $ENV{DESTDIR}")
 
 #--------------------------------------------------------------------------------
 # Install the application
@@ -1307,6 +1306,7 @@ IF(APPLE)
 
   # The icon
   SET(CPACK_BUNDLE_ICON ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns)
+  SET(CPACK_PACKAGE_ICON ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns)
 
   # Code signing certificate - optional
   SET(SNAP_MACOSX_CODESIGN_CERT "" CACHE STRING "Name of the Apple Developer Certificate to sign application")
@@ -1318,12 +1318,16 @@ IF(APPLE)
   # Install the main executable
   SNAP_INSTALL_GUI(${SNAP_BUNDLE_NAME} itksnap "--console")
 
-  # Try adding a link to /usr/local/bin
-  INSTALL(CODE "EXECUTE_PROCESS(COMMAND ln -sf /usr/local/bin usr_local_bin WORKING_DIRECTORY \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/../../../)")
-
   # Set the DS STORE
   SET(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt)
-  SET(CPACK_DMG_BACKGROUND_IMAGE ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/background.png)
+  SET(CPACK_DMG_BACKGROUND_IMAGE ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/background.tiff)
+
+  # Install the command-line installer
+  INSTALL(FILES
+    ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/install_cmdl.sh
+    DESTINATION ../bin COMPONENT Runtime
+    PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+    GROUP_EXECUTE GROUP_READ)
 
   IF(NOT SNAP_USE_QT4)
 
@@ -1332,6 +1336,8 @@ IF(APPLE)
 
     # Make sure the GIF plugin is included
     get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+
+    get_property(loc TARGET Qt5::QCocoaIntegrationPlugin PROPERTY LOCATION_RELEASE)
 
     # Install with the plugin
     install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")

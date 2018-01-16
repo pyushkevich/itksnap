@@ -187,13 +187,12 @@ function(fixup_qt5_executable executable_in)
 
   set(libs_abs "")
   foreach(lib ${libs})
-    get_filename_component(lib_abs "${lib}" ABSOLUTE)
+    get_filename_component(lib_abs "${lib}" ABSOLUTE BASE_DIR ${CMAKE_INSTALL_PREFIX})
     list(APPEND libs_abs "${lib_abs}")
     if(NOT EXISTS "${lib}")
       message(FATAL_ERROR "Library does not exist: ${lib}")
     endif()
   endforeach()
-  message(STATUS "LibAbs: ${libs_abs}")
 
   resolve_qt5_paths(libs_abs "${executable_path}")
 

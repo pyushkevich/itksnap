@@ -632,6 +632,7 @@ color:rgb(103, 103, 103);
     </property>
     <addaction name="actionAbout"/>
     <addaction name="separator"/>
+    <addaction name="actionInstallCLI"/>
     <addaction name="actionCheck_for_Updates"/>
     <addaction name="separator"/>
     <addaction name="actionDocumentation_Home"/>
@@ -1649,6 +1650,11 @@ color:rgb(103, 103, 103);
    </property>
    <property name="toolTip">
     <string>Unload the segmentation that is currently being edited</string>
+   </property>
+  </action>
+  <action name="actionInstallCLI">
+   <property name="text">
+    <string>Install Command-Line Tools ...</string>
    </property>
   </action>
  </widget>

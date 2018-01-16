@@ -3,12 +3,13 @@
 # Color formatting
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
+CYAN='\033[0;96m'
 BOLD='\033[1m'
 NC='\033[0m' # No Color
 
 function emph()
 {
-  echo "\033[0;4m${@}\033[0m"
+  echo "${CYAN}${@}${NC}"
 }
 
 function prompt_yesno()
@@ -42,7 +43,7 @@ function install_binary()
   src=${3?}
   trg=${4?}
 
-  echo "Installing ${name} '${cmd}' to ${trg}"
+  echo -e "Installing ${name} $(emph ${cmd}) to $(emph ${trg})"
   if [[ -f $trg/$cmd || -L $trg/$cmd ]]; then
     if [[ $trg/$cmd -nt $src/$cmd ]]; then
       echo "  A newer version of '$cmd' is already installed in $trg."
@@ -57,6 +58,7 @@ function install_binary()
 }
 
 # Determine the location of the script itself
+<<'SKIP'
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do 
   # resolve $SOURCE until the file is no longer a symlink
@@ -67,6 +69,9 @@ while [ -h "$SOURCE" ]; do
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+SKIP
+
+DIR="$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )"
 
 # The location of the bin files
 BINDIR=$(dirname $DIR)/bin
@@ -75,10 +80,15 @@ BINDIR=$(dirname $DIR)/bin
 DESTDIR=${1:-"/usr/local/bin"}
 
 # Say what we are doing
-echo -e "${YELLOW}${BOLD}ITK-SNAP Command Line Tool Installer${NC}"
-echo -e "This script will install links to command-line programs included with \"
+echo -e "${BOLD}====================================${NC}"
+echo -e "${BOLD}ITK-SNAP Command Line Tool Installer${NC}"
+echo -e "${BOLD}====================================${NC}"
+echo -e "This script will install links to command-line programs included with" \
         "ITK-SNAP to $(emph $DESTDIR)"
 prompt_yesno "" "Do you wish to continue? [Y/n] " 1
+if [[ $yesno -ne 1 ]]; then
+  exit 0
+fi
 
 # Handle the launcher
 if [[ ! -f $BINDIR/itksnap ]]; then
@@ -94,14 +104,23 @@ cp -a $BINDIR/itksnap $DESTDIR
 install_binary itksnap-wt "ITK-SNAP workspace tool" $BINDIR $DESTDIR
 
 # Prompt whether to install Convert3D
-echo "ITK-SNAP is packaged with Convert3D, a command-line tool"
-echo "for image filtering, image arithmetic, and many useful"
-echo "image processing commands (http://itksnap.org/c3d)"
-prompt_yesno "Install links to Convert3D commands in $DESTDIR? [Y/n] "
+echo "ITK-SNAP is packaged with Convert3D, a command-line tool" \
+  "for image filtering, image arithmetic, and many useful" \
+  "image processing commands (see http://itksnap.org/c3d)"
+prompt_yesno "" "Install links to Convert3D commands? [Y/n] " 1
 
 if [[ $yesno -eq 1 ]]; then
   install_binary c3d "Convert3D tool" $BINDIR $DESTDIR
   install_binary c2d "Convert3D tool for 2D images" $BINDIR $DESTDIR
   install_binary c4d "Convert3D tool for 4D images" $BINDIR $DESTDIR
   install_binary c3d_affine_tool "Convert3D tool for affine transforms" $BINDIR $DESTDIR
+fi
+
+# Prompt whether to install Convert3D
+echo "ITK-SNAP is also packaged with 'greedy', a command-line" \
+  "image registration tool (see https://sites.google.com/view/greedyreg)"
+prompt_yesno "" "Install links to 'greedy'? [Y/n] " 1
+
+if [[ $yesno -eq 1 ]]; then
+  install_binary greedy "Image registration tool" $BINDIR $DESTDIR
 fi

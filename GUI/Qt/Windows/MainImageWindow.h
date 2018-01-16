@@ -308,6 +308,8 @@ private slots:
 
   void on_actionClearActive_triggered();
 
+  void on_actionInstallCLI_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
