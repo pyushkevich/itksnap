@@ -33,9 +33,7 @@
 
 =========================================================================*/
 
-template<typename TPixel>
-unsigned long 
-UndoDataManager<TPixel>::Delta::m_UniqueIDCounter = 0;
+template<typename TPixel> unsigned long UndoDelta<TPixel>::m_UniqueIDCounter = 0;
 
 template<typename TPixel>
 UndoDelta<TPixel>
