@@ -42,9 +42,15 @@ SaveModifiedLayersDialog::SaveModifiedLayersDialog(QWidget *parent) :
   this->setObjectName("dlgSaveModified");
 
   // Resize the table to contents
+#if QT_VERSION >= 0x050000
   ui->tableLayers->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
   ui->tableLayers->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-}
+#else
+  ui->tableLayers->horizontalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+  ui->tableLayers->verticalHeader()->setResizeMode(QHeaderView::ResizeToContents);
+#endif
+
+ }
 
 SaveModifiedLayersDialog::~SaveModifiedLayersDialog()
 {

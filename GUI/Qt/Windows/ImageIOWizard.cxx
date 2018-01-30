@@ -35,6 +35,7 @@
 #include "FileChooserPanelWithHistory.h"
 
 #include "ImageIOWizard/RegistrationPage.h"
+#include "ImageIOWizard/OverlayRolePage.h"
 
 
 namespace imageiowiz {
@@ -84,6 +85,35 @@ AbstractPage::WarningMessage(const IRISWarningList &wl)
     html = QString("<table>%1</table>").arg(html);
     m_OutMessage->setText(html);
     }
+}
+
+bool AbstractPage::PerformIO()
+{
+  // Get the selected format
+  QString format = this->field("Format").toString();
+  QString filename = this->field("Filename").toString();
+
+  ImageIOWizardModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
+
+  try
+    {
+    QtCursorOverride curse(Qt::WaitCursor);
+    m_Model->SetSelectedFormat(fmt);
+    if(m_Model->IsLoadMode())
+      {
+      m_Model->LoadImage(to_utf8(filename));
+      }
+    else
+      {
+      m_Model->SaveImage(to_utf8(filename));
+      }
+    }
+  catch(IRISException &exc)
+    {
+    return ErrorMessage(exc);
+    }
+
+  return true;
 }
 
 bool
@@ -253,45 +283,7 @@ bool SelectFilePage::validatePage()
     }
 
   // Save or load the image
-  try
-    {
-    QtCursorOverride curse(Qt::WaitCursor);
-    m_Model->SetSelectedFormat(fmt);
-    if(m_Model->IsLoadMode())
-      {
-      m_Model->LoadImage(to_utf8(m_FilePanel->absoluteFilename()));
-      }
-    else
-      {
-      m_Model->SaveImage(to_utf8(m_FilePanel->absoluteFilename()));
-      }
-    }
-  catch(IRISException &exc)
-    {
-    return ErrorMessage(exc);
-    }
-
-  return true;
-}
-
-int SelectFilePage::nextId() const
-{
-  if(m_Model->IsSaveMode())
-    return -1;
-
-  // Get the selected format
-  QString format = m_FilePanel->activeFormat();
-  ImageIOWizardModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
-
-  // Depending on the format, return the next page
-  if(fmt == GuidedNativeImageIO::FORMAT_RAW)
-    return ImageIOWizard::Page_Raw;
-  else if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
-    return ImageIOWizard::Page_DICOM;
-  else if(m_Model->GetUseRegistration())
-    return ImageIOWizard::Page_Coreg;
-  else
-    return ImageIOWizard::Page_Summary;
+  return this->PerformIO();
 }
 
 void SelectFilePage::onFilenameChanged(QString absoluteFilename)
@@ -522,13 +514,6 @@ bool DICOMPage::validatePage()
   return true;
 }
 
-int DICOMPage::nextId() const
-{
-  if(m_Model->GetUseRegistration())
-    return ImageIOWizard::Page_Coreg;
-  else
-    return ImageIOWizard::Page_Summary;
-}
 
 bool DICOMPage::isComplete() const
 {
@@ -689,14 +674,6 @@ void RawPage::initializePage()
   m_InEndian->setCurrentIndex(ien);
 }
 
-int RawPage::nextId() const
-{
-  if(m_Model->GetUseRegistration())
-    return ImageIOWizard::Page_Coreg;
-  else
-    return ImageIOWizard::Page_Summary;
-}
-
 bool RawPage::validatePage()
 {
   // Clear error state
@@ -756,12 +733,20 @@ ImageIOWizard::ImageIOWizard(QWidget *parent) :
   // Give ourselves a name
   this->setObjectName("wizImageIO");
 
+  // Set consistent style on all systems
+  this->setWizardStyle(QWizard::ClassicStyle);
+
+  // Use parent widget's attributes
+  if(parent)
+    this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
+
   // Add pages to the wizard
   setPage(Page_File, new SelectFilePage(this));
   setPage(Page_Summary, new SummaryPage(this));
   setPage(Page_DICOM, new DICOMPage(this));
   setPage(Page_Raw, new RawPage(this));
   setPage(Page_Coreg, new RegistrationPage(this));
+  setPage(Page_OverlayRole, new OverlayRolePage(this));
 
 }
 
@@ -780,6 +765,68 @@ void ImageIOWizard::SetModel(ImageIOWizardModel *model)
     this->setWindowTitle("Open Image - ITK-SNAP");
   else
     this->setWindowTitle("Save Image - ITK-SNAP");
+}
+
+int ImageIOWizard::nextId() const
+{
+  // Determine the sequence of pages based on current state
+  std::list<int> pages;
+
+  // Always start with the file page
+  pages.push_back(Page_File);
+
+  // All other pages only occur in load mode
+  if(m_Model->IsLoadMode())
+    {
+    // DICOM or RAW page?
+    ImageIOWizardModel::FileFormat fmt =
+        m_Model->GetFileFormatByName(to_utf8(this->field("Format").toString()));
+
+    if(fmt == GuidedNativeImageIO::FORMAT_RAW)
+      pages.push_back(Page_Raw);
+    else if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
+      pages.push_back(Page_DICOM);
+
+    // Overlay display page?
+    if(m_Model->IsOverlay())
+      pages.push_back(Page_OverlayRole);
+
+    // Registration page
+    if(m_Model->GetUseRegistration())
+      pages.push_back(Page_Coreg);
+
+    // Summary page
+    pages.push_back(Page_Summary);
+    pages.push_back(-1);
+    }
+  else
+    {
+    pages.push_back(-1);
+    }
+
+  // Find the page
+  for(std::list<int>::const_iterator it = pages.begin(); it != pages.end(); ++it)
+    {
+    if(*it == this->currentId())
+      {
+      ++it;
+      return *it;
+      }
+    }
+
+  return -1;
+}
+
+int ImageIOWizard::nextPageAfterLoad()
+{
+  if(m_Model->GetUseRegistration())
+    return ImageIOWizard::Page_Coreg;
+  else if(m_Model->IsOverlay() && m_Model->IsLoadMode())
+    return ImageIOWizard::Page_OverlayRole;
+  else
+    return ImageIOWizard::Page_Summary;
+
+
 }
 
 

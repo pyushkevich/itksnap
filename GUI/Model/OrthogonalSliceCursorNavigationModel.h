@@ -68,7 +68,7 @@ public:
   void ProcessScrollGesture(float gLength);
 
   // Check if the user press position is inside the thumbnail
-  bool CheckThumbnail(Vector2i xCanvas);
+  bool CheckZoomThumbnail(Vector2i xCanvas);
 
   // Process pan operation (parameter is the gesture vector, i.e., mouse
   // drag or three-finger gesture)

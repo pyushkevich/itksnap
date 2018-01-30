@@ -18,7 +18,8 @@ void SnakeModeRenderer::paintGL()
   IRISApplication *app = m_Model->GetParent()->GetDriver();
 
   if(app->IsSnakeModeActive()
-     && !this->GetParentRenderer()->IsThumbnailDrawing())
+     && !this->GetParentRenderer()->IsDrawingZoomThumbnail()
+     && !this->GetParentRenderer()->IsDrawingLayerThumbnail())
     {
     // Bubbles are drawn only when on the bubbles page
     if(m_Model->CheckState(SnakeWizardModel::UIF_BUBBLE_MODE))

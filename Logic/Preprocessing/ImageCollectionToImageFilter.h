@@ -39,6 +39,8 @@
 #include <itkImageToImageFilter.h>
 
 #include <itkImageRegionIteratorWithIndex.h>
+#include <itkConstNeighborhoodIterator.h>
+
 
 /**
  * This class is derived from the itk::iterator hierarchy and used to gain
@@ -140,8 +142,14 @@ public:
   /** Add an image that must be dynamically castable to either TImage or TVectorImage */
   void AddImage(itk::DataObject *image);
 
+  /** Optional neighborhood support (used by Value(comp, offset)) */
+  void SetRadius(const SizeType &size);
+
   /** Get the number of components across the collection */
   itkGetMacro(TotalComponents, unsigned int)
+
+  /** Get the optional neighborhood size */
+  itkGetMacro(NeighborhoodSize, int)
 
   /** Standard iterator operations */
   bool IsAtEnd() const { return m_InternalIter.IsAtEnd(); }
@@ -155,6 +163,15 @@ public:
   InternalPixelType &Value(unsigned int comp)
   {
     OffsetValueType offset = m_InternalIter.GetOffset();
+    InternalPixelType *dataPtr = m_Start[comp] + offset * m_OffsetScaling[comp];
+    return *(dataPtr);
+  }
+
+  /** Get a pointer to a component in the neighborhood of pointed voxel (no bounds check) */
+  InternalPixelType &NeighborValue(unsigned int comp, unsigned int nbr_idx)
+  {
+    OffsetValueType offset = m_InternalIter.GetOffset();
+    offset += m_NeighborhoodOffsetTable[nbr_idx];
     InternalPixelType *dataPtr = m_Start[comp] + offset * m_OffsetScaling[comp];
     return *(dataPtr);
   }
@@ -191,6 +208,18 @@ protected:
 
   // This method initializes all the iteration mechanics
   void ComputeMechanics(ImageBaseType *image);
+
+  // Compute neighborhood offsets
+  void ComputeNeighborhoodOffsets();
+
+  // Radius for the optional neighborhood support
+  SizeType m_Radius;
+
+  // Offset table for optional neighborhood support
+  std::vector<int> m_NeighborhoodOffsetTable;
+
+  // Size of the neighborhood
+  int m_NeighborhoodSize;
 };
 
 
@@ -200,6 +229,8 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
 {
   m_Region = region;
   m_TotalComponents = 0;
+  m_Radius.Fill(0);
+  m_NeighborhoodSize = 1;
 }
 
 template <class TImage, class TVectorImage>
@@ -265,6 +296,21 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
             "Wrong input type to ImageCollectionConstRegionIteratorWithIndex");
       }
     }
+
+
+}
+
+template <class TImage, class TVectorImage>
+void
+ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
+::SetRadius(const SizeType &radius)
+{
+  // Set the radius of the neighborhood
+  m_Radius = radius;
+
+  // Compute offsets if an image has been set
+  if(this->GetTotalComponents() > 0)
+      this->ComputeNeighborhoodOffsets();
 }
 
 template <class TImage, class TVectorImage>
@@ -276,6 +322,31 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
   m_DummyImage->SetRegions(image->GetBufferedRegion());
 
   m_InternalIter = InternalIteratorType(m_DummyImage, m_Region);
+
+  this->ComputeNeighborhoodOffsets();
+}
+
+
+template <class TImage, class TVectorImage>
+void
+ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
+::ComputeNeighborhoodOffsets()
+{
+  typedef itk::ConstNeighborhoodIterator<ImageType> DummyIter;
+  DummyIter diter(m_Radius, m_DummyImage, m_DummyImage->GetBufferedRegion());
+
+  // Compute offsets in memory
+  m_NeighborhoodOffsetTable.resize(diter.Size(), 0);
+  for(int i = 0; i < diter.Size(); i++)
+    {
+    OffsetType offset = diter.GetOffset(i);
+    IndexType index;
+    for(int j = 0; j < TImage::ImageDimension; j++)
+      index[j] = offset[j];
+    m_NeighborhoodOffsetTable[i] = m_DummyImage->ComputeOffset(index);
+    }
+
+  m_NeighborhoodSize = diter.Size();
 }
 
 

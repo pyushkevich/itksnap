@@ -125,6 +125,7 @@ public:
 public slots:
 
   void LoadRecentActionTriggered();
+  void LoadRecentOverlayActionTriggered();
   void LoadRecentProjectActionTriggered();
 
   void AdjustMarginsForDocks();
@@ -280,6 +281,12 @@ private slots:
 
   void on_actionToggleJsrcVis_triggered();
 
+  void on_actionToggleLayerLayout_triggered();
+
+  void on_actionActivateNextLayer_triggered();
+
+  void on_actionActivatePreviousLayer_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
@@ -293,7 +300,8 @@ private:
   void UpdateWindowTitle();
   void UpdateProjectMenuItems();
   void UpdateRecentProjectsMenu();
-
+  void UpdateLayerLayoutActions();
+  void UpdateSelectedLayerActions();
 
   // Save the segmentation (interactively or not). Return true if save was
   // successful

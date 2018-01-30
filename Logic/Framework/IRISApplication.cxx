@@ -87,6 +87,8 @@
 #include "RFClassificationEngine.h"
 #include "RandomForestClassifyImageFilter.h"
 #include "LabelUseHistory.h"
+#include "ImageAnnotationData.h"
+
 
 
 #include <stdio.h>
@@ -95,7 +97,6 @@
 
 IRISApplication
 ::IRISApplication() 
-: m_UndoManager(4,200000)
 {
   // Create a new system interface
   m_SystemInterface = new SystemInterface();
@@ -215,7 +216,7 @@ IRISApplication
   unsigned int nCopied = 0;
   while(!itLabel.IsAtEnd())
     {
-    if(itLabel.Value() != passThroughLabel)
+    if(itLabel.Value() != passThroughLabel || !roi.IsSeedWithCurrentSegmentation())
       itLabel.Value() = (LabelType) 0;
     else
       nCopied++;
@@ -492,11 +493,16 @@ void IRISApplication::UnloadOverlay(ImageWrapperBase *ovl)
   SaveMetaDataAssociatedWithLayer(ovl, OVERLAY_ROLE);
 
   // Unload this overlay
+  unsigned long ovl_id = ovl->GetUniqueId();
   m_IRISImageData->UnloadOverlay(ovl);
 
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Check if the selected layer needs to be updated (default to main)
+  if(m_GlobalState->GetSelectedLayerId() == ovl_id)
+    m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
@@ -513,6 +519,9 @@ void IRISApplication::UnloadAllOverlays()
   // for overlay, we don't want to change the cursor location
   // just force the IRISSlicer to update
   m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // The selected layer should revert to main
+  m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
@@ -536,10 +545,6 @@ IRISApplication
   // Reset the segmentation image
   this->m_IRISImageData->ResetSegmentationImage();
 
-  // Clear the undo buffer
-  m_UndoManager.Clear();
-  m_UndoManager.SetCumulativeDelta(NULL);
-
   // Fire the appropriate event
   InvokeEvent(LayerChangeEvent());
   InvokeEvent(SegmentationChangeEvent());
@@ -556,6 +561,39 @@ IRISApplication
 
   // Fire the appropriate event
   InvokeEvent(LayerChangeEvent());
+  InvokeEvent(SegmentationChangeEvent());
+}
+
+void
+IRISApplication
+::UpdateSNAPSegmentationImage(GuidedNativeImageIO *io)
+{
+  // This has to happen in 'pure' SNAP mode
+  assert(IsSnakeModeActive());
+
+  // Cast the image to label type
+  CastNativeImage<LabelImageType> caster;
+  LabelImageType::Pointer imgLabel = caster(io);
+
+  // The header of the label image is made to match that of the grey image
+  imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());
+  imgLabel->SetSpacing(m_CurrentImageData->GetMain()->GetImageBase()->GetSpacing());
+  imgLabel->SetDirection(m_CurrentImageData->GetMain()->GetImageBase()->GetDirection());
+
+  // Update the iris data
+  m_CurrentImageData->SetSegmentationImage(imgLabel);
+
+  // Update filenames
+  m_CurrentImageData->GetSegmentation()->SetFileName(io->GetFileNameOfNativeImage());
+
+  // Set the loaded labels as valid
+  LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
+  LabelType *buffer = seg->GetBufferPointer();
+  LabelType *buffer_end = buffer + seg->GetPixelContainer()->Size();
+  while (buffer < buffer_end)
+    m_ColorLabelTable->SetColorLabelValid(*buffer++, true);
+
+  // Let the GUI know that segmentation changed
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -585,24 +623,11 @@ IRISApplication
   m_SystemInterface->GetHistoryManager()->UpdateHistory(
         "LabelImage", io->GetFileNameOfNativeImage(), true);
 
-
-  // Reset the UNDO manager
-  m_UndoManager.Clear();
-
-  // Store the current segmentation image as the cumulative delta in the undo
-  // manager.
-  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
-  LabelImageType *seg = m_IRISImageData->GetSegmentation()->GetImage();
-  LabelType *buffer = seg->GetBufferPointer();
-  LabelType *buffer_end = buffer + seg->GetPixelContainer()->Size();
-  while (buffer < buffer_end)
-    new_cumulative->Encode(*buffer++);
-
-  new_cumulative->FinishEncoding();
-  m_UndoManager.SetCumulativeDelta(new_cumulative);
-
   // Now we can use the RLE encoding of the segmentation to quickly determine
   // which labels are valid
+  // TODO: this will become unnecessary when we move to compressed segmentations!
+  GenericImageData::UndoManagerType::Delta *new_cumulative =
+      m_IRISImageData->GetCumulativeUndoDelta();
   for(size_t j = 0; j < new_cumulative->GetNumberOfRLEs(); j++)
     {
     LabelType label = new_cumulative->GetRLEValue(j);
@@ -676,9 +701,6 @@ IRISApplication
     double zSlice,
     const std::string &undoTitle)
 {
-  // Only in IRIS mode
-  assert(!IsSnakeModeActive());
-
   // Get the segmentation image
   LabelImageType *seg = m_CurrentImageData->GetSegmentation()->GetImage();
 
@@ -951,57 +973,8 @@ void
 IRISApplication
 ::StoreUndoPoint(const char *text)
 {
-  // Set the current state as the undo point. We store the difference between
-  // the last 'undo' image and the current segmentation image, and then copy
-  // the current segmentation image into the undo image
-  LabelImageWrapper *seg = m_IRISImageData->GetSegmentation();
-  UndoManagerType::Delta *new_cumulative = new UndoManagerType::Delta();
-
-  LabelType *dseg = seg->GetVoxelPointer();
-  size_t n = seg->GetNumberOfVoxels();
-
-  // Create the Undo delta object
-  UndoManagerType::Delta *delta = new UndoManagerType::Delta();
-
-  // Get the old cumulative delta
-  UndoManagerType::Delta *old_cumulative = m_UndoManager.GetCumulativeDelta();
-
-  // Run over the old cumulative data
-  if(old_cumulative)
-    {
-    for(size_t i = 0; i < old_cumulative->GetNumberOfRLEs(); i++)
-      {
-      size_t rle_len = old_cumulative->GetRLELength(i);
-      LabelType rle_val = old_cumulative->GetRLEValue(i);
-
-      for(size_t j = 0; j < rle_len; j++)
-        {
-        delta->Encode(*dseg - rle_val);
-        new_cumulative->Encode(*dseg);
-        dseg++;
-        }
-      }
-
-    // Important last step!
-    delta->FinishEncoding();
-    new_cumulative->FinishEncoding();
-    }
-  else
-    {
-    LabelType *dseg_end = dseg + n;
-    for(; dseg < dseg_end; ++dseg)
-      {
-      // TODO: add code to duplicate
-      delta->Encode(*dseg);
-      }
-
-    delta->FinishEncoding();
-    *new_cumulative = *delta;
-    }
-
-  // Add the delta object
-  m_UndoManager.AppendDelta(delta);
-  m_UndoManager.SetCumulativeDelta(new_cumulative);
+  // Delegate to the image data
+  m_CurrentImageData->StoreUndoPoint(text);
 
   // TODO: I am not sure this is the best place for this code. I think it's a
   // good idea to migrate all of the code that deals with updating the
@@ -1020,14 +993,15 @@ void
 IRISApplication
 ::ClearUndoPoints()
 {
-  m_UndoManager.Clear();
+  m_IRISImageData->ClearUndoPoints();
+  m_SNAPImageData->ClearUndoPoints();
 }
 
 bool
 IRISApplication
 ::IsUndoPossible()
 {
-  return m_UndoManager.IsUndoPossible();
+  return m_CurrentImageData->IsUndoPossible();
 }
 
 /*
@@ -1076,43 +1050,7 @@ void
 IRISApplication
 ::Undo()
 {
-  // In order to undo, we must take the 'current' delta and apply
-  // it to the image
-  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForUndo();
-  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
-
-  LabelImageWrapper *imSeg = m_IRISImageData->GetSegmentation();
-  LabelType *dseg = imSeg->GetVoxelPointer();
-
-  // Applying the delta means adding
-  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
-    {
-    size_t n = delta->GetRLELength(i);
-    LabelType d = delta->GetRLEValue(i);
-    if(d == 0)
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        cumulative->Encode(*dseg);
-        ++dseg;
-        }
-      }
-    else
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        *dseg -= d;
-        cumulative->Encode(*dseg);
-        ++dseg;
-        }
-      }
-    }
-
-  cumulative->FinishEncoding();
-  m_UndoManager.SetCumulativeDelta(cumulative);
-
-  // Set modified flags
-  imSeg->GetImage()->Modified();
+  m_CurrentImageData->Undo();
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -1120,91 +1058,14 @@ bool
 IRISApplication
 ::IsRedoPossible()
 {
-  return m_UndoManager.IsRedoPossible();
+  return m_CurrentImageData->IsRedoPossible();
 }
-
-/*
-void
-IRISApplication
-::Redo()
-{
-  // In order to undo, we must take the 'current' delta and apply
-  // it to the image
-  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForRedo();
-
-  LabelImageWrapper *imUndo = m_IRISImageData->GetUndoImage();
-  LabelImageWrapper *imSeg = m_IRISImageData->GetSegmentation();
-  LabelType *dundo = imUndo->GetVoxelPointer();
-  LabelType *dseg = imSeg->GetVoxelPointer();
-
-  // Applying the delta means adding 
-  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
-    {
-    size_t n = delta->GetRLELength(i);
-    LabelType d = delta->GetRLEValue(i);
-    if(d == 0)
-      {
-      dundo += n;
-      dseg += n;
-      }
-    else
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        *dundo += d;
-        *dseg = *dundo;
-        ++dundo; ++dseg;
-        }
-      }
-    }
-
-  // Set modified flags
-  imSeg->GetImage()->Modified();
-  InvokeEvent(SegmentationChangeEvent());
-}
-*/
 
 void
 IRISApplication
 ::Redo()
 {
-  // In order to undo, we must take the 'current' delta and apply
-  // it to the image
-  UndoManagerType::Delta *delta = m_UndoManager.GetDeltaForRedo();
-  LabelImageWrapper *imSeg = m_IRISImageData->GetSegmentation();
-  LabelType *dseg = imSeg->GetVoxelPointer();
-
-  UndoManagerType::Delta *cumulative = new UndoManagerType::Delta();
-
-  // Applying the delta means adding
-  for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
-    {
-    size_t n = delta->GetRLELength(i);
-    LabelType d = delta->GetRLEValue(i);
-    if(d == 0)
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        cumulative->Encode(*dseg);
-        ++dseg;
-        }
-      }
-    else
-      {
-      for(size_t j = 0; j < n; j++)
-        {
-        *dseg += d;
-        cumulative->Encode(*dseg);
-        ++dseg;
-        }
-      }
-    }
-
-  cumulative->FinishEncoding();
-  m_UndoManager.SetCumulativeDelta(cumulative);
-
-  // Set modified flags
-  imSeg->GetImage()->Modified();
+  m_CurrentImageData->Redo();
   InvokeEvent(SegmentationChangeEvent());
 }
 
@@ -1269,6 +1130,9 @@ IRISApplication
     TransferCursor(m_SNAPImageData, m_IRISImageData);
     }
     InvokeEvent(MainImageDimensionsChangeEvent());
+
+    // Set the selected layer ID to the main image
+    m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
     }
 }
 
@@ -1291,6 +1155,9 @@ void IRISApplication
     // Upon entering this mode, we need reset the active tools
     m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE);
     m_GlobalState->SetToolbarMode3D(TRACKBALL_MODE);
+
+    // Set the selected layer ID to the main image
+    m_GlobalState->SetSelectedLayerId(m_SNAPImageData->GetMain()->GetUniqueId());
     }
 }
 
@@ -1794,11 +1661,12 @@ IRISApplication
 
   // Add the image as the current grayscale overlay
   m_IRISImageData->AddOverlay(io);
+  ImageWrapperBase *layer = m_IRISImageData->GetLastOverlay();
 
   // Set the filename of the overlay
   // TODO: this is cumbersome, could we just initialize the wrapper from the
   // GuidedNativeImageIO without passing all this junk around?
-  m_IRISImageData->GetLastOverlay()->SetFileName(io->GetFileNameOfNativeImage());
+  layer->SetFileName(io->GetFileNameOfNativeImage());
 
   // Add the overlay to the history
   m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), true);
@@ -1810,23 +1678,57 @@ IRISApplication
   // Apply the default color map for overlays
   std::string deflt_preset =
       m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
-  m_ColorMapPresetManager->SetToPreset(
-        m_IRISImageData->GetLastOverlay()->GetDisplayMapping()->GetColorMap(),
-        deflt_preset);
+  m_ColorMapPresetManager->SetToPreset(layer->GetDisplayMapping()->GetColorMap(),
+                                       deflt_preset);
 
   // Initialize the layer-specific segmentation parameters
-  CreateSegmentationSettings(m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE);
+  CreateSegmentationSettings(layer, OVERLAY_ROLE);
 
   // Read and apply the project-level settings associated with the main image
-  LoadMetaDataAssociatedWithLayer(
-        m_IRISImageData->GetLastOverlay(), OVERLAY_ROLE, metadata);
+  LoadMetaDataAssociatedWithLayer(layer, OVERLAY_ROLE, metadata);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image
   if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
-    {
-    AutoContrastLayerOnLoad(m_IRISImageData->GetLastOverlay());
-    }
+    AutoContrastLayerOnLoad(layer);
+
+  // Set the selected layer ID to be the new overlay
+  m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
+
+  // Fire event
+  InvokeEvent(LayerChangeEvent());
+}
+
+void
+IRISApplication
+::AddDerivedOverlayImage(ImageWrapperBase *overlay)
+{
+  assert(this->IsMainImageLoaded());
+  ImageWrapperBase *layer = m_CurrentImageData->GetLastOverlay();
+
+  // Add the image as the current grayscale overlay
+  m_CurrentImageData->AddOverlay(overlay);
+
+  // for overlay, we don't want to change the cursor location
+  // just force the IRISSlicer to update
+  m_CurrentImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
+
+  // Apply the default color map for overlays
+  std::string deflt_preset =
+      m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
+  m_ColorMapPresetManager->SetToPreset(layer->GetDisplayMapping()->GetColorMap(),
+                                       deflt_preset);
+
+  // Initialize the layer-specific segmentation parameters
+  CreateSegmentationSettings(layer, OVERLAY_ROLE);
+
+  // If the default is to auto-contrast, perform the contrast adjustment
+  // operation on the image
+  if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
+    AutoContrastLayerOnLoad(layer);
+
+  // Set the selected layer ID to be the new overlay
+  m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
 
   // Fire event
   InvokeEvent(LayerChangeEvent());
@@ -1929,14 +1831,17 @@ IRISApplication
   // Load the image into the current image data object
   m_IRISImageData->SetMainImage(io);
 
+  // Get a pointer to the resulting wrapper
+  ImageWrapperBase *layer = m_IRISImageData->GetMain();
+
   // Set the filename and nickname of the image wrapper
-  m_IRISImageData->GetMain()->SetFileName(io->GetFileNameOfNativeImage());
+  layer->SetFileName(io->GetFileNameOfNativeImage());
 
   // Update the preprocessing settings to defaults.
   m_EdgePreprocessingSettings->InitializeToDefaults();
 
   // Initialize the layer-specific segmentation parameters
-  CreateSegmentationSettings(m_IRISImageData->GetMain(), MAIN_ROLE);
+  CreateSegmentationSettings(layer, MAIN_ROLE);
 
   // Update the system's history list
   m_HistoryManager->UpdateHistory("MainImage", io->GetFileNameOfNativeImage(), false);
@@ -1946,41 +1851,40 @@ IRISApplication
   m_GlobalState->SetSegmentationROI(io->GetNativeImage()->GetBufferedRegion());
 
   // Read and apply the project-level settings associated with the main image
-  LoadMetaDataAssociatedWithLayer(
-        m_IRISImageData->GetMain(), MAIN_ROLE, metadata);
+  LoadMetaDataAssociatedWithLayer(layer, MAIN_ROLE, metadata);
+
+  // The main image may not be sticky, but in old versions of SNAP that was
+  // allowed, so we force override
+  if(layer->IsSticky())
+    layer->SetSticky(false);
 
   // Fire the dimensions change event
   InvokeEvent(MainImageDimensionsChangeEvent());
 
   // Update the crosshairs position to the center of the image
-  Vector3ui cursor = m_IRISImageData->GetMain()->GetSize();
-  cursor /= 2;
-  this->SetCursorPosition(cursor);
+  this->SetCursorPosition(layer->GetSize() / 2u);
 
   // This line forces the cursor to be propagated to the image even if the
   // crosshairs positions did not change from their previous values
-  this->GetIRISImageData()->SetCrosshairs(cursor);
+  this->GetIRISImageData()->SetCrosshairs(layer->GetSize() / 2u);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image
   if(m_GlobalState->GetDefaultBehaviorSettings()->GetAutoContrast())
-    {
-    AutoContrastLayerOnLoad(m_IRISImageData->GetMain());
-    }
+    AutoContrastLayerOnLoad(layer);
 
   // Save the thumbnail for the current image. This ensures that a thumbnail
   // is created even if the application crashes or is killed.
-  m_CurrentImageData->GetMain()->WriteThumbnail(
+  layer->WriteThumbnail(
         m_SystemInterface->GetThumbnailAssociatedWithFile(
           io->GetFileNameOfNativeImage().c_str()).c_str(), 128);
-
-  // Reset the UNDO manager
-  m_UndoManager.Clear();
-  m_UndoManager.SetCumulativeDelta(NULL);
 
   // We also want to reset the label history at this point, as these are
   // very different labels
   m_LabelUseHistory->Reset();
+
+  // Make the main image 'selected'
+  m_GlobalState->SetSelectedLayerId(layer->GetUniqueId());
 }
 
 void IRISApplication::LoadMetaDataAssociatedWithLayer(
@@ -2193,19 +2097,25 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
   if(role == MAIN_ROLE)
     {
     history = "AnatomicImage";
-    category = "Main Image";
+    category = "Image";
     }
 
   else if(role == LABEL_ROLE)
     {
     history = "LabelImage";
     category = "Segmentation Image";
+
+    if(this->IsSnakeModeActive() && this->GetPreprocessingMode() == PREPROCESS_RF)
+      {
+      history = "ClassifierSamples";
+      category = "Classifier Samples Image";
+      }
     }
 
   else if(role == OVERLAY_ROLE)
     {
     history = "AnatomicImage";
-    category = "Overlay Image";
+    category = "Image";
     }
 
   else if(role == SNAP_ROLE)
@@ -2246,6 +2156,7 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
   // Create delegate
   SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
   delegate->Initialize(this, layer, history);
+  delegate->SetCategory(category);
 
   // Return the delegate
   return delegate.GetPointer();
@@ -2296,6 +2207,10 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
     // Save the metadata associated with the layer
     SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
     }
+
+  // Save the annotations in the workspace
+  Registry &ann_folder = preg.Folder("Annotations");
+  this->m_IRISImageData->GetAnnotations()->SaveAnnotations(ann_folder);
 }
 
 void IRISApplication::SaveProject(const std::string &proj_file)
@@ -2396,7 +2311,9 @@ void IRISApplication::OpenProject(
 
     // Check if the main has been loaded
     if(role == MAIN_ROLE)
-      main_loaded = true;
+      {
+      main_loaded = true;      
+      }
     }
 
   // If main has not been loaded, throw an exception
@@ -2409,6 +2326,13 @@ void IRISApplication::OpenProject(
   // Update the history
   m_SystemInterface->GetHistoryManager()->
       UpdateHistory("Project", proj_file_full, false);
+
+  // Load the annotations
+  if(preg.HasFolder("Annotations"))
+    {
+    Registry &ann_folder = preg.Folder("Annotations");
+    m_IRISImageData->GetAnnotations()->LoadAnnotations(ann_folder);
+    }
 
   // Simulate saving the project into a registy that will be cached. This
   // allows us to check later whether the project state has changed.
@@ -2440,6 +2364,25 @@ bool IRISApplication::IsProjectFile(const char *filename)
   {
   return false;
   }
+}
+
+
+void IRISApplication::SaveAnnotations(const char *filename)
+{
+  Registry reg;
+  m_CurrentImageData->GetAnnotations()->SaveAnnotations(reg);
+  reg.WriteToXMLFile(filename);
+
+  m_SystemInterface->GetHistoryManager()->UpdateHistory("Annotations", filename, true);
+}
+
+void IRISApplication::LoadAnnotations(const char *filename)
+{
+  Registry reg;
+  reg.ReadFromXMLFile(filename);
+  m_CurrentImageData->GetAnnotations()->LoadAnnotations(reg);
+
+  m_SystemInterface->GetHistoryManager()->UpdateHistory("Annotations", filename, true);
 }
 
 
@@ -2701,7 +2644,8 @@ void IRISApplication::EnterRandomForestPreprocessingMode()
   bool can_use_saved_classifier =
       (m_LastUsedRFClassifier &&
        m_LastUsedRFClassifierComponents ==
-       m_ClassificationEngine->GetNumberOfComponents());
+       m_ClassificationEngine->GetNumberOfComponents() &&
+       m_LastUsedRFClassifier->IsValidClassifier());
 
   if(can_use_saved_classifier)
     {
@@ -2727,6 +2671,10 @@ void IRISApplication::EnterRandomForestPreprocessingMode()
   m_RandomForestPreviewWrapper->AttachInputs(m_SNAPImageData);
   m_RandomForestPreviewWrapper->AttachOutputWrapper(m_SNAPImageData->GetSpeed());
   m_RandomForestPreviewWrapper->SetParameters(m_ClassificationEngine->GetClassifier());
+
+  // Switch segmentation to examples
+  m_SNAPImageData->SwitchLabelImageToExamples();
+  InvokeEvent(SegmentationChangeEvent());
 }
 
 #include "RandomForestClassifier.h"
@@ -2750,6 +2698,10 @@ void IRISApplication::LeaveRandomForestPreprocessingMode()
 
   // Clear the classification engine
   m_ClassificationEngine = NULL;
+
+  // Switch segmentation to examples
+  m_SNAPImageData->SwitchLabelImageToMainSegmentation();
+  InvokeEvent(SegmentationChangeEvent());
 }
 
 void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)

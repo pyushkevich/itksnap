@@ -1,5 +1,5 @@
 // Read the function library
-thread.source("Library");
+include("Library");
 
 // Open the test workspace
 openWorkspace("tensor.itksnap");
@@ -21,7 +21,7 @@ engine.findChild(layerdialog, "tabWidget").setCurrentWidget(cmpcolormap);
 
 //=== Select the color map preset we want
 var inpreset = engine.findChild(cmpcolormap, "inPreset");
-inpreset.setCurrentText("Summer");
+inpreset.setCurrentIndex(8);
 
 //=== Close the inspector dialog
 layerdialog.close();

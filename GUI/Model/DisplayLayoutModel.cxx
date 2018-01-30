@@ -2,6 +2,7 @@
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
+#include <algorithm>
 
 DisplayLayoutModel::DisplayLayoutModel()
 {
@@ -43,6 +44,17 @@ DisplayLayoutModel::DisplayLayoutModel()
   m_SliceViewLayerTilingModel->Rebroadcast(
         this, LayerLayoutChangeEvent(), ValueChangedEvent());
 
+  // The number of ground levels model
+  m_NumberOfGroundLevelLayersModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetNumberOfGroundLevelLayersValue);
+
+  // The derived model must react to changes to the internal values
+  m_NumberOfGroundLevelLayersModel->Rebroadcast(
+        this, LayerLayoutChangeEvent(), ValueChangedEvent());
+
+  // Thumbnail size
+  m_ThumbnailRelativeSizeModel = NewRangedConcreteProperty(16.0, 0.0, 40.0, 1.0);
+  Rebroadcast(m_ThumbnailRelativeSizeModel, ValueChangedEvent(), LayerLayoutChangeEvent());
 }
 
 void DisplayLayoutModel::SetParentModel(GlobalUIModel *parentModel)
@@ -74,6 +86,53 @@ AbstractPropertyModel<LayerLayout, TrivialDomain> *
 DisplayLayoutModel::GetSliceViewLayerLayoutModel() const
 {
   return m_ParentModel->GetGlobalState()->GetSliceViewLayerLayoutModel();
+}
+
+void DisplayLayoutModel::ToggleSliceViewLayerLayout()
+{
+  LayerLayout ll = this->GetSliceViewLayerLayoutModel()->GetValue();
+  if(ll == LAYOUT_TILED)
+    {
+    this->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_STACKED);
+    }
+  else
+    {
+    this->GetSliceViewLayerLayoutModel()->SetValue(LAYOUT_TILED);
+    }
+}
+
+void DisplayLayoutModel::ActivateNextLayerInTiledMode()
+{
+  // Make a list of ids that qualify
+  std::vector<unsigned long> ids;
+  this->GetGroundLevelLayerIds(ids);
+  if(ids.size() > 1)
+    {
+    std::vector<unsigned long>::iterator it =
+        std::find(ids.begin(), ids.end(), m_ParentModel->GetGlobalState()->GetSelectedLayerId());
+    if(it != ids.end())
+      {
+      std::rotate(ids.begin(), it, ids.end());
+      m_ParentModel->GetGlobalState()->SetSelectedLayerId(ids[1]);
+      }
+    }
+}
+
+void DisplayLayoutModel::ActivatePrevLayerInTiledMode()
+{
+  // Make a list of ids that qualify
+  std::vector<unsigned long> ids;
+  this->GetGroundLevelLayerIds(ids);
+  if(ids.size() > 1)
+    {
+    std::vector<unsigned long>::iterator it =
+        std::find(ids.begin(), ids.end(), m_ParentModel->GetGlobalState()->GetSelectedLayerId());
+    if(it != ids.end())
+      {
+      std::rotate(ids.begin(), it, ids.end());
+      m_ParentModel->GetGlobalState()->SetSelectedLayerId(ids.back());
+      }
+    }
 }
 
 bool DisplayLayoutModel
@@ -194,6 +253,38 @@ void DisplayLayoutModel::UpdateSliceViewTiling()
         }
       }
     }
+}
+
+bool DisplayLayoutModel::GetNumberOfGroundLevelLayersValue(int &value)
+{
+  if(!m_ParentModel->GetDriver()->IsMainImageLoaded())
+    return false;
+
+  value = 0;
+  GenericImageData *id = m_ParentModel->GetDriver()->GetCurrentImageData();
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
+      value++;
+    }
+
+  return true;
+}
+
+bool DisplayLayoutModel::GetGroundLevelLayerIds(std::vector<unsigned long> &ids)
+{
+  if(!m_ParentModel->GetDriver()->IsMainImageLoaded())
+    return false;
+
+  ids.clear();
+  GenericImageData *id = m_ParentModel->GetDriver()->GetCurrentImageData();
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
+      ids.push_back(it.GetLayer()->GetUniqueId());
+    }
+
+  return true;
 }
 
 void DisplayLayoutModel::OnUpdate()

@@ -4,12 +4,48 @@
 #include <QWidget>
 #include <SNAPComponent.h>
 #include "SNAPCommon.h"
+#include <QWidgetAction>
 
 class LayerTableRowModel;
 class ImageWrapperBase;
 class QMenu;
 class QActionGroup;
 class QContextMenuEvent;
+class QSlider;
+class QLabel;
+
+class OpacitySliderAction : public QWidgetAction
+{
+  Q_OBJECT
+public:
+  OpacitySliderAction(QWidget *parent = 0);
+  QSlider *GetSlider() { return m_Slider; }
+  QWidget *GetContainer() { return m_Container; }
+
+protected:
+  virtual QWidget *createWidget(QWidget *parent);
+  QSlider *m_Slider;
+  QWidget *m_Container;
+};
+
+
+class WidgetWithLabelAction : public QWidgetAction
+{
+  Q_OBJECT
+public:
+  WidgetWithLabelAction(QWidget *parent = 0);
+  void setWidget(QWidget *widget);
+  virtual void setLabelText(const QString &text);
+
+protected slots:
+
+  void onChanged();
+
+protected:
+
+  QWidget *m_Container;
+  QLabel *m_Label;
+};
 
 namespace Ui {
 class LayerInspectorRowDelegate;
@@ -62,14 +98,17 @@ public slots:
 
 signals:
   void selectionChanged(bool);
+  void contrastInspectorRequested();
+  void colorMapInspectorRequested();
   
 private slots:
   void on_btnMenu_pressed();
 
+  /*
   void on_btnMoveUp_clicked();
 
   void on_btnMoveDown_pressed();
-
+  */
   void on_actionSave_triggered();
 
   void on_actionClose_triggered();
@@ -77,6 +116,16 @@ private slots:
   void onColorMapPresetSelected();
 
   void on_actionAutoContrast_triggered();
+
+  void on_actionTextureFeatures_triggered();
+
+  void on_actionPin_layer_triggered();
+
+  void on_actionUnpin_layer_triggered();
+
+  void on_actionContrast_Inspector_triggered();
+
+  void on_actionColor_Map_Editor_triggered();
 
 private:
   Ui::LayerInspectorRowDelegate *ui;
@@ -95,16 +144,20 @@ private:
   QMenu *m_PopupMenu;
 
   // A submenu for the color maps
-  QMenu *m_ColorMapMenu, *m_DisplayModeMenu;
+  QMenu *m_ColorMapMenu, *m_DisplayModeMenu, *m_OverlaysMenu;
+
+  // Slider for opacity that lives in the menu
+  QSlider *m_OverlayOpacitySlider;
+  WidgetWithLabelAction *m_OverlayOpacitySliderAction;
 
   // An action group for the system presets
   QActionGroup* m_SystemPresetActionGroup, *m_DisplayModeActionGroup;
 
   void ApplyColorMap();
   void UpdateBackgroundPalette();
-  void UpdateVisibilityControls();
   void UpdateColorMapMenu();
   void UpdateComponentMenu();
+  void UpdateOverlaysMenu();
   void OnNicknameUpdate();
 };
 

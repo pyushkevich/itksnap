@@ -59,6 +59,7 @@ public:
     UIF_LOWER_THRESHOLD_ENABLED,
     UIF_UPPER_THRESHOLD_ENABLED,
     UIF_EDGEPROCESSING_ENABLED,
+    UIF_CLASSIFIER_TRAINED,
     UIF_CAN_GENERATE_SPEED,
     UIF_SPEED_AVAILABLE,              // Has speed volume been computed?
     UIF_PREPROCESSING_ACTIVE,         // Is the preprocessing dialog open?
@@ -254,15 +255,46 @@ public:
    * SUPERVISED CLASSIFICATION SUPPORT (RANDOM FORESTS)
    * =================================================================== */
 
-  /** Model controlling the class/label used for the foreground probability */
-  typedef STLMapWrapperItemSetDomain<LabelType, ColorLabel> ForegroundClassDomain;
-  irisGenericPropertyAccessMacro(ForegroundClassColorLabel, LabelType, ForegroundClassDomain)
+  /** A data structure representing label foreground/background state */
+  typedef std::map<LabelType, bool> ClassifierLabelForegroundMap;
+
+  /** A data structure representing the domain of classification labels */
+  typedef SimpleNonAtomicItemSetDomain<LabelType, ColorLabel> ClassifierLabelForegroundMapDomain;
+
+  /** A model around this data structure */
+  typedef AbstractPropertyModel<ClassifierLabelForegroundMap, ClassifierLabelForegroundMapDomain>
+    AbstractClassifierLabelForegroundModel;
+
+  /** Access the model encapsulating the label weights for classification */
+  irisGenericPropertyAccessMacro(ClassifierLabelForeground,
+                                 ClassifierLabelForegroundMap, ClassifierLabelForegroundMapDomain)
+
+  /** Get the first foreground label */
+  LabelType GetClassiferFirstForegroundLabel();
 
   /** Model for the forest size */
   irisRangedPropertyAccessMacro(ForestSize, int)
 
+  /** Model for the forest size */
+  irisRangedPropertyAccessMacro(TreeDepth, int)
+
+  /** Model for whether patch contextual features are used */
+  irisSimplePropertyAccessMacro(ClassifierUsePatch, bool)
+
+  /** Model for the patch radius */
+  irisRangedPropertyAccessMacro(ClassifierPatchRadius, int)
+
+  /** Bias for the classifier */
+  irisRangedPropertyAccessMacro(ClassifierBias, double)
+
+  /** Whether coordinates are used as contextual features */
+  irisSimplePropertyAccessMacro(ClassifierUseCoordinates, bool)
+
   /** Train the random forest classifier when the user hits the 'train' button */
   void TrainClassifier();
+
+  /** Whether the classifier is trained and available for use */
+  bool IsClassifierTrained();
 
   /** Clear the classification examples (i.e., clear the classification) */
   void ClearSegmentation();
@@ -407,13 +439,6 @@ protected:
    * SUPERVISED CLASSIFICATION SUPPORT (Random Forest)
    * =================================================================== */
 
-  // A mapping of currently defined classes to color label descriptors
-  std::map<LabelType, ColorLabel> m_ActiveClasses;
-
-  // Model for the foreground color label
-  typedef AbstractPropertyModel<LabelType, ForegroundClassDomain>
-    AbstractForegroundClassPropertyModel;
-
   // A list of suggested labels, from which the user can choose one to draw
   // These labels are the N most recently used labels
   std::map<LabelType, ColorLabel> m_ClassifyQuickLabels;
@@ -421,16 +446,35 @@ protected:
   // The size of the suggested label list (static)
   static unsigned int m_ClassifyQuickLabelsCount;
 
-  // Model for the suggested labels from which the user can choose one to draw
-
-
-  SmartPtr<AbstractForegroundClassPropertyModel> m_ForegroundClassColorLabelModel;
-  bool GetForegroundClassColorLabelValueAndRange(LabelType &value, ForegroundClassDomain *range);
-  void SetForegroundClassColorLabelValue(LabelType value);
+  // A list of color labels used in classification
+  std::map<LabelType, ColorLabel> m_ClassifyUsedLabels;
 
   SmartPtr<AbstractRangedIntProperty> m_ForestSizeModel;
   bool GetForestSizeValueAndRange(int &value, NumericValueRange<int> *range);
   void SetForestSizeValue(int value);
+
+  SmartPtr<AbstractRangedIntProperty> m_TreeDepthModel;
+  bool GetTreeDepthValueAndRange(int &value, NumericValueRange<int> *range);
+  void SetTreeDepthValue(int value);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_ClassifierUsePatchModel;
+  SmartPtr<AbstractRangedIntProperty> m_ClassifierPatchRadiusModel;
+  bool GetClassifierPatchRadiusValueAndRange(int &value, NumericValueRange<int> *range);
+  void SetClassifierPatchRadiusValue(int value);
+
+  SmartPtr<AbstractRangedDoubleProperty> m_ClassifierBiasModel;
+  bool GetClassifierBiasValueAndRange(double &value, NumericValueRange<double> *range);
+  void SetClassifierBiasValue(double value);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_ClassifierUseCoordinatesModel;
+  bool GetClassifierUseCoordinatesValue(bool &value);
+  void SetClassifierUseCoordinatesValue(bool value);
+
+  SmartPtr<AbstractClassifierLabelForegroundModel> m_ClassifierLabelForegroundModel;
+  bool GetClassifierLabelForegroundValueAndRange(ClassifierLabelForegroundMap &value,
+                                              ClassifierLabelForegroundMapDomain *range);
+  void SetClassifierLabelForegroundValue(ClassifierLabelForegroundMap value);
+
 
   // TODO: this should be handled through the ITK modified mechanism
   void TagRFPreprocessingFilterModified();

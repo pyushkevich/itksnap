@@ -203,6 +203,17 @@ public:
    */
   irisGetMacro(UseRegistration, bool)
 
+  /**
+   * Is this an overlay?
+   */
+  irisIsMacro(Overlay)
+
+  /** Should the overlay be loaded as sticky */
+  irisSimplePropertyAccessMacro(StickyOverlay, bool)
+
+  /** Which is the colormap of the sticky overlay */
+  irisSimplePropertyAccessMacro(StickyOverlayColorMap, std::string)
+
   // Registration mode typedefs
   typedef ImageRegistrationManager::RegistrationMode RegistrationMode;
   typedef ImageRegistrationManager::RegistrationMetric RegistrationMetric;
@@ -266,6 +277,9 @@ protected:
   // Registry containing auxiliary info
   Registry m_Registry;
 
+  // Whether the layer being loaded is an overlay
+  bool m_Overlay;
+
   // Whether registration should be used to load this image
   bool m_UseRegistration;
 
@@ -274,6 +288,16 @@ protected:
 
   // DICOM support
   GuidedNativeImageIO::RegistryArray m_DicomContents;
+
+  // Overlay display behavior models
+  SmartPtr<AbstractSimpleBooleanProperty> m_StickyOverlayModel;
+  bool GetStickyOverlayValue(bool &value);
+  void SetStickyOverlayValue(bool value);
+
+  // Selected color map behavior model
+  SmartPtr<AbstractSimpleStringProperty> m_StickyOverlayColorMapModel;
+  bool GetStickyOverlayColorMapValue(std::string &value);
+  void SetStickyOverlayColorMapValue(std::string value);
 
   // Registration models
   typedef ConcretePropertyModel<RegistrationMode, RegistrationModeDomain> RegistrationModeModel;
@@ -289,6 +313,9 @@ protected:
 
   // Renderer used to plot the metric
   SmartPtr<OptimizationProgressRenderer> m_RegistrationProgressRenderer;
+
+  // Pointer to the image layer that has been loaded
+  ImageWrapperBase *m_LoadedImage;
 };
 
 #endif // IMAGEIOWIZARDMODEL_H

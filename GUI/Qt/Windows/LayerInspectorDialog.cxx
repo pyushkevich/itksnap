@@ -49,7 +49,6 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
 
   tb->addAction(ui->actionOpenLayer);
   tb->addWidget(m_SaveSelectedButton);
-  tb->addAction(ui->actionEditVisibility);
   tb->addAction(ui->actionLayoutToggle);
 
   // Set up the action button
@@ -107,14 +106,10 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
         this, SLOT(onModelUpdate(const EventBucket &)));
 
 
-  // The button turning on and off the visibility/reorder/pinning controls
-  // on the layer rows is tied to a model in GenericUIModel
-  makeCoupling(
-        ui->actionEditVisibility,
-        model->GetLayerVisibilityEditableModel());
-
   // Set up the activation on the open layer button
   activateOnFlag(ui->actionOpenLayer, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+
+  activateOnFlag(ui->actionLayoutToggle, m_Model, UIF_MULTIPLE_BASE_LAYERS);
 }
 
 void LayerInspectorDialog::SetPageToContrastAdjustment()
@@ -200,7 +195,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
   if(mapRoleNames.size() == 0)
     {
     mapRoleNames[MAIN_ROLE] = "Main Image";
-    mapRoleNames[OVERLAY_ROLE] = "Overlays";
+    mapRoleNames[OVERLAY_ROLE] = "Additional Images";
     mapRoleNames[SNAP_ROLE] = "Snake Mode Layers";
     mapRoleNames[JOIN_ROLE] = "Join Mode Layers";
     }
@@ -280,6 +275,8 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
 
     // Listen to select signals from widget
     connect(w, SIGNAL(selectionChanged(bool)), this, SLOT(layerSelected(bool)));
+    connect(w, SIGNAL(contrastInspectorRequested()), this, SLOT(onContrastInspectorRequested()));
+    connect(w, SIGNAL(colorMapInspectorRequested()), this, SLOT(onColorMapInspectorRequested()));
 
     // Select the layer if it was previously selected or nothing was previously
     // selected and the layer is the main layer
@@ -349,11 +346,37 @@ void LayerInspectorDialog::layerSelected(bool flag)
 
     // Switch the current layer in all the right-pane models
     LayerInspectorRowDelegate *wsel = (LayerInspectorRowDelegate *) this->sender();
+    if(!wsel->selected())
+      wsel->setSelected(true);
     this->SetActiveLayer(wsel->GetLayer());
 
     // Put this layer's actions on the menu
     m_SaveSelectedButton->setDefaultAction(wsel->saveAction());
     }
+}
+
+void LayerInspectorDialog::onContrastInspectorRequested()
+{
+  // Make sure the layer is selected
+  this->layerSelected(true);
+  ui->tabWidget->setCurrentWidget(ui->cmpContrast);
+
+  // Make sure to show the dialog
+  this->show();
+  this->activateWindow();
+  this->raise();
+}
+
+void LayerInspectorDialog::onColorMapInspectorRequested()
+{
+  // Make sure the layer is selected
+  this->layerSelected(true);
+  ui->tabWidget->setCurrentWidget(ui->cmpColorMap);
+
+  // Make sure to show the dialog
+  this->show();
+  this->activateWindow();
+  this->raise();
 }
 
 void LayerInspectorDialog::SetActiveLayer(ImageWrapperBase *layer)
@@ -381,13 +404,11 @@ LayerInspectorDialog::UpdateLayerLayoutAction()
 
   if(ll == LAYOUT_TILED)
     {
-    ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_overlay_16.png"));
-    ui->actionLayoutToggle->setToolTip("Render image overlays on top of each other");
+    ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_thumb_16.png"));
     }
   else if(ll == LAYOUT_STACKED)
     {
     ui->actionLayoutToggle->setIcon(QIcon(":/root/layout_tile_16.png"));
-    ui->actionLayoutToggle->setToolTip("Tile image overlays side by side");
     }
 }
 

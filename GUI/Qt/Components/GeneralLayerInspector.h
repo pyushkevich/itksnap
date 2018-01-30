@@ -20,6 +20,10 @@ public:
 
   void SetModel(LayerGeneralPropertiesModel *model);
   
+private slots:
+  void on_btnUp_clicked();
+  void on_btnDown_clicked();
+
 private:
   Ui::GeneralLayerInspector *ui;
 

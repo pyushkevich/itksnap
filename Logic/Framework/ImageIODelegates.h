@@ -42,9 +42,15 @@ public:
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void UnloadCurrentImage() = 0;
-  virtual void UpdateApplicationWithImage(GuidedNativeImageIO *io) = 0;
+
+  /**
+   * Update the application with the image contained in the Guided IO object and
+   * return a pointer to the loaded image layer
+   */
+  virtual ImageWrapperBase *UpdateApplicationWithImage(GuidedNativeImageIO *io) = 0;
 
   virtual bool GetUseRegistration() const { return false; }
+  virtual bool IsOverlay() const { return false; }
 
 protected:
   AbstractLoadImageDelegate() : m_MetaDataRegistry(NULL) {}
@@ -76,7 +82,7 @@ public:
   irisITKObjectMacro(LoadMainImageDelegate, LoadAnatomicImageDelegate)
 
   void UnloadCurrentImage();
-  void UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:
   LoadMainImageDelegate() {}
@@ -91,8 +97,9 @@ public:
   irisITKObjectMacro(LoadOverlayImageDelegate, LoadAnatomicImageDelegate)
 
   void UnloadCurrentImage();
-  void UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
   void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
+  virtual bool IsOverlay() const { return true; }
 
 protected:
   LoadOverlayImageDelegate() { }
@@ -107,10 +114,11 @@ public:
   irisITKObjectMacro(LoadCoregisteredOverlayImageDelegate, LoadAnatomicImageDelegate)
 
   void UnloadCurrentImage();
-  void UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
   void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
 
   virtual bool GetUseRegistration() const { return true; }
+  virtual bool IsOverlay() const { return true; }
 
 
 protected:
@@ -129,7 +137,7 @@ public:
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl);
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl);
   void UnloadCurrentImage();
-  void UpdateApplicationWithImage(GuidedNativeImageIO *io);
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io);
 
 protected:
   LoadSegmentationImageDelegate() {}
@@ -161,12 +169,18 @@ public:
    */
   bool IsSaveSuccessful() { return m_SaveSuccessful; }
 
+  /**
+   * A user-readable category
+   */
+  irisGetSetMacro(Category, std::string)
+
 protected:
   AbstractSaveImageDelegate() {}
   virtual ~AbstractSaveImageDelegate() {}
 
   IRISApplication *m_Driver;
   bool m_SaveSuccessful;
+  std::string m_Category;
 };
 
 class DefaultSaveImageDelegate : public AbstractSaveImageDelegate

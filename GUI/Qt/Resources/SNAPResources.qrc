@@ -111,10 +111,64 @@
         <file>icons8_undo-48.png</file>
         <file>icons8_redo-48.png</file>
         <file>icons8_refresh-48.png</file>
+        <file>icons8_pin-48.png</file>
+        <file>icons8_star-48.png</file>
+        <file>icons8_pin_12.png</file>
+        <file>icons8_star_12.png</file>
+        <file>icons8_pin_10.png</file>
+        <file>icons8_star_8.png</file>
+        <file>icons8_whitepin_16.png</file>
+        <file>context_gray_48.png</file>
+        <file>context_gray_16.png</file>
+        <file>context_gray_12.png</file>
+        <file>context_gray_12@2x.png</file>
+        <file>context_gray_10@2x.png</file>
+        <file>context_gray_10.png</file>
+        <file>icons8_pin_12@2x.png</file>
+        <file>icons8_unpin_12.png</file>
+        <file>icons8_unpin_12@2x.png</file>
+        <file>icons8_up_12@x2.png</file>
+        <file>icons8_up_12.png</file>
+        <file>icons8_down_12@x2.png</file>
+        <file>icons8_down_12.png</file>
+        <file>icons8_visible_12@2x.png</file>
+        <file>icons8_visible_12.png</file>
+        <file>icons8_invisible_12@2x.png</file>
+        <file>icons8_invisible_12.png</file>
+        <file>icons8_film_reel_12.png</file>
+        <file>icons8_film_reel_12@2x.png</file>
+        <file>layout_thumb_16.png</file>
+        <file>icons8_slr_camera_16@2x.png</file>
+        <file>icons8_slr_camera_16.png</file>
+        <file>icons8_slr_camera_12@2x.png</file>
+        <file>icons8_slr_camera_12.png</file>
+        <file>icons8_cursor_16@2x.png</file>
+        <file>icons8_cursor_16.png</file>
+        <file>icons8_ruler_16.png</file>
+        <file>icons8_ruler_16@2x.png</file>
+        <file>annotation_28.png</file>
+        <file>menu-arrow_8.png</file>
+        <file>menu-arrow_8@2x.png</file>
+        <file>icons8_generic_text_16.png</file>
+        <file>icons8_generic_text_16@2x.png</file>
+        <file>icons8_mouse_scrolling_16.png</file>
+        <file>icons8_mouse_scrolling_16@2x.png</file>
+        <file>icons8_mouse_right_click_16@2x.png</file>
+        <file>icons8_mouse_right_click_16.png</file>
+        <file>icons8_mouse_left_click_16@2x.png</file>
+        <file>icons8_mouse_left_click_16.png</file>
+        <file>icons8_palette_16@2x.png</file>
+        <file>icons8_palette_16.png</file>
+        <file>icons8_layers_16@2x.png</file>
+        <file>icons8_layers_16.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>
         <file>snapres/RegionForcesExample.png</file>
         <file>snapres/SnakeParameterPreviewCurve.txt</file>
+    </qresource>
+    <qresource prefix="/html">
+        <file alias="ModeTipTemplate">html/tooltips/ModeTipTemplate.html</file>
+        <file alias="TipTableRow">html/tooltips/TipTableRow.html</file>
     </qresource>
 </RCC>

@@ -2,6 +2,8 @@
 #include "ui_DisplayLayoutInspector.h"
 #include "DisplayLayoutModel.h"
 #include <QtRadioButtonCoupling.h>
+#include <QtDoubleSpinBoxCoupling.h>
+#include "GlobalUIModel.h"
 
 DisplayLayoutInspector::DisplayLayoutInspector(QWidget *parent) :
   QWidget(parent),
@@ -32,4 +34,11 @@ void DisplayLayoutInspector::SetModel(DisplayLayoutModel *model)
   // Couple the radio buttons for layer layout
   makeRadioGroupCoupling(ui->grpLayerLayout,
                          m_Model->GetSliceViewLayerLayoutModel());
+
+  // Couple the thumbnail size control
+  makeCoupling(ui->inThumbSize, m_Model->GetThumbnailRelativeSizeModel());
+
+  // Tile/thumb controls deactivated for single image
+  activateOnFlag(ui->grpLayerLayout, m_Model->GetParentModel(), UIF_MULTIPLE_BASE_LAYERS);
+  activateOnFlag(ui->grpThumbnailSize, m_Model->GetParentModel(), UIF_MULTIPLE_BASE_LAYERS);
 }

@@ -3,6 +3,7 @@
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "HistoryManager.h"
+#include "IRISImageData.h"
 
 
 /* =============================
@@ -39,12 +40,13 @@ LoadMainImageDelegate
   m_Driver->UnloadMainImage();
 }
 
-void
-LoadMainImageDelegate
-::UpdateApplicationWithImage(GuidedNativeImageIO *io)
+ImageWrapperBase *LoadMainImageDelegate::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
   // Update the IRIS driver
   m_Driver->UpdateIRISMainImage(io, this->GetMetaDataRegistry());
+
+  // Return the main image
+  return m_Driver->GetIRISImageData()->GetMain();
 }
 
 
@@ -60,12 +62,13 @@ LoadOverlayImageDelegate
   // on an undo in a wizard?
 }
 
-void
-LoadOverlayImageDelegate
-::UpdateApplicationWithImage(GuidedNativeImageIO *io)
+ImageWrapperBase *LoadOverlayImageDelegate::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
+  // Load the overlay
   m_Driver->AddIRISOverlayImage(io, this->GetMetaDataRegistry());
 
+  // Return it
+  return m_Driver->GetIRISImageData()->GetLastOverlay();
 }
 
 
@@ -105,11 +108,10 @@ LoadCoregisteredOverlayImageDelegate
 {
 }
 
-void
-LoadCoregisteredOverlayImageDelegate
-::UpdateApplicationWithImage(GuidedNativeImageIO *io)
+ImageWrapperBase *LoadCoregisteredOverlayImageDelegate::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
   m_Driver->AddIRISCoregOverlayImage(io, this->GetMetaDataRegistry());
+  return m_Driver->GetIRISImageData()->GetLastOverlay();
 }
 
 
@@ -215,11 +217,14 @@ LoadSegmentationImageDelegate
     }
 }
 
-void
-LoadSegmentationImageDelegate
-::UpdateApplicationWithImage(GuidedNativeImageIO *io)
+ImageWrapperBase *LoadSegmentationImageDelegate::UpdateApplicationWithImage(GuidedNativeImageIO *io)
 {
-  m_Driver->UpdateIRISSegmentationImage(io);
+  if(m_Driver->IsSnakeModeActive())
+    m_Driver->UpdateSNAPSegmentationImage(io);
+  else
+    m_Driver->UpdateIRISSegmentationImage(io);
+
+  return m_Driver->GetCurrentImageData()->GetSegmentation();
 }
 
 void

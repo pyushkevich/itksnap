@@ -76,9 +76,9 @@ enum PreprocessingMode
 {
   PREPROCESS_NONE = 0,
   PREPROCESS_THRESHOLD,
-  PREPROCESS_EDGE,
+  PREPROCESS_RF,
   PREPROCESS_GMM,
-  PREPROCESS_RF
+  PREPROCESS_EDGE
 };
 
 enum ConstraintsType 
@@ -123,6 +123,13 @@ enum ToolbarMode3DType
   CROSSHAIRS_3D_MODE,
   SPRAYPAINT_MODE,
   SCALPEL_MODE
+};
+
+enum AnnotationMode
+{
+  ANNOTATION_RULER = 0,
+  ANNOTATION_SELECT,
+  ANNOTATION_LANDMARK
 };
 
 /** Layout of overlays in a slice view */
@@ -367,6 +374,15 @@ public:
   /** Set/Get the layout of multiple layers in slice views */
   irisSimplePropertyAccessMacro(SliceViewLayerLayout, LayerLayout)
 
+  /** Set/Get selected layer id */
+  irisSimplePropertyAccessMacro(SelectedLayerId, unsigned long)
+
+  /**
+   * Initial directory where to open file/save dialogs. This MUST be set when
+   * SNAP is first started!
+   */
+  irisSimplePropertyAccessMacro(InitialDirectory, std::string)
+
   // ----------------------- Project support ------------------------------
 
   /**
@@ -376,6 +392,20 @@ public:
   irisSimplePropertyAccessMacro(ProjectFilename, std::string)
 
   // --------------------- End Project support ----------------------------
+
+  /**
+   * Annotation mode
+   */
+  irisSimplePropertyAccessMacro(AnnotationMode, AnnotationMode)
+
+  /**
+   * Color for Annotations
+   */
+  irisSimplePropertyAccessMacro(AnnotationColor, Vector3d)
+
+  /** Opacity of the annotations */
+  irisRangedPropertyAccessMacro(AnnotationAlpha, double)
+  irisSimplePropertyAccessMacro(AnnotationVisibility, bool)
 
 protected:
 
@@ -489,14 +519,26 @@ private:
   // Paintbrush settings
   PaintbrushSettings m_PaintbrushSettings;
 
-  // Annotation settings
-  AnnotationSettings m_AnnotationSettings;
+  // Initial path for opening images
+  SmartPtr<ConcreteSimpleStringProperty> m_InitialDirectoryModel;
 
   IRISApplication *m_Driver;
+
+  // ------------------- Selected Image ID ---------------------------------
+  SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerIdModel;
 
   // ------------------- Project Related -----------------------------------
   SmartPtr<ConcreteSimpleStringProperty> m_ProjectFilenameModel;
 
+  // ------------------- Annotation Mode -----------------------------------
+  AnnotationSettings m_AnnotationSettings;
+
+  typedef ConcretePropertyModel<AnnotationMode> ConcreteAnnotationModeModel;
+  SmartPtr<ConcreteAnnotationModeModel> m_AnnotationModeModel;
+
+  SmartPtr<ConcreteSimpleDoubleVec3Property> m_AnnotationColorModel;
+  SmartPtr<ConcreteRangedDoubleProperty> m_AnnotationAlphaModel;
+  SmartPtr<AbstractSimpleBooleanProperty> m_AnnotationVisibilityModel;
 };
 
 #endif // __GlobalState_h_

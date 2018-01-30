@@ -18,7 +18,8 @@ enum UIState {
   UIF_SNAKE_MODE,
   UIF_JOIN_MODE,
   UIF_NOT_SNAKE_OR_JOIN_MODE,
-  UIF_LEVEL_SET_ACTIVE
+  UIF_LEVEL_SET_ACTIVE,
+  UIF_MULTIPLE_BASE_LAYERS       // i.e., more than one non-sticky layer
 };
 
 #endif // UISTATE_H

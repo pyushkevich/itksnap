@@ -250,11 +250,18 @@ QIcon CreateLabelComboIcon(int w, int h, LabelType fg, DrawOverFilter bg, ColorL
 
 QString CreateLabelComboTooltip(LabelType fg, DrawOverFilter bg, ColorLabelTable *clt)
 {
+  /*
   return QString(
         "<html><head/><body>"
         "<p>Foreground label:<br><span style=\" font-weight:600;\">%1</span></p>"
         "<p>Background label:<br><span style=\" font-weight:600;\">%2</span></p>"
         "</body></html>").
+      arg(GetTitleForColorLabel(fg, clt)).arg(GetTitleForDrawOverFilter(bg, clt)); */
+
+  return QString(
+        "<html><body>"
+        "Set active label to <span style=\" font-weight:600;\">%1</span> "
+        " and the paint over mask to <span style=\" font-weight:600;\">%2</span>.").
       arg(GetTitleForColorLabel(fg, clt)).arg(GetTitleForDrawOverFilter(bg, clt));
 }
 
@@ -506,7 +513,6 @@ bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWid
 #include <QMap>
 #include <QDir>
 #include <GenericImageData.h>
-#include <QStandardPaths>
 
 QMap<QString, QDir> g_CategoryToLastPathMap;
 
@@ -523,11 +529,49 @@ QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
     return QFileInfo(fn).absolutePath();
     }
 
-  // Use home directory
-  return QStandardPaths::standardLocations(QStandardPaths::HomeLocation).first();
+  // Use the initial directory
+  if(model->GetGlobalState()->GetInitialDirectory().length())
+    {
+    // This directory should alrady be verified readable when assigned in main.cxx
+    QDir dir(from_utf8(model->GetGlobalState()->GetInitialDirectory()));
+    return dir.absolutePath();
+    }
+
+  // Last resort : use home directory
+  return QDir::homePath();
 }
 
 void UpdateFileDialogPathForCategory(const char *HistoryName, QString dir)
 {
   g_CategoryToLastPathMap[HistoryName] = QDir(dir);
+}
+
+void TranslateStringTooltipKeyModifiers(QString &tooltip)
+{
+  tooltip.replace(QChar(0x21e7),"Shift+");
+  tooltip.replace(QChar(0x2318),"Ctrl+");
+  tooltip.replace(QChar(0x2325),"Alt+");
+  tooltip.replace("⌃","Ctrl+");
+  tooltip.replace(QChar(0x238b),"Esc");
+}
+
+void TranslateChildTooltipKeyModifiers(QWidget *parent)
+{
+  // Get all the child widgets
+  QList<QWidget *> child_widgets = parent->findChildren<QWidget *>();
+  foreach(QWidget *child, child_widgets)
+    {
+    QString tooltip = child->toolTip();
+    TranslateStringTooltipKeyModifiers(tooltip);
+    child->setToolTip(tooltip);
+    }
+
+  // Get all the child actions
+  QList<QAction *> child_actions = parent->findChildren<QAction *>();
+  foreach(QAction *child, child_actions)
+    {
+    QString tooltip = child->toolTip();
+    TranslateStringTooltipKeyModifiers(tooltip);
+    child->setToolTip(tooltip);
+    }
 }

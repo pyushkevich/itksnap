@@ -37,7 +37,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
 
   // Set up layoyt options
   ui->inOverlayLayout->clear();
-  ui->inOverlayLayout->addItem(QIcon(":/root/layout_overlay_16.png"),
+  ui->inOverlayLayout->addItem(QIcon(":/root/layout_thumb_16.png"),
                                "Stack", QVariant::fromValue(LAYOUT_STACKED));
   ui->inOverlayLayout->addItem(QIcon(":/root/layout_tile_16.png"),
                                "Tile", QVariant::fromValue(LAYOUT_TILED));
@@ -120,6 +120,9 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
 
   // Couple the interpolation mode (the domain is not provided by the model)
   makeCoupling(ui->inInterpolationMode, gds->GetGreyInterpolationModeModel());
+
+  // Couple the layer layout model
+  makeCoupling(ui->inOverlayLayout, gds->GetLayerLayoutModel());
 
   // Couple the color map preset selection.
   UpdateColorMapPresets();

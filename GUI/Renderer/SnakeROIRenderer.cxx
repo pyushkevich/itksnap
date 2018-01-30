@@ -21,7 +21,7 @@ void SnakeROIRenderer::paintGL()
 
   // Check the current state
   assert(m_Model);
-  if(m_ParentRenderer->IsThumbnailDrawing())
+  if(m_ParentRenderer->IsDrawingZoomThumbnail())
     return;
 
   // The region of interest should be in effect

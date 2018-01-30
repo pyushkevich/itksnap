@@ -286,6 +286,11 @@ GlobalDisplaySettings::GlobalDisplaySettings()
   emap_layout.AddPair(LAYOUT_CAS,"CAS");
   emap_layout.AddPair(LAYOUT_CSA,"CSA");
 
+  // This is needed to read display layout modes
+  RegistryEnumMap<LayerLayout> emap_layer_layout;
+  emap_layer_layout.AddPair(LAYOUT_STACKED, "Stacked");
+  emap_layer_layout.AddPair(LAYOUT_TILED, "Tiled");
+
   // Set the common flags
   m_FlagDisplayZoomThumbnailModel =
       NewSimpleProperty("FlagDisplayZoomThumbnail", true);
@@ -307,6 +312,9 @@ GlobalDisplaySettings::GlobalDisplaySettings()
 
   m_FlagLayoutPatientRightShownLeftModel =
       NewSimpleProperty("FlagLayoutPatientRightShownLeft", true);
+
+  m_LayerLayoutModel =
+      NewSimpleEnumProperty("LayerLayout", LAYOUT_STACKED, emap_layer_layout);
 
 }
 

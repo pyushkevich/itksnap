@@ -45,6 +45,11 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         &Self::GetNicknameValue,
         &Self::SetNicknameValue);
 
+  m_IsStickyModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetIsStickyValue,
+        &Self::SetIsStickyValue);
+
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -114,6 +119,9 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
   if(!m_Layer)
     return false;
 
+  // Defer to the row model when we can
+  LayerTableRowModel *row_model = this->GetSelectedLayerTableRowModel();
+
   switch(state)
     {
     case UIF_CAN_SWITCH_COMPONENTS:
@@ -125,9 +133,32 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
       }
     case UIF_MULTICOMPONENT:
       return m_Layer->GetNumberOfComponents() > 1;
+
+    case UIF_IS_STICKINESS_EDITABLE:
+      return row_model->CheckState(LayerTableRowModel::UIF_PINNABLE)
+          || row_model->CheckState(LayerTableRowModel::UIF_UNPINNABLE);
+
+    case UIF_IS_OPACITY_EDITABLE:
+      return row_model->CheckState(LayerTableRowModel::UIF_OPACITY_EDITABLE);
+
+    case UIF_MOVABLE_UP:
+      return row_model->CheckState(LayerTableRowModel::UIF_MOVABLE_UP);
+
+    case UIF_MOVABLE_DOWN:
+      return row_model->CheckState(LayerTableRowModel::UIF_MOVABLE_DOWN);
     }
 
   return false;
+}
+
+void LayerGeneralPropertiesModel::MoveLayerUp()
+{
+  this->GetSelectedLayerTableRowModel()->MoveLayerUp();
+}
+
+void LayerGeneralPropertiesModel::MoveLayerDown()
+{
+  this->GetSelectedLayerTableRowModel()->MoveLayerDown();
 }
 
 bool LayerGeneralPropertiesModel
@@ -337,6 +368,25 @@ VectorImageWrapperBase *
 LayerGeneralPropertiesModel::GetLayerAsVector()
 {
   return dynamic_cast<VectorImageWrapperBase *>(this->GetLayer());
+}
+
+
+bool LayerGeneralPropertiesModel::GetIsStickyValue(bool &value)
+{
+  // Delegate to the row model for this
+  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  return trm ? trm->GetStickyModel()->GetValueAndDomain(value, NULL) : false;
+}
+
+void LayerGeneralPropertiesModel::SetIsStickyValue(bool value)
+{
+  // Delegate to the row model for this
+  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+
+  // Calling this method will set the globally selected layer to the main layer
+  // because the globally selected layer cannot be sticky. However, we can still
+  // have a sticky layer selected in the layer inspector. So we override.
+  trm->GetStickyModel()->SetValue(value);  
 }
 
 

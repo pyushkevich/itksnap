@@ -8,7 +8,7 @@
 #include <iostream>
 
 QRect
-QtRendererPlatformSupport::WorldRectangleToPixelRectangle(const QRect &world)
+QtRendererPlatformSupport::WorldRectangleToPixelRectangle(double wx, double wy, double ww, double wh)
 {
   // Viewport and such
   vnl_vector<int> viewport(4);
@@ -20,11 +20,11 @@ QtRendererPlatformSupport::WorldRectangleToPixelRectangle(const QRect &world)
   glGetDoublev(GL_MODELVIEW_MATRIX, model_view.data_block());
 
   vnl_vector<double> xw1(4), xs1, xw2(4), xs2;
-  xw1[0] = world.x(); xw1[1] = world.y();
+  xw1[0] = wx; xw1[1] = wy;
   xw1[2] = 0.0; xw1[3] = 1.0;
   xs1 = projection.transpose() * (model_view.transpose() * xw1);
 
-  xw2[0] = world.x() + world.width(); xw2[1] = world.y() + world.height();
+  xw2[0] = wx + ww; xw2[1] = wy + wh;
   xw2[2] = 0.0; xw2[3] = 1.0;
   xs2 = projection.transpose() * (model_view.transpose() * xw2);
 
@@ -45,14 +45,13 @@ QtRendererPlatformSupport::WorldRectangleToPixelRectangle(const QRect &world)
 
 void QtRendererPlatformSupport
 ::RenderTextInOpenGL(const char *text,
-                     int x, int y, int w, int h,
+                     double x, double y, double w, double h,
                      FontInfo font,
                      int align_horiz, int align_vert,
-                     const Vector3d &rgbf)
+                     const Vector3d &rgbf, double alpha)
 {
   // Map the coordinates to screen coordinates
-  QRect rWorld(QPoint(x, y), QSize(w, h));
-  QRect rScreen = this->WorldRectangleToPixelRectangle(rWorld);
+  QRect rScreen = this->WorldRectangleToPixelRectangle(x, y, w, h);
 
   // Create a pixmap to render the text
   QImage canvas(rScreen.width(), rScreen.height(), QImage::Format_ARGB32);
@@ -63,6 +62,7 @@ void QtRendererPlatformSupport
 
   QColor pen_color;
   pen_color.setRgbF(rgbf[0], rgbf[1], rgbf[2], 1.0);
+  pen_color.setAlphaF(alpha);
   painter.setPen(pen_color);
 
   int ah = Qt::AlignHCenter, av = Qt::AlignVCenter;
@@ -94,13 +94,19 @@ void QtRendererPlatformSupport
   qfont.setBold(font.bold);
   painter.setFont(qfont);
 
+  // painter.fillRect(QRectF(0,0,rScreen.width(),rScreen.height()), QColor(64,64,64,64));
   painter.drawText(QRectF(0,0,rScreen.width(),rScreen.height()), ah | av, QString::fromUtf8(text));
 
   QImage gl = QGLWidget::convertToGLFormat(canvas);
 
   glPushAttrib(GL_COLOR_BUFFER_BIT);
   glEnable(GL_BLEND);
-  glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+  if(alpha <= 0.9)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  else
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
   glRasterPos2i(x,y);
   glDrawPixels(rScreen.width(),rScreen.height(), GL_RGBA, GL_UNSIGNED_BYTE, gl.bits());
   glPopAttrib();
@@ -126,3 +132,30 @@ QtRendererPlatformSupport
   QFontMetrics fm(qfont);
   return fm.width(QString::fromUtf8(text));
 }
+
+
+
+#if QT_VERSION >= 0x050000
+#include <QOpenGLTexture>
+
+void QtRendererPlatformSupport::LoadTexture(const char *url, GLuint &texture_id, Vector2ui &tex_size)
+{
+  // Get the icon corresponding to the URL
+  QImage myimage(QString(":/root/%1.png").arg(url));
+
+  // Create an opengl texture object
+  QOpenGLTexture *texture = new QOpenGLTexture(myimage);
+  texture_id = texture->textureId();
+
+  // Set the texture size
+  tex_size[0] = texture->width();
+  tex_size[1] = texture->height();
+}
+#else
+void QtRendererPlatformSupport::LoadTexture(const char *url, GLuint &texture_id, Vector2ui &tex_size)
+{
+  // Seems like this is not even used anywhere
+}
+
+#endif
+

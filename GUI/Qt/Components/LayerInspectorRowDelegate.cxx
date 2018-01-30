@@ -8,12 +8,16 @@
 #include "QtLabelCoupling.h"
 #include "QtSliderCoupling.h"
 #include "QtActionGroupCoupling.h"
+#include "QtActionCoupling.h"
+#include "QtSliderCoupling.h"
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
 #include <QFile>
 #include <QMenu>
 #include <QContextMenuEvent>
+#include <QWidgetAction>
 #include "QtWidgetActivator.h"
+#include "QtCursorOverride.h"
 #include "GlobalUIModel.h"
 #include "ImageIODelegates.h"
 #include "ImageIOWizard.h"
@@ -25,6 +29,36 @@
 #include "ColorMapModel.h"
 
 class QAction;
+
+
+
+OpacitySliderAction::OpacitySliderAction(QWidget *parent)
+  : QWidgetAction(parent)
+{
+}
+
+QWidget *OpacitySliderAction::createWidget(QWidget *parent)
+{
+  m_Container = new QWidget(parent);
+
+  m_Slider = new QSlider();
+  m_Slider->setOrientation(Qt::Horizontal);
+
+  QHBoxLayout *lo = new QHBoxLayout();
+  lo->setContentsMargins(27, 4, 4, 4);
+  lo->setSpacing(10);
+  lo->addWidget(new QLabel("Opacity:"));
+  lo->addWidget(m_Slider);
+  m_Container->setLayout(lo);
+
+  return m_Container;
+}
+
+
+
+
+
+
 
 QString LayerInspectorRowDelegate::m_SliderStyleSheetTemplate;
 
@@ -43,6 +77,8 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addAction(ui->actionClose);
   m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionAutoContrast);
+  m_PopupMenu->addAction(ui->actionContrast_Inspector);
+  m_PopupMenu->addSeparator();
 
   // Add the color map menu
   m_ColorMapMenu = m_PopupMenu->addMenu("Color Map");
@@ -51,6 +87,26 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   // Add the component selection menu
   m_DisplayModeMenu = m_PopupMenu->addMenu("Multi-Component Display");
   m_DisplayModeActionGroup = NULL;
+
+  m_PopupMenu->addSeparator();
+  m_PopupMenu->addAction(ui->actionPin_layer);
+  m_PopupMenu->addAction(ui->actionUnpin_layer);
+
+  // Create a slider for the layer opacity in the context menu
+  m_OverlayOpacitySlider = new QSlider(m_PopupMenu);
+  m_OverlayOpacitySlider->setOrientation(Qt::Horizontal);
+  m_OverlayOpacitySliderAction = new WidgetWithLabelAction(this);
+  m_OverlayOpacitySliderAction->setWidget(m_OverlayOpacitySlider);
+  m_OverlayOpacitySliderAction->setLabelText("Opacity: ");
+  m_PopupMenu->addAction(m_OverlayOpacitySliderAction);
+
+  // Create a menu listing the loaded overlays
+  m_OverlaysMenu = m_PopupMenu->addMenu("Overlays");
+
+  // Placeholder for image processing commands
+  m_PopupMenu->addSeparator();
+  QMenu *processMenu = m_PopupMenu->addMenu("Image Processing");
+  processMenu->addAction(ui->actionTextureFeatures);
 
   // set up an event filter
   ui->inLayerOpacity->installEventFilter(this);
@@ -68,7 +124,6 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   // Initialize the state
   m_Selected = false;
   m_Hover = false;
-  ui->stack->setCurrentWidget(ui->pageBlank);
   UpdateBackgroundPalette();
 }
 
@@ -84,29 +139,49 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   makeCoupling(ui->inLayerOpacity, model->GetLayerOpacityModel());
   makeCoupling(ui->outLayerNickname, model->GetNicknameModel());
   makeCoupling(ui->outComponent, model->GetComponentNameModel());
-
-  makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
+  makeCoupling(m_OverlayOpacitySlider, model->GetLayerOpacityModel());
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());
+  makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
+
+  const QtWidgetActivator::Options opt_hide = QtWidgetActivator::HideInactive;
+  activateOnFlag(ui->actionUnpin_layer, model, LayerTableRowModel::UIF_UNPINNABLE, opt_hide);
+  activateOnFlag(ui->actionPin_layer, model, LayerTableRowModel::UIF_PINNABLE, opt_hide);
+  activateOnAnyFlags(ui->btnSticky, model, LayerTableRowModel::UIF_UNPINNABLE, LayerTableRowModel::UIF_PINNABLE, opt_hide);
+  activateOnFlag(m_OverlayOpacitySliderAction, model, LayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
+  activateOnFlag(m_ColorMapMenu, model, LayerTableRowModel::UIF_COLORMAP_ADJUSTABLE, opt_hide);
+  activateOnFlag(m_DisplayModeMenu, model, LayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
+  activateOnFlag(ui->outComponent, model, LayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
+
+  // makeActionVisibilityCoupling(ui->actionUnpin_layer, model->GetStickyModel());
+  // makeActionVisibilityCoupling(ui->actionPin_layer, model->GetStickyModel(), true);
+  // makeActionVisibilityCoupling(m_OverlayOpacitySliderAction, model->GetStickyModel());
 
   // Hook up some activations
-  activateOnFlag(ui->btnVisible, model, LayerTableRowModel::UIF_OPACITY_EDITABLE);
-  activateOnFlag(ui->inLayerOpacity, model, LayerTableRowModel::UIF_OPACITY_EDITABLE);
-  activateOnFlag(ui->btnSticky, model, LayerTableRowModel::UIF_PINNABLE);
-  activateOnFlag(ui->btnMoveUp, model, LayerTableRowModel::UIF_MOVABLE_UP);
-  activateOnFlag(ui->btnMoveDown, model, LayerTableRowModel::UIF_MOVABLE_DOWN);
+  activateOnFlag(ui->btnVisible, model, LayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
+  activateOnFlag(ui->inLayerOpacity, model, LayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
+  // activateOnFlag(ui->btnMoveUp, model, LayerTableRowModel::UIF_MOVABLE_UP);
+  // activateOnFlag(ui->btnMoveDown, model, LayerTableRowModel::UIF_MOVABLE_DOWN);
   activateOnFlag(ui->actionClose, model, LayerTableRowModel::UIF_CLOSABLE);
   activateOnFlag(ui->actionAutoContrast, model, LayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
-  activateOnFlag(m_ColorMapMenu, model, LayerTableRowModel::UIF_COLORMAP_ADJUSTABLE);
-  activateOnFlag(m_DisplayModeMenu, model, LayerTableRowModel::UIF_MULTICOMPONENT);
+
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
   OnNicknameUpdate();
   ApplyColorMap();
 
+  // Listen to changes in all layer organization and metadata, as this affects the list
+  // of overlays shown in the context menu
+  connectITK(m_Model->GetParentModel()->GetDriver(), LayerChangeEvent());
+  connectITK(m_Model->GetParentModel()->GetDriver(), WrapperMetadataChangeEvent());
+
   // Listen to preset changes from the color map model
   connectITK(m_Model->GetParentModel()->GetColorMapModel(),
              ColorMapModel::PresetUpdateEvent());
+
+  // Listen to changes in the currently selected layer in GlobalState
+  connectITK(m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerIdModel(),
+              ValueChangedEvent());
 
   // Update the color map menu
   UpdateColorMapMenu();
@@ -114,11 +189,8 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   // Update the component menu
   UpdateComponentMenu();
 
-  // The page shown in this widget depends on whether the visibility editing
-  // is on or off
-  connectITK(m_Model->GetParentModel()->GetLayerVisibilityEditableModel(),
-             ValueChangedEvent());
-  UpdateVisibilityControls();
+  // Update the overlays
+  this->UpdateOverlaysMenu();
 }
 
 ImageWrapperBase *LayerInspectorRowDelegate::GetLayer() const
@@ -136,7 +208,7 @@ ImageWrapperBase *LayerInspectorRowDelegate::GetLayer() const
 void LayerInspectorRowDelegate::UpdateBackgroundPalette()
 {
   // Set up a pallete for the background
-  QPalette* palette = new QPalette();
+  QPalette palette;
   QLinearGradient linearGradient(QPointF(0, 0), QPointF(0, this->height()));
 
   if(m_Selected && m_Hover)
@@ -160,8 +232,9 @@ void LayerInspectorRowDelegate::UpdateBackgroundPalette()
     linearGradient.setColorAt(1, QColor(255,255,255));
     }
 
-  palette->setBrush(QPalette::Window, *(new QBrush(linearGradient)));
-  ui->frame->setPalette(*palette);
+  QBrush brush(linearGradient);
+  palette.setBrush(QPalette::Window, brush);
+  ui->frame->setPalette(palette);
 
   // Also set the font for the label
   if(ui->outLayerNickname->font().bold() != m_Selected)
@@ -179,8 +252,14 @@ void LayerInspectorRowDelegate::setSelected(bool value)
     m_Selected = value;
     emit selectionChanged(value);
 
+    // Update selection in the model
+    m_Model->SetSelected(value);
+
     // Update the look and feel
     this->UpdateBackgroundPalette();
+
+    // Update!
+    this->update();
     }
 }
 
@@ -248,18 +327,6 @@ bool LayerInspectorRowDelegate::eventFilter(QObject *, QEvent *evt)
   return false;
 }
 
-void LayerInspectorRowDelegate::UpdateVisibilityControls()
-{  
-  if(m_Model->GetParentModel()->GetLayerVisibilityEditable())
-    {
-    ui->stack->setCurrentWidget(ui->pageControls);
-    }
-  else
-    {
-    ui->stack->setCurrentWidget(ui->pageBlank);
-    }
-}
-
 void LayerInspectorRowDelegate::UpdateColorMapMenu()
 {
   // The presets are available from the color map model. We can use them
@@ -310,6 +377,10 @@ void LayerInspectorRowDelegate::UpdateColorMapMenu()
 
   // Add the action group to the menu
   m_ColorMapMenu->addActions(m_SystemPresetActionGroup->actions());
+
+  // Add the link to color map editor
+  m_ColorMapMenu->addSeparator();
+  m_ColorMapMenu->addAction(ui->actionColor_Map_Editor);
 }
 
 void LayerInspectorRowDelegate::UpdateComponentMenu()
@@ -354,6 +425,43 @@ void LayerInspectorRowDelegate::UpdateComponentMenu()
                           m_Model->GetDisplayModeModel());
 }
 
+#include "GenericImageData.h"
+#include "LayerInspectorDialog.h"
+
+void LayerInspectorRowDelegate::UpdateOverlaysMenu()
+{
+  int k = 0;
+
+  // Clear the overlays menu
+  m_OverlaysMenu->clear();
+
+  // If the current layer is sticky, disable the menu
+  if(m_Model->GetLayer() && !m_Model->GetLayer()->IsSticky())
+    {
+    // Get the current image data
+    GenericImageData *gid = m_Model->GetParentModel()->GetDriver()->GetCurrentImageData();
+
+    // Find the number of sticky layers
+    for(LayerIterator it = gid->GetLayers(OVERLAY_ROLE | SNAP_ROLE); !it.IsAtEnd(); ++it)
+      {
+      if(it.GetLayer()->IsSticky())
+        {
+        // Find the context menu for that layer
+        LayerInspectorDialog *insp = findParentWidget<LayerInspectorDialog>(this);
+        QMenu *menu = insp->GetLayerContextMenu(it.GetLayer());
+        if(menu)
+          {
+          m_OverlaysMenu->addAction(menu->menuAction());
+          k++;
+          }
+        }
+      }
+    }
+
+  // Enable overlays menu if it's not empty
+  m_OverlaysMenu->menuAction()->setVisible(k > 0);
+}
+
 
 void LayerInspectorRowDelegate::OnNicknameUpdate()
 {
@@ -365,6 +473,7 @@ void LayerInspectorRowDelegate::OnNicknameUpdate()
   ui->actionClose->setToolTip(ui->actionClose->text());
   ui->outLayerNickname->setToolTip(name);
 
+  m_PopupMenu->setTitle(name);
 }
 
 void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
@@ -373,17 +482,23 @@ void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
     {
     this->ApplyColorMap();
     }
-  if(bucket.HasEvent(WrapperMetadataChangeEvent()))
+  if(bucket.HasEvent(WrapperMetadataChangeEvent(), m_Model->GetLayer()))
     {
     this->OnNicknameUpdate();
-    }
-  if(bucket.HasEvent(ValueChangedEvent()))
-    {
-    this->UpdateVisibilityControls();
     }
   if(bucket.HasEvent(ColorMapModel::PresetUpdateEvent()))
     {
     this->UpdateColorMapMenu();
+    }
+  if(bucket.HasEvent(LayerChangeEvent(), m_Model->GetParentModel()->GetDriver())
+     || bucket.HasEvent(WrapperChangeEvent(), m_Model->GetParentModel()->GetDriver()))
+    {
+    this->UpdateOverlaysMenu();
+    }
+  if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerIdModel()))
+    {
+    unsigned long sid = m_Model->GetParentModel()->GetGlobalState()->GetSelectedLayerId();
+    this->setSelected(m_Model->GetLayer() && sid == m_Model->GetLayer()->GetUniqueId());
     }
 }
 
@@ -430,6 +545,7 @@ void LayerInspectorRowDelegate::on_btnMenu_pressed()
   ui->btnMenu->setDown(false);
 }
 
+/*
 void LayerInspectorRowDelegate::on_btnMoveUp_clicked()
 {
   m_Model->MoveLayerUp();
@@ -439,6 +555,7 @@ void LayerInspectorRowDelegate::on_btnMoveDown_pressed()
 {
   m_Model->MoveLayerDown();
 }
+*/
 
 void LayerInspectorRowDelegate::on_actionSave_triggered()
 {
@@ -470,4 +587,65 @@ void LayerInspectorRowDelegate::onColorMapPresetSelected()
 void LayerInspectorRowDelegate::on_actionAutoContrast_triggered()
 {
   m_Model->AutoAdjustContrast();
+}
+
+void LayerInspectorRowDelegate::on_actionTextureFeatures_triggered()
+{
+  QtCursorOverride c(Qt::WaitCursor);
+  m_Model->GenerateTextureFeatures();
+}
+
+void LayerInspectorRowDelegate::on_actionPin_layer_triggered()
+{
+  m_Model->SetSticky(true);
+}
+
+void LayerInspectorRowDelegate::on_actionUnpin_layer_triggered()
+{
+  m_Model->SetSticky(false);
+}
+
+void LayerInspectorRowDelegate::on_actionContrast_Inspector_triggered()
+{
+  emit contrastInspectorRequested();
+}
+
+
+
+WidgetWithLabelAction::WidgetWithLabelAction(QWidget *parent)
+  : QWidgetAction(parent)
+{
+  m_Container = new QWidget(parent);
+  m_Label = new QLabel();
+
+  QHBoxLayout *lo = new QHBoxLayout();
+  lo->setContentsMargins(27, 4, 4, 4);
+  lo->setSpacing(10);
+  lo->addWidget(m_Label);
+  m_Container->setLayout(lo);
+
+  this->setDefaultWidget(m_Container);
+
+  connect(this, SIGNAL(changed()), this, SLOT(onChanged()));
+}
+
+void WidgetWithLabelAction::setWidget(QWidget *widget)
+{
+  m_Container->layout()->addWidget(widget);
+}
+
+void WidgetWithLabelAction::setLabelText(const QString &text)
+{
+  m_Label->setText(text);
+}
+
+void WidgetWithLabelAction::onChanged()
+{
+  m_Container->setVisible(this->isVisible());
+  m_Container->setEnabled(this->isEnabled());
+}
+
+void LayerInspectorRowDelegate::on_actionColor_Map_Editor_triggered()
+{
+  emit colorMapInspectorRequested();
 }

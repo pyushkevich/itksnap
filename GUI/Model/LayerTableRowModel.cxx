@@ -66,10 +66,15 @@ bool LayerTableRowModel::CheckState(UIState state)
     {
     // Opacity can be edited for all layers except the main image layer
     case LayerTableRowModel::UIF_OPACITY_EDITABLE:
-      return (m_LayerRole != MAIN_ROLE);
+      return (m_Layer->IsSticky());
 
+    // Pinnable means it's not sticky and may be overlayed (i.e., not main)
     case LayerTableRowModel::UIF_PINNABLE:
-      return (m_LayerRole != MAIN_ROLE && tiling);
+      return (m_LayerRole != MAIN_ROLE && !m_Layer->IsSticky());
+
+    // Unpinnable means it's not sticky and may be overlayed (i.e., not main)
+    case LayerTableRowModel::UIF_UNPINNABLE:
+      return (m_LayerRole != MAIN_ROLE && m_Layer->IsSticky());
 
     case LayerTableRowModel::UIF_MOVABLE_UP:
       return (m_LayerRole == OVERLAY_ROLE
@@ -167,6 +172,7 @@ void LayerTableRowModel::Initialize(GlobalUIModel *parentModel, ImageWrapperBase
               ValueChangedEvent(),
               StateMachineChangeEvent());
 
+  Rebroadcast(layer, WrapperMetadataChangeEvent(), StateMachineChangeEvent());
 }
 
 void LayerTableRowModel::MoveLayerUp()
@@ -188,6 +194,16 @@ SmartPtr<ImageIOWizardModel> LayerTableRowModel::CreateIOWizardModelForSave()
 bool LayerTableRowModel::IsMainLayer()
 {
   return m_LayerRole == MAIN_ROLE;
+}
+
+void LayerTableRowModel::SetSelected(bool selected)
+{
+  // If the layer is selected and is not sticky, we set is as the currently visible
+  // layer in the render views
+  if(selected && !m_Layer->IsSticky())
+    {
+    m_ParentModel->GetGlobalState()->SetSelectedLayerId(m_Layer->GetUniqueId());
+    }
 }
 
 void LayerTableRowModel::CloseLayer()
@@ -221,6 +237,48 @@ void LayerTableRowModel::AutoAdjustContrast()
     }
 }
 
+#include "MomentTextures.h"
+
+void LayerTableRowModel::GenerateTextureFeatures()
+{
+  ScalarImageWrapperBase *scalar = dynamic_cast<ScalarImageWrapperBase *>(m_Layer);
+  if(scalar)
+    {
+    // Get the image out
+    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> common_rep =
+        scalar->GetCommonFormatImage();
+
+    /*
+    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> texture_image =
+        ScalarImageWrapperBase::CommonFormatImageType::New();
+
+    texture_image->CopyInformation(common_rep);
+    texture_image->SetRegions(common_rep->GetBufferedRegion());
+    texture_image->Allocate();*/
+
+    // Create a radius - hard-coded for now
+    itk::Size<3> radius; radius.Fill(2);
+
+    // Create a filter to generate textures
+    typedef AnatomicImageWrapperTraits<GreyType>::ImageType TextureImageType;
+    typedef bilwaj::MomentTextureFilter<
+        ScalarImageWrapperBase::CommonFormatImageType,
+        TextureImageType> MomentFilterType;
+
+    MomentFilterType::Pointer filter = MomentFilterType::New();
+    filter->SetInput(common_rep);
+    filter->SetRadius(radius);
+    filter->SetHighestDegree(3);
+    filter->Update();
+
+    // Create a new image wrapper
+    SmartPtr<AnatomicImageWrapper> newWrapper = AnatomicImageWrapper::New();
+    newWrapper->InitializeToWrapper(m_Layer, filter->GetOutput(), NULL, NULL);
+    newWrapper->SetDefaultNickname("Textures");
+    this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(newWrapper);
+    }
+}
+
 std::string
 LayerTableRowModel::GetDisplayModeString(const MultiChannelDisplayMode &mode)
 {
@@ -233,18 +291,17 @@ LayerTableRowModel::GetDisplayModeString(const MultiChannelDisplayMode &mode)
   switch(mode.SelectedScalarRep)
     {
     case SCALAR_REP_COMPONENT:
-      oss << "Component ";
-      oss << (1 + mode.SelectedComponent);
+      oss << (1 + mode.SelectedComponent) << "/" << m_Layer->GetNumberOfComponents();
       return oss.str();
 
     case SCALAR_REP_MAGNITUDE:
-      return "Magnitude";
+      return "Mag";
 
     case SCALAR_REP_MAX:
-      return "Maximum";
+      return "Max";
 
     case SCALAR_REP_AVERAGE:
-      return "Average";
+      return "Avg";
 
     case NUMBER_OF_SCALAR_REPS:
       break;
@@ -343,16 +400,20 @@ void LayerTableRowModel::OnUpdate()
 
 bool LayerTableRowModel::GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain)
 {
-  if(!m_Layer) return false;
+  // For opacity to be defined, the layer must be sticky
+  if(!m_Layer || !m_Layer->IsSticky()) return false;
 
+  // Meaning of 'visible' is different for sticky and non-sticky layers
   value = (int)(100.0 * m_Layer->GetAlpha());
+
   if(domain)
     domain->Set(0, 100, 5);
+
   return true;
 }
-
-void LayerTableRowModel::SetLayerOpacityValue(int value)
+ void LayerTableRowModel::SetLayerOpacityValue(int value)
 {
+  assert(m_Layer && m_Layer->IsSticky());
   m_Layer->SetAlpha(value / 100.0);
 }
 
@@ -366,6 +427,12 @@ bool LayerTableRowModel::GetStickyValue(bool &value)
 
 void LayerTableRowModel::SetSticklyValue(bool value)
 {
+  // Make sure the selected ID is legitimate
+  if(m_ParentModel->GetGlobalState()->GetSelectedLayerId() == m_Layer->GetUniqueId())
+    {
+    m_ParentModel->GetGlobalState()->SetSelectedLayerId(
+          m_ParentModel->GetDriver()->GetCurrentImageData()->GetMain()->GetUniqueId());
+    }
   m_Layer->SetSticky(value);
 }
 

@@ -44,6 +44,7 @@
 #include "Registry.h"
 #include <string>
 #include "AbstractPropertyContainerModel.h"
+#include "GlobalState.h"
 
 
 /**
@@ -122,6 +123,7 @@ public:
   irisSimplePropertyAccessMacro(FlagLayoutPatientAnteriorShownLeft, bool)
   irisSimplePropertyAccessMacro(FlagLayoutPatientRightShownLeft, bool)
   irisSimplePropertyAccessMacro(SliceLayout, UISliceLayout)
+  irisSimplePropertyAccessMacro(LayerLayout, LayerLayout)
 
   /**
    * This method uses SliceLayout, FlagLayoutPatientAnteriorShownLeft and
@@ -146,6 +148,9 @@ protected:
 
   typedef ConcretePropertyModel<UISliceLayout, TrivialDomain> ConcreteSliceLayoutModel;
   SmartPtr<ConcreteSliceLayoutModel> m_SliceLayoutModel;
+
+  typedef ConcretePropertyModel<LayerLayout> ConcreteLayerLayoutModel;
+  SmartPtr<ConcreteLayerLayoutModel> m_LayerLayoutModel;
 
   GlobalDisplaySettings();
 };

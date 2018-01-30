@@ -3,6 +3,14 @@
 #include "QtVTKInteractionDelegateWidget.h"
 #include "vtkRenderWindow.h"
 #include "vtkCommand.h"
+#include "QtReporterDelegates.h"
+
+#if QT_VERSION >= 0x050000
+  #include <QOpenGLContext>
+#else
+  #include <QGLContext>
+  #define QOpenGLContext QGLContext
+#endif
 
 QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   QtSimpleOpenGLBox(parent)
@@ -19,6 +27,8 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractRenderer *renderer)
     {
     // Hook up the interaction delegate
     m_InteractionDelegate->SetVTKInteractor(renvtk->GetRenderWindowInteractor());
+
+    // Create a size reporter
     }
 
   // Hook up context-related events (is this needed?)
@@ -34,7 +44,6 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractRenderer *renderer)
   QtSimpleOpenGLBox::SetRenderer(renderer);
 }
 
-#include <QOpenGLContext>
 
 void
 QtVTKRenderWindowBox

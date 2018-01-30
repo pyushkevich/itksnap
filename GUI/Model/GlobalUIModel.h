@@ -39,6 +39,7 @@ class SNAPAppearanceSettings;
 class GenericSliceModel;
 class OrthogonalSliceCursorNavigationModel;
 class PolygonDrawingModel;
+class AnnotationModel;
 class SliceWindowCoordinator;
 class GuidedNativeImageIO;
 class SystemInterface;
@@ -175,6 +176,12 @@ public:
     return m_PaintbrushModel[i];
   }
 
+  /** Get the annotation model for each slice */
+  AnnotationModel *GetAnnotationModel(unsigned int i) const
+  {
+    return m_AnnotationModel[i];
+  }
+
   /** Get the model for intensity curve navigation */
   irisGetMacro(IntensityCurveModel, IntensityCurveModel *)
 
@@ -249,14 +256,14 @@ public:
   irisGetMacro(SnakeROIIndexModel, AbstractRangedUIntVec3Property *)
   irisGetMacro(SnakeROISizeModel, AbstractRangedUIntVec3Property *)
 
+  /** Get the model for the snake mode segmentation carry over behavior */
+  irisSimplePropertyAccessMacro(SnakeROISeedWithCurrentSegmentation, bool)
+
   /** A model for overall segmentation opacity (int, range 0..100) */
   irisRangedPropertyAccessMacro(SegmentationOpacity, int)
 
   /** A model for the segmentation visibility on/off state */
   irisSimplePropertyAccessMacro(SegmentationVisibility, bool)
-
-  /** Whether layer visibility and organization properties are editable */
-  irisSimplePropertyAccessMacro(LayerVisibilityEditable, bool)
 
   /** Method to toggle overlay visibility (all or selected overlays) */
   void ToggleOverlayVisibility();
@@ -277,8 +284,8 @@ public:
   void AdjustOverlayOpacity(int delta);
 
   /** Get a list of k recent "things" that are tracked in history */
-  std::vector<std::string> GetRecentHistoryItems(
-      const char *historyCategory, unsigned int k = 5);
+  std::vector<std::string> GetRecentHistoryItems(const char *historyCategory,
+                                                 unsigned int k = 5, bool global_history = true);
 
   /** Check if a particular history is empty */
   bool IsHistoryEmpty(const char *historyCategory);
@@ -359,6 +366,9 @@ protected:
   // Models for paintbrush drawing
   SmartPtr<PaintbrushModel> m_PaintbrushModel[3];
 
+  // Models for annotation
+  SmartPtr<AnnotationModel> m_AnnotationModel[3];
+
   // Window coordinator
   SmartPtr<SliceWindowCoordinator> m_SliceCoordinator;
 
@@ -433,6 +443,11 @@ protected:
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
   void SetSnakeROISizeValue(Vector3ui value);
 
+  // What happens to segmentation on entering snake mode
+  SmartPtr<AbstractSimpleBooleanProperty> m_SnakeROISeedWithCurrentSegmentationModel;
+  bool GetSnakeROISeedWithCurrentSegmentationValue(bool &value);
+  void SetSnakeROISeedWithCurrentSegmentationValue(bool value);
+
   // The model for the mesh export wizard
   SmartPtr<MeshExportModel> m_MeshExportModel;
 
@@ -451,9 +466,6 @@ protected:
   // Segmentation opacity and visibility models
   SmartPtr<AbstractRangedIntProperty> m_SegmentationOpacityModel;
   SmartPtr<AbstractSimpleBooleanProperty> m_SegmentationVisibilityModel;
-
-  // Whether layer visibility and order are editable in the layer inspector
-  SmartPtr<ConcreteSimpleBooleanProperty> m_LayerVisibilityEditableModel;
 
   // Callbacks for the opacity model
   bool GetSegmentationOpacityValueAndRange(int &value, NumericValueRange<int> *domain);

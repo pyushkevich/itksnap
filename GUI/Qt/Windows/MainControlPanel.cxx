@@ -11,51 +11,47 @@
 #include <QtActionGroupCoupling.h>
 #include <QActionGroup>
 #include <QMenu>
+#include <QToolButton>
 
-/*
- * A style sheet for making blue buttons with a drop down. For now we are
- * not going to use these, but may need them if more tools are added to
- * the main toolbox
-
-    QToolButton {
-    border-image: url(:/root/fltkbutton.png) repeat;
-    border-top-width: 8px;
-    border-bottom-width: 8px;
-    border-left-width: 3px;
-    border-right-width: 3px;
-    background-origin: content;
-    padding-top: -8px;
-    padding-bottom: -8px;
-    padding-left: -7px;
-    padding-right: 1px;
-    width:33px;
-    height:28px;
-    }
-
-    QToolButton[popupMode="0"]
-    {
-    width:28px;
-    padding-left: -2px;
-    padding-right: -2px;
-
-    }
-
-    QToolButton:pressed, QToolButton:checked {
-      border-image: url(:/root/fltkbutton_pressed.png) repeat;
-    }
-
-    QToolButton::menu-button {
-    border:0px;
-    margin:0px;
-    padding-top: 17px;
-    padding-right: 2px;
-    }
-
-    QToolButton::menu-arrow {
-    image: url(:/root/menu-arrow.png);
-    }
-
-    */
+// A style sheet for making blue buttons with a drop down. For now we are
+// not going to use these, but may need them if more tools are added to
+// the main toolbox
+static const char *ss_toolbutton_dropdown =
+    "QToolButton {"
+    "border-top-width: 8px;"
+    "border-bottom-width: 8px;"
+    "border-left-width: 3px;"
+    "border-right-width: 3px;"
+    "background-origin: content;"
+    "padding-top: -8px;"
+    "padding-bottom: -8px;"
+    "padding-left: -7px;"
+    "padding-right: 1px;"
+    "width:33px;"
+    "height:28px;"
+    "}"
+    ""
+    "QToolButton[popupMode=\"0\"]"
+    "{"
+    "width:28px;"
+    "padding-left: -2px;"
+    "padding-right: -2px;"
+    "}"
+    ""
+    "QToolButton:pressed, QToolButton:checked {"
+    "  border-image: url(:/root/fltkbutton_pressed.png) repeat;"
+    "}"
+    ""
+    "QToolButton::menu-button {"
+    "border:0px;"
+    "margin:0px;"
+    "padding-top: 17px;"
+    "padding-right: 2px;"
+    "}"
+    ""
+    "QToolButton::menu-arrow {"
+    "image: url(:/root/menu-arrow.png);"
+    "}";
 
 /*
  * Some commented out code for setting up a dropdown menu of actions
@@ -82,7 +78,6 @@
 
  */
 
-#include <QToolBar>
 #include <QWhatsThis>
 
 MainControlPanel::MainControlPanel(MainImageWindow *parent) :
@@ -93,41 +88,98 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
 
   m_Model = NULL;
 
-  // The mode toolbar
-  QToolBar *toolbar = new QToolBar(this);
-  ui->panelToolbarMode->layout()->addWidget(toolbar);  
-  toolbar->addActions(parent->GetMainToolActionGroup()->actions());
+  // Connect tool buttons to actions
+  ui->btnCrosshair->setDefaultAction(FindUpstreamAction(this, "actionCrosshair"));
+  ui->btnZoom->setDefaultAction(FindUpstreamAction(this, "actionZoomPan"));
+  ui->btnPolygon->setDefaultAction(FindUpstreamAction(this, "actionPolygon"));
+  ui->btnPaintbrush->setDefaultAction(FindUpstreamAction(this, "actionPaintbrush"));
+  ui->btnAnnotation->setDefaultAction(FindUpstreamAction(this, "actionAnnotation"));
+  ui->btnSnake->setDefaultAction(FindUpstreamAction(this, "actionSnake"));
 
+  /*
+  // Configure the toolbar's simple buttons
+  toolbar->addAction(FindUpstreamAction(this, "actionCrosshair"));
+  toolbar->addAction(FindUpstreamAction(this, "actionZoomPan"));
+
+  // QWidget *spacer1 = new QWidget();
+  // spacer1->setMinimumWidth(2);
+  // toolbar->addWidget(spacer1);
+
+  // Create a drop down button for choosing between polygon and annotation modes
+  m_DrawingDropdownButton = new QToolButton(this);
+  QMenu *tbDrawingMenu = new QMenu();
+  tbDrawingMenu->addAction(FindUpstreamAction(this, "actionPolygon"));
+  tbDrawingMenu->addAction(FindUpstreamAction(this, "actionPaintbrush"));
+  tbDrawingMenu->addAction(FindUpstreamAction(this, "actionAnnotation"));
+  m_DrawingDropdownButton->setMenu(tbDrawingMenu);
+  m_DrawingDropdownButton->setDefaultAction(FindUpstreamAction(this, "actionPolygon"));
+  m_DrawingDropdownButton->setPopupMode(QToolButton::MenuButtonPopup);
+  // m_DrawingDropdownButton->setMinimumWidth(28);
+  // m_DrawingDropdownButton->setMaximumWidth(38);
+  // m_DrawingDropdownButton->setStyleSheet("padding-right:12px;");
+
+  connect(tbDrawingMenu, SIGNAL(triggered(QAction*)), this, SLOT(onDrawingButtonAction(QAction *)));
+
+  toolbar->addWidget(m_DrawingDropdownButton);
+
+  // QWidget *spacer2 = new QWidget();
+  // spacer2->setMinimumWidth(2);
+  // toolbar->addWidget(spacer2);
+
+
+
+  toolbar->addAction(FindUpstreamAction(this, "actionSnake"));
+
+  // toolbar->addActions(parent->GetMainToolActionGroup()->actions());
+
+  */
+
+
+/*
   // The action toolbar
   QToolBar *toolCmd = new QToolBar(this);
   toolCmd->setIconSize(QSize(20,20));
   ui->panelToolbarAction->layout()->addWidget(toolCmd);
+  */
 
   // Hide the buttons that show up and disappear
   ui->btnPaintbrushInspector->setVisible(false);
   ui->btnPolygonInspector->setVisible(false);
   ui->btnSnakeInspector->setVisible(false);
   ui->btnJoinInspector->setVisible(false);
+  ui->btnAnnotateInspector->setVisible(false);
 
 
   // Label selection button
-  m_LabelSelectionButton = new LabelSelectionButton(this);
+  /*m_LabelSelectionButton = new LabelSelectionButton(this);
 
   toolCmd->addAction(FindUpstreamAction(this, "actionUndo"));
   toolCmd->addAction(FindUpstreamAction(this, "actionRedo"));
   toolCmd->addWidget(m_LabelSelectionButton);
-  toolCmd->addAction(FindUpstreamAction(this, "actionLayerInspector"));
+  toolCmd->addAction(FindUpstreamAction(this, "actionLayerInspector")); */
+
+  ui->btnUndo->setDefaultAction(FindUpstreamAction(this, "actionUndo"));
+  ui->btnRedo->setDefaultAction(FindUpstreamAction(this, "actionRedo"));
+  ui->btnLayerInspector->setDefaultAction(FindUpstreamAction(this, "actionLayerInspector"));
+  ui->btnLabelEditor->setDefaultAction(FindUpstreamAction(this, "actionLabel_Editor"));
 
   // Add a shortcut for the button
-  m_LabelSelectionButton->setShortcut(QKeySequence("l"));
+  ui->btnLabelSelector->setShortcut(QKeySequence("l"));
 
   // Set up the label popup
   m_LabelSelectionPopup = new LabelSelectionPopup(this);
 
   // Set up the 3D toolbar
-  QToolBar *tool3D = new QToolBar(this);
-  ui->panelToolbarMode3D->layout()->addWidget(tool3D);
-  tool3D->addActions(parent->Get3DToolActionGroup()->actions());
+  ui->btnCross3D->setDefaultAction(FindUpstreamAction(this, "action3DCrosshair"));
+  ui->btnRotate3D->setDefaultAction(FindUpstreamAction(this, "action3DTrackball"));
+  ui->btnScalpel->setDefaultAction(FindUpstreamAction(this, "action3DScalpel"));
+  ui->btnSpray->setDefaultAction(FindUpstreamAction(this, "action3DSpray"));
+
+
+
+  //QToolBar *tool3D = new QToolBar(this);
+  //ui->panelToolbarMode3D->layout()->addWidget(tool3D);
+  //tool3D->addActions(parent->Get3DToolActionGroup()->actions());
 }
 
 void MainControlPanel::SetModel(GlobalUIModel *model)
@@ -141,8 +193,9 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   ui->pageSnakeTool->SetModel(m_Model);
   ui->pagePolygonTool->SetModel(m_Model);
   ui->pageJoinTool->SetModel(m_Model);
+  ui->pageAnnotationTool->SetModel(m_Model);
 
-  m_LabelSelectionButton->SetModel(model);
+  ui->btnLabelSelector->SetModel(model);
   m_LabelSelectionPopup->SetModel(model);
 
   ui->labelInspector->SetModel(m_Model);
@@ -168,7 +221,8 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->btnJoinInspector,         //5: JOIN_MODE
     ui->btnSnakeInspector,        //6: GLOBALWS_ROI_MODE
     ui->btnCursorInspector,       //7: GWSJOIN_MODE
-    ui->btnSnakeInspector         //8: ANNOTATION_MODE
+    ui->btnSnakeInspector,        //8: ANNOTATION_MODE
+    ui->btnAnnotateInspector
   };
 
 
@@ -182,10 +236,16 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->btnPolygonInspector->setVisible(mode == POLYGON_DRAWING_MODE);
     ui->btnSnakeInspector->setVisible(mode == SNAKE_ROI_MODE || mode == GLOBALWS_ROI_MODE);
     ui->btnJoinInspector->setVisible(mode == JOIN_MODE);
+    ui->btnAnnotateInspector->setVisible(mode == ANNOTATION_MODE);
 
     // Click the button corresponding to the mode
     mode_inspector_btn[mode]->click();
     }
+}
+
+void MainControlPanel::onDrawingButtonAction(QAction *action)
+{
+  m_DrawingDropdownButton->setDefaultAction(action);
 }
 
 
@@ -271,5 +331,13 @@ void MainControlPanel::on_btnJoinInspector_clicked(bool checked)
     ui->stack->setCurrentWidget(ui->pageJoinTool);
     ui->grpInspector->setTitle("Join Inspector");
     }
+}
 
+void MainControlPanel::on_btnAnnotateInspector_clicked(bool checked)
+{
+  if(checked)
+    {
+    ui->stack->setCurrentWidget(ui->pageAnnotationTool);
+    ui->grpInspector->setTitle("Annotation Inspector");
+    }
 }

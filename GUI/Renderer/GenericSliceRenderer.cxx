@@ -42,7 +42,8 @@
 GenericSliceRenderer
 ::GenericSliceRenderer()
 {
-  this->m_ThumbnailDrawing = false;
+  this->m_DrawingZoomThumbnail = false;
+  this->m_DrawingLayerThumbnail = false;
 }
 
 void
@@ -86,6 +87,13 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   PaintbrushSettingsModel *psm = m_Model->GetParentUI()->GetPaintbrushSettingsModel();
   Rebroadcast(psm->GetBrushSizeModel(), ValueChangedEvent(), AppearanceUpdateEvent());
 
+  // Which layer is currently selected
+  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
+              ValueChangedEvent(), AppearanceUpdateEvent());
+
+  Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+
 }
 
 void GenericSliceRenderer::OnUpdate()
@@ -110,15 +118,8 @@ void
 GenericSliceRenderer
 ::paintGL()
 {
-  // Number of divisions
-  DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
-  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
-  int nrows = (int) layout[0];
-  int ncols = (int) layout[1];
-
-  // Get the dimensions of the cells
-  unsigned int cell_w = m_Model->GetSize()[0];
-  unsigned int cell_h = m_Model->GetSize()[1];
+  // Get the current image data
+  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
 
   // Get the appearance settings pointer since we use it a lot
   SNAPAppearanceSettings *as =
@@ -128,90 +129,190 @@ GenericSliceRenderer
   Vector3d clrBack = as->GetUIElement(
       SNAPAppearanceSettings::BACKGROUND_2D)->GetNormalColor();
 
+  // Get the overall viewport
+  Vector2ui vp_full = m_Model->GetSizeReporter()->GetViewportSize();
+  int vppr = m_Model->GetSizeReporter()->GetViewportPixelRatio();
+
   // Set up lighting attributes
   glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT |
-               GL_PIXEL_MODE_BIT | GL_TEXTURE_BIT );
+               GL_PIXEL_MODE_BIT | GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT);
 
   glDisable(GL_LIGHTING);
 
   glClearColor(clrBack[0], clrBack[1], clrBack[2], 1.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  // Set up the viewports for individual 'cells' in the display. Each cell constitutes one
+  // image with its various overlays.
+
   // Slice should be initialized before display
   if (m_Model->IsSliceInitialized())
     {
-    // Draw each cell in the nrows by ncols table of images. Usually, there
-    // will only be one column, but the new SNAP supports side-by-side drawing
-    // of layers for when there are overlays
-    for(int irow = 0; irow < nrows; irow++)
-      for(int icol = 0; icol < ncols; icol++)
+    // Draw each viewport in turn. For now, the number of z-layers is hard-coded at 2
+    for(int k = 0; k < m_Model->GetViewportLayout().vpList.size(); k++)
+      {
+      const SliceViewportLayout::SubViewport &vp = m_Model->GetViewportLayout().vpList[k];
+
+      // Set up the viewport for the current cell
+      glViewport(vp.pos[0], vp.pos[1], vp.size[0], vp.size[1]);
+
+      // Set up the projection
+      glMatrixMode(GL_PROJECTION);
+      glPushMatrix();
+      glLoadIdentity();
+      irisOrtho2D(0.0, vp.size[0], 0.0, vp.size[1]);
+
+      // Establish the model view matrix
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix();
+      glLoadIdentity();
+      glPushMatrix();
+
+      // First set of transforms
+      glTranslated(0.5 * vp.size[0], 0.5 * vp.size[1], 0.0);
+
+      // Zoom by display zoom. The amount of zoom depends on whether we are in thumbnail
+      // mode or in regular mode
+      double zoom = m_Model->GetViewZoom();
+      if(vp.isThumbnail)
         {
-        // Set up the viewport for the current cell
-        glViewport(icol * cell_w, (nrows - 1 - irow) * cell_h,
-                   cell_w, cell_h);
-
-        // Set up the projection
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        gluOrtho2D(0.0, cell_w, 0.0, cell_h);
-
-        // Establish the model view matrix
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        // Scale to account for multiple rows and columns
-        // glScaled(1.0 / ncols, 1.0 / nrows, 1.0);
-
-        // Prepare for overlay drawing.  The model view is set up to correspond
-        // to pixel coordinates of the slice
-        glPushMatrix();
-
-        // First set of transforms
-        glTranslated(0.5 * cell_w, 0.5 * cell_h, 0.0);
-
-        // Zoom by display zoom
-        glScalef(m_Model->GetViewZoom(), m_Model->GetViewZoom(), 1.0);
-
-        // Panning
-        glTranslated(-m_Model->GetViewPosition()[0],
-                     -m_Model->GetViewPosition()[1],
-                     0.0);
-
-        // Convert from voxel space to physical units
-        glScalef(m_Model->GetSliceSpacing()[0],
-                 m_Model->GetSliceSpacing()[1],
-                 1.0);
-
-        // Draw the main layers for this row/column combination
-        if(this->DrawImageLayers(nrows, ncols, irow, icol))
-          {
-          // We don't want to draw segmentation over the speed image and other
-          // SNAP-mode layers.
-          this->DrawSegmentationTexture();
-
-          // Draw the overlays
-          if(as->GetOverallVisibility())
-            {
-            // Draw all the overlays added to this object
-            this->DrawTiledOverlays();
-
-            }
-          }
-
-        // Clean up the GL state
-        glPopMatrix();
+        double scale_x = vp.size[0] * 1.0 / m_Model->GetCanvasSize()[0];
+        double scale_y = vp.size[1] * 1.0 / m_Model->GetCanvasSize()[1];
+        zoom *= std::max(scale_x, scale_y);
         }
 
-    // Set the viewport and projection to original dimensions
-    Vector2ui vp = m_Model->GetSizeReporter()->GetViewportSize();
+      // Apply the correct scaling
+      glScalef(zoom, zoom, 1.0);
 
-    glViewport(0, 0, vp[0], vp[1]);
+      // Panning
+      glTranslated(-m_Model->GetViewPosition()[0], -m_Model->GetViewPosition()[1], 0.0);
+
+      // Convert from voxel space to physical units
+      glScalef(m_Model->GetSliceSpacing()[0], m_Model->GetSliceSpacing()[1], 1.0);
+
+      // Draw the main layers for this row/column combination
+      ImageWrapperBase *layer = id->FindLayer(vp.layer_id, false);
+      if(layer && this->DrawImageLayers(layer, !vp.isThumbnail))
+        {
+        // Set the thumbnail flag
+        m_DrawingLayerThumbnail = vp.isThumbnail;
+
+        // We don't want to draw segmentation over the speed image and other
+        // SNAP-mode layers.
+        this->DrawSegmentationTexture();
+
+        // Draw the overlays
+        if(as->GetOverallVisibility())
+          {
+          // Draw all the overlays added to this object
+          this->DrawTiledOverlays();
+          }
+
+        glPopMatrix();
+
+        // Determine if the current layer is hovered over by the mouse
+        bool is_hover = layer->GetUniqueId() == m_Model->GetHoveredImageLayerId();
+        bool is_thumb = vp.isThumbnail;
+        bool is_selected = layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId();
+
+        // Draw decoration around layer thumbnail. This is done when the thumbnail is hovered over
+        // or currently selected
+        if(is_thumb && (is_hover || is_selected))
+          {
+          // If the layer has positive z, draw a line
+          glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+
+          // The element used for highlighting thumbnails
+          SmartPtr<OpenGLAppearanceElement> elt = OpenGLAppearanceElement::New();
+          elt->SetNormalColor(Vector3d(0.6, 0.54, 0.46));
+          elt->SetActiveColor(Vector3d(1.0, 0.9, 0.1));
+          elt->SetLineThickness(1.5 * vppr);
+          elt->SetVisible(true);
+          elt->SetAlphaBlending(false);
+
+          elt->ApplyLineSettings();
+
+          // Determine the colors
+          if(is_selected && is_hover)
+            {
+            Vector3d clr = elt->GetActiveColor();
+            clr += 0.4;
+            clr = clr.clamp(Vector3d(0.0), Vector3d(1.0));
+            glColor3dv(clr.data_block());
+            }
+          else if(is_selected)
+            {
+            glColor3dv(elt->GetActiveColor().data_block());
+            }
+          else if(is_hover)
+            {
+            glColor3dv(elt->GetNormalColor().data_block());
+            }
+
+          glBegin(GL_LINE_LOOP);
+          glVertex2i(0,0);
+          glVertex2i(0,vp.size[1]);
+          glVertex2i(vp.size[0], vp.size[1]);
+          glVertex2i(vp.size[0], 0);
+          glEnd();
+
+          glPopAttrib();
+          }
+
+        // Draw context menu indicator for the layer being hovered
+        /*
+         * // NOTE - this is now being done in the Qt code instead
+        if(is_hover && is_thumb == m_Model->GetHoveredImageIsThumbnail())
+          {
+          // Load the texture for the icon
+          static GLuint icon_texture_id = -1u;
+          static Vector2ui icon_size;
+          int vpratio = m_Model->GetSizeReporter()->GetViewportPixelRatio();
+          if(icon_texture_id == -1u)
+            {
+            m_PlatformSupport->LoadTexture("context_gray_12", icon_texture_id, icon_size);
+            }
+
+          // Draw the icon in the corner of the view
+          glPushAttrib(GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
+          glEnable(GL_TEXTURE_2D);
+          glEnable(GL_BLEND);
+          glBindTexture(GL_TEXTURE_2D, icon_texture_id);
+          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+          glColor3d(1.0, 1.0, 1.0);
+          glBegin(GL_QUADS);
+          int margin = 4 * vpratio;
+          int x0 = vp.size[0] - margin - icon_size[0], x1 = vp.size[0] - margin;
+          int y1 = vp.size[1] - margin - icon_size[1], y0 = vp.size[1] - margin;
+          glTexCoord2d(0.0, 0.0); glVertex2i(x0,y0);
+          glTexCoord2d(0.0, 1.0); glVertex2i(x0,y1);
+          glTexCoord2d(1.0, 1.0); glVertex2i(x1,y1);
+          glTexCoord2d(1.0, 0.0); glVertex2i(x1,y0);
+          glEnd();
+
+          glPopAttrib();
+          }
+          */
+
+
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        }
+      }
+
+    // No longer drawing thumbnails
+    m_DrawingLayerThumbnail = false;
+
+    // Set the viewport and projection to original dimensions
+    glViewport(0, 0, vp_full[0], vp_full[1]);
 
     // Set up the projection
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    gluOrtho2D(0.0, vp[0], 0.0, vp[1]);
+    irisOrtho2D(0.0, vp_full[0], 0.0, vp_full[1]);
 
     // Establish the model view matrix
     glMatrixMode(GL_MODELVIEW);
@@ -233,7 +334,6 @@ GenericSliceRenderer
 
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
-
     }
 
   // Draw the various decorations
@@ -245,12 +345,12 @@ GenericSliceRenderer
 
 void
 GenericSliceRenderer
-::resizeGL(int w, int h)
+::resizeGL(int w, int h, int device_pixel_ratio)
 {
   // Set up projection matrix
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0.0,w,0.0,h);
+  irisOrtho2D(0.0,w,0.0,h);
   glViewport(0,0,w,h);
 
   // Establish the model view matrix
@@ -258,34 +358,37 @@ GenericSliceRenderer
   glLoadIdentity();
 }
 
-bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int icol)
+bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, bool drawStickies)
 {
   // Get the image data
   GenericImageData *id = m_Model->GetImageData();
 
   // If drawing the thumbnail, only draw the main layer
-  if(m_ThumbnailDrawing)
+  if(m_DrawingZoomThumbnail)
     {
-    DrawTextureForLayer(id->GetMain(), false);
+    DrawTextureForLayer(base_layer, false);
     return true;
     }
 
   // Is the display partitioned into rows and columns?
-  if(nrows == 1 && ncols == 1)
+  if(!this->IsTiledMode())
     {
-    // Draw all the layers that are visible except segmentation, which is handled
-    // separately (last)
-    for(LayerIterator it(id); !it.IsAtEnd(); ++it)
+    // Draw the base layer without transparency
+    DrawTextureForLayer(base_layer, false);
+
+    // Now draw all the sticky layers on top
+    if(drawStickies)
       {
-      ImageWrapperBase *layer = it.GetLayer();
-      if(it.GetRole() == MAIN_ROLE)
+        for(LayerIterator it(id); !it.IsAtEnd(); ++it)
         {
-        DrawTextureForLayer(layer, false);
-        }
-      else if(it.GetRole() != LABEL_ROLE
-              && layer->IsDrawable() && layer->GetAlpha() > 0)
-        {
-        DrawTextureForLayer(it.GetLayer(), true);
+        ImageWrapperBase *layer = it.GetLayer();
+        if(it.GetRole() != LABEL_ROLE
+           && layer->IsDrawable()
+           && layer->IsSticky()
+           && layer->GetAlpha() > 0)
+          {
+          DrawTextureForLayer(layer, true);
+          }
         }
       }
 
@@ -293,56 +396,37 @@ bool GenericSliceRenderer::DrawImageLayers(int nrows, int ncols, int irow, int i
     }
   else
     {
-    // Geth the n-th layer
-    ImageWrapperBase *layer = GetLayerForNthTile(irow, icol);
-
-    // Check if the layer is in drawable condition. If not, draw nothing.
-    if(!layer)
-      return false;
-
     // Draw the particular layer
-    DrawTextureForLayer(layer, false);
+    DrawTextureForLayer(base_layer, false);
 
     // Now draw all the non-sticky layers
-    for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
+    if(drawStickies)
       {
-      if(itov.GetRole() != MAIN_ROLE
-         && itov.GetLayer()->IsSticky()
-         && itov.GetLayer()->IsDrawable()
-         && itov.GetLayer()->GetAlpha() > 0)
+      for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
         {
-        DrawTextureForLayer(itov.GetLayer(), true);
+        if(itov.GetRole() != MAIN_ROLE
+           && itov.GetLayer()->IsSticky()
+           && itov.GetLayer()->IsDrawable()
+           && itov.GetLayer()->GetAlpha() > 0)
+          {
+          DrawTextureForLayer(itov.GetLayer(), true);
+          }
         }
       }
 
     return true;
-    }
+  }
 }
 
-
-ImageWrapperBase *GenericSliceRenderer::GetLayerForNthTile(int row, int col)
+bool GenericSliceRenderer::IsTiledMode() const
 {
-  // Number of divisions
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
   Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
-  int ncols = (int) layout[1];
-
-  // How many layers to go until we get to the one we want to paint?
-  int togo = row * ncols + col;
-
-  // Skip all layers until we get to the sticky layer we want to paint
-  for(LayerIterator it(m_Model->GetImageData()); !it.IsAtEnd(); ++it)
-    {
-    if(it.GetRole() == MAIN_ROLE || !it.GetLayer()->IsSticky())
-      {
-      if(togo == 0)
-        return it.GetLayer()->IsDrawable() ? it.GetLayer() : NULL;
-      togo--;
-      }
-    }
-
-  return NULL;
+  return layout[0] > 1 || layout[1] > 1;
 }
+
+
+
 
 
 
@@ -356,7 +440,7 @@ void GenericSliceRenderer::DrawMainTexture()
     DrawTextureForLayer(id->GetMain(), false);
 
   // Draw each of the overlays
-  if (!m_ThumbnailDrawing)
+  if (!m_DrawingZoomThumbnail)
     {
     for(LayerIterator it(id, OVERLAY_ROLE); !it.IsAtEnd(); ++it)
       DrawTextureForLayer(it.GetLayer(), true);
@@ -392,7 +476,7 @@ void GenericSliceRenderer::DrawTextureForLayer(
       }
     else
       {
-      Vector3d clrBackground = m_ThumbnailDrawing
+      Vector3d clrBackground = m_DrawingZoomThumbnail
         ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL)->GetNormalColor()
         : Vector3d(1.0);
       tex->Draw(clrBackground);
@@ -404,11 +488,11 @@ void GenericSliceRenderer::DrawTextureForLayer(
 void GenericSliceRenderer::DrawSegmentationTexture()
   {
   GenericImageData *id = m_Model->GetImageData();
+  double alpha = m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
 
-  if (id->IsSegmentationLoaded())
+  if (id->IsSegmentationLoaded() && alpha > 0)
     {
     Texture *texture = m_Texture[id->GetSegmentation()];
-    double alpha = m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
     texture->DrawTransparent(alpha);
     }
   }
@@ -425,16 +509,11 @@ void GenericSliceRenderer::DrawThumbnail()
 
   // Tell model to figure out the thumbnail size
   m_Model->ComputeThumbnailProperties();
-  Vector2i tPos = m_Model->GetThumbnailPosition();
+  Vector2i tPos = m_Model->GetZoomThumbnailPosition();
   double tZoom = m_Model->GetThumbnailZoom();
 
-  // Current display layout
-  DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
-  Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
-  unsigned int rows = layout[0], cols = layout[1];
-
   // Indicate the fact that we are currently drawing in thumbnail mode
-  m_ThumbnailDrawing = true;
+  m_DrawingZoomThumbnail = true;
 
   // Set up the GL matrices
   glPushMatrix();
@@ -472,8 +551,8 @@ void GenericSliceRenderer::DrawThumbnail()
   glTranslated(m_Model->GetViewPosition()[0],
                m_Model->GetViewPosition()[1],
                0.0);
-  w = m_Model->GetSize()[0] * 0.5 / m_Model->GetViewZoom();
-  h = m_Model->GetSize()[1] * 0.5 / m_Model->GetViewZoom();
+  w = m_Model->GetCanvasSize()[0] * 0.5 / m_Model->GetViewZoom();
+  h = m_Model->GetCanvasSize()[1] * 0.5 / m_Model->GetViewZoom();
 
   glColor3dv(elt->GetActiveColor().data_block());
   glBegin(GL_LINE_LOOP);
@@ -486,7 +565,7 @@ void GenericSliceRenderer::DrawThumbnail()
   glPopMatrix();
 
   // Indicate the fact that we are not drawing in thumbnail mode
-  m_ThumbnailDrawing = false;
+  m_DrawingZoomThumbnail = false;
   }
 
 GenericSliceRenderer::Texture *

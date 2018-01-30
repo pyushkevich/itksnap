@@ -159,17 +159,17 @@ void OrthogonalSliceCursorNavigationModel
   m_Parent->GetDriver()->SetCursorPosition(xCrossClamped);
 }
 
-bool OrthogonalSliceCursorNavigationModel::CheckThumbnail(Vector2i xCanvas)
+bool OrthogonalSliceCursorNavigationModel::CheckZoomThumbnail(Vector2i xCanvas)
 {
   // Check if the event is inside of the thumbnail boundaries
-  Vector2i xThumb = m_Parent->GetThumbnailPosition();
-  Vector2i sThumb = m_Parent->GetThumbnailSize();
+  Vector2i xThumb = m_Parent->GetZoomThumbnailPosition();
+  Vector2i sThumb = m_Parent->GetZoomThumbnailSize();
   return (m_Parent->IsThumbnailOn() &&
     xCanvas[0] > xThumb[0] &&
     xCanvas[0] < xThumb[0] + sThumb[0] &&
     xCanvas[1] > xThumb[1] &&
           xCanvas[1] < xThumb[1] + sThumb[1]);
-  }
+}
 
 void OrthogonalSliceCursorNavigationModel
 ::ProcessThumbnailPanGesture(Vector2i uvOffset)

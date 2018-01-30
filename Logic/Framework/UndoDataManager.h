@@ -32,6 +32,9 @@
   PURPOSE.  See the above copyright notices for more information. 
 
 =========================================================================*/
+#ifndef __UndoDataManager_h_
+#define __UndoDataManager_h_
+
 #include <vector>
 #include <list>
 
@@ -154,3 +157,5 @@ private:
 
   Delta *m_CumulativeDelta;
 };
+
+#endif // __UndoDataManager_h_

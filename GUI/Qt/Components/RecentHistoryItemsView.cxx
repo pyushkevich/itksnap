@@ -25,6 +25,11 @@ public:
       {
       painter->setOpacity(0.8);
       }
+    else
+      {
+      painter->setBackground(QBrush(Qt::black));
+      }
+
     QItemDelegate::paint(painter, option, index);
   }
 };
@@ -38,6 +43,7 @@ RecentHistoryItemsView::RecentHistoryItemsView(QWidget *parent) :
   // Delegate for history
   HistoryListItemDelegate *del = new HistoryListItemDelegate(ui->listRecent);
   ui->listRecent->setItemDelegate(del);
+  ui->listRecent->setUniformItemSizes(true);
 
   // Set up the popup for the recent list
   m_RecentListPopup = new QMenu(this);

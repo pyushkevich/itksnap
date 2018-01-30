@@ -33,7 +33,7 @@
     <widget class="QWidget" name="widget" native="true">
      <property name="minimumSize">
       <size>
-       <width>162</width>
+       <width>180</width>
        <height>0</height>
       </size>
      </property>
@@ -84,7 +84,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>150</width>
+           <width>168</width>
            <height>409</height>
           </rect>
          </property>
@@ -154,7 +154,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="GeneralLayerInspector" name="cmpComponent">
       <attribute name="title">
@@ -208,22 +208,6 @@
     <string>Save As...</string>
    </property>
   </action>
-  <action name="actionEditVisibility">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../Resources/SNAPResources.qrc">
-     <normaloff>:/root/layer_invisible_16.png</normaloff>
-     <normalon>:/root/layer_visible_16.png</normalon>:/root/layer_invisible_16.png</iconset>
-   </property>
-   <property name="text">
-    <string>Edit Visibility</string>
-   </property>
-   <property name="toolTip">
-    <string>Press this button to display layer visibility and opacity controls in the list of layers</string>
-   </property>
-  </action>
   <action name="actionLayoutToggle">
    <property name="icon">
     <iconset resource="../Resources/SNAPResources.qrc">
@@ -233,7 +217,7 @@
     <string>Layout Toggle</string>
    </property>
    <property name="toolTip">
-    <string>Toggle layout between tiled and stacked</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle between thumbnail and tiled layouts.&lt;/p&gt;&lt;p&gt;In &lt;span style=&quot; font-weight:600;&quot;&gt;thumbnail&lt;/span&gt; layout, one image layer occupies most of the available screen space, and other loaded image layers are shown as thumbnails. In &lt;span style=&quot; font-weight:600;&quot;&gt;tiled&lt;/span&gt; layout, multiple image layers are shown side by side. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionOpenLayer">

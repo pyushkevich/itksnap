@@ -27,7 +27,7 @@
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stack">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="pageGeneral">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -234,14 +234,14 @@
               <item row="2" column="0">
                <widget class="QLabel" name="label_8">
                 <property name="text">
-                 <string>Default layout for overlays:</string>
+                 <string>Default layout for multiple images:</string>
                 </property>
                </widget>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label_10">
                 <property name="text">
-                 <string>Default colormap for overays:</string>
+                 <string>Default color map for overlayed images:</string>
                 </property>
                </widget>
               </item>
@@ -1397,7 +1397,7 @@ font-weight:bold;</string>
   <customwidget>
    <class>QColorButtonWidget</class>
    <extends>QWidget</extends>
-   <header>QColorButtonWidget.h</header>
+   <header location="global">QColorButtonWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

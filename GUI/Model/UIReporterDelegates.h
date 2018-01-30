@@ -72,6 +72,16 @@ public:
 };
 
 /**
+ This delegate is used to generate an OpenGL texture for icons. Icons
+ are identified by a string.
+ */
+class TextureGenerationDelegate
+{
+public:
+  virtual int GenerateTexture(const char *imageName);
+};
+
+/**
  This delegate is used to obtain system-specific information
  */
 class SystemInfoDelegate

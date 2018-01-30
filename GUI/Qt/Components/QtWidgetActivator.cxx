@@ -33,30 +33,32 @@
 #include "SNAPUIFlag.h"
 
 QtWidgetActivator
-::QtWidgetActivator(QObject *parent, BooleanCondition *cond)
+::QtWidgetActivator(QObject *parent, BooleanCondition *cond, Options options)
   : QObject(parent)
 {
   // Register to listen to the state change events
   m_TargetWidget = dynamic_cast<QWidget *>(parent);
   m_TargetAction = dynamic_cast<QAction *>(parent);
   m_Condition = cond;
+  m_Options = options;
 
   // Give it a name
   setObjectName(QString("Activator:%1").arg(parent->objectName()));
 
   // React to events after control returns to the main UI loop
   LatentITKEventNotifier::connect(
-        cond, StateMachineChangeEvent(), this, SLOT(OnStateChange()));
+        cond, StateMachineChangeEvent(), this, SLOT(OnStateChange(const EventBucket &)));
 
   // Update the state of the widget
-  this->OnStateChange();
+  EventBucket dummy;
+  this->OnStateChange(dummy);
 }
 
 QtWidgetActivator::~QtWidgetActivator()
 {
 }
 
-void QtWidgetActivator::OnStateChange()
+void QtWidgetActivator::OnStateChange(const EventBucket &)
 {
   // Update the state of the widget based on the condition
   bool active = (*m_Condition)();
@@ -64,12 +66,20 @@ void QtWidgetActivator::OnStateChange()
     {
     bool status = m_TargetWidget->isEnabledTo(m_TargetWidget->parentWidget());
     if(status != active)
+      {
       m_TargetWidget->setEnabled(active);
+      if(m_Options & HideInactive)
+        m_TargetWidget->setVisible(active);
+      }
     }
   else if(m_TargetAction)
     {
     bool status = m_TargetAction->isEnabled();
     if(status != active)
+      {
       m_TargetAction->setEnabled(active);
+      if(m_Options & HideInactive)
+        m_TargetAction->setVisible(active);
+      }
     }
 }

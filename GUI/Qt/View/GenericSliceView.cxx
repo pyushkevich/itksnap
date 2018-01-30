@@ -27,6 +27,13 @@
 #include "GenericSliceView.h"
 #include "CrosshairsInteractionMode.h"
 #include "LatentITKEventNotifier.h"
+#include <MainImageWindow.h>
+#include <LayerInspectorDialog.h>
+#include <GenericImageData.h>
+#include <QMenu>
+#include <SNAPQtCommon.h>
+#include <GlobalUIModel.h>
+#include <LayerSelectionModel.h>
 #include "QtReporterDelegates.h"
 
 GenericSliceView::GenericSliceView(QWidget *parent) :

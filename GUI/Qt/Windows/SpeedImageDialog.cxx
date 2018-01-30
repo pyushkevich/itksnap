@@ -24,6 +24,10 @@
 #include "GMMRenderer.h"
 #include "QtDoubleSliderWithEditorCoupling.h"
 #include "QtPagedWidgetCoupling.h"
+#include "ImageIODelegates.h"
+#include "ImageIOWizard.h"
+#include "ImageIOWizardModel.h"
+#include "GenericImageData.h"
 
 Q_DECLARE_METATYPE(SnakeWizardModel::LayerScalarRepIndex)
 
@@ -96,6 +100,19 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
   makeCoupling(ui->inNumSamples, model->GetNumberOfGMMSamplesModel());
   makeCoupling(ui->inClusterXComponent, model->GetClusterPlottedComponentModel());
 
+  // Couple the classification widgets
+  makeCoupling(ui->inClassifierTreeNumber, m_Model->GetForestSizeModel());
+  makeCoupling(ui->inClassifierTreeDepth, m_Model->GetTreeDepthModel());
+  makeCoupling(ui->inClassifyBias, m_Model->GetClassifierBiasModel());
+
+  activateOnFlag(ui->inClassifyBias, m_Model, SnakeWizardModel::UIF_CLASSIFIER_TRAINED);
+
+
+  makeCoupling(ui->inClassifyUsePatch, m_Model->GetClassifierUsePatchModel());
+  makeCoupling(ui->inClassifierPatchSize, m_Model->GetClassifierPatchRadiusModel());
+  makeCoupling(ui->inClassifyUseCoordinates, m_Model->GetClassifierUseCoordinatesModel());
+
+
   // Couple the tab pages to the current mode
   std::map<PreprocessingMode, QWidget *> preproc_page_map;
   preproc_page_map[PREPROCESS_THRESHOLD] = ui->tabThreshold;
@@ -152,7 +169,26 @@ void SpeedImageDialog::on_btnIterateTen_clicked()
 }
 
 
-void SpeedImageDialog::on_btnTrain_clicked()
+void SpeedImageDialog::on_btnClassifyLoad_clicked()
 {
-  m_Model->TrainClassifier();
+  // Create a model for IO
+  SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
+  delegate->Initialize(m_Model->GetParent()->GetDriver());
+
+  SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
+  model->InitializeForLoad(m_Model->GetParent(), delegate, "ClassifierSamples", "Classifier Samples Image");
+
+  // Execute the IO wizard
+  ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+
+}
+
+void SpeedImageDialog::on_btnClassifySave_clicked()
+{
+  SaveImageLayer(
+        m_Model->GetParent(),
+        m_Model->GetParent()->GetDriver()->GetCurrentImageData()->GetSegmentation(),
+        LABEL_ROLE, true, this);
 }

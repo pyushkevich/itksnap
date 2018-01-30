@@ -151,5 +151,8 @@ inline QString from_utf8(const std::string &input)
   return QString::fromUtf8(input.c_str());
 }
 
+/** Method translates the tooltips in all child widgets from MACOS to windows/linux format */
+void TranslateChildTooltipKeyModifiers(QWidget *parent);
+
 
 #endif // SNAPQTCOMMON_H

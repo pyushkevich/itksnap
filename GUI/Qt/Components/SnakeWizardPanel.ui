@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>177</width>
-    <height>680</height>
+    <width>191</width>
+    <height>654</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,7 +18,7 @@
   </property>
   <property name="maximumSize">
    <size>
-    <width>177</width>
+    <width>191</width>
     <height>16777215</height>
    </size>
   </property>
@@ -32,31 +32,11 @@ font-size: 12px;
 QSpinBox {
 font-size: 11px;
 }
-/*
 QGroupBox {
   background-origin: content;
   margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
-  font-family: helvetica;
-  color: rgb(30,30,160);
-  background-color: rgb(237,237,237);
-  padding: 5px;
-  border-radius: 4px;
-  border: 1px solid rgb(130,130,130);
-}
-QGroupBox::title {
-  subcontrol-origin: 	margin;
-  subcontrol-position: top left;
-}
-*/
-
-QGroupBox {
-  background-origin: content;
-  margin-top: 15px;
-  font-weight: bold;
-  font-size: 12px;
-  text-shadow:1px 1px 0 white;
   color: rgb(30,30,160);
   background-color: rgb(222,222,222);
   padding: 5px;
@@ -104,7 +84,7 @@ QToolButton::pressed {
       </size>
      </property>
      <property name="title">
-      <string>Current Stage</string>
+      <string>Current Stage:</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <property name="leftMargin">
@@ -159,9 +139,9 @@ QToolButton::pressed {
              <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Lucida Grande'; font-size:10px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12px;&quot;&gt;Step 1/3&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:12px; font-weight:600;&quot;&gt;Preprocessing&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Helvetica Neue DeskInterface'; font-size:10px; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande'; font-size:12px;&quot;&gt;Step 1/3&lt;/span&gt;&lt;/p&gt;
+&lt;p align=&quot;center&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande'; font-size:12px; font-weight:600;&quot;&gt;Presegmentation&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -271,7 +251,7 @@ p, li { white-space: pre-wrap; }
        <number>0</number>
       </property>
       <property name="topMargin">
-       <number>0</number>
+       <number>6</number>
       </property>
       <property name="rightMargin">
        <number>0</number>
@@ -328,10 +308,10 @@ p, li { white-space: pre-wrap; }
              <item>
               <widget class="QLabel" name="label_2">
                <property name="text">
-                <string>Presegmentation mode</string>
+                <string>Presegmentation mode:</string>
                </property>
                <property name="wordWrap">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
               </widget>
              </item>
@@ -346,10 +326,10 @@ p, li { white-space: pre-wrap; }
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <property name="maximumSize">
+            <property name="minimumSize">
              <size>
-              <width>16777215</width>
-              <height>16777215</height>
+              <width>150</width>
+              <height>0</height>
              </size>
             </property>
             <item>
@@ -359,12 +339,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <property name="text">
-              <string>Clustering</string>
+              <string>Classification</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Supervised Classification</string>
+              <string>Clustering</string>
              </property>
             </item>
             <item>
@@ -392,6 +372,12 @@ p, li { white-space: pre-wrap; }
           </item>
           <item>
            <widget class="Line" name="line">
+            <property name="styleSheet">
+             <string notr="true">border-top:  1px solid rgb(164, 164, 164);
+border-bottom: 1px solid rgb(164,164, 164);
+border-left: 0px;
+border-right: 0px;</string>
+            </property>
             <property name="frameShadow">
              <enum>QFrame::Sunken</enum>
             </property>
@@ -427,11 +413,14 @@ p, li { white-space: pre-wrap; }
              <string>Lower threshold only</string>
             </property>
             <property name="currentIndex">
-             <number>0</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="pgThreshold">
              <layout class="QGridLayout" name="gridLayout_3">
               <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
                <number>0</number>
               </property>
               <property name="rightMargin">
@@ -444,6 +433,9 @@ p, li { white-space: pre-wrap; }
                <spacer name="verticalSpacer_9">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
@@ -658,6 +650,9 @@ p, li { white-space: pre-wrap; }
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
                 </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
                 <property name="sizeHint" stdset="0">
                  <size>
                   <width>20</width>
@@ -694,7 +689,7 @@ p, li { white-space: pre-wrap; }
                <number>0</number>
               </property>
               <property name="topMargin">
-               <number>12</number>
+               <number>0</number>
               </property>
               <property name="rightMargin">
                <number>0</number>
@@ -911,14 +906,20 @@ p, li { white-space: pre-wrap; }
              </layout>
             </widget>
             <widget class="QWidget" name="pgClassify">
-             <layout class="QGridLayout" name="gridLayout_5">
+             <layout class="QGridLayout" name="gridLayout_5" columnstretch="0">
               <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
                <number>0</number>
               </property>
               <property name="rightMargin">
                <number>0</number>
               </property>
-              <item row="13" column="0">
+              <property name="verticalSpacing">
+               <number>2</number>
+              </property>
+              <item row="17" column="0">
                <widget class="QWidget" name="widget_8" native="true">
                 <layout class="QHBoxLayout" name="horizontalLayout_7">
                  <property name="leftMargin">
@@ -933,30 +934,10 @@ p, li { white-space: pre-wrap; }
                  <property name="bottomMargin">
                   <number>0</number>
                  </property>
-                 <item>
-                  <widget class="QLabel" name="label_24">
-                   <property name="text">
-                    <string>Random forest size:</string>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QSpinBox" name="inClassifyTrees">
-                   <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This parameter controls the number of trees in the random forest algorithm. Using a larger number of trees will make classification slower, but can improve accuracy.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                   </property>
-                   <property name="maximum">
-                    <number>1000</number>
-                   </property>
-                  </widget>
-                 </item>
                 </layout>
                </widget>
               </item>
-              <item row="2" column="0">
+              <item row="2" column="0" alignment="Qt::AlignHCenter">
                <widget class="ColorLabelQuickListWidget" name="boxLabelQuickList" native="true">
                 <property name="minimumSize">
                  <size>
@@ -966,28 +947,30 @@ p, li { white-space: pre-wrap; }
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_12">
-                <property name="styleSheet">
-                 <string notr="true">font-size:11px;</string>
+              <item row="18" column="0" alignment="Qt::AlignHCenter">
+               <widget class="QPushButton" name="btnClassifyDetail">
+                <property name="minimumSize">
+                 <size>
+                  <width>120</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>120</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:12pt;&quot;&gt;Display additional classification parameters&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
                 <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To train the classifier, label examples of two or more tissue classes using the polygon or paintbrush tools.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
+                 <string>More ...</string>
                 </property>
                </widget>
               </item>
-              <item row="10" column="0">
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Foreground class:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <spacer name="verticalSpacer_14">
+              <item row="15" column="0">
+               <spacer name="verticalSpacer_17">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
                 </property>
@@ -1002,7 +985,42 @@ p, li { white-space: pre-wrap; }
                 </property>
                </spacer>
               </item>
-              <item row="9" column="0">
+              <item row="13" column="0">
+               <widget class="QLabel" name="label_9">
+                <property name="text">
+                 <string>Foreground class(es):</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" alignment="Qt::AlignHCenter">
+               <widget class="QPushButton" name="btnClassifyClearExamples">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>140</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>140</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all the examples of the tissue classes painted in the image. This is useful if you want to retrain your classifier using new examples. It is also a good idea to clear examples before pressing 'Next'.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Clear Examples</string>
+                </property>
+               </widget>
+              </item>
+              <item row="12" column="0">
                <spacer name="verticalSpacer_6">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -1018,42 +1036,91 @@ p, li { white-space: pre-wrap; }
                 </property>
                </spacer>
               </item>
-              <item row="5" column="0" alignment="Qt::AlignHCenter">
-               <widget class="QPushButton" name="btnClassifyClearExamples">
+              <item row="1" column="0">
+               <widget class="QLabel" name="label_12">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>120</width>
-                  <height>0</height>
+                  <width>0</width>
+                  <height>68</height>
                  </size>
                 </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>120</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Clear all the examples of the tissue classes painted in the image. This is useful if you want to retrain your classifier using new examples. It is also a good idea to clear examples before pressing 'Next'.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <property name="styleSheet">
+                 <string notr="true">font-size:10px;
+color: rgb(64, 64, 64)</string>
                 </property>
                 <property name="text">
-                 <string>Clear Examples</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Provide examples of two or more tissue classes by selecting the labels below and drawing on the image using the paintbrush tool.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
-              <item row="11" column="0">
-               <widget class="QComboBox" name="inClassifyForeground">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the tissue class that you would like to perform segmentation on. The rest of the tissue classes you defined will be considered background.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <item row="6" column="0">
+               <widget class="QLabel" name="label_25">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>56</height>
+                 </size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">font-size:10px;
+color: rgb(64, 64, 64)</string>
+                </property>
+                <property name="text">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Next, train the classifier and select the tissue class that you wish to use for segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
-              <item row="12" column="0">
+              <item row="5" column="0">
+               <spacer name="verticalSpacer_14">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="3" column="0">
+               <spacer name="verticalSpacer_18">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>4</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="16" column="0">
                <spacer name="verticalSpacer_16">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -1069,31 +1136,64 @@ p, li { white-space: pre-wrap; }
                 </property>
                </spacer>
               </item>
-              <item row="4" column="0" alignment="Qt::AlignHCenter">
+              <item row="7" column="0" alignment="Qt::AlignHCenter">
                <widget class="QPushButton" name="btnClassifyTrain">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>120</width>
+                  <width>140</width>
                   <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>120</width>
+                  <width>140</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>-1</pointsize>
+                 </font>
+                </property>
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button trains the random forest classifier. The classifier assigns a probability value to each voxel of belonging to the 'foreground' class vs. belonging to all other classes. You must train a classifier before proceeding to the next step.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Train Classifier</string>
+                </property>
+               </widget>
+              </item>
+              <item row="14" column="0" alignment="Qt::AlignHCenter">
+               <widget class="QListView" name="lstClassifyForeground">
+                <property name="maximumSize">
+                 <size>
+                  <width>165</width>
                   <height>16777215</height>
                  </size>
                 </property>
                 <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This button trains the random forest classifier. The classifier assigns a probability value to each voxel of belonging to the 'foreground' class vs. belonging to all other classes. You must train a classifier before proceeding to the text step.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Designate one or more classes as the &amp;quot;foreground&amp;quot; class(es). These are the classes that you want to apply segmentation to. The speed image is computed as the sum of probabilities of all the foreground classes, minus the sum of probabilities of the background classes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                 </property>
-                <property name="text">
-                 <string>Train Classifier</string>
+                <property name="styleSheet">
+                 <string notr="true">QListView:!active
+{
+  selection-background-color: rgb(162, 204, 255);
+}</string>
+                </property>
+                <property name="editTriggers">
+                 <set>QAbstractItemView::NoEditTriggers</set>
+                </property>
+                <property name="selectionMode">
+                 <enum>QAbstractItemView::ExtendedSelection</enum>
+                </property>
+                <property name="selectionBehavior">
+                 <enum>QAbstractItemView::SelectRows</enum>
                 </property>
                </widget>
               </item>
@@ -1102,6 +1202,9 @@ p, li { white-space: pre-wrap; }
             <widget class="QWidget" name="pgUserSpeed">
              <layout class="QGridLayout" name="gridLayout_7">
               <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
                <number>0</number>
               </property>
               <property name="rightMargin">
@@ -1163,7 +1266,7 @@ competition</string>
               <item row="0" column="0" colspan="2">
                <widget class="QLabel" name="label_21">
                 <property name="styleSheet">
-                 <string notr="true">text-size:11px;</string>
+                 <string notr="true"/>
                 </property>
                 <property name="text">
                  <string>Use this mode to perform segmentation using a speed image  computed outside of ITK-SNAP.</string>
@@ -1211,6 +1314,9 @@ competition</string>
             <widget class="QWidget" name="pgEdge">
              <layout class="QGridLayout" name="gridLayout_6">
               <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
                <number>0</number>
               </property>
               <property name="rightMargin">
@@ -1273,7 +1379,13 @@ competition</string>
            </widget>
           </item>
           <item>
-           <widget class="Line" name="line_6">
+           <widget class="Line" name="line_2">
+            <property name="styleSheet">
+             <string notr="true">border-top:  1px solid rgb(164, 164, 164);
+border-bottom: 1px solid rgb(164,164, 164);
+border-left: 0px;
+border-right: 0px;</string>
+            </property>
             <property name="frameShadow">
              <enum>QFrame::Sunken</enum>
             </property>
@@ -1455,7 +1567,7 @@ competition</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item alignment="Qt::AlignHCenter">
            <widget class="QTableView" name="tableBubbleList">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -1465,7 +1577,7 @@ competition</string>
             </property>
             <property name="maximumSize">
              <size>
-              <width>155</width>
+              <width>165</width>
               <height>120</height>
              </size>
             </property>
@@ -1689,11 +1801,7 @@ p, li { white-space: pre-wrap; }
                 </size>
                </property>
                <property name="text">
-                <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Lucida Grande UI'; font-size:12px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande'; font-size:13px;&quot;&gt;Configure the parameters of the contour evolution differential equation&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Configure the parameters of the contour evolution differential equation</string>
                </property>
                <property name="wordWrap">
                 <bool>true</bool>
@@ -1765,11 +1873,7 @@ p, li { white-space: pre-wrap; }
              <item>
               <widget class="QLabel" name="label_14">
                <property name="text">
-                <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Lucida Grande UI'; font-size:12px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande'; font-size:13px;&quot;&gt;Execute and control the evolution&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>Execute and control the evolution</string>
                </property>
                <property name="wordWrap">
                 <bool>true</bool>
@@ -1812,6 +1916,9 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <widget class="QToolButton" name="btnRewind">
+               <property name="toolTip">
+                <string>Restart evolution</string>
+               </property>
                <property name="text">
                 <string>...</string>
                </property>
@@ -1830,6 +1937,9 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <widget class="QToolButton" name="btnPlay">
+               <property name="toolTip">
+                <string>Run/pause active contour evolution</string>
+               </property>
                <property name="text">
                 <string>...</string>
                </property>
@@ -1854,6 +1964,9 @@ p, li { white-space: pre-wrap; }
              </item>
              <item>
               <widget class="QToolButton" name="btnSingleStep">
+               <property name="toolTip">
+                <string>Perform a single evolution iteration</string>
+               </property>
                <property name="text">
                 <string>...</string>
                </property>
@@ -1944,7 +2057,11 @@ p, li { white-space: pre-wrap; }
               </widget>
              </item>
              <item row="1" column="0">
-              <widget class="QSpinBox" name="inStepSize"/>
+              <widget class="QSpinBox" name="inStepSize">
+               <property name="toolTip">
+                <string>Number of evolution steps per iteration.</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>
@@ -1962,11 +2079,7 @@ p, li { white-space: pre-wrap; }
           <item>
            <widget class="QLabel" name="label_17">
             <property name="text">
-             <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Lucida Grande UI'; font-size:12px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Lucida Grande'; font-size:13px;&quot;&gt;Press 'Finish&amp;quot; to accept the result.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Press 'Finish' to accept the result</string>
             </property>
             <property name="wordWrap">
              <bool>true</bool>
@@ -2005,6 +2118,9 @@ p, li { white-space: pre-wrap; }
                  <height>16777215</height>
                 </size>
                </property>
+               <property name="toolTip">
+                <string>Return to bubble placement</string>
+               </property>
                <property name="text">
                 <string>Back</string>
                </property>
@@ -2023,6 +2139,9 @@ p, li { white-space: pre-wrap; }
                  <width>64</width>
                  <height>16777215</height>
                 </size>
+               </property>
+               <property name="toolTip">
+                <string>Accept segmentation and return to the main ITK-SNAP window</string>
                </property>
                <property name="text">
                 <string>Finish</string>
@@ -2097,18 +2216,18 @@ p, li { white-space: pre-wrap; }
   <customwidget>
    <class>QDoubleSlider</class>
    <extends>QSlider</extends>
-   <header>QDoubleSlider.h</header>
+   <header location="global">QDoubleSlider.h</header>
+  </customwidget>
+  <customwidget>
+   <class>QDoubleSliderWithEditor</class>
+   <extends>QSlider</extends>
+   <header location="global">QDoubleSliderWithEditor.h</header>
   </customwidget>
   <customwidget>
    <class>ColorLabelQuickListWidget</class>
    <extends>QWidget</extends>
    <header>ColorLabelQuickListWidget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QDoubleSliderWithEditor</class>
-   <extends>QSlider</extends>
-   <header location="global">QDoubleSliderWithEditor.h</header>
   </customwidget>
  </customwidgets>
  <resources>

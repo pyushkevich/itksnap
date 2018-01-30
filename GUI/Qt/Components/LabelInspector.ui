@@ -93,6 +93,9 @@ font-size: 11px;
       </item>
       <item>
        <widget class="QComboBox" name="inForeLabel">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Active Segmentation Label (&amp;lt;,&amp;gt;)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Select the label used for segmentation operations, including manual and automatic tools. When segmentations are generated, they will be assigned the active segmentation label. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="styleSheet">
          <string notr="true">QAbstractItemView::item {
 spacing:10;
@@ -143,7 +146,11 @@ spacing:10;
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="inBackLabel"/>
+       <widget class="QComboBox" name="inBackLabel">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;quot;Paint Over&amp;quot; Mask&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Determines how segmentation operations such as drawing polygons affect voxels in the segmentation image.&lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Paint over mask&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;td&gt;&lt;p&gt;&lt;span style=&quot; text-decoration: underline;&quot;&gt;Which voxels are affected:&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;All labels&lt;/p&gt;&lt;/td&gt;&lt;td&gt;&lt;p&gt;All voxels&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;All visible labels  &amp;nbsp;&amp;nbsp; &lt;/p&gt;&lt;/td&gt;&lt;td&gt;&lt;p&gt;All voxels except those labeled with a hidden label&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;Clear label&lt;/p&gt;&lt;/td&gt;&lt;td&gt;&lt;p&gt;Voxels that have not been assigned a label already&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;Specific label&lt;/p&gt;&lt;/td&gt;&lt;td&gt;&lt;p&gt;Voxels that have the specific label &lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QWidget" name="widget" native="true">
@@ -214,6 +221,9 @@ spacing:10;
             </property>
             <item>
              <widget class="QSpinBox" name="inOpacityValue">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Label Opacity (A,S,D keys)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Change the overall opacity of segmentation labels.&lt;br&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;A,D&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Make labels less/more opaque&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;S&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Toggle label visibility on and off&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
               <property name="frame">
                <bool>true</bool>
               </property>
@@ -225,15 +235,7 @@ spacing:10;
             <item>
              <widget class="QSlider" name="inOpacity">
               <property name="toolTip">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Helvetica'; font-size:12px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Set the overall opacity of segmentation labels.&lt;/p&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;[A]: Make more transparent&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;[D]: Make more opaque&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;[S]: Toggle on/off&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Label Opacity (A,S,D keys)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Change the overall opacity of segmentation labels.&lt;br&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;A,D&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Make labels less/more opaque&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;S&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Toggle label visibility on and off&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="minimum">
                <number>0</number>

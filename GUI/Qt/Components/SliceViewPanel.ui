@@ -81,13 +81,16 @@ font-size:11px;
           <height>20</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle between thumbnail and tiled layouts.&lt;/p&gt;&lt;p&gt;In &lt;span style=&quot; font-weight:600;&quot;&gt;thumbnail&lt;/span&gt; layout, one image layer occupies most of the available screen space, and other loaded image layers are shown as thumbnails. In &lt;span style=&quot; font-weight:600;&quot;&gt;tiled&lt;/span&gt; layout, multiple image layers are shown side by side. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>...</string>
         </property>
         <property name="icon">
          <iconset resource="../Resources/SNAPResources.qrc">
-          <normaloff>:/root/layout_overlay_16.png</normaloff>
-          <normalon>:/root/layout_tile_16.png</normalon>:/root/layout_overlay_16.png</iconset>
+          <normaloff>:/root/layout_thumb_16.png</normaloff>
+          <normalon>:/root/layout_tile_16.png</normalon>:/root/layout_thumb_16.png</iconset>
         </property>
         <property name="checkable">
          <bool>false</bool>
@@ -109,15 +112,20 @@ font-size:11px;
          </size>
         </property>
         <property name="toolTip">
-         <string>Save a screenshot</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Save a screenshot of the current slice view.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>...</string>
         </property>
         <property name="icon">
-         <iconset>
-          <normalon>:/root/screencapture2.gif</normalon>
-         </iconset>
+         <iconset resource="../Resources/SNAPResources.qrc">
+          <normaloff>:/root/icons8_slr_camera_12.png</normaloff>:/root/icons8_slr_camera_12.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>12</width>
+          <height>12</height>
+         </size>
         </property>
         <property name="autoRaise">
          <bool>true</bool>
@@ -128,6 +136,9 @@ font-size:11px;
        <widget class="QScrollBar" name="inSlicePosition">
         <property name="enabled">
          <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>Slice selection</string>
         </property>
         <property name="orientation">
          <enum>Qt::Vertical</enum>
@@ -494,6 +505,222 @@ p, li { white-space: pre-wrap; }
           </widget>
          </item>
          <item>
+          <widget class="QWidget" name="pageAnnotateLineActive" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <property name="spacing">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <spacer name="horizontalSpacer_5">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>313</width>
+                <height>17</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnAnnotationAcceptLine">
+              <property name="minimumSize">
+               <size>
+                <width>64</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>-1</pointsize>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string/>
+              </property>
+              <property name="text">
+               <string>accept</string>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextOnly</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnAnnotationClearLine">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>-1</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>clear</string>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextOnly</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="pageAnnotateSelect" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <property name="spacing">
+             <number>4</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>313</width>
+                <height>17</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnAnnotationPrevious">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>-1</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>previous</string>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextOnly</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnAnnotationNext">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>-1</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>next</string>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextOnly</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_7">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>10</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnAnnotationSelectAll">
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>-1</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>select all</string>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextOnly</enum>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="btnAnnotationDeleteSelected">
+              <property name="minimumSize">
+               <size>
+                <width>64</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>20</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>-1</pointsize>
+               </font>
+              </property>
+              <property name="toolTip">
+               <string/>
+              </property>
+              <property name="text">
+               <string>delete</string>
+              </property>
+              <property name="toolButtonStyle">
+               <enum>Qt::ToolButtonTextOnly</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
           <widget class="QWidget" name="pagePolygonInactive" native="true">
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <property name="spacing">
@@ -532,11 +759,7 @@ p, li { white-space: pre-wrap; }
                </font>
               </property>
               <property name="toolTip">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Helvetica'; font-size:11px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Pastes the last polygon that you have accepted in this slice view. You can then move the vertices in the pasted polygon to fit image data. This can be more efficient than drawing a new polygon when performing segmentation across multiple slices.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-family:'Helvetica'; font-size:11px;&quot;&gt;Pastes the last polygon that you have accepted in this slice view. You can then move the vertices in the pasted polygon to fit image data. This can be more efficient than drawing a new polygon when performing segmentation across multiple slices.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="text">
                <string>paste</string>
@@ -614,6 +837,9 @@ p, li { white-space: pre-wrap; }
       </item>
       <item>
        <widget class="PaintbrushInteractionMode" name="imPaintbrush" native="true"/>
+      </item>
+      <item>
+       <widget class="AnnotationInteractionMode" name="imAnnotation" native="true"/>
       </item>
      </layout>
     </widget>
@@ -811,6 +1037,108 @@ p, li { white-space: pre-wrap; }
     <enum>Qt::WidgetWithChildrenShortcut</enum>
    </property>
   </action>
+  <action name="actionAnnotationAcceptLine">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/popup_ok_16.png</normaloff>:/root/popup_ok_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Accept Polygon</string>
+   </property>
+   <property name="iconText">
+    <string>accept</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add the current line measurement to the annotation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Return</string>
+   </property>
+  </action>
+  <action name="actionAnnotationClearLine">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/popup_clear_16.png</normaloff>:/root/popup_clear_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear measurement</string>
+   </property>
+   <property name="iconText">
+    <string>clear</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cancels the current measurement&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
+  </action>
+  <action name="actionAnnotationSelectAll">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/icons8_cursor_16.png</normaloff>:/root/icons8_cursor_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select all annotations</string>
+   </property>
+   <property name="iconText">
+    <string>select all</string>
+   </property>
+   <property name="toolTip">
+    <string>Select all annotations on the current slice</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+A</string>
+   </property>
+  </action>
+  <action name="actionAnnotationDelete">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/delete_22.png</normaloff>:/root/delete_22.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete selected annotations</string>
+   </property>
+   <property name="iconText">
+    <string>delete</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete selected annotations on this slice</string>
+   </property>
+   <property name="shortcut">
+    <string>Backspace</string>
+   </property>
+  </action>
+  <action name="actionAnnotationNext">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/arrow_down_16.png</normaloff>:/root/arrow_down_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Next annotation</string>
+   </property>
+   <property name="iconText">
+    <string>next</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the next annotation. Use this to cycle through the annotations in this slice view in forward order.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionAnnotationPrevious">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/arrow_up_16.png</normaloff>:/root/arrow_up_16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Previous annotation</string>
+   </property>
+   <property name="iconText">
+    <string>previous</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the previous annotation. Use this to cycle through the annotations in this slice view in reverse order.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -864,6 +1192,12 @@ p, li { white-space: pre-wrap; }
    <class>JoinInteractionMode</class>
    <extends>QWidget</extends>
    <header>JoinInteractionMode.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AnnotationInteractionMode</class>
+   <extends>QWidget</extends>
+   <header>AnnotationInteractionMode.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

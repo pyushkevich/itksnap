@@ -71,7 +71,7 @@ class GaussianMixtureModel;
 class RandomForestClassifier;
 struct IRISDisplayGeometry;
 class LabelUseHistory;
-
+class ImageAnnotationData;
 
 template <class TTraits> class PresetManager;
 class ColorMapPresetTraits;
@@ -126,7 +126,6 @@ public:
   typedef itk::Image<LabelType,3> LabelImageType;
   typedef itk::Image<short ,3> SpeedImageType;
   typedef itk::Command CommandType;
-  typedef UndoDataManager<LabelType> UndoManagerType;
 
   // A drawing performed on a slice
   typedef itk::Image<unsigned char, 2> SliceBinaryImageType;
@@ -243,6 +242,12 @@ public:
   void AddIRISCoregOverlayImage(GuidedNativeImageIO *io, Registry *metadata);
 
   /**
+   * Add a 'derived' overlay, i.e., an overlay generated using image processing from one
+   * of the existing image layers
+   */
+  void AddDerivedOverlayImage(ImageWrapperBase *overlay);
+
+  /**
    * Remove a specific overlay
    */
   void UnloadOverlay(ImageWrapperBase *ovl);
@@ -275,6 +280,16 @@ public:
    * loaded from a file).
    */
   void UpdateIRISSegmentationImage(GuidedNativeImageIO *io);
+
+  /**
+   * Update the SNAP image data with an external segmentation image (e.g.,
+   * loaded from a file).
+   *
+   * TODO: this should probably change when we allow multiple concurrent segmentation
+   * images to be used in SNAP mode.
+   */
+  void UpdateSNAPSegmentationImage(GuidedNativeImageIO *io);
+
 
   /** 
    * Clear the IRIS segmentation image
@@ -561,9 +576,7 @@ public:
   /** Redo (undo the undo) */
   void Redo();
 
-  irisGetMacro(UndoManager, const UndoManagerType &);
-
-  /** 
+  /**
    * Reorient the main image (and all overlays) 
    */
   void ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection);
@@ -637,6 +650,17 @@ public:
 
   // --------------------- End project support ----------------------------
 
+  // --------------------- Annotation support ----------------------------
+
+  /**
+   * Read annotations from file
+   */
+  void LoadAnnotations(const char *filename);
+
+  /**
+   * Save annotations to file
+   */
+  void SaveAnnotations(const char *filename);
 
 protected:
 
@@ -670,13 +694,6 @@ protected:
 
   // Coordinate mapping between display space and anatomical space
   IRISDisplayGeometry m_DisplayGeometry;
-
-  // Undo data manager. Perhaps this should really be in IRISImageData, but
-  // there is a lot of stuff here that is ambiguous in this way. The manager
-  // stores 'deltas', i.e., differences between states of the segmentation
-  // image. These deltas are compressed, allowing us to store a bunch of 
-  // undo steps with little cost in performance or memory
-  UndoManagerType m_UndoManager;
 
   // Settings for the speed preprocessing. Still not sure this is the best
   // place to put this stuff!
@@ -773,6 +790,8 @@ protected:
 
   // Auto-adjust contrast of a layer on load
   void AutoContrastLayerOnLoad(ImageWrapperBase *layer);
+
+
 };
 
 #endif // __IRISApplication_h_

@@ -34,9 +34,10 @@
 QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
   SNAPComponent(parent)
 {
-  m_LeftDown = false;
-  m_MiddleDown = false;
-  m_RightDown = false;
+  m_LeftStatus = NOT_PRESSED;
+  m_RightStatus = NOT_PRESSED;
+  m_MiddleStatus = NOT_PRESSED;
+
   m_Filtering = false;
 
   // The widget is hidden
@@ -45,6 +46,8 @@ QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
 
 bool QtInteractionDelegateWidget::event(QEvent *ev)
 {
+  bool result;
+
   // If the event was sent to the widget itself, ignore it. The delegate
   // only should receive events through the sender
   if(!m_Filtering)
@@ -55,8 +58,14 @@ bool QtInteractionDelegateWidget::event(QEvent *ev)
 
   // Deal with gesture events
   if(ev->type() == QEvent::Gesture)
-    return gestureEvent(static_cast<QGestureEvent*>(ev));
-  else return QWidget::event(ev);
+    result = gestureEvent(static_cast<QGestureEvent*>(ev));
+  else
+    result = QWidget::event(ev);
+
+  // Set the dragging information
+  postprocessEvent(ev);
+
+  return result;
 }
 
 QtAbstractOpenGLBox * QtInteractionDelegateWidget::GetParentGLWidget() const
@@ -95,33 +104,43 @@ void QtInteractionDelegateWidget::preprocessEvent(QEvent *ev)
     // Compute the spatial location of the event
     QMouseEvent *emouse = static_cast<QMouseEvent *>(ev);
     m_XSpace = this->GetEventWorldCoordinates(emouse, true);
+    }
+}
 
-    // If a mouse press, back up this info for drag tracking
-    if(ev->type() == QEvent::MouseButtonPress)
+void QtInteractionDelegateWidget::postprocessEvent(QEvent *ev)
+{
+  QMouseEvent *emouse = static_cast<QMouseEvent *>(ev);
+
+  if(ev->type() == QEvent::MouseButtonPress)
+    {
+    ButtonStatus status = PRESS_IGNORED;
+    if(ev->isAccepted())
       {
       m_LastPressPos = emouse->pos();
       m_LastPressGlobalPos = emouse->globalPos();
       m_LastPressButton = emouse->button();
       m_LastPressXSpace = m_XSpace;
+      status = PRESS_ACCEPTED;
+      }
 
-      // Store what buttons are up or down
-      if(emouse->button() == Qt::LeftButton)
-        m_LeftDown = true;
-      if(emouse->button() == Qt::RightButton)
-        m_RightDown = true;
-      if(emouse->button() == Qt::MiddleButton)
-        m_MiddleDown = true;
-      }
-    else if(ev->type() == QEvent::MouseButtonRelease)
-      {
-      // Store what buttons are up or down
-      if(emouse->button() == Qt::LeftButton)
-        m_LeftDown = false;
-      if(emouse->button() == Qt::RightButton)
-        m_RightDown = false;
-      if(emouse->button() == Qt::MiddleButton)
-        m_MiddleDown = false;
-      }
+    // Store what buttons are up or down
+    if(emouse->button() == Qt::LeftButton)
+      m_LeftStatus = status;
+    if(emouse->button() == Qt::RightButton)
+      m_RightStatus = status;
+    if(emouse->button() == Qt::MiddleButton)
+      m_MiddleStatus = status;
+    }
+
+  else if (ev->type() == QEvent::MouseButtonRelease)
+    {
+    // Store what buttons are up or down
+    if(emouse->button() == Qt::LeftButton)
+      m_LeftStatus = NOT_PRESSED;
+    if(emouse->button() == Qt::RightButton)
+      m_RightStatus = NOT_PRESSED;
+    if(emouse->button() == Qt::MiddleButton)
+      m_MiddleStatus = NOT_PRESSED;
     }
 }
 
@@ -154,6 +173,22 @@ QtInteractionDelegateWidget
                modelMatrix,projMatrix,viewport,
                &xProjection[0], &xProjection[1], &xProjection[2]);
   return xProjection;
+}
+
+bool QtInteractionDelegateWidget::isDragging()
+{
+  return
+      m_LeftStatus == PRESS_ACCEPTED ||
+      m_RightStatus == PRESS_ACCEPTED ||
+      m_MiddleStatus == PRESS_ACCEPTED;
+}
+
+bool QtInteractionDelegateWidget::isHovering()
+{
+  return
+      m_LeftStatus == NOT_PRESSED &&
+      m_RightStatus == NOT_PRESSED &&
+      m_MiddleStatus == NOT_PRESSED;
 }
 
 double QtInteractionDelegateWidget::GetNumberOfPixelsMoved(QMouseEvent *ev)

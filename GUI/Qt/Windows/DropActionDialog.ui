@@ -86,27 +86,11 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>This will close all images currently open in this ITK-SNAP window and load the new image as the main image.</string>
+        </property>
         <property name="text">
          <string>Load as Main Image</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="btnLoadSegmentation">
-        <property name="minimumSize">
-         <size>
-          <width>192</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>192</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Load as Segmentation</string>
         </property>
        </widget>
       </item>
@@ -124,8 +108,33 @@
           <height>16777215</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>This will load the dropped image alongside the images currently open in this ITK-SNAP window </string>
+        </property>
         <property name="text">
-         <string>Load as Overlay</string>
+         <string>Load as Additional Image</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnLoadSegmentation">
+        <property name="minimumSize">
+         <size>
+          <width>192</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>192</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>This will replace the current segmentation image with the dropped image.</string>
+        </property>
+        <property name="text">
+         <string>Load as Segmentation</string>
         </property>
        </widget>
       </item>
@@ -167,6 +176,9 @@
           <width>192</width>
           <height>16777215</height>
          </size>
+        </property>
+        <property name="toolTip">
+         <string>This will open a new ITK-SNAP window and open the dropped image as the main image</string>
         </property>
         <property name="text">
          <string>Open in New ITK-SNAP</string>

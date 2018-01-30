@@ -40,8 +40,6 @@ font-size: 12px;
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
       </font>
      </property>
      <property name="styleSheet">
@@ -62,7 +60,7 @@ font-size: 12px;
        <enum>QLayout::SetMaximumSize</enum>
       </property>
       <property name="leftMargin">
-       <number>0</number>
+       <number>16</number>
       </property>
       <property name="topMargin">
        <number>0</number>
@@ -82,7 +80,7 @@ font-size: 12px;
          </size>
         </property>
         <property name="toolTip">
-         <string>All four views</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show three orthogonal slice views and the 3D view.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -109,7 +107,7 @@ font-size: 12px;
          </size>
         </property>
         <property name="toolTip">
-         <string>Axial view</string>
+         <string>Only show the axial view.</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -136,7 +134,7 @@ font-size: 12px;
          </size>
         </property>
         <property name="toolTip">
-         <string>Coronal view</string>
+         <string>Only show the coronal view.</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -163,7 +161,7 @@ font-size: 12px;
          </size>
         </property>
         <property name="toolTip">
-         <string>Sagittal view</string>
+         <string>Only show the sagittal view.</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -190,7 +188,7 @@ font-size: 12px;
          </size>
         </property>
         <property name="toolTip">
-         <string>3D view</string>
+         <string>Only show the 3D view.</string>
         </property>
         <property name="text">
          <string>...</string>
@@ -229,15 +227,13 @@ font-size: 12px;
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
       </font>
      </property>
      <property name="styleSheet">
       <string notr="true"/>
      </property>
      <property name="text">
-      <string>Overlay Placement:</string>
+      <string>Multiple Image Layers:</string>
      </property>
     </widget>
    </item>
@@ -248,12 +244,12 @@ font-size: 12px;
        <pointsize>-1</pointsize>
       </font>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
        <number>4</number>
       </property>
       <property name="leftMargin">
-       <number>0</number>
+       <number>16</number>
       </property>
       <property name="topMargin">
        <number>0</number>
@@ -265,41 +261,18 @@ font-size: 12px;
        <number>0</number>
       </property>
       <item>
-       <widget class="QToolButton" name="btnStack">
-        <property name="minimumSize">
-         <size>
-          <width>72</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Stack</string>
-        </property>
-        <property name="icon">
-         <iconset resource="../Resources/SNAPResources.qrc">
-          <normaloff>:/root/layout_overlay_16.png</normaloff>:/root/layout_overlay_16.png</iconset>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="autoExclusive">
-         <bool>true</bool>
-        </property>
-        <property name="toolButtonStyle">
-         <enum>Qt::ToolButtonTextBesideIcon</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QToolButton" name="btnTile">
         <property name="minimumSize">
          <size>
-          <width>72</width>
+          <width>140</width>
           <height>0</height>
          </size>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In &lt;span style=&quot; font-weight:600;&quot;&gt;tiled&lt;/span&gt; layout, multiple image layers are shown side by side.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
-         <string>Tile</string>
+         <string>Tiled layout</string>
         </property>
         <property name="icon">
          <iconset resource="../Resources/SNAPResources.qrc">
@@ -313,6 +286,81 @@ font-size: 12px;
         </property>
         <property name="toolButtonStyle">
          <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnStack">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>140</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In &lt;span style=&quot; font-weight:600;&quot;&gt;thumbnail&lt;/span&gt; layout, one image layer occupies most of the available screen space, and other loaded image layers are shown as thumbnails.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Thumbnail layout</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../Resources/SNAPResources.qrc">
+          <normaloff>:/root/layout_thumb_16.png</normaloff>:/root/layout_thumb_16.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="label_3">
+     <property name="font">
+      <font>
+       <pointsize>-1</pointsize>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true"/>
+     </property>
+     <property name="text">
+      <string>Thumbnail Size:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="grpThumbnailSize" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <property name="leftMargin">
+       <number>16</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QDoubleSpinBox" name="inThumbSize">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the size of the thumbnails relative to window size.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
        </widget>
       </item>

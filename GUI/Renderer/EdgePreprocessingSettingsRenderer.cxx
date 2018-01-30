@@ -55,6 +55,11 @@ EdgePreprocessingSettingsRenderer::EdgePreprocessingSettingsRenderer()
 
 }
 
+void EdgePreprocessingSettingsRenderer::OnDevicePixelRatioChange(int old_ratio, int new_ratio)
+{
+  this->UpdateChartDevicePixelRatio(m_Chart, old_ratio, new_ratio);
+}
+
 void EdgePreprocessingSettingsRenderer::SetModel(SnakeWizardModel *model)
 {
   this->m_Model = model;

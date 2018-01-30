@@ -46,8 +46,9 @@ PolygonDrawingModel
 Vector2f
 PolygonDrawingModel::GetPixelSize()
 {
+  float vppr = m_Parent->GetSizeReporter()->GetViewportPixelRatio();
   Vector3f x =
-    m_Parent->MapWindowToSlice(Vector2f(1.0f)) -
+    m_Parent->MapWindowToSlice(Vector2f(vppr)) -
     m_Parent->MapWindowToSlice(Vector2f(0.0f));
 
   return Vector2f(x[0],x[1]);

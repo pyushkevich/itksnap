@@ -37,3 +37,37 @@ gl_draw_circle_with_border(double x, double y, double r,
 
   glPopMatrix();
 }
+
+
+#ifdef __APPLE__
+
+#include <Availability.h>
+
+#if __MAC_10_8
+
+#include <GLKit/GLKMatrix4.h>
+
+void irisOrtho2D(double x, double w, double y, double h)
+{
+  GLKMatrix4 matrix = GLKMatrix4MakeOrtho(x, w, y, h, -1, 1);
+  glLoadMatrixf(matrix.m);
+}
+
+#else
+
+void irisOrtho2D(double x, double w, double y, double h)
+{
+  gluOrtho2D(x,w,y,h);
+}
+
+#endif // APPLE
+
+#else
+
+void irisOrtho2D(double x, double w, double y, double h)
+{
+  gluOrtho2D(x,w,y,h);
+}
+
+#endif
+

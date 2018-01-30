@@ -20,12 +20,12 @@ void SnakeParameterPreviewRenderer::initializeGL()
 {
 }
 
-void SnakeParameterPreviewRenderer::resizeGL(int w, int h)
+void SnakeParameterPreviewRenderer::resizeGL(int w, int h, int device_pixel_ratio)
 {
   // The window will have coordinates (0,0) to (1,1)
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0.0,1.0,0.0,1.0);
+  irisOrtho2D(0.0,1.0,0.0,1.0);
   glViewport(0,0,w,h);
 
   // Establish the model view matrix

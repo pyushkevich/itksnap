@@ -39,6 +39,8 @@ protected:
   vtkSmartPointer<vtkTable> m_PlotTable;
   vtkSmartPointer<vtkPlot> m_Plot;
   vtkSmartPointer<vtkFloatArray> m_DataX, m_DataY;
+
+  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio);
 };
 
 #endif // EDGEPREPROCESSINGSETTINGSRENDERER_H

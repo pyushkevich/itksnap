@@ -47,7 +47,7 @@ void PaintbrushInteractionMode::mousePressEvent(QMouseEvent *ev)
   bool isright = (ev->button() == Qt::RightButton);
   if(isleft || isright)
     {
-    if(m_Model->ProcessPushEvent(to_float(m_XSlice),isright))
+    if(m_Model->ProcessPushEvent(to_float(m_XSlice),this->m_LastPressLayoutCell, isright))
       ev->accept();
     }
 }
@@ -56,7 +56,7 @@ void PaintbrushInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   ev->ignore();
 
-  if(isDragging())
+  if(this->isDragging())
     {
     if(m_Model->ProcessDragEvent(
          to_float(m_XSlice), to_float(m_LastPressXSlice),
@@ -65,7 +65,7 @@ void PaintbrushInteractionMode::mouseMoveEvent(QMouseEvent *ev)
       ev->accept();
       }
     }
-  else
+  else if(this->isHovering())
     {
     if(m_Model->ProcessMouseMoveEvent(to_float(m_XSlice)))
       ev->accept();

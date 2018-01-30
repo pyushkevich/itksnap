@@ -66,11 +66,16 @@ public:
   void SetModel(GenericSliceModel *model);
 
   void initializeGL();
-  void resizeGL(int w, int h);
-  void paintGL();
+  virtual void resizeGL(int w, int h, int device_pixel_ratio);
+  virtual void paintGL();
 
   irisGetMacro(Model, GenericSliceModel *)
-  irisIsMacro(ThumbnailDrawing)
+
+  /** This flag is on while the zoom thumbnail is being painted */
+  irisIsMacro(DrawingZoomThumbnail)
+
+  /** This flag is on while the layer thumbnail is being painted */
+  irisIsMacro(DrawingLayerThumbnail)
 
   typedef std::list<SliceRendererDelegate *> RendererDelegateList;
 
@@ -91,11 +96,9 @@ public:
   // This method can be used by the renderer delegates to draw a texture
   void DrawTextureForLayer(ImageWrapperBase *layer, bool use_transparency);
 
-  // Get the layer that is drawn in the given tile
-  ImageWrapperBase *GetLayerForNthTile(int row, int col);
-
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
+
 
 protected:
 
@@ -114,12 +117,14 @@ protected:
   // Draw the image and overlays either on top of each other or separately
   // in individual cells. Returns true if a layer was drawn, false if not,
   // i.e., the cell is outside of the range of available layers
-  bool DrawImageLayers(int nrows, int ncols, int irow, int icol);
+  bool DrawImageLayers(ImageWrapperBase *base_layer, bool drawStickes);
+
+  bool IsTiledMode() const;
 
   GenericSliceModel *m_Model;
 
   // Whether rendering to thumbnail or not
-  bool m_ThumbnailDrawing;
+  bool m_DrawingZoomThumbnail, m_DrawingLayerThumbnail;
 
   // A dynamic association between various image layers and texture objects
   typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;

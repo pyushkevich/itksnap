@@ -95,4 +95,7 @@ gl_draw_circle_with_border(double x, double y, double r,
 
 Vector3d adjust_color_luminance(const Vector3d &color, double factor);
 
+// GLU functions are deprecated on Apple so we need our own versions
+void irisOrtho2D(double x, double w, double y, double h);
+
 #endif // __SNAPOpenGL_h_

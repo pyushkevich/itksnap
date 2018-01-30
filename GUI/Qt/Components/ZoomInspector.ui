@@ -49,12 +49,13 @@ font-size: 11px;
      <property name="font">
       <font>
        <pointsize>-1</pointsize>
-       <weight>50</weight>
-       <bold>false</bold>
       </font>
      </property>
      <property name="focusPolicy">
       <enum>Qt::TabFocus</enum>
+     </property>
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Linked Zoom&lt;/span&gt;&lt;/p&gt;&lt;p&gt;When enabled, the zoom level in all three orthogonal slice views is kept equal. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
       <string>Linked zoom</string>
@@ -100,6 +101,9 @@ font-size: 11px;
         <font>
          <pointsize>-1</pointsize>
         </font>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Zoom level for slice views&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Set the zoom level in the three orthogonal slice views. Zoom level is expressed in units of screen pixels per physical mm. For example zoom level of 2 means that there are 2 screen pixels for every mm in the scanner coordinate system. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="keyboardTracking">
         <bool>false</bool>
@@ -181,6 +185,9 @@ font-size: 11px;
            <height>24</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Set zoom to 1:1&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Set zoom level such that one screen pixel maps onto one image voxel. &lt;span style=&quot; font-style:italic;&quot;&gt;When image voxels have different dimensions, the smallest of the three side lengths of the voxel is used.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="styleSheet">
           <string notr="true"/>
          </property>
@@ -215,6 +222,9 @@ font-size: 11px;
            <height>0</height>
           </size>
          </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Set zoom to 2:1&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Set zoom level such that two screen pixels map onto one image voxel. &lt;span style=&quot; font-style:italic;&quot;&gt;When image voxels have different dimensions, the smallest of the three side lengths of the voxel is used.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
          <property name="text">
           <string>2x</string>
          </property>
@@ -233,6 +243,9 @@ font-size: 11px;
            <width>32</width>
            <height>24</height>
           </size>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Set zoom to 4:1&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Set zoom level such that four screen pixels map onto one image voxel. &lt;span style=&quot; font-style:italic;&quot;&gt;When image voxels have different dimensions, the smallest of the three side lengths of the voxel is used.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
          </property>
          <property name="text">
           <string>4x</string>
@@ -322,6 +335,9 @@ font-size: 11px;
           <pointsize>-1</pointsize>
          </font>
         </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the zoom level so that the image fully fits into the available screen space.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
         <property name="text">
          <string>Zoom to fit</string>
         </property>
@@ -339,6 +355,9 @@ font-size: 11px;
          <font>
           <pointsize>-1</pointsize>
          </font>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Pan so that the 3D cursor is positioned at the center of the orthogonal slice views&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>Center on cursor</string>

@@ -34,30 +34,35 @@ void SnakeROIInteractionMode::mousePressEvent(QMouseEvent *ev)
 void SnakeROIInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   ev->ignore();
-  if(m_LeftDown)
+  if(this->m_LeftStatus == PRESS_ACCEPTED)
     {
     if(m_Model->ProcessDragEvent(
          m_XSlice[0], m_XSlice[1],
          m_LastPressXSlice[0], m_LastPressXSlice[1], false))
-      {
       ev->accept();
-      }
     }
-  else if(!isDragging())
+  else if(this->isHovering())
     {
     if(m_Model->ProcessMoveEvent(m_XSlice[0], m_XSlice[1]))
-      {
       ev->accept();
-      }
     }
 }
 
 void SnakeROIInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 {
-  if(m_Model->ProcessDragEvent(
-       m_XSlice[0], m_XSlice[1],
-       m_LastPressXSlice[0], m_LastPressXSlice[1], true))
-    ev->accept();
+  ev->ignore();
+  if(this->m_LeftStatus == PRESS_ACCEPTED)
+    {
+    if(m_Model->ProcessDragEvent(
+         m_XSlice[0], m_XSlice[1],
+         m_LastPressXSlice[0], m_LastPressXSlice[1], true))
+      ev->accept();
+    }
+  else if(this->isHovering())
+    {
+    if(m_Model->ProcessMoveEvent(m_XSlice[0], m_XSlice[1]))
+      ev->accept();
+    }
 }
 
 #include <SliceViewPanel.h>

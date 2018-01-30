@@ -12,6 +12,7 @@ class MainControlPanel;
 
 class GlobalUIModel;
 class MainImageWindow;
+class QToolButton;
 
 class MainControlPanel : public SNAPComponent
 {
@@ -26,6 +27,8 @@ public:
 protected slots:
 
   virtual void onModelUpdate(const EventBucket &bucket);
+
+  void onDrawingButtonAction(QAction *);
 
 private slots:
 
@@ -46,12 +49,16 @@ private slots:
 
   void on_btnJoinInspector_clicked(bool checked);
 
+  void on_btnAnnotateInspector_clicked(bool checked);
+
 private:
   Ui::MainControlPanel *ui;
   GlobalUIModel *m_Model;
 
   LabelSelectionButton *m_LabelSelectionButton;
   LabelSelectionPopup *m_LabelSelectionPopup;
+
+  QToolButton *m_DrawingDropdownButton;
 };
 
 #endif // MAINCONTROLPANEL_H

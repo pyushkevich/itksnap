@@ -3,6 +3,7 @@
 
 #include <itkDataObject.h>
 #include <itkObjectFactory.h>
+#include <itkSize.h>
 #include <SNAPCommon.h>
 #include <map>
 
@@ -25,6 +26,10 @@ public:
   typedef AxisAlignedClassifier<GreyType, LabelType> RFAxisClassifierType;
   typedef DecisionForest<RFHistogramType, RFAxisClassifierType, GreyType> RandomForestType;
   typedef std::map<size_t, LabelType> MappingType;
+  typedef itk::Size<3> SizeType;
+
+  // A list of weights for each class - used to construct speed image
+  typedef std::vector<double> WeightArray;
 
   // Reset the classifier
   void Reset();
@@ -35,14 +40,22 @@ public:
   // Get the random forest
   irisGetMacro(Forest, RandomForestType *)
 
-  // Get the foreground class
-  irisGetMacro(ForegroundClass, size_t)
+  // Get the patch radius
+  irisGetMacro(PatchRadius, const SizeType &)
 
-  // Get the label of the foreground class
-  LabelType GetForegroundClassLabel() const;
+  /** Whether coordinates of the voxels are used as features */
+  itkGetMacro(UseCoordinateFeatures, bool)
+  itkSetMacro(UseCoordinateFeatures, bool)
 
-  // Set the foreground class by label
-  void SetForegroundClassLabel(LabelType label);
+  // Set the bias parameter (adjusts the mapping of FG probability to speed)
+  itkGetMacro(BiasParameter, double)
+  itkSetMacro(BiasParameter, double)
+
+  // Get a reference to the weight array
+  irisGetMacro(ClassWeights, const WeightArray &)
+
+  // Set the weight for a class
+  void SetClassWeight(size_t class_id, double weight);
 
   // Test if the classifier is valid (has 2+ classes)
   bool IsValidClassifier() const;
@@ -61,15 +74,20 @@ protected:
   // Mapping of index to label (?)
   MappingType m_ClassToLabelMapping;
 
-  // The class that is currently active
-  size_t m_ForegroundClass;
+  // Weight of each class
+  WeightArray m_ClassWeights;
+
+  // The patch radius
+  SizeType m_PatchRadius;
+
+  // Whether coordinate features are used
+  bool m_UseCoordinateFeatures;
+
+  // Bias parameter
+  double m_BiasParameter;
 
   // Let the engine handle our data
   friend class RFClassificationEngine;
-
-  // TODO: make all that protected!
-
-
 };
 
 #endif // RANDOMFORESTCLASSIFIER_H

@@ -47,6 +47,31 @@ itkEventMacro(SliceModelImageDimensionsChangeEvent, IRISEvent)
 itkEventMacro(SliceModelGeometryChangeEvent, IRISEvent)
 
 
+/**
+ * A structure describing viewport organization in a SNAP slice view.
+ * The viewport can be in a tiled state or in a main/thumbnail state.
+ *
+ * This class contains a list of viewports with corresponding IDs, as
+ * well as the 'primary' viewport, based on which zoom computations are
+ * made. The primary viewport is always the first viewport in the list
+ */
+struct SliceViewportLayout
+{
+public:
+  struct SubViewport {
+    // Size and position of the viewport
+    Vector2ui pos, size;
+
+    // Index of the associated image layer
+    unsigned long layer_id;
+
+    // Whether this is a thumbnail sub-view or a primary view
+    bool isThumbnail;
+  };
+
+  // List of subviewports
+  std::vector<SubViewport> vpList;
+};
 
 /**
   \class GenericSliceModel
@@ -131,6 +156,11 @@ public:
   Vector2f MapSliceToPhysicalWindow(const Vector3f &xSlice);
 
   /**
+   * Map a point in PHYISCAL window coordinates to a point in slice coordinates
+   */
+  Vector3f MapPhysicalWindowToSlice(const Vector2f &uvPhysical);
+
+  /**
    * Map a point in slice coordinates to a point in the image coordinates
    */
   Vector3f MapSliceToImage(const Vector3f &xSlice);
@@ -155,6 +185,12 @@ public:
    * Get the model that handles slice index information
    */
   irisGetMacro(SliceIndexModel, AbstractRangedIntProperty *)
+
+  /**
+   * Get the model than handles the selected component (timepoint) in the
+   * currently selected image
+   */
+  irisRangedPropertyAccessMacro(CurrentComponentInSelectedLayer, unsigned int)
 
   /**
    * Set the index of the slice in the current view. This method will
@@ -187,7 +223,7 @@ public:
 
   /** Set the zoom factor (number of pixels on the screen per millimeter in
    * image space */
-  irisSetWithEventMacro(ViewZoom, float, SliceModelGeometryChangeEvent)
+  void SetViewZoom(float zoom);
 
   /**
    * Zoom in/out by a specified factor. This method will 'stop' at the optimal
@@ -226,6 +262,13 @@ public:
   /** Get the physical size of the window (updated from widget via events) */
   Vector2ui GetSize();
 
+  /**
+   * Get the size of the canvas on which the slice will be rendered. When the
+   * view is in tiled mode, this reports the size of one of the tiles. When the
+   * new is in main/thumbnail mode, this reports the size of the main view
+   */
+  Vector2ui GetCanvasSize();
+
   /** Has the slice model been initialized with image data? */
   irisIsMacro(SliceInitialized)
 
@@ -234,13 +277,39 @@ public:
 
   irisGetMacro(ImageData, GenericImageData *)
 
-  irisGetMacro(ThumbnailPosition, Vector2i)
-  irisGetMacro(ThumbnailSize, Vector2i)
+  irisGetMacro(ZoomThumbnailPosition, Vector2i)
+  irisGetMacro(ZoomThumbnailSize, Vector2i)
   irisGetMacro(ThumbnailZoom, float)
 
   irisGetMacro(ImageToDisplayTransform, const ImageCoordinateTransform &)
   irisGetMacro(DisplayToAnatomyTransform, const ImageCoordinateTransform &)
   irisGetMacro(DisplayToImageTransform, const ImageCoordinateTransform &)
+
+  irisGetMacro(ViewportLayout, const SliceViewportLayout &)
+
+  /**
+   * Get the viewport for decoration. This is either the entire viewport,
+   * or when the viewport is broken into thumbnail part and main part, the
+   * main part
+   */
+  void GetNonThumbnailViewport(Vector2ui &pos, Vector2ui &size);
+
+  /**
+   * Get the image layer for a context menu request, or NULL if requesting a
+   * context menu at a position should not be possible. TODO: this is kind of
+   * a weird place to house this code.
+   */
+  ImageWrapperBase *GetThumbnailedLayerAtPosition(int x, int y);
+
+  /**
+   * Get the layer that is in context for a position in the window. This can be
+   * a thumbnail layer or a regular layer. The third parameter is a boolean flag
+   * indicating whether the layer is a thumbnail or not.
+   */
+  ImageWrapperBase *GetContextLayerAtPosition(int x, int y, bool &outIsThumbnail);
+
+  /** Get the layer in a given tile, when using tiled views */
+  ImageWrapperBase *GetLayerForNthTile(int row, int col);
 
   /** Compute the canvas size needed to display slice at current zoom factor */
   Vector2i GetOptimalCanvasSize();
@@ -251,6 +320,15 @@ public:
   // Check whether the thumbnail should be drawn or not
   bool IsThumbnailOn();
 
+  /** A model representing the ID of the layer over which the mouse is hovering */
+  irisSimplePropertyAccessMacro(HoveredImageLayerId, unsigned long)
+
+  /** Whether the hovered image layer id is shown in thumbnail mode */
+  irisSimplePropertyAccessMacro(HoveredImageIsThumbnail, bool)
+
+  /** Get the viewport corresponding to the hovered layer */
+  const SliceViewportLayout::SubViewport *GetHoveredViewport();
+
   /**
     Merges a binary segmentation drawn on a slice into the main
     segmentation in SNAP. Returns the number of voxels changed.
@@ -259,6 +337,7 @@ public:
    */
   unsigned int MergeSliceSegmentation(
         itk::Image<unsigned char, 2> *drawing);
+
 
 protected:
 
@@ -274,8 +353,11 @@ protected:
   // Pointer to the image data
   GenericImageData *m_ImageData;
 
-  // Viewport size reporter
+  // Viewport size reporter (communicates with the UI about viewport size)
   ViewportSizeReporter *m_SizeReporter;
+
+  // Description of how the main viewport is divided into parts
+  SliceViewportLayout m_ViewportLayout;
 
   // Window id, equal to the direction in display space along which the
   // window shows slices
@@ -322,14 +404,19 @@ protected:
   // least in default zoom
   unsigned int m_Margin;
 
-  // The position and size of the zoom thumbnail
-  Vector2i m_ThumbnailPosition, m_ThumbnailSize;
+  // The position and size of the zoom thumbnail. These are in real pixel
+  // units on retina screens, not logical pixels.
+  Vector2i m_ZoomThumbnailPosition, m_ZoomThumbnailSize;
 
   // The zoom level in the thumbnail
   double m_ThumbnailZoom;
 
   // State of the model (whether it's been initialized)
   bool m_SliceInitialized;
+
+  /** Hovered over layer id */
+  SmartPtr<ConcreteSimpleULongProperty> m_HoveredImageLayerIdModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_HoveredImageIsThumbnailModel;
 
   /** Access the next window in the slice pipeline */
   GenericSliceModel *GetNextSliceWindow();
@@ -338,6 +425,14 @@ protected:
   bool GetSliceIndexValueAndDomain(int &value, NumericValueRange<int> *domain);
   void SetSlideIndexValue(int value);
 
+  SmartPtr<AbstractRangedUIntProperty> m_CurrentComponentInSelectedLayerModel;
+  bool GetCurrentComponentInSelectedLayerValueAndDomain(unsigned int &value, NumericValueRange<unsigned int> *domain);
+  void SetCurrentComponentInSelectedLayerValue(unsigned int value);
+
+
+
+  /** Update the state of the viewport based on current layout settings */
+  void UpdateViewportLayout();
 };
 
 #endif // GENERICSLICEMODEL_H

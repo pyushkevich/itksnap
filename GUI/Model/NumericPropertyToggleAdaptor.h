@@ -39,7 +39,7 @@ public:
 
   /** Set the default value when going from off state to on state */
   void SetDefaultOnValue(NumericValueType value)
-    { m_DefaultOnValue = value; }
+    { m_DefaultOnValue = value; m_LastOnValue = m_DefaultOnValue; }
 
   /** The default off value should be zero, but can be changed */
   void SetDefaultOffValue(NumericValueType value)

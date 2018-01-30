@@ -18,7 +18,10 @@ public:
   ~PaintbrushToolPanel();
 
   void SetModel(PaintbrushSettingsModel *model);
-  
+    
+private slots:
+  void on_actionBrushStyle_triggered();
+
 private:
   Ui::PaintbrushToolPanel *ui;
   PaintbrushSettingsModel *m_Model;

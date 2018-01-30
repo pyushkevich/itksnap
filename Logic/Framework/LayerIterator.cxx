@@ -67,6 +67,15 @@ LayerIterator& LayerIterator
   return *this;
 }
 
+LayerIterator &LayerIterator::Find(unsigned long layer_id)
+{
+  // Just a linear search - we won't have so many wrappers!
+  MoveToBegin();
+  while(!this->IsAtEnd() && this->GetLayer() && this->GetLayer()->GetUniqueId() != layer_id)
+    ++(*this);
+  return *this;
+}
+
 void LayerIterator::MoveToNextTrialPosition()
 {
   // If we are at the end of storage, that's it

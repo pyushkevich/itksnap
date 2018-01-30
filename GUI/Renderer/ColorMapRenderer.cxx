@@ -197,7 +197,7 @@ void ColorMapRenderer::paintGL()
 
 }
 
-void ColorMapRenderer::resizeGL(int w, int h)
+void ColorMapRenderer::resizeGL(int w, int h, int device_pixel_ratio)
 {
   // Instead of using the w/h passed in here, which are in physical pixel units,
   // we will use 'logical' pixel units on Retina-type displays. This makes the
@@ -210,7 +210,7 @@ void ColorMapRenderer::resizeGL(int w, int h)
   // Set up the basic projection with a small margin
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(-0.1,1.1,-0.1,1.1);
+  irisOrtho2D(-0.1,1.1,-0.1,1.1);
   glViewport(0,0,vpl[0],vpl[1]);
 
   // Establish the model view matrix

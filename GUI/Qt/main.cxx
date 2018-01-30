@@ -90,6 +90,12 @@ public:
     {
     this->setApplicationName("ITK-SNAP");
     this->setOrganizationName("itksnap.org");
+
+#if QT_VERSION >= 0x050000
+    // Allow @x2 pixmaps for icons for retina displays
+    this->setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+#endif
+
     m_MainWindow = NULL;
 
     // Store the command-line arguments
@@ -160,22 +166,23 @@ private:
 bool flag_snap_debug_events = false;
 #endif
 
-void usage()
+void usage(const char *progname)
 {
   // Print usage info and exit
   cout << "ITK-SnAP Command Line Usage:" << endl;
-  cout << "   snap [options] [main_image]" << endl;
+  cout << "   " << progname << " [options] [main_image]" << endl;
   cout << "Image Options:" << endl;
-  cout << "   -g FILE              : Load the greyscale image from FILE" << endl;
+  cout << "   -g FILE              : Load the main image from FILE" << endl;
   cout << "   -s FILE              : Load the segmentation image from FILE" << endl;
   cout << "   -l FILE              : Load label descriptions from FILE" << endl;
-  cout << "   -o FILE              : Load overlay image from FILE" << endl;
-  cout << "                        :   (-o option can be repeated multiple times)" << endl;
+  cout << "   -o FILE [FILE+]      : Load additional images from FILE" << endl;
+  cout << "                        :   (multiple files may be provided)" << endl;
   cout << "   -w FILE              : Load workspace from FILE" << endl;
   cout << "                        :   (-w cannot be mixed with -g,-s,-l,-o options)" << endl;
   cout << "Additional Options:" << endl;
   cout << "   -z FACTOR            : Specify initial zoom in screen pixels/mm" << endl;
-  cout << "Debugging/Testing Options" << endl;
+  cout << "   --cwd PATH           : Start with PATH as the initial directory" << endl;
+  cout << "Debugging/Testing Options:" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
 #endif // SNAP_DEBUG_EVENTS
@@ -183,6 +190,12 @@ void usage()
   cout << "   --test TESTID        : Execute a test. " << endl;
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
   cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., 0.5). " << endl;
+  cout << "Platform-Specific Options:" << endl;
+#if QT_VERSION < 0x050000
+#ifdef Q_WS_X11
+  cout << "   --x11-db             : Enable widget double buffering on X11. By default it is off." << endl;
+#endif
+#endif
 }
 
 void setupParser(CommandLineArgumentParser &parser)
@@ -209,20 +222,54 @@ public:
   // Whether the application is being launched from the console
   bool flagConsole;
 
+  // Whether widgets are double-buffered
+  bool flagX11DoubleBuffer;
+
   // Test-related stuff
   std::string xTestId;
   std::string fnTestDir;
   double xTestAccel;
 
+  // Current working directory
+  std::string cwd;
+
   // GUI related
   std::string style;
 
   CommandLineRequest()
-    : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0) 
+    : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0),
+      flagX11DoubleBuffer(false)
     {
+#if QT_VERSION >= 0x050000
     style = "fusion";
+#else
+    style = "plastique";
+#endif
     }
 };
+
+
+/*
+ * Define customizations to the Plastique style to make it appear more like Fusion
+ */
+#if QT_VERSION < 0x050000
+#include <QProxyStyle>
+
+class FusionProxy : public QProxyStyle
+{
+public:
+
+  virtual void polish(QPalette &palette)
+  {
+    QColor fusion_gray(232, 232, 232);
+    palette = QPalette(fusion_gray);
+  }
+
+protected:
+};
+
+#endif
+
 
 /**
  This function decodes filenames in "SHORT" DOS format. It does nothing
@@ -299,6 +346,9 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--testdir", 1);
   parser.AddOption("--testacc", 1);
 
+  // Current working directory
+  parser.AddOption("--cwd", 1);
+
   // This dummy option is actually used internally. It's a work-around for
   // a buggy behavior on MacOS, when execvp actually causes a file
   // open event to be fired, which causes the drop dialog to open
@@ -306,6 +356,8 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   // Some qt stuff
   parser.AddOption("--style", 1);
+
+  parser.AddOption("--x11-db",0);
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -323,7 +375,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   // Need help?
   if(parseResult.IsOptionPresent("--help"))
     {
-    usage();
+    usage(argv[0]);
     return 1;
     }
 
@@ -337,6 +389,10 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
             "without the SNAP_DEBUG_EVENTS option. Please recompile." << endl;
 #endif
     }
+
+  // Initial directory
+  if(parseResult.IsOptionPresent("--cwd"))
+    argdata.cwd = parseResult.GetOptionParameter("--cwd");
 
   // Check if a workspace is being loaded
   if(parseResult.IsOptionPresent("--workspace"))
@@ -460,9 +516,16 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   if(parseResult.IsOptionPresent("--style"))
     argdata.style = parseResult.GetOptionParameter("--style");
 
+  // Enable double buffering on X11
+  if(parseResult.IsOptionPresent("x11-db"))
+    argdata.flagX11DoubleBuffer = true;
+
   return 0;
 }
 
+
+
+#include <QDir>
 
 int main(int argc, char *argv[])
 {  
@@ -507,8 +570,19 @@ int main(int argc, char *argv[])
   Q_INIT_RESOURCE(SNAPResources);
   Q_INIT_RESOURCE(TestingScripts);
 
+  // Force use of native OpenGL, since all of our functions and VTK use native
+  // and cannot use ANGLE
+  // TODO: we haven't proven that this actually helps with anything so hold off..
+  // app.setAttribute(Qt::AA_UseDesktopOpenGL);
+
   // Set the application style
   app.setStyle(QStyleFactory::create(argdata.style.c_str()));
+  if(argdata.style != "fusion")
+    {
+    QPalette fpal(QColor(232,232,232));
+    fpal.setColor(QPalette::Normal, QPalette::Highlight, QColor(70, 136, 228));
+    app.setPalette(fpal);
+    }
 
   // Before we can create any of the framework classes, we need to get some
   // platform-specific functionality to the SystemInterface
@@ -521,12 +595,51 @@ int main(int argc, char *argv[])
     SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
     IRISApplication *driver = gui->GetDriver();
 
+    // Set the initial directory. The fallthough is to set to the user's home
+    // directory
+    QString init_dir = QDir::homePath();
+    QString app_dir = QApplication::applicationDirPath();
+
+    // Also get the directory one up from the application dir (this is because
+    // on windows "run in" defaults to one up dir)
+    QDir app_up_qdir(app_dir); app_up_qdir.cdUp();
+    QString app_up_dir = app_up_qdir.path();
+
+    // If the user provides a flag for the current directory, try using it but
+    // only if this is a valid directory
+    if(argdata.cwd.size())
+      {
+      QDir dir(from_utf8(argdata.cwd));
+      if(dir.exists() && dir.isReadable())
+        {
+        init_dir = dir.absolutePath();
+        }
+      }
+    else if(QDir::currentPath().length() > 1 &&
+            QDir::currentPath() != app_dir &&
+            QDir::currentPath() != app_up_dir)
+      {
+      init_dir = QDir::currentPath();
+      }
+
+    gui->GetGlobalState()->SetInitialDirectory(to_utf8(init_dir));
+
     // Load the user preferences
     gui->LoadUserPreferences();
 
     // Create the main window
     MainImageWindow *mainwin = new MainImageWindow();
     mainwin->Initialize(gui);
+
+    // Disable double buffering in X11 to avoid flickering issues. The documentation
+    // says this only happens on X11. For the time being, we are only implementing this
+    // for Qt4 and X11
+#if QT_VERSION < 0x050000
+#ifdef Q_WS_X11
+    if(!argdata.flagX11DoubleBuffer)
+      mainwin->setAttribute(Qt::WA_PaintOnScreen);
+#endif
+#endif
 
     // Start parsing options
     IRISWarningList warnings;

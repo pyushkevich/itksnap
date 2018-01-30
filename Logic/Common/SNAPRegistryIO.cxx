@@ -174,6 +174,7 @@ SNAPRegistryIO
     sub["Size"] << in.GetROI().GetSize(d);
     }
   folder["InterpolationMethod"].PutEnum(m_EnumMapROI,in.GetInterpolationMethod());
+  folder["SeedWithCurrentSegmentation"] << in.IsSeedWithCurrentSegmentation();
 }
 
 RegistryEnumMap<CoverageModeType> &SNAPRegistryIO::GetEnumMapCoverage()
@@ -239,6 +240,9 @@ SNAPRegistryIO
   out.SetResampleDimensions(
         to_unsigned_int(
           folder["ResampleDimensions"][to_int(Vector3ui(outRegion.GetSize()))]));
+
+  // Read carry over properties
+  out.SetSeedWithCurrentSegmentation(folder["SeedWithCurrentSegmentation"][false]);
 
   return out;
 }  

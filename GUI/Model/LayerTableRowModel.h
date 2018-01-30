@@ -60,6 +60,7 @@ public:
   enum UIState {
     UIF_OPACITY_EDITABLE,
     UIF_PINNABLE,
+    UIF_UNPINNABLE,
     UIF_MOVABLE_UP,
     UIF_MOVABLE_DOWN,
     UIF_CLOSABLE,
@@ -90,12 +91,23 @@ public:
   bool IsMainLayer();
 
   /**
+   * Mark the layer as selected
+   */
+  void SetSelected(bool selected);
+
+  /**
    * Close the current layer
    */
   void CloseLayer();
 
   /** Auto-adjust contrast (via the IntensityCurveModel) */
   void AutoAdjustContrast();
+
+  /**
+   * Generate texture features from this layer
+   * TODO: this is a placeholder for the future more complex functionality
+   */
+  void GenerateTextureFeatures();
 
 
   typedef std::list<MultiChannelDisplayMode> DisplayModeList;

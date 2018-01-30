@@ -6,6 +6,7 @@
 #include "ImageCoordinateGeometry.h"
 #include <itksys/SystemTools.hxx>
 #include "HistoryManager.h"
+#include "ColorMap.h"
 
 #include "IRISException.h"
 #include <sstream>
@@ -18,6 +19,20 @@ ImageIOWizardModel::ImageIOWizardModel()
   m_GuidedIO = NULL;
   m_LoadDelegate = NULL;
   m_SaveDelegate = NULL;
+  m_Overlay = false;
+  m_UseRegistration = false;
+  m_LoadedImage = NULL;
+
+  // Initialize various property models
+  m_StickyOverlayModel = wrapGetterSetterPairAsProperty(
+                           this,
+                           &Self::GetStickyOverlayValue,
+                           &Self::SetStickyOverlayValue);
+
+  m_StickyOverlayColorMapModel = wrapGetterSetterPairAsProperty(
+                                   this,
+                                   &Self::GetStickyOverlayColorMapValue,
+                                   &Self::SetStickyOverlayColorMapValue);
 
   // Initialize the registration models
 
@@ -67,6 +82,8 @@ ImageIOWizardModel
   m_SaveDelegate = delegate;
   m_SuggestedFilename = delegate->GetCurrentFilename();
   m_UseRegistration = false;
+  m_Overlay = false;
+  m_LoadedImage = NULL;
 }
 
 void
@@ -84,6 +101,8 @@ ImageIOWizardModel
   m_LoadDelegate = delegate;
   m_SaveDelegate = NULL;
   m_UseRegistration = delegate->GetUseRegistration();
+  m_Overlay = delegate->IsOverlay();
+  m_LoadedImage = NULL;
 }
 
 ImageIOWizardModel::~ImageIOWizardModel()
@@ -303,10 +322,13 @@ ImageIOWizardModel::FileFormat ImageIOWizardModel::GetSelectedFormat()
   return GuidedNativeImageIO::GetFileFormat(m_Registry);
 }
 
-
+#include "GenericImageData.h"
 
 void ImageIOWizardModel::LoadImage(std::string filename)
 {
+  // There is no loaded image to start with
+  m_LoadedImage = NULL;
+
   try
   {
     // Clear the warnings
@@ -328,7 +350,8 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     m_LoadDelegate->ValidateImage(m_GuidedIO, m_Warnings);
 
     // Update the application
-    m_LoadDelegate->UpdateApplicationWithImage(m_GuidedIO);
+    m_LoadedImage =
+        m_LoadDelegate->UpdateApplicationWithImage(m_GuidedIO);
 
     // Save the IO hints to the registry
     Registry regAssoc;
@@ -455,5 +478,48 @@ double ImageIOWizardModel::GetRegistrationObjective()
   return m_RegistrationManager->GetRegistrationObjective();
 }
 
+bool ImageIOWizardModel::GetStickyOverlayValue(bool &value)
+{
+  // Make sure the image has already been loaded
+  if(!m_LoadedImage)
+    return false;
 
+  // Return the stickiness value
+  value = m_LoadedImage->IsSticky();
+  return true;
+}
 
+void ImageIOWizardModel::SetStickyOverlayValue(bool value)
+{
+  assert(m_LoadedImage);
+  m_LoadedImage->SetSticky(value);
+}
+
+bool ImageIOWizardModel::GetStickyOverlayColorMapValue(std::string &value)
+{
+  // Make sure the image has already been loaded
+  if(!m_LoadedImage || !m_LoadedImage->IsSticky())
+    return false;
+
+  // Get the display mapping policy (to get a color map)
+  ColorMap *cmap = m_LoadedImage->GetDefaultScalarRepresentation()->GetColorMap();
+  if(!cmap)
+    return false;
+
+  // Return the color map preset
+  value = ColorMap::GetPresetName(cmap->GetSystemPreset());
+  return true;
+}
+
+void ImageIOWizardModel::SetStickyOverlayColorMapValue(std::string value)
+{
+  assert(m_LoadedImage && m_LoadedImage->IsSticky());
+
+  ScalarImageWrapperBase *base = m_LoadedImage->GetDefaultScalarRepresentation();
+  for(int i = 0; i < ColorMap::COLORMAP_CUSTOM; i++)
+    if(value == ColorMap::GetPresetName((ColorMap::SystemPreset) i))
+      {
+      base->GetColorMap()->SetToSystemPreset((ColorMap::SystemPreset) i);
+      return;
+      }
+}

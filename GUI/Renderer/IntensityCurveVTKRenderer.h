@@ -58,6 +58,8 @@ protected:
 
   void OnCurrentControlPointChangedInScene(vtkObject *, unsigned long, void *);
 
+  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio);
+
 };
 
 #endif // INTENSITYCURVEVTKRENDERER_H

@@ -51,12 +51,14 @@
 #include "ImageCoordinateGeometry.h"
 #include <string>
 #include "LayerIterator.h"
+#include "UndoDataManager.h"
 
 class IRISApplication;
 class GenericImageData;
 class LayerIterator;
 class Registry;
 class GuidedNativeImageIO;
+class ImageAnnotationData;
 
 /**
  * \class GenericImageData
@@ -87,12 +89,15 @@ public:
   typedef AnatomicImageWrapper::ImageType                   AnatomicImageType;
   typedef LabelImageWrapper::ImageType                         LabelImageType;
 
-
   // Support for lists of wrappers
   typedef SmartPtr<ImageWrapperBase> WrapperPointer;
   typedef std::vector<WrapperPointer> WrapperList;
   typedef WrapperList::iterator WrapperIterator;
   typedef WrapperList::const_iterator WrapperConstIterator;
+
+  // Segmentation undo support
+  typedef UndoDataManager<LabelType> UndoManagerType;
+
 
   /**
    * Set the parent driver
@@ -219,6 +224,7 @@ public:
 
   /** Handle overlays */
   virtual void AddOverlay(GuidedNativeImageIO *io);
+  virtual void AddOverlay(ImageWrapperBase *new_layer);
   virtual void UnloadOverlays();
   virtual void UnloadOverlayLast();
   virtual void UnloadOverlay(ImageWrapperBase *overlay);
@@ -276,6 +282,34 @@ public:
   /** Get the image coordinate geometry */
   const ImageCoordinateGeometry &GetImageGeometry() const;
 
+  /** Get the list of annotations created by the user */
+  irisGetMacro(Annotations, ImageAnnotationData *)
+
+  /** TODO: in 3.6 this will be unnecessary */
+  UndoManagerType::Delta *GetCumulativeUndoDelta();
+
+  /** Store an undo point */
+  void StoreUndoPoint(const char *text);
+
+  /** Clear all undo points */
+  void ClearUndoPoints();
+
+  /** Check whether undo is possible */
+  bool IsUndoPossible();
+
+  /** Check whether undo is possible */
+  bool IsRedoPossible();
+
+  /** Undo (revert to last stored undo point) */
+  void Undo();
+
+  /** Redo (undo the undo) */
+  void Redo();
+
+  irisGetMacro(UndoManager, const UndoManagerType &);
+
+
+
 protected:
 
   GenericImageData();
@@ -299,16 +333,19 @@ protected:
   // Equal to m_Wrappers[SEGMENTATION].first()
   SmartPtr<LabelImageWrapper> m_LabelWrapper;
 
-  // A list of linked wrappers, whose cursor position and image geometry
-  // are updated concurrently
-  // WrapperList m_MainWrappers;
-  // WrapperList m_OverlayWrappers;
+  // Undo data manager, stores 'deltas', i.e., differences between states of the segmentation
+  // image. These deltas are compressed, allowing us to store a bunch of
+  // undo steps with little cost in performance or memory
+  UndoManagerType m_UndoManager;
 
   // Parent object
   IRISApplication *m_Parent;
 
   // The display to anatomy transformation, which is stored by this object
   IRISDisplayGeometry m_DisplayGeometry;
+
+  // Image annotations - these are distinct from segmentations
+  SmartPtr<ImageAnnotationData> m_Annotations;
 
   friend class SNAPImageData;
   friend class JOINImageData;
@@ -330,6 +367,8 @@ protected:
   void SetSingleImageWrapper(LayerRole, ImageWrapperBase *wrapper);
   void RemoveSingleImageWrapper(LayerRole);
 
+  // Used in the undo/redo process: RLE compresses current image
+  UndoManagerType::Delta *CompressLabelImage();
 };
 
 #endif

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
-    <height>543</height>
+    <width>512</width>
+    <height>560</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,13 +16,33 @@
   <property name="styleSheet">
    <string notr="true">* {
 font-size: 12px;
+}
+
+QGroupBox {
+  background-origin: content;
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 12px;
+  font-family: helvetica;
+  color: rgb(30,30,160);
+  background-color: rgb(237,237,237);
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid rgb(130,130,130);
+}
+QGroupBox:!enabled {
+  color: rgb(108,108,108);
+}
+QGroupBox::title {
+  subcontrol-origin: 	margin;
+  subcontrol-position: top left;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabMode">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabThreshold">
       <attribute name="title">
@@ -454,6 +474,397 @@ font-size: 12px;
        </item>
       </layout>
      </widget>
+     <widget class="QWidget" name="tabClassify">
+      <attribute name="title">
+       <string>Classification</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_9">
+       <property name="spacing">
+        <number>16</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Additional features:</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QWidget" name="widget_10" native="true">
+            <layout class="QGridLayout" name="gridLayout_3">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
+             <item row="2" column="3">
+              <widget class="QSpinBox" name="inClassifierPatchSize">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The radius of the neighborhood used to produce additional features. When set to 1, the neighborhood size is 3x3x3 voxels. When set to 2, the neighborhood is 5x5x5 voxels, and so on.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLabel" name="label_26">
+               <property name="text">
+                <string>Neighborhood size:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <spacer name="horizontalSpacer_4">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Fixed</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>50</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="2" column="4">
+              <spacer name="horizontalSpacer_7">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Expanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>5</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="2" column="1">
+              <spacer name="horizontalSpacer_8">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Fixed</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>50</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="0" column="0" colspan="5">
+              <widget class="QCheckBox" name="inClassifyUsePatch">
+               <property name="text">
+                <string>Inculde the intensities of the voxels' neighbors as features</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1" colspan="4">
+              <widget class="QLabel" name="label_21">
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>Can help you segment images with rich texture or complex patterns, but classification will be much slower</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0" colspan="5">
+              <widget class="QCheckBox" name="inClassifyUseCoordinates">
+               <property name="text">
+                <string>Inculde the voxels' coordinates as features</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1" colspan="4">
+              <widget class="QLabel" name="label_22">
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>Allows you to provide geometrical hints to the segmentation, for example avoiding leaking into a certain region</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_2">
+         <property name="title">
+          <string>Random forest classifier settings:</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_7">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QWidget" name="widget_9" native="true">
+            <layout class="QGridLayout" name="gridLayout_6">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
+             <item row="2" column="2" alignment="Qt::AlignVCenter">
+              <widget class="QLabel" name="label_25">
+               <property name="minimumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>Boost the contribution of the foreground class to the speed image</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="0" alignment="Qt::AlignRight">
+              <widget class="QLabel" name="label_18">
+               <property name="text">
+                <string>Number of trees:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QDoubleSliderWithEditor" name="inClassifyBias">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="inClassifierTreeDepth">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLabel" name="label_23">
+               <property name="minimumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>More trees produce more accurate classification at the cost of more time.</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSpinBox" name="inClassifierTreeNumber">
+               <property name="minimumSize">
+                <size>
+                 <width>100</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0" alignment="Qt::AlignRight">
+              <widget class="QLabel" name="label_24">
+               <property name="text">
+                <string>Classifier bias:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0" alignment="Qt::AlignRight">
+              <widget class="QLabel" name="label_19">
+               <property name="text">
+                <string>Tree depth:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLabel" name="label_20">
+               <property name="minimumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>190</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>Increase when there are many features and complex patterns to be learned</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_16">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QWidget" name="widget_11" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <spacer name="horizontalSpacer_11">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnClassifyLoad">
+            <property name="text">
+             <string>Load samples ...</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnClassifySave">
+            <property name="text">
+             <string>Save samples ...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
      <widget class="QWidget" name="tabCluster">
       <attribute name="title">
        <string>Clustering</string>
@@ -876,59 +1287,6 @@ font-size: 12px;
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tabClassify">
-      <attribute name="title">
-       <string>Classification</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_9">
-       <item>
-        <widget class="QLabel" name="label_18">
-         <property name="text">
-          <string>Table of tissue classes:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTableView" name="tableClasses"/>
-       </item>
-       <item>
-        <widget class="QWidget" name="widget_9" native="true">
-         <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <item>
-           <spacer name="horizontalSpacer_4">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="btnTrain">
-            <property name="text">
-             <string>Train</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_19">
-         <property name="text">
-          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To use supervised classification, define two or more classes. For each class, use the paintbrush tool to provide examples of that class in the image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-         </property>
-         <property name="wordWrap">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="tabEdgeAttraction">
       <attribute name="title">
        <string>Edge Attraction</string>
@@ -1231,11 +1589,6 @@ font-size: 12px;
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QDoubleSliderWithEditor</class>
-   <extends>QSlider</extends>
-   <header location="global">QDoubleSliderWithEditor.h</header>
-  </customwidget>
-  <customwidget>
    <class>QDoubleSlider</class>
    <extends>QSlider</extends>
    <header location="global">QDoubleSlider.h</header>
@@ -1245,6 +1598,11 @@ font-size: 12px;
    <extends>QWidget</extends>
    <header location="global">QtSimpleOpenGLBox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QDoubleSliderWithEditor</class>
+   <extends>QSlider</extends>
+   <header location="global">QDoubleSliderWithEditor.h</header>
   </customwidget>
   <customwidget>
    <class>QtVTKRenderWindowBox</class>

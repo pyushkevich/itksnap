@@ -21,7 +21,12 @@ font-size: 12px;
 QSpinBox {
 font-size: 11px;
 }
+
 QLineEdit {
+font-size: 11px;
+}
+
+QComboBox {
 font-size: 11px;
 }</string>
   </property>
@@ -75,6 +80,9 @@ font-size: 11px;
          <height>16777215</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Cursor X coordinate&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The X coordinate of the 3D cursor, in the image coordinate system (corresponds to columns of voxels). The first column has index 1 (one-based indexing).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
@@ -100,6 +108,9 @@ font-size: 11px;
          <height>16777215</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Cursor Y coordinate&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The Y coordinate of the 3D cursor, in the image coordinate system (corresponds to rows of voxels). The first row has index 1 (one-based indexing).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
@@ -118,6 +129,9 @@ font-size: 11px;
          <width>64</width>
          <height>16777215</height>
         </size>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Cursor Z coordinate&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The Z coordinate of the 3D cursor, in the image coordinate system (corresponds to slices of voxels). The first slice has index 1 (one-based indexing).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::NoButtons</enum>
@@ -158,74 +172,6 @@ font-size: 11px;
     </widget>
    </item>
    <item>
-    <widget class="QTableWidget" name="tableVoxelUnderCursor">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>400</width>
-       <height>120</height>
-      </size>
-     </property>
-     <property name="contextMenuPolicy">
-      <enum>Qt::CustomContextMenu</enum>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font-size:10px;</string>
-     </property>
-     <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
-     </property>
-     <property name="tabKeyNavigation">
-      <bool>false</bool>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <property name="textElideMode">
-      <enum>Qt::ElideMiddle</enum>
-     </property>
-     <attribute name="horizontalHeaderCascadingSectionResizes">
-      <bool>false</bool>
-     </attribute>
-     <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>75</number>
-     </attribute>
-     <attribute name="horizontalHeaderStretchLastSection">
-      <bool>false</bool>
-     </attribute>
-     <attribute name="verticalHeaderVisible">
-      <bool>false</bool>
-     </attribute>
-     <attribute name="verticalHeaderDefaultSectionSize">
-      <number>16</number>
-     </attribute>
-     <column>
-      <property name="text">
-       <string>Layer</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Intensity</string>
-      </property>
-     </column>
-    </widget>
-   </item>
-   <item>
     <spacer name="verticalSpacer_3">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -240,6 +186,57 @@ font-size: 11px;
       </size>
      </property>
     </spacer>
+   </item>
+   <item>
+    <widget class="QTableView" name="tableVoxelUnderCursor">
+     <property name="styleSheet">
+      <string notr="true">QTableView
+{
+  font-size:10px;
+}
+
+QTableView:!active
+{
+  selection-background-color: rgb(162, 204, 255);
+}</string>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+     <property name="tabKeyNavigation">
+      <bool>false</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>12</width>
+       <height>12</height>
+      </size>
+     </property>
+     <property name="textElideMode">
+      <enum>Qt::ElideRight</enum>
+     </property>
+     <attribute name="horizontalHeaderHighlightSections">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>48</number>
+     </attribute>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>16</number>
+     </attribute>
+     <attribute name="verticalHeaderMinimumSectionSize">
+      <number>16</number>
+     </attribute>
+    </widget>
    </item>
    <item>
     <widget class="QLabel" name="label_6">
@@ -269,16 +266,25 @@ font-size: 11px;
          <height>16777215</height>
         </size>
        </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Index of label under cursor&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This shows the numerical value of the segmentation label under the cursor. When you save the segmentation as an image, these values are stored in the voxels of the saved image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>
        <property name="buttonSymbols">
         <enum>QAbstractSpinBox::NoButtons</enum>
        </property>
+       <property name="maximum">
+        <number>65536</number>
+       </property>
       </widget>
      </item>
      <item>
       <widget class="QLineEdit" name="outLabelText">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Name of label under cursor&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This shows the name assigned to the segmentation label under the cursor. Use the label editor to modify label names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>
@@ -300,14 +306,6 @@ font-size: 11px;
     </spacer>
    </item>
   </layout>
-  <action name="actionAutoContrast">
-   <property name="text">
-    <string>Auto-Adjust Contrast</string>
-   </property>
-   <property name="toolTip">
-    <string>Sets the contrast of a grayscale image automatically.</string>
-   </property>
-  </action>
  </widget>
  <tabstops>
   <tabstop>inCursorX</tabstop>

@@ -56,7 +56,8 @@ bool SNAPSegmentationROISettings
   return
       m_ROI == other.m_ROI &&
       m_ResampleDimensions == other.m_ResampleDimensions &&
-      m_InterpolationMethod == other.m_InterpolationMethod;
+      m_InterpolationMethod == other.m_InterpolationMethod &&
+      m_SeedWithCurrentSegmentation == other.m_SeedWithCurrentSegmentation;
 }
 
 bool SNAPSegmentationROISettings

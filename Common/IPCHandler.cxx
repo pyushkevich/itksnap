@@ -22,6 +22,7 @@ using namespace std;
   #include <sys/ipc.h>
   #include <sys/shm.h>
   #include <unistd.h>
+  #include <signal.h>
   #include <sys/time.h>
 #endif
 
@@ -117,6 +118,21 @@ bool IPCHandler::Read(void *target_ptr)
   return true;
 }
 
+bool IPCHandler::IsProcessRunning(int pid)
+{
+#ifdef WIN32
+  HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, (DWORD) pid);
+  DWORD exitCode = 0;
+  GetExitCodeProcess(hProcess, &exitCode);
+  CloseHandle(hProcess);
+  return (exitCode == STILL_ACTIVE);
+#else
+  // Send signal 0 to the PID
+  return (0 == kill(pid, 0));
+#endif
+
+}
+
 bool IPCHandler::ReadIfNew(void *target_ptr)
 {
   // Must have some shared memory
@@ -135,6 +151,17 @@ bool IPCHandler::ReadIfNew(void *target_ptr)
   // If we have already seen this message from this sender, also ignore it
   if(m_LastSender == header->sender_pid && m_LastReceivedMessageID == header->message_id)
     return false;
+
+  // If the PID is known to be dead, ignore it
+  if(m_KnownDeadPIDs.find(header->sender_pid) != m_KnownDeadPIDs.end())
+    return false;
+
+  // Check if this is a dead PID
+  if(!this->IsProcessRunning(header->sender_pid))
+    {
+    m_KnownDeadPIDs.insert(header->sender_pid);
+    return false;
+    }
 
   // Store the last sender / id
   m_LastSender = header->sender_pid;

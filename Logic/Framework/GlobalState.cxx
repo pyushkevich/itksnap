@@ -37,6 +37,7 @@
 #include "IRISApplication.h"
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
+#include "NumericPropertyToggleAdaptor.h"
 
 GlobalState
 ::GlobalState()
@@ -95,8 +96,6 @@ GlobalState
   m_PaintbrushSettings.watershed.level = 0.2;
   m_PaintbrushSettings.watershed.smooth_iterations = 15;
 
-  // Set annotation defaults
-  m_AnnotationSettings.shownOnAllSlices = false;
 
   m_PolygonDrawingContextMenuModel = NewSimpleConcreteProperty(false);
 
@@ -120,11 +119,23 @@ GlobalState
   // Project stuff
   m_ProjectFilenameModel = NewSimpleConcreteProperty(std::string());
 
+  m_InitialDirectoryModel = NewSimpleConcreteProperty(std::string());
+
   // Initialize the properties
   m_ToolbarModeModel = NewSimpleConcreteProperty(CROSSHAIRS_MODE);
   m_ToolbarMode3DModel = NewSimpleConcreteProperty(TRACKBALL_MODE);
 
   m_SliceViewLayerLayoutModel = NewSimpleConcreteProperty(LAYOUT_STACKED);
+
+  m_SelectedLayerIdModel = NewSimpleConcreteProperty(0ul);
+
+  // Set annotation defaults
+  m_AnnotationSettings.shownOnAllSlices = false;
+  m_AnnotationModeModel = NewSimpleConcreteProperty(ANNOTATION_RULER);
+
+  m_AnnotationColorModel = NewSimpleConcreteProperty(Vector3d(1, 0, 0));
+  m_AnnotationAlphaModel = NewRangedConcreteProperty(1.0, 0.0, 1.0, 0.01);
+  m_AnnotationVisibilityModel = NewNumericPropertyToggleAdaptor(m_AnnotationAlphaModel.GetPointer(), 0.0, 1.0);
 }
 
 void GlobalState::SetDriver(IRISApplication *parent)

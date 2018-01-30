@@ -36,7 +36,7 @@
     <item>
      <widget class="QStackedWidget" name="stackMain">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="pageMain">
        <layout class="QGridLayout" name="gridLayout_2">
@@ -106,7 +106,7 @@ QTabWidget::tab-bar {
 QTabBar:tab {
 	border:none;
 	margin-left: 20px;
-	margin-top: 12px;
+	margin-top: 6px;
 	padding-left: 5px;
 	padding-right: 5px;
 	min-width: 132px;
@@ -136,11 +136,14 @@ QTabBar:tab:hover {
             <property name="leftMargin">
              <number>12</number>
             </property>
+            <property name="topMargin">
+             <number>6</number>
+            </property>
             <property name="rightMargin">
              <number>12</number>
             </property>
             <property name="bottomMargin">
-             <number>12</number>
+             <number>4</number>
             </property>
             <item>
              <widget class="QFrame" name="frame">
@@ -186,7 +189,7 @@ QTextBrowser {
                   <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Lucida Grande UI'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.Helvetica Neue DeskInterface'; font-size:13pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Lucida Grande';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:12px; margin-bottom:4px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Learn about the &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.NewFeaturesVersion30&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;new features&lt;/span&gt;&lt;/a&gt; in this version&lt;/li&gt;
 &lt;li style=&quot; font-family:'Lucida Grande';&quot; style=&quot; margin-top:0px; margin-bottom:4px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Read a &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.UpgradingTo30&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;quick transition guide&lt;/span&gt;&lt;/a&gt; for Version 2 users&lt;/li&gt;
@@ -241,14 +244,20 @@ color:rgb(103, 103, 103);
             <string>Recent Images</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_3">
+            <property name="spacing">
+             <number>4</number>
+            </property>
             <property name="leftMargin">
              <number>12</number>
+            </property>
+            <property name="topMargin">
+             <number>6</number>
             </property>
             <property name="rightMargin">
              <number>12</number>
             </property>
             <property name="bottomMargin">
-             <number>12</number>
+             <number>4</number>
             </property>
             <item>
              <widget class="RecentHistoryItemsView" name="panelRecentImages" native="true"/>
@@ -260,14 +269,20 @@ color:rgb(103, 103, 103);
             <string>Recent Workspaces</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_5">
+            <property name="spacing">
+             <number>4</number>
+            </property>
             <property name="leftMargin">
              <number>12</number>
+            </property>
+            <property name="topMargin">
+             <number>6</number>
             </property>
             <property name="rightMargin">
              <number>12</number>
             </property>
             <property name="bottomMargin">
-             <number>12</number>
+             <number>4</number>
             </property>
             <item>
              <widget class="RecentHistoryItemsView" name="panelRecentWorkspaces" native="true"/>
@@ -279,6 +294,12 @@ color:rgb(103, 103, 103);
         <item>
          <widget class="QWidget" name="widget" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout">
+           <property name="topMargin">
+            <number>4</number>
+           </property>
+           <property name="bottomMargin">
+            <number>6</number>
+           </property>
            <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
@@ -330,13 +351,23 @@ color:rgb(103, 103, 103);
     </property>
     <widget class="QMenu" name="menuRecent_Images">
      <property name="title">
-      <string>Recent Images</string>
+      <string>Recent Main Images</string>
      </property>
      <addaction name="actionRecent_1"/>
      <addaction name="actionRecent_2"/>
      <addaction name="actionRecent_3"/>
      <addaction name="actionRecent_4"/>
      <addaction name="actionRecent_5"/>
+    </widget>
+    <widget class="QMenu" name="menuRecent_Overlays">
+     <property name="title">
+      <string>Recent Added Images</string>
+     </property>
+     <addaction name="actionRecentOverlay_1"/>
+     <addaction name="actionRecentOverlay_2"/>
+     <addaction name="actionRecentOverlay_3"/>
+     <addaction name="actionRecentOverlay_4"/>
+     <addaction name="actionRecentOverlay_5"/>
     </widget>
     <widget class="QMenu" name="menuSave_Image">
      <property name="title">
@@ -383,9 +414,14 @@ color:rgb(103, 103, 103);
     <addaction name="actionOpenMain"/>
     <addaction name="menuRecent_Images"/>
     <addaction name="separator"/>
+    <addaction name="actionAdd_Overlay"/>
+    <addaction name="menuRecent_Overlays"/>
+    <addaction name="separator"/>
     <addaction name="menuSave_Image"/>
+    <addaction name="separator"/>
     <addaction name="menuExport"/>
     <addaction name="separator"/>
+    <addaction name="actionUnload_Last_Overlay"/>
     <addaction name="actionUnload_All"/>
     <addaction name="separator"/>
     <addaction name="actionNew_ITK_SNAP_Window"/>
@@ -417,31 +453,11 @@ color:rgb(103, 103, 103);
     <addaction name="actionLoadLabels"/>
     <addaction name="actionSaveLabels"/>
     <addaction name="separator"/>
+    <addaction name="actionLabel_Editor"/>
+    <addaction name="separator"/>
     <addaction name="actionVolumesAndStatistics"/>
     <addaction name="separator"/>
     <addaction name="menuAppearance"/>
-   </widget>
-   <widget class="QMenu" name="menuOverlay">
-    <property name="title">
-     <string>Overlay</string>
-    </property>
-    <widget class="QMenu" name="menuOverlayAppearance">
-     <property name="title">
-      <string>Appearance</string>
-     </property>
-     <addaction name="actionOverlayVisibilityToggleAll"/>
-     <addaction name="separator"/>
-     <addaction name="actionOverlayVisibilityIncreaseAll"/>
-     <addaction name="actionOverlayVisibilityDecreaseAll"/>
-     <addaction name="actionToggleJsrcVis"/>
-    </widget>
-    <addaction name="actionAdd_Overlay"/>
-    <addaction name="actionCoregister_Overlay"/>
-    <addaction name="separator"/>
-    <addaction name="actionUnload_Last_Overlay"/>
-    <addaction name="actionUnload_All_Overlays"/>
-    <addaction name="separator"/>
-    <addaction name="menuOverlayAppearance"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -457,6 +473,7 @@ color:rgb(103, 103, 103);
      <addaction name="actionPaintbrush"/>
      <addaction name="actionSnake"/>
      <addaction name="actionJoin"/>
+     <addaction name="actionAnnotation"/>
     </widget>
     <widget class="QMenu" name="menuActive_3D_Tool">
      <property name="title">
@@ -476,6 +493,7 @@ color:rgb(103, 103, 103);
      <addaction name="actionAutoContrastGlobal"/>
      <addaction name="actionResetContrastGlobal"/>
     </widget>
+    <addaction name="separator"/>
     <addaction name="actionLayerInspector"/>
     <addaction name="separator"/>
     <addaction name="menuContrast"/>
@@ -484,8 +502,6 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="menuActive_Main_Tool"/>
     <addaction name="menuActive_3D_Tool"/>
-    <addaction name="separator"/>
-    <addaction name="actionLabel_Editor"/>
     <addaction name="separator"/>
     <addaction name="actionReorient_Image"/>
     <addaction name="separator"/>
@@ -530,6 +546,19 @@ color:rgb(103, 103, 103);
      <addaction name="separator"/>
      <addaction name="actionCenter_on_Cursor"/>
     </widget>
+    <widget class="QMenu" name="menuLayers">
+     <property name="title">
+      <string>Layers</string>
+     </property>
+     <addaction name="actionToggleLayerLayout"/>
+     <addaction name="separator"/>
+     <addaction name="actionActivateNextLayer"/>
+     <addaction name="actionActivatePreviousLayer"/>
+     <addaction name="separator"/>
+     <addaction name="actionOverlayVisibilityToggleAll"/>
+     <addaction name="actionOverlayVisibilityIncreaseAll"/>
+     <addaction name="actionOverlayVisibilityDecreaseAll"/>
+    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
@@ -539,6 +568,8 @@ color:rgb(103, 103, 103);
     <addaction name="menuSlice_Annotations"/>
     <addaction name="separator"/>
     <addaction name="menuZoom"/>
+    <addaction name="separator"/>
+    <addaction name="menuLayers"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -573,14 +604,13 @@ color:rgb(103, 103, 103);
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuSegmentation"/>
-   <addaction name="menuOverlay"/>
    <addaction name="menuProject"/>
    <addaction name="menuTools"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpenMain">
    <property name="text">
-    <string>Open Image ...</string>
+    <string>Open Main Image ...</string>
    </property>
    <property name="toolTip">
     <string>Open the main anatomy image that you wish to display or segment</string>
@@ -703,10 +733,10 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionUnload_All">
    <property name="text">
-    <string>Unload All Images</string>
+    <string>Close All Images</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+U</string>
+    <string>Ctrl+Shift+W</string>
    </property>
   </action>
   <action name="actionClear">
@@ -716,10 +746,10 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionAdd_Overlay">
    <property name="text">
-    <string>Add Overlay ...</string>
+    <string>Add Another Image ...</string>
    </property>
    <property name="toolTip">
-    <string>Load an image to overlay over the images currently loaded into SNAP</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load an image to display alongside the main image. The dimensions of this image must match those of the main image. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+G</string>
@@ -734,8 +764,15 @@ color:rgb(103, 103, 103);
    </property>
   </action>
   <action name="actionLabel_Editor">
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/icons8_palette_16.png</normaloff>:/root/icons8_palette_16.png</iconset>
+   </property>
    <property name="text">
     <string>Label Editor ...</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Label Editor (⌘L)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Opens the label editor, where you can edit segmentation labels.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
@@ -776,6 +813,9 @@ color:rgb(103, 103, 103);
    <property name="text">
     <string>Undo</string>
    </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Undo (⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Undo the last modification to the segmentation image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Z</string>
    </property>
@@ -787,6 +827,9 @@ color:rgb(103, 103, 103);
    </property>
    <property name="text">
     <string>Redo</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Redo (⇧⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Redo the last modification to the segmentation image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Z</string>
@@ -900,15 +943,18 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionUnload_Last_Overlay">
    <property name="text">
-    <string>Remove Last Overlay</string>
+    <string>Close Image XXX</string>
    </property>
    <property name="toolTip">
-    <string>Remove the last overlay that was loaded from the workspace</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unload the last image layer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
    </property>
   </action>
   <action name="actionUnload_All_Overlays">
    <property name="text">
-    <string>Remove All Overlays</string>
+    <string>Unload all additional image layers</string>
    </property>
    <property name="toolTip">
     <string>Remove all overlays from the current workspace. Only the main image will remain open.</string>
@@ -917,10 +963,13 @@ color:rgb(103, 103, 103);
   <action name="actionLayerInspector">
    <property name="icon">
     <iconset resource="../Resources/SNAPResources.qrc">
-     <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
+     <normaloff>:/root/icons8_layers_16.png</normaloff>:/root/icons8_layers_16.png</iconset>
    </property>
    <property name="text">
     <string>Layer Inspector...</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Layer Inspector (⌘I)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Opens the layer inspector window, which lists loaded image layers and can be used used to adjust their display properties.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -941,7 +990,7 @@ color:rgb(103, 103, 103);
     <string>Crosshair Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and drag the left mouse button to move the 3D cursor in the image. Use the right mouse button to zoom, and the middle mouse button to pan.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>Crosshair Tool</string>
    </property>
    <property name="shortcut">
     <string>1</string>
@@ -959,7 +1008,7 @@ color:rgb(103, 103, 103);
     <string>Zoom/Pan Mode</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Zoom/Pan Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and drag the left mouse button to pan the slice views. Use the right mouse button to zoom in and out.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Zoom/Pan Mode (2)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Use the mouse to zoom in and out of the image, and to pan around when the image is zoomed in. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to pan around the image&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>2</string>
@@ -977,7 +1026,7 @@ color:rgb(103, 103, 103);
     <string>Polygon Drawing Mode</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Polygon Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Primary tool for manual segmentation. Use the mouse to draw polygons on the 2D slice views, then edit the polygons and fill them with segmentation labels.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Polygon Drawing Mode (3)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Add points to the polygon and edit completed polygon&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>3</string>
@@ -995,7 +1044,7 @@ color:rgb(103, 103, 103);
     <string>Paintbrush Mode</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Paintbrush Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;A tool for manual editing of segmentations. Hold the left mouse button and drag the mouse to draw with the currently selected label using one of the available brush shapes. Use the right mouse button to draw wuth the background label.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Paintbrush Mode (4)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to perform manual segmentation by drawing with a paintbrush-like tool. Different brush shapes are available, including an adaptive brush that adjusts itself to the image data. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Paint with foreground label&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Paint with background label&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>4</string>
@@ -1013,7 +1062,7 @@ color:rgb(103, 103, 103);
     <string>Active Contour Segmentation Mode</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Active Contour Segmentation (Snake) Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Select a region of interest (ROI) for automatic segmentation. Use the mouse to move the boundaries of the ROI, then click the &amp;quot;Segment 3D&amp;quot; button to begin automatic segmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Active Contour (aka &amp;quot;Snake&amp;quot;) Segmentation Mode (5)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to select the region of interest for semi-automatic active contour segmentation and start the semi-automatic segmentation wizard.&lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Adjust the boundaries of the region of interest&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out of the image&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>5</string>
@@ -1039,7 +1088,7 @@ color:rgb(103, 103, 103);
     <string>3D Trackball Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Trackball Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and drag the left mouse button to rotate the 3D scene. Use the right mouse button to zoom, and the middle mouse button to pan the 3D scene.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Trackball Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to manipulate the viewpoint in the 3D window. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to rotate the camera&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;⇧&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to pan the camera.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="action3DCrosshair">
@@ -1054,7 +1103,7 @@ color:rgb(103, 103, 103);
     <string>3D Crosshair Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click the left button over a segmentation surface in the 3D window to position the 3D cursor at that position.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to place the linked 3D cursor on one of the surfaces rendered in the 3D window. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Click on a surface to place 3D cursor&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="action3DScalpel">
@@ -1069,7 +1118,7 @@ color:rgb(103, 103, 103);
     <string>3D Scalpel Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;3D Scalpel Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Left-click on two points in the 3D window to define a cutplane. Then click 'Accept' to relabel the segmentation on one side of the cutplane.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Scalpel Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to relabel parts of the 3D scene with a cutplane. Voxels on one side of the cutplane will be assigned the current foreground label. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Click once to start cutplane drawing. Click again in a different location to finish. Then hold and drag cutplane 3D widget to rotate.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="action3DSpray">
@@ -1084,12 +1133,15 @@ color:rgb(103, 103, 103);
     <string>3D Spray Paint Tool</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Spray Paint Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Click and hold the left mouse button to relabel voxels on the boundaries of segmented objects.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Spray Paint Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to add voxels to the surfaces of existing segmentations. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Press and hold to apply spray paint. &lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionOverlayVisibilityToggleAll">
    <property name="text">
-    <string>Toggle Visibility (All)</string>
+    <string>Toggle Overlay Visibility</string>
+   </property>
+   <property name="iconText">
+    <string>Toggle Visibility of Sticky Layers</string>
    </property>
    <property name="toolTip">
     <string>Toggle Visibility (All)</string>
@@ -1100,7 +1152,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityIncreaseAll">
    <property name="text">
-    <string>Increase Opacity (All)</string>
+    <string>Increase Overlay Opacity</string>
    </property>
    <property name="shortcut">
     <string>E</string>
@@ -1108,7 +1160,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionOverlayVisibilityDecreaseAll">
    <property name="text">
-    <string>Decrease Opacity (All)</string>
+    <string>Decrease Overlay Opacity</string>
    </property>
    <property name="shortcut">
     <string>Q</string>
@@ -1359,7 +1411,7 @@ color:rgb(103, 103, 103);
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Click 'n' Join Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Join labeled regions by clicking.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
-    <string>6</string>
+    <string>J</string>
    </property>
   </action>
   <action name="actionToggleJsrcVis">
@@ -1371,6 +1423,76 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>T</string>
+   </property>
+  </action>
+  <action name="actionRecentOverlay_1">
+   <property name="text">
+    <string>Recent 1</string>
+   </property>
+  </action>
+  <action name="actionRecentOverlay_2">
+   <property name="text">
+    <string>Recent 2</string>
+   </property>
+  </action>
+  <action name="actionRecentOverlay_3">
+   <property name="text">
+    <string>Recent 3</string>
+   </property>
+  </action>
+  <action name="actionRecentOverlay_4">
+   <property name="text">
+    <string>Recent 4</string>
+   </property>
+  </action>
+  <action name="actionRecentOverlay_5">
+   <property name="text">
+    <string>Recent 5</string>
+   </property>
+  </action>
+  <action name="actionAnnotation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/annotation_28.png</normaloff>:/root/annotation_28.png</iconset>
+   </property>
+   <property name="text">
+    <string>Annotation Tool</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Annotation Mode (6)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to draw annotations (lines, text) on image slices and to measure distance and angles between points in a slice. &lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_left_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Use to draw and manipulate annotations&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_right_click_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;&lt;img src=&quot;:/root/icons8_mouse_scrolling_16.png&quot;/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=&quot; padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;&quot;&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>6</string>
+   </property>
+  </action>
+  <action name="actionToggleLayerLayout">
+   <property name="text">
+    <string>Thumbnail Layout</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle between thumbnail and tiled layouts.&lt;/p&gt;&lt;p&gt;In &lt;span style=&quot; font-weight:600;&quot;&gt;thumbnail&lt;/span&gt; layout, one image layer occupies most of the available screen space, and other loaded image layers are shown as thumbnails. In &lt;span style=&quot; font-weight:600;&quot;&gt;tiled&lt;/span&gt; layout, multiple image layers are shown side by side. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>\</string>
+   </property>
+  </action>
+  <action name="actionActivateNextLayer">
+   <property name="text">
+    <string>Activate Next Layer</string>
+   </property>
+   <property name="shortcut">
+    <string>]</string>
+   </property>
+  </action>
+  <action name="actionActivatePreviousLayer">
+   <property name="text">
+    <string>Activate Previous Layer</string>
+   </property>
+   <property name="shortcut">
+    <string>[</string>
    </property>
   </action>
  </widget>

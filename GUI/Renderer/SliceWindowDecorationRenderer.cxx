@@ -61,7 +61,9 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
     }
 
   double vppr = parentModel->GetSizeReporter()->GetViewportPixelRatio();
-  Vector2ui vp = parentModel->GetSizeReporter()->GetLogicalViewportSize();
+
+  Vector2ui vp_pos, vp_size;
+  parentModel->GetNonThumbnailViewport(vp_pos, vp_size);
 
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
   glPushMatrix();
@@ -74,7 +76,7 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   // Get the various sizes and offsets
   int offset = 4 + elt->GetFontSize();
   int margin = elt->GetFontSize() / 3;
-  int w = vp[0], h = vp[1];
+  int w = vp_size[0] / vppr, h = vp_size[1] / vppr;
 
   // Create the font info
   AbstractRendererPlatformSupport::FontInfo font_info =
@@ -97,6 +99,33 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
   glPopAttrib();
 }
 
+std::string SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase *layer)
+{
+  std::string nickname = layer->GetNickname();
+  if(layer->GetNumberOfComponents() > 1)
+    {
+    AbstractMultiChannelDisplayMappingPolicy *policy =
+        static_cast<AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
+    MultiChannelDisplayMode mode = policy->GetDisplayMode();
+    if(mode.UseRGB)
+      nickname += " [RGB]";
+    else if(mode.SelectedScalarRep == SCALAR_REP_MAGNITUDE)
+      nickname += " [Mag]";
+    else if(mode.SelectedScalarRep == SCALAR_REP_MAX)
+      nickname += " [Max]";
+    else if(mode.SelectedScalarRep == SCALAR_REP_AVERAGE)
+      nickname += " [Avg]";
+    else
+      {
+      std::ostringstream oss;
+      oss << " [" << mode.SelectedComponent + 1 << "/" << layer->GetNumberOfComponents() <<  "]";
+      nickname += oss.str();
+      }
+    }
+
+  return nickname;
+}
+
 void SliceWindowDecorationRenderer::DrawNicknames()
 {
   // Draw the nicknames
@@ -106,9 +135,6 @@ void SliceWindowDecorationRenderer::DrawNicknames()
   int nrows = (int) layout[0];
   int ncols = (int) layout[1];
 
-  if(nrows * ncols == 1)
-    return;
-
   // Get the properties for the labels
   SNAPAppearanceSettings *as =
       parentModel->GetParentUI()->GetAppearanceSettings();
@@ -117,11 +143,17 @@ void SliceWindowDecorationRenderer::DrawNicknames()
       as->GetUIElement(SNAPAppearanceSettings::RULER);
 
   // Leave if the labels are disabled
-  if(!elt->GetVisible()) return;
+  if(!elt->GetVisible())
+    return;
+
+  // Leave if there is trivial information to show
+  // ### if(dlm->GetNumberOfGroundLevelLayers() < 2) return;
 
   // Viewport properties (retina-related)
   double vppr = parentModel->GetSizeReporter()->GetViewportPixelRatio();
-  Vector2ui vp = parentModel->GetSizeReporter()->GetLogicalViewportSize();
+
+  Vector2ui vp_pos, vp_size;
+  parentModel->GetNonThumbnailViewport(vp_pos, vp_size);
 
   // Apply the label properties
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
@@ -133,7 +165,20 @@ void SliceWindowDecorationRenderer::DrawNicknames()
   glColor4d( elt->GetNormalColor()[0], elt->GetNormalColor()[1], elt->GetNormalColor()[2], 1.0 );
 
   // Get the viewport size
-  int w = vp[0] / ncols, h = vp[1] / nrows;
+  int w = vp_size[0] / (vppr * ncols), h = vp_size[1] / (vppr * nrows);
+
+  // For non-tiled mode, set the offset to equal that of the anatomical markers
+  const OpenGLAppearanceElement *elt_marker = as->GetUIElement(SNAPAppearanceSettings::RULER);
+  int left_margin = elt_marker->GetFontSize() / 3;
+  int right_margin = left_margin + 2 + elt_marker->GetFontSize() / 2;
+
+  // Set the maximum allowed width. For tiled layout, this is the size of the tile,
+  // for stacked, it is the half-width of the tile, to leave space for the anatomic
+  // marker
+  int max_allowed_width = (ncols == 1)
+                          ? (int) (0.5 * w - left_margin - right_margin)
+                          : (int) (0.92 * w);
+
 
   AbstractRendererPlatformSupport::FontInfo font_info =
         { AbstractRendererPlatformSupport::SANS, elt->GetFontSize() * vppr, false };
@@ -146,12 +191,13 @@ void SliceWindowDecorationRenderer::DrawNicknames()
       {
       // Define the ROI for this label
       ImageWrapperBase *layer =
-          this->GetParentRenderer()->GetLayerForNthTile(i, j);
+          parentModel->GetLayerForNthTile(i, j);
 
       if(layer)
         {
+        std::string nick_text = this->GetDisplayText(layer);
         int fw = this->m_PlatformSupport->MeasureTextWidth(
-              layer->GetNickname().c_str(), font_info);
+              nick_text.c_str(), font_info) / vppr;
         if(fw > maxwidth)
           maxwidth = fw;
         }
@@ -159,9 +205,9 @@ void SliceWindowDecorationRenderer::DrawNicknames()
     }
 
   // Adjust the font size
-  if(maxwidth > 0.92 * w)
+  if(maxwidth > max_allowed_width)
     {
-    font_info.pixel_size = (int) (font_info.pixel_size * w * 0.92 / maxwidth);
+    font_info.pixel_size = (int) (font_info.pixel_size * max_allowed_width / maxwidth);
     }
 
   // Draw each nickname
@@ -171,15 +217,30 @@ void SliceWindowDecorationRenderer::DrawNicknames()
       {
       // Define the ROI for this label
       ImageWrapperBase *layer =
-          this->GetParentRenderer()->GetLayerForNthTile(i, j);
+          parentModel->GetLayerForNthTile(i, j);
       if(layer)
         {
-        this->m_PlatformSupport->RenderTextInOpenGL(
-              layer->GetNickname().c_str(),
-              w * j, h * (nrows - i) - 20, w, 15, font_info,
-              AbstractRendererPlatformSupport::HCENTER,
-              AbstractRendererPlatformSupport::TOP,
-              elt->GetNormalColor());
+        std::string nick_text = this->GetDisplayText(layer);
+
+        // If there is only one column, we render the text on the left
+        if(ncols == 1)
+          {
+          this->m_PlatformSupport->RenderTextInOpenGL(
+                nick_text.c_str(),
+                left_margin, h * (nrows - i) - 18, w, 15, font_info,
+                AbstractRendererPlatformSupport::LEFT,
+                AbstractRendererPlatformSupport::TOP,
+                elt->GetNormalColor());
+          }
+        else
+          {
+          this->m_PlatformSupport->RenderTextInOpenGL(
+                nick_text.c_str(),
+                w * j, h * (nrows - i) - 20, w, 15, font_info,
+                AbstractRendererPlatformSupport::HCENTER,
+                AbstractRendererPlatformSupport::TOP,
+                elt->GetNormalColor());
+          }
         }
       }
     }
@@ -204,7 +265,13 @@ void SliceWindowDecorationRenderer::DrawRulers()
 
   // Get the viewport properties (retina-capable)
   float vppr = parentModel->GetSizeReporter()->GetViewportPixelRatio();
-  Vector2ui vp = parentModel->GetSizeReporter()->GetLogicalViewportSize();
+
+  // Get the dimensions of the non-thumbnail area where the decorations go
+  Vector2ui vp_pos, vp_size;
+  parentModel->GetNonThumbnailViewport(vp_pos, vp_size);
+
+  // Convert into logical pixel units
+  Vector2f vp = to_float(vp_size) / vppr;
 
   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_DEPTH_BUFFER_BIT);
   glPushMatrix();
@@ -219,7 +286,7 @@ void SliceWindowDecorationRenderer::DrawRulers()
   double maxw = 0.5 * vp[0] - 20.0;
   maxw = maxw < 5 ? 5 : maxw;
 
-  double zoom = parentModel->GetViewZoom();
+  double zoom = parentModel->GetViewZoom() / vppr;
   double scale = 1.0;
   while(zoom * scale > maxw) scale /= 10.0;
   while(zoom * scale < 0.1 * maxw) scale *= 10.0;

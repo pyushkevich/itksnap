@@ -46,6 +46,9 @@ AbstractVTKRenderer::AbstractVTKRenderer()
   m_Interactor = vtkSmartPointer<QtRenderWindowInteractor>::New();
   m_Interactor->SetRenderWindow(m_RenderWindow);
   m_Interactor->SetInteractorStyle(NULL);
+
+  // Set the pixel ratio
+  m_DevicePixelRatio = 1;
 }
 
 void AbstractVTKRenderer::paintGL()
@@ -119,9 +122,16 @@ void AbstractVTKRenderer::SyncronizeCamera(Self *reference)
                          vtkCommand::ModifiedEvent, ModelUpdateEvent());
 }
 
-void AbstractVTKRenderer::resizeGL(int w, int h)
+void AbstractVTKRenderer::resizeGL(int w, int h, int device_pixel_ratio)
 {
   // Pass the size to VTK
   m_RenderWindow->SetSize(w, h);
   m_Interactor->UpdateSize(w, h);
+
+  if(m_DevicePixelRatio != device_pixel_ratio)
+    {
+    int old_ratio = m_DevicePixelRatio;
+    m_DevicePixelRatio = device_pixel_ratio;
+    this->OnDevicePixelRatioChange(old_ratio, device_pixel_ratio);
+    }
 }

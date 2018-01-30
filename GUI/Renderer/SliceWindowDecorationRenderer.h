@@ -25,6 +25,7 @@ protected:
 
   SliceWindowDecorationRenderer();
   virtual ~SliceWindowDecorationRenderer();
+  std::string GetDisplayText(ImageWrapperBase *layer);
 };
 
 #endif // SLICEWINDOWDECORATIONRENDERER_H

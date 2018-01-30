@@ -39,9 +39,12 @@ LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   menu->addSeparator();
   menu->addAction(ui->actionResetLabels);
 
+  QStandardItemModel *simodel = new QStandardItemModel(this);
+  simodel->setColumnCount(2);
+
   // Set up a filter model for the label list view
   m_LabelListFilterModel = new QSortFilterProxyModel(this);
-  m_LabelListFilterModel->setSourceModel(new QStandardItemModel(this));
+  m_LabelListFilterModel->setSourceModel(simodel);
   m_LabelListFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
   m_LabelListFilterModel->setFilterKeyColumn(-1);
   ui->lvLabels->setModel(m_LabelListFilterModel);
@@ -104,6 +107,15 @@ void LabelEditorDialog::SetModel(LabelEditorModel *model)
                  LabelEditorModel::UIF_EDITABLE_LABEL_SELECTED);
   activateOnFlag(ui->btnDelete, m_Model,
                  LabelEditorModel::UIF_EDITABLE_LABEL_SELECTED);
+
+  // Set resizing behavior
+#if QT_VERSION >= 0x050000
+  ui->lvLabels->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+  ui->lvLabels->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+#else
+  ui->lvLabels->horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+  ui->lvLabels->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
+#endif
 }
 
 void LabelEditorDialog::on_btnClose_clicked()

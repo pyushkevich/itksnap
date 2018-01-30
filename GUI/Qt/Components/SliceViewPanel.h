@@ -11,10 +11,13 @@ class SnakeModeRenderer;
 class SliceWindowDecorationRenderer;
 class GenericSliceModel;
 class QCursor;
+class QToolButton;
 
 namespace Ui {
     class SliceViewPanel;
 }
+
+
 
 class SliceViewPanel : public SNAPComponent
 {
@@ -57,6 +60,20 @@ private slots:
 
   void on_actionZoom_Out_triggered();
 
+  void OnHoveredLayerChange(const EventBucket &eb);
+
+  void on_actionAnnotationAcceptLine_triggered();
+
+  void on_actionAnnotationClearLine_triggered();
+
+  void on_actionAnnotationSelectAll_triggered();
+
+  void on_actionAnnotationDelete_triggered();
+
+  void on_actionAnnotationNext_triggered();
+
+  void on_actionAnnotationPrevious_triggered();
+
 private:
   Ui::SliceViewPanel *ui;
 
@@ -75,11 +92,13 @@ private:
   // Custom cursor for drawing operations
   QCursor *m_DrawingCrosshairCursor;
 
+  // Context menu tool button
+  QToolButton *m_ContextToolButton;
+
   // Some renderers don't require a separate widget (no user interaction)
   // and so they are owned by this panel.
   SmartPtr<SnakeModeRenderer> m_SnakeModeRenderer;
   SmartPtr<SliceWindowDecorationRenderer> m_DecorationRenderer;
-
 
   // Index of the panel
   unsigned int m_Index;

@@ -3,6 +3,7 @@
 
 #include "AbstractRenderer.h"
 #include <vtkSmartPointer.h>
+#include "UIReporterDelegates.h"
 
 class vtkRenderer;
 class vtkRenderWindow;
@@ -30,7 +31,7 @@ public:
   };
 
   virtual void paintGL();
-  virtual void resizeGL(int w, int h);
+  virtual void resizeGL(int w, int h, int device_pixel_ratio);
   virtual void initializeGL();
 
   vtkRenderWindow *GetRenderWindow();
@@ -55,8 +56,16 @@ protected:
   // The interactor
   vtkSmartPointer<vtkRenderWindowInteractor> m_Interactor;
 
+  // The device pixel ratio (1 for regular screens, 2 for retina)
+  // This is updated in resizeGL
+  int m_DevicePixelRatio;
+
   // Background color
   Vector3d m_BackgroundColor;
+
+  // Virtual method called when the device pixel ratio changes, allowing
+  // the child classes to update some properties (e.g., font size)
+  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio) {}
 
   AbstractVTKRenderer();
   virtual ~AbstractVTKRenderer() {}

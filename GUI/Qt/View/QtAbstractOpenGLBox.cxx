@@ -27,7 +27,6 @@
 #include "QtAbstractOpenGLBox.h"
 #include <QMouseEvent>
 #include <QStackedLayout>
-#include <QWindow>
 #include <QtInteractionDelegateWidget.h>
 #include "LatentITKEventNotifier.h"
 #include "SNAPOpenGL.h"
@@ -44,6 +43,9 @@ QtAbstractOpenGLBox::QtAbstractOpenGLBox(QWidget *parent) :
 {
   m_NeedResizeOnNextRepaint = false;
   m_GrabFocusOnEntry = false;
+
+  this->setAttribute(Qt::WA_OpaquePaintEvent);
+  this->setAttribute(Qt::WA_NoSystemBackground);
 }
 
 void QtAbstractOpenGLBox::AttachSingleDelegate(QtInteractionDelegateWidget *delegate)
@@ -85,7 +87,7 @@ void QtAbstractOpenGLBox::paintGL()
   // Qt bug workaround
   if(m_NeedResizeOnNextRepaint)
     {
-    GetRenderer()->resizeGL(wp, hp);
+    GetRenderer()->resizeGL(wp, hp, this->devicePixelRatio());
     m_NeedResizeOnNextRepaint = false;
     }
 
@@ -116,7 +118,7 @@ void QtAbstractOpenGLBox::resizeGL(int w, int h)
   int hp = (int) this->size().height() * this->devicePixelRatio();
 
   GetRenderer()->Update();
-  GetRenderer()->resizeGL(wp, hp);
+  GetRenderer()->resizeGL(wp, hp, this->devicePixelRatio());
 }
 
 void QtAbstractOpenGLBox::initializeGL()

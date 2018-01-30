@@ -127,6 +127,10 @@ public:
 
   bool ProcessReleaseEvent(float x, float y);
 
+  /**
+   * Return the size of a screen logical pixel (as opposed to a physical
+   * pixel on the retina screen) in slice coordinate units
+   */
   Vector2f GetPixelSize();
 
   bool CheckState(PolygonDrawingUIState state);
