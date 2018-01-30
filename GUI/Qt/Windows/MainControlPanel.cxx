@@ -93,6 +93,7 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   ui->btnZoom->setDefaultAction(FindUpstreamAction(this, "actionZoomPan"));
   ui->btnPolygon->setDefaultAction(FindUpstreamAction(this, "actionPolygon"));
   ui->btnPaintbrush->setDefaultAction(FindUpstreamAction(this, "actionPaintbrush"));
+  ui->btnJoin->setDefaultAction(FindUpstreamAction(this, "actionJoin"));
   ui->btnAnnotation->setDefaultAction(FindUpstreamAction(this, "actionAnnotation"));
   ui->btnSnake->setDefaultAction(FindUpstreamAction(this, "actionSnake"));
 

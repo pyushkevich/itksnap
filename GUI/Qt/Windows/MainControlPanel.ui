@@ -298,6 +298,20 @@ QToolButton:checked {
              </widget>
             </item>
             <item>
+             <widget class="QToolButton" name="btnJoin">
+              <property name="text">
+               <string>...</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>:/root/globalWS.gif</normaloff>:/root/globalWS.gif</iconset>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QToolButton" name="btnAnnotation">
               <property name="text">
                <string>...</string>
