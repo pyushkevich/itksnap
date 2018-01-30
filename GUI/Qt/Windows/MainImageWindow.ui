@@ -437,6 +437,7 @@ color:rgb(103, 103, 103);
       <string>Appearance</string>
      </property>
      <addaction name="actionSegmentationToggle"/>
+     <addaction name="actionToggleJsrcVis"/>
      <addaction name="separator"/>
      <addaction name="actionSegmentationIncreaseOpacity"/>
      <addaction name="actionSegmentationDecreaseOpacity"/>
