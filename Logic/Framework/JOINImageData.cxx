@@ -313,9 +313,8 @@ JOINImageData
     m_JoinCF= JoinCopyFilterType::New();
     m_JoinCF->SetJsrc(m_JsrcWrapper->GetImage());
     m_JoinCF->SetJdst(m_JdstWrapper->GetImage());
-    m_JdstWrapper->SetImage(m_JoinCF->GetOutput());
-    m_JdstWrapper->GetImage()->Modified();
-    m_JoinCF->InPlaceOn(); //adjust Jdst directly
+    //m_JdstWrapper->SetImage(m_JoinCF->GetOutput()); //causes segfault due to missing transform of uninitialized output
+    m_JoinCF->InPlaceOn(); //makes 2nd input (SetJdst) be the output
     }
 
 JOINImageData::JoinCopyFilterPointer
