@@ -35,6 +35,20 @@
 
 #include "IRISApplication.h"
 #include "JOINImageData.h"
+//#include "itkJCFilterWatcher.h"
+#include <itkCommand.h>
+
+
+void FilterEventHandlerITK2(itk::Object *caller, const itk::EventObject &event, void*){
+
+    const itk::ProcessObject* filter = static_cast<const itk::ProcessObject*>(caller);
+
+    if(itk::ProgressEvent().CheckEvent(&event))
+	fprintf(stderr, "\r%s progress: %5.1f%%", filter->GetNameOfClass(), 100.0 * filter->GetProgress());//stderr is flushed directly
+    else if(itk::EndEvent().CheckEvent(&event))
+	std::cerr << std::endl << std::flush;
+    }
+
 
 JOINImageData
 ::JOINImageData(){
@@ -311,10 +325,19 @@ JOINImageData
 
     ////Initialize JoinCopyFilter
     m_JoinCF= JoinCopyFilterType::New();
+
     m_JoinCF->SetJsrc(m_JsrcWrapper->GetImage());
     m_JoinCF->SetJdst(m_JdstWrapper->GetImage());
     //m_JdstWrapper->SetImage(m_JoinCF->GetOutput()); //causes segfault due to missing transform of uninitialized output
     m_JoinCF->InPlaceOn(); //makes 2nd input (SetJdst) be the output
+
+    itk::CStyleCommand::Pointer eventCallbackITK;
+    eventCallbackITK = itk::CStyleCommand::New();
+    eventCallbackITK->SetCallback(FilterEventHandlerITK2);
+
+    m_JoinCF->AddObserver(itk::ProgressEvent(), eventCallbackITK);
+    m_JoinCF->AddObserver(itk::EndEvent(), eventCallbackITK);
+
     }
 
 JOINImageData::JoinCopyFilterPointer
