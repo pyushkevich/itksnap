@@ -445,6 +445,12 @@ IRISApplication
     m_SNAPImageData->SetDisplayGeometry(dispGeom);
     }
 
+  // Create the appropriate transform and pass it to the JOIN data
+  if(m_JOINImageData->IsMainLoaded())
+    {
+    m_JOINImageData->SetDisplayGeometry(dispGeom);
+    }
+
   // Invoke the corresponding event
   InvokeEvent(DisplayToAnatomyCoordinateMappingChangeEvent());
 }
