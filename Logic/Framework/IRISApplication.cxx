@@ -312,6 +312,7 @@ IRISApplication
   m_JOINImageData->GetJoinCF()->SetDrawingColor(drawing_color);
   m_JOINImageData->GetJoinCF()->SetSeedActive(true);
   m_JOINImageData->GetJoinCF()->Update();
+  m_JOINImageData->GetJdst()->SetImage(m_JOINImageData->GetJoinCF()->GetOutput()); //needed because output has stolen the input's buffer and the input has no image buffer.
 
   InvokeEvent(LayerChangeEvent());
   return m_JOINImageData->GetJoinCF()->GetUpdateFlag();
