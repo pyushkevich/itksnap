@@ -58,7 +58,7 @@ public:
   typedef JdstImageWrapper::ImageType                     JdstImageType;
   typedef WsrcImageWrapper::ImageType                     WsrcImageType;
 
-  typedef itk::JoinCopyFilter<JsrcImageType, JdstImageType, JdstImageType> JoinCopyFilterType;
+  typedef itk::JoinCopyFilter<JsrcImageType, JdstImageType> JoinCopyFilterType;
   typedef JoinCopyFilterType::Pointer JoinCopyFilterPointer;
 
   /** Initialize to a ROI from another image data object */

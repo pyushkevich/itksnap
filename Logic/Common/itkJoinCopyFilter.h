@@ -9,13 +9,13 @@ namespace itk{
      *
      * \ingroup ImageFilters
      */
-    template<typename TInputImage1, typename TInputImage2, typename TOutputImage>
+    template<typename TInputImage1, typename TInputImage2>
 	class JoinCopyFilter:
-    public InPlaceImageFilter<TInputImage2, TOutputImage>{
+    public InPlaceImageFilter<TInputImage2>{
     public:
 	/** Standard class typedefs. */
 	typedef JoinCopyFilter                                Self;
-	typedef InPlaceImageFilter<TInputImage2, TOutputImage>     Superclass;
+	typedef InPlaceImageFilter<TInputImage2>     Superclass;
 	typedef SmartPointer<Self>                                 Pointer;
 	typedef SmartPointer< const Self >                         ConstPointer;
 
@@ -33,8 +33,8 @@ namespace itk{
 	itkGetConstMacro(SeedIndex, typename TInputImage1::IndexType);
 
 	/** Set/Get DrawingColor value */
-	itkSetMacro(DrawingColor, typename TOutputImage::ValueType);
-	itkGetConstMacro(DrawingColor, typename TOutputImage::ValueType);
+	itkSetMacro(DrawingColor, typename TInputImage2::ValueType);
+	itkGetConstMacro(DrawingColor, typename TInputImage2::ValueType);
 
 	/** Get UpdateFlag value */
 	itkGetConstMacro(UpdateFlag, bool);
@@ -50,7 +50,7 @@ namespace itk{
 	bool m_SeedActive;
 	typename TInputImage1::IndexType m_SeedIndex;
 	typename TInputImage1::ValueType m_SeedValue;
-	typename TOutputImage::ValueType m_DrawingColor;
+	typename TInputImage2::ValueType m_DrawingColor;
 	bool m_UpdateFlag;
 
 
