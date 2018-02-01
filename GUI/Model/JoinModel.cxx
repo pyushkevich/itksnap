@@ -51,7 +51,7 @@ JoinModel
 	// Check if the right button was pressed
 	if(processCnJ(reverse_mode)){
 	    //add undo point (todo: Undo has no effect so far)
-	    m_Parent->GetDriver()->StoreUndoPoint("Click'n'Join");
+	    // m_Parent->GetDriver()->StoreUndoPoint("Click'n'Join"); // commented as long as it has no effec except for taking single-threaded processing time according to the size of the loaded data
 	    //fire SegmentationChangeEvent for e.g. 3D view Update
 	    m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
 	    }
