@@ -63,7 +63,7 @@ font-size:11px;
      <property name="title">
       <string>General Image Layer Properties:</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,0">
+     <layout class="QGridLayout" name="gridLayout_3" rowstretch="0,0,0">
       <property name="leftMargin">
        <number>6</number>
       </property>
@@ -82,20 +82,6 @@ font-size:11px;
       <property name="verticalSpacing">
        <number>8</number>
       </property>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="inNickname">
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit this field to assign a short nickname to this image. This information can be saved in the workspace. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Filename:</string>
-        </property>
-       </widget>
-      </item>
       <item row="0" column="1">
        <widget class="QLineEdit" name="outFilename">
         <property name="toolTip">
@@ -106,10 +92,41 @@ font-size:11px;
         </property>
        </widget>
       </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Filename:</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="0">
        <widget class="QLabel" name="label_6">
         <property name="text">
          <string>Nickname:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="inNickname">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit this field to assign a short nickname to this image. This information can be saved in the workspace. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Tags:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="TagListWidget" name="tagsWidget" native="true">
+        <property name="focusPolicy">
+         <enum>Qt::StrongFocus</enum>
+        </property>
+        <property name="toolTip">
+         <string>One or more textual tags can be assigned to an image layer. Tags are not used directly by ITK-SNAP but may be used to inform other software of the meaning of different layers. Type in words separated by commas to create tags. </string>
         </property>
        </widget>
       </item>
@@ -623,6 +640,30 @@ font-size:11px;
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TagListWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">TagListWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>outFilename</tabstop>
+  <tabstop>inNickname</tabstop>
+  <tabstop>tagsWidget</tabstop>
+  <tabstop>btnUnpin</tabstop>
+  <tabstop>btnPin</tabstop>
+  <tabstop>inOpacityValue</tabstop>
+  <tabstop>inOpacity</tabstop>
+  <tabstop>btnVisible</tabstop>
+  <tabstop>btnUp</tabstop>
+  <tabstop>btnDown</tabstop>
+  <tabstop>inMode</tabstop>
+  <tabstop>inComponent</tabstop>
+  <tabstop>inComponentSlider</tabstop>
+  <tabstop>btnAnimate</tabstop>
+ </tabstops>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>
  </resources>

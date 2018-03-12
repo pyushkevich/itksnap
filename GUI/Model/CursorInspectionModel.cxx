@@ -7,8 +7,6 @@
 #include "ColorMapModel.h"
 #include "DisplayLayoutModel.h"
 
-#include <QtTableWidgetCoupling.h>
-
 #include <iomanip>
 
 /**

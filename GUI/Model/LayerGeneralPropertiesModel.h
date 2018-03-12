@@ -97,6 +97,9 @@ public:
   /** A model for the nickname */
   irisSimplePropertyAccessMacro(Nickname, std::string)
 
+  /** A model for the tags */
+  irisSimplePropertyAccessMacro(Tags, std::list<std::string>)
+
   /** Move the layer up in the list */
   void MoveLayerUp();
   void MoveLayerDown();
@@ -134,10 +137,16 @@ protected:
   SmartPtr<AbstractSimpleStringProperty> m_FilenameModel;
   SmartPtr<AbstractSimpleStringProperty> m_NicknameModel;
 
+  // Tags
+  SmartPtr<AbstractSimpleStringListProperty> m_TagsModel;
+
   bool GetFilenameValue(std::string &value);
 
   bool GetNicknameValue(std::string &value);
   void SetNicknameValue(std::string value);
+
+  bool GetTagsValue(StringList &value);
+  void SetTagsValue(StringList value);
 
   // Stickiness
   SmartPtr<AbstractSimpleBooleanProperty> m_IsStickyModel;

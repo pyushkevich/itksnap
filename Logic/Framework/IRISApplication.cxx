@@ -1729,9 +1729,8 @@ IRISApplication
 
   // Save the thumbnail for the current image. This ensures that a thumbnail
   // is created even if the application crashes or is killed.
-  layer->WriteThumbnail(
-        m_SystemInterface->GetThumbnailAssociatedWithFile(
-          io->GetFileNameOfNativeImage().c_str()).c_str(), 128);
+  ImageWrapperBase::DisplaySlicePointer thumbnail = layer->MakeThumbnail(128);
+  m_SystemInterface->WriteThumbnail(io->GetFileNameOfNativeImage().c_str(), thumbnail);
 
   // We also want to reset the label history at this point, as these are
   // very different labels
@@ -1774,6 +1773,12 @@ void IRISApplication::LoadMetaDataAssociatedWithLayer(
   // Read the image-level metadata (display map, etc) for the image
   layer->ReadMetaData(folder->Folder("LayerMetaData"));
 
+  // Read the tags for the image. This should have probably been placed into the LayerMeteData
+  // but it's a pain to move things around in the registry file
+  std::list<std::string> tags;
+  (*folder)["Tags"].GetList(tags);
+  layer->SetTags(tags);
+
   // Read and apply the project-level settings associated with the main image
   if(role == MAIN_ROLE)
     {
@@ -1814,6 +1819,9 @@ void IRISApplication
   // Write the metadata for the specific layer
   layer->WriteMetaData(folder->Folder("LayerMetaData"));
 
+  // Write the tags
+  (*folder)["Tags"].PutList(layer->GetTags());
+
   // Write the layer IO hints - overriding the association file data
   if(!layer->GetIOHints().IsEmpty())
     {
@@ -1841,18 +1849,18 @@ IRISApplication
   // Save the settings for this image
   if(m_CurrentImageData->IsMainLoaded())
     {
-    ImageWrapperBase *image = m_CurrentImageData->GetMain();
-    const char *fnMain = image->GetFileName();
+    ImageWrapperBase *main_image = m_CurrentImageData->GetMain();
+    const char *fnMain = main_image->GetFileName();
 
     // Reset the toolbar mode to default
     m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE);
 
     // Write the image-level and project-level associations
-    SaveMetaDataAssociatedWithLayer(image, MAIN_ROLE);
+    SaveMetaDataAssociatedWithLayer(main_image, MAIN_ROLE);
 
     // Create a thumbnail from the one of the image slices
-    std::string fnThumb = m_SystemInterface->GetThumbnailAssociatedWithFile(fnMain);
-    m_CurrentImageData->GetMain()->WriteThumbnail(fnThumb.c_str(), 128);
+    ImageWrapperBase::DisplaySlicePointer thumbnail = main_image->MakeThumbnail(128);
+    m_SystemInterface->WriteThumbnail(fnMain, thumbnail);
 
     // Do likewise for the project if one exists
     if(m_GlobalState->GetProjectFilename().length())
@@ -1860,10 +1868,7 @@ IRISApplication
       // TODO: it would look nicer if we actually saved the state of the SNAP
       // windows rather than just the image in its current colormap. But this
       // would require doing this elsewhere
-      std::string fnThumb = m_SystemInterface->GetThumbnailAssociatedWithFile(
-            m_GlobalState->GetProjectFilename().c_str());
-
-      m_CurrentImageData->GetMain()->WriteThumbnail(fnThumb.c_str(), 128);
+      m_SystemInterface->WriteThumbnail(m_GlobalState->GetProjectFilename().c_str(), thumbnail);
       }
     }
 

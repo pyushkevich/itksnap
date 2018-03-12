@@ -50,6 +50,10 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         &Self::GetIsStickyValue,
         &Self::SetIsStickyValue);
 
+  m_TagsModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetTagsValue,
+        &Self::SetTagsValue);
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -378,6 +382,23 @@ void LayerGeneralPropertiesModel::SetNicknameValue(std::string value)
 {
   ImageWrapperBase *layer = this->GetLayer();
   layer->SetCustomNickname(value);
+}
+
+bool LayerGeneralPropertiesModel::GetTagsValue(StringList &value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(layer)
+    {
+    value = layer->GetTags();
+    return true;
+    }
+  return false;
+}
+
+void LayerGeneralPropertiesModel::SetTagsValue(StringList value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  layer->SetTags(value);
 }
 
 VectorImageWrapperBase *

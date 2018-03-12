@@ -70,6 +70,7 @@ void HistoryQListItem::onTimer()
     {
     try
       {
+    /*
       // Load the icon using ITK to avoid this really annoying warning
       // from the PNG library. The only problem is that QIcon caches
       typedef itk::RGBAPixel<unsigned char> PNGPixelType;
@@ -89,9 +90,9 @@ void HistoryQListItem::onTimer()
       for(int i = 0; i < slice->GetPixelContainer()->Size(); i++)
         {
         *output++ = qRgba(input[i].GetRed(), input[i].GetGreen(), input[i].GetBlue(), input[i].GetAlpha());
-        }
+        } */
 
-      QPixmap load_pixmap = QPixmap::fromImage(image);
+      QPixmap load_pixmap(m_IconFilename);
       this->setIcon(QIcon(load_pixmap));
       QPixmapCache::insert(key, load_pixmap);
       }
@@ -137,6 +138,12 @@ void HistoryQListModel::Initialize(
   LatentITKEventNotifier::connect(
         hmodel, ValueChangedEvent(),
         this, SLOT(onModelUpdate(EventBucket)));
+
+  // Also watch changes to main image dimensions
+  LatentITKEventNotifier::connect(
+        model->GetDriver(), MainImageDimensionsChangeEvent(),
+        this, SLOT(onModelUpdate(EventBucket)));
+
 
   // Cache the history
   this->rebuildModel();

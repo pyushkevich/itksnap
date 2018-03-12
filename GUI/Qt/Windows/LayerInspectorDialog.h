@@ -13,13 +13,23 @@ class ImageWrapperBase;
 class QToolButton;
 class QMenu;
 class QAction;
+class QEvent;
 
 namespace Ui {
     class LayerInspectorDialog;
 }
 
 
+class ReturnKeyEater : public QObject
+{
+  Q_OBJECT
 
+public:
+  ReturnKeyEater(QObject *parent) : QObject(parent) {}
+
+protected:
+  bool eventFilter(QObject *watched, QEvent *event);
+};
 
 class LayerInspectorDialog : public QDialog
 {

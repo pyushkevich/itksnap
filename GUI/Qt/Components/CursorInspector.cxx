@@ -22,7 +22,6 @@
 #include <QtSpinBoxCoupling.h>
 #include <QtCheckBoxCoupling.h>
 #include <QtLineEditCoupling.h>
-#include <QtTableWidgetCoupling.h>
 #include <QtWidgetArrayCoupling.h>
 
 #include <QStandardItemModel>
@@ -63,21 +62,6 @@ public:
         : QVariant(QColor(desc.Color[0], desc.Color[1], desc.Color[2]));
   }
 };
-
-typedef TextAndIconTableWidgetRowTraits<
-  size_t, LayerCurrentVoxelInfo,
-  LayerCurrentVoxelInfoRowDescriptionTraits> LayerCurrentVoxelInfoTableWidgetRowTraits;
-
-/*
-typedef ItemSetWidgetDomainTraits<
-  CurrentVoxelInfoItemSetDomain,
-  QTableWidget,
-  LayerCurrentVoxelInfoTableWidgetRowTraits> LayerCurrentVoxelInfoDomainTraits;
-*/
-
-
-
-
 
 
 CursorInspector::CursorInspector(QWidget *parent) :

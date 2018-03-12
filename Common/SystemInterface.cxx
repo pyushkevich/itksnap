@@ -64,6 +64,9 @@
 #include <cstring>
 #include <iomanip>
 
+#include <itkRGBAPixel.h>
+#include <itkImage.h>
+
 #ifdef WIN32
   #include <iostream>
   #include <process.h>
@@ -634,6 +637,14 @@ SystemInterface
 
   // Create the association filename
   return thumbdir + "/" + code + ".png";
+}
+
+void SystemInterface
+::WriteThumbnail(
+    const char *associated_file, ThumbnailImageType *thumbnail)
+{
+  std::string thumb_fn = this->GetThumbnailAssociatedWithFile(associated_file);
+  this->m_SystemInfoDelegate->WriteRGBAImage2D(thumb_fn, thumbnail);
 }
 
 bool 

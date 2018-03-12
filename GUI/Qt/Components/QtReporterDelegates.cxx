@@ -10,6 +10,7 @@
 #include <QImage>
 #include "itkImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkRGBAPixel.h"
 #include "Registry.h"
 #include <sstream>
 
@@ -185,4 +186,17 @@ void QtSystemInfoDelegate::LoadResourceAsRegistry(std::string tag, Registry &reg
     std::stringstream ss(ba.data());
     reg.ReadFromStream(ss);
     }
+}
+
+void QtSystemInfoDelegate::WriteRGBAImage2D(std::string file, RGBAImageType *image)
+{
+  typename RGBAImageType::SizeType sz = image->GetBufferedRegion().GetSize();
+  QImage iq(sz[0], sz[1], QImage::Format_ARGB32);
+  typedef itk::ImageRegionConstIteratorWithIndex<RGBAImageType> IterType;
+  for(IterType it(image, image->GetBufferedRegion()); !it.IsAtEnd(); ++it)
+    {
+    const RGBAPixelType &px = it.Value();
+    iq.setPixel(it.GetIndex()[0], it.GetIndex()[1], qRgba(px[0], px[1], px[2], px[3]));
+    }
+  iq.save(from_utf8(file));
 }

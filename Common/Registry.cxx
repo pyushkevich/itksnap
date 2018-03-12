@@ -171,7 +171,7 @@ RegistryValue
 ::RegistryValue(const std::string &input)
 {
   m_Null = false;
-  m_String = input;  
+  m_String = input;
 }
 
 RegistryValue&

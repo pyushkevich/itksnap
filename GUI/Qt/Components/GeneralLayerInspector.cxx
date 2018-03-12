@@ -9,9 +9,12 @@
 #include "QtSliderCoupling.h"
 #include "QtLineEditCoupling.h"
 #include "QtAbstractButtonCoupling.h"
+#include "TagListWidgetCoupling.h"
 
 #include "QtWidgetActivator.h"
 #include "QtRadioButtonCoupling.h"
+
+#include "TagListWidget.h"
 
 Q_DECLARE_METATYPE(LayerGeneralPropertiesModel::DisplayMode)
 
@@ -49,6 +52,8 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 
   makeCoupling(ui->outFilename, m_Model->GetFilenameModel());
   makeCoupling(ui->inNickname, m_Model->GetNicknameModel());
+
+  makeCoupling(ui->tagsWidget, m_Model->GetTagsModel());
 
   activateOnFlag(ui->grpMulticomponent, m_Model,
                  LayerGeneralPropertiesModel::UIF_MULTICOMPONENT,

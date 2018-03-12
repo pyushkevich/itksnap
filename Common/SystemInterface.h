@@ -45,6 +45,12 @@ class HistoryManager;
 class SystemInfoDelegate;
 class vtkCamera;
 
+
+namespace itk {
+template <typename TPixel> class RGBAPixel;
+template <typename TPixel, unsigned int VDim> class Image;
+}
+
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -60,6 +66,10 @@ class SystemInterface : public Registry
 public:
   SystemInterface();
   virtual ~SystemInterface();
+
+  /** Image type for thumbnails */
+  typedef itk::RGBAPixel<unsigned char>      ThumbnailPixelType;
+  typedef itk::Image<ThumbnailPixelType, 2>  ThumbnailImageType;
 
   /**
    * Set a pointer to the delegate class that can be used to access
@@ -109,6 +119,9 @@ public:
 
   /** Get the thumbnail filename associated with an image file */
   std::string GetThumbnailAssociatedWithFile(const char *file);
+
+  /** Write a thumbnail */
+  void WriteThumbnail(const char *associated_file, ThumbnailImageType *thumbnail);
 
   /** A higher level method: associates current settings with the current image
    * so that the next time the image is loaded, it can be saved */

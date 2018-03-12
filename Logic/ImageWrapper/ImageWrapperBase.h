@@ -370,10 +370,14 @@ public:
   irisVirtualGetMacro(DefaultNickname, const std::string &)
   irisVirtualSetMacro(DefaultNickname, const std::string &)
 
+  /** List of tags assigned to the image layer */
+  irisVirtualGetMacro(Tags, const std::list<std::string> &)
+  irisVirtualSetMacro(Tags, const std::list<std::string> &)
+
   /**
     Export one of the slices as a thumbnail (e.g., PNG file)
     */
-  virtual void WriteThumbnail(const char *filename, unsigned int maxdim) = 0;
+  virtual DisplaySlicePointer MakeThumbnail(unsigned int maxdim) = 0;
 
   /**
    * Access the "IO hints" registry associated with this wrapper. The IO hints

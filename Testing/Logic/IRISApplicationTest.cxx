@@ -26,10 +26,14 @@ public:
     return std::string(".itksnap.test");
     }
 
-  typedef itk::Image<unsigned char, 2> GrayscaleImage;
+
+  typedef SystemInfoDelegate::GrayscaleImage GrayscaleImage;
+  typedef SystemInfoDelegate::RGBAPixelType RGBAPixelType;
+  typedef SystemInfoDelegate::RGBAImageType RGBAImageType;
 
   virtual void LoadResourceAsImage2D(std::string tag, GrayscaleImage *image) {}
   virtual void LoadResourceAsRegistry(std::string tag, Registry &reg) {}
+  virtual void WriteRGBAImage2D(std::string file, RGBAImageType *image) {}
 
 protected:
   std::string m_ExecutableName;

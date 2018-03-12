@@ -29,6 +29,7 @@
 #include "QtActionGroupCoupling.h"
 #include "DisplayLayoutModel.h"
 #include "QShortcut"
+#include <QKeyEvent>
 
 #include <QMenu>
 
@@ -71,6 +72,10 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
   // used to hide and show controls (keep UI less busy) and to handle some
   // basic keyboard interaction.
   ui->saLayersContents->installEventFilter(this);
+
+  // Override default mapping of return key to the close button, which causes the dialog
+  // to close when we type enter inside of line edits
+  this->installEventFilter(new ReturnKeyEater(this));
 }
 
 LayerInspectorDialog::~LayerInspectorDialog()
@@ -442,4 +447,16 @@ void LayerInspectorDialog::advanceTab()
 void LayerInspectorDialog::on_actionOpenLayer_triggered()
 {
   FindUpstreamAction(this, "actionAdd_Overlay")->trigger();
+}
+
+
+bool ReturnKeyEater::eventFilter(QObject *watched, QEvent *event)
+{
+  if(event->type() == QEvent::KeyPress)
+    {
+    QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+    if(keyEvent->key() == Qt::Key_Return || keyEvent->key() == Qt::Key_Enter)
+      return true;
+    }
+  return QObject::eventFilter(watched, event);
 }

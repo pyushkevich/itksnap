@@ -619,7 +619,8 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QActionButton.cxx
   GUI/Qt/Components/QColorButtonWidget.cxx
   GUI/Qt/Components/QDoubleSlider.cxx
-  GUI/Qt/Components/QDoubleSliderWithEditor.cxx
+  GUI/Qt/Components/QDoubleSliderWithEditor.cxx  
+  GUI/Qt/Components/QtFlowLayout.cxx
   GUI/Qt/Components/QtHideOnDeactivateContainer.cxx
   GUI/Qt/Components/QtIPCManager.cxx
   GUI/Qt/Components/QtRendererPlatformSupport.cxx
@@ -634,6 +635,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
   GUI/Qt/Components/SynchronizationInspector.cxx
+  GUI/Qt/Components/TagListWidget.cxx
   GUI/Qt/Components/ViewPanel3D.cxx
   GUI/Qt/Components/VoxelIntensityQTableModel.cxx
   GUI/Qt/Components/ZoomInspector.cxx
@@ -710,6 +712,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QColorButtonWidget.h
   GUI/Qt/Components/QDoubleSlider.h
   GUI/Qt/Components/QDoubleSliderWithEditor.h
+  GUI/Qt/Components/QtFlowLayout.h
   GUI/Qt/Components/QtHideOnDeactivateContainer.h
   GUI/Qt/Components/QtIPCManager.h
   GUI/Qt/Components/QtWarningDialog.h
@@ -721,6 +724,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SNAPQApplication.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/SynchronizationInspector.h
+  GUI/Qt/Components/TagListWidget.h
   GUI/Qt/Components/ViewPanel3D.h
   GUI/Qt/Components/VoxelIntensityQTableModel.h
   GUI/Qt/Components/ZoomInspector.h
@@ -779,6 +783,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/SNAPQtCommon.h
   ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h
+  GUI/Qt/Coupling/TagListWidgetCoupling.h
   GUI/Qt/Coupling/QtAbstractButtonCoupling.h
   GUI/Qt/Coupling/QtAbstractItemViewCoupling.h
   GUI/Qt/Coupling/QtActionCoupling.h
@@ -1528,3 +1533,19 @@ ADD_CUSTOM_TARGET(itksnap_upload_experimental
 #--------------------------------------------------------------------------------
 # Workspace tool is automatically included
 ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
+
+
+#--------------------------------------------------------------------------------
+# OPTIONAL INCLUDE-WHAT-YOU-USE code checker
+#--------------------------------------------------------------------------------
+OPTION(SNAP_USE_IWYU "Perform code profiling using include-what-you-use tool" OFF)
+MARK_AS_ADVANCED(SNAP_USE_IWYU)
+
+IF(SNAP_USE_IWYU)
+  FIND_PROGRAM(IWYU_PATH NAMES include-what-you-use iwyu)
+  if(NOT IWYU_PATH)
+    message(FATAL_ERROR "Could not find the program include-what-you-use")
+  endif()
+
+  set_property(TARGET ${SNAP_BUNDLE_NAME} PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
+ENDIF()

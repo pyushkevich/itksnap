@@ -1614,15 +1614,46 @@ struct RemoveTransparencyFunctor
 };
 
 template<class TTraits, class TBase>
-void
+typename ImageWrapper<TTraits,TBase>::DisplaySlicePointer
 ImageWrapper<TTraits,TBase>
-::WriteThumbnail(const char *file, unsigned int maxdim)
+::MakeThumbnail(unsigned int maxdim)
 {
+  // For images with extreme aspect ratios (greater than 1:2) we
+  // choose the direction in which the aspect ratio is closest to
+  // one. Otherwise, we choose the axial direction.
+  double aspect_ratio[3];
+  for(int i = 0; i < 3; i++)
+    {
+    // Get the slice
+    DisplaySliceType *slice = this->GetDisplaySlice(2);
+
+    // The size of the slice
+    Vector2ui slice_dim = slice->GetBufferedRegion().GetSize();
+
+    // The physical extents of the slice
+    Vector2d slice_extent(slice->GetSpacing()[0] * slice_dim[0],
+                          slice->GetSpacing()[1] * slice_dim[1]);
+
+    // The aspect ratio of the slice
+    if(slice_extent[0] < slice_extent[1])
+      aspect_ratio[i] = slice_extent[0] / slice_extent[1];
+    else
+      aspect_ratio[i] = slice_extent[1] / slice_extent[0];
+    }
+
+  // Choose which aspect ratio to use
+  int thumb_axis = -1;
+  if(aspect_ratio[2] >= 0.5 || (aspect_ratio[2] > aspect_ratio[0] && aspect_ratio[2] > aspect_ratio[1]))
+    thumb_axis = 2;
+  else if(aspect_ratio[1] > aspect_ratio[0] && aspect_ratio[1] > aspect_ratio[2])
+    thumb_axis = 1;
+  else
+    thumb_axis = 0;
+
   // Get the display slice
   // For now, just use the z-axis for exporting the thumbnails
-  DisplaySliceType *slice = this->GetDisplaySlice(2);
+  DisplaySliceType *slice = this->GetDisplaySlice(thumb_axis);
   slice->GetSource()->UpdateLargestPossibleRegion();
-  // slice->Update();
 
   // The size of the slice
   Vector2ui slice_dim = slice->GetBufferedRegion().GetSize();
@@ -1677,12 +1708,10 @@ ImageWrapper<TTraits,TBase>
   SmartPtr<OpaqueFilter> opaquer = OpaqueFilter::New();
   opaquer->SetInput(flipper->GetOutput());
 
-  // Write a PNG file
-  typedef typename itk::ImageFileWriter<DisplaySliceType> WriterType;
-  SmartPtr<WriterType> writer = WriterType::New();
-  writer->SetInput(opaquer->GetOutput());
-  writer->SetFileName(file);
-  writer->Update();
+  // Return the result
+  opaquer->Update();
+  DisplaySlicePointer result = opaquer->GetOutput();
+  return result;
 }
 
 template<class TTraits, class TBase>
@@ -1697,6 +1726,7 @@ ImageWrapper<TTraits,TBase>
   reg["Alpha"] << m_Alpha;
   reg["Sticky"] << m_Sticky;
   reg["CustomNickName"] << m_CustomNickname;
+  reg["Tags"].PutList(m_Tags);
 }
 
 template<class TTraits, class TBase>
@@ -1711,6 +1741,7 @@ ImageWrapper<TTraits,TBase>
   this->SetAlpha(reg["Alpha"][m_Alpha]);
   this->SetSticky(reg["Sticky"][m_Sticky]);
   this->SetCustomNickname(reg["CustomNickName"][m_CustomNickname]);
+  reg["Tags"].GetList(m_Tags);
 }
 
 template<class TTraits, class TBase>

@@ -9,6 +9,7 @@
 namespace itk
 {
 template <class TPixel, unsigned int VDim> class Image;
+template <class TPixel> class RGBAPixel;
 }
 
 class Registry;
@@ -93,8 +94,13 @@ public:
   virtual std::string GetApplicationPermanentDataLocation() = 0;
 
   typedef itk::Image<unsigned char, 2> GrayscaleImage;
+  typedef itk::RGBAPixel<unsigned char> RGBAPixelType;
+  typedef itk::Image<RGBAPixelType, 2> RGBAImageType;
+
   virtual void LoadResourceAsImage2D(std::string tag, GrayscaleImage *image) = 0;
   virtual void LoadResourceAsRegistry(std::string tag, Registry &reg) = 0;
+
+  virtual void WriteRGBAImage2D(std::string file, RGBAImageType *image) = 0;
 };
 
 #endif // UIREPORTERDELEGATES_H
