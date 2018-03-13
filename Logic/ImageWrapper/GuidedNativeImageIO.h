@@ -40,7 +40,6 @@
 #include "itkImage.h"
 #include "itkImageIOBase.h"
 #include "itkVectorImage.h"
-#include "itkGDCMSeriesFileNames.h"
 #include "gdcmTag.h"
 
   
@@ -364,6 +363,9 @@ protected:
 
   // List of filenames for DICOM
   std::vector<std::string> m_DICOMFiles;
+
+  // Number of images per z-position in the DICOM series (e.g., multi-echo data)
+  int m_DICOMImagesPerIPP;
 
   /** Registry mappings for these enums */
   static bool m_StaticDataInitialized;

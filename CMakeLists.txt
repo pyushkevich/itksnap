@@ -232,6 +232,7 @@ SET(LOGIC_CXX
   Common/ColorLabelPropertyModel.cxx
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
+  Common/ExtendedGDCMSerieHelper.cxx
   Common/HistoryManager.cxx
   Common/IPCHandler.cxx
   Common/IRISException.cxx
@@ -309,6 +310,7 @@ SET(LOGIC_HEADERS
   Common/ColorLabelPropertyModel.h
   Common/CommandLineArgumentParser.h
   Common/Credits.h
+  Common/ExtendedGDCMSerieHelper.h
   Common/HistoryManager.h
   Common/ImageFunctions.h
   Common/IPCHandler.h

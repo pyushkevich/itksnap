@@ -55,16 +55,19 @@
 #include "itkImageFileWriter.h"
 #include "itkImageSeriesReader.h"
 #include "itkImageIOFactory.h"
-#include "itkGDCMSeriesFileNames.h"
 #include "itkCommand.h"
 #include "gdcmFile.h"
 #include "gdcmReader.h"
+#include "gdcmSerieHelper.h"
 #include "gdcmStringFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkNumericTraits.h"
 #include <itkTimeProbe.h>
 #include "itksys/MD5.h"
+#include "ExtendedGDCMSerieHelper.h"
+#include "itkComposeImageFilter.h"
+#include "itkStreamingImageFilter.h"
 
 #include <itk_zlib.h>
 
@@ -429,39 +432,6 @@ GuidedNativeImageIO
     }
 }
 
-/**
- * This is basically to just expose AddFileName
- */
-class ExtendedGDCMSerieHelper : public gdcm::SerieHelper
-{
-public:
-  ExtendedGDCMSerieHelper() : gdcm::SerieHelper() {}
-
-  void SetFilesAndOrder(std::vector<std::string> &files)
-  {
-    this->Clear();
-    this->SetUseSeriesDetails(true);
-
-    for(int i = 0; i < files.size(); i++)
-      this->AddFileName(files[i]);
-
-    gdcm::FileList *flist = this->GetFirstSingleSerieUIDFileSet();
-
-    if(flist->size() != files.size())
-      throw(IRISException(
-          "Mismatch in number of DICOM files parsed (%d vs. %d). "),
-        flist->size(), files.size());
-
-    this->OrderFileList(flist);
-
-    files.clear();
-    for(int i = 0; i < flist->size(); i++)
-      {
-      gdcm::FileWithName *header = (*flist)[i];
-      files.push_back(header->filename);
-      }
-  }
-};
 
 
 void
@@ -522,7 +492,7 @@ GuidedNativeImageIO
     // complicated to replicate here so we revert to gdcm::SerieHelper, but
     // we only have it parse the filenames for the current SeriesId
     ExtendedGDCMSerieHelper helper;
-    helper.SetFilesAndOrder(m_DICOMFiles);
+    helper.SetFilesAndOrder(m_DICOMFiles, m_DICOMImagesPerIPP);
 
     m_IOBase->SetFileName(m_DICOMFiles[0]);
     m_IOBase->ReadImageInformation();
@@ -629,44 +599,92 @@ GuidedNativeImageIO
 
     // Create an image series reader 
     typedef itk::ImageSeriesReader<GreyImageType> ReaderType;
-    typename ReaderType::Pointer reader = ReaderType::New();
 
-    // Set the filenames and read
-    reader->SetFileNames(m_DICOMFiles);
-      
-    // Set the IO
-    // typename GDCMImageIO::Pointer dicomio = GDCMImageIO::New();
-    // dicomio->SetMaxSizeLoadEntry(0xffff);
-    // m_IOBase = dicomio;
-    reader->SetImageIO(m_IOBase);
-    
-    // Update
-    reader->Update();
-    typename GreyImageType::Pointer scalar = reader->GetOutput();
+    if(this->m_DICOMImagesPerIPP == 1)
+      {
+      // When there is a single volume
+      typename ReaderType::Pointer reader = ReaderType::New();
 
-    // Convert the image into VectorImage format. Do this in-place to avoid
-    // allocating memory pointlessly
-    typename NativeImageType::Pointer vector = NativeImageType::New();
-    m_NativeImage = vector;
+      // Set the filenames and read
+      reader->SetFileNames(m_DICOMFiles);
 
-    vector->CopyInformation(scalar);
-    vector->SetRegions(scalar->GetBufferedRegion());
+      // Set the IO
+      // typename GDCMImageIO::Pointer dicomio = GDCMImageIO::New();
+      // dicomio->SetMaxSizeLoadEntry(0xffff);
+      // m_IOBase = dicomio;
+      reader->SetImageIO(m_IOBase);
 
-    typedef typename NativeImageType::PixelContainer PixConType;
-    typename PixConType::Pointer pc = PixConType::New();
-    pc->SetImportPointer(
-          reinterpret_cast<TScalar *>(scalar->GetBufferPointer()),
-          scalar->GetBufferedRegion().GetNumberOfPixels(), true);
-    vector->SetPixelContainer(pc);
+      // Update
+      reader->Update();
+      typename GreyImageType::Pointer scalar = reader->GetOutput();
 
-    // Prevent the container from being deleted
-    scalar->GetPixelContainer()->SetContainerManageMemory(false);
+      // Convert the image into VectorImage format. Do this in-place to avoid
+      // allocating memory pointlessly
+      typename NativeImageType::Pointer vector = NativeImageType::New();
+      m_NativeImage = vector;
 
-    // Copy the metadata from the first scan in the series
-    const typename ReaderType::DictionaryArrayType *darr = 
-      reader->GetMetaDataDictionaryArray();
-    if(darr->size() > 0)
-      m_NativeImage->SetMetaDataDictionary(*((*darr)[0]));
+      vector->CopyInformation(scalar);
+      vector->SetRegions(scalar->GetBufferedRegion());
+
+      typedef typename NativeImageType::PixelContainer PixConType;
+      typename PixConType::Pointer pc = PixConType::New();
+      pc->SetImportPointer(
+            reinterpret_cast<TScalar *>(scalar->GetBufferPointer()),
+            scalar->GetBufferedRegion().GetNumberOfPixels(), true);
+      vector->SetPixelContainer(pc);
+
+      // Prevent the container from being deleted
+      scalar->GetPixelContainer()->SetContainerManageMemory(false);
+
+      // Copy the metadata from the first scan in the series
+      const typename ReaderType::DictionaryArrayType *darr =
+        reader->GetMetaDataDictionaryArray();
+      if(darr->size() > 0)
+        m_NativeImage->SetMetaDataDictionary(*((*darr)[0]));
+      }
+    else
+      {
+      // Create a filter that will do the composing
+      typedef itk::ComposeImageFilter<GreyImageType, NativeImageType> ComposeFilter;
+      typename ComposeFilter::Pointer composer = ComposeFilter::New();
+
+      // Create a splitter
+      typedef itk::StreamingImageFilter<NativeImageType,NativeImageType> StreamingFilter;
+      typename StreamingFilter::Pointer streamer = StreamingFilter::New();
+
+      // Create separate volume readers
+      int n_slices = m_DICOMFiles.size() / m_DICOMImagesPerIPP;
+      std::vector<typename ReaderType::Pointer> readers(m_DICOMImagesPerIPP);
+      for(int i = 0; i < this->m_DICOMImagesPerIPP; i++)
+        {
+        // Files for the current volume
+        std::vector<std::string> myFiles;
+        for(int s = 0; s < n_slices; s++)
+          myFiles.push_back(m_DICOMFiles[s * m_DICOMImagesPerIPP + i]);
+
+        // Read the current volume
+        readers[i] = ReaderType::New();
+        readers[i]->SetFileNames(myFiles);
+        readers[i]->SetImageIO(m_IOBase);
+
+        // Input to the composer
+        composer->SetInput(i, readers[i]->GetOutput());
+        }
+
+      // Do the big update
+      composer->Update();
+
+      // Set up the streamer
+      streamer->SetNumberOfStreamDivisions(std::min(n_slices, 16));
+      streamer->SetInput(composer->GetOutput());
+      streamer->Update();
+
+      // The result goes into the native image
+      m_NativeImage = streamer->GetOutput();
+
+      // Set the number of components
+      m_NativeComponents = m_DICOMImagesPerIPP;
+      }
     } 
   else 
     {
