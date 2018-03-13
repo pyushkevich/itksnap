@@ -499,6 +499,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/GLToPNG.cxx
   GUI/Renderer/GMMRenderer.cxx
   GUI/Renderer/IntensityCurveVTKRenderer.cxx
+  GUI/Renderer/IntensityUnderCursorRenderer.cxx
   GUI/Renderer/LayerHistogramPlotAssembly.cxx
   GUI/Renderer/OpenGLSliceTexture.cxx
   GUI/Renderer/OptimizationProgressRenderer.cxx
@@ -575,6 +576,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/GLToPNG.h
   GUI/Renderer/GMMRenderer.h
   GUI/Renderer/IntensityCurveVTKRenderer.h
+  GUI/Renderer/IntensityUnderCursorRenderer.h
   GUI/Renderer/LayerHistogramPlotAssembly.h
   GUI/Renderer/OptimizationProgressRenderer.h
   GUI/Renderer/OrientationGraphicRenderer.h
