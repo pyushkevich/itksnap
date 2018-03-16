@@ -91,6 +91,7 @@ int usage(int rc)
   cout << "  -layers-pick-by-tag <tag>         : Pick layer by tag, error if more than one has tag" << endl;
   cout << "Commands for modifying picked layer properties:" << endl;
   cout << "  -props-get-filename               : Print the filename of the picked layer" << endl;
+  cout << "  -props-rename-file                : Rename the picked layer on disk and in workspace" << endl;
   cout << "  -props-set-nickname <name>        : Set the nickname of the selected layer" << endl;
   cout << "  -props-set-colormap <preset>      : Set colormap to a given system preset" << endl;
   cout << "  -props-set-contrast <map_spec>    : Set the contrast mapping specification" << endl;
@@ -925,6 +926,57 @@ public:
     {
     this->SetLayerProperty(layer_key, "LayerMetaData.DisplayMapping.ColorMap.Preset", value);
     }
+
+  /** Rename the layer on disk and in the project */
+  void RenameLayer(const string &layer_key, const string &new_filename, bool force = false)
+  {
+    // Get the folder for this layer
+    if(!layer_key.length() || !m_Registry.HasFolder(layer_key))
+      throw IRISException("Layer folder %s does not exist", layer_key.c_str());
+    Registry &layer_folder = m_Registry.Folder(layer_key);
+
+    // Get the filename for this layer
+    string fn_layer = this->GetLayerActualPath(layer_folder);
+
+    // Get the desired filename for this layer
+    string fn_new_full = SystemTools::CollapseFullPath(new_filename.c_str());
+
+    // If the files are the same, generate an warning
+    if(fn_layer == fn_new_full)
+      {
+      cerr << "Warning: attempt to rename a layer to itself" << endl;
+      return;
+      }
+
+    // If the new file exists and force is off, do nothing
+    if(SystemTools::FileExists(fn_new_full) && !force)
+      {
+      throw IRISException("Cannot rename file %s as %s because an existing file will be overwritten",
+                          fn_layer.c_str(), fn_new_full.c_str());
+      }
+
+    // Read and write the file
+    Registry io_hints, *layer_io_hints;
+    if((layer_io_hints = this->GetLayerIOHints(layer_folder)))
+      io_hints.Update(*layer_io_hints);
+
+    // Create a native image IO object for this image
+    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+
+    // Load the header of the image and the image data
+    io->ReadNativeImage(fn_layer.c_str(), io_hints);
+
+    // Save the layer as nee image. Since we are saving as a NIFTI, we don't need to
+    // provide any hints
+    Registry dummy_hints;
+    io->SaveNativeImage(fn_new_full.c_str(), dummy_hints);
+
+    // Update the layer folder with the new path
+    layer_folder["AbsolutePath"] << fn_new_full;
+
+    // There are no hints necessary for NIFTI
+    layer_folder.Folder("IOHints").Clear();
+  }
 
   /** Set the contrast mapping for the selected layer */
   void SetLayerContrastToLinear(const string &layer_key, double t0, double t1)
@@ -1959,6 +2011,16 @@ int main(int argc, char *argv[])
           throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
 
         cout << prefix << ws.GetLayerActualPath(ws.GetFolder(layer_folder)) << endl;
+        }
+
+      else if(arg == "-props-rename-file" || arg == "-prf")
+        {
+        string new_filename = cl.read_output_filename();
+
+        if(!ws.IsKeyValidLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
+
+        ws.RenameLayer(layer_folder, new_filename, true);
         }
 
       // Set layer properties
