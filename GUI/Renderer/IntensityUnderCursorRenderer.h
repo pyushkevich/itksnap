@@ -7,6 +7,7 @@ class vtkChartXY;
 class vtkTable;
 class vtkPlot;
 class vtkDoubleArray;
+class vtkIdTypeArray;
 
 /**
  * @brief Renderer used to plot the intensity profile for multi-component images
@@ -35,6 +36,7 @@ protected:
   vtkSmartPointer<vtkTable> m_PlotTable;
   vtkSmartPointer<vtkPlot> m_CurvePlot;
   vtkSmartPointer<vtkDoubleArray> m_CurveX, m_CurveY;
+  vtkSmartPointer<vtkIdTypeArray> m_Selection;
 
   // Model
   ImageInfoModel *m_Model;

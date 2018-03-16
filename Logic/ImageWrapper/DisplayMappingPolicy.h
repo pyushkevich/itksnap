@@ -153,6 +153,11 @@ public:
    */
   virtual bool IsContrastInDefaultState();
 
+  /**
+   * Get the intensity min/max in native image intensity units
+   */
+  Vector2d GetCurveMinMaxNative();
+
 };
 
 class AbstractCachingAndColorMapDisplayMappingPolicy

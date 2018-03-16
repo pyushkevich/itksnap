@@ -20,6 +20,7 @@ ImageInfoInspector::ImageInfoInspector(QWidget *parent) :
   m_IntensityRenderer = IntensityUnderCursorRenderer::New();
   m_IntensityRenderer->SetBackgroundColor(Vector3d(1.0, 1.0, 1.0));
   ui->plotWidget->SetRenderer(m_IntensityRenderer);
+  ui->plotWidget->setMouseTracking(true);
 }
 
 ImageInfoInspector::~ImageInfoInspector()

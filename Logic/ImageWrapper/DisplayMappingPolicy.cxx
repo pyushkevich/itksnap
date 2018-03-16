@@ -394,6 +394,27 @@ bool AbstractContinuousImageDisplayMappingPolicy::IsContrastInDefaultState()
   return this->GetIntensityCurve()->IsInDefaultState();
 }
 
+Vector2d AbstractContinuousImageDisplayMappingPolicy::GetCurveMinMaxNative()
+{
+  IntensityCurveInterface *curve = this->GetIntensityCurve();
+  assert(curve);
+
+  // Get the control point range
+  float t0, y0, t1, y1;
+  curve->GetControlPoint(0, t0, y0);
+  curve->GetControlPoint(curve->GetControlPointCount() - 1, t1, y1);
+
+  // Get the reference intensity range
+  Vector2d range = this->GetNativeImageRangeForCurve();
+
+  // Map the extents of the control points to image units
+  Vector2d outRange;
+  outRange[0] = range[0] * (1 - t0) + range[1] * t0;
+  outRange[1] = range[0] * (1 - t1) + range[1] * t1;
+  return outRange;
+}
+
+
 /* ===============================================================
     LinearColorMapDisplayMappingPolicy implementation
    =============================================================== */

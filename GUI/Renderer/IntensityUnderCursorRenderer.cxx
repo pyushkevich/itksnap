@@ -3,6 +3,7 @@
 #include <vtkChartXY.h>
 #include <vtkPlot.h>
 #include <vtkDoubleArray.h>
+#include <vtkIdTypeArray.h>
 #include <vtkTable.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
@@ -12,6 +13,7 @@
 #include "ImageInfoModel.h"
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
+#include "IntensityCurveInterface.h"
 
 void IntensityUnderCursorRenderer::SetModel(ImageInfoModel *model)
 {
@@ -19,6 +21,11 @@ void IntensityUnderCursorRenderer::SetModel(ImageInfoModel *model)
 
   // Crosshair changes and layer changes are captured by this
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
+
+  // Metadata changes should also be captures
+  Rebroadcast(m_Model->GetParentModel()->GetDriver(),
+              WrapperDisplayMappingChangeEvent(),
+              ModelUpdateEvent());
 }
 
 void IntensityUnderCursorRenderer::OnUpdate()
@@ -35,32 +42,61 @@ void IntensityUnderCursorRenderer::UpdatePlotValues()
       dynamic_cast<VectorImageWrapperBase *>(m_Model->GetLayer());
   if(wrapper)
     {
-    if(wrapper->GetNumberOfComponents() != m_CurveX->GetNumberOfTuples())
+    int n = wrapper->GetNumberOfComponents();
+
+    if(n != m_CurveX->GetNumberOfTuples())
       {
-      m_CurveX->SetNumberOfValues(wrapper->GetNumberOfComponents());
-      m_CurveY->SetNumberOfValues(wrapper->GetNumberOfComponents());
-      for(int i = 0; i <  wrapper->GetNumberOfComponents(); i++)
+      m_CurveX->SetNumberOfValues(n);
+      m_CurveY->SetNumberOfValues(n);
+
+      for(int i = 0; i < n; i++)
         m_CurveX->SetValue(i, i+1);
+
+      if(n < 10)
+        {
+        m_CurvePlot->GetXAxis()->SetCustomTickPositions(m_CurveX);
+        }
+      else
+        {
+        m_CurvePlot->GetXAxis()->SetCustomTickPositions(NULL);
+        }
+
+      // Limit the maximum width
+      }
+
+    // Set the selected bar
+    AbstractMultiChannelDisplayMappingPolicy *dp =
+        dynamic_cast<AbstractMultiChannelDisplayMappingPolicy *>(wrapper->GetDisplayMapping());
+    if(dp && dp->GetDisplayMode().IsSingleComponent())
+      {
+      m_Selection->SetNumberOfValues(1);
+      m_Selection->SetValue(0, dp->GetDisplayMode().SelectedComponent);
+      }
+    else
+      {
+      m_Selection->SetNumberOfValues(0);
       }
 
     // Get the data with voxel intensities
     wrapper->GetVoxelMappedToNative(wrapper->GetSliceIndex(), m_CurveY->GetPointer(0));
-
-    // Set the y range
-    m_CurvePlot->GetYAxis()->SetRange(wrapper->GetImageMinNative(), wrapper->GetImageMaxNative());
 
     // Set the x range
     m_CurvePlot->GetXAxis()->SetMinimumLimit(0.4);
     m_CurvePlot->GetXAxis()->SetMinimum(0.4);
     m_CurvePlot->GetXAxis()->SetMaximumLimit(wrapper->GetNumberOfComponents() + 0.6);
     m_CurvePlot->GetXAxis()->SetMaximum(wrapper->GetNumberOfComponents() + 0.6);
-    m_CurvePlot->GetXAxis()->SetCustomTickPositions(m_CurveX);
+
+    // Get the intensity range
+    Vector2d y_range = dp ? dp->GetCurveMinMaxNative() :
+                            Vector2d(wrapper->GetImageMinNative(),
+                                     wrapper->GetImageMaxNative());
 
     // Set the y range
-    m_CurvePlot->GetYAxis()->SetMinimumLimit(wrapper->GetImageMinNative());
-    m_CurvePlot->GetYAxis()->SetMinimum(wrapper->GetImageMinNative());
-    m_CurvePlot->GetYAxis()->SetMaximumLimit(wrapper->GetImageMaxNative());
-    m_CurvePlot->GetYAxis()->SetMaximum(wrapper->GetImageMaxNative());
+    m_CurvePlot->GetYAxis()->SetMinimumLimit(y_range[0]);
+    m_CurvePlot->GetYAxis()->SetMinimum(y_range[0]);
+    m_CurvePlot->GetYAxis()->SetMaximumLimit(y_range[1]);
+    m_CurvePlot->GetYAxis()->SetMaximum(y_range[1]);
+
     }
   else
     {
@@ -108,6 +144,7 @@ IntensityUnderCursorRenderer::IntensityUnderCursorRenderer()
   m_CurveX->SetName("Component");
   m_CurveY = vtkSmartPointer<vtkDoubleArray>::New();
   m_CurveY->SetName("Intensity");
+  m_Selection = vtkSmartPointer<vtkIdTypeArray>::New();
 
   // Set up the table
   m_PlotTable = vtkSmartPointer<vtkTable>::New();
@@ -117,6 +154,7 @@ IntensityUnderCursorRenderer::IntensityUnderCursorRenderer()
   // Set up the curve plot
   m_CurvePlot = m_Chart->AddPlot(vtkChart::BAR);
   m_CurvePlot->SetInputData(m_PlotTable, 0, 1);
+  m_CurvePlot->SetSelection(m_Selection);
 
   m_CurvePlot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
   m_CurvePlot->GetXAxis()->SetTitle("Component");

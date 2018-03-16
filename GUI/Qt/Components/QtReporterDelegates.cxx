@@ -190,7 +190,7 @@ void QtSystemInfoDelegate::LoadResourceAsRegistry(std::string tag, Registry &reg
 
 void QtSystemInfoDelegate::WriteRGBAImage2D(std::string file, RGBAImageType *image)
 {
-  typename RGBAImageType::SizeType sz = image->GetBufferedRegion().GetSize();
+  RGBAImageType::SizeType sz = image->GetBufferedRegion().GetSize();
   QImage iq(sz[0], sz[1], QImage::Format_ARGB32);
   typedef itk::ImageRegionConstIteratorWithIndex<RGBAImageType> IterType;
   for(IterType it(image, image->GetBufferedRegion()); !it.IsAtEnd(); ++it)

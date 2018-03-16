@@ -4,7 +4,9 @@
 #include <vtkRenderer.h>
 #include <vtkContextView.h>
 #include <vtkChart.h>
+#include <vtkChartXY.h>
 #include <vtkTextProperty.h>
+#include <vtkTooltipItem.h>
 
 AbstractVTKSceneRenderer::AbstractVTKSceneRenderer()
   : AbstractVTKRenderer()
@@ -44,6 +46,14 @@ void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(
   // Main chart title
   vtkTextProperty *prop = chart->GetTitleProperties();
   prop->SetFontSize(new_ratio * prop->GetFontSize() / old_ratio);
+
+  // Tooltip
+  vtkChartXY *chart_xy = dynamic_cast<vtkChartXY *>(chart);
+  if(chart_xy)
+    {
+    vtkTextProperty *prop_tt = chart_xy->GetTooltip()->GetTextProperties();
+    prop_tt->SetFontSize(new_ratio * prop_tt->GetFontSize() / old_ratio);
+    }
 }
 
 void AbstractVTKSceneRenderer::paintGL()
