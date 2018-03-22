@@ -13,7 +13,7 @@ namespace itk {
   template <class TPixel, unsigned int VDim> class VectorImage;
   template <class TPixel> class RGBAPixel;
   template <class TOutputImage> class ImageSource;
-  template <class TScalar, unsigned int V1, unsigned int V2> class Transform;
+  template <class T, unsigned int VDim1, unsigned int VDim2> class Transform;
 
   namespace Statistics {
     class DenseFrequencyContainer;

@@ -229,6 +229,7 @@ SET(LOGIC_CXX
   ${SNAP_BINARY_DIR}/SNAPCommon.cxx
   Common/AbstractModel.cxx
   Common/AbstractPropertyContainerModel.cxx
+  Common/AffineTransformHelper.cxx
   Common/ColorLabelPropertyModel.cxx
   Common/CommandLineArgumentParser.cxx
   Common/EventBucket.cxx
@@ -307,6 +308,7 @@ SET(LOGIC_HEADERS
   ${SNAP_BINARY_DIR}/GPUSettings.h
   Common/AbstractModel.h
   Common/AbstractPropertyContainerModel.h
+  Common/AffineTransformHelper.h
   Common/ColorLabelPropertyModel.h
   Common/CommandLineArgumentParser.h
   Common/Credits.h

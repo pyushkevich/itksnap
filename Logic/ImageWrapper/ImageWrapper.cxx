@@ -71,7 +71,7 @@
 #include "GuidedNativeImageIO.h"
 #include "itkTransform.h"
 #include "itkExtractImageFilter.h"
-#include "itkMatrixOffsetTransformBase.h"
+#include "AffineTransformHelper.h"
 
 
 #include <vnl/vnl_inverse.h>
@@ -870,33 +870,9 @@ ImageWrapper<TTraits,TBase>
   double tol = 1e-5;
   bool same_geom = CompareGeometry(image, referenceSpace, tol);
 
-  // Get the transform matrix and offset
-  // TODO: this is silly and unnecessary. We should always use one Transform class
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> TransformBase;
-  TransformBase *tb = dynamic_cast<TransformBase *>(transform);
-  typename TransformBase::MatrixType matrix;
-  typename TransformBase::OffsetType offset;
-  matrix.SetIdentity();
-  offset.Fill(0.0);
-  if(tb)
-    {
-    matrix = tb->GetMatrix();
-    offset = tb->GetOffset();
-    }
+  // Use helper class to check for identity
+  bool is_identity = AffineTransformHelper::IsIdentity(transform);
 
-  // Check if transform is identity.
-  bool is_identity = true;
-
-  for(int i = 0; i < 3; i++)
-    {
-    if(fabs(offset[i]) > tol)
-      is_identity = false;
-    for(int j = 0; j < 3; j++)
-      {
-      if(fabs(matrix(i,j) - (i==j ? 1.0 : 0.0)) > tol)
-        is_identity = false;
-      }
-    }
 
   return same_geom && is_identity;
 }

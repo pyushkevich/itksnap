@@ -85,7 +85,7 @@
 #include "LabelUseHistory.h"
 #include "ImageAnnotationData.h"
 #include "SegmentationUpdateIterator.h"
-
+#include "AffineTransformHelper.h"
 
 #include <stdio.h>
 #include <sstream>
@@ -1423,92 +1423,6 @@ IRISApplication
   return 0;
 }
 
-#include "itkMatrixOffsetTransformBase.h"
-
-SmartPtr<IRISApplication::ITKTransformType>
-IRISApplication
-::ReadTransform(Registry *reg, bool &is_identity)
-{
-  typedef itk::IdentityTransform<double, 3> IdTransform;
-  SmartPtr<IdTransform> id_transform = IdTransform::New();
-  SmartPtr<ITKTransformType> transform = id_transform.GetPointer();
-  is_identity = true;
-
-  // No registry? Return identity transform
-  if(!reg)
-    return transform;
-
-  // Is the transform identity
-  Registry &folder = reg->Folder("ImageTransform");
-  is_identity = folder["IsIdentity"][true];
-  if(is_identity)
-    {
-    return transform;
-    }
-
-  // Not an identity transform - so read the parameters
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> MOTBTransformType;
-  typedef MOTBTransformType::MatrixType MatrixType;
-  typedef MOTBTransformType::OffsetType OffsetType;
-
-  // Read the matrix, defaulting to identity
-  MatrixType matrix; matrix.SetIdentity();
-  OffsetType offset; offset.Fill(0.0);
-
-  for(int i = 0; i < 3; i++)
-    {
-    offset[i] = folder[folder.Key("Offset.Element[%d]",i)][offset[i]];
-    for(int j = 0; j < 3; j++)
-      matrix(i, j) = folder[folder.Key("Matrix.Element[%d][%d]",i,j)][matrix(i,j)];
-    }
-
-  // Check the matrix and offset for being identity
-  if(matrix.GetVnlMatrix().is_identity() && offset.GetVnlVector().is_zero())
-    {
-    is_identity = true;
-    return transform;
-    }
-
-  // Use the matrix/offset transform
-  SmartPtr<MOTBTransformType> motb = MOTBTransformType::New();
-  motb->SetMatrix(matrix);
-  motb->SetOffset(offset);
-  transform = motb.GetPointer();
-  return transform;
-}
-
-void
-IRISApplication
-::WriteTransform(Registry *reg, const ITKTransformType *transform)
-{
-  // Get the target folder
-  Registry &folder = reg->Folder("ImageTransform");
-
-  // Cast the transform to the matrix/offset type
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> MOTBTransformType;
-  const MOTBTransformType *motb = dynamic_cast<const MOTBTransformType *>(transform);
-
-  // Check for identity
-  if(!motb || (motb->GetMatrix().GetVnlMatrix().is_identity() &&
-               motb->GetOffset().GetVnlVector().is_zero()))
-    {
-    folder["IsIdentity"] << true;
-    folder.RemoveKeys("Matrix");
-    folder.RemoveKeys("Offset");
-    }
-  else
-    {
-    folder["IsIdentity"] << false;
-
-    for(int i = 0; i < 3; i++)
-      {
-      folder[folder.Key("Offset.Element[%d]",i)] << motb->GetOffset()[i];
-      for(int j = 0; j < 3; j++)
-        folder[folder.Key("Matrix.Element[%d][%d]",i,j)] << motb->GetMatrix()(i,j);
-      }
-    }
-}
-
 void
 IRISApplication
 ::AddIRISOverlayImage(GuidedNativeImageIO *io, Registry *metadata)
@@ -1526,8 +1440,8 @@ IRISApplication
 
   // Read the transform from the registry. This method will return an identity transform
   // even if no registry was provided
-  bool id_transform = true;
-  SmartPtr<ITKTransformType> transform = this->ReadTransform(metadata, id_transform);
+  SmartPtr<AffineTransformHelper::ITKTransformBase> transform =
+      AffineTransformHelper::ReadFromRegistry(metadata);
 
   // We use a tolerance for header comparisons here
   double tol = 1e-5;
@@ -2194,7 +2108,7 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
     // Save the layer transform - relevant only for overlays
     if(it.GetRole() == OVERLAY_ROLE)
       {
-      this->WriteTransform(&folder, layer->GetITKTransform());
+      AffineTransformHelper::WriteToRegistry(&folder, layer->GetITKTransform());
       }
     }
 

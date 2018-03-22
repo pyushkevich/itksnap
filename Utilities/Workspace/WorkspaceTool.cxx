@@ -50,6 +50,10 @@
 #include "IRISException.h"
 #include "ColorLabelTable.h"
 
+#include "IRISApplication.h"
+#include "AffineTransformHelper.h"
+#include "itkTransform.h"
+
 using namespace std;
 using itksys::SystemTools;
 using itksys::RegularExpression;
@@ -79,7 +83,8 @@ int usage(int rc)
   cout << "  -P                                : No printing of prefix for output commands" << endl;
   cout << "Informational commands: " << endl;
   cout << "  -dump                             : Dump workspace in human-readable format" << endl;
-  cout << "  -get <key>                        : Get the value of a specified key" << endl;
+  cout << "  -registry-get <key>               : Get the value of a specified key" << endl;
+  cout << "  -registry-set <key> <value>       : Set the value of a specified key" << endl;
   cout << "Commands for adding/setting/select image layers: " << endl;
   cout << "  -layers-add-anat <file>           : Add an image as next anatomical layer" << endl;
   cout << "  -layers-add-seg <file>            : Add an image as next segmentation layer" << endl;
@@ -91,12 +96,15 @@ int usage(int rc)
   cout << "  -layers-pick-by-tag <tag>         : Pick layer by tag, error if more than one has tag" << endl;
   cout << "Commands for modifying picked layer properties:" << endl;
   cout << "  -props-get-filename               : Print the filename of the picked layer" << endl;
+  cout << "  -props-get-transform              : Print the affine transform relative to main image" << endl;
   cout << "  -props-rename-file                : Rename the picked layer on disk and in workspace" << endl;
   cout << "  -props-set-nickname <name>        : Set the nickname of the selected layer" << endl;
   cout << "  -props-set-colormap <preset>      : Set colormap to a given system preset" << endl;
   cout << "  -props-set-contrast <map_spec>    : Set the contrast mapping specification" << endl;
   cout << "  -props-set-sticky <on|off>        : Set the stickiness of the layer" << endl;
   cout << "  -props-set-alpha <value>          : Set the alpha (transparency) of the layer" << endl;
+  cout << "  -props-registry-get <key>         : Gets a registry key relative to picked layer" << endl;
+  cout << "  -props-registry-set <key> <value> : Sets a registry key relative to picked layer" << endl;
   cout << "Tag assignment commands (apply to picked layer/object): " << endl;
   cout << "  -tags-add <tag>                   : Add a tag to the picked object" << endl;
   cout << "  -tags-add-excl <tag>              : Add a tag that is exclusive to the object" << endl;
@@ -1940,6 +1948,20 @@ int main(int argc, char *argv[])
         ws.GetRegistry().Print(cout, "  ", prefix);
         }
 
+      else if(arg == "-registry-get")
+        {
+        string key = cl.read_string();
+        cout << prefix << ws.GetRegistry()[key][""] << endl;
+        }
+
+      else if(arg == "-registry-set")
+        {
+        string key = cl.read_string();
+        string value = cl.read_string();
+        ws.GetRegistry()[key] << value;
+        cout << "INFO: set registry entry '" << key << "' to '" << ws.GetRegistry()[key][""] << "'" << endl;
+        }
+
       // List all layers
       else if(arg == "-layers-list" || arg == "-ll")
         {
@@ -2013,6 +2035,26 @@ int main(int argc, char *argv[])
         cout << prefix << ws.GetLayerActualPath(ws.GetFolder(layer_folder)) << endl;
         }
 
+      else if(arg == "-props-registry-get" || arg == "-prg")
+        {
+        if(!ws.IsKeyValidLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
+
+        string key = cl.read_string();
+        cout << prefix << ws.GetRegistry().Folder(layer_folder)[key][""] << endl;
+        }
+
+      else if(arg == "-props-registry-set" || arg == "-prs")
+        {
+        if(!ws.IsKeyValidLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
+
+        string key = cl.read_string();
+        string value = cl.read_string();
+        ws.GetRegistry().Folder(layer_folder)[key] << value;
+        cout << "INFO: set registry entry '" << key << "' to '" << ws.GetRegistry().Folder(layer_folder)[key][""] << "'" << endl;
+        }
+
       else if(arg == "-props-rename-file" || arg == "-prf")
         {
         string new_filename = cl.read_output_filename();
@@ -2043,6 +2085,25 @@ int main(int argc, char *argv[])
           double t1 = cl.read_double();
           ws.SetLayerContrastToLinear(layer_folder, t0, t1);
           }
+        }
+
+      else if(arg == "-props-get-transform")
+        {
+        if(!ws.IsKeyValidLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
+
+        // Get the folder
+        Registry &folder = ws.GetRegistry().Folder(layer_folder);
+
+        // Read the transform from the registry
+        SmartPtr<AffineTransformHelper::ITKTransformBase> tran =
+            AffineTransformHelper::ReadFromRegistry(&folder);
+
+        // Read the transform
+        AffineTransformHelper::Mat44 Q = AffineTransformHelper::GetRASMatrix(tran);
+
+        // Generate a matrix from the transform
+        cout << prefix << Q << endl;
         }
 
       else if(arg == "-labels-set")

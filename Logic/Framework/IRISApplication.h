@@ -777,14 +777,6 @@ protected:
   // Auto-adjust contrast of a layer on load
   void AutoContrastLayerOnLoad(ImageWrapperBase *layer);
 
-  typedef ImageWrapperBase::ITKTransformType ITKTransformType;
-
-  // Read transform from project registry
-  SmartPtr<ITKTransformType> ReadTransform(Registry *reg, bool &is_identity);
-
-  // Write transform to project registry
-  void WriteTransform(Registry *reg, const ITKTransformType *transform);
-
   // -------------- Saving IRIS state during SNAP mode --------------------
   unsigned long m_SavedIRISSelectedSegmentationLayerId;
 
