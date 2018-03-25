@@ -23,6 +23,15 @@ class QComboBox;
 class ColorMapModel;
 class ImageWrapperBase;
 
+// Q_DECL_OVERRIDE is only defined in Qt5 but is needed by C++11
+#ifndef Q_DECL_OVERRIDE
+  #if __cplusplus <= 199711L
+    #define Q_DECL_OVERRIDE override
+  #else
+    #define Q_DECL_OVERRIDE
+  #endif
+#endif
+
 // Generate an icon with a black border and a given fill color
 QIcon CreateColorBoxIcon(int w, int h, const QBrush &brush);
 QIcon CreateColorBoxIcon(int w, int h, const QColor &rgb);

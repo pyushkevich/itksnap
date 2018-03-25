@@ -52,7 +52,7 @@ public:
   virtual void SetValue(TagListWidget *w, const StringList &value)
   {
     QStringList tags;
-    for(typename StringList::const_iterator it = value.begin(); it != value.end(); ++it)
+    for(StringList::const_iterator it = value.begin(); it != value.end(); ++it)
       tags.push_back(from_utf8(*it));
 
     w->setTags(tags);
