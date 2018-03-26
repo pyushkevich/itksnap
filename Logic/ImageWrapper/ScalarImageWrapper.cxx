@@ -403,12 +403,15 @@ ScalarImageWrapper<TTraits,TBase>
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
   // Look up the actual intensity of the voxel from the slicer
+  typename SlicerType::OutputPixelType pix_raw =
+      this->m_Slicer[0]->LookupIntensityAtSliceIndex(this->m_ReferenceSpace);
+
+  // The display value is mapped to native
   out_value.set_size(1);
-  out_value[0] = this->m_NativeMapping(
-                   this->m_Slicer[0]->LookupIntensityAtSliceIndex(this->m_ReferenceSpace));
+  out_value[0] = this->m_NativeMapping(pix_raw);
 
   // Use the display mapping to map to display pixel
-  out_appearance = this->m_DisplayMapping->MapPixel(out_value[0]);
+  out_appearance = this->m_DisplayMapping->MapPixel(pix_raw);
 }
 
 //template<class TTraits, class TBase>
