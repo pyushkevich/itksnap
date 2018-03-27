@@ -7,6 +7,8 @@
 #include <QUrl>
 #include "SNAPQtCommon.h"
 
+#include "RESTClient.h"
+
 DistributedSegmentationDialog::DistributedSegmentationDialog(QWidget *parent) :
   QDialog(parent),
   ui(new Ui::DistributedSegmentationDialog)
@@ -34,8 +36,21 @@ void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model
         this, SLOT(onModelUpdate(const EventBucket &)));
 }
 
-void run_check_status(std::string url, std::string token)
+bool run_check_status(std::string url, std::string token)
 {
+  try
+  {
+    RESTClient rc;
+    rc.Authenticate(url.c_str(), token.c_str());
+    return true;
+  }
+  catch(...)
+  {
+    return false;
+  }
+
+
+
 
 }
 
