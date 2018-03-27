@@ -301,6 +301,10 @@ SET(LOGIC_CXX
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
   Logic/Slicing/LookupTableIntensityMappingFilter.cxx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.cxx
+  Logic/WorkspaceAPI/CSVParser.cxx
+  Logic/WorkspaceAPI/FormattedTable.cxx
+  Logic/WorkspaceAPI/RESTClient.cxx
+  Logic/WorkspaceAPI/WorkspaceAPI.cxx
 )
 
 # The headers for the Logic code
@@ -450,6 +454,10 @@ SET(LOGIC_HEADERS
   Logic/Slicing/NonOrthogonalSlicer.h
   Logic/Slicing/NonOrthogonalSlicer.txx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.h
+  Logic/WorkspaceAPI/CSVParser.h
+  Logic/WorkspaceAPI/FormattedTable.h
+  Logic/WorkspaceAPI/RESTClient.h
+  Logic/WorkspaceAPI/WorkspaceAPI.h
 )
 
 # These files have the UI model code, which is GUI-TK independent
@@ -459,6 +467,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ColorMapModel.cxx
   GUI/Model/CursorInspectionModel.cxx
   GUI/Model/DisplayLayoutModel.cxx
+  GUI/Model/DistributedSegmentationModel.cxx
   GUI/Model/Generic3DModel.cxx
   GUI/Model/GenericSliceModel.cxx
   GUI/Model/GlobalPreferencesModel.cxx
@@ -532,6 +541,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ColorLabelQuickListModel.h
   GUI/Model/CursorInspectionModel.h
   GUI/Model/DisplayLayoutModel.h
+  GUI/Model/DistributedSegmentationModel.h
   GUI/Model/Generic3DModel.h
   GUI/Model/GenericSliceModel.h
   GUI/Model/GlobalPreferencesModel.h
@@ -685,6 +695,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/SpeedImageDialog.cxx
   GUI/Qt/Windows/SplashPanel.cxx
   GUI/Qt/Windows/StatisticsDialog.cxx
+  GUI/Qt/Windows/DSS/DistributedSegmentationDialog.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.cxx
@@ -774,6 +785,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/SpeedImageDialog.h
   GUI/Qt/Windows/SplashPanel.h
   GUI/Qt/Windows/StatisticsDialog.h
+  GUI/Qt/Windows/DSS/DistributedSegmentationDialog.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.h
@@ -854,6 +866,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/SpeedImageDialog.ui
   GUI/Qt/Windows/SplashPanel.ui
   GUI/Qt/Windows/StatisticsDialog.ui
+  GUI/Qt/Windows/DSS/DistributedSegmentationDialog.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.ui
@@ -868,7 +881,7 @@ SET(UI_RESOURCES
   Testing/GUI/Qt/TestingScripts.qrc
 )
 
-# The source code for SNAP testing project
+# The source code for ITK-SNAP testing project
 SET(TESTING_CXX
   Testing/Logic/TestMain.cxx
   Testing/Logic/SNAPTestDriver.cxx
@@ -936,6 +949,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Logic/Preprocessing/Texture
     ${SNAP_SOURCE_DIR}/Logic/RLEImage
     ${SNAP_SOURCE_DIR}/Logic/Slicing
+    ${SNAP_SOURCE_DIR}/Logic/WorkspaceAPI
     ${SNAP_SOURCE_DIR}/Submodules/c3d
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
@@ -956,6 +970,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/Testing
     ${SNAP_SOURCE_DIR}/GUI/Qt/View
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/DSS
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/MeshExportWizard
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/Registration
     ${SNAP_SOURCE_DIR}/Testing/Logic

@@ -71,6 +71,7 @@
 #include "SaveModifiedLayersDialog.h"
 #include <InterpolateLabelsDialog.h>
 #include "RegistrationDialog.h"
+#include "DistributedSegmentationDialog.h"
 
 #include <QAbstractListModel>
 #include <QItemDelegate>
@@ -211,6 +212,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   m_InterpolateLabelsDialog = new InterpolateLabelsDialog(this);
   m_InterpolateLabelsDialog->setModal(false);
+
+  m_DSSDialog = new DistributedSegmentationDialog(this);
+  m_DSSDialog->setModal(false);
 
 
   // Initialize the docked panels
@@ -472,6 +476,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_PreferencesDialog->SetModel(model->GetGlobalPreferencesModel());
   m_InterpolateLabelsDialog->SetModel(model->GetInterpolateLabelModel());
   m_RegistrationDialog->SetModel(model->GetRegistrationModel());
+  m_DSSDialog->SetModel(model->GetDistributedSegmentationModel());
 
   // Initialize the docked panels
   m_ControlPanel->SetModel(model);
@@ -2371,4 +2376,9 @@ void MainImageWindow::on_actionInstallCLI_triggered()
     msg.exec();
     }
 #endif
+}
+
+void MainImageWindow::on_actionDSS_triggered()
+{
+  RaiseDialog(m_DSSDialog);
 }

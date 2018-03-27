@@ -70,6 +70,7 @@
 #include "InterpolateLabelModel.h"
 #include "RegistrationModel.h"
 #include "InteractiveRegistrationModel.h"
+#include "DistributedSegmentationModel.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -103,6 +104,10 @@ GlobalUIModel::GlobalUIModel()
   // Registration model
   m_RegistrationModel = RegistrationModel::New();
   m_RegistrationModel->SetParentModel(this);
+
+  // Distributed segmentation model
+  m_DistributedSegmentationModel = DistributedSegmentationModel::New();
+  m_DistributedSegmentationModel->SetParentModel(this);
 
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)

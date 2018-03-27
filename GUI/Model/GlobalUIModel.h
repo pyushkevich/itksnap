@@ -75,6 +75,7 @@ class ImageWrapperBase;
 class ColorLabelQuickListModel;
 class InterpolateLabelModel;
 class RegistrationModel;
+class DistributedSegmentationModel;
 
 namespace itk
 {
@@ -245,6 +246,9 @@ public:
 
   /** Model for image registration */
   irisGetMacro(RegistrationModel, RegistrationModel *)
+
+  /** Model for distributed image segmentation */
+  irisGetMacro(DistributedSegmentationModel, DistributedSegmentationModel *)
 
   /**
     Check the state of the system. This class will issue StateChangeEvent()
@@ -424,6 +428,9 @@ protected:
 
   // Model for image registration
   SmartPtr<RegistrationModel> m_RegistrationModel;
+
+  // Model for DSS
+  SmartPtr<DistributedSegmentationModel> m_DistributedSegmentationModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

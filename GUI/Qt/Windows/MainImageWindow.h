@@ -55,6 +55,7 @@ class PreferencesDialog;
 class InterpolateLabelsDialog;
 class ImageIOWizard;
 class ImageIOWizardModel;
+class DistributedSegmentationDialog;
 
 class QTimer;
 
@@ -310,6 +311,8 @@ private slots:
 
   void on_actionInstallCLI_triggered();
 
+  void on_actionDSS_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
@@ -400,6 +403,8 @@ private:
   InterpolateLabelsDialog *m_InterpolateLabelsDialog;
 
   RegistrationDialog *m_RegistrationDialog;
+
+  DistributedSegmentationDialog *m_DSSDialog;
 
   // A timer used to animate components
   QTimer *m_AnimateTimer;

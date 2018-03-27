@@ -549,6 +549,8 @@ color:rgb(103, 103, 103);
     <addaction name="actionReorient_Image"/>
     <addaction name="actionRegistration"/>
     <addaction name="separator"/>
+    <addaction name="actionDSS"/>
+    <addaction name="separator"/>
     <addaction name="actionInterpolate_Labels"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
@@ -1537,6 +1539,9 @@ color:rgb(103, 103, 103);
    <property name="toolTip">
     <string>Perform image registration</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
   </action>
   <action name="actionClose_Window">
    <property name="text">
@@ -1655,6 +1660,17 @@ color:rgb(103, 103, 103);
   <action name="actionInstallCLI">
    <property name="text">
     <string>Install Command-Line Tools ...</string>
+   </property>
+  </action>
+  <action name="actionDSS">
+   <property name="text">
+    <string>Distributed Segmentation Service...</string>
+   </property>
+   <property name="toolTip">
+    <string>Send images to external server for automated segmentation</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
  </widget>
