@@ -1660,7 +1660,7 @@ void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
     return;
 
   // Generate the output filename
-  const char *names[] = { "axial0001.png", "coronal0001.png", "sagittal0001.png" };
+  const char *names[] = { "axial0001.png", "sagittal0001.png", "coronal0001.png" };
   std::string filename = to_utf8(QDir(duser).filePath(names[direction]));
 
   // back up cursor location
@@ -1685,7 +1685,9 @@ void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
     // Repaint the GL window and save screenshot
     target->SaveScreenshot(filename);
     target->update();
-    // QCoreApplication::processEvents();
+
+    // Needed for this to actually save individual screenshots
+    QCoreApplication::processEvents();
 
     // Go to the next slice
     xCrossImage[iImageDir]++;

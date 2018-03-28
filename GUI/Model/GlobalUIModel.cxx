@@ -457,12 +457,12 @@ void GlobalUIModel::SetGlobalDisplaySettings(
   // Update the global display settings
   m_GlobalDisplaySettings->DeepCopy(settings);
 
+  // Update the RAI codes in all slice views
+  m_Driver->SetDisplayGeometry(IRISDisplayGeometry(raiNew[0], raiNew[1], raiNew[2]));
+
   // React to the change in RAI codes
   if(raiOld[0] != raiNew[0] || raiOld[1] != raiNew[1] || raiOld[2] != raiNew[2])
     {
-    // Update the RAI codes in all slice views
-    m_Driver->SetDisplayGeometry(IRISDisplayGeometry(raiNew[0], raiNew[1], raiNew[2]));
-
     // Update the cursor location
     if(m_Driver->IsMainImageLoaded())
       {

@@ -253,17 +253,9 @@ IRISApplication
   // Store the new geometry
   m_DisplayGeometry = dispGeom;
 
-  // If image data are loaded, propagate the geometry to them
-  if(m_IRISImageData->IsMainLoaded())
-    {
-    m_IRISImageData->SetDisplayGeometry(dispGeom);
-    }
-
-  // Create the appropriate transform and pass it to the SNAP data
-  if(m_SNAPImageData->IsMainLoaded())
-    {
-    m_SNAPImageData->SetDisplayGeometry(dispGeom);
-    }
+  // Pass the geometry to the image data objects
+  m_IRISImageData->SetDisplayGeometry(dispGeom);
+  m_SNAPImageData->SetDisplayGeometry(dispGeom);
 
   // Invoke the corresponding event
   InvokeEvent(DisplayToAnatomyCoordinateMappingChangeEvent());
