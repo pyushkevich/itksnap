@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QThread>
+#include <QFutureWatcher>
 
 namespace Ui {
 class DistributedSegmentationDialog;
@@ -35,6 +36,9 @@ private:
   Ui::DistributedSegmentationDialog *ui;
 
   DistributedSegmentationModel *m_Model;
+
+  // QFutureWatcher<DistributedSegmentationModel::ServerStatus> *m_WatcherAuth;
+
 
 };
 

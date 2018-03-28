@@ -30,7 +30,7 @@ public:
    * session ID. The cookie and the server URL will be stored in a .alfabis directory
    * in user's home, so that subsequent calls do not require authentication
    */
-  void Authenticate(const char *baseurl, const char *token);
+  bool Authenticate(const char *baseurl, const char *token);
 
   /**
    * Basic GET command. Returns true if HTTP code of 200 is received.

@@ -36,9 +36,44 @@
 #define DISTRIBUTEDSEGMENTATIONMODEL_H
 
 #include "PropertyModel.h"
+#include "Registry.h"
 
 class GlobalUIModel;
 class IRISApplication;
+
+namespace dss_model {
+
+/** Structure describing the authentication status */
+struct AuthResponse
+{
+  bool connected, authenticated;
+  std::string user_id;
+};
+
+/** Structure describing a single service summary */
+struct ServiceSummary
+{
+  std::string name;
+  std::string desc;
+  std::string githash;
+  std::string version;
+};
+
+/** Service summary sorter */
+bool service_summary_cmp(const ServiceSummary &a, const ServiceSummary &b);
+
+/** Service Listing */
+typedef std::vector<ServiceSummary> ServiceListing;
+
+/** Response from server status check call */
+struct StatusCheckResponse
+{
+  ServiceListing service_listing;
+  AuthResponse auth_response;
+};
+
+} // namespace
+
 
 /**
  * @brief Model behind the distributed segmentation GUI
@@ -47,6 +82,10 @@ class DistributedSegmentationModel : public AbstractModel
 {
 public:
   irisITKObjectMacro(DistributedSegmentationModel, AbstractModel)
+
+  // Server connection status
+  enum ServerStatus
+    { NOT_CONNECTED = 0, CONNECTED_NOT_AUTHORIZED, CONNECTED_AUTHORIZED };
 
   // A custom event fired when the server configuration changes
   itkEventMacro(ServerChangeEvent, IRISEvent)
@@ -62,8 +101,24 @@ public:
   /** Token model */
   irisSimplePropertyAccessMacro(Token, std::string)
 
+  /** Server status model */
+  typedef SimpleItemSetDomain<ServerStatus, std::string> ServerStatusDomain;
+  irisGenericPropertyAccessMacro(ServerStatus, ServerStatus, ServerStatusDomain)
+
+  irisSimplePropertyAccessMacro(ServerStatusString, std::string)
+
   /** Get the full URL */
   std::string GetURL(const std::string &path);
+
+  /** Registry describing the service listing */
+  irisGetMacro(ServiceListing, const dss_model::ServiceListing &)
+  void SetServiceListing(const dss_model::ServiceListing &listing);
+
+  /** Selected service model (indexed by git hash) */
+  typedef SimpleItemSetDomain<int, std::string> CurrentServiceDomain;
+  irisGenericPropertyAccessMacro(CurrentService, int, CurrentServiceDomain)
+
+
 
 protected:
 
@@ -77,7 +132,20 @@ protected:
   // Property model for token
   SmartPtr<ConcreteSimpleStringProperty> m_TokenModel;
 
+  // Property model for server status
+  typedef ConcretePropertyModel<ServerStatus, ServerStatusDomain> ServerStatusModelType;
+  SmartPtr<ServerStatusModelType> m_ServerStatusModel;
 
+  // Property model for server status string
+  SmartPtr<AbstractSimpleStringProperty> m_ServerStatusStringModel;
+  bool GetServerStatusStringValue(std::string &value);
+
+  // Property model for current service
+  typedef ConcretePropertyModel<int, CurrentServiceDomain> CurrentServiceModel;
+  SmartPtr<CurrentServiceModel> m_CurrentServiceModel;
+
+  // Registry holding the service listing
+  dss_model::ServiceListing m_ServiceListing;
 
   DistributedSegmentationModel();
   ~DistributedSegmentationModel() {}

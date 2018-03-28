@@ -40,7 +40,7 @@ void RESTClient::SetOutputFile(FILE *outfile)
   m_OutputFile = outfile;
 }
 
-void RESTClient::Authenticate(const char *baseurl, const char *token)
+bool RESTClient::Authenticate(const char *baseurl, const char *token)
 {
   // Create and perform the request
   ostringstream o_url; o_url << baseurl << "/api/login";
@@ -55,6 +55,11 @@ void RESTClient::Authenticate(const char *baseurl, const char *token)
   string cookie_jar = this->GetCookieFile();
   curl_easy_setopt(m_Curl, CURLOPT_COOKIEJAR, cookie_jar.c_str());
 
+  // Capture output
+  m_Output.clear();
+  curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
+  curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
+
   // Make request
   CURLcode res = curl_easy_perform(m_Curl);
 
@@ -65,6 +70,10 @@ void RESTClient::Authenticate(const char *baseurl, const char *token)
   ofstream f_url(this->GetServerURLFile().c_str());
   f_url << baseurl;
   f_url.close();
+
+  // Return success or failure
+  string success_pattern = "logged in as ";
+  return m_Output.compare(0, success_pattern.length(), success_pattern) == 0;
 }
 
 bool RESTClient::Get(const char *rel_url, ...)
