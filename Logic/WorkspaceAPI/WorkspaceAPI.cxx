@@ -40,6 +40,9 @@ void WorkspaceAPI::SaveAsXMLFile(const char *proj_file)
   // Get the directory in which the project will be saved
   string project_dir = SystemTools::GetParentDirectory(proj_file_full.c_str());
 
+  // Put version information - later versions may not be compatible
+  m_Registry["Version"] << SNAPCurrentVersionReleaseDate;
+
   // Update the save location
   m_Registry["SaveLocation"] << project_dir;
 
