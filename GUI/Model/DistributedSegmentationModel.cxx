@@ -35,6 +35,10 @@
 #include "DistributedSegmentationModel.h"
 
 #include "GlobalUIModel.h"
+#include "RESTClient.h"
+#include "FormattedTable.h"
+#include "json/json.h"
+#include <sstream>
 
 namespace dss_model {
 
@@ -109,6 +113,118 @@ void DistributedSegmentationModel::SetServiceListing(const ServiceListing &listi
   m_CurrentServiceModel->SetValue(new_service_id);
 }
 
+std::string DistributedSegmentationModel::GetCurrentServiceGitHash() const
+{
+  int index;
+  if(m_CurrentServiceModel->GetValueAndDomain(index, NULL))
+    return m_ServiceListing[index].githash;
+  else
+    return std::string();
+}
+
+StatusCheckResponse
+DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string token)
+{
+  dss_model::StatusCheckResponse response;
+  response.auth_response.connected = false;
+  response.auth_response.authenticated = false;
+
+  // First try to authenticate
+  try
+  {
+  RESTClient rc;
+  if(rc.Authenticate(url.c_str(), token.c_str()))
+    {
+    response.auth_response.connected = true;
+    response.auth_response.authenticated = true;
+    }
+  else
+    {
+    response.auth_response.connected = true;
+    return response;
+    }
+  }
+  catch(...)
+  {
+  return response;
+  }
+
+  try
+  {
+  // Second, try to get service listing
+  RESTClient rc;
+  if(rc.Get("api/services"))
+    {
+    FormattedTable ft;
+    ft.ParseCSV(rc.GetOutput());
+
+    for(int i = 0; i < ft.Rows(); i++)
+      {
+      dss_model::ServiceSummary service;
+      service.name = ft(i, 0);
+      service.githash = ft(i, 1);
+      service.version = ft(i, 2);
+      service.desc = ft(i, 3);
+      response.service_listing.push_back(service);
+      }
+    }
+  }
+  catch(...)
+  {
+  }
+
+  return response;
+}
+
+void DistributedSegmentationModel::ApplyStatusCheckResponse(const StatusCheckResponse &result)
+{
+  if(result.auth_response.connected)
+    {
+    if(result.auth_response.authenticated)
+      SetServerStatus(DistributedSegmentationModel::CONNECTED_AUTHORIZED);
+    else
+      SetServerStatus(DistributedSegmentationModel::CONNECTED_NOT_AUTHORIZED);
+    }
+  else
+    {
+    SetServerStatus(DistributedSegmentationModel::NOT_CONNECTED);
+    }
+
+  SetServiceListing(result.service_listing);
+}
+
+ServiceDetailResponse
+DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
+{
+  ServiceDetailResponse result;
+  result.valid = false;
+
+  try {
+    RESTClient rc;
+    if(rc.Get("api/services/%s/detail", githash.c_str()))
+      {
+      Json::Reader json_reader;
+      Json::Value root;
+      if(json_reader.parse(rc.GetOutput(), root, false))
+        {
+        result.longdesc = root.get("longdesc","").asString();
+        result.url = root.get("url","").asString();
+        result.valid = true;
+        }
+      }
+    }
+  catch (...) {
+
+    }
+
+  return result;
+}
+
+void DistributedSegmentationModel::ApplyServiceDetailResponse(const ServiceDetailResponse &resp)
+{
+  this->SetServiceDescription(resp.longdesc);
+}
+
 bool DistributedSegmentationModel::GetServerStatusStringValue(std::string &value)
 {
   ServerStatus status;
@@ -144,14 +260,22 @@ DistributedSegmentationModel::DistributedSegmentationModel()
       = wrapGetterSetterPairAsProperty(this, &Self::GetServerStatusStringValue);
   m_ServerStatusStringModel->RebroadcastFromSourceProperty(m_ServerStatusModel);
 
+  // Initialize the service model
+  m_CurrentServiceModel = NewConcreteProperty(-1, CurrentServiceDomain());
+  m_CurrentServiceModel->SetIsValid(false);
+
+  // Service description
+  m_ServiceDescriptionModel = NewSimpleConcreteProperty(std::string());
+
   // Changes to the server and token result in a server change event
   this->Rebroadcast(m_ServerURLModel, ValueChangedEvent(), ServerChangeEvent());
   this->Rebroadcast(m_ServerURLModel, DomainChangedEvent(), ServerChangeEvent());
   this->Rebroadcast(m_TokenModel, ValueChangedEvent(), ServerChangeEvent());
 
-  // Initialize the service model
-  m_CurrentServiceModel = NewConcreteProperty(-1, CurrentServiceDomain());
-  m_CurrentServiceModel->SetIsValid(false);
+  // Changes to the selected service also propagated
+  this->Rebroadcast(m_CurrentServiceModel, ValueChangedEvent(), ServiceChangeEvent());
+  this->Rebroadcast(m_CurrentServiceModel, DomainChangedEvent(), ServiceChangeEvent());
+
 }
 
 

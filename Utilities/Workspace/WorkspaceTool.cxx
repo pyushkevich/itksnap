@@ -117,6 +117,7 @@ int usage(int rc)
   cout << "  -dss-auth <url> [user] [passwd]   : Sign in to the server. This will create a token" << endl;
   cout << "                                      that may be used in future -dss calls" << endl;
   cout << "  -dss-services-list                : List all available segmentation services" << endl;
+  cout << "  -dss-services-detail <service_id> : Get detailed description of a service" << endl;
   cout << "  -dss-tickets-create <service_id>  : Create a new ticket using current workspace (id is githash)" << endl;
   cout << "  -dss-tickets-list                 : List all of your tickets" << endl;
   cout << "  -dss-tickets-log <id>             : Get the error/warning/info log for ticket 'id'" << endl;
@@ -769,6 +770,16 @@ int main(int argc, char *argv[])
           print_string_with_prefix(cout, rc.GetFormattedCSVOutput(false), prefix);
         else
           throw IRISException("Error listing services: %s", rc.GetResponseText());
+        }
+      else if(arg == "-dss-services-detail")
+        {
+        string service_githash = cl.read_string();
+        RESTClient rc;
+        if(rc.Get("api/services/%s/detail", service_githash.c_str()))
+          print_string_with_prefix(cout, rc.GetOutput(), prefix);
+        else
+          throw IRISException("Error getting service detail: %s", rc.GetResponseText());
+
         }
       else if(arg == "-dss-tickets-create" || arg == "-dss-ticket-create")
         {

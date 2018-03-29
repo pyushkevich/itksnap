@@ -27,7 +27,8 @@ public slots:
 
   virtual void onModelUpdate(const EventBucket &bucket);
 
-  virtual void updateServerStatus();
+  void updateServerStatus();
+  void updateServiceDetail();
 
 private slots:
   void on_btnGetToken_clicked();

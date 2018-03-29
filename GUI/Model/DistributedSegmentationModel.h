@@ -72,6 +72,16 @@ struct StatusCheckResponse
   AuthResponse auth_response;
 };
 
+/** Service description */
+struct ServiceDetailResponse
+{
+  // Is the response valid
+  bool valid;
+
+  // Descriptive info
+  std::string longdesc, url;
+};
+
 } // namespace
 
 
@@ -89,7 +99,9 @@ public:
 
   // A custom event fired when the server configuration changes
   itkEventMacro(ServerChangeEvent, IRISEvent)
+  itkEventMacro(ServiceChangeEvent, IRISEvent)
   FIRES(ServerChangeEvent)
+  FIRES(ServiceChangeEvent)
 
   void SetParentModel(GlobalUIModel *model);
   irisGetMacro(Parent, GlobalUIModel *)
@@ -107,6 +119,8 @@ public:
 
   irisSimplePropertyAccessMacro(ServerStatusString, std::string)
 
+  irisSimplePropertyAccessMacro(ServiceDescription, std::string)
+
   /** Get the full URL */
   std::string GetURL(const std::string &path);
 
@@ -114,9 +128,25 @@ public:
   irisGetMacro(ServiceListing, const dss_model::ServiceListing &)
   void SetServiceListing(const dss_model::ServiceListing &listing);
 
-  /** Selected service model (indexed by git hash) */
+  /** Selected service model */
   typedef SimpleItemSetDomain<int, std::string> CurrentServiceDomain;
   irisGenericPropertyAccessMacro(CurrentService, int, CurrentServiceDomain)
+
+  /** Get the git hash of the current service */
+  std::string GetCurrentServiceGitHash() const;
+
+  /** Static function that runs asynchronously to perform server authentication */
+  static dss_model::StatusCheckResponse AsyncCheckStatus(std::string url, std::string token);
+
+  /** Apply the results of async server authentication to the model */
+  void ApplyStatusCheckResponse(const dss_model::StatusCheckResponse &result);
+
+  /** Static function that runs asynchronously to get service details */
+  static dss_model::ServiceDetailResponse AsyncGetServiceDetails(std::string githash);
+
+  /** Apply the results of async server authentication to the model */
+  void ApplyServiceDetailResponse(const dss_model::ServiceDetailResponse &resp);
+
 
 
 
@@ -143,6 +173,9 @@ protected:
   // Property model for current service
   typedef ConcretePropertyModel<int, CurrentServiceDomain> CurrentServiceModel;
   SmartPtr<CurrentServiceModel> m_CurrentServiceModel;
+
+  // Property model for service description
+  SmartPtr<ConcreteSimpleStringProperty> m_ServiceDescriptionModel;
 
   // Registry holding the service listing
   dss_model::ServiceListing m_ServiceListing;

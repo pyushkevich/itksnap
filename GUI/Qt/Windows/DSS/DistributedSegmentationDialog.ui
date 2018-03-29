@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -27,6 +27,9 @@
        <item>
         <widget class="QWidget" name="widget" native="true">
          <layout class="QGridLayout" name="gridLayout">
+          <property name="verticalSpacing">
+           <number>8</number>
+          </property>
           <item row="1" column="5">
            <spacer name="horizontalSpacer">
             <property name="orientation">
@@ -108,9 +111,12 @@
            <widget class="QLineEdit" name="inToken">
             <property name="minimumSize">
              <size>
-              <width>200</width>
+              <width>256</width>
               <height>0</height>
              </size>
+            </property>
+            <property name="maxLength">
+             <number>64</number>
             </property>
             <property name="echoMode">
              <enum>QLineEdit::PasswordEchoOnEdit</enum>
@@ -139,28 +145,8 @@
       <attribute name="title">
        <string>Submit</string>
       </attribute>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Tags:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>Service:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0" colspan="2">
-        <widget class="QTableView" name="tblTags"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QComboBox" name="inService"/>
-       </item>
-       <item row="4" column="1">
+      <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1">
+       <item row="5" column="1">
         <widget class="QWidget" name="widget_2" native="true">
          <widget class="QPushButton" name="pushButton">
           <property name="geometry">
@@ -190,7 +176,10 @@
          </widget>
         </widget>
        </item>
-       <item row="3" column="0" colspan="2">
+       <item row="0" column="1">
+        <widget class="QComboBox" name="inService"/>
+       </item>
+       <item row="4" column="0" colspan="2">
         <spacer name="verticalSpacer_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -202,6 +191,38 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item row="3" column="0" colspan="2">
+        <widget class="QTableView" name="tblTags"/>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_3">
+         <property name="text">
+          <string>Service:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Tags:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="outServiceDesc">
+         <property name="styleSheet">
+          <string notr="true">font-size:11px;
+color: rgb(76, 76, 76);
+</string>
+         </property>
+         <property name="text">
+          <string>Description</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

@@ -243,9 +243,10 @@ SET(LOGIC_CXX
   Common/SNAPOpenGL.cxx
   Common/SystemInterface.cxx
   Common/ThreadSpecificData.cxx
+  Common/Trackball.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
-  Common/Trackball.cxx
+  Common/JSon/jsoncpp.cpp
   Logic/Common/ColorLabelTable.cxx
   Logic/Common/ColorMap.cxx
   Logic/Common/ColorMapPresetManager.cxx
@@ -338,6 +339,8 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.txx
   Common/ITKExtras/itkVoxBoCUBImageIO.h
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
+  Common/JSon/json/json.h
+  Common/JSon/json/json-forwards.h
   Common/PresetManager.h
   Common/PresetManager.hxx
   Common/PropertyModel.h
@@ -938,6 +941,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
   SET(SNAP_INCLUDE_DIRS
     ${SNAP_SOURCE_DIR}/Common
     ${SNAP_SOURCE_DIR}/Common/ITKExtras
+    ${SNAP_SOURCE_DIR}/Common/JSon
     ${SNAP_SOURCE_DIR}/Logic
     ${SNAP_SOURCE_DIR}/Logic/Common
     ${SNAP_SOURCE_DIR}/Logic/Framework
