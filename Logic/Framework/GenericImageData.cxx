@@ -497,6 +497,23 @@ GenericImageData
   return NULL;
 }
 
+std::list<ImageWrapperBase *>
+GenericImageData
+::FindLayersByTag(std::string tag, int role_filter)
+{
+  std::list<ImageWrapperBase *> retval;
+  for(LayerIterator it = this->GetLayers(role_filter); !it.IsAtEnd(); ++it)
+    {
+    if(std::find(it.GetLayer()->GetTags().begin(), it.GetLayer()->GetTags().end(), tag)
+       != it.GetLayer()->GetTags().end())
+      {
+      retval.push_back(it.GetLayer());
+      }
+    }
+  return retval;
+}
+
+
 int GenericImageData::GetNumberOfOverlays()
 {
   return m_Wrappers[OVERLAY_ROLE].size();
@@ -641,3 +658,4 @@ void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
 {
   this->AddOverlayInternal(new_layer, true);
 }
+

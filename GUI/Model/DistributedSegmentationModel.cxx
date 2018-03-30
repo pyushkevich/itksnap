@@ -37,6 +37,9 @@
 #include "GlobalUIModel.h"
 #include "RESTClient.h"
 #include "FormattedTable.h"
+#include "IRISApplication.h"
+#include "IRISImageData.h"
+#include "WorkspaceAPI.h"
 #include "json/json.h"
 #include <sstream>
 
@@ -54,6 +57,14 @@ bool service_summary_cmp(const ServiceSummary &a, const ServiceSummary &b)
   return false;
 }
 
+bool TagSpec::operator ==(const TagSpec &o) const
+{
+  return
+      name == o.name && type == o.type &&
+      required == o.required && hint == o.hint &&
+      object_id == o.object_id;
+}
+
 } // namespace
 
 using namespace dss_model;
@@ -61,6 +72,28 @@ using namespace dss_model;
 void DistributedSegmentationModel::SetParentModel(GlobalUIModel *model)
 {
   m_Parent = model;
+}
+
+bool DistributedSegmentationModel::AreAllRequiredTagsAssignedTarget()
+{
+  for(int i = 0; i < m_TagSpecArray.size(); i++)
+    {
+    if(m_TagSpecArray[i].tag_spec.required && m_TagSpecArray[i].object_id == 0)
+      return false;
+    }
+  return true;
+}
+
+bool DistributedSegmentationModel::CheckState(DistributedSegmentationModel::UIState state)
+{
+  switch(state)
+    {
+    case DistributedSegmentationModel::UIF_TAGS_ASSIGNED:
+      return AreAllRequiredTagsAssignedTarget();
+      break;
+
+    }
+
 }
 
 std::string DistributedSegmentationModel::GetURL(const std::string &path)
@@ -122,33 +155,57 @@ std::string DistributedSegmentationModel::GetCurrentServiceGitHash() const
     return std::string();
 }
 
-StatusCheckResponse
-DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string token)
+void DistributedSegmentationModel::ApplyTagsToTargets()
 {
-  dss_model::StatusCheckResponse response;
-  response.auth_response.connected = false;
-  response.auth_response.authenticated = false;
-
-  // First try to authenticate
-  try
-  {
-  RESTClient rc;
-  if(rc.Authenticate(url.c_str(), token.c_str()))
+  GenericImageData *id = m_Parent->GetDriver()->GetIRISImageData();
+  for(int i = 0; i < m_TagSpecArray.size(); i++)
     {
-    response.auth_response.connected = true;
-    response.auth_response.authenticated = true;
+    TagSpec &ts = m_TagSpecArray[i].tag_spec;
+    if(ts.type == TAG_LAYER_MAIN || ts.type == TAG_LAYER_ANATOMICAL)
+      {
+      ImageWrapperBase *wrapper = id->FindLayer(m_TagSpecArray[i].object_id, false);
+      if(wrapper)
+        {
+        std::list<std::string> tags = wrapper->GetTags();
+        if(std::find(tags.begin(), tags.end(), ts.name) == tags.end())
+          {
+          tags.push_back(ts.name);
+          wrapper->SetTags(tags);
+          }
+        for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+          if(it.GetLayer() != wrapper)
+            {
+            std::list<std::string> tags = it.GetLayer()->GetTags();
+            if(std::find(tags.begin(), tags.end(), ts.name) != tags.end())
+              {
+              tags.remove(ts.name);
+              it.GetLayer()->SetTags(tags);
+              }
+            }
+        }
+      }
     }
-  else
-    {
-    response.auth_response.connected = true;
-    return response;
-    }
-  }
-  catch(...)
-  {
-  return response;
-  }
+}
 
+
+void DistributedSegmentationModel::SubmitWorkspace()
+{
+  // At this point the project had to be saved. We read it using the API object
+  WorkspaceAPI ws;
+  ws.ReadFromXMLFile(m_Parent->GetGlobalState()->GetProjectFilename().c_str());
+
+  // Do the upload magic
+  int ticket_id = ws.CreateWorkspaceTicket(this->GetCurrentServiceGitHash().c_str());
+
+  // Stick into the model
+  m_SubmittedTicketIdModel->SetValue(ticket_id);
+  m_SubmittedTicketIdModel->SetIsValid(true);
+}
+
+bool
+DistributedSegmentationModel::AsyncGetServiceListing(
+    std::vector<dss_model::ServiceSummary> &services)
+{
   try
   {
   // Second, try to get service listing
@@ -165,13 +222,56 @@ DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string toke
       service.githash = ft(i, 1);
       service.version = ft(i, 2);
       service.desc = ft(i, 3);
-      response.service_listing.push_back(service);
+      services.push_back(service);
       }
+
+    return true;
     }
   }
   catch(...)
   {
   }
+
+  return false;
+}
+
+StatusCheckResponse
+DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string token)
+{
+  dss_model::StatusCheckResponse response;
+  response.auth_response.connected = false;
+  response.auth_response.authenticated = false;
+
+  // Try to get the service listing using the cached cookie
+  if(AsyncGetServiceListing(response.service_listing))
+    {
+    response.auth_response.connected = true;
+    response.auth_response.authenticated = true;
+    return response;
+    }
+
+  // Failer likely means that we are not authenticated
+  try
+    {
+    RESTClient rc;
+    if(rc.Authenticate(url.c_str(), token.c_str()))
+      {
+      response.auth_response.connected = true;
+      response.auth_response.authenticated = true;
+      }
+    else
+      {
+      response.auth_response.connected = true;
+      return response;
+      }
+    }
+  catch(...)
+    {
+    return response;
+    }
+
+  // Get the service listing again now that we are in
+  AsyncGetServiceListing(response.service_listing);
 
   return response;
 }
@@ -199,6 +299,13 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
   ServiceDetailResponse result;
   result.valid = false;
 
+  RegistryEnumMap<TagType> type_map;
+  type_map.AddPair(TAG_POINT_LANDMARK, "PointLandmark");
+  type_map.AddPair(TAG_LAYER_MAIN, "MainImage");
+  type_map.AddPair(TAG_LAYER_ANATOMICAL, "AnatomicalImage");
+  type_map.AddPair(TAG_SEGMENTATION_LABEL, "SegmentationLabel");
+  type_map.AddPair(TAG_UNKNOWN, "Unknown");
+
   try {
     RESTClient rc;
     if(rc.Get("api/services/%s/detail", githash.c_str()))
@@ -210,6 +317,17 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
         result.longdesc = root.get("longdesc","").asString();
         result.url = root.get("url","").asString();
         result.valid = true;
+        const Json::Value tag_group = root["tags"];
+        for(int i = 0; i < tag_group.size(); i++)
+          {
+          TagSpec tag_spec;
+          tag_spec.required = tag_group[i].get("required", false).asBool();
+          tag_spec.type = type_map.GetEnumValueWithDefault(
+                            tag_group[i].get("type","").asString(), TAG_UNKNOWN);
+          tag_spec.name = tag_group[i].get("name","").asString();
+          tag_spec.hint = tag_group[i].get("hint","").asString();
+          result.tag_specs.push_back(tag_spec);
+          }
         }
       }
     }
@@ -220,9 +338,70 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
   return result;
 }
 
+void DistributedSegmentationModel::AssignTagObjectIds()
+{
+  // Get the driver
+  IRISApplication *driver = this->GetParent()->GetDriver();
+
+  // Handle the main image assignment
+  for(int i = 0; i < m_TagSpecArray.size(); i++)
+    {
+    TagTargetSpec &tag = m_TagSpecArray[i];
+    tag.object_id = 0;
+    tag.desc = std::string();
+
+    if(driver->IsMainImageLoaded())
+      {
+      // If the tag is for the main image, then it has to be assigned to the main image
+      if(tag.tag_spec.type == TAG_LAYER_MAIN)
+        {
+        ImageWrapperBase *main = driver->GetIRISImageData()->GetMain();
+        tag.object_id = main->GetUniqueId();
+        tag.desc = main->GetNickname();
+        }
+      else if(tag.tag_spec.type == TAG_LAYER_ANATOMICAL)
+        {
+        int role_filter = MAIN_ROLE | OVERLAY_ROLE;
+        std::list<ImageWrapperBase*> matches =
+            driver->GetIRISImageData()->FindLayersByTag(tag.tag_spec.name, role_filter);
+        if(matches.size() == 1)
+          {
+          tag.object_id = matches.front()->GetUniqueId();
+          tag.desc = matches.front()->GetNickname();
+          }
+        }
+      }
+    }
+}
+
 void DistributedSegmentationModel::ApplyServiceDetailResponse(const ServiceDetailResponse &resp)
 {
   this->SetServiceDescription(resp.longdesc);
+
+  // Store the tag spec array
+  m_TagSpecArray.clear();
+  for(int i = 0; i < resp.tag_specs.size(); i++)
+    {
+    TagTargetSpec ttspec;
+    ttspec.tag_spec = resp.tag_specs[i];
+    ttspec.object_id = 0;
+    m_TagSpecArray.push_back(ttspec);
+    }
+
+  // Assign tag ids to objects in current workspace
+  this->AssignTagObjectIds();
+
+  // Fire off a domain modified event
+  m_TagListModel->InvokeEvent(DomainChangedEvent());
+  if(resp.tag_specs.size())
+    {
+    m_TagListModel->SetValue(0);
+    m_TagListModel->SetIsValid(true);
+    }
+  else
+    {
+    m_TagListModel->SetIsValid(false);
+    }
 }
 
 bool DistributedSegmentationModel::GetServerStatusStringValue(std::string &value)
@@ -235,6 +414,57 @@ bool DistributedSegmentationModel::GetServerStatusStringValue(std::string &value
     return true;
     }
   return false;
+}
+
+bool DistributedSegmentationModel
+::GetCurrentTagImageLayerValueAndRange(unsigned long &value, LayerSelectionDomain *domain)
+{
+  int curr_tag;
+  if(m_TagListModel->GetValueAndDomain(curr_tag, NULL))
+    {
+    TagTargetSpec &tag = m_TagSpecArray[curr_tag];
+    value = tag.object_id;
+    if(domain)
+      {
+      domain->clear();
+      IRISApplication *driver = this->GetParent()->GetDriver();
+
+      if(tag.tag_spec.type == TAG_LAYER_MAIN && driver->IsMainImageLoaded())
+        {
+        (*domain)[driver->GetIRISImageData()->GetMain()->GetUniqueId()] =
+            driver->GetIRISImageData()->GetMain()->GetNickname();
+        }
+      else if(tag.tag_spec.type == TAG_LAYER_ANATOMICAL && driver->IsMainImageLoaded())
+        {
+        for(LayerIterator it = driver->GetIRISImageData()->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+            !it.IsAtEnd(); ++it)
+          {
+          (*domain)[it.GetLayer()->GetUniqueId()] = it.GetLayer()->GetNickname();
+          }
+        }
+      }
+    return true;
+    }
+  return false;
+}
+
+void DistributedSegmentationModel
+::SetCurrentTagImageLayerValue(unsigned long value)
+{
+  int curr_tag;
+  IRISApplication *driver = this->GetParent()->GetDriver();
+  if(m_TagListModel->GetValueAndDomain(curr_tag, NULL))
+    {
+    // Set the target id
+    m_TagSpecArray[curr_tag].object_id = value;
+
+    // Set the target description
+    ImageWrapperBase *w = driver->GetIRISImageData()->FindLayer(value, false);
+    m_TagSpecArray[curr_tag].desc = w ? w->GetNickname() : std::string();
+
+    // Update the domain
+    m_TagListModel->InvokeEvent(DomainChangedEvent());
+    }
 }
 
 DistributedSegmentationModel::DistributedSegmentationModel()
@@ -267,6 +497,22 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   // Service description
   m_ServiceDescriptionModel = NewSimpleConcreteProperty(std::string());
 
+  // Tag selection model
+  m_TagListModel = NewConcreteProperty(-1, TagDomainType(&m_TagSpecArray));
+  m_TagListModel->SetIsValid(false);
+
+  // Model for current tag selection
+  m_CurrentTagImageLayerModel = wrapGetterSetterPairAsProperty(
+                                  this,
+                                  &Self::GetCurrentTagImageLayerValueAndRange,
+                                  &Self::SetCurrentTagImageLayerValue);
+  m_CurrentTagImageLayerModel->Rebroadcast(m_TagListModel, ValueChangedEvent(), ValueChangedEvent());
+  m_CurrentTagImageLayerModel->Rebroadcast(m_TagListModel, ValueChangedEvent(), DomainChangedEvent());
+
+  // Last submitted ticket
+  m_SubmittedTicketIdModel = NewSimpleConcreteProperty(-1);
+  m_SubmittedTicketIdModel->SetIsValid(false);
+
   // Changes to the server and token result in a server change event
   this->Rebroadcast(m_ServerURLModel, ValueChangedEvent(), ServerChangeEvent());
   this->Rebroadcast(m_ServerURLModel, DomainChangedEvent(), ServerChangeEvent());
@@ -275,6 +521,9 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   // Changes to the selected service also propagated
   this->Rebroadcast(m_CurrentServiceModel, ValueChangedEvent(), ServiceChangeEvent());
   this->Rebroadcast(m_CurrentServiceModel, DomainChangedEvent(), ServiceChangeEvent());
+
+  // Changes to the tags table require a state update
+  this->Rebroadcast(m_CurrentTagImageLayerModel, DomainChangedEvent(), StateMachineChangeEvent());
 
 }
 

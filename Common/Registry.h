@@ -169,6 +169,12 @@ public:
     return true;
   }
 
+  TEnum GetEnumValueWithDefault(const StringType &key, TEnum defaultValue) const
+  {
+    TEnum retval;
+    return GetEnumValue(key, retval) ? retval : defaultValue;
+  }
+
   bool GetString(TEnum value, StringType &outString) const
   {
     typename std::map<TEnum, StringType>::const_iterator it = m_EnumToStringMap.find(value);

@@ -157,175 +157,13 @@ int usage(int rc)
 
 
 
-
-/*
-{
-  ft.Print(oss);
-  return oss;
-}*/
-
-
-
-
-
-
-
-/**
- * Export the workspace in a way such that all images are in the same directory as
- * the workspace and are in NIFTI format with generic filenames and no identifiers
- */
-void ExportWorkspace(const WorkspaceAPI &ws, const char *new_workspace)
-{
-  // Duplicate the workspace data
-  WorkspaceAPI wsexp = ws;
-
-  // Get the directory where the new workspace will go
-  string wsdir = SystemTools::GetParentDirectory(new_workspace);
-
-  // Iterate over all the layers stored in the workspace
-  int n_layers = wsexp.GetNumberOfLayers();
-
-  // Load all of the layers in the current project
-  for(int i = 0; i < n_layers; i++)
-    {
-    // Get the folder corresponding to the layer
-    Registry &f_layer = wsexp.GetLayerFolder(i);
-
-    // The the (possibly moved) absolute filename 
-    string fn_layer = wsexp.GetLayerActualPath(f_layer);
-
-    // The IO hints for the file
-    Registry io_hints, *layer_io_hints;
-    if((layer_io_hints = wsexp.GetLayerIOHints(f_layer)))
-      io_hints.Update(*layer_io_hints);
-
-    // Create a native image IO object for this image
-    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
-
-    // Load the header of the image and the image data
-    io->ReadNativeImage(fn_layer.c_str(), io_hints);
-
-    // Compute the hash of the image data to generate filename
-    std::string image_md5 = io->GetNativeImageMD5Hash();
-
-    // Create a filename that combines the layer index with the hash code
-    char fn_layer_new[4096];
-    sprintf(fn_layer_new, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, image_md5.c_str());
-
-    // Save the layer there. Since we are saving as a NIFTI, we don't need to
-    // provide any hints
-    Registry dummy_hints;
-    io->SaveNativeImage(fn_layer_new, dummy_hints);
-
-    // Update the layer folder with the new path
-    f_layer["AbsolutePath"] << fn_layer_new;
-
-    // There are no hints necessary for NIFTI
-    f_layer.Folder("IOHints").Clear();
-    }
-
-  // Write the updated project
-  wsexp.SaveAsXMLFile(new_workspace);
-}
-
-/**
- * Cross-platform way of getting a temporary path
- */
-string GetTempDirName()
-{
-#ifdef WIN32
-  char tempDir[_MAX_PATH+1] = "";
-
-  // We will try putting the executable in the system temp directory.
-  // Note that the returned path already has a trailing slash.
-  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
-  if(length <= 0 || length > _MAX_PATH)
-    throw IRISException("Unable to create temporary directory");
-
-  return tempDir;
-
-#else
-  char tmp_template[4096];
-  strcpy(tmp_template, "/tmp/alfabis_XXXXXX");
-  string tmpdir = mkdtemp(tmp_template);
-  return tmpdir;
-#endif
-}
-
-/**
- * Export a workspace to a temporary directory and upload it
- */
-void UploadWorkspace(const WorkspaceAPI &ws,
-                    const char *url,
-                    int ticket_id,
-                    const char *wsfile_suffix)
-{
-  // Create temporary directory for the export
-  string tempdir = GetTempDirName();
-  SystemTools::MakeDirectory(tempdir);
-
-  // Export the workspace file to the temporary directory
-  char ws_fname_buffer[4096];
-  sprintf(ws_fname_buffer, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
-  ExportWorkspace(ws, ws_fname_buffer);
-
-  cout << "Exported workspace to " << ws_fname_buffer << endl;
-
-  // For each of the files in the directory upload it
-  Directory dir;
-  dir.Load(tempdir);
-  for(int i = 0; i < dir.GetNumberOfFiles(); i++)
-    {
-    RESTClient rcu;
-    const char *thisfile = dir.GetFile(i);
-    string file_full_path = SystemTools::CollapseFullPath(thisfile, dir.GetPath());
-    if(!SystemTools::FileIsDirectory(file_full_path))
-      {
-      // TODO: this is disgraceful!
-      std::map<string, string> empty_map;
-      if(!rcu.UploadFile(url, file_full_path.c_str(), empty_map, ticket_id))
-        throw IRISException("Failed up upload file %s (%s)", file_full_path.c_str(), rcu.GetResponseText());
-
-      cout << "Upload " << thisfile << " (" << rcu.GetUploadStatistics() << ")" << endl;
-      }
-    }
-
-  // TODO: we should verify that all the files were successfully sent, via MD5
-}
-
-/**
- * Export a workspace to a temporary directory and use it to create a new ticket
- */
-int CreateWorkspaceTicket(const WorkspaceAPI &ws, const char *service_githash)
-{
-  // Create a new ticket
-  RESTClient rc;
-  if(!rc.Post("api/tickets","githash=%s", service_githash))
-    throw IRISException("Failed to create new ticket (%s)", rc.GetResponseText());
-
-  int ticket_id = atoi(rc.GetOutput());
-      
-  cout << "Created new ticket (" << ticket_id << ")" << endl;
-
-  // Locally export and upload the workspace
-  UploadWorkspace(ws, "api/tickets/%d/files/input", ticket_id, "");
-
-  // Mark this ticket as ready
-  if(!rc.Post("api/tickets/%d/status","status=ready", ticket_id))
-    throw IRISException("Failed to mark ticket as ready (%s)", rc.GetResponseText());
-
-  cout << "Changed ticket status to (" << rc.GetOutput() << ")" << endl;
-
-  return ticket_id;
-}
-
 /**
  * Upload a workspace as the result for a ticket
  */
 void UploadResultWorkspace(const WorkspaceAPI &ws, int ticket_id)
 {
   // Locally export and upload the workspace
-  UploadWorkspace(ws, "api/pro/tickets/%d/files/results", ticket_id, "_results");
+  ws.UploadWorkspace("api/pro/tickets/%d/files/results", ticket_id, "_results");
 }
 
 /**
@@ -534,7 +372,7 @@ int main(int argc, char *argv[])
       else if(arg == "-a")
         {
         // Create an archive
-        ExportWorkspace(ws, cl.read_output_filename().c_str());
+        ws.ExportWorkspace(cl.read_output_filename().c_str());
         }
 
       // Prefix
@@ -784,7 +622,7 @@ int main(int argc, char *argv[])
       else if(arg == "-dss-tickets-create" || arg == "-dss-ticket-create")
         {
         string service_githash = cl.read_string();
-        int ticket_id = CreateWorkspaceTicket(ws, service_githash.c_str());
+        int ticket_id = ws.CreateWorkspaceTicket(service_githash.c_str());
         cout << prefix << ticket_id << endl;
         }
       else if(arg == "-dss-tickets-list" || arg == "-dtl")

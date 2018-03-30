@@ -219,55 +219,6 @@ protected:
 
 
 /**
-  This is an implementation of the domain that wraps around an stl::vector
-  of descriptors. TVal should be an integer type that can be used as an index
-  (int, unsigned int, enum, etc)
-  */
-template <class TVal, class TDesc>
-class STLVectorWrapperItemSetDomain :
-    public AbstractItemSetDomain<TVal, TDesc,
-                                 typename std::vector<TDesc>::const_iterator>
-{
-public:
-  typedef STLVectorWrapperItemSetDomain<TVal, TDesc> Self;
-  typedef typename std::vector<TDesc> VectorType;
-  typedef typename VectorType::const_iterator const_iterator;
-
-  STLVectorWrapperItemSetDomain() { m_SourceVector = NULL; }
-  STLVectorWrapperItemSetDomain(const VectorType *refvec) { m_SourceVector = refvec; }
-  virtual ~STLVectorWrapperItemSetDomain() {}
-
-  const_iterator begin() const
-    { assert(m_SourceVector); return m_SourceVector->begin(); }
-
-  const_iterator end() const
-    { assert(m_SourceVector); return m_SourceVector->end(); }
-
-  const_iterator find(const TVal &value) const
-    { assert(m_SourceVector); return m_SourceVector->begin() + value; }
-
-  TVal GetValue(const const_iterator &it) const
-    { assert(m_SourceVector); return it - m_SourceVector->begin(); }
-
-  TDesc GetDescription(const const_iterator &it) const
-    { assert(m_SourceVector); return *it; }
-
-  virtual bool operator == (const Self &cmp) const
-    { return m_SourceVector == cmp.m_SourceVector; }
-
-  virtual bool operator != (const Self &cmp) const
-    { return m_SourceVector != cmp.m_SourceVector; }
-
-  // An atomic domain holds its own state, so it is possible to compare two
-  // atomic domains to determine if they are the same or different. Domains
-  // that store references to external objects are not atomic.
-  virtual bool isAtomic() { return false; }
-
-protected:
-  const VectorType *m_SourceVector;
-};
-
-/**
   This is an item domain implementation that is just an stl::map, i.e., it
   owns the data, as opposed to STLMapWrapperItemSetDomain, which references
   the data from another map. This implementation is useful for small domains
@@ -355,6 +306,153 @@ public:
 
   virtual bool operator != (const Self &cmp) const
     { return this->m_Map != cmp.m_Map; }
+
+  // An atomic domain holds its own state, so it is possible to compare two
+  // atomic domains to determine if they are the same or different. Domains
+  // that store references to external objects are not atomic.
+  virtual bool isAtomic() { return true; }
+};
+
+
+
+
+
+/**
+  This is an implementation of the domain that wraps around an stl::vector
+  of descriptors. TVal should be an integer type that can be used as an index
+  (int, unsigned int, enum, etc)
+  */
+template <class TVal, class TDesc>
+class STLVectorWrapperItemSetDomain :
+    public AbstractItemSetDomain<TVal, TDesc,
+                                 typename std::vector<TDesc>::const_iterator>
+{
+public:
+  typedef STLVectorWrapperItemSetDomain<TVal, TDesc> Self;
+  typedef typename std::vector<TDesc> VectorType;
+  typedef typename VectorType::const_iterator const_iterator;
+
+  STLVectorWrapperItemSetDomain() { m_SourceVector = NULL; }
+  STLVectorWrapperItemSetDomain(const VectorType *refvec) { m_SourceVector = refvec; }
+  virtual ~STLVectorWrapperItemSetDomain() {}
+
+  const_iterator begin() const
+    { assert(m_SourceVector); return m_SourceVector->begin(); }
+
+  const_iterator end() const
+    { assert(m_SourceVector); return m_SourceVector->end(); }
+
+  const_iterator find(const TVal &value) const
+    { assert(m_SourceVector); return m_SourceVector->begin() + value; }
+
+  TVal GetValue(const const_iterator &it) const
+    { assert(m_SourceVector); return it - m_SourceVector->begin(); }
+
+  TDesc GetDescription(const const_iterator &it) const
+    { assert(m_SourceVector); return *it; }
+
+  virtual bool operator == (const Self &cmp) const
+    { return m_SourceVector == cmp.m_SourceVector; }
+
+  virtual bool operator != (const Self &cmp) const
+    { return m_SourceVector != cmp.m_SourceVector; }
+
+  // An atomic domain holds its own state, so it is possible to compare two
+  // atomic domains to determine if they are the same or different. Domains
+  // that store references to external objects are not atomic.
+  virtual bool isAtomic() { return false; }
+
+protected:
+  const VectorType *m_SourceVector;
+};
+
+
+/**
+  This is an item domain implementation that is just an stl::vector, i.e., it
+  owns the data, as opposed to STLVectorWrapperItemSetDomain, which references
+  the data from another map. This implementation is useful for small domains
+  where there is no cost in passing the domain by value.
+
+  This version does not support comparison between domains, and can not be used
+  in applications where the domain needs to be cached
+  */
+template<class TVal, class TDesc>
+class SimpleNonAtomicSTLVectorItemSetDomain : public
+    AbstractItemSetDomain<TVal, TDesc, typename std::vector<TDesc>::const_iterator>
+{
+public:
+  typedef std::vector<TDesc> VectorType;
+  typedef typename VectorType::const_iterator const_iterator;
+  typedef SimpleNonAtomicSTLVectorItemSetDomain<TVal, TDesc> Self;
+  typedef AbstractItemSetDomain<TVal, TDesc, const_iterator> Superclass;
+
+  SimpleNonAtomicSTLVectorItemSetDomain() : Superclass() { }
+
+  const_iterator begin() const
+    { return m_Vector.begin(); }
+
+  const_iterator end() const
+    { return m_Vector.end(); }
+
+  const_iterator find(const TVal &value) const
+    { return m_Vector.begin() + value; }
+
+  void clear()
+    { m_Vector.clear(); }
+
+  TVal GetValue(const const_iterator &it) const
+    { return it - m_Vector.begin(); }
+
+  TDesc GetDescription(const const_iterator &it) const
+    { return *it; }
+
+  unsigned int size() const
+    { return m_Vector.size(); }
+
+  // Bogus - just compares to self
+  virtual bool operator == (const Self &cmp) const
+    { return &m_Vector == &cmp.m_Vector; }
+
+  // Bogus - just compares to self
+  virtual bool operator != (const Self &cmp) const
+    { return &m_Vector != &cmp.m_Vector; }
+
+  // An atomic domain holds its own state, so it is possible to compare two
+  // atomic domains to determine if they are the same or different. Domains
+  // that store references to external objects are not atomic. This class is
+  // not atomic because it does not support comparisons
+  virtual bool isAtomic() { return false; }
+
+protected:
+  VectorType m_Vector;
+};
+
+
+/**
+  This is an item domain implementation that is just an stl::map, i.e., it
+  owns the data, as opposed to STLMapWrapperItemSetDomain, which references
+  the data from another map. This implementation is useful for small domains
+  where there is no cost in passing the domain by value.
+  */
+template<class TVal, class TDesc>
+class SimpleSTLVectorItemSetDomain : public
+    SimpleNonAtomicSTLVectorItemSetDomain<TVal, TDesc>
+{
+public:
+  typedef std::vector<TDesc> VectorType;
+  typedef typename VectorType::const_iterator const_iterator;
+  typedef SimpleSTLVectorItemSetDomain<TVal, TDesc> Self;
+  typedef SimpleNonAtomicSTLVectorItemSetDomain<TVal, TDesc> Superclass;
+
+  SimpleSTLVectorItemSetDomain() : Superclass() { }
+
+  SimpleSTLVectorItemSetDomain(const VectorType &v) : Superclass() { this->m_Vector = v; }
+
+  virtual bool operator == (const Self &cmp) const
+    { return this->m_Vector == cmp.m_Vector; }
+
+  virtual bool operator != (const Self &cmp) const
+    { return this->m_Vector != cmp.m_Vector; }
 
   // An atomic domain holds its own state, so it is possible to compare two
   // atomic domains to determine if they are the same or different. Domains
@@ -513,6 +611,11 @@ public:
   irisSetWithEventMacroWithOverride(Value, TVal, ValueChangedEvent)
   irisSetWithEventMacro(Domain, TDomain, DomainChangedEvent)
   irisSetWithEventMacro(IsValid, bool, ValueChangedEvent)
+
+  /** Get the domain by reference */
+  const TDomain &GetDomain() const { return m_Domain; }
+
+
 
   // Simple implementation of the deep copy function
   void DeepCopy(const Self *source)

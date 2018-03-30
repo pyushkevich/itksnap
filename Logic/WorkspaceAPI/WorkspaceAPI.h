@@ -175,6 +175,18 @@ public:
   /** Get the absolute path to the directory where the project was loaded from */
   std::string GetWorkspaceActualDirectory()  const;
 
+  /** Cross-platform way of getting a temporary path */
+  static std::string GetTempDirName();
+
+  /** Export the workspace */
+  void ExportWorkspace(const char *new_workspace) const;
+
+  /** Upload the workspace */
+  void UploadWorkspace(const char *url, int ticket_id, const char *wsfile_suffix) const;
+
+  /** Create a ticket from a workspace */
+  int CreateWorkspaceTicket(const char *service_githash) const;
+
 
 protected:
 

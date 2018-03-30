@@ -72,6 +72,35 @@ struct StatusCheckResponse
   AuthResponse auth_response;
 };
 
+/** Tag type enum */
+enum TagType {
+  TAG_LAYER_ANATOMICAL, TAG_LAYER_MAIN, TAG_SEGMENTATION_LABEL, TAG_POINT_LANDMARK, TAG_UNKNOWN
+};
+
+/** Tag specification */
+struct TagSpec
+{
+  bool required;
+  TagType type;
+  std::string name;
+  std::string hint;
+
+  // Reference to the object (layer, label, landmark) associated with this gat
+  unsigned long object_id;
+
+  bool operator == (const TagSpec &other) const;
+};
+
+/** Tag target specification */
+struct TagTargetSpec
+{
+  TagSpec tag_spec;
+  unsigned long object_id;
+  std::string desc;
+
+  bool operator == (const TagSpec &other) const;
+};
+
 /** Service description */
 struct ServiceDetailResponse
 {
@@ -80,6 +109,9 @@ struct ServiceDetailResponse
 
   // Descriptive info
   std::string longdesc, url;
+
+  // List of tag specs
+  std::vector<TagSpec> tag_specs;
 };
 
 } // namespace
@@ -97,6 +129,11 @@ public:
   enum ServerStatus
     { NOT_CONNECTED = 0, CONNECTED_NOT_AUTHORIZED, CONNECTED_AUTHORIZED };
 
+  enum UIState {
+    UIF_TAGS_ASSIGNED
+  };
+
+
   // A custom event fired when the server configuration changes
   itkEventMacro(ServerChangeEvent, IRISEvent)
   itkEventMacro(ServiceChangeEvent, IRISEvent)
@@ -105,6 +142,9 @@ public:
 
   void SetParentModel(GlobalUIModel *model);
   irisGetMacro(Parent, GlobalUIModel *)
+
+  /** Check state */
+  bool CheckState(UIState state);
 
   /** Server URL property model */
   typedef STLVectorWrapperItemSetDomain<int, std::string> ServerURLDomain;
@@ -132,8 +172,28 @@ public:
   typedef SimpleItemSetDomain<int, std::string> CurrentServiceDomain;
   irisGenericPropertyAccessMacro(CurrentService, int, CurrentServiceDomain)
 
+  /** Tag listing model */
+  typedef STLVectorWrapperItemSetDomain<int, dss_model::TagTargetSpec> TagDomainType;
+  irisGenericPropertyAccessMacro(TagList, int, TagDomainType)
+
+  /** Layer domain for tag assignment */
+  typedef SimpleItemSetDomain<unsigned long, std::string> LayerSelectionDomain;
+  irisGenericPropertyAccessMacro(CurrentTagImageLayer, unsigned long, LayerSelectionDomain)
+
+  /** The last ticket submitted */
+  irisSimplePropertyAccessMacro(SubmittedTicketId, int)
+
   /** Get the git hash of the current service */
   std::string GetCurrentServiceGitHash() const;
+
+  /** Check if all the required tags have a target */
+  bool AreAllRequiredTagsAssignedTarget();
+
+  /** Assign tags to their targets */
+  void ApplyTagsToTargets();
+
+  /** Submit the workspace */
+  void SubmitWorkspace();
 
   /** Static function that runs asynchronously to perform server authentication */
   static dss_model::StatusCheckResponse AsyncCheckStatus(std::string url, std::string token);
@@ -147,8 +207,8 @@ public:
   /** Apply the results of async server authentication to the model */
   void ApplyServiceDetailResponse(const dss_model::ServiceDetailResponse &resp);
 
-
-
+  /** Get the text corresponding to the target of a particular tag */
+  std::string GetTagTargetText(int tag);
 
 protected:
 
@@ -177,6 +237,22 @@ protected:
   // Property model for service description
   SmartPtr<ConcreteSimpleStringProperty> m_ServiceDescriptionModel;
 
+  // Vector of current tag-specs
+  std::vector<dss_model::TagTargetSpec> m_TagSpecArray;
+
+  // Property model for the tag table
+  typedef ConcretePropertyModel<int, TagDomainType> TagListModel;
+  SmartPtr<TagListModel> m_TagListModel;
+
+  // Property model for the current tag's image layer
+  typedef AbstractPropertyModel<unsigned long, LayerSelectionDomain> CurrentTagImageLayerModel;
+  SmartPtr<CurrentTagImageLayerModel> m_CurrentTagImageLayerModel;
+  bool GetCurrentTagImageLayerValueAndRange(unsigned long &value, LayerSelectionDomain *range);
+  void SetCurrentTagImageLayerValue(unsigned long value);
+
+  // Property model for last submitted ticket id
+  SmartPtr<ConcreteSimpleIntProperty> m_SubmittedTicketIdModel;
+
   // Registry holding the service listing
   dss_model::ServiceListing m_ServiceListing;
 
@@ -185,6 +261,13 @@ protected:
 
   // Parent model
   GlobalUIModel *m_Parent;
+
+
+private:
+  void AssignTagObjectIds();
+
+  // Helper function to get listing of services
+  static bool AsyncGetServiceListing(std::vector<dss_model::ServiceSummary> &services);
 };
 
 #endif // DISTRIBUTEDSEGMENTATIONMODEL_H

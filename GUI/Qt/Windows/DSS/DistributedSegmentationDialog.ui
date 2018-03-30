@@ -19,7 +19,7 @@
      <property name="currentIndex">
       <number>1</number>
      </property>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="tabConfigure">
       <attribute name="title">
        <string>Configure</string>
       </attribute>
@@ -141,39 +141,63 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_3">
+     <widget class="QWidget" name="tabSubmit">
       <attribute name="title">
        <string>Submit</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1">
-       <item row="5" column="1">
-        <widget class="QWidget" name="widget_2" native="true">
-         <widget class="QPushButton" name="pushButton">
-          <property name="geometry">
-           <rect>
-            <x>40</x>
-            <y>10</y>
-            <width>113</width>
-            <height>32</height>
-           </rect>
-          </property>
+       <item row="5" column="0" colspan="2">
+        <widget class="QWidget" name="widget_3" native="true"/>
+       </item>
+       <item row="3" column="0" colspan="2">
+        <widget class="QTableWidget" name="tblTags">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>140</height>
+          </size>
+         </property>
+         <property name="editTriggers">
+          <set>QAbstractItemView::AllEditTriggers</set>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+         <attribute name="verticalHeaderDefaultSectionSize">
+          <number>24</number>
+         </attribute>
+         <column>
           <property name="text">
-           <string>Submit</string>
+           <string>Tag</string>
           </property>
-         </widget>
-         <widget class="QPushButton" name="pushButton_2">
-          <property name="geometry">
-           <rect>
-            <x>170</x>
-            <y>10</y>
-            <width>113</width>
-            <height>32</height>
-           </rect>
-          </property>
+         </column>
+         <column>
           <property name="text">
-           <string>Reset Form</string>
+           <string>Type</string>
           </property>
-         </widget>
+         </column>
+         <column>
+          <property name="text">
+           <string>Required</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Target Object</string>
+          </property>
+         </column>
         </widget>
        </item>
        <item row="0" column="1">
@@ -192,9 +216,6 @@
          </property>
         </spacer>
        </item>
-       <item row="3" column="0" colspan="2">
-        <widget class="QTableView" name="tblTags"/>
-       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="label_3">
          <property name="text">
@@ -202,14 +223,40 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Tags:</string>
-         </property>
+       <item row="6" column="0" colspan="2">
+        <widget class="QWidget" name="widget_2" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btnSubmit">
+            <property name="text">
+             <string>Submit</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_2">
+            <property name="text">
+             <string>Reset Form</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
-       <item row="1" column="1">
+       <item row="1" column="0" colspan="2">
         <widget class="QLabel" name="outServiceDesc">
          <property name="styleSheet">
           <string notr="true">font-size:11px;
@@ -221,6 +268,13 @@ color: rgb(76, 76, 76);
          </property>
          <property name="wordWrap">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Assign tags to images and other objects:</string>
          </property>
         </widget>
        </item>

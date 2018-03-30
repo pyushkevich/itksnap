@@ -33,6 +33,8 @@ public slots:
 private slots:
   void on_btnGetToken_clicked();
 
+  void on_btnSubmit_clicked();
+
 private:
   Ui::DistributedSegmentationDialog *ui;
 

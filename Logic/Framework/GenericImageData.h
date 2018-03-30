@@ -168,6 +168,10 @@ public:
   ImageWrapperBase *FindLayer(unsigned long unique_id, bool search_derived,
                               int role_filter = ALL_ROLES);
 
+  /**
+   * Find all layers that have a certain tag.
+   */
+  std::list<ImageWrapperBase *> FindLayersByTag(std::string tag, int role_filter = ALL_ROLES);
 
   int GetNumberOfOverlays();
 
