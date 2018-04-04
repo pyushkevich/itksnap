@@ -13,7 +13,27 @@ using itksys::SystemTools;
 #endif
 #include <curl/curl.h>
 
+namespace RESTClient_internal
+{
 
+int progress_callback(void *clientp,
+                      curl_off_t dltotal, curl_off_t dlnow,
+                      curl_off_t ultotal,   curl_off_t ulnow)
+{
+  long bytes_total = dltotal + ultotal;
+  long bytes_done = dlnow + ulnow;
+
+  // Sometimes this is called with zeros
+  if(bytes_total == 0)
+    return 0;
+
+  typedef std::pair<void *, RESTClient::ProgressCallbackFunction> CallbackInfo;
+  CallbackInfo *cbi = static_cast<CallbackInfo *>(clientp);
+  cbi->second(cbi->first, bytes_done * 1.0 / bytes_total);
+  return 0;
+}
+
+} // namespace
 
 using namespace std;
 
@@ -23,6 +43,9 @@ RESTClient::RESTClient()
   m_UploadMessageBuffer[0] = 0;
   m_MessageBuffer[0] = 0;
   m_OutputFile = NULL;
+
+  m_CallbackInfo.first = NULL;
+  m_CallbackInfo.second = NULL;
 }
 
 RESTClient::~RESTClient()
@@ -153,6 +176,11 @@ bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
   return m_HTTPCode == 200L;
 }
 
+void RESTClient::SetProgressCallback(void *cb_data, ProgressCallbackFunction fn)
+{
+  m_CallbackInfo = make_pair(cb_data, fn);
+}
+
 bool RESTClient::UploadFile(
     const char *rel_url, const char *filename,
     std::map<string, string> extra_fields, ...)
@@ -225,6 +253,14 @@ bool RESTClient::UploadFile(
   m_Output.clear();
   curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
   curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
+
+  // Set the callback functions
+  if(m_CallbackInfo.first)
+    {
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
+    curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
+    }
 
   // Make request
   CURLcode res = curl_easy_perform(m_Curl);

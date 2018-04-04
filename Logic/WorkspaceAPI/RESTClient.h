@@ -46,6 +46,14 @@ public:
    */
   bool Post(const char *rel_url, const char *post_string, ...);
 
+  // Progress callback signature
+  typedef  void ( *ProgressCallbackFunction )(void *, double);
+
+  /**
+   * Set the callback command for uploads and downloads
+   */
+  void SetProgressCallback(void *cb_data, ProgressCallbackFunction fn);
+
   bool UploadFile(const char *rel_url, const char *filename,
     std::map<std::string,std::string> extra_fields, ...);
 
@@ -77,6 +85,9 @@ protected:
   /** Upload message buffer */
   char m_UploadMessageBuffer[1024];
 
+  /** Callback stuff */
+  std::pair<void *, ProgressCallbackFunction> m_CallbackInfo;
+
   std::string GetDataDirectory();
 
   std::string GetCookieFile();
@@ -88,6 +99,8 @@ protected:
   static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
   static size_t WriteToFileCallback(void *contents, size_t size, size_t nmemb, void *userp);
+
+
 
 };
 

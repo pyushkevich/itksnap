@@ -41,6 +41,7 @@
 #include "IRISImageData.h"
 #include "WorkspaceAPI.h"
 #include "json/json.h"
+#include "UIReporterDelegates.h"
 #include <sstream>
 
 namespace dss_model {
@@ -65,6 +66,17 @@ bool TagSpec::operator ==(const TagSpec &o) const
       object_id == o.object_id;
 }
 
+std::string ticket_status_strings[] =
+{
+  "initialized", "ready", "claimed", "success", "failed", "timed out"
+};
+
+std::string tag_type_strings[] =
+{
+  "Image Layer", "Main Image", "Segmentation Label", "Point Landmark", "Unknown"
+};
+
+
 } // namespace
 
 using namespace dss_model;
@@ -88,10 +100,10 @@ bool DistributedSegmentationModel::CheckState(DistributedSegmentationModel::UISt
 {
   switch(state)
     {
+    case DistributedSegmentationModel::UIF_AUTHENTICATED:
+      return m_ServerStatusModel->GetValue() == CONNECTED_AUTHORIZED;
     case DistributedSegmentationModel::UIF_TAGS_ASSIGNED:
       return AreAllRequiredTagsAssignedTarget();
-      break;
-
     }
 
 }
@@ -187,15 +199,20 @@ void DistributedSegmentationModel::ApplyTagsToTargets()
     }
 }
 
+#include "AllPurposeProgressAccumulator.h"
 
-void DistributedSegmentationModel::SubmitWorkspace()
+
+void DistributedSegmentationModel::SubmitWorkspace(ProgressReporterDelegate *pdel)
 {
   // At this point the project had to be saved. We read it using the API object
   WorkspaceAPI ws;
   ws.ReadFromXMLFile(m_Parent->GetGlobalState()->GetProjectFilename().c_str());
 
+  // Create a command that reports accumulated progress
+  SmartPtr<itk::Command> cmd = pdel->CreateCommand();
+
   // Do the upload magic
-  int ticket_id = ws.CreateWorkspaceTicket(this->GetCurrentServiceGitHash().c_str());
+  int ticket_id = ws.CreateWorkspaceTicket(this->GetCurrentServiceGitHash().c_str(), cmd);
 
   // Stick into the model
   m_SubmittedTicketIdModel->SetValue(ticket_id);
@@ -210,19 +227,22 @@ DistributedSegmentationModel::AsyncGetServiceListing(
   {
   // Second, try to get service listing
   RESTClient rc;
-  if(rc.Get("api/services"))
-    {
-    FormattedTable ft;
-    ft.ParseCSV(rc.GetOutput());
 
-    for(int i = 0; i < ft.Rows(); i++)
+  if(rc.Get("api/services?format=json"))
+    {
+    Json::Reader json_reader; Json::Value root;
+    if(json_reader.parse(rc.GetOutput(), root, false))
       {
-      dss_model::ServiceSummary service;
-      service.name = ft(i, 0);
-      service.githash = ft(i, 1);
-      service.version = ft(i, 2);
-      service.desc = ft(i, 3);
-      services.push_back(service);
+      const Json::Value res = root["result"];
+      for(int i = 0; i < res.size(); i++)
+        {
+        dss_model::ServiceSummary service;
+        service.name = res[i].get("name","").asString();
+        service.githash = res[i].get("githash","").asString();
+        service.version = res[i].get("version","").asString();
+        service.desc = res[i].get("shortdesc","").asString();
+        services.push_back(service);
+        }
       }
 
     return true;
@@ -242,36 +262,31 @@ DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string toke
   response.auth_response.connected = false;
   response.auth_response.authenticated = false;
 
-  // Try to get the service listing using the cached cookie
-  if(AsyncGetServiceListing(response.service_listing))
-    {
-    response.auth_response.connected = true;
-    response.auth_response.authenticated = true;
-    return response;
-    }
-
-  // Failer likely means that we are not authenticated
   try
     {
-    RESTClient rc;
-    if(rc.Authenticate(url.c_str(), token.c_str()))
+    // If token is empty, bypass the authentication step
+    if(token.size() > 0)
+      {
+      RESTClient rc;
+      if(!rc.Authenticate(url.c_str(), token.c_str()))
+        {
+        // Failed authentication but did connect
+        response.auth_response.connected = true;
+        return response;
+        }
+      }
+
+    // See if we can successfully get a listing
+    if(AsyncGetServiceListing(response.service_listing))
       {
       response.auth_response.connected = true;
       response.auth_response.authenticated = true;
       }
-    else
-      {
-      response.auth_response.connected = true;
-      return response;
-      }
     }
   catch(...)
     {
-    return response;
+    response.auth_response.connected = false;
     }
-
-  // Get the service listing again now that we are in
-  AsyncGetServiceListing(response.service_listing);
 
   return response;
 }
@@ -348,7 +363,7 @@ void DistributedSegmentationModel::AssignTagObjectIds()
     {
     TagTargetSpec &tag = m_TagSpecArray[i];
     tag.object_id = 0;
-    tag.desc = std::string();
+    tag.desc = "Unassigned";
 
     if(driver->IsMainImageLoaded())
       {
@@ -402,6 +417,83 @@ void DistributedSegmentationModel::ApplyServiceDetailResponse(const ServiceDetai
     {
     m_TagListModel->SetIsValid(false);
     }
+}
+
+TicketListingResponse DistributedSegmentationModel::AsyncGetTicketListing()
+{
+  TicketListingResponse result;
+
+  RegistryEnumMap<TicketStatus> type_map;
+
+  type_map.AddPair(STATUS_INIT, "init");
+  type_map.AddPair(STATUS_READY, "ready");
+  type_map.AddPair(STATUS_CLAIMED, "claimed");
+  type_map.AddPair(STATUS_SUCCESS, "success");
+  type_map.AddPair(STATUS_FAILED, "failed");
+  type_map.AddPair(STATUS_TIMEOUT, "timeout");
+  type_map.AddPair(STATUS_UNKNOWN, "Unknown");
+
+  try {
+    RESTClient rc;
+    if(rc.Get("api/tickets?format=json"))
+      {
+      Json::Reader json_reader;
+      Json::Value root;
+      if(json_reader.parse(rc.GetOutput(), root, false))
+        {
+        const Json::Value tickets = root["result"];
+        for(int i = 0; i < tickets.size(); i++)
+          {
+          TicketStatusSummary tss;
+          tss.id = (TicketId) tickets[i].get("id",0).asLargestInt();
+          tss.service_name = tickets[i].get("service","").asString();
+          tss.status = type_map.GetEnumValueWithDefault(
+                         tickets[i].get("status","").asString(), STATUS_UNKNOWN);
+          result[tss.id] = tss;
+          }
+        }
+      }
+    }
+  catch (...)
+  {
+  }
+
+  return result;
+}
+
+void DistributedSegmentationModel::ApplyTicketListingResponse(const TicketListingResponse &resp)
+{
+  // Check if the ticket listing has changed
+  bool same_keys = true;
+  if(m_TicketListing.size() != resp.size())
+    {
+    same_keys = false;
+    }
+  else
+    {
+    TicketListingResponse::const_iterator it_old = m_TicketListing.begin();
+    TicketListingResponse::const_iterator it_new = resp.begin();
+
+    for(; it_old != m_TicketListing.end() && it_new != resp.end(); it_old++, it_new++)
+      {
+      if(it_old->first != it_new->first)
+        {
+        same_keys = false;
+        break;
+        }
+      }
+    }
+
+  // Just store the ticket listing
+  m_TicketListing = resp;
+
+  // Set the status of the model
+  m_TicketListModel->SetIsValid(m_TicketListing.size() > 0);
+
+  if(same_keys)
+    m_TicketListModel->InvokeEvent(DomainDescriptionChangedEvent());
+  else
+    m_TicketListModel->InvokeEvent(DomainChangedEvent());
 }
 
 bool DistributedSegmentationModel::GetServerStatusStringValue(std::string &value)
@@ -501,6 +593,10 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   m_TagListModel = NewConcreteProperty(-1, TagDomainType(&m_TagSpecArray));
   m_TagListModel->SetIsValid(false);
 
+  // Ticket listing model
+  m_TicketListModel = NewConcreteProperty((TicketId) -1, TicketListingDomain(&m_TicketListing));
+  m_TicketListModel->SetIsValid(false);
+
   // Model for current tag selection
   m_CurrentTagImageLayerModel = wrapGetterSetterPairAsProperty(
                                   this,
@@ -524,6 +620,7 @@ DistributedSegmentationModel::DistributedSegmentationModel()
 
   // Changes to the tags table require a state update
   this->Rebroadcast(m_CurrentTagImageLayerModel, DomainChangedEvent(), StateMachineChangeEvent());
+  this->Rebroadcast(m_ServerStatusModel, ValueChangedEvent(), StateMachineChangeEvent());
 
 }
 

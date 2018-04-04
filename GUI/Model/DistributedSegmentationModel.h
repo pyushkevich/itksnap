@@ -40,6 +40,7 @@
 
 class GlobalUIModel;
 class IRISApplication;
+class ProgressReporterDelegate;
 
 namespace dss_model {
 
@@ -74,8 +75,12 @@ struct StatusCheckResponse
 
 /** Tag type enum */
 enum TagType {
-  TAG_LAYER_ANATOMICAL, TAG_LAYER_MAIN, TAG_SEGMENTATION_LABEL, TAG_POINT_LANDMARK, TAG_UNKNOWN
+  TAG_LAYER_ANATOMICAL = 0, TAG_LAYER_MAIN, TAG_SEGMENTATION_LABEL, TAG_POINT_LANDMARK, TAG_UNKNOWN
 };
+
+
+/** Tag type string values */
+extern std::string tag_type_strings[];
 
 /** Tag specification */
 struct TagSpec
@@ -114,6 +119,28 @@ struct ServiceDetailResponse
   std::vector<TagSpec> tag_specs;
 };
 
+/** Ticket status */
+enum TicketStatus {
+  STATUS_INIT = 0, STATUS_READY, STATUS_CLAIMED, STATUS_SUCCESS, STATUS_FAILED, STATUS_TIMEOUT, STATUS_UNKNOWN
+};
+
+/** Ticket status string values */
+extern std::string ticket_status_strings[];
+
+/** Ticket id type */
+typedef long TicketId;
+
+/** Status of a single ticket */
+struct TicketStatusSummary
+{
+  TicketId id;
+  TicketStatus status;
+  std::string service_name;
+};
+
+/** Respose from listing tickets */
+typedef std::map<TicketId, TicketStatusSummary> TicketListingResponse;
+
 } // namespace
 
 
@@ -130,6 +157,7 @@ public:
     { NOT_CONNECTED = 0, CONNECTED_NOT_AUTHORIZED, CONNECTED_AUTHORIZED };
 
   enum UIState {
+    UIF_AUTHENTICATED,
     UIF_TAGS_ASSIGNED
   };
 
@@ -193,7 +221,11 @@ public:
   void ApplyTagsToTargets();
 
   /** Submit the workspace */
-  void SubmitWorkspace();
+  void SubmitWorkspace(ProgressReporterDelegate *pdel);
+
+  /** Property for selecting and listing tickets */
+  typedef STLMapWrapperItemSetDomain<dss_model::TicketId, dss_model::TicketStatusSummary> TicketListingDomain;
+  irisGenericPropertyAccessMacro(TicketList, dss_model::TicketId, TicketListingDomain)
 
   /** Static function that runs asynchronously to perform server authentication */
   static dss_model::StatusCheckResponse AsyncCheckStatus(std::string url, std::string token);
@@ -206,6 +238,12 @@ public:
 
   /** Apply the results of async server authentication to the model */
   void ApplyServiceDetailResponse(const dss_model::ServiceDetailResponse &resp);
+
+  /** Static function that runs asynchronously to get a list of tickets */
+  static dss_model::TicketListingResponse AsyncGetTicketListing();
+
+  /** Apply the results of ticket listing call to the model */
+  void ApplyTicketListingResponse(const dss_model::TicketListingResponse &resp);
 
   /** Get the text corresponding to the target of a particular tag */
   std::string GetTagTargetText(int tag);
@@ -237,6 +275,10 @@ protected:
   // Property model for service description
   SmartPtr<ConcreteSimpleStringProperty> m_ServiceDescriptionModel;
 
+  // Property model for the ticket listing
+  typedef ConcretePropertyModel<dss_model::TicketId, TicketListingDomain> TicketListingModel;
+  SmartPtr<TicketListingModel> m_TicketListModel;
+
   // Vector of current tag-specs
   std::vector<dss_model::TagTargetSpec> m_TagSpecArray;
 
@@ -255,6 +297,9 @@ protected:
 
   // Registry holding the service listing
   dss_model::ServiceListing m_ServiceListing;
+
+  // Listing of tickets
+  dss_model::TicketListingResponse m_TicketListing;
 
   DistributedSegmentationModel();
   ~DistributedSegmentationModel() {}

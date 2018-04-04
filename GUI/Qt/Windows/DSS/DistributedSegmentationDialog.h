@@ -2,8 +2,7 @@
 #define DISTRIBUTEDSEGMENTATIONDIALOG_H
 
 #include <QDialog>
-#include <QThread>
-#include <QFutureWatcher>
+#include <QTimer>
 
 namespace Ui {
 class DistributedSegmentationDialog;
@@ -29,6 +28,9 @@ public slots:
 
   void updateServerStatus();
   void updateServiceDetail();
+  void updateTicketListing();
+
+  void onTicketListRefreshTimer();
 
 private slots:
   void on_btnGetToken_clicked();
@@ -40,9 +42,11 @@ private:
 
   DistributedSegmentationModel *m_Model;
 
-  // QFutureWatcher<DistributedSegmentationModel::ServerStatus> *m_WatcherAuth;
 
+  // A timer that updates the ticket listing
+  QTimer m_TicketRefreshTimer;
 
+  void LaunchTicketListingRefresh();
 };
 
 #endif // DISTRIBUTEDSEGMENTATIONDIALOG_H

@@ -4,6 +4,8 @@
 #include "Registry.h"
 #include <set>
 
+namespace itk { class Command; }
+
 /**
  * This class encapsulates an ITK-SNAP workspace. It is just a wrapper around
  * a registry object, but with extra functions that support workspaces
@@ -14,6 +16,9 @@ public:
 
   typedef std::set<std::string> StringSet;
   typedef std::list<std::string> StringList;
+
+  // Progress callback signature
+  typedef itk::Command CommandType;
 
   /**
    * Read the workspace from a file, determine if it has been moved or copied
@@ -36,7 +41,7 @@ public:
   /**
    * Get number of image layers in the workspace
    */
-  int GetNumberOfLayers();
+  int GetNumberOfLayers() const;
 
   /**
    * Get the folder for the n-th layer
@@ -179,13 +184,14 @@ public:
   static std::string GetTempDirName();
 
   /** Export the workspace */
-  void ExportWorkspace(const char *new_workspace) const;
+  void ExportWorkspace(const char *new_workspace, CommandType *cmd_progress = NULL) const;
 
   /** Upload the workspace */
-  void UploadWorkspace(const char *url, int ticket_id, const char *wsfile_suffix) const;
+  void UploadWorkspace(const char *url, int ticket_id, const char *wsfile_suffix,
+                       CommandType *cmd_progress = NULL) const;
 
   /** Create a ticket from a workspace */
-  int CreateWorkspaceTicket(const char *service_githash) const;
+  int CreateWorkspaceTicket(const char *service_githash, CommandType *cmd_progress = NULL) const;
 
 
 protected:

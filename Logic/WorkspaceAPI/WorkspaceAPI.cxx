@@ -8,6 +8,7 @@
 #include "GuidedNativeImageIO.h"
 #include "ColorLabelTable.h"
 #include "RESTClient.h"
+#include "itkCommand.h"
 
 using namespace std;
 using itksys::SystemTools;
@@ -60,7 +61,7 @@ void WorkspaceAPI::SaveAsXMLFile(const char *proj_file)
   m_WorkspaceFilePath = proj_file_full;
 }
 
-int WorkspaceAPI::GetNumberOfLayers()
+int WorkspaceAPI::GetNumberOfLayers() const
 {
   // Unfortunately we have to count the folders each time we want to return the number
   // of layers. This is the unfortunate consequence of the lame way in which Registry
@@ -654,8 +655,19 @@ string WorkspaceAPI::GetTempDirName()
 #endif
 }
 
-void WorkspaceAPI::ExportWorkspace(const char *new_workspace) const
+#include "AllPurposeProgressAccumulator.h"
+
+void WorkspaceAPI::ExportWorkspace(const char *new_workspace, CommandType *cmd_progress) const
 {
+  // Create a progress tracker
+  SmartPtr<TrivalProgressSource> progress = TrivalProgressSource::New();
+  if(cmd_progress)
+    {
+    progress->AddObserver(itk::StartEvent(), cmd_progress);
+    progress->AddObserver(itk::ProgressEvent(), cmd_progress);
+    progress->AddObserver(itk::EndEvent(), cmd_progress);
+    }
+
   // Duplicate the workspace data
   WorkspaceAPI wsexp = (*this);
 
@@ -664,6 +676,9 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace) const
 
   // Iterate over all the layers stored in the workspace
   int n_layers = wsexp.GetNumberOfLayers();
+
+  // Report progress
+  progress->StartProgress(n_layers);
 
   // Load all of the layers in the current project
   for(int i = 0; i < n_layers; i++)
@@ -685,6 +700,9 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace) const
     // Load the header of the image and the image data
     io->ReadNativeImage(fn_layer.c_str(), io_hints);
 
+    // Report progress
+    progress->AddProgress(0.5);
+
     // Compute the hash of the image data to generate filename
     std::string image_md5 = io->GetNativeImageMD5Hash();
 
@@ -697,6 +715,9 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace) const
     Registry dummy_hints;
     io->SaveNativeImage(fn_layer_new, dummy_hints);
 
+    // Report progress
+    progress->AddProgress(0.5);
+
     // Update the layer folder with the new path
     f_layer["AbsolutePath"] << fn_layer_new;
 
@@ -706,10 +727,27 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace) const
 
   // Write the updated project
   wsexp.SaveAsXMLFile(new_workspace);
+
+  // Report progress
+  progress->EndProgress();
 }
 
-void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id, const char *wsfile_suffix) const
+void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id, const char *wsfile_suffix,
+                                   CommandType *cmd_progress) const
 {
+  // There is a lot of progress to keep track of so we create an accumulator
+  SmartPtr<AllPurposeProgressAccumulator> accum = AllPurposeProgressAccumulator::New();
+  if(cmd_progress)
+    accum->AddObserver(itk::ProgressEvent(), cmd_progress);
+
+  // Create a command that can be passed on to the export code
+  SmartPtr<CommandType> cmd_export = accum->RegisterITKSourceViaCommand(0.5);
+
+  // Create a second accumulator for the upload. This is because we do not yet know how
+  // many files we will be uploading (not until the export is done)
+  SmartPtr<AllPurposeProgressAccumulator> accum_upload = AllPurposeProgressAccumulator::New();
+  accum->RegisterSource(accum_upload, 0.5);
+
   // Create temporary directory for the export
   string tempdir = GetTempDirName();
   SystemTools::MakeDirectory(tempdir);
@@ -717,33 +755,56 @@ void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id, const char *w
   // Export the workspace file to the temporary directory
   char ws_fname_buffer[4096];
   sprintf(ws_fname_buffer, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
-  ExportWorkspace(ws_fname_buffer);
+  ExportWorkspace(ws_fname_buffer, cmd_export);
 
-  cout << "Exported workspace to " << ws_fname_buffer << endl;
-
-  // For each of the files in the directory upload it
+  // Count the number of files in the directory
+  std::vector<std::string> fn_to_upload;
   Directory dir;
   dir.Load(tempdir);
   for(int i = 0; i < dir.GetNumberOfFiles(); i++)
     {
-    RESTClient rcu;
     const char *thisfile = dir.GetFile(i);
     string file_full_path = SystemTools::CollapseFullPath(thisfile, dir.GetPath());
     if(!SystemTools::FileIsDirectory(file_full_path))
-      {
-      // TODO: this is disgraceful!
-      std::map<string, string> empty_map;
-      if(!rcu.UploadFile(url, file_full_path.c_str(), empty_map, ticket_id))
-        throw IRISException("Failed up upload file %s (%s)", file_full_path.c_str(), rcu.GetResponseText());
-
-      cout << "Upload " << thisfile << " (" << rcu.GetUploadStatistics() << ")" << endl;
-      }
+      fn_to_upload.push_back(file_full_path);
     }
+
+  cout << "Exported workspace to " << ws_fname_buffer << endl;
+
+  // Create a source for transfer progress
+  void *transfer_progress_src = accum_upload->RegisterGenericSource(fn_to_upload.size(), 1.0);
+
+  // For each of the files in the directory upload it
+  for(int i = 0; i < fn_to_upload.size(); i++)
+    {
+    const char *fn = fn_to_upload[i].c_str();
+
+    RESTClient rcu;
+
+    // Set progress callback
+    rcu.SetProgressCallback(transfer_progress_src,
+                            AllPurposeProgressAccumulator::GenericProgressCallback);
+
+    // TODO: this is disgraceful!
+    std::map<string, string> empty_map;
+    if(!rcu.UploadFile(url, fn, empty_map, ticket_id))
+      throw IRISException("Failed up upload file %s (%s)", fn, rcu.GetResponseText());
+
+    // Reset progress counter for next run
+    accum_upload->StartNextRun(transfer_progress_src);
+
+    cout << "Upload " << fn << " (" << rcu.GetUploadStatistics() << ")" << endl;
+    }
+
+  // Finish with the progress
+  accum_upload->UnregisterAllSources();
+  accum->UnregisterAllSources();
 
   // TODO: we should verify that all the files were successfully sent, via MD5
 }
 
-int WorkspaceAPI::CreateWorkspaceTicket(const char *service_githash) const
+int WorkspaceAPI::CreateWorkspaceTicket(const char *service_githash,
+                                        CommandType *cmd_progress) const
 {
   // Create a new ticket
   RESTClient rc;
@@ -755,7 +816,7 @@ int WorkspaceAPI::CreateWorkspaceTicket(const char *service_githash) const
   cout << "Created new ticket (" << ticket_id << ")" << endl;
 
   // Locally export and upload the workspace
-  UploadWorkspace("api/tickets/%d/files/input", ticket_id, "");
+  UploadWorkspace("api/tickets/%d/files/input", ticket_id, "", cmd_progress);
 
   // Mark this ticket as ready
   if(!rc.Post("api/tickets/%d/status","status=ready", ticket_id))

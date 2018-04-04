@@ -197,8 +197,7 @@ public:
     if(!model)
       return;
 
-    model->clear();
-    model->setColumnCount(TRowTraits::columnCount());
+    model->removeRows(0, model->rowCount());
 
     // Populate
     for(typename DomainType::const_iterator it = domain.begin();
@@ -217,6 +216,7 @@ public:
         rlist.append(item);
         }
       model->appendRow(rlist);
+
       }
   }
 

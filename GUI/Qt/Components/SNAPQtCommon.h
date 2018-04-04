@@ -163,5 +163,18 @@ inline QString from_utf8(const std::string &input)
 /** Method translates the tooltips in all child widgets from MACOS to windows/linux format */
 void TranslateChildTooltipKeyModifiers(QWidget *parent);
 
+/** Toggle flags on/off on an object that has methods flags() and setFlags() */
+template <class TObject, class TFlag>
+void toggle_flags_off(TObject *object, TFlag flag)
+{
+  object->setFlags(object->flags() & ~flag);
+}
+
+template <class TObject, class TFlag>
+void toggle_flags_on(TObject *object, TFlag flag)
+{
+  object->setFlags(object->flags() | flag);
+}
+
 
 #endif // SNAPQTCOMMON_H

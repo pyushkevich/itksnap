@@ -501,6 +501,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/StateManagement.cxx
   GUI/Model/SynchronizationModel.cxx
   GUI/Model/UIAction.cxx
+  GUI/Model/UIReporterDelegates.cxx
   GUI/Renderer/AbstractRenderer.cxx
   GUI/Renderer/AbstractVTKRenderer.cxx
   GUI/Renderer/AbstractVTKSceneRenderer.cxx
