@@ -3,6 +3,9 @@
 
 #include <QDialog>
 #include <QTimer>
+#include <QModelIndex>
+#include <QStyledItemDelegate>
+
 
 namespace Ui {
 class DistributedSegmentationDialog;
@@ -10,6 +13,54 @@ class DistributedSegmentationDialog;
 
 class DistributedSegmentationModel;
 class EventBucket;
+class QAbstractItemView;
+
+
+
+
+class TagComboDelegate : public QStyledItemDelegate
+{
+  Q_OBJECT
+
+public:
+
+  TagComboDelegate(DistributedSegmentationModel *model, QAbstractItemView *parent);
+
+  QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+  void setEditorData(QWidget *editor, const QModelIndex &index) const;
+
+  void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+
+  void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+private:
+  DistributedSegmentationModel *m_Model;
+  QAbstractItemView *m_View;
+};
+
+
+class AttachmentComboDelegate : public QStyledItemDelegate
+{
+  Q_OBJECT
+public:
+  AttachmentComboDelegate(DistributedSegmentationModel *model, QObject *parent = NULL);
+
+  QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+  void setEditorData(QWidget *editor, const QModelIndex &index) const;
+
+  void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const;
+
+  void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+
+public slots:
+
+  void onMenuAction(QAction *action);
+
+private:
+  DistributedSegmentationModel *m_Model;
+};
 
 
 class DistributedSegmentationDialog : public QDialog
@@ -29,13 +80,19 @@ public slots:
   void updateServerStatus();
   void updateServiceDetail();
   void updateTicketListing();
+  void updateTicketDetail();
 
   void onTicketListRefreshTimer();
+  void onSelectedTicketRefreshTimer();
 
 private slots:
   void on_btnGetToken_clicked();
 
   void on_btnSubmit_clicked();
+
+  void on_btnDownload_clicked();
+
+  void on_btnDelete_clicked();
 
 private:
   Ui::DistributedSegmentationDialog *ui;
@@ -44,9 +101,11 @@ private:
 
 
   // A timer that updates the ticket listing
-  QTimer m_TicketRefreshTimer;
+  QTimer *m_TicketDetailRefreshTimer;
+  QTimer *m_TicketListingRefreshTimer;
 
   void LaunchTicketListingRefresh();
+  void LaunchTicketDetailRefresh();
 };
 
 #endif // DISTRIBUTEDSEGMENTATIONDIALOG_H

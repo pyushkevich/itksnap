@@ -43,6 +43,7 @@
 #include "json/json.h"
 #include "UIReporterDelegates.h"
 #include <sstream>
+#include "itksys/SystemTools.hxx"
 
 namespace dss_model {
 
@@ -65,6 +66,19 @@ bool TagSpec::operator ==(const TagSpec &o) const
       required == o.required && hint == o.hint &&
       object_id == o.object_id;
 }
+
+const char *ticket_status_emap_initializer[] =
+{
+  "init", "ready", "claimed", "success", "failed", "timeout", "unknown", NULL
+};
+RegistryEnumMap<TicketStatus> ticket_status_emap(ticket_status_emap_initializer);
+
+const char *log_type_emap_initializer[] =
+{
+  "info", "warning", "error", "unknown", NULL
+};
+RegistryEnumMap<LogType> log_type_emap(log_type_emap_initializer);
+
 
 std::string ticket_status_strings[] =
 {
@@ -217,6 +231,85 @@ void DistributedSegmentationModel::SubmitWorkspace(ProgressReporterDelegate *pde
   // Stick into the model
   m_SubmittedTicketIdModel->SetValue(ticket_id);
   m_SubmittedTicketIdModel->SetIsValid(true);
+}
+
+std::string DistributedSegmentationModel::DownloadWorkspace()
+{
+  // Is there a valid ticket id with status of success?
+  IdType selected_ticket_id;
+  if(!m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL)
+     || m_TicketListing.find(selected_ticket_id) == m_TicketListing.end()
+     || m_TicketListing[selected_ticket_id].status != STATUS_SUCCESS)
+    return "";
+
+  // Create temporary directory for the download (for now)
+  string tempdir = WorkspaceAPI::GetTempDirName();
+  itksys::SystemTools::MakeDirectory(tempdir);
+
+  // Download into this directory
+  std::string file_list =
+      WorkspaceAPI::DownloadTicketFiles(selected_ticket_id, tempdir.c_str(), false, "results");
+
+  // return the file list
+  return file_list;
+
+}
+
+void DistributedSegmentationModel::DeleteSelectedTicket()
+{
+  // Is there a valid ticket id with status of success?
+  IdType selected_ticket_id;
+  if(!m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL)
+     || m_TicketListing.find(selected_ticket_id) == m_TicketListing.end())
+    return;
+
+  // Delete the ticket
+  RESTClient rc;
+  if(!rc.Get("api/tickets/%d/delete", selected_ticket_id))
+    throw IRISException("Error deleting ticket %d: %s", selected_ticket_id, rc.GetResponseText());
+
+  // Select the next ticket in the list
+  TicketListingResponse::const_iterator it = m_TicketListing.find(selected_ticket_id);
+  if(++it != m_TicketListing.end())
+    m_TicketListModel->SetValue(it->first);
+  else if(m_TicketListing.size())
+    m_TicketListModel->SetValue(m_TicketListing.rbegin()->first);
+  else
+    m_TicketListModel->SetIsValid(false);
+
+  // Remove the ticket
+  m_TicketListing.erase(selected_ticket_id);
+  m_TicketListModel->InvokeEvent(DomainChangedEvent());
+}
+
+IdType DistributedSegmentationModel::GetLastLogIdOfSelectedTicket()
+{
+  // There must be a selected ticket, the detail must be for that ticket and there
+  // must be some log messages in the detail
+  IdType selected_ticket_id;
+  if(!m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL)
+     || selected_ticket_id != m_SelectedTicketDetail.ticket_id
+     || m_SelectedTicketDetail.log.size() == 0)
+    {
+    return 0;
+    }
+
+  // Get the latest id
+  return m_SelectedTicketDetail.log.back().id;
+}
+
+const TicketDetailResponse *DistributedSegmentationModel::GetSelectedTicketDetail()
+{
+  // There must be a selected ticket, the detail must be for that ticket and there
+  // must be some log messages in the detail
+  IdType selected_ticket_id;
+  if(!m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL)
+     || selected_ticket_id != m_SelectedTicketDetail.ticket_id)
+    {
+    return NULL;
+    }
+
+  return &m_SelectedTicketDetail;
 }
 
 bool
@@ -423,16 +516,6 @@ TicketListingResponse DistributedSegmentationModel::AsyncGetTicketListing()
 {
   TicketListingResponse result;
 
-  RegistryEnumMap<TicketStatus> type_map;
-
-  type_map.AddPair(STATUS_INIT, "init");
-  type_map.AddPair(STATUS_READY, "ready");
-  type_map.AddPair(STATUS_CLAIMED, "claimed");
-  type_map.AddPair(STATUS_SUCCESS, "success");
-  type_map.AddPair(STATUS_FAILED, "failed");
-  type_map.AddPair(STATUS_TIMEOUT, "timeout");
-  type_map.AddPair(STATUS_UNKNOWN, "Unknown");
-
   try {
     RESTClient rc;
     if(rc.Get("api/tickets?format=json"))
@@ -445,9 +528,9 @@ TicketListingResponse DistributedSegmentationModel::AsyncGetTicketListing()
         for(int i = 0; i < tickets.size(); i++)
           {
           TicketStatusSummary tss;
-          tss.id = (TicketId) tickets[i].get("id",0).asLargestInt();
+          tss.id = (IdType) tickets[i].get("id",0).asLargestInt();
           tss.service_name = tickets[i].get("service","").asString();
-          tss.status = type_map.GetEnumValueWithDefault(
+          tss.status = ticket_status_emap.GetEnumValueWithDefault(
                          tickets[i].get("status","").asString(), STATUS_UNKNOWN);
           result[tss.id] = tss;
           }
@@ -494,6 +577,100 @@ void DistributedSegmentationModel::ApplyTicketListingResponse(const TicketListin
     m_TicketListModel->InvokeEvent(DomainDescriptionChangedEvent());
   else
     m_TicketListModel->InvokeEvent(DomainChangedEvent());
+}
+
+TicketDetailResponse DistributedSegmentationModel::AsyncGetTicketDetails(IdType ticket_id, IdType last_log)
+{
+  TicketDetailResponse tdr;
+  tdr.ticket_id = ticket_id;
+  tdr.progress = 0.0;
+
+  try {
+
+    // Get a full update on this ticket
+    RESTClient rc;
+    if(rc.Get("api/tickets/%ld/detail?since=%ld", ticket_id, last_log))
+      {
+      Json::Reader json_reader;
+      Json::Value root;
+      if(json_reader.parse(rc.GetOutput(), root, false))
+        {
+        const Json::Value result = root["result"];
+
+        // Read progress
+        tdr.progress = result.get("progress",0.0).asDouble();
+
+        // Read logs
+        const Json::Value log_entry = result["log"];
+        for(int i = 0; i < log_entry.size(); i++)
+          {
+          TicketLogEntry loglet;
+          loglet.id = log_entry[i].get("id",0).asLargestInt();
+          loglet.type = log_type_emap.GetEnumValueWithDefault(
+                             log_entry[i].get("category","").asString(), LOG_UNKNOWN);
+          loglet.atime = log_entry[i].get("atime","").asString();
+          loglet.text = log_entry[i].get("message","").asString();
+
+          const Json::Value att_entry = log_entry[i]["attachments"];
+          for(int i = 0; i < att_entry.size(); i++)
+            {
+            Attachment att;
+            att.desc = att_entry[i].get("description","").asString();
+            att.url = att_entry[i].get("url","").asString();
+            att.mimetype = att_entry[i].get("mime_type","").asString();
+            loglet.attachments.push_back(att);
+            }
+
+          tdr.log.push_back(loglet);
+          }
+        }
+      }
+    }
+  catch (...) {
+
+    }
+
+  return tdr;
+}
+
+void DistributedSegmentationModel::ApplyTicketDetailResponse(const TicketDetailResponse &resp)
+{
+  // Make sure that the detail is for the ticket that is currently selected
+  IdType selected_ticket_id;
+  if(!m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL)
+     || selected_ticket_id != resp.ticket_id)
+    {
+    // Just ignore this update - it is irrelevant because we selected another ticket already
+    return;
+    }
+
+  // Store the progress
+  m_SelectedTicketProgressModel->SetValue(resp.progress);
+  m_SelectedTicketProgressModel->SetIsValid(true);
+
+  // Store the log for the current ticket
+  bool log_modified = false;
+  if(m_SelectedTicketDetail.ticket_id != resp.ticket_id)
+    {
+    m_SelectedTicketDetail.log.clear();
+    log_modified = true;
+    }
+
+  // Append the log
+  for(std::vector<TicketLogEntry>::const_iterator it = resp.log.begin(); it != resp.log.end(); ++it)
+    {
+    m_SelectedTicketDetail.log.push_back(*it);
+    log_modified = true;
+    }
+
+  // Update the other fields
+  m_SelectedTicketDetail.progress = resp.progress;
+  m_SelectedTicketDetail.ticket_id = resp.ticket_id;
+
+  // Cause update in the log model
+  m_SelectedTicketLogModel->SetIsValid(true);
+  if(log_modified)
+    m_SelectedTicketLogModel->InvokeEvent(DomainChangedEvent());
 }
 
 bool DistributedSegmentationModel::GetServerStatusStringValue(std::string &value)
@@ -594,7 +771,7 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   m_TagListModel->SetIsValid(false);
 
   // Ticket listing model
-  m_TicketListModel = NewConcreteProperty((TicketId) -1, TicketListingDomain(&m_TicketListing));
+  m_TicketListModel = NewConcreteProperty((IdType) -1, TicketListingDomain(&m_TicketListing));
   m_TicketListModel->SetIsValid(false);
 
   // Model for current tag selection
@@ -608,6 +785,14 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   // Last submitted ticket
   m_SubmittedTicketIdModel = NewSimpleConcreteProperty(-1);
   m_SubmittedTicketIdModel->SetIsValid(false);
+
+  // Selected ticket progress model
+  m_SelectedTicketProgressModel = NewRangedConcreteProperty(0.0, 0.0, 1.0, 0.01);
+  m_SelectedTicketProgressModel->SetIsValid(false);
+
+  // Selected ticket logs
+  m_SelectedTicketLogModel = NewConcreteProperty((IdType) -1, LogDomainType(&m_SelectedTicketDetail.log));
+  m_SelectedTicketLogModel->SetIsValid(false);
 
   // Changes to the server and token result in a server change event
   this->Rebroadcast(m_ServerURLModel, ValueChangedEvent(), ServerChangeEvent());

@@ -73,7 +73,9 @@ void LabelEditorDialog::SetModel(LabelEditorModel *model)
   m_Model = model;
 
   // Couple widgets to the model
-  makeCoupling((QAbstractItemView *) (ui->lvLabels), m_Model->GetCurrentLabelModel());
+  makeMultiRowCoupling((QAbstractItemView *) (ui->lvLabels),
+                       m_Model->GetCurrentLabelModel(),
+                       TwoColumnColorLabelToQSIMCouplingRowTraits());
 
   // Coupling for the description of the current label. Override the default
   // signal for this widget.

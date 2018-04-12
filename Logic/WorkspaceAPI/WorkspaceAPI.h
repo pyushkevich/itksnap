@@ -193,6 +193,11 @@ public:
   /** Create a ticket from a workspace */
   int CreateWorkspaceTicket(const char *service_githash, CommandType *cmd_progress = NULL) const;
 
+  /**
+   * Download ticket files to a directory. Flag provider_mode switches between
+   * behavior for users and providers. String area is one of (input|results)
+   */
+  static std::string DownloadTicketFiles(int ticket_id, const char *outdir, bool provider_mode, const char *area);
 
 protected:
 

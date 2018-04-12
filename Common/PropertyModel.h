@@ -559,6 +559,14 @@ public:
   }
 
   /**
+   * Check if the model is valid
+   */
+  bool isValid()
+  {
+    return CheckState(UIF_PROPERTY_IS_VALID);
+  }
+
+  /**
     Sometimes it is useful to have the model rebroadcast value and domain
     change events from another model. An example may be a model that wraps
     around another model, e.g., if model A is of a compound type T and
