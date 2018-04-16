@@ -127,9 +127,11 @@ int usage(int rc)
   cout << "  -dss-tickets-delete <id>          : Delete a ticket" << endl;
   cout << "Distributed segmentation server provider commands: " << endl;
   cout << "  -dssp-services-list               : List all the services you are listed as provider for" << endl;
-  cout << "  -dssp-services-claim <service_hash> <provider> <instance_id> [timeout]" << endl;
-  cout << "                                    : Claim the next available ticket for given service." << endl;
-  cout << "                                      'instance_id' is a unique identifier for this service instance" << endl;
+  cout << "  -dssp-services-claim <service_hash_list> <provider> <instance_id> [timeout]" << endl;
+  cout << "                                    : Claim the next available ticket for given service or list of services." << endl;
+  cout << "                                      'service_hash_list' is a comma-separated list of service git hashes." << endl;
+  cout << "                                      'provider' is the provider identifier code" << endl;
+  cout << "                                      'instance_id' is a unique identifier within the provider" << endl;
   cout << "                                      if 'timeout' specified, command will halt until a ticket " << endl;
   cout << "                                      can be claimed or 'timeout' seconds pass." << endl;
   cout << "  -dssp-tickets-download <id> <dir> : Download the files for claimed ticket id to dir" << endl;
@@ -731,24 +733,25 @@ int main(int argc, char *argv[])
           {
           // Try claiming the ticket
           RESTClient rc;
-          if(!rc.Post("api/pro/services/%s/claims","provider=%s,code=%s",
+          if(!rc.Post("api/pro/services/claims","services=%s&provider=%s&code=%s",
                       service_githash.c_str(), provider_name.c_str(), provider_code.c_str()))
             throw IRISException("Error claiming ticket for service %s: %s", 
               service_githash.c_str(), rc.GetResponseText());
 
-          // Ticket id will be 0 if nothing is available, or the ticket id
-          int ticket_id = atoi(rc.GetOutput());
+          // The output will be a table with ticket id and githash
+          FormattedTable ft;
+          ft.ParseCSV(rc.GetOutput());
 
-          // If actual ticket, print it and we are done
-          if(ticket_id > 0) 
+          int ticket_id;
+          if(ft.Rows() == 1 && (ticket_id = atoi(ft(0, 0).c_str())) > 0)
             {
-            cout << prefix << ticket_id << endl;
+            ft.Print(cout, prefix);
             context_ticket_id = ticket_id;
             break;
             }
           else if(tnow + twait > timeout)
             {
-            throw IRISException("No tickets available to claim for service %s", service_githash.c_str());
+            throw IRISException("No tickets available to claim for service(s) %s", service_githash.c_str());
             }
           else
             {

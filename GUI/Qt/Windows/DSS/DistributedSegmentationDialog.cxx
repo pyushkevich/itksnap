@@ -155,8 +155,51 @@ public:
 };
 
 
+/**
+ * Traits for mapping status codes to a label
+ */
+template<>
+class DefaultWidgetValueTraits<DistributedSegmentationModel::ServerStatus, QLabel>
+    : public WidgetValueTraitsBase<DistributedSegmentationModel::ServerStatus, QLabel *>
+{
+public:
+  typedef DistributedSegmentationModel::ServerStatus TAtomic;
 
+  virtual TAtomic GetValue(QLabel *w)
+  {
+    return DistributedSegmentationModel::NOT_CONNECTED;
+  }
 
+  virtual void SetValue(QLabel *w, const TAtomic &value)
+  {
+    switch(value)
+      {
+      case DistributedSegmentationModel::NOT_CONNECTED:
+        w->setText("Not Connected");
+        w->setStyleSheet("color: darkred; font-weight: bold;");
+        break;
+      case DistributedSegmentationModel::CONNECTED_NOT_AUTHORIZED:
+        w->setText("Connected but Not Logged In");
+        w->setStyleSheet("color: darkred; font-weight: bold;");
+        break;
+      case DistributedSegmentationModel::CONNECTED_AUTHORIZED:
+        w->setText("Connected and Logged In");
+        w->setStyleSheet("color: darkgreen; font-weight: bold;");
+        break;
+      }
+  }
+};
+
+template <>
+class DefaultWidgetDomainTraits<DistributedSegmentationModel::ServerStatusDomain, QLabel>
+     : public WidgetDomainTraitsBase<DistributedSegmentationModel::ServerStatusDomain, QLabel *>
+{
+public:
+  typedef DistributedSegmentationModel::ServerStatusDomain TDomain;
+
+  virtual void SetDomain(QLabel *w, const TDomain &domain) ITK_OVERRIDE {}
+  virtual TDomain GetDomain(QLabel * w) ITK_OVERRIDE { return TDomain(); }
+};
 
 
 
@@ -232,7 +275,7 @@ void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model
   // Connect the widgets
   makeCoupling(ui->inServer, m_Model->GetServerURLModel());
   makeCoupling(ui->inToken, m_Model->GetTokenModel());
-  makeCoupling(ui->outStatus, m_Model->GetServerStatusStringModel());
+  makeCoupling(ui->outStatus, m_Model->GetServerStatusModel());
   makeCoupling(ui->inService, m_Model->GetCurrentServiceModel());
   makeCoupling(ui->outServiceDesc, m_Model->GetServiceDescriptionModel());
   makeCoupling(ui->outProgress, m_Model->GetSelectedTicketProgressModel());
@@ -446,15 +489,20 @@ void DistributedSegmentationDialog::on_btnSubmit_clicked()
   progress_delegate.SetProgressDialog(progress);
   progress->setLabelText("Uploading workspace...");
   progress->setMinimumDuration(0);
-  progress->show();
-  progress->activateWindow();
-  progress->raise();
-
-  // Put up a wait cursor
-  QtCursorOverride cursy;
+  // progress->setAutoReset(false);
+  // progress->show();
+  // progress->activateWindow();
+  // progress->raise();
 
   // Submit the workspace
-  m_Model->SubmitWorkspace(&progress_delegate);
+  try
+    {
+    m_Model->SubmitWorkspace(&progress_delegate);
+    }
+  catch(std::exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Failed to submit workspace");
+    }
 
   progress->hide();
   delete progress;
@@ -491,8 +539,65 @@ TagComboDelegate::TagComboDelegate(
   : QStyledItemDelegate(view)
 {
   m_Model = model;
-  m_View = view;
 }
+
+
+
+
+template <class TAtomic>
+class ComboBoxWithActionsValueTraits
+    : public DefaultWidgetValueTraits<TAtomic, QComboBox>
+{
+public:
+  typedef DefaultWidgetValueTraits<TAtomic, QComboBox> Superclass;
+
+  TAtomic GetValue(QComboBox *w)
+  {
+    QVariant id_action = w->itemData(w->currentIndex(), Qt::UserRole + 1);
+    QAction *action = id_action.value<QAction *>();
+    if(action)
+      QTimer::singleShot(0, action, SLOT(trigger()));
+
+    return Superclass::GetValue(w);
+  }
+};
+
+class ItemSetComboBoxWithActionsDomainTraits :
+    public ItemSetWidgetDomainTraits<DistributedSegmentationModel::LayerSelectionDomain, QComboBox, DefaultComboBoxRowTraits<unsigned long, std::string> >
+{
+public:
+
+  typedef DefaultComboBoxRowTraits<unsigned long, std::string> RowTraits;
+  typedef ItemSetWidgetDomainTraits<DistributedSegmentationModel::LayerSelectionDomain, QComboBox, RowTraits> Superclass;
+
+  void AddAction(QAction *action, Superclass::AtomicType value)
+  {
+    m_Actions.push_back(action);
+    m_ActionValues.push_back(value);
+  }
+
+  void SetDomain(QComboBox *w, const DomainType &domain) ITK_OVERRIDE
+  {
+    // Fill out the domain as is
+    Superclass::SetDomain(w, domain);
+
+    // Insert a separator
+    w->insertSeparator(w->count());
+
+    // Add the special action
+    for(int i = 0; i < m_Actions.size(); i++)
+      {
+      w->addItem(m_Actions[i]->icon(), m_Actions[i]->text(), (qlonglong) m_ActionValues[i]);
+      w->setItemData(w->count() - 1, QVariant::fromValue(m_Actions[i]), Qt::UserRole + 1);
+      }
+  }
+
+private:
+
+  QList<QAction *> m_Actions;
+  QList<Superclass::AtomicType> m_ActionValues;
+
+};
 
 QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
@@ -505,8 +610,26 @@ QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
   // Create a combo
   if(m_Model->GetCurrentTagImageLayerModel()->isValid())
     {
+    // We create a customized combo box for this editor with a special "unassigned" field
     QComboBox *combo = new QComboBox(parent);
-    makeCoupling(combo, m_Model->GetCurrentTagImageLayerModel());
+
+    ComboBoxWithActionsValueTraits<unsigned long> fancy_value_traits;
+    ItemSetComboBoxWithActionsDomainTraits fancy_domain_traits;
+
+    DistributedSegmentationModel::LoadAction load_type = m_Model->GetTagLoadAction(index.row());
+    if(load_type == DistributedSegmentationModel::LOAD_MAIN)
+      {
+      fancy_domain_traits.AddAction(FindUpstreamAction(parent, "actionOpenMain"), 0);
+      }
+    else if(load_type == DistributedSegmentationModel::LOAD_OVERLAY)
+      {
+      fancy_domain_traits.AddAction(FindUpstreamAction(parent, "actionAdd_Overlay"), 0);
+      }
+
+    makeCoupling(combo, m_Model->GetCurrentTagImageLayerModel(), fancy_value_traits, fancy_domain_traits);
+
+    QTimer::singleShot(0, combo, &QComboBox::showPopup);
+
     return combo;
     }
 
@@ -515,21 +638,10 @@ QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
 
 void TagComboDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-  if(index.column() == 3)
-    {
-    }
-  else
-    QStyledItemDelegate::setEditorData(editor, index);
-
 }
 
 void TagComboDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-  if(index.column() == 3)
-    {
-    }
-  else
-    QStyledItemDelegate::setModelData(editor, model, index);
 }
 
 void TagComboDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -611,4 +723,48 @@ void DistributedSegmentationDialog::on_btnDelete_clicked()
   }
 
 
+}
+
+#include <QInputDialog>
+#include <QMessageBox>
+
+void DistributedSegmentationDialog::on_btnManageServers_clicked()
+{
+  // Get the current list of user URLs
+  std::vector<std::string> input_urls = m_Model->GetUserServerList();
+
+  // Concatenate them into a multi-line string
+  QString input;
+  for(int i = 0; i < input_urls.size(); i++)
+    input.append(QString("%1%2").arg(i > 0 ? "\n" : "", from_utf8(input_urls[i])));
+
+  // Create a dialog box with a list of servers
+  bool ok = false;
+  QString servers = QInputDialog::getMultiLineText(
+                      this, "Edit Server List",
+                      "Enter additional server URLs on separate lines below:", input, &ok);
+
+
+  if(!ok)
+    return;
+
+  // Split into individual strings
+  QStringList url_list = servers.split("\n");
+  std::vector<std::string> valid_urls;
+  foreach(QString url_string, url_list)
+    {
+    QUrl url(url_string);
+    if(!url.isValid() || url.isRelative() || url.isLocalFile() || url.isEmpty())
+      {
+      QMessageBox::warning(this, "Invalid server URL",
+                           QString("%1 is not a valid URL.").arg(url_string));
+      }
+    else
+      {
+      valid_urls.push_back(to_utf8(url.toString()));
+      }
+    }
+
+  // Set the custom URL list
+  m_Model->SetUserServerList(valid_urls);
 }

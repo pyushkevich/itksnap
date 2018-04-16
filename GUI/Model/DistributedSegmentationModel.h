@@ -190,6 +190,10 @@ public:
   enum ServerStatus
     { NOT_CONNECTED = 0, CONNECTED_NOT_AUTHORIZED, CONNECTED_AUTHORIZED };
 
+  // What kind of load action should be triggered for the current tag
+  enum LoadAction
+    { LOAD_MAIN = 0, LOAD_OVERLAY, LOAD_NONE };
+
   enum UIState {
     UIF_AUTHENTICATED,
     UIF_TAGS_ASSIGNED
@@ -205,12 +209,22 @@ public:
   void SetParentModel(GlobalUIModel *model);
   irisGetMacro(Parent, GlobalUIModel *)
 
+  /** Load preferences from registry */
+  void LoadPreferences(Registry &folder);
+
+  /** Write preferences to registry */
+  void SavePreferences(Registry &folder);
+
   /** Check state */
   bool CheckState(UIState state);
 
   /** Server URL property model */
   typedef STLVectorWrapperItemSetDomain<int, std::string> ServerURLDomain;
   irisGenericPropertyAccessMacro(ServerURL, int, ServerURLDomain)
+
+  /** Set the list of servers */
+  std::vector<std::string> GetUserServerList() const;
+  void SetUserServerList(const std::vector<std::string> &servers);
 
   /** Token model */
   irisSimplePropertyAccessMacro(Token, std::string)
@@ -241,6 +255,9 @@ public:
   /** Layer domain for tag assignment */
   typedef SimpleItemSetDomain<unsigned long, std::string> LayerSelectionDomain;
   irisGenericPropertyAccessMacro(CurrentTagImageLayer, unsigned long, LayerSelectionDomain)
+
+  /** Get the type of the current tag */
+  LoadAction GetTagLoadAction(int tag_index) const;
 
   /** The last ticket submitted */
   irisSimplePropertyAccessMacro(SubmittedTicketId, int)
@@ -305,13 +322,10 @@ public:
   /** Apply the results of async server authentication to the model */
   void ApplyTicketDetailResponse(const dss_model::TicketDetailResponse &resp);
 
-  /** Get the text corresponding to the target of a particular tag */
-  std::string GetTagTargetText(int tag);
-
 protected:
 
   // List of known server URLs
-  std::vector<std::string> m_ServerURLList;
+  std::vector<std::string> m_ServerURLList, m_SystemServerURLList;
 
   // Property model for server selection
   typedef ConcretePropertyModel<int, ServerURLDomain> ServerURLModelType;

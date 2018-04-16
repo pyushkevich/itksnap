@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include "IRISException.h"
 #include "itksys/SystemTools.hxx"
+#include "itksys/MD5.h"
 #include "FormattedTable.h"
 
 using itksys::SystemTools;
@@ -97,6 +98,14 @@ bool RESTClient::Authenticate(const char *baseurl, const char *token)
   // Return success or failure
   string success_pattern = "logged in as ";
   return m_Output.compare(0, success_pattern.length(), success_pattern) == 0;
+}
+
+void RESTClient::SetServerURL(const char *baseurl)
+{
+  // Store the URL for the future
+  ofstream f_url(RESTClient::GetServerURLFile().c_str());
+  f_url << baseurl;
+  f_url.close();
 }
 
 bool RESTClient::Get(const char *rel_url, ...)
@@ -325,19 +334,30 @@ string RESTClient::GetDataDirectory()
 
 string RESTClient::GetCookieFile()
 {
-  string cfile = this->GetDataDirectory() + "/cookie.jar";
+  // MD5 encode the server
+  string server = RESTClient::GetServerURL();
+
+  char hex_code[33];
+  hex_code[32] = 0;
+  itksysMD5 *md5 = itksysMD5_New();
+  itksysMD5_Initialize(md5);
+  itksysMD5_Append(md5, (unsigned char *) server.c_str(), server.size());
+  itksysMD5_FinalizeHex(md5, hex_code);
+  itksysMD5_Delete(md5);
+
+  string cfile = RESTClient::GetDataDirectory() + "/cookie_" + hex_code + ".jar";
   return SystemTools::ConvertToOutputPath(cfile);
 }
 
 string RESTClient::GetServerURLFile()
 {
-  string sfile = this->GetDataDirectory() + "/server";
+  string sfile = RESTClient::GetDataDirectory() + "/server";
   return SystemTools::ConvertToOutputPath(sfile);
 }
 
 string RESTClient::GetServerURL()
 {
-  string sfile = this->GetServerURLFile();
+  string sfile = RESTClient::GetServerURLFile();
   if(!SystemTools::FileExists(sfile))
     throw IRISException("A server has not been configured yet - please sign in");
   try

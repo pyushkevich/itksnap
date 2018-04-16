@@ -43,6 +43,7 @@
 #include "json/json.h"
 #include "UIReporterDelegates.h"
 #include <sstream>
+#include <algorithm>
 #include "itksys/SystemTools.hxx"
 
 namespace dss_model {
@@ -100,6 +101,28 @@ void DistributedSegmentationModel::SetParentModel(GlobalUIModel *model)
   m_Parent = model;
 }
 
+void DistributedSegmentationModel::LoadPreferences(Registry &folder)
+{
+  // Read the list of servers
+  std::vector<std::string> user_servers = folder.Folder("UserServerList").GetArray(std::string());
+  this->SetUserServerList(user_servers);
+
+  // Read the preferred server
+  int pref_server = folder["PreferredServerIndex"][0];
+  if(pref_server < m_ServerURLList.size())
+    m_ServerURLModel->SetValue(pref_server);
+}
+
+void DistributedSegmentationModel::SavePreferences(Registry &folder)
+{
+  // Save the list of servers
+  std::vector<std::string> user_servers = this->GetUserServerList();
+  folder.Folder("UserServerList").PutArray(user_servers);
+
+  // Save the preferred server index
+  folder["PreferredServerIndex"] << m_ServerURLModel->GetValue();
+}
+
 bool DistributedSegmentationModel::AreAllRequiredTagsAssignedTarget()
 {
   for(int i = 0; i < m_TagSpecArray.size(); i++)
@@ -119,6 +142,37 @@ bool DistributedSegmentationModel::CheckState(DistributedSegmentationModel::UISt
     case DistributedSegmentationModel::UIF_TAGS_ASSIGNED:
       return AreAllRequiredTagsAssignedTarget();
     }
+
+}
+
+std::vector<std::string> DistributedSegmentationModel::GetUserServerList() const
+{
+  std::vector<std::string> user_servers;
+  user_servers.insert(user_servers.end(),
+                      m_ServerURLList.begin() + m_SystemServerURLList.size(),
+                      m_ServerURLList.end());
+  return user_servers;
+}
+
+void DistributedSegmentationModel::SetUserServerList(const std::vector<std::string> &servers)
+{
+  // Get the current server (the URL model is always valid)
+  std::string my_server = m_ServerURLList[this->GetServerURL()];
+
+  // Reset the list of servers
+  m_ServerURLList = m_SystemServerURLList;
+  m_ServerURLList.insert(m_ServerURLList.end(), servers.begin(), servers.end());
+
+  // Is the selected server still on the list
+  std::vector<std::string>::const_iterator it =
+      std::find(m_ServerURLList.begin(), m_ServerURLList.end(), my_server);
+  if(it == m_ServerURLList.end())
+    this->SetServerURL(0);
+  else
+    this->SetServerURL(it - m_ServerURLList.begin());
+
+  // Update the domain
+  m_ServerURLModel->InvokeEvent(DomainChangedEvent());
 
 }
 
@@ -170,6 +224,26 @@ void DistributedSegmentationModel::SetServiceListing(const ServiceListing &listi
   m_CurrentServiceModel->SetIsValid(true);
   m_CurrentServiceModel->SetDomain(domain);
   m_CurrentServiceModel->SetValue(new_service_id);
+}
+
+DistributedSegmentationModel::LoadAction
+DistributedSegmentationModel::GetTagLoadAction(int tag_index) const
+{
+  if(tag_index < 0 || tag_index >= m_TagSpecArray.size())
+    return LOAD_NONE;
+
+  TagType type = m_TagSpecArray[tag_index].tag_spec.type;
+
+  bool have_main = m_Parent->GetDriver()->IsMainImageLoaded();
+  if(type == TAG_LAYER_MAIN || (type == TAG_LAYER_ANATOMICAL && !have_main))
+    {
+    return LOAD_MAIN;
+    }
+  else if(type == TAG_LAYER_ANATOMICAL && have_main)
+    {
+    return LOAD_OVERLAY;
+    }
+  else return LOAD_NONE;
 }
 
 std::string DistributedSegmentationModel::GetCurrentServiceGitHash() const
@@ -358,7 +432,13 @@ DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string toke
   try
     {
     // If token is empty, bypass the authentication step
-    if(token.size() > 0)
+    if(token.size() == 0)
+      {
+      // We
+      RESTClient rc;
+      rc.SetServerURL(url.c_str());
+      }
+    else
       {
       RESTClient rc;
       if(!rc.Authenticate(url.c_str(), token.c_str()))
@@ -389,7 +469,11 @@ void DistributedSegmentationModel::ApplyStatusCheckResponse(const StatusCheckRes
   if(result.auth_response.connected)
     {
     if(result.auth_response.authenticated)
+      {
+      // We no longer need a token
       SetServerStatus(DistributedSegmentationModel::CONNECTED_AUTHORIZED);
+      SetToken("");
+      }
     else
       SetServerStatus(DistributedSegmentationModel::CONNECTED_NOT_AUTHORIZED);
     }
@@ -696,6 +780,7 @@ bool DistributedSegmentationModel
     if(domain)
       {
       domain->clear();
+      (*domain)[0] = "Unassigned";
       IRISApplication *driver = this->GetParent()->GetDriver();
 
       if(tag.tag_spec.type == TAG_LAYER_MAIN && driver->IsMainImageLoaded())
@@ -729,7 +814,7 @@ void DistributedSegmentationModel
 
     // Set the target description
     ImageWrapperBase *w = driver->GetIRISImageData()->FindLayer(value, false);
-    m_TagSpecArray[curr_tag].desc = w ? w->GetNickname() : std::string();
+    m_TagSpecArray[curr_tag].desc = w ? w->GetNickname() : "Unassigned";
 
     // Update the domain
     m_TagListModel->InvokeEvent(DomainChangedEvent());
@@ -739,7 +824,10 @@ void DistributedSegmentationModel
 DistributedSegmentationModel::DistributedSegmentationModel()
 {
   // Build a list of available URLs
-  m_ServerURLList.push_back("https://dss.itksnap.org");
+  m_SystemServerURLList.push_back("https://dss.itksnap.org");
+
+  // Add system URLs to the url list
+  m_ServerURLList = m_SystemServerURLList;
 
   // Create the server model that references the URL list
   m_ServerURLModel = NewConcreteProperty(0, ServerURLDomain(&m_ServerURLList));
@@ -806,6 +894,7 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   // Changes to the tags table require a state update
   this->Rebroadcast(m_CurrentTagImageLayerModel, DomainChangedEvent(), StateMachineChangeEvent());
   this->Rebroadcast(m_ServerStatusModel, ValueChangedEvent(), StateMachineChangeEvent());
+  this->Rebroadcast(m_TagListModel, DomainChangedEvent(), StateMachineChangeEvent());
 
 }
 

@@ -14,6 +14,7 @@ class DistributedSegmentationDialog;
 class DistributedSegmentationModel;
 class EventBucket;
 class QAbstractItemView;
+class QComboBox;
 
 
 
@@ -36,7 +37,6 @@ public:
 
 private:
   DistributedSegmentationModel *m_Model;
-  QAbstractItemView *m_View;
 };
 
 
@@ -93,6 +93,8 @@ private slots:
   void on_btnDownload_clicked();
 
   void on_btnDelete_clicked();
+
+  void on_btnManageServers_clicked();
 
 private:
   Ui::DistributedSegmentationDialog *ui;

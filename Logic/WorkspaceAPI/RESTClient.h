@@ -33,6 +33,12 @@ public:
   bool Authenticate(const char *baseurl, const char *token);
 
   /**
+   * This call will set the server URL for subsequent calls. Subsequent calls will fail
+   * unless there is a cookie (session) present for the selected URL
+   */
+  static void SetServerURL(const char *baseurl);
+
+  /**
    * Basic GET command. Returns true if HTTP code of 200 is received.
    *  - The string output can be retrieved with GetOutput()
    *  - The error message for non 200 code can be retrieved with GetResponseText()
@@ -88,13 +94,13 @@ protected:
   /** Callback stuff */
   std::pair<void *, ProgressCallbackFunction> m_CallbackInfo;
 
-  std::string GetDataDirectory();
+  static std::string GetDataDirectory();
 
-  std::string GetCookieFile();
+  static std::string GetCookieFile();
 
-  std::string GetServerURLFile();
+  static std::string GetServerURLFile();
 
-  std::string GetServerURL();
+  static std::string GetServerURL();
 
   static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 

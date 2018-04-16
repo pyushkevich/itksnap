@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabConfigure">
       <attribute name="title">
@@ -98,7 +98,7 @@
            </widget>
           </item>
           <item row="0" column="4">
-           <widget class="QPushButton" name="btnGetToken_2">
+           <widget class="QPushButton" name="btnManageServers">
             <property name="toolTip">
              <string>When you press this button, a browser will open and take you to the login page for the selected server. Once logged in, paste your authentication token into the text box on the left.</string>
             </property>
