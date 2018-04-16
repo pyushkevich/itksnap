@@ -534,6 +534,16 @@ public:
   virtual bool GetValueAndDomain(TVal &value, TDomain *domain) = 0;
 
   /**
+   * A getter that returns a special null value when the model is not valid
+   */
+  TVal GetValue(const TVal &null_value)
+  {
+    TVal actual_value;
+    return GetValueAndDomain(actual_value, NULL)
+        ? actual_value : null_value;
+  }
+
+  /**
     A getter with a simple signature. Not meant to be overridden by the
     child class.
     */
@@ -556,6 +566,14 @@ public:
       return GetValueAndDomain(value, NULL);
       }
     else return false;
+  }
+
+  /**
+   * Check if the model is valid
+   */
+  bool isValid()
+  {
+    return CheckState(UIF_PROPERTY_IS_VALID);
   }
 
   /**

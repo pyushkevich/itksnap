@@ -230,18 +230,10 @@ void SnakeWizardPanel::SetModel(GlobalUIModel *model)
   activateOnFlag(ui->lstClassifyForeground, m_Model, SnakeWizardModel::UIF_CLASSIFIER_TRAINED);
 
   // Make the coupling for foreground label list (some complicated template magic here)
-  typedef DefaultWidgetValueTraits<
-      SnakeWizardModel::ClassifierLabelForegroundMap,
-      QAbstractItemView> ClassifyForegroundValueTraits;
+  makeMultiRowCoupling((QAbstractItemView *) ui->lstClassifyForeground,
+                       m_Model->GetClassifierLabelForegroundModel(),
+                       SingleColumnColorLabelToQSIMCouplingRowTraits());
 
-  typedef QStandardItemModelWidgetDomainTraits<
-      SnakeWizardModel::ClassifierLabelForegroundMapDomain,
-      SingleColumnColorLabelToQSIMCouplingRowTraits> ClassifyForegroundDomainTraits;
-
-  makeCoupling((QAbstractItemView *) ui->lstClassifyForeground,
-               m_Model->GetClassifierLabelForegroundModel(),
-               ClassifyForegroundValueTraits(),
-               ClassifyForegroundDomainTraits());
 
   // Couple the edge preprocessing controls
   makeCoupling(ui->inEdgeScale, m_Model->GetEdgePreprocessingSigmaModel());

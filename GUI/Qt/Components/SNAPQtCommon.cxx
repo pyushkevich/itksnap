@@ -15,6 +15,7 @@
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QGraphicsDropShadowEffect>
+#include <QDateTime>
 
 
 #include "QtCursorOverride.h"
@@ -580,4 +581,13 @@ void TranslateChildTooltipKeyModifiers(QWidget *parent)
     TranslateStringTooltipKeyModifiers(tooltip);
     child->setToolTip(tooltip);
     }
+}
+
+QString get_user_friendly_date_string(const QDateTime &dt)
+{
+  QDateTime dt_local = dt.toTimeSpec(Qt::LocalTime);
+  int date_diff = abs(QDateTime::currentDateTime().daysTo(dt_local));
+  QString t_date = dt_local.toString(
+                     date_diff == 0 ? "hh:mm" : date_diff <= 365 ? "MMM d hh:mm" : "MMM d yyyy hh:mm");
+  return t_date;
 }

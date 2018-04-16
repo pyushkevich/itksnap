@@ -442,8 +442,6 @@ public:
       }
   }
 
-
-
   TItemDomain GetDomain(TWidget *w)
   {
     // We don't actually pull the widget because the domain is fully specified

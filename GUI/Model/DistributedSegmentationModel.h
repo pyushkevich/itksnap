@@ -128,18 +128,52 @@ enum TicketStatus {
 extern std::string ticket_status_strings[];
 
 /** Ticket id type */
-typedef long TicketId;
+typedef long IdType;
 
 /** Status of a single ticket */
 struct TicketStatusSummary
 {
-  TicketId id;
+  IdType id;
   TicketStatus status;
   std::string service_name;
 };
 
 /** Respose from listing tickets */
-typedef std::map<TicketId, TicketStatusSummary> TicketListingResponse;
+typedef std::map<IdType, TicketStatusSummary> TicketListingResponse;
+
+enum LogType {
+  LOG_INFO = 0, LOG_WARNING, LOG_ERROR, LOG_UNKNOWN
+};
+
+struct Attachment
+{
+  IdType id;
+  std::string url;
+  std::string mimetype;
+  std::string desc;
+};
+
+struct TicketLogEntry
+{
+  IdType id;
+  std::string atime;
+  LogType type;
+  std::string text;
+  std::vector<Attachment> attachments;
+};
+
+/** Ticket details */
+struct TicketDetailResponse
+{
+  // We keep the id of the ticket for which this detail is generated
+  IdType ticket_id;
+  double progress;
+
+  // The log is ordered by log-id
+  std::vector<TicketLogEntry> log;
+
+  bool from_json(const std::string &json);
+};
 
 } // namespace
 
@@ -156,6 +190,10 @@ public:
   enum ServerStatus
     { NOT_CONNECTED = 0, CONNECTED_NOT_AUTHORIZED, CONNECTED_AUTHORIZED };
 
+  // What kind of load action should be triggered for the current tag
+  enum LoadAction
+    { LOAD_MAIN = 0, LOAD_OVERLAY, LOAD_NONE };
+
   enum UIState {
     UIF_AUTHENTICATED,
     UIF_TAGS_ASSIGNED
@@ -171,12 +209,22 @@ public:
   void SetParentModel(GlobalUIModel *model);
   irisGetMacro(Parent, GlobalUIModel *)
 
+  /** Load preferences from registry */
+  void LoadPreferences(Registry &folder);
+
+  /** Write preferences to registry */
+  void SavePreferences(Registry &folder);
+
   /** Check state */
   bool CheckState(UIState state);
 
   /** Server URL property model */
   typedef STLVectorWrapperItemSetDomain<int, std::string> ServerURLDomain;
   irisGenericPropertyAccessMacro(ServerURL, int, ServerURLDomain)
+
+  /** Set the list of servers */
+  std::vector<std::string> GetUserServerList() const;
+  void SetUserServerList(const std::vector<std::string> &servers);
 
   /** Token model */
   irisSimplePropertyAccessMacro(Token, std::string)
@@ -208,8 +256,18 @@ public:
   typedef SimpleItemSetDomain<unsigned long, std::string> LayerSelectionDomain;
   irisGenericPropertyAccessMacro(CurrentTagImageLayer, unsigned long, LayerSelectionDomain)
 
+  /** Get the type of the current tag */
+  LoadAction GetTagLoadAction(int tag_index) const;
+
   /** The last ticket submitted */
   irisSimplePropertyAccessMacro(SubmittedTicketId, int)
+
+  /** The progress of the current ticket */
+  irisRangedPropertyAccessMacro(SelectedTicketProgress, double)
+
+  /** Log messages from the current ticket */
+  typedef STLVectorWrapperItemSetDomain<dss_model::IdType, dss_model::TicketLogEntry> LogDomainType;
+  irisGenericPropertyAccessMacro(SelectedTicketLog, dss_model::IdType, LogDomainType)
 
   /** Get the git hash of the current service */
   std::string GetCurrentServiceGitHash() const;
@@ -223,9 +281,21 @@ public:
   /** Submit the workspace */
   void SubmitWorkspace(ProgressReporterDelegate *pdel);
 
+  /** Download the workspace */
+  std::string DownloadWorkspace();
+
+  /** Delete the ticket */
+  void DeleteSelectedTicket();
+
   /** Property for selecting and listing tickets */
-  typedef STLMapWrapperItemSetDomain<dss_model::TicketId, dss_model::TicketStatusSummary> TicketListingDomain;
-  irisGenericPropertyAccessMacro(TicketList, dss_model::TicketId, TicketListingDomain)
+  typedef STLMapWrapperItemSetDomain<dss_model::IdType, dss_model::TicketStatusSummary> TicketListingDomain;
+  irisGenericPropertyAccessMacro(TicketList, dss_model::IdType, TicketListingDomain)
+
+  /** Get the last available log id for the currently selected ticket or 0 if none available */
+  dss_model::IdType GetLastLogIdOfSelectedTicket();
+
+  /** Get the detail for the current ticket - or NULL if no ticket is selected */
+  const dss_model::TicketDetailResponse *GetSelectedTicketDetail();
 
   /** Static function that runs asynchronously to perform server authentication */
   static dss_model::StatusCheckResponse AsyncCheckStatus(std::string url, std::string token);
@@ -245,13 +315,17 @@ public:
   /** Apply the results of ticket listing call to the model */
   void ApplyTicketListingResponse(const dss_model::TicketListingResponse &resp);
 
-  /** Get the text corresponding to the target of a particular tag */
-  std::string GetTagTargetText(int tag);
+  /** Static function that runs asynchronously to get service details */
+  static dss_model::TicketDetailResponse AsyncGetTicketDetails(
+      dss_model::IdType ticket_id, dss_model::IdType last_log);
+
+  /** Apply the results of async server authentication to the model */
+  void ApplyTicketDetailResponse(const dss_model::TicketDetailResponse &resp);
 
 protected:
 
   // List of known server URLs
-  std::vector<std::string> m_ServerURLList;
+  std::vector<std::string> m_ServerURLList, m_SystemServerURLList;
 
   // Property model for server selection
   typedef ConcretePropertyModel<int, ServerURLDomain> ServerURLModelType;
@@ -276,7 +350,7 @@ protected:
   SmartPtr<ConcreteSimpleStringProperty> m_ServiceDescriptionModel;
 
   // Property model for the ticket listing
-  typedef ConcretePropertyModel<dss_model::TicketId, TicketListingDomain> TicketListingModel;
+  typedef ConcretePropertyModel<dss_model::IdType, TicketListingDomain> TicketListingModel;
   SmartPtr<TicketListingModel> m_TicketListModel;
 
   // Vector of current tag-specs
@@ -295,11 +369,21 @@ protected:
   // Property model for last submitted ticket id
   SmartPtr<ConcreteSimpleIntProperty> m_SubmittedTicketIdModel;
 
+  // Stuff about the current ticket
+  SmartPtr<ConcreteRangedDoubleProperty> m_SelectedTicketProgressModel;
+
+  // Log model for the current ticket
+  typedef ConcretePropertyModel<dss_model::IdType, LogDomainType> LogModel;
+  SmartPtr<LogModel> m_SelectedTicketLogModel;
+
   // Registry holding the service listing
   dss_model::ServiceListing m_ServiceListing;
 
   // Listing of tickets
   dss_model::TicketListingResponse m_TicketListing;
+
+  // Detail for the current ticket
+  dss_model::TicketDetailResponse m_SelectedTicketDetail;
 
   DistributedSegmentationModel();
   ~DistributedSegmentationModel() {}

@@ -7,7 +7,6 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QtConcurrent>
-#include <QtTableWidgetCoupling.h>
 #include "SNAPQtCommon.h"
 #include "Registry.h"
 #include "SaveModifiedLayersDialog.h"
@@ -15,64 +14,53 @@
 #include <QProgressDialog>
 #include <QtReporterDelegates.h>
 #include <QtAbstractItemViewCoupling.h>
+#include <QtProgressBarCoupling.h>
 #include <QTimer>
+#include "IRISException.h"
+#include "MainImageWindow.h"
+#include <QToolButton>
+#include <QMenu>
 
 
-DistributedSegmentationDialog::DistributedSegmentationDialog(QWidget *parent) :
-  QDialog(parent),
-  ui(new Ui::DistributedSegmentationDialog)
-{
-  ui->setupUi(this);
-  m_Model = NULL;
-
-  // Create the model for the table view
-  QStandardItemModel *ticket_list_model = new QStandardItemModel();
-  ticket_list_model->setColumnCount(3);
-  ticket_list_model->setHorizontalHeaderItem(0, new QStandardItem("Ticket"));
-  ticket_list_model->setHorizontalHeaderItem(1, new QStandardItem("Service"));
-  ticket_list_model->setHorizontalHeaderItem(2, new QStandardItem("Status"));
-
-  QList<QStandardItem *> dummy;
-  dummy.push_back(new QStandardItem("blah"));
-  dummy.push_back(new QStandardItem("glooh"));
-  dummy.push_back(new QStandardItem("googee"));
-  ticket_list_model->appendRow(dummy);
-
-  ui->tblTickets->setModel(ticket_list_model);
-
-  QItemSelectionModel *sel = new QItemSelectionModel(ticket_list_model);
-  ui->tblTickets->setSelectionModel(sel);
-}
-
-DistributedSegmentationDialog::~DistributedSegmentationDialog()
-{
-  delete ui;
-}
-
-class TagRowDescMapper
+/**
+ * Traits mapping tags to row in a table
+ */
+class TagListRowTraits
 {
 public:
-  static void updateRowDescription(QTableWidget *w, int index, const dss_model::TagTargetSpec &spec)
+  static int columnCount() { return 4; }
+
+  static void updateRow(QList<QStandardItem *> items,
+                        int tag_id,
+                        const dss_model::TagTargetSpec &spec)
   {
     // Set the row contents
-    w->item(index, 0)->setText(from_utf8(spec.tag_spec.name));
-    w->item(index, 0)->setToolTip(from_utf8(spec.tag_spec.hint));
-    w->item(index, 1)->setText(from_utf8(dss_model::tag_type_strings[spec.tag_spec.type]));
-    w->item(index, 2)->setCheckState(spec.tag_spec.required ? Qt::Checked : Qt::Unchecked);
+    items[0]->setText(from_utf8(spec.tag_spec.name));
+    items[0]->setToolTip(from_utf8(spec.tag_spec.hint));
+    items[1]->setText(from_utf8(dss_model::tag_type_strings[spec.tag_spec.type]));
+    items[2]->setCheckState(spec.tag_spec.required ? Qt::Checked : Qt::Unchecked);
+    items[2]->setTextAlignment(Qt::AlignHCenter);
 
-    w->item(index, 3)->setText(from_utf8(spec.desc));
+    items[3]->setText(from_utf8(spec.desc));
     if(spec.object_id == 0 && spec.tag_spec.required)
-      w->item(index, 3)->setTextColor(QColor(Qt::darkRed));
+      items[3]->setForeground(QColor(Qt::darkRed));
     else
-      w->item(index, 3)->setTextColor(QColor(Qt::black));
-    // w->setCellWidget(index, 3, new QPushButton("assign"));
+      items[3]->setForeground(QColor(Qt::black));
 
     // Set editable properties
     for(int k = 0; k < 3; k++)
-      {
-      toggle_flags_off(w->item(index, k), Qt::ItemIsEditable);
-      }
+      toggle_flags_off(items[k], Qt::ItemIsEditable);
+
+    // Set the data
+    items[0]->setData(tag_id, Qt::UserRole);
   }
+
+  static int getRowValue(QList<QStandardItem *> items)
+  {
+    return items[0]->data(Qt::UserRole).value<int>();
+  }
+
+
 };
 
 /**
@@ -84,87 +72,200 @@ public:
 
   static int columnCount() { return 3; }
 
-  static void updateItem(QStandardItem *item, int column,
-                         dss_model::TicketId ticket_id,
-                         const dss_model::TicketStatusSummary &status)
+  static void updateRow(QList<QStandardItem *> items,
+                        dss_model::IdType ticket_id,
+                        const dss_model::TicketStatusSummary &status)
   {
-    // Column-specific
-    if(column == 0)
+    // Set data for the items
+    items[0]->setData(QVariant((qlonglong) status.id), Qt::DisplayRole | Qt::EditRole);
+    items[1]->setText(from_utf8(status.service_name));
+    items[2]->setText(from_utf8(dss_model::ticket_status_strings[status.status]));
+
+    // Set flags on all items
+    foreach (QStandardItem *item, items)
+      toggle_flags_off(item, Qt::ItemIsEditable);
+
+    // Set the data for the first item
+    items[0]->setData((qlonglong) ticket_id, Qt::UserRole);
+  }
+
+  static dss_model::IdType getRowValue(QList<QStandardItem *> items)
+  {
+    return static_cast<dss_model::IdType>(items[0]->data(Qt::UserRole).value<qlonglong>());
+  }
+};
+
+
+
+
+/**
+ * Traits mapping ticket log entries to rows in a table
+ */
+class TicketLogEntryRowTraits
+{
+public:
+
+  static int columnCount() { return 3; }
+
+  static void updateRow(QList<QStandardItem *> items,
+                        dss_model::IdType log_id,
+                        const dss_model::TicketLogEntry &entry)
+  {
+    // Icons for the message type
+    static QStringList icons = (QStringList()
+                                << ":/root/icons8_info_16.png"
+                                << ":/root/icons8_error_16.png"
+                                << ":/root/icons8_no_entry_16.png" << "");
+
+    // Compute date in easy to read format
+    QString t_stamp = from_utf8(entry.atime).split(".").first();
+    QDateTime dt = QDateTime::fromString(t_stamp, "yyyy-MM-dd hh:mm:ss");
+    dt.setTimeSpec(Qt::UTC);
+
+    // First item is the date/time
+    items[0]->setText(get_user_friendly_date_string(dt));
+    items[0]->setIcon(QIcon(icons[entry.type]));
+    toggle_flags_off(items[0], Qt::ItemIsEditable);
+
+    // Second time is the message
+    items[1]->setText(from_utf8(entry.text));
+    toggle_flags_off(items[1], Qt::ItemIsEditable);
+
+    // Last item is the attachment menu
+    if(entry.attachments.size() > 0)
       {
-      item->setData(QVariant((qlonglong) status.id), Qt::DisplayRole | Qt::EditRole);
+      items[2]->setIcon(QIcon(":/root/icons8_attach_16.png"));
+      items[2]->setData((int) entry.attachments.size(), Qt::DisplayRole);
       }
-    else if(column == 1)
+    else
       {
-      item->setText(from_utf8(status.service_name));
-      }
-    else if(column == 2)
-      {
-      item->setText(from_utf8(dss_model::ticket_status_strings[status.status]));
+      items[2]->setIcon(QIcon());
+      items[2]->setData(QVariant(), Qt::DisplayRole);
+      toggle_flags_off(items[2], Qt::ItemIsEditable);
       }
 
     // Flags
-    toggle_flags_off(item, Qt::ItemIsEditable);
-    item->setData((qlonglong) ticket_id, Qt::UserRole);
+    items[0]->setData((qlonglong) log_id, Qt::UserRole);
   }
 
-  static dss_model::TicketId getItemValue(QStandardItem *item)
+  static dss_model::IdType getRowValue(QList<QStandardItem *> items)
   {
-    return static_cast<dss_model::TicketId>(item->data(Qt::UserRole).value<qlonglong>());
+    return static_cast<dss_model::IdType>(items[0]->data(Qt::UserRole).value<qlonglong>());
   }
 };
 
 
-#include <QStyledItemDelegate>
-
-class TagComboDelegate : public QStyledItemDelegate
+/**
+ * Traits for mapping status codes to a label
+ */
+template<>
+class DefaultWidgetValueTraits<DistributedSegmentationModel::ServerStatus, QLabel>
+    : public WidgetValueTraitsBase<DistributedSegmentationModel::ServerStatus, QLabel *>
 {
 public:
-  TagComboDelegate(DistributedSegmentationModel *model, QObject *parent = NULL)
-    : QStyledItemDelegate(parent)
+  typedef DistributedSegmentationModel::ServerStatus TAtomic;
+
+  virtual TAtomic GetValue(QLabel *w)
   {
-    m_Model = model;
+    return DistributedSegmentationModel::NOT_CONNECTED;
   }
 
-  QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+  virtual void SetValue(QLabel *w, const TAtomic &value)
   {
-
-    if(index.column() == 3)
+    switch(value)
       {
-      QComboBox *combo = new QComboBox(parent);
-      makeCoupling(combo, m_Model->GetCurrentTagImageLayerModel());
-      return combo;
+      case DistributedSegmentationModel::NOT_CONNECTED:
+        w->setText("Not Connected");
+        w->setStyleSheet("color: darkred; font-weight: bold;");
+        break;
+      case DistributedSegmentationModel::CONNECTED_NOT_AUTHORIZED:
+        w->setText("Connected but Not Logged In");
+        w->setStyleSheet("color: darkred; font-weight: bold;");
+        break;
+      case DistributedSegmentationModel::CONNECTED_AUTHORIZED:
+        w->setText("Connected and Logged In");
+        w->setStyleSheet("color: darkgreen; font-weight: bold;");
+        break;
       }
-    else
-      return QStyledItemDelegate::createEditor(parent, option, index);
   }
-
-  void setEditorData(QWidget *editor, const QModelIndex &index) const
-  {
-    if(index.column() == 3)
-      {
-      }
-    else
-      QStyledItemDelegate::setEditorData(editor, index);
-
-  }
-
-  void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
-  {
-    if(index.column() == 3)
-      {
-      }
-    else
-      QStyledItemDelegate::setModelData(editor, model, index);
-  }
-
-  void updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
-  {
-    editor->setGeometry(option.rect);
-  }
-
-private:
-  DistributedSegmentationModel *m_Model;
 };
+
+template <>
+class DefaultWidgetDomainTraits<DistributedSegmentationModel::ServerStatusDomain, QLabel>
+     : public WidgetDomainTraitsBase<DistributedSegmentationModel::ServerStatusDomain, QLabel *>
+{
+public:
+  typedef DistributedSegmentationModel::ServerStatusDomain TDomain;
+
+  virtual void SetDomain(QLabel *w, const TDomain &domain) ITK_OVERRIDE {}
+  virtual TDomain GetDomain(QLabel * w) ITK_OVERRIDE { return TDomain(); }
+};
+
+
+
+
+
+
+
+
+
+
+DistributedSegmentationDialog::DistributedSegmentationDialog(QWidget *parent) :
+  QDialog(parent),
+  ui(new Ui::DistributedSegmentationDialog)
+{
+  ui->setupUi(this);
+  m_Model = NULL;
+
+  // Create the model for the tag listing
+  QStandardItemModel *tags_model = new QStandardItemModel();
+  tags_model->setHorizontalHeaderLabels(
+        QStringList() << "Tag" << "Type" << "Required" << "Target Object");
+  ui->tblTags->setModel(tags_model);
+
+  // Set the sizing of the columns
+  ui->tblTags->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+  ui->tblTags->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+  ui->tblTags->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+  ui->tblTags->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+
+  // Create the model for the table view
+  QStandardItemModel *ticket_list_model = new QStandardItemModel();
+  ticket_list_model->setHorizontalHeaderLabels(QStringList() << "Ticket" << "Service" << "Status");
+  ui->tblTickets->setModel(ticket_list_model);
+
+  QItemSelectionModel *sel = new QItemSelectionModel(ticket_list_model);
+  ui->tblTickets->setSelectionModel(sel);
+
+  ui->tblTickets->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+  ui->tblTickets->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+  ui->tblTickets->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+
+  // Create model for the logs
+  QStandardItemModel *log_entry_list_model = new QStandardItemModel();
+  log_entry_list_model->setHorizontalHeaderLabels(QStringList() << "Time" << "Message" << "Att");
+  ui->tblLog->setModel(log_entry_list_model);
+
+  ui->tblLog->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+  ui->tblLog->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
+  ui->tblLog->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+
+  // The ticket detail timer should fire at regular intervals
+  m_TicketDetailRefreshTimer = new QTimer(this);
+  connect(m_TicketDetailRefreshTimer, SIGNAL(timeout()), this, SLOT(onSelectedTicketRefreshTimer()));
+  m_TicketDetailRefreshTimer->start(4000);
+
+  // The ticket listing timer should also fire at regular intervalse
+  m_TicketListingRefreshTimer = new QTimer(this);
+  connect(m_TicketListingRefreshTimer, SIGNAL(timeout()), this, SLOT(onTicketListRefreshTimer()));
+  m_TicketListingRefreshTimer->start(4000);
+}
+
+DistributedSegmentationDialog::~DistributedSegmentationDialog()
+{
+  delete ui;
+}
+
 
 void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model)
 {
@@ -174,25 +275,30 @@ void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model
   // Connect the widgets
   makeCoupling(ui->inServer, m_Model->GetServerURLModel());
   makeCoupling(ui->inToken, m_Model->GetTokenModel());
-  makeCoupling(ui->outStatus, m_Model->GetServerStatusStringModel());
+  makeCoupling(ui->outStatus, m_Model->GetServerStatusModel());
   makeCoupling(ui->inService, m_Model->GetCurrentServiceModel());
   makeCoupling(ui->outServiceDesc, m_Model->GetServiceDescriptionModel());
+  makeCoupling(ui->outProgress, m_Model->GetSelectedTicketProgressModel());
 
   // Couple the tag list widget
-  DefaultTableWidgetRowTraits<int, dss_model::TagTargetSpec, TagRowDescMapper> tag_row_traits;
-  makeMultiRowCoupling(ui->tblTags, m_Model->GetTagListModel(), tag_row_traits);
+  makeMultiRowCoupling((QAbstractItemView *) ui->tblTags,
+                       m_Model->GetTagListModel(),
+                       TagListRowTraits());
 
   // Create an item delegate for the fourth column
-  ui->tblTags->setItemDelegateForColumn(3, new TagComboDelegate(m_Model, this));
+  ui->tblTags->setItemDelegateForColumn(3, new TagComboDelegate(m_Model, ui->tblTags));
 
   // Couple the ticket listing widget
-  typedef DefaultWidgetValueTraits<dss_model::TicketId, QAbstractItemView> TicketSummaryValueTraits;
-  typedef QStandardItemModelWidgetDomainTraits<
-      DistributedSegmentationModel::TicketListingDomain,
-      TicketStatusSummaryRowTraits> TicketSummaryDomainTraits;
+  makeMultiRowCoupling((QAbstractItemView *) ui->tblTickets, m_Model->GetTicketListModel(),
+                       TicketStatusSummaryRowTraits());
 
-  makeCoupling((QAbstractItemView *) ui->tblTickets, m_Model->GetTicketListModel(),
-               TicketSummaryValueTraits(), TicketSummaryDomainTraits());
+  // Couple the log listing widget
+  makeMultiRowCoupling((QAbstractItemView *) ui->tblLog,
+                       m_Model->GetSelectedTicketLogModel(),
+                       TicketLogEntryRowTraits());
+
+  // Create a delegate for the attachment column
+  ui->tblLog->setItemDelegateForColumn(2, new AttachmentComboDelegate(m_Model, this));
 
 
   // Listen for server changes
@@ -208,6 +314,11 @@ void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model
   // Listen for changes in connectivity status
   LatentITKEventNotifier::connect(
         model->GetServerStatusModel(), ValueChangedEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
+
+  // Listen for changes in selected ticket
+  LatentITKEventNotifier::connect(
+        model->GetTicketListModel(), ValueChangedEvent(),
         this, SLOT(onModelUpdate(const EventBucket &)));
 
 
@@ -233,8 +344,26 @@ void DistributedSegmentationDialog::LaunchTicketListingRefresh()
   watcher->setFuture(future);
 }
 
+void DistributedSegmentationDialog::LaunchTicketDetailRefresh()
+{
+  dss_model::IdType selected_ticket_id;
+  if(m_Model->GetTicketListModel()->GetValueAndDomain(selected_ticket_id, NULL)
+     && selected_ticket_id >= 0)
+    {
+    QFuture<dss_model::TicketDetailResponse> future =
+        QtConcurrent::run(DistributedSegmentationModel::AsyncGetTicketDetails,
+                          selected_ticket_id, m_Model->GetLastLogIdOfSelectedTicket());
+
+    QFutureWatcher<dss_model::TicketDetailResponse> *watcher =
+        new QFutureWatcher<dss_model::TicketDetailResponse>();
+    connect(watcher, SIGNAL(finished()), this, SLOT(updateTicketDetail()));
+    watcher->setFuture(future);
+    }
+}
+
 void DistributedSegmentationDialog::onModelUpdate(const EventBucket &bucket)
 {
+  std::cout << bucket << std::endl;
   if(bucket.HasEvent(DistributedSegmentationModel::ServerChangeEvent()))
     {
     // The server has changed. We should launch a separate job to connect to the
@@ -262,8 +391,19 @@ void DistributedSegmentationDialog::onModelUpdate(const EventBucket &bucket)
     }
   if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetServerStatusModel()))
     {
+    // Restart the refresh timer - so that the next time is fires is delayed
+    m_TicketListingRefreshTimer->start(m_TicketListingRefreshTimer->interval());
+
     // We need to refresh the ticket listing
     LaunchTicketListingRefresh();
+    }
+  if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetTicketListModel()))
+    {
+    // Restart the refresh timer - so that the next time is fires is delayed
+    m_TicketDetailRefreshTimer->start(m_TicketDetailRefreshTimer->interval());
+
+    // The ticket has changed. Launch a separate job to get the ticket details
+    LaunchTicketDetailRefresh();
     }
 }
 
@@ -296,20 +436,35 @@ void DistributedSegmentationDialog::updateTicketListing()
   m_Model->ApplyTicketListingResponse(watcher->result());
 
   delete watcher;
+}
 
-  // Schedule another listing update
-  QTimer::singleShot(4000, this, SLOT(onTicketListRefreshTimer()));
+void DistributedSegmentationDialog::updateTicketDetail()
+{
+  QFutureWatcher<dss_model::TicketDetailResponse> *watcher =
+      dynamic_cast<QFutureWatcher<dss_model::TicketDetailResponse> *>(this->sender());
 
+  m_Model->ApplyTicketDetailResponse(watcher->result());
+
+  delete watcher;
 }
 
 void DistributedSegmentationDialog::onTicketListRefreshTimer()
 {
   // If there is no model or the dialog is hidden, there is nothing to do
-  if(!m_Model || !this->isVisible())
-    return;
+  if(m_Model && this->isVisible())
+    {
+    // Run the refresh
+    LaunchTicketListingRefresh();
+    }
+}
 
-  // Run the refresh
-  LaunchTicketListingRefresh();
+void DistributedSegmentationDialog::onSelectedTicketRefreshTimer()
+{
+  // If there is no model or the dialog is hidden, there is nothing to do
+  if(m_Model && this->isVisible() && m_Model->GetTicketListModel()->isValid())
+    {
+    LaunchTicketDetailRefresh();
+    }
 }
 
 void DistributedSegmentationDialog::on_btnGetToken_clicked()
@@ -323,21 +478,293 @@ void DistributedSegmentationDialog::on_btnSubmit_clicked()
   // Apply the tags to the workspace
   m_Model->ApplyTagsToTargets();
 
-  // Save the workspace
-  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParent()))
+  // If there is no workspace, it has to be created
+  MainImageWindow *parent = findParentWidget<MainImageWindow>(this);
+  if(!parent->SaveWorkspace(false))
     return;
 
   // Show a progress dialog
   QProgressDialog *progress = new QProgressDialog();
   QtProgressReporterDelegate progress_delegate;
   progress_delegate.SetProgressDialog(progress);
-
-  progress->setLabelText  ("Uploading workspace...");
+  progress->setLabelText("Uploading workspace...");
   progress->setMinimumDuration(0);
+  // progress->setAutoReset(false);
+  // progress->show();
+  // progress->activateWindow();
+  // progress->raise();
 
   // Submit the workspace
-  m_Model->SubmitWorkspace(&progress_delegate);
+  try
+    {
+    m_Model->SubmitWorkspace(&progress_delegate);
+    }
+  catch(std::exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Failed to submit workspace");
+    }
 
   progress->hide();
   delete progress;
+}
+
+void DistributedSegmentationDialog::on_btnDownload_clicked()
+{
+  QtCursorOverride cursy;
+  try
+  {
+    std::string file_list = m_Model->DownloadWorkspace();
+    QStringList fl = from_utf8(file_list).split("\n");
+    foreach (QString file, fl)
+      {
+      if(file.endsWith(".itksnap"))
+        {
+        // Open this file as a workspace
+        MainImageWindow *parent = findParentWidget<MainImageWindow>(this);
+        parent->LoadDroppedFile(file);
+        break;
+        }
+      }
+  }
+  catch(IRISException &exc)
+  {
+    ReportNonLethalException(this, exc, "Failed to download workspace");
+  }
+}
+
+
+TagComboDelegate::TagComboDelegate(
+    DistributedSegmentationModel *model,
+    QAbstractItemView *view)
+  : QStyledItemDelegate(view)
+{
+  m_Model = model;
+}
+
+
+
+
+template <class TAtomic>
+class ComboBoxWithActionsValueTraits
+    : public DefaultWidgetValueTraits<TAtomic, QComboBox>
+{
+public:
+  typedef DefaultWidgetValueTraits<TAtomic, QComboBox> Superclass;
+
+  TAtomic GetValue(QComboBox *w)
+  {
+    QVariant id_action = w->itemData(w->currentIndex(), Qt::UserRole + 1);
+    QAction *action = id_action.value<QAction *>();
+    if(action)
+      QTimer::singleShot(0, action, SLOT(trigger()));
+
+    return Superclass::GetValue(w);
+  }
+};
+
+class ItemSetComboBoxWithActionsDomainTraits :
+    public ItemSetWidgetDomainTraits<DistributedSegmentationModel::LayerSelectionDomain, QComboBox, DefaultComboBoxRowTraits<unsigned long, std::string> >
+{
+public:
+
+  typedef DefaultComboBoxRowTraits<unsigned long, std::string> RowTraits;
+  typedef ItemSetWidgetDomainTraits<DistributedSegmentationModel::LayerSelectionDomain, QComboBox, RowTraits> Superclass;
+
+  void AddAction(QAction *action, Superclass::AtomicType value)
+  {
+    m_Actions.push_back(action);
+    m_ActionValues.push_back(value);
+  }
+
+  void SetDomain(QComboBox *w, const DomainType &domain) ITK_OVERRIDE
+  {
+    // Fill out the domain as is
+    Superclass::SetDomain(w, domain);
+
+    // Insert a separator
+    w->insertSeparator(w->count());
+
+    // Add the special action
+    for(int i = 0; i < m_Actions.size(); i++)
+      {
+      w->addItem(m_Actions[i]->icon(), m_Actions[i]->text(), (qlonglong) m_ActionValues[i]);
+      w->setItemData(w->count() - 1, QVariant::fromValue(m_Actions[i]), Qt::UserRole + 1);
+      }
+  }
+
+private:
+
+  QList<QAction *> m_Actions;
+  QList<Superclass::AtomicType> m_ActionValues;
+
+};
+
+QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+  // Select the current index in the model
+  // QStandardItemModel *sim = dynamic_cast<QStandardItemModel *>(m_View->model());
+  // int tag = sim->item(index.row(), 0)->data(Qt::UserRole).value<int>();
+  // m_Model->GetTagListModel()->SetValue(tag);
+  // m_Model->Update();
+
+  // Create a combo
+  if(m_Model->GetCurrentTagImageLayerModel()->isValid())
+    {
+    // We create a customized combo box for this editor with a special "unassigned" field
+    QComboBox *combo = new QComboBox(parent);
+
+    ComboBoxWithActionsValueTraits<unsigned long> fancy_value_traits;
+    ItemSetComboBoxWithActionsDomainTraits fancy_domain_traits;
+
+    DistributedSegmentationModel::LoadAction load_type = m_Model->GetTagLoadAction(index.row());
+    if(load_type == DistributedSegmentationModel::LOAD_MAIN)
+      {
+      fancy_domain_traits.AddAction(FindUpstreamAction(parent, "actionOpenMain"), 0);
+      }
+    else if(load_type == DistributedSegmentationModel::LOAD_OVERLAY)
+      {
+      fancy_domain_traits.AddAction(FindUpstreamAction(parent, "actionAdd_Overlay"), 0);
+      }
+
+    makeCoupling(combo, m_Model->GetCurrentTagImageLayerModel(), fancy_value_traits, fancy_domain_traits);
+
+    QTimer::singleShot(0, combo, &QComboBox::showPopup);
+
+    return combo;
+    }
+
+  return QStyledItemDelegate::createEditor(parent, option, index);
+}
+
+void TagComboDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+}
+
+void TagComboDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+}
+
+void TagComboDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+  editor->setGeometry(option.rect);
+}
+
+AttachmentComboDelegate::AttachmentComboDelegate(DistributedSegmentationModel *model, QObject *parent)
+  : QStyledItemDelegate(parent)
+{
+  m_Model = model;
+}
+
+QWidget *AttachmentComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+  // Get details on the selected ticket
+  const dss_model::TicketDetailResponse *detail = m_Model->GetSelectedTicketDetail();
+
+  // Get the attachments for that ticket
+  if(detail && detail->log.size() > index.row() && detail->log[index.row()].attachments.size())
+    {
+    // Get the attachments for the log entry in question
+    const std::vector<dss_model::Attachment> &att = detail->log[index.row()].attachments;
+
+    // Create a button
+    QToolButton *button = new QToolButton(parent);
+    button->setIcon(QIcon(":/root/icons8_attach_16.png"));
+    button->setPopupMode(QToolButton::InstantPopup);
+
+    // Create a menu for the button
+    QMenu *menu = new QMenu(parent);
+    connect(menu, SIGNAL(triggered(QAction*)), this, SLOT(onMenuAction(QAction*)));
+    for(int i = 0; i < att.size(); i++)
+      {
+      QAction *action = menu->addAction(QIcon(":/root/icons8_attach_16.png"), from_utf8(att[i].desc));
+      action->setData(from_utf8(att[i].url));
+      action->setToolTip(QString("<img src='%1'>").arg(from_utf8(att[i].url)));
+      }
+
+    button->setMenu(menu);
+    return button;
+    }
+  else
+    return NULL;
+}
+
+void AttachmentComboDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+{
+}
+
+void AttachmentComboDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+{
+}
+
+void AttachmentComboDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &index) const
+{
+  editor->setGeometry(option.rect);
+}
+
+void AttachmentComboDelegate::onMenuAction(QAction *action)
+{
+  if(action)
+    {
+    QString url = action->data().toString();
+    QDesktopServices::openUrl(QUrl(url));
+    }
+}
+
+void DistributedSegmentationDialog::on_btnDelete_clicked()
+{
+  // Delete the current ticket
+  try
+  {
+    m_Model->DeleteSelectedTicket();
+  }
+  catch(IRISException &exc)
+  {
+    ReportNonLethalException(this, exc, "Failed to delete selected ticket");
+  }
+
+
+}
+
+#include <QInputDialog>
+#include <QMessageBox>
+
+void DistributedSegmentationDialog::on_btnManageServers_clicked()
+{
+  // Get the current list of user URLs
+  std::vector<std::string> input_urls = m_Model->GetUserServerList();
+
+  // Concatenate them into a multi-line string
+  QString input;
+  for(int i = 0; i < input_urls.size(); i++)
+    input.append(QString("%1%2").arg(i > 0 ? "\n" : "", from_utf8(input_urls[i])));
+
+  // Create a dialog box with a list of servers
+  bool ok = false;
+  QString servers = QInputDialog::getMultiLineText(
+                      this, "Edit Server List",
+                      "Enter additional server URLs on separate lines below:", input, &ok);
+
+
+  if(!ok)
+    return;
+
+  // Split into individual strings
+  QStringList url_list = servers.split("\n");
+  std::vector<std::string> valid_urls;
+  foreach(QString url_string, url_list)
+    {
+    QUrl url(url_string);
+    if(!url.isValid() || url.isRelative() || url.isLocalFile() || url.isEmpty())
+      {
+      QMessageBox::warning(this, "Invalid server URL",
+                           QString("%1 is not a valid URL.").arg(url_string));
+      }
+    else
+      {
+      valid_urls.push_back(to_utf8(url.toString()));
+      }
+    }
+
+  // Set the custom URL list
+  m_Model->SetUserServerList(valid_urls);
 }

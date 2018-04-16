@@ -124,11 +124,14 @@ int usage(int rc)
   cout << "  -dss-tickets-progress <id>        : Get the total progress for ticket 'id'" << endl;
   cout << "  -dss-tickets-wait <id> [timeout]  : Wait for the ticket 'id' to complete" << endl;
   cout << "  -dss-tickets-download <id> <dir>  : Download the result for ticket 'id' to directory 'dir'" << endl;
+  cout << "  -dss-tickets-delete <id>          : Delete a ticket" << endl;
   cout << "Distributed segmentation server provider commands: " << endl;
   cout << "  -dssp-services-list               : List all the services you are listed as provider for" << endl;
-  cout << "  -dssp-services-claim <service_hash> <provider> <instance_id> [timeout]" << endl;
-  cout << "                                    : Claim the next available ticket for given service." << endl;
-  cout << "                                      'instance_id' is a unique identifier for this service instance" << endl;
+  cout << "  -dssp-services-claim <service_hash_list> <provider> <instance_id> [timeout]" << endl;
+  cout << "                                    : Claim the next available ticket for given service or list of services." << endl;
+  cout << "                                      'service_hash_list' is a comma-separated list of service git hashes." << endl;
+  cout << "                                      'provider' is the provider identifier code" << endl;
+  cout << "                                      'instance_id' is a unique identifier within the provider" << endl;
   cout << "                                      if 'timeout' specified, command will halt until a ticket " << endl;
   cout << "                                      can be claimed or 'timeout' seconds pass." << endl;
   cout << "  -dssp-tickets-download <id> <dir> : Download the files for claimed ticket id to dir" << endl;
@@ -166,60 +169,7 @@ void UploadResultWorkspace(const WorkspaceAPI &ws, int ticket_id)
   ws.UploadWorkspace("api/pro/tickets/%d/files/results", ticket_id, "_results");
 }
 
-/**
- * Download ticket files to a directory. Flag provider_mode switches between
- * behavior for users and providers. String area is one of (input|results)
- */
-string DownloadTicketFiles(int ticket_id, const char *outdir, bool provider_mode, const char *area)
-{
-  // Output string
-  ostringstream oss;
 
-  // Provider mode-specific settings
-  const char *url_base = (provider_mode) ? "api/pro" : "api";
-
-  // First off, get the list of all files for this ticket
-  RESTClient rc;
-  if(!rc.Get("%s/tickets/%d/files/%s", url_base, ticket_id, area))
-    throw IRISException("Failed to get list of files for ticket %d (%s)", 
-      ticket_id, rc.GetResponseText());
-
-  // The output is in the form of a CSV, easiest to just parse it
-  FormattedTable ft;
-  ft.ParseCSV(rc.GetOutput());
-
-  // Are there any files?
-  if(ft.Rows() == 0 || ft.Columns() < 2)
-    throw IRISException("Empty or invalid list of files for ticket %d", ticket_id);
-
-  // Create the output directory
-  if(!SystemTools::MakeDirectory(outdir))
-    throw IRISException("Unable to create output directory %s", outdir);
-
-  // Iterate over the dictionary
-  for(int iFile = 0; iFile < ft.Rows(); iFile++)
-    {
-    // Where we will write this file to
-    int file_index = atoi(ft(iFile,0).c_str());
-    string file_name = ft(iFile, 1);
-    string file_path = SystemTools::CollapseFullPath(file_name.c_str(), outdir);
-
-    // Create a file handle
-    FILE *fout = fopen(file_path.c_str(), "wb");
-    rc.SetOutputFile(fout);
-
-    if(!rc.Get("%s/tickets/%d/files/%s/%d", url_base, ticket_id, area, file_index))
-      throw IRISException("Failed to download file %s for ticket %d (%s)", 
-        file_name.c_str(), ticket_id, rc.GetResponseText());
-
-    rc.SetOutputFile(NULL);
-    fclose(fout);
-
-    oss << file_path << endl;
-    }
-
-  return oss.str();
-}
 
 void PostAttachment(int ticket_id, string desc, string filename, string mimetype = "")
 {
@@ -633,6 +583,16 @@ int main(int argc, char *argv[])
         else
           throw IRISException("Error listing tickets: %s", rc.GetResponseText());
         }
+      else if(arg == "-dss-tickets-delete" || arg == "-dt-del")
+        {
+        int ticket_id = cl.read_integer();
+        RESTClient rc;
+        if(rc.Get("api/tickets/%d/delete", ticket_id))
+          cout << prefix << rc.GetOutput() << endl;
+        else
+          throw IRISException("Error deleting ticket %d: %s", ticket_id, rc.GetResponseText());
+
+        }
       else if(arg == "-dss-tickets-log" || arg == "-dt-log")
         {
         int ticket_id = cl.read_integer();
@@ -773,24 +733,25 @@ int main(int argc, char *argv[])
           {
           // Try claiming the ticket
           RESTClient rc;
-          if(!rc.Post("api/pro/services/%s/claims","provider=%s,code=%s",
+          if(!rc.Post("api/pro/services/claims","services=%s&provider=%s&code=%s",
                       service_githash.c_str(), provider_name.c_str(), provider_code.c_str()))
             throw IRISException("Error claiming ticket for service %s: %s", 
               service_githash.c_str(), rc.GetResponseText());
 
-          // Ticket id will be 0 if nothing is available, or the ticket id
-          int ticket_id = atoi(rc.GetOutput());
+          // The output will be a table with ticket id and githash
+          FormattedTable ft;
+          ft.ParseCSV(rc.GetOutput());
 
-          // If actual ticket, print it and we are done
-          if(ticket_id > 0) 
+          int ticket_id;
+          if(ft.Rows() == 1 && (ticket_id = atoi(ft(0, 0).c_str())) > 0)
             {
-            cout << prefix << ticket_id << endl;
+            ft.Print(cout, prefix);
             context_ticket_id = ticket_id;
             break;
             }
           else if(tnow + twait > timeout)
             {
-            throw IRISException("No tickets available to claim for service %s", service_githash.c_str());
+            throw IRISException("No tickets available to claim for service(s) %s", service_githash.c_str());
             }
           else
             {
@@ -803,14 +764,14 @@ int main(int argc, char *argv[])
         {
         int ticket_id = cl.read_integer();
         string output_path = cl.read_string();
-        string file_list = DownloadTicketFiles(ticket_id, output_path.c_str(), false, "results");
+        string file_list = WorkspaceAPI::DownloadTicketFiles(ticket_id, output_path.c_str(), false, "results");
         print_string_with_prefix(cout, file_list, prefix);
         }
       else if(arg == "-dssp-tickets-download")
         {
         int ticket_id = cl.read_integer();
         string output_path = cl.read_string();
-        string file_list = DownloadTicketFiles(ticket_id, output_path.c_str(), true, "input");
+        string file_list = WorkspaceAPI::DownloadTicketFiles(ticket_id, output_path.c_str(), true, "input");
         print_string_with_prefix(cout, file_list, prefix);
         }
       else if(arg == "-dssp-tickets-fail")

@@ -817,6 +817,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Coupling/QtLabelCoupling.h
   GUI/Qt/Coupling/QtLineEditCoupling.h
   GUI/Qt/Coupling/QtListWidgetCoupling.h
+  GUI/Qt/Coupling/QtProgressBarCoupling.h
   GUI/Qt/Coupling/QtRadioButtonCoupling.h
   GUI/Qt/Coupling/QtScrollbarCoupling.h
   GUI/Qt/Coupling/QtSliderCoupling.h

@@ -187,6 +187,17 @@ public:
 
   unsigned int Size() const { return m_EnumToStringMap.size(); }
   StringType operator [] (TEnum value) { return m_EnumToStringMap[value]; }
+
+  /** Default constructor */
+  RegistryEnumMap() {}
+
+  /** Constructor for enums that start at zero - must terminate with NULL */
+  RegistryEnumMap(const char *init[])
+  {
+    for(int i = 0; init[i] != NULL; i++)
+      this->AddPair((TEnum) i, init[i]);
+  }
+
 private:
   std::map<TEnum, StringType> m_EnumToStringMap;
   std::map<StringType, TEnum> m_StringToEnumMap;
