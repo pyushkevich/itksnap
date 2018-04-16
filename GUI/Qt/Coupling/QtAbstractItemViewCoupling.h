@@ -11,6 +11,10 @@
 #include <QAbstractProxyModel>
 #include <ColorLabel.h>
 
+#include <QTableView>
+#include <QHeaderView>
+#include <QTimer>
+
 /**
  * Some Ideas:
  *
@@ -163,7 +167,7 @@ public:
 
 
 template <class TItemDomain, class TRowTraits>
-class QStandardItemModelWidgetDomainTraits :
+class DefaultMultiRowWidgetDomainTraits<TItemDomain, QAbstractItemView, TRowTraits> :
     public WidgetDomainTraitsBase<TItemDomain, QAbstractItemView *>
 {
 public:
@@ -197,8 +201,7 @@ public:
     if(!model)
       return;
 
-    model->clear();
-    model->setColumnCount(TRowTraits::columnCount());
+    model->removeRows(0, model->rowCount());
 
     // Populate
     for(typename DomainType::const_iterator it = domain.begin();
@@ -206,18 +209,17 @@ public:
       {
       // Get the key/value pair
       AtomicType value = domain.GetValue(it);
-      const DescriptorType &row = domain.GetDescription(it);
+      const DescriptorType &row_desc = domain.GetDescription(it);
 
       // Use the row traits to map information to the widget
-      QList<QStandardItem *> rlist;
+      QList<QStandardItem *> row_items;
       for(int j = 0; j < model->columnCount(); j++)
-        {
-        QStandardItem *item = new QStandardItem();
-        TRowTraits::updateItem(item, j, value, row);
-        rlist.append(item);
-        }
-      model->appendRow(rlist);
+        row_items.append(new QStandardItem());
+      TRowTraits::updateRow(row_items, value, row_desc);
+      model->appendRow(row_items);
       }
+
+    emit model->dataChanged(model->index(0,0), model->index(model->rowCount()-1, model->columnCount()-1));
   }
 
   void UpdateDomainDescription(QAbstractItemView *w, const DomainType &domain)
@@ -238,16 +240,21 @@ public:
     int nrows = model->rowCount();
     for(int i = 0; i < nrows; i++)
       {
-      QStandardItem *item = model->item(i);
-      AtomicType id = TRowTraits::getItemValue(item);
+      // Collect the items for this row
+      QList<QStandardItem *> row_items;
+      for(int j = 0; j <  model->columnCount(); j++)
+        row_items.append(model->item(i,j));
+
+      // Get the value associated with this row
+      AtomicType id = TRowTraits::getRowValue(row_items);
+
+      // Find the row in the model and update the items
       typename DomainType::const_iterator it = domain.find(id);
       if(it != domain.end())
-        {
-        const DescriptorType &row = domain.GetDescription(it);
-        for(int j = 0; j <  model->columnCount(); j++)
-          TRowTraits::updateItem(model->item(i,j), j, id, row);
-        }
+        TRowTraits::updateRow(row_items, id, domain.GetDescription(it));
       }
+
+    emit model->dataChanged(model->index(0,0), model->index(model->rowCount()-1, model->columnCount()-1));
   }
 
   TItemDomain GetDomain(QAbstractItemView *w)
@@ -264,8 +271,10 @@ public:
 
   static int columnCount() { return 1; }
 
-  static void updateItem(QStandardItem *item, int column, LabelType label, const ColorLabel &cl)
+  static void updateRow(QList<QStandardItem *> items, LabelType label, const ColorLabel &cl)
   {
+    QStandardItem *item = items[0];
+
     // Handle the timestamp - if the timestamp has not changed, don't need to update
     unsigned long ts = item->data(Qt::UserRole+1).toLongLong();
     if(ts == cl.GetTimeStamp().GetMTime())
@@ -288,9 +297,9 @@ public:
     item->setData((qulonglong) cl.GetTimeStamp().GetMTime(), Qt::UserRole+1);
   }
 
-  static LabelType getItemValue(QStandardItem *item)
+  static LabelType getRowValue(QList<QStandardItem *> items)
   {
-    return item->data(Qt::UserRole).value<LabelType>();
+    return items[0]->data(Qt::UserRole).value<LabelType>();
   }
 };
 
@@ -300,66 +309,44 @@ public:
 
   static int columnCount() { return 2; }
 
-  static void updateItem(QStandardItem *item, int column, LabelType label, const ColorLabel &cl)
+  static void updateRow(QList<QStandardItem *> items, LabelType label, const ColorLabel &cl)
   {
     // Handle the timestamp - if the timestamp has not changed, don't need to update
-    unsigned long ts = item->data(Qt::UserRole+1).toLongLong();
+    unsigned long ts = items[0]->data(Qt::UserRole+1).toLongLong();
     if(ts == cl.GetTimeStamp().GetMTime())
       return;
 
     // The description
-    if(column == 0)
-      {
-      QString text = QString("%1").arg(label);
+    QString id_text = QString("%1").arg(label);
 
-      // The color
-      QColor fill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
+    // The color
+    QColor fill(cl.GetRGB(0), cl.GetRGB(1), cl.GetRGB(2));
 
-      // Icon based on the color
-      QIcon ic = CreateColorBoxIcon(16, 16, fill);
+    // Icon based on the color
+    QIcon ic = CreateColorBoxIcon(16, 16, fill);
 
-      // Create item and set its properties
-      item->setIcon(ic);
-      item->setText(text);
-      item->setData(text, Qt::EditRole);
-      item->setData(label, Qt::UserRole);
-      }
-    else if(column == 1)
-      {
-      QString text = QString::fromUtf8(cl.GetLabel());
-      item->setText(text);
-      item->setData(text, Qt::EditRole);
-      }
+    // Create item and set its properties
+    items[0]->setIcon(ic);
+    items[0]->setText(id_text);
+    items[0]->setData(id_text, Qt::EditRole);
+    items[0]->setData(label, Qt::UserRole);
 
     // Update the timestamp
-    item->setData((qulonglong) cl.GetTimeStamp().GetMTime(), Qt::UserRole+1);
+    items[0]->setData((qulonglong) cl.GetTimeStamp().GetMTime(), Qt::UserRole+1);
+
+    // Description
+    QString desc_text = QString::fromUtf8(cl.GetLabel());
+    items[1]->setText(desc_text);
+    items[1]->setData(desc_text, Qt::EditRole);
+
   }
 
-  static LabelType getItemValue(QStandardItem *item)
+  static LabelType getRowValue(QList<QStandardItem *> items)
   {
-    return item->data(Qt::UserRole).value<LabelType>();
+    return items[0]->data(Qt::UserRole).value<LabelType>();
   }
 };
 
-
-template<class TAtomic, class TItemDescriptor>
-class DefaultQSIMCouplingRowTraits
-{
-};
-
-template<>
-class DefaultQSIMCouplingRowTraits<LabelType, ColorLabel>
-    : public TwoColumnColorLabelToQSIMCouplingRowTraits
-{
-};
-
-template<class TDomain>
-class DefaultWidgetDomainTraits<TDomain, QAbstractItemView>
-    : public QStandardItemModelWidgetDomainTraits<
-        TDomain, DefaultQSIMCouplingRowTraits<typename TDomain::ValueType,
-                                              typename TDomain::DescriptorType> >
-{
-};
 
 template<>
 class DefaultWidgetDomainTraits<TrivialDomain, QAbstractItemView>

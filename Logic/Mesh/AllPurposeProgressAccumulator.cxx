@@ -38,6 +38,41 @@
 #include "itkEventObject.h"
 #include <cassert>
 
+void
+AllPurposeProgressAccumulator::GenericProgressSource
+::callback(void *p, double progress)
+{
+  GenericProgressSource *me = static_cast<GenericProgressSource *>(p);
+  if(!me->m_Started)
+    {
+    me->m_Parent->CallbackStart(me);
+    me->m_Started = true;
+    }
+
+  if(progress > 0.0 && progress < 1.0)
+    {
+    me->m_Parent->CallbackProgress(me, progress);
+    }
+  else if(progress >= 1.0 && !me->m_Ended)
+    {
+    me->m_Parent->CallbackEnd(me, progress);
+    me->m_Ended = true;
+    }
+}
+
+AllPurposeProgressAccumulator::GenericProgressSource
+::GenericProgressSource(AllPurposeProgressAccumulator *parent)
+  : m_Parent(parent), m_Started(false), m_Ended(false)
+{
+
+}
+
+void AllPurposeProgressAccumulator::GenericProgressSource::StartNextRun()
+{
+  m_Started = false; m_Ended = false;
+}
+
+
 AllPurposeProgressAccumulator
 ::AllPurposeProgressAccumulator()
 { 
@@ -196,6 +231,15 @@ AllPurposeProgressAccumulator
 
   // Move to the next run
   pd.RunId++;
+
+  // If the source is our own GenericProcessSource, then we need to reset
+  // its state for the next run, so that it fires the begin event when it
+  // receives its first bit of progress
+  if(pd.Type == GENERIC)
+    {
+    GenericProgressSource *gps = static_cast<GenericProgressSource *>(source);
+    gps->StartNextRun();
+    }
 }
 
 void 
@@ -296,8 +340,65 @@ AllPurposeProgressAccumulator
   run.Started = run.Ended = false;
   m_Source[source].Runs.push_back(run);
 }
-  
-void 
+
+void *AllPurposeProgressAccumulator
+::RegisterGenericSource(int n_runs, float total_weight)
+{
+  // Create a progress data
+  ProgressData pd;
+  pd.RunId = 0;
+  pd.Type = GENERIC;
+
+  // Generate data for the runs
+  for(int i = 0; i < n_runs; i++)
+    {
+    RunData run;
+    run.Weight = total_weight / n_runs;
+    run.Progress = 0.0;
+    run.Started = run.Ended = false;
+    pd.Runs.push_back(run);
+    }
+
+    // Create the source
+  GenericProgressSource *source = new GenericProgressSource(this);
+  m_Source[source] = pd;
+
+  // Return the source
+  return source;
+}
+
+AllPurposeProgressAccumulator::CommandPointer AllPurposeProgressAccumulator::RegisterITKSourceViaCommand(float xWeight)
+{
+  // Create a trivial source
+  TrivalProgressSource::Pointer tsource = TrivalProgressSource::New();
+
+  // Create a command that calls that source
+  typedef itk::MemberCommand<TrivalProgressSource> MyCommand;
+  MyCommand::Pointer command = MyCommand::New();
+  command->SetCallbackFunction(tsource, &TrivalProgressSource::Callback);
+
+  // Add this trivial source with the specified weight
+  this->RegisterSource(tsource, xWeight);
+
+  // Return the command
+  CommandPointer cmd_ret; cmd_ret = command.GetPointer();
+
+  // Retain the two smart pointers (so they don't get deleted when going out of scope and we can delete source later)
+  m_CommandToTrivialSourceMap[cmd_ret] = tsource;
+
+  return cmd_ret;
+}
+
+
+void AllPurposeProgressAccumulator::UnregsterGenericSource(void *source)
+{
+  GenericProgressSource *gps = static_cast<GenericProgressSource *>(source);
+  m_Source.erase(gps);
+  delete gps;
+}
+
+
+void
 AllPurposeProgressAccumulator
 ::UnregisterSource(itk::ProcessObject *source)
 {
@@ -308,9 +409,9 @@ AllPurposeProgressAccumulator
 
   // Remove the entry from the hash table
   m_Source.erase(source);
-} 
-  
-void 
+}
+
+void
 AllPurposeProgressAccumulator
 ::UnregisterSource(vtkAlgorithmClass *source)
 {
@@ -322,7 +423,7 @@ AllPurposeProgressAccumulator
   // Remove the entry from the hash table
   m_Source.erase(source);
 } 
-  
+
 void 
 AllPurposeProgressAccumulator
 ::UnregisterAllSources()
@@ -344,6 +445,10 @@ AllPurposeProgressAccumulator
       itk->RemoveObserver(it->second.StartTag);
       itk->RemoveObserver(it->second.EndTag);
       }
+    else if(it->second.Type == GENERIC)
+      {
+      delete static_cast<GenericProgressSource *>(it->first);
+      }
     }
 
   // Clear the hash table
@@ -351,6 +456,11 @@ AllPurposeProgressAccumulator
 
   // Reset the state as well
   ResetProgress();
+}
+
+void AllPurposeProgressAccumulator::GenericProgressCallback(void *source, double progress)
+{
+  GenericProgressSource::callback(source, progress);
 }
 
 void
@@ -375,7 +485,7 @@ AllPurposeProgressAccumulator
         m_Started = true;
       if(!it->second.Runs[i].Ended)
         m_Ended = false;
-      }    
+      }
     }
 
   double progress = totalWeight > 0.0 ? totalProgress / totalWeight : 0.0;
@@ -398,8 +508,43 @@ AllPurposeProgressAccumulator
     cout << vtk->GetClassName();
     }
   cout << " [" << source << "], Run " << m_Source[source].RunId <<
-   " of " << m_Source[source].Runs.size() << " : " << state 
+   " of " << m_Source[source].Runs.size() << " : " << state
    << "; val = " << p << endl;
    */
 }
 
+
+void TrivalProgressSource::StartProgress(double max_progress)
+{
+  m_MaxProgress = max_progress;
+  this->InvokeEvent(itk::StartEvent());
+  this->UpdateProgress(0.0);
+}
+
+void TrivalProgressSource::AddProgress(double delta)
+{
+  Superclass::UpdateProgress(Superclass::GetProgress() + (float) delta / m_MaxProgress);
+}
+
+void TrivalProgressSource::EndProgress()
+{
+  this->UpdateProgress(1.0);
+  this->InvokeEvent(itk::EndEvent());
+}
+
+void TrivalProgressSource::Callback(itk::Object *source, const itk::EventObject &event)
+{
+  // If this is a start event, fire it first
+  if(itk::StartEvent().CheckEvent(&event))
+    this->InvokeEvent(event);
+
+  // Take the progress from the source and apply to ourselves
+  itk::ProcessObject *po = static_cast<itk::ProcessObject *>(source);
+  Superclass::UpdateProgress(po->GetProgress());
+
+  // Invoke the source event
+  if(itk::EndEvent().CheckEvent(&event))
+    this->InvokeEvent(event);
+}
+
+TrivalProgressSource::TrivalProgressSource() : m_MaxProgress(1.0) {}

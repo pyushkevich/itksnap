@@ -10,6 +10,7 @@ namespace itk
 {
 template <class TPixel, unsigned int VDim> class Image;
 template <class TPixel> class RGBAPixel;
+class Command;
 }
 
 class Registry;
@@ -53,6 +54,11 @@ public:
   /** Set the progress value between 0 and 1 */
   virtual void SetProgressValue(double) = 0;
 
+  /** For convenience, the delegate can be hooked up to an ITK command */
+  void ProgressCallback(itk::Object *source, const itk::EventObject &event);
+
+  /** Create a command that will call this delegate */
+  SmartPtr<itk::Command> CreateCommand();
 
 
 };

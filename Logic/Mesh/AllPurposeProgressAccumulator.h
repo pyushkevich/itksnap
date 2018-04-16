@@ -30,6 +30,9 @@
   #define vtkAlgorithmClass vtkAlgorithm
 #endif
 
+namespace itk { class Command; }
+
+class TrivalProgressSource;
 
 /**
  * \class AllPurposeProgressAccumulator
@@ -50,18 +53,20 @@ class AllPurposeProgressAccumulator : public itk::ProcessObject
 {
 public:
   /** Standard class typedefs. */
-  typedef AllPurposeProgressAccumulator   Self;
+  typedef AllPurposeProgressAccumulator        Self;
   typedef itk::Object                          Superclass;
   typedef itk::SmartPointer<Self>              Pointer;
   typedef itk::SmartPointer<const Self>        ConstPointer;
 
   typedef itk::EventObject                     EventType;
 
+  typedef itk::SmartPointer<itk::Command>      CommandPointer;
+
   /** Standard New method. */
-  itkNewMacro(Self);
+  itkNewMacro(Self)
 
   /** Runtime information support. */
-  itkTypeMacro(AllPurposeProgressAccumulator, Object);
+  itkTypeMacro(AllPurposeProgressAccumulator, Object)
 
   /** 
    * Reset the progress meter. This should be done before the entire pipeline
@@ -96,6 +101,31 @@ public:
   /** Unregister all sources and all runs */
   void UnregisterAllSources();
 
+  /** Generic callback function for generic sources */
+  static void GenericProgressCallback(void *source, double progress);
+
+  /**
+   * Register a generic source. This source will communicate its progress
+   * using the function GenericProgressCallback. You must specify the number
+   * of times this generic source will go through the progress cycle.
+   *
+   * The function returns the void * that should be passed used when calling
+   * the callback and when unregistering the source. To avoid memory leaks, the
+   * generic source must be unregitered.
+   */
+  void *RegisterGenericSource(int n_runs, float total_weight);
+
+  /**
+   * Register a source by creating a command that will be used to observe progress
+   * from that source. This is an alternative way to add itk sources to this object.
+   */
+  CommandPointer RegisterITKSourceViaCommand(float xWeight);
+
+  /**
+   * Unregister a generic source and free associated memory
+   */
+  void UnregsterGenericSource(void *source);
+
 protected:
 
   AllPurposeProgressAccumulator();
@@ -103,7 +133,7 @@ protected:
 private:
 
   // Source types
-  enum SourceType { ITK, VTK };
+  enum SourceType { ITK, VTK, GENERIC };
 
   // Data structure associated with each component that we listen to
   struct RunData
@@ -140,8 +170,70 @@ private:
   typedef SourceMap::iterator SourceIter;
   SourceMap m_Source;
 
+  // A map of ITK commands and respective trivial sources
+  typedef std::map<CommandPointer, itk::SmartPointer<TrivalProgressSource> > CommandToTrivialSourceMap;
+  CommandToTrivialSourceMap m_CommandToTrivialSourceMap;
+
   // The overall state of the entire pipeline
   bool m_Started, m_Ended;
+
+  // Helper class used with generic sources
+  class GenericProgressSource
+  {
+  public:
+    static void callback(void *p, double progress);
+    GenericProgressSource(AllPurposeProgressAccumulator *parent);
+    void StartNextRun();
+  protected:
+    AllPurposeProgressAccumulator *m_Parent;
+    bool m_Started, m_Ended;
+  };
+
+};
+
+/**
+ * @brief This class can be used to generate progress in a non-ITK function
+ * or class. When you call commands StartProgress, SetProgress or AddProgress,
+ * the command will generate corresponding ITK events.
+ */
+class TrivalProgressSource : public itk::ProcessObject
+{
+public:
+  /** Standard class typedefs. */
+  typedef TrivalProgressSource                 Self;
+  typedef itk::ProcessObject                   Superclass;
+  typedef itk::SmartPointer<Self>              Pointer;
+  typedef itk::SmartPointer<const Self>        ConstPointer;
+
+  typedef itk::EventObject                     EventType;
+
+  /** Standard New method. */
+  itkNewMacro(Self)
+
+  /** Runtime information support. */
+  itkTypeMacro(TrivalProgressSource, Object)
+
+  /** Start progress */
+  void StartProgress(double max_progress = 1.0);
+
+  /** Add some progress */
+  void AddProgress(double delta);
+
+  /** Set current progress */
+
+  /** Finish */
+  void EndProgress();
+
+  /** A callback that is used in conjunction with AllPurposeProgressAccumulator */
+  void Callback(itk::Object *source, const itk::EventObject &event);
+
+protected:
+  TrivalProgressSource();
+
+private:
+
+  double m_MaxProgress;
+
 };
 
 #endif

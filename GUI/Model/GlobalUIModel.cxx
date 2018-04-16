@@ -539,27 +539,35 @@ void GlobalUIModel::LoadUserPreferences()
   m_SynchronizationModel->SetSyncPan(dbs->GetSyncPan());
   m_Model3D->SetContinuousUpdate(dbs->GetContinuousMeshUpdate());
   m_Driver->GetGlobalState()->SetSliceViewLayerLayout(dbs->GetOverlayLayout());
+
+  // Read the DSS-related preferences
+  m_DistributedSegmentationModel->LoadPreferences(
+        si->Folder("DistributedSegmentationSystem"));
 }
 
 void GlobalUIModel::SaveUserPreferences()
 {
   SystemInterface *si = m_Driver->GetSystemInterface();
 
-  // Read the appearance settings
+  // Write the appearance settings
   m_AppearanceSettings->SaveToRegistry(
         si->Folder("UserInterface.Appearance"));
 
-  // Read the default behaviors
+  // Write the default behaviors
   m_Driver->GetGlobalState()->GetDefaultBehaviorSettings()->WriteToRegistry(
         si->Folder("UserInterface.DefaultBehavior"));
 
-  // Read the global display properties
+  // Write the global display properties
   m_GlobalDisplaySettings->WriteToRegistry(
         si->Folder("SliceView.DisplaySettings"));
 
-  // Read the 3D mesh options
+  // Write the 3D mesh options
   m_Driver->GetGlobalState()->GetMeshOptions()->WriteToRegistry(
         si->Folder("View3D.MeshOptions"));
+
+  // Write the DSS-related preferences
+  m_DistributedSegmentationModel->SavePreferences(
+        si->Folder("DistributedSegmentationSystem"));
 
   // Save the preferences
   si->SaveUserPreferences();

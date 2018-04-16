@@ -63,6 +63,11 @@ public:
   }
 };
 
+
+
+
+
+
 /** Default traits for mapping a matrix of values (int, double) to a table */
 template <class TElement>
 class DefaultWidgetValueTraits< vnl_matrix<TElement>, QTableWidget>
@@ -134,8 +139,8 @@ public:
 };
 
 
-template <class TAtomic, class TDesc, class TItemDesriptionTraits>
-class TextAndIconTableWidgetRowTraits
+template <class TAtomic>
+class TableWidgetRowTraitsBase
 {
 public:
   static void removeAll(QTableWidget *w)
@@ -151,9 +156,58 @@ public:
 
   static TAtomic getValueInRow(QTableWidget *w, int i)
   {
-    TAtomic value = w->item(i,0)->data(Qt::UserRole).value<TAtomic>();
-    return value;
+    return w->item(i,0)->data(Qt::UserRole).value<TAtomic>();
   }
+};
+
+/**
+ * This class was added in March 2018. It is the latest attempt at setting up a nice
+ * coupling between models of type (int, item_set) and QTableWidget. The user must provide
+ * a custom class TRowDescMapper that updates the contents of a row.
+ */
+template <class TAtomic, class TDesc, class TRowDescMapper>
+class DefaultTableWidgetRowTraits : public TableWidgetRowTraitsBase<TAtomic>
+{
+public:
+
+  static void appendRow(QTableWidget *w, TAtomic value, const TDesc &spec)
+  {
+    // Create the new row
+    int i_row = w->rowCount();
+    w->insertRow(i_row);
+
+    // Halt sorting so that we can trust row indices
+    bool sorting_status = w->isSortingEnabled();
+    w->setSortingEnabled(false);
+
+    // Create each of the items
+    for(int i_col = 0; i_col < w->columnCount(); i_col++)
+      {
+      QTableWidgetItem *item = new QTableWidgetItem();
+      item->setData(Qt::UserRole, QVariant::fromValue(value));
+      w->setItem(i_row, i_col, item);
+      }
+
+    // Update the items
+    TRowDescMapper::updateRowDescription(w, i_row, spec);
+
+    // Restore sorting order
+    w->setSortingEnabled(sorting_status);
+  }
+
+  static void updateRowDescription(QTableWidget *w, int row, const TDesc &spec)
+  {
+    TRowDescMapper::updateRowDescription(w, row, spec);
+  }
+};
+
+
+
+
+template <class TAtomic, class TDesc, class TItemDesriptionTraits>
+class TextAndIconTableWidgetRowTraits : public TableWidgetRowTraitsBase<TAtomic>
+{
+public:
 
   static void appendRow(QTableWidget *w, TAtomic value, const TDesc &desc)
   {

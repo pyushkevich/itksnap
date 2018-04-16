@@ -7,6 +7,8 @@
 #include "FormattedTable.h"
 #include "GuidedNativeImageIO.h"
 #include "ColorLabelTable.h"
+#include "RESTClient.h"
+#include "itkCommand.h"
 
 using namespace std;
 using itksys::SystemTools;
@@ -40,6 +42,9 @@ void WorkspaceAPI::SaveAsXMLFile(const char *proj_file)
   // Get the directory in which the project will be saved
   string project_dir = SystemTools::GetParentDirectory(proj_file_full.c_str());
 
+  // Put version information - later versions may not be compatible
+  m_Registry["Version"] << SNAPCurrentVersionReleaseDate;
+
   // Update the save location
   m_Registry["SaveLocation"] << project_dir;
 
@@ -56,7 +61,7 @@ void WorkspaceAPI::SaveAsXMLFile(const char *proj_file)
   m_WorkspaceFilePath = proj_file_full;
 }
 
-int WorkspaceAPI::GetNumberOfLayers()
+int WorkspaceAPI::GetNumberOfLayers() const
 {
   // Unfortunately we have to count the folders each time we want to return the number
   // of layers. This is the unfortunate consequence of the lame way in which Registry
@@ -627,4 +632,249 @@ bool WorkspaceAPI::HasFolder(const string &key)
 string WorkspaceAPI::GetWorkspaceActualDirectory() const
 {
   return m_WorkspaceFileDir;
+}
+
+string WorkspaceAPI::GetTempDirName()
+{
+#ifdef WIN32
+  char tempDir[_MAX_PATH+1] = "";
+
+  // We will try putting the executable in the system temp directory.
+  // Note that the returned path already has a trailing slash.
+  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
+  if(length <= 0 || length > _MAX_PATH)
+    throw IRISException("Unable to create temporary directory");
+
+  return tempDir;
+
+#else
+  char tmp_template[4096];
+  strcpy(tmp_template, "/tmp/alfabis_XXXXXX");
+  string tmpdir = mkdtemp(tmp_template);
+  return tmpdir;
+#endif
+}
+
+#include "AllPurposeProgressAccumulator.h"
+
+void WorkspaceAPI::ExportWorkspace(const char *new_workspace, CommandType *cmd_progress) const
+{
+  // Create a progress tracker
+  SmartPtr<TrivalProgressSource> progress = TrivalProgressSource::New();
+  if(cmd_progress)
+    {
+    progress->AddObserver(itk::StartEvent(), cmd_progress);
+    progress->AddObserver(itk::ProgressEvent(), cmd_progress);
+    progress->AddObserver(itk::EndEvent(), cmd_progress);
+    }
+
+  // Duplicate the workspace data
+  WorkspaceAPI wsexp = (*this);
+
+  // Get the directory where the new workspace will go
+  string wsdir = SystemTools::GetParentDirectory(new_workspace);
+
+  // Iterate over all the layers stored in the workspace
+  int n_layers = wsexp.GetNumberOfLayers();
+
+  // Report progress
+  progress->StartProgress(n_layers);
+
+  // Load all of the layers in the current project
+  for(int i = 0; i < n_layers; i++)
+    {
+    // Get the folder corresponding to the layer
+    Registry &f_layer = wsexp.GetLayerFolder(i);
+
+    // The the (possibly moved) absolute filename
+    string fn_layer = wsexp.GetLayerActualPath(f_layer);
+
+    // The IO hints for the file
+    Registry io_hints, *layer_io_hints;
+    if((layer_io_hints = wsexp.GetLayerIOHints(f_layer)))
+      io_hints.Update(*layer_io_hints);
+
+    // Create a native image IO object for this image
+    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+
+    // Load the header of the image and the image data
+    io->ReadNativeImage(fn_layer.c_str(), io_hints);
+
+    // Report progress
+    progress->AddProgress(0.5);
+
+    // Compute the hash of the image data to generate filename
+    std::string image_md5 = io->GetNativeImageMD5Hash();
+
+    // Create a filename that combines the layer index with the hash code
+    char fn_layer_new[4096];
+    sprintf(fn_layer_new, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, image_md5.c_str());
+
+    // Save the layer there. Since we are saving as a NIFTI, we don't need to
+    // provide any hints
+    Registry dummy_hints;
+    io->SaveNativeImage(fn_layer_new, dummy_hints);
+
+    // Report progress
+    progress->AddProgress(0.5);
+
+    // Update the layer folder with the new path
+    f_layer["AbsolutePath"] << fn_layer_new;
+
+    // There are no hints necessary for NIFTI
+    f_layer.Folder("IOHints").Clear();
+    }
+
+  // Write the updated project
+  wsexp.SaveAsXMLFile(new_workspace);
+
+  // Report progress
+  progress->EndProgress();
+}
+
+void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id, const char *wsfile_suffix,
+                                   CommandType *cmd_progress) const
+{
+  // There is a lot of progress to keep track of so we create an accumulator
+  SmartPtr<AllPurposeProgressAccumulator> accum = AllPurposeProgressAccumulator::New();
+  if(cmd_progress)
+    accum->AddObserver(itk::ProgressEvent(), cmd_progress);
+
+  // Create a command that can be passed on to the export code
+  SmartPtr<CommandType> cmd_export = accum->RegisterITKSourceViaCommand(0.5);
+
+  // Create a second accumulator for the upload. This is because we do not yet know how
+  // many files we will be uploading (not until the export is done)
+  SmartPtr<AllPurposeProgressAccumulator> accum_upload = AllPurposeProgressAccumulator::New();
+  accum->RegisterSource(accum_upload, 0.5);
+
+  // Create temporary directory for the export
+  string tempdir = GetTempDirName();
+  SystemTools::MakeDirectory(tempdir);
+
+  // Export the workspace file to the temporary directory
+  char ws_fname_buffer[4096];
+  sprintf(ws_fname_buffer, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
+  ExportWorkspace(ws_fname_buffer, cmd_export);
+
+  // Count the number of files in the directory
+  std::vector<std::string> fn_to_upload;
+  Directory dir;
+  dir.Load(tempdir);
+  for(int i = 0; i < dir.GetNumberOfFiles(); i++)
+    {
+    const char *thisfile = dir.GetFile(i);
+    string file_full_path = SystemTools::CollapseFullPath(thisfile, dir.GetPath());
+    if(!SystemTools::FileIsDirectory(file_full_path))
+      fn_to_upload.push_back(file_full_path);
+    }
+
+  cout << "Exported workspace to " << ws_fname_buffer << endl;
+
+  // Create a source for transfer progress
+  void *transfer_progress_src = accum_upload->RegisterGenericSource(fn_to_upload.size(), 1.0);
+
+  // For each of the files in the directory upload it
+  for(int i = 0; i < fn_to_upload.size(); i++)
+    {
+    const char *fn = fn_to_upload[i].c_str();
+
+    RESTClient rcu;
+
+    // Set progress callback
+    rcu.SetProgressCallback(transfer_progress_src,
+                            AllPurposeProgressAccumulator::GenericProgressCallback);
+
+    // TODO: this is disgraceful!
+    std::map<string, string> empty_map;
+    if(!rcu.UploadFile(url, fn, empty_map, ticket_id))
+      throw IRISException("Failed up upload file %s (%s)", fn, rcu.GetResponseText());
+
+    // Reset progress counter for next run
+    accum_upload->StartNextRun(transfer_progress_src);
+
+    cout << "Upload " << fn << " (" << rcu.GetUploadStatistics() << ")" << endl;
+    }
+
+  // Finish with the progress
+  accum_upload->UnregisterAllSources();
+  accum->UnregisterAllSources();
+
+  // TODO: we should verify that all the files were successfully sent, via MD5
+}
+
+int WorkspaceAPI::CreateWorkspaceTicket(const char *service_githash,
+                                        CommandType *cmd_progress) const
+{
+  // Create a new ticket
+  RESTClient rc;
+  if(!rc.Post("api/tickets","githash=%s", service_githash))
+    throw IRISException("Failed to create new ticket (%s)", rc.GetResponseText());
+
+  int ticket_id = atoi(rc.GetOutput());
+
+  cout << "Created new ticket (" << ticket_id << ")" << endl;
+
+  // Locally export and upload the workspace
+  UploadWorkspace("api/tickets/%d/files/input", ticket_id, "", cmd_progress);
+
+  // Mark this ticket as ready
+  if(!rc.Post("api/tickets/%d/status","status=ready", ticket_id))
+    throw IRISException("Failed to mark ticket as ready (%s)", rc.GetResponseText());
+
+  cout << "Changed ticket status to (" << rc.GetOutput() << ")" << endl;
+
+  return ticket_id;
+}
+
+string WorkspaceAPI::DownloadTicketFiles(
+    int ticket_id, const char *outdir, bool provider_mode, const char *area)
+{
+  // Output string
+  ostringstream oss;
+
+  // Provider mode-specific settings
+  const char *url_base = (provider_mode) ? "api/pro" : "api";
+
+  // First off, get the list of all files for this ticket
+  RESTClient rc;
+  if(!rc.Get("%s/tickets/%d/files/%s", url_base, ticket_id, area))
+    throw IRISException("Failed to get list of files for ticket %d (%s)",
+      ticket_id, rc.GetResponseText());
+
+  // The output is in the form of a CSV, easiest to just parse it
+  FormattedTable ft;
+  ft.ParseCSV(rc.GetOutput());
+
+  // Are there any files?
+  if(ft.Rows() == 0 || ft.Columns() < 2)
+    throw IRISException("Empty or invalid list of files for ticket %d", ticket_id);
+
+  // Create the output directory
+  if(!SystemTools::MakeDirectory(outdir))
+    throw IRISException("Unable to create output directory %s", outdir);
+
+  // Iterate over the dictionary
+  for(int iFile = 0; iFile < ft.Rows(); iFile++)
+    {
+    // Where we will write this file to
+    int file_index = atoi(ft(iFile,0).c_str());
+    string file_name = ft(iFile, 1);
+    string file_path = SystemTools::CollapseFullPath(file_name.c_str(), outdir);
+
+    // Create a file handle
+    FILE *fout = fopen(file_path.c_str(), "wb");
+    rc.SetOutputFile(fout);
+
+    if(!rc.Get("%s/tickets/%d/files/%s/%d", url_base, ticket_id, area, file_index))
+      throw IRISException("Failed to download file %s for ticket %d (%s)",
+        file_name.c_str(), ticket_id, rc.GetResponseText());
+
+    rc.SetOutputFile(NULL);
+    fclose(fout);
+
+    oss << file_path << endl;
+    }
+
+  return oss.str();
 }

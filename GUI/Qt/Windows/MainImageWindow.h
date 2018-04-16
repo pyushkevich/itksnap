@@ -122,6 +122,13 @@ public:
   /** Check for updates (automatically at regular periods) */
   void UpdateAutoCheck();
 
+  // Save the segmentation (interactively or not). Return true if save was
+  // successful
+  bool SaveSegmentation(bool interactive);
+
+  /** Save the project (interactively or not) */
+  bool SaveWorkspace(bool interactive);
+
 public slots:
 
   void LoadRecentActionTriggered();
@@ -334,13 +341,6 @@ private:
   void UpdateLayerLayoutActions();
   void UpdateSelectedLayerActions();
   void UpdateDICOMContentsMenu();
-
-  // Save the segmentation (interactively or not). Return true if save was
-  // successful
-  bool SaveSegmentation(bool interactive);
-
-  // Save the project (interactively or not)
-  bool SaveWorkspace(bool interactive);
 
   // Raise a dialog (equivalent to calling show, raise, activateWindow)
   void RaiseDialog(QDialog *dialog);

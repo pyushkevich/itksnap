@@ -165,6 +165,14 @@
         <file>icons8_delete_sign_16@2x.png</file>
         <file>icons8_plus_16@2x.png</file>
         <file>icons8_plus_16.png</file>
+        <file>icons8_no_entry_16.png</file>
+        <file>icons8_error_16.png</file>
+        <file>icons8_info_16.png</file>
+        <file>icons8_no_entry_16@2x.png</file>
+        <file>icons8_error_16@2x.png</file>
+        <file>icons8_info_16@2x.png</file>
+        <file>icons8_attach_16.png</file>
+        <file>icons8_attach_16@2x.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

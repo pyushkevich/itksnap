@@ -30,7 +30,13 @@ public:
    * session ID. The cookie and the server URL will be stored in a .alfabis directory
    * in user's home, so that subsequent calls do not require authentication
    */
-  void Authenticate(const char *baseurl, const char *token);
+  bool Authenticate(const char *baseurl, const char *token);
+
+  /**
+   * This call will set the server URL for subsequent calls. Subsequent calls will fail
+   * unless there is a cookie (session) present for the selected URL
+   */
+  static void SetServerURL(const char *baseurl);
 
   /**
    * Basic GET command. Returns true if HTTP code of 200 is received.
@@ -45,6 +51,14 @@ public:
    * evaluated in sequential order
    */
   bool Post(const char *rel_url, const char *post_string, ...);
+
+  // Progress callback signature
+  typedef  void ( *ProgressCallbackFunction )(void *, double);
+
+  /**
+   * Set the callback command for uploads and downloads
+   */
+  void SetProgressCallback(void *cb_data, ProgressCallbackFunction fn);
 
   bool UploadFile(const char *rel_url, const char *filename,
     std::map<std::string,std::string> extra_fields, ...);
@@ -77,17 +91,22 @@ protected:
   /** Upload message buffer */
   char m_UploadMessageBuffer[1024];
 
-  std::string GetDataDirectory();
+  /** Callback stuff */
+  std::pair<void *, ProgressCallbackFunction> m_CallbackInfo;
 
-  std::string GetCookieFile();
+  static std::string GetDataDirectory();
 
-  std::string GetServerURLFile();
+  static std::string GetCookieFile();
 
-  std::string GetServerURL();
+  static std::string GetServerURLFile();
+
+  static std::string GetServerURL();
 
   static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
   static size_t WriteToFileCallback(void *contents, size_t size, size_t nmemb, void *userp);
+
+
 
 };
 

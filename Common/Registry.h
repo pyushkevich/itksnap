@@ -169,6 +169,12 @@ public:
     return true;
   }
 
+  TEnum GetEnumValueWithDefault(const StringType &key, TEnum defaultValue) const
+  {
+    TEnum retval;
+    return GetEnumValue(key, retval) ? retval : defaultValue;
+  }
+
   bool GetString(TEnum value, StringType &outString) const
   {
     typename std::map<TEnum, StringType>::const_iterator it = m_EnumToStringMap.find(value);
@@ -181,6 +187,17 @@ public:
 
   unsigned int Size() const { return m_EnumToStringMap.size(); }
   StringType operator [] (TEnum value) { return m_EnumToStringMap[value]; }
+
+  /** Default constructor */
+  RegistryEnumMap() {}
+
+  /** Constructor for enums that start at zero - must terminate with NULL */
+  RegistryEnumMap(const char *init[])
+  {
+    for(int i = 0; init[i] != NULL; i++)
+      this->AddPair((TEnum) i, init[i]);
+  }
+
 private:
   std::map<TEnum, StringType> m_EnumToStringMap;
   std::map<StringType, TEnum> m_StringToEnumMap;

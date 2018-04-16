@@ -22,6 +22,7 @@ class ColorMap;
 class QComboBox;
 class ColorMapModel;
 class ImageWrapperBase;
+class QDateTime;
 
 // Q_DECL_OVERRIDE is only defined in Qt5 but is needed by C++11
 #ifndef Q_DECL_OVERRIDE
@@ -158,6 +159,22 @@ inline QString from_utf8(const std::string &input)
 
 /** Method translates the tooltips in all child widgets from MACOS to windows/linux format */
 void TranslateChildTooltipKeyModifiers(QWidget *parent);
+
+/** Toggle flags on/off on an object that has methods flags() and setFlags() */
+template <class TObject, class TFlag>
+void toggle_flags_off(TObject *object, TFlag flag)
+{
+  object->setFlags(object->flags() & ~flag);
+}
+
+template <class TObject, class TFlag>
+void toggle_flags_on(TObject *object, TFlag flag)
+{
+  object->setFlags(object->flags() | flag);
+}
+
+/** Generate a user-friendly date string */
+QString get_user_friendly_date_string(const QDateTime &dt);
 
 
 #endif // SNAPQTCOMMON_H

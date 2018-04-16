@@ -313,6 +313,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Create the delegate to pass in to the model
   m_ProgressReporterDelegate = new QtProgressReporterDelegate();
   m_ProgressReporterDelegate->SetProgressDialog(m_Progress);
+  m_Progress->reset();
 
   // Set title
   this->setWindowTitle("ITK-SNAP");
