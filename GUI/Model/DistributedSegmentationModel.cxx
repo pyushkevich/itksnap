@@ -88,7 +88,7 @@ std::string ticket_status_strings[] =
 
 std::string tag_type_strings[] =
 {
-  "Image Layer", "Main Image", "Segmentation Label", "Point Landmark", "Unknown"
+  "Image Layer", "Main Image", "Overlay Image", "Segmentation Label", "Point Landmark", "Unknown"
 };
 
 
@@ -239,7 +239,7 @@ DistributedSegmentationModel::GetTagLoadAction(int tag_index) const
     {
     return LOAD_MAIN;
     }
-  else if(type == TAG_LAYER_ANATOMICAL && have_main)
+  else if((type == TAG_LAYER_OVERLAY || type == TAG_LAYER_ANATOMICAL) && have_main)
     {
     return LOAD_OVERLAY;
     }
@@ -261,7 +261,7 @@ void DistributedSegmentationModel::ApplyTagsToTargets()
   for(int i = 0; i < m_TagSpecArray.size(); i++)
     {
     TagSpec &ts = m_TagSpecArray[i].tag_spec;
-    if(ts.type == TAG_LAYER_MAIN || ts.type == TAG_LAYER_ANATOMICAL)
+    if(ts.type == TAG_LAYER_MAIN || ts.type == TAG_LAYER_ANATOMICAL || ts.type == TAG_LAYER_OVERLAY)
       {
       ImageWrapperBase *wrapper = id->FindLayer(m_TagSpecArray[i].object_id, false);
       if(wrapper)
@@ -494,6 +494,7 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
   RegistryEnumMap<TagType> type_map;
   type_map.AddPair(TAG_POINT_LANDMARK, "PointLandmark");
   type_map.AddPair(TAG_LAYER_MAIN, "MainImage");
+  type_map.AddPair(TAG_LAYER_OVERLAY, "OverlayImage");
   type_map.AddPair(TAG_LAYER_ANATOMICAL, "AnatomicalImage");
   type_map.AddPair(TAG_SEGMENTATION_LABEL, "SegmentationLabel");
   type_map.AddPair(TAG_UNKNOWN, "Unknown");
@@ -544,16 +545,17 @@ void DistributedSegmentationModel::AssignTagObjectIds()
 
     if(driver->IsMainImageLoaded())
       {
-      // If the tag is for the main image, then it has to be assigned to the main image
-      if(tag.tag_spec.type == TAG_LAYER_MAIN)
+      int role_filter = -1;
+      switch(tag.tag_spec.type)
         {
-        ImageWrapperBase *main = driver->GetIRISImageData()->GetMain();
-        tag.object_id = main->GetUniqueId();
-        tag.desc = main->GetNickname();
+        case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
+        case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
+        case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
+        default: break;
         }
-      else if(tag.tag_spec.type == TAG_LAYER_ANATOMICAL)
+
+      if(role_filter >= 0)
         {
-        int role_filter = MAIN_ROLE | OVERLAY_ROLE;
         std::list<ImageWrapperBase*> matches =
             driver->GetIRISImageData()->FindLayersByTag(tag.tag_spec.name, role_filter);
         if(matches.size() == 1)
@@ -783,14 +785,17 @@ bool DistributedSegmentationModel
       (*domain)[0] = "Unassigned";
       IRISApplication *driver = this->GetParent()->GetDriver();
 
-      if(tag.tag_spec.type == TAG_LAYER_MAIN && driver->IsMainImageLoaded())
+      int role_filter = -1;
+      switch(tag.tag_spec.type)
         {
-        (*domain)[driver->GetIRISImageData()->GetMain()->GetUniqueId()] =
-            driver->GetIRISImageData()->GetMain()->GetNickname();
+        case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
+        case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
+        case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
+        default: break;
         }
-      else if(tag.tag_spec.type == TAG_LAYER_ANATOMICAL && driver->IsMainImageLoaded())
+      if(role_filter >= 0 && driver->IsMainImageLoaded())
         {
-        for(LayerIterator it = driver->GetIRISImageData()->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+        for(LayerIterator it = driver->GetIRISImageData()->GetLayers(role_filter);
             !it.IsAtEnd(); ++it)
           {
           (*domain)[it.GetLayer()->GetUniqueId()] = it.GetLayer()->GetNickname();

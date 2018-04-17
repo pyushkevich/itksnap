@@ -751,7 +751,8 @@ int main(int argc, char *argv[])
             }
           else if(tnow + twait > timeout)
             {
-            throw IRISException("No tickets available to claim for service(s) %s", service_githash.c_str());
+            cerr << "Timed out waiting for available tickets" << endl;
+            exit(1);
             }
           else
             {
