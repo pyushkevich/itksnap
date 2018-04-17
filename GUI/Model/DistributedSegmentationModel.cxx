@@ -143,6 +143,7 @@ bool DistributedSegmentationModel::CheckState(DistributedSegmentationModel::UISt
       return AreAllRequiredTagsAssignedTarget();
     }
 
+  return false;
 }
 
 std::vector<std::string> DistributedSegmentationModel::GetUserServerList() const

@@ -18,8 +18,8 @@ namespace RESTClient_internal
 {
 
 int progress_callback(void *clientp,
-                      curl_off_t dltotal, curl_off_t dlnow,
-                      curl_off_t ultotal,   curl_off_t ulnow)
+                      double dltotal, double dlnow,
+                      double ultotal, double ulnow)
 {
   long bytes_total = dltotal + ultotal;
   long bytes_done = dlnow + ulnow;
@@ -266,8 +266,8 @@ bool RESTClient::UploadFile(
   // Set the callback functions
   if(m_CallbackInfo.first)
     {
-    curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback);
-    curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
+    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback);
+    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSDATA, &m_CallbackInfo);
     curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
     }
 

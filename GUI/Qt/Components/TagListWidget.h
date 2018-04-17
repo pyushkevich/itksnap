@@ -6,6 +6,7 @@
 #include <QFrame>
 #include <QToolButton>
 #include <QLineEdit>
+#include "SNAPQtCommon.h"
 
 
 

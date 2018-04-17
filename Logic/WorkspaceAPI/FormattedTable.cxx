@@ -39,9 +39,9 @@ void FormattedTable::Print(ostream &os, const string &prefix, std::vector<bool> 
     this->PrintRow(os, iRow, prefix, col_filter);
 }
 
-int FormattedTable::Rows() const { return m_Data.size(); }
+int FormattedTable::Rows() const { return (int) m_Data.size(); }
 
-int FormattedTable::Columns() const{ return m_Width.size(); }
+int FormattedTable::Columns() const{ return (int) m_Width.size(); }
 
 const std::string &FormattedTable::operator()(int iRow, int iCol) const { return m_Data[iRow][iCol]; }
 

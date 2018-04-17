@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 /**
  * A helper class for formatting tables. You just specify the number of columns
@@ -29,7 +30,7 @@ public:
     // Convert the datum to a string and measure its length
     std::ostringstream oss;
     oss << datum;
-    int w = oss.str().length();
+    int w = (int) oss.str().length();
 
     // We need to add a new row in two cases: there is currently no row, or the
     // current row has been filled to m_Columns
