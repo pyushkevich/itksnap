@@ -637,15 +637,23 @@ string WorkspaceAPI::GetWorkspaceActualDirectory() const
 string WorkspaceAPI::GetTempDirName()
 {
 #ifdef WIN32
-  char tempDir[_MAX_PATH+1] = "";
+  char tempDir[_MAX_PATH + 1] = "";
+  char tempFile[_MAX_PATH + 1] = "";
 
-  // We will try putting the executable in the system temp directory.
-  // Note that the returned path already has a trailing slash.
+  // First call return a directory only
   DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
   if(length <= 0 || length > _MAX_PATH)
     throw IRISException("Unable to create temporary directory");
 
-  return tempDir;
+  // This will create a unique file in the temp directory
+  if (0 == GetTempFileName(tempDir, TEXT("alfabis"), 0, tempFile))
+    throw IRISException("Unable to create temporary directory");
+
+  // We use the filename to create a directory
+  string dir = tempFile;
+  dir += "_d";
+
+  return dir;
 
 #else
   char tmp_template[4096];

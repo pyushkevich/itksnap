@@ -76,6 +76,9 @@ protected:
   /** The CURL handle */
   void *m_Curl;
 
+  /** The sharing handle */
+  void *m_Share;
+
   /** Optional file for output */
   FILE *m_OutputFile;
 

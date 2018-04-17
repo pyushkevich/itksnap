@@ -40,6 +40,10 @@ using namespace std;
 
 RESTClient::RESTClient()
 {
+  // Sharing business
+  m_Share = curl_share_init();
+  curl_share_setopt((CURLSH *) m_Share, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
+	
   m_Curl = curl_easy_init();
   m_UploadMessageBuffer[0] = 0;
   m_MessageBuffer[0] = 0;
@@ -47,11 +51,14 @@ RESTClient::RESTClient()
 
   m_CallbackInfo.first = NULL;
   m_CallbackInfo.second = NULL;
+
+  curl_easy_setopt(m_Curl, CURLOPT_SHARE, m_Share);
 }
 
 RESTClient::~RESTClient()
 {
   curl_easy_cleanup(m_Curl);
+  curl_share_cleanup((CURLSH *)m_Share);
 }
 
 void RESTClient::SetVerbose(bool verbose)
@@ -134,6 +141,8 @@ bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
   // Expand the URL
   char url_buffer[4096];
   vsprintf(url_buffer, rel_url, args);
+
+
 
   // The URL to post to
   string url = this->GetServerURL() + "/" + url_buffer;
