@@ -137,6 +137,7 @@ int usage(int rc)
   cout << "  -dssp-tickets-download <id> <dir> : Download the files for claimed ticket id to dir" << endl;
   cout << "  -dssp-tickets-fail <id> <msg>     : Mark the ticket as failed with provided message" << endl;
   cout << "  -dssp-tickets-success <id>        : Mark the ticket as successfully completed " << endl;
+  cout << "  -dssp-tickets-status <id>         : Check the status of a ticket" << endl;
   cout << "  -dssp-tickets-set-progress ...    : Set progress for ticket 'id'. Progress is specified as" << endl;
   cout << "      <id> <start> <end> <value>      chunk start, chunk end, and progress within chunk (all in [0 1])" << endl;
   cout << "  -dssp-tickets-log ...             : Add a log message for ticket 'id'. Type is info|warning|error" << endl; 
@@ -805,6 +806,15 @@ int main(int argc, char *argv[])
         else
           throw IRISException("Error marking ticket %d as completed: %s", 
             ticket_id, rc.GetResponseText());
+        }
+      else if(arg == "-dssp-tickets-status")
+        {
+        int ticket_id = cl.read_integer();
+        RESTClient rc;
+        if(!rc.Get("api/pro/tickets/%d/status", ticket_id))
+          throw IRISException("Error checking status of ticket %d: %s",
+            ticket_id, rc.GetResponseText());
+        cout << prefix << rc.GetOutput() << endl;
         }
       else if(arg == "-dssp-tickets-set-progress")
         {
