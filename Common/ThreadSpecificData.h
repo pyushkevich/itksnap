@@ -39,6 +39,8 @@
 
 #include <cstdlib>
 
+class IRISException;
+
 /** Support class for ThreadSpecificData */
 class ThreadSpecificDataSupport
 {

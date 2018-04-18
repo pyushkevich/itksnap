@@ -100,6 +100,7 @@ bool WorkspaceAPI::IsKeyValidLayer(const string &key)
   return folder.HasEntry("AbsolutePath") && folder.HasEntry("Role");
 }
 
+// TODO: merge with IRISApplication
 string WorkspaceAPI::GetLayerActualPath(Registry &folder)
 {
   // Get the filenames for the layer
@@ -108,8 +109,25 @@ string WorkspaceAPI::GetLayerActualPath(Registry &folder)
   // If the project has moved, try finding a relative location
   if(m_Moved)
     {
-    string relative_path = SystemTools::RelativePath(
-                             m_WorkspaceSavedDir.c_str(), layer_file_full.c_str());
+    // Get the relative path of the layer wrt project
+    string relative_path;
+
+    // Test the simple thing: is the project location included in the file path
+    if(layer_file_full.compare(0, m_WorkspaceSavedDir.length(), m_WorkspaceSavedDir) == 0)
+      {
+      // Get the balance of the path
+      relative_path = layer_file_full.substr(m_WorkspaceSavedDir.length());
+
+      // Strip the leading slashes
+      SystemTools::ConvertToUnixSlashes(relative_path);
+      relative_path = relative_path.substr(relative_path.find_first_not_of('/'));
+      }
+    else
+      {
+      // Fallback: use relative path mechanism
+      relative_path = SystemTools::RelativePath(
+                                   m_WorkspaceSavedDir.c_str(), layer_file_full.c_str());
+      }
 
     string moved_file_full = SystemTools::CollapseFullPath(
                                relative_path.c_str(), m_WorkspaceFileDir.c_str());

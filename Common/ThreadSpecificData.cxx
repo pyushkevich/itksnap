@@ -74,11 +74,7 @@ ThreadSpecificDataSupport::~ThreadSpecificDataSupport()
   int rc = pthread_key_delete(pkey[0]);
   if(rc)
     {
-    #ifndef DONT_USE_IRIS_EXCEPTION
-      throw IRISException("pthread_key_delete failed with rc = %d", rc);
-    #else
-      std::cerr << "pthread_key_delete failed with rc = " << rc;
-    #endif  
+    std::cerr << "pthread_key_delete failed with rc = " << rc;
     }
 }
 

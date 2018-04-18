@@ -2196,8 +2196,25 @@ void IRISApplication::OpenProject(
     // If the project has moved, try finding a relative location
     if(moved)
       {
-      std::string relative_path = itksys::SystemTools::RelativePath(
-            project_save_dir.c_str(), layer_file_full.c_str());
+      // Get the relative path of the layer wrt project
+      string relative_path;
+
+      // Test the simple thing: is the project location included in the file path
+      if(layer_file_full.compare(0, project_save_dir.length(), project_save_dir) == 0)
+        {
+        // Get the balance of the path
+        relative_path = layer_file_full.substr(project_save_dir.length());
+
+        // Strip the leading slashes
+        itksys::SystemTools::ConvertToUnixSlashes(relative_path);
+        relative_path = relative_path.substr(relative_path.find_first_not_of('/'));
+        }
+      else
+        {
+        // Fallback: use relative path mechanism
+        relative_path = itksys::SystemTools::RelativePath(
+                          project_save_dir.c_str(), layer_file_full.c_str());
+        }
 
       std::string moved_file_full = itksys::SystemTools::CollapseFullPath(
             relative_path.c_str(), project_dir.c_str());
