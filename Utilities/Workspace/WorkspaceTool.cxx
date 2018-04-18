@@ -641,7 +641,12 @@ int main(int argc, char *argv[])
             {
             // Check status
             if(!rc.Get("api/tickets/%d/status", ticket_id))
-              throw IRISException("Error getting progress for ticket %d: %s", ticket_id, rc.GetResponseText());
+              {
+              std::cerr << "Error getting status for ticket " << ticket_id << ": " << rc.GetResponseText() << endl;
+              sleep(10);
+              tnow += 10;
+              continue;
+              }
             status = rc.GetOutput();
 
             // If the status is 'claimed', the ticket is in progress and we can show progress
@@ -650,7 +655,12 @@ int main(int argc, char *argv[])
               {
               // Check progress
               if(!rc.Get("api/tickets/%d/progress", ticket_id))
-                throw IRISException("Error getting progress for ticket %d: %s", ticket_id, rc.GetResponseText());
+                {
+                std::cerr << "Error getting progress for ticket " << ticket_id << ": " << rc.GetResponseText() << endl;
+                sleep(10);
+                tnow += 10;
+                continue;
+                }
               string p_string = rc.GetOutput();
               p = atof(p_string.c_str());
               }
@@ -669,7 +679,12 @@ int main(int argc, char *argv[])
               {
               // Get the queue position of the ticket
               if(!rc.Get("api/tickets/%d/queuepos", ticket_id))
-                throw IRISException("Error getting queue position for ticket %d: %s", ticket_id, rc.GetResponseText());
+                {
+                std::cerr << "Error getting queue position for ticket " << ticket_id << ": " << rc.GetResponseText() << endl;
+                sleep(10);
+                tnow += 10;
+                continue;
+                }
 
               // Get the queue position
               queue_pos = atoi(rc.GetOutput());
@@ -713,7 +728,10 @@ int main(int argc, char *argv[])
         if(tnow < timeout)
           printf("\nTicket completed with status: %s\n", status.c_str());
         else
+          {
           printf("\nTimed out\n");
+          return -1;
+          }
         }
       else if(arg == "-dssp-services-list")
         {
