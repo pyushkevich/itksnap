@@ -363,7 +363,6 @@ void DistributedSegmentationDialog::LaunchTicketDetailRefresh()
 
 void DistributedSegmentationDialog::onModelUpdate(const EventBucket &bucket)
 {
-  std::cout << bucket << std::endl;
   if(bucket.HasEvent(DistributedSegmentationModel::ServerChangeEvent()))
     {
     // The server has changed. We should launch a separate job to connect to the

@@ -53,6 +53,9 @@
 #include "AffineTransformHelper.h"
 #include "itkTransform.h"
 
+#include "json/json.h"
+
+
 using namespace std;
 using itksys::SystemTools;
 using itksys::RegularExpression;
@@ -615,122 +618,104 @@ int main(int argc, char *argv[])
         int ticket_id = cl.read_integer();
         int timeout = cl.command_arg_count() > 0 ? cl.read_integer() : 10000;
 
-        // Loop
-        int tnow = 0, tprogress = 0;
+        // Main loop
+        clock_t t_start = clock();
+        clock_t t_end = t_start + timeout * CLOCKS_PER_SEC;
 
-        // Current progress 
-        double p = 0;
+        // Use a single REST client
         RESTClient rc;
 
-        // The ID of the last log entry
-        int last_log_id = 0;
+        // Run main loop until timeout
+        long last_log = 0;
+        double progress = 0.0;
+        std::string status;
 
-        // The queue position
-        int queue_pos = 0;
+        // Keep track of the number of consecutive failures
+        int n_conseq_fail = 0;
 
-        // The status of the ticket
-        string status;
+        // Keep a loop counter
+        int loop_counter = 0;
 
-        while(tnow < timeout)
+        bool timed_out = true;
+        while(clock() < t_end && n_conseq_fail < 5)
           {
           // Go to the begin of line - to erase the current progress
           printf("\r");
 
-          // Shoud we update the progress?
-          if(tnow - tprogress > 5 || tprogress == 0)
+          // Count a consecutive failure
+          n_conseq_fail++;
+
+          if(rc.Get("api/tickets/%ld/detail?since=%ld", ticket_id, last_log))
             {
-            // Check status
-            if(!rc.Get("api/tickets/%d/status", ticket_id))
+            Json::Reader json_reader;
+            Json::Value root;
+            if(json_reader.parse(rc.GetOutput(), root, false))
               {
-              std::cerr << "Error getting status for ticket " << ticket_id << ": " << rc.GetResponseText() << endl;
-              sleep(10);
-              tnow += 10;
-              continue;
-              }
-            status = rc.GetOutput();
+              const Json::Value result = root["result"];
 
-            // If the status is 'claimed', the ticket is in progress and we can show progress
-            // Likewise for success/fail, we want to show the user the progress
-            if(status == "claimed" || status == "success" || status == "failed")
-              {
-              // Check progress
-              if(!rc.Get("api/tickets/%d/progress", ticket_id))
+              // Read progress
+              progress = result.get("progress", progress).asDouble();
+              status = result.get("status","").asString();
+
+              // Print the log messages
+              const Json::Value log_entry = result["log"];
+              for(int i = 0; i < log_entry.size(); i++)
                 {
-                std::cerr << "Error getting progress for ticket " << ticket_id << ": " << rc.GetResponseText() << endl;
-                sleep(10);
-                tnow += 10;
-                continue;
-                }
-              string p_string = rc.GetOutput();
-              p = atof(p_string.c_str());
-              }
+                last_log = log_entry[i].get("id", (int) last_log).asLargestInt();
+                printf("%20s %10s %s\n",
+                       log_entry[i].get("atime","").asString().c_str(),
+                       log_entry[i].get("category","").asString().c_str(),
+                       log_entry[i].get("message","").asString().c_str());
 
-            // The status is claimed or later - so we can read the log
-            if(status != "init" && status != "ready")
-              {
-              // Print the new ticket log if any
-              last_log_id = PrintTicketLog(ticket_id, last_log_id);
 
-              // We are not in the queue
-              queue_pos = 0;
-              }
-
-            else if(status == "ready")
-              {
-              // Get the queue position of the ticket
-              if(!rc.Get("api/tickets/%d/queuepos", ticket_id))
-                {
-                std::cerr << "Error getting queue position for ticket " << ticket_id << ": " << rc.GetResponseText() << endl;
-                sleep(10);
-                tnow += 10;
-                continue;
+                const Json::Value att_entry = log_entry[i]["attachments"];
+                for(int i = 0; i < att_entry.size(); i++)
+                  {
+                  printf("  @ %s : %s\n",
+                         att_entry[i].get("url","").asString().c_str(),
+                         att_entry[i].get("description","").asString().c_str());
+                  }
                 }
 
-              // Get the queue position
-              queue_pos = atoi(rc.GetOutput());
+              // This loop run was a success
+              n_conseq_fail = 0;
               }
             }
 
-          // If we are in the queue, print queue position
-          if(queue_pos > 0)
-            {
-            printf("Ticket in queue position %d ... ", queue_pos);
-            }
-          else
-            {
-            // Display progress nicely
-            for(int i = 0; i < 78; i++)
-              if(i <=  p * 78)
-                printf("#");
-              else
-                printf(" ");
-            printf(" %3d%% ", (int) (100 * p));
-            }
+          // Display the progress nicely
+          for(int i = 0; i < 78; i++)
+            if(i <=  progress * 78 )
+              printf("#");
+            else
+              printf(" ");
+          printf(" %3d%% ", (int) (100 * progress));
 
-          // If terminal status, exit
+          // If status is something terminal, exit
           if(status == "failed" || status == "success" || status == "timeout" || status == "deleted")
             {
+            timed_out = false;
             printf("\n");
             break;
             }
 
+          // Show a blop
           const char blop[] = "|/-\\";
-            printf("%c", blop[tnow % 4]);
-
+            printf("%c", blop[(loop_counter++) % 4]);
           fflush(stdout);
 
-          // Wait
-          sleep(1);
-          tnow ++;
+          // Sleep (time depends on failures)
+          sleep(n_conseq_fail == 0 ? 5 : 10);
           }
 
         // Print additional information
-        if(tnow < timeout)
-          printf("\nTicket completed with status: %s\n", status.c_str());
-        else
+        if(timed_out)
           {
           printf("\nTimed out\n");
           return -1;
+          }
+        else
+          {
+          printf("\nTicket completed with status: %s\n", status.c_str());
           }
         }
       else if(arg == "-dssp-services-list")
