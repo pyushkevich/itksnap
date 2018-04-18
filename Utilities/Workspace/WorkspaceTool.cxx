@@ -708,7 +708,7 @@ int main(int argc, char *argv[])
             }
 
           // If terminal status, exit
-          if(status == "failed" || status == "success" || status == "timeout")
+          if(status == "failed" || status == "success" || status == "timeout" || status == "deleted")
             {
             printf("\n");
             break;
