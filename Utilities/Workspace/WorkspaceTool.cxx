@@ -118,7 +118,8 @@ int usage(int rc)
   cout << "                                      that may be used in future -dss calls" << endl;
   cout << "  -dss-services-list                : List all available segmentation services" << endl;
   cout << "  -dss-services-detail <service_id> : Get detailed description of a service" << endl;
-  cout << "  -dss-tickets-create <service_id>  : Create a new ticket using current workspace (id is githash)" << endl;
+  cout << "  -dss-tickets-create <service_id>  : Create a new ticket using current workspace. 'service_id' may be" << endl;
+  cout << "                                      either the name or git hash returned by -dss-services-list." << endl;
   cout << "  -dss-tickets-list                 : List all of your tickets" << endl;
   cout << "  -dss-tickets-log <id>             : Get the error/warning/info log for ticket 'id'" << endl;
   cout << "  -dss-tickets-progress <id>        : Get the total progress for ticket 'id'" << endl;

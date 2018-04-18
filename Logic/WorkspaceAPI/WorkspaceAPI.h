@@ -191,7 +191,7 @@ public:
                        CommandType *cmd_progress = NULL) const;
 
   /** Create a ticket from a workspace */
-  int CreateWorkspaceTicket(const char *service_githash, CommandType *cmd_progress = NULL) const;
+  int CreateWorkspaceTicket(const std::string &service_desc, CommandType *cmd_progress = NULL) const;
 
   /**
    * Download ticket files to a directory. Flag provider_mode switches between

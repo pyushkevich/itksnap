@@ -829,12 +829,24 @@ void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id, const char *w
   // TODO: we should verify that all the files were successfully sent, via MD5
 }
 
-int WorkspaceAPI::CreateWorkspaceTicket(const char *service_githash,
+int WorkspaceAPI::CreateWorkspaceTicket(const string &service_desc,
                                         CommandType *cmd_progress) const
 {
+  // What is specified - name or githash?
+  std::string which_desc;
+  if(service_desc.length() == 40 &&
+     service_desc.find_first_not_of("0123456789abcdef") == string::npos)
+    {
+    which_desc = "githash";
+    }
+  else
+    {
+    which_desc = "name";
+    }
+
   // Create a new ticket
   RESTClient rc;
-  if(!rc.Post("api/tickets","githash=%s", service_githash))
+  if(!rc.Post("api/tickets","%s=%s", which_desc.c_str(), service_desc.c_str()))
     throw IRISException("Failed to create new ticket (%s)", rc.GetResponseText());
 
   int ticket_id = atoi(rc.GetOutput());
