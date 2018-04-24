@@ -1460,6 +1460,21 @@ void MainImageWindow::LoadProject(const QString &file)
   }
 }
 
+void MainImageWindow::LoadProjectInNewInstance(const QString &file)
+{
+  std::list<std::string> args;
+  args.push_back("-w");
+  args.push_back(to_utf8(file));
+  try
+  {
+  m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
+  }
+  catch(IRISException &exc)
+  {
+    ReportNonLethalException(this, exc, "Failed to open workspace in new ITK-SNAP window");
+  }
+}
+
 void MainImageWindow::onAnimationTimeout()
 {
   if(m_Model)

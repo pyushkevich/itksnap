@@ -26,6 +26,16 @@ public:
     return std::string(".itksnap.test");
     }
 
+  virtual std::string GetUserDocumentsLocation()
+    {
+    return std::string(".itksnap.test");
+    }
+
+  virtual std::string EncodeServerURL(const std::string &url)
+    {
+    return url;
+    }
+
 
   typedef SystemInfoDelegate::GrayscaleImage GrayscaleImage;
   typedef SystemInfoDelegate::RGBAPixelType RGBAPixelType;

@@ -88,13 +88,13 @@ ENDIF()
 
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 3)
-SET(SNAP_VERSION_MINOR 6)
-SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "-beta")
+SET(SNAP_VERSION_MINOR 8)
+SET(SNAP_VERSION_PATCH 0)
+SET(SNAP_VERSION_QUALIFIER "-alpha")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20180116")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jan 16, 2018")
+SET(SNAP_VERSION_RELEASE_DATE "20180425")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 25, 2018")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -700,6 +700,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/SplashPanel.cxx
   GUI/Qt/Windows/StatisticsDialog.cxx
   GUI/Qt/Windows/DSS/DistributedSegmentationDialog.cxx
+  GUI/Qt/Windows/DSS/DownloadTicketDialog.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.cxx
@@ -790,6 +791,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/SplashPanel.h
   GUI/Qt/Windows/StatisticsDialog.h
   GUI/Qt/Windows/DSS/DistributedSegmentationDialog.h
+  GUI/Qt/Windows/DSS/DownloadTicketDialog.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.h
@@ -872,6 +874,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/SplashPanel.ui
   GUI/Qt/Windows/StatisticsDialog.ui
   GUI/Qt/Windows/DSS/DistributedSegmentationDialog.ui
+  GUI/Qt/Windows/DSS/DownloadTicketDialog.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.ui

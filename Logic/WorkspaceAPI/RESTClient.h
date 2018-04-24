@@ -39,6 +39,12 @@ public:
   static void SetServerURL(const char *baseurl);
 
   /**
+   * Call this function prior to post if you want to open up the cookie jar to receive
+   * cookies from the server. This is done automatically by the Authenticate function
+   */
+  void SetReceiveCookieMode(bool mode);
+
+  /**
    * Basic GET command. Returns true if HTTP code of 200 is received.
    *  - The string output can be retrieved with GetOutput()
    *  - The error message for non 200 code can be retrieved with GetResponseText()
@@ -93,6 +99,8 @@ protected:
 
   /** Upload message buffer */
   char m_UploadMessageBuffer[1024];
+
+  bool m_ReceiveCookieMode;
 
   /** Callback stuff */
   std::pair<void *, ProgressCallbackFunction> m_CallbackInfo;

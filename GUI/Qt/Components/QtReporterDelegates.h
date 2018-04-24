@@ -81,6 +81,9 @@ public:
   virtual std::string GetApplicationDirectory();
   virtual std::string GetApplicationFile();
   virtual std::string GetApplicationPermanentDataLocation();
+  virtual std::string GetUserDocumentsLocation();
+  virtual std::string EncodeServerURL(const std::string &url);
+
 
   typedef SystemInfoDelegate::GrayscaleImage GrayscaleImage;
   typedef SystemInfoDelegate::RGBAPixelType RGBAPixelType;

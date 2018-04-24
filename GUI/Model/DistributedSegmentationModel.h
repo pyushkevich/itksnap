@@ -44,11 +44,22 @@ class ProgressReporterDelegate;
 
 namespace dss_model {
 
+/** Status of the authorization */
+enum AuthStatus {
+  AUTH_NOT_CONNECTED,
+  AUTH_CONNECTED_NOT_AUTHENTICATED,
+  AUTH_AUTHENTICATED
+};
+
 /** Structure describing the authentication status */
 struct AuthResponse
 {
-  bool connected, authenticated;
-  std::string user_id;
+  AuthStatus status;
+  std::string user_email;
+  AuthResponse() : status(AUTH_NOT_CONNECTED) {}
+
+  bool operator != (const AuthResponse &o) const
+    { return status != o.status && user_email != o.user_email; }
 };
 
 /** Structure describing a single service summary */
@@ -95,6 +106,7 @@ struct TagSpec
   unsigned long object_id;
 
   bool operator == (const TagSpec &other) const;
+
 };
 
 /** Tag target specification */
@@ -176,6 +188,25 @@ struct TicketDetailResponse
   bool from_json(const std::string &json);
 };
 
+
+/** Universal ticket reference - includes ticket id and server */
+struct UniversalTicketId
+{
+  std::string server_url;
+  IdType ticket_id;
+
+  UniversalTicketId(std::string in_url = std::string() , IdType in_id = 0L);
+  bool operator < (const UniversalTicketId &other) const;
+};
+
+/**
+ * Information cached locally about tickets
+ */
+struct LocalTicketInfo
+{
+  std::string source_workspace, result_workspace;
+};
+
 } // namespace
 
 
@@ -195,9 +226,14 @@ public:
   enum LoadAction
     { LOAD_MAIN = 0, LOAD_OVERLAY, LOAD_NONE };
 
+  // What is done with the project when downloading
+  enum DownloadAction
+    { DL_OPEN_CURRENT_WINDOW, DL_OPEN_NEW_WINDOW, DL_DONT_OPEN };
+
   enum UIState {
     UIF_AUTHENTICATED,
-    UIF_TAGS_ASSIGNED
+    UIF_TAGS_ASSIGNED,
+    UIF_CAN_DOWNLOAD,
   };
 
 
@@ -219,6 +255,9 @@ public:
   /** Check state */
   bool CheckState(UIState state);
 
+  /** Respond to events from up-stream models */
+  virtual void OnUpdate() ITK_OVERRIDE;
+
   /** Server URL property model */
   typedef STLVectorWrapperItemSetDomain<int, std::string> ServerURLDomain;
   irisGenericPropertyAccessMacro(ServerURL, int, ServerURLDomain)
@@ -231,11 +270,15 @@ public:
   irisSimplePropertyAccessMacro(Token, std::string)
 
   /** Server status model */
-  typedef SimpleItemSetDomain<ServerStatus, std::string> ServerStatusDomain;
-  irisGenericPropertyAccessMacro(ServerStatus, ServerStatus, ServerStatusDomain)
+  irisSimplePropertyAccessMacro(ServerStatus, dss_model::AuthResponse)
 
-  irisSimplePropertyAccessMacro(ServerStatusString, std::string)
+  /** Download location model */
+  irisSimplePropertyAccessMacro(DownloadLocation, std::string)
 
+  /** Default location for downloads */
+  std::string GetDefaultDownloadLocation();
+
+  /** Long description of the current service */
   irisSimplePropertyAccessMacro(ServiceDescription, std::string)
 
   /** Get the full URL */
@@ -260,15 +303,18 @@ public:
   /** Get the type of the current tag */
   LoadAction GetTagLoadAction(int tag_index) const;
 
-  /** The last ticket submitted */
-  irisSimplePropertyAccessMacro(SubmittedTicketId, int)
-
   /** The progress of the current ticket */
   irisRangedPropertyAccessMacro(SelectedTicketProgress, double)
 
   /** Log messages from the current ticket */
   typedef STLVectorWrapperItemSetDomain<dss_model::IdType, dss_model::TicketLogEntry> LogDomainType;
   irisGenericPropertyAccessMacro(SelectedTicketLog, dss_model::IdType, LogDomainType)
+
+  /** Local workspace for the selected ticket */
+  irisSimplePropertyAccessMacro(SelectedTicketLocalWorkspace, std::string)
+
+  /** Result workspace for the selected ticket (if downloaded before) */
+  irisSimplePropertyAccessMacro(SelectedTicketResultWorkspace, std::string)
 
   /** Get the git hash of the current service */
   std::string GetCurrentServiceGitHash() const;
@@ -282,8 +328,19 @@ public:
   /** Submit the workspace */
   void SubmitWorkspace(ProgressReporterDelegate *pdel);
 
+  /** Can the ticket be downloaded? */
+  bool IsSelectedTicketSuccessful();
+
+  /** Suggest a download location based on current settings */
+  std::string SuggestDownloadFilename();
+
+  typedef SimpleItemSetDomain<DownloadAction, std::string> DownloadActionDomain;
+
+  /** What to do after download */
+  irisGenericPropertyAccessMacro(DownloadAction, DownloadAction, DownloadActionDomain)
+
   /** Download the workspace */
-  std::string DownloadWorkspace();
+  std::string DownloadWorkspace(const std::string &target_fn);
 
   /** Delete the ticket */
   void DeleteSelectedTicket();
@@ -335,13 +392,21 @@ protected:
   // Property model for token
   SmartPtr<ConcreteSimpleStringProperty> m_TokenModel;
 
+  // Response from the server statuc call
+  dss_model::AuthResponse m_AuthResponse;
+
   // Property model for server status
-  typedef ConcretePropertyModel<ServerStatus, ServerStatusDomain> ServerStatusModelType;
+  typedef ConcretePropertyModel<dss_model::AuthResponse, TrivialDomain> ServerStatusModelType;
   SmartPtr<ServerStatusModelType> m_ServerStatusModel;
 
   // Property model for server status string
-  SmartPtr<AbstractSimpleStringProperty> m_ServerStatusStringModel;
-  bool GetServerStatusStringValue(std::string &value);
+  SmartPtr<AbstractSimpleStringProperty> m_DownloadLocationModel;
+
+  bool GetDownloadLocationValue(std::string &value);
+  void SetDownloadLocationValue(std::string value);
+
+  // Mapping from servers to download locations
+  std::map<std::string, std::string> m_ServerDownloadLocationMap;
 
   // Property model for current service
   typedef ConcretePropertyModel<int, CurrentServiceDomain> CurrentServiceModel;
@@ -358,8 +423,18 @@ protected:
   std::vector<dss_model::TagTargetSpec> m_TagSpecArray;
 
   // Property model for the tag table
-  typedef ConcretePropertyModel<int, TagDomainType> TagListModel;
+  typedef AbstractPropertyModel<int, TagDomainType> TagListModel;
   SmartPtr<TagListModel> m_TagListModel;
+
+  // Getter and setter for the tag table
+  bool GetTagListValueAndRange(int &value, TagDomainType *domain);
+  void SetTagListValue(int value);
+
+  // The currently selected tag
+  int m_CurrentTag;
+
+  // Id of the last submitted ticket
+  dss_model::IdType m_SubmittedTicketId;
 
   // Property model for the current tag's image layer
   typedef AbstractPropertyModel<unsigned long, LayerSelectionDomain> CurrentTagImageLayerModel;
@@ -367,15 +442,28 @@ protected:
   bool GetCurrentTagImageLayerValueAndRange(unsigned long &value, LayerSelectionDomain *range);
   void SetCurrentTagImageLayerValue(unsigned long value);
 
-  // Property model for last submitted ticket id
-  SmartPtr<ConcreteSimpleIntProperty> m_SubmittedTicketIdModel;
-
   // Stuff about the current ticket
   SmartPtr<ConcreteRangedDoubleProperty> m_SelectedTicketProgressModel;
 
   // Log model for the current ticket
   typedef ConcretePropertyModel<dss_model::IdType, LogDomainType> LogModel;
   SmartPtr<LogModel> m_SelectedTicketLogModel;
+
+  // Workspace associated with the selected ticket
+  SmartPtr<AbstractSimpleStringProperty> m_SelectedTicketLocalWorkspaceModel;
+
+  // Getter for the selected ticket workspace
+  bool GetSelectedTicketLocalWorkspaceValue(std::string &value);
+
+  // Result workspace associated with the selected ticket
+  SmartPtr<AbstractSimpleStringProperty> m_SelectedTicketResultWorkspaceModel;
+
+  // Getter for the selected ticket workspace
+  bool GetSelectedTicketResultWorkspaceValue(std::string &value);
+
+  // Download action model
+  typedef ConcretePropertyModel<DownloadAction, DownloadActionDomain> DownloadActionModel;
+  SmartPtr<DownloadActionModel> m_DownloadActionModel;
 
   // Registry holding the service listing
   dss_model::ServiceListing m_ServiceListing;
@@ -386,15 +474,20 @@ protected:
   // Detail for the current ticket
   dss_model::TicketDetailResponse m_SelectedTicketDetail;
 
+  // Download location
+
+  typedef std::map<dss_model::UniversalTicketId, dss_model::LocalTicketInfo> TicketWorkspaceMap;
+  TicketWorkspaceMap m_TicketWorkspaceMap;
+
   DistributedSegmentationModel();
   ~DistributedSegmentationModel() {}
 
   // Parent model
   GlobalUIModel *m_Parent;
 
-
-private:
-  void AssignTagObjectIds();
+  // Find a unique object that matches a tag, and if found, assign it to the tag
+  bool FindUniqueObjectForTag(dss_model::TagTargetSpec &tag);
+  void UpdateTagObjectIds(bool clear_ids_first);
 
   // Helper function to get listing of services
   static bool AsyncGetServiceListing(std::vector<dss_model::ServiceSummary> &services);

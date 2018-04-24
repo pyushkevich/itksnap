@@ -526,7 +526,8 @@ QMap<QString, QDir> g_CategoryToLastPathMap;
 QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
 {
   // Already have something for this category? Then use it
-  if(g_CategoryToLastPathMap.find(HistoryName) != g_CategoryToLastPathMap.end())
+  if(HistoryName && strlen(HistoryName) > 0 &&
+     g_CategoryToLastPathMap.find(HistoryName) != g_CategoryToLastPathMap.end())
     return g_CategoryToLastPathMap[HistoryName].absolutePath();
 
   // Is there a main image loaded
@@ -550,7 +551,8 @@ QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
 
 void UpdateFileDialogPathForCategory(const char *HistoryName, QString dir)
 {
-  g_CategoryToLastPathMap[HistoryName] = QDir(dir);
+  if(HistoryName && strlen(HistoryName) > 0)
+    g_CategoryToLastPathMap[HistoryName] = QDir(dir);
 }
 
 void TranslateStringTooltipKeyModifiers(QString &tooltip)

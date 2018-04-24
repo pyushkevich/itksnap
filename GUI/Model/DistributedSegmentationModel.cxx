@@ -45,6 +45,8 @@
 #include <sstream>
 #include <algorithm>
 #include "itksys/SystemTools.hxx"
+#include "AllPurposeProgressAccumulator.h"
+
 
 namespace dss_model {
 
@@ -91,6 +93,18 @@ std::string tag_type_strings[] =
   "Image Layer", "Main Image", "Overlay Image", "Segmentation Label", "Point Landmark", "Unknown"
 };
 
+UniversalTicketId::UniversalTicketId(std::string in_url, IdType in_id)
+  : server_url(in_url), ticket_id(in_id)
+{
+
+}
+
+bool UniversalTicketId::operator <(const UniversalTicketId &other) const
+{
+  return (server_url < other.server_url)
+      || ((server_url == other.server_url) && ticket_id < other.ticket_id);
+}
+
 
 } // namespace
 
@@ -99,7 +113,16 @@ using namespace dss_model;
 void DistributedSegmentationModel::SetParentModel(GlobalUIModel *model)
 {
   m_Parent = model;
+
+  // Changes in the layer structure result in changes in the tag configuration and
+  // must be responded to
+  this->Rebroadcast(m_Parent->GetDriver(), LayerChangeEvent(), ModelUpdateEvent());
+
+  // Initialize the download location
+  m_DownloadLocationModel->SetValue(this->GetDefaultDownloadLocation());
 }
+
+
 
 void DistributedSegmentationModel::LoadPreferences(Registry &folder)
 {
@@ -111,6 +134,41 @@ void DistributedSegmentationModel::LoadPreferences(Registry &folder)
   int pref_server = folder["PreferredServerIndex"][0];
   if(pref_server < m_ServerURLList.size())
     m_ServerURLModel->SetValue(pref_server);
+
+  // Read the workspace locations
+  Registry &twm = folder.Folder("TicketWorkspaceMap");
+  m_TicketWorkspaceMap.clear();
+  for(int k = 0; k < twm["ArraySize"][0]; k++)
+    {
+    Registry &f = twm.Folder(twm.Key("Element[%d]", k));
+    UniversalTicketId uti(f["URL"][""], f["Ticket"][0]);
+    if(uti.server_url.size() && uti.ticket_id)
+      {
+      std::string workspace = f["SourceWorkspace"][""];
+      if(workspace.size())
+        m_TicketWorkspaceMap[uti].source_workspace = workspace;
+
+      std::string dl_workspace = f["ResultWorkspace"][""];
+      if(dl_workspace.size())
+        m_TicketWorkspaceMap[uti].result_workspace = dl_workspace;
+      }
+    }
+
+  // Read the server-specific data
+  m_ServerDownloadLocationMap.clear();
+  Registry &server_prefs = folder.Folder("ServerData");
+  for(int k = 0; k < server_prefs["ArraySize"][0]; k++)
+    {
+    Registry &f = server_prefs.Folder(twm.Key("Element[%d]", k));
+    std::string url = f["URL"][""];
+    std::string dl = f["DownloadLocation"][""];
+
+    if(url.size() && dl.size()
+       && std::find(m_ServerURLList.begin(), m_ServerURLList.end(), url) != m_ServerURLList.end())
+      {
+      m_ServerDownloadLocationMap[url] = dl;
+      }
+    }
 }
 
 void DistributedSegmentationModel::SavePreferences(Registry &folder)
@@ -121,6 +179,36 @@ void DistributedSegmentationModel::SavePreferences(Registry &folder)
 
   // Save the preferred server index
   folder["PreferredServerIndex"] << m_ServerURLModel->GetValue();
+
+  // Save the workspace locations
+  Registry &twm = folder.Folder("TicketWorkspaceMap");
+  twm.Clear();
+  twm["ArraySize"] << m_TicketWorkspaceMap.size();
+  int k = 0;
+  for(TicketWorkspaceMap::const_iterator it = m_TicketWorkspaceMap.begin();
+      it != m_TicketWorkspaceMap.end(); ++it, ++k)
+    {
+    Registry &f = twm.Folder(twm.Key("Element[%d]", k));
+    f["URL"] << it->first.server_url;
+    f["Ticket"] << it->first.ticket_id;
+    if(it->second.source_workspace.size())
+      f["SourceWorkspace"] << it->second.source_workspace;
+    if(it->second.result_workspace.size())
+      f["ResultWorkspace"] << it->second.result_workspace;
+    }
+
+  // Read the server-specific data
+  Registry &server_prefs = folder.Folder("ServerData");
+  server_prefs.Clear();
+  server_prefs["ArraySize"] << m_ServerDownloadLocationMap.size();
+  k = 0;
+  for(std::map<std::string, std::string>::const_iterator it = m_ServerDownloadLocationMap.begin();
+      it != m_ServerDownloadLocationMap.end(); ++it, ++k)
+    {
+    Registry &f = server_prefs.Folder(server_prefs.Key("Element[%d]", k));
+    f["URL"] << it->first;
+    f["DownloadLocation"] << it->second;
+    }
 }
 
 bool DistributedSegmentationModel::AreAllRequiredTagsAssignedTarget()
@@ -138,12 +226,25 @@ bool DistributedSegmentationModel::CheckState(DistributedSegmentationModel::UISt
   switch(state)
     {
     case DistributedSegmentationModel::UIF_AUTHENTICATED:
-      return m_ServerStatusModel->GetValue() == CONNECTED_AUTHORIZED;
+      return this->GetServerStatus().status == AUTH_AUTHENTICATED;
     case DistributedSegmentationModel::UIF_TAGS_ASSIGNED:
       return AreAllRequiredTagsAssignedTarget();
+    case DistributedSegmentationModel::UIF_CAN_DOWNLOAD:
+      return IsSelectedTicketSuccessful();
     }
 
   return false;
+}
+
+void DistributedSegmentationModel::OnUpdate()
+{
+  if(this->m_EventBucket->HasEvent(LayerChangeEvent())
+     || this->m_EventBucket->HasEvent(WrapperMetadataChangeEvent()))
+    {
+    // Layers have changed! Make sure that all layers currently referenced in the tag
+    // table are still valid layers, otherwise change to unassigned
+    this->UpdateTagObjectIds(false);
+    }
 }
 
 std::vector<std::string> DistributedSegmentationModel::GetUserServerList() const
@@ -288,7 +389,6 @@ void DistributedSegmentationModel::ApplyTagsToTargets()
     }
 }
 
-#include "AllPurposeProgressAccumulator.h"
 
 
 void DistributedSegmentationModel::SubmitWorkspace(ProgressReporterDelegate *pdel)
@@ -303,12 +403,25 @@ void DistributedSegmentationModel::SubmitWorkspace(ProgressReporterDelegate *pde
   // Do the upload magic
   int ticket_id = ws.CreateWorkspaceTicket(this->GetCurrentServiceGitHash().c_str(), cmd);
 
+  // Associate the ticket id with the workspace file for the future
+  UniversalTicketId uti(this->GetURL(""), ticket_id);
+  m_TicketWorkspaceMap[uti].source_workspace = m_Parent->GetGlobalState()->GetProjectFilename();
+  m_SelectedTicketLocalWorkspaceModel->InvokeEvent(ValueChangedEvent());
+
   // Stick into the model
-  m_SubmittedTicketIdModel->SetValue(ticket_id);
-  m_SubmittedTicketIdModel->SetIsValid(true);
+  m_SubmittedTicketId = ticket_id;
 }
 
-std::string DistributedSegmentationModel::DownloadWorkspace()
+bool DistributedSegmentationModel::IsSelectedTicketSuccessful()
+{
+  IdType selected_ticket_id;
+  return
+      m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL)
+      && (m_TicketListing.find(selected_ticket_id) != m_TicketListing.end())
+      && (m_TicketListing[selected_ticket_id].status == STATUS_SUCCESS);
+}
+
+std::string DistributedSegmentationModel::DownloadWorkspace(const std::string &target_fn)
 {
   // Is there a valid ticket id with status of success?
   IdType selected_ticket_id;
@@ -317,17 +430,77 @@ std::string DistributedSegmentationModel::DownloadWorkspace()
      || m_TicketListing[selected_ticket_id].status != STATUS_SUCCESS)
     return "";
 
-  // Create temporary directory for the download (for now)
-  string tempdir = WorkspaceAPI::GetTempDirName();
-  itksys::SystemTools::MakeDirectory(tempdir);
+  // Split the target filename into a diretory and a file
+  std::string dirname, filename;
+  if(itksys::SystemTools::FileIsDirectory(target_fn) ||
+     (target_fn.find_last_of(".itksnap") == std::string::npos))
+    {
+    dirname = target_fn.c_str();
+    }
+  else
+    {
+    dirname = itksys::SystemTools::GetFilenamePath(target_fn);
+    filename = itksys::SystemTools::GetFilenameName(target_fn);
+    }
+
+  // Create the directory if it does not exist
+  if(!itksys::SystemTools::MakeDirectory(dirname))
+    throw IRISException("Could not create directory %s", dirname.c_str());
 
   // Download into this directory
-  std::string file_list =
-      WorkspaceAPI::DownloadTicketFiles(selected_ticket_id, tempdir.c_str(), false, "results");
+  std::string file_list_str =
+      WorkspaceAPI::DownloadTicketFiles(selected_ticket_id, dirname.c_str(), false, "results",
+                                        filename.size() ? filename.c_str() : NULL);  
+  std::vector<std::string> file_list;
+  itksys::SystemTools::Split(file_list_str, file_list);
 
-  // return the file list
-  return file_list;
+  // Find the .itksnap file
+  for(int i = 0; i < file_list.size(); i++)
+    {
+    if(itksys::SystemTools::GetFilenameLastExtension(file_list[i]) == ".itksnap")
+      {
+      UniversalTicketId uti(this->GetURL(""), selected_ticket_id);
+      m_TicketWorkspaceMap[uti].result_workspace = file_list[i];
+      m_SelectedTicketResultWorkspaceModel->InvokeEvent(ValueChangedEvent());
+      return file_list[i];
+      }
+    }
 
+  throw IRISException("A workspace file was not among the files that were downloaded.\n"
+                      "File list: \n%s",
+                      file_list_str.c_str());
+}
+
+std::string DistributedSegmentationModel::SuggestDownloadFilename()
+{
+  // Is there a valid ticket id selected?
+  IdType selected_ticket_id;
+  if(m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL))
+    {
+    // The path under which we will be saving the project
+    char ticket_file[4096];
+
+    // Do we have a workspace location for this ticket?
+    std::string local_ws = this->GetSelectedTicketLocalWorkspace();
+    if(local_ws.size())
+      {
+      // Create the ticket in the same folder as the local workspace
+      sprintf(ticket_file, "%s/ticket_%08ld_results.itksnap",
+              itksys::SystemTools::GetFilenamePath(local_ws).c_str(),
+              selected_ticket_id);
+      }
+    else
+      {
+      // Generate a default path for download
+      sprintf(ticket_file, "%s/ticket_%08ld/ticket_%08ld_results.itksnap",
+              this->GetDownloadLocation().c_str(),
+              selected_ticket_id, selected_ticket_id);
+      }
+
+    return ticket_file;
+    }
+
+  return std::string();
 }
 
 void DistributedSegmentationModel::DeleteSelectedTicket()
@@ -427,39 +600,54 @@ StatusCheckResponse
 DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string token)
 {
   dss_model::StatusCheckResponse response;
-  response.auth_response.connected = false;
-  response.auth_response.authenticated = false;
 
   try
     {
-    // If token is empty, bypass the authentication step
-    if(token.size() == 0)
+    // Set the server URL to the new location
+    RESTClient rc;
+    rc.SetServerURL(url.c_str());
+
+    // If there is a token, post it
+    bool status_login;
+    if(token.size() > 0)
       {
-      // We
-      RESTClient rc;
-      rc.SetServerURL(url.c_str());
+      rc.SetReceiveCookieMode(true);
+      status_login = rc.Post("api/login?format=json", "token=%s", token.c_str());
       }
     else
       {
-      RESTClient rc;
-      if(!rc.Authenticate(url.c_str(), token.c_str()))
-        {
-        // Failed authentication but did connect
-        response.auth_response.connected = true;
-        return response;
-        }
+      status_login = rc.Get("api/login?format=json");
       }
 
-    // See if we can successfully get a listing
-    if(AsyncGetServiceListing(response.service_listing))
+    // If we got here without an exception, that means we are connected
+    response.auth_response.status = AUTH_CONNECTED_NOT_AUTHENTICATED;
+
+    // If status is not ok, that's it
+    if(status_login == false)
+      return response;
+
+    // Check if we got an email address
+    Json::Reader json_reader;
+    Json::Value root;
+    if(json_reader.parse(rc.GetOutput(), root, false))
       {
-      response.auth_response.connected = true;
-      response.auth_response.authenticated = true;
+      const Json::Value data = root["result"];
+      response.auth_response.user_email = data.get("email","").asString();
       }
+
+    // If no email address we are not logged in
+    if(response.auth_response.user_email.length() == 0)
+      return response;
     }
   catch(...)
     {
-    response.auth_response.connected = false;
+    response.auth_response.status = AUTH_NOT_CONNECTED;
+    }
+
+  // See if we can successfully get a listing
+  if(AsyncGetServiceListing(response.service_listing))
+    {
+    response.auth_response.status = AUTH_AUTHENTICATED;
     }
 
   return response;
@@ -467,22 +655,14 @@ DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string toke
 
 void DistributedSegmentationModel::ApplyStatusCheckResponse(const StatusCheckResponse &result)
 {
-  if(result.auth_response.connected)
-    {
-    if(result.auth_response.authenticated)
-      {
-      // We no longer need a token
-      SetServerStatus(DistributedSegmentationModel::CONNECTED_AUTHORIZED);
-      SetToken("");
-      }
-    else
-      SetServerStatus(DistributedSegmentationModel::CONNECTED_NOT_AUTHORIZED);
-    }
-  else
-    {
-    SetServerStatus(DistributedSegmentationModel::NOT_CONNECTED);
-    }
+  // Set the status
+  this->SetServerStatus(result.auth_response);
 
+  // If successfully logged in, clear the token field
+  if(result.auth_response.status == AUTH_AUTHENTICATED)
+    this->SetToken("");
+
+  // Set the service listing
   SetServiceListing(result.service_listing);
 }
 
@@ -532,41 +712,91 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
   return result;
 }
 
-void DistributedSegmentationModel::AssignTagObjectIds()
+// Find a unique object that matches a tag, and if found, assign it to the tag
+bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
 {
   // Get the driver
   IRISApplication *driver = this->GetParent()->GetDriver();
-
-  // Handle the main image assignment
-  for(int i = 0; i < m_TagSpecArray.size(); i++)
+  if(driver->IsMainImageLoaded())
     {
-    TagTargetSpec &tag = m_TagSpecArray[i];
-    tag.object_id = 0;
-    tag.desc = "Unassigned";
-
-    if(driver->IsMainImageLoaded())
+    int role_filter = -1;
+    switch(tag.tag_spec.type)
       {
-      int role_filter = -1;
-      switch(tag.tag_spec.type)
-        {
-        case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
-        case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
-        case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
-        default: break;
-        }
+      case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
+      case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
+      case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
+      default: break;
+      }
 
-      if(role_filter >= 0)
+    // Is there an image to search for?
+    if(role_filter >= 0)
+      {
+      std::list<ImageWrapperBase*> matches = driver->GetIRISImageData()->FindLayersByRole(role_filter);
+      if(matches.size() == 1)
         {
-        std::list<ImageWrapperBase*> matches =
-            driver->GetIRISImageData()->FindLayersByTag(tag.tag_spec.name, role_filter);
-        if(matches.size() == 1)
+        // Unique match found. Assign the object to the tag.
+        tag.object_id = matches.front()->GetUniqueId();
+        tag.desc = matches.front()->GetNickname();
+        return true;
+        }
+      else if (matches.size() > 1)
+        {
+        // There are multiple matches. Look through them to see if the present tag fits
+        std::list<ImageWrapperBase*> tag_matching_layers;
+        for(std::list<ImageWrapperBase*>::iterator it = matches.begin(); it != matches.end(); ++it)
           {
-          tag.object_id = matches.front()->GetUniqueId();
-          tag.desc = matches.front()->GetNickname();
+          ImageWrapperBase *w = *it;
+          if(w->GetUniqueId() == tag.object_id)
+            {
+            // The currently assigned object still matches. Keep the assignment
+            tag.desc = w->GetNickname();
+            return true;
+            }
+          else if(std::find(w->GetTags().begin(), w->GetTags().end(), tag.tag_spec.name)
+                  != w->GetTags().end())
+            {
+            // Found another object with the matching tag. Then it may be assignable
+            tag_matching_layers.push_back(w);
+            }
+          }
+
+        // The current id is not in the list of matching layers.
+        if(tag_matching_layers.size() == 1)
+          {
+          // There was one layer that contained the current tag! We can assign it to the layer
+          tag.object_id = tag_matching_layers.front()->GetUniqueId();
+          tag.desc = tag_matching_layers.front()->GetNickname();
+          return true;
           }
         }
       }
     }
+
+  // The tag was not matched. Assign id 0 and desc unassigned
+  tag.object_id = 0L;
+  tag.desc = "Unassigned";
+  return false;
+}
+
+void DistributedSegmentationModel::UpdateTagObjectIds(bool clear_ids_first)
+{
+  // Handle the main image assignment
+  for(int i = 0; i < m_TagSpecArray.size(); i++)
+    {
+    // Reset the tag to 'unassigned'
+    TagTargetSpec &tag = m_TagSpecArray[i];
+    if(clear_ids_first)
+      {
+      tag.object_id = 0;
+      tag.desc = "Unassigned";
+      }
+
+    // Find a match for the tag
+    FindUniqueObjectForTag(tag);
+    }
+
+  // The domain for the tag list has changed!
+  m_TagListModel->InvokeEvent(DomainDescriptionChangedEvent());
 }
 
 void DistributedSegmentationModel::ApplyServiceDetailResponse(const ServiceDetailResponse &resp)
@@ -584,19 +814,10 @@ void DistributedSegmentationModel::ApplyServiceDetailResponse(const ServiceDetai
     }
 
   // Assign tag ids to objects in current workspace
-  this->AssignTagObjectIds();
+  this->UpdateTagObjectIds(true);
 
   // Fire off a domain modified event
   m_TagListModel->InvokeEvent(DomainChangedEvent());
-  if(resp.tag_specs.size())
-    {
-    m_TagListModel->SetValue(0);
-    m_TagListModel->SetIsValid(true);
-    }
-  else
-    {
-    m_TagListModel->SetIsValid(false);
-    }
 }
 
 TicketListingResponse DistributedSegmentationModel::AsyncGetTicketListing()
@@ -660,6 +881,19 @@ void DistributedSegmentationModel::ApplyTicketListingResponse(const TicketListin
   // Set the status of the model
   m_TicketListModel->SetIsValid(m_TicketListing.size() > 0);
 
+  // If there is a listing and the current value of the model is not in the listing
+  // point it to the first entry
+  if(m_TicketListing.find(m_TicketListModel->GetValue()) == m_TicketListing.end())
+    m_TicketListModel->SetValue(m_TicketListing.begin()->first);
+
+  // If we have recently submitted a ticket and it now appears in the list, select it
+  if(m_TicketListing.find(m_SubmittedTicketId) != m_TicketListing.end())
+    {
+    m_TicketListModel->SetValue(m_SubmittedTicketId);
+    m_SubmittedTicketId = -1;
+    }
+
+  // Fire the right domain event
   if(same_keys)
     m_TicketListModel->InvokeEvent(DomainDescriptionChangedEvent());
   else
@@ -760,17 +994,45 @@ void DistributedSegmentationModel::ApplyTicketDetailResponse(const TicketDetailR
     m_SelectedTicketLogModel->InvokeEvent(DomainChangedEvent());
 }
 
-bool DistributedSegmentationModel::GetServerStatusStringValue(std::string &value)
+bool DistributedSegmentationModel::GetDownloadLocationValue(std::string &value)
 {
-  ServerStatus status;
-  ServerStatusDomain domain;
-  if(m_ServerStatusModel->GetValueAndDomain(status, &domain))
-    {
-    value = domain[status];
-    return true;
-    }
-  return false;
+  std::string url = this->GetURL("");
+  std::map<std::string, std::string>::const_iterator it = m_ServerDownloadLocationMap.find(url);
+  if(it != m_ServerDownloadLocationMap.end())
+    value = it->second;
+  else
+    m_ServerDownloadLocationMap[url] = value = this->GetDefaultDownloadLocation();
+  return true;
 }
+
+void DistributedSegmentationModel::SetDownloadLocationValue(std::string value)
+{
+  std::string url = this->GetURL("");
+  m_ServerDownloadLocationMap[url] = value;
+}
+
+bool DistributedSegmentationModel::GetTagListValueAndRange(int &value, DistributedSegmentationModel::TagDomainType *domain)
+{
+  // Must be logged in and have a list of tags
+  if(this->GetServerStatus().status != AUTH_AUTHENTICATED || this->m_TagSpecArray.size() == 0)
+    return false;
+
+  // Set the value
+  value = m_CurrentTag;
+
+  // Handle the domain
+  if(domain)
+    domain->SetWrappedVector(&m_TagSpecArray);
+
+  return true;
+}
+
+void DistributedSegmentationModel::SetTagListValue(int value)
+{
+  m_CurrentTag = value;
+}
+
+
 
 bool DistributedSegmentationModel
 ::GetCurrentTagImageLayerValueAndRange(unsigned long &value, LayerSelectionDomain *domain)
@@ -827,6 +1089,73 @@ void DistributedSegmentationModel
     }
 }
 
+bool DistributedSegmentationModel::GetSelectedTicketLocalWorkspaceValue(std::string &value)
+{
+  IdType selected_ticket_id;
+  if(m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL))
+    {
+    UniversalTicketId uti(this->GetURL(""), selected_ticket_id);
+    TicketWorkspaceMap::const_iterator it = m_TicketWorkspaceMap.find(uti);
+    if(it != m_TicketWorkspaceMap.end())
+      value = it->second.source_workspace;
+    else
+      value = "";
+    return true;
+    }
+
+  return false;
+}
+
+bool DistributedSegmentationModel::GetSelectedTicketResultWorkspaceValue(std::string &value)
+{
+  IdType selected_ticket_id;
+  if(m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL))
+    {
+    UniversalTicketId uti(this->GetURL(""), selected_ticket_id);
+    TicketWorkspaceMap::const_iterator it = m_TicketWorkspaceMap.find(uti);
+    if(it != m_TicketWorkspaceMap.end())
+      value = it->second.result_workspace;
+    else
+      value = "";
+    return true;
+    }
+
+  return false;
+}
+
+
+std::string
+DistributedSegmentationModel::GetDefaultDownloadLocation()
+{
+  // Get the standard Documents location
+  std::string dir_docs =
+      m_Parent->GetSystemInterface()->GetSystemInfoDelegate()->GetUserDocumentsLocation();
+
+  // Append the current URL
+  std::string encoded_url =
+      m_Parent->GetSystemInterface()->GetSystemInfoDelegate()->EncodeServerURL(this->GetURL(""));
+
+  // Replace reserved characters with underscores
+  std::string reschar(";/?:@=&.");
+  for(int i = 0; i < encoded_url.size(); i++)
+    {
+    char c = encoded_url[i];
+    if(reschar.find(c) != std::string::npos)
+      encoded_url[i] = '_';
+    }
+
+  // Remove characters before and after
+  size_t p1 = encoded_url.find_first_not_of('_');
+  size_t p2 = encoded_url.find_last_not_of('_');
+  encoded_url = encoded_url.substr(p1, 1 + p2 - p1);
+
+  // Append ITK-SNAP
+  std::string full_dir = dir_docs + std::string("/") + "ITK-SNAP" + std::string("/") + encoded_url;
+
+  // Convert to correct slashes
+  return itksys::SystemTools::ConvertToOutputPath(full_dir);
+}
+
 DistributedSegmentationModel::DistributedSegmentationModel()
 {
   // Build a list of available URLs
@@ -842,27 +1171,27 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   m_TokenModel = NewSimpleConcreteProperty(std::string(""));
 
   // Server status model
-  ServerStatusDomain server_status_dom;
-  server_status_dom[NOT_CONNECTED] = "Not connected";
-  server_status_dom[CONNECTED_NOT_AUTHORIZED] = "Connected, Not Authorized";
-  server_status_dom[CONNECTED_AUTHORIZED] = "Connected and Authorized";
-  m_ServerStatusModel = NewConcreteProperty(NOT_CONNECTED, server_status_dom);
-
-  // Server status string
-  m_ServerStatusStringModel
-      = wrapGetterSetterPairAsProperty(this, &Self::GetServerStatusStringValue);
-  m_ServerStatusStringModel->RebroadcastFromSourceProperty(m_ServerStatusModel);
+  m_ServerStatusModel = NewSimpleConcreteProperty(AuthResponse());
 
   // Initialize the service model
   m_CurrentServiceModel = NewConcreteProperty(-1, CurrentServiceDomain());
   m_CurrentServiceModel->SetIsValid(false);
 
+  // Download location model
+  m_DownloadLocationModel = wrapGetterSetterPairAsProperty(
+                              this,
+                              &Self::GetDownloadLocationValue,
+                              &Self::SetDownloadLocationValue);
+  m_DownloadLocationModel->RebroadcastFromSourceProperty(m_ServerStatusModel);
+
   // Service description
   m_ServiceDescriptionModel = NewSimpleConcreteProperty(std::string());
 
   // Tag selection model
-  m_TagListModel = NewConcreteProperty(-1, TagDomainType(&m_TagSpecArray));
-  m_TagListModel->SetIsValid(false);
+  m_TagListModel = wrapGetterSetterPairAsProperty(
+                     this,
+                     &Self::GetTagListValueAndRange,
+                     &Self::SetTagListValue);
 
   // Ticket listing model
   m_TicketListModel = NewConcreteProperty((IdType) -1, TicketListingDomain(&m_TicketListing));
@@ -877,8 +1206,7 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   m_CurrentTagImageLayerModel->Rebroadcast(m_TagListModel, ValueChangedEvent(), DomainChangedEvent());
 
   // Last submitted ticket
-  m_SubmittedTicketIdModel = NewSimpleConcreteProperty(-1);
-  m_SubmittedTicketIdModel->SetIsValid(false);
+  m_SubmittedTicketId = -1;
 
   // Selected ticket progress model
   m_SelectedTicketProgressModel = NewRangedConcreteProperty(0.0, 0.0, 1.0, 0.01);
@@ -887,6 +1215,27 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   // Selected ticket logs
   m_SelectedTicketLogModel = NewConcreteProperty((IdType) -1, LogDomainType(&m_SelectedTicketDetail.log));
   m_SelectedTicketLogModel->SetIsValid(false);
+
+  // Selected ticket local workspace
+  m_SelectedTicketLocalWorkspaceModel = wrapGetterSetterPairAsProperty(
+                                          this,
+                                          &Self::GetSelectedTicketLocalWorkspaceValue);
+  m_SelectedTicketLocalWorkspaceModel->Rebroadcast(m_TicketListModel, ValueChangedEvent(), ValueChangedEvent());
+  m_SelectedTicketLocalWorkspaceModel->Rebroadcast(m_TicketListModel, DomainChangedEvent(), ValueChangedEvent());
+
+
+  m_SelectedTicketResultWorkspaceModel = wrapGetterSetterPairAsProperty(
+                                          this,
+                                          &Self::GetSelectedTicketResultWorkspaceValue);
+  m_SelectedTicketResultWorkspaceModel->Rebroadcast(m_TicketListModel, ValueChangedEvent(), ValueChangedEvent());
+  m_SelectedTicketResultWorkspaceModel->Rebroadcast(m_TicketListModel, DomainChangedEvent(), ValueChangedEvent());
+
+  // Download action model
+  DownloadActionDomain dl_action_domain;
+  dl_action_domain[DL_OPEN_CURRENT_WINDOW] = "Open workspace in the current ITK-SNAP window";
+  dl_action_domain[DL_OPEN_NEW_WINDOW] = "Open workspace in a new ITK-SNAP window";
+  dl_action_domain[DL_DONT_OPEN] = "Do not open workspace";
+  m_DownloadActionModel = NewConcreteProperty(DL_OPEN_CURRENT_WINDOW, dl_action_domain);
 
   // Changes to the server and token result in a server change event
   this->Rebroadcast(m_ServerURLModel, ValueChangedEvent(), ServerChangeEvent());
@@ -901,6 +1250,11 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   this->Rebroadcast(m_CurrentTagImageLayerModel, DomainChangedEvent(), StateMachineChangeEvent());
   this->Rebroadcast(m_ServerStatusModel, ValueChangedEvent(), StateMachineChangeEvent());
   this->Rebroadcast(m_TagListModel, DomainChangedEvent(), StateMachineChangeEvent());
+  this->Rebroadcast(m_TagListModel, DomainDescriptionChangedEvent(), StateMachineChangeEvent());
+  this->Rebroadcast(m_TicketListModel, ValueChangedEvent(), StateMachineChangeEvent());
+  this->Rebroadcast(m_TicketListModel, DomainChangedEvent(), StateMachineChangeEvent());
+  this->Rebroadcast(m_TicketListModel, DomainDescriptionChangedEvent(), StateMachineChangeEvent());
+
 
 }
 

@@ -14,6 +14,10 @@
 #include "Registry.h"
 #include <sstream>
 
+#include <QStandardPaths>
+#include <QUrl>
+
+
 #include "SNAPQtCommon.h"
 
 
@@ -64,10 +68,23 @@ float QtViewportReporter::GetViewportPixelRatio()
   return m_ClientWidget->devicePixelRatio();
 }
 
-#include <QStandardPaths>
 std::string QtSystemInfoDelegate::GetApplicationPermanentDataLocation()
 {
   return to_utf8(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+}
+
+std::string QtSystemInfoDelegate::GetUserDocumentsLocation()
+{
+  return to_utf8(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+}
+
+std::string QtSystemInfoDelegate::EncodeServerURL(const std::string &url_string)
+{
+  QUrl url(from_utf8(url_string));
+  QByteArray ba = url.toEncoded(
+                    QUrl::RemoveScheme | QUrl::RemoveUserInfo | QUrl::StripTrailingSlash |
+                    QUrl::NormalizePathSegments | QUrl::FullyEncoded);
+  return std::string(ba.constData());
 }
 
 

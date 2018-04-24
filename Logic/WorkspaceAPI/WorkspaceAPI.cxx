@@ -866,7 +866,8 @@ int WorkspaceAPI::CreateWorkspaceTicket(const string &service_desc,
 }
 
 string WorkspaceAPI::DownloadTicketFiles(
-    int ticket_id, const char *outdir, bool provider_mode, const char *area)
+    int ticket_id, const char *outdir, bool provider_mode,
+    const char *area, const char *workspace_filename)
 {
   // Output string
   ostringstream oss;
@@ -898,6 +899,16 @@ string WorkspaceAPI::DownloadTicketFiles(
     // Where we will write this file to
     int file_index = atoi(ft(iFile,0).c_str());
     string file_name = ft(iFile, 1);
+
+    // If the filename is an '.itksnap' file, and the user requested a different filename
+    // for the workspace, make the substitution
+    if(workspace_filename
+       && itksys::SystemTools::GetFilenameLastExtension(file_name) == ".itksnap")
+      {
+      file_name = workspace_filename;
+      }
+
+    // Make it into a full path
     string file_path = SystemTools::CollapseFullPath(file_name.c_str(), outdir);
 
     // Create a file handle
