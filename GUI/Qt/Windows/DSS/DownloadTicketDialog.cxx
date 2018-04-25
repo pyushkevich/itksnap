@@ -52,6 +52,9 @@ QString DownloadTicketDialog::showDialog(QWidget *parent, DistributedSegmentatio
                    ? dd->ui->filePanel->absoluteFilename()
                    : QString();
 
+  // Close the dialog
+  dd->close();
+
   // Delete the dialog
   dd->deleteLater();
 

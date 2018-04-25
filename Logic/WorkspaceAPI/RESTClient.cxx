@@ -187,6 +187,15 @@ bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
     {
     curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteToFileCallback);
     curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, m_OutputFile);
+
+    // Set the callback functions
+    if(m_CallbackInfo.first)
+      {
+      curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback);
+      curl_easy_setopt(m_Curl, CURLOPT_PROGRESSDATA, &m_CallbackInfo);
+      curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
+      curl_easy_setopt(m_Curl, CURLOPT_VERBOSE, 1L);
+      }
     }
 
   // Make request

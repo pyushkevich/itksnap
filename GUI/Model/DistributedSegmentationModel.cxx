@@ -225,6 +225,10 @@ bool DistributedSegmentationModel::CheckState(DistributedSegmentationModel::UISt
 {
   switch(state)
     {
+    case DistributedSegmentationModel::UIF_TICKET_HAS_LOCAL_SOURCE:
+      return this->GetSelectedTicketLocalWorkspace().size() > 0;
+    case DistributedSegmentationModel::UIF_TICKET_HAS_LOCAL_RESULT:
+      return this->GetSelectedTicketResultWorkspace().size() > 0;
     case DistributedSegmentationModel::UIF_AUTHENTICATED:
       return this->GetServerStatus().status == AUTH_AUTHENTICATED;
     case DistributedSegmentationModel::UIF_TAGS_ASSIGNED:
@@ -348,6 +352,11 @@ DistributedSegmentationModel::GetTagLoadAction(int tag_index) const
   else return LOAD_NONE;
 }
 
+void DistributedSegmentationModel::ResetTagAssignment()
+{
+  this->UpdateTagObjectIds(true);
+}
+
 std::string DistributedSegmentationModel::GetCurrentServiceGitHash() const
 {
   int index;
@@ -421,7 +430,8 @@ bool DistributedSegmentationModel::IsSelectedTicketSuccessful()
       && (m_TicketListing[selected_ticket_id].status == STATUS_SUCCESS);
 }
 
-std::string DistributedSegmentationModel::DownloadWorkspace(const std::string &target_fn)
+std::string DistributedSegmentationModel::DownloadWorkspace(
+    const std::string &target_fn, ProgressReporterDelegate *pdel)
 {
   // Is there a valid ticket id with status of success?
   IdType selected_ticket_id;
@@ -447,10 +457,13 @@ std::string DistributedSegmentationModel::DownloadWorkspace(const std::string &t
   if(!itksys::SystemTools::MakeDirectory(dirname))
     throw IRISException("Could not create directory %s", dirname.c_str());
 
+  // Create a command that reports accumulated progress
+  SmartPtr<itk::Command> cmd = pdel->CreateCommand();
+
   // Download into this directory
   std::string file_list_str =
       WorkspaceAPI::DownloadTicketFiles(selected_ticket_id, dirname.c_str(), false, "results",
-                                        filename.size() ? filename.c_str() : NULL);  
+                                        filename.size() ? filename.c_str() : NULL, cmd);
   std::vector<std::string> file_list;
   itksys::SystemTools::Split(file_list_str, file_list);
 
@@ -920,6 +933,7 @@ TicketDetailResponse DistributedSegmentationModel::AsyncGetTicketDetails(IdType 
 
         // Read progress
         tdr.progress = result.get("progress",0.0).asDouble();
+        tdr.queue_position = result.get("queue_position",0).asInt();
 
         // Read logs
         const Json::Value log_entry = result["log"];
@@ -968,6 +982,10 @@ void DistributedSegmentationModel::ApplyTicketDetailResponse(const TicketDetailR
   // Store the progress
   m_SelectedTicketProgressModel->SetValue(resp.progress);
   m_SelectedTicketProgressModel->SetIsValid(true);
+
+  // Store the queue position
+  m_SelectedTicketQueuePositionModel->SetValue(resp.queue_position);
+  m_SelectedTicketQueuePositionModel->SetIsValid(true);
 
   // Store the log for the current ticket
   bool log_modified = false;
@@ -1087,6 +1105,22 @@ void DistributedSegmentationModel
     // Update the domain
     m_TagListModel->InvokeEvent(DomainChangedEvent());
     }
+}
+
+bool DistributedSegmentationModel::GetSelectedTicketStatusValue(TicketStatus &value)
+{
+  IdType selected_ticket_id;
+  if(m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL))
+    {
+    TicketListingResponse::const_iterator it = m_TicketListing.find(selected_ticket_id);
+    if(it != m_TicketListing.end())
+      {
+      value = it->second.status;
+      return true;
+      }
+    }
+
+  return false;
 }
 
 bool DistributedSegmentationModel::GetSelectedTicketLocalWorkspaceValue(std::string &value)
@@ -1212,9 +1246,21 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   m_SelectedTicketProgressModel = NewRangedConcreteProperty(0.0, 0.0, 1.0, 0.01);
   m_SelectedTicketProgressModel->SetIsValid(false);
 
+  // Selected ticket queue position
+  m_SelectedTicketQueuePositionModel = NewSimpleConcreteProperty(0);
+  m_SelectedTicketQueuePositionModel->SetIsValid(false);
+
   // Selected ticket logs
   m_SelectedTicketLogModel = NewConcreteProperty((IdType) -1, LogDomainType(&m_SelectedTicketDetail.log));
   m_SelectedTicketLogModel->SetIsValid(false);
+
+  // Selected ticket status
+  m_SelectedTicketStatusModel = wrapGetterSetterPairAsProperty(
+                                  this,
+                                  &Self::GetSelectedTicketStatusValue);
+  m_SelectedTicketStatusModel->Rebroadcast(m_TicketListModel, ValueChangedEvent(), ValueChangedEvent());
+  m_SelectedTicketStatusModel->Rebroadcast(m_TicketListModel, DomainChangedEvent(), ValueChangedEvent());
+  m_SelectedTicketStatusModel->Rebroadcast(m_TicketListModel, DomainDescriptionChangedEvent(), ValueChangedEvent());
 
   // Selected ticket local workspace
   m_SelectedTicketLocalWorkspaceModel = wrapGetterSetterPairAsProperty(

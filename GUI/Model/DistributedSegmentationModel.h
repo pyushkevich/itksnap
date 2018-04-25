@@ -182,6 +182,9 @@ struct TicketDetailResponse
   IdType ticket_id;
   double progress;
 
+  // Queue position
+  int queue_position;
+
   // The log is ordered by log-id
   std::vector<TicketLogEntry> log;
 
@@ -234,6 +237,8 @@ public:
     UIF_AUTHENTICATED,
     UIF_TAGS_ASSIGNED,
     UIF_CAN_DOWNLOAD,
+    UIF_TICKET_HAS_LOCAL_SOURCE,
+    UIF_TICKET_HAS_LOCAL_RESULT
   };
 
 
@@ -302,9 +307,18 @@ public:
 
   /** Get the type of the current tag */
   LoadAction GetTagLoadAction(int tag_index) const;
+  
+  /** Reset the tag assignment */
+  void ResetTagAssignment();
 
   /** The progress of the current ticket */
   irisRangedPropertyAccessMacro(SelectedTicketProgress, double)
+
+  /** The queue of the current ticket */
+  irisSimplePropertyAccessMacro(SelectedTicketQueuePosition, int)
+
+  /** The status of the currently selected ticket */
+  irisSimplePropertyAccessMacro(SelectedTicketStatus, dss_model::TicketStatus)
 
   /** Log messages from the current ticket */
   typedef STLVectorWrapperItemSetDomain<dss_model::IdType, dss_model::TicketLogEntry> LogDomainType;
@@ -340,7 +354,7 @@ public:
   irisGenericPropertyAccessMacro(DownloadAction, DownloadAction, DownloadActionDomain)
 
   /** Download the workspace */
-  std::string DownloadWorkspace(const std::string &target_fn);
+  std::string DownloadWorkspace(const std::string &target_fn, ProgressReporterDelegate *pdel);
 
   /** Delete the ticket */
   void DeleteSelectedTicket();
@@ -444,6 +458,16 @@ protected:
 
   // Stuff about the current ticket
   SmartPtr<ConcreteRangedDoubleProperty> m_SelectedTicketProgressModel;
+
+  // Stuff about the queue position
+  SmartPtr<ConcreteSimpleIntProperty> m_SelectedTicketQueuePositionModel;
+
+  // Status of the selected ticket
+  typedef AbstractPropertyModel<dss_model::TicketStatus, TrivialDomain> TicketStatusModel;
+  SmartPtr<TicketStatusModel> m_SelectedTicketStatusModel;
+
+  // Get the status of the selected ticket
+  bool GetSelectedTicketStatusValue(dss_model::TicketStatus &value);
 
   // Log model for the current ticket
   typedef ConcretePropertyModel<dss_model::IdType, LogDomainType> LogModel;

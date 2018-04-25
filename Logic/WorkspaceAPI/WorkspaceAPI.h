@@ -199,7 +199,7 @@ public:
    */
   static std::string DownloadTicketFiles(
       int ticket_id, const char *outdir, bool provider_mode, const char *area,
-      const char *workspace_filename = NULL);
+      const char *workspace_filename = NULL, CommandType *cmd_progress = NULL);
 
 protected:
 

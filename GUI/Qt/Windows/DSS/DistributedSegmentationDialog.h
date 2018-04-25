@@ -99,6 +99,12 @@ private slots:
 
   void on_btnViewServices_clicked();
 
+  void on_btnResetTags_clicked();
+
+  void on_btnOpenDownloaded_clicked();
+
+  void on_btnOpenSource_clicked();
+
 private:
   Ui::DistributedSegmentationDialog *ui;
 

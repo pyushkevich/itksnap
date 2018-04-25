@@ -4,6 +4,7 @@
 #include "QtComboBoxCoupling.h"
 #include "QtLineEditCoupling.h"
 #include "QtLabelCoupling.h"
+#include "QtPagedWidgetCoupling.h"
 #include <QDesktopServices>
 #include <QUrl>
 #include <QtConcurrent>
@@ -302,6 +303,13 @@ void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model
   makeCoupling(ui->inService, m_Model->GetCurrentServiceModel());
   makeCoupling(ui->outServiceDesc, m_Model->GetServiceDescriptionModel());
   makeCoupling(ui->outProgress, m_Model->GetSelectedTicketProgressModel());
+  makeCoupling(ui->outQueuePos, m_Model->GetSelectedTicketQueuePositionModel());
+
+  // Coupling for the progress/queue stack page
+  std::map<dss_model::TicketStatus, QWidget *> status_to_page_map;
+  for(int i = 0; i < dss_model::STATUS_UNKNOWN; i++)
+    status_to_page_map[(dss_model::TicketStatus) i] = (i == dss_model::STATUS_READY) ? ui->pgQueuePos : ui->pgProgress;
+  makePagedWidgetCoupling(ui->stackProgress, m_Model->GetSelectedTicketStatusModel(), status_to_page_map);
 
   // Couple the tag list widget
   makeMultiRowCoupling((QAbstractItemView *) ui->tblTags,
@@ -357,6 +365,8 @@ void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model
   activateOnFlag(ui->tabSubmit, m_Model, DistributedSegmentationModel::UIF_AUTHENTICATED);
   activateOnFlag(ui->tabResults, m_Model, DistributedSegmentationModel::UIF_AUTHENTICATED);
   activateOnFlag(ui->btnDownload, m_Model, DistributedSegmentationModel::UIF_CAN_DOWNLOAD);
+  activateOnFlag(ui->btnOpenSource, m_Model, DistributedSegmentationModel::UIF_TICKET_HAS_LOCAL_SOURCE);
+  activateOnFlag(ui->btnOpenDownloaded, m_Model, DistributedSegmentationModel::UIF_TICKET_HAS_LOCAL_RESULT);
 
   // Get the model to fire off a server change event - to cause a login
   m_Model->InvokeEvent(DistributedSegmentationModel::ServerChangeEvent());
@@ -514,15 +524,20 @@ void DistributedSegmentationDialog::on_btnSubmit_clicked()
     return;
 
   // Show a progress dialog
-  QProgressDialog *progress = new QProgressDialog();
+  QScopedPointer<QProgressDialog, QScopedPointerDeleteLater> progress(new QProgressDialog(this));
   QtProgressReporterDelegate progress_delegate;
-  progress_delegate.SetProgressDialog(progress);
+  progress_delegate.SetProgressDialog(progress.data());
   progress->setLabelText("Uploading workspace...");
   progress->setMinimumDuration(0);
-  // progress->setAutoReset(false);
-  // progress->show();
-  // progress->activateWindow();
-  // progress->raise();
+  progress->show();
+  progress->activateWindow();
+  progress->raise();
+
+  // Create a wait cursor
+  QtCursorOverride cursy;
+
+  // Process events so that the dialog is actually shown
+  QCoreApplication::processEvents();
 
   // Submit the workspace
   try
@@ -537,9 +552,6 @@ void DistributedSegmentationDialog::on_btnSubmit_clicked()
     {
     ReportNonLethalException(this, exc, "Failed to submit workspace");
     }
-
-  progress->hide();
-  delete progress;
 }
 
 void DistributedSegmentationDialog::on_btnDownload_clicked()
@@ -551,12 +563,27 @@ void DistributedSegmentationDialog::on_btnDownload_clicked()
   if(dl_filename.size() == 0)
     return;
 
-  // Download the workspace
+  // Show a progress dialog
+  QScopedPointer<QProgressDialog, QScopedPointerDeleteLater> progress(new QProgressDialog(this));
+  QtProgressReporterDelegate progress_delegate;
+  progress_delegate.SetProgressDialog(progress.data());
+  progress->setLabelText("Downloading workspace...");
+  progress->setMinimumDuration(0);
+  progress->show();
+  progress->activateWindow();
+  progress->raise();
+
+  // Create a wait cursor
   QtCursorOverride cursy;
+
+  // Process events so that the dialog is actually shown
+  QCoreApplication::processEvents();
+
+  // Download the workspace
   try
   {
     // Download the workspace
-    QString ws_file = from_utf8(m_Model->DownloadWorkspace(to_utf8(dl_filename)));
+    QString ws_file = from_utf8(m_Model->DownloadWorkspace(to_utf8(dl_filename), &progress_delegate));
 
     // Use main window to open the workspace
     MainImageWindow *parent = findParentWidget<MainImageWindow>(this);
@@ -767,4 +794,27 @@ void DistributedSegmentationDialog::on_btnViewServices_clicked()
 {
   // Open the web browsersdf
   QDesktopServices::openUrl(QUrl(m_Model->GetURL("services").c_str()));
+}
+
+void DistributedSegmentationDialog::on_btnResetTags_clicked()
+{
+  m_Model->ResetTagAssignment();
+}
+
+void DistributedSegmentationDialog::on_btnOpenDownloaded_clicked()
+{
+  // Use main window to open the workspace
+  MainImageWindow *parent = findParentWidget<MainImageWindow>(this);
+
+  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParent()))
+    parent->LoadProject(ui->outTicketDownloadLocation->text());
+}
+
+void DistributedSegmentationDialog::on_btnOpenSource_clicked()
+{
+  // Use main window to open the workspace
+  MainImageWindow *parent = findParentWidget<MainImageWindow>(this);
+
+  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParent()))
+    parent->LoadProject(ui->outTicketWorkspace->text());
 }

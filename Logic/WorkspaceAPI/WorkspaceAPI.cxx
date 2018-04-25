@@ -758,7 +758,8 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace, CommandType *cmd_p
   progress->EndProgress();
 }
 
-void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id, const char *wsfile_suffix,
+void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id,
+                                   const char *wsfile_suffix,
                                    CommandType *cmd_progress) const
 {
   // There is a lot of progress to keep track of so we create an accumulator
@@ -867,13 +868,19 @@ int WorkspaceAPI::CreateWorkspaceTicket(const string &service_desc,
 
 string WorkspaceAPI::DownloadTicketFiles(
     int ticket_id, const char *outdir, bool provider_mode,
-    const char *area, const char *workspace_filename)
+    const char *area, const char *workspace_filename,
+    CommandType *cmd_progress)
 {
   // Output string
   ostringstream oss;
 
   // Provider mode-specific settings
   const char *url_base = (provider_mode) ? "api/pro" : "api";
+
+  // Progress stuff
+  SmartPtr<AllPurposeProgressAccumulator> accum = AllPurposeProgressAccumulator::New();
+  if(cmd_progress)
+    accum->AddObserver(itk::ProgressEvent(), cmd_progress);
 
   // First off, get the list of all files for this ticket
   RESTClient rc;
@@ -892,6 +899,11 @@ string WorkspaceAPI::DownloadTicketFiles(
   // Create the output directory
   if(!SystemTools::MakeDirectory(outdir))
     throw IRISException("Unable to create output directory %s", outdir);
+
+  // Progress source
+  void *transfer_progress_src = accum->RegisterGenericSource(ft.Rows(), 1.0);
+  rc.SetProgressCallback(transfer_progress_src,
+                         AllPurposeProgressAccumulator::GenericProgressCallback);
 
   // Iterate over the dictionary
   for(int iFile = 0; iFile < ft.Rows(); iFile++)
@@ -922,8 +934,13 @@ string WorkspaceAPI::DownloadTicketFiles(
     rc.SetOutputFile(NULL);
     fclose(fout);
 
+    // Start next run of uploading
+    accum->StartNextRun(transfer_progress_src);
+
     oss << file_path << endl;
     }
+
+  accum->UnregisterAllSources();
 
   return oss.str();
 }
