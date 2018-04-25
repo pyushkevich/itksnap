@@ -94,6 +94,9 @@ protected:
   /** Upload message buffer */
   char m_UploadMessageBuffer[1024];
 
+  /** Error buffer */
+  char *m_ErrorBuffer;
+
   /** Callback stuff */
   std::pair<void *, ProgressCallbackFunction> m_CallbackInfo;
 

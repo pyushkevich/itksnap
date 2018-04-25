@@ -40,25 +40,32 @@ using namespace std;
 
 RESTClient::RESTClient()
 {
+  // Initialize CURL
+  m_Curl = curl_easy_init();
+
   // Sharing business
   m_Share = curl_share_init();
-  curl_share_setopt((CURLSH *) m_Share, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
-	
-  m_Curl = curl_easy_init();
+  curl_share_setopt((CURLSH *)m_Share, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
+  curl_easy_setopt(m_Curl, CURLOPT_SHARE, m_Share);
+
+  // Error buffer
+  m_ErrorBuffer = new char[CURL_ERROR_SIZE];
+  m_ErrorBuffer[0] = 0;
+  curl_easy_setopt(m_Curl, CURLOPT_ERRORBUFFER, m_ErrorBuffer);
+
   m_UploadMessageBuffer[0] = 0;
   m_MessageBuffer[0] = 0;
   m_OutputFile = NULL;
 
   m_CallbackInfo.first = NULL;
   m_CallbackInfo.second = NULL;
-
-  curl_easy_setopt(m_Curl, CURLOPT_SHARE, m_Share);
 }
 
 RESTClient::~RESTClient()
 {
   curl_easy_cleanup(m_Curl);
   curl_share_cleanup((CURLSH *)m_Share);
+  delete m_ErrorBuffer;
 }
 
 void RESTClient::SetVerbose(bool verbose)
@@ -95,7 +102,7 @@ bool RESTClient::Authenticate(const char *baseurl, const char *token)
   CURLcode res = curl_easy_perform(m_Curl);
 
   if(res != CURLE_OK)
-    throw IRISException("CURL library error: %s", curl_easy_strerror(res));
+    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
 
   // Store the URL for the future
   ofstream f_url(this->GetServerURLFile().c_str());
@@ -184,7 +191,7 @@ bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
   CURLcode res = curl_easy_perform(m_Curl);
 
   if(res != CURLE_OK)
-    throw IRISException("CURL library error: %s", curl_easy_strerror(res));
+    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
 
   // Capture the response code
   m_HTTPCode = 0L;
@@ -284,7 +291,7 @@ bool RESTClient::UploadFile(
   CURLcode res = curl_easy_perform(m_Curl);
 
   if(res != CURLE_OK)
-    throw IRISException("CURL library error: %s", curl_easy_strerror(res));
+	throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
 
   // Get the upload statistics
   double upload_size, upload_time;
