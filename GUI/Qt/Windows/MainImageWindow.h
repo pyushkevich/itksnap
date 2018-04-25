@@ -143,6 +143,17 @@ public slots:
 
   void externalStyleSheetFileChanged(const QString &file);
 
+
+  // Load image without interaction (used for recent/drop action).
+  void LoadMainImage(const QString &file);
+
+  // Load project without interaction (used for recent/drop action)
+  void LoadProject(const QString &file);
+
+  // Load project in a new ITK-SNAP window
+  void LoadProjectInNewInstance(const QString &file);
+
+
 private slots:
 
   void onActiveChanged();
@@ -237,12 +248,6 @@ private slots:
   void UpdateMainLayout();
 
   void UpdateCanvasDimensions();
-
-  // Load image without interaction (used for recent/drop action).
-  void LoadMainImage(const QString &file);
-
-  // Load project without interaction (used for recent/drop action)
-  void LoadProject(const QString &file);
 
   void onAnimationTimeout();
 

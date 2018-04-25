@@ -34,6 +34,9 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
 
   // This flag should be false almost always
   m_keepActiveFormatOnFilenameUpdate = false;
+
+  // Allow directory creation? No by default for compatibility
+  m_allowCreateDir = false;
 }
 
 FileChooserPanelWithHistory::~FileChooserPanelWithHistory()
@@ -43,20 +46,28 @@ FileChooserPanelWithHistory::~FileChooserPanelWithHistory()
 
 void FileChooserPanelWithHistory::populateHistory()
 {
-  // Get the history string lists
-  HistoryManager *hm =
-      m_Model->GetDriver()->GetSystemInterface()->GetHistoryManager();
+  if(m_historyCategory.size() > 0)
+    {
+    // Get the history string lists
+    HistoryManager *hm =
+        m_Model->GetDriver()->GetSystemInterface()->GetHistoryManager();
 
-  QStringList local_history =
-      toQStringList(hm->GetLocalHistory(m_historyCategory.toStdString()));
-  QStringList global_history =
-      toQStringList(hm->GetGlobalHistory(m_historyCategory.toStdString()));
+    QStringList local_history =
+        toQStringList(hm->GetLocalHistory(m_historyCategory.toStdString()));
+    QStringList global_history =
+        toQStringList(hm->GetGlobalHistory(m_historyCategory.toStdString()));
 
-  // Fill out the menu
-  QMenu *menu = ui->btnHistory->menu();
-  PopulateHistoryMenu(menu, this, SLOT(onHistorySelection()),
-                      local_history, global_history);
-  ui->btnHistory->setEnabled(menu->actions().size() > 0);
+    // Fill out the menu
+    QMenu *menu = ui->btnHistory->menu();
+    PopulateHistoryMenu(menu, this, SLOT(onHistorySelection()),
+                        local_history, global_history);
+    ui->btnHistory->setEnabled(menu->actions().size() > 0);
+    ui->btnHistory->setVisible(true);
+    }
+  else
+    {
+    ui->btnHistory->setVisible(false);
+    }
 }
 
 void FileChooserPanelWithHistory::parseFilters(const QString &activeFormat)
@@ -302,7 +313,7 @@ void FileChooserPanelWithHistory::updateFilename(QString filename)
     fi = QFileInfo(m_workingDir, filename);
 
   // If the path exists, use it as the new working directory
-  if(fi.absoluteDir().exists())
+  if(fi.absoluteDir().exists() || (!m_openMode && m_allowCreateDir))
     {
     m_workingDir = fi.absolutePath();
     new_file = fi.fileName();
@@ -359,6 +370,11 @@ QString FileChooserPanelWithHistory::errorText() const
 void FileChooserPanelWithHistory::setErrorText(const QString &text)
 {
   ui->outError->setText(text);
+}
+
+void FileChooserPanelWithHistory::setAllowCreateDir(bool value)
+{
+  m_allowCreateDir = value;
 }
 
 void FileChooserPanelWithHistory::onFilenameAccept()

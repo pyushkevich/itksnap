@@ -513,6 +513,14 @@ GenericImageData
   return retval;
 }
 
+std::list<ImageWrapperBase *> GenericImageData::FindLayersByRole(int role_filter)
+{
+  std::list<ImageWrapperBase *> retval;
+  for(LayerIterator it = this->GetLayers(role_filter); !it.IsAtEnd(); ++it)
+    retval.push_back(it.GetLayer());
+  return retval;
+}
+
 
 int GenericImageData::GetNumberOfOverlays()
 {

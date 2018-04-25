@@ -64,6 +64,9 @@ public:
   QString errorText() const;
   void setErrorText(const QString &text);
 
+  // Allow directories to be created
+  void setAllowCreateDir(bool value);
+
 signals:
 
   void absoluteFilenameChanged(QString text);
@@ -105,6 +108,7 @@ private:
   bool m_openMode;
   bool m_directoryMode;
   bool m_forceExtension;
+  bool m_allowCreateDir;
 
   // Prevent auto-determination of format when calling updateFilename, meant
   // to be used inside of initialize calls

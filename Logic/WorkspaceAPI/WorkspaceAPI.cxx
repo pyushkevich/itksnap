@@ -758,7 +758,8 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace, CommandType *cmd_p
   progress->EndProgress();
 }
 
-void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id, const char *wsfile_suffix,
+void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id,
+                                   const char *wsfile_suffix,
                                    CommandType *cmd_progress) const
 {
   // There is a lot of progress to keep track of so we create an accumulator
@@ -829,12 +830,24 @@ void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id, const char *w
   // TODO: we should verify that all the files were successfully sent, via MD5
 }
 
-int WorkspaceAPI::CreateWorkspaceTicket(const char *service_githash,
+int WorkspaceAPI::CreateWorkspaceTicket(const string &service_desc,
                                         CommandType *cmd_progress) const
 {
+  // What is specified - name or githash?
+  std::string which_desc;
+  if(service_desc.length() == 40 &&
+     service_desc.find_first_not_of("0123456789abcdef") == string::npos)
+    {
+    which_desc = "githash";
+    }
+  else
+    {
+    which_desc = "name";
+    }
+
   // Create a new ticket
   RESTClient rc;
-  if(!rc.Post("api/tickets","githash=%s", service_githash))
+  if(!rc.Post("api/tickets","%s=%s", which_desc.c_str(), service_desc.c_str()))
     throw IRISException("Failed to create new ticket (%s)", rc.GetResponseText());
 
   int ticket_id = atoi(rc.GetOutput());
@@ -854,13 +867,20 @@ int WorkspaceAPI::CreateWorkspaceTicket(const char *service_githash,
 }
 
 string WorkspaceAPI::DownloadTicketFiles(
-    int ticket_id, const char *outdir, bool provider_mode, const char *area)
+    int ticket_id, const char *outdir, bool provider_mode,
+    const char *area, const char *workspace_filename,
+    CommandType *cmd_progress)
 {
   // Output string
   ostringstream oss;
 
   // Provider mode-specific settings
   const char *url_base = (provider_mode) ? "api/pro" : "api";
+
+  // Progress stuff
+  SmartPtr<AllPurposeProgressAccumulator> accum = AllPurposeProgressAccumulator::New();
+  if(cmd_progress)
+    accum->AddObserver(itk::ProgressEvent(), cmd_progress);
 
   // First off, get the list of all files for this ticket
   RESTClient rc;
@@ -880,12 +900,27 @@ string WorkspaceAPI::DownloadTicketFiles(
   if(!SystemTools::MakeDirectory(outdir))
     throw IRISException("Unable to create output directory %s", outdir);
 
+  // Progress source
+  void *transfer_progress_src = accum->RegisterGenericSource(ft.Rows(), 1.0);
+  rc.SetProgressCallback(transfer_progress_src,
+                         AllPurposeProgressAccumulator::GenericProgressCallback);
+
   // Iterate over the dictionary
   for(int iFile = 0; iFile < ft.Rows(); iFile++)
     {
     // Where we will write this file to
     int file_index = atoi(ft(iFile,0).c_str());
     string file_name = ft(iFile, 1);
+
+    // If the filename is an '.itksnap' file, and the user requested a different filename
+    // for the workspace, make the substitution
+    if(workspace_filename
+       && itksys::SystemTools::GetFilenameLastExtension(file_name) == ".itksnap")
+      {
+      file_name = workspace_filename;
+      }
+
+    // Make it into a full path
     string file_path = SystemTools::CollapseFullPath(file_name.c_str(), outdir);
 
     // Create a file handle
@@ -899,8 +934,13 @@ string WorkspaceAPI::DownloadTicketFiles(
     rc.SetOutputFile(NULL);
     fclose(fout);
 
+    // Start next run of uploading
+    accum->StartNextRun(transfer_progress_src);
+
     oss << file_path << endl;
     }
+
+  accum->UnregisterAllSources();
 
   return oss.str();
 }

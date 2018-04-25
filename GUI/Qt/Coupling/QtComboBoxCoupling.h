@@ -31,6 +31,7 @@
 #include "SNAPQtCommon.h"
 #include <ColorLabel.h>
 #include <QComboBox>
+#include <QTimer>
 
 // This is to allow the code below to work with DrawOverFilter
 Q_DECLARE_METATYPE(DrawOverFilter)
@@ -262,6 +263,72 @@ public:
   virtual void SetDomain(QComboBox *w, const TrivialDomain &domain) {}
   virtual TrivialDomain GetDomain(QComboBox *w) { return TrivialDomain(); }
 };
+
+
+
+/**
+ * Additional support for adding actions at the bottom of combo boxes.
+ */
+template <class TAtomic>
+class ComboBoxWithActionsValueTraits
+    : public DefaultWidgetValueTraits<TAtomic, QComboBox>
+{
+public:
+  typedef DefaultWidgetValueTraits<TAtomic, QComboBox> Superclass;
+
+  TAtomic GetValue(QComboBox *w)
+  {
+    QVariant id_action = w->itemData(w->currentIndex(), Qt::UserRole + 1);
+    QAction *action = id_action.value<QAction *>();
+    if(action)
+      QTimer::singleShot(0, action, SLOT(trigger()));
+
+    return Superclass::GetValue(w);
+  }
+};
+
+
+/**
+ * Additional support for adding actions at the bottom of combo boxes.
+ */
+template <class TDomain, class TRowTraits>
+class ItemSetComboBoxWithActionsDomainTraits :
+    public ItemSetWidgetDomainTraits<TDomain, QComboBox, TRowTraits>
+{
+public:
+
+  typedef ItemSetWidgetDomainTraits<TDomain, QComboBox, TRowTraits> Superclass;
+  typedef typename Superclass::AtomicType AtomicType;
+
+  void AddAction(QAction *action, AtomicType value)
+  {
+    m_Actions.push_back(action);
+    m_ActionValues.push_back(value);
+  }
+
+  virtual void SetDomain(QComboBox *w, const TDomain &domain) ITK_OVERRIDE
+  {
+    // Fill out the domain as is
+    Superclass::SetDomain(w, domain);
+
+    // Insert a separator
+    w->insertSeparator(w->count());
+
+    // Add the special action
+    for(int i = 0; i < m_Actions.size(); i++)
+      {
+      w->addItem(m_Actions[i]->icon(), m_Actions[i]->text(), QVariant::fromValue(m_ActionValues[i]));
+      w->setItemData(w->count() - 1, QVariant::fromValue(m_Actions[i]), Qt::UserRole + 1);
+      }
+  }
+
+private:
+
+  QList<QAction *> m_Actions;
+  QList<AtomicType> m_ActionValues;
+};
+
+
 
 
 #endif // QTCOMBOBOXCOUPLING_H

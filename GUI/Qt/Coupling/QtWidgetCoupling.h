@@ -370,6 +370,20 @@ public:
     { return TrivialDomain(); }
 };
 
+/** Null domain traits -- these traits ignore the domain even if one is there */
+template <class TDomain, class TWidget>
+class NullWidgetDomainTraits
+    : public WidgetDomainTraitsBase<TDomain, TWidget *>
+{
+public:
+  // With a trivial domain, do nothing!
+  virtual void SetDomain(TWidget *w, const TDomain &) {}
+
+  virtual TDomain GetDomain(TWidget *w)
+    { return TDomain(); }
+
+};
+
 /**
  * Empty template for default domain traits for widgets that contain
  * multiple rows. Specialize for different Qt widgets. One way to specialize
@@ -643,6 +657,7 @@ void makeCoupling(TWidget *w,
 }
 
 
+
 /**
   Create a coupling between a numeric model and a Qt widget. The widget
   will listen to the events from the model and update its value and range
@@ -663,6 +678,44 @@ void makeCoupling(TWidget *w,
   makeCoupling<TModel, TWidget,WidgetValueTraits>(
         w, model, WidgetValueTraits(), opts);
 }
+
+
+/**
+ * Make coupling ignoring the domain of the model. This can be useful when
+ * a model is presented in multiple views, some on which know how to deal with
+ * a specialized domain, and others that don't.
+ */
+template <class TModel, class TWidget, class WidgetValueTraits>
+void makeDomainlessCoupling(TWidget *w,
+                            TModel *model,
+                            WidgetValueTraits trValue,
+                            QtCouplingOptions opts = QtCouplingOptions())
+{
+  typedef typename TModel::DomainType DomainType;
+  typedef NullWidgetDomainTraits<DomainType, TWidget> WidgetDomainTraits;
+  makeCoupling<TModel, TWidget,
+      WidgetValueTraits, WidgetDomainTraits>(
+        w, model, trValue, WidgetDomainTraits(), opts);
+}
+
+
+
+/**
+ * Make coupling ignoring the domain of the model. This can be useful when
+ * a model is presented in multiple views, some on which know how to deal with
+ * a specialized domain, and others that don't.
+ */
+template <class TModel, class TWidget>
+void makeDomainlessCoupling(TWidget *w,
+                            TModel *model,
+                            QtCouplingOptions opts = QtCouplingOptions())
+{
+  typedef typename TModel::ValueType ValueType;
+  typedef DefaultWidgetValueTraits<ValueType, TWidget> WidgetValueTraits;
+  makeDomainlessCoupling<TModel, TWidget, WidgetValueTraits>(
+        w, model, WidgetValueTraits(), opts);
+}
+
 
 
 /**

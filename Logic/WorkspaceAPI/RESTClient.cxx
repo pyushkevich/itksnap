@@ -56,6 +56,7 @@ RESTClient::RESTClient()
   m_UploadMessageBuffer[0] = 0;
   m_MessageBuffer[0] = 0;
   m_OutputFile = NULL;
+  m_ReceiveCookieMode = false;
 
   m_CallbackInfo.first = NULL;
   m_CallbackInfo.second = NULL;
@@ -122,6 +123,11 @@ void RESTClient::SetServerURL(const char *baseurl)
   f_url.close();
 }
 
+void RESTClient::SetReceiveCookieMode(bool mode)
+{
+  m_ReceiveCookieMode = true;
+}
+
 bool RESTClient::Get(const char *rel_url, ...)
 {
   // Handle the ...
@@ -157,7 +163,10 @@ bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
 
   // The cookie JAR
   string cookie_jar = this->GetCookieFile();
-  curl_easy_setopt(m_Curl, CURLOPT_COOKIEFILE, cookie_jar.c_str());
+  if(m_ReceiveCookieMode)
+    curl_easy_setopt(m_Curl, CURLOPT_COOKIEJAR, cookie_jar.c_str());
+  else
+    curl_easy_setopt(m_Curl, CURLOPT_COOKIEFILE, cookie_jar.c_str());
 
   // The POST data
   if(post_string)
@@ -185,6 +194,15 @@ bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
     {
     curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteToFileCallback);
     curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, m_OutputFile);
+
+    // Set the callback functions
+    if(m_CallbackInfo.first)
+      {
+      curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback);
+      curl_easy_setopt(m_Curl, CURLOPT_PROGRESSDATA, &m_CallbackInfo);
+      curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
+      curl_easy_setopt(m_Curl, CURLOPT_VERBOSE, 1L);
+      }
     }
 
   // Make request

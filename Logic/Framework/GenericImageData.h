@@ -173,6 +173,12 @@ public:
    */
   std::list<ImageWrapperBase *> FindLayersByTag(std::string tag, int role_filter = ALL_ROLES);
 
+  /**
+   * Find layers by role. All layers with the given role are returned. This is a more efficient
+   * alternative to calling GetNthLayer in a loop
+   */
+  std::list<ImageWrapperBase *> FindLayersByRole(int role_filter = ALL_ROLES);
+
   int GetNumberOfOverlays();
 
   ImageWrapperBase *GetLastOverlay();

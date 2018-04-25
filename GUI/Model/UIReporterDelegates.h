@@ -96,8 +96,10 @@ class SystemInfoDelegate
 public:
   virtual std::string GetApplicationDirectory() = 0;
   virtual std::string GetApplicationFile() = 0;
-
   virtual std::string GetApplicationPermanentDataLocation() = 0;
+  virtual std::string GetUserDocumentsLocation() = 0;
+
+  virtual std::string EncodeServerURL(const std::string &url) = 0;
 
   typedef itk::Image<unsigned char, 2> GrayscaleImage;
   typedef itk::RGBAPixel<unsigned char> RGBAPixelType;

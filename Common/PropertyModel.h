@@ -362,6 +362,10 @@ public:
   // that store references to external objects are not atomic.
   virtual bool isAtomic() { return false; }
 
+  // Set the wrapped object
+  void SetWrappedVector(const VectorType *refvec) { m_SourceVector = refvec; }
+
+
 protected:
   const VectorType *m_SourceVector;
 };

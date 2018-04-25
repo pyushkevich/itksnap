@@ -74,6 +74,7 @@ public:
 
 };
 
+
 template <class TDomain>
 class DefaultWidgetDomainTraits<TDomain, QStackedWidget>
     : public DefaultPagedWidgetDomainTraits<TDomain, QStackedWidget>
@@ -82,6 +83,16 @@ class DefaultWidgetDomainTraits<TDomain, QStackedWidget>
 template <class TDomain>
 class DefaultWidgetDomainTraits<TDomain, QTabWidget>
     : public DefaultPagedWidgetDomainTraits<TDomain, QTabWidget>
+{ };
+
+template <>
+class DefaultWidgetDomainTraits<TrivialDomain, QStackedWidget>
+    : public DefaultPagedWidgetDomainTraits<TrivialDomain, QStackedWidget>
+{ };
+
+template <>
+class DefaultWidgetDomainTraits<TrivialDomain, QTabWidget>
+    : public DefaultPagedWidgetDomainTraits<TrivialDomain, QTabWidget>
 { };
 
 
