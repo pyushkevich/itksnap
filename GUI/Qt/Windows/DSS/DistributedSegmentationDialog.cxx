@@ -625,6 +625,9 @@ QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
   // m_Model->GetTagListModel()->SetValue(tag);
   // m_Model->Update();
 
+  // Make sure that the current index is the actually selected index - otherwise all hell can break loose
+  m_Model->GetTagListModel()->SetValue(index.row());
+
   // Create a combo
   if(m_Model->GetCurrentTagImageLayerModel()->isValid())
     {

@@ -892,12 +892,19 @@ void DistributedSegmentationModel::ApplyTicketListingResponse(const TicketListin
   m_TicketListing = resp;
 
   // Set the status of the model
-  m_TicketListModel->SetIsValid(m_TicketListing.size() > 0);
+  if(m_TicketListing.size() > 0)
+    { 
+    m_TicketListModel->SetIsValid(true);
 
-  // If there is a listing and the current value of the model is not in the listing
-  // point it to the first entry
-  if(m_TicketListing.find(m_TicketListModel->GetValue()) == m_TicketListing.end())
-    m_TicketListModel->SetValue(m_TicketListing.begin()->first);
+    // If the current value of the model is not in the listing point it to the first entry
+    if(m_TicketListing.find(m_TicketListModel->GetValue()) == m_TicketListing.end())
+      m_TicketListModel->SetValue(m_TicketListing.begin()->first);
+    }
+  else
+    {
+    m_TicketListModel->SetIsValid(false);
+    m_TicketListModel->SetValue(-1);
+    }
 
   // If we have recently submitted a ticket and it now appears in the list, select it
   if(m_TicketListing.find(m_SubmittedTicketId) != m_TicketListing.end())
@@ -1049,8 +1056,6 @@ void DistributedSegmentationModel::SetTagListValue(int value)
 {
   m_CurrentTag = value;
 }
-
-
 
 bool DistributedSegmentationModel
 ::GetCurrentTagImageLayerValueAndRange(unsigned long &value, LayerSelectionDomain *domain)
