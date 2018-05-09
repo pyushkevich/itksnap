@@ -2400,3 +2400,10 @@ void MainImageWindow::on_actionDSS_triggered()
 {
   RaiseDialog(m_DSSDialog);
 }
+
+void MainImageWindow::on_actionNext_Display_Layout_triggered()
+{
+  DisplayLayoutModel::ViewPanelLayout lo = m_Model->GetDisplayLayoutModel()->GetViewPanelLayout();
+  lo = (DisplayLayoutModel::ViewPanelLayout)((lo + 1) % 5);
+  m_Model->GetDisplayLayoutModel()->SetViewPanelLayout(lo);
+}

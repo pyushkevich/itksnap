@@ -4,6 +4,7 @@
 #include "PropertyModel.h"
 
 class GlobalUIModel;
+class Registry;
 
 class PolygonSettingsModel : public AbstractModel
 {
@@ -13,6 +14,9 @@ public:
   irisGetMacro(ParentModel, GlobalUIModel *)
 
   void SetParentModel(GlobalUIModel *model);
+
+  void LoadFromRegistry(Registry &folder);
+  void SaveToRegistry(Registry &folder);
 
   irisSimplePropertyAccessMacro(FreehandIsPiecewise, bool)
   irisRangedPropertyAccessMacro(FreehandSegmentLength, int)

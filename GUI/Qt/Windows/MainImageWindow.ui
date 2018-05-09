@@ -615,6 +615,8 @@ color:rgb(103, 103, 103);
       <string>Views</string>
      </property>
      <addaction name="actionMainControlPanel"/>
+     <addaction name="separator"/>
+     <addaction name="actionNext_Display_Layout"/>
     </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
@@ -1671,6 +1673,14 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionNext_Display_Layout">
+   <property name="text">
+    <string>Next Display Layout</string>
+   </property>
+   <property name="shortcut">
+    <string>|</string>
    </property>
   </action>
  </widget>

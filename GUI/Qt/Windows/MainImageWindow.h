@@ -325,6 +325,8 @@ private slots:
 
   void on_actionDSS_triggered();
 
+  void on_actionNext_Display_Layout_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

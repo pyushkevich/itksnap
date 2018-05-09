@@ -2,6 +2,7 @@
 #include "GlobalUIModel.h"
 #include "PolygonDrawingModel.h"
 #include "NumericPropertyToggleAdaptor.h"
+#include "Registry.h"
 
 void PolygonSettingsModel::SetParentModel(GlobalUIModel *model)
 {
@@ -13,6 +14,18 @@ void PolygonSettingsModel::SetParentModel(GlobalUIModel *model)
   m_FreehandIsPiecewiseModel->RebroadcastFromSourceProperty(
         m_ParentModel->GetPolygonDrawingModel(0)->GetFreehandFittingRateModel());
 
+}
+
+void PolygonSettingsModel::LoadFromRegistry(Registry &folder)
+{
+  this->SetFreehandSegmentLength(folder["SegmentLength"][8]);
+  this->SetFreehandIsPiecewise(folder["IsPiecewise"][true]);
+}
+
+void PolygonSettingsModel::SaveToRegistry(Registry &folder)
+{
+  folder["IsPiecewise"] << this->GetFreehandIsPiecewise();
+  folder["SegmentLength"] << this->GetFreehandSegmentLength();
 }
 
 PolygonSettingsModel::PolygonSettingsModel()

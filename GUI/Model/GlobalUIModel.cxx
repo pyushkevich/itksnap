@@ -540,6 +540,10 @@ void GlobalUIModel::LoadUserPreferences()
   m_Model3D->SetContinuousUpdate(dbs->GetContinuousMeshUpdate());
   m_Driver->GetGlobalState()->SetSliceViewLayerLayout(dbs->GetOverlayLayout());
 
+  // Read the Polygon properties
+  m_PolygonSettingsModel->LoadFromRegistry(
+        si->Folder("UserInterface.PolygonSettings"));
+
   // Read the DSS-related preferences
   m_DistributedSegmentationModel->LoadPreferences(
         si->Folder("DistributedSegmentationSystem"));
@@ -564,6 +568,10 @@ void GlobalUIModel::SaveUserPreferences()
   // Write the 3D mesh options
   m_Driver->GetGlobalState()->GetMeshOptions()->WriteToRegistry(
         si->Folder("View3D.MeshOptions"));
+
+  // Read the Polygon properties
+  m_PolygonSettingsModel->SaveToRegistry(
+        si->Folder("UserInterface.PolygonSettings"));
 
   // Write the DSS-related preferences
   m_DistributedSegmentationModel->SavePreferences(
