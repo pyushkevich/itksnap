@@ -220,6 +220,10 @@ NonOrthogonalSlicer<TInputImage, TOutputImage>
     if(kStart >= line_len || kEnd <= 0)
       skipLine = true;
 
+    // This should not happen but it does, must be a bug in the code
+    if(kEnd <= kStart)
+      skipLine = true;
+
     // Deal with skipped lines
     if(skipLine)
       {
