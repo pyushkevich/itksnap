@@ -1179,11 +1179,8 @@ inline typename ImageWrapper<TTraits,TBase>::PixelType
 ImageWrapper<TTraits,TBase>
 ::GetVoxel(const itk::Index<3> &index) const
 {
-  // Verify that the pixel is contained by the image at debug time
-  assert(m_Image && m_Image->GetLargestPossibleRegion().IsInside(index));
-
-  // Return the pixel
-  return m_Image->GetPixel(index);
+  // This code is robust to non-orthogonal slicing
+  return this->m_Slicer[0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
 }
 
 template<class TTraits, class TBase>

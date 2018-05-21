@@ -152,6 +152,9 @@ public:
   /** Look up intensity at the current slice index. This may update the filter */
   OutputPixelType LookupIntensityAtSliceIndex(const itk::ImageBase<3> *ref_space);
 
+  /** Loop up intensity at an arbitrary slice index in reference space */
+  OutputPixelType LookupIntensityAtReferenceIndex(const itk::ImageBase<3> *ref_space, const IndexType &index);
+
 protected:
 
   AdaptiveSlicingPipeline();

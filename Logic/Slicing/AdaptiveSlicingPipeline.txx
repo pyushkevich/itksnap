@@ -232,12 +232,19 @@ typename AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::Outp
 AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
 ::LookupIntensityAtSliceIndex(const itk::ImageBase<3> *ref_space)
 {
-  OutputImageType *output = this->GetOutput();
+  return this->LookupIntensityAtReferenceIndex(ref_space, m_SliceIndex);
+}
+
+template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+typename AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::OutputPixelType
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
+::LookupIntensityAtReferenceIndex(const itk::ImageBase<3> *ref_space, const IndexType &index)
+{
   // Update the filter
   this->Update();
 
   // The lookup location
-  Vector3ui cursor(m_SliceIndex);
+  Vector3ui cursor(index);
 
   if(m_UseOrthogonalSlicing)
     {
