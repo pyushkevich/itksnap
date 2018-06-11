@@ -477,8 +477,8 @@ bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(int &value, Numeric
     return false;
 
   // Get the value
-  IRISApplication::RFEngine::RadiusType radius = rfe->GetPatchRadius();
-  value = (int) radius[0];
+  Vector3ui radius(rfe->GetPatchRadius());
+  value = (int) radius.max_value();
 
   if(range)
     range->Set(0, 4, 1);
@@ -492,8 +492,12 @@ void SnakeWizardModel::SetClassifierPatchRadiusValue(int value)
   assert(rfe);
   assert(value >= 0);
 
+  // Check that the radius does not exceed the dimensions of the image
   IRISApplication::RFEngine::RadiusType radius;
-  radius.Fill((unsigned int) value);
+  Vector3ui img_size = m_Driver->GetCurrentImageData()->GetMain()->GetSize();
+  for(int k = 0; k < 3; k++)
+    radius[k] = std::min(((int) img_size[k] - 1) / 2, value);
+
   rfe->SetPatchRadius(radius);
 
   InvokeEvent(RFClassifierModifiedEvent());
