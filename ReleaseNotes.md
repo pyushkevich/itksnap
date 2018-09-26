@@ -1,5 +1,25 @@
-ITK-SNAP Release Notes - Version 3.6.0
-======================================
+ITK-SNAP Release Notes - Version 3.8
+====================================
+
+## Version 3.8.0
+----
+
+This version introduces an exciting new feature: the **Distributed Segmentation Service (DSS)**. This service allows developers to make various image segmentation algorithms available to you directly in ITK-SNAP. Several algorithms have already been made available: most of them focused on hippocampus segmentation, and we expect more to appear soon. DSS is a web-based system, so data is sent to a server and processed by algorithm providers using their own computer hardware.
+
+### New features
+
+- New GUI for the DSS, under *Tools->Distributed Segmentation Service" 
+- New support for multiple segmentation layers (switch between them with **{**,**}** keys}
+- Command-line functionality for interacting with the DSS service as a user or developer, part of **itksnap-wt** workspace editor tool
+- New functionality for plotting time-course data in the *Image Information* dialog
+- Implemented support for reading DICOM data with multiple images per z-position
+
+### Bug Fixes
+
+- Fixed crashes that occurred occasionally when loading multiple images with different orientations
+- Enabled loading of any image file supported by ITK via "Generic ITK" option in IO dialogs
+- Fixed crash when canceling random forest segmentation
+
 
 ## Version 3.6.2
 ----
