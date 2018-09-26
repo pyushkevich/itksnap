@@ -182,7 +182,7 @@ SnakeWizardModel::SnakeWizardModel()
         RFClassifierModifiedEvent());
 
   m_ClassifierUsePatchModel =
-      NewNumericPropertyToggleAdaptor(m_ClassifierPatchRadiusModel.GetPointer(), 0, 2);
+      NewNumericPropertyToggleAdaptor(m_ClassifierPatchRadiusModel.GetPointer(), Vector3i(0), Vector3i(2));
 
   m_ClassifierUseCoordinatesModel = wrapGetterSetterPairAsProperty(
         this,
@@ -469,7 +469,7 @@ void SnakeWizardModel::SetTreeDepthValue(int value)
   InvokeEvent(RFClassifierModifiedEvent());
 }
 
-bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(int &value, NumericValueRange<int> *range)
+bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(Vector3i &value, NumericValueRange<Vector3i> *range)
 {
   // Must have a classification engine
   IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
@@ -478,28 +478,32 @@ bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(int &value, Numeric
 
   // Get the value
   Vector3ui radius(rfe->GetPatchRadius());
-  value = (int) radius.max_value();
+  for(size_t i = 0; i < 3; i++)
+    value[i] = (int) radius[i];
 
   if(range)
-    range->Set(0, 4, 1);
+    {
+    Vector3i max_size(4);
+    Vector3ui img_size = m_Driver->GetCurrentImageData()->GetMain()->GetSize();
+    for(size_t i = 0; i < 3; i++)
+      max_size[i] = std::min(((int) img_size[i] - 1) / 2, 4);
+    range->Set(Vector3i(0), max_size, Vector3i(1));
+    }
 
   return true;
 }
 
-void SnakeWizardModel::SetClassifierPatchRadiusValue(int value)
+void SnakeWizardModel::SetClassifierPatchRadiusValue(Vector3i value)
 {
   IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   assert(rfe);
-  assert(value >= 0);
 
   // Check that the radius does not exceed the dimensions of the image
   IRISApplication::RFEngine::RadiusType radius;
   Vector3ui img_size = m_Driver->GetCurrentImageData()->GetMain()->GetSize();
-  for(int k = 0; k < 3; k++)
-    radius[k] = std::min(((int) img_size[k] - 1) / 2, value);
-
+  for(size_t k = 0; k < 3; k++)
+    radius[k] = (itk::SizeValueType) std::min(((int) (img_size[k] - 1) / 2), value[k]);
   rfe->SetPatchRadius(radius);
-
   InvokeEvent(RFClassifierModifiedEvent());
 }
 

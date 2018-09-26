@@ -138,6 +138,7 @@ void usage(const char *progname)
   cout << "   --cwd PATH           : Start with PATH as the initial directory" << endl;
   cout << "   --threads N          : Limit maximum number of CPU cores used to N." << endl;
   cout << "   --scale N            : Scale all GUI elements by factor of N (e.g., 2)." << endl;
+  cout << "   --geometry WxH+X+Y   : Initial geometry of the main window." << endl;
   cout << "Debugging/Testing Options:" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
@@ -205,6 +206,9 @@ public:
   // GUI scaling
   int nDevicePixelRatio;
 
+  // Screen geometry
+  int geometry[4];
+
   CommandLineRequest()
     : flagDebugEvents(false), flagNoFork(false), flagConsole(false), xZoomFactor(0.0),
       flagX11DoubleBuffer(false), nThreads(0), nDevicePixelRatio(0), flagTestOpenGL(false)
@@ -216,6 +220,7 @@ public:
 #endif
     opengl_major = 1;
     opengl_minor = 3;
+    geometry[0]=geometry[1]=geometry[2]=geometry[3]=-1;
     }
 };
 
@@ -341,6 +346,10 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--opengl", 2);
 
   parser.AddOption("--testgl", 0);
+
+  // Standard Qt options
+  parser.AddOption("--geometry", 1);
+  parser.AddSynonim("--geometry", "-geometry");
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -523,6 +532,21 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   // Number of threads
   if(parseResult.IsOptionPresent("--scale"))
     argdata.nDevicePixelRatio = atoi(parseResult.GetOptionParameter("--scale"));
+
+  // Initial geometry
+  if(parseResult.IsOptionPresent("--geometry"))
+    {
+    const char *geom_str = parseResult.GetOptionParameter("--geometry");
+    int w, h, x = -1, y = -1;
+    if(4 == sscanf(geom_str,"%dx%d+%d+%d", &w, &h, &x, &y) ||
+       2 == sscanf(geom_str,"%dx%d", &w, &h))
+      {
+      argdata.geometry[0] = w;
+      argdata.geometry[1] = h;
+      argdata.geometry[2] = x;
+      argdata.geometry[3] = y;
+      }
+    }
 
   return 0;
 }
@@ -864,6 +888,16 @@ int main(int argc, char *argv[])
 
     // Start in cross-hairs mode
     gui->GetGlobalState()->SetToolbarMode(CROSSHAIRS_MODE);
+
+    // Set the initial dimensions of the main window if asked for
+    if(argdata.geometry[0] > 0 && argdata.geometry[1] > 0)
+      {
+      mainwin->resize(QSize(argdata.geometry[0], argdata.geometry[1]));
+      if(argdata.geometry[2] >= 0 && argdata.geometry[3] >= 0)
+        {
+        mainwin->move(argdata.geometry[2], argdata.geometry[3]);
+        }
+      }
 
     // Show the panel
     mainwin->ShowFirstTime();

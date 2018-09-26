@@ -95,6 +95,7 @@ GuidedNativeImageIO
   {"Siemens Vision", "ima",          false, false, true,  true},
   {"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
   {"VTK Image", "vtk",               true,  false, true,  true},
+  {"Generic ITK Image", "",          true,  true,  true,  true},
   {"INVALID FORMAT", "",             false, false, false, false}};
 
 
