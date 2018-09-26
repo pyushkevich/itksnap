@@ -282,7 +282,7 @@ void LayerTableRowModel::AutoAdjustContrast()
 
 void LayerTableRowModel::GenerateTextureFeatures()
 {
-  ScalarImageWrapperBase *scalar = dynamic_cast<ScalarImageWrapperBase *>(m_Layer);
+  ScalarImageWrapperBase *scalar = dynamic_cast<ScalarImageWrapperBase *>(m_Layer.GetPointer());
   if(scalar)
     {
     // Get the image out

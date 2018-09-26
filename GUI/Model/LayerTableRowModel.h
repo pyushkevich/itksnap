@@ -136,7 +136,7 @@ protected:
   GenericImageData *m_ImageData;
 
   // Layer
-  ImageWrapperBase *m_Layer;
+  SmartPtr<ImageWrapperBase> m_Layer;
 
   // Role information (cached)
   LayerRole m_LayerRole;

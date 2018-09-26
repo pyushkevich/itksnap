@@ -1154,7 +1154,8 @@ SET(GUI_TESTS
   DiffSpace
   ProbeIntensity
   RegionCompetition
-  RandomForest)
+  RandomForest
+  RandomForestBailOut)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
 set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)

@@ -4,7 +4,6 @@
 #include "QtRadioButtonCoupling.h"
 #include "QtAbstractButtonCoupling.h"
 #include "QtComboBoxCoupling.h"
-#include "QtWidgetArrayCoupling.h"
 #include "SnakeWizardModel.h"
 #include "QtWidgetActivator.h"
 #include "ThresholdSettingsRenderer.h"
@@ -113,10 +112,7 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
 
 
   makeCoupling(ui->inClassifyUsePatch, m_Model->GetClassifierUsePatchModel());
-
-  makeArrayCoupling(ui->inClassifierPatchSizeX, ui->inClassifierPatchSizeY, ui->inClassifierPatchSizeZ,
-                    m_Model->GetClassifierPatchRadiusModel());
-
+  makeCoupling(ui->inClassifierPatchSize, m_Model->GetClassifierPatchRadiusModel());
   makeCoupling(ui->inClassifyUseCoordinates, m_Model->GetClassifierUseCoordinatesModel());
 
 

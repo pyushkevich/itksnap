@@ -455,26 +455,23 @@ void LayerInspectorRowDelegate::UpdateOverlaysMenu()
   m_OverlaysMenu->clear();
 
   // If the current layer is sticky, disable the menu
-  if(m_Model->GetLayer())
+  if(m_Model->GetLayer() && !m_Model->GetLayer()->IsSticky())
     {
-    if(!m_Model->GetLayer()->IsSticky())
-      {
-      // Get the current image data
-      GenericImageData *gid = m_Model->GetParentModel()->GetDriver()->GetCurrentImageData();
+    // Get the current image data
+    GenericImageData *gid = m_Model->GetParentModel()->GetDriver()->GetCurrentImageData();
 
-      // Find the number of sticky layers
-      for(LayerIterator it = gid->GetLayers(OVERLAY_ROLE | SNAP_ROLE); !it.IsAtEnd(); ++it)
+    // Find the number of sticky layers
+    for(LayerIterator it = gid->GetLayers(OVERLAY_ROLE | SNAP_ROLE); !it.IsAtEnd(); ++it)
+      {
+      if(it.GetLayer()->IsSticky())
         {
-        if(it.GetLayer()->IsSticky())
+        // Find the context menu for that layer
+        LayerInspectorDialog *insp = findParentWidget<LayerInspectorDialog>(this);
+        QMenu *menu = insp->GetLayerContextMenu(it.GetLayer());
+        if(menu)
           {
-          // Find the context menu for that layer
-          LayerInspectorDialog *insp = findParentWidget<LayerInspectorDialog>(this);
-          QMenu *menu = insp->GetLayerContextMenu(it.GetLayer());
-          if(menu)
-            {
-            m_OverlaysMenu->addAction(menu->menuAction());
-            k++;
-            }
+          m_OverlaysMenu->addAction(menu->menuAction());
+          k++;
           }
         }
       }
