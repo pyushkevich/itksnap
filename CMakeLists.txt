@@ -1036,6 +1036,14 @@ SET(SNAP_EXTERNAL_LIBS
   ${SNAP_SYSTEM_LIBS}
 )
 
+# Non-graphical external libs (a subset)
+SET(SNAP_EXTERNAL_LIBS_LITE
+  ${SNAP_SUBMODULE_LIBS}
+  ${SNAP_ITK_LIBS} 
+  ${CURL_LIBRARIES}
+  ${SYSTEM_LIBS})
+
+
 #--------------------------------------------------------------------------------
 # Include C3D Library as submodule
 #--------------------------------------------------------------------------------
@@ -1088,7 +1096,7 @@ ADD_LIBRARY(itksnapui_qt
 # This is experimental: it seems that shared libraries do not
 # build accurately (at least on MacOS) without the following
 # two lines
-TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS_LITE})
 TARGET_LINK_LIBRARIES(itksnapui_model itksnaplogic ${SNAP_EXTERNAL_LIBS})
 TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
 
