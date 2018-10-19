@@ -85,6 +85,11 @@ bool RESTClient::Authenticate(const char *baseurl, const char *token)
   ostringstream o_url; o_url << baseurl << "/api/login";
   curl_easy_setopt(m_Curl, CURLOPT_URL, o_url.str().c_str());
 
+  // Store the URL for the future
+  ofstream f_url(this->GetServerURLFile().c_str());
+  f_url << baseurl;
+  f_url.close();
+
   // Data to post
   char post_buffer[1024];
   sprintf(post_buffer, "token=%s", token);
@@ -104,11 +109,6 @@ bool RESTClient::Authenticate(const char *baseurl, const char *token)
 
   if(res != CURLE_OK)
     throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
-
-  // Store the URL for the future
-  ofstream f_url(this->GetServerURLFile().c_str());
-  f_url << baseurl;
-  f_url.close();
 
   // Return success or failure
   string success_pattern = "logged in as ";

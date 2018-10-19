@@ -554,7 +554,10 @@ int main(int argc, char *argv[])
 
         // Authenticate with the token
         RESTClient rc;
-        rc.Authenticate(url.c_str(), token_string.c_str());
+        if(!rc.Authenticate(url.c_str(), token_string.c_str()))
+          throw IRISException("Authentication error: %s", rc.GetResponseText());
+        else
+          printf("Success: %s", rc.GetOutput());
         }
       else if(arg == "-dss-services-list")
         {
