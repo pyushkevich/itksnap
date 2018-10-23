@@ -2,6 +2,7 @@
 #define RESTCLIENT_H
 
 #include <string>
+#include <cstdarg>
 #include <map>
 
 /**
@@ -51,12 +52,18 @@ public:
    */
   bool Get(const char *rel_url, ...);
 
+  /** Version of Get that takes a va_list */
+  bool GetVA(const char *rel_url, std::va_list args);
+
   /**
    * Basic POST command - give a relative URL and fields to send. Both the
    * rel_url and the post_string can have printf-like expressions, which are
    * evaluated in sequential order
    */
   bool Post(const char *rel_url, const char *post_string, ...);
+
+  /** Version of Post that takes a va_list */
+  bool PostVA(const char *rel_url, const char *post_string, std::va_list args);
 
   // Progress callback signature
   typedef  void ( *ProgressCallbackFunction )(void *, double);

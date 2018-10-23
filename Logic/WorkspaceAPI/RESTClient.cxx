@@ -130,16 +130,27 @@ void RESTClient::SetReceiveCookieMode(bool mode)
 
 bool RESTClient::Get(const char *rel_url, ...)
 {
-  // Handle the ...
+  bool rc;
   std::va_list args;
   va_start(args, rel_url);
 
+  try { 
+    rc = this->GetVA(rel_url, args);
+  }
+  catch(IRISException &exc) {
+    va_end(args);
+    throw;
+  }
+
+  va_end(args);
+  return rc;
+}
+  
+bool RESTClient::GetVA(const char *rel_url, std::va_list args)
+{
   // Expand the URL
   char url_buffer[4096];
   vsprintf(url_buffer, rel_url, args);
-
-  // Done with the ...
-  va_end(args);
 
   // Use the same code as POST, but with null string
   return this->Post(url_buffer, NULL);
@@ -147,15 +158,27 @@ bool RESTClient::Get(const char *rel_url, ...)
 
 bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
 {
-  // Handle the ...
+  bool rc;
   std::va_list args;
   va_start(args, post_string);
 
+  try { 
+    rc = this->PostVA(rel_url, post_string, args);
+  }
+  catch(IRISException &exc) {
+    va_end(args);
+    throw;
+  }
+
+  va_end(args);
+  return rc;
+}
+  
+bool RESTClient::PostVA(const char *rel_url, const char *post_string, std::va_list args)
+{
   // Expand the URL
   char url_buffer[4096];
   vsprintf(url_buffer, rel_url, args);
-
-
 
   // The URL to post to
   string url = this->GetServerURL() + "/" + url_buffer;
@@ -177,9 +200,6 @@ bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
 
     cout << "POST " << url << " VALUES " << post_buffer << endl;
     }
-
-  // Done with ...
-  va_end (args);
 
   // Capture output
   m_Output.clear();
