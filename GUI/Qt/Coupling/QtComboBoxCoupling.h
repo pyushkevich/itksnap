@@ -36,6 +36,10 @@
 // This is to allow the code below to work with DrawOverFilter
 Q_DECLARE_METATYPE(DrawOverFilter)
 
+#if QT_VERSION < 0x050000
+  Q_DECLARE_METATYPE(QAction *)
+#endif
+
 /**
   Default traits for mapping a numeric value (or any sort of key, actually)
   to a row in a combo box
