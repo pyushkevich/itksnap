@@ -14,7 +14,10 @@
 #include "Registry.h"
 #include <sstream>
 
+#if QT_VERSION >= 0x050000
 #include <QStandardPaths>
+#endif
+
 #include <QUrl>
 
 
@@ -108,6 +111,18 @@ std::string QtSystemInfoDelegate::GetApplicationPermanentDataLocation()
 
 }
 
+std::string QtSystemInfoDelegate::GetUserDocumentsLocation()
+{
+  return to_utf8(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation));
+}
+
+std::string QtSystemInfoDelegate::EncodeServerURL(const std::string &url_string)
+{
+  QUrl url(from_utf8(url_string));
+  QByteArray ba = url.toEncoded(
+                    QUrl::RemoveScheme | QUrl::RemoveUserInfo | QUrl::StripTrailingSlash);
+  return std::string(ba.constData());
+}
 
 #endif
 

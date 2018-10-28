@@ -7,7 +7,13 @@
 #include "QtPagedWidgetCoupling.h"
 #include <QDesktopServices>
 #include <QUrl>
+
+#if QT_VERSION >= 0x050000
 #include <QtConcurrent>
+#else
+#include <QtCore>
+#endif
+
 #include "SNAPQtCommon.h"
 #include "Registry.h"
 #include "SaveModifiedLayersDialog.h"
@@ -248,10 +254,17 @@ DistributedSegmentationDialog::DistributedSegmentationDialog(QWidget *parent) :
   ui->tblTags->setModel(tags_model);
 
   // Set the sizing of the columns
+#if QT_VERSION >= 0x050000
   ui->tblTags->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
   ui->tblTags->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
   ui->tblTags->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
   ui->tblTags->horizontalHeader()->setSectionResizeMode(3, QHeaderView::Stretch);
+#else
+  ui->tblTags->horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+  ui->tblTags->horizontalHeader()->setResizeMode(1, QHeaderView::ResizeToContents);
+  ui->tblTags->horizontalHeader()->setResizeMode(2, QHeaderView::ResizeToContents);
+  ui->tblTags->horizontalHeader()->setResizeMode(3, QHeaderView::Stretch);
+#endif
 
   // Create the model for the table view
   QStandardItemModel *ticket_list_model = new QStandardItemModel();
@@ -261,18 +274,30 @@ DistributedSegmentationDialog::DistributedSegmentationDialog(QWidget *parent) :
   QItemSelectionModel *sel = new QItemSelectionModel(ticket_list_model);
   ui->tblTickets->setSelectionModel(sel);
 
+#if QT_VERSION >= 0x050000
   ui->tblTickets->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
   ui->tblTickets->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
   ui->tblTickets->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+#else
+  ui->tblTickets->horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+  ui->tblTickets->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
+  ui->tblTickets->horizontalHeader()->setResizeMode(2, QHeaderView::ResizeToContents);
+#endif
 
   // Create model for the logs
   QStandardItemModel *log_entry_list_model = new QStandardItemModel();
   log_entry_list_model->setHorizontalHeaderLabels(QStringList() << "Time" << "Message" << "Att");
   ui->tblLog->setModel(log_entry_list_model);
 
+#if QT_VERSION >= 0x050000
   ui->tblLog->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
   ui->tblLog->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
   ui->tblLog->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+#else
+  ui->tblLog->horizontalHeader()->setResizeMode(0, QHeaderView::ResizeToContents);
+  ui->tblLog->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
+  ui->tblLog->horizontalHeader()->setResizeMode(2, QHeaderView::ResizeToContents);
+#endif
 
   // The ticket detail timer should fire at regular intervals
   m_TicketDetailRefreshTimer = new QTimer(this);
@@ -513,6 +538,13 @@ void DistributedSegmentationDialog::on_btnGetToken_clicked()
   QDesktopServices::openUrl(QUrl(m_Model->GetURL("token").c_str()));
 }
 
+// TODO: this is to support Qt4 scoped pointer
+#if QT_VERSION >= 0x050000
+typedef QScopedPointer<QProgressDialog, QScopedPointerDeleteLater> QtProgressDialogScopedPointer;
+#else
+typedef QScopedPointer<QProgressDialog> QtProgressDialogScopedPointer;
+#endif
+
 void DistributedSegmentationDialog::on_btnSubmit_clicked()
 {
   // Apply the tags to the workspace
@@ -524,7 +556,7 @@ void DistributedSegmentationDialog::on_btnSubmit_clicked()
     return;
 
   // Show a progress dialog
-  QScopedPointer<QProgressDialog, QScopedPointerDeleteLater> progress(new QProgressDialog(this));
+  QtProgressDialogScopedPointer progress(new QProgressDialog(this));
   QtProgressReporterDelegate progress_delegate;
   progress_delegate.SetProgressDialog(progress.data());
   progress->setLabelText("Uploading workspace...");
@@ -564,7 +596,7 @@ void DistributedSegmentationDialog::on_btnDownload_clicked()
     return;
 
   // Show a progress dialog
-  QScopedPointer<QProgressDialog, QScopedPointerDeleteLater> progress(new QProgressDialog(this));
+  QtProgressDialogScopedPointer progress(new QProgressDialog(this));
   QtProgressReporterDelegate progress_delegate;
   progress_delegate.SetProgressDialog(progress.data());
   progress->setLabelText("Downloading workspace...");
@@ -617,6 +649,7 @@ TagComboDelegate::TagComboDelegate(
 }
 
 
+
 QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
   // Select the current index in the model
@@ -651,7 +684,12 @@ QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
 
     makeCoupling(combo, m_Model->GetCurrentTagImageLayerModel(), fancy_value_traits, fancy_domain_traits);
 
+#if QT_VERSION >= 0x050000
     QTimer::singleShot(0, combo, &QComboBox::showPopup);
+#else
+    TagComboDelegatePopupShow *popup_show_helper = new TagComboDelegatePopupShow(combo);
+    QTimer::singleShot(0, popup_show_helper, SLOT(showPopup()));
+#endif
 
     return combo;
     }
@@ -757,6 +795,8 @@ void DistributedSegmentationDialog::on_btnManageServers_clicked()
   // Get the current list of user URLs
   std::vector<std::string> input_urls = m_Model->GetUserServerList();
 
+#if QT_VERSION >= 0x050000
+
   // Concatenate them into a multi-line string
   QString input;
   for(int i = 0; i < input_urls.size(); i++)
@@ -774,6 +814,29 @@ void DistributedSegmentationDialog::on_btnManageServers_clicked()
 
   // Split into individual strings
   QStringList url_list = servers.split("\n");
+
+#else
+
+  // Concatenate them into a multi-line string
+  QString input;
+  for(int i = 0; i < input_urls.size(); i++)
+    input.append(QString("%1%2").arg(i > 0 ? ";" : "", from_utf8(input_urls[i])));
+
+  // Create a dialog box with a list of servers
+  bool ok = false;
+  QString servers = QInputDialog::getText(
+                      this, "Edit Server List",
+                      "Enter additional server URLs separated by semicolon (;):", QLineEdit::Normal, input, &ok);
+
+
+  if(!ok)
+    return;
+
+  // Split into individual strings
+  QStringList url_list = servers.split(";");
+
+#endif
+
   std::vector<std::string> valid_urls;
   foreach(QString url_string, url_list)
     {

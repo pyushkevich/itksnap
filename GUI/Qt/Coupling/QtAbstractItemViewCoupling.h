@@ -219,7 +219,11 @@ public:
       model->appendRow(row_items);
       }
 
+#if QT_VERSION >= 0x050000
+    // I am not sure why this is necessary - the model should automatically be sending signals when its
+    // contents are being changed. Something must be amiss.
     emit model->dataChanged(model->index(0,0), model->index(model->rowCount()-1, model->columnCount()-1));
+#endif
   }
 
   void UpdateDomainDescription(QAbstractItemView *w, const DomainType &domain)
@@ -254,7 +258,9 @@ public:
         TRowTraits::updateRow(row_items, id, domain.GetDescription(it));
       }
 
+#if QT_VERSION >= 0x050000
     emit model->dataChanged(model->index(0,0), model->index(model->rowCount()-1, model->columnCount()-1));
+#endif
   }
 
   TItemDomain GetDomain(QAbstractItemView *w)
