@@ -625,7 +625,7 @@ void RegistrationModel::SaveTransform(const char *filename, TransformFormat form
     }
   else // (format == FORMAT_ITK)
     {
-    AffineTransformHelper::WriteAsRASMatrix(
+    AffineTransformHelper::WriteAsITKTransform(
           this->GetMovingLayerWrapper()->GetITKTransform(), filename);
     }
 

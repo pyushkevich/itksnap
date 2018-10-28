@@ -116,6 +116,11 @@ public:
   std::string FindLayerByRole(const std::string &role, int pos_in_role);
 
   /**
+   * Find layers that match a tag
+   */
+  std::list<std::string> FindLayersByTag(const std::string &tag);
+
+  /**
    * Translate a shorthand layer specifier to a folder ID. Will throw an exception if
    * the layer specifier cannot be found or is out of range
    */

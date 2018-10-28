@@ -446,9 +446,13 @@ int main(int argc, char *argv[])
       else if(arg == "-layers-pick-by-tag" || arg == "-lpt" || arg == "-lpbt")
         {
         string tag = cl.read_string();
-        layer_folder = ws.FindFolderForUniqueTag(tag);
-        if(!ws.IsKeyValidLayer(layer_folder))
-          throw IRISException("Folder %s with tag %s does not contain a valid layer", layer_folder.c_str(), tag.c_str());
+        std::list<std::string> layers = ws.FindLayersByTag(tag);
+
+        if(layers.size() != 1)
+          throw IRISException("No unique layer found, tag %s is associated with %d layers", tag.c_str(), layers.size());
+
+        layer_folder = layers.front();
+
         cout << "INFO: picked layer " << layer_folder << endl;
         }
 
@@ -563,8 +567,11 @@ int main(int argc, char *argv[])
         // Read the transform
         AffineTransformHelper::Mat44 Q = AffineTransformHelper::GetRASMatrix(tran);
 
-        // Generate a matrix from the transform
-        cout << prefix << Q << endl;
+        // Print the matrix
+        for(unsigned int i = 0; i < 4; i++)
+          {
+          cout << prefix << Q(i,0) << " " << Q(i,1) << " " << Q(i,2) << " " << Q(i,3) << endl;
+          }
         }
 
       else if(arg == "-labels-set")
