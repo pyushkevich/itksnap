@@ -6,8 +6,9 @@
 #include <QModelIndex>
 #include <QStyledItemDelegate>
 
-#if QT_VERSION < 0x050000
 #include <QComboBox>
+
+/** This class only required for legacy Qt4 support */
 class TagComboDelegatePopupShow : public QObject
 {
   Q_OBJECT
@@ -20,7 +21,6 @@ public slots:
 private:
   QComboBox *combo;
 };
-#endif
 
 namespace Ui {
 class DistributedSegmentationDialog;
