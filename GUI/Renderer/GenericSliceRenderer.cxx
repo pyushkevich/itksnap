@@ -120,7 +120,7 @@ GenericSliceRenderer
 
   // Get the properties for the background color
   Vector3d clrBack = as->GetUIElement(
-      SNAPAppearanceSettings::BACKGROUND_2D)->GetNormalColor();
+      SNAPAppearanceSettings::BACKGROUND_2D)->GetColor();
 
   // Get the overall viewport
   Vector2ui vp_full = m_Model->GetSizeReporter()->GetViewportSize();
@@ -221,30 +221,21 @@ GenericSliceRenderer
 
           // The element used for highlighting thumbnails
           SmartPtr<OpenGLAppearanceElement> elt = OpenGLAppearanceElement::New();
-          elt->SetNormalColor(Vector3d(0.6, 0.54, 0.46));
-          elt->SetActiveColor(Vector3d(1.0, 0.9, 0.1));
+
+          if(is_selected && is_hover)
+            elt->SetColor(Vector3d(1.0, 1.0, 0.5));
+          else if(is_selected)
+            elt->SetColor(Vector3d(1.0, 0.9, 0.1));
+          else if(is_hover)
+            elt->SetColor(Vector3d(0.6, 0.54, 0.46));
+
           elt->SetLineThickness(1.5 * vppr);
           elt->SetVisible(true);
-          elt->SetAlphaBlending(false);
-
+          elt->SetSmooth(false);
           elt->ApplyLineSettings();
 
-          // Determine the colors
-          if(is_selected && is_hover)
-            {
-            Vector3d clr = elt->GetActiveColor();
-            clr += 0.4;
-            clr = clr.clamp(Vector3d(0.0), Vector3d(1.0));
-            glColor3dv(clr.data_block());
-            }
-          else if(is_selected)
-            {
-            glColor3dv(elt->GetActiveColor().data_block());
-            }
-          else if(is_hover)
-            {
-            glColor3dv(elt->GetNormalColor().data_block());
-            }
+          if(is_selected || is_hover)
+            elt->ApplyColor();
 
           glBegin(GL_LINE_LOOP);
           glVertex2i(0,0);
@@ -601,7 +592,7 @@ void GenericSliceRenderer::DrawTextureForLayer(
     else
       {
       Vector3d clrBackground = m_DrawingZoomThumbnail
-        ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL)->GetNormalColor()
+        ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL)->GetColor()
         : Vector3d(1.0);
       tex->Draw(clrBackground);
       }
@@ -689,7 +680,7 @@ void GenericSliceRenderer::DrawTextureForLayer(
           // Do we draw this line?
           if(it1.GetIndex()[1-d] % vox_increment == 0)
             {
-            glColor3d(elt->GetNormalColor()[0], elt->GetNormalColor()[1], elt->GetNormalColor()[2]);
+            elt->ApplyColor();
             glBegin(GL_LINE_STRIP);
 
             // Set up the current position and increment
@@ -756,11 +747,15 @@ void GenericSliceRenderer::DrawThumbnail()
   {
   // Get the thumbnail appearance properties
   SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-  const OpenGLAppearanceElement *elt =
+
+  const OpenGLAppearanceElement *eltThumb =
       as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL);
 
+  const OpenGLAppearanceElement *eltViewport =
+      as->GetUIElement(SNAPAppearanceSettings::ZOOM_VIEWPORT);
+
   // If thumbnail is not to be drawn, exit
-  if(!elt->GetVisible()) return;
+  if(!eltThumb->GetVisible()) return;
 
   // Tell model to figure out the thumbnail size
   m_Model->ComputeThumbnailProperties();
@@ -789,15 +784,18 @@ void GenericSliceRenderer::DrawThumbnail()
   // Draw the overlays that are shown on the thumbnail
   DrawTiledOverlays();
 
+  // Line properties
+  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+
   // Apply the line settings
-  elt->ApplyLineSettings();
+  eltThumb->ApplyLineSettings();
 
   // Draw the little version of the image in the corner of the window
   double w = m_Model->GetSliceSize()[0];
   double h = m_Model->GetSliceSize()[1];
 
   // Draw the line around the image
-  glColor3dv(elt->GetNormalColor().data_block());
+  eltThumb->ApplyColor();
   glBegin(GL_LINE_LOOP);
   glVertex2d(0,0);
   glVertex2d(0,h);
@@ -805,21 +803,34 @@ void GenericSliceRenderer::DrawThumbnail()
   glVertex2d(w,0);
   glEnd();
 
-  // Draw a box representing the current zoom level
+  glPopAttrib();
   glPopMatrix();
-  glTranslated(m_Model->GetViewPosition()[0],
-               m_Model->GetViewPosition()[1],
-               0.0);
-  w = m_Model->GetCanvasSize()[0] * 0.5 / m_Model->GetViewZoom();
-  h = m_Model->GetCanvasSize()[1] * 0.5 / m_Model->GetViewZoom();
 
-  glColor3dv(elt->GetActiveColor().data_block());
-  glBegin(GL_LINE_LOOP);
-  glVertex2d(-w,-h);
-  glVertex2d(-w, h);
-  glVertex2d( w, h);
-  glVertex2d( w,-h);
-  glEnd();
+  if(eltViewport->GetVisible())
+    {
+    // Line properties
+    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+
+    // Apply the line settings
+    eltViewport->ApplyLineSettings();
+
+    // Draw a box representing the current zoom level
+    glTranslated(m_Model->GetViewPosition()[0],
+                 m_Model->GetViewPosition()[1],
+                 0.0);
+    w = m_Model->GetCanvasSize()[0] * 0.5 / m_Model->GetViewZoom();
+    h = m_Model->GetCanvasSize()[1] * 0.5 / m_Model->GetViewZoom();
+
+    eltViewport->ApplyColor();
+    glBegin(GL_LINE_LOOP);
+    glVertex2d(-w,-h);
+    glVertex2d(-w, h);
+    glVertex2d( w, h);
+    glVertex2d( w,-h);
+    glEnd();
+
+    glPopAttrib();
+    }
 
   glPopMatrix();
 

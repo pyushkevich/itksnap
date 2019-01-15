@@ -85,16 +85,20 @@ void SliceWindowDecorationRenderer::DrawOrientationLabels()
 
   // Use the delegate to draw text
   this->m_PlatformSupport->RenderTextInOpenGL(
-        labels[0][0], margin, (h-offset)/2, offset, offset, font_info, -1, 0, elt->GetNormalColor());
+        labels[0][0], margin, (h-offset)/2, offset, offset, font_info, -1, 0,
+        elt->GetColor(), elt->GetAlpha());
 
   this->m_PlatformSupport->RenderTextInOpenGL(
-        labels[0][1], w - (offset+margin), (h-offset)/2, offset, offset, font_info, 1, 0, elt->GetNormalColor());
+        labels[0][1], w - (offset+margin), (h-offset)/2, offset, offset, font_info, 1, 0,
+        elt->GetColor(), elt->GetAlpha());
 
   this->m_PlatformSupport->RenderTextInOpenGL(
-        labels[1][0], (w-offset)/2, 0, offset, offset, font_info, 0, -1, elt->GetNormalColor());
+        labels[1][0], (w-offset)/2, 0, offset, offset, font_info, 0, -1,
+        elt->GetColor(), elt->GetAlpha());
 
   this->m_PlatformSupport->RenderTextInOpenGL(
-        labels[1][1], (w-offset)/2, h - (offset+1), offset, offset, font_info, 0, 1, elt->GetNormalColor());
+        labels[1][1], (w-offset)/2, h - (offset+1), offset, offset, font_info, 0, 1,
+        elt->GetColor(), elt->GetAlpha());
 
   glPopMatrix();
   glPopAttrib();
@@ -188,7 +192,7 @@ void SliceWindowDecorationRenderer::DrawNicknames()
   glScaled(vppr, vppr, 1.0);
 
   elt->ApplyLineSettings();
-  glColor4d( elt->GetNormalColor()[0], elt->GetNormalColor()[1], elt->GetNormalColor()[2], 1.0 );
+  elt->ApplyColor();
 
   // Get the viewport size
   int w = vp_size[0] / (vppr * ncols), h = vp_size[1] / (vppr * nrows);
@@ -260,7 +264,7 @@ void SliceWindowDecorationRenderer::DrawNicknames()
                   left_margin, h * (nrows - i) - 18 - v_offset, w, 15, font_info,
                   AbstractRendererPlatformSupport::LEFT,
                   AbstractRendererPlatformSupport::TOP,
-                  elt->GetNormalColor());
+                  elt->GetColor(), elt->GetAlpha());
             }
           else
             {
@@ -269,7 +273,7 @@ void SliceWindowDecorationRenderer::DrawNicknames()
                   w * j, h * (nrows - i) - 20 - v_offset, w, 15, font_info,
                   AbstractRendererPlatformSupport::HCENTER,
                   AbstractRendererPlatformSupport::TOP,
-                  elt->GetNormalColor());
+                  elt->GetColor(), elt->GetAlpha());
             }
           v_offset += (int) (font_info.pixel_size * 1.34 / vppr);
           }
@@ -311,7 +315,7 @@ void SliceWindowDecorationRenderer::DrawRulers()
   glScaled(vppr, vppr, 1.0);
 
   elt->ApplyLineSettings();
-  glColor4d( elt->GetNormalColor()[0], elt->GetNormalColor()[1], elt->GetNormalColor()[2], 1.0 );
+  elt->ApplyColor();
 
   // The ruler bar should be as large as possible but less than one half
   // of the screen width (not to go over the markers)
@@ -363,7 +367,7 @@ void SliceWindowDecorationRenderer::DrawRulers()
     this->m_PlatformSupport->RenderTextInOpenGL(
         oss.str().c_str(),
         vp[0]-(bw+10), 12, (int) bw, font_size+8,
-        font_info, 0, -1, elt->GetNormalColor());
+        font_info, 0, -1, elt->GetColor(), elt->GetAlpha());
     }
   else
     {
@@ -371,7 +375,7 @@ void SliceWindowDecorationRenderer::DrawRulers()
           oss.str().c_str(),
           vp[0] - (int) (2 * bw + font_size * 4 + 20), 5,
           (int) (bw + font_size * 4+10), font_size,
-          font_info, 1, 0, elt->GetNormalColor());
+          font_info, 1, 0, elt->GetColor(), elt->GetAlpha());
     }
 
   glPopMatrix();

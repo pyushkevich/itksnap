@@ -20,8 +20,12 @@ RegistrationRenderer::~RegistrationRenderer()
 
 }
 
-void RegistrationRenderer::DrawRotationWidget()
+void RegistrationRenderer::DrawRotationWidget(const OpenGLAppearanceElement *ae)
 {
+  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+  ae->ApplyLineSettings();
+  ae->ApplyColor();
+
   // Draw the main line
   glBegin(GL_LINE_LOOP);
   for(int i = 0; i < 360; i++)
@@ -41,6 +45,8 @@ void RegistrationRenderer::DrawRotationWidget()
     glVertex2d(1.05 * x, 1.05 * y);
     }
   glEnd();
+
+  glPopAttrib();
 }
 
 void RegistrationRenderer::paintGL()
@@ -72,7 +78,7 @@ void RegistrationRenderer::paintGL()
 
   // Apply the grid settings
   eltGrid->ApplyLineSettings();
-  glColor3dv(eltGrid->GetNormalColor().data_block());
+  eltGrid->ApplyColor();
 
   // Draw gridlines at regular intervals (this is dumb)
   Vector2ui canvas = smodel->GetCanvasSize();
@@ -105,6 +111,10 @@ void RegistrationRenderer::paintGL()
     OpenGLAppearanceElement *eltWidgets =
       as->GetUIElement(SNAPAppearanceSettings::REGISTRATION_WIDGETS);
 
+    // Get the line color, thickness and dash spacing for the rotation widget
+    OpenGLAppearanceElement *eltWidgetsActive =
+      as->GetUIElement(SNAPAppearanceSettings::REGISTRATION_WIDGETS_ACTIVE);
+
     // The rotation widget is a circular arc that is drawn around the center of rotation
     // The radius of the arc is chosen so that there is maximum overlap between the arc
     // and the screen area, minus a margin. For now though, we compute the radius in a
@@ -118,7 +128,6 @@ void RegistrationRenderer::paintGL()
     Vector3d rot_ctr_slice = smodel->MapImageToSlice(to_double(rot_ctr_image));
 
     // Set line properties
-    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
     glPushMatrix();
 
     // The matrix is configured in the slice coordinate system. However, to draw the
@@ -129,33 +138,27 @@ void RegistrationRenderer::paintGL()
     glScaled(0.5 * radius / smodel->GetSliceSpacing()[0], 0.5 * radius / smodel->GetSliceSpacing()[1], 1.0);
 
     // Draw a white circle
-    eltWidgets->ApplyLineSettings();
 
     if(m_Model->IsHoveringOverRotationWidget())
       {
       if(m_Model->GetLastTheta() != 0.0)
         {
-        glColor3dv(eltWidgets->GetNormalColor().data_block());
-        this->DrawRotationWidget();
+        this->DrawRotationWidget(eltWidgets);
 
-        glColor3dv(eltWidgets->GetActiveColor().data_block());
         glRotated(m_Model->GetLastTheta() * 180 / vnl_math::pi, 0.0, 0.0, 1.0);
-        this->DrawRotationWidget();
+        this->DrawRotationWidget(eltWidgetsActive);
         }
       else
         {
-        glColor3dv(eltWidgets->GetActiveColor().data_block());
-        this->DrawRotationWidget();
+        this->DrawRotationWidget(eltWidgetsActive);
         }
       }
     else
       {
-      glColor3dv(eltWidgets->GetNormalColor().data_block());
-      this->DrawRotationWidget();
+      this->DrawRotationWidget(eltWidgets);
       }
 
     glPopMatrix();
-    glPopAttrib();
     }
 }
 

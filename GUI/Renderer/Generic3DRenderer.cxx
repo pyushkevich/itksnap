@@ -353,7 +353,8 @@ void Generic3DRenderer::UpdateAxisRendering()
 
       // Update the visual appearance
       vtkProperty *prop = m_AxisActor[i]->GetProperty();
-      prop->SetColor(axisapp->GetNormalColor().data_block());
+      prop->SetColor(axisapp->GetColor().data_block());
+      prop->SetOpacity(axisapp->GetAlpha());
       if(axisapp->GetDashSpacing() > 0)
         {
         prop->SetLineStipplePattern(0x9999);
@@ -640,7 +641,7 @@ void Generic3DRenderer::paintGL()
 
   // Load the background color
   Vector3d clrBack =
-      as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D)->GetNormalColor();
+      as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D)->GetColor();
 
   // Set renderer background
   this->m_Renderer->SetBackground(clrBack.data_block());

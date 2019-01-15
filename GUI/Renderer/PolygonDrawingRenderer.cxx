@@ -56,16 +56,8 @@ PolygonDrawingRenderer
   OpenGLAppearanceElement *aeEdit = as->GetUIElement(
         SNAPAppearanceSettings::POLY_EDIT);
 
-
-  // Check if the loop should be highlighted
-  const Vector3d &aeDrawColor = m_Model->IsHoverOverFirstVertex()
-      ? aeDraw->GetActiveColor() : aeDraw->GetActiveColor();
-
-  const Vector3d &aeCloseColor = m_Model->IsHoverOverFirstVertex()
-      ? aeClose->GetActiveColor() : aeClose->GetNormalColor();
-
-  // Push the line state
-  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+  OpenGLAppearanceElement *aeEditSelect = as->GetUIElement(
+        SNAPAppearanceSettings::POLY_EDIT_SELECT);
 
   // Set line and point drawing parameters
   double vppr = m_ParentRenderer->GetModel()->GetSizeReporter()->GetViewportPixelRatio();
@@ -79,14 +71,11 @@ PolygonDrawingRenderer
   PolygonDrawingModel::VertexList::const_iterator it, itNext;
 
   if (state == PolygonDrawingModel::EDITING_STATE)
-  {
-    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-    aeEdit->ApplyLineSettings();
-
-    glBegin(GL_LINES);
-
+    {
     for(it = vx.begin(); it!=vx.end(); ++it)
       {
+      glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
+
       // Point to the next vertex, circular
       itNext = it; ++itNext;
       if(itNext == vx.end())
@@ -94,27 +83,34 @@ PolygonDrawingRenderer
 
       // Set the color based on the mode
       if (it->selected && itNext->selected)
-        glColor3dv(aeEdit->GetActiveColor().data_block());
+        {
+        aeEditSelect->ApplyLineSettings();
+        aeEditSelect->ApplyColor();
+        }
       else
-        glColor3dv(aeEdit->GetNormalColor().data_block());
+        {
+        aeEdit->ApplyLineSettings();
+        aeEdit->ApplyColor();
+        }
 
       // Draw the line
+      glBegin(GL_LINES);
       glVertex3d(it->x, it->y, 0);
       glVertex3d(itNext->x, itNext->y, 0);
-    }
-    glEnd();
+      glEnd();
 
-    glPopAttrib();
-  }
+      glPopAttrib();
+      }
+    }
   else
-  {
+    {
     // Not editing state
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
     aeDraw->ApplyLineSettings();
+    aeDraw->ApplyColor();
 
     // Draw the vertices
     glBegin(GL_LINE_STRIP);
-    glColor3dv(aeDrawColor.data_block());
     for(it = vx.begin(); it!=vx.end(); ++it)
       glVertex3d(it->x, it->y, 0);
     glEnd();
@@ -127,7 +123,6 @@ PolygonDrawingRenderer
         glVertex3d(it->x, it->y, 0);
       glEnd();
       }
-
 
     // If hovering over the last point, draw the closing line using
     // current appearance settings
@@ -147,9 +142,9 @@ PolygonDrawingRenderer
       // Draw the stripped line.
       glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
       aeClose->ApplyLineSettings();
+      aeClose->ApplyColor();
 
       glBegin(GL_LINES);
-      glColor3dv(aeCloseColor.data_block());
       if(dvx.size())
         glVertex3d(dvx.back().x, dvx.back().y, 0);
       else
@@ -160,32 +155,31 @@ PolygonDrawingRenderer
       }
 
     glPopAttrib();
-
-  }
+    }
 
   // draw the vertices
   glBegin(GL_POINTS);
   glPushAttrib(GL_COLOR_BUFFER_BIT);
   for(it = vx.begin(); it!=vx.end();++it)
-  {
+    {
     if(it->control)
       {
       if (it->selected)
-        glColor3dv(aeEdit->GetActiveColor().data_block());
+        aeEditSelect->ApplyColor();
       else if (state == PolygonDrawingModel::DRAWING_STATE)
-        glColor3dv(aeDrawColor.data_block());
+        aeDraw->ApplyColor();
       else
-        glColor3dv(aeEdit->GetNormalColor().data_block());
+        aeEdit->ApplyColor();
 
-      glVertex3d(it->x,it->y,0.0f);
+      glVertex3d(it->x, it->y, 0.0f);
       }
-  }
+    }
 
   // Draw the last dragging vertex point
   if(dvx.size())
     {
     PolygonVertex last = dvx.back();
-    glColor3dv(aeEdit->GetActiveColor().data_block());
+    aeEdit->ApplyColor();
     glVertex3d(last.x, last.y, 0.0f);
     }
 
@@ -194,27 +188,27 @@ PolygonDrawingRenderer
 
   // draw edit or pick box
   if(m_Model->IsDraggingPickBox())
-  {
+    {
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
     glLineWidth(1);
-    glColor3dv(aeEdit->GetActiveColor().data_block());
+    aeEdit->ApplyColor();
     DrawBox(m_Model->GetSelectionBox());
 
     glPopAttrib();
-  }
+    }
   else if (m_Model->GetSelectedVertices())
-  {
+    {
     glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
     glLineWidth(1);
-    glColor3dv(aeEdit->GetActiveColor().data_block());
+    aeEdit->ApplyColor();
     Vector2d border = m_Model->GetPixelSize() * 4.0;
     glLineWidth(1);
     glColor3dv(m_EditModeSelectedColor);
     DrawBox(m_Model->GetEditBox(), border[0], border[1]);
     glPopAttrib();
-  }
+    }
 
   glPopAttrib();
 }

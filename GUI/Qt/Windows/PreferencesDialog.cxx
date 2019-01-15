@@ -7,6 +7,7 @@
 #include "QtCheckBoxCoupling.h"
 #include "QtComboBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
+#include "QtSliderCoupling.h"
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtRadioButtonCoupling.h"
 #include "QtComboBoxCoupling.h"
@@ -51,6 +52,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::RULER, "Rulers");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::MARKERS, "Anatomic Markers");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::ROI_BOX, "ROI Edges");
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::ROI_BOX_ACTIVE, "ROI Edges (selected)");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::PAINTBRUSH_OUTLINE, "Paintbrush");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::GRID_LINES, "Deformation Grid");
 
@@ -59,16 +61,19 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   append_appearance_item(item3DView, SNAPAppearanceSettings::CROSSHAIRS_3D, "Crosshair");
 
   QStandardItem *itemThumb = append_category_item(model->invisibleRootItem(), "Zoom Thumbnail");
-  append_appearance_item(itemThumb, SNAPAppearanceSettings::ZOOM_THUMBNAIL, "Image");
+  append_appearance_item(itemThumb, SNAPAppearanceSettings::ZOOM_THUMBNAIL, "Thumbnail");
+  append_appearance_item(itemThumb, SNAPAppearanceSettings::ZOOM_VIEWPORT, "Current Viewport Outline");
   append_appearance_item(itemThumb, SNAPAppearanceSettings::CROSSHAIRS_THUMB, "Crosshair");
 
   QStandardItem *itemPoly = append_category_item(model->invisibleRootItem(), "Polygon Tool");
   append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_DRAW_MAIN, "Outline (drawing)");
-  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_EDIT, "Outline (editing)");
   append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_DRAW_CLOSE, "Completion line");
+  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_EDIT, "Outline (editing)");
+  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_EDIT_SELECT, "Outline (editing, selected)");
 
   QStandardItem *itemReg = append_category_item(model->invisibleRootItem(), "Registration Tool");
   append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS, "Registration Widgets");
+  append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS_ACTIVE, "Registration Widgets (active)");
   append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_GRID, "Registration Grid Lines");
 
   ui->treeVisualElements->setModel(model);
@@ -146,23 +151,22 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   OpenGLAppearanceElement *elt = m_Model->GetActiveUIElementAppearance();
   QtCouplingOptions opts_elt(QtCouplingOptions::DEACTIVATE_WHEN_INVALID);
   makeCoupling(ui->chkElementVisible, elt->GetVisibleModel(), opts_elt);
-  makeCoupling(ui->btnElementNormalColor, elt->GetNormalColorModel(), opts_elt);
-  makeCoupling(ui->btnElementActiveColor, elt->GetActiveColorModel(), opts_elt);
+  makeCoupling(ui->btnElementColor, elt->GetColorModel(), opts_elt);
+  makeCoupling(ui->inElementOpacity, elt->GetAlphaModel(), opts_elt);
   makeCoupling(ui->inElementThickness, elt->GetLineThicknessModel(), opts_elt);
   makeCoupling(ui->inElementDashSpacing, elt->GetDashSpacingModel(), opts_elt);
   makeCoupling(ui->inElementFontSize, elt->GetFontSizeModel(), opts_elt);
-  makeCoupling(ui->chkElementAntiAlias, elt->GetAlphaBlendingModel(), opts_elt);
+  makeCoupling(ui->chkElementAntiAlias, elt->GetSmoothModel(), opts_elt);
 
   // Make sure the labels are activated along with the widgets
-  activateOnFlag(ui->labelElementNormalColor, elt->GetNormalColorModel(), UIF_PROPERTY_IS_VALID);
-  activateOnFlag(ui->labelElementActiveColor, elt->GetActiveColorModel(), UIF_PROPERTY_IS_VALID);
+  activateOnFlag(ui->labelElementColor, elt->GetColorModel(), UIF_PROPERTY_IS_VALID);
+  activateOnFlag(ui->labelElementOpacity, elt->GetColorModel(), UIF_PROPERTY_IS_VALID);
   activateOnFlag(ui->labelElementLineThickness, elt->GetLineThicknessModel(), UIF_PROPERTY_IS_VALID);
   activateOnFlag(ui->labelElementDashSpacing, elt->GetDashSpacingModel(), UIF_PROPERTY_IS_VALID);
   activateOnFlag(ui->labelElementFontSize, elt->GetFontSizeModel(), UIF_PROPERTY_IS_VALID);
 
   // Hook up activation for the appearance panel
   activateOnFlag(ui->grpAppearance, m_Model, GlobalPreferencesModel::UIF_VALID_UI_ELEMENT_SELECTED);
-
 
   // Hook up the mesh options
   MeshOptions *mo = m_Model->GetMeshOptions();

@@ -47,58 +47,47 @@
 #include "GlobalState.h"
 
 
-/**
- * A structure that describes the appearance of a screen element
- */
-struct Element
-{
-  Vector3d NormalColor;
-  Vector3d ActiveColor;
-  double LineThickness;
-  double DashSpacing;
-  int FontSize;
-  bool Visible, AlphaBlending;
-};
-
-
 class OpenGLAppearanceElement : public AbstractPropertyContainerModel
 {
 public:
   irisITKObjectMacro(OpenGLAppearanceElement, AbstractPropertyContainerModel)
 
-  irisRangedPropertyAccessMacro(NormalColor, Vector3d)
-  irisRangedPropertyAccessMacro(ActiveColor, Vector3d)
+  irisRangedPropertyAccessMacro(Color, Vector3d)
+  irisRangedPropertyAccessMacro(Alpha, double)
 
   irisRangedPropertyAccessMacro(LineThickness, double)
-  irisRangedPropertyAccessMacro(DashSpacing, double)
+  irisRangedPropertyAccessMacro(DashSpacing, int)
   irisRangedPropertyAccessMacro(FontSize, int)
 
   irisSimplePropertyAccessMacro(Visible, bool)
-  irisSimplePropertyAccessMacro(AlphaBlending, bool)
+  irisSimplePropertyAccessMacro(Smooth, bool)
 
   /** An enumeration of the fields that an element may possess */
   enum UIElementFeatures
     {
-    NORMAL_COLOR = 0, ACTIVE_COLOR, LINE_THICKNESS, DASH_SPACING,
-    FONT_SIZE, VISIBLE, ALPHA_BLEND, FEATURE_COUNT
+    COLOR = 0, LINE_THICKNESS, DASH_SPACING,
+    FONT_SIZE, VISIBLE, SMOOTH, FEATURE_COUNT
     };
 
   // Set the validity of all the properties at once using an int array
   // indexed by the enum UIElementFeatures
   void SetValid(const int validity[]);
 
+  // Apply the color in the element
+  void ApplyColor() const;
+
   // Apply the GL line settings in the element
   void ApplyLineSettings(bool applyThickness = true, bool applyStipple = true) const;
 
 protected:
 
-  SmartPtr<ConcreteRangedDoubleVec3Property> m_NormalColorModel, m_ActiveColorModel;
-  SmartPtr<ConcreteRangedDoubleProperty> m_LineThicknessModel, m_DashSpacingModel;
+  SmartPtr<ConcreteRangedDoubleVec3Property> m_ColorModel;
+  SmartPtr<ConcreteRangedDoubleProperty> m_AlphaModel, m_LineThicknessModel;
+  SmartPtr<ConcreteRangedIntProperty> m_DashSpacingModel;
   SmartPtr<ConcreteRangedIntProperty> m_FontSizeModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_VisibleModel, m_AlphaBlendingModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_VisibleModel, m_SmoothModel;
 
   OpenGLAppearanceElement();
-
 };
 
 
@@ -172,12 +161,12 @@ public:
   /** An enumeration of available screen elements */
   enum UIElements
     {
-    CROSSHAIRS = 0, MARKERS, ROI_BOX,
+    CROSSHAIRS = 0, MARKERS, ROI_BOX, ROI_BOX_ACTIVE,
     BACKGROUND_2D, BACKGROUND_3D,
-    ZOOM_THUMBNAIL, CROSSHAIRS_3D, CROSSHAIRS_THUMB,
+    ZOOM_THUMBNAIL, ZOOM_VIEWPORT, CROSSHAIRS_3D, CROSSHAIRS_THUMB,
     IMAGE_BOX_3D, ROI_BOX_3D, PAINTBRUSH_OUTLINE, RULER, 
-    POLY_DRAW_MAIN, POLY_DRAW_CLOSE, POLY_EDIT,
-    REGISTRATION_WIDGETS, REGISTRATION_GRID, GRID_LINES,
+    POLY_DRAW_MAIN, POLY_DRAW_CLOSE, POLY_EDIT, POLY_EDIT_SELECT,
+    REGISTRATION_WIDGETS, REGISTRATION_WIDGETS_ACTIVE, REGISTRATION_GRID, GRID_LINES,
     ELEMENT_COUNT
     };
 

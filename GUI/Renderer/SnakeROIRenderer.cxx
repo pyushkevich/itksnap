@@ -46,34 +46,43 @@ void SnakeROIRenderer::paintGL()
   const OpenGLAppearanceElement *elt =
       as->GetUIElement(SNAPAppearanceSettings::ROI_BOX);
 
-  // Set line properties
-  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-
-  // Apply the line properties
-  elt->ApplyLineSettings();
-
-  // Start drawing the lines
-  glBegin(GL_LINES);
+  // Get the line color, thickness and dash spacing
+  const OpenGLAppearanceElement *eltActive =
+      as->GetUIElement(SNAPAppearanceSettings::ROI_BOX_ACTIVE);
 
   // Draw each of the edges
   for(unsigned int dir=0;dir<2;dir++)
-  {
-    for(unsigned int i=0;i<2;i++)
     {
-    // Select color according to edge state
-    glColor3dv( m_Model->m_Highlight.Highlighted[dir][i] ?
-      elt->GetActiveColor().data_block() : elt->GetNormalColor().data_block() );
+    for(unsigned int i=0;i<2;i++)
+      {
+      // Set line properties
+      glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
-    // Compute the vertices of the edge
-    Vector2d x0,x1;
-    m_Model->GetEdgeVertices(dir,i,x0,x1,corner);
+      // Select color according to edge state
+      if(m_Model->m_Highlight.Highlighted[dir][i])
+        {
+        eltActive->ApplyLineSettings();
+        eltActive->ApplyColor();
+        }
+      else
+        {
+        elt->ApplyLineSettings();
+        elt->ApplyColor();
+        }
 
-    // Draw the line
-    glVertex2d(x0[0],x0[1]);
-    glVertex2d(x1[0],x1[1]);
+      // Compute the vertices of the edge
+      Vector2d x0,x1;
+      m_Model->GetEdgeVertices(dir,i,x0,x1,corner);
+
+      // Start drawing the lines
+      glBegin(GL_LINES);
+
+      // Draw the line
+      glVertex2d(x0[0],x0[1]);
+      glVertex2d(x1[0],x1[1]);
+
+      glEnd();
+      glPopAttrib();
+      }
     }
-  }
-
-  glEnd();
-  glPopAttrib();
 }

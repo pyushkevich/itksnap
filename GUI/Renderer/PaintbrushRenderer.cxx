@@ -98,8 +98,8 @@ void PaintbrushRenderer::paintGL()
   glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
 
   // Apply the line properties
-  glColor3dv(elt->GetNormalColor().data_block());
   elt->ApplyLineSettings();
+  elt->ApplyColor();
 
   // Get the brush position
   Vector3d xPos = m_Model->GetCenterOfPaintbrushInSliceSpace();

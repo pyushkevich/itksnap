@@ -76,7 +76,7 @@ void CrosshairsRenderer::paintGL()
   elt->ApplyLineSettings();
 
   // Apply the color
-  glColor3dv(elt->GetNormalColor().data_block());
+  elt->ApplyColor();
 
   // Refit matrix so that the lines are centered on the current pixel
   glPushMatrix();

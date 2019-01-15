@@ -27,7 +27,7 @@
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stack">
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="pageGeneral">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -687,6 +687,9 @@ color:white;</string>
            </item>
            <item>
             <widget class="QGroupBox" name="grpAppearance">
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
              <property name="title">
               <string>Appearance:</string>
              </property>
@@ -696,6 +699,9 @@ color:white;</string>
                 <layout class="QFormLayout" name="formLayout_3">
                  <property name="fieldGrowthPolicy">
                   <enum>QFormLayout::FieldsStayAtSizeHint</enum>
+                 </property>
+                 <property name="verticalSpacing">
+                  <number>5</number>
                  </property>
                  <property name="leftMargin">
                   <number>0</number>
@@ -733,33 +739,30 @@ color:white;</string>
                   </spacer>
                  </item>
                  <item row="2" column="0">
-                  <widget class="QLabel" name="labelElementNormalColor">
+                  <widget class="QLabel" name="labelElementColor">
                    <property name="text">
-                    <string>Normal color:</string>
+                    <string>Color:</string>
                    </property>
                    <property name="buddy">
-                    <cstring>btnElementNormalColor</cstring>
+                    <cstring>btnElementColor</cstring>
                    </property>
                   </widget>
                  </item>
                  <item row="2" column="1">
-                  <widget class="QColorButtonWidget" name="btnElementNormalColor" native="true"/>
+                  <widget class="QColorButtonWidget" name="btnElementColor" native="true"/>
                  </item>
                  <item row="3" column="0">
-                  <widget class="QLabel" name="labelElementActiveColor">
+                  <widget class="QLabel" name="labelElementOpacity">
                    <property name="text">
-                    <string>Active color:</string>
+                    <string>Opacity:</string>
                    </property>
                    <property name="buddy">
-                    <cstring>btnElementActiveColor</cstring>
+                    <cstring>btnElementColor</cstring>
                    </property>
                   </widget>
                  </item>
-                 <item row="3" column="1">
-                  <widget class="QColorButtonWidget" name="btnElementActiveColor" native="true"/>
-                 </item>
                  <item row="4" column="1">
-                  <spacer name="verticalSpacer_5">
+                  <spacer name="verticalSpacer_12">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
                    </property>
@@ -774,7 +777,7 @@ color:white;</string>
                    </property>
                   </spacer>
                  </item>
-                 <item row="6" column="0">
+                 <item row="8" column="0">
                   <widget class="QLabel" name="labelElementLineThickness">
                    <property name="text">
                     <string>Line thickness:</string>
@@ -784,7 +787,7 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="6" column="1">
+                 <item row="8" column="1">
                   <widget class="QDoubleSpinBox" name="inElementThickness">
                    <property name="minimumSize">
                     <size>
@@ -794,7 +797,30 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="9" column="0">
+                 <item row="9" column="1">
+                  <widget class="QCheckBox" name="chkElementAntiAlias">
+                   <property name="text">
+                    <string>Smooth </string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="10" column="1">
+                  <spacer name="verticalSpacer_10">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>5</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item row="11" column="0">
                   <widget class="QLabel" name="labelElementDashSpacing">
                    <property name="text">
                     <string>Dash spacing:</string>
@@ -804,7 +830,7 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="9" column="1">
+                 <item row="11" column="1">
                   <widget class="QSpinBox" name="inElementDashSpacing">
                    <property name="minimumSize">
                     <size>
@@ -814,7 +840,7 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="11" column="1">
+                 <item row="13" column="1">
                   <spacer name="verticalSpacer_6">
                    <property name="orientation">
                     <enum>Qt::Vertical</enum>
@@ -830,7 +856,7 @@ color:white;</string>
                    </property>
                   </spacer>
                  </item>
-                 <item row="12" column="0">
+                 <item row="14" column="0">
                   <widget class="QLabel" name="labelElementFontSize">
                    <property name="text">
                     <string>Font size:</string>
@@ -840,7 +866,7 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="12" column="1">
+                 <item row="14" column="1">
                   <widget class="QSpinBox" name="inElementFontSize">
                    <property name="minimumSize">
                     <size>
@@ -850,28 +876,12 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="7" column="1">
-                  <widget class="QCheckBox" name="chkElementAntiAlias">
-                   <property name="text">
-                    <string>Smooth </string>
+                 <item row="3" column="1">
+                  <widget class="QDoubleSlider" name="inElementOpacity">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
                    </property>
                   </widget>
-                 </item>
-                 <item row="8" column="1">
-                  <spacer name="verticalSpacer_10">
-                   <property name="orientation">
-                    <enum>Qt::Vertical</enum>
-                   </property>
-                   <property name="sizeType">
-                    <enum>QSizePolicy::Fixed</enum>
-                   </property>
-                   <property name="sizeHint" stdset="0">
-                    <size>
-                     <width>20</width>
-                     <height>5</height>
-                    </size>
-                   </property>
-                  </spacer>
                  </item>
                 </layout>
                </widget>
@@ -1512,6 +1522,11 @@ font-weight:bold;</string>
    <header location="global">QColorButtonWidget.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>QDoubleSlider</class>
+   <extends>QSlider</extends>
+   <header location="global">QDoubleSlider.h</header>
+  </customwidget>
  </customwidgets>
  <tabstops>
   <tabstop>listWidget</tabstop>
@@ -1539,8 +1554,7 @@ font-weight:bold;</string>
   <tabstop>tabWidget_2</tabstop>
   <tabstop>treeVisualElements</tabstop>
   <tabstop>chkElementVisible</tabstop>
-  <tabstop>btnElementNormalColor</tabstop>
-  <tabstop>btnElementActiveColor</tabstop>
+  <tabstop>btnElementColor</tabstop>
   <tabstop>inElementThickness</tabstop>
   <tabstop>inElementDashSpacing</tabstop>
   <tabstop>inElementFontSize</tabstop>

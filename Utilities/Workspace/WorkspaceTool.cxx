@@ -46,6 +46,7 @@
 #include "itksys/MD5.h"
 #include "itksys/Directory.hxx"
 #include "itksys/RegularExpression.hxx"
+#include "itkMatrixOffsetTransformBase.h"
 #include "IRISException.h"
 #include "ColorLabelTable.h"
 
@@ -105,6 +106,7 @@ int usage(int rc)
   cout << "  -props-set-contrast <map_spec>    : Set the contrast mapping specification" << endl;
   cout << "  -props-set-sticky <on|off>        : Set the stickiness of the layer" << endl;
   cout << "  -props-set-alpha <value>          : Set the alpha (transparency) of the layer" << endl;
+  cout << "  -props-set-transform <file>       : Set the transform relative to main image" << endl;
   cout << "  -props-registry-get <key>         : Gets a registry key relative to picked layer" << endl;
   cout << "  -props-registry-set <key> <value> : Sets a registry key relative to picked layer" << endl;
   cout << "Tag assignment commands (apply to picked layer/object): " << endl;
@@ -552,7 +554,7 @@ int main(int argc, char *argv[])
           }
         }
 
-      else if(arg == "-props-get-transform")
+      else if(arg == "-props-get-transform" || arg == "-pgt")
         {
         if(!ws.IsKeyValidLayer(layer_folder))
           throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
@@ -572,6 +574,26 @@ int main(int argc, char *argv[])
           {
           cout << prefix << Q(i,0) << " " << Q(i,1) << " " << Q(i,2) << " " << Q(i,3) << endl;
           }
+        }
+
+      else if (arg == "-props-set-transform" || arg == "-pst")
+        {
+        // Must be a valid folder
+        if(!ws.IsKeyValidLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
+
+        // Read the transform file
+        std::string fn_tran = cl.read_existing_filename();
+
+        // Read the transform. Format is not specified so we assume it is in C3D format
+        SmartPtr<AffineTransformHelper::ITKTransformMOTB> tran =
+            AffineTransformHelper::ReadAsRASMatrix(fn_tran.c_str());
+
+        // Get the folder
+        Registry &folder = ws.GetRegistry().Folder(layer_folder);
+
+        // Write to registry
+        AffineTransformHelper::WriteToRegistry(&folder, tran.GetPointer());
         }
 
       else if(arg == "-labels-set")

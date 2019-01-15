@@ -5,6 +5,7 @@
 #include "GenericSliceRenderer.h"
 
 class InteractiveRegistrationModel;
+class OpenGLAppearanceElement;
 
 class RegistrationRenderer : public SliceRendererDelegate
 {
@@ -23,7 +24,7 @@ protected:
 
   InteractiveRegistrationModel *m_Model;
 private:
-  void DrawRotationWidget();
+  void DrawRotationWidget(const OpenGLAppearanceElement *ae);
 };
 
 #endif // REGISTRATIONRENDERER_H
