@@ -7,6 +7,7 @@
 #include "FormattedTable.h"
 #include "GuidedNativeImageIO.h"
 #include "ColorLabelTable.h"
+#include "MultiChannelDisplayMode.h"
 #include "RESTClient.h"
 #include "itkCommand.h"
 
@@ -526,6 +527,12 @@ void WorkspaceAPI::SetLayerNickname(const string &layer_key, const string &value
 void WorkspaceAPI::SetLayerColormapPreset(const string &layer_key, const string &value)
 {
   GetLayerFolder(layer_key)["LayerMetaData.DisplayMapping.ColorMap.Preset"] << value;
+}
+
+void WorkspaceAPI::SetLayerMultiComponentDisplay(const string &layer_key, const MultiChannelDisplayMode &mode)
+{
+  Registry &folder = GetLayerFolder(layer_key);
+  mode.Save(folder.Folder("LayerMetaData.DisplayMapping"));
 }
 
 void WorkspaceAPI::RenameLayer(const string &layer_key, const string &new_filename, bool force)

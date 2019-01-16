@@ -104,6 +104,7 @@ int usage(int rc)
   cout << "  -props-set-nickname <name>        : Set the nickname of the selected layer" << endl;
   cout << "  -props-set-colormap <preset>      : Set colormap to a given system preset" << endl;
   cout << "  -props-set-contrast <map_spec>    : Set the contrast mapping specification" << endl;
+  cout << "  -props-set-mcd <mcd_spec>         : Set the multi-component display mode (see below)" << endl;
   cout << "  -props-set-sticky <on|off>        : Set the stickiness of the layer" << endl;
   cout << "  -props-set-alpha <value>          : Set the alpha (transparency) of the layer" << endl;
   cout << "  -props-set-transform <file>       : Set the transform relative to main image" << endl;
@@ -175,6 +176,9 @@ int usage(int rc)
   cout << "  AUTO                              : Automatic, as determined by ITK-SNAP" << endl;
   cout << "  DEFAULT                           : Default state, linear from 0 to 1" << endl;
   cout << "  CURVE N t1 y1 ... tN yN           : Fully specified curve with N points" << endl; 
+  cout << "Multi-Component Display (MCD) Specification:" << endl;
+  cout << "  comp <N>                          : Display N-th component" << endl;
+  cout << "  <mag|avg|max|rgb|grid>            : Special modes" << endl;
   return rc;
 }
 
@@ -594,6 +598,37 @@ int main(int argc, char *argv[])
 
         // Write to registry
         AffineTransformHelper::WriteToRegistry(&folder, tran.GetPointer());
+        }
+
+      else if(arg == "-props-set-mcd")
+        {
+        // Read the mode information
+        string mode = cl.read_string();
+        std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
+
+        // Initialize the multi-channel display mode
+        MultiChannelDisplayMode mcd;
+        if(mode == "comp")
+          {
+          mcd.SelectedScalarRep = SCALAR_REP_COMPONENT;
+          mcd.SelectedComponent = (int) cl.read_integer();
+          }
+        else if(mode == "avg")
+          mcd.SelectedScalarRep = SCALAR_REP_AVERAGE;
+        else if(mode == "mag")
+          mcd.SelectedScalarRep = SCALAR_REP_MAGNITUDE;
+        else if(mode == "max")
+          mcd.SelectedScalarRep = SCALAR_REP_MAX;
+        else if(mode == "rgb")
+          mcd = MultiChannelDisplayMode::DefaultForRGB();
+        else if(mode == "grid")
+          {
+          mcd = MultiChannelDisplayMode::DefaultForRGB();
+          mcd.RenderAsGrid = true;
+          }
+
+        // Store the mode in the folder
+        ws.SetLayerMultiComponentDisplay(layer_folder, mcd);
         }
 
       else if(arg == "-labels-set")
