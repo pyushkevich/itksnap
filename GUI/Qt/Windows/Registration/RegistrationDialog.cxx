@@ -67,6 +67,9 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
   makeArrayCoupling(ui->inScaleX, ui->inScaleY, ui->inScaleZ,
                     m_Model->GetScalingModel());
 
+  makeArrayCoupling((QAbstractButton *) ui->btnFlipX, (QAbstractButton *) ui->btnFlipY, (QAbstractButton *) ui->btnFlipZ,
+                    m_Model->GetFlipModel());
+
   makeArrayCoupling(ui->inScaleXSlider, ui->inScaleYSlider, ui->inScaleZSlider,
                     m_Model->GetLogScalingModel());
 

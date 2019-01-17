@@ -175,6 +175,8 @@
         <file>icons8_attach_16@2x.png</file>
         <file>icons8_opened_folder_16.png</file>
         <file>icons8_opened_folder_16@2x.png</file>
+        <file>icons8_flip_vertical_16.png</file>
+        <file>icons8_flip_vertical_16@2x.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

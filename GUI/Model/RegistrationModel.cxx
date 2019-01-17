@@ -46,6 +46,11 @@ RegistrationModel::RegistrationModel()
         &Self::GetScalingValueAndRange,
         &Self::SetScalingValue);
 
+  m_FlipModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetFlipValue,
+        &Self::SetFlipValue);
+
   m_LogScalingModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetLogScalingValueAndRange,
@@ -145,6 +150,8 @@ void RegistrationModel::ResetOnMainImageChange()
 
 void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
 {
+  typedef itk::Euler3DTransform<double> EulerTransform;
+
   ImageWrapperBase *layer = this->GetMovingLayerWrapper();
 
   // If there is no layer, we just invalidate the parameters
@@ -173,7 +180,42 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
   // Perform polar decomposition
   vnl_svd<double> svd(m_ManualParam.AffineMatrix.GetVnlMatrix());
 
-  ITKMatrixType rotation = svd.U() * svd.V().transpose();
+  // Get the determinant of the affine matrix
+  double det = vnl_determinant(m_ManualParam.AffineMatrix.GetVnlMatrix());
+
+
+  // There is ambiguity with respect to the flip matrix. To eliminate it, we consider
+  // all possible flips and choose the flip that gives the smallest max absolute Euler
+  // angles (avoid 90 angles for example)
+  unsigned int u_flip_best = 8;
+  double ea_mag_best = 0.0;
+  ITKMatrixType flip_best;
+  for(unsigned int u_flip = 0; u_flip < 8; u_flip++)
+    {
+    // Generate the flip matrix
+    ITKMatrixType flip;
+    flip.SetIdentity();
+    for(unsigned int i = 0; i < 3; i++)
+      flip(i,i) = ((1 << i) & u_flip) > 0 ? 1.0 : -1.0;
+    double det_flip = flip(0,0) * flip(1,1) * flip(2,2);
+    if(det_flip * det > 0.0)
+      {
+      // Flip determinant same sign as matrix determinant - candidate flip
+      EulerTransform::Pointer euler = EulerTransform::New();
+      euler->SetMatrix(svd.U() * svd.V().transpose() * flip.GetVnlMatrix());
+      Vector3d ea(euler->GetAngleX(), euler->GetAngleY(), euler->GetAngleZ());
+      double ea_mag = ea.inf_norm();
+      if(u_flip_best >= 8 || ea_mag < ea_mag_best)
+        {
+        u_flip_best = u_flip;
+        ea_mag_best = ea_mag;
+        flip_best = flip;
+        }
+      }
+    }
+
+  // Compute the rotation matrix - must have positive determinant to make sense
+  ITKMatrixType rotation = svd.U() * svd.V().transpose() * flip_best.GetVnlMatrix();
 
   // Get the rotation center in world coordinates
   itk::Point<double, 3> ptCenter;
@@ -181,7 +223,6 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
         to_itkIndex(m_RotationCenter), ptCenter);
 
   // Compute Euler angles
-  typedef itk::Euler3DTransform<double> EulerTransform;
   EulerTransform::Pointer euler = EulerTransform::New();
   euler->SetCenter(ptCenter);
   euler->SetMatrix(rotation);
@@ -199,6 +240,10 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool force_update)
   m_ManualParam.Scaling[0] = svd.W()(0,0);
   m_ManualParam.Scaling[1] = svd.W()(1,1);
   m_ManualParam.Scaling[2] = svd.W()(2,2);
+
+  m_ManualParam.Flip[0] = flip_best(0,0) < 0;
+  m_ManualParam.Flip[1] = flip_best(1,1) < 0;
+  m_ManualParam.Flip[2] = flip_best(2,2) < 0;
 
   // The shearing rotation matrix can be represented as Euler angles or quaternion
   // or whatever, but since we never present these parameters to the user, it is easier
@@ -257,6 +302,11 @@ void RegistrationModel::UpdateWrapperFromManualParameters()
   vnl_matrix_fixed<double, 3, 3> scaling;
   scaling.fill(0.0);
   scaling.set_diagonal(m_ManualParam.Scaling);
+
+  // Apply the flip to the scaling matrix
+  for(unsigned int i = 0; i < 3; i++)
+    if(m_ManualParam.Flip[i])
+      scaling(i,i) *= -1.0;
 
   vnl_matrix_fixed<double, 3, 3> scale_shear =
       m_ManualParam.ShearingMatrix * scaling * m_ManualParam.ShearingMatrix.transpose();
@@ -907,6 +957,27 @@ void RegistrationModel::SetScalingValue(Vector3d value)
 {
   // Update the translation vector
   m_ManualParam.Scaling = value;
+
+  // Update the transform
+  this->UpdateWrapperFromManualParameters();
+}
+
+bool RegistrationModel::GetFlipValue(Vector3b &value)
+{
+  // Make sure that the manual parameters are valid
+  if(m_ManualParam.LayerID == NOID)
+    return false;
+
+  // Assign the value trivially
+  value = m_ManualParam.Flip;
+
+  return true;
+}
+
+void RegistrationModel::SetFlipValue(Vector3b value)
+{
+  // Update the flips
+  m_ManualParam.Flip = value;
 
   // Update the transform
   this->UpdateWrapperFromManualParameters();

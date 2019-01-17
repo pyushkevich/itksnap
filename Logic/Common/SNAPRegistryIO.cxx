@@ -368,16 +368,9 @@ SNAPRegistryIO
     // Read the mesh options
     SNAPRegistryIO::ReadMeshOptions(registry.Folder("IRIS.MeshOptions"), gs->GetMeshOptions());
 
-    // Restore the intensity mapping curve
-    if (main)
-      {
-      main->GetDisplayMapping()->Restore(registry.Folder("IRIS.DisplayMapping"));
-      }
-
     // Tiling state
     gs->SetSliceViewLayerLayout(registry["IRIS.SliceViewLayerLayout"].GetEnum(
           GetEnumMapLayerLayout(), gs->GetSliceViewLayerLayout()));
-
     }
 
   // Read the information about the bounding box and ROI sub-sampling
@@ -410,15 +403,6 @@ SNAPRegistryIO
     gs->SetSegmentationAlpha(
       registry["IRIS.LabelState.SegmentationAlpha"][gs->GetSegmentationAlpha()]);
     } // If restore labels
-
-  // Read other settings
-  // TODO: erase
-  /*
-  gs->SetLastAssociatedSegmentationFileName(
-    registry["Files.Segmentation.FileName"][""]);  
-  gs->SetLastAssociatedPreprocessingFileName(
-    registry["Files.Preprocessing.FileName"][""]);
-    */
 
   // Read the local history
   app->GetSystemInterface()->GetHistoryManager()->LoadLocalHistory(
