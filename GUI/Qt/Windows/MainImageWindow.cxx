@@ -914,7 +914,8 @@ void MainImageWindow::CreateRecentMenu(
     const char *history_category,
     bool use_global_history,
     int max_items,
-    const char *slot)
+    const char *slot,
+    bool use_shortcut, int shortcut_modifier)
 {
   // Delete all the menu items in the parent menu
   submenu->clear();
@@ -928,6 +929,8 @@ void MainImageWindow::CreateRecentMenu(
     {
     // Create an action for this file
     QAction *action = submenu->addAction(from_utf8(recent[i]));
+    if(use_shortcut && i < 10)
+      action->setShortcut(QKeySequence(shortcut_modifier + Qt::Key_1 + i));
     connect(action, SIGNAL(triggered(bool)), this, slot);
     }
 
@@ -939,10 +942,10 @@ void MainImageWindow::UpdateRecentMenu()
 {
   // Create recent menus for various history categories
   this->CreateRecentMenu(ui->menuRecent_Images, "MainImage", true, 5,
-                         SLOT(LoadRecentActionTriggered()));
+                         SLOT(LoadRecentActionTriggered()), true, Qt::CTRL);
 
   this->CreateRecentMenu(ui->menuRecent_Overlays, "AnatomicImage", false, 5,
-                         SLOT(LoadRecentOverlayActionTriggered()));
+                         SLOT(LoadRecentOverlayActionTriggered()), true, Qt::CTRL +  Qt::SHIFT);
 
   this->CreateRecentMenu(ui->menuRecent_Segmentations, "LabelImage", false, 5,
                          SLOT(LoadRecentSegmentationActionTriggered()));

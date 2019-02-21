@@ -339,7 +339,8 @@ private:
   void CreateRecentMenu(QMenu *submenu,
                         const char *history_category,
                         bool use_global_history,
-                        int max_items, const char *slot);
+                        int max_items, const char *slot,
+                        bool use_shortcut = false, int shortcut_modifier = 0);
 
   void UpdateRecentMenu();
   void UpdateWindowTitle();
