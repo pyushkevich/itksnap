@@ -141,6 +141,14 @@ protected:
   typedef itk::Vector<double, 3> ITKVectorType;
   typedef GreedyApproach<3, float> GreedyAPI;
 
+  // Sometimes the vnl types are easier to work with
+  typedef vnl_matrix_fixed<double, 3, 3> Mat3;
+  typedef vnl_matrix_fixed<double, 4, 4> Mat4;
+  typedef vnl_vector_fixed<double, 3> Vec3;
+
+  // A little function to make homogeneous matrices from matrix/offset
+  static Mat4 make_homog(const Mat3 &A, const Vec3 &b) ;
+
   GlobalUIModel *m_Parent;
   IRISApplication *m_Driver;
 

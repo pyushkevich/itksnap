@@ -107,6 +107,7 @@ RegistrationModel::~RegistrationModel()
 
 }
 
+
 void RegistrationModel::ResetOnMainImageChange()
 {
   if(m_Driver->GetIRISImageData()->IsMainLoaded())
@@ -152,7 +153,7 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool reset_flips, bool
 {
   typedef itk::Euler3DTransform<double> EulerTransform;
 
-  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
+    ImageWrapperBase *layer = this->GetMovingLayerWrapper();
 
   // If there is no layer, we just invalidate the parameters
   if(!layer)
@@ -283,27 +284,41 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool reset_flips, bool
   this->InvokeEvent(ModelUpdateEvent());
 }
 
-void RegistrationModel::UpdateWrapperFromManualParameters()
+RegistrationModel::Mat4
+RegistrationModel::make_homog(const Mat3 &A, const Vec3 &b)
 {
+  Mat4 M; M.set_identity();
+  for(unsigned int i = 0; i < 3; i++)
+    {
+    for(unsigned int j = 0; j < 3; j++)
+      M(i,j) = A(i,j);
+    M(i,3) = b[i];
+    }
+  return M;
+}
+
+
+void RegistrationModel::UpdateWrapperFromManualParameters()
+{  
   ImageWrapperBase *layer = this->GetMovingLayerWrapper();
   assert(layer);
-
-  // Create a new euler transform
-  typedef itk::Euler3DTransform<double> EulerTransform;
-  EulerTransform::Pointer euler = EulerTransform::New();
 
   // Get the rotation center in world coordinates
   itk::Point<double, 3> ptCenter;
   layer->GetReferenceSpace()->TransformIndexToPhysicalPoint(
         to_itkIndex(m_RotationCenter), ptCenter);
+  Vec3 xCenter = ptCenter.GetVnlVector();
 
+  // Create a 4x4 transform that rotates by Euler angles while preserving the center
+  typedef itk::Euler3DTransform<double> EulerTransform;
+  EulerTransform::Pointer euler = EulerTransform::New();
   euler->SetCenter(ptCenter);
   euler->SetRotation(m_ManualParam.EulerAngles[0], m_ManualParam.EulerAngles[1], m_ManualParam.EulerAngles[2]);
+  Mat4 M_rotation = make_homog(euler->GetMatrix().GetVnlMatrix(), euler->GetOffset().GetVnlVector());
 
-  ITKVectorType translation;
-  translation.SetVnlVector(m_ManualParam.Translation);
-  euler->SetTranslation(translation);
-
+  // Create a 4x4 transform that handles translation
+  Mat3 eye3; eye3.set_identity();
+  Mat4 M_translation = make_homog(eye3, m_ManualParam.Translation);
 
   // Compute the scaling and shearing matrix
   vnl_matrix_fixed<double, 3, 3> scaling;
@@ -315,11 +330,15 @@ void RegistrationModel::UpdateWrapperFromManualParameters()
     if(m_ManualParam.Flip[i])
       scaling(i,i) *= -1.0;
 
-  vnl_matrix_fixed<double, 3, 3> scale_shear =
-      m_ManualParam.ShearingMatrix * scaling * m_ManualParam.ShearingMatrix.transpose();
+  Mat3 scale_shear = m_ManualParam.ShearingMatrix * scaling * m_ManualParam.ShearingMatrix.transpose();
 
-  m_ManualParam.AffineMatrix = euler->GetMatrix().GetVnlMatrix() * scale_shear;
-  m_ManualParam.AffineOffset = euler->GetOffset();
+  // Create an affine transformation that keeps the center of rotation in place but applies scaling
+  Mat4 M_scale_shear = make_homog(scale_shear, xCenter - scale_shear * xCenter);
+
+  // Combine the 4x4 matrices into a single affine transform
+  Mat4 M = M_translation * M_rotation * M_scale_shear;
+  m_ManualParam.AffineMatrix.GetVnlMatrix() = M.extract(3,3);
+  m_ManualParam.AffineOffset.SetVnlVector(M.get_column(3).extract(3));
 
   // Create a new transform
   typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
@@ -902,8 +921,8 @@ bool RegistrationModel::GetEulerAnglesValueAndRange(Vector3d &value, NumericValu
   // Handle the range
   if(range)
     {
-    range->Set(Vector3d(-180.0, -90.0, -180.0),
-               Vector3d(+180.0, +90.0, +180.0),
+    range->Set(Vector3d(-180.0, -180.0, -180.0),
+               Vector3d(+180.0, +180.0, +180.0),
                Vector3d(0.1, 0.1, 0.1));
     }
   return true;
