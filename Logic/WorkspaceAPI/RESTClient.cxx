@@ -411,6 +411,11 @@ string RESTClient::GetServerURLFile()
 
 string RESTClient::GetServerURL()
 {
+  // If environment variable is set, then use it
+  const char *server_env = SystemTools::GetEnv("ITKSNAP_WT_DSS_SERVER");
+  if(server_env)
+    return server_env;
+
   string sfile = RESTClient::GetServerURLFile();
   if(!SystemTools::FileExists(sfile))
     throw IRISException("A server has not been configured yet - please sign in");

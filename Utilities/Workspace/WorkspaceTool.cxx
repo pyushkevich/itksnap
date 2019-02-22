@@ -179,6 +179,10 @@ int usage(int rc)
   cout << "Multi-Component Display (MCD) Specification:" << endl;
   cout << "  comp <N>                          : Display N-th component" << endl;
   cout << "  <mag|avg|max|rgb|grid>            : Special modes" << endl;
+  cout << "Environment Variables" << endl;
+  cout << "  ITKSNAP_WT_DSS_SERVER             : URL of the server to use. When you authenticate with -dss-auth" << endl;
+  cout << "                                      the server is stored in a config file. When this variable is set" << endl;
+  cout << "                                      the config file is ignored and this server is used instead." << endl;
   return rc;
 }
 
