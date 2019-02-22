@@ -36,7 +36,7 @@
                                 <string>itksnap</string>
                         </array>
                         <key>CFBundleTypeIconFile</key>
-                        <string>itksnap.icns</string>
+                        <string>ITK-SNAP.icns</string>
                 </dict>
                 <dict>
 			<key>CFBundleTypeName</key>
