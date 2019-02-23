@@ -35,7 +35,10 @@ public:
     UIF_LINE_MODE,
     UIF_LINE_MODE_DRAWING,
     UIF_LANDMARK_MODE,
-    UIF_EDITING_MODE
+    UIF_EDITING_MODE,
+    UIF_SELECTION_ANY,
+    UIF_SELECTION_SINGLE,
+    UIF_ANNOTATIONS_EXIST
   };
 
 
@@ -54,6 +57,15 @@ public:
   /** Whether we are moving something now */
   irisIsMacro(MovingSelection)
 
+  /** Model for the landmark annotation text edit */
+  irisSimplePropertyAccessMacro(SelectedLandmarkText, std::string)
+
+  /** Model for the landmark annotation text edit */
+  irisSimplePropertyAccessMacro(SelectedAnnotationTags, StringList)
+
+  /** Model for the selected annotation color */
+  irisSimplePropertyAccessMacro(SelectedAnnotationColor, Vector3ui)
+
   /** Get the physical length of line segment */
   double GetLineLength(const Vector3d &xSliceA, const Vector3d &xSliceB);
 
@@ -69,11 +81,14 @@ public:
   /** Helper function - get current annotation mode from GlobalState */
   AnnotationMode GetAnnotationMode() const;
 
+  /** Helper function - are we in active annotation mode? */
+  bool IsAnnotationModeActive() const;
+
   /** Helper function - get annotation data from IRISApplication */
-  ImageAnnotationData *GetAnnotations();
+  ImageAnnotationData *GetAnnotations() const;
 
   /** Test if an annotation is visible in this slice */
-  bool IsAnnotationVisible(const AbstractAnnotation *annot);
+  bool IsAnnotationVisible(const AbstractAnnotation *annot) const;
 
 
   bool ProcessPushEvent(const Vector3d &xSlice, bool shift_mod);
@@ -91,6 +106,13 @@ public:
   void SelectAllOnSlice();
 
   void DeleteSelectedOnSlice();
+
+  // Return a single selected annotation or NULL if no annotation is selected
+  AbstractAnnotation *GetSingleSelectedAnnotation() const;
+
+  // Count the number of annotations, optionally filtering to only selected
+  // annotations and only visible annotations
+  unsigned int GetAnnotationCount(bool filter_selected, bool filter_visible) const;
 
   void GoToNextAnnotation();
   void GoToPreviousAnnotation();
@@ -144,6 +166,21 @@ protected:
 
   // Apply move command to annotation handle
   void MoveAnnotationHandle(AbstractAnnotation *ann, int handle, const Vector3d &deltaPhys);
+
+  // Landmark editor: text
+  SmartPtr<AbstractSimpleStringProperty> m_SelectedLandmarkTextModel;
+  bool GetSelectedLandmarkTextValue(std::string &value);
+  void SetSelectedLandmarkTextValue(std::string value);
+
+  // Annotation editor: tags
+  SmartPtr<AbstractSimpleStringListProperty> m_SelectedAnnotationTagsModel;
+  bool GetSelectedAnnotationTagsValue(StringList &value);
+  void SetSelectedAnnotationTagsValue(StringList value);
+
+  // Annotation editor: color
+  SmartPtr<AbstractSimpleUIntVec3Property> m_SelectedAnnotationColorModel;
+  bool GetSelectedAnnotationColorValue(Vector3ui &value);
+  void SetSelectedAnnotationColorValue(Vector3ui value);
 };
 
 #endif // ANNOTATIONMODEL_H

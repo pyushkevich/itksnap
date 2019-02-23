@@ -5,6 +5,16 @@
 namespace annot
 {
 
+Vector3ui AbstractAnnotation::GetColor3ui() const
+{
+  return to_unsigned_int(this->GetColor() * 255.0 + 0.5);
+}
+
+void AbstractAnnotation::SetColor3ui(const Vector3ui &color)
+{
+  this->SetColor(to_double(color) / 255.0);
+}
+
 bool AbstractAnnotation::IsVisible(int plane, int slice) const
 {
   // Check if the plane makes this annotation invisible
@@ -34,6 +44,7 @@ void AbstractAnnotation::Save(Registry &folder)
   folder["VisibleInAllPlanes"] << m_VisibleInAllPlanes;
   folder["Plane"] << m_Plane;
   folder["Color"] << m_Color;
+  folder["Tags"].PutList(m_Tags);
 }
 
 void AbstractAnnotation::Load(Registry &folder)
@@ -43,6 +54,7 @@ void AbstractAnnotation::Load(Registry &folder)
   m_VisibleInAllPlanes = folder["VisibleInAllPlanes"][false];
   m_Plane = folder["Plane"][0];
   m_Color = folder["Color"][Vector3d(1.0, 0.0, 0.0)];
+  folder["Tags"].GetList(m_Tags);
 }
 
 int LineSegmentAnnotation::GetSliceIndex(int plane) const

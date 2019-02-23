@@ -16,7 +16,8 @@ public:
   virtual void paintGL() ITK_OVERRIDE;
 
   irisGetMacro(Model, AnnotationModel *)
-  irisSetMacro(Model, AnnotationModel *)
+
+  void SetModel(AnnotationModel *model);
 
 protected:
 

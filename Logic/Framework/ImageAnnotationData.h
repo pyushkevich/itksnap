@@ -45,6 +45,13 @@ public:
   /** Get the color of the annotation */
   irisGetSetMacro(Color, const Vector3d &)
 
+  /** Get the tags in the annotation */
+  irisGetSetMacro(Tags, const std::list<std::string> &)
+
+  /** Get color as a u-int vector */
+  Vector3ui GetColor3ui() const;
+  void SetColor3ui(const Vector3ui &color);
+
   /** Test whether the annotation is visible in the current plane and given slice */
   bool IsVisible(int plane, int slice) const;
 
@@ -76,6 +83,9 @@ protected:
   bool m_VisibleInAllPlanes;
 
   Vector3d m_Color;
+
+  // Each annotation can have tags
+  std::list<std::string> m_Tags;
 
   int m_Plane;
 };

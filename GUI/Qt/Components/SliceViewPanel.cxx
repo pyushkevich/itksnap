@@ -32,6 +32,7 @@
 #include <QCursor>
 #include <QBitmap>
 #include <QToolButton>
+#include "AnnotationEditDialog.h"
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -84,6 +85,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   ui->btnAnnotationAcceptLine->setDefaultAction(ui->actionAnnotationAcceptLine);
   ui->btnAnnotationClearLine->setDefaultAction(ui->actionAnnotationClearLine);
   ui->btnAnnotationSelectAll->setDefaultAction(ui->actionAnnotationSelectAll);
+  ui->btnAnnotationEdit->setDefaultAction(ui->actionAnnotationEdit);
   ui->btnAnnotationDeleteSelected->setDefaultAction(ui->actionAnnotationDelete);
   ui->btnAnnotationNext->setDefaultAction(ui->actionAnnotationNext);
   ui->btnAnnotationPrevious->setDefaultAction(ui->actionAnnotationPrevious);
@@ -261,6 +263,11 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   activateOnFlag(ui->actionAnnotationAcceptLine, am, AnnotationModel::UIF_LINE_MODE_DRAWING);
   activateOnFlag(ui->actionAnnotationClearLine, am, AnnotationModel::UIF_LINE_MODE_DRAWING);
+  activateOnFlag(ui->actionAnnotationEdit, am, AnnotationModel::UIF_SELECTION_SINGLE);
+  activateOnFlag(ui->actionAnnotationDelete, am, AnnotationModel::UIF_SELECTION_ANY);
+  activateOnFlag(ui->actionAnnotationNext, am, AnnotationModel::UIF_ANNOTATIONS_EXIST);
+  activateOnFlag(ui->actionAnnotationPrevious, am, AnnotationModel::UIF_ANNOTATIONS_EXIST);
+  activateOnFlag(ui->actionAnnotationPrevious, am, AnnotationModel::UIF_ANNOTATIONS_EXIST);
 
   // Update the expand view button
   this->UpdateExpandViewButton();
@@ -632,4 +639,14 @@ void SliceViewPanel::on_actionAnnotationNext_triggered()
 void SliceViewPanel::on_actionAnnotationPrevious_triggered()
 {
   m_GlobalUI->GetAnnotationModel(m_Index)->GoToPreviousAnnotation();
+}
+
+void SliceViewPanel::on_actionAnnotationEdit_triggered()
+{
+  // Show the annotation editor
+  AnnotationEditDialog *dialog = new AnnotationEditDialog(this);
+  dialog->SetModel(m_GlobalUI->GetAnnotationModel(m_Index));
+  dialog->show();
+  dialog->activateWindow();
+  dialog->raise();
 }

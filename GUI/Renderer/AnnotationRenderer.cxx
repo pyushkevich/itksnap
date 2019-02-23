@@ -168,7 +168,8 @@ void AnnotationRenderer::paintGL()
         glVertex2d(p2[0], p2[1]);
         glEnd();
 
-        if(lsa->GetSelected())
+        if(lsa->GetSelected() && m_Model->IsAnnotationModeActive() &&
+           m_Model->GetAnnotationMode() == ANNOTATION_SELECT)
           {
           this->DrawSelectionHandle(p1);
           this->DrawSelectionHandle(p2);
@@ -289,6 +290,18 @@ void AnnotationRenderer::paintGL()
     }
 
   glPopAttrib();
+}
+
+void AnnotationRenderer::SetModel(AnnotationModel *model)
+{
+  m_Model = model;
+  GlobalState *gs = m_Model->GetParent()->GetParentUI()->GetGlobalState();
+
+  // Respond to changes in alpha
+  m_Model->Rebroadcast(gs->GetAnnotationAlphaModel(), ValueChangedEvent(), ModelUpdateEvent());
+
+  // Respond to current tool mode
+  m_Model->Rebroadcast(gs->GetToolbarModeModel(), ValueChangedEvent(), ModelUpdateEvent());
 }
 
 void AnnotationRenderer::DrawSelectionHandle(const Vector3d &xSlice)

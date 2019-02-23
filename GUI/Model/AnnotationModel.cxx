@@ -154,12 +154,18 @@ AnnotationMode AnnotationModel::GetAnnotationMode() const
   return m_Parent->GetDriver()->GetGlobalState()->GetAnnotationMode();
 }
 
-ImageAnnotationData *AnnotationModel::GetAnnotations()
+bool AnnotationModel::IsAnnotationModeActive() const
+{
+  GlobalState *gs = this->GetParent()->GetParentUI()->GetGlobalState();
+  return gs->GetToolbarMode() == ANNOTATION_MODE;
+}
+
+ImageAnnotationData *AnnotationModel::GetAnnotations() const
 {
   return m_Parent->GetDriver()->GetCurrentImageData()->GetAnnotations();
 }
 
-bool AnnotationModel::IsAnnotationVisible(const AnnotationModel::AbstractAnnotation *annot)
+bool AnnotationModel::IsAnnotationVisible(const AnnotationModel::AbstractAnnotation *annot) const
 {
   return annot->IsVisible(
         m_Parent->GetSliceDirectionInImageSpace(),
@@ -483,6 +489,47 @@ void AnnotationModel::DeleteSelectedOnSlice()
   this->InvokeEvent(ModelUpdateEvent());
 }
 
+AnnotationModel::AbstractAnnotation *
+AnnotationModel::GetSingleSelectedAnnotation() const
+{
+  ImageAnnotationData *adata = this->GetAnnotations();
+  AbstractAnnotation *last_sel = NULL;
+  unsigned int n_found = 0;
+  for(ImageAnnotationData::AnnotationIterator it = adata->GetAnnotations().begin();
+      it != adata->GetAnnotations().end(); it++)
+    {
+    AbstractAnnotation *a = *it;
+    if(a->GetSelected() && this->IsAnnotationVisible(a))
+      {
+      n_found++;
+      last_sel = a;
+      }
+    }
+
+  return n_found == 1 ? last_sel : NULL;
+}
+
+unsigned int
+AnnotationModel::GetAnnotationCount(bool filter_selected, bool filter_visible) const
+{
+  ImageAnnotationData *adata = this->GetAnnotations();
+  unsigned int n_found = 0;
+  for(ImageAnnotationData::AnnotationIterator it = adata->GetAnnotations().begin();
+      it != adata->GetAnnotations().end(); it++)
+    {
+    AbstractAnnotation *a = *it;
+    if(a->GetPlane() == m_Parent->GetSliceDirectionInImageSpace()
+       && (!filter_selected || a->GetSelected())
+       && (!filter_visible || this->IsAnnotationVisible(a)))
+      {
+      n_found++;
+      }
+    }
+
+  return n_found;
+}
+
+
 void AnnotationModel::GoToNextAnnotation()
 {
   this->GoToNextOrPrevAnnotation(1);
@@ -675,6 +722,68 @@ void AnnotationModel::MoveAnnotationHandle(AnnotationModel::AbstractAnnotation *
 
 }
 
+bool AnnotationModel::GetSelectedLandmarkTextValue(std::string &value)
+{
+  // A landmark annotation must be selected
+  LandmarkAnnotation *asel = dynamic_cast<LandmarkAnnotation *>(this->GetSingleSelectedAnnotation());
+  if(!asel)
+    return false;
+
+  // Get the value
+  value = asel->GetLandmark().Text;
+  return true;
+}
+
+void AnnotationModel::SetSelectedLandmarkTextValue(std::string value)
+{
+  LandmarkAnnotation *asel = dynamic_cast<LandmarkAnnotation *>(this->GetSingleSelectedAnnotation());
+  assert(asel);
+
+  annot::Landmark lmk = asel->GetLandmark();
+  lmk.Text = value;
+  asel->SetLandmark(lmk);
+  this->InvokeEvent(ModelUpdateEvent());
+}
+
+bool AnnotationModel::GetSelectedAnnotationTagsValue(StringList &value)
+{
+  // A landmark annotation must be selected
+  AbstractAnnotation *asel = this->GetSingleSelectedAnnotation();
+  if(!asel)
+    return false;
+
+  value = asel->GetTags();
+  return true;
+}
+
+void AnnotationModel::SetSelectedAnnotationTagsValue(StringList value)
+{
+  AbstractAnnotation *asel = this->GetSingleSelectedAnnotation();
+  assert(asel);
+
+  asel->SetTags(value);
+  this->InvokeEvent(ModelUpdateEvent());
+}
+
+bool AnnotationModel::GetSelectedAnnotationColorValue(Vector3ui &value)
+{
+  // A landmark annotation must be selected
+  AbstractAnnotation *asel = this->GetSingleSelectedAnnotation();
+  if(!asel)
+    return false;
+
+  value = asel->GetColor3ui();
+  return true;
+}
+
+void AnnotationModel::SetSelectedAnnotationColorValue(Vector3ui value)
+{
+  AbstractAnnotation *asel = this->GetSingleSelectedAnnotation();
+  assert(asel);
+  asel->SetColor3ui(value);
+  this->InvokeEvent(ModelUpdateEvent());
+}
+
 annot::AbstractAnnotation *
 AnnotationModel::GetSelectedHandleUnderCusror(const Vector3d &xSlice, int &out_handle)
 {
@@ -732,18 +841,19 @@ bool AnnotationModel::CheckState(AnnotationModel::UIState state)
     {
     case AnnotationModel::UIF_LINE_MODE:
       return this->GetAnnotationMode() == ANNOTATION_RULER;
-      break;
     case AnnotationModel::UIF_LANDMARK_MODE:
       return this->GetAnnotationMode() == ANNOTATION_LANDMARK;
-      break;
     case AnnotationModel::UIF_LINE_MODE_DRAWING:
       // return this->IsDrawingRuler();
       return this->GetFlagDrawingLine();
-      break;
     case AnnotationModel::UIF_EDITING_MODE:
       return this->GetAnnotationMode() == ANNOTATION_SELECT;
-      break;
-
+    case AnnotationModel::UIF_SELECTION_SINGLE:
+      return this->GetAnnotationCount(true,true) == 1;
+    case AnnotationModel::UIF_SELECTION_ANY:
+      return this->GetAnnotationCount(true,true) > 0;
+    case AnnotationModel::UIF_ANNOTATIONS_EXIST:
+      return this->GetAnnotationCount(false,false) > 0;
     }
 
   return false;
@@ -769,6 +879,22 @@ AnnotationModel::AnnotationModel()
 {
   m_FlagDrawingLine = false;
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
+
+  // Create abstract models
+  m_SelectedLandmarkTextModel = wrapGetterSetterPairAsProperty(
+                                  this,
+                                  &Self::GetSelectedLandmarkTextValue,
+                                  &Self::SetSelectedLandmarkTextValue);
+
+  m_SelectedAnnotationTagsModel = wrapGetterSetterPairAsProperty(
+                                    this,
+                                    &Self::GetSelectedAnnotationTagsValue,
+                                    &Self::SetSelectedAnnotationTagsValue);
+
+  m_SelectedAnnotationColorModel = wrapGetterSetterPairAsProperty(
+                                     this,
+                                     &Self::GetSelectedAnnotationColorValue,
+                                     &Self::SetSelectedAnnotationColorValue);
 }
 
 AnnotationModel::~AnnotationModel()
