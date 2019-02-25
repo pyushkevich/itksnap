@@ -660,7 +660,7 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>10</width>
+                <width>5</width>
                 <height>20</height>
                </size>
               </property>
@@ -697,7 +697,7 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>10</width>
+                <width>5</width>
                 <height>20</height>
                </size>
               </property>
@@ -717,7 +717,7 @@ p, li { white-space: pre-wrap; }
                </font>
               </property>
               <property name="text">
-               <string>edit</string>
+               <string>edit...</string>
               </property>
               <property name="toolButtonStyle">
                <enum>Qt::ToolButtonTextOnly</enum>
@@ -734,7 +734,7 @@ p, li { white-space: pre-wrap; }
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>10</width>
+                <width>5</width>
                 <height>20</height>
                </size>
               </property>
@@ -742,12 +742,6 @@ p, li { white-space: pre-wrap; }
             </item>
             <item>
              <widget class="QToolButton" name="btnAnnotationDeleteSelected">
-              <property name="minimumSize">
-               <size>
-                <width>64</width>
-                <height>0</height>
-               </size>
-              </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
@@ -1201,7 +1195,7 @@ p, li { white-space: pre-wrap; }
     <string>Edit selected annotation</string>
    </property>
    <property name="iconText">
-    <string>edit</string>
+    <string>edit...</string>
    </property>
    <property name="toolTip">
     <string>Change selected annotation properties</string>

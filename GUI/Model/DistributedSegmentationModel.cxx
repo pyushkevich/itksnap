@@ -46,6 +46,7 @@
 #include <algorithm>
 #include "itksys/SystemTools.hxx"
 #include "AllPurposeProgressAccumulator.h"
+#include "ImageAnnotationData.h"
 
 
 namespace dss_model {
@@ -68,6 +69,13 @@ bool TagSpec::operator ==(const TagSpec &o) const
       name == o.name && type == o.type &&
       required == o.required && hint == o.hint &&
       object_id == o.object_id;
+}
+
+bool TagSpec::IsLayerType() const
+{
+  return (type == TAG_LAYER_ANATOMICAL
+          || type == TAG_LAYER_MAIN
+          || type == TAG_LAYER_OVERLAY);
 }
 
 const char *ticket_status_emap_initializer[] =
@@ -372,27 +380,42 @@ void DistributedSegmentationModel::ApplyTagsToTargets()
   for(int i = 0; i < m_TagSpecArray.size(); i++)
     {
     TagSpec &ts = m_TagSpecArray[i].tag_spec;
-    if(ts.type == TAG_LAYER_MAIN || ts.type == TAG_LAYER_ANATOMICAL || ts.type == TAG_LAYER_OVERLAY)
+    if(ts.IsLayerType())
       {
       ImageWrapperBase *wrapper = id->FindLayer(m_TagSpecArray[i].object_id, false);
       if(wrapper)
         {
-        std::list<std::string> tags = wrapper->GetTags();
-        if(std::find(tags.begin(), tags.end(), ts.name) == tags.end())
-          {
-          tags.push_back(ts.name);
+        // Add tag to the target wrapper
+        TagList tags = wrapper->GetTags();
+        if(tags.AddTag(ts.name))
           wrapper->SetTags(tags);
-          }
+
+        // Remove tag from all other wrappers
         for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
           if(it.GetLayer() != wrapper)
             {
-            std::list<std::string> tags = it.GetLayer()->GetTags();
-            if(std::find(tags.begin(), tags.end(), ts.name) != tags.end())
-              {
-              tags.remove(ts.name);
+            TagList tags = it.GetLayer()->GetTags();
+            if(tags.RemoveTag(ts.name))
               it.GetLayer()->SetTags(tags);
-              }
             }
+        }
+      }
+    else if(ts.type == TAG_POINT_LANDMARK)
+      {
+      // Iterate over the available annotations
+      ImageAnnotationData *iad = id->GetAnnotations();
+      for(ImageAnnotationIterator<annot::LandmarkAnnotation *> it(iad); !it.IsAtEnd(); ++it)
+        {
+        TagList tags = (*it)->GetTags();
+        if((*it)->GetUniqueId() == m_TagSpecArray[i].object_id)
+          {
+          if(tags.AddTag(ts.name))
+            (*it)->SetTags(tags);
+          }
+        else if(tags.RemoveTag(ts.name))
+          {
+          (*it)->SetTags(tags);
+          }
         }
       }
     }
@@ -765,8 +788,7 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
             tag.desc = w->GetNickname();
             return true;
             }
-          else if(std::find(w->GetTags().begin(), w->GetTags().end(), tag.tag_spec.name)
-                  != w->GetTags().end())
+          else if(w->GetTags().Contains(tag.tag_spec.name))
             {
             // Found another object with the matching tag. Then it may be assignable
             tag_matching_layers.push_back(w);
@@ -781,6 +803,33 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
           tag.desc = tag_matching_layers.front()->GetNickname();
           return true;
           }
+        }
+      }
+
+    else if(tag.tag_spec.type == TAG_POINT_LANDMARK)
+      {
+      // For landmarks, we only assign them to tags if the name of the landmark matches
+      // the name of the tag, or the landmark already has a tag.
+      std::list<const annot::LandmarkAnnotation *> matches;
+
+      // Iterate over the available annotations
+      ImageAnnotationData *iad = driver->GetIRISImageData()->GetAnnotations();
+      for(ImageAnnotationIterator<annot::LandmarkAnnotation *> it(iad); !it.IsAtEnd(); ++it)
+        {
+        if((*it)->GetUniqueId() == tag.object_id)
+          matches.push_back((*it));
+        else if((*it)->GetTags().Contains(tag.tag_spec.name))
+          matches.push_back((*it));
+        else if((*it)->GetLandmark().Text == tag.tag_spec.name)
+          matches.push_back((*it));
+        }
+
+      // Handle the matches. We only assign a match if there is one matching object per list
+      if(matches.size() == 1)
+        {
+        tag.object_id = matches.front()->GetUniqueId();
+        tag.desc = matches.front()->GetLandmark().Text;
+        return true;
         }
       }
     }
@@ -1058,7 +1107,7 @@ void DistributedSegmentationModel::SetTagListValue(int value)
 }
 
 bool DistributedSegmentationModel
-::GetCurrentTagImageLayerValueAndRange(unsigned long &value, LayerSelectionDomain *domain)
+::GetCurrentTagWorkspaceObjectValueAndRange(unsigned long &value, LayerSelectionDomain *domain)
 {
   int curr_tag;
   if(m_TagListModel->GetValueAndDomain(curr_tag, NULL))
@@ -1071,20 +1120,38 @@ bool DistributedSegmentationModel
       (*domain)[0] = "Unassigned";
       IRISApplication *driver = this->GetParent()->GetDriver();
 
-      int role_filter = -1;
-      switch(tag.tag_spec.type)
+      // Handle tags to image layers
+      if(tag.tag_spec.IsLayerType())
         {
-        case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
-        case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
-        case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
-        default: break;
-        }
-      if(role_filter >= 0 && driver->IsMainImageLoaded())
-        {
-        for(LayerIterator it = driver->GetIRISImageData()->GetLayers(role_filter);
-            !it.IsAtEnd(); ++it)
+        int role_filter = -1;
+        switch(tag.tag_spec.type)
           {
-          (*domain)[it.GetLayer()->GetUniqueId()] = it.GetLayer()->GetNickname();
+          case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
+          case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
+          case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
+          default: break;
+          }
+        if(role_filter >= 0 && driver->IsMainImageLoaded())
+          {
+          for(LayerIterator it = driver->GetIRISImageData()->GetLayers(role_filter);
+              !it.IsAtEnd(); ++it)
+            {
+            (*domain)[it.GetLayer()->GetUniqueId()] = it.GetLayer()->GetNickname();
+            }
+          }
+        }
+
+      // Handle tags to point landmarks
+      else if(tag.tag_spec.type == TAG_POINT_LANDMARK)
+        {
+        // Iterate over the available annotations
+        ImageAnnotationData *iad = driver->GetIRISImageData()->GetAnnotations();
+        for(ImageAnnotationIterator<annot::LandmarkAnnotation *> it(iad); !it.IsAtEnd(); ++it)
+          {
+          std::ostringstream oss;
+          oss << "Landmark " << (*it)->GetLandmark().Text
+              << " [" << (*it)->GetLandmark().Pos << "]";
+          (*domain)[(*it)->GetUniqueId()] = oss.str();
           }
         }
       }
@@ -1094,18 +1161,40 @@ bool DistributedSegmentationModel
 }
 
 void DistributedSegmentationModel
-::SetCurrentTagImageLayerValue(unsigned long value)
+::SetCurrentTagWorkspaceObjectValue(unsigned long value)
 {
   int curr_tag;
   IRISApplication *driver = this->GetParent()->GetDriver();
   if(m_TagListModel->GetValueAndDomain(curr_tag, NULL))
     {
+    // Get the tag spec
+    dss_model::TagTargetSpec &ts = m_TagSpecArray[curr_tag];
+
     // Set the target id
-    m_TagSpecArray[curr_tag].object_id = value;
+    ts.object_id = value;
 
     // Set the target description
-    ImageWrapperBase *w = driver->GetIRISImageData()->FindLayer(value, false);
-    m_TagSpecArray[curr_tag].desc = w ? w->GetNickname() : "Unassigned";
+    if(ts.tag_spec.IsLayerType())
+      {
+      ImageWrapperBase *w = driver->GetIRISImageData()->FindLayer(value, false);
+      ts.desc = w ? w->GetNickname() : "Unassigned";
+      }
+    else if(ts.tag_spec.type == TAG_POINT_LANDMARK)
+      {
+      ts.desc = "Unassigned";
+      ImageAnnotationData *iad = driver->GetIRISImageData()->GetAnnotations();
+      for(ImageAnnotationIterator<annot::LandmarkAnnotation *> it(iad); !it.IsAtEnd(); ++it)
+        {
+        if((*it)->GetUniqueId() == ts.object_id)
+          {
+          std::ostringstream oss;
+          oss << "Landmark " << (*it)->GetLandmark().Text
+              << " [" << (*it)->GetLandmark().Pos << "]";
+          ts.desc = oss.str();
+          break;
+          }
+        }
+      }
 
     // Update the domain
     m_TagListModel->InvokeEvent(DomainChangedEvent());
@@ -1237,12 +1326,12 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   m_TicketListModel->SetIsValid(false);
 
   // Model for current tag selection
-  m_CurrentTagImageLayerModel = wrapGetterSetterPairAsProperty(
+  m_CurrentTagWorkspaceObjectModel = wrapGetterSetterPairAsProperty(
                                   this,
-                                  &Self::GetCurrentTagImageLayerValueAndRange,
-                                  &Self::SetCurrentTagImageLayerValue);
-  m_CurrentTagImageLayerModel->Rebroadcast(m_TagListModel, ValueChangedEvent(), ValueChangedEvent());
-  m_CurrentTagImageLayerModel->Rebroadcast(m_TagListModel, ValueChangedEvent(), DomainChangedEvent());
+                                  &Self::GetCurrentTagWorkspaceObjectValueAndRange,
+                                  &Self::SetCurrentTagWorkspaceObjectValue);
+  m_CurrentTagWorkspaceObjectModel->Rebroadcast(m_TagListModel, ValueChangedEvent(), ValueChangedEvent());
+  m_CurrentTagWorkspaceObjectModel->Rebroadcast(m_TagListModel, ValueChangedEvent(), DomainChangedEvent());
 
   // Last submitted ticket
   m_SubmittedTicketId = -1;
@@ -1298,7 +1387,7 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   this->Rebroadcast(m_CurrentServiceModel, DomainChangedEvent(), ServiceChangeEvent());
 
   // Changes to the tags table require a state update
-  this->Rebroadcast(m_CurrentTagImageLayerModel, DomainChangedEvent(), StateMachineChangeEvent());
+  this->Rebroadcast(m_CurrentTagWorkspaceObjectModel, DomainChangedEvent(), StateMachineChangeEvent());
   this->Rebroadcast(m_ServerStatusModel, ValueChangedEvent(), StateMachineChangeEvent());
   this->Rebroadcast(m_TagListModel, DomainChangedEvent(), StateMachineChangeEvent());
   this->Rebroadcast(m_TagListModel, DomainDescriptionChangedEvent(), StateMachineChangeEvent());

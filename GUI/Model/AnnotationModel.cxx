@@ -745,7 +745,7 @@ void AnnotationModel::SetSelectedLandmarkTextValue(std::string value)
   this->InvokeEvent(ModelUpdateEvent());
 }
 
-bool AnnotationModel::GetSelectedAnnotationTagsValue(StringList &value)
+bool AnnotationModel::GetSelectedAnnotationTagsValue(TagList &value)
 {
   // A landmark annotation must be selected
   AbstractAnnotation *asel = this->GetSingleSelectedAnnotation();
@@ -756,7 +756,7 @@ bool AnnotationModel::GetSelectedAnnotationTagsValue(StringList &value)
   return true;
 }
 
-void AnnotationModel::SetSelectedAnnotationTagsValue(StringList value)
+void AnnotationModel::SetSelectedAnnotationTagsValue(TagList value)
 {
   AbstractAnnotation *asel = this->GetSingleSelectedAnnotation();
   assert(asel);

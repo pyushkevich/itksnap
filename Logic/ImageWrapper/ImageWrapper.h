@@ -517,8 +517,8 @@ public:
    * Access the tags for this image layer. Tags are just strings assigned to the
    * layer that may be useful to other software
    */
-  irisGetMacroWithOverride(Tags, const std::list<std::string> &)
-  irisSetMacroWithOverride(Tags, const std::list<std::string> &)
+  irisGetMacroWithOverride(Tags, const TagList &)
+  irisSetMacroWithOverride(Tags, const TagList &)
 
 
   /**
@@ -669,7 +669,7 @@ protected:
   std::string m_DefaultNickname, m_CustomNickname;
 
   // Tags for this image layer
-  std::list<std::string> m_Tags;
+  TagList m_Tags;
 
   // A map to store user-associated data
   typedef std::map<std::string, SmartPtr<itk::Object> > UserDataMapType;

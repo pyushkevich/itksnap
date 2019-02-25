@@ -93,8 +93,8 @@ SET(SNAP_VERSION_PATCH 0)
 SET(SNAP_VERSION_QUALIFIER "")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20190205")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Feb 5, 2019")
+SET(SNAP_VERSION_RELEASE_DATE "20190225")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Feb 25, 2019")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -242,6 +242,7 @@ SET(LOGIC_CXX
   Common/SNAPEvents.cxx
   Common/SNAPOpenGL.cxx
   Common/SystemInterface.cxx
+  Common/TagList.cxx
   Common/ThreadSpecificData.cxx
   Common/Trackball.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
@@ -352,6 +353,7 @@ SET(LOGIC_HEADERS
   Common/SNAPOpenGL.h
   Common/SNAPEvents.h
   Common/SystemInterface.h
+  Common/TagList.h
   Common/ThreadSpecificData.h
   Common/Trackball.h
   Logic/Common/ColorLabel.h

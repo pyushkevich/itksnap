@@ -27,32 +27,31 @@
 #ifndef TAGLISTWIDGETCOUPLING_H
 #define TAGLISTWIDGETCOUPLING_H
 
-#include <QtWidgetCoupling.h>
-#include <TagListWidget.h>
-#include <SNAPQtCommon.h>
+#include "QtWidgetCoupling.h"
+#include "TagListWidget.h"
+#include "SNAPQtCommon.h"
+#include "TagList.h"
 
 template<>
-class DefaultWidgetValueTraits<std::list<std::string>, TagListWidget>
-    : public WidgetValueTraitsBase<std::list<std::string>, TagListWidget *>
+class DefaultWidgetValueTraits<TagList, TagListWidget>
+    : public WidgetValueTraitsBase<TagList, TagListWidget *>
 {
 public:
-  typedef std::list<std::string> StringList;
-
-  virtual StringList GetValue(TagListWidget *w)
+  virtual TagList GetValue(TagListWidget *w)
   {
     // Get the tag strings from the widget
     const QStringList &tags = w->tags();
-    StringList ret_list;
+    TagList ret_list;
     foreach(const QString &tag, tags)
       ret_list.push_back(to_utf8(tag));
 
     return ret_list;
   }
 
-  virtual void SetValue(TagListWidget *w, const StringList &value)
+  virtual void SetValue(TagListWidget *w, const TagList &value)
   {
     QStringList tags;
-    for(StringList::const_iterator it = value.begin(); it != value.end(); ++it)
+    for(TagList::const_iterator it = value.begin(); it != value.end(); ++it)
       tags.push_back(from_utf8(*it));
 
     w->setTags(tags);

@@ -504,8 +504,7 @@ GenericImageData
   std::list<ImageWrapperBase *> retval;
   for(LayerIterator it = this->GetLayers(role_filter); !it.IsAtEnd(); ++it)
     {
-    if(std::find(it.GetLayer()->GetTags().begin(), it.GetLayer()->GetTags().end(), tag)
-       != it.GetLayer()->GetTags().end())
+    if(it.GetLayer()->GetTags().Contains(tag))
       {
       retval.push_back(it.GetLayer());
       }

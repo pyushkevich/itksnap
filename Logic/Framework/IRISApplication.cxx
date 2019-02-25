@@ -1681,7 +1681,7 @@ void IRISApplication::LoadMetaDataAssociatedWithLayer(
 
   // Read the tags for the image. This should have probably been placed into the LayerMeteData
   // but it's a pain to move things around in the registry file
-  std::list<std::string> tags;
+  TagList tags;
   (*folder)["Tags"].GetList(tags);
   layer->SetTags(tags);
 

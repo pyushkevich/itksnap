@@ -211,6 +211,15 @@ public:
       int ticket_id, const char *outdir, bool provider_mode, const char *area,
       const char *workspace_filename = NULL, CommandType *cmd_progress = NULL);
 
+  /** Get number of annotations in the workspace */
+  int GetNumberOfAnnotations();
+
+  /** Get n-th annotation folder */
+  Registry &GetAnnotationFolder(int annot_index);
+
+  /** Print a list of all annotations */
+  void PrintAnnotationList(std::ostream &os, const std::string &line_prefix);
+
 protected:
 
   // The Registry object containing workspace data

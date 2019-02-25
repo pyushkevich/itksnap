@@ -224,7 +224,8 @@ void AnnotationRenderer::paintGL()
         glVertex2d(xTailSlice[0], xTailSlice[1]);
         glEnd();
 
-        if(lma->GetSelected())
+        if(lma->GetSelected() && m_Model->IsAnnotationModeActive() &&
+           m_Model->GetAnnotationMode() == ANNOTATION_SELECT)
           {
           this->DrawSelectionHandle(xHeadSlice);
           this->DrawSelectionHandle(xTailSlice);

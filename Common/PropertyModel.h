@@ -30,6 +30,7 @@
 #include <SNAPCommon.h>
 #include <SNAPEvents.h>
 #include "AbstractModel.h"
+#include "TagList.h"
 #include <map>
 
 /**
@@ -801,9 +802,9 @@ MAKE_TYPEDEF_PM_RANGED(Vector2b,        BooleanVec2)
 MAKE_TYPEDEF_PM_RANGED(Vector3b,        BooleanVec3)
 
 // Macros for non-ranged types
-typedef std::list<std::string>          StringList;
 MAKE_TYPEDEF_PM_NONRNG(std::string,     String)
-MAKE_TYPEDEF_PM_NONRNG(StringList,      StringList)
+MAKE_TYPEDEF_PM_NONRNG(TagList,         TagList)
+
 
 
 

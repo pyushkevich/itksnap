@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include <vector>
+#include <list>
 #include <string>
 #include <algorithm>
 
@@ -56,6 +57,11 @@ public:
       m_Width[m_Data.back().size() - 1] = std::max(w, m_Width[m_Data.back().size() - 1]);
 
     return *this;
+    }
+
+  void AppendString(const std::string str)
+    {
+
     }
 
   void EndRow();

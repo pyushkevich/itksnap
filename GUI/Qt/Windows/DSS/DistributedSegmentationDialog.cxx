@@ -662,7 +662,7 @@ QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
   m_Model->GetTagListModel()->SetValue(index.row());
 
   // Create a combo
-  if(m_Model->GetCurrentTagImageLayerModel()->isValid())
+  if(m_Model->GetCurrentTagWorkspaceObjectModel()->isValid())
     {
     // We create a customized combo box for this editor with a special "unassigned" field
     QComboBox *combo = new QComboBox(parent);
@@ -682,7 +682,7 @@ QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
       fancy_domain_traits.AddAction(FindUpstreamAction(parent, "actionAdd_Overlay"), 0);
       }
 
-    makeCoupling(combo, m_Model->GetCurrentTagImageLayerModel(), fancy_value_traits, fancy_domain_traits);
+    makeCoupling(combo, m_Model->GetCurrentTagWorkspaceObjectModel(), fancy_value_traits, fancy_domain_traits);
 
 #if QT_VERSION >= 0x050000
     QTimer::singleShot(0, combo, &QComboBox::showPopup);

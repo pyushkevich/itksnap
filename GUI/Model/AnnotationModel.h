@@ -7,6 +7,7 @@
 #include "IRISException.h"
 #include "GlobalState.h"
 #include "ImageAnnotationData.h"
+#include "TagList.h"
 
 #include <list>
 #include <utility>
@@ -61,7 +62,7 @@ public:
   irisSimplePropertyAccessMacro(SelectedLandmarkText, std::string)
 
   /** Model for the landmark annotation text edit */
-  irisSimplePropertyAccessMacro(SelectedAnnotationTags, StringList)
+  irisSimplePropertyAccessMacro(SelectedAnnotationTags, TagList)
 
   /** Model for the selected annotation color */
   irisSimplePropertyAccessMacro(SelectedAnnotationColor, Vector3ui)
@@ -173,9 +174,9 @@ protected:
   void SetSelectedLandmarkTextValue(std::string value);
 
   // Annotation editor: tags
-  SmartPtr<AbstractSimpleStringListProperty> m_SelectedAnnotationTagsModel;
-  bool GetSelectedAnnotationTagsValue(StringList &value);
-  void SetSelectedAnnotationTagsValue(StringList value);
+  SmartPtr<AbstractSimpleTagListProperty> m_SelectedAnnotationTagsModel;
+  bool GetSelectedAnnotationTagsValue(TagList &value);
+  void SetSelectedAnnotationTagsValue(TagList value);
 
   // Annotation editor: color
   SmartPtr<AbstractSimpleUIntVec3Property> m_SelectedAnnotationColorModel;

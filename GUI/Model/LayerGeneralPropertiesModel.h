@@ -3,6 +3,7 @@
 
 #include "AbstractLayerAssociatedModel.h"
 #include "PropertyModel.h"
+#include "TagList.h"
 
 class AbstractMultiChannelDisplayMappingPolicy;
 class LayerTableRowModel;
@@ -98,7 +99,7 @@ public:
   irisSimplePropertyAccessMacro(Nickname, std::string)
 
   /** A model for the tags */
-  irisSimplePropertyAccessMacro(Tags, std::list<std::string>)
+  irisSimplePropertyAccessMacro(Tags, TagList)
 
   /** Move the layer up in the list */
   void MoveLayerUp();
@@ -138,15 +139,15 @@ protected:
   SmartPtr<AbstractSimpleStringProperty> m_NicknameModel;
 
   // Tags
-  SmartPtr<AbstractSimpleStringListProperty> m_TagsModel;
+  SmartPtr<AbstractSimpleTagListProperty> m_TagsModel;
 
   bool GetFilenameValue(std::string &value);
 
   bool GetNicknameValue(std::string &value);
   void SetNicknameValue(std::string value);
 
-  bool GetTagsValue(StringList &value);
-  void SetTagsValue(StringList value);
+  bool GetTagsValue(TagList &value);
+  void SetTagsValue(TagList value);
 
   // Stickiness
   SmartPtr<AbstractSimpleBooleanProperty> m_IsStickyModel;

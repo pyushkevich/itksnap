@@ -198,6 +198,48 @@ void WorkspaceAPI::PrintLayerList(std::ostream &os, const string &line_prefix)
   table.Print(os, line_prefix);
 }
 
+int WorkspaceAPI::GetNumberOfAnnotations()
+{
+  return m_Registry["Annotations.Annotations.ArraySize"][0];
+}
+
+Registry & WorkspaceAPI::GetAnnotationFolder(int annot_index)
+{
+  string key = Registry::Key("Annotations.Annotations.Element[%d]", annot_index);
+  return m_Registry.Folder(key);
+}
+
+#include "ImageAnnotationData.h"
+
+void WorkspaceAPI::PrintAnnotationList(std::ostream &os, const string &line_prefix)
+{
+  // Annotations are lightweight, so we can using existing API to load them
+  SmartPtr<ImageAnnotationData> iad = ImageAnnotationData::New();
+  Registry f_annot = m_Registry.Folder("Annotations");
+  iad->LoadAnnotations(f_annot);
+
+  // Use a formatted table
+  FormattedTable table(4);
+
+  // Print the header information
+  table << "Annotation" << "Kind" << "Center" << "Tags";
+
+  // Iterate
+  int i = 0;
+  for(typename ImageAnnotationData::AnnotationConstIterator it = iad->GetAnnotations().begin();
+      it != iad->GetAnnotations().end(); it++, i++)
+    {
+    annot::AbstractAnnotation *ann = *it;
+    annot::AnnotationType type = ann->GetType();
+    table
+        << i
+        << (type==annot::LANDMARK ? "Landmark" : "LineSegment")
+        << ann->GetCenter()
+        << ann->GetTags().ToString();
+    }
+
+  table.Print(os, line_prefix);
+}
 
 std::list<std::string> WorkspaceAPI::FindLayersByTag(const string &tag)
 {

@@ -6,6 +6,7 @@
 #include "itkImageRegion.h"
 #include "itkObject.h"
 #include "SNAPEvents.h"
+#include "TagList.h"
 
 namespace itk {
   template <unsigned int VDim> class ImageBase;
@@ -371,8 +372,8 @@ public:
   irisVirtualSetMacro(DefaultNickname, const std::string &)
 
   /** List of tags assigned to the image layer */
-  irisVirtualGetMacro(Tags, const std::list<std::string> &)
-  irisVirtualSetMacro(Tags, const std::list<std::string> &)
+  irisVirtualGetMacro(Tags, const TagList &)
+  irisVirtualSetMacro(Tags, const TagList &)
 
   /**
     Export one of the slices as a thumbnail (e.g., PNG file)

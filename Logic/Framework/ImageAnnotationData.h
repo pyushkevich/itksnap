@@ -7,6 +7,7 @@
 #include <list>
 #include "itkDataObject.h"
 #include "itkObjectFactory.h"
+#include "TagList.h"
 
 class Registry;
 
@@ -20,6 +21,13 @@ typedef Vector3d Point;
  */
 enum VisSlice {
   SINGLE_SLICE = 0, ALL_SLICES
+};
+
+/**
+  @brief Types of annotations
+ */
+enum AnnotationType {
+  LINE_SEGMENT=0, LANDMARK, UNKNOWN_ANNOTATION
 };
 
 /**
@@ -46,7 +54,7 @@ public:
   irisGetSetMacro(Color, const Vector3d &)
 
   /** Get the tags in the annotation */
-  irisGetSetMacro(Tags, const std::list<std::string> &)
+  irisGetSetMacro(Tags, const TagList &)
 
   /** Get color as a u-int vector */
   Vector3ui GetColor3ui() const;
@@ -64,6 +72,12 @@ public:
   /** Get the anchor point for the annotation in a given plane - used for sorting */
   virtual Vector3d GetAnchorPoint(int plane) const = 0;
 
+  /** Get the 3D center of the annotation */
+  virtual Vector3d GetCenter() const = 0;
+
+  /** Get the annotation type */
+  virtual AnnotationType GetType() const = 0;
+
   /** Move the annotation by given amount in physical space */
   virtual void MoveBy(const Vector3d &offset) = 0;
 
@@ -73,10 +87,16 @@ public:
   /** Load from the registry */
   virtual void Load(Registry &folder);
 
+  /** Get the unique id of this tag */
+  virtual unsigned long GetUniqueId() const;
+
 protected:
 
-  AbstractAnnotation() {}
+  AbstractAnnotation();
   ~AbstractAnnotation() {}
+
+  // Unique Id of this annotation, may not be zero
+  unsigned long m_UniqueId;
 
   bool m_Selected;
   bool m_VisibleInAllSlices;
@@ -85,7 +105,7 @@ protected:
   Vector3d m_Color;
 
   // Each annotation can have tags
-  std::list<std::string> m_Tags;
+  TagList m_Tags;
 
   int m_Plane;
 };
@@ -106,6 +126,9 @@ public:
   virtual void Load(Registry &folder) ITK_OVERRIDE;
 
   virtual void MoveBy(const Vector3d &offset) ITK_OVERRIDE;
+  virtual Vector3d GetCenter() const ITK_OVERRIDE;
+  virtual AnnotationType GetType() const ITK_OVERRIDE { return LINE_SEGMENT; }
+
 
 protected:
 
@@ -135,16 +158,19 @@ public:
 
   irisGetSetMacro(Landmark, const Landmark &)
 
+  virtual void MoveBy(const Vector3d &offset) ITK_OVERRIDE;
+  virtual Vector3d GetCenter() const ITK_OVERRIDE;
+  virtual AnnotationType GetType() const ITK_OVERRIDE { return LANDMARK; }
 
 protected:
 
   virtual int GetSliceIndex(int plane) const ITK_OVERRIDE;
   virtual Vector3d GetAnchorPoint(int plane) const ITK_OVERRIDE;
 
-  virtual void MoveBy(const Vector3d &offset) ITK_OVERRIDE;
-
   virtual void Save(Registry &folder) ITK_OVERRIDE;
   virtual void Load(Registry &folder) ITK_OVERRIDE;
+
+
 
   Landmark m_Landmark;
 };
@@ -186,6 +212,22 @@ protected:
   ~ImageAnnotationData() {}
 
   AnnotationList m_Annotations;
+};
+
+/** Iterator that searches for annotations */
+template <class TAnnotPtr>
+class ImageAnnotationIterator
+{
+public:
+  ImageAnnotationIterator(const ImageAnnotationData *data);
+  bool IsAtEnd() const;
+  ImageAnnotationIterator &operator++();
+  TAnnotPtr GetAnnotation() const;
+  TAnnotPtr operator *() const { return this->GetAnnotation(); }
+protected:
+  typedef typename ImageAnnotationData::AnnotationConstIterator AnnotationConstIterator;
+  AnnotationConstIterator m_Iter;
+  const ImageAnnotationData *m_Data;
 };
 
 #endif // IMAGEANNOTATIONDATA_H

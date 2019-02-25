@@ -488,7 +488,7 @@ bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWid
     QString file = ShowSimpleSaveDialogWithHistory(
           parent, model, "Project", "Save Workspace",
           "Workspace File", "ITK-SNAP Workspace Files (*.itksnap)",
-          "itksnap");
+          true, file_abs);
 
     // If user hits cancel, move on
     if(file.isNull())

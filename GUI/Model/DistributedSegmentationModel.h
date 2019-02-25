@@ -107,6 +107,9 @@ struct TagSpec
 
   bool operator == (const TagSpec &other) const;
 
+  // Test if this tag refers to a layer
+  bool IsLayerType() const;
+
 };
 
 /** Tag target specification */
@@ -303,7 +306,7 @@ public:
 
   /** Layer domain for tag assignment */
   typedef SimpleItemSetDomain<unsigned long, std::string> LayerSelectionDomain;
-  irisGenericPropertyAccessMacro(CurrentTagImageLayer, unsigned long, LayerSelectionDomain)
+  irisGenericPropertyAccessMacro(CurrentTagWorkspaceObject, unsigned long, LayerSelectionDomain)
 
   /** Get the type of the current tag */
   LoadAction GetTagLoadAction(int tag_index) const;
@@ -451,10 +454,10 @@ protected:
   dss_model::IdType m_SubmittedTicketId;
 
   // Property model for the current tag's image layer
-  typedef AbstractPropertyModel<unsigned long, LayerSelectionDomain> CurrentTagImageLayerModel;
-  SmartPtr<CurrentTagImageLayerModel> m_CurrentTagImageLayerModel;
-  bool GetCurrentTagImageLayerValueAndRange(unsigned long &value, LayerSelectionDomain *range);
-  void SetCurrentTagImageLayerValue(unsigned long value);
+  typedef AbstractPropertyModel<unsigned long, LayerSelectionDomain> CurrentTagWorkspaceObjectModel;
+  SmartPtr<CurrentTagWorkspaceObjectModel> m_CurrentTagWorkspaceObjectModel;
+  bool GetCurrentTagWorkspaceObjectValueAndRange(unsigned long &value, LayerSelectionDomain *range);
+  void SetCurrentTagWorkspaceObjectValue(unsigned long value);
 
   // Stuff about the current ticket
   SmartPtr<ConcreteRangedDoubleProperty> m_SelectedTicketProgressModel;

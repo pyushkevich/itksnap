@@ -384,7 +384,7 @@ void LayerGeneralPropertiesModel::SetNicknameValue(std::string value)
   layer->SetCustomNickname(value);
 }
 
-bool LayerGeneralPropertiesModel::GetTagsValue(StringList &value)
+bool LayerGeneralPropertiesModel::GetTagsValue(TagList &value)
 {
   ImageWrapperBase *layer = this->GetLayer();
   if(layer)
@@ -395,7 +395,7 @@ bool LayerGeneralPropertiesModel::GetTagsValue(StringList &value)
   return false;
 }
 
-void LayerGeneralPropertiesModel::SetTagsValue(StringList value)
+void LayerGeneralPropertiesModel::SetTagsValue(TagList value)
 {
   ImageWrapperBase *layer = this->GetLayer();
   layer->SetTags(value);
