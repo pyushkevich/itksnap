@@ -226,7 +226,7 @@ void WorkspaceAPI::PrintAnnotationList(std::ostream &os, const string &line_pref
 
   // Iterate
   int i = 0;
-  for(typename ImageAnnotationData::AnnotationConstIterator it = iad->GetAnnotations().begin();
+  for(ImageAnnotationData::AnnotationConstIterator it = iad->GetAnnotations().begin();
       it != iad->GetAnnotations().end(); it++, i++)
     {
     annot::AbstractAnnotation *ann = *it;
