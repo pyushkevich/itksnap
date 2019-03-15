@@ -23,6 +23,11 @@ class RegistrationModel : public AbstractModel
 public:
   irisITKObjectMacro(RegistrationModel, AbstractModel)
 
+  // Sometimes the vnl types are easier to work with
+  typedef vnl_matrix_fixed<double, 3, 3> Mat3;
+  typedef vnl_matrix_fixed<double, 4, 4> Mat4;
+  typedef vnl_vector_fixed<double, 3> Vec3;
+
   /**
     States in which the model can be, which allow the activation and
     deactivation of various widgets in the interface
@@ -94,7 +99,7 @@ public:
   void ApplyTranslation(const Vector3d &tran);
 
   /** Get a pointer to the selected moving wrapper, or NULL if none selected */
-  ImageWrapperBase *GetMovingLayerWrapper();
+  ImageWrapperBase *GetMovingLayerWrapper() const;
 
   /** Get the center of rotation, in voxel units of the main image */
   irisGetMacro(RotationCenter, Vector3ui)
@@ -132,6 +137,12 @@ public:
   /** Reslice moving image */
   void ResliceMovingImage(InterpolationMethod method);
 
+  // Map parameters to an affine transform
+  Mat4 MapParametersToAffineTransform(
+      const Vec3 &euler_angles, const Vec3 &translation,
+      const Vec3 &scales, const Vec3 &shear_euler_angles) const;
+
+
 
 protected:
   RegistrationModel();
@@ -140,11 +151,6 @@ protected:
   typedef itk::Matrix<double, 3, 3> ITKMatrixType;
   typedef itk::Vector<double, 3> ITKVectorType;
   typedef GreedyApproach<3, float> GreedyAPI;
-
-  // Sometimes the vnl types are easier to work with
-  typedef vnl_matrix_fixed<double, 3, 3> Mat3;
-  typedef vnl_matrix_fixed<double, 4, 4> Mat4;
-  typedef vnl_vector_fixed<double, 3> Vec3;
 
   // A little function to make homogeneous matrices from matrix/offset
   static Mat4 make_homog(const Mat3 &A, const Vec3 &b) ;
@@ -248,7 +254,7 @@ protected:
     Vector3d Scaling;
 
     // Shearing
-    vnl_matrix_fixed<double, 3, 3> ShearingMatrix;
+    Vector3d ShearingEulerAngles;
 
     // Range of translation
     NumericValueRange<Vector3d> TranslationRange;
@@ -283,6 +289,10 @@ protected:
 
   // Renderer used to plot the metric
   SmartPtr<OptimizationProgressRenderer> m_RegistrationProgressRenderer;
+
+  // Euler angles to a rotation matrix
+  Mat3 MapEulerAnglesToRotationMatrix(const Vec3 &euler_angles) const;
+  Vec3 MapRotationMatrixToEulerAngles(const Mat3 &rotation) const;
 };
 
 #endif // REGISTRATIONMODEL_H
