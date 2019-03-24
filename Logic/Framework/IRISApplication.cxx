@@ -1597,6 +1597,9 @@ IRISApplication
   // Set the filename and nickname of the image wrapper
   layer->SetFileName(io->GetFileNameOfNativeImage());
 
+  // Initialize the color label table to defaults
+  m_ColorLabelTable->InitializeToDefaults();
+
   // Update the preprocessing settings to defaults.
   m_EdgePreprocessingSettings->InitializeToDefaults();
 

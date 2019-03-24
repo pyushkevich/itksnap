@@ -93,8 +93,8 @@ SET(SNAP_VERSION_PATCH 0)
 SET(SNAP_VERSION_QUALIFIER "")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20190225")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Feb 25, 2019")
+SET(SNAP_VERSION_RELEASE_DATE "20190325")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Mar 25, 2019")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
