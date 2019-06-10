@@ -409,7 +409,7 @@ GuidedNativeImageIO
       switch(type)
         {
         case PIXELTYPE_UCHAR:  CreateRawImageIO<unsigned char>(fldRaw);  break;
-        case PIXELTYPE_CHAR:   CreateRawImageIO<char>(fldRaw);           break;
+        case PIXELTYPE_CHAR:   CreateRawImageIO<signed char>(fldRaw);    break;
         case PIXELTYPE_USHORT: CreateRawImageIO<unsigned short>(fldRaw); break;
         case PIXELTYPE_SHORT:  CreateRawImageIO<short>(fldRaw);          break;
         case PIXELTYPE_UINT:   CreateRawImageIO<unsigned int>(fldRaw);   break;
@@ -545,7 +545,7 @@ GuidedNativeImageIO
   switch(comp_type)
     {
     case itk::ImageIOBase::UCHAR:  return new Dispatch<unsigned char>();   break;
-    case itk::ImageIOBase::CHAR:   return new Dispatch<char>();            break;
+    case itk::ImageIOBase::CHAR:   return new Dispatch<signed char>();            break;
     case itk::ImageIOBase::USHORT: return new Dispatch<unsigned short>();  break;
     case itk::ImageIOBase::SHORT:  return new Dispatch<short>();           break;
     case itk::ImageIOBase::UINT:   return new Dispatch<unsigned int>();    break;
