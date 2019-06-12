@@ -8,18 +8,24 @@ This version introduces an exciting new feature: the **Distributed Segmentation 
 
 ### New features
 
-- New GUI for the DSS, under *Tools->Distributed Segmentation Service" 
-- New support for multiple segmentation layers (switch between them with **{**,**}** keys}
+- New GUI for the DSS, under *Tools->Distributed Segmentation Service*
+    - User and developer documentation for DSS at https://alfabis-server.readthedocs.io/en/latest/
+- New support for multiple segmentation layers (switch between them with **{**,**}** keys)
 - Command-line functionality for interacting with the DSS service as a user or developer, part of **itksnap-wt** workspace editor tool
 - New functionality for plotting time-course data in the *Image Information* dialog
 - Implemented support for reading DICOM data with multiple images per z-position
+- Registration interface has improved image resizing support, support for flipping
+- Command-line tools **c3d** and **greedy** now can be installed using *Help->Install Command-Line Tools*
+- Support for reading "Generic ITK Images" in the "File->Open" dialog, makes it possible to open any image that ITK can read
 
 ### Bug Fixes
 
 - Fixed crashes that occurred occasionally when loading multiple images with different orientations
 - Enabled loading of any image file supported by ITK via "Generic ITK" option in IO dialogs
 - Fixed crash when canceling random forest segmentation
-
+- Fixed crash when loading images of type **char**
+- Fixed issue with segmentation labels not resetting when loading a new image
+- Keyboard shortcuts Ctrl-1 to Ctrl-5 for loading recent images restored
 
 ## Version 3.6.2
 ----
