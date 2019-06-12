@@ -5,7 +5,7 @@
 	<key>CFBundleExecutable</key>
         <string>ITK-SNAP</string>
 	<key>CFBundleIconFile</key>
-	<string>itksnap</string>
+	<string>ITK-SNAP.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>org.itksnap</string>
 	<key>CFBundlePackageType</key>
