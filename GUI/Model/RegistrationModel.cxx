@@ -880,8 +880,10 @@ void RegistrationModel::SaveTransform(const char *filename, TransformFormat form
       ->GetHistoryManager()->UpdateHistory("AffineTransform", filename, true);
 }
 
-const std::vector<std::vector<double> > &RegistrationModel::GetRegistrationMetricLog() const
+const RegistrationModel::MetricLog &
+RegistrationModel::GetRegistrationMetricLog() const
 {
+  // Get the complete metric report
   return m_GreedyAPI->GetMetricLog();
 }
 
@@ -1270,9 +1272,9 @@ void RegistrationModel::IterationCallback(const itk::Object *object, const itk::
   const GreedyAPI::MetricLogType &metric_log = m_GreedyAPI->GetMetricLog();
   if(metric_log.size())
     {
-    const std::vector<double> &last_log = metric_log.back();
+    const std::vector<MultiComponentMetricReport> &last_log = metric_log.back();
     if(last_log.size())
-      m_LastMetricValueModel->SetValue(last_log.back());
+      m_LastMetricValueModel->SetValue(last_log.back().TotalMetric);
     }
 
   // Fire the iteration command - this is to force the GUI to process events, instead of

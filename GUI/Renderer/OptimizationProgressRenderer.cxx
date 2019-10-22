@@ -76,8 +76,7 @@ void OptimizationProgressRenderer::SetModel(RegistrationModel *model)
 void OptimizationProgressRenderer::OnUpdate()
 {
   // Get the metric log
-  typedef std::vector< std::vector<double> >  MetricLog;
-  const MetricLog &mlog = m_Model->GetRegistrationMetricLog();
+  const RegistrationModel::MetricLog &mlog = m_Model->GetRegistrationMetricLog();
 
   // Set the data points
   m_DataX->Reset();
@@ -88,7 +87,7 @@ void OptimizationProgressRenderer::OnUpdate()
     {
     for(int i = 0; i < mlog[m_PyramidLevel].size(); i++, x++)
       {
-      double y = mlog[m_PyramidLevel][i];
+      double y = mlog[m_PyramidLevel][i].TotalMetric;
       m_DataX->InsertNextValue(x);
       m_DataY->InsertNextValue(y);
 

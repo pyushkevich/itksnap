@@ -5,6 +5,7 @@
 #include "PropertyModel.h"
 #include "itkMatrix.h"
 #include "itkVector.h"
+#include "MultiComponentMetricReport.h"
 
 class GlobalUIModel;
 class IRISApplication;
@@ -124,7 +125,11 @@ public:
 
   void SaveTransform(const char *filename, TransformFormat format);
 
-  const std::vector< std::vector<double> > &GetRegistrationMetricLog() const;
+  /** Metric log data structure */
+  typedef std::vector<std::vector<MultiComponentMetricReport> > MetricLog;
+
+  /** Return the metric log from the registration */
+  const MetricLog &GetRegistrationMetricLog() const;
 
   irisSimplePropertyAccessMacro(LastMetricValue, double)
 
