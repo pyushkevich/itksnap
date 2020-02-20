@@ -42,7 +42,7 @@ QGroupBox::title {
    <item>
     <widget class="QTabWidget" name="tabMode">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tabThreshold">
       <attribute name="title">
@@ -518,11 +518,51 @@ QGroupBox::title {
              <property name="bottomMargin">
               <number>4</number>
              </property>
-             <item row="2" column="3">
-              <widget class="QSpinBox" name="inClassifierPatchSize">
+             <item row="2" column="7">
+              <spacer name="horizontalSpacer_7">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::Expanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>5</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="3" column="0" colspan="8">
+              <widget class="QCheckBox" name="inClassifyUseCoordinates">
+               <property name="text">
+                <string>Inculde the voxels' coordinates as features</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="1" colspan="7">
+              <widget class="QLabel" name="label_22">
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>Allows you to provide geometrical hints to the segmentation, for example avoiding leaking into a certain region</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="5">
+              <widget class="QSpinBox" name="inClassifierPatchSizeZ">
                <property name="minimumSize">
                 <size>
-                 <width>100</width>
+                 <width>50</width>
                  <height>0</height>
                 </size>
                </property>
@@ -534,7 +574,37 @@ QGroupBox::title {
              <item row="2" column="2">
               <widget class="QLabel" name="label_26">
                <property name="text">
-                <string>Neighborhood size:</string>
+                <string>Patch radius:</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1" colspan="7">
+              <widget class="QLabel" name="label_21">
+               <property name="styleSheet">
+                <string notr="true">font-size:10px;
+color: rgb(64, 64, 64);</string>
+               </property>
+               <property name="text">
+                <string>Neighboring intensity values around each voxel are included as additional features. Can help you segment images with rich texture or complex patterns, but classification will be slower</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="3">
+              <widget class="QSpinBox" name="inClassifierPatchSizeX">
+               <property name="minimumSize">
+                <size>
+                 <width>50</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The radius of the neighborhood used to produce additional features. When set to 1, the neighborhood size is 3x3x3 voxels. When set to 2, the neighborhood is 5x5x5 voxels, and so on.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
               </widget>
              </item>
@@ -554,21 +624,25 @@ QGroupBox::title {
                </property>
               </spacer>
              </item>
+             <item row="0" column="0" colspan="8">
+              <widget class="QCheckBox" name="inClassifyUsePatch">
+               <property name="text">
+                <string>Use patches for classification</string>
+               </property>
+              </widget>
+             </item>
              <item row="2" column="4">
-              <spacer name="horizontalSpacer_7">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Expanding</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
+              <widget class="QSpinBox" name="inClassifierPatchSizeY">
+               <property name="minimumSize">
                 <size>
-                 <width>5</width>
-                 <height>20</height>
+                 <width>50</width>
+                 <height>0</height>
                 </size>
                </property>
-              </spacer>
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The radius of the neighborhood used to produce additional features. When set to 1, the neighborhood size is 3x3x3 voxels. When set to 2, the neighborhood is 5x5x5 voxels, and so on.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               </property>
+              </widget>
              </item>
              <item row="2" column="1">
               <spacer name="horizontalSpacer_8">
@@ -586,51 +660,16 @@ QGroupBox::title {
                </property>
               </spacer>
              </item>
-             <item row="0" column="0" colspan="5">
-              <widget class="QCheckBox" name="inClassifyUsePatch">
-               <property name="text">
-                <string>Inculde the intensities of the voxels' neighbors as features</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1" colspan="4">
-              <widget class="QLabel" name="label_21">
-               <property name="styleSheet">
-                <string notr="true">font-size:10px;
-color: rgb(64, 64, 64);</string>
+             <item row="2" column="6">
+              <widget class="QLabel" name="label_27">
+               <property name="toolTip">
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use these controls to set the size of the patch. Patches are symmetrical around a voxel and have dimensions that are odd, e.g., 1x1x1, 5x5x5, 3x3x1. The size of the patch is equal to one plus twice the patch radius. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
-                <string>Can help you segment images with rich texture or complex patterns, but classification will be much slower</string>
+                <string/>
                </property>
-               <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0" colspan="5">
-              <widget class="QCheckBox" name="inClassifyUseCoordinates">
-               <property name="text">
-                <string>Inculde the voxels' coordinates as features</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="1" colspan="4">
-              <widget class="QLabel" name="label_22">
-               <property name="styleSheet">
-                <string notr="true">font-size:10px;
-color: rgb(64, 64, 64);</string>
-               </property>
-               <property name="text">
-                <string>Allows you to provide geometrical hints to the segmentation, for example avoiding leaking into a certain region</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-               </property>
-               <property name="wordWrap">
-                <bool>true</bool>
+               <property name="pixmap">
+                <pixmap resource="../Resources/SNAPResources.qrc">:/root/icons8_info_16.png</pixmap>
                </property>
               </widget>
              </item>
@@ -1669,15 +1708,15 @@ color: rgb(64, 64, 64);</string>
    <header location="global">QDoubleSlider.h</header>
   </customwidget>
   <customwidget>
+   <class>QDoubleSliderWithEditor</class>
+   <extends>QSlider</extends>
+   <header location="global">QDoubleSliderWithEditor.h</header>
+  </customwidget>
+  <customwidget>
    <class>QtSimpleOpenGLBox</class>
    <extends>QWidget</extends>
    <header location="global">QtSimpleOpenGLBox.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QDoubleSliderWithEditor</class>
-   <extends>QSlider</extends>
-   <header location="global">QDoubleSliderWithEditor.h</header>
   </customwidget>
   <customwidget>
    <class>QtVTKRenderWindowBox</class>

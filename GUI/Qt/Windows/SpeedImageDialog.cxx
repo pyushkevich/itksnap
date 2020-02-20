@@ -12,6 +12,7 @@
 #include "QtSpinBoxCoupling.h"
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtComboBoxCoupling.h"
+#include "QtWidgetArrayCoupling.h"
 #include <QCloseEvent>
 #include <QTreeView>
 #include "GlobalUIModel.h"
@@ -112,8 +113,10 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
 
 
   makeCoupling(ui->inClassifyUsePatch, m_Model->GetClassifierUsePatchModel());
-  makeCoupling(ui->inClassifierPatchSize, m_Model->GetClassifierPatchRadiusModel());
   makeCoupling(ui->inClassifyUseCoordinates, m_Model->GetClassifierUseCoordinatesModel());
+
+  makeArrayCoupling(ui->inClassifierPatchSizeX, ui->inClassifierPatchSizeY, ui->inClassifierPatchSizeZ,
+                    m_Model->GetClassifierPatchRadiusModel());
 
 
   // Couple the tab pages to the current mode

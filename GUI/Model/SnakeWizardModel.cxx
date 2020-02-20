@@ -182,7 +182,7 @@ SnakeWizardModel::SnakeWizardModel()
         RFClassifierModifiedEvent());
 
   m_ClassifierUsePatchModel =
-      NewNumericPropertyToggleAdaptor(m_ClassifierPatchRadiusModel.GetPointer(), 0, 2);
+      NewNumericPropertyToggleAdaptor(m_ClassifierPatchRadiusModel.GetPointer(), Vector3ui(0), Vector3ui(2));
 
   m_ClassifierUseCoordinatesModel = wrapGetterSetterPairAsProperty(
         this,
@@ -469,7 +469,7 @@ void SnakeWizardModel::SetTreeDepthValue(int value)
   InvokeEvent(RFClassifierModifiedEvent());
 }
 
-bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(int &value, NumericValueRange<int> *range)
+bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(Vector3ui &value, NumericValueRange<Vector3ui> *range)
 {
   // Must have a classification engine
   IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
@@ -477,27 +477,27 @@ bool SnakeWizardModel::GetClassifierPatchRadiusValueAndRange(int &value, Numeric
     return false;
 
   // Get the value
-  Vector3ui radius(rfe->GetPatchRadius());
-  value = (int) radius.max_value();
+  value = rfe->GetPatchRadius();
 
   if(range)
-    range->Set(0, 4, 1);
+    {
+    Vector3ui img_size = m_Driver->GetCurrentImageData()->GetMain()->GetSize();
+    Vector3ui max_patch_radius = vector_min(Vector3ui(4), (img_size - Vector3ui(1)) / 2u);
+    range->Set(Vector3ui(0), max_patch_radius, Vector3ui(1));
+    }
 
   return true;
 }
 
-void SnakeWizardModel::SetClassifierPatchRadiusValue(int value)
+void SnakeWizardModel::SetClassifierPatchRadiusValue(Vector3ui value)
 {
   IRISApplication::RFEngine *rfe = m_Driver->GetClassificationEngine();
   assert(rfe);
-  assert(value >= 0);
 
   // Check that the radius does not exceed the dimensions of the image
   IRISApplication::RFEngine::RadiusType radius;
   Vector3ui img_size = m_Driver->GetCurrentImageData()->GetMain()->GetSize();
-  for(int k = 0; k < 3; k++)
-    radius[k] = std::min(((int) img_size[k] - 1) / 2, value);
-
+  radius = to_itkSize(vector_min(value, (img_size - Vector3ui(1)) / 2u));
   rfe->SetPatchRadius(radius);
 
   InvokeEvent(RFClassifierModifiedEvent());

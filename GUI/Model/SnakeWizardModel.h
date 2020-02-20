@@ -282,7 +282,7 @@ public:
   irisSimplePropertyAccessMacro(ClassifierUsePatch, bool)
 
   /** Model for the patch radius */
-  irisRangedPropertyAccessMacro(ClassifierPatchRadius, int)
+  irisRangedPropertyAccessMacro(ClassifierPatchRadius, Vector3ui)
 
   /** Bias for the classifier */
   irisRangedPropertyAccessMacro(ClassifierBias, double)
@@ -458,9 +458,9 @@ protected:
   void SetTreeDepthValue(int value);
 
   SmartPtr<AbstractSimpleBooleanProperty> m_ClassifierUsePatchModel;
-  SmartPtr<AbstractRangedIntProperty> m_ClassifierPatchRadiusModel;
-  bool GetClassifierPatchRadiusValueAndRange(int &value, NumericValueRange<int> *range);
-  void SetClassifierPatchRadiusValue(int value);
+  SmartPtr<AbstractRangedUIntVec3Property> m_ClassifierPatchRadiusModel;
+  bool GetClassifierPatchRadiusValueAndRange(Vector3ui &value, NumericValueRange<Vector3ui> *range);
+  void SetClassifierPatchRadiusValue(Vector3ui value);
 
   SmartPtr<AbstractRangedDoubleProperty> m_ClassifierBiasModel;
   bool GetClassifierBiasValueAndRange(double &value, NumericValueRange<double> *range);
