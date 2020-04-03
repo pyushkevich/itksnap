@@ -1059,20 +1059,9 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 #ifdef WIN32
   #include <direct.h>
+  #include <strsafe.h>
 #else
   #include <dirent.h>
 #endif
@@ -1084,13 +1073,9 @@ void MainImageWindow::remove_dir(const std::string path)
     TCHAR szDir[MAX_PATH];
     HANDLE hFind = INVALID_HANDLE_VALUE;
 
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::wstring test_path = converter.from_bytes(path);
-
-
     // Prepare string for use with FindFile functions.  First, copy the
    // string to a buffer, then append '\*' to the directory name.
-    StringCchCopy(szDir, MAX_PATH, test_path.c_str());
+    StringCchCopy(szDir, MAX_PATH, path.c_str());
     StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
 
     // Find the first file in the directory.
@@ -1102,8 +1087,8 @@ void MainImageWindow::remove_dir(const std::string path)
         // If the directory contains a directory, we empty it
         if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
-            if (converter.to_bytes(ffd.cFileName) != "." & converter.to_bytes(ffd.cFileName) != "..") {
-                std::string new_path = path + "\\" + converter.to_bytes(ffd.cFileName);
+            if (strcmp(ffd.cFileName, ".") == 0 & strcmp(ffd.cFileName, "..") == 0) {
+                std::string new_path = path + "\\" +ffd.cFileName;
                 if (_rmdir(new_path.c_str()) == -1) { // Error while removing the directory
                     if (errno == ENOTEMPTY) {
                         //Open the subdirectory to delete files
@@ -1114,10 +1099,11 @@ void MainImageWindow::remove_dir(const std::string path)
         }
         else //Remove files
         {
-            std::string new_path = path + "\\" + converter.to_bytes(ffd.cFileName);
+            std::string new_path = path + "\\" + ffd.cFileName;
             remove(new_path.c_str());
         }
     }
+    //Remove the folder once it's empty
     if (FindNextFile(hFind, &ffd) == 0) {
         _rmdir(path.c_str());
     }
@@ -1129,22 +1115,19 @@ void MainImageWindow::remove_dir(const std::string path)
     struct dirent* ent;
     if ((dir = opendir(path.c_str())) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
-            if (std::string(ent->d_name) != "." & std::string(ent->d_name) != ".."){
-                std::string file = std::string(path) + "/" + std::string(ent->d_name);
-                // If the folder contains a folder:
-                if ((subdir = opendir(file.c_str())) != NULL) {
-                    closedir(subdir);
-                    remove_dir(file.c_str());
-                }
-                else {
-                    remove(file.c_str());
-                }
+            std::string file = std::string(path) + "/" + std::string(ent->d_name);
+            // If the folder contains a folder:
+            if ((subdir = opendir(file.c_str())) != NULL) {
+                closedir(subdir);
+                remove_dir(file.c_str());
+
+            }
+            else {
+                remove(file.c_str());
             }
         }
         closedir(dir);
     }
-    //Remove the folder once it's empty
-    remove(path.c_str());
 #endif
 }
 
