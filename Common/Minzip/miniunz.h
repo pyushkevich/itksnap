@@ -1,9 +1,13 @@
-#ifndef _miniumz_H
+#ifndef _miniunz_H
 #define _miniunz_H
 
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifdef __APPLE__
+#define unix
 #endif
 
 #ifdef unix
