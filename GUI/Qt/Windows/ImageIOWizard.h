@@ -86,6 +86,9 @@ public:
   bool validatePage();
   // bool isComplete() const;
 
+  string GetTempDirName();
+  void ParseZipDirectory(const std::string &inname);
+
 public slots:
 
   void onFilenameChanged(QString absoluteFilename);
