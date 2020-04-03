@@ -11,6 +11,7 @@ MESSAGE(STATUS "ITK-SNAP Git Info:")
 # CMAKE PRELIMINARIES                       
 #--------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 2.8.12)
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -250,6 +251,10 @@ SET(LOGIC_CXX
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
   Common/JSon/jsoncpp.cpp
+  Common/Minzip/ioapi.c
+  Common/Minzip/iowin32.c
+  Common/Minzip/miniunz.c
+  Common/Minzip/unzip.c
   Logic/Common/ColorLabelTable.cxx
   Logic/Common/ColorMap.cxx
   Logic/Common/ColorMapPresetManager.cxx
@@ -312,6 +317,10 @@ SET(LOGIC_CXX
   Logic/WorkspaceAPI/WorkspaceAPI.cxx
 )
 
+
+
+
+
 # The headers for the Logic code
 SET(LOGIC_HEADERS
   ${SNAP_BINARY_DIR}/GPUSettings.h
@@ -345,6 +354,11 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
   Common/JSon/json/json.h
   Common/JSon/json/json-forwards.h
+  Common/Minzip/iowin32.h
+  Common/Minzip/ioapi.h
+  Common/Minzip/unzip.h
+  Common/Minzip/miniunz.h
+  Common/Minzip/crypt.h
   Common/PresetManager.h
   Common/PresetManager.hxx
   Common/PropertyModel.h
@@ -956,6 +970,12 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Common
     ${SNAP_SOURCE_DIR}/Common/ITKExtras
     ${SNAP_SOURCE_DIR}/Common/JSon
+
+
+    ${SNAP_SOURCE_DIR}/Common/Minzip
+    ${SNAP_SOURCE_DIR}/Common/Minzip/zlibEXTRAS
+
+
     ${SNAP_SOURCE_DIR}/Logic
     ${SNAP_SOURCE_DIR}/Logic/Common
     ${SNAP_SOURCE_DIR}/Logic/Framework
@@ -1054,6 +1074,7 @@ SET(SNAP_EXTERNAL_LIBS_LITE
   ${SYSTEM_LIBS})
 
 
+
 #--------------------------------------------------------------------------------
 # Include C3D Library as submodule
 #--------------------------------------------------------------------------------
@@ -1103,6 +1124,7 @@ ADD_LIBRARY(itksnapui_qt
   ${UI_QT_CXX} ${UI_WRAPPED_MOC_HEADERS} ${UI_MOC_HEADERS} 
   ${UI_NONMOC_HEADERS} ${UI_FORM_HEADERS} ${UI_RESOURCES_RCC})
 
+
 # This is experimental: it seems that shared libraries do not
 # build accurately (at least on MacOS) without the following
 # two lines
@@ -1147,6 +1169,7 @@ ENDIF(WIN32)
 
 # Define the main SNAP executable
 SET(SNAP_BUNDLE_NAME ITK-SNAP)
+
 
 # Configure the executable's sources and libraries
 ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})
@@ -1466,11 +1489,17 @@ ELSE()
   # On Linux, we generate forward shared executable
   SUBDIRS(Utilities/Forwarding)
 
-  SET(SNAP_EXE "ITK-SNAP")
-  SET(SNAP_MAIN_INSTALL_DIR lib/snap-${SNAP_VERSION_FULL})
-  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
-  SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
-  INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
+#  SET(SNAP_EXE "ITK-SNAP")
+#  SET(SNAP_MAIN_INSTALL_DIR lib/snap-${SNAP_VERSION_FULL})
+#  SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
+#  SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
+  #INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
+
+    SET(SNAP_EXE "ITK-SNAP")
+    SET(SNAP_MAIN_INSTALL_DIR lib)
+    SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
+    SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
+    INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
 
   IF(NOT SNAP_USE_QT4)
 
