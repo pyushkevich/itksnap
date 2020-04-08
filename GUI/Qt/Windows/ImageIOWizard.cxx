@@ -205,7 +205,9 @@ protected:
 };
 */
 
-
+#ifdef WIN32
+#include <direct.h>
+#endif
 string SelectFilePage::GetTempDirName()
 {
 #ifdef WIN32
@@ -224,7 +226,8 @@ string SelectFilePage::GetTempDirName()
   // We use the filename to create a directory
   string dir = tempFile;
   dir += "_d";
-
+  _mkdir(dir.c_str());
+  remove(tempFile);
   return dir;
 
 #else

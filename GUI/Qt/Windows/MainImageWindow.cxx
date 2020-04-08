@@ -1074,7 +1074,7 @@ void MainImageWindow::remove_dir(const std::string path)
     HANDLE hFind = INVALID_HANDLE_VALUE;
 
     // Prepare string for use with FindFile functions.  First, copy the
-   // string to a buffer, then append '\*' to the directory name.
+    // string to a buffer, then append '\*' to the directory name.
     StringCchCopy(szDir, MAX_PATH, path.c_str());
     StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
 
@@ -1087,8 +1087,8 @@ void MainImageWindow::remove_dir(const std::string path)
         // If the directory contains a directory, we empty it
         if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
-            if (strcmp(ffd.cFileName, ".") == 0 & strcmp(ffd.cFileName, "..") == 0) {
-                std::string new_path = path + "\\" +ffd.cFileName;
+            if (strcmp(ffd.cFileName, ".") != 0 & strcmp(ffd.cFileName, "..") != 0) {
+                std::string new_path = path + "\\" + ffd.cFileName;
                 if (_rmdir(new_path.c_str()) == -1) { // Error while removing the directory
                     if (errno == ENOTEMPTY) {
                         //Open the subdirectory to delete files
@@ -1137,6 +1137,28 @@ void MainImageWindow::cleanUp_tempdir(void)
   char tempDir[_MAX_PATH + 1] = "";
   // First call return a directory only
   DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
+  WIN32_FIND_DATA ffd;
+  TCHAR szDir[MAX_PATH];
+  HANDLE hFind = INVALID_HANDLE_VALUE;
+
+  // Prepare string for use with FindFile functions.  First, copy the
+  // string to a buffer, then append '\*' to the directory name.
+  StringCchCopy(szDir, MAX_PATH, tempDir);
+  StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
+
+  // Find the first file in the directory.
+  hFind = FindFirstFile(szDir, &ffd);
+
+
+  while (FindNextFile(hFind, &ffd) != 0)
+  {
+	  std::size_t find_zip = std::string(ffd.cFileName).find("ZIP");
+	  if (find_zip != std::string::npos) {
+		  std::string path = tempDir + std::string(ffd.cFileName);
+		  remove_dir(path);
+	  }
+  }
+
 
 #else
   //Find the folders extracted into temp directory
