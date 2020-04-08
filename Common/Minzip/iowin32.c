@@ -9,7 +9,7 @@
 #if defined(_WIN32) || defined(WIN32)
 #include <stdlib.h>
 
-#include "zlib.h"
+#include "itk_zlib.h"
 #include "ioapi.h"
 #include "iowin32.h"
 
