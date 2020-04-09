@@ -59,7 +59,7 @@ void InterpolateLabelModel::Interpolate()
     typedef GenericImageData::LabelImageType LabelImageType;
     typedef BinarizeFunctor<LabelType> FunctorType;
     typedef itk::UnaryFunctorImageFilter<LabelImageType, LabelImageType, FunctorType> BinarizeFilterType;
-    typename BinarizeFilterType::Pointer flt = BinarizeFilterType::New();
+    BinarizeFilterType::Pointer flt = BinarizeFilterType::New();
     
     FunctorType fn;
     fn.SetLabel(this->GetInterpolateLabel());
