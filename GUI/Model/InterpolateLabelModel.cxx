@@ -5,6 +5,7 @@
 #include "ScalarImageWrapper.h"
 #include "itkMorphologicalContourInterpolator.h"
 #include "SegmentationUpdateIterator.h"
+#include "itkBinaryThresholdImageFilter.h"
 
 void InterpolateLabelModel::SetParentModel(GlobalUIModel *parent)
 {
@@ -23,6 +24,18 @@ void InterpolateLabelModel::UpdateOnShow()
   this->SetDrawOverFilter(m_Parent->GetGlobalState()->GetDrawOverFilter());
 }
 
+template <class TLabel>
+class BinarizeFunctor
+{
+public:
+  void SetLabel(const TLabel &l) { m_Label = l; }
+  
+  TLabel operator()(const TLabel &in) { return (in == m_Label) ? m_Label : 0; }
+  bool operator != (const BinarizeFunctor<TLabel> &other ) { return m_Label != other.m_Label; }
+private:
+  TLabel m_Label;
+};
+
 void InterpolateLabelModel::Interpolate()
 {
   // Get the segmentation wrapper
@@ -35,11 +48,28 @@ void InterpolateLabelModel::Interpolate()
   // Are we interpolating all labels?
   bool interp_all = this->GetInterpolateAll();
 
-  mci->SetInput(liw->GetImage());
+  // Should we be interpolating a specific label or all labels?
+  if(interp_all)
+    {
+    mci->SetInput(liw->GetImage());
+    }
+  else
+    {
+    // We need to extract a single component from the segmentation image to interpolate
+    typedef GenericImageData::LabelImageType LabelImageType;
+    typedef BinarizeFunctor<LabelType> FunctorType;
+    typedef itk::UnaryFunctorImageFilter<LabelImageType, LabelImageType, FunctorType> BinarizeFilterType;
+    typename BinarizeFilterType::Pointer flt = BinarizeFilterType::New();
+    
+    FunctorType fn;
+    fn.SetLabel(this->GetInterpolateLabel());
+    flt->SetInput(liw->GetImage());
+    flt->SetFunctor(fn);
+    flt->Update();
 
-  // Should we be interpolating a specific label?
-  if (!interp_all)
+    mci->SetInput(flt->GetOutput());
     mci->SetLabel(this->GetInterpolateLabel());
+    }
 
   // Should we interpolate only one axis?
   if (this->GetMorphologyInterpolateOneAxis())
@@ -56,7 +86,7 @@ void InterpolateLabelModel::Interpolate()
 
   // Update the filter
   mci->Update();
-
+  
   // Apply the labels back to the segmentation
   SegmentationUpdateIterator it_trg(liw->GetImage(), liw->GetImage()->GetBufferedRegion(),
                                     this->GetDrawingLabel(), this->GetDrawOverFilter());
@@ -74,17 +104,19 @@ void InterpolateLabelModel::Interpolate()
     }
   else
     {
+    LabelType l_interp = this->GetInterpolateLabel();
     LabelType l_replace = this->GetDrawingLabel();
     for(; !it_trg.IsAtEnd(); ++it_trg, ++it_src)
-      it_trg.PaintLabelWithExtraProtection(it_src.Get(), l_replace);
+      if(it_src.Get() == l_interp)
+        it_trg.PaintLabelWithExtraProtection(l_interp, l_replace);
     }
 
   // Finish the segmentation editing and create an undo point
   it_trg.Finalize();
   liw->StoreUndoPoint("Interpolate label", it_trg.RelinquishDelta());
 
-  // TODO: this should not be needed because this should propagate from wrapper
-  // this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
+  // Fire event to inform GUI that segmentation has changed
+  this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
 }
 
 
