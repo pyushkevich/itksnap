@@ -459,8 +459,7 @@ GuidedNativeImageIO
   if(m_FileFormat == FORMAT_DICOM_DIR)
     {
     // Get the directory where to search for the series
-    // std::string SeriesDir = FileName;
-    char SeriesDir[strlen(FileName)];
+    char *SeriesDir = new char[strlen(FileName)];
     strcpy(SeriesDir,FileName);
 
   if(!itksys::SystemTools::FileIsDirectory(FileName))
