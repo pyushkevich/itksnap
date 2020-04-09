@@ -6,7 +6,7 @@
 
 namespace itk { class Command; }
 
-class MultiChannelDisplayMode;
+struct MultiChannelDisplayMode;
 
 /**
  * This class encapsulates an ITK-SNAP workspace. It is just a wrapper around
