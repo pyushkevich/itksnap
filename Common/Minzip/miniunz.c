@@ -527,7 +527,7 @@ const char* extract_zip (filename)
 
 
 
-            char filename_inzip[256];
+            char filename_inzip[500];
             unz_file_info file_info;
             unzGetCurrentFileInfo(uf,&file_info,filename_inzip,sizeof(filename_inzip),NULL,0,NULL,0);
             path_to_file = filename_inzip;
