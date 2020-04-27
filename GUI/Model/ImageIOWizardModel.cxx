@@ -544,7 +544,7 @@ void ImageIOWizardModel
   // Get the directory
   std::string dir = GetBrowseDirectory(filename);
 
-  if(filename.find(".zip")){
+  if(filename.find(".zip") != string::npos){
     auto it = m_map_zip.begin();
     it = m_map_zip.find("DICOMdir");
     dir = it->second;
