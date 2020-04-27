@@ -308,12 +308,13 @@ void FileChooserPanelWithHistory::updateFilename(QString filename)
   QFileInfo fi(filename);
   QString new_file;
 
+
   // If the filename given is relative, define it relative to the working directory
   if(fi.isRelative())
     fi = QFileInfo(m_workingDir, filename);
 
   // If the path exists, use it as the new working directory
-  if(fi.absoluteDir().exists() || (!m_openMode && m_allowCreateDir))
+  else if(fi.absoluteDir().exists() || (!m_openMode && m_allowCreateDir))
     {
     m_workingDir = fi.absolutePath();
     new_file = fi.fileName();
