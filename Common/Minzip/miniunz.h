@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 #include "unzip.h"
-
+#include <stdio.h>
 
 #define CASESENSITIVITY (0)
 #define WRITEBUFFERSIZE (8192)
@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 
+const char* CreateTempDir();
 
 /* change_file_date : change the date/time of a file
     filename : the filename of the file where date/time must be modified
@@ -59,5 +60,4 @@ const char* extract_zip (const char* filename);
 #ifdef __cplusplus
 }
 #endif
-
 #endif
