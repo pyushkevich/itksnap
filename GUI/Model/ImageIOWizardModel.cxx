@@ -74,6 +74,9 @@ ImageIOWizardModel
   m_SaveDelegate = NULL;
   m_Overlay = delegate->IsOverlay();
   m_LoadedImage = NULL;
+
+  m_map_zip["ZIPdir"] = "";
+  m_map_zip["DICOMdir"] = "";
 }
 
 ImageIOWizardModel::~ImageIOWizardModel()
@@ -308,6 +311,12 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     // Load the header
     m_GuidedIO->ReadNativeImageHeader(filename.c_str(), m_Registry);
 
+    // If the image comes from an extracted directory, we set the zip file as the Native Filename,
+    // and the temporary DICOM directory as the Nickname
+    if(filename.find("ZIPDIR") != string::npos){
+        m_GuidedIO->SetZipName(m_map_zip);
+    }
+
     // Check if the header is valid
     m_LoadDelegate->ValidateHeader(m_GuidedIO, m_Warnings);
 
@@ -373,27 +382,94 @@ void ImageIOWizardModel::Reset()
   m_Registry.Clear();
 }
 
+
+#include "miniunz.h"
+string ImageIOWizardModel::GetTempDirName()
+{
+#ifdef WIN32
+  char tempDir[_MAX_PATH + 1] = "";
+  char tempFile[_MAX_PATH + 1] = "";
+
+  // First call return a directory only
+  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
+  if(length <= 0 || length > _MAX_PATH)
+    throw IRISException("Unable to create temporary directory");
+
+  // This will create a unique file in the temp directory
+  if (0 == GetTempFileName(tempDir, TEXT("ZIPDIR"), 0, tempFile))
+    throw IRISException("Unable to create temporary directory");
+
+  // We use the filename to create a directory
+  string dir = tempFile;
+  dir += "_d";
+  _mkdir(dir.c_str());
+  remove(tempFile);
+  return dir;
+
+#else
+  char tmp_template[4096];
+  strcpy(tmp_template, "/tmp/ZIPDIR_XXXXXX");
+  string tmpdir = mkdtemp(tmp_template);
+  return tmpdir;
+#endif
+}
+
+
 void ImageIOWizardModel::ProcessDicomDirectory(const std::string &filename,
                                                itk::Command *progressCommand)
 {
   // Get the directory
   std::string dir = GetBrowseDirectory(filename);
 
-  // Get the registry
-  try
-  {
-    m_GuidedIO->ParseDicomDirectory(dir, progressCommand);
+  // Unzip and update the directory
+  if(filename.find(".zip") != std::string::npos){
+      string temp = GetTempDirName();
+      chdir(temp.c_str());
+
+      // Extract in a temporary directory
+      const string file_extracted = extract_zip(filename.c_str());
+      const string folder_extracted = file_extracted.substr(0, file_extracted.find_last_of("/\\"));
+
+      // Get the absolude path of the last extracted file
+      dir = temp + "/" + folder_extracted;
+
+      // Store both file paths
+      m_map_zip["DICOMdir"] = dir;
+      m_map_zip["ZIPdir"] = filename;
+
+      try
+      {
+        m_GuidedIO->ParseDicomDirectory(m_map_zip, progressCommand);
+      }
+      catch (IRISException &ei)
+      {
+        throw ei;
+      }
+      catch (std::exception &e)
+      {
+        throw IRISException("Error: exception occured when parsing DICOM directory. "
+                            "Exception: %s", e.what());
+      }
   }
-  catch (IRISException &ei)
-  {
-    throw ei;
-  }
-  catch (std::exception &e)
-  {
-    throw IRISException("Error: exception occured when parsing DICOM directory. "
-                        "Exception: %s", e.what());
+  else{
+      // Get the registry
+      try
+      {
+        m_GuidedIO->ParseDicomDirectory(dir, progressCommand);
+      }
+      catch (IRISException &ei)
+      {
+        throw ei;
+      }
+      catch (std::exception &e)
+      {
+        throw IRISException("Error: exception occured when parsing DICOM directory. "
+                            "Exception: %s", e.what());
+      }
   }
 }
+
+
 
 std::list<std::string>
 ImageIOWizardModel
@@ -407,7 +483,6 @@ ImageIOWizardModel
   for(ParseResult::SeriesMapType::const_iterator it = pr.SeriesMap.begin();
       it != pr.SeriesMap.end(); ++it)
     result.push_back(it->first);
-
   return result;
 }
 
@@ -429,6 +504,7 @@ ImageIOWizardModel
 
   return r;
 }
+
 
 void ImageIOWizardModel
 ::LoadDicomSeries(const std::string &filename,
@@ -468,6 +544,12 @@ void ImageIOWizardModel
   // Get the directory
   std::string dir = GetBrowseDirectory(filename);
 
+  if(filename.find(".zip")){
+    auto it = m_map_zip.begin();
+    it = m_map_zip.find("DICOMdir");
+    dir = it->second;
+  }
+
   // Call the main load method
   this->LoadImage(dir);
 
@@ -476,7 +558,6 @@ void ImageIOWizardModel
     {
     m_LoadedImage->SetCustomNickname(meta_current["SeriesDescription"][""]);
     }
-
 }
 
 unsigned long ImageIOWizardModel::GetFileSizeInBytes(const std::string &file)
