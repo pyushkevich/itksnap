@@ -33,44 +33,6 @@
 #include "iowin32.h"
 #endif
 
-#ifdef WIN32
-  #include <direct.h>
-  #include <strsafe.h>
-#else
-  #include <dirent.h>
-  #include <sys/stat.h>
-#endif
-const char* CreateTempDir()
-{
-#ifdef WIN32
-  char tempDir[_MAX_PATH + 1] = "";
-  char tempFile[_MAX_PATH + 1] = "";
-
-  // First call return a directory only
-  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
-  if(length <= 0 || length > _MAX_PATH)
-    throw IRISException("Unable to create temporary directory");
-
-  // This will create a unique file in the temp directory
-  if (0 == GetTempFileName(tempDir, TEXT("ZIPDIR"), 0, tempFile))
-    throw IRISException("Unable to create temporary directory");
-
-  // We use the filename to create a directory
-  string dir = tempFile;
-  dir += "_d";
-  _mkdir(dir.c_str());
-  remove(tempFile);
-  return dir;
-
-#else
-  char tmp_template[4096];
-  strcpy(tmp_template, "ZIPDIR_XXXXXX");
-  char* tmpdir = mkdtemp(tmp_template);
-  return tmpdir;
-#endif
-}
-
-
 /* change_file_date : change the date/time of a file
     filename : the filename of the file where date/time must be modified
     dosdate : the new date at the MSDos format (4 bytes)
