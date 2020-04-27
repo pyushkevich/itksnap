@@ -15,7 +15,6 @@ extern "C" {
 #endif
 
 #include "unzip.h"
-#include <stdio.h>
 
 #define CASESENSITIVITY (0)
 #define WRITEBUFFERSIZE (8192)
@@ -25,9 +24,6 @@ extern "C" {
 #define USEWIN32IOAPI
 #include "iowin32.h"
 #endif
-
-
-const char* CreateTempDir();
 
 /* change_file_date : change the date/time of a file
     filename : the filename of the file where date/time must be modified
