@@ -93,7 +93,9 @@ protected:
 
   typedef ConcretePropertyModel<InterpolationType, TrivialDomain> ConcreteInterpolationType;
   SmartPtr<ConcreteInterpolationType> m_InterpolationMethodModel;
-
+  
+  // Templated code to interpolate an image
+  template <class TImage> void DoInterpolate(TImage *image);
 
   // The parent model
   GlobalUIModel *m_Parent;

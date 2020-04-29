@@ -1841,7 +1841,9 @@ string IRISApplication::GetTempDirName()
 #endif
 
 void IRISApplication::remove_dir(const std::string path)
-    {
+{
+  itksys::SystemTools::RemoveADirectory(path);
+  /*
     #ifdef WIN32
         WIN32_FIND_DATA ffd;
         TCHAR szDir[MAX_PATH];
@@ -1903,6 +1905,7 @@ void IRISApplication::remove_dir(const std::string path)
             closedir(dir);
         }
     #endif
+    */
     }
 
 void IRISApplication::cleanUp_tempdir(void)

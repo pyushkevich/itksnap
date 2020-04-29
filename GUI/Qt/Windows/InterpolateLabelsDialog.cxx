@@ -28,6 +28,7 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
 
   makeCoupling(ui->inActiveLabel, m_Model->GetDrawingLabelModel());
   makeCoupling(ui->inLabelToInterpolate, m_Model->GetInterpolateLabelModel());
+  makeCoupling(ui->inDrawOverFilter, m_Model->GetDrawOverFilterModel());
 
   makeRadioGroupCoupling(ui->btnInterpolateAll, ui->btnInterpolateOne, m_Model->GetInterpolateAllModel());
 

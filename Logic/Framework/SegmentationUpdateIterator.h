@@ -203,7 +203,11 @@ public:
   void PaintLabelWithExtraProtection(LabelType protect_label, LabelType new_label)
   {
     LabelType lOld = m_Iterator.Get();
-
+    if(lOld == 1)
+      {
+      printf("1\n");
+      }
+  
     // Test for protection or empty operation
     if(lOld == protect_label || lOld == new_label)
       return;

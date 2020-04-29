@@ -15,6 +15,10 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#ifdef __APPLE__
+#include <sys/stat.h>
+#endif
+
 #ifdef unix
 # include <unistd.h>
 # include <utime.h>
@@ -336,7 +340,7 @@ int do_extract_currentfile(uf,popt_extract_without_path,popt_overwrite,password)
             {
                 char c=*(filename_withoutpath-1);
                 *(filename_withoutpath-1)='\0';
-                makedir(write_filename);
+                makedir((char *)(write_filename));
                 *(filename_withoutpath-1)=c;
                 fout=fopen(write_filename,"wb");
             }
