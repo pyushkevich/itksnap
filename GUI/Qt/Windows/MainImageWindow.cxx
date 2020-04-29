@@ -1068,115 +1068,12 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 
 void MainImageWindow::remove_dir(const std::string path)
 {
-#ifdef WIN32
-    WIN32_FIND_DATA ffd;
-    TCHAR szDir[MAX_PATH];
-    HANDLE hFind = INVALID_HANDLE_VALUE;
-
-    // Prepare string for use with FindFile functions.  First, copy the
-    // string to a buffer, then append '\*' to the directory name.
-    StringCchCopy(szDir, MAX_PATH, path.c_str());
-    StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
-
-    // Find the first file in the directory.
-    hFind = FindFirstFile(szDir, &ffd);
-
-
-    while (FindNextFile(hFind, &ffd) != 0)
-    {
-        // If the directory contains a directory, we empty it
-        if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-        {
-            if (strcmp(ffd.cFileName, ".") != 0 & strcmp(ffd.cFileName, "..") != 0) {
-                std::string new_path = path + "\\" + ffd.cFileName;
-                if (_rmdir(new_path.c_str()) == -1) { // Error while removing the directory
-                    if (errno == ENOTEMPTY) {
-                        //Open the subdirectory to delete files
-                        remove_dir(new_path);
-                    }
-                }
-            }
-        }
-        else //Remove files
-        {
-            std::string new_path = path + "\\" + ffd.cFileName;
-            remove(new_path.c_str());
-        }
-    }
-    //Remove the folder once it's empty
-    if (FindNextFile(hFind, &ffd) == 0) {
-        _rmdir(path.c_str());
-    }
-    FindClose(hFind);
-
-#else
-    DIR* dir;
-    DIR* subdir;
-    struct dirent* ent;
-    if ((dir = opendir(path.c_str())) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            std::string file = std::string(path) + "/" + std::string(ent->d_name);
-            // If the folder contains a folder:
-            if ((subdir = opendir(file.c_str())) != NULL) {
-                closedir(subdir);
-                remove_dir(file.c_str());
-
-            }
-            else {
-                remove(file.c_str());
-            }
-        }
-        closedir(dir);
-    }
-#endif
+  m_Model->GetDriver()->remove_dir(path);
 }
 
 void MainImageWindow::cleanUp_tempdir(void)
 {
-#ifdef WIN32
-  char tempDir[_MAX_PATH + 1] = "";
-  // First call return a directory only
-  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
-  WIN32_FIND_DATA ffd;
-  TCHAR szDir[MAX_PATH];
-  HANDLE hFind = INVALID_HANDLE_VALUE;
-
-  // Prepare string for use with FindFile functions.  First, copy the
-  // string to a buffer, then append '\*' to the directory name.
-  StringCchCopy(szDir, MAX_PATH, tempDir);
-  StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
-
-  // Find the first file in the directory.
-  hFind = FindFirstFile(szDir, &ffd);
-
-
-  while (FindNextFile(hFind, &ffd) != 0)
-  {
-	  std::size_t find_zip = std::string(ffd.cFileName).find("ZIP");
-	  if (find_zip != std::string::npos) {
-		  std::string path = tempDir + std::string(ffd.cFileName);
-		  remove_dir(path);
-	  }
-  }
-
-
-#else
-  //Find the folders extracted into temp directory
-  DIR* dir;
-  struct dirent* ent;
-  std::string path;
-  if ((dir = opendir("/tmp")) != NULL) {
-      while ((ent = readdir (dir)) != NULL) {
-          //Find the extracted folders
-          std::size_t find_zip = std::string(ent->d_name).find("ZIPDIR");
-          if (find_zip != std::string::npos) {
-              path = "/tmp/" + std::string(ent->d_name);
-              remove_dir(path);
-          }
-      }
-      closedir(dir);
-  }
-#endif
+  m_Model->GetDriver()->cleanUp_tempdir();
 }
 
 void MainImageWindow::closeEvent(QCloseEvent *event)
