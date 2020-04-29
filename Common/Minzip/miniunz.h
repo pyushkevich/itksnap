@@ -20,7 +20,6 @@ extern "C" {
 
 #include "unzip.h"
 
-
 #define CASESENSITIVITY (0)
 #define WRITEBUFFERSIZE (8192)
 #define MAXFILENAME (256)
@@ -29,8 +28,6 @@ extern "C" {
 #define USEWIN32IOAPI
 #include "iowin32.h"
 #endif
-
-
 
 /* change_file_date : change the date/time of a file
     filename : the filename of the file where date/time must be modified
@@ -63,5 +60,4 @@ const char* extract_zip (const char* filename);
 #ifdef __cplusplus
 }
 #endif
-
 #endif

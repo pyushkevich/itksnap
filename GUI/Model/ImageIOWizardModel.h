@@ -37,6 +37,9 @@ public:
     SI_ENDIAN, SI_COMPONENTS, SI_DATATYPE, SI_FILESIZE
   };
 
+  // Store paths to the zip file and to the temporary folder
+  std::map<string,string> m_map_zip;
+
   // Initialize the wizard for load operations. Note that the delegate,
   // which specializes the behavior of this class, is stored internally
   // using a smart pointer, so its ownership can be relinquished to the
@@ -166,6 +169,8 @@ public:
     */
   void ProcessDicomDirectory(const std::string &filename, itk::Command *progressCommand);
 
+  string GetTempDirName();
+
   /**
    * Get a list of loaded Dicom SeriesIDs. This can be called from the
    * callback of progressCommand, allowing on the fly updates
@@ -260,6 +265,7 @@ protected:
 
   // Pointer to the image layer that has been loaded
   ImageWrapperBase *m_LoadedImage;
+
 };
 
 #endif // IMAGEIOWIZARDMODEL_H

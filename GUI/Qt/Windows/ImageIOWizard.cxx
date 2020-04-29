@@ -358,14 +358,6 @@ bool SelectFilePage::validatePage()
   if(fmt == GuidedNativeImageIO::FORMAT_RAW)
     return true;
 
-  // If format is ZIP, we extract the file
-  if(fmt == GuidedNativeImageIO::FORMAT_ZIP)
-    ParseZipDirectory(m_FilePanel->absoluteFilename().toStdString());
-    // Update the format
-    format = m_FilePanel->activeFormat();
-    fmt = m_Model->GetFileFormatByName(to_utf8(format));
-
-
   // If format is DICOM, process the DICOM directory
   if(fmt == GuidedNativeImageIO::FORMAT_DICOM_DIR)
     return true;

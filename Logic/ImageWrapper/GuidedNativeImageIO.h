@@ -69,7 +69,7 @@ public:
     FORMAT_DICOM_FILE,      // A single DICOM file
     FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
     FORMAT_MHA, FORMAT_NIFTI, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
-    FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK, FORMAT_ZIP, FORMAT_COUNT
+    FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK, FORMAT_COUNT
     };
 
   enum RawPixelType {
@@ -180,6 +180,12 @@ public:
   Vector3ui GetDimensionsOfNativeImage() const
     { return m_NativeDimensions; }
 
+  // Set the zip file as the Native Filename and the temporary DICOM directory as the Nickname
+  void SetZipName(std::map<std::string,std::string> map_zip){
+      m_NativeNickname = map_zip.find("DICOMdir")->second;
+      m_NativeFileName = map_zip.find("ZIPdir")->second;
+  }
+
   /**
    * This method returns the image internally stored in this object. This is
    * a pointer to an itk::VectorImage of some native format. Use one of the
@@ -270,6 +276,7 @@ public:
    */
   void ParseDicomDirectory(
       const std::string &dir, itk::Command *progressCommand = NULL);
+  void ParseDicomDirectory(const std::map<std::string, std::string> &zip_map, itk::Command *progressCommand = NULL);
 
   /**
    * Get the result of the last parse operation. This should be safe to

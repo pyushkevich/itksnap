@@ -37,8 +37,6 @@
 #include "iowin32.h"
 #endif
 
-
-
 /* change_file_date : change the date/time of a file
     filename : the filename of the file where date/time must be modified
     dosdate : the new date at the MSDos format (4 bytes)
