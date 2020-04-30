@@ -532,9 +532,8 @@ public:
   std::string GetTempDirName();
 
   /**
-   * Clean up the temp folder
+   * Clean up the temp folder, removing all extracted zip files
    */
-  void remove_dir(const std::string path);
   void cleanUp_tempdir();
 
   /**
