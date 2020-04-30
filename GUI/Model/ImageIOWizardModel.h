@@ -169,8 +169,6 @@ public:
     */
   void ProcessDicomDirectory(const std::string &filename, itk::Command *progressCommand);
 
-  string GetTempDirName();
-
   /**
    * Get a list of loaded Dicom SeriesIDs. This can be called from the
    * callback of progressCommand, allowing on the fly updates

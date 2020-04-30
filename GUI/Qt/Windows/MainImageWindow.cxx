@@ -1059,23 +1059,6 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 }
 
 
-#ifdef WIN32
-  #include <direct.h>
-  #include <strsafe.h>
-#else
-  #include <dirent.h>
-#endif
-
-void MainImageWindow::remove_dir(const std::string path)
-{
-  m_Model->GetDriver()->remove_dir(path);
-}
-
-void MainImageWindow::cleanUp_tempdir(void)
-{
-  m_Model->GetDriver()->cleanUp_tempdir();
-}
-
 void MainImageWindow::closeEvent(QCloseEvent *event)
 {
   // Prompt for unsaved changes
@@ -1090,9 +1073,6 @@ void MainImageWindow::closeEvent(QCloseEvent *event)
 
   // Unload all images (this causes the associations to be saved)
   m_Model->GetDriver()->Quit();
-
-  // Clean up the temp directory (search for extracted zip folders)
-  cleanUp_tempdir();
 
   // Exit the application
   QCoreApplication::exit();
