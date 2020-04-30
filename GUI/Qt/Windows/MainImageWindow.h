@@ -156,9 +156,6 @@ public slots:
 
 private slots:
 
-  void remove_dir(const std::string path);
-  void cleanUp_tempdir(void);
-
   void onActiveChanged();
 
   void on_actionQuit_triggered();

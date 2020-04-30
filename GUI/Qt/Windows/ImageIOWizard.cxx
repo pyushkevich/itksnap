@@ -205,40 +205,6 @@ protected:
 };
 */
 
-#ifdef WIN32
-#include <direct.h>
-#endif
-string SelectFilePage::GetTempDirName()
-{
-#ifdef WIN32
-  char tempDir[_MAX_PATH + 1] = "";
-  char tempFile[_MAX_PATH + 1] = "";
-
-  // First call return a directory only
-  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
-  if(length <= 0 || length > _MAX_PATH)
-    throw IRISException("Unable to create temporary directory");
-
-  // This will create a unique file in the temp directory
-  if (0 == GetTempFileName(tempDir, TEXT("ZIPDIR"), 0, tempFile))
-    throw IRISException("Unable to create temporary directory");
-
-  // We use the filename to create a directory
-  string dir = tempFile;
-  dir += "_d";
-  _mkdir(dir.c_str());
-  remove(tempFile);
-  return dir;
-
-#else
-  char tmp_template[4096];
-  strcpy(tmp_template, "/tmp/ZIPDIR_XXXXXX");
-  string tmpdir = mkdtemp(tmp_template);
-  return tmpdir;
-#endif
-}
-
-
 void SelectFilePage::initializePage()
 {
   assert(m_Model);
@@ -297,46 +263,6 @@ void SelectFilePage::initializePage()
 
   // Provide a callback for determining format from filename
   m_FilePanel->setCustomFormatOracle(this, "customFormatOracle");
-}
-
-#include "miniunz.h"
-
-void SelectFilePage::ParseZipDirectory(const std::string &inname){
-
-    string temp = GetTempDirName();
-    chdir(temp.c_str());
-
-    // Extract into temp directory
-    const string file_extracted = extract_zip(inname.c_str());
-
-    // Get the absolude path of the last extracted file
-    string folder_extracted = temp + "/" + file_extracted;
-
-    // Reset the model
-    m_Model->Reset();
-
-    QString activeFormat;
-    if(m_Model->GetSelectedFormat() < GuidedNativeImageIO::FORMAT_COUNT)
-      {
-      activeFormat = from_utf8(m_Model->GetFileFormatName(m_Model->GetSelectedFormat()));
-      }
-    else if(m_Model->GetSuggestedFormat() < GuidedNativeImageIO::FORMAT_COUNT)
-      {
-      activeFormat = from_utf8(m_Model->GetFileFormatName(m_Model->GetSuggestedFormat()));
-      }
-    // Create a filter for the filename panel
-    std::string filter = m_Model->GetFilter("%s (%s)", "*.%s", " ", ";;");
-    // Initialize the file panel
-    if(m_Model->IsLoadMode())
-      {
-      m_FilePanel->initializeForOpenFile(
-            m_Model->GetParent(),
-            "Image Filename:",
-            QString::fromUtf8(folder_extracted.c_str()),
-            from_utf8(filter),
-            folder_extracted.c_str(),
-            activeFormat);
-      }
 }
 
 bool SelectFilePage::validatePage()
@@ -478,6 +404,8 @@ void SummaryPage::initializePage()
 
 bool SummaryPage::validatePage()
 {
+  IRISApplication *app;
+  app->cleanUp_tempdir();
   m_Model->Finalize();
   return true;
 }
