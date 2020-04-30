@@ -1806,7 +1806,6 @@ string IRISApplication::GetTempDirName()
 {
 #ifdef WIN32
   char tempDir[_MAX_PATH + 1] = "";
-  char tempFile[_MAX_PATH + 1] = "";
 
   // First call return a directory only
   DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
@@ -1814,15 +1813,11 @@ string IRISApplication::GetTempDirName()
     throw IRISException("Unable to create temporary directory");
 
   // This will create a unique file in the temp directory
-  if (0 == GetTempFileName(tempDir, TEXT("ZIPDIR"), 0, tempFile))
-    throw IRISException("Unable to create temporary directory");
+  char* tempFile = tempnam(tempDir, "ZIPDIR_");
 
   // We use the filename to create a directory
-  string dir = tempFile;
-  dir += "_d";
-  _mkdir(dir.c_str());
-  remove(tempFile);
-  return dir;
+  _mkdir(tempFile);
+  return tempFile;
 
 #else
   char tmp_template[4096];
