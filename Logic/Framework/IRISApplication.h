@@ -623,6 +623,12 @@ public:
   void SaveProject(const std::string &proj_file);
 
   /**
+   * Export a project. The same method as SaveProject is used. The user can
+   * choose to keep the layers names or to anonymize it.
+   */
+  void ExportProject(const std::string &proj_file, bool anonymize);
+
+  /**
    * Open an existing project.
    */
   void OpenProject(const std::string &proj_file, IRISWarningList &warn);
@@ -784,6 +790,8 @@ protected:
 
   // Internal method used by the project IO code
   void SaveProjectToRegistry(Registry &preg, const std::string proj_file_full);
+
+  void ExportProjectToRegistry(Registry &preg, const std::string proj_file_full, bool anonymize);
 
   // Auto-adjust contrast of a layer on load
   void AutoContrastLayerOnLoad(ImageWrapperBase *layer);
