@@ -252,10 +252,13 @@ SET(LOGIC_CXX
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
   Common/JSon/jsoncpp.cpp
-  Common/Minzip/ioapi.c
-  Common/Minzip/iowin32.c
-  Common/Minzip/miniunz.c
-  Common/Minzip/unzip.c
+  Common/Minizip/ioapi.c
+  Common/Minizip/iowin32.c
+  Common/Minizip/miniunz.c
+  Common/Minizip/minizip.c
+  Common/Minizip/minizip_add_ons.cxx
+  Common/Minizip/unzip.c
+  Common/Minizip/zip.c
   Logic/Common/ColorLabelTable.cxx
   Logic/Common/ColorMap.cxx
   Logic/Common/ColorMapPresetManager.cxx
@@ -351,11 +354,13 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
   Common/JSon/json/json.h
   Common/JSon/json/json-forwards.h
-  Common/Minzip/iowin32.h
-  Common/Minzip/ioapi.h
-  Common/Minzip/unzip.h
-  Common/Minzip/miniunz.h
-  Common/Minzip/crypt.h
+  Common/Minizip/iowin32.h
+  Common/Minizip/ioapi.h
+  Common/Minizip/unzip.h
+  Common/Minizip/zip.h
+  Common/Minizip/miniunz.h
+  Common/Minizip/minizip.h
+  Common/Minizip/crypt.h
   Common/PresetManager.h
   Common/PresetManager.hxx
   Common/PropertyModel.h
@@ -967,7 +972,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Common
     ${SNAP_SOURCE_DIR}/Common/ITKExtras
     ${SNAP_SOURCE_DIR}/Common/JSon
-    ${SNAP_SOURCE_DIR}/Common/Minzip
+    ${SNAP_SOURCE_DIR}/Common/Minizip
     ${SNAP_SOURCE_DIR}/Logic
     ${SNAP_SOURCE_DIR}/Logic/Common
     ${SNAP_SOURCE_DIR}/Logic/Framework
