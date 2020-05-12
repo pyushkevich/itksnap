@@ -145,6 +145,11 @@ bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
  */
 bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWidget *widget);
 
+/**
+ * A static method to export the project/workspace to a zipped folder
+ */
+bool ExportWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWidget *widget, bool anonymize);
+
 /** Convert a QString to a std::string using UTF8 encoding */
 inline std::string to_utf8(const QString &qstring)
 {
