@@ -12,7 +12,8 @@
 #include <vector>
 
 int CreateZIPFile(std::string ZIPfilename, std::vector<char*> files_to_zip);
-int ZipAFolder(const char* zipname, const char* folder);
+void ZipAFolder(const char* zipname, const char* folder);
+
 
 extern "C" {
 #endif
@@ -32,9 +33,10 @@ int check_exist_file(const char* filename);
 //void do_banner();
 //void do_help();
 
+#endif
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif
 #endif

@@ -2,8 +2,16 @@
 
 #include "cstring"
 #include <iostream>
-#include <stdio.h>
+
+#if(WIN32)
+#define USEWIN32IOAPI
+#include "iowin32.h"
+#include <direct.h>
+#include <strsafe.h>
+#else
 #include <dirent.h>
+#include <unistd.h>
+#endif
 
 
 int CreateZIPFile(std::string ZIPfilename, std::vector<char*> files_to_zip)
@@ -161,30 +169,38 @@ int CreateZIPFile(std::string ZIPfilename, std::vector<char*> files_to_zip)
   return 0;  // to avoid warning
 }
 
-#include <unistd.h>
-int ZipAFolder(const char* zipname, const char* path_to_folder)
+void ZipAFolder(const char* zipname, const char* path_to_folder)
 {
   // If the file already exists, it'll be overwritten!
   std::string folder = std::string(path_to_folder).substr(std::string(path_to_folder).find_last_of("/") +1);
   std::string path = std::string(path_to_folder).substr(0, std::string(path_to_folder).find_last_of("/"));
+  std::vector<char*> files_in_folder;
+
+#if(WIN32)
+  _chdir(path.c_str());
+#else
   chdir(path.c_str());
+#endif
 
 #ifdef USEWIN32IOAPI
-  std::vector<char*> files_in_folder;
-  for (const auto& entry : std::filesystem::directory_iterator(folder)) {
-      char* filename = entry.path();
-      if (strcmp(filename, ".") != 0 && strcmp(filename, "..") != 0)
-      {
-        std::string full_path = std::string(folder) + "/" + std::string(filename);
-        char* copy = new char;
-        strcpy(copy,full_path.c_str());
-        files_in_folder.push_back(copy);
-      }
+  WIN32_FIND_DATA fd;
+  HANDLE hFind = ::FindFirstFile(folder.c_str(), &fd);
+  if (hFind != INVALID_HANDLE_VALUE) {
+      do {
+          // read all (real) files in current folder
+          // , delete '!' read other 2 default folder . and ..
+          if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+              std::string full_path = std::string(folder) + "/" + std::string(fd.cFileName);
+              char* copy = new char;
+              strcpy(copy, full_path.c_str());
+              files_in_folder.push_back(copy);
+          }
+      } while (::FindNextFile(hFind, &fd));
+      ::FindClose(hFind);
   }
 #else
   DIR* dir;
   struct dirent* ent;
-  std::vector<char*> files_in_folder;
   if ((dir = opendir(path_to_folder)) != NULL) {
     while ((ent = readdir(dir)) != NULL) {
       char* filename = ent->d_name;
