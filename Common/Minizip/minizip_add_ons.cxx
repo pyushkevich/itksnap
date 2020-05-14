@@ -183,13 +183,14 @@ void ZipAFolder(const char* zipname, const char* path_to_folder)
 #endif
 
 #ifdef USEWIN32IOAPI
+  std::string folder_to_read = std::string(path_to_folder) + "\\*";
   WIN32_FIND_DATA fd;
-  HANDLE hFind = ::FindFirstFile(folder.c_str(), &fd);
+  HANDLE hFind = ::FindFirstFile(folder_to_read.c_str(), &fd);
   if (hFind != INVALID_HANDLE_VALUE) {
       do {
           // read all (real) files in current folder
           // , delete '!' read other 2 default folder . and ..
-          if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+          if (strcmp(fd.cFileName, ".") != 0 && strcmp(fd.cFileName, "..") != 0) {
               std::string full_path = std::string(folder) + "/" + std::string(fd.cFileName);
               char* copy = new char;
               strcpy(copy, full_path.c_str());
