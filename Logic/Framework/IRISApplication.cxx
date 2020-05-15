@@ -1806,7 +1806,6 @@ string IRISApplication::GetTempDirName()
 {
 #ifdef WIN32
   char tempDir[_MAX_PATH + 1] = "";
-  char tempFile[_MAX_PATH + 1] = "";
 
   // First call return a directory only
   DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
@@ -1814,15 +1813,11 @@ string IRISApplication::GetTempDirName()
     throw IRISException("Unable to create temporary directory");
 
   // This will create a unique file in the temp directory
-  if (0 == GetTempFileName(tempDir, TEXT("ZIPDIR"), 0, tempFile))
-    throw IRISException("Unable to create temporary directory");
+  char* tempFile = tempnam(tempDir, "ZIPDIR_");
 
   // We use the filename to create a directory
-  string dir = tempFile;
-  dir += "_d";
-  _mkdir(dir.c_str());
-  remove(tempFile);
-  return dir;
+  _mkdir(tempFile);
+  return tempFile;
 
 #else
   char tmp_template[4096];
@@ -2233,6 +2228,128 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
   preg.CleanEmptyFolders();
 }
 
+
+void IRISApplication::ExportProjectToRegistry(Registry &preg, const std::string proj_file_full, bool anonymize)
+{
+  // Clear the registry contents
+  preg.Clear();
+
+  // Get the directory in which the project will be saved
+  std::string project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
+
+  // Put version information - later versions may not be compatible
+  preg["Version"] << SNAPCurrentVersionReleaseDate;
+
+  // Save the directory to the project file. This allows us to deal with the project
+  // being moved elsewhere in the filesystem
+  preg["SaveLocation"] << project_dir;
+
+  // Save each of the layers with 'saveable' roles
+  int i = 0;
+  for(LayerIterator it = GetCurrentImageData()->GetLayers(
+        MAIN_ROLE | LABEL_ROLE | OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    {
+    ImageWrapperBase *layer = it.GetLayer();
+
+    // Get the filename of the layer
+    const char *filename = layer->GetFileName();
+
+    // If the layer does not have a filename, skip it
+    if(!filename || strlen(filename) == 0)
+      continue;
+
+    // Create a native image IO object for this image
+    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+
+    // The IO hints for the file
+    Registry io_hints;
+
+    // if file is a ZIP, we extract it first
+    bool zip =false;
+    string new_folder;
+    if(string(filename).find(".zip") != string::npos)
+    {
+        string layer_name = string(filename).substr(string(filename).find_last_of("/\\")+1);
+        layer_name.erase(layer_name.end()-4,layer_name.end());
+        new_folder = project_dir + "/" + layer_name;
+#ifdef WIN32
+        _mkdir(new_folder.c_str());
+        _chdir(new_folder.c_str());
+#else
+        mkdir(new_folder.c_str(),0775);
+        chdir(new_folder.c_str());
+#endif
+        string extracted_files = new_folder + "/" + extract_zip(filename);
+        // Load the header of the image and the image data
+        io->ReadNativeImage(extracted_files.c_str(), io_hints);
+        zip = true;
+    }
+    else{
+        // Load the header of the image and the image data
+        io->ReadNativeImage(filename, io_hints);
+    }
+
+
+    // Compute the hash of the image data to generate filename
+    std::string image_md5 = io->GetNativeImageMD5Hash();
+
+    // Create a filename that combines the layer index with the hash code
+    char fn_layer_new[4096];
+
+    if(!anonymize)
+    {
+      string layer_name = project_dir
+              + string(filename).substr(string(filename).find_last_of("/\\"));
+      layer_name = layer_name.substr(0, layer_name.find_last_of("."))+ ".nii.gz";
+      strcpy(fn_layer_new, layer_name.c_str());
+
+    }
+    else
+    {
+        sprintf(fn_layer_new, "%s/layer_%03d_%s.nii.gz", project_dir.c_str(), i, image_md5.c_str());
+    }
+
+    // Save the layer there. Since we are saving as a NIFTI, we don't need to
+    // provide any hints
+    Registry dummy_hints;
+    io->SaveNativeImage(fn_layer_new, dummy_hints);
+
+    // If zip file, remove the extraction folder
+    if(zip){
+        itksys::SystemTools::RemoveADirectory(new_folder);
+    }
+
+    // Get the full name of the image file
+    std::string layer_file_full = itksys::SystemTools::CollapseFullPath(filename);
+
+    // Create a folder for this layer
+    Registry &folder = preg.Folder(Registry::Key("Layers.Layer[%03d]", i++));
+
+    // Put the filename and relative filename into the folder
+    folder["AbsolutePath"] << layer_file_full;
+
+    // Put the role associated with the file into the folder
+    folder["Role"].PutEnum(SNAPRegistryIO::GetEnumMapLayerRole(), it.GetRole());
+
+    // Save the metadata associated with the layer
+    SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
+
+    // Save the layer transform - relevant only for overlays
+    if(it.GetRole() == OVERLAY_ROLE)
+      {
+      AffineTransformHelper::WriteToRegistry(&folder, layer->GetITKTransform());
+      }
+    }
+
+  // Save the annotations in the workspace
+  Registry &ann_folder = preg.Folder("Annotations");
+  this->m_IRISImageData->GetAnnotations()->SaveAnnotations(ann_folder);
+
+  // Recursively search and delete empty folders
+  preg.CleanZeroSizeArrays();
+  preg.CleanEmptyFolders();
+}
+
 void IRISApplication::SaveProject(const std::string &proj_file)
 {
   // Header for ITK-SNAP projects
@@ -2264,6 +2381,59 @@ void IRISApplication::SaveProject(const std::string &proj_file)
 
   // Store the project registry
   m_LastSavedProjectState = preg;
+}
+
+#include "minizip.h"
+void IRISApplication::ExportProject(const std::string &proj_file, bool anonymize)
+{
+
+#ifdef WIN32
+  std::string wsdir = proj_file;
+  wsdir.erase(wsdir.length()-4, wsdir.length());
+  int ret = mkdir(wsdir.c_str());
+#else
+#ifdef unix
+  std::string wsdir = proj_file;
+  wsdir.erase(wsdir.length()-4, wsdir.length());
+  int ret = mkdir (wsdir.c_str(),0775);
+#endif
+#endif
+  // Header for ITK-SNAP projects
+  static const char *header =
+      "ITK-SNAP (itksnap.org) Project File\n"
+      "\n"
+      "This file can be moved/copied along with the images that it references\n"
+      "as long as the relative location of the images to the project file is \n"
+      "the same. Do not modify the SaveLocation entry, or this will not work.\n";
+
+  // Get the full name of the project file
+  std::string proj_file_full = wsdir + proj_file.substr(proj_file.find_last_of("\\/"), proj_file.length());
+  proj_file_full.replace(proj_file_full.length()-3,7, "itksnap"); // Replace the zip extension with .itksnap
+
+  // Create a registry that will be used to save the project
+  Registry preg;
+
+  // Do the actual writing to the registry
+  ExportProjectToRegistry(preg, proj_file_full, anonymize);
+
+  // Finally, save the registry
+  preg.WriteToXMLFile(proj_file_full.c_str(), header);
+
+  // Save the project filename
+  m_GlobalState->SetProjectFilename(proj_file_full.c_str());
+
+  // Update the history
+  m_SystemInterface->GetHistoryManager()->
+      UpdateHistory("Project", proj_file_full, false);
+
+  // Store the project registry
+  m_LastSavedProjectState = preg;
+
+  // Zip the folder
+  ZipAFolder(proj_file.c_str(), wsdir.c_str());
+
+  // Remove the folder created
+  itksys::SystemTools::RemoveADirectory(wsdir);
 }
 
 void IRISApplication::OpenProject(

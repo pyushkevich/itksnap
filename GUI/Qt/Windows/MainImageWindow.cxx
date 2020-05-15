@@ -601,6 +601,9 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionOpenWorkspace, m_Model, UIF_IRIS_MODE);
   activateOnFlag(ui->actionSaveWorkspace, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveWorkspaceAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->menuExport_as_ZIP_file, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionRandom_Filenames, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionKeep_Filenames, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   // Tool action activations
   activateOnFlag(ui->actionCrosshair, m_Model, UIF_BASEIMG_LOADED);
@@ -2011,6 +2014,23 @@ bool MainImageWindow::SaveWorkspace(bool interactive)
   return ::SaveWorkspace(this, m_Model, interactive, this);
 }
 
+bool MainImageWindow::ExportWorkspace(bool anonymize)
+{
+  // Make sure that there are no unsaved changes. This is necessary before
+  // a workspace can be saved. We disable the discard feature here because
+  // the subsequent action does not close anything. The real purpose of this
+  // dialog is to make sure each layer is assigned a name before saving the
+  // workspace
+  if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(
+       m_Model, ALL_ROLES,
+       SaveModifiedLayersDialog::DiscardDisabled
+       | SaveModifiedLayersDialog::ProjectsDisabled))
+    return false;
+
+  // Use the global method
+  return ::ExportWorkspace(this, m_Model, true, this, anonymize);
+}
+
 void MainImageWindow::on_actionSaveWorkspace_triggered()
 {
   SaveWorkspace(false);
@@ -2019,6 +2039,15 @@ void MainImageWindow::on_actionSaveWorkspace_triggered()
 void MainImageWindow::on_actionSaveWorkspaceAs_triggered()
 {
   SaveWorkspace(true);
+}
+
+void MainImageWindow::on_actionRandom_Filenames_triggered()
+{
+  ExportWorkspace(true);
+}
+void MainImageWindow::on_actionKeep_Filenames_triggered()
+{
+  ExportWorkspace(false);
 }
 
 

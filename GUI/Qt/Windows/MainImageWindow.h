@@ -129,6 +129,9 @@ public:
   /** Save the project (interactively or not) */
   bool SaveWorkspace(bool interactive);
 
+  /** Export the project (giving random names to layers or keeping the original ones) */
+  bool ExportWorkspace(bool anonymize = false);
+
 public slots:
 
   void LoadRecentActionTriggered();
@@ -242,6 +245,10 @@ private slots:
   void on_actionOpenWorkspace_triggered();
 
   void on_actionSaveWorkspace_triggered();
+
+  void on_actionRandom_Filenames_triggered();
+
+  void on_actionKeep_Filenames_triggered();
 
   void on_actionSaveWorkspaceAs_triggered();
 
