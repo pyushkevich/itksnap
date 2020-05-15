@@ -6,7 +6,6 @@
 # http://www.cmake.org/Wiki/BundleUtilitiesExample
 
 PROJECT(SNAP)
-MESSAGE(STATUS "ITK-SNAP Git Info:")
 
 #--------------------------------------------------------------------------------
 # CMAKE PRELIMINARIES                       
@@ -93,12 +92,12 @@ ENDIF()
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 3)
 SET(SNAP_VERSION_MINOR 8)
-SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_PATCH 2)
+SET(SNAP_VERSION_QUALIFIER "-alpha")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20190612")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Jun 12, 2019")
+SET(SNAP_VERSION_RELEASE_DATE "20200410")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 10, 2020")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
