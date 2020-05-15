@@ -2264,8 +2264,31 @@ void IRISApplication::ExportProjectToRegistry(Registry &preg, const std::string 
     // The IO hints for the file
     Registry io_hints;
 
-    // Load the header of the image and the image data
-    io->ReadNativeImage(filename, io_hints);
+    // if file is a ZIP, we extract it first
+    bool zip =false;
+    string new_folder;
+    if(string(filename).find(".zip") != string::npos)
+    {
+        string layer_name = string(filename).substr(string(filename).find_last_of("/\\")+1);
+        layer_name.erase(layer_name.end()-4,layer_name.end());
+        new_folder = project_dir + "/" + layer_name;
+#ifdef WIN32
+        _mkdir(new_folder.c_str());
+        _chdir(new_folder.c_str());
+#else
+        mkdir(new_folder.c_str(),0775);
+        chdir(new_folder.c_str());
+#endif
+        string extracted_files = new_folder + "/" + extract_zip(filename);
+        // Load the header of the image and the image data
+        io->ReadNativeImage(extracted_files.c_str(), io_hints);
+        zip = true;
+    }
+    else{
+        // Load the header of the image and the image data
+        io->ReadNativeImage(filename, io_hints);
+    }
+
 
     // Compute the hash of the image data to generate filename
     std::string image_md5 = io->GetNativeImageMD5Hash();
@@ -2275,9 +2298,11 @@ void IRISApplication::ExportProjectToRegistry(Registry &preg, const std::string 
 
     if(!anonymize)
     {
-        string layer_name = proj_file_full.substr(0, proj_file_full.find_last_of("/\\"))
-                + string(filename).substr(string(filename).find_last_of("/\\"));
-        strcpy(fn_layer_new, layer_name.c_str());
+      string layer_name = project_dir
+              + string(filename).substr(string(filename).find_last_of("/\\"));
+      layer_name = layer_name.substr(0, layer_name.find_last_of("."))+ ".nii.gz";
+      strcpy(fn_layer_new, layer_name.c_str());
+
     }
     else
     {
@@ -2288,6 +2313,11 @@ void IRISApplication::ExportProjectToRegistry(Registry &preg, const std::string 
     // provide any hints
     Registry dummy_hints;
     io->SaveNativeImage(fn_layer_new, dummy_hints);
+
+    // If zip file, remove the extraction folder
+    if(zip){
+        itksys::SystemTools::RemoveADirectory(new_folder);
+    }
 
     // Get the full name of the image file
     std::string layer_file_full = itksys::SystemTools::CollapseFullPath(filename);
