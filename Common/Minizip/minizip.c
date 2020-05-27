@@ -5,6 +5,10 @@
 #include <errno.h>
 #include <fcntl.h>
 
+#ifdef __APPLE__
+#define unix
+#endif
+
 #ifdef unix
 # include <unistd.h>
 # include <utime.h>
