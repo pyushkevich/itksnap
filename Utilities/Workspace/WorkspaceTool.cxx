@@ -110,6 +110,8 @@ int usage(int rc)
   cout << "  -props-set-transform <file>       : Set the transform relative to main image" << endl;
   cout << "  -props-registry-get <key>         : Gets a registry key relative to picked layer" << endl;
   cout << "  -props-registry-set <key> <value> : Sets a registry key relative to picked layer" << endl;
+  cout << "  -props-registry-dump <key> <file> : Dump registry folder relative to picked layer" << endl;
+  cout << "  -props-registry-load <key> <file> : Load registry folder relative to picked layer" << endl;
   cout << "Tag assignment commands (apply to picked layer/object): " << endl;
   cout << "  -tags-add <tag>                   : Add a tag to the picked object" << endl;
   cout << "  -tags-add-excl <tag>              : Add a tag that is exclusive to the object" << endl;
@@ -530,6 +532,28 @@ int main(int argc, char *argv[])
         string value = cl.read_string();
         ws.GetRegistry().Folder(layer_folder)[key] << value;
         cout << "INFO: set registry entry '" << key << "' to '" << ws.GetRegistry().Folder(layer_folder)[key][""] << "'" << endl;
+        }
+
+      else if(arg == "-props-registry-dump" || arg == "-prd")
+        {
+        if(!ws.IsKeyValidLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
+
+        string key = cl.read_string();
+        string out_file = cl.read_output_filename();
+        Registry &folder_to_dump = ws.GetRegistry().Folder(layer_folder).Folder(key);
+        folder_to_dump.WriteToFile(out_file.c_str());
+        }
+
+      else if(arg == "-props-registry-load" || arg == "-prl")
+        {
+        if(!ws.IsKeyValidLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
+
+        string key = cl.read_string();
+        string in_file = cl.read_existing_filename();
+        Registry &folder_to_dump = ws.GetRegistry().Folder(layer_folder).Folder(key);
+        folder_to_dump.ReadFromFile(in_file.c_str());
         }
 
       else if(arg == "-props-rename-file" || arg == "-prf")
