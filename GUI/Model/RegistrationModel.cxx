@@ -196,7 +196,7 @@ protected:
 };
 */
 
-#include <vnl_symmetric_eigensystem.h>
+#include <vnl/algo/vnl_symmetric_eigensystem.h>
 
 void RegistrationModel::UpdateManualParametersFromWrapper(bool reset_flips, bool force_update)
 {
