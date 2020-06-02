@@ -194,7 +194,7 @@ public:
   static std::string GetTempDirName();
 
   /** Export the workspace */
-  void ExportWorkspace(const char *new_workspace, CommandType *cmd_progress = NULL) const;
+  void ExportWorkspace(const char *new_workspace, CommandType *cmd_progress = NULL, bool scramble_filenames = true) const;
 
   /** Upload the workspace */
   void UploadWorkspace(const char *url, int ticket_id, const char *wsfile_suffix,

@@ -759,7 +759,9 @@ string WorkspaceAPI::GetTempDirName()
 
 #include "AllPurposeProgressAccumulator.h"
 
-void WorkspaceAPI::ExportWorkspace(const char *new_workspace, CommandType *cmd_progress) const
+void WorkspaceAPI::ExportWorkspace(const char *new_workspace,
+                                   CommandType *cmd_progress,
+                                   bool scramble_filenames) const
 {
   // Create a progress tracker
   SmartPtr<TrivalProgressSource> progress = TrivalProgressSource::New();
@@ -773,8 +775,11 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace, CommandType *cmd_p
   // Duplicate the workspace data
   WorkspaceAPI wsexp = (*this);
 
-  // Get the directory where the new workspace will go
-  string wsdir = SystemTools::GetParentDirectory(new_workspace);
+  // Convert to absolute path (because project will use absolute path)
+  string ws_file_full = SystemTools::CollapseFullPath(new_workspace);
+
+  // Get the directory in which the project will be saved
+  string wsdir = SystemTools::GetParentDirectory(ws_file_full.c_str());
 
   // Iterate over all the layers stored in the workspace
   int n_layers = wsexp.GetNumberOfLayers();
@@ -791,6 +796,9 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace, CommandType *cmd_p
     // The the (possibly moved) absolute filename
     string fn_layer = wsexp.GetLayerActualPath(f_layer);
 
+    // Get the current layer base filename
+    string fn_layer_basename = SystemTools::GetFilenameWithoutExtension(fn_layer);
+
     // The IO hints for the file
     Registry io_hints, *layer_io_hints;
     if((layer_io_hints = wsexp.GetLayerIOHints(f_layer)))
@@ -806,11 +814,15 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace, CommandType *cmd_p
     progress->AddProgress(0.5);
 
     // Compute the hash of the image data to generate filename
-    std::string image_md5 = io->GetNativeImageMD5Hash();
+    if(scramble_filenames)
+      {
+      // Use the hash as the basename
+      fn_layer_basename = io->GetNativeImageMD5Hash();
+      }
 
     // Create a filename that combines the layer index with the hash code
     char fn_layer_new[4096];
-    sprintf(fn_layer_new, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, image_md5.c_str());
+    sprintf(fn_layer_new, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, fn_layer_basename.c_str());
 
     // Save the layer there. Since we are saving as a NIFTI, we don't need to
     // provide any hints
