@@ -9,13 +9,16 @@
 using namespace itk;
 using namespace std;
 
-MetaDataAccess::MetaDataAccess(itk::ImageBase<3> *image)
+template <unsigned int VDim>
+MetaDataAccess<VDim>
+::MetaDataAccess(itk::ImageBase<VDim> *image)
 {
   m_Image = image;
 }
 
-
-std::vector<std::string> MetaDataAccess::GetKeysAsArray()
+template <unsigned int VDim>
+std::vector<std::string>
+MetaDataAccess<VDim>::GetKeysAsArray()
 {
   return m_Image->GetMetaDataDictionary().GetKeys();
 }
@@ -36,7 +39,10 @@ try_get_metadata(itk::MetaDataDictionary &mdd,
   else return false;
 }
 
-std::string MetaDataAccess::GetValueAsString(const std::string &key)
+template <unsigned int VDim>
+std::string
+MetaDataAccess<VDim>
+::GetValueAsString(const std::string &key)
 {
   std::string value;
   itk::MetaDataDictionary &mdd = m_Image->GetMetaDataDictionary();
@@ -89,12 +95,19 @@ std::string MetaDataAccess::GetValueAsString(const std::string &key)
   return value;
 }
 
-bool MetaDataAccess::HasKey(const string &key) const
+
+template <unsigned int VDim>
+bool
+MetaDataAccess<VDim>
+::HasKey(const string &key) const
 {
   return m_Image->GetMetaDataDictionary().HasKey(key);
 }
 
-std::string MetaDataAccess::MapKeyToDICOM(std::string key)
+template <unsigned int VDim>
+std::string
+MetaDataAccess<VDim>
+::MapKeyToDICOM(std::string key)
 {
   // Try to remap the key to DICOM
   string dcm_label;
@@ -104,8 +117,10 @@ std::string MetaDataAccess::MapKeyToDICOM(std::string key)
     return key;
 }
 
-
-std::string MetaDataAccess::GetRAICode(
+template <unsigned int VDim>
+std::string
+MetaDataAccess<VDim>
+::GetRAICode(
     itk::SpatialOrientation::ValidCoordinateOrientationFlags code)
   {
   std::map<itk::SpatialOrientation::ValidCoordinateOrientationFlags, string> cmap;
@@ -160,5 +175,6 @@ std::string MetaDataAccess::GetRAICode(
   return cmap[code];
 }
 
-
+template class MetaDataAccess<3>;
+template class MetaDataAccess<4>;
 

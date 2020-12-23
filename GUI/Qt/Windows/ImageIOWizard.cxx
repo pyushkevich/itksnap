@@ -389,7 +389,7 @@ void SummaryPage::initializePage()
   meta->setText(0, "Metadata");
 
   // Add all metadata items
-  MetaDataAccess mda(m_Model->GetGuidedIO()->GetNativeImage());
+  MetaDataAccess<4> mda(m_Model->GetGuidedIO()->GetNativeImage());
   std::vector<std::string> keys = mda.GetKeysAsArray();
   for(size_t i = 0; i < keys.size(); i++)
     {

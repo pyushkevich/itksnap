@@ -68,4 +68,8 @@ protected:
   TagMap m_TagMap;
 };
 
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "InputSelectionImageFilter.txx"
+#endif
+
 #endif // INPUTSELECTIONIMAGEFILTER_H

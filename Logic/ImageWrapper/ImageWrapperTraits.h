@@ -41,6 +41,7 @@ public:
   typedef LabelType ComponentType;
   typedef RLEImage<ComponentType> ImageType;
   typedef itk::Image<ComponentType, 2> SliceType;
+  typedef RLEImage<ComponentType, 4> Image4DType;
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef ColorLabelTableDisplayMappingPolicy<Self> DisplayMapping;
@@ -63,6 +64,7 @@ public:
   typedef GreyType ComponentType;
   typedef itk::Image<ComponentType, 3> ImageType;
   typedef itk::Image<ComponentType, 2> SliceType;
+  typedef itk::Image<ComponentType, 4> Image4DType;
 
   typedef SpeedImageInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
@@ -90,6 +92,7 @@ public:
   typedef float ComponentType;
   typedef itk::Image<ComponentType, 3> ImageType;
   typedef itk::Image<ComponentType, 2> SliceType;
+  typedef itk::Image<ComponentType, 4> Image4DType;
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
@@ -136,7 +139,7 @@ public:
   typedef TPixel ComponentType;
   typedef itk::VectorImageToImageAdaptor<ComponentType, 3> ImageType;
   typedef itk::Image<ComponentType, 2> SliceType;
-
+  typedef itk::VectorImageToImageAdaptor<ComponentType, 4> Image4DType;
 
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
@@ -166,6 +169,8 @@ public:
   typedef itk::ImageAdaptor<InternalImageType, AccessorType> ImageType;
   typedef itk::Image<ComponentType, 2> SliceType;
 
+  typedef itk::VectorImage<InternalComponentType, 4> InternalImage4DType;
+  typedef itk::ImageAdaptor<InternalImage4DType, AccessorType> Image4DType;
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
@@ -197,6 +202,7 @@ public:
 
   typedef itk::VectorImage<ComponentType, 3> ImageType;
   typedef itk::VectorImage<ComponentType, 2> SliceType;
+  typedef itk::VectorImage<ComponentType, 4> Image4DType;
 
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef MultiChannelDisplayMappingPolicy<Self> DisplayMapping;
@@ -220,6 +226,7 @@ public:
   typedef TPixel ComponentType;
   typedef itk::Image<ComponentType, 3> ImageType;
   typedef itk::Image<ComponentType, 2> SliceType;
+  typedef itk::Image<ComponentType, 4> Image4DType;
 
   typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;

@@ -165,7 +165,7 @@ void ImageInfoModel::UpdateMetadataIndex()
   // Search keys and values that meet the filter
   if(GetLayer())
     {
-    MetaDataAccess mda(GetLayer()->GetImageBase());
+    auto mda = GetLayer()->GetMetaDataAccess();
     std::vector<std::string> keys = mda.GetKeysAsArray();
     std::string filter = m_MetadataFilterModel->GetValue();
     for(size_t i = 0; i < keys.size(); i++)
@@ -194,8 +194,7 @@ std::string ImageInfoModel::GetMetadataCell(int row, int col)
   assert(GetLayer());
   assert(row >= 0 && row < (int) m_MetadataKeys.size());
   std::string key = m_MetadataKeys[row];
-  MetaDataAccess mda(GetLayer()->GetImageBase());
-
+  auto mda = GetLayer()->GetMetaDataAccess();
   return (col == 0) ? mda.MapKeyToDICOM(key) : mda.GetValueAsString(key);
 }
 

@@ -224,12 +224,6 @@ public:
   virtual void UnloadMainImage();
 
   /**
-   * Add a segmentation image as the only segmentation wrapper. The other
-   * segmentation wrappers will be removed.
-   */
-  virtual LabelImageWrapper* SetSingleSegmentationImage(LabelImageType *image);
-
-  /**
    * Get the first segmentation image.
    */
   LabelImageWrapper* GetFirstSegmentationLayer();
@@ -237,7 +231,7 @@ public:
   /**
    * Add a secondary segmentation image without overriding the main one
    */
-  LabelImageWrapper* AddSegmentationImage(LabelImageType *addedLabelImage);
+  LabelImageWrapper* SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing);
 
   /**
    * Add a blank segmentation image

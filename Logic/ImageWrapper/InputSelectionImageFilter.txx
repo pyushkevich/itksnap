@@ -1,3 +1,6 @@
+#ifndef INPUTSELECTIONIMAGEFILTER_TXX
+#define INPUTSELECTIONIMAGEFILTER_TXX
+
 #include "InputSelectionImageFilter.h"
 #include "itkUnaryFunctorImageFilter.hxx"
 #include "IRISException.h"
@@ -56,6 +59,4 @@ InputSelectionImageFilter<TInputImage,TTag>
   outputPtr->SetPixelContainer(inputPtr->GetPixelContainer());
 }
 
-#include "DisplayMappingPolicy.h"
-#include "itkRGBAPixel.h"
-template class InputSelectionImageFilter<ImageWrapperBase::DisplaySliceType, MultiChannelDisplayMode>;
+#endif // #ifndef INPUTSELECTIONIMAGEFILTER_TXX

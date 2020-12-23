@@ -122,9 +122,16 @@ LoadSegmentationImageDelegate
 {
   GenericImageData *id = m_Driver->GetCurrentImageData();
 
-  // Check the dimensions, throw exception
-  Vector3ui szSeg = io->GetDimensionsOfNativeImage();
+  // Get the dimensions of the main image
   Vector3ui szMain = id->GetMain()->GetSize();
+  unsigned int ntMain =  id->GetMain()->GetNumberOfTimePoints();
+
+  // Get the dimensions of the segmentation
+  Vector4ui szSeg4D = io->GetDimensionsOfNativeImage();
+  Vector3ui szSeg = szSeg4D.extract(3);
+  unsigned int ntSeg = szSeg4D[3];
+
+  // The 3D dimensions must match
   if(szSeg != szMain)
     {
     throw IRISException("Error: Mismatched Dimensions. "
@@ -133,6 +140,17 @@ LoadSegmentationImageDelegate
                         "(%d x %d x %d). Images must have the same dimensions.",
                         szSeg[0], szSeg[1], szSeg[2],
                         szMain[0], szMain[1], szMain[2]);
+    }
+
+  // The number of components must also match
+  // TODO: GUI should allow loading the segmentation for just one timepoint
+  if(ntMain != ntSeg)
+    {
+    throw IRISException("Error: Mismatched number of time points. "
+                        "The number of time points (%d) in the segmentation image "
+                        "does not match the number of time points (%d) in the main image (%d). "
+                        "Images must have the same number of time points.",
+                        ntSeg, ntMain);
     }
 
   // Check the number of components
@@ -151,8 +169,8 @@ LoadSegmentationImageDelegate
 {
   // Get the two images to compare
   GenericImageData *id = m_Driver->GetCurrentImageData();
-  itk::ImageBase<3> *main = id->GetMain()->GetImageBase();
-  itk::ImageBase<3> *native = io->GetNativeImage();
+  itk::ImageBase<4> *main = id->GetMain()->GetImage4DBase();
+  itk::ImageBase<4> *native = io->GetNativeImage();
 
   // Check the header properties
   // Check if there is a discrepancy in the header fields. This will not

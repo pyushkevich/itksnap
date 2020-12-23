@@ -34,9 +34,9 @@ public:
    * We override the SetImage method to reset the undo manager when an image is
    * assigned to the segmentation.
    */
-  virtual void UpdateImagePointer(ImageType *image,
-                                  ImageBaseType *refSpace = NULL,
-                                  ITKTransformType *tran = NULL) ITK_OVERRIDE;
+  virtual void UpdateWrappedImages(Image4DType *image_4d,
+                                   ImageBaseType *refSpace = NULL,
+                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
 
   /**
    * Store an intermediate delta without committing it as an undo point

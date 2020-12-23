@@ -68,6 +68,7 @@
 #include "ExtendedGDCMSerieHelper.h"
 #include "itkComposeImageFilter.h"
 #include "itkStreamingImageFilter.h"
+#include "IncreaseDimensionImageFilter.h"
 
 #include <itk_zlib.h>
 
@@ -519,7 +520,7 @@ GuidedNativeImageIO
   m_NativeDimensions.fill(1);
   for(size_t i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
     {
-    if(i < 3)
+    if(i < 4)
       m_NativeDimensions[i] = m_IOBase->GetDimensions(i);
     else
       ncomp *= m_IOBase->GetDimensions(i);
@@ -590,16 +591,22 @@ GuidedNativeImageIO
 ::DoReadNative(const char *FileName, Registry &folder)
 {
   // Define the image type of interest
-  typedef itk::VectorImage<TScalar, 3> NativeImageType;
+  typedef itk::VectorImage<TScalar, 4> NativeImageType;
 
   // There is a special handler for the DICOM case!
   if(m_FileFormat == FORMAT_DICOM_DIR && m_DICOMFiles.size() > 1)
     {
+    // TODO: how to handle this with 4D - I have no earthly idea
+
     // It seems that ITK can't yet read DICOM into a VectorImage. 
     typedef itk::Image<TScalar, 3> GreyImageType;
+    typedef itk::Image<TScalar, 4> GreyImage4DType;
 
     // Create an image series reader 
     typedef itk::ImageSeriesReader<GreyImageType> ReaderType;
+
+    // Filter for increasing dimensionality
+    typedef IncreaseDimensionImageFilter<GreyImageType, GreyImage4DType> UpDimFilter;
 
     if(this->m_DICOMImagesPerIPP == 1)
       {
@@ -615,9 +622,11 @@ GuidedNativeImageIO
       // m_IOBase = dicomio;
       reader->SetImageIO(m_IOBase);
 
-      // Update
-      reader->Update();
-      typename GreyImageType::Pointer scalar = reader->GetOutput();
+      // Present this scalar as a 4D image
+      typename UpDimFilter::Pointer updim = UpDimFilter::New();
+      updim->SetInput(reader->GetOutput());
+      updim->Update();
+      GreyImage4DType *scalar = updim->GetOutput();
 
       // Convert the image into VectorImage format. Do this in-place to avoid
       // allocating memory pointlessly
@@ -646,7 +655,7 @@ GuidedNativeImageIO
     else
       {
       // Create a filter that will do the composing
-      typedef itk::ComposeImageFilter<GreyImageType, NativeImageType> ComposeFilter;
+      typedef itk::ComposeImageFilter<GreyImage4DType, NativeImageType> ComposeFilter;
       typename ComposeFilter::Pointer composer = ComposeFilter::New();
 
       // Create a splitter
@@ -656,6 +665,7 @@ GuidedNativeImageIO
       // Create separate volume readers
       int n_slices = m_DICOMFiles.size() / m_DICOMImagesPerIPP;
       std::vector<typename ReaderType::Pointer> readers(m_DICOMImagesPerIPP);
+      std::vector<typename UpDimFilter::Pointer> updims(m_DICOMImagesPerIPP);
       for(int i = 0; i < this->m_DICOMImagesPerIPP; i++)
         {
         // Files for the current volume
@@ -668,8 +678,11 @@ GuidedNativeImageIO
         readers[i]->SetFileNames(myFiles);
         readers[i]->SetImageIO(m_IOBase);
 
+        updims[i] = UpDimFilter::New();
+        updims[i]->SetInput(readers[i]->GetOutput());
+
         // Input to the composer
-        composer->SetInput(i, readers[i]->GetOutput());
+        composer->SetInput(i, updims[i]->GetOutput());
         }
 
       // Do the big update
@@ -705,7 +718,7 @@ GuidedNativeImageIO
     typename NativeImageType::DirectionType dir; dir.SetIdentity();    
     
     size_t nd_actual = m_IOBase->GetNumberOfDimensions();
-    size_t nd = (nd_actual > 3) ? 3 : nd_actual;
+    size_t nd = (nd_actual > 4) ? 4 : nd_actual;
     
     for(unsigned int i = 0; i < nd; i++)
       {
@@ -725,13 +738,13 @@ GuidedNativeImageIO
     int ncomp = m_IOBase->GetNumberOfComponents();
     if(nd_actual > nd)
       {
-      for(int i = nd; i < nd_actual; i++)
+      for(int i = nd; i < (int) nd_actual; i++)
         ncomp *= m_IOBase->GetDimensions(i);
       }
 
     // Set the regions and allocate
     typename NativeImageType::RegionType region;
-    typename NativeImageType::IndexType index = {{0, 0, 0}};
+    typename NativeImageType::IndexType index = {{0, 0, 0, 0}};
     region.SetIndex(index);
     region.SetSize(dim);
     image->SetRegions(region);
@@ -739,11 +752,11 @@ GuidedNativeImageIO
     image->Allocate();
 
     // Set the IO region
-    if(nd_actual <= 3)
+    if(nd_actual <= 4)
       {
       // This is the old code, which we preserve
-      itk::ImageIORegion ioRegion(3);
-      itk::ImageIORegionAdaptor<3>::Convert(region, ioRegion, index);
+      itk::ImageIORegion ioRegion(4);
+      itk::ImageIORegionAdaptor<4>::Convert(region, ioRegion, index);
       m_IOBase->SetIORegion(ioRegion);
       }
     else
@@ -769,10 +782,10 @@ GuidedNativeImageIO
     // of the image. The fourth dimension is the one that varies fastest, and in our
     // representation, the image is represented as a VectorImage, where the components
     // of each voxel are the thing that moves fastest. The problem can be represented as
-    // a transpose of a N x M array, where N = dimX*dimY*dimZ and M = dimW
-    if(nd_actual > 3)
+    // a transpose of a N x M array, where N = dimX*dimY*dimZ*dimT and M = dimW
+    if(nd_actual > 4)
       {
-      long N = dim[0] * dim[1] * dim[2];
+      long N = dim[0] * dim[1] * dim[2] * dim[3];
       long M = ncomp;
       long move_size = (2 * M) * sizeof(TScalar);
       char *move = new char[move_size];
@@ -810,7 +823,7 @@ GuidedNativeImageIO
   typename NativeImageType::DirectionType factor;
   factor.SetIdentity();
   bool needRegularization = false;
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 4; ++i)
     {
     if (spacing[i] < 0)
       {
@@ -929,7 +942,7 @@ RescaleNativeImageToIntegralType<TOutputImage>::operator()(
     GuidedNativeImageIO *nativeIO)
 {
   // Get the native image pointer
-  itk::ImageBase<3> *native = nativeIO->GetNativeImage();
+  auto *native = nativeIO->GetNativeImage();
 
   // Cast image from native format to TPixel
   itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
@@ -1037,11 +1050,10 @@ template<class TOutputImage>
 template<typename TNative>
 void
 RescaleNativeImageToIntegralType<TOutputImage>
-::DoCast(itk::ImageBase<3> *native)
+::DoCast(NativeImageType *native)
 {
   // Get the native image
-  typedef itk::VectorImage<TNative, 3> InputImageType;
-  typedef itk::ImageRegionConstIterator<InputImageType> InputIterator;
+  typedef itk::VectorImage<TNative, TOutputImage::ImageDimension> InputImageType;
   SmartPtr<InputImageType> input = dynamic_cast<InputImageType *>(native);
 
   assert(input);
@@ -1173,7 +1185,7 @@ CastNativeImage<TOutputImage,TCastFunctor>
 ::operator()(GuidedNativeImageIO *nativeIO)
 {
   // Get the native image pointer
-  itk::ImageBase<3> *native = nativeIO->GetNativeImage();
+  itk::ImageBase<4> *native = nativeIO->GetNativeImage();
 
   // Cast image from native format to TPixel
   itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
@@ -1206,10 +1218,10 @@ template<class TOutputImage, class TCastFunctor>
 template<typename TNative>
 void
 CastNativeImage<TOutputImage,TCastFunctor>
-::DoCast(itk::ImageBase<3> *native)
+::DoCast(itk::ImageBase<4> *native)
 {
   // Get the native image
-  typedef itk::VectorImage<TNative, 3> InputImageType;
+  typedef itk::VectorImage<TNative, 4> InputImageType;
   typename InputImageType::Pointer input = 
     reinterpret_cast<InputImageType *>(native);
   assert(input);
@@ -1679,10 +1691,9 @@ CastNativeImageToScalar<TPixel>
 
 */
 
-template class RescaleNativeImageToIntegralType<itk::Image<GreyType, 3> >;
-template class RescaleNativeImageToIntegralType<itk::VectorImage<GreyType, 3> >;
-
-template class CastNativeImage<itk::Image<unsigned short, 3> >;
+template class RescaleNativeImageToIntegralType<itk::Image<GreyType, 4> >;
+template class RescaleNativeImageToIntegralType<itk::VectorImage<GreyType, 4> >;
+template class CastNativeImage<itk::Image<unsigned short, 4> >;
 
 // template class CastNativeImageBase<RGBType, CastToArrayFunctor<RGBType, 3> >;
 // template class CastNativeImageBase<LabelType, CastToScalarFunctor<LabelType> >;

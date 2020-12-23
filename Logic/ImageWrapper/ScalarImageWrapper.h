@@ -79,6 +79,10 @@ public:
   typedef typename Superclass::CommonFormatImageType     CommonFormatImageType;
   typedef typename Superclass::PreviewImageType               PreviewImageType;
 
+  // 4D Image types
+  typedef typename Superclass::Image4DType                         Image4DType;
+  typedef typename Superclass::Image4DPointer                   Image4DPointer;
+
   // Floating point image type
   typedef itk::Image<float, 3>                                  FloatImageType;
   typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
@@ -105,11 +109,11 @@ public:
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
 
-  // MinMax calculator type
-  typedef itk::MinimumMaximumImageFilter<ImageType>               MinMaxFilter;
+  // MinMax calculator type (works on the 4D image)
+  typedef itk::MinimumMaximumImageFilter<Image4DType>             MinMaxFilter;
 
-  // Histogram filter
-  typedef ThreadedHistogramImageFilter<ImageType>          HistogramFilterType;
+  // Histogram filter (works on the 4D image)
+  typedef ThreadedHistogramImageFilter<Image4DType>        HistogramFilterType;
 
   // Iterator types
   typedef typename Superclass::Iterator                               Iterator;
@@ -133,7 +137,7 @@ public:
    * of a scalar image wrapper is itself.
    * @see ImageWrapperBase::GetScalarRepresentation
    */
-  ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE { return this; }
+  virtual ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE { return this; }
 
   /** Access the min/max filter */
   irisGetMacro(MinMaxFilter, MinMaxFilter *)
@@ -317,9 +321,9 @@ protected:
    * Handle a change in the image pointer (i.e., a load operation on the image or 
    * an initialization operation)
    */
-  virtual void UpdateImagePointer(ImageType *image,
-                                  ImageBaseType *refSpace = NULL,
-                                  ITKTransformType *tran = NULL) ITK_OVERRIDE;
+  virtual void UpdateWrappedImages(Image4DType *image_4d,
+                                   ImageBaseType *refSpace = NULL,
+                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
 
 
   /** Write the image to disk as a floating point image (scalar or vector) */

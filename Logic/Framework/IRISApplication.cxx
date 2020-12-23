@@ -49,7 +49,6 @@
 #include "MeshExportSettings.h"
 #include "SegmentationStatistics.h"
 #include "RLEImageRegionIterator.h"
-#include "RLERegionOfInterestImageFilter.h"
 #include "itkPasteImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkResampleImageFilter.h"
@@ -229,8 +228,11 @@ IRISApplication
   // Record whether the segmentation has any values that are not zero
   m_GlobalState->SetSnakeInitializedWithManualSegmentation(nCopied > 0);
 
-  // Pass the cleaned up segmentation image to SNAP
-  m_SNAPImageData->SetSingleSegmentationImage(imgNewLabel);
+  // Pass the cleaned up segmentation image to SNAP. The segmentation should currently
+  // include a single empty wrapper. We want to update the current timepoint of this
+  // wrapper with the supplied segmentation image
+  LabelImageWrapper *liw = m_SNAPImageData->GetFirstSegmentationLayer();
+  liw->UpdateTimePoint(imgNewLabel);
 
   // Pass the label description of the drawing label to the SNAP image data
   m_SNAPImageData->SetColorLabel(
@@ -279,7 +281,7 @@ IRISApplication
     m_SNAPImageData->InitializeSpeed();
   
   // Send the speed image to the image data
-  m_SNAPImageData->GetSpeed()->SetImage(newSpeedImage);
+  m_SNAPImageData->GetSpeed()->UpdateTimePoint(newSpeedImage);
 
   // Save the snake mode 
   m_GlobalState->SetSnakeType(snakeMode);
@@ -436,28 +438,8 @@ LabelImageWrapper *IRISApplication::UpdateSNAPSegmentationImage(GuidedNativeImag
   // This has to happen in 'pure' SNAP mode
   assert(IsSnakeModeActive());
 
-  typedef itk::Image<LabelType, 3> UncompressedImageType;
-
-  // Cast the native to label type
-  CastNativeImage<UncompressedImageType> caster;
-  UncompressedImageType::Pointer imgUncompressed = caster(io);
-
-  //use specialized RoI filter to convert to RLEImage
-  typedef itk::RegionOfInterestImageFilter<UncompressedImageType, LabelImageType> inConverterType;
-  inConverterType::Pointer inConv = inConverterType::New();
-  inConv->SetInput(imgUncompressed);
-  inConv->SetRegionOfInterest(imgUncompressed->GetLargestPossibleRegion());
-  inConv->Update();
-  LabelImageType::Pointer imgLabel = inConv->GetOutput();
-  imgUncompressed = NULL; //deallocate intermediate image to save memory
-
-  // The header of the label image is made to match that of the grey image
-  imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());
-  imgLabel->SetSpacing(m_CurrentImageData->GetMain()->GetImageBase()->GetSpacing());
-  imgLabel->SetDirection(m_CurrentImageData->GetMain()->GetImageBase()->GetDirection());
-
-  // Update the iris data
-  LabelImageWrapper *snap_seg = m_CurrentImageData->SetSingleSegmentationImage(imgLabel);
+  // Update the SNAP data (segmentation is always replaced, not added)
+  LabelImageWrapper *snap_seg = m_CurrentImageData->SetSegmentationImage(io, false);
 
   // Update filenames
   snap_seg->SetFileName(io->GetFileNameOfNativeImage());
@@ -482,37 +464,8 @@ IRISApplication
   // This has to happen in 'pure' IRIS mode
   assert(!IsSnakeModeActive());
 
-  typedef itk::Image<LabelType, 3> UncompressedImageType;
-
-  // Cast the native to label type
-  CastNativeImage<UncompressedImageType> caster;
-  UncompressedImageType::Pointer imgUncompressed = caster(io);
-
-  //use specialized RoI filter to convert to RLEImage
-  typedef itk::RegionOfInterestImageFilter<UncompressedImageType, LabelImageType> inConverterType;
-  inConverterType::Pointer inConv = inConverterType::New();
-  inConv->SetInput(imgUncompressed);
-  inConv->SetRegionOfInterest(imgUncompressed->GetLargestPossibleRegion());
-  inConv->Update();
-  LabelImageType::Pointer imgLabel = inConv->GetOutput();
-  imgUncompressed = NULL; //deallocate intermediate image to save memory
-
-  // Disconnect from the pipeline right away
-  imgLabel->DisconnectPipeline();
-  
-  // The header of the label image is made to match that of the grey image
-  imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());
-  imgLabel->SetSpacing(m_CurrentImageData->GetMain()->GetImageBase()->GetSpacing());
-  imgLabel->SetDirection(m_CurrentImageData->GetMain()->GetImageBase()->GetDirection());
-
   // Update the iris data
-  LabelImageWrapper *seg_wrapper =
-      add_to_existing
-      ? m_IRISImageData->AddSegmentationImage(imgLabel)
-      : m_IRISImageData->SetSingleSegmentationImage(imgLabel);
-
-  // Update filenames
-  seg_wrapper->SetFileName(io->GetFileNameOfNativeImage());
+  LabelImageWrapper *seg_wrapper = m_IRISImageData->SetSegmentationImage(io, add_to_existing);
 
   // Load the metadata for this layer
   LoadMetaDataAssociatedWithLayer(seg_wrapper, LABEL_ROLE, metadata);
@@ -1425,10 +1378,9 @@ IRISApplication
 
   // Test if the image is in the same size as the main image
   ImageWrapperBase *main = this->m_IRISImageData->GetMain();
-  bool same_size = (main->GetSize() == io->GetDimensionsOfNativeImage());
 
-  // Now test the 3D geometry of the image to see if it occupies the same space
-  bool same_space = true;
+  // Check for compatibility of overlay image and main image
+  bool same_size = true, same_space = true;
 
   // Read the transform from the registry. This method will return an identity transform
   // even if no registry was provided
@@ -1440,6 +1392,8 @@ IRISApplication
 
   for(int i = 0; i < 3; i++)
     {
+    if(main->GetSize()[i] != io->GetDimensionsOfNativeImage()[i])
+      same_size = false;
     if(fabs(io->GetNativeImage()->GetOrigin()[i] - main->GetImageBase()->GetOrigin()[i]) > tol)
       same_space = false;
     if(fabs(io->GetNativeImage()->GetSpacing()[i] - main->GetImageBase()->GetSpacing()[i]) > tol)
@@ -1454,11 +1408,6 @@ IRISApplication
   // TODO: in situations where the size is the same and space is different, we may want
   // to ask the user how to handle it, or at least display a warning? For now, we just use
   // the header information, which may be different from how old ITK-SNAP handled this
-
-  // Old code - prevented registration of same-size images
-  // if(same_size && same_space && id_transform)
-  //  m_IRISImageData->AddOverlay(io);
-  // else
   m_IRISImageData->AddCoregOverlay(io, transform);
 
   ImageWrapperBase *layer = m_IRISImageData->GetLastOverlay();
@@ -1611,7 +1560,7 @@ IRISApplication
   m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), false);
 
   // Reset the segmentation ROI
-  m_GlobalState->SetSegmentationROI(io->GetNativeImage()->GetBufferedRegion());
+  m_GlobalState->SetSegmentationROI(m_IRISImageData->GetMain()->GetBufferedRegion());
 
   // Read and apply the project-level settings associated with the main image
   LoadMetaDataAssociatedWithLayer(layer, MAIN_ROLE, metadata);
@@ -1928,7 +1877,7 @@ void IRISApplication
 ::AssignNicknameFromDicomMetadata(ImageWrapperBase *layer)
 {
   const std::string tag = "0008|103e";
-  MetaDataAccess mda(layer->GetImageBase());
+  auto mda = layer->GetMetaDataAccess();
   if(mda.HasKey(tag))
     layer->SetCustomNickname(mda.GetValueAsString(tag));
 }

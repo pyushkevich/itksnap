@@ -57,6 +57,10 @@ public:
   typedef typename Superclass::ImagePointer                       ImagePointer;
   typedef typename Superclass::PreviewImageType               PreviewImageType;
 
+  // 4D Image types
+  typedef typename Superclass::Image4DType                         Image4DType;
+  typedef typename Superclass::Image4DPointer                   Image4DPointer;
+
   // Floating point image type
   typedef itk::Image<float, 3>                                  FloatImageType;
   typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
@@ -277,9 +281,9 @@ protected:
    */
   VectorImageWrapper(const Self &copy) : Superclass(copy) {}
 
-  virtual void UpdateImagePointer(ImageType *image,
-                                  ImageBaseType *refSpace = NULL,
-                                  ITKTransformType *tran = NULL) ITK_OVERRIDE;
+  virtual void UpdateWrappedImages(Image4DType *image_4d,
+                                   ImageBaseType *refSpace = NULL,
+                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
 
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
 
@@ -292,7 +296,7 @@ protected:
   /** Create a derived wrapper of a certain type */
   template <class TFunctor>
   SmartPtr<ScalarImageWrapperBase> CreateDerivedWrapper(
-      ImageType *image, ImageBaseType *refSpace, ITKTransformType *transform);
+      Image4DType *image_4d, ImageBaseType *refSpace, ITKTransformType *transform);
 
   template <class TFunctor>
   void SetNativeMappingInDerivedWrapper(

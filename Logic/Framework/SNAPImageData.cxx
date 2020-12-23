@@ -383,7 +383,7 @@ SNAPImageData
     m_ExternalAdvectionField);
 
   // This makes sure that m_SnakeWrapper->IsDrawable() returns true
-  m_SnakeWrapper->SetImage(m_LevelSetDriver->GetCurrentState());
+  m_SnakeWrapper->UpdateTimePoint(m_LevelSetDriver->GetCurrentState());
   m_SnakeWrapper->GetImage()->Modified();
 
   // Finish thread-safe section

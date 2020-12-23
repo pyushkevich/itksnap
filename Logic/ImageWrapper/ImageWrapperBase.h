@@ -36,6 +36,8 @@ class Registry;
 class vtkImageImport;
 struct IRISDisplayGeometry;
 
+template <unsigned int VDim> class MetaDataAccess;
+
 /**
  * Supported ways of extracting a scalar value from vector-valued data.
  * These modes allow the image to be cast to a scalar image and used in
@@ -75,6 +77,7 @@ public:
 
   // Image base
   typedef itk::ImageBase<3> ImageBaseType;
+  typedef itk::ImageBase<4> Image4DBaseType;
 
   // Floating point and double images and sources to which data may be cast
   typedef itk::Image<float, 3>                                  FloatImageType;
@@ -91,6 +94,9 @@ public:
 
   // ITK's coordinate transform (rigid, affine, etc)
   typedef itk::Transform<double, 3, 3>                        ITKTransformType;
+
+  // Metadata access object
+  typedef MetaDataAccess<4>                                 MetaDataAccessType;
 
   /**
    * The image wrapper fires a WrapperMetadataChangeEvent when properties
@@ -167,6 +173,15 @@ public:
    */
   virtual void SetSliceIndex(const Vector3ui &) = 0;
 
+  /** Get the number of time points (how many 3D images in 4D array) */
+  irisVirtualGetMacro(NumberOfTimePoints, unsigned int)
+
+  /** Get the time index (which 3D volume in the 4D array is currently shown) */
+  irisVirtualGetMacro(TimePointIndex, unsigned int)
+
+  /** Set the current time index */
+  virtual void SetTimePointIndex(unsigned int index) = 0;
+
   /**
    * Set the viewport rectangle onto which the three display slices
    * will be rendered
@@ -178,6 +193,9 @@ public:
 
   /** Return some image info independently of pixel type */
   irisVirtualGetMacro(ImageBase, ImageBaseType *)
+
+  /** Return some image info independently of pixel type */
+  irisVirtualGetMacro(Image4DBase, Image4DBaseType *)
 
   /**
    * Is the image initialized?
@@ -415,6 +433,11 @@ public:
    * Restore metadata from a registry
    */
   virtual void ReadMetaData(Registry &reg) = 0;
+
+  /**
+   * Get the meta data accessor object, useful for inspecting metadata
+   */
+  virtual MetaDataAccessType GetMetaDataAccess() = 0;
 
   /**
    * This static function constructs a NIFTI matrix from the ITK direction

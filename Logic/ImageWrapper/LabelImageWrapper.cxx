@@ -54,15 +54,16 @@ LabelImageWrapper::~LabelImageWrapper()
   delete m_UndoManager;
 }
 
-void LabelImageWrapper::UpdateImagePointer(
-    ImageType *image, ImageBaseType *refSpace, ITKTransformType *tran)
+void LabelImageWrapper::UpdateWrappedImages(
+    Image4DType *image_4d,
+    ImageBaseType *refSpace,
+    ITKTransformType *tran)
 {
-  Superclass::UpdateImagePointer(image, refSpace, tran);
+  Superclass::UpdateWrappedImages(image_4d, refSpace, tran);
   m_UndoManager->Clear();
 
   // Modified event on the image is rebroadcast as the WrapperImageChangeEvent
-  Rebroadcaster::Rebroadcast(image, itk::ModifiedEvent(),
-                             this, WrapperImageChangeEvent());
+  Rebroadcaster::Rebroadcast(image_4d, itk::ModifiedEvent(), this, WrapperImageChangeEvent());
 }
 
 void LabelImageWrapper::StoreIntermediateUndoDelta(UndoManagerDelta *delta)

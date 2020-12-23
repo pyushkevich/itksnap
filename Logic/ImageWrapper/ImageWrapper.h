@@ -43,6 +43,8 @@
 #include <itkRGBAPixel.h>
 #include <DisplayMappingPolicy.h>
 #include <itkSimpleDataObjectDecorator.h>
+#include <array>
+#include <vector>
 
 // Forward declarations to IRIS classes
 template <class TFunctor> class UnaryValueToValueFilter;
@@ -50,6 +52,7 @@ template <class TFunctor> class UnaryValueToValueFilter;
 template <class TInputImage, class TOutputImage, class TTraits>
 class AdaptiveSlicingPipeline;
 
+template <class TInputImage, class TTag> class InputSelectionImageFilter;
 
 class SNAPSegmentationROISettings;
 
@@ -96,6 +99,11 @@ public:
   typedef typename TTraits::ImageType                                ImageType;
   typedef SmartPtr<ImageType>                                     ImagePointer;
   typedef typename ImageType::PixelType                              PixelType;
+
+  // 4D Image typedefs
+  typedef typename Superclass::Image4DBaseType                 Image4DBaseType;
+  typedef typename TTraits::Image4DType                            Image4DType;
+  typedef SmartPtr<Image4DType>                                 Image4DPointer;
 
   // This is the pixel type of the buffer pointer, i.e., internal representation
   typedef typename ImageType::InternalPixelType              InternalPixelType;
@@ -147,6 +155,8 @@ public:
   // ITK's coordinate transform (rigid, affine, etc)
   typedef typename Superclass::ITKTransformType               ITKTransformType;
 
+  // Metadata access object
+  typedef typename Superclass::MetaDataAccessType           MetaDataAccessType;
 
   /**
    * Get the parent wrapper for this wrapper. For 'normal' wrappers, this method
@@ -168,11 +178,14 @@ public:
 
   /** 
    * Initialize the image wrapper with a combination of another image wrapper and
-   * an actual image. This will update the indices and transforms from the 
+   * an actual set of images. This will update the indices and transforms from the
    * source wrapper, otherwise, it's equivalent to SetImage()
    */ 
   virtual void InitializeToWrapper(
-    const ImageWrapperBase *source, ImageType *image, ImageBaseType *refSpace, ITKTransformType *tran);
+      const ImageWrapperBase *source,
+      Image4DType *image_4d,
+      ImageBaseType *refSpace,
+      ITKTransformType *tran);
 
   /**
     Get a unique id for this wrapper. All wrappers ever created have
@@ -223,6 +236,15 @@ public:
 
   /** Return some image info independently of pixel type */
   ImageBaseType* GetImageBase() const ITK_OVERRIDE { return m_Image; }
+
+  /** Return 4D image metadata */
+  Image4DBaseType* GetImage4DBase() const ITK_OVERRIDE { return m_Image4D; }
+
+  /** Get the number of time points (how many 3D images in 4D array) */
+  virtual unsigned int GetNumberOfTimePoints() const ITK_OVERRIDE { return m_ImageTimePoints.size(); }
+
+  /** Get the time index (which 3D volume in the 4D array is currently shown) */
+  irisGetMacroWithOverride(TimePointIndex, unsigned int)
 
   /**
    * Is the image initialized?
@@ -292,11 +314,12 @@ public:
    */
   PixelType GetVoxel(unsigned int x,
                      unsigned int y,
-                     unsigned int z) const;
+                     unsigned int z,
+                     int time_point = -1) const;
 
-  PixelType GetVoxel(const Vector3ui &index) const;
+  PixelType GetVoxel(const Vector3ui &index, int time_point = -1) const;
 
-  PixelType GetVoxel(const itk::Index<3> &index) const;
+  PixelType GetVoxel(const itk::Index<3> &index, int time_point = -1) const;
 
   /**
    * Get the mapping between the internal data type and the 'native' range,
@@ -327,8 +350,7 @@ public:
   /** 
    * Get the slicer inside this wrapper
    */
-  virtual SlicerType *GetSlicer(unsigned int iDirection) const
-    { return m_Slicer[iDirection]; }
+  virtual SlicerType *GetSlicer(unsigned int iDirection) const;
 
   /**
    * Set the current slice index in all three dimensions.  The index should
@@ -336,6 +358,9 @@ public:
    * in accordance with the transforms that are specified
    */
   virtual void SetSliceIndex(const Vector3ui &cursor) ITK_OVERRIDE;
+
+  /** Set the current time index */
+  virtual void SetTimePointIndex(unsigned int index) ITK_OVERRIDE;
 
   const ImageBaseType* GetDisplayViewportGeometry(unsigned int index) const;
 
@@ -382,15 +407,22 @@ public:
   virtual void PrintDebugInformation();
                        
   /**
-   * Replace the image internally stored in this wrapper by another image.
+   * Replace the 4D image internally stored in this wrapper by another image.
    */
-  virtual void SetImage(ImagePointer newImage);
+  virtual void SetImage4D(Image4DType *image_4d);
 
   /**
    * Set the wrapper to hold an image that is in a coordinate space that is
    * different from the program's main reference space
    */
-  virtual void SetImage(ImagePointer newImage, ImageBaseType *refSpace, ITKTransformType *transform);
+  virtual void SetImage4D(Image4DType *image_4d,
+                          ImageBaseType *refSpace, ITKTransformType *transform);
+
+  /**
+   * Update a single timepoint in the image with the supplied image. If time point
+   * is not specified, the current time point will be updated.
+   */
+  virtual void UpdateTimePoint(ImageType *image, int time_point = -1);
 
   /**
    * Update the transform between the coordinate space of this image and the program's
@@ -558,6 +590,11 @@ public:
   virtual void ReadMetaData(Registry &reg) ITK_OVERRIDE;
 
   /**
+   * Get the meta data accessor object, useful for inspecting metadata
+   */
+  virtual MetaDataAccessType GetMetaDataAccess() ITK_OVERRIDE;
+
+  /**
    * Check if the image has unsaved changes
    */
   virtual bool HasUnsavedChanges() const ITK_OVERRIDE;
@@ -601,13 +638,43 @@ protected:
   /** A unique Id of this wrapper. Used for the LayerAssociation code */
   unsigned long m_UniqueId;
 
-  /** The image that we are wrapping */
-  ImagePointer m_Image;
+  /**
+   * A time-varying image is represented as a 4D image, although we also keep
+   * an array of pointers to the individual 3D timepoints. This allows us to
+   * use 4D image filters/operations when needed, and 3D at other times.
+   */
+  Image4DPointer m_Image4D;
+
+  /**
+   * Array of 3D image pointers referencing the 3D volumes in the 4D image
+   */
+  std::vector<ImagePointer> m_ImageTimePoints;
+
+  /** This image selector is used to pull out the current time point */
+  typedef InputSelectionImageFilter<ImageType, unsigned int> TimePointSelectFilter;
+  typedef SmartPtr<TimePointSelectFilter> TimePointSelectPointer;
+  TimePointSelectPointer m_TimePointSelectFilter;
+
+  /**
+   * The image that we are wrapping. This image points to one of the images
+   * in the m_ImageTimePoints array
+   */
+  ImageType *m_Image;
+
+  /**
+   * Each time point image is associated with a triplet of slicers (for each axis)
+   */
+  typedef std::array<SlicerPointer, 3> SlicerTriple;
 
   /** The associated slicer filters */
-  SlicerPointer m_Slicer[3];
+  std::vector<SlicerTriple> m_Slicers;
 
-  /** The wrapped image */
+  /** This image selector is used to pull out a slice that corresponds to the current time point */
+  typedef InputSelectionImageFilter<SliceType, unsigned int> SliceInputSelectFilter;
+  typedef SmartPtr<SliceInputSelectFilter> SliceInputSelectPointer;
+  std::array<SliceInputSelectPointer, 3> m_SliceInputSelectFilter;
+
+  /** The pointer to the base class of the wrapped image */
   SmartPtr<ImageBaseType> m_ImageBase;
 
   /** The reference space - this is the space into which the image is sliced */
@@ -615,6 +682,9 @@ protected:
 
   /** The current cursor position (slice index) in image dimensions */
   Vector3ui m_SliceIndex;
+
+  /** The current time point (index into m_ImageTimePoints) */
+  unsigned int m_TimePointIndex = 0;
 
   /**
    * Is the image wrapper initialized? That is a prerequisite for all
@@ -679,16 +749,17 @@ protected:
   Registry *m_IOHints;
 
   /**
-   * Handle a change in the image pointer (i.e., a load operation on the image or 
+   * Handle a change in the image data (i.e., a load operation on the image or
    * an initialization operation). This function can take two optional parameters:
    * the reference space and a transform. If these parameters are not NULL, then the
    * wrapper represents a spatially transformed image. The slicers in the wrapper will
    * slice not along the orthogonal directions in the image, but along directions in
    * the reference space.
    */
-  virtual void UpdateImagePointer(ImageType *image,
-                                  ImageBaseType *refSpace = NULL,
-                                  ITKTransformType *tran = NULL);
+  virtual void UpdateWrappedImages(
+      Image4DType *image_4d,
+      ImageBaseType *refSpace = NULL,
+      ITKTransformType *tran = NULL);
 
   /**
    * Update the image geometry (combining the information in the image and the
@@ -701,9 +772,6 @@ protected:
    * origin, or direction cosine matrix of the image are changed
    */
   virtual void UpdateNiftiTransforms();
-
-  /** Common code for the different constructors */
-  void CommonInitialization();
 
   /** Parent wrapper */
   ImageWrapperBase *m_ParentWrapper;
@@ -725,11 +793,11 @@ protected:
   static bool CanOrthogonalSlicingBeUsed(
       ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform);
 
-  // Update the orthogonal and/or non-orthogonal slicing pipelines
-  void UpdateSlicingPipelines(ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform);
-
   /** Write the image to disk with whatever the internal format is */
   virtual void WriteToFileInInternalFormat(const char *filename, Registry &hints) ITK_OVERRIDE;
+
+  /** Common code invoked when voxels in the image are changed */
+  void OnVoxelsUpdated(unsigned int n_replaced);
 };
 
 #endif // __ImageWrapper_h_

@@ -116,7 +116,8 @@ VectorImageWrapper<TTraits,TBase>
   if(mode.UseRGB || mode.RenderAsGrid)
     {
     // Look up the actual intensity of the voxel from the slicer
-    PixelType pixel_value = this->m_Slicer[0]->LookupIntensityAtSliceIndex(this->m_ReferenceSpace);
+    PixelType pixel_value = this->m_Slicers[this->GetTimePointIndex()][0]
+                            ->LookupIntensityAtSliceIndex(this->m_ReferenceSpace);
 
     // Set the output value
     out_value.set_size(this->GetNumberOfComponents());
@@ -202,14 +203,14 @@ template <class TTraits, class TBase>
 template <class TFunctor>
 SmartPtr<ScalarImageWrapperBase>
 VectorImageWrapper<TTraits,TBase>
-::CreateDerivedWrapper(ImageType *image, ImageBaseType *refSpace, ITKTransformType *transform)
+::CreateDerivedWrapper(Image4DType *image_4d, ImageBaseType *refSpace, ITKTransformType *transform)
 {
   typedef VectorDerivedQuantityImageWrapperTraits<TFunctor> WrapperTraits;
   typedef typename WrapperTraits::WrapperType DerivedWrapper;
-  typedef typename DerivedWrapper::ImageType AdaptorType;
+  typedef typename DerivedWrapper::Image4DType AdaptorType;
 
   SmartPtr<AdaptorType> adaptor = AdaptorType::New();
-  adaptor->SetImage(image);
+  adaptor->SetImage(image_4d);
 
   SmartPtr<DerivedWrapper> wrapper = DerivedWrapper::New();
   wrapper->InitializeToWrapper(this, adaptor, refSpace, transform);
@@ -233,10 +234,10 @@ VectorImageWrapper<TTraits,TBase>
 template <class TTraits, class TBase>
 void
 VectorImageWrapper<TTraits,TBase>
-::UpdateImagePointer(ImageType *newImage, ImageBaseType *referenceSpace, ITKTransformType *transform)
+::UpdateWrappedImages(Image4DType *image_4d, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   // Create the component wrappers before calling the parent's method.
-  int nc = newImage->GetNumberOfComponentsPerPixel();
+  int nc = image_4d->GetNumberOfComponentsPerPixel();
 
   // The first component image will serve as the reference for the other
   // component images
@@ -245,9 +246,9 @@ VectorImageWrapper<TTraits,TBase>
   for(int i = 0; i < nc; i++)
     {
     // Create a component image
-    typedef itk::VectorImageToImageAdaptor<InternalPixelType,3> ComponentImage;
+    typedef itk::VectorImageToImageAdaptor<InternalPixelType,4> ComponentImage;
     SmartPtr<ComponentImage> comp = ComponentImage::New();
-    comp->SetImage(newImage);
+    comp->SetImage(image_4d);
     comp->SetExtractComponentIndex(i);
 
     // Create a wrapper for this image and assign the component image
@@ -264,28 +265,27 @@ VectorImageWrapper<TTraits,TBase>
     cw->SetParentWrapper(this);
 
     // Store the wrapper
-    m_ScalarReps[std::make_pair(
-          SCALAR_REP_COMPONENT, i)] = cw.GetPointer();
+    m_ScalarReps[std::make_pair(SCALAR_REP_COMPONENT, i)] = cw.GetPointer();
 
     // Rebroadcast the events from that wrapper
     Rebroadcaster::RebroadcastAsSourceEvent(cw, WrapperChangeEvent(), this);
     }
 
   m_ScalarReps[std::make_pair(SCALAR_REP_MAGNITUDE, 0)]
-      = this->template CreateDerivedWrapper<MagnitudeFunctor>(newImage, referenceSpace, transform);
+      = this->template CreateDerivedWrapper<MagnitudeFunctor>(image_4d, referenceSpace, transform);
 
   m_ScalarReps[std::make_pair(SCALAR_REP_MAX, 0)]
-      = this->template CreateDerivedWrapper<MaxFunctor>(newImage, referenceSpace, transform);
+      = this->template CreateDerivedWrapper<MaxFunctor>(image_4d, referenceSpace, transform);
 
   m_ScalarReps[std::make_pair(SCALAR_REP_AVERAGE, 0)]
-      = this->template CreateDerivedWrapper<MeanFunctor>(newImage, referenceSpace, transform);
+      = this->template CreateDerivedWrapper<MeanFunctor>(image_4d, referenceSpace, transform);
 
   // Create a flat representation of the image
   m_FlatImage = FlatImageType::New();
   typename FlatImageType::SizeType flatsize;
-  flatsize[0] = newImage->GetPixelContainer()->Size();
+  flatsize[0] = image_4d->GetPixelContainer()->Size();
   m_FlatImage->SetRegions(flatsize);
-  m_FlatImage->SetPixelContainer(newImage->GetPixelContainer());
+  m_FlatImage->SetPixelContainer(image_4d->GetPixelContainer());
 
   // Connect the flat image to the min/max computer
   m_MinMaxFilter->SetInput(m_FlatImage);
@@ -326,8 +326,7 @@ VectorImageWrapper<TTraits,TBase>
   ColorMap *cm = cref->GetDisplayMapping()->GetColorMap(); */
 
   // Call the parent's method = this will initialize the display mapping
-  Superclass::UpdateImagePointer(newImage, referenceSpace, transform);
-
+  Superclass::UpdateWrappedImages(image_4d, referenceSpace, transform);
 }
 
 template<class TTraits, class TBase>

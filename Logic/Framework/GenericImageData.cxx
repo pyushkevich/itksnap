@@ -54,6 +54,7 @@
 #include "LayerIterator.h"
 #include "GuidedNativeImageIO.h"
 #include "ImageAnnotationData.h"
+#include "RLERegionOfInterestImageFilter.h"
 
 // System includes
 #include <fstream>
@@ -137,11 +138,11 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformTyp
   if(io->GetNumberOfComponentsInNativeImage() > 1)
     {
     // The image will be cast to a vector anatomic image
-    typedef AnatomicImageWrapper::ImageType AnatomicImageType;
+    typedef AnatomicImageWrapper::Image4DType AnatomicImage4DType;
 
     // Rescale the image to desired number of bits
-    RescaleNativeImageToIntegralType<AnatomicImageType> rescaler;
-    AnatomicImageType::Pointer image = rescaler(io);
+    RescaleNativeImageToIntegralType<AnatomicImage4DType> rescaler;
+    AnatomicImage4DType::Pointer image = rescaler(io);
 
     // Create a mapper to native intensity
     LinearInternalToNativeIntensityMapping mapper(
@@ -152,7 +153,7 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformTyp
 
     // Set properties
     wrapper->SetDisplayGeometry(m_DisplayGeometry);
-    wrapper->SetImage(image, refSpace, transform);
+    wrapper->SetImage4D(image, refSpace, transform);
     wrapper->SetNativeMapping(mapper);
     for(int i = 0; i < 3; i++)
       wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
@@ -163,11 +164,11 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformTyp
   else
     {
     // Rescale the image to desired number of bits
-    typedef AnatomicScalarImageWrapper::ImageType AnatomicImageType;
+    typedef AnatomicScalarImageWrapper::Image4DType AnatomicImage4DType;
 
     // Rescale the image to desired number of bits
-    RescaleNativeImageToIntegralType<AnatomicImageType> rescaler;
-    AnatomicImageType::Pointer image = rescaler(io);
+    RescaleNativeImageToIntegralType<AnatomicImage4DType> rescaler;
+    AnatomicImage4DType::Pointer image = rescaler(io);
 
     // Create a mapper to native intensity
     LinearInternalToNativeIntensityMapping mapper(
@@ -178,7 +179,7 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformTyp
 
     // Set properties
     wrapper->SetDisplayGeometry(m_DisplayGeometry);
-    wrapper->SetImage(image, refSpace, transform);
+    wrapper->SetImage4D(image, refSpace, transform);
     wrapper->SetNativeMapping(mapper);
 
     for(int i = 0; i < 3; i++)
@@ -293,32 +294,50 @@ void GenericImageData
   this->RemoveImageWrapper(OVERLAY_ROLE, overlay);
 }
 
-
 LabelImageWrapper *
 GenericImageData
-::SetSingleSegmentationImage(GenericImageData::LabelImageType *image)
-{
-  // Unload all segmentation wrappers
-  this->RemoveAllWrappers(LABEL_ROLE);
-
-  // Add this segmentation
-  return this->AddSegmentationImage(image);
-}
-
-
-LabelImageWrapper *
-GenericImageData
-::AddSegmentationImage(LabelImageType *addedLabelImage)
+::SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing)
 {
   // Check that the image matches the size of the grey image
-  assert(m_MainImageWrapper->IsInitialized() &&
-    m_MainImageWrapper->GetBufferedRegion() ==
-         addedLabelImage->GetBufferedRegion());
+  itkAssertOrThrowMacro(
+        m_MainImageWrapper->IsInitialized(),
+        "Main image not initialized in GenericImageData::AddSegmentationImage");
+
+  // This is the uncompressed representation of the segmentation
+  typedef itk::Image<LabelType, 4> UncompressedImage4DType;
+
+  // Cast the native to label type
+  CastNativeImage<UncompressedImage4DType> caster;
+  UncompressedImage4DType::Pointer imgUncompressed = caster(io);
+
+  //use specialized RoI filter to convert to RLEImage
+  typedef LabelImageWrapper::Image4DType LabelImage4DType;
+  typedef itk::RegionOfInterestImageFilter<UncompressedImage4DType, LabelImage4DType> inConverterType;
+  inConverterType::Pointer inConv = inConverterType::New();
+  inConv->SetInput(imgUncompressed);
+  inConv->SetRegionOfInterest(imgUncompressed->GetLargestPossibleRegion());
+  inConv->Update();
+  LabelImage4DType::Pointer imgLabel = inConv->GetOutput();
+  imgUncompressed = NULL; //deallocate intermediate image to save memory
+
+  // Disconnect from the pipeline right away
+  imgLabel->DisconnectPipeline();
+
+  // TODO: we should allow flexibility for segmentation to be mapped to a single given
+  // timepoint of the main image
+
+  // The header of the label image is made to match that of the grey image
+  imgLabel->SetOrigin(this->GetMain()->GetImage4DBase()->GetOrigin());
+  imgLabel->SetSpacing(this->GetMain()->GetImage4DBase()->GetSpacing());
+  imgLabel->SetDirection(this->GetMain()->GetImage4DBase()->GetDirection());
 
   // Create a new wrapper of label type
   SmartPtr<LabelImageWrapper> seg_wrapper = LabelImageWrapper::New();
   seg_wrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
-  seg_wrapper->SetImage(addedLabelImage);
+  seg_wrapper->SetImage4D(imgLabel);
+
+  // Update filenames
+  seg_wrapper->SetFileName(io->GetFileNameOfNativeImage());
   seg_wrapper->SetDefaultNickname(this->GenerateNickname(LABEL_ROLE));
 
   // Send the color table to the new wrapper
@@ -326,6 +345,10 @@ GenericImageData
 
   // Sync up spacing between the main and label image
   seg_wrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
+
+  // Remove loaded segmentation unless adding to existing
+  if(!add_to_existing)
+    this->RemoveAllWrappers(LABEL_ROLE);
 
   // Add the segmentation label to the list of segmentation wrappers
   PushBackImageWrapper(LABEL_ROLE, seg_wrapper);

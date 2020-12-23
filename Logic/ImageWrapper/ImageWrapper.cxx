@@ -72,10 +72,12 @@
 #include "itkTransform.h"
 #include "itkExtractImageFilter.h"
 #include "AffineTransformHelper.h"
-
+#include "InputSelectionImageFilter.h"
+#include "MetaDataAccess.h"
 
 #include <vnl/vnl_inverse.h>
 #include <iostream>
+#include <cassert>
 
 #include <itksys/SystemTools.hxx>
 
@@ -101,7 +103,7 @@ public:
  * differential availability of functionality, we use partial template
  * specialization below.
  */
-template <class TImage>
+template <class TImage, class TImage4D>
 class ImageWrapperPartialSpecializationTraits
 {
 public:
@@ -110,48 +112,83 @@ public:
 
   typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
   typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
+  typedef TImage4D Image4DType;
 
-  static void FillBuffer(ImageType *image, PixelType)
+  static void FillBuffer(ImageType *image, PixelType itkNotUsed(value))
   {
     throw IRISException("FillBuffer unsupported for class %s",
                         image->GetNameOfClass());
   }
 
-  static void Write(ImageType *image, const char *fname, Registry &hints)
+  static void FillBuffer(Image4DType *image, PixelType itkNotUsed(value))
+  {
+    throw IRISException("FillBuffer unsupported for class %s",
+                        image->GetNameOfClass());
+  }
+
+  static void Write(ImageType *image,
+                    const char *itkNotUsed(fname),
+                    Registry &itkNotUsed(hints))
   {
     throw IRISException("Write unsupported for class %s",
                         image->GetNameOfClass());
   }
 
-  static void WriteAsFloat(ImageType *image, const char *fname, Registry &hints, double shift, double scale)
+  static void WriteAsFloat(ImageType *image,
+                           const char *itkNotUsed(fname),
+                           Registry &itkNotUsed(hints),
+                           double itkNotUsed(shift),
+                           double itkNotUsed(scale))
   {
     throw IRISException("WriteAsFloat unsupported for class %s",
                         image->GetNameOfClass());
   }
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
-                                        ImageBaseType *ref_space,
-                                        const TransformType *transform,
-                                        const SNAPSegmentationROISettings &roi,
-                                        bool force_resampling,
-                                        itk::Command *progressCommand)
+                                        ImageBaseType *itkNotUsed(ref_space),
+                                        const TransformType *itkNotUsed(transform),
+                                        const SNAPSegmentationROISettings &itkNotUsed(roi),
+                                        bool itkNotUsed(force_resampling),
+                                        itk::Command *itkNotUsed(progressCommand))
   {
     throw IRISException("CopyRegion unsupported for class %s",
                         image->GetNameOfClass());
     return NULL;
   }
+
+  static void SetImageBufferToReferenceTimePoint(Image4DType *image_4d,
+                                                 ImageType *itkNotUsed(image_tp),
+                                                 unsigned int itkNotUsed(tp))
+  {
+    throw IRISException("SetImageBufferToReferenceTimePoint unsupported for class %s",
+                        image_4d->GetNameOfClass());
+  }
+
+  static void AssignPixelContainerFromTimePointTo4D(Image4DType *image_4d,
+                                                    ImageType *itkNotUsed(image_tp))
+  {
+    throw IRISException("AssignPixelContainerFromTimePointTo4D unsupported for class %s",
+                        image_4d->GetNameOfClass());
+  }
+
 };
 
-template <class TImage>
+template <class TImage, class TImage4D>
 class ImageWrapperPartialSpecializationTraitsCommon
 {
 public:
   typedef TImage ImageType;
+  typedef TImage4D Image4DType;
   typedef typename TImage::PixelType PixelType;
   typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
   typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
 
   static void FillBuffer(ImageType *image, PixelType p)
+  {
+    image->FillBuffer(p);
+  }
+
+  static void FillBuffer(Image4DType *image, PixelType p)
   {
     image->FillBuffer(p);
   }
@@ -189,10 +226,6 @@ public:
 
     if(force_resampling || roi.IsResampling())
       {
-      // Compute the number of voxels in the output
-      typedef typename itk::ImageRegion<3> RegionType;
-      typedef typename itk::Size<3> SizeType;
-
       // We need to compute the new spacing and origin of the resampled
       // ROI piece. To do this, we need the direction matrix
       typedef typename ImageType::DirectionType DirectionType;
@@ -252,17 +285,40 @@ public:
       }
   }
 
+  static void SetImageBufferToReferenceTimePoint(Image4DType *image_4d,
+                                                 ImageType *image_tp,
+                                                 unsigned int tp)
+  {
+    unsigned int nt = image_4d->GetBufferedRegion().GetSize()[TImage::ImageDimension];
+    unsigned int bytes_per_volume = image_4d->GetPixelContainer()->Size() / nt;
+
+    // Set the buffer pointer
+    image_tp->GetPixelContainer()->SetImportPointer(
+          image_4d->GetBufferPointer() + bytes_per_volume * tp,
+          bytes_per_volume);
+  }
+
+  static void AssignPixelContainerFromTimePointTo4D(Image4DType *image_4d,
+                                                    ImageType *image_tp)
+  {
+    image_4d->SetPixelContainer(image_tp->GetPixelContainer());
+  }
 };
 
 
 template<class TPixel, unsigned int VDim>
-class ImageWrapperPartialSpecializationTraits< itk::Image<TPixel, VDim> >
-    : public ImageWrapperPartialSpecializationTraitsCommon< itk::Image<TPixel, VDim> >
+class ImageWrapperPartialSpecializationTraits<
+    itk::Image<TPixel, VDim>,
+    itk::Image<TPixel, VDim+1> >
+    : public ImageWrapperPartialSpecializationTraitsCommon<
+    itk::Image<TPixel, VDim>,
+    itk::Image<TPixel, VDim+1> >
 {
 public:
   typedef itk::Image<TPixel, VDim> ImageType;
+  typedef itk::Image<TPixel, VDim+1> Image4DType;
   typedef typename ImageType::PixelType PixelType;
-  typedef ImageWrapperPartialSpecializationTraitsCommon<ImageType> Superclass;
+  typedef ImageWrapperPartialSpecializationTraitsCommon<ImageType, Image4DType> Superclass;
 
   static SmartPtr<ImageType> CopyRegion(ImageType *image,
                                         typename Superclass::ImageBaseType *refspace,
@@ -309,15 +365,25 @@ public:
 
 
 template<class TPixel, unsigned int VDim>
-class ImageWrapperPartialSpecializationTraits< itk::VectorImage<TPixel, VDim> >
-   : public ImageWrapperPartialSpecializationTraitsCommon< itk::VectorImage<TPixel, VDim> >
+class ImageWrapperPartialSpecializationTraits<
+    itk::VectorImage<TPixel, VDim>,
+    itk::VectorImage<TPixel, VDim+1> >
+    : public ImageWrapperPartialSpecializationTraitsCommon<
+    itk::VectorImage<TPixel, VDim>,
+    itk::VectorImage<TPixel, VDim+1> >
 {
 public:
   typedef itk::VectorImage<TPixel, VDim> ImageType;
+  typedef itk::VectorImage<TPixel, VDim+1> Image4DType;
   typedef typename ImageType::PixelType PixelType;
-  typedef ImageWrapperPartialSpecializationTraitsCommon<ImageType> Superclass;
+  typedef ImageWrapperPartialSpecializationTraitsCommon<ImageType,Image4DType> Superclass;
 
   static void FillBuffer(ImageType *image, PixelType p)
+  {
+    image->FillBuffer(p);
+  }
+
+  static void FillBuffer(Image4DType *image, PixelType p)
   {
     image->FillBuffer(p);
   }
@@ -356,17 +422,25 @@ public:
 
 
 template<class TPixel, unsigned int VDim, class CounterType>
-class ImageWrapperPartialSpecializationTraits< RLEImage<TPixel, VDim, CounterType> >
+class ImageWrapperPartialSpecializationTraits<
+    RLEImage<TPixel, VDim, CounterType>,
+    RLEImage<TPixel, VDim+1, CounterType> >
 {
 public:
   typedef ImageWrapperPartialSpecializationTraits Self;
   typedef RLEImage<TPixel, VDim, CounterType> ImageType;
+  typedef RLEImage<TPixel, VDim+1, CounterType> Image4DType;
   typedef itk::Image<TPixel, VDim> UncompressedType;
   typedef typename ImageType::PixelType PixelType;
   typedef itk::ImageBase<VDim> ImageBaseType;
   typedef itk::Transform<double, VDim, VDim> TransformType;
 
   static void FillBuffer(ImageType *image, PixelType p)
+  {
+    image->FillBuffer(p);
+  }
+
+  static void FillBuffer(Image4DType *image, PixelType p)
   {
     image->FillBuffer(p);
   }
@@ -525,6 +599,26 @@ public:
 
     return Self::template DeepCopyImageRegion<Interpolator>(image, refspace, transform, interp, roi, force_resampling, progressCommand);
   }
+
+  static void SetImageBufferToReferenceTimePoint(Image4DType *image_4d,
+                                                 ImageType *image_tp,
+                                                 unsigned int tp)
+  {
+    unsigned int nt = image_4d->GetBufferedRegion().GetSize()[VDim];
+    unsigned int bytes_per_volume = image_4d->GetBuffer()->GetPixelContainer()->Size() / nt;
+
+    // Set the buffer pointer
+    image_tp->GetBuffer()->GetPixelContainer()->SetImportPointer(
+          image_4d->GetBuffer()->GetBufferPointer() + bytes_per_volume * tp,
+          bytes_per_volume);
+  }
+
+
+  static void AssignPixelContainerFromTimePointTo4D(Image4DType *image_4d,
+                                                    ImageType *image_tp)
+  {
+    image_4d->GetBuffer()->SetPixelContainer(image_tp->GetBuffer()->GetPixelContainer());
+  }
 };
 
 
@@ -533,24 +627,6 @@ template<class TTraits, class TBase>
 ImageWrapper<TTraits,TBase>
 ::ImageWrapper()
 {
-  CommonInitialization();
-}
-
-template<class TTraits, class TBase>
-ImageWrapper<TTraits,TBase>
-::~ImageWrapper()
-{
-  Reset();
-  delete m_IOHints;
-}
-
-template<class TTraits, class TBase>
-void
-ImageWrapper<TTraits,TBase>
-::CommonInitialization()
-{
-  // This is the code that should be called by all constructors
-
   // Set the unique wrapper id
   m_UniqueId = ++GlobalImageWrapperIndex;
 
@@ -560,11 +636,6 @@ ImageWrapper<TTraits,TBase>
 
   // Create empty IO hints
   m_IOHints = new Registry();
-
-  // Create slicer objects
-  m_Slicer[0] = SlicerType::New();
-  m_Slicer[1] = SlicerType::New();
-  m_Slicer[2] = SlicerType::New();
 
   // Initialize the display mapping
   m_DisplayMapping = DisplayMapping::New();
@@ -583,19 +654,26 @@ ImageWrapper<TTraits,TBase>
 
 template<class TTraits, class TBase>
 ImageWrapper<TTraits,TBase>
-::ImageWrapper(const Self &copy)
+::~ImageWrapper()
 {
-  CommonInitialization();
+  Reset();
+  delete m_IOHints;
+}
 
+template<class TTraits, class TBase>
+ImageWrapper<TTraits,TBase>
+::ImageWrapper(const Self &copy)
+  : ImageWrapper()
+{
   // If the source contains an image, make a copy of that image
   if (copy.IsInitialized() && copy.GetImage())
     {
-    typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> roiType;
+    typedef itk::RegionOfInterestImageFilter<Image4DType, Image4DType> roiType;
     typename roiType::Pointer roi = roiType::New();
-    roi->SetInput(copy.GetImage());
+    roi->SetInput(copy.m_Image4D);
     roi->Update();
-    ImagePointer newImage = roi->GetOutput();
-    UpdateImagePointer(newImage);
+    Image4DPointer newImage = roi->GetOutput();
+    UpdateWrappedImages(newImage);
     }
 
   // Copy IO hints
@@ -644,12 +722,22 @@ ImageWrapper<TTraits,TBase>
 ::CopyImageCoordinateTransform(const ImageWrapperBase *source)
 {
   // Better have the image!
-  assert(m_Image && source->GetImageBase());
+  itkAssertOrThrowMacro(
+        m_Image && source->GetImageBase(),
+        "Both target and source must have images in ImageWrapper::CopyImageCoordinateTransform")
 
-  // Set the new meta-data on the image
-  m_Image->SetSpacing(source->GetImageBase()->GetSpacing());
-  m_Image->SetOrigin(source->GetImageBase()->GetOrigin());
-  m_Image->SetDirection(source->GetImageBase()->GetDirection());
+  // Set the new meta-data on the image, applying to all time points
+  for(ImagePointer img : m_ImageTimePoints)
+    {
+    img->SetSpacing(source->GetImageBase()->GetSpacing());
+    img->SetOrigin(source->GetImageBase()->GetOrigin());
+    img->SetDirection(source->GetImageBase()->GetDirection());
+    }
+
+  // Also update the transforms on the 4D image
+  m_Image4D->SetSpacing(source->GetImage4DBase()->GetSpacing());
+  m_Image4D->SetOrigin(source->GetImage4DBase()->GetOrigin());
+  m_Image4D->SetDirection(source->GetImage4DBase()->GetDirection());
 
   // Update NIFTI transforms
   this->UpdateNiftiTransforms();
@@ -666,8 +754,8 @@ ImageWrapper<TTraits,TBase>
   // Cast the size to our vector format
   itk::Size<3> size = m_Image->GetLargestPossibleRegion().GetSize();
   return Vector3ui(
-    (unsigned int) size[0],
-    (unsigned int) size[1],
+        (unsigned int) size[0],
+        (unsigned int) size[1],
         (unsigned int) size[2]);
 }
 
@@ -686,7 +774,7 @@ ImageWrapper<TTraits,TBase>
   if(TTraits::PipelineOutput)
     {
     return (IsPreviewPipelineAttached() && IsPipelineReady())
-        || m_Image->GetMTime() > m_ImageAssignTime;
+        || m_Image4D->GetMTime() > m_ImageAssignTime;
     }
 
   // Otherwise, it's drawable
@@ -817,6 +905,7 @@ ImageWrapper<TTraits,TBase>
   std::cout << "   Dimensions         : " << m_Image->GetLargestPossibleRegion().GetSize() << std::endl;
   std::cout << "   Origin             : " << m_Image->GetOrigin() << std::endl;
   std::cout << "   Spacing            : " << m_Image->GetSpacing() << std::endl;
+  std::cout << "   Time Points        : " << m_ImageTimePoints.size() << std::endl;
   std::cout << "------------------------" << std::endl;
 }
 
@@ -855,7 +944,6 @@ ImageWrapper<TTraits,TBase>
   return same_size && same_space;
 }
 
-
 template<class TTraits, class TBase>
 bool
 ImageWrapper<TTraits,TBase>
@@ -880,84 +968,74 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::UpdateSlicingPipelines(ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform)
+::UpdateWrappedImages(
+    Image4DType *image_4d,
+    ImageBaseType *referenceSpace,
+    ITKTransformType *transform)
 {
-  /*
-  // Can we use orthogonal spacing
-  bool ortho = CanOrthogonalSlicingBeUsed(image, referenceSpace, transform);
+  // Assign the pointer to the 4D image
+  m_Image4D = image_4d;
 
-  // Update each of the slicers
-  for(int i = 0; i < 3; i++)
-    {
-    m_Slicer[i]->SetInput(image);
-    m_Slicer[i]->SetPreviewImage(NULL);
-    m_Slicer[i]->SetTransform(transform);
-    }
+  // The time dimension is the last dimension
+  unsigned int nt = image_4d->GetBufferedRegion().GetSize()[3];
 
-  // Set the input of the slicers, depending on whether the image is subject to transformation
-  if(ortho)
+  // Assign these 3D volumes as inputs to a timepoint selector
+  m_TimePointSelectFilter = TimePointSelectFilter::New();
+
+  // Just create the images
+  m_ImageTimePoints.clear();
+  for(unsigned int i = 0; i < nt; i++)
     {
-    // Slicers take their input directly from the new image
-    for(int i = 0; i < 3; i++)
+    ImagePointer ip = ImageType::New();
+    typename ImageType::RegionType region;
+    typename ImageType::SpacingType spacing;
+    typename ImageType::PointType origin;
+    typename ImageType::DirectionType dir;
+    for(unsigned int j = 0; j < 3; j++)
       {
-      // Set up the basic slicing pipeline
-      m_Slicer[i]->SetInput(image);
-      m_Slicer[i]->SetPreviewInput(NULL);
-      m_Slicer[i]->SetBypassMainInput(false);
-
-      // Drop the advanced slicing pipeline
-      m_AdvancedSlicer[i] = NULL;
-      m_ResampleFilter[i+3] = NULL;
+      region.SetSize(j, image_4d->GetBufferedRegion().GetSize()[j]);
+      region.SetIndex(j, image_4d->GetBufferedRegion().GetIndex()[j]);
+      spacing[j] = image_4d->GetSpacing()[j];
+      origin[j] = image_4d->GetOrigin()[j];
+      for(unsigned int k = 0; k < 3; k++)
+        dir(j,k) = image_4d->GetDirection()(j,k);
       }
+
+    ip->SetRegions(region);
+    ip->SetSpacing(spacing);
+    ip->SetOrigin(origin);
+    ip->SetDirection(dir);
+
+    // Set the buffer pointer
+    typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+    Specialization::SetImageBufferToReferenceTimePoint(image_4d, ip.GetPointer(), i);
+
+    // Append image to the array
+    m_ImageTimePoints.push_back(ip);
+
+    // Add timepoint to the selector filter
+    m_TimePointSelectFilter->AddSelectableInput(i, ip);
     }
-  else
-    {
-    // Create a dummy image to serve as the nominal input to the slicers
-    // We purposely do not allocate this dummy image!
-    SmartPtr<ImageType> dummy = ImageType::New();
-    dummy->CopyInformation(referenceSpace);
-    dummy->SetLargestPossibleRegion(referenceSpace->GetBufferedRegion());
 
-    // Each slicer is attached to a preview filter
-    for(int i = 0; i < 3; i++)
-      {
-      // Set the input to the dummy image
-      m_Slicer[i]->SetInput(dummy);
+  // TODO: probably we don't need to reset the timepoint every time an image is updated but
+  // we do this here for now to be safe
+  m_TimePointIndex = 0;
 
-      // Create an advanced slicer
-      m_AdvancedSlicer[i] = NonOrthogonalSlicerType::New();
-      m_AdvancedSlicer[i]->SetInput(image);
-      m_AdvancedSlicer[i]->SetTransform(transform);
-      m_AdvancedSlicer[i]->SetReferenceImage(m_DisplayViewportGeometryReference[i]);
+  // Update the selected time point in the selector
+  m_TimePointSelectFilter->SetSelectedInput(m_TimePointIndex);
 
-      // Create another set that work with the older slicers - this is temporary
-      // TODO: get rid of this
-      m_ResampleFilter[i+3] = ResampleFilter::New();
-      m_ResampleFilter[i+3]->SetInput(image);
-      m_ResampleFilter[i+3]->SetTransform(transform);
-      m_ResampleFilter[i+3]->SetOutputParametersFromImage(referenceSpace);
-      m_Slicer[i]->SetPreviewInput(m_ResampleFilter[i+3]->GetOutput());
-      m_Slicer[i]->SetBypassMainInput(true);
-      }
-    }
-    */
-}
+  // Assign the current timepoint pointers
+  m_Image = m_TimePointSelectFilter->GetOutput();
+  m_ImageBase = m_Image;
 
-template<class TTraits, class TBase>
-void
-ImageWrapper<TTraits,TBase>
-::UpdateImagePointer(ImageType *newImage, ImageBaseType *referenceSpace, ITKTransformType *transform)
-{
   // If there is no reference space, we assume that the reference space is the same as the image
-  referenceSpace = referenceSpace ? referenceSpace : newImage;
+  referenceSpace = referenceSpace ? referenceSpace : m_ImageBase.GetPointer();
 
   // Check if the image size or image direction matrix has changed
   bool isReferenceGeometrySame = CompareGeometry(m_ReferenceSpace, referenceSpace);
 
   // Update the image
-  this->m_ReferenceSpace = referenceSpace;
-  this->m_ImageBase = newImage;
-  this->m_Image = newImage;
+  m_ReferenceSpace = referenceSpace;
 
   // Create the transform if it does not exist
   typename ITKTransformType::Pointer tran = transform;
@@ -969,20 +1047,48 @@ ImageWrapper<TTraits,TBase>
     }
 
   // Which slicer should be used?
-  bool ortho = CanOrthogonalSlicingBeUsed(newImage, referenceSpace, tran);
+  bool ortho = CanOrthogonalSlicingBeUsed(m_Image, referenceSpace, tran);
 
-  // Update the slicers
-  for(int i = 0; i < 3; i++)
+  // This select filter is used to pull out the 'current' slice in each dimension
+  m_SliceInputSelectFilter = {{ SliceInputSelectFilter::New(),
+                                SliceInputSelectFilter::New(),
+                                SliceInputSelectFilter::New() }};
+
+  // Update the per-image associated data
+  m_Slicers.clear();
+  for(unsigned int k = 0; k < m_ImageTimePoints.size(); k++)
     {
-    m_Slicer[i]->SetInput(newImage);
-    m_Slicer[i]->SetObliqueTransform(tran);
-    m_Slicer[i]->SetPreviewImage(NULL);
-    m_Slicer[i]->SetUseOrthogonalSlicing(ortho);
+    ImageType *img = m_ImageTimePoints[k];
+
+    // Add slicers
+    SlicerTriple s_img;
+    for(int i = 0; i < 3; i++)
+      {
+      s_img[i] = SlicerType::New();
+      s_img[i]->SetInput(img);
+      s_img[i]->SetObliqueTransform(tran);
+      s_img[i]->SetPreviewImage(NULL);
+      s_img[i]->SetUseOrthogonalSlicing(ortho);
+
+      m_SliceInputSelectFilter[i]->AddSelectableInput(k, s_img[i]->GetOutput());
+      }
+
+    m_Slicers.push_back(s_img);
     }
+
+  // Update the slice selection index
+  // Update the selected time point in the selector
+  for(int i = 0; i < 3; i++)
+    m_SliceInputSelectFilter[i]->SetSelectedInput(m_TimePointIndex);
+
+  // Store the time when the image was assigned
+  m_ImageAssignTime = m_ImageSaveTime = m_Image4D->GetTimeStamp();
+
+  // TODO: how do we handle this correctly?
 
   // Mark the image as Modified to enforce correct sequence of
   // operations with MinMaxCalc
-  m_Image->Modified();
+  m_Image4D->Modified();
 
   // Update the image in the display mapping
   m_DisplayMapping->UpdateImagePointer(m_Image);
@@ -1002,22 +1108,21 @@ ImageWrapper<TTraits,TBase>
 
   // We have been initialized
   m_Initialized = true;
-
-  // Store the time when the image was assigned
-  m_ImageAssignTime = m_Image->GetTimeStamp();
 }
 
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
 ::InitializeToWrapper(const ImageWrapperBase *source,
-                      ImageType *image, ImageBaseType *refSpace, ITKTransformType *tran)
+                      Image4DType *image_4d,
+                      ImageBaseType *refSpace,
+                      ITKTransformType *tran)
 {
   // Update the display geometry from the source wrapper
   m_DisplayGeometry = source->GetDisplayGeometry();
 
   // Call the common update method
-  UpdateImagePointer(image, refSpace, tran);
+  UpdateWrappedImages(image_4d, refSpace, tran);
 
   // Update the slice index
   SetSliceIndex(source->GetSliceIndex());
@@ -1028,7 +1133,7 @@ bool
 ImageWrapper<TTraits,TBase>
 ::IsSlicingOrthogonal() const
 {
-  return m_Slicer[0]->GetUseOrthogonalSlicing();
+  return m_Slicers[0][0]->GetUseOrthogonalSlicing();
 }
 
 template<class TTraits, class TBase>
@@ -1036,42 +1141,79 @@ void
 ImageWrapper<TTraits,TBase>
 ::InitializeToWrapper(const ImageWrapperBase *source, const PixelType &value)
 {
-  typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
 
-  // Allocate the image
-  ImagePointer newImage = ImageType::New();
-  newImage->SetRegions(source->GetImageBase()->GetBufferedRegion().GetSize());
-  newImage->Allocate();
-  Specialization::FillBuffer(newImage.GetPointer(), value);
-  newImage->SetOrigin(source->GetImageBase()->GetOrigin());
-  newImage->SetSpacing(source->GetImageBase()->GetSpacing());
-  newImage->SetDirection(source->GetImageBase()->GetDirection());
+  // Allocate an empty 4D image to match the source
+  Image4DPointer img_new = Image4DType::New();
+  img_new->SetRegions(source->GetImage4DBase()->GetBufferedRegion().GetSize());
+  img_new->SetSpacing(source->GetImage4DBase()->GetSpacing());
+  img_new->SetOrigin(source->GetImage4DBase()->GetOrigin());
+  img_new->SetDirection(source->GetImage4DBase()->GetDirection());
+  img_new->Allocate();
+
+  // Use specialization to fill the buffer
+  Specialization::FillBuffer(img_new.GetPointer(), value);
 
   // Update the display geometry from the source wrapper
   m_DisplayGeometry = source->GetDisplayGeometry();
 
   // Call the common update method
-  UpdateImagePointer(newImage);
+  UpdateWrappedImages(img_new);
 
   // Update the slice index
   SetSliceIndex(source->GetSliceIndex());
+
+  // Update the time point
+  SetTimePointIndex(source->GetTimePointIndex());
 }
 
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::SetImage(ImagePointer newImage)
+::SetImage4D(Image4DType *image_4d)
 {
-  UpdateImagePointer(newImage);
+  UpdateWrappedImages(image_4d);
 }
-
 
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::SetImage(ImagePointer newImage, ImageBaseType *refSpace, ITKTransformType *transform)
+::SetImage4D(Image4DType *image_4d, ImageBaseType *refSpace, ITKTransformType *transform)
 {
-  UpdateImagePointer(newImage, refSpace, transform);
+  UpdateWrappedImages(image_4d, refSpace, transform);
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::UpdateTimePoint(ImageType *image, int time_point)
+{
+  itkAssertOrThrowMacro(
+        time_point < (int) m_ImageTimePoints.size(),
+        "Time point out of range in ImageWrapper::UpdateTimePoint")
+
+  // Get the referenced time point
+  if(time_point < 0)
+    time_point = m_TimePointIndex;
+  ImageType *idest = m_ImageTimePoints[time_point];
+
+  itkAssertOrThrowMacro(
+        idest->GetBufferedRegion() == image->GetBufferedRegion(),
+        "Source/Destination region mismatch in ImageWrapper::UpdateTimePoint")
+
+  // Use iterators to perform update
+  ConstIterator it_src(image, image->GetBufferedRegion());
+  Iterator it_dest(m_ImageTimePoints[time_point], image->GetBufferedRegion());
+  while(!it_src.IsAtEnd())
+    {
+    it_dest.Set(it_src.Get());
+    ++it_src;
+    ++it_dest;
+    }
+
+  // Set modification (we are not keeping track of number of updated voxels because of
+  // potential added overhead
+  OnVoxelsUpdated(1);
 }
 
 template<class TTraits, class TBase>
@@ -1084,18 +1226,20 @@ ImageWrapper<TTraits,TBase>
   if(m_ReferenceSpace != refSpace)
     {
     // Force a reinitialization of this layer
-    this->UpdateImagePointer(m_Image, refSpace, transform);
+    // TODO: this seems like overkill, can't we just call the transform code?
+    this->UpdateWrappedImages(m_Image4D, refSpace, transform);
     }
   else
     {
     bool ortho = CanOrthogonalSlicingBeUsed(m_Image, refSpace, transform);
-    for(int i = 0; i < 3; i++)
+    for(auto &s : m_Slicers)
       {
-      m_Slicer[i]->SetObliqueTransform(transform);
-      m_Slicer[i]->SetUseOrthogonalSlicing(ortho);
-      this->InvokeEvent(WrapperDisplayMappingChangeEvent());
-
-      // m_ResampleFilter[i+3]->SetTransform(transform);
+      for(int i = 0; i < 3; i++)
+        {
+        s[i]->SetObliqueTransform(transform);
+        s[i]->SetUseOrthogonalSlicing(ortho);
+        this->InvokeEvent(WrapperDisplayMappingChangeEvent());
+        }
       }
     }
 }
@@ -1105,9 +1249,8 @@ const typename ImageWrapper<TTraits,TBase>::ITKTransformType *
 ImageWrapper<TTraits,TBase>
 ::GetITKTransform() const
 {
-  return m_Slicer[0]->GetObliqueTransform();
+  return m_Slicers[0][0]->GetObliqueTransform();
 }
-
 
 template<class TTraits, class TBase>
 typename ImageWrapper<TTraits,TBase>::ImageBaseType *
@@ -1124,7 +1267,11 @@ ImageWrapper<TTraits,TBase>
 {
   if (m_Initialized)
     {
-    m_Image->ReleaseData();
+    for(ImagePointer img : m_ImageTimePoints)
+      img->ReleaseData();
+
+    m_ImageTimePoints.clear();
+    m_ImageBase = NULL;
     m_Image = NULL;
     }
   m_Initialized = false;
@@ -1136,9 +1283,9 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 inline typename ImageWrapper<TTraits,TBase>::PixelType
 ImageWrapper<TTraits,TBase>
-::GetVoxel(const Vector3ui &index) const
+::GetVoxel(const Vector3ui &index, int time_point) const
 {
-  return GetVoxel(index[0],index[1],index[2]);
+  return GetVoxel(index[0],index[1],index[2], time_point);
 }
 
 template<class TTraits, class TBase>
@@ -1155,32 +1302,51 @@ ImageWrapper<TTraits,TBase>
 ::SetVoxel(const itk::Index<3> &index, const PixelType &value)
 {
   // Verify that the pixel is contained by the image at debug time
-  assert(m_Image && m_Image->GetLargestPossibleRegion().IsInside(index));
+  itkAssertOrThrowMacro(
+        m_Image && m_Image->GetLargestPossibleRegion().IsInside(index),
+        "Voxel index outside of range")
 
-  // Return the pixel
+  // Update the pixel
   m_Image->SetPixel(index, value);
+
+  // The 4D image must receive the modified event
+  m_Image4D->Modified();
 }
 
 template<class TTraits, class TBase>
 inline typename ImageWrapper<TTraits,TBase>::PixelType
 ImageWrapper<TTraits,TBase>
-::GetVoxel(unsigned int x, unsigned int y, unsigned int z) const
+::GetVoxel(unsigned int x, unsigned int y, unsigned int z, int time_point) const
 {
   itk::Index<3> index;
   index[0] = x;
   index[1] = y;
   index[2] = z;
 
-  return GetVoxel(index);
+  return GetVoxel(index, time_point);
 }
 
 template<class TTraits, class TBase>
 inline typename ImageWrapper<TTraits,TBase>::PixelType
 ImageWrapper<TTraits,TBase>
-::GetVoxel(const itk::Index<3> &index) const
+::GetVoxel(const itk::Index<3> &index, int time_point) const
 {
+  itkAssertOrThrowMacro(
+        time_point < (int) m_ImageTimePoints.size(),
+        "Requested time point out of range")
+
+  if(time_point < 0)
+    time_point = m_TimePointIndex;
+
   // This code is robust to non-orthogonal slicing
-  return this->m_Slicer[0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
+  return this->m_Slicers[time_point][0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
+}
+
+template<class TTraits, class TBase>
+typename ImageWrapper<TTraits,TBase>::SlicerType *
+ImageWrapper<TTraits,TBase>::GetSlicer(unsigned int iDirection) const
+{
+  return m_Slicers[m_TimePointIndex][iDirection];
 }
 
 template<class TTraits, class TBase>
@@ -1212,11 +1378,36 @@ ImageWrapper<TTraits,TBase>
   m_SliceIndex = cursor;
 
   // Select the appropriate slice for each slicer
-  for(unsigned int i=0;i<3;i++)
-  {
-    // Set the slice using that axis
-    m_Slicer[i]->SetSliceIndex(to_itkIndex(cursor));
-  }
+  for(auto &s : m_Slicers)
+    for(unsigned int i = 0; i < 3; i++)
+      s[i]->SetSliceIndex(to_itkIndex(cursor));
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::SetTimePointIndex(unsigned int index)
+{
+  itkAssertOrThrowMacro(
+        index < m_ImageTimePoints.size(),
+        "Requested time point out of range")
+
+  // Set the current time index
+  if(index != m_TimePointIndex)
+    {
+    m_TimePointIndex = index;
+
+    // Update the image selector
+    m_TimePointSelectFilter->SetSelectedInput(index);
+
+    // Update the slice selector
+    for(auto &sel : m_SliceInputSelectFilter)
+      sel->SetSelectedInput(index);
+
+    // TODO: Figure this out!
+    // Update the display mapping
+    m_DisplayMapping->UpdateImagePointer(m_Image);
+    }
 }
 
 template<class TTraits, class TBase>
@@ -1225,7 +1416,8 @@ ImageWrapper<TTraits,TBase>
 ::SetDisplayViewportGeometry(unsigned int index,
     const ImageBaseType *viewport_image)
 {
-  m_Slicer[index]->SetObliqueReferenceImage(viewport_image);
+  for(auto &s : m_Slicers)
+    s[index]->SetObliqueReferenceImage(viewport_image);
 }
 
 template<class TTraits, class TBase>
@@ -1233,7 +1425,7 @@ const typename ImageWrapper<TTraits,TBase>::ImageBaseType*
 ImageWrapper<TTraits,TBase>
 ::GetDisplayViewportGeometry(unsigned int index) const
 {
-  return m_Slicer[index]->GetObliqueReferenceImage();
+  return m_Slicers[0][index]->GetObliqueReferenceImage();
 }
 
 
@@ -1262,9 +1454,9 @@ ImageWrapper<TTraits,TBase>
     // Update the geometry for each slice
     for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
       {
-      // Assign the new geometry to the slicer
-      m_Slicer[iSlice]->SetOrthogonalTransform(
-            m_ImageGeometry.GetImageToDisplayTransform(iSlice));
+      // Assign the new geometry to the slicers
+      for(auto &s : m_Slicers)
+        s[iSlice]->SetOrthogonalTransform(m_ImageGeometry.GetImageToDisplayTransform(iSlice));
 
       // TODO: is this necessary and the right place to do ut?
       // Invalidate the requested region in the display slice. This will
@@ -1298,7 +1490,9 @@ void
 ImageWrapper<TTraits,TBase>
 ::UpdateNiftiTransforms()
 {
-  assert(m_ReferenceSpace);
+  itkAssertOrThrowMacro(
+        m_ReferenceSpace,
+        "Calling ImageWrapper::UpdateNiftiTransforms on image wrapper with no reference image");
 
   // Update the NIFTI/RAS transform
   m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
@@ -1356,10 +1550,22 @@ ImageWrapper<TTraits,TBase>
 ::GetDisplaySliceImageAxis(unsigned int iSlice)
 {
   // TODO: this is wasteful computing inverse for something that should be cached
-  const ImageCoordinateTransform *tran = m_Slicer[iSlice]->GetOrthogonalTransform();
+  const ImageCoordinateTransform *tran = m_Slicers[0][iSlice]->GetOrthogonalTransform();
   ImageCoordinateTransform::Pointer traninv = ImageCoordinateTransform::New();
   tran->ComputeInverse(traninv);
   return traninv->GetCoordinateIndexZeroBased(2);
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::OnVoxelsUpdated(unsigned int n_replaced)
+{
+  if(n_replaced > 0)
+    {
+    m_Image->Modified();
+    m_Image4D->Modified();
+    }
 }
 
 template<class TTraits, class TBase>
@@ -1367,17 +1573,8 @@ typename ImageWrapper<TTraits,TBase>::SliceType*
 ImageWrapper<TTraits,TBase>
 ::GetSlice(unsigned int dimension)
 {
-  return m_Slicer[dimension]->GetOutput();
+  return m_SliceInputSelectFilter[dimension]->GetOutput();
 }
-
-// template<class TTraits, class TBase>
-// typename ImageWrapper<TTraits,TBase>::InternalPixelType *
-// ImageWrapper<TTraits,TBase>
-// ::GetVoxelPointer() const
-// {
-  // return m_Image->GetBufferPointer();
-// }
-
 
 // TODO: this should take advantage of an in-place filter!
 template<class TTraits, class TBase>
@@ -1397,8 +1594,7 @@ ImageWrapper<TTraits,TBase>
       }
 
   // Flag that changes have been made
-  if(nReplaced > 0)
-    m_Image->Modified();
+  OnVoxelsUpdated(nReplaced);
 
   // Return the number of replacements
   return nReplaced;
@@ -1429,8 +1625,7 @@ ImageWrapper<TTraits,TBase>
     }
 
   // Flag that changes have been made
-  if(nReplaced > 0)
-    m_Image->Modified();
+  OnVoxelsUpdated(nReplaced);
 
   // Return the number of replacements
   return nReplaced;
@@ -1503,7 +1698,7 @@ void
 ImageWrapper<TTraits,TBase>
 ::WriteToFileInInternalFormat(const char *filename, Registry &hints)
 {
-  typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
   Specialization::Write(m_Image, filename, hints);
 }
 
@@ -1529,8 +1724,9 @@ ImageWrapper<TTraits,TBase>
   m_FileName = itksys::SystemTools::GetFilenamePath(filename);
 
   // Store the timestamp when the filename was written
-  m_ImageSaveTime = m_Image->GetTimeStamp();
-
+  for(ImagePointer img : m_ImageTimePoints)
+    if(m_ImageSaveTime < img->GetTimeStamp())
+      m_ImageSaveTime = img->GetTimeStamp();
 }
 
 
@@ -1540,11 +1736,16 @@ ImageWrapper<TTraits,TBase>
 ::AttachPreviewPipeline(
     PreviewFilterType *f0, PreviewFilterType *f1, PreviewFilterType *f2)
 {
-  PreviewFilterType *filter[] = {f0, f1, f2};
+  // Preview pipelines are not supported for image wrappers containing 4D images
+  itkAssertOrThrowMacro(
+        m_ImageTimePoints.size() == 1,
+        "Only single time point images support ImageWrapper::AttachPreviewPipeline")
+
+  std::array<PreviewFilterType *, 3> filter({{f0, f1, f2}});
   for(int i = 0; i < 3; i++)
     {
     // Update the preview inputs to the slicers
-    m_Slicer[i]->SetPreviewImage(filter[i]->GetOutput());
+    m_Slicers[0][i]->SetPreviewImage(filter[i]->GetOutput());
 
     // Mark the preview filters as modified to ensure that the slicer
     // is going to use it. TODO: is this really needed?
@@ -1560,9 +1761,14 @@ void
 ImageWrapper<TTraits,TBase>
 ::DetachPreviewPipeline()
 {
+  // Preview pipelines are not supported for image wrappers containing 4D images
+  itkAssertOrThrowMacro(
+        m_ImageTimePoints.size() == 1,
+        "Only single time point images support ImageWrapper::DetachPreviewPipeline")
+
   for(int i = 0; i < 3; i++)
     {
-    m_Slicer[i]->SetPreviewImage(NULL);
+    m_Slicers[0][i]->SetPreviewImage(NULL);
     }
 }
 
@@ -1571,9 +1777,13 @@ bool
 ImageWrapper<TTraits,TBase>
 ::IsPreviewPipelineAttached() const
 {
-  return m_Slicer[0]->GetPreviewImage() != NULL;
-}
+  // Preview pipelines are not supported for image wrappers containing 4D images
+  itkAssertOrThrowMacro(
+        m_ImageTimePoints.size() == 1,
+        "Only single time point images support ImageWrapper::IsPreviewPipelineAttached")
 
+  return m_Slicers[0][0]->GetPreviewImage() != NULL;
+}
 
 struct RemoveTransparencyFunctor
 {
@@ -1718,12 +1928,23 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
+typename ImageWrapper<TTraits,TBase>::MetaDataAccessType
+ImageWrapper<TTraits,TBase>
+::GetMetaDataAccess()
+{
+  return MetaDataAccessType(m_Image4D);
+}
+
+template<class TTraits, class TBase>
 bool
 ImageWrapper<TTraits,TBase>
 ::HasUnsavedChanges() const
 {
-  itk::TimeStamp tsNow = m_Image->GetTimeStamp();
-  return (tsNow > m_ImageAssignTime && tsNow > m_ImageSaveTime);
+  for(ImagePointer img : m_ImageTimePoints)
+    if(img->GetTimeStamp() > m_ImageSaveTime)
+      return true;
+
+  return false;
 }
 
 template<class TTraits, class TBase>
@@ -1751,8 +1972,37 @@ ImageWrapper<TTraits,TBase>
 ::ExtractROI(const SNAPSegmentationROISettings &roi,
              itk::Command *progressCommand) const
 {
-  // Get the ITK image for the ROI
+  // Get the ITK image for the ROI (it will be a single time point image)
   ImagePointer newImage = this->DeepCopyRegion(roi, progressCommand);
+
+  // Dress this image up as a 4D image.
+  Image4DPointer newImage4D = Image4DType::New();
+
+  // Initialize the region
+  typename Image4DType::RegionType region_4d;
+  region_4d.SetIndex(3, 0); region_4d.SetSize(3, 1);
+
+  // Set the spacing, origin, direction for the last coordinate
+  auto spacing_4d = m_Image4D->GetSpacing();
+  auto origin_4d  = m_Image4D->GetOrigin();
+  auto dir_4d     = m_Image4D->GetDirection();
+
+  for(unsigned int j = 0; j < 3; j++)
+    {
+    spacing_4d[j] = newImage->GetSpacing()[j];
+    origin_4d[j] = newImage->GetOrigin()[j];
+    for(unsigned int k = 0; k < 3; k++)
+      dir_4d(j,k) = newImage->GetDirection() (j,k);
+    }
+
+  newImage4D->SetRegions(region_4d);
+  newImage4D->SetSpacing(spacing_4d);
+  newImage4D->SetOrigin(origin_4d);
+  newImage4D->SetDirection(dir_4d);
+
+  // Take the 3D image's container into the 4D image
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+  Specialization::AssignPixelContainerFromTimePointTo4D(newImage4D, newImage);
 
   // Initialize the new wrapper
   typedef typename TTraits::WrapperType WrapperType;
@@ -1763,7 +2013,7 @@ ImageWrapper<TTraits,TBase>
   newWrapper->SetDisplayGeometry(temp);
 
   // Assign the new image to the new wrapper
-  newWrapper->SetImage(newImage);
+  newWrapper->SetImage4D(newImage4D);
   newWrapper->SetNativeMapping(this->GetNativeMapping());
 
   // Appropriate the default nickname?
@@ -1792,7 +2042,7 @@ ImageWrapper<TTraits,TBase>
 
   // We use partial template specialization here because region copy is
   // only supported for images that are concrete (Image, VectorImage)
-  typedef ImageWrapperPartialSpecializationTraits<ImageType> Specialization;
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
   return Specialization::CopyRegion(
         m_Image, m_ReferenceSpace,
         this->GetITKTransform(), roi,

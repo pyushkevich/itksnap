@@ -10,6 +10,7 @@
 #include "ColorMapModel.h"
 #include "IntensityCurveModel.h"
 #include "LayerGeneralPropertiesModel.h"
+#include "IncreaseDimensionImageFilter.h"
 #include "SNAPImageData.h"
 
 
@@ -302,6 +303,7 @@ void LayerTableRowModel::GenerateTextureFeatures()
 
     // Create a filter to generate textures
     typedef AnatomicImageWrapperTraits<GreyType>::ImageType TextureImageType;
+    typedef AnatomicImageWrapperTraits<GreyType>::Image4DType TextureImage4DType;
     typedef bilwaj::MomentTextureFilter<
         ScalarImageWrapperBase::CommonFormatImageType,
         TextureImageType> MomentFilterType;
@@ -310,11 +312,17 @@ void LayerTableRowModel::GenerateTextureFeatures()
     filter->SetInput(common_rep);
     filter->SetRadius(radius);
     filter->SetHighestDegree(3);
-    filter->Update();
 
     // Create a new image wrapper
     SmartPtr<AnatomicImageWrapper> newWrapper = AnatomicImageWrapper::New();
-    newWrapper->InitializeToWrapper(m_Layer, filter->GetOutput(), NULL, NULL);
+
+    // Up the image dimension
+    typedef IncreaseDimensionImageFilter<TextureImageType, TextureImage4DType> UpDimFilter;
+    typename UpDimFilter::Pointer updim = UpDimFilter::New();
+    updim->SetInput(filter->GetOutput());
+    updim->Update();
+
+    newWrapper->InitializeToWrapper(m_Layer, updim->GetOutput(), NULL, NULL);
     newWrapper->SetDefaultNickname("Textures");
     this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(
           m_Layer, newWrapper, false);

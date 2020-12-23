@@ -153,6 +153,15 @@ typedef iris_vector_fixed<float,3> Vector3f;
 typedef iris_vector_fixed<double,3> Vector3d;
 typedef iris_vector_fixed<bool,3> Vector3b;
 
+// Common 3D vector types
+typedef iris_vector_fixed<int,4> Vector4i;
+typedef iris_vector_fixed<unsigned int,4> Vector4ui;
+typedef iris_vector_fixed<long,4> Vector4l;
+typedef iris_vector_fixed<unsigned long,4> Vector4ul;
+typedef iris_vector_fixed<float,4> Vector4f;
+typedef iris_vector_fixed<double,4> Vector4d;
+typedef iris_vector_fixed<bool,4> Vector4b;
+
 // A matrix definition
 typedef vnl_matrix_fixed<double,3,3> Matrix3d;
 typedef vnl_matrix_fixed<double,4,4> Matrix4d;
