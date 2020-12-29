@@ -24,7 +24,7 @@ public:
   void SetModel(SmoothLabelsModel *model);
 
 private slots:
-  void on_btnSmooth_clicked();
+  void on_btnApply_clicked();
 
   void on_btnClose_clicked();
 

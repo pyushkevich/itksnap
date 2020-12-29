@@ -20,9 +20,6 @@ public:
   /** Initialize with the parent model */
   void SetParentModel(GlobalUIModel *parent);
 
-  /** Whether all the labels should be smoothed */
-  irisSimplePropertyAccessMacro(SmoothAll, bool)
-
   /** Model for the label that will be interpolated */
   //irisGenericPropertyAccessMacro(LabelsToSmooth, LabelType, ColorLabelItemSetDomain)
 
@@ -38,10 +35,11 @@ protected:
   SmoothLabelsModel();
   virtual ~SmoothLabelsModel() {}
 
-  // Model properties set by user
-  SmartPtr<ConcreteSimpleBooleanProperty> m_SmoothAllModel;
-
+  // The parent model
   GlobalUIModel *m_Parent;
+
+  // A pointer to the color label table
+  ColorLabelTable *m_LabelTable;
 };
 
 #endif // SMOOTHLABELMODEL_H

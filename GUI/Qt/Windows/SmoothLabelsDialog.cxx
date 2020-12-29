@@ -26,7 +26,7 @@ void SmoothLabelsDialog::SetModel(SmoothLabelsModel *model)
   // add event subscription here
 }
 
-void SmoothLabelsDialog::on_btnSmooth_clicked()
+void SmoothLabelsDialog::on_btnApply_clicked()
 {
   m_Model->Smooth();
 }
