@@ -68,6 +68,7 @@
 #include "IntensityCurveInterface.h"
 #include "ColorLabelQuickListModel.h"
 #include "InterpolateLabelModel.h"
+#include "SmoothLabelsModel.h"
 #include "RegistrationModel.h"
 #include "InteractiveRegistrationModel.h"
 #include "DistributedSegmentationModel.h"
@@ -214,6 +215,10 @@ GlobalUIModel::GlobalUIModel()
   // Interpolation dialog
   m_InterpolateLabelModel = InterpolateLabelModel::New();
   m_InterpolateLabelModel->SetParentModel(this);
+
+  // issue #24: Label smoothing feature
+  m_SmoothLabelsModel = SmoothLabelsModel::New();
+  m_SmoothLabelsModel->SetParentModel(this);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(

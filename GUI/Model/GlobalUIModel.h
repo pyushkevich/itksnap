@@ -76,6 +76,7 @@ class ColorLabelQuickListModel;
 class InterpolateLabelModel;
 class RegistrationModel;
 class DistributedSegmentationModel;
+class SmoothLabelsModel; // issue #24
 
 namespace itk
 {
@@ -249,6 +250,10 @@ public:
 
   /** Model for distributed image segmentation */
   irisGetMacro(DistributedSegmentationModel, DistributedSegmentationModel *)
+
+  // issue #24
+  /** Model for label smoothing dialog */
+  irisGetMacro(SmoothLabelsModel, SmoothLabelsModel *)
 
   /**
     Check the state of the system. This class will issue StateChangeEvent()
@@ -437,6 +442,9 @@ protected:
 
   // Model for DSS
   SmartPtr<DistributedSegmentationModel> m_DistributedSegmentationModel;
+
+  // Issue #24: Model for Label Smoothing
+  SmartPtr<SmoothLabelsModel> m_SmoothLabelsModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

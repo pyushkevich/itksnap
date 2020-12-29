@@ -6,11 +6,14 @@
 #include<QDialog>
 #include<SNAPCommon.h>
 
+class SmoothLabelsModel;
+class QStandardItemModel;
+class QSortFilterProxyModel;
+
 namespace Ui {
   class SmoothLabelsDialog;
 }
 
-class SmoothLabelsModel;
 
 class SmoothLabelsDialog : public QDialog
 {
@@ -32,6 +35,8 @@ private:
   Ui::SmoothLabelsDialog *ui;
 
   SmartPtr<SmoothLabelsModel> m_Model;
+
+  QSortFilterProxyModel *m_LabelListFilterModel;
 
   virtual void showEvent(QShowEvent *e);
 };

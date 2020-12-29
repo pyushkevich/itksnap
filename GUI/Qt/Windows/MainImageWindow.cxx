@@ -483,6 +483,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_InterpolateLabelsDialog->SetModel(model->GetInterpolateLabelModel());
   m_RegistrationDialog->SetModel(model->GetRegistrationModel());
   m_DSSDialog->SetModel(model->GetDistributedSegmentationModel());
+  m_SmoothLabelsDialog->SetModel(model->GetSmoothLabelsModel()); // issue #24
 
   // Initialize the docked panels
   m_ControlPanel->SetModel(model);
@@ -2309,6 +2310,7 @@ void MainImageWindow::on_actionInterpolate_Labels_triggered()
   RaiseDialog(m_InterpolateLabelsDialog);
 }
 
+// issue #24: Add label smoothing feature
 void MainImageWindow::on_actionSmooth_Labels_triggered() {
   RaiseDialog(m_SmoothLabelsDialog);
 }

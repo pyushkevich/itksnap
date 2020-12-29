@@ -12,7 +12,7 @@
 
 class GlobalUIModel;
 
-class SmoothLabelsModel : public AbstractPropertyContainerModel
+class SmoothLabelsModel : public AbstractModel
 {
 public:
   irisITKObjectMacro(SmoothLabelsModel, AbstractModel);
@@ -20,14 +20,18 @@ public:
   /** Initialize with the parent model */
   void SetParentModel(GlobalUIModel *parent);
 
-  /** Model for the label that will be interpolated */
+  /** Model for the label that will be smoothed */
   //irisGenericPropertyAccessMacro(LabelsToSmooth, LabelType, ColorLabelItemSetDomain)
 
   /** Update the state of the widget whenever it is shown */
   void UpdateOnShow();
 
-  /** Perform the actual interpolation */
+  /** Perform the actual smoothing */
   void Smooth();
+
+  /** Get the model describing the current selected label (and its domain) */
+  irisGetMacro(CurrentLabelModel, ConcreteColorLabelPropertyModel *)
+
 
 protected:
 
@@ -40,6 +44,9 @@ protected:
 
   // A pointer to the color label table
   ColorLabelTable *m_LabelTable;
+
+  // The label that is currently selected
+  SmartPtr<ConcreteColorLabelPropertyModel> m_CurrentLabelModel;
 };
 
 #endif // SMOOTHLABELMODEL_H
