@@ -31,6 +31,8 @@ private slots:
 
   void on_btnClose_clicked();
 
+  void on_inLabelFilter_textChanged(const QString &arg);
+
 private:
   Ui::SmoothLabelsDialog *ui;
 

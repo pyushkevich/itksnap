@@ -62,6 +62,11 @@ void SmoothLabelsDialog::on_btnClose_clicked()
   this->close();
 }
 
+void SmoothLabelsDialog::on_inLabelFilter_textChanged(const QString &arg)
+{
+  m_LabelListFilterModel->setFilterFixedString(arg);
+}
+
 void SmoothLabelsDialog::showEvent(QShowEvent *e)
 {
   // Call parent method

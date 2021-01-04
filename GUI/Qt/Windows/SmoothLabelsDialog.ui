@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>333</width>
-    <height>561</height>
+    <width>311</width>
+    <height>478</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
   <widget class="QLabel" name="lbl_Title">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>20</y>
+     <x>10</x>
+     <y>10</y>
      <width>141</width>
      <height>31</height>
     </rect>
@@ -40,8 +40,8 @@
   <widget class="QLabel" name="lbl_Description">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>50</y>
+     <x>10</x>
+     <y>40</y>
      <width>271</width>
      <height>41</height>
     </rect>
@@ -60,8 +60,8 @@ color: gray;</string>
   <widget class="QGroupBox" name="groupBox">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>350</y>
+     <x>10</x>
+     <y>340</y>
      <width>291</width>
      <height>71</height>
     </rect>
@@ -69,78 +69,79 @@ color: gray;</string>
    <property name="title">
     <string>Standard Deviation:</string>
    </property>
-   <widget class="QWidget" name="horizontalLayoutWidget">
+   <widget class="QTextEdit" name="inSigmaZ">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>20</y>
-      <width>281</width>
-      <height>41</height>
+      <x>151</x>
+      <y>30</y>
+      <width>64</width>
+      <height>27</height>
      </rect>
     </property>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <property name="leftMargin">
-      <number>6</number>
-     </property>
-     <property name="topMargin">
-      <number>7</number>
-     </property>
-     <property name="rightMargin">
-      <number>7</number>
-     </property>
-     <property name="bottomMargin">
-      <number>7</number>
-     </property>
-     <item>
-      <widget class="QTextEdit" name="inSigmaX">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="html">
-        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QTextEdit" name="inSigmaY">
-       <property name="html">
-        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;y&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QTextEdit" name="inSigmaZ">
-       <property name="html">
-        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;z&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QComboBox" name="comboUnit"/>
-     </item>
-    </layout>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="comboUnit">
+    <property name="geometry">
+     <rect>
+      <x>222</x>
+      <y>32</y>
+      <width>64</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="inSigmaX">
+    <property name="geometry">
+     <rect>
+      <x>8</x>
+      <y>30</y>
+      <width>65</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
+   </widget>
+   <widget class="QTextEdit" name="inSigmaY">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>30</y>
+      <width>64</width>
+      <height>27</height>
+     </rect>
+    </property>
+    <property name="html">
+     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.8pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;y&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    </property>
    </widget>
   </widget>
   <widget class="QGroupBox" name="groupBox_3">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>100</y>
+     <x>10</x>
+     <y>90</y>
      <width>291</width>
      <height>241</height>
     </rect>
@@ -260,8 +261,8 @@ p, li { white-space: pre-wrap; }
   <widget class="QPushButton" name="btnClose">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>510</y>
+     <x>210</x>
+     <y>440</y>
      <width>93</width>
      <height>28</height>
     </rect>
@@ -273,8 +274,8 @@ p, li { white-space: pre-wrap; }
   <widget class="QPushButton" name="btnApply">
    <property name="geometry">
     <rect>
-     <x>120</x>
-     <y>510</y>
+     <x>110</x>
+     <y>440</y>
      <width>93</width>
      <height>28</height>
     </rect>
