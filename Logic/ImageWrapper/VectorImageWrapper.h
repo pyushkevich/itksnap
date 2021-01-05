@@ -155,7 +155,7 @@ public:
   /** This image type has only one component */
   virtual size_t GetNumberOfComponents() const ITK_OVERRIDE
   {
-    return this->m_Image->GetNumberOfComponentsPerPixel();
+    return this->m_Image4D->GetNumberOfComponentsPerPixel();
   }
 
   /** Voxel access */

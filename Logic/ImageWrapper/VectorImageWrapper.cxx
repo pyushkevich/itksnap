@@ -325,7 +325,8 @@ VectorImageWrapper<TTraits,TBase>
   // Initialize the computed derived wrappers
   ColorMap *cm = cref->GetDisplayMapping()->GetColorMap(); */
 
-  // Call the parent's method = this will initialize the display mapping
+  // Call the parent's method = this will initialize the display mapping. This should
+  // be called after the component/child wrappers have been created
   Superclass::UpdateWrappedImages(image_4d, referenceSpace, transform);
 }
 

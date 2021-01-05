@@ -104,7 +104,7 @@ public:
  * specialization below.
  */
 template <class TImage, class TImage4D>
-class ImageWrapperPartialSpecializationTraits
+class ImageWrapperPartialSpecializationTraitsBase
 {
 public:
   typedef TImage ImageType;
@@ -173,6 +173,11 @@ public:
 
 };
 
+
+/**
+ * This is a common implementation of the specialization traits for image-like objects
+ * (Image, VectorImage, RLEImage)
+ */
 template <class TImage, class TImage4D>
 class ImageWrapperPartialSpecializationTraitsCommon
 {
@@ -303,6 +308,17 @@ public:
   {
     image_4d->SetPixelContainer(image_tp->GetPixelContainer());
   }
+};
+
+
+/**
+ * The default specialization class inherits from the base class, in which
+ * all specializable methods simply throw an exception
+ */
+template <class TImage, class TImage4D>
+class ImageWrapperPartialSpecializationTraits
+    : public ImageWrapperPartialSpecializationTraitsBase<TImage, TImage4D>
+{
 };
 
 
@@ -621,6 +637,66 @@ public:
   }
 };
 
+/**
+ * This templated code is shared by the different ImageAdapter specializations below
+ */
+template <class TImageAdaptor, class TImageAdaptor4D>
+class ImageWrapperPartialSpecializationTraitsImageAdaptorCommon
+: public ImageWrapperPartialSpecializationTraitsBase<TImageAdaptor, TImageAdaptor4D>
+{
+public:
+  typedef typename TImageAdaptor::InternalImageType InternalImageType;
+
+  static void SetImageBufferToReferenceTimePoint(TImageAdaptor4D *image_4d,
+                                                 TImageAdaptor *image_tp,
+                                                 unsigned int tp)
+ {
+   unsigned int nt = image_4d->GetBufferedRegion().GetSize()[TImageAdaptor::ImageDimension];
+   unsigned int bytes_per_volume = image_4d->GetPixelContainer()->Size() / nt;
+
+   // Set up a new image for the internals of this timepoint
+   typename InternalImageType::Pointer tp_internals = InternalImageType::New();
+   tp_internals->CopyInformation(image_tp);
+   tp_internals->SetRegions(image_tp->GetBufferedRegion());
+   tp_internals->GetPixelContainer()->SetImportPointer(
+         image_4d->GetBufferPointer() + bytes_per_volume * tp, bytes_per_volume);
+
+   // Figure out the number of components in the raw image
+   tp_internals->SetNumberOfComponentsPerPixel(image_4d->GetPixelAccessor().GetVectorLength());
+
+   // Set the pixel accessor
+   image_tp->SetImage(tp_internals);
+   image_tp->SetPixelAccessor(image_4d->GetPixelAccessor());
+ }
+
+  static void AssignPixelContainerFromTimePointTo4D(TImageAdaptor4D *image_4d,
+                                                    TImageAdaptor *image_tp)
+  {
+    image_4d->SetPixelContainer(image_tp->GetPixelContainer());
+  }
+};
+
+
+template<class TPixel, unsigned int VDim, class TAdaptor>
+class ImageWrapperPartialSpecializationTraits<
+    itk::ImageAdaptor<itk::VectorImage<TPixel, VDim>, TAdaptor>,
+    itk::ImageAdaptor<itk::VectorImage<TPixel, VDim+1>, TAdaptor > >
+    : public ImageWrapperPartialSpecializationTraitsImageAdaptorCommon<
+    itk::ImageAdaptor<itk::VectorImage<TPixel, VDim>, TAdaptor>,
+    itk::ImageAdaptor<itk::VectorImage<TPixel, VDim+1>, TAdaptor > >
+{
+};
+
+
+template<class TPixel, unsigned int VDim>
+class ImageWrapperPartialSpecializationTraits<
+    itk::VectorImageToImageAdaptor<TPixel, VDim>,
+    itk::VectorImageToImageAdaptor<TPixel, VDim+1> >
+    : public ImageWrapperPartialSpecializationTraitsImageAdaptorCommon<
+    itk::VectorImageToImageAdaptor<TPixel, VDim>,
+    itk::VectorImageToImageAdaptor<TPixel, VDim+1> >
+{
+};
 
 
 template<class TTraits, class TBase>
@@ -636,6 +712,11 @@ ImageWrapper<TTraits,TBase>
 
   // Create empty IO hints
   m_IOHints = new Registry();
+
+  // This select filter is used to pull out the 'current' slice in each dimension
+  m_SliceInputSelectFilter = {{ SliceInputSelectFilter::New(),
+                                SliceInputSelectFilter::New(),
+                                SliceInputSelectFilter::New() }};
 
   // Initialize the display mapping
   m_DisplayMapping = DisplayMapping::New();
@@ -1001,10 +1082,12 @@ ImageWrapper<TTraits,TBase>
         dir(j,k) = image_4d->GetDirection()(j,k);
       }
 
+    // All of the information from the 4D image is propagaged to the 3D timepoints
     ip->SetRegions(region);
     ip->SetSpacing(spacing);
     ip->SetOrigin(origin);
     ip->SetDirection(dir);
+    ip->SetNumberOfComponentsPerPixel(image_4d->GetNumberOfComponentsPerPixel());
 
     // Set the buffer pointer
     typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
@@ -1023,6 +1106,7 @@ ImageWrapper<TTraits,TBase>
 
   // Update the selected time point in the selector
   m_TimePointSelectFilter->SetSelectedInput(m_TimePointIndex);
+  m_TimePointSelectFilter->Update();
 
   // Assign the current timepoint pointers
   m_Image = m_TimePointSelectFilter->GetOutput();
@@ -1049,13 +1133,11 @@ ImageWrapper<TTraits,TBase>
   // Which slicer should be used?
   bool ortho = CanOrthogonalSlicingBeUsed(m_Image, referenceSpace, tran);
 
-  // This select filter is used to pull out the 'current' slice in each dimension
-  m_SliceInputSelectFilter = {{ SliceInputSelectFilter::New(),
-                                SliceInputSelectFilter::New(),
-                                SliceInputSelectFilter::New() }};
-
   // Update the per-image associated data
   m_Slicers.clear();
+  for(int i = 0; i < 3; i++)
+    m_SliceInputSelectFilter[i]->RemoveAllSelectableInputs();
+
   for(unsigned int k = 0; k < m_ImageTimePoints.size(); k++)
     {
     ImageType *img = m_ImageTimePoints[k];
@@ -1425,7 +1507,10 @@ const typename ImageWrapper<TTraits,TBase>::ImageBaseType*
 ImageWrapper<TTraits,TBase>
 ::GetDisplayViewportGeometry(unsigned int index) const
 {
-  return m_Slicers[0][index]->GetObliqueReferenceImage();
+  if(m_Slicers.size() > 0)
+    return m_Slicers[0][index]->GetObliqueReferenceImage();
+  else
+    return NULL;
 }
 
 
@@ -1476,6 +1561,7 @@ ImageWrapper<TTraits,TBase>
 
     // Zero size
     typename ImageType::SizeType size;
+    size.Fill(0);
 
     // Set the geometry to default values
     m_ImageGeometry.SetGeometry(dirmat.GetVnlMatrix(), m_DisplayGeometry, size);
