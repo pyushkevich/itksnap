@@ -37,10 +37,10 @@ void SmoothLabelsDialog::SetModel(SmoothLabelsModel *model)
 {
   m_Model = model;
 
-  // Couple label list view to the model
+  // Couple label table view to the model
   makeMultiRowCoupling((QAbstractItemView *) (ui->lvLabels),
                        m_Model->GetCurrentLabelModel(),
-                       TwoColumnColorLabelToQSIMCouplingRowTraits());
+                       CheckableRowTraits<TwoColumnColorLabelToQSIMCouplingRowTraits>());
 
   // Set resizing behavior
 #if QT_VERSION >= 0x050000
