@@ -79,7 +79,7 @@ void FileChooserPanelWithHistory::parseFilters(const QString &activeFormat)
   m_defaultFormat = activeFormat;
 
   // Split the pattern into pieces
-  QStringList pats = m_filePattern.split(";;", QString::SkipEmptyParts);
+  QStringList pats = m_filePattern.split(";;", Qt::SkipEmptyParts);
 
   // Split each piece
   foreach(QString pat, pats)

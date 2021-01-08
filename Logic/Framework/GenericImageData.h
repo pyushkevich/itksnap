@@ -283,6 +283,11 @@ public:
   virtual void SetCrosshairs(const Vector3ui &crosshairs);
 
   /**
+   * Set the time point selected
+   */
+  virtual void SetTimePoint(unsigned int time_point);
+
+  /**
    * Set the display to anatomy coordinate mapping, and propagate it to
    * all of the loaded layers
    */

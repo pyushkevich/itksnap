@@ -48,6 +48,7 @@ public:
   irisGetMacro(ImageNiftiCoordinatesModel, AbstractSimpleDoubleVec3Property *)
   irisGetMacro(ImageMinMaxModel, AbstractSimpleDoubleVec2Property *)
   irisGetMacro(ImageOrientationModel, AbstractSimpleStringProperty *)
+  irisGetMacro(ImageNumberOfTimePointsModel, AbstractSimpleUIntProperty *)
 
   // Access the internally stored filter
   irisSimplePropertyAccessMacro(MetadataFilter, std::string)
@@ -75,6 +76,7 @@ protected:
   SmartPtr<AbstractSimpleDoubleVec2Property> m_ImageMinMaxModel;
   SmartPtr<AbstractSimpleStringProperty> m_ImageOrientationModel;
   SmartPtr<ConcreteSimpleStringProperty> m_MetadataFilterModel;
+  SmartPtr<AbstractSimpleUIntProperty> m_ImageNumberOfTimePointsModel;
 
   bool GetImageDimensions(Vector3ui &value);
   bool GetImageOrigin(Vector3d &value);
@@ -83,6 +85,7 @@ protected:
   bool GetImageNiftiCoordinates(Vector3d &value);
   bool GetImageMinMax(Vector2d &value);
   bool GetImageOrientation(std::string &value);
+  bool GetImageNumberOfTimePoints(unsigned int &value);
 
   // Update the list of keys managed by the metadata
   void UpdateMetadataIndex();

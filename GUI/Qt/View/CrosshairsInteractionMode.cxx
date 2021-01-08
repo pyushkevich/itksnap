@@ -28,6 +28,8 @@
 #include "GenericSliceView.h"
 #include "OrthogonalSliceCursorNavigationModel.h"
 #include "CrosshairsRenderer.h"
+#include "GenericImageData.h"
+#include "IRISApplication.h"
 #include <QPinchGesture>
 #include <QPanGesture>
 #include <QSwipeGesture>
@@ -254,15 +256,43 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
   int scrollLines = QApplication::wheelScrollLines();
   QApplication::setWheelScrollLines(1);
 
-  // Special case - when the user uses shift, we scroll in time, not in Z!
+  // Special case - when the user uses shift, we scroll in component/time, not in Z!
   if(event->modifiers() == Qt::ShiftModifier)
     {
     bool isThumb;
+
+    // The global UI model
+    GlobalUIModel *ui = m_Model->GetParent()->GetParentUI();
+    IRISApplication *app = m_Model->GetParent()->GetDriver();
+
+    // Current layer
     ImageWrapperBase *layer =
         m_Model->GetParent()->GetContextLayerAtPosition(
-          event->pos().x(),
-          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - event->pos().y(),
+          event->position().x(),
+          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - event->position().y(),
         isThumb);
+
+    // Main layer
+    ImageWrapperBase *main = m_Model->GetParent()->GetImageData()->GetMain();
+
+    // Check if image is 4D
+    int n_tp = (int) app->GetNumberOfTimePoints();
+
+    // Figure out the amount of component/timepoint shift
+    static double delta_accum = 0.0;
+    int comp_change = 0;
+
+#if QT_VERSION >= 0x050000
+    delta_accum += event->angleDelta().x() + event->angleDelta().y();
+#else
+    delta_accum += event->delta();
+#endif
+
+    if(delta_accum <= -120.0 || delta_accum >= 120.0)
+      {
+      comp_change = (int) (delta_accum / 120.0);
+      delta_accum = 0.0;
+      }
 
     if(layer && layer->GetNumberOfComponents() > 1)
       {
@@ -275,26 +305,26 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
       // Mode must be single component
       if(mode.IsSingleComponent())
         {
-        static double delta_accum = 0.0;
-
-#if QT_VERSION >= 0x050000
-        delta_accum += event->angleDelta().x() + event->angleDelta().y();
-#else
-        delta_accum += event->delta();
-#endif
-
-        if(delta_accum <= -120.0 || delta_accum >= 120.0)
+        if(comp_change != 0)
           {
-          mode.SelectedComponent += (int) (delta_accum / 120.0);
-          delta_accum = 0.0;
+          mode.SelectedComponent += comp_change;
+          if(mode.SelectedComponent < 0)
+            mode.SelectedComponent = 0;
+          else if(mode.SelectedComponent >= layer->GetNumberOfComponents())
+            mode.SelectedComponent = layer->GetNumberOfComponents()-1;
           }
-
-        if(mode.SelectedComponent < 0)
-          mode.SelectedComponent = 0;
-        else if(mode.SelectedComponent >= layer->GetNumberOfComponents())
-          mode.SelectedComponent = layer->GetNumberOfComponents()-1;
         dpolicy->SetDisplayMode(mode);
         }
+      event->accept();
+      }
+
+    else if(n_tp > 1)
+      {
+      int tp = (int) app->GetCursorTimePoint();
+      tp += comp_change;
+      tp = (tp < 0) ? 0 : tp;
+      tp = (tp >= n_tp) ? n_tp - 1 : tp;
+      app->SetCursorTimePoint(tp);
       event->accept();
       }
     }

@@ -25,7 +25,7 @@ public:
    * Export the image to a common format
    * @see ScalarImageWrapperBase::GetCommonFormatImage
    */
-  virtual OutputImageType *GetOutput(ScalarImageWrapperBase::ExportChannel channel) = 0;
+  virtual const OutputImageType *GetOutput(ScalarImageWrapperBase::ExportChannel channel) = 0;
 };
 
 /**
@@ -46,12 +46,12 @@ public:
   InPlaceScalarImageWrapperCommonRepresentation();
   ~InPlaceScalarImageWrapperCommonRepresentation();
 
-  OutputImageType *GetOutput(ScalarImageWrapperBase::ExportChannel channel);
+  const OutputImageType *GetOutput(ScalarImageWrapperBase::ExportChannel channel);
 
-  void UpdateInputImage(InputImageType *image);
+  void UpdateInputImage(const InputImageType *image);
 
 private:
-  SmartPtr<OutputImageType> m_Image;
+  SmartPtr<const OutputImageType> m_Image;
 };
 
 /**
@@ -71,9 +71,9 @@ public:
   CastingScalarImageWrapperCommonRepresentation();
   ~CastingScalarImageWrapperCommonRepresentation();
 
-  OutputImageType *GetOutput(ScalarImageWrapperBase::ExportChannel channel);
+  const OutputImageType *GetOutput(ScalarImageWrapperBase::ExportChannel channel);
 
-  void UpdateInputImage(InputImageType *image);
+  void UpdateInputImage(const InputImageType *image);
 
 private:
   typedef itk::CastImageFilter<InputImageType, OutputImageType> CastFilterType;
@@ -100,7 +100,7 @@ public:
   OutputImageType *GetOutput(ScalarImageWrapperBase::ExportChannel channel)
     { return NULL; }
 
-  void UpdateInputImage(InputImageType *) {};
+  void UpdateInputImage(const InputImageType *) {};
 
 };
 

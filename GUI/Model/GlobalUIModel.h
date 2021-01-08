@@ -260,6 +260,12 @@ public:
   /** Get the model for the cursor coordinates */
   irisGetMacro(CursorPositionModel, AbstractRangedUIntVec3Property *)
 
+  /** Get the model for 4D image time point */
+  irisGetMacro(CursorTimePointModel, AbstractRangedUIntProperty *)
+
+  /** Get the model for whether the workspace has 3D or 4D image data */
+  irisGetMacro(WorkspaceIs4DModel, AbstractSimpleBooleanProperty *)
+
   /** Get the models for the snake ROI */
   irisGetMacro(SnakeROIIndexModel, AbstractRangedUIntVec3Property *)
   irisGetMacro(SnakeROISizeModel, AbstractRangedUIntVec3Property *)
@@ -437,6 +443,16 @@ protected:
   bool GetCursorPositionValueAndRange(
       Vector3ui &value, NumericValueRange<Vector3ui> *range);
   void SetCursorPosition(Vector3ui value);
+
+  // Current time point of the cursor
+  SmartPtr<AbstractRangedUIntProperty> m_CursorTimePointModel;
+  bool GetCursorTimePointValueAndRange(
+      unsigned int &value, NumericValueRange<unsigned int> *range);
+  void SetCursorTimePoint(unsigned int value);
+
+  // Whether or not the workspace has a time dimension
+  SmartPtr<AbstractSimpleBooleanProperty> m_WorkspaceIs4DModel;
+  bool GetWorkspaceIs4DValue(bool &value);
 
   // Current ROI for snake mode
   SmartPtr<AbstractRangedUIntVec3Property> m_SnakeROIIndexModel;

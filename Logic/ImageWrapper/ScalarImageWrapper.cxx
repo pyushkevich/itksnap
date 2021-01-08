@@ -380,7 +380,7 @@ ScalarImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-typename ScalarImageWrapper<TTraits, TBase>::CommonFormatImageType *
+const typename ScalarImageWrapper<TTraits, TBase>::CommonFormatImageType *
 ScalarImageWrapper<TTraits, TBase>
 ::GetCommonFormatImage(ExportChannel channel)
 {

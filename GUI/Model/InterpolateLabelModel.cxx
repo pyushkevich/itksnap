@@ -88,7 +88,7 @@ void InterpolateLabelModel::Interpolate()
   mci->Update();
   
   // Apply the labels back to the segmentation
-  SegmentationUpdateIterator it_trg(liw->GetImage(), liw->GetImage()->GetBufferedRegion(),
+  SegmentationUpdateIterator it_trg(liw, liw->GetBufferedRegion(),
                                     this->GetDrawingLabel(), this->GetDrawOverFilter());
 
   itk::ImageRegionConstIterator<GenericImageData::LabelImageType>
@@ -112,8 +112,7 @@ void InterpolateLabelModel::Interpolate()
     }
 
   // Finish the segmentation editing and create an undo point
-  it_trg.Finalize();
-  liw->StoreUndoPoint("Interpolate label", it_trg.RelinquishDelta());
+  it_trg.Finalize("Interpolate label");
 
   // Fire event to inform GUI that segmentation has changed
   this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());

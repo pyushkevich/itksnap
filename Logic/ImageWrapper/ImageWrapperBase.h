@@ -600,7 +600,7 @@ public:
    * image filter to break up operations into pieces. Without that, there would
    * be unnecessary large memory allocation.
    */
-  virtual CommonFormatImageType* GetCommonFormatImage(
+  virtual const CommonFormatImageType* GetCommonFormatImage(
       ExportChannel channel = WHOLE_IMAGE) = 0;
 
   /**

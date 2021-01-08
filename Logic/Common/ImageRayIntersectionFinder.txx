@@ -38,7 +38,7 @@
 template <class TImage, class THitTester>
 int
 ImageRayIntersectionFinder<TImage, THitTester>
-::FindIntersection(TImage *image, Vector3d point,
+::FindIntersection(const TImage *image, Vector3d point,
                    Vector3d ray,Vector3i &hit) const
 {
   typename ImageType::IndexType lIndex;

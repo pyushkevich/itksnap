@@ -424,6 +424,26 @@ GenericImageData
       lit.GetLayer()->SetSliceIndex(crosshairs);
 }
 
+void
+GenericImageData
+::SetTimePoint(unsigned int time_point)
+{
+  // Set the time point in all wrappers
+  for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
+    {
+    if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
+      {
+      // Time point is handled a little differently from the cursor. The
+      // main image and overlays may have different number of timepoints.
+      // The idea is only to allow N-N, N-1 or 1-N combinations, i.e., the
+      // main image has N time points, and then overlays have either 1 or N.
+      // We can simply use modulo to make this work
+      unsigned int tp = time_point % lit.GetLayer()->GetNumberOfTimePoints();
+      lit.GetLayer()->SetTimePointIndex(tp);
+      }
+    }
+}
+
 void GenericImageData::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
   m_DisplayGeometry = dispGeom;
@@ -462,7 +482,7 @@ void GenericImageData::ClearUndoPoints()
     {
     LabelImageWrapper *liw = dynamic_cast<LabelImageWrapper *>(lit.GetLayer());
     if(liw)
-      liw->ClearUndoPoints();
+      liw->ClearUndoPointsForAllTimePoints();
     }
 }
 

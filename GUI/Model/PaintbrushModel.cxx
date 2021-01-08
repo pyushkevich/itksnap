@@ -36,8 +36,8 @@ public:
     }
 
   void PrecomputeWatersheds(
-    GreyImageType *grey,
-    LabelImageType *label,
+    const GreyImageType *grey,
+    const LabelImageType *label,
     itk::ImageRegion<3> region,
     itk::Index<3> vcenter,
     size_t smoothing_iter)
@@ -402,7 +402,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
 
   // Iterate over the region using
   SegmentationUpdateIterator it_update(
-        imgLabel->GetImage(), xTestRegion, drawing_color, drawover);
+        imgLabel, xTestRegion, drawing_color, drawover);
 
   for(; !it_update.IsAtEnd(); ++it_update)
     {
@@ -437,10 +437,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
     }
 
   // Finalize the iteration
-  it_update.Finalize();
-
-  // If nothing actually changed, return
-  if(it_update.GetNumberOfChangedVoxels() == 0)
+  if(!it_update.Finalize())
     return false;
 
   // Send the delta for undo

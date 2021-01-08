@@ -70,7 +70,7 @@ public:
   typedef itk::SmartPointer<InputImageType> InputImagePointer;
 
   /** Set the input segmentation image */
-  void SetImage(InputImageType *input);
+  void SetImage(const InputImageType *input);
 
   /** Set the mesh options for this filter */
   void SetMeshOptions(const MeshOptions *options);

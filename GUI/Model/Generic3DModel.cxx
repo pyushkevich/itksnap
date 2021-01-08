@@ -253,7 +253,6 @@ bool Generic3DModel::AcceptAction()
 
   // Get the segmentation image
   LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
-  LabelImageWrapper::ImageType *imSeg = seg->GetImage();
 
   // Accept the current action
   if(mode == SPRAYPAINT_MODE)
@@ -274,7 +273,7 @@ bool Generic3DModel::AcceptAction()
       region.SetIndex(2, static_cast<unsigned int>(x[2])); region.SetSize(2, 1);
 
       // Treat each point as a region update
-      SegmentationUpdateIterator it(imSeg, region,
+      SegmentationUpdateIterator it(seg, region,
                                     app->GetGlobalState()->GetDrawingColorLabel(),
                                     app->GetGlobalState()->GetDrawOverFilter());
 
@@ -284,9 +283,7 @@ bool Generic3DModel::AcceptAction()
         }
 
       // Store the delta for this update
-      it.Finalize();
-
-      if(it.GetNumberOfChangedVoxels() > 0)
+      if(it.Finalize())
         {
         update = true;
         seg->StoreIntermediateUndoDelta(it.RelinquishDelta());

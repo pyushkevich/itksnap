@@ -266,7 +266,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
     w->SetModel(model);
 
     // Set a name for this widget for debugging purposes
-    w->setObjectName(QString().sprintf("wgtRowDelegate_%04d", m_Delegates.size()));
+    w->setObjectName(QString().asprintf("wgtRowDelegate_%04d", m_Delegates.size()));
 
     // Listen to select signals from widget
     connect(w, SIGNAL(selectionChanged(bool)), this, SLOT(layerSelected(bool)));

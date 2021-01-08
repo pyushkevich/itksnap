@@ -93,7 +93,7 @@ void UnsupervisedClustering::SampleDataSource()
   assert(m_DataSource->IsSpeedLoaded());
   typedef SpeedImageWrapper::ImageType SpeedImage;
 
-  SpeedImage *speed = m_DataSource->GetSpeed()->GetImage();
+  const SpeedImage *speed = m_DataSource->GetSpeed()->GetImage();
   typedef itk::ImageRandomConstIteratorWithIndex<SpeedImage> RandomIter;
   RandomIter itRand(speed, speed->GetBufferedRegion());
   itRand.SetNumberOfSamples(nsam);

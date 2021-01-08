@@ -287,7 +287,7 @@ void LayerTableRowModel::GenerateTextureFeatures()
   if(scalar)
     {
     // Get the image out
-    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> common_rep =
+    SmartPtr<const ScalarImageWrapperBase::CommonFormatImageType> common_rep =
         scalar->GetCommonFormatImage();
 
     /*

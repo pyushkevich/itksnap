@@ -18,7 +18,7 @@ InPlaceScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
 }
 
 template<class TOutputPixel, class TWrapperTraits>
-typename InPlaceScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>::OutputImageType *
+const typename InPlaceScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>::OutputImageType *
 InPlaceScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
 ::GetOutput(ScalarImageWrapperBase::ExportChannel channel)
 {
@@ -28,7 +28,7 @@ InPlaceScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
 template<class TOutputPixel, class TWrapperTraits>
 void
 InPlaceScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
-::UpdateInputImage(InputImageType *image)
+::UpdateInputImage(const InputImageType *image)
 {
   m_Image = image;
 }
@@ -55,7 +55,7 @@ CastingScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
 template<class TOutputPixel, class TWrapperTraits>
 void
 CastingScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
-::UpdateInputImage(InputImageType *image)
+::UpdateInputImage(const InputImageType *image)
 {
   // Update the inputs
   for(int i = 0; i < ScalarImageWrapperBase::CHANNEL_COUNT; i++)
@@ -63,7 +63,7 @@ CastingScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
 }
 
 template<class TOutputPixel, class TWrapperTraits>
-typename CastingScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>::OutputImageType *
+const typename CastingScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>::OutputImageType *
 CastingScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
 ::GetOutput(ScalarImageWrapperBase::ExportChannel channel)
 {

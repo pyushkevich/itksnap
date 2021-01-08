@@ -188,14 +188,15 @@ VectorImageWrapper<TTraits,TBase>
 {
   typedef VectorDerivedQuantityImageWrapperTraits<TFunctor> WrapperTraits;
   typedef typename WrapperTraits::WrapperType DerivedWrapper;
-  typedef typename DerivedWrapper::ImageType AdaptorType;
+  typedef typename DerivedWrapper::Image4DType AdaptorType;
   typedef typename AdaptorType::AccessorType PixelAccessor;
 
   // Cast to the right type
   DerivedWrapper *dw = dynamic_cast<DerivedWrapper *>(w);
 
-  // Get the accessor
-  PixelAccessor &accessor = dw->GetImage()->GetPixelAccessor();
+  // Get the accessor (here we cheat)
+  AdaptorType *dw_img = const_cast<AdaptorType *>(dw->GetImage4D());
+  PixelAccessor &accessor = dw_img->GetPixelAccessor();
   accessor.SetSourceNativeMapping(mapping.GetScale(), mapping.GetShift());
 }
 

@@ -1163,9 +1163,6 @@ ImageWrapper<TTraits,TBase>
   for(int i = 0; i < 3; i++)
     m_SliceInputSelectFilter[i]->SetSelectedInput(m_TimePointIndex);
 
-  // Store the time when the image was assigned
-  m_ImageAssignTime = m_ImageSaveTime = m_Image4D->GetTimeStamp();
-
   // TODO: how do we handle this correctly?
 
   // Mark the image as Modified to enforce correct sequence of
@@ -1187,6 +1184,9 @@ ImageWrapper<TTraits,TBase>
 
   // Update the NIFTI/RAS transform
   this->UpdateNiftiTransforms();
+
+  // Store the time when the image was assigned
+  m_ImageAssignTime = m_ImageSaveTime = m_Image4D->GetTimeStamp();
 
   // We have been initialized
   m_Initialized = true;
@@ -1295,7 +1295,7 @@ ImageWrapper<TTraits,TBase>
 
   // Set modification (we are not keeping track of number of updated voxels because of
   // potential added overhead
-  OnVoxelsUpdated(1);
+  PixelsModified();
 }
 
 template<class TTraits, class TBase>
@@ -1481,14 +1481,11 @@ ImageWrapper<TTraits,TBase>
 
     // Update the image selector
     m_TimePointSelectFilter->SetSelectedInput(index);
+    m_TimePointSelectFilter->Update();
 
     // Update the slice selector
     for(auto &sel : m_SliceInputSelectFilter)
       sel->SetSelectedInput(index);
-
-    // TODO: Figure this out!
-    // Update the display mapping
-    m_DisplayMapping->UpdateImagePointer(m_Image);
     }
 }
 
@@ -1590,6 +1587,20 @@ ImageWrapper<TTraits,TBase>
   m_NiftiInvSform = vnl_inverse(m_NiftiSform);
 }
 
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits, TBase>
+::PixelsModified()
+{
+  // Update the 4D image
+  m_Image4D->Modified();
+
+  // Update the current time point. Note that we don't update m_Image,
+  // which is the output of the time point selection pipeline and thus
+  // is not necessarily input to downstream filters.
+  m_ImageTimePoints[m_TimePointIndex]->Modified();
+}
+
 
 template<class TTraits, class TBase>
 inline double
@@ -1643,18 +1654,6 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-void
-ImageWrapper<TTraits,TBase>
-::OnVoxelsUpdated(unsigned int n_replaced)
-{
-  if(n_replaced > 0)
-    {
-    m_Image->Modified();
-    m_Image4D->Modified();
-    }
-}
-
-template<class TTraits, class TBase>
 typename ImageWrapper<TTraits,TBase>::SliceType*
 ImageWrapper<TTraits,TBase>
 ::GetSlice(unsigned int dimension)
@@ -1680,7 +1679,8 @@ ImageWrapper<TTraits,TBase>
       }
 
   // Flag that changes have been made
-  OnVoxelsUpdated(nReplaced);
+  if(nReplaced > 0)
+    PixelsModified();
 
   // Return the number of replacements
   return nReplaced;
@@ -1711,7 +1711,8 @@ ImageWrapper<TTraits,TBase>
     }
 
   // Flag that changes have been made
-  OnVoxelsUpdated(nReplaced);
+  if(nReplaced > 0)
+    PixelsModified();
 
   // Return the number of replacements
   return nReplaced;
@@ -2026,11 +2027,13 @@ bool
 ImageWrapper<TTraits,TBase>
 ::HasUnsavedChanges() const
 {
+  // Check each of the timepoint images
   for(ImagePointer img : m_ImageTimePoints)
     if(img->GetTimeStamp() > m_ImageSaveTime)
       return true;
 
-  return false;
+  // Check the 4D image
+  return m_Image4D->GetTimeStamp() > m_ImageSaveTime;
 }
 
 template<class TTraits, class TBase>

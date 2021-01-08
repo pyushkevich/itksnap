@@ -274,6 +274,10 @@ ImageIOWizardModel::GetSummaryItem(ImageIOWizardModel::SummaryItem item)
     sout << m_GuidedIO->GetNumberOfComponentsInNativeImage();
     return sout.str();
 
+  case ImageIOWizardModel::SI_TIMEPOINTS:
+    sout << m_GuidedIO->GetDimensionsOfNativeImage()[3];
+    return sout.str();
+
   case ImageIOWizardModel::SI_FILESIZE:
     sout << (m_GuidedIO->GetFileSizeOfNativeImage() / 1024.0) << " Kb";
     return sout.str();

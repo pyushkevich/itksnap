@@ -94,9 +94,16 @@ OpenGLSliceTexture<TPixel>
   // Better have an image
   assert(m_Image);
 
+  std::cout << "Texture m_UpdateTime" << m_UpdateTime << std::endl;
+  std::cout << "Display Slice Mod Time (pre-update): " << m_Image->GetMTime() << std::endl;
+  std::cout << "Display Slice Pipeline MTime (pre-update): " << m_Image->GetPipelineMTime() << std::endl;
+
   // Update the image (necessary?)
   if(m_Image->GetSource())
     m_Image->GetSource()->UpdateLargestPossibleRegion();
+
+  std::cout << "Display Slice Mod Time (post-update): " << m_Image->GetMTime() << std::endl;
+  std::cout << "Display Slice Pipeline MTime (post-update): " << m_Image->GetPipelineMTime() << std::endl;
 
   // Check if everything is up-to-date and no computation is needed
   if (m_IsTextureInitalized && m_UpdateTime == m_Image->GetPipelineMTime())

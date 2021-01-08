@@ -146,6 +146,15 @@ SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase *layer)
       nickname += oss.str();
       }
     }
+
+  // Get the time point for the image
+  if(layer->GetNumberOfTimePoints() > 1)
+    {
+    std::ostringstream oss;
+    oss << " [" << layer->GetTimePointIndex()+1 << "/" << layer->GetNumberOfTimePoints() <<  "]";
+    nickname += oss.str();
+    }
+
   lines.push_back(nickname);
 
   // Get the nickname of the segmentation if there are multiple segmentations

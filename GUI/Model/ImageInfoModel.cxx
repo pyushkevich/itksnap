@@ -33,6 +33,9 @@ ImageInfoModel::ImageInfoModel()
   m_ImageOrientationModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageOrientation);
 
+  m_ImageNumberOfTimePointsModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetImageNumberOfTimePoints);
+
   // Create the property model for the filter
   m_MetadataFilterModel = ConcreteSimpleStringProperty::New();
 
@@ -128,6 +131,17 @@ bool ImageInfoModel
     value = raicode;
 
   return true;
+}
+
+bool ImageInfoModel::GetImageNumberOfTimePoints(unsigned int &value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(layer)
+    {
+    value = this->GetLayer()->GetNumberOfTimePoints();
+    return true;
+    }
+  else return false;
 }
 
 void ImageInfoModel::OnUpdate()

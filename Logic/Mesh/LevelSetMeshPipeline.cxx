@@ -100,7 +100,7 @@ vtkPolyData *LevelSetMeshPipeline::GetMesh()
 
 void 
 LevelSetMeshPipeline
-::SetImage(InputImageType *image)
+::SetImage(const InputImageType *image)
 {
   // Hook the input into the pipeline
   m_VTKPipeline->SetImage(image);

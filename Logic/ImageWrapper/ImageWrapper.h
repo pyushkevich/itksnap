@@ -342,10 +342,30 @@ public:
     { return m_DisplayMapping; }
 
   /**
-   * Return the pointed to the ITK image encapsulated by this wrapper.
+   * Return the pointer to the ITK image encapsulated by this wrapper. In order to restrict
+   * write operations to the image, only a const pointer is returned in the public method.
    */
-  virtual ImageType *GetImage() const 
+  virtual const ImageType *GetImage() const
     { return m_Image; }
+
+  /**
+   * Return the pointer to the 4D ITK image encapsulated by this wrapper. In order to restrict
+   * write operations to the image, only a const pointer is returned in the public method.
+   */
+  virtual const Image4DType *GetImage4D() const
+    { return m_Image4D; }
+
+  /**
+   * Get an image for modification. After making modifications, PixelsModified() should be
+   * called in order for slicing and other pipelines to be updated
+   */
+  virtual ImageType *GetModifiableImage() { return m_Image; }
+
+  /**
+   * This function should be called whenever the pixels in the image returned via GetModifableImage
+   * are modified. This will cause pipelines to update correctly.
+   */
+  void PixelsModified();
 
   /** 
    * Get the slicer inside this wrapper

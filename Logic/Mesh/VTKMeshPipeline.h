@@ -79,9 +79,10 @@ public:
   /** Input image type */
   typedef itk::Image<float,3> ImageType;
   typedef itk::SmartPointer<ImageType> ImagePointer;
+  typedef itk::SmartPointer<const ImageType> ImageConstPointer;
   
   /** Set the input segmentation image */
-  void SetImage(ImageType *input);
+  void SetImage(const ImageType *input);
 
   /** Set the mesh options for this filter */
   void SetMeshOptions(MeshOptions *options);
@@ -109,7 +110,7 @@ private:
   SmartPtr<MeshOptions> m_MeshOptions;
 
   // The input image
-  ImagePointer m_InputImage;
+  ImageConstPointer m_InputImage;
 
   // The VTK exporter for the data
   VTKExportPointer m_VTKExporter;

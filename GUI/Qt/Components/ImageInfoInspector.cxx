@@ -62,4 +62,7 @@ void ImageInfoInspector::SetModel(ImageInfoModel *model)
                     m_Model->GetImageMinMaxModel(), tr_real);
 
   makeCoupling(ui->outRAI, m_Model->GetImageOrientationModel());
+
+  makeCoupling(ui->outNumTimePoints, m_Model->GetImageNumberOfTimePointsModel());
+  makeCoupling(ui->inTimePoint, m_Model->GetImageNumberOfTimePointsModel());
 }

@@ -161,7 +161,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
     tag = m_VolumeStreamer->AddObserver(itk::ProgressEvent(), progress);
 
   // Temporarily graft the target volume as output of the filter
-  m_VolumeStreamer->GraftOutput(m_OutputWrapper->GetImage());
+  m_VolumeStreamer->GraftOutput(m_OutputWrapper->GetModifiableImage());
 
   // Execute the preprocessing on the whole image extent
   // itk::TimeProbe probe;
@@ -178,8 +178,8 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   m_VolumeStreamer->GraftOutput(m_VolumeStreamer->GetOutput());
 
   // Update the m-time of the output image
-  m_OutputWrapper->GetImage()->Modified();
-  m_OutputWrapper->GetImage()->DisconnectPipeline();
+  m_OutputWrapper->GetModifiableImage()->DisconnectPipeline();
+  m_OutputWrapper->PixelsModified();
 }
 
 template <class TFilterConfigTraits>

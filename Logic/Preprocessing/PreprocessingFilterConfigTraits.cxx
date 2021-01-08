@@ -79,7 +79,7 @@ SmoothBinaryThresholdFilterConfigTraits
 void SmoothBinaryThresholdFilterConfigTraits::SetActiveScalarLayer(
     ScalarImageWrapperBase *layer, SmoothBinaryThresholdFilterConfigTraits::FilterType *filter, int channel)
 {
-  ScalarImageWrapperBase::CommonFormatImageType *image =
+  const ScalarImageWrapperBase::CommonFormatImageType *image =
       layer->GetCommonFormatImage(
         static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
 
@@ -112,7 +112,7 @@ EdgePreprocessingFilterConfigTraits
 ::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
 {
   ScalarImageWrapperBase *scalar = sid->GetMain()->GetDefaultScalarRepresentation();
-  ScalarImageWrapperBase::CommonFormatImageType *image =
+  const ScalarImageWrapperBase::CommonFormatImageType *image =
       scalar->GetCommonFormatImage(
         static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
 

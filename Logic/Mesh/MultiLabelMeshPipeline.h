@@ -103,9 +103,10 @@ public:
   /** Input image type */
   typedef LabelImageWrapperTraits::ImageType InputImageType;
   typedef itk::SmartPointer<InputImageType> InputImagePointer;
-  
+  typedef itk::SmartPointer<const InputImageType> InputImageConstPointer;
+
   /** Set the input segmentation image */
-  void SetImage(InputImageType *input);
+  void SetImage(const InputImageType *input);
 
   /** Compute the bounding boxes for different regions.  Prerequisite for 
    * calling ComputeMesh(). Returns the total number of voxels in all boxes */
@@ -163,7 +164,7 @@ private:
   SmartPtr<MeshOptions>       m_MeshOptions;
 
   // The input image
-  InputImagePointer           m_InputImage;
+  InputImageConstPointer      m_InputImage;
 
   // The ROI extraction filter used for constructing a bounding box
   ROIFilterPointer            m_ROIFilter;

@@ -376,11 +376,12 @@ void SummaryPage::initializePage()
   // Add all the top level items
   AddItem(m_Tree, "File name", ImageIOWizardModel::SI_FILENAME);
   AddItem(m_Tree, "Dimensions", ImageIOWizardModel::SI_DIMS);
+  AddItem(m_Tree, "Time Points", ImageIOWizardModel::SI_TIMEPOINTS);
+  AddItem(m_Tree, "Components/Voxel", ImageIOWizardModel::SI_COMPONENTS);
   AddItem(m_Tree, "Voxel spacing", ImageIOWizardModel::SI_SPACING);
   AddItem(m_Tree, "Origin", ImageIOWizardModel::SI_ORIGIN);
   AddItem(m_Tree, "Orientation", ImageIOWizardModel::SI_ORIENT);
   AddItem(m_Tree, "Byte order", ImageIOWizardModel::SI_ENDIAN);
-  AddItem(m_Tree, "Components/Voxel", ImageIOWizardModel::SI_COMPONENTS);
   AddItem(m_Tree, "Data type", ImageIOWizardModel::SI_DATATYPE);
   AddItem(m_Tree, "File size", ImageIOWizardModel::SI_FILESIZE);
 

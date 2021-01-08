@@ -260,7 +260,7 @@ public:
    * Get an image cast to a common representation.
    * @see ScalarImageWrapperBase::GetCommonFormatImage()
    */
-  CommonFormatImageType* GetCommonFormatImage(
+  const CommonFormatImageType* GetCommonFormatImage(
       ExportChannel channel = ScalarImageWrapperBase::WHOLE_IMAGE) ITK_OVERRIDE;
 
   /** Return the intensity curve for this layer if it exists */

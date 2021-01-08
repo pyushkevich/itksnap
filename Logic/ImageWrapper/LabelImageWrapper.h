@@ -6,6 +6,7 @@
 
 template <typename TPixel> class UndoDataManager;
 template <typename TPixel> class UndoDelta;
+class SegmentationUpdateIterator;
 
 class LabelImageWrapper : public ScalarImageWrapper<LabelImageWrapperTraits>
 {
@@ -29,6 +30,9 @@ public:
   // Undo manager typedefs
   typedef UndoDataManager<PixelType> UndoManagerType;
   typedef UndoDelta<PixelType>       UndoManagerDelta;
+
+  // We are friends with the SegmentationUpdateIterator
+  friend class SegmentationUpdateIterator;
 
   /**
    * We override the SetImage method to reset the undo manager when an image is
@@ -55,6 +59,9 @@ public:
   /** Clear all undo points */
   void ClearUndoPoints();
 
+  /** Clear all undo points */
+  void ClearUndoPointsForAllTimePoints();
+
   /** Check whether undo is possible */
   bool IsUndoPossible();
 
@@ -68,7 +75,7 @@ public:
   void Redo();
 
   /** Get the undo manager */
-  itkGetMacro(UndoManager, const UndoManagerType *)
+  const UndoManagerType *GetUndoManager() const;
 
   /** This is not used by the undo system itself, but uses the undo code to
    * store the contents of the image as an undo delta object, which can then
@@ -83,8 +90,9 @@ protected:
 
   // Undo data manager, stores 'deltas', i.e., differences between states of the segmentation
   // image. These deltas are compressed, allowing us to store a bunch of
-  // undo steps with little cost in performance or memory
-  UndoManagerType *m_UndoManager;
+  // undo steps with little cost in performance or memory. We currently associate each time
+  // point with its own undo manager
+  std::vector<UndoManagerType *> m_TimePointUndoManagers;
 };
 
 #endif // LABELIMAGEWRAPPER_H

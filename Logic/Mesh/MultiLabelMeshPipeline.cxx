@@ -333,7 +333,7 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
 
 void 
 MultiLabelMeshPipeline
-::SetImage(MultiLabelMeshPipeline::InputImageType *image)
+::SetImage(const InputImageType *image)
 {
   if(m_InputImage != image)
     {

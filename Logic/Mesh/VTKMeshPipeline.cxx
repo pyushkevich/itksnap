@@ -288,7 +288,7 @@ VTKMeshPipeline
 
 void
 VTKMeshPipeline
-::SetImage(ImageType *image)
+::SetImage(const ImageType *image)
 {
   // Store the image 
   m_InputImage = image;

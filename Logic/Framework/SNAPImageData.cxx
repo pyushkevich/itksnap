@@ -173,8 +173,8 @@ SNAPImageData
 
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
-  LabelImageType::Pointer imgInput = this->GetFirstSegmentationLayer()->GetImage();
-  FloatImageType::Pointer imgLevelSet = m_SnakeWrapper->GetImage();
+  LabelImageType::ConstPointer imgInput = this->GetFirstSegmentationLayer()->GetImage();
+  FloatImageType::Pointer imgLevelSet = m_SnakeWrapper->GetModifiableImage();
 
   // Get the target region. This really should be a region relative to the IRIS image
   // data, not an image into a needless copy of an IRIS region.
@@ -284,6 +284,9 @@ SNAPImageData
       }
     }
 
+  // Mark the image updated
+  m_SnakeWrapper->PixelsModified();
+
   // At this point, we should have an initialization image and a bounding
   // box in bbLower and bbUpper.  End the routine if there are no initialization
   // voxels
@@ -377,14 +380,14 @@ SNAPImageData
 
   // Initialize the snake driver and pass the parameters
   m_LevelSetDriver = new SNAPLevelSetDriver3d(
-    m_SnakeWrapper->GetImage(),
-    m_SpeedWrapper->GetImage(),
+    m_SnakeWrapper->GetModifiableImage(),
+    m_SpeedWrapper->GetModifiableImage(),
     m_CurrentSnakeParameters,
     m_ExternalAdvectionField);
 
   // This makes sure that m_SnakeWrapper->IsDrawable() returns true
   m_SnakeWrapper->UpdateTimePoint(m_LevelSetDriver->GetCurrentState());
-  m_SnakeWrapper->GetImage()->Modified();
+  m_SnakeWrapper->PixelsModified();
 
   // Finish thread-safe section
   m_LevelSetPipelineMutexLock->Unlock();
@@ -523,12 +526,12 @@ void SNAPImageData::SwapLabelImageWithCompressedAlternative()
   save->FinishEncoding();
 
   // Clear the undo manager
-  liw->ClearUndoPoints();
+  liw->ClearUndoPointsForAllTimePoints();
 
   // Decompress the currently saved alternative
   if(m_CompressedAlternateLabelImage)
     {
-    LabelImageWrapper::Iterator it_write(liw->GetImage(), liw->GetBufferedRegion());
+    LabelImageWrapper::Iterator it_write(liw->GetModifiableImage(), liw->GetBufferedRegion());
     for(size_t i = 0; i < m_CompressedAlternateLabelImage->GetNumberOfRLEs(); ++i)
       {
       LabelType value = m_CompressedAlternateLabelImage->GetRLEValue(i);
@@ -538,10 +541,10 @@ void SNAPImageData::SwapLabelImageWithCompressedAlternative()
     }
   else
     {
-    liw->GetImage()->FillBuffer(0);
+    liw->GetModifiableImage()->FillBuffer(0);
     }
 
-  liw->GetImage()->Modified();
+  liw->PixelsModified();
   m_CompressedAlternateLabelImage = save;
 }
 

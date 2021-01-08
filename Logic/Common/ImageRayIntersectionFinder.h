@@ -64,7 +64,7 @@ public:
    * Returns: 1 on success, 0 on no hit and -1 if the ray misses the
    * image completely.
    */
-  int FindIntersection(ImageType *image,Vector3d xRayStart,
+  int FindIntersection(const ImageType *image,Vector3d xRayStart,
                        Vector3d xRayVector,Vector3i &xHitIndex) const;
 private:
   /** The hit tester used internally */

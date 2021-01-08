@@ -420,7 +420,7 @@ void IRISApplication::SetColorLabelsInSegmentationAsValid(LabelImageWrapper *seg
     const LabelImageType::RLLine &line = rlit.Value();
 
     // Iterate over the entries
-    for(int i = 0; i < line.size(); i++)
+    for(unsigned int i = 0; i < line.size(); i++)
       {
       LabelType label = line[i].second;
       if(label != last_label)
@@ -527,9 +527,6 @@ IRISApplication
     double zSlice,
     const std::string &undoTitle)
 {
-  // Get the segmentation image
-  LabelImageType *seg = this->GetSelectedSegmentationLayer()->GetImage();
-
   // Turn the 2D region of the drawing into a 3D region in the segmentation
   IRISApplication::SliceBinaryImageType::RegionType r_draw = drawing->GetBufferedRegion();
 
@@ -572,10 +569,10 @@ IRISApplication
   LabelImageType::RegionType r_vol;
   r_vol.SetIndex(to_itkIndex(pos_min));
   r_vol.SetUpperIndex(to_itkIndex(pos_max));
-  r_vol.Crop(seg->GetBufferedRegion());
+  r_vol.Crop(this->GetSelectedSegmentationLayer()->GetBufferedRegion());
 
   // Create an iterator for painting
-  SegmentationUpdateIterator itVol(seg, r_vol,
+  SegmentationUpdateIterator itVol(this->GetSelectedSegmentationLayer(), r_vol,
                                    m_GlobalState->GetDrawingColorLabel(),
                                    m_GlobalState->GetDrawOverFilter());
 
@@ -606,12 +603,9 @@ IRISApplication
     }
 
   // Finalize
-  itVol.Finalize();
-
-  // Store update
-  if(itVol.GetNumberOfChangedVoxels() > 0)
+  if(itVol.Finalize(undoTitle.c_str()))
     {
-    this->GetSelectedSegmentationLayer()->StoreUndoPoint(undoTitle.c_str(), itVol.RelinquishDelta());
+    // Voxels were updated
     this->RecordCurrentLabelUse();
     InvokeEvent(SegmentationChangeEvent());
     }
@@ -631,14 +625,13 @@ IRISApplication
 
   // If the voxel size of the image does not match the voxel size of the 
   // main image, we need to resample the region  
-  SourceImageType::Pointer source = m_SNAPImageData->GetSnake()->GetImage();
+  SourceImageType::ConstPointer source = m_SNAPImageData->GetSnake()->GetImage();
 
   // The target segmentation is whatever was last selected in IRIS, which we stored
   // in a local variable before entering SNAP mode
   LabelImageWrapper *iris_seg = dynamic_cast<LabelImageWrapper *>(
                                   m_IRISImageData->FindLayer(
                                     m_SavedIRISSelectedSegmentationLayerId, false));
-  TargetImageType::Pointer target = iris_seg->GetImage();
 
   // Construct are region of interest into which the result will be pasted
   SNAPSegmentationROISettings roi = m_GlobalState->GetSegmentationROISettings();
@@ -693,7 +686,7 @@ IRISApplication
     // Set the image sizes and spacing. We are creating an image of the 
     // dimensions of the ROI defined in the IRIS image space. 
     fltSample->SetSize(roi.GetROI().GetSize());
-    fltSample->SetOutputSpacing(target->GetSpacing());
+    fltSample->SetOutputSpacing(iris_seg->GetImageBase()->GetSpacing());
     fltSample->SetOutputOrigin(source->GetOrigin());
     fltSample->SetOutputDirection(source->GetDirection());
 
@@ -717,7 +710,7 @@ IRISApplication
 
   // Create the smart target iterator
   SegmentationUpdateIterator itTarget(
-        target, roi.GetROI(),
+        iris_seg, roi.GetROI(),
         m_GlobalState->GetDrawingColorLabel(), m_GlobalState->GetDrawOverFilter());
 
   // Inversion state
@@ -738,13 +731,9 @@ IRISApplication
     ++itTarget;
     }
 
-  // Finalize the segmentation
-  itTarget.Finalize();
-
-  // Store the undo delta
-  if(itTarget.GetNumberOfChangedVoxels() > 0)
+  // Finalize the segmentation and store undo point
+  if(itTarget.Finalize("Automatic Segmentation"))
     {
-    iris_seg->StoreUndoPoint("Automatic Segmentation", itTarget.RelinquishDelta());
     RecordCurrentLabelUse();
     InvokeEvent(SegmentationChangeEvent());
     }
@@ -771,6 +760,32 @@ IRISApplication
   return m_GlobalState->GetCrosshairsPosition();
 }
 
+void
+IRISApplication
+::SetCursorTimePoint(unsigned int time_point, bool force)
+{
+  if(time_point != this->GetCursorTimePoint() || force)
+    {
+    this->GetCurrentImageData()->SetTimePoint(time_point);
+
+    // Fire the appropriate event
+    InvokeEvent(CursorUpdateEvent());
+    }
+}
+
+unsigned int
+IRISApplication
+::GetCursorTimePoint() const
+{
+  return this->GetCurrentImageData()->GetMain()->GetTimePointIndex();
+}
+
+unsigned int
+IRISApplication
+::GetNumberOfTimePoints() const
+{
+  return this->GetCurrentImageData()->GetMain()->GetNumberOfTimePoints();
+}
 
 
 void
@@ -1122,29 +1137,22 @@ size_t
 IRISApplication
 ::ReplaceLabel(LabelType drawing, LabelType drawover)
 {
-  // Get the label image
-  LabelImageWrapper::ImageType *imgLabel = this->GetSelectedSegmentationLayer()->GetImage();
+  // Create an update iterator
+  SegmentationUpdateIterator it(this->GetSelectedSegmentationLayer(),
+                                this->GetSelectedSegmentationLayer()->GetBufferedRegion(),
+                                drawing, DrawOverFilter(PAINT_OVER_ONE, drawover));
 
-  // Get the number of voxels
-  size_t nvoxels = 0;
-
-  // Update the segmentation
-  typedef itk::ImageRegionIterator<
-    LabelImageWrapper::ImageType> IteratorType;
-  for(IteratorType it(imgLabel, imgLabel->GetBufferedRegion());  
-    !it.IsAtEnd(); ++it)
-    {
-    if(it.Get() == drawover)
-      {
-      it.Set(drawing);
-      ++nvoxels;
-      }
-    }
+  // Perform iteration
+  for(; !it.IsAtEnd(); ++it)
+    it.PaintAsForeground();
 
   // Register that the image has been updated
-  imgLabel->Modified();
+  if(it.Finalize("Replace label"))
+    {
+    this->InvokeEvent(SegmentationChangeEvent());
+    }
 
-  return nvoxels;
+  return it.GetNumberOfChangedVoxels();
 }
 
 // TODO: This information should be cached at the segmentation layer level
@@ -1161,7 +1169,7 @@ IRISApplication
       !it.IsAtEnd(); ++it)
     {
     LabelImageWrapper *wrapper = dynamic_cast<LabelImageWrapper *>(it.GetLayer());
-    LabelImageType *seg = wrapper->GetImage();
+    const LabelImageType *seg = wrapper->GetImage();
 
     // Get the number of voxels
     for(LabelImageWrapper::ConstIterator it(seg, seg->GetBufferedRegion());
@@ -1181,11 +1189,11 @@ IRISApplication
 ::RelabelSegmentationWithCutPlane(const Vector3d &normal, double intercept) 
 {
   // Get the label image
-  LabelImageWrapper::ImageType *imgLabel = this->GetSelectedSegmentationLayer()->GetImage();
+  LabelImageWrapper *seg = this->GetSelectedSegmentationLayer();
   
   // Create the smart target iterator
   SegmentationUpdateIterator it(
-        imgLabel, imgLabel->GetBufferedRegion(),
+        seg, seg->GetBufferedRegion(),
         m_GlobalState->GetDrawingColorLabel(), m_GlobalState->GetDrawOverFilter());
 
   // Adjust the intercept by 0.5 for voxel offset
@@ -1210,12 +1218,11 @@ IRISApplication
     }
 
   // Finalize
-  it.Finalize();
+
 
   // Store the undo point if needed
-  if(it.GetNumberOfChangedVoxels() > 0)
+  if(it.Finalize("3D scalpel"))
     {
-    this->GetSelectedSegmentationLayer()->StoreUndoPoint("3D scalpel", it.RelinquishDelta());
     RecordCurrentLabelUse();
     InvokeEvent(SegmentationChangeEvent());
     }
@@ -1499,7 +1506,7 @@ IRISApplication
   // Get a pointer to the policy for this layer
   AbstractContinuousImageDisplayMappingPolicy *policy =
       dynamic_cast<AbstractContinuousImageDisplayMappingPolicy *>(
-        m_IRISImageData->GetMain()->GetDisplayMapping());
+        layer->GetDisplayMapping());
 
   // The policy must be of the right type to proceed
   if(policy)

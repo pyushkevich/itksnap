@@ -170,9 +170,4 @@ bool CursorInspectionModel::GetLabelUnderTheCursorTitleValue(std::string &value)
   return false;
 }
 
-AbstractRangedUIntVec3Property * CursorInspectionModel::GetCursorPositionModel() const
-{
-  return m_Parent->GetCursorPositionModel();
-}
-
 

@@ -43,10 +43,10 @@ public:
                       TInputImage::ImageDimension);
 
   /** Add a scalar input image */
-  void AddScalarImage(InputImageType *image);
+  void AddScalarImage(const InputImageType *image);
 
   /** Add a vector (multi-component) input image */
-  void AddVectorImage(InputVectorImageType *image);
+  void AddVectorImage(const InputVectorImageType *image);
 
   /** Set the mixture model */
   void SetMixtureModel(GaussianMixtureModel *model);
