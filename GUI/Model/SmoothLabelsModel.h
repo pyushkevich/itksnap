@@ -27,7 +27,7 @@ public:
   void UpdateOnShow();
 
   /** Perform the actual smoothing */
-  void Smooth();
+  void Smooth(std::vector<LabelType> &labelsToSmooth);
 
   /** Get the model describing the current selected label (and its domain) */
   irisGetMacro(CurrentLabelModel, ConcreteColorLabelPropertyModel *)

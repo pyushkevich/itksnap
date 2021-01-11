@@ -54,7 +54,23 @@ void SmoothLabelsDialog::SetModel(SmoothLabelsModel *model)
 
 void SmoothLabelsDialog::on_btnApply_clicked()
 {
-  m_Model->Smooth();
+  // Get all checked label
+  QAbstractItemModel *im = nullptr;
+  QAbstractProxyModel *pm = dynamic_cast<QAbstractProxyModel*>(ui->lvLabels->model());
+  if (pm)
+    im = pm->sourceModel();
+
+  QModelIndexList checked = im->match(im->index(0,0), Qt::CheckStateRole, Qt::Checked, -1);
+
+  // std::cout << checked.count() << endl;
+  std::vector<LabelType> labelsToSmooth;
+  for(auto it = checked.begin(); it != checked.end(); ++it)
+    {
+      LabelType oneLabel = im->data(*it, Qt::UserRole).value<LabelType>();
+      labelsToSmooth.push_back(oneLabel);
+    }
+
+  m_Model->Smooth(labelsToSmooth);
 }
 
 void SmoothLabelsDialog::on_btnClose_clicked()
