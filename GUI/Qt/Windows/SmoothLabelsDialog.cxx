@@ -9,6 +9,7 @@
 #include <QtAbstractItemViewCoupling.h>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
+#include <QMessageBox>
 
 SmoothLabelsDialog::SmoothLabelsDialog(QWidget *parent) :
   QDialog(parent),
@@ -154,6 +155,19 @@ void SmoothLabelsDialog::on_btnApply_clicked()
       LabelType oneLabel = im->data(*it, Qt::UserRole).value<LabelType>();
       labelsToSmooth.push_back(oneLabel);
     }
+
+  QMessageBox confirmBox;
+  QString msg;
+  if (labelsToSmooth.size() == 0)
+    msg = QString("No label is selected for smoothing!");
+  else if (labelsToSmooth.size() == 1)
+    msg = QString("Proceed to smooth label %1?").arg(labelsToSmooth[0]);
+  else
+    msg = QString("Proceed to smooth these %1 labels?").arg(labelsToSmooth.size());
+
+  confirmBox.setText(msg);
+  confirmBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+  confirmBox.exec();
 
   m_Model->Smooth(labelsToSmooth);
 }
