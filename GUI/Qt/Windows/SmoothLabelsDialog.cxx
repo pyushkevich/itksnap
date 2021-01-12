@@ -17,12 +17,12 @@ SmoothLabelsDialog::SmoothLabelsDialog(QWidget *parent) :
   ui->setupUi(this);
 
   // Set up standard item model for label list view
-  QStandardItemModel *simodel = new QStandardItemModel(this);
-  simodel->setColumnCount(2);
+  m_simodel = new QStandardItemModel(this);
+  m_simodel->setColumnCount(2);
 
   // Set up a filter model for the label list view
   m_LabelListFilterModel = new QSortFilterProxyModel(this);
-  m_LabelListFilterModel->setSourceModel(simodel);
+  m_LabelListFilterModel->setSourceModel(m_simodel);
   m_LabelListFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
   m_LabelListFilterModel->setFilterKeyColumn(-1);
   ui->lvLabels->setModel(m_LabelListFilterModel);
@@ -51,6 +51,28 @@ void SmoothLabelsDialog::SetModel(SmoothLabelsModel *model)
   ui->lvLabels->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
 #endif
 }
+
+void SmoothLabelsDialog::setAllLabelCheckStates(Qt::CheckState chkState)
+{
+  QStandardItem *currentItem;
+  for (auto i = 0; i < m_simodel->rowCount(); ++i)
+    {
+      currentItem = m_simodel->item(i);
+      if (currentItem)
+        currentItem->setCheckState(chkState);
+    }
+}
+
+void SmoothLabelsDialog::on_btnSelectAll_clicked()
+{
+  setAllLabelCheckStates(Qt::Checked);
+}
+
+void SmoothLabelsDialog::on_btnClearAll_clicked()
+{
+  setAllLabelCheckStates(Qt::Unchecked);
+}
+
 
 void SmoothLabelsDialog::on_btnApply_clicked()
 {

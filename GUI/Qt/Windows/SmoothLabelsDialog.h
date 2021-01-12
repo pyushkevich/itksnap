@@ -33,14 +33,22 @@ private slots:
 
   void on_inLabelFilter_textChanged(const QString &arg);
 
+  void on_btnSelectAll_clicked();
+
+  void on_btnClearAll_clicked();
+
 private:
   Ui::SmoothLabelsDialog *ui;
 
   SmartPtr<SmoothLabelsModel> m_Model;
 
+  QStandardItemModel *m_simodel;
+
   QSortFilterProxyModel *m_LabelListFilterModel;
 
   virtual void showEvent(QShowEvent *e);
+
+  void setAllLabelCheckStates(Qt::CheckState chkState);
 };
 
 
