@@ -37,6 +37,10 @@ private slots:
 
   void on_btnClearAll_clicked();
 
+  void on_sigmaX_textEdited(const QString &newText);
+  void on_sigmaY_textEdited(const QString &newText);
+  void on_sigmaZ_textEdited(const QString &newText);
+
 private:
   Ui::SmoothLabelsDialog *ui;
 
@@ -49,6 +53,8 @@ private:
   virtual void showEvent(QShowEvent *e);
 
   void setAllLabelCheckStates(Qt::CheckState chkState);
+
+  void syncSigmas(int8_t dim, const QString &newText);
 };
 
 

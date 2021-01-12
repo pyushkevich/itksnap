@@ -26,6 +26,16 @@ SmoothLabelsDialog::SmoothLabelsDialog(QWidget *parent) :
   m_LabelListFilterModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
   m_LabelListFilterModel->setFilterKeyColumn(-1);
   ui->lvLabels->setModel(m_LabelListFilterModel);
+
+  // Set up parameter panel
+  // -- Populate unit dropdown
+  ui->sigmaUnit->addItems(QStringList() << "mm" << "vox");
+
+  // -- Set up sigma inputs
+  // ---- Sigma inputs should be real numbers
+  ui->sigmaX->setValidator(new QDoubleValidator(this));
+  ui->sigmaY->setValidator(new QDoubleValidator(this));
+  ui->sigmaZ->setValidator(new QDoubleValidator(this));
 }
 
 SmoothLabelsDialog::~SmoothLabelsDialog()
@@ -73,6 +83,59 @@ void SmoothLabelsDialog::on_btnClearAll_clicked()
   setAllLabelCheckStates(Qt::Unchecked);
 }
 
+void SmoothLabelsDialog::syncSigmas(int8_t dim, const QString &newText)
+{
+  QLineEdit *follower1, *follower2;
+  // pos 1 = x; 2 = y; 3 = z;
+  switch(dim)
+    {
+      case 1:
+        follower1 = ui->sigmaY;
+        follower2 = ui->sigmaZ;
+      break;
+      case 2:
+        follower1 = ui->sigmaX;
+        follower2 = ui->sigmaZ;
+      break;
+      case 3:
+        follower1 = ui->sigmaX;
+        follower2 = ui->sigmaY;
+      break;
+    default:
+      return;
+    }
+
+  // update text
+  if (!follower1->isModified() && !follower2->isModified())
+    {
+      follower1->setText(newText);
+      follower2->setText(newText);
+    }
+}
+
+void SmoothLabelsDialog::on_sigmaX_textEdited(const QString &newText)
+{
+  if (newText.isEmpty())
+    ui->sigmaX->setModified(false);
+
+  syncSigmas(1, newText);
+}
+
+void SmoothLabelsDialog::on_sigmaY_textEdited(const QString &newText)
+{
+  if (newText.isEmpty())
+    ui->sigmaY->setModified(false);
+
+  syncSigmas(2, newText);
+}
+
+void SmoothLabelsDialog::on_sigmaZ_textEdited(const QString &newText)
+{
+  if (newText.isEmpty())
+    ui->sigmaZ->setModified(false);
+
+  syncSigmas(3, newText);
+}
 
 void SmoothLabelsDialog::on_btnApply_clicked()
 {
