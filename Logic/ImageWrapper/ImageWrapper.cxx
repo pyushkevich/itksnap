@@ -94,6 +94,36 @@ public:
 };
 
 
+/**
+ This method copies image information from a 4D image to a 3D image. This includes region, spacing, origin, direction
+ and the number of components.
+ */
+template <class Image4DType, class ImageType>
+void CopyInformationFrom4DToTimePoint(Image4DType *image_4d, ImageType *image_tp)
+{
+  typename ImageType::RegionType region;
+  typename ImageType::SpacingType spacing;
+  typename ImageType::PointType origin;
+  typename ImageType::DirectionType dir;
+  for(unsigned int j = 0; j < 3; j++)
+    {
+    region.SetSize(j, image_4d->GetBufferedRegion().GetSize()[j]);
+    region.SetIndex(j, image_4d->GetBufferedRegion().GetIndex()[j]);
+    spacing[j] = image_4d->GetSpacing()[j];
+    origin[j] = image_4d->GetOrigin()[j];
+    for(unsigned int k = 0; k < 3; k++)
+      dir(j,k) = image_4d->GetDirection()(j,k);
+    }
+
+  // All of the information from the 4D image is propagaged to the 3D timepoints
+  image_tp->SetRegions(region);
+  image_tp->SetSpacing(spacing);
+  image_tp->SetOrigin(origin);
+  image_tp->SetDirection(dir);
+  image_tp->SetNumberOfComponentsPerPixel(image_4d->GetNumberOfComponentsPerPixel());
+}
+
+
 
 
 /**
@@ -157,11 +187,11 @@ public:
     return NULL;
   }
 
-  static void SetImageBufferToReferenceTimePoint(Image4DType *image_4d,
+  static void ConfigureTimePointImageFromImage4D(Image4DType *image_4d,
                                                  ImageType *itkNotUsed(image_tp),
                                                  unsigned int itkNotUsed(tp))
   {
-    throw IRISException("SetImageBufferToReferenceTimePoint unsupported for class %s",
+    throw IRISException("ConfigureTimePointImageFromImage4D unsupported for class %s",
                         image_4d->GetNameOfClass());
   }
 
@@ -178,30 +208,6 @@ public:
                         image_4d->GetNameOfClass());
   }
 
-  static void CopyInformationFrom4DToTimePoint(Image4DType *image_4d,
-                                               ImageType *image_tp)
-  {
-    typename ImageType::RegionType region;
-    typename ImageType::SpacingType spacing;
-    typename ImageType::PointType origin;
-    typename ImageType::DirectionType dir;
-    for(unsigned int j = 0; j < 3; j++)
-      {
-      region.SetSize(j, image_4d->GetBufferedRegion().GetSize()[j]);
-      region.SetIndex(j, image_4d->GetBufferedRegion().GetIndex()[j]);
-      spacing[j] = image_4d->GetSpacing()[j];
-      origin[j] = image_4d->GetOrigin()[j];
-      for(unsigned int k = 0; k < 3; k++)
-        dir(j,k) = image_4d->GetDirection()(j,k);
-      }
-
-    // All of the information from the 4D image is propagaged to the 3D timepoints
-    image_tp->SetRegions(region);
-    image_tp->SetSpacing(spacing);
-    image_tp->SetOrigin(origin);
-    image_tp->SetDirection(dir);
-    image_tp->SetNumberOfComponentsPerPixel(image_4d->GetNumberOfComponentsPerPixel());
-  }
 };
 
 
@@ -323,12 +329,15 @@ public:
       }
   }
 
-  static void SetImageBufferToReferenceTimePoint(Image4DType *image_4d,
+  static void ConfigureTimePointImageFromImage4D(Image4DType *image_4d,
                                                  ImageType *image_tp,
                                                  unsigned int tp)
   {
     unsigned int nt = image_4d->GetBufferedRegion().GetSize()[TImage::ImageDimension];
     unsigned int bytes_per_volume = image_4d->GetPixelContainer()->Size() / nt;
+  
+    // Copy the information from 4D image to 3D image
+    CopyInformationFrom4DToTimePoint(image_4d, image_tp);
 
     // Set the buffer pointer
     image_tp->GetPixelContainer()->SetImportPointer(
@@ -654,12 +663,15 @@ public:
     return Self::template DeepCopyImageRegion<Interpolator>(image, refspace, transform, interp, roi, force_resampling, progressCommand);
   }
 
-  static void SetImageBufferToReferenceTimePoint(Image4DType *image_4d,
+  static void ConfigureTimePointImageFromImage4D(Image4DType *image_4d,
                                                  ImageType *image_tp,
                                                  unsigned int tp)
   {
     unsigned int nt = image_4d->GetBufferedRegion().GetSize()[VDim];
     unsigned int bytes_per_volume = image_4d->GetBuffer()->GetPixelContainer()->Size() / nt;
+  
+    // Copy the information
+    CopyInformationFrom4DToTimePoint(image_4d, image_tp);
 
     // Set the buffer pointer
     image_tp->GetBuffer()->GetPixelContainer()->SetImportPointer(
@@ -686,7 +698,7 @@ public:
   typedef typename TImageAdaptor::InternalImageType InternalImageType;
   typedef ImageWrapperPartialSpecializationTraitsBase<TImageAdaptor, TImageAdaptor4D> Superclass;
 
-  static void SetImageBufferToReferenceTimePoint(TImageAdaptor4D *image_4d,
+  static void ConfigureTimePointImageFromImage4D(TImageAdaptor4D *image_4d,
                                                  TImageAdaptor *image_tp,
                                                  unsigned int tp)
  {
@@ -695,16 +707,22 @@ public:
 
    // Set up a new image for the internals of this timepoint
    typename InternalImageType::Pointer tp_internals = InternalImageType::New();
-   tp_internals->CopyInformation(image_tp);
-   tp_internals->SetRegions(image_tp->GetBufferedRegion());
+ 
+   // Set the information in this internal image from the 4D image
+   CopyInformationFrom4DToTimePoint(image_4d, tp_internals.GetPointer());
+ 
+   // Figure out the number of components in the raw image (this is not handled by the call above)
+   tp_internals->SetNumberOfComponentsPerPixel(image_4d->GetPixelAccessor().GetVectorLength());
+
+   // Set the pixel container of the internal image
    tp_internals->GetPixelContainer()->SetImportPointer(
          image_4d->GetBufferPointer() + bytes_per_volume * tp, bytes_per_volume);
 
-   // Figure out the number of components in the raw image
-   tp_internals->SetNumberOfComponentsPerPixel(image_4d->GetPixelAccessor().GetVectorLength());
-
    // Set the pixel accessor
+   image_tp->CopyInformation(tp_internals);
    image_tp->SetImage(tp_internals);
+ 
+   // Update the pixel accessor
    image_tp->SetPixelAccessor(image_4d->GetPixelAccessor());
  }
 
@@ -714,12 +732,6 @@ public:
     image_4d->SetPixelContainer(image_tp->GetPixelContainer());
   }
 
-  static void CopyInformationFrom4DToTimePoint(TImageAdaptor4D *image_4d,
-                                               TImageAdaptor *image_tp)
-  {
-    Superclass::CopyInformationFrom4DToTimePoint(image_4d, image_tp);
-    image_tp->SetPixelAccessor(image_4d->GetPixelAccessor());
-  }
 };
 
 
@@ -1120,17 +1132,6 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::UpdateTimePointsInformationFromImage4D()
-{
-  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
-  for(auto img : m_ImageTimePoints)
-    Specialization::CopyInformationFrom4DToTimePoint(m_Image4D, img);
-}
-
-
-template<class TTraits, class TBase>
-void
-ImageWrapper<TTraits,TBase>
 ::UpdateWrappedImages(
     Image4DType *image_4d,
     ImageBaseType *referenceSpace,
@@ -1153,8 +1154,7 @@ ImageWrapper<TTraits,TBase>
 
     // Set the buffer pointer
     typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
-    Specialization::CopyInformationFrom4DToTimePoint(image_4d, ip.GetPointer());
-    Specialization::SetImageBufferToReferenceTimePoint(image_4d, ip.GetPointer(), i);
+    Specialization::ConfigureTimePointImageFromImage4D(image_4d, ip.GetPointer(), i);
 
     // Append image to the array
     m_ImageTimePoints.push_back(ip);
@@ -1173,7 +1173,7 @@ ImageWrapper<TTraits,TBase>
 
   // Assign the current timepoint pointers
   m_Image = m_TimePointSelectFilter->GetOutput();
-  m_ImageBase = m_Image;
+	  m_ImageBase = m_Image;
 
   // If there is no reference space, we assume that the reference space is the same as the image
   referenceSpace = referenceSpace ? referenceSpace : m_ImageBase.GetPointer();
@@ -2138,8 +2138,8 @@ ImageWrapper<TTraits, TBase>
 {
   typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
   Specialization::SetSourceNativeMapping(m_Image4D, scale, shift);
-  for(auto tp : m_ImageTimePoints)
-    Specialization::CopyInformationFrom4DToTimePoint(m_Image4D, tp);
+  for(unsigned int j = 0; j < m_ImageTimePoints.size(); j++)
+    Specialization::ConfigureTimePointImageFromImage4D(m_Image4D, m_ImageTimePoints[j], j);
 }
 
 template<class TTraits, class TBase>
@@ -2165,6 +2165,8 @@ ImageWrapper<TTraits,TBase>
 
   for(unsigned int j = 0; j < 3; j++)
     {
+    region_4d.SetIndex(j, newImage->GetBufferedRegion().GetIndex(j));
+    region_4d.SetSize(j, newImage->GetBufferedRegion().GetSize(j));
     spacing_4d[j] = newImage->GetSpacing()[j];
     origin_4d[j] = newImage->GetOrigin()[j];
     for(unsigned int k = 0; k < 3; k++)
@@ -2175,6 +2177,7 @@ ImageWrapper<TTraits,TBase>
   newImage4D->SetSpacing(spacing_4d);
   newImage4D->SetOrigin(origin_4d);
   newImage4D->SetDirection(dir_4d);
+  newImage4D->SetNumberOfComponentsPerPixel(newImage->GetNumberOfComponentsPerPixel());
 
   // Take the 3D image's container into the 4D image
   typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;

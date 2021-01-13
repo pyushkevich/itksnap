@@ -827,9 +827,6 @@ protected:
 
   /** Common code invoked when voxels in the image are changed */
   void OnVoxelsUpdated(unsigned int n_replaced);
-
-  /** Code used to update the header of the 3D timepoints when the 4D image updates */
-  void UpdateTimePointsInformationFromImage4D();
 };
 
 #endif // __ImageWrapper_h_
