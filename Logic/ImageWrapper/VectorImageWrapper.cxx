@@ -193,11 +193,7 @@ VectorImageWrapper<TTraits,TBase>
 
   // Cast to the right type
   DerivedWrapper *dw = dynamic_cast<DerivedWrapper *>(w);
-
-  // Get the accessor (here we cheat)
-  AdaptorType *dw_img = const_cast<AdaptorType *>(dw->GetImage4D());
-  PixelAccessor &accessor = dw_img->GetPixelAccessor();
-  accessor.SetSourceNativeMapping(mapping.GetScale(), mapping.GetShift());
+  dw->SetSourceNativeMapping(mapping.GetScale(), mapping.GetShift());
 }
 
 template <class TTraits, class TBase>

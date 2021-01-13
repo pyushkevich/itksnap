@@ -737,17 +737,12 @@ void GenericSliceRenderer::DrawSegmentationTexture()
         dynamic_cast<LabelImageWrapper *>(
             id->FindLayer(m_Model->GetParentUI()->GetGlobalState()->GetSelectedSegmentationLayerId(), false, LABEL_ROLE));
     
-    std::cout << "Segmentation 3D mod time: " << seg_layer->GetImage()->GetMTime() << std::endl;
-    std::cout << "Segmentation 4D mod time: " << seg_layer->GetImage4DBase()->GetMTime() << std::endl;
-
     if(seg_layer)
       {
       // TODO: remove this, it's redundant
-      std::cout << "Slice mod time (pre update): " << seg_layer->GetSlice(this->m_Model->GetId())->GetMTime() << std::endl;
       if(seg_layer->GetImage()->GetMTime() > seg_layer->GetSlice(this->m_Model->GetId())->GetMTime())
         {
         seg_layer->GetSlice(this->m_Model->GetId())->Update();
-        std::cout << "Slice mod time (after update): " << seg_layer->GetSlice(this->m_Model->GetId())->GetMTime() << std::endl;
         }
       Texture *texture = this->GetTextureForLayer(seg_layer);
       texture->DrawTransparent(alpha);

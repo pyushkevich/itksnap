@@ -235,7 +235,7 @@ public:
   irisGetMacroWithOverride(SliceIndex, Vector3ui)
 
   /** Return some image info independently of pixel type */
-  ImageBaseType* GetImageBase() const ITK_OVERRIDE { return m_Image; }
+  ImageBaseType* GetImageBase() const ITK_OVERRIDE;
 
   /** Return 4D image metadata */
   Image4DBaseType* GetImage4DBase() const ITK_OVERRIDE { return m_Image4D; }
@@ -331,7 +331,9 @@ public:
 
   /** These methods access the native mapping in its actual type */
   irisGetMacro(NativeMapping, NativeIntensityMapping)
-  irisSetMacro(NativeMapping, NativeIntensityMapping)
+
+  /** Set the native mapping */
+  virtual void SetNativeMapping(NativeIntensityMapping nim);
 
   /** Get the intensity to display mapping */
   DisplayMapping *GetDisplayMapping() ITK_OVERRIDE
@@ -345,8 +347,7 @@ public:
    * Return the pointer to the ITK image encapsulated by this wrapper. In order to restrict
    * write operations to the image, only a const pointer is returned in the public method.
    */
-  virtual const ImageType *GetImage() const
-    { return m_Image; }
+  virtual const ImageType *GetImage() const;
 
   /**
    * Return the pointer to the 4D ITK image encapsulated by this wrapper. In order to restrict
@@ -639,6 +640,14 @@ public:
    */
   itk::Object* GetUserData(const std::string &role) const ITK_OVERRIDE;
 
+  /**
+   * This method is only used when this wrapper is around an image adaptor
+   * (e.g., magnitude of component vector) and we need to update the native
+   * mapping used in the adapter as part of the calculation. This is because
+   * these adapters should include the native mapping as part of the calculation
+   */
+  void SetSourceNativeMapping(double scale, double shift);
+
 protected:
 
   /**
@@ -818,6 +827,9 @@ protected:
 
   /** Common code invoked when voxels in the image are changed */
   void OnVoxelsUpdated(unsigned int n_replaced);
+
+  /** Code used to update the header of the 3D timepoints when the 4D image updates */
+  void UpdateTimePointsInformationFromImage4D();
 };
 
 #endif // __ImageWrapper_h_

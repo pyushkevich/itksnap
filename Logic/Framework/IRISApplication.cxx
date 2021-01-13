@@ -770,6 +770,7 @@ IRISApplication
 
     // Fire the appropriate event
     InvokeEvent(CursorUpdateEvent());
+    InvokeEvent(SegmentationChangeEvent());
     }
 }
 

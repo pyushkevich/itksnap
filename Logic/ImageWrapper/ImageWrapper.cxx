@@ -126,9 +126,10 @@ public:
                         image->GetNameOfClass());
   }
 
-  static void Write(ImageType *image,
-                    const char *itkNotUsed(fname),
-                    Registry &itkNotUsed(hints))
+  // This image will either save or 3D or 4D image
+  template <class TSavedImage> static void Write(TSavedImage *image,
+                                                 const char *itkNotUsed(fname),
+                                                 Registry &itkNotUsed(hints))
   {
     throw IRISException("Write unsupported for class %s",
                         image->GetNameOfClass());
@@ -171,6 +172,36 @@ public:
                         image_4d->GetNameOfClass());
   }
 
+  static void SetSourceNativeMapping(Image4DType *image_4d, double itkNotUsed(scale), double itkNotUsed(shift))
+  {
+    throw IRISException("SetSourceNativeMapping unsupported for class %s",
+                        image_4d->GetNameOfClass());
+  }
+
+  static void CopyInformationFrom4DToTimePoint(Image4DType *image_4d,
+                                               ImageType *image_tp)
+  {
+    typename ImageType::RegionType region;
+    typename ImageType::SpacingType spacing;
+    typename ImageType::PointType origin;
+    typename ImageType::DirectionType dir;
+    for(unsigned int j = 0; j < 3; j++)
+      {
+      region.SetSize(j, image_4d->GetBufferedRegion().GetSize()[j]);
+      region.SetIndex(j, image_4d->GetBufferedRegion().GetIndex()[j]);
+      spacing[j] = image_4d->GetSpacing()[j];
+      origin[j] = image_4d->GetOrigin()[j];
+      for(unsigned int k = 0; k < 3; k++)
+        dir(j,k) = image_4d->GetDirection()(j,k);
+      }
+
+    // All of the information from the 4D image is propagaged to the 3D timepoints
+    image_tp->SetRegions(region);
+    image_tp->SetSpacing(spacing);
+    image_tp->SetOrigin(origin);
+    image_tp->SetDirection(dir);
+    image_tp->SetNumberOfComponentsPerPixel(image_4d->GetNumberOfComponentsPerPixel());
+  }
 };
 
 
@@ -179,7 +210,8 @@ public:
  * (Image, VectorImage, RLEImage)
  */
 template <class TImage, class TImage4D>
-class ImageWrapperPartialSpecializationTraitsCommon
+class ImageWrapperPartialSpecializationTraitsCommon :
+    public ImageWrapperPartialSpecializationTraitsBase<TImage, TImage4D>
 {
 public:
   typedef TImage ImageType;
@@ -187,6 +219,7 @@ public:
   typedef typename TImage::PixelType PixelType;
   typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
   typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
+  typedef ImageWrapperPartialSpecializationTraitsBase<TImage, TImage4D> Superclass;
 
   static void FillBuffer(ImageType *image, PixelType p)
   {
@@ -198,13 +231,13 @@ public:
     image->FillBuffer(p);
   }
 
-  static void Write(ImageType *image, const char *fname, Registry &hints)
+  template <class TSavedImage> static void Write(TSavedImage *image, const char *fname, Registry &hints)
   {
     SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
     io->CreateImageIO(fname, hints, false);
     itk::ImageIOBase *base = io->GetIOBase();
 
-    typedef itk::ImageFileWriter<TImage> WriterType;
+    typedef itk::ImageFileWriter<TSavedImage> WriterType;
     typename WriterType::Pointer writer = WriterType::New();
     writer->SetFileName(fname);
     if(base)
@@ -441,6 +474,9 @@ template<class TPixel, unsigned int VDim, class CounterType>
 class ImageWrapperPartialSpecializationTraits<
     RLEImage<TPixel, VDim, CounterType>,
     RLEImage<TPixel, VDim+1, CounterType> >
+    : public ImageWrapperPartialSpecializationTraitsBase<
+    RLEImage<TPixel, VDim, CounterType>,
+    RLEImage<TPixel, VDim+1, CounterType> >
 {
 public:
   typedef ImageWrapperPartialSpecializationTraits Self;
@@ -450,6 +486,7 @@ public:
   typedef typename ImageType::PixelType PixelType;
   typedef itk::ImageBase<VDim> ImageBaseType;
   typedef itk::Transform<double, VDim, VDim> TransformType;
+  typedef ImageWrapperPartialSpecializationTraitsBase<ImageType,Image4DType> Superclass;
 
   static void FillBuffer(ImageType *image, PixelType p)
   {
@@ -461,10 +498,11 @@ public:
     image->FillBuffer(p);
   }
 
-  static void Write(ImageType *image, const char *fname, Registry &hints)
+  template <class TSavedImage> static void Write(TSavedImage *image, const char *fname, Registry &hints)
   {
     //use specialized RoI filter to convert to itk::Image
-    typedef itk::RegionOfInterestImageFilter<ImageType, UncompressedType> outConverterType;
+    typedef itk::Image<TPixel, TSavedImage::ImageDimension> UncompressedType;
+    typedef itk::RegionOfInterestImageFilter<TSavedImage, UncompressedType> outConverterType;
     typename outConverterType::Pointer outConv = outConverterType::New();
     outConv->SetInput(image);
     outConv->SetRegionOfInterest(image->GetLargestPossibleRegion());
@@ -634,7 +672,7 @@ public:
                                                     ImageType *image_tp)
   {
     image_4d->GetBuffer()->SetPixelContainer(image_tp->GetBuffer()->GetPixelContainer());
-  }
+  }  
 };
 
 /**
@@ -646,6 +684,7 @@ class ImageWrapperPartialSpecializationTraitsImageAdaptorCommon
 {
 public:
   typedef typename TImageAdaptor::InternalImageType InternalImageType;
+  typedef ImageWrapperPartialSpecializationTraitsBase<TImageAdaptor, TImageAdaptor4D> Superclass;
 
   static void SetImageBufferToReferenceTimePoint(TImageAdaptor4D *image_4d,
                                                  TImageAdaptor *image_tp,
@@ -674,6 +713,13 @@ public:
   {
     image_4d->SetPixelContainer(image_tp->GetPixelContainer());
   }
+
+  static void CopyInformationFrom4DToTimePoint(TImageAdaptor4D *image_4d,
+                                               TImageAdaptor *image_tp)
+  {
+    Superclass::CopyInformationFrom4DToTimePoint(image_4d, image_tp);
+    image_tp->SetPixelAccessor(image_4d->GetPixelAccessor());
+  }
 };
 
 
@@ -685,6 +731,13 @@ class ImageWrapperPartialSpecializationTraits<
     itk::ImageAdaptor<itk::VectorImage<TPixel, VDim>, TAdaptor>,
     itk::ImageAdaptor<itk::VectorImage<TPixel, VDim+1>, TAdaptor > >
 {
+public:
+  typedef itk::ImageAdaptor<itk::VectorImage<TPixel, VDim+1>, TAdaptor > ImageAdaptor4DType;
+
+  static void SetSourceNativeMapping(ImageAdaptor4DType *img, double scale, double shift)
+  {
+    img->GetPixelAccessor().SetSourceNativeMapping(scale, shift);
+  }
 };
 
 
@@ -825,6 +878,24 @@ ImageWrapper<TTraits,TBase>
 
   // Update the image geometry
   this->UpdateImageGeometry();
+}
+
+template<class TTraits, class TBase>
+typename ImageWrapper<TTraits,TBase>::ImageBaseType *
+ImageWrapper<TTraits, TBase>
+::GetImageBase() const
+{
+  m_TimePointSelectFilter->Update();
+  return m_Image;
+}
+
+template<class TTraits, class TBase>
+const typename ImageWrapper<TTraits,TBase>::ImageType *
+ImageWrapper<TTraits, TBase>
+::GetImage() const
+{
+  m_TimePointSelectFilter->Update();
+  return m_Image;
 }
 
 template<class TTraits, class TBase>
@@ -1049,6 +1120,17 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
+::UpdateTimePointsInformationFromImage4D()
+{
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+  for(auto img : m_ImageTimePoints)
+    Specialization::CopyInformationFrom4DToTimePoint(m_Image4D, img);
+}
+
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
 ::UpdateWrappedImages(
     Image4DType *image_4d,
     ImageBaseType *referenceSpace,
@@ -1068,29 +1150,10 @@ ImageWrapper<TTraits,TBase>
   for(unsigned int i = 0; i < nt; i++)
     {
     ImagePointer ip = ImageType::New();
-    typename ImageType::RegionType region;
-    typename ImageType::SpacingType spacing;
-    typename ImageType::PointType origin;
-    typename ImageType::DirectionType dir;
-    for(unsigned int j = 0; j < 3; j++)
-      {
-      region.SetSize(j, image_4d->GetBufferedRegion().GetSize()[j]);
-      region.SetIndex(j, image_4d->GetBufferedRegion().GetIndex()[j]);
-      spacing[j] = image_4d->GetSpacing()[j];
-      origin[j] = image_4d->GetOrigin()[j];
-      for(unsigned int k = 0; k < 3; k++)
-        dir(j,k) = image_4d->GetDirection()(j,k);
-      }
-
-    // All of the information from the 4D image is propagaged to the 3D timepoints
-    ip->SetRegions(region);
-    ip->SetSpacing(spacing);
-    ip->SetOrigin(origin);
-    ip->SetDirection(dir);
-    ip->SetNumberOfComponentsPerPixel(image_4d->GetNumberOfComponentsPerPixel());
 
     // Set the buffer pointer
     typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+    Specialization::CopyInformationFrom4DToTimePoint(image_4d, ip.GetPointer());
     Specialization::SetImageBufferToReferenceTimePoint(image_4d, ip.GetPointer(), i);
 
     // Append image to the array
@@ -1422,6 +1485,14 @@ ImageWrapper<TTraits,TBase>
 
   // This code is robust to non-orthogonal slicing
   return this->m_Slicers[time_point][0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits, TBase>
+::SetNativeMapping(NativeIntensityMapping nim)
+{
+  m_NativeMapping = nim;
 }
 
 template<class TTraits, class TBase>
@@ -1786,7 +1857,12 @@ ImageWrapper<TTraits,TBase>
 ::WriteToFileInInternalFormat(const char *filename, Registry &hints)
 {
   typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
-  Specialization::Write(m_Image, filename, hints);
+
+  // Write either in 4D or in 3D
+  if(this->GetNumberOfTimePoints() > 1)
+    Specialization::Write(m_Image4D.GetPointer(), filename, hints);
+  else
+    Specialization::Write(m_Image, filename, hints);
 }
 
 
@@ -2053,6 +2129,17 @@ ImageWrapper<TTraits,TBase>
   if(it == m_UserDataMap.end())
     return NULL;
   else return it->second;
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits, TBase>
+::SetSourceNativeMapping(double scale, double shift)
+{
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+  Specialization::SetSourceNativeMapping(m_Image4D, scale, shift);
+  for(auto tp : m_ImageTimePoints)
+    Specialization::CopyInformationFrom4DToTimePoint(m_Image4D, tp);
 }
 
 template<class TTraits, class TBase>
