@@ -322,12 +322,6 @@ IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
     it_out.NextLine();
     pSource += sLineDelta;
     }
-
-  typedef itk::ImageFileWriter<TOutputImage> W;
-  typename W::Pointer w = W::New();
-  w->SetInput(outputPtr);
-  w->SetFileName("/tmp/slice.nii.gz");
-  w->Update();
 }
 
 template <class TInputImage, class TOutputImage, class TPreviewImage>

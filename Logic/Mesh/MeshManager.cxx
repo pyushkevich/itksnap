@@ -238,6 +238,9 @@ bool MeshManager::IsMeshDirty()
     {
     // Get the mesh pipeline associated with the current segmentation wrapper
     LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
+    if(!wrapper)
+      return true;
+    
     SmartPtr<MultiLabelMeshPipeline> pipeline =
         static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
 

@@ -19,9 +19,13 @@ void
 InputSelectionImageFilter<TInputImage,TTag>
 ::AddSelectableInput(TagType tag, InputImageType *input)
 {
-  m_TagMap[tag] = input;
   if(m_TagMap.size() == 0)
-    SetSelectedInput(tag);
+    {
+    this->SetInput(input);
+    this->Modified();
+    m_SelectedInput = tag;
+    }
+  m_TagMap[tag] = input;
 }
 
 template<class TInputImage, typename TTag>
@@ -42,6 +46,7 @@ InputSelectionImageFilter<TInputImage,TTag>
     {
     this->SetInput(m_TagMap[tag]);
     this->Modified();
+    m_SelectedInput = tag;
     }
 }
 
@@ -120,10 +125,6 @@ InputSelectionImageFilter<TInputImage,TTag>
 
   typedef InputSelectionImageFilter_Specialization<InputImageType, OutputImageType> Specialization;
   Specialization::GenerateData(inputPtr, outputPtr);
-
-  outputPtr->CopyInformation(inputPtr);
-  outputPtr->SetBufferedRegion(inputPtr->GetBufferedRegion());
-  outputPtr->SetPixelContainer(inputPtr->GetPixelContainer());
 }
 
 #endif // #ifndef INPUTSELECTIONIMAGEFILTER_TXX

@@ -969,7 +969,8 @@ void MainImageWindow::UpdateWindowTitle()
   if(gid && gid->IsMainLoaded())
     {
     mainfile = QFileInfo(from_utf8(gid->GetMain()->GetFileName())).fileName();
-    segfile = QFileInfo(from_utf8(m_Model->GetDriver()->GetSelectedSegmentationLayer()->GetFileName())).fileName();
+    if(m_Model->GetDriver()->GetSelectedSegmentationLayer())
+      segfile = QFileInfo(from_utf8(m_Model->GetDriver()->GetSelectedSegmentationLayer()->GetFileName())).fileName();
     }
 
   // If a project is loaded, we display the project title
