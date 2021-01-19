@@ -17,6 +17,8 @@ class SmoothLabelsModel : public AbstractModel
 public:
   irisITKObjectMacro(SmoothLabelsModel, AbstractModel);
 
+  enum SigmaUnit {mm, vox};
+
   /** Initialize with the parent model */
   void SetParentModel(GlobalUIModel *parent);
 
@@ -27,7 +29,7 @@ public:
   void UpdateOnShow();
 
   /** Perform the actual smoothing */
-  void Smooth(std::vector<LabelType> &labelsToSmooth);
+  void Smooth(std::vector<LabelType> &labelsToSmooth, std::vector<double> &sigma, SigmaUnit unit);
 
   /** Get the model describing the current selected label (and its domain) */
   irisGetMacro(CurrentLabelModel, ConcreteColorLabelPropertyModel *)

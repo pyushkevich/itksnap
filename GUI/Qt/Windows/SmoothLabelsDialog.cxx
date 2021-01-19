@@ -30,6 +30,7 @@ SmoothLabelsDialog::SmoothLabelsDialog(QWidget *parent) :
 
   // Set up parameter panel
   // -- Populate unit dropdown
+  // -- Index: 0 => mm; 1 => vox
   ui->sigmaUnit->addItems(QStringList() << "mm" << "vox");
 
   // -- Set up sigma inputs
@@ -169,7 +170,18 @@ void SmoothLabelsDialog::on_btnApply_clicked()
   confirmBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
   confirmBox.exec();
 
-  m_Model->Smooth(labelsToSmooth);
+  // Assemble sigma array
+  std::vector<double> sigmaArr;
+  sigmaArr.push_back(ui->sigmaX->text().toDouble());
+  sigmaArr.push_back(ui->sigmaY->text().toDouble());
+  sigmaArr.push_back(ui->sigmaZ->text().toDouble());
+
+  // Get unit indicator
+  // -- current index: 0 => mm; 1 => vox
+  typedef SmoothLabelsModel::SigmaUnit SigmaUnit;
+  SigmaUnit unit = ui->sigmaUnit->currentIndex() == 0 ? SigmaUnit::mm : SigmaUnit::vox;
+
+  m_Model->Smooth(labelsToSmooth, sigmaArr, unit);
 }
 
 void SmoothLabelsDialog::on_btnClose_clicked()
