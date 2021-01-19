@@ -385,9 +385,13 @@ SNAPImageData
     m_CurrentSnakeParameters,
     m_ExternalAdvectionField);
 
-  // This makes sure that m_SnakeWrapper->IsDrawable() returns true
-  m_SnakeWrapper->UpdateTimePoint(m_LevelSetDriver->GetCurrentState());
-  m_SnakeWrapper->PixelsModified();
+  // Copy the output pixels from the level set filter to the snake image wrapper.
+  // The ITK pattern is to do the opposite, i.e., graft the image onto the level
+  // set filter, but the particular filter used for level set propagation,
+  // ParallelSparseFieldLevelSetImageFilter is not coded to support this.
+  m_SnakeWrapper->SetPixelImportPointer(
+        m_LevelSetDriver->GetOutput()->GetBufferPointer(),
+        m_LevelSetDriver->GetOutput()->GetPixelContainer()->Size());
 
   // Finish thread-safe section
   m_LevelSetPipelineMutexLock->Unlock();
@@ -399,7 +403,6 @@ SNAPImageData
   // Why use segmentation's alpha?
   m_SnakeWrapper->SetAlpha(
         (unsigned char)(255 * m_Parent->GetGlobalState()->GetSegmentationAlpha()));
-
 }
 
 void 
@@ -416,6 +419,9 @@ SNAPImageData
 
   // clock_t c1 = clock();
   m_LevelSetDriver->Run(nIterations);
+  
+  // The wrapper has to be notified that pixels have been updated
+  m_SnakeWrapper->PixelsModified();
   // clock_t c2 = clock();
 
   // Leave a thread-safe section
@@ -451,6 +457,14 @@ SNAPImageData
 
   // Pass through to the level set driver
   m_LevelSetDriver->Restart();
+    
+  // Copy the output pixels from the level set filter to the snake image wrapper.
+  // The ITK pattern is to do the opposite, i.e., graft the image onto the level
+  // set filter, but the particular filter used for level set propagation,
+  // ParallelSparseFieldLevelSetImageFilter is not coded to support this.
+  m_SnakeWrapper->SetPixelImportPointer(
+        m_LevelSetDriver->GetOutput()->GetBufferPointer(),
+        m_LevelSetDriver->GetOutput()->GetPixelContainer()->Size());
 
   // Leave a thread-safe section
   m_LevelSetPipelineMutexLock->Unlock();
@@ -495,14 +509,6 @@ SNAPImageData::
 GetElapsedSegmentationIterations() const
 {
   return m_LevelSetDriver->GetElapsedIterations();
-}
-
-SNAPImageData::LevelSetImageType *
-SNAPImageData
-::GetLevelSetImage()
-{
-  assert(m_LevelSetDriver);
-  return m_LevelSetDriver->GetCurrentState();
 }
 
 SNAPLevelSetDriver<3>::LevelSetFunctionType *

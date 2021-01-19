@@ -127,6 +127,9 @@ protected:
   // Acceleration factor
   double m_Acceleration;
 
+  // Test worker
+  TestWorker *m_Worker;
+
   // Helper functions
   QModelIndex findItem(QObject *container, QVariant text);
   void printChildrenRecursive(QObject *parent, QString offset, const char *className=NULL);

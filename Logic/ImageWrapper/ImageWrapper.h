@@ -368,6 +368,14 @@ public:
    */
   void PixelsModified();
 
+  /**
+   * Replace the pixel data in the wrapped 4D image with a new data array. This method should be
+   * used in very rare circumstances where it is not possible/desirable to update the pixels in
+   * the image directly using iterators or to graft the image to an ITK filter. This filter is not
+   * implemented for wrappers around ImageAdaptors
+   */
+  virtual void SetPixelImportPointer(ComponentType *ptr, unsigned long size);
+
   /** 
    * Get the slicer inside this wrapper
    */

@@ -18,6 +18,7 @@
 #include <QKeySequence>
 #include <QDir>
 #include <SNAPQApplication.h>
+#include <QDeadlineTimer>
 
 
 #include "SNAPQtCommon.h"
@@ -78,11 +79,11 @@ SNAPTestQt::LaunchTest(std::string test)
     }
 
   // Create and run the thread
-  TestWorker *worker = new TestWorker(this, from_utf8(test), m_ScriptEngine, m_Acceleration);
+  m_Worker = new TestWorker(this, from_utf8(test), m_ScriptEngine, m_Acceleration);
 
-  connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+  connect(m_Worker, SIGNAL(finished()), m_Worker, SLOT(deleteLater()));
 
-  worker->start();
+  m_Worker->start();
 }
 
 QObject *SNAPTestQt::findChild(QObject *parent, QString child)
@@ -212,10 +213,12 @@ void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
   if(v1 != v2)
     {
     // Validation failed!
-    qWarning() << QString("Validation %1 == %2 failed!").arg(v1.toString(),v2.toString());
+    QString msg = QString("Validation %1 == %2 failed!").arg(v1.toString(),v2.toString());
+    qWarning() << msg;
 
     // Exit with code corresponding to test failure
-    application_exit(REGRESSION_TEST_FAILURE);
+    m_ScriptEngine->throwError(QJSValue::GenericError, msg);
+    // application_exit(REGRESSION_TEST_FAILURE);
     }
   else
     {
@@ -249,10 +252,13 @@ void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
   if(fabs(v1 - v2) > precision)
     {
     // Validation failed!
-    qWarning() << QString("Validation %1 == %2 (with precision %3) failed!").arg(v1).arg(v2).arg(precision);
+    QString msg = QString("Validation %1 == %2 (with precision %3) failed!").arg(v1).arg(v2).arg(precision);
+    qWarning() << msg;
 
     // Exit with code corresponding to test failure
-    application_exit(REGRESSION_TEST_FAILURE);
+    m_ScriptEngine->throwError(QJSValue::GenericError, msg);
+
+    // application_exit(REGRESSION_TEST_FAILURE);
     }
   else
     {
@@ -264,7 +270,8 @@ void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
 void SNAPTestQt::testFailed(QString reason)
 {
   qWarning() << reason;
-  application_exit(REGRESSION_TEST_FAILURE);
+  m_ScriptEngine->throwError(QJSValue::GenericError, reason);
+  // application_exit(REGRESSION_TEST_FAILURE);
 }
 
 
@@ -368,9 +375,6 @@ void TestWorker::run()
 
   // Run the top-level script
   source(m_MainScript);
-
-  // Exit script
-  SNAPTestQt::application_exit(SNAPTestQt::SUCCESS);
 }
 
 void TestWorker::sleep_ms(unsigned int msec)
@@ -447,9 +451,15 @@ void TestWorker::source(QString script_url)
 
   // Execute it
   QJSValue rc = m_Engine->evaluate(script);
+  qWarning() << "Return code from evaluate is " << rc.toString();
   if(rc.isError())
     {
     qWarning() << "JavaScript exception:" << rc.toString();
     SNAPTestQt::application_exit(SNAPTestQt::EXCEPTION_CAUGHT);
+    }
+  else
+    {
+    qWarning() << "Successfully completed test script:" << rc.toString();
+    SNAPTestQt::application_exit(SNAPTestQt::SUCCESS);
     }
 }

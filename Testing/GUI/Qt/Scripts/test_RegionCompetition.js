@@ -38,6 +38,15 @@ engine.validateValue(readVoxelIntensity(2), -4);
 //=== Set step size
 engine.findChild(snakepanel,"inStepSize").value = 10;
 
+//=== Open evolution parameters dialog
+engine.findChild(snakepanel,"btnEvolutionParameters").click();
+var win_param = engine.findChild(snakepanel, "dlgSnakeParameters");
+
+//=== Set forces to desired values
+engine.findChild(win_param, "inZhuAlphaSimple").value = 1.0;
+engine.findChild(win_param, "inZhuBetaSimple").value = 0.2;
+engine.findChild(win_param, "btnClose").click();
+
 //=== Run snake one iter
 engine.findChild(snakepanel,"btnSingleStep").click();
 

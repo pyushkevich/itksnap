@@ -130,14 +130,20 @@ public:
                                                        LevelSetFunctionType;
   typedef typename LevelSetFunctionType::VectorImageType    VectorImageType;
 
-  /** Initialize the level set driver.  Note that the type of snake (in/out
+  /**
+   * Initialize the level set driver.  Note that the type of snake (in/out
    * or edge) is determined entirely by the speed image and by the values
    * of the parameters.  Moreover, the type of solver used is specified in
    * the parameters as well. The last parameter is the optional external 
    * advection field, that can be used instead of the default advection
-   * field that is based on the image gradient */
-  SNAPLevelSetDriver(FloatImageType *initialLevelSet,
-                     ShortImageType *speed,
+   * field that is based on the image gradient.
+   *
+   * The level_set_image input contains the initial level set and will be
+   * updated at each iteration of Run(). A backup copy of level_set_image
+   * will be created for rewinding.
+   */
+  SNAPLevelSetDriver(FloatImageType *level_set_image,
+                     ShortImageType *speed_image,
                      const SnakeParameters &parms,
                      VectorImageType *externalAdvection = NULL);
 
@@ -159,14 +165,18 @@ public:
   /** Get the level set function */
   itkGetConstMacro(LevelSetFunction,LevelSetFunctionType *);
 
-  /** Get the current state of the snake (level set and narrow band) */
-  FloatImageType *GetCurrentState();
-
   /** Get the number of elapsed iterations */
   unsigned int GetElapsedIterations() const;
 
   /** Clean up the snake's state */
   void CleanUp();
+
+  /**
+   * Get the output image. The way the ParallelSparseFieldLevelSetImageFilter is
+   * coded in ITK 4, there is no way to graft an image as an output to the filter,
+   * so to access output, this method should be called
+   */
+  FloatImageType *GetOutput();
   
 private:
   /** An internal class used to invert an image */
@@ -186,7 +196,7 @@ private:
   typename LevelSetFunctionType::Pointer m_LevelSetFunction;
 
   /** An initialization image */
-  FloatImagePointer m_InitializationImage;
+  FloatImagePointer m_InitializationCopyImage, m_LevelSetImage;
 
   /** Speed image adaptor */
   typename ShortImageType::Pointer m_SpeedAdaptor;

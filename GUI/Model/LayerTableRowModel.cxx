@@ -103,9 +103,12 @@ void LayerTableRowModel::UpdateRoleInfo()
 {
   LayerIterator it(m_ImageData);
   it.Find(m_Layer);
-  m_LayerRole = it.GetRole();
-  m_LayerPositionInRole = it.GetPositionInRole();
-  m_LayerNumberOfLayersInRole = it.GetNumberOfLayersInRole();
+  if(!it.IsAtEnd())
+    {
+    m_LayerRole = it.GetRole();
+    m_LayerPositionInRole = it.GetPositionInRole();
+    m_LayerNumberOfLayersInRole = it.GetNumberOfLayersInRole();
+    }
 }
 
 void LayerTableRowModel::UpdateDisplayModeList()

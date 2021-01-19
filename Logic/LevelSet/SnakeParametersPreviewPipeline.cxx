@@ -210,7 +210,7 @@ public:
       m_VTKContour->SetValue(0, 0.0);
 
       // Generate a contour
-      m_VTKExporter->SetInput(m_Driver->GetCurrentState());
+      m_VTKExporter->SetInput(m_Driver->GetOutput());
       m_VTKContour->Update();
 
       // Get the list of points representing the evolving contour
@@ -278,7 +278,7 @@ public:
 
   // Get the level set image to display
   FloatImageType *GetLevelSetImage()
-    { return m_Driver->GetCurrentState(); }
+    { return m_LevelSetImage; }
 
   // Get the evolving contour
   vector<Vector2d> &GetEvolvingContour()

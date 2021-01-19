@@ -195,11 +195,6 @@ public:
    */
   void MergeSnakeWithIRIS(IRISImageData *target) const;
 
-  /**
-   * Get the level set image currently being evolved
-   */
-  LevelSetImageType *GetLevelSetImage();
-
   /** This method is public for testing purposes.  It will give a pointer to 
    * the level set function used internally for segmentation */
   SNAPLevelSetDriver<3>::LevelSetFunctionType *GetLevelSetFunction();
