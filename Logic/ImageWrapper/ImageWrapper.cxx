@@ -1230,6 +1230,7 @@ ImageWrapper<TTraits,TBase>
       s_img[i]->SetObliqueTransform(tran);
       s_img[i]->SetPreviewImage(NULL);
       s_img[i]->SetUseOrthogonalSlicing(ortho);
+      s_img[i]->SetOrthogonalTransform(m_ImageGeometry.GetImageToDisplayTransform(i));
 
       m_SliceInputSelectFilter[i]->AddSelectableInput(k, s_img[i]->GetOutput());
       }
