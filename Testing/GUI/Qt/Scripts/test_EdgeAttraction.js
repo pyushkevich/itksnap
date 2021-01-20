@@ -45,6 +45,15 @@ engine.sleep(1000);
 //=== Validating level set image
 engine.validateFloatValue(readVoxelIntensity(2), -2.289, 0.1);
 
+//=== Make sure there is no crash on reinitialization
+engine.findChild(snakepanel,"btnEvolutionBack").click();
+engine.sleep(1000);
+engine.findChild(snakepanel,"btnBubbleNext").click();
+engine.sleep(1000);
+
+//=== Revalidating level set image
+engine.validateFloatValue(readVoxelIntensity(2), -2.289, 0.1);
+
 //=== Set step size
 engine.findChild(snakepanel,"inStepSize").value = 10;
 
@@ -56,12 +65,22 @@ var win_param = engine.findChild(snakepanel, "dlgSnakeParameters");
 engine.findChild(win_param, "btnRestore").click();
 engine.findChild(win_param, "btnClose").click();
 
-//=== Run snake one iter
+//=== Run snake ten iter
 for(i = 0; i < 10; i++)
   engine.findChild(snakepanel,"btnSingleStep").click();
 
 //=== Validating level set image
 setCursor(20, 9, 28);
+engine.validateFloatValue(readVoxelIntensity(2), -0.4784, 0.1);
+
+//=== Rewind and try again
+engine.findChild(snakepanel,"btnRewind").click();
+
+//=== Run snake ten iter again
+for(i = 0; i < 10; i++)
+  engine.findChild(snakepanel,"btnSingleStep").click();
+
+//=== Validating level set image
 engine.validateFloatValue(readVoxelIntensity(2), -0.4784, 0.1);
 
 //=== Finish snake mode
