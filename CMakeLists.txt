@@ -1172,6 +1172,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
 SET(GUI_TESTS
   Workspace
   DiffSpace
+  EdgeAttraction
   ProbeIntensity
   RegionCompetition
   RandomForest

@@ -6,5 +6,6 @@
         <file>Scripts/test_RandomForest.js</file>
         <file>Scripts/test_Workspace.js</file>
         <file>Scripts/test_DiffSpace.js</file>
+        <file>Scripts/test_EdgeAttraction.js</file>
     </qresource>
 </RCC>
