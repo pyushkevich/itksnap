@@ -7,6 +7,23 @@
 #include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkLabelVotingImageFilter.h"
+#include "itkImageDuplicator.h"
+#include "itkBinaryFunctorImageFilter.h"
+
+class BinaryIntensityVotingFunctor
+{
+
+};
+
+class BinaryLabelVotingFunctor
+{
+
+};
+
+class BinaryLabelDeterminatingFunctor
+{
+
+};
 
 SmoothLabelsModel::SmoothLabelsModel()
 {
@@ -71,38 +88,88 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
   std::cout << endl;
 
   // Get labels to smooth
-  LabelType target = labelsToSmooth[0];
+  std::vector<LabelType> labelArr {0}; // always include background
+  for (auto it = labelsToSmooth.begin(); it != labelsToSmooth.end(); ++it)
+    labelArr.push_back(*it);
 
-  // Apply itk smoothing filter
+  // Type definitions
   typedef GenericImageData::LabelImageType LabelImageType;
-  //typedef itk::Image<int> ImageType;
-  typedef RLEImage<unsigned short> ImageType;
-  typedef itk::SmoothingRecursiveGaussianImageFilter<ImageType, ImageType> FilterType;
-  FilterType::Pointer fltSmooth = FilterType::New();
+  // -- Output of Binarization
+  typedef itk::Image<unsigned short, 3> BinarizedImageType;
+  // -- Output of Smoothing, Input of Voting
+  typedef itk::Image<double, 3> VotingImageType;
 
-  /*
-  typedef LabelImageWrapper::ImageType ImageType;
-  typedef itk::SmoothingRecursiveGaussianImageFilter<ImageType, ImageType> FilterType;
-  FilterType::Pointer fltSmooth = FilterType::New();
-  FilterType::SigmaArrayType sigArr;
+  typedef itk::BinaryThresholdImageFilter<LabelImageType, BinarizedImageType> ThresholdFilter;
+  typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> BackgroundExtractor;
+  typedef itk::BinaryFunctorImageFilter
+      <VotingImageType, VotingImageType, VotingImageType, BinaryIntensityVotingFunctor> IntensityVoter;
+  typedef itk::BinaryFunctorImageFilter
+      <VotingImageType, VotingImageType, LabelImageType, BinaryLabelVotingFunctor> LabelVoter;
+  typedef itk::BinaryFunctorImageFilter
+      <LabelImageType, LabelImageType, LabelImageType, BinaryLabelDeterminatingFunctor> LabelDeterminator;
+  typedef itk::SmoothingRecursiveGaussianImageFilter<BinarizedImageType, VotingImageType> SmoothFilter;
+  typedef itk::ImageDuplicator<VotingImageType> Duplicator;
 
-  typedef itk::LabelVotingImageFilter<ImageType, ImageType> LabelFilterType;
-  LabelFilterType::Pointer fltVote = LabelFilterType::New();
+  // Duplicate a background image for counting votes
+  // -- Use thresholding and duplicator to avoid creating and initializing new image
+  BackgroundExtractor::Pointer bgExtractor = BackgroundExtractor::New();
+  bgExtractor->SetInput(liw->GetImage());
+  bgExtractor->SetLowerThreshold(0);
+  bgExtractor->SetUpperThreshold(0);
+  bgExtractor->SetInsideValue(0.0);
+  bgExtractor->SetOutsideValue(0.0);
+  Duplicator::Pointer duplicator = Duplicator::New();
+  duplicator->SetInputImage(bgExtractor->GetOutput());
+  VotingImageType::Pointer winningLabels = duplicator->GetOutput();
+
+  // Iterate labels; Smooth and Vote
+  for (auto it = labelArr.begin(); it != labelArr.end(); ++it)
+    {
+      // Binarize the Image
+      ThresholdFilter::Pointer fltThreshold = ThresholdFilter::New();
+
+      // -- set current seg image layer as input
+      fltThreshold->SetInput(liw->GetImage());
+      // -- set current target label (*it) to 1, others to 0
+      fltThreshold->SetLowerThreshold(*it);
+      fltThreshold->SetUpperThreshold(*it);
+      fltThreshold->SetInsideValue(1.0);
+      fltThreshold->SetOutsideValue(0.0);
+
+      // Smooth the binarized image
+      SmoothFilter::Pointer fltSmooth = SmoothFilter::New();
+      fltSmooth->SetInput(fltThreshold->GetOutput());
+
+      // -- Set sigma array
+      SmoothFilter::SigmaArrayType sigmaArr;
+      for (int i = 0; i < 3; ++i)
+        sigmaArr[i] = sigmaInput[i];
+
+      // -- Smooth
+
+      // Vote to determine the label
+
+      /* Intensity Voting:
+       * A pixel-wise intensity comparison between current label smoothing result
+       * and the previous highest instensity. If current intensity is greater than previous high,
+       * it will replace previous high in the output image. Otherwise, previous high will be
+       * preserved in the output image.
+       */
+
+      /* Label Voting:
+       * A pixel-wise intensity comparison between current label smoothing result
+       * and the previous highest intensity. If current intensity is greater than previous high,
+       * current label will be written to the output image. Otherwise, 0 will be written.
+       */
+
+      /* Label Determination:
+       * Pixel-wise iteration on current label voting result and the global label voting result.
+       * If current result is non-zero, replace global result value with the current result value.
+       */
+
+    }
 
 
-  // -- Pass in user specified sigma values
-  for (int i = 0; i < 3; ++i)
-    sigArr[i] = sigmaInput[i];
-  */
-
-
-  // -- Threshold out background (1) and other (0)
-  // -- Use the result to initialize the voting
-
-  // -- for each label to smooth:
-  // ---- binarize the label: current label set to 1 and rest to 0
-  // ---- smooth the binarized the label image
-  // ---- vote against the voted image, and generate a new voted image
 
 
   // apply itk voting filter
