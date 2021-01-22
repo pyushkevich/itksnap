@@ -101,7 +101,7 @@ void SmoothLabelsModel::UpdateOnShow()
 
 }
 
-void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vector<double> &sigma, SigmaUnit unit)
+void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, std::vector<double> &sigma, SigmaUnit unit)
 {
   std::cout << "Labels to Smooth: " << endl;
   for (auto cit = labelsToSmooth.cbegin(); cit != labelsToSmooth.cend(); ++cit)
@@ -118,6 +118,15 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
 
   // Get the segmentaton wrapper
   LabelImageWrapper *liw = m_Parent->GetDriver()->GetSelectedSegmentationLayer();
+
+  // Get all valid labels
+  std::vector<LabelType> allLabels;
+  ColorLabelTable::ValidLabelMap validLabelMap = m_LabelTable->GetValidLabels();
+
+  for(auto cit = validLabelMap.cbegin(); cit != validLabelMap.cend(); ++cit)
+    {
+      allLabels.push_back(cit->first);
+    }
 
   // Process sigma user input
   std::vector<double> sigmaInput = sigma; // deep copy
@@ -139,19 +148,12 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
 
   std::cout << endl;
 
-  // Get labels to smooth
-  std::vector<LabelType> labelArr {0}; // always include background
-  for (auto it = labelsToSmooth.begin(); it != labelsToSmooth.end(); ++it)
-    labelArr.push_back(*it);
-
   // Type definitions
   typedef GenericImageData::LabelImageType LabelImageType;
-  // -- Output of Binarization
-  typedef itk::Image<unsigned short, 3> BinarizedImageType;
   // -- Output of Smoothing, Input of Voting
   typedef itk::Image<double, 3> VotingImageType;
 
-  typedef itk::BinaryThresholdImageFilter<LabelImageType, BinarizedImageType> ThresholdFilter;
+  typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> ThresholdFilter;
   typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> BlankVotingImageGenerator;
   typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType> BlankLabelImageGenerator;
   typedef BinaryIntensityVotingFunctor<VotingImageType, VotingImageType, VotingImageType> IntensityVotingFunctor;
@@ -163,7 +165,7 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
   typedef BinaryLabelDeterminatingFunctor<LabelImageType, LabelImageType, LabelImageType> LabelDeterminatingFunctor;
   typedef itk::BinaryFunctorImageFilter
       <LabelImageType, LabelImageType, LabelImageType, LabelDeterminatingFunctor> LabelDeterminator;
-  typedef itk::SmoothingRecursiveGaussianImageFilter<BinarizedImageType, VotingImageType> SmoothFilter;
+  typedef itk::SmoothingRecursiveGaussianImageFilter<VotingImageType, VotingImageType> SmoothFilter;
 
   // Generate a blank (all zero) image for counting maximum intensities
   BlankVotingImageGenerator::Pointer blankVotingImageGen = BlankVotingImageGenerator::New();
@@ -189,40 +191,46 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
   LabelVoter::Pointer labelVoter = LabelVoter::New();
   LabelDeterminator::Pointer labelDeterminator = LabelDeterminator::New();
 
-  // Push background label (0) to the array
-  labelArr.push_back(0);
-
-
   // Iterate labels; Smooth and Vote
-  for (auto it = labelArr.begin(); it != labelArr.end(); ++it)
+  for (auto cit = allLabels.cbegin(); cit != allLabels.cend(); ++cit)
     {
-      std::cout << "Processing: " << *it << endl;
+      std::cout << "Processing: " << *cit << endl;
 
       // Binarize the Image
       ThresholdFilter::Pointer fltThreshold = ThresholdFilter::New();
 
       // -- set current seg image layer as input
       fltThreshold->SetInput(liw->GetImage());
-      // -- set current target label (*it) to 1, others to 0
-      fltThreshold->SetLowerThreshold(*it);
-      fltThreshold->SetUpperThreshold(*it);
+      // -- set current target label (*cit) to 1, others to 0
+      fltThreshold->SetLowerThreshold(*cit);
+      fltThreshold->SetUpperThreshold(*cit);
       fltThreshold->SetInsideValue(1.0);
       fltThreshold->SetOutsideValue(0.0);
       fltThreshold->Update();
 
-      // Smooth the binarized image
-      SmoothFilter::Pointer fltSmooth = SmoothFilter::New();
-      fltSmooth->SetInput(fltThreshold->GetOutput());
+      // Smooth selected labels. For unselected labels, keep intensity as 1
+      bool isLabelSelected = labelsToSmooth.count(*cit);
+      // -- keep intensity for unselected label
+      VotingImageType::Pointer crntLabelBinarized = fltThreshold->GetOutput();
+      if (isLabelSelected)
+        {
+          std::cout << "Smoothing..." << endl;
+          // Smooth the binarized image
+          SmoothFilter::Pointer fltSmooth = SmoothFilter::New();
+          fltSmooth->SetInput(fltThreshold->GetOutput());
 
-      // -- Set sigma array
-      SmoothFilter::SigmaArrayType sigmaArr;
-      for (int i = 0; i < 3; ++i)
-        sigmaArr[i] = sigmaInput[i];
-      fltSmooth->SetSigmaArray(sigmaArr);
+          // -- Set sigma array
+          SmoothFilter::SigmaArrayType sigmaArr;
+          for (int i = 0; i < 3; ++i)
+            sigmaArr[i] = sigmaInput[i];
+          fltSmooth->SetSigmaArray(sigmaArr);
 
-      // -- Smooth
-      fltSmooth->Update();
-      VotingImageType::Pointer crntLabel = fltSmooth->GetOutput();
+          // -- Smooth
+          fltSmooth->Update();
+
+          crntLabelBinarized = fltSmooth->GetOutput();
+          std::cout << "Smoothing Completed." << endl;
+        }
 
       // Vote to determine the label
 
@@ -232,23 +240,28 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
        * it will replace previous high in the output image. Otherwise, previous high will be
        * preserved in the output image.
        */
-      intensityVoter->SetInput1(crntLabel);
+
+      intensityVoter->SetInput1(crntLabelBinarized);
       intensityVoter->SetInput2(maxIntensity);
       intensityVoter->Update();
       // Temporarily save the new max intensity, since maxIntensity needs to be used again
       VotingImageType::Pointer newMaxIntensity = intensityVoter->GetOutput();
+
+      std::cout << "Intensity Voting Completed" << endl;
 
       /* Label Voting:
        * A pixel-wise intensity comparison between current label smoothing result
        * and the previous highest intensity. If current intensity is greater than previous high,
        * current label will be written to the output image. Otherwise, 0 will be written.
        */
-      LabelVotingFunctor lvf(*it); // pass current label into the functor
+      LabelVotingFunctor lvf(*cit); // pass current label into the functor
       labelVoter->SetFunctor(lvf);
-      labelVoter->SetInput1(crntLabel);
+      labelVoter->SetInput1(crntLabelBinarized);
       labelVoter->SetInput2(maxIntensity);
       labelVoter->Update();
       LabelImageType::Pointer labelVotingResult = labelVoter->GetOutput();
+
+      std::cout << "Label Voting Completed" << endl;
 
       /* Label Determination:
        * Pixel-wise iteration on current label voting result and the global label voting result.
@@ -259,9 +272,13 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
       labelDeterminator->Update();
       winningLabels = labelDeterminator->GetOutput();
 
+      std::cout << "Label Determined" << endl;
+
       // update maxIntensity with the current max
       maxIntensity = newMaxIntensity;
     }
+
+
 
 
 

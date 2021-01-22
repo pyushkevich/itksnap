@@ -5,6 +5,7 @@
 
 #include <AbstractModel.h>
 #include <PropertyModel.h>
+#include <unordered_set>
 
 #include "Registry.h"
 #include "AbstractPropertyContainerModel.h"
@@ -29,7 +30,7 @@ public:
   void UpdateOnShow();
 
   /** Perform the actual smoothing */
-  void Smooth(std::vector<LabelType> &labelsToSmooth, std::vector<double> &sigma, SigmaUnit unit);
+  void Smooth(std::unordered_set<LabelType> &labelsToSmooth, std::vector<double> &sigma, SigmaUnit unit);
 
   /** Get the model describing the current selected label (and its domain) */
   irisGetMacro(CurrentLabelModel, ConcreteColorLabelPropertyModel *)

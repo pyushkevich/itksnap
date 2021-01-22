@@ -3,6 +3,7 @@
 #include "SmoothLabelsDialog.h"
 #include "ui_SmoothLabelsDialog.h"
 #include "SmoothLabelsModel.h"
+#include <unordered_set>
 
 #include "QtComboBoxCoupling.h"
 #include "QtRadioButtonCoupling.h"
@@ -151,20 +152,22 @@ void SmoothLabelsDialog::on_btnApply_clicked()
 
   // std::cout << checked.count() << endl;
   std::vector<LabelType> labelsToSmooth;
+  std::unordered_set<LabelType> labelSet;
   for(auto it = checked.begin(); it != checked.end(); ++it)
     {
       LabelType oneLabel = im->data(*it, Qt::UserRole).value<LabelType>();
       labelsToSmooth.push_back(oneLabel);
+      labelSet.insert(oneLabel);
     }
 
   QMessageBox confirmBox;
   QString msg;
-  if (labelsToSmooth.size() == 0)
+  if (labelSet.size() == 0)
     msg = QString("No label is selected for smoothing!");
-  else if (labelsToSmooth.size() == 1)
-    msg = QString("Proceed to smooth label %1?").arg(labelsToSmooth[0]);
+  else if (labelSet.size() == 1)
+    msg = QString("Proceed to smooth label %1?").arg(*labelSet.cbegin());
   else
-    msg = QString("Proceed to smooth these %1 labels?").arg(labelsToSmooth.size());
+    msg = QString("Proceed to smooth these %1 labels?").arg(labelSet.size());
 
   confirmBox.setText(msg);
   confirmBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
@@ -181,7 +184,7 @@ void SmoothLabelsDialog::on_btnApply_clicked()
   typedef SmoothLabelsModel::SigmaUnit SigmaUnit;
   SigmaUnit unit = ui->sigmaUnit->currentIndex() == 0 ? SigmaUnit::mm : SigmaUnit::vox;
 
-  m_Model->Smooth(labelsToSmooth, sigmaArr, unit);
+  m_Model->Smooth(labelSet, sigmaArr, unit);
 }
 
 void SmoothLabelsDialog::on_btnClose_clicked()
