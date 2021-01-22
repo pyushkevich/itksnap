@@ -9,20 +9,72 @@
 #include "itkLabelVotingImageFilter.h"
 #include "itkImageDuplicator.h"
 #include "itkBinaryFunctorImageFilter.h"
-
+template <class TInputImage1, class TInputImage2, class TOutputImage>
 class BinaryIntensityVotingFunctor
 {
+public:
+  typedef BinaryIntensityVotingFunctor Self;
+  typedef typename TInputImage1::PixelType InputPixelType1;
+  typedef typename TInputImage2::PixelType InputPixelType2;
+  typedef typename TOutputImage::PixelType OutputPixelType;
+
+  BinaryIntensityVotingFunctor() = default;
+  ~BinaryIntensityVotingFunctor() = default;
+
+  OutputPixelType operator() (const InputPixelType1 &crntPixel, const InputPixelType2 &maxPixel) const
+  {
+    return crntPixel > maxPixel ? crntPixel : maxPixel;
+  }
+
 
 };
 
+template <class TInputImage1, class TInputImage2, class TOutputImage>
 class BinaryLabelVotingFunctor
 {
+public:
+  typedef BinaryLabelVotingFunctor Self;
+  typedef typename TInputImage1::PixelType InputPixelType1;
+  typedef typename TInputImage2::PixelType InputPixelType2;
+  typedef typename TOutputImage::PixelType OutputPixelType;
 
+  BinaryLabelVotingFunctor(OutputPixelType crntLabel)
+    : m_crntLabel(crntLabel) {};
+
+  // default constructor is needed for declaration of the functor filter
+  BinaryLabelVotingFunctor() {};
+  ~BinaryLabelVotingFunctor() = default;
+
+  OutputPixelType operator() (const InputPixelType1 &crntPixel, const InputPixelType2 &maxPixel) const
+  {
+    return crntPixel > maxPixel ? m_crntLabel : 0;
+  }
+
+  bool operator != (const Self &other)
+  {
+    return other.m_crntLabel != m_crntLabel;
+  }
+
+private:
+  OutputPixelType m_crntLabel;
 };
 
+template <class TInputImage1, class TInputImage2,class TOutputImage>
 class BinaryLabelDeterminatingFunctor
 {
+public:
+  typedef BinaryLabelDeterminatingFunctor Self;
+  typedef typename TInputImage1::PixelType InputPixelType1;
+  typedef typename TInputImage2::PixelType InputPixelType2;
+  typedef typename TOutputImage::PixelType OutputPixelType;
 
+  BinaryLabelDeterminatingFunctor() = default;
+  ~BinaryLabelDeterminatingFunctor() = default;
+
+  OutputPixelType operator() (const InputPixelType1 &crntLabelResult, const InputPixelType2 &globalLabelResult) const
+  {
+    return crntLabelResult == 0 ? globalLabelResult : crntLabelResult;
+  }
 };
 
 SmoothLabelsModel::SmoothLabelsModel()
@@ -100,31 +152,52 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
   typedef itk::Image<double, 3> VotingImageType;
 
   typedef itk::BinaryThresholdImageFilter<LabelImageType, BinarizedImageType> ThresholdFilter;
-  typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> BackgroundExtractor;
+  typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> BlankVotingImageGenerator;
+  typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType> BlankLabelImageGenerator;
+  typedef BinaryIntensityVotingFunctor<VotingImageType, VotingImageType, VotingImageType> IntensityVotingFunctor;
   typedef itk::BinaryFunctorImageFilter
-      <VotingImageType, VotingImageType, VotingImageType, BinaryIntensityVotingFunctor> IntensityVoter;
+      <VotingImageType, VotingImageType, VotingImageType, IntensityVotingFunctor> IntensityVoter;
+  typedef BinaryLabelVotingFunctor<VotingImageType, VotingImageType, LabelImageType> LabelVotingFunctor;
   typedef itk::BinaryFunctorImageFilter
-      <VotingImageType, VotingImageType, LabelImageType, BinaryLabelVotingFunctor> LabelVoter;
+      <VotingImageType, VotingImageType, LabelImageType, LabelVotingFunctor> LabelVoter;
+  typedef BinaryLabelDeterminatingFunctor<LabelImageType, LabelImageType, LabelImageType> LabelDeterminatingFunctor;
   typedef itk::BinaryFunctorImageFilter
-      <LabelImageType, LabelImageType, LabelImageType, BinaryLabelDeterminatingFunctor> LabelDeterminator;
+      <LabelImageType, LabelImageType, LabelImageType, LabelDeterminatingFunctor> LabelDeterminator;
   typedef itk::SmoothingRecursiveGaussianImageFilter<BinarizedImageType, VotingImageType> SmoothFilter;
-  typedef itk::ImageDuplicator<VotingImageType> Duplicator;
 
-  // Duplicate a background image for counting votes
-  // -- Use thresholding and duplicator to avoid creating and initializing new image
-  BackgroundExtractor::Pointer bgExtractor = BackgroundExtractor::New();
-  bgExtractor->SetInput(liw->GetImage());
-  bgExtractor->SetLowerThreshold(0);
-  bgExtractor->SetUpperThreshold(0);
-  bgExtractor->SetInsideValue(0.0);
-  bgExtractor->SetOutsideValue(0.0);
-  Duplicator::Pointer duplicator = Duplicator::New();
-  duplicator->SetInputImage(bgExtractor->GetOutput());
-  VotingImageType::Pointer winningLabels = duplicator->GetOutput();
+  // Generate a blank (all zero) image for counting maximum intensities
+  BlankVotingImageGenerator::Pointer blankVotingImageGen = BlankVotingImageGenerator::New();
+  blankVotingImageGen->SetInput(liw->GetImage());
+  blankVotingImageGen->SetLowerThreshold(0);
+  blankVotingImageGen->SetUpperThreshold(0);
+  blankVotingImageGen->SetInsideValue(0.0);
+  blankVotingImageGen->SetOutsideValue(0.0);
+  blankVotingImageGen->Update();
+  VotingImageType::Pointer maxIntensity = blankVotingImageGen->GetOutput();
+  // Generate a blank (all zero) image for recording winning labels
+  BlankLabelImageGenerator::Pointer blankLabelImageGen = BlankLabelImageGenerator::New();
+  blankLabelImageGen->SetInput(liw->GetImage());
+  blankLabelImageGen->SetLowerThreshold(0);
+  blankLabelImageGen->SetUpperThreshold(0);
+  blankLabelImageGen->SetInsideValue(0);
+  blankLabelImageGen->SetOutsideValue(0);
+  blankLabelImageGen->Update();
+  LabelImageType::Pointer winningLabels = blankLabelImageGen->GetOutput();
+
+  // Declare voting filters
+  IntensityVoter::Pointer intensityVoter = IntensityVoter::New();
+  LabelVoter::Pointer labelVoter = LabelVoter::New();
+  LabelDeterminator::Pointer labelDeterminator = LabelDeterminator::New();
+
+  // Push background label (0) to the array
+  labelArr.push_back(0);
+
 
   // Iterate labels; Smooth and Vote
   for (auto it = labelArr.begin(); it != labelArr.end(); ++it)
     {
+      std::cout << "Processing: " << *it << endl;
+
       // Binarize the Image
       ThresholdFilter::Pointer fltThreshold = ThresholdFilter::New();
 
@@ -135,6 +208,7 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
       fltThreshold->SetUpperThreshold(*it);
       fltThreshold->SetInsideValue(1.0);
       fltThreshold->SetOutsideValue(0.0);
+      fltThreshold->Update();
 
       // Smooth the binarized image
       SmoothFilter::Pointer fltSmooth = SmoothFilter::New();
@@ -144,8 +218,11 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
       SmoothFilter::SigmaArrayType sigmaArr;
       for (int i = 0; i < 3; ++i)
         sigmaArr[i] = sigmaInput[i];
+      fltSmooth->SetSigmaArray(sigmaArr);
 
       // -- Smooth
+      fltSmooth->Update();
+      VotingImageType::Pointer crntLabel = fltSmooth->GetOutput();
 
       // Vote to determine the label
 
@@ -155,18 +232,35 @@ void SmoothLabelsModel::Smooth(std::vector<LabelType> &labelsToSmooth, std::vect
        * it will replace previous high in the output image. Otherwise, previous high will be
        * preserved in the output image.
        */
+      intensityVoter->SetInput1(crntLabel);
+      intensityVoter->SetInput2(maxIntensity);
+      intensityVoter->Update();
+      // Temporarily save the new max intensity, since maxIntensity needs to be used again
+      VotingImageType::Pointer newMaxIntensity = intensityVoter->GetOutput();
 
       /* Label Voting:
        * A pixel-wise intensity comparison between current label smoothing result
        * and the previous highest intensity. If current intensity is greater than previous high,
        * current label will be written to the output image. Otherwise, 0 will be written.
        */
+      LabelVotingFunctor lvf(*it); // pass current label into the functor
+      labelVoter->SetFunctor(lvf);
+      labelVoter->SetInput1(crntLabel);
+      labelVoter->SetInput2(maxIntensity);
+      labelVoter->Update();
+      LabelImageType::Pointer labelVotingResult = labelVoter->GetOutput();
 
       /* Label Determination:
        * Pixel-wise iteration on current label voting result and the global label voting result.
        * If current result is non-zero, replace global result value with the current result value.
        */
+      labelDeterminator->SetInput1(labelVotingResult);
+      labelDeterminator->SetInput2(winningLabels);
+      labelDeterminator->Update();
+      winningLabels = labelDeterminator->GetOutput();
 
+      // update maxIntensity with the current max
+      maxIntensity = newMaxIntensity;
     }
 
 
