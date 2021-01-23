@@ -9,6 +9,10 @@
 #include "itkLabelVotingImageFilter.h"
 #include "itkImageDuplicator.h"
 #include "itkBinaryFunctorImageFilter.h"
+#include "SegmentationUpdateIterator.h"
+
+#include "itkImageFileWriter.h"
+
 template <class TInputImage1, class TInputImage2, class TOutputImage>
 class BinaryIntensityVotingFunctor
 {
@@ -103,6 +107,10 @@ void SmoothLabelsModel::UpdateOnShow()
 
 void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, std::vector<double> &sigma, SigmaUnit unit)
 {
+  // Always smooth background
+  if (!labelsToSmooth.count(0))
+    labelsToSmooth.insert(0);
+
   std::cout << "Labels to Smooth: " << endl;
   for (auto cit = labelsToSmooth.cbegin(); cit != labelsToSmooth.cend(); ++cit)
     {
@@ -191,6 +199,10 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
   LabelVoter::Pointer labelVoter = LabelVoter::New();
   LabelDeterminator::Pointer labelDeterminator = LabelDeterminator::New();
 
+  // Debug
+  using VotingImageWriter = itk::ImageFileWriter<VotingImageType>;
+  VotingImageWriter::Pointer votingImageWriter = VotingImageWriter::New();
+
   // Iterate labels; Smooth and Vote
   for (auto cit = allLabels.cbegin(); cit != allLabels.cend(); ++cit)
     {
@@ -212,6 +224,17 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
       bool isLabelSelected = labelsToSmooth.count(*cit);
       // -- keep intensity for unselected label
       VotingImageType::Pointer crntLabelBinarized = fltThreshold->GetOutput();
+
+      votingImageWriter->SetFileName("BinarizedResult_Label_" + std::to_string(*cit) + ".nii.gz");
+      votingImageWriter->SetInput(crntLabelBinarized);
+      try
+      {
+        votingImageWriter->Update();
+      } catch (itk::ExceptionObject &error)
+      {
+        std::cerr << "Error: " << error << std::endl;
+      }
+
       if (isLabelSelected)
         {
           std::cout << "Smoothing..." << endl;
@@ -232,6 +255,15 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
           std::cout << "Smoothing Completed." << endl;
         }
 
+      votingImageWriter->SetFileName("IntensityVotingResult_Label_" + std::to_string(*cit) + ".nii.gz");
+      votingImageWriter->SetInput(crntLabelBinarized);
+      try
+      {
+        votingImageWriter->Update();
+      } catch (itk::ExceptionObject &error)
+      {
+        std::cerr << "Error: " << error << std::endl;
+      }
       // Vote to determine the label
 
       /* Intensity Voting:
@@ -244,8 +276,19 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
       intensityVoter->SetInput1(crntLabelBinarized);
       intensityVoter->SetInput2(maxIntensity);
       intensityVoter->Update();
+
       // Temporarily save the new max intensity, since maxIntensity needs to be used again
       VotingImageType::Pointer newMaxIntensity = intensityVoter->GetOutput();
+
+      votingImageWriter->SetFileName("LabelVotingResult_Label_" + std::to_string(*cit) + ".nii.gz");
+      votingImageWriter->SetInput(newMaxIntensity);
+      try
+      {
+        votingImageWriter->Update();
+      } catch (itk::ExceptionObject &error)
+      {
+        std::cerr << "Error: " << error << std::endl;
+      }
 
       std::cout << "Intensity Voting Completed" << endl;
 
@@ -276,12 +319,27 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
 
       // update maxIntensity with the current max
       maxIntensity = newMaxIntensity;
+
     }
 
+  // Apply labels back to segmentation image
+  SegmentationUpdateIterator it_update(liw, liw->GetBufferedRegion()
+                                       , m_Parent->GetGlobalState()->GetDrawingColorLabel()
+                                       , m_Parent->GetGlobalState()->GetDrawOverFilter());
+  itk::ImageRegionConstIterator<GenericImageData::LabelImageType>
+      it_src(winningLabels, winningLabels->GetBufferedRegion());
 
+  std::cout << "Updating GUI..." << endl;
+  for (; !it_update.IsAtEnd(); ++it_update, ++it_src)
+    {
+      it_update.PaintLabel(it_src.Get());
+    }
 
+  // Finalize update and create an undo point
+  it_update.Finalize("Smooth Labels");
 
+  // Fire event to inform GUI that segmentation has changed
+  this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
+  std::cout << "Selected labels has been smoothed!" << endl;
 
-
-  // apply itk voting filter
 }
