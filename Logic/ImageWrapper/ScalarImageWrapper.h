@@ -201,9 +201,9 @@ public:
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
 
-  virtual ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
+  virtual const ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
 
-  virtual ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
+  virtual const ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
 
   /**
     Compute the image histogram. The histogram is cached inside of the

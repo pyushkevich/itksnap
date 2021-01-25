@@ -50,8 +50,7 @@ protected:
   MomentTextureFilter() : m_HighestDegree(2) { m_Radius.Fill(1); }
   ~MomentTextureFilter() {}
 
-  virtual void ThreadedGenerateData(const RegionType & outputRegionForThread,
-                                    itk::ThreadIdType threadId) ITK_OVERRIDE;
+  virtual void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) ITK_OVERRIDE;
 
   virtual void UpdateOutputInformation() ITK_OVERRIDE;
 

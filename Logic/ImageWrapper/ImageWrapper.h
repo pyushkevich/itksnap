@@ -401,8 +401,8 @@ public:
    * Get an ITK pipeline object holding the minimum value in the image. For
    * multi-component images, this is the minimum value over all components.
    */
-  virtual ComponentTypeObject *GetImageMinObject() const = 0;
-  virtual ComponentTypeObject *GetImageMaxObject() const = 0;
+  virtual const ComponentTypeObject *GetImageMinObject() const = 0;
+  virtual const ComponentTypeObject *GetImageMaxObject() const = 0;
 
   /** Return componentwise minimum cast to double, without mapping to native range */
   virtual double GetImageMinAsDouble() ITK_OVERRIDE;

@@ -269,9 +269,9 @@ bool ReorientImageModel
 
   ImageWrapperBase *im = m_Parent->GetDriver()->GetCurrentImageData()->GetMain();
   value = ImageWrapperBase::ConstructNiftiSform(
-      dm,
-      im->GetImageBase()->GetOrigin().GetVnlVector(),
-        im->GetImageBase()->GetSpacing().GetVnlVector());
+            dm,
+            im->GetImageBase()->GetOrigin().GetVnlVector(),
+            im->GetImageBase()->GetSpacing().GetVnlVector()).as_matrix();
 
   return true;
 }

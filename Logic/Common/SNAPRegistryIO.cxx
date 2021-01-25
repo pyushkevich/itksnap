@@ -339,10 +339,17 @@ SNAPRegistryIO
   // different settings for edge and in-out parameters)
   if(restoreParameters)
     {
+    // Read the snake parameters
     gs->SetSnakeParameters(
       SNAPRegistryIO::ReadSnakeParameters(
         registry.Folder("SNAP.SnakeParameters"),
         gs->GetSnakeParameters()));
+    
+    // If the snake parameters imply different preprocessing mode, set that too
+    if(gs->GetSnakeParameters().GetSnakeType() == SnakeParameters::EDGE_SNAKE)
+      gs->SetSnakeType(EDGE_SNAKE);
+    else
+      gs->SetSnakeType(IN_OUT_SNAKE);
     }
 
   // Read the preprocessing settings

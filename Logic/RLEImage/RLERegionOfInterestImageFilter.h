@@ -87,17 +87,8 @@ protected:
    * \sa ProcessObject::GenerateOutputInformaton()  */
   virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
-  /** RegionOfInterestImageFilter can be implemented as a multithreaded filter.
-   * Therefore, this implementation provides a ThreadedGenerateData()
-   * routine which is called for each processing thread. The output
-   * image data is allocated automatically by the superclass prior to
-   * calling ThreadedGenerateData().  ThreadedGenerateData can only
-   * write to the portion of the output image specified by the
-   * parameter "outputRegionForThread"
-   * \sa ImageToImageFilter::ThreadedGenerateData(),
-   *     ImageToImageFilter::GenerateData()  */
-  void ThreadedGenerateData(const RegionType & outputRegionForThread,
-                            ThreadIdType threadId) ITK_OVERRIDE;
+  /** RegionOfInterestImageFilter can be implemented as a multithreaded filter.  */
+  void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) ITK_OVERRIDE;
 
 private:
   RegionOfInterestImageFilter(const Self &); //purposely not implemented
@@ -171,17 +162,8 @@ protected:
     * \sa ProcessObject::GenerateOutputInformaton()  */
     virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
-    /** RegionOfInterestImageFilter can be implemented as a multithreaded filter.
-    * Therefore, this implementation provides a ThreadedGenerateData()
-    * routine which is called for each processing thread. The output
-    * image data is allocated automatically by the superclass prior to
-    * calling ThreadedGenerateData().  ThreadedGenerateData can only
-    * write to the portion of the output image specified by the
-    * parameter "outputRegionForThread"
-    * \sa ImageToImageFilter::ThreadedGenerateData(),
-    *     ImageToImageFilter::GenerateData()  */
-    void ThreadedGenerateData(const RegionType & outputRegionForThread,
-        ThreadIdType threadId) ITK_OVERRIDE;
+    /** RegionOfInterestImageFilter can be implemented as a multithreaded filter. */
+    void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) ITK_OVERRIDE;
 
 private:
     RegionOfInterestImageFilter(const Self &); //purposely not implemented
@@ -255,17 +237,8 @@ protected:
     * \sa ProcessObject::GenerateOutputInformaton()  */
     virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
-    /** RegionOfInterestImageFilter can be implemented as a multithreaded filter.
-    * Therefore, this implementation provides a ThreadedGenerateData()
-    * routine which is called for each processing thread. The output
-    * image data is allocated automatically by the superclass prior to
-    * calling ThreadedGenerateData().  ThreadedGenerateData can only
-    * write to the portion of the output image specified by the
-    * parameter "outputRegionForThread"
-    * \sa ImageToImageFilter::ThreadedGenerateData(),
-    *     ImageToImageFilter::GenerateData()  */
-    void ThreadedGenerateData(const RegionType & outputRegionForThread,
-        ThreadIdType threadId) ITK_OVERRIDE;
+    /** RegionOfInterestImageFilter can be implemented as a multithreaded filter. */
+    void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) ITK_OVERRIDE;
 
 private:
     RegionOfInterestImageFilter(const Self &); //purposely not implemented

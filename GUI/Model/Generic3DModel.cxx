@@ -11,7 +11,6 @@
 #include "vtkRendererCollection.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPointData.h"
-#include "itkMutexLockHolder.h"
 #include "MeshOptions.h"
 #include "ImageWrapperTraits.h"
 #include "SegmentationUpdateIterator.h"
@@ -155,7 +154,7 @@ void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
   this->UpdateSegmentationMesh(m_ParentUI->GetProgressCommand());
 
   // Prevent concurrent access to this method and mesh update
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> mholder(m_MutexLock);
+  std::lock_guard<std::mutex> guard(m_Mutex);
 
   // Certain formats require a VTK exporter and use a render window. They
   // are handled directly in this code, rather than in the Guided code.
@@ -215,12 +214,10 @@ void Generic3DModel::OnImageGeometryUpdate()
     }
 }
 
-#include "itkMutexLockHolder.h"
-
 void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
 {
   // Prevent concurrent access to this method
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> mholder(m_MutexLock);
+  std::lock_guard<std::mutex> guard(m_Mutex);
 
   try
   {

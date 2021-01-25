@@ -479,7 +479,7 @@ VectorImageWrapper<TTraits,TBase>
 
 
 template<class TTraits, class TBase>
-typename VectorImageWrapper<TTraits,TBase>::ComponentTypeObject *
+const typename VectorImageWrapper<TTraits,TBase>::ComponentTypeObject *
 VectorImageWrapper<TTraits,TBase>
 ::GetImageMinObject() const
 {
@@ -487,7 +487,7 @@ VectorImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-typename VectorImageWrapper<TTraits,TBase>::ComponentTypeObject *
+const typename VectorImageWrapper<TTraits,TBase>::ComponentTypeObject *
 VectorImageWrapper<TTraits,TBase>
 ::GetImageMaxObject() const
 {

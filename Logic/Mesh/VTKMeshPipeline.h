@@ -60,6 +60,8 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTransform.h>
 
+#include <mutex>
+
 #ifndef vtkFloatingPointType
 # define vtkFloatingPointType vtkFloatingPointType
 typedef float vtkFloatingPointType;
@@ -88,7 +90,7 @@ public:
   void SetMeshOptions(MeshOptions *options);
 
   /** Compute a mesh for a particular color label */
-  void ComputeMesh(vtkPolyData *outData, itk::FastMutexLock *lock = NULL);
+  void ComputeMesh(vtkPolyData *outData, std::mutex *mutex = nullptr);
 
   /** Get the progress accumulator */
   AllPurposeProgressAccumulator *GetProgressAccumulator()

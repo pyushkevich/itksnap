@@ -162,12 +162,6 @@ protected:
   virtual void CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
                               const OutputImageRegionType &srcRegion) ITK_OVERRIDE;
 
-  /*
-  void BeforeThreadedGenerateData();
-  void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                            ThreadIdType threadId);
-  void AfterThreadedGenerateData();
-*/
   /** 
    * IRISSlicer is not implemented as a multithreaded filter.
    * \sa ImageToImageFilter::GenerateData()  
@@ -317,8 +311,6 @@ protected:
                                                  const OutputImageRegionType &srcRegion) ITK_OVERRIDE;
 
   void GenerateData() ITK_OVERRIDE;
-  //void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-  //    itk::ThreadIdType threadId);
 
   /** Uncompresses a RLE line into a buffer pointed by out.
     * After each pixel is written, adds stride to the pointer.

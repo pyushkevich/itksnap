@@ -71,7 +71,7 @@ public:
   /** Default Constructor. Need to provide a default constructor since we
    * provide a copy constructor. */
   ImageConstIterator():
-    myBuffer(0), rlLine(0)
+    myBuffer(nullptr), rlLine(nullptr)
   {
     m_Image = ITK_NULLPTR;
     m_Index0 = 0;

@@ -23,26 +23,25 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
 template<class TInputImage, class TOutputImage>
 void
 LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
-::SetImageMinInput(InputPixelObject *input)
+::SetImageMinInput(const InputPixelObject *input)
 {
-  m_InputMin = input;
-  this->SetNthInput(2, input);
+  m_InputMin = const_cast<InputPixelObject *>(input);
+  this->SetNthInput(2, m_InputMin);
 }
 
 template<class TInputImage, class TOutputImage>
 void
 LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
-::SetImageMaxInput(InputPixelObject *input)
+::SetImageMaxInput(const InputPixelObject *input)
 {
-  m_InputMax = input;
-  this->SetNthInput(3, input);
+  m_InputMax = const_cast<InputPixelObject *>(input);
+  this->SetNthInput(3, m_InputMax);
 }
 
 template<class TInputImage, class TOutputImage>
 void
 LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType &region,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &region)
 {
   // Get the input, output and the LUT
   const InputImageType *input = this->GetInput();

@@ -93,7 +93,7 @@ to_float(const vnl_vector_fixed<T,VSize> &x)
   iris_vector_fixed<float,VSize> z;
 
   for(unsigned int i=0;i<VSize;i++)
-    z(i) = static_cast<float>(x(i));
+    z(i) = static_cast<float>(x[i]);
 
   return z;
 }
@@ -105,7 +105,31 @@ to_double(const vnl_vector_fixed<T,VSize> &x)
   iris_vector_fixed<double,VSize> z;
 
   for(unsigned int i=0;i<VSize;i++)
-    z(i) = static_cast<double>(x(i));
+    z(i) = static_cast<double>(x[i]);
+
+  return z;
+}
+
+template <unsigned int VSize>
+inline iris_vector_fixed<double,VSize>
+to_double(const itk::Size<VSize> &x)
+{
+  iris_vector_fixed<double,VSize> z;
+
+  for(unsigned int i=0;i<VSize;i++)
+    z(i) = static_cast<double>(x[i]);
+
+  return z;
+}
+
+template <unsigned int VSize>
+inline iris_vector_fixed<double,VSize>
+to_double(const itk::Index<VSize> &x)
+{
+  iris_vector_fixed<double,VSize> z;
+
+  for(unsigned int i=0;i<VSize;i++)
+    z(i) = static_cast<double>(x[i]);
 
   return z;
 }

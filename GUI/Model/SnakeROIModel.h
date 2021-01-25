@@ -80,8 +80,7 @@ public:
 
   bool ProcessPushEvent(double x, double y);
 
-  bool ProcessDragEvent(
-      double x, double y, double xStart, double yStart, bool release);
+  bool ProcessDragEvent(double x, double y, double xStart, double yStart, bool itkNotUsed(release));
 
   bool ProcessMoveEvent(double x, double y);
 

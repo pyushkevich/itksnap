@@ -53,10 +53,10 @@ public:
     simple constant is to allow pipeline execution - for example recomputing
     the minimum and maximum of an image, if necessary
     */
-  void SetImageMinInput(MinMaxObjectType *input);
+  void SetImageMinInput(const MinMaxObjectType *input);
 
   /** See notes for SetImageMinInput */
-  void SetImageMaxInput(MinMaxObjectType *input);
+  void SetImageMaxInput(const MinMaxObjectType *input);
 
   itkGetMacro(ImageMinInput, MinMaxObjectType *)
   itkGetMacro(ImageMaxInput, MinMaxObjectType *)
@@ -85,8 +85,7 @@ public:
 
   virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
-  virtual void ThreadedGenerateData(const OutputImageRegionType &region,
-                            itk::ThreadIdType threadId) ITK_OVERRIDE;
+  virtual void DynamicThreadedGenerateData(const OutputImageRegionType &region) ITK_OVERRIDE;
 
 
 protected:

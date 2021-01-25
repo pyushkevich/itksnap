@@ -21,8 +21,7 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
 template<class TInputImage>
 void
 RGBALookupTableIntensityMappingFilter<TInputImage>
-::ThreadedGenerateData(const OutputImageRegionType &region,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &region)
 {
   // Get all the inputs
   std::vector<const InputImageType *> inputs(3);

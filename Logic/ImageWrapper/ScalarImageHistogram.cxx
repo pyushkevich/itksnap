@@ -79,15 +79,15 @@ ScalarImageHistogram
 
 void
 ScalarImageHistogram
-::AddCompatibleHistogram(const Self &addee)
+::AddCompatibleHistogram(const Self *addee)
 {
-  assert(addee.m_Bins.size() == m_Bins.size());
-  assert(addee.m_FirstBinStart == m_FirstBinStart);
-  assert(addee.m_BinWidth == m_BinWidth);
+  assert(addee->m_Bins.size() == m_Bins.size());
+  assert(addee->m_FirstBinStart == m_FirstBinStart);
+  assert(addee->m_BinWidth == m_BinWidth);
 
   for(unsigned int i = 0; i < m_Bins.size(); i++)
     {
-    unsigned long n = addee.m_Bins[i];
+    unsigned long n = addee->m_Bins[i];
     unsigned long k = (m_Bins[i] += n);
     m_MaxFrequency = std::max(m_MaxFrequency, k);
     m_TotalSamples+=n;

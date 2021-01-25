@@ -63,7 +63,6 @@ EdgePreprocessingImageFilter<TInputImage,TOutputImage>
 
   // Prevent streaming inside the Gaussian filter because we will be streaming
   // anyway. Too much streaming increases execution time unnecessarilty
-  m_BlurFilter->SetInternalNumberOfStreamDivisions(1);
   m_BlurFilter->SetMaximumError(0.1);
 
   m_GradMagFilter = GradMagFilter::New();

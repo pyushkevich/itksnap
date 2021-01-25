@@ -243,7 +243,7 @@ ImageIOWizardModel::GetSummaryItem(ImageIOWizardModel::SummaryItem item)
     return triple2str(m_GuidedIO->GetNativeImage()->GetOrigin());
 
   case ImageIOWizardModel::SI_ORIENT:
-    dir = m_GuidedIO->GetNativeImage()->GetDirection().GetVnlMatrix();
+    dir = m_GuidedIO->GetNativeImage()->GetDirection().GetVnlMatrix().as_matrix();
     rai = ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dir);
     if(ImageCoordinateGeometry::IsDirectionMatrixOblique(dir))
       sout << "Oblique (closest to " << rai << ")";

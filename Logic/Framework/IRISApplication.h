@@ -40,7 +40,7 @@
 #include "ImageCoordinateTransform.h"
 #include "IRISDisplayGeometry.h"
 #include "itkImageRegion.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "GlobalState.h"
 #include "ColorLabelTable.h"
 #include "itkCommand.h"

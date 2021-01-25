@@ -14,21 +14,23 @@ EventBucket::~EventBucket()
 
 void EventBucket::Clear()
 {
-  m_Lock.Lock();
+  // Prevent parallel access by multiple threads
+  std::lock_guard<std::recursive_mutex> guard(m_Mutex);
+
   // Remove all the event objects
   for(BucketIt it = m_Bucket.begin(); it != m_Bucket.end(); ++it)
     {
     delete(it->first);
     }
   m_Bucket.clear();
-  m_Lock.Unlock();
-
   m_MTime = m_GlobalMTime++;
 }
 
 bool EventBucket::HasEvent(const itk::EventObject &evt, const itk::Object *source) const
 {
-  m_Lock.Lock();
+  // Prevent parallel access by multiple threads
+  std::lock_guard<std::recursive_mutex> guard(m_Mutex);
+
   // Search for the event. Buckets are never too large so a linear search is fine
   for(BucketIt it = m_Bucket.begin(); it != m_Bucket.end(); ++it)
     {
@@ -37,12 +39,10 @@ bool EventBucket::HasEvent(const itk::EventObject &evt, const itk::Object *sourc
     std::string eentry = entry.first->GetEventName();
     if(evt.CheckEvent(entry.first) && (source == NULL || source == entry.second))
       {
-      m_Lock.Unlock();
       return true;
       }
     }
 
-  m_Lock.Unlock();
   return false;
 }
 
@@ -53,14 +53,15 @@ bool EventBucket::IsEmpty() const
 
 void EventBucket::PutEvent(const itk::EventObject &evt, const itk::Object *source)
 {
+  // Prevent parallel access by multiple threads
+  std::lock_guard<std::recursive_mutex> guard(m_Mutex);
+
   if(!this->HasEvent(evt, source))
     {
     BucketEntry entry;
     entry.first = evt.MakeObject();
     entry.second = source;
-    m_Lock.Lock();
     m_Bucket.insert(entry);
-    m_Lock.Unlock();
     m_MTime = m_GlobalMTime++;
     }
 }

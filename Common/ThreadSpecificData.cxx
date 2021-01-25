@@ -35,7 +35,6 @@
 
 =========================================================================*/
 #include "ThreadSpecificData.h"
-#include "itkMultiThreader.h"
 #ifndef DONT_USE_IRIS_EXCEPTION
   #include "IRISException.h"
 #endif

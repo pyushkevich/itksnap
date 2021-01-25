@@ -25,19 +25,19 @@ AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 template<class TInputImage, class TOutputLUT, class TComponent>
 void
 AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
-::SetImageMinInput(MinMaxObjectType *input)
+::SetImageMinInput(const MinMaxObjectType *input)
 {
-  m_ImageMinInput = input;
-  this->SetInput("image_min", input);
+  m_ImageMinInput = const_cast<MinMaxObjectType *>(input);
+  this->SetInput("image_min", m_ImageMinInput);
 }
 
 template<class TInputImage, class TOutputLUT, class TComponent>
 void
 AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
-::SetImageMaxInput(MinMaxObjectType *input)
+::SetImageMaxInput(const MinMaxObjectType *input)
 {
-  m_ImageMaxInput = input;
-  this->SetInput("image_max", input);
+  m_ImageMaxInput = const_cast<MinMaxObjectType *>(input);
+  this->SetInput("image_max", m_ImageMaxInput);
 }
 
 template<class TInputImage, class TOutputLUT, class TComponent>
@@ -112,8 +112,7 @@ AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
 template<class TInputImage, class TOutputLUT, class TComponent>
 void
 AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
-::ThreadedGenerateData(const OutputImageRegionType &region,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &region)
 {
   // Get the image max and min
   InputComponentType imin = m_ImageMinInput->Get(), imax = m_ImageMaxInput->Get();

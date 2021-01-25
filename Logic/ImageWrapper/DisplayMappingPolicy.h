@@ -219,8 +219,8 @@ public:
    * in the imagewrapper is a subregion of another image, or when the image is
    * a component of a multi-component image.
    */
-  void SetReferenceIntensityRange(ComponentObjectType *refMin,
-                                  ComponentObjectType *refMax);
+  void SetReferenceIntensityRange(const ComponentObjectType *refMin,
+                                  const ComponentObjectType *refMax);
 
   void ClearReferenceIntensityRange();
 

@@ -205,7 +205,7 @@ public:
    * can happen if the meshes are being generated from the level set data
    * in a background thread
    */
-  irisGetMacro(LevelSetPipelineMutexLock, itk::FastMutexLock *)
+  std::mutex *GetLevelSetPipelineMutex() { return &m_LevelSetPipelineMutex; }
 
   /** ====================================================================== */
 
@@ -287,7 +287,7 @@ protected:
 
   // SNAPImageData provides a mutex lock that prevents multiple threads from
   // causing the level set pipeline to update at once.
-  SmartPtr<itk::FastMutexLock> m_LevelSetPipelineMutexLock;
+  std::mutex m_LevelSetPipelineMutex;
 
   // Are we in example mode
   bool m_LabelImageInExampleMode;

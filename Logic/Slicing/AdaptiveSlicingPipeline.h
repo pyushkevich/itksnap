@@ -160,7 +160,7 @@ protected:
   AdaptiveSlicingPipeline();
   ~AdaptiveSlicingPipeline();
 
-  virtual void VerifyInputInformation() ITK_OVERRIDE { }
+  virtual void VerifyInputInformation() const ITK_OVERRIDE { }
 
   virtual void GenerateOutputInformation() ITK_OVERRIDE;
 

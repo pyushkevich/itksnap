@@ -43,10 +43,12 @@ function enterSnakeMode(pos_x, pos_y, pos_z, size_x, size_y, size_z)
 
   var roipanel = engine.findChild(mainwin, "pageSnakeTool");
 
-  //=== Setting ROI dimensions
+  //=== Setting ROI position
   engine.findChild(roipanel,"inIndexX").value = pos_x;
   engine.findChild(roipanel,"inIndexY").value = pos_y;
   engine.findChild(roipanel,"inIndexZ").value = pos_z;
+
+  //=== Setting ROI size
   engine.findChild(roipanel,"inSizeX").value = size_x;
   engine.findChild(roipanel,"inSizeY").value = size_y;
   engine.findChild(roipanel,"inSizeZ").value = size_z;

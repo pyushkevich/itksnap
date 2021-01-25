@@ -45,7 +45,6 @@
 #include "itkMaximumImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkUnaryFunctorImageFilter.h"
-#include "itkFastMutexLock.h"
 
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "GlobalState.h"
@@ -71,9 +70,6 @@ SNAPImageData
 
   // Set the initial label color
   m_SnakeColorLabel = 0;
-
-  // Create the mutex lock
-  m_LevelSetPipelineMutexLock = itk::FastMutexLock::New();
 
   m_CompressedAlternateLabelImage = NULL;
 }
@@ -187,8 +183,8 @@ SNAPImageData
   TargetIterator itTarget(imgLevelSet,region);
 
   // During the copy loop, compute the extents of the initialization
-  Vector3l bbLower = region.GetSize();
-  Vector3l bbUpper = region.GetIndex();
+  Vector3i bbLower = region.GetSize();
+  Vector3i bbUpper = region.GetIndex();
 
   unsigned long nInitVoxels = 0;
 
@@ -199,7 +195,7 @@ SNAPImageData
     if(itSource.Value() == m_SnakeColorLabel)
       {
       // Expand the bounding box accordingly
-      Vector3l point = itTarget.GetIndex();
+      Vector3i point = itTarget.GetIndex();
       bbLower = vector_min(bbLower,point);
       bbUpper = vector_max(bbUpper,point);
       
@@ -219,7 +215,7 @@ SNAPImageData
     {
     // Compute the extents of the bubble
     typedef itk::Point<double,3> PointType;
-    PointType ptLower,ptUpper,ptCenter;
+    PointType ptCenter;
 
     // Compute the physical position of the bubble center
     imgLevelSet->TransformIndexToPhysicalPoint(
@@ -259,8 +255,8 @@ SNAPImageData
     regBubble.Crop(region);
 
     // Stretch the overall bounding box if necessary
-    bbLower = vector_min(bbLower,Vector3l(idxLower));
-    bbUpper = vector_max(bbUpper,Vector3l(idxUpper));
+    bbLower = vector_min(bbLower,Vector3i(idxLower));
+    bbUpper = vector_max(bbUpper,Vector3i(idxUpper));
 
     // Create an iterator with an index to fill out the bubble
     TargetIterator itThisBubble(imgLevelSet, regBubble);
@@ -376,7 +372,7 @@ SNAPImageData
   m_CurrentSnakeParameters = p;
 
   // Enter a thread-safe section
-  m_LevelSetPipelineMutexLock->Lock();
+  m_LevelSetPipelineMutex.lock();
 
   // Initialize the snake driver and pass the parameters
   m_LevelSetDriver = new SNAPLevelSetDriver3d(
@@ -394,7 +390,7 @@ SNAPImageData
         m_LevelSetDriver->GetOutput()->GetPixelContainer()->Size());
 
   // Finish thread-safe section
-  m_LevelSetPipelineMutexLock->Unlock();
+  m_LevelSetPipelineMutex.unlock();
 
   // Fire events (layers changed and level set image changed)
   this->InvokeEvent(LayerChangeEvent());
@@ -415,7 +411,7 @@ SNAPImageData
   // Pass through to the level set driver
 
   // Enter a thread-safe section
-  m_LevelSetPipelineMutexLock->Lock();
+  m_LevelSetPipelineMutex.lock();
 
   // clock_t c1 = clock();
   m_LevelSetDriver->Run(nIterations);
@@ -425,7 +421,7 @@ SNAPImageData
   // clock_t c2 = clock();
 
   // Leave a thread-safe section
-  m_LevelSetPipelineMutexLock->Unlock();
+  m_LevelSetPipelineMutex.unlock();
 
   /*
   std::cout << (c2 - c1) * 1.0 / (CLOCKS_PER_SEC * nIterations)
@@ -440,7 +436,7 @@ SNAPImageData
 ::IsEvolutionConverged()
 {
   // Make the method reentrant
-  itk::MutexLockHolder<itk::FastMutexLock> holder(*m_LevelSetPipelineMutexLock);
+  std::lock_guard<std::mutex> guard(m_LevelSetPipelineMutex);
 
   return m_LevelSetDriver->IsEvolutionConverged();
 }
@@ -453,7 +449,7 @@ SNAPImageData
   assert(m_LevelSetDriver);
 
   // Enter a thread-safe section
-  m_LevelSetPipelineMutexLock->Lock();
+  m_LevelSetPipelineMutex.lock();
 
   // Pass through to the level set driver
   m_LevelSetDriver->Restart();
@@ -467,7 +463,7 @@ SNAPImageData
         m_LevelSetDriver->GetOutput()->GetPixelContainer()->Size());
 
   // Leave a thread-safe section
-  m_LevelSetPipelineMutexLock->Unlock();
+  m_LevelSetPipelineMutex.unlock();
 
   // Fire the update event
   this->InvokeEvent(LevelSetImageChangeEvent());
@@ -481,13 +477,13 @@ SNAPImageData
   assert(m_LevelSetDriver);
 
   // Enter a thread-safe section
-  m_LevelSetPipelineMutexLock->Lock();
+  m_LevelSetPipelineMutex.lock();
 
   // Delete the level set driver and all the problems that go along with it
   delete m_LevelSetDriver; m_LevelSetDriver = NULL;
 
   // Leave a thread-safe section
-  m_LevelSetPipelineMutexLock->Unlock();
+  m_LevelSetPipelineMutex.unlock();
 
   // Fire the update event
   this->InvokeEvent(LevelSetImageChangeEvent());

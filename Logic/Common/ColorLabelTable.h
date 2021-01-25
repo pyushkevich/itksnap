@@ -37,7 +37,7 @@
 
 #include "Registry.h"
 #include "ColorLabel.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "itkDataObject.h"
 #include "SNAPEvents.h"
 #include "itkObjectFactory.h"

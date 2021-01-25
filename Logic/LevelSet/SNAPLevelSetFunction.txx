@@ -38,8 +38,6 @@
 #include "itkUnaryFunctorImageFilter.h"
 #include "itkMultiplyImageFilter.h"
 #include "itkNumericTraits.h"
-#include "itkSimpleFastMutexLock.h"
-#include "itkMutexLockHolder.h"
 
 #include <map>
 
@@ -111,16 +109,15 @@ SNAPLevelSetFunction<TSpeedImageType,TImageType>
                  GlobalDataStruct *) const
 {
   IndexType idx = neighborhood.GetIndex();
-  typedef typename VectorInterpolatorType::ContinuousIndexType VectorContinuousIndexType;
-  VectorContinuousIndexType cdx;
-  typename SNAPLevelSetFunction<TSpeedImageType,TImageType>::VectorType avec;
+  typename VectorInterpolatorType::ContinuousIndexType cdx;
+  VectorType avec;
+
   for (unsigned i = 0; i < ImageDimension; ++i)
-    {
     cdx[i] = static_cast<double>(idx[i]) - offset[i];
-    }
+
   if ( m_AdvectionFieldInterpolator->IsInsideBuffer(cdx) )
     {
-    avec = m_VectorCast(m_AdvectionFieldInterpolator->EvaluateAtContinuousIndex(cdx));
+    avec = m_AdvectionFieldInterpolator->EvaluateAtContinuousIndex(cdx);
     }
   else
     {
@@ -148,21 +145,6 @@ SNAPLevelSetFunction<TSpeedImageType, TImageType>
     const NeighborhoodType &neighborhood,
     void *globalData, const FloatOffsetType &offset)
 {
-
-  // Interpolate the speed value at this location. This way, we don't need to
-  // perform interpolation each time the GetXXXSpeed() function is called.
-  IndexType idx = neighborhood.GetIndex();
-  ContinuousIndexType cdx;
-  for (unsigned i = 0; i < ImageDimension; ++i)
-    cdx[i] = static_cast<double>(idx[i]) - offset[i];
-
-  // Store the speed in thread-specific memory
-  m_CachedSpeed =
-      m_SpeedScaleFactor * static_cast<ScalarValueType>(
-        m_SpeedInterpolator->IsInsideBuffer(cdx)
-        ? m_SpeedInterpolator->EvaluateAtContinuousIndex(cdx)
-        : m_SpeedImage->GetPixel(idx));
-
   // Call the parent method
   return Superclass::ComputeUpdate(neighborhood, globalData, offset);
 }
@@ -175,9 +157,35 @@ SNAPLevelSetFunction<TSpeedImageType, TImageType>
                        const FloatOffsetType &offset,
                        GlobalDataStruct *) const
 {
-  // Get the speed value from thread-specific cache
-  ScalarValueType speed = m_CachedSpeed;
+  thread_local ScalarValueType cached_speed = 0;
+  thread_local IndexType cached_speed_index;
+  thread_local SpeedImageType *cached_speed_ptr = nullptr;
 
+  IndexType idx = neighbourhood.GetIndex();
+
+  if(cached_speed_ptr != m_SpeedImage || cached_speed_index != neighbourhood.GetIndex())
+    {
+    // Interpolate the speed value at this location. This way, we don't need to
+    // perform interpolation each time the GetXXXSpeed() function is called.
+    ContinuousIndexType cdx;
+    for (unsigned i = 0; i < ImageDimension; ++i)
+      cdx[i] = static_cast<double>(idx[i]) - offset[i];
+
+    // Store the speed in thread-specific memory
+    cached_speed =
+        m_SpeedScaleFactor * static_cast<ScalarValueType>(
+          m_SpeedInterpolator->IsInsideBuffer(cdx)
+          ? m_SpeedInterpolator->EvaluateAtContinuousIndex(cdx)
+          : m_SpeedImage->GetPixel(idx));
+
+    cached_speed_index = idx;
+    cached_speed_ptr = m_SpeedImage;
+    }
+
+  // Use the cached speed value
+  ScalarValueType speed = cached_speed;
+
+  // Get the speed value from thread-specific cache
   switch(exponent)
     {
     case 0 : return itk::NumericTraits<ScalarValueType>::One;

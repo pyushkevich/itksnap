@@ -24,12 +24,12 @@ ThreadedHistogramImageFilter<TInputImage>
 template <class TInputImage>
 void
 ThreadedHistogramImageFilter<TInputImage>
-::SetRangeInputs(PixelObjectType *inMin, PixelObjectType *inMax)
+::SetRangeInputs(const PixelObjectType *inMin, const PixelObjectType *inMax)
 {
-  m_InputMin = inMin;
-  m_InputMax = inMax;
-  this->SetNthInput(1, inMin);
-  this->SetNthInput(2, inMax);
+  m_InputMin = const_cast<PixelObjectType*>(inMin);
+  m_InputMax = const_cast<PixelObjectType*>(inMax);
+  this->SetNthInput(1, m_InputMin);
+  this->SetNthInput(2, m_InputMax);
 }
 
 template <class TInputImage>
@@ -94,59 +94,44 @@ ThreadedHistogramImageFilter<TInputImage>
   // Nothing to be done for the histogram output
 }
 
-template <class TInputImage>
+template< class TInputImage >
 void
 ThreadedHistogramImageFilter<TInputImage>
-::BeforeThreadedGenerateData()
+::GenerateData()
 {
-  itk::ThreadIdType numberOfThreads = this->GetNumberOfThreads();
+  this->AllocateOutputs();
 
   // Get the range of the histogram
   PixelType pxmin = m_InputMin->Get();
   PixelType pxmax = m_InputMax->Get();
 
-  // Initialize the per-thread histograms
-  m_ThreadHistogram.resize(numberOfThreads);
-  for(unsigned int i = 0; i < numberOfThreads; i++)
-    {
-    m_ThreadHistogram[i] = HistogramType::New();
-    m_ThreadHistogram[i]->Initialize(pxmin, pxmax, m_Bins);
-    }
-
   // Initialize the output
   m_OutputHistogram->Initialize(pxmin, pxmax, m_Bins);
-}
 
-template< class TInputImage >
-void
-ThreadedHistogramImageFilter<TInputImage>
-::ThreadedGenerateData(const RegionType &outputRegionForThread,
-                       itk::ThreadIdType threadId)
-{
-  if ( outputRegionForThread.GetNumberOfPixels() == 0 )
-    return;
+  // A mutex to control updating the output histogram
+  std::mutex histo_mutex;
 
-  // Get the histogram for this thread
-  HistogramType *hist = m_ThreadHistogram[threadId];
-
-  itk::ImageRegionConstIterator< TInputImage > it(this->GetInput(), outputRegionForThread);
-  while(!it.IsAtEnd())
+  // Parrallel block
+  itk::MultiThreaderBase::Pointer mt = itk::MultiThreaderBase::New();
+  mt->ParallelizeImageRegion<Self::OutputImageDimension>(
+        this->GetOutput()->GetBufferedRegion(),
+        [this, pxmin, pxmax, &histo_mutex](const RegionType &region)
     {
-    hist->AddSample(it.Get());
-    ++it;
-    }
-}
+    // Create a thread-local histogram
+    HistogramType::Pointer local_hist = HistogramType::New();
+    local_hist->Initialize(pxmin, pxmax, m_Bins);
 
-template< class TInputImage >
-void
-ThreadedHistogramImageFilter<TInputImage>
-::AfterThreadedGenerateData()
-{
-  // Add up the partial histograms
-  for(unsigned int i = 0; i < m_ThreadHistogram.size(); i++)
-    {
-    m_OutputHistogram->AddCompatibleHistogram(*m_ThreadHistogram[i]);
-    }
+    // Compute the histogram
+    for(itk::ImageRegionConstIterator< TInputImage > it(this->GetInput(), region);
+        !it.IsAtEnd(); ++it)
+      {
+      local_hist->AddSample(it.Get());
+      }
+
+    // In a reentrant block, update the main histogram
+    std::lock_guard<std::mutex> guard(histo_mutex);
+    m_OutputHistogram->AddCompatibleHistogram(local_hist);
+    }, nullptr);
 
   // Apply the transform to the histogram
   m_OutputHistogram->ApplyIntensityTransform(m_TransformScale, m_TransformShift);

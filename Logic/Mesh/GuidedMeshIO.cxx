@@ -3,7 +3,7 @@
 #include "vtkSTLWriter.h"
 #include "vtkBYUWriter.h"
 #include "vtkTriangleFilter.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 
 GuidedMeshIO
 ::GuidedMeshIO()

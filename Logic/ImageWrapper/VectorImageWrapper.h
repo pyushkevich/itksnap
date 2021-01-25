@@ -195,8 +195,8 @@ public:
   /**
    * Get the component-wise minimum and maximum of the image in native format
    */
-  virtual ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
-  virtual ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
+  virtual const ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
+  virtual const ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
 
   /** Compute statistics over a run of voxels in the image starting at the index
    * startIdx. Appends the statistics to a running sum and sum of squared. The

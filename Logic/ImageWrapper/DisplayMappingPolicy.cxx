@@ -200,7 +200,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 template<class TWrapperTraits>
 void
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
-::SetReferenceIntensityRange(ComponentObjectType *refMin, ComponentObjectType *refMax)
+::SetReferenceIntensityRange(const ComponentObjectType *refMin, const ComponentObjectType *refMax)
 {
   m_LookupTableFilter->SetImageMinInput(refMin);
   m_LookupTableFilter->SetImageMaxInput(refMax);

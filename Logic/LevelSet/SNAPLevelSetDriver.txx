@@ -94,8 +94,6 @@ public:
     else
       return ts;
   }
-
-  itk::SimpleFastMutexLock locky;
 };
 
 

@@ -1,7 +1,67 @@
 #############################################
 # REQUIRE ITK 3.20 OR LATER                 #
 #############################################
-FIND_PACKAGE(ITK REQUIRED)
+FIND_PACKAGE(ITK 5.1.2 REQUIRED COMPONENTS
+  ITKAnisotropicSmoothing
+  ITKAntiAlias
+  ITKBiasCorrection
+  ITKBinaryMathematicalMorphology
+  ITKColormap
+  ITKCommon
+  ITKConnectedComponents
+  ITKConvolution
+  ITKDisplacementField
+  ITKDistanceMap
+  ITKFFT
+  ITKFiniteDifference
+  ITKGDCM
+  ITKGPUCommon
+  ITKGPUSmoothing
+  ITKIOGDCM
+  ITKIOGE
+  ITKIOGIPL
+  ITKIOImageBase
+  ITKIOMeshBase
+  ITKIOMeta
+  ITKIONIFTI
+  ITKIONRRD
+  ITKIORAW
+  ITKIOSiemens
+  ITKIOTransformBase
+  ITKIOVTK
+  ITKIOXML
+  ITKImageAdaptors
+  ITKImageCompare
+  ITKImageCompose
+  ITKImageFeature
+  ITKImageFilterBase
+  ITKImageFunction
+  ITKImageGradient
+  ITKImageGrid
+  ITKImageIntensity
+  ITKImageLabel
+  ITKImageNoise
+  ITKImageStatistics
+  ITKLabelMap
+  ITKLevelSets
+  ITKMathematicalMorphology
+  ITKMesh
+  ITKRegistrationCommon
+  ITKSmoothing
+  ITKSpatialObjects
+  ITKStatistics
+  ITKTestKernel
+  ITKThresholding
+  ITKTransform
+  ITKTransformFactory
+  ITKVTK
+  ITKWatersheds
+  ITKZLIB
+  ITKImageIO
+  ITKMeshIO
+  ITKTransformIO
+  MorphologicalContourInterpolation)
+
 INCLUDE(${ITK_USE_FILE})
 
 #############################################

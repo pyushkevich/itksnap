@@ -118,17 +118,15 @@ ScalarImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-typename ScalarImageWrapper<TTraits,TBase>::ComponentTypeObject *
-ScalarImageWrapper<TTraits,TBase>
-::GetImageMinObject() const
+const typename ScalarImageWrapper<TTraits, TBase>::ComponentTypeObject *
+ScalarImageWrapper<TTraits, TBase>::GetImageMinObject() const
 {
   return m_MinMaxFilter->GetMinimumOutput();
 }
 
 template<class TTraits, class TBase>
-typename ScalarImageWrapper<TTraits,TBase>::ComponentTypeObject *
-ScalarImageWrapper<TTraits,TBase>
-::GetImageMaxObject() const
+const typename ScalarImageWrapper<TTraits, TBase>::ComponentTypeObject *
+ScalarImageWrapper<TTraits, TBase>::GetImageMaxObject() const
 {
   return m_MinMaxFilter->GetMaximumOutput();
 }
@@ -228,8 +226,7 @@ public:
 
   itkGetConstReferenceMacro(Functor, FunctorType)
 
-  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                            itk::ThreadIdType threadId) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread) ITK_OVERRIDE;
 
 
 protected:
@@ -246,7 +243,7 @@ protected:
 template <class TInputImage, class TOutputImage, class TFunctor>
 void
 UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, TFunctor>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
   // Use our fast iterators for vector images
   typedef itk::ImageLinearIteratorWithIndex<OutputImageType> IterBase;

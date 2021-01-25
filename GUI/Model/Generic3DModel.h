@@ -5,7 +5,7 @@
 #include "PropertyModel.h"
 #include "vtkSmartPointer.h"
 #include "SNAPEvents.h"
-#include "itkMutexLock.h"
+#include <mutex>
 
 class GlobalUIModel;
 class IRISApplication;
@@ -165,9 +165,8 @@ protected:
   // Time of the last mesh clear operation
   unsigned long m_ClearTime;
 
-  // A mutex lock to allow background processing of mesh updates
-  itk::SimpleFastMutexLock m_MutexLock;
-
+  // A mutex to allow background processing of mesh updates
+  std::mutex m_Mutex;
 };
 
 #endif // GENERIC3DMODEL_H

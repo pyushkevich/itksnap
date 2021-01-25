@@ -653,8 +653,8 @@ int main(int argc, char *argv[])
   // Deal with threads
   if(argdata.nThreads > 0)
     {
-    itk::MultiThreader::SetGlobalDefaultNumberOfThreads(argdata.nThreads);
-    itk::MultiThreader::SetGlobalMaximumNumberOfThreads(argdata.nThreads);
+    itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(argdata.nThreads);
+    itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(argdata.nThreads);
     }
 
   // Turn off ITK and VTK warning windows

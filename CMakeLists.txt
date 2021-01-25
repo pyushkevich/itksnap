@@ -9,12 +9,13 @@ PROJECT(SNAP)
 #--------------------------------------------------------------------------------
 # CMAKE PRELIMINARIES                       
 #--------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 IF(POLICY CMP0026)
-  cmake_policy(SET CMP0026 OLD)
+  cmake_policy(SET CMP0026 NEW)
+  cmake_policy(SET CMP0080 OLD)
 ENDIF(POLICY CMP0026)
 
 SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
@@ -238,13 +239,13 @@ SET(LOGIC_CXX
   Common/HistoryManager.cxx
   Common/IPCHandler.cxx
   Common/IRISException.cxx
+  Common/IRISVectorTemplates.cxx
   Common/Rebroadcaster.cxx
   Common/Registry.cxx
   Common/SNAPEvents.cxx
   Common/SNAPOpenGL.cxx
   Common/SystemInterface.cxx
   Common/TagList.cxx
-  Common/ThreadSpecificData.cxx
   Common/Trackball.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
@@ -333,8 +334,6 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkBinaryDiamondStructuringElement.txx
   Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.h
   Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.txx
-  Common/ITKExtras/itkMorphologicalContourInterpolator.h
-  Common/ITKExtras/itkMorphologicalContourInterpolator.hxx
   Common/ITKExtras/itkParallelSparseFieldLevelSetImageFilterBugFix.h
   Common/ITKExtras/itkParallelSparseFieldLevelSetImageFilterBugFix.txx
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.h
@@ -354,7 +353,6 @@ SET(LOGIC_HEADERS
   Common/SNAPEvents.h
   Common/SystemInterface.h
   Common/TagList.h
-  Common/ThreadSpecificData.h
   Common/Trackball.h
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
@@ -529,7 +527,6 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/OrientationGraphicRenderer.cxx
   GUI/Renderer/PaintbrushRenderer.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
-  GUI/Renderer/PolygonScanConvert.cxx
   GUI/Renderer/RegistrationRenderer.cxx
   GUI/Renderer/SliceWindowDecorationRenderer.cxx
   GUI/Renderer/SnakeParameterPreviewRenderer.cxx
@@ -1261,15 +1258,8 @@ add_test(NAME IRISApplicationTest COMMAND logic_api_test)
 # Set up a test for each GUI test
 FOREACH(GUI_TEST ${GUI_TESTS})
 
-  # The path of the test - not obvious?
-  IF(APPLE)
-    GET_PROPERTY(GUI_TEST_EXE TARGET ${SNAP_BUNDLE_NAME} PROPERTY LOCATION)
-  ELSE(APPLE)
-    SET(GUI_TEST_EXE ${SNAP_BUNDLE_NAME})
-  ENDIF(APPLE)
-    
   # Add the test
-  ADD_TEST(${GUI_TEST} ${GUI_TEST_EXE} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}")
+  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_BUNDLE_NAME} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}")
 
   # Set the environment for the test to include Qt
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)

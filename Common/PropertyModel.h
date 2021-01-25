@@ -929,7 +929,7 @@ public:
 
     // p->UnRegister();
 
-    SmartPtr<Superclass> pout(p);
+    SmartPtr<Superclass> pout(p.GetPointer());
     return pout;
   }
 
@@ -1326,7 +1326,7 @@ public:
 
     // p->UnRegister();
 
-    SmartPtr<Superclass> pout(p);
+    SmartPtr<Superclass> pout(p.GetPointer());
     return pout;
   }
 

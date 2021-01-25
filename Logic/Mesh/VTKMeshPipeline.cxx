@@ -246,7 +246,7 @@ VTKMeshPipeline
 
 void
 VTKMeshPipeline
-::ComputeMesh(vtkPolyData *outMesh, itk::FastMutexLock *lock)
+::ComputeMesh(vtkPolyData *outMesh, std::mutex *mutex)
 {
   // Reset the progress meter
   m_Progress->ResetProgress();
@@ -263,9 +263,9 @@ VTKMeshPipeline
   m_VTKImporter->Modified();
 
   // Update the importer
-  if(lock) lock->Lock();
+  if(mutex) mutex->lock();
   m_VTKImporter->Update();
-  if(lock) lock->Unlock();
+  if(mutex) mutex->unlock();
 
   // Update the pipeline
   m_StripperFilter->Update();

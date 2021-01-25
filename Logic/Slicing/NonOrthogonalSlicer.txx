@@ -109,8 +109,7 @@ NonOrthogonalSlicer<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 NonOrthogonalSlicer<TInputImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
   // The input 3D image volume
   InputImageType *input = const_cast<InputImageType *>(this->GetInput());

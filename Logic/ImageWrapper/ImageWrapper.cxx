@@ -1617,7 +1617,7 @@ ImageWrapper<TTraits,TBase>
     {
     // Set the geometry based on the current image characteristics
     m_ImageGeometry.SetGeometry(
-          m_ReferenceSpace->GetDirection().GetVnlMatrix(),
+          m_ReferenceSpace->GetDirection().GetVnlMatrix().as_matrix(),
           m_DisplayGeometry,
           m_ReferenceSpace->GetLargestPossibleRegion().GetSize());
 
@@ -1649,7 +1649,8 @@ ImageWrapper<TTraits,TBase>
     size.Fill(0);
 
     // Set the geometry to default values
-    m_ImageGeometry.SetGeometry(dirmat.GetVnlMatrix(), m_DisplayGeometry, size);
+    m_ImageGeometry.SetGeometry(dirmat.GetVnlMatrix().as_matrix(),
+                                m_DisplayGeometry, size);
 
     // TODO: why are we not updating the slicers?
     // TODO: does this code even get run?
@@ -1667,7 +1668,7 @@ ImageWrapper<TTraits,TBase>
 
   // Update the NIFTI/RAS transform
   m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
-    m_ReferenceSpace->GetDirection().GetVnlMatrix(),
+    m_ReferenceSpace->GetDirection().GetVnlMatrix().as_matrix(),
     m_ReferenceSpace->GetOrigin().GetVnlVector(),
     m_ReferenceSpace->GetSpacing().GetVnlVector());
 
@@ -1712,7 +1713,7 @@ inline double
 ImageWrapper<TTraits,TBase>
 ::GetImageMinAsDouble()
 {
-  this->GetImageMinObject()->Update();
+  const_cast<ComponentTypeObject *>(this->GetImageMinObject())->Update();
   return static_cast<double>(this->GetImageMinObject()->Get());
 }
 
@@ -1721,7 +1722,7 @@ inline double
 ImageWrapper<TTraits,TBase>
 ::GetImageMaxAsDouble()
 {
-  this->GetImageMaxObject()->Update();
+  const_cast<ComponentTypeObject *>(this->GetImageMaxObject())->Update();
   return static_cast<double>(this->GetImageMaxObject()->Get());
 }
 
@@ -1730,7 +1731,7 @@ inline double
 ImageWrapper<TTraits,TBase>
 ::GetImageMinNative()
 {
-  this->GetImageMinObject()->Update();
+  const_cast<ComponentTypeObject *>(this->GetImageMinObject())->Update();
   return m_NativeMapping(this->GetImageMinObject()->Get());
 }
 
@@ -1739,11 +1740,9 @@ inline double
 ImageWrapper<TTraits,TBase>
 ::GetImageMaxNative()
 {
-  this->GetImageMaxObject()->Update();
+  const_cast<ComponentTypeObject *>(this->GetImageMaxObject())->Update();
   return m_NativeMapping(this->GetImageMaxObject()->Get());
 }
-
-
 
 /** For each slicer, find out which image dimension does is slice along */
 template<class TTraits, class TBase>

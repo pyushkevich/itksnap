@@ -39,9 +39,6 @@
 
 #include "itkFiniteDifferenceFunction.h" 
 #include "itkFiniteDifferenceImageFilter.h" 
-#include "itkMutexLock.h"
-#include "itkConditionVariable.h"
-#include "itkBarrier.h"
 #include "itkCommand.h"
 
 /** A generic extension of a filter (intended to be a 
