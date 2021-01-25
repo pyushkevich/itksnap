@@ -6,7 +6,6 @@
 #include "IRISApplication.h"
 #include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
-#include "itkLabelVotingImageFilter.h"
 #include "itkImageDuplicator.h"
 #include "itkBinaryFunctorImageFilter.h"
 #include "SegmentationUpdateIterator.h"
