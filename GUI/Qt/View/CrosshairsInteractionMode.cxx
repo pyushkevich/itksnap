@@ -268,8 +268,8 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
     // Current layer
     ImageWrapperBase *layer =
         m_Model->GetParent()->GetContextLayerAtPosition(
-          event->position().x(),
-          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - event->position().y(),
+          event->pos().x(),
+          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - event->pos().y(),
         isThumb);
 
     // Main layer
