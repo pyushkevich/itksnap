@@ -225,7 +225,7 @@ public:
 
   /** Return this objects modified time. This will return the latest of our
    * own modified time and the modified times of all the children */
-  virtual unsigned long GetMTime() const ITK_OVERRIDE;
+  virtual itk::ModifiedTimeType GetMTime() const ITK_OVERRIDE;
 
   virtual const itk::TimeStamp &GetTimeStamp() const ITK_OVERRIDE;
 

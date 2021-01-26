@@ -35,7 +35,6 @@
 
 #include "PreprocessingFilterConfigTraits.h"
 #include "SlicePreviewFilterWrapper.h"
-#include "SlicePreviewFilterWrapper.txx"
 #include "GMMClassifyImageFilter.h"
 #include "GMMClassifyImageFilter.txx"
 #include "RandomForestClassifyImageFilter.h"

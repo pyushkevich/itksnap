@@ -48,7 +48,7 @@ bool AbstractPropertyContainerModel::operator != (
   return !(*this == source);
 }
 
-unsigned long AbstractPropertyContainerModel::GetMTime() const
+itk::ModifiedTimeType AbstractPropertyContainerModel::GetMTime() const
 {
   return this->GetTimeStamp().GetMTime();
 }

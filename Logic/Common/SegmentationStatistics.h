@@ -48,7 +48,7 @@ class IRISApplication;
 
 namespace itk {
   template <unsigned int VDim> class ImageRegion;
-  template <unsigned int VDim> class Index;
+  template <unsigned int VDim> struct Index;
 }
 
 class SegmentationStatistics

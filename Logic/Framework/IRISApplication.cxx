@@ -2360,7 +2360,7 @@ IRISApplication
   assert(m_CurrentImageData->IsMainLoaded());
 
   // Perform reorientation in the current image data
-  m_CurrentImageData->SetDirectionMatrix(inDirection);
+  m_CurrentImageData->SetDirectionMatrix(inDirection.as_matrix());
 
   /*
   // Compute a new coordinate transform object

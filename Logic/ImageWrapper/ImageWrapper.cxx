@@ -1937,7 +1937,7 @@ ImageWrapper<TTraits,TBase>
         m_ImageTimePoints.size() == 1,
         "Only single time point images support ImageWrapper::AttachPreviewPipeline")
 
-  std::array<PreviewFilterType *, 3> filter({{f0, f1, f2}});
+  std::array<PreviewFilterType *, 3> filter = {{f0, f1, f2}};
   for(int i = 0; i < 3; i++)
     {
     // Update the preview inputs to the slicers

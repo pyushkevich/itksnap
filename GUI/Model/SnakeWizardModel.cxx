@@ -16,6 +16,7 @@
 #include "RandomForestClassifier.h"
 #include "RandomForestClassifyImageFilter.h"
 #include "NumericPropertyToggleAdaptor.h"
+#include "itkStreamingImageFilter.h"
 
 SnakeWizardModel::SnakeWizardModel()
 {
@@ -1011,7 +1012,7 @@ void SnakeWizardModel
   SmoothBinaryThresholdFunctor<float> functor;
   functor.SetParameters(ts, imin, imax);
 
-  for(int i = 0; i < n; i++)
+  for(unsigned int i = 0; i < n; i++)
     {
     float t = i * 1.0 / (n - 1);
     float x_internal = imin + t * (imax - imin);
@@ -1114,7 +1115,7 @@ void SnakeWizardModel
                         eps->GetRemappingExponent(),
                         eps->GetRemappingSteepness());
 
-  for(int i = 0; i < n; i++)
+  for(unsigned int i = 0; i < n; i++)
     {
     float t = i * 1.0 / (n - 1);
     float x_internal = t * xlim;

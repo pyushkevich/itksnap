@@ -266,7 +266,7 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
   m_VectorImages.push_back(image);
   m_TotalComponents += image->GetVectorLength();
 
-  for(int i = 0; i < image->GetVectorLength(); i++)
+  for(unsigned int i = 0; i < image->GetVectorLength(); i++)
     {
     m_Start.push_back(image->GetBufferPointer() + i);
     m_OffsetScaling.push_back(image->GetVectorLength());

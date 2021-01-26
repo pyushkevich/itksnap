@@ -1,3 +1,6 @@
+#ifndef SlicePreviewFilterWrapper_txx
+#define SlicePreviewFilterWrapper_txx
+
 #include "SlicePreviewFilterWrapper.h"
 
 #include "SmoothBinaryThresholdImageFilter.h"
@@ -201,3 +204,5 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
     Traits::SetActiveScalarLayer(m_ActiveScalarLayer, this->GetNthFilter(i), i);
   this->Modified();
 }
+
+#endif // SlicePreviewFilterWrapper_txx
