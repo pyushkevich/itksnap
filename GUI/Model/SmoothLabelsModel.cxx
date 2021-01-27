@@ -80,6 +80,32 @@ public:
   }
 };
 
+// Debugging
+/*
+template<class ImageType>
+class DebuggingFileWriter
+{
+public:
+  typedef itk::ImageFileWriter<ImageType> ImageWriterType;
+  DebuggingFileWriter() : m_Writer(ImageWriterType::New()) {};
+  void WriteToFile (std::string &fileName, typename ImageType::Pointer data)
+  {
+
+    m_Writer->SetFileName(fileName);
+    m_Writer->SetInput(data);
+    try
+    {
+      m_Writer->Update();
+    } catch (itk::ExceptionObject &error)
+    {
+      std::cerr << "Error: " << error << std::endl;
+    }
+  }
+private:
+  typename ImageWriterType::Pointer m_Writer;
+};
+*/
+
 SmoothLabelsModel::SmoothLabelsModel()
 {
   // Create a new instance of the model
@@ -97,6 +123,23 @@ void SmoothLabelsModel::SetParentModel(GlobalUIModel *parent)
 
   // When label table changed somewhere else, update current model as well
   Rebroadcast(m_LabelTable,SegmentationChangeEvent(), ModelUpdateEvent());
+}
+
+template<typename TImage>
+void SmoothLabelsModel::DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output)
+{
+  output->SetRegions(input->GetLargestPossibleRegion());
+  output->Allocate();
+
+  itk::ImageRegionConstIterator<TImage> inputIterator(input, input->GetLargestPossibleRegion());
+  itk::ImageRegionIterator<TImage>      outputIterator(output, output->GetLargestPossibleRegion());
+
+  while (!inputIterator.IsAtEnd())
+  {
+    outputIterator.Set(inputIterator.Get());
+    ++inputIterator;
+    ++outputIterator;
+  }
 }
 
 void SmoothLabelsModel::UpdateOnShow()
@@ -159,19 +202,21 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
   typedef GenericImageData::LabelImageType LabelImageType;
   // -- Output of Smoothing, Input of Voting
   typedef itk::Image<double, 3> VotingImageType;
+  // -- Output of label voting
+  typedef itk::Image<LabelType, 3> LabelVotingType;
 
   typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> ThresholdFilter;
   typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> BlankVotingImageGenerator;
-  typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType> BlankLabelImageGenerator;
+  typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelVotingType> BlankLabelImageGenerator;
   typedef BinaryIntensityVotingFunctor<VotingImageType, VotingImageType, VotingImageType> IntensityVotingFunctor;
   typedef itk::BinaryFunctorImageFilter
       <VotingImageType, VotingImageType, VotingImageType, IntensityVotingFunctor> IntensityVoter;
-  typedef BinaryLabelVotingFunctor<VotingImageType, VotingImageType, LabelImageType> LabelVotingFunctor;
+  typedef BinaryLabelVotingFunctor<VotingImageType, VotingImageType, LabelVotingType> LabelVotingFunctor;
   typedef itk::BinaryFunctorImageFilter
-      <VotingImageType, VotingImageType, LabelImageType, LabelVotingFunctor> LabelVoter;
-  typedef BinaryLabelDeterminatingFunctor<LabelImageType, LabelImageType, LabelImageType> LabelDeterminatingFunctor;
+      <VotingImageType, VotingImageType, LabelVotingType, LabelVotingFunctor> LabelVoter;
+  typedef BinaryLabelDeterminatingFunctor<LabelVotingType, LabelVotingType, LabelVotingType> LabelDeterminatingFunctor;
   typedef itk::BinaryFunctorImageFilter
-      <LabelImageType, LabelImageType, LabelImageType, LabelDeterminatingFunctor> LabelDeterminator;
+      <LabelVotingType, LabelVotingType, LabelVotingType, LabelDeterminatingFunctor> LabelDeterminator;
   typedef itk::SmoothingRecursiveGaussianImageFilter<VotingImageType, VotingImageType> SmoothFilter;
 
   // Generate a blank (all zero) image for counting maximum intensities
@@ -183,6 +228,7 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
   blankVotingImageGen->SetOutsideValue(0.0);
   blankVotingImageGen->Update();
   VotingImageType::Pointer maxIntensity = blankVotingImageGen->GetOutput();
+  VotingImageType::Pointer newMaxIntensity = blankVotingImageGen->GetOutput();
   // Generate a blank (all zero) image for recording winning labels
   BlankLabelImageGenerator::Pointer blankLabelImageGen = BlankLabelImageGenerator::New();
   blankLabelImageGen->SetInput(liw->GetImage());
@@ -191,7 +237,7 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
   blankLabelImageGen->SetInsideValue(0);
   blankLabelImageGen->SetOutsideValue(0);
   blankLabelImageGen->Update();
-  LabelImageType::Pointer winningLabels = blankLabelImageGen->GetOutput();
+  LabelVotingType::Pointer winningLabels = blankLabelImageGen->GetOutput();
 
   // Declare voting filters
   IntensityVoter::Pointer intensityVoter = IntensityVoter::New();
@@ -199,9 +245,10 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
   LabelDeterminator::Pointer labelDeterminator = LabelDeterminator::New();
 
   // Debug
-  using VotingImageWriter = itk::ImageFileWriter<VotingImageType>;
-  VotingImageWriter::Pointer votingImageWriter = VotingImageWriter::New();
-
+  /*
+  DebuggingFileWriter<LabelVotingType> dbg_LabelWriter;
+  DebuggingFileWriter<VotingImageType> dbg_IntensityWriter;
+  */
   // Iterate labels; Smooth and Vote
   for (auto cit = allLabels.cbegin(); cit != allLabels.cend(); ++cit)
     {
@@ -224,16 +271,6 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
       // -- keep intensity for unselected label
       VotingImageType::Pointer crntLabelBinarized = fltThreshold->GetOutput();
 
-      votingImageWriter->SetFileName("BinarizedResult_Label_" + std::to_string(*cit) + ".nii.gz");
-      votingImageWriter->SetInput(crntLabelBinarized);
-      try
-      {
-        votingImageWriter->Update();
-      } catch (itk::ExceptionObject &error)
-      {
-        std::cerr << "Error: " << error << std::endl;
-      }
-
       if (isLabelSelected)
         {
           std::cout << "Smoothing..." << endl;
@@ -254,15 +291,6 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
           std::cout << "Smoothing Completed." << endl;
         }
 
-      votingImageWriter->SetFileName("IntensityVotingResult_Label_" + std::to_string(*cit) + ".nii.gz");
-      votingImageWriter->SetInput(crntLabelBinarized);
-      try
-      {
-        votingImageWriter->Update();
-      } catch (itk::ExceptionObject &error)
-      {
-        std::cerr << "Error: " << error << std::endl;
-      }
       // Vote to determine the label
 
       /* Intensity Voting:
@@ -277,17 +305,7 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
       intensityVoter->Update();
 
       // Temporarily save the new max intensity, since maxIntensity needs to be used again
-      VotingImageType::Pointer newMaxIntensity = intensityVoter->GetOutput();
-
-      votingImageWriter->SetFileName("LabelVotingResult_Label_" + std::to_string(*cit) + ".nii.gz");
-      votingImageWriter->SetInput(newMaxIntensity);
-      try
-      {
-        votingImageWriter->Update();
-      } catch (itk::ExceptionObject &error)
-      {
-        std::cerr << "Error: " << error << std::endl;
-      }
+      newMaxIntensity = intensityVoter->GetOutput();
 
       std::cout << "Intensity Voting Completed" << endl;
 
@@ -296,12 +314,29 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
        * and the previous highest intensity. If current intensity is greater than previous high,
        * current label will be written to the output image. Otherwise, 0 will be written.
        */
+
+      // debug
+      /*
+      std::string dbg_fn0 = "debug_output/Binarized_" + std::to_string(*cit) + ".nii.gz";
+      dbg_IntensityWriter.WriteToFile(dbg_fn0, crntLabelBinarized);
+      std::string dbg_fn1 = "debug_output/maxIntensity_" + std::to_string(*cit) + ".nii.gz";
+      dbg_IntensityWriter.WriteToFile(dbg_fn1, maxIntensity);
+      std::string dbg_fn2 = "debug_output/newMaxIntensity_" + std::to_string(*cit) + ".nii.gz";
+      dbg_IntensityWriter.WriteToFile(dbg_fn2, newMaxIntensity);
+      */
+
       LabelVotingFunctor lvf(*cit); // pass current label into the functor
       labelVoter->SetFunctor(lvf);
       labelVoter->SetInput1(crntLabelBinarized);
       labelVoter->SetInput2(maxIntensity);
       labelVoter->Update();
-      LabelImageType::Pointer labelVotingResult = labelVoter->GetOutput();
+      LabelVotingType::Pointer labelVotingResult = labelVoter->GetOutput();
+
+      // debug
+      /*
+      std::string dbg_FileName = "debug_output/LabelVotingResult_" + std::to_string(*cit) + ".nii.gz";
+      dbg_LabelWriter.WriteToFile(dbg_FileName, labelVotingResult);
+      */
 
       std::cout << "Label Voting Completed" << endl;
 
@@ -314,14 +349,18 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
       labelDeterminator->Update();
       winningLabels = labelDeterminator->GetOutput();
 
+      /*
+      std::string dbg_fn3 = "debug_output/Determined_" + std::to_string(*cit) + ".nii.gz";
+      dbg_LabelWriter.WriteToFile(dbg_fn3, winningLabels);
+      */
       std::cout << "Label Determined" << endl;
 
       // update maxIntensity with the current max
-      maxIntensity = newMaxIntensity;
-
+      DeepCopy<VotingImageType>(newMaxIntensity, maxIntensity);
     }
 
   // Apply labels back to segmentation image
+  /*
   SegmentationUpdateIterator it_update(liw, liw->GetBufferedRegion()
                                        , m_Parent->GetGlobalState()->GetDrawingColorLabel()
                                        , m_Parent->GetGlobalState()->GetDrawOverFilter());
@@ -340,5 +379,5 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
   // Fire event to inform GUI that segmentation has changed
   this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
   std::cout << "Selected labels has been smoothed!" << endl;
-
+  */
 }

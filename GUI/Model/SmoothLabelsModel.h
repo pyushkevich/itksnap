@@ -50,6 +50,10 @@ protected:
 
   // The label that is currently selected
   SmartPtr<ConcreteColorLabelPropertyModel> m_CurrentLabelModel;
+
+  // utility method to deep copy image
+  template <typename TImage>
+  void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output);
 };
 
 #endif // SMOOTHLABELMODEL_H
