@@ -2311,9 +2311,12 @@ bool IRISApplication::IsMainImageLoaded() const
   return this->GetCurrentImageData()->IsMainLoaded();
 }
 
-
-
-
+ImageWrapperBase *IRISApplication::GetMainImage() const
+{
+  if(this->IsMainImageLoaded())
+    return this->GetCurrentImageData()->GetMain();
+  else return nullptr;
+}
 
 /*
 void

@@ -23,8 +23,6 @@ public:
 
   void UpdatePlotValues();
 
-  virtual void paintGL() ITK_OVERRIDE;
-
   virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio) ITK_OVERRIDE;
 
 protected:

@@ -30,6 +30,11 @@ public:
   itkEventMacro(MetadataChangeEvent, IRISEvent)
   FIRES(MetadataChangeEvent)
 
+  enum UIState {
+    UIF_TIME_POINT_IS_EDITABLE,
+    UIF_INTENSITY_IS_MULTIVALUED,
+  };
+
   // Implementation of virtual functions from parent class
   void RegisterWithLayer(ImageWrapperBase *layer) ITK_OVERRIDE {}
   void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) ITK_OVERRIDE {}
@@ -40,6 +45,9 @@ public:
   // Function called in response to events
   virtual void OnUpdate() ITK_OVERRIDE;
 
+  // Access state flags
+  bool CheckState(UIState state);
+
   // Access the individual models
   irisGetMacro(ImageDimensionsModel, AbstractSimpleUIntVec3Property *)
   irisGetMacro(ImageSpacingModel, AbstractSimpleDoubleVec3Property *)
@@ -49,6 +57,8 @@ public:
   irisGetMacro(ImageMinMaxModel, AbstractSimpleDoubleVec2Property *)
   irisGetMacro(ImageOrientationModel, AbstractSimpleStringProperty *)
   irisGetMacro(ImageNumberOfTimePointsModel, AbstractSimpleUIntProperty *)
+  irisGetMacro(ImageCurrentTimePointModel, AbstractRangedUIntProperty *)
+  irisGetMacro(ImageScalarIntensityUnderCursorModel, AbstractSimpleDoubleProperty *)
 
   // Access the internally stored filter
   irisSimplePropertyAccessMacro(MetadataFilter, std::string)
@@ -77,6 +87,8 @@ protected:
   SmartPtr<AbstractSimpleStringProperty> m_ImageOrientationModel;
   SmartPtr<ConcreteSimpleStringProperty> m_MetadataFilterModel;
   SmartPtr<AbstractSimpleUIntProperty> m_ImageNumberOfTimePointsModel;
+  SmartPtr<AbstractRangedUIntProperty> m_ImageCurrentTimePointModel;
+  SmartPtr<AbstractSimpleDoubleProperty> m_ImageScalarIntensityUnderCursorModel;
 
   bool GetImageDimensions(Vector3ui &value);
   bool GetImageOrigin(Vector3d &value);
@@ -86,6 +98,11 @@ protected:
   bool GetImageMinMax(Vector2d &value);
   bool GetImageOrientation(std::string &value);
   bool GetImageNumberOfTimePoints(unsigned int &value);
+  bool GetImageScalarIntensityUnderCursor(double &value);
+
+  // Current time point model
+  bool GetCurrentTimePointValueAndRange(unsigned int &value, NumericValueRange<unsigned int> *range);
+  void SetCurrentTimePointValue(unsigned int value);
 
   // Update the list of keys managed by the metadata
   void UpdateMetadataIndex();

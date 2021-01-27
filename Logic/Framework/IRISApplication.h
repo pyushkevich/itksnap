@@ -549,6 +549,11 @@ public:
   bool IsMainImageLoaded() const;
 
   /**
+   * Return a pointer to the main image wrapper or nullptr if not loaded
+   */
+  ImageWrapperBase *GetMainImage() const;
+
+  /**
     Load label descriptions from file
     */
   void LoadLabelDescriptions(const char *filename);

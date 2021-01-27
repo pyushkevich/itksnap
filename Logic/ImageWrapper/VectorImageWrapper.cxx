@@ -420,7 +420,7 @@ VectorImageWrapper<TTraits,TBase>
 template <class TTraits, class TBase>
 void
 VectorImageWrapper<TTraits,TBase>
-::SetSliceIndex(const Vector3ui &cursor)
+::SetSliceIndex(const IndexType &cursor)
 {
   Superclass::SetSliceIndex(cursor);
 

@@ -124,6 +124,9 @@ void CopyInformationFrom4DToTimePoint(Image4DType *image_4d, ImageType *image_tp
 }
 
 
+/* ================================================================================
+ * IMAGE-LEVEL PARTIAL SPECIALIZATION CODE
+ * ================================================================================ */
 
 
 /**
@@ -780,6 +783,34 @@ class ImageWrapperPartialSpecializationTraits<
 };
 
 
+/* ================================================================================
+ * PIXEL-LEVEL PARTIAL SPECIALIZATION CODE
+ * ================================================================================ */
+
+template <class TPixel>
+struct ImageWrapperPixelPartialSpecializationTraits
+{
+  static void ExportToDoubleArray(const TPixel &p, unsigned int itkNotUsed(ncomp), double *arr)
+  {
+    *arr = (double) p;
+  }
+};
+
+template <class TComponent>
+struct ImageWrapperPixelPartialSpecializationTraits< itk::VariableLengthVector<TComponent> >
+{
+  typedef itk::VariableLengthVector<TComponent> PixelType;
+  static void ExportToDoubleArray(const PixelType &p, unsigned int ncomp,  double *arr)
+  {
+    for(unsigned int c = 0; c < ncomp; c++)
+      arr[c] = (double) p[c];
+  }
+};
+
+
+/* ================================================================================
+ * IMAGE WRAPPER IMPLEMENTATION BEGINS
+ * ================================================================================ */
 template<class TTraits, class TBase>
 ImageWrapper<TTraits,TBase>
 ::ImageWrapper()
@@ -1259,7 +1290,7 @@ ImageWrapper<TTraits,TBase>
     this->UpdateImageGeometry();
 
     // Reset the slice positions to zero
-    this->SetSliceIndex(Vector3ui(0,0,0));
+    this->SetSliceIndex(IndexType({{0,0,0}}));
     }
 
   // Update the NIFTI/RAS transform
@@ -1504,6 +1535,49 @@ ImageWrapper<TTraits,TBase>
   return this->m_Slicers[time_point][0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
 }
 
+
+template<class TTraits, class TBase>
+inline void
+ImageWrapper<TTraits,TBase>
+::GetVoxelAsDouble(const itk::Index<3> &index, int time_point, vnl_vector<double> &out) const
+{
+  // Compute and allocate output dimensions
+  unsigned int nc = this->GetNumberOfComponents();
+  unsigned int nt = this->GetNumberOfTimePoints();
+  unsigned int odim = nc * (time_point < 0 ? nt : 1);
+  out.set_size(odim);
+  double *arr = out.data_block();
+
+  // Create a specialization for actual sampling
+  using Specialization = ImageWrapperPixelPartialSpecializationTraits<PixelType>;
+
+  // Sample the intensity at each time point
+  if(time_point < 0)
+    {
+    for(unsigned int tp = 0; tp < this->GetNumberOfTimePoints(); tp++, arr+=nc)
+      {
+      PixelType p = this->m_Slicers[tp][0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
+      Specialization::ExportToDoubleArray(p, nc, arr);
+      }
+    }
+  else
+    {
+    PixelType p = this->m_Slicers[time_point][0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
+    Specialization::ExportToDoubleArray(p, nc, arr);
+    }
+}
+
+template<class TTraits, class TBase>
+inline void
+ImageWrapper<TTraits,TBase>
+::GetVoxelMappedToNative(const itk::Index<3> &index, int time_point, vnl_vector<double> &out) const
+{
+  this->GetVoxelAsDouble(index, time_point, out);
+  for(unsigned int i = 0; i < out.size(); i++)
+    out[i] = this->m_NativeMapping(out[i]);
+}
+
+
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits, TBase>
@@ -1542,7 +1616,7 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
-::SetSliceIndex(const Vector3ui &cursor)
+::SetSliceIndex(const IndexType &cursor)
 {
   // Save the cursor position
   m_SliceIndex = cursor;
@@ -1550,7 +1624,7 @@ ImageWrapper<TTraits,TBase>
   // Select the appropriate slice for each slicer
   for(auto &s : m_Slicers)
     for(unsigned int i = 0; i < 3; i++)
-      s[i]->SetSliceIndex(to_itkIndex(cursor));
+      s[i]->SetSliceIndex(cursor);
 }
 
 template<class TTraits, class TBase>

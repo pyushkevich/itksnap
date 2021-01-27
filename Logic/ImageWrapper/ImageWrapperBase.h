@@ -98,6 +98,10 @@ public:
   // Metadata access object
   typedef MetaDataAccess<4>                                 MetaDataAccessType;
 
+  // Index and size types
+  typedef itk::Index<3>                                              IndexType;
+  typedef itk::Size<3>                                                SizeType;
+
   /**
    * The image wrapper fires a WrapperMetadataChangeEvent when properties
    * such as nickname are modified. It fires a WrapperDisplayMappingChangeEvent
@@ -164,14 +168,14 @@ public:
   virtual const ImageCoordinateGeometry &GetImageGeometry() const = 0;
 
   /** Get the current slice index */
-  irisVirtualGetMacro(SliceIndex, Vector3ui)
+  irisVirtualGetMacro(SliceIndex, IndexType)
 
   /**
    * Set the current slice index in all three dimensions.  The index should
    * be specified in the image coordinates, the slices will be generated
    * in accordance with the transforms that are specified
    */
-  virtual void SetSliceIndex(const Vector3ui &) = 0;
+  virtual void SetSliceIndex(const IndexType &) = 0;
 
   /** Get the number of time points (how many 3D images in 4D array) */
   irisVirtualGetMacro(NumberOfTimePoints, unsigned int)
@@ -293,17 +297,19 @@ public:
   /** Get the number of components per voxel */
   virtual size_t GetNumberOfComponents() const = 0;
 
-  /** Get voxel at index as an array of double components */
-  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const = 0;
+  /**
+   * Sample intensity at a 4D position and place the results into a vector. You can
+   * specify a time point, in which case only n_components will be sampled. If the
+   * time point is -1, all timepoints will be sampled.
+   */
+  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, int time_point, vnl_vector<double> &out) const = 0;
 
-  /** Get voxel at index as an array of double components */
-  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const = 0;
-
-  /** Get voxel intensity in native space. These methods are not recommended
-      for iterating over the entire image, since there is a virutal method
-      being resolved at each iteration. */
-  virtual void GetVoxelMappedToNative(const Vector3ui &vec, double *out) const = 0;
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const = 0;
+  /**
+   * Sample intensity at a 4D position and map to native intensity values. You can
+   * specify a time point, in which case only n_components will be sampled. If the
+   * time point is -1, all timepoints will be sampled.
+   */
+  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, int time_point, vnl_vector<double> &out) const = 0;
 
   /** Return componentwise minimum cast to double, without mapping to native range */
   virtual double GetImageMinAsDouble() = 0;
@@ -555,18 +561,6 @@ public:
    * in this image and the 'true' image intensities
    */
   virtual double GetImageScaleFactor() = 0;
-
-  /** Get voxel at index as a single double value */
-  virtual double GetVoxelAsDouble(const Vector3ui &x) const = 0;
-
-  /** Get voxel at index as a single double value */
-  virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const = 0;
-
-  /** Get voxel intensity in native space. These methods are not recommended
-      for iterating over the entire image, since there is a virutal method
-      being resolved at each iteration. */
-  virtual double GetVoxelMappedToNative(const Vector3ui &vec) const = 0;
-  virtual double GetVoxelMappedToNative(const itk::Index<3> &idx) const = 0;
 
   /**
     Get the maximum possible value of the gradient magnitude. This will

@@ -36,6 +36,12 @@ ImageInfoModel::ImageInfoModel()
   m_ImageNumberOfTimePointsModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageNumberOfTimePoints);
 
+  m_ImageCurrentTimePointModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetCurrentTimePointValueAndRange, &Self::SetCurrentTimePointValue);
+
+  m_ImageScalarIntensityUnderCursorModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetImageScalarIntensityUnderCursor);
+
   // Create the property model for the filter
   m_MetadataFilterModel = ConcreteSimpleStringProperty::New();
 
@@ -45,6 +51,9 @@ ImageInfoModel::ImageInfoModel()
   // Also rebroadcast active layer change events as both ModelChange and Metadata
   // change events
   Rebroadcast(this, ActiveLayerChangedEvent(), MetadataChangeEvent());
+
+  // Active layer change also impacts the states
+  Rebroadcast(this, ActiveLayerChangedEvent(), StateMachineChangeEvent());
 }
 
 void ImageInfoModel::SetParentModel(GlobalUIModel *parent)
@@ -144,6 +153,52 @@ bool ImageInfoModel::GetImageNumberOfTimePoints(unsigned int &value)
   else return false;
 }
 
+bool ImageInfoModel::GetImageScalarIntensityUnderCursor(double &value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(layer && layer->GetNumberOfComponents() == 1 && layer->GetNumberOfTimePoints() == 1)
+  {
+    vnl_vector<double> ivec(1);
+    layer->GetVoxelMappedToNative(layer->GetSliceIndex(), layer->GetTimePointIndex(), ivec);
+    value = ivec[0];
+    return true;
+  }
+  return false;
+}
+
+bool
+ImageInfoModel
+::GetCurrentTimePointValueAndRange(
+    unsigned int &value,
+    NumericValueRange<unsigned int> *range)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(layer)
+    {
+    value = layer->GetTimePointIndex() + 1;
+    if(range)
+      range->Set(1, layer->GetNumberOfTimePoints(), 1);
+    return true;
+    }
+  else return false;
+}
+
+void ImageInfoModel::SetCurrentTimePointValue(unsigned int value)
+{
+  // We can only set the timepoint when the layer has as many time points as the main
+  // image since we must go through the IRISApplication to set time point index
+  ImageWrapperBase *layer = this->GetLayer();
+  ImageWrapperBase *main = this->GetParentModel()->GetDriver()->GetCurrentImageData()->GetMain();
+
+  // TODO: make this an assertion
+  if(main && layer && main->GetNumberOfTimePoints() == layer->GetNumberOfTimePoints())
+    {
+    this->GetParentModel()->GetDriver()->SetCursorTimePoint(value);
+    }
+}
+
+
+
 void ImageInfoModel::OnUpdate()
 {
   Superclass::OnUpdate();
@@ -157,7 +212,21 @@ void ImageInfoModel::OnUpdate()
     }
 }
 
-// #include <itksys/RegularExpression.hxx>
+bool ImageInfoModel::CheckState(ImageInfoModel::UIState state)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  ImageWrapperBase *main = this->GetParentModel()->GetDriver()->GetMainImage();
+  switch(state)
+    {
+    case ImageInfoModel::UIF_TIME_POINT_IS_EDITABLE:
+      return layer && main
+          && layer->GetNumberOfTimePoints() == main->GetNumberOfTimePoints()
+          && main->GetNumberOfTimePoints() > 1;
+    case ImageInfoModel::UIF_INTENSITY_IS_MULTIVALUED:
+      return layer && (layer->GetNumberOfComponents() > 1 || layer->GetNumberOfTimePoints() > 1);
+    }
+  return false;
+}
 
 bool case_insensitive_predicate(char a, char b)
 {

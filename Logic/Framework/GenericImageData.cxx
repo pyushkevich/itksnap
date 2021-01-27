@@ -421,7 +421,7 @@ GenericImageData
   // Set crosshairs in all wrappers
   for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
     if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
-      lit.GetLayer()->SetSliceIndex(crosshairs);
+      lit.GetLayer()->SetSliceIndex(to_itkIndex(crosshairs));
 }
 
 void

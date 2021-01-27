@@ -158,6 +158,10 @@ public:
   // Metadata access object
   typedef typename Superclass::MetaDataAccessType           MetaDataAccessType;
 
+  // Index and size types
+  typedef typename Superclass::IndexType                             IndexType;
+  typedef typename Superclass::SizeType                               SizeType;
+
   /**
    * Get the parent wrapper for this wrapper. For 'normal' wrappers, this method
    * returns NULL, indicating that the wrapper is a top-level wrapper. For derived
@@ -232,7 +236,7 @@ public:
 
 
   /** Get the current slice index - which really means cursor position */
-  irisGetMacroWithOverride(SliceIndex, Vector3ui)
+  irisGetMacroWithOverride(SliceIndex, IndexType)
 
   /** Return some image info independently of pixel type */
   ImageBaseType* GetImageBase() const ITK_OVERRIDE;
@@ -321,6 +325,21 @@ public:
 
   PixelType GetVoxel(const itk::Index<3> &index, int time_point = -1) const;
 
+
+  /**
+   * Sample intensity at a 4D position and place the results into a vector. You can
+   * specify a time point, in which case only n_components will be sampled. If the
+   * time point is -1, all timepoints will be sampled.
+   */
+  virtual void GetVoxelAsDouble(const itk::Index<3> &index, int time_point, vnl_vector<double> &out) const ITK_OVERRIDE;
+
+  /**
+   * Sample intensity at a 4D position and map to native intensity values. You can
+   * specify a time point, in which case only n_components will be sampled. If the
+   * time point is -1, all timepoints will be sampled.
+   */
+  virtual void GetVoxelMappedToNative(const itk::Index<3> &index, int time_point, vnl_vector<double> &out) const ITK_OVERRIDE;
+
   /**
    * Get the mapping between the internal data type and the 'native' range,
    * i.e., the range of values shown to the user. This may be a linear mapping
@@ -386,7 +405,7 @@ public:
    * be specified in the image coordinates, the slices will be generated
    * in accordance with the transforms that are specified
    */
-  virtual void SetSliceIndex(const Vector3ui &cursor) ITK_OVERRIDE;
+  virtual void SetSliceIndex(const IndexType &cursor) ITK_OVERRIDE;
 
   /** Set the current time index */
   virtual void SetTimePointIndex(unsigned int index) ITK_OVERRIDE;
@@ -718,7 +737,7 @@ protected:
   SmartPtr<ImageBaseType> m_ReferenceSpace;
 
   /** The current cursor position (slice index) in image dimensions */
-  Vector3ui m_SliceIndex;
+  IndexType m_SliceIndex;
 
   /** The current time point (index into m_ImageTimePoints) */
   unsigned int m_TimePointIndex = 0;

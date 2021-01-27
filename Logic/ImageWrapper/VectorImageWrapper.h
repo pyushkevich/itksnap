@@ -105,6 +105,10 @@ public:
 
   typedef typename Superclass::ITKTransformType               ITKTransformType;
 
+  // Index and size types
+  typedef typename Superclass::IndexType                             IndexType;
+  typedef typename Superclass::SizeType                               SizeType;
+
   virtual bool IsScalar() const ITK_OVERRIDE { return false; }
 
   /**
@@ -158,40 +162,6 @@ public:
     return this->m_Image4D->GetNumberOfComponentsPerPixel();
   }
 
-  /** Voxel access */
-  // virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const;
-
-  /** Voxel access */
-  // virtual double GetVoxelAsDouble(const Vector3ui &v) const;
-
-  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const ITK_OVERRIDE
-  {
-    const PixelType &p = Superclass::GetVoxel(x);
-    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
-      out[i] = p[i];
-  }
-
-  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
-  {
-    const PixelType &p = Superclass::GetVoxel(idx);
-    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
-      out[i] = p[i];
-  }
-
-  virtual void GetVoxelMappedToNative(const Vector3ui &x, double *out) const ITK_OVERRIDE
-  {
-    const PixelType &p = Superclass::GetVoxel(x);
-    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
-      out[i] = this->m_NativeMapping(p[i]);
-  }
-
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
-  {
-    const PixelType &p = Superclass::GetVoxel(idx);
-    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
-      out[i] = this->m_NativeMapping(p[i]);
-  }
-
   /**
    * Get the component-wise minimum and maximum of the image in native format
    */
@@ -220,7 +190,7 @@ public:
 
   virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
 
-  virtual void SetSliceIndex(const Vector3ui &cursor) ITK_OVERRIDE;
+  virtual void SetSliceIndex(const IndexType &cursor) ITK_OVERRIDE;
 
   virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom) ITK_OVERRIDE;
 

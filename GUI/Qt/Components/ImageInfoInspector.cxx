@@ -49,9 +49,6 @@ void ImageInfoInspector::SetModel(ImageInfoModel *model)
   makeArrayCoupling(ui->outOriginX, ui->outOriginY, ui->outOriginZ,
                     m_Model->GetImageOriginModel(), tr_real);
 
-  makeArrayCoupling(ui->outItkX, ui->outItkY, ui->outItkZ,
-                    m_Model->GetImageItkCoordinatesModel(), tr_real);
-
   makeArrayCoupling(ui->outNiftiX, ui->outNiftiY, ui->outNiftiZ,
                     m_Model->GetImageNiftiCoordinatesModel(), tr_real);
 
@@ -64,5 +61,15 @@ void ImageInfoInspector::SetModel(ImageInfoModel *model)
   makeCoupling(ui->outRAI, m_Model->GetImageOrientationModel());
 
   makeCoupling(ui->outNumTimePoints, m_Model->GetImageNumberOfTimePointsModel());
-  makeCoupling(ui->inTimePoint, m_Model->GetImageNumberOfTimePointsModel());
+  makeCoupling(ui->inTimePoint, m_Model->GetImageCurrentTimePointModel());
+
+  makeCoupling(ui->outIntensityUnderCursor, m_Model->GetImageScalarIntensityUnderCursorModel());
+
+  // Time point can only be edited if the layer has the same number of time points as the main image
+  activateOnFlag(ui->inTimePoint, m_Model, ImageInfoModel::UIF_TIME_POINT_IS_EDITABLE);
+
+  // How we display intensity depends on whether it is multivalued (graph) or single-valued (textbox)
+  activateOnFlag(ui->grpIntensityGraph, m_Model, ImageInfoModel::UIF_INTENSITY_IS_MULTIVALUED, QtWidgetActivator::HideInactive);
+  activateOnNotFlag(ui->lblIntensityUnderCursor, m_Model, ImageInfoModel::UIF_INTENSITY_IS_MULTIVALUED, QtWidgetActivator::HideInactive);
+  activateOnNotFlag(ui->outIntensityUnderCursor, m_Model, ImageInfoModel::UIF_INTENSITY_IS_MULTIVALUED, QtWidgetActivator::HideInactive);
 }

@@ -153,34 +153,6 @@ public:
   /** This image type has only one component */
   virtual size_t GetNumberOfComponents() const ITK_OVERRIDE { return 1; }
 
-  /** Voxel access */
-  virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const ITK_OVERRIDE
-    { return (double) Superclass::GetVoxel(idx); }
-
-  virtual double GetVoxelAsDouble(const Vector3ui &v) const ITK_OVERRIDE
-    { return (double) Superclass::GetVoxel(v); }
-
-  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const ITK_OVERRIDE
-    { out[0] = Superclass::GetVoxel(x); }
-
-  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
-    { out[0] = Superclass::GetVoxel(idx); }
-
-  /**
-   * Get voxel intensity in native space
-   */
-  double GetVoxelMappedToNative(const Vector3ui &vec) const ITK_OVERRIDE
-    { return this->m_NativeMapping(this->GetVoxel(vec)); }
-
-  double GetVoxelMappedToNative(const itk::Index<3> &idx) const ITK_OVERRIDE
-    { return this->m_NativeMapping(this->GetVoxel(idx)); }
-
-  virtual void GetVoxelMappedToNative(const Vector3ui &vec, double *out) const ITK_OVERRIDE
-    { out[0] = this->m_NativeMapping(Superclass::GetVoxel(vec)); }
-
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
-    { out[0] = this->m_NativeMapping(Superclass::GetVoxel(idx)); }
-
   /** Compute statistics over a run of voxels in the image starting at the index
    * startIdx. Appends the statistics to a running sum and sum of squared. The
    * statistics are returned in internal (not native mapped) format */
