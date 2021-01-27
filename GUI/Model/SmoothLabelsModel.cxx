@@ -360,11 +360,11 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
     }
 
   // Apply labels back to segmentation image
-  /*
+
   SegmentationUpdateIterator it_update(liw, liw->GetBufferedRegion()
                                        , m_Parent->GetGlobalState()->GetDrawingColorLabel()
                                        , m_Parent->GetGlobalState()->GetDrawOverFilter());
-  itk::ImageRegionConstIterator<GenericImageData::LabelImageType>
+  itk::ImageRegionConstIterator<LabelVotingType>
       it_src(winningLabels, winningLabels->GetBufferedRegion());
 
   std::cout << "Updating GUI..." << endl;
@@ -379,5 +379,4 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
   // Fire event to inform GUI that segmentation has changed
   this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
   std::cout << "Selected labels has been smoothed!" << endl;
-  */
 }
