@@ -142,17 +142,6 @@ LoadSegmentationImageDelegate
                         szMain[0], szMain[1], szMain[2]);
     }
 
-  // The number of components must also match
-  // TODO: GUI should allow loading the segmentation for just one timepoint
-  if(ntMain != ntSeg)
-    {
-    throw IRISException("Error: Mismatched number of time points. "
-                        "The number of time points (%d) in the segmentation image "
-                        "does not match the number of time points (%d) in the main image (%d). "
-                        "Images must have the same number of time points.",
-                        ntSeg, ntMain);
-    }
-
   // Check the number of components
   if(io->GetNumberOfComponentsInNativeImage() != 1)
     {
@@ -161,6 +150,29 @@ LoadSegmentationImageDelegate
                         "but only one component is supported by ITK-SNAP.",
                         io->GetNumberOfComponentsInNativeImage());
     }
+  
+  // The number of components must also match
+  if(ntMain != ntSeg)
+    {
+    if(ntSeg > 1)
+      {
+      // Nothing can be done
+      throw IRISException("Error: Mismatched number of time points. "
+                          "The number of time points (%d) in the segmentation image "
+                          "does not match the number of time points (%d) in the main image. "
+                          "Images must have the same number of time points.",
+                          ntSeg, ntMain);
+      }
+    else
+      {
+      // Just issue a warning and proceed
+      wl.push_back(IRISWarning(
+                     "Warning: Mismatched number of time points."
+                     "The main image has %d time points but the segmentation image has only one time point. "
+                     "The current time point in the segmentation has been replaced by the image you are loading. ", ntMain));
+      }
+    }
+
 }
 
 void

@@ -410,10 +410,12 @@ IRISApplication
 void IRISApplication::SetColorLabelsInSegmentationAsValid(LabelImageWrapper *seg_wrapper)
 {
   // Iterate over the RLEs in the label image
+  typedef LabelImageWrapperTraits::Image4DType LabelImage4DType;
+  typedef itk::ImageRegionConstIterator<LabelImage4DType::BufferType> RLLineIter;
+  RLLineIter rlit(seg_wrapper->GetImage4D()->GetBuffer(),
+                  seg_wrapper->GetImage4D()->GetBuffer()->GetBufferedRegion());
+
   LabelType last_label = 0;
-  typedef itk::ImageRegionConstIterator<LabelImageType::BufferType> RLLineIter;
-  RLLineIter rlit(seg_wrapper->GetImage()->GetBuffer(),
-                  seg_wrapper->GetImage()->GetBuffer()->GetBufferedRegion());
   for(; !rlit.IsAtEnd(); ++rlit)
     {
     // Get the line
@@ -462,13 +464,37 @@ IRISApplication
 ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io, Registry *metadata, bool add_to_existing)
 {
   // This has to happen in 'pure' IRIS mode
-  assert(!IsSnakeModeActive());
+  itkAssertOrThrowMacro(!IsSnakeModeActive(),
+                        "IRISApplication::UpdateIRISSegmentationImage called in snake mode");
+
+  // Check timepoint agreement
+  unsigned int ntMain = m_IRISImageData->GetMain()->GetNumberOfTimePoints();
+  unsigned int ntSeg = io->GetDimensionsOfNativeImage()[3];
+  itkAssertOrThrowMacro(ntMain == ntSeg || ntSeg == 1,
+                        "Time point mismatch in IRISApplication::UpdateIRISSegmentationImage");
 
   // Update the iris data
-  LabelImageWrapper *seg_wrapper = m_IRISImageData->SetSegmentationImage(io, add_to_existing);
+  LabelImageWrapper *seg_wrapper;
+  if(ntMain == ntSeg)
+    {
+    // Replace existing segmentation image with new image
+    seg_wrapper = m_IRISImageData->SetSegmentationImage(io, add_to_existing);
 
-  // Load the metadata for this layer
-  LoadMetaDataAssociatedWithLayer(seg_wrapper, LABEL_ROLE, metadata);
+    // Load the metadata for this layer
+    LoadMetaDataAssociatedWithLayer(seg_wrapper, LABEL_ROLE, metadata);
+
+    // Update the selected segmentation image
+    m_GlobalState->SetSelectedSegmentationLayerId(seg_wrapper->GetUniqueId());
+    }
+  else
+    {
+    // Update the current time point in the image with the loaded segmentation
+    seg_wrapper = dynamic_cast<LabelImageWrapper *>(
+      m_IRISImageData->FindLayer(
+        m_GlobalState->GetSelectedSegmentationLayerId(), false, LABEL_ROLE));
+    
+    m_IRISImageData->UpdateSegmentationTimePoint(seg_wrapper, io);
+    }
 
   // Update the history
   m_SystemInterface->GetHistoryManager()->UpdateHistory(
@@ -477,9 +503,6 @@ IRISApplication
   // Update the color label table with the segmentation values in the current segmentation
   // Iterate over the RLEs in the label image
   this->SetColorLabelsInSegmentationAsValid(seg_wrapper);
-
-  // Update the selected segmentation image
-  m_GlobalState->SetSelectedSegmentationLayerId(seg_wrapper->GetUniqueId());
 
   // Let the GUI know that segmentation changed
   InvokeEvent(SegmentationChangeEvent());

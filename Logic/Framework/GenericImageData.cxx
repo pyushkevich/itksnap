@@ -294,14 +294,15 @@ void GenericImageData
   this->RemoveImageWrapper(OVERLAY_ROLE, overlay);
 }
 
-LabelImageWrapper *
+
+SmartPtr<GenericImageData::LabelImage4DType>
 GenericImageData
-::SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing)
+::CompressSegmentation(GuidedNativeImageIO *io)
 {
   // Check that the image matches the size of the grey image
   itkAssertOrThrowMacro(
         m_MainImageWrapper->IsInitialized(),
-        "Main image not initialized in GenericImageData::AddSegmentationImage");
+        "Main image not initialized in GenericImageData::CompressSegmentation");
 
   // This is the uncompressed representation of the segmentation
   typedef itk::Image<LabelType, 4> UncompressedImage4DType;
@@ -323,13 +324,26 @@ GenericImageData
   // Disconnect from the pipeline right away
   imgLabel->DisconnectPipeline();
 
-  // TODO: we should allow flexibility for segmentation to be mapped to a single given
-  // timepoint of the main image
-
   // The header of the label image is made to match that of the grey image
   imgLabel->SetOrigin(this->GetMain()->GetImage4DBase()->GetOrigin());
   imgLabel->SetSpacing(this->GetMain()->GetImage4DBase()->GetSpacing());
   imgLabel->SetDirection(this->GetMain()->GetImage4DBase()->GetDirection());
+
+  // Return the image
+  return imgLabel;
+}
+
+LabelImageWrapper *
+GenericImageData
+::SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing)
+{
+  // Check that the image matches the size of the grey image
+  itkAssertOrThrowMacro(
+        m_MainImageWrapper->IsInitialized(),
+        "Main image not initialized in GenericImageData::AddSegmentationImage");
+
+  // Create a compressed image from the IO
+  SmartPtr<LabelImage4DType> imgLabel = CompressSegmentation(io);
 
   // Create a new wrapper of label type
   SmartPtr<LabelImageWrapper> seg_wrapper = LabelImageWrapper::New();
@@ -359,6 +373,27 @@ GenericImageData
 
   // Return the newly added wrapper
   return seg_wrapper;
+}
+
+void GenericImageData
+::UpdateSegmentationTimePoint(LabelImageWrapper *wrapper, GuidedNativeImageIO *io)
+{
+  // Check that the image matches the size of the grey image
+  itkAssertOrThrowMacro(
+        m_MainImageWrapper->IsInitialized(),
+        "Main image not initialized in GenericImageData::UpdateSegmentationTimePoint");
+
+  // Create a compressed image from the IO
+  SmartPtr<LabelImage4DType> imgLabel = CompressSegmentation(io);
+
+  // Drop the dimension of the 4D image to 3D. We can reuse existing code in ImageWrapper
+  // for doing this
+  SmartPtr<LabelImageWrapper> temp_wrapper = LabelImageWrapper::New();
+  temp_wrapper->SetImage4D(imgLabel);
+
+  // Update the target wrapper
+  // TODO: make this operation undo-able!
+  wrapper->UpdateTimePoint(temp_wrapper->GetModifiableImage());
 }
 
 LabelImageWrapper *GenericImageData::AddBlankSegmentation()

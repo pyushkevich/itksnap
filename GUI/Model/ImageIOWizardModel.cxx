@@ -325,7 +325,7 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     m_LoadDelegate->ValidateImage(m_GuidedIO, m_Warnings);
 
     // Update the application
-    m_LoadedImage =
+    m_LoadedImage =	
         m_LoadDelegate->UpdateApplicationWithImage(m_GuidedIO);
 
     // Save the IO hints to the registry

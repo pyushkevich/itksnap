@@ -90,6 +90,7 @@ public:
    */
   typedef AnatomicImageWrapper::ImageType                   AnatomicImageType;
   typedef LabelImageWrapper::ImageType                         LabelImageType;
+  typedef LabelImageWrapper::Image4DType                     LabelImage4DType;
 
   // Support for lists of wrappers
   typedef SmartPtr<ImageWrapperBase> WrapperPointer;
@@ -232,6 +233,11 @@ public:
    * Add a secondary segmentation image without overriding the main one
    */
   LabelImageWrapper* SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing);
+
+  /**
+   * Update a time point in a segmentation using image from disk
+   */
+  void UpdateSegmentationTimePoint(LabelImageWrapper *wrapper, GuidedNativeImageIO *io);
 
   /**
    * Add a blank segmentation image
@@ -379,6 +385,9 @@ protected:
 
   // Generate an appropriate default nickname for a particular role
   std::string GenerateNickname(LayerRole role);
+
+  // Helper method used to compress a loaded segmentation into an RLE 4D image
+  SmartPtr<LabelImage4DType> CompressSegmentation(GuidedNativeImageIO *io);
 };
 
 #endif
