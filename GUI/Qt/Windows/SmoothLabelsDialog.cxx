@@ -46,6 +46,25 @@ SmoothLabelsDialog::~SmoothLabelsDialog()
   delete ui;
 }
 
+// Derived checkable row traits to implement smoothing specific logic
+class SmoothingLabelsRowTraits : public CheckableRowTraits<TwoColumnColorLabelToQSIMCouplingRowTraits>
+{
+public:
+  SmoothingLabelsRowTraits() = default;
+  static void updateRow(QList<QStandardItem *> items, LabelType label, const ColorLabel &cl)
+  {
+      CheckableRowTraits::updateRow(items, label, cl);
+      // Background should always participated in smoothing
+      if (label == 0)
+        {
+          items[0]->setCheckState(Qt::CheckState::Checked);
+          items[0]->setCheckable(false);
+          items[0]->setEnabled(false);
+          items[0]->setToolTip("The background label always participates in smoothing.");
+        }
+  }
+};
+
 void SmoothLabelsDialog::SetModel(SmoothLabelsModel *model)
 {
   m_Model = model;
@@ -53,7 +72,7 @@ void SmoothLabelsDialog::SetModel(SmoothLabelsModel *model)
   // Couple label table view to the model
   makeMultiRowCoupling((QAbstractItemView *) (ui->lvLabels),
                        m_Model->GetCurrentLabelModel(),
-                       CheckableRowTraits<TwoColumnColorLabelToQSIMCouplingRowTraits>());
+                       SmoothingLabelsRowTraits());
 
   // Set resizing behavior
 #if QT_VERSION >= 0x050000
@@ -71,7 +90,7 @@ void SmoothLabelsDialog::setAllLabelCheckStates(Qt::CheckState chkState)
   for (auto i = 0; i < m_simodel->rowCount(); ++i)
     {
       currentItem = m_simodel->item(i);
-      if (currentItem)
+      if (currentItem->isEnabled())
         currentItem->setCheckState(chkState);
     }
 }

@@ -271,6 +271,7 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
       // -- keep intensity for unselected label
       VotingImageType::Pointer crntLabelBinarized = fltThreshold->GetOutput();
 
+      // Only smooth selected labels
       if (isLabelSelected)
         {
           std::cout << "Smoothing..." << endl;
