@@ -97,6 +97,7 @@ GuidedNativeImageIO
   {"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
   {"VTK Image", "vtk",               true,  false, true,  true},
   {"Generic ITK Image", "",          true,  true,  true,  true},
+  {"Echocardiography Cartesian DICOM", "dcm", true, true, true, true}, // issue #26
   {"INVALID FORMAT", "",             false, false, false, false}};
 
 
@@ -397,6 +398,7 @@ GuidedNativeImageIO
     case FORMAT_VOXBO_CUB:  m_IOBase = itk::VoxBoCUBImageIO::New();      break;
     case FORMAT_DICOM_DIR:
     case FORMAT_DICOM_FILE: m_IOBase = itk::GDCMImageIO::New();          break;
+    case FORMAT_ECHOCARDIOGRAPHY_CARTESIAN_DICOM: m_IOBase = itk::GDCMImageIO::New(); break; // issue #26
     case FORMAT_RAW:
       {
       // Get the Raw header sub-folder
@@ -498,6 +500,10 @@ GuidedNativeImageIO
 
     m_IOBase->SetFileName(m_DICOMFiles[0]);
     m_IOBase->ReadImageInformation();
+    }
+  else if (m_FileFormat == FORMAT_ECHOCARDIOGRAPHY_CARTESIAN_DICOM) // issue #26
+    {
+
     }
   else
     {
