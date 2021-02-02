@@ -273,7 +273,7 @@ template <class TWidget,
           class TModel,
           class WidgetValueTraits,
           class WidgetDomainTraits>
-void makeWidgetArrayCoupling(
+void makeArrayCoupling(
     std::vector<TWidget *> wa,
     TModel *model,
     WidgetValueTraits trValue,
@@ -331,6 +331,29 @@ void makeWidgetArrayCoupling(
     }
 }
 
+template <class TWidget,
+          class TModel,
+          class WidgetValueTraits>
+void makeArrayCoupling(
+    std::vector<TWidget *> wa,
+    TModel *model,
+    WidgetValueTraits trValue)
+{
+  typedef DefaultComponentDomainTraits<TModel,TWidget> WidgetDomainTraits;
+  makeArrayCoupling(wa, model, trValue, WidgetDomainTraits());
+}
+
+template <class TWidget,
+          class TModel>
+void makeArrayCoupling(
+    std::vector<TWidget *> wa,
+    TModel *model)
+{
+  typedef DefaultComponentValueTraits<TModel,TWidget> WidgetValueTraits;
+  makeArrayCoupling(wa, model, WidgetValueTraits());
+}
+
+
 /**
   Create a coupling between a model and a triplet of widgets. The model must
   be an AbstractPropertyModel templated over iris_vector_fixed<T,3> and some
@@ -352,7 +375,7 @@ void makeArrayCoupling(
   wa[0] = w1; wa[1] = w2; wa[2] = w3;
 
   // Call the parent method
-  makeWidgetArrayCoupling<
+  makeArrayCoupling<
       TWidget,TModel,WidgetValueTraits,WidgetDomainTraits>(
         wa, model, trValue, trDomain);
 }
@@ -401,7 +424,7 @@ void makeArrayCoupling(
   wa[0] = w1; wa[1] = w2;
 
   // Call the parent method
-  makeWidgetArrayCoupling<
+  makeArrayCoupling<
       TWidget,TModel,WidgetValueTraits,WidgetDomainTraits>(
         wa, model, trValue, trDomain);
 }

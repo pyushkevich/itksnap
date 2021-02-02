@@ -48,7 +48,7 @@ void IntensityUnderCursorRenderer::UpdatePlotValues()
     unsigned int nc = layer->GetNumberOfComponents();
     unsigned int nt = layer->GetNumberOfTimePoints();
     vnl_vector<double> samples(nc * nt, 0.0);
-    layer->GetVoxelMappedToNative(layer->GetSliceIndex(), -1, samples);
+    layer->SampleIntensityAtReferenceIndex(layer->GetSliceIndex(), -1, true, samples);
 
     // Figure out which indices are currently selected
     std::vector<int> selection;

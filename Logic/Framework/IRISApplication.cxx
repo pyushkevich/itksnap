@@ -1263,7 +1263,7 @@ IRISApplication
   LabelImageWrapper *xLabelWrapper = this->GetSelectedSegmentationLayer();
   assert(xLabelWrapper->IsInitialized());
 
-  Vector3ui lIndex;
+  itk::Index<3> lIndex;
   Vector3ui lSize = xLabelWrapper->GetSize();
 
   double delta[3][3] = {{0.,0.,0.},{0.,0.,0.},{0.,0.,0.}}, dratio[3] = {0., 0., 0.};
@@ -1315,9 +1315,9 @@ IRISApplication
     //    lx = my_round(px-0.5);
     //    ly = my_round(py-0.5);
     //    lz = my_round(pz-0.5);
-    lIndex[0] = (int)px;
-    lIndex[1] = (int)py;
-    lIndex[2] = (int)pz;
+    lIndex[0] = (int) px;
+    lIndex[1] = (int) py;
+    lIndex[2] = (int) pz;
 
     LabelType hitlabel = xLabelWrapper->GetVoxel(lIndex);
 

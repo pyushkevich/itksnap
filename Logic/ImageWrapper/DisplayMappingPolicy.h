@@ -74,6 +74,7 @@ public:
   typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
 
   typedef InputSliceType::PixelType InputPixelType;
+  typedef InputSliceType::InternalPixelType InputComponentType;
   typedef DisplaySliceType::PixelType DisplayPixelType;
 
   /**
@@ -97,7 +98,7 @@ public:
   virtual void Save(Registry &folder) ITK_OVERRIDE {}
   virtual void Restore(Registry &folder) ITK_OVERRIDE {}
 
-  virtual DisplayPixelType MapPixel(const InputPixelType &val);
+  virtual DisplayPixelType MapPixel(const InputComponentType *val);
 
 protected:
 
@@ -191,6 +192,7 @@ public:
   typedef typename ImageType::PixelType PixelType;
   typedef typename TWrapperTraits::ComponentType ComponentType;
   typedef itk::Image<PixelType, 2> InputSliceType;
+  typedef typename InputSliceType::InternalPixelType InputComponentType;
 
   typedef ImageWrapperBase::DisplaySliceType DisplaySliceType;
   typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
@@ -258,7 +260,7 @@ public:
   virtual void Save(Registry &folder) ITK_OVERRIDE;
   virtual void Restore(Registry &folder) ITK_OVERRIDE;
 
-  virtual DisplayPixelType MapPixel(const PixelType &val);
+  virtual DisplayPixelType MapPixel(const InputComponentType *val);
 
 
 protected:
@@ -356,6 +358,8 @@ public:
   typedef typename ImageType::PixelType PixelType;
 
   typedef itk::Image<PixelType, 2> InputSliceType;
+  typedef typename InputSliceType::InternalPixelType InputComponentType;
+
   typedef ImageWrapperBase::DisplaySliceType DisplaySliceType;
   typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
   typedef ImageWrapperBase::DisplayPixelType DisplayPixelType;
@@ -372,7 +376,7 @@ public:
 
   irisGetMacroWithOverride(ColorMap, ColorMap *)
 
-  DisplayPixelType MapPixel(const PixelType &xin);
+  DisplayPixelType MapPixel(const InputComponentType *val);
 
 protected:
 
@@ -431,6 +435,7 @@ public:
   typedef typename ImageType::InternalPixelType InternalPixelType;
 
   typedef itk::Image<InternalPixelType, 2> InputSliceType;
+  typedef typename InputSliceType::InternalPixelType InputComponentType;
 
   typedef ImageWrapperBase::DisplaySliceType DisplaySliceType;
   typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
@@ -472,7 +477,7 @@ public:
 
   irisGetMacro(ScalarRepresentation, ScalarImageWrapperBase *)
 
-  DisplayPixelType MapPixel(const PixelType &val);
+  DisplayPixelType MapPixel(const InputComponentType *val);
 
 protected:
 

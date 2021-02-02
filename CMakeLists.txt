@@ -1505,6 +1505,32 @@ ENDIF()
 
 
 #--------------------------------------------------------------------------------
+# Configure Doxygen
+find_package(Doxygen OPTIONAL_COMPONENTS dot)
+if (DOXYGEN_FOUND)
+  # set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md")
+  set(DOXYGEN_PROJECT_LOGO "${CMAKE_SOURCE_DIR}/GUI/Qt/Resources/logo_square.png")
+  set(DOXYGEN_GENERATE_TREEVIEW YES)
+  set(DOXYGEN_HIDE_UNDOC_RELATIONS NO)
+  set(DOXYGEN_HAVE_DOT YES)
+  set(DOXYGEN_DOT_NUM_THREADS 8)
+  set(DOXYGEN_UML_LOOK YES)
+  set(DOXYGEN_UML_LIMIT_NUM_FIELDS 50)
+  set(DOXYGEN_TEMPLATE_RELATIONS YES)
+  set(DOXYGEN_DOT_IMAGE_FORMAT svg)
+  set(DOXYGEN_INTERACTIVE_SVG YES)
+  set(DOXYGEN_DOT_GRAPH_MAX_NODES 100)
+  set(DOXYGEN_DOT_TRANSPARENT YES)
+
+  doxygen_add_docs(doc
+    ${CMAKE_SOURCE_DIR}
+    COMMENT "Generating doxygen documentation for ${PROJECT_NAME}"
+  )
+endif (DOXYGEN_FOUND)
+
+
+
+#--------------------------------------------------------------------------------
 # Configure CPack
 
 # Which generator to use

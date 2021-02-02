@@ -12,6 +12,9 @@ template class LayerAssociation<ImageInfoLayerProperties,
 
 ImageInfoModel::ImageInfoModel()
 {
+  m_ImageIsInReferenceSpaceModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetImageIsInReferenceSpace);
+
   m_ImageDimensionsModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageDimensions);
 
@@ -26,6 +29,9 @@ ImageInfoModel::ImageInfoModel()
 
   m_ImageNiftiCoordinatesModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageNiftiCoordinates);
+
+  m_ImageVoxelCoordinatesObliqueModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetImageVoxelCoordinatesOblique);
 
   m_ImageMinMaxModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageMinMax);
@@ -50,6 +56,7 @@ ImageInfoModel::ImageInfoModel()
 
   // Also rebroadcast active layer change events as both ModelChange and Metadata
   // change events
+  Rebroadcast(this, ActiveLayerChangedEvent(), ModelUpdateEvent());
   Rebroadcast(this, ActiveLayerChangedEvent(), MetadataChangeEvent());
 
   // Active layer change also impacts the states
@@ -65,44 +72,90 @@ void ImageInfoModel::SetParentModel(GlobalUIModel *parent)
 }
 
 bool ImageInfoModel
-::GetImageDimensions(Vector3ui &value)
+::GetImageDimensions(Vector4ui &value)
 {
   if(!this->GetLayer()) return false;
-  value = GetLayer()->GetSize();
+
+  // Set the spatial dimensions
+  for(unsigned int k = 0; k < 3; k++)
+    value[k] = GetLayer()->GetSize()[k];
+
+  // Set the time dimension
+  value[3] = GetLayer()->GetNumberOfTimePoints();
+
   return true;
 }
 
 bool ImageInfoModel
-::GetImageOrigin(Vector3d &value)
+::GetImageOrigin(Vector4d &value)
 {
   if(!this->GetLayer()) return false;
-  value = GetLayer()->GetImageBase()->GetOrigin();
+
+  // Set the spatial and temporal origin at once
+  for(unsigned int k = 0; k < 4; k++)
+    value[k] = GetLayer()->GetImage4DBase()->GetOrigin()[k];
+
   return true;
 }
 
 bool ImageInfoModel
-::GetImageSpacing(Vector3d &value)
+::GetImageSpacing(Vector4d &value)
 {
   if(!this->GetLayer()) return false;
-  value = GetLayer()->GetImageBase()->GetSpacing();
+
+  // Set the spatial and temporal origin at once
+  for(unsigned int k = 0; k < 4; k++)
+    value[k] = GetLayer()->GetImage4DBase()->GetSpacing()[k];
   return true;
 }
 
 bool ImageInfoModel
-::GetImageItkCoordinates(Vector3d &value)
+::GetImageItkCoordinates(Vector4d &value)
 {
-  if(!this->GetLayer()) return false;
+  ImageWrapperBase *l = this->GetLayer();
+  if(!l) return false;
+
   Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
-  value = GetLayer()->TransformVoxelIndexToPosition(to_int(cursor));
+  Vector3d x = l->TransformVoxelIndexToPosition(to_int(cursor));
+
+  for(unsigned int i = 0; i < 3; i++)
+    value[i] = x[i];
+
+  value[3] = l->GetTimePointIndex() * l->GetImage4DBase()->GetSpacing()[3] +  l->GetImage4DBase()->GetOrigin()[3];
   return true;
 }
 
 bool ImageInfoModel
-::GetImageNiftiCoordinates(Vector3d &value)
+::GetImageNiftiCoordinates(Vector4d &value)
 {
-  if(!this->GetLayer()) return false;
+  ImageWrapperBase *l = this->GetLayer();
+  if(!l) return false;
+
   Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
-  value = GetLayer()->TransformVoxelCIndexToNIFTICoordinates(to_double(cursor));
+  Vector3d x = GetLayer()->TransformVoxelCIndexToNIFTICoordinates(to_double(cursor));
+
+  for(unsigned int i = 0; i < 3; i++)
+    value[i] = x[i];
+
+  value[3] = l->GetTimePointIndex() * l->GetImage4DBase()->GetSpacing()[3] +  l->GetImage4DBase()->GetOrigin()[3];
+
+  return true;
+}
+
+bool ImageInfoModel::GetImageVoxelCoordinatesOblique(Vector3d &value)
+{
+  ImageWrapperBase *layer = this->GetLayer();
+  if(!layer) return false;
+
+  // Get the cursor coordinate in reference space units
+  itk::Index<3> x_ref = layer->GetSliceIndex();
+  itk::ContinuousIndex<double, 3> x_img;
+  layer->TransformReferenceIndexToWrappedImageContinuousIndex(x_ref, x_img);
+
+  // Set everything
+  for(unsigned int d = 0; d < 3; d++)
+    value[d] = x_img[d];
+
   return true;
 }
 
@@ -159,7 +212,8 @@ bool ImageInfoModel::GetImageScalarIntensityUnderCursor(double &value)
   if(layer && layer->GetNumberOfComponents() == 1 && layer->GetNumberOfTimePoints() == 1)
   {
     vnl_vector<double> ivec(1);
-    layer->GetVoxelMappedToNative(layer->GetSliceIndex(), layer->GetTimePointIndex(), ivec);
+    layer->SampleIntensityAtReferenceIndex(
+          layer->GetSliceIndex(), layer->GetTimePointIndex(), true, ivec);
     value = ivec[0];
     return true;
   }
@@ -224,6 +278,9 @@ bool ImageInfoModel::CheckState(ImageInfoModel::UIState state)
           && main->GetNumberOfTimePoints() > 1;
     case ImageInfoModel::UIF_INTENSITY_IS_MULTIVALUED:
       return layer && (layer->GetNumberOfComponents() > 1 || layer->GetNumberOfTimePoints() > 1);
+    case ImageInfoModel::UIF_TIME_IS_DISPLAYED:
+      return main && layer
+          && (layer->GetNumberOfTimePoints() > 1 || main->GetNumberOfTimePoints() > 1);
     }
   return false;
 }
@@ -279,6 +336,16 @@ std::string ImageInfoModel::GetMetadataCell(int row, int col)
   std::string key = m_MetadataKeys[row];
   auto mda = GetLayer()->GetMetaDataAccess();
   return (col == 0) ? mda.MapKeyToDICOM(key) : mda.GetValueAsString(key);
+}
+
+bool ImageInfoModel::GetImageIsInReferenceSpace(bool &value)
+{
+  if(GetLayer())
+    {
+    value = GetLayer()->ImageSpaceMatchesReferenceSpace();
+    return true;
+    }
+  return false;
 }
 
 

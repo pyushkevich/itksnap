@@ -151,7 +151,7 @@ bool CursorInspectionModel::GetLabelUnderTheCursorIdValue(LabelType &value)
   LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
   if(seg)
     {
-    value = seg->GetVoxel(app->GetCursorPosition());
+    value = seg->GetVoxel(to_itkIndex(app->GetCursorPosition()));
     return true;
     }
   return false;
@@ -163,7 +163,7 @@ bool CursorInspectionModel::GetLabelUnderTheCursorTitleValue(std::string &value)
   LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
   if(seg)
     {
-    LabelType label = seg->GetVoxel(app->GetCursorPosition());
+    LabelType label = seg->GetVoxel(to_itkIndex(app->GetCursorPosition()));
     value = app->GetColorLabelTable()->GetColorLabel(label).GetLabel();
     return true;
     }

@@ -303,6 +303,11 @@ public:
   /** Transform NIFTI coordinates to a continuous voxel index */
   virtual Vector3d TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const ITK_OVERRIDE;
 
+  virtual void TransformReferenceIndexToWrappedImageContinuousIndex(
+      const IndexType &ref_index, itk::ContinuousIndex<double, 3> &img_index) const ITK_OVERRIDE;
+
+  virtual bool ImageSpaceMatchesReferenceSpace() const ITK_OVERRIDE;
+
   /** Get the NIFTI s-form matrix for this image */
   irisGetMacroWithOverride(NiftiSform, TransformType)
 
@@ -314,31 +319,25 @@ public:
   virtual void SetVoxel(const itk::Index<3> &index, const PixelType &value);
 
   /**
-   * Get a constant reference to a voxel at a given position.
+   * Lookup a voxel at a particular location in the image. The input coordinates
+   * are of the wrapped image, not of the reference image.
    */
-  PixelType GetVoxel(unsigned int x,
-                     unsigned int y,
-                     unsigned int z,
-                     int time_point = -1) const;
-
-  PixelType GetVoxel(const Vector3ui &index, int time_point = -1) const;
-
   PixelType GetVoxel(const itk::Index<3> &index, int time_point = -1) const;
 
-
   /**
-   * Sample intensity at a 4D position and place the results into a vector. You can
-   * specify a time point, in which case only n_components will be sampled. If the
+   * Sample image intensity at a 4D position in the reference space. If the reference
+   * space does not match the native space, the intensity will be interpolated based
+   * on the current affine transform applied to the image.
+   *
+   * You can specify a time point, in which case only n_components will be sampled. If the
    * time point is -1, all timepoints will be sampled.
+   *
+   * The flag map_to_native specifies whether the output intensities are raw or transformed
+   * into the native intensity space.
    */
-  virtual void GetVoxelAsDouble(const itk::Index<3> &index, int time_point, vnl_vector<double> &out) const ITK_OVERRIDE;
-
-  /**
-   * Sample intensity at a 4D position and map to native intensity values. You can
-   * specify a time point, in which case only n_components will be sampled. If the
-   * time point is -1, all timepoints will be sampled.
-   */
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &index, int time_point, vnl_vector<double> &out) const ITK_OVERRIDE;
+  virtual void SampleIntensityAtReferenceIndex(
+      const itk::Index<3> &index, int time_point,
+      bool map_to_native, vnl_vector<double> &out) const ITK_OVERRIDE;
 
   /**
    * Get the mapping between the internal data type and the 'native' range,
@@ -717,24 +716,27 @@ protected:
    */
   ImageType *m_Image;
 
-  /**
-   * Each time point image is associated with a triplet of slicers (for each axis)
-   */
-  typedef std::array<SlicerPointer, 3> SlicerTriple;
-
   /** The associated slicer filters */
-  std::vector<SlicerTriple> m_Slicers;
-
-  /** This image selector is used to pull out a slice that corresponds to the current time point */
-  typedef InputSelectionImageFilter<SliceType, unsigned int> SliceInputSelectFilter;
-  typedef SmartPtr<SliceInputSelectFilter> SliceInputSelectPointer;
-  std::array<SliceInputSelectPointer, 3> m_SliceInputSelectFilter;
+  std::array<SlicerPointer, 3> m_Slicers;
 
   /** The pointer to the base class of the wrapped image */
   SmartPtr<ImageBaseType> m_ImageBase;
 
   /** The reference space - this is the space into which the image is sliced */
   SmartPtr<ImageBaseType> m_ReferenceSpace;
+
+  /**
+   * A flag indicating whether the image 'lives' in reference space. This
+   * flag is true if the transform applid to the image is identity and if the
+   * reference space and image space are the same
+   */
+  bool m_ImageSpaceMatchesReferenceSpace;
+
+  /**
+   * The affine transform between the reference space and the image. This transform
+   * is manipulated during image registration
+   */
+  SmartPtr<ITKTransformType> m_AffineTransform;
 
   /** The current cursor position (slice index) in image dimensions */
   IndexType m_SliceIndex;
@@ -841,6 +843,9 @@ protected:
   typedef itk::ResampleImageFilter<ImageType, PreviewImageType, double, double> ResampleFilter;
   SmartPtr<ResampleFilter> m_ResampleFilter[6];
 
+  // An internal array to store intensity samples for SampleIntensityAtReferenceIndex function
+  mutable vnl_vector<ComponentType> m_IntensitySamplingArray;
+
   // Compare the geometry (size and header) of two images. Returns true if the headers are
   // within tolerance of each other.
   static bool CompareGeometry(ImageBaseType *image1, ImageBaseType *image2, double tol = 0.0);
@@ -854,6 +859,10 @@ protected:
 
   /** Common code invoked when voxels in the image are changed */
   void OnVoxelsUpdated(unsigned int n_replaced);
+
+  /** Sample voxels at a reference index and place sampled values in m_IntensitySamplingArray */
+  void SampleIntensityAtReferenceIndexInternal(
+      const itk::Index<3> &index, unsigned int tp_begin, unsigned int tp_end) const;
 };
 
 #endif // __ImageWrapper_h_

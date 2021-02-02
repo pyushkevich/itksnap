@@ -15,6 +15,7 @@ namespace itk {
   template <class TPixel> class RGBAPixel;
   template <class TOutputImage> class ImageSource;
   template <class T, unsigned int VDim1, unsigned int VDim2> class Transform;
+  template <class TCoordRep, unsigned int VDim> class ContinuousIndex;
 
   namespace Statistics {
     class DenseFrequencyContainer;
@@ -279,6 +280,16 @@ public:
   /** Transform NIFTI coordinates to a continuous voxel index */
   virtual Vector3d TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const = 0;
 
+  /**
+   * Transform a reference space index to a continuous index in the voxel space of
+   * the wrapped image. For images whose geometry matches the reference space, this
+   * is the identity transform, but for images that are not in referene space, this
+   * will use the S-form of the reference space, S-form of the wrapped image and the
+   * registration transform applied to the image to compute the coordinate.
+   */
+  virtual void TransformReferenceIndexToWrappedImageContinuousIndex(
+      const IndexType &ref_index, itk::ContinuousIndex<double, 3> &img_index) const = 0;
+
   /** Get the NIFTI s-form matrix for this image */
   irisVirtualGetMacro(NiftiSform, TransformType)
 
@@ -298,18 +309,25 @@ public:
   virtual size_t GetNumberOfComponents() const = 0;
 
   /**
-   * Sample intensity at a 4D position and place the results into a vector. You can
-   * specify a time point, in which case only n_components will be sampled. If the
+   * Sample image intensity at a 4D position in the reference space. If the reference
+   * space does not match the native space, the intensity will be interpolated based
+   * on the current affine transform applied to the image.
+   *
+   * You can specify a time point, in which case only n_components will be sampled. If the
    * time point is -1, all timepoints will be sampled.
+   *
+   * The flag map_to_native specifies whether the output intensities are raw or transformed
+   * into the native intensity space.
    */
-  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, int time_point, vnl_vector<double> &out) const = 0;
+  virtual void SampleIntensityAtReferenceIndex(
+      const itk::Index<3> &index, int time_point,
+      bool map_to_native, vnl_vector<double> &out) const = 0;
 
   /**
-   * Sample intensity at a 4D position and map to native intensity values. You can
-   * specify a time point, in which case only n_components will be sampled. If the
-   * time point is -1, all timepoints will be sampled.
+   * Does the image match the reference space? If true, the wrapped image and the
+   * reference image have the same 3D geometry (size, origin, spacing, direction).
    */
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, int time_point, vnl_vector<double> &out) const = 0;
+  virtual bool ImageSpaceMatchesReferenceSpace() const = 0;
 
   /** Return componentwise minimum cast to double, without mapping to native range */
   virtual double GetImageMinAsDouble() = 0;

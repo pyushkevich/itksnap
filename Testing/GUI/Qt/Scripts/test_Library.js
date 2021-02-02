@@ -8,10 +8,11 @@ function setCursor(x, y, z)
 }
 function openMainImage(name)
 {
-  //=== Opening Dialog
+  //=== Opening 'Open Main' Dialog
   engine.findChild(mainwin,"actionOpenMain").trigger();
+  engine.sleep(2000);
 
-  //=== Entering Text
+  //=== Entering Filename
   var dialog = engine.findChild(mainwin, "wizImageIO");
   engine.findChild(dialog, "inFilename").text = datadir + "/" + name;
 
@@ -25,10 +26,11 @@ function openMainImage(name)
 }
 function openWorkspace(name)
 {
-  //=== Opening Dialog
+  //=== Opening 'Open Workspace' dialog
   engine.findChild(mainwin,"actionOpenWorkspace").trigger();
+  engine.sleep(2000);
 
-  //=== Entering Text
+  //=== Entering workspace filename
   var dialog = engine.findChild(mainwin, "dlgSimpleFile");
   engine.findChild(dialog, "inFilename").text = datadir + "/" + name;
 
