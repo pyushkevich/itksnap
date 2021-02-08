@@ -490,213 +490,26 @@ void DebugPrintIOBase (itk::SmartPointer<itk::ImageIOBase> ioBase)
 
   std::cout << "Number of Component: " << std::endl;
   std::cout << ioBase->GetNumberOfComponents() << std::endl;
+  ioBase->Print(std::cout);
 
   std::cout << std::endl;
 }
 
-template<class TScalar>
-itk::SmartPointer<itk::VectorImage<TScalar, 4>>
-LoadECDImage (const char *FileName, itk::SmartPointer<itk::ImageIOBase> ioBase)
+
+/*
+// --Debug
+void GuidedNativeImageIO
+::ExportDebugImage(std::string FileNameWithoutExtension)
 {
+
   // --Debug
-  gdcm::Reader ecd_reader;
-  ecd_reader.SetFileName(FileName);
-
-
-  if (!ecd_reader.Read())
-    std::cerr << "Could not read: " << FileName << std::endl;
-  else
-    {
-      gdcm::File &file = ecd_reader.GetFile();
-      gdcm::DataSet &ds = file.GetDataSet();
-      gdcm::StringFilter sf;
-      sf.SetFile(file);
-
-      const gdcm::Tag deltaX(0x18, 0x602c);
-      const gdcm::Tag deltaY(0x18, 0x602e);
-      const gdcm::Tag deltaZ(0x3001, 0x1003);
-      const gdcm::Tag numVolumes(0x28, 0x8);
-      const gdcm::Tag height(0x28, 0x10);
-      const gdcm::Tag width(0x28, 0x11);
-      const gdcm::Tag depth(0x3001, 0x1001);
-      const gdcm::Tag frameTime(0x18, 0x1063);
-
-      std::cout << "Delta" << std::endl;
-      std::cout << sf.ToString(deltaX) << '\t'
-                << sf.ToString(deltaY) << '\t'
-                << sf.ToString(deltaZ) << '\t'
-                << std::endl << std::endl;
-
-      std::vector<double> ecd_spc;
-      try
-      {
-        ecd_spc.push_back(std::stod(sf.ToString(deltaX)) * 10.0);
-        ecd_spc.push_back(std::stod(sf.ToString(deltaY)) * 10.0);
-        ecd_spc.push_back(std::stod(sf.ToString(deltaZ)) * 10.0);
-      } catch (const std::exception &e)
-      {
-        std::cerr << e.what() << std::endl;
-      }
-      ecd_spc.push_back(1.0);
-
-      // Set to 4d
-      ioBase->SetNumberOfDimensions(4);
-
-      // Set spacing in IOBase
-      for (unsigned int i = 0; i < 4; ++i)
-        ioBase->SetSpacing(i, ecd_spc[i]);
-
-      // Set origin in IOBase
-      for (unsigned int i = 0; i < 4; ++i)
-        ioBase->SetOrigin(i, 0.0);
-
-      // Set direction
-      for (unsigned int i = 0; i < 3; ++i)
-        {
-          std::vector<double> ecd_dir = {0.0, 0.0, 0.0, 0.0};
-          ecd_dir[i] = -1.0;
-          ioBase->SetDirection(i, ecd_dir);
-        }
-      ioBase->SetDirection(3, std::vector<double>{0.0, 0.0, 0.0, 1.0});
-
-
-      std::cout << "Dimension" << std::endl;
-      std::cout << sf.ToString(height) << '\t'
-                << sf.ToString(width) << '\t'
-                << sf.ToString(depth) << '\t'
-                << std::endl << std::endl;
-
-      // Set Dimensions
-      typedef itk::VectorImage<TScalar, 4> NativeImageType;
-      typename NativeImageType::SizeType ecd_dim;
-      ecd_dim.Fill(1);
-      try
-      {
-        ecd_dim[0] = stol(sf.ToString(width));
-        ecd_dim[1] = stol(sf.ToString(height));
-        ecd_dim[2] = stol(sf.ToString(depth));
-        ecd_dim[3] = stol(sf.ToString(numVolumes));
-      }  catch (std::exception &e)
-      {
-        std::cerr << e.what() << std::endl;
-      }
-
-      for (unsigned int i = 0; i < 4; ++i)
-        {
-          ioBase->SetDimensions(i, ecd_dim[i]);
-        }
-
-      std::cout << "FrameTime: " << sf.ToString(frameTime) << std::endl << std::endl;
-
-      std::cout << "# of Volumes: " << sf.ToString(numVolumes) << std::endl << std::endl;
-
-      DebugPrintIOBase(ioBase);
-
-      const gdcm::Tag data(0x7fe0, 0x0010);
-
-
-      unsigned long len = ecd_dim[0] * ecd_dim[1] * ecd_dim[2] * ecd_dim[3];
-      if (!ds.FindDataElement(data))
-        std::cerr << "data element not found!" << std::endl;
-
-      const gdcm::DataElement &de = ds.GetDataElement(data);
-      if (de.IsEmpty())
-        std::cerr << "data element is empty!" << std::endl;
-
-      const gdcm::ByteValue *bv = de.GetByteValue();
-      std::cout << "Expected Length: " << len << std::endl;
-      std::cout << "Actual Length: " << bv->GetLength() << std::endl;
-
-      // Start loading image
-      typedef itk::ImportImageFilter<TScalar, 4> ECDImportFilterType;
-      typename ECDImportFilterType::Pointer importFilter = ECDImportFilterType::New();
-      typename ECDImportFilterType::SizeType size;
-      for(unsigned int i = 0; i < 4; ++i)
-        size[i] = ecd_dim[i];
-
-      typename ECDImportFilterType::IndexType start;
-      start.Fill(0);
-
-      typename ECDImportFilterType::RegionType reg;
-      reg.SetIndex(start);
-      reg.SetSize(size);
-
-      importFilter->SetRegion(reg);
-
-      const itk::SpacePrecisionType origin[4] = {0.0, 0.0, 0.0, 0.0};
-      importFilter->SetOrigin(origin);
-      const itk::SpacePrecisionType spacing[4] = {ecd_spc[0], ecd_spc[1], ecd_spc[2], ecd_spc[3]};
-      importFilter->SetSpacing(spacing);
-
-
-
-      char *ecd_buffer = (char*)malloc(len);
-
-      bv->GetBuffer(ecd_buffer, len);
-
-      std::cout << "Buffer copied" << std::endl;
-
-      constexpr bool importFilterOwnTheBuffer = false;
-      importFilter->SetImportPointer(reinterpret_cast<TScalar*>(ecd_buffer), len, importFilterOwnTheBuffer);
-
-      std::cout << "Import Filter Configured" << std::endl;
-
-      /*
-      DebuggingFileWriter<itk::Image<TScalar, 4>> dbgWritter;
-      std::string dbg_FileName = "debug_output/LoadedImage.nii.gz";
-      dbgWritter.WriteToFile(dbg_FileName, importFilter->GetOutput());
-
-      std::cout << "Debugging Image Generated" << std::endl;
-      */
-
-      // Convert the image into VectorImage format. Do this in-place to avoid
-      // allocating memory pointlessly
-      typename NativeImageType::Pointer vector = NativeImageType::New();
-
-      typedef itk::Image<TScalar, 4> TScalarImage;
-
-
-      typename TScalarImage::Pointer scalar = importFilter->GetOutput();
-
-      std::cout << "Scalar Pixel Container Size: " << scalar->GetPixelContainer()->Size() << std::endl;
-
-      vector->CopyInformation(scalar);
-      vector->SetRegions(scalar->GetBufferedRegion());
-
-
-      typedef typename NativeImageType::PixelContainer PixConType;
-      typename PixConType::Pointer pc = PixConType::New();
-      pc->SetImportPointer(
-            reinterpret_cast<TScalar *>(scalar->GetBufferPointer()),
-            scalar->GetBufferedRegion().GetNumberOfPixels(), true);
-      vector->SetPixelContainer(pc);
-
-      std::cout << "Intermediate Container Size: " << pc->Size() << std::endl;
-
-      // Prevent the container from being deleted
-      scalar->GetPixelContainer()->SetContainerManageMemory(false);
-
-      std::cout << "Pixel Container Size: " << vector->GetPixelContainer()->Size() << std::endl;
-
-      return vector;
-
-      /*
-      // Copy the metadata from the first scan in the series
-      const typename ReaderType::DictionaryArrayType *darr =
-        reader->GetMetaDataDictionaryArray();
-      if(darr->size() > 0)
-        m_NativeImage->SetMetaDataDictionary(*((*darr)[0]));
-      */
-
-      /*
-      typedef itk::ComposeImageFilter<itk::Image<TScalar, 4>> ToVectorFilterType;
-      typename ToVectorFilterType::Pointer ToVectorFilter = ToVectorFilterType::New();
-      ToVectorFilter->SetInput(0, importFilter->GetOutput());
-      ToVectorFilter->Update();
-      outImage = ToVectorFilter->GetOutput();
-      */
-    }
+  std::cout << "Generating debugging output..." << std::endl;
+  DebuggingFileWriter<DebugImageType> dbgWritter;
+  std::string dbg_FileName = "debug_output/" + FileNameWithoutExtension + ".nii.gz";
+  dbgWritter.WriteToFile(dbg_FileName, temp_debugImage);
+  std::cout << "Debugging File generated at: ./" << dbg_FileName << std::endl;
 }
+*/
 
 void
 GuidedNativeImageIO
@@ -819,6 +632,8 @@ GuidedNativeImageIO
 
       if (ecd_reader.ReadSelectedTags(headerTags))
         {
+          m_IOBase->SetFileName(FileName);
+
           gdcm::File &file = ecd_reader.GetFile();
           gdcm::DataSet &ds = file.GetDataSet();
           gdcm::StringFilter sf;
@@ -894,7 +709,7 @@ GuidedNativeImageIO
 
           m_IOBase->SetNumberOfComponents(1);
           m_IOBase->SetComponentType(itk::IOComponentEnum::UCHAR);
-          m_IOBase->SetFileName(FileName);
+
 
           std::cout << "Read header completed.." << std::endl;
         }
@@ -1149,12 +964,14 @@ GuidedNativeImageIO
           ecd_image->SetSpacing(ecd_spc);
           ecd_image->SetDirection(ecd_dir);
 
+          // Configure target image container
           typename NativeImageType::RegionType ecd_region;
           typename NativeImageType::IndexType ecd_index = {{0, 0, 0, 0}};
           ecd_region.SetIndex(ecd_index);
           ecd_region.SetSize(ecd_dim);
           ecd_image->SetRegions(ecd_region);
           ecd_image->SetVectorLength(1);
+          ecd_image->SetNumberOfComponentsPerPixel(1);
           ecd_image->Allocate();
 
           // -- Extract the buffer from file
@@ -1166,8 +983,8 @@ GuidedNativeImageIO
           // -- Pass buffer into ecd_image
           typedef typename NativeImageType::PixelContainer PixConType;
           typename PixConType::Pointer pPixCon = PixConType::New();
-          constexpr bool imageOwnTheBuffer = true;
-          pPixCon->SetImportPointer(reinterpret_cast<TScalar*>(ecd_buffer), imageOwnTheBuffer);
+          constexpr bool imageOwnTheBuffer = false;
+          pPixCon->SetImportPointer(reinterpret_cast<TScalar*>(ecd_buffer), len, imageOwnTheBuffer);
           ecd_image->SetPixelContainer(pPixCon);
 
           std::cout << "Pixel Container imported" << std::endl;
@@ -1178,8 +995,12 @@ GuidedNativeImageIO
           std::string dbg_FileName = "debug_output/LoadedImage.nii.gz";
           dbgWritter.WriteToFile(dbg_FileName, ecd_image);
           std::cout << "Debugging File generated at: ./" << dbg_FileName << std::endl;
+          std::cout << "Pixel Container Size: " << ecd_image->GetPixelContainer()->Size() << std::endl;
 
           m_NativeImage = ecd_image;
+
+          // --Debug
+          //temp_debugImage = ecd_image;
         }
     }
   else

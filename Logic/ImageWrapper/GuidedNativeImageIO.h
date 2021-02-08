@@ -284,8 +284,7 @@ public:
   void CreateImageIO(const char *fname, Registry &folder, bool read);
 
   // Get the output of the last operation
-  // irisGetMacro(IOBase, itk::ImageIOBase *);    
-
+  // irisGetMacro(IOBase, itk::ImageIOBase *);
 protected:
 
   GuidedNativeImageIO();
