@@ -70,7 +70,6 @@ ColorLabelTable
 void
 ColorLabelTable
 ::LoadFromFile(const char *file)
-  throw(itk::ExceptionObject)
 {
   // Create a stream for reading the file
   ifstream fin(file);
@@ -176,7 +175,6 @@ ColorLabelTable
 void
 ColorLabelTable
 ::SaveToFile(const char *file) const
-  throw(itk::ExceptionObject)
 {
   // Open the file for writing
   ofstream fout(file);
