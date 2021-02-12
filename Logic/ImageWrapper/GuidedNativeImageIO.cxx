@@ -60,6 +60,7 @@
 #include "gdcmReader.h"
 #include "gdcmSerieHelper.h"
 #include "gdcmStringFilter.h"
+#include "gdcmDataSetHelper.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkNumericTraits.h"
@@ -73,6 +74,8 @@
 #include <itk_zlib.h>
 #include "itkImportImageFilter.h"
 #include <algorithm>
+#include "itksys/Base64.h"
+
 
 using namespace std;
 
@@ -458,59 +461,6 @@ private:
   typename ImageWriterType::Pointer m_Writer;
 };
 
-// --Debug
-void DebugPrintIOBase (itk::SmartPointer<itk::ImageIOBase> ioBase)
-{
-  size_t nd_actual = ioBase->GetNumberOfDimensions();
-  size_t nd = (nd_actual > 4) ? 4 : nd_actual;
-
-  std::cout << "IOBase ReadHeader result: " << std::endl;
-  std::cout << "Dimensions: " << std::endl;
-  for(unsigned int i = 0; i < nd; ++i)
-    std::cout << ioBase->GetDimensions(i) << " ";
-  std::cout << std::endl;
-
-  std::cout << "Spacing: " << std::endl;
-  for(unsigned int i = 0; i < nd; ++i)
-    std::cout << ioBase->GetSpacing(i) << " ";
-  std::cout << std::endl;
-
-  std::cout << "Origin: " << std::endl;
-  for(unsigned int i = 0; i < nd; ++i)
-    std::cout << ioBase->GetOrigin(i) << " ";
-  std::cout << std::endl;
-
-  std::cout << "Direction: " << std::endl;
-  for(unsigned int i = 0; i < nd; ++i)
-    {
-      for(size_t j = 0; j < nd; ++j)
-        std::cout << ioBase->GetDirection(i)[j] << " ";
-      std::cout << std::endl;
-    }
-
-  std::cout << "Number of Component: " << std::endl;
-  std::cout << ioBase->GetNumberOfComponents() << std::endl;
-  ioBase->Print(std::cout);
-
-  std::cout << std::endl;
-}
-
-
-/*
-// --Debug
-void GuidedNativeImageIO
-::ExportDebugImage(std::string FileNameWithoutExtension)
-{
-
-  // --Debug
-  std::cout << "Generating debugging output..." << std::endl;
-  DebuggingFileWriter<DebugImageType> dbgWritter;
-  std::string dbg_FileName = "debug_output/" + FileNameWithoutExtension + ".nii.gz";
-  dbgWritter.WriteToFile(dbg_FileName, temp_debugImage);
-  std::cout << "Debugging File generated at: ./" << dbg_FileName << std::endl;
-}
-*/
-
 void
 GuidedNativeImageIO
 ::ReadNativeImageHeader(const char *FileName, Registry &folder)
@@ -549,7 +499,7 @@ GuidedNativeImageIO
            std::transform(origManu.begin(), origManu.end(), manufacturer.begin(), ::toupper);
 
            // --Debug
-           std::cout << "ECD manufacturer string: " << manufacturer << std::endl;
+           // std::cout << "ECD manufacturer string: " << manufacturer << std::endl;
 
            if (manufacturer == "PMS QLAB CART EXPORT")
              m_IsECDImage = true;
@@ -628,8 +578,6 @@ GuidedNativeImageIO
       headerTags.insert(depth);
       headerTags.insert(frameTime);
 
-      std::cout << "Read header start.." << std::endl;
-
       if (ecd_reader.ReadSelectedTags(headerTags))
         {
           m_IOBase->SetFileName(FileName);
@@ -638,12 +586,6 @@ GuidedNativeImageIO
           gdcm::DataSet &ds = file.GetDataSet();
           gdcm::StringFilter sf;
           sf.SetFile(file);
-
-          std::cout << "Delta" << std::endl;
-          std::cout << sf.ToString(deltaX) << '\t'
-                    << sf.ToString(deltaY) << '\t'
-                    << sf.ToString(deltaZ) << '\t'
-                    << std::endl << std::endl;
 
           std::vector<double> ecd_spc;
           try
@@ -678,13 +620,6 @@ GuidedNativeImageIO
             }
           m_IOBase->SetDirection(3, std::vector<double>{0.0, 0.0, 0.0, 1.0});
 
-
-          std::cout << "Dimension" << std::endl;
-          std::cout << sf.ToString(height) << '\t'
-                    << sf.ToString(width)  << '\t'
-                    << sf.ToString(depth)  << '\t'
-                    << std::endl << std::endl;
-
           std::vector<itk::ImageIOBase::SizeType> ecd_dim(4);
 
           try
@@ -703,15 +638,8 @@ GuidedNativeImageIO
               m_IOBase->SetDimensions(i, ecd_dim[i]);
             }
 
-          std::cout << "FrameTime: " << sf.ToString(frameTime) << std::endl << std::endl;
-
-          std::cout << "# of Volumes: " << sf.ToString(numVolumes) << std::endl << std::endl;
-
           m_IOBase->SetNumberOfComponents(1);
           m_IOBase->SetComponentType(itk::IOComponentEnum::UCHAR);
-
-
-          std::cout << "Read header completed.." << std::endl;
         }
     }
   else
@@ -917,6 +845,8 @@ GuidedNativeImageIO
     } 
   else if (m_IsECDImage)
     {
+      // issue #26: 4D Echocardiography Cartesian DICOM (ECD) Image Reading
+
       gdcm::Reader ecd_data_reader;
       ecd_data_reader.SetFileName(FileName);
 
@@ -929,6 +859,7 @@ GuidedNativeImageIO
       std::set<gdcm::Tag> tSet;
       tSet.insert(data);
 
+      // Only read the data tag
       if (!ecd_data_reader.ReadSelectedTags(tSet))
         std::cerr << "Can not read:" << FileName << std::endl;
       else
@@ -955,8 +886,10 @@ GuidedNativeImageIO
 
           const gdcm::ByteValue *bv = de.GetByteValue();
 
+          /* Debug
           std::cout << "Expected Length: " << len << std::endl;
-          std::cout << "Actual Length: " << bv->GetLength() << std::endl;
+          std::cout << "  Actual Length: " << bv->GetLength() << std::endl;
+          */
 
           // Start loading image
           typename NativeImageType::Pointer ecd_image = NativeImageType::New();
@@ -978,8 +911,6 @@ GuidedNativeImageIO
           char *ecd_buffer = (char*)malloc(len);
           bv->GetBuffer(ecd_buffer, len);
 
-          std::cout << "Buffer extracted" << std::endl;
-
           // -- Pass buffer into ecd_image
           typedef typename NativeImageType::PixelContainer PixConType;
           typename PixConType::Pointer pPixCon = PixConType::New();
@@ -987,20 +918,95 @@ GuidedNativeImageIO
           pPixCon->SetImportPointer(reinterpret_cast<TScalar*>(ecd_buffer), len, imageOwnTheBuffer);
           ecd_image->SetPixelContainer(pPixCon);
 
-          std::cout << "Pixel Container imported" << std::endl;
+          // Read and Import Dictionary
+          // -- Choose and import basic information into the metadata dictionary
 
-          // --Debug
-          std::cout << "Generating debugging output..." << std::endl;
-          DebuggingFileWriter<NativeImageType> dbgWritter;
-          std::string dbg_FileName = "debug_output/LoadedImage.nii.gz";
-          dbgWritter.WriteToFile(dbg_FileName, ecd_image);
-          std::cout << "Debugging File generated at: ./" << dbg_FileName << std::endl;
-          std::cout << "Pixel Container Size: " << ecd_image->GetPixelContainer()->Size() << std::endl;
+          // -- Following code segment loading metadata dictionary is from itkGDCMImageIO.cxx
+          // -- Modified to adapt to 4D Echocardiography Cartesian DICOM (ECD) Image
+
+          gdcm::Reader ecd_meta_reader;
+          ecd_meta_reader.SetFileName(FileName);
+          typedef itk::ImageIOBase::SizeValueType SizeValueType;
+          itk::MetaDataDictionary &dico = m_IOBase->GetMetaDataDictionary();
+          gdcm::StringFilter strF;
+          strF.SetFile(ecd_meta_reader.GetFile());
+
+          if (!ecd_meta_reader.ReadUpToTag(data))
+            std::cerr << "Can not read:" << FileName << std::endl;
+          else
+            {
+              const gdcm::File &file = ecd_meta_reader.GetFile();
+              const gdcm::DataSet &ds = file.GetDataSet();
+
+              // Iterate through tags for metadata
+              for (auto it = ds.Begin(); it != ds.End(); ++it)
+                {
+
+                  const gdcm::DataElement &de = *it;
+                  const gdcm::Tag &tag = de.GetTag();
+
+
+                  // Customized reading of following attributes for the non-standard 4D ECD image
+                  // -- Depth (z-axis dimension)
+                  if (tag == gdcm::Tag(0x3001, 0x1001))
+                    {
+                      itk::EncapsulateMetaData<std::string>(dico, "Depth", strF.ToString(tag));
+                      continue;
+                    }
+
+                  // -- Delta Z (physical delta in z direction)
+                  if (tag == gdcm::Tag(0x3001, 0x1003))
+                    {
+                      itk::EncapsulateMetaData<std::string>(dico, "Physical Delta Z", strF.ToString(tag));
+                      continue;
+                    }
+
+                  // Otherwise read public tags as normal
+                  gdcm::VR vr = gdcm::DataSetHelper::ComputeVR(file, ds, tag);
+
+                  if (vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::SQ | gdcm::VR::UN))
+                  {
+                    // itkAssertInDebugAndIgnoreInReleaseMacro( vr & gdcm::VR::VRBINARY );
+                    /*
+                     * Old behavior was to skip SQ, Pixel Data element. I decided that it is not safe to mime64
+                     * VR::UN element. There used to be a bug in gdcm 1.2.0 and VR:UN element.
+                     */
+                    if ((tag.IsPublic()) && vr != gdcm::VR::SQ &&
+                        tag != gdcm::Tag(0x7fe0, 0x0010) /* && vr != gdcm::VR::UN*/)
+                    {
+                      const gdcm::ByteValue * bv = de.GetByteValue();
+                      if (bv)
+                      {
+                        // base64 streams have to be a multiple of 4 bytes in length
+                        int encodedLengthEstimate = 2 * bv->GetLength();
+                        encodedLengthEstimate = ((encodedLengthEstimate / 4) + 1) * 4;
+
+                        auto * bin = new char[encodedLengthEstimate];
+                        auto   encodedLengthActual =
+                          static_cast<unsigned int>(itksysBase64_Encode((const unsigned char *)bv->GetPointer(),
+                                                                        static_cast<SizeValueType>(bv->GetLength()),
+                                                                        (unsigned char *)bin,
+                                                                        static_cast<int>(0)));
+                        std::string encodedValue(bin, encodedLengthActual);
+                        itk::EncapsulateMetaData<std::string>(dico, tag.PrintAsPipeSeparatedString(), encodedValue);
+                        delete[] bin;
+                      }
+                    }
+                  }
+                  else /* if ( vr & gdcm::VR::VRASCII ) */
+                  {
+                    // Only copying field from the public DICOM dictionary
+                    if (tag.IsPublic())
+                    {
+                      itk::EncapsulateMetaData<std::string>(dico, tag.PrintAsPipeSeparatedString(), strF.ToString(tag));
+                    }
+                  }
+                }
+            }
+
+          ecd_image->SetMetaDataDictionary(dico);
 
           m_NativeImage = ecd_image;
-
-          // --Debug
-          //temp_debugImage = ecd_image;
         }
     }
   else
