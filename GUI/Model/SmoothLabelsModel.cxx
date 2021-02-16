@@ -147,36 +147,46 @@ void SmoothLabelsModel::UpdateOnShow()
 
 }
 
-void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, std::vector<double> &sigma, SigmaUnit unit)
+void
+SmoothLabelsModel
+::Smooth(std::unordered_set<LabelType> &labelsToSmooth,
+         std::vector<double> &sigma,
+         SigmaUnit unit,
+         bool SmoothAllFrames)
 {
   // Always smooth background
   if (!labelsToSmooth.count(0))
     labelsToSmooth.insert(0);
 
+  // --Debug
   std::cout << "Labels to Smooth: " << endl;
   for (auto cit = labelsToSmooth.cbegin(); cit != labelsToSmooth.cend(); ++cit)
-    {
       std::cout << *cit << endl;
-    }
-
   std::cout << "Sigma Array" << endl;
   for (auto it = sigma.begin(); it != sigma.end(); ++it)
-    {
       std::cout << std::to_string(*it) << " ";
-    }
   std::cout << std::endl;
+
 
   // Get the segmentaton wrapper
   LabelImageWrapper *liw = m_Parent->GetDriver()->GetSelectedSegmentationLayer();
+
+
+  unsigned int nT = liw->GetNumberOfTimePoints();
+  std::cout << "Number of Frames: " << nT << std::endl;
+
+  for (unsigned int i = 0; i < nT; ++i)
+    {
+      liw->SetTimePointIndex(i);
+      std::cin.ignore();
+    }
 
   // Get all valid labels
   std::vector<LabelType> allLabels;
   ColorLabelTable::ValidLabelMap validLabelMap = m_LabelTable->GetValidLabels();
 
-  for(auto cit = validLabelMap.cbegin(); cit != validLabelMap.cend(); ++cit)
-    {
+  for (auto cit = validLabelMap.cbegin(); cit != validLabelMap.cend(); ++cit)
       allLabels.push_back(cit->first);
-    }
 
   // Process sigma user input
   std::vector<double> sigmaInput = sigma; // deep copy
@@ -200,23 +210,35 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
 
   // Type definitions
   typedef GenericImageData::LabelImageType LabelImageType;
-  // -- Output of Smoothing, Input of Voting
+  // -- Image Type for record scores in voting; Output of Smoothing, Input of Voting
   typedef itk::Image<double, 3> VotingImageType;
-  // -- Output of label voting
+
+  // -- Image type for record label voting result; Output of Voting and Determination, Input of Determination
   typedef itk::Image<LabelType, 3> LabelVotingType;
 
+  // -- Binarization Filter
   typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> ThresholdFilter;
+
+  // -- Blank Image Generator
   typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> BlankVotingImageGenerator;
   typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelVotingType> BlankLabelImageGenerator;
+
+  // -- Intensity Voting Filter
   typedef BinaryIntensityVotingFunctor<VotingImageType, VotingImageType, VotingImageType> IntensityVotingFunctor;
   typedef itk::BinaryFunctorImageFilter
       <VotingImageType, VotingImageType, VotingImageType, IntensityVotingFunctor> IntensityVoter;
+
+  // -- Label Voting Filter
   typedef BinaryLabelVotingFunctor<VotingImageType, VotingImageType, LabelVotingType> LabelVotingFunctor;
   typedef itk::BinaryFunctorImageFilter
       <VotingImageType, VotingImageType, LabelVotingType, LabelVotingFunctor> LabelVoter;
+
+  // -- Label Determiating Filter
   typedef BinaryLabelDeterminatingFunctor<LabelVotingType, LabelVotingType, LabelVotingType> LabelDeterminatingFunctor;
   typedef itk::BinaryFunctorImageFilter
       <LabelVotingType, LabelVotingType, LabelVotingType, LabelDeterminatingFunctor> LabelDeterminator;
+
+
   typedef itk::SmoothingRecursiveGaussianImageFilter<VotingImageType, VotingImageType> SmoothFilter;
 
   // Generate a blank (all zero) image for counting maximum intensities
@@ -229,6 +251,7 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
   blankVotingImageGen->Update();
   VotingImageType::Pointer maxIntensity = blankVotingImageGen->GetOutput();
   VotingImageType::Pointer newMaxIntensity = blankVotingImageGen->GetOutput();
+
   // Generate a blank (all zero) image for recording winning labels
   BlankLabelImageGenerator::Pointer blankLabelImageGen = BlankLabelImageGenerator::New();
   blankLabelImageGen->SetInput(liw->GetImage());
@@ -370,9 +393,7 @@ void SmoothLabelsModel::Smooth(std::unordered_set<LabelType> &labelsToSmooth, st
 
   std::cout << "Updating GUI..." << endl;
   for (; !it_update.IsAtEnd(); ++it_update, ++it_src)
-    {
       it_update.PaintLabel(it_src.Get());
-    }
 
   // Finalize update and create an undo point
   it_update.Finalize("Smooth Labels");
