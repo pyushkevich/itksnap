@@ -593,12 +593,12 @@ GuidedNativeImageIO
             ecd_spc.push_back(std::stod(sf.ToString(deltaX)) * 10.0);
             ecd_spc.push_back(std::stod(sf.ToString(deltaY)) * 10.0);
             ecd_spc.push_back(std::stod(sf.ToString(deltaZ)) * 10.0);
+            // frame time is the spacing along the time axis
+            ecd_spc.push_back(std::stod(sf.ToString(frameTime)));
           } catch (const std::exception &e)
           {
             std::cerr << e.what() << std::endl;
           }
-
-          ecd_spc.push_back(1.0);
 
           // Set to 4d
           m_IOBase->SetNumberOfDimensions(4);
@@ -640,6 +640,9 @@ GuidedNativeImageIO
 
           m_IOBase->SetNumberOfComponents(1);
           m_IOBase->SetComponentType(itk::IOComponentEnum::UCHAR);
+
+          // --Debug
+          m_IOBase->Print(std::cout);
         }
     }
   else
