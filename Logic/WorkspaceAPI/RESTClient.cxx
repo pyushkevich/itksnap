@@ -176,12 +176,33 @@ bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
   
 bool RESTClient::PostVA(const char *rel_url, const char *post_string, std::va_list args)
 {
+  // Calling vsprintf multiple times with the same args fails on Windows. Instead we
+  // can concatenate the URL string and the post string, call vasprintf once, and then
+  // split the buffers. We just need a separator that would not be expected.
+  const char *sep="@@@SEP@@@";
+  std::string joint_pattern = 
+    post_string
+    ? std::string(rel_url) + std::string(sep) + std::string(post_string)
+    : std::string(rel_url);
+
   // Expand the URL
   char url_buffer[4096];
-  vsprintf(url_buffer, rel_url, args);
+  vsprintf(url_buffer, joint_pattern.c_str(), args);
+
+  // Split into url and post sections
+  std::string url_filled, post_filled;
+  if(post_string)
+    {
+    std::string ub(url_buffer);
+    size_t pos = ub.find(sep);
+    url_filled = ub.substr(0, pos);
+    post_filled = ub.substr(pos + strlen(sep));
+    }
+  else
+    url_filled = std::string(url_buffer);
 
   // The URL to post to
-  string url = this->GetServerURL() + "/" + url_buffer;
+  string url = this->GetServerURL() + "/" + url_filled;
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
@@ -194,12 +215,14 @@ bool RESTClient::PostVA(const char *rel_url, const char *post_string, std::va_li
   // The POST data
   if(post_string)
     {
-    char post_buffer[4096];
-    vsprintf(post_buffer, post_string, args);
-    curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_buffer);
-
-    cout << "POST " << url << " VALUES " << post_buffer << endl;
+    curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_filled.c_str());
+    cout << "POST " << url << " VALUES " << post_filled.c_str() << endl;
     }
+  else 
+    {
+    cout << "GET " << url << endl;
+    }
+
 
   // Capture output
   m_Output.clear();
