@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>312</width>
-    <height>511</height>
+    <height>546</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -245,7 +245,7 @@ color: gray;</string>
    <property name="geometry">
     <rect>
      <x>210</x>
-     <y>460</y>
+     <y>510</y>
      <width>93</width>
      <height>28</height>
     </rect>
@@ -258,7 +258,7 @@ color: gray;</string>
    <property name="geometry">
     <rect>
      <x>110</x>
-     <y>460</y>
+     <y>510</y>
      <width>93</width>
      <height>28</height>
     </rect>
@@ -268,6 +268,22 @@ color: gray;</string>
    </property>
    <property name="default">
     <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="chkSmoothAllFrames">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>430</y>
+     <width>151</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>Apply smoothing to all time frames.</string>
+   </property>
+   <property name="text">
+    <string>Smooth All Frames</string>
    </property>
   </widget>
  </widget>

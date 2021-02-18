@@ -34,7 +34,7 @@ public:
   Smooth(std::unordered_set<LabelType> &labelsToSmooth,
          std::vector<double> &sigma,
          SigmaUnit unit,
-         bool SmoothAllFrames = false);
+         bool SmoothAllFrames);
 
   /** Get the model describing the current selected label (and its domain) */
   irisGetMacro(CurrentLabelModel, ConcreteColorLabelPropertyModel *)

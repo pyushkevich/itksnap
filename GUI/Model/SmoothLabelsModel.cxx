@@ -9,6 +9,7 @@
 #include "itkImageDuplicator.h"
 #include "itkBinaryFunctorImageFilter.h"
 #include "SegmentationUpdateIterator.h"
+#include "SegmentationStatistics.h"
 
 #include "itkImageFileWriter.h"
 
@@ -165,6 +166,7 @@ SmoothLabelsModel
   std::cout << "Sigma Array" << endl;
   for (auto it = sigma.begin(); it != sigma.end(); ++it)
       std::cout << std::to_string(*it) << " ";
+  std::cout << "SmoothAllFrames: " << SmoothAllFrames << std::endl;
   std::cout << std::endl;
 
 
@@ -175,11 +177,34 @@ SmoothLabelsModel
   unsigned int nT = liw->GetNumberOfTimePoints();
   std::cout << "Number of Frames: " << nT << std::endl;
 
-  for (unsigned int i = 0; i < nT; ++i)
+  // For 3D Image, It will always be 0;
+  // For 4D Image, Smooth All will start from 0, otherwise current time point
+  unsigned int crntFrame = SmoothAllFrames ? 0 : liw->GetTimePointIndex();
+
+  // For 3D Image, It will always be 1
+  // For 4D Image, Smooth All will end with last frame, otherwise next time point
+  const unsigned int frameEnd = SmoothAllFrames ? nT : crntFrame + 1;
+
+  SegmentationStatistics statsCalculator;
+
+
+  for (;crntFrame < frameEnd; ++crntFrame)
     {
-      liw->SetTimePointIndex(i);
-      std::cin.ignore();
+      // Set current frame to target frame
+      liw->SetTimePointIndex(crntFrame);
+
+      std::cout << ">>>>>>>>>> Frame: " << crntFrame << std::endl;
+
+      // Compute Statistics
+      statsCalculator.Compute(m_Parent->GetDriver());
+      statsCalculator.Export(std::cout, "\t", *m_Parent->GetDriver()->GetColorLabelTable());
+
+      // Execute Smoothing Logic
+      {
+
+      }
     }
+
 
   // Get all valid labels
   std::vector<LabelType> allLabels;

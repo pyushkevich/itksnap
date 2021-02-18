@@ -209,7 +209,7 @@ void SmoothLabelsDialog::on_btnApply_clicked()
       typedef SmoothLabelsModel::SigmaUnit SigmaUnit;
       SigmaUnit unit = ui->sigmaUnit->currentIndex() == 0 ? SigmaUnit::mm : SigmaUnit::vox;
 
-      m_Model->Smooth(labelSet, sigmaArr, unit);
+      m_Model->Smooth(labelSet, sigmaArr, unit, ui->chkSmoothAllFrames->isChecked());
     }
 }
 
