@@ -125,6 +125,7 @@ IRISApplication
 
   Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, LayerChangeEvent(), this);
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LayerChangeEvent(), this);
+  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, CurrentTimePointChangedEvent(), this);
 
   // TODO: should this also be a generic Wrapper Image Data change event?
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LevelSetImageChangeEvent(), this);
@@ -1052,7 +1053,7 @@ IRISApplication
 ::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *progress) 
 {
   // Update the list of VTK meshes
-  m_MeshManager->UpdateVTKMeshes(progress);
+  m_MeshManager->UpdateVTKMeshes(progress, this->GetSelectedSegmentationLayer()->GetTimePointIndex());
 
   // Get the list of available labels
   MeshManager::MeshCollection meshes = m_MeshManager->GetMeshes();

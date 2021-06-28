@@ -4,6 +4,7 @@
 #include "GlobalUIModel.h"
 #include "SNAPAppearanceSettings.h"
 #include "GenericImageData.h"
+#include "Rebroadcaster.h"
 
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -220,6 +221,9 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   // Change in the selected segmentation layer affects what is rendered
   Rebroadcast(app->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
               ValueChangedEvent(), ModelUpdateEvent());
+
+  // issue #29: Listen to current timepoint change for 4D image data
+  Rebroadcast(app, CurrentTimePointChangedEvent(), ModelUpdateEvent());
 
   // Update the main components
   this->UpdateAxisRendering();
@@ -716,6 +720,9 @@ void Generic3DRenderer::OnUpdate()
   bool seg_layer_changed =
       m_EventBucket->HasEvent(ValueChangedEvent(),
                               gs->GetSelectedSegmentationLayerIdModel());
+
+  if (m_EventBucket->HasEvent(CurrentTimePointChangedEvent()))
+    std::cout << "[renderer] Current Time Point Changed!" << std::endl;
 
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed || seg_layer_changed)
