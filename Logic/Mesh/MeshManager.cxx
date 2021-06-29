@@ -103,8 +103,8 @@ MeshManager
 
 void 
 MeshManager
-::UpdateVTKMeshes(itk::Command *command)
-{
+::UpdateVTKMeshes(itk::Command *command, unsigned int timepoint)
+{ 
   // The mesh is constructed differently depending on whether there is an
   // actively evolving level set or not SNAP mode or in IRIS mode
   if (m_Driver->IsSnakeModeLevelSetActive())
@@ -143,19 +143,29 @@ MeshManager
     if(!wrapper || !wrapper->GetImage() || !Is3DProper(wrapper->GetImage()))
       return;
 
-    // Get the mesh generation pipeline associated with the layer
-    SmartPtr<MultiLabelMeshPipeline> pipeline =
-        static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
+    // Get the mesh generation pipelines associated with the layer
+    SmartPtr<MultiLabelMeshPipelineTable> pipelineTable =
+        static_cast<MultiLabelMeshPipelineTable *>(wrapper->GetUserData("MeshPipelineTable"));
+
+    if (!pipelineTable)
+      {
+        pipelineTable = MultiLabelMeshPipelineTable::New();
+        wrapper->SetUserData("MeshPipelineTable", pipelineTable);
+      }
+
+    // Get pipeline for the timepoint
+    SmartPtr<MultiLabelMeshPipeline> pipeline = (*pipelineTable)[timepoint];
 
     // If the pipeline does not exist, create it
     if(!pipeline)
       {
       pipeline = MultiLabelMeshPipeline::New();
-      wrapper->SetUserData("MeshPipeline", pipeline);
+      (*pipelineTable)[timepoint] = pipeline;
       }
 
     // Make sure the pipeline has the right image
-    pipeline->SetImage(wrapper->GetImage());
+    LabelImageWrapper::ImagePointer imgpt = wrapper->GetImageByTimePoint(timepoint);
+    pipeline->SetImage(imgpt);
 
       // Pass the options to the pipeline
     pipeline->SetMeshOptions(m_GlobalState->GetMeshOptions());
@@ -168,7 +178,7 @@ MeshManager
   this->Modified();
 }
 
-MeshManager::MeshCollection MeshManager::GetMeshes()
+MeshManager::MeshCollection MeshManager::GetMeshes(unsigned int timepoint)
 {
   // Empty collection that is returned by default
   MeshCollection meshes;
@@ -197,9 +207,17 @@ MeshManager::MeshCollection MeshManager::GetMeshes()
     if(!wrapper || !wrapper->GetImage() || !Is3DProper(wrapper->GetImage()))
       return meshes;
 
-    // Get the pipeline storing the meshes
-    SmartPtr<MultiLabelMeshPipeline> pipeline =
-        static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
+    // Get the mesh generation pipelines associated with the layer
+    SmartPtr<MultiLabelMeshPipelineTable> pipelineTable =
+        static_cast<MultiLabelMeshPipelineTable *>(wrapper->GetUserData("MeshPipelineTable"));
+
+    if (!pipelineTable)
+      {
+        return meshes;
+      }
+
+    SmartPtr<MultiLabelMeshPipeline> pipeline = (*pipelineTable)[timepoint];
+
 
     // Return the actual meshes in the pipeline
     if(pipeline)

@@ -222,9 +222,6 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(app->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 
-  // issue #29: Listen to current timepoint change for 4D image data
-  Rebroadcast(app, CurrentTimePointChangedEvent(), ModelUpdateEvent());
-
   // Update the main components
   this->UpdateAxisRendering();
   this->UpdateCamera(true);
@@ -247,7 +244,8 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 
   // Get the mesh from the parent object
   MeshManager *mesh = driver->GetMeshManager();
-  MeshManager::MeshCollection meshes = mesh->GetMeshes();
+  MeshManager::MeshCollection meshes = mesh->GetMeshes(
+        driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
   typedef MeshManager::MeshCollection::const_iterator MeshIterator;
 
   // Remove all actors that are no longer in use, and update the ones for which the
@@ -720,9 +718,6 @@ void Generic3DRenderer::OnUpdate()
   bool seg_layer_changed =
       m_EventBucket->HasEvent(ValueChangedEvent(),
                               gs->GetSelectedSegmentationLayerIdModel());
-
-  if (m_EventBucket->HasEvent(CurrentTimePointChangedEvent()))
-    std::cout << "[renderer] Current Time Point Changed!" << std::endl;
 
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed || seg_layer_changed)

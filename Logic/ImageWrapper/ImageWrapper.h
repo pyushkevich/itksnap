@@ -409,9 +409,6 @@ public:
   /** Set the current time index */
   virtual void SetTimePointIndex(unsigned int index) ITK_OVERRIDE;
 
-  /** Get image from a time point */
-  virtual const ImageType *GetImageByTimePoint(unsigned int timepoint) const;
-
   const ImageBaseType* GetDisplayViewportGeometry(unsigned int index) const;
 
   virtual void SetDisplayViewportGeometry(
@@ -677,7 +674,10 @@ public:
    */
   void SetSourceNativeMapping(double scale, double shift);
 
-  FIRES(CurrentTimePointChangedEvent)
+  /**
+    * Get the image from a specific timepoint
+    */
+  virtual const ImagePointer GetImageByTimePoint(unsigned int timepoint) const;
 
 protected:
 

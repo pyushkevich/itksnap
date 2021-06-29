@@ -156,9 +156,6 @@ itkEventMacro(SegmentationROIChangedEvent, IRISEvent)
 /** The mapping between display coordinates and anatomical coordinates changed */
 itkEventMacro(DisplayToAnatomyCoordinateMappingChangeEvent, IRISEvent)
 
-/** A change to the current timepoint of a wrapper */
-itkEventMacro(CurrentTimePointChangedEvent, WrapperChangeEvent)
-
 // A setter method that fires events
 #define irisSetWithEventMacro(name,type,event) \
     virtual void Set##name (type _arg) \

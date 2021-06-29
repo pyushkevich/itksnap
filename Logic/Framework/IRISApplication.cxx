@@ -125,7 +125,6 @@ IRISApplication
 
   Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, LayerChangeEvent(), this);
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LayerChangeEvent(), this);
-  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, CurrentTimePointChangedEvent(), this);
 
   // TODO: should this also be a generic Wrapper Image Data change event?
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LevelSetImageChangeEvent(), this);
@@ -1056,7 +1055,8 @@ IRISApplication
   m_MeshManager->UpdateVTKMeshes(progress, this->GetSelectedSegmentationLayer()->GetTimePointIndex());
 
   // Get the list of available labels
-  MeshManager::MeshCollection meshes = m_MeshManager->GetMeshes();
+  MeshManager::MeshCollection meshes = m_MeshManager->GetMeshes(
+        this->GetSelectedSegmentationLayer()->GetTimePointIndex());
   MeshManager::MeshCollection::iterator it;
 
   // If in SNAP mode, just save the first mesh

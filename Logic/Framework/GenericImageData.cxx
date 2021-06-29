@@ -371,10 +371,6 @@ GenericImageData
   Rebroadcaster::Rebroadcast(seg_wrapper, WrapperImageChangeEvent(),
                              this, SegmentationChangeEvent());
 
-  // Timepoint changes in the image wrapper are reboardcasted as is
-  Rebroadcaster::Rebroadcast(seg_wrapper, CurrentTimePointChangedEvent(),
-                             this, CurrentTimePointChangedEvent());
-
   // Return the newly added wrapper
   return seg_wrapper;
 }

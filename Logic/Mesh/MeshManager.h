@@ -78,14 +78,14 @@ public:
   /**
    * Generate VTK meshes from input data.
    */
-  void UpdateVTKMeshes(itk::Command *command);
+  void UpdateVTKMeshes(itk::Command *command, unsigned int timepoint);
 
   /**
    * Get the mapping of labels to vtk mesh pointers. This method has a
    * slight overhead of copying the data
    */
   typedef std::map<LabelType, vtkSmartPointer<vtkPolyData> > MeshCollection;
-  MeshCollection GetMeshes();
+  MeshCollection GetMeshes(unsigned int timepoint);
 
   /**
    * Does the mesh need updating?

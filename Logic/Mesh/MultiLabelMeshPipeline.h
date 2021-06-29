@@ -192,4 +192,14 @@ private:
       unsigned long pos);
 };
 
+// issue #29: Now storing one pipeline for each timepoint of 4D image
+// 3D image pipeline will always be stored at timepoint 0
+class MultiLabelMeshPipelineTable :
+    public itk::Object,
+    public std::map<unsigned int, SmartPtr<MultiLabelMeshPipeline>>
+{
+public:
+  irisITKObjectMacro(MultiLabelMeshPipelineTable, itk::Object)
+};
+
 #endif
