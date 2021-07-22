@@ -350,6 +350,9 @@ GenericImageData
   seg_wrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
   seg_wrapper->SetImage4D(imgLabel);
 
+  // Segmentation and Main Image should have same slice index
+  seg_wrapper->SetSliceIndex(m_MainImageWrapper->GetSliceIndex());
+
   // Update filenames
   seg_wrapper->SetFileName(io->GetFileNameOfNativeImage());
   seg_wrapper->SetDefaultNickname(this->GenerateNickname(LABEL_ROLE));
