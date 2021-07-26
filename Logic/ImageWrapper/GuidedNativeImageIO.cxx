@@ -443,29 +443,6 @@ GuidedNativeImageIO
     }
 }
 
-template<class ImageType>
-class DebuggingFileWriter
-{
-public:
-  typedef itk::ImageFileWriter<ImageType> ImageWriterType;
-  DebuggingFileWriter() : m_Writer(ImageWriterType::New()) {};
-  void WriteToFile (std::string &fileName, typename ImageType::Pointer data)
-  {
-
-    m_Writer->SetFileName(fileName);
-    m_Writer->SetInput(data);
-    try
-    {
-      m_Writer->Update();
-    } catch (itk::ExceptionObject &error)
-    {
-      std::cerr << "Error: " << error << std::endl;
-    }
-  }
-private:
-  typename ImageWriterType::Pointer m_Writer;
-};
-
 void
 GuidedNativeImageIO
 ::ReadNativeImageHeader(const char *FileName, Registry &folder)
