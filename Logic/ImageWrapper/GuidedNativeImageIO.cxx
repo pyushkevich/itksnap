@@ -1630,8 +1630,25 @@ GuidedNativeImageIO::GuessFormatForFileName(
     // Check for DICOM
     if(havebuff && !strncmp(buffer+128,"DICM",4))
       {
-      // issue #26
-      if (!strncmp(buffer+556, "PMS QLAB Cart Export", 20))
+      // issue #26: Check for Echo Cartesian Dicom
+      gdcm::Reader reader;
+      reader.SetFileName(fname.c_str());
+
+      std::set<gdcm::Tag> tags;
+      gdcm::Tag tag_manuf(0x0008, 0x0070); // manufacturer
+      tags.insert(tag_manuf);
+
+      reader.ReadSelectedTags(tags, true);
+
+      gdcm::StringFilter sf;
+      sf.SetFile(reader.GetFile());
+
+      std::string manuf = sf.ToString(tag_manuf);
+
+      // transform to upper case
+      std::transform(manuf.begin(), manuf.end(), manuf.begin(), ::toupper);
+
+      if (!manuf.compare("PMS QLAB CART EXPORT"))
         return FORMAT_ECHO_CARTESIAN_DICOM;
 
       // PY: Now that I cleaned up the DICOM reader, we should never default
