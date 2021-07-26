@@ -67,6 +67,7 @@ public:
     FORMAT_ANALYZE=0,
     FORMAT_DICOM_DIR,       // A directory containing multiple DICOM files
     FORMAT_DICOM_FILE,      // A single DICOM file
+    FORMAT_ECHO_CARTESIAN_DICOM, // A Echocardiography Cartesian DICOM
     FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
     FORMAT_MHA, FORMAT_NIFTI, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
     FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK,
@@ -344,9 +345,6 @@ protected:
 
   // DICOM directory last processed by ParseDicomSeries
   DicomDirectoryParseResult m_LastDicomParseResult;
-
-  // issue #26: Identifier of 4d Echocardiography Cartesian DICOM Image
-  bool m_IsECDImage;
 
   // This information is copied from IOBase in order to delete IOBase at the 
   // earliest possible point, so as to conserve memory
