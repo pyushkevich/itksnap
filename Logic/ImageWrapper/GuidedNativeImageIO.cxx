@@ -90,6 +90,7 @@ GuidedNativeImageIO
   {"Analyze", "img.gz,hdr,img",      true,  false, true,  true},
   {"DICOM Image Series", "",         false, true,  true,  true},
   {"DICOM Single Image", "dcm",      false, true,  true,  true},
+  {"Echo Cartesian DICOM", "dcm",    false, true,  true,  true},
   {"GE Version 4", "ge4",            false, false, true,  true},
   {"GE Version 5", "ge5",            false, false, true,  true},
   {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
@@ -1647,7 +1648,6 @@ GuidedNativeImageIO::GuessFormatForFileName(
 
       // transform to upper case
       std::transform(manuf.begin(), manuf.end(), manuf.begin(), ::toupper);
-
       if (!manuf.compare("PMS QLAB CART EXPORT"))
         return FORMAT_ECHO_CARTESIAN_DICOM;
 
