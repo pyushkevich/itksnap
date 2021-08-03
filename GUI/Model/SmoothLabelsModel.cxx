@@ -148,6 +148,11 @@ void SmoothLabelsModel::UpdateOnShow()
 
 }
 
+GlobalUIModel* SmoothLabelsModel::GetParent() const
+{
+  return this->m_Parent;
+}
+
 void
 SmoothLabelsModel
 ::Smooth(std::unordered_set<LabelType> &labelsToSmooth,
@@ -160,14 +165,16 @@ SmoothLabelsModel
     labelsToSmooth.insert(0);
 
   // --Debug
-  std::cout << "Labels to Smooth: " << endl;
-  for (auto cit = labelsToSmooth.cbegin(); cit != labelsToSmooth.cend(); ++cit)
-      std::cout << *cit << endl;
-  std::cout << "Sigma Array" << endl;
-  for (auto it = sigma.begin(); it != sigma.end(); ++it)
-      std::cout << std::to_string(*it) << " ";
-  std::cout << "SmoothAllFrames: " << SmoothAllFrames << std::endl;
-  std::cout << std::endl;
+  {
+    std::cout << "Labels to Smooth: " << endl;
+    for (auto cit = labelsToSmooth.cbegin(); cit != labelsToSmooth.cend(); ++cit)
+        std::cout << *cit << endl;
+    std::cout << "Sigma Array" << endl;
+    for (auto it = sigma.begin(); it != sigma.end(); ++it)
+        std::cout << std::to_string(*it) << " ";
+    std::cout << "SmoothAllFrames: " << SmoothAllFrames << std::endl;
+    std::cout << std::endl;
+  }
 
   // Get the segmentaton wrapper
   LabelImageWrapper *liw = m_Parent->GetDriver()->GetSelectedSegmentationLayer();
@@ -234,10 +241,10 @@ SmoothLabelsModel
 
       // Execute Smoothing Logic
       {
-        // Get all labels
+        // Get all labels that have volume
         for (auto cit = stats.cbegin(); cit != stats.cend(); ++cit)
           {
-            if(labelsToSmooth.count(cit->first))
+            if(cit->second.count > 0)
               allLabels.push_back(cit->first);
           }
 
@@ -333,12 +340,12 @@ SmoothLabelsModel
             fltThreshold->Update();
 
             // Smooth selected labels. For unselected labels, keep intensity as 1
-            bool isLabelSelected = labelsToSmooth.count(*cit);
+            bool labelNeedsSmooth = labelsToSmooth.count(*cit);
             // -- keep intensity for unselected label
             VotingImageType::Pointer crntLabelBinarized = fltThreshold->GetOutput();
 
             // Only smooth selected labels
-            if (isLabelSelected)
+            if (labelNeedsSmooth)
               {
                 std::cout << "Smoothing..." << endl;
                 // Smooth the binarized image
@@ -444,12 +451,14 @@ SmoothLabelsModel
         this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
         std::cout << "Selected labels have been smoothed!" << std::endl;
       } // End of Frame Processing
-
-      // Change label image to current frame
-      liw->SetTimePointIndex(m_Parent->GetDriver()->GetCursorTimePoint());
-      liw->Modified();
-
-      // --Debug
-      std::cout << "All Frames have been smoothed!" << std::endl;
     }
+  // Change label image to current frame
+  liw->SetTimePointIndex(m_Parent->GetDriver()->GetCursorTimePoint());
+  liw->Modified();
+
+  // --Debug
+  if (SmoothAllFrames)
+    std::cout << "All Frames have been smoothed" << std::endl;
+  else
+    std::cout << "Current frame has been smoothed" << std::endl;
 }

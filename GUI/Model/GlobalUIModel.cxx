@@ -69,6 +69,7 @@
 #include "ColorLabelQuickListModel.h"
 #include "InterpolateLabelModel.h"
 #include "SmoothLabelsModel.h"
+#include "VoxelChangeReportModel.h"
 #include "RegistrationModel.h"
 #include "InteractiveRegistrationModel.h"
 #include "DistributedSegmentationModel.h"
@@ -219,6 +220,10 @@ GlobalUIModel::GlobalUIModel()
   // issue #24: Label smoothing feature
   m_SmoothLabelsModel = SmoothLabelsModel::New();
   m_SmoothLabelsModel->SetParentModel(this);
+
+  // issue #24: Voxel Change Report
+  m_VoxelChangeReportModel = VoxelChangeReportModel::New();
+  m_VoxelChangeReportModel->SetParentModel(this);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(

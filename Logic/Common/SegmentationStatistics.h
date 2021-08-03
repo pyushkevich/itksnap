@@ -78,6 +78,9 @@ public:
 
   typedef std::map<LabelType, Entry> EntryMap;
 
+  /* A light-weight struct storing voxel count for each label */
+  typedef std::map<LabelType, unsigned long> LabelVoxelCount;
+
   /* Compute statistics from a segmentation image */
   void Compute(IRISApplication *app);
   
@@ -92,6 +95,9 @@ public:
 
   const std::vector<std::string> &GetImageStatisticsColumns() const
     { return m_ImageStatisticsColumnNames; }
+
+  /* A light-weight method only compute voxel counts for each label*/
+  void GetVoxelCount(LabelVoxelCount &result, IRISApplication *app) const;
 
 private:
 

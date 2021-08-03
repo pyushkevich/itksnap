@@ -10,11 +10,29 @@
     <x>0</x>
     <y>0</y>
     <width>312</width>
-    <height>546</height>
+    <height>549</height>
    </rect>
   </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>312</width>
+    <height>549</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>312</width>
+    <height>549</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Label Smoothing Tool</string>
   </property>
   <widget class="QLabel" name="lbl_Title">
    <property name="geometry">

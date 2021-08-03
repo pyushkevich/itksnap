@@ -23,9 +23,6 @@ public:
   /** Initialize with the parent model */
   void SetParentModel(GlobalUIModel *parent);
 
-  /** Model for the label that will be smoothed */
-  //irisGenericPropertyAccessMacro(LabelsToSmooth, LabelType, ColorLabelItemSetDomain)
-
   /** Update the state of the widget whenever it is shown */
   void UpdateOnShow();
 
@@ -38,6 +35,9 @@ public:
 
   /** Get the model describing the current selected label (and its domain) */
   irisGetMacro(CurrentLabelModel, ConcreteColorLabelPropertyModel *)
+
+  /** Get Parent Model */
+  GlobalUIModel* GetParent() const;
 
 
 protected:

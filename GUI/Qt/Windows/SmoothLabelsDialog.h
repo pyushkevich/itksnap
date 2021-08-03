@@ -10,7 +10,8 @@ class SmoothLabelsModel;
 class QStandardItemModel;
 class QSortFilterProxyModel;
 
-namespace Ui {
+namespace Ui
+{
   class SmoothLabelsDialog;
 }
 

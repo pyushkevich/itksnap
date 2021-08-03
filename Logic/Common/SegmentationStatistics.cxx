@@ -169,6 +169,48 @@ void SegmentationStatistics
   cachedEntry->count += runLength;
 }
 
+void SegmentationStatistics
+::GetVoxelCount(LabelVoxelCount &result, IRISApplication *app) const
+{
+  // Get selected segmentation layer
+  LabelImageWrapper *liw = app->GetSelectedSegmentationLayer();
+
+  // Get the iterator from the segmentation
+  LabelImageWrapper::ConstIterator it = liw->GetImageConstIterator();
+
+  // Iterate through image and update count
+  LabelType runLabel = 0;
+  unsigned long *cachedCnt = &result[runLabel];
+  unsigned long runLength = 0;
+
+  // Start counting
+  for (; !it.IsAtEnd(); ++it, ++runLength)
+    {
+      LabelType label = it.Value();
+      if (label != runLabel)
+        {
+          // std::cout << "run length: " << runLength << endl;
+          *cachedCnt += runLength;
+
+          // Reset for new count
+          runLabel = label;
+          cachedCnt = &result[runLabel];
+          runLength = 0;
+        }
+    }
+
+  // Add last run Length
+  *cachedCnt += runLength;
+
+  // Debug
+  /*
+  for (auto cit = result.cbegin(); cit != result.cend(); ++cit)
+    {
+      std::cout << cit->first << "=>" << cit->second << std::endl;
+    }
+    */
+}
+
 void 
 SegmentationStatistics
 ::ExportLegacy(ostream &fout, const ColorLabelTable &clt)

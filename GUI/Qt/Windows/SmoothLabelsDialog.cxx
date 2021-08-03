@@ -3,6 +3,9 @@
 #include "SmoothLabelsDialog.h"
 #include "ui_SmoothLabelsDialog.h"
 #include "SmoothLabelsModel.h"
+#include "VoxelChangeReportDialog.h"
+#include "VoxelChangeReportModel.h"
+#include "GlobalUIModel.h"
 #include <unordered_set>
 
 #include "QtComboBoxCoupling.h"
@@ -11,6 +14,9 @@
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 #include <QMessageBox>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include <QDialogButtonBox>
 
 SmoothLabelsDialog::SmoothLabelsDialog(QWidget *parent) :
   QDialog(parent),
@@ -60,7 +66,7 @@ public:
           items[0]->setCheckState(Qt::CheckState::Checked);
           items[0]->setCheckable(false);
           items[0]->setEnabled(false);
-          items[0]->setToolTip("The background label always participates in smoothing.");
+          items[0]->setToolTip("Current smoothing algorithm always involves background label");
         }
   }
 };
@@ -179,25 +185,44 @@ void SmoothLabelsDialog::on_btnApply_clicked()
       labelSet.insert(oneLabel);
     }
 
+  // Build the confirmation box
   QMessageBox confirmBox;
   QString msg;
   if (labelSet.size() < 1)
     msg = QString("No label is selected for smoothing!");
   else if (labelSet.size() == 2)
     {
-      auto it = labelSet.cbegin();
-      msg = QString("Proceed to smooth label %1?").arg(*(++it));
+      LabelType lb = 0;
+      // get the non-zero label
+      for (auto it = labelSet.cbegin(); it != labelSet.cend(); ++it)
+        {
+          if (*it != 0)
+            {
+              lb = *it;
+              break;
+            }
+        }
+
+      msg = QString("Smooth Label %1?").arg(lb);
     }
   else
-    msg = QString("Proceed to smooth these %1 labels?").arg(labelSet.size() - 1);
+    msg = QString("Smooth these %1 Labels?").arg(labelSet.size() - 1);
 
   confirmBox.setText(msg);
   confirmBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
 
   int ret = confirmBox.exec();
 
+  // Build the result panel
+  VoxelChangeReportDialog *report = new VoxelChangeReportDialog(this);
+  report->SetModel(m_Model->GetParent()->GetVoxelChangeReportModel());
+  report->setDescription("Voxel Changes after Smoothing");
+
+  // Execute smoothing logic
   if (ret == QMessageBox::Ok)
     {
+      report->setStartPoint();
+
       // Assemble sigma array
       std::vector<double> sigmaArr;
       sigmaArr.push_back(ui->sigmaX->text().toDouble());
@@ -210,7 +235,42 @@ void SmoothLabelsDialog::on_btnApply_clicked()
       SigmaUnit unit = ui->sigmaUnit->currentIndex() == 0 ? SigmaUnit::mm : SigmaUnit::vox;
 
       m_Model->Smooth(labelSet, sigmaArr, unit, ui->chkSmoothAllFrames->isChecked());
+
+      report->showReport();
     }
+
+  /*
+  QDialog *resultDialog = new QDialog(this);
+  resultDialog->setFixedSize(550, 281);
+
+
+  QTreeWidget *resultTree = new QTreeWidget(resultDialog);
+  resultTree->setColumnCount(5);
+  QStringList hdr;
+  hdr << "Frame" << "Label" << "Change" << "Before" << "After";
+  resultTree->setHeaderLabels(hdr);
+  resultTree->setAlternatingRowColors(true);
+
+  QVBoxLayout *vlo = new QVBoxLayout(resultDialog);
+  vlo->addWidget(resultTree);
+
+  QDialogButtonBox *btnBox = new QDialogButtonBox(resultDialog);
+  QPushButton *btnOK = new QPushButton("OK");
+  btnBox->addButton(btnOK, QDialogButtonBox::AcceptRole);
+  connect(btnOK, SIGNAL(clicked()), resultDialog, SLOT(accept()));
+  QGridLayout *btnLayout = new QGridLayout();
+  btnLayout->addWidget(btnBox);
+  vlo->addLayout(btnLayout);
+
+  QTreeWidgetItem *sample = new QTreeWidgetItem(resultTree);
+  sample->setText(0, "1");
+  sample->setText(1, "Label 3");
+  sample->setText(2, "500");
+  sample->setText(3, "1000");
+  sample->setText(4, "1500");
+
+  ret = resultDialog->exec();
+  */
 }
 
 void SmoothLabelsDialog::on_btnClose_clicked()
