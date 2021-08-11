@@ -1038,6 +1038,7 @@ SET(SNAP_SUBMODULE_LIBS
   cnd_api
   cnd_driver
   cnd_adapters
+  cnd_maxflow
   greedyapi)
 
 # System libraries
@@ -1062,7 +1063,6 @@ SET(SNAP_EXTERNAL_LIBS_LITE
   vtkCommonCore vtkFiltersCore
   ${CURL_LIBRARIES}
   ${SYSTEM_LIBS})
-
 
 #--------------------------------------------------------------------------------
 # Include C3D Library as submodule

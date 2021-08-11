@@ -2,7 +2,6 @@
 
 #include "SmoothLabelsModel.h"
 #include "GlobalUIModel.h"
-#include "GenericImageData.h"
 #include "IRISApplication.h"
 #include "itkSmoothingRecursiveGaussianImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
@@ -11,7 +10,6 @@
 #include "SegmentationUpdateIterator.h"
 #include "SegmentationStatistics.h"
 
-#include "itkImageFileWriter.h"
 
 template <class TInputImage1, class TInputImage2, class TOutputImage>
 class BinaryIntensityVotingFunctor
@@ -153,6 +151,88 @@ GlobalUIModel* SmoothLabelsModel::GetParent() const
   return this->m_Parent;
 }
 
+#include "ConvertAPI.h"
+
+
+void
+SmoothLabelsModel
+::ApplyC3DSmoothing(LabelImageWrapper *liw, std::vector<double> sigma
+                    , SigmaUnit sigmaUnit, std::unordered_set<LabelType> labelsToSmooth)
+{
+  typedef ConvertAPI<double, 3> ConvertAPIType;
+  typedef LabelImageWrapper::ImageType LabelImageType;
+  typedef typename ConvertAPIType::ImageType C3DImageType;
+
+
+  C3DImageType::Pointer c3dInputImage = C3DImageType::New();
+
+  std::cout << "[apply c3d smoothing] start preprocessing" << std::endl;
+
+  c3dInputImage->SetRegions(liw->GetImage()->GetLargestPossibleRegion());
+  c3dInputImage->Allocate();
+
+  std::cout << "[apply c3d smoothing] image allocated" << std::endl;
+
+  itk::ImageRegionIterator<C3DImageType>
+      it_c3d(c3dInputImage, c3dInputImage->GetLargestPossibleRegion());
+
+  std::cout << "[apply c3d smoothing] it_c3d created" << std::endl;
+
+  itk::ImageRegionConstIterator<LabelImageType>
+      it_label(liw->GetImage(), liw->GetBufferedRegion());
+
+  std::cout << "[apply c3d smoothing] start converting liw to c3d image" << std::endl;
+
+  while (!it_label.IsAtEnd())
+    {
+      it_c3d.Set(it_label.Get());
+      ++it_c3d;
+      ++it_label;
+    }
+
+  std::cout << "[apply c3d smoothing] start api call" << std::endl;
+
+  // Build label string
+  std::string labelString;
+  for (auto cit = labelsToSmooth.cbegin(); cit != labelsToSmooth.cend(); ++cit)
+    {
+      labelString += std::to_string(*cit) + ' ';
+    }
+
+  ConvertAPIType c3d;
+
+  // Add Input Image to the stack
+  c3d.AddImage("imgin", c3dInputImage);
+
+  // Redirect c3d standard outputs
+  c3d.RedirectOutput(std::cout, std::cerr);
+
+  c3d.Execute(
+        "-verbose -clear -push imgin -smooth-multilabel %fx%fx%f%s \"%s\" -as imgout",
+        sigma[0], sigma[1], sigma[2], SigmaUnitStr[sigmaUnit], labelString.c_str()
+  );
+
+  C3DImageType::Pointer c3dOutputImage = c3d.GetImage("imgout");
+
+  // Apply labels back to segmentation image
+  SegmentationUpdateIterator it_update(liw, liw->GetBufferedRegion()
+                                       , m_Parent->GetGlobalState()->GetDrawingColorLabel()
+                                       , m_Parent->GetGlobalState()->GetDrawOverFilter());
+  itk::ImageRegionConstIterator<C3DImageType>
+      it_src(c3dOutputImage, c3dOutputImage->GetBufferedRegion());
+
+  std::cout << "Updating GUI..." << endl;
+  for (; !it_update.IsAtEnd(); ++it_update, ++it_src)
+      it_update.PaintLabel(it_src.Get());
+
+  // Finalize update and create an undo point
+  it_update.Finalize("Smooth Labels");
+
+  // Fire event to inform GUI that segmentation has changed
+  this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
+  std::cout << "Selected labels have been smoothed!" << std::endl;
+}
+
 void
 SmoothLabelsModel
 ::Smooth(std::unordered_set<LabelType> &labelsToSmooth,
@@ -218,240 +298,10 @@ SmoothLabelsModel
   // Set of valid labels for current frame
   std::vector<LabelType> allLabels;
 
-  for (;crntFrame < frameEnd; ++crntFrame)
-    {
-      // Set current frame to target frame
-      liw->SetTimePointIndex(crntFrame);
 
-      std::cout << ">>>>>>>>>> Frame: " << crntFrame + 1 << std::endl;
+  // Apply the c3d multilabel smoothing api
+  this->ApplyC3DSmoothing(liw, sigmaInput, unit, labelsToSmooth);
 
-      // Compute Statistics
-      statsCalculator.Compute(m_Parent->GetDriver());
-
-      // --Debug
-      std::cout << "Frame Label Stats: " << std::endl;
-      for (auto it = stats.begin(); it != stats.end(); ++it)
-        {
-          std::cout << "Label " << it->first << ": \t" << it->second.count << std::endl;
-        }
-
-      // Reload valid label set for each frame
-      // b.c. Valid Labels on different frames can be different
-      allLabels.clear();
-
-      // Execute Smoothing Logic
-      {
-        // Get all labels that have volume
-        for (auto cit = stats.cbegin(); cit != stats.cend(); ++cit)
-          {
-            if(cit->second.count > 0)
-              allLabels.push_back(cit->first);
-          }
-
-        // If only clear label detected, there's nothing to smooth
-        if (allLabels.size() < 2)
-          continue;
-
-        // --Debug
-        std::cout << "Valid Frame Labels to smooth: " << std::endl;
-        for (auto cit = allLabels.cbegin(); cit != allLabels.cend(); ++cit)
-            std::cout << *cit << endl;
-
-
-        // Type definitions
-        typedef GenericImageData::LabelImageType LabelImageType;
-        // -- Image Type for record scores in voting; Output of Smoothing, Input of Voting
-        typedef itk::Image<double, 3> VotingImageType;
-
-        // -- Image type for record label voting result; Output of Voting and Determination, Input of Determination
-        typedef itk::Image<LabelType, 3> LabelVotingType;
-
-        // -- Binarization Filter
-        typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> ThresholdFilter;
-
-        // -- Blank Image Generator
-        typedef itk::BinaryThresholdImageFilter<LabelImageType, VotingImageType> BlankVotingImageGenerator;
-        typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelVotingType> BlankLabelImageGenerator;
-
-        // -- Intensity Voting Filter
-        typedef BinaryIntensityVotingFunctor<VotingImageType, VotingImageType, VotingImageType> IntensityVotingFunctor;
-        typedef itk::BinaryFunctorImageFilter
-            <VotingImageType, VotingImageType, VotingImageType, IntensityVotingFunctor> IntensityVoter;
-
-        // -- Label Voting Filter
-        typedef BinaryLabelVotingFunctor<VotingImageType, VotingImageType, LabelVotingType> LabelVotingFunctor;
-        typedef itk::BinaryFunctorImageFilter
-            <VotingImageType, VotingImageType, LabelVotingType, LabelVotingFunctor> LabelVoter;
-
-        // -- Label Determiating Filter
-        typedef BinaryLabelDeterminatingFunctor<LabelVotingType, LabelVotingType, LabelVotingType> LabelDeterminatingFunctor;
-        typedef itk::BinaryFunctorImageFilter
-            <LabelVotingType, LabelVotingType, LabelVotingType, LabelDeterminatingFunctor> LabelDeterminator;
-
-
-        typedef itk::SmoothingRecursiveGaussianImageFilter<VotingImageType, VotingImageType> SmoothFilter;
-
-        // Generate a blank (all zero) image for counting maximum intensities
-        BlankVotingImageGenerator::Pointer blankVotingImageGen = BlankVotingImageGenerator::New();
-        blankVotingImageGen->SetInput(liw->GetImage());
-        blankVotingImageGen->SetLowerThreshold(0);
-        blankVotingImageGen->SetUpperThreshold(0);
-        blankVotingImageGen->SetInsideValue(0.0);
-        blankVotingImageGen->SetOutsideValue(0.0);
-        blankVotingImageGen->Update();
-        VotingImageType::Pointer maxIntensity = blankVotingImageGen->GetOutput();
-        VotingImageType::Pointer newMaxIntensity = blankVotingImageGen->GetOutput();
-
-        // Generate a blank (all zero) image for recording winning labels
-        BlankLabelImageGenerator::Pointer blankLabelImageGen = BlankLabelImageGenerator::New();
-        blankLabelImageGen->SetInput(liw->GetImage());
-        blankLabelImageGen->SetLowerThreshold(0);
-        blankLabelImageGen->SetUpperThreshold(0);
-        blankLabelImageGen->SetInsideValue(0);
-        blankLabelImageGen->SetOutsideValue(0);
-        blankLabelImageGen->Update();
-        LabelVotingType::Pointer winningLabels = blankLabelImageGen->GetOutput();
-
-        // Declare voting filters
-        IntensityVoter::Pointer intensityVoter = IntensityVoter::New();
-        LabelVoter::Pointer labelVoter = LabelVoter::New();
-        LabelDeterminator::Pointer labelDeterminator = LabelDeterminator::New();
-
-        // Debug
-        /*
-        DebuggingFileWriter<LabelVotingType> dbg_LabelWriter;
-        DebuggingFileWriter<VotingImageType> dbg_IntensityWriter;
-        */
-        // Iterate labels; Smooth and Vote
-        for (auto cit = allLabels.cbegin(); cit != allLabels.cend(); ++cit)
-          {
-            std::cout << "Processing: " << *cit << endl;
-
-            // Binarize the Image
-            ThresholdFilter::Pointer fltThreshold = ThresholdFilter::New();
-
-            // -- set current seg image layer as input
-            fltThreshold->SetInput(liw->GetImage());
-            // -- set current target label (*cit) to 1, others to 0
-            fltThreshold->SetLowerThreshold(*cit);
-            fltThreshold->SetUpperThreshold(*cit);
-            fltThreshold->SetInsideValue(1.0);
-            fltThreshold->SetOutsideValue(0.0);
-            fltThreshold->Update();
-
-            // Smooth selected labels. For unselected labels, keep intensity as 1
-            bool labelNeedsSmooth = labelsToSmooth.count(*cit);
-            // -- keep intensity for unselected label
-            VotingImageType::Pointer crntLabelBinarized = fltThreshold->GetOutput();
-
-            // Only smooth selected labels
-            if (labelNeedsSmooth)
-              {
-                std::cout << "Smoothing..." << endl;
-                // Smooth the binarized image
-                SmoothFilter::Pointer fltSmooth = SmoothFilter::New();
-                fltSmooth->SetInput(fltThreshold->GetOutput());
-
-                // -- Set sigma array
-                SmoothFilter::SigmaArrayType sigmaArr;
-                for (int i = 0; i < 3; ++i)
-                  sigmaArr[i] = sigmaInput[i];
-                fltSmooth->SetSigmaArray(sigmaArr);
-
-                // -- Smooth
-                fltSmooth->Update();
-
-                crntLabelBinarized = fltSmooth->GetOutput();
-                std::cout << "Smoothing Completed." << endl;
-              }
-
-            // Vote to determine the label
-
-            /* Intensity Voting:
-             * A pixel-wise intensity comparison between current label smoothing result
-             * and the previous highest instensity. If current intensity is greater than previous high,
-             * it will replace previous high in the output image. Otherwise, previous high will be
-             * preserved in the output image.
-             */
-
-            intensityVoter->SetInput1(crntLabelBinarized);
-            intensityVoter->SetInput2(maxIntensity);
-            intensityVoter->Update();
-
-            // Temporarily save the new max intensity, since maxIntensity needs to be used again
-            newMaxIntensity = intensityVoter->GetOutput();
-
-            std::cout << "Intensity Voting Completed" << endl;
-
-            /* Label Voting:
-             * A pixel-wise intensity comparison between current label smoothing result
-             * and the previous highest intensity. If current intensity is greater than previous high,
-             * current label will be written to the output image. Otherwise, 0 will be written.
-             */
-
-            // debug
-            /*
-            std::string dbg_fn0 = "debug_output/Binarized_" + std::to_string(*cit) + ".nii.gz";
-            dbg_IntensityWriter.WriteToFile(dbg_fn0, crntLabelBinarized);
-            std::string dbg_fn1 = "debug_output/maxIntensity_" + std::to_string(*cit) + ".nii.gz";
-            dbg_IntensityWriter.WriteToFile(dbg_fn1, maxIntensity);
-            std::string dbg_fn2 = "debug_output/newMaxIntensity_" + std::to_string(*cit) + ".nii.gz";
-            dbg_IntensityWriter.WriteToFile(dbg_fn2, newMaxIntensity);
-            */
-
-            LabelVotingFunctor lvf(*cit); // pass current label into the functor
-            labelVoter->SetFunctor(lvf);
-            labelVoter->SetInput1(crntLabelBinarized);
-            labelVoter->SetInput2(maxIntensity);
-            labelVoter->Update();
-            LabelVotingType::Pointer labelVotingResult = labelVoter->GetOutput();
-
-            // debug
-            /*
-            std::string dbg_FileName = "debug_output/LabelVotingResult_" + std::to_string(*cit) + ".nii.gz";
-            dbg_LabelWriter.WriteToFile(dbg_FileName, labelVotingResult);
-            */
-
-            std::cout << "Label Voting Completed" << endl;
-
-            /* Label Determination:
-             * Pixel-wise iteration on current label voting result and the global label voting result.
-             * If current result is non-zero, replace global result value with the current result value.
-             */
-            labelDeterminator->SetInput1(labelVotingResult);
-            labelDeterminator->SetInput2(winningLabels);
-            labelDeterminator->Update();
-            winningLabels = labelDeterminator->GetOutput();
-
-            /*
-            std::string dbg_fn3 = "debug_output/Determined_" + std::to_string(*cit) + ".nii.gz";
-            dbg_LabelWriter.WriteToFile(dbg_fn3, winningLabels);
-            */
-            std::cout << "Label Determined" << endl;
-
-            // update maxIntensity with the current max
-            DeepCopy<VotingImageType>(newMaxIntensity, maxIntensity);
-          } // End of Label Smoothing Loop
-
-        // Apply labels back to segmentation image
-        SegmentationUpdateIterator it_update(liw, liw->GetBufferedRegion()
-                                             , m_Parent->GetGlobalState()->GetDrawingColorLabel()
-                                             , m_Parent->GetGlobalState()->GetDrawOverFilter());
-        itk::ImageRegionConstIterator<LabelVotingType>
-            it_src(winningLabels, winningLabels->GetBufferedRegion());
-
-        std::cout << "Updating GUI..." << endl;
-        for (; !it_update.IsAtEnd(); ++it_update, ++it_src)
-            it_update.PaintLabel(it_src.Get());
-
-        // Finalize update and create an undo point
-        it_update.Finalize("Smooth Labels");
-
-        // Fire event to inform GUI that segmentation has changed
-        this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
-        std::cout << "Selected labels have been smoothed!" << std::endl;
-      } // End of Frame Processing
-    }
   // Change label image to current frame
   liw->SetTimePointIndex(m_Parent->GetDriver()->GetCursorTimePoint());
   liw->Modified();

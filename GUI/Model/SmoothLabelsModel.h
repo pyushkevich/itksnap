@@ -10,6 +10,7 @@
 #include "Registry.h"
 #include "AbstractPropertyContainerModel.h"
 #include "ColorLabelPropertyModel.h"
+#include "GenericImageData.h"
 
 class GlobalUIModel;
 
@@ -19,6 +20,7 @@ public:
   irisITKObjectMacro(SmoothLabelsModel, AbstractModel);
 
   enum SigmaUnit {mm, vox};
+  const char* SigmaUnitStr[2] = {"mm","vox"};
 
   /** Initialize with the parent model */
   void SetParentModel(GlobalUIModel *parent);
@@ -58,6 +60,10 @@ protected:
   // utility method to deep copy image
   template <typename TImage>
   void DeepCopy(typename TImage::Pointer input, typename TImage::Pointer output);
+
+  // utility method to apply c3d smoothing
+  void ApplyC3DSmoothing(LabelImageWrapper *liw, std::vector<double> sigma
+                         , SigmaUnit sigmaUnit, std::unordered_set<LabelType> labelsToSmooth);
 };
 
 #endif // SMOOTHLABELMODEL_H
