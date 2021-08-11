@@ -26,12 +26,12 @@ public:
   void SetParentModel(GlobalUIModel *parent);
 
   /** Update the state of the widget whenever it is shown */
-  void UpdateOnShow();
+  void UpdateOnShow() {};
 
   /** Perform the actual smoothing */
   void
   Smooth(std::unordered_set<LabelType> &labelsToSmooth,
-         std::vector<double> &sigma,
+         std::vector<double> sigma,
          SigmaUnit unit,
          bool SmoothAllFrames);
 
