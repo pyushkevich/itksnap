@@ -38,6 +38,10 @@ private slots:
 
   void on_btnClearAll_clicked();
 
+  // validate input, raise error dialog for invalid input
+  // return 0 if valid, otherwise 1
+  int validateInput();
+
   void on_sigmaX_textEdited(const QString &newText);
   void on_sigmaY_textEdited(const QString &newText);
   void on_sigmaZ_textEdited(const QString &newText);

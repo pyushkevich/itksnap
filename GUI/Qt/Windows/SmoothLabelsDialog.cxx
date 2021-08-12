@@ -39,9 +39,10 @@ SmoothLabelsDialog::SmoothLabelsDialog(QWidget *parent) :
   ui->sigmaUnit->addItems(QStringList() << "mm" << "vox");
 
   // Set up sigma inputs
-  ui->sigmaX->setValidator(new QDoubleValidator(this));
-  ui->sigmaY->setValidator(new QDoubleValidator(this));
-  ui->sigmaZ->setValidator(new QDoubleValidator(this));
+  QDoubleValidator *sv = new QDoubleValidator(this);
+  ui->sigmaX->setValidator(sv);
+  ui->sigmaY->setValidator(sv);
+  ui->sigmaZ->setValidator(sv);
 }
 
 SmoothLabelsDialog::~SmoothLabelsDialog()
@@ -172,7 +173,20 @@ void SmoothLabelsDialog::on_btnApply_clicked()
 
   QModelIndexList checked = im->match(im->index(0,0), Qt::CheckStateRole, Qt::Checked, -1);
 
-  // std::cout << checked.count() << endl;
+  // check if labels are selected
+  if (checked.count() <= 1)
+    {
+      QMessageBox box;
+      box.setWindowTitle("No Labels for smoothing");
+      box.setText("No labels are selected for smoothing!");
+      box.exec();
+      return;
+    }
+
+  // validate input
+  if (this->validateInput())
+      return;
+
   std::vector<LabelType> labelsToSmooth;
   std::unordered_set<LabelType> labelSet;
   for(auto it = checked.begin(); it != checked.end(); ++it)
@@ -238,10 +252,33 @@ void SmoothLabelsDialog::on_btnApply_clicked()
       // Reset the UI
       this->on_btnClearAll_clicked();
       ui->sigmaX->clear();
+      ui->sigmaX->setModified(false); // reset modified for input sync to work
       ui->sigmaY->clear();
+      ui->sigmaY->setModified(false);
       ui->sigmaZ->clear();
+      ui->sigmaZ->setModified(false);
       ui->chkSmoothAllFrames->setCheckState(Qt::CheckState::Unchecked);
     }
+}
+
+int SmoothLabelsDialog::validateInput()
+{
+  QString msg;
+  QMessageBox box;
+  box.setWindowTitle("Invalid Input");
+
+  // sigma should be greater than zero
+  if (ui->sigmaX->text().toDouble() <= 0
+   || ui->sigmaY->text().toDouble() <= 0
+   || ui->sigmaZ->text().toDouble() <= 0)
+    {
+      msg = QString("Sigma should be greater than zero!");
+      box.setText(msg);
+      box.exec();
+      return 1;
+    }
+
+  return 0;
 }
 
 void SmoothLabelsDialog::on_btnClose_clicked()
