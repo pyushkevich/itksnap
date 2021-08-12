@@ -36,12 +36,9 @@ SmoothLabelsDialog::SmoothLabelsDialog(QWidget *parent) :
   ui->lvLabels->setModel(m_LabelListFilterModel);
 
   // Set up parameter panel
-  // -- Populate unit dropdown
-  // -- Index: 0 => mm; 1 => vox
   ui->sigmaUnit->addItems(QStringList() << "mm" << "vox");
 
-  // -- Set up sigma inputs
-  // ---- Sigma inputs should be real numbers
+  // Set up sigma inputs
   ui->sigmaX->setValidator(new QDoubleValidator(this));
   ui->sigmaY->setValidator(new QDoubleValidator(this));
   ui->sigmaZ->setValidator(new QDoubleValidator(this));
@@ -237,40 +234,14 @@ void SmoothLabelsDialog::on_btnApply_clicked()
       m_Model->Smooth(labelSet, sigmaArr, unit, ui->chkSmoothAllFrames->isChecked());
 
       report->showReport();
+
+      // Reset the UI
+      this->on_btnClearAll_clicked();
+      ui->sigmaX->clear();
+      ui->sigmaY->clear();
+      ui->sigmaZ->clear();
+      ui->chkSmoothAllFrames->setCheckState(Qt::CheckState::Unchecked);
     }
-
-  /*
-  QDialog *resultDialog = new QDialog(this);
-  resultDialog->setFixedSize(550, 281);
-
-
-  QTreeWidget *resultTree = new QTreeWidget(resultDialog);
-  resultTree->setColumnCount(5);
-  QStringList hdr;
-  hdr << "Frame" << "Label" << "Change" << "Before" << "After";
-  resultTree->setHeaderLabels(hdr);
-  resultTree->setAlternatingRowColors(true);
-
-  QVBoxLayout *vlo = new QVBoxLayout(resultDialog);
-  vlo->addWidget(resultTree);
-
-  QDialogButtonBox *btnBox = new QDialogButtonBox(resultDialog);
-  QPushButton *btnOK = new QPushButton("OK");
-  btnBox->addButton(btnOK, QDialogButtonBox::AcceptRole);
-  connect(btnOK, SIGNAL(clicked()), resultDialog, SLOT(accept()));
-  QGridLayout *btnLayout = new QGridLayout();
-  btnLayout->addWidget(btnBox);
-  vlo->addLayout(btnLayout);
-
-  QTreeWidgetItem *sample = new QTreeWidgetItem(resultTree);
-  sample->setText(0, "1");
-  sample->setText(1, "Label 3");
-  sample->setText(2, "500");
-  sample->setText(3, "1000");
-  sample->setText(4, "1500");
-
-  ret = resultDialog->exec();
-  */
 }
 
 void SmoothLabelsDialog::on_btnClose_clicked()
