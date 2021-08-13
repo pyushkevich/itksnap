@@ -197,7 +197,8 @@ void SmoothLabelsDialog::on_btnApply_clicked()
     }
 
   // Build the confirmation box
-  QMessageBox confirmBox;
+  QMessageBox confirmBox(this);
+  confirmBox.setObjectName("boxConfirmSmoothing");
   QString msg;
   if (labelSet.size() < 1)
     msg = QString("No label is selected for smoothing!");

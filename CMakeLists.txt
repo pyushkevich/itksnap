@@ -1181,6 +1181,7 @@ SET(GUI_TESTS
   Workspace
   DiffSpace
   EdgeAttraction
+  LabelSmoothing
   ProbeIntensity
   RegionCompetition
   RandomForest
