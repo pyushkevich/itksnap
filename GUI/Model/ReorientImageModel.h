@@ -59,6 +59,9 @@ public:
   /** Model for the new ITK Direction matrix */
   irisGetMacro(NewDirectionMatrixModel, AbstractMatrixProperty *)
 
+  /** Model for accesing parent */
+  irisGetMacro(Parent, GlobalUIModel *);
+
   /** Apply current RAI code to the image */
   void ApplyCurrentRAI();
 

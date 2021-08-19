@@ -24,7 +24,6 @@ void LayoutReminderDialog::Initialize(GlobalUIModel *model)
 
 void LayoutReminderDialog::ConditionalExec()
 {
-  std::cout << "conditional exec" << std::endl;
   const GlobalDisplaySettings* dsp = this->m_GlobalUIModel->GetGlobalDisplaySettings();
 
   // we don't show the dialog if "never remind" flag was checked
@@ -89,6 +88,4 @@ void LayoutReminderDialog::on_btnNo_clicked()
 
   // close reminder
   this->close();
-
-  std::cout << "[no clicked]" << this->m_GlobalUIModel->GetGlobalDisplaySettings()->GetFlagRemindLayoutSettings() << std::endl;
 }
