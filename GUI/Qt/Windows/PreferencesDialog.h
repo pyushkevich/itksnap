@@ -25,8 +25,10 @@ public:
   // This method should be used to show the dialog each time!
   void ShowDialog();
 
+  enum PreferencesDialogPage {General = 0, SliceView, Appearance, Rendering3D, Tools};
+
   // Goes to a particular page
-  void GoToAppearancePage();
+  void GoToPage(enum PreferencesDialogPage page);
 
 private slots:
   void on_listWidget_itemSelectionChanged();

@@ -57,6 +57,7 @@
 #include "HistoryManager.h"
 #include "DefaultBehaviorSettings.h"
 #include "SynchronizationModel.h"
+#include "LayoutReminderDialog.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -2123,7 +2124,7 @@ void MainImageWindow::on_actionAnnotation_Preferences_triggered()
 {
   // Show the preferences dialog
   m_PreferencesDialog->ShowDialog();
-  m_PreferencesDialog->GoToAppearancePage();
+  m_PreferencesDialog->GoToPage(PreferencesDialog::Appearance);
 }
 
 void MainImageWindow::on_actionAutoContrastGlobal_triggered()
@@ -2207,6 +2208,14 @@ void MainImageWindow::UpdateAutoCheck()
     {
     DoUpdateCheck(true);
     }
+}
+
+void MainImageWindow::RemindLayoutPreference()
+{
+  LayoutReminderDialog *layoutReminder = new LayoutReminderDialog(this);
+
+  layoutReminder->Initialize(this->m_Model);
+  layoutReminder->ConditionalExec();
 }
 
 void MainImageWindow::on_actionCheck_for_Updates_triggered()

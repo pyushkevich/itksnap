@@ -908,6 +908,9 @@ int main(int argc, char *argv[])
     // Check for updates?
     mainwin->UpdateAutoCheck();
 
+    // Remind layout preference
+    mainwin->RemindLayoutPreference();
+
     // Assign the main window to the application. We do this right before
     // starting the event loop.
     app.setMainWindow(mainwin);
