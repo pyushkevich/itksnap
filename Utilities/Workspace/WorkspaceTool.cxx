@@ -267,6 +267,7 @@ void simple_rest_post(const char *url, const char *params, const char *exception
   RESTClient rc;
 
   // Try calling command
+  std::cout << "prefix: " << prefix << std::endl;
   try {
     if(!rc.PostVA(url, params, args))
       throw IRISException("%s: %s", exception_message, rc.GetResponseText());

@@ -33,17 +33,24 @@
 #include "SNAPUIFlag.h"
 
 QtWidgetActivator
-::QtWidgetActivator(QObject *parent, BooleanCondition *cond, Options options)
+::QtWidgetActivator(QObject *parent, QList<QObject *> widgets, BooleanCondition *cond, Options options)
   : QObject(parent)
 {
-  // Register to listen to the state change events
-  m_TargetWidget = dynamic_cast<QWidget *>(parent);
-  m_TargetAction = dynamic_cast<QAction *>(parent);
+  // Map the inputs to widgets and actions
+  for(auto *obj : widgets)
+    {
+    if(dynamic_cast<QWidget *>(obj))
+      m_TargetWidgets.push_back(dynamic_cast<QWidget *>(obj));
+    else if(dynamic_cast<QAction *>(obj))
+      m_TargetActions.push_back(dynamic_cast<QAction *>(obj));
+    }
+
+  // Store condition and options
   m_Condition = cond;
   m_Options = options;
 
   // Give it a name
-  setObjectName(QString("Activator:%1").arg(parent->objectName()));
+  setObjectName(QString("Activator:%1").arg(widgets[0]->objectName()));
 
   // React to events after control returns to the main UI loop
   LatentITKEventNotifier::connect(
@@ -54,6 +61,7 @@ QtWidgetActivator
   this->OnStateChange(dummy);
 }
 
+
 QtWidgetActivator::~QtWidgetActivator()
 {
 }
@@ -62,24 +70,24 @@ void QtWidgetActivator::OnStateChange(const EventBucket &)
 {
   // Update the state of the widget based on the condition
   bool active = (*m_Condition)();
-  if(m_TargetWidget)
+  for(auto *widget : m_TargetWidgets)
     {
-    bool status = m_TargetWidget->isEnabledTo(m_TargetWidget->parentWidget());
+    bool status = widget->isEnabledTo(widget->parentWidget());
     if(status != active)
       {
-      m_TargetWidget->setEnabled(active);
+      widget->setEnabled(active);
       if(m_Options & HideInactive)
-        m_TargetWidget->setVisible(active);
+        widget->setVisible(active);
       }
     }
-  else if(m_TargetAction)
+  for(auto *action : m_TargetActions)
     {
-    bool status = m_TargetAction->isEnabled();
+    bool status = action->isEnabled();
     if(status != active)
       {
-      m_TargetAction->setEnabled(active);
+      action->setEnabled(active);
       if(m_Options & HideInactive)
-        m_TargetAction->setVisible(active);
+        action->setVisible(active);
       }
     }
 }

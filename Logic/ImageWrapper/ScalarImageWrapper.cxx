@@ -356,16 +356,14 @@ ScalarImageWrapper<TTraits,TBase>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
-  // Look up the actual intensity of the voxel from the slicer
-  typename SlicerType::OutputPixelType pix_raw =
-      this->m_Slicers[this->GetTimePointIndex()][0]->LookupIntensityAtSliceIndex(this->m_ReferenceSpace);
-
-  // The display value is mapped to native
-  out_value.set_size(1);
-  out_value[0] = this->m_NativeMapping(pix_raw);
+  // Sample the intensity under the cursor for the current time point
+  this->SampleIntensityAtReferenceIndex(
+        this->m_SliceIndex, this->GetTimePointIndex(), true, out_value);
 
   // Use the display mapping to map to display pixel
-  out_appearance = this->m_DisplayMapping->MapPixel(pix_raw);
+  out_appearance = this->m_DisplayMapping->MapPixel(
+                     this->m_IntensitySamplingArray.data_block() +
+                     this->GetTimePointIndex() * this->GetNumberOfComponents());
 }
 
 template<class TTraits, class TBase>

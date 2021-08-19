@@ -620,6 +620,13 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
+                 <item>
+                  <widget class="QCheckBox" name="chkRemindLayout">
+                   <property name="text">
+                    <string>Remind me about checked options</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </widget>
               </item>

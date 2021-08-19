@@ -60,7 +60,7 @@ QVariant VoxelIntensityQTableModel::data(const QModelIndex &index, int role) con
       // we should really come up with something better
       ImageWrapperBase *iw = it.GetLayer();
       vnl_vector<double> voxel;
-      iw->GetVoxelMappedToNative(to_itkIndex(cursor), iw->GetTimePointIndex(), voxel);
+      iw->SampleIntensityAtReferenceIndex(to_itkIndex(cursor), iw->GetTimePointIndex(), true, voxel);
 
       if(voxel.size() > 1)
         {

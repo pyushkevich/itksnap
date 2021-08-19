@@ -115,17 +115,15 @@ VectorImageWrapper<TTraits,TBase>
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
   if(mode.UseRGB || mode.RenderAsGrid)
     {
-    // Look up the actual intensity of the voxel from the slicer
-    PixelType pixel_value = this->m_Slicers[this->GetTimePointIndex()][0]
-                            ->LookupIntensityAtSliceIndex(this->m_ReferenceSpace);
+    // Sample the intensity under the cursor for the current time point
+    this->SampleIntensityAtReferenceIndex(
+          this->m_SliceIndex, this->GetTimePointIndex(), true, out_value);
 
-    // Set the output value
-    out_value.set_size(this->GetNumberOfComponents());
-    for(int i = 0; i < this->GetNumberOfComponents(); i++)
-      out_value[i] = this->m_NativeMapping(pixel_value[i]);
-
-    // Use the display mapping to map to display pixel
-    out_appearance = this->m_DisplayMapping->MapPixel(pixel_value);
+    // The call above updates the variable m_IntensitySamplingArray, which
+    // we use to map intensity
+    out_appearance = this->m_DisplayMapping->MapPixel(
+                       this->m_IntensitySamplingArray.data_block() +
+                       this->GetTimePointIndex() * this->GetNumberOfComponents());
     }
   else
     {

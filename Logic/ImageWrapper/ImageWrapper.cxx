@@ -787,23 +787,23 @@ class ImageWrapperPartialSpecializationTraits<
  * PIXEL-LEVEL PARTIAL SPECIALIZATION CODE
  * ================================================================================ */
 
-template <class TPixel>
+template <class TPixel, class TComponent>
 struct ImageWrapperPixelPartialSpecializationTraits
 {
-  static void ExportToDoubleArray(const TPixel &p, unsigned int itkNotUsed(ncomp), double *arr)
+  static void ExportToComponentArray(const TPixel &p, unsigned int itkNotUsed(ncomp), TComponent *arr)
   {
-    *arr = (double) p;
+    *arr = p;
   }
 };
 
 template <class TComponent>
-struct ImageWrapperPixelPartialSpecializationTraits< itk::VariableLengthVector<TComponent> >
+struct ImageWrapperPixelPartialSpecializationTraits< itk::VariableLengthVector<TComponent>, TComponent >
 {
   typedef itk::VariableLengthVector<TComponent> PixelType;
-  static void ExportToDoubleArray(const PixelType &p, unsigned int ncomp,  double *arr)
+  static void ExportToComponentArray(const PixelType &p, unsigned int ncomp,  TComponent *arr)
   {
     for(unsigned int c = 0; c < ncomp; c++)
-      arr[c] = (double) p[c];
+      arr[c] = p[c];
   }
 };
 
@@ -825,10 +825,9 @@ ImageWrapper<TTraits,TBase>
   // Create empty IO hints
   m_IOHints = new Registry();
 
-  // This select filter is used to pull out the 'current' slice in each dimension
-  m_SliceInputSelectFilter = {{ SliceInputSelectFilter::New(),
-                                SliceInputSelectFilter::New(),
-                                SliceInputSelectFilter::New() }};
+  // Create the slicers
+  for(unsigned int i = 0; i < 3; i++)
+    m_Slicers[i] = SlicerType::New();
 
   // Initialize the display mapping
   m_DisplayMapping = DisplayMapping::New();
@@ -1106,6 +1105,52 @@ ImageWrapper<TTraits,TBase>
   return Vector3d(p[0], p[1], p[2]);
 }
 
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits, TBase>
+::TransformReferenceIndexToWrappedImageContinuousIndex(
+    const IndexType &ref_index, itk::ContinuousIndex<double, 3> &img_index) const
+{
+  // There appears to be a bug in ITK, where in itk::ImageAdaptor, the methods
+  // TransformPhysicalPointToContinuousIndex, etc. are not marked as override
+  // and so virtual calls to them from base pointer do not work. To overcome
+  // this we rely on the parent method when available.
+  if(m_ParentWrapper)
+    {
+    m_ParentWrapper->TransformReferenceIndexToWrappedImageContinuousIndex(ref_index, img_index);
+    }
+  else
+    {
+    if(m_ImageSpaceMatchesReferenceSpace)
+      {
+      // If the reference space matches the wrapped image space, the transformation
+      // is going to be identity
+      for(unsigned int i = 0; i < 3; i++)
+        img_index[i] = ref_index[i];
+      }
+    else
+      {
+      itk::Point<double, 3> x_phys_ref, x_phys_img;
+
+      // Map the index to the physical space of the reference image
+      m_ReferenceSpace->TransformIndexToPhysicalPoint(ref_index, x_phys_ref);
+
+      // Apply the transform to the reference point
+      x_phys_img = m_AffineTransform->TransformPoint(x_phys_ref);
+
+      // Map the coordinate into image voxel space
+      m_ImageBase->TransformPhysicalPointToContinuousIndex(x_phys_img, img_index);
+      }
+    }
+}
+
+template<class TTraits, class TBase>
+bool ImageWrapper<TTraits, TBase>
+::ImageSpaceMatchesReferenceSpace() const
+{
+  return m_ImageSpaceMatchesReferenceSpace;
+}
+
 
 template<class TTraits, class TBase>
 void
@@ -1216,65 +1261,17 @@ ImageWrapper<TTraits,TBase>
 
   // Update the selected time point in the selector
   m_TimePointSelectFilter->SetSelectedInput(m_TimePointIndex);
-  m_TimePointSelectFilter->Update();
 
   // Assign the current timepoint pointers
   m_Image = m_TimePointSelectFilter->GetOutput();
-	  m_ImageBase = m_Image;
+  m_ImageBase = m_Image;
 
-  // If there is no reference space, we assume that the reference space is the same as the image
-  referenceSpace = referenceSpace ? referenceSpace : m_ImageBase.GetPointer();
-
-  // Check if the image size or image direction matrix has changed
-  bool isReferenceGeometrySame = CompareGeometry(m_ReferenceSpace, referenceSpace);
-
-  // Update the image
-  m_ReferenceSpace = referenceSpace;
-
-  // Create the transform if it does not exist
-  typename ITKTransformType::Pointer tran = transform;
-  if(tran.IsNull())
+  // Set up the slicers
+  for(unsigned int i = 0; i < 3; i++)
     {
-    typedef itk::IdentityTransform<double, 3> IdTransformType;
-    typename IdTransformType::Pointer idTran = IdTransformType::New();
-    tran = idTran.GetPointer();
+    m_Slicers[i]->SetInput(m_Image);
+    m_Slicers[i]->SetPreviewImage(nullptr);
     }
-
-  // Which slicer should be used?
-  bool ortho = CanOrthogonalSlicingBeUsed(m_Image, referenceSpace, tran);
-
-  // Update the per-image associated data
-  m_Slicers.clear();
-  for(int i = 0; i < 3; i++)
-    m_SliceInputSelectFilter[i]->RemoveAllSelectableInputs();
-
-  for(unsigned int k = 0; k < m_ImageTimePoints.size(); k++)
-    {
-    ImageType *img = m_ImageTimePoints[k];
-
-    // Add slicers
-    SlicerTriple s_img;
-    for(int i = 0; i < 3; i++)
-      {
-      s_img[i] = SlicerType::New();
-      s_img[i]->SetInput(img);
-      s_img[i]->SetObliqueTransform(tran);
-      s_img[i]->SetPreviewImage(NULL);
-      s_img[i]->SetUseOrthogonalSlicing(ortho);
-      s_img[i]->SetOrthogonalTransform(m_ImageGeometry.GetImageToDisplayTransform(i));
-
-      m_SliceInputSelectFilter[i]->AddSelectableInput(k, s_img[i]->GetOutput());
-      }
-
-    m_Slicers.push_back(s_img);
-    }
-
-  // Update the slice selection index
-  // Update the selected time point in the selector
-  for(int i = 0; i < 3; i++)
-    m_SliceInputSelectFilter[i]->SetSelectedInput(m_TimePointIndex);
-
-  // TODO: how do we handle this correctly?
 
   // Mark the image as Modified to enforce correct sequence of
   // operations with MinMaxCalc
@@ -1283,18 +1280,12 @@ ImageWrapper<TTraits,TBase>
   // Update the image in the display mapping
   m_DisplayMapping->UpdateImagePointer(m_Image);
 
-  // Update the image coordinate geometry
-  if(!isReferenceGeometrySame)
-    {
-    // Reset the transform to identity
-    this->UpdateImageGeometry();
+  // Update the reference space and transform
+  this->SetITKTransform(referenceSpace, transform);
 
-    // Reset the slice positions to zero
-    this->SetSliceIndex(IndexType({{0,0,0}}));
-    }
-
-  // Update the NIFTI/RAS transform
-  this->UpdateNiftiTransforms();
+  // Update the time point select filter, so that m_Image and m_ImageBase have the right
+  // spatial information
+  m_TimePointSelectFilter->Update();
 
   // Store the time when the image was assigned
   m_ImageAssignTime = m_ImageSaveTime = m_Image4D->GetTimeStamp();
@@ -1326,7 +1317,7 @@ bool
 ImageWrapper<TTraits,TBase>
 ::IsSlicingOrthogonal() const
 {
-  return m_Slicers[0][0]->GetUseOrthogonalSlicing();
+  return m_Slicers[0]->GetUseOrthogonalSlicing();
 }
 
 template<class TTraits, class TBase>
@@ -1414,27 +1405,63 @@ void
 ImageWrapper<TTraits,TBase>
 ::SetITKTransform(ImageBaseType *refSpace, ITKTransformType *transform)
 {
-
-  // Check if the reference space has changed
-  if(m_ReferenceSpace != refSpace)
+  // If nullptr passed as the reference space, make the reference be the image itself
+  if(!refSpace)
     {
-    // Force a reinitialization of this layer
-    // TODO: this seems like overkill, can't we just call the transform code?
-    this->UpdateWrappedImages(m_Image4D, refSpace, transform);
+    refSpace = m_ImageBase.GetPointer();
+    }
+
+  // If the transform is nullptr, set it to identity
+  if(transform)
+    {
+    m_AffineTransform = transform;
     }
   else
     {
-    bool ortho = CanOrthogonalSlicingBeUsed(m_Image, refSpace, transform);
-    for(auto &s : m_Slicers)
-      {
-      for(int i = 0; i < 3; i++)
-        {
-        s[i]->SetObliqueTransform(transform);
-        s[i]->SetUseOrthogonalSlicing(ortho);
-        this->InvokeEvent(WrapperDisplayMappingChangeEvent());
-        }
-      }
+    typedef itk::IdentityTransform<double, 3> IdTransformType;
+    typename IdTransformType::Pointer idTran = IdTransformType::New();
+    m_AffineTransform = idTran.GetPointer();
     }
+
+  // Check if the reference geometry has changed
+  if(m_ReferenceSpace != refSpace)
+    {
+    // Check if the geometry actually changed, we need to update geometry and reset the index
+    if(!CompareGeometry(m_ReferenceSpace, refSpace))
+      {
+      // Store the reference space
+      m_ReferenceSpace = refSpace;
+
+      // Reset the transform to identity
+      this->UpdateImageGeometry();
+
+      // Reset the slice positions to zero
+      this->SetSliceIndex(IndexType({{0,0,0}}));
+      }
+    else
+      {
+      // Store the reference space
+      m_ReferenceSpace = refSpace;
+      }
+
+    // Update the NIFTI/RAS transform
+    this->UpdateNiftiTransforms();
+    }
+
+  // Update the reference space identity flag
+  m_ImageSpaceMatchesReferenceSpace =
+      CanOrthogonalSlicingBeUsed(m_Image, m_ReferenceSpace, m_AffineTransform);
+
+  // Update the transform
+  for(int i = 0; i < 3; i++)
+    {
+    m_Slicers[i]->SetObliqueTransform(m_AffineTransform);
+    m_Slicers[i]->SetUseOrthogonalSlicing(m_ImageSpaceMatchesReferenceSpace);
+    m_Slicers[i]->SetOrthogonalTransform(m_ImageGeometry.GetImageToDisplayTransform(i));
+    }
+
+  // Fire an update event
+  this->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 template<class TTraits, class TBase>
@@ -1442,7 +1469,7 @@ const typename ImageWrapper<TTraits,TBase>::ITKTransformType *
 ImageWrapper<TTraits,TBase>
 ::GetITKTransform() const
 {
-  return m_Slicers[0][0]->GetObliqueTransform();
+  return m_Slicers[0]->GetObliqueTransform();
 }
 
 template<class TTraits, class TBase>
@@ -1474,14 +1501,6 @@ ImageWrapper<TTraits,TBase>
 
 
 template<class TTraits, class TBase>
-inline typename ImageWrapper<TTraits,TBase>::PixelType
-ImageWrapper<TTraits,TBase>
-::GetVoxel(const Vector3ui &index, int time_point) const
-{
-  return GetVoxel(index[0],index[1],index[2], time_point);
-}
-
-template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits, TBase>
 ::SetVoxel(const Vector3ui &index, const PixelType &value)
@@ -1509,19 +1528,6 @@ ImageWrapper<TTraits,TBase>
 template<class TTraits, class TBase>
 inline typename ImageWrapper<TTraits,TBase>::PixelType
 ImageWrapper<TTraits,TBase>
-::GetVoxel(unsigned int x, unsigned int y, unsigned int z, int time_point) const
-{
-  itk::Index<3> index;
-  index[0] = x;
-  index[1] = y;
-  index[2] = z;
-
-  return GetVoxel(index, time_point);
-}
-
-template<class TTraits, class TBase>
-inline typename ImageWrapper<TTraits,TBase>::PixelType
-ImageWrapper<TTraits,TBase>
 ::GetVoxel(const itk::Index<3> &index, int time_point) const
 {
   itkAssertOrThrowMacro(
@@ -1531,52 +1537,112 @@ ImageWrapper<TTraits,TBase>
   if(time_point < 0)
     time_point = m_TimePointIndex;
 
-  // This code is robust to non-orthogonal slicing
-  return this->m_Slicers[time_point][0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
+  // Simply use ITK's GetPixel method
+  return m_ImageTimePoints[time_point]->GetPixel(index);
 }
 
 
 template<class TTraits, class TBase>
-inline void
+void
 ImageWrapper<TTraits,TBase>
-::GetVoxelAsDouble(const itk::Index<3> &index, int time_point, vnl_vector<double> &out) const
+::SampleIntensityAtReferenceIndex(
+    const itk::Index<3> &index, int time_point,
+    bool map_to_native, vnl_vector<double> &out) const
 {
   // Compute and allocate output dimensions
   unsigned int nc = this->GetNumberOfComponents();
   unsigned int nt = this->GetNumberOfTimePoints();
   unsigned int odim = nc * (time_point < 0 ? nt : 1);
-  out.set_size(odim);
-  double *arr = out.data_block();
+
+  // Allocate the output array if necessary
+  if(out.size() != odim)
+    out.set_size(odim);
+
+  // Determine the range of timepoints to sample
+  unsigned int tp_begin = time_point < 0 ? 0 : (unsigned int) time_point;
+  unsigned int tp_end = time_point < 0 ? this->GetNumberOfTimePoints() : (unsigned int) time_point+1;
+
+  // Call the internal method to do the sampling
+  this->SampleIntensityAtReferenceIndexInternal(index, tp_begin, tp_end);
+
+  // Remap the intensities to double or native format
+  ComponentType *p_begin = m_IntensitySamplingArray.data_block() + nc * tp_begin;
+  if(map_to_native)
+    for(unsigned int k = 0; k < odim; k++)
+      out[k] = m_NativeMapping(p_begin[k]);
+  else
+    for(unsigned int k = 0; k < odim; k++)
+      out[k] = static_cast<double>(p_begin[k]);
+}
+
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits,TBase>
+::SampleIntensityAtReferenceIndexInternal(
+    const itk::Index<3> &index, unsigned int tp_begin, unsigned int tp_end) const
+{
+  // Compute and allocate output dimensions
+  unsigned int nc = this->GetNumberOfComponents();
+  unsigned int nt = this->GetNumberOfTimePoints();
+
+  // Make sure the sampling array has been allocated
+  if(m_IntensitySamplingArray.size() != nc * nt)
+    m_IntensitySamplingArray.set_size(nc * nt);
 
   // Create a specialization for actual sampling
-  using Specialization = ImageWrapperPixelPartialSpecializationTraits<PixelType>;
+  using Specialization = ImageWrapperPixelPartialSpecializationTraits<PixelType,ComponentType>;
+  using InterpolateWorker = DefaultNonOrthogonalSlicerWorkerTraits<ImageType, SliceType>;
 
-  // Sample the intensity at each time point
-  if(time_point < 0)
+  // Get the raw pixels to write to
+  ComponentType *arr = m_IntensitySamplingArray.data_block() + tp_begin * nc;
+
+  // Do we need interpolation?
+  if(m_ImageSpaceMatchesReferenceSpace)
     {
-    for(unsigned int tp = 0; tp < this->GetNumberOfTimePoints(); tp++, arr+=nc)
+    // If the preview pipeline is being used, we need to sample from it
+    if(m_Slicers[0]->GetPreviewImage())
       {
-      PixelType p = this->m_Slicers[tp][0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
-      Specialization::ExportToDoubleArray(p, nc, arr);
+      // The index has to be the same as in the slicers, otherwise the preview image lookup
+      // will not be valid
+      itkAssertOrThrowMacro(m_Slicers[0]->GetSliceIndex() == index,
+          "SampleIntensityAtReferenceIndexInternal called with an index that does not match Slicer index")
+
+      // The slicer needs to be updated, so that the preview image is updated in the requested region
+      m_Slicers[0]->Update();
+
+      // Lookup the pixel from the preview image
+      PixelType p = m_Slicers[0]->GetPreviewImage()->GetPixel(index);
+      Specialization::ExportToComponentArray(p, nc, arr);
+      }
+    else
+      {
+      // The simple case when no interpolation is required
+      for(unsigned int tp = tp_begin; tp < tp_end; tp++, arr+=nc)
+        {
+        PixelType p = m_ImageTimePoints[tp]->GetPixel(index);
+        Specialization::ExportToComponentArray(p, nc, arr);
+        }
       }
     }
   else
     {
-    PixelType p = this->m_Slicers[time_point][0]->LookupIntensityAtReferenceIndex(this->m_ReferenceSpace, index);
-    Specialization::ExportToDoubleArray(p, nc, arr);
+    // The index at which to sample (will be reused in the loop below)
+    itk::ContinuousIndex<double, 3> cidx;
+    this->TransformReferenceIndexToWrappedImageContinuousIndex(index, cidx);
+
+    // Sample all time points
+    for(unsigned int tp = tp_begin; tp < tp_end; tp++)
+      {
+      // Use an interpolator to do the work
+      // TODO: too much being initialized here for a single lookup operation!
+      InterpolateWorker iw(m_ImageTimePoints[tp]);
+
+      // Process the voxel, arr will be updated by the function
+      iw.ProcessVoxel(cidx.GetDataPointer(), false, &arr);
+      }
     }
 }
-
-template<class TTraits, class TBase>
-inline void
-ImageWrapper<TTraits,TBase>
-::GetVoxelMappedToNative(const itk::Index<3> &index, int time_point, vnl_vector<double> &out) const
-{
-  this->GetVoxelAsDouble(index, time_point, out);
-  for(unsigned int i = 0; i < out.size(); i++)
-    out[i] = this->m_NativeMapping(out[i]);
-}
-
 
 template<class TTraits, class TBase>
 void
@@ -1590,7 +1656,7 @@ template<class TTraits, class TBase>
 typename ImageWrapper<TTraits,TBase>::SlicerType *
 ImageWrapper<TTraits,TBase>::GetSlicer(unsigned int iDirection) const
 {
-  return m_Slicers[m_TimePointIndex][iDirection];
+  return m_Slicers[iDirection];
 }
 
 template<class TTraits, class TBase>
@@ -1622,9 +1688,8 @@ ImageWrapper<TTraits,TBase>
   m_SliceIndex = cursor;
 
   // Select the appropriate slice for each slicer
-  for(auto &s : m_Slicers)
-    for(unsigned int i = 0; i < 3; i++)
-      s[i]->SetSliceIndex(cursor);
+  for(unsigned int i = 0; i < 3; i++)
+    m_Slicers[i]->SetSliceIndex(cursor);
 }
 
 template<class TTraits, class TBase>
@@ -1644,10 +1709,6 @@ ImageWrapper<TTraits,TBase>
     // Update the image selector
     m_TimePointSelectFilter->SetSelectedInput(index);
     m_TimePointSelectFilter->Update();
-
-    // Update the slice selector
-    for(auto &sel : m_SliceInputSelectFilter)
-      sel->SetSelectedInput(index);
     }
 }
 
@@ -1657,8 +1718,7 @@ ImageWrapper<TTraits,TBase>
 ::SetDisplayViewportGeometry(unsigned int index,
     const ImageBaseType *viewport_image)
 {
-  for(auto &s : m_Slicers)
-    s[index]->SetObliqueReferenceImage(viewport_image);
+  m_Slicers[index]->SetObliqueReferenceImage(viewport_image);
 }
 
 template<class TTraits, class TBase>
@@ -1666,10 +1726,7 @@ const typename ImageWrapper<TTraits,TBase>::ImageBaseType*
 ImageWrapper<TTraits,TBase>
 ::GetDisplayViewportGeometry(unsigned int index) const
 {
-  if(m_Slicers.size() > 0)
-    return m_Slicers[0][index]->GetObliqueReferenceImage();
-  else
-    return NULL;
+  return m_Slicers[index]->GetObliqueReferenceImage();
 }
 
 
@@ -1699,8 +1756,7 @@ ImageWrapper<TTraits,TBase>
     for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
       {
       // Assign the new geometry to the slicers
-      for(auto &s : m_Slicers)
-        s[iSlice]->SetOrthogonalTransform(m_ImageGeometry.GetImageToDisplayTransform(iSlice));
+      m_Slicers[iSlice]->SetOrthogonalTransform(m_ImageGeometry.GetImageToDisplayTransform(iSlice));
 
       // TODO: is this necessary and the right place to do ut?
       // Invalidate the requested region in the display slice. This will
@@ -1825,7 +1881,7 @@ ImageWrapper<TTraits,TBase>
 ::GetDisplaySliceImageAxis(unsigned int iSlice)
 {
   // TODO: this is wasteful computing inverse for something that should be cached
-  const ImageCoordinateTransform *tran = m_Slicers[0][iSlice]->GetOrthogonalTransform();
+  const ImageCoordinateTransform *tran = m_Slicers[iSlice]->GetOrthogonalTransform();
   ImageCoordinateTransform::Pointer traninv = ImageCoordinateTransform::New();
   tran->ComputeInverse(traninv);
   return traninv->GetCoordinateIndexZeroBased(2);
@@ -1836,7 +1892,7 @@ typename ImageWrapper<TTraits,TBase>::SliceType*
 ImageWrapper<TTraits,TBase>
 ::GetSlice(unsigned int dimension)
 {
-  return m_SliceInputSelectFilter[dimension]->GetOutput();
+  return m_Slicers[dimension]->GetOutput();
 }
 
 // TODO: this should take advantage of an in-place filter!
@@ -2015,7 +2071,7 @@ ImageWrapper<TTraits,TBase>
   for(int i = 0; i < 3; i++)
     {
     // Update the preview inputs to the slicers
-    m_Slicers[0][i]->SetPreviewImage(filter[i]->GetOutput());
+    m_Slicers[i]->SetPreviewImage(filter[i]->GetOutput());
 
     // Mark the preview filters as modified to ensure that the slicer
     // is going to use it. TODO: is this really needed?
@@ -2038,7 +2094,7 @@ ImageWrapper<TTraits,TBase>
 
   for(int i = 0; i < 3; i++)
     {
-    m_Slicers[0][i]->SetPreviewImage(NULL);
+    m_Slicers[i]->SetPreviewImage(NULL);
     }
 }
 
@@ -2052,7 +2108,7 @@ ImageWrapper<TTraits,TBase>
         m_ImageTimePoints.size() == 1,
         "Only single time point images support ImageWrapper::IsPreviewPipelineAttached")
 
-  return m_Slicers[0][0]->GetPreviewImage() != NULL;
+  return m_Slicers[0]->GetPreviewImage() != NULL;
 }
 
 struct RemoveTransparencyFunctor

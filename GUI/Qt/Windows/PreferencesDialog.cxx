@@ -108,6 +108,7 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   GlobalDisplaySettings *gds = m_Model->GetGlobalDisplaySettings();
   makeCoupling(ui->chkLayoutAnteriorSide, gds->GetFlagLayoutPatientAnteriorShownLeftModel());
   makeCoupling(ui->chkLayoutRightLeft, gds->GetFlagLayoutPatientRightShownLeftModel());
+  makeCoupling(ui->chkRemindLayout, gds->GetFlagRemindLayoutSettingsModel());
 
   // Layout radio buttons
   std::map<GlobalDisplaySettings::UISliceLayout, QAbstractButton *> btnmap;
@@ -207,9 +208,9 @@ void PreferencesDialog::ShowDialog()
   this->raise();
 }
 
-void PreferencesDialog::GoToAppearancePage()
+void PreferencesDialog::GoToPage(enum PreferencesDialogPage page)
 {
-  ui->listWidget->setCurrentRow(2);
+  ui->listWidget->setCurrentRow(page);
 }
 
 void PreferencesDialog::on_listWidget_itemSelectionChanged()

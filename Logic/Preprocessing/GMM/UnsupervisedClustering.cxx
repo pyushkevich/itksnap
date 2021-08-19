@@ -120,7 +120,7 @@ void UnsupervisedClustering::SampleDataSource()
       {
       ImageWrapperBase *iw = lit.GetLayer();
       vnl_vector<double> svec(m_DataArray[pVoxel] + iOffset, iw->GetNumberOfComponents());
-      iw->GetVoxelAsDouble(idx, iw->GetTimePointIndex(), svec);
+      iw->SampleIntensityAtReferenceIndex(idx, iw->GetTimePointIndex(), false, svec);
       iOffset += iw->GetNumberOfComponents();
       }
 
