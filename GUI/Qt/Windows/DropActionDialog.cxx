@@ -178,7 +178,7 @@ void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
     {
       LayoutReminderDialog *lr = new LayoutReminderDialog(this);
       lr->Initialize(m_Model);
-      lr->ConditionalExec();
+      lr->ConditionalExec(LayoutReminderDialog::Echo_Cartesian_Dicom_Loading);
     }
 }
 

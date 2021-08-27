@@ -106,8 +106,8 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
 
   // Hook up the display layout properties
   GlobalDisplaySettings *gds = m_Model->GetGlobalDisplaySettings();
-  makeCoupling(ui->chkLayoutAnteriorSide, gds->GetFlagLayoutPatientAnteriorShownLeftModel());
-  makeCoupling(ui->chkLayoutRightLeft, gds->GetFlagLayoutPatientRightShownLeftModel());
+  makeRadioGroupCoupling(ui->radio_saggital_ant_on_left, ui->radio_saggital_ant_on_right, gds->GetFlagLayoutPatientAnteriorShownLeftModel());
+  makeRadioGroupCoupling(ui->radio_axial_left_on_right, ui->radio_axial_left_on_left,gds->GetFlagLayoutPatientRightShownLeftModel());
   makeCoupling(ui->chkRemindLayout, gds->GetFlagRemindLayoutSettingsModel());
 
   // Layout radio buttons

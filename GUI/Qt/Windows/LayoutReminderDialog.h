@@ -18,7 +18,8 @@ public:
   explicit LayoutReminderDialog(QWidget *parent = nullptr);
   ~LayoutReminderDialog();
   void Initialize(GlobalUIModel* model);
-  void ConditionalExec();
+  enum ExecScenarios{Default = 0, Echo_Cartesian_Dicom_Loading};
+  void ConditionalExec(enum ExecScenarios = Default);
 
 protected:
   void SetReminderFlag();

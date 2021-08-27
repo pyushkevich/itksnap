@@ -177,6 +177,10 @@
         <file>icons8_opened_folder_16@2x.png</file>
         <file>icons8_flip_vertical_16.png</file>
         <file>icons8_flip_vertical_16@2x.png</file>
+        <file>layout_setting_AP.png</file>
+        <file>layout_setting_LR.png</file>
+        <file>layout_setting_PA.png</file>
+        <file>layout_setting_RL.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

@@ -22,33 +22,50 @@ void LayoutReminderDialog::Initialize(GlobalUIModel *model)
   this->m_GlobalUIModel = model;
 }
 
-void LayoutReminderDialog::ConditionalExec()
+void LayoutReminderDialog::ConditionalExec(enum ExecScenarios sce)
 {
   const GlobalDisplaySettings* dsp = this->m_GlobalUIModel->GetGlobalDisplaySettings();
 
-  // we don't show the dialog if "never remind" flag was checked
-  if (!dsp->GetFlagRemindLayoutSettings())
-    return;
+  if (sce == ExecScenarios::Default)
+    {
+      // we don't show the dialog if "never remind" flag was checked
+      if (!dsp->GetFlagRemindLayoutSettings())
+        return;
+    }
+  else if (sce == ExecScenarios::Echo_Cartesian_Dicom_Loading)
+    {
+      // we don't show the dialog if radiological convention is selected
+      if (!dsp->GetFlagLayoutPatientRightShownLeft())
+        return;
+    }
 
-  // we don't show the dialog if the both settings are not checked
-  if (!dsp->GetFlagLayoutPatientAnteriorShownLeft() && !dsp->GetFlagLayoutPatientRightShownLeft())
-    return;
+  QString msg_axial = "On the Axial and Coronal Views,&nbsp;ITK-SNAP is currently following ";
 
-  std::string msg = "The current layout setting follows neurological convention, displaying ";
-
-  // Only show the dialog when any of the neuralogical convention layout is set
-  if (dsp->GetFlagLayoutPatientAnteriorShownLeft())
-    msg += "patient's anterior on screen's left";
 
   if (dsp->GetFlagLayoutPatientRightShownLeft())
     {
-      if (dsp->GetFlagLayoutPatientAnteriorShownLeft())
-        msg += ", and ";
-
-      msg += "patient's right on screen's left";
+      msg_axial.append("<b>neurological convention</b>");
+      msg_axial.append(":&nbsp;the patient’s left side is shown on the right of the screen.&nbsp;This may not be optimal for non-brain images.");
+    }
+  else
+    {
+      msg_axial.append("<b>radiological convention</b>");
+      msg_axial.append(":&nbsp;the patient’s left side is shown on the left of the screen.&nbsp;This may not be optimal for brain images.");
     }
 
-  ui->reminderTextP1->setText(msg.c_str());
+  QString msg_saggital = "On the Saggital view,&nbsp;";
+
+  if (dsp->GetFlagLayoutPatientAnteriorShownLeft())
+    {
+      msg_saggital.append("the patient's anterior is shown on the left of the screen.");
+    }
+  else
+    {
+      msg_saggital.append("the patient's anterior is shown on the right of the screen.");
+    }
+
+  ui->reminderTextAxial->setText(msg_axial);
+  ui->reminderTextSaggital->setText(msg_saggital);
 
   this->exec();
 }

@@ -109,7 +109,7 @@ bool AbstractPage::PerformIO()
         {
           LayoutReminderDialog *lr = new LayoutReminderDialog(this);
           lr->Initialize(this->m_Model->GetParent());
-          lr->ConditionalExec();
+          lr->ConditionalExec(LayoutReminderDialog::Echo_Cartesian_Dicom_Loading);
         }
       }
     else
