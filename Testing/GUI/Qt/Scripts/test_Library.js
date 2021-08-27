@@ -6,6 +6,16 @@ function setCursor(x, y, z)
   engine.findChild(mainwin, "inCursorZ").value = z;
   engine.sleep(200);
 }
+function setCursor4D(x, y, z, t)
+{
+    engine.print("Setting cursor position to " + x + ", " + y + ", " + z + ", " + t);
+    engine.findChild(mainwin, "inCursorX_4D").value = x;
+    engine.findChild(mainwin, "inCursorY_4D").value = y;
+    engine.findChild(mainwin, "inCursorZ_4D").value = z;
+    engine.findChild(mainwin, "inCursorT_4D").value = t;
+    engine.sleep(200);
+}
+
 function openMainImage(name)
 {
   //=== Opening 'Open Main' Dialog

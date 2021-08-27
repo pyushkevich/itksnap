@@ -1184,6 +1184,7 @@ SET(GUI_TESTS
   Workspace
   DiffSpace
   EdgeAttraction
+  EchoCartesianDicomLoading
   LabelSmoothing
   ProbeIntensity
   RegionCompetition
