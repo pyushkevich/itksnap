@@ -181,6 +181,12 @@
         <file>layout_setting_LR.png</file>
         <file>layout_setting_PA.png</file>
         <file>layout_setting_RL.png</file>
+        <file>layout_axial_lr.png</file>
+        <file>layout_axial_rl.png</file>
+        <file>layout_coronal_lr.png</file>
+        <file>layout_coronal_rl.png</file>
+        <file>layout_sagittal_ap.png</file>
+        <file>layout_sagittal_pa.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>
