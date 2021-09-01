@@ -860,11 +860,6 @@ GuidedNativeImageIO
 
           const gdcm::ByteValue *bv = de.GetByteValue();
 
-          /* Debug
-          std::cout << "Expected Length: " << len << std::endl;
-          std::cout << "  Actual Length: " << bv->GetLength() << std::endl;
-          */
-
           // Start loading image
           typename NativeImageType::Pointer ecd_image = NativeImageType::New();
           ecd_image->SetOrigin(ecd_org);
@@ -888,8 +883,7 @@ GuidedNativeImageIO
           // -- Pass buffer into ecd_image
           typedef typename NativeImageType::PixelContainer PixConType;
           typename PixConType::Pointer pPixCon = PixConType::New();
-          constexpr bool imageOwnTheBuffer = false;
-          pPixCon->SetImportPointer(reinterpret_cast<TScalar*>(ecd_buffer), len, imageOwnTheBuffer);
+          pPixCon->SetImportPointer(reinterpret_cast<TScalar*>(ecd_buffer), len, true);
           ecd_image->SetPixelContainer(pPixCon);
 
           // Read and Import Dictionary
