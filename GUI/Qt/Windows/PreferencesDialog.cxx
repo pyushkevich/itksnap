@@ -79,7 +79,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   ui->treeVisualElements->setModel(model);
   ui->treeVisualElements->expandAll();
 
-  // Create slice layout view paths
+  // Create slice layout view icon paths
   for (int i = 0; i < 3; ++i)
     m_SliceLayoutPixmapPaths[i].SetDialog(this);
 

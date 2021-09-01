@@ -1186,6 +1186,7 @@ SET(GUI_TESTS
   EdgeAttraction
   EchoCartesianDicomLoading
   LabelSmoothing
+  PreferencesDialog
   ProbeIntensity
   RegionCompetition
   RandomForest

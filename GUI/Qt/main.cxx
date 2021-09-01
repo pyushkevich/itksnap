@@ -909,7 +909,9 @@ int main(int argc, char *argv[])
     mainwin->UpdateAutoCheck();
 
     // Remind layout preference
-    mainwin->RemindLayoutPreference();
+    //  Ignore it for testing run, or it will interrupt the automation if not handled correctly
+    if (!argdata.xTestId.size())
+      mainwin->RemindLayoutPreference();
 
     // Assign the main window to the application. We do this right before
     // starting the event loop.
