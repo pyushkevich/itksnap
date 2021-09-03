@@ -402,7 +402,7 @@ color:white;</string>
                     <string/>
                    </property>
                    <property name="pixmap">
-                    <pixmap resource="../Resources/SNAPResources.qrc">:/root/layout_axial_rl.png</pixmap>
+                    <pixmap>../Resources/layout_axial_rl.png</pixmap>
                    </property>
                    <property name="scaledContents">
                     <bool>true</bool>
@@ -440,7 +440,7 @@ color:white;</string>
                     <string/>
                    </property>
                    <property name="pixmap">
-                    <pixmap resource="../Resources/SNAPResources.qrc">:/root/layout_sagittal_ap.png</pixmap>
+                    <pixmap>../Resources/layout_coronal_rl.png</pixmap>
                    </property>
                    <property name="scaledContents">
                     <bool>true</bool>
@@ -510,7 +510,7 @@ color:white;</string>
                     <string/>
                    </property>
                    <property name="pixmap">
-                    <pixmap resource="../Resources/SNAPResources.qrc">:/root/layout_coronal_rl.png</pixmap>
+                    <pixmap>../Resources/layout_sagittal_ap.png</pixmap>
                    </property>
                    <property name="scaledContents">
                     <bool>true</bool>
@@ -616,52 +616,28 @@ color:white;</string>
               </item>
               <item>
                <widget class="QGroupBox" name="grp_axial_option">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>140</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>140</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>On the Axial and Coronal views</string>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_7">
-                 <item row="3" column="1" alignment="Qt::AlignHCenter|Qt::AlignTop">
-                  <widget class="QLabel" name="lbl_axial_b_2">
-                   <property name="font">
-                    <font>
-                     <pointsize>11</pointsize>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>on the right</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0" alignment="Qt::AlignHCenter|Qt::AlignBottom">
-                  <widget class="QLabel" name="lbl_axial_a_1">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="font">
-                    <font>
-                     <pointsize>11</pointsize>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Display patient's left</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>false</bool>
-                   </property>
-                   <property name="margin">
-                    <number>0</number>
-                   </property>
-                   <property name="indent">
-                    <number>-1</number>
-                   </property>
-                  </widget>
-                 </item>
                  <item row="0" column="1" alignment="Qt::AlignHCenter|Qt::AlignBottom">
                   <widget class="QRadioButton" name="radio_axial_rl">
                    <property name="sizePolicy">
@@ -675,7 +651,7 @@ color:white;</string>
                    </property>
                    <property name="icon">
                     <iconset resource="../Resources/SNAPResources.qrc">
-                     <normaloff>:/root/layout_setting_RL.png</normaloff>:/root/layout_setting_RL.png</iconset>
+                     <normaloff>:/root/layout_orientation_rl.png</normaloff>:/root/layout_orientation_rl.png</iconset>
                    </property>
                    <property name="iconSize">
                     <size>
@@ -685,21 +661,37 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="2" column="1" alignment="Qt::AlignHCenter|Qt::AlignBottom">
+                 <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignTop">
                   <widget class="QLabel" name="lbl_axial_b_1">
                    <property name="sizePolicy">
-                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                      <horstretch>0</horstretch>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>110</width>
+                     <height>30</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>110</width>
+                     <height>30</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
-                     <pointsize>11</pointsize>
+                     <pointsize>12</pointsize>
+                     <kerning>true</kerning>
                     </font>
                    </property>
                    <property name="text">
-                    <string>Display patient's left</string>
+                    <string>Display patient's left on the right</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::PlainText</enum>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -717,12 +709,17 @@ color:white;</string>
                      <verstretch>0</verstretch>
                     </sizepolicy>
                    </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>13</pointsize>
+                    </font>
+                   </property>
                    <property name="text">
                     <string/>
                    </property>
                    <property name="icon">
                     <iconset resource="../Resources/SNAPResources.qrc">
-                     <normaloff>:/root/layout_setting_LR.png</normaloff>:/root/layout_setting_LR.png</iconset>
+                     <normaloff>:/root/layout_orientation_lr.png</normaloff>:/root/layout_orientation_lr.png</iconset>
                    </property>
                    <property name="iconSize">
                     <size>
@@ -732,18 +729,48 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="3" column="0" alignment="Qt::AlignTop">
-                  <widget class="QLabel" name="lbl_axial_a_2">
+                 <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignTop">
+                  <widget class="QLabel" name="lbl_axial_a_1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>110</width>
+                     <height>30</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>110</width>
+                     <height>30</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
-                     <pointsize>11</pointsize>
+                     <pointsize>12</pointsize>
                     </font>
                    </property>
                    <property name="text">
-                    <string>on the left</string>
+                    <string>Display patient's left on the left</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::PlainText</enum>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                   <property name="margin">
+                    <number>0</number>
+                   </property>
+                   <property name="indent">
+                    <number>-1</number>
                    </property>
                   </widget>
                  </item>
@@ -752,10 +779,67 @@ color:white;</string>
               </item>
               <item>
                <widget class="QGroupBox" name="grp_sagittal_option">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>140</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>16777215</width>
+                  <height>140</height>
+                 </size>
+                </property>
                 <property name="title">
                  <string>On the Sagittal view</string>
                 </property>
                 <layout class="QGridLayout" name="gridLayout_6">
+                 <item row="1" column="1" alignment="Qt::AlignHCenter|Qt::AlignTop">
+                  <widget class="QLabel" name="lbl_sagittal_b_1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>135</width>
+                     <height>30</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>135</width>
+                     <height>30</height>
+                    </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>12</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Display patient's anterior on the right</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::PlainText</enum>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
                  <item row="0" column="0" alignment="Qt::AlignHCenter|Qt::AlignBottom">
                   <widget class="QRadioButton" name="radio_sagittal_ap">
                    <property name="text">
@@ -763,7 +847,7 @@ color:white;</string>
                    </property>
                    <property name="icon">
                     <iconset resource="../Resources/SNAPResources.qrc">
-                     <normaloff>:/root/layout_setting_AP.png</normaloff>:/root/layout_setting_AP.png</iconset>
+                     <normaloff>:/root/layout_orientation_ap.png</normaloff>:/root/layout_orientation_ap.png</iconset>
                    </property>
                    <property name="iconSize">
                     <size>
@@ -773,39 +857,45 @@ color:white;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="0" alignment="Qt::AlignBottom">
+                 <item row="1" column="0" alignment="Qt::AlignHCenter|Qt::AlignTop">
                   <widget class="QLabel" name="lbl_sagittal_a_1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>135</width>
+                     <height>30</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>135</width>
+                     <height>30</height>
+                    </size>
+                   </property>
                    <property name="font">
                     <font>
-                     <pointsize>11</pointsize>
+                     <pointsize>12</pointsize>
                     </font>
                    </property>
                    <property name="text">
-                    <string>Display patient's anterior</string>
+                    <string>Display patient's anterior on the left</string>
+                   </property>
+                   <property name="textFormat">
+                    <enum>Qt::PlainText</enum>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
                    </property>
                    <property name="wordWrap">
-                    <bool>false</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1" alignment="Qt::AlignBottom">
-                  <widget class="QLabel" name="lbl_sagittal_b_1">
-                   <property name="font">
-                    <font>
-                     <pointsize>11</pointsize>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>Display patient's anterior</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                   <property name="wordWrap">
-                    <bool>false</bool>
+                    <bool>true</bool>
                    </property>
                   </widget>
                  </item>
@@ -816,43 +906,13 @@ color:white;</string>
                    </property>
                    <property name="icon">
                     <iconset resource="../Resources/SNAPResources.qrc">
-                     <normaloff>:/root/layout_setting_PA.png</normaloff>:/root/layout_setting_PA.png</iconset>
+                     <normaloff>:/root/layout_orientation_pa.png</normaloff>:/root/layout_orientation_pa.png</iconset>
                    </property>
                    <property name="iconSize">
                     <size>
                      <width>96</width>
                      <height>64</height>
                     </size>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0" alignment="Qt::AlignTop">
-                  <widget class="QLabel" name="lbl_sagittal_a_2">
-                   <property name="font">
-                    <font>
-                     <pointsize>11</pointsize>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>on the left</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1" alignment="Qt::AlignTop">
-                  <widget class="QLabel" name="lbl_sagittal_b_2">
-                   <property name="font">
-                    <font>
-                     <pointsize>11</pointsize>
-                    </font>
-                   </property>
-                   <property name="text">
-                    <string>on the right</string>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
                    </property>
                   </widget>
                  </item>

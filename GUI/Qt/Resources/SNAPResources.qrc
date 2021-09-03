@@ -177,10 +177,10 @@
         <file>icons8_opened_folder_16@2x.png</file>
         <file>icons8_flip_vertical_16.png</file>
         <file>icons8_flip_vertical_16@2x.png</file>
-        <file>layout_setting_AP.png</file>
-        <file>layout_setting_LR.png</file>
-        <file>layout_setting_PA.png</file>
-        <file>layout_setting_RL.png</file>
+        <file>layout_orientation_ap.png</file>
+        <file>layout_orientation_lr.png</file>
+        <file>layout_orientation_pa.png</file>
+        <file>layout_orientation_rl.png</file>
         <file>layout_axial_lr.png</file>
         <file>layout_axial_rl.png</file>
         <file>layout_coronal_lr.png</file>
