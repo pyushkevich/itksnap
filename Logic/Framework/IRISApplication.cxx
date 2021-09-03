@@ -1052,10 +1052,11 @@ IRISApplication
 ::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *progress) 
 {
   // Update the list of VTK meshes
-  m_MeshManager->UpdateVTKMeshes(progress);
+  m_MeshManager->UpdateVTKMeshes(progress, this->GetSelectedSegmentationLayer()->GetTimePointIndex());
 
   // Get the list of available labels
-  MeshManager::MeshCollection meshes = m_MeshManager->GetMeshes();
+  MeshManager::MeshCollection meshes = m_MeshManager->GetMeshes(
+        this->GetSelectedSegmentationLayer()->GetTimePointIndex());
   MeshManager::MeshCollection::iterator it;
 
   // If in SNAP mode, just save the first mesh

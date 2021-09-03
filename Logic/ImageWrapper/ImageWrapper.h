@@ -674,6 +674,11 @@ public:
    */
   void SetSourceNativeMapping(double scale, double shift);
 
+  /**
+    * Get the image from a specific timepoint
+    */
+  virtual const ImagePointer GetImageByTimePoint(unsigned int timepoint) const;
+
 protected:
 
   /**

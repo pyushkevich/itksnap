@@ -223,7 +223,7 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
   {
     // Generate all the mesh objects
     m_MeshUpdating = true;
-    m_Driver->GetMeshManager()->UpdateVTKMeshes(callback);
+    m_Driver->GetMeshManager()->UpdateVTKMeshes(callback, m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
     m_MeshUpdating = false;
 
     InvokeEvent(ModelUpdateEvent());

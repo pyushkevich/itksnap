@@ -1713,6 +1713,17 @@ ImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
+const typename ImageWrapper<TTraits, TBase>::ImagePointer
+ImageWrapper<TTraits, TBase>::GetImageByTimePoint(unsigned int timepoint) const
+{
+  itkAssertOrThrowMacro(
+        timepoint < m_ImageTimePoints.size(),
+        "Requested time point out of range")
+
+  return m_ImageTimePoints[timepoint];
+}
+
+template<class TTraits, class TBase>
 void
 ImageWrapper<TTraits,TBase>
 ::SetDisplayViewportGeometry(unsigned int index,

@@ -93,11 +93,11 @@ ENDIF()
 SET(SNAP_VERSION_MAJOR 3)
 SET(SNAP_VERSION_MINOR 8)
 SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "-alpha")
+SET(SNAP_VERSION_QUALIFIER "")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20200410")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 10, 2020")
+SET(SNAP_VERSION_RELEASE_DATE "20210219")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Feb 19, 2021")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -1182,6 +1182,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
+  4DContinuousRendering
   DiffSpace
   EdgeAttraction
   EchoCartesianDicomLoading
