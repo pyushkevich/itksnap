@@ -353,6 +353,23 @@ public:
   }
 };
 
+// issue #24
+// This wrapper class add checkboxes to the first column of the row
+// It enables multiple selection on items such as color labels
+template<class TRowTraits>
+class CheckableRowTraits :
+    public TRowTraits
+{
+public:
+  static void updateRow(QList<QStandardItem *> items, LabelType label, const ColorLabel &cl)
+  {
+    TRowTraits::updateRow(items, label, cl);
+    // Make label id checkabel
+    items[0]->setCheckable(true);
+  }
+};
+
+
 
 template<>
 class DefaultWidgetDomainTraits<TrivialDomain, QAbstractItemView>

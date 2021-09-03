@@ -67,9 +67,11 @@ public:
     FORMAT_ANALYZE=0,
     FORMAT_DICOM_DIR,       // A directory containing multiple DICOM files
     FORMAT_DICOM_FILE,      // A single DICOM file
+    FORMAT_ECHO_CARTESIAN_DICOM, // A Echocardiography Cartesian DICOM
     FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
     FORMAT_MHA, FORMAT_NIFTI, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
-    FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK, FORMAT_COUNT};
+    FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK,
+    FORMAT_COUNT};
 
   enum RawPixelType {
     PIXELTYPE_UCHAR=0, PIXELTYPE_CHAR, PIXELTYPE_USHORT, PIXELTYPE_SHORT, 
@@ -283,8 +285,7 @@ public:
   void CreateImageIO(const char *fname, Registry &folder, bool read);
 
   // Get the output of the last operation
-  // irisGetMacro(IOBase, itk::ImageIOBase *);    
-
+  // irisGetMacro(IOBase, itk::ImageIOBase *);
 protected:
 
   GuidedNativeImageIO();

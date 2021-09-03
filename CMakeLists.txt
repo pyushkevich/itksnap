@@ -501,6 +501,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ReorientImageModel.cxx
   GUI/Model/SaveModifiedLayersModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
+  GUI/Model/SmoothLabelsModel.cxx
   GUI/Model/SnakeParameterModel.cxx
   GUI/Model/SnakeROIModel.cxx
   GUI/Model/SnakeROIResampleModel.cxx
@@ -509,6 +510,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/SynchronizationModel.cxx
   GUI/Model/UIAction.cxx
   GUI/Model/UIReporterDelegates.cxx
+  GUI/Model/VoxelChangeReportModel.cxx
   GUI/Renderer/AbstractRenderer.cxx
   GUI/Renderer/AbstractVTKRenderer.cxx
   GUI/Renderer/AbstractVTKSceneRenderer.cxx
@@ -577,6 +579,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SNAPUIFlag.h
   GUI/Model/SNAPUIFlag.txx
   GUI/Model/SliceWindowCoordinator.h
+  GUI/Model/SmoothLabelsModel.h
   GUI/Model/SnakeParameterModel.h
   GUI/Model/SnakeROIModel.h
   GUI/Model/SnakeROIResampleModel.h
@@ -586,6 +589,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/UIAction.h
   GUI/Model/UIReporterDelegates.h
   GUI/Model/UIState.h
+  GUI/Model/VoxelChangeReportModel.h
   GUI/Renderer/AbstractRenderer.h
   GUI/Renderer/AbstractVTKRenderer.h
   GUI/Renderer/AbstractVTKSceneRenderer.h
@@ -693,6 +697,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/InterpolateLabelsDialog.cxx
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
+  GUI/Qt/Windows/LayoutReminderDialog.cxx
   GUI/Qt/Windows/LabelSelectionPopup.cxx
   GUI/Qt/Windows/MainControlPanel.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
@@ -702,10 +707,12 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/ResampleDialog.cxx
   GUI/Qt/Windows/SaveModifiedLayersDialog.cxx
   GUI/Qt/Windows/SimpleFileDialogWithHistory.cxx
+  GUI/Qt/Windows/SmoothLabelsDialog.cxx
   GUI/Qt/Windows/SnakeParameterDialog.cxx
   GUI/Qt/Windows/SpeedImageDialog.cxx
   GUI/Qt/Windows/SplashPanel.cxx
   GUI/Qt/Windows/StatisticsDialog.cxx
+  GUI/Qt/Windows/VoxelChangeReportDialog.cxx
   GUI/Qt/Windows/DSS/DistributedSegmentationDialog.cxx
   GUI/Qt/Windows/DSS/DownloadTicketDialog.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.cxx
@@ -786,6 +793,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/InterpolateLabelsDialog.h
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
+  GUI/Qt/Windows/LayoutReminderDialog.h
   GUI/Qt/Windows/LabelSelectionPopup.h
   GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
@@ -794,10 +802,12 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/ResampleDialog.h
   GUI/Qt/Windows/SaveModifiedLayersDialog.h
   GUI/Qt/Windows/SimpleFileDialogWithHistory.h
+  GUI/Qt/Windows/SmoothLabelsDialog.h
   GUI/Qt/Windows/SnakeParameterDialog.h
   GUI/Qt/Windows/SpeedImageDialog.h
   GUI/Qt/Windows/SplashPanel.h
   GUI/Qt/Windows/StatisticsDialog.h
+  GUI/Qt/Windows/VoxelChangeReportDialog.h
   GUI/Qt/Windows/DSS/DistributedSegmentationDialog.h
   GUI/Qt/Windows/DSS/DownloadTicketDialog.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.h
@@ -870,6 +880,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/InterpolateLabelsDialog.ui
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
+  GUI/Qt/Windows/LayoutReminderDialog.ui
   GUI/Qt/Windows/LabelSelectionPopup.ui
   GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
@@ -878,10 +889,12 @@ SET(UI_FORMS
   GUI/Qt/Windows/ResampleDialog.ui
   GUI/Qt/Windows/SaveModifiedLayersDialog.ui
   GUI/Qt/Windows/SimpleFileDialogWithHistory.ui
+  GUI/Qt/Windows/SmoothLabelsDialog.ui
   GUI/Qt/Windows/SnakeParameterDialog.ui
   GUI/Qt/Windows/SpeedImageDialog.ui
   GUI/Qt/Windows/SplashPanel.ui
   GUI/Qt/Windows/StatisticsDialog.ui
+  GUI/Qt/Windows/VoxelChangeReportDialog.ui
   GUI/Qt/Windows/DSS/DistributedSegmentationDialog.ui
   GUI/Qt/Windows/DSS/DownloadTicketDialog.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.ui
@@ -1028,6 +1041,7 @@ SET(SNAP_SUBMODULE_LIBS
   cnd_api
   cnd_driver
   cnd_adapters
+  cnd_maxflow
   greedyapi)
 
 # System libraries
@@ -1052,7 +1066,6 @@ SET(SNAP_EXTERNAL_LIBS_LITE
   vtkCommonCore vtkFiltersCore
   ${CURL_LIBRARIES}
   ${SYSTEM_LIBS})
-
 
 #--------------------------------------------------------------------------------
 # Include C3D Library as submodule
@@ -1172,6 +1185,9 @@ SET(GUI_TESTS
   4DContinuousRendering
   DiffSpace
   EdgeAttraction
+  EchoCartesianDicomLoading
+  LabelSmoothing
+  PreferencesDialog
   ProbeIntensity
   RegionCompetition
   RandomForest

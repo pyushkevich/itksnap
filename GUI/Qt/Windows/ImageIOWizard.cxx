@@ -38,6 +38,7 @@
 #include "ImageIOWizard/OverlayRolePage.h"
 
 #include "DICOMListingTable.h"
+#include "LayoutReminderDialog.h"
 
 
 namespace imageiowiz {
@@ -104,6 +105,12 @@ bool AbstractPage::PerformIO()
     if(m_Model->IsLoadMode())
       {
       m_Model->LoadImage(to_utf8(filename));
+      if (fmt == GuidedNativeImageIO::FORMAT_ECHO_CARTESIAN_DICOM)
+        {
+          LayoutReminderDialog *lr = new LayoutReminderDialog(this);
+          lr->Initialize(this->m_Model->GetParent());
+          lr->ConditionalExec(LayoutReminderDialog::Echo_Cartesian_Dicom_Loading);
+        }
       }
     else
       {

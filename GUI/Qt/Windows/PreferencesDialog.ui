@@ -6,28 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>689</width>
-    <height>554</height>
+    <width>692</width>
+    <height>608</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Preferences - ITK-SNAP</string>
   </property>
   <layout class="QGridLayout" name="gridLayout" columnstretch="0,0">
-   <item row="2" column="0" colspan="2">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stack">
      <property name="currentIndex">
-      <number>2</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="pageGeneral">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -409,7 +399,13 @@ border-width:1px;
 color:white;</string>
                    </property>
                    <property name="text">
-                    <string>Axial</string>
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap resource="../Resources/SNAPResources.qrc">:/root/layout_axial_rl.png</pixmap>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -441,7 +437,13 @@ border-width:1px;
 color:white;</string>
                    </property>
                    <property name="text">
-                    <string>Coronal</string>
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap resource="../Resources/SNAPResources.qrc">:/root/layout_sagittal_ap.png</pixmap>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -505,7 +507,13 @@ border-width:1px;
 color:white;</string>
                    </property>
                    <property name="text">
-                    <string>Sagittal</string>
+                    <string/>
+                   </property>
+                   <property name="pixmap">
+                    <pixmap resource="../Resources/SNAPResources.qrc">:/root/layout_coronal_rl.png</pixmap>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>true</bool>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignCenter</set>
@@ -551,6 +559,12 @@ color:white;</string>
               </property>
               <item>
                <widget class="QGroupBox" name="grpLayoutRadio">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="title">
                  <string>Available Layouts:</string>
                 </property>
@@ -601,22 +615,135 @@ color:white;</string>
                </widget>
               </item>
               <item>
-               <widget class="QGroupBox" name="groupBox_5">
+               <widget class="QGroupBox" name="grp_axial_option">
                 <property name="title">
-                 <string>Additional options:</string>
+                 <string>On the Axial and Coronal views</string>
                 </property>
-                <layout class="QVBoxLayout" name="verticalLayout_8">
-                 <item>
-                  <widget class="QCheckBox" name="chkLayoutAnteriorSide">
+                <layout class="QGridLayout" name="gridLayout_7">
+                 <item row="3" column="1" alignment="Qt::AlignHCenter|Qt::AlignTop">
+                  <widget class="QLabel" name="lbl_axial_b_2">
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
                    <property name="text">
-                    <string>Display anterior on the left</string>
+                    <string>on the right</string>
                    </property>
                   </widget>
                  </item>
-                 <item>
-                  <widget class="QCheckBox" name="chkLayoutRightLeft">
+                 <item row="2" column="0" alignment="Qt::AlignHCenter|Qt::AlignBottom">
+                  <widget class="QLabel" name="lbl_axial_a_1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
                    <property name="text">
-                    <string>Patient right is screen left</string>
+                    <string>Display patient's left</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>false</bool>
+                   </property>
+                   <property name="margin">
+                    <number>0</number>
+                   </property>
+                   <property name="indent">
+                    <number>-1</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1" alignment="Qt::AlignHCenter|Qt::AlignBottom">
+                  <widget class="QRadioButton" name="radio_axial_rl">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../Resources/SNAPResources.qrc">
+                     <normaloff>:/root/layout_setting_RL.png</normaloff>:/root/layout_setting_RL.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>96</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1" alignment="Qt::AlignHCenter|Qt::AlignBottom">
+                  <widget class="QLabel" name="lbl_axial_b_1">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Display patient's left</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="0" alignment="Qt::AlignHCenter|Qt::AlignBottom">
+                  <widget class="QRadioButton" name="radio_axial_lr">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../Resources/SNAPResources.qrc">
+                     <normaloff>:/root/layout_setting_LR.png</normaloff>:/root/layout_setting_LR.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>96</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="0" alignment="Qt::AlignTop">
+                  <widget class="QLabel" name="lbl_axial_a_2">
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>on the left</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
                    </property>
                   </widget>
                  </item>
@@ -624,17 +751,138 @@ color:white;</string>
                </widget>
               </item>
               <item>
-               <spacer name="verticalSpacer_3">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
+               <widget class="QGroupBox" name="grp_sagittal_option">
+                <property name="title">
+                 <string>On the Sagittal view</string>
                 </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>40</height>
-                 </size>
+                <layout class="QGridLayout" name="gridLayout_6">
+                 <item row="0" column="0" alignment="Qt::AlignHCenter|Qt::AlignBottom">
+                  <widget class="QRadioButton" name="radio_sagittal_ap">
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../Resources/SNAPResources.qrc">
+                     <normaloff>:/root/layout_setting_AP.png</normaloff>:/root/layout_setting_AP.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>96</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0" alignment="Qt::AlignBottom">
+                  <widget class="QLabel" name="lbl_sagittal_a_1">
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Display patient's anterior</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1" alignment="Qt::AlignBottom">
+                  <widget class="QLabel" name="lbl_sagittal_b_1">
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Display patient's anterior</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                   <property name="wordWrap">
+                    <bool>false</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="0" column="1" alignment="Qt::AlignHCenter|Qt::AlignBottom">
+                  <widget class="QRadioButton" name="radio_sagittal_pa">
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="icon">
+                    <iconset resource="../Resources/SNAPResources.qrc">
+                     <normaloff>:/root/layout_setting_PA.png</normaloff>:/root/layout_setting_PA.png</iconset>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>96</width>
+                     <height>64</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="0" alignment="Qt::AlignTop">
+                  <widget class="QLabel" name="lbl_sagittal_a_2">
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>on the left</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="2" column="1" alignment="Qt::AlignTop">
+                  <widget class="QLabel" name="lbl_sagittal_b_2">
+                   <property name="font">
+                    <font>
+                     <pointsize>11</pointsize>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>on the right</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="groupBox_5">
+                <property name="enabled">
+                 <bool>true</bool>
                 </property>
-               </spacer>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="title">
+                 <string>Additional options:</string>
+                </property>
+                <layout class="QVBoxLayout" name="verticalLayout_8">
+                 <item>
+                  <widget class="QCheckBox" name="chkRemindLayout">
+                   <property name="text">
+                    <string>Remind me about checked options</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -1513,6 +1761,16 @@ font-weight:bold;</string>
      </property>
     </widget>
    </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -1545,8 +1803,6 @@ font-weight:bold;</string>
   <tabstop>btnACS</tabstop>
   <tabstop>btnSCA</tabstop>
   <tabstop>btnCSA</tabstop>
-  <tabstop>chkLayoutAnteriorSide</tabstop>
-  <tabstop>chkLayoutRightLeft</tabstop>
   <tabstop>chkShowThumbnail</tabstop>
   <tabstop>inThumbnailFraction</tabstop>
   <tabstop>inThumbnailMaxSize</tabstop>
@@ -1576,7 +1832,9 @@ font-weight:bold;</string>
   <tabstop>chkDecimatePreserveTopology</tabstop>
   <tabstop>buttonBox</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="../Resources/SNAPResources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

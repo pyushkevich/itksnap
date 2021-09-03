@@ -370,6 +370,9 @@ GlobalDisplaySettings::GlobalDisplaySettings()
   m_FlagLayoutPatientRightShownLeftModel =
       NewSimpleProperty("FlagLayoutPatientRightShownLeft", true);
 
+  m_FlagRemindLayoutSettingsModel =
+      NewSimpleProperty("FlagRemindLayoutSettings", true);
+
   m_LayerLayoutModel =
       NewSimpleEnumProperty("LayerLayout", LAYOUT_STACKED, emap_layer_layout);
 }

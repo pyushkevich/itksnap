@@ -8,5 +8,8 @@
         <file>Scripts/test_DiffSpace.js</file>
         <file>Scripts/test_EdgeAttraction.js</file>
         <file>Scripts/test_4DContinuousRendering.js</file>
+        <file>Scripts/test_LabelSmoothing.js</file>
+        <file>Scripts/test_EchoCartesianDicomLoading.js</file>
+        <file>Scripts/test_PreferencesDialog.js</file>
     </qresource>
 </RCC>

@@ -57,6 +57,7 @@
 #include "HistoryManager.h"
 #include "DefaultBehaviorSettings.h"
 #include "SynchronizationModel.h"
+#include "LayoutReminderDialog.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -70,6 +71,7 @@
 #include <PreferencesDialog.h>
 #include "SaveModifiedLayersDialog.h"
 #include <InterpolateLabelsDialog.h>
+#include <SmoothLabelsDialog.h>
 #include "RegistrationDialog.h"
 #include "DistributedSegmentationDialog.h"
 
@@ -212,6 +214,10 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   m_InterpolateLabelsDialog = new InterpolateLabelsDialog(this);
   m_InterpolateLabelsDialog->setModal(false);
+
+  // issue #24: adding label smoothing feature
+  m_SmoothLabelsDialog = new SmoothLabelsDialog(this);
+  m_SmoothLabelsDialog->setModal(false);
 
   m_DSSDialog = new DistributedSegmentationDialog(this);
   m_DSSDialog->setModal(false);
@@ -478,6 +484,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_InterpolateLabelsDialog->SetModel(model->GetInterpolateLabelModel());
   m_RegistrationDialog->SetModel(model->GetRegistrationModel());
   m_DSSDialog->SetModel(model->GetDistributedSegmentationModel());
+  m_SmoothLabelsDialog->SetModel(model->GetSmoothLabelsModel()); // issue #24
 
   // Initialize the docked panels
   m_ControlPanel->SetModel(model);
@@ -2117,7 +2124,7 @@ void MainImageWindow::on_actionAnnotation_Preferences_triggered()
 {
   // Show the preferences dialog
   m_PreferencesDialog->ShowDialog();
-  m_PreferencesDialog->GoToAppearancePage();
+  m_PreferencesDialog->GoToPage(PreferencesDialog::Appearance);
 }
 
 void MainImageWindow::on_actionAutoContrastGlobal_triggered()
@@ -2201,6 +2208,14 @@ void MainImageWindow::UpdateAutoCheck()
     {
     DoUpdateCheck(true);
     }
+}
+
+void MainImageWindow::RemindLayoutPreference()
+{
+  LayoutReminderDialog *layoutReminder = new LayoutReminderDialog(this);
+
+  layoutReminder->Initialize(this->m_Model);
+  layoutReminder->ConditionalExec();
 }
 
 void MainImageWindow::on_actionCheck_for_Updates_triggered()
@@ -2302,6 +2317,11 @@ void MainImageWindow::on_actionActivatePreviousLayer_triggered()
 void MainImageWindow::on_actionInterpolate_Labels_triggered()
 {
   RaiseDialog(m_InterpolateLabelsDialog);
+}
+
+// issue #24: Add label smoothing feature
+void MainImageWindow::on_actionSmooth_Labels_triggered() {
+  RaiseDialog(m_SmoothLabelsDialog);
 }
 
 void MainImageWindow::on_actionRegistration_triggered()
