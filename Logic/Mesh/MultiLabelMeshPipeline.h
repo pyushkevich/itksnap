@@ -194,12 +194,42 @@ private:
 
 // issue #29: Now storing one pipeline for each timepoint of 4D image
 // 3D image pipeline will always be stored at timepoint 0
-class MultiLabelMeshPipelineTable :
-    public itk::Object,
-    public std::map<unsigned int, SmartPtr<MultiLabelMeshPipeline>>
+class MultiLabelMeshPipelineTable : public itk::Object
 {
 public:
   irisITKObjectMacro(MultiLabelMeshPipelineTable, itk::Object)
+
+  typedef std::map<unsigned int, SmartPtr<MultiLabelMeshPipeline>> MeshPipelineTableType;
+
+
+  // only for debugging purpose
+  // -- fast scrolling through frames when print for each frame may cause crash
+  void printMeshSize();
+
+  // Get a pipeline from timepoint. If timepoint does not exist, return nullptr
+  SmartPtr<MultiLabelMeshPipeline> GetPipeline(unsigned int timepoint);
+
+  // Set pipeline for a timepoint. If timepoint exists, overwrite existing pipeline
+  void SetPipeline(unsigned int timepoint, SmartPtr<MultiLabelMeshPipeline> pipeline);
+
+  // Get memory size of a pipeline in MB
+  static uint32_t  GetPipelineMemorySize(SmartPtr<MultiLabelMeshPipeline> pipeline);
+
+protected:
+  MultiLabelMeshPipelineTable() {};
+  ~MultiLabelMeshPipelineTable() {};
+  //MultiLabelMeshPipelineTable(const MultiLabelMeshPipelineTable& other) = delete;
+  //MultiLabelMeshPipelineTable& operator=(const MultiLabelMeshPipelineTable& other) = delete;
+
+private:
+  // Memory usage limit in MB
+  static constexpr uint32_t m_MemoryLimit = 1000;
+
+  // Total current memory used by the table
+  uint32_t m_MemoryUsage = 0;
+
+  MeshPipelineTableType m_table;
+
 };
 
 #endif

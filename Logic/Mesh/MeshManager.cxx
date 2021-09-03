@@ -154,13 +154,13 @@ MeshManager
       }
 
     // Get pipeline for the timepoint
-    SmartPtr<MultiLabelMeshPipeline> pipeline = (*pipelineTable)[timepoint];
+    SmartPtr<MultiLabelMeshPipeline> pipeline = pipelineTable->GetPipeline(timepoint);
 
     // If the pipeline does not exist, create it
     if(!pipeline)
       {
       pipeline = MultiLabelMeshPipeline::New();
-      (*pipelineTable)[timepoint] = pipeline;
+      pipelineTable->SetPipeline(timepoint, pipeline);
       }
 
     // Make sure the pipeline has the right image
@@ -216,7 +216,7 @@ MeshManager::MeshCollection MeshManager::GetMeshes(unsigned int timepoint)
         return meshes;
       }
 
-    SmartPtr<MultiLabelMeshPipeline> pipeline = (*pipelineTable)[timepoint];
+    SmartPtr<MultiLabelMeshPipeline> pipeline = pipelineTable->GetPipeline(timepoint);
 
 
     // Return the actual meshes in the pipeline

@@ -362,3 +362,78 @@ std::map<LabelType, vtkSmartPointer<vtkPolyData> > MultiLabelMeshPipeline::GetMe
     meshes[it->first] = it->second.Mesh;
   return meshes;
 }
+
+SmartPtr<MultiLabelMeshPipeline>
+MultiLabelMeshPipelineTable::GetPipeline(unsigned int timepoint)
+{
+  return m_table[timepoint];
+}
+
+void
+MultiLabelMeshPipelineTable::SetPipeline(unsigned int timepoint, SmartPtr<MultiLabelMeshPipeline> pipeline)
+{
+  m_table[timepoint] = pipeline;
+  uint32_t size = GetPipelineMemorySize(pipeline);
+  m_MemoryUsage += size;
+
+  // Remove item from the front of the table if memory usage exceeds threshold
+  // -- but will keep item if it's the only item in the table
+  // -- because we still want to render single huge mesh
+  if (m_MemoryUsage > m_MemoryLimit && m_table.size() > 1)
+    {
+      //printf("[table trimming] usage = %u MB\n", m_MemoryUsage);
+      m_MemoryUsage -= GetPipelineMemorySize(m_table.begin()->second);
+      m_table.erase(m_table.begin());
+    }
+}
+
+uint32_t
+MultiLabelMeshPipelineTable::GetPipelineMemorySize(SmartPtr<MultiLabelMeshPipeline> pipeline)
+{
+  std::map<LabelType, vtkSmartPointer<vtkPolyData>> collection = pipeline->GetMeshCollection();
+  uint32_t sum = 0;
+  for (auto pair : collection)
+    {
+      sum += (pair.second->GetActualMemorySize())/1024;
+    }
+  return sum;
+}
+
+void
+MultiLabelMeshPipelineTable::printMeshSize()
+{
+  for (auto pit = m_table.cbegin(); pit != m_table.cend(); ++pit)
+  {
+    unsigned int timepoint = pit->first;
+    cout << "Timepoint: " << timepoint << "------------------------" << endl;
+    double totalSize = 0;
+    SmartPtr<MultiLabelMeshPipeline> pipeline = pit->second;
+    auto meshTable = pipeline->GetMeshCollection();
+    for (auto mit = meshTable.cbegin(); mit != meshTable.cend(); ++mit)
+      {
+        LabelType lbl = mit->first;
+        auto pMesh = mit->second;
+        unsigned long size = pMesh->GetActualMemorySize();
+        printf("Label %d: %ul KB\n", lbl, size);
+        totalSize += size / 1024.0;
+      }
+    cout << "Total Size: " << totalSize << " MB" << endl;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

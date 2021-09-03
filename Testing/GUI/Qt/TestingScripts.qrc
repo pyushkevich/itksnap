@@ -7,5 +7,6 @@
         <file>Scripts/test_Workspace.js</file>
         <file>Scripts/test_DiffSpace.js</file>
         <file>Scripts/test_EdgeAttraction.js</file>
+        <file>Scripts/test_4DContinuousRendering.js</file>
     </qresource>
 </RCC>
