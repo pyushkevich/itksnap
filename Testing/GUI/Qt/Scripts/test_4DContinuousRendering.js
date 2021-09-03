@@ -13,7 +13,6 @@ openWorkspace("img4d_11f.itksnap");
 var actionContUpdate = engine.findChild(mainwin,"actionContinuous_Update");
 actionContUpdate.trigger();
 
-<<<<<<< HEAD
 engine.sleep(1000);
 
 // scroll through frames
@@ -31,8 +30,3 @@ for (let i = 0; i < 25; i++) {
     setCursor4D(15, 23, 12, f);
 }
 
-=======
-// scroll through frames
-
-engine.sleep(3000);
->>>>>>> afe7e7c5... czi-102: testing scripts
