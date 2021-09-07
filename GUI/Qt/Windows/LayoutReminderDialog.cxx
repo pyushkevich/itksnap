@@ -41,7 +41,7 @@ void LayoutReminderDialog::ConditionalExec(enum ExecScenarios sce)
       ui->chkNoRemindAgain->setDisabled(true);
     }
 
-  QString msg_axial = "On the Axial and Coronal Views,&nbsp;ITK-SNAP is currently following ";
+  QString msg_axial = "On the Axial and Coronal views,&nbsp;ITK-SNAP is currently following ";
 
 
   if (dsp->GetFlagLayoutPatientRightShownLeft())

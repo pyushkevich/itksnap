@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>692</width>
+    <width>698</width>
     <height>608</height>
    </rect>
   </property>
@@ -683,9 +683,16 @@ color:white;</string>
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <family>Arial</family>
+                     <pointsize>11</pointsize>
+                     <weight>50</weight>
+                     <italic>false</italic>
+                     <bold>false</bold>
                      <kerning>true</kerning>
                     </font>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 11pt &quot;Arial&quot;;</string>
                    </property>
                    <property name="text">
                     <string>Display patient's left on the right</string>
@@ -751,8 +758,15 @@ color:white;</string>
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <family>Arial</family>
+                     <pointsize>11</pointsize>
+                     <weight>50</weight>
+                     <italic>false</italic>
+                     <bold>false</bold>
                     </font>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 11pt &quot;Arial&quot;;</string>
                    </property>
                    <property name="text">
                     <string>Display patient's left on the left</string>
@@ -823,8 +837,15 @@ color:white;</string>
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <family>Arial</family>
+                     <pointsize>11</pointsize>
+                     <weight>50</weight>
+                     <italic>false</italic>
+                     <bold>false</bold>
                     </font>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 11pt &quot;Arial&quot;;</string>
                    </property>
                    <property name="text">
                     <string>Display patient's anterior on the right</string>
@@ -879,8 +900,15 @@ color:white;</string>
                    </property>
                    <property name="font">
                     <font>
-                     <pointsize>12</pointsize>
+                     <family>Arial</family>
+                     <pointsize>11</pointsize>
+                     <weight>50</weight>
+                     <italic>false</italic>
+                     <bold>false</bold>
                     </font>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">font: 11pt &quot;Arial&quot;;</string>
                    </property>
                    <property name="text">
                     <string>Display patient's anterior on the left</string>
