@@ -93,11 +93,11 @@ ENDIF()
 SET(SNAP_VERSION_MAJOR 3)
 SET(SNAP_VERSION_MINOR 8)
 SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "-alpha")
+SET(SNAP_VERSION_QUALIFIER "")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20200410")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Apr 10, 2020")
+SET(SNAP_VERSION_RELEASE_DATE "20210219")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Feb 19, 2021")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -697,6 +697,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/InterpolateLabelsDialog.cxx
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
+  GUI/Qt/Windows/LayoutReminderDialog.cxx
   GUI/Qt/Windows/LabelSelectionPopup.cxx
   GUI/Qt/Windows/MainControlPanel.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
@@ -792,6 +793,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/InterpolateLabelsDialog.h
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
+  GUI/Qt/Windows/LayoutReminderDialog.h
   GUI/Qt/Windows/LabelSelectionPopup.h
   GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
@@ -878,6 +880,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/InterpolateLabelsDialog.ui
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
+  GUI/Qt/Windows/LayoutReminderDialog.ui
   GUI/Qt/Windows/LabelSelectionPopup.ui
   GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
@@ -1179,9 +1182,12 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
+  4DContinuousRendering
   DiffSpace
   EdgeAttraction
+  EchoCartesianDicomLoading
   LabelSmoothing
+  PreferencesDialog
   ProbeIntensity
   RegionCompetition
   RandomForest

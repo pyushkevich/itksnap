@@ -4,6 +4,7 @@
 #include "GlobalUIModel.h"
 #include "SNAPAppearanceSettings.h"
 #include "GenericImageData.h"
+#include "Rebroadcaster.h"
 
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -243,7 +244,8 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 
   // Get the mesh from the parent object
   MeshManager *mesh = driver->GetMeshManager();
-  MeshManager::MeshCollection meshes = mesh->GetMeshes();
+  MeshManager::MeshCollection meshes = mesh->GetMeshes(
+        driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
   typedef MeshManager::MeshCollection::const_iterator MeshIterator;
 
   // Remove all actors that are no longer in use, and update the ones for which the

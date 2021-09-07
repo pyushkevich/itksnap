@@ -111,6 +111,7 @@ public:
   irisSimplePropertyAccessMacro(GreyInterpolationMode, UIGreyInterpolation)
   irisSimplePropertyAccessMacro(FlagLayoutPatientAnteriorShownLeft, bool)
   irisSimplePropertyAccessMacro(FlagLayoutPatientRightShownLeft, bool)
+  irisSimplePropertyAccessMacro(FlagRemindLayoutSettings, bool)
   irisSimplePropertyAccessMacro(SliceLayout, UISliceLayout)
   irisSimplePropertyAccessMacro(LayerLayout, LayerLayout)
 
@@ -131,6 +132,7 @@ protected:
   SmartPtr<ConcreteRangedIntProperty> m_ZoomThumbnailMaximumSizeModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientAnteriorShownLeftModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientRightShownLeftModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FlagRemindLayoutSettingsModel;
 
   typedef ConcretePropertyModel<UIGreyInterpolation, TrivialDomain> ConcreteInterpolationModel;
   SmartPtr<ConcreteInterpolationModel> m_GreyInterpolationModeModel;

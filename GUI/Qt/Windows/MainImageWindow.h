@@ -123,6 +123,9 @@ public:
   /** Check for updates (automatically at regular periods) */
   void UpdateAutoCheck();
 
+  /** Remind user of layout preference setting */
+  void RemindLayoutPreference();
+
   // Save the segmentation (interactively or not). Return true if save was
   // successful
   bool SaveSegmentation(bool interactive);

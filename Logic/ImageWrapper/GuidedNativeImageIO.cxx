@@ -60,6 +60,7 @@
 #include "gdcmReader.h"
 #include "gdcmSerieHelper.h"
 #include "gdcmStringFilter.h"
+#include "gdcmDataSetHelper.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkNumericTraits.h"
@@ -71,6 +72,9 @@
 #include "IncreaseDimensionImageFilter.h"
 
 #include <itk_zlib.h>
+#include "itkImportImageFilter.h"
+#include <algorithm>
+#include "itksys/Base64.h"
 
 
 using namespace std;
@@ -86,6 +90,7 @@ GuidedNativeImageIO
   {"Analyze", "img.gz,hdr,img",      true,  false, true,  true},
   {"DICOM Image Series", "",         false, true,  true,  true},
   {"DICOM Single Image", "dcm",      false, true,  true,  true},
+  {"Echo Cartesian DICOM", "dcm",    false, true,  true,  true},
   {"GE Version 4", "ge4",            false, false, true,  true},
   {"GE Version 5", "ge5",            false, false, true,  true},
   {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
@@ -382,6 +387,10 @@ GuidedNativeImageIO
   // Get the format specified in the folder
   m_FileFormat = GetFileFormat(folder);
 
+  // Is the DICOM single image an Echo Cartesian DICOM image?
+  if (m_FileFormat == FORMAT_DICOM_FILE || m_FileFormat == FORMAT_COUNT)
+    m_FileFormat = GuessFormatForFileName(fname, true);
+
   // Choose the approach based on the file format
   switch(m_FileFormat)
     {
@@ -396,6 +405,7 @@ GuidedNativeImageIO
     case FORMAT_VTK:        m_IOBase = itk::VTKImageIO::New();           break;
     case FORMAT_VOXBO_CUB:  m_IOBase = itk::VoxBoCUBImageIO::New();      break;
     case FORMAT_DICOM_DIR:
+    case FORMAT_ECHO_CARTESIAN_DICOM:
     case FORMAT_DICOM_FILE: m_IOBase = itk::GDCMImageIO::New();          break;
     case FORMAT_RAW:
       {
@@ -434,8 +444,6 @@ GuidedNativeImageIO
     }
 }
 
-
-
 void
 GuidedNativeImageIO
 ::ReadNativeImageHeader(const char *FileName, Registry &folder)
@@ -450,6 +458,26 @@ GuidedNativeImageIO
                         "ITK-SNAP failed to create an ImageIO object for the "
                         "image '%s' using format '%s'.",
                         FileName, m_Hints["Format"][""]);
+
+  if (m_FileFormat == FORMAT_DICOM_FILE)
+    {
+      gdcm::Reader pre_reader;
+      pre_reader.SetFileName(FileName);
+      std::set<gdcm::Tag> tSet;
+      tSet.insert(gdcm::Tag(0x8, 0x70)); // Tag: manufacturer
+      if (pre_reader.ReadSelectedTags(tSet))
+        {
+           gdcm::StringFilter sf;
+           sf.SetFile(pre_reader.GetFile());
+
+           // Extract manufacturer tag to identify image
+           std::string origManu = sf.ToString(gdcm::Tag(0x8, 0x70));
+           std::string manufacturer;
+           manufacturer.resize(origManu.size());
+           // -- transform to upper case
+           std::transform(origManu.begin(), origManu.end(), manufacturer.begin(), ::toupper);
+        }
+    }
 
   // Read the information about the image
   if(m_FileFormat == FORMAT_DICOM_DIR)
@@ -498,6 +526,95 @@ GuidedNativeImageIO
 
     m_IOBase->SetFileName(m_DICOMFiles[0]);
     m_IOBase->ReadImageInformation();
+    }
+
+  if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
+    {
+      gdcm::Reader ecd_reader;
+      ecd_reader.SetFileName(FileName);
+      std::set<gdcm::Tag> headerTags;
+
+      const gdcm::Tag deltaX(0x18, 0x602c);
+      const gdcm::Tag deltaY(0x18, 0x602e);
+      const gdcm::Tag deltaZ(0x3001, 0x1003);
+      const gdcm::Tag numVolumes(0x28, 0x8);
+      const gdcm::Tag height(0x28, 0x10);
+      const gdcm::Tag width(0x28, 0x11);
+      const gdcm::Tag depth(0x3001, 0x1001);
+      const gdcm::Tag frameTime(0x18, 0x1063);
+
+      headerTags.insert(deltaX);
+      headerTags.insert(deltaY);
+      headerTags.insert(deltaZ);
+      headerTags.insert(numVolumes);
+      headerTags.insert(height);
+      headerTags.insert(width);
+      headerTags.insert(depth);
+      headerTags.insert(frameTime);
+
+      if (ecd_reader.ReadSelectedTags(headerTags))
+        {
+          m_IOBase->SetFileName(FileName);
+
+          gdcm::File &file = ecd_reader.GetFile();
+          gdcm::DataSet &ds = file.GetDataSet();
+          gdcm::StringFilter sf;
+          sf.SetFile(file);
+
+          std::vector<double> ecd_spc;
+          try
+          {
+            ecd_spc.push_back(std::stod(sf.ToString(deltaX)) * 10.0);
+            ecd_spc.push_back(std::stod(sf.ToString(deltaY)) * 10.0);
+            ecd_spc.push_back(std::stod(sf.ToString(deltaZ)) * 10.0);
+            // frame time is the spacing along the time axis
+            ecd_spc.push_back(std::stod(sf.ToString(frameTime)));
+          } catch (const std::exception &e)
+          {
+            std::cerr << e.what() << std::endl;
+          }
+
+          // Set to 4d
+          m_IOBase->SetNumberOfDimensions(4);
+
+          // Set spacing in IOBase
+          for (unsigned int i = 0; i < 4; ++i)
+            m_IOBase->SetSpacing(i, ecd_spc[i]);
+
+          // Set origin in IOBase
+          for (unsigned int i = 0; i < 4; ++i)
+            m_IOBase->SetOrigin(i, 0.0);
+
+          // Set direction to LPS
+          for (unsigned int i = 0; i < 3; ++i)
+            {
+              std::vector<double> ecd_dir = {0.0, 0.0, 0.0, 0.0};
+              ecd_dir[i] = -1.0;
+              m_IOBase->SetDirection(i, ecd_dir);
+            }
+          m_IOBase->SetDirection(3, std::vector<double>{0.0, 0.0, 0.0, 1.0});
+
+          std::vector<itk::ImageIOBase::SizeType> ecd_dim(4);
+
+          try
+          {
+            ecd_dim[0] = stol(sf.ToString(width));
+            ecd_dim[1] = stol(sf.ToString(height));
+            ecd_dim[2] = stol(sf.ToString(depth));
+            ecd_dim[3] = stol(sf.ToString(numVolumes));
+          }  catch (std::exception &e)
+          {
+            std::cerr << e.what() << std::endl;
+          }
+
+          for (unsigned int i = 0; i < 4; ++i)
+            {
+              m_IOBase->SetDimensions(i, ecd_dim[i]);
+            }
+
+          m_IOBase->SetNumberOfComponents(1);
+          m_IOBase->SetComponentType(itk::IOComponentEnum::UCHAR);
+        }
     }
   else
     {
@@ -700,10 +817,170 @@ GuidedNativeImageIO
       m_NativeComponents = m_DICOMImagesPerIPP;
       }
     } 
-  else 
+  else if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
     {
-    // Non-DICOM: read from single image
-    // We no longer use ImageFileReader here because of an issue: the 
+      // issue #26: 4D Echocardiography Cartesian DICOM (ECD) Image Reading
+
+      gdcm::Reader ecd_data_reader;
+      ecd_data_reader.SetFileName(FileName);
+
+      const gdcm::Tag data(0x7fe0, 0x0010);
+      typename NativeImageType::SizeType ecd_dim;
+      typename NativeImageType::SpacingType ecd_spc;
+      typename NativeImageType::DirectionType ecd_dir;
+      typename NativeImageType::PointType ecd_org;
+
+      std::set<gdcm::Tag> tSet;
+      tSet.insert(data);
+
+      // Only read the data tag
+      if (!ecd_data_reader.ReadSelectedTags(tSet))
+        std::cerr << "Can not read:" << FileName << std::endl;
+      else
+        {
+          gdcm::DataSet &ds = ecd_data_reader.GetFile().GetDataSet();
+
+          if (!ds.FindDataElement(data))
+            std::cerr << "data element not found!" << std::endl;
+
+          const gdcm::DataElement &de = ds.GetDataElement(data);
+          if (de.IsEmpty())
+            std::cerr << "data element is empty!" << std::endl;
+
+          for (unsigned int i = 0; i < 4; ++i)
+            {
+              ecd_dim[i] = m_IOBase->GetDimensions(i);
+              ecd_spc[i] = m_IOBase->GetSpacing(i);
+              for(size_t j = 0; j < 4; j++)
+                ecd_dir(j,i) = m_IOBase->GetDirection(i)[j];
+            }
+          ecd_org.Fill(0);
+
+          unsigned long len = ecd_dim[0] * ecd_dim[1] * ecd_dim[2] * ecd_dim[3];
+
+          const gdcm::ByteValue *bv = de.GetByteValue();
+
+          // Start loading image
+          typename NativeImageType::Pointer ecd_image = NativeImageType::New();
+          ecd_image->SetOrigin(ecd_org);
+          ecd_image->SetSpacing(ecd_spc);
+          ecd_image->SetDirection(ecd_dir);
+
+          // Configure target image container
+          typename NativeImageType::RegionType ecd_region;
+          typename NativeImageType::IndexType ecd_index = {{0, 0, 0, 0}};
+          ecd_region.SetIndex(ecd_index);
+          ecd_region.SetSize(ecd_dim);
+          ecd_image->SetRegions(ecd_region);
+          ecd_image->SetVectorLength(1);
+          ecd_image->SetNumberOfComponentsPerPixel(1);
+          ecd_image->Allocate();
+
+          // -- Extract the buffer from file
+          char *ecd_buffer = (char*)malloc(len);
+          bv->GetBuffer(ecd_buffer, len);
+
+          // -- Pass buffer into ecd_image
+          typedef typename NativeImageType::PixelContainer PixConType;
+          typename PixConType::Pointer pPixCon = PixConType::New();
+          pPixCon->SetImportPointer(reinterpret_cast<TScalar*>(ecd_buffer), len, true);
+          ecd_image->SetPixelContainer(pPixCon);
+
+          // Read and Import Dictionary
+          // -- Choose and import basic information into the metadata dictionary
+
+          // -- Following code segment loading metadata dictionary is from itkGDCMImageIO.cxx
+          // -- Modified to adapt to 4D Echocardiography Cartesian DICOM (ECD) Image
+
+          gdcm::Reader ecd_meta_reader;
+          ecd_meta_reader.SetFileName(FileName);
+          typedef itk::ImageIOBase::SizeValueType SizeValueType;
+          itk::MetaDataDictionary &dico = m_IOBase->GetMetaDataDictionary();
+          gdcm::StringFilter strF;
+          strF.SetFile(ecd_meta_reader.GetFile());
+
+          if (!ecd_meta_reader.ReadUpToTag(data))
+            std::cerr << "Can not read:" << FileName << std::endl;
+          else
+            {
+              const gdcm::File &file = ecd_meta_reader.GetFile();
+              const gdcm::DataSet &ds = file.GetDataSet();
+
+              // Iterate through tags for metadata
+              for (auto it = ds.Begin(); it != ds.End(); ++it)
+                {
+
+                  const gdcm::DataElement &de = *it;
+                  const gdcm::Tag &tag = de.GetTag();
+
+
+                  // Customized reading of following attributes for the non-standard 4D ECD image
+                  // -- Depth (z-axis dimension)
+                  if (tag == gdcm::Tag(0x3001, 0x1001))
+                    {
+                      itk::EncapsulateMetaData<std::string>(dico, "Depth", strF.ToString(tag));
+                      continue;
+                    }
+
+                  // -- Delta Z (physical delta in z direction)
+                  if (tag == gdcm::Tag(0x3001, 0x1003))
+                    {
+                      itk::EncapsulateMetaData<std::string>(dico, "Physical Delta Z", strF.ToString(tag));
+                      continue;
+                    }
+
+                  // Otherwise read public tags as normal
+                  gdcm::VR vr = gdcm::DataSetHelper::ComputeVR(file, ds, tag);
+
+                  if (vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::SQ | gdcm::VR::UN))
+                  {
+                    // itkAssertInDebugAndIgnoreInReleaseMacro( vr & gdcm::VR::VRBINARY );
+                    /*
+                     * Old behavior was to skip SQ, Pixel Data element. I decided that it is not safe to mime64
+                     * VR::UN element. There used to be a bug in gdcm 1.2.0 and VR:UN element.
+                     */
+                    if ((tag.IsPublic()) && vr != gdcm::VR::SQ &&
+                        tag != gdcm::Tag(0x7fe0, 0x0010) /* && vr != gdcm::VR::UN*/)
+                    {
+                      const gdcm::ByteValue * bv = de.GetByteValue();
+                      if (bv)
+                      {
+                        // base64 streams have to be a multiple of 4 bytes in length
+                        int encodedLengthEstimate = 2 * bv->GetLength();
+                        encodedLengthEstimate = ((encodedLengthEstimate / 4) + 1) * 4;
+
+                        auto * bin = new char[encodedLengthEstimate];
+                        auto   encodedLengthActual =
+                          static_cast<unsigned int>(itksysBase64_Encode((const unsigned char *)bv->GetPointer(),
+                                                                        static_cast<SizeValueType>(bv->GetLength()),
+                                                                        (unsigned char *)bin,
+                                                                        static_cast<int>(0)));
+                        std::string encodedValue(bin, encodedLengthActual);
+                        itk::EncapsulateMetaData<std::string>(dico, tag.PrintAsPipeSeparatedString(), encodedValue);
+                        delete[] bin;
+                      }
+                    }
+                  }
+                  else /* if ( vr & gdcm::VR::VRASCII ) */
+                  {
+                    // Only copying field from the public DICOM dictionary
+                    if (tag.IsPublic())
+                    {
+                      itk::EncapsulateMetaData<std::string>(dico, tag.PrintAsPipeSeparatedString(), strF.ToString(tag));
+                    }
+                  }
+                }
+            }
+
+          ecd_image->SetMetaDataDictionary(dico);
+
+          m_NativeImage = ecd_image;
+        }
+    }
+  else
+    {
+    // Non-DICOM DIR: read from single image
+    // We no longer use ImageFileReader here because of an issue: the
     // m_IOBase may have an open file handle (from call to ReadImageInfo)
     // so passing it in to the Reader would cause an IO error (this actually
     // happens for GIPL). So we copy some of the code from ImageFileReader
@@ -715,8 +992,8 @@ GuidedNativeImageIO
     typename NativeImageType::SizeType dim;      dim.Fill(1);
     typename NativeImageType::PointType org;     org.Fill(0.0);
     typename NativeImageType::SpacingType spc;   spc.Fill(1.0);
-    typename NativeImageType::DirectionType dir; dir.SetIdentity();    
-    
+    typename NativeImageType::DirectionType dir; dir.SetIdentity();
+
     size_t nd_actual = m_IOBase->GetNumberOfDimensions();
     size_t nd = (nd_actual > 4) ? 4 : nd_actual;
     
@@ -750,7 +1027,6 @@ GuidedNativeImageIO
     image->SetRegions(region);
     image->SetVectorLength(ncomp);
     image->Allocate();
-
     // Set the IO region
     if(nd_actual <= 4)
       {
@@ -777,6 +1053,7 @@ GuidedNativeImageIO
     // Read the image into the buffer
     m_IOBase->Read(image->GetBufferPointer());
     m_NativeImage = image;
+
 
     // If the image is 4-dimensional or more, we must perform an in-place transpose
     // of the image. The fourth dimension is the one that varies fastest, and in our
@@ -859,7 +1136,7 @@ GuidedNativeImageIO
   ImageBase *native = this->GetNativeImage();
 
   // Get the native image
-  typedef itk::VectorImage<TNative, 3> InputImageType;
+  typedef itk::VectorImage<TNative, 4> InputImageType;
   typename InputImageType::Pointer input = 
     reinterpret_cast<InputImageType *>(native);
   assert(input);
@@ -911,7 +1188,7 @@ GuidedNativeImageIO
   ImageBase *native = this->GetNativeImage();
 
   // Get the native image
-  typedef itk::VectorImage<TNative, 3> InputImageType;
+  typedef itk::VectorImage<TNative, 4> InputImageType;
   typename InputImageType::Pointer input = 
     reinterpret_cast<InputImageType *>(native);
   assert(input);
@@ -1348,6 +1625,26 @@ GuidedNativeImageIO::GuessFormatForFileName(
     // Check for DICOM
     if(havebuff && !strncmp(buffer+128,"DICM",4))
       {
+      // issue #26: Check for Echo Cartesian Dicom
+      gdcm::Reader reader;
+      reader.SetFileName(fname.c_str());
+
+      std::set<gdcm::Tag> tags;
+      gdcm::Tag tag_manuf(0x0008, 0x0070); // manufacturer
+      tags.insert(tag_manuf);
+
+      reader.ReadSelectedTags(tags, true);
+
+      gdcm::StringFilter sf;
+      sf.SetFile(reader.GetFile());
+
+      std::string manuf = sf.ToString(tag_manuf);
+
+      // transform to upper case
+      std::transform(manuf.begin(), manuf.end(), manuf.begin(), ::toupper);
+      if (!manuf.compare("PMS QLAB CART EXPORT"))
+        return FORMAT_ECHO_CARTESIAN_DICOM;
+
       // PY: Now that I cleaned up the DICOM reader, we should never default
       // to single DICOM file anymore. That's just too annoying
       return FORMAT_DICOM_DIR;
