@@ -50,7 +50,7 @@
     <string>On the Axial and Coronal views, ITK-SNAP is currently following neurological convention: patient's left side is shown on the right side of the screen. This might not be ideal for non-brain images.</string>
    </property>
    <property name="textFormat">
-    <enum>Qt::AutoText</enum>
+    <enum>Qt::MarkdownText</enum>
    </property>
    <property name="wordWrap">
     <bool>true</bool>
@@ -127,7 +127,7 @@
     <string>On the Saggital view, the patient's anterior is shown on the left of the screen.</string>
    </property>
    <property name="textFormat">
-    <enum>Qt::AutoText</enum>
+    <enum>Qt::MarkdownText</enum>
    </property>
    <property name="wordWrap">
     <bool>true</bool>
