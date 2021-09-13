@@ -41,7 +41,7 @@ void LayoutReminderDialog::ConditionalExec(enum ExecScenarios sce)
       ui->chkNoRemindAgain->setDisabled(true);
     }
 
-  QString msg_axial = "On the Axial and Coronal views,&nbsp;ITK-SNAP is currently following ";
+  QString msg_axial = "<html>On the Axial and Coronal views,&nbsp;ITK-SNAP is currently following ";
 
 
   if (dsp->GetFlagLayoutPatientRightShownLeft())
@@ -54,8 +54,9 @@ void LayoutReminderDialog::ConditionalExec(enum ExecScenarios sce)
       msg_axial.append("<b>radiological convention</b>");
       msg_axial.append(":&nbsp;the patient’s left side is shown on the left of the screen.&nbsp;This may not be optimal for brain images.");
     }
+  msg_axial.append("</html>");
 
-  QString msg_sagittal = "On the Sagittal view,&nbsp;";
+  QString msg_sagittal = "<html>On the Sagittal view,&nbsp;";
 
   if (dsp->GetFlagLayoutPatientAnteriorShownLeft())
     {
@@ -65,6 +66,7 @@ void LayoutReminderDialog::ConditionalExec(enum ExecScenarios sce)
     {
       msg_sagittal.append("the patient's anterior is shown on the right of the screen.");
     }
+  msg_sagittal.append("</html>");
 
   ui->reminderTextAxial->setText(msg_axial);
   ui->reminderTextSagittal->setText(msg_sagittal);
