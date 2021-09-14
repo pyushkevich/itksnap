@@ -657,17 +657,17 @@ void RegistrationModel::RunAutoRegistration()
 
   // Set up the parameters for greedy registration
   GreedyParameters param;
-  GreedyParameters::SetToDefaults(param);
 
   // Create an API object
   m_GreedyAPI = new GreedyAPI();
 
-  // Configure the fixed and moving images
+  // Create an imput group and configure the fixed and moving images
+  GreedyInputGroup ig;
   ImagePairSpec ip;
   ip.weight = 1.0;
   ip.fixed = "FIXED_IMAGE";
   ip.moving = "MOVING_IMAGE";
-  param.inputs.push_back(ip);
+  ig.inputs.push_back(ip);
 
   // Pass the actual images to the cache
   m_GreedyAPI->AddCachedInputObject(ip.fixed, castFixed->GetOutput());
@@ -676,11 +676,11 @@ void RegistrationModel::RunAutoRegistration()
   // Mask image
   if(this->GetUseSegmentationAsMask())
     {
-    param.gradient_mask = "GRADIENT_MASK";
+    ig.fixed_mask = "GRADIENT_MASK";
     ImageWrapperBase *seg = this->GetParent()->GetDriver()->GetSelectedSegmentationLayer();
     castMask = seg->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline();
     castMask->UpdateLargestPossibleRegion();
-    m_GreedyAPI->AddCachedInputObject(param.gradient_mask, castMask->GetOutput());
+    m_GreedyAPI->AddCachedInputObject(ig.fixed_mask, castMask->GetOutput());
     }
 
   // Set up the metric
@@ -718,6 +718,9 @@ void RegistrationModel::RunAutoRegistration()
   param.affine_init_mode = RAS_FILENAME;
   param.affine_init_transform.filename = "INPUT_TRANSFORM";
   param.affine_init_transform.exponent = 1;
+
+  // Add the input group to the parameters
+  param.input_groups.push_back(ig);
 
   // Pass the input transformation object to the cache
   ITKMatrixType matrix; ITKVectorType offset;
@@ -773,17 +776,17 @@ void RegistrationModel::MatchByMoments(int order)
 
   // Set up the parameters for greedy registration
   GreedyParameters param;
-  GreedyParameters::SetToDefaults(param);
 
   // Create an API object
   m_GreedyAPI = new GreedyAPI();
 
   // Configure the fixed and moving images
+  GreedyInputGroup ig;
   ImagePairSpec ip;
   ip.weight = 1.0;
   ip.fixed = "FIXED_IMAGE";
   ip.moving = "MOVING_IMAGE";
-  param.inputs.push_back(ip);
+  ig.inputs.push_back(ip);
 
   // Pass the actual images to the cache
   m_GreedyAPI->AddCachedInputObject(ip.fixed, castFixed->GetOutput());
@@ -808,6 +811,9 @@ void RegistrationModel::MatchByMoments(int order)
   param.affine_init_mode = RAS_FILENAME;
   param.affine_init_transform.filename = "INPUT_TRANSFORM";
   param.affine_init_transform.exponent = 1;
+
+  // Add the input group to the parameters
+  param.input_groups.push_back(ig);
 
   // Pass the input transformation object to the cache
   ITKMatrixType matrix; ITKVectorType offset;
@@ -1274,7 +1280,7 @@ void RegistrationModel::IterationCallback(const itk::Object *object, const itk::
     {
     const std::vector<MultiComponentMetricReport> &last_log = metric_log.back();
     if(last_log.size())
-      m_LastMetricValueModel->SetValue(last_log.back().TotalMetric);
+      m_LastMetricValueModel->SetValue(last_log.back().TotalPerPixelMetric);
     }
 
   // Fire the iteration command - this is to force the GUI to process events, instead of
