@@ -13,11 +13,9 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-IF(POLICY CMP0026)
-  cmake_policy(SET CMP0026 NEW)
-  cmake_policy(SET CMP0077 NEW)
-  cmake_policy(SET CMP0080 OLD)
-ENDIF(POLICY CMP0026)
+cmake_policy(SET CMP0026 NEW)
+cmake_policy(SET CMP0077 NEW)
+cmake_policy(SET CMP0080 OLD)
 
 SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
 
