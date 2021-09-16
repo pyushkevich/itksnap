@@ -342,7 +342,7 @@ public:
   virtual vtkMTimeType GetControlPointsMTime() override
   {
     // TODO: figure this out!
-    return this->GetMTime();
+    return (vtkMTimeType) this->GetMTime();
   }
 
 

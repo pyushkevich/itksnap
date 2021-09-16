@@ -405,6 +405,13 @@ int main(int argc, char *argv[])
         ws.ExportWorkspace(cl.read_output_filename().c_str());
         }
 
+      // Archive the current workspace build
+      else if(arg == "-A")
+        {
+        // Create an archive
+        ws.ExportWorkspace(cl.read_output_filename().c_str(), NULL, false);
+        }
+
       // Prefix
       else if(arg == "-p" || arg == "-prefix")
         {

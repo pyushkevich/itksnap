@@ -87,7 +87,7 @@ void OptimizationProgressRenderer::OnUpdate()
     {
     for(int i = 0; i < mlog[m_PyramidLevel].size(); i++, x++)
       {
-      double y = mlog[m_PyramidLevel][i].TotalMetric;
+      double y = mlog[m_PyramidLevel][i].TotalPerPixelMetric;
       m_DataX->InsertNextValue(x);
       m_DataY->InsertNextValue(y);
 
