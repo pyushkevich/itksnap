@@ -75,7 +75,7 @@ protected:
   HorizontalColorMapContextItem() {}
   virtual ~HorizontalColorMapContextItem() {}
 
-  virtual void GetBounds(double bounds[4])
+  virtual void GetBounds(double bounds[4]) override
   {
     if(m_Model && m_Model->GetLayer())
       {
@@ -89,7 +89,7 @@ protected:
       }
   }
 
-  virtual void ComputeTexture()
+  virtual void ComputeTexture() override
   {
     // The size of the texture - fixed
     const unsigned int dim = 256;
@@ -124,7 +124,7 @@ protected:
 
     // Draw the texture. The texture is being drawn on the x-axis, so it must
     // first be interpolated through the intensity curve
-    for(int i = 0; i < dim; i++)
+    for(unsigned int i = 0; i < dim; i++)
       {
       // Here x is the intensity value for which we want to look up the color
       double x = bounds[0] + i * (bounds[1] - bounds[0]) / (dim - 1);
@@ -169,7 +169,7 @@ protected:
   VerticalColorMapContextItem() {}
   virtual ~VerticalColorMapContextItem() {}
 
-  virtual void GetBounds(double bounds[4])
+  virtual void GetBounds(double bounds[4]) override
   {
     if(m_Model && m_Model->GetLayer())
       {
@@ -182,7 +182,7 @@ protected:
       }
   }
 
-  virtual void ComputeTexture()
+  virtual void ComputeTexture() override
   {
     if (!m_Model)
       return;
@@ -213,7 +213,7 @@ protected:
 
     // Draw the texture. The texture is being drawn on the y-axis, so we use
     // simple interpolation
-    for(int i = 0; i < dim; i++)
+    for(unsigned int i = 0; i < dim; i++)
       {
       // Here x is the intensity value for which we want to look up the color
       double t = i * 1.0 / (dim - 1);
@@ -248,7 +248,7 @@ public:
 
   static IntensityCurveControlPointsContextItem *New();
 
-  virtual void GetControlPoint(vtkIdType index, double *point) const
+  virtual void GetControlPoint(vtkIdType index, double *point) const override
   {
     // Return the coordinates of the point, in plot units
     IntensityCurveInterface *curve = m_Model->GetCurve();
@@ -262,20 +262,20 @@ public:
     point[1] = y;
   }
 
-  virtual vtkIdType GetNumberOfPoints() const
+  virtual vtkIdType GetNumberOfPoints() const override
   {
     if(m_Model && m_Model->GetLayer())
       return m_Model->GetCurve()->GetControlPointCount();
     else return 0;
   }
 
-  virtual vtkIdType RemovePoint(double *pos) { return -1; }
+  virtual vtkIdType RemovePoint(double *pos) override { return -1; }
 
-  virtual vtkIdType AddPoint(double *newPos) { return -1; }
+  virtual vtkIdType AddPoint(double *newPos) override { return -1; }
 
-  virtual void emitEvent(unsigned long event, void* params = 0) {};
+  virtual void emitEvent(unsigned long event, void* params = 0) override {};
 
-  virtual void SetControlPoint(vtkIdType index, double *point)
+  virtual void SetControlPoint(vtkIdType index, double *point) override
   {
     // Return the coordinates of the point, in plot units
     Vector2d range = m_Model->GetNativeImageRangeForCurve();
@@ -295,7 +295,7 @@ public:
 
   // I had to cannibalize the paint method because VTK hardcoded some basic
   // properties such as the point color
-  virtual bool Paint(vtkContext2D *painter)
+  virtual bool Paint(vtkContext2D *painter) override
   {
     painter->GetBrush()->SetColor(255, 0, 0, 255);
     painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
@@ -322,7 +322,7 @@ public:
     return true;
   }
 
-  virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse)
+  virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse) override
   {
     this->MouseMoved = false;
 
@@ -339,7 +339,7 @@ public:
     else return false;
   }
 
-  virtual unsigned long int GetControlPointsMTime()
+  virtual unsigned long int GetControlPointsMTime() override
   {
     // TODO: figure this out!
     return this->GetMTime();
