@@ -98,7 +98,7 @@ std::string ticket_status_strings[] =
 
 std::string tag_type_strings[] =
 {
-  "Image Layer", "Main Image", "Overlay Image", "Segmentation Label", "Point Landmark", "Unknown"
+  "Image Layer", "Main Image", "Overlay Image", "Segmentation Label", "Point Landmark", "Time Frame", "Unknown"
 };
 
 UniversalTicketId::UniversalTicketId(std::string in_url, IdType in_id)
@@ -714,6 +714,7 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
   type_map.AddPair(TAG_LAYER_OVERLAY, "OverlayImage");
   type_map.AddPair(TAG_LAYER_ANATOMICAL, "AnatomicalImage");
   type_map.AddPair(TAG_SEGMENTATION_LABEL, "SegmentationLabel");
+  type_map.AddPair(TAG_TIMEFRAME, "TimeFrame");
   type_map.AddPair(TAG_UNKNOWN, "Unknown");
 
   try {
@@ -842,6 +843,7 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
 
 void DistributedSegmentationModel::UpdateTagObjectIds(bool clear_ids_first)
 {
+  cout << "[UpdateTagObjectIds]" << endl;
   // Handle the main image assignment
   for(int i = 0; i < m_TagSpecArray.size(); i++)
     {
@@ -1114,6 +1116,8 @@ bool DistributedSegmentationModel
     {
     TagTargetSpec &tag = m_TagSpecArray[curr_tag];
     value = tag.object_id;
+    cout << "[ComboGetRangeAndValue] current tag = " << curr_tag << endl;
+    cout << "[ComboGetRangeAndValue] tag_type = " << tag.tag_spec.type << endl;
     if(domain)
       {
       domain->clear();
@@ -1154,7 +1158,20 @@ bool DistributedSegmentationModel
           (*domain)[(*it)->GetUniqueId()] = oss.str();
           }
         }
+
+      // Handle tags to image timeframe
+      else if(tag.tag_spec.type == TAG_TIMEFRAME)
+        {
+        // Get number of timeframes
+        unsigned int nt = driver->GetNumberOfTimePoints();
+        for (unsigned int i = 1; i <= nt; ++i)
+          {
+          (*domain)[i] = std::to_string(i);
+          }
+        }
       }
+
+
     return true;
     }
   return false;
@@ -1194,6 +1211,12 @@ void DistributedSegmentationModel
           break;
           }
         }
+      }
+    else if(ts.tag_spec.type == TAG_TIMEFRAME)
+      {
+      std::ostringstream oss;
+      oss << "Time frame: " << value;
+      ts.desc = oss.str();
       }
 
     // Update the domain
