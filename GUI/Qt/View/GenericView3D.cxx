@@ -27,7 +27,7 @@ public:
 
   irisGetSetMacro(Model, Generic3DModel *)
 
-  virtual void OnLeftButtonDown()
+  virtual void OnLeftButtonDown() VTK_OVERRIDE
   {
     if(!m_Model->PickSegmentationVoxelUnderMouse(
          this->Interactor->GetEventPosition()[0],
@@ -50,7 +50,7 @@ public:
 
   irisGetSetMacro(Model, Generic3DModel *)
 
-  virtual void OnLeftButtonDown()
+  virtual void OnLeftButtonDown() VTK_OVERRIDE
   {
     // Spray a voxel
     if(m_Model->SpraySegmentationVoxelUnderMouse(
@@ -66,7 +66,7 @@ public:
       }
   }
 
-  virtual void OnLeftButtonUp()
+  virtual void OnLeftButtonUp() VTK_OVERRIDE
   {
     if(m_IsPainting)
       m_IsPainting = false;
@@ -74,7 +74,7 @@ public:
       vtkInteractorStyleTrackballCamera::OnLeftButtonUp();
   }
 
-  virtual void OnMouseMove()
+  virtual void OnMouseMove() VTK_OVERRIDE
   {
     if(m_IsPainting)
       m_Model->SpraySegmentationVoxelUnderMouse(
@@ -86,7 +86,7 @@ public:
 
 protected:
 
-  SpraycanInteractorStyle() : m_IsPainting(false), m_Model(NULL) {}
+  SpraycanInteractorStyle() : m_Model(NULL), m_IsPainting(false) {}
   virtual ~SpraycanInteractorStyle() {}
 
 private:
@@ -103,7 +103,7 @@ public:
 
   irisGetSetMacro(Model, Generic3DModel *)
 
-  virtual void OnLeftButtonDown()
+  virtual void OnLeftButtonDown() VTK_OVERRIDE
   {
     Vector2i xevent(this->Interactor->GetEventPosition());
     switch(m_Model->GetScalpelStatus())
@@ -124,7 +124,7 @@ public:
       }
   }
 
-  virtual void OnMouseMove()
+  virtual void OnMouseMove() VTK_OVERRIDE
   {
     Vector2i xevent(this->Interactor->GetEventPosition());
     switch(m_Model->GetScalpelStatus())
@@ -138,7 +138,7 @@ public:
       }
  }
 
-  virtual void OnLeftButtonUp()
+  virtual void OnLeftButtonUp() VTK_OVERRIDE
   {
     Vector2i xevent(this->Interactor->GetEventPosition());
     Vector2i delta = xevent - m_ClickStart;
@@ -155,7 +155,7 @@ public:
     vtkInteractorStyleTrackballCamera::OnLeftButtonUp();
   }
 
-  virtual void OnEnter()
+  virtual void OnEnter() VTK_OVERRIDE
   {
     vtkInteractorStyleTrackballCamera::OnEnter();
 
@@ -166,7 +166,7 @@ public:
     OnMouseMove();
   }
 
-  virtual void OnLeave()
+  virtual void OnLeave() VTK_OVERRIDE
   {
     vtkInteractorStyleTrackballCamera::OnLeave();
 
