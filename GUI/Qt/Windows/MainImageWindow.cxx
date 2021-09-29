@@ -1634,19 +1634,18 @@ void MainImageWindow::ExportScreenshot(int panelIndex)
     return;
 
   // What panel is this?
-  QtAbstractOpenGLBox *target = NULL;
   if(panelIndex == 3)
     {
-    target = ui->panel3D->Get3DView();
+    // auto *target = ui->panel3D->Get3DView();
+    // TODO: target->SaveScreenshot(to_utf8(fuser));
     }
   else
     {
     SliceViewPanel *svp = reinterpret_cast<SliceViewPanel *>(m_ViewPanels[panelIndex]);
-    target = svp->GetSliceView();
+    svp->GetSliceView()->SaveScreenshot(to_utf8(fuser));
     }
 
   // Call the screenshot saving method, which will execute asynchronously
-  target->SaveScreenshot(to_utf8(fuser));
 
   // Store the last filename
   m_Model->SetLastScreenshotFileName(to_utf8(fuser));

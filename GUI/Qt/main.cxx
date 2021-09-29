@@ -42,6 +42,14 @@
 #include <clocale>
 #include <cstdlib>
 
+#include "QVTKOpenGLNativeWidget.h"
+#include "QVTKInteractor.h"
+#include "vtkGenericOpenGLRenderWindow.h"
+#include "vtkContextView.h"
+#include "vtkProperty.h"
+#include <QHBoxLayout>
+#include <QPushButton>
+
 using namespace std;
 
 // Interrupt handler. This will attempt to clean up
@@ -603,6 +611,8 @@ int main(int argc, char *argv[])
   */
 
   QSurfaceFormat::setDefaultFormat(gl_fmt);
+  // QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
+
 
 #endif
 
@@ -690,8 +700,61 @@ int main(int argc, char *argv[])
 
   // Test OpenGL?
   if(argdata.flagTestOpenGL)
-    {
-    return test_opengl();
+    {    
+    vtkNew<vtkGenericOpenGLRenderWindow> window;
+    QVTKOpenGLNativeWidget *widget = new QVTKOpenGLNativeWidget();
+    widget->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
+    widget->SetRenderWindow(window.Get());
+
+    auto dft = QSurfaceFormat::defaultFormat();
+    QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
+    std::cout << "GL " <<
+                 QVTKOpenGLNativeWidget::defaultFormat().majorVersion() <<
+                 QVTKOpenGLNativeWidget::defaultFormat().minorVersion() << std::endl;
+
+    vtkNew<vtkContextView> view;
+    view->SetRenderWindow(window.Get());
+
+    // Create a sphere
+    vtkNew<vtkSphereSource> sphereSource;
+    sphereSource->SetCenter(0.0, 0.0, 0.0);
+    sphereSource->SetRadius(5.0);
+    sphereSource->SetPhiResolution(100);
+    sphereSource->SetThetaResolution(100);
+
+    vtkNew<vtkPolyDataMapper> mapper;
+    mapper->SetInputConnection(sphereSource->GetOutputPort());
+
+    vtkNew<vtkActor> actor;
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
+    auto renderer = vtkSmartPointer<vtkRenderer>::New();
+    renderer->AddActor(actor);
+    renderer->ResetCamera();
+
+    window.Get()->AddRenderer(renderer);
+    renderer->SetBackground(0.2,0.2,0.0);
+
+    auto *dlg = new QDialog();
+    auto *lo = new QHBoxLayout(dlg);
+    lo->addWidget(widget);
+    lo->addWidget(new QPushButton("hello world"));
+    widget->setMinimumSize(QSize(256,256));
+    dlg->setModal(false);
+    printf("Showing dialog!\n");
+    dlg->show();
+
+    // QSurfaceFormat::setDefaultFormat(dft);
+
+
+    std::cout << "GL " <<
+                 widget->format().majorVersion() <<
+                 widget->format().minorVersion() << std::endl;
+
+    // return app.exec();
+
+    // return test_opengl();
     }
 
   // Before we can create any of the framework classes, we need to get some
