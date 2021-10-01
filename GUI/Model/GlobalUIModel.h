@@ -78,6 +78,7 @@ class RegistrationModel;
 class DistributedSegmentationModel;
 class SmoothLabelsModel;
 class VoxelChangeReportModel;
+class TimePointPropertiesModel;
 
 namespace itk
 {
@@ -258,6 +259,9 @@ public:
 
   /** Model for voxel change report dialog */
   irisGetMacro(VoxelChangeReportModel, VoxelChangeReportModel *)
+
+  /** Model for timepoint properties of 4D Images */
+  irisGetMacro(TimePointPropertiesModel, TimePointPropertiesModel *)
 
   /**
     Check the state of the system. This class will issue StateChangeEvent()
@@ -452,6 +456,9 @@ protected:
 
   // Issue #24: Voxel Change Report Model
   SmartPtr<VoxelChangeReportModel> m_VoxelChangeReportModel;
+
+  // Timepoint properties for 4D image
+  SmartPtr<TimePointPropertiesModel> m_TimePointPropertiesModel;
 
   // Current coordinates of the cursor
   SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;

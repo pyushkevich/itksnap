@@ -73,6 +73,7 @@
 #include "RegistrationModel.h"
 #include "InteractiveRegistrationModel.h"
 #include "DistributedSegmentationModel.h"
+#include "TimePointPropertiesModel.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -224,6 +225,10 @@ GlobalUIModel::GlobalUIModel()
   // issue #24: Voxel Change Report
   m_VoxelChangeReportModel = VoxelChangeReportModel::New();
   m_VoxelChangeReportModel->SetParentModel(this);
+
+  // TimePointProperties model
+  m_TimePointPropertiesModel = TimePointPropertiesModel::New();
+  m_TimePointPropertiesModel->SetParentModel(this);
 
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(

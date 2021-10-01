@@ -506,6 +506,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/SnakeWizardModel.cxx
   GUI/Model/StateManagement.cxx
   GUI/Model/SynchronizationModel.cxx
+  GUI/Model/TimePointPropertiesModel.cxx
   GUI/Model/UIAction.cxx
   GUI/Model/UIReporterDelegates.cxx
   GUI/Model/VoxelChangeReportModel.cxx
@@ -584,6 +585,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SnakeWizardModel.h
   GUI/Model/StateManagement.h
   GUI/Model/SynchronizationModel.h
+  GUI/Model/TimePointPropertiesModel.h
   GUI/Model/UIAction.h
   GUI/Model/UIReporterDelegates.h
   GUI/Model/UIState.h

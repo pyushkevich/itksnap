@@ -150,6 +150,9 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
 
     case UIF_MOVABLE_DOWN:
       return row_model->CheckState(LayerTableRowModel::UIF_MOVABLE_DOWN);
+
+    case UIF_IS_4D_IMAGE:
+      return this->m_ParentModel->GetDriver()->GetNumberOfTimePoints() > 1;
     }
 
   return false;

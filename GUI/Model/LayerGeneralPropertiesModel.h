@@ -58,7 +58,8 @@ public:
     UIF_IS_STICKINESS_EDITABLE,
     UIF_IS_OPACITY_EDITABLE,
     UIF_MOVABLE_UP,
-    UIF_MOVABLE_DOWN
+    UIF_MOVABLE_DOWN,
+    UIF_IS_4D_IMAGE
   };
 
   // Implementation of virtual functions from parent class

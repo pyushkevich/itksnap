@@ -39,6 +39,8 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->inComponent, m_Model->GetSelectedComponentModel());
   makeCoupling(ui->inComponentSlider, m_Model->GetSelectedComponentModel());
   makeCoupling((QAbstractButton *)ui->btnAnimate, m_Model->GetAnimateModel());
+  makeCoupling(ui->sliderTP, m_Model->GetParentModel()->GetCursorTimePointModel());
+  makeCoupling(ui->spinBoxTP, m_Model->GetParentModel()->GetCursorTimePointModel());
 
   // Couple the pin/unpin buttons
   std::map<bool, QAbstractButton *> button_map;
@@ -57,6 +59,10 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 
   activateOnFlag(ui->grpMulticomponent, m_Model,
                  LayerGeneralPropertiesModel::UIF_MULTICOMPONENT,
+                 QtWidgetActivator::HideInactive);
+
+  activateOnFlag(ui->grp4DProperties, m_Model,
+                 LayerGeneralPropertiesModel::UIF_IS_4D_IMAGE,
                  QtWidgetActivator::HideInactive);
 
   activateOnFlag(ui->grpComponent, m_Model,
