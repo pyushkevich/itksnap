@@ -41,6 +41,7 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling((QAbstractButton *)ui->btnAnimate, m_Model->GetAnimateModel());
   makeCoupling(ui->sliderTP, m_Model->GetParentModel()->GetCursorTimePointModel());
   makeCoupling(ui->spinBoxTP, m_Model->GetParentModel()->GetCursorTimePointModel());
+  makeCoupling(ui->inTPNickname, m_Model->GetCrntTimePointNicknameModel());
 
   // Couple the pin/unpin buttons
   std::map<bool, QAbstractButton *> button_map;

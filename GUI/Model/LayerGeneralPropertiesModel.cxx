@@ -3,6 +3,7 @@
 #include "LayerAssociation.txx"
 #include "NumericPropertyToggleAdaptor.h"
 #include "LayerTableRowModel.h"
+#include "TimePointProperties.h"
 
 template class LayerAssociation<GeneralLayerProperties,
                                 ImageWrapperBase,
@@ -54,6 +55,11 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         this,
         &Self::GetTagsValue,
         &Self::SetTagsValue);
+
+  m_CrntTimePointNicknameModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetCrntTimePointNicknameValue,
+        &Self::SetCrntTimePointNicknameValue);
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -80,6 +86,12 @@ LayerGeneralPropertiesModel::SetParentModel(GlobalUIModel *parent)
         MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 
   this->Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
+
+  this->Rebroadcast(
+        parent->GetDriver(),
+        CursorTimePointUpdateEvent(), ModelUpdateEvent());
+
+  m_TimePointProperties = parent->GetDriver()->GetIRISImageData()->GetTimePointProperties();
 }
 
 void
@@ -115,7 +127,11 @@ LayerGeneralPropertiesModel::OnUpdate()
 {
   Superclass::OnUpdate();
 
-  // Do we need this method?
+  if (m_EventBucket->HasEvent(CursorTimePointUpdateEvent()))
+    {
+      cout << "[LayerGeneralPropModel] TimePoint Change Detected: "
+           << m_ParentModel->GetDriver()->GetCursorTimePoint() << endl;
+    }
 }
 
 bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIState state)
@@ -427,6 +443,29 @@ void LayerGeneralPropertiesModel::SetIsStickyValue(bool value)
   // because the globally selected layer cannot be sticky. However, we can still
   // have a sticky layer selected in the layer inspector. So we override.
   trm->GetStickyModel()->SetValue(value);  
+}
+
+bool LayerGeneralPropertiesModel::
+GetCrntTimePointNicknameValue(std::string &value)
+{
+  cout << "[CrntTPModel] Getter Called" << endl;
+  if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
+    return false;
+
+  unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
+  value = m_TimePointProperties->GetProperty(crntTP)->Nickname;
+  return true;
+}
+
+void LayerGeneralPropertiesModel::
+SetCrntTimePointNicknameValue(std::string value)
+{
+  cout << "[CrntTPModel] Setter Called" << endl;
+  if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
+    return;
+
+  unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
+  m_TimePointProperties->GetProperty(crntTP)->Nickname = value;
 }
 
 

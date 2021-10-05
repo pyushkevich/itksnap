@@ -7,6 +7,7 @@
 
 class AbstractMultiChannelDisplayMappingPolicy;
 class LayerTableRowModel;
+class TimePointProperties;
 
 /**
  * Properties maintained for each layer in the layer association
@@ -102,6 +103,9 @@ public:
   /** A model for the tags */
   irisSimplePropertyAccessMacro(Tags, TagList)
 
+  /** A model for the current timepoint nickname */
+  irisSimplePropertyAccessMacro(CrntTimePointNickname, std::string)
+
   /** Move the layer up in the list */
   void MoveLayerUp();
   void MoveLayerDown();
@@ -164,6 +168,14 @@ protected:
   // exposes are already exposed in LayerTableRowModel, so we delegate to
   // them.
   LayerTableRowModel *GetSelectedLayerTableRowModel();
+
+  // TimePoint Properties
+  TimePointProperties *m_TimePointProperties;
+
+  // Current timepoint nickname
+  SmartPtr<AbstractSimpleStringProperty> m_CrntTimePointNicknameModel;
+  bool GetCrntTimePointNicknameValue(std::string &value);
+  void SetCrntTimePointNicknameValue(std::string value);
 };
 
 #endif // LAYERGENERALPROPERTIESMODEL_H

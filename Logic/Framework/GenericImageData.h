@@ -60,6 +60,7 @@ class LayerIterator;
 class Registry;
 class GuidedNativeImageIO;
 class ImageAnnotationData;
+class TimePointProperties;
 
 /**
  * \class GenericImageData
@@ -318,6 +319,9 @@ public:
   /** Get the list of annotations created by the user */
   irisGetMacro(Annotations, ImageAnnotationData *)
 
+  /** Get the list of timepoint properties */
+  irisGetMacro(TimePointProperties, TimePointProperties *)
+
   /** Clear all segmentation undo points in this layer collection */
   void ClearUndoPoints();
 
@@ -356,6 +360,9 @@ protected:
   // For each layer role, a counter that is incremented whenever a default nickname for
   // this role is generated. The counters are reset when the main image is reloaded
   std::map<LayerRole, int> m_NicknameCounter;
+
+  // TimePointProperties - Nickname, tags etc. for timepoint
+  SmartPtr<TimePointProperties> m_TimePointProperties;
 
   friend class SNAPImageData;
   friend class LayerIterator;

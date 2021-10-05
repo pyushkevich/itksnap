@@ -85,6 +85,7 @@
 #include "ImageAnnotationData.h"
 #include "SegmentationUpdateIterator.h"
 #include "AffineTransformHelper.h"
+#include "TimePointProperties.h"
 
 #include <stdio.h>
 #include <sstream>
@@ -793,6 +794,7 @@ IRISApplication
 
     // Fire the appropriate event
     InvokeEvent(CursorUpdateEvent());
+    InvokeEvent(CursorTimePointUpdateEvent());
     InvokeEvent(SegmentationChangeEvent());
     }
 }
@@ -1632,6 +1634,9 @@ IRISApplication
   // Make the new segmentation selected (at this point there is only one to choose from)
   m_GlobalState->SetSelectedSegmentationLayerId(
         this->GetIRISImageData()->GetFirstSegmentationLayer()->GetUniqueId());
+
+  // Reset timepoint properties
+  m_IRISImageData->GetTimePointProperties()->CreateNewData();
 }
 
 void IRISApplication::LoadMetaDataAssociatedWithLayer(
@@ -2092,6 +2097,10 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
   Registry &ann_folder = preg.Folder("Annotations");
   this->m_IRISImageData->GetAnnotations()->SaveAnnotations(ann_folder);
 
+  // Save timepoint properties in the workspace
+  Registry &tp_folder = preg.Folder("TimePointProperties");
+  this->m_IRISImageData->GetTimePointProperties()->Save(tp_folder);
+
   // Recursively search and delete empty folders
   preg.CleanZeroSizeArrays();
   preg.CleanEmptyFolders();
@@ -2253,6 +2262,13 @@ void IRISApplication::OpenProject(
     {
     Registry &ann_folder = preg.Folder("Annotations");
     m_IRISImageData->GetAnnotations()->LoadAnnotations(ann_folder);
+    }
+
+  // Load timepoint properties
+  if(preg.HasFolder("TimePointProperties"))
+    {
+    Registry &tpp_folder = preg.Folder("TimePointProperties");
+    m_IRISImageData->GetTimePointProperties()->Load(tpp_folder);
     }
 
   // Simulate saving the project into a registy that will be cached. This
