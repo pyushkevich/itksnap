@@ -47,6 +47,7 @@
 #include "itksys/SystemTools.hxx"
 #include "AllPurposeProgressAccumulator.h"
 #include "ImageAnnotationData.h"
+#include "TimePointProperties.h"
 
 
 namespace dss_model {
@@ -98,7 +99,7 @@ std::string ticket_status_strings[] =
 
 std::string tag_type_strings[] =
 {
-  "Image Layer", "Main Image", "Overlay Image", "Segmentation Label", "Point Landmark", "Time Frame", "Unknown"
+  "Image Layer", "Main Image", "Overlay Image", "Segmentation Label", "Point Landmark", "Time Point", "Unknown"
 };
 
 UniversalTicketId::UniversalTicketId(std::string in_url, IdType in_id)
@@ -418,6 +419,15 @@ void DistributedSegmentationModel::ApplyTagsToTargets()
           }
         }
       }
+    else if(ts.type == TAG_TIMEPOINT)
+      {
+      // Get TimePoint Properties
+      cout << "[DSS Tag Apply] tag_name " << ts.name << endl;
+      cout << "[DSS Tag Apply] object_id " << m_TagSpecArray[i].object_id << endl;
+      TimePointProperty *tp = id->GetTimePointProperties()->GetProperty(m_TagSpecArray[i].object_id);
+      // One TimePoint can have multiple tags
+      tp->Tags.AddTag(ts.name);
+      }
     }
 }
 
@@ -714,7 +724,7 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
   type_map.AddPair(TAG_LAYER_OVERLAY, "OverlayImage");
   type_map.AddPair(TAG_LAYER_ANATOMICAL, "AnatomicalImage");
   type_map.AddPair(TAG_SEGMENTATION_LABEL, "SegmentationLabel");
-  type_map.AddPair(TAG_TIMEFRAME, "TimeFrame");
+  type_map.AddPair(TAG_TIMEPOINT, "TimePoint");
   type_map.AddPair(TAG_UNKNOWN, "Unknown");
 
   try {
@@ -832,6 +842,11 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
         tag.desc = matches.front()->GetLandmark().Text;
         return true;
         }
+      }
+    else if(tag.tag_spec.type == TAG_TIMEPOINT)
+      {
+        cout << "[DSS find tag obj] object_id " << tag.object_id << endl;
+        cout << "[DSS find tag obj] name " << tag.tag_spec.name << endl;
       }
     }
 
@@ -1116,8 +1131,7 @@ bool DistributedSegmentationModel
     {
     TagTargetSpec &tag = m_TagSpecArray[curr_tag];
     value = tag.object_id;
-    cout << "[ComboGetRangeAndValue] current tag = " << curr_tag << endl;
-    cout << "[ComboGetRangeAndValue] tag_type = " << tag.tag_spec.type << endl;
+
     if(domain)
       {
       domain->clear();
@@ -1159,14 +1173,24 @@ bool DistributedSegmentationModel
           }
         }
 
-      // Handle tags to image timeframe
-      else if(tag.tag_spec.type == TAG_TIMEFRAME)
+      // Handle tags to image timepoints
+      else if(tag.tag_spec.type == TAG_TIMEPOINT)
         {
-        // Get number of timeframes
-        unsigned int nt = driver->GetNumberOfTimePoints();
-        for (unsigned int i = 1; i <= nt; ++i)
+        if (driver->IsMainImageLoaded())
           {
-          (*domain)[i] = std::to_string(i);
+            // Get number of timepoints
+            unsigned int nt = driver->GetNumberOfTimePoints();
+            for (unsigned int i = 1; i <= nt; ++i)
+              {
+              std::ostringstream oss;
+              oss << "Time point " << i;
+              std::string tp_nickname = driver->GetIRISImageData()->GetTimePointProperties()
+                  ->GetProperty(i)->Nickname;
+              if (tp_nickname.length() > 0)
+                oss << " (" << tp_nickname << ")";
+
+              (*domain)[i] = oss.str();
+              }
           }
         }
       }
@@ -1212,10 +1236,17 @@ void DistributedSegmentationModel
           }
         }
       }
-    else if(ts.tag_spec.type == TAG_TIMEFRAME)
+    else if(ts.tag_spec.type == TAG_TIMEPOINT)
       {
       std::ostringstream oss;
-      oss << "Time frame: " << value;
+      oss << "TimePoint " << value;
+
+      std::string tp_nickname = driver->GetIRISImageData()->GetTimePointProperties()
+          ->GetProperty(value)->Nickname;
+
+      if (tp_nickname.length() > 0)
+        oss << " (" << tp_nickname << ")";
+
       ts.desc = oss.str();
       }
 

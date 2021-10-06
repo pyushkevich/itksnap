@@ -448,7 +448,6 @@ void LayerGeneralPropertiesModel::SetIsStickyValue(bool value)
 bool LayerGeneralPropertiesModel::
 GetCrntTimePointNicknameValue(std::string &value)
 {
-  cout << "[CrntTPModel] Getter Called" << endl;
   if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
     return false;
 
@@ -460,7 +459,6 @@ GetCrntTimePointNicknameValue(std::string &value)
 void LayerGeneralPropertiesModel::
 SetCrntTimePointNicknameValue(std::string value)
 {
-  cout << "[CrntTPModel] Setter Called" << endl;
   if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
     return;
 
