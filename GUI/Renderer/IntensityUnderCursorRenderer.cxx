@@ -28,6 +28,14 @@ void IntensityUnderCursorRenderer::SetModel(ImageInfoModel *model)
               ModelUpdateEvent());
 }
 
+void IntensityUnderCursorRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
+  rwin->SetMultiSamples(0);
+  rwin->SetLineSmoothing(1);
+  rwin->SetPolygonSmoothing(1);
+}
+
 void IntensityUnderCursorRenderer::OnUpdate()
 {
   itkAssertOrThrowMacro(
@@ -138,10 +146,6 @@ void IntensityUnderCursorRenderer::OnDevicePixelRatioChange(int old_ratio, int n
 
 IntensityUnderCursorRenderer::IntensityUnderCursorRenderer()
 {
-  this->m_RenderWindow->SetMultiSamples(0);
-  this->m_RenderWindow->SetLineSmoothing(1);
-  this->m_RenderWindow->SetPolygonSmoothing(1);
-
   m_Model = NULL;
 
   // Set up the scene for rendering

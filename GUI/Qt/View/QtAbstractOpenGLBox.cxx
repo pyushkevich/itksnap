@@ -32,6 +32,7 @@
 #include "SNAPOpenGL.h"
 #include <AbstractRenderer.h>
 #include "SNAPQtCommon.h"
+#include <QOpenGLContext>
 
 #include <vtkSmartPointer.h>
 #include <vtkImageData.h>
@@ -83,6 +84,9 @@ void QtAbstractOpenGLBox::paintGL()
   // based on any events that it has received upstream.
   GetRenderer()->Update();
 
+  // TODO: added for debugging, maybe remove?
+  this->makeCurrent();
+
   // Get width and height in pixels
   int wp = (int) this->size().width() * this->devicePixelRatio();
   int hp = (int) this->size().height() * this->devicePixelRatio();
@@ -96,6 +100,9 @@ void QtAbstractOpenGLBox::paintGL()
 
   // Do the actual painting
   GetRenderer()->paintGL();
+
+  // TODO: added for debugging, maybe remove?
+  this->context()->swapBuffers(this->context()->surface());
 
   // If screenshot set, handle it
   if(m_ScreenshotRequest.length())

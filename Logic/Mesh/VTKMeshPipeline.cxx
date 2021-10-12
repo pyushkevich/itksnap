@@ -36,6 +36,7 @@
 #include "AllPurposeProgressAccumulator.h"
 #include "ImageWrapper.h"
 #include "MeshOptions.h"
+#include "SNAPExportITKToVTK.h"
 #include <map>
 
 using namespace std;
@@ -64,30 +65,7 @@ VTKMeshPipeline
   m_VTKImporter->ReleaseDataFlagOn();
 
   // Pipe the importer into the exporter (that's a lot of code)
-  m_VTKImporter->SetUpdateInformationCallback(
-    m_VTKExporter->GetUpdateInformationCallback());
-  m_VTKImporter->SetPipelineModifiedCallback(
-    m_VTKExporter->GetPipelineModifiedCallback());
-  m_VTKImporter->SetWholeExtentCallback(
-    m_VTKExporter->GetWholeExtentCallback());
-  m_VTKImporter->SetSpacingCallback(
-    m_VTKExporter->GetSpacingCallback());
-  m_VTKImporter->SetOriginCallback(
-    m_VTKExporter->GetOriginCallback());
-  m_VTKImporter->SetScalarTypeCallback(
-    m_VTKExporter->GetScalarTypeCallback());
-  m_VTKImporter->SetNumberOfComponentsCallback(
-    m_VTKExporter->GetNumberOfComponentsCallback());
-  m_VTKImporter->SetPropagateUpdateExtentCallback(
-    m_VTKExporter->GetPropagateUpdateExtentCallback());
-  m_VTKImporter->SetUpdateDataCallback(
-    m_VTKExporter->GetUpdateDataCallback());
-  m_VTKImporter->SetDataExtentCallback(
-    m_VTKExporter->GetDataExtentCallback());
-  m_VTKImporter->SetBufferPointerCallback(
-    m_VTKExporter->GetBufferPointerCallback());  
-  m_VTKImporter->SetCallbackUserData(
-    m_VTKExporter->GetCallbackUserData());
+  ConnectITKExporterToVTKImporter(m_VTKExporter.GetPointer(), m_VTKImporter);
 
   // Initialize the Gaussian filter
   m_VTKGaussianFilter = vtkImageGaussianSmooth::New();

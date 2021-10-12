@@ -27,15 +27,26 @@
 #ifndef GENERICSLICERENDERER_H
 #define GENERICSLICERENDERER_H
 
-#include <AbstractRenderer.h>
+#include <AbstractVTKRenderer.h>
 #include <GenericSliceModel.h>
 #include <ImageWrapper.h>
 #include <OpenGLSliceTexture.h>
 #include <SNAPOpenGL.h>
 #include <list>
+#include <map>
 #include <LayerAssociation.h>
 
+class vtkTexture;
+class vtkImageImport;
+class vtkActor;
+class vtkPolyData;
+class vtkPolyDataMapper;
+class vtkTexturedActor;
 class GenericSliceRenderer;
+
+namespace itk {
+template <typename TInputImage> class VTKImageExport;
+}
 
 class SliceRendererDelegate : public AbstractRenderer
 {
@@ -48,7 +59,7 @@ protected:
   GenericSliceRenderer *m_ParentRenderer;
 };
 
-class GenericSliceRenderer : public AbstractRenderer
+class GenericSliceRenderer : public AbstractVTKRenderer
 {
 public:
 
@@ -111,10 +122,79 @@ public:
 
 protected:
 
+  // Constants for layer depth ordering
+  const double DEPTH_OVERLAY_START = 0.01;
+  const double DEPTH_SEGMENTATION_START = 0.02;
+  const double DEPTH_STEP = 0.0001;
+
   GenericSliceRenderer();
   virtual ~GenericSliceRenderer() {}
 
   void OnUpdate() ITK_OVERRIDE;
+
+  virtual void SetRenderWindow(vtkRenderWindow *rwin) override;
+
+  /**
+   * A data structure describing VTK objects (renderers, actors, etc) that
+   * are associated with a base image layer.
+   */
+  struct BaseLayerAssembly
+  {
+    // The main and thumbnail renderers for this tile
+    vtkSmartPointer<vtkRenderer> m_Renderer, m_ThumbRenderer;
+
+  };
+
+  /**
+   * A data structure describing VTK objects associated with every image layer
+   * including textures
+   */
+  struct LayerTextureAssembly
+  {
+    typedef itk::VTKImageExport<ImageWrapperBase::DisplaySliceType> VTKExporter;
+
+    // Exporter from ITK to VTK
+    SmartPtr<itk::Object> m_Exporter;
+
+    // Importer from ITK to VTK
+    vtkSmartPointer<vtkImageImport> m_Importer;
+
+    // Texture algorithm
+    vtkSmartPointer<vtkTexture> m_Texture;
+
+    // Polygon used to draw the layer
+    vtkSmartPointer<vtkPolyData> m_ImageRectPolyData;
+
+    // Mapper used to draw the layer
+    vtkSmartPointer<vtkPolyDataMapper> m_ImageRectMapper;
+
+    // Actor used to draw the layer
+    vtkSmartPointer<vtkActor> m_ImageRectActor;
+  };
+
+  // Collection of tiled renderers, indexed by layer id
+  std::map<unsigned long, BaseLayerAssembly> m_BaseLayerAssemblies;
+
+  // Collection of textures, each linked to a layer
+  std::map<unsigned long, LayerTextureAssembly> m_LayerTextureAssemblies;
+
+  // A renderer placed on top of the tiles
+  vtkSmartPointer<vtkRenderer> m_OverlayRenderer;
+
+  // Update the renderers in response to a change in number of layers
+  void UpdateLayerAssemblies();
+
+  // Update the renderer layout in response to a change in tiling
+  void UpdateRendererLayout();
+
+  // Update the renderer model/view matrices in response to zooming or panning
+  void UpdateRendererCameras();
+
+  // Update the appearance of various props in the scene
+  void UpdateLayerApperances();
+
+  // Update the z-position of various layers
+  void UpdateLayerDepth();
 
   void DrawSegmentationTexture();
   void DrawOverlayTexture();
@@ -150,6 +230,9 @@ protected:
   std::list<AbstractRenderer *>m_ChildRenderers;
 
   Vector3d ComputeGridPosition(const Vector3d &disp_pix, const itk::Index<2> &slice_index, ImageWrapperBase *vecimg);
+
+  void AssignAppearanceSettingsToScene();
+  void SetDepth(vtkActor *actor, double z);
 };
 
 

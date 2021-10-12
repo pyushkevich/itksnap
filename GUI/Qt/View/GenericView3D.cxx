@@ -239,6 +239,9 @@ void GenericView3D::SetModel(Generic3DModel *model)
   connectITK(m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3DModel(),
              ValueChangedEvent(), SLOT(onToolbarModeChange()));
 
+  // This should cause the model to redraw when model changes
+  connectITK(m_Model, ModelUpdateEvent());
+
   // Use the current toolbar settings
   this->onToolbarModeChange();
 }

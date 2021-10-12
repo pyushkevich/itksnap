@@ -31,7 +31,9 @@ public:
 
   irisITKObjectMacro(AbstractVTKSceneRenderer, AbstractVTKRenderer)
 
-  virtual void paintGL() ITK_OVERRIDE;
+  virtual void SetRenderWindow(vtkRenderWindow *rwin) override;
+
+  virtual void paintGL() override;
 
   irisGetSetMacroWithOverride(BackgroundColor, Vector3d)
 

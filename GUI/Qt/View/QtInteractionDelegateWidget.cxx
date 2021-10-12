@@ -25,7 +25,7 @@
 =========================================================================*/
 
 #include "QtInteractionDelegateWidget.h"
-#include <QtAbstractOpenGLBox.h>
+#include <QtVTKRenderWindowBox.h>
 #include <QMouseEvent>
 #include <QGestureEvent>
 #include "GenericSliceModel.h"
@@ -68,12 +68,12 @@ bool QtInteractionDelegateWidget::event(QEvent *ev)
   return result;
 }
 
-QtAbstractOpenGLBox * QtInteractionDelegateWidget::GetParentGLWidget() const
+QtVTKRenderWindowBox * QtInteractionDelegateWidget::GetParentGLWidget() const
 {
   // Search up until a parent widget is found
   for(QObject *p = parent(); p != NULL; p = p->parent())
     {
-    QtAbstractOpenGLBox *pgl = dynamic_cast<QtAbstractOpenGLBox *>(p);
+    QtVTKRenderWindowBox *pgl = dynamic_cast<QtVTKRenderWindowBox *>(p);
     if(pgl)
       return pgl;
     }
@@ -149,7 +149,7 @@ QtInteractionDelegateWidget
 ::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
 {
   // Make the parent window the current context
-  QtAbstractOpenGLBox *parent = this->GetParentGLWidget();
+  QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
   parent->makeCurrent();
 
   // Convert the event coordinates into the model view coordinates

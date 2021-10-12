@@ -30,13 +30,13 @@
 #include <SNAPCommon.h>
 #include <GenericSliceModel.h>
 #include <GenericSliceRenderer.h>
-#include <QtAbstractOpenGLBox.h>
+#include <QtVTKRenderWindowBox.h>
 #include <EventBucket.h>
 #include "QtReporterDelegates.h"
 
 class CrosshairsInteractionMode;
 
-class GenericSliceView : public QtAbstractOpenGLBox
+class GenericSliceView : public QtVTKRenderWindowBox
 {
   Q_OBJECT
 
@@ -53,10 +53,6 @@ public:
 
   // Get the renderer overlays
   GenericSliceRenderer::RendererDelegateList &GetRendererOverlays();
-
-public slots:
-
-  void onModelUpdate(const EventBucket &b);
 
 protected:
 

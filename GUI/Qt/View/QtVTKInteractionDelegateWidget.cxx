@@ -1,6 +1,6 @@
 #include "QtVTKInteractionDelegateWidget.h"
 #include "vtkRenderWindowInteractor.h"
-#include "QtAbstractOpenGLBox.h"
+#include "QtVTKRenderWindowBox.h"
 #include <QApplication>
 
 QtVTKInteractionDelegateWidget::QtVTKInteractionDelegateWidget(QWidget *parent) :

@@ -7,25 +7,34 @@
 #include <vtkChartXY.h>
 #include <vtkTextProperty.h>
 #include <vtkTooltipItem.h>
+#include <vtkPlot.h>
+#include <vtkPen.h>
+#include <vtkAxis.h>
+
 
 AbstractVTKSceneRenderer::AbstractVTKSceneRenderer()
   : AbstractVTKRenderer()
 {
-  // Initialize some properties of the renderer
-  this->m_RenderWindow->SwapBuffersOff();
-  this->m_RenderWindow->SetMultiSamples(0);
-
   // Set up the context view
   m_ContextView = vtkSmartPointer<vtkContextView>::New();
-  m_ContextView->SetRenderWindow(m_RenderWindow);
 
   // Set the background to black
   m_BackgroundColor.fill(0.0);
 }
 
-#include <vtkPlot.h>
-#include <vtkPen.h>
-#include <vtkAxis.h>
+void AbstractVTKSceneRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  // Call parent method
+  AbstractVTKRenderer::SetRenderWindow(rwin);
+
+  // Initialize some properties of the renderer
+  rwin->SwapBuffersOff();
+  rwin->SetMultiSamples(0);
+
+  // Assign to context view
+  m_ContextView->SetRenderWindow(m_RenderWindow);
+}
+
 void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(
     vtkChart *chart, int old_ratio, int new_ratio)
 {

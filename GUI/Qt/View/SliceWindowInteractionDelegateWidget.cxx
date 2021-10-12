@@ -79,7 +79,7 @@ SliceWindowInteractionDelegateWidget
 ::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
 {
   // Make the parent window the current context
-  QtAbstractOpenGLBox *parent = this->GetParentGLWidget();
+  QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
   parent->makeCurrent();
 
   // Get the x,y coordinates of the event in actual pixels (retina)

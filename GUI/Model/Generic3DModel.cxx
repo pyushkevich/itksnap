@@ -164,6 +164,7 @@ void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
   if(mesh_io.GetFileFormat(reg_format) == GuidedMeshIO::FORMAT_VRML)
     {
     // Create the exporter
+    // TODO: temporarily commented, needs to be fixed!
     vtkSmartPointer<vtkVRMLExporter> exporter = vtkSmartPointer<vtkVRMLExporter>::New();
     exporter->SetFileName(settings.GetMeshFileName().c_str());
     exporter->SetInput(m_Renderer->GetRenderWindow());

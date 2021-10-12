@@ -1,11 +1,18 @@
 #ifndef QTVTKRENDERWINDOWBOX_H
 #define QTVTKRENDERWINDOWBOX_H
 
-#include <QtSimpleOpenGLBox.h>
+#include <QVTKOpenGLNativeWidget.h>
+#include <SNAPCommon.h>
+#include <EventBucket.h>
+#include <itkEventObject.h>
+#include <itkObject.h>
 
 class AbstractVTKRenderer;
 class QtVTKInteractionDelegateWidget;
 class vtkObject;
+class vtkSphereSource;
+class vtkPolyDataMapper;
+class vtkActor;
 
 
 /**
@@ -13,31 +20,7 @@ class vtkObject;
  * The widget includes a delegate for passing events to the interactor
  * stored in the AbstractVTKRenderer.
  */
-/*
-class QtVTKRenderWindowBox : public QtSimpleOpenGLBox
-{
-  Q_OBJECT
 
-public:
-  explicit QtVTKRenderWindowBox(QWidget *parent = 0);
-
-  virtual void SetRenderer(AbstractRenderer *renderer);
-
-  virtual void initializeGL() override;
-  virtual void paintGL() override;
-  
-signals:
-  
-protected:
-
-  QtVTKInteractionDelegateWidget *m_InteractionDelegate;
-
-  void RendererCallback(vtkObject *src, unsigned long event, void *data);
-
-};
-*/
-
-#include <QVTKOpenGLNativeWidget.h>
 
 class QtVTKRenderWindowBox : public QVTKOpenGLNativeWidget
 {
@@ -46,25 +29,51 @@ class QtVTKRenderWindowBox : public QVTKOpenGLNativeWidget
 public:
   explicit QtVTKRenderWindowBox(QWidget *parent = 0);
 
-  void connectITK(itk::Object *src, const itk::EventObject &ev, const char *slot);
+  void connectITK(itk::Object *src, const itk::EventObject &ev,
+                  const char *slot = SLOT(onModelUpdate(const EventBucket &)));
 
+  // Set the renderer assigned to this widget
   virtual void SetRenderer(AbstractVTKRenderer *renderer);
 
-  virtual void initializeGL() override;
-  virtual void resizeGL(int w, int h) override;
-  virtual void paintGL() override;
+  // Whether to grab keyboard focus when the mouse enters this widget
+  irisGetSetMacro(GrabFocusOnEntry, bool)
 
-signals:
+  /** Take a screenshot, save to a PNG file */
+  virtual bool SaveScreenshot(std::string filename);
+
+public slots:
+
+  // Default slot for model updates
+  virtual void onModelUpdate(const EventBucket &);
 
 protected:
 
   // QtVTKInteractionDelegateWidget *m_InteractionDelegate;
 
+  virtual void paintGL() override;
+  virtual void initializeGL() override;
+  virtual void resizeGL(int w, int h) override;
+
+  // Whether this widget grabs keyboard focus when the mouse enters it
+  bool m_GrabFocusOnEntry;
+
+  // Screenshot request to save the contents on next repaint
+  QString m_ScreenshotRequest;
+
   void RendererCallback(vtkObject *src, unsigned long event, void *data);
 
-protected:
-
   AbstractVTKRenderer *m_Renderer;
+
+  // Enter and leave events
+  virtual void enterEvent(QEvent *) override;
+  virtual void leaveEvent(QEvent *) override;
+
+  // TODO delete this stuff
+  vtkSmartPointer<vtkSphereSource> sphereSource;
+  vtkSmartPointer<vtkPolyDataMapper> mapper;
+  vtkSmartPointer<vtkActor> actor;
+  vtkSmartPointer<vtkRenderer> renderer;
+  vtkSmartPointer<vtkGenericOpenGLRenderWindow> window;
 
 };
 #endif // QTVTKRENDERWINDOWBOX_H

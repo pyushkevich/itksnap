@@ -60,10 +60,6 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
   // Set the background to white
   m_BackgroundColor.fill(1.0);
 
-  // Customize the render window
-  this->m_RenderWindow->SetMultiSamples(0);
-  this->m_RenderWindow->SetLineSmoothing(1);
-  this->m_RenderWindow->SetPolygonSmoothing(1);
 }
 
 ThresholdSettingsRenderer::~ThresholdSettingsRenderer()
@@ -82,6 +78,16 @@ void ThresholdSettingsRenderer::SetModel(SnakeWizardModel *model)
               ModelUpdateEvent());
 
   // TODO: We also need to listen to appearance changes....
+}
+
+void ThresholdSettingsRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
+
+  // Customize the render window
+  rwin->SetMultiSamples(0);
+  rwin->SetLineSmoothing(1);
+  rwin->SetPolygonSmoothing(1);
 }
 
 void ThresholdSettingsRenderer::UpdatePlotValues()
