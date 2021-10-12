@@ -41,10 +41,7 @@ GMMRenderer::GMMRenderer()
   // Set the background to white
   m_BackgroundColor.fill(1.0);
 
-  // Customize the render window
-  this->m_RenderWindow->SetMultiSamples(0);
-  this->m_RenderWindow->SetLineSmoothing(1);
-  this->m_RenderWindow->SetPolygonSmoothing(1);
+
 }
 
 
@@ -59,6 +56,14 @@ void GMMRenderer::SetModel(SnakeWizardModel *model)
   // Also listen to changes in the plotted component
   Rebroadcast(model->GetClusterPlottedComponentModel(),
               ValueChangedEvent(), ModelUpdateEvent());
+}
+
+void GMMRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
+  rwin->SetMultiSamples(0);
+  rwin->SetLineSmoothing(1);
+  rwin->SetPolygonSmoothing(1);
 }
 
 void GMMRenderer::OnUpdate()

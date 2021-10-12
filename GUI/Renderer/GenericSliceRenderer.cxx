@@ -39,12 +39,40 @@
 #include "SliceWindowCoordinator.h"
 #include "PaintbrushSettingsModel.h"
 
+#include <vtkTexture.h>
+#include <vtkTexturedActor2D.h>
+#include <vtkRenderer.h>
+#include <vtkActor2D.h>
+#include <vtkActor.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkTextActor.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPointData.h>
+#include <vtkFloatArray.h>
+#include <vtkQuad.h>
+#include <vtkProperty.h>
+#include <vtkCamera.h>
+#include <itkRGBAPixel.h>
+#include "SNAPExportITKToVTK.h"
+
 GenericSliceRenderer
 ::GenericSliceRenderer()
 {
   this->m_DrawingZoomThumbnail = false;
   this->m_DrawingLayerThumbnail = false;
   this->m_DrawingViewportIndex = -1;
+
+  m_OverlayRenderer = vtkSmartPointer<vtkRenderer>::New();
+  m_OverlayRenderer->SetLayer(1);
+
+  vtkNew<vtkTextActor> txt;
+  txt->SetInput("Hello World");
+  txt->SetPosition(100, 100);
+  m_OverlayRenderer->AddActor2D(txt);
 }
 
 void
@@ -54,6 +82,9 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
   // Record and rebroadcast changes in the model
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
+
+  // Respond to changes in image dimension - these require big updates
+  Rebroadcast(m_Model->GetDriver(), LayerChangeEvent(), AppearanceUpdateEvent());
 
   // Also listen to events on opacity
   Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel(),
@@ -83,20 +114,43 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   Rebroadcast(psm->GetBrushSizeModel(), ValueChangedEvent(), AppearanceUpdateEvent());
 
   // Which layer is currently selected
-  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
+  Rebroadcast(m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
               ValueChangedEvent(), AppearanceUpdateEvent());
 
-  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
+  Rebroadcast(m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
               ValueChangedEvent(), AppearanceUpdateEvent());
 
 
   Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), AppearanceUpdateEvent());
   Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), AppearanceUpdateEvent());
 
+  // Update the appearance settings
+  this->AssignAppearanceSettingsToScene();
+}
+
+void GenericSliceRenderer::AssignAppearanceSettingsToScene()
+{
+  // Get the appearance settings pointer since we use it a lot
+  SNAPAppearanceSettings *as =
+      m_Model->GetParentUI()->GetAppearanceSettings();
+
+  // Get the properties for the background color
+  Vector3d clrBack = as->GetUIElement(
+      SNAPAppearanceSettings::BACKGROUND_2D)->GetColor();
+
+  // For each base renderer, set its background
+  for(auto &bla : m_BaseLayerAssemblies)
+    {
+    bla.second.m_Renderer->SetBackground(clrBack.data_block());
+    bla.second.m_ThumbRenderer->SetBackground(clrBack.data_block());
+    }
 }
 
 void GenericSliceRenderer::OnUpdate()
 {
+  std::cout << "OnUpdate() called in window " << m_Model->GetId() << std::endl;
+  std::cout << *m_EventBucket << std::endl;
+
   // Make sure the model has been updated first
   m_Model->Update();
 
@@ -105,7 +159,318 @@ void GenericSliceRenderer::OnUpdate()
 
   // Also make sure to update the display layout model
   m_Model->GetParentUI()->GetDisplayLayoutModel()->Update();
+
+  // Check what events have occurred
+  bool appearance_settings_changed =
+      m_EventBucket->HasEvent(ChildPropertyChangedEvent(),
+                              m_Model->GetParentUI()->GetAppearanceSettings());
+
+  bool segmentation_opacity_changed =
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel());
+
+  bool layers_changed =
+      m_EventBucket->HasEvent(LayerChangeEvent());
+
+  bool layer_layout_changed =
+      m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
+
+  bool layer_metadata_changed =
+      m_EventBucket->HasEvent(WrapperMetadataChangeEvent());
+
+  bool layer_mapping_changed =
+      m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent());
+
+  bool zoom_pan_changed =
+      m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model);
+
+  if(layers_changed)
+    {
+    this->UpdateLayerAssemblies();
+    }
+
+  if(layers_changed || layer_layout_changed)
+    {
+    this->UpdateRendererLayout();
+    }
+
+  if(layers_changed || layer_mapping_changed || segmentation_opacity_changed)
+    {
+    this->UpdateLayerApperances();
+    }
+
+  if(appearance_settings_changed)
+    {
+    this->AssignAppearanceSettingsToScene();
+    }
+
+  if(layers_changed || layer_layout_changed || zoom_pan_changed)
+    {
+    this->UpdateRendererCameras();
+    }
 }
+
+void GenericSliceRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  m_RenderWindow = rwin;
+  m_RenderWindow->SetNumberOfLayers(2);
+  m_RenderWindow->AddRenderer(m_OverlayRenderer);
+}
+
+void GenericSliceRenderer::UpdateLayerAssemblies()
+{
+  // Synchronize the layer assemblies with available renderers
+  std::map<unsigned long, LayerTextureAssembly> new_layer_texture_assemblies;
+  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
+
+  // For each layer either copy a reference to an existing assembly
+  // or create a new assembly
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    unsigned long layer_id = it.GetLayer()->GetUniqueId();
+
+    // Every layer gets a texture assembly
+    auto existing = m_LayerTextureAssemblies.find(layer_id);
+    if(existing != m_LayerTextureAssemblies.end())
+      new_layer_texture_assemblies[layer_id] = existing->second;
+    else
+      {
+      LayerTextureAssembly lta;
+
+      // Get the pointer to the display slice
+      auto *ds = it.GetLayer()->GetDisplaySlice(m_Model->GetId()).GetPointer();
+
+      // Configure the texture pipeline
+      itk::SmartPointer<LayerTextureAssembly::VTKExporter> exporter = LayerTextureAssembly::VTKExporter::New();
+      exporter->SetInput(ds);
+
+      lta.m_Exporter = exporter.GetPointer();
+      lta.m_Importer = vtkSmartPointer<vtkImageImport>::New();
+      ConnectITKExporterToVTKImporter(exporter.GetPointer(), lta.m_Importer);
+
+      lta.m_Texture = vtkSmartPointer<vtkTexture>::New();
+      lta.m_Texture->SetInputConnection(lta.m_Importer->GetOutputPort());
+
+      // Get the corners of the slice
+      auto sc = m_Model->GetSliceCorners();
+      auto c0 = sc.first, c1 = sc.second;
+
+      // Create a polydata for the image
+      lta.m_ImageRectPolyData = vtkSmartPointer<vtkPolyData>::New();
+      lta.m_ImageRectPolyData->SetPoints(vtkSmartPointer<vtkPoints>::New());
+      lta.m_ImageRectPolyData->GetPoints()->InsertNextPoint(c0[0], c0[1], 0);
+      lta.m_ImageRectPolyData->GetPoints()->InsertNextPoint(c0[0], c1[1], 0);
+      lta.m_ImageRectPolyData->GetPoints()->InsertNextPoint(c1[0], c1[1], 0);
+      lta.m_ImageRectPolyData->GetPoints()->InsertNextPoint(c1[0], c0[1], 0);
+
+      vtkNew<vtkQuad> quad;
+      quad->GetPointIds()->SetId(0, 0);
+      quad->GetPointIds()->SetId(1, 1);
+      quad->GetPointIds()->SetId(2, 2);
+      quad->GetPointIds()->SetId(3, 3);
+      lta.m_ImageRectPolyData->SetPolys(vtkSmartPointer<vtkCellArray>::New());
+      lta.m_ImageRectPolyData->GetPolys()->InsertNextCell(quad);
+
+      // Set texture coordinates
+      vtkNew<vtkFloatArray> tcoords;
+      tcoords->SetNumberOfComponents(2);
+      tcoords->InsertNextTuple2(0, 0);
+      tcoords->InsertNextTuple2(0, 1);
+      tcoords->InsertNextTuple2(1, 1);
+      tcoords->InsertNextTuple2(1, 0);
+      lta.m_ImageRectPolyData->GetPointData()->SetTCoords(tcoords);
+
+      // Create the main image actor
+      lta.m_ImageRectMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+      lta.m_ImageRectMapper->SetInputData(lta.m_ImageRectPolyData);
+      lta.m_ImageRectActor = vtkSmartPointer<vtkActor>::New();
+      lta.m_ImageRectActor->SetMapper(lta.m_ImageRectMapper);
+      lta.m_ImageRectActor->SetTexture(lta.m_Texture);
+      lta.m_ImageRectActor->GetProperty()->SetColor(1.0, 1.0, 1.0);
+
+      new_layer_texture_assemblies[layer_id] = lta;
+      }
+    }
+
+  // Replace the map (deleting the assemblies corresponding to removed layers)
+  m_LayerTextureAssemblies = new_layer_texture_assemblies;
+
+  // Now iterate over the base layers only and set up the base layer assemblies, which
+  // consist of the base layer, sticky overlays, and segmentation layer
+  std::map<unsigned long, BaseLayerAssembly> new_base_layer_assemblies;
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    unsigned long layer_id = it.GetLayer()->GetUniqueId();
+
+    // If this is a base layer (something drawn on its own), it gets a pair of renderers
+    if(it.GetRole() == MAIN_ROLE || it.GetRole() == OVERLAY_ROLE || it.GetRole() == SNAP_ROLE)
+      {
+      auto existing = m_BaseLayerAssemblies.find(layer_id);
+      if(existing != m_BaseLayerAssemblies.end())
+        new_base_layer_assemblies[layer_id] = existing->second;
+      else
+        {
+        BaseLayerAssembly la;
+
+        // Create the renderers
+        la.m_Renderer = vtkSmartPointer<vtkRenderer>::New();
+        la.m_ThumbRenderer = vtkSmartPointer<vtkRenderer>::New();
+
+        // Set camera properties
+        la.m_Renderer->GetActiveCamera()->ParallelProjectionOn();
+
+        new_base_layer_assemblies[layer_id] = la;
+        }
+      }
+    }
+
+  // Replace the map (deleting the assemblies corresponding to removed layers)
+  m_BaseLayerAssemblies = new_base_layer_assemblies;
+}
+
+void GenericSliceRenderer::SetDepth(vtkActor *actor, double z)
+{
+  double *p = actor->GetPosition();
+  actor->SetPosition(p[0], p[1], z);
+}
+
+void GenericSliceRenderer::UpdateLayerDepth()
+{
+  double depth_ovl = DEPTH_OVERLAY_START;
+  double depth_seg = DEPTH_SEGMENTATION_START;
+
+  for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    unsigned long layer_id = it.GetLayer()->GetUniqueId();
+    auto &la = m_LayerTextureAssemblies[layer_id];
+    double depth = 0.0;
+
+    if(it.GetRole() == LABEL_ROLE)
+      {
+      // All segmentation layers get assigned the same depth because we are
+      // currently not supporting rendering of multiple segmentation layers
+      // at the same time with transparency
+      depth = depth_seg;
+      }
+    else if(it.GetLayer()->IsSticky())
+      {
+      // Overlays are placed at increasing values of z
+      depth = depth_ovl;
+      depth_ovl += DEPTH_STEP;
+      }
+
+    SetDepth(la.m_ImageRectActor, depth);
+    }
+}
+
+void GenericSliceRenderer::UpdateRendererLayout()
+{
+  if(!m_RenderWindow)
+    return;
+
+  std::cout << "Updating renderers in window " << m_Model->GetId() << std::endl;
+
+  // Update the depths of the layers
+  this->UpdateLayerDepth();
+
+  // Create a sorted structure of layers that are rendered on top of the base
+  std::map<double, vtkActor *> depth_map;
+  for(auto it : m_LayerTextureAssemblies)
+    {
+    auto *actor = it.second.m_ImageRectActor.Get();
+    double z = actor->GetPosition()[2];
+    if(z > 0.0)
+      depth_map[z] = actor;
+    }
+
+  // Get the viewport layout
+  const SliceViewportLayout &vpl = m_Model->GetViewportLayout();
+
+  // Remove all the renderers from the current window
+  m_RenderWindow->GetRenderers()->RemoveAllItems();
+
+  // Get the dimensions of the render window
+  Vector2ui szWin = m_Model->GetSizeReporter()->GetViewportSize();
+
+  // Draw each viewport in turn. For now, the number of z-layers is hard-coded at 2
+  for(unsigned int k = 0; k < vpl.vpList.size(); k++)
+    {
+    // Get the current viewport
+    const SliceViewportLayout::SubViewport &vp = m_Model->GetViewportLayout().vpList[k];
+
+    // Get the assembly for this layer
+    BaseLayerAssembly &la = m_BaseLayerAssemblies[vp.layer_id];
+
+    // Get the renderer that is referenced by this viewport
+    vtkRenderer *renderer = vp.isThumbnail ? la.m_ThumbRenderer : la.m_Renderer;
+
+    // Create a VTK renderer for this viewport
+    Vector2d rel_pos[2];
+    for(unsigned int d = 0; d < 2; d++)
+      {
+      rel_pos[0][d] = vp.pos[d] * 1.0 / szWin[d];
+      rel_pos[1][d] = rel_pos[0][d] + vp.size[d] * 1.0 / szWin[d];
+      }
+
+    // Set the renderer viewport
+    renderer->SetViewport(rel_pos[0][0], rel_pos[0][1], rel_pos[1][0], rel_pos[1][1]);
+
+    // Set up the actors shown in this renderer
+    renderer->RemoveAllViewProps();
+
+    // Add the base layer actor
+    renderer->AddActor(m_LayerTextureAssemblies[vp.layer_id].m_ImageRectActor);
+
+    // Add the overlay layer actors
+    for(auto it : depth_map)
+      renderer->AddActor(it.second);
+
+    // Add the renderer to the window
+    m_RenderWindow->AddRenderer(renderer);
+    }
+
+  // Add the overlay renderer
+  m_RenderWindow->AddRenderer(m_OverlayRenderer);
+}
+
+void GenericSliceRenderer::UpdateRendererCameras()
+{
+  for(auto it : m_BaseLayerAssemblies)
+    {
+    auto ren = it.second.m_Renderer;
+    auto vp = m_Model->GetViewPosition();
+    ren->GetActiveCamera()->SetFocalPoint(vp[0], vp[1], 0.0);
+    ren->GetActiveCamera()->SetPosition(vp[0], vp[1], 1.0);
+    ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
+
+    // ParallelScale is the height of the viewport in world coordinate distances.
+    // ViewZoom is the number of display pixels per physical mm
+    // pscale = v_height_in_pix / view_zoom
+    int sz_logical = ren->GetSize()[1] / m_Model->GetSizeReporter()->GetViewportPixelRatio();
+    double pscale = sz_logical / m_Model->GetViewZoom();
+    ren->GetActiveCamera()->SetParallelScale(pscale);
+    }
+}
+
+void GenericSliceRenderer::UpdateLayerApperances()
+{
+  // Iterate over the layers
+  for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    // Does this layer use transparency?
+    double alpha = 1.0;
+    if(it.GetRole() == LABEL_ROLE)
+      alpha = m_Model->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
+    else if(it.GetLayer()->IsSticky())
+      alpha = it.GetLayer()->GetAlpha();
+
+    // Set the alpha for the actor
+    auto &lta = m_LayerTextureAssemblies[it.GetLayer()->GetUniqueId()];
+    std::cout << "Layer " << it.GetLayer()->GetUniqueId() << " setting alpha to " << alpha << std::endl;
+    lta.m_ImageRectActor->GetProperty()->SetOpacity(alpha);
+    }
+}
+
 
 void
 GenericSliceRenderer

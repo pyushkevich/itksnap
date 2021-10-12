@@ -374,9 +374,6 @@ vtkStandardNewMacro(IntensityCurveControlPointsContextItem);
 IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   : AbstractVTKSceneRenderer()
 {
-  this->m_RenderWindow->SetMultiSamples(0);
-  this->m_RenderWindow->SetLineSmoothing(1);
-  this->m_RenderWindow->SetPolygonSmoothing(1);
 
   m_Model = NULL;
 
@@ -466,7 +463,14 @@ IntensityCurveVTKRenderer
   Rebroadcast(model, ModelUpdateEvent(), ModelUpdateEvent());
 }
 
+void IntensityCurveVTKRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
 
+  rwin->SetMultiSamples(0);
+  rwin->SetLineSmoothing(1);
+  rwin->SetPolygonSmoothing(1);
+}
 
 void
 IntensityCurveVTKRenderer

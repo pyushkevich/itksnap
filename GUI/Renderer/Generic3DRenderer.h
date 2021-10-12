@@ -49,11 +49,13 @@ public:
 
   FIRES(CameraUpdateEvent)
 
-  void paintGL() ITK_OVERRIDE;
+  void SetRenderWindow(vtkRenderWindow *rwin) override;
+
+  void paintGL() override;
 
   void SetModel(Generic3DModel *model);
 
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   void ResetView();
 

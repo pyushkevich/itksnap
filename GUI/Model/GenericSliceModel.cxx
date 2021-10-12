@@ -346,6 +346,21 @@ Vector2d GenericSliceModel::MapSliceToWindow(const Vector3d &xSlice)
   return uvWindow;
 }
 
+std::pair<Vector2d, Vector2d>
+GenericSliceModel::GetSliceCornersInWindowCoordinates() const
+{
+  std::pair<Vector2d, Vector2d> corners;
+
+  Vector2d uv0(0, 0);
+  Vector2d uv1(m_SliceSize[0] * m_SliceSpacing[0], m_SliceSize[1] * m_SliceSpacing[1]);
+
+  Vector2ui size = this->GetCanvasSize();
+  Vector2d ctr(0.5 * size[0], 0.5 * size[1]);
+  corners.first = m_ViewZoom * (uv0 - m_ViewPosition) + ctr;
+  corners.second = m_ViewZoom * (uv1 - m_ViewPosition) + ctr;
+  return corners;
+}
+
 Vector3d GenericSliceModel::MapWindowToSlice(const Vector2d &uvWindow)
 {
   assert(IsSliceInitialized() && m_ViewZoom > 0);
@@ -605,6 +620,13 @@ void GenericSliceModel::SetViewPosition(Vector2d pos)
     }
 }
 
+std::pair<Vector2d, Vector2d> GenericSliceModel::GetSliceCorners() const
+{
+  Vector2d c0(0.0, 0.0);
+  Vector2d c1(m_SliceSize[0] * m_SliceSpacing[0], m_SliceSize[1] * m_SliceSpacing[1]);
+  return std::make_pair(c0, c1);
+}
+
 
 /*
 GenericSliceWindow::EventHandler
@@ -671,7 +693,7 @@ Vector2ui GenericSliceModel::GetSizeInLogicalPixels()
   return size;
 }
 
-Vector2ui GenericSliceModel::GetCanvasSize()
+Vector2ui GenericSliceModel::GetCanvasSize() const
 {
   assert(m_ViewportLayout.vpList.size() > 0);
   assert(!m_ViewportLayout.vpList.front().isThumbnail);

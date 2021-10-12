@@ -348,6 +348,7 @@ SET(LOGIC_HEADERS
   Common/Registry.h
   Common/SNAPBorlandDummyTypes.h
   Common/SNAPCommon.h
+  Common/SNAPExportITKToVTK.h
   Common/SNAPOpenGL.h
   Common/SNAPEvents.h
   Common/SystemInterface.h

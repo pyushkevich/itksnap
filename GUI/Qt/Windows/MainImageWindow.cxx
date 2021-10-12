@@ -1702,7 +1702,7 @@ void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
 
   // Get the panel that's saving
   SliceViewPanel *svp = reinterpret_cast<SliceViewPanel *>(m_ViewPanels[iWindow]);
-  QtAbstractOpenGLBox *target = svp->GetSliceView();
+  QtVTKRenderWindowBox *target = svp->GetSliceView();
 
   // turn sync off temporarily
   bool sync_state = m_Model->GetSynchronizationModel()->GetSyncEnabled();

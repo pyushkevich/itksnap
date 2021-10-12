@@ -8,6 +8,15 @@
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "QtReporterDelegates.h"
 #include "LatentITKEventNotifier.h"
+#include "SNAPQtCommon.h"
+
+#include <vtkSphereSource.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkSphereSource.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkProperty.h>
 
 #if QT_VERSION >= 0x050000
   #include <QOpenGLContext>
@@ -20,9 +29,32 @@
 QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   QVTKOpenGLNativeWidget(parent)
 {
-  this->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
+  // this->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
   // m_InteractionDelegate = new QtVTKInteractionDelegateWidget(this);
   // this->AttachSingleDelegate(m_InteractionDelegate);
+
+  // Create a sphere
+  sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  sphereSource->SetCenter(0.0, 0.0, 0.0);
+  sphereSource->SetRadius(5.0);
+  sphereSource->SetPhiResolution(100);
+  sphereSource->SetThetaResolution(100);
+
+  mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInputConnection(sphereSource->GetOutputPort());
+
+  actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper(mapper);
+  actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+
+  renderer = vtkSmartPointer<vtkRenderer>::New();
+  renderer->AddActor(actor);
+  renderer->ResetCamera();
+  renderer->SetBackground(0.2,0.2,0.0);
+
+  window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
+  window->AddRenderer(renderer);
+  this->SetRenderWindow(window);
 }
 
 void
@@ -37,39 +69,67 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractVTKRenderer *renderer)
   m_Renderer = renderer;
   if(m_Renderer)
     {
-    this->SetRenderWindow(m_Renderer->GetRenderWindow());
+    m_Renderer->SetRenderWindow(window);
     }
 }
 
 void QtVTKRenderWindowBox::initializeGL()
 {
-  this->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
-  if(m_Renderer)
-    m_Renderer->initializeGL();
+  // TODO: update model?
+  QVTKOpenGLNativeWidget::initializeGL();
+}
+
+void QtVTKRenderWindowBox::resizeGL(int w, int h)
+{
+  // TODO: update model?
+  QVTKOpenGLNativeWidget::resizeGL(w, h);
 }
 
 void QtVTKRenderWindowBox::paintGL()
 {
   if(m_Renderer)
-    m_Renderer->paintGL();
-}
+    m_Renderer->Update();
 
-void QtVTKRenderWindowBox::resizeGL(int w, int h)
-{
-  if(m_Renderer)
-    m_Renderer->resizeGL(w, h, this->devicePixelRatio());
+  QVTKOpenGLNativeWidget::paintGL();
 }
 
 void
 QtVTKRenderWindowBox
 ::RendererCallback(
-    vtkObject *src, unsigned long event, void *data)
+    vtkObject *src, unsigned long event, void *)
 {
+  std::cout << "RendererCallback " << event << std::endl;
   if(event == vtkCommand::RenderEvent)
     {
     this->update();
     }
 }
 
+void QtVTKRenderWindowBox::enterEvent(QEvent *)
+{
+  if(m_GrabFocusOnEntry)
+    this->setFocus();
+}
+
+void QtVTKRenderWindowBox::leaveEvent(QEvent *)
+{
+  if(m_GrabFocusOnEntry)
+    this->clearFocus();
+}
+
+bool QtVTKRenderWindowBox::SaveScreenshot(std::string filename)
+{
+  m_ScreenshotRequest = from_utf8(filename);
+  this->repaint();
+  return true;
+}
+
+void QtVTKRenderWindowBox::onModelUpdate(const EventBucket &)
+{
+  std::cout << "QtVTKRenderWindowBox::onModelUpdate" << std::endl;
+  m_Renderer->Update();
+  window->Render();
+  this->update();
+}
 
 

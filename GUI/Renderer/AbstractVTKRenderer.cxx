@@ -36,21 +36,29 @@ AbstractVTKRenderer::AbstractVTKRenderer()
   // Create a VTK renderer
   m_Renderer = vtkSmartPointer<vtkRenderer>::New();
 
-  // Set up a render window that uses GL commands to paint
-  m_RenderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-
-  // Add the renderer to the window
-  m_RenderWindow->AddRenderer(m_Renderer);
-
   // Set up the interactor
   m_Interactor = vtkSmartPointer<QtRenderWindowInteractor>::New();
-  m_Interactor->SetRenderWindow(m_RenderWindow);
   m_Interactor->SetInteractorStyle(NULL);
 
   // Set the pixel ratio
   m_DevicePixelRatio = 1;
 }
 
+void AbstractVTKRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  // Store the render window pointer
+  m_RenderWindow = rwin;
+
+  // Add the renderer to the window
+  m_RenderWindow->AddRenderer(m_Renderer);
+
+  // Add the interactor to the render window
+  // TODO: fix this
+  // m_Interactor->SetRenderWindow(m_RenderWindow);
+
+}
+
+/*
 void AbstractVTKRenderer::paintGL()
 {
   // Update the scene
@@ -68,14 +76,21 @@ void AbstractVTKRenderer::paintGL()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Do the rendering but only when interactor is enabled (from QVTKWidget2)
-  m_RenderWindow->Render();
+  // m_RenderWindow->Render();
 }
 
 void AbstractVTKRenderer::initializeGL()
 {
   // Is this what we should be calling?
-  m_RenderWindow->OpenGLInit();
+  // m_RenderWindow->OpenGLInit();
 }
+*/
+
+vtkRenderer *AbstractVTKRenderer::GetRenderer()
+{
+  return m_Renderer;
+}
+
 
 vtkRenderWindow *AbstractVTKRenderer::GetRenderWindow()
 {
@@ -122,10 +137,11 @@ void AbstractVTKRenderer::SyncronizeCamera(Self *reference)
                          vtkCommand::ModifiedEvent, ModelUpdateEvent());
 }
 
+/*
 void AbstractVTKRenderer::resizeGL(int w, int h, int device_pixel_ratio)
 {
   // Pass the size to VTK
-  m_RenderWindow->SetSize(w, h);
+  // m_RenderWindow->SetSize(w, h);
   m_Interactor->UpdateSize(w, h);
 
   if(m_DevicePixelRatio != device_pixel_ratio)
@@ -135,3 +151,4 @@ void AbstractVTKRenderer::resizeGL(int w, int h, int device_pixel_ratio)
     this->OnDevicePixelRatioChange(old_ratio, device_pixel_ratio);
     }
 }
+*/

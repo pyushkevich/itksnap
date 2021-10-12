@@ -133,7 +133,7 @@ void PolygonDrawingInteractionMode::onPastePolygon()
 void PolygonDrawingInteractionMode::onAcceptPolygon()
 {
   // Make current GL context current before running any GL operations
-  QtAbstractOpenGLBox *parent = this->GetParentGLWidget();
+  QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
   parent->makeCurrent();
 
   // This is hacky, but we need the viewport in the parent GL widget to be

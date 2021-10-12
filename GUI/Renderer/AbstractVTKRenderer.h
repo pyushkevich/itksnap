@@ -30,11 +30,18 @@ public:
     NO_INTERACTION = 0, TRACKBALL_CAMERA, TRACKBALL_ACTOR, PICKER
   };
 
-  virtual void paintGL() ITK_OVERRIDE;
-  virtual void resizeGL(int w, int h, int device_pixel_ratio) ITK_OVERRIDE;
-  virtual void initializeGL() ITK_OVERRIDE;
+  /**
+   * This method will be called when the renderer is attached to a widget.
+   * The widget maintains a vtkRenderWindow and passes a pointer to it to
+   * the renderer. The default implementation adds the rendered and
+   * interactor to the render window
+   */
+  virtual void SetRenderWindow(vtkRenderWindow *rwin);
 
+  /** Get the render window pointer */
   vtkRenderWindow *GetRenderWindow();
+
+  vtkRenderer *GetRenderer();
   vtkRenderWindowInteractor *GetRenderWindowInteractor();
 
   void SetInteractionStyle(InteractionStyle style);
@@ -47,10 +54,12 @@ public:
 
   irisGetSetMacro(BackgroundColor, Vector3d)
 
+  virtual void paintGL() override {}
+
 protected:
 
   // Render window object used to render VTK stuff
-  vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_RenderWindow;
+  vtkSmartPointer<vtkRenderWindow> m_RenderWindow;
   vtkSmartPointer<vtkRenderer> m_Renderer;
 
   // The interactor

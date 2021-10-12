@@ -574,6 +574,8 @@ int main(int argc, char *argv[])
   // script engine, which must be deleted at the very end
   SNAPTestQt *testingEngine = NULL;
 
+  std::cout << "Launching ITK-SNAP" << std::endl;
+
   // Parse the command line
   CommandLineRequest argdata;
   int exitcode = parse(argc, argv, argdata);
@@ -594,6 +596,13 @@ int main(int argc, char *argv[])
 
 #if QT_VERSION > 0x050000
 
+#if VTK_MAJOR_VERSION >= 8
+
+  // When using VTK8 we have to set the surface format to match what it wants
+  QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
+
+#else
+
   // Starting with Qt 5.6, the OpenGL implementation uses OpenGL 2.0
   // In this version of OpenGL, transparency is handled differently and
   // looks wrong.
@@ -613,6 +622,7 @@ int main(int argc, char *argv[])
   QSurfaceFormat::setDefaultFormat(gl_fmt);
   // QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
 
+#endif
 
 #endif
 
@@ -701,26 +711,34 @@ int main(int argc, char *argv[])
   // Test OpenGL?
   if(argdata.flagTestOpenGL)
     {    
-    vtkNew<vtkGenericOpenGLRenderWindow> window;
-    QVTKOpenGLNativeWidget *widget = new QVTKOpenGLNativeWidget();
-    widget->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
-    widget->SetRenderWindow(window.Get());
-
+    // Set the default surface format
     auto dft = QSurfaceFormat::defaultFormat();
     QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
-    std::cout << "GL " <<
-                 QVTKOpenGLNativeWidget::defaultFormat().majorVersion() <<
-                 QVTKOpenGLNativeWidget::defaultFormat().minorVersion() << std::endl;
 
-    vtkNew<vtkContextView> view;
-    view->SetRenderWindow(window.Get());
+    // Create two OpenGL windows
+    vtkNew<vtkGenericOpenGLRenderWindow> window_1, window_2;
 
-    // Create a sphere
+    // Create two renderers
+    vtkNew<vtkRenderer> renderer_1, renderer_2;
+    renderer_1->SetBackground(0.2,0.2,0.0);
+    renderer_2->SetBackground(0.0,0.2,0.2);
+    window_1->AddRenderer(renderer_1);
+    window_2->AddRenderer(renderer_2);
+
+    // Create two OpenGL widgets
+    QVTKOpenGLNativeWidget *widget_1 = new QVTKOpenGLNativeWidget();
+    QVTKOpenGLNativeWidget *widget_2 = new QVTKOpenGLNativeWidget();
+
+    // Hook up widgets to windows
+    widget_1->SetRenderWindow(window_1.Get());
+    widget_2->SetRenderWindow(window_2.Get());
+
+    // Place a sphere in window 1
     vtkNew<vtkSphereSource> sphereSource;
     sphereSource->SetCenter(0.0, 0.0, 0.0);
     sphereSource->SetRadius(5.0);
-    sphereSource->SetPhiResolution(100);
-    sphereSource->SetThetaResolution(100);
+    sphereSource->SetPhiResolution(20);
+    sphereSource->SetThetaResolution(20);
 
     vtkNew<vtkPolyDataMapper> mapper;
     mapper->SetInputConnection(sphereSource->GetOutputPort());
@@ -728,32 +746,35 @@ int main(int argc, char *argv[])
     vtkNew<vtkActor> actor;
     actor->SetMapper(mapper);
     actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+    renderer_1->AddActor(actor);
 
-    auto renderer = vtkSmartPointer<vtkRenderer>::New();
-    renderer->AddActor(actor);
-    renderer->ResetCamera();
+    // Place some text in window 2
+    vtkNew<vtkTextActor> txt;
+    txt->SetInput("Hello World");
+    txt->SetPosition(10, 10);
+    renderer_2->AddActor2D(txt);
 
-    window.Get()->AddRenderer(renderer);
-    renderer->SetBackground(0.2,0.2,0.0);
+    // Place some overlay text in window 1
+    vtkNew<vtkRenderer> renderer_3;
+    renderer_3->SetLayer(1);
+    vtkNew<vtkTextActor> txt2;
+    txt2->SetInput("Overlay");
+    txt2->SetPosition(10, 10);
+    renderer_3->AddActor2D(txt2);
+    window_1->AddRenderer(renderer_3);
+    window_1->SetNumberOfLayers(2);
 
     auto *dlg = new QDialog();
     auto *lo = new QHBoxLayout(dlg);
-    lo->addWidget(widget);
-    lo->addWidget(new QPushButton("hello world"));
-    widget->setMinimumSize(QSize(256,256));
+    lo->addWidget(widget_1);
+    lo->addWidget(widget_2);
+    lo->addWidget(new QPushButton("Ok"));
+    widget_1->setMinimumSize(QSize(256,256));
+    widget_2->setMinimumSize(QSize(256,256));
     dlg->setModal(false);
-    printf("Showing dialog!\n");
     dlg->show();
 
-    // QSurfaceFormat::setDefaultFormat(dft);
-
-
-    std::cout << "GL " <<
-                 widget->format().majorVersion() <<
-                 widget->format().minorVersion() << std::endl;
-
     // return app.exec();
-
     // return test_opengl();
     }
 

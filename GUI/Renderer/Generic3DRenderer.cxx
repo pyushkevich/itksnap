@@ -73,10 +73,6 @@ bool operator != (const CameraState &c1, const CameraState &c2)
 
 Generic3DRenderer::Generic3DRenderer()
 {
-  // Why is this necessary?
-  GetRenderWindow()->SetMultiSamples(4);
-  GetRenderWindow()->SetLineSmoothing(1);
-
   // Create a picker
   vtkSmartPointer<Window3DPicker> picker = vtkSmartPointer<Window3DPicker>::New();
   this->GetRenderWindowInteractor()->SetPicker(picker);
@@ -239,6 +235,9 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   if(m_Model->IsMeshUpdating())
     return;
 
+  std::cout << "Generic3DRenderer::UpdateSegmentationMeshAssembly" << std::endl;
+
+
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
 
@@ -309,6 +308,9 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
       }
     }
+
+  // TODO: test code
+  m_Renderer->Modified();
 }
 
 void Generic3DRenderer::ResetSegmentationMeshAssembly()
@@ -635,6 +637,15 @@ void Generic3DRenderer::SetCameraState(const CameraState &cs)
     InvokeEvent(ModelUpdateEvent());
 }
 
+void Generic3DRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
+
+  // Why is this necessary?
+  // rwin->SetMultiSamples(4);
+  // rwin->SetLineSmoothing(1);
+}
+
 void Generic3DRenderer::paintGL()
 {
   // Get the appearance settings
@@ -686,6 +697,8 @@ void Generic3DRenderer::UpdateSegmentationMeshAppearance()
 
 void Generic3DRenderer::OnUpdate()
 {
+  std::cout << "Generic3DRenderer::OnUpdate" << std::endl;
+
   // Update the model first
   m_Model->Update();
 

@@ -55,11 +55,6 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   // Set the background to white
   m_BackgroundColor.fill(1.0);
 
-  // Customize the render window
-  this->m_RenderWindow->SetMultiSamples(0);
-  this->m_RenderWindow->SetLineSmoothing(1);
-  this->m_RenderWindow->SetPolygonSmoothing(1);
-
   m_PyramidLevel = 0;
 }
 
@@ -69,8 +64,17 @@ void OptimizationProgressRenderer::SetModel(RegistrationModel *model)
 
   // Rebroadcast the relevant events from the model in order for the
   // widget that uses this renderer to cause an update
-  Rebroadcast(model->GetLastMetricValueModel(), ValueChangedEvent(), ModelUpdateEvent());
+  Rebroadcast(model->GetLastMetricValueModel(), ValueChangedEvent(), ModelUpdateEvent()); 
+}
 
+void OptimizationProgressRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
+
+  // Customize the render window
+  rwin->SetMultiSamples(0);
+  rwin->SetLineSmoothing(1);
+  rwin->SetPolygonSmoothing(1);
 }
 
 void OptimizationProgressRenderer::OnUpdate()
