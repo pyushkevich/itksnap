@@ -124,7 +124,7 @@ protected:
 
     // Draw the texture. The texture is being drawn on the x-axis, so it must
     // first be interpolated through the intensity curve
-    for(int i = 0; i < dim; i++)
+    for(unsigned int i = 0; i < dim; i++)
       {
       // Here x is the intensity value for which we want to look up the color
       double x = bounds[0] + i * (bounds[1] - bounds[0]) / (dim - 1);
@@ -213,7 +213,7 @@ protected:
 
     // Draw the texture. The texture is being drawn on the y-axis, so we use
     // simple interpolation
-    for(int i = 0; i < dim; i++)
+    for(unsigned int i = 0; i < dim; i++)
       {
       // Here x is the intensity value for which we want to look up the color
       double t = i * 1.0 / (dim - 1);
@@ -339,10 +339,10 @@ public:
     else return false;
   }
 
-  virtual vtkMTimeType GetControlPointsMTime() override
+  virtual unsigned long int GetControlPointsMTime() override
   {
     // TODO: figure this out!
-    return (vtkMTimeType) this->GetMTime();
+    return this->GetMTime();
   }
 
 

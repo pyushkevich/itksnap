@@ -652,6 +652,14 @@ void RegistrationModel::RunAutoRegistration()
       moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
   castMoving->UpdateOutputInformation();
 
+
+  // Update the cast filters so the buffers are loaded
+  //   Greedy is using BufferredRegion to create cost functions.
+  //   Without updating, the bufferred region will be [0,0,0],
+  //   and it will cause divide-by-zero error on the greedy side
+  castFixed->Update();
+  castMoving->Update();
+
   // Caster for the mask image - declared here so that SmartPtr does not go out of scope
   SmartPtr<ScalarImageWrapperBase::FloatImageSource> castMask;
 
@@ -720,6 +728,11 @@ void RegistrationModel::RunAutoRegistration()
   param.affine_init_transform.exponent = 1;
 
   // Add the input group to the parameters
+  //  GreedyParameters may create an empty input group during contruction
+  //  Remove the defaultly constructed group, replace it with ig
+  if (param.input_groups.size() > 0)
+    param.input_groups.clear();
+
   param.input_groups.push_back(ig);
 
   // Pass the input transformation object to the cache
@@ -774,6 +787,13 @@ void RegistrationModel::MatchByMoments(int order)
       moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
   castMoving->UpdateOutputInformation();
 
+  // Update the cast filters so the buffers are loaded
+  //   Greedy is using BufferredRegion to create cost functions.
+  //   Without updating, the bufferred region will be [0,0,0],
+  //   and it will cause divide-by-zero error on the greedy side
+  castFixed->Update();
+  castMoving->Update();
+
   // Set up the parameters for greedy registration
   GreedyParameters param;
 
@@ -813,6 +833,9 @@ void RegistrationModel::MatchByMoments(int order)
   param.affine_init_transform.exponent = 1;
 
   // Add the input group to the parameters
+  if (param.input_groups.size() > 0)
+    param.input_groups.clear();
+
   param.input_groups.push_back(ig);
 
   // Pass the input transformation object to the cache

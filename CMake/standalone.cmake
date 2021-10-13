@@ -67,7 +67,7 @@ INCLUDE(${ITK_USE_FILE})
 #############################################
 # REQUIRE VTK                               #
 #############################################
-FIND_PACKAGE(VTK 8.2 REQUIRED)
+FIND_PACKAGE(VTK REQUIRED)
 INCLUDE (${VTK_USE_FILE})
 
 #############################################
