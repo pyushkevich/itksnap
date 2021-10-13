@@ -529,12 +529,14 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/OrientationGraphicRenderer.cxx
   GUI/Renderer/PaintbrushRenderer.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
+  GUI/Renderer/PolygonVTKProp2D.cxx
   GUI/Renderer/RegistrationRenderer.cxx
   GUI/Renderer/SliceWindowDecorationRenderer.cxx
   GUI/Renderer/SnakeParameterPreviewRenderer.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
   GUI/Renderer/SnakeModeRenderer.cxx
   GUI/Renderer/ThresholdSettingsRenderer.cxx
+  GUI/Renderer/TexturedRectangleAssembly.cxx
   GUI/Renderer/Window3DPicker.cxx
   GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.cxx
   GUI/Renderer/OrientationWidget/Reorient/AxesWidget.cxx
@@ -613,6 +615,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/SnakeParameterPreviewRenderer.h
   GUI/Renderer/SnakeROIRenderer.h
   GUI/Renderer/SnakeModeRenderer.h
+  GUI/Renderer/TexturedRectangleAssembly.h
   GUI/Renderer/ThresholdSettingsRenderer.h
   GUI/Renderer/Window3DPicker.h
   GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.h
