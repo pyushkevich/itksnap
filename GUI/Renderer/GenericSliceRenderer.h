@@ -39,14 +39,19 @@
 class vtkTexture;
 class vtkImageImport;
 class vtkActor;
+class vtkActor2D;
 class vtkPolyData;
 class vtkPolyDataMapper;
 class vtkTexturedActor;
 class GenericSliceRenderer;
+class vtkContextActor;
 
 namespace itk {
 template <typename TInputImage> class VTKImageExport;
 }
+
+class TexturedRectangleAssembly;
+class TexturedRectangleAssembly2D;
 
 class SliceRendererDelegate : public AbstractRenderer
 {
@@ -143,6 +148,8 @@ protected:
     // The main and thumbnail renderers for this tile
     vtkSmartPointer<vtkRenderer> m_Renderer, m_ThumbRenderer;
 
+    // Rectangle highlighting the thumbnail
+    vtkSmartPointer<vtkContextActor> m_ThumbnailDecoratorActor;
   };
 
   /**
@@ -162,14 +169,8 @@ protected:
     // Texture algorithm
     vtkSmartPointer<vtkTexture> m_Texture;
 
-    // Polygon used to draw the layer
-    vtkSmartPointer<vtkPolyData> m_ImageRectPolyData;
-
-    // Mapper used to draw the layer
-    vtkSmartPointer<vtkPolyDataMapper> m_ImageRectMapper;
-
     // Actor used to draw the layer
-    vtkSmartPointer<vtkActor> m_ImageRectActor;
+    vtkSmartPointer<TexturedRectangleAssembly> m_ImageRect;
   };
 
   // Collection of tiled renderers, indexed by layer id
@@ -180,6 +181,12 @@ protected:
 
   // A renderer placed on top of the tiles
   vtkSmartPointer<vtkRenderer> m_OverlayRenderer;
+
+  // An actor holding the zoom thumbnail
+  vtkSmartPointer<TexturedRectangleAssembly2D> m_ZoomThumbnail;
+
+  // An actor holding the zoom thumbnail decorators
+  vtkSmartPointer<vtkContextActor> m_ZoomThumbnailDecoratorActor;
 
   // Update the renderers in response to a change in number of layers
   void UpdateLayerAssemblies();
@@ -195,6 +202,9 @@ protected:
 
   // Update the z-position of various layers
   void UpdateLayerDepth();
+
+  // Update the zoom pan thumbnail appearance
+  void UpdateZoomPanThumbnail();
 
   void DrawSegmentationTexture();
   void DrawOverlayTexture();
@@ -231,7 +241,7 @@ protected:
 
   Vector3d ComputeGridPosition(const Vector3d &disp_pix, const itk::Index<2> &slice_index, ImageWrapperBase *vecimg);
 
-  void AssignAppearanceSettingsToScene();
+  void UpdateSceneAppearanceSettings();
   void SetDepth(vtkActor *actor, double z);
 };
 

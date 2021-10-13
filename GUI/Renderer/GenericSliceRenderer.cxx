@@ -56,8 +56,179 @@
 #include <vtkQuad.h>
 #include <vtkProperty.h>
 #include <vtkCamera.h>
+#include <vtkProperty2D.h>
+#include <vtkMapper2D.h>
+#include <vtkPolyDataMapper2D.h>
 #include <itkRGBAPixel.h>
 #include "SNAPExportITKToVTK.h"
+#include "TexturedRectangleAssembly.h"
+
+#include <vtkContextItem.h>
+#include <vtkContext2D.h>
+#include <vtkContextDevice2D.h>
+#include <vtkContextActor.h>
+#include <vtkContextScene.h>
+#include <vtkPen.h>
+#include <vtkBrush.h>
+
+
+/**
+ * @brief Parent class for items rendered in slice views using the VTK
+ * Context/Scene API
+ */
+class GenericSliceContextItem : public vtkContextItem
+{
+public:
+  vtkTypeMacro(GenericSliceContextItem, vtkContextItem)
+
+  irisSetMacro(Model, GenericSliceModel *);
+  irisGetMacro(Model, GenericSliceModel *);
+
+  /** Apply appearance settings to a pen */
+  void ApplyAppearanceSettingsToPen(
+      vtkContext2D *painter, const OpenGLAppearanceElement *as)
+  {
+    painter->GetPen()->SetColorF(as->GetColor().data_block());
+    painter->GetPen()->SetWidth(as->GetLineThickness() * GetVPPR());
+    painter->GetPen()->SetOpacityF(as->GetAlpha());
+  }
+
+protected:
+
+  // Get the viewport pixel ratio (useful for deciding on line sizes)
+  double GetVPPR() { return m_Model->GetSizeReporter()->GetViewportPixelRatio(); }
+
+  // Pointer to the model
+  GenericSliceModel *m_Model;
+};
+
+
+class LayerThumbnailDecorator : public GenericSliceContextItem
+{
+public:
+  vtkTypeMacro(LayerThumbnailDecorator, GenericSliceContextItem)
+
+  static LayerThumbnailDecorator *New();
+
+  irisSetMacro(Layer, ImageWrapperBase *);
+  irisGetMacro(Layer, ImageWrapperBase *);
+
+  virtual bool Paint(vtkContext2D *painter) override
+  {
+    float w = this->GetScene()->GetSceneWidth();
+    float h = this->GetScene()->GetSceneHeight();
+
+    // Determine if the current layer is hovered over by the mouse
+    bool is_hover = m_Layer->GetUniqueId() == m_Model->GetHoveredImageLayerId();
+    bool is_selected = m_Layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId();
+    if(!is_hover && !is_selected)
+      return true;
+
+    if(is_selected && is_hover)
+      painter->GetPen()->SetColorF(1.0, 1.0, 0.5);
+    else if(is_selected)
+      painter->GetPen()->SetColorF(1.0, 0.9, 0.1);
+    else if(is_hover)
+      painter->GetPen()->SetColorF(0.6, 0.54, 0.46);
+
+    painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
+    painter->GetPen()->SetWidth(3 * this->GetVPPR());
+
+    std::cout << "Paint layer " << m_Layer->GetUniqueId() <<
+                 "  selected  " << is_selected <<
+                 "  hover  " << is_hover << std::endl;
+
+    // Use drawpoly method because DrawRect includes a fill
+    float p[] = { 0, 0,
+                  0, h,
+                  w, h,
+                  w, 0,
+                  0, 0 };
+
+    painter->DrawPoly(p, 5);
+    return true;
+  }
+
+private:
+  ImageWrapperBase * m_Layer;
+};
+
+vtkStandardNewMacro(LayerThumbnailDecorator);
+
+/**
+ * @brief Decorator for zoom thumbnails
+ */
+class ZoomThumbnailDecorator : public GenericSliceContextItem
+{
+public:
+  vtkTypeMacro(ZoomThumbnailDecorator, GenericSliceContextItem)
+
+  static ZoomThumbnailDecorator *New();
+
+  virtual bool Paint(vtkContext2D *painter) override
+  {
+    // Thumbnail must be on
+    if(!m_Model->IsThumbnailOn())
+      return false;
+
+    // Get the thumbnail appearance properties
+    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
+
+    const OpenGLAppearanceElement *eltThumb =
+        as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL);
+
+    const OpenGLAppearanceElement *eltViewport =
+        as->GetUIElement(SNAPAppearanceSettings::ZOOM_VIEWPORT);
+
+    // Update the thumbnail info (TODO: this is redundant!)
+    m_Model->ComputeThumbnailProperties();
+    auto xy = m_Model->GetZoomThumbnailPosition();
+    auto wh = m_Model->GetZoomThumbnailSize();
+
+    // Draw the box around the thumbnail
+    if(eltThumb->GetVisible())
+      {
+      ApplyAppearanceSettingsToPen(painter, eltThumb);
+
+      float x0 = xy[0], y0 = xy[1], x1 = xy[0] + wh[0], y1 = xy[1] + wh[1];
+
+      float p[] = { x0, y0, x0, y1, x1, y1, x1, y0, x0, y0 };
+      painter->DrawPoly(p, 5);
+      }
+
+    if(eltViewport->GetVisible())
+      {
+      // Radius of viewport in image voxel units
+      double wv = m_Model->GetCanvasSize()[0] * 0.5 / m_Model->GetViewZoom();
+      double hv = m_Model->GetCanvasSize()[1] * 0.5 / m_Model->GetViewZoom();
+
+      // Radius of viewport in display pixel units
+      double wp = m_Model->GetSliceSpacing()[0] * wv * m_Model->GetThumbnailZoom();
+      double hp = m_Model->GetSliceSpacing()[1] * hv * m_Model->GetThumbnailZoom();
+
+      // Center of viewport in image voxel units
+      double xv = m_Model->GetViewPosition()[0];
+      double yv = m_Model->GetViewPosition()[1];
+
+      // Center of viewport in display pixel units
+      double xp = m_Model->GetSliceSpacing()[0] * xv * m_Model->GetThumbnailZoom() + xy[0];
+      double yp = m_Model->GetSliceSpacing()[1] * yv * m_Model->GetThumbnailZoom() + xy[1];
+      float x0 = xp - wp, y0 = yp - hp, x1 = xp + wp, y1 = yp + hp;
+
+      ApplyAppearanceSettingsToPen(painter, eltViewport);
+      float p[] = { x0, y0, x0, y1, x1, y1, x1, y0, x0, y0 };
+      painter->DrawPoly(p, 5);
+      }
+
+    // Draw the box around the viewport
+    return true;
+  }
+
+};
+
+vtkStandardNewMacro(ZoomThumbnailDecorator);
+
+
 
 GenericSliceRenderer
 ::GenericSliceRenderer()
@@ -68,10 +239,19 @@ GenericSliceRenderer
 
   m_OverlayRenderer = vtkSmartPointer<vtkRenderer>::New();
   m_OverlayRenderer->SetLayer(1);
+  m_OverlayRenderer->GetActiveCamera()->ParallelProjectionOn();
+  m_OverlayRenderer->GetActiveCamera()->SetParallelScale(1.0);
+
+  m_ZoomThumbnail = vtkNew<TexturedRectangleAssembly2D>();
+  m_ZoomThumbnail->GetActor()->GetProperty()->SetColor(1, 1, 0);
+  m_OverlayRenderer->AddActor2D(m_ZoomThumbnail->GetActor());
+
+  m_ZoomThumbnailDecoratorActor = vtkNew<vtkContextActor>();
+  m_OverlayRenderer->AddActor2D(m_ZoomThumbnailDecoratorActor);
 
   vtkNew<vtkTextActor> txt;
   txt->SetInput("Hello World");
-  txt->SetPosition(100, 100);
+  txt->SetPosition(120, 120);
   m_OverlayRenderer->AddActor2D(txt);
 }
 
@@ -124,11 +304,13 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), AppearanceUpdateEvent());
   Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), AppearanceUpdateEvent());
 
-  // Update the appearance settings
-  this->AssignAppearanceSettingsToScene();
+  vtkNew<ZoomThumbnailDecorator> ztdec;
+  ztdec->SetModel(m_Model);
+  m_ZoomThumbnailDecoratorActor->GetScene()->ClearItems();
+  m_ZoomThumbnailDecoratorActor->GetScene()->AddItem(ztdec);
 }
 
-void GenericSliceRenderer::AssignAppearanceSettingsToScene()
+void GenericSliceRenderer::UpdateSceneAppearanceSettings()
 {
   // Get the appearance settings pointer since we use it a lot
   SNAPAppearanceSettings *as =
@@ -201,13 +383,15 @@ void GenericSliceRenderer::OnUpdate()
 
   if(appearance_settings_changed)
     {
-    this->AssignAppearanceSettingsToScene();
+    this->UpdateSceneAppearanceSettings();
     }
 
   if(layers_changed || layer_layout_changed || zoom_pan_changed)
     {
     this->UpdateRendererCameras();
+    this->UpdateZoomPanThumbnail();
     }
+
 }
 
 void GenericSliceRenderer::SetRenderWindow(vtkRenderWindow *rwin)
@@ -215,7 +399,10 @@ void GenericSliceRenderer::SetRenderWindow(vtkRenderWindow *rwin)
   m_RenderWindow = rwin;
   m_RenderWindow->SetNumberOfLayers(2);
   m_RenderWindow->AddRenderer(m_OverlayRenderer);
+  m_RenderWindow->SetMultiSamples(4);
 }
+
+
 
 void GenericSliceRenderer::UpdateLayerAssemblies()
 {
@@ -256,37 +443,9 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
       auto c0 = sc.first, c1 = sc.second;
 
       // Create a polydata for the image
-      lta.m_ImageRectPolyData = vtkSmartPointer<vtkPolyData>::New();
-      lta.m_ImageRectPolyData->SetPoints(vtkSmartPointer<vtkPoints>::New());
-      lta.m_ImageRectPolyData->GetPoints()->InsertNextPoint(c0[0], c0[1], 0);
-      lta.m_ImageRectPolyData->GetPoints()->InsertNextPoint(c0[0], c1[1], 0);
-      lta.m_ImageRectPolyData->GetPoints()->InsertNextPoint(c1[0], c1[1], 0);
-      lta.m_ImageRectPolyData->GetPoints()->InsertNextPoint(c1[0], c0[1], 0);
-
-      vtkNew<vtkQuad> quad;
-      quad->GetPointIds()->SetId(0, 0);
-      quad->GetPointIds()->SetId(1, 1);
-      quad->GetPointIds()->SetId(2, 2);
-      quad->GetPointIds()->SetId(3, 3);
-      lta.m_ImageRectPolyData->SetPolys(vtkSmartPointer<vtkCellArray>::New());
-      lta.m_ImageRectPolyData->GetPolys()->InsertNextCell(quad);
-
-      // Set texture coordinates
-      vtkNew<vtkFloatArray> tcoords;
-      tcoords->SetNumberOfComponents(2);
-      tcoords->InsertNextTuple2(0, 0);
-      tcoords->InsertNextTuple2(0, 1);
-      tcoords->InsertNextTuple2(1, 1);
-      tcoords->InsertNextTuple2(1, 0);
-      lta.m_ImageRectPolyData->GetPointData()->SetTCoords(tcoords);
-
-      // Create the main image actor
-      lta.m_ImageRectMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-      lta.m_ImageRectMapper->SetInputData(lta.m_ImageRectPolyData);
-      lta.m_ImageRectActor = vtkSmartPointer<vtkActor>::New();
-      lta.m_ImageRectActor->SetMapper(lta.m_ImageRectMapper);
-      lta.m_ImageRectActor->SetTexture(lta.m_Texture);
-      lta.m_ImageRectActor->GetProperty()->SetColor(1.0, 1.0, 1.0);
+      lta.m_ImageRect = vtkNew<TexturedRectangleAssembly>();
+      lta.m_ImageRect->SetCorners(c0[0], c0[1], c1[0], c1[1]);
+      lta.m_ImageRect->GetActor()->SetTexture(lta.m_Texture);
 
       new_layer_texture_assemblies[layer_id] = lta;
       }
@@ -318,6 +477,16 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
 
         // Set camera properties
         la.m_Renderer->GetActiveCamera()->ParallelProjectionOn();
+        la.m_ThumbRenderer->SetActiveCamera(la.m_Renderer->GetActiveCamera());
+
+        // Create highlight around the thumbnail.
+        vtkNew<LayerThumbnailDecorator> thumb_border;
+        thumb_border->SetModel(m_Model);
+        thumb_border->SetLayer(it.GetLayer());
+
+        vtkNew<vtkContextActor> context_actor;
+        context_actor->GetScene()->AddItem(thumb_border);
+        la.m_ThumbnailDecoratorActor = context_actor;
 
         new_base_layer_assemblies[layer_id] = la;
         }
@@ -326,6 +495,13 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
 
   // Replace the map (deleting the assemblies corresponding to removed layers)
   m_BaseLayerAssemblies = new_base_layer_assemblies;
+
+  // Update the appearance settings
+  this->UpdateSceneAppearanceSettings();
+
+  // Assign the main image texture to the zoom thumbnail
+  unsigned long main_id = m_Model->GetDriver()->GetMainImage()->GetUniqueId();
+  m_ZoomThumbnail->GetActor()->SetTexture(m_LayerTextureAssemblies[main_id].m_Texture);
 }
 
 void GenericSliceRenderer::SetDepth(vtkActor *actor, double z)
@@ -359,8 +535,21 @@ void GenericSliceRenderer::UpdateLayerDepth()
       depth_ovl += DEPTH_STEP;
       }
 
-    SetDepth(la.m_ImageRectActor, depth);
+    SetDepth(la.m_ImageRect->GetActor(), depth);
     }
+}
+
+void GenericSliceRenderer::UpdateZoomPanThumbnail()
+{
+  // Update the geometry of the zoom thumbnail
+  m_Model->ComputeThumbnailProperties();
+  auto pos = m_Model->GetZoomThumbnailPosition();
+  auto size = m_Model->GetZoomThumbnailSize();
+  std::cout << "ZT: " << pos << " " << size << std::endl;
+
+  m_ZoomThumbnail->SetCorners(pos[0], pos[1], pos[0]+size[0], pos[1]+size[1]);
+  m_ZoomThumbnail->GetActor()->SetVisibility(m_Model->IsThumbnailOn());
+
 }
 
 void GenericSliceRenderer::UpdateRendererLayout()
@@ -377,7 +566,7 @@ void GenericSliceRenderer::UpdateRendererLayout()
   std::map<double, vtkActor *> depth_map;
   for(auto it : m_LayerTextureAssemblies)
     {
-    auto *actor = it.second.m_ImageRectActor.Get();
+    auto *actor = it.second.m_ImageRect->GetActor();
     double z = actor->GetPosition()[2];
     if(z > 0.0)
       depth_map[z] = actor;
@@ -419,11 +608,20 @@ void GenericSliceRenderer::UpdateRendererLayout()
     renderer->RemoveAllViewProps();
 
     // Add the base layer actor
-    renderer->AddActor(m_LayerTextureAssemblies[vp.layer_id].m_ImageRectActor);
+    renderer->AddActor(m_LayerTextureAssemblies[vp.layer_id].m_ImageRect->GetActor());
 
-    // Add the overlay layer actors
-    for(auto it : depth_map)
-      renderer->AddActor(it.second);
+    // Some stuff only gets added to the main renderer
+    if(vp.isThumbnail)
+      {
+      // Add the thumbnail highlight
+      renderer->AddViewProp(la.m_ThumbnailDecoratorActor);
+      }
+    else
+      {
+      // Add the overlay layer actors
+      for(auto it : depth_map)
+        renderer->AddActor(it.second);
+      }
 
     // Add the renderer to the window
     m_RenderWindow->AddRenderer(renderer);
@@ -467,10 +665,9 @@ void GenericSliceRenderer::UpdateLayerApperances()
     // Set the alpha for the actor
     auto &lta = m_LayerTextureAssemblies[it.GetLayer()->GetUniqueId()];
     std::cout << "Layer " << it.GetLayer()->GetUniqueId() << " setting alpha to " << alpha << std::endl;
-    lta.m_ImageRectActor->GetProperty()->SetOpacity(alpha);
+    lta.m_ImageRect->GetActor()->GetProperty()->SetOpacity(alpha);
     }
 }
-
 
 void
 GenericSliceRenderer
