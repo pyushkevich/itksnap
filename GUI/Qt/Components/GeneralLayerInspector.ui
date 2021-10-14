@@ -667,33 +667,33 @@ font-size:11px;
          <property name="spacing">
           <number>4</number>
          </property>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="inTPNickname"/>
+         </item>
          <item row="0" column="0">
-          <widget class="QLabel" name="lblTBNickname">
+          <widget class="QLabel" name="lblTPNickname">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
            <property name="minimumSize">
             <size>
-             <width>80</width>
+             <width>180</width>
              <height>20</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>80</width>
+             <width>210</width>
              <height>20</height>
             </size>
            </property>
            <property name="text">
-            <string>Nickname:</string>
+            <string>Nickname for Time Point 100:</string>
            </property>
           </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLineEdit" name="inTPNickname"/>
          </item>
         </layout>
        </widget>

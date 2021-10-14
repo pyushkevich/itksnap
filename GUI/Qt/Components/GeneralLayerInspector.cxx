@@ -93,3 +93,11 @@ void GeneralLayerInspector::on_btnDown_clicked()
 {
   m_Model->MoveLayerDown();
 }
+
+void GeneralLayerInspector::on_spinBoxTP_valueChanged(int value)
+{
+  QString txt("Nickname for Time Point ");
+  txt.append(std::to_string(value).c_str());
+  txt.append(":");
+  ui->lblTPNickname->setText(txt);
+}
