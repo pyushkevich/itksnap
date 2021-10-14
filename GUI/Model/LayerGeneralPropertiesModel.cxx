@@ -60,6 +60,11 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         this,
         &Self::GetCrntTimePointNicknameValue,
         &Self::SetCrntTimePointNicknameValue);
+
+  m_CrntTimePointTagListModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetCrntTimePointTagListValue,
+        &Self::SetCrntTimePointTagListValue);
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -464,6 +469,29 @@ SetCrntTimePointNicknameValue(std::string value)
 
   unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
   m_TimePointProperties->GetProperty(crntTP)->Nickname = value;
+}
+
+bool LayerGeneralPropertiesModel::
+GetCrntTimePointTagListValue(TagList &value)
+{
+  if(!m_ParentModel->GetDriver()->IsMainImageLoaded())
+    return false;
+
+  unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
+  TimePointProperty *tpp = m_TimePointProperties->GetProperty(crntTP);
+  value = tpp->Tags;
+  return true;
+}
+
+void LayerGeneralPropertiesModel::
+SetCrntTimePointTagListValue(TagList value)
+{
+  if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
+    return;
+
+  unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
+  TimePointProperty *tpp = m_TimePointProperties->GetProperty(crntTP);
+  tpp->Tags = value;
 }
 
 

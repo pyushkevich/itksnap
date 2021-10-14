@@ -106,6 +106,9 @@ public:
   /** A model for the current timepoint nickname */
   irisSimplePropertyAccessMacro(CrntTimePointNickname, std::string)
 
+  /** A model for the current timtpoint taglist */
+  irisSimplePropertyAccessMacro(CrntTimePointTagList, TagList)
+
   /** Move the layer up in the list */
   void MoveLayerUp();
   void MoveLayerDown();
@@ -172,10 +175,15 @@ protected:
   // TimePoint Properties
   TimePointProperties *m_TimePointProperties;
 
-  // Current timepoint nickname
+  // Current time point nickname
   SmartPtr<AbstractSimpleStringProperty> m_CrntTimePointNicknameModel;
   bool GetCrntTimePointNicknameValue(std::string &value);
   void SetCrntTimePointNicknameValue(std::string value);
+
+  // Current time point tags
+  SmartPtr<AbstractSimpleTagListProperty> m_CrntTimePointTagListModel;
+  bool GetCrntTimePointTagListValue(TagList &value);
+  void SetCrntTimePointTagListValue(TagList value);
 };
 
 #endif // LAYERGENERALPROPERTIESMODEL_H
