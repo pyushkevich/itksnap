@@ -58,12 +58,35 @@ TimePointProperties::GetProperty(unsigned int tp)
 void
 TimePointProperties::Load(Registry &folder)
 {
-  cout << "[TPData] Load from Reg" << endl;
-  // Validate number of timepoints
-
   // Validate version
+  string version = folder["FormatVersion"][""];
+  cout << "[TPDataLoad] Version = " << version << endl;
 
-  // Load data
+  // Validate number of timepoints
+  unsigned int nt = folder["TimePoints.ArraySize"][0u];
+  cout << "[TPDataLoad] array size = " << nt << endl;
+
+  assert(nt == m_Parent->GetParent()->GetNumberOfTimePoints());
+
+  // Load data (1-based index timepoint array)
+  for (unsigned int i = 1u; i <= nt; ++i)
+    {
+      // Check folder existence
+      // To make this robust, create an empty property for a missing entry
+      std::string key = Registry::Key("TimePoints.Element[%d]", i);
+      TimePointProperty tpp;
+
+      if (folder.HasFolder(key))
+        {
+          cout << "[TPDataLoad] Folder Found for key: " << key << endl;
+          Registry &tpFolder = folder.Folder(key);
+
+          tpp.Nickname = tpFolder["Nickname"][""];
+          tpFolder["Tags"].GetList(tpp.Tags);
+        }
+
+      this->m_TPPropertiesMap[i] = tpp;
+    }
 
 }
 
