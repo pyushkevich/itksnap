@@ -20,8 +20,6 @@ TimePointProperties::SetParent(GenericImageData * parent)
 void
 TimePointProperties::Reset()
 {
-  cout << "[TPData] Reset" << endl;
-
   this->m_TPPropertiesMap.clear();
 }
 
@@ -29,8 +27,6 @@ TimePointProperties::Reset()
 void
 TimePointProperties::CreateNewData()
 {
-  cout << "[TPData] Create New Data" << endl;
-
   // Main Image has to be loaded
   assert(m_Parent->GetParent()->IsMainImageLoaded());
 
@@ -60,11 +56,9 @@ TimePointProperties::Load(Registry &folder)
 {
   // Validate version
   string version = folder["FormatVersion"][""];
-  cout << "[TPDataLoad] Version = " << version << endl;
 
   // Validate number of timepoints
   unsigned int nt = folder["TimePoints.ArraySize"][0u];
-  cout << "[TPDataLoad] array size = " << nt << endl;
 
   assert(nt == m_Parent->GetParent()->GetNumberOfTimePoints());
 
@@ -78,7 +72,6 @@ TimePointProperties::Load(Registry &folder)
 
       if (folder.HasFolder(key))
         {
-          cout << "[TPDataLoad] Folder Found for key: " << key << endl;
           Registry &tpFolder = folder.Folder(key);
 
           tpp.Nickname = tpFolder["Nickname"][""];
@@ -93,8 +86,6 @@ TimePointProperties::Load(Registry &folder)
 void
 TimePointProperties::Save(Registry &folder) const
 {
-  cout << "[TPData] Save to Reg" << endl;
-
   // Record format version
   //  Future change of format use this to be backward compatible
   folder["FormatVersion"] << "1";
