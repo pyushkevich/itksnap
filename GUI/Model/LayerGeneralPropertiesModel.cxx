@@ -131,12 +131,6 @@ void
 LayerGeneralPropertiesModel::OnUpdate()
 {
   Superclass::OnUpdate();
-
-  if (m_EventBucket->HasEvent(CursorTimePointUpdateEvent()))
-    {
-      cout << "[LayerGeneralPropModel] TimePoint Change Detected: "
-           << m_ParentModel->GetDriver()->GetCursorTimePoint() << endl;
-    }
 }
 
 bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIState state)

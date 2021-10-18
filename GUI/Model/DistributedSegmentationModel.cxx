@@ -422,8 +422,6 @@ void DistributedSegmentationModel::ApplyTagsToTargets()
     else if(ts.type == TAG_TIMEPOINT)
       {
       // Get TimePoint Properties
-      cout << "[DSS Tag Apply] tag_name " << ts.name << endl;
-      cout << "[DSS Tag Apply] object_id " << m_TagSpecArray[i].object_id << endl;
       TimePointProperty *tp = id->GetTimePointProperties()->GetProperty(m_TagSpecArray[i].object_id);
       // One TimePoint can have multiple tags
       tp->Tags.AddTag(ts.name);
@@ -845,8 +843,37 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
       }
     else if(tag.tag_spec.type == TAG_TIMEPOINT)
       {
-        cout << "[DSS find tag obj] object_id " << tag.object_id << endl;
-        cout << "[DSS find tag obj] name " << tag.tag_spec.name << endl;
+      // Iterate over the available time point properties
+      unsigned int tp, cnt = 0;
+      TimePointProperty *match;
+      TimePointProperties *tpps = driver->GetIRISImageData()->GetTimePointProperties();
+      unsigned int nt = driver->GetNumberOfTimePoints();
+      for(unsigned int i = 1; i <= nt; ++i)
+        {
+        TimePointProperty *tpp = tpps->GetProperty(i);
+        if (tpp->Tags.Contains(tag.tag_spec.name))
+          {
+            tp = i;
+            match = tpp;
+            ++cnt;
+          }
+        else if (tpp->Nickname.compare(tag.tag_spec.name) == 0)
+          {
+            tp = i;
+            match = tpp;
+            ++cnt;
+          }
+        }
+
+      // Handle the matches. We only assign a match if there is one matching object per list
+      if (cnt == 1)
+        {
+          tag.object_id = tp;
+          std::ostringstream oss;
+          oss << "Time point " << tp << " (" << match->Nickname << ")";
+          tag.desc = oss.str();
+          return true;
+        }
       }
     }
 
@@ -1238,16 +1265,21 @@ void DistributedSegmentationModel
       }
     else if(ts.tag_spec.type == TAG_TIMEPOINT)
       {
-      std::ostringstream oss;
-      oss << "TimePoint " << value;
+      ts.desc = "Unassigned";
+      if (value > 0)
+        {
+        std::ostringstream oss;
+        oss << "TimePoint " << value;
 
-      std::string tp_nickname = driver->GetIRISImageData()->GetTimePointProperties()
-          ->GetProperty(value)->Nickname;
+        std::string tp_nickname = driver->GetIRISImageData()->GetTimePointProperties()
+            ->GetProperty(value)->Nickname;
 
-      if (tp_nickname.length() > 0)
-        oss << " (" << tp_nickname << ")";
+        if (tp_nickname.length() > 0)
+          oss << " (" << tp_nickname << ")";
 
-      ts.desc = oss.str();
+        ts.desc = oss.str();
+        }
+
       }
 
     // Update the domain

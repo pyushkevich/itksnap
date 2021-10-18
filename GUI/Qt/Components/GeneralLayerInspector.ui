@@ -655,6 +655,7 @@ font-size:11px;
          <string notr="true">QGroupBox {
 	border: 1px solid rgb(210, 210, 210);
 	border-radius: 3px;
+	background: rgb(220, 220, 220)
 }
 QGroupBox::Title{
 	color: rgb(100, 100, 100)
