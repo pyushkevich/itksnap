@@ -67,7 +67,7 @@ TimePointProperties::Load(Registry &folder)
     {
       // Check folder existence
       // To make this robust, create an empty property for a missing entry
-      std::string key = Registry::Key("TimePoints.Element[%d]", i);
+      std::string key = Registry::Key("TimePoints.TimePoint[%d]", i);
       TimePointProperty tpp;
 
       if (folder.HasFolder(key))
@@ -97,7 +97,7 @@ TimePointProperties::Save(Registry &folder) const
        cit != m_TPPropertiesMap.cend(); ++cit)
     {
       // Create a folder for each timepoint
-      Registry &tp_folder = folder.Folder(folder.Key("TimePoints.Element[%d]", cit->first));
+      Registry &tp_folder = folder.Folder(folder.Key("TimePoints.TimePoint[%d]", cit->first));
 
       // Write timepoint properties to the folder
       tp_folder["TimePoint"] << cit->first;

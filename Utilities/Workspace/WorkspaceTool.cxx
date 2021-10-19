@@ -112,6 +112,10 @@ int usage(int rc)
   cout << "  -props-registry-set <key> <value> : Sets a registry key relative to picked layer" << endl;
   cout << "  -props-registry-dump <key> <file> : Dump registry folder relative to picked layer" << endl;
   cout << "  -props-registry-load <key> <file> : Load registry folder relative to picked layer" << endl;
+  cout << "Commands for selecting image time point properties: " << endl;
+  cout << "  -timepoints-list                  : List all time points in the workspace" << endl;
+  cout << "  -timepoints-pick-by-tag <tag>     : Pick time point associated with a specific tag" << endl;
+  cout << "  -timepoints-pick-by-name <name>   : Pick a time point with a specific nickname" << endl;
   cout << "Tag assignment commands (apply to picked layer/object): " << endl;
   cout << "  -tags-add <tag>                   : Add a tag to the picked object" << endl;
   cout << "  -tags-add-excl <tag>              : Add a tag that is exclusive to the object" << endl;
@@ -667,6 +671,37 @@ int main(int argc, char *argv[])
 
         // Store the mode in the folder
         ws.SetLayerMultiComponentDisplay(layer_folder, mcd);
+        }
+
+      else if(arg == "-timepoints-pick-by-tag")
+        {
+        string tag = cl.read_string();
+        std::list<unsigned int> found = ws.FindTimePointByTag(tag);
+
+        if(found.size() != 1)
+          throw IRISException("No unique time point found, tag %s is associated with %d time points", tag.c_str(), found.size());
+
+        unsigned int tp = found.front();
+
+        cout << prefix << tp << endl;
+        }
+
+      else if(arg == "-timepoints-pick-by-name")
+        {
+        string name = cl.read_string();
+        std::list<unsigned int> found = ws.FindTimePointByName(name);
+
+        if(found.size() != 1)
+           throw IRISException("No unique time point found, nickname %s is associated with %d time points", name.c_str(), found.size());
+
+        unsigned int tp = found.front();
+
+        cout << prefix << tp << endl;
+        }
+
+      else if(arg == "-timepoints-list")
+        {
+        ws.PrintTimePointList(cout, prefix);
         }
 
       else if(arg == "-labels-set")
