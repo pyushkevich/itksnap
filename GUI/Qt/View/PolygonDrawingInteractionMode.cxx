@@ -78,6 +78,8 @@ void PolygonDrawingInteractionMode::mousePressEvent(QMouseEvent *ev)
     }
 }
 
+#include <vtkRenderWindow.h>
+
 void PolygonDrawingInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   ev->ignore();
@@ -91,6 +93,7 @@ void PolygonDrawingInteractionMode::mouseMoveEvent(QMouseEvent *ev)
     if(m_Model->ProcessMouseMoveEvent(m_XSlice(0), m_XSlice(1)))
       {
       ev->accept();
+      m_ParentView->GetRenderWindow()->Render();
       m_ParentView->update();
       }
     }

@@ -62,6 +62,7 @@
 #include <itkRGBAPixel.h>
 #include "SNAPExportITKToVTK.h"
 #include "TexturedRectangleAssembly.h"
+#include "GenericSliceContextItem.h"
 
 #include <vtkContextItem.h>
 #include <vtkContext2D.h>
@@ -70,39 +71,14 @@
 #include <vtkContextScene.h>
 #include <vtkPen.h>
 #include <vtkBrush.h>
+#include <vtkTransform2D.h>
+#include <vtkContextTransform.h>
+
 
 
 /**
- * @brief Parent class for items rendered in slice views using the VTK
- * Context/Scene API
+ * @brief Context item that draws a box around the layer thumbnail
  */
-class GenericSliceContextItem : public vtkContextItem
-{
-public:
-  vtkTypeMacro(GenericSliceContextItem, vtkContextItem)
-
-  irisSetMacro(Model, GenericSliceModel *);
-  irisGetMacro(Model, GenericSliceModel *);
-
-  /** Apply appearance settings to a pen */
-  void ApplyAppearanceSettingsToPen(
-      vtkContext2D *painter, const OpenGLAppearanceElement *as)
-  {
-    painter->GetPen()->SetColorF(as->GetColor().data_block());
-    painter->GetPen()->SetWidth(as->GetLineThickness() * GetVPPR());
-    painter->GetPen()->SetOpacityF(as->GetAlpha());
-  }
-
-protected:
-
-  // Get the viewport pixel ratio (useful for deciding on line sizes)
-  double GetVPPR() { return m_Model->GetSizeReporter()->GetViewportPixelRatio(); }
-
-  // Pointer to the model
-  GenericSliceModel *m_Model;
-};
-
-
 class LayerThumbnailDecorator : public GenericSliceContextItem
 {
 public:
@@ -134,18 +110,8 @@ public:
     painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
     painter->GetPen()->SetWidth(3 * this->GetVPPR());
 
-    std::cout << "Paint layer " << m_Layer->GetUniqueId() <<
-                 "  selected  " << is_selected <<
-                 "  hover  " << is_hover << std::endl;
-
     // Use drawpoly method because DrawRect includes a fill
-    float p[] = { 0, 0,
-                  0, h,
-                  w, h,
-                  w, 0,
-                  0, 0 };
-
-    painter->DrawPoly(p, 5);
+    this->DrawRectNoFill(painter, 0, 0, w, h);
     return true;
   }
 
@@ -156,7 +122,7 @@ private:
 vtkStandardNewMacro(LayerThumbnailDecorator);
 
 /**
- * @brief Decorator for zoom thumbnails
+ * @brief Context item that draws zoom thumbnail outline and viewport
  */
 class ZoomThumbnailDecorator : public GenericSliceContextItem
 {
@@ -189,11 +155,7 @@ public:
     if(eltThumb->GetVisible())
       {
       ApplyAppearanceSettingsToPen(painter, eltThumb);
-
-      float x0 = xy[0], y0 = xy[1], x1 = xy[0] + wh[0], y1 = xy[1] + wh[1];
-
-      float p[] = { x0, y0, x0, y1, x1, y1, x1, y0, x0, y0 };
-      painter->DrawPoly(p, 5);
+      DrawRectNoFill(painter, xy[0], xy[1], xy[0] + wh[0], xy[1] + wh[1]);
       }
 
     if(eltViewport->GetVisible())
@@ -213,11 +175,9 @@ public:
       // Center of viewport in display pixel units
       double xp = m_Model->GetSliceSpacing()[0] * xv * m_Model->GetThumbnailZoom() + xy[0];
       double yp = m_Model->GetSliceSpacing()[1] * yv * m_Model->GetThumbnailZoom() + xy[1];
-      float x0 = xp - wp, y0 = yp - hp, x1 = xp + wp, y1 = yp + hp;
 
       ApplyAppearanceSettingsToPen(painter, eltViewport);
-      float p[] = { x0, y0, x0, y1, x1, y1, x1, y0, x0, y0 };
-      painter->DrawPoly(p, 5);
+      DrawRectNoFill(painter, xp - wp, yp - hp, xp + wp, yp + hp);
       }
 
     // Draw the box around the viewport
@@ -259,6 +219,21 @@ void
 GenericSliceRenderer::SetModel(GenericSliceModel *model)
 {
   this->m_Model = model;
+
+  // Set the keys to access user data
+  static const char * key_lta[] = {
+    "LayerTextureAssembly_0",
+    "LayerTextureAssembly_1",
+    "LayerTextureAssembly_2"
+  };
+  m_KeyLayerTextureAssembly = key_lta[model->GetId()];
+
+  static const char * key_bla[] = {
+    "BaseLayerAssembly_0",
+    "BaseLayerAssembly_1",
+    "BaseLayerAssembly_2"
+  };
+  m_KeyBaseLayerAssembly = key_bla[model->GetId()];
 
   // Record and rebroadcast changes in the model
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
@@ -321,10 +296,17 @@ void GenericSliceRenderer::UpdateSceneAppearanceSettings()
       SNAPAppearanceSettings::BACKGROUND_2D)->GetColor();
 
   // For each base renderer, set its background
-  for(auto &bla : m_BaseLayerAssemblies)
+  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
+
+  // For each layer either copy a reference to an existing assembly
+  // or create a new assembly
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    bla.second.m_Renderer->SetBackground(clrBack.data_block());
-    bla.second.m_ThumbRenderer->SetBackground(clrBack.data_block());
+    if(auto *bla = GetBaseLayerAssembly(it.GetLayer()))
+      {
+      bla->m_Renderer->SetBackground(clrBack.data_block());
+      bla->m_ThumbRenderer->SetBackground(clrBack.data_block());
+      }
     }
 }
 
@@ -407,56 +389,44 @@ void GenericSliceRenderer::SetRenderWindow(vtkRenderWindow *rwin)
 void GenericSliceRenderer::UpdateLayerAssemblies()
 {
   // Synchronize the layer assemblies with available renderers
-  std::map<unsigned long, LayerTextureAssembly> new_layer_texture_assemblies;
   GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
 
   // For each layer either copy a reference to an existing assembly
   // or create a new assembly
   for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    unsigned long layer_id = it.GetLayer()->GetUniqueId();
-
-    // Every layer gets a texture assembly
-    auto existing = m_LayerTextureAssemblies.find(layer_id);
-    if(existing != m_LayerTextureAssemblies.end())
-      new_layer_texture_assemblies[layer_id] = existing->second;
-    else
+    if(!GetLayerTextureAssembly(it.GetLayer()))
       {
-      LayerTextureAssembly lta;
+      SmartPtr<LayerTextureAssembly> lta = LayerTextureAssembly::New();
+      it.GetLayer()->SetUserData(m_KeyLayerTextureAssembly, lta);
 
       // Get the pointer to the display slice
       auto *ds = it.GetLayer()->GetDisplaySlice(m_Model->GetId()).GetPointer();
 
       // Configure the texture pipeline
-      itk::SmartPointer<LayerTextureAssembly::VTKExporter> exporter = LayerTextureAssembly::VTKExporter::New();
+      SmartPtr<LayerTextureAssembly::VTKExporter> exporter = LayerTextureAssembly::VTKExporter::New();
       exporter->SetInput(ds);
 
-      lta.m_Exporter = exporter.GetPointer();
-      lta.m_Importer = vtkSmartPointer<vtkImageImport>::New();
-      ConnectITKExporterToVTKImporter(exporter.GetPointer(), lta.m_Importer);
+      lta->m_Exporter = exporter.GetPointer();
+      lta->m_Importer = vtkSmartPointer<vtkImageImport>::New();
+      ConnectITKExporterToVTKImporter(exporter.GetPointer(), lta->m_Importer);
 
-      lta.m_Texture = vtkSmartPointer<vtkTexture>::New();
-      lta.m_Texture->SetInputConnection(lta.m_Importer->GetOutputPort());
+      lta->m_Texture = vtkSmartPointer<vtkTexture>::New();
+      lta->m_Texture->SetInputConnection(lta->m_Importer->GetOutputPort());
 
       // Get the corners of the slice
       auto sc = m_Model->GetSliceCorners();
       auto c0 = sc.first, c1 = sc.second;
 
       // Create a polydata for the image
-      lta.m_ImageRect = vtkNew<TexturedRectangleAssembly>();
-      lta.m_ImageRect->SetCorners(c0[0], c0[1], c1[0], c1[1]);
-      lta.m_ImageRect->GetActor()->SetTexture(lta.m_Texture);
-
-      new_layer_texture_assemblies[layer_id] = lta;
+      lta->m_ImageRect = vtkNew<TexturedRectangleAssembly>();
+      lta->m_ImageRect->SetCorners(c0[0], c0[1], c1[0], c1[1]);
+      lta->m_ImageRect->GetActor()->SetTexture(lta->m_Texture);
       }
     }
 
-  // Replace the map (deleting the assemblies corresponding to removed layers)
-  m_LayerTextureAssemblies = new_layer_texture_assemblies;
-
   // Now iterate over the base layers only and set up the base layer assemblies, which
   // consist of the base layer, sticky overlays, and segmentation layer
-  std::map<unsigned long, BaseLayerAssembly> new_base_layer_assemblies;
   for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
     {
     unsigned long layer_id = it.GetLayer()->GetUniqueId();
@@ -464,20 +434,27 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
     // If this is a base layer (something drawn on its own), it gets a pair of renderers
     if(it.GetRole() == MAIN_ROLE || it.GetRole() == OVERLAY_ROLE || it.GetRole() == SNAP_ROLE)
       {
-      auto existing = m_BaseLayerAssemblies.find(layer_id);
-      if(existing != m_BaseLayerAssemblies.end())
-        new_base_layer_assemblies[layer_id] = existing->second;
-      else
+      if(!GetBaseLayerAssembly(it.GetLayer()))
         {
-        BaseLayerAssembly la;
+        SmartPtr<BaseLayerAssembly> bla = BaseLayerAssembly::New();
+        it.GetLayer()->SetUserData(m_KeyBaseLayerAssembly, bla);
 
         // Create the renderers
-        la.m_Renderer = vtkSmartPointer<vtkRenderer>::New();
-        la.m_ThumbRenderer = vtkSmartPointer<vtkRenderer>::New();
+        bla->m_Renderer = vtkNew<vtkRenderer>();
+        bla->m_ThumbRenderer = vtkNew<vtkRenderer>();
 
         // Set camera properties
-        la.m_Renderer->GetActiveCamera()->ParallelProjectionOn();
-        la.m_ThumbRenderer->SetActiveCamera(la.m_Renderer->GetActiveCamera());
+        bla->m_Renderer->GetActiveCamera()->ParallelProjectionOn();
+        bla->m_ThumbRenderer->SetActiveCamera(bla->m_Renderer->GetActiveCamera());
+
+        // Create the context scene actor and transform item
+        bla->m_OverlayContextActor = vtkNew<vtkContextActor>();
+        bla->m_OverlayContextTransform = vtkNew<vtkContextTransform>();
+        bla->m_OverlayContextActor->GetScene()->AddItem(bla->m_OverlayContextTransform);
+
+        // Configure the context scene
+        this->UpdateTiledOverlayContextSceneItems(it.GetLayer());
+        this->UpdateTiledOverlayContextSceneTransform(it.GetLayer());
 
         // Create highlight around the thumbnail.
         vtkNew<LayerThumbnailDecorator> thumb_border;
@@ -486,23 +463,38 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
 
         vtkNew<vtkContextActor> context_actor;
         context_actor->GetScene()->AddItem(thumb_border);
-        la.m_ThumbnailDecoratorActor = context_actor;
-
-        new_base_layer_assemblies[layer_id] = la;
+        bla->m_ThumbnailDecoratorActor = context_actor;
         }
       }
+    else
+      {
+      it.GetLayer()->SetUserData(m_KeyBaseLayerAssembly, nullptr);
+      }
     }
-
-  // Replace the map (deleting the assemblies corresponding to removed layers)
-  m_BaseLayerAssemblies = new_base_layer_assemblies;
 
   // Update the appearance settings
   this->UpdateSceneAppearanceSettings();
 
   // Assign the main image texture to the zoom thumbnail
-  unsigned long main_id = m_Model->GetDriver()->GetMainImage()->GetUniqueId();
-  m_ZoomThumbnail->GetActor()->SetTexture(m_LayerTextureAssemblies[main_id].m_Texture);
+  m_ZoomThumbnail->GetActor()->SetTexture(
+        GetLayerTextureAssembly(id->GetMain())->m_Texture);
 }
+
+GenericSliceRenderer::LayerTextureAssembly *
+GenericSliceRenderer::GetLayerTextureAssembly(ImageWrapperBase *wrapper)
+{
+  auto *userdata = wrapper->GetUserData(m_KeyLayerTextureAssembly);
+  return dynamic_cast<LayerTextureAssembly *>(userdata);
+}
+
+GenericSliceRenderer::BaseLayerAssembly *
+GenericSliceRenderer::GetBaseLayerAssembly(ImageWrapperBase *wrapper)
+{
+  auto *userdata = wrapper->GetUserData(m_KeyBaseLayerAssembly);
+  return dynamic_cast<BaseLayerAssembly *>(userdata);
+}
+
+
 
 void GenericSliceRenderer::SetDepth(vtkActor *actor, double z)
 {
@@ -517,8 +509,7 @@ void GenericSliceRenderer::UpdateLayerDepth()
 
   for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    unsigned long layer_id = it.GetLayer()->GetUniqueId();
-    auto &la = m_LayerTextureAssemblies[layer_id];
+    auto *la = GetLayerTextureAssembly(it.GetLayer());
     double depth = 0.0;
 
     if(it.GetRole() == LABEL_ROLE)
@@ -535,7 +526,7 @@ void GenericSliceRenderer::UpdateLayerDepth()
       depth_ovl += DEPTH_STEP;
       }
 
-    SetDepth(la.m_ImageRect->GetActor(), depth);
+    SetDepth(la->m_ImageRect->GetActor(), depth);
     }
 }
 
@@ -552,6 +543,29 @@ void GenericSliceRenderer::UpdateZoomPanThumbnail()
 
 }
 
+void GenericSliceRenderer
+::UpdateTiledOverlayContextSceneTransform(ImageWrapperBase *wrapper)
+{
+}
+
+
+void GenericSliceRenderer
+::UpdateTiledOverlayContextSceneItems(ImageWrapperBase *wrapper)
+{
+  // Get the scene actor
+  auto top_item = GetBaseLayerAssembly(wrapper)->m_OverlayContextTransform;
+
+  // Clear the scene
+  top_item->ClearItems();
+
+  // Iterate over the delegates
+  std::cout << "UpdateTiledOverlayContextSceneItems " <<  m_TiledOverlays.size() << std::endl;
+  for(auto it : m_TiledOverlays)
+    {
+    it->AddContextItemsToTiledOverlay(top_item);
+    }
+}
+
 void GenericSliceRenderer::UpdateRendererLayout()
 {
   if(!m_RenderWindow)
@@ -564,12 +578,16 @@ void GenericSliceRenderer::UpdateRendererLayout()
 
   // Create a sorted structure of layers that are rendered on top of the base
   std::map<double, vtkActor *> depth_map;
-  for(auto it : m_LayerTextureAssemblies)
+  for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    auto *actor = it.second.m_ImageRect->GetActor();
-    double z = actor->GetPosition()[2];
-    if(z > 0.0)
-      depth_map[z] = actor;
+    auto *lta = GetLayerTextureAssembly(it.GetLayer());
+    if(lta)
+      {
+      auto *actor = lta->m_ImageRect->GetActor();
+      double z = actor->GetPosition()[2];
+      if(z > 0.0)
+        depth_map[z] = actor;
+      }
     }
 
   // Get the viewport layout
@@ -587,11 +605,14 @@ void GenericSliceRenderer::UpdateRendererLayout()
     // Get the current viewport
     const SliceViewportLayout::SubViewport &vp = m_Model->GetViewportLayout().vpList[k];
 
+    // Get the wrapper in this viewport
+    auto *layer = m_Model->GetImageData()->FindLayer(vp.layer_id, false);
+
     // Get the assembly for this layer
-    BaseLayerAssembly &la = m_BaseLayerAssemblies[vp.layer_id];
+    BaseLayerAssembly *bla = GetBaseLayerAssembly(layer);
 
     // Get the renderer that is referenced by this viewport
-    vtkRenderer *renderer = vp.isThumbnail ? la.m_ThumbRenderer : la.m_Renderer;
+    vtkRenderer *renderer = vp.isThumbnail ? bla->m_ThumbRenderer : bla->m_Renderer;
 
     // Create a VTK renderer for this viewport
     Vector2d rel_pos[2];
@@ -608,19 +629,22 @@ void GenericSliceRenderer::UpdateRendererLayout()
     renderer->RemoveAllViewProps();
 
     // Add the base layer actor
-    renderer->AddActor(m_LayerTextureAssemblies[vp.layer_id].m_ImageRect->GetActor());
+    renderer->AddActor(GetLayerTextureAssembly(layer)->m_ImageRect->GetActor());
 
     // Some stuff only gets added to the main renderer
     if(vp.isThumbnail)
       {
       // Add the thumbnail highlight
-      renderer->AddViewProp(la.m_ThumbnailDecoratorActor);
+      renderer->AddViewProp(bla->m_ThumbnailDecoratorActor);
       }
     else
       {
       // Add the overlay layer actors
       for(auto it : depth_map)
         renderer->AddActor(it.second);
+
+      // Add the tiled overlay scene actor
+      renderer->AddActor(bla->m_OverlayContextActor);
       }
 
     // Add the renderer to the window
@@ -633,20 +657,37 @@ void GenericSliceRenderer::UpdateRendererLayout()
 
 void GenericSliceRenderer::UpdateRendererCameras()
 {
-  for(auto it : m_BaseLayerAssemblies)
+  for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    auto ren = it.second.m_Renderer;
-    auto vp = m_Model->GetViewPosition();
-    ren->GetActiveCamera()->SetFocalPoint(vp[0], vp[1], 0.0);
-    ren->GetActiveCamera()->SetPosition(vp[0], vp[1], 1.0);
-    ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
+    auto *bla = GetBaseLayerAssembly(it.GetLayer());
+    if(bla)
+      {
+      auto ren = bla->m_Renderer;
+      auto vp = m_Model->GetViewPosition();
+      ren->GetActiveCamera()->SetFocalPoint(vp[0], vp[1], 0.0);
+      ren->GetActiveCamera()->SetPosition(vp[0], vp[1], 1.0);
+      ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
 
-    // ParallelScale is the height of the viewport in world coordinate distances.
-    // ViewZoom is the number of display pixels per physical mm
-    // pscale = v_height_in_pix / view_zoom
-    int sz_logical = ren->GetSize()[1] / m_Model->GetSizeReporter()->GetViewportPixelRatio();
-    double pscale = sz_logical / m_Model->GetViewZoom();
-    ren->GetActiveCamera()->SetParallelScale(pscale);
+      // Get the transform parameters
+      auto v_zoom = m_Model->GetViewZoom();
+      auto v_pos = m_Model->GetViewPosition();
+      auto spacing = m_Model->GetSliceSpacing();
+
+      // ParallelScale is the height of the viewport in world coordinate distances.
+      // ViewZoom is the number of display pixels per physical mm
+      double pscale = ren->GetSize()[1] / (2.0 * v_zoom);
+      std::cout << "pscale is " << pscale << std::endl;
+      ren->GetActiveCamera()->SetParallelScale(pscale);
+
+      // Also update the transform for the overlay scene
+      auto *tform = bla->m_OverlayContextTransform->GetTransform();
+
+      tform->Identity();
+      tform->Translate(ren->GetSize()[0] * 0.5, ren->GetSize()[1] * 0.5);
+      tform->Scale(v_zoom, v_zoom);
+      tform->Translate(-v_pos[0], -v_pos[1]);
+      tform->Scale(spacing[0], spacing[1]);
+      }
     }
 }
 
@@ -663,9 +704,9 @@ void GenericSliceRenderer::UpdateLayerApperances()
       alpha = it.GetLayer()->GetAlpha();
 
     // Set the alpha for the actor
-    auto &lta = m_LayerTextureAssemblies[it.GetLayer()->GetUniqueId()];
-    std::cout << "Layer " << it.GetLayer()->GetUniqueId() << " setting alpha to " << alpha << std::endl;
-    lta.m_ImageRect->GetActor()->GetProperty()->SetOpacity(alpha);
+    auto *lta = GetLayerTextureAssembly(it.GetLayer());
+    if(lta)
+      lta->m_ImageRect->GetActor()->GetProperty()->SetOpacity(alpha);
     }
 }
 
@@ -903,6 +944,24 @@ GenericSliceRenderer
   else
     return &m_Model->GetViewportLayout().vpList[m_DrawingViewportIndex];
 
+}
+
+void GenericSliceRenderer::SetGlobalOverlays(const RendererDelegateList &ovl)
+{
+  m_GlobalOverlays = ovl;
+}
+
+void GenericSliceRenderer::SetTiledOverlays(const RendererDelegateList &ovl)
+{
+  m_TiledOverlays = ovl;
+  auto *id = m_Model->GetDriver()->GetCurrentImageData();
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    if(auto *bla = GetBaseLayerAssembly(it.GetLayer()))
+      {
+      this->UpdateTiledOverlayContextSceneItems(it.GetLayer());
+      }
+    }
 }
 
 void

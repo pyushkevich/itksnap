@@ -29,9 +29,11 @@
 
 #include "SNAPCommon.h"
 #include "GenericSliceRenderer.h"
+#include "GenericSliceContextItem.h"
 
 class OrthogonalSliceCursorNavigationModel;
 class GenericSliceRenderer;
+class CrosshairsContextItem;
 
 class CrosshairsRenderer : public SliceRendererDelegate
 {
@@ -39,8 +41,11 @@ public:
 
   irisITKObjectMacro(CrosshairsRenderer, SliceRendererDelegate)
 
-  irisSetMacro(Model, OrthogonalSliceCursorNavigationModel *)
   irisGetMacro(Model, OrthogonalSliceCursorNavigationModel *)
+  virtual void SetModel(OrthogonalSliceCursorNavigationModel *model);
+
+
+  void AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent) override;
 
   void paintGL() ITK_OVERRIDE;
 
@@ -50,6 +55,9 @@ protected:
   virtual ~CrosshairsRenderer() {}
 
   OrthogonalSliceCursorNavigationModel *m_Model;
+
+  // Context item used to draw crosshairs
+  vtkSmartPointer<CrosshairsContextItem> m_ContextItem;
 };
 
 #endif // CROSSHAIRSRENDERER_H

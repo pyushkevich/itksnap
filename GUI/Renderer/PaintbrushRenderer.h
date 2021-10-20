@@ -3,6 +3,7 @@
 
 #include "GenericSliceRenderer.h"
 
+class PaintbrushContextItem;
 class PaintbrushModel;
 
 class PaintbrushRenderer : public SliceRendererDelegate
@@ -11,21 +12,23 @@ public:
 
   irisITKObjectMacro(PaintbrushRenderer, SliceRendererDelegate)
 
-  irisGetSetMacro(Model, PaintbrushModel *)
+  irisGetMacro(Model, PaintbrushModel *)
+  virtual void SetModel(PaintbrushModel *model);
 
-  void paintGL() ITK_OVERRIDE;
+  void AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent) override;
+
+  void paintGL() ITK_OVERRIDE {};
 
 protected:
 
-
-  PaintbrushRenderer();
+  PaintbrushRenderer() {};
+  virtual ~PaintbrushRenderer() {}
 
   PaintbrushModel *m_Model;
 
-  void BuildBrush();
+  // Context item used to draw crosshairs
+  vtkSmartPointer<PaintbrushContextItem> m_ContextItem;
 
-  // Representation of the brush
-  std::list<Vector2d> m_Walk;
 };
 
 #endif // PAINTBRUSHRENDERER_H

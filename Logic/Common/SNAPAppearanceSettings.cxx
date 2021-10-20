@@ -22,6 +22,7 @@
 #include "Registry.h"
 
 #include <SNAPOpenGL.h>
+#include <vtkContext2D.h>
 
 using namespace std;
 

@@ -6,6 +6,7 @@
 
 
 class AnnotationModel;
+class AnnotationContextItem;
 
 class AnnotationRenderer : public SliceRendererDelegate
 {
@@ -19,12 +20,15 @@ public:
 
   void SetModel(AnnotationModel *model);
 
+  virtual void AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent) override;
+
 protected:
 
   AnnotationRenderer();
   virtual ~AnnotationRenderer() {}
 
   AnnotationModel *m_Model;
+  vtkSmartPointer<AnnotationContextItem> m_ContextItem;
   void DrawLineLength(const Vector3d &xSlice1, const Vector3d &xSlice2,
                       const Vector3d &color, double alpha);
 

@@ -32,10 +32,87 @@
 #include "GenericSliceRenderer.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
+#include <vtkContext2D.h>
+#include <vtkContextScene.h>
+#include <vtkObjectFactory.h>
+#include <vtkTransform2D.h>
+
+
+
+class CrosshairsContextItem: public GenericSliceContextItem
+{
+public:
+  vtkTypeMacro(CrosshairsContextItem, GenericSliceContextItem)
+  static CrosshairsContextItem *New();
+
+  irisSetMacro(ThumbnailMode, bool);
+  irisGetMacro(ThumbnailMode, bool);
+
+  virtual bool Paint(vtkContext2D *painter) override
+  {
+    auto *model = this->GetModel();
+    SNAPAppearanceSettings *as =
+        this->GetModel()->GetParentUI()->GetAppearanceSettings();
+
+    // Get the line color, thickness and dash spacing for the crosshairs
+    OpenGLAppearanceElement *elt =
+      m_ThumbnailMode
+      ? as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_THUMB)
+      : as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
+
+    // Exit if the crosshars are not drawn
+    if(!elt->GetVisible()) return false;
+
+    // Get the current cursor position
+    Vector3ui xCursorInteger = model->GetDriver()->GetCursorPosition();
+
+    // Shift the cursor position by by 0.5 in order to have it appear
+    // between voxels
+    Vector3d xCursorImage = to_double(xCursorInteger) + Vector3d(0.5);
+
+    // Get the cursor position on the slice
+    Vector3d pos = model->MapImageToSlice(xCursorImage);
+
+    // Upper and lober bounds to which the crosshairs are drawn
+    Vector2i lower(0);
+    Vector2i upper = model->GetSliceSize().extract(2);
+
+    // Apply the color
+    this->ApplyAppearanceSettingsToPen(painter, elt);
+
+    // Draw the four cross-hair pieces
+    painter->DrawLine(pos[0], pos[1], lower[0], pos[1]);
+    painter->DrawLine(pos[0], pos[1], upper[0], pos[1]);
+    painter->DrawLine(pos[0], pos[1], pos[0], lower[1]);
+    painter->DrawLine(pos[0], pos[1], pos[0], upper[1]);
+
+    return true;
+  }
+
+protected:
+
+  bool m_ThumbnailMode = false;
+};
+
+vtkStandardNewMacro(CrosshairsContextItem);
+
 
 CrosshairsRenderer::CrosshairsRenderer()
 {
   m_Model = NULL;
+}
+
+void CrosshairsRenderer::SetModel(OrthogonalSliceCursorNavigationModel *model)
+{
+  m_ContextItem = vtkNew<CrosshairsContextItem>();
+  m_ContextItem->SetModel(model->GetParent());
+  m_Model = model;
+}
+
+void CrosshairsRenderer::AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent)
+{
+  if(m_ContextItem)
+    parent->AddItem(m_ContextItem);
 }
 
 void CrosshairsRenderer::paintGL()

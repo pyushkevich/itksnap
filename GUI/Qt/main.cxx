@@ -598,6 +598,9 @@ int main(int argc, char *argv[])
 
 #if VTK_MAJOR_VERSION >= 8
 
+  // We want to use multisamples everywhere by default
+  vtkOpenGLRenderWindow::SetGlobalMaximumNumberOfMultiSamples(4);
+
   // When using VTK8 we have to set the surface format to match what it wants
   QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
 

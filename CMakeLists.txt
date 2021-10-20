@@ -517,6 +517,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/EdgePreprocessingSettingsRenderer.cxx
+  GUI/Renderer/GenericSliceContextItem.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/Generic3DRenderer.cxx
   GUI/Renderer/GLToPNG.cxx
@@ -599,6 +600,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/CrosshairsRenderer.h
   GUI/Renderer/EdgePreprocessingSettingsRenderer.h
   GUI/Renderer/Generic3DRenderer.h
+  GUI/Renderer/GenericSliceContextItem.h
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/GLToPNG.h
   GUI/Renderer/GMMRenderer.h

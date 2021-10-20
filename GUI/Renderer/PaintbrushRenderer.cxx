@@ -5,120 +5,146 @@
 #include "SNAPAppearanceSettings.h"
 #include "GlobalUIModel.h"
 #include "SNAPOpenGL.h"
+#include "GenericSliceContextItem.h"
+#include <vtkObjectFactory.h>
+#include <vtkContext2D.h>
+#include <vtkPen.h>
 
-PaintbrushRenderer::PaintbrushRenderer()
+
+class PaintbrushContextItem : public GenericSliceContextItem
 {
-}
+public:
+  vtkTypeMacro(PaintbrushContextItem, GenericSliceContextItem)
+  static PaintbrushContextItem *New();
 
-void PaintbrushRenderer::BuildBrush()
-{
-  // Get the current properties
-  GlobalState *gs = m_Model->GetParent()->GetDriver()->GetGlobalState();
-  PaintbrushSettings ps = gs->GetPaintbrushSettings();
+  irisSetMacro(PaintbrushModel, PaintbrushModel *);
+  irisGetMacro(PaintbrushModel, PaintbrushModel *);
 
-  // This is a simple 2D marching algorithm. At any given state of the
-  // marching, there is a 'tail' and a 'head' of an arrow. To the right
-  // of the arrow is a voxel that's inside the brush and to the left a
-  // voxel that's outside. Depending on the two voxels that are
-  // ahead of the arrow to the left and right (in in, in out, out out)
-  // at the next step the arrow turns right, continues straight or turns
-  // left. This goes on until convergence
 
-  // Initialize the marching. This requires constructing the first arrow
-  // and marching it to the left until it is between out and in voxels.
-  // If the brush has even diameter, the arrow is from (0,0) to (1,0). If
-  // the brush has odd diameter (center at voxel center) then the arrow
-  // is from (-0.5, -0.5) to (-0.5, 0.5)
-  Vector2d xTail, xHead;
-  if(fmod(ps.radius,1.0) == 0)
-    { xTail = Vector2d(0.0, 0.0); xHead = Vector2d(0.0, 1.0); }
-  else
-    { xTail = Vector2d(-0.5, -0.5); xHead = Vector2d(-0.5, 0.5); }
+  void BuildBrush()
+  {
+    // Get the current properties
+    GlobalState *gs = m_Model->GetDriver()->GetGlobalState();
+    PaintbrushSettings ps = gs->GetPaintbrushSettings();
 
-  // Shift the arrow to the left until it is in position
+    // This is a simple 2D marching algorithm. At any given state of the
+    // marching, there is a 'tail' and a 'head' of an arrow. To the right
+    // of the arrow is a voxel that's inside the brush and to the left a
+    // voxel that's outside. Depending on the two voxels that are
+    // ahead of the arrow to the left and right (in in, in out, out out)
+    // at the next step the arrow turns right, continues straight or turns
+    // left. This goes on until convergence
 
-  while(m_Model->TestInside(Vector2d(xTail(0) - 0.5, xTail(1) + 0.5), ps))
-    { xTail(0) -= 1.0; xHead(0) -= 1.0; }
-
-  // Record the starting point, which is the current tail. Once the head
-  // returns to the starting point, the loop is done
-  Vector2d xStart = xTail;
-
-  // Do the loop
-  m_Walk.clear();
-  size_t n = 0;
-  while((xHead - xStart).squared_magnitude() > 0.01 && (++n) < 10000)
-    {
-    // Add the current head to the loop
-    m_Walk.push_back(xHead);
-
-    // Check the voxels ahead to the right and left
-    Vector2d xStep = xHead - xTail;
-    Vector2d xLeft(-xStep(1), xStep(0));
-    Vector2d xRight(xStep(1), -xStep(0));
-    bool il = m_Model->TestInside(xHead + 0.5 * (xStep + xLeft),ps);
-    bool ir = m_Model->TestInside(xHead + 0.5 * (xStep + xRight),ps);
-
-    // Update the tail
-    xTail = xHead;
-
-    // Decide which way to go
-    if(il && ir)
-      xHead += xLeft;
-    else if(!il && ir)
-      xHead += xStep;
-    else if(!il && !ir)
-      xHead += xRight;
+    // Initialize the marching. This requires constructing the first arrow
+    // and marching it to the left until it is between out and in voxels.
+    // If the brush has even diameter, the arrow is from (0,0) to (1,0). If
+    // the brush has odd diameter (center at voxel center) then the arrow
+    // is from (-0.5, -0.5) to (-0.5, 0.5)
+    Vector2d xTail, xHead;
+    if(fmod(ps.radius,1.0) == 0)
+      { xTail = Vector2d(0.0, 0.0); xHead = Vector2d(0.0, 1.0); }
     else
-      assert(0);
-    }
+      { xTail = Vector2d(-0.5, -0.5); xHead = Vector2d(-0.5, 0.5); }
 
-  // Add the last vertex
-  m_Walk.push_back(xStart);
+    // Shift the arrow to the left until it is in position
+
+    while(m_PaintbrushModel->TestInside(Vector2d(xTail(0) - 0.5, xTail(1) + 0.5), ps))
+      { xTail(0) -= 1.0; xHead(0) -= 1.0; }
+
+    // Record the starting point, which is the current tail. Once the head
+    // returns to the starting point, the loop is done
+    Vector2d xStart = xTail;
+
+    // Do the loop
+    m_Walk.clear();
+    size_t n = 0;
+    while((xHead - xStart).squared_magnitude() > 0.01 && (++n) < 10000)
+      {
+      // Add the current head to the loop
+      m_Walk.push_back(xHead);
+
+      // Check the voxels ahead to the right and left
+      Vector2d xStep = xHead - xTail;
+      Vector2d xLeft(-xStep(1), xStep(0));
+      Vector2d xRight(xStep(1), -xStep(0));
+      bool il = m_PaintbrushModel->TestInside(xHead + 0.5 * (xStep + xLeft),ps);
+      bool ir = m_PaintbrushModel->TestInside(xHead + 0.5 * (xStep + xRight),ps);
+
+      // Update the tail
+      xTail = xHead;
+
+      // Decide which way to go
+      if(il && ir)
+        xHead += xLeft;
+      else if(!il && ir)
+        xHead += xStep;
+      else if(!il && !ir)
+        xHead += xRight;
+      else
+        assert(0);
+      }
+
+    // Add the last vertex
+    m_Walk.push_back(xStart);
+  }
+
+  virtual bool Paint(vtkContext2D *painter) override
+  {
+    // Check if the mouse is inside
+    if(!m_PaintbrushModel->IsMouseInside())
+      return false;
+
+    // Paint all the edges in the paintbrush definition
+    auto *as = m_Model->GetParentUI()->GetAppearanceSettings();
+    const auto *elt = as->GetUIElement(SNAPAppearanceSettings::PAINTBRUSH_OUTLINE);
+
+    // Build the mask edges
+    BuildBrush();
+
+    // Apply the line properties
+    this->ApplyAppearanceSettingsToPen(painter, elt);
+
+    // Get the brush position
+    Vector3d xPos = m_PaintbrushModel->GetCenterOfPaintbrushInSliceSpace();
+
+    // TODO: draw this as a loop instead of separate line segments
+    std::cout << "Drawing walk with " << m_Walk.size() << " vertices" << std::endl;
+    for(auto it = m_Walk.begin(); it != m_Walk.end(); ++it)
+      {
+      auto itNext = it; itNext++;
+      if(itNext == m_Walk.end())
+        itNext = m_Walk.begin();
+
+      painter->DrawLine(
+            (*it)(0) + xPos[0], (*it)(1) + xPos[1],
+            (*itNext)(0) + xPos[0], (*itNext)(1) + xPos[1]);
+      }
+
+    return true;
+  }
+
+protected:
+
+  PaintbrushModel *m_PaintbrushModel;
+
+  // Representation of the brush
+  std::list<Vector2d> m_Walk;
+};
+
+vtkStandardNewMacro(PaintbrushContextItem);
+
+
+void PaintbrushRenderer::SetModel(PaintbrushModel *model)
+{
+  m_Model = model;
+  m_ContextItem = vtkNew<PaintbrushContextItem>();
+  m_ContextItem->SetModel(m_Model->GetParent());
+  m_ContextItem->SetPaintbrushModel(m_Model);
 }
 
 
-
-void PaintbrushRenderer::paintGL()
+void PaintbrushRenderer::AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent)
 {
-  // Check if the mouse is inside
-  if(!m_Model->IsMouseInside())
-    return;
-
-  // Paint all the edges in the paintbrush definition
-  SNAPAppearanceSettings *as =
-      m_Model->GetParent()->GetParentUI()->GetAppearanceSettings();
-  const OpenGLAppearanceElement *elt =
-    as->GetUIElement(SNAPAppearanceSettings::PAINTBRUSH_OUTLINE);
-
-  // Build the mask edges
-  BuildBrush();
-
-  // Set line properties
-  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-
-  // Apply the line properties
-  elt->ApplyLineSettings();
-  elt->ApplyColor();
-
-  // Get the brush position
-  Vector3d xPos = m_Model->GetCenterOfPaintbrushInSliceSpace();
-
-  // Refit matrix so that the lines are centered on the current pixel
-  glPushMatrix();
-  glTranslated( xPos(0), xPos(1), 0.0 );
-
-  // Draw the lines around the point
-  glBegin(GL_LINE_LOOP);
-  for(std::list<Vector2d>::iterator it = m_Walk.begin(); it != m_Walk.end(); ++it)
-    glVertex2d((*it)(0), (*it)(1));
-  glEnd();
-
-  // Pop the matrix
-  glPopMatrix();
-
-  // Pop the attributes
-  glPopAttrib();
-
-
+  if(m_ContextItem)
+    parent->AddItem(m_ContextItem);
 }
