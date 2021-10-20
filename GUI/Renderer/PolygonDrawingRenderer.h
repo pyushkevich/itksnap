@@ -5,6 +5,7 @@
 #include "GenericSliceRenderer.h"
 
 class PolygonDrawingModel;
+class PolygonContextItem;
 
 class PolygonDrawingRenderer : public SliceRendererDelegate
 {
@@ -15,8 +16,9 @@ public:
   void paintGL() ITK_OVERRIDE;
 
   irisGetMacro(Model, PolygonDrawingModel *)
-  irisSetMacro(Model, PolygonDrawingModel *)
+  virtual void SetModel(PolygonDrawingModel *model);
 
+  void AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent) override;
 
 protected:
 
@@ -27,6 +29,9 @@ protected:
                double border_x = 0.0, double border_y = 0.0);
 
   PolygonDrawingModel *m_Model;
+
+  // Context item used to draw crosshairs
+  vtkSmartPointer<PolygonContextItem> m_ContextItem;
 
   // Colors used to draw polygon
   const static double m_DrawingModeColor[];

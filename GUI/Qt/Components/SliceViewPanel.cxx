@@ -33,6 +33,7 @@
 #include <QBitmap>
 #include <QToolButton>
 #include "AnnotationEditDialog.h"
+#include <vtkRenderWindow.h>
 
 #include <QStackedLayout>
 #include <QMenu>
@@ -300,6 +301,9 @@ void SliceViewPanel::onModelUpdate(const EventBucket &eb)
     {
     UpdateExpandViewButton();
     }
+
+  std::cout << "SliceViewPanel::onModelUpdate calling GetRenderWindow()::Render" << std::endl;
+  ui->sliceView->GetRenderWindow()->Render();
   ui->sliceView->update();
 }
 
@@ -387,8 +391,8 @@ void SliceViewPanel::OnToolbarModeChange()
   GenericSliceRenderer *ren = (GenericSliceRenderer *) ui->sliceView->GetRenderer();
 
   // Configure the renderers
-  GenericSliceRenderer::RendererDelegateList &ovTiled = ren->GetTiledOverlays();
-  GenericSliceRenderer::RendererDelegateList &ovGlobal = ren->GetGlobalOverlays();
+  GenericSliceRenderer::RendererDelegateList ovTiled;
+  GenericSliceRenderer::RendererDelegateList ovGlobal;
 
   // Append the overlays in the right order
   ovTiled.clear();
@@ -428,6 +432,10 @@ void SliceViewPanel::OnToolbarModeChange()
       ConfigureEventChain(ui->imZoomPan);
       break;
     }
+
+  // Set the overlays
+  ren->SetTiledOverlays(ovTiled);
+  ren->SetGlobalOverlays(ovTiled);
 
   // Need to change to the appropriate page
   QStackedLayout *loPages =
