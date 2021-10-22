@@ -369,7 +369,7 @@ void GenericSliceRenderer::OnUpdate()
     this->UpdateSceneAppearanceSettings();
     }
 
-  if(layers_changed || layer_layout_changed || zoom_pan_changed)
+  if(layers_changed || layer_layout_changed || zoom_pan_changed || layer_mapping_changed)
     {
     this->UpdateRendererCameras();
     this->UpdateZoomPanThumbnail();
@@ -660,6 +660,11 @@ void GenericSliceRenderer::UpdateRendererLayout()
 
 void GenericSliceRenderer::UpdateRendererCameras()
 {
+  // Get the transform parameters
+  auto v_zoom = m_Model->GetViewZoom();
+  auto v_pos = m_Model->GetViewPosition();
+  auto spacing = m_Model->GetSliceSpacing();
+
   for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
     auto *bla = GetBaseLayerAssembly(it.GetLayer());
@@ -667,20 +672,22 @@ void GenericSliceRenderer::UpdateRendererCameras()
       {
       auto ren = bla->m_Renderer;
       auto vp = m_Model->GetViewPosition();
-      ren->GetActiveCamera()->SetFocalPoint(vp[0], vp[1], 0.0);
-      ren->GetActiveCamera()->SetPosition(vp[0], vp[1], 1.0);
-      ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
+      //ren->GetActiveCamera()->SetFocalPoint(vp[0], vp[1], 0.0);
+      //ren->GetActiveCamera()->SetPosition(vp[0], vp[1], 1.0);
+      //ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
 
-      // Get the transform parameters
-      auto v_zoom = m_Model->GetViewZoom();
-      auto v_pos = m_Model->GetViewPosition();
-      auto spacing = m_Model->GetSliceSpacing();
+      auto rs = ren->GetSize();
+      ren->GetActiveCamera()->SetFocalPoint(rs[0] * 0.5, rs[1] * 0.5, 0.0);
+      ren->GetActiveCamera()->SetPosition(rs[0] * 0.5, rs[1] * 0.5, 2.0);
+      ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
+      ren->GetActiveCamera()->SetParallelScale(0.5 * rs[1]);
+
 
       // ParallelScale is the height of the viewport in world coordinate distances.
       // ViewZoom is the number of display pixels per physical mm
       double pscale = ren->GetSize()[1] / (2.0 * v_zoom);
       std::cout << "pscale is " << pscale << std::endl;
-      ren->GetActiveCamera()->SetParallelScale(pscale);
+      // ren->GetActiveCamera()->SetParallelScale(pscale);
 
       // Also update the transform for the overlay scene
       auto *tform = bla->m_OverlayContextTransform->GetTransform();
@@ -690,6 +697,23 @@ void GenericSliceRenderer::UpdateRendererCameras()
       tform->Scale(v_zoom, v_zoom);
       tform->Translate(-v_pos[0], -v_pos[1]);
       tform->Scale(spacing[0], spacing[1]);
+      }
+
+    auto *lta = GetLayerTextureAssembly(it.GetLayer());
+    if(lta)
+      {
+      auto sz = m_Model->GetViewportLayout().vpList.front().size;
+      if(it.GetLayer()->IsSlicingOrthogonal())
+        {
+        // Map the corners of the slice into the viewport coordinates
+        auto sc = m_Model->GetSliceCornersInWindowCoordinates();
+        lta->m_ImageRect->SetCorners(sc.first[0], sc.first[1], sc.second[0], sc.second[1]);
+        }
+      else
+        {
+        // Nonorthogonal slicing means we render into the whole viewport
+        lta->m_ImageRect->SetCorners(0, 0, sz[0], sz[1]);
+        }
       }
     }
 }
