@@ -169,15 +169,14 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->btnElementColor, elt->GetColorModel(), opts_elt);
   makeCoupling(ui->inElementOpacity, elt->GetAlphaModel(), opts_elt);
   makeCoupling(ui->inElementThickness, elt->GetLineThicknessModel(), opts_elt);
-  makeCoupling(ui->inElementDashSpacing, elt->GetDashSpacingModel(), opts_elt);
+  makeCoupling(ui->inElementLineType, elt->GetLineTypeModel(), opts_elt);
   makeCoupling(ui->inElementFontSize, elt->GetFontSizeModel(), opts_elt);
-  makeCoupling(ui->chkElementAntiAlias, elt->GetSmoothModel(), opts_elt);
 
   // Make sure the labels are activated along with the widgets
   activateOnFlag(ui->labelElementColor, elt->GetColorModel(), UIF_PROPERTY_IS_VALID);
   activateOnFlag(ui->labelElementOpacity, elt->GetColorModel(), UIF_PROPERTY_IS_VALID);
   activateOnFlag(ui->labelElementLineThickness, elt->GetLineThicknessModel(), UIF_PROPERTY_IS_VALID);
-  activateOnFlag(ui->labelElementDashSpacing, elt->GetDashSpacingModel(), UIF_PROPERTY_IS_VALID);
+  activateOnFlag(ui->labelElementLineType, elt->GetLineTypeModel(), UIF_PROPERTY_IS_VALID);
   activateOnFlag(ui->labelElementFontSize, elt->GetFontSizeModel(), UIF_PROPERTY_IS_VALID);
 
   // Hook up activation for the appearance panel

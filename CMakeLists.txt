@@ -538,6 +538,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/SnakeModeRenderer.cxx
   GUI/Renderer/ThresholdSettingsRenderer.cxx
   GUI/Renderer/TexturedRectangleAssembly.cxx
+  GUI/Renderer/VTKRenderGeometry.cxx
   GUI/Renderer/Window3DPicker.cxx
   GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.cxx
   GUI/Renderer/OrientationWidget/Reorient/AxesWidget.cxx
@@ -619,6 +620,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/SnakeModeRenderer.h
   GUI/Renderer/TexturedRectangleAssembly.h
   GUI/Renderer/ThresholdSettingsRenderer.h
+  GUI/Renderer/VTKRenderGeometry.h
   GUI/Renderer/Window3DPicker.h
   GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.h
   GUI/Renderer/OrientationWidget/Reorient/AxesWidget.h
@@ -676,7 +678,7 @@ SET(UI_QT_CXX
   GUI/Qt/External/ColorWheel/ColorWheel.cxx
   GUI/Qt/ModelView/GMMTableModel.cxx
   GUI/Qt/View/AnnotationInteractionMode.cxx
-  GUI/Qt/View/ColorMapBox.cxx
+  GUI/Qt/View/ColorMapInteractionDelegate.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
   GUI/Qt/View/GenericView3D.cxx
@@ -772,7 +774,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/External/ColorWheel/ColorWheel.h
   GUI/Qt/ModelView/GMMTableModel.h
   GUI/Qt/View/AnnotationInteractionMode.h
-  GUI/Qt/View/ColorMapBox.h
+  GUI/Qt/View/ColorMapInteractionDelegate.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/GenericView3D.h

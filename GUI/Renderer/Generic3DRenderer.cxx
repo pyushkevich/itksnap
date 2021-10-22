@@ -359,10 +359,11 @@ void Generic3DRenderer::UpdateAxisRendering()
       vtkProperty *prop = m_AxisActor[i]->GetProperty();
       prop->SetColor(axisapp->GetColor().data_block());
       prop->SetOpacity(axisapp->GetAlpha());
-      if(axisapp->GetDashSpacing() > 0)
+      if(axisapp->GetLineType() > vtkPen::SOLID_LINE)
         {
+        // TODO: reconcile this with 2D line style stuff
         prop->SetLineStipplePattern(0x9999);
-        prop->SetLineStippleRepeatFactor(static_cast<int>(axisapp->GetDashSpacing()));
+        // prop->SetLineStippleRepeatFactor(static_cast<int>(axisapp->GetDashSpacing()));
         prop->SetLineWidth(axisapp->GetLineThickness());
         m_AxisActor[i]->SetVisibility(axisapp->GetVisible());
         }

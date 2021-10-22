@@ -2,6 +2,7 @@
 #include "GenericSliceModel.h"
 #include "SNAPAppearanceSettings.h"
 #include <vtkContext2D.h>
+#include <vtkPoints2D.h>
 #include <vtkPen.h>
 
 void GenericSliceContextItem
@@ -11,16 +12,7 @@ void GenericSliceContextItem
   painter->GetPen()->SetColorF(as->GetColor().data_block());
   painter->GetPen()->SetWidth(as->GetLineThickness() * GetVPPR());
   painter->GetPen()->SetOpacityF(as->GetAlpha());
-  if(as->GetDashSpacing() >= 4)
-    painter->GetPen()->SetLineType(vtkPen::DASH_DOT_DOT_LINE);
-  else if(as->GetDashSpacing() >= 3)
-    painter->GetPen()->SetLineType(vtkPen::DASH_DOT_LINE);
-  else if(as->GetDashSpacing() >= 2)
-    painter->GetPen()->SetLineType(vtkPen::DOT_LINE);
-  else if(as->GetDashSpacing() >= 1)
-    painter->GetPen()->SetLineType(vtkPen::DASH_LINE);
-  else
-    painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
+  painter->GetPen()->SetLineType(as->GetLineType());
 }
 
 void GenericSliceContextItem::DrawRectNoFill(

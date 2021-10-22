@@ -16,11 +16,12 @@ public:
 
   virtual void paintGL() ITK_OVERRIDE;
 
-  irisGetMacro(Model, AnnotationModel *)
 
+  irisGetMacro(Model, AnnotationModel *)
   void SetModel(AnnotationModel *model);
 
-  virtual void AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent) override;
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *base_layer) override;
 
 protected:
 
@@ -28,7 +29,7 @@ protected:
   virtual ~AnnotationRenderer() {}
 
   AnnotationModel *m_Model;
-  vtkSmartPointer<AnnotationContextItem> m_ContextItem;
+
   void DrawLineLength(const Vector3d &xSlice1, const Vector3d &xSlice2,
                       const Vector3d &color, double alpha);
 

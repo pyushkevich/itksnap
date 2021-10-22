@@ -137,6 +137,7 @@ QtViewportReporter::EventFilter
 {
   if(object == m_Owner->m_ClientWidget && event->type() == QEvent::Resize)
     {
+    std::cout << "FIRING ViewportResizeEvent() size " << m_Owner->GetLogicalViewportSize() << std::endl;
     m_Owner->InvokeEvent(ViewportResizeEvent());
     }
   return QObject::eventFilter(object, event);

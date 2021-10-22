@@ -297,14 +297,15 @@ public:
   // properties such as the point color
   virtual bool Paint(vtkContext2D *painter) override
   {
+    float vppr = m_Model->GetViewportReporter()->GetViewportPixelRatio();
     painter->GetBrush()->SetColor(255, 0, 0, 255);
+    painter->GetBrush()->SetTexture(nullptr);
     painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
-    painter->GetPen()->SetWidth(1.2);
-    painter->GetPen()->SetColor(0, 0, 0, 128);
+    painter->GetPen()->SetWidth(1.2 * vppr);
+    painter->GetPen()->SetColor(0, 0, 0, 192);
 
     // When expressing anything in screen pixel units, we need to watch out
     // for retina displays
-    float vppr = m_Model->GetViewportReporter()->GetViewportPixelRatio();
     this->ScreenPointRadius = 5 * vppr;
     this->DrawUnselectedPoints(painter);
 
@@ -409,7 +410,7 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   m_CurvePlot = m_Chart->AddPlot(vtkChart::LINE);
   m_CurvePlot->SetInputData(m_PlotTable, 0, 1);
   m_CurvePlot->SetColor(1, 0, 0);
-  m_CurvePlot->SetWidth(1.0);
+  m_CurvePlot->SetOpacity(0.85);
   m_CurvePlot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
   m_CurvePlot->GetYAxis()->SetMinimumLimit(-0.1);
   m_CurvePlot->GetYAxis()->SetMinimum(-0.1);
@@ -584,5 +585,6 @@ IntensityCurveVTKRenderer
 
 void IntensityCurveVTKRenderer::OnDevicePixelRatioChange(int old_ratio, int new_ratio)
 {
+  this->m_CurvePlot->SetWidth(1.5 * new_ratio);
   this->UpdateChartDevicePixelRatio(m_Chart, old_ratio, new_ratio);
 }

@@ -1,21 +1,22 @@
 #ifndef COLORMAPRENDERER_H
 #define COLORMAPRENDERER_H
 
-#include "AbstractRenderer.h"
+#include "AbstractVTKSceneRenderer.h"
 
 class ColorMapModel;
+class vtkRenderWindow;
+class ColorMapContextItem;
 
-class ColorMapRenderer : public AbstractRenderer
+class ColorMapRenderer : public AbstractVTKSceneRenderer
 {
 public:
-  irisITKObjectMacro(ColorMapRenderer, AbstractRenderer)
+  irisITKObjectMacro(ColorMapRenderer, AbstractVTKSceneRenderer)
 
 
   void SetModel(ColorMapModel *model);
+  void OnUpdate() override;
 
-  void resizeGL(int w, int h, int device_pixel_ratio) ITK_OVERRIDE;
-  void paintGL() ITK_OVERRIDE;
-
+  virtual void paintGL() override;
 protected:
 
   ColorMapRenderer();
@@ -23,8 +24,7 @@ protected:
 
   ColorMapModel *m_Model;
 
-
-  unsigned int m_TextureId;
+  vtkSmartPointer<ColorMapContextItem> m_ContextItem;
   unsigned int m_Width, m_Height;
 };
 

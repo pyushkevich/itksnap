@@ -76,7 +76,8 @@ public:
    * The ContextScene will have the transform set to use the slice coordinate
    * system
    */
-  virtual void AddContextItemsToTiledOverlay(vtkAbstractContextItem *) {}
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *base_layer) {};
 
   /**
    * This method should be overridden by child class to add any context items

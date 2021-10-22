@@ -1,44 +1,13 @@
-#include "ColorMapBox.h"
+#include "ColorMapInteractionDelegate.h"
 #include "ColorMapRenderer.h"
 #include "ColorMapModel.h"
 #include "ColorMapInspector.h"
 #include <QPalette>
 #include <QWidget>
 
-ColorMapBox::ColorMapBox(QWidget *parent)
-  : QtAbstractOpenGLBox(parent)
+void ColorMapInteractionDelegate::mousePressEvent(QMouseEvent *)
 {
-  m_Model = NULL;
-  m_Renderer = ColorMapRenderer::New();
-  m_Delegate = new ColorMapInteractionDelegate(this);
-
-  // attach delegate
-  AttachSingleDelegate(m_Delegate);
-}
-
-ColorMapBox::~ColorMapBox()
-{
-}
-
-void ColorMapBox::SetModel(ColorMapModel *model)
-{
-  m_Model = model;
-  m_Renderer->SetModel(model);
-  m_Delegate->SetModel(model);
-
-  connectITK(m_Model, ModelUpdateEvent());
-}
-
-void ColorMapBox::onModelUpdate(const EventBucket &bucket)
-{
-  this->update();
-}
-
-
-
-
-void ColorMapInteractionDelegate::mousePressEvent(QMouseEvent *ev)
-{
+  std::cout << "Event here " << m_XSpace << std::endl;
   m_Model->ProcessMousePressEvent(m_XSpace);
 }
 

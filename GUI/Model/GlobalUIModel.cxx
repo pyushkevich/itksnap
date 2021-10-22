@@ -538,7 +538,7 @@ void GlobalUIModel::LoadUserPreferences()
 
   // Read the appearance settings
   m_AppearanceSettings->LoadFromRegistry(
-        si->Folder("UserInterface.Appearance"));
+        si->Folder("UserInterface.AppearanceVTK"));
 
   // Read the default behaviors
   dbs->ReadFromRegistry(
@@ -585,7 +585,7 @@ void GlobalUIModel::SaveUserPreferences()
 
   // Write the appearance settings
   m_AppearanceSettings->SaveToRegistry(
-        si->Folder("UserInterface.Appearance"));
+        si->Folder("UserInterface.AppearanceVTK"));
 
   // Write the default behaviors
   m_Driver->GetGlobalState()->GetDefaultBehaviorSettings()->WriteToRegistry(

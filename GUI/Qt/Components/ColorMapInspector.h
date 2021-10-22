@@ -7,6 +7,8 @@
 
 class QtViewportReporter;
 class ColorMapModel;
+class ColorMapRenderer;
+class ColorMapInteractionDelegate;
 
 namespace Ui {
     class ColorMapInspector;
@@ -47,6 +49,12 @@ private:
 
   // Model object
   ColorMapModel *m_Model;
+
+  // Interaction delegate for the color map widget
+  ColorMapInteractionDelegate *m_ColorMapDelegate;
+
+  // Renderer for the curve box
+  SmartPtr<ColorMapRenderer> m_ColorMapRenderer;
 
   // Viewport reporter for the curve box
   SmartPtr<QtViewportReporter> m_ColorMapBoxViewportReporter;

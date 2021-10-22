@@ -252,6 +252,9 @@ public:
   void clear()
     { m_Map.clear(); }
 
+  const MapType &GetMap() const
+    { return m_Map; }
+
   TVal GetValue(const const_iterator &it) const
     { return it->first; }
 

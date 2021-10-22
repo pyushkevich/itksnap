@@ -414,7 +414,7 @@ MultiLabelMeshPipelineTable::printMeshSize()
         LabelType lbl = mit->first;
         auto pMesh = mit->second;
         unsigned long size = pMesh->GetActualMemorySize();
-        printf("Label %d: %ul KB\n", lbl, size);
+        printf("Label %d: %d KB\n", lbl, (int) size);
         totalSize += size / 1024.0;
       }
     cout << "Total Size: " << totalSize << " MB" << endl;

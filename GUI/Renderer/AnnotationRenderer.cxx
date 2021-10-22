@@ -628,19 +628,19 @@ void AnnotationRenderer::SetModel(AnnotationModel *model)
 
   // Respond to current tool mode
   m_Model->Rebroadcast(gs->GetToolbarModeModel(), ValueChangedEvent(), ModelUpdateEvent());
-
-  // Set up the context item
-  m_ContextItem = vtkNew<AnnotationContextItem>();
-  m_ContextItem->SetModel(m_Model->GetParent());
-  m_ContextItem->SetAnnotationModel(m_Model);
 }
 
-void AnnotationRenderer::AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent)
+void AnnotationRenderer::AddContextItemsToTiledOverlay(
+    vtkAbstractContextItem *parent, ImageWrapperBase *)
 {
-  if(m_ContextItem)
-    parent->AddItem(m_ContextItem);
+  if(m_Model)
+    {
+    vtkNew<AnnotationContextItem> ci;
+    ci->SetModel(m_Model->GetParent());
+    ci->SetAnnotationModel(m_Model);
+    parent->AddItem(ci);
+    }
 }
-
 
 void AnnotationRenderer::DrawSelectionHandle(const Vector3d &xSlice)
 {

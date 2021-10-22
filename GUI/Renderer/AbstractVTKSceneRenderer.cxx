@@ -10,6 +10,8 @@
 #include <vtkPlot.h>
 #include <vtkPen.h>
 #include <vtkAxis.h>
+#include <vtkContextInteractorStyle.h>
+#include <vtkRenderWindowInteractor.h>
 
 
 AbstractVTKSceneRenderer::AbstractVTKSceneRenderer()
@@ -33,6 +35,12 @@ void AbstractVTKSceneRenderer::SetRenderWindow(vtkRenderWindow *rwin)
 
   // Assign to context view
   m_ContextView->SetRenderWindow(m_RenderWindow);
+  m_ContextView->SetInteractor(m_RenderWindow->GetInteractor());
+  vtkNew<vtkContextInteractorStyle> style;
+  style->SetScene(m_ContextView->GetScene());
+  m_ContextView->GetInteractor()->SetInteractorStyle(style);
+
+  std::cout << "INTERACTOR on " << m_ContextView << " SET TO " << m_RenderWindow->GetInteractor() << std::endl;
 }
 
 void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(

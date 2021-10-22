@@ -100,13 +100,17 @@ SliceWindowCoordinator
 
 void SliceWindowCoordinator::OnUpdate()
 {
+  // Update each of the models before proceeding
+  for(unsigned int i = 0; i < 3; i++)
+    m_SliceModel[i]->Update();
+
   // Has a new main image been loaded
   if(this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
     {
     // Update each of the slice models, allowing them to respond to the main image
     // dimensions change
-    for(unsigned int i = 0; i < 3; i++)
-      m_SliceModel[i]->Update();
+    // for(unsigned int i = 0; i < 3; i++)
+    //   m_SliceModel[i]->Update();
 
     // Reset the view to fit (depending on linked zoom)
     if(m_ParentModel->GetDriver()->IsMainImageLoaded())
@@ -128,7 +132,9 @@ void SliceWindowCoordinator::OnUpdate()
 
       // Recompute the optimal zoom in each of the views
       for(unsigned int i = 0; i < 3; i++)
+        {
         m_SliceModel[i]->ComputeOptimalZoom();
+        }
 
       // Optionally, reset the view
       if(rezoom)

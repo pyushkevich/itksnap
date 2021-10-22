@@ -31,28 +31,28 @@ using namespace std;
 const int 
 SNAPAppearanceSettings
 ::m_Applicable[SNAPAppearanceSettings::ELEMENT_COUNT][OpenGLAppearanceElement::FEATURE_COUNT] = {
-    { 1, 1, 1, 0, 1, 1 },    // Crosshairs
-    { 1, 0, 0, 1, 1, 1 },    // Markers
-    { 1, 1, 1, 0, 0, 1 },    // ROI
-    { 1, 1, 1, 0, 0, 1 },    // ROI_BOX_ACTIVE
-    { 1, 0, 0, 0, 0, 0 },    // Slice Background
-    { 1, 0, 0, 0, 0, 0 },    // 3D Background
-    { 1, 1, 1, 0, 1, 1 },    // Zoom thumbnail
-    { 1, 1, 1, 0, 1, 1 },    // Zoom viewport
-    { 1, 1, 1, 0, 1, 1 },    // 3D Crosshairs
-    { 1, 1, 1, 0, 1, 1 },    // Thumbnail Crosshairs
-    { 1, 1, 1, 0, 1, 1 },    // 3D Image Box
-    { 1, 1, 1, 0, 1, 1 },    // 3D ROI Box
-    { 1, 1, 1, 0, 1, 1 },    // Paintbrush outline
-    { 1, 1, 0, 1, 1, 1 },    // Rulers
-    { 1, 1, 1, 0, 0, 1 },    // POLY_DRAW_MAIN
-    { 1, 1, 1, 0, 1, 1 },    // POLY_DRAW_CLOSE
-    { 1, 1, 1, 0, 0, 1 },    // POLY_EDIT
-    { 1, 1, 1, 0, 0, 1 },    // POLY_EDIT_SELECT
-    { 1, 1, 1, 0, 0, 1 },    // REGISTRATION_WIDGETS
-    { 1, 1, 1, 0, 0, 1 },    // REGISTRATION_WIDGETS_ACTIVE
-    { 1, 1, 1, 0, 0, 1 },    // REGISTRATION_GRID
-    { 1, 1, 0, 0, 0, 1 }     // GRID_LINES
+    { 1, 1, 1, 0, 1 },    // Crosshairs
+    { 1, 0, 0, 1, 1 },    // Markers
+    { 1, 1, 1, 0, 0 },    // ROI
+    { 1, 1, 1, 0, 0 },    // ROI_BOX_ACTIVE
+    { 1, 0, 0, 0, 0 },    // Slice Background
+    { 1, 0, 0, 0, 0 },    // 3D Background
+    { 1, 1, 1, 0, 1 },    // Zoom thumbnail
+    { 1, 1, 1, 0, 1 },    // Zoom viewport
+    { 1, 1, 1, 0, 1 },    // 3D Crosshairs
+    { 1, 1, 1, 0, 1 },    // Thumbnail Crosshairs
+    { 1, 1, 1, 0, 1 },    // 3D Image Box
+    { 1, 1, 1, 0, 1 },    // 3D ROI Box
+    { 1, 1, 1, 0, 1 },    // Paintbrush outline
+    { 1, 1, 0, 1, 1 },    // Rulers
+    { 1, 1, 1, 0, 0 },    // POLY_DRAW_MAIN
+    { 1, 1, 1, 0, 1 },    // POLY_DRAW_CLOSE
+    { 1, 1, 1, 0, 0 },    // POLY_EDIT
+    { 1, 1, 1, 0, 0 },    // POLY_EDIT_SELECT
+    { 1, 1, 1, 0, 0 },    // REGISTRATION_WIDGETS
+    { 1, 1, 1, 0, 0 },    // REGISTRATION_WIDGETS_ACTIVE
+    { 1, 1, 1, 0, 0 },    // REGISTRATION_GRID
+    { 1, 1, 0, 0, 0 }     // GRID_LINES
     };
 
 void 
@@ -72,196 +72,167 @@ SNAPAppearanceSettings
   // Crosshairs
   elt = m_DefaultElementSettings[CROSSHAIRS];
   elt->SetColor(Vector3d(0.3, 0.3, 1.0));
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(1);
-  elt->SetFontSize(0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::DASH_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // Markers
   elt = m_DefaultElementSettings[MARKERS];
   elt->SetColor(Vector3d(1.0, 0.75, 0.0));
-  elt->SetLineThickness(0.0);
-  elt->SetDashSpacing(0);
   elt->SetFontSize(16);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // ROI
   elt = m_DefaultElementSettings[ROI_BOX];
   elt->SetColor(Vector3d(1.0, 0.0, 0.2));
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(3);
-  elt->SetFontSize(0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(2.0);
+  elt->SetLineType(vtkPen::DASH_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // ROI (active)
   elt = m_DefaultElementSettings[ROI_BOX_ACTIVE];
   elt->SetColor(Vector3d(1.0, 1.0, 0.2));
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(3);
-  elt->SetFontSize(0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(2.0);
+  elt->SetLineType(vtkPen::DASH_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // Slice background
   elt = m_DefaultElementSettings[BACKGROUND_3D];
   elt->SetColor(Vector3d(0.0, 0.0, 0.0));
-  elt->SetLineThickness(0.0);
-  elt->SetDashSpacing(0);
-  elt->SetFontSize(0);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // 3D Window background
   elt = m_DefaultElementSettings[BACKGROUND_3D];
   elt->SetColor(Vector3d(0.0, 0.0, 0.0));
-  elt->SetLineThickness(0.0);
-  elt->SetDashSpacing(0);
-  elt->SetFontSize(0);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // Zoom thumbail
   elt = m_DefaultElementSettings[ZOOM_THUMBNAIL];
   elt->SetColor(Vector3d(1.0, 1.0, 0.0));
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(0);
-  elt->SetFontSize(0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // Zoom viewport marker
   elt = m_DefaultElementSettings[ZOOM_VIEWPORT];
   elt->SetColor(Vector3d(1.0, 1.0, 1.0));
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(0);
-  elt->SetFontSize(0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // 3D crosshairs
   elt = m_DefaultElementSettings[CROSSHAIRS_3D];
   elt->SetColor(Vector3d(0.3, 0.3, 1.0));
   elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(1);
-  elt->SetFontSize(0);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(true);
 
   // Thumbnail crosshairs
   elt = m_DefaultElementSettings[CROSSHAIRS_THUMB];
   elt->SetColor(Vector3d(0.3, 0.3, 1.0));
   elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(1);
-  elt->SetFontSize(0);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // Thumbnail crosshairs
   elt = m_DefaultElementSettings[IMAGE_BOX_3D];
   elt->SetColor(Vector3d(0.2, 0.2, 0.2));
   elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(1);
-  elt->SetFontSize(0);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // Thumbnail crosshairs
   elt = m_DefaultElementSettings[ROI_BOX_3D];
   elt->SetColor(Vector3d(1.0, 0.0, 0.2));
   elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(3);
-  elt->SetFontSize(0);
+  elt->SetLineType(vtkPen::DASH_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
-   
+
   // Paintbrush outline
   elt = m_DefaultElementSettings[PAINTBRUSH_OUTLINE];
   elt->SetColor(Vector3d(1.0, 0.0, 0.2));
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(1);
-  elt->SetFontSize(0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(false);
 
   // Markers
   elt = m_DefaultElementSettings[RULER];
   elt->SetColor(Vector3d(0.3, 1.0, 0.0));
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetFontSize(12);
   elt->SetVisible(true);
-  elt->SetSmooth(true);
 
   // Polygon outline (drawing)
   elt = m_DefaultElementSettings[POLY_DRAW_MAIN];
   elt->SetColor(Vector3d(1.0, 0.0, 0.5));
-  elt->SetLineThickness(2.0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(true);
 
   // Polygon outline (completion)
   elt = m_DefaultElementSettings[POLY_DRAW_CLOSE];
   elt->SetColor(Vector3d(1.0, 0.0, 0.5));
-  elt->SetLineThickness(2.0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(false);
-  elt->SetDashSpacing(1);
-  elt->SetSmooth(true);
 
   // Polygon outline (editing)
   elt = m_DefaultElementSettings[POLY_EDIT];
   elt->SetColor(Vector3d(1.0, 0.0, 0.0));
-  elt->SetLineThickness(2.0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(true);
 
   // Polygon outline (editing, selected)
   elt = m_DefaultElementSettings[POLY_EDIT_SELECT];
   elt->SetColor(Vector3d(0.0, 1.0, 0.0));
-  elt->SetLineThickness(2.0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(true);
 
   // Registration widget
   elt = m_DefaultElementSettings[REGISTRATION_WIDGETS];
   elt->SetColor(Vector3d(1.0, 1.0, 1.0));
-  elt->SetAlpha(0.25);
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(0);
-  elt->SetFontSize(0);
+  elt->SetAlpha(0.4);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(true);
 
   // Registration widget
   elt = m_DefaultElementSettings[REGISTRATION_WIDGETS_ACTIVE];
   elt->SetColor(Vector3d(1.0, 1.0, 0.4));
-  elt->SetAlpha(1.0);
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(0);
-  elt->SetFontSize(0);
+  elt->SetAlpha(0.6);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(true);
 
   // Registration widget
   elt = m_DefaultElementSettings[REGISTRATION_GRID];
   elt->SetColor(Vector3d(0.8, 0.8, 0.8));
   elt->SetAlpha(0.25);
-  elt->SetLineThickness(0.5);
-  elt->SetDashSpacing(0);
-  elt->SetFontSize(0);
+  elt->SetLineThickness(1.25);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(true);
 
   // Warp grid lines
   elt = m_DefaultElementSettings[GRID_LINES];
   elt->SetColor(Vector3d(1.0, 1.0, 0.0));
-  elt->SetLineThickness(1.0);
-  elt->SetDashSpacing(0);
-  elt->SetFontSize(0);
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisible(true);
-  elt->SetSmooth(true);
 }
 
 const char *
@@ -412,10 +383,9 @@ void OpenGLAppearanceElement::SetValid(const int validity[])
   m_ColorModel->SetIsValid(validity[COLOR]);
   m_AlphaModel->SetIsValid(validity[COLOR]);
   m_LineThicknessModel->SetIsValid(validity[LINE_THICKNESS]);
-  m_DashSpacingModel->SetIsValid(validity[DASH_SPACING]);
+  m_LineTypeModel->SetIsValid(validity[LINE_TYPE]);
   m_FontSizeModel->SetIsValid(validity[FONT_SIZE]);
   m_VisibleModel->SetIsValid(validity[VISIBLE]);
-  m_SmoothModel->SetIsValid(validity[SMOOTH]);
 }
 
 void OpenGLAppearanceElement::ApplyColor() const
@@ -426,6 +396,7 @@ void OpenGLAppearanceElement::ApplyColor() const
 void OpenGLAppearanceElement
 ::ApplyLineSettings(bool applyThickness, bool applyStipple) const
 {
+  /*
   // Apply the transparency settings if smoothing is on or non-1 alpha
   if(GetSmooth() || GetAlpha() < 1.0)
     {
@@ -451,6 +422,7 @@ void OpenGLAppearanceElement
     glLineStipple( static_cast<GLint>(GetDashSpacing()),
                    0x9999 ); // 0011 0011 0011 0011  // 1001 1001 1001 1001
     }
+    */
 }
 
 OpenGLAppearanceElement::OpenGLAppearanceElement()
@@ -460,13 +432,23 @@ OpenGLAppearanceElement::OpenGLAppearanceElement()
                         Vector3d(0.0), Vector3d(0.0), Vector3d(1.0), Vector3d(0.01));
 
   m_AlphaModel =
-      NewRangedProperty("NormalAlpha", 1.0, 0.0, 1.0, 0.01);
+      NewRangedProperty("NormalAlpha", 1.0, 0.0, 1.0, 0.05);
 
   m_LineThicknessModel =
       NewRangedProperty("LineThickness", 0.0, 0.0, 5.0, 0.1);
 
-  m_DashSpacingModel =
-      NewRangedProperty("DashSpacing", 0, 0, 9, 1);
+  // Set up the domain for the line type property
+  LineTypeDomain ltd;
+  ltd[vtkPen::NO_PEN] = "None";
+  ltd[vtkPen::SOLID_LINE] = "Solid";
+  ltd[vtkPen::DASH_LINE] = "Dashed";
+  ltd[vtkPen::DOT_LINE] = "Dotted";
+  ltd[vtkPen::DASH_DOT_LINE] = "Dash,Dot";
+  ltd[vtkPen::DASH_DOT_DOT_LINE] = "Dash,Dot,Dot";
+
+  // Create and register the line type property
+  m_LineTypeModel = NewConcreteProperty((int) vtkPen::NO_PEN, ltd);
+  this->RegisterEnumProperty("LineType", m_LineTypeModel, ltd.GetMap());
 
   m_FontSizeModel =
       NewRangedProperty("FontSize", 0, 0, 36, 1);
