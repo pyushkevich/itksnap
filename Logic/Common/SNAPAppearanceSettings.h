@@ -46,27 +46,29 @@
 #include "AbstractPropertyContainerModel.h"
 #include "GlobalState.h"
 
+#include <vtkPen.h>
 
 class OpenGLAppearanceElement : public AbstractPropertyContainerModel
 {
 public:
   irisITKObjectMacro(OpenGLAppearanceElement, AbstractPropertyContainerModel)
 
+  typedef SimpleItemSetDomain<int, std::string> LineTypeDomain;
+  typedef AbstractPropertyModel<int, LineTypeDomain> AbstractLineTypeModel;
+
   irisRangedPropertyAccessMacro(Color, Vector3d)
   irisRangedPropertyAccessMacro(Alpha, double)
 
   irisRangedPropertyAccessMacro(LineThickness, double)
-  irisRangedPropertyAccessMacro(DashSpacing, int)
+  irisGenericPropertyAccessMacro(LineType, int, LineTypeDomain)
   irisRangedPropertyAccessMacro(FontSize, int)
-
   irisSimplePropertyAccessMacro(Visible, bool)
-  irisSimplePropertyAccessMacro(Smooth, bool)
 
   /** An enumeration of the fields that an element may possess */
   enum UIElementFeatures
     {
-    COLOR = 0, LINE_THICKNESS, DASH_SPACING,
-    FONT_SIZE, VISIBLE, SMOOTH, FEATURE_COUNT
+    COLOR = 0, LINE_THICKNESS, LINE_TYPE,
+    FONT_SIZE, VISIBLE, FEATURE_COUNT
     };
 
   // Set the validity of all the properties at once using an int array
@@ -81,9 +83,11 @@ public:
 
 protected:
 
+  typedef ConcretePropertyModel<int, LineTypeDomain> ConcreteLineTypeModel;
+
   SmartPtr<ConcreteRangedDoubleVec3Property> m_ColorModel;
   SmartPtr<ConcreteRangedDoubleProperty> m_AlphaModel, m_LineThicknessModel;
-  SmartPtr<ConcreteRangedIntProperty> m_DashSpacingModel;
+  SmartPtr<ConcreteLineTypeModel> m_LineTypeModel;
   SmartPtr<ConcreteRangedIntProperty> m_FontSizeModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_VisibleModel, m_SmoothModel;
 

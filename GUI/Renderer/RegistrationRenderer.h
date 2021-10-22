@@ -12,8 +12,10 @@ class RegistrationRenderer : public SliceRendererDelegate
 public:
   irisITKObjectMacro(RegistrationRenderer, SliceRendererDelegate)
 
-  irisSetMacro(Model, InteractiveRegistrationModel *)
-  irisGetMacro(Model, InteractiveRegistrationModel *)
+  irisGetSetMacro(Model, InteractiveRegistrationModel *)
+
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *) override;
 
   void paintGL() ITK_OVERRIDE;
 

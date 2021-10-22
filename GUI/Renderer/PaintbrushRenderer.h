@@ -3,7 +3,6 @@
 
 #include "GenericSliceRenderer.h"
 
-class PaintbrushContextItem;
 class PaintbrushModel;
 
 class PaintbrushRenderer : public SliceRendererDelegate
@@ -12,10 +11,10 @@ public:
 
   irisITKObjectMacro(PaintbrushRenderer, SliceRendererDelegate)
 
-  irisGetMacro(Model, PaintbrushModel *)
-  virtual void SetModel(PaintbrushModel *model);
+  irisGetSetMacro(Model, PaintbrushModel *)
 
-  void AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent) override;
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *) override;
 
   void paintGL() ITK_OVERRIDE {};
 
@@ -25,9 +24,6 @@ protected:
   virtual ~PaintbrushRenderer() {}
 
   PaintbrushModel *m_Model;
-
-  // Context item used to draw crosshairs
-  vtkSmartPointer<PaintbrushContextItem> m_ContextItem;
 
 };
 

@@ -391,17 +391,15 @@ PolygonDrawingRenderer
   glPopAttrib();
 }
 
-void PolygonDrawingRenderer::SetModel(PolygonDrawingModel *model)
+void PolygonDrawingRenderer::AddContextItemsToTiledOverlay(
+    vtkAbstractContextItem *parent, ImageWrapperBase *)
 {
-  m_ContextItem = vtkNew<PolygonContextItem>();
-  m_ContextItem->SetModel(model->GetParent());
-  m_ContextItem->SetPolygonModel(model);
-  m_Model = model;
-}
-
-void PolygonDrawingRenderer::AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent)
-{
-  if(m_ContextItem)
-    parent->AddItem(m_ContextItem);
+  if(m_Model)
+    {
+    vtkNew<PolygonContextItem> ci;
+    ci->SetModel(m_Model->GetParent());
+    ci->SetPolygonModel(m_Model);
+    parent->AddItem(ci);
+    }
 }
 

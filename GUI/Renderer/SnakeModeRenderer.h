@@ -16,6 +16,9 @@ public:
   irisITKObjectMacro(SnakeModeRenderer, SliceRendererDelegate)
   irisGetSetMacro(Model, SnakeWizardModel *)
 
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *) override;
+
   void paintGL() ITK_OVERRIDE;
 
 protected:

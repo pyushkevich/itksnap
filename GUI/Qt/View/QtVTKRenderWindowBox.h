@@ -48,7 +48,8 @@ public slots:
 
 protected:
 
-  // QtVTKInteractionDelegateWidget *m_InteractionDelegate;
+  // Interaction delegate
+  QtVTKInteractionDelegateWidget *m_InteractionDelegate;
 
   virtual void paintGL() override;
   virtual void initializeGL() override;
@@ -73,7 +74,5 @@ protected:
   vtkSmartPointer<vtkPolyDataMapper> mapper;
   vtkSmartPointer<vtkActor> actor;
   vtkSmartPointer<vtkRenderer> renderer;
-  vtkSmartPointer<vtkGenericOpenGLRenderWindow> window;
-
 };
 #endif // QTVTKRENDERWINDOWBOX_H

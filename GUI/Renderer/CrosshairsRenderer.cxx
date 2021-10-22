@@ -102,17 +102,15 @@ CrosshairsRenderer::CrosshairsRenderer()
   m_Model = NULL;
 }
 
-void CrosshairsRenderer::SetModel(OrthogonalSliceCursorNavigationModel *model)
+void CrosshairsRenderer::AddContextItemsToTiledOverlay(
+    vtkAbstractContextItem *parent, ImageWrapperBase *)
 {
-  m_ContextItem = vtkNew<CrosshairsContextItem>();
-  m_ContextItem->SetModel(model->GetParent());
-  m_Model = model;
-}
-
-void CrosshairsRenderer::AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent)
-{
-  if(m_ContextItem)
-    parent->AddItem(m_ContextItem);
+  if(m_Model)
+    {
+    vtkNew<CrosshairsContextItem> ci;
+    ci->SetModel(m_Model->GetParent());
+    parent->AddItem(ci);
+    }
 }
 
 void CrosshairsRenderer::paintGL()

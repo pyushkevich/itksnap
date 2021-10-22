@@ -29,9 +29,7 @@
 QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   QVTKOpenGLNativeWidget(parent)
 {
-  // this->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
-  // m_InteractionDelegate = new QtVTKInteractionDelegateWidget(this);
-  // this->AttachSingleDelegate(m_InteractionDelegate);
+  //this->AttachSingleDelegate(m_InteractionDelegate);
 
   // Create a sphere
   sphereSource = vtkSmartPointer<vtkSphereSource>::New();
@@ -52,9 +50,14 @@ QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   renderer->ResetCamera();
   renderer->SetBackground(0.2,0.2,0.0);
 
-  window = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-  window->AddRenderer(renderer);
-  this->SetRenderWindow(window);
+  // Create a render window
+  this->SetRenderWindow(vtkNew<vtkGenericOpenGLRenderWindow>());
+  this->GetRenderWindow()->AddRenderer(renderer);
+
+  // this->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
+  // m_InteractionDelegate = new QtVTKInteractionDelegateWidget(this);
+  // m_InteractionDelegate->SetVTKInteractor(this->GetRenderWindow()->GetInteractor());
+  // this->installEventFilter(m_InteractionDelegate);
 }
 
 void
@@ -69,7 +72,8 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractVTKRenderer *renderer)
   m_Renderer = renderer;
   if(m_Renderer)
     {
-    m_Renderer->SetRenderWindow(window);
+    m_Renderer->SetRenderWindow(this->GetRenderWindow());
+    connectITK(m_Renderer, ModelUpdateEvent());
     }
 }
 
@@ -98,7 +102,6 @@ QtVTKRenderWindowBox
 ::RendererCallback(
     vtkObject *src, unsigned long event, void *)
 {
-  std::cout << "RendererCallback " << event << std::endl;
   if(event == vtkCommand::RenderEvent)
     {
     this->update();
@@ -126,9 +129,8 @@ bool QtVTKRenderWindowBox::SaveScreenshot(std::string filename)
 
 void QtVTKRenderWindowBox::onModelUpdate(const EventBucket &)
 {
-  std::cout << "QtVTKRenderWindowBox::onModelUpdate" << std::endl;
   m_Renderer->Update();
-  window->Render();
+  this->GetRenderWindow()->Render();
   this->update();
 }
 

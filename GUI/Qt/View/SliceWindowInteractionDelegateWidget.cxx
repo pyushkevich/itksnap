@@ -88,8 +88,6 @@ SliceWindowInteractionDelegateWidget
   int x = xpix;
   int y = (flipY) ? hpix - 1 - ypix : ypix;
 
-  std::cout << "Event x " << x << " y " << y << std::endl;
-
   // Get the cell size and the number of cells
   Vector2ui sz = m_ParentModel->GetSize();
   DisplayLayoutModel *dlm = m_ParentModel->GetParentUI()->GetDisplayLayoutModel();

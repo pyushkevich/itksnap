@@ -134,17 +134,15 @@ protected:
 vtkStandardNewMacro(PaintbrushContextItem);
 
 
-void PaintbrushRenderer::SetModel(PaintbrushModel *model)
-{
-  m_Model = model;
-  m_ContextItem = vtkNew<PaintbrushContextItem>();
-  m_ContextItem->SetModel(m_Model->GetParent());
-  m_ContextItem->SetPaintbrushModel(m_Model);
-}
 
-
-void PaintbrushRenderer::AddContextItemsToTiledOverlay(vtkAbstractContextItem *parent)
+void PaintbrushRenderer::AddContextItemsToTiledOverlay(
+    vtkAbstractContextItem *parent, ImageWrapperBase *)
 {
-  if(m_ContextItem)
-    parent->AddItem(m_ContextItem);
+  if(m_Model)
+    {
+    vtkNew<PaintbrushContextItem> ci;
+    ci->SetModel(m_Model->GetParent());
+    ci->SetPaintbrushModel(m_Model);
+    parent->AddItem(ci);
+    }
 }

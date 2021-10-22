@@ -63,7 +63,7 @@ ColorMap* ColorMapModel::GetColorMap(ImageWrapperBase *layer)
 
 ColorMap* ColorMapModel::GetColorMap()
 {
-  return this->GetColorMap(this->GetLayer());
+  return this->GetLayer() ? this->GetColorMap(this->GetLayer()) : nullptr;
 }
 
 bool

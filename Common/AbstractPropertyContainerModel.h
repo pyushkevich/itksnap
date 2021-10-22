@@ -286,6 +286,15 @@ protected:
     return model;
   }
 
+  template <class TAtomic, class TDomain>
+  SmartPtr< ConcretePropertyModel<TAtomic, TDomain> >
+  RegisterEnumProperty(const std::string &key,
+                       SmartPtr< ConcretePropertyModel<TAtomic, TDomain> > model,
+                       const std::map<TAtomic, std::string> &valmap)
+  {
+    return RegisterEnumProperty(key, model, RegistryEnumMap<TAtomic>(valmap));
+  }
+
   // A convenience method that creates a new simple concrete property and
   // then registers it using RegisterModel
   template <class TAtomic>

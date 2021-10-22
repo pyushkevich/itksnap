@@ -154,6 +154,7 @@ void GenericSliceModel::OnUpdate()
           || m_EventBucket->HasEvent(ValueChangedEvent()))
     {
     // Recompute the viewport layout and dimensions
+    std::cout << "Calling UpdateViewportLayout in window " << this->GetId() << std::endl;
     this->UpdateViewportLayout();
 
     // We only react to the viewport resize if the zoom is not managed by the
@@ -203,6 +204,7 @@ void GenericSliceModel::ComputeOptimalZoom()
 
   // Reduce the width and height of the slice by the margin
   Vector2ui szCanvas = this->GetCanvasSize();
+  std::cout << "GenericSliceModel::ComputeOptimalZoom " << szCanvas << " AND " << m_SizeReporter->GetViewportSize() << std::endl;
 
   // Compute the ratios of window size to slice size
   Vector2d ratios(

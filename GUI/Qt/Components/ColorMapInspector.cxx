@@ -9,6 +9,8 @@
 #include <QColorDialog>
 #include <QInputDialog>
 #include "SNAPQtCommon.h"
+#include "ColorMapRenderer.h"
+#include "ColorMapInteractionDelegate.h"
 
 ColorMapInspector::ColorMapInspector(QWidget *parent) :
   SNAPComponent(parent),
@@ -22,8 +24,13 @@ ColorMapInspector::ColorMapInspector(QWidget *parent) :
   m_ColorMapBoxViewportReporter = QtViewportReporter::New();
   m_ColorMapBoxViewportReporter->SetClientWidget(ui->boxColorMap);
 
-  // Connect the interactor on the colormap box to this object
-  ui->boxColorMap->GetDelegate()->SetInspectorWidget(this);
+  // Set up the renderer
+  m_ColorMapRenderer = ColorMapRenderer::New();
+  ui->boxColorMap->SetRenderer(m_ColorMapRenderer);
+
+  // Create the interaction delegate
+  //m_ColorMapDelegate = new ColorMapInteractionDelegate(this);
+  //m_ColorMapDelegate->SetInspectorWidget(this);
 }
 
 ColorMapInspector::~ColorMapInspector()
@@ -37,7 +44,8 @@ void ColorMapInspector::SetModel(ColorMapModel *model)
   m_Model = model;
 
   // Pass the model to the colormap box
-  ui->boxColorMap->SetModel(model);
+  m_ColorMapRenderer->SetModel(model);
+  //m_ColorMapDelegate->SetModel(model);
 
   // Connect the viewport reporter
   model->SetViewportReporter(m_ColorMapBoxViewportReporter);

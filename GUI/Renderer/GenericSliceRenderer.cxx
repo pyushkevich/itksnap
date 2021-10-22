@@ -107,6 +107,7 @@ public:
     else if(is_hover)
       painter->GetPen()->SetColorF(0.6, 0.54, 0.46);
 
+    painter->GetPen()->SetOpacityF(0.75);
     painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
     painter->GetPen()->SetWidth(3 * this->GetVPPR());
 
@@ -477,7 +478,7 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
 
   // Assign the main image texture to the zoom thumbnail
   m_ZoomThumbnail->GetActor()->SetTexture(
-        GetLayerTextureAssembly(id->GetMain())->m_Texture);
+        id->IsMainLoaded() ? GetLayerTextureAssembly(id->GetMain())->m_Texture : nullptr);
 }
 
 GenericSliceRenderer::LayerTextureAssembly *
@@ -562,7 +563,7 @@ void GenericSliceRenderer
   std::cout << "UpdateTiledOverlayContextSceneItems " <<  m_TiledOverlays.size() << std::endl;
   for(auto it : m_TiledOverlays)
     {
-    it->AddContextItemsToTiledOverlay(top_item);
+    it->AddContextItemsToTiledOverlay(top_item, wrapper);
     }
 }
 
@@ -607,6 +608,8 @@ void GenericSliceRenderer::UpdateRendererLayout()
 
     // Get the wrapper in this viewport
     auto *layer = m_Model->GetImageData()->FindLayer(vp.layer_id, false);
+    if(!layer)
+      continue;
 
     // Get the assembly for this layer
     BaseLayerAssembly *bla = GetBaseLayerAssembly(layer);
@@ -834,7 +837,6 @@ GenericSliceRenderer
 
           elt->SetLineThickness(1.5 * vppr);
           elt->SetVisible(true);
-          elt->SetSmooth(false);
           elt->ApplyLineSettings();
 
           if(is_selected || is_hover)

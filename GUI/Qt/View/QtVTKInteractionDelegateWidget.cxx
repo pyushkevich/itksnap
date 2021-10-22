@@ -24,6 +24,8 @@ void QtVTKInteractionDelegateWidget::SetVTKEventState(QMouseEvent *ev)
 
 void QtVTKInteractionDelegateWidget::mousePressEvent(QMouseEvent *ev)
 {
+  std::cout << "QtVTKInteractionDelegateWidget::mousePressEvent" << ev << std::endl;
+
   // Set the position information
   SetVTKEventState(ev);
 
