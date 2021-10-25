@@ -676,14 +676,20 @@ int main(int argc, char *argv[])
       else if(arg == "-timepoints-pick-by-tag")
         {
         string tag = cl.read_string();
+        // Find all the time points have the tag
         std::list<unsigned int> found = ws.FindTimePointByTag(tag);
 
-        if(found.size() != 1)
-          throw IRISException("No unique time point found, tag %s is associated with %d time points", tag.c_str(), found.size());
+        // Generate a comma separated list
+        std::ostringstream oss;
+        auto cit = found.cbegin();
 
-        unsigned int tp = found.front();
+        if (cit != found.cend())
+          oss << *cit++;
 
-        cout << prefix << tp << endl;
+        while (cit != found.cend())
+          oss << "," << *cit++;
+
+        cout << prefix << oss.str() << endl;
         }
 
       else if(arg == "-timepoints-pick-by-name")
