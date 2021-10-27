@@ -39,8 +39,6 @@
 #endif
 #include "MeshManager.h"
 
-#include "SNAPOpenGL.h"
-
 // SNAP Includes
 #include "ColorLabel.h"
 #include "GlobalState.h"
@@ -317,31 +315,6 @@ itk::ModifiedTimeType MeshManager::GetBuildTime() const
     // Get the timestamp of the pipeline.
     return pipeline->GetMTime();
     }
-}
-
-
-/*
- *  Apply color label, a shorthand
- */
-bool 
-MeshManager
-::ApplyColorLabel(const ColorLabel &label) 
-{
-  if (label.IsVisible() && label.IsVisibleIn3D()) 
-    {
-    // Adjust the label color to reduce the saturation. This in necessary
-    // in order to see the highlights on the object
-    double r = 0.75 * (label.GetRGB(0) / 255.0);
-    double g = 0.75 * (label.GetRGB(1) / 255.0);
-    double b = 0.75 * (label.GetRGB(2) / 255.0);
-    double a = label.GetAlpha() / 255.0;
-
-    if (label.IsOpaque()) glColor3d(r, g, b); 
-    else glColor4d(r, g, b, a);
-  
-    return true;
-    }
-  return false;
 }
 
 

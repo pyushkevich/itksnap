@@ -20,9 +20,6 @@ public:
     this->Initialized = 1;
     this->Enable();
   }
-  // virtual void Start() { }
-  // virtual void TerminateApp() { }
-
 
 protected:
 
@@ -61,34 +58,6 @@ void AbstractVTKRenderer::SetRenderWindow(vtkRenderWindow *rwin)
   // m_Interactor->SetRenderWindow(m_RenderWindow);
 
 }
-
-/*
-void AbstractVTKRenderer::paintGL()
-{
-  // Update the scene
-  this->Update();
-
-  // Make sure the interactor is enabled
-  if(!m_Interactor->GetInitialized())
-    {
-    m_Interactor->Initialize();
-    m_Interactor->Enable();
-    }
-
-  // Clear the screen
-  glClearColor(0.0, 0.0, 0.0, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  // Do the rendering but only when interactor is enabled (from QVTKWidget2)
-  // m_RenderWindow->Render();
-}
-
-void AbstractVTKRenderer::initializeGL()
-{
-  // Is this what we should be calling?
-  // m_RenderWindow->OpenGLInit();
-}
-*/
 
 vtkRenderer *AbstractVTKRenderer::GetRenderer()
 {
@@ -151,18 +120,3 @@ Vector3d AbstractVTKRenderer::GetBackgroundColor() const
   return Vector3d(m_Renderer->GetBackground());
 }
 
-/*
-void AbstractVTKRenderer::resizeGL(int w, int h, int device_pixel_ratio)
-{
-  // Pass the size to VTK
-  // m_RenderWindow->SetSize(w, h);
-  m_Interactor->UpdateSize(w, h);
-
-  if(m_DevicePixelRatio != device_pixel_ratio)
-    {
-    int old_ratio = m_DevicePixelRatio;
-    m_DevicePixelRatio = device_pixel_ratio;
-    this->OnDevicePixelRatioChange(old_ratio, device_pixel_ratio);
-    }
-}
-*/

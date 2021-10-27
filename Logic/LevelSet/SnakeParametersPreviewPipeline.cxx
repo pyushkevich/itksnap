@@ -34,7 +34,6 @@
 =========================================================================*/
 #include "SnakeParametersPreviewPipeline.h"
 
-#include "SNAPOpenGL.h"
 #include "GlobalState.h"
 
 #include "LevelSetExtensionFilter.h"

@@ -1,6 +1,5 @@
 #include "PolygonDrawingModel.h"
 #include "PolygonScanConvert.h"
-#include "SNAPOpenGL.h"
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>

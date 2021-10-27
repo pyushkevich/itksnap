@@ -128,7 +128,7 @@ void RegistrationDialog::on_btnRunRegistration_clicked()
 
   // Background color
   QPalette pMain = ui->pgAuto->palette(), pScroll = ui->scrollPlots->palette();
-  pScroll.setBrush(QPalette::Window, pMain.background());
+  pScroll.setBrush(QPalette::Window, pMain.window());
   ui->scrollPlots->setPalette(pScroll);
   ui->scrollAreaWidgetContents->setPalette(pScroll);
 

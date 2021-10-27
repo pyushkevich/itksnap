@@ -45,8 +45,6 @@ public:
   virtual void AddContextItemsToTiledOverlay(
       vtkAbstractContextItem *parent, ImageWrapperBase *) override;
 
-  void paintGL() ITK_OVERRIDE;
-
 protected:
 
   CrosshairsRenderer();

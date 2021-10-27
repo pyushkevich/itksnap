@@ -29,7 +29,6 @@
 #include <QMouseEvent>
 #include <QGestureEvent>
 #include "GenericSliceModel.h"
-#include "SNAPOpenGL.h"
 
 QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
   SNAPComponent(parent)
@@ -148,6 +147,7 @@ Vector3d
 QtInteractionDelegateWidget
 ::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
 {
+  /*
   // Make the parent window the current context
   QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
   parent->makeCurrent();
@@ -173,7 +173,12 @@ QtInteractionDelegateWidget
                 modelMatrix,projMatrix,viewport,
                 &xProjection[0], &xProjection[1], &xProjection[2]);
   return xProjection;
+  */
+
+  // TODO: broken
+  return Vector3d(0,0,0);
 }
+
 
 bool QtInteractionDelegateWidget::isDragging()
 {

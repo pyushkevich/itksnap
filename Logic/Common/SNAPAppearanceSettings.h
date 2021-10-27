@@ -75,12 +75,6 @@ public:
   // indexed by the enum UIElementFeatures
   void SetValid(const int validity[]);
 
-  // Apply the color in the element
-  void ApplyColor() const;
-
-  // Apply the GL line settings in the element
-  void ApplyLineSettings(bool applyThickness = true, bool applyStipple = true) const;
-
 protected:
 
   typedef ConcretePropertyModel<int, LineTypeDomain> ConcreteLineTypeModel;

@@ -8,7 +8,6 @@
 #include <QtComboBoxCoupling.h>
 #include <QtTableWidgetCoupling.h>
 #include <QtWidgetActivator.h>
-#include <QtSimpleOpenGLBox.h>
 
 #include <QtVTKInteractionDelegateWidget.h>
 #include <vtkGenericRenderWindowInteractor.h>

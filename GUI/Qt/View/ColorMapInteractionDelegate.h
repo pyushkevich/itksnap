@@ -1,7 +1,6 @@
 #ifndef COLORMAPINTERACTIONDELEGATE_H
 #define COLORMAPINTERACTIONDELEGATE_H
 
-#include <QtAbstractOpenGLBox.h>
 #include <QtInteractionDelegateWidget.h>
 #include <SNAPEvents.h>
 #include <ColorMapRenderer.h>

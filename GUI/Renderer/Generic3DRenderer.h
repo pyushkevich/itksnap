@@ -51,8 +51,6 @@ public:
 
   void SetRenderWindow(vtkRenderWindow *rwin) override;
 
-  void paintGL() override;
-
   void SetModel(Generic3DModel *model);
 
   virtual void OnUpdate() override;

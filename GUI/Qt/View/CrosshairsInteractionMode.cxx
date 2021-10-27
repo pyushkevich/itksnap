@@ -262,18 +262,14 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
     bool isThumb;
 
     // The global UI model
-    GlobalUIModel *ui = m_Model->GetParent()->GetParentUI();
     IRISApplication *app = m_Model->GetParent()->GetDriver();
 
     // Current layer
     ImageWrapperBase *layer =
         m_Model->GetParent()->GetContextLayerAtPosition(
-          event->pos().x(),
-          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - event->pos().y(),
+          event->position().x(),
+          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - event->position().y(),
         isThumb);
-
-    // Main layer
-    ImageWrapperBase *main = m_Model->GetParent()->GetImageData()->GetMain();
 
     // Check if image is 4D
     int n_tp = (int) app->GetNumberOfTimePoints();
@@ -282,12 +278,7 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
     static double delta_accum = 0.0;
     int comp_change = 0;
 
-#if QT_VERSION >= 0x050000
     delta_accum += event->angleDelta().x() + event->angleDelta().y();
-#else
-    delta_accum += event->delta();
-#endif
-
     if(delta_accum <= -120.0 || delta_accum >= 120.0)
       {
       comp_change = (int) (delta_accum / 120.0);
@@ -310,7 +301,7 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
           mode.SelectedComponent += comp_change;
           if(mode.SelectedComponent < 0)
             mode.SelectedComponent = 0;
-          else if(mode.SelectedComponent >= layer->GetNumberOfComponents())
+          else if(mode.SelectedComponent >= (int) layer->GetNumberOfComponents())
             mode.SelectedComponent = layer->GetNumberOfComponents()-1;
           }
         dpolicy->SetDisplayMode(mode);
@@ -332,9 +323,11 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
   else if(m_WheelEventTarget)
     {
     QWheelEvent evnew(
-          event->pos(), event->globalPos(), event->delta(),
+          event->position(), event->globalPosition(),
+          event->pixelDelta(), event->angleDelta(),
           event->buttons(), event->modifiers(),
-          event->orientation());
+          event->phase(), event->inverted());
+
     QCoreApplication::sendEvent(m_WheelEventTarget, &evnew);
     event->accept();
     }

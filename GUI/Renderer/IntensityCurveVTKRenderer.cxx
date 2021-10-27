@@ -559,14 +559,6 @@ IntensityCurveVTKRenderer
     }
 }
 
-void IntensityCurveVTKRenderer::paintGL()
-{
-  if(m_Model && m_Model->GetLayer())
-    {
-    Superclass::paintGL();
-    }
-}
-
 void
 IntensityCurveVTKRenderer
 ::OnUpdate()

@@ -13,8 +13,6 @@ public:
 
   irisITKObjectMacro(SliceWindowDecorationRenderer, SliceRendererDelegate)
 
-  virtual void paintGL() ITK_OVERRIDE;
-
   virtual void AddContextItemsToGlobalOverlayScene(
       vtkContextScene *) override;
 
@@ -22,20 +20,8 @@ public:
 
 protected:
 
-  void DrawOrientationLabels();
-
-  void DrawRulers();
-
-  void DrawNicknames();
-
   SliceWindowDecorationRenderer();
   virtual ~SliceWindowDecorationRenderer();
-
-  typedef std::list<std::string> StringList;
-  typedef StringList::const_iterator StringListCIter;
-
-  StringList GetDisplayText(ImageWrapperBase *layer);
-  std::string CapStringLength(const std::string &str, int max_size);
 
   GenericSliceModel *m_Model;
 };

@@ -2,7 +2,6 @@
 #define ABSTRACTRENDERER_H
 
 #include "AbstractModel.h"
-#include "SNAPOpenGL.h"
 
 class vtkImageData;
 
@@ -34,16 +33,7 @@ public:
       FontInfo font, int align_horiz, int align_vert,
       const Vector3d &rgbf, double alpha = 1.0) = 0;
 
-  virtual void RenderTextInOpenGL(
-      const char *text,
-      double x, double y, double w, double h,
-      FontInfo font,
-      int align_horiz, int align_vert,
-      const Vector3d &rgbf, double alpha = 1.0) = 0;
-
   virtual int MeasureTextWidth(const char *text, FontInfo font) = 0;
-
-  virtual void LoadTexture(const char *url, GLuint &texture_id, Vector2ui &tex_size) = 0;
 };
 
 
@@ -54,10 +44,6 @@ public:
 class AbstractRenderer : public AbstractModel
 {
 public:
-
-  virtual void initializeGL() {}
-  virtual void resizeGL(int w, int h, int device_pixel_ratio) {}
-  virtual void paintGL() = 0;
 
   static void SetPlatformSupport(AbstractRendererPlatformSupport *support)
     { m_PlatformSupport = support; }

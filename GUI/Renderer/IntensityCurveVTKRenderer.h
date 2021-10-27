@@ -31,8 +31,6 @@ public:
 
   void UpdatePlotValues();
 
-  virtual void paintGL() ITK_OVERRIDE;
-
 protected:
 
   IntensityCurveVTKRenderer();

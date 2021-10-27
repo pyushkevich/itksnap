@@ -30,8 +30,6 @@
 #include <AbstractVTKRenderer.h>
 #include <GenericSliceModel.h>
 #include <ImageWrapper.h>
-#include <OpenGLSliceTexture.h>
-#include <SNAPOpenGL.h>
 #include <list>
 #include <map>
 #include <LayerAssociation.h>
@@ -97,19 +95,11 @@ class GenericSliceRenderer : public AbstractVTKRenderer
 {
 public:
 
-  // texture type
-  typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
-
-
   irisITKObjectMacro(GenericSliceRenderer, AbstractModel)
 
   FIRES(ModelUpdateEvent)
 
   void SetModel(GenericSliceModel *model);
-
-  void initializeGL() ITK_OVERRIDE;
-  virtual void resizeGL(int w, int h, int device_pixel_ratio) ITK_OVERRIDE;
-  virtual void paintGL() ITK_OVERRIDE;
 
   irisGetMacro(Model, GenericSliceModel *)
 
@@ -140,9 +130,6 @@ public:
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
 
-  // Get (creating if necessary) and configure the texture for a given layer
-  Texture *GetTextureForLayer(ImageWrapperBase *iw);
-
   // Set list of child renderers
   void SetChildRenderers(std::list<AbstractRenderer *> renderers);
 
@@ -156,7 +143,7 @@ protected:
   GenericSliceRenderer();
   virtual ~GenericSliceRenderer() {}
 
-  void OnUpdate() ITK_OVERRIDE;
+  void OnUpdate() override;
 
   virtual void SetRenderWindow(vtkRenderWindow *rwin) override;
 
@@ -253,23 +240,6 @@ protected:
 
   // Update the tiled overlay context scene transform for one of the tiles
   void UpdateTiledOverlayContextSceneTransform(ImageWrapperBase *wrapper);
-
-  void DrawSegmentationTexture();
-  void DrawOverlayTexture();
-  void DrawThumbnail();
-  void DrawTiledOverlays();
-  void DrawGlobalOverlays();
-
-
-  // Draw the image and overlays either on top of each other or separately
-  // in individual cells. Returns true if a layer was drawn, false if not,
-  // i.e., the cell is outside of the range of available layers
-  bool DrawImageLayers(
-      ImageWrapperBase *base_layer,
-      const ViewportType &vp);
-
-  // This method can be used by the renderer delegates to draw a texture
-  void DrawTextureForLayer(ImageWrapperBase *layer, const ViewportType &vp, bool use_transparency);
 
   bool IsTiledMode() const;
 

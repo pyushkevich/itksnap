@@ -4,7 +4,6 @@
 #include "GlobalState.h"
 #include "SNAPAppearanceSettings.h"
 #include "GlobalUIModel.h"
-#include "SNAPOpenGL.h"
 #include "GenericSliceContextItem.h"
 #include <vtkObjectFactory.h>
 #include <vtkContext2D.h>
