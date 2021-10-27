@@ -63,9 +63,10 @@ void HistoryQListItem::onTimer()
   QString key = QString("%1::%2")
                 .arg(m_IconFilename)
                 .arg(QFileInfo(m_IconFilename).lastModified().toString());
-  QPixmap *pixmap = QPixmapCache::find(key);
-  if(pixmap)
-    this->setIcon(QIcon(*pixmap));
+
+  QPixmap pixmap;
+  if(QPixmapCache::find(key, &pixmap))
+    this->setIcon(QIcon(pixmap));
   else
     {
     try
@@ -150,7 +151,7 @@ void HistoryQListModel::Initialize(
 }
 
 
-void HistoryQListModel::onModelUpdate(const EventBucket &bucket)
+void HistoryQListModel::onModelUpdate(const EventBucket &)
 {
   this->beginResetModel();
   this->rebuildModel();

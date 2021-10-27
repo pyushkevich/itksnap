@@ -134,7 +134,7 @@ void ColorWheel::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-void ColorWheel::mouseReleaseEvent(QMouseEvent *event)
+void ColorWheel::mouseReleaseEvent(QMouseEvent *)
 {
   mouseDown = false;
   inWheel = false;
@@ -155,7 +155,7 @@ void ColorWheel::resizeEvent(QResizeEvent *event)
   update();
 }
 
-void ColorWheel::paintEvent(QPaintEvent *event)
+void ColorWheel::paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
   QStyleOption opt;
@@ -195,7 +195,7 @@ void ColorWheel::drawWheel(const QSize &newSize)
   painter.drawEllipse(QPoint(0,0),r/2-margin,r/2-margin);
 
   /* inner circle */
-  painter.setBrush(palette().background().color());
+  painter.setBrush(palette().window().color());
   painter.drawEllipse(QPoint(0,0),r/2-margin-m_WheelWidth,r/2-margin-m_WheelWidth);
 
 
