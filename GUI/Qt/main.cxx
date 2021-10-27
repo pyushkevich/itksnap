@@ -26,7 +26,6 @@
 #include "QtCursorOverride.h"
 #include "SNAPQtCommon.h"
 #include "SNAPTestQt.h"
-#include "TestOpenGLDialog.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -47,6 +46,11 @@
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkContextView.h"
 #include "vtkProperty.h"
+#include "vtkRenderer.h"
+#include "vtkSphereSource.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkTextActor.h"
 #include <QHBoxLayout>
 #include <QPushButton>
 
@@ -562,22 +566,6 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   return 0;
 }
 
-
-int test_opengl()
-{
-  TestOpenGLDialog *dialog = new TestOpenGLDialog();
-  dialog->show();
-  return QApplication::exec();
-}
-
-// TODO: delete
-#include <QWindow>
-#include <QWidget>
-#include <QVBoxLayout>
-#include <QtVTKRenderWindowBox.h>
-#include <SnakeParameterPreviewRenderer.h>
-#include <vtkContextView.h>
-
 int main(int argc, char *argv[])
 {  
   // Test object, which only is allocated if tests are requested. The
@@ -787,9 +775,6 @@ int main(int argc, char *argv[])
     widget_2->setMinimumSize(QSize(256,256));
     dlg->setModal(false);
     dlg->show();
-
-    // return app.exec();
-    // return test_opengl();
     }
 
   // Before we can create any of the framework classes, we need to get some
@@ -1002,13 +987,6 @@ int main(int argc, char *argv[])
 
     // Show the panel
     mainwin->ShowFirstTime();
-
-    // TODO: delete
-    SnakeParameterDialog *spd = new SnakeParameterDialog(mainwin);
-    spd->SetModel(gui->GetSnakeParameterModel());
-    spd->show();
-    spd->activateWindow();
-    spd->raise();
 
     // Check for updates?
     mainwin->UpdateAutoCheck();

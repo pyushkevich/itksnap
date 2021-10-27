@@ -37,21 +37,6 @@ void AbstractVTKSceneRenderer::SetRenderWindow(vtkRenderWindow *rwin)
   vtkNew<vtkContextInteractorStyle> style;
   style->SetScene(m_ContextActor->GetScene());
   rwin->GetInteractor()->SetInteractorStyle(style);
-
-  // Initialize some properties of the renderer
-  // rwin->SwapBuffersOff();
-  // rwin->SetMultiSamples(0);
-
-  // Assign to context view
-  /*
-  m_ContextView->SetRenderWindow(m_RenderWindow);
-  m_ContextView->SetInteractor(m_RenderWindow->GetInteractor());
-  vtkNew<vtkContextInteractorStyle> style;
-  style->SetScene(m_ContextView->GetScene());
-  m_ContextView->GetInteractor()->SetInteractorStyle(style);
-
-  std::cout << "INTERACTOR on " << m_ContextView << " SET TO " << m_RenderWindow->GetInteractor() << std::endl;
-  */
 }
 
 vtkContextScene *AbstractVTKSceneRenderer::GetScene()
@@ -89,15 +74,3 @@ void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(
     }
 }
 
-/*
-void AbstractVTKSceneRenderer::paintGL()
-{
-  // Set renderer background
-  m_ContextView->GetRenderer()->SetBackground(m_BackgroundColor.data_block());
-  std::cout << "AbstractVTKSceneRenderer::paintGL " <<
-               this->m_RenderWindow << " Setting background to " << m_BackgroundColor << std::endl;
-
-  // Update the scene
-  AbstractVTKRenderer::paintGL();
-}
-*/

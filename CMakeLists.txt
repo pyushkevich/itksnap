@@ -213,17 +213,6 @@ CONFIGURE_FILE(
   ${SNAP_SOURCE_DIR}/Common/GPUSettings.h.in
   ${SNAP_BINARY_DIR}/GPUSettings.h @ONLY IMMEDIATE)
 
-# Configure version-specific Qt code
-IF(SNAP_USE_QT4)
-  CONFIGURE_FILE(
-    ${SNAP_SOURCE_DIR}/GUI/Qt/Components/SNAPOpenGLWidget_Qt4.h.in
-    ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h @ONLY IMMEDIATE)
-ELSE()
-  CONFIGURE_FILE(
-    ${SNAP_SOURCE_DIR}/GUI/Qt/Components/SNAPOpenGLWidget_Qt5.h.in
-    ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h @ONLY IMMEDIATE)
-ENDIF()
-
 # The part of the source code devoted to the SNAP application logic
 # is organized into a separate library
 SET(LOGIC_CXX
@@ -242,10 +231,8 @@ SET(LOGIC_CXX
   Common/Rebroadcaster.cxx
   Common/Registry.cxx
   Common/SNAPEvents.cxx
-  Common/SNAPOpenGL.cxx
   Common/SystemInterface.cxx
   Common/TagList.cxx
-  Common/Trackball.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
   Common/JSon/jsoncpp.cpp
@@ -349,11 +336,9 @@ SET(LOGIC_HEADERS
   Common/SNAPBorlandDummyTypes.h
   Common/SNAPCommon.h
   Common/SNAPExportITKToVTK.h
-  Common/SNAPOpenGL.h
   Common/SNAPEvents.h
   Common/SystemInterface.h
   Common/TagList.h
-  Common/Trackball.h
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ColorMap.h
@@ -520,12 +505,10 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/GenericSliceContextItem.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/Generic3DRenderer.cxx
-  GUI/Renderer/GLToPNG.cxx
   GUI/Renderer/GMMRenderer.cxx
   GUI/Renderer/IntensityCurveVTKRenderer.cxx
   GUI/Renderer/IntensityUnderCursorRenderer.cxx
   GUI/Renderer/LayerHistogramPlotAssembly.cxx
-  GUI/Renderer/OpenGLSliceTexture.cxx
   GUI/Renderer/OptimizationProgressRenderer.cxx
   GUI/Renderer/OrientationGraphicRenderer.cxx
   GUI/Renderer/PaintbrushRenderer.cxx
@@ -603,7 +586,6 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/Generic3DRenderer.h
   GUI/Renderer/GenericSliceContextItem.h
   GUI/Renderer/GenericSliceRenderer.h
-  GUI/Renderer/GLToPNG.h
   GUI/Renderer/GMMRenderer.h
   GUI/Renderer/IntensityCurveVTKRenderer.h
   GUI/Renderer/IntensityUnderCursorRenderer.h
@@ -683,9 +665,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/GenericSliceView.cxx
   GUI/Qt/View/GenericView3D.cxx
   GUI/Qt/View/InteractionModeClient.cxx
-  GUI/Qt/View/QtAbstractOpenGLBox.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
-  GUI/Qt/View/QtSimpleOpenGLBox.cxx
   GUI/Qt/View/QtVTKInteractionDelegateWidget.cxx
   GUI/Qt/View/QtVTKRenderWindowBox.cxx
   GUI/Qt/View/PaintbrushInteractionMode.cxx
@@ -778,9 +758,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/GenericView3D.h
-  GUI/Qt/View/QtAbstractOpenGLBox.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
-  GUI/Qt/View/QtSimpleOpenGLBox.h
   GUI/Qt/View/QtVTKInteractionDelegateWidget.h
   GUI/Qt/View/QtVTKRenderWindowBox.h
   GUI/Qt/View/PaintbrushInteractionMode.h
@@ -788,7 +766,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/RegistrationInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
-  GUI/Qt/View/TestOpenGLDialog.h
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/AboutDialog.h
   GUI/Qt/Windows/AnnotationEditDialog.h
@@ -830,7 +807,6 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/SNAPQtCommon.h
-  ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h
   GUI/Qt/Coupling/TagListWidgetCoupling.h
   GUI/Qt/Coupling/QtAbstractButtonCoupling.h
   GUI/Qt/Coupling/QtAbstractItemViewCoupling.h

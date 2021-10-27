@@ -21,7 +21,6 @@
 #include "SNAPAppearanceSettings.h"
 #include "Registry.h"
 
-#include <SNAPOpenGL.h>
 #include <vtkContext2D.h>
 
 using namespace std;
@@ -388,42 +387,6 @@ void OpenGLAppearanceElement::SetValid(const int validity[])
   m_VisibleModel->SetIsValid(validity[VISIBLE]);
 }
 
-void OpenGLAppearanceElement::ApplyColor() const
-{
-  glColor4d(this->GetColor()[0], this->GetColor()[1], this->GetColor()[2], this->GetAlpha());
-}
-
-void OpenGLAppearanceElement
-::ApplyLineSettings(bool applyThickness, bool applyStipple) const
-{
-  /*
-  // Apply the transparency settings if smoothing is on or non-1 alpha
-  if(GetSmooth() || GetAlpha() < 1.0)
-    {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
-
-  // Apply the thickness properties
-  if(applyThickness)
-    {
-    // Choose whether to use blending or not
-    if(GetSmooth())
-      {
-      glEnable(GL_LINE_SMOOTH);
-      glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
-      }
-    glLineWidth((GLfloat) GetLineThickness());
-    }
-  if(applyStipple && GetDashSpacing() > 0)
-    {
-    // Set the line thickness and stipple
-    glEnable(GL_LINE_STIPPLE);
-    glLineStipple( static_cast<GLint>(GetDashSpacing()),
-                   0x9999 ); // 0011 0011 0011 0011  // 1001 1001 1001 1001
-    }
-    */
-}
 
 OpenGLAppearanceElement::OpenGLAppearanceElement()
 {

@@ -1,5 +1,4 @@
 #include "Generic3DRenderer.h"
-#include "SNAPOpenGL.h"
 #include "Generic3DModel.h"
 #include "GlobalUIModel.h"
 #include "SNAPAppearanceSettings.h"
@@ -645,23 +644,6 @@ void Generic3DRenderer::SetRenderWindow(vtkRenderWindow *rwin)
   // Why is this necessary?
   // rwin->SetMultiSamples(4);
   // rwin->SetLineSmoothing(1);
-}
-
-void Generic3DRenderer::paintGL()
-{
-  // Get the appearance settings
-  SNAPAppearanceSettings *as =
-      m_Model->GetParentUI()->GetAppearanceSettings();
-
-  // Load the background color
-  Vector3d clrBack =
-      as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D)->GetColor();
-
-  // Set renderer background
-  this->m_Renderer->SetBackground(clrBack.data_block());
-
-  // Call the parent's paint method
-  AbstractVTKRenderer::paintGL();
 }
 
 void Generic3DRenderer::UpdateSegmentationMeshAppearance()

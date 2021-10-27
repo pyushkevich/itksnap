@@ -29,7 +29,6 @@
 
 #include <SNAPCommon.h>
 #include <ImageCoordinateTransform.h>
-#include <OpenGLSliceTexture.h>
 #include <SNAPEvents.h>
 #include "AbstractModel.h"
 #include "ImageWrapper.h"

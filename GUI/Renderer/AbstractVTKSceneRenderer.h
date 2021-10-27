@@ -35,8 +35,6 @@ public:
 
   virtual vtkContextScene* GetScene();
 
-  // virtual void paintGL() override;
-
 protected:
 
   // Render window object used to render VTK stuff

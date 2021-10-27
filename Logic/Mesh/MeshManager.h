@@ -102,12 +102,6 @@ protected:
   MeshManager();
   virtual ~MeshManager();
 
-  /** 
-   * This method applies the settings in a color label if color label 
-   * is displayable
-   */
-  bool ApplyColorLabel(const ColorLabel &label);
-
   // Back pointer to the application object
   IRISApplication *m_Driver;
 

@@ -19,8 +19,6 @@ public:
   virtual void AddContextItemsToTiledOverlay(
       vtkAbstractContextItem *parent, ImageWrapperBase *) override;
 
-  void paintGL() ITK_OVERRIDE;
-
 protected:
 
   SnakeModeRenderer();
@@ -28,7 +26,6 @@ protected:
 
   SnakeWizardModel *m_Model;
 
-  void DrawBubbles();
 };
 
 #endif // SNAKEMODERENDERER_H

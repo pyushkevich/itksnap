@@ -55,8 +55,6 @@ public:
   virtual void SetBackgroundColor(Vector3d color);
   virtual Vector3d GetBackgroundColor() const;
 
-  virtual void paintGL() override {}
-
 protected:
 
   // Render window object used to render VTK stuff
