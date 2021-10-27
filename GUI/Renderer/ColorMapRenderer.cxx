@@ -304,7 +304,7 @@ ColorMapRenderer::ColorMapRenderer()
 
   // Set up the item
   m_ContextItem = vtkNew<ColorMapContextItem>();
-  this->m_ContextView->GetScene()->AddItem(m_ContextItem);
+  GetScene()->AddItem(m_ContextItem);
 }
 
 ColorMapRenderer::~ColorMapRenderer()
@@ -329,7 +329,7 @@ void ColorMapRenderer::OnUpdate()
     m_Model->Update();
     m_ContextItem->UpdateColorMapTexture();
     m_ContextItem->UpdateCurveGeometry();
-    m_ContextView->GetRenderWindow()->Render();
+    this->GetRenderWindow()->Render();
     }
 }
 

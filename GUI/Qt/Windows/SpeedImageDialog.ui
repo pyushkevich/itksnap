@@ -42,7 +42,7 @@ QGroupBox::title {
    <item>
     <widget class="QTabWidget" name="tabMode">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabThreshold">
       <attribute name="title">
@@ -1344,7 +1344,7 @@ color: rgb(64, 64, 64);</string>
         <number>2</number>
        </property>
        <item row="1" column="0">
-        <widget class="QtSimpleOpenGLBox" name="viewEdgeMapping" native="true">
+        <widget class="QtVTKRenderWindowBox" name="viewEdgeMapping" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -1703,6 +1703,12 @@ color: rgb(64, 64, 64);</string>
  </widget>
  <customwidgets>
   <customwidget>
+   <class>QtVTKRenderWindowBox</class>
+   <extends>QWidget</extends>
+   <header location="global">QtVTKRenderWindowBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>QDoubleSlider</class>
    <extends>QSlider</extends>
    <header location="global">QDoubleSlider.h</header>
@@ -1711,18 +1717,6 @@ color: rgb(64, 64, 64);</string>
    <class>QDoubleSliderWithEditor</class>
    <extends>QSlider</extends>
    <header location="global">QDoubleSliderWithEditor.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QtSimpleOpenGLBox</class>
-   <extends>QWidget</extends>
-   <header location="global">QtSimpleOpenGLBox.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QtVTKRenderWindowBox</class>
-   <extends>QWidget</extends>
-   <header location="global">QtVTKRenderWindowBox.h</header>
-   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

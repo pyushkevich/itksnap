@@ -4,6 +4,7 @@
 #include <vtkContextItem.h>
 #include <vtkSmartPointer.h>
 #include "SNAPCommon.h"
+#include "AbstractRenderer.h"
 
 class vtkPen;
 class vtkBrush;
@@ -27,6 +28,10 @@ public:
   void ApplyAppearanceSettingsToPen(
       vtkContext2D *painter, const OpenGLAppearanceElement *as);
 
+  /** Apply font appearance settings */
+  void ApplyAppearanceSettingsToFont(
+      vtkContext2D *painter, const OpenGLAppearanceElement *as);
+
   /** Draw a rectangle without fill */
   void DrawRectNoFill(vtkContext2D *painter, float x0, float y0, float x1, float y1);
 
@@ -35,6 +40,13 @@ public:
                   float x, float y, float z,
                   bool fill, unsigned int n_segments,
                   float scale_x = 1.0, float scale_y = 1.0);
+
+  /** Draw a string rectangle */
+  void DrawStringRect(vtkContext2D *painter, const std::string &text,
+                      double x, double y, double w, double h,
+                      const AbstractRendererPlatformSupport::FontInfo &fi,
+                      int halign, int valign,
+                      const Vector3d &color, double alpha = 1.0);
 protected:
 
   // Get the viewport pixel ratio (useful for deciding on line sizes)

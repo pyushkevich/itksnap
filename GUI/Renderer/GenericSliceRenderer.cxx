@@ -198,8 +198,12 @@ GenericSliceRenderer
   this->m_DrawingLayerThumbnail = false;
   this->m_DrawingViewportIndex = -1;
 
-  m_OverlayRenderer = vtkSmartPointer<vtkRenderer>::New();
-  m_OverlayRenderer->SetLayer(1);
+
+  m_BackgroundRenderer = vtkNew<vtkRenderer>();
+  m_BackgroundRenderer->SetLayer(0);
+
+  m_OverlayRenderer = vtkNew<vtkRenderer>();
+  m_OverlayRenderer->SetLayer(2);
   m_OverlayRenderer->GetActiveCamera()->ParallelProjectionOn();
   m_OverlayRenderer->GetActiveCamera()->SetParallelScale(1.0);
 
@@ -207,8 +211,8 @@ GenericSliceRenderer
   m_ZoomThumbnail->GetActor()->GetProperty()->SetColor(1, 1, 0);
   m_OverlayRenderer->AddActor2D(m_ZoomThumbnail->GetActor());
 
-  m_ZoomThumbnailDecoratorActor = vtkNew<vtkContextActor>();
-  m_OverlayRenderer->AddActor2D(m_ZoomThumbnailDecoratorActor);
+  m_OverlaySceneActor = vtkNew<vtkContextActor>();
+  m_OverlayRenderer->AddActor2D(m_OverlaySceneActor);
 
   vtkNew<vtkTextActor> txt;
   txt->SetInput("Hello World");
@@ -279,11 +283,6 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
   Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), AppearanceUpdateEvent());
   Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), AppearanceUpdateEvent());
-
-  vtkNew<ZoomThumbnailDecorator> ztdec;
-  ztdec->SetModel(m_Model);
-  m_ZoomThumbnailDecoratorActor->GetScene()->ClearItems();
-  m_ZoomThumbnailDecoratorActor->GetScene()->AddItem(ztdec);
 }
 
 void GenericSliceRenderer::UpdateSceneAppearanceSettings()
@@ -296,19 +295,8 @@ void GenericSliceRenderer::UpdateSceneAppearanceSettings()
   Vector3d clrBack = as->GetUIElement(
       SNAPAppearanceSettings::BACKGROUND_2D)->GetColor();
 
-  // For each base renderer, set its background
-  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
-
-  // For each layer either copy a reference to an existing assembly
-  // or create a new assembly
-  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
-    {
-    if(auto *bla = GetBaseLayerAssembly(it.GetLayer()))
-      {
-      bla->m_Renderer->SetBackground(clrBack.data_block());
-      bla->m_ThumbRenderer->SetBackground(clrBack.data_block());
-      }
-    }
+  // Assign to the background renderer
+  m_BackgroundRenderer->SetBackground(clrBack.data_block());
 }
 
 void GenericSliceRenderer::OnUpdate()
@@ -349,12 +337,21 @@ void GenericSliceRenderer::OnUpdate()
   bool zoom_pan_changed =
       m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model);
 
+  // Which layer is currently selected
+  bool selected_layer_changed =
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel());
+
+  bool selected_segmentation_changed =
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel());
+
   if(layers_changed)
     {
     this->UpdateLayerAssemblies();
     }
 
-  if(layers_changed || layer_layout_changed)
+  if(layers_changed || layer_layout_changed || selected_layer_changed || selected_segmentation_changed)
     {
     this->UpdateRendererLayout();
     }
@@ -380,9 +377,7 @@ void GenericSliceRenderer::OnUpdate()
 void GenericSliceRenderer::SetRenderWindow(vtkRenderWindow *rwin)
 {
   m_RenderWindow = rwin;
-  m_RenderWindow->SetNumberOfLayers(2);
-  m_RenderWindow->AddRenderer(m_OverlayRenderer);
-  m_RenderWindow->SetMultiSamples(4);
+  m_RenderWindow->SetNumberOfLayers(3);
 }
 
 
@@ -430,8 +425,6 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
   // consist of the base layer, sticky overlays, and segmentation layer
   for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    unsigned long layer_id = it.GetLayer()->GetUniqueId();
-
     // If this is a base layer (something drawn on its own), it gets a pair of renderers
     if(it.GetRole() == MAIN_ROLE || it.GetRole() == OVERLAY_ROLE || it.GetRole() == SNAP_ROLE)
       {
@@ -442,11 +435,13 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
 
         // Create the renderers
         bla->m_Renderer = vtkNew<vtkRenderer>();
+        bla->m_Renderer->SetLayer(1);
         bla->m_ThumbRenderer = vtkNew<vtkRenderer>();
+        bla->m_ThumbRenderer->SetLayer(1);
 
         // Set camera properties
         bla->m_Renderer->GetActiveCamera()->ParallelProjectionOn();
-        bla->m_ThumbRenderer->SetActiveCamera(bla->m_Renderer->GetActiveCamera());
+        bla->m_ThumbRenderer->GetActiveCamera()->ParallelProjectionOn();
 
         // Create the context scene actor and transform item
         bla->m_OverlayContextActor = vtkNew<vtkContextActor>();
@@ -560,8 +555,8 @@ void GenericSliceRenderer
   top_item->ClearItems();
 
   // Iterate over the delegates
-  std::cout << "UpdateTiledOverlayContextSceneItems " <<  m_TiledOverlays.size() << std::endl;
-  for(auto it : m_TiledOverlays)
+  std::cout << "UpdateTiledOverlayContextSceneItems " <<  m_Delegates.size() << std::endl;
+  for(auto it : m_Delegates)
     {
     it->AddContextItemsToTiledOverlay(top_item, wrapper);
     }
@@ -596,6 +591,7 @@ void GenericSliceRenderer::UpdateRendererLayout()
 
   // Remove all the renderers from the current window
   m_RenderWindow->GetRenderers()->RemoveAllItems();
+  m_RenderWindow->AddRenderer(m_BackgroundRenderer);
 
   // Get the dimensions of the render window
   Vector2ui szWin = m_Model->GetSizeReporter()->GetViewportSize();
@@ -638,7 +634,7 @@ void GenericSliceRenderer::UpdateRendererLayout()
     if(vp.isThumbnail)
       {
       // Add the thumbnail highlight
-      renderer->AddViewProp(bla->m_ThumbnailDecoratorActor);
+      renderer->AddActor(bla->m_ThumbnailDecoratorActor);
       }
     else
       {
@@ -670,24 +666,26 @@ void GenericSliceRenderer::UpdateRendererCameras()
     auto *bla = GetBaseLayerAssembly(it.GetLayer());
     if(bla)
       {
-      auto ren = bla->m_Renderer;
       auto vp = m_Model->GetViewPosition();
       //ren->GetActiveCamera()->SetFocalPoint(vp[0], vp[1], 0.0);
       //ren->GetActiveCamera()->SetPosition(vp[0], vp[1], 1.0);
       //ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
 
+      // Update the camera for the main renderer
+      auto ren = bla->m_Renderer;
       auto rs = ren->GetSize();
       ren->GetActiveCamera()->SetFocalPoint(rs[0] * 0.5, rs[1] * 0.5, 0.0);
       ren->GetActiveCamera()->SetPosition(rs[0] * 0.5, rs[1] * 0.5, 2.0);
       ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
       ren->GetActiveCamera()->SetParallelScale(0.5 * rs[1]);
 
-
-      // ParallelScale is the height of the viewport in world coordinate distances.
-      // ViewZoom is the number of display pixels per physical mm
-      double pscale = ren->GetSize()[1] / (2.0 * v_zoom);
-      std::cout << "pscale is " << pscale << std::endl;
-      // ren->GetActiveCamera()->SetParallelScale(pscale);
+      // Update the camera for the thumbnail renderer
+      auto tren = bla->m_ThumbRenderer;
+      auto trs = ren->GetSize();
+      tren->GetActiveCamera()->SetFocalPoint(trs[0] * 0.5, trs[1] * 0.5, 0.0);
+      tren->GetActiveCamera()->SetPosition(trs[0] * 0.5, trs[1] * 0.5, 2.0);
+      tren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
+      tren->GetActiveCamera()->SetParallelScale(0.5 * trs[1]);
 
       // Also update the transform for the overlay scene
       auto *tform = bla->m_OverlayContextTransform->GetTransform();
@@ -972,14 +970,11 @@ GenericSliceRenderer
 
 }
 
-void GenericSliceRenderer::SetGlobalOverlays(const RendererDelegateList &ovl)
+void GenericSliceRenderer::SetDelegates(const RendererDelegateList &ovl)
 {
-  m_GlobalOverlays = ovl;
-}
+  m_Delegates = ovl;
 
-void GenericSliceRenderer::SetTiledOverlays(const RendererDelegateList &ovl)
-{
-  m_TiledOverlays = ovl;
+  // Assign the tiled delegates to their corresponding tiles
   auto *id = m_Model->GetDriver()->GetCurrentImageData();
   for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
     {
@@ -987,6 +982,21 @@ void GenericSliceRenderer::SetTiledOverlays(const RendererDelegateList &ovl)
       {
       this->UpdateTiledOverlayContextSceneItems(it.GetLayer());
       }
+    }
+
+
+  // Assign global delegates
+  m_OverlaySceneActor->GetScene()->ClearItems();
+
+  // Add zoom decorator
+  vtkNew<ZoomThumbnailDecorator> ztdec;
+  ztdec->SetModel(m_Model);
+  m_OverlaySceneActor->GetScene()->AddItem(ztdec);
+
+  // Add all others
+  for(auto del : m_Delegates)
+    {
+    del->AddContextItemsToGlobalOverlayScene(m_OverlaySceneActor->GetScene());
     }
 }
 
@@ -1499,23 +1509,9 @@ void GenericSliceRenderer::initializeGL()
 
 void GenericSliceRenderer::DrawTiledOverlays()
 {
-  // The renderer will contain a list of overlays that implement the
-  // generic interface
-  for(RendererDelegateList::iterator it = m_TiledOverlays.begin();
-      it != m_TiledOverlays.end(); it++)
-    {
-    (*it)->paintGL();
-    }
 }
 
 void GenericSliceRenderer::DrawGlobalOverlays()
 {
-  // The renderer will contain a list of overlays that implement the
-  // generic interface
-  for(RendererDelegateList::iterator it = m_GlobalOverlays.begin();
-      it != m_GlobalOverlays.end(); it++)
-    {
-    (*it)->paintGL();
-    }
 }
 

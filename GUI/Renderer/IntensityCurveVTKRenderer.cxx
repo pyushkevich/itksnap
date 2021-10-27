@@ -297,29 +297,32 @@ public:
   // properties such as the point color
   virtual bool Paint(vtkContext2D *painter) override
   {
-    float vppr = m_Model->GetViewportReporter()->GetViewportPixelRatio();
-    painter->GetBrush()->SetColor(255, 0, 0, 255);
-    painter->GetBrush()->SetTexture(nullptr);
-    painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
-    painter->GetPen()->SetWidth(1.2 * vppr);
-    painter->GetPen()->SetColor(0, 0, 0, 192);
-
-    // When expressing anything in screen pixel units, we need to watch out
-    // for retina displays
-    this->ScreenPointRadius = 5 * vppr;
-    this->DrawUnselectedPoints(painter);
-
-    if (this->CurrentPoint != -1)
+    if(m_Model && m_Model->GetLayer())
       {
-
-      painter->GetBrush()->SetColor(255, 255, 0, 255);
+      float vppr = m_Model->GetViewportReporter()->GetViewportPixelRatio();
+      painter->GetBrush()->SetColor(255, 0, 0, 255);
+      painter->GetBrush()->SetTexture(nullptr);
       painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
+      painter->GetPen()->SetWidth(1.2 * vppr);
+      painter->GetPen()->SetColor(0, 0, 0, 192);
 
-      this->ScreenPointRadius = 6 * vppr;
-      this->DrawPoint(painter, this->CurrentPoint);
+      // When expressing anything in screen pixel units, we need to watch out
+      // for retina displays
+      this->ScreenPointRadius = 5 * vppr;
+      this->DrawUnselectedPoints(painter);
+
+      if (this->CurrentPoint != -1)
+        {
+
+        painter->GetBrush()->SetColor(255, 255, 0, 255);
+        painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
+
+        this->ScreenPointRadius = 6 * vppr;
+        this->DrawPoint(painter, this->CurrentPoint);
+        }
+
+      this->Transform->SetMatrix(painter->GetTransform()->GetMatrix());
       }
-
-    this->Transform->SetMatrix(painter->GetTransform()->GetMatrix());
     return true;
   }
 
@@ -385,7 +388,7 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   m_Chart->ForceAxesToBoundsOn();
 
   // Add the chart to the renderer
-  m_ContextView->GetScene()->AddItem(m_Chart);
+  this->GetScene()->AddItem(m_Chart);
 
   // Set up the data
   m_CurveX = vtkSmartPointer<vtkFloatArray>::New();

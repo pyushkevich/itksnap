@@ -4,6 +4,8 @@
 #include "AbstractModel.h"
 #include "SNAPOpenGL.h"
 
+class vtkImageData;
+
 /**
  * @brief The RendererPlatformSupport class
  * This class holds various methods that renderers require from the underlying
@@ -24,6 +26,13 @@ public:
     int pixel_size;
     bool bold;
   };
+
+  virtual FontInfo MakeFont(int pixel_size, FontType type = SANS, bool bold=false);
+
+  virtual void RenderTextIntoVTKImage(
+      const char *text, vtkImageData *target,
+      FontInfo font, int align_horiz, int align_vert,
+      const Vector3d &rgbf, double alpha = 1.0) = 0;
 
   virtual void RenderTextInOpenGL(
       const char *text,
@@ -51,7 +60,10 @@ public:
   virtual void paintGL() = 0;
 
   static void SetPlatformSupport(AbstractRendererPlatformSupport *support)
-  { m_PlatformSupport = support; }
+    { m_PlatformSupport = support; }
+
+  static AbstractRendererPlatformSupport* GetPlatformSupport()
+    { return m_PlatformSupport; }
 
   virtual void SaveAsPNG(std::string filename);
 

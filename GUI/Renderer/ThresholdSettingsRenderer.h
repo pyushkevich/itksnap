@@ -45,7 +45,7 @@ protected:
   // Histogram rendering
   LayerHistogramPlotAssembly *m_HistogramAssembly;
 
-  void OnDevicePixelRatioChange(int old_ratio, int new_ratio) ITK_OVERRIDE;
+  void OnDevicePixelRatioChange(int old_ratio, int new_ratio) override;
 };
 
 #endif // THRESHOLDSETTINGSRENDERER_H

@@ -157,7 +157,7 @@ IntensityUnderCursorRenderer::IntensityUnderCursorRenderer()
   m_Chart->GetLegend()->SetDragEnabled(false);
 
   // Add the chart to the renderer
-  m_ContextView->GetScene()->AddItem(m_Chart);
+  this->GetScene()->AddItem(m_Chart);
 
   // Set up the data
   m_CurveX = vtkSmartPointer<vtkDoubleArray>::New();

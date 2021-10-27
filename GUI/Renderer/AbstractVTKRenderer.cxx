@@ -15,7 +15,11 @@ public:
 
   vtkTypeMacro(QtRenderWindowInteractor, vtkRenderWindowInteractor);
 
-  virtual void Initialize() { this->Initialized = 1; this->Enable(); }
+  virtual void Initialize() override
+  {
+    this->Initialized = 1;
+    this->Enable();
+  }
   // virtual void Start() { }
   // virtual void TerminateApp() { }
 
@@ -135,6 +139,16 @@ void AbstractVTKRenderer::SyncronizeCamera(Self *reference)
   // And vice versa
   reference->Rebroadcast(m_Interactor,
                          vtkCommand::ModifiedEvent, ModelUpdateEvent());
+}
+
+void AbstractVTKRenderer::SetBackgroundColor(Vector3d color)
+{
+  m_Renderer->SetBackground(color[0], color[1], color[2]);
+}
+
+Vector3d AbstractVTKRenderer::GetBackgroundColor() const
+{
+  return Vector3d(m_Renderer->GetBackground());
 }
 
 /*
