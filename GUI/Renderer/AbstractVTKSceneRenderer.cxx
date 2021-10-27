@@ -12,6 +12,7 @@
 #include <vtkAxis.h>
 #include <vtkRenderer.h>
 #include <vtkContextInteractorStyle.h>
+#include <vtkContextScene.h>
 #include <vtkRenderWindowInteractor.h>
 
 
@@ -21,12 +22,21 @@ AbstractVTKSceneRenderer::AbstractVTKSceneRenderer()
   // Set up the context actor/scene
   m_ContextActor = vtkSmartPointer<vtkContextActor>::New();
   m_Renderer->AddViewProp(m_ContextActor);
+
+  // This seems to be a bug in VTK that we have to assign the renderer to the scene
+  // TODO: check if this is necessary in VTK9, in VTK8 this causes scene->GetViewWidth() to return 0
+  m_ContextActor->GetScene()->SetRenderer(m_Renderer);
 }
 
 void AbstractVTKSceneRenderer::SetRenderWindow(vtkRenderWindow *rwin)
 {
   // Call parent method
   Superclass::SetRenderWindow(rwin);
+
+  // Configure interaction
+  vtkNew<vtkContextInteractorStyle> style;
+  style->SetScene(m_ContextActor->GetScene());
+  rwin->GetInteractor()->SetInteractorStyle(style);
 
   // Initialize some properties of the renderer
   // rwin->SwapBuffersOff();

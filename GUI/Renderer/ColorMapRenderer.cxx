@@ -29,27 +29,8 @@ public:
 
   ColorMapContextItem()
   {
-    // Allocate and initialize the texture for the checkerboard
-    unsigned int boxw = 16;
-    m_CheckerboardTexture = MakeTexture(boxw, boxw);
-    unsigned char *data =
-        reinterpret_cast<unsigned char *>(m_CheckerboardTexture->GetScalarPointer(0,0,0));
-
-    for(unsigned int i = 0; i < boxw; i++)
-      {
-      for(unsigned int j = 0; j < boxw; j++)
-        {
-        unsigned char color = 0xff;
-        if((i < boxw / 2 && j < boxw / 2) || (i >= boxw / 2 && j >= boxw / 2))
-          color = 0xef;
-        *data++ = color;
-        *data++ = color;
-        *data++ = color;
-        *data++ = 255;
-        }
-      }
-
-    m_CheckerboardTexture->Modified();
+    // We leave the checkerboard null until we know the VPPR
+    m_CheckerboardTexture = nullptr;
 
     // Allocate the texture for the colormap
     m_ColorMapMainTexture = MakeTexture(513, 17);
@@ -89,6 +70,32 @@ public:
     texture->SetPointDataActiveScalarInfo(info, VTK_UNSIGNED_CHAR, 4);
     texture->AllocateScalars(info);
     return texture;
+  }
+
+  virtual void MakeCheckerboard(int boxw)
+  {
+    // Only do this if necessary
+    if(m_CheckerboardTexture &&
+       m_CheckerboardTexture->GetDimensions()[0] == boxw)
+      return;
+
+    m_CheckerboardTexture = MakeTexture(boxw, boxw);
+    unsigned char *data =
+        reinterpret_cast<unsigned char *>(m_CheckerboardTexture->GetScalarPointer(0,0,0));
+
+    for(int i = 0; i < boxw; i++)
+      {
+      for(int j = 0; j < boxw; j++)
+        {
+        unsigned char color = 0xff;
+        if((i < boxw / 2 && j < boxw / 2) || (i >= boxw / 2 && j >= boxw / 2))
+          color = 0xef;
+        *data++ = color;
+        *data++ = color;
+        *data++ = color;
+        *data++ = 255;
+        }
+      }
   }
 
   virtual void SetTextureColumn(vtkImageData *texture, unsigned int i, double t)
@@ -152,6 +159,7 @@ public:
     int vppr = m_Model->GetViewportReporter()->GetViewportPixelRatio();
 
     // Generate the texture for the background
+    MakeCheckerboard(vppr * 16);
     painter->GetBrush()->SetTexture(m_CheckerboardTexture);
     painter->GetBrush()->SetTextureProperties(vtkBrush::Linear | vtkBrush::Repeat);
     painter->GetBrush()->SetColorF(1.0, 1.0, 1.0);
@@ -213,7 +221,7 @@ public:
           painter->PushMatrix();
           vtkNew<vtkTransform2D> tran;
           tran->Translate(p.m_Index, rgba[side][3] / 255.0);
-          tran->Scale(6.0 / w, 6.0 / h);
+          tran->Scale(vppr * 6.0 / w, vppr * 6.0 / h);
           painter->AppendTransform(tran);
 
           if(is_split)
@@ -253,8 +261,8 @@ public:
 
   virtual Vector3d GetEventColorSpaceCoordinates(const vtkVector2f &pos)
   {
-    int w = this->GetScene()->GetViewWidth();
-    int h = this->GetScene()->GetViewHeight();
+    int w = this->GetScene()->GetSceneWidth();
+    int h = this->GetScene()->GetSceneHeight();
     return Vector3d(pos[0] * 1.2 / w - 0.1, pos[1] * 1.2 / h - 0.1, 0);
   }
 
