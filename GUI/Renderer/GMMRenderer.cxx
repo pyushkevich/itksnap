@@ -36,12 +36,10 @@ GMMRenderer::GMMRenderer()
   m_HistogramAssembly = new LayerHistogramPlotAssembly();
 
   // Add the chart to the renderer
-  m_ContextView->GetScene()->AddItem(m_Chart);
+  this->GetScene()->AddItem(m_Chart);
 
   // Set the background to white
-  m_BackgroundColor.fill(1.0);
-
-
+  this->SetBackgroundColor(Vector3d(1.0,1.0,1.0));
 }
 
 

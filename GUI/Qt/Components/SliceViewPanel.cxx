@@ -202,6 +202,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
       static_cast<GenericSliceRenderer *>(ui->sliceView->GetRenderer());
 
   m_DecorationRenderer->SetParentRenderer(parentRenderer);
+  m_DecorationRenderer->SetModel(m_SliceModel);
   m_SnakeModeRenderer->SetParentRenderer(parentRenderer);
   m_SnakeModeRenderer->SetModel(m_GlobalUI->GetSnakeWizardModel());
 
@@ -391,18 +392,16 @@ void SliceViewPanel::OnToolbarModeChange()
   GenericSliceRenderer *ren = (GenericSliceRenderer *) ui->sliceView->GetRenderer();
 
   // Configure the renderers
-  GenericSliceRenderer::RendererDelegateList ovTiled;
-  GenericSliceRenderer::RendererDelegateList ovGlobal;
+  GenericSliceRenderer::RendererDelegateList delegates;
 
   // Append the overlays in the right order
-  ovTiled.clear();
-  ovTiled.push_back(m_SnakeModeRenderer);
-  ovTiled.push_back(ui->imCrosshairs->GetRenderer());
-  ovTiled.push_back(ui->imAnnotation->GetRenderer());
-  ovTiled.push_back(ui->imPolygon->GetRenderer());
+  delegates.clear();
+  delegates.push_back(m_SnakeModeRenderer);
+  delegates.push_back(ui->imCrosshairs->GetRenderer());
+  delegates.push_back(ui->imAnnotation->GetRenderer());
+  delegates.push_back(ui->imPolygon->GetRenderer());
 
-  ovGlobal.clear();
-  ovGlobal.push_back(m_DecorationRenderer);
+  // ovGlobal.clear();
 
   switch(m_GlobalUI->GetGlobalState()->GetToolbarMode())
     {
@@ -411,19 +410,19 @@ void SliceViewPanel::OnToolbarModeChange()
       break;
     case PAINTBRUSH_MODE:
       ConfigureEventChain(ui->imPaintbrush);
-      ovTiled.push_back(ui->imPaintbrush->GetRenderer());
+      delegates.push_back(ui->imPaintbrush->GetRenderer());
       break;
     case ANNOTATION_MODE:
       ConfigureEventChain(ui->imAnnotation);
-      ovTiled.push_back(ui->imAnnotation->GetRenderer());
+      delegates.push_back(ui->imAnnotation->GetRenderer());
       break;
     case REGISTRATION_MODE:
       ConfigureEventChain(ui->imRegistration);
-      ovTiled.push_back(ui->imRegistration->GetRenderer());
+      delegates.push_back(ui->imRegistration->GetRenderer());
       break;
     case ROI_MODE:
       ConfigureEventChain(ui->imSnakeROI);
-      ovTiled.push_back(ui->imSnakeROI->GetRenderer());
+      delegates.push_back(ui->imSnakeROI->GetRenderer());
       break;
     case CROSSHAIRS_MODE:
       ConfigureEventChain(ui->imCrosshairs);
@@ -433,9 +432,11 @@ void SliceViewPanel::OnToolbarModeChange()
       break;
     }
 
+  delegates.push_back(m_DecorationRenderer);
+
   // Set the overlays
-  ren->SetTiledOverlays(ovTiled);
-  ren->SetGlobalOverlays(ovTiled);
+  ren->SetDelegates(delegates);
+  // ren->SetGlobalOverlays(ovTiled);
 
   // Need to change to the appropriate page
   QStackedLayout *loPages =

@@ -2,7 +2,7 @@
 
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderer.h>
-#include <vtkContextView.h>
+#include <vtkContextActor.h>
 #include <vtkChart.h>
 #include <vtkChartXY.h>
 #include <vtkTextProperty.h>
@@ -10,6 +10,7 @@
 #include <vtkPlot.h>
 #include <vtkPen.h>
 #include <vtkAxis.h>
+#include <vtkRenderer.h>
 #include <vtkContextInteractorStyle.h>
 #include <vtkRenderWindowInteractor.h>
 
@@ -17,23 +18,22 @@
 AbstractVTKSceneRenderer::AbstractVTKSceneRenderer()
   : AbstractVTKRenderer()
 {
-  // Set up the context view
-  m_ContextView = vtkSmartPointer<vtkContextView>::New();
-
-  // Set the background to black
-  m_BackgroundColor.fill(0.0);
+  // Set up the context actor/scene
+  m_ContextActor = vtkSmartPointer<vtkContextActor>::New();
+  m_Renderer->AddViewProp(m_ContextActor);
 }
 
 void AbstractVTKSceneRenderer::SetRenderWindow(vtkRenderWindow *rwin)
 {
   // Call parent method
-  AbstractVTKRenderer::SetRenderWindow(rwin);
+  Superclass::SetRenderWindow(rwin);
 
   // Initialize some properties of the renderer
-  rwin->SwapBuffersOff();
-  rwin->SetMultiSamples(0);
+  // rwin->SwapBuffersOff();
+  // rwin->SetMultiSamples(0);
 
   // Assign to context view
+  /*
   m_ContextView->SetRenderWindow(m_RenderWindow);
   m_ContextView->SetInteractor(m_RenderWindow->GetInteractor());
   vtkNew<vtkContextInteractorStyle> style;
@@ -41,6 +41,12 @@ void AbstractVTKSceneRenderer::SetRenderWindow(vtkRenderWindow *rwin)
   m_ContextView->GetInteractor()->SetInteractorStyle(style);
 
   std::cout << "INTERACTOR on " << m_ContextView << " SET TO " << m_RenderWindow->GetInteractor() << std::endl;
+  */
+}
+
+vtkContextScene *AbstractVTKSceneRenderer::GetScene()
+{
+  return m_ContextActor->GetScene();
 }
 
 void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(
@@ -73,11 +79,15 @@ void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(
     }
 }
 
+/*
 void AbstractVTKSceneRenderer::paintGL()
 {
   // Set renderer background
   m_ContextView->GetRenderer()->SetBackground(m_BackgroundColor.data_block());
+  std::cout << "AbstractVTKSceneRenderer::paintGL " <<
+               this->m_RenderWindow << " Setting background to " << m_BackgroundColor << std::endl;
 
   // Update the scene
   AbstractVTKRenderer::paintGL();
 }
+*/

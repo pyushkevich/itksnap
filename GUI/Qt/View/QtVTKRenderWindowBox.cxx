@@ -131,6 +131,11 @@ void QtVTKRenderWindowBox::onModelUpdate(const EventBucket &)
 {
   m_Renderer->Update();
   this->GetRenderWindow()->Render();
+  std::cout << "Calling GetRenderWindow::Render on " << this->GetRenderWindow() <<
+            " size " << this->GetRenderWindow()->GetSize()[0] <<
+               " " << this->GetRenderWindow()->GetSize()[1] << std::endl;
+  std::cout << "VP " << m_Renderer->GetRenderer()->GetSize()[0] <<
+               " " << m_Renderer->GetRenderer()->GetSize()[1] << std::endl;
   this->update();
 }
 

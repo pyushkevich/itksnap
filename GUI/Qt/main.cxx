@@ -50,6 +50,9 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
+// TODO: delete
+#include "SnakeParameterDialog.h"
+
 using namespace std;
 
 // Interrupt handler. This will attempt to clean up
@@ -567,6 +570,14 @@ int test_opengl()
   return QApplication::exec();
 }
 
+// TODO: delete
+#include <QWindow>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QtVTKRenderWindowBox.h>
+#include <SnakeParameterPreviewRenderer.h>
+#include <vtkContextView.h>
+
 int main(int argc, char *argv[])
 {  
   // Test object, which only is allocated if tests are requested. The
@@ -991,6 +1002,13 @@ int main(int argc, char *argv[])
 
     // Show the panel
     mainwin->ShowFirstTime();
+
+    // TODO: delete
+    SnakeParameterDialog *spd = new SnakeParameterDialog(mainwin);
+    spd->SetModel(gui->GetSnakeParameterModel());
+    spd->show();
+    spd->activateWindow();
+    spd->raise();
 
     // Check for updates?
     mainwin->UpdateAutoCheck();

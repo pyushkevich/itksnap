@@ -15,6 +15,7 @@
 const unsigned int EdgePreprocessingSettingsRenderer::NUM_POINTS = 256;
 
 EdgePreprocessingSettingsRenderer::EdgePreprocessingSettingsRenderer()
+  : AbstractVTKSceneRenderer()
 {
   m_Model = NULL;
 
@@ -22,7 +23,7 @@ EdgePreprocessingSettingsRenderer::EdgePreprocessingSettingsRenderer()
   m_Chart = vtkSmartPointer<vtkChartXY>::New();
 
   // Add the chart to the renderer
-  m_ContextView->GetScene()->AddItem(m_Chart);
+  this->GetScene()->AddItem(m_Chart);
 
   // Set up the data
   m_DataX = vtkSmartPointer<vtkFloatArray>::New();
@@ -40,7 +41,7 @@ EdgePreprocessingSettingsRenderer::EdgePreprocessingSettingsRenderer()
   vtkPlot *plot = m_Chart->AddPlot(vtkChart::LINE);
   plot->SetInputData(m_PlotTable, 0, 1);
   plot->SetColor(1, 0, 0);
-  plot->SetWidth(1.0);
+  plot->SetWidth(2.0);
   plot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
   plot->GetYAxis()->SetMinimum(-0.05);
   plot->GetYAxis()->SetMaximum(1.05);
@@ -51,7 +52,7 @@ EdgePreprocessingSettingsRenderer::EdgePreprocessingSettingsRenderer()
   // TODO: we could also render a histogram here
 
   // Set the background to white
-  m_BackgroundColor.fill(1.0);
+  this->SetBackgroundColor(Vector3d(1.0,1.0,1.0));
 
 }
 
@@ -81,6 +82,16 @@ void EdgePreprocessingSettingsRenderer::UpdatePlotValues()
     m_PlotTable->Modified();
     m_Chart->RecalculateBounds();
     }
+}
+
+void EdgePreprocessingSettingsRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
+
+  // Customize the render window
+  rwin->SetMultiSamples(0);
+  rwin->SetLineSmoothing(1);
+  rwin->SetPolygonSmoothing(1);
 }
 
 

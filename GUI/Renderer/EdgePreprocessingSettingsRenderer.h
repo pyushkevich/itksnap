@@ -20,9 +20,11 @@ public:
 
   void SetModel(SnakeWizardModel *model);
 
-  void OnUpdate() ITK_OVERRIDE;
+  void OnUpdate() override;
 
   void UpdatePlotValues();
+
+  virtual void SetRenderWindow(vtkRenderWindow *rwin) override;
 
 protected:
 

@@ -132,16 +132,10 @@ public:
   typedef std::list<SliceRendererDelegate *> RendererDelegateList;
 
   // Get a reference to the list of overlays stored in here
-  const RendererDelegateList &GetGlobalOverlays() const
-    { return m_GlobalOverlays; }
+  const RendererDelegateList &GetDelegates() const
+    { return m_Delegates; }
 
-  void SetGlobalOverlays(const RendererDelegateList &ovl);
-
-  // Get a reference to the list of overlays stored in here
-  const RendererDelegateList &GetTiledOverlays() const
-    { return m_TiledOverlays; }
-
-  void SetTiledOverlays(const RendererDelegateList &ovl);
+  void SetDelegates(const RendererDelegateList &ovl);
 
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
@@ -228,13 +222,13 @@ protected:
   BaseLayerAssembly *GetBaseLayerAssembly(ImageWrapperBase *wrapper);
 
   // A renderer placed on top of the tiles
-  vtkSmartPointer<vtkRenderer> m_OverlayRenderer;
+  vtkSmartPointer<vtkRenderer> m_BackgroundRenderer, m_OverlayRenderer;
 
   // An actor holding the zoom thumbnail
   vtkSmartPointer<TexturedRectangleAssembly2D> m_ZoomThumbnail;
 
-  // An actor holding the zoom thumbnail decorators
-  vtkSmartPointer<vtkContextActor> m_ZoomThumbnailDecoratorActor;
+  // An actor holding the global overlays including zoom thumb
+  vtkSmartPointer<vtkContextActor> m_OverlaySceneActor;
 
   // Update the renderers in response to a change in number of layers
   void UpdateLayerAssemblies();
@@ -291,7 +285,7 @@ protected:
   int m_DrawingViewportIndex;
 
   // A list of overlays that the user can configure
-  RendererDelegateList m_TiledOverlays, m_GlobalOverlays;
+  RendererDelegateList m_Delegates;
 
   Vector3d ComputeGridPosition(const Vector3d &disp_pix, const itk::Index<2> &slice_index, ImageWrapperBase *vecimg);
 

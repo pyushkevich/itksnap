@@ -51,26 +51,18 @@ public:
     oss_length << std::setprecision(4) << length << " " << "mm";
 
     // Set up the rendering properties
-    AbstractRendererPlatformSupport::FontInfo font_info =
-          { AbstractRendererPlatformSupport::TYPEWRITER,
-            12 * vppr,
-            false };
+    auto *rps = AbstractRenderer::GetPlatformSupport();
+    auto font_info = rps->MakeFont(12 * GetVPPR(),
+                                   AbstractRendererPlatformSupport::TYPEWRITER);
 
     Vector3d curr_center = (xSlice1 + xSlice2) * 0.5;
 
     // Draw the length text
-    painter->GetTextProp()->SetFontFamilyToCourier();
-    painter->GetTextProp()->SetFontSize(12 * vppr);
-    painter->GetTextProp()->SetBold(false);
-    painter->GetTextProp()->SetJustificationToLeft();
-    painter->GetTextProp()->SetVerticalJustificationToBottom();
-    painter->GetTextProp()->SetColor(color[0], color[1], color[2]);
-    painter->GetTextProp()->SetOpacity(alpha);
-
-    painter->DrawString(
-        curr_center[0] + text_offset_slice[0],
-        curr_center[1] + text_offset_slice[1],
-        oss_length.str().c_str());
+    this->DrawStringRect(painter,
+          oss_length.str(),
+          curr_center[0] + text_offset_slice[0], curr_center[1] + text_offset_slice[1],
+          text_width_slice[0], text_width_slice[1],
+          font_info, -1, 1, color, alpha);
   }
 
   void DrawSelectionHandle(vtkContext2D *painter, const Vector3d &xSlice)
@@ -93,13 +85,17 @@ public:
   virtual bool Paint(vtkContext2D *painter) override
   {
     // Get appearance settings
-    auto *as = m_Model->GetParentUI()->GetAppearanceSettings();
     auto *gs = m_Model->GetDriver()->GetGlobalState();
 
     // Get the opacity of the annotations, and stop if it is zero
     double alpha = gs->GetAnnotationAlpha();
     if(alpha == 0)
       return false;
+
+    // Set up the rendering properties
+    auto *rps = AbstractRenderer::GetPlatformSupport();
+    auto font_info = rps->MakeFont(12 * GetVPPR(),
+                                   AbstractRendererPlatformSupport::TYPEWRITER);
 
     // Get the color for the annotations
     Vector3d ann_color = gs->GetAnnotationColor();
@@ -201,24 +197,12 @@ public:
 
             Vector3d line_center = m_AnnotationModel->GetAnnotationCenter(lsa);
 
-            // Set up the rendering properties
-            AbstractRendererPlatformSupport::FontInfo font_info =
-                  { AbstractRendererPlatformSupport::TYPEWRITER,
-                    12 * vppr,
-                    false };
-
             // Draw the angle text
-            painter->GetTextProp()->SetFontFamilyToCourier();
-            painter->GetTextProp()->SetFontSize(12 * vppr);
-            painter->GetTextProp()->SetBold(false);
-            painter->GetTextProp()->SetJustificationToLeft();
-            painter->GetTextProp()->SetVerticalJustificationToTop();
-            painter->GetTextProp()->SetColor(color[0], color[1], color[2]);
-            painter->GetTextProp()->SetOpacity(alpha);
-            painter->DrawString(
-                line_center[0] + text_offset_slice[0],
-                line_center[1] + text_offset_slice[1],
-                oss_angle.str().c_str());
+            this->DrawStringRect(painter, oss_angle.str(),
+                                 line_center[0] + text_offset_slice[0],
+                                 line_center[1] + text_offset_slice[1],
+                                 text_width_slice[0], text_width_slice[1],
+                                 font_info, -1, 1, lsa->GetColor(), alpha);
             }
           else
             {
@@ -250,76 +234,58 @@ public:
             this->DrawSelectionHandle(painter, xTailSlice);
             }
 
-          // Font properties
-          painter->GetTextProp()->SetFontFamilyToArial();
-          painter->GetTextProp()->SetFontSize(12 * vppr);
-          painter->GetTextProp()->SetBold(false);
-          painter->GetTextProp()->SetJustificationToLeft();
-          painter->GetTextProp()->SetVerticalJustificationToTop();
-          painter->GetTextProp()->SetColor(color[0], color[1], color[2]);
-          painter->GetTextProp()->SetOpacity(alpha);
-
-          // Text box size in screen pixels
+          // Text box size in slice coordinate units
           float bounds[4];
           painter->ComputeStringBounds(text.c_str(), bounds);
-          Vector2d xTextSizeWin(bounds[2] - bounds[0], bounds[3] - bounds[1]);
-          std::cout << "STRING BOUNDS " << xTextSizeWin << std::endl;
-
-          // Text box size in slice coordinate units
-          // Vector3d xTextSizeSlice = m_Model->MapWindowOffsetToSliceOffset(xTextSizeWin);
-          // std::cout << "STRING BOUNDS SLICE " << xTextSizeSlice << std::endl;
-          Vector2d xTextSizeSlice = xTextSizeWin;
+          Vector2d xTextSizeSlice(bounds[2] - bounds[0], bounds[3] - bounds[1]);
 
           // How to position the text
-          vtkNew<vtkPoints2D> trect;
-          trect->SetNumberOfPoints(2);
           double xbox, ybox;
-
           int align_horiz, align_vert;
           if(fabs(lma->GetLandmark().Offset[0]) >= fabs(lma->GetLandmark().Offset[1]))
             {
-            align_vert = VTK_TEXT_CENTERED;
+            align_vert = 0;
             ybox = xTailSlice[1] - xTextSizeSlice[1] / 2;
             if(lma->GetLandmark().Offset[0] >= 0)
               {
-              align_horiz = VTK_TEXT_LEFT;
+              align_horiz = -1;
               xbox = xTailSlice[0];
               }
             else
               {
-              align_horiz = VTK_TEXT_RIGHT;
+              align_horiz = 1;
               xbox = xTailSlice[0] - xTextSizeSlice[0];
               }
             }
           else
             {
-            align_horiz = VTK_TEXT_CENTERED;
+            align_horiz = 0;
             xbox = xTailSlice[0] - xTextSizeSlice[0] / 2;
             if(lma->GetLandmark().Offset[1] >= 0)
               {
-              align_vert = VTK_TEXT_BOTTOM;
+              align_vert = -1;
               ybox = xTailSlice[1];
               }
             else
               {
-              align_vert = VTK_TEXT_TOP;
+              align_vert = 1;
               ybox = xTailSlice[1] - xTextSizeSlice[1];
               }
             }
 
           // Draw the text at the right location
-          trect->SetPoint(0, xbox, ybox);
-          trect->SetPoint(1, xTextSizeSlice[0], xTextSizeSlice[1]);
-          painter->GetTextProp()->SetJustification(align_horiz);
-          painter->GetTextProp()->SetVerticalJustification(align_vert);
-
-          painter->GetPen()->SetColorF(1.0, 1.0, 0.0);
-          painter->GetPen()->SetOpacityF(1.0);
-          painter->DrawStringRect(trect, text.c_str());
+          font_info = rps->MakeFont(12 * GetVPPR(),
+                                    AbstractRendererPlatformSupport::SANS);
+          this->DrawStringRect(painter, text,
+                               xbox, ybox,
+                               xTextSizeSlice[0], xTextSizeSlice[1], font_info,
+                               align_horiz, align_vert, lma->GetColor(), alpha);
           }
 
         }
       }
+
+    return true;
   }
 
 protected:
@@ -383,10 +349,6 @@ void AnnotationRenderer::paintGL()
   if(m_ParentRenderer->IsDrawingZoomThumbnail() || m_ParentRenderer->IsDrawingLayerThumbnail())
     return;
 
-  // Get appearance settings
-  SNAPAppearanceSettings *as =
-      m_Model->GetParent()->GetParentUI()->GetAppearanceSettings();
-
   // Get the opacity of the annotations, and stop if it is zero
   double alpha =
       m_Model->GetParent()->GetParentUI()->GetGlobalState()->GetAnnotationAlpha();
@@ -427,12 +389,6 @@ void AnnotationRenderer::paintGL()
   if(m_Model->GetFlagDrawingLine())
     {
     const AnnotationModel::LineSegment &curr_line = m_Model->GetCurrentLine();
-
-    // Use the polygon drawing settings
-    const OpenGLAppearanceElement *elt =
-        as->GetUIElement(SNAPAppearanceSettings::POLY_DRAW_MAIN);
-
-    // Draw the line and the endpoints
 
     // Draw the current line
     glColor4d(ann_color[0], ann_color[1], ann_color[2],alpha);

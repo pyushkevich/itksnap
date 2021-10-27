@@ -48,6 +48,7 @@ template<class TFilter> class LevelSetExtensionFilter;
 
 class vtkImageImport;
 class vtkContourFilter;
+class vtkPoints2D;
 class LevelSetPreviewPipeline2D;
 class GlobalState;
 
@@ -144,7 +145,7 @@ public:
   irisGetMacro(SampledPoints,const SampledPointList &);
 
   /** Get the demo loop contour */
-  std::vector<Vector2d> &GetDemoLoopContour();
+  vtkPoints2D *GetDemoLoopContour();
 
   /** Get the color image corresponding to the speed image */
   DisplayImageType *GetDisplayImage()  

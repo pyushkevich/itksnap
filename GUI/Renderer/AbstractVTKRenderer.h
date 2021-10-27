@@ -52,7 +52,8 @@ public:
    */
   void SyncronizeCamera(Self *reference);
 
-  irisGetSetMacro(BackgroundColor, Vector3d)
+  virtual void SetBackgroundColor(Vector3d color);
+  virtual Vector3d GetBackgroundColor() const;
 
   virtual void paintGL() override {}
 
@@ -68,9 +69,6 @@ protected:
   // The device pixel ratio (1 for regular screens, 2 for retina)
   // This is updated in resizeGL
   int m_DevicePixelRatio;
-
-  // Background color
-  Vector3d m_BackgroundColor;
 
   // Virtual method called when the device pixel ratio changes, allowing
   // the child classes to update some properties (e.g., font size)

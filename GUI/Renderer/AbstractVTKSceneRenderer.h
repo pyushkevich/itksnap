@@ -6,9 +6,9 @@
 
 class vtkRenderer;
 class vtkRenderWindow;
-class vtkGenericOpenGLRenderWindow;
-class vtkContextView;
+class vtkContextActor;
 class vtkChart;
+class vtkContextScene;
 
 /**
   This class provides support for rendering a VTK scene in OpenGL. It sets
@@ -33,17 +33,14 @@ public:
 
   virtual void SetRenderWindow(vtkRenderWindow *rwin) override;
 
-  virtual void paintGL() override;
+  virtual vtkContextScene* GetScene();
 
-  irisGetSetMacroWithOverride(BackgroundColor, Vector3d)
+  // virtual void paintGL() override;
 
 protected:
 
   // Render window object used to render VTK stuff
-  vtkSmartPointer<vtkContextView> m_ContextView;
-
-  // Background color
-  Vector3d m_BackgroundColor;
+  vtkSmartPointer<vtkContextActor> m_ContextActor;
 
   AbstractVTKSceneRenderer();
   virtual ~AbstractVTKSceneRenderer() {}

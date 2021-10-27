@@ -7,6 +7,12 @@
 class QtRendererPlatformSupport : public AbstractRendererPlatformSupport
 {
 public:
+
+  virtual void RenderTextIntoVTKImage(
+      const char *text, vtkImageData *target,
+      FontInfo font, int align_horiz, int align_vert,
+      const Vector3d &rgbf, double alpha = 1.0);
+
   virtual void RenderTextInOpenGL(
       const char *text,
       double x, double y, double w, double h,

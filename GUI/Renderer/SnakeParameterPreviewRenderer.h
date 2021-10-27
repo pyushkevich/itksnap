@@ -1,18 +1,18 @@
 #ifndef SNAKEPARAMETERPREVIEWRENDERER_H
 #define SNAKEPARAMETERPREVIEWRENDERER_H
 
-#include "AbstractRenderer.h"
+#include "AbstractVTKSceneRenderer.h"
 #include "itkRGBAPixel.h"
 
 class SnakeParametersPreviewPipeline;
 class SnakeParameterModel;
-template <class TPixel> class OpenGLSliceTexture;
+class SnakeParameterContextItem;
 
-class SnakeParameterPreviewRenderer : public AbstractRenderer
+class SnakeParameterPreviewRenderer : public AbstractVTKSceneRenderer
 {
 public:
 
-  irisITKObjectMacro(SnakeParameterPreviewRenderer, AbstractRenderer)
+  irisITKObjectMacro(SnakeParameterPreviewRenderer, AbstractVTKSceneRenderer)
 
   irisGetMacro(Pipeline, SnakeParametersPreviewPipeline *)
 
@@ -25,12 +25,9 @@ public:
     };
 
   /** Set the display mode */
-  irisSetMacro(ForceToDisplay,DisplayMode)
+  void SetForceToDisplay(DisplayMode mode);
 
-  virtual void paintGL() ITK_OVERRIDE;
-
-  virtual void initializeGL() ITK_OVERRIDE;
-  virtual void resizeGL(int w, int h, int device_pixel_ratio) ITK_OVERRIDE;
+  void OnUpdate() override;
 
 protected:
 
@@ -44,13 +41,14 @@ protected:
   SnakeParametersPreviewPipeline *m_Pipeline;
 
   /** A texture object used to store the image */
-  typedef OpenGLSliceTexture<RGBAType> Texture;
-  SmartPtr<Texture> m_Texture;
+  vtkSmartPointer<SnakeParameterContextItem> m_ContextItem;
 
   /** Which force is being displayed? */
   DisplayMode m_ForceToDisplay;
 
   int m_ViewportWidth;
+
+  // void OnDevicePixelRatioChange(int old_ratio, int new_ratio) override;
 
   SnakeParameterPreviewRenderer();
   virtual ~SnakeParameterPreviewRenderer();

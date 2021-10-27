@@ -26,7 +26,7 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   m_Chart->SetActionToButton(vtkChartXY::ZOOM_AXIS, vtkContextMouseEvent::RIGHT_BUTTON);
 
   // Add the chart to the renderer
-  m_ContextView->GetScene()->AddItem(m_Chart);
+  this->GetScene()->AddItem(m_Chart);
 
   // Set up the data
   m_DataX = vtkSmartPointer<vtkFloatArray>::New();
@@ -53,7 +53,7 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   m_Plot->GetYAxis()->SetTitle("Metric");
 
   // Set the background to white
-  m_BackgroundColor.fill(1.0);
+  this->SetBackgroundColor(Vector3d(1.0, 1.0, 1.0));
 
   m_PyramidLevel = 0;
 }

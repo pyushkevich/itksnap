@@ -15,6 +15,11 @@ public:
 
   virtual void paintGL() ITK_OVERRIDE;
 
+  virtual void AddContextItemsToGlobalOverlayScene(
+      vtkContextScene *) override;
+
+  irisGetSetMacro(Model, GenericSliceModel *)
+
 protected:
 
   void DrawOrientationLabels();
@@ -31,6 +36,8 @@ protected:
 
   StringList GetDisplayText(ImageWrapperBase *layer);
   std::string CapStringLength(const std::string &str, int max_size);
+
+  GenericSliceModel *m_Model;
 };
 
 #endif // SLICEWINDOWDECORATIONRENDERER_H
