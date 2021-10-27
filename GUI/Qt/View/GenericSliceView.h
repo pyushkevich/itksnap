@@ -62,7 +62,7 @@ protected:
   // A viewport reporter
   SmartPtr<QtViewportReporter> m_ViewportReporter;
 
-  // OpenGL renderer (owned by the view)
+  // VTK-based Renderer (owned by the view)
   SmartPtr<GenericSliceRenderer> m_Renderer;
 
   // Whether next repaint requires a resize call (Qt bug?)

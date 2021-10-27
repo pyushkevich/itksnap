@@ -24,9 +24,6 @@ ENDIF(QT_USE_FILE)
 INCLUDE(${QT_USE_FILE})
 ADD_DEFINITIONS(${QT_DEFINITIONS})
 
-# Look for OpenGL.
-FIND_PACKAGE(OpenGL REQUIRED)
-
 # Use the include path and library for Qt that is used by VTK.
 INCLUDE_DIRECTORIES(
   ${QT_INCLUDE_DIR}

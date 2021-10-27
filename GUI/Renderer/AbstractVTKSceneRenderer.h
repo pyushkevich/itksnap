@@ -11,7 +11,7 @@ class vtkChart;
 class vtkContextScene;
 
 /**
-  This class provides support for rendering a VTK scene in OpenGL. It sets
+  This class provides support for rendering a VTK scene. It sets
   up the basic infrastructure, but the child class is the one responsible
   for maintaining and updating the scene.
 

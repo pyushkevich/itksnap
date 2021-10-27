@@ -63,30 +63,6 @@ public:
 
 };
 
-/**
- This is a delegate that renders text into a bitmap. This is used with
- OpenGL code that needs to draw text
- */
-class TextRenderingDelegate
-{
-public:
-  virtual void RenderTextInOpenGL(
-      const char *text,
-      int x, int y, int w, int h,
-      int font_size,
-      int align_horiz, int align_vert,
-      unsigned char rgba[]) = 0;
-};
-
-/**
- This delegate is used to generate an OpenGL texture for icons. Icons
- are identified by a string.
- */
-class TextureGenerationDelegate
-{
-public:
-  virtual int GenerateTexture(const char *imageName);
-};
 
 /**
  This delegate is used to obtain system-specific information
