@@ -139,9 +139,6 @@ endif()
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS 
 #--------------------------------------------------------------------------------
 
-# Add option to build on qt 4.x
-OPTION(SNAP_USE_QT4 "Compile using Qt version 4.8 for compatibility with older systems and VNC/x2go" OFF)
-
 IF(DEFINED InsightApplications_SOURCE_DIR)
   SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS FALSE CACHE BOOL 
 	"Is SNAP being built separate from InsightApplications?")
@@ -187,11 +184,7 @@ IF(CMAKE_SYSTEM_NAME MATCHES Darwin AND CMAKE_OSX_ARCHITECTURES)
   ENDIF()
 ENDIF()
 
-IF(NOT SNAP_USE_QT4)
-  SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
-ELSE(NOT SNAP_USE_QT4)
-  SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}-qt4")
-ENDIF(NOT SNAP_USE_QT4)
+SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
 
 # Additional CPack resources
 SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
@@ -1028,7 +1021,6 @@ SET(SNAP_SUBMODULE_LIBS
 
 # System libraries
 SET(SNAP_SYSTEM_LIBS
-  ${SNAP_OPENGL_LIBS}
   ${CURL_LIBRARIES}
   ${SYSTEM_LIBS}
 )
@@ -1077,15 +1069,9 @@ ADD_SUBDIRECTORY(${GREEDY_SOURCE_DIR})
 #--------------------------------------------------------------------------------
 
 # Wrap the QT input files
-IF(NOT SNAP_USE_QT4)
-  QT5_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
-  QT5_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
-  QT5_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
-ELSE(NOT SNAP_USE_QT4)
-  QT4_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
-  QT4_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
-  QT4_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
-ENDIF(NOT SNAP_USE_QT4)
+QT5_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
+QT5_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
+QT5_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
 
 # The SNAP logic library
 ADD_LIBRARY(itksnaplogic ${LOGIC_CXX} ${LOGIC_HEADERS})
@@ -1283,17 +1269,10 @@ SET(TEST_ORIENTATION_WIDGET_CXX
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/main.cxx
 )
 
-IF(NOT SNAP_USE_QT4)
-  QT5_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
-    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
-  QT5_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
-    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
-ELSE(NOT SNAP_USE_QT4)
-  QT4_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
-    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
-  QT4_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
-    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
-ENDIF(NOT SNAP_USE_QT4)
+QT5_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS
+  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
+QT5_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS
+  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
 
 ADD_EXECUTABLE(Test_OrientationWidget
   ${TEST_ORIENTATION_WIDGET_CXX} ${TEST_ORIENTATION_WIDGET_HEADERS}
@@ -1377,51 +1356,31 @@ IF(APPLE)
     PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
     GROUP_EXECUTE GROUP_READ)
 
-  IF(NOT SNAP_USE_QT4)
+  # Include the qt4 dependent libraries
+  include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
-    # Include the qt4 dependent libraries
-    include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
+  # Make sure the GIF plugin is included
+  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
 
-    # Make sure the GIF plugin is included
-    get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+  get_property(loc TARGET Qt5::QCocoaIntegrationPlugin PROPERTY LOCATION_RELEASE)
 
-    get_property(loc TARGET Qt5::QCocoaIntegrationPlugin PROPERTY LOCATION_RELEASE)
-
-    # Install with the plugin
-    install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
-
-  ELSE(NOT SNAP_USE_QT4)
-
-    # Include the qt4 dependent libraries
-    include(DeployQt4)
-    install_qt4_executable(${SNAP_BUNDLE_NAME}.app "qsqlite;qgif")
-
-  ENDIF(NOT SNAP_USE_QT4)
+  # Install with the plugin
+  install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
 
 ELSEIF(WIN32)
 
   # Install to the bin directory
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION bin)
 
-  IF(NOT SNAP_USE_QT4)
+  # Include the qt4 dependent libraries
+  include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
-      # Include the qt4 dependent libraries
-      include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
+  # Make sure the GIF plugin is included
+  get_property(QT_WIN_PLUGIN TARGET Qt5::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
+  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
 
-      # Make sure the GIF plugin is included
-      get_property(QT_WIN_PLUGIN TARGET Qt5::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
-      get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
-
-      # Install with the plugin
-      install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
-
-  ELSE(NOT SNAP_USE_QT4)
-
-      # Include the qt4 dependent libraries
-      include(DeployQt4)
-      install_qt4_executable(bin/${SNAP_BUNDLE_NAME}.exe "qsqlite;qgif")
-
-  ENDIF(NOT SNAP_USE_QT4)
+  # Install with the plugin
+  install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
 
   # On windows, we have to configure NSIS
   SET(CPACK_NSIS_MUI_ICON "${SNAP_SOURCE_DIR}/Utilities/Win32/snaplogo.ico")
@@ -1465,41 +1424,32 @@ ELSE()
   SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
 
-  IF(NOT SNAP_USE_QT4)
+  # Include the qt4 dependent libraries
+  include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
-    # Include the qt4 dependent libraries
-    include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
+  # Add an option to not package QT plugins. This is needed for some special builds,
+  # for example on Debian
+  OPTION(SNAP_PACKAGE_QT_PLUGINS "Try to package Qt5 plugins with the executable" ON)
+  MARK_AS_ADVANCED(SNAP_PACKAGE_QT_PLUGINS)
 
-    # Add an option to not package QT plugins. This is needed for some special builds,
-    # for example on Debian
-    OPTION(SNAP_PACKAGE_QT_PLUGINS "Try to package Qt5 plugins with the executable" ON)
-    MARK_AS_ADVANCED(SNAP_PACKAGE_QT_PLUGINS)
+  # Get the necessary plugins
+  IF(SNAP_PACKAGE_QT_PLUGINS)
 
-    # Get the necessary plugins
-    IF(SNAP_PACKAGE_QT_PLUGINS)
+    get_property(QT_XCB_PLUGIN TARGET Qt5::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    get_property(QT_XCB_GLX_PLUGIN TARGET Qt5::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    get_property(QT_XCB_EGL_PLUGIN TARGET Qt5::QXcbGlxIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
 
-      get_property(QT_XCB_PLUGIN TARGET Qt5::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
-      get_property(QT_XCB_GLX_PLUGIN TARGET Qt5::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
-      get_property(QT_XCB_EGL_PLUGIN TARGET Qt5::QXcbGlxIntegrationPlugin PROPERTY LOCATION_RELEASE)
-      get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+    # Install the plugin
+    install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE}
+      "${QT_XCB_PLUGIN};${QT_GIF_PLUGIN};${QT_XCB_GLX_PLUGIN};${QT_XCB_EGL_PLUGIN}")
 
-      # Install the plugin
-      install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} 
-        "${QT_XCB_PLUGIN};${QT_GIF_PLUGIN};${QT_XCB_GLX_PLUGIN};${QT_XCB_EGL_PLUGIN}")
+  ELSE(SNAP_PACKAGE_QT_PLUGINS)
 
-    ELSE(SNAP_PACKAGE_QT_PLUGINS)
+    # Install the exe without plugins
+    install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE})
 
-      # Install the exe without plugins
-      install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE})
-
-    ENDIF(SNAP_PACKAGE_QT_PLUGINS)
-
-  ELSE(NOT SNAP_USE_QT4)
-
-    include(DeployQt4)
-    install_qt4_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "qgif")
-
-  ENDIF(NOT SNAP_USE_QT4)
+  ENDIF(SNAP_PACKAGE_QT_PLUGINS)
 
 ENDIF()
 
@@ -1569,13 +1519,8 @@ MARK_AS_ADVANCED(SCP_ARGUMENTS)
 SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")
 MARK_AS_ADVANCED(SCP_USERNAME)
 
-IF(NOT SNAP_USE_QT4)
-  SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
-  SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
-ELSE(NOT SNAP_USE_QT4)
-  SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}-qt4.${CPACK_EXTENSION}")
-  SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}-qt4.${CPACK_EXTENSION}")
-ENDIF(NOT SNAP_USE_QT4)
+SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
 SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
 
