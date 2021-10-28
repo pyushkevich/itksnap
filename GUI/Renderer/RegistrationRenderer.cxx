@@ -26,8 +26,8 @@ public:
 
   RegistrationContextItem()
   {
-    m_WheelCircle = vtkNew<vtkPoints2D>();
-    m_WheelRays = vtkNew<vtkPoints2D>();
+    m_WheelCircle = vtkSmartPointer<vtkPoints2D>::New();
+    m_WheelRays = vtkSmartPointer<vtkPoints2D>::New();
 
     unsigned int n = 360, nr = 72;
     m_WheelCircle->Allocate(n+1);

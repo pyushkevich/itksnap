@@ -34,11 +34,11 @@ PolygonVTKProp2D::PolygonVTKProp2D()
   vtkNew<vtkPoints> points;
   vtkNew<vtkCellArray> cells;
 
-  m_PolyData = vtkNew<vtkPolyData>();
+  m_PolyData = vtkSmartPointer<vtkPolyData>::New();
   m_PolyData->SetPoints(points);
   m_PolyData->SetPolys(cells);
 
-  m_Mapper = vtkNew<vtkPolyDataMapper2D>();
+  m_Mapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   m_Mapper->SetInputData(m_PolyData);
 
   this->SetMapper(m_Mapper);

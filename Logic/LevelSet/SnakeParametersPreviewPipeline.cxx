@@ -85,7 +85,7 @@ public:
     m_DemoLoopLength = 160;
     m_DemoLoopStep = 2;
     m_LevelSetImage = NULL;
-    m_CurrentCurve = vtkNew<vtkPoints2D>();
+    m_CurrentCurve = vtkSmartPointer<vtkPoints2D>::New();
     }
 
   // Destructor

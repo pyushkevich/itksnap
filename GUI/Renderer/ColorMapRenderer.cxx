@@ -37,7 +37,7 @@ public:
     m_ColorMapRightTexture = MakeTexture(17, 17);
 
     // Create the grid
-    m_GridVertices = vtkNew<vtkPoints2D>();
+    m_GridVertices = vtkSmartPointer<vtkPoints2D>::New();
     m_GridVertices->Allocate(16);
 
     m_GridVertices->InsertNextPoint(-0.1, 0.0); m_GridVertices->InsertNextPoint( 1.1, 0.0);
@@ -52,7 +52,7 @@ public:
     m_GridVertices->InsertNextPoint(1.0, -0.1); m_GridVertices->InsertNextPoint(1.0, 1.1);
 
     // Curve points
-    m_CurveVertices = vtkNew<vtkPoints2D>();
+    m_CurveVertices = vtkSmartPointer<vtkPoints2D>::New();
 
     // Control point circle
     m_ControlOutline = VTKRenderGeometry::MakeUnitCircle(72);
@@ -134,7 +134,7 @@ public:
       ColorMap::RGBAType v0 = cmap->MapIndexToRGBA(-0.1);
       ColorMap::RGBAType v1 = cmap->MapIndexToRGBA(1.1);
 
-      m_CurveVertices = vtkNew<vtkPoints2D>();
+      m_CurveVertices = vtkSmartPointer<vtkPoints2D>::New();
       m_CurveVertices->Allocate(2 * cmap->GetNumberOfCMPoints() + 2);
 
       m_CurveVertices->InsertNextPoint(-0.1, v0[3] / 255.0);
@@ -306,7 +306,7 @@ vtkStandardNewMacro(ColorMapContextItem)
 ColorMapRenderer::ColorMapRenderer()
 {
   // Set up the item
-  m_ContextItem = vtkNew<ColorMapContextItem>();
+  m_ContextItem = vtkSmartPointer<ColorMapContextItem>::New();
   GetScene()->AddItem(m_ContextItem);
 }
 
