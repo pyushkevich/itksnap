@@ -85,7 +85,7 @@ GenericSliceContextItem
 
     // Allocate a vtkImageData for this text. TODO: allow caching based on the
     // hash of the parameters and text
-    img = vtkNew<vtkImageData>();
+    img = vtkSmartPointer<vtkImageData>::New();
     img->SetDimensions(wscr, hscr, 1);
     img->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
     sup->RenderTextIntoVTKImage(text.c_str(), img, fi, halign, valign, color, alpha);

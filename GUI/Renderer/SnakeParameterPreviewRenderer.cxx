@@ -157,7 +157,7 @@ vtkStandardNewMacro(SnakeParameterContextItem)
 SnakeParameterPreviewRenderer::SnakeParameterPreviewRenderer()
   : AbstractVTKSceneRenderer()
 {
-  m_ContextItem = vtkNew<SnakeParameterContextItem>();
+  m_ContextItem = vtkSmartPointer<SnakeParameterContextItem>::New();
   this->GetScene()->AddItem(m_ContextItem);
 
   this->SetBackgroundColor(Vector3d(1, 0, 1));

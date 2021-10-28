@@ -201,19 +201,19 @@ GenericSliceRenderer
   this->m_DrawingViewportIndex = -1;
 
 
-  m_BackgroundRenderer = vtkNew<vtkRenderer>();
+  m_BackgroundRenderer = vtkSmartPointer<vtkRenderer>::New();
   m_BackgroundRenderer->SetLayer(0);
 
-  m_OverlayRenderer = vtkNew<vtkRenderer>();
+  m_OverlayRenderer = vtkSmartPointer<vtkRenderer>::New();
   m_OverlayRenderer->SetLayer(2);
   m_OverlayRenderer->GetActiveCamera()->ParallelProjectionOn();
   m_OverlayRenderer->GetActiveCamera()->SetParallelScale(1.0);
 
-  m_ZoomThumbnail = vtkNew<TexturedRectangleAssembly2D>();
+  m_ZoomThumbnail = vtkSmartPointer<TexturedRectangleAssembly2D>::New();
   m_ZoomThumbnail->GetActor()->GetProperty()->SetColor(1, 1, 0);
   m_OverlayRenderer->AddActor2D(m_ZoomThumbnail->GetActor());
 
-  m_OverlaySceneActor = vtkNew<vtkContextActor>();
+  m_OverlaySceneActor = vtkSmartPointer<vtkContextActor>::New();
   m_OverlayRenderer->AddActor2D(m_OverlaySceneActor);
 }
 
@@ -409,7 +409,7 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
       auto c0 = sc.first, c1 = sc.second;
 
       // Create a polydata for the image
-      lta->m_ImageRect = vtkNew<TexturedRectangleAssembly>();
+      lta->m_ImageRect = vtkSmartPointer<TexturedRectangleAssembly>::New();
       lta->m_ImageRect->SetCorners(c0[0], c0[1], c1[0], c1[1]);
       lta->m_ImageRect->GetActor()->SetTexture(lta->m_Texture);
       }
@@ -428,9 +428,9 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
         it.GetLayer()->SetUserData(m_KeyBaseLayerAssembly, bla);
 
         // Create the renderers
-        bla->m_Renderer = vtkNew<vtkRenderer>();
+        bla->m_Renderer = vtkSmartPointer<vtkRenderer>::New();
         bla->m_Renderer->SetLayer(1);
-        bla->m_ThumbRenderer = vtkNew<vtkRenderer>();
+        bla->m_ThumbRenderer = vtkSmartPointer<vtkRenderer>::New();
         bla->m_ThumbRenderer->SetLayer(1);
 
         // Set camera properties
@@ -438,8 +438,8 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
         bla->m_ThumbRenderer->GetActiveCamera()->ParallelProjectionOn();
 
         // Create the context scene actor and transform item
-        bla->m_OverlayContextActor = vtkNew<vtkContextActor>();
-        bla->m_OverlayContextTransform = vtkNew<vtkContextTransform>();
+        bla->m_OverlayContextActor = vtkSmartPointer<vtkContextActor>::New();
+        bla->m_OverlayContextTransform = vtkSmartPointer<vtkContextTransform>::New();
         bla->m_OverlayContextActor->GetScene()->AddItem(bla->m_OverlayContextTransform);
 
         // Configure the context scene
@@ -451,7 +451,7 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
         thumb_border->SetModel(m_Model);
         thumb_border->SetLayer(it.GetLayer());
 
-        bla->m_ThumbnailDecoratorActor = vtkNew<vtkContextActor>();
+        bla->m_ThumbnailDecoratorActor = vtkSmartPointer<vtkContextActor>::New();
         bla->m_ThumbnailDecoratorActor->GetScene()->AddItem(thumb_border);
         }
       }
