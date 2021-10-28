@@ -39,6 +39,10 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->inComponent, m_Model->GetSelectedComponentModel());
   makeCoupling(ui->inComponentSlider, m_Model->GetSelectedComponentModel());
   makeCoupling((QAbstractButton *)ui->btnAnimate, m_Model->GetAnimateModel());
+  makeCoupling(ui->sliderTP, m_Model->GetParentModel()->GetCursorTimePointModel());
+  makeCoupling(ui->spinBoxTP, m_Model->GetParentModel()->GetCursorTimePointModel());
+  makeCoupling(ui->inTPNickname, m_Model->GetCrntTimePointNicknameModel());
+  makeCoupling(ui->TPTagsWidget, m_Model->GetCrntTimePointTagListModel());
 
   // Couple the pin/unpin buttons
   std::map<bool, QAbstractButton *> button_map;
@@ -57,6 +61,10 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 
   activateOnFlag(ui->grpMulticomponent, m_Model,
                  LayerGeneralPropertiesModel::UIF_MULTICOMPONENT,
+                 QtWidgetActivator::HideInactive);
+
+  activateOnFlag(ui->grp4DProperties, m_Model,
+                 LayerGeneralPropertiesModel::UIF_IS_4D_IMAGE,
                  QtWidgetActivator::HideInactive);
 
   activateOnFlag(ui->grpComponent, m_Model,
@@ -85,4 +93,12 @@ void GeneralLayerInspector::on_btnUp_clicked()
 void GeneralLayerInspector::on_btnDown_clicked()
 {
   m_Model->MoveLayerDown();
+}
+
+void GeneralLayerInspector::on_spinBoxTP_valueChanged(int value)
+{
+  QString txt("Properties for Time Point ");
+  txt.append(std::to_string(value).c_str());
+  txt.append(":");
+  ui->grpTPProperties->setTitle(txt);
 }

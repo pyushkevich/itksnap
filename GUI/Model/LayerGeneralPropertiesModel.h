@@ -7,6 +7,7 @@
 
 class AbstractMultiChannelDisplayMappingPolicy;
 class LayerTableRowModel;
+class TimePointProperties;
 
 /**
  * Properties maintained for each layer in the layer association
@@ -58,7 +59,8 @@ public:
     UIF_IS_STICKINESS_EDITABLE,
     UIF_IS_OPACITY_EDITABLE,
     UIF_MOVABLE_UP,
-    UIF_MOVABLE_DOWN
+    UIF_MOVABLE_DOWN,
+    UIF_IS_4D_IMAGE
   };
 
   // Implementation of virtual functions from parent class
@@ -100,6 +102,12 @@ public:
 
   /** A model for the tags */
   irisSimplePropertyAccessMacro(Tags, TagList)
+
+  /** A model for the current timepoint nickname */
+  irisSimplePropertyAccessMacro(CrntTimePointNickname, std::string)
+
+  /** A model for the current timtpoint taglist */
+  irisSimplePropertyAccessMacro(CrntTimePointTagList, TagList)
 
   /** Move the layer up in the list */
   void MoveLayerUp();
@@ -163,6 +171,19 @@ protected:
   // exposes are already exposed in LayerTableRowModel, so we delegate to
   // them.
   LayerTableRowModel *GetSelectedLayerTableRowModel();
+
+  // TimePoint Properties
+  TimePointProperties *m_TimePointProperties;
+
+  // Current time point nickname
+  SmartPtr<AbstractSimpleStringProperty> m_CrntTimePointNicknameModel;
+  bool GetCrntTimePointNicknameValue(std::string &value);
+  void SetCrntTimePointNicknameValue(std::string value);
+
+  // Current time point tags
+  SmartPtr<AbstractSimpleTagListProperty> m_CrntTimePointTagListModel;
+  bool GetCrntTimePointTagListValue(TagList &value);
+  void SetCrntTimePointTagListValue(TagList value);
 };
 
 #endif // LAYERGENERALPROPERTIESMODEL_H

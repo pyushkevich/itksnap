@@ -270,6 +270,7 @@ SET(LOGIC_CXX
   Logic/Framework/IRISImageData.cxx
   Logic/Framework/LayerIterator.cxx
   Logic/Framework/SNAPImageData.cxx
+  Logic/Framework/TimePointProperties.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
   Logic/ImageWrapper/CommonRepresentationPolicy.cxx
   Logic/ImageWrapper/DisplayMappingPolicy.cxx
@@ -380,6 +381,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/LayerIterator.h
   Logic/Framework/SegmentationUpdateIterator.h
   Logic/Framework/SNAPImageData.h
+  Logic/Framework/TimePointProperties.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/CommonRepresentationPolicy.h
