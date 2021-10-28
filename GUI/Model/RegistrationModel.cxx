@@ -564,8 +564,6 @@ void RegistrationModel::ApplyRotation(const Vector3d &axis, double theta)
 
 void RegistrationModel::ApplyTranslation(const Vector3d &tran)
 {
-  assert(layer);
-
   // Get the current transform
   ITKMatrixType matrix; ITKVectorType offset;
   this->GetMovingTransform(matrix, offset);
