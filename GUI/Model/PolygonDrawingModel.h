@@ -57,6 +57,9 @@ public:
   /** States that the polygon drawing is in */
   enum PolygonState { INACTIVE_STATE = 0, DRAWING_STATE, EDITING_STATE };
 
+  /** Default freehand fitting rate value */
+  static constexpr double DefaultFreehandFittingRate = 8.0;
+
   /** Render polygon onto a target image */
   void AcceptPolygon(std::vector<IRISWarning> &warnings);
 

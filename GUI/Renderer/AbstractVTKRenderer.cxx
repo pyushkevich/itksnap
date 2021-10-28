@@ -120,3 +120,13 @@ Vector3d AbstractVTKRenderer::GetBackgroundColor() const
   return Vector3d(m_Renderer->GetBackground());
 }
 
+void AbstractVTKRenderer::OnWindowResize(int itkNotUsed(w), int itkNotUsed(h), int vppr)
+{
+  if(m_DevicePixelRatio != vppr)
+    {
+    int old_ratio = m_DevicePixelRatio;
+    m_DevicePixelRatio = vppr;
+    this->OnDevicePixelRatioChange(old_ratio, vppr);
+    }
+}
+

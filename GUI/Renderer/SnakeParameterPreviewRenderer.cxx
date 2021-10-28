@@ -46,7 +46,6 @@ public:
     ConnectITKExporterToVTKImporter(exporter.GetPointer(), importer);
     importer->Update();
     m_Texture = importer->GetOutput();
-    std::cout << "Preview texture " << m_Texture->GetDimensions()[0] << "," << m_Texture->GetDimensions()[0] <<  std::endl;
   }
 
   virtual bool Paint(vtkContext2D *painter) override
@@ -57,12 +56,6 @@ public:
       return false;
 
     // Set up the model matrix
-    std::cout << "SnakeParameterContextItem::Paint " <<
-                 painter->GetDevice()->GetWidth() << " " <<
-                 painter->GetDevice()->GetHeight() <<
-                 this->GetScene()->GetSceneWidth() << " " <<
-                 this->GetScene()->GetSceneHeight() << std::endl;
-
     vtkNew<vtkTransform2D> tran;
     int w = this->GetScene()->GetSceneWidth();
     int h = this->GetScene()->GetSceneHeight();
@@ -187,8 +180,6 @@ void SnakeParameterPreviewRenderer::SetModel(SnakeParameterModel *model)
   Rebroadcast(m_Model->GetAnimateDemoModel(), ValueChangedEvent(), ModelUpdateEvent());
   Rebroadcast(m_Model, SnakeParameterModel::DemoLoopEvent(), ModelUpdateEvent());
 
-  std::cout << "SnakeParameterPreviewRenderer::SetModel " <<
-               this->GetRenderWindow() << std::endl;
   this->InvokeEvent(ModelUpdateEvent());
 }
 

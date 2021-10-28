@@ -235,9 +235,9 @@ public:
             }
 
           // Text box size in slice coordinate units
-          float bounds[4];
-          painter->ComputeStringBounds(text.c_str(), bounds);
-          Vector2d xTextSizeSlice(bounds[2] - bounds[0], bounds[3] - bounds[1]);
+          Vector2d xTextSizeSlice(
+                AbstractRenderer::GetPlatformSupport()->MeasureTextWidth(text.c_str(), font_info),
+                font_info.pixel_size * GetVPPR());
 
           // How to position the text
           double xbox, ybox;

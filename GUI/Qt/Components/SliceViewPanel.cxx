@@ -303,7 +303,6 @@ void SliceViewPanel::onModelUpdate(const EventBucket &eb)
     UpdateExpandViewButton();
     }
 
-  std::cout << "SliceViewPanel::onModelUpdate calling GetRenderWindow()::Render" << std::endl;
   ui->sliceView->GetRenderWindow()->Render();
   ui->sliceView->update();
 }

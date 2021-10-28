@@ -63,6 +63,7 @@ protected:
 
   void RendererCallback(vtkObject *src, unsigned long event, void *data);
 
+  // The class that does the actual rendering for us
   AbstractVTKRenderer *m_Renderer;
 
   // Enter and leave events

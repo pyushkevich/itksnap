@@ -7,6 +7,7 @@
 #include "GenericSliceContextItem.h"
 #include <vtkObjectFactory.h>
 #include <vtkContext2D.h>
+#include <vtkPoints2D.h>
 #include <vtkPen.h>
 
 
@@ -106,17 +107,17 @@ public:
     // Get the brush position
     Vector3d xPos = m_PaintbrushModel->GetCenterOfPaintbrushInSliceSpace();
 
-    // TODO: draw this as a loop instead of separate line segments
-    std::cout << "Drawing walk with " << m_Walk.size() << " vertices" << std::endl;
-    for(auto it = m_Walk.begin(); it != m_Walk.end(); ++it)
+    if(m_Walk.size() > 1)
       {
-      auto itNext = it; itNext++;
-      if(itNext == m_Walk.end())
-        itNext = m_Walk.begin();
+      vtkNew<vtkPoints2D> walk;
+      walk->Allocate(m_Walk.size() + 1);
 
-      painter->DrawLine(
-            (*it)(0) + xPos[0], (*it)(1) + xPos[1],
-            (*itNext)(0) + xPos[0], (*itNext)(1) + xPos[1]);
+      for(auto it : m_Walk)
+        walk->InsertNextPoint(it[0] + xPos[0], it[1] + xPos[1]);
+
+      walk->InsertNextPoint(walk->GetPoint(0));
+
+      painter->DrawLines(walk);
       }
 
     return true;

@@ -38,11 +38,14 @@ public:
    */
   virtual void SetRenderWindow(vtkRenderWindow *rwin);
 
-  /** Get the render window pointer */
+  /** Get the render window */
   vtkRenderWindow *GetRenderWindow();
 
-  vtkRenderer *GetRenderer();
+  /** Get the render window interactor */
   vtkRenderWindowInteractor *GetRenderWindowInteractor();
+
+  /** Get the renderer */
+  vtkRenderer *GetRenderer();
 
   void SetInteractionStyle(InteractionStyle style);
 
@@ -54,6 +57,13 @@ public:
 
   virtual void SetBackgroundColor(Vector3d color);
   virtual Vector3d GetBackgroundColor() const;
+
+  /**
+   * Notifies the renderer of change in window size and DPI. This method should
+   * be called by the widget displaying this renderer when it is resized or moved
+   * from screen to screen. Child classes should override OnDevicePixelRatioChange()
+   */
+  virtual void OnWindowResize(int w, int h, int vppr);
 
 protected:
 
@@ -70,7 +80,7 @@ protected:
 
   // Virtual method called when the device pixel ratio changes, allowing
   // the child classes to update some properties (e.g., font size)
-  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio) {}
+  virtual void OnDevicePixelRatioChange(int itkNotUsed(old_ratio), int itkNotUsed(new_ratio)) {}
 
   AbstractVTKRenderer();
   virtual ~AbstractVTKRenderer() {}

@@ -85,7 +85,11 @@ void QtVTKRenderWindowBox::initializeGL()
 
 void QtVTKRenderWindowBox::resizeGL(int w, int h)
 {
-  // TODO: update model?
+  // Handle changes in VPPR
+  if(m_Renderer)
+    m_Renderer->OnWindowResize(w, h, this->devicePixelRatio());
+
+  // Handle the resize normally
   QVTKOpenGLNativeWidget::resizeGL(w, h);
 }
 
@@ -130,12 +134,6 @@ bool QtVTKRenderWindowBox::SaveScreenshot(std::string filename)
 void QtVTKRenderWindowBox::onModelUpdate(const EventBucket &)
 {
   m_Renderer->Update();
-  this->GetRenderWindow()->Render();
-  std::cout << "Calling GetRenderWindow::Render on " << this->GetRenderWindow() <<
-            " size " << this->GetRenderWindow()->GetSize()[0] <<
-               " " << this->GetRenderWindow()->GetSize()[1] << std::endl;
-  std::cout << "VP " << m_Renderer->GetRenderer()->GetSize()[0] <<
-               " " << m_Renderer->GetRenderer()->GetSize()[1] << std::endl;
   this->update();
 }
 
