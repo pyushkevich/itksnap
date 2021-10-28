@@ -32,7 +32,7 @@ PolygonDrawingModel
   m_PolygonSlice = PolygonSliceType::New();
   m_HoverOverFirstVertex = false;
 
-  m_FreehandFittingRateModel = NewRangedConcreteProperty(8.0, 0.0, 100.0, 1.0);
+  m_FreehandFittingRateModel = NewRangedConcreteProperty(DefaultFreehandFittingRate, 0.0, 100.0, 1.0);
 
 }
 

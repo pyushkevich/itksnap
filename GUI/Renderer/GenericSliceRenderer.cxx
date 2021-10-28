@@ -215,11 +215,6 @@ GenericSliceRenderer
 
   m_OverlaySceneActor = vtkNew<vtkContextActor>();
   m_OverlayRenderer->AddActor2D(m_OverlaySceneActor);
-
-  vtkNew<vtkTextActor> txt;
-  txt->SetInput("Hello World");
-  txt->SetPosition(120, 120);
-  m_OverlayRenderer->AddActor2D(txt);
 }
 
 void
@@ -303,9 +298,6 @@ void GenericSliceRenderer::UpdateSceneAppearanceSettings()
 
 void GenericSliceRenderer::OnUpdate()
 {
-  std::cout << "OnUpdate() called in window " << m_Model->GetId() << std::endl;
-  std::cout << *m_EventBucket << std::endl;
-
   // Make sure the model has been updated first
   m_Model->Update();
 
@@ -459,9 +451,8 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
         thumb_border->SetModel(m_Model);
         thumb_border->SetLayer(it.GetLayer());
 
-        vtkNew<vtkContextActor> context_actor;
-        context_actor->GetScene()->AddItem(thumb_border);
-        bla->m_ThumbnailDecoratorActor = context_actor;
+        bla->m_ThumbnailDecoratorActor = vtkNew<vtkContextActor>();
+        bla->m_ThumbnailDecoratorActor->GetScene()->AddItem(thumb_border);
         }
       }
     else
@@ -491,8 +482,6 @@ GenericSliceRenderer::GetBaseLayerAssembly(ImageWrapperBase *wrapper)
   auto *userdata = wrapper->GetUserData(m_KeyBaseLayerAssembly);
   return dynamic_cast<BaseLayerAssembly *>(userdata);
 }
-
-
 
 void GenericSliceRenderer::SetDepth(vtkActor *actor, double z)
 {
@@ -534,11 +523,9 @@ void GenericSliceRenderer::UpdateZoomPanThumbnail()
   m_Model->ComputeThumbnailProperties();
   auto pos = m_Model->GetZoomThumbnailPosition();
   auto size = m_Model->GetZoomThumbnailSize();
-  std::cout << "ZT: " << pos << " " << size << std::endl;
 
   m_ZoomThumbnail->SetCorners(pos[0], pos[1], pos[0]+size[0], pos[1]+size[1]);
   m_ZoomThumbnail->GetActor()->SetVisibility(m_Model->IsThumbnailOn());
-
 }
 
 void GenericSliceRenderer
@@ -557,7 +544,6 @@ void GenericSliceRenderer
   top_item->ClearItems();
 
   // Iterate over the delegates
-  std::cout << "UpdateTiledOverlayContextSceneItems " <<  m_Delegates.size() << std::endl;
   for(auto it : m_Delegates)
     {
     it->AddContextItemsToTiledOverlay(top_item, wrapper);
@@ -568,8 +554,6 @@ void GenericSliceRenderer::UpdateRendererLayout()
 {
   if(!m_RenderWindow)
     return;
-
-  std::cout << "Updating renderers in window " << m_Model->GetId() << std::endl;
 
   // Update the depths of the layers
   this->UpdateLayerDepth();
@@ -663,16 +647,15 @@ void GenericSliceRenderer::UpdateRendererCameras()
   auto v_pos = m_Model->GetViewPosition();
   auto spacing = m_Model->GetSliceSpacing();
 
+  // Get the dimensions of a non-thumbnail viewport
+  Vector2ui vp_pos, vp_size;
+  m_Model->GetNonThumbnailViewport(vp_pos, vp_size);
+
   for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
     auto *bla = GetBaseLayerAssembly(it.GetLayer());
     if(bla)
       {
-      auto vp = m_Model->GetViewPosition();
-      //ren->GetActiveCamera()->SetFocalPoint(vp[0], vp[1], 0.0);
-      //ren->GetActiveCamera()->SetPosition(vp[0], vp[1], 1.0);
-      //ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
-
       // Update the camera for the main renderer
       auto ren = bla->m_Renderer;
       auto rs = ren->GetSize();
@@ -683,11 +666,10 @@ void GenericSliceRenderer::UpdateRendererCameras()
 
       // Update the camera for the thumbnail renderer
       auto tren = bla->m_ThumbRenderer;
-      auto trs = ren->GetSize();
-      tren->GetActiveCamera()->SetFocalPoint(trs[0] * 0.5, trs[1] * 0.5, 0.0);
-      tren->GetActiveCamera()->SetPosition(trs[0] * 0.5, trs[1] * 0.5, 2.0);
+      tren->GetActiveCamera()->SetFocalPoint(vp_size[0] * 0.5, vp_size[1] * 0.5, 0.0);
+      tren->GetActiveCamera()->SetPosition(vp_size[0] * 0.5, vp_size[1] * 0.5, 2.0);
       tren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
-      tren->GetActiveCamera()->SetParallelScale(0.5 * trs[1]);
+      tren->GetActiveCamera()->SetParallelScale(0.5 * vp_size[1]);
 
       // Also update the transform for the overlay scene
       auto *tform = bla->m_OverlayContextTransform->GetTransform();

@@ -5,6 +5,7 @@
 #include "GenericSliceContextItem.h"
 #include <vtkObjectFactory.h>
 #include <vtkContext2D.h>
+#include <vtkPoints2D.h>
 #include <vtkPen.h>
 
 class PolygonContextItem : public GenericSliceContextItem
@@ -20,21 +21,16 @@ public:
       vtkContext2D *painter, const PolygonDrawingModel::VertexList &vx,
       bool closed = false)
   {
-    // TODO: it would be more efficient to use polyline code rather
-    // than drawing multiple line segments
-    for(auto it = vx.begin(); it!=vx.end(); ++it)
-      {
-      auto itNext = it; ++itNext;
-      if(itNext == vx.end())
-        {
-        if(closed)
-          itNext = vx.begin();
-        else
-          break;
-        }
+    vtkNew<vtkPoints2D> polyline;
+    polyline->Allocate(vx.size() + (closed ? 1 : 0));
+    for(auto it : vx)
+      polyline->InsertNextPoint(it.x, it.y);
 
-      painter->DrawLine(it->x, it->y, itNext->x, itNext->y);
-      }
+    if(closed)
+      polyline->InsertNextPoint(vx.front().x, vx.front().y);
+
+
+    painter->DrawPoly(polyline);
   }
 
   void DrawSelectionBox(
@@ -82,6 +78,10 @@ public:
 
     if (state == PolygonDrawingModel::EDITING_STATE)
       {
+      // Store vertices of selected and unselected line segments
+      vtkNew<vtkPoints2D> seg_selected, seg_unselected;
+      seg_selected->Allocate(vx.size() * 2);
+      seg_unselected->Allocate(vx.size() * 2);
       for(it = vx.begin(); it!=vx.end(); ++it)
         {
         // Point to the next vertex, circular
@@ -91,12 +91,26 @@ public:
 
         // Set the color based on the mode
         if (it->selected && itNext->selected)
-          this->ApplyAppearanceSettingsToPen(painter, aeEditSelect);
+          {
+          seg_selected->InsertNextPoint(it->x, it->y);
+          seg_selected->InsertNextPoint(itNext->x, itNext->y);
+          }
         else
-          this->ApplyAppearanceSettingsToPen(painter, aeEdit);
+          {
+          seg_unselected->InsertNextPoint(it->x, it->y);
+          seg_unselected->InsertNextPoint(itNext->x, itNext->y);
+          }
+        }
 
-        // Draw the line segment
-        painter->DrawLine(it->x, it->y, itNext->x, itNext->y);
+      if(seg_selected->GetNumberOfPoints() > 0)
+        {
+        this->ApplyAppearanceSettingsToPen(painter, aeEditSelect);
+        painter->DrawLines(seg_selected);
+        }
+      if(seg_unselected->GetNumberOfPoints() > 0)
+        {
+        this->ApplyAppearanceSettingsToPen(painter, aeEdit);
+        painter->DrawLines(seg_unselected);
         }
       }
     else
@@ -105,8 +119,6 @@ public:
       this->ApplyAppearanceSettingsToPen(painter, aeDraw);
 
       // Draw polyline
-      // TODO: it would be more efficient to use polyline code rather
-      // than drawing multiple line segments
       this->DrawVertices(painter, vx, false);
 
       // Draw the drag vertices
@@ -141,7 +153,7 @@ public:
                        : aeEdit);
 
         painter->GetPen()->SetColorF(elt->GetColor().data_block());
-        painter->GetPen()->SetWidth(elt->GetLineThickness() * 3 * vppr);
+        painter->GetPen()->SetWidth(elt->GetLineThickness() * 2 * vppr);
         painter->DrawPoint(it->x, it->y);
         }
       }

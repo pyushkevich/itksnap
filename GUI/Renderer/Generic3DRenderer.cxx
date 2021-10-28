@@ -234,9 +234,6 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   if(m_Model->IsMeshUpdating())
     return;
 
-  std::cout << "Generic3DRenderer::UpdateSegmentationMeshAssembly" << std::endl;
-
-
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
 
@@ -680,8 +677,6 @@ void Generic3DRenderer::UpdateSegmentationMeshAppearance()
 
 void Generic3DRenderer::OnUpdate()
 {
-  std::cout << "Generic3DRenderer::OnUpdate" << std::endl;
-
   // Update the model first
   m_Model->Update();
 

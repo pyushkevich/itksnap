@@ -269,7 +269,6 @@ public:
   {
     // Transform into color map coordinates
     Vector3d x = GetEventColorSpaceCoordinates(mouse.GetScenePos());
-    std::cout << "MouseButtonPressEvent " << x << std::endl;
     return m_Model->ProcessMousePressEvent(x);
   }
 
@@ -327,7 +326,6 @@ ColorMapRenderer
 
 void ColorMapRenderer::OnUpdate()
 {
-  std::cout << "ColorMapRenderer::OnUpdate " << this << std::endl;
   if(m_Model)
     {
     m_Model->Update();

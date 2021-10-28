@@ -20,8 +20,6 @@ void TexturedRectangleAssemblyBase::SetCorners(double x0, double y0, double x1, 
   m_PolyData->GetPoints()->SetPoint(2, x1, y1, 0.0);
   m_PolyData->GetPoints()->SetPoint(3, x1, y0, 0.0);
   m_PolyData->GetPoints()->Modified();
-  std::cout << x0 << ", " << y0 << ", "
-              << x1 << ", " << y1 << ", " << std::endl;
 }
 
 TexturedRectangleAssemblyBase::TexturedRectangleAssemblyBase()

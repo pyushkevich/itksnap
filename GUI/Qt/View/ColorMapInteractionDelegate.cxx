@@ -7,7 +7,6 @@
 
 void ColorMapInteractionDelegate::mousePressEvent(QMouseEvent *)
 {
-  std::cout << "Event here " << m_XSpace << std::endl;
   m_Model->ProcessMousePressEvent(m_XSpace);
 }
 
