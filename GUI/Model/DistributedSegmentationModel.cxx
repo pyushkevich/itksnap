@@ -885,7 +885,6 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
 
 void DistributedSegmentationModel::UpdateTagObjectIds(bool clear_ids_first)
 {
-  cout << "[UpdateTagObjectIds]" << endl;
   // Handle the main image assignment
   for(int i = 0; i < m_TagSpecArray.size(); i++)
     {
