@@ -219,8 +219,8 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool reset_flips, bool
   this->GetMovingTransform(m_ManualParam.AffineMatrix, m_ManualParam.AffineOffset);
 
   // Perform the SVD of the affine matrix, which allows us to do polar decomposition
-  Mat3 A = m_ManualParam.AffineMatrix.GetVnlMatrix();
-  Vec3 b = m_ManualParam.AffineOffset.GetVnlVector();
+  Mat3 A = m_ManualParam.AffineMatrix.GetVnlMatrix().as_matrix();
+  Vec3 b = m_ManualParam.AffineOffset.GetVnlVector().as_vector();
   vnl_svd<double> svd(A);
 
   // Get the orthonormal part of A and the positive semi-definite part of A
@@ -251,7 +251,7 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool reset_flips, bool
   // Now the Pvox matrix must be decomposed into scaling and shearing parts. This can be done
   // using eigendecomposition, but we must be careful to assign scaling and shearing to the
   // correct axes.
-  vnl_symmetric_eigensystem<double> eigen(Pvox);
+  vnl_symmetric_eigensystem<double> eigen(Pvox.as_ref());
   Mat3 S; S.fill(0.0); S.set_diagonal(eigen.D.get_diagonal());
   Mat3 B = eigen.V;
 
@@ -551,8 +551,10 @@ void RegistrationModel::ApplyRotation(const Vector3d &axis, double theta)
   vnl_vector_fixed<double, 3> b = m_ManualParam.AffineOffset.GetVnlVector();
   vnl_vector_fixed<double, 3> C = ptCenter.GetVnlVector();
 
+  auto b_prime = A * C + b - A * (R * C);
+
   m_ManualParam.AffineMatrix = A * R;
-  m_ManualParam.AffineOffset.SetVnlVector(A * C + b - A * (R * C));
+  m_ManualParam.AffineOffset.SetVnlVector(b_prime.as_vector());
 
   // Update the transform
   this->SetMovingTransform(
@@ -562,7 +564,6 @@ void RegistrationModel::ApplyRotation(const Vector3d &axis, double theta)
 
 void RegistrationModel::ApplyTranslation(const Vector3d &tran)
 {
-  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
   assert(layer);
 
   // Get the current transform
