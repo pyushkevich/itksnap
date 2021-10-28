@@ -219,9 +219,9 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool reset_flips, bool
   this->GetMovingTransform(m_ManualParam.AffineMatrix, m_ManualParam.AffineOffset);
 
   // Perform the SVD of the affine matrix, which allows us to do polar decomposition
-  Mat3 A = m_ManualParam.AffineMatrix.GetVnlMatrix().as_matrix();
-  Vec3 b = m_ManualParam.AffineOffset.GetVnlVector().as_vector();
-  vnl_svd<double> svd(A);
+  Mat3 A = m_ManualParam.AffineMatrix.GetVnlMatrix();
+  Vec3 b = m_ManualParam.AffineOffset.GetVnlVector();
+  vnl_svd<double> svd(A.as_ref());
 
   // Get the orthonormal part of A and the positive semi-definite part of A
   Mat3 R = svd.U() * svd.V().transpose();
