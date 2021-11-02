@@ -73,6 +73,15 @@ IntensityCurveModel
   return NULL;
 }
 
+void IntensityCurveModel::SetViewportReporter(ViewportSizeReporter *vr)
+{
+  m_ViewportReporter = vr;
+
+  // Histogram bin size depends on the viewport, so we rebroadcast resize events
+  // from the viewport reporter as updates of this model
+  Rebroadcast(vr, ViewportSizeReporter::ViewportResizeEvent(), ModelUpdateEvent());
+}
+
 void
 IntensityCurveModel
 ::RegisterWithLayer(ImageWrapperBase *layer)

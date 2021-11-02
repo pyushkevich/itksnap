@@ -23,6 +23,8 @@
 #include "vtkContextMouseEvent.h"
 #include "vtkChartLegend.h"
 #include <vtkTextProperty.h>
+#include <vtkPoints2D.h>
+#include "VTKRenderGeometry.h"
 
 
 #include "IntensityCurveModel.h"
@@ -269,11 +271,11 @@ public:
     else return 0;
   }
 
-  virtual vtkIdType RemovePoint(double *pos) override { return -1; }
+  virtual vtkIdType RemovePoint(double *) override { return -1; }
 
-  virtual vtkIdType AddPoint(double *newPos) override { return -1; }
+  virtual vtkIdType AddPoint(double *) override { return -1; }
 
-  virtual void emitEvent(unsigned long event, void* params = 0) override {};
+  virtual void emitEvent(unsigned long, void* = 0) override {};
 
   virtual void SetControlPoint(vtkIdType index, double *point) override
   {
@@ -300,28 +302,43 @@ public:
     if(m_Model && m_Model->GetLayer())
       {
       float vppr = m_Model->GetViewportReporter()->GetViewportPixelRatio();
-      painter->GetBrush()->SetColor(255, 0, 0, 255);
+      painter->GetBrush()->SetColor(255, 255, 0, 255);
       painter->GetBrush()->SetTexture(nullptr);
       painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
-      painter->GetPen()->SetWidth(1.2 * vppr);
-      painter->GetPen()->SetColor(0, 0, 0, 192);
 
-      // When expressing anything in screen pixel units, we need to watch out
-      // for retina displays
-      this->ScreenPointRadius = 5 * vppr;
-      this->DrawUnselectedPoints(painter);
-
-      if (this->CurrentPoint != -1)
+      for(unsigned int i = 0; i < this->GetNumberOfPoints(); i++)
         {
+        // Get screen coordinates of the point
+        double point[4], pointInScene[2];
+        this->GetControlPoint(i, point);
+        this->TransformDataToScreen(point[0], point[1], point[0], point[1]);
 
-        painter->GetBrush()->SetColor(255, 255, 0, 255);
-        painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
+        // Get the scene coordinates of the point
+        painter->GetTransform()->TransformPoints(point, pointInScene, 1);
 
-        this->ScreenPointRadius = 6 * vppr;
-        this->DrawPoint(painter, this->CurrentPoint);
+        // Set point-specific pen properties
+        if (this->CurrentPoint == i)
+          {
+          painter->GetPen()->SetColor(0, 0, 0, 192);
+          painter->GetPen()->SetWidth(2.4 * vppr);
+          }
+        else
+          {
+          painter->GetPen()->SetColor(0, 0, 0, 192);
+          painter->GetPen()->SetWidth(1.2 * vppr);
+          }
+
+        // Set up a transform for this point
+        vtkNew<vtkTransform2D> tform;
+        tform->Translate(pointInScene[0], pointInScene[1]);
+        tform->Scale(5 * vppr, 5 * vppr);
+
+        painter->PushMatrix();
+        painter->SetTransform(tform);
+        painter->DrawQuadStrip(m_CircleInterior);
+        painter->DrawPoly(m_CircleOutline);
+        painter->PopMatrix();
         }
-
-      this->Transform->SetMatrix(painter->GetTransform()->GetMatrix());
       }
     return true;
   }
@@ -361,11 +378,14 @@ protected:
   IntensityCurveControlPointsContextItem()
   {
     m_Model = NULL;
+    m_CircleInterior = VTKRenderGeometry::MakeUnitDisk(72);
+    m_CircleOutline = VTKRenderGeometry::MakeUnitCircle(72);
   }
 
   ~IntensityCurveControlPointsContextItem() {}
 
   IntensityCurveModel *m_Model;
+  vtkSmartPointer<vtkPoints2D> m_CircleOutline, m_CircleInterior;
 
 };
 
@@ -417,8 +437,8 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   m_CurvePlot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
   m_CurvePlot->GetYAxis()->SetMinimumLimit(-0.1);
   m_CurvePlot->GetYAxis()->SetMinimum(-0.1);
-  m_CurvePlot->GetYAxis()->SetMaximumLimit(1.1);
-  m_CurvePlot->GetYAxis()->SetMaximum(1.1);  
+  m_CurvePlot->GetYAxis()->SetMaximumLimit(1.3);
+  m_CurvePlot->GetYAxis()->SetMaximum(1.3);
   m_CurvePlot->GetXAxis()->SetTitle("Image Intensity");
   m_CurvePlot->GetYAxis()->SetTitle("Index into Color Map");
   m_CurvePlot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
@@ -471,9 +491,9 @@ void IntensityCurveVTKRenderer::SetRenderWindow(vtkRenderWindow *rwin)
 {
   Superclass::SetRenderWindow(rwin);
 
-  rwin->SetMultiSamples(0);
-  rwin->SetLineSmoothing(1);
-  rwin->SetPolygonSmoothing(1);
+  // rwin->SetMultiSamples(0);
+  // rwin->SetLineSmoothing(1);
+  // rwin->SetPolygonSmoothing(1);
 }
 
 void
@@ -546,16 +566,13 @@ IntensityCurveVTKRenderer
 
     // Compute the histogram entries
     m_HistogramAssembly->PlotWithFixedLimits(
-          m_Model->GetHistogram(), 0.0, 1.0,
+          m_Model->GetHistogram(), -0.1, 1.1,
           m_Model->GetProperties().GetHistogramCutoff(),
           m_Model->GetProperties().IsHistogramLog());
 
     m_XColorMapItem->Modified();
     m_YColorMapItem->Modified();
-
     m_Chart->RecalculateBounds();
-
-
     }
 }
 
@@ -567,6 +584,7 @@ IntensityCurveVTKRenderer
   if(m_Model && m_Model->GetLayer())
     {
     this->UpdatePlotValues();
+    this->GetRenderWindow()->Render();
     }
 }
 
