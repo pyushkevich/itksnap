@@ -55,6 +55,7 @@
 #include "GuidedNativeImageIO.h"
 #include "ImageAnnotationData.h"
 #include "RLERegionOfInterestImageFilter.h"
+#include "TimePointProperties.h"
 
 // System includes
 #include <fstream>
@@ -73,6 +74,10 @@ GenericImageData
 
   // Create empty annotations
   m_Annotations = ImageAnnotationData::New();
+
+  // Create TimePointProperties
+  m_TimePointProperties = TimePointProperties::New();
+  m_TimePointProperties->SetParent(this);
 
   // Initialize the display viewport geometry objects
   m_DisplayViewportGeometry[0] = ImageBaseType::New();
@@ -218,6 +223,9 @@ GenericImageData
 
   // Clear the annotations
   m_Annotations->Reset();
+
+  // Clear timepoint properties
+  m_TimePointProperties->Reset();
 }
 
 
