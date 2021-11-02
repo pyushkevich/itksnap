@@ -519,13 +519,20 @@ void GenericSliceRenderer::UpdateLayerDepth()
 
 void GenericSliceRenderer::UpdateZoomPanThumbnail()
 {
-  // Update the geometry of the zoom thumbnail
-  m_Model->ComputeThumbnailProperties();
-  auto pos = m_Model->GetZoomThumbnailPosition();
-  auto size = m_Model->GetZoomThumbnailSize();
+  if(m_Model->GetDriver()->IsMainImageLoaded())
+    {
+    // Update the geometry of the zoom thumbnail
+    m_Model->ComputeThumbnailProperties();
+    auto pos = m_Model->GetZoomThumbnailPosition();
+    auto size = m_Model->GetZoomThumbnailSize();
 
-  m_ZoomThumbnail->SetCorners(pos[0], pos[1], pos[0]+size[0], pos[1]+size[1]);
-  m_ZoomThumbnail->GetActor()->SetVisibility(m_Model->IsThumbnailOn());
+    m_ZoomThumbnail->SetCorners(pos[0], pos[1], pos[0]+size[0], pos[1]+size[1]);
+    m_ZoomThumbnail->GetActor()->SetVisibility(m_Model->IsThumbnailOn());
+    }
+  else
+    {
+    m_ZoomThumbnail->GetActor()->SetVisibility(false);
+    }
 }
 
 void GenericSliceRenderer

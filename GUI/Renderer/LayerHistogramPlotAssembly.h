@@ -22,6 +22,7 @@ class LayerHistogramPlotAssembly
 {
 public:
   LayerHistogramPlotAssembly();
+  virtual ~LayerHistogramPlotAssembly() {}
 
   void AddToChart(vtkChartXY *chart);
 

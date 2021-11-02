@@ -231,16 +231,17 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
-  if(m_Model->IsMeshUpdating())
-    return;
-
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
 
+  if(m_Model->IsMeshUpdating() )
+    return;
+
   // Get the mesh from the parent object
   MeshManager *mesh = driver->GetMeshManager();
-  MeshManager::MeshCollection meshes = mesh->GetMeshes(
-        driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
+  MeshManager::MeshCollection meshes;
+  if(driver->IsMainImageLoaded())
+    meshes = mesh->GetMeshes(driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
   typedef MeshManager::MeshCollection::const_iterator MeshIterator;
 
   // Remove all actors that are no longer in use, and update the ones for which the
