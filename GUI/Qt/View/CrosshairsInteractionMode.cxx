@@ -252,6 +252,13 @@ void CrosshairsInteractionMode::leaveEvent(QEvent *)
 
 void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
 {
+  // Get the event position and global position
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+  QPointF epos = event->position(), egpos = event->globalPosition();
+#else
+  QPointF epos = event->pos(), egpos = event->globalPos();
+#endif
+
   // We want to scroll 1 line at a time!
   int scrollLines = QApplication::wheelScrollLines();
   QApplication::setWheelScrollLines(1);
@@ -267,8 +274,8 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
     // Current layer
     ImageWrapperBase *layer =
         m_Model->GetParent()->GetContextLayerAtPosition(
-          event->position().x(),
-          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - event->position().y(),
+          epos.x(),
+          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - epos.y(),
         isThumb);
 
     // Check if image is 4D
@@ -323,7 +330,7 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
   else if(m_WheelEventTarget)
     {
     QWheelEvent evnew(
-          event->position(), event->globalPosition(),
+          epos, egpos,
           event->pixelDelta(), event->angleDelta(),
           event->buttons(), event->modifiers(),
           event->phase(), event->inverted());
