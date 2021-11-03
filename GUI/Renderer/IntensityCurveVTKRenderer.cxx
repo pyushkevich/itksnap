@@ -360,7 +360,7 @@ public:
     else return false;
   }
 
-  virtual unsigned long int GetControlPointsMTime() override
+  virtual vtkMTimeType GetControlPointsMTime() override
   {
     // TODO: figure this out!
     return this->GetMTime();
