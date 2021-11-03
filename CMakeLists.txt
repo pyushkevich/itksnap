@@ -88,14 +88,14 @@ ENDIF()
 # is an arbitrary string and may be blank. 
 
 # These four fields should be modified when versions change
-SET(SNAP_VERSION_MAJOR 3)
-SET(SNAP_VERSION_MINOR 8)
-SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_MAJOR 4)
+SET(SNAP_VERSION_MINOR 0)
+SET(SNAP_VERSION_PATCH 0)
+SET(SNAP_VERSION_QUALIFIER "-alpha")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20210219")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Feb 19, 2021")
+SET(SNAP_VERSION_RELEASE_DATE "20211103")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Nov 3, 2021")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
