@@ -431,6 +431,8 @@ color:rgb(103, 103, 103);
     <addaction name="actionAdd_Overlay"/>
     <addaction name="menuRecent_Overlays"/>
     <addaction name="separator"/>
+    <addaction name="actionAddMesh"/>
+    <addaction name="separator"/>
     <addaction name="menuSave_Image"/>
     <addaction name="separator"/>
     <addaction name="menuExport"/>
@@ -1691,6 +1693,11 @@ color:rgb(103, 103, 103);
   <action name="actionSmooth_Labels">
    <property name="text">
     <string>Smooth Labels...</string>
+   </property>
+  </action>
+  <action name="actionAddMesh">
+   <property name="text">
+    <string>Add a Mesh ...</string>
    </property>
   </action>
  </widget>

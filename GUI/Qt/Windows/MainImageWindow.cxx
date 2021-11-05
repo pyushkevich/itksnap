@@ -559,6 +559,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionSaveMainROI, m_Model, UIF_SNAKE_MODE);
   activateOnFlag(ui->menuExport, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionUnload_All, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionAddMesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   // Set up activations - Edit menu
   activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
@@ -1612,6 +1613,11 @@ void MainImageWindow::on_actionAdd_Overlay_triggered()
   ImageIOWizard wiz(this);
   wiz.SetModel(model);
   wiz.exec();
+}
+
+void MainImageWindow::on_actionAddMesh_triggered()
+{
+
 }
 
 

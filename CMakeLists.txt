@@ -478,6 +478,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/LayerTableRowModel.cxx
   GUI/Model/LayerSelectionModel.cxx
   GUI/Model/MeshExportModel.cxx
+  GUI/Model/MeshImportModel.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/PaintbrushModel.cxx
   GUI/Model/PaintbrushSettingsModel.cxx
@@ -556,6 +557,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/LayerSelectionModel.h
   GUI/Model/LayerTableRowModel.h
   GUI/Model/MeshExportModel.h
+  GUI/Model/MeshImportModel.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/PaintbrushModel.h
   GUI/Model/PaintbrushSettingsModel.h
@@ -708,6 +710,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.cxx
+  GUI/Qt/Windows/MeshImportWizard/MeshImportWizard.cxx
   GUI/Qt/Windows/Registration/RegistrationDialog.cxx
   Testing/GUI/Qt/SNAPTestQt.cxx
 )
@@ -802,6 +805,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.h
+  GUI/Qt/Windows/MeshImportWizard/MeshImportWizard.h
   GUI/Qt/Windows/Registration/RegistrationDialog.h
   Testing/GUI/Qt/SNAPTestQt.h
 )
@@ -888,6 +892,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.ui
+  GUI/Qt/Windows/MeshImportWizard/MeshImportWizard.ui
   GUI/Qt/Windows/Registration/RegistrationDialog.ui
 )
 
