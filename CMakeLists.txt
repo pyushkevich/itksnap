@@ -273,10 +273,15 @@ SET(LOGIC_CXX
   Logic/LevelSet/SnakeParametersPreviewPipeline.cxx
   Logic/Mesh/AllPurposeProgressAccumulator.cxx
   Logic/Mesh/GuidedMeshIO.cxx
+  Logic/Mesh/ImageMeshLayers.cxx
   Logic/Mesh/MultiLabelMeshPipeline.cxx
   Logic/Mesh/LevelSetMeshPipeline.cxx
+  Logic/Mesh/MeshIODelegates.cxx
   Logic/Mesh/MeshManager.cxx
   Logic/Mesh/MeshOptions.cxx
+  Logic/Mesh/MeshWrapperBase.cxx
+  Logic/Mesh/SegmentationMeshWrapper.cxx
+  Logic/Mesh/StandaloneMeshWrapper.cxx
   Logic/Mesh/VTKMeshPipeline.cxx
   Logic/Preprocessing/EdgePreprocessingSettings.cxx
   Logic/Preprocessing/PreprocessingFilterConfigTraits.cxx
@@ -416,10 +421,15 @@ SET(LOGIC_HEADERS
   Logic/LevelSet/SnakeParameters.h
   Logic/Mesh/AllPurposeProgressAccumulator.h
   Logic/Mesh/GuidedMeshIO.h
+  Logic/Mesh/ImageMeshLayers.h
   Logic/Mesh/MultiLabelMeshPipeline.h
   Logic/Mesh/LevelSetMeshPipeline.h
+  Logic/Mesh/MeshIODelegates.h
   Logic/Mesh/MeshManager.h
   Logic/Mesh/MeshOptions.h
+  Logic/Mesh/MeshWrapperBase.h
+  Logic/Mesh/SegmentationMeshWrapper.h
+  Logic/Mesh/StandaloneMeshWrapper.h
   Logic/Mesh/VTKMeshPipeline.h
   Logic/Preprocessing/EdgePreprocessingImageFilter.h
   Logic/Preprocessing/EdgePreprocessingImageFilter.txx
@@ -711,6 +721,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.cxx
   GUI/Qt/Windows/MeshImportWizard/MeshImportWizard.cxx
+  GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.cxx
   GUI/Qt/Windows/Registration/RegistrationDialog.cxx
   Testing/GUI/Qt/SNAPTestQt.cxx
 )
@@ -806,6 +817,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.h
   GUI/Qt/Windows/MeshImportWizard/MeshImportWizard.h
+  GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.h
   GUI/Qt/Windows/Registration/RegistrationDialog.h
   Testing/GUI/Qt/SNAPTestQt.h
 )
@@ -893,6 +905,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.ui
   GUI/Qt/Windows/MeshImportWizard/MeshImportWizard.ui
+  GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.ui
   GUI/Qt/Windows/Registration/RegistrationDialog.ui
 )
 
@@ -996,6 +1009,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/DSS
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/MeshExportWizard
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/MeshImportWizard
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/Registration
     ${SNAP_SOURCE_DIR}/Testing/Logic
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt

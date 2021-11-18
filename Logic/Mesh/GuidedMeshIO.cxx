@@ -4,6 +4,9 @@
 #include "vtkBYUWriter.h"
 #include "vtkTriangleFilter.h"
 #include "itkMacro.h"
+#include "MeshIODelegates.h"
+#include "MeshWrapperBase.h"
+#include "StandaloneMeshWrapper.h"
 
 GuidedMeshIO
 ::GuidedMeshIO()
@@ -12,8 +15,21 @@ GuidedMeshIO
   m_EnumFileFormat.AddPair(FORMAT_BYU, "BYU Mesh");
   m_EnumFileFormat.AddPair(FORMAT_STL, "STL Mesh"); 
   m_EnumFileFormat.AddPair(FORMAT_VRML, "VRML Scene");
+  m_EnumFileFormat.AddPair(FORMAT_VTP, "VTP Mesh");
   m_EnumFileFormat.AddPair(FORMAT_COUNT, "INVALID FORMAT");
 }
+
+const GuidedMeshIO::MeshFormatDescriptorMap
+GuidedMeshIO::m_MeshFormatDescriptorMap =
+{
+  // FileFormat => MeshFormatDescriptor
+  // Descriptor members: { name, {extensions}, can_read, can_write }
+  { FORMAT_BYU, { "BYU Mesh",   {".byu", ".y"},   false,  true } },
+  { FORMAT_STL, { "STL Mesh",   {".stl"},         false,  true } },
+  { FORMAT_VRML,{ "VRML Scene", {".vrml"},        false,  true } },
+  { FORMAT_VTK, { "VTK Mesh",   {".vtk"},         true,   true } },
+  { FORMAT_VTP, { "VTP Mesh",   {".vtp"},         true,   false } }
+};
 
 
 GuidedMeshIO::FileFormat 
@@ -27,6 +43,24 @@ void GuidedMeshIO
 ::SetFileFormat(Registry &folder, FileFormat format)
 {
   folder.Entry("Format").PutEnum(m_EnumFileFormat, format);
+}
+
+std::string
+GuidedMeshIO::GetFormatDescription(FileFormat formatEnum)
+{
+  return m_EnumFileFormat[formatEnum];
+}
+
+bool
+GuidedMeshIO::can_read(FileFormat fmt)
+{
+  return m_MeshFormatDescriptorMap.at(fmt).can_read;
+}
+
+bool
+GuidedMeshIO::can_write(FileFormat fmt)
+{
+  return m_MeshFormatDescriptorMap.at(fmt).can_write;
 }
 
 void
@@ -69,4 +103,40 @@ GuidedMeshIO
     }
   else 
     throw itk::ExceptionObject("Illegal format specified for saving image");
+}
+
+void
+GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format)
+{
+  std::cout << "[GuidedMeshIO.LoadMesh] filename=" << FileName
+            << "; Format=" << format << std::endl;
+
+  // Create a delegate factory
+  MeshIODelegateFactory *ioFactory = MeshIODelegateFactory::New();
+
+  // Produce a delegate from file format
+  AbstractMeshIODelegate *ioDelegate = ioFactory->GetDelegate(format);
+
+  std::cout << "[GuidedMeshIO.LoadMesh] IODelegate created" << std::endl;
+
+  // Apply IO logic of the delegate
+  vtkPolyData *polyData;
+  ioDelegate->LoadMesh(FileName, polyData);
+
+  std::cout << "[GuidedMeshIO.LoadMesh] Mesh loaded" << std::endl;
+
+  // Install polydata to the application
+  auto wrapper = StandaloneMeshWrapper::New();
+  wrapper->SetMesh(polyData, 1u, 0u);
+
+  std::cout << "[GuidedMeshIO.LoadMesh] Mesh installed" << std::endl;
+
+  //ioFactory->Delete();
+  //ioDelegate->Delete();
+}
+
+std::string
+GuidedMeshIO::GetErrorMessage() const
+{
+  return m_ErrorMessage;
 }

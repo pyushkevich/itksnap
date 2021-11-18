@@ -44,6 +44,7 @@
 #define __GuidedMeshIO_h_
 
 #include "Registry.h"
+#include <set>
 
 class vtkPolyData;
 
@@ -58,7 +59,17 @@ public:
   virtual ~GuidedMeshIO() { /*To avoid compiler warning.*/ }
   
   enum FileFormat {
-    FORMAT_VTK=0, FORMAT_STL, FORMAT_BYU, FORMAT_VRML, FORMAT_COUNT };
+    FORMAT_VTK=0, FORMAT_STL, FORMAT_BYU, FORMAT_VRML, FORMAT_VTP, FORMAT_COUNT };
+
+  struct MeshFormatDescriptor
+  {
+    std::string name;
+    std::vector<std::string> extensions;
+    bool can_read;
+    bool can_write;
+  };
+
+  typedef const std::map<FileFormat, const MeshFormatDescriptor> MeshFormatDescriptorMap;
 
   /** Default constructor */
   GuidedMeshIO();
@@ -69,12 +80,33 @@ public:
   /** Set the file format in a registry */
   void SetFileFormat(Registry &folder, FileFormat format);
 
-  /** Registry mappings for these enums */
-  RegistryEnumMap<FileFormat> m_EnumFileFormat;
+  /** Get enum description */
+  std::string GetFormatDescription(FileFormat formatEnum);
 
   /** Save an image using the Registry folder to specify parameters */
   void SaveMesh(const char *FileName, Registry &folder, vtkPolyData *mesh);
 
+  /** Load a mesh */
+  void LoadMesh(const char *FileName, FileFormat format);
+
+  /** Get the error message if the IO is not successful */
+  std::string GetErrorMessage() const;
+
+  /** Check if a format is readable by itk-snap */
+  static bool can_read (FileFormat fmt);
+
+  /** Check if a format is writtable by itk-snap */
+  static bool can_write (FileFormat fmt);
+
+  /** Map stores supported mesh format descriptors */
+  static const MeshFormatDescriptorMap m_MeshFormatDescriptorMap;
+
+protected:
+  /** Registry mappings for these enums */
+  RegistryEnumMap<FileFormat> m_EnumFileFormat;
+
+  // Error message for unsucessful IO
+  std::string m_ErrorMessage;
 };
 
 #endif
