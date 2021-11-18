@@ -1,6 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MeshImportWizard</class>
- <widget name="MeshImportWizard" class="QWizard">
+ <widget class="QWizard" name="MeshImportWizard">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -9,10 +10,16 @@
     <height>300</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>Wizard</string>
+  <property name="minimumSize">
+   <size>
+    <width>284</width>
+    <height>102</height>
+   </size>
   </property>
-  <widget name="wizardPage1" class="QWizardPage"/>
-  <widget name="wizardPage2" class="QWizardPage"/>
+  <property name="windowTitle">
+   <string>Mesh Import Wizard</string>
+  </property>
  </widget>
+ <resources/>
+ <connections/>
 </ui>

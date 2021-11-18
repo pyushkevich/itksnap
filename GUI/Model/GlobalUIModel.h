@@ -68,6 +68,7 @@ class LayerGeneralPropertiesModel;
 class SynchronizationModel;
 class SnakeParameterModel;
 class MeshExportModel;
+class MeshImportModel;
 class GlobalPreferencesModel;
 class GlobalDisplaySettings;
 class ImageIOWizardModel;
@@ -236,6 +237,9 @@ public:
 
   /** Model for the mesh export wizard */
   irisGetMacro(MeshExportModel, MeshExportModel *)
+
+  /** Model for the mesh import wizard */
+  irisGetMacro(MeshImportModel, MeshImportModel *)
 
   /** Model for the preferences dialog */
   irisGetMacro(GlobalPreferencesModel, GlobalPreferencesModel *)
@@ -487,6 +491,9 @@ protected:
 
   // The model for the mesh export wizard
   SmartPtr<MeshExportModel> m_MeshExportModel;
+
+  // The model for the mesh import wizard
+  SmartPtr<MeshImportModel> m_MeshImportModel;
 
   // Global preferences model
   SmartPtr<GlobalPreferencesModel> m_GlobalPreferencesModel;

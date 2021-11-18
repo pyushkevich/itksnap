@@ -60,6 +60,7 @@
 #include "NumericPropertyToggleAdaptor.h"
 #include "HistoryManager.h"
 #include "MeshExportModel.h"
+#include "MeshImportModel.h"
 #include "GlobalPreferencesModel.h"
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
@@ -204,6 +205,10 @@ GlobalUIModel::GlobalUIModel()
   // Mesh export model
   m_MeshExportModel = MeshExportModel::New();
   m_MeshExportModel->SetParentModel(this);
+
+  // Mesh import model
+  m_MeshImportModel = MeshImportModel::New();
+  m_MeshImportModel->SetParentModel(this);
 
   // Global prefs model
   m_GlobalPreferencesModel = GlobalPreferencesModel::New();

@@ -51,6 +51,8 @@
 #include "SimpleFileDialogWithHistory.h"
 #include "StatisticsDialog.h"
 #include "MeshExportWizard.h"
+#include "MeshImportWizard.h"
+#include "MeshImportModel.h"
 #include "ImageWrapperBase.h"
 #include "IRISImageData.h"
 #include "AboutDialog.h"
@@ -1617,7 +1619,14 @@ void MainImageWindow::on_actionAdd_Overlay_triggered()
 
 void MainImageWindow::on_actionAddMesh_triggered()
 {
+  // Get and Configure the model
+  auto model = m_Model->GetMeshImportModel();
+  model->SetMode(MeshImportModel::Mode::SINGLE);
 
+  // Show the Wizard Dialog
+  MeshImportWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
 }
 
 

@@ -3,6 +3,8 @@
 
 #include <QWizard>
 
+class MeshImportModel;
+
 namespace Ui {
   class MeshImportWizard;
 }
@@ -14,6 +16,11 @@ class MeshImportWizard : public QWizard
 public:
   explicit MeshImportWizard(QWidget *parent = nullptr);
   ~MeshImportWizard();
+
+  void SetModel(MeshImportModel *model);
+
+protected:
+  MeshImportModel *m_Model;
 
 private:
   Ui::MeshImportWizard *ui;
