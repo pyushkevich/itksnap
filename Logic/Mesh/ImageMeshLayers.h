@@ -4,21 +4,46 @@
 #include "SNAPCommon.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
-#include <list>
+#include "MeshWrapperBase.h"
 
-class IRISApplication;
-class MeshWrapperBase;
+/**
+ * \class ImageMeshLayers
+ * \brief The ImageMeshLayers class stores mesh layers for current workspace
+ */
 
 class ImageMeshLayers : public itk::Object
 {
 public:
   irisITKObjectMacro(ImageMeshLayers, itk::Object)
 
+  typedef MeshWrapperBase::MeshLayerIdType MeshLayerIdType;
+
+  /** Add a layer */
+  void AddLayer(MeshWrapperBase *meshLayer);
+
+  /** Get a layer by id */
+  MeshWrapperBase* GetLayer(MeshLayerIdType id);
+
+  /** Remove a layer by id */
+  void RemoveLayer(MeshLayerIdType id);
+
+  /** Unload the layers */
+  void Unload();
+
+  /** Get a vector of all stored mesh layer ids */
+  std::vector<MeshLayerIdType> GetLayerIds() const;
+
+  /** Get and Set the layer id of the currently active layer */
+  irisGetSetMacro(ActiveLayerId, MeshLayerIdType)
+
 protected:
   ImageMeshLayers();
   virtual ~ImageMeshLayers() = default;
 
-  std::list<MeshWrapperBase> m_Layers;
+  std::map<MeshLayerIdType, MeshWrapperBase*> m_Layers;
+
+  // Id of the mesh layer that is currently active
+  MeshLayerIdType m_ActiveLayerId;
 };
 
 #endif // IMAGEMESHLAYERS_H

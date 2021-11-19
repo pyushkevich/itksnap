@@ -1,5 +1,10 @@
 #include "MeshImportModel.h"
 #include "GlobalUIModel.h"
+#include "MeshWrapperBase.h"
+#include "StandaloneMeshWrapper.h"
+#include "IRISApplication.h"
+#include "IRISImageData.h"
+#include "ImageMeshLayers.h"
 
 MeshImportModel::MeshImportModel()
 {
@@ -50,6 +55,8 @@ std::string MeshImportModel::GetTitle() const
     return "Open a Mesh";
   else if (m_Mode == Mode::SERIES)
     return "Open a Mesh Series";
+  else
+    return "Open a File";
 }
 
 MeshImportModel::FileFormat
@@ -62,6 +69,8 @@ MeshImportModel::GetFileFormatByName(const std::string &formatName) const
       if (GuidedMeshIO::m_MeshFormatDescriptorMap.at(fmt).name.compare(formatName) == 0)
         return fmt;
     }
+
+  return GuidedMeshIO::FORMAT_COUNT;
 }
 
 void
@@ -70,10 +79,19 @@ MeshImportModel::Load(const char *filename, FileFormat format)
   // Create a new IO for loading
   GuidedMeshIO *IO = new GuidedMeshIO();
 
-  // Execute loading
-  IO->LoadMesh(filename, format);
+  // Create a mesh wrapper
+  auto wrapper = StandaloneMeshWrapper::New();
+  SmartPtr<MeshWrapperBase> baseWrapper = wrapper.GetPointer();
 
-  std::cout << "[MeshImportModel.Load()] Mesh Loaded" << std::endl;
+  std::cout << "[MeshImportModel.Load()] Mesh created. id=" << wrapper->GetId() << std::endl;
+
+  // Execute loading
+  IO->LoadMesh(filename, format, baseWrapper);
+
+  // Install the wrapper to the application
+  m_ParentModel->GetDriver()->GetIRISImageData()->GetMeshLayers()->AddLayer(wrapper);
+
+  std::cout << "[MeshImportModel.Load()] Mesh Installed" << std::endl;
 
   delete IO;
 }

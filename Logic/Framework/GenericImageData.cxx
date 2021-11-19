@@ -56,6 +56,7 @@
 #include "ImageAnnotationData.h"
 #include "RLERegionOfInterestImageFilter.h"
 #include "TimePointProperties.h"
+#include "ImageMeshLayers.h"
 
 // System includes
 #include <fstream>
@@ -83,6 +84,9 @@ GenericImageData
   m_DisplayViewportGeometry[0] = ImageBaseType::New();
   m_DisplayViewportGeometry[1] = ImageBaseType::New();
   m_DisplayViewportGeometry[2] = ImageBaseType::New();
+
+  // Initialize Mesh Layers storage
+  m_MeshLayers = ImageMeshLayers::New();
 }
 
 GenericImageData
@@ -767,5 +771,11 @@ std::string GenericImageData::GenerateNickname(LayerRole role)
 void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
 {
   this->AddOverlayInternal(new_layer, true);
+}
+
+ImageMeshLayers *
+GenericImageData::GetMeshLayers()
+{
+  return m_MeshLayers;
 }
 

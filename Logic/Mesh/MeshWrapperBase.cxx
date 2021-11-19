@@ -1,19 +1,15 @@
 #include "MeshWrapperBase.h"
 #include "vtkPolyData.h"
 
+MeshWrapperBase::MeshLayerIdType GlobalMeshLayerId = 0ul;
+
 MeshWrapperBase::MeshWrapperBase()
 {
-
+  m_Id = GlobalMeshLayerId++;
 }
 
 MeshWrapperBase::~MeshWrapperBase()
 {
-}
-
-void
-MeshWrapperBase::Initialize(IRISApplication *driver)
-{
-  m_Driver = driver;
 }
 
 void
@@ -59,5 +55,11 @@ bool
 MeshWrapperBase::IsA(const char *type) const
 {
   return strcmp("MeshWrapperBase", type) == 0;
+}
+
+MeshWrapperBase::MeshLayerIdType
+MeshWrapperBase::GetId() const
+{
+  return m_Id;
 }
 
