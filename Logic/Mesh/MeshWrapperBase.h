@@ -8,7 +8,6 @@
 
 class AbstractMeshIODelegate;
 class vtkPolyData;
-class IRISApplication;
 
 /**
  *  \class MeshWrapperBase
@@ -29,16 +28,13 @@ class MeshWrapperBase : public itk::Object
 public:
   irisITKAbstractObjectMacro(MeshWrapperBase, itk::Object)
 
+  typedef unsigned long MeshLayerIdType;
+
   /** MeshCollection maps an instance of vtkPolyData to a LabelType id. */
   typedef std::map<LabelType, vtkPolyData*> MeshCollection;
 
   /** MeshCollectionMap maps a MeshCollection to a time point */
   typedef std::map<unsigned int, MeshCollection> MeshCollectionMap;
-
-  /** Use a delegate to initialize specific type of wrapper
-   *  e.g. Standalone mesh initialized by a FileMeshIODelegate
-   *       Segmentation mesh initialized by a LabelImageMeshIODelegate */
-  virtual void Initialize(IRISApplication *driver);
 
   /** Get the MeshCollection associated with the time point */
   virtual MeshCollection GetMeshCollection(unsigned int timepoint);
@@ -61,13 +57,16 @@ public:
   /** Return true if the object is an instance of the type or a subclass of the type */
   virtual bool IsA(const char *type) const;
 
+  /** Return the unique id for the current object */
+  MeshLayerIdType GetId() const;
+
 protected:
   MeshWrapperBase();
   virtual ~MeshWrapperBase();
 
-  IRISApplication *m_Driver;
-
   MeshCollectionMap m_MeshCollectionMap;
+
+  MeshLayerIdType m_Id;
 };
 
 #endif // MESHWRAPPERBASE_H

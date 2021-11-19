@@ -106,33 +106,32 @@ GuidedMeshIO
 }
 
 void
-GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format)
+GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format, SmartPtr<MeshWrapperBase> wrapper)
 {
   std::cout << "[GuidedMeshIO.LoadMesh] filename=" << FileName
             << "; Format=" << format << std::endl;
 
-  // Create a delegate factory
-  MeshIODelegateFactory *ioFactory = MeshIODelegateFactory::New();
-
-  // Produce a delegate from file format
-  AbstractMeshIODelegate *ioDelegate = ioFactory->GetDelegate(format);
+  // Using the factory method to get a delegate
+  AbstractMeshIODelegate *ioDelegate = AbstractMeshIODelegate::GetDelegate(format);
 
   std::cout << "[GuidedMeshIO.LoadMesh] IODelegate created" << std::endl;
 
-  // Apply IO logic of the delegate
-  vtkPolyData *polyData;
-  ioDelegate->LoadMesh(FileName, polyData);
+  if (ioDelegate)
+    {
+      // Apply IO logic of the delegate
+      vtkPolyData *polyData = nullptr;
+      ioDelegate->LoadPolyData(FileName, polyData);
 
-  std::cout << "[GuidedMeshIO.LoadMesh] Mesh loaded" << std::endl;
+      std::cout << "[GuidedMeshIO.LoadMesh] PolyData loaded" << std::endl;
 
-  // Install polydata to the application
-  auto wrapper = StandaloneMeshWrapper::New();
-  wrapper->SetMesh(polyData, 1u, 0u);
+      wrapper->SetMesh(polyData, 1u, 0u);
 
-  std::cout << "[GuidedMeshIO.LoadMesh] Mesh installed" << std::endl;
+      delete ioDelegate;
 
-  //ioFactory->Delete();
-  //ioDelegate->Delete();
+      std::cout << "[GuidedMeshIO.LoadMesh] Mesh installed" << std::endl;
+    }
+  else
+    throw itk::ExceptionObject("Illegal format specified for loading mesh file");
 }
 
 std::string

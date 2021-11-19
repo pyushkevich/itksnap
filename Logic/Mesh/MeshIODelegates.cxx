@@ -1,7 +1,4 @@
 #include "MeshIODelegates.h"
-#include "GuidedMeshIO.h"
-#include "IRISException.h"
-#include "MeshWrapperBase.h"
 #include "vtkPolyDataReader.h"
 #include "vtkXMLPolyDataReader.h"
 #include "vtkPolyData.h"
@@ -18,7 +15,7 @@ VTKMeshIODelegate::VTKMeshIODelegate()
 }
 
 void
-VTKMeshIODelegate::LoadMesh(const char *filename, vtkPolyData *polyData)
+VTKMeshIODelegate::LoadPolyData(const char *filename, vtkPolyData *polyData)
 {
   vtkNew<vtkPolyDataReader> reader;
   reader->SetFileName(filename);
@@ -33,7 +30,7 @@ VTPMeshIODelegate::VTPMeshIODelegate()
 }
 
 void
-VTPMeshIODelegate::LoadMesh(const char *filename, vtkPolyData *polyData)
+VTPMeshIODelegate::LoadPolyData(const char *filename, vtkPolyData *polyData)
 {
   vtkNew<vtkXMLPolyDataReader> reader;
   reader->SetFileName(filename);
@@ -41,24 +38,15 @@ VTPMeshIODelegate::LoadMesh(const char *filename, vtkPolyData *polyData)
   polyData = reader->GetOutput();
 }
 
-MeshIODelegateFactory::MeshIODelegateFactory()
-{
-
-}
-
 AbstractMeshIODelegate*
-MeshIODelegateFactory::GetDelegate(GuidedMeshIO::FileFormat FileFormat)
+AbstractMeshIODelegate::GetDelegate(GuidedMeshIO::FileFormat fmt)
 {
-  AbstractMeshIODelegate *ret = nullptr;
-
-  switch(FileFormat)
+  switch(fmt)
     {
       case GuidedMeshIO::FORMAT_VTK:
-        ret = VTKMeshIODelegate::New();
-        break;
+        return new VTKMeshIODelegate();
       case GuidedMeshIO::FORMAT_VTP:
-        ret = VTPMeshIODelegate::New();
-        break;
+        return new VTPMeshIODelegate();
       case GuidedMeshIO::FORMAT_BYU:
       case GuidedMeshIO::FORMAT_STL:
       case GuidedMeshIO::FORMAT_VRML:
@@ -66,5 +54,5 @@ MeshIODelegateFactory::GetDelegate(GuidedMeshIO::FileFormat FileFormat)
         break;
     }
 
-  return ret;
+  return nullptr;
 }

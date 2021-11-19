@@ -61,6 +61,7 @@ class Registry;
 class GuidedNativeImageIO;
 class ImageAnnotationData;
 class TimePointProperties;
+class ImageMeshLayers;
 
 /**
  * \class GenericImageData
@@ -336,6 +337,8 @@ public:
   /** Clear all segmentation undo points in this layer collection */
   void ClearUndoPoints();
 
+  /** Get Mesh Layer Storage */
+  ImageMeshLayers *GetMeshLayers();
 protected:
 
   GenericImageData();
@@ -406,6 +409,8 @@ protected:
 
   // Helper method used to compress a loaded segmentation into an RLE 4D image
   SmartPtr<LabelImage4DType> CompressSegmentation(GuidedNativeImageIO *io);
+
+  SmartPtr<ImageMeshLayers> m_MeshLayers;
 };
 
 #endif
