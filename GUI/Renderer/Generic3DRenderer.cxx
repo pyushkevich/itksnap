@@ -230,6 +230,9 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   m_Picker->SetModel(m_Model);
 }
 
+#include "IRISImageData.h"
+#include "ImageMeshLayers.h"
+#include "MeshWrapperBase.h"
 
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
@@ -240,10 +243,25 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
     return;
 
   // Get the mesh from the parent object
-  MeshManager *mesh = driver->GetMeshManager();
-  MeshManager::MeshCollection meshes;
+  //MeshManager *mesh = driver->GetMeshManager();
+  //MeshManager::MeshCollection meshes;
+
+  MeshWrapperBase::MeshCollection meshes;
   if(driver->IsMainImageLoaded())
-    meshes = mesh->GetMeshes(driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
+    //meshes = mesh->GetMeshes(driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
+    {
+      auto meshLayers = driver->GetIRISImageData()->GetMeshLayers();
+      auto idVector = meshLayers->GetLayerIds();
+      if (idVector.size() > 0)
+        {
+          auto activeLayer = meshLayers->GetLayer(meshLayers->GetActiveLayerId());
+          auto tp = driver->GetCursorTimePoint() + 1;
+          meshes = activeLayer->GetMeshCollection(tp);
+        }
+      else
+        return;
+    }
+
   typedef MeshManager::MeshCollection::const_iterator MeshIterator;
 
   // Remove all actors that are no longer in use, and update the ones for which the

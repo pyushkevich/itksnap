@@ -89,7 +89,7 @@ MeshImportModel::Load(const char *filename, FileFormat format)
   IO->LoadMesh(filename, format, baseWrapper);
 
   // Install the wrapper to the application
-  m_ParentModel->GetDriver()->GetIRISImageData()->GetMeshLayers()->AddLayer(wrapper);
+  m_ParentModel->GetDriver()->GetIRISImageData()->GetMeshLayers()->AddLayer(baseWrapper);
 
   std::cout << "[MeshImportModel.Load()] Mesh Installed" << std::endl;
 

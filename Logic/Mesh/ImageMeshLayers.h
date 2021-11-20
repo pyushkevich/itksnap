@@ -19,10 +19,10 @@ public:
   typedef MeshWrapperBase::MeshLayerIdType MeshLayerIdType;
 
   /** Add a layer */
-  void AddLayer(MeshWrapperBase *meshLayer);
+  void AddLayer(SmartPtr<MeshWrapperBase> meshLayer);
 
   /** Get a layer by id */
-  MeshWrapperBase* GetLayer(MeshLayerIdType id);
+  SmartPtr<MeshWrapperBase> GetLayer(MeshLayerIdType id);
 
   /** Remove a layer by id */
   void RemoveLayer(MeshLayerIdType id);
@@ -40,7 +40,7 @@ protected:
   ImageMeshLayers();
   virtual ~ImageMeshLayers() = default;
 
-  std::map<MeshLayerIdType, MeshWrapperBase*> m_Layers;
+  std::map<MeshLayerIdType, SmartPtr<MeshWrapperBase>> m_Layers;
 
   // Id of the mesh layer that is currently active
   MeshLayerIdType m_ActiveLayerId;
