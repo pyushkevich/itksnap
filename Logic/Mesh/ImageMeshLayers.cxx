@@ -6,10 +6,16 @@ ImageMeshLayers::ImageMeshLayers()
 }
 
 void
-ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer)
+ImageMeshLayers::AddLayer(SmartPtr<MeshWrapperBase> meshLayer)
 {
   MeshLayerIdType id = meshLayer->GetId();
   m_Layers[id] = meshLayer;
+}
+
+SmartPtr<MeshWrapperBase>
+ImageMeshLayers::GetLayer(MeshLayerIdType id)
+{
+  return m_Layers[id];
 }
 
 void
@@ -27,4 +33,13 @@ ImageMeshLayers::GetLayerIds() const
     ret.push_back(cit->first);
 
   return ret;
+}
+
+void
+ImageMeshLayers::Unload()
+{
+  for (auto it = m_Layers.begin(); it != m_Layers.end(); ++it)
+    it->second->Delete();
+
+  m_Layers.clear();
 }

@@ -2,6 +2,7 @@
 #define MESHIODELEGATES_H
 
 #include "GuidedMeshIO.h"
+#include "vtkPolyData.h"
 
 class MeshWrapperBase;
 
@@ -12,7 +13,9 @@ public:
   virtual ~AbstractMeshIODelegate() = default;
 
   /** Load mesh data into the out pointer */
-  virtual void LoadPolyData(const char *filename, vtkPolyData* polyData) = 0;
+  virtual void LoadPolyData(const char *filename, vtkSmartPointer<vtkPolyData> polyData) = 0;
+
+  virtual vtkSmartPointer<vtkPolyData> ReadPolyData(const char *filename) = 0;
 
   static AbstractMeshIODelegate *GetDelegate(GuidedMeshIO::FileFormat fmt);
 
@@ -27,7 +30,9 @@ public:
   VTKMeshIODelegate();
   ~VTKMeshIODelegate() = default;
 
-  void LoadPolyData(const char *filename, vtkPolyData* polyData) override;
+  void LoadPolyData(const char *filename, vtkSmartPointer<vtkPolyData> polyData) override;
+
+  vtkSmartPointer<vtkPolyData> ReadPolyData(const char *filename) override;
 };
 
 class VTPMeshIODelegate : public AbstractMeshIODelegate
@@ -36,7 +41,9 @@ public:
   VTPMeshIODelegate();
   virtual ~VTPMeshIODelegate() = default;
 
-  void LoadPolyData(const char *filename, vtkPolyData* polyData) override;
+  void LoadPolyData(const char *filename, vtkSmartPointer<vtkPolyData> polyData) override;
+
+  vtkSmartPointer<vtkPolyData> ReadPolyData(const char *filename) override;
 };
 
 #endif // MESHIODELEGATES_H

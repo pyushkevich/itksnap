@@ -1,7 +1,6 @@
 #include "MeshIODelegates.h"
 #include "vtkPolyDataReader.h"
 #include "vtkXMLPolyDataReader.h"
-#include "vtkPolyData.h"
 
 AbstractMeshIODelegate::AbstractMeshIODelegate()
 {
@@ -15,13 +14,23 @@ VTKMeshIODelegate::VTKMeshIODelegate()
 }
 
 void
-VTKMeshIODelegate::LoadPolyData(const char *filename, vtkPolyData *polyData)
+VTKMeshIODelegate::LoadPolyData(const char *filename, vtkSmartPointer<vtkPolyData> polyData)
 {
   vtkNew<vtkPolyDataReader> reader;
   reader->SetFileName(filename);
   reader->Update();
-  // Using SetOutput to avoid memory issue specific to vtkPolyDataReader
-  reader->SetOutput(polyData);
+  polyData = reader->GetOutput();
+}
+
+vtkSmartPointer<vtkPolyData>
+VTKMeshIODelegate::ReadPolyData(const char *filename)
+{
+  vtkSmartPointer<vtkPolyData> polyData;
+  vtkNew<vtkPolyDataReader> reader;
+  reader->SetFileName(filename);
+  reader->Update();
+  polyData = reader->GetOutput();
+  return polyData;
 }
 
 VTPMeshIODelegate::VTPMeshIODelegate()
@@ -30,13 +39,26 @@ VTPMeshIODelegate::VTPMeshIODelegate()
 }
 
 void
-VTPMeshIODelegate::LoadPolyData(const char *filename, vtkPolyData *polyData)
+VTPMeshIODelegate::LoadPolyData(const char *filename, vtkSmartPointer<vtkPolyData> polyData)
 {
   vtkNew<vtkXMLPolyDataReader> reader;
   reader->SetFileName(filename);
   reader->Update();
   polyData = reader->GetOutput();
 }
+
+vtkSmartPointer<vtkPolyData>
+VTPMeshIODelegate::ReadPolyData(const char *filename)
+{
+  vtkSmartPointer<vtkPolyData> polyData;
+  vtkNew<vtkXMLPolyDataReader> reader;
+  reader->SetFileName(filename);
+  reader->Update();
+  polyData = reader->GetOutput();
+  return polyData;
+}
+
+
 
 AbstractMeshIODelegate*
 AbstractMeshIODelegate::GetDelegate(GuidedMeshIO::FileFormat fmt)

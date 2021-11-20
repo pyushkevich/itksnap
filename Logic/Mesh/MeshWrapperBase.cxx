@@ -19,7 +19,7 @@ MeshWrapperBase::SetMeshCollection(MeshCollection collection, unsigned int timep
 }
 
 void
-MeshWrapperBase::SetMesh(vtkPolyData *mesh, unsigned int timepoint, LabelType id)
+MeshWrapperBase::SetMesh(vtkSmartPointer<vtkPolyData> mesh, unsigned int timepoint, LabelType id)
 {
   if (m_MeshCollectionMap.count(timepoint))
     m_MeshCollectionMap[timepoint][id] = mesh;
@@ -38,7 +38,7 @@ MeshWrapperBase::GetMeshCollection(unsigned int timepoint)
   return m_MeshCollectionMap[timepoint];
 }
 
-vtkPolyData*
+vtkSmartPointer<vtkPolyData>
 MeshWrapperBase::GetMesh(unsigned int timepoint, LabelType id)
 {
   assert(timepoint);

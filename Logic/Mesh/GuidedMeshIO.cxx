@@ -119,12 +119,15 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format, SmartPtr<MeshWra
   if (ioDelegate)
     {
       // Apply IO logic of the delegate
-      vtkPolyData *polyData = nullptr;
-      ioDelegate->LoadPolyData(FileName, polyData);
+      vtkSmartPointer<vtkPolyData> polyData = ioDelegate->ReadPolyData(FileName);
+      //ioDelegate->LoadPolyData(FileName, polyData);
+
+      //std::cout << "[GuidedMeshIO.LoadMesh] vtkPolyData print" << std::endl;
+      //polyData->PrintSelf(std::cout, vtkIndent(2));
 
       std::cout << "[GuidedMeshIO.LoadMesh] PolyData loaded" << std::endl;
 
-      wrapper->SetMesh(polyData, 1u, 0u);
+      wrapper->SetMesh(polyData, 1u, 1u);
 
       delete ioDelegate;
 

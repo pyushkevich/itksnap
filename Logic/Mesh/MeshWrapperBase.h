@@ -30,8 +30,9 @@ public:
 
   typedef unsigned long MeshLayerIdType;
 
-  /** MeshCollection maps an instance of vtkPolyData to a LabelType id. */
-  typedef std::map<LabelType, vtkPolyData*> MeshCollection;
+  /** MeshCollection maps an instance of vtkPolyData to a LabelType id, representing
+   *   a collection of vtkPolyData meshes that need to be rendered in a single scene.*/
+  typedef std::map<LabelType, vtkSmartPointer<vtkPolyData>> MeshCollection;
 
   /** MeshCollectionMap maps a MeshCollection to a time point */
   typedef std::map<unsigned int, MeshCollection> MeshCollectionMap;
@@ -40,13 +41,13 @@ public:
   virtual MeshCollection GetMeshCollection(unsigned int timepoint);
 
   /** Get the mesh associated with the id and the time point */
-  virtual vtkPolyData *GetMesh(unsigned int timepoint, LabelType id);
+  virtual vtkSmartPointer<vtkPolyData> GetMesh(unsigned int timepoint, LabelType id);
 
   /** Set a collection of mesh for a time point */
   virtual void SetMeshCollection(MeshCollection collection, unsigned int timepoint);
 
   /** Set the mesh and its id for a time point */
-  virtual void SetMesh(vtkPolyData *mesh, unsigned int timepoint, LabelType id);
+  virtual void SetMesh(vtkSmartPointer<vtkPolyData>mesh, unsigned int timepoint, LabelType id);
 
   /** Return true if the mesh needs update */
   virtual bool IsMeshDirty(unsigned int timepoint) const = 0;
