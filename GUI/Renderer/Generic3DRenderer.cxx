@@ -229,6 +229,7 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 #include "IRISImageData.h"
 #include "ImageMeshLayers.h"
 #include "MeshWrapperBase.h"
+#include "vtkCenterOfMass.h"
 
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
@@ -289,17 +290,43 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       }
     }
 
+  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
   // Now create actors for all the meshes that don't have them yet
-  for(MeshIterator it_mesh = meshes.begin(); it_mesh != meshes.end(); ++it_mesh)
+  for(auto it_mesh = meshes.begin(); it_mesh != meshes.end(); ++it_mesh)
     {
     // See if an actor exists for this label
     if(m_ActorMap.find(it_mesh->first) == m_ActorMap.end())
       {
       vtkPolyData *mesh = it_mesh->second;
 
+      std::cout << "[Generic3DRenderer] vtkPolyData #polygons=" << mesh->GetNumberOfPolys() << std::endl;
+      //mesh->PrintSelf(std::cout, vtkIndent(2));
+
       // Create a mapper
       vtkSmartPointer<vtkPolyDataMapper> pdm = vtkSmartPointer<vtkPolyDataMapper>::New();
       pdm->SetInputData(mesh);
+
+      // Move the mesh to the center of the portview
+      // Find the center of the mesh
+      vtkNew<vtkCenterOfMass> centerFilter;
+      centerFilter->SetInputData(mesh);
+      centerFilter->SetUseScalarsAsWeights(false);
+      centerFilter->Update();
+      auto center = centerFilter->GetCenter();
+
+      // Get the cursor position
+      Vector3ui cursor = app->GetCursorPosition();
+      std::cout << "[Generic3DRenderer] cursor position print: " << std::endl;
+      cursor.print(std::cout);
+      std::cout << std::flush;
+
+      // Build tranform matrix
+      vtkNew<vtkTransform> transform;
+      transform->SetMatrix(m_Model->GetWorldMatrix().data_block());
+      transform->Translate(cursor[0]-center[0], cursor[1]-center[1], cursor[2]-center[2]);
+      transform->Update();
+
+
 
       // Get the label of that mesh
       const ColorLabel &cl = driver->GetColorLabelTable()->GetColorLabel(it_mesh->first);
@@ -313,6 +340,8 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
       actor->SetMapper(pdm);
       actor->SetProperty(prop);
+
+      actor->SetUserTransform(transform);
 
       // Add the actor to the renderer
       m_Renderer->AddActor(actor);
