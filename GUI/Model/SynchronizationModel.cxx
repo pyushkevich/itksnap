@@ -47,8 +47,17 @@ SynchronizationModel::SynchronizationModel()
   // Create an IPC handler
   m_IPCHandler = new IPCHandler();
 
+  // Warp layer ID is zero by default (no warp)
+  m_WarpLayerId = 0;
+
   // Broadcast state
   m_CanBroadcast = false;
+
+  // Warp layer model
+  m_WarpLayerModel = wrapGetterSetterPairAsProperty(
+                       this,
+                       &Self::GetWarpLayerValueAndRange,
+                       &Self::SetWarpLayerValue);
 }
 
 SynchronizationModel::~SynchronizationModel()
@@ -87,6 +96,9 @@ void SynchronizationModel::SetParentModel(GlobalUIModel *parent)
   // Changes to the 3D viewpoint (stored in a vtkCamera object)
   Rebroadcast(m_Parent->GetModel3D()->GetRenderer(),
               Generic3DRenderer::CameraUpdateEvent(), ModelUpdateEvent());
+
+  // Changes to the loaded layers
+  Rebroadcast(m_Parent->GetDriver(), LayerChangeEvent(), ModelUpdateEvent());
 }
 
 
@@ -126,9 +138,28 @@ void SynchronizationModel::OnUpdate()
     {
     // Map the cursor to NIFTI coordinates
     ImageWrapperBase *iw = app->GetCurrentImageData()->GetMain();
+
+    // Get the NIFTI coordinate of the current cursor position
     message.cursor =
         iw->TransformVoxelCIndexToNIFTICoordinates(
           to_double(app->GetCursorPosition()));
+
+    // Handle special case of warp fields
+    AnatomicImageWrapper *warp =
+        m_WarpLayerId > 0
+        ? dynamic_cast<AnatomicImageWrapper *>(
+            app->GetCurrentImageData()->FindLayer(m_WarpLayerId, false))
+        : nullptr;
+
+    if(warp)
+      {
+      // Look up the warp at this position and add to the RAS coordinate
+      auto voxel = warp->GetVoxel(to_itkIndex(app->GetCursorPosition()));
+      if(voxel.GetNumberOfElements() == 3)
+        for(unsigned int j = 0; j < 3; j++)
+          message.cursor[j] += (j < 2 ? -1 : 1) * warp->GetNativeMapping().MapInternalToNative(voxel[j]);
+
+      }
     }
 
   // Zoom/Pan change
@@ -154,6 +185,57 @@ void SynchronizationModel::OnUpdate()
   // Broadcast the new message
   m_IPCHandler->Broadcast(static_cast<void *>(&message));
 }
+
+bool SynchronizationModel
+::GetWarpLayerValueAndRange(unsigned long &value, SynchronizationModel::LayerSelectionDomain *range)
+{
+  // Search for all the layers that may serve as warps
+  IRISApplication *app = m_Parent->GetDriver();
+
+  // Calculate the range
+  if(range)
+    {
+    range->clear();
+    (*range)[0l] = "None";
+    }
+
+  // Keep track of the number of eligible layers
+  unsigned int n_warps = 0;
+  bool current_found = false;
+  LayerIterator it = app->GetCurrentImageData()->GetLayers(OVERLAY_ROLE);
+  for(; !it.IsAtEnd(); ++it)
+    {
+    if(it.GetLayer()->ImageSpaceMatchesReferenceSpace() &&
+       it.GetLayer()->GetNumberOfComponents() == 3)
+      {
+      n_warps++;
+      if(range)
+        (*range)[it.GetLayer()->GetUniqueId()] = it.GetLayer()->GetNickname();
+
+      if(it.GetLayer()->GetUniqueId() == m_WarpLayerId)
+        current_found = true;
+      }
+    }
+
+  // If there are no warps, there is nothing to choose from
+  if(n_warps == 0 || (m_WarpLayerId > 0 && !current_found))
+    {
+    m_WarpLayerId = 0;
+    value = 0;
+    return false;
+    }
+
+  value = m_WarpLayerId;
+  return true;
+}
+
+
+void SynchronizationModel::SetWarpLayerValue(unsigned long value)
+{
+  // Set the layer id
+  m_WarpLayerId = value;
+}
+
 
 void SynchronizationModel::ReadIPCState()
 {

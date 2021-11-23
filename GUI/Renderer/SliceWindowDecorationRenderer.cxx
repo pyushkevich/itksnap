@@ -183,8 +183,8 @@ public:
               }
 
             v_offset += (int) (font_info.pixel_size * 1.34 / GetVPPR());
-            ++it_disp_names;
             }
+          ++it_disp_names;
           }
         }
       }
