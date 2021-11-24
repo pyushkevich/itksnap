@@ -230,6 +230,8 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 #include "ImageMeshLayers.h"
 #include "MeshWrapperBase.h"
 #include "vtkCenterOfMass.h"
+#include "vtkPolyData.h"
+#include "vtkPointData.h"
 
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
@@ -244,6 +246,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   //MeshManager::MeshCollection meshes;
 
   MeshWrapperBase::MeshCollection meshes;
+  SmartPtr<MeshWrapperBase> activeLayer;
   if(driver->IsMainImageLoaded())
     //meshes = mesh->GetMeshes(driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
     {
@@ -251,7 +254,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       auto idVector = meshLayers->GetLayerIds();
       if (idVector.size() > 0)
         {
-          auto activeLayer = meshLayers->GetLayer(meshLayers->GetActiveLayerId());
+          activeLayer = meshLayers->GetLayer(meshLayers->GetActiveLayerId());
           auto tp = driver->GetCursorTimePoint() + 1;
           meshes = activeLayer->GetMeshCollection(tp);
         }
@@ -259,14 +262,14 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
         return;
     }
 
-  typedef MeshManager::MeshCollection::const_iterator MeshIterator;
+  //typedef MeshManager::MeshCollection::const_iterator MeshIterator;
 
   // Remove all actors that are no longer in use, and update the ones for which the
   // mesh has changed
   for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); )
     {
     // Is there a mesh for this actor?
-    MeshIterator it_mesh = meshes.find(it_actor->first);
+    auto it_mesh = meshes.find(it_actor->first);
 
     if(it_mesh == meshes.end())
       {
@@ -290,11 +293,11 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       }
     }
 
-  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
   // Now create actors for all the meshes that don't have them yet
+  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
   for(auto it_mesh = meshes.begin(); it_mesh != meshes.end(); ++it_mesh)
     {
-    // See if an actor exists for this label
+    // See if an actor exists for this id
     if(m_ActorMap.find(it_mesh->first) == m_ActorMap.end())
       {
       vtkPolyData *mesh = it_mesh->second;
@@ -306,42 +309,57 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       vtkSmartPointer<vtkPolyDataMapper> pdm = vtkSmartPointer<vtkPolyDataMapper>::New();
       pdm->SetInputData(mesh);
 
-      // Move the mesh to the center of the portview
-      // Find the center of the mesh
-      vtkNew<vtkCenterOfMass> centerFilter;
-      centerFilter->SetInputData(mesh);
-      centerFilter->SetUseScalarsAsWeights(false);
-      centerFilter->Update();
-      auto center = centerFilter->GetCenter();
+      vtkSmartPointer<vtkActor> actor = vtkActor::New();
 
-      // Get the cursor position
-      Vector3ui cursor = app->GetCursorPosition();
-      std::cout << "[Generic3DRenderer] cursor position print: " << std::endl;
-      cursor.print(std::cout);
-      std::cout << std::flush;
+      if (activeLayer->IsA("StandaloneMeshWrapper"))
+        {
+        mesh->GetPointData()->SetActiveAttribute("Displacement_Total", 0);
 
-      // Build tranform matrix
-      vtkNew<vtkTransform> transform;
-      transform->SetMatrix(m_Model->GetWorldMatrix().data_block());
-      transform->Translate(cursor[0]-center[0], cursor[1]-center[1], cursor[2]-center[2]);
-      transform->Update();
+        pdm->SetScalarModeToUsePointData();
+        pdm->ScalarVisibilityOn();
+        pdm->SetColorModeToMapScalars();
+        actor->SetMapper(pdm);
+        }
+      else
+        {
+        // Get the label of that mesh
+        const ColorLabel &cl = driver->GetColorLabelTable()->GetColorLabel(it_mesh->first);
+
+        // Create a property
+        vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
+        prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
+        prop->SetOpacity(cl.GetAlpha() / 255.0);
+
+        // Create an actor
+        actor->SetMapper(pdm);
+        actor->SetProperty(prop);
+        }
 
 
 
-      // Get the label of that mesh
-      const ColorLabel &cl = driver->GetColorLabelTable()->GetColorLabel(it_mesh->first);
+      if (activeLayer->IsA("StandaloneMeshWrapper"))
+        {
+        std::cout << "[Generic3DRenderer] Standalone Mesh transform running" << std::endl;
+        // Move the mesh to the center of the portview
+        // Find the center of the mesh
+        vtkNew<vtkCenterOfMass> centerFilter;
+        centerFilter->SetInputData(mesh);
+        centerFilter->SetUseScalarsAsWeights(false);
+        centerFilter->Update();
+        auto center = centerFilter->GetCenter();
 
-      // Create a property
-      vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
-      prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
-      prop->SetOpacity(cl.GetAlpha() / 255.0);
+        // Get cursor position (cursor position is the center of the viewport)
+        Vector3ui cursor = app->GetCursorPosition();
 
-      // Create an actor
-      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-      actor->SetMapper(pdm);
-      actor->SetProperty(prop);
+        // Build tranform moving the mesh to the center of
+        vtkNew<vtkTransform> transform;
+        transform->SetMatrix(m_Model->GetWorldMatrix().data_block());
+        transform->Translate(cursor[0]-center[0], cursor[1]-center[1], cursor[2]-center[2]);
+        transform->Update();
 
-      actor->SetUserTransform(transform);
+        // Set transform to actor
+        actor->SetUserTransform(transform);
+        }
 
       // Add the actor to the renderer
       m_Renderer->AddActor(actor);

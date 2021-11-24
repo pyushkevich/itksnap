@@ -53,7 +53,6 @@ enum ScalarRepresentation
   NUMBER_OF_SCALAR_REPS
 };
 
-
 /**
  \class ImageWrapperBase
  \brief Abstract parent class for all image wrappers
