@@ -681,6 +681,11 @@ QWidget *TagComboDelegate::createEditor(QWidget *parent, const QStyleOptionViewI
       {
       fancy_domain_traits.AddAction(FindUpstreamAction(parent, "actionAdd_Overlay"), 0);
       }
+    else if(load_type == DistributedSegmentationModel::LOAD_SEGMENTATION)
+      {
+      fancy_domain_traits.AddAction(FindUpstreamAction(parent, "actionLoad_from_Image"), 0);
+
+      }
 
     makeCoupling(combo, m_Model->GetCurrentTagWorkspaceObjectModel(), fancy_value_traits, fancy_domain_traits);
 

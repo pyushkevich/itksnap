@@ -76,7 +76,8 @@ bool TagSpec::IsLayerType() const
 {
   return (type == TAG_LAYER_ANATOMICAL
           || type == TAG_LAYER_MAIN
-          || type == TAG_LAYER_OVERLAY);
+          || type == TAG_LAYER_OVERLAY
+          || type == TAG_LAYER_SEGMENTATION);
 }
 
 const char *ticket_status_emap_initializer[] =
@@ -99,7 +100,8 @@ std::string ticket_status_strings[] =
 
 std::string tag_type_strings[] =
 {
-  "Image Layer", "Main Image", "Overlay Image", "Segmentation Label", "Point Landmark", "Time Point", "Unknown"
+  "Image Layer", "Main Image", "Overlay Image", "Segmentation Image",
+  "Segmentation Label", "Point Landmark", "Time Point", "Unknown"
 };
 
 UniversalTicketId::UniversalTicketId(std::string in_url, IdType in_id)
@@ -357,6 +359,10 @@ DistributedSegmentationModel::GetTagLoadAction(int tag_index) const
   else if((type == TAG_LAYER_OVERLAY || type == TAG_LAYER_ANATOMICAL) && have_main)
     {
     return LOAD_OVERLAY;
+    }
+  else if(type == TAG_LAYER_SEGMENTATION && have_main)
+    {
+    return LOAD_SEGMENTATION;
     }
   else return LOAD_NONE;
 }
@@ -720,6 +726,7 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
   type_map.AddPair(TAG_POINT_LANDMARK, "PointLandmark");
   type_map.AddPair(TAG_LAYER_MAIN, "MainImage");
   type_map.AddPair(TAG_LAYER_OVERLAY, "OverlayImage");
+  type_map.AddPair(TAG_LAYER_SEGMENTATION, "SegmentationImage");
   type_map.AddPair(TAG_LAYER_ANATOMICAL, "AnatomicalImage");
   type_map.AddPair(TAG_SEGMENTATION_LABEL, "SegmentationLabel");
   type_map.AddPair(TAG_TIMEPOINT, "TimePoint");
@@ -770,6 +777,7 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
       case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
       case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
       case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
+      case TAG_LAYER_SEGMENTATION: role_filter = LABEL_ROLE; break;
       default: break;
       }
 
@@ -1173,6 +1181,7 @@ bool DistributedSegmentationModel
           case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
           case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
           case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
+          case TAG_LAYER_SEGMENTATION: role_filter = LABEL_ROLE; break;
           default: break;
           }
         if(role_filter >= 0 && driver->IsMainImageLoaded())

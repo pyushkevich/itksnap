@@ -1636,16 +1636,14 @@ void MainImageWindow::ExportScreenshot(int panelIndex)
   // What panel is this?
   if(panelIndex == 3)
     {
-    // auto *target = ui->panel3D->Get3DView();
-    // TODO: target->SaveScreenshot(to_utf8(fuser));
+    auto *target = ui->panel3D->Get3DView();
+    target->SaveScreenshot(to_utf8(fuser));
     }
   else
     {
     SliceViewPanel *svp = reinterpret_cast<SliceViewPanel *>(m_ViewPanels[panelIndex]);
     svp->GetSliceView()->SaveScreenshot(to_utf8(fuser));
     }
-
-  // Call the screenshot saving method, which will execute asynchronously
 
   // Store the last filename
   m_Model->SetLastScreenshotFileName(to_utf8(fuser));

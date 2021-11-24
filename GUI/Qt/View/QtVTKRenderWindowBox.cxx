@@ -99,6 +99,12 @@ void QtVTKRenderWindowBox::paintGL()
     m_Renderer->Update();
 
   QVTKOpenGLNativeWidget::paintGL();
+  if(m_ScreenshotRequest.size())
+    {
+    QImage img = this->grabFramebuffer();
+    img.save(m_ScreenshotRequest);
+    m_ScreenshotRequest = QString();
+    }
 }
 
 void

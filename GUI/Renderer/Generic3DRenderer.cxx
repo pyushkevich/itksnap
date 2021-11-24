@@ -199,6 +199,9 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(app->GetGlobalState()->GetDrawingColorLabelModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 
+  // Rebroadcast generic model update event from parent model
+  Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
+
   // Respond to spray paint events
   Rebroadcast(m_Model, Generic3DModel::SprayPaintEvent(), ModelUpdateEvent());
 
@@ -711,14 +714,18 @@ void Generic3DRenderer::OnUpdate()
       m_EventBucket->HasEvent(ValueChangedEvent(),
                               gs->GetSelectedSegmentationLayerIdModel());
 
+  bool need_render = false;
+
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed || seg_layer_changed)
     {
     UpdateSegmentationMeshAssembly();
+    need_render = true;
     }
   else if(labels_props_changed)
     {
     UpdateSegmentationMeshAppearance();
+    need_render = true;
     }
 
   // If the segmentation changed
@@ -727,6 +734,7 @@ void Generic3DRenderer::OnUpdate()
   if(main_changed || cursor_moved || appearance_changed)
     {
     UpdateAxisRendering();
+    need_render = true;
     }
 
   // Deal with camera
@@ -734,10 +742,12 @@ void Generic3DRenderer::OnUpdate()
     {
     UpdateCamera(true);
     DeleteSavedCameraState();
+    need_render = true;
     }
   else if(cursor_moved)
     {
     UpdateCamera(false);
+    need_render = true;
     }
 
   // Deal with the spray paint appearance and shape
@@ -745,6 +755,7 @@ void Generic3DRenderer::OnUpdate()
     {
     UpdateSprayGlyphAppearanceAndShape();
     UpdateScalpelPlaneAppearance();
+    need_render = true;
     }
 
   // Deal with spray events
@@ -754,13 +765,18 @@ void Generic3DRenderer::OnUpdate()
       this->m_Renderer->AddActor(m_SprayActor);
     else
       this->m_Renderer->RemoveActor(m_SprayActor);
+    need_render = true;
     }
 
   // Deal with scalpel events
   if(main_changed || scalpel_action || mode_changed)
     {
     UpdateScalpelRendering();
+    need_render = true;
     }
+
+  // Force rendering to occur
+  this->GetRenderWindow()->Render();
 }
 
 void Generic3DRenderer::ResetView()
