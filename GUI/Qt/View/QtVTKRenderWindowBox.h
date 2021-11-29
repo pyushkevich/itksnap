@@ -38,6 +38,9 @@ public:
   // Get the render window
   vtkRenderWindow *GetRenderWindow();
 
+  // Get the internal widget that does the actual rendering
+  QWidget *GetInternalWidget();
+
   // Whether to grab keyboard focus when the mouse enters this widget
   irisGetSetMacro(GrabFocusOnEntry, bool)
 
