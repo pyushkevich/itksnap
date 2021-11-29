@@ -22,7 +22,7 @@ class vtkActor;
  */
 
 
-class QtVTKRenderWindowBox : public QVTKOpenGLNativeWidget
+class QtVTKRenderWindowBox : public QWidget
 {
   Q_OBJECT
 
@@ -34,6 +34,9 @@ public:
 
   // Set the renderer assigned to this widget
   virtual void SetRenderer(AbstractVTKRenderer *renderer);
+
+  // Get the render window
+  vtkRenderWindow *GetRenderWindow();
 
   // Whether to grab keyboard focus when the mouse enters this widget
   irisGetSetMacro(GrabFocusOnEntry, bool)
@@ -48,18 +51,14 @@ public slots:
 
 protected:
 
-  // Interaction delegate
-  QtVTKInteractionDelegateWidget *m_InteractionDelegate;
+  // Internal widget - the one that actually does rendering
+  QWidget *m_InternalWidget;
 
-  virtual void paintGL() override;
-  virtual void initializeGL() override;
-  virtual void resizeGL(int w, int h) override;
+  // Capture resize events
+  virtual void resizeEvent(QResizeEvent *evt) override;
 
   // Whether this widget grabs keyboard focus when the mouse enters it
   bool m_GrabFocusOnEntry;
-
-  // Screenshot request to save the contents on next repaint
-  QString m_ScreenshotRequest;
 
   void RendererCallback(vtkObject *src, unsigned long event, void *data);
 

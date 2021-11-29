@@ -136,13 +136,6 @@ void PolygonDrawingInteractionMode::onAcceptPolygon()
 {
   // Make current GL context current before running any GL operations
   QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
-  parent->makeCurrent();
-
-  // This is hacky, but we need the viewport in the parent GL widget to be
-  // set to the entire window. This is needed because the rendering of the
-  // slice view may set up multiple viewports, and for polygon rasterization
-  // we only need one.
-  glViewport(0, 0, parent->width(), parent->height());
 
   // Create a warning list
   std::vector<IRISWarning> warnings;

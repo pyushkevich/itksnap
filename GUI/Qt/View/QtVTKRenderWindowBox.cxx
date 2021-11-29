@@ -1,6 +1,5 @@
 #include "QtVTKRenderWindowBox.h"
 #include "AbstractVTKRenderer.h"
-#include "QtVTKInteractionDelegateWidget.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkCommand.h"
@@ -18,19 +17,42 @@
 #include <vtkRenderWindow.h>
 #include <vtkProperty.h>
 
-#if QT_VERSION >= 0x050000
-  #include <QOpenGLContext>
-  #include <QSurfaceFormat>
-#else
-  #include <QGLContext>
-  #define QOpenGLContext QGLContext
-#endif
+#include <QVBoxLayout>
+#include <QResizeEvent>
+
+/**
+ * An extension of QVTKOpenGLNativeWidget that handles saving screenshots
+ */
+class QVTKOpenGLNativeWidgetWithScreenshot : public QVTKOpenGLNativeWidget
+{
+public:
+  QVTKOpenGLNativeWidgetWithScreenshot(QWidget *parent)
+    : QVTKOpenGLNativeWidget(parent) {}
+
+  virtual void paintGL() override
+  {
+    QVTKOpenGLNativeWidget::paintGL();
+    if(m_ScreenshotRequest.size())
+      {
+      QImage img = this->grabFramebuffer();
+      img.save(m_ScreenshotRequest);
+      m_ScreenshotRequest = QString();
+      }
+  }
+
+  virtual void setScreenshotRequest(const QString &s)
+  {
+    m_ScreenshotRequest = s;
+  }
+
+private:
+  QString m_ScreenshotRequest;
+};
+
 
 QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
-  QVTKOpenGLNativeWidget(parent)
+  QWidget(parent)
 {
-  //this->AttachSingleDelegate(m_InteractionDelegate);
-
   // Create a sphere
   sphereSource = vtkSmartPointer<vtkSphereSource>::New();
   sphereSource->SetCenter(0.0, 0.0, 0.0);
@@ -50,14 +72,20 @@ QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   renderer->ResetCamera();
   renderer->SetBackground(0.2,0.2,0.0);
 
-  // Create a render window
-  this->SetRenderWindow(vtkNew<vtkGenericOpenGLRenderWindow>());
-  this->GetRenderWindow()->AddRenderer(renderer);
+  // Create an internal GL rendering widget
+#ifndef VTK_OPENGL_HAS_OSMESA
+  auto *iw = new QVTKOpenGLNativeWidgetWithScreenshot(this);
+  iw->SetRenderWindow(vtkNew<vtkGenericOpenGLRenderWindow>());
+  iw->GetRenderWindow()->AddRenderer(renderer);
+  m_InternalWidget = iw;
+#else
+#endif
 
-  // this->setFormat(QVTKOpenGLNativeWidget::defaultFormat());
-  // m_InteractionDelegate = new QtVTKInteractionDelegateWidget(this);
-  // m_InteractionDelegate->SetVTKInteractor(this->GetRenderWindow()->GetInteractor());
-  // this->installEventFilter(m_InteractionDelegate);
+  // Create an internal layout without margins
+  auto *lo = new QVBoxLayout(this);
+  lo->setContentsMargins(0,0,0,0);
+  lo->addWidget(m_InternalWidget);
+  this->setLayout(lo);
 }
 
 void
@@ -72,39 +100,31 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractVTKRenderer *renderer)
   m_Renderer = renderer;
   if(m_Renderer)
     {
-    m_Renderer->SetRenderWindow(this->GetRenderWindow());
+#ifndef VTK_OPENGL_HAS_OSMESA
+    auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
+    m_Renderer->SetRenderWindow(iw->GetRenderWindow());
+#else
+#endif
     connectITK(m_Renderer, ModelUpdateEvent());
     }
 }
 
-void QtVTKRenderWindowBox::initializeGL()
+vtkRenderWindow *QtVTKRenderWindowBox::GetRenderWindow()
 {
-  // TODO: update model?
-  QVTKOpenGLNativeWidget::initializeGL();
+#ifndef VTK_OPENGL_HAS_OSMESA
+    auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
+    return iw->GetRenderWindow();
+#else
+#endif
+
 }
 
-void QtVTKRenderWindowBox::resizeGL(int w, int h)
+void QtVTKRenderWindowBox::resizeEvent(QResizeEvent *evt)
 {
   // Handle changes in VPPR
   if(m_Renderer)
-    m_Renderer->OnWindowResize(w, h, this->devicePixelRatio());
-
-  // Handle the resize normally
-  QVTKOpenGLNativeWidget::resizeGL(w, h);
-}
-
-void QtVTKRenderWindowBox::paintGL()
-{
-  if(m_Renderer)
-    m_Renderer->Update();
-
-  QVTKOpenGLNativeWidget::paintGL();
-  if(m_ScreenshotRequest.size())
-    {
-    QImage img = this->grabFramebuffer();
-    img.save(m_ScreenshotRequest);
-    m_ScreenshotRequest = QString();
-    }
+    m_Renderer->OnWindowResize(evt->size().width(), evt->size().height(),
+                               this->devicePixelRatio());
 }
 
 void
@@ -132,8 +152,13 @@ void QtVTKRenderWindowBox::leaveEvent(QEvent *)
 
 bool QtVTKRenderWindowBox::SaveScreenshot(std::string filename)
 {
-  m_ScreenshotRequest = from_utf8(filename);
-  this->repaint();
+#ifndef VTK_OPENGL_HAS_OSMESA
+    auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
+    iw->setScreenshotRequest(from_utf8(filename));
+#else
+#endif
+
+  this->update();
   return true;
 }
 
