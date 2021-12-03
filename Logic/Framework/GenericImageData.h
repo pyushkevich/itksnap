@@ -236,6 +236,17 @@ public:
   LabelImageWrapper* SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing);
 
   /**
+   * Configure a new segmentation image wrapper from the main image
+   *
+   * Important:
+   * This method is the set of basic steps should be taken to make sure the newly
+   * created segmentation wrapper syncs correctly with the main image layer.
+   * It should be called after creating a new segmentation wrapper
+   *
+   */
+  void ConfigureSegmentationFromMainImage(LabelImageWrapper *wrapper);
+
+  /**
    * Update a time point in a segmentation using image from disk
    */
   void UpdateSegmentationTimePoint(LabelImageWrapper *wrapper, GuidedNativeImageIO *io);

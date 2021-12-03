@@ -341,6 +341,26 @@ GenericImageData
   return imgLabel;
 }
 
+void
+GenericImageData
+::ConfigureSegmentationFromMainImage(LabelImageWrapper *wrapper)
+{
+  // Main Image should exist
+  assert(m_MainImageWrapper->IsInitialized());
+
+  // Segmentation and Main Image should have same slice index
+  wrapper->SetSliceIndex(m_MainImageWrapper->GetSliceIndex());
+
+  // Set default nickname
+  wrapper->SetDefaultNickname(this->GenerateNickname(LABEL_ROLE));
+
+  // Send the color table to the new wrapper
+  wrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
+
+  // Sync up spacing between the main and label image
+  wrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
+}
+
 LabelImageWrapper *
 GenericImageData
 ::SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing)
@@ -358,18 +378,11 @@ GenericImageData
   seg_wrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
   seg_wrapper->SetImage4D(imgLabel);
 
-  // Segmentation and Main Image should have same slice index
-  seg_wrapper->SetSliceIndex(m_MainImageWrapper->GetSliceIndex());
+  // Configure the new wrapper
+  this->ConfigureSegmentationFromMainImage(seg_wrapper);
 
   // Update filenames
   seg_wrapper->SetFileName(io->GetFileNameOfNativeImage());
-  seg_wrapper->SetDefaultNickname(this->GenerateNickname(LABEL_ROLE));
-
-  // Send the color table to the new wrapper
-  seg_wrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
-
-  // Sync up spacing between the main and label image
-  seg_wrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
 
   // Remove loaded segmentation unless adding to existing
   if(!add_to_existing)
@@ -414,9 +427,10 @@ LabelImageWrapper *GenericImageData::AddBlankSegmentation()
   // Initialize the segmentation data to zeros
   LabelImageWrapper::Pointer seg = LabelImageWrapper::New();
   seg->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
-  seg->SetDefaultNickname(this->GenerateNickname(LABEL_ROLE));
 
-  seg->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
+  // Configure the new wrapper
+  this->ConfigureSegmentationFromMainImage(seg);
+
   this->PushBackImageWrapper(LABEL_ROLE, seg.GetPointer());
 
   // Intensity changes in the image wrapper are broadcast as segmentation events
