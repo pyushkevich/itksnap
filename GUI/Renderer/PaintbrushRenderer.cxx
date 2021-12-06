@@ -8,6 +8,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkContext2D.h>
 #include <vtkPoints2D.h>
+#include <vtkTransform2D.h>
 #include <vtkPen.h>
 
 
@@ -20,12 +21,54 @@ public:
   irisSetMacro(PaintbrushModel, PaintbrushModel *);
   irisGetMacro(PaintbrushModel, PaintbrushModel *);
 
+  void InsertWithCollinearCheck(const Vector2d &head)
+  {
+    double a[2], b[2];
+    const double *c = head.data_block();
+
+    // Do not insert the same point twice
+    if(m_Walk->GetNumberOfPoints() > 0)
+      {
+      m_Walk->GetPoint(m_Walk->GetNumberOfPoints()-1, b);
+      if(fabs(b[0] - c[0]) < 1e-4 && fabs(b[1] - c[1]) < 1e-4)
+        return;
+
+      // Do not insert collinear points
+      if(m_Walk->GetNumberOfPoints() > 1)
+        {
+        m_Walk->GetPoint(m_Walk->GetNumberOfPoints()-2, a);
+        double v = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+        if(fabs(v) < 1.e-4)
+          {
+          m_Walk->SetPoint(m_Walk->GetNumberOfPoints()-1, c[0], c[1]);
+          return;
+          }
+        }
+      }
+
+    // Safe to append point
+    m_Walk->InsertNextPoint(c[0], c[1]);
+  }
 
   void BuildBrush()
   {
     // Get the current properties
     GlobalState *gs = m_Model->GetDriver()->GetGlobalState();
     PaintbrushSettings ps = gs->GetPaintbrushSettings();
+
+    // Check if the cached settings can be used
+    if(m_Walk
+       && ps.radius == m_CachedBrushSettings.radius
+       && ps.isotropic == m_CachedBrushSettings.isotropic
+       && ps.mode == m_CachedBrushSettings.mode
+       && ps.volumetric == m_CachedBrushSettings.volumetric)
+      return;
+
+    // Cache the current settings
+    m_CachedBrushSettings = ps;
+
+    // Create the new walk
+    m_Walk = vtkSmartPointer<vtkPoints2D>::New();
 
     // This is a simple 2D marching algorithm. At any given state of the
     // marching, there is a 'tail' and a 'head' of an arrow. To the right
@@ -55,13 +98,15 @@ public:
     // returns to the starting point, the loop is done
     Vector2d xStart = xTail;
 
+    // Add the first vertex
+    InsertWithCollinearCheck(xStart);
+
     // Do the loop
-    m_Walk.clear();
     size_t n = 0;
     while((xHead - xStart).squared_magnitude() > 0.01 && (++n) < 10000)
       {
       // Add the current head to the loop
-      m_Walk.push_back(xHead);
+      InsertWithCollinearCheck(xHead);
 
       // Check the voxels ahead to the right and left
       Vector2d xStep = xHead - xTail;
@@ -85,7 +130,7 @@ public:
       }
 
     // Add the last vertex
-    m_Walk.push_back(xStart);
+    InsertWithCollinearCheck(xStart);
   }
 
   virtual bool Paint(vtkContext2D *painter) override
@@ -107,18 +152,13 @@ public:
     // Get the brush position
     Vector3d xPos = m_PaintbrushModel->GetCenterOfPaintbrushInSliceSpace();
 
-    if(m_Walk.size() > 1)
-      {
-      vtkNew<vtkPoints2D> walk;
-      walk->Allocate(m_Walk.size() + 1);
-
-      for(auto it : m_Walk)
-        walk->InsertNextPoint(it[0] + xPos[0], it[1] + xPos[1]);
-
-      walk->InsertNextPoint(walk->GetPoint(0));
-
-      painter->DrawLines(walk);
-      }
+    // Shift by the position
+    painter->PushMatrix();
+    vtkNew<vtkTransform2D> tran;
+    tran->Translate(xPos[0], xPos[1]);
+    painter->AppendTransform(tran);
+    painter->DrawPoly(m_Walk);
+    painter->PopMatrix();
 
     return true;
   }
@@ -128,7 +168,10 @@ protected:
   PaintbrushModel *m_PaintbrushModel;
 
   // Representation of the brush
-  std::list<Vector2d> m_Walk;
+  vtkSmartPointer<vtkPoints2D> m_Walk;
+
+  // Paintbrush settings corresponding to the current walk
+  PaintbrushSettings m_CachedBrushSettings;
 };
 
 vtkStandardNewMacro(PaintbrushContextItem);

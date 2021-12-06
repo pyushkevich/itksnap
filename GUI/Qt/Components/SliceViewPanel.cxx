@@ -112,10 +112,10 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   ui->btnUndoLast->setDefaultAction(ui->actionUndo);
 
   // And also connect to the corresponding slots
-  connect(ui->actionAccept, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onCloseLoopAndEdit);
+  connect(ui->actionAccept, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onAcceptPolygon);
   connect(ui->actionPaste, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onPastePolygon);
   connect(ui->actionClearDrawing, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onCancelDrawing);
-  connect(ui->actionComplete, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onCloseLoopAndAccept);
+  connect(ui->actionComplete, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onCloseLoopAndEdit);
   connect(ui->actionDeleteSelected, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onDeleteSelected);
   connect(ui->actionClearPolygon, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onClearPolygon);
   connect(ui->actionSplitSelected, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onSplitSelected);
