@@ -296,9 +296,6 @@ ImageLayerTableRowModel::CheckState(UIState state)
 void
 ImageLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
 {
-  // Initialize base model first
-  Superclass::Initialize(parentModel, layer);
-
   // Downcast wrapper. It has to be a ImageWrapperBase or raise error
   ImageWrapperBase *img_wrapper = dynamic_cast<ImageWrapperBase*>(layer);
   assert(img_wrapper);
@@ -307,6 +304,9 @@ ImageLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *lay
   // Update the list of display modes (again, should not change during the
   // lifetime of this object
   UpdateDisplayModeList();
+
+  // At the end, call parent initialize
+  Superclass::Initialize(parentModel, layer);
 }
 
 void
@@ -581,14 +581,14 @@ MeshLayerTableRowModel::IsA(const char *type) const
 void
 MeshLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
 {
-  // Initialize base model first
-  Superclass::Initialize(parentModel, layer);
-
   // Downcast wrapper. It has to be a ImageWrapperBase or raise error
   MeshWrapperBase *mesh_wrapper = dynamic_cast<MeshWrapperBase*>(layer);
   assert(mesh_wrapper);
   m_MeshLayer = mesh_wrapper;
 
+
+  // In the end, call parent initialize
+  Superclass::Initialize(parentModel, layer);
 }
 
 bool
@@ -679,7 +679,7 @@ MeshLayerTableRowModel::CloseLayer()
 bool
 MeshLayerTableRowModel::GetColorMapPresetValue(std::string &value)
 {
-
+  return false;
 }
 
 void

@@ -18,6 +18,12 @@ ImageMeshLayers::GetLayer(MeshLayerIdType id)
   return m_Layers[id];
 }
 
+MeshLayerIterator
+ImageMeshLayers::GetLayers()
+{
+  return MeshLayerIterator(this);
+}
+
 void
 ImageMeshLayers::RemoveLayer(MeshLayerIdType id)
 {

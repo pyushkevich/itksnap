@@ -188,6 +188,7 @@ void LayerInspectorDialog::GenerateModelsForLayers()
       {
       model = ImageLayerTableRowModel::New();
       model->Initialize(m_Model, it.GetLayer());
+
       it.GetLayer()->SetUserData("LayerTableRowModel", model);
       }
     }
@@ -258,7 +259,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
   // The row widget for the main image layer (default selection)
   LayerInspectorRowDelegate *w_main = NULL;
 
-  // Loop over all the layers
+  // Loop over all the image layers
   for(; !it.IsAtEnd(); ++it)
     {
     LayerRole role = it.GetRole();
@@ -311,14 +312,34 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
     }
 
   // Process Mesh layer
-  auto meshGrpBox = new CollapsableGroupBox();
-  meshGrpBox->setTitle("Mesh Layers");
-  lo->addWidget(meshGrpBox);
+  auto mesh_layers = m_Model->GetDriver()->GetCurrentImageData()->GetMeshLayers();
+  if (mesh_layers->size())
+    {
+    // Create a mesh group box
+    auto meshGrpBox = new CollapsableGroupBox();
+    meshGrpBox->setTitle("Mesh Layers");
+    lo->addWidget(meshGrpBox);
 
-  auto meshRow = new LayerInspectorRowDelegate(this);
-  meshRow->setObjectName("TestMeshRow");
-  meshGrpBox->addWidget(meshRow);
-  m_Delegates.push_back(meshRow);
+    // Get the iterator for the layers
+
+
+    // Iterate through mesh layers building widgets
+    for (auto mesh_it = mesh_layers->GetLayers(); !mesh_it.IsAtEnd(); ++mesh_it)
+      {
+      // Create a new inspector row delegate
+      auto meshRow = new LayerInspectorRowDelegate(this);
+
+      // Set a name for this widget for debugging purposes
+      meshRow->setObjectName(QString().asprintf("wgtRowDelegate_%04d", m_Delegates.size()));
+
+      // Listen to the signals from the widget
+
+      // Add row to the group box
+      meshGrpBox->addWidget(meshRow);
+      m_Delegates.push_back(meshRow);
+      }
+    }
+
 
   // If we haven't selected anything, select the main layer's widget - this should not happen
   if(!found_selected_layer && w_main)

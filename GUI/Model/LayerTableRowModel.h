@@ -51,6 +51,7 @@ public:
   /**
    *  Contains common initializing logic
    *  Implement in a subclass to do wrapper specific logic
+   *  Important: Call parent method at the end of subclass's Initialize method
   */
   virtual void Initialize(GlobalUIModel *parentModel, WrapperBase *layer);
 
@@ -178,7 +179,9 @@ public:
   // ----------------------------------------------
   // Virtual methods implementation
 
-  /** Implement in a subclass to do wrapper specific logic */
+  /**
+   *  Implement in a subclass to do wrapper specific logic
+   */
   void Initialize(GlobalUIModel *parentModel, WrapperBase *layer) override;
 
   /** Implement in a subclass to check abstract/concrete type */
