@@ -6,6 +6,8 @@
 #include "itkObjectFactory.h"
 #include "MeshWrapperBase.h"
 
+class MeshLayerIterator;
+
 /**
  * \class ImageMeshLayers
  * \brief The ImageMeshLayers class stores mesh layers for current workspace
@@ -26,6 +28,9 @@ public:
 
   /** Get a layer by id */
   SmartPtr<MeshWrapperBase> GetLayer(MeshLayerIdType id);
+
+  /** Return a layer iterator */
+  MeshLayerIterator GetLayers();
 
   /** Remove a layer by id */
   void RemoveLayer(MeshLayerIdType id);
@@ -55,6 +60,11 @@ protected:
   MeshLayerIdType m_ActiveLayerId;
 };
 
+/**
+ * \class MeshLayerIterator
+ * \brief Iterator that traverses through all stored mesh layers in the ImageMeshLayers object
+ */
+
 class MeshLayerIterator
 {
 public:
@@ -67,8 +77,9 @@ public:
   /** Move to begin */
   MeshLayerIterator & MoveToBegin();
 
-  /** Incremental operator */
+  /** Incremental operators */
   MeshLayerIterator & operator++ ();
+  MeshLayerIterator & operator++ (int) = delete;
 
   /** Get the id of the layer */
   MeshWrapperBase::MeshLayerIdType GetUniqueId() const;
