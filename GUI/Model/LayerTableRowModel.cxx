@@ -12,9 +12,11 @@
 #include "LayerGeneralPropertiesModel.h"
 #include "IncreaseDimensionImageFilter.h"
 #include "SNAPImageData.h"
+#include "ImageMeshLayers.h"
+#include "MomentTextures.h"
 
 
-LayerTableRowModel::LayerTableRowModel()
+AbstractLayerTableRowModel::AbstractLayerTableRowModel()
 {
   m_LayerOpacityModel = wrapGetterSetterPairAsProperty(
         this,
@@ -26,129 +28,69 @@ LayerTableRowModel::LayerTableRowModel()
         &Self::GetNicknameValue,
         &Self::SetNicknameValue);
 
-  m_ComponentNameModel = wrapGetterSetterPairAsProperty(
+  m_StickyModel = wrapGetterSetterPairAsProperty(
         this,
-        &Self::GetComponentNameValue);
+        &Self::GetStickyValue,
+        &Self::SetStickyValue);
 
   m_ColorMapPresetModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetColorMapPresetValue,
         &Self::SetColorMapPresetValue);
 
-  m_StickyModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetStickyValue,
-        &Self::SetSticklyValue);
-
-  m_DisplayModeModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetDisplayModeValue,
-        &Self::SetDisplayModeValue);
 
   m_VisibilityToggleModel = NewNumericPropertyToggleAdaptor(
         m_LayerOpacityModel.GetPointer(), 0, 50);
 
-  m_VolumeRenderingEnabledModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetVolumeRenderingEnabledValue,
-        &Self::SetVolumeRenderingEnabledValue);
 
   m_LayerRole = NO_ROLE;
   m_LayerPositionInRole = -1;
   m_ImageData = NULL;
 }
 
-bool LayerTableRowModel::CheckState(UIState state)
+bool
+AbstractLayerTableRowModel::IsA(const char *type) const
+{
+  return strcmp("AbstractLayerTableRowModel", type) == 0;
+}
+
+bool AbstractLayerTableRowModel::CheckState(UIState state)
 {
   // Are we in tiling mode?
+  /* commenting out unused code to avoid warnings
   bool tiling = (
         m_ParentModel->GetGlobalState()->GetSliceViewLayerLayout() ==
-        LAYOUT_TILED);
+        LAYOUT_TILED); */
 
   bool snapmode = m_ParentModel->GetDriver()->IsSnakeModeActive();
 
   // Check the states
   switch(state)
     {
-    // Opacity can be edited for all layers except the main image layer
-    case LayerTableRowModel::UIF_OPACITY_EDITABLE:
-      return (m_LayerRole != LABEL_ROLE && m_Layer->IsSticky());
-
-    // Pinnable means it's not sticky and may be overlayed (i.e., not main)
-    case LayerTableRowModel::UIF_PINNABLE:
-      return (m_LayerRole != MAIN_ROLE && m_LayerRole != LABEL_ROLE && !m_Layer->IsSticky());
-
-    // Unpinnable means it's not sticky and may be overlayed (i.e., not main)
-    case LayerTableRowModel::UIF_UNPINNABLE:
-      return (m_LayerRole != MAIN_ROLE && m_LayerRole != LABEL_ROLE && m_Layer->IsSticky());
-
-    case LayerTableRowModel::UIF_MOVABLE_UP:
+    case AbstractLayerTableRowModel::UIF_MOVABLE_UP:
       return (m_LayerRole == OVERLAY_ROLE && m_LayerPositionInRole > 0);
 
-    case LayerTableRowModel::UIF_MOVABLE_DOWN:
+    case AbstractLayerTableRowModel::UIF_MOVABLE_DOWN:
       return (m_LayerRole == OVERLAY_ROLE && m_LayerPositionInRole < m_LayerNumberOfLayersInRole - 1);
 
-    case LayerTableRowModel::UIF_CLOSABLE:
+    case AbstractLayerTableRowModel::UIF_CLOSABLE:
       return !snapmode;
 
-    case LayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
+    case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
       return (m_Layer && m_Layer->GetDisplayMapping()->GetIntensityCurve());
 
-    case LayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
+    case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
       return (m_Layer && m_Layer->GetDisplayMapping()->GetColorMap());
 
-    case LayerTableRowModel::UIF_MULTICOMPONENT:
-      return (m_Layer && m_Layer->GetNumberOfComponents() > 1);
+    default:
+      break;
     }
 
   return false;
 }
 
-void LayerTableRowModel::UpdateRoleInfo()
-{
-  LayerIterator it(m_ImageData);
-  it.Find(m_Layer);
-  if(!it.IsAtEnd())
-    {
-    m_LayerRole = it.GetRole();
-    m_LayerPositionInRole = it.GetPositionInRole();
-    m_LayerNumberOfLayersInRole = it.GetNumberOfLayersInRole();
-    }
-}
 
-void LayerTableRowModel::UpdateDisplayModeList()
-{
-  m_AvailableDisplayModes.clear();
-  if(m_Layer && m_Layer->GetNumberOfComponents() > 1)
-    {
-    for(int i = 0; i < m_Layer->GetNumberOfComponents(); i++)
-      m_AvailableDisplayModes.push_back(
-            MultiChannelDisplayMode(false, false, SCALAR_REP_COMPONENT, i));
-    m_AvailableDisplayModes.push_back(
-          MultiChannelDisplayMode(false, false, SCALAR_REP_MAGNITUDE, 0));
-    m_AvailableDisplayModes.push_back(
-          MultiChannelDisplayMode(false, false, SCALAR_REP_MAX, 0));
-    m_AvailableDisplayModes.push_back(
-          MultiChannelDisplayMode(false, false, SCALAR_REP_AVERAGE, 0));
-
-    if(m_Layer->GetNumberOfComponents() == 3)
-      {
-      m_AvailableDisplayModes.push_back(
-            MultiChannelDisplayMode(true, false, SCALAR_REP_COMPONENT));
-      m_AvailableDisplayModes.push_back(
-            MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT));
-      }
-    }
-}
-
-MultiChannelDisplayMode LayerTableRowModel::GetDisplayMode()
-{
-  AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
-      AbstractMultiChannelDisplayMappingPolicy *>(m_Layer->GetDisplayMapping());
-  return dp->GetDisplayMode();
-}
-
-void LayerTableRowModel::Initialize(GlobalUIModel *parentModel, ImageWrapperBase *layer)
+void AbstractLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
 {
   m_ParentModel = parentModel;
   m_Layer = layer;
@@ -158,10 +100,6 @@ void LayerTableRowModel::Initialize(GlobalUIModel *parentModel, ImageWrapperBase
   // in the role of this layer. We shouldn't have to worry about this info
   // changing, since the rows get rebuilt when LayerChangeEvent() is fired.
   UpdateRoleInfo();
-
-  // Update the list of display modes (again, should not change during the
-  // lifetime of this object
-  UpdateDisplayModeList();
 
   // Listen to cosmetic events from the layer
   Rebroadcast(layer, WrapperMetadataChangeEvent(), ModelUpdateEvent());
@@ -185,53 +123,226 @@ void LayerTableRowModel::Initialize(GlobalUIModel *parentModel, ImageWrapperBase
   Rebroadcast(layer, WrapperMetadataChangeEvent(), StateMachineChangeEvent());
 }
 
-void LayerTableRowModel::MoveLayerUp()
-{
-  m_ParentModel->GetDriver()->ChangeOverlayPosition(m_Layer, -1);
-}
-
-void LayerTableRowModel::MoveLayerDown()
-{
-  m_ParentModel->GetDriver()->ChangeOverlayPosition(m_Layer, +1);
-}
-
-
-SmartPtr<ImageIOWizardModel> LayerTableRowModel::CreateIOWizardModelForSave()
-{
-  return m_ParentModel->CreateIOWizardModelForSave(m_Layer, m_LayerRole);
-}
-
-bool LayerTableRowModel::IsMainLayer()
+bool AbstractLayerTableRowModel::IsMainLayer()
 {
   return m_LayerRole == MAIN_ROLE;
 }
 
-void LayerTableRowModel::SetActivated(bool activated)
+bool AbstractLayerTableRowModel::GetNicknameValue(std::string &value)
+{
+  if(!m_Layer) return false;
+
+  value = m_Layer->GetNickname();
+  return true;
+}
+
+void AbstractLayerTableRowModel::SetNicknameValue(std::string value)
+{
+  m_Layer->SetCustomNickname(value);
+}
+
+
+void AbstractLayerTableRowModel::OnUpdate()
+{
+  // Has our layer been deleted?
+  if(this->m_EventBucket->HasEvent(itk::DeleteEvent(), m_Layer))
+    {
+    m_Layer = NULL;
+    m_LayerRole = NO_ROLE;
+    m_LayerPositionInRole = -1;
+    m_LayerNumberOfLayersInRole = -1;
+    }
+  else if(this->m_EventBucket->HasEvent(LayerChangeEvent()))
+    {
+    this->UpdateRoleInfo();
+    }
+}
+
+
+
+bool AbstractLayerTableRowModel::GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain)
+{
+  // For opacity to be defined, the layer must be sticky
+  if(!m_Layer) return false;
+
+  // Meaning of 'visible' is different for sticky and non-sticky layers
+  value = (int)(100.0 * m_Layer->GetAlpha());
+
+  if(domain)
+    domain->Set(0, 100, 5);
+
+  return true;
+}
+ void AbstractLayerTableRowModel::SetLayerOpacityValue(int value)
+{
+  assert(m_Layer);
+  m_Layer->SetAlpha(value / 100.0);
+}
+
+
+
+/*
+ * ===============================================
+ *   ImageLayerTableRowModel Implementation
+ * ===============================================
+*/
+
+ImageLayerTableRowModel::ImageLayerTableRowModel()
+{
+  m_ComponentNameModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetComponentNameValue);
+
+  m_DisplayModeModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetDisplayModeValue,
+        &Self::SetDisplayModeValue);
+
+  m_ColorMapPresetModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetColorMapPresetValue,
+        &Self::SetColorMapPresetValue);
+
+  m_VolumeRenderingEnabledModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetVolumeRenderingEnabledValue,
+        &Self::SetVolumeRenderingEnabledValue);
+}
+
+void ImageLayerTableRowModel::UpdateDisplayModeList()
+{
+  m_AvailableDisplayModes.clear();
+  if(m_Layer && m_ImageLayer->GetNumberOfComponents() > 1)
+    {
+    for(std::size_t i = 0; i < m_ImageLayer->GetNumberOfComponents(); i++)
+      m_AvailableDisplayModes.push_back(
+            MultiChannelDisplayMode(false, false, SCALAR_REP_COMPONENT, i));
+    m_AvailableDisplayModes.push_back(
+          MultiChannelDisplayMode(false, false, SCALAR_REP_MAGNITUDE, 0));
+    m_AvailableDisplayModes.push_back(
+          MultiChannelDisplayMode(false, false, SCALAR_REP_MAX, 0));
+    m_AvailableDisplayModes.push_back(
+          MultiChannelDisplayMode(false, false, SCALAR_REP_AVERAGE, 0));
+
+    if(m_ImageLayer->GetNumberOfComponents() == 3)
+      {
+      m_AvailableDisplayModes.push_back(
+            MultiChannelDisplayMode(true, false, SCALAR_REP_COMPONENT));
+      m_AvailableDisplayModes.push_back(
+            MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT));
+      }
+    }
+}
+
+bool
+ImageLayerTableRowModel::GetDisplayModeValue(MultiChannelDisplayMode &value)
+{
+  if(m_Layer && m_ImageLayer->GetNumberOfComponents() > 1)
+    {
+    AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
+        AbstractMultiChannelDisplayMappingPolicy *>(m_Layer->GetDisplayMapping());
+    value = dp->GetDisplayMode();
+    return true;
+    }
+  return false;
+}
+
+void
+ImageLayerTableRowModel::SetDisplayModeValue(MultiChannelDisplayMode value)
+{
+  AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
+      AbstractMultiChannelDisplayMappingPolicy *>(m_Layer->GetDisplayMapping());
+  dp->SetDisplayMode(value);
+}
+
+MultiChannelDisplayMode
+ImageLayerTableRowModel::GetDisplayMode()
+{
+  AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
+      AbstractMultiChannelDisplayMappingPolicy *>(m_Layer->GetDisplayMapping());
+  return dp->GetDisplayMode();
+}
+
+bool
+ImageLayerTableRowModel::IsA(const char *type) const
+{
+  return Superclass::IsA(type) || (strcmp("ImageLayerTableRowModel", type) == 0);
+}
+
+bool
+ImageLayerTableRowModel::CheckState(UIState state)
+{
+  if (Superclass::CheckState(state))
+    return true;
+
+  switch (state)
+    {
+    // Opacity can be edited for all layers except the main image layer
+    case AbstractLayerTableRowModel::UIF_OPACITY_EDITABLE:
+      return (m_LayerRole != LABEL_ROLE && m_ImageLayer->IsSticky());
+
+    // Pinnable means it's not sticky and may be overlayed (i.e., not main)
+    case AbstractLayerTableRowModel::UIF_PINNABLE:
+      return (m_LayerRole != MAIN_ROLE && m_LayerRole != LABEL_ROLE && !m_ImageLayer->IsSticky());
+
+    // Unpinnable means it's not sticky and may be overlayed (i.e., not main)
+    case AbstractLayerTableRowModel::UIF_UNPINNABLE:
+      return (m_LayerRole != MAIN_ROLE && m_LayerRole != LABEL_ROLE && m_ImageLayer->IsSticky());
+
+    case AbstractLayerTableRowModel::UIF_MULTICOMPONENT:
+      return (m_Layer && m_ImageLayer->GetNumberOfComponents() > 1);
+
+    default:
+      break;
+    }
+
+  return false;
+}
+
+void
+ImageLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
+{
+  // Initialize base model first
+  Superclass::Initialize(parentModel, layer);
+
+  // Downcast wrapper. It has to be a ImageWrapperBase or raise error
+  ImageWrapperBase *img_wrapper = dynamic_cast<ImageWrapperBase*>(layer);
+  assert(img_wrapper);
+  m_ImageLayer = img_wrapper;
+
+  // Update the list of display modes (again, should not change during the
+  // lifetime of this object
+  UpdateDisplayModeList();
+}
+
+void
+ImageLayerTableRowModel::SetActivated(bool activated)
 {
   // Odd why this would ever happen, but it does...
-  if(!m_Layer)
+  if(!m_ImageLayer)
     return;
 
   // If the layer is selected and is not sticky, we set is as the currently visible
   // layer in the render views
   if(m_LayerRole == LABEL_ROLE && activated)
     {
-    m_ParentModel->GetGlobalState()->SetSelectedSegmentationLayerId(m_Layer->GetUniqueId());
+    m_ParentModel->GetGlobalState()->SetSelectedSegmentationLayerId(m_ImageLayer->GetUniqueId());
     }
-  else if(activated && !m_Layer->IsSticky())
+  else if(activated && !m_ImageLayer->IsSticky())
     {
-    m_ParentModel->GetGlobalState()->SetSelectedLayerId(m_Layer->GetUniqueId());
+    m_ParentModel->GetGlobalState()->SetSelectedLayerId(m_ImageLayer->GetUniqueId());
     }
 }
 
-bool LayerTableRowModel::IsActivated() const
+bool
+ImageLayerTableRowModel::IsActivated() const
 {
   // Odd why this would ever happen, but it does...
   if(!m_Layer)
     return false;
 
   // Selection is based on id
-  unsigned long uid = m_Layer->GetUniqueId();
+  unsigned long uid = m_ImageLayer->GetUniqueId();
 
   // If the layer is selected and is not sticky, we set is as the currently visible
   // layer in the render views
@@ -249,47 +360,151 @@ bool LayerTableRowModel::IsActivated() const
   return false;
 }
 
-void LayerTableRowModel::CloseLayer()
+bool
+ImageLayerTableRowModel::GetComponentNameValue(std::string &value)
 {
-  // If this is an overlay, we unload it like this
-  if(m_LayerRole == OVERLAY_ROLE)
+  // Get the name of the compomnent
+  if(m_ImageLayer && m_ImageLayer->GetNumberOfComponents() > 1)
     {
-    m_ParentModel->GetDriver()->UnloadOverlay(m_Layer);
-    m_Layer = NULL;
+    value = this->GetDisplayModeString(this->GetDisplayMode());
+    return true;
     }
 
-  // The main image can also be unloaded
-  else if(m_LayerRole == MAIN_ROLE)
+  return false;
+}
+
+std::string
+ImageLayerTableRowModel::GetDisplayModeString(const MultiChannelDisplayMode &mode)
+{
+  if(mode.UseRGB)
     {
-    m_ParentModel->GetDriver()->UnloadMainImage();
-    m_Layer = NULL;
+    return "RGB";
     }
 
-  // Segmentations can be unloaded
-  else if (m_LayerRole == LABEL_ROLE)
+  if(mode.RenderAsGrid)
     {
-    m_ParentModel->GetDriver()->UnloadSegmentation(m_Layer);
-    m_Layer = NULL;
+    return "Grid";
+    }
+
+  std::ostringstream oss;
+  switch(mode.SelectedScalarRep)
+    {
+    case SCALAR_REP_COMPONENT:
+      oss << (1 + mode.SelectedComponent) << "/" << m_ImageLayer->GetNumberOfComponents();
+      return oss.str();
+
+    case SCALAR_REP_MAGNITUDE:
+      return "Mag";
+
+    case SCALAR_REP_MAX:
+      return "Max";
+
+    case SCALAR_REP_AVERAGE:
+      return "Avg";
+
+    case NUMBER_OF_SCALAR_REPS:
+      break;
+    };
+
+  return "";
+}
+
+void
+ImageLayerTableRowModel::MoveLayerUp()
+{
+  m_ParentModel->GetDriver()->ChangeOverlayPosition(m_ImageLayer, -1);
+}
+
+void
+ImageLayerTableRowModel::MoveLayerDown()
+{
+  m_ParentModel->GetDriver()->ChangeOverlayPosition(m_ImageLayer, +1);
+}
+
+void
+ImageLayerTableRowModel::UpdateRoleInfo()
+{
+  LayerIterator it(m_ImageData);
+  it.Find(m_ImageLayer);
+  if(!it.IsAtEnd())
+    {
+    m_LayerRole = it.GetRole();
+    m_LayerPositionInRole = it.GetPositionInRole();
+    m_LayerNumberOfLayersInRole = it.GetNumberOfLayersInRole();
     }
 }
 
-void LayerTableRowModel::AutoAdjustContrast()
+bool
+ImageLayerTableRowModel::GetStickyValue(bool &value)
+{
+  if(!m_Layer) return false;
+
+  value = m_ImageLayer->IsSticky();
+  return true;
+}
+
+void
+ImageLayerTableRowModel::SetStickyValue(bool value)
+{
+  // Make sure the selected ID is legitimate
+  if(m_ParentModel->GetGlobalState()->GetSelectedLayerId() == m_ImageLayer->GetUniqueId())
+    {
+    m_ParentModel->GetGlobalState()->SetSelectedLayerId(
+          m_ParentModel->GetDriver()->GetCurrentImageData()->GetMain()->GetUniqueId());
+    }
+  m_ImageLayer->SetSticky(value);
+}
+
+SmartPtr<ImageIOWizardModel>
+ImageLayerTableRowModel::CreateIOWizardModelForSave()
+{
+  return m_ParentModel->CreateIOWizardModelForSave(m_ImageLayer, m_LayerRole);
+}
+
+bool
+ImageLayerTableRowModel::GetColorMapPresetValue(std::string &value)
+{
+  if(m_Layer && m_Layer->GetDisplayMapping()->GetColorMap())
+    {
+    value = ColorMap::GetPresetName(
+          m_Layer->GetDisplayMapping()->GetColorMap()->GetSystemPreset());
+    return true;
+    }
+  return false;
+}
+
+void
+ImageLayerTableRowModel::SetColorMapPresetValue(std::string value)
+{
+  // TODO: this is a cheat! The current way of handling color map presets in
+  // snap is hacky, and I really don't like it. We need a common class that
+  // can handle system and user presets for a variety of objects, one that
+  // can interface nicely with the GUI models. Here we are going through
+  // the functionality provided by the ColorMapModel class.
+  ColorMapModel *cmm = m_ParentModel->GetColorMapModel();
+  WrapperBase *currentLayer = cmm->GetLayer();
+  cmm->SetLayer(m_ImageLayer);
+  cmm->SelectPreset(value);
+  cmm->SetLayer(currentLayer);
+}
+
+void
+ImageLayerTableRowModel::AutoAdjustContrast()
 {
   if(m_Layer && m_Layer->GetDisplayMapping()->GetIntensityCurve())
     {
     // TODO: this is a bit of a hack, since we go through a different model
     // and have to swap out that model's current layer, which adds some overhead
     IntensityCurveModel *icm = m_ParentModel->GetIntensityCurveModel();
-    ImageWrapperBase *currentLayer = icm->GetLayer();
-    icm->SetLayer(m_Layer);
+    WrapperBase *currentLayer = icm->GetLayer();
+    icm->SetLayer(m_ImageLayer);
     icm->OnAutoFitWindow();
     icm->SetLayer(currentLayer);
     }
 }
 
-#include "MomentTextures.h"
-
-void LayerTableRowModel::GenerateTextureFeatures()
+void
+ImageLayerTableRowModel::GenerateTextureFeatures()
 {
   ScalarImageWrapperBase *scalar = dynamic_cast<ScalarImageWrapperBase *>(m_Layer.GetPointer());
   if(scalar)
@@ -330,188 +545,167 @@ void LayerTableRowModel::GenerateTextureFeatures()
     updim->SetInput(filter->GetOutput());
     updim->Update();
 
-    newWrapper->InitializeToWrapper(m_Layer, updim->GetOutput(), NULL, NULL);
+    newWrapper->InitializeToWrapper(m_ImageLayer, updim->GetOutput(), NULL, NULL);
     newWrapper->SetDefaultNickname("Textures");
     this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(
-          m_Layer, newWrapper, false);
+          m_ImageLayer, newWrapper, false);
     }
 }
 
-std::string
-LayerTableRowModel::GetDisplayModeString(const MultiChannelDisplayMode &mode)
+void
+ImageLayerTableRowModel::CloseLayer()
 {
-  if(mode.UseRGB)
+  // If this is an overlay, we unload it like this
+  if(m_LayerRole == OVERLAY_ROLE)
+    m_ParentModel->GetDriver()->UnloadOverlay(m_ImageLayer);
+
+  // The main image can also be unloaded
+  else if(m_LayerRole == MAIN_ROLE)
+    m_ParentModel->GetDriver()->UnloadMainImage();
+
+  // Segmentations can be unloaded
+  else if (m_LayerRole == LABEL_ROLE)
+    m_ParentModel->GetDriver()->UnloadSegmentation(m_ImageLayer);
+
+  m_ImageLayer = NULL;
+  m_Layer = NULL;
+}
+
+bool ImageLayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
+{
+  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+  if(imageLayer)
     {
-    return "RGB";
+    value = imageLayer->GetDefaultScalarRepresentation()->IsVolumeRenderingEnabled();
+    return true;
     }
+  return false;
+}
 
-  if(mode.RenderAsGrid)
+void ImageLayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
+{
+  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+  if(imageLayer)
+    imageLayer->GetDefaultScalarRepresentation()->SetVolumeRenderingEnabled(value);
+}
+
+/*
+ * ===============================================
+ *   MeshLayerTableRowModel Implementation
+ * ===============================================
+*/
+
+bool
+MeshLayerTableRowModel::IsA(const char *type) const
+{
+  return Superclass::IsA(type) || (strcmp("MeshLayerTableRowModel", type) == 0);
+}
+
+void
+MeshLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
+{
+  // Initialize base model first
+  Superclass::Initialize(parentModel, layer);
+
+  // Downcast wrapper. It has to be a ImageWrapperBase or raise error
+  MeshWrapperBase *mesh_wrapper = dynamic_cast<MeshWrapperBase*>(layer);
+  assert(mesh_wrapper);
+  m_MeshLayer = mesh_wrapper;
+
+}
+
+bool
+MeshLayerTableRowModel::CheckState(UIState state)
+{
+  if (Superclass::CheckState(state))
+    return true;
+
+  switch (state)
     {
-    return "Grid";
-    }
+    // This is a mesh
+    case AbstractLayerTableRowModel::UIF_MESH:
+      return true;
 
-  std::ostringstream oss;
-  switch(mode.SelectedScalarRep)
-    {
-    case SCALAR_REP_COMPONENT:
-      oss << (1 + mode.SelectedComponent) << "/" << m_Layer->GetNumberOfComponents();
-      return oss.str();
+    // Allow opacity editing for all mesh layers
+    case AbstractLayerTableRowModel::UIF_OPACITY_EDITABLE:
+      return true;
 
-    case SCALAR_REP_MAGNITUDE:
-      return "Mag";
+    // We don't need to pin a mesh layer for now
+    case AbstractLayerTableRowModel::UIF_PINNABLE:
+      return false;
 
-    case SCALAR_REP_MAX:
-      return "Max";
+    // We don't need to pin a mesh layer for now
+    case AbstractLayerTableRowModel::UIF_UNPINNABLE:
+      return true;
 
-    case SCALAR_REP_AVERAGE:
-      return "Avg";
+    // We don't consider multicomponent mesh for now
+    case AbstractLayerTableRowModel::UIF_MULTICOMPONENT:
+      return false;
 
-    case NUMBER_OF_SCALAR_REPS:
+    default:
       break;
-    };
+    }
 
-  return "";
+  return false;
 }
 
-
-bool LayerTableRowModel::GetNicknameValue(std::string &value)
+bool
+MeshLayerTableRowModel::GetStickyValue(bool &value)
 {
-  if(!m_Layer) return false;
+  return false;
+}
 
-  value = m_Layer->GetNickname();
+void
+MeshLayerTableRowModel::SetStickyValue(bool value)
+{
+  // do nothing for mesh for now
+}
+
+void
+MeshLayerTableRowModel::SetActivated(bool activated)
+{
+  if(!m_MeshLayer)
+    return;
+}
+
+bool
+MeshLayerTableRowModel::IsActivated() const
+{
+  if(!m_Layer)
+    return false;
+
   return true;
 }
 
-void LayerTableRowModel::SetNicknameValue(std::string value)
+void
+MeshLayerTableRowModel::AutoAdjustContrast()
 {
-  m_Layer->SetCustomNickname(value);
+
 }
 
-bool LayerTableRowModel::GetComponentNameValue(std::string &value)
+void
+MeshLayerTableRowModel::UpdateRoleInfo()
 {
-  // Get the name of the compomnent
-  if(m_Layer && m_Layer->GetNumberOfComponents() > 1)
-    {
-    value = this->GetDisplayModeString(this->GetDisplayMode());
-    return true;
-    }
-
-  return false;
+  m_LayerRole = MESH_ROLE;
+  m_LayerPositionInRole = m_MeshLayer->GetUniqueId();
+  m_LayerNumberOfLayersInRole = m_ImageData->GetMeshLayers()->size();
 }
 
-bool LayerTableRowModel::GetColorMapPresetValue(std::string &value)
+void
+MeshLayerTableRowModel::CloseLayer()
 {
-  if(m_Layer && m_Layer->GetDisplayMapping()->GetColorMap())
-    {
-    value = ColorMap::GetPresetName(
-          m_Layer->GetDisplayMapping()->GetColorMap()->GetSystemPreset());
-    return true;
-    }
-  return false;
+  m_MeshLayer = NULL;
+  m_Layer = NULL;
 }
 
-void LayerTableRowModel::SetColorMapPresetValue(std::string value)
+bool
+MeshLayerTableRowModel::GetColorMapPresetValue(std::string &value)
 {
-  // TODO: this is a cheat! The current way of handling color map presets in
-  // snap is hacky, and I really don't like it. We need a common class that
-  // can handle system and user presets for a variety of objects, one that
-  // can interface nicely with the GUI models. Here we are going through
-  // the functionality provided by the ColorMapModel class.
-  ColorMapModel *cmm = m_ParentModel->GetColorMapModel();
-  ImageWrapperBase *currentLayer = cmm->GetLayer();
-  cmm->SetLayer(m_Layer);
-  cmm->SelectPreset(value);
-  cmm->SetLayer(currentLayer);
+
 }
 
-bool LayerTableRowModel::GetDisplayModeValue(MultiChannelDisplayMode &value)
+void
+MeshLayerTableRowModel::SetColorMapPresetValue(std::string value)
 {
-  if(m_Layer && m_Layer->GetNumberOfComponents() > 1)
-    {
-    AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
-        AbstractMultiChannelDisplayMappingPolicy *>(m_Layer->GetDisplayMapping());
-    value = dp->GetDisplayMode();
-    return true;
-    }
-  return false;
+
 }
-
-void LayerTableRowModel::SetDisplayModeValue(MultiChannelDisplayMode value)
-{
-  AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
-      AbstractMultiChannelDisplayMappingPolicy *>(m_Layer->GetDisplayMapping());
-  dp->SetDisplayMode(value);
-  }
-
-bool LayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
-{
-  if(m_Layer)
-    {
-    value = m_Layer->GetDefaultScalarRepresentation()->IsVolumeRenderingEnabled();
-    return true;
-    }
-  return false;
-}
-
-void LayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
-{
-  if(m_Layer)
-    m_Layer->GetDefaultScalarRepresentation()->SetVolumeRenderingEnabled(value);
-}
-
-void LayerTableRowModel::OnUpdate()
-{
-  // Has our layer been deleted?
-  if(this->m_EventBucket->HasEvent(itk::DeleteEvent(), m_Layer))
-    {
-    m_Layer = NULL;
-    m_LayerRole = NO_ROLE;
-    m_LayerPositionInRole = -1;
-    m_LayerNumberOfLayersInRole = -1;
-    }
-  else if(this->m_EventBucket->HasEvent(LayerChangeEvent()))
-    {
-    this->UpdateRoleInfo();
-    }
-}
-
-
-
-bool LayerTableRowModel::GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain)
-{
-  // For opacity to be defined, the layer must be sticky
-  if(!m_Layer || !m_Layer->IsSticky()) return false;
-
-  // Meaning of 'visible' is different for sticky and non-sticky layers
-  value = (int)(100.0 * m_Layer->GetAlpha());
-
-  if(domain)
-    domain->Set(0, 100, 5);
-
-  return true;
-}
- void LayerTableRowModel::SetLayerOpacityValue(int value)
-{
-  assert(m_Layer && m_Layer->IsSticky());
-  m_Layer->SetAlpha(value / 100.0);
-}
-
-bool LayerTableRowModel::GetStickyValue(bool &value)
-{
-  if(!m_Layer) return false;
-
-  value = m_Layer->IsSticky();
-  return true;
-}
-
-void LayerTableRowModel::SetSticklyValue(bool value)
-{
-  // Make sure the selected ID is legitimate
-  if(m_ParentModel->GetGlobalState()->GetSelectedLayerId() == m_Layer->GetUniqueId())
-    {
-    m_ParentModel->GetGlobalState()->SetSelectedLayerId(
-          m_ParentModel->GetDriver()->GetCurrentImageData()->GetMain()->GetUniqueId());
-    }
-  m_Layer->SetSticky(value);
-}
-

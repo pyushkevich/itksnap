@@ -116,7 +116,8 @@ enum LayerRole
   OVERLAY_ROLE = 0x0002,
   SNAP_ROLE = 0x0004,
   LABEL_ROLE = 0x0008,
-  NO_ROLE = 0x0010,
+  MESH_ROLE = 0x0010,
+  NO_ROLE = 0x0020,
   ALL_ROLES = 0xffffffff
 };
 

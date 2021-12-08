@@ -21,8 +21,5 @@ StandaloneMeshWrapper::IsMeshDirty(unsigned int timepoint) const
 bool
 StandaloneMeshWrapper::IsA(const char *type) const
 {
-  if (Superclass::IsA(type))
-    return true;
-
-  return strcmp("StandaloneMeshWrapper", type) == 0;
+  return Superclass::IsA(type) || (strcmp("StandaloneMeshWrapper", type) == 0);
 }

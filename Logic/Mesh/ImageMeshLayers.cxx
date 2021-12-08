@@ -8,7 +8,7 @@ ImageMeshLayers::ImageMeshLayers()
 void
 ImageMeshLayers::AddLayer(SmartPtr<MeshWrapperBase> meshLayer)
 {
-  MeshLayerIdType id = meshLayer->GetId();
+  MeshLayerIdType id = meshLayer->GetUniqueId();
   m_Layers[id] = meshLayer;
 }
 
@@ -42,4 +42,50 @@ ImageMeshLayers::Unload()
     it->second->Delete();
 
   m_Layers.clear();
+}
+
+//---------------------------------------
+//  MeshLayerIterator Implementation
+//---------------------------------------
+
+MeshLayerIterator::MeshLayerIterator(ImageMeshLayers *data)
+{
+  this->m_Layers = &data->m_Layers;
+  m_It = m_Layers->begin();
+}
+
+bool
+MeshLayerIterator::IsAtEnd() const
+{
+  return m_It == m_Layers->end();
+}
+
+MeshLayerIterator &
+MeshLayerIterator::MoveToBegin()
+{
+  m_It = m_Layers->begin();
+
+  return *this;
+}
+
+MeshLayerIterator &
+MeshLayerIterator::operator++()
+{
+  // if reach the end, stop at the end
+  if (m_It != m_Layers->end())
+    ++m_It;
+
+  return *this;
+}
+
+MeshWrapperBase::MeshLayerIdType
+MeshLayerIterator::GetUniqueId() const
+{
+  return m_It->second->GetUniqueId();
+}
+
+MeshWrapperBase *
+MeshLayerIterator::GetLayer() const
+{
+  return m_It->second;
 }

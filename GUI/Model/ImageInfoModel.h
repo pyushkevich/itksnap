@@ -19,7 +19,7 @@ protected:
 
 typedef AbstractLayerAssociatedModel<
     ImageInfoLayerProperties,
-    ImageWrapperBase> ImageInfoModelBase;
+    WrapperBase> ImageInfoModelBase;
 
 class ImageInfoModel : public ImageInfoModelBase
 {
@@ -37,8 +37,8 @@ public:
   };
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(ImageWrapperBase *layer) ITK_OVERRIDE {}
-  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) ITK_OVERRIDE {}
+  void RegisterWithLayer(WrapperBase *layer) ITK_OVERRIDE {}
+  void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) ITK_OVERRIDE {}
 
   // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);

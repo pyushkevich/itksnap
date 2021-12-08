@@ -943,6 +943,126 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     }
 }
 
+//-----------------------------------------
+// MeshDisplayPolicy Implementation
+
+MeshDisplayMappingPolicy::MeshDisplayMappingPolicy()
+{
+
+}
+
+IntensityCurveInterface *
+MeshDisplayMappingPolicy::GetIntensityCurve() const
+{
+
+  return nullptr;
+}
+
+ColorMap *
+MeshDisplayMappingPolicy::GetColorMap() const
+{
+
+  return nullptr;
+}
+
+ImageWrapperBase::DisplaySlicePointer
+MeshDisplayMappingPolicy::GetDisplaySlice(unsigned int slice)
+{
+
+  return nullptr;
+}
+
+void
+MeshDisplayMappingPolicy::Save(Registry &folder)
+{
+
+}
+
+void
+MeshDisplayMappingPolicy::Restore(Registry &folder)
+{
+
+}
+
+Vector2d
+MeshDisplayMappingPolicy::GetNativeImageRangeForCurve()
+{
+  // placeholder
+  return Vector2d(0.0, 1.0);
+}
+
+ScalarImageHistogram *
+MeshDisplayMappingPolicy::GetHistogram(int nBins)
+{
+
+  return nullptr;
+}
+
+void
+MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
+{
+  m_ColorMap = map;
+
+  Rebroadcaster::Rebroadcast(m_ColorMap, itk::ModifiedEvent(),
+                             m_Wrapper, WrapperDisplayMappingChangeEvent());
+}
+
+void
+MeshDisplayMappingPolicy::SetIntensityCurve(IntensityCurveVTK *curve)
+{
+  m_IntensityCurve = curve;
+
+  Rebroadcaster::Rebroadcast(m_IntensityCurve, itk::ModifiedEvent(),
+                             m_Wrapper, WrapperDisplayMappingChangeEvent());
+}
+
+void
+MeshDisplayMappingPolicy::Initialize(MeshWrapperBase *mesh_wrapper)
+{
+  // Set Wrapper
+  m_Wrapper = mesh_wrapper;
+
+  // Lookup Table
+  m_LookupTable = vtkLookupTable::New();
+
+  // Polydata Mapper
+  m_PolyDataMapper = vtkPolyDataMapper::New();
+
+  // Color Map
+  auto cMap = ColorMap::New();
+  cMap->SetToSystemPreset(ColorMap::SystemPreset::COLORMAP_WINTER);
+  this->SetColorMap(cMap);
+
+  // Intensity Curve
+  auto curve = IntensityCurveVTK::New();
+  curve->Initialize();
+  this->SetIntensityCurve(curve);
+
+  m_Initialized = true;
+}
+
+MeshWrapperBase *
+MeshDisplayMappingPolicy::GetMeshLayer()
+{
+  return m_Wrapper;
+}
+
+vtkPolyDataMapper *
+MeshDisplayMappingPolicy::GetPolyDataMapper()
+{
+  return m_PolyDataMapper;
+}
+
+void
+MeshDisplayMappingPolicy::UpdateMapper()
+{
+
+}
+
+
+
+// End of MeshDisplayPolicy Implementation
+//----------------------------------------
 
 template class ColorLabelTableDisplayMappingPolicy<LabelImageWrapperTraits>;
 
