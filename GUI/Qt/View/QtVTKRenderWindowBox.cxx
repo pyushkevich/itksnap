@@ -16,10 +16,16 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkProperty.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkWindowToImageFilter.h>
 
 // #include <QVBoxLayout>
 #include <QStackedLayout>
 #include <QResizeEvent>
+#include <QVTKInteractorAdapter.h>
+#include <QVTKInteractor.h>
+#include <QImage>
+#include <QPainter>
 
 /**
  * An extension of QVTKOpenGLNativeWidget that handles saving screenshots
@@ -49,6 +55,89 @@ public:
 private:
   QString m_ScreenshotRequest;
 };
+
+/** QWidget that renders VTK output rendered offscren using OsMESA */
+class QtVTKOffscreenMesaWidget : public QWidget
+{
+public:
+  QtVTKOffscreenMesaWidget(QWidget *parent) : QWidget(parent)
+    {
+    m_InteractorAdapter = new QVTKInteractorAdapter(this);
+    m_InteractorAdapter->SetDevicePixelRatio(this->devicePixelRatio());
+    }
+
+  void SetRenderWindow(vtkRenderWindow *rwin)
+    {
+    m_RenderWindow = rwin;
+    m_ImageFilter = vtkSmartPointer<vtkWindowToImageFilter>::New();
+    m_ImageFilter->SetInput(m_RenderWindow);
+    }
+
+  vtkRenderWindow *GetRenderWindow()
+    {
+    return m_RenderWindow;
+    }
+
+  void paintEvent(QPaintEvent *evt)
+    {
+    m_RenderWindow->SetSize(this->width(), this->height());
+    m_RenderWindow->Render();
+    m_ImageFilter->Modified();
+    m_ImageFilter->Update();
+    vtkImageData *id = m_ImageFilter->GetOutput();
+
+    QImage img((const unsigned char *) id->GetScalarPointer(), 
+               id->GetDimensions()[0], id->GetDimensions()[1], 
+               3 * id->GetDimensions()[0], QImage::Format_RGB888);
+
+    QPainter p(this);
+    p.drawImage(0, 0, img.mirrored());
+    std::cout << "Paint completed" << std::endl;
+    }
+
+  void processEvent(QEvent *evt) 
+    {
+    if(m_RenderWindow)
+      {
+      m_InteractorAdapter->ProcessEvent(evt, m_RenderWindow->GetInteractor());
+      this->update();
+      }
+    }
+
+  void mousePressEvent(QMouseEvent *evt) override
+    {
+    processEvent(evt);
+    }
+
+  void mouseMoveEvent(QMouseEvent *evt) override
+    {
+    processEvent(evt);
+    }
+
+  void mouseReleaseEvent(QMouseEvent *evt) override
+    {
+    processEvent(evt);
+    }
+
+  void enterEvent(QEvent *evt) override
+    {
+    processEvent(evt);
+    }
+
+  void leaveEvent(QEvent *evt) override
+    {
+    processEvent(evt);
+    }
+
+protected:
+
+  vtkSmartPointer<vtkRenderWindow> m_RenderWindow;
+  vtkSmartPointer<vtkWindowToImageFilter> m_ImageFilter;
+  QVTKInteractorAdapter *m_InteractorAdapter;
+ 
+}; 
+
+
 
 
 QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
@@ -80,6 +169,16 @@ QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   iw->GetRenderWindow()->AddRenderer(renderer);
   m_InternalWidget = iw;
 #else
+  auto *iw = new QtVTKOffscreenMesaWidget(this);
+  vtkNew<vtkRenderWindow> rwin;
+  rwin->AddRenderer(renderer);
+
+  vtkNew<QVTKInteractor> inter;
+  inter->SetRenderWindow(rwin);
+  inter->Initialize();
+
+  iw->SetRenderWindow(rwin);
+  m_InternalWidget = iw;
 #endif
 
   // Create an internal layout without margins
@@ -105,6 +204,8 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractVTKRenderer *renderer)
     auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
     m_Renderer->SetRenderWindow(iw->GetRenderWindow());
 #else
+    auto *iw = dynamic_cast<QtVTKOffscreenMesaWidget *>(m_InternalWidget);
+    m_Renderer->SetRenderWindow(iw->GetRenderWindow());
 #endif
     connectITK(m_Renderer, ModelUpdateEvent());
     }
@@ -116,8 +217,9 @@ vtkRenderWindow *QtVTKRenderWindowBox::GetRenderWindow()
     auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
     return iw->GetRenderWindow();
 #else
+    auto *iw = dynamic_cast<QtVTKOffscreenMesaWidget *>(m_InternalWidget);
+    return iw->GetRenderWindow();
 #endif
-
 }
 
 QWidget *QtVTKRenderWindowBox::GetInternalWidget()
