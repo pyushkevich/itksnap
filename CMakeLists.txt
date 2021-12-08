@@ -184,6 +184,13 @@ IF(CMAKE_SYSTEM_NAME MATCHES Darwin AND CMAKE_OSX_ARCHITECTURES)
   ENDIF()
 ENDIF()
 
+# If this is an OSMESA enabled build, add that to the name
+OPTION(SNAP_USE_OSMESA "Use off-screen software OpenGL rendering in ITK-SNAP" OFF)
+IF(SNAP_USE_OSMESA)
+  MESSAGE(STATUS "Building ITKSNAP with OSMESA support")
+  SET(CPACK_SYSTEM_NAME "${CPACK_SYSTEM_NAME}-osmesa")
+ENDIF()
+
 SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
 
 # Additional CPack resources
