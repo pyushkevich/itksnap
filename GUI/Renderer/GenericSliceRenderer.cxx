@@ -168,16 +168,16 @@ public:
       double hv = m_Model->GetCanvasSize()[1] * 0.5 / m_Model->GetViewZoom();
 
       // Radius of viewport in display pixel units
-      double wp = m_Model->GetSliceSpacing()[0] * wv * m_Model->GetThumbnailZoom();
-      double hp = m_Model->GetSliceSpacing()[1] * hv * m_Model->GetThumbnailZoom();
+      double wp = wv * m_Model->GetThumbnailZoom();
+      double hp = hv * m_Model->GetThumbnailZoom();
 
       // Center of viewport in image voxel units
       double xv = m_Model->GetViewPosition()[0];
       double yv = m_Model->GetViewPosition()[1];
 
       // Center of viewport in display pixel units
-      double xp = m_Model->GetSliceSpacing()[0] * xv * m_Model->GetThumbnailZoom() + xy[0];
-      double yp = m_Model->GetSliceSpacing()[1] * yv * m_Model->GetThumbnailZoom() + xy[1];
+      double xp = xv * m_Model->GetThumbnailZoom() + xy[0];
+      double yp = yv * m_Model->GetThumbnailZoom() + xy[1];
 
       ApplyAppearanceSettingsToPen(painter, eltViewport);
       DrawRectNoFill(painter, xp - wp, yp - hp, xp + wp, yp + hp);
@@ -565,10 +565,18 @@ void GenericSliceRenderer::UpdateRendererLayout()
   // Update the depths of the layers
   this->UpdateLayerDepth();
 
+  // Here we need to keep track of the selected segmentation layer, other segmentation
+  // layers should not be rendered
+  unsigned int ssid = m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerId();
+
   // Create a sorted structure of layers that are rendered on top of the base
   std::map<double, vtkActor *> depth_map;
   for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
+    // Don't display segmentation layer if it is not the selected one
+    if(it.GetRole() == LABEL_ROLE && it.GetLayer()->GetUniqueId() != ssid)
+      continue;
+
     auto *lta = GetLayerTextureAssembly(it.GetLayer());
     if(lta)
       {

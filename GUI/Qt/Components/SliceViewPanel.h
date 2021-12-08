@@ -13,6 +13,14 @@ class GenericSliceModel;
 class QCursor;
 class QToolButton;
 
+class CrosshairsInteractionMode;
+class ThumbnailInteractionMode;
+class PolygonDrawingInteractionMode;
+class SnakeROIInteractionMode;
+class PaintbrushInteractionMode;
+class AnnotationInteractionMode;
+class RegistrationInteractionMode;
+
 namespace Ui {
     class SliceViewPanel;
 }
@@ -97,6 +105,15 @@ private:
 
   // Context menu tool button
   QToolButton *m_ContextToolButton;
+
+  // Interaction modes
+  CrosshairsInteractionMode *m_CrosshairsMode, *m_ZoomPanMode;
+  ThumbnailInteractionMode *m_ThumbnailMode;
+  PolygonDrawingInteractionMode *m_PolygonMode;
+  SnakeROIInteractionMode *m_SnakeROIMode;
+  PaintbrushInteractionMode *m_PaintbrushMode;
+  AnnotationInteractionMode *m_AnnotationMode;
+  RegistrationInteractionMode *m_RegistrationMode;
 
   // Some renderers don't require a separate widget (no user interaction)
   // and so they are owned by this panel.
