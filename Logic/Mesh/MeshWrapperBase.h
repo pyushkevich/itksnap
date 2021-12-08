@@ -5,6 +5,7 @@
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 #include "vtkSmartPointer.h"
+#include "ImageWrapperBase.h"
 
 class AbstractMeshIODelegate;
 class vtkPolyData;
@@ -23,12 +24,13 @@ class vtkPolyData;
  *  segmentation based meshes.
  */
 
-class MeshWrapperBase : public itk::Object
+class MeshWrapperBase : public WrapperBase
 {
 public:
-  irisITKAbstractObjectMacro(MeshWrapperBase, itk::Object)
+  irisITKAbstractObjectMacro(MeshWrapperBase, WrapperBase)
 
   typedef unsigned long MeshLayerIdType;
+  typedef std::map<std::string, SmartPtr<itk::Object>> UserDataMapType;
 
   /** MeshCollection maps an instance of vtkPolyData to a LabelType id, representing
    *   a collection of vtkPolyData meshes that need to be rendered in a single scene.*/
@@ -36,6 +38,39 @@ public:
 
   /** MeshCollectionMap maps a MeshCollection to a time point */
   typedef std::map<unsigned int, MeshCollection> MeshCollectionMap;
+
+  //----------------------------------------------
+  // Begin virtual methods definition
+
+  /** Access the filename */
+  irisGetStringMacroWithOverride(FileName)
+  virtual void SetFileName(const std::string &name) override;
+
+  /**
+   * Access the nickname - which may be a custom nickname or derived from the
+   * filename if there is no custom nickname
+   */
+  virtual const std::string &GetNickname() const override;
+
+  // Set the custom nickname - precedence over the filename
+  virtual void SetCustomNickname(const std::string &nickname) override;
+  irisGetMacroWithOverride(CustomNickname, const std::string &);
+
+  /** Fallback nickname - shown if no filename and no custom nickname set. */
+  irisGetSetMacroWithOverride(DefaultNickname, const std::string &)
+
+  /** List of tags assigned to the image layer */
+  irisGetMacroWithOverride(Tags, const TagList &)
+  irisSetMacroWithOverride(Tags, const TagList &)
+
+  /** Layer transparency */
+  irisSetWithEventMacroWithOverride(Alpha, double, WrapperDisplayMappingChangeEvent)
+  irisGetMacroWithOverride(Alpha, double)
+
+  /**
+   * Is the image initialized?
+   */
+  irisIsMacroWithOverride(Initialized)
 
   /** Get the MeshCollection associated with the time point */
   virtual MeshCollection GetMeshCollection(unsigned int timepoint);
@@ -58,8 +93,22 @@ public:
   /** Return true if the object is an instance of the type or a subclass of the type */
   virtual bool IsA(const char *type) const;
 
-  /** Return the unique id for the current object */
-  MeshLayerIdType GetId() const;
+  /**
+    Compute the image histogram. The histogram is cached inside of the
+    object, so repeated calls to this function with the same nBins parameter
+    will not require additional computation.
+
+    Calling with default parameter (0) will use the same number of bins that
+    is currently in the histogram (i.e., return/recompute current histogram).
+    If there is no current histogram, a default histogram with 128 entries
+    will be generated.
+
+    For multi-component data, the histogram is pooled over all components.
+    */
+  virtual const ScalarImageHistogram *GetHistogram(size_t nBins) override;
+
+  // End of virtual methods definition
+  //------------------------------------------------
 
 protected:
   MeshWrapperBase();
@@ -67,7 +116,27 @@ protected:
 
   MeshCollectionMap m_MeshCollectionMap;
 
-  MeshLayerIdType m_Id;
+  UserDataMapType m_UserDataMap;
+
+  // Each layer has a filename, from which it is belived to have come
+  std::string m_FileName, m_FileNameShort;
+
+  // Each layer has a nickname. But this gets complicated, because the nickname
+  // can be set by the user, or it can be default for the wrapper, or it can be
+  // derived from the filename. The nicknames are used in the following order.
+  // - if there is a custom nickname, it is shown
+  // - if there is a filename, nickname is set to the shortened filename
+  // - if there is no filename, nickname is set to the default nickname
+  std::string m_DefaultNickname, m_CustomNickname;
+
+  // Tags for this image layer
+  TagList m_Tags;
+
+  bool m_Initialized = false;
+
+  // Transparency
+  double m_Alpha;
+
 };
 
 #endif // MESHWRAPPERBASE_H

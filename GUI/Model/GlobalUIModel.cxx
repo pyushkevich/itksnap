@@ -440,7 +440,10 @@ void GlobalUIModel::ToggleOverlayVisibility()
   GenericImageData *id = m_Driver->GetCurrentImageData();
 
   // Remember what layer is current in the general properties model
-  ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+  ImageWrapperBase *curr_layer = dynamic_cast<ImageWrapperBase*>(m_LayerGeneralPropertiesModel->GetLayer());
+
+  if (!curr_layer)
+    return;
 
   // Apply the toggle for all overlays
   for(LayerIterator it = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE); !it.IsAtEnd(); ++it)
@@ -465,7 +468,10 @@ void GlobalUIModel::AdjustOverlayOpacity(int delta)
   GenericImageData *id = m_Driver->GetCurrentImageData();
 
   // Remember what layer is current in the general properties model
-  ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+  ImageWrapperBase *curr_layer = dynamic_cast<ImageWrapperBase*>(m_LayerGeneralPropertiesModel->GetLayer());
+
+  if (!curr_layer)
+    return;
 
   // Apply the toggle for all overlays
   for(LayerIterator it = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE); !it.IsAtEnd(); ++it)

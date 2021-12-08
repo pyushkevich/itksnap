@@ -30,6 +30,7 @@
 #include "DisplayLayoutModel.h"
 #include "QShortcut"
 #include <QKeyEvent>
+#include "ImageMeshLayers.h"
 
 #include <QMenu>
 
@@ -133,7 +134,7 @@ void LayerInspectorDialog::SetPageToImageInfo()
   ui->tabWidget->setCurrentWidget(ui->cmpInfo);
 }
 
-QMenu *LayerInspectorDialog::GetLayerContextMenu(ImageWrapperBase *layer)
+QMenu *LayerInspectorDialog::GetLayerContextMenu(WrapperBase *layer)
 {
   foreach(LayerInspectorRowDelegate *del, m_Delegates)
     if(del->GetLayer() == layer)
@@ -142,7 +143,7 @@ QMenu *LayerInspectorDialog::GetLayerContextMenu(ImageWrapperBase *layer)
   return NULL;
 }
 
-QAction *LayerInspectorDialog::GetLayerSaveAction(ImageWrapperBase *layer)
+QAction *LayerInspectorDialog::GetLayerSaveAction(WrapperBase *layer)
 {
   foreach(LayerInspectorRowDelegate *del, m_Delegates)
     if(del->GetLayer() == layer)
@@ -170,6 +171,7 @@ bool LayerInspectorDialog::eventFilter(QObject *source, QEvent *event)
 
 void LayerInspectorDialog::GenerateModelsForLayers()
 {
+  // Create model for image layers
   // Iterate over the layers for each class of displayed layers
   LayerIterator it = m_Model->GetDriver()->GetCurrentImageData()->GetLayers(
         MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE | LABEL_ROLE);
@@ -177,16 +179,35 @@ void LayerInspectorDialog::GenerateModelsForLayers()
   for(; !it.IsAtEnd(); ++it)
     {
     // Check if a model exists for this layer
-    SmartPtr<LayerTableRowModel> model =
-        dynamic_cast<LayerTableRowModel *>(
+    SmartPtr<ImageLayerTableRowModel> model =
+        dynamic_cast<ImageLayerTableRowModel *>(
           it.GetLayer()->GetUserData("LayerTableRowModel"));
 
     // If not, create it and stick as 'user data' into the layer
     if(!model)
       {
-      model = LayerTableRowModel::New();
+      model = ImageLayerTableRowModel::New();
       model->Initialize(m_Model, it.GetLayer());
       it.GetLayer()->SetUserData("LayerTableRowModel", model);
+      }
+    }
+
+  // Create model for mesh layers
+  MeshLayerIterator meshIt(m_Model->GetDriver()->GetCurrentImageData()->GetMeshLayers());
+
+  for (; !meshIt.IsAtEnd(); ++meshIt)
+    {
+    // Check if a model exists for this layer
+    SmartPtr<MeshLayerTableRowModel> model =
+        dynamic_cast<MeshLayerTableRowModel *>(
+          meshIt.GetLayer()->GetUserData("LayerTableRowModel"));
+
+    // If not, create it and stick as 'user data' into the layer
+    if (!model)
+      {
+      model = MeshLayerTableRowModel::New();
+      model->Initialize(m_Model, meshIt.GetLayer());
+      meshIt.GetLayer()->SetUserData("LayerTableRowModel", model);
       }
     }
 }
@@ -258,8 +279,8 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
       w_main = w;
 
     // Find the model for this layer
-    SmartPtr<LayerTableRowModel> model =
-        dynamic_cast<LayerTableRowModel *>(
+    SmartPtr<AbstractLayerTableRowModel> model =
+        dynamic_cast<AbstractLayerTableRowModel *>(
           it.GetLayer()->GetUserData("LayerTableRowModel"));
 
     // Set the model
@@ -288,6 +309,16 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
     currentGroupBox->addWidget(w);
     m_Delegates.push_back(w);
     }
+
+  // Process Mesh layer
+  auto meshGrpBox = new CollapsableGroupBox();
+  meshGrpBox->setTitle("Mesh Layers");
+  lo->addWidget(meshGrpBox);
+
+  auto meshRow = new LayerInspectorRowDelegate(this);
+  meshRow->setObjectName("TestMeshRow");
+  meshGrpBox->addWidget(meshRow);
+  m_Delegates.push_back(meshRow);
 
   // If we haven't selected anything, select the main layer's widget - this should not happen
   if(!found_selected_layer && w_main)
@@ -373,7 +404,7 @@ void LayerInspectorDialog::onColorMapInspectorRequested()
   this->raise();
 }
 
-void LayerInspectorDialog::SetActiveLayer(ImageWrapperBase *layer)
+void LayerInspectorDialog::SetActiveLayer(WrapperBase *layer)
 {
   // For our purposes, uninitialized layers are just the same as null layers,
   // they can not participate in layer association.

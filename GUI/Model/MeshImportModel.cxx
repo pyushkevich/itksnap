@@ -83,7 +83,7 @@ MeshImportModel::Load(const char *filename, FileFormat format)
   auto wrapper = StandaloneMeshWrapper::New();
   SmartPtr<MeshWrapperBase> baseWrapper = wrapper.GetPointer();
 
-  std::cout << "[MeshImportModel.Load()] Mesh created. id=" << wrapper->GetId() << std::endl;
+  std::cout << "[MeshImportModel.Load()] Mesh created. id=" << wrapper->GetUniqueId() << std::endl;
 
   // Execute loading
   IO->LoadMesh(filename, format, baseWrapper);

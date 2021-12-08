@@ -6,7 +6,7 @@
 #include "TagList.h"
 
 class AbstractMultiChannelDisplayMappingPolicy;
-class LayerTableRowModel;
+class AbstractLayerTableRowModel;
 class TimePointProperties;
 
 /**
@@ -35,7 +35,7 @@ protected:
 };
 
 typedef AbstractLayerAssociatedModel<
-    GeneralLayerProperties, ImageWrapperBase> LayerGeneralPropertiesModelBase;
+    GeneralLayerProperties, WrapperBase> LayerGeneralPropertiesModelBase;
 
 class LayerGeneralPropertiesModel : public LayerGeneralPropertiesModelBase
 {
@@ -64,8 +64,8 @@ public:
   };
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(ImageWrapperBase *layer) ITK_OVERRIDE;
-  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
+  void RegisterWithLayer(WrapperBase *layer) ITK_OVERRIDE;
+  void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
 
   // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);
@@ -170,7 +170,7 @@ protected:
   // NULL if no layer is selected. Some of the properties that this model
   // exposes are already exposed in LayerTableRowModel, so we delegate to
   // them.
-  LayerTableRowModel *GetSelectedLayerTableRowModel();
+  AbstractLayerTableRowModel *GetSelectedLayerTableRowModel();
 
   // TimePoint Properties
   TimePointProperties *m_TimePointProperties;

@@ -81,8 +81,6 @@
 
 #include <itksys/SystemTools.hxx>
 
-unsigned long GlobalImageWrapperIndex = 0;
-
 
 template <class TPixel>
 class SimpleCastToDoubleFunctor
@@ -815,9 +813,6 @@ template<class TTraits, class TBase>
 ImageWrapper<TTraits,TBase>
 ::ImageWrapper()
 {
-  // Set the unique wrapper id
-  m_UniqueId = ++GlobalImageWrapperIndex;
-
   // Set initial state
   m_Initialized = false;
   m_PipelineReady = false;
@@ -2284,25 +2279,6 @@ ImageWrapper<TTraits,TBase>
 
   // Check the 4D image
   return m_Image4D->GetTimeStamp() > m_ImageSaveTime;
-}
-
-template<class TTraits, class TBase>
-void
-ImageWrapper<TTraits,TBase>
-::SetUserData(const std::string &role, itk::Object *data)
-{
-  m_UserDataMap[role] = data;
-}
-
-template<class TTraits, class TBase>
-itk::Object *
-ImageWrapper<TTraits,TBase>
-::GetUserData(const std::string &role) const
-{
-  UserDataMapType::const_iterator it = m_UserDataMap.find(role);
-  if(it == m_UserDataMap.end())
-    return NULL;
-  else return it->second;
 }
 
 template<class TTraits, class TBase>

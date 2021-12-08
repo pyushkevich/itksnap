@@ -2,10 +2,13 @@
 #define DISPLAYMAPPINGPOLICY_H
 
 #include "ImageWrapperBase.h"
+#include "MeshWrapperBase.h"
 #include "itkDataObject.h"
 #include "itkObjectFactory.h"
 #include "IntensityToColorLookupTableImageFilter.h"
 #include "MultiChannelDisplayMode.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkLookupTable.h"
 
 class ColorLabelTable;
 class LabelToRGBAFilter;
@@ -170,12 +173,6 @@ public:
                              AbstractContinuousImageDisplayMappingPolicy)
 
 };
-
-
-
-
-
-
 
 
 template<class TWrapperTraits>
@@ -505,6 +502,87 @@ protected:
     DisplaySliceType, MultiChannelDisplayMode> DisplaySliceSelector;
   SmartPtr<DisplaySliceSelector> m_DisplaySliceSelector[3];
 };
+
+/**
+ * @brief The parent class for policies that involve mesh display mapping
+ */
+class MeshDisplayMappingPolicy : public AbstractContinuousImageDisplayMappingPolicy
+{
+public:
+  irisITKObjectMacro(MeshDisplayMappingPolicy, AbstractContinuousImageDisplayMappingPolicy)
+
+
+  //--------------------------------------------
+  // virtual methods implementation
+
+  virtual IntensityCurveInterface *GetIntensityCurve() const override;
+
+  virtual ColorMap *GetColorMap() const override;
+
+  /**
+   * @brief Mesh wrapper does not generate display slices for now, the method will
+   * @return An exception will be raised and a nullptr will be returned
+   */
+  virtual DisplaySlicePointer GetDisplaySlice(unsigned int slice) override;
+
+  virtual void Save(Registry &folder) override;
+
+  virtual void Restore(Registry &folder) override;
+
+  /**
+   * @brief Get the intensity range relative to which the contrast mapping
+   * curve is constructed. This is primarily used when displaying the curve
+   * to the user.
+   * @return Vector containing min/max of the curve range (in native units)
+   */
+  virtual Vector2d GetNativeImageRangeForCurve() override;
+
+  /**
+   * @brief Get the histogram associated with the current state of the display
+   * policy. For single-component layers, this method just returns the
+   * component's histogram. For multi-component layers, it may return the
+   * pooled histogram, e.g., when the display is in RGB mode
+   * @param nBins Number of bins desired in the histogram
+   */
+  virtual ScalarImageHistogram *GetHistogram(int nBins) override;
+
+  virtual void SetColorMap(ColorMap *map) override;
+
+  // end of virtual methods implementation
+  //--------------------------------------------
+
+  /** Set mesh layer for the policy. */
+  // This method intentionally hides parent's Initialize method
+  void Initialize(MeshWrapperBase *mesh_wrapper);
+
+  /** Set intensity curve */
+  void SetIntensityCurve(IntensityCurveVTK *curve);
+
+  MeshWrapperBase *GetMeshLayer();
+
+  /** Get the pointer to the polydata mapper */
+  vtkPolyDataMapper *GetPolyDataMapper();
+
+protected:
+  MeshDisplayMappingPolicy();
+  virtual ~MeshDisplayMappingPolicy() = default;
+
+  /** Use default implementation or implemente in a subclass for policy specific updating logic */
+  virtual void UpdateMapper();
+
+  MeshWrapperBase *m_Wrapper;
+
+  vtkSmartPointer<vtkPolyDataMapper> m_PolyDataMapper;
+
+  vtkSmartPointer<vtkLookupTable> m_LookupTable;
+
+  SmartPtr<ColorMap> m_ColorMap;
+
+  SmartPtr<IntensityCurveVTK> m_IntensityCurve;
+
+  bool m_Initialized = false;
+};
+
 
 
 

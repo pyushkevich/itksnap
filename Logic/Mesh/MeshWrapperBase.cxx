@@ -1,11 +1,10 @@
 #include "MeshWrapperBase.h"
 #include "vtkPolyData.h"
-
-MeshWrapperBase::MeshLayerIdType GlobalMeshLayerId = 0ul;
+#include <itksys/SystemTools.hxx>
 
 MeshWrapperBase::MeshWrapperBase()
 {
-  m_Id = GlobalMeshLayerId++;
+
 }
 
 MeshWrapperBase::~MeshWrapperBase()
@@ -57,9 +56,44 @@ MeshWrapperBase::IsA(const char *type) const
   return strcmp("MeshWrapperBase", type) == 0;
 }
 
-MeshWrapperBase::MeshLayerIdType
-MeshWrapperBase::GetId() const
+void
+MeshWrapperBase::SetFileName(const std::string &name)
 {
-  return m_Id;
+  m_FileName = name;
+  m_FileNameShort = itksys::SystemTools::GetFilenameWithoutExtension(
+        itksys::SystemTools::GetFilenameName(name));
+  this->InvokeEvent(WrapperMetadataChangeEvent());
 }
+
+const ScalarImageHistogram *
+MeshWrapperBase::GetHistogram(size_t nBins)
+{
+  // placeholder
+  return nullptr;
+}
+
+void
+MeshWrapperBase::SetCustomNickname(const std::string &nickname)
+{
+  // Make sure the nickname is real
+  if(nickname == m_FileNameShort)
+    m_CustomNickname.clear();
+  else
+    m_CustomNickname = nickname;
+
+  this->InvokeEvent(WrapperMetadataChangeEvent());
+}
+
+const std::string&
+MeshWrapperBase::GetNickname() const
+{
+  if(m_CustomNickname.length())
+    return m_CustomNickname;
+
+  else if(m_FileName.length())
+    return m_FileNameShort;
+
+  else return m_DefaultNickname;
+}
+
 

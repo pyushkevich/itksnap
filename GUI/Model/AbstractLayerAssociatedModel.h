@@ -27,9 +27,9 @@
   can be the number of histogram bins to display for the contrast dialog.
 
   The second parameter is the type of the image wrapper that can participate
-  in the association. It can be ImageWrapperBase or one of its subclasses.
+  in the association. It can be WrapperBase or one of its subclasses.
 */
-template <class TProperties, class TWrapper = ImageWrapperBase>
+template <class TProperties, class TWrapper = WrapperBase>
 class AbstractLayerAssociatedModel : public AbstractModel
 {
 public:

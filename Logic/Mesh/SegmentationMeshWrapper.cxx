@@ -21,8 +21,5 @@ SegmentationMeshWrapper::UpdateMeshes(unsigned int timepoint)
 bool
 SegmentationMeshWrapper::IsA(const char *type) const
 {
-  if (Superclass::IsA(type))
-    return true;
-
-  return strcmp("SegmentationMeshWrapper", type) == 0;
+  return Superclass::IsA(type) || (strcmp("SegmentationMeshWrapper", type) == 0);
 }

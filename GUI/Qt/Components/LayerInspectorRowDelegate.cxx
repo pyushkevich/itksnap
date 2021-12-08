@@ -32,7 +32,6 @@
 class QAction;
 
 
-
 OpacitySliderAction::OpacitySliderAction(QWidget *parent)
   : QWidgetAction(parent)
 {
@@ -54,11 +53,6 @@ QWidget *OpacitySliderAction::createWidget(QWidget *parent)
 
   return m_Container;
 }
-
-
-
-
-
 
 
 QString LayerInspectorRowDelegate::m_SliderStyleSheetTemplate;
@@ -135,37 +129,44 @@ LayerInspectorRowDelegate::~LayerInspectorRowDelegate()
   delete ui;
 }
 
-void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
+void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
 {
   m_Model = model;
 
   makeCoupling(ui->inLayerOpacity, model->GetLayerOpacityModel());
   makeCoupling(ui->outLayerNickname, model->GetNicknameModel());
-  makeCoupling(ui->outComponent, model->GetComponentNameModel());
+
   makeCoupling(m_OverlayOpacitySlider, model->GetLayerOpacityModel());
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());
   makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
 
+  if (!model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
+    {
+      auto image_model = dynamic_cast<ImageLayerTableRowModel*>(model);
+      makeCoupling(ui->outComponent, image_model->GetComponentNameModel());
+    }
+
+
   const QtWidgetActivator::Options opt_hide = QtWidgetActivator::HideInactive;
-  activateOnFlag(ui->actionUnpin_layer, model, LayerTableRowModel::UIF_UNPINNABLE, opt_hide);
-  activateOnFlag(ui->actionPin_layer, model, LayerTableRowModel::UIF_PINNABLE, opt_hide);
-  activateOnAnyFlags(ui->btnSticky, model, LayerTableRowModel::UIF_UNPINNABLE, LayerTableRowModel::UIF_PINNABLE, opt_hide);
-  activateOnFlag(m_OverlayOpacitySliderAction, model, LayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
-  activateOnFlag(m_ColorMapMenu, model, LayerTableRowModel::UIF_COLORMAP_ADJUSTABLE, opt_hide);
-  activateOnFlag(m_DisplayModeMenu, model, LayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
-  activateOnFlag(ui->outComponent, model, LayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
+  activateOnFlag(ui->actionUnpin_layer, model, AbstractLayerTableRowModel::UIF_UNPINNABLE, opt_hide);
+  activateOnFlag(ui->actionPin_layer, model, AbstractLayerTableRowModel::UIF_PINNABLE, opt_hide);
+  activateOnAnyFlags(ui->btnSticky, model, AbstractLayerTableRowModel::UIF_UNPINNABLE, AbstractLayerTableRowModel::UIF_PINNABLE, opt_hide);
+  activateOnFlag(m_OverlayOpacitySliderAction, model, AbstractLayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
+  activateOnFlag(m_ColorMapMenu, model, AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE, opt_hide);
+  activateOnFlag(m_DisplayModeMenu, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
+  activateOnFlag(ui->outComponent, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
 
   // makeActionVisibilityCoupling(ui->actionUnpin_layer, model->GetStickyModel());
   // makeActionVisibilityCoupling(ui->actionPin_layer, model->GetStickyModel(), true);
   // makeActionVisibilityCoupling(m_OverlayOpacitySliderAction, model->GetStickyModel());
 
   // Hook up some activations
-  activateOnFlag(ui->btnVisible, model, LayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
-  activateOnFlag(ui->inLayerOpacity, model, LayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
-  // activateOnFlag(ui->btnMoveUp, model, LayerTableRowModel::UIF_MOVABLE_UP);
-  // activateOnFlag(ui->btnMoveDown, model, LayerTableRowModel::UIF_MOVABLE_DOWN);
-  activateOnFlag(ui->actionClose, model, LayerTableRowModel::UIF_CLOSABLE);
-  activateOnFlag(ui->actionAutoContrast, model, LayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
+  activateOnFlag(ui->btnVisible, model, AbstractLayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
+  activateOnFlag(ui->inLayerOpacity, model, AbstractLayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
+  // activateOnFlag(ui->btnMoveUp, model, AbstractLayerTableRowModel::UIF_MOVABLE_UP);
+  // activateOnFlag(ui->btnMoveDown, model, AbstractLayerTableRowModel::UIF_MOVABLE_DOWN);
+  activateOnFlag(ui->actionClose, model, AbstractLayerTableRowModel::UIF_CLOSABLE);
+  activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
 
 
   // Hook up the colormap and the slider's style sheet
@@ -203,7 +204,7 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   this->UpdateTextFont();
 }
 
-ImageWrapperBase *LayerInspectorRowDelegate::GetLayer() const
+WrapperBase *LayerInspectorRowDelegate::GetLayer() const
 {
   // No model? No layer.
   if(!m_Model)
@@ -417,6 +418,12 @@ void LayerInspectorRowDelegate::UpdateComponentMenu()
   if(m_DisplayModeActionGroup)
     delete m_DisplayModeActionGroup;
 
+  // No action taken for mesh layers
+  if (m_Model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
+    return;
+
+  auto image_model = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
+
   // Create a map from display modes to actions
   std::map<MultiChannelDisplayMode, QAction *> actionMap;
 
@@ -424,10 +431,10 @@ void LayerInspectorRowDelegate::UpdateComponentMenu()
   m_DisplayModeActionGroup = new QActionGroup(this);
 
   // Get the list of all available display modes from the model
-  const LayerTableRowModel::DisplayModeList &modes = m_Model->GetAvailableDisplayModes();
+  auto &modes = image_model->GetAvailableDisplayModes();
 
   // Create the actions for the display modes
-  LayerTableRowModel::DisplayModeList::const_iterator it;
+  ImageLayerTableRowModel::DisplayModeList::const_iterator it;
   for(it = modes.begin(); it != modes.end(); it++)
     {
     MultiChannelDisplayMode mode = *it;
@@ -438,7 +445,7 @@ void LayerInspectorRowDelegate::UpdateComponentMenu()
 
     // Create an action
     QAction *action = m_DisplayModeMenu->addAction(
-          from_utf8(m_Model->GetDisplayModeString(mode)));
+          from_utf8(image_model->GetDisplayModeString(mode)));
 
     action->setCheckable(true);
 
@@ -449,7 +456,7 @@ void LayerInspectorRowDelegate::UpdateComponentMenu()
 
   // Hook up with the ctions
   makeActionGroupCoupling(m_DisplayModeActionGroup, actionMap,
-                          m_Model->GetDisplayModeModel());
+                          image_model->GetDisplayModeModel());
 }
 
 #include "GenericImageData.h"
@@ -462,8 +469,17 @@ void LayerInspectorRowDelegate::UpdateOverlaysMenu()
   // Clear the overlays menu
   m_OverlaysMenu->clear();
 
+  // Do nothing for mesh layer
+  if (m_Model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
+    return;
+
+  auto image_layer = dynamic_cast<ImageWrapperBase*>(m_Model->GetLayer());
+
+  if (!image_layer)
+    return;
+
   // If the current layer is sticky, disable the menu
-  if(m_Model->GetLayer() && !m_Model->GetLayer()->IsSticky())
+  if(m_Model->GetLayer() && !image_layer->IsSticky())
     {
     // Get the current image data
     GenericImageData *gid = m_Model->GetParentModel()->GetDriver()->GetCurrentImageData();
@@ -550,7 +566,7 @@ void LayerInspectorRowDelegate::ApplyColorMap()
   if(cm)
     {
     QStringList stops;
-    for(int i = 0; i < cm->GetNumberOfCMPoints(); i++)
+    for(size_t i = 0; i < cm->GetNumberOfCMPoints(); i++)
       {
       ColorMap::CMPoint cmp = cm->GetCMPoint(i);
       for(int side = 0; side < 2; side++)
@@ -596,8 +612,15 @@ void LayerInspectorRowDelegate::on_btnMoveDown_pressed()
 
 void LayerInspectorRowDelegate::on_actionSave_triggered()
 {
+  if (m_Model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
+    return;
+
+  auto image_model = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
+  if (!image_model)
+    return;
+
   // Create a model for IO
-  SmartPtr<ImageIOWizardModel> model = m_Model->CreateIOWizardModelForSave();
+  SmartPtr<ImageIOWizardModel> model = image_model->CreateIOWizardModelForSave();
 
   // Interactive
   ImageIOWizard wiz(this);
@@ -607,8 +630,15 @@ void LayerInspectorRowDelegate::on_actionSave_triggered()
 
 void LayerInspectorRowDelegate::on_actionClose_triggered()
 {
+  // For mesh, just close the layer without prompt for now
+  if (m_Model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
+    return;
+
   // Should we prompt for a single layer or all layers?
-  ImageWrapperBase *prompted_layer = m_Model->IsMainLayer() ? NULL : m_Model->GetLayer();
+  ImageWrapperBase *prompted_layer = nullptr;
+
+  if (!m_Model->IsMainLayer())
+    prompted_layer = dynamic_cast<ImageWrapperBase*>(m_Model->GetLayer());
 
   // Prompt for changes
   if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), prompted_layer))
@@ -629,7 +659,14 @@ void LayerInspectorRowDelegate::on_actionAutoContrast_triggered()
 void LayerInspectorRowDelegate::on_actionTextureFeatures_triggered()
 {
   QtCursorOverride c(Qt::WaitCursor);
-  m_Model->GenerateTextureFeatures();
+
+  // Do nothing for mesh layer
+  if (m_Model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
+    return;
+
+  auto image_model = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
+  if (image_model)
+    image_model->GenerateTextureFeatures();
 }
 
 void LayerInspectorRowDelegate::on_actionPin_layer_triggered()
