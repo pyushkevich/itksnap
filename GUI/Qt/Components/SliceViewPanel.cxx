@@ -46,6 +46,34 @@
 #include <QStackedLayout>
 #include <QMenu>
 
+#include <vtkInteractorStyle.h>
+#include <vtkObjectFactory.h>
+#include <OrthogonalSliceCursorNavigationModel.h>
+
+/**
+ * Interactor style for 2D slice views
+ */
+class SliceViewInteractorStyle : public vtkInteractorStyle
+{
+public:
+  static SliceViewInteractorStyle* New();
+  vtkTypeMacro(SliceViewInteractorStyle, vtkInteractorStyle)
+
+  irisGetSetMacro(Model, GenericSliceModel *)
+
+  virtual void OnLeftButtonDown() override
+  {
+    auto *mc = m_Model->GetParentUI()->GetCursorNavigationModel(m_Model->GetId());
+    int *pos = this->GetInteractor()->GetEventPosition();
+    mc->UpdateCursor(Vector2d(pos[0], pos[1]));
+  }
+
+protected:
+  GenericSliceModel *m_Model;
+};
+
+vtkStandardNewMacro(SliceViewInteractorStyle)
+
 SliceViewPanel::SliceViewPanel(QWidget *parent) :
     SNAPComponent(parent),
     ui(new Ui::SliceViewPanel)
@@ -356,6 +384,7 @@ void SliceViewPanel::on_inSlicePosition_valueChanged(int value)
 
 void SliceViewPanel::ConfigureEventChain(QWidget *w)
 {
+  /*
   // Get the internal widget that gets the actual events
   QWidget *sviw = ui->sliceView->GetInternalWidget();
 
@@ -379,6 +408,10 @@ void SliceViewPanel::ConfigureEventChain(QWidget *w)
 
   // The last guy in the chain is the thumbnail interactor
   sviw->installEventFilter(this->m_ThumbnailMode);
+  */
+  vtkNew<SliceViewInteractorStyle> istyle;
+  istyle->SetModel(this->m_SliceModel);
+  ui->sliceView->GetRenderWindow()->GetInteractor()->SetInteractorStyle(istyle);
 }
 
 // TODO: implement semi-transparent rendering on widgets on top of the
