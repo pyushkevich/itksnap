@@ -87,6 +87,8 @@ GenericImageData
 
   // Initialize Mesh Layers storage
   m_MeshLayers = ImageMeshLayers::New();
+  Rebroadcaster::Rebroadcast(m_MeshLayers, LayerChangeEvent(),
+                             this, LayerChangeEvent());
 }
 
 GenericImageData
