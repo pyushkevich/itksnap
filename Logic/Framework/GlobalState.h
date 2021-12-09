@@ -377,6 +377,9 @@ public:
   /** Set/Get selected layer id */
   irisSimplePropertyAccessMacro(SelectedSegmentationLayerId, unsigned long)
 
+  /** Set/Get selected mesh layer id */
+  irisSimplePropertyAccessMacro(SelectedMeshLayerId, unsigned long)
+
   /**
    * Initial directory where to open file/save dialogs. This MUST be set when
    * SNAP is first started!
@@ -527,6 +530,7 @@ private:
   // ------------------- Selected Image ID ---------------------------------
   SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerIdModel;
   SmartPtr<ConcreteSimpleULongProperty> m_SelectedSegmentationLayerIdModel;
+  SmartPtr<ConcreteSimpleULongProperty> m_SelectedMeshLayerIdModel;
 
   // ------------------- Project Related -----------------------------------
   SmartPtr<ConcreteSimpleStringProperty> m_ProjectFilenameModel;

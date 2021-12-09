@@ -29,7 +29,6 @@ class MeshWrapperBase : public WrapperBase
 public:
   irisITKAbstractObjectMacro(MeshWrapperBase, WrapperBase)
 
-  typedef unsigned long MeshLayerIdType;
   typedef std::map<std::string, SmartPtr<itk::Object>> UserDataMapType;
 
   /** MeshCollection maps an instance of vtkPolyData to a LabelType id, representing

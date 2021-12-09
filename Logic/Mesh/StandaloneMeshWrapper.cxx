@@ -1,8 +1,10 @@
 #include "StandaloneMeshWrapper.h"
+#include "DisplayMappingPolicy.h"
 
 StandaloneMeshWrapper::StandaloneMeshWrapper()
 {
-
+  m_DisplayMapping = MeshDisplayMappingPolicy::New();
+  m_DisplayMapping->Initialize(this);
 }
 
 void

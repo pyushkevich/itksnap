@@ -8,12 +8,14 @@ ImageMeshLayers::ImageMeshLayers()
 void
 ImageMeshLayers::AddLayer(SmartPtr<MeshWrapperBase> meshLayer)
 {
-  MeshLayerIdType id = meshLayer->GetUniqueId();
+  unsigned long id = meshLayer->GetUniqueId();
   m_Layers[id] = meshLayer;
+
+  InvokeEvent(LayerChangeEvent());
 }
 
 SmartPtr<MeshWrapperBase>
-ImageMeshLayers::GetLayer(MeshLayerIdType id)
+ImageMeshLayers::GetLayer(unsigned long id)
 {
   return m_Layers[id];
 }
@@ -25,15 +27,18 @@ ImageMeshLayers::GetLayers()
 }
 
 void
-ImageMeshLayers::RemoveLayer(MeshLayerIdType id)
+ImageMeshLayers::RemoveLayer(unsigned long id)
 {
   m_Layers.erase(id);
+
+  // Notify subscribers about layer changes
+  InvokeEvent(LayerChangeEvent());
 }
 
-std::vector<ImageMeshLayers::MeshLayerIdType>
+std::vector<unsigned long>
 ImageMeshLayers::GetLayerIds() const
 {
-  std::vector<ImageMeshLayers::MeshLayerIdType> ret;
+  std::vector<unsigned long> ret;
 
   for (auto cit = m_Layers.cbegin(); cit != m_Layers.cend(); ++cit)
     ret.push_back(cit->first);
@@ -84,7 +89,7 @@ MeshLayerIterator::operator++()
   return *this;
 }
 
-MeshWrapperBase::MeshLayerIdType
+unsigned long
 MeshLayerIterator::GetUniqueId() const
 {
   return m_It->second->GetUniqueId();

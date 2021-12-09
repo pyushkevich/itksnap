@@ -102,6 +102,9 @@ public:
   // Get the renderer
   irisGetMacro(Renderer, Generic3DRenderer *)
 
+  /** Set/Get selected mesh layer id */
+  irisSimplePropertyAccessMacro(SelectedMeshLayerId, unsigned long)
+
   // Get the transform from image space to world coordinates
   Mat4d &GetWorldMatrix();
 
@@ -164,6 +167,9 @@ protected:
 
   // Is the mesh updating
   bool m_MeshUpdating;
+
+  // Selected Mesh Layer ID
+  SmartPtr<ConcreteSimpleULongProperty> m_SelectedMeshLayerIdModel;
 
   // Time of the last mesh clear operation
   unsigned long m_ClearTime;

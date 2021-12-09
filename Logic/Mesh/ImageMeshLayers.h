@@ -18,8 +18,7 @@ class ImageMeshLayers : public itk::Object
 public:
   irisITKObjectMacro(ImageMeshLayers, itk::Object)
 
-  typedef MeshWrapperBase::MeshLayerIdType MeshLayerIdType;
-  typedef std::map<MeshLayerIdType, SmartPtr<MeshWrapperBase>> LayerMapType;
+  typedef std::map<unsigned long, SmartPtr<MeshWrapperBase>> LayerMapType;
   typedef typename LayerMapType::const_iterator LayerConstIteratorType;
   typedef typename LayerMapType::iterator LayerIteratorType;
 
@@ -27,25 +26,25 @@ public:
   void AddLayer(SmartPtr<MeshWrapperBase> meshLayer);
 
   /** Get a layer by id */
-  SmartPtr<MeshWrapperBase> GetLayer(MeshLayerIdType id);
+  SmartPtr<MeshWrapperBase> GetLayer(unsigned long id);
 
   /** Return a layer iterator */
   MeshLayerIterator GetLayers();
 
   /** Remove a layer by id */
-  void RemoveLayer(MeshLayerIdType id);
+  void RemoveLayer(unsigned long id);
 
   /** Unload the layers */
   void Unload();
 
   /** Get a vector of all stored mesh layer ids */
-  std::vector<MeshLayerIdType> GetLayerIds() const;
+  std::vector<unsigned long> GetLayerIds() const;
 
   /** Get number of layers */
   std::size_t size() { return m_Layers.size(); }
 
   /** Get and Set the layer id of the currently active layer */
-  irisGetSetMacro(ActiveLayerId, MeshLayerIdType)
+  irisGetSetMacro(ActiveLayerId, unsigned long)
 
   /** Allow an iterator to access protected members */
   friend class MeshLayerIterator;
@@ -57,7 +56,7 @@ protected:
   LayerMapType m_Layers;
 
   // Id of the mesh layer that is currently active
-  MeshLayerIdType m_ActiveLayerId;
+  unsigned long m_ActiveLayerId;
 };
 
 /**
@@ -82,7 +81,7 @@ public:
   MeshLayerIterator & operator++ (int) = delete;
 
   /** Get the id of the layer */
-  MeshWrapperBase::MeshLayerIdType GetUniqueId() const;
+  unsigned long GetUniqueId() const;
 
   /** Get the layer */
   MeshWrapperBase * GetLayer() const;

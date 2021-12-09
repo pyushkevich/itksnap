@@ -2,7 +2,7 @@
 #include "itkImageBase.h"
 #include "IRISException.h"
 
-unsigned long GlobalImageWrapperIndex = 0;
+unsigned long GlobalImageWrapperIndex = 0ul;
 
 WrapperBase::WrapperBase()
 {

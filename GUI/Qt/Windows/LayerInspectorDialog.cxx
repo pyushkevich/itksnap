@@ -320,9 +320,6 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
     meshGrpBox->setTitle("Mesh Layers");
     lo->addWidget(meshGrpBox);
 
-    // Get the iterator for the layers
-
-
     // Iterate through mesh layers building widgets
     for (auto mesh_it = mesh_layers->GetLayers(); !mesh_it.IsAtEnd(); ++mesh_it)
       {
@@ -332,7 +329,17 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
       // Set a name for this widget for debugging purposes
       meshRow->setObjectName(QString().asprintf("wgtRowDelegate_%04d", m_Delegates.size()));
 
-      // Listen to the signals from the widget
+      // Set the model for this layer
+      SmartPtr<AbstractLayerTableRowModel> model =
+          dynamic_cast<AbstractLayerTableRowModel *>(
+            mesh_it.GetLayer()->GetUserData("LayerTableRowModel"));
+
+      meshRow->SetModel(model);
+
+      // Listen to select signals from widget
+      connect(meshRow, SIGNAL(selectionChanged(bool)), this, SLOT(layerSelected(bool)));
+      connect(meshRow, SIGNAL(contrastInspectorRequested()), this, SLOT(onContrastInspectorRequested()));
+      connect(meshRow, SIGNAL(colorMapInspectorRequested()), this, SLOT(onColorMapInspectorRequested()));
 
       // Add row to the group box
       meshGrpBox->addWidget(meshRow);
