@@ -127,7 +127,11 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format, SmartPtr<MeshWra
 
       std::cout << "[GuidedMeshIO.LoadMesh] PolyData loaded" << std::endl;
 
+      // Set polydata into the wrapper
       wrapper->SetMesh(polyData, 1u, 1u);
+
+      // Set Filename
+      wrapper->SetFileName(FileName);
 
       delete ioDelegate;
 

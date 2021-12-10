@@ -793,7 +793,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 template <class TWrapperTraits>
 void
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
-::SetColorMap(ColorMap *map)
+::SetColorMap(ColorMap *)
 {
   // TODO: do we really need an implementation?
 }
@@ -955,20 +955,20 @@ IntensityCurveInterface *
 MeshDisplayMappingPolicy::GetIntensityCurve() const
 {
 
-  return nullptr;
+  return m_IntensityCurve;
 }
 
 ColorMap *
 MeshDisplayMappingPolicy::GetColorMap() const
 {
 
-  return nullptr;
+  return m_ColorMap;
 }
 
 ImageWrapperBase::DisplaySlicePointer
-MeshDisplayMappingPolicy::GetDisplaySlice(unsigned int slice)
+MeshDisplayMappingPolicy::GetDisplaySlice(unsigned int)
 {
-
+  throw IRISException("MeshDisplayMappingPolicy::GetDisplaySlice not implemented!");
   return nullptr;
 }
 

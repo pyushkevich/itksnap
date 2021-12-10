@@ -76,12 +76,6 @@ bool AbstractLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_CLOSABLE:
       return !snapmode;
 
-    case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
-      return (m_Layer && m_Layer->GetDisplayMapping()->GetIntensityCurve());
-
-    case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
-      return (m_Layer && m_Layer->GetDisplayMapping()->GetColorMap());
-
     default:
       break;
     }
@@ -291,6 +285,12 @@ ImageLayerTableRowModel::CheckState(UIState state)
 
     case AbstractLayerTableRowModel::UIF_MULTICOMPONENT:
       return (m_Layer && m_ImageLayer->GetNumberOfComponents() > 1);
+
+    case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
+      return (m_Layer && m_Layer->GetDisplayMapping()->GetIntensityCurve());
+
+    case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
+      return (m_Layer && m_Layer->GetDisplayMapping()->GetColorMap());
 
     default:
       break;
@@ -628,7 +628,7 @@ MeshLayerTableRowModel::CheckState(UIState state)
 
     // Allow opacity editing for all mesh layers
     case AbstractLayerTableRowModel::UIF_OPACITY_EDITABLE:
-      return true;
+      return false;
 
     // We don't need to pin a mesh layer for now
     case AbstractLayerTableRowModel::UIF_PINNABLE:
@@ -636,11 +636,17 @@ MeshLayerTableRowModel::CheckState(UIState state)
 
     // We don't need to pin a mesh layer for now
     case AbstractLayerTableRowModel::UIF_UNPINNABLE:
-      return true;
+      return false;
 
     // We don't consider multicomponent mesh for now
     case AbstractLayerTableRowModel::UIF_MULTICOMPONENT:
       return false;
+
+    case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
+      return false;
+
+    case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
+      return true;
 
     default:
       break;

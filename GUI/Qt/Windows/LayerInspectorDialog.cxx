@@ -442,8 +442,17 @@ void LayerInspectorDialog::SetActiveLayer(WrapperBase *layer)
   // For each model, set the layer
   m_Model->GetColorMapModel()->SetLayer(layer);
 
-  m_Model->GetIntensityCurveModel()->SetLayer(
-        (layer && layer->GetDisplayMapping()->GetIntensityCurve()) ? layer : NULL);
+  bool IsContrastAdjustable = false;
+
+  if(layer)
+    {
+    SmartPtr<AbstractLayerTableRowModel> row_model =
+        dynamic_cast<AbstractLayerTableRowModel *>(layer->GetUserData("LayerTableRowModel"));
+    if (row_model)
+      IsContrastAdjustable = row_model->CheckState(AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
+    }
+
+  m_Model->GetIntensityCurveModel()->SetLayer(IsContrastAdjustable ? layer : NULL);
 
   m_Model->GetImageInfoModel()->SetLayer(layer);
   m_Model->GetLayerGeneralPropertiesModel()->SetLayer(layer);
