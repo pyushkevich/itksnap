@@ -3,6 +3,8 @@
 SegmentationMeshWrapper::SegmentationMeshWrapper()
 {
 
+
+  m_Initialized = true;
 }
 
 bool

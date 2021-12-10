@@ -5,6 +5,8 @@ StandaloneMeshWrapper::StandaloneMeshWrapper()
 {
   m_DisplayMapping = MeshDisplayMappingPolicy::New();
   m_DisplayMapping->Initialize(this);
+
+  m_Initialized = true;
 }
 
 void
