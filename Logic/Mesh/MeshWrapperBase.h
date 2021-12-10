@@ -38,6 +38,12 @@ public:
   /** MeshCollectionMap maps a MeshCollection to a time point */
   typedef std::map<unsigned int, MeshCollection> MeshCollectionMap;
 
+  /** Mesh data array name map */
+  typedef std::map<int, std::string> MeshDataArrayNameMap;
+
+  /** Controls which type of data is currently active for rendering */
+  enum ActiveMeshDataType { POINT_DATA = 0, CELL_DATA };
+
   //----------------------------------------------
   // Begin virtual methods definition
 
@@ -109,6 +115,19 @@ public:
   // End of virtual methods definition
   //------------------------------------------------
 
+  /** Get/Set ActiveMeshDataType */
+  irisGetSetMacro(ActiveMeshDataType, ActiveMeshDataType)
+
+  /** Get the data array names for current active mesh data type */
+  MeshDataArrayNameMap GetMeshDataArrayNameMap(unsigned int timepoint, LabelType id = 0);
+
+  /** Get the activated data array name of the current active mesh data type */
+  int GetActiveMeshDataArrayId(unsigned int timepoint, LabelType id = 0);
+
+  /** Set data array with the id as active mesh data attribute */
+  void SetActiveMeshDataArrayId(int index, unsigned int timepoint, LabelType id = 0);
+
+
 protected:
   MeshWrapperBase();
   virtual ~MeshWrapperBase();
@@ -135,6 +154,9 @@ protected:
 
   // Transparency
   double m_Alpha;
+
+  // The active mesh data type for rendering
+  ActiveMeshDataType m_ActiveMeshDataType = POINT_DATA;
 
 };
 

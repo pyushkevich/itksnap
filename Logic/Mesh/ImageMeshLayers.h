@@ -56,7 +56,7 @@ protected:
   LayerMapType m_Layers;
 
   // Id of the mesh layer that is currently active
-  unsigned long m_ActiveLayerId;
+  unsigned long m_ActiveLayerId = 0ul;
 };
 
 /**

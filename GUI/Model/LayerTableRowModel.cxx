@@ -297,8 +297,7 @@ void
 ImageLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
 {
   // Downcast wrapper. It has to be a ImageWrapperBase or raise error
-  ImageWrapperBase *img_wrapper = dynamic_cast<ImageWrapperBase*>(layer);
-  assert(img_wrapper);
+  ImageWrapperBase *img_wrapper = static_cast<ImageWrapperBase*>(layer);
   m_ImageLayer = img_wrapper;
 
   // Update the list of display modes (again, should not change during the
@@ -581,11 +580,9 @@ MeshLayerTableRowModel::IsA(const char *type) const
 void
 MeshLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
 {
-  // Downcast wrapper. It has to be a ImageWrapperBase or raise error
-  MeshWrapperBase *mesh_wrapper = dynamic_cast<MeshWrapperBase*>(layer);
-  assert(mesh_wrapper);
+  // Downcast wrapper. It has to be a MeshWrapperBase or raise error
+  MeshWrapperBase *mesh_wrapper = static_cast<MeshWrapperBase*>(layer);
   m_MeshLayer = mesh_wrapper;
-
 
   // In the end, call parent initialize
   Superclass::Initialize(parentModel, layer);

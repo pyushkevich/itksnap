@@ -1,5 +1,8 @@
 #include "MeshWrapperBase.h"
 #include "vtkPolyData.h"
+#include "vtkPointData.h"
+#include "vtkCellData.h"
+#include "vtkDataSetAttributes.h"
 #include <itksys/SystemTools.hxx>
 
 MeshWrapperBase::MeshWrapperBase()
@@ -40,8 +43,6 @@ MeshWrapperBase::GetMeshCollection(unsigned int timepoint)
 vtkSmartPointer<vtkPolyData>
 MeshWrapperBase::GetMesh(unsigned int timepoint, LabelType id)
 {
-  assert(timepoint);
-
   vtkPolyData *ret = nullptr;
 
   if (m_MeshCollectionMap.count(timepoint))
@@ -96,4 +97,65 @@ MeshWrapperBase::GetNickname() const
   else return m_DefaultNickname;
 }
 
+MeshWrapperBase::MeshDataArrayNameMap
+MeshWrapperBase::GetMeshDataArrayNameMap(unsigned int timepoint, LabelType id)
+{
+  MeshDataArrayNameMap ret;
 
+  // Make sure the mesh exists, to avoid segmentation fault
+  if (m_MeshCollectionMap.count(timepoint) && m_MeshCollectionMap[timepoint].count(id))
+    {
+    vtkDataSetAttributes *data;
+    if (m_ActiveMeshDataType == POINT_DATA)
+      data = GetMesh(timepoint, id)->GetPointData();
+    else
+      data = GetMesh(timepoint, id)->GetCellData();
+
+    for (auto i = 0; i < data->GetNumberOfArrays(); ++i)
+      ret[i] = data->GetArrayName(i);
+    }
+
+  return ret;
+};
+
+int
+MeshWrapperBase::
+GetActiveMeshDataArrayId(unsigned int timepoint, LabelType id)
+{
+  int ret = 0;
+  // Make sure the mesh exists, to avoid segmentation fault
+  if (m_MeshCollectionMap.count(timepoint) && m_MeshCollectionMap[timepoint].count(id))
+    {
+    vtkDataSetAttributes *data;
+    if (m_ActiveMeshDataType == POINT_DATA)
+      data = GetMesh(timepoint, id)->GetPointData();
+    else
+      data = GetMesh(timepoint, id)->GetCellData();
+
+
+    data->GetAttributeIndices(&ret);
+    }
+
+  std::cout << "[MeshWrapperBase] GetActiveMeshDataArrayId=" << ret << std::endl;
+
+  return ret;
+}
+
+
+void
+MeshWrapperBase::
+SetActiveMeshDataArrayId(int index, unsigned int timepoint, LabelType id)
+{
+  if (m_MeshCollectionMap.count(timepoint) && m_MeshCollectionMap[timepoint].count(id))
+    {
+    vtkDataSetAttributes *data;
+    if (m_ActiveMeshDataType == POINT_DATA)
+      data = GetMesh(timepoint, id)->GetPointData();
+    else
+      data = GetMesh(timepoint, id)->GetCellData();
+
+
+    data->SetActiveAttribute(index, 0);
+    }
+
+}

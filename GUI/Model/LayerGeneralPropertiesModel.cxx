@@ -65,6 +65,16 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         this,
         &Self::GetCrntTimePointTagListValue,
         &Self::SetCrntTimePointTagListValue);
+
+  m_MeshDataTypeModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetMeshDataTypeValueAndRange,
+        &Self::SetMeshDataTypeValue);
+
+  m_MeshDataArrayNameModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetMeshDataArrayNameValueAndRange,
+        &Self::SetMeshDataArrayNameValue);
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -174,6 +184,12 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
 
     case UIF_IS_4D_IMAGE:
       return this->m_ParentModel->GetDriver()->GetNumberOfTimePoints() > 1;
+
+    case UIF_IS_MESH:
+      {
+        auto mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+        return mesh_layer != nullptr;
+      }
     }
 
   return false;
@@ -517,4 +533,76 @@ AbstractLayerTableRowModel *LayerGeneralPropertiesModel::GetSelectedLayerTableRo
   if(m_Layer)
     return dynamic_cast<AbstractLayerTableRowModel *>(m_Layer->GetUserData("LayerTableRowModel"));
   else return NULL;
+}
+
+bool
+LayerGeneralPropertiesModel::
+GetMeshDataTypeValueAndRange(ActiveMeshDataType &value, ActiveMeshDataTypeDomain *domain)
+{
+  // The current layer has to be a mesh layer
+  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  if (!mesh_layer)
+    return false;
+
+  value = mesh_layer->GetActiveMeshDataType();
+
+  if (domain)
+    {
+    (*domain)[ActiveMeshDataType::POINT_DATA] = "Point Data";
+    (*domain)[ActiveMeshDataType::CELL_DATA] = "Cell Data";
+    }
+
+  return true;
+}
+
+void
+LayerGeneralPropertiesModel::
+SetMeshDataTypeValue(ActiveMeshDataType value)
+{
+  // The current layer has to be a mesh layer
+  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  if (!mesh_layer)
+    return;
+
+  mesh_layer->SetActiveMeshDataType(value);
+}
+
+bool
+LayerGeneralPropertiesModel::
+GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
+{
+  // The current layer has to be a mesh layer
+  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  if (!mesh_layer)
+    return false;
+
+  unsigned int tp = m_ParentModel->GetDriver()->GetCursorTimePoint();
+
+  MeshWrapperBase::MeshDataArrayNameMap names = mesh_layer->GetMeshDataArrayNameMap(tp);
+
+  if (domain)
+    {
+    for (auto it = names.begin(); it != names.end(); ++it)
+      {
+      (*domain)[it->first] = it->second;
+      }
+
+    value = domain->begin()->first;
+    }
+
+  return true;
+}
+
+void
+LayerGeneralPropertiesModel::
+SetMeshDataArrayNameValue(int value)
+{
+  // The current layer has to be a mesh layer
+  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  if (!mesh_layer)
+    return;
+
+  unsigned int tp = m_ParentModel->GetDriver()->GetCursorTimePoint();
+
+  mesh_layer->SetActiveMeshDataArrayId(value, tp, 0);
 }

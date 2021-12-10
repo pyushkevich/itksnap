@@ -21,6 +21,7 @@ class vtkCubeSource;
 class vtkCoordinate;
 class vtkCamera;
 class Window3DPicker;
+class ImageMeshLayers;
 
 /**
  * A struct representing the state of the VTK camera. This struct
@@ -156,6 +157,10 @@ protected:
 
   // Picker object
   vtkSmartPointer<Window3DPicker> m_Picker;
+  ImageMeshLayers *m_MeshLayers;
+
+  unsigned long m_CrntActorMapLayerId = 0;
+  unsigned int m_CrntActorMapTimePoint = 0;
 };
 
 #endif // GENERIC3DRENDERER_H

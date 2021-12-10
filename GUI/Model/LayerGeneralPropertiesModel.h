@@ -4,6 +4,7 @@
 #include "AbstractLayerAssociatedModel.h"
 #include "PropertyModel.h"
 #include "TagList.h"
+#include "MeshWrapperBase.h"
 
 class AbstractMultiChannelDisplayMappingPolicy;
 class AbstractLayerTableRowModel;
@@ -60,7 +61,8 @@ public:
     UIF_IS_OPACITY_EDITABLE,
     UIF_MOVABLE_UP,
     UIF_MOVABLE_DOWN,
-    UIF_IS_4D_IMAGE
+    UIF_IS_4D_IMAGE,
+    UIF_IS_MESH
   };
 
   // Implementation of virtual functions from parent class
@@ -79,6 +81,14 @@ public:
   // Typedefs for the model for component selection
   typedef SimpleItemSetDomain<DisplayMode, std::string> DisplayModeDomain;
   typedef AbstractPropertyModel<DisplayMode, DisplayModeDomain> AbstractDisplayModeModel;
+
+  // Typedefs for mesh data selection
+  typedef MeshWrapperBase::ActiveMeshDataType ActiveMeshDataType;
+  typedef SimpleItemSetDomain<ActiveMeshDataType, std::string> ActiveMeshDataTypeDomain;
+  typedef AbstractPropertyModel<ActiveMeshDataType, ActiveMeshDataTypeDomain> AbstractMeshDataTypeModel;
+
+  typedef SimpleItemSetDomain<int, std::string> MeshDataArrayNameDomain;
+  typedef AbstractPropertyModel<int, MeshDataArrayNameDomain> AbstractMeshDataArrayNameModel;
 
   // Models
   irisGetMacro(DisplayModeModel, AbstractDisplayModeModel *)
@@ -106,8 +116,14 @@ public:
   /** A model for the current timepoint nickname */
   irisSimplePropertyAccessMacro(CrntTimePointNickname, std::string)
 
-  /** A model for the current timtpoint taglist */
+  /** A model for the current timepoint taglist */
   irisSimplePropertyAccessMacro(CrntTimePointTagList, TagList)
+
+  /** A model for mesh data type */
+  irisGetMacro(MeshDataTypeModel, AbstractMeshDataTypeModel *)
+
+  /** A model for mesh data array names */
+  irisGetMacro(MeshDataArrayNameModel, AbstractMeshDataArrayNameModel *)
 
   /** Move the layer up in the list */
   void MoveLayerUp();
@@ -121,6 +137,14 @@ protected:
   SmartPtr<AbstractDisplayModeModel> m_DisplayModeModel;
   bool GetDisplayModeValueAndRange(DisplayMode &value, DisplayModeDomain *domain);
   void SetDisplayModeValue(DisplayMode value);
+
+  SmartPtr<AbstractMeshDataTypeModel> m_MeshDataTypeModel;
+  bool GetMeshDataTypeValueAndRange(ActiveMeshDataType &value, ActiveMeshDataTypeDomain *domain);
+  void SetMeshDataTypeValue(ActiveMeshDataType value);
+
+  SmartPtr<AbstractMeshDataArrayNameModel> m_MeshDataArrayNameModel;
+  bool GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain);
+  void SetMeshDataArrayNameValue(int value);
 
   SmartPtr<AbstractRangedIntProperty> m_SelectedComponentModel;
   bool GetSelectedComponentValueAndRange(int &value, NumericValueRange<int> *domain);
