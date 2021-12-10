@@ -11,6 +11,9 @@ ImageMeshLayers::AddLayer(SmartPtr<MeshWrapperBase> meshLayer)
   unsigned long id = meshLayer->GetUniqueId();
   m_Layers[id] = meshLayer;
 
+  // if this is the first added layer, set active
+  m_ActiveLayerId = meshLayer->GetUniqueId();
+
   InvokeEvent(LayerChangeEvent());
 }
 

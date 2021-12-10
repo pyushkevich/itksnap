@@ -10,15 +10,13 @@ StandaloneMeshWrapper::StandaloneMeshWrapper()
 }
 
 void
-StandaloneMeshWrapper::UpdateMeshes(unsigned int timepoint)
+StandaloneMeshWrapper::UpdateMeshes(unsigned int)
 {
-  assert(timepoint);
 }
 
 bool
-StandaloneMeshWrapper::IsMeshDirty(unsigned int timepoint) const
+StandaloneMeshWrapper::IsMeshDirty(unsigned int) const
 {
-  assert(timepoint);
   return false;
 }
 
