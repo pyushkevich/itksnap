@@ -205,7 +205,7 @@ void ViewPanel3D::onTimer()
       // Launch the worker thread
       m_RenderProgressValue = 0;
       m_RenderElapsedTicks = 0;
-      m_RenderFuture = QtConcurrent::run(this, &ViewPanel3D::UpdateMeshesInBackground);
+      m_RenderFuture = QtConcurrent::run(&ViewPanel3D::UpdateMeshesInBackground, this);
       }
     else
       {

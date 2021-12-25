@@ -14,7 +14,6 @@ class GlobalUIModel;
 class QJSEngine;
 class QQmlEngine;
 class QTimer;
-class QStringList;
 
 #if QT_VERSION >= 0x050000
   class QJSEngine;

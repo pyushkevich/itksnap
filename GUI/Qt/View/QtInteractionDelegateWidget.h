@@ -88,7 +88,7 @@ protected:
   QtVTKRenderWindowBox *GetParentGLWidget() const;
 
   // Information about the mouse press event
-  QPoint m_LastPressPos, m_LastPressGlobalPos;
+  QPointF m_LastPressPos, m_LastPressGlobalPos;
   Qt::MouseButton m_LastPressButton;
 
   // Spatial coordinates of the last press event, current event

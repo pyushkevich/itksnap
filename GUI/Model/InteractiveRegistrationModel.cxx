@@ -99,7 +99,7 @@ void InteractiveRegistrationModel::RotateByTheta(double theta)
 
   // Transform this vector into physical space
   itk::Vector<double, 3> axis_image, axis_phys;
-  axis_image.SetVnlVector(v_image);
+  axis_image.SetVnlVector(v_image.as_ref());
   smodel->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
       ->TransformLocalVectorToPhysicalVector(axis_image, axis_phys);
 

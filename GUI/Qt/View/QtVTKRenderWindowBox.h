@@ -69,7 +69,7 @@ protected:
   AbstractVTKRenderer *m_Renderer;
 
   // Enter and leave events
-  virtual void enterEvent(QEvent *) override;
+  virtual void enterEvent(QEnterEvent *) override;
   virtual void leaveEvent(QEvent *) override;
 
   // TODO delete this stuff

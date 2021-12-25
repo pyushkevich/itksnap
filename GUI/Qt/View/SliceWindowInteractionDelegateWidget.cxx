@@ -82,8 +82,8 @@ SliceWindowInteractionDelegateWidget
   QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
 
   // Get the x,y coordinates of the event in actual pixels (retina)
-  int xpix = (int) ev->x() * this->devicePixelRatio();
-  int ypix = (int) ev->y() * this->devicePixelRatio();
+  int xpix = (int) ev->position().x() * this->devicePixelRatio();
+  int ypix = (int) ev->position().y() * this->devicePixelRatio();
   int hpix = (int) parent->height() * this->devicePixelRatio();
   int x = xpix;
   int y = (flipY) ? hpix - 1 - ypix : ypix;

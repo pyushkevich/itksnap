@@ -322,8 +322,8 @@ function(install_qt5_executable executable)
     message(WARNING "Qt built statically: not installing plugins.")
   else()
     if(APPLE)
-      get_property(loc TARGET Qt5::QCocoaIntegrationPlugin
-        PROPERTY LOCATION_RELEASE)
+      # get_property(loc TARGET Qt5::QCocoaIntegrationPlugin
+      #  PROPERTY LOCATION_RELEASE)
       install_qt5_plugin("${loc}" "${executable}" 0 installed_plugin_paths "PlugIns" "${component}")
       list(APPEND libs ${installed_plugin_paths})
     endif()

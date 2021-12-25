@@ -1,7 +1,7 @@
 #############################################
 # REQUIRE ITK 3.20 OR LATER                 #
 #############################################
-FIND_PACKAGE(ITK 5.1.2 REQUIRED COMPONENTS
+FIND_PACKAGE(ITK 5.2.1 REQUIRED COMPONENTS
   ITKAnisotropicSmoothing
   ITKAntiAlias
   ITKBiasCorrection
@@ -67,44 +67,72 @@ INCLUDE(${ITK_USE_FILE})
 #############################################
 # REQUIRE VTK                               #
 #############################################
-FIND_PACKAGE(VTK 8.2 REQUIRED)
-INCLUDE (${VTK_USE_FILE})
+FIND_PACKAGE(VTK 9 REQUIRED COMPONENTS
+  ChartsCore
+  CommonComputationalGeometry
+  CommonCore
+  CommonDataModel
+  CommonExecutionModel
+  CommonMath
+  CommonTransforms
+  FiltersCore
+  FiltersGeneral
+  FiltersGeometry
+  FiltersSources
+  GUISupportQt
+  IOExport
+  IOGeometry
+  IOImage
+  IOLegacy
+  IOPLY
+  ImagingCore
+  ImagingGeneral
+  InteractionStyle
+  InteractionWidgets
+  RenderingAnnotation
+  RenderingContext2D
+  RenderingCore
+  RenderingLOD
+  RenderingOpenGL2
+  RenderingUI
+  RenderingVolume
+  ViewsContext2D)
 
 #############################################
 # REQUIRE QT5                               #
 #############################################
-FIND_PACKAGE(Qt5Widgets)
-FIND_PACKAGE(Qt5OpenGL)
-FIND_PACKAGE(Qt5Concurrent)
-FIND_PACKAGE(Qt5Qml)
+FIND_PACKAGE(Qt6Widgets)
+FIND_PACKAGE(Qt6OpenGL)
+FIND_PACKAGE(Qt6Concurrent)
+FIND_PACKAGE(Qt6Qml)
 
 SET(SNAP_QT_INCLUDE_DIRS
-  ${Qt5Widgets_INCLUDE_DIRS}
-  ${Qt5OpenGL_INCLUDE_DIRS}
-  ${Qt5Concurrent_INCLUDE_DIRS}
-  ${Qt5Qml_INCLUDE_DIRS}
+  ${Qt6Widgets_INCLUDE_DIRS}
+  ${Qt6OpenGL_INCLUDE_DIRS}
+  ${Qt6Concurrent_INCLUDE_DIRS}
+  ${Qt6Qml_INCLUDE_DIRS}
 )
 
 SET(SNAP_QT_LIBRARIES
-  Qt5::Widgets
-  Qt5::OpenGL
-  Qt5::Concurrent
-  Qt5::Qml
+  Qt6::Widgets
+  Qt6::OpenGL
+  Qt6::Concurrent
+  Qt6::Qml
 )
 
 # On Linux the X11Extras library is required
 IF(UNIX AND NOT APPLE)
-  FIND_PACKAGE(Qt5X11Extras)
-  SET(SNAP_QT_INCLUDE_DIRS ${SNAP_QT_INCLUDE_DIRS} ${Qt5X11Extras_INCLUDE_DIRS})
-  SET(SNAP_QT_LIBRARIES ${SNAP_QT_LIBRARIES} Qt5::X11Extras)
+  FIND_PACKAGE(Qt6X11Extras)
+  SET(SNAP_QT_INCLUDE_DIRS ${SNAP_QT_INCLUDE_DIRS} ${Qt6X11Extras_INCLUDE_DIRS})
+  SET(SNAP_QT_LIBRARIES ${SNAP_QT_LIBRARIES} Qt6::X11Extras)
 ENDIF()
 
 # Set vars for the QT binary and library directories
-GET_FILENAME_COMPONENT(QT_BINARY_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
-GET_FILENAME_COMPONENT(QT_LIBRARY_DIR "${Qt5Core_DIR}/../../" ABSOLUTE)
+GET_FILENAME_COMPONENT(QT_BINARY_DIR "${Qt6Core_DIR}/../../../bin" ABSOLUTE)
+GET_FILENAME_COMPONENT(QT_LIBRARY_DIR "${Qt6Core_DIR}/../../" ABSOLUTE)
 
 # Set the QTVERSION var
-SET(QTVERSION ${Qt5Widgets_VERSION})
+SET(QTVERSION ${Qt6Widgets_VERSION})
 
 # Look for CURL. It is now required part of ITK-SNAP
 FIND_PACKAGE(CURL)

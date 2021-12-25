@@ -78,7 +78,7 @@ public:
     return m_RenderWindow;
     }
 
-  void paintEvent(QPaintEvent *evt)
+  void paintEvent(QPaintEvent *evt) override
     {
     m_RenderWindow->SetSize(this->width(), this->height());
     m_RenderWindow->Render();
@@ -119,7 +119,7 @@ public:
     processEvent(evt);
     }
 
-  void enterEvent(QEvent *evt) override
+  void enterEvent(QEnterEvent *evt) override
     {
     processEvent(evt);
     }
@@ -165,8 +165,8 @@ QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   // Create an internal GL rendering widget
 #ifndef VTK_OPENGL_HAS_OSMESA
   auto *iw = new QVTKOpenGLNativeWidgetWithScreenshot(this);
-  iw->SetRenderWindow(vtkNew<vtkGenericOpenGLRenderWindow>());
-  iw->GetRenderWindow()->AddRenderer(renderer);
+  iw->setRenderWindow(vtkNew<vtkGenericOpenGLRenderWindow>());
+  iw->renderWindow()->AddRenderer(renderer);
   m_InternalWidget = iw;
 #else
   auto *iw = new QtVTKOffscreenMesaWidget(this);
@@ -202,7 +202,7 @@ void QtVTKRenderWindowBox::SetRenderer(AbstractVTKRenderer *renderer)
     {
 #ifndef VTK_OPENGL_HAS_OSMESA
     auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
-    m_Renderer->SetRenderWindow(iw->GetRenderWindow());
+    m_Renderer->SetRenderWindow(iw->renderWindow());
 #else
     auto *iw = dynamic_cast<QtVTKOffscreenMesaWidget *>(m_InternalWidget);
     m_Renderer->SetRenderWindow(iw->GetRenderWindow());
@@ -215,7 +215,7 @@ vtkRenderWindow *QtVTKRenderWindowBox::GetRenderWindow()
 {
 #ifndef VTK_OPENGL_HAS_OSMESA
     auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
-    return iw->GetRenderWindow();
+    return iw->renderWindow();
 #else
     auto *iw = dynamic_cast<QtVTKOffscreenMesaWidget *>(m_InternalWidget);
     return iw->GetRenderWindow();
@@ -246,7 +246,7 @@ QtVTKRenderWindowBox
     }
 }
 
-void QtVTKRenderWindowBox::enterEvent(QEvent *)
+void QtVTKRenderWindowBox::enterEvent(QEnterEvent *)
 {
   if(m_GrabFocusOnEntry)
     this->setFocus();

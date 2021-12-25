@@ -1045,8 +1045,8 @@ SET(SNAP_EXTERNAL_LIBS
 # Non-graphical external libs (a subset)
 SET(SNAP_EXTERNAL_LIBS_LITE
   ${SNAP_SUBMODULE_LIBS}
-  ${SNAP_ITK_LIBS} 
-  vtkCommonCore vtkFiltersCore
+  ${SNAP_ITK_LIBS}
+  ${SNAP_VTK_LIBS} 
   ${CURL_LIBRARIES}
   ${SYSTEM_LIBS})
 
@@ -1078,9 +1078,9 @@ ADD_SUBDIRECTORY(${GREEDY_SOURCE_DIR})
 #--------------------------------------------------------------------------------
 
 # Wrap the QT input files
-QT5_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
-QT5_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
-QT5_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
+QT6_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
+QT6_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
+QT6_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
 
 # The SNAP logic library
 ADD_LIBRARY(itksnaplogic ${LOGIC_CXX} ${LOGIC_HEADERS})
@@ -1278,9 +1278,9 @@ SET(TEST_ORIENTATION_WIDGET_CXX
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/main.cxx
 )
 
-QT5_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS
+QT6_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
-QT5_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS
+QT6_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
 
 ADD_EXECUTABLE(Test_OrientationWidget
@@ -1369,9 +1369,9 @@ IF(APPLE)
   include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
   # Make sure the GIF plugin is included
-  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+  ### get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
 
-  get_property(loc TARGET Qt5::QCocoaIntegrationPlugin PROPERTY LOCATION_RELEASE)
+  ### get_property(loc TARGET Qt6::QCocoaIntegrationPlugin PROPERTY LOCATION_RELEASE)
 
   # Install with the plugin
   install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
@@ -1385,8 +1385,8 @@ ELSEIF(WIN32)
   include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
   # Make sure the GIF plugin is included
-  get_property(QT_WIN_PLUGIN TARGET Qt5::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
-  get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+  get_property(QT_WIN_PLUGIN TARGET Qt6::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
+  get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
 
   # Install with the plugin
   install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
@@ -1444,10 +1444,10 @@ ELSE()
   # Get the necessary plugins
   IF(SNAP_PACKAGE_QT_PLUGINS)
 
-    get_property(QT_XCB_PLUGIN TARGET Qt5::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    get_property(QT_XCB_GLX_PLUGIN TARGET Qt5::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    get_property(QT_XCB_EGL_PLUGIN TARGET Qt5::QXcbGlxIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+    get_property(QT_XCB_PLUGIN TARGET Qt6::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    get_property(QT_XCB_GLX_PLUGIN TARGET Qt6::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    get_property(QT_XCB_EGL_PLUGIN TARGET Qt6::QXcbGlxIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
 
     # Install the plugin
     install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE}

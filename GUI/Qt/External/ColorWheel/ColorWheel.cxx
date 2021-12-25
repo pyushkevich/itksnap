@@ -159,7 +159,7 @@ void ColorWheel::paintEvent(QPaintEvent *)
 {
   QPainter painter(this);
   QStyleOption opt;
-  opt.init(this);
+  opt.initFrom(this);
   painter.drawImage(0,0,wheel);
   style()->drawPrimitive(QStyle::PE_Widget, &opt, &painter, this);
 }

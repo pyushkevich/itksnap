@@ -274,7 +274,7 @@ VTKMeshPipeline
   // Compute the transform from VTK coordinates to NIFTI/RAS coordinates
   vnl_matrix_fixed<double, 4, 4> vtk2nii = 
     ImageWrapperBase::ConstructVTKtoNiftiTransform(
-      image->GetDirection().GetVnlMatrix(),
+      image->GetDirection().GetVnlMatrix().as_ref(),
       image->GetOrigin().GetVnlVector(),
       image->GetSpacing().GetVnlVector());
 

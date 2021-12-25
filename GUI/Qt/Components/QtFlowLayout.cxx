@@ -94,7 +94,8 @@ QSize QtFlowLayout::minimumSize() const
     foreach (item, itemList)
         size = size.expandedTo(item->minimumSize());
 
-    size += QSize(2*margin(), 2*margin());
+    auto m = this->contentsMargins();
+    size += QSize(m.left() + m.right(), m.top() + m.bottom());
     return size;
 }
 

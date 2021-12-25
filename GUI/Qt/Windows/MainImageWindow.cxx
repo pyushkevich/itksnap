@@ -87,9 +87,8 @@
 #include <QDesktopServices>
 #include <SNAPQtCommon.h>
 #include <QMimeData>
-#include <QDesktopWidget>
 #include <QShortcut>
-
+#include <QScreen>
 #include <QTextStream>
 
 QString read_tooltip_qt(const QString &filename)
@@ -344,7 +343,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   this->HookupShortcutToAction(QKeySequence("w"), ui->actionOverlayVisibilityToggleAll);
   this->HookupShortcutToAction(QKeySequence("e"), ui->actionOverlayVisibilityIncreaseAll);
   this->HookupShortcutToAction(QKeySequence(Qt::Key_X), ui->actionToggle_All_Annotations);
-  this->HookupShortcutToAction(QKeySequence(Qt::SHIFT + Qt::Key_X), ui->actionToggle_Crosshair);
+  this->HookupShortcutToAction(QKeySequence(Qt::SHIFT | Qt::Key_X), ui->actionToggle_Crosshair);
   this->HookupShortcutToAction(QKeySequence("<"), ui->actionForegroundLabelPrev);
   this->HookupShortcutToAction(QKeySequence(">"), ui->actionForegroundLabelNext);
   this->HookupSecondaryShortcutToAction(QKeySequence(","), ui->actionForegroundLabelPrev);
@@ -730,7 +729,7 @@ void MainImageWindow::onActiveChanged()
 {
   if(this->isActiveWindow())
     {
-    ui->actionUnload_Last_Overlay->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
+    ui->actionUnload_Last_Overlay->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_W));
     ui->actionClose_Window->setVisible(false);
     }
   else
@@ -777,9 +776,6 @@ void MainImageWindow::UpdateCanvasDimensions()
     return;
     }
 
-  // Get the current desktop dimensions
-  QRect desktop = QApplication::desktop()->availableGeometry(this);
-
   // The desired window aspect ratio
   double windowAR = 1.0;
 
@@ -809,6 +805,7 @@ void MainImageWindow::UpdateCanvasDimensions()
   int mw_width = this->width() + (cw_width - ui->centralwidget->width());
 
   // Adjust the width to be within the desktop dimensions
+  auto desktop = this->screen()->availableGeometry();
   mw_width = std::min(desktop.width(), mw_width);
 
   // Deterimine the left point
@@ -952,7 +949,7 @@ void MainImageWindow::UpdateRecentMenu()
                          SLOT(LoadRecentActionTriggered()), true, Qt::CTRL);
 
   this->CreateRecentMenu(ui->menuRecent_Overlays, "AnatomicImage", false, 5,
-                         SLOT(LoadRecentOverlayActionTriggered()), true, Qt::CTRL +  Qt::SHIFT);
+                         SLOT(LoadRecentOverlayActionTriggered()), true, Qt::CTRL | Qt::SHIFT);
 
   this->CreateRecentMenu(ui->menuRecent_Segmentations, "LabelImage", false, 5,
                          SLOT(LoadRecentSegmentationActionTriggered()));

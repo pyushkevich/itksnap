@@ -732,8 +732,8 @@ int main(int argc, char *argv[])
     QVTKOpenGLNativeWidget *widget_2 = new QVTKOpenGLNativeWidget();
 
     // Hook up widgets to windows
-    widget_1->SetRenderWindow(window_1.Get());
-    widget_2->SetRenderWindow(window_2.Get());
+    widget_1->setRenderWindow(window_1.Get());
+    widget_2->setRenderWindow(window_2.Get());
 
     // Place a sphere in window 1
     vtkNew<vtkSphereSource> sphereSource;

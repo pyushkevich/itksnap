@@ -79,12 +79,12 @@ CrosshairsInteractionMode
 {
   if(ev->button() == Qt::RightButton)
     return Qt::RightButton;
-  if(ev->button() == Qt::MidButton)
-    return Qt::MidButton;
+  if(ev->button() == Qt::MiddleButton)
+    return Qt::MiddleButton;
   else if(ev->button() == Qt::LeftButton && ev->modifiers() == Qt::ControlModifier)
     return Qt::RightButton;
   else if(ev->button() == Qt::LeftButton && ev->modifiers() == Qt::AltModifier)
-    return Qt::MidButton;
+    return Qt::MiddleButton;
   else if(ev->button() == Qt::LeftButton)
     return Qt::LeftButton;
   else return Qt::NoButton;

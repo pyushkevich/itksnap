@@ -115,8 +115,8 @@ void QtInteractionDelegateWidget::postprocessEvent(QEvent *ev)
     ButtonStatus status = PRESS_IGNORED;
     if(ev->isAccepted())
       {
-      m_LastPressPos = emouse->pos();
-      m_LastPressGlobalPos = emouse->globalPos();
+      m_LastPressPos = emouse->position();
+      m_LastPressGlobalPos = emouse->globalPosition();
       m_LastPressButton = emouse->button();
       m_LastPressXSpace = m_XSpace;
       status = PRESS_ACCEPTED;
@@ -198,6 +198,6 @@ bool QtInteractionDelegateWidget::isHovering()
 
 double QtInteractionDelegateWidget::GetNumberOfPixelsMoved(QMouseEvent *ev)
 {
-  QPoint delta = ev->pos() - m_LastPressPos;
+  QPointF delta = ev->pos() - m_LastPressPos;
   return std::sqrt((double)(delta.x() * delta.x() + delta.y() * delta.y()));
 }

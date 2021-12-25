@@ -9,7 +9,6 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QThread>
-#include <QRegExp>
 #include <QApplication>
 #include <QAbstractItemView>
 #include <QComboBox>
@@ -297,7 +296,7 @@ void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QSt
     else if(button == "right")
       btn = Qt::RightButton;
     else if(button == "middle")
-      btn = Qt::MidButton;
+      btn = Qt::MiddleButton;
 
     QEvent::Type type = QEvent::None;
     if(eventType == "press")
@@ -318,15 +317,9 @@ void SNAPTestQt::postKeyEvent(QObject *object, QString key)
     QKeySequence seq(key);
     if(seq.count() == 1)
       {
-      int code = seq[0];
-      int key = code & 0x01ffffff;
-      int mod = code & 0xfe000000;
-      Qt::KeyboardModifiers mods;
-
-      if(mod & Qt::ShiftModifier)
-        mods |= Qt::ShiftModifier;
-      if(mod & Qt::ControlModifier)
-        mods |= Qt::ControlModifier;
+      QKeyCombination code = seq[0];
+      Qt::Key key = code.key();
+      Qt::KeyboardModifiers mods = code.keyboardModifiers();
 
       QKeyEvent *ev = new QKeyEvent(QEvent::KeyPress, key, mods);
       QApplication::postEvent(widget, ev);
@@ -343,13 +336,14 @@ SNAPTestQt::ListTests()
   script_dir.setNameFilters(filters);
   QStringList files = script_dir.entryList();
 
-  QRegExp rx("test_(.*).js");
+  QRegularExpression rx("test_(.*).js");
 
   cout << "Available Tests" << endl;
   foreach(const QString &test, files)
     {
-    if(rx.indexIn(test) >= 0)
-      cout << "  " << rx.cap(1).toStdString() << endl;
+    auto rm = rx.match(test);
+    if(rm.hasMatch())
+      cout << "  " << rm.captured(1).toStdString() << endl;
     }
 
   return SUCCESS;
@@ -404,22 +398,22 @@ void TestWorker::readScript(QString script_url, QString &script)
   while(!stream.atEnd())
     {
     QString line = stream.readLine();
-    QRegExp rxSleep("^\\s*$");
-    QRegExp rxComment("//===\\s+(\\w+.*)");
+    auto rmSleep = QRegularExpression("^\\s*$").match(line);
+    auto rmComment = QRegularExpression("//===\\s+(\\w+.*)").match(line);
     // QRegExp rxInclude("include.*\\((\\w+.*)\\)");
-    QRegExp rxInclude("include.*\"(\\w+.*)\".*");
+    auto rmInclude = QRegularExpression("include.*\"(\\w+.*)\".*").match(line);
 
-    if(rxSleep.indexIn(line) >= 0)
+    if(rmSleep.hasMatch())
       {
       line = QString("engine.sleep(500)");
       }
-    else if(rxComment.indexIn(line) >= 0)
+    else if(rmComment.hasMatch())
       {
-      line = QString("engine.print(\"%1\")").arg(rxComment.cap(1));
+      line = QString("engine.print(\"%1\")").arg(rmComment.captured(1));
       }
-    else if(rxInclude.indexIn(line) >= 0)
+    else if(rmInclude.hasMatch())
       {
-      QString child_url = rxInclude.cap(1);
+      QString child_url = rmInclude.captured(1);
       if(!QFileInfo(child_url).isReadable())
         child_url = QString(":/scripts/Scripts/test_%1.js").arg(child_url);
 

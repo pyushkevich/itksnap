@@ -6,7 +6,7 @@
 
 #include <QPainter>
 #include <QPixmap>
-
+#include <QFile>
 #include <QImage>
 #include "itkImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -73,7 +73,7 @@ float QtViewportReporter::GetViewportPixelRatio()
 
 std::string QtSystemInfoDelegate::GetApplicationPermanentDataLocation()
 {
-  return to_utf8(QStandardPaths::writableLocation(QStandardPaths::DataLocation));
+  return to_utf8(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation));
 }
 
 std::string QtSystemInfoDelegate::GetUserDocumentsLocation()
