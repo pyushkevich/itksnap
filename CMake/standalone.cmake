@@ -91,6 +91,7 @@ FIND_PACKAGE(VTK 9 REQUIRED COMPONENTS
   InteractionWidgets
   RenderingAnnotation
   RenderingContext2D
+  RenderingContextOpenGL2
   RenderingCore
   RenderingLOD
   RenderingOpenGL2

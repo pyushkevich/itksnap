@@ -1106,6 +1106,9 @@ SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
 # Set up include directories for these targets
 FOREACH(target ${SNAP_INTERNAL_LIBS})
   TARGET_INCLUDE_DIRECTORIES(${target} PUBLIC ${SNAP_INCLUDE_DIRS})
+
+  # VTK autoinit mechanism
+  vtk_module_autoinit(TARGETS ${target} MODULES ${VTK_LIBRARIES})
 ENDFOREACH()
 
 #--------------------------------------------------------------------------------
