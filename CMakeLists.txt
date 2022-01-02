@@ -1447,10 +1447,10 @@ ELSE()
   # Get the necessary plugins
   IF(SNAP_PACKAGE_QT_PLUGINS)
 
-    get_property(QT_XCB_PLUGIN TARGET Qt6::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    get_property(QT_XCB_GLX_PLUGIN TARGET Qt6::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    get_property(QT_XCB_EGL_PLUGIN TARGET Qt6::QXcbGlxIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
+    # get_property(QT_XCB_PLUGIN TARGET Qt6::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    # get_property(QT_XCB_GLX_PLUGIN TARGET Qt6::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    # get_property(QT_XCB_EGL_PLUGIN TARGET Qt6::QXcbGlxIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    # get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
 
     # Install the plugin
     install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE}
