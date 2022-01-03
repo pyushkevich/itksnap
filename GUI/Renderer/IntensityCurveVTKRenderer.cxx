@@ -584,7 +584,8 @@ IntensityCurveVTKRenderer
   if(m_Model && m_Model->GetLayer())
     {
     this->UpdatePlotValues();
-    this->GetRenderWindow()->Render();
+    // TODO: commenting out for now because calling Render outside of GL context causes problems
+    // this->GetRenderWindow()->Render();
     }
 }
 

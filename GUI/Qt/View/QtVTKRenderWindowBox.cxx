@@ -38,7 +38,6 @@ public:
 
   virtual void paintGL() override
   {
-    // TODO: is this the right place for this code?
     if(m_NeedRender)
       {
       this->renderWindow()->Render();
@@ -274,8 +273,8 @@ void QtVTKRenderWindowBox::leaveEvent(QEvent *)
 bool QtVTKRenderWindowBox::SaveScreenshot(std::string filename)
 {
 #ifndef VTK_OPENGL_HAS_OSMESA
-    auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
-    iw->setScreenshotRequest(from_utf8(filename));
+  auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
+  iw->setScreenshotRequest(from_utf8(filename));
 #else
 #endif
 
@@ -283,16 +282,17 @@ bool QtVTKRenderWindowBox::SaveScreenshot(std::string filename)
   return true;
 }
 
-void QtVTKRenderWindowBox::onModelUpdate(const EventBucket &)
+void QtVTKRenderWindowBox::onModelUpdate(const EventBucket &b)
 {
   m_Renderer->Update();
+
 #ifndef VTK_OPENGL_HAS_OSMESA
   auto *iw = dynamic_cast<QVTKOpenGLNativeWidgetWithScreenshot *>(m_InternalWidget);
   iw->setNeedRender();
+  iw->update();
 #else
-#endif
-
   this->update();
+#endif
 }
 
 

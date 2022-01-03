@@ -92,7 +92,8 @@ void PolygonDrawingInteractionMode::mouseMoveEvent(QMouseEvent *ev)
     if(m_Model->ProcessMouseMoveEvent(m_XSlice(0), m_XSlice(1)))
       {
       ev->accept();
-      m_ParentView->GetRenderWindow()->Render();
+      // TODO: commenting out for now because calling Render outside of GL context causes problems
+      // m_ParentView->GetRenderWindow()->Render();
       m_ParentView->update();
       }
     }

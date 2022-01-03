@@ -331,6 +331,7 @@ void ColorMapRenderer::OnUpdate()
     m_Model->Update();
     m_ContextItem->UpdateColorMapTexture();
     m_ContextItem->UpdateCurveGeometry();
-    this->GetRenderWindow()->Render();
+    // TODO: commenting out for now because calling Render outside of GL context causes problems
+    // this->GetRenderWindow()->Render();
     }
 }

@@ -85,10 +85,11 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
     {
     case UIF_MESH_DIRTY:
       {
-      if(m_Driver->GetMeshManager()->IsMeshDirty())
+      unsigned int tp = m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex();
+      if(m_Driver->GetMeshManager()->IsMeshDirty(tp))
         return true;
 
-      if(m_Driver->GetMeshManager()->GetBuildTime() <= this->m_ClearTime)
+      if(m_Driver->GetMeshManager()->GetBuildTime(tp) <= this->m_ClearTime)
         return true;
 
       return false;
@@ -361,7 +362,8 @@ void Generic3DModel::FlipAction()
 void Generic3DModel::ClearRenderingAction()
 {
   m_Renderer->ClearRendering();
-  m_ClearTime = m_Driver->GetMeshManager()->GetBuildTime();
+  unsigned int tp = m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex();
+  m_ClearTime = m_Driver->GetMeshManager()->GetBuildTime(tp);
   InvokeEvent(ModelUpdateEvent());
 }
 

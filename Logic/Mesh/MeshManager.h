@@ -44,7 +44,7 @@ class AllPurposeProgressAccumulator;
 class vtkPolyData;
 class MultiLabelMeshPipeline;
 class LevelSetMeshPipeline;
-
+class LabelImageWrapper;
 
 #include "SNAPCommon.h"
 #include "AllPurposeProgressAccumulator.h"
@@ -90,12 +90,12 @@ public:
   /**
    * Does the mesh need updating?
    */
-  bool IsMeshDirty();
+  bool IsMeshDirty(unsigned int timepoint);
 
   /**
    * Get the timestamp when the current mesh was built
    */
-  itk::ModifiedTimeType GetBuildTime() const;
+  itk::ModifiedTimeType GetBuildTime(unsigned int timepoint);
 
 protected:
 
@@ -115,6 +115,8 @@ protected:
   //different than 1
   bool Is3DProper(const itk::ImageBase<3> * apImage) const;
 
+  MultiLabelMeshPipeline *GetMultiLabelMeshPipeline(
+      LabelImageWrapper *wrapper, unsigned int timepoint, bool create_if_missing = false);
 };
 
 #endif // __MeshManager_h_

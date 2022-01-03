@@ -241,45 +241,45 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
 
   // Respond to changes in image dimension - these require big updates
-  Rebroadcast(m_Model->GetDriver(), LayerChangeEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetDriver(), LayerChangeEvent(), ModelUpdateEvent());
 
   // Also listen to events on opacity
   Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel(),
               ValueChangedEvent(), AppearanceUpdateEvent());
 
   // Listen to changes in the appearance of any of the wrappers
-  Rebroadcast(m_Model->GetDriver(), WrapperChangeEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetDriver(), WrapperChangeEvent(), ModelUpdateEvent());
 
   // Listen to changes to the segmentation
-  Rebroadcast(m_Model->GetDriver(), SegmentationChangeEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetDriver(), SegmentationChangeEvent(), ModelUpdateEvent());
 
   // Changes to cell layout also must be rebroadcast
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
   Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(),
-              AppearanceUpdateEvent());
+              ModelUpdateEvent());
 
   // Listen to changes in appearance
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
-              ChildPropertyChangedEvent(), AppearanceUpdateEvent());
+              ChildPropertyChangedEvent(), ModelUpdateEvent());
 
   // Listen to overall visibility of overlaps
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
-              ValueChangedEvent(), AppearanceUpdateEvent());
+              ValueChangedEvent(), ModelUpdateEvent());
 
   // Paintbrush appearance changes
   PaintbrushSettingsModel *psm = m_Model->GetParentUI()->GetPaintbrushSettingsModel();
-  Rebroadcast(psm->GetBrushSizeModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(psm->GetBrushSizeModel(), ValueChangedEvent(), ModelUpdateEvent());
 
   // Which layer is currently selected
   Rebroadcast(m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
-              ValueChangedEvent(), AppearanceUpdateEvent());
+              ValueChangedEvent(), ModelUpdateEvent());
 
   Rebroadcast(m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
-              ValueChangedEvent(), AppearanceUpdateEvent());
+              ValueChangedEvent(), ModelUpdateEvent());
 
 
-  Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), AppearanceUpdateEvent());
-  Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), ModelUpdateEvent());
 }
 
 void GenericSliceRenderer::UpdateSceneAppearanceSettings()

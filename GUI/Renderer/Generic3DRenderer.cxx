@@ -776,7 +776,8 @@ void Generic3DRenderer::OnUpdate()
     }
 
   // Force rendering to occur
-  this->GetRenderWindow()->Render();
+  // TODO: commenting out for now because calling Render outside of GL context causes problems
+  // this->GetRenderWindow()->Render();
 }
 
 void Generic3DRenderer::ResetView()
