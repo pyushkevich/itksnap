@@ -1447,9 +1447,18 @@ ELSE()
   # Get the necessary plugins
   IF(SNAP_PACKAGE_QT_PLUGINS)
 
+    get_filename_component(QT_XCB_GLX_PLUGIN "${QT_BINARY_DIR}/../plugins/xcbglintegrations/libqxcb-glx-integration.so" ABSOLUTE)
+    get_filename_component(QT_XCB_EGL_PLUGIN "${QT_BINARY_DIR}/../plugins/xcbglintegrations/libqxcb-egl-integration.so" ABSOLUTE)
+    get_filename_component(QT_XCB_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/libqxcb.so" ABSOLUTE)
+    get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/libqgif.so" ABSOLUTE)
+    message(STATUS "QT_XCB_GLX_PLUGIN=${QT_XCB_GLX_PLUGIN}")
+    message(STATUS "QT_XCB_EGL_PLUGIN=${QT_XCB_EGL_PLUGIN}")
+    message(STATUS "QT_XCB_PLUGIN=${QT_XCB_PLUGIN}")
+    message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
+
     # get_property(QT_XCB_PLUGIN TARGET Qt6::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
     # get_property(QT_XCB_GLX_PLUGIN TARGET Qt6::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    # get_property(QT_XCB_EGL_PLUGIN TARGET Qt6::QXcbGlxIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    # get_property(QT_XCB_GLX_PLUGIN TARGET Qt::QGifPlugin PROPERTY LOCATION_RELEASE)
     # get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
 
     # Install the plugin
