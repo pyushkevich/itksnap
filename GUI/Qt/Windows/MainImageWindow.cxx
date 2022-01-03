@@ -808,15 +808,18 @@ void MainImageWindow::UpdateCanvasDimensions()
   auto desktop = this->screen()->availableGeometry();
   mw_width = std::min(desktop.width(), mw_width);
 
+  // Store the old width
+  int old_width = this->width();
+  this->resize(QSize(mw_width, this->height()));
+
   // Deterimine the left point
-  int left = std::max(0, this->pos().x() + this->width() / 2 - mw_width / 2);
+  int left = std::max(0, this->pos().x() + (old_width - this->width()) / 2);
 
   // Adjust the left point if necessary
-  if(left + mw_width > desktop.right())
-    left = std::max(0, desktop.right() - mw_width);
+  if(left + this->width() > desktop.right())
+    left = std::max(0, desktop.right() - this->width());
 
   // Now we want to position the window nicely.
-  this->resize(QSize(mw_width, this->height()));
   this->move(left, this->pos().y());
 }
 
