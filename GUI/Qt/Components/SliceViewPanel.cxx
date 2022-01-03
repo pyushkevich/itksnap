@@ -342,7 +342,8 @@ void SliceViewPanel::onModelUpdate(const EventBucket &eb)
     UpdateExpandViewButton();
     }
 
-  ui->sliceView->GetRenderWindow()->Render();
+  // this is causing crash on Linux
+  // ui->sliceView->GetRenderWindow()->Render();
   ui->sliceView->update();
 }
 
