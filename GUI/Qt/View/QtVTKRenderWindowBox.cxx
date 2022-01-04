@@ -19,8 +19,8 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkWindowToImageFilter.h>
 
-// #include <QVBoxLayout>
-#include <QStackedLayout>
+#include <QVBoxLayout>
+// #include <QStackedLayout>
 #include <QResizeEvent>
 #include <QVTKInteractorAdapter.h>
 #include <QVTKInteractor.h>
@@ -194,8 +194,9 @@ QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
 #endif
 
   // Create an internal layout without margins
-  auto *lo = new QStackedLayout(this);
+  auto *lo = new QVBoxLayout(this);
   lo->setContentsMargins(0,0,0,0);
+  lo->setSpacing(0);
   lo->addWidget(m_InternalWidget);
   this->setLayout(lo);
 }

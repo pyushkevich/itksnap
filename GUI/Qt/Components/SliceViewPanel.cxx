@@ -189,7 +189,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   m_DrawingCrosshairCursor = new QCursor(bmBitmap, bmMask, 7, 7);
 
   // Configure the context tool button
-  m_ContextToolButton = new QToolButton(ui->sliceView);
+  m_ContextToolButton = new QToolButton(ui->sliceView->GetInternalWidget());
   m_ContextToolButton->setIcon(QIcon(":/root/context_gray_10.png"));
   m_ContextToolButton->setVisible(false);
   m_ContextToolButton->setAutoRaise(true);
