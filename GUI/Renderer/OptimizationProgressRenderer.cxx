@@ -12,6 +12,7 @@
 #include <vtkAxis.h>
 #include <vtkContextMouseEvent.h>
 #include "vtkGenericOpenGLRenderWindow.h"
+#include <vtkTextProperty.h>
 
 #include <cstdlib>
 #include <algorithm>
@@ -51,6 +52,8 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   m_Plot->GetXAxis()->SetTitle("Iteration");
   m_Plot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
   m_Plot->GetYAxis()->SetTitle("Metric");
+  m_Plot->GetXAxis()->GetLabelProperties()->SetFontSize(9);
+  m_Plot->GetYAxis()->GetLabelProperties()->SetFontSize(9);
 
   // Set the background to white
   this->SetBackgroundColor(Vector3d(1.0, 1.0, 1.0));
