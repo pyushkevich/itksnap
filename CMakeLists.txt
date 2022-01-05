@@ -1388,8 +1388,13 @@ ELSEIF(WIN32)
   include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
   # Make sure the GIF plugin is included
-  get_property(QT_WIN_PLUGIN TARGET Qt6::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
-  get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
+  get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindows.dll" ABSOLUTE)
+  get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgif.dll" ABSOLUTE)
+  message(STATUS "QT_WIN_PLUGIN=${QT_WIN_PLUGIN}")
+  message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
+
+  # get_property(QT_WIN_PLUGIN TARGET Qt6::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
+  # get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
 
   # Install with the plugin
   install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
