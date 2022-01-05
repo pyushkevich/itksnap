@@ -1024,7 +1024,6 @@ SET(SNAP_VTK_LIBS ${VTK_LIBRARIES})
 SET(SNAP_SUBMODULE_LIBS
   cnd_api
   cnd_driver
-  cnd_adapters
   cnd_maxflow
   greedyapi)
 
