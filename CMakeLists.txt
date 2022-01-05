@@ -1024,7 +1024,6 @@ SET(SNAP_VTK_LIBS ${VTK_LIBRARIES})
 SET(SNAP_SUBMODULE_LIBS
   cnd_api
   cnd_driver
-  cnd_adapters
   cnd_maxflow
   greedyapi)
 
@@ -1098,7 +1097,7 @@ ADD_LIBRARY(itksnapui_qt
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS_LITE})
 TARGET_LINK_LIBRARIES(itksnapui_model itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui_qt itksnapui_model ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
