@@ -846,12 +846,12 @@ string WorkspaceAPI::GetTempDirName()
   char tempFile[_MAX_PATH + 1] = "";
 
   // First call return a directory only
-  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
+  DWORD length = GetTempPathA(_MAX_PATH+1, tempDir);
   if(length <= 0 || length > _MAX_PATH)
     throw IRISException("Unable to create temporary directory");
 
   // This will create a unique file in the temp directory
-  if (0 == GetTempFileName(tempDir, TEXT("alfabis"), 0, tempFile))
+  if (0 == GetTempFileNameA(tempDir, "alfabis", 0, tempFile))
     throw IRISException("Unable to create temporary directory");
 
   // We use the filename to create a directory
