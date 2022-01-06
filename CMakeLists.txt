@@ -651,6 +651,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SnakeToolROIPanel.cxx
   GUI/Qt/Components/SnakeWizardPanel.cxx
   GUI/Qt/Components/SNAPComponent.cxx
+  GUI/Qt/Components/SNAPToolbar.cxx
   GUI/Qt/Components/SNAPQApplication.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
@@ -745,6 +746,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SnakeToolROIPanel.h
   GUI/Qt/Components/SnakeWizardPanel.h
   GUI/Qt/Components/SNAPComponent.h
+  GUI/Qt/Components/SNAPToolbar.h
   GUI/Qt/Components/SNAPQApplication.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/SynchronizationInspector.h

@@ -33,8 +33,11 @@
 class QVTKOpenGLNativeWidgetWithScreenshot : public QVTKOpenGLNativeWidget
 {
 public:
-  QVTKOpenGLNativeWidgetWithScreenshot(QWidget *parent)
-    : QVTKOpenGLNativeWidget(parent) {}
+  QVTKOpenGLNativeWidgetWithScreenshot(QtVTKRenderWindowBox *parent)
+    : QVTKOpenGLNativeWidget(parent)
+  {
+    m_Parent = parent;
+  }
 
   virtual void paintGL() override
   {
@@ -65,6 +68,7 @@ public:
 
 private:
   bool m_NeedRender = false;
+  QtVTKRenderWindowBox *m_Parent;
   QString m_ScreenshotRequest;
 };
 

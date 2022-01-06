@@ -168,7 +168,6 @@ void CrosshairsInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
       if(btn == m_BtnCursor)
       {
       m_Model->UpdateCursor(Vector2d(m_XSpace[0], m_XSpace[1]));
-      std::cout << "Updated cursor to " << m_XSpace << std::endl;
       }
     else if(btn == m_BtnZoom)
       {
