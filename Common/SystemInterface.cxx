@@ -267,7 +267,7 @@ void SystemInterface
       long length = 0;
 
       //  First  obtain  the  size  needed  by  passing  NULL  and  0.
-      length = GetShortPathName(newargv[i], NULL, 0);
+      length = GetShortPathNameA(newargv[i], NULL, 0);
       if (length == 0)
         throw  IRISException("Unable  to  obtain  short  filename  for  %s", newargv[i]);
 
@@ -276,7 +276,7 @@ void SystemInterface
       quoted[i] = new char[length];
 
       //  Now  simply  call  again  using  same  long  path.
-      length = GetShortPathName(newargv[i], quoted[i], length);
+      length = GetShortPathNameA(newargv[i], quoted[i], length);
       if (length == 0)
         throw  IRISException("Unable  to  obtain  short  filename  for  %s", newargv[i]);
       }
