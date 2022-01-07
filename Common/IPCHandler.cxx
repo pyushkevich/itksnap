@@ -4,8 +4,6 @@
 #include <iostream>
 #include <cerrno>
 
-using namespace std;
-
 #ifdef WIN32
   #ifdef _WIN32_WINNT
   #undef _WIN32_WINNT
@@ -26,6 +24,8 @@ using namespace std;
   #include <sys/time.h>
 #endif
 
+using namespace std;
+
 void IPCHandler::Attach(const char *path, short version, size_t message_size)
 {
   // Initialize the data pointer
@@ -42,7 +42,7 @@ void IPCHandler::Attach(const char *path, short version, size_t message_size)
 
 #ifdef WIN32
   // Create a shared memory block (key based on the preferences file)
-  m_Handle = CreateFileMapping(
+  m_Handle = CreateFileMappingA(
     INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, (DWORD) msize, path);
 
   // If the return value is NULL, something failed

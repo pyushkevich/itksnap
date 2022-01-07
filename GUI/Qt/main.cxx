@@ -269,12 +269,12 @@ protected:
 std::string DecodeFilename(const std::string &in_string)
 {
 #ifdef WIN32
-  int bufsize = GetLongPathName(in_string.c_str(), NULL, 0);
+  int bufsize = GetLongPathNameA(in_string.c_str(), NULL, 0);
   if (bufsize == 0)
     throw IRISException("Unable to decode parameter %s", in_string.c_str());
 
   char *buffer = new char[bufsize];
-  int rc = GetLongPathName(in_string.c_str(), buffer, bufsize);
+  int rc = GetLongPathNameA(in_string.c_str(), buffer, bufsize);
   
   if (rc == 0)
     throw IRISException("Unable to decode parameter %s", in_string.c_str());
