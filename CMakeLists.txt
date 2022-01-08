@@ -1370,13 +1370,14 @@ IF(APPLE)
   # Include the qt4 dependent libraries
   include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
-  # Make sure the GIF plugin is included
-  ### get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
-
-  ### get_property(loc TARGET Qt6::QCocoaIntegrationPlugin PROPERTY LOCATION_RELEASE)
+  # Include plugins
+  get_filename_component(QT_COCOA_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/libqcocoa.dylib" ABSOLUTE)
+  get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/libqgif.dylib" ABSOLUTE)
+  message(STATUS "QT_COCOA_PLUGIN=${QT_COCOA_PLUGIN}")
+  message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
 
   # Install with the plugin
-  install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
+  install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN};${QT_COCOA_PLUGIN}")
 
 ELSEIF(WIN32)
 
