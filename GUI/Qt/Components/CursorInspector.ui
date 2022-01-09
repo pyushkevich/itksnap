@@ -356,10 +356,10 @@ font-size: 11px;
   font-size:10px;
 }
 
-QTableView:!active
+/*QTableView:!active
 {
   selection-background-color: rgb(162, 204, 255);
-}</string>
+}*/</string>
      </property>
      <property name="editTriggers">
       <set>QAbstractItemView::NoEditTriggers</set>

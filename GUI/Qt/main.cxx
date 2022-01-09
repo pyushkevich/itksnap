@@ -1007,6 +1007,28 @@ int main(int argc, char *argv[])
       testingEngine->LaunchTest(argdata.xTestId);
       }
 
+    // TODO: remove this
+    QPalette p = QGuiApplication::palette();
+    int roles[] = { QPalette::WindowText, QPalette::Button, QPalette::Light, QPalette::Midlight, QPalette::Dark, QPalette::Mid,
+              QPalette::Text, QPalette::BrightText, QPalette::ButtonText, QPalette::Base, QPalette::Window, QPalette::Shadow,
+              QPalette::Highlight, QPalette::HighlightedText,
+              QPalette::Link, QPalette::LinkVisited,
+              QPalette::AlternateBase,
+              QPalette::NoRole,
+              QPalette::ToolTipBase, QPalette::ToolTipText,
+              QPalette::PlaceholderText };
+    const char *role_names[] = { "WindowText", "Button", "Light", "Midlight", "Dark", "Mid",
+                   "Text", "BrightText", "ButtonText", "Base", "Window", "Shadow",
+                   "Highlight", "HighlightedText",
+                   "Link", "LinkVisited",
+                   "AlternateBase",
+                   "NoRole",
+                   "ToolTipBase", "ToolTipText",
+                   "PlaceholderText" };
+
+    for(unsigned int i = 0; i < 21; i++)
+      qDebug() << role_names[i] << ":" << p.color((QPalette::ColorRole)roles[i]);
+
     // Run application
     int rc = app.exec();
 

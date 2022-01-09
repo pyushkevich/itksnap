@@ -178,8 +178,8 @@ void CursorInspector::UpdateVoxelTableRow(int i, const LayerCurrentVoxelInfo &vi
   QString tooltip_annot;
 
   // By default the color of the items is black
-  item_layer->setForeground(QBrush(QColor(Qt::black)));
-  item_intensity->setForeground(QBrush(QColor(Qt::black)));
+  item_layer->setForeground(QBrush(this->palette().color(QPalette::Text)));
+  item_intensity->setForeground(QBrush(this->palette().color(QPalette::Text)));
   item_layer->setIcon(QIcon());
 
   if(vi.isSelectedGroundLayer)

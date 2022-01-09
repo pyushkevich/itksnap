@@ -19,19 +19,32 @@
   margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
-  font-family: helvetica;
-  color: rgb(30,30,160);
-  background-color: rgb(237,237,237);
+  background-color: palette(midlight);
   padding: 5px;
-  border-radius: 4px;
-  border: 1px solid rgb(130,130,130);
+  border-radius: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(128,128,128);
 }
-QGroupBox:!enabled {
-  color: rgb(108,108,108);
-}
+
 QGroupBox::title {
   subcontrol-origin: 	margin;
   subcontrol-position: top left;
+}
+
+QGroupBox &gt; QGroupBox {
+  background-origin: content;
+  margin-top: 15px;
+  font-weight: normal;
+  font-size: 12px;
+  font-family: helvetica;
+  background-color: palette(midlight);
+  padding: 5px;
+  border-radius: 0px;
+  border-top: 1px solid rgb(128,128,128);
+  border-left: none;
+  border-right:none;
+  border-bottom:none;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -651,16 +664,6 @@ font-size:11px;
       </property>
       <item row="1" column="1">
        <widget class="QGroupBox" name="grpTPProperties">
-        <property name="styleSheet">
-         <string notr="true">QGroupBox {
-	border: 1px solid rgb(210, 210, 210);
-	border-radius: 3px;
-	background: rgb(220, 220, 220)
-}
-QGroupBox::Title{
-	color: rgb(100, 100, 100)
-}</string>
-        </property>
         <property name="title">
          <string>Properties for Time Point 100:</string>
         </property>

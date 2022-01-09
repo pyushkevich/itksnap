@@ -36,6 +36,7 @@
   border-radius: 2px;
   border-width: 1px;
   border-style: solid;
+  border-color: rgb(128,128,128);
 }
 
 QGroupBox::title {
@@ -43,24 +44,31 @@ QGroupBox::title {
   subcontrol-position: top left;
 }
 
-QToolButton {
+QWidget#panelToolbarMode &gt; QToolButton,
+QWidget#panelToolbarAction &gt; QToolButton,
+QWidget#panelToolbarContext &gt; QToolButton 
+{
   icon-size: 22px;
   min-width: 1ex;
   border-top: 1px solid rgb(192, 192, 192);
   border-bottom: 1px solid rgb(192, 192, 192);
   border-left: 1px;
   border-right: 1px;
-  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(235, 235, 235, 255), stop:0.487685 rgba(216, 216, 216, 255), stop:0.502463 rgba(205, 205, 205, 255), stop:1 rgba(235, 235, 235, 255));
+  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(235, 235, 235, 255), stop:0.0394089 rgba(215, 215, 215, 255), stop:0.487685 rgba(196, 196, 196, 255), stop:0.502463 rgba(195, 195, 195, 255), stop:1 rgba(215, 215, 215, 255));
   width: 25px;
   height: 25px;
 }
-QToolButton:hover, QToolButton:checked {
+
+QWidget#panelToolbarMode &gt; QToolButton:hover, QWidget#panelToolbarMode &gt; QToolButton:checked,
+QWidget#panelToolbarAction &gt; QToolButton:hover, QWidget#panelToolbarAction &gt; QToolButton:checked,
+QWidget#panelToolbarContext &gt; QToolButton:hover, QWidget#panelToolbarContext &gt; QToolButton:checked
+{
   background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(214, 228, 245, 255), stop:0.487685 rgba(193, 205, 221, 255), stop:0.502463 rgba(182, 193, 207, 255), stop:1 rgba(215, 228, 245, 255));
   padding:0px;
 }
 
 QWidget#panelToolbarAction,  QWidget#panelToolbarContext, QWidget#panelToolbarMode {
-  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 palette(light), stop:0.0394089 palette(window), stop:0.487685 rgba(216, 216, 216, 255), stop:0.502463 palette(dark), stop:1 palette(window));
+  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(235, 235, 235, 255), stop:0.0394089 rgba(215, 215, 215, 255), stop:0.487685 rgba(196, 196, 196, 255), stop:0.502463 rgba(195, 195, 195, 255), stop:1 rgba(215, 215, 215, 255));
   border-top: 1px solid rgb(192, 192, 192);
   border-bottom: 1px solid rgb(192, 192, 192);
 }

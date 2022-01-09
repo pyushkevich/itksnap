@@ -7,34 +7,30 @@
     <x>0</x>
     <y>0</y>
     <width>454</width>
-    <height>477</height>
+    <height>489</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QMainWindow {
-  background-color: rgb(248,248,248);
-}
-
-QGroupBox {
+   <string notr="true">QGroupBox {
   background-origin: content;
   margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
-  font-family: helvetica;
-  color: rgb(30,30,160);
-  background-color: rgb(237,237,237);
+  background-color: palette(midlight);
   padding: 5px;
-  border-radius: 4px;
-  border: 1px solid rgb(130,130,130);
+  border-radius: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(128,128,128);
 }
+
 QGroupBox::title {
   subcontrol-origin: 	margin;
   subcontrol-position: top left;
 }
-
 </string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -62,7 +58,7 @@ QGroupBox::title {
       <string>Linear Contrast Adjustment:</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
-      <property name="margin">
+      <property name="margin" stdset="0">
        <number>0</number>
       </property>
       <item>
@@ -74,7 +70,7 @@ QGroupBox::title {
          <property name="verticalSpacing">
           <number>6</number>
          </property>
-         <property name="margin">
+         <property name="margin" stdset="0">
           <number>6</number>
          </property>
          <item row="1" column="3">
@@ -320,7 +316,7 @@ QGroupBox::title {
       <property name="spacing">
        <number>10</number>
       </property>
-      <property name="margin">
+      <property name="margin" stdset="0">
        <number>6</number>
       </property>
       <item>
@@ -338,7 +334,7 @@ QGroupBox::title {
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
-         <property name="margin">
+         <property name="margin" stdset="0">
           <number>0</number>
          </property>
          <item>
@@ -366,7 +362,7 @@ QGroupBox::title {
          <property name="verticalSpacing">
           <number>4</number>
          </property>
-         <property name="margin">
+         <property name="margin" stdset="0">
           <number>0</number>
          </property>
          <item row="1" column="1">
@@ -375,7 +371,7 @@ QGroupBox::title {
             <property name="spacing">
              <number>2</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
@@ -432,7 +428,7 @@ p, li { white-space: pre-wrap; }
             <property name="spacing">
              <number>2</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
@@ -495,7 +491,7 @@ p, li { white-space: pre-wrap; }
             <property name="spacing">
              <number>2</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
@@ -514,7 +510,7 @@ p, li { white-space: pre-wrap; }
             <property name="spacing">
              <number>2</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
@@ -546,7 +542,7 @@ p, li { white-space: pre-wrap; }
             <property name="spacing">
              <number>4</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
@@ -608,7 +604,7 @@ p, li { white-space: pre-wrap; }
       <property name="spacing">
        <number>2</number>
       </property>
-      <property name="margin">
+      <property name="margin" stdset="0">
        <number>6</number>
       </property>
       <item>

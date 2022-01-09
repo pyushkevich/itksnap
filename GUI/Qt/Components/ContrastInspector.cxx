@@ -17,7 +17,6 @@ ContrastInspector::ContrastInspector(QWidget *parent) :
     ui(new Ui::ContrastInspector)
 {
   ui->setupUi(this);
-  ApplyCSS(this, ":/root/itksnap.css");
 
   // Create the viewport reporter
   m_CurveBoxViewportReporter = QtViewportReporter::New();

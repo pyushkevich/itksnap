@@ -20,10 +20,6 @@ DropActionDialog::DropActionDialog(QWidget *parent) :
   ui(new Ui::DropActionDialog)
 {
   ui->setupUi(this);
-
-  // Start from scratch
-  ApplyCSS(this, ":/root/itksnap.css");
-
 }
 
 DropActionDialog::~DropActionDialog()
