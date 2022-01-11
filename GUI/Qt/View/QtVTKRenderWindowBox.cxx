@@ -56,6 +56,21 @@ public:
       }
   }
 
+  virtual bool event(QEvent* evt) override
+  {
+    // Touch events on the Mac touchpad seem to confuse VTK interactors. We let Qt handle them
+    // as mouse events instead.
+    if(evt->type() == QEvent::TouchBegin || evt->type() == QEvent::TouchEnd ||
+       evt->type() == QEvent::TouchUpdate || evt->type() == QEvent::TouchCancel)
+      {
+      return false;
+      }
+    else
+      {
+      return QVTKOpenGLNativeWidget::event(evt);
+      }
+  }
+
   virtual void setScreenshotRequest(const QString &s)
   {
     m_ScreenshotRequest = s;
