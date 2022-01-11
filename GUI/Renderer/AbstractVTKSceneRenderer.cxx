@@ -47,6 +47,7 @@ vtkContextScene *AbstractVTKSceneRenderer::GetScene()
 void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(
     vtkChart *chart, int old_ratio, int new_ratio)
 {
+  /*
   // Axis titles
   const int axis_arr[] = {vtkAxis::LEFT, vtkAxis::RIGHT, vtkAxis::BOTTOM, vtkAxis::TOP};
   for(int i = 0; i < 4; i++)
@@ -72,5 +73,6 @@ void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(
     vtkTextProperty *prop_tt = chart_xy->GetTooltip()->GetTextProperties();
     prop_tt->SetFontSize(new_ratio * prop_tt->GetFontSize() / old_ratio);
     }
+    */
 }
 
