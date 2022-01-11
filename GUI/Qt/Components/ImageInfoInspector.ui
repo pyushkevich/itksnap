@@ -46,7 +46,7 @@ QWidget:read-only {
   background-color:palette(midlight);
 }
 QDoubleSpinBox:read-only {
-  background-color:rgb(240,240,240);
+  background-color:palette(midlight);
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,100,1">

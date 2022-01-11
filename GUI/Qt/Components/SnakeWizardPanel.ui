@@ -29,25 +29,12 @@
    <string notr="true">* {
 font-size: 12px;
 }
+
 QSpinBox {
 font-size: 11px;
 }
-QGroupBox {
-  background-origin: content;
-  margin-top: 15px;
-  font-weight: bold;
-  font-size: 12px;
-  color: rgb(30,30,160);
-  background-color: rgb(222,222,222);
-  padding: 5px;
-  border-radius: 2px;
-  border: 1px solid rgb(168,168,168);
-}
-QGroupBox::title {
-  subcontrol-origin: 	margin;
-  subcontrol-position: top left;
-}
 
+/*
 QToolButton::checked {
   background-color:rgb(210, 210, 210);
 }
@@ -55,8 +42,40 @@ QToolButton::checked {
 QToolButton::pressed {
   background-color:rgb(210, 210, 210);
 }
+*/
 
+QGroupBox {
+  background-origin: content;
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 12px;
+  background-color: palette(midlight);
+  padding: 5px;
+  border-radius: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(128,128,128);
+}
 
+QGroupBox::title {
+  subcontrol-origin: 	margin;
+  subcontrol-position: top left;
+}
+
+QGroupBox &gt; QGroupBox {
+  background-origin: content;
+  margin-top: 15px;
+  font-weight: normal;
+  font-size: 12px;
+  font-family: helvetica;
+  background-color: palette(midlight);
+  padding: 5px;
+  border-radius: 0px;
+  border-top: 1px solid rgb(128,128,128);
+  border-left: none;
+  border-right:none;
+  border-bottom:none;
+}
 </string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1599,10 +1618,10 @@ border-right: 0px;</string>
             <property name="showGrid">
              <bool>true</bool>
             </property>
-            <attribute name="horizontalHeaderDefaultSectionSize">
+            <attribute name="horizontalHeaderMinimumSectionSize">
              <number>32</number>
             </attribute>
-            <attribute name="horizontalHeaderMinimumSectionSize">
+            <attribute name="horizontalHeaderDefaultSectionSize">
              <number>32</number>
             </attribute>
             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
@@ -1617,10 +1636,10 @@ border-right: 0px;</string>
             <attribute name="verticalHeaderCascadingSectionResizes">
              <bool>true</bool>
             </attribute>
-            <attribute name="verticalHeaderDefaultSectionSize">
+            <attribute name="verticalHeaderMinimumSectionSize">
              <number>18</number>
             </attribute>
-            <attribute name="verticalHeaderMinimumSectionSize">
+            <attribute name="verticalHeaderDefaultSectionSize">
              <number>18</number>
             </attribute>
            </widget>
@@ -2216,7 +2235,7 @@ p, li { white-space: pre-wrap; }
   <customwidget>
    <class>QDoubleSlider</class>
    <extends>QSlider</extends>
-   <header location="global">QDoubleSlider.h</header>
+   <header>QDoubleSlider.h</header>
   </customwidget>
   <customwidget>
    <class>QDoubleSliderWithEditor</class>

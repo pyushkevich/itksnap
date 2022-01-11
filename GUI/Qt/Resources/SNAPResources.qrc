@@ -187,6 +187,8 @@
         <file>layout_orientation_lr.png</file>
         <file>layout_sagittal_ap.png</file>
         <file>layout_sagittal_pa.png</file>
+        <file>icons8-camera-12@x2.png</file>
+        <file>icons8-camera-12.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

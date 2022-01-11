@@ -223,7 +223,7 @@ void LayerInspectorRowDelegate::UpdateBackgroundPalette()
   };
 
   QColor scheme_dark[] = {
-    QColor(85,85,130), QColor(75,75,120), QColor(40,40,40), QColor(30,30,30)
+    QColor(115,115,160), QColor(105,105,150), QColor(70,70,70), QColor(60,60,60)
   };
 
   // Get the current palette
@@ -245,7 +245,7 @@ void LayerInspectorRowDelegate::UpdateBackgroundPalette()
     stop_1 = scheme[3];
 
   // Set the second color as the offset
-  stop_2 = dark_scheme ? stop_1.darker(120) : stop_1.lighter(120);
+  stop_2 = dark_scheme ? stop_1.lighter(120) : stop_1.lighter(120);
   QLinearGradient linearGradient(QPointF(0, 0), QPointF(0, this->height()));
   linearGradient.setColorAt(0, stop_1);
   linearGradient.setColorAt(1, stop_2);
@@ -305,7 +305,7 @@ QMenu *LayerInspectorRowDelegate::contextMenu() const
   return this->m_PopupMenu;
 }
 
-void LayerInspectorRowDelegate::enterEvent(QEvent *)
+void LayerInspectorRowDelegate::enterEvent(QEnterEvent *)
 {
   m_Hover = true;
   this->UpdateBackgroundPalette();

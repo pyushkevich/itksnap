@@ -112,14 +112,14 @@ font-size:11px;
          </size>
         </property>
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Save a screenshot of the current slice view.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:11pt;&quot;&gt;Take a screenshot of the current slice view.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
         </property>
         <property name="text">
          <string>...</string>
         </property>
         <property name="icon">
          <iconset resource="../Resources/SNAPResources.qrc">
-          <normaloff>:/root/icons8_slr_camera_12.png</normaloff>:/root/icons8_slr_camera_12.png</iconset>
+          <normaloff>:/root/icons8-camera-12.png</normaloff>:/root/icons8-camera-12.png</iconset>
         </property>
         <property name="iconSize">
          <size>
