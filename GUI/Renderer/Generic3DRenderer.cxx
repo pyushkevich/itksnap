@@ -334,7 +334,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
             std::cout << mesh->GetPointData()->GetArrayName(i) << std::endl;
             }
 
-          mesh->GetPointData()->SetActiveAttribute("Displacement_Total", 0);
+          //mesh->GetPointData()->SetActiveAttribute("Displacement_Total", 0);
 
           pdm->SetScalarModeToUsePointData();
           pdm->ScalarVisibilityOn();

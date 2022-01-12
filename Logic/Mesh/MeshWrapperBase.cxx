@@ -106,10 +106,19 @@ MeshWrapperBase::GetMeshDataArrayNameMap(unsigned int timepoint, LabelType id)
   if (m_MeshCollectionMap.count(timepoint) && m_MeshCollectionMap[timepoint].count(id))
     {
     vtkDataSetAttributes *data;
+
     if (m_ActiveMeshDataType == POINT_DATA)
+      {
+      std::cout << "[MWB] Getting Point Data Names " << std::endl;
       data = GetMesh(timepoint, id)->GetPointData();
+      }
+
     else
+      {
+      std::cout << "[MWB] Getting Cell Data Names " << std::endl;
       data = GetMesh(timepoint, id)->GetCellData();
+      }
+
 
     for (auto i = 0; i < data->GetNumberOfArrays(); ++i)
       ret[i] = data->GetArrayName(i);
@@ -120,25 +129,9 @@ MeshWrapperBase::GetMeshDataArrayNameMap(unsigned int timepoint, LabelType id)
 
 int
 MeshWrapperBase::
-GetActiveMeshDataArrayId(unsigned int timepoint, LabelType id)
+GetActiveMeshDataArrayId(unsigned int, LabelType)
 {
-  int ret = 0;
-  // Make sure the mesh exists, to avoid segmentation fault
-  if (m_MeshCollectionMap.count(timepoint) && m_MeshCollectionMap[timepoint].count(id))
-    {
-    vtkDataSetAttributes *data;
-    if (m_ActiveMeshDataType == POINT_DATA)
-      data = GetMesh(timepoint, id)->GetPointData();
-    else
-      data = GetMesh(timepoint, id)->GetCellData();
-
-
-    data->GetAttributeIndices(&ret);
-    }
-
-  std::cout << "[MeshWrapperBase] GetActiveMeshDataArrayId=" << ret << std::endl;
-
-  return ret;
+  return m_ActiveMeshDataArrayId;
 }
 
 
@@ -146,6 +139,8 @@ void
 MeshWrapperBase::
 SetActiveMeshDataArrayId(int index, unsigned int timepoint, LabelType id)
 {
+  std::cout << "[MWB] Setting Active Data ArrayID=" << index << std::endl;
+
   if (m_MeshCollectionMap.count(timepoint) && m_MeshCollectionMap[timepoint].count(id))
     {
     vtkDataSetAttributes *data;
@@ -156,6 +151,7 @@ SetActiveMeshDataArrayId(int index, unsigned int timepoint, LabelType id)
 
 
     data->SetActiveAttribute(index, 0);
+    m_ActiveMeshDataArrayId = index;
     }
 
 }

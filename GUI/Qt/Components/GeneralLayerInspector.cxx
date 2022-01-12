@@ -88,9 +88,15 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   activateOnFlag(ui->btnDown, m_Model,
                  LayerGeneralPropertiesModel::UIF_MOVABLE_DOWN);
 
+  // Group Mesh should only display when a mesh layer is selected
   activateOnFlag(ui->grpMesh, m_Model,
                  LayerGeneralPropertiesModel::UIF_IS_MESH,
                  QtWidgetActivator::HideInactive);
+
+  // Change the array name box content when mesh data type has changed
+  LatentITKEventNotifier::connect(
+        m_Model, ValueChangedEvent(),
+        this, SLOT(onModelUpdate(const EventBucket &)));
 }
 
 void GeneralLayerInspector::on_btnUp_clicked()
@@ -109,4 +115,13 @@ void GeneralLayerInspector::on_spinBoxTP_valueChanged(int value)
   txt.append(std::to_string(value).c_str());
   txt.append(":");
   ui->grpTPProperties->setTitle(txt);
+}
+
+void GeneralLayerInspector::onModelUpdate(const EventBucket &)
+{
+  if (m_Model->CheckState(LayerGeneralPropertiesModel::UIF_IS_MESH))
+    {
+    // re-couple the box
+    makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
+    }
 }
