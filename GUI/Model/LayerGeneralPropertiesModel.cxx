@@ -564,7 +564,12 @@ SetMeshDataTypeValue(ActiveMeshDataType value)
   if (!mesh_layer)
     return;
 
-  mesh_layer->SetActiveMeshDataType(value);
+  auto existing = mesh_layer->GetActiveMeshDataType();
+  if (value != existing)
+    {
+    mesh_layer->SetActiveMeshDataType(value);
+    InvokeEvent(ValueChangedEvent());
+    }
 }
 
 bool
@@ -587,7 +592,7 @@ GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
       (*domain)[it->first] = it->second;
       }
 
-    value = domain->begin()->first;
+    value = mesh_layer->GetActiveMeshDataArrayId(tp, 0);
     }
 
   return true;

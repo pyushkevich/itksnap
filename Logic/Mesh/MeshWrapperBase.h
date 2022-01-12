@@ -158,6 +158,9 @@ protected:
   // The active mesh data type for rendering
   ActiveMeshDataType m_ActiveMeshDataType = POINT_DATA;
 
+  // The active mesh data array id
+  int m_ActiveMeshDataArrayId = 0;
+
 };
 
 #endif // MESHWRAPPERBASE_H
