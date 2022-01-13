@@ -72,7 +72,7 @@ font-size: 12px;
        <number>4</number>
       </property>
       <item>
-       <widget class="QToolButton" name="btnFourViews">
+       <widget class="QDarkModeToolButton" name="btnFourViews">
         <property name="maximumSize">
          <size>
           <width>26</width>
@@ -99,7 +99,7 @@ font-size: 12px;
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="btnAxial">
+       <widget class="QDarkModeToolButton" name="btnAxial">
         <property name="maximumSize">
          <size>
           <width>26</width>
@@ -126,7 +126,7 @@ font-size: 12px;
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="btnCoronal">
+       <widget class="QDarkModeToolButton" name="btnCoronal">
         <property name="maximumSize">
          <size>
           <width>26</width>
@@ -153,7 +153,7 @@ font-size: 12px;
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="btnSagittal">
+       <widget class="QDarkModeToolButton" name="btnSagittal">
         <property name="maximumSize">
          <size>
           <width>26</width>
@@ -180,7 +180,7 @@ font-size: 12px;
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="btn3D">
+       <widget class="QDarkModeToolButton" name="btn3D">
         <property name="maximumSize">
          <size>
           <width>26</width>
@@ -395,6 +395,13 @@ font-size: 12px;
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QDarkModeToolButton</class>
+   <extends>QToolButton</extends>
+   <header>QDarkModeToolButton.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>btnFourViews</tabstop>
   <tabstop>btnAxial</tabstop>

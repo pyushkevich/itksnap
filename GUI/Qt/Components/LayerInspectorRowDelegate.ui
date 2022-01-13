@@ -132,7 +132,7 @@ QMenu::item
          <number>0</number>
         </property>
         <item>
-         <widget class="QToolButton" name="btnSticky">
+         <widget class="QDarkModeToolButton" name="btnSticky">
           <property name="maximumSize">
            <size>
             <width>20</width>
@@ -187,7 +187,7 @@ QMenu::item
          </spacer>
         </item>
         <item>
-         <widget class="QToolButton" name="btnVisible">
+         <widget class="QDarkModeToolButton" name="btnVisible">
           <property name="maximumSize">
            <size>
             <width>20</width>
@@ -486,6 +486,13 @@ color: rgb(120, 120, 120)</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QDarkModeToolButton</class>
+   <extends>QToolButton</extends>
+   <header>QDarkModeToolButton.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>
  </resources>

@@ -638,6 +638,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/PolygonToolPanel.cxx
   GUI/Qt/Components/QActionButton.cxx
   GUI/Qt/Components/QColorButtonWidget.cxx
+  GUI/Qt/Components/QDarkModeToolButton.cxx
   GUI/Qt/Components/QDoubleSlider.cxx
   GUI/Qt/Components/QDoubleSliderWithEditor.cxx  
   GUI/Qt/Components/QtFlowLayout.cxx
@@ -735,6 +736,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/PolygonToolPanel.h
   GUI/Qt/Components/QActionButton.h
   GUI/Qt/Components/QColorButtonWidget.h
+  GUI/Qt/Components/QDarkModeToolButton.h
   GUI/Qt/Components/QDoubleSlider.h
   GUI/Qt/Components/QDoubleSliderWithEditor.h
   GUI/Qt/Components/QtFlowLayout.h
