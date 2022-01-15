@@ -1008,6 +1008,7 @@ int main(int argc, char *argv[])
       }
 
     // TODO: remove this
+    /*
     QPalette p = QGuiApplication::palette();
     int roles[] = { QPalette::WindowText, QPalette::Button, QPalette::Light, QPalette::Midlight, QPalette::Dark, QPalette::Mid,
               QPalette::Text, QPalette::BrightText, QPalette::ButtonText, QPalette::Base, QPalette::Window, QPalette::Shadow,
@@ -1028,6 +1029,7 @@ int main(int argc, char *argv[])
 
     for(unsigned int i = 0; i < 21; i++)
       qDebug() << role_names[i] << ":" << p.color((QPalette::ColorRole)roles[i]);
+    */
 
     // Run application
     int rc = app.exec();

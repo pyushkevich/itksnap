@@ -249,10 +249,7 @@ void GenericView3D::SetModel(Generic3DModel *model)
 void GenericView3D::onToolbarModeChange()
 {
   int mode = (int) m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3D();
-
-  m_Model->GetRenderer()->GetRenderWindowInteractor()
-      ->SetInteractorStyle(m_InteractionStyle[mode]);
-
+  this->GetRenderWindow()->GetInteractor()->SetInteractorStyle(m_InteractionStyle[mode]);
   setMouseTracking(mode == SCALPEL_MODE);
 }
 

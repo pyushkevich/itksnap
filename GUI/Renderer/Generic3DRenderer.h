@@ -20,6 +20,7 @@ class vtkTransformPolyDataFilter;
 class vtkCubeSource;
 class vtkCoordinate;
 class vtkCamera;
+class Window3DPicker;
 
 /**
  * A struct representing the state of the VTK camera. This struct
@@ -152,6 +153,9 @@ protected:
 
   // Saved camera state
   vtkSmartPointer<vtkCamera> m_SavedCameraState;
+
+  // Picker object
+  vtkSmartPointer<Window3DPicker> m_Picker;
 };
 
 #endif // GENERIC3DRENDERER_H

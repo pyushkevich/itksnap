@@ -9,6 +9,7 @@ class vtkRenderer;
 class vtkRenderWindow;
 class vtkGenericOpenGLRenderWindow;
 class vtkRenderWindowInteractor;
+class vtkInteractorObserver;
 
 /**
  * @brief The child of AbstractRenderer that holds a VTK render window
@@ -71,8 +72,8 @@ protected:
   vtkSmartPointer<vtkRenderWindow> m_RenderWindow;
   vtkSmartPointer<vtkRenderer> m_Renderer;
 
-  // The interactor
-  vtkSmartPointer<vtkRenderWindowInteractor> m_Interactor;
+  // Interaction style
+  vtkSmartPointer<vtkInteractorObserver> m_InteractionStyle;
 
   // The device pixel ratio (1 for regular screens, 2 for retina)
   // This is updated in resizeGL

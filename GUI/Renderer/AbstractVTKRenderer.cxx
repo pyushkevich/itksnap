@@ -37,10 +37,6 @@ AbstractVTKRenderer::AbstractVTKRenderer()
   // Create a VTK renderer
   m_Renderer = vtkSmartPointer<vtkRenderer>::New();
 
-  // Set up the interactor
-  m_Interactor = vtkSmartPointer<QtRenderWindowInteractor>::New();
-  m_Interactor->SetInteractorStyle(NULL);
-
   // Set the pixel ratio
   m_DevicePixelRatio = 1;
 }
@@ -53,10 +49,8 @@ void AbstractVTKRenderer::SetRenderWindow(vtkRenderWindow *rwin)
   // Add the renderer to the window
   m_RenderWindow->AddRenderer(m_Renderer);
 
-  // Add the interactor to the render window
-  // TODO: fix this
-  // m_Interactor->SetRenderWindow(m_RenderWindow);
-
+  // Set the interaction style
+  m_RenderWindow->GetInteractor()->SetInteractorStyle(m_InteractionStyle);
 }
 
 vtkRenderer *AbstractVTKRenderer::GetRenderer()
@@ -72,28 +66,30 @@ vtkRenderWindow *AbstractVTKRenderer::GetRenderWindow()
 
 vtkRenderWindowInteractor *AbstractVTKRenderer::GetRenderWindowInteractor()
 {
-  return m_Interactor;
+  return m_RenderWindow->GetInteractor();
 }
 
 void AbstractVTKRenderer::SetInteractionStyle(AbstractVTKRenderer::InteractionStyle style)
 {
-  vtkSmartPointer<vtkInteractorObserver> stylePtr = NULL;
+  m_InteractionStyle = nullptr;
   switch(style)
     {
     case AbstractVTKRenderer::NO_INTERACTION:
-      stylePtr = NULL;
+      m_InteractionStyle = nullptr;
       break;
     case AbstractVTKRenderer::TRACKBALL_CAMERA:
-      stylePtr = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+      m_InteractionStyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
       break;
     case AbstractVTKRenderer::TRACKBALL_ACTOR:
-      stylePtr = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
+      m_InteractionStyle = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
       break;
     case AbstractVTKRenderer::PICKER:
-      stylePtr = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
+      m_InteractionStyle = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
       break;
     }
-  m_Interactor->SetInteractorStyle(stylePtr);
+
+  if(m_RenderWindow)
+    m_RenderWindow->GetInteractor()->SetInteractorStyle(m_InteractionStyle);
 }
 
 void AbstractVTKRenderer::SyncronizeCamera(Self *reference)
@@ -102,11 +98,11 @@ void AbstractVTKRenderer::SyncronizeCamera(Self *reference)
   m_Renderer->SetActiveCamera(reference->m_Renderer->GetActiveCamera());
 
   // Respond to modified events from the source interactor
-  Rebroadcast(reference->m_Interactor,
+  Rebroadcast(reference->GetRenderWindowInteractor(),
               vtkCommand::ModifiedEvent, ModelUpdateEvent());
 
   // And vice versa
-  reference->Rebroadcast(m_Interactor,
+  reference->Rebroadcast(this->GetRenderWindowInteractor(),
                          vtkCommand::ModifiedEvent, ModelUpdateEvent());
 }
 

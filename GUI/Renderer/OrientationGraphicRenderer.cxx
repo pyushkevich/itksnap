@@ -45,6 +45,7 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   pCamera->SetViewUp(0.0, -1.0, 0.0);
 
   this->SetInteractionStyle(TRACKBALL_CAMERA);
+  m_Renderer->SetBackground(0.5, 0.5, 0.5);
 }
 
 

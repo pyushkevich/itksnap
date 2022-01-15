@@ -73,8 +73,7 @@ bool operator != (const CameraState &c1, const CameraState &c2)
 Generic3DRenderer::Generic3DRenderer()
 {
   // Create a picker
-  vtkSmartPointer<Window3DPicker> picker = vtkSmartPointer<Window3DPicker>::New();
-  this->GetRenderWindowInteractor()->SetPicker(picker);
+  m_Picker = vtkSmartPointer<Window3DPicker>::New();
 
   // Coordinate mapper
   m_CoordinateMapper = vtkSmartPointer<vtkCoordinate>::New();
@@ -150,7 +149,6 @@ Generic3DRenderer::Generic3DRenderer()
   m_ScalpelPlaneWidget = vtkSmartPointer<vtkImplicitPlaneWidget>::New();
   m_ScalpelPlaneWidget->SetInputConnection(m_ImageCubeTransform->GetOutputPort());
 
-  m_ScalpelPlaneWidget->SetInteractor(this->GetRenderWindowInteractor());
   m_ScalpelPlaneWidget->SetPlaceFactor(1.0);
 
   m_ScalpelPlaneWidget->OutlineTranslationOff();
@@ -160,9 +158,6 @@ Generic3DRenderer::Generic3DRenderer()
   m_ScalpelPlaneWidget->GetPlaneProperty()->SetOpacity(0.5);
   m_ScalpelPlaneWidget->GetOutlineProperty()->SetOpacity(0.2);
   m_ScalpelPlaneWidget->SetTubing(1);
-
-
-
 
   // Rebroadcast Modified event from the camera object as a CameraUpdateEvent
   Rebroadcast(m_Renderer->GetActiveCamera(), vtkCommand::ModifiedEvent, CameraUpdateEvent());
@@ -228,7 +223,7 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   m_SprayGlyphFilter->SetInputData(m_Model->GetSprayPoints());
 
   // Set the model in the picker
-  Window3DPicker::SafeDownCast(this->GetRenderWindowInteractor()->GetPicker())->SetModel(m_Model);
+  m_Picker->SetModel(m_Model);
 }
 
 
@@ -331,6 +326,7 @@ void Generic3DRenderer::UpdateAxisRendering()
 {
   // Update the coordinates of the line source
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
+  SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
 
   if(app->IsMainImageLoaded())
     {
@@ -338,7 +334,6 @@ void Generic3DRenderer::UpdateAxisRendering()
     Vector3ui dims = app->GetCurrentImageData()->GetImageRegion().GetSize();
 
     // Get the axis appearance properties
-    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
     OpenGLAppearanceElement *axisapp =
         as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_3D);
 
@@ -378,6 +373,10 @@ void Generic3DRenderer::UpdateAxisRendering()
     m_ImageCubeTransform->Update();
     m_ImageCubeTransform->GetOutput()->ComputeBounds();
     }
+
+  // Set the background of the window
+  Vector3d clrBack = as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D)->GetColor();
+  m_Renderer->SetBackground(clrBack.data_block());
 }
 
 
@@ -641,6 +640,10 @@ void Generic3DRenderer::SetCameraState(const CameraState &cs)
 void Generic3DRenderer::SetRenderWindow(vtkRenderWindow *rwin)
 {
   Superclass::SetRenderWindow(rwin);
+
+  // The interactor has become available - connect it to subcomponents
+  rwin->GetInteractor()->SetPicker(m_Picker);
+  m_ScalpelPlaneWidget->SetInteractor(rwin->GetInteractor());
 
   // Why is this necessary?
   // rwin->SetMultiSamples(4);
