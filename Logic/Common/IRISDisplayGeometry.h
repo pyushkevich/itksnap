@@ -2,6 +2,7 @@
 #define IRISDISPLAYGEOMETRY_H
 
 #include "SNAPCommon.h"
+#include <array>
 
 /**
  * \class IRISDisplayGeometry
@@ -14,7 +15,7 @@
 struct IRISDisplayGeometry
 {
   /** Three strings of 3 characters each (RAILPS) defining the mapping */
-  std::string DisplayToAnatomyRAI[3];
+  std::array<std::string, 3> DisplayToAnatomyRAI = { "RPS", "AIR", "RIP" };
 
   /** Constructor: creates default mapping */
   IRISDisplayGeometry();
@@ -24,18 +25,11 @@ struct IRISDisplayGeometry
                       const std::string &rai1,
                       const std::string &rai2);
 
-  /** Copy constructor */
-  IRISDisplayGeometry(const IRISDisplayGeometry &other);
-
-  /** Assignment operator */
-  IRISDisplayGeometry &operator = (const IRISDisplayGeometry &other);
-
   /** Get the display window corresponding to an anatomical direction */
   int GetDisplayWindowForAnatomicalDirection(AnatomicalDirection iAnat) const;
 
   /** Get the anatomical direction in the i-th display window */
   AnatomicalDirection GetAnatomicalDirectionForDisplayWindow(int iWin) const;
-
 };
 
 #endif // IRISDISPLAYGEOMETRY_H

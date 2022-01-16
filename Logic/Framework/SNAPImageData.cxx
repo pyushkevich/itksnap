@@ -101,6 +101,7 @@ SNAPImageData
     }
 
   m_SpeedWrapper->InitializeToWrapper(m_MainImageWrapper, (GreyType) 0);
+  m_SpeedWrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
   InvokeEvent(LayerChangeEvent());
 
   // Here or after it's computed?
@@ -166,6 +167,7 @@ SNAPImageData
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
   m_SnakeWrapper->InitializeToWrapper(m_MainImageWrapper, OUTSIDE_VALUE);
+  m_SnakeWrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
 
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
