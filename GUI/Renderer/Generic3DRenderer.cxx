@@ -502,14 +502,12 @@ void Generic3DRenderer::UpdateScalpelPlaneAppearance()
   color_xyz /= 1.1;
   vtkMath::XYZToRGB(color_xyz.data_block(), color_darker.data_block());
 */
-  vtkProperty *p_normal = m_ScalpelPlaneWidget->GetNormalProperty();
-  p_normal->SetColor(color_main.data_block());
-
-  vtkProperty *ps_normal = m_ScalpelPlaneWidget->GetSelectedNormalProperty();
-  ps_normal->SetColor(color_bright.data_block());
-
-  vtkProperty *p_edges = m_ScalpelPlaneWidget->GetEdgesProperty();
-  p_edges->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->GetNormalProperty()->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->GetSelectedNormalProperty()->SetColor(color_bright.data_block());
+  m_ScalpelPlaneWidget->GetEdgesProperty()->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->GetPlaneProperty()->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->GetSelectedPlaneProperty()->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->UpdatePlacement();
 }
 
 void Generic3DRenderer::UpdateSprayGlyphAppearanceAndShape()
