@@ -8,6 +8,7 @@
 #include <QtComboBoxCoupling.h>
 
 #include "SNAPQtCommon.h"
+#include <QStyleOption>
 #include <QPainter>
 #include <QIcon>
 #include <QColor>
@@ -19,7 +20,7 @@ LabelSelectionButton::LabelSelectionButton(QWidget *parent) :
   LabelSelectionButtonPopupMenu *menu = new LabelSelectionButtonPopupMenu(this);
   this->setMenu(menu);
   this->setPopupMode(QToolButton::InstantPopup);
-  this->setIconSize(QSize(22,22));
+  this->setIconSize(QSize(16,16));
 }
 
 
@@ -40,7 +41,7 @@ void LabelSelectionButton::SetModel(GlobalUIModel *model)
   menu->SetModel(model);
 
   this->UpdateAppearance();
-}
+  }
 
 void LabelSelectionButton::onModelUpdate(const EventBucket &bucket)
 {
@@ -58,7 +59,7 @@ void LabelSelectionButton::UpdateAppearance()
   DrawOverFilter bg = m_Model->GetGlobalState()->GetDrawOverFilter();
 
   // Draw a split button
-  this->setIcon(CreateLabelComboIcon(20, 20, fg, bg, clt));
+  this->setIcon(CreateLabelComboIcon(16, 16, fg, bg, clt));
 
   // Update the tooltip
   QString tooltip = this->toolTip();
