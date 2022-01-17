@@ -96,45 +96,6 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   ui->btnAnnotation->setDefaultAction(FindUpstreamAction(this, "actionAnnotation"));
   ui->btnSnake->setDefaultAction(FindUpstreamAction(this, "actionSnake"));
 
-  /*
-  // Configure the toolbar's simple buttons
-  toolbar->addAction(FindUpstreamAction(this, "actionCrosshair"));
-  toolbar->addAction(FindUpstreamAction(this, "actionZoomPan"));
-
-  // QWidget *spacer1 = new QWidget();
-  // spacer1->setMinimumWidth(2);
-  // toolbar->addWidget(spacer1);
-
-  // Create a drop down button for choosing between polygon and annotation modes
-  m_DrawingDropdownButton = new QToolButton(this);
-  QMenu *tbDrawingMenu = new QMenu();
-  tbDrawingMenu->addAction(FindUpstreamAction(this, "actionPolygon"));
-  tbDrawingMenu->addAction(FindUpstreamAction(this, "actionPaintbrush"));
-  tbDrawingMenu->addAction(FindUpstreamAction(this, "actionAnnotation"));
-  m_DrawingDropdownButton->setMenu(tbDrawingMenu);
-  m_DrawingDropdownButton->setDefaultAction(FindUpstreamAction(this, "actionPolygon"));
-  m_DrawingDropdownButton->setPopupMode(QToolButton::MenuButtonPopup);
-  // m_DrawingDropdownButton->setMinimumWidth(28);
-  // m_DrawingDropdownButton->setMaximumWidth(38);
-  // m_DrawingDropdownButton->setStyleSheet("padding-right:12px;");
-
-  connect(tbDrawingMenu, SIGNAL(triggered(QAction*)), this, SLOT(onDrawingButtonAction(QAction *)));
-
-  toolbar->addWidget(m_DrawingDropdownButton);
-
-  // QWidget *spacer2 = new QWidget();
-  // spacer2->setMinimumWidth(2);
-  // toolbar->addWidget(spacer2);
-
-
-
-  toolbar->addAction(FindUpstreamAction(this, "actionSnake"));
-
-  // toolbar->addActions(parent->GetMainToolActionGroup()->actions());
-
-  */
-
-
 /*
   // The action toolbar
   QToolBar *toolCmd = new QToolBar(this);
@@ -148,15 +109,6 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   ui->btnSnakeInspector->setVisible(false);
   ui->btnAnnotateInspector->setVisible(false);
 
-
-  // Label selection button
-  /*m_LabelSelectionButton = new LabelSelectionButton(this);
-
-  toolCmd->addAction(FindUpstreamAction(this, "actionUndo"));
-  toolCmd->addAction(FindUpstreamAction(this, "actionRedo"));
-  toolCmd->addWidget(m_LabelSelectionButton);
-  toolCmd->addAction(FindUpstreamAction(this, "actionLayerInspector")); */
-
   ui->btnUndo->setDefaultAction(FindUpstreamAction(this, "actionUndo"));
   ui->btnRedo->setDefaultAction(FindUpstreamAction(this, "actionRedo"));
   ui->btnLayerInspector->setDefaultAction(FindUpstreamAction(this, "actionLayerInspector"));
@@ -164,6 +116,12 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
 
   // Add a shortcut for the button
   ui->btnLabelSelector->setShortcut(QKeySequence("l"));
+  LabelSelectionButtonPopupMenu *ls_menu = new LabelSelectionButtonPopupMenu(this);
+  ui->btnLabelSelector->setMenu(ls_menu);
+  ui->btnLabelSelector->setPopupMode(QToolButton::InstantPopup);
+
+  // ui->btnLabelSelector->setIconSize(QSize(16,16));
+
 
   // Set up the label popup
   m_LabelSelectionPopup = new LabelSelectionPopup(this);
@@ -193,7 +151,21 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   ui->pagePolygonTool->SetModel(m_Model);
   ui->pageAnnotationTool->SetModel(m_Model);
 
-  ui->btnLabelSelector->SetModel(model);
+  // Event mechanism related to label selector button
+  LatentITKEventNotifier::connect(
+        m_Model->GetGlobalState()->GetDrawingColorLabelModel(),
+        IRISEvent(), this, SLOT(onLabelSelectionUpdate));
+
+  LatentITKEventNotifier::connect(
+        m_Model->GetGlobalState()->GetDrawOverFilterModel(),
+        IRISEvent(), this, SLOT(onLabelSelectionUpdate));
+
+  LabelSelectionButtonPopupMenu *ls_menu
+      = static_cast<LabelSelectionButtonPopupMenu *>(ui->btnLabelSelector->menu());
+  ls_menu->SetModel(model);
+
+  onLabelSelectionUpdate();
+
   m_LabelSelectionPopup->SetModel(model);
 
   ui->labelInspector->SetModel(m_Model);
@@ -240,6 +212,11 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
 void MainControlPanel::onDrawingButtonAction(QAction *action)
 {
   m_DrawingDropdownButton->setDefaultAction(action);
+  }
+
+void MainControlPanel::onLabelSelectionUpdate()
+{
+
 }
 
 

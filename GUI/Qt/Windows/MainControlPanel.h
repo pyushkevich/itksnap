@@ -32,6 +32,8 @@ protected slots:
 
 private slots:
 
+  void onLabelSelectionUpdate();
+
   void on_btnCursorInspector_clicked(bool checked);
 
   void on_btnZoomInspector_clicked(bool checked);
