@@ -934,11 +934,6 @@ QToolBar {
     </widget>
    </item>
   </layout>
-  <action name="actiontest">
-   <property name="text">
-    <string>test</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
