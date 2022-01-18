@@ -399,12 +399,12 @@ public:
 bool Generic3DModel::IntersectSegmentation(int vx, int vy, Vector3i &hit)
 {
   // World coordinate of the click position and direction
-  Vector3d x_world, d_world;
-  m_Renderer->ComputeRayFromClick(vx, vy, x_world, d_world);
+  Vector3d x_world, ray_world, dx_world, dy_world;
+  m_Renderer->ComputeRayFromClick(vx, vy, x_world, ray_world, dx_world, dy_world);
 
   // Convert these to image coordinates
   Vector3d x_image = affine_transform_point(m_WorldMatrixInverse, x_world);
-  Vector3d d_image = affine_transform_vector(m_WorldMatrixInverse, d_world);
+  Vector3d d_image = affine_transform_vector(m_WorldMatrixInverse, ray_world);
 
   int result = 0;
   if(m_Driver->IsSnakeModeLevelSetActive())
@@ -428,6 +428,26 @@ bool Generic3DModel::IntersectSegmentation(int vx, int vy, Vector3i &hit)
 
   return (result == 1);
 }
+
+bool Generic3DModel::IntersectSegmentation(int vx, int vy, double v_radius, int n_samples, std::set<Vector3i> &hits)
+{
+  // World coordinate of the click position and direction
+  Vector3d x_world, ray_world, dx_world, dy_world;
+  m_Renderer->ComputeRayFromClick(vx, vy, x_world, ray_world, dx_world, dy_world);
+
+  // Convert these to image coordinates
+  Vector3d x_image = affine_transform_point(m_WorldMatrixInverse, x_world);
+  Vector3d ray_image = affine_transform_vector(m_WorldMatrixInverse, ray_world);
+  Vector3d dx_image = affine_transform_vector(m_WorldMatrixInverse, dx_world);
+  Vector3d dy_image = affine_transform_vector(m_WorldMatrixInverse, dy_world);
+
+  // TODO figure our sampling code here
+
+  return false;
+
+
+}
+
 
 bool Generic3DModel::PickSegmentationVoxelUnderMouse(int px, int py)
 {

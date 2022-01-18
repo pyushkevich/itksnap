@@ -89,7 +89,7 @@ public:
   void FlipScalpelPlaneNormal();
 
   /** Compute the world coordinates of a click and a ray pointing inward (not normalized) */
-  void ComputeRayFromClick(int x, int y, Vector3d &m_Point, Vector3d &m_Ray);
+  void ComputeRayFromClick(int x, int y, Vector3d &point, Vector3d &ray, Vector3d &dx, Vector3d &dy);
 
 protected:
   Generic3DRenderer();

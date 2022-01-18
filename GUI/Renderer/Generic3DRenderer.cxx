@@ -804,13 +804,21 @@ void Generic3DRenderer::FlipScalpelPlaneNormal()
   InvokeEvent(ModelUpdateEvent());
 }
 
-void Generic3DRenderer::ComputeRayFromClick(int x, int y, Vector3d &m_Point, Vector3d &m_Ray)
+void Generic3DRenderer::ComputeRayFromClick(int x, int y, Vector3d &point, Vector3d &ray, Vector3d &dx, Vector3d &dy)
 {
   // Get the position of the click in world coordinates
   m_CoordinateMapper->SetValue(x, y, 0);
-  m_Point = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer));
+  point = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer));
 
   // Get the normal vector to the viewport
   m_CoordinateMapper->SetValue(x, y, 1);
-  m_Ray = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - m_Point;
+  ray = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - point;
+
+  // Get the viewport in-plane vectors
+  m_CoordinateMapper->SetValue(x+1, y, 0);
+  dx = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - point;
+
+  // Get the viewport in-plane vectors
+  m_CoordinateMapper->SetValue(x, y+1, 0);
+  dy = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - point;
 }
