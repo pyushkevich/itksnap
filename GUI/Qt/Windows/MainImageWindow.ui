@@ -151,7 +151,7 @@ QTabBar:tab:hover {
              <widget class="QFrame" name="frame">
               <property name="styleSheet">
                <string notr="true">QFrame#frame {
-	background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0.537, y2:0.0340909, stop:0 rgba(210, 230, 230, 255), stop:1 rgba(255, 255, 255, 255));
+	background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0.537, y2:0.0340909, stop:0 rgba(210, 230, 230, 255), stop:1 palette(light));
     border: 1px solid black;
 }
 
