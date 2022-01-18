@@ -7,11 +7,13 @@
 #include "LabelSelectionPopup.h"
 #include "MainImageWindow.h"
 #include "GlobalState.h"
+#include "IRISApplication.h"
 
 #include <QtActionGroupCoupling.h>
 #include <QActionGroup>
 #include <QMenu>
 #include <QToolButton>
+#include <QRegularExpression>
 
 // A style sheet for making blue buttons with a drop down. For now we are
 // not going to use these, but may need them if more tools are added to
@@ -120,9 +122,6 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   ui->btnLabelSelector->setMenu(ls_menu);
   ui->btnLabelSelector->setPopupMode(QToolButton::InstantPopup);
 
-  // ui->btnLabelSelector->setIconSize(QSize(16,16));
-
-
   // Set up the label popup
   m_LabelSelectionPopup = new LabelSelectionPopup(this);
 
@@ -131,12 +130,6 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
   ui->btnRotate3D->setDefaultAction(FindUpstreamAction(this, "action3DTrackball"));
   ui->btnScalpel->setDefaultAction(FindUpstreamAction(this, "action3DScalpel"));
   ui->btnSpray->setDefaultAction(FindUpstreamAction(this, "action3DSpray"));
-
-
-
-  //QToolBar *tool3D = new QToolBar(this);
-  //ui->panelToolbarMode3D->layout()->addWidget(tool3D);
-  //tool3D->addActions(parent->Get3DToolActionGroup()->actions());
 }
 
 void MainControlPanel::SetModel(GlobalUIModel *model)
@@ -216,7 +209,20 @@ void MainControlPanel::onDrawingButtonAction(QAction *action)
 
 void MainControlPanel::onLabelSelectionUpdate()
 {
+  ColorLabelTable *clt = m_Model->GetDriver()->GetColorLabelTable();
+  LabelType fg = m_Model->GetGlobalState()->GetDrawingColorLabel();
+  DrawOverFilter bg = m_Model->GetGlobalState()->GetDrawOverFilter();
 
+  // Draw a split button
+  ui->btnLabelSelector->setIcon(CreateLabelComboIcon(16, 16, fg, bg, clt));
+
+  // Update the tooltip
+  QString tooltip = this->toolTip();
+  tooltip.replace(QRegularExpression("<!--FgStart-->.*<!--FgEnd-->"),
+                  QString("<!--FgStart-->%1<!--FgEnd-->").arg(GetTitleForColorLabel(fg, clt)));
+  tooltip.replace(QRegularExpression("<!--BgStart-->.*<!--BgEnd-->"),
+                  QString("<!--BgStart-->%1<!--BgEnd-->").arg(GetTitleForDrawOverFilter(bg, clt)));
+  ui->btnLabelSelector->setToolTip(tooltip);
 }
 
 

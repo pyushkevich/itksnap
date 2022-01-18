@@ -4,51 +4,30 @@
 #include <QStyleOption>
 #include <QPainter>
 
-const char style_sheet_light[] =
-    "QToolButton\n"
-    "{\n"
-    "  min-width: 1ex;\n"
-    "  border-top: 1px solid rgb(192, 192, 192);\n"
-    "  border-bottom: 1px solid rgb(192, 192, 192);\n"
-    "  border-left: 1px;\n"
-    "  border-right: 1px;\n"
-    "  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(235, 235, 235, 255), stop:0.487685 rgba(216, 216, 216, 255), stop:0.502463 rgba(215, 215, 215, 255), stop:1 rgba(235, 235, 235, 255));\n"
-    "}\n"
-    "\n"
-    "QToolButton:checked, QToolButton:hover\n"
-    "{\n"
-    "  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(214, 228, 245, 255), stop:0.487685 rgba(193, 205, 221, 255), stop:0.502463 rgba(182, 193, 207, 255), stop:1 rgba(235, 228, 245, 255));\n"
-    "  padding:0px;\n"
-    "}\n"
-    "\n"
-    "DarkModeToolbar {\n"
-    "  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(235, 235, 235, 255), stop:0.487685 rgba(216, 216, 216, 255), stop:0.502463 rgba(215, 215, 215, 255), stop:1 rgba(235, 235, 235, 255));\n"
-    "  border-top: 1px solid rgb(192, 192, 192);\n"
-    "  border-bottom: 1px solid rgb(192, 192, 192);\n"
-    "}\n";
+const char style_sheet_light[] = R"foo(
+QToolButton
+{
+  min-width: 1ex;
+  border-top: 1px solid rgb(192, 192, 192);
+  border-bottom: 1px solid rgb(192, 192, 192);
+  border-left: 1px;
+  border-right: 1px;
+  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgb(255, 255, 255), stop:0.0394089 rgb(235, 235, 235), stop:0.487685 rgb(215, 215, 215), stop:0.502463 rgb(215, 215, 215), stop:1 rgb(235, 235, 235));
+}
 
-const char style_sheet_dark[] =
-    "QToolButton\n"
-    "{\n"
-    "  min-width: 1ex;\n"
-    "  border-top: 1px solid rgb(64, 64, 64);\n"
-    "  border-bottom: 1px solid rgb(64, 64, 64);\n"
-    "  border-left: 1px;\n"
-    "  border-right: 1px;\n"
-    "  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(185, 185, 185, 255), stop:0.0394089 rgba(175, 175, 175, 255), stop:0.487685 rgba(156, 156, 156, 255), stop:0.502463 rgba(155, 155, 155, 255), stop:1 rgba(175, 175, 175, 255));\n"
-    "}\n"
-    "\n"
-    "QToolButton:checked, QToolButton:hover\n"
-    "{\n"
-    "  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(195, 195, 195, 255), stop:0.0394089 rgba(154, 168, 185, 255), stop:0.487685 rgba(133, 145, 161, 255), stop:0.502463 rgba(122, 133, 147, 255), stop:1 rgba(155, 168, 185, 255));\n"
-    "  padding:0px;\n"
-    "}\n"
-    "\n"
-    "DarkModeToolbar {\n"
-    "  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(185, 185, 185, 255), stop:0.0394089 rgba(175, 175, 175, 255), stop:0.487685 rgba(156, 156, 156, 255), stop:0.502463 rgba(155, 155, 155, 255), stop:1 rgba(175, 175, 175, 255));\n"
-    "  border-top: 1px solid rgb(64, 64, 64);\n"
-    "  border-bottom: 1px solid rgb(64, 64, 64);\n"
-    "}\n";
+QToolButton:checked, QToolButton:hover
+{
+  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgb(255, 255, 255), stop:0.0394089 rgb(214, 228, 245), stop:0.487685 rgb(193, 205, 221), stop:0.502463 rgb(182, 193, 207), stop:1 rgb(235, 228, 245));
+  border-top: 1px solid rgb(192, 192, 192);
+  border-bottom: 1px solid rgb(192, 192, 192);
+}
+
+DarkModeToolbar {
+  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgb(255, 255, 255), stop:0.0394089 rgb(235, 235, 235), stop:0.487685 rgb(215, 215, 215), stop:0.502463 rgb(215, 215, 215), stop:1 rgb(235, 235, 235));
+  border-top: 1px solid rgb(192, 192, 192);
+  border-bottom: 1px solid rgb(192, 192, 192);
+};
+)foo";
 
 DarkModeToolbar::DarkModeToolbar(QWidget *parent)
   : QWidget{parent}
@@ -62,7 +41,19 @@ bool DarkModeToolbar::event(QEvent *ev)
     Style darkMode = QGuiApplication::palette().color(QPalette::Window).valueF() < 0.5 ? DARK : LIGHT;
     if(darkMode != m_StyledForDarkMode)
       {
-      this->setStyleSheet(QString(darkMode == DARK ? style_sheet_dark : style_sheet_light));
+      QString ss(style_sheet_light);
+      if(darkMode == DARK)
+        {
+        ss.replace("rgb(192, 192, 192)", "rgb(64, 64, 64)");
+        ss.replace("rgb(215, 215, 215)", "rgb(155, 155, 155)");
+        ss.replace("rgb(235, 235, 235)", "rgb(175, 175, 175)");
+        ss.replace("rgb(255, 255, 255)", "rgb(195, 195, 195)");
+        ss.replace("rgb(214, 228, 245)", "rgb(154, 168, 185)");
+        ss.replace("rgb(193, 205, 221)", "rgb(133, 145, 161)");
+        ss.replace("rgb(182, 193, 207)", "rgb(122, 133, 147)");
+        ss.replace("rgb(235, 228, 245)", "rgb(155, 168, 185)");
+        }
+      this->setStyleSheet(ss);
       m_StyledForDarkMode = darkMode;
       }
     }
