@@ -68,4 +68,4 @@ void GenericSliceView::SetModel(GenericSliceModel *model)
   connectITK(m_Model, ModelUpdateEvent());
   connectITK(m_Model, SliceModelGeometryChangeEvent());
   connectITK(m_Renderer, AppearanceUpdateEvent());
-}
+  }

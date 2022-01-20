@@ -511,7 +511,7 @@ QToolButton { font-size: 11px; }</string>
           </spacer>
          </item>
          <item>
-          <widget class="QToolButton" name="toolButton">
+          <widget class="QToolButton" name="btnReorientImage">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>

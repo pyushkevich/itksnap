@@ -94,3 +94,9 @@ void ImageInfoInspector::SetModel(ImageInfoModel *model)
                       {ui->outIntensityUnderCursor, ui->lblIntensityUnderCursor }),
                     m_Model, ImageInfoModel::UIF_INTENSITY_IS_MULTIVALUED, QtWidgetActivator::HideInactive);
 }
+
+void ImageInfoInspector::on_btnReorientImage_clicked()
+{
+  FindUpstreamAction(this, "actionReorient_Image")->trigger();
+}
+

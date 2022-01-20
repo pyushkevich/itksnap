@@ -144,20 +144,11 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   ui->pagePolygonTool->SetModel(m_Model);
   ui->pageAnnotationTool->SetModel(m_Model);
 
-  // Event mechanism related to label selector button
-  LatentITKEventNotifier::connect(
-        m_Model->GetGlobalState()->GetDrawingColorLabelModel(),
-        IRISEvent(), this, SLOT(onLabelSelectionUpdate));
-
-  LatentITKEventNotifier::connect(
-        m_Model->GetGlobalState()->GetDrawOverFilterModel(),
-        IRISEvent(), this, SLOT(onLabelSelectionUpdate));
-
   LabelSelectionButtonPopupMenu *ls_menu
       = static_cast<LabelSelectionButtonPopupMenu *>(ui->btnLabelSelector->menu());
   ls_menu->SetModel(model);
 
-  onLabelSelectionUpdate();
+  updateLabelSelectionButton();
 
   m_LabelSelectionPopup->SetModel(model);
 
@@ -169,6 +160,10 @@ void MainControlPanel::SetModel(GlobalUIModel *model)
   // Listen to changes in the toolbar mode
   connectITK(m_Model->GetGlobalState()->GetToolbarModeModel(), ValueChangedEvent());
   connectITK(m_Model->GetGlobalState()->GetToolbarMode3DModel(), ValueChangedEvent());
+
+  // Listen to changes in current label selection
+  connectITK(m_Model->GetGlobalState()->GetDrawingColorLabelModel(), ValueChangedEvent());
+  connectITK(m_Model->GetGlobalState()->GetDrawOverFilterModel(), ValueChangedEvent());
 }
 
 void MainControlPanel::onModelUpdate(const EventBucket &bucket)
@@ -183,7 +178,6 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     ui->btnAnnotateInspector,
     NULL
   };
-
 
   // Respond to changes in toolbar mode
   GlobalState *gs = m_Model->GetGlobalState();
@@ -200,6 +194,12 @@ void MainControlPanel::onModelUpdate(const EventBucket &bucket)
     if(mode_inspector_btn[mode])
       mode_inspector_btn[mode]->click();
     }
+
+  if(bucket.HasEvent(ValueChangedEvent(), gs->GetDrawingColorLabelModel()) ||
+     bucket.HasEvent(ValueChangedEvent(), gs->GetDrawOverFilterModel()))
+    {
+    updateLabelSelectionButton();
+    }
 }
 
 void MainControlPanel::onDrawingButtonAction(QAction *action)
@@ -207,7 +207,7 @@ void MainControlPanel::onDrawingButtonAction(QAction *action)
   m_DrawingDropdownButton->setDefaultAction(action);
   }
 
-void MainControlPanel::onLabelSelectionUpdate()
+void MainControlPanel::updateLabelSelectionButton()
 {
   ColorLabelTable *clt = m_Model->GetDriver()->GetColorLabelTable();
   LabelType fg = m_Model->GetGlobalState()->GetDrawingColorLabel();

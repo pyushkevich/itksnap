@@ -26,6 +26,7 @@
 #include <QVTKInteractor.h>
 #include <QImage>
 #include <QPainter>
+#include <QCoreApplication>
 
 /**
  * An extension of QVTKOpenGLNativeWidget that handles saving screenshots
@@ -198,7 +199,9 @@ QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   auto *iw = new QVTKOpenGLNativeWidgetWithScreenshot(this);
   iw->setRenderWindow(vtkNew<vtkGenericOpenGLRenderWindow>());
   iw->renderWindow()->AddRenderer(renderer);
+  iw->setObjectName("internalWidget");
   m_InternalWidget = iw;
+
 #else
   auto *iw = new QtVTKOffscreenMesaWidget(this);
   vtkNew<vtkRenderWindow> rwin;
@@ -209,6 +212,7 @@ QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   inter->Initialize();
 
   iw->SetRenderWindow(rwin);
+  iw->setObjectName("internalWidget");
   m_InternalWidget = iw;
 #endif
 
@@ -281,13 +285,13 @@ QtVTKRenderWindowBox
 void QtVTKRenderWindowBox::enterEvent(QEnterEvent *)
 {
   if(m_GrabFocusOnEntry)
-    this->setFocus();
+    this->m_InternalWidget->setFocus();
 }
 
 void QtVTKRenderWindowBox::leaveEvent(QEvent *)
 {
   if(m_GrabFocusOnEntry)
-    this->clearFocus();
+    this->m_InternalWidget->clearFocus();
 }
 
 bool QtVTKRenderWindowBox::SaveScreenshot(std::string filename)
@@ -300,7 +304,7 @@ bool QtVTKRenderWindowBox::SaveScreenshot(std::string filename)
 
   this->update();
   return true;
-}
+  }
 
 void QtVTKRenderWindowBox::onModelUpdate(const EventBucket &b)
 {

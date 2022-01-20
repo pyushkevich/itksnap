@@ -32,8 +32,6 @@ protected slots:
 
 private slots:
 
-  void onLabelSelectionUpdate();
-
   void on_btnCursorInspector_clicked(bool checked);
 
   void on_btnZoomInspector_clicked(bool checked);
@@ -52,6 +50,9 @@ private slots:
   void on_btnAnnotateInspector_clicked(bool checked);
 
 private:
+
+  void updateLabelSelectionButton();
+
   Ui::MainControlPanel *ui;
   GlobalUIModel *m_Model;
 
