@@ -4,6 +4,10 @@ include("Library");
 // Open the test image
 openMainImage("MRIcrop-orig.gipl.gz");
 
+// Make sure labels are ok
+setForegroundLabel("Label 1");
+setBackgroundLabel("All labels");
+
 // Enter snake mode
 enterSnakeMode(10, 10, 10, 32, 32, 32);
 
