@@ -333,7 +333,6 @@ SNAPLevelSetDriver<VDimension>
   return m_LevelSetFilter->GetOutput();
 }
 
-
 template<unsigned int VDimension>
 void
 SNAPLevelSetDriver<VDimension>

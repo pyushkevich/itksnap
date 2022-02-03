@@ -392,7 +392,7 @@ public:
    * the image directly using iterators or to graft the image to an ITK filter. This filter is not
    * implemented for wrappers around ImageAdaptors
    */
-  virtual void SetPixelImportPointer(ComponentType *ptr, unsigned long size);
+  virtual void SetPixelContainer(typename ImageType::PixelContainer *container);
 
   /** 
    * Get the slicer inside this wrapper

@@ -162,6 +162,7 @@ SNAPImageData
     {
     m_SnakeWrapper = LevelSetImageWrapper::New();
     m_SnakeWrapper->SetDefaultNickname("Evolving Contour");
+    m_SnakeWrapper->SetAlpha(0.5);
     PushBackImageWrapper(SNAP_ROLE, m_SnakeWrapper.GetPointer());
     }
 
@@ -387,9 +388,8 @@ SNAPImageData
   // The ITK pattern is to do the opposite, i.e., graft the image onto the level
   // set filter, but the particular filter used for level set propagation,
   // ParallelSparseFieldLevelSetImageFilter is not coded to support this.
-  m_SnakeWrapper->SetPixelImportPointer(
-        m_LevelSetDriver->GetOutput()->GetBufferPointer(),
-        m_LevelSetDriver->GetOutput()->GetPixelContainer()->Size());
+  m_SnakeWrapper->SetPixelContainer(m_LevelSetDriver->GetOutput()->GetPixelContainer());
+
 
   // Finish thread-safe section
   m_LevelSetPipelineMutex.unlock();
@@ -460,9 +460,7 @@ SNAPImageData
   // The ITK pattern is to do the opposite, i.e., graft the image onto the level
   // set filter, but the particular filter used for level set propagation,
   // ParallelSparseFieldLevelSetImageFilter is not coded to support this.
-  m_SnakeWrapper->SetPixelImportPointer(
-        m_LevelSetDriver->GetOutput()->GetBufferPointer(),
-        m_LevelSetDriver->GetOutput()->GetPixelContainer()->Size());
+  m_SnakeWrapper->SetPixelContainer(m_LevelSetDriver->GetOutput()->GetPixelContainer());
 
   // Leave a thread-safe section
   m_LevelSetPipelineMutex.unlock();

@@ -188,7 +188,7 @@ public:
       m_VTKContour->SetValue(0, 0.0);
 
       // Generate a contour
-      m_VTKExporter->SetInput(m_Driver->GetOutput());
+      m_VTKExporter->SetInput(m_LevelSetImage);
       m_VTKContour->Update();
 
       // Get the list of points representing the evolving contour

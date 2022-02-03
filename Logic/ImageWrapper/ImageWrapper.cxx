@@ -211,6 +211,14 @@ public:
                         image_4d->GetNameOfClass());
   }
 
+  static void UpdatePixelContainer(Image4DType *image_4d,
+                                   typename Image4DType::PixelContainer *itkNotUsed(container))
+  {
+    throw IRISException("UpdatePixelContainer unsupported for class %s",
+                        image_4d->GetNameOfClass());
+  }
+
+  /*
   template <typename TPixel>
   static void UpdateImportPointer(Image4DType *image_4d,
                                   TPixel *itkNotUsed(ptr),
@@ -219,6 +227,7 @@ public:
     throw IRISException("UpdateImportPointer unsupported for class %s",
                         image_4d->GetNameOfClass());
   }
+  */
 };
 
 
@@ -362,6 +371,13 @@ public:
     image_4d->SetPixelContainer(image_tp->GetPixelContainer());
   }
 
+  static void UpdatePixelContainer(Image4DType *image_4d,
+                                   typename Image4DType::PixelContainer *container)
+  {
+    image_4d->SetPixelContainer(container);
+  }
+
+  /*
   template <class TPixel>
   static void UpdateImportPointer(Image4DType *image_4d,
                                   TPixel *ptr,
@@ -369,6 +385,7 @@ public:
   {
     image_4d->GetPixelContainer()->SetImportPointer(ptr, size);
   }
+  */
 };
 
 
@@ -1829,25 +1846,24 @@ ImageWrapper<TTraits, TBase>
   // which is the output of the time point selection pipeline and thus
   // is not necessarily input to downstream filters.
   m_ImageTimePoints[m_TimePointIndex]->Modified();
-}
+  }
 
 template<class TTraits, class TBase>
-void ImageWrapper<TTraits,TBase>
-::SetPixelImportPointer(ComponentType *ptr, unsigned long size)
+void ImageWrapper<TTraits, TBase>
+::SetPixelContainer(typename ImageType::PixelContainer *container)
 {
   itkAssertOrThrowMacro(
-        size == m_Image4D->GetPixelContainer()->Size(),
-        "Source array size does not match target array size in SetPixelImportPointer");
+        container->Size() == m_Image4D->GetPixelContainer()->Size(),
+        "Source array size does not match target array size in SetPixelContainer");
 
   typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
-  Specialization::UpdateImportPointer(m_Image4D, ptr, size);
+  Specialization::UpdatePixelContainer(m_Image4D, container);
   for(unsigned int tp = 0; tp < m_ImageTimePoints.size(); tp++)
     Specialization::ConfigureTimePointImageFromImage4D(m_Image4D, m_ImageTimePoints[tp], tp);
   m_TimePointSelectFilter->Update();
-  
+
   this->PixelsModified();
 }
-
 
 template<class TTraits, class TBase>
 inline double
