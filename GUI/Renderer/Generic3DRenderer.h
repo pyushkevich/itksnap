@@ -21,6 +21,8 @@ class vtkCubeSource;
 class vtkCoordinate;
 class vtkCamera;
 class Window3DPicker;
+class ImageWrapperBase;
+class VolumeAssembly;
 
 /**
  * A struct representing the state of the VTK camera. This struct
@@ -119,6 +121,9 @@ protected:
   // Update the camera
   void UpdateCamera(bool reset);
 
+  // Configure the volume rendering
+  void UpdateVolumeRendering();
+
   typedef std::map<LabelType, vtkSmartPointer<vtkActor> > ActorMap;
   typedef ActorMap::iterator ActorMapIterator;
 
@@ -156,6 +161,7 @@ protected:
 
   // Picker object
   vtkSmartPointer<Window3DPicker> m_Picker;
+  void UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssembly *va);
 };
 
 #endif // GENERIC3DRENDERER_H

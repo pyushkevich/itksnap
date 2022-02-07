@@ -40,8 +40,8 @@
 
 template <class TImageType>
 void ConnectITKExporterToVTKImporter(
-    itk::VTKImageExport<TImageType> *exporter,
-    vtkImageImport *importer)
+    itk::VTKImageExport<TImageType> *exporter, vtkImageImport *importer,
+    bool connect_origin = true, bool connect_spacing = true, bool connect_direction = false)
 {
   importer->SetUpdateInformationCallback(
     exporter->GetUpdateInformationCallback());
@@ -49,10 +49,15 @@ void ConnectITKExporterToVTKImporter(
     exporter->GetPipelineModifiedCallback());
   importer->SetWholeExtentCallback(
     exporter->GetWholeExtentCallback());
-  importer->SetSpacingCallback(
-    exporter->GetSpacingCallback());
-  importer->SetOriginCallback(
-    exporter->GetOriginCallback());
+  if(connect_spacing)
+    importer->SetSpacingCallback(
+      exporter->GetSpacingCallback());
+  if(connect_origin)
+    importer->SetOriginCallback(
+      exporter->GetOriginCallback());
+  if(connect_direction)
+    importer->SetDirectionCallback(
+       exporter->GetDirectionCallback());
   importer->SetScalarTypeCallback(
     exporter->GetScalarTypeCallback());
   importer->SetNumberOfComponentsCallback(

@@ -215,6 +215,9 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(app->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 
+  // Appearance changes in main/overlays (for volume rendering)
+  Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperChangeEvent(), ModelUpdateEvent());
+
   // Update the main components
   this->UpdateAxisRendering();
   this->UpdateCamera(true);
@@ -679,6 +682,131 @@ void Generic3DRenderer::UpdateSegmentationMeshAppearance()
     }
 }
 
+#include "IRISImageData.h"
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkImageImport.h>
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <IntensityCurveInterface.h>
+#include <ColorMap.h>
+
+class VolumeAssembly : public itk::Object
+{
+public:
+  irisITKObjectMacro(VolumeAssembly, itk::Object)
+
+  vtkSmartPointer<vtkVolume> Volume;
+  vtkSmartPointer<vtkSmartVolumeMapper> Mapper;
+  vtkSmartPointer<vtkColorTransferFunction> ColorCurve;
+  vtkSmartPointer<vtkVolumeProperty> Property;
+  vtkSmartPointer<vtkPiecewiseFunction> OpacityCurve;
+  vtkSmartPointer<vtkPiecewiseFunction> GradientCurve;
+
+  // Update time on the curve
+  itk::ModifiedTimeType CurveUpdateTime = 0;
+
+protected:
+  VolumeAssembly() {}
+  virtual ~VolumeAssembly() {}
+};
+
+void Generic3DRenderer::UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssembly *va)
+{
+  auto *sw = layer->GetDefaultScalarRepresentation();
+  auto *curve = sw->GetIntensityCurve();
+  auto *nmap = sw->GetNativeIntensityMapping();
+  auto *cmap = sw->GetColorMap();
+
+  double imin = sw->GetImageMinAsDouble();
+  double imax = sw->GetImageMaxAsDouble();
+  unsigned int k = 100;
+
+  va->ColorCurve->RemoveAllPoints();
+  va->OpacityCurve->RemoveAllPoints();
+  for(unsigned int j = 0; j <= k; j++)
+    {
+    double t = j * 1.0 / k;
+    double i = imin + (imax - imin) * t;
+    auto rgba = cmap->MapIndexToRGBA(curve->Evaluate(t));
+    va->ColorCurve->AddRGBPoint(i, rgba[0] / 255., rgba[1] / 255., rgba[2] / 255.);
+    va->OpacityCurve->AddPoint(i, rgba[3] / 255.);
+    }
+
+  va->CurveUpdateTime = std::max(cmap->GetMTime(), curve->GetMTime());
+}
+
+void Generic3DRenderer::UpdateVolumeRendering()
+{
+  // Associate each layer with a volume rendering
+  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
+  GenericImageData *id = app->GetCurrentImageData();
+  for(LayerIterator li = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE); !li.IsAtEnd(); ++li)
+    {
+    auto *layer = li.GetLayer();
+    typename VolumeAssembly::Pointer va =
+        dynamic_cast<VolumeAssembly *>(layer->GetUserData("volume"));
+    if(!va)
+      {
+      va = VolumeAssembly::New();
+      auto *vtk_import = layer->GetDefaultScalarRepresentation()->GetVTKImporter();
+      va->Mapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+      va->Mapper->SetInputConnection(vtk_import->GetOutputPort());
+
+      va->ColorCurve = vtkSmartPointer<vtkColorTransferFunction>::New();
+      va->OpacityCurve = vtkSmartPointer<vtkPiecewiseFunction>::New();
+      UpdateVolumeCurves(layer, va);
+
+      va->GradientCurve = vtkSmartPointer<vtkPiecewiseFunction>::New();
+      va->GradientCurve->AddPoint(0, 0.0);
+      va->GradientCurve->AddPoint(90, 0.5);
+      va->GradientCurve->AddPoint(100, 1.0);
+
+      va->Property = vtkSmartPointer<vtkVolumeProperty>::New();
+      va->Property->SetColor(va->ColorCurve);
+      va->Property->SetScalarOpacity(va->OpacityCurve);
+      // va->Property->SetGradientOpacity(va->GradientCurve);
+      va->Property->SetInterpolationTypeToLinear();
+      va->Property->ShadeOn();
+      va->Property->SetAmbient(0.4);
+      va->Property->SetDiffuse(0.6);
+      va->Property->SetSpecular(0.2);
+
+      va->Volume = vtkSmartPointer<vtkVolume>::New();
+      va->Volume->SetMapper(va->Mapper);
+      va->Volume->SetProperty(va->Property);
+
+      this->m_Renderer->AddViewProp(va->Volume);
+      layer->SetUserData("volume", va);
+
+      vtk_import->Update();
+
+      // TODO: this needs to be updated on header changes
+      vnl_matrix_fixed<double, 4, 4> vtk2nii =
+        ImageWrapperBase::ConstructVTKtoNiftiTransform(
+          layer->GetImageBase()->GetDirection().GetVnlMatrix().as_ref(),
+          layer->GetImageBase()->GetOrigin().GetVnlVector(),
+          layer->GetImageBase()->GetSpacing().GetVnlVector());
+
+      vtkNew<vtkMatrix4x4> tran;
+      tran->DeepCopy(vtk2nii.data_block());
+      va->Volume->SetUserMatrix(tran);
+      }
+    else
+      {
+      auto *sw = layer->GetDefaultScalarRepresentation();
+      if(sw->GetIntensityCurve()->GetMTime() > va->CurveUpdateTime ||
+         sw->GetColorMap()->GetMTime() > va->CurveUpdateTime)
+        {
+        UpdateVolumeCurves(layer, va);
+        }
+      }
+    }
+
+}
+
 
 void Generic3DRenderer::OnUpdate()
 {
@@ -716,6 +844,10 @@ void Generic3DRenderer::OnUpdate()
                               gs->GetSelectedSegmentationLayerIdModel());
 
   bool need_render = false;
+
+  // For volume rendering
+  bool layer_mapping_changed =
+      m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent());
 
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed || seg_layer_changed)
@@ -773,6 +905,13 @@ void Generic3DRenderer::OnUpdate()
   if(main_changed || scalpel_action || mode_changed)
     {
     UpdateScalpelRendering();
+    need_render = true;
+    }
+
+  // Deal with volume rendering
+  if(main_changed || layer_mapping_changed)
+    {
+    UpdateVolumeRendering();
     need_render = true;
     }
 

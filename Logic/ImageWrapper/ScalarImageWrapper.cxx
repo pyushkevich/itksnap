@@ -43,6 +43,7 @@
 #include "itkImageFileWriter.h"
 
 #include "vtkImageImport.h"
+#include "SNAPExportITKToVTK.h"
 
 #include <iostream>
 
@@ -371,6 +372,15 @@ vtkImageImport *
 ScalarImageWrapper<TTraits,TBase>
 ::GetVTKImporter()
 {
+  // Create an importer on demand
+  if(!m_VTKImporter)
+    {
+    // TODO: using the common format image may cause unnecessary memory allocation!
+    m_VTKExporter = VTKExportType::New();
+    m_VTKImporter = vtkSmartPointer<vtkImageImport>::New();
+    m_VTKExporter->SetInput(this->GetCommonFormatImage());
+    ConnectITKExporterToVTKImporter(m_VTKExporter.GetPointer(), m_VTKImporter, true, true, false);
+    }
   return m_VTKImporter;
 }
 

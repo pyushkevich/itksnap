@@ -115,6 +115,9 @@ public:
   // Histogram filter (works on the 4D image)
   typedef ThreadedHistogramImageFilter<Image4DType>        HistogramFilterType;
 
+  // VTK Exporter
+  typedef itk::VTKImageExport<CommonFormatImageType>             VTKExportType;
+
   // Iterator types
   typedef typename Superclass::Iterator                               Iterator;
   typedef typename Superclass::ConstIterator                     ConstIterator;
@@ -281,6 +284,7 @@ protected:
   /** The intensity scaling factor */
   double m_ImageScaleFactor;
 
+  SmartPtr<VTKExportType> m_VTKExporter;
   vtkSmartPointer<vtkImageImport> m_VTKImporter;
   
   /**
