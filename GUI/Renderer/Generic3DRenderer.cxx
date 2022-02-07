@@ -743,6 +743,17 @@ void Generic3DRenderer::UpdateVolumeRendering()
   // Associate each layer with a volume rendering
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
   GenericImageData *id = app->GetCurrentImageData();
+
+  // Keep track of volume renderers that are not used
+  std::set<vtkVolume *> volumes_to_remove;
+  auto *props = m_Renderer->GetViewProps();
+  for(unsigned int k = 0; k < props->GetNumberOfItems(); k++)
+    {
+    vtkVolume *vol = dynamic_cast<vtkVolume *>(props->GetItemAsObject(k));
+    if(vol)
+      volumes_to_remove.insert(vol);
+    }
+
   for(LayerIterator li = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE); !li.IsAtEnd(); ++li)
     {
     auto *layer = li.GetLayer();
@@ -803,10 +814,16 @@ void Generic3DRenderer::UpdateVolumeRendering()
         UpdateVolumeCurves(layer, va);
         }
       }
+
+    // Add the volume to the used volumes set
+    if(va)
+      volumes_to_remove.erase(va->Volume);
     }
 
+  // Remove unused volumes
+  for(auto *prop : volumes_to_remove)
+    m_Renderer->RemoveViewProp(prop);
 }
-
 
 void Generic3DRenderer::OnUpdate()
 {
