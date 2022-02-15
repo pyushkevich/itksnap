@@ -66,11 +66,6 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         &Self::GetCrntTimePointTagListValue,
         &Self::SetCrntTimePointTagListValue);
 
-  m_MeshDataTypeModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetMeshDataTypeValueAndRange,
-        &Self::SetMeshDataTypeValue);
-
   m_MeshDataArrayNameModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMeshDataArrayNameValueAndRange,
@@ -537,43 +532,6 @@ AbstractLayerTableRowModel *LayerGeneralPropertiesModel::GetSelectedLayerTableRo
 
 bool
 LayerGeneralPropertiesModel::
-GetMeshDataTypeValueAndRange(ActiveMeshDataType &value, ActiveMeshDataTypeDomain *domain)
-{
-  // The current layer has to be a mesh layer
-  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
-  if (!mesh_layer)
-    return false;
-
-  value = mesh_layer->GetActiveMeshDataType();
-
-  if (domain)
-    {
-    (*domain)[ActiveMeshDataType::POINT_DATA] = "Point Data";
-    (*domain)[ActiveMeshDataType::CELL_DATA] = "Cell Data";
-    }
-
-  return true;
-}
-
-void
-LayerGeneralPropertiesModel::
-SetMeshDataTypeValue(ActiveMeshDataType value)
-{
-  // The current layer has to be a mesh layer
-  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
-  if (!mesh_layer)
-    return;
-
-  auto existing = mesh_layer->GetActiveMeshDataType();
-  if (value != existing)
-    {
-    mesh_layer->SetActiveMeshDataType(value);
-    InvokeEvent(ValueChangedEvent());
-    }
-}
-
-bool
-LayerGeneralPropertiesModel::
 GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
 {
   // The current layer has to be a mesh layer
@@ -581,18 +539,16 @@ GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
   if (!mesh_layer)
     return false;
 
-  unsigned int tp = m_ParentModel->GetDriver()->GetCursorTimePoint();
-
-  MeshWrapperBase::MeshDataArrayNameMap names = mesh_layer->GetMeshDataArrayNameMap(tp);
+  auto props = mesh_layer->GetLayerDataProperty();
 
   if (domain)
     {
-    for (auto it = names.begin(); it != names.end(); ++it)
+    for (auto it = props.cbegin(); it != props.cend(); ++it)
       {
-      (*domain)[it->first] = it->second;
+      (*domain)[it->first] = it->second->GetName();
       }
 
-    value = mesh_layer->GetActiveMeshDataArrayId(tp, 0);
+    value = mesh_layer->GetActiveMeshLayerDataPropertyId();
     }
 
   return true;
@@ -607,7 +563,5 @@ SetMeshDataArrayNameValue(int value)
   if (!mesh_layer)
     return;
 
-  unsigned int tp = m_ParentModel->GetDriver()->GetCursorTimePoint();
-
-  mesh_layer->SetActiveMeshDataArrayId(value, tp, 0);
+  mesh_layer->SetActiveMeshLayerDataPropertyId(value);
 }

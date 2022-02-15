@@ -4,6 +4,7 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
+#include "IRISImageData.h"
 #include "ImageWrapperBase.h"
 #include "MeshManager.h"
 #include "Window3DPicker.h"
@@ -14,6 +15,7 @@
 #include "MeshOptions.h"
 #include "ImageWrapperTraits.h"
 #include "SegmentationUpdateIterator.h"
+#include "ImageMeshLayers.h"
 
 // All the VTK stuff
 #include "vtkPolyData.h"
@@ -50,6 +52,9 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   // Store the parent
   m_ParentUI = parent;
   m_Driver = parent->GetDriver();
+
+  // Store a pointer to mesh layer data
+  m_MeshLayers = m_Driver->GetIRISImageData()->GetMeshLayers();
 
   // Update our geometry model
   OnImageGeometryUpdate();

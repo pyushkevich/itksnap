@@ -21,6 +21,8 @@ public:
   const AbstractDisplayMappingPolicy *GetDisplayMapping() const override
   { return m_DisplayMapping; }
 
+  MeshDisplayMappingPolicy *GetMeshDisplayMappingPolicy() const override
+  { return m_DisplayMapping; }
 
 
   void UpdateMeshes(unsigned int timepoint) override;

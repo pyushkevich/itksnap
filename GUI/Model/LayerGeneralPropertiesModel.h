@@ -83,10 +83,6 @@ public:
   typedef AbstractPropertyModel<DisplayMode, DisplayModeDomain> AbstractDisplayModeModel;
 
   // Typedefs for mesh data selection
-  typedef MeshWrapperBase::ActiveMeshDataType ActiveMeshDataType;
-  typedef SimpleItemSetDomain<ActiveMeshDataType, std::string> ActiveMeshDataTypeDomain;
-  typedef AbstractPropertyModel<ActiveMeshDataType, ActiveMeshDataTypeDomain> AbstractMeshDataTypeModel;
-
   typedef SimpleItemSetDomain<int, std::string> MeshDataArrayNameDomain;
   typedef AbstractPropertyModel<int, MeshDataArrayNameDomain> AbstractMeshDataArrayNameModel;
 
@@ -119,9 +115,6 @@ public:
   /** A model for the current timepoint taglist */
   irisSimplePropertyAccessMacro(CrntTimePointTagList, TagList)
 
-  /** A model for mesh data type */
-  irisGetMacro(MeshDataTypeModel, AbstractMeshDataTypeModel *)
-
   /** A model for mesh data array names */
   irisGetMacro(MeshDataArrayNameModel, AbstractMeshDataArrayNameModel *)
 
@@ -137,10 +130,6 @@ protected:
   SmartPtr<AbstractDisplayModeModel> m_DisplayModeModel;
   bool GetDisplayModeValueAndRange(DisplayMode &value, DisplayModeDomain *domain);
   void SetDisplayModeValue(DisplayMode value);
-
-  SmartPtr<AbstractMeshDataTypeModel> m_MeshDataTypeModel;
-  bool GetMeshDataTypeValueAndRange(ActiveMeshDataType &value, ActiveMeshDataTypeDomain *domain);
-  void SetMeshDataTypeValue(ActiveMeshDataType value);
 
   SmartPtr<AbstractMeshDataArrayNameModel> m_MeshDataArrayNameModel;
   bool GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain);

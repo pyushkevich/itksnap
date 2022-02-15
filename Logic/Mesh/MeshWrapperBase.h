@@ -6,16 +6,141 @@
 #include "itkObjectFactory.h"
 #include "vtkSmartPointer.h"
 #include "ImageWrapperBase.h"
+#include "IntensityCurveVTK.h"
+#include "ColorMap.h"
 
 class AbstractMeshIODelegate;
 class vtkPolyData;
+class MeshDisplayMappingPolicy;
+class MeshAssembly;
+class vtkDataArray;
+
+class MeshDataArrayProperty : public itk::Object
+{
+public:
+  irisITKObjectMacro(MeshDataArrayProperty, itk::Object);
+
+  enum MeshDataType { POINT_DATA=0, CELL_DATA, COUNT };
+
+  void Initialize(vtkSmartPointer<vtkDataArray> array);
+
+  /** Merge with another property. Adjusting min/max etc. */
+  void Merge(SmartPtr<MeshDataArrayProperty> other);
+
+  /** Get type of the property */
+  MeshDataType GetType() const;
+
+  /** Get name */
+  const char* GetName()
+  { return m_Name; }
+
+protected:
+  MeshDataArrayProperty() {}
+  ~MeshDataArrayProperty() {}
+
+  char* m_Name;
+  double m_min;
+  double m_max;
+
+  MeshDataType m_Type;
+
+  SmartPtr<ColorMap> m_ColorMap;
+  SmartPtr<IntensityCurveVTK> m_IntensityCurve;
+};
+
+/**
+ * @brief The PolyDataWrapper class
+ */
+class PolyDataWrapper : public itk::Object
+{
+public:
+  irisITKObjectMacro(PolyDataWrapper, itk::Object);
+
+  // comparisonn functor for map with char* key
+  struct strcmp
+  {
+     bool operator()(char const *a, char const *b) const
+     {
+        return std::strcmp(a, b) < 0;
+     }
+  };
+
+  /** Mesh Data Property Map */
+  typedef std::map<const char*, SmartPtr<MeshDataArrayProperty>, strcmp> MeshDataArrayPropertyMap;
+
+  void SetPolyData(vtkSmartPointer<vtkPolyData> polydata);
+
+  vtkSmartPointer<vtkPolyData> GetPolyData();
+
+  MeshDataArrayPropertyMap &GetPointDataProperties()
+  { return m_PointDataProperties; }
+
+  MeshDataArrayPropertyMap &GetCellDataProperties()
+  { return m_CellDataProperties; }
+
+  friend class MeshDataArrayProperty;
+protected:
+  PolyDataWrapper() {}
+  virtual ~PolyDataWrapper() {}
+
+  // The actual storage of a poly data object
+  vtkSmartPointer<vtkPolyData> m_PolyData;
+
+  // Point Data Properties
+  MeshDataArrayPropertyMap m_PointDataProperties;
+
+  // Cell Data Properties
+  MeshDataArrayPropertyMap m_CellDataProperties;
+};
+
+
+/**
+ *  \class MeshAssembly
+ *  \brief An abstract class representing a scene assembled by multiple meshes
+ *
+ *  The class wraps around a MeshMap, which maps a collection of vtkPolyData
+ *  , identified by ids (id is in LabelType).
+ */
+
+class MeshAssembly : public itk::Object
+{
+public:
+  irisITKObjectMacro(MeshAssembly, itk::Object);
+
+  typedef std::map<LabelType, SmartPtr<PolyDataWrapper>> MeshAssemblyMap;
+
+  /** Add a mesh to the map. If the id already exist, old mesh will be overwritten */
+  void AddMesh(SmartPtr<PolyDataWrapper> mesh, LabelType id=0u);
+
+  /** Get the mesh by id */
+  SmartPtr<PolyDataWrapper> GetMesh(LabelType id);
+
+  /** Check existence of id */
+  bool Exist(LabelType id);
+
+  /** Get the beginning iterator to the map */
+  MeshAssemblyMap::const_iterator cbegin()
+  { return m_Meshes.cbegin(); }
+
+  /** Get the end of iterator of the map */
+  MeshAssemblyMap::const_iterator cend()
+  { return m_Meshes.cend(); }
+
+protected:
+  MeshAssembly() {}
+  virtual ~MeshAssembly() {}
+
+  // Map storing all the meshes in the assembly
+  MeshAssemblyMap m_Meshes;
+};
+
 
 /**
  *  \class MeshWrapperBase
  *  \brief An abstract class representing a mesh layer in ITK-SNAP
  *
- *  The class wraps around a MeshCollectionMap, which maps a collection of vtkPolyData
- *  , identified by ids (id is in LabelType), to each time points.
+ *  The class wraps around a MeshAssemblyMap, which maps MeshAssemblies, representing
+ *  a scene assembled by meshes, to time points.
  *
  *  MeshWrappers are initialized by MeshIODelegates, store point/cell data and appearance
  *  properties, and can configure actors when called by renderers.
@@ -31,18 +156,14 @@ public:
 
   typedef std::map<std::string, SmartPtr<itk::Object>> UserDataMapType;
 
-  /** MeshCollection maps an instance of vtkPolyData to a LabelType id, representing
-   *   a collection of vtkPolyData meshes that need to be rendered in a single scene.*/
-  typedef std::map<LabelType, vtkSmartPointer<vtkPolyData>> MeshCollection;
+  /** Mesh assembly map maps MeshAssembly to time points */
+  typedef std::map<unsigned int, SmartPtr<MeshAssembly>> MeshAssemblyMapType;
 
-  /** MeshCollectionMap maps a MeshCollection to a time point */
-  typedef std::map<unsigned int, MeshCollection> MeshCollectionMap;
+  /** Maps Layer-Level Data Array Properties with unique ids */
+  typedef std::map<int, SmartPtr<MeshDataArrayProperty>> MeshLayerDataPropertyMap;
 
-  /** Mesh data array name map */
-  typedef std::map<int, std::string> MeshDataArrayNameMap;
-
-  /** Controls which type of data is currently active for rendering */
-  enum ActiveMeshDataType { POINT_DATA = 0, CELL_DATA };
+  /** Maps Layer-Level Data Array Properties with name */
+  typedef PolyDataWrapper::MeshDataArrayPropertyMap MeshDataArrayPropertyMap;
 
   //----------------------------------------------
   // Begin virtual methods definition
@@ -77,16 +198,13 @@ public:
    */
   irisIsMacroWithOverride(Initialized)
 
-  /** Get the MeshCollection associated with the time point */
-  virtual MeshCollection GetMeshCollection(unsigned int timepoint);
+  /** Get the MeshAssembly associated with the time point */
+  virtual SmartPtr<MeshAssembly> GetMeshAssembly(unsigned int timepoint);
 
-  /** Get the mesh associated with the id and the time point */
-  virtual vtkSmartPointer<vtkPolyData> GetMesh(unsigned int timepoint, LabelType id);
-
-  /** Set a collection of mesh for a time point */
-  virtual void SetMeshCollection(MeshCollection collection, unsigned int timepoint);
-
-  /** Set the mesh and its id for a time point */
+  /**
+   *  Set the mesh and its id for a time point
+   *  Implemente in subclasses if wrapper specific logic is needed
+   */
   virtual void SetMesh(vtkSmartPointer<vtkPolyData>mesh, unsigned int timepoint, LabelType id);
 
   /** Return true if the mesh needs update */
@@ -97,6 +215,9 @@ public:
 
   /** Return true if the object is an instance of the type or a subclass of the type */
   virtual bool IsA(const char *type) const;
+
+  /** Get the mesh display mapping. This saves renderer a type cast */
+  virtual MeshDisplayMappingPolicy *GetMeshDisplayMappingPolicy() const = 0;
 
   /**
     Compute the image histogram. The histogram is cached inside of the
@@ -115,24 +236,46 @@ public:
   // End of virtual methods definition
   //------------------------------------------------
 
-  /** Get/Set ActiveMeshDataType */
-  irisGetSetMacro(ActiveMeshDataType, ActiveMeshDataType)
-
-  /** Get the data array names for current active mesh data type */
-  MeshDataArrayNameMap GetMeshDataArrayNameMap(unsigned int timepoint, LabelType id = 0);
-
-  /** Get the activated data array name of the current active mesh data type */
-  int GetActiveMeshDataArrayId(unsigned int timepoint, LabelType id = 0);
+  /** Get the active data array property */
+  SmartPtr<MeshDataArrayProperty> GetActiveDataArrayProperty();
 
   /** Set data array with the id as active mesh data attribute */
-  void SetActiveMeshDataArrayId(int index, unsigned int timepoint, LabelType id = 0);
+  void SetActiveMeshLayerDataPropertyId (int id);
+  int GetActiveMeshLayerDataPropertyId()
+  { return m_ActiveDataPropertyId; }
 
+  /** Get mesh layer data property map */
+  MeshLayerDataPropertyMap GetLayerDataProperty()
+  { return m_MeshLayerDataPropertyMap; }
+
+  /** Get mesh for a timepoint and id */
+  SmartPtr<PolyDataWrapper> GetMesh(unsigned int timepoint, LabelType id);
+
+  /**
+    Helper method to merge two data property map
+    We need to merge properties from all polydata in the assemblies and timepoints
+    to one in the layer
+    */
+  static void MergeDataProperties(MeshDataArrayPropertyMap &dest,
+                                  MeshDataArrayPropertyMap &src);
+
+  // Give display mapping policy access to protected members for flexible
+  // configuration and data retrieval
+  friend class MeshDisplayMappingPolicy;
 
 protected:
   MeshWrapperBase();
   virtual ~MeshWrapperBase();
 
-  MeshCollectionMap m_MeshCollectionMap;
+  MeshAssemblyMapType m_MeshAssemblyMap;
+
+  MeshLayerDataPropertyMap m_MeshLayerDataPropertyMap;
+
+  MeshDataArrayPropertyMap m_PointDataProperties;
+
+  MeshDataArrayPropertyMap m_CellDataProperties;
+
+  int m_ActiveDataPropertyId = 0;
 
   UserDataMapType m_UserDataMap;
 
@@ -155,12 +298,8 @@ protected:
   // Transparency
   double m_Alpha;
 
-  // The active mesh data type for rendering
-  ActiveMeshDataType m_ActiveMeshDataType = POINT_DATA;
-
-  // The active mesh data array id
-  int m_ActiveMeshDataArrayId = 0;
-
+  // Data Array Property Id
+  int DataArrayID = 0;
 };
 
 #endif // MESHWRAPPERBASE_H

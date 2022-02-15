@@ -21,9 +21,13 @@ public:
   const AbstractDisplayMappingPolicy *GetDisplayMapping() const override
   { return m_DisplayMapping; }
 
+  /** Get the mesh display mapping. This saves renderer a type cast */
+  MeshDisplayMappingPolicy *GetMeshDisplayMappingPolicy() const override
+  { return m_DisplayMapping; }
+
 
   /** Check if the mesh requested is the latest, if not then re-compute */
-  MeshCollection GetMeshCollection(unsigned int timepoint) override;
+  SmartPtr<MeshAssembly> GetMeshAssembly(unsigned int timepoint) override;
 
   bool IsMeshDirty(unsigned int timepoint) const override;
 
