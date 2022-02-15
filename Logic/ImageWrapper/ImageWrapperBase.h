@@ -53,6 +53,17 @@ enum ScalarRepresentation
   NUMBER_OF_SCALAR_REPS
 };
 
+/**
+ * Volume rendering modes. These modes multiply the transfer function used for 2D
+ * display mapping by either 1 or a linear function from 0 to 1. By default, this
+ * is set to off.
+ */
+enum VolumeRenderingTransferFunctionScalingMode
+{
+  VOLUME_RENDERING_LINEAR01 = 0,
+  VOLUME_RENDERING_LINEAR10,
+  VOLUME_RENDERING_CONST1
+};
 
 /**
  \class ImageWrapperBase
@@ -629,6 +640,12 @@ public:
 
   /** Get a version of this image that is usable in VTK pipelines */
   virtual vtkImageImport *GetVTKImporter() = 0;
+
+  /** Is volume rendering turned on for this layer */
+  virtual bool IsVolumeRenderingEnabled() const = 0;
+
+  /** Turn on volume rendering for this layer */
+  virtual void SetVolumeRenderingEnabled(bool state) = 0;
 };
 
 

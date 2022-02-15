@@ -144,7 +144,7 @@ private:
   QMenu *m_PopupMenu;
 
   // A submenu for the color maps
-  QMenu *m_ColorMapMenu, *m_DisplayModeMenu, *m_OverlaysMenu;
+  QMenu *m_ColorMapMenu, *m_DisplayModeMenu, *m_OverlaysMenu, *m_VolumeRenderingMenu;
 
   // Slider for opacity that lives in the menu
   QSlider *m_OverlayOpacitySlider;

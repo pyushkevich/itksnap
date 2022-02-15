@@ -217,6 +217,7 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 
   // Appearance changes in main/overlays (for volume rendering)
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperVisibilityChangeEvent(), ModelUpdateEvent());
 
   // Update the main components
   this->UpdateAxisRendering();
@@ -692,6 +693,8 @@ void Generic3DRenderer::UpdateSegmentationMeshAppearance()
 #include <vtkPiecewiseFunction.h>
 #include <IntensityCurveInterface.h>
 #include <ColorMap.h>
+#include <AffineTransformHelper.h>
+#include <itkTransform.h>
 
 class VolumeAssembly : public itk::Object
 {
@@ -707,6 +710,7 @@ public:
 
   // Update time on the curve
   itk::ModifiedTimeType CurveUpdateTime = 0;
+  itk::ModifiedTimeType TransformUpdateTime = 0;
 
 protected:
   VolumeAssembly() {}
@@ -738,6 +742,30 @@ void Generic3DRenderer::UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssemb
   va->CurveUpdateTime = std::max(cmap->GetMTime(), curve->GetMTime());
 }
 
+void Generic3DRenderer::UpdateVolumeTransform(ImageWrapperBase *layer, VolumeAssembly *va)
+{
+  auto *sw = layer->GetDefaultScalarRepresentation();
+  auto dir = sw->GetImageBase()->GetDirection().GetVnlMatrix().as_matrix();
+  auto spc = sw->GetImageBase()->GetSpacing().GetVnlVector();
+  auto org = sw->GetImageBase()->GetOrigin().GetVnlVector();
+
+  // Transform applied to the volume is the product of the registration matrix and the
+  // image to physical transform
+  vnl_matrix_fixed<double, 4, 4> vtk2nii =
+      AffineTransformHelper::GetRASMatrix(sw->GetITKTransform()) *
+      ImageWrapperBase::ConstructVTKtoNiftiTransform(dir, org, spc);
+
+  vtkNew<vtkMatrix4x4> tran;
+  tran->DeepCopy(vtk2nii.data_block());
+  va->Volume->SetUserMatrix(tran);
+
+  // Update the timestamp
+  va->TransformUpdateTime = sw->GetMTime();
+  if(sw->GetITKTransform())
+    va->TransformUpdateTime = std::max(va->TransformUpdateTime, sw->GetITKTransform()->GetMTime());
+}
+
+
 void Generic3DRenderer::UpdateVolumeRendering()
 {
   // Associate each layer with a volume rendering
@@ -757,8 +785,18 @@ void Generic3DRenderer::UpdateVolumeRendering()
   for(LayerIterator li = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE); !li.IsAtEnd(); ++li)
     {
     auto *layer = li.GetLayer();
+
+    // If the layer is not rendering right now, free up the VR related resources
+    if(!layer->GetDefaultScalarRepresentation()->IsVolumeRenderingEnabled())
+      {
+      layer->SetUserData("volume", nullptr);
+      continue;
+      }
+
+    // Associate a volume assembly with the layer
     typename VolumeAssembly::Pointer va =
         dynamic_cast<VolumeAssembly *>(layer->GetUserData("volume"));
+
     if(!va)
       {
       va = VolumeAssembly::New();
@@ -794,24 +832,24 @@ void Generic3DRenderer::UpdateVolumeRendering()
 
       vtk_import->Update();
 
-      // TODO: this needs to be updated on header changes
-      vnl_matrix_fixed<double, 4, 4> vtk2nii =
-        ImageWrapperBase::ConstructVTKtoNiftiTransform(
-          layer->GetImageBase()->GetDirection().GetVnlMatrix().as_ref(),
-          layer->GetImageBase()->GetOrigin().GetVnlVector(),
-          layer->GetImageBase()->GetSpacing().GetVnlVector());
-
-      vtkNew<vtkMatrix4x4> tran;
-      tran->DeepCopy(vtk2nii.data_block());
-      va->Volume->SetUserMatrix(tran);
+      // Update the volume transform
+      this->UpdateVolumeTransform(layer, va);
       }
     else
       {
+      // Check if the transfer function needs updating
       auto *sw = layer->GetDefaultScalarRepresentation();
       if(sw->GetIntensityCurve()->GetMTime() > va->CurveUpdateTime ||
          sw->GetColorMap()->GetMTime() > va->CurveUpdateTime)
         {
         UpdateVolumeCurves(layer, va);
+        }
+
+      // Check if the transform needs updating
+      if(sw->GetImageBase()->GetMTime() > va->TransformUpdateTime ||
+         sw->GetITKTransform() && sw->GetITKTransform()->GetMTime() > va->TransformUpdateTime)
+        {
+        UpdateVolumeTransform(layer, va);
         }
       }
 
@@ -865,6 +903,8 @@ void Generic3DRenderer::OnUpdate()
   // For volume rendering
   bool layer_mapping_changed =
       m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent());
+  bool wrapper_vr_options_changed =
+      m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
 
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed || seg_layer_changed)
@@ -926,7 +966,7 @@ void Generic3DRenderer::OnUpdate()
     }
 
   // Deal with volume rendering
-  if(main_changed || layer_mapping_changed)
+  if(main_changed || layer_mapping_changed || wrapper_vr_options_changed)
     {
     UpdateVolumeRendering();
     need_render = true;

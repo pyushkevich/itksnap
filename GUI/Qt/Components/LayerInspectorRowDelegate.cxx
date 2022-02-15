@@ -104,6 +104,11 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   // Create a menu listing the loaded overlays
   m_OverlaysMenu = m_PopupMenu->addMenu("Overlays");
 
+  // Create a volume rendering menu
+  m_VolumeRenderingMenu = m_PopupMenu->addMenu("Volume Rendering");
+  m_VolumeRenderingMenu->addAction(ui->actionVolumeEnable);
+  m_PopupMenu->addSeparator();
+
   // Placeholder for image processing commands
   m_PopupMenu->addSeparator();
   QMenu *processMenu = m_PopupMenu->addMenu("Image Processing");
@@ -145,6 +150,7 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   makeCoupling(m_OverlayOpacitySlider, model->GetLayerOpacityModel());
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());
   makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
+  makeCoupling(ui->actionVolumeEnable, model->GetVolumeRenderingEnabledModel());
 
   const QtWidgetActivator::Options opt_hide = QtWidgetActivator::HideInactive;
   activateOnFlag(ui->actionUnpin_layer, model, LayerTableRowModel::UIF_UNPINNABLE, opt_hide);

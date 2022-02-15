@@ -250,6 +250,11 @@ public:
   /** Extends parent method */
   virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
 
+  /** Is volume rendering turned on for this layer */
+  irisIsMacroWithOverride(VolumeRenderingEnabled)
+
+  /** Turn on volume rendering for this layer */
+  irisSetWithEventMacroWithOverride(VolumeRenderingEnabled, bool, WrapperVisibilityChangeEvent)
 
 protected:
 
@@ -286,6 +291,9 @@ protected:
 
   SmartPtr<VTKExportType> m_VTKExporter;
   vtkSmartPointer<vtkImageImport> m_VTKImporter;
+
+  // Volume rendering state
+  bool m_VolumeRenderingEnabled = false;
   
   /**
    * Compute the intensity range of the image if it's out of date.  
@@ -304,7 +312,6 @@ protected:
 
   /** Write the image to disk as a floating point image (scalar or vector) */
   virtual void WriteToFileAsFloat(const char *filename, Registry &hints) ITK_OVERRIDE;
-
 };
 
 #endif // __ScalarImageWrapper_h_

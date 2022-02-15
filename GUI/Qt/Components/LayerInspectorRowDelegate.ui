@@ -485,6 +485,17 @@ color: rgb(120, 120, 120)</string>
     <string>Open the color map editor for this layer</string>
    </property>
   </action>
+  <action name="actionVolumeEnable">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable volume rendering of this layer</string>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>

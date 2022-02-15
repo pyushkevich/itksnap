@@ -162,6 +162,7 @@ protected:
   // Picker object
   vtkSmartPointer<Window3DPicker> m_Picker;
   void UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssembly *va);
+  void UpdateVolumeTransform(ImageWrapperBase *layer, VolumeAssembly *va);
 };
 
 #endif // GENERIC3DRENDERER_H

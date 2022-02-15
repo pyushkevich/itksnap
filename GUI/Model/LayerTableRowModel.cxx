@@ -48,6 +48,11 @@ LayerTableRowModel::LayerTableRowModel()
   m_VisibilityToggleModel = NewNumericPropertyToggleAdaptor(
         m_LayerOpacityModel.GetPointer(), 0, 50);
 
+  m_VolumeRenderingEnabledModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetVolumeRenderingEnabledValue,
+        &Self::SetVolumeRenderingEnabledValue);
+
   m_LayerRole = NO_ROLE;
   m_LayerPositionInRole = -1;
   m_ImageData = NULL;
@@ -436,6 +441,22 @@ void LayerTableRowModel::SetDisplayModeValue(MultiChannelDisplayMode value)
   AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
       AbstractMultiChannelDisplayMappingPolicy *>(m_Layer->GetDisplayMapping());
   dp->SetDisplayMode(value);
+  }
+
+bool LayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
+{
+  if(m_Layer)
+    {
+    value = m_Layer->GetDefaultScalarRepresentation()->IsVolumeRenderingEnabled();
+    return true;
+    }
+  return false;
+}
+
+void LayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
+{
+  if(m_Layer)
+    m_Layer->GetDefaultScalarRepresentation()->SetVolumeRenderingEnabled(value);
 }
 
 void LayerTableRowModel::OnUpdate()
