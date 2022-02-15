@@ -171,9 +171,6 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   // Get a pointer to the application class
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
 
-  // Get a pointer to the image mesh layers
-  m_MeshLayers = app->GetCurrentImageData()->GetMeshLayers();
-
   // Record and rebroadcast changes in the model
   Rebroadcast(app->GetMeshManager(), itk::ModifiedEvent(), ModelUpdateEvent());
 
@@ -243,150 +240,151 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
-  // Get the app driver
-  IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
-
   if(m_Model->IsMeshUpdating() )
     return;
 
-  MeshWrapperBase::MeshCollection meshes;
+  ImageMeshLayers *layers = m_Model->GetMeshLayers();
 
   // Get active layer id and current time point
-  unsigned long active_layer_id = m_MeshLayers->GetActiveLayerId();
-  unsigned int tp = driver->GetCursorTimePoint();
+  unsigned long active_layer_id = layers->GetActiveLayerId();
+  unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
 
   std::cout << "[G3DR] ActorMap tp=" << m_CrntActorMapTimePoint
             << " layer=" << m_CrntActorMapLayerId << std::endl;
   std::cout << "[G3DR] Update tp=" << tp
             << " layer=" << active_layer_id << std::endl;
 
-  if (m_MeshLayers->size() > 0 && active_layer_id != 0)
+  if (layers->size() == 0 || active_layer_id == 0)
+    return;
+
+  MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
+
+  // Get meshes in current timepoint for current layer
+  auto meshes = active_layer->GetMeshAssembly(tp);
+
+  // Removing actors no longer in the scene
+  if (tp != m_CrntActorMapTimePoint || active_layer_id != m_CrntActorMapLayerId)
     {
-    MeshWrapperBase* active_layer = m_MeshLayers->GetLayer(active_layer_id);
+    // if tp or layer_id changed, actors should be replaced entirely
 
-    meshes = active_layer->GetMeshCollection(tp);
+    std::cout << "[G3DR] Timepoint or layer changed. Clearing ActorMap..." << std::endl;
 
-    std::cout << "[G3DR] meshes_size=" << meshes.size() << std::endl;
-
-
-    // Processing actor changes
-    if (tp != m_CrntActorMapTimePoint || active_layer_id != m_CrntActorMapLayerId)
+    // Iterate over all existing actors, remove them from the renderer
+    for (ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); ++it_actor)
       {
-      // Current time point or current active layer changed, clear the ActorMap
-      // ActorMap only stores set of meshes for the active layer at the current time point
-
-      std::cout << "[G3DR] Clearing ActorMap" << std::endl;
-
-      // Iterate over all existing actors, remove them from the renderer
-      for (ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); ++it_actor)
-        {
-        m_Renderer->RemoveActor(it_actor->second);
-        it_actor->second->Delete();
-        }
-
-      // Clear the map
-      m_ActorMap.clear();
-      }
-    else
-      {
-      for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); )
-        {
-        // Is the mesh in the actor still exist in the layer?
-        auto it_mesh = meshes.find(it_actor->first);
-
-        if(it_mesh == meshes.end())
-          {
-          std::cout << "[G3DR] Removing mesh " << it_actor->first << " from the map" << std::endl;
-
-          // The actor no longer has a corresponding mesh, and should be removed
-          this->m_Renderer->RemoveActor(it_actor->second);
-
-          // Delete the actor completely (funky iterator++ code that works)
-          m_ActorMap.erase(it_actor++);
-          }
-        else
-          it_actor++;
-        }
+      // remove actor from the renderer
+      m_Renderer->RemoveActor(it_actor->second);
+      // recycle the actor
+      it_actor->second->RemoveAllObservers();
+      m_FreeActors.push(it_actor->second);
       }
 
-    // Now create actors for all the meshes that don't have them yet
-    for(auto it_mesh = meshes.begin(); it_mesh != meshes.end(); ++it_mesh)
+    // Clear the map
+    m_ActorMap.clear();
+
+    m_CrntActorMapTimePoint = tp;
+    m_CrntActorMapLayerId = active_layer_id;
+    }
+  else
+    {
+    for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); )
       {
-      std::cout << "[G3DR] iterating meshId=" << it_mesh->first << std::endl;
-
-      // See if an actor exists for this id
-      if(m_ActorMap.find(it_mesh->first) == m_ActorMap.end())
+      // Is the mesh in the actor still exist in the layer for this tp?
+      if(!meshes->Exist(it_actor->first))
         {
-        vtkPolyData *mesh = it_mesh->second;
+        std::cout << "[G3DR] Removing mesh " << it_actor->first << " from the map" << std::endl;
 
-        std::cout << "[G3DR] vtkPolyData #polygons=" << mesh->GetNumberOfPolys() << std::endl;
-        //mesh->PrintSelf(std::cout, vtkIndent(2));
+        // The actor no longer has a corresponding mesh, and should be removed
+        this->m_Renderer->RemoveActor(it_actor->second);
 
-        // Create a mapper
-        vtkSmartPointer<vtkPolyDataMapper> pdm = vtkSmartPointer<vtkPolyDataMapper>::New();
-        pdm->SetInputData(mesh);
+        // recycle the actor
+        it_actor->second->RemoveAllObservers();
+        m_FreeActors.push(it_actor->second);
 
-        vtkSmartPointer<vtkActor> actor = vtkActor::New();
-
-        if (active_layer->IsA("StandaloneMeshWrapper"))
-          {
-
-          std::cout << "[G3DR] Printing Array names " << std::endl;
-          auto nArray = mesh->GetPointData()->GetNumberOfArrays();
-          for (auto i = 0; i < nArray; ++i)
-            {
-            std::cout << mesh->GetPointData()->GetArrayName(i) << std::endl;
-            }
-
-          //mesh->GetPointData()->SetActiveAttribute("Displacement_Total", 0);
-
-          pdm->SetScalarModeToUsePointData();
-          pdm->ScalarVisibilityOn();
-          pdm->SetColorModeToMapScalars();
-          actor->SetMapper(pdm);
-
-          std::cout << "[G3DR] Standalone Mesh transform running" << std::endl;
-          // Move the mesh to the center of the portview
-          // Find the center of the mesh
-          vtkNew<vtkCenterOfMass> centerFilter;
-          centerFilter->SetInputData(mesh);
-          centerFilter->SetUseScalarsAsWeights(false);
-          centerFilter->Update();
-          auto center = centerFilter->GetCenter();
-
-          // Get cursor position (cursor position is the center of the viewport)
-          Vector3ui cursor = driver->GetCursorPosition();
-
-          // Build tranform moving the mesh to the center of
-          vtkNew<vtkTransform> transform;
-          transform->SetMatrix(m_Model->GetWorldMatrix().data_block());
-          transform->Translate(cursor[0]-center[0], cursor[1]-center[1], cursor[2]-center[2]);
-          transform->Update();
-
-          // Set transform to actor
-          actor->SetUserTransform(transform);
-          }
-        else
-          {
-          // Get the label of that mesh
-          const ColorLabel &cl = driver->GetColorLabelTable()->GetColorLabel(it_mesh->first);
-
-          // Create a property
-          vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
-          prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
-          prop->SetOpacity(cl.GetAlpha() / 255.0);
-
-          // Create an actor
-          actor->SetMapper(pdm);
-          actor->SetProperty(prop);
-          }
-
-        // Add the actor to the renderer
-        m_Renderer->AddActor(actor);
-
-        // Keep the actor in the map
-        m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
+        // Delete the actor from the map (funky iterator++ code that works)
+        m_ActorMap.erase(it_actor++);
         }
+      else
+        it_actor++;
+      }
+    }
+
+  // Now create actors for all the meshes that don't have them yet
+  for(auto it_mesh = meshes->cbegin(); it_mesh != meshes->cend(); ++it_mesh)
+    {
+    // See if an actor exists for this id
+    if(m_ActorMap.find(it_mesh->first) == m_ActorMap.end())
+      {
+      // Pop a recycled actor or create a new actor
+      vtkSmartPointer<vtkActor> actor = nullptr;
+      if (m_FreeActors.size())
+        {
+        actor = m_FreeActors.top();
+        m_FreeActors.pop();
+        }
+      else
+        actor = vtkActor::New();
+
+
+      // Pop a recycled mapper or create a new mapper
+      vtkSmartPointer<vtkPolyDataMapper> mapper = nullptr;
+      if (m_FreeMappers.size())
+        {
+        mapper = m_FreeMappers.top();
+        m_FreeMappers.pop();
+        }
+      else
+        mapper = vtkPolyDataMapper::New();
+
+      // connect the rendering pipeline for the mesh
+      mapper->SetInputData(it_mesh->second->GetPolyData());
+      actor->SetMapper(mapper);
+
+      // Get display mapping policy for color configuration
+      MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
+
+      // Configure the mapper
+      dmp->ConfigurePolyDataMapper(mapper);
+
+      /*
+      if (active_layer->IsA("StandaloneMeshWrapper"))
+        {
+
+        std::cout << "[G3DR] Printing Array names " << std::endl;
+        auto nArray = mesh->GetPointData()->GetNumberOfArrays();
+        for (auto i = 0; i < nArray; ++i)
+          {
+          std::cout << mesh->GetPointData()->GetArrayName(i) << std::endl;
+          }
+
+        //mesh->GetPointData()->SetActiveAttribute("Displacement_Total", 0);
+
+        pdm->SetScalarModeToUsePointData();
+        pdm->ScalarVisibilityOn();
+        pdm->SetColorModeToMapScalars();
+        actor->SetMapper(pdm);
+        }
+      else
+        {
+        // Get the label of that mesh
+        const ColorLabel &cl = m_Model->GetDriver()->GetColorLabelTable()->GetColorLabel(it_mesh->first);
+
+        // Create a property
+        vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
+        prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
+        prop->SetOpacity(cl.GetAlpha() / 255.0);
+
+        // Create an actor
+        actor->SetMapper(pdm);
+        actor->SetProperty(prop);
+        }
+      */
+
+      // Add the actor to the renderer
+      m_Renderer->AddActor(actor);
+
+      // Keep the actor in the map
+      m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
       }
     }
 

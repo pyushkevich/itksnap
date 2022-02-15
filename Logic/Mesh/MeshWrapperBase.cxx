@@ -15,38 +15,62 @@ MeshWrapperBase::~MeshWrapperBase()
 }
 
 void
-MeshWrapperBase::SetMeshCollection(MeshCollection collection, unsigned int timepoint)
+MeshWrapperBase::
+MergeDataProperties(MeshDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &src)
 {
-  m_MeshCollectionMap[timepoint] = collection;
+  for (auto cit = src.cbegin(); cit != src.cend(); ++cit)
+    {
+    if (dest.count(cit->first))
+      {
+      dest[cit->first]->Merge(cit->second);
+      }
+    else
+      dest[cit->first] = cit->second;
+    }
 }
 
 void
 MeshWrapperBase::SetMesh(vtkSmartPointer<vtkPolyData> mesh, unsigned int timepoint, LabelType id)
 {
-  if (m_MeshCollectionMap.count(timepoint))
-    m_MeshCollectionMap[timepoint][id] = mesh;
+  auto wrapper = PolyDataWrapper::New();
+  wrapper->SetPolyData(mesh);
+
+  auto pointDataProps = wrapper->GetPointDataProperties();
+  auto cellDataProps = wrapper->GetCellDataProperties();
+
+  // Add or merge data properties
+  MergeDataProperties(m_PointDataProperties, pointDataProps);
+  MergeDataProperties(m_CellDataProperties, cellDataProps);
+
+  // Add wrapper to mesh assembly
+  if (m_MeshAssemblyMap.count(timepoint))
+    m_MeshAssemblyMap[timepoint]->AddMesh(wrapper, id);
   else
     {
-      std::cout << "[MeshWrapperBase.SetMesh()] creating new timepoint entry" << std::endl;
-      MeshCollection mc;
-      mc[id] = mesh;
-      m_MeshCollectionMap[timepoint] = mc;
+      auto assembly = MeshAssembly::New();
+      assembly->AddMesh(wrapper, id);
+      m_MeshAssemblyMap[timepoint] = assembly;
     }
 }
 
-MeshWrapperBase::MeshCollection
-MeshWrapperBase::GetMeshCollection(unsigned int timepoint)
-{
-  return m_MeshCollectionMap[timepoint];
-}
-
-vtkSmartPointer<vtkPolyData>
+SmartPtr<PolyDataWrapper>
 MeshWrapperBase::GetMesh(unsigned int timepoint, LabelType id)
 {
-  vtkPolyData *ret = nullptr;
+  PolyDataWrapper *ret = nullptr;
 
-  if (m_MeshCollectionMap.count(timepoint))
-    ret = m_MeshCollectionMap[timepoint][id];
+  if (m_MeshAssemblyMap.count(timepoint))
+    ret = m_MeshAssemblyMap[timepoint]->GetMesh(id);
+
+  return ret;
+}
+
+SmartPtr<MeshAssembly>
+MeshWrapperBase::GetMeshAssembly(unsigned int timepoint)
+{
+  MeshAssembly *ret = nullptr;
+
+  if (m_MeshAssemblyMap.count(timepoint))
+    ret = m_MeshAssemblyMap[timepoint];
 
   return ret;
 }
@@ -97,61 +121,97 @@ MeshWrapperBase::GetNickname() const
   else return m_DefaultNickname;
 }
 
-MeshWrapperBase::MeshDataArrayNameMap
-MeshWrapperBase::GetMeshDataArrayNameMap(unsigned int timepoint, LabelType id)
+SmartPtr<MeshDataArrayProperty>
+MeshWrapperBase::GetActiveDataArrayProperty()
 {
-  MeshDataArrayNameMap ret;
-
-  // Make sure the mesh exists, to avoid segmentation fault
-  if (m_MeshCollectionMap.count(timepoint) && m_MeshCollectionMap[timepoint].count(id))
-    {
-    vtkDataSetAttributes *data;
-
-    if (m_ActiveMeshDataType == POINT_DATA)
-      {
-      std::cout << "[MWB] Getting Point Data Names " << std::endl;
-      data = GetMesh(timepoint, id)->GetPointData();
-      }
-
-    else
-      {
-      std::cout << "[MWB] Getting Cell Data Names " << std::endl;
-      data = GetMesh(timepoint, id)->GetCellData();
-      }
-
-
-    for (auto i = 0; i < data->GetNumberOfArrays(); ++i)
-      ret[i] = data->GetArrayName(i);
-    }
+  MeshDataArrayProperty *ret = nullptr;
+  if (m_MeshLayerDataPropertyMap.count(m_ActiveDataPropertyId))
+    ret = m_MeshLayerDataPropertyMap[m_ActiveDataPropertyId];
 
   return ret;
-};
-
-int
-MeshWrapperBase::
-GetActiveMeshDataArrayId(unsigned int, LabelType)
-{
-  return m_ActiveMeshDataArrayId;
 }
 
 
 void
 MeshWrapperBase::
-SetActiveMeshDataArrayId(int index, unsigned int timepoint, LabelType id)
+SetActiveMeshLayerDataPropertyId(int id)
 {
-  std::cout << "[MWB] Setting Active Data ArrayID=" << index << std::endl;
-
-  if (m_MeshCollectionMap.count(timepoint) && m_MeshCollectionMap[timepoint].count(id))
-    {
-    vtkDataSetAttributes *data;
-    if (m_ActiveMeshDataType == POINT_DATA)
-      data = GetMesh(timepoint, id)->GetPointData();
-    else
-      data = GetMesh(timepoint, id)->GetCellData();
-
-
-    data->SetActiveAttribute(index, 0);
-    m_ActiveMeshDataArrayId = index;
-    }
-
+  m_ActiveDataPropertyId = id;
 }
+
+// ========================================
+//  MeshAssembly Implementation
+// ========================================
+void MeshAssembly::AddMesh(SmartPtr<PolyDataWrapper> mesh, LabelType id)
+{
+  m_Meshes[id] = mesh;
+}
+
+SmartPtr<PolyDataWrapper>
+MeshAssembly::GetMesh(LabelType id)
+{
+  return m_Meshes[id];
+}
+
+bool
+MeshAssembly::Exist(LabelType id)
+{
+  return m_Meshes.count(id);
+}
+
+// ========================================
+//  PolyDataWrapper Implementation
+// ========================================
+void PolyDataWrapper::SetPolyData(vtkSmartPointer<vtkPolyData> polydata)
+{
+  m_PolyData = polydata;
+}
+
+vtkSmartPointer<vtkPolyData>
+PolyDataWrapper::GetPolyData()
+{
+  assert(m_PolyData);
+  return m_PolyData;
+}
+
+// ========================================
+//  MeshDataArrayProperty Implementation
+// ========================================
+
+void
+MeshDataArrayProperty::
+Initialize(vtkSmartPointer<vtkDataArray> array)
+{
+  // Copy the array name to
+  std::strcpy(m_Name, array->GetName());
+
+  double *range = array->GetRange();
+  m_min = range[0];
+  m_max = range[1];
+
+  m_ColorMap = ColorMap::New();
+  m_IntensityCurve = IntensityCurveVTK::New();
+}
+
+void
+MeshDataArrayProperty::
+Merge(SmartPtr<MeshDataArrayProperty> other)
+{
+  // the name must be same
+  assert(!strcmp(this->m_Name, other->m_Name));
+
+  if (other->m_max > this->m_max)
+    this->m_max = other->m_max;
+
+  if (other->m_min < this->m_min)
+    this->m_min = other->m_min;
+}
+
+MeshDataArrayProperty::MeshDataType
+MeshDataArrayProperty::GetType() const
+{
+  return m_Type;
+}
+
+
+

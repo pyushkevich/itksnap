@@ -954,7 +954,6 @@ MeshDisplayMappingPolicy::MeshDisplayMappingPolicy()
 IntensityCurveInterface *
 MeshDisplayMappingPolicy::GetIntensityCurve() const
 {
-
   return m_IntensityCurve;
 }
 
@@ -1017,16 +1016,13 @@ MeshDisplayMappingPolicy::SetIntensityCurve(IntensityCurveVTK *curve)
 }
 
 void
-MeshDisplayMappingPolicy::Initialize(MeshWrapperBase *mesh_wrapper)
+MeshDisplayMappingPolicy::SetMesh(MeshWrapperBase *mesh_wrapper)
 {
   // Set Wrapper
   m_Wrapper = mesh_wrapper;
 
   // Lookup Table
   m_LookupTable = vtkLookupTable::New();
-
-  // Polydata Mapper
-  m_PolyDataMapper = vtkPolyDataMapper::New();
 
   // Color Map
   auto cMap = ColorMap::New();
@@ -1041,22 +1037,17 @@ MeshDisplayMappingPolicy::Initialize(MeshWrapperBase *mesh_wrapper)
   m_Initialized = true;
 }
 
+void
+MeshDisplayMappingPolicy::
+ConfigurePolyDataMapper(vtkSmartPointer<vtkPolyDataMapper> mapper)
+{
+  mapper->SetLookupTable(m_LookupTable);
+}
+
 MeshWrapperBase *
 MeshDisplayMappingPolicy::GetMeshLayer()
 {
   return m_Wrapper;
-}
-
-vtkPolyDataMapper *
-MeshDisplayMappingPolicy::GetPolyDataMapper()
-{
-  return m_PolyDataMapper;
-}
-
-void
-MeshDisplayMappingPolicy::UpdateMapper()
-{
-
 }
 
 

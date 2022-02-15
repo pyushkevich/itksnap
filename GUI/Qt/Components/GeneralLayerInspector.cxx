@@ -18,7 +18,6 @@
 #include "TagListWidget.h"
 
 Q_DECLARE_METATYPE(LayerGeneralPropertiesModel::DisplayMode)
-Q_DECLARE_METATYPE(MeshWrapperBase::ActiveMeshDataType)
 
 GeneralLayerInspector::GeneralLayerInspector(QWidget *parent) :
   QWidget(parent),
@@ -45,7 +44,6 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->spinBoxTP, m_Model->GetParentModel()->GetCursorTimePointModel());
   makeCoupling(ui->inTPNickname, m_Model->GetCrntTimePointNicknameModel());
   makeCoupling(ui->TPTagsWidget, m_Model->GetCrntTimePointTagListModel());
-  makeCoupling(ui->boxMeshDataType, m_Model->GetMeshDataTypeModel());
   makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
 
   // Couple the pin/unpin buttons

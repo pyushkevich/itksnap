@@ -553,26 +553,25 @@ public:
 
   /** Set mesh layer for the policy. */
   // This method intentionally hides parent's Initialize method
-  void Initialize(MeshWrapperBase *mesh_wrapper);
+  void SetMesh(MeshWrapperBase *mesh_wrapper);
 
   /** Set intensity curve */
   void SetIntensityCurve(IntensityCurveVTK *curve);
 
-  MeshWrapperBase *GetMeshLayer();
+  /** Get Lookup Table */
+  vtkSmartPointer<vtkLookupTable> GetLookupTable()
+  { return this->m_LookupTable; }
 
-  /** Get the pointer to the polydata mapper */
-  vtkPolyDataMapper *GetPolyDataMapper();
+  /** Configure mapper */
+  void ConfigurePolyDataMapper(vtkSmartPointer<vtkPolyDataMapper> mapper);
+
+  MeshWrapperBase *GetMeshLayer();
 
 protected:
   MeshDisplayMappingPolicy();
   virtual ~MeshDisplayMappingPolicy() = default;
 
-  /** Use default implementation or implemente in a subclass for policy specific updating logic */
-  virtual void UpdateMapper();
-
   MeshWrapperBase *m_Wrapper;
-
-  vtkSmartPointer<vtkPolyDataMapper> m_PolyDataMapper;
 
   vtkSmartPointer<vtkLookupTable> m_LookupTable;
 
@@ -582,8 +581,5 @@ protected:
 
   bool m_Initialized = false;
 };
-
-
-
 
 #endif // DISPLAYMAPPINGPOLICY_H

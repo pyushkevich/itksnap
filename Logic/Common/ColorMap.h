@@ -128,7 +128,6 @@ public:
    */
   void SetToSystemPreset(SystemPreset preset);
 
-
   size_t GetNumberOfCMPoints() const
   { return m_CMPoints.size(); }
 

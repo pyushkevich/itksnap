@@ -20,6 +20,7 @@ class vtkTransformPolyDataFilter;
 class vtkCubeSource;
 class vtkCoordinate;
 class vtkCamera;
+class vtkPolyDataMapper;
 class Window3DPicker;
 class ImageWrapperBase;
 class VolumeAssembly;
@@ -127,9 +128,17 @@ protected:
 
   typedef std::map<LabelType, vtkSmartPointer<vtkActor> > ActorMap;
   typedef ActorMap::iterator ActorMapIterator;
+  typedef std::stack<vtkSmartPointer<vtkActor>> ActorStack;
+  typedef std::stack<vtkSmartPointer<vtkPolyDataMapper>> MapperStack;
 
   // Collection of actors for different color labels in use
   ActorMap m_ActorMap;
+
+  // Collection of spare actors
+  ActorStack m_FreeActors;
+
+  // Collection of spare mappers
+  MapperStack m_FreeMappers;
 
   // Line sources for drawing the crosshairs
   vtkSmartPointer<vtkLineSource> m_AxisLineSource[3];
