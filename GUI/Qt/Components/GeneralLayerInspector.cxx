@@ -61,6 +61,8 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 
   makeCoupling(ui->tagsWidget, m_Model->GetTagsModel());
 
+  makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
+
   activateOnFlag(ui->grpMulticomponent, m_Model,
                  LayerGeneralPropertiesModel::UIF_MULTICOMPONENT,
                  QtWidgetActivator::HideInactive);
@@ -90,11 +92,6 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   activateOnFlag(ui->grpMesh, m_Model,
                  LayerGeneralPropertiesModel::UIF_IS_MESH,
                  QtWidgetActivator::HideInactive);
-
-  // Change the array name box content when mesh data type has changed
-  LatentITKEventNotifier::connect(
-        m_Model, ValueChangedEvent(),
-        this, SLOT(onModelUpdate(const EventBucket &)));
 }
 
 void GeneralLayerInspector::on_btnUp_clicked()
@@ -117,9 +114,4 @@ void GeneralLayerInspector::on_spinBoxTP_valueChanged(int value)
 
 void GeneralLayerInspector::onModelUpdate(const EventBucket &)
 {
-  if (m_Model->CheckState(LayerGeneralPropertiesModel::UIF_IS_MESH))
-    {
-    // re-couple the box
-    makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
-    }
 }
