@@ -534,12 +534,14 @@ bool
 LayerGeneralPropertiesModel::
 GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
 {
+
+
   // The current layer has to be a mesh layer
   MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
   if (!mesh_layer)
     return false;
 
-  auto props = mesh_layer->GetLayerDataProperty();
+  auto props = mesh_layer->GetCombinedDataProperty();
 
   if (domain)
     {

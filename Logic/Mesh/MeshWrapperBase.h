@@ -14,6 +14,7 @@ class vtkPolyData;
 class MeshDisplayMappingPolicy;
 class MeshAssembly;
 class vtkDataArray;
+class vtkDataSetAttributes;
 
 class MeshDataArrayProperty : public itk::Object
 {
@@ -22,7 +23,9 @@ public:
 
   enum MeshDataType { POINT_DATA=0, CELL_DATA, COUNT };
 
-  void Initialize(vtkSmartPointer<vtkDataArray> array);
+  void Initialize(vtkSmartPointer<vtkDataArray> array, MeshDataType type);
+
+  void Update(vtkSmartPointer<vtkDataArray> array);
 
   /** Merge with another property. Adjusting min/max etc. */
   void Merge(SmartPtr<MeshDataArrayProperty> other);
@@ -34,9 +37,12 @@ public:
   const char* GetName()
   { return m_Name; }
 
+  /** Deep copy self to the other object */
+  void DeepCopy(MeshDataArrayProperty *other) const;
+
 protected:
   MeshDataArrayProperty() {}
-  ~MeshDataArrayProperty() {}
+  ~MeshDataArrayProperty();
 
   char* m_Name;
   double m_min;
@@ -68,6 +74,9 @@ public:
   /** Mesh Data Property Map */
   typedef std::map<const char*, SmartPtr<MeshDataArrayProperty>, strcmp> MeshDataArrayPropertyMap;
 
+  /** Mesh Data Type */
+  typedef MeshDataArrayProperty::MeshDataType MeshDataType;
+
   void SetPolyData(vtkSmartPointer<vtkPolyData> polydata);
 
   vtkSmartPointer<vtkPolyData> GetPolyData();
@@ -82,6 +91,14 @@ public:
 protected:
   PolyDataWrapper() {}
   virtual ~PolyDataWrapper() {}
+
+  // Update point data and cell data properties
+  void UpdateDataArrayProperties();
+
+  // Helper method for iterating data arrays in polydata
+  void UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
+                                   vtkDataSetAttributes *data,
+                                   MeshDataType type) const;
 
   // The actual storage of a poly data object
   vtkSmartPointer<vtkPolyData> m_PolyData;
@@ -245,8 +262,8 @@ public:
   { return m_ActiveDataPropertyId; }
 
   /** Get mesh layer data property map */
-  MeshLayerDataPropertyMap GetLayerDataProperty()
-  { return m_MeshLayerDataPropertyMap; }
+  MeshLayerDataPropertyMap GetCombinedDataProperty()
+  { return m_CombinedDataPropertyMap; }
 
   /** Get mesh for a timepoint and id */
   SmartPtr<PolyDataWrapper> GetMesh(unsigned int timepoint, LabelType id);
@@ -256,8 +273,7 @@ public:
     We need to merge properties from all polydata in the assemblies and timepoints
     to one in the layer
     */
-  static void MergeDataProperties(MeshDataArrayPropertyMap &dest,
-                                  MeshDataArrayPropertyMap &src);
+  void MergeDataProperties(MeshDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &src);
 
   // Give display mapping policy access to protected members for flexible
   // configuration and data retrieval
@@ -269,10 +285,11 @@ protected:
 
   MeshAssemblyMapType m_MeshAssemblyMap;
 
-  MeshLayerDataPropertyMap m_MeshLayerDataPropertyMap;
+  // Combining Point and Cell Data Properties. Uniqely indexed.
+  MeshLayerDataPropertyMap m_CombinedDataPropertyMap;
 
+  // Actual storage of the point data cell data properties
   MeshDataArrayPropertyMap m_PointDataProperties;
-
   MeshDataArrayPropertyMap m_CellDataProperties;
 
   int m_ActiveDataPropertyId = 0;
@@ -299,7 +316,7 @@ protected:
   double m_Alpha;
 
   // Data Array Property Id
-  int DataArrayID = 0;
+  int m_CombinedPropID = 0;
 };
 
 #endif // MESHWRAPPERBASE_H
