@@ -95,3 +95,10 @@ MeshImportModel::Load(const char *filename, FileFormat format)
 
   delete IO;
 }
+
+void
+MeshImportModel::LoadAndCreateMain(const char *filename, FileFormat format)
+{
+  // Todo load mesh without main image loaded
+  // Create a blank image
+}

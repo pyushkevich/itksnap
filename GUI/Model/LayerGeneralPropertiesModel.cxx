@@ -547,7 +547,15 @@ GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
     {
     for (auto it = props.cbegin(); it != props.cend(); ++it)
       {
-      (*domain)[it->first] = it->second->GetName();
+      std::ostringstream oss;
+      if (it->second->GetType() == MeshDataArrayProperty::POINT_DATA)
+        oss << "(point_data) ";
+      else if (it->second->GetType() == MeshDataArrayProperty::CELL_DATA)
+        oss << "(cell_data) ";
+
+      oss << it->second->GetName();
+
+      (*domain)[it->first] = oss.str();
       }
 
     value = mesh_layer->GetActiveMeshLayerDataPropertyId();

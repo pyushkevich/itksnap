@@ -14,6 +14,7 @@
 #include "GuidedNativeImageIO.h"
 #include <QTimer>
 #include "LayoutReminderDialog.h"
+#include "MeshImportModel.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -37,10 +38,37 @@ void DropActionDialog::SetModel(GlobalUIModel *model)
   m_Model = model;
 }
 
+void DropActionDialog::InitialLoad(QString name)
+{
+  LoadMainImage(name);
+
+  // Todo load mesh without main image loaded
+  // Create a blank image
+  /*
+  // Get file extension
+  std::string fn = ui->outFilename->text().toStdString();
+  // Get the file extension with the dot. e.g. ".vtk"
+  std::string ext = fn.substr(fn.find_last_of("."));
+
+  // Check if it's a supported mesh file
+  auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
+  if (fmt != GuidedMeshIO::FORMAT_COUNT)
+    LoadMesh(name); // Load standalone mesh layer
+  else
+    LoadMainImage(name); // Load as main image
+   */
+}
+
 void DropActionDialog::LoadMainImage(QString name)
 {
   this->SetDroppedFilename(name);
   this->on_btnLoadMain_clicked();
+}
+
+void DropActionDialog::LoadMesh(QString name)
+{
+  this->SetDroppedFilename(name);
+  this->on_btnLoadMesh_clicked();
 }
 
 void DropActionDialog::on_btnLoadMain_clicked()
@@ -52,6 +80,26 @@ void DropActionDialog::on_btnLoadMain_clicked()
   SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
   del->Initialize(m_Model->GetDriver());
   this->LoadCommon(del);
+}
+
+void DropActionDialog::on_btnLoadMesh_clicked()
+{
+  // Get file extension
+  std::string fn = ui->outFilename->text().toStdString();
+  // Get the file extension with the dot. e.g. ".vtk"
+  std::string ext = fn.substr(fn.find_last_of("."));
+
+  std::cout << "[DropActionDialog] ext=" << ext << std::endl;
+
+  auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
+  if (fmt != GuidedMeshIO::FORMAT_COUNT)
+    {
+      auto model = m_Model->GetMeshImportModel();
+      model->Load(fn.c_str(), fmt);
+    }
+
+  // close the dialog
+  this->accept();
 }
 
 void DropActionDialog::on_btnLoadSegmentation_clicked()
@@ -99,6 +147,7 @@ void DropActionDialog::on_btnLoadNew_clicked()
     b.exec();
     }
 }
+
 
 #include "ImageIOWizardModel.h"
 #include "ImageIOWizard.h"

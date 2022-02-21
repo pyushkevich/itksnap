@@ -20,6 +20,7 @@ class vtkTransformPolyDataFilter;
 class vtkCubeSource;
 class vtkCoordinate;
 class vtkCamera;
+class vtkScalarBarActor;
 class vtkPolyDataMapper;
 class Window3DPicker;
 class ImageWrapperBase;
@@ -126,6 +127,9 @@ protected:
   // Configure the volume rendering
   void UpdateVolumeRendering();
 
+  // Apply changes in the display mapping policy to the actors
+  void ApplyDisplayMappingPolicyChange();
+
   typedef std::map<LabelType, vtkSmartPointer<vtkActor> > ActorMap;
   typedef ActorMap::iterator ActorMapIterator;
   typedef std::stack<vtkSmartPointer<vtkActor>> ActorStack;
@@ -162,6 +166,9 @@ protected:
   vtkSmartPointer<vtkCubeSource> m_ImageCubeSource;
   vtkSmartPointer<vtkTransformPolyDataFilter> m_ImageCubeTransform;
   vtkSmartPointer<vtkImplicitPlaneWidget> m_ScalpelPlaneWidget;
+
+  // The actor for scalar bar
+  vtkSmartPointer<vtkScalarBarActor> m_ScalarBarActor;
 
   // Coordinate mapper
   vtkSmartPointer<vtkCoordinate> m_CoordinateMapper;

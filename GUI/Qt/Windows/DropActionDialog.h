@@ -36,6 +36,18 @@ public:
    */
   void LoadMainImage(QString name);
 
+  /**
+   * Attempt to load a mesh directly without showing the dialog
+   */
+  void LoadMesh(QString name);
+
+  /**
+   * Load a file without Main Image loaded
+   * If file is a valid mesh file, load as mesh layer
+   * Otherwise call LoadMainImage
+   */
+  void InitialLoad(QString name);
+
 private slots:
   void on_btnLoadMain_clicked();
 
@@ -44,6 +56,8 @@ private slots:
   void on_btnLoadOverlay_clicked();
 
   void on_btnLoadNew_clicked();
+
+  void on_btnLoadMesh_clicked();
 
   /**
    * This method loads the dropped image.

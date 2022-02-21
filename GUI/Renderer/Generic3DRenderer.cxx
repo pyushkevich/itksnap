@@ -48,8 +48,13 @@
 #include "vtkCubeSource.h"
 #include "vtkCoordinate.h"
 #include "vtkQuadricLODActor.h"
+#include "vtkScalarBarActor.h"
 
 #include <vnl/vnl_cross.h>
+
+#include "IRISImageData.h"
+#include "ImageMeshLayers.h"
+#include "MeshWrapperBase.h"
 
 
 bool operator == (const CameraState &c1, const CameraState &c2)
@@ -143,6 +148,9 @@ Generic3DRenderer::Generic3DRenderer()
 
   this->m_Renderer->AddActor(m_ScalpelLineActor);
 
+  m_ScalarBarActor = vtkScalarBarActor::New();
+  this->m_Renderer->AddActor2D(m_ScalarBarActor);
+
   m_ImageCubeSource = vtkSmartPointer<vtkCubeSource>::New();
   m_ImageCubeTransform = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   m_ImageCubeTransform->SetInputConnection(m_ImageCubeSource->GetOutputPort());
@@ -219,6 +227,13 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperChangeEvent(), ModelUpdateEvent());
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperVisibilityChangeEvent(), ModelUpdateEvent());
 
+  Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
+              ValueChangedEvent(), ModelUpdateEvent());
+
+  // Respond to mesh layer display mapping policy change event
+  Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
+              WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
+
   // Update the main components
   this->UpdateAxisRendering();
   this->UpdateCamera(true);
@@ -261,6 +276,9 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 
   // Get meshes in current timepoint for current layer
   auto meshes = active_layer->GetMeshAssembly(tp);
+
+  // Get display mapping policy for color configuration
+  MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
 
   // Removing actors no longer in the scene
   if (tp != m_CrntActorMapTimePoint || active_layer_id != m_CrntActorMapLayerId)
@@ -340,8 +358,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       mapper->SetInputData(it_mesh->second->GetPolyData());
       actor->SetMapper(mapper);
 
-      // Get display mapping policy for color configuration
-      MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
+
 
       // Configure the mapper
       dmp->ConfigurePolyDataMapper(mapper);
@@ -388,8 +405,45 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       }
     }
 
+  dmp->ConfigureLegend(m_ScalarBarActor);
+
+
   // TODO: test code
   m_Renderer->Modified();
+}
+
+void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
+{
+  std::cout << "[G3DR] ApplyDisplayMappingPolicyChange" << std::endl;
+
+  ImageMeshLayers *layers = m_Model->GetMeshLayers();
+  unsigned long active_layer_id = layers->GetActiveLayerId();
+  unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
+
+  if (layers->size() == 0 || active_layer_id == 0)
+    return;
+
+  MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
+
+  // Get meshes in current timepoint for current layer
+  auto meshes = active_layer->GetMeshAssembly(tp);
+
+  // Get display mapping policy for color configuration
+  MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
+
+  for (auto cit = m_ActorMap.cbegin(); cit != m_ActorMap.cend(); ++cit)
+    {
+    auto mapper = vtkPolyDataMapper::SafeDownCast(cit->second->GetMapper());
+
+    if (mapper)
+      dmp->ConfigurePolyDataMapper(mapper);
+
+    mapper->Update();
+    }
+
+  dmp->ConfigureLegend(m_ScalarBarActor);
+
+  m_Renderer->Render();
 }
 
 void Generic3DRenderer::ResetSegmentationMeshAssembly()
@@ -990,6 +1044,14 @@ void Generic3DRenderer::OnUpdate()
   bool wrapper_vr_options_changed =
       m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
 
+  // Need to rebuild the actor map
+  bool need_rebuild_actor_map = false;
+
+  // Without rebuilding the actor map, update the actors inside the map
+  bool need_update_actor_color =
+      m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent(),
+                              app->GetIRISImageData()->GetMeshLayers());
+
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed || seg_layer_changed)
     {
@@ -1003,6 +1065,12 @@ void Generic3DRenderer::OnUpdate()
     }
 
   // If the segmentation changed
+
+  // If Existing Mesh Assembly Display Mapping Policy changed
+  if (need_update_actor_color)
+    {
+    ApplyDisplayMappingPolicyChange();
+    }
 
   // Deal with axes
   if(main_changed || cursor_moved || appearance_changed)
@@ -1058,7 +1126,8 @@ void Generic3DRenderer::OnUpdate()
 
   // Force rendering to occur
   // TODO: commenting out for now because calling Render outside of GL context causes problems
-  // this->GetRenderWindow()->Render();
+  if (need_render)
+    this->GetRenderWindow()->Render();
 }
 
 void Generic3DRenderer::ResetView()
