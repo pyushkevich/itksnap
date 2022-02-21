@@ -28,7 +28,6 @@ class AbstractLayerTableRowModel : public AbstractModel
 public:
   irisITKAbstractObjectMacro(AbstractLayerTableRowModel, AbstractModel)
 
-
   /**
     States in which the model can be, which allow the activation and
     deactivation of various widgets in the interface
@@ -289,9 +288,6 @@ protected:
   SmartPtr<AbstractSimpleBooleanProperty> m_VolumeRenderingEnabledModel;
   bool GetVolumeRenderingEnabledValue(bool &value);
   void SetVolumeRenderingEnabledValue(bool value);
-
-  // Update our state in response to events from the layer
-  virtual void OnUpdate() override;
 
   // Cached list of display modes
   DisplayModeList m_AvailableDisplayModes;

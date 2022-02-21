@@ -153,6 +153,13 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
     }
 
 
+  if (!model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
+    {
+      auto image_model = dynamic_cast<ImageLayerTableRowModel*>(model);
+      makeCoupling(ui->outComponent, image_model->GetComponentNameModel());
+    }
+
+
   const QtWidgetActivator::Options opt_hide = QtWidgetActivator::HideInactive;
   activateOnFlag(ui->actionUnpin_layer, model, AbstractLayerTableRowModel::UIF_UNPINNABLE, opt_hide);
   activateOnFlag(ui->actionPin_layer, model, AbstractLayerTableRowModel::UIF_PINNABLE, opt_hide);
