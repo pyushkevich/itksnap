@@ -734,9 +734,13 @@ void Generic3DRenderer::UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssemb
     {
     double t = j * 1.0 / k;
     double i = imin + (imax - imin) * t;
-    auto rgba = cmap->MapIndexToRGBA(curve->Evaluate(t));
+    double x = curve->Evaluate(t);
+    auto rgba = cmap->MapIndexToRGBA(x);
     va->ColorCurve->AddRGBPoint(i, rgba[0] / 255., rgba[1] / 255., rgba[2] / 255.);
-    va->OpacityCurve->AddPoint(i, rgba[3] / 255.);
+
+    // Here we apply additional ramp to the alpha
+    double x_ramp = (x < 0) ? 0.0 : (x > 1.0) ? 1.0 : x;
+    va->OpacityCurve->AddPoint(i, rgba[3] * x_ramp / 255.);
     }
 
   va->CurveUpdateTime = std::max(cmap->GetMTime(), curve->GetMTime());
