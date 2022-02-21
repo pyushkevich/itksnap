@@ -4,10 +4,12 @@
 #include "vtkCellData.h"
 #include "vtkDataSetAttributes.h"
 #include <itksys/SystemTools.hxx>
+#include "DisplayMappingPolicy.h"
 
 MeshWrapperBase::MeshWrapperBase()
 {
-
+  m_DisplayMapping = MeshDisplayMappingPolicy::New();
+  m_DisplayMapping->SetMesh(this);
 }
 
 MeshWrapperBase::~MeshWrapperBase()
@@ -63,6 +65,10 @@ MeshWrapperBase::SetMesh(vtkSmartPointer<vtkPolyData> mesh, unsigned int timepoi
       assembly->AddMesh(wrapper, id);
       m_MeshAssemblyMap[timepoint] = assembly;
     }
+
+  // Set Default active array id
+  std::cout << "[MeshWrapperBase] Combined Map Size=" << m_CombinedDataPropertyMap.size() << std::endl;
+  SetActiveMeshLayerDataPropertyId(m_CombinedDataPropertyMap.cbegin()->first);
 }
 
 SmartPtr<PolyDataWrapper>
@@ -143,12 +149,59 @@ MeshWrapperBase::GetActiveDataArrayProperty()
   return ret;
 }
 
+#include "DisplayMappingPolicy.h"
 
 void
 MeshWrapperBase::
 SetActiveMeshLayerDataPropertyId(int id)
 {
+  if (m_ActiveDataPropertyId == id)
+    return;
+
   m_ActiveDataPropertyId = id;
+
+  // if failed check caller's logic
+  assert(m_CombinedDataPropertyMap.count(id));
+
+  // check is point or cell data
+  auto prop = m_CombinedDataPropertyMap[id];
+
+  std::cout << "[MeshWrapperBase] SetActiveProp prop=" << prop << std::endl;
+
+  // Change the active array
+  if (prop->GetType() == MeshDataArrayProperty::POINT_DATA)
+    {
+    std::cout << "[MeshWrapperBase] Set Point Data" << std::endl;
+    std::cout << "[MeshWrapperBase] MeshAssemblyMapSize=" << m_MeshAssemblyMap.size() << std::endl;
+    for (auto cit = m_MeshAssemblyMap.cbegin(); cit != m_MeshAssemblyMap.cend(); ++cit)
+      {
+      for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)
+        {
+
+        auto pointData = polyIt->second->GetPolyData()->GetPointData();
+        pointData->SetActiveAttribute(prop->GetName(),
+                               vtkDataSetAttributes::SCALARS);
+        }
+      }
+    }
+  else if (prop->GetType() == MeshDataArrayProperty::CELL_DATA)
+    {
+    std::cout << "[MeshWrapperBase] Set Cell Data" << std::endl;
+    for (auto cit = m_MeshAssemblyMap.cbegin(); cit != m_MeshAssemblyMap.cend(); ++cit)
+      for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)
+        {
+        polyIt->second->GetPolyData()->GetCellData()->
+            SetActiveAttribute(prop->GetName(),
+                               vtkDataSetAttributes::SCALARS);
+        }
+    }
+
+  auto dmp = GetMeshDisplayMappingPolicy();
+  dmp->SetColorMap(prop->GetColorMap());
+  dmp->SetIntensityCurve(prop->GetIntensityCurve());
+
+  InvokeEvent(WrapperDisplayMappingChangeEvent());
+  InvokeEvent(itk::ModifiedEvent());
 }
 
 // ========================================
@@ -245,6 +298,12 @@ UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
 //  MeshDataArrayProperty Implementation
 // ========================================
 MeshDataArrayProperty::
+MeshDataArrayProperty()
+{
+
+}
+
+MeshDataArrayProperty::
 ~MeshDataArrayProperty()
 {
   delete[] m_Name;
@@ -265,7 +324,10 @@ Initialize(vtkSmartPointer<vtkDataArray> array, MeshDataType type)
   m_Type = type;
 
   m_ColorMap = ColorMap::New();
+  m_ColorMap->SetToSystemPreset(
+        static_cast<ColorMap::SystemPreset>(ColorMap::SystemPreset::COLORMAP_WINTER));
   m_IntensityCurve = IntensityCurveVTK::New();
+  m_IntensityCurve->Initialize();
 }
 
 void
@@ -309,6 +371,23 @@ DeepCopy(MeshDataArrayProperty *other) const
   other->m_min = this->m_min;
   other->m_max = this->m_max;
   other->m_Type = this->m_Type;
+
+  other->m_ColorMap = ColorMap::New();
+  other->m_ColorMap->CopyInformation(this->m_ColorMap);
+
+  other->m_IntensityCurve = IntensityCurveVTK::New();
+  other->m_IntensityCurve->CopyInformation(this->m_IntensityCurve);
+}
+
+void
+MeshDataArrayProperty::
+Print(ostream &os) const
+{
+  os << "[MeshDataArrayProperty]" << std::endl;
+  std::cout << "name: " << m_Name << std::endl;
+  std::cout << "type: " << m_Type << std::endl;
+  std::cout << "min: " << m_min << std::endl;
+  std::cout << "max: " << m_max << std::endl;
 }
 
 

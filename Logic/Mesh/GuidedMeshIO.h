@@ -65,7 +65,7 @@ public:
   struct MeshFormatDescriptor
   {
     std::string name;
-    std::vector<std::string> extensions;
+    std::set<std::string> extensions;
     bool can_read;
     bool can_write;
   };
@@ -83,6 +83,9 @@ public:
 
   /** Get enum description */
   std::string GetFormatDescription(FileFormat formatEnum);
+
+  /** Get format from extension */
+  static FileFormat GetFormatByExtension(std::string extension);
 
   /** Save an image using the Registry folder to specify parameters */
   void SaveMesh(const char *FileName, Registry &folder, vtkPolyData *mesh);

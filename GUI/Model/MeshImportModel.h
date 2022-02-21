@@ -42,6 +42,9 @@ public:
   /** Load file using a GuidedMeshIO */
   void Load(const char *filename, FileFormat format);
 
+  /** Load file with creating blank main image */
+  void LoadAndCreateMain(const char *filename, FileFormat format);
+
   irisGetSetMacro(Mode, Mode)
 
 

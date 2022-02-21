@@ -13,15 +13,6 @@ VTKMeshIODelegate::VTKMeshIODelegate()
 
 }
 
-void
-VTKMeshIODelegate::LoadPolyData(const char *filename, vtkSmartPointer<vtkPolyData> polyData)
-{
-  vtkNew<vtkPolyDataReader> reader;
-  reader->SetFileName(filename);
-  reader->Update();
-  polyData = reader->GetOutput();
-}
-
 vtkSmartPointer<vtkPolyData>
 VTKMeshIODelegate::ReadPolyData(const char *filename)
 {
@@ -36,15 +27,6 @@ VTKMeshIODelegate::ReadPolyData(const char *filename)
 VTPMeshIODelegate::VTPMeshIODelegate()
 {
 
-}
-
-void
-VTPMeshIODelegate::LoadPolyData(const char *filename, vtkSmartPointer<vtkPolyData> polyData)
-{
-  vtkNew<vtkXMLPolyDataReader> reader;
-  reader->SetFileName(filename);
-  reader->Update();
-  polyData = reader->GetOutput();
 }
 
 vtkSmartPointer<vtkPolyData>

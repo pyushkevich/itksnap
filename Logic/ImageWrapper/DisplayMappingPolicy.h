@@ -9,11 +9,13 @@
 #include "MultiChannelDisplayMode.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkLookupTable.h"
+#include "Generic3DRenderer.h"
 
 class ColorLabelTable;
 class LabelToRGBAFilter;
 class IntensityCurveVTK;
 class Registry;
+class ActorMapperPool;
 template <class TEnum> class RegistryEnumMap;
 template <class T, class U> class LookupTableIntensityMappingFilter;
 template <class T> class RGBALookupTableIntensityMappingFilter;
@@ -511,6 +513,7 @@ class MeshDisplayMappingPolicy : public AbstractContinuousImageDisplayMappingPol
 public:
   irisITKObjectMacro(MeshDisplayMappingPolicy, AbstractContinuousImageDisplayMappingPolicy)
 
+  typedef MeshDataArrayProperty::MeshDataType MeshDataType;
 
   //--------------------------------------------
   // virtual methods implementation
@@ -548,6 +551,12 @@ public:
 
   virtual void SetColorMap(ColorMap *map) override;
 
+  /** Configure mapper */
+  virtual void ConfigurePolyDataMapper(vtkSmartPointer<vtkPolyDataMapper> mapper);
+
+  /** Configure legend scalar bar */
+  virtual void ConfigureLegend(vtkScalarBarActor *legend);
+
   // end of virtual methods implementation
   //--------------------------------------------
 
@@ -559,11 +568,7 @@ public:
   void SetIntensityCurve(IntensityCurveVTK *curve);
 
   /** Get Lookup Table */
-  vtkSmartPointer<vtkLookupTable> GetLookupTable()
-  { return this->m_LookupTable; }
-
-  /** Configure mapper */
-  void ConfigurePolyDataMapper(vtkSmartPointer<vtkPolyDataMapper> mapper);
+  vtkLookupTable *GetLookupTable();
 
   MeshWrapperBase *GetMeshLayer();
 
@@ -580,6 +585,9 @@ protected:
   SmartPtr<IntensityCurveVTK> m_IntensityCurve;
 
   bool m_Initialized = false;
+
+  // Build m_LookupTable based on the active array property
+  void UpdateLUT();
 };
 
 #endif // DISPLAYMAPPINGPOLICY_H

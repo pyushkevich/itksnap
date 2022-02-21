@@ -1,4 +1,6 @@
 #include "ImageMeshLayers.h"
+#include "Rebroadcaster.h"
+#include "SNAPEvents.h"
 
 ImageMeshLayers::ImageMeshLayers()
 {
@@ -13,6 +15,11 @@ ImageMeshLayers::AddLayer(SmartPtr<MeshWrapperBase> meshLayer)
 
   // if this is the first added layer, set active
   m_ActiveLayerId = meshLayer->GetUniqueId();
+
+  Rebroadcaster::Rebroadcast(meshLayer, itk::ModifiedEvent(),
+                             this, ValueChangedEvent());
+  Rebroadcaster::Rebroadcast(meshLayer, WrapperDisplayMappingChangeEvent(),
+                             this, WrapperDisplayMappingChangeEvent());
 
   InvokeEvent(LayerChangeEvent());
 }

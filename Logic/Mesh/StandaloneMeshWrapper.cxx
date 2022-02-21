@@ -3,9 +3,6 @@
 
 StandaloneMeshWrapper::StandaloneMeshWrapper()
 {
-  m_DisplayMapping = MeshDisplayMappingPolicy::New();
-  m_DisplayMapping->SetMesh(this);
-
   m_Initialized = true;
 }
 

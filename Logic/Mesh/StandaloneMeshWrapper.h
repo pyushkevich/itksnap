@@ -42,8 +42,6 @@ public:
 protected:
   StandaloneMeshWrapper();
   virtual ~StandaloneMeshWrapper() = default;
-
-  SmartPtr<MeshDisplayMappingPolicy> m_DisplayMapping;
 };
 
 #endif // STANDALONEMESHWRAPPER_H

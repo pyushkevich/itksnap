@@ -33,15 +33,31 @@ public:
   /** Get type of the property */
   MeshDataType GetType() const;
 
+  /** Get Color Map */
+  ColorMap* GetColorMap()
+  { return m_ColorMap; }
+
+  /** Get Intensity Curve */
+  IntensityCurveVTK* GetIntensityCurve()
+  { return m_IntensityCurve; }
+
+  /** Get min */
+  double GetMin() const { return m_min; }
+
+  /** Get max */
+  double GetMax() const { return m_max; }
+
   /** Get name */
   const char* GetName()
   { return m_Name; }
+
+  void Print(std::ostream &os) const;
 
   /** Deep copy self to the other object */
   void DeepCopy(MeshDataArrayProperty *other) const;
 
 protected:
-  MeshDataArrayProperty() {}
+  MeshDataArrayProperty();
   ~MeshDataArrayProperty();
 
   char* m_Name;
@@ -142,6 +158,9 @@ public:
   /** Get the end of iterator of the map */
   MeshAssemblyMap::const_iterator cend()
   { return m_Meshes.cend(); }
+
+  MeshAssemblyMap::size_type size()
+  { return m_Meshes.size(); }
 
 protected:
   MeshAssembly() {}
@@ -292,7 +311,8 @@ protected:
   MeshDataArrayPropertyMap m_PointDataProperties;
   MeshDataArrayPropertyMap m_CellDataProperties;
 
-  int m_ActiveDataPropertyId = 0;
+  // This should be re-set after construction
+  int m_ActiveDataPropertyId = -1;
 
   UserDataMapType m_UserDataMap;
 
@@ -311,6 +331,8 @@ protected:
   TagList m_Tags;
 
   bool m_Initialized = false;
+
+  SmartPtr<MeshDisplayMappingPolicy> m_DisplayMapping;
 
   // Transparency
   double m_Alpha;

@@ -561,7 +561,6 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionSaveMainROI, m_Model, UIF_SNAKE_MODE);
   activateOnFlag(ui->menuExport, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionUnload_All, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
-  activateOnFlag(ui->actionAddMesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   // Set up activations - Edit menu
   activateOnFlag(ui->actionUndo, m_Model, UIF_UNDO_POSSIBLE);
@@ -1232,7 +1231,7 @@ void MainImageWindow::LoadDroppedFile(QString file)
     else
       {
       // Otherwise, load the main image directly
-      m_DropDialog->LoadMainImage(file);
+      m_DropDialog->InitialLoad(file);
       }
     }
 }

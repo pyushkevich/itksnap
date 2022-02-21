@@ -15,6 +15,9 @@
 #include "itkUnaryFunctorImageFilter.h"
 #include "InputSelectionImageFilter.h"
 #include "Rebroadcaster.h"
+#include "vtkActor.h"
+#include "vtkPolyData.h"
+#include "Generic3DRenderer.h"
 
 
 /* ===============================================================
@@ -1002,6 +1005,9 @@ MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
 {
   m_ColorMap = map;
 
+  std::cout << "[MeshDMP] color map set" << std::endl;
+  //std::cout << "[MeshDMP] m_wrapper=" << m_Wrapper << std::endl;
+  //std::cout << "[MeshDMP] m_colorMap=" << m_ColorMap << std::endl;
   Rebroadcaster::Rebroadcast(m_ColorMap, itk::ModifiedEvent(),
                              m_Wrapper, WrapperDisplayMappingChangeEvent());
 }
@@ -1014,6 +1020,9 @@ MeshDisplayMappingPolicy::SetIntensityCurve(IntensityCurveVTK *curve)
   Rebroadcaster::Rebroadcast(m_IntensityCurve, itk::ModifiedEvent(),
                              m_Wrapper, WrapperDisplayMappingChangeEvent());
 }
+
+#include "vtkPointData.h"
+#include "vtkCellData.h"
 
 void
 MeshDisplayMappingPolicy::SetMesh(MeshWrapperBase *mesh_wrapper)
@@ -1041,7 +1050,110 @@ void
 MeshDisplayMappingPolicy::
 ConfigurePolyDataMapper(vtkSmartPointer<vtkPolyDataMapper> mapper)
 {
+  std::cout << "[MeshDMP] ConfigurePolydataMapper" << std::endl;
+
+  // Get active data array property
+  auto prop = m_Wrapper->GetActiveDataArrayProperty();
+
+  if (!prop)
+    return;
+
+  // Update lookup table
+  UpdateLUT();
+
+  // Configure mapper
   mapper->SetLookupTable(m_LookupTable);
+  mapper->UseLookupTableScalarRangeOn();
+
+  // This should never happen, check data property implementation
+  assert(prop->GetType() != MeshDataType::COUNT);
+
+  std::cout << "[MeshDMP] Active Prop:" << prop << std::endl;
+
+  // point/cell data specific logic
+  if (prop->GetType() == MeshDataType::POINT_DATA)
+    {
+    std::cout << "[MeshDMP] use point data" << std::endl;
+    mapper->SetScalarModeToUsePointData();
+    auto pointData = mapper->GetInput()->GetPointData();
+    pointData->SetActiveAttribute(prop->GetName(),
+                                  vtkDataSetAttributes::AttributeTypes::SCALARS);
+    }
+  else if (prop->GetType() == MeshDataType::CELL_DATA)
+    {
+    std::cout << "[MeshDMP] use cell data" << std::endl;
+    mapper->SetScalarModeToUseCellData();
+    auto cellData = mapper->GetInput()->GetCellData();
+    cellData->SetActiveAttribute(prop->GetName(),
+                                 vtkDataSetAttributes::AttributeTypes::SCALARS);
+    }
+
+
+  // Set active attribute
+  mapper->SetColorModeToMapScalars();
+}
+
+void
+MeshDisplayMappingPolicy::
+UpdateLUT()
+{
+  // Get the active property
+  auto prop = m_Wrapper->GetActiveDataArrayProperty();
+
+  if (!prop)
+    return;
+
+  // Build lookup table
+  auto min = prop->GetMin();
+  auto max = prop->GetMax();
+
+  const size_t numClr = 256;
+  // div change dividing to multiplying, more efficient
+  double numdiv = 1.0/numClr;
+  double clrdiv = 1.0/255.0;
+
+  m_LookupTable->SetRange(min, max);
+  m_LookupTable->SetNumberOfColors(numClr);
+  for (auto i = 0; i < numClr; ++i)
+    {
+    auto rgbaC = m_ColorMap->MapIndexToRGBA(i * numdiv).GetDataPointer();
+
+    double rgbaD[4];
+    for (auto i = 0; i < 4; ++i)
+      rgbaD[i] = rgbaC[i] * clrdiv;
+
+
+    std::cout << "[UpdateLUT] r=" << rgbaD[0] <<
+                 "g=" << rgbaD[1] <<
+                 "b=" << rgbaD[2] <<
+                 "a=" << rgbaD[3] << std::endl;
+
+    m_LookupTable->SetTableValue(i, rgbaD);
+    }
+  m_LookupTable->Build();
+}
+
+#include "vtkScalarBarActor.h"
+
+void MeshDisplayMappingPolicy::
+ConfigureLegend(vtkScalarBarActor* legend)
+{
+  legend->SetLookupTable(m_LookupTable);
+
+  auto prop = m_Wrapper->GetActiveDataArrayProperty();
+
+  if (!prop)
+    return;
+
+  legend->SetTitle(prop->GetName());
+}
+
+vtkLookupTable*
+MeshDisplayMappingPolicy::
+GetLookupTable()
+{
+  UpdateLUT();
+  return m_LookupTable;
 }
 
 MeshWrapperBase *

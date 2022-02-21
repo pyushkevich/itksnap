@@ -39,6 +39,20 @@ GuidedMeshIO
   return folder.Entry("Format").GetEnum(m_EnumFileFormat, dflt);  
 }
 
+GuidedMeshIO::FileFormat
+GuidedMeshIO::
+GetFormatByExtension(std::string extension)
+{
+  for (auto kv : m_MeshFormatDescriptorMap)
+    {
+    // Looking for the first format match the extension
+    if (kv.second.extensions.count(extension))
+      return kv.first;
+    }
+
+  return FileFormat::FORMAT_COUNT;
+}
+
 void GuidedMeshIO
 ::SetFileFormat(Registry &folder, FileFormat format)
 {
