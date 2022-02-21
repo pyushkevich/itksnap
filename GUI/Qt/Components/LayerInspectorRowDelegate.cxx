@@ -144,19 +144,12 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   makeCoupling(m_OverlayOpacitySlider, model->GetLayerOpacityModel());
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());
   makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
-  makeCoupling(ui->actionVolumeEnable, model->GetVolumeRenderingEnabledModel());
 
   if (!model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
     {
-      auto image_model = dynamic_cast<ImageLayerTableRowModel*>(model);
-      makeCoupling(ui->outComponent, image_model->GetComponentNameModel());
-    }
-
-
-  if (!model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
-    {
-      auto image_model = dynamic_cast<ImageLayerTableRowModel*>(model);
-      makeCoupling(ui->outComponent, image_model->GetComponentNameModel());
+    auto image_model = dynamic_cast<ImageLayerTableRowModel*>(model);
+    makeCoupling(ui->outComponent, image_model->GetComponentNameModel());
+    makeCoupling(ui->actionVolumeEnable, image_model->GetVolumeRenderingEnabledModel());
     }
 
 
