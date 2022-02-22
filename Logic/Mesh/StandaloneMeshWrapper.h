@@ -2,7 +2,7 @@
 #define STANDALONEMESHWRAPPER_H
 
 #include "MeshWrapperBase.h"
-#include "DisplayMappingPolicy.h"
+#include "MeshDisplayMappingPolicy.h"
 
 class StandaloneMeshWrapper : public MeshWrapperBase
 {

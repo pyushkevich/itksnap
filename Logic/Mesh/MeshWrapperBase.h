@@ -8,38 +8,30 @@
 #include "ImageWrapperBase.h"
 #include "IntensityCurveVTK.h"
 #include "ColorMap.h"
+#include "ThreadedHistogramImageFilter.h"
+#include "vtkDataArray.h"
+#include "itkMinimumMaximumImageFilter.h"
 
 class AbstractMeshIODelegate;
 class vtkPolyData;
 class MeshDisplayMappingPolicy;
 class MeshAssembly;
-class vtkDataArray;
 class vtkDataSetAttributes;
+template<class TIn> class ThreadedHistogramImageFilter;
 
-class MeshDataArrayProperty : public itk::Object
+class AbstractMeshDataArrayProperty : public itk::Object
 {
 public:
-  irisITKObjectMacro(MeshDataArrayProperty, itk::Object);
+  irisITKAbstractObjectMacro(AbstractMeshDataArrayProperty, itk::Object);
 
   enum MeshDataType { POINT_DATA=0, CELL_DATA, COUNT };
 
-  void Initialize(vtkSmartPointer<vtkDataArray> array, MeshDataType type);
+  void Initialize(vtkDataArray *array, MeshDataType type);
 
-  void Update(vtkSmartPointer<vtkDataArray> array);
-
-  /** Merge with another property. Adjusting min/max etc. */
-  void Merge(SmartPtr<MeshDataArrayProperty> other);
+  void Update(vtkDataArray *array);
 
   /** Get type of the property */
   MeshDataType GetType() const;
-
-  /** Get Color Map */
-  ColorMap* GetColorMap()
-  { return m_ColorMap; }
-
-  /** Get Intensity Curve */
-  IntensityCurveVTK* GetIntensityCurve()
-  { return m_IntensityCurve; }
 
   /** Get min */
   double GetMin() const { return m_min; }
@@ -53,21 +45,95 @@ public:
 
   void Print(std::ostream &os) const;
 
-  /** Deep copy self to the other object */
-  void DeepCopy(MeshDataArrayProperty *other) const;
 
 protected:
-  MeshDataArrayProperty();
-  ~MeshDataArrayProperty();
+  AbstractMeshDataArrayProperty();
+  virtual ~AbstractMeshDataArrayProperty();
 
   char* m_Name;
   double m_min;
   double m_max;
 
   MeshDataType m_Type;
+};
+
+/**
+ * @brief The MeshDataArrayProperty class
+ * Stores element-level data array property. Has one-to-one relationship to
+ * a vtkDataArray.
+ */
+class MeshDataArrayProperty : public AbstractMeshDataArrayProperty
+{
+public:
+  irisITKObjectMacro(MeshDataArrayProperty, AbstractMeshDataArrayProperty);
+
+  void SetDataPointer(vtkDataArray* pointer);
+  vtkDataArray* GetDataPointer()
+  { return m_DataPointer; }
+
+protected:
+  MeshDataArrayProperty();
+  ~MeshDataArrayProperty();
+
+  vtkSmartPointer<vtkDataArray> m_DataPointer;
+
+};
+
+/**
+ * @brief The MeshLayerDataArrayProperty class
+ * Stores layer-level data array property. It should only be used at
+ * MeshWrapperBase (layer) level. It merges mesh assembly lowest level
+ * properties into one with a ColorMap and Intensity Curve; Providing
+ * the UI ability to set layer-specific display mapping policy for the
+ * data arrays of all the mesh elements with same type and name.
+ */
+class MeshLayerDataArrayProperty : public AbstractMeshDataArrayProperty
+{
+public:
+  irisITKObjectMacro(MeshLayerDataArrayProperty, AbstractMeshDataArrayProperty)
+
+  typedef itk::Image<double, 1> DataArrayImageType;
+  typedef ThreadedHistogramImageFilter<DataArrayImageType> HistogramFilterType;
+  typedef itk::MinimumMaximumImageFilter<DataArrayImageType> MinMaxFilterType;
+
+  /** Get Color Map */
+  ColorMap* GetColorMap()
+  { return m_ColorMap; }
+
+  /** Get Intensity Curve */
+  IntensityCurveVTK* GetIntensityCurve()
+  { return m_IntensityCurve; }
+
+  /**
+    Compute the array histogram. The histogram is cached inside of the
+    object, so repeated calls to this function with the same nBins parameter
+    will not require additional computation.
+
+    Calling with default parameter (0) will use the same number of bins that
+    is currently in the histogram (i.e., return/recompute current histogram).
+    If there is no current histogram, a default histogram with 128 entries
+    will be generated.
+    */
+  ScalarImageHistogram* GetHistogram(size_t nBins) const;
+
+  /** Merge another property into this. Adjusting min/max etc. */
+  void Merge(MeshDataArrayProperty *other);
+
+  /** Deep copy self to the other object */
+  void Initialize(MeshDataArrayProperty *other);
+
+protected:
+  MeshLayerDataArrayProperty();
+  ~MeshLayerDataArrayProperty() {};
 
   SmartPtr<ColorMap> m_ColorMap;
   SmartPtr<IntensityCurveVTK> m_IntensityCurve;
+  SmartPtr<HistogramFilterType> m_HistogramFilter;
+  SmartPtr<MinMaxFilterType> m_MinMaxFilter;
+
+
+  std::list<vtkDataArray*> m_DataPointerList;
+
 };
 
 /**
@@ -196,9 +262,13 @@ public:
   typedef std::map<unsigned int, SmartPtr<MeshAssembly>> MeshAssemblyMapType;
 
   /** Maps Layer-Level Data Array Properties with unique ids */
-  typedef std::map<int, SmartPtr<MeshDataArrayProperty>> MeshLayerDataPropertyMap;
+  typedef std::map<int, SmartPtr<MeshLayerDataArrayProperty>> MeshLayerCombinedPropertyMap;
 
   /** Maps Layer-Level Data Array Properties with name */
+  typedef std::map<const char*,
+    SmartPtr<MeshLayerDataArrayProperty>, PolyDataWrapper::strcmp> MeshLayerDataArrayPropertyMap;
+
+  /** Element level Data Array properties with name */
   typedef PolyDataWrapper::MeshDataArrayPropertyMap MeshDataArrayPropertyMap;
 
   //----------------------------------------------
@@ -273,7 +343,7 @@ public:
   //------------------------------------------------
 
   /** Get the active data array property */
-  SmartPtr<MeshDataArrayProperty> GetActiveDataArrayProperty();
+  SmartPtr<MeshLayerDataArrayProperty> GetActiveDataArrayProperty();
 
   /** Set data array with the id as active mesh data attribute */
   void SetActiveMeshLayerDataPropertyId (int id);
@@ -281,7 +351,7 @@ public:
   { return m_ActiveDataPropertyId; }
 
   /** Get mesh layer data property map */
-  MeshLayerDataPropertyMap GetCombinedDataProperty()
+  MeshLayerCombinedPropertyMap GetCombinedDataProperty()
   { return m_CombinedDataPropertyMap; }
 
   /** Get mesh for a timepoint and id */
@@ -292,7 +362,7 @@ public:
     We need to merge properties from all polydata in the assemblies and timepoints
     to one in the layer
     */
-  void MergeDataProperties(MeshDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &src);
+  void MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &src);
 
   // Give display mapping policy access to protected members for flexible
   // configuration and data retrieval
@@ -305,11 +375,11 @@ protected:
   MeshAssemblyMapType m_MeshAssemblyMap;
 
   // Combining Point and Cell Data Properties. Uniqely indexed.
-  MeshLayerDataPropertyMap m_CombinedDataPropertyMap;
+  MeshLayerCombinedPropertyMap m_CombinedDataPropertyMap;
 
   // Actual storage of the point data cell data properties
-  MeshDataArrayPropertyMap m_PointDataProperties;
-  MeshDataArrayPropertyMap m_CellDataProperties;
+  MeshLayerDataArrayPropertyMap m_PointDataProperties;
+  MeshLayerDataArrayPropertyMap m_CellDataProperties;
 
   // This should be re-set after construction
   int m_ActiveDataPropertyId = -1;

@@ -1,5 +1,6 @@
 #include "LayerGeneralPropertiesModel.h"
 #include "DisplayMappingPolicy.h"
+#include "MeshDisplayMappingPolicy.h"
 #include "LayerAssociation.txx"
 #include "NumericPropertyToggleAdaptor.h"
 #include "LayerTableRowModel.h"

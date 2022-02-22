@@ -640,7 +640,7 @@ MeshLayerTableRowModel::CheckState(UIState state)
       return false;
 
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
-      return false;
+      return true;
 
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
       return true;

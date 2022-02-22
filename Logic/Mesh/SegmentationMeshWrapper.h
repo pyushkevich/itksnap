@@ -2,7 +2,7 @@
 #define SEGMENTATIONMESHWRAPPER_H
 
 #include "MeshWrapperBase.h"
-#include "DisplayMappingPolicy.h"
+#include "MeshDisplayMappingPolicy.h"
 
 class SegmentationMeshWrapper : public MeshWrapperBase
 {

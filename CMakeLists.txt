@@ -266,6 +266,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/MultiChannelDisplayMode.cxx
+  Logic/ImageWrapper/MeshDisplayMappingPolicy.cxx
   Logic/ImageWrapper/ScalarImageHistogram.cxx
   Logic/ImageWrapper/ScalarImageWrapper.cxx
   Logic/ImageWrapper/VectorImageWrapper.cxx
@@ -386,6 +387,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/InputSelectionImageFilter.h
   Logic/ImageWrapper/InputSelectionImageFilter.txx
   Logic/ImageWrapper/MultiChannelDisplayMode.h
+  Logic/ImageWrapper/MeshDisplayMappingPolicy.h
   Logic/ImageWrapper/VectorToScalarImageAccessor.h
   Logic/RLEImage/RLEImage.h
   Logic/RLEImage/RLEImage.txx

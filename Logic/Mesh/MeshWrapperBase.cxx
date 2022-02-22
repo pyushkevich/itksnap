@@ -4,7 +4,284 @@
 #include "vtkCellData.h"
 #include "vtkDataSetAttributes.h"
 #include <itksys/SystemTools.hxx>
-#include "DisplayMappingPolicy.h"
+#include "MeshDisplayMappingPolicy.h"
+
+// ========================================
+//  AbstractMeshDataArrayProperty Implementation
+// ========================================
+AbstractMeshDataArrayProperty::
+AbstractMeshDataArrayProperty()
+{
+
+}
+
+AbstractMeshDataArrayProperty::
+~AbstractMeshDataArrayProperty()
+{
+  delete[] m_Name;
+}
+
+void
+AbstractMeshDataArrayProperty::
+Initialize(vtkDataArray *array, MeshDataType type)
+{
+  // Copy the array name to
+  m_Name = new char[strlen(array->GetName())];
+  strcpy(m_Name, array->GetName());
+
+  double *range = array->GetRange();
+  m_min = range[0];
+  m_max = range[1];
+
+  m_Type = type;
+}
+
+void
+AbstractMeshDataArrayProperty::
+Update(vtkDataArray *array)
+{
+  if (!strcmp(m_Name, array->GetName()))
+    return;
+
+  double *range = array->GetRange();
+  m_min = range[0];
+  m_max = range[1];
+}
+
+AbstractMeshDataArrayProperty::MeshDataType
+AbstractMeshDataArrayProperty::GetType() const
+{
+  return m_Type;
+}
+
+void
+AbstractMeshDataArrayProperty::
+Print(ostream &os) const
+{
+  os << "[AbstractMeshDataArrayProperty]" << std::endl;
+  std::cout << "name: " << m_Name << std::endl;
+  std::cout << "type: " << m_Type << std::endl;
+  std::cout << "min: " << m_min << std::endl;
+  std::cout << "max: " << m_max << std::endl;
+}
+
+// ========================================
+//  MeshDataArrayProperty Implementation
+// ========================================
+MeshDataArrayProperty::
+MeshDataArrayProperty()
+{
+
+}
+
+MeshDataArrayProperty::
+~MeshDataArrayProperty()
+{
+
+}
+
+void
+MeshDataArrayProperty::
+SetDataPointer(vtkDataArray *array)
+{
+  m_DataPointer = array;
+}
+
+
+// ============================================
+//  MeshLayerDataArrayProperty Implementation
+// ============================================
+MeshLayerDataArrayProperty::
+MeshLayerDataArrayProperty()
+{
+  m_ColorMap = ColorMap::New();
+  m_ColorMap->SetToSystemPreset(
+        static_cast<ColorMap::SystemPreset>
+        (ColorMap::SystemPreset::COLORMAP_JET));
+  m_IntensityCurve = IntensityCurveVTK::New();
+  m_IntensityCurve->Initialize();
+
+  m_HistogramFilter = HistogramFilterType::New();
+  m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
+  m_MinMaxFilter = MinMaxFilterType::New();
+}
+
+
+void
+MeshLayerDataArrayProperty::
+Initialize(MeshDataArrayProperty *other)
+{
+  this->m_Name = new char[strlen(other->GetName())];
+  strcpy(this->m_Name, other->GetName());
+  this->m_min = other->GetMin();
+  this->m_max = other->GetMax();
+  this->m_Type = other->GetType();
+
+  m_DataPointerList.push_back(other->GetDataPointer());
+}
+
+void
+MeshLayerDataArrayProperty::
+Merge(MeshDataArrayProperty *other)
+{
+  // the name must be same
+  assert(!strcmp(this->m_Name, other->GetName()));
+
+  if (other->GetMax() > this->m_max)
+    this->m_max = other->GetMax();
+
+  if (other->GetMin() < this->m_min)
+    this->m_min = other->GetMin();
+
+  auto it = std::find(m_DataPointerList.begin(), m_DataPointerList.end(),
+            other->GetDataPointer());
+
+  if (it == m_DataPointerList.end())
+    m_DataPointerList.push_back(other->GetDataPointer());
+}
+
+ScalarImageHistogram*
+MeshLayerDataArrayProperty::
+GetHistogram(size_t nBins) const
+{
+  if (nBins > 0)
+    m_HistogramFilter->SetNumberOfBins(nBins);
+
+  std::vector<double> tmpdata;
+  size_t n = 0u;
+
+  for (auto cit = m_DataPointerList.cbegin(); cit != m_DataPointerList.cend(); ++cit)
+    {
+    auto array = *cit;
+    n += array->GetNumberOfTuples();
+    }
+
+  std::cout << "[MeshLayerDataArrayProp] tmpdata size=" << n << std::endl;
+
+  DataArrayImageType::Pointer img = DataArrayImageType::New();
+
+  DataArrayImageType::IndexType start;
+  start[0] = 0;
+
+  DataArrayImageType::SizeType size;
+  size[0] = n;
+
+  DataArrayImageType::RegionType region;
+  region.SetSize(size);
+  region.SetIndex(start);
+
+  img->SetRegions(region);
+  img->Allocate();
+  img->FillBuffer(1.25);
+
+  std::cout << "[MeshLayerDataArrayProp] img" << img << std::endl;
+
+  m_HistogramFilter->SetInput(img);
+  m_MinMaxFilter->SetInput(img);
+
+  m_HistogramFilter->SetRangeInputs(m_MinMaxFilter->GetMinimumOutput(),
+                                    m_MinMaxFilter->GetMaximumOutput());
+
+  m_HistogramFilter->Update();
+
+  return m_HistogramFilter->GetHistogramOutput();
+}
+
+
+
+// ========================================
+//  PolyDataWrapper Implementation
+// ========================================
+void PolyDataWrapper::SetPolyData(vtkSmartPointer<vtkPolyData> polydata)
+{
+  m_PolyData = polydata;
+  UpdateDataArrayProperties();
+}
+
+vtkSmartPointer<vtkPolyData>
+PolyDataWrapper::GetPolyData()
+{
+  assert(m_PolyData);
+  return m_PolyData;
+}
+
+void
+PolyDataWrapper::UpdateDataArrayProperties()
+{
+  assert(m_PolyData);
+
+  std::cout << "[PolyDataWrapper] Update Array Props" << std::endl;
+
+  // Process Point Data
+  auto pointData = m_PolyData->GetPointData();
+  UpdatePropertiesFromVTKData(m_PointDataProperties, pointData,
+                              MeshDataType::POINT_DATA);
+
+  // Process Cell Data
+  auto cellData = m_PolyData->GetCellData();
+  UpdatePropertiesFromVTKData(m_CellDataProperties, cellData,
+                              MeshDataType::CELL_DATA);
+}
+
+void
+PolyDataWrapper::
+UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
+                            vtkDataSetAttributes *data,
+                            MeshDataType type) const
+{
+  std::cout << "[PolyDataWrapper] Number of Array=" << data->GetNumberOfArrays() << std::endl;
+
+  for (int i = 0; i < data->GetNumberOfArrays(); ++i)
+    {
+      auto arr = vtkDataArray::SafeDownCast(data->GetAbstractArray(i));
+
+      // Only Process valid vtkdataarray
+      if (arr)
+        {
+        // Get the name of the array
+        auto name = arr->GetName();
+        if (propMap.count(name))
+          {
+          // Update the existing entry
+          propMap[name]->Update(arr);
+          }
+        else
+          {
+          // Create a new property
+          auto prop = MeshDataArrayProperty::New();
+          prop->Initialize(arr, type);
+          prop->SetDataPointer(arr);
+          propMap[name] = prop;
+          }
+        }
+    }
+}
+
+// ========================================
+//  MeshAssembly Implementation
+// ========================================
+void MeshAssembly::AddMesh(SmartPtr<PolyDataWrapper> mesh, LabelType id)
+{
+  m_Meshes[id] = mesh;
+}
+
+SmartPtr<PolyDataWrapper>
+MeshAssembly::GetMesh(LabelType id)
+{
+  return m_Meshes[id];
+}
+
+bool
+MeshAssembly::Exist(LabelType id)
+{
+  return m_Meshes.count(id);
+}
+
+
+
+// ============================================
+//  MeshWrapperBase Implementation
+// ============================================
 
 MeshWrapperBase::MeshWrapperBase()
 {
@@ -18,7 +295,7 @@ MeshWrapperBase::~MeshWrapperBase()
 
 void
 MeshWrapperBase::
-MergeDataProperties(MeshDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &src)
+MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &src)
 {
   for (auto cit = src.cbegin(); cit != src.cend(); ++cit)
     {
@@ -30,8 +307,8 @@ MergeDataProperties(MeshDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &sr
     else
       {
       // Add new entry
-      auto newprop = MeshDataArrayProperty::New();
-      cit->second->DeepCopy(newprop);
+      auto newprop = MeshLayerDataArrayProperty::New();
+      newprop->Initialize(cit->second);
       dest[cit->first] = newprop;
       m_CombinedDataPropertyMap[++m_CombinedPropID] = newprop;
       }
@@ -111,8 +388,8 @@ MeshWrapperBase::SetFileName(const std::string &name)
 const ScalarImageHistogram *
 MeshWrapperBase::GetHistogram(size_t nBins)
 {
-  // placeholder
-  return nullptr;
+  auto prop = GetActiveDataArrayProperty();
+  return prop->GetHistogram(nBins);
 }
 
 void
@@ -139,17 +416,15 @@ MeshWrapperBase::GetNickname() const
   else return m_DefaultNickname;
 }
 
-SmartPtr<MeshDataArrayProperty>
+SmartPtr<MeshLayerDataArrayProperty>
 MeshWrapperBase::GetActiveDataArrayProperty()
 {
-  MeshDataArrayProperty *ret = nullptr;
+  MeshLayerDataArrayProperty *ret = nullptr;
   if (m_CombinedDataPropertyMap.count(m_ActiveDataPropertyId))
     ret = m_CombinedDataPropertyMap[m_ActiveDataPropertyId];
 
   return ret;
 }
-
-#include "DisplayMappingPolicy.h"
 
 void
 MeshWrapperBase::
@@ -203,192 +478,4 @@ SetActiveMeshLayerDataPropertyId(int id)
   InvokeEvent(WrapperDisplayMappingChangeEvent());
   InvokeEvent(itk::ModifiedEvent());
 }
-
-// ========================================
-//  MeshAssembly Implementation
-// ========================================
-void MeshAssembly::AddMesh(SmartPtr<PolyDataWrapper> mesh, LabelType id)
-{
-  m_Meshes[id] = mesh;
-}
-
-SmartPtr<PolyDataWrapper>
-MeshAssembly::GetMesh(LabelType id)
-{
-  return m_Meshes[id];
-}
-
-bool
-MeshAssembly::Exist(LabelType id)
-{
-  return m_Meshes.count(id);
-}
-
-// ========================================
-//  PolyDataWrapper Implementation
-// ========================================
-void PolyDataWrapper::SetPolyData(vtkSmartPointer<vtkPolyData> polydata)
-{
-  m_PolyData = polydata;
-  UpdateDataArrayProperties();
-}
-
-vtkSmartPointer<vtkPolyData>
-PolyDataWrapper::GetPolyData()
-{
-  assert(m_PolyData);
-  return m_PolyData;
-}
-
-void
-PolyDataWrapper::UpdateDataArrayProperties()
-{
-  assert(m_PolyData);
-
-  std::cout << "[PolyDataWrapper] Update Array Props" << std::endl;
-
-  // Process Point Data
-  auto pointData = m_PolyData->GetPointData();
-  UpdatePropertiesFromVTKData(m_PointDataProperties, pointData,
-                              MeshDataType::POINT_DATA);
-
-  // Process Cell Data
-  auto cellData = m_PolyData->GetCellData();
-  UpdatePropertiesFromVTKData(m_CellDataProperties, cellData,
-                              MeshDataType::CELL_DATA);
-}
-
-void
-PolyDataWrapper::
-UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
-                            vtkDataSetAttributes *data,
-                            MeshDataType type) const
-{
-  std::cout << "[PolyDataWrapper] Number of Array=" << data->GetNumberOfArrays() << std::endl;
-  std::cout << "[PolyDataWrapper] propMap size=" << propMap.size() << std::endl;
-
-  for (int i = 0; i < data->GetNumberOfArrays(); ++i)
-    {
-      auto arr = vtkDataArray::SafeDownCast(data->GetAbstractArray(i));
-
-      // Only Process valid vtkdataarray
-      if (arr)
-        {
-        // Get the name of the array
-        auto name = arr->GetName();
-        if (propMap.count(name))
-          {
-          // Update the existing entry
-          propMap[name]->Update(arr);
-          }
-        else
-          {
-          // Create a new property
-          auto prop = MeshDataArrayProperty::New();
-          std::cout << "[PolyDataWrapper] new prop created" << std::endl;
-          prop->Initialize(arr, type);
-          std::cout << "[PolyDataWrapper] new prop initialized" << std::endl;
-          propMap[name] = prop;
-          }
-        }
-    }
-}
-
-// ========================================
-//  MeshDataArrayProperty Implementation
-// ========================================
-MeshDataArrayProperty::
-MeshDataArrayProperty()
-{
-
-}
-
-MeshDataArrayProperty::
-~MeshDataArrayProperty()
-{
-  delete[] m_Name;
-}
-
-void
-MeshDataArrayProperty::
-Initialize(vtkSmartPointer<vtkDataArray> array, MeshDataType type)
-{
-  // Copy the array name to
-  m_Name = new char[strlen(array->GetName())];
-  strcpy(m_Name, array->GetName());
-
-  double *range = array->GetRange();
-  m_min = range[0];
-  m_max = range[1];
-
-  m_Type = type;
-
-  m_ColorMap = ColorMap::New();
-  m_ColorMap->SetToSystemPreset(
-        static_cast<ColorMap::SystemPreset>(ColorMap::SystemPreset::COLORMAP_WINTER));
-  m_IntensityCurve = IntensityCurveVTK::New();
-  m_IntensityCurve->Initialize();
-}
-
-void
-MeshDataArrayProperty::
-Update(vtkSmartPointer<vtkDataArray> array)
-{
-  if (!strcmp(m_Name, array->GetName()))
-    return;
-
-  double *range = array->GetRange();
-  m_min = range[0];
-  m_max = range[1];
-}
-
-void
-MeshDataArrayProperty::
-Merge(SmartPtr<MeshDataArrayProperty> other)
-{
-  // the name must be same
-  assert(!strcmp(this->m_Name, other->m_Name));
-
-  if (other->m_max > this->m_max)
-    this->m_max = other->m_max;
-
-  if (other->m_min < this->m_min)
-    this->m_min = other->m_min;
-}
-
-MeshDataArrayProperty::MeshDataType
-MeshDataArrayProperty::GetType() const
-{
-  return m_Type;
-}
-
-void
-MeshDataArrayProperty::
-DeepCopy(MeshDataArrayProperty *other) const
-{
-  other->m_Name = new char[strlen(this->m_Name)];
-  strcpy(other->m_Name, this->m_Name);
-  other->m_min = this->m_min;
-  other->m_max = this->m_max;
-  other->m_Type = this->m_Type;
-
-  other->m_ColorMap = ColorMap::New();
-  other->m_ColorMap->CopyInformation(this->m_ColorMap);
-
-  other->m_IntensityCurve = IntensityCurveVTK::New();
-  other->m_IntensityCurve->CopyInformation(this->m_IntensityCurve);
-}
-
-void
-MeshDataArrayProperty::
-Print(ostream &os) const
-{
-  os << "[MeshDataArrayProperty]" << std::endl;
-  std::cout << "name: " << m_Name << std::endl;
-  std::cout << "type: " << m_Type << std::endl;
-  std::cout << "min: " << m_min << std::endl;
-  std::cout << "max: " << m_max << std::endl;
-}
-
-
 
