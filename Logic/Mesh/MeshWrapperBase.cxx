@@ -148,7 +148,7 @@ GetHistogram(size_t nBins) const
     m_HistogramFilter->SetNumberOfBins(nBins);
 
   std::vector<double> tmpdata;
-  size_t n = 0u;
+  long n = 0;
 
   for (auto cit = m_DataPointerList.cbegin(); cit != m_DataPointerList.cend(); ++cit)
     {
@@ -172,9 +172,28 @@ GetHistogram(size_t nBins) const
 
   img->SetRegions(region);
   img->Allocate();
-  img->FillBuffer(1.25);
 
-  std::cout << "[MeshLayerDataArrayProp] img" << img << std::endl;
+  DataArrayImageType::IndexType idx;
+  idx[0] = 0;
+
+  for (auto cit = m_DataPointerList.cbegin(); cit != m_DataPointerList.cend(); ++cit)
+    {
+    auto array = *cit;
+    auto nTuple = array->GetNumberOfTuples();
+    for (auto i = 0; i < nTuple; ++i)
+      {
+      auto v = array->GetComponent(i, 0);
+      img->SetPixel(idx, v);
+      idx[0]++;
+
+      if (idx[0] >= n)
+        break;
+      }
+    if (idx[0] >= n)
+      break;
+    }
+
+  //std::cout << "[MeshLayerDataArrayProp] img" << img << std::endl;
 
   m_HistogramFilter->SetInput(img);
   m_MinMaxFilter->SetInput(img);

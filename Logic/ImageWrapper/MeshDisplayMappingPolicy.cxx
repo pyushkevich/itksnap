@@ -175,7 +175,8 @@ UpdateLUT()
   m_LookupTable->SetNumberOfColors(numClr);
   for (auto i = 0; i < numClr; ++i)
     {
-    auto rgbaC = m_ColorMap->MapIndexToRGBA(i * numdiv).GetDataPointer();
+    auto val = m_IntensityCurve->Evaluate(i * numdiv);
+    auto rgbaC = m_ColorMap->MapIndexToRGBA(val).GetDataPointer();
 
     double rgbaD[4];
     for (auto i = 0; i < 4; ++i)
