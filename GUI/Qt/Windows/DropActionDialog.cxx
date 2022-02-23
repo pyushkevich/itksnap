@@ -68,7 +68,7 @@ void DropActionDialog::LoadMainImage(QString name)
 void DropActionDialog::LoadMesh(QString name)
 {
   this->SetDroppedFilename(name);
-  this->on_btnLoadMesh_clicked();
+  this->on_btnLoadMeshAsLayer_clicked();
 }
 
 void DropActionDialog::on_btnLoadMain_clicked()
@@ -82,20 +82,38 @@ void DropActionDialog::on_btnLoadMain_clicked()
   this->LoadCommon(del);
 }
 
-void DropActionDialog::on_btnLoadMesh_clicked()
+void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
 {
   // Get file extension
   std::string fn = ui->outFilename->text().toStdString();
   // Get the file extension with the dot. e.g. ".vtk"
   std::string ext = fn.substr(fn.find_last_of("."));
 
-  std::cout << "[DropActionDialog] ext=" << ext << std::endl;
+  std::cout << "[DropActionDialog] load as layer" << std::endl;
 
   auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
   if (fmt != GuidedMeshIO::FORMAT_COUNT)
     {
       auto model = m_Model->GetMeshImportModel();
       model->Load(fn.c_str(), fmt);
+    }
+
+  // close the dialog
+  this->accept();
+}
+
+void DropActionDialog::on_btnLoadMeshToTP_clicked()
+{
+  // Get file extension
+  std::string fn = ui->outFilename->text().toStdString();
+  // Get the file extension with the dot. e.g. ".vtk"
+  std::string ext = fn.substr(fn.find_last_of("."));
+
+  auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
+  if (fmt != GuidedMeshIO::FORMAT_COUNT)
+    {
+      auto model = m_Model->GetMeshImportModel();
+      model->LoadToTP(fn.c_str(), fmt);
     }
 
   // close the dialog

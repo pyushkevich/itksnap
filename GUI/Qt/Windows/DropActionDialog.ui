@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>538</width>
-    <height>365</height>
+    <height>373</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -161,9 +161,16 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QPushButton" name="btnLoadMesh">
+       <widget class="QPushButton" name="btnLoadMeshAsLayer">
         <property name="text">
-         <string>Load as Mesh Layer</string>
+         <string>Load as a new Mesh Layer</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="btnLoadMeshToTP">
+        <property name="text">
+         <string>Load as Mesh to a Time Point</string>
         </property>
        </widget>
       </item>

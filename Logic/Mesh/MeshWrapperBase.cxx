@@ -365,6 +365,8 @@ MeshWrapperBase::SetMesh(vtkSmartPointer<vtkPolyData> mesh, unsigned int timepoi
   // Set Default active array id
   std::cout << "[MeshWrapperBase] Combined Map Size=" << m_CombinedDataPropertyMap.size() << std::endl;
   SetActiveMeshLayerDataPropertyId(m_CombinedDataPropertyMap.cbegin()->first);
+
+  InvokeEvent(ValueChangedEvent());
 }
 
 SmartPtr<PolyDataWrapper>

@@ -57,7 +57,9 @@ private slots:
 
   void on_btnLoadNew_clicked();
 
-  void on_btnLoadMesh_clicked();
+  void on_btnLoadMeshAsLayer_clicked();
+
+  void on_btnLoadMeshToTP_clicked();
 
   /**
    * This method loads the dropped image.

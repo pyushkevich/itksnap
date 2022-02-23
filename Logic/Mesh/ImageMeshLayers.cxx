@@ -18,6 +18,8 @@ ImageMeshLayers::AddLayer(SmartPtr<MeshWrapperBase> meshLayer)
 
   Rebroadcaster::Rebroadcast(meshLayer, itk::ModifiedEvent(),
                              this, ValueChangedEvent());
+  Rebroadcaster::Rebroadcast(meshLayer, ValueChangedEvent(),
+                             this, ActiveLayerChangeEvent());
   Rebroadcaster::Rebroadcast(meshLayer, WrapperDisplayMappingChangeEvent(),
                              this, WrapperDisplayMappingChangeEvent());
 

@@ -98,3 +98,23 @@ MeshImportModel::Load(const char *filename, FileFormat format)
 
   delete IO;
 }
+
+void
+MeshImportModel::LoadToTP(const char *filename, FileFormat format)
+{
+  // Create a new IO for loading
+  GuidedMeshIO *IO = new GuidedMeshIO();
+
+  // Load into the current time point
+  auto app = m_ParentModel->GetDriver();
+  auto tp = app->GetCursorTimePoint();
+  auto layers = app->GetIRISImageData()->GetMeshLayers();
+  auto active_layer = layers->GetLayer(layers->GetActiveLayerId());
+
+  // Execute loading
+  IO->LoadMesh(filename, format, active_layer, tp, 0u);
+
+  std::cout << "[MeshImportModel.LoadToTP()] Mesh Installed" << std::endl;
+
+  delete IO;
+}
