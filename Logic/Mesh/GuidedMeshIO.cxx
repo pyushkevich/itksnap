@@ -120,7 +120,8 @@ GuidedMeshIO
 }
 
 void
-GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format, SmartPtr<MeshWrapperBase> wrapper)
+GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
+                       SmartPtr<MeshWrapperBase> wrapper, unsigned int tp, LabelType id)
 {
   std::cout << "[GuidedMeshIO.LoadMesh] filename=" << FileName
             << "; Format=" << format << std::endl;
@@ -136,13 +137,13 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format, SmartPtr<MeshWra
       vtkSmartPointer<vtkPolyData> polyData = ioDelegate->ReadPolyData(FileName);
       //ioDelegate->LoadPolyData(FileName, polyData);
 
-      std::cout << "[GuidedMeshIO.LoadMesh] vtkPolyData print" << std::endl;
-      polyData->PrintSelf(std::cout, vtkIndent(2));
+      //std::cout << "[GuidedMeshIO.LoadMesh] vtkPolyData print" << std::endl;
+      //polyData->PrintSelf(std::cout, vtkIndent(2));
 
-      std::cout << "[GuidedMeshIO.LoadMesh] PolyData loaded" << std::endl;
+      //std::cout << "[GuidedMeshIO.LoadMesh] PolyData loaded" << std::endl;
 
       // Set polydata into the wrapper
-      wrapper->SetMesh(polyData, 0u, 0u);
+      wrapper->SetMesh(polyData, tp, id);
 
       // Set Filename
       wrapper->SetFileName(FileName);

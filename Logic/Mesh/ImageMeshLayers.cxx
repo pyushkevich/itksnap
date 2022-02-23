@@ -21,7 +21,18 @@ ImageMeshLayers::AddLayer(SmartPtr<MeshWrapperBase> meshLayer)
   Rebroadcaster::Rebroadcast(meshLayer, WrapperDisplayMappingChangeEvent(),
                              this, WrapperDisplayMappingChangeEvent());
 
+  // Invoke to trigger initial rendering of the mesh
+  InvokeEvent(ActiveLayerChangeEvent());
+  // Invoke to trigger rebuild of the layer inspector row
   InvokeEvent(LayerChangeEvent());
+}
+
+void
+ImageMeshLayers::SetActiveLayerId(unsigned long id)
+{
+  std::cout << "[ImageMeshLayers] SetActiveLayerId=" << id << std::endl;
+  m_ActiveLayerId = id;
+  InvokeEvent(ActiveLayerChangeEvent());
 }
 
 SmartPtr<MeshWrapperBase>

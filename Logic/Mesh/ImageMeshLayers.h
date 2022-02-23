@@ -44,7 +44,8 @@ public:
   std::size_t size() { return m_Layers.size(); }
 
   /** Get and Set the layer id of the currently active layer */
-  irisGetSetMacro(ActiveLayerId, unsigned long)
+  irisGetMacro(ActiveLayerId, unsigned long)
+  void SetActiveLayerId (unsigned long id);
 
   /** Allow an iterator to access protected members */
   friend class MeshLayerIterator;

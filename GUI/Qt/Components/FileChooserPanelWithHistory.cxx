@@ -219,6 +219,21 @@ void FileChooserPanelWithHistory::initializeForOpenFile(
     }
 }
 
+void FileChooserPanelWithHistory::initializeForOpenDirectory(
+    GlobalUIModel *model,
+    const QString &labelText,
+    const QString &historyCategory,
+    const QString &filePattern,
+    const QString &initialFile,
+    const QString &activeFormat)
+{
+  initializeForOpenFile(model, labelText, historyCategory,
+                        filePattern, initialFile, activeFormat);
+
+  // overwrite member to set to directory mode
+  m_directoryMode = true;
+}
+
 void FileChooserPanelWithHistory::initializeForSaveFile(
     GlobalUIModel *model,
     const QString &labelText,
@@ -306,6 +321,7 @@ void FileChooserPanelWithHistory::onHistorySelection()
 
 void FileChooserPanelWithHistory::updateFilename(QString filename)
 {
+  std::cout << "[FilePanel] updateFilename fn=" << filename.toStdString() << std::endl;
   QFileInfo fi(filename);
   QString new_file;
 
@@ -454,7 +470,10 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
 
   if(m_openMode)
     {
-    dialog.setFileMode(QFileDialog::ExistingFile);
+    if (m_directoryMode)
+      dialog.setFileMode(QFileDialog::Directory);
+    else
+      dialog.setFileMode(QFileDialog::ExistingFile);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     }
   else

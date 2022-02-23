@@ -190,6 +190,8 @@ private slots:
 
   void on_actionAddMesh_triggered();
 
+  void on_actionAddMeshSeries_triggered();
+
   void on_actionSSAxial_triggered();
 
   void on_actionSSCoronal_triggered();

@@ -91,7 +91,8 @@ public:
   void SaveMesh(const char *FileName, Registry &folder, vtkPolyData *mesh);
 
   /** Load a mesh */
-  void LoadMesh(const char *FileName, FileFormat format, SmartPtr<MeshWrapperBase> wrapper);
+  void LoadMesh(const char *FileName, FileFormat format,
+                SmartPtr<MeshWrapperBase> wrapper, unsigned int tp, LabelType id);
 
   /** Get the error message if the IO is not successful */
   std::string GetErrorMessage() const;

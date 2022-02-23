@@ -669,6 +669,11 @@ MeshLayerTableRowModel::SetActivated(bool activated)
 {
   if(!m_MeshLayer)
     return;
+
+  if (activated)
+    {
+    m_ImageData->GetMeshLayers()->SetActiveLayerId(m_MeshLayer->GetUniqueId());
+    }
 }
 
 bool

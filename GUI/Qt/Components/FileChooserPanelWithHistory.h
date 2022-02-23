@@ -36,6 +36,15 @@ public:
       const QString &initialFile = QString(),
       const QString &activeFormat = QString());
 
+  // Initialize the panel for opening a directory of files
+  void initializeForOpenDirectory(
+      GlobalUIModel *model,
+      const QString &labelText,
+      const QString &historyCategory,
+      const QString &filePattern,
+      const QString &initialFile = QString(),
+      const QString &activeFormat = QString());
+
   // Initialize the panel for opening a file
   void initializeForSaveFile(
       GlobalUIModel *model,

@@ -49,6 +49,7 @@
 #include "vtkCoordinate.h"
 #include "vtkQuadricLODActor.h"
 #include "vtkScalarBarActor.h"
+#include "vtkTextProperty.h"
 
 #include <vnl/vnl_cross.h>
 
@@ -149,6 +150,13 @@ Generic3DRenderer::Generic3DRenderer()
   this->m_Renderer->AddActor(m_ScalpelLineActor);
 
   m_ScalarBarActor = vtkScalarBarActor::New();
+  m_ScalarBarActor->SetBarRatio(m_ScalarBarActor->GetBarRatio() * 0.5);
+  m_ScalarBarActor->UnconstrainedFontSizeOn();
+  m_ScalarBarActor->GetLabelTextProperty()->SetFontSize(10);
+  auto textProp = m_ScalarBarActor->GetTitleTextProperty();
+  textProp->SetFontSize(9);
+  textProp->SetJustificationToLeft();
+
   this->m_Renderer->AddActor2D(m_ScalarBarActor);
 
   m_ImageCubeSource = vtkSmartPointer<vtkCubeSource>::New();
@@ -234,6 +242,13 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
               WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
 
+  // Respond to active mesh layer change event
+  Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
+              ActiveLayerChangeEvent(), ModelUpdateEvent());
+
+  // Respond to timepoint change event
+  Rebroadcast(app, CursorTimePointUpdateEvent(), ModelUpdateEvent());
+
   // Update the main components
   this->UpdateAxisRendering();
   this->UpdateCamera(true);
@@ -284,7 +299,6 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   if (tp != m_CrntActorMapTimePoint || active_layer_id != m_CrntActorMapLayerId)
     {
     // if tp or layer_id changed, actors should be replaced entirely
-
     std::cout << "[G3DR] Timepoint or layer changed. Clearing ActorMap..." << std::endl;
 
     // Iterate over all existing actors, remove them from the renderer
@@ -299,11 +313,12 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 
     // Clear the map
     m_ActorMap.clear();
+    std::cout << "[G3DR] ActorMap cleared" << std::endl;
 
     m_CrntActorMapTimePoint = tp;
     m_CrntActorMapLayerId = active_layer_id;
     }
-  else
+  else if (meshes)
     {
     for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); )
       {
@@ -327,86 +342,51 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       }
     }
 
-  // Now create actors for all the meshes that don't have them yet
-  for(auto it_mesh = meshes->cbegin(); it_mesh != meshes->cend(); ++it_mesh)
+  if (meshes)
     {
-    // See if an actor exists for this id
-    if(m_ActorMap.find(it_mesh->first) == m_ActorMap.end())
+    // Now create actors for all the meshes that don't have them yet
+    for(auto it_mesh = meshes->cbegin(); it_mesh != meshes->cend(); ++it_mesh)
       {
-      // Pop a recycled actor or create a new actor
-      vtkSmartPointer<vtkActor> actor = nullptr;
-      if (m_FreeActors.size())
+      // See if an actor exists for this id
+      if(m_ActorMap.find(it_mesh->first) == m_ActorMap.end())
         {
-        actor = m_FreeActors.top();
-        m_FreeActors.pop();
-        }
-      else
-        actor = vtkActor::New();
-
-
-      // Pop a recycled mapper or create a new mapper
-      vtkSmartPointer<vtkPolyDataMapper> mapper = nullptr;
-      if (m_FreeMappers.size())
-        {
-        mapper = m_FreeMappers.top();
-        m_FreeMappers.pop();
-        }
-      else
-        mapper = vtkPolyDataMapper::New();
-
-      // connect the rendering pipeline for the mesh
-      mapper->SetInputData(it_mesh->second->GetPolyData());
-      actor->SetMapper(mapper);
-
-
-
-      // Configure the mapper
-      dmp->ConfigurePolyDataMapper(mapper);
-
-      /*
-      if (active_layer->IsA("StandaloneMeshWrapper"))
-        {
-
-        std::cout << "[G3DR] Printing Array names " << std::endl;
-        auto nArray = mesh->GetPointData()->GetNumberOfArrays();
-        for (auto i = 0; i < nArray; ++i)
+        // Pop a recycled actor or create a new actor
+        vtkSmartPointer<vtkActor> actor = nullptr;
+        if (m_FreeActors.size())
           {
-          std::cout << mesh->GetPointData()->GetArrayName(i) << std::endl;
+          actor = m_FreeActors.top();
+          m_FreeActors.pop();
           }
+        else
+          actor = vtkActor::New();
 
-        //mesh->GetPointData()->SetActiveAttribute("Displacement_Total", 0);
+        // Pop a recycled mapper or create a new mapper
+        vtkSmartPointer<vtkPolyDataMapper> mapper = nullptr;
+        if (m_FreeMappers.size())
+          {
+          mapper = m_FreeMappers.top();
+          m_FreeMappers.pop();
+          }
+        else
+          mapper = vtkPolyDataMapper::New();
 
-        pdm->SetScalarModeToUsePointData();
-        pdm->ScalarVisibilityOn();
-        pdm->SetColorModeToMapScalars();
-        actor->SetMapper(pdm);
+        // connect the rendering pipeline for the mesh
+        mapper->SetInputData(it_mesh->second->GetPolyData());
+        actor->SetMapper(mapper);
+
+        // Configure the mapper
+        dmp->ConfigurePolyDataMapper(mapper);
+
+        // Add the actor to the renderer
+        m_Renderer->AddActor(actor);
+
+        // Keep the actor in the map
+        m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
         }
-      else
-        {
-        // Get the label of that mesh
-        const ColorLabel &cl = m_Model->GetDriver()->GetColorLabelTable()->GetColorLabel(it_mesh->first);
-
-        // Create a property
-        vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
-        prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
-        prop->SetOpacity(cl.GetAlpha() / 255.0);
-
-        // Create an actor
-        actor->SetMapper(pdm);
-        actor->SetProperty(prop);
-        }
-      */
-
-      // Add the actor to the renderer
-      m_Renderer->AddActor(actor);
-
-      // Keep the actor in the map
-      m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
       }
+
+    dmp->ConfigureLegend(m_ScalarBarActor);
     }
-
-  dmp->ConfigureLegend(m_ScalarBarActor);
-
 
   // TODO: test code
   m_Renderer->Modified();
@@ -1045,7 +1025,9 @@ void Generic3DRenderer::OnUpdate()
       m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
 
   // Need to rebuild the actor map
-  bool need_rebuild_actor_map = false;
+  bool need_rebuild_actor_map =
+      m_EventBucket->HasEvent(ActiveLayerChangeEvent(),app->GetIRISImageData()->GetMeshLayers())
+      || m_EventBucket->HasEvent(CursorTimePointUpdateEvent(),app);
 
   // Without rebuilding the actor map, update the actors inside the map
   bool need_update_actor_color =
@@ -1053,7 +1035,7 @@ void Generic3DRenderer::OnUpdate()
                               app->GetIRISImageData()->GetMeshLayers());
 
   // Deal with the updates to the mesh state
-  if(mesh_updated || main_changed || seg_layer_changed)
+  if(mesh_updated || main_changed || seg_layer_changed || need_rebuild_actor_map)
     {
     UpdateSegmentationMeshAssembly();
     need_render = true;

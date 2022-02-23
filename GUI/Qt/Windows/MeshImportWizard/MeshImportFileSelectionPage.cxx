@@ -72,14 +72,27 @@ void MeshImportFileSelectionPage::initializePage()
 
   std::cout << "[MeshFileSelection] filter=" << filter.toStdString() << std::endl;
 
-  // Create the file panel
-  ui->filePanel->initializeForOpenFile(
-        m_Model->GetParentModel(),
-        "Mesh file name: ",
-        from_utf8(m_Model->GetHistoryName()),
-        filter,
-        QString(), from_utf8(domain[GuidedMeshIO::FORMAT_VTK]));
-
+  auto mode = m_Model->GetMode();
+  if (mode == MeshImportModel::SINGLE)
+    {
+    // Create the file panel
+    ui->filePanel->initializeForOpenFile(
+          m_Model->GetParentModel(),
+          "Mesh file name: ",
+          from_utf8(m_Model->GetHistoryName()),
+          filter,
+          QString(), from_utf8(domain[GuidedMeshIO::FORMAT_VTK]));
+    }
+  else
+    {
+    // Create directory file panel
+    ui->filePanel->initializeForOpenDirectory(
+          m_Model->GetParentModel(),
+          "Mesh file name: ",
+          from_utf8(m_Model->GetHistoryName()),
+          filter,
+          QString(), from_utf8(domain[GuidedMeshIO::FORMAT_VTK]));
+    }
 }
 
 

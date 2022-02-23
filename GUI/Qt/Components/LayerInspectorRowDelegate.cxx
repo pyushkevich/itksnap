@@ -173,7 +173,7 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   // activateOnFlag(ui->btnMoveDown, model, AbstractLayerTableRowModel::UIF_MOVABLE_DOWN);
   activateOnFlag(ui->actionClose, model, AbstractLayerTableRowModel::UIF_CLOSABLE);
   activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
-
+  activateOnNotFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_MESH);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());

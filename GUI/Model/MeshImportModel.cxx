@@ -85,20 +85,16 @@ MeshImportModel::Load(const char *filename, FileFormat format)
 
   std::cout << "[MeshImportModel.Load()] Mesh created. id=" << wrapper->GetUniqueId() << std::endl;
 
+  // Load into the current time point
+  auto app = m_ParentModel->GetDriver();
+  auto tp = app->GetCursorTimePoint();
   // Execute loading
-  IO->LoadMesh(filename, format, baseWrapper);
+  IO->LoadMesh(filename, format, baseWrapper, tp, 0u);
 
   // Install the wrapper to the application
-  m_ParentModel->GetDriver()->GetIRISImageData()->GetMeshLayers()->AddLayer(baseWrapper);
+  app->GetIRISImageData()->GetMeshLayers()->AddLayer(baseWrapper);
 
   std::cout << "[MeshImportModel.Load()] Mesh Installed" << std::endl;
 
   delete IO;
-}
-
-void
-MeshImportModel::LoadAndCreateMain(const char *filename, FileFormat format)
-{
-  // Todo load mesh without main image loaded
-  // Create a blank image
 }

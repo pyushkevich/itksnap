@@ -555,6 +555,8 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Set up activations - File menu
   activateOnFlag(ui->actionOpenMain, m_Model, UIF_IRIS_MODE);
   activateOnFlag(ui->menuRecent_Images, m_Model, UIF_IRIS_MODE);
+  activateOnFlag(ui->actionAddMesh, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionAddMeshSeries, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveMain, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSpeed, m_Model, UIF_SNAKE_MODE);
   activateOnFlag(ui->actionSaveLevelSet, m_Model, UIF_LEVEL_SET_ACTIVE);
@@ -1621,6 +1623,18 @@ void MainImageWindow::on_actionAddMesh_triggered()
   // Get and Configure the model
   auto model = m_Model->GetMeshImportModel();
   model->SetMode(MeshImportModel::Mode::SINGLE);
+
+  // Show the Wizard Dialog
+  MeshImportWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+}
+
+void MainImageWindow::on_actionAddMeshSeries_triggered()
+{
+  std::cout << "[MainImageWindow] Action Add Mesh Series" << std::endl;
+  auto model = m_Model->GetMeshImportModel();
+  model->SetMode(MeshImportModel::Mode::SERIES);
 
   // Show the Wizard Dialog
   MeshImportWizard wiz(this);
