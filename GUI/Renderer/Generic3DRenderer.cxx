@@ -75,6 +75,40 @@ bool operator != (const CameraState &c1, const CameraState &c2)
   return !(c1==c2);
 }
 
+vtkActor*
+ActorPool::
+GetNewActor()
+{
+  if (m_SpareActors.size() <= 0)
+    CreateNewActors(5u);
+
+  vtkActor* ret = m_SpareActors.top();
+  m_SpareActors.pop();
+  return ret;
+}
+
+void
+ActorPool::
+Recycle(vtkActor* actor)
+{
+  actor->RemoveAllObservers();
+  m_SpareActors.push(actor);
+}
+
+void
+ActorPool::
+CreateNewActors(unsigned int n)
+{
+  while (n-- > 0)
+    {
+    vtkNew<vtkActor> actor;
+    vtkNew<vtkPolyDataMapper> mapper;
+    actor->SetMapper(mapper);
+    m_ActorStorage.push(actor);
+    m_SpareActors.push(actor);
+    }
+}
+
 
 Generic3DRenderer::Generic3DRenderer()
 {
@@ -84,6 +118,9 @@ Generic3DRenderer::Generic3DRenderer()
   // Coordinate mapper
   m_CoordinateMapper = vtkSmartPointer<vtkCoordinate>::New();
   m_CoordinateMapper->SetCoordinateSystemToViewport();
+
+  // Actor Pool
+  m_ActorPool = ActorPool::New();
 
   // ------------------ AXES ----------------------------
 
@@ -270,6 +307,8 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
+  std::cout << "[G3DR] Update Actor Map" << std::endl;
+
   if(m_Model->IsMeshUpdating() )
     return;
 
@@ -279,9 +318,9 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   unsigned long active_layer_id = layers->GetActiveLayerId();
   unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
 
-  std::cout << "[G3DR] ActorMap tp=" << m_CrntActorMapTimePoint
+  std::cout << "-- ActorMap tp=" << m_CrntActorMapTimePoint
             << " layer=" << m_CrntActorMapLayerId << std::endl;
-  std::cout << "[G3DR] Update tp=" << tp
+  std::cout << "-- Update tp=" << tp
             << " layer=" << active_layer_id << std::endl;
 
   if (layers->size() == 0 || active_layer_id == 0)
@@ -299,7 +338,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   if (tp != m_CrntActorMapTimePoint || active_layer_id != m_CrntActorMapLayerId)
     {
     // if tp or layer_id changed, actors should be replaced entirely
-    std::cout << "[G3DR] Timepoint or layer changed. Clearing ActorMap..." << std::endl;
+    std::cout << "-- Timepoint or layer changed. Clearing ActorMap..." << std::endl;
 
     // Iterate over all existing actors, remove them from the renderer
     for (ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); ++it_actor)
@@ -325,7 +364,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       // Is the mesh in the actor still exist in the layer for this tp?
       if(!meshes->Exist(it_actor->first))
         {
-        std::cout << "[G3DR] Removing mesh " << it_actor->first << " from the map" << std::endl;
+        std::cout << "-- Removing mesh " << it_actor->first << " from the map" << std::endl;
 
         // The actor no longer has a corresponding mesh, and should be removed
         this->m_Renderer->RemoveActor(it_actor->second);
@@ -345,6 +384,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   if (meshes)
     {
     // Now create actors for all the meshes that don't have them yet
+    // and update actors if the mesh is updated
     for(auto it_mesh = meshes->cbegin(); it_mesh != meshes->cend(); ++it_mesh)
       {
       // See if an actor exists for this id
@@ -375,13 +415,30 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
         actor->SetMapper(mapper);
 
         // Configure the mapper
-        dmp->ConfigurePolyDataMapper(mapper);
+        dmp->ConfigureActor(actor);
 
         // Add the actor to the renderer
         m_Renderer->AddActor(actor);
 
         // Keep the actor in the map
         m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
+        }
+      else
+        {
+        // mesh exist in the current actor map, check if mesh has been updated
+        auto actor = m_ActorMap[it_mesh->first];
+        auto mapper = dynamic_cast<vtkPolyDataMapper*>(actor->GetMapper());
+        if (mapper)
+          {
+          auto old_mesh = mapper->GetInput();
+          auto new_mesh = it_mesh->second->GetPolyData();
+          if (old_mesh->GetMTime() < new_mesh->GetMTime())
+            {
+            std::cout << "-- existing mesh updated" << std::endl;
+            // we only update mesh when old_mesh is outdated
+            mapper->SetInputData(new_mesh);
+            }
+          }
         }
       }
 
@@ -398,27 +455,18 @@ void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
 
   ImageMeshLayers *layers = m_Model->GetMeshLayers();
   unsigned long active_layer_id = layers->GetActiveLayerId();
-  unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
 
   if (layers->size() == 0 || active_layer_id == 0)
     return;
 
   MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
 
-  // Get meshes in current timepoint for current layer
-  auto meshes = active_layer->GetMeshAssembly(tp);
-
   // Get display mapping policy for color configuration
   MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
 
   for (auto cit = m_ActorMap.cbegin(); cit != m_ActorMap.cend(); ++cit)
     {
-    auto mapper = vtkPolyDataMapper::SafeDownCast(cit->second->GetMapper());
-
-    if (mapper)
-      dmp->ConfigurePolyDataMapper(mapper);
-
-    mapper->Update();
+    dmp->ConfigureActor(cit->second);
     }
 
   dmp->ConfigureLegend(m_ScalarBarActor);
@@ -1004,6 +1052,7 @@ void Generic3DRenderer::OnUpdate()
   bool scalpel_action = m_EventBucket->HasEvent(Generic3DModel::ScalpelEvent());
   bool mode_changed = m_EventBucket->HasEvent(
         ValueChangedEvent(), gs->GetToolbarMode3DModel());
+
   bool segmentation_changed =
       m_EventBucket->HasEvent(SegmentationChangeEvent()) ||
       m_EventBucket->HasEvent(LevelSetImageChangeEvent());
@@ -1026,8 +1075,9 @@ void Generic3DRenderer::OnUpdate()
 
   // Need to rebuild the actor map
   bool need_rebuild_actor_map =
-      m_EventBucket->HasEvent(ActiveLayerChangeEvent(),app->GetIRISImageData()->GetMeshLayers())
-      || m_EventBucket->HasEvent(CursorTimePointUpdateEvent(),app);
+      m_EventBucket->HasEvent(ActiveLayerChangeEvent(),app->GetIRISImageData()->GetMeshLayers()) ||
+      m_EventBucket->HasEvent(CursorTimePointUpdateEvent(),app) ||
+      segmentation_changed;
 
   // Without rebuilding the actor map, update the actors inside the map
   bool need_update_actor_color =

@@ -2,10 +2,11 @@
 #define MESHDISPLAYMAPPINGPOLICY_H
 
 #include "DisplayMappingPolicy.h"
+#include "ColorLabelTable.h"
 
-class vtkPolyDataMapper;
 class vtkScalarBarActor;
 class vtkLookupTable;
+class vtkActor;
 
 /**
  * @brief The parent class for policies that involve mesh display mapping
@@ -14,7 +15,7 @@ class vtkLookupTable;
 class MeshDisplayMappingPolicy : public AbstractContinuousImageDisplayMappingPolicy
 {
 public:
-  irisITKObjectMacro(MeshDisplayMappingPolicy, AbstractContinuousImageDisplayMappingPolicy)
+  irisITKAbstractObjectMacro(MeshDisplayMappingPolicy, AbstractContinuousImageDisplayMappingPolicy)
 
   typedef MeshDataArrayProperty::MeshDataType MeshDataType;
 
@@ -26,8 +27,8 @@ public:
   virtual ColorMap *GetColorMap() const override;
 
   /**
-   * @brief Mesh wrapper does not generate display slices for now, the method will
-   * @return An exception will be raised and a nullptr will be returned
+   * Mesh wrapper does not generate display slices
+   * Always returns nullptr
    */
   virtual DisplaySlicePointer GetDisplaySlice(unsigned int slice) override;
 
@@ -54,11 +55,14 @@ public:
 
   virtual void SetColorMap(ColorMap *map) override;
 
-  /** Configure mapper */
-  virtual void ConfigurePolyDataMapper(vtkPolyDataMapper *mapper);
+  /** Configure actor */
+  virtual void ConfigureActor(vtkActor *actor) = 0;
 
   /** Configure legend scalar bar */
-  virtual void ConfigureLegend(vtkScalarBarActor *legend);
+  virtual void ConfigureLegend(vtkScalarBarActor *legend) = 0;
+
+  /** Build m_LookupTable based on the active array property */
+  virtual void UpdateLUT() = 0;
 
   // end of virtual methods implementation
   //--------------------------------------------
@@ -88,9 +92,80 @@ protected:
   SmartPtr<IntensityCurveVTK> m_IntensityCurve;
 
   bool m_Initialized = false;
-
-  // Build m_LookupTable based on the active array property
-  void UpdateLUT();
 };
+
+/**
+ * @brief The GenericMeshDisplayMappingPolicy class
+ * Display mapping policy for general meshes that have multiple data arrays stored
+ * and rendered
+ */
+class GenericMeshDisplayMappingPolicy : public MeshDisplayMappingPolicy
+{
+public:
+  irisITKObjectMacro(GenericMeshDisplayMappingPolicy, MeshDisplayMappingPolicy)
+
+  //--------------------------------------------
+  // virtual methods implementation
+
+  /** Configure mapper */
+  virtual void ConfigureActor(vtkActor *mapper) override;
+
+  /** Configure legend scalar bar */
+  virtual void ConfigureLegend(vtkScalarBarActor *legend) override;
+
+  /** Build m_LookupTable based on the active array property */
+  virtual void UpdateLUT() override;
+
+  // end of virtual methods implementation
+  //--------------------------------------------
+
+protected:
+  GenericMeshDisplayMappingPolicy();
+  virtual ~GenericMeshDisplayMappingPolicy();
+};
+
+
+/**
+ * @brief The LabelMeshDisplayMappingPolicy class
+ * Display mapping policy for meshes with id as label type for coloring
+ * and need to build discrete legend based on the color label table
+ */
+class LabelMeshDisplayMappingPolicy : public MeshDisplayMappingPolicy
+{
+public:
+  irisITKObjectMacro(LabelMeshDisplayMappingPolicy, MeshDisplayMappingPolicy)
+
+  //--------------------------------------------
+  // virtual methods implementation
+
+  /** Configure mapper */
+  virtual void ConfigureActor(vtkActor *mapper) override;
+
+  /** Configure legend scalar bar */
+  virtual void ConfigureLegend(vtkScalarBarActor *legend) override;
+
+  /** Build m_LookupTable based on the active array property */
+  virtual void UpdateLUT() override;
+
+  // end of virtual methods implementation
+  //--------------------------------------------
+
+  /** Set color label table for label color rendering */
+  void SetColorLabelTable(ColorLabelTable* labelTable)
+  { m_ColorLabelTable = labelTable; }
+
+  /** Get the color label table */
+  ColorLabelTable *GetColorLabelTable()
+  { return m_ColorLabelTable; }
+
+
+protected:
+  LabelMeshDisplayMappingPolicy();
+  virtual ~LabelMeshDisplayMappingPolicy();
+
+  SmartPtr<ColorLabelTable> m_ColorLabelTable;
+};
+
+
 
 #endif // MESHDISPLAYMAPPINGPOLICY_H

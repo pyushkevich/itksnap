@@ -7,6 +7,9 @@
 #include "MeshWrapperBase.h"
 
 class MeshLayerIterator;
+class GenericImageData;
+class LabelImageWrapper;
+class SegmentationMeshWrapper;
 
 /**
  * \class ImageMeshLayers
@@ -22,8 +25,11 @@ public:
   typedef typename LayerMapType::const_iterator LayerConstIteratorType;
   typedef typename LayerMapType::iterator LayerIteratorType;
 
+  /** Initialize */
+  void Initialize(GenericImageData *imageData);
+
   /** Add a layer */
-  void AddLayer(SmartPtr<MeshWrapperBase> meshLayer);
+  void AddLayer(MeshWrapperBase *meshLayer);
 
   /** Get a layer by id */
   SmartPtr<MeshWrapperBase> GetLayer(unsigned long id);
@@ -47,6 +53,24 @@ public:
   irisGetMacro(ActiveLayerId, unsigned long)
   void SetActiveLayerId (unsigned long id);
 
+  /** Refresh the active mesh layer
+   *  Return 0 if success,
+   *  Return 1 if failed or nothing to update, to avoid triggering events
+   *  The caller of this method is responsible to check if mesh is necessary
+   *  to update (dirty);
+   */
+  int UpdateActiveMeshLayer(itk::Command *progressCmd);
+
+  /** Create a new segmentation mesh layer for a segmentation image
+   *  and add it to the layer map
+   */
+  SegmentationMeshWrapper *AddSegmentationMeshLayer(LabelImageWrapper* segImg);
+
+  /** Return true if the active mesh layer needs to be updated */
+  bool IsActiveMeshLayerDirty();
+
+  bool HasSegmentationMesh(unsigned long id) const;
+
   /** Allow an iterator to access protected members */
   friend class MeshLayerIterator;
 
@@ -58,6 +82,14 @@ protected:
 
   // Id of the mesh layer that is currently active
   unsigned long m_ActiveLayerId = 0ul;
+
+  // If the mesh layer belongs to a SNAP Image Data
+  bool m_IsSNAP = false;
+
+  SmartPtr<GenericImageData> m_ImageData;
+
+  // set of segmentation image id that map to the related layer pointer
+  std::map<unsigned long, MeshWrapperBase*> m_SegmentationImageToMeshMap;
 };
 
 /**

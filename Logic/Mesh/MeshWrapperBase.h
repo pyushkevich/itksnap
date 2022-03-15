@@ -9,11 +9,11 @@
 #include "IntensityCurveVTK.h"
 #include "ColorMap.h"
 #include "ThreadedHistogramImageFilter.h"
+#include "vtkPolyData.h"
 #include "vtkDataArray.h"
 #include "itkMinimumMaximumImageFilter.h"
 
 class AbstractMeshIODelegate;
-class vtkPolyData;
 class MeshDisplayMappingPolicy;
 class MeshAssembly;
 class vtkDataSetAttributes;
@@ -159,9 +159,9 @@ public:
   /** Mesh Data Type */
   typedef MeshDataArrayProperty::MeshDataType MeshDataType;
 
-  void SetPolyData(vtkSmartPointer<vtkPolyData> polydata);
+  void SetPolyData(vtkPolyData *polydata);
 
-  vtkSmartPointer<vtkPolyData> GetPolyData();
+  vtkPolyData *GetPolyData();
 
   MeshDataArrayPropertyMap &GetPointDataProperties()
   { return m_PointDataProperties; }
@@ -209,13 +209,16 @@ public:
   typedef std::map<LabelType, SmartPtr<PolyDataWrapper>> MeshAssemblyMap;
 
   /** Add a mesh to the map. If the id already exist, old mesh will be overwritten */
-  void AddMesh(SmartPtr<PolyDataWrapper> mesh, LabelType id=0u);
+  void AddMesh(PolyDataWrapper *mesh, LabelType id=0u);
 
   /** Get the mesh by id */
-  SmartPtr<PolyDataWrapper> GetMesh(LabelType id);
+  PolyDataWrapper *GetMesh(LabelType id);
 
   /** Check existence of id */
   bool Exist(LabelType id);
+
+  /** Erase an entry, and take care of the deletion of data */
+  void Erase(LabelType id);
 
   /** Get the beginning iterator to the map */
   MeshAssemblyMap::const_iterator cbegin()
@@ -234,6 +237,16 @@ protected:
 
   // Map storing all the meshes in the assembly
   MeshAssemblyMap m_Meshes;
+};
+
+class StandaloneMeshAssembly : public MeshAssembly
+{
+public:
+  irisITKObjectMacro(StandaloneMeshAssembly, MeshAssembly);
+
+protected:
+  StandaloneMeshAssembly() {}
+  virtual ~StandaloneMeshAssembly() {}
 };
 
 
@@ -292,8 +305,10 @@ public:
   irisGetSetMacroWithOverride(DefaultNickname, const std::string &)
 
   /** List of tags assigned to the image layer */
-  irisGetMacroWithOverride(Tags, const TagList &)
-  irisSetMacroWithOverride(Tags, const TagList &)
+  const TagList &GetTags() const override
+  { return m_Tags; }
+  void SetTags (const TagList &tags) override
+  { m_Tags = tags; }
 
   /** Layer transparency */
   irisSetWithEventMacroWithOverride(Alpha, double, WrapperDisplayMappingChangeEvent)
@@ -305,19 +320,16 @@ public:
   irisIsMacroWithOverride(Initialized)
 
   /** Get the MeshAssembly associated with the time point */
-  virtual SmartPtr<MeshAssembly> GetMeshAssembly(unsigned int timepoint);
+  virtual MeshAssembly *GetMeshAssembly(unsigned int timepoint);
 
   /**
    *  Set the mesh and its id for a time point
-   *  Implemente in subclasses if wrapper specific logic is needed
+   *  Implemente in subclasses
    */
-  virtual void SetMesh(vtkSmartPointer<vtkPolyData>mesh, unsigned int timepoint, LabelType id);
+  virtual void SetMesh(vtkPolyData *mesh, unsigned int timepoint, LabelType id) = 0;
 
   /** Return true if the mesh needs update */
-  virtual bool IsMeshDirty(unsigned int timepoint) const = 0;
-
-  /** Update the meshes of a time point */
-  virtual void UpdateMeshes(unsigned int timepoint) = 0;
+  virtual bool IsMeshDirty(unsigned int timepoint) = 0;
 
   /** Return true if the object is an instance of the type or a subclass of the type */
   virtual bool IsA(const char *type) const;
@@ -355,7 +367,7 @@ public:
   { return m_CombinedDataPropertyMap; }
 
   /** Get mesh for a timepoint and id */
-  SmartPtr<PolyDataWrapper> GetMesh(unsigned int timepoint, LabelType id);
+  PolyDataWrapper *GetMesh(unsigned int timepoint, LabelType id);
 
   /**
     Helper method to merge two data property map
@@ -401,8 +413,6 @@ protected:
   TagList m_Tags;
 
   bool m_Initialized = false;
-
-  SmartPtr<MeshDisplayMappingPolicy> m_DisplayMapping;
 
   // Transparency
   double m_Alpha;

@@ -114,6 +114,7 @@ protected:
   WrapperType *m_Wrapper;
 };
 
+
 /**
  * @brief The parent class for the policies that involve curve-based mappings,
  * for both scalar and vector images.

@@ -9,6 +9,10 @@
 #include "Generic3DRenderer.h"
 #include "Rebroadcaster.h"
 
+// ==================================================
+//  MeshDisplayMappingPolicy Implementation
+// ==================================================
+
 MeshDisplayMappingPolicy::MeshDisplayMappingPolicy()
 {
 
@@ -23,25 +27,23 @@ MeshDisplayMappingPolicy::GetIntensityCurve() const
 ColorMap *
 MeshDisplayMappingPolicy::GetColorMap() const
 {
-
   return m_ColorMap;
 }
 
 ImageWrapperBase::DisplaySlicePointer
 MeshDisplayMappingPolicy::GetDisplaySlice(unsigned int)
 {
-  throw IRISException("MeshDisplayMappingPolicy::GetDisplaySlice not implemented!");
   return nullptr;
 }
 
 void
-MeshDisplayMappingPolicy::Save(Registry &folder)
+MeshDisplayMappingPolicy::Save(Registry &)
 {
 
 }
 
 void
-MeshDisplayMappingPolicy::Restore(Registry &folder)
+MeshDisplayMappingPolicy::Restore(Registry &)
 {
 
 }
@@ -105,14 +107,44 @@ MeshDisplayMappingPolicy::SetMesh(MeshWrapperBase *mesh_wrapper)
   m_Initialized = true;
 }
 
-void
+vtkLookupTable*
 MeshDisplayMappingPolicy::
-ConfigurePolyDataMapper(vtkPolyDataMapper *mapper)
+GetLookupTable()
 {
-  std::cout << "[MeshDMP] ConfigurePolydataMapper" << std::endl;
+  UpdateLUT();
+  return m_LookupTable;
+}
+
+MeshWrapperBase *
+MeshDisplayMappingPolicy::GetMeshLayer()
+{
+  return m_Wrapper;
+}
+
+// ==================================================
+//  GenericMeshDisplayMappingPolicy Implementation
+// ==================================================
+GenericMeshDisplayMappingPolicy::
+GenericMeshDisplayMappingPolicy()
+{
+
+}
+
+GenericMeshDisplayMappingPolicy::
+~GenericMeshDisplayMappingPolicy()
+{
+
+}
+
+void
+GenericMeshDisplayMappingPolicy::
+ConfigureActor(vtkActor *actor)
+{
+  std::cout << "[GenericDMP] ConfigurePolydataMapper" << std::endl;
 
   // Get active data array property
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
+  auto mapper = static_cast<vtkPolyDataMapper*>(actor->GetMapper());
 
   if (!prop)
     return;
@@ -127,12 +159,11 @@ ConfigurePolyDataMapper(vtkPolyDataMapper *mapper)
   // This should never happen, check data property implementation
   assert(prop->GetType() != MeshDataType::COUNT);
 
-  std::cout << "[MeshDMP] Active Prop:" << prop << std::endl;
+  std::cout << "-- Active Prop:" << prop << std::endl;
 
   // point/cell data specific logic
   if (prop->GetType() == MeshDataType::POINT_DATA)
     {
-    std::cout << "[MeshDMP] use point data" << std::endl;
     mapper->SetScalarModeToUsePointData();
     auto pointData = mapper->GetInput()->GetPointData();
     pointData->SetActiveAttribute(prop->GetName(),
@@ -140,7 +171,6 @@ ConfigurePolyDataMapper(vtkPolyDataMapper *mapper)
     }
   else if (prop->GetType() == MeshDataType::CELL_DATA)
     {
-    std::cout << "[MeshDMP] use cell data" << std::endl;
     mapper->SetScalarModeToUseCellData();
     auto cellData = mapper->GetInput()->GetCellData();
     cellData->SetActiveAttribute(prop->GetName(),
@@ -152,8 +182,24 @@ ConfigurePolyDataMapper(vtkPolyDataMapper *mapper)
   mapper->SetColorModeToMapScalars();
 }
 
+void GenericMeshDisplayMappingPolicy::
+ConfigureLegend(vtkScalarBarActor* legend)
+{
+  legend->SetLookupTable(m_LookupTable);
+
+  auto prop = m_Wrapper->GetActiveDataArrayProperty();
+
+  if (!prop)
+    return;
+
+  legend->SetTitle(prop->GetName());
+
+  legend->SetVisibility(true);
+}
+
+
 void
-MeshDisplayMappingPolicy::
+GenericMeshDisplayMappingPolicy::
 UpdateLUT()
 {
   // Get the active property
@@ -173,7 +219,7 @@ UpdateLUT()
 
   m_LookupTable->SetRange(min, max);
   m_LookupTable->SetNumberOfColors(numClr);
-  for (auto i = 0; i < numClr; ++i)
+  for (auto i = 0u; i < numClr; ++i)
     {
     auto val = m_IntensityCurve->Evaluate(i * numdiv);
     auto rgbaC = m_ColorMap->MapIndexToRGBA(val).GetDataPointer();
@@ -183,7 +229,7 @@ UpdateLUT()
       rgbaD[i] = rgbaC[i] * clrdiv;
 
 
-    std::cout << "[UpdateLUT] r=" << rgbaD[0] <<
+    std::cout << "[GenericDMP] UpdateLUT r=" << rgbaD[0] <<
                  "g=" << rgbaD[1] <<
                  "b=" << rgbaD[2] <<
                  "a=" << rgbaD[3] << std::endl;
@@ -193,29 +239,86 @@ UpdateLUT()
   m_LookupTable->Build();
 }
 
-void MeshDisplayMappingPolicy::
+
+
+// ==================================================
+//  LabelMeshDisplayMappingPolicy Implementation
+// ==================================================
+LabelMeshDisplayMappingPolicy::
+LabelMeshDisplayMappingPolicy()
+{
+
+}
+
+LabelMeshDisplayMappingPolicy::
+~LabelMeshDisplayMappingPolicy()
+{
+
+}
+
+void
+LabelMeshDisplayMappingPolicy::
+ConfigureActor(vtkActor *actor)
+{
+  auto mapper = static_cast<vtkPolyDataMapper*>(actor->GetMapper());
+
+  // Always update LUT first
+  UpdateLUT();
+
+  mapper->SetLookupTable(m_LookupTable);
+  mapper->UseLookupTableScalarRangeOn();
+
+  std::cout << "-- data print: " << std::endl;
+  auto polyData = mapper->GetInput();
+  polyData->Print(std::cout);
+
+  polyData->GetPointData()->SetActiveAttribute("Label", vtkDataSetAttributes::SCALARS);
+  mapper->SetScalarModeToUsePointData();
+  mapper->SetColorModeToMapScalars();
+}
+
+void
+LabelMeshDisplayMappingPolicy::
 ConfigureLegend(vtkScalarBarActor* legend)
 {
   legend->SetLookupTable(m_LookupTable);
+  legend->SetTitle("Label");
+  legend->SetNumberOfLabels(m_LookupTable->GetNumberOfColors());
 
-  auto prop = m_Wrapper->GetActiveDataArrayProperty();
-
-  if (!prop)
-    return;
-
-  legend->SetTitle(prop->GetName());
+  // Hide the legend for label mesh
+  legend->SetVisibility(true);
 }
 
-vtkLookupTable*
-MeshDisplayMappingPolicy::
-GetLookupTable()
+void
+LabelMeshDisplayMappingPolicy::
+UpdateLUT()
 {
-  UpdateLUT();
-  return m_LookupTable;
+  std::cout << "[UpdateLUT] LabelMesh" << std::endl;
+
+  //m_LookupTable->SetIndexedLookup(true);
+  size_t numClr = m_ColorLabelTable->GetNumberOfValidLabels();
+  std::cout << "-- valid #Label=" << numClr << std::endl;
+  m_LookupTable->SetNumberOfColors(numClr);
+  m_LookupTable->SetRange(0, 6);
+
+  double rgbaD[4];
+  for (auto cit = m_ColorLabelTable->begin();
+       cit != m_ColorLabelTable->end(); ++cit)
+    {
+    auto rgbD = cit->second.GetRGBAsDoubleVector().data_block();
+
+    rgbaD[0] = rgbD[0];
+    rgbaD[1] = rgbD[1];
+    rgbaD[2] = rgbD[2];
+    rgbaD[3] = cit->second.GetAlpha() / 255.0;
+
+    std::cout << "-- label" << cit->first << ": ("
+              << rgbaD[0] << ", " << rgbaD[1] << ", " << rgbaD[2] << ", " << rgbaD[3]
+              << ")" << std::endl;
+
+    m_LookupTable->SetTableValue(cit->first, rgbaD);
+    }
+  m_LookupTable->Build();
 }
 
-MeshWrapperBase *
-MeshDisplayMappingPolicy::GetMeshLayer()
-{
-  return m_Wrapper;
-}
+

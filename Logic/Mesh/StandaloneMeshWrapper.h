@@ -17,31 +17,29 @@ public:
    * and may involve using color labels or color maps.
    */
   AbstractDisplayMappingPolicy *GetDisplayMapping() override
-  { return m_DisplayMapping; }
+  { return m_DisplayMapping.GetPointer(); }
   const AbstractDisplayMappingPolicy *GetDisplayMapping() const override
-  { return m_DisplayMapping; }
+  { return m_DisplayMapping.GetPointer(); }
 
   MeshDisplayMappingPolicy *GetMeshDisplayMappingPolicy() const override
-  { return m_DisplayMapping; }
+  { return m_DisplayMapping.GetPointer(); }
 
-
-  void UpdateMeshes(unsigned int timepoint) override;
-
-  bool IsMeshDirty(unsigned int timepoint) const override;
+  bool IsMeshDirty(unsigned int timepoint) override;
 
   bool IsA(const char *type) const override;
+
+  void SetMesh(vtkPolyData* mesh, unsigned int timepoint, LabelType id) override;
 
 
   // End of virtual methods definition
   //-------------------------------------------------
 
 
-
-
-
 protected:
   StandaloneMeshWrapper();
   virtual ~StandaloneMeshWrapper() = default;
+
+  SmartPtr<GenericMeshDisplayMappingPolicy> m_DisplayMapping;
 };
 
 #endif // STANDALONEMESHWRAPPER_H

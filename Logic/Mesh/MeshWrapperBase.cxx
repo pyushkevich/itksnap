@@ -1,5 +1,4 @@
 #include "MeshWrapperBase.h"
-#include "vtkPolyData.h"
 #include "vtkPointData.h"
 #include "vtkCellData.h"
 #include "vtkDataSetAttributes.h"
@@ -211,13 +210,15 @@ GetHistogram(size_t nBins) const
 // ========================================
 //  PolyDataWrapper Implementation
 // ========================================
-void PolyDataWrapper::SetPolyData(vtkSmartPointer<vtkPolyData> polydata)
+void PolyDataWrapper::SetPolyData(vtkPolyData *polydata)
 {
+  std::cout << "[PolyWrapper] SetPolyData" << std::endl;
   m_PolyData = polydata;
   UpdateDataArrayProperties();
+  this->Modified();
 }
 
-vtkSmartPointer<vtkPolyData>
+vtkPolyData*
 PolyDataWrapper::GetPolyData()
 {
   assert(m_PolyData);
@@ -236,10 +237,14 @@ PolyDataWrapper::UpdateDataArrayProperties()
   UpdatePropertiesFromVTKData(m_PointDataProperties, pointData,
                               MeshDataType::POINT_DATA);
 
+  std::cout << "-- point data set" << std::endl;
+
   // Process Cell Data
   auto cellData = m_PolyData->GetCellData();
   UpdatePropertiesFromVTKData(m_CellDataProperties, cellData,
                               MeshDataType::CELL_DATA);
+
+  std::cout << "-- cell data set" << std::endl;
 }
 
 void
@@ -250,6 +255,7 @@ UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
 {
   std::cout << "[PolyDataWrapper] Number of Array=" << data->GetNumberOfArrays() << std::endl;
 
+  // Process creation and update
   for (int i = 0; i < data->GetNumberOfArrays(); ++i)
     {
       auto arr = vtkDataArray::SafeDownCast(data->GetAbstractArray(i));
@@ -259,6 +265,11 @@ UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
         {
         // Get the name of the array
         auto name = arr->GetName();
+
+        // Skip arrays without a name
+        if (!name)
+          continue;
+
         if (propMap.count(name))
           {
           // Update the existing entry
@@ -274,20 +285,37 @@ UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
           }
         }
     }
+
+  // Remove array props no longer exist
+  for (auto it = propMap.begin(); it != propMap.end(); ++it)
+    {
+    if (!data->HasArray(it->first))
+      {
+      std::cout << "-- removing array name=" << it->first << std::endl;
+      auto temp = it->second;
+      propMap.erase(it);
+      temp->Delete();
+      }
+    }
 }
 
 // ========================================
 //  MeshAssembly Implementation
 // ========================================
-void MeshAssembly::AddMesh(SmartPtr<PolyDataWrapper> mesh, LabelType id)
+void MeshAssembly::AddMesh(PolyDataWrapper *mesh, LabelType id)
 {
   m_Meshes[id] = mesh;
 }
 
-SmartPtr<PolyDataWrapper>
+PolyDataWrapper*
 MeshAssembly::GetMesh(LabelType id)
 {
-  return m_Meshes[id];
+  PolyDataWrapper *ret = nullptr;
+
+  if (m_Meshes.count(id))
+    ret = m_Meshes[id];
+
+  return ret;
 }
 
 bool
@@ -296,7 +324,18 @@ MeshAssembly::Exist(LabelType id)
   return m_Meshes.count(id);
 }
 
+void
+MeshAssembly::Erase(LabelType id)
+{
+  // Do nothing if id not exist
+  if (m_Meshes.count(id) == 0)
+    return;
 
+  // Erase id from the map and delete the data
+  auto temp = m_Meshes[id];
+  m_Meshes.erase(m_Meshes.find(id));
+  temp->Delete();
+}
 
 // ============================================
 //  MeshWrapperBase Implementation
@@ -304,8 +343,7 @@ MeshAssembly::Exist(LabelType id)
 
 MeshWrapperBase::MeshWrapperBase()
 {
-  m_DisplayMapping = MeshDisplayMappingPolicy::New();
-  m_DisplayMapping->SetMesh(this);
+
 }
 
 MeshWrapperBase::~MeshWrapperBase()
@@ -335,41 +373,7 @@ MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMa
     }
 }
 
-void
-MeshWrapperBase::SetMesh(vtkSmartPointer<vtkPolyData> mesh, unsigned int timepoint, LabelType id)
-{
-  std::cout << "[MeshWrapperBase] SetMesh called" << std::endl;
-
-  auto wrapper = PolyDataWrapper::New();
-  wrapper->SetPolyData(mesh);
-
-  auto pointDataProps = wrapper->GetPointDataProperties();
-  auto cellDataProps = wrapper->GetCellDataProperties();
-
-  std::cout << "[MeshWrapperBase] pointData size=" << pointDataProps.size() << std::endl;
-
-  // Add or merge data properties
-  MergeDataProperties(m_PointDataProperties, pointDataProps);
-  MergeDataProperties(m_CellDataProperties, cellDataProps);
-
-  // Add wrapper to mesh assembly
-  if (m_MeshAssemblyMap.count(timepoint))
-    m_MeshAssemblyMap[timepoint]->AddMesh(wrapper, id);
-  else
-    {
-      auto assembly = MeshAssembly::New();
-      assembly->AddMesh(wrapper, id);
-      m_MeshAssemblyMap[timepoint] = assembly;
-    }
-
-  // Set Default active array id
-  std::cout << "[MeshWrapperBase] Combined Map Size=" << m_CombinedDataPropertyMap.size() << std::endl;
-  SetActiveMeshLayerDataPropertyId(m_CombinedDataPropertyMap.cbegin()->first);
-
-  InvokeEvent(ValueChangedEvent());
-}
-
-SmartPtr<PolyDataWrapper>
+PolyDataWrapper*
 MeshWrapperBase::GetMesh(unsigned int timepoint, LabelType id)
 {
   PolyDataWrapper *ret = nullptr;
@@ -380,7 +384,7 @@ MeshWrapperBase::GetMesh(unsigned int timepoint, LabelType id)
   return ret;
 }
 
-SmartPtr<MeshAssembly>
+MeshAssembly*
 MeshWrapperBase::GetMeshAssembly(unsigned int timepoint)
 {
   MeshAssembly *ret = nullptr;

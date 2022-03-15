@@ -64,7 +64,7 @@ public:
   irisSimplePropertyAccessMacro(ContinuousUpdate, bool)
 
   // Tell the model to update the segmentation mesh
-  void UpdateSegmentationMesh(itk::Command *callback);
+  void UpdateSegmentationMesh(itk::Command *progressCmd);
 
   // Reentrant function to check if mesh is being constructed in another thread
   bool IsMeshUpdating();

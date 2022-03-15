@@ -327,7 +327,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
       auto meshRow = new LayerInspectorRowDelegate(this);
 
       // Set a name for this widget for debugging purposes
-      meshRow->setObjectName(QString().asprintf("wgtRowDelegate_%04d", m_Delegates.size()));
+      meshRow->setObjectName(QString().asprintf("wgtRowDelegate_%04lld", m_Delegates.size()));
 
       // Set the model for this layer
       SmartPtr<AbstractLayerTableRowModel> model =

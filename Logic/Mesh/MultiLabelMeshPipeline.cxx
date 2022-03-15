@@ -44,6 +44,7 @@
 #include "IRISVectorTypesToITKConversion.h"
 #include "VTKMeshPipeline.h"
 #include "MeshOptions.h"
+#include "vtkUnsignedShortArray.h"
 
 // ITK includes
 #include "itkBinaryThresholdImageFilter.h"
@@ -202,6 +203,8 @@ void MultiLabelMeshPipeline::UpdateMeshInfoHelper(
 
 void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
 {
+  std::cout << "[MLPipeline] UpdateMeshes" << std::endl;
+
   // Create a temporary table of mesh info
   MeshInfoMap meshmap;
 
@@ -257,10 +260,14 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
       it++;
     }
 
+  std::cout << "-- mesh cleansing done" << std::endl;
+
 
   // Deal with progress accumulation
   SmartPtr<AllPurposeProgressAccumulator> progress = AllPurposeProgressAccumulator::New();
   progress->AddObserver(itk::ProgressEvent(), progressCommand);
+
+  std::cout << "-- progressCmd set" << std::endl;
 
   // Next we check which meshes are new or updated and mark them as needing to
   // be recomputed
@@ -279,16 +286,24 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
       info.BoundingBox[1] = it->second.BoundingBox[1];
       info.Mesh = NULL;
 
+      auto src = m_VTKPipeline->GetProgressAccumulator();
+
+      std::cout << "-- accumulator=" << src << std::endl;
+
       // Capture progress from this mesh
       progress->RegisterSource(m_VTKPipeline->GetProgressAccumulator(), info.Count);
       }
     }
 
+  std::cout << "-- mesh pre-update check done" << std::endl;
+
   // Now compute the meshes
   for(MeshInfoMap::iterator it = m_MeshInfo.begin(); it != m_MeshInfo.end(); it++)
     {
+    std::cout << "-- processing label=" << it->first << std::endl;
     if(it->second.Mesh == NULL)
       {
+      std::cout << "---- mesh not exist, creating new one" << std::endl;
       // Create the mesh
       MeshInfo &mi = it->second;
       mi.Mesh = vtkSmartPointer<vtkPolyData>::New();
@@ -319,6 +334,17 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
       m_VTKPipeline->SetImage(m_ThrehsoldFilter->GetOutput());
       m_VTKPipeline->ComputeMesh(it->second.Mesh);
 
+      // Fill label data array to the mesh
+      auto mesh = it->second.Mesh;
+      vtkNew<vtkUnsignedShortArray> array;
+      array->SetNumberOfComponents(1);
+      array->Allocate(mesh->GetNumberOfPoints());
+      array->Fill(it->first);
+      array->SetName("Label");
+      mesh->GetPointData()->SetScalars(array);
+      mesh->GetPointData()->SetActiveAttribute("Label",
+                                               vtkDataSetAttributes::SCALARS);
+
       // Update progress
       progress->StartNextRun(m_VTKPipeline->GetProgressAccumulator());
       }
@@ -335,9 +361,14 @@ void
 MultiLabelMeshPipeline
 ::SetImage(const InputImageType *image)
 {
+  std::cout << "[MLPipeline] SetImage" << std::endl;
   if(m_InputImage != image)
     {
     m_InputImage = image;
+    std::cout << "-- self=" << this << std::endl;
+    std::cout << "-- input=" << image << std::endl;
+    std::cout << "-- mInputImage=" << m_InputImage.GetPointer() << std::endl;
+    //std::cout << "-- print " << m_InputImage << std::endl;
     m_MeshInfo.clear();
     }
 }
