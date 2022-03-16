@@ -331,10 +331,8 @@ MeshAssembly::Erase(LabelType id)
   if (m_Meshes.count(id) == 0)
     return;
 
-  // Erase id from the map and delete the data
-  auto temp = m_Meshes[id];
+  // Erase id from the map
   m_Meshes.erase(m_Meshes.find(id));
-  temp->Delete();
 }
 
 // ============================================

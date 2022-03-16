@@ -75,41 +75,6 @@ bool operator != (const CameraState &c1, const CameraState &c2)
   return !(c1==c2);
 }
 
-vtkActor*
-ActorPool::
-GetNewActor()
-{
-  if (m_SpareActors.size() <= 0)
-    CreateNewActors(5u);
-
-  vtkActor* ret = m_SpareActors.top();
-  m_SpareActors.pop();
-  return ret;
-}
-
-void
-ActorPool::
-Recycle(vtkActor* actor)
-{
-  actor->RemoveAllObservers();
-  m_SpareActors.push(actor);
-}
-
-void
-ActorPool::
-CreateNewActors(unsigned int n)
-{
-  while (n-- > 0)
-    {
-    vtkNew<vtkActor> actor;
-    vtkNew<vtkPolyDataMapper> mapper;
-    actor->SetMapper(mapper);
-    m_ActorStorage.push(actor);
-    m_SpareActors.push(actor);
-    }
-}
-
-
 Generic3DRenderer::Generic3DRenderer()
 {
   // Create a picker
@@ -328,122 +293,32 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 
   MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
 
-  // Get meshes in current timepoint for current layer
-  auto meshes = active_layer->GetMeshAssembly(tp);
-
   // Get display mapping policy for color configuration
   MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
 
-  // Removing actors no longer in the scene
+  // Layer or timepoint change requires rebuilding the map entirely
   if (tp != m_CrntActorMapTimePoint || active_layer_id != m_CrntActorMapLayerId)
     {
-    // if tp or layer_id changed, actors should be replaced entirely
-    std::cout << "-- Timepoint or layer changed. Clearing ActorMap..." << std::endl;
-
-    // Iterate over all existing actors, remove them from the renderer
-    for (ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); ++it_actor)
-      {
-      // remove actor from the renderer
-      m_Renderer->RemoveActor(it_actor->second);
-      // recycle the actor
-      it_actor->second->RemoveAllObservers();
-      m_FreeActors.push(it_actor->second);
-      }
-
-    // Clear the map
-    m_ActorMap.clear();
-    std::cout << "[G3DR] ActorMap cleared" << std::endl;
-
-    m_CrntActorMapTimePoint = tp;
-    m_CrntActorMapLayerId = active_layer_id;
-    }
-  else if (meshes)
-    {
-    for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); )
-      {
-      // Is the mesh in the actor still exist in the layer for this tp?
-      if(!meshes->Exist(it_actor->first))
-        {
-        std::cout << "-- Removing mesh " << it_actor->first << " from the map" << std::endl;
-
-        // The actor no longer has a corresponding mesh, and should be removed
-        this->m_Renderer->RemoveActor(it_actor->second);
-
-        // recycle the actor
-        it_actor->second->RemoveAllObservers();
-        m_FreeActors.push(it_actor->second);
-
-        // Delete the actor from the map (funky iterator++ code that works)
-        m_ActorMap.erase(it_actor++);
-        }
-      else
-        it_actor++;
-      }
+      m_CrntActorMapTimePoint = tp;
+      m_CrntActorMapLayerId = active_layer_id;
     }
 
-  if (meshes)
-    {
-    // Now create actors for all the meshes that don't have them yet
-    // and update actors if the mesh is updated
-    for(auto it_mesh = meshes->cbegin(); it_mesh != meshes->cend(); ++it_mesh)
-      {
-      // See if an actor exists for this id
-      if(m_ActorMap.find(it_mesh->first) == m_ActorMap.end())
-        {
-        // Pop a recycled actor or create a new actor
-        vtkSmartPointer<vtkActor> actor = nullptr;
-        if (m_FreeActors.size())
-          {
-          actor = m_FreeActors.top();
-          m_FreeActors.pop();
-          }
-        else
-          actor = vtkActor::New();
+  auto actorMap = m_ActorPool->GetActorMap();
 
-        // Pop a recycled mapper or create a new mapper
-        vtkSmartPointer<vtkPolyDataMapper> mapper = nullptr;
-        if (m_FreeMappers.size())
-          {
-          mapper = m_FreeMappers.top();
-          m_FreeMappers.pop();
-          }
-        else
-          mapper = vtkPolyDataMapper::New();
+  // Remove all mesh actors from the renderer before the update
+  // -- Since we are recycling all actors without constantly create/delete,
+  // -- rebuilding actor map everytime is no longer expensive
+  ResetSegmentationMeshAssembly();
 
-        // connect the rendering pipeline for the mesh
-        mapper->SetInputData(it_mesh->second->GetPolyData());
-        actor->SetMapper(mapper);
+  // Process all addition and update
+  dmp->UpdateActorMap(m_ActorPool, tp);
+  dmp->UpdateApperance(m_ActorPool, tp);
 
-        // Configure the mapper
-        dmp->ConfigureActor(actor);
+  // Add meshes in the actor map to the renderer
+  for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
+    m_Renderer->AddActor(it->second);
 
-        // Add the actor to the renderer
-        m_Renderer->AddActor(actor);
-
-        // Keep the actor in the map
-        m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
-        }
-      else
-        {
-        // mesh exist in the current actor map, check if mesh has been updated
-        auto actor = m_ActorMap[it_mesh->first];
-        auto mapper = dynamic_cast<vtkPolyDataMapper*>(actor->GetMapper());
-        if (mapper)
-          {
-          auto old_mesh = mapper->GetInput();
-          auto new_mesh = it_mesh->second->GetPolyData();
-          if (old_mesh->GetMTime() < new_mesh->GetMTime())
-            {
-            std::cout << "-- existing mesh updated" << std::endl;
-            // we only update mesh when old_mesh is outdated
-            mapper->SetInputData(new_mesh);
-            }
-          }
-        }
-      }
-
-    dmp->ConfigureLegend(m_ScalarBarActor);
-    }
+  dmp->ConfigureLegend(m_ScalarBarActor);
 
   // TODO: test code
   m_Renderer->Modified();
@@ -453,24 +328,17 @@ void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
 {
   std::cout << "[G3DR] ApplyDisplayMappingPolicyChange" << std::endl;
 
-  ImageMeshLayers *layers = m_Model->GetMeshLayers();
-  unsigned long active_layer_id = layers->GetActiveLayerId();
+  // Get current layer
+  auto active_layer = m_Model->GetMeshLayers()->GetLayer(m_CrntActorMapLayerId);
 
-  if (layers->size() == 0 || active_layer_id == 0)
-    return;
-
-  MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
-
-  // Get display mapping policy for color configuration
+  // Use display mapping policy to update appearance
   MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
+  dmp->UpdateApperance(m_ActorPool, m_CrntActorMapTimePoint);
 
-  for (auto cit = m_ActorMap.cbegin(); cit != m_ActorMap.cend(); ++cit)
-    {
-    dmp->ConfigureActor(cit->second);
-    }
-
+  // Update legend
   dmp->ConfigureLegend(m_ScalarBarActor);
 
+  // Re-render
   m_Renderer->Render();
 }
 
@@ -479,14 +347,15 @@ void Generic3DRenderer::ResetSegmentationMeshAssembly()
   if(m_Model->IsMeshUpdating())
     return;
 
-  for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); it_actor++)
+  auto actorMap = m_ActorPool->GetActorMap();
+
+  for(auto it_actor = actorMap->begin(); it_actor != actorMap->end(); it_actor++)
     this->m_Renderer->RemoveActor(it_actor->second);
 
-  m_ActorMap.clear();
+  m_ActorPool->RecycleAll();
 
   InvokeEvent(ModelUpdateEvent());
 }
-
 
 void Generic3DRenderer::UpdateAxisRendering()
 {
@@ -544,7 +413,6 @@ void Generic3DRenderer::UpdateAxisRendering()
   Vector3d clrBack = as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D)->GetColor();
   m_Renderer->SetBackground(clrBack.data_block());
 }
-
 
 void Generic3DRenderer::UpdateScalpelRendering()
 {
@@ -625,7 +493,6 @@ void Generic3DRenderer::UpdateScalpelRendering()
     m_ScalpelPlaneWidget->SetEnabled(0);
     }
 }
-
 
 void Generic3DRenderer::UpdateScalpelPlaneAppearance()
 {
@@ -819,12 +686,10 @@ void Generic3DRenderer::UpdateSegmentationMeshAppearance()
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
 
-  // Get the mesh from the parent object
-  MeshManager *mesh = driver->GetMeshManager();
-
+  auto actorMap = m_ActorPool->GetActorMap();
 
   // For each actor, update the property to reflect current state
-  for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); ++it_actor)
+  for(auto it_actor = actorMap->begin(); it_actor != actorMap->end(); ++it_actor)
     {
     // Get the next prop
     vtkActor *actor = it_actor->second;

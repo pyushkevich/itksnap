@@ -296,6 +296,7 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
     }
 
   std::cout << "-- mesh pre-update check done" << std::endl;
+  std::cout << "-- meshinfo " << &m_MeshInfo << std::endl;
 
   // Now compute the meshes
   for(MeshInfoMap::iterator it = m_MeshInfo.begin(); it != m_MeshInfo.end(); it++)

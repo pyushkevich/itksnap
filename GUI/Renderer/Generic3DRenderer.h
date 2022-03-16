@@ -3,6 +3,7 @@
 
 #include "AbstractVTKRenderer.h"
 #include <vtkSmartPointer.h>
+#include "ActorPool.h"
 
 class Generic3DModel;
 class vtkGenericOpenGLRenderWindow;
@@ -42,43 +43,6 @@ struct CameraState
 
 bool operator == (const CameraState &c1, const CameraState &c2);
 bool operator != (const CameraState &c1, const CameraState &c2);
-
-class ActorPool : public itk::Object
-{
-public:
-  // Standard ITK macros
-  irisITKObjectMacro(ActorPool, itk::Object)
-
-  typedef std::map<LabelType, vtkActor*> ActorMap;
-  typedef std::stack<vtkActor*> SpareActorStack;
-  typedef std::stack<vtkSmartPointer<vtkActor>> ActorStorage;
-
-  ActorMap &GetActorMap()
-  { return m_ActorMap; }
-
-  /** Get a spare actor from the pool */
-  vtkActor* GetNewActor();
-
-  /** Recycle an actor to the pool */
-  void Recycle(vtkActor* actor);
-
-protected:
-  ActorPool() {}
-  virtual ~ActorPool() {}
-
-  // Create batch of new actors and add it to the reserve
-  void CreateNewActors(unsigned int n);
-
-  // Maps id to active actors
-  ActorMap m_ActorMap;
-
-  // Stores spare actors
-  SpareActorStack m_SpareActors;
-
-  // Actual Storage of all actors
-  ActorStorage m_ActorStorage;
-};
-
 
 class Generic3DRenderer : public AbstractVTKRenderer
 {
@@ -166,22 +130,12 @@ protected:
   // Apply changes in the display mapping policy to the actors
   void ApplyDisplayMappingPolicyChange();
 
-  typedef std::map<LabelType, vtkSmartPointer<vtkActor> > ActorMap;
-  typedef ActorMap::iterator ActorMapIterator;
-  typedef std::stack<vtkSmartPointer<vtkActor>> ActorStack;
-  typedef std::stack<vtkSmartPointer<vtkPolyDataMapper>> MapperStack;
-
-
+  // Storage of ActorMap and a pool of actors for reuse in the map
   SmartPtr<ActorPool> m_ActorPool;
 
-  // Collection of actors for different color labels in use
-  ActorMap m_ActorMap;
-
-  // Collection of spare actors
-  ActorStack m_FreeActors;
-
-  // Collection of spare mappers
-  MapperStack m_FreeMappers;
+  // Indicate the current layer_id and timepoint that the ActorMap represents
+  unsigned long m_CrntActorMapLayerId = 0;
+  unsigned int m_CrntActorMapTimePoint = 0;
 
   // Line sources for drawing the crosshairs
   vtkSmartPointer<vtkLineSource> m_AxisLineSource[3];
@@ -222,9 +176,6 @@ protected:
   void UpdateVolumeTransform(ImageWrapperBase *layer, VolumeAssembly *va);
 
   ImageMeshLayers *m_MeshLayers;
-
-  unsigned long m_CrntActorMapLayerId = 0;
-  unsigned int m_CrntActorMapTimePoint = 0;
 };
 
 #endif // GENERIC3DRENDERER_H

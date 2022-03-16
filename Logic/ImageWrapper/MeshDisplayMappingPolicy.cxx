@@ -6,8 +6,12 @@
 #include "Generic3DRenderer.h"
 #include "vtkActor.h"
 #include "vtkPolyData.h"
+#include "vtkPointData.h"
+#include "vtkCellData.h"
 #include "Generic3DRenderer.h"
 #include "Rebroadcaster.h"
+#include "ActorPool.h"
+#include "vtkProperty.h"
 
 // ==================================================
 //  MeshDisplayMappingPolicy Implementation
@@ -82,8 +86,37 @@ MeshDisplayMappingPolicy::SetIntensityCurve(IntensityCurveVTK *curve)
                              m_Wrapper, WrapperDisplayMappingChangeEvent());
 }
 
-#include "vtkPointData.h"
-#include "vtkCellData.h"
+void
+MeshDisplayMappingPolicy::
+UpdateActorMap(ActorPool *pool, unsigned int timepoint)
+{
+  std::cout << "[MeshDMP] UpdateActorMap" << std::endl;
+
+  auto meshes = m_Wrapper->GetMeshAssembly(timepoint);
+
+  if (!meshes)
+    return;
+
+  auto actorMap = pool->GetActorMap();
+
+  // Now create actors for all the meshes that don't have them yet
+  // and update actors if the mesh is updated
+  for(auto it_mesh = meshes->cbegin(); it_mesh != meshes->cend(); ++it_mesh)
+    {
+    // Pop a spare actor or create a new actor
+    vtkActor *actor = pool->GetNewActor();
+
+    // connect the rendering pipeline for the mesh
+    auto mapper = static_cast<vtkPolyDataMapper*>(actor->GetMapper());
+    mapper->SetInputData(it_mesh->second->GetPolyData());
+    actor->SetMapper(mapper);
+
+    // Keep the actor in the map
+    actorMap->insert(std::make_pair(it_mesh->first, actor));
+    }// end of updating actors
+}
+
+
 
 void
 MeshDisplayMappingPolicy::SetMesh(MeshWrapperBase *mesh_wrapper)
@@ -138,48 +171,52 @@ GenericMeshDisplayMappingPolicy::
 
 void
 GenericMeshDisplayMappingPolicy::
-ConfigureActor(vtkActor *actor)
+UpdateApperance(ActorPool *pool, unsigned int)
 {
-  std::cout << "[GenericDMP] ConfigurePolydataMapper" << std::endl;
+  std::cout << "[GenericDMP] Update Apperance" << std::endl;
 
   // Get active data array property
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
-  auto mapper = static_cast<vtkPolyDataMapper*>(actor->GetMapper());
 
   if (!prop)
     return;
 
-  // Update lookup table
-  UpdateLUT();
-
-  // Configure mapper
-  mapper->SetLookupTable(m_LookupTable);
-  mapper->UseLookupTableScalarRangeOn();
-
   // This should never happen, check data property implementation
   assert(prop->GetType() != MeshDataType::COUNT);
 
-  std::cout << "-- Active Prop:" << prop << std::endl;
+  // Update lookup table
+  UpdateLUT();
 
-  // point/cell data specific logic
-  if (prop->GetType() == MeshDataType::POINT_DATA)
+  auto actorMap = pool->GetActorMap();
+
+  for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
     {
-    mapper->SetScalarModeToUsePointData();
-    auto pointData = mapper->GetInput()->GetPointData();
-    pointData->SetActiveAttribute(prop->GetName(),
-                                  vtkDataSetAttributes::AttributeTypes::SCALARS);
-    }
-  else if (prop->GetType() == MeshDataType::CELL_DATA)
-    {
-    mapper->SetScalarModeToUseCellData();
-    auto cellData = mapper->GetInput()->GetCellData();
-    cellData->SetActiveAttribute(prop->GetName(),
-                                 vtkDataSetAttributes::AttributeTypes::SCALARS);
-    }
+    auto actor = it->second;
+    auto mapper = static_cast<vtkPolyDataMapper*>(actor->GetMapper());
 
+    // Configure mapper
+    mapper->SetLookupTable(m_LookupTable);
+    mapper->UseLookupTableScalarRangeOn();
 
-  // Set active attribute
-  mapper->SetColorModeToMapScalars();
+    // point/cell data specific logic
+    if (prop->GetType() == MeshDataType::POINT_DATA)
+      {
+      mapper->SetScalarModeToUsePointData();
+      auto pointData = mapper->GetInput()->GetPointData();
+      pointData->SetActiveAttribute(prop->GetName(),
+                                    vtkDataSetAttributes::AttributeTypes::SCALARS);
+      }
+    else if (prop->GetType() == MeshDataType::CELL_DATA)
+      {
+      mapper->SetScalarModeToUseCellData();
+      auto cellData = mapper->GetInput()->GetCellData();
+      cellData->SetActiveAttribute(prop->GetName(),
+                                   vtkDataSetAttributes::AttributeTypes::SCALARS);
+      }
+
+    // Set active attribute
+    mapper->SetColorModeToMapScalars();
+    }
 }
 
 void GenericMeshDisplayMappingPolicy::
@@ -228,12 +265,6 @@ UpdateLUT()
     for (auto i = 0; i < 4; ++i)
       rgbaD[i] = rgbaC[i] * clrdiv;
 
-
-    std::cout << "[GenericDMP] UpdateLUT r=" << rgbaD[0] <<
-                 "g=" << rgbaD[1] <<
-                 "b=" << rgbaD[2] <<
-                 "a=" << rgbaD[3] << std::endl;
-
     m_LookupTable->SetTableValue(i, rgbaD);
     }
   m_LookupTable->Build();
@@ -258,23 +289,25 @@ LabelMeshDisplayMappingPolicy::
 
 void
 LabelMeshDisplayMappingPolicy::
-ConfigureActor(vtkActor *actor)
+UpdateApperance(ActorPool *pool, unsigned int)
 {
-  auto mapper = static_cast<vtkPolyDataMapper*>(actor->GetMapper());
+  auto actorMap = pool->GetActorMap();
 
   // Always update LUT first
   UpdateLUT();
 
-  mapper->SetLookupTable(m_LookupTable);
-  mapper->UseLookupTableScalarRangeOn();
+  // Converting division to multiplication for efficiency
 
-  std::cout << "-- data print: " << std::endl;
-  auto polyData = mapper->GetInput();
-  polyData->Print(std::cout);
+  for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
+    {
+    LabelType label = it->first;
+    auto actor = it->second;
+    const ColorLabel &cl = m_ColorLabelTable->GetColorLabel(label);
 
-  polyData->GetPointData()->SetActiveAttribute("Label", vtkDataSetAttributes::SCALARS);
-  mapper->SetScalarModeToUsePointData();
-  mapper->SetColorModeToMapScalars();
+    auto prop = actor->GetProperty();
+    prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
+    prop->SetOpacity(cl.GetAlpha() / 255.0);
+    }
 }
 
 void
@@ -297,7 +330,6 @@ UpdateLUT()
 
   //m_LookupTable->SetIndexedLookup(true);
   size_t numClr = m_ColorLabelTable->GetNumberOfValidLabels();
-  std::cout << "-- valid #Label=" << numClr << std::endl;
   m_LookupTable->SetNumberOfColors(numClr);
   m_LookupTable->SetRange(0, 6);
 
@@ -312,9 +344,11 @@ UpdateLUT()
     rgbaD[2] = rgbD[2];
     rgbaD[3] = cit->second.GetAlpha() / 255.0;
 
+    /*
     std::cout << "-- label" << cit->first << ": ("
               << rgbaD[0] << ", " << rgbaD[1] << ", " << rgbaD[2] << ", " << rgbaD[3]
               << ")" << std::endl;
+    */
 
     m_LookupTable->SetTableValue(cit->first, rgbaD);
     }

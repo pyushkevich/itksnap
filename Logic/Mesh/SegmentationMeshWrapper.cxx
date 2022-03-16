@@ -53,10 +53,12 @@ UpdateMeshAssembly(itk::Command *progress, ImagePointer img, MeshOptions *option
       }
     }
   // Process deletion
-  for (auto cit = this->cbegin(); cit != this->cend(); ++cit)
+  for (auto cit = this->cbegin(); cit != this->cend();)
     {
     if (collection.count(cit->first) == 0)
-      this->Erase(cit->first);
+      this->Erase(cit++->first);
+    else
+      ++cit;
     }
 
   // Update the modified time stamp

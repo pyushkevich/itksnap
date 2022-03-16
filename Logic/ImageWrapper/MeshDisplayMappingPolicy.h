@@ -7,6 +7,7 @@
 class vtkScalarBarActor;
 class vtkLookupTable;
 class vtkActor;
+class ActorPool;
 
 /**
  * @brief The parent class for policies that involve mesh display mapping
@@ -56,13 +57,16 @@ public:
   virtual void SetColorMap(ColorMap *map) override;
 
   /** Configure actor */
-  virtual void ConfigureActor(vtkActor *actor) = 0;
+  virtual void UpdateApperance(ActorPool *pool, unsigned int timepoint) = 0;
 
   /** Configure legend scalar bar */
   virtual void ConfigureLegend(vtkScalarBarActor *legend) = 0;
 
   /** Build m_LookupTable based on the active array property */
   virtual void UpdateLUT() = 0;
+
+  /** Update actor map with meshes from given timepoint */
+  virtual void UpdateActorMap(ActorPool* pool, unsigned int timepoint);
 
   // end of virtual methods implementation
   //--------------------------------------------
@@ -108,7 +112,7 @@ public:
   // virtual methods implementation
 
   /** Configure mapper */
-  virtual void ConfigureActor(vtkActor *mapper) override;
+  virtual void UpdateApperance(ActorPool *pool, unsigned int timepoint) override;
 
   /** Configure legend scalar bar */
   virtual void ConfigureLegend(vtkScalarBarActor *legend) override;
@@ -139,7 +143,7 @@ public:
   // virtual methods implementation
 
   /** Configure mapper */
-  virtual void ConfigureActor(vtkActor *mapper) override;
+  virtual void UpdateApperance(ActorPool *pool, unsigned int timepoint) override;
 
   /** Configure legend scalar bar */
   virtual void ConfigureLegend(vtkScalarBarActor *legend) override;

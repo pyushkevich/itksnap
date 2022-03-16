@@ -272,6 +272,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/VectorImageWrapper.cxx
   Logic/LevelSet/SnakeParameters.cxx
   Logic/LevelSet/SnakeParametersPreviewPipeline.cxx
+  Logic/Mesh/ActorPool.cxx
   Logic/Mesh/AllPurposeProgressAccumulator.cxx
   Logic/Mesh/GuidedMeshIO.cxx
   Logic/Mesh/ImageMeshLayers.cxx
@@ -421,6 +422,7 @@ SET(LOGIC_HEADERS
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.h
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.txx
   Logic/LevelSet/SnakeParameters.h
+  Logic/Mesh/ActorPool.h
   Logic/Mesh/AllPurposeProgressAccumulator.h
   Logic/Mesh/GuidedMeshIO.h
   Logic/Mesh/ImageMeshLayers.h
