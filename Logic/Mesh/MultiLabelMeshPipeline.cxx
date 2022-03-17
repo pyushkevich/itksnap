@@ -335,17 +335,6 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
       m_VTKPipeline->SetImage(m_ThrehsoldFilter->GetOutput());
       m_VTKPipeline->ComputeMesh(it->second.Mesh);
 
-      // Fill label data array to the mesh
-      auto mesh = it->second.Mesh;
-      vtkNew<vtkUnsignedShortArray> array;
-      array->SetNumberOfComponents(1);
-      array->Allocate(mesh->GetNumberOfPoints());
-      array->Fill(it->first);
-      array->SetName("Label");
-      mesh->GetPointData()->SetScalars(array);
-      mesh->GetPointData()->SetActiveAttribute("Label",
-                                               vtkDataSetAttributes::SCALARS);
-
       // Update progress
       progress->StartNextRun(m_VTKPipeline->GetProgressAccumulator());
       }
@@ -362,14 +351,9 @@ void
 MultiLabelMeshPipeline
 ::SetImage(const InputImageType *image)
 {
-  std::cout << "[MLPipeline] SetImage" << std::endl;
   if(m_InputImage != image)
     {
     m_InputImage = image;
-    std::cout << "-- self=" << this << std::endl;
-    std::cout << "-- input=" << image << std::endl;
-    std::cout << "-- mInputImage=" << m_InputImage.GetPointer() << std::endl;
-    //std::cout << "-- print " << m_InputImage << std::endl;
     m_MeshInfo.clear();
     }
 }

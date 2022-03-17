@@ -14,6 +14,7 @@
 #include "SNAPImageData.h"
 #include "ImageMeshLayers.h"
 #include "MomentTextures.h"
+#include "SegmentationMeshWrapper.h"
 
 
 AbstractLayerTableRowModel::AbstractLayerTableRowModel()
@@ -617,6 +618,9 @@ MeshLayerTableRowModel::CheckState(UIState state)
   if (Superclass::CheckState(state))
     return true;
 
+  bool hasGenericDMP = (dynamic_cast<GenericMeshDisplayMappingPolicy*>(
+                          m_MeshLayer->GetDisplayMapping()) != NULL);
+
   switch (state)
     {
     // This is a mesh
@@ -640,10 +644,10 @@ MeshLayerTableRowModel::CheckState(UIState state)
       return false;
 
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
-      return true;
+      return hasGenericDMP;
 
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
-      return true;
+      return hasGenericDMP;
 
     default:
       break;
