@@ -7,20 +7,19 @@
 #include "Registry.h"
 #include "AbstractPropertyContainerModel.h"
 #include "ColorLabelPropertyModel.h"
-
-#include "SNAPImageData.h"
 #include "itkImage.h"
+#include "SNAPImageData.h"
 
 class GlobalUIModel;
-class GenericImageData; // DO I need this?
+class GenericImageData;
 
 class InterpolateLabelModel : public AbstractPropertyContainerModel
-{
+{    
 public:
 
   enum InterpolationType
   {
-      DISTANCE_MAP = 0, LEVEL_SET, MORPHOLOGY, BINARY_WEIGHTED_AVERAGE
+      DISTANCE_MAP = 0, LEVEL_SET, MORPHOLOGY,BINARY_WEIGHTED_AVERAGE
   };
 
   // Standard ITK stuff
@@ -86,10 +85,11 @@ public:
   irisSimplePropertyAccessMacro(SliceDirection, bool)
   irisSimplePropertyAccessMacro(SliceDirectionAxis, AnatomicalDirection)
 
-  typedef SNAPImageData                                          InputDataType;
-  using ShortType =  itk::Image<short,3>;
-  using GreyScalarType =  AnatomicScalarImageWrapper::ImageType;
-  using GreyVectorType =  AnatomicImageWrapper::ImageType;
+
+  typedef itk::Image<short,3>                                   ShortType;
+  typedef AnatomicScalarImageWrapper::ImageType                 GreyScalarType;
+  typedef AnatomicImageWrapper::ImageType                       GreyVectorType;
+
 
 protected:
 
@@ -128,9 +128,6 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_BWAOverwriteSegmentationModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_SliceDirectionModel;
   SmartPtr<ConcreteInterpolationAxisType> m_SliceDirectionAxisModel;
-
-  // Templated code to interpolate an image
-  template <class TImage> void DoInterpolate(TImage *image);
 
   // The parent model
   GlobalUIModel *m_Parent;
