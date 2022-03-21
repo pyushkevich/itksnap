@@ -129,7 +129,7 @@ void InterpolateLabelModel::Interpolate()
     it_trg.Finalize("Interpolate label");
   }
 
-// If Binary Weighted Averaging ...(STILL NEED TO EDIT AS PER NEW CODE)
+// If Binary Weighted Averaging ...
 else{
 
   // Copy label image to short type from RLE
