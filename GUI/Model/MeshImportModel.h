@@ -40,7 +40,7 @@ public:
   FileFormat GetFileFormatByName(const std::string &formatName) const;
 
   /** Load file using a GuidedMeshIO */
-  void Load(const char *filename, FileFormat format);
+  void Load(std::vector<std::string> &fn_list, FileFormat format);
 
   /** Load file using a GuidedMeshIO */
   void LoadToTP(const char *filename, FileFormat format);

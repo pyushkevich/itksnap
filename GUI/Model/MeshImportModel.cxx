@@ -74,8 +74,11 @@ MeshImportModel::GetFileFormatByName(const std::string &formatName) const
 }
 
 void
-MeshImportModel::Load(const char *filename, FileFormat format)
+MeshImportModel::Load(std::vector<std::string> &fn_list, FileFormat format)
 {
+  // if failed, check upstream file loading logic
+  assert(fn_list.size() > 0);
+
   // Create a new IO for loading
   GuidedMeshIO *IO = new GuidedMeshIO();
 
@@ -83,18 +86,32 @@ MeshImportModel::Load(const char *filename, FileFormat format)
   auto wrapper = StandaloneMeshWrapper::New();
   SmartPtr<MeshWrapperBase> baseWrapper = wrapper.GetPointer();
 
-  std::cout << "[MeshImportModel.Load()] Mesh created. id=" << wrapper->GetUniqueId() << std::endl;
-
   // Load into the current time point
-  auto app = m_ParentModel->GetDriver();
-  auto tp = app->GetCursorTimePoint();
-  // Execute loading
-  IO->LoadMesh(filename, format, baseWrapper, tp, 0u);
+  IRISApplication *app = m_ParentModel->GetDriver();
+
+  if (m_Mode == Mode::SERIES)
+    {
+    // load each file in the list from tp 0
+    size_t tp = 0, nt = app->GetNumberOfTimePoints();
+    for (auto &fn : fn_list)
+      {
+      if (tp > nt)
+        break;
+
+      // Execute loading
+      IO->LoadMesh(fn.c_str(), format, baseWrapper, tp++, 0u);
+      }
+    }
+  else
+    {
+    // load file into current tp
+    auto crntTP = app->GetCursorTimePoint();
+
+    IO->LoadMesh(fn_list[0].c_str(), format, baseWrapper, crntTP, 0u);
+    }
 
   // Install the wrapper to the application
   app->GetIRISImageData()->GetMeshLayers()->AddLayer(baseWrapper);
-
-  std::cout << "[MeshImportModel.Load()] Mesh Installed" << std::endl;
 
   delete IO;
 }

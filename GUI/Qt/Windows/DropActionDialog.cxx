@@ -91,11 +91,13 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
 
   std::cout << "[DropActionDialog] load as layer" << std::endl;
 
+  std::vector<std::string> fn_list { fn };
+
   auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
   if (fmt != GuidedMeshIO::FORMAT_COUNT)
     {
       auto model = m_Model->GetMeshImportModel();
-      model->Load(fn.c_str(), fmt);
+      model->Load(fn_list, fmt);
     }
 
   // close the dialog

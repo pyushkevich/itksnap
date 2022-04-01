@@ -129,18 +129,10 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
   // Using the factory method to get a delegate
   AbstractMeshIODelegate *ioDelegate = AbstractMeshIODelegate::GetDelegate(format);
 
-  std::cout << "[GuidedMeshIO.LoadMesh] IODelegate created" << std::endl;
-
   if (ioDelegate)
     {
       // Apply IO logic of the delegate
       vtkSmartPointer<vtkPolyData> polyData = ioDelegate->ReadPolyData(FileName);
-      //ioDelegate->LoadPolyData(FileName, polyData);
-
-      //std::cout << "[GuidedMeshIO.LoadMesh] vtkPolyData print" << std::endl;
-      //polyData->PrintSelf(std::cout, vtkIndent(2));
-
-      //std::cout << "[GuidedMeshIO.LoadMesh] PolyData loaded" << std::endl;
 
       // Set polydata into the wrapper
       wrapper->SetMesh(polyData, tp, id);

@@ -36,8 +36,8 @@ public:
       const QString &initialFile = QString(),
       const QString &activeFormat = QString());
 
-  // Initialize the panel for opening a directory of files
-  void initializeForOpenDirectory(
+  // Initialize the panel for opening a file
+  void initializeForOpenFiles(
       GlobalUIModel *model,
       const QString &labelText,
       const QString &historyCategory,
@@ -75,6 +75,9 @@ public:
 
   // Allow directories to be created
   void setAllowCreateDir(bool value);
+
+  QStringList GetSelectedFiles()
+  { return m_SelectedFiles; }
 
 signals:
 
@@ -115,7 +118,7 @@ private:
   Ui::FileChooserPanelWithHistory *ui;
 
   bool m_openMode;
-  bool m_directoryMode;
+  bool m_MultiFilesMode;
   bool m_forceExtension;
   bool m_allowCreateDir;
 
@@ -127,6 +130,7 @@ private:
   QString m_filePattern;
   QString m_workingDir;
   QString m_defaultFormat;
+  QStringList m_SelectedFiles;
 
   QMap<QString, QStringList> m_Filter;
 
@@ -135,7 +139,7 @@ private:
   void highlightFilename();
 
   // Get the filename selected
-  QString absoluteFilenameKeepExtension() const;
+  QString absoluteFilenameKeepExtension(const QString &text) const;
 
   QObject *m_oracleTarget;
   const char *m_oracleSlot;

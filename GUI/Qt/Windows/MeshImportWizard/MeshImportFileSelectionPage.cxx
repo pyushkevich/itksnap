@@ -2,6 +2,8 @@
 #include "ui_MeshImportFileSelectionPage.h"
 #include "MeshImportModel.h"
 #include "SNAPQtCommon.h"
+#include "GlobalUIModel.h"
+#include "IRISApplication.h"
 
 MeshImportFileSelectionPage::MeshImportFileSelectionPage(QWidget *parent) :
   QWizardPage(parent),
@@ -70,8 +72,6 @@ void MeshImportFileSelectionPage::initializePage()
                     .arg(from_utf8(oss.str())));
     }
 
-  std::cout << "[MeshFileSelection] filter=" << filter.toStdString() << std::endl;
-
   auto mode = m_Model->GetMode();
   if (mode == MeshImportModel::SINGLE)
     {
@@ -86,9 +86,9 @@ void MeshImportFileSelectionPage::initializePage()
   else
     {
     // Create directory file panel
-    ui->filePanel->initializeForOpenDirectory(
+    ui->filePanel->initializeForOpenFiles(
           m_Model->GetParentModel(),
-          "Mesh file name: ",
+          "Mesh series files: ",
           from_utf8(m_Model->GetHistoryName()),
           filter,
           QString(), from_utf8(domain[GuidedMeshIO::FORMAT_VTK]));
@@ -103,15 +103,32 @@ bool MeshImportFileSelectionPage::validatePage()
 
   // Get selected format from the file panel
   QString format = ui->filePanel->activeFormat();
-  QString filename = ui->filePanel->absoluteFilename();
+  QStringList filenames = ui->filePanel->GetSelectedFiles();
 
-  std::cout << "[MeshFileSelection] validatePage() format=" << format.toStdString() << std::endl;
-  std::cout << "[MeshFileSelection] validatePage() filename=" << filename.toStdString() << std::endl;
+  auto nt = m_Model->GetParentModel()->GetDriver()->GetNumberOfTimePoints();
+  if (nt < filenames.length())
+    {
+    std::ostringstream oss;
+    oss << "Number of selected files (" << filenames.length()
+        << ") cannot exceed the number of time points (" << nt << ")!";
+    ui->lblMessage->setText(QString(oss.str().c_str()));
+    return false;
+    }
+
+  std::vector<std::string> fn_list;
+
+  for (auto fn : filenames)
+    {
+    fn_list.push_back(fn.toStdString());
+    }
+
+  std::sort(fn_list.begin(), fn_list.end());
+
 
   MeshImportModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
 
   // Import the file
-  m_Model->Load(filename.toUtf8(), fmt);
+  m_Model->Load(fn_list, fmt);
 
   return true;
 }
