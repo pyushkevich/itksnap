@@ -33,6 +33,24 @@ Initialize(vtkDataArray *array, MeshDataType type)
   m_max = range[1];
 
   m_Type = type;
+
+  // Populate Component Name
+  // -- only populate component name from the initial array
+  // -- with assumption that array components are immutable
+  const std::string noname = "Component ";
+  size_t noname_id = 0u;
+  for (int i = 0; i < array->GetNumberOfComponents(); ++i)
+    {
+    std::string strName;
+    auto cName = array->GetComponentName(i);
+    if (cName && strlen(cName))
+      strName = cName;
+    else
+      strName = noname + std::to_string(noname_id++);
+
+    std::cout << "component id=" << i << " name=" << strName << std::endl;
+    m_ComponentNameMap[i] = strName;
+    }
 }
 
 void
@@ -99,7 +117,6 @@ MeshLayerDataArrayProperty()
         (ColorMap::SystemPreset::COLORMAP_JET));
   m_IntensityCurve = IntensityCurveVTK::New();
   m_IntensityCurve->Initialize();
-
   m_HistogramFilter = HistogramFilterType::New();
   m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
   m_MinMaxFilter = MinMaxFilterType::New();
@@ -117,6 +134,12 @@ Initialize(MeshDataArrayProperty *other)
   this->m_Type = other->GetType();
 
   m_DataPointerList.push_back(other->GetDataPointer());
+
+  // Copy the component name map
+  for (auto kv : other->GetComponentNameMap())
+    {
+    m_ComponentNameMap[kv.first] = kv.second;
+    }
 }
 
 void
@@ -230,21 +253,16 @@ PolyDataWrapper::UpdateDataArrayProperties()
 {
   assert(m_PolyData);
 
-  std::cout << "[PolyDataWrapper] Update Array Props" << std::endl;
-
   // Process Point Data
   auto pointData = m_PolyData->GetPointData();
   UpdatePropertiesFromVTKData(m_PointDataProperties, pointData,
                               MeshDataType::POINT_DATA);
-
-  std::cout << "-- point data set" << std::endl;
 
   // Process Cell Data
   auto cellData = m_PolyData->GetCellData();
   UpdatePropertiesFromVTKData(m_CellDataProperties, cellData,
                               MeshDataType::CELL_DATA);
 
-  std::cout << "-- cell data set" << std::endl;
 }
 
 void
@@ -365,7 +383,7 @@ MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMa
       auto newprop = MeshLayerDataArrayProperty::New();
       newprop->Initialize(cit->second);
       dest[cit->first] = newprop;
-      m_CombinedDataPropertyMap[++m_CombinedPropID] = newprop;
+      m_CombinedDataPropertyMap[m_CombinedPropID++] = newprop;
       }
 
     }
@@ -453,10 +471,12 @@ void
 MeshWrapperBase::
 SetActiveMeshLayerDataPropertyId(int id)
 {
-  if (m_ActiveDataPropertyId == id)
+  if (id < 0 || m_ActiveDataPropertyId == id)
     return;
 
   m_ActiveDataPropertyId = id;
+
+  std::cout << "id = " << id << std::endl;
 
   // if failed check caller's logic
   assert(m_CombinedDataPropertyMap.count(id));
@@ -464,13 +484,9 @@ SetActiveMeshLayerDataPropertyId(int id)
   // check is point or cell data
   auto prop = m_CombinedDataPropertyMap[id];
 
-  std::cout << "[MeshWrapperBase] SetActiveProp prop=" << prop << std::endl;
-
   // Change the active array
   if (prop->GetType() == MeshDataArrayProperty::POINT_DATA)
     {
-    std::cout << "[MeshWrapperBase] Set Point Data" << std::endl;
-    std::cout << "[MeshWrapperBase] MeshAssemblyMapSize=" << m_MeshAssemblyMap.size() << std::endl;
     for (auto cit = m_MeshAssemblyMap.cbegin(); cit != m_MeshAssemblyMap.cend(); ++cit)
       {
       for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)

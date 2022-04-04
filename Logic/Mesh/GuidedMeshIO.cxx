@@ -141,8 +141,6 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
       wrapper->SetFileName(FileName);
 
       delete ioDelegate;
-
-      std::cout << "[GuidedMeshIO.LoadMesh] Mesh installed" << std::endl;
     }
   else
     throw itk::ExceptionObject("Illegal format specified for loading mesh file");

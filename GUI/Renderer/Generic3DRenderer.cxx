@@ -272,7 +272,6 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
-  std::cout << "[G3DR] Update Actor Map" << std::endl;
 
   if(m_Model->IsMeshUpdating() )
     return;
@@ -282,11 +281,6 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   // Get active layer id and current time point
   unsigned long active_layer_id = layers->GetActiveLayerId();
   unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
-
-  std::cout << "-- ActorMap tp=" << m_CrntActorMapTimePoint
-            << " layer=" << m_CrntActorMapLayerId << std::endl;
-  std::cout << "-- Update tp=" << tp
-            << " layer=" << active_layer_id << std::endl;
 
   if (layers->size() == 0 || active_layer_id == 0)
     return;
@@ -326,8 +320,6 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 
 void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
 {
-  std::cout << "[G3DR] ApplyDisplayMappingPolicyChange" << std::endl;
-
   // Get current layer
   auto active_layer = m_Model->GetMeshLayers()->GetLayer(m_CrntActorMapLayerId);
 
@@ -423,8 +415,6 @@ void Generic3DRenderer::UpdateScalpelRendering()
     m_ScalpelLineActor->SetVisibility(0);
     return;
     }
-
-  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
 
   if(m_Model->GetScalpelStatus() == Generic3DModel::SCALPEL_LINE_STARTED)
     {
@@ -748,7 +738,7 @@ void Generic3DRenderer::UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssemb
 {
   auto *sw = layer->GetDefaultScalarRepresentation();
   auto *curve = sw->GetIntensityCurve();
-  auto *nmap = sw->GetNativeIntensityMapping();
+  //auto *nmap = sw->GetNativeIntensityMapping();
   auto *cmap = sw->GetColorMap();
 
   double imin = sw->GetImageMinAsDouble();
@@ -806,7 +796,7 @@ void Generic3DRenderer::UpdateVolumeRendering()
   // Keep track of volume renderers that are not used
   std::set<vtkVolume *> volumes_to_remove;
   auto *props = m_Renderer->GetViewProps();
-  for(unsigned int k = 0; k < props->GetNumberOfItems(); k++)
+  for(int k = 0; k < props->GetNumberOfItems(); k++)
     {
     vtkVolume *vol = dynamic_cast<vtkVolume *>(props->GetItemAsObject(k));
     if(vol)
@@ -877,8 +867,8 @@ void Generic3DRenderer::UpdateVolumeRendering()
         }
 
       // Check if the transform needs updating
-      if(sw->GetImageBase()->GetMTime() > va->TransformUpdateTime ||
-         sw->GetITKTransform() && sw->GetITKTransform()->GetMTime() > va->TransformUpdateTime)
+      if((sw->GetImageBase()->GetMTime() > va->TransformUpdateTime) ||
+         (sw->GetITKTransform() && sw->GetITKTransform()->GetMTime() > va->TransformUpdateTime))
         {
         UpdateVolumeTransform(layer, va);
         }

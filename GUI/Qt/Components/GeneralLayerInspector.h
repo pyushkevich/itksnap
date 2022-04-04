@@ -28,6 +28,7 @@ private slots:
   void on_btnUp_clicked();
   void on_btnDown_clicked();
   void on_spinBoxTP_valueChanged(int value);
+  void on_boxMeshDataName_currentIndexChanged(int index);
 
 
 private:

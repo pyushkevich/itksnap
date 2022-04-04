@@ -12,15 +12,11 @@ void
 StandaloneMeshWrapper
 ::SetMesh(vtkPolyData *mesh, unsigned int timepoint, LabelType id)
 {
-  std::cout << "[StandaloneWrapper] SetMesh called" << std::endl;
-
   auto wrapper = PolyDataWrapper::New();
   wrapper->SetPolyData(mesh);
 
   auto pointDataProps = wrapper->GetPointDataProperties();
   auto cellDataProps = wrapper->GetCellDataProperties();
-
-  std::cout << "[StandaloneWrapper] pointData size=" << pointDataProps.size() << std::endl;
 
   // Add or merge data properties
   MergeDataProperties(m_PointDataProperties, pointDataProps);
@@ -37,7 +33,6 @@ StandaloneMeshWrapper
     }
 
   // Set Default active array id
-  std::cout << "[StandaloneWrapper] Combined Map Size=" << m_CombinedDataPropertyMap.size() << std::endl;
   SetActiveMeshLayerDataPropertyId(m_CombinedDataPropertyMap.cbegin()->first);
 
   InvokeEvent(ValueChangedEvent());

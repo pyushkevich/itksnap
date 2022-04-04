@@ -45,6 +45,7 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->inTPNickname, m_Model->GetCrntTimePointNicknameModel());
   makeCoupling(ui->TPTagsWidget, m_Model->GetCrntTimePointTagListModel());
   makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
+  makeCoupling(ui->boxMeshMCMode, m_Model->GetMeshMCDisplayModeModel());
 
   // Couple the pin/unpin buttons
   std::map<bool, QAbstractButton *> button_map;
@@ -92,6 +93,12 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   activateOnFlag(ui->grpMesh, m_Model,
                  LayerGeneralPropertiesModel::UIF_IS_MESH,
                  QtWidgetActivator::HideInactive);
+
+  /*
+  activateOnFlag(ui->grpMCMesh, m_Model,
+                 LayerGeneralPropertiesModel::UIF_IS_MESHDATA_MULTICOMPONENT,
+                 QtWidgetActivator::HideInactive);
+  */
 }
 
 void GeneralLayerInspector::on_btnUp_clicked()
@@ -110,6 +117,11 @@ void GeneralLayerInspector::on_spinBoxTP_valueChanged(int value)
   txt.append(std::to_string(value).c_str());
   txt.append(":");
   ui->grpTPProperties->setTitle(txt);
+}
+
+void GeneralLayerInspector::on_boxMeshDataName_currentIndexChanged(int)
+{
+  m_Model->Update();
 }
 
 void GeneralLayerInspector::onModelUpdate(const EventBucket &)

@@ -17,12 +17,6 @@ MeshImportFileSelectionPage::MeshImportFileSelectionPage(QWidget *parent) :
   this->registerField(
         "Format*", ui->filePanel,
         "activeFormat", SIGNAL(activeFormatChanged(QString)));
-
-  /*
-  connect(
-        ui->filePanel, SIGNAL(absoluteFilenameChanged(QString)),
-        this, SLOT(onFilenameChanged(QString)));
-        */
 }
 
 MeshImportFileSelectionPage::~MeshImportFileSelectionPage()

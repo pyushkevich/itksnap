@@ -5,6 +5,7 @@
 #include "NumericPropertyToggleAdaptor.h"
 #include "LayerTableRowModel.h"
 #include "TimePointProperties.h"
+#include "StandaloneMeshWrapper.h"
 
 template class LayerAssociation<GeneralLayerProperties,
                                 WrapperBase,
@@ -71,6 +72,11 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         this,
         &Self::GetMeshDataArrayNameValueAndRange,
         &Self::SetMeshDataArrayNameValue);
+
+  m_MeshMCDisplayModeModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetMeshMCDisplayModeValueAndRange,
+        &Self::SetMeshMCDisplayModeValue);
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -183,8 +189,17 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
 
     case UIF_IS_MESH:
       {
-        auto mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
-        return mesh_layer != nullptr;
+      auto mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+      return mesh_layer != nullptr;
+      }
+    case UIF_IS_MESHDATA_MULTICOMPONENT:
+      {
+      auto mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+
+      if (!mesh_layer)
+        return false;
+
+      return mesh_layer->GetActiveDataArrayProperty()->IsMultiComponent();
       }
     }
 
@@ -575,4 +590,40 @@ SetMeshDataArrayNameValue(int value)
     return;
 
   mesh_layer->SetActiveMeshLayerDataPropertyId(value);
+}
+
+bool
+LayerGeneralPropertiesModel::
+GetMeshMCDisplayModeValueAndRange(VectorModes &value, MeshMCDisplayModeDomain *domain)
+{
+
+
+  // The current layer has to be a mesh layer
+  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  if (!mesh_layer)
+    return false;
+
+  auto props = mesh_layer->GetVectorModeNameMap();
+
+  if (domain)
+    {
+    for (auto it = props.cbegin(); it != props.cend(); ++it)
+      (*domain)[it->first] = it->second;
+
+    value = mesh_layer->GetActiveVectorMode();
+    }
+
+  return true;
+}
+
+void
+LayerGeneralPropertiesModel::
+SetMeshMCDisplayModeValue(VectorModes value)
+{
+  // The current layer has to be a mesh layer
+  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  if (!mesh_layer)
+    return;
+
+  mesh_layer->SetActiveVectorMode(value);
 }

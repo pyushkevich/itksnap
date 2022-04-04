@@ -11,6 +11,7 @@
 #include "ThreadedHistogramImageFilter.h"
 #include "vtkPolyData.h"
 #include "vtkDataArray.h"
+#include "vtkScalarsToColors.h"
 #include "itkMinimumMaximumImageFilter.h"
 
 class AbstractMeshIODelegate;
@@ -23,6 +24,8 @@ class AbstractMeshDataArrayProperty : public itk::Object
 {
 public:
   irisITKAbstractObjectMacro(AbstractMeshDataArrayProperty, itk::Object);
+
+  typedef std::map<vtkIdType, std::string> ComponentNameMap;
 
   enum MeshDataType { POINT_DATA=0, CELL_DATA, COUNT };
 
@@ -45,6 +48,12 @@ public:
 
   void Print(std::ostream &os) const;
 
+  bool IsMultiComponent()
+  { return m_ComponentNameMap.size() > 1; }
+
+  ComponentNameMap &GetComponentNameMap()
+  { return m_ComponentNameMap; }
+
 
 protected:
   AbstractMeshDataArrayProperty();
@@ -53,6 +62,8 @@ protected:
   char* m_Name;
   double m_min;
   double m_max;
+
+  ComponentNameMap m_ComponentNameMap;
 
   MeshDataType m_Type;
 };
@@ -83,7 +94,7 @@ protected:
  * @brief The MeshLayerDataArrayProperty class
  * Stores layer-level data array property. It should only be used at
  * MeshWrapperBase (layer) level. It merges mesh assembly lowest level
- * properties into one with a ColorMap and Intensity Curve; Providing
+ * properties into one with a ColorMap and Intensity Curve; It provides
  * the UI ability to set layer-specific display mapping policy for the
  * data arrays of all the mesh elements with same type and name.
  */
@@ -95,6 +106,8 @@ public:
   typedef itk::Image<double, 1> DataArrayImageType;
   typedef ThreadedHistogramImageFilter<DataArrayImageType> HistogramFilterType;
   typedef itk::MinimumMaximumImageFilter<DataArrayImageType> MinMaxFilterType;
+
+
 
   /** Get Color Map */
   ColorMap* GetColorMap()
@@ -130,9 +143,8 @@ protected:
   SmartPtr<IntensityCurveVTK> m_IntensityCurve;
   SmartPtr<HistogramFilterType> m_HistogramFilter;
   SmartPtr<MinMaxFilterType> m_MinMaxFilter;
-
-
   std::list<vtkDataArray*> m_DataPointerList;
+
 
 };
 
@@ -284,6 +296,10 @@ public:
   /** Element level Data Array properties with name */
   typedef PolyDataWrapper::MeshDataArrayPropertyMap MeshDataArrayPropertyMap;
 
+  /** Multi-Component (Vector) Display Mode */
+  typedef vtkScalarsToColors::VectorModes VectorModes;
+  typedef std::map<VectorModes, std::string> VectorModeNameMap;
+
   //----------------------------------------------
   // Begin virtual methods definition
 
@@ -376,6 +392,15 @@ public:
     */
   void MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &src);
 
+  const VectorModeNameMap &GetVectorModeNameMap() const
+  { return m_VectorModeNameMap; }
+
+  VectorModes GetActiveVectorMode()
+  { return m_ActiveVectorMode; }
+
+  void SetActiveVectorMode(VectorModes mode)
+  { this->m_ActiveVectorMode = mode; }
+
   // Give display mapping policy access to protected members for flexible
   // configuration and data retrieval
   friend class MeshDisplayMappingPolicy;
@@ -393,8 +418,8 @@ protected:
   MeshLayerDataArrayPropertyMap m_PointDataProperties;
   MeshLayerDataArrayPropertyMap m_CellDataProperties;
 
-  // This should be re-set after construction
-  int m_ActiveDataPropertyId = -1;
+  // Indicate which data property is active
+  int m_ActiveDataPropertyId = 0;
 
   UserDataMapType m_UserDataMap;
 
@@ -419,6 +444,16 @@ protected:
 
   // Data Array Property Id
   int m_CombinedPropID = 0;
+
+  // Active Vector Mode
+  VectorModes m_ActiveVectorMode = VectorModes::MAGNITUDE;
+
+  const VectorModeNameMap m_VectorModeNameMap =
+  {
+    {VectorModes::MAGNITUDE, "Magnitude"},
+    {VectorModes::COMPONENT, "Component"},
+    {VectorModes::RGBCOLORS, "RGBColors"}
+  };
 };
 
 #endif // MESHWRAPPERBASE_H

@@ -20,7 +20,7 @@ public:
   irisGetSetMacro(VisibilityToggleModel, AbstractSimpleBooleanProperty *)
 
   GeneralLayerProperties()
-    : m_ObserverTag(0), m_VisibilityToggleModel(NULL) {}
+    : m_VisibilityToggleModel(NULL), m_ObserverTag(0) {}
 
   virtual ~GeneralLayerProperties() {}
 
@@ -62,7 +62,8 @@ public:
     UIF_MOVABLE_UP,
     UIF_MOVABLE_DOWN,
     UIF_IS_4D_IMAGE,
-    UIF_IS_MESH
+    UIF_IS_MESH,
+    UIF_IS_MESHDATA_MULTICOMPONENT,
   };
 
   // Implementation of virtual functions from parent class
@@ -85,6 +86,11 @@ public:
   // Typedefs for mesh data selection
   typedef SimpleItemSetDomain<int, std::string> MeshDataArrayNameDomain;
   typedef AbstractPropertyModel<int, MeshDataArrayNameDomain> AbstractMeshDataArrayNameModel;
+
+  // Typedefs for mesh data multi-component display mode
+  typedef MeshWrapperBase::VectorModes VectorModes;
+  typedef SimpleItemSetDomain<VectorModes, std::string> MeshMCDisplayModeDomain;
+  typedef AbstractPropertyModel<VectorModes, MeshMCDisplayModeDomain> AbstractMeshMCDisplayModeModel;
 
   // Models
   irisGetMacro(DisplayModeModel, AbstractDisplayModeModel *)
@@ -118,6 +124,9 @@ public:
   /** A model for mesh data array names */
   irisGetMacro(MeshDataArrayNameModel, AbstractMeshDataArrayNameModel *)
 
+  /** A model for mesh multi-component (vector) display mode */
+  irisGetMacro(MeshMCDisplayModeModel, AbstractMeshMCDisplayModeModel *)
+
   /** Move the layer up in the list */
   void MoveLayerUp();
   void MoveLayerDown();
@@ -134,6 +143,10 @@ protected:
   SmartPtr<AbstractMeshDataArrayNameModel> m_MeshDataArrayNameModel;
   bool GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain);
   void SetMeshDataArrayNameValue(int value);
+
+  SmartPtr<AbstractMeshMCDisplayModeModel> m_MeshMCDisplayModeModel;
+  bool GetMeshMCDisplayModeValueAndRange(VectorModes &value, MeshMCDisplayModeDomain *domain);
+  void SetMeshMCDisplayModeValue(VectorModes value);
 
   SmartPtr<AbstractRangedIntProperty> m_SelectedComponentModel;
   bool GetSelectedComponentValueAndRange(int &value, NumericValueRange<int> *domain);
