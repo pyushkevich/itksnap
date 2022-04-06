@@ -164,9 +164,3 @@ SegmentationMeshWrapper::UpdateMeshes(itk::Command *progressCmd, unsigned int ti
 
   std::cout << "[SegWrapper] Mesh Updated" << std::endl;
 }
-
-bool
-SegmentationMeshWrapper::IsA(const char *type) const
-{
-  return Superclass::IsA(type) || (strcmp("SegmentationMeshWrapper", type) == 0);
-}

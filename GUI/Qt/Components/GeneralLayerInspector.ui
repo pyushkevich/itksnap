@@ -871,33 +871,18 @@ font-size:11px;
        </layout>
       </item>
       <item>
-       <widget class="QGroupBox" name="grpMCMesh">
-        <property name="title">
-         <string>Multi Component Mesh Data Display</string>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_6">
-         <item row="0" column="0">
-          <widget class="QLabel" name="lblMeshMCMode">
-           <property name="text">
-            <string>Display Mode</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QComboBox" name="boxMeshMCMode"/>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="lblMeshCompName">
-           <property name="text">
-            <string>Component</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QComboBox" name="boxMeshCompName"/>
-         </item>
-        </layout>
-       </widget>
+       <layout class="QHBoxLayout" name="grpVectorMode">
+        <item>
+         <widget class="QLabel" name="lblMeshVectorMode">
+          <property name="text">
+           <string>Vector Display Mode</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="boxMeshVectorMode"/>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

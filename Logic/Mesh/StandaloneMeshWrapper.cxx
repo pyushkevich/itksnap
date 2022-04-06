@@ -1,5 +1,6 @@
 #include "StandaloneMeshWrapper.h"
 #include "DisplayMappingPolicy.h"
+#include "Rebroadcaster.h"
 
 StandaloneMeshWrapper::StandaloneMeshWrapper()
 {
@@ -44,8 +45,3 @@ StandaloneMeshWrapper::IsMeshDirty(unsigned int)
   return false;
 }
 
-bool
-StandaloneMeshWrapper::IsA(const char *type) const
-{
-  return Superclass::IsA(type) || (strcmp("StandaloneMeshWrapper", type) == 0);
-}

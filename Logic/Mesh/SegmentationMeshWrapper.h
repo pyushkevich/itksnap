@@ -49,8 +49,6 @@ public:
 
   bool IsMeshDirty(unsigned int timepoint) override;
 
-  bool IsA(const char *type) const override;
-
   void SetMesh(vtkPolyData *mesh, unsigned int timepoint, LabelType id) override;
 
   //  End of virtual methods implementation

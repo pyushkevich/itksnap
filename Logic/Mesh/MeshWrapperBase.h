@@ -107,6 +107,9 @@ public:
   typedef ThreadedHistogramImageFilter<DataArrayImageType> HistogramFilterType;
   typedef itk::MinimumMaximumImageFilter<DataArrayImageType> MinMaxFilterType;
 
+  /** Multi-Component (Vector) Display Mode */
+  typedef vtkScalarsToColors::VectorModes VectorModes;
+  typedef std::map<int, std::string> VectorModeNameMap;
 
 
   /** Get Color Map */
@@ -132,6 +135,19 @@ public:
   /** Merge another property into this. Adjusting min/max etc. */
   void Merge(MeshDataArrayProperty *other);
 
+  VectorModeNameMap &GetVectorModeNameMap()
+  { return m_VectorModeNameMap; }
+
+  int GetActiveVectorMode()
+  { return m_ActiveVectorMode; }
+
+  void SetActiveVectorMode(int mode);
+
+  int GetActiveComponentId()
+  {
+    return (m_ActiveVectorMode > 1 ? m_ActiveVectorMode - m_VectorModeShiftSize : 0);
+  }
+
   /** Deep copy self to the other object */
   void Initialize(MeshDataArrayProperty *other);
 
@@ -139,13 +155,28 @@ protected:
   MeshLayerDataArrayProperty();
   ~MeshLayerDataArrayProperty() {};
 
+  void UpdateVectorModeNameMap();
+
   SmartPtr<ColorMap> m_ColorMap;
   SmartPtr<IntensityCurveVTK> m_IntensityCurve;
   SmartPtr<HistogramFilterType> m_HistogramFilter;
   SmartPtr<MinMaxFilterType> m_MinMaxFilter;
   std::list<vtkDataArray*> m_DataPointerList;
 
+  // Active Vector Mode
+  int m_ActiveVectorMode = VectorModes::MAGNITUDE;
 
+  // The number of VectorModes that are not component-specific
+  const int m_VectorModeShiftSize = 2;
+
+  /** A hybrid map consists of both non-component-specific VectorModes
+   *  and all single components that can be rendered independently.
+   *  The first M entries are always non-component-specific, where M
+   *  is defined by the number of supported non-component-specific VectorModes
+   *  stored in the const m_VectorModeShiftSize. All component-specific mode
+   *  are stored with their index shifted by M.
+   */
+  VectorModeNameMap m_VectorModeNameMap;
 };
 
 /**
@@ -296,10 +327,6 @@ public:
   /** Element level Data Array properties with name */
   typedef PolyDataWrapper::MeshDataArrayPropertyMap MeshDataArrayPropertyMap;
 
-  /** Multi-Component (Vector) Display Mode */
-  typedef vtkScalarsToColors::VectorModes VectorModes;
-  typedef std::map<VectorModes, std::string> VectorModeNameMap;
-
   //----------------------------------------------
   // Begin virtual methods definition
 
@@ -347,9 +374,6 @@ public:
   /** Return true if the mesh needs update */
   virtual bool IsMeshDirty(unsigned int timepoint) = 0;
 
-  /** Return true if the object is an instance of the type or a subclass of the type */
-  virtual bool IsA(const char *type) const;
-
   /** Get the mesh display mapping. This saves renderer a type cast */
   virtual MeshDisplayMappingPolicy *GetMeshDisplayMappingPolicy() const = 0;
 
@@ -391,15 +415,6 @@ public:
     to one in the layer
     */
   void MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &src);
-
-  const VectorModeNameMap &GetVectorModeNameMap() const
-  { return m_VectorModeNameMap; }
-
-  VectorModes GetActiveVectorMode()
-  { return m_ActiveVectorMode; }
-
-  void SetActiveVectorMode(VectorModes mode)
-  { this->m_ActiveVectorMode = mode; }
 
   // Give display mapping policy access to protected members for flexible
   // configuration and data retrieval
@@ -444,16 +459,6 @@ protected:
 
   // Data Array Property Id
   int m_CombinedPropID = 0;
-
-  // Active Vector Mode
-  VectorModes m_ActiveVectorMode = VectorModes::MAGNITUDE;
-
-  const VectorModeNameMap m_VectorModeNameMap =
-  {
-    {VectorModes::MAGNITUDE, "Magnitude"},
-    {VectorModes::COMPONENT, "Component"},
-    {VectorModes::RGBCOLORS, "RGBColors"}
-  };
 };
 
 #endif // MESHWRAPPERBASE_H

@@ -73,10 +73,10 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         &Self::GetMeshDataArrayNameValueAndRange,
         &Self::SetMeshDataArrayNameValue);
 
-  m_MeshMCDisplayModeModel = wrapGetterSetterPairAsProperty(
+  m_MeshVectorModeModel = wrapGetterSetterPairAsProperty(
         this,
-        &Self::GetMeshMCDisplayModeValueAndRange,
-        &Self::SetMeshMCDisplayModeValue);
+        &Self::GetMeshVectorModeValueAndRange,
+        &Self::SetMeshVectorModeValue);
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -551,7 +551,6 @@ LayerGeneralPropertiesModel::
 GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
 {
 
-
   // The current layer has to be a mesh layer
   MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
   if (!mesh_layer)
@@ -590,27 +589,47 @@ SetMeshDataArrayNameValue(int value)
     return;
 
   mesh_layer->SetActiveMeshLayerDataPropertyId(value);
+
+  this->GetMeshVectorModeModel()->InvokeEvent(DomainChangedEvent());
 }
 
 bool
 LayerGeneralPropertiesModel::
-GetMeshMCDisplayModeValueAndRange(VectorModes &value, MeshMCDisplayModeDomain *domain)
+GetMeshVectorModeValueAndRange(int &value, MeshVectorModeDomain *domain)
 {
-
-
   // The current layer has to be a mesh layer
   MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
   if (!mesh_layer)
     return false;
 
-  auto props = mesh_layer->GetVectorModeNameMap();
+  auto names = mesh_layer->GetActiveDataArrayProperty()->GetVectorModeNameMap();
+
+  bool isRGBFeasible = false;
+  // only show magnitude mode if the array is single component
+  if(names.size() <= 3)
+    {
+    (*domain)[names.begin()->first] = names.begin()->second;
+    value = names.begin()->first;
+    return true;
+    }
+
+  else if(names.size() == 5)
+    isRGBFeasible = true;
+
 
   if (domain)
     {
-    for (auto it = props.cbegin(); it != props.cend(); ++it)
-      (*domain)[it->first] = it->second;
+    for (auto kv : names)
+      {
+      // skip RGB color mode if number of component is not 3
+      if (!isRGBFeasible && kv.first == 1)
+        continue;
 
-    value = mesh_layer->GetActiveVectorMode();
+      (*domain)[kv.first] = kv.second;
+      }
+
+
+    value = mesh_layer->GetActiveDataArrayProperty()->GetActiveVectorMode();
     }
 
   return true;
@@ -618,12 +637,13 @@ GetMeshMCDisplayModeValueAndRange(VectorModes &value, MeshMCDisplayModeDomain *d
 
 void
 LayerGeneralPropertiesModel::
-SetMeshMCDisplayModeValue(VectorModes value)
+SetMeshVectorModeValue(int value)
 {
   // The current layer has to be a mesh layer
   MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
   if (!mesh_layer)
     return;
 
-  mesh_layer->SetActiveVectorMode(value);
+  mesh_layer->GetActiveDataArrayProperty()->SetActiveVectorMode(value);
+  mesh_layer->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }

@@ -72,7 +72,6 @@ MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
 {
   m_ColorMap = map;
 
-  std::cout << "[MeshDMP] color map set" << std::endl;
   Rebroadcaster::Rebroadcast(m_ColorMap, itk::ModifiedEvent(),
                              m_Wrapper, WrapperDisplayMappingChangeEvent());
 }
@@ -90,8 +89,6 @@ void
 MeshDisplayMappingPolicy::
 UpdateActorMap(ActorPool *pool, unsigned int timepoint)
 {
-  std::cout << "[MeshDMP] UpdateActorMap" << std::endl;
-
   auto meshes = m_Wrapper->GetMeshAssembly(timepoint);
 
   if (!meshes)
@@ -198,7 +195,8 @@ UpdateApperance(ActorPool *pool, unsigned int)
     mapper->SetLookupTable(m_LookupTable);
     mapper->UseLookupTableScalarRangeOn();
 
-    // point/cell data specific logic
+
+    // -- point/cell data specific logic
     if (prop->GetType() == MeshDataType::POINT_DATA)
       {
       mapper->SetScalarModeToUsePointData();
@@ -214,8 +212,14 @@ UpdateApperance(ActorPool *pool, unsigned int)
                                    vtkDataSetAttributes::AttributeTypes::SCALARS);
       }
 
-    // Set active attribute
+    // -- set active attribute
     mapper->SetColorModeToMapScalars();
+
+    if (prop->GetActiveVectorMode() > 1)
+      {
+      mapper->ColorByArrayComponent(prop->GetName(), prop->GetActiveComponentId());
+      }
+
     }
 }
 
@@ -267,6 +271,22 @@ UpdateLUT()
 
     m_LookupTable->SetTableValue(i, rgbaD);
     }
+
+  switch (prop->GetActiveVectorMode())
+    {
+    case 0:
+      m_LookupTable->SetVectorMode(vtkScalarsToColors::MAGNITUDE);
+      break;
+    case 1:
+      m_LookupTable->SetVectorMode(vtkScalarsToColors::RGBCOLORS);
+      break;
+    default:
+      {
+      m_LookupTable->SetVectorMode(vtkScalarsToColors::COMPONENT);
+      m_LookupTable->SetVectorComponent(prop->GetActiveComponentId());
+      }
+    }
+
   m_LookupTable->Build();
 }
 

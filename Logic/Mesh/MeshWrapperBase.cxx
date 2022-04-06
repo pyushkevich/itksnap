@@ -48,7 +48,6 @@ Initialize(vtkDataArray *array, MeshDataType type)
     else
       strName = noname + std::to_string(noname_id++);
 
-    std::cout << "component id=" << i << " name=" << strName << std::endl;
     m_ComponentNameMap[i] = strName;
     }
 }
@@ -108,6 +107,9 @@ SetDataPointer(vtkDataArray *array)
 // ============================================
 //  MeshLayerDataArrayProperty Implementation
 // ============================================
+
+
+
 MeshLayerDataArrayProperty::
 MeshLayerDataArrayProperty()
 {
@@ -120,6 +122,12 @@ MeshLayerDataArrayProperty()
   m_HistogramFilter = HistogramFilterType::New();
   m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
   m_MinMaxFilter = MinMaxFilterType::New();
+
+  m_VectorModeNameMap =
+  {
+    {0, "Magnitude"},
+    {1, "RGBColors"}
+  };
 }
 
 
@@ -139,6 +147,23 @@ Initialize(MeshDataArrayProperty *other)
   for (auto kv : other->GetComponentNameMap())
     {
     m_ComponentNameMap[kv.first] = kv.second;
+    }
+
+  // Update VectorModeNameMap
+  UpdateVectorModeNameMap();
+}
+
+void
+MeshLayerDataArrayProperty
+::UpdateVectorModeNameMap()
+{
+  // Iterate over the component name map, check existence of components,
+  // add missing entries
+  for (auto kv : m_ComponentNameMap)
+    {
+    auto shifted = kv.first + m_VectorModeShiftSize;
+    if (m_VectorModeNameMap.count(shifted) == 0)
+      m_VectorModeNameMap[shifted] = kv.second;
     }
 }
 
@@ -160,6 +185,25 @@ Merge(MeshDataArrayProperty *other)
 
   if (it == m_DataPointerList.end())
     m_DataPointerList.push_back(other->GetDataPointer());
+
+  // add missing components into the component name map
+  for (auto kv : other->GetComponentNameMap())
+    {
+    // add new component into the componentn name map
+    // no shifting because it's not vectormode yet
+    if (m_ComponentNameMap.count(kv.first) == 0)
+      m_ComponentNameMap[kv.first] = kv.second;
+    }
+
+  // Update vector mode name map
+  UpdateVectorModeNameMap();
+}
+
+void
+MeshLayerDataArrayProperty
+::SetActiveVectorMode(int mode)
+{
+  m_ActiveVectorMode = mode;
 }
 
 ScalarImageHistogram*
@@ -177,8 +221,6 @@ GetHistogram(size_t nBins) const
     auto array = *cit;
     n += array->GetNumberOfTuples();
     }
-
-  std::cout << "[MeshLayerDataArrayProp] tmpdata size=" << n << std::endl;
 
   DataArrayImageType::Pointer img = DataArrayImageType::New();
 
@@ -235,7 +277,6 @@ GetHistogram(size_t nBins) const
 // ========================================
 void PolyDataWrapper::SetPolyData(vtkPolyData *polydata)
 {
-  std::cout << "[PolyWrapper] SetPolyData" << std::endl;
   m_PolyData = polydata;
   UpdateDataArrayProperties();
   this->Modified();
@@ -271,8 +312,6 @@ UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
                             vtkDataSetAttributes *data,
                             MeshDataType type) const
 {
-  std::cout << "[PolyDataWrapper] Number of Array=" << data->GetNumberOfArrays() << std::endl;
-
   // Process creation and update
   for (int i = 0; i < data->GetNumberOfArrays(); ++i)
     {
@@ -309,7 +348,6 @@ UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
     {
     if (!data->HasArray(it->first))
       {
-      std::cout << "-- removing array name=" << it->first << std::endl;
       auto temp = it->second;
       propMap.erase(it);
       temp->Delete();
@@ -411,11 +449,7 @@ MeshWrapperBase::GetMeshAssembly(unsigned int timepoint)
   return ret;
 }
 
-bool
-MeshWrapperBase::IsA(const char *type) const
-{
-  return strcmp("MeshWrapperBase", type) == 0;
-}
+
 
 void
 MeshWrapperBase::SetFileName(const std::string &name)
@@ -476,8 +510,6 @@ SetActiveMeshLayerDataPropertyId(int id)
 
   m_ActiveDataPropertyId = id;
 
-  std::cout << "id = " << id << std::endl;
-
   // if failed check caller's logic
   assert(m_CombinedDataPropertyMap.count(id));
 
@@ -500,7 +532,6 @@ SetActiveMeshLayerDataPropertyId(int id)
     }
   else if (prop->GetType() == MeshDataArrayProperty::CELL_DATA)
     {
-    std::cout << "[MeshWrapperBase] Set Cell Data" << std::endl;
     for (auto cit = m_MeshAssemblyMap.cbegin(); cit != m_MeshAssemblyMap.cend(); ++cit)
       for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)
         {

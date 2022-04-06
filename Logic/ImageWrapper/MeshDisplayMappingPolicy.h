@@ -19,6 +19,7 @@ public:
   irisITKAbstractObjectMacro(MeshDisplayMappingPolicy, AbstractContinuousImageDisplayMappingPolicy)
 
   typedef MeshDataArrayProperty::MeshDataType MeshDataType;
+  typedef MeshLayerDataArrayProperty::VectorModes VectorModes;
 
   //--------------------------------------------
   // virtual methods implementation
