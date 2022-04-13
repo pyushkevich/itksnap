@@ -335,6 +335,18 @@ void ImageInfoModel::UpdateMetadataIndex()
         }
       }
     }
+  else
+    {
+    MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(this->GetLayer());
+    if (!mesh_layer)
+      return;
+
+    mesh_layer->UpdateMetaData();
+    auto mesh_meta = mesh_layer->GetMeshMetaData();
+
+    for (auto kv : mesh_meta)
+      m_MetadataKeys.push_back(kv.first);
+    }
 }
 
 int ImageInfoModel::GetMetadataRows()
@@ -345,11 +357,29 @@ int ImageInfoModel::GetMetadataRows()
 std::string ImageInfoModel::GetMetadataCell(int row, int col)
 {
   ImageWrapperBase *layer = dynamic_cast<ImageWrapperBase*>(this->GetLayer());
-  assert(layer);
+  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(this->GetLayer());
+  assert(layer || mesh_layer);
   assert(row >= 0 && row < (int) m_MetadataKeys.size());
+
+  std::string value;
   std::string key = m_MetadataKeys[row];
-  auto mda = layer->GetMetaDataAccess();
-  return (col == 0) ? mda.MapKeyToDICOM(key) : mda.GetValueAsString(key);
+
+  if (layer)
+    {
+    auto mda = layer->GetMetaDataAccess();
+    value = (col == 0) ? mda.MapKeyToDICOM(key) : mda.GetValueAsString(key);
+    }
+  else
+    {
+    auto mesh_meta = mesh_layer->GetMeshMetaData();
+
+    if (col == 0)
+      value = key;
+    else
+      value = (mesh_meta.count(key)) ? mesh_meta[key] : "";
+    }
+
+  return value;
 }
 
 bool ImageInfoModel::GetImageIsInReferenceSpace(bool &value)

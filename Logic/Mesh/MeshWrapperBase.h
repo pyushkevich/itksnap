@@ -274,6 +274,11 @@ public:
   MeshAssemblyMap::size_type size()
   { return m_Meshes.size(); }
 
+  void GetCombinedBounds(double bounds[6]);
+
+  /** Get actual memory usage of all the polydata in the assembly in megabytes */
+  double GetTotalMemoryInMB() const;
+
 protected:
   MeshAssembly() {}
   virtual ~MeshAssembly() {}
@@ -326,6 +331,8 @@ public:
 
   /** Element level Data Array properties with name */
   typedef PolyDataWrapper::MeshDataArrayPropertyMap MeshDataArrayPropertyMap;
+
+  typedef std::map<std::string, std::string> MetaDataMap;
 
   //----------------------------------------------
   // Begin virtual methods definition
@@ -416,6 +423,17 @@ public:
     */
   void MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMap &src);
 
+  /**
+   * Return the metadata map
+   */
+  MetaDataMap &GetMeshMetaData()
+  {
+    return m_MetaDataMap;
+  }
+
+  // Update Mesh Meta Data
+  void UpdateMetaData();
+
   // Give display mapping policy access to protected members for flexible
   // configuration and data retrieval
   friend class MeshDisplayMappingPolicy;
@@ -424,6 +442,7 @@ protected:
   MeshWrapperBase();
   virtual ~MeshWrapperBase();
 
+  // The actual storage of polydata
   MeshAssemblyMapType m_MeshAssemblyMap;
 
   // Combining Point and Cell Data Properties. Uniqely indexed.
@@ -459,6 +478,9 @@ protected:
 
   // Data Array Property Id
   int m_CombinedPropID = 0;
+
+  // Meta Data Map
+  MetaDataMap m_MetaDataMap;
 };
 
 #endif // MESHWRAPPERBASE_H
