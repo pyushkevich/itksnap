@@ -454,6 +454,16 @@ SET(LOGIC_HEADERS
   Logic/WorkspaceAPI/FormattedTable.h
   Logic/WorkspaceAPI/RESTClient.h
   Logic/WorkspaceAPI/WorkspaceAPI.h
+  Common/ITKBinaryWeightedAverage/itkBWAfilter.h
+  Common/ITKBinaryWeightedAverage/itkBWAfilter.hxx
+  Common/ITKBinaryWeightedAverage/itkComputeInterpolation.h
+  Common/ITKBinaryWeightedAverage/itkComputeInterpolation.txx
+  Common/ITKBinaryWeightedAverage/itkRFLabelMap.h
+  Common/ITKBinaryWeightedAverage/itkRFLabelMap.txx
+  Common/ITKBinaryWeightedAverage/itkRandomForest.h
+  Common/ITKBinaryWeightedAverage/itkRandomForest.txx
+  Common/ITKBinaryWeightedAverage/itkBWAandRFinterpolation.h
+  Common/ITKBinaryWeightedAverage/itkBWAandRFinterpolation.hxx
 )
 
 # These files have the UI model code, which is GUI-TK independent
@@ -957,6 +967,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Common
     ${SNAP_SOURCE_DIR}/Common/ITKExtras
     ${SNAP_SOURCE_DIR}/Common/JSon
+    ${SNAP_SOURCE_DIR}/Common/ITKBinaryWeightedAverage
     ${SNAP_SOURCE_DIR}/Logic
     ${SNAP_SOURCE_DIR}/Logic/Common
     ${SNAP_SOURCE_DIR}/Logic/Framework
@@ -974,6 +985,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/PovRayIO
     ${SNAP_SOURCE_DIR}/Submodules/c3d/api
+    ${SNAP_SOURCE_DIR}/Submodules/c3d/adapters
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src/ITKFilters/include
     ${SNAP_SOURCE_DIR}/GUI

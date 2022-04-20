@@ -8,16 +8,19 @@
 #include "AbstractPropertyContainerModel.h"
 #include "ColorLabelPropertyModel.h"
 
+#include "SNAPImageData.h"
+#include "itkImage.h"
 
 class GlobalUIModel;
+class GenericImageData; // DO I need this?
 
 class InterpolateLabelModel : public AbstractPropertyContainerModel
-{    
+{
 public:
 
   enum InterpolationType
   {
-      DISTANCE_MAP = 0, LEVEL_SET, MORPHOLOGY
+      DISTANCE_MAP = 0, LEVEL_SET, MORPHOLOGY, BINARY_WEIGHTED_AVERAGE
   };
 
   // Standard ITK stuff
@@ -66,6 +69,28 @@ public:
   /** Perform the actual interpolation */
   void Interpolate();
 
+  // Added by SR
+  /** Which interpolation method to use - SR */
+  irisSimplePropertyAccessMacro(InterpolationApproach, bool)
+
+  /** Whether to interpolate intermediate slices only */
+  irisSimplePropertyAccessMacro(BWAInterpolateIntermediateOnly, bool)
+
+  /** Whether to use contour interpolation only */
+  irisSimplePropertyAccessMacro(BWAUseContourOnly, bool)
+
+  /** Whether to overwrite an existing segmentation or not */
+  irisSimplePropertyAccessMacro(BWAOverwriteSegmentation, bool)
+
+  /** Manually select slicing direction */
+  irisSimplePropertyAccessMacro(SliceDirection, bool)
+  irisSimplePropertyAccessMacro(SliceDirectionAxis, AnatomicalDirection)
+
+  typedef SNAPImageData                                          InputDataType;
+  using ShortType =  itk::Image<short,3>;
+  using GreyScalarType =  AnatomicScalarImageWrapper::ImageType;
+  using GreyVectorType =  AnatomicImageWrapper::ImageType;
+
 protected:
 
   // Constructor
@@ -93,12 +118,24 @@ protected:
 
   typedef ConcretePropertyModel<InterpolationType, TrivialDomain> ConcreteInterpolationType;
   SmartPtr<ConcreteInterpolationType> m_InterpolationMethodModel;
-  
+
+  // Edited by SR
+  SmartPtr<ConcreteSimpleBooleanProperty> m_InterpolationApproachModel;
+
+  //Options for BWA
+  SmartPtr<ConcreteSimpleBooleanProperty> m_BWAInterpolateIntermediateOnlyModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_BWAUseContourOnlyModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_BWAOverwriteSegmentationModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_SliceDirectionModel;
+  SmartPtr<ConcreteInterpolationAxisType> m_SliceDirectionAxisModel;
+
   // Templated code to interpolate an image
   template <class TImage> void DoInterpolate(TImage *image);
 
   // The parent model
   GlobalUIModel *m_Parent;
+
+  GenericImageData *m_CurrentImageData;
 
 };
 
