@@ -5,11 +5,13 @@
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 #include "MeshWrapperBase.h"
+#include "ImageWrapperTraits.h"
 
 class MeshLayerIterator;
 class GenericImageData;
 class LabelImageWrapper;
 class SegmentationMeshWrapper;
+class LevelSetMeshWrapper;
 
 /**
  * \class ImageMeshLayers
@@ -28,8 +30,13 @@ public:
   /** Initialize */
   void Initialize(GenericImageData *imageData);
 
-  /** Add a layer */
-  void AddLayer(MeshWrapperBase *meshLayer);
+  /** Add a layer
+      notifyInspector controls the invoking of event that triggers
+      the row rebuilding of the layer inspector
+      Sometime it needs to be turned of, such as when adding a levelset
+      mesh layer
+  */
+  void AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector = true);
 
   /** Get a layer by id */
   SmartPtr<MeshWrapperBase> GetLayer(unsigned long id);
@@ -66,10 +73,16 @@ public:
    */
   SegmentationMeshWrapper *AddSegmentationMeshLayer(LabelImageWrapper* segImg);
 
+  /** Create a new levelset mesh layer for a levelset image
+   *  and add it to the layer map
+   */
+  LevelSetMeshWrapper *AddLevelSetMeshLayer(LevelSetImageWrapper *lsImg);
+
+
   /** Return true if the active mesh layer needs to be updated */
   bool IsActiveMeshLayerDirty();
 
-  bool HasSegmentationMesh(unsigned long id) const;
+  bool HasMeshForImage(unsigned long image_id) const;
 
   /** Allow an iterator to access protected members */
   friend class MeshLayerIterator;
@@ -89,7 +102,7 @@ protected:
   SmartPtr<GenericImageData> m_ImageData;
 
   // set of segmentation image id that map to the related layer pointer
-  std::map<unsigned long, MeshWrapperBase*> m_SegmentationImageToMeshMap;
+  std::map<unsigned long, MeshWrapperBase*> m_ImageToMeshMap;
 };
 
 /**

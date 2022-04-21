@@ -138,8 +138,6 @@ CreateNewAssembly(unsigned int timepoint)
 
   Rebroadcaster::Rebroadcast(assembly, itk::ModifiedEvent()
                              ,this, ValueChangedEvent());
-
-  std::cout << "-- Event rebroadcasted" << std::endl;
 }
 
 void
@@ -151,7 +149,6 @@ SegmentationMeshWrapper::UpdateMeshes(itk::Command *progressCmd, unsigned int ti
   if (!m_MeshAssemblyMap.count(timepoint))
     {
     // If assembly not exist yet, create a new assembly
-    std::cout << "-- Create New Assembly" << std::endl;
     CreateNewAssembly(timepoint);
     }
 
@@ -161,6 +158,4 @@ SegmentationMeshWrapper::UpdateMeshes(itk::Command *progressCmd, unsigned int ti
 
   auto img = m_ImagePointer->GetImageByTimePoint(timepoint);
   assembly->UpdateMeshAssembly(progressCmd, img, m_MeshOptions);
-
-  std::cout << "[SegWrapper] Mesh Updated" << std::endl;
 }

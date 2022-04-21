@@ -278,6 +278,7 @@ SET(LOGIC_CXX
   Logic/Mesh/ImageMeshLayers.cxx
   Logic/Mesh/MultiLabelMeshPipeline.cxx
   Logic/Mesh/LevelSetMeshPipeline.cxx
+  Logic/Mesh/LevelSetMeshWrapper.cxx
   Logic/Mesh/MeshIODelegates.cxx
   Logic/Mesh/MeshManager.cxx
   Logic/Mesh/MeshOptions.cxx
@@ -428,6 +429,7 @@ SET(LOGIC_HEADERS
   Logic/Mesh/ImageMeshLayers.h
   Logic/Mesh/MultiLabelMeshPipeline.h
   Logic/Mesh/LevelSetMeshPipeline.h
+  Logic/Mesh/LevelSetMeshWrapper.h
   Logic/Mesh/MeshIODelegates.h
   Logic/Mesh/MeshManager.h
   Logic/Mesh/MeshOptions.h

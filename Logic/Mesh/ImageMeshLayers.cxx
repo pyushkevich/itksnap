@@ -5,6 +5,7 @@
 #include "IRISImageData.h"
 #include "IRISApplication.h"
 #include "SegmentationMeshWrapper.h"
+#include "LevelSetMeshWrapper.h"
 
 ImageMeshLayers::ImageMeshLayers()
 {
@@ -15,12 +16,11 @@ void
 ImageMeshLayers::Initialize(GenericImageData *imageData)
 {
   m_ImageData = imageData;
-
-  m_IsSNAP = (dynamic_cast<SNAPImageData*>(m_ImageData.GetPointer()) != nullptr);
+  m_IsSNAP = (dynamic_cast<SNAPImageData*>(imageData) != NULL);
 }
 
 void
-ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer)
+ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector)
 {
   unsigned long id = meshLayer->GetUniqueId();
   m_Layers[id] = meshLayer;
@@ -38,15 +38,14 @@ ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer)
   InvokeEvent(ActiveLayerChangeEvent());
 
   // Invoke to trigger rebuild of the layer inspector row
-  InvokeEvent(LayerChangeEvent());
+  if (notifyInspector)
+    InvokeEvent(LayerChangeEvent());
 }
 
 void
 ImageMeshLayers::SetActiveLayerId(unsigned long id)
 {
-  std::cout << "[ImageMeshLayers] SetActiveLayerId=" << id << std::endl;
   m_ActiveLayerId = id;
-
   InvokeEvent(ActiveLayerChangeEvent());
 }
 
@@ -57,9 +56,6 @@ ImageMeshLayers::GetLayer(unsigned long id)
 
   if (m_Layers.count(id))
     ret = m_Layers[id];
-  else
-    std::cout << "[ImageMeshLayers] Layer with id=" << id
-              << "requested but does not exist" << std::endl;
 
   return ret;
 }
@@ -100,7 +96,8 @@ ImageMeshLayers::Unload()
 }
 
 int
-ImageMeshLayers::UpdateActiveMeshLayer(itk::Command *progressCmd)
+ImageMeshLayers
+::UpdateActiveMeshLayer(itk::Command *progressCmd)
 {
   assert(progressCmd);
   std::cout << "[ImageMeshLayers] UpdateActiveMeshLayer " << std::endl;
@@ -108,31 +105,47 @@ ImageMeshLayers::UpdateActiveMeshLayer(itk::Command *progressCmd)
   auto app = m_ImageData->GetParent();
 
   if (m_IsSNAP)
-    {}
+    {
+    std::cout << "-- SNAP Mode!" << std::endl;
+    auto snap = dynamic_cast<SNAPImageData*>(m_ImageData.GetPointer());
+
+    // if failed, check constructor why m_isSNAP is true
+    assert(snap);
+
+    auto lsImg = snap->GetSnake();
+
+    if (m_ImageToMeshMap.count(lsImg->GetUniqueId()))
+      {
+      // If the layer already exist, update the layer
+      auto lsMesh = static_cast<LevelSetMeshWrapper*>
+          (m_ImageToMeshMap[lsImg->GetUniqueId()]);
+
+      lsMesh->UpdateMeshes(lsImg, app->GetCursorTimePoint(),
+                           app->GetSNAPImageData()->GetLevelSetPipelineMutex());
+      }
+    else
+      {
+      auto lsMesh = AddLevelSetMeshLayer(lsImg);
+      lsMesh->UpdateMeshes(lsImg, app->GetCursorTimePoint(),
+            app->GetSNAPImageData()->GetLevelSetPipelineMutex());
+      }
+    }
   else
     {
-    std::cout << "[ImageMeshLayers] IRIS Seg Mesh Update" << std::endl;
-
     // Get the active segmentation image layer id
     auto segImg = app->GetSelectedSegmentationLayer();
 
-    if (m_SegmentationImageToMeshMap.count(segImg->GetUniqueId()))
+    if (m_ImageToMeshMap.count(segImg->GetUniqueId()))
       {
       // If the layer already exist, update the layer
       auto segMesh = static_cast<SegmentationMeshWrapper*>
-          (m_SegmentationImageToMeshMap[segImg->GetUniqueId()]);
-
-      std::cout << "[ImageMeshLayers] seg mesh found for imgid="
-                << segImg->GetUniqueId() << std::endl;
+          (m_ImageToMeshMap[segImg->GetUniqueId()]);
 
       segMesh->UpdateMeshes(progressCmd, app->GetCursorTimePoint());
       }
     else
       {
       // If the layer doesn't exist yet, add a segmentation layer
-      std::cout << "[ImageMeshLayers] seg mesh not found for imgid="
-                << segImg->GetUniqueId() << std::endl;
-      std::cout << "[ImageMeshLayers] creating new mesh layer" << std::endl;
       auto meshLayer = AddSegmentationMeshLayer(segImg);
       meshLayer->UpdateMeshes(progressCmd, app->GetCursorTimePoint());
       }
@@ -155,9 +168,26 @@ AddSegmentationMeshLayer(LabelImageWrapper* segImg)
 
   // Add to layer map and segmentation mesh map
   AddLayer(segMesh);
-  m_SegmentationImageToMeshMap[segImg->GetUniqueId()] = segMesh;
+  m_ImageToMeshMap[segImg->GetUniqueId()] = segMesh;
 
   return segMesh;
+}
+
+LevelSetMeshWrapper *
+ImageMeshLayers
+::AddLevelSetMeshLayer(LevelSetImageWrapper *lsImg)
+{
+  assert(lsImg);
+
+  auto app = m_ImageData->GetParent();
+
+  // Create a new levelset mesh wrapper
+  auto lsMesh = LevelSetMeshWrapper::New();
+  lsMesh->Initialize(app->GetGlobalState()->GetMeshOptions());
+
+  this->AddLayer(lsMesh, false);
+
+  return lsMesh.GetPointer();
 }
 
 bool
@@ -169,7 +199,20 @@ ImageMeshLayers::IsActiveMeshLayerDirty()
   if (m_IsSNAP)
     {
     // Dirty check for LevelSet Image
+    auto snap = static_cast<SNAPImageData*>(m_ImageData.GetPointer());
 
+    assert(snap);
+
+    auto lsId = snap->GetSnake()->GetUniqueId();
+
+    if (HasMeshForImage(lsId))
+      return m_ImageToMeshMap[lsId]->IsMeshDirty(tp);
+    else
+      {
+      // If mesh layer doesn't exist: return true because we want to
+      // create a new mesh layer
+      return true;
+      }
     }
   else
     {
@@ -184,10 +227,10 @@ ImageMeshLayers::IsActiveMeshLayerDirty()
 
     // Now check if the corresponding mesh layer exist
     auto segId = wrapper->GetUniqueId();
-    if (HasSegmentationMesh(segId))
+    if (HasMeshForImage(segId))
       {
       // If mesh layer exist: return mesh_layer->IsMeshDirty();
-      return m_SegmentationImageToMeshMap[segId]->IsMeshDirty(tp);
+      return m_ImageToMeshMap[segId]->IsMeshDirty(tp);
       }
     else
       {
@@ -197,16 +240,13 @@ ImageMeshLayers::IsActiveMeshLayerDirty()
       }
     }
 
-
-  auto active_layer = GetLayer(m_ActiveLayerId);
-
   return false;
 }
 
 bool
-ImageMeshLayers::HasSegmentationMesh(unsigned long id) const
+ImageMeshLayers::HasMeshForImage(unsigned long image_id) const
 {
-  return m_SegmentationImageToMeshMap.count(id);
+  return m_ImageToMeshMap.count(image_id);
 }
 
 //---------------------------------------

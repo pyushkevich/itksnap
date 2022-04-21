@@ -84,12 +84,6 @@ GenericImageData
   m_DisplayViewportGeometry[0] = ImageBaseType::New();
   m_DisplayViewportGeometry[1] = ImageBaseType::New();
   m_DisplayViewportGeometry[2] = ImageBaseType::New();
-
-  // Initialize Mesh Layers storage
-  m_MeshLayers = ImageMeshLayers::New();
-  m_MeshLayers->Initialize(this);
-  Rebroadcaster::Rebroadcast(m_MeshLayers, LayerChangeEvent(),
-                             this, LayerChangeEvent());
 }
 
 GenericImageData

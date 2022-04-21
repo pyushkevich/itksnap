@@ -1632,7 +1632,6 @@ void MainImageWindow::on_actionAddMesh_triggered()
 
 void MainImageWindow::on_actionAddMeshSeries_triggered()
 {
-  std::cout << "[MainImageWindow] Action Add Mesh Series" << std::endl;
   auto model = m_Model->GetMeshImportModel();
   model->SetMode(MeshImportModel::Mode::SERIES);
 

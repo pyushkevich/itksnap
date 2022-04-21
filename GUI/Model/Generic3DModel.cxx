@@ -243,7 +243,6 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *progressCmd)
     // Update Mesh Layer
     imgData->GetMeshLayers()->UpdateActiveMeshLayer(progressCmd);
 
-    //m_Driver->GetMeshManager()->UpdateVTKMeshes(callback, m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
     m_MeshUpdating = false;
 
     InvokeEvent(ModelUpdateEvent());
