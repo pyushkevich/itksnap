@@ -3,7 +3,7 @@
 #include "NumericPropertyToggleAdaptor.h"
 #include "ColorMapPresetManager.h"
 #include "ImageWrapperBase.h"
-
+#include "SegmentationMeshWrapper.h"
 #include <algorithm>
 
 // This compiles the LayerAssociation for the color map
@@ -421,6 +421,10 @@ ColorMapModel
 {
   // All flags are false if no layer is loaded
   if(this->GetLayer() == NULL || this->GetColorMap() == NULL)
+    return false;
+
+  // Segmentation Mesh don't need color map
+  if(dynamic_cast<SegmentationMeshWrapper*>(this->GetLayer()) != NULL)
     return false;
 
   // Otherwise get the properties

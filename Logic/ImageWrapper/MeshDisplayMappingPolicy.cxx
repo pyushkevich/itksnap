@@ -337,7 +337,7 @@ ConfigureLegend(vtkScalarBarActor* legend)
   legend->SetNumberOfLabels(m_LookupTable->GetNumberOfColors());
 
   // Hide the legend for label mesh
-  legend->SetVisibility(true);
+  legend->SetVisibility(false);
 }
 
 void

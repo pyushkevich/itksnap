@@ -552,7 +552,7 @@ GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
 {
 
   // The current layer has to be a mesh layer
-  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
   if (!mesh_layer)
     return false;
 
@@ -584,7 +584,7 @@ LayerGeneralPropertiesModel::
 SetMeshDataArrayNameValue(int value)
 {
   // The current layer has to be a mesh layer
-  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
   if (!mesh_layer)
     return;
 
@@ -598,7 +598,7 @@ LayerGeneralPropertiesModel::
 GetMeshVectorModeValueAndRange(int &value, MeshVectorModeDomain *domain)
 {
   // The current layer has to be a mesh layer
-  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
   if (!mesh_layer)
     return false;
 
@@ -640,7 +640,7 @@ LayerGeneralPropertiesModel::
 SetMeshVectorModeValue(int value)
 {
   // The current layer has to be a mesh layer
-  MeshWrapperBase *mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
   if (!mesh_layer)
     return;
 

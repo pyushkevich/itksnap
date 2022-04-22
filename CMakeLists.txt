@@ -270,6 +270,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/ScalarImageHistogram.cxx
   Logic/ImageWrapper/ScalarImageWrapper.cxx
   Logic/ImageWrapper/VectorImageWrapper.cxx
+  Logic/ImageWrapper/WrapperBase.cxx
   Logic/LevelSet/SnakeParameters.cxx
   Logic/LevelSet/SnakeParametersPreviewPipeline.cxx
   Logic/Mesh/ActorPool.cxx
@@ -279,6 +280,7 @@ SET(LOGIC_CXX
   Logic/Mesh/MultiLabelMeshPipeline.cxx
   Logic/Mesh/LevelSetMeshPipeline.cxx
   Logic/Mesh/LevelSetMeshWrapper.cxx
+  Logic/Mesh/MeshDataArrayProperty.cxx
   Logic/Mesh/MeshIODelegates.cxx
   Logic/Mesh/MeshManager.cxx
   Logic/Mesh/MeshOptions.cxx
@@ -391,6 +393,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/MultiChannelDisplayMode.h
   Logic/ImageWrapper/MeshDisplayMappingPolicy.h
   Logic/ImageWrapper/VectorToScalarImageAccessor.h
+  Logic/ImageWrapper/WrapperBase.h
   Logic/RLEImage/RLEImage.h
   Logic/RLEImage/RLEImage.txx
   Logic/RLEImage/RLEImageConstIterator.h
@@ -430,6 +433,7 @@ SET(LOGIC_HEADERS
   Logic/Mesh/MultiLabelMeshPipeline.h
   Logic/Mesh/LevelSetMeshPipeline.h
   Logic/Mesh/LevelSetMeshWrapper.h
+  Logic/Mesh/MeshDataArrayProperty.h
   Logic/Mesh/MeshIODelegates.h
   Logic/Mesh/MeshManager.h
   Logic/Mesh/MeshOptions.h

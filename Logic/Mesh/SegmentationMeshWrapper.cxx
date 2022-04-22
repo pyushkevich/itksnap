@@ -77,6 +77,11 @@ SegmentationMeshWrapper::Initialize(LabelImageWrapper *segImg, MeshOptions *mesh
   m_ImagePointer = segImg;
   m_MeshOptions = meshOptions;
 
+  // Set Default nickname
+  std::ostringstream oss;
+  oss << "Mesh for " << segImg->GetDefaultNickname();
+  SetDefaultNickname(oss.str());
+
   // Configure display mapping policy
   m_DisplayMapping = LabelMeshDisplayMappingPolicy::New();
   m_DisplayMapping->SetMesh(this);
