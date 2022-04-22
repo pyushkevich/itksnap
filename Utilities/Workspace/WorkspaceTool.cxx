@@ -82,6 +82,7 @@ int usage(int rc)
   cout << "  -i <workspace>                    : Read workspace file" << endl;
   cout << "  -o <workspace>                    : Write workspace file (without touching external images)" << endl;
   cout << "  -a <dest_dir>                     : Package workspace into uploadable archive in dest_dir" << endl;
+  cout << "  -A <dest_dir>                     : Package workspace preserving filenames" << endl;
   cout << "  -p <prefix>                       : Set the output prefix for the next command only" << endl;
   cout << "  -P                                : No printing of prefix for output commands" << endl;
   cout << "Informational commands: " << endl;
@@ -403,6 +404,12 @@ int main(int argc, char *argv[])
         {
         // Create an archive
         ws.ExportWorkspace(cl.read_output_filename().c_str());
+        }
+
+      else if(arg == "-A")
+        {
+        // Create an archive
+        ws.ExportWorkspace(cl.read_output_filename().c_str(), nullptr, false);
         }
 
       // Prefix
