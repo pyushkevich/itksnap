@@ -27,13 +27,9 @@ void
 SegmentationMeshAssembly::
 UpdateMeshAssembly(itk::Command *progress, ImagePointer img, MeshOptions *options)
 {
-  std::cout << "[SegAssembly] UpdateMeshAssembly" << std::endl;
-
   // Get the image from current tp and feed the pipeline
   m_Pipeline->SetImage(img);
   m_Pipeline->SetMeshOptions(options);
-
-  std::cout << "-- Pipe Image Set" << std::endl;
 
   // Run the UpdateMesh for the current tp assembly
   m_Pipeline->UpdateMeshes(progress);
@@ -63,8 +59,6 @@ UpdateMeshAssembly(itk::Command *progress, ImagePointer img, MeshOptions *option
 
   // Update the modified time stamp
   this->Modified();
-
-  std::cout << "-- completed" << std::endl;
 }
 
 
@@ -89,8 +83,6 @@ SegmentationMeshWrapper::Initialize(LabelImageWrapper *segImg, MeshOptions *mesh
   m_DisplayMapping->SetColorLabelTable(segImg->GetDisplayMapping()->GetLabelColorTable());
 
   m_Initialized = true;
-
-  std::cout << "[SegWrapper] Initialized" << std::endl;
 }
 
 void
@@ -111,15 +103,11 @@ SegmentationMeshWrapper::IsMeshDirty(unsigned int timepoint)
     {
     auto pipeMTime = assembly->GetMTime();
 
-    std::cout << "[SegWrapper] imgMTime=" << imgMTime
-              << " pipMTime=" << pipeMTime << std::endl;
-
     if (imgMTime > pipeMTime)
       return true;
     }
   else
     {
-    std::cout << "[SegWrapper] mesh is dirty because assembly not found" << std::endl;
     return true;
     }
 
@@ -130,8 +118,6 @@ void
 SegmentationMeshWrapper::
 CreateNewAssembly(unsigned int timepoint)
 {
-  std::cout << "[SegWrapper] Create New Assembly" << std::endl;
-
   m_MeshAssemblyMap[timepoint] = SegmentationMeshAssembly::New().GetPointer();
 
   MeshAssembly *assembly = m_MeshAssemblyMap[timepoint];
@@ -143,9 +129,6 @@ CreateNewAssembly(unsigned int timepoint)
 void
 SegmentationMeshWrapper::UpdateMeshes(itk::Command *progressCmd, unsigned int timepoint)
 {
-  std::cout << "[SegWrapper] UpdateMeshes" << std::endl;
-
-
   if (!m_MeshAssemblyMap.count(timepoint))
     {
     // If assembly not exist yet, create a new assembly

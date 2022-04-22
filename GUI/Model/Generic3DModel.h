@@ -107,7 +107,7 @@ public:
   irisGetMacro(Driver, IRISApplication *)
 
   // Get mesh layers
-  irisGetMacro(MeshLayers, ImageMeshLayers *)
+  ImageMeshLayers *GetMeshLayers();
 
   /** Set/Get selected mesh layer id */
   irisSimplePropertyAccessMacro(SelectedMeshLayerId, unsigned long)
@@ -155,9 +155,6 @@ protected:
 
   // Helps to have a pointer to the iris application
   IRISApplication *m_Driver;
-
-  // Pointer to the Mesh Layer Data
-  ImageMeshLayers *m_MeshLayers;
 
   // World matrix - a copy of the NIFTI transform in the main image,
   // updated on the event main image changes

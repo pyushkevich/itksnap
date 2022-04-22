@@ -170,8 +170,6 @@ void
 GenericMeshDisplayMappingPolicy::
 UpdateApperance(ActorPool *pool, unsigned int)
 {
-  std::cout << "[GenericDMP] Update Apperance" << std::endl;
-
   // Get active data array property
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
 
@@ -346,8 +344,6 @@ void
 LabelMeshDisplayMappingPolicy::
 UpdateLUT()
 {
-  std::cout << "[UpdateLUT] LabelMesh" << std::endl;
-
   //m_LookupTable->SetIndexedLookup(true);
   size_t numClr = m_ColorLabelTable->GetNumberOfValidLabels();
   m_LookupTable->SetNumberOfColors(numClr);
@@ -363,12 +359,6 @@ UpdateLUT()
     rgbaD[1] = rgbD[1];
     rgbaD[2] = rgbD[2];
     rgbaD[3] = cit->second.GetAlpha() / 255.0;
-
-    /*
-    std::cout << "-- label" << cit->first << ": ("
-              << rgbaD[0] << ", " << rgbaD[1] << ", " << rgbaD[2] << ", " << rgbaD[3]
-              << ")" << std::endl;
-    */
 
     m_LookupTable->SetTableValue(cit->first, rgbaD);
     }

@@ -17,7 +17,7 @@ public:
 
   LevelSetMeshPipeline *GetPipeline();
 
-  void UpdateMeshAssembly(std::mutex *mutex = nullptr);
+  void UpdateMeshAssembly(LabelType id, std::mutex *mutex = nullptr);
 
   void SetMeshOptions(const MeshOptions *options)
   { m_Pipeline->SetMeshOptions(options); }
@@ -65,9 +65,9 @@ public:
   //-----------------------------------------------------
 
   // Layer level method should always handle timepoint
-  void UpdateMeshes(LevelSetImageWrapper *lsImg, unsigned int timepoint, std::mutex *mutex);
+  void UpdateMeshes(LevelSetImageWrapper *lsImg, unsigned int timepoint, LabelType id, std::mutex *mutex);
 
-  void Initialize(MeshOptions* meshOptions);
+  void Initialize(MeshOptions* meshOptions, ColorLabelTable *colorTable);
 
 protected:
   LevelSetMeshWrapper();

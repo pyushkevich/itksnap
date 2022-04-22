@@ -25,8 +25,6 @@ ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector)
   unsigned long id = meshLayer->GetUniqueId();
   m_Layers[id] = meshLayer;
 
-  Rebroadcaster::Rebroadcast(meshLayer, itk::ModifiedEvent(),
-                             this, ValueChangedEvent());
   Rebroadcaster::Rebroadcast(meshLayer, ValueChangedEvent(),
                              this, ActiveLayerChangeEvent());
   Rebroadcaster::Rebroadcast(meshLayer, WrapperDisplayMappingChangeEvent(),
@@ -100,13 +98,11 @@ ImageMeshLayers
 ::UpdateActiveMeshLayer(itk::Command *progressCmd)
 {
   assert(progressCmd);
-  std::cout << "[ImageMeshLayers] UpdateActiveMeshLayer " << std::endl;
 
   auto app = m_ImageData->GetParent();
 
   if (m_IsSNAP)
     {
-    std::cout << "-- SNAP Mode!" << std::endl;
     auto snap = dynamic_cast<SNAPImageData*>(m_ImageData.GetPointer());
 
     // if failed, check constructor why m_isSNAP is true
@@ -121,13 +117,15 @@ ImageMeshLayers
           (m_ImageToMeshMap[lsImg->GetUniqueId()]);
 
       lsMesh->UpdateMeshes(lsImg, app->GetCursorTimePoint(),
+                           app->GetGlobalState()->GetDrawingColorLabel(),
                            app->GetSNAPImageData()->GetLevelSetPipelineMutex());
       }
     else
       {
       auto lsMesh = AddLevelSetMeshLayer(lsImg);
       lsMesh->UpdateMeshes(lsImg, app->GetCursorTimePoint(),
-            app->GetSNAPImageData()->GetLevelSetPipelineMutex());
+                           app->GetGlobalState()->GetDrawingColorLabel(),
+                           app->GetSNAPImageData()->GetLevelSetPipelineMutex());
       }
     }
   else
@@ -183,9 +181,11 @@ ImageMeshLayers
 
   // Create a new levelset mesh wrapper
   auto lsMesh = LevelSetMeshWrapper::New();
-  lsMesh->Initialize(app->GetGlobalState()->GetMeshOptions());
+  lsMesh->Initialize(app->GetGlobalState()->GetMeshOptions(),
+                     app->GetColorLabelTable());
 
   this->AddLayer(lsMesh, false);
+  m_ImageToMeshMap[lsImg->GetUniqueId()] = lsMesh;
 
   return lsMesh.GetPointer();
 }
@@ -202,6 +202,11 @@ ImageMeshLayers::IsActiveMeshLayerDirty()
     auto snap = static_cast<SNAPImageData*>(m_ImageData.GetPointer());
 
     assert(snap);
+
+    // If snake has not loaded yet, mesh is not dirty
+    // -- Adding this to avoid assertion failure on GetSnake()
+    if (!snap->IsSnakeLoaded())
+      return false;
 
     auto lsId = snap->GetSnake()->GetUniqueId();
 

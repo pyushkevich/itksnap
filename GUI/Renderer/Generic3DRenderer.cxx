@@ -4,6 +4,15 @@
 #include "SNAPAppearanceSettings.h"
 #include "GenericImageData.h"
 #include "Rebroadcaster.h"
+#include "ColorLabel.h"
+#include "IRISApplication.h"
+#include "IRISImageData.h"
+#include "SNAPImageData.h"
+#include "ImageMeshLayers.h"
+#include "StandaloneMeshWrapper.h"
+#include "MeshWrapperBase.h"
+#include "MeshManager.h"
+#include "Window3DPicker.h"
 
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -19,16 +28,6 @@
 #include "vtkLineSource.h"
 #include "vtkPropAssembly.h"
 #include "vtkMath.h"
-
-
-#include "MeshManager.h"
-
-#include "ColorLabel.h"
-#include "IRISApplication.h"
-#include "vtkCommand.h"
-
-#include "Window3DPicker.h"
-
 #include "vtkUnstructuredGridVolumeRayCastMapper.h"
 #include "vtkDiscreteMarchingCubes.h"
 #include "vtkWindowedSincPolyDataFilter.h"
@@ -39,7 +38,6 @@
 #include "vtkLookupTable.h"
 #include "vtkDataSetSurfaceFilter.h"
 #include "vtkGeometryFilter.h"
-
 #include "vtkGlyph3D.h"
 #include "vtkCubeSource.h"
 #include "vtkSphereSource.h"
@@ -50,12 +48,11 @@
 #include "vtkQuadricLODActor.h"
 #include "vtkScalarBarActor.h"
 #include "vtkTextProperty.h"
+#include "vtkPolyData.h"
+#include "vtkPointData.h"
+#include "vtkCommand.h"
 
 #include <vnl/vnl_cross.h>
-
-#include "IRISImageData.h"
-#include "ImageMeshLayers.h"
-#include "MeshWrapperBase.h"
 
 
 bool operator == (const CameraState &c1, const CameraState &c2)
@@ -190,7 +187,7 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
 
   // Record and rebroadcast changes in the model
-  Rebroadcast(app->GetMeshManager(), itk::ModifiedEvent(), ModelUpdateEvent());
+  //Rebroadcast(app->GetMeshManager(), itk::ModifiedEvent(), ModelUpdateEvent());
 
   // Respond to changes in image dimension - these require big updates
   Rebroadcast(app, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
@@ -237,15 +234,20 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperChangeEvent(), ModelUpdateEvent());
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperVisibilityChangeEvent(), ModelUpdateEvent());
 
-  Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
-              ValueChangedEvent(), ModelUpdateEvent());
-
   // Respond to mesh layer display mapping policy change event
   Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
               WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
 
   // Respond to active mesh layer change event
   Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
+              ActiveLayerChangeEvent(), ModelUpdateEvent());
+
+  // Respond to mesh layer display mapping policy change event
+  Rebroadcast(app->GetSNAPImageData()->GetMeshLayers(),
+              WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
+
+  // Respond to active mesh layer change event
+  Rebroadcast(app->GetSNAPImageData()->GetMeshLayers(),
               ActiveLayerChangeEvent(), ModelUpdateEvent());
 
   // Respond to timepoint change event
@@ -262,17 +264,8 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   m_Picker->SetModel(m_Model);
 }
 
-#include "IRISImageData.h"
-#include "ImageMeshLayers.h"
-#include "StandaloneMeshWrapper.h"
-#include "MeshWrapperBase.h"
-#include "vtkCenterOfMass.h"
-#include "vtkPolyData.h"
-#include "vtkPointData.h"
-
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
-
   if(m_Model->IsMeshUpdating() )
     return;
 
@@ -700,7 +693,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAppearance()
     }
 }
 
-#include "IRISImageData.h"
+
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkSmartVolumeMapper.h>
@@ -899,7 +892,6 @@ void Generic3DRenderer::OnUpdate()
   // Define a bunch of local flags to make this code easier to read
   bool main_changed = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
   bool labels_props_changed = m_EventBucket->HasEvent(SegmentationLabelChangeEvent());
-  bool mesh_updated = m_EventBucket->HasEvent(itk::ModifiedEvent());
   bool cursor_moved = m_EventBucket->HasEvent(CursorUpdateEvent());
   bool active_label_changed = m_EventBucket->HasEvent(
         ValueChangedEvent(), gs->GetDrawingColorLabelModel());
@@ -907,10 +899,6 @@ void Generic3DRenderer::OnUpdate()
   bool scalpel_action = m_EventBucket->HasEvent(Generic3DModel::ScalpelEvent());
   bool mode_changed = m_EventBucket->HasEvent(
         ValueChangedEvent(), gs->GetToolbarMode3DModel());
-
-  bool segmentation_changed =
-      m_EventBucket->HasEvent(SegmentationChangeEvent()) ||
-      m_EventBucket->HasEvent(LevelSetImageChangeEvent());
 
   bool appearance_changed =
       m_EventBucket->HasEvent(ChildPropertyChangedEvent(),
@@ -928,11 +916,26 @@ void Generic3DRenderer::OnUpdate()
   bool wrapper_vr_options_changed =
       m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
 
+  // Setmentation changes event should be handled when continuous update is on
+  bool continuous_update_needed =
+      m_Model->GetContinuousUpdate() && (
+      m_EventBucket->HasEvent(SegmentationChangeEvent()) ||
+      m_EventBucket->HasEvent(LevelSetImageChangeEvent()));
+
+  bool mesh_updated =
+      m_EventBucket->HasEvent(ActiveLayerChangeEvent(),
+                              app->GetIRISImageData()->GetMeshLayers()) ||
+      m_EventBucket->HasEvent(ActiveLayerChangeEvent(),
+                              app->GetSNAPImageData()->GetMeshLayers());
+
   // Need to rebuild the actor map
+  // -- 1. Time point has changed
+  // -- 2. Mesh update event detected
+  // -- 3. continuous update event detected
   bool need_rebuild_actor_map =
-      m_EventBucket->HasEvent(ActiveLayerChangeEvent(),app->GetIRISImageData()->GetMeshLayers()) ||
       m_EventBucket->HasEvent(CursorTimePointUpdateEvent(),app) ||
-      segmentation_changed;
+      continuous_update_needed ||
+      mesh_updated;
 
   // Without rebuilding the actor map, update the actors inside the map
   bool need_update_actor_color =
@@ -940,7 +943,7 @@ void Generic3DRenderer::OnUpdate()
                               app->GetIRISImageData()->GetMeshLayers());
 
   // Deal with the updates to the mesh state
-  if(mesh_updated || main_changed || seg_layer_changed || need_rebuild_actor_map)
+  if(main_changed || seg_layer_changed || need_rebuild_actor_map)
     {
     UpdateSegmentationMeshAssembly();
     need_render = true;

@@ -54,9 +54,6 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   m_ParentUI = parent;
   m_Driver = parent->GetDriver();
 
-  // Store a pointer to mesh layer data
-  m_MeshLayers = m_Driver->GetIRISImageData()->GetMeshLayers();
-
   // Update our geometry model
   OnImageGeometryUpdate();
 
@@ -102,7 +99,9 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
       return false;
       */
 
-      return m_Driver->GetIRISImageData()->GetMeshLayers()->IsActiveMeshLayerDirty();
+      return m_Driver->IsSnakeModeActive() ?
+            m_Driver->GetSNAPImageData()->GetMeshLayers()->IsActiveMeshLayerDirty() :
+            m_Driver->GetIRISImageData()->GetMeshLayers()->IsActiveMeshLayerDirty();
       }
 
     case UIF_MESH_ACTION_PENDING:
@@ -186,6 +185,15 @@ void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
   // Export the mesh
   m_ParentUI->GetDriver()->ExportSegmentationMesh(
         settings, m_ParentUI->GetProgressCommand());
+}
+
+ImageMeshLayers *
+Generic3DModel
+::GetMeshLayers()
+{
+  return m_Driver->IsSnakeModeActive() ?
+        m_Driver->GetSNAPImageData()->GetMeshLayers() :
+        m_Driver->GetIRISImageData()->GetMeshLayers();
 }
 
 vtkPolyData *Generic3DModel::GetSprayPoints() const

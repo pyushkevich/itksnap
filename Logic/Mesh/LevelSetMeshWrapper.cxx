@@ -36,10 +36,8 @@ LevelSetMeshAssembly
 
 void
 LevelSetMeshAssembly
-::UpdateMeshAssembly(std::mutex *mutex)
+::UpdateMeshAssembly(LabelType id, std::mutex *mutex)
 {
-  std::cout << "[LSAssembly] UpdateMeshAssembly" << std::endl;
-
   // Run the UpdateMesh for the current tp assembly
   m_Pipeline->UpdateMesh(mutex);
 
@@ -48,17 +46,14 @@ LevelSetMeshAssembly
 
   assert(mesh);
 
-  const LabelType id = 0;
   if (m_Meshes.count(id))
     m_Meshes[id]->SetPolyData(mesh);
   else
     {
     auto polyWrapper = PolyDataWrapper::New();
     polyWrapper->SetPolyData(mesh);
-    this->AddMesh(polyWrapper);
+    this->AddMesh(polyWrapper, id);
     }
-
-  std::cout << "-- Completed" << std::endl;
 
   // Update the modified time stamp
   this->Modified();
@@ -68,9 +63,6 @@ bool
 LevelSetMeshAssembly
 ::IsAssemblyDirty() const
 {
-  std::cout << "[LSAssembly] PipeMTime=" << this->GetMTime()
-            << "; ImageMTime=" << m_Image->GetMTime() << std::endl;
-
   return this->GetMTime() < m_Image->GetMTime();
 }
 
@@ -87,9 +79,12 @@ LevelSetMeshWrapper
 
 void
 LevelSetMeshWrapper
-::Initialize(MeshOptions *meshOption)
+::Initialize(MeshOptions *meshOption, ColorLabelTable *colorTable)
 {
   m_MeshOptions = meshOption;
+  m_DisplayMapping = LabelMeshDisplayMappingPolicy::New();
+  m_DisplayMapping->SetMesh(this);
+  m_DisplayMapping->SetColorLabelTable(colorTable);
 }
 
 void
@@ -117,8 +112,6 @@ void
 LevelSetMeshWrapper
 ::CreateNewAssembly(LevelSetImageWrapper *lsImg, unsigned int timepoint)
 {
-  std::cout << "[LSWrapper] Create New Assembly" << std::endl;
-
   auto lsAssembly = LevelSetMeshAssembly::New();
 
   lsAssembly->SetImage(lsImg->GetModifiableImage());
@@ -134,10 +127,8 @@ LevelSetMeshWrapper
 
 void
 LevelSetMeshWrapper
-::UpdateMeshes(LevelSetImageWrapper *lsImg, unsigned int timepoint, std::mutex *mutex)
+::UpdateMeshes(LevelSetImageWrapper *lsImg, unsigned int timepoint, LabelType id, std::mutex *mutex)
 {
-  std::cout << "[LSWrapper] UpdateMeshes" << std::endl;
-
   if (!m_MeshAssemblyMap.count(timepoint))
     {
     CreateNewAssembly(lsImg, timepoint);
@@ -146,6 +137,6 @@ LevelSetMeshWrapper
   auto assembly = static_cast<LevelSetMeshAssembly*>(
         m_MeshAssemblyMap[timepoint].GetPointer());
 
-  assembly->UpdateMeshAssembly(mutex);
+  assembly->UpdateMeshAssembly(id, mutex);
 
 }

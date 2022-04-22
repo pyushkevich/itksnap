@@ -578,7 +578,6 @@ SetActiveMeshLayerDataPropertyId(int id)
   dmp->SetIntensityCurve(prop->GetIntensityCurve());
 
   InvokeEvent(WrapperDisplayMappingChangeEvent());
-  InvokeEvent(itk::ModifiedEvent());
 }
 
 // Utility method for creating formatted range string
