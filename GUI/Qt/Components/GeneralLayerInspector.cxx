@@ -45,6 +45,7 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->inTPNickname, m_Model->GetCrntTimePointNicknameModel());
   makeCoupling(ui->TPTagsWidget, m_Model->GetCrntTimePointTagListModel());
   makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
+  makeCoupling((QAbstractButton *)ui->btn4DReplay, m_Model->GetParentModel()->GetGlobalState()->Get4DReplayModel());
 
 
   // Couple the pin/unpin buttons

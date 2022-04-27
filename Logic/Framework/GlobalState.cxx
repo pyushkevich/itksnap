@@ -137,6 +137,17 @@ GlobalState
   m_AnnotationColorModel = NewSimpleConcreteProperty(Vector3d(1, 0, 0));
   m_AnnotationAlphaModel = NewRangedConcreteProperty(1.0, 0.0, 1.0, 0.01);
   m_AnnotationVisibilityModel = NewNumericPropertyToggleAdaptor(m_AnnotationAlphaModel.GetPointer(), 0.0, 1.0);
+
+  // 4D Timepoint replay
+  m_4DReplayModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::Get4DReplayValue,
+        &Self::Set4DReplayValue);
+
+  m_4DReplayIntervalModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::Get4DReplayIntervalValue,
+        &Self::Set4DReplayIntervalValue);
 }
 
 void GlobalState::SetDriver(IRISApplication *parent)
@@ -221,6 +232,33 @@ void GlobalState::SetSegmentationROI(const GlobalState::RegionType &roi)
 GlobalState::RegionType GlobalState::GetSegmentationROI()
 {
   return this->GetSegmentationROISettings().GetROI();
+}
+
+bool GlobalState::Get4DReplayValue(bool &value)
+{
+  value = this->m_4DReplay;
+  return true;
+}
+
+void GlobalState::Set4DReplayValue(bool value)
+{
+  this->m_4DReplay = value;
+  this->Get4DReplayModel()->InvokeEvent(ValueChangedEvent());
+}
+
+bool GlobalState::Get4DReplayIntervalValue(int &value)
+{
+  value = this->m_4DReplayInterval;
+
+  if (!this->m_4DReplay)
+    return false;
+
+  return true;
+}
+
+void GlobalState::Set4DReplayIntervalValue(int value)
+{
+  this->m_4DReplayInterval = value;
 }
 
 

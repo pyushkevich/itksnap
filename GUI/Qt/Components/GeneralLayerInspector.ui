@@ -736,21 +736,6 @@ font-size:11px;
          </size>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <property name="spacing">
-          <number>4</number>
-         </property>
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
          <item>
           <widget class="QLabel" name="lblTP">
            <property name="sizePolicy">
@@ -818,25 +803,37 @@ font-size:11px;
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="btnTPPlayback">
-           <property name="minimumSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
+          <widget class="QToolButton" name="btn4DReplay">
            <property name="maximumSize">
             <size>
              <width>20</width>
              <height>20</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle animation mode.&lt;/p&gt;&lt;p&gt;When enabled, the display will automatically loop over the image components at one-second intervals.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
-            <string/>
+            <string>...</string>
            </property>
            <property name="icon">
             <iconset resource="../Resources/SNAPResources.qrc">
-             <normaloff>:/root/media-playback-start-4.png</normaloff>:/root/media-playback-start-4.png</iconset>
+             <normaloff>:/root/icons8_film_reel_12.png</normaloff>:/root/icons8_film_reel_12.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>12</width>
+             <height>12</height>
+            </size>
+           </property>
+           <property name="checkable">
+            <bool>true</bool>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+           <property name="autoRaise">
+            <bool>true</bool>
            </property>
           </widget>
          </item>

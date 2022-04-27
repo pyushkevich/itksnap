@@ -336,6 +336,11 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Start the timer (it doesn't cost much...)
   m_AnimateTimer->start();
 
+  // Set up the 4D replay timer
+  m_4DReplayTimer = new QTimer(this);
+  m_AnimateTimer->setInterval(m_Crnt4DReplayInteval);
+  connect(m_4DReplayTimer, SIGNAL(timeout()), SLOT(on4DReplayTimeout()));
+
   // Create keyboard shortcuts for opacity (because there seems to be a bug/feature on MacOS
   // where keyboard shortcuts require the Fn-key to be pressed in QMenu
   this->HookupShortcutToAction(QKeySequence("s"), ui->actionSegmentationToggle);
@@ -543,6 +548,16 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
         ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
 
 
+  // Listen to 4D Image Time Point Replay event
+  LatentITKEventNotifier::connect(
+        model->GetDriver()->GetGlobalState()->Get4DReplayModel(),
+        ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
+
+  LatentITKEventNotifier::connect(
+        model->GetDriver()->GetGlobalState()->Get4DReplayIntervalModel(),
+        ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
+
+
   // Couple the visibility of each view panel to the correponding property
   // model in DisplayLayoutModel
   DisplayLayoutModel *layoutModel = m_Model->GetDisplayLayoutModel();
@@ -685,6 +700,8 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
       b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetSelectedSegmentationLayerIdModel());
   bool display_layout_changed = b.HasEvent(DisplayLayoutModel::DisplayLayoutChangeEvent());
   bool layer_layout_changed = b.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
+  bool replay_4d_changed = b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->Get4DReplayModel());
+  bool replay_4d_interval_changed = b.HasEvent(ValueChangedEvent(),  m_Model->GetGlobalState()->Get4DReplayIntervalModel());
 
   if(main_changed)
     {
@@ -718,6 +735,9 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 
   if(layers_changed || layers_meta_changed || proj_file_changed || selected_seg_layer_changed)
     this->UpdateWindowTitle();
+
+  if(replay_4d_changed || replay_4d_interval_changed)
+    this->Update4DReplay();
 
 
 }
@@ -1496,6 +1516,18 @@ void MainImageWindow::onAnimationTimeout()
     m_Model->AnimateLayerComponents();
 }
 
+void MainImageWindow::on4DReplayTimeout()
+{
+  if(m_Model && m_Model->GetDriver()->GetNumberOfTimePoints() > 1)
+    {
+    int crntTP = m_Model->GetDriver()->GetCursorTimePoint();
+    int nextTP = (crntTP + 1) % (m_Model->GetDriver()->GetNumberOfTimePoints());
+    std::cout << "[MainImageWindow] on4DReplayTimeout: crnt=" << crntTP
+              << "; next=" << nextTP << std::endl;
+    m_Model->GetDriver()->SetCursorTimePoint(nextTP);
+    }
+}
+
 void MainImageWindow::LoadRecentProjectActionTriggered()
 {
   // Check for unsaved changes before loading new data
@@ -2232,6 +2264,26 @@ void MainImageWindow::UpdateAutoCheck()
     {
     DoUpdateCheck(true);
     }
+}
+
+void MainImageWindow::Update4DReplay()
+{
+  bool isReplayOn = GetModel()->GetGlobalState()->Get4DReplay();
+  int interval = GetModel()->GetGlobalState()->Get4DReplayInterval();
+  std::cout << "[MainImageWindow] Update4DReplay" << std::endl;
+  std::cout << "-- 4D Replay=" << GetModel()->GetGlobalState()->Get4DReplay() << std::endl;
+  std::cout << "-- Interval=" << GetModel()->GetGlobalState()->Get4DReplayInterval() << std::endl;
+
+  if (interval != m_Crnt4DReplayInteval)
+    {
+    m_Crnt4DReplayInteval = interval;
+    m_4DReplayTimer->setInterval(interval);
+    }
+
+  if (isReplayOn)
+    this->m_4DReplayTimer->start();
+  else
+    this->m_4DReplayTimer->stop();
 }
 
 void MainImageWindow::RemindLayoutPreference()

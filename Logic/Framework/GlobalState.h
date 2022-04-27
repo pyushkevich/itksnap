@@ -380,6 +380,12 @@ public:
   /** Set/Get selected mesh layer id */
   irisSimplePropertyAccessMacro(SelectedMeshLayerId, unsigned long)
 
+  /** Set/Get 4D time point replay model */
+  irisSimplePropertyAccessMacro(4DReplay, bool)
+
+  /** Set/Get 4D time point replay interval */
+  irisSimplePropertyAccessMacro(4DReplayInterval, int)
+
   /**
    * Initial directory where to open file/save dialogs. This MUST be set when
    * SNAP is first started!
@@ -493,6 +499,18 @@ private:
 
   // Slice view layout model
   SmartPtr<ConcretePropertyModel<LayerLayout> > m_SliceViewLayerLayoutModel;
+
+  /** Whether to replay 4D time points */
+  SmartPtr<AbstractSimpleBooleanProperty> m_4DReplayModel;
+  bool Get4DReplayValue(bool &value);
+  void Set4DReplayValue(bool value);
+  bool m_4DReplay = false;
+
+  /** 4D time point replay interval (milliseconds)*/
+  SmartPtr<AbstractSimpleIntProperty> m_4DReplayIntervalModel;
+  bool Get4DReplayIntervalValue(int &value);
+  void Set4DReplayIntervalValue(int value);
+  int m_4DReplayInterval = 50;
   
   int m_LockHeld; 
   int m_LockOwner;
