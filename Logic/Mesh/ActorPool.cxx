@@ -38,7 +38,6 @@ void
 ActorPool::
 CreateNewActors(unsigned int n)
 {
-  std::cout << "[ActorPool] creating " << n << " new actors" << std::endl;
   while (n-- > 0)
     {
     vtkNew<vtkActor> actor;

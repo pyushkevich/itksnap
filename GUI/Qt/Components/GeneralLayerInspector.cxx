@@ -46,7 +46,11 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->TPTagsWidget, m_Model->GetCrntTimePointTagListModel());
   makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
   makeCoupling((QAbstractButton *)ui->btn4DReplay, m_Model->GetParentModel()->GetGlobalState()->Get4DReplayModel());
+  makeCoupling(ui->in4DReplayInterval, m_Model->GetParentModel()->GetGlobalState()->Get4DReplayIntervalModel());
 
+  auto validator = new QIntValidator(this);
+  validator->setRange(1, 60000); // who would need >1min interval?
+  ui->in4DReplayInterval->setValidator(validator);
 
   // Couple the pin/unpin buttons
   std::map<bool, QAbstractButton *> button_map;

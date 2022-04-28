@@ -710,6 +710,14 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     // TODO: figure out if we can avoid flashing altogether
     // QTimer::singleShot(200, this, SLOT(UpdateMainLayout()));
     this->UpdateMainLayout();
+
+    // If 4D main is loaded, get a new default interval from the model
+    if(m_Model->GetDriver()->GetNumberOfTimePoints() > 1)
+      {
+      m_Model->GetGlobalState()->Set4DReplayInterval(
+            m_Model->GetDefault4DReplayInterval());
+      }
+
     }
 
   if(layers_changed || main_history_changed)
@@ -1522,8 +1530,6 @@ void MainImageWindow::on4DReplayTimeout()
     {
     int crntTP = m_Model->GetDriver()->GetCursorTimePoint();
     int nextTP = (crntTP + 1) % (m_Model->GetDriver()->GetNumberOfTimePoints());
-    std::cout << "[MainImageWindow] on4DReplayTimeout: crnt=" << crntTP
-              << "; next=" << nextTP << std::endl;
     m_Model->GetDriver()->SetCursorTimePoint(nextTP);
     }
 }
@@ -2270,9 +2276,6 @@ void MainImageWindow::Update4DReplay()
 {
   bool isReplayOn = GetModel()->GetGlobalState()->Get4DReplay();
   int interval = GetModel()->GetGlobalState()->Get4DReplayInterval();
-  std::cout << "[MainImageWindow] Update4DReplay" << std::endl;
-  std::cout << "-- 4D Replay=" << GetModel()->GetGlobalState()->Get4DReplay() << std::endl;
-  std::cout << "-- Interval=" << GetModel()->GetGlobalState()->Get4DReplayInterval() << std::endl;
 
   if (interval != m_Crnt4DReplayInteval)
     {

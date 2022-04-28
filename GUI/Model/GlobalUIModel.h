@@ -351,6 +351,9 @@ public:
   /** A function for switching between segmentation layers when there multiple */
   void CycleSelectedSegmentationLayer(int direction);
 
+  /** A function for UI to get the default 4D replay interval */
+  int GetDefault4DReplayInterval() const;
+
 
 protected:
 

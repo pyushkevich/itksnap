@@ -62,7 +62,6 @@ std::string MeshImportModel::GetTitle() const
 MeshImportModel::FileFormat
 MeshImportModel::GetFileFormatByName(const std::string &formatName) const
 {
-  std::cout << "[MeshImprotModel] formatName=" << formatName << std::endl;
   for (int i = 0; i < GuidedMeshIO::FORMAT_COUNT; ++i)
     {
       FileFormat fmt = (FileFormat)i;
@@ -130,8 +129,6 @@ MeshImportModel::LoadToTP(const char *filename, FileFormat format)
 
   // Execute loading
   IO->LoadMesh(filename, format, active_layer, tp, 0u);
-
-  std::cout << "[MeshImportModel.LoadToTP()] Mesh Installed" << std::endl;
 
   delete IO;
 }

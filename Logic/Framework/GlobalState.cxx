@@ -250,15 +250,13 @@ bool GlobalState::Get4DReplayIntervalValue(int &value)
 {
   value = this->m_4DReplayInterval;
 
-  if (!this->m_4DReplay)
-    return false;
-
   return true;
 }
 
 void GlobalState::Set4DReplayIntervalValue(int value)
 {
   this->m_4DReplayInterval = value;
+  this->Get4DReplayIntervalModel()->InvokeEvent(ValueChangedEvent());
 }
 
 

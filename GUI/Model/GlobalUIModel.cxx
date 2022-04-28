@@ -1030,3 +1030,19 @@ GlobalUIModel
     m_ProgressReporterDelegate->SetProgressValue(po->GetProgress());
     }
 }
+
+int
+GlobalUIModel
+::GetDefault4DReplayInterval() const
+{
+  // Default interval set to 50,
+  // because common scanning machine setting is 20Hz
+  int ret = 50;
+  if (m_Driver && m_Driver->GetNumberOfTimePoints() > 1)
+    {
+    auto spc = m_Driver->GetMainImage()->GetImage4DBase()->GetSpacing();
+    ret = floor(spc[3]);
+    }
+
+  return ret;
+}
