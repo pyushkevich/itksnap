@@ -123,9 +123,6 @@ void
 GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
                        SmartPtr<MeshWrapperBase> wrapper, unsigned int tp, LabelType id)
 {
-  std::cout << "[GuidedMeshIO.LoadMesh] filename=" << FileName
-            << "; Format=" << format << std::endl;
-
   // Using the factory method to get a delegate
   AbstractMeshIODelegate *ioDelegate = AbstractMeshIODelegate::GetDelegate(format);
 

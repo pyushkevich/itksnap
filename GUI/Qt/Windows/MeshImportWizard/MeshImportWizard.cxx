@@ -7,6 +7,9 @@ MeshImportWizard::MeshImportWizard(QWidget *parent) :
   QWizard(parent),
   ui(new Ui::MeshImportWizard)
 {
+  // Set a name for test tracking
+  this->setObjectName("wizMeshImport");
+
   // Use parent's double buffering attributes
   this->setAttribute(Qt::WA_PaintOnScreen, parent->testAttribute(Qt::WA_PaintOnScreen));
 

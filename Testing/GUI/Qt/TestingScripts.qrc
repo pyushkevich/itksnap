@@ -11,5 +11,6 @@
         <file>Scripts/test_LabelSmoothing.js</file>
         <file>Scripts/test_EchoCartesianDicomLoading.js</file>
         <file>Scripts/test_PreferencesDialog.js</file>
+        <file>Scripts/test_MeshImport.js</file>
     </qresource>
 </RCC>

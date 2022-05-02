@@ -1041,7 +1041,10 @@ GlobalUIModel
   if (m_Driver && m_Driver->GetNumberOfTimePoints() > 1)
     {
     auto spc = m_Driver->GetMainImage()->GetImage4DBase()->GetSpacing();
-    ret = floor(spc[3]);
+    // No screen can display 500Hz+ frame rate.
+    // Use default for any frame time < 2ms
+    if (spc[3] >= 2)
+      ret = floor(spc[3]);
     }
 
   return ret;

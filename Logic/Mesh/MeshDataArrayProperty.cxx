@@ -122,8 +122,8 @@ MeshLayerDataArrayProperty()
 
   m_VectorModeNameMap =
   {
-    {0, "Magnitude"},
-    {1, "RGBColors"}
+    {0, "Magnitude"}
+    //,{1, "RGBColors"} // Disabled for now, not working properly
   };
 }
 

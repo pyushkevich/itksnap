@@ -1203,7 +1203,8 @@ SET(GUI_TESTS
   ProbeIntensity
   RegionCompetition
   RandomForest
-  RandomForestBailOut)
+  RandomForestBailOut
+  MeshImport)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
 set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)

@@ -886,38 +886,30 @@ font-size:11px;
      <property name="title">
       <string>How to Display Mesh Layer</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
-        <item>
-         <widget class="QLabel" name="lblMeshDataName">
-          <property name="text">
-           <string>Active Data Array For Coloring:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="boxMeshDataName">
-          <property name="currentIndex">
-           <number>-1</number>
-          </property>
-         </widget>
-        </item>
-       </layout>
+     <layout class="QGridLayout" name="gridLayout_6">
+      <item row="3" column="1">
+       <widget class="QComboBox" name="boxMeshVectorMode"/>
       </item>
-      <item>
-       <layout class="QHBoxLayout" name="grpVectorMode">
-        <item>
-         <widget class="QLabel" name="lblMeshVectorMode">
-          <property name="text">
-           <string>Vector Display Mode</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="boxMeshVectorMode"/>
-        </item>
-       </layout>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="boxMeshDataName">
+        <property name="currentIndex">
+         <number>-1</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="lblMeshDataName">
+        <property name="text">
+         <string>Active Data Array:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="lblMeshVectorMode">
+        <property name="text">
+         <string>Vector Display Mode</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

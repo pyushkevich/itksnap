@@ -4,6 +4,7 @@
 #include "SNAPQtCommon.h"
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
+#include "qfileinfo.h"
 
 MeshImportFileSelectionPage::MeshImportFileSelectionPage(QWidget *parent) :
   QWizardPage(parent),
@@ -89,6 +90,11 @@ void MeshImportFileSelectionPage::initializePage()
     }
 }
 
+QString GetErrorText(std::string input)
+{
+  return QString("<span style=\" color:#7f0000;\">%1</span>").arg(input.c_str());
+}
+
 
 bool MeshImportFileSelectionPage::validatePage()
 {
@@ -99,13 +105,28 @@ bool MeshImportFileSelectionPage::validatePage()
   QString format = ui->filePanel->activeFormat();
   QStringList filenames = ui->filePanel->GetSelectedFiles();
 
+  // User manually put filename instead of using the browser
+  if (filenames.size() == 0)
+    {
+    auto fn = ui->filePanel->absoluteFilename();
+    QFileInfo info(fn);
+    if (info.exists() && info.isFile())
+      filenames.push_back(ui->filePanel->absoluteFilename());
+    else
+      {
+      ui->lblMessage->setText(GetErrorText("File does not exist!"));
+      return false;
+      }
+    }
+
+
   auto nt = m_Model->GetParentModel()->GetDriver()->GetNumberOfTimePoints();
   if (nt < filenames.length())
     {
     std::ostringstream oss;
     oss << "Number of selected files (" << filenames.length()
         << ") cannot exceed the number of time points (" << nt << ")!";
-    ui->lblMessage->setText(QString(oss.str().c_str()));
+    ui->lblMessage->setText(GetErrorText(oss.str()));
     return false;
     }
 
