@@ -269,6 +269,9 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   if(m_Model->IsMeshUpdating() )
     return;
 
+  if(!m_Model->GetDriver()->IsMainImageLoaded())
+    return;
+
   ImageMeshLayers *layers = m_Model->GetMeshLayers();
 
   // Get active layer id and current time point

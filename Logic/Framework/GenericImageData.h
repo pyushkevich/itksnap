@@ -122,7 +122,10 @@ public:
    */
   ImageWrapperBase* GetMain()
   {
-    assert(m_MainImageWrapper->IsInitialized());
+    // After unloading, this pointer can be set to NULL
+    // If failed, use IsMainLoaded() as precheck of GetMain()
+    assert(m_MainImageWrapper && m_MainImageWrapper->IsInitialized());
+
     return m_MainImageWrapper;
   }
 

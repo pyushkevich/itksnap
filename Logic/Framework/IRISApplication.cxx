@@ -810,6 +810,9 @@ unsigned int
 IRISApplication
 ::GetNumberOfTimePoints() const
 {
+  if (!this->GetCurrentImageData()->IsMainLoaded())
+    return 0;
+
   return this->GetCurrentImageData()->GetMain()->GetNumberOfTimePoints();
 }
 
