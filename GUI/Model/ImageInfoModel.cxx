@@ -187,6 +187,9 @@ bool ImageInfoModel
 {
   if(!this->GetLayer()) return false;
 
+  if(!m_ParentModel->GetDriver()->GetCurrentImageData()->IsMainLoaded())
+    return false;
+
   const ImageCoordinateGeometry &geo =
       m_ParentModel->GetDriver()->GetCurrentImageData()->GetImageGeometry();
   ImageCoordinateGeometry::DirectionMatrix dmat =
