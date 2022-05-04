@@ -38,6 +38,9 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
 
   // Allow directory creation? No by default for compatibility
   m_allowCreateDir = false;
+
+  // Load/Save multiple files. Default off
+  m_MultiFilesMode = false;
 }
 
 FileChooserPanelWithHistory::~FileChooserPanelWithHistory()
@@ -247,6 +250,7 @@ void FileChooserPanelWithHistory::initializeForSaveFile(
   // State
   m_Model = model;
   m_openMode = false;
+  m_MultiFilesMode = false;
   m_filePattern = filePattern;
   m_historyCategory = historyCategory;
   m_forceExtension = force_extension;
