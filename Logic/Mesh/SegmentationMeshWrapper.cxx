@@ -147,3 +147,17 @@ SegmentationMeshWrapper::UpdateMeshes(itk::Command *progressCmd, unsigned int ti
   auto img = m_ImagePointer->GetImageByTimePoint(timepoint);
   assembly->UpdateMeshAssembly(progressCmd, img, m_MeshOptions);
 }
+
+void
+SegmentationMeshWrapper
+::SaveToRegistry(Registry &)
+{
+
+}
+
+void
+SegmentationMeshWrapper
+::ReadFromRegistry(Registry &)
+{
+
+}

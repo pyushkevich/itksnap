@@ -17,6 +17,14 @@ AbstractMeshDataArrayProperty::
   delete[] m_Name;
 }
 
+RegistryEnumMap<AbstractMeshDataArrayProperty::MeshDataType>
+AbstractMeshDataArrayProperty::m_MeshDataTypeEnumMap =
+{
+  { AbstractMeshDataArrayProperty::POINT_DATA, "PointData" },
+  { AbstractMeshDataArrayProperty::CELL_DATA, "CellData" }
+};
+
+
 void
 AbstractMeshDataArrayProperty::
 Initialize(vtkDataArray *array, MeshDataType type)

@@ -28,6 +28,11 @@ public:
 
   void SetMesh(vtkPolyData* mesh, unsigned int timepoint, LabelType id) override;
 
+  /** Save the layer to registry */
+  virtual void SaveToRegistry(Registry &folder) override;
+
+  /** Build the layer from registry */
+  virtual void ReadFromRegistry(Registry &folder) override;
 
   // End of virtual methods definition
   //-------------------------------------------------

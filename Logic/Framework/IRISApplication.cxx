@@ -86,6 +86,8 @@
 #include "SegmentationUpdateIterator.h"
 #include "AffineTransformHelper.h"
 #include "TimePointProperties.h"
+#include "ImageMeshLayers.h"
+#include "StandaloneMeshWrapper.h"
 
 #include <stdio.h>
 #include <sstream>
@@ -803,6 +805,9 @@ unsigned int
 IRISApplication
 ::GetCursorTimePoint() const
 {
+  if (!this->GetCurrentImageData()->IsMainLoaded())
+    return 0;
+
   return this->GetCurrentImageData()->GetMain()->GetTimePointIndex();
 }
 
@@ -2093,6 +2098,23 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
     if(it.GetRole() == OVERLAY_ROLE)
       {
       AffineTransformHelper::WriteToRegistry(&folder, layer->GetITKTransform());
+      }
+    }
+
+  // Save Mesh Layers
+  auto mesh_it = GetCurrentImageData()->GetMeshLayers()->GetLayers();
+  int mesh_cnt = 0;
+
+  for (; !mesh_it.IsAtEnd(); ++mesh_it)
+    {
+    auto mesh_layer = mesh_it.GetLayer();
+
+    // We current only save standalone meshes
+    auto standalone_mesh = dynamic_cast<StandaloneMeshWrapper*>(mesh_layer);
+    if (standalone_mesh)
+      {
+      Registry &folder = preg.Folder(Registry::Key("MeshLayers.Layer[%03d]", mesh_cnt++));
+      mesh_layer->SaveToRegistry(folder);
       }
     }
 

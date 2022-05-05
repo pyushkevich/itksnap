@@ -135,7 +135,7 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
       wrapper->SetMesh(polyData, tp, id);
 
       // Set Filename
-      wrapper->SetFileName(FileName);
+      wrapper->SetFileName(FileName, tp, id);
 
       delete ioDelegate;
     }

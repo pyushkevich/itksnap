@@ -94,7 +94,7 @@ MeshImportModel::Load(std::vector<std::string> &fn_list, FileFormat format)
     size_t tp = 0, nt = app->GetNumberOfTimePoints();
     for (auto &fn : fn_list)
       {
-      if (tp > nt)
+      if (tp >= nt)
         break;
 
       // Execute loading

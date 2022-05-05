@@ -1,6 +1,8 @@
 #include "StandaloneMeshWrapper.h"
 #include "DisplayMappingPolicy.h"
 #include "Rebroadcaster.h"
+#include "SNAPRegistryIO.h"
+#include "itksys/SystemTools.hxx"
 
 StandaloneMeshWrapper::StandaloneMeshWrapper()
 {
@@ -43,5 +45,52 @@ bool
 StandaloneMeshWrapper::IsMeshDirty(unsigned int)
 {
   return false;
+}
+
+void
+StandaloneMeshWrapper
+::SaveToRegistry(Registry &folder)
+{
+  std::cout << "[StandaloneMeshWrapper] SaveToRegistry" << std::endl;
+  // What type is this mesh
+  folder["MeshType"] << "StandaloneMesh";
+
+  // Absolute path to the file
+  auto full_path = itksys::SystemTools::CollapseFullPath(this->GetFileName());
+  Registry &path = folder.Folder("MeshTimePoints");
+  for (auto kv : m_MeshAssemblyMap)
+    {
+    Registry &tp = path.Folder(Registry::Key("TimePoint[%03d]", kv.first + 1));
+    tp["TimePoint"] << kv.first + 1;
+    kv.second->SaveToRegistry(tp);
+    }
+
+  // Tags
+  folder["Tags"].PutList(this->GetTags());
+
+  // Nick name
+  folder["NickName"] << this->GetCustomNickname();
+
+  // Save Display Mapping Associated with Data Arrays
+  // -- id/(Array Name + Array Type) => Display Mapping
+  Registry &propReg = folder.Folder("DataArrayProperties");
+
+  for (auto kv : m_CombinedDataPropertyMap)
+    {
+    Registry &crnt = propReg.Folder(Registry::Key("DataArray[%03d]", kv.first));
+    crnt["ArrayName"] << kv.second->GetName();
+    crnt["ArrayType"].PutEnum(
+          AbstractMeshDataArrayProperty::GetMeshDataTypeEnumMap(),
+          kv.second->GetType());
+    kv.second->GetColorMap()->SaveToRegistry(crnt.Folder("ColorMap"));
+    kv.second->GetIntensityCurve()->SaveToRegistry(crnt.Folder("IntensityCurve"));
+    }
+}
+
+void
+StandaloneMeshWrapper
+::ReadFromRegistry(Registry &folder)
+{
+
 }
 

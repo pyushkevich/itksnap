@@ -10,6 +10,7 @@
 #include "vtkDataArray.h"
 #include "vtkSmartPointer.h"
 #include "vtkScalarsToColors.h"
+#include "Registry.h"
 
 template<class TIn> class ThreadedHistogramImageFilter;
 
@@ -47,6 +48,9 @@ public:
   ComponentNameMap &GetComponentNameMap()
   { return m_ComponentNameMap; }
 
+  static RegistryEnumMap<MeshDataType>& GetMeshDataTypeEnumMap()
+  { return m_MeshDataTypeEnumMap; }
+
 
 protected:
   AbstractMeshDataArrayProperty();
@@ -59,6 +63,8 @@ protected:
   ComponentNameMap m_ComponentNameMap;
 
   MeshDataType m_Type;
+
+  static RegistryEnumMap<MeshDataType> m_MeshDataTypeEnumMap;
 };
 
 /**

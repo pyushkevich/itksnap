@@ -156,6 +156,17 @@ GetTotalMemoryInMB() const
   return ret;
 }
 
+void
+MeshAssembly
+::SaveToRegistry(Registry &folder)
+{
+  for (auto kv : m_Meshes)
+    {
+    Registry &crnt = folder.Folder(Registry::Key("PolyData[%03d]", kv.first));
+    crnt["AbsolutePath"] << kv.second->GetFileName();
+    }
+}
+
 // ============================================
 //  MeshWrapperBase Implementation
 // ============================================
@@ -221,6 +232,24 @@ MeshWrapperBase::SetFileName(const std::string &name)
   m_FileNameShort = itksys::SystemTools::GetFilenameWithoutExtension(
         itksys::SystemTools::GetFilenameName(name));
   this->InvokeEvent(WrapperMetadataChangeEvent());
+}
+
+void
+MeshWrapperBase
+::SetFileName(const char *filename, unsigned int tp, LabelType id)
+{
+  // Put the very first file name as a reference file name for the layer
+  if (tp == 0 && id == 0)
+    SetFileName(filename);
+
+  if (m_MeshAssemblyMap.count(tp))
+    {
+    auto assembly = m_MeshAssemblyMap[tp];
+    if (assembly->Exist(id))
+      {
+      assembly->GetMesh(id)->SetFileName(filename);
+      }
+    }
 }
 
 const ScalarImageHistogram *

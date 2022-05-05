@@ -140,3 +140,18 @@ LevelSetMeshWrapper
   assembly->UpdateMeshAssembly(id, mutex);
 
 }
+
+void
+LevelSetMeshWrapper
+::SaveToRegistry(Registry &)
+{
+
+}
+
+void
+LevelSetMeshWrapper
+::ReadFromRegistry(Registry &)
+{
+
+}
+

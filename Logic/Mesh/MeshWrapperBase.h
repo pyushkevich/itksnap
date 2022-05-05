@@ -49,6 +49,12 @@ public:
   MeshDataArrayPropertyMap &GetCellDataProperties()
   { return m_CellDataProperties; }
 
+  void SetFileName(const char *name)
+  { m_FileName = name; }
+
+  const char * GetFileName()
+  { return m_FileName.c_str(); }
+
   friend class MeshDataArrayProperty;
 protected:
   PolyDataWrapper() {}
@@ -70,6 +76,10 @@ protected:
 
   // Cell Data Properties
   MeshDataArrayPropertyMap m_CellDataProperties;
+
+  // Filename (default to empty string)
+  // Polydata generated from segmentation don't have a file name
+  std::string m_FileName = "";
 };
 
 
@@ -115,6 +125,9 @@ public:
 
   /** Get actual memory usage of all the polydata in the assembly in megabytes */
   double GetTotalMemoryInMB() const;
+
+  /** Save to Registry */
+  void SaveToRegistry(Registry &folder);
 
 protected:
   MeshAssembly() {}
@@ -177,6 +190,7 @@ public:
   /** Access the filename */
   irisGetStringMacroWithOverride(FileName)
   virtual void SetFileName(const std::string &name) override;
+  virtual void SetFileName(const char *filename, unsigned int tp, LabelType id);
 
   /**
    * Access the nickname - which may be a custom nickname or derived from the
@@ -234,6 +248,12 @@ public:
     For multi-component data, the histogram is pooled over all components.
     */
   virtual const ScalarImageHistogram *GetHistogram(size_t nBins) override;
+
+  /** Save the layer to registry */
+  virtual void SaveToRegistry(Registry &folder) = 0;
+
+  /** Build the layer from registry */
+  virtual void ReadFromRegistry(Registry &folder) = 0;
 
   // End of virtual methods definition
   //------------------------------------------------
