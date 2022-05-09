@@ -139,6 +139,9 @@ public:
   // Bubble array
   typedef std::vector<Bubble> BubbleArray;
 
+  // Map storing paths to zip file and temporary folder in wich it was extracted
+  std::map<std::string,std::string> m_map_zip;
+
   // Structure for listing DICOM series ids (SeriesId/LayerId pair)
   struct DicomSeriesDescriptor
   {
@@ -523,7 +526,15 @@ public:
                      const Vector3d &ray, 
                      Vector3i &hit) const;
 
+  /**
+   * Create a directory in temp folder
+   */
+  std::string GetTempDirName();
 
+  /**
+   * Clean up the temp folder, removing all extracted zip files
+   */
+  void cleanUp_tempdir();
 
   /**
    * Check if there is an image currently loaded in SNAP.
@@ -610,6 +621,12 @@ public:
    * A project is reset (set to empty string) when a new main image is loaded.
    */
   void SaveProject(const std::string &proj_file);
+
+  /**
+   * Export a project. The same method as SaveProject is used. The user can
+   * choose to keep the layers names or to anonymize it.
+   */
+  void ExportProject(const std::string &proj_file, bool anonymize);
 
   /**
    * Open an existing project.
@@ -773,6 +790,8 @@ protected:
 
   // Internal method used by the project IO code
   void SaveProjectToRegistry(Registry &preg, const std::string proj_file_full);
+
+  void ExportProjectToRegistry(Registry &preg, const std::string proj_file_full, bool anonymize);
 
   // Auto-adjust contrast of a layer on load
   void AutoContrastLayerOnLoad(ImageWrapperBase *layer);

@@ -35,6 +35,8 @@
 #ifndef __SNAPOpenGL_h_
 #define __SNAPOpenGL_h_
 
+// Prevent errors due to OpenGL having moved on...
+#define GL_SILENCE_DEPRECATION
 
 #include "IRISVectorTypes.h"
 

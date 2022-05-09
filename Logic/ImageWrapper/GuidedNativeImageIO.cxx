@@ -450,54 +450,57 @@ GuidedNativeImageIO
                         "image '%s' using format '%s'.",
                         FileName, m_Hints["Format"][""]);
 
+
   // Read the information about the image
   if(m_FileFormat == FORMAT_DICOM_DIR)
     {
     // Get the directory where to search for the series
-    std::string SeriesDir = FileName;
-    if(!itksys::SystemTools::FileIsDirectory(FileName))
-      SeriesDir = itksys::SystemTools::GetParentDirectory(FileName);
+    char *SeriesDir = new char[strlen(FileName)];
+    strcpy(SeriesDir,FileName);
 
-    // Have we already parsed this directory?
-    if(m_LastDicomParseResult.Directory != SeriesDir)
-      {
-      // Parse the specified directory
-      this->ParseDicomDirectory(SeriesDir);
-      }
+  if(!itksys::SystemTools::FileIsDirectory(FileName))
+    strcpy(SeriesDir, itksys::SystemTools::GetParentDirectory(FileName).c_str());
 
-    // Select which series
-    std::string SeriesID = m_Hints["DICOM.SeriesId"][""];
-    if(SeriesID.length() == 0)
-      {
-      // There must be at least one series
-      if(m_LastDicomParseResult.SeriesMap.size() == 0)
-        throw IRISException("Error: DICOM series not found. "
-                            "Directory '%s' does not appear to contain a "
-                            "series of DICOM images.", FileName);
+  // Have we already parsed this directory?
+  if(m_LastDicomParseResult.Directory != SeriesDir)
+    {
+    // Parse the specified directory
+    this->ParseDicomDirectory(SeriesDir);
+    }
 
-      // Take the first series ID we have
-      SeriesID = m_LastDicomParseResult.SeriesMap.begin()->first;
-      }
-
-    // Obtain the filename for this series
-    m_DICOMFiles = m_LastDicomParseResult.SeriesMap[SeriesID].FileList;
-
-    // Read the information from the first filename
-    if(m_DICOMFiles.size() == 0)
+  // Select which series
+  std::string SeriesID = m_Hints["DICOM.SeriesId"][""];
+  if(SeriesID.length() == 0)
+    {
+    // There must be at least one series
+    if(m_LastDicomParseResult.SeriesMap.size() == 0)
       throw IRISException("Error: DICOM series not found. "
                           "Directory '%s' does not appear to contain a "
-                          "series of DICOM images.",FileName);
+                          "series of DICOM images.", FileName);
 
-    // Following this quick parsing of the directory, we need to actually
-    // load the image data and sort it in a meaningful order. This is too
-    // complicated to replicate here so we revert to gdcm::SerieHelper, but
-    // we only have it parse the filenames for the current SeriesId
-    ExtendedGDCMSerieHelper helper;
-    helper.SetFilesAndOrder(m_DICOMFiles, m_DICOMImagesPerIPP);
-
-    m_IOBase->SetFileName(m_DICOMFiles[0]);
-    m_IOBase->ReadImageInformation();
+    // Take the first series ID we have
+    SeriesID = m_LastDicomParseResult.SeriesMap.begin()->first;
     }
+
+  // Obtain the filename for this series
+  m_DICOMFiles = m_LastDicomParseResult.SeriesMap[SeriesID].FileList;
+
+  // Read the information from the first filename
+  if(m_DICOMFiles.size() == 0)
+    throw IRISException("Error: DICOM series not found. "
+                        "Directory '%s' does not appear to contain a "
+                        "series of DICOM images.",FileName);
+
+  // Following this quick parsing of the directory, we need to actually
+  // load the image data and sort it in a meaningful order. This is too
+  // complicated to replicate here so we revert to gdcm::SerieHelper, but
+  // we only have it parse the filenames for the current SeriesId
+  ExtendedGDCMSerieHelper helper;
+  helper.SetFilesAndOrder(m_DICOMFiles, m_DICOMImagesPerIPP);
+
+  m_IOBase->SetFileName(m_DICOMFiles[0]);
+  m_IOBase->ReadImageInformation();
+  }
   else
     {
     // Check that the reader actually supports this format. We skip this for
@@ -535,6 +538,7 @@ GuidedNativeImageIO
 
   // Also pull out a nickname for this file, if it's in the folder
   m_NativeNickname = m_Hints["Nickname"][""];
+
 }
 
 GuidedNativeImageIO::DispatchBase*
@@ -1315,6 +1319,9 @@ CastNativeImage<TOutputImage,TCastFunctor>
   m_Output->SetPixelContainer(pc);
 }
 
+
+#include "unzip.h"
+#include "miniunz.h"
 GuidedNativeImageIO::FileFormat
 GuidedNativeImageIO::GuessFormatForFileName(
     const std::string &fname, bool checkMagic)
@@ -1329,6 +1336,28 @@ GuidedNativeImageIO::GuessFormatForFileName(
     gzFile gz = gzopen(fname.c_str(), "rb");
     bool havebuff = (gz!=NULL) && (buf_size==gzread(gz,buffer,buf_size));
     gzclose(gz);
+
+    // If zip file parsed: check if it contains a DICOM folder
+    if(strncmp(fname.substr(fname.length()-4).c_str(),".zip",4) == 0){
+        char filename_try[256+16] = "";
+        strncpy(filename_try, fname.c_str(), 255);
+        // strncpy doesnt append the trailing NULL, of the string is too long.
+        filename_try[ 256 ] = '\0';
+
+        unzFile zip = unzOpen(filename_try);
+        char filename_inzip[256];
+        int err=UNZ_OK;
+
+        unz_file_info file_info;
+        err = unzGetCurrentFileInfo(zip,&file_info,filename_inzip,sizeof(filename_inzip),NULL,0,NULL,0);
+
+        // Check for DICOM
+        if(strncmp(string(filename_inzip).substr(string(filename_inzip).length()-4).c_str(),".dcm",4)==0)
+          {
+
+          return FORMAT_DICOM_DIR;
+          }
+    }
 
     // Now we will check known magic numbers, especially for formats that
     // are primary formats supported by SNAP
@@ -1371,7 +1400,6 @@ GuidedNativeImageIO::GuessFormatForFileName(
   return FORMAT_COUNT;
 }
 
-
 const gdcm::Tag GuidedNativeImageIO::m_tagRows(0x0028, 0x0010);
 const gdcm::Tag GuidedNativeImageIO::m_tagCols(0x0028, 0x0011);
 const gdcm::Tag GuidedNativeImageIO::m_tagDesc(0x0008, 0x103e);
@@ -1382,9 +1410,153 @@ const gdcm::Tag GuidedNativeImageIO::m_tagInstanceNumber(0x0020,0x0013);
 const gdcm::Tag GuidedNativeImageIO::m_tagSequenceName(0x0018, 0x0024);
 const gdcm::Tag GuidedNativeImageIO::m_tagSliceThickness(0x0018, 0x0050);
 
-
 #include "gdcmDirectory.h"
 #include "gdcmImageReader.h"
+
+
+void
+GuidedNativeImageIO
+::ParseDicomDirectory(const std::map<string, string> &zip_map, itk::Command *progressCommand)
+{
+  // We will parse the DICOM directory manually to avoid extra time opening
+  // files and also to allow progress reporting
+
+  auto it = zip_map.find("ZIPdir");
+  const string zip_dir= it->second;
+  it = zip_map.find("DICOMdir");
+  const string dir= it->second;
+
+  // Must have a directory
+  if(!itksys::SystemTools::FileIsDirectory(dir.c_str()))
+    throw IRISException(
+        "Error: Not a directory. "
+        "Trying to look for DICOM series in '%s', which is not a directory",
+        dir.c_str());
+
+  // List of tags used for refined grouping of files - order matters!
+  std::vector<gdcm::Tag> tags_refine;
+  tags_refine.push_back(m_tagSeriesNumber);
+  tags_refine.push_back(m_tagSequenceName);
+  tags_refine.push_back(m_tagSliceThickness);
+  tags_refine.push_back(m_tagRows);
+  tags_refine.push_back(m_tagCols);
+
+  // List of tags that we want to parse - everything else may be ignored
+  std::set<gdcm::Tag> tags_all;
+  tags_all.insert(tags_refine.begin(), tags_refine.end());
+  tags_all.insert(m_tagDesc);
+  tags_all.insert(m_tagSeriesInstanceUID);
+
+  // Clear the information about the last parse
+  m_LastDicomParseResult.Reset();
+  m_LastDicomParseResult.Directory = dir;
+
+  // GDCM directory listing
+  gdcm::Directory dirList;
+
+  // Load the directory - this should be quick
+  dirList.Load(dir, false);
+  gdcm::Directory::FilenamesType const &filenames = dirList.GetFilenames();
+  for(gdcm::Directory::FilenamesType::const_iterator it = filenames.begin();
+    it != filenames.end(); ++it)
+    {
+    // Process each filename in the directory
+    gdcm::Reader reader;
+    reader.SetFileName(it->c_str());
+
+    // Try reading this file. Fail quietly.
+    bool read = false;
+    try { read = reader.ReadSelectedTags(tags_all, true); }
+    catch(...) {}
+
+    // If nothing read, keep going
+    if(!read)
+      continue;
+
+    // Create a string filter to get tags
+    gdcm::StringFilter sf;
+    sf.SetFile(reader.GetFile());
+
+    // Start with the ID being the UID
+    std::string uid = sf.ToString(m_tagSeriesInstanceUID);
+    std::string full_id = uid;
+
+    // Iterate over the tags in the refine list
+    for(int iTag = 0; iTag < tags_refine.size(); iTag++)
+      {
+      // Read the tag value
+      std::string s = sf.ToString(tags_refine[iTag]);
+
+      // This code is from gdcmSerieHelper
+      if( full_id == uid && !s.empty() )
+        {
+        full_id += "."; // add separator
+        }
+      full_id += s;
+      }
+
+    // Eliminate non-alnum characters, including whitespace...
+    //   that may have been introduced by concats.
+    for(size_t i=0; i<full_id.size(); i++)
+      {
+      while(i<full_id.size()
+        && !( full_id[i] == '.'
+          || (full_id[i] >= 'a' && full_id[i] <= 'z')
+          || (full_id[i] >= '0' && full_id[i] <= '9')
+          || (full_id[i] >= 'A' && full_id[i] <= 'Z')))
+        {
+        full_id.erase(i, 1);
+        }
+      }
+
+    // The info for the current series
+    DicomDirectoryParseResult::DicomSeriesInfo &series_info
+        = m_LastDicomParseResult.SeriesMap[full_id];
+
+    // The registry for the current series
+    Registry &r = series_info.MetaData;
+
+    // Have we found this ID before?
+    if(r.IsEmpty())
+      {
+      r["SeriesId"] << full_id;
+
+      // Read series description
+      r["SeriesDescription"] << sf.ToString(m_tagDesc);
+      r["SeriesNumber"] << sf.ToString(m_tagSeriesNumber);
+
+      // Read the dimensions
+      r["Rows"] << std::atoi(sf.ToString(m_tagRows).c_str());
+      r["Columns"] << std::atoi(sf.ToString(m_tagCols).c_str());
+      r["NumberOfImages"] << 1;
+      }
+    else
+      {
+      // Increement the number of images
+      r["NumberOfImages"] << r["NumberOfImages"][0] + 1;
+      }
+
+    // Update the dimensions string
+    ostringstream oss;
+    oss << r["Rows"][0] << " x " << r["Columns"][0] << " x " << r["NumberOfImages"][0];
+    r["Dimensions"] << oss.str();
+
+    // Update the filelist
+    series_info.FileList.push_back(*it);
+
+    // Indicate some progress
+    if(progressCommand)
+      progressCommand->Execute(this, itk::ProgressEvent());
+    }
+
+  // Complain if no series have been found
+  if(m_LastDicomParseResult.SeriesMap.size() == 0)
+    throw IRISException(
+        "Error: DICOM series not found. "
+        "Directory '%s' does not appear to contain a DICOM series.", dir.c_str());
+}
+
+
 
 void
 GuidedNativeImageIO

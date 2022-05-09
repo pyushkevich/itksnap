@@ -89,6 +89,7 @@ AbstractPage::WarningMessage(const IRISWarningList &wl)
     }
 }
 
+
 bool AbstractPage::PerformIO()
 {
   // Get the selected format
@@ -204,7 +205,6 @@ protected:
 };
 */
 
-
 void SelectFilePage::initializePage()
 {
   assert(m_Model);
@@ -264,9 +264,6 @@ void SelectFilePage::initializePage()
   // Provide a callback for determining format from filename
   m_FilePanel->setCustomFormatOracle(this, "customFormatOracle");
 }
-
-
-
 
 bool SelectFilePage::validatePage()
 {
@@ -407,6 +404,8 @@ void SummaryPage::initializePage()
 
 bool SummaryPage::validatePage()
 {
+  IRISApplication *app;
+  app->cleanUp_tempdir();
   m_Model->Finalize();
   return true;
 }

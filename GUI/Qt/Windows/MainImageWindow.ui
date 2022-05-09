@@ -191,7 +191,7 @@ QTextBrowser {
                   <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.SF NS Text'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:12px; margin-bottom:4px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;Learn about the &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.NewFeaturesVersion30&quot;&gt;&lt;span style=&quot; font-size:11px; text-decoration: underline; color:#0000ff;&quot;&gt;new features&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:11px;&quot;&gt; in this version&lt;/span&gt;&lt;/li&gt;
 &lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:4px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;Read a &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.UpgradingTo30&quot;&gt;&lt;span style=&quot; font-size:11px; text-decoration: underline; color:#0000ff;&quot;&gt;quick transition guide&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:11px;&quot;&gt; for Version 2 users&lt;/span&gt;&lt;/li&gt;
@@ -344,7 +344,7 @@ color:rgb(103, 103, 103);
      <x>0</x>
      <y>0</y>
      <width>907</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -655,11 +655,19 @@ color:rgb(103, 103, 103);
      <addaction name="actionRecentWorkspace4"/>
      <addaction name="actionRecentWorkspace5"/>
     </widget>
+    <widget class="QMenu" name="menuExport_as_ZIP_file">
+     <property name="title">
+      <string>Export as ZIP file ...</string>
+     </property>
+     <addaction name="actionKeep_Filenames"/>
+     <addaction name="actionRandom_Filenames"/>
+    </widget>
     <addaction name="actionOpenWorkspace"/>
     <addaction name="menuRecentWorkspaces"/>
     <addaction name="separator"/>
     <addaction name="actionSaveWorkspace"/>
     <addaction name="actionSaveWorkspaceAs"/>
+    <addaction name="menuExport_as_ZIP_file"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -1681,6 +1689,16 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>|</string>
+   </property>
+  </action>
+  <action name="actionKeep_Filenames">
+   <property name="text">
+    <string>Keep Layers Names</string>
+   </property>
+  </action>
+  <action name="actionRandom_Filenames">
+   <property name="text">
+    <string>Random Layers Names</string>
    </property>
   </action>
  </widget>

@@ -512,6 +512,42 @@ bool SaveWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWid
     }
 }
 
+bool ExportWorkspace(QWidget *parent, GlobalUIModel *model, bool interactive, QWidget *widget, bool anonymize)
+{
+  // Get the currently stored project name
+  QString file_abs = from_utf8(model->GetGlobalState()->GetProjectFilename());
+
+  // Prompt for a project filename if one was not provided
+  if(interactive || file_abs.length() == 0)
+    {
+    // Use the dialog with history - to be consistent with other parts of SNAP
+    QString file = ShowSimpleSaveDialogWithHistory(
+          parent, model, "Project", "Export Workspace",
+          "Workspace File", "ITK-SNAP Workspace Files (*.zip)",
+          true, file_abs);
+
+    // If user hits cancel, move on
+    if(file.isNull())
+      return false;
+
+    // Make sure to get an absolute path, because the project needs that info
+    file_abs = QFileInfo(file).absoluteFilePath();
+    }
+
+  // If file was provided, set it as the current project file
+  try
+    {
+    model->GetDriver()->ExportProject(to_utf8(file_abs), anonymize);
+    return true;
+    }
+  catch(exception &exc)
+    {
+    ReportNonLethalException(widget, exc, "Error Saving Project",
+                             QString("Failed to save project %1").arg(file_abs));
+    return false;
+    }
+}
+
 #include <QFileDialog>
 #include <QFileInfo>
 

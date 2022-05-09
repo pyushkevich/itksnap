@@ -1,3 +1,4 @@
+
 #--------------------------------------------------------------------------------
 # PROJECT: SNAP                             
 #--------------------------------------------------------------------------------
@@ -10,6 +11,7 @@ PROJECT(SNAP)
 # CMAKE PRELIMINARIES                       
 #--------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 2.8.12)
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -249,6 +251,13 @@ SET(LOGIC_CXX
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
   Common/JSon/jsoncpp.cpp
+  Common/Minizip/ioapi.c
+  Common/Minizip/iowin32.c
+  Common/Minizip/miniunz.c
+  Common/Minizip/minizip.c
+  Common/Minizip/minizip_add_ons.cxx
+  Common/Minizip/unzip.c
+  Common/Minizip/zip.c
   Logic/Common/ColorLabelTable.cxx
   Logic/Common/ColorMap.cxx
   Logic/Common/ColorMapPresetManager.cxx
@@ -344,6 +353,13 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
   Common/JSon/json/json.h
   Common/JSon/json/json-forwards.h
+  Common/Minizip/iowin32.h
+  Common/Minizip/ioapi.h
+  Common/Minizip/unzip.h
+  Common/Minizip/zip.h
+  Common/Minizip/miniunz.h
+  Common/Minizip/minizip.h
+  Common/Minizip/crypt.h
   Common/PresetManager.h
   Common/PresetManager.hxx
   Common/PropertyModel.h
@@ -955,6 +971,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Common
     ${SNAP_SOURCE_DIR}/Common/ITKExtras
     ${SNAP_SOURCE_DIR}/Common/JSon
+    ${SNAP_SOURCE_DIR}/Common/Minizip
     ${SNAP_SOURCE_DIR}/Logic
     ${SNAP_SOURCE_DIR}/Logic/Common
     ${SNAP_SOURCE_DIR}/Logic/Framework
@@ -1052,7 +1069,6 @@ SET(SNAP_EXTERNAL_LIBS_LITE
   ${CURL_LIBRARIES}
   ${SYSTEM_LIBS})
 
-
 #--------------------------------------------------------------------------------
 # Include C3D Library as submodule
 #--------------------------------------------------------------------------------
@@ -1102,6 +1118,7 @@ ADD_LIBRARY(itksnapui_qt
   ${UI_QT_CXX} ${UI_WRAPPED_MOC_HEADERS} ${UI_MOC_HEADERS} 
   ${UI_NONMOC_HEADERS} ${UI_FORM_HEADERS} ${UI_RESOURCES_RCC})
 
+
 # This is experimental: it seems that shared libraries do not
 # build accurately (at least on MacOS) without the following
 # two lines
@@ -1146,6 +1163,7 @@ ENDIF(WIN32)
 
 # Define the main SNAP executable
 SET(SNAP_BUNDLE_NAME ITK-SNAP)
+
 
 # Configure the executable's sources and libraries
 ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})

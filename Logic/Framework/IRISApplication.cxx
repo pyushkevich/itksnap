@@ -6,8 +6,8 @@
   Date:      $Date: 2011/04/18 17:35:30 $
   Version:   $Revision: 1.37 $
   Copyright (c) 2007 Paul A. Yushkevich
-  
-  This file is part of ITK-SNAP 
+
+  This file is part of ITK-SNAP
 
   ITK-SNAP is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
- 
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -29,11 +29,11 @@
 
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-  PURPOSE.  See the above copyright notices for more information. 
+  PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 // Borland compiler is very lazy so we need to instantiate the template
-//  by hand 
+//  by hand
 #if defined(__BORLANDC__)
 #include "SNAPBorlandDummyTypes.h"
 #endif
@@ -92,7 +92,7 @@
 #include <iomanip>
 
 IRISApplication
-::IRISApplication() 
+::IRISApplication()
 {
   // Create a new system interface
   m_SystemInterface = new SystemInterface();
@@ -186,12 +186,12 @@ GetImageToAnatomyRAI()
 }
 
 IRISApplication
-::~IRISApplication() 
+::~IRISApplication()
 {
   delete m_SystemInterface;
 }
 
-void 
+void
 IRISApplication
 ::InitializeSNAPImageData(const SNAPSegmentationROISettings &roi,
                           CommandType *progressCommand)
@@ -200,7 +200,7 @@ IRISApplication
 
   // Create the SNAP image data object
   m_SNAPImageData->InitializeToROI(m_IRISImageData, roi, progressCommand);
-  
+
   // Override the interpolator in ROI for label interpolation, or we will get
   // nonsense
   SNAPSegmentationROISettings roiLabel = roi;
@@ -210,7 +210,7 @@ IRISApplication
   LabelImageWrapper *seg = this->GetSelectedSegmentationLayer();
   LabelImageType::Pointer imgNewLabel = seg->DeepCopyRegion(roiLabel,progressCommand);
 
-  // Filter the segmentation image to only allow voxels of 0 intensity and 
+  // Filter the segmentation image to only allow voxels of 0 intensity and
   // of the current drawing color
   LabelType passThroughLabel = m_GlobalState->GetDrawingColorLabel();
 
@@ -246,7 +246,7 @@ IRISApplication
   m_GlobalState->SetSpeedValid(false);
 }
 
-void 
+void
 IRISApplication
 ::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
@@ -262,9 +262,9 @@ IRISApplication
 }
 
 
-void 
+void
 IRISApplication
-::UpdateSNAPSpeedImage(SpeedImageType *newSpeedImage, 
+::UpdateSNAPSpeedImage(SpeedImageType *newSpeedImage,
                        SnakeType snakeMode)
 {
   // This has to happen in SNAP mode
@@ -277,11 +277,11 @@ IRISApplication
   // Initialize the speed wrapper
   if(!m_SNAPImageData->IsSpeedLoaded())
     m_SNAPImageData->InitializeSpeed();
-  
+
   // Send the speed image to the image data
   m_SNAPImageData->GetSpeed()->SetImage(newSpeedImage);
 
-  // Save the snake mode 
+  // Save the snake mode
   m_GlobalState->SetSnakeType(snakeMode);
 
   // Set the speed as valid
@@ -499,7 +499,7 @@ IRISApplication
 
   // Disconnect from the pipeline right away
   imgLabel->DisconnectPipeline();
-  
+
   // The header of the label image is made to match that of the grey image
   imgLabel->SetOrigin(m_CurrentImageData->GetMain()->GetImageBase()->GetOrigin());
   imgLabel->SetSpacing(m_CurrentImageData->GetMain()->GetImageBase()->GetSpacing());
@@ -666,7 +666,7 @@ IRISApplication
   return itVol.GetNumberOfChangedVoxels();
 }
 
-void 
+void
 IRISApplication
 ::UpdateIRISWithSnapImageData(CommandType *progressCommand)
 {
@@ -676,8 +676,8 @@ IRISApplication
   typedef LevelSetImageWrapper::ImageType SourceImageType;
   typedef LabelImageWrapper::ImageType TargetImageType;
 
-  // If the voxel size of the image does not match the voxel size of the 
-  // main image, we need to resample the region  
+  // If the voxel size of the image does not match the voxel size of the
+  // main image, we need to resample the region
   SourceImageType::Pointer source = m_SNAPImageData->GetSnake()->GetImage();
 
   // The target segmentation is whatever was last selected in IRIS, which we stored
@@ -714,7 +714,7 @@ IRISApplication
     typedef itk::Function::HammingWindowFunction<VRadius> WindowFunction;
     typedef itk::ConstantBoundaryCondition<SourceImageType> Condition;
     typedef itk::WindowedSincInterpolateImageFunction<
-      SourceImageType, VRadius, 
+      SourceImageType, VRadius,
       WindowFunction, Condition, double> SincInterpolatorType;
 
     // Choose the interpolator
@@ -730,22 +730,22 @@ IRISApplication
 
       case TRICUBIC :
         fltSample->SetInterpolator(CubicInterpolatorType::New());
-        break;  
+        break;
 
       case SINC_WINDOW_05 :
         fltSample->SetInterpolator(SincInterpolatorType::New());
         break;
       };
 
-    // Set the image sizes and spacing. We are creating an image of the 
-    // dimensions of the ROI defined in the IRIS image space. 
+    // Set the image sizes and spacing. We are creating an image of the
+    // dimensions of the ROI defined in the IRIS image space.
     fltSample->SetSize(roi.GetROI().GetSize());
     fltSample->SetOutputSpacing(target->GetSpacing());
     fltSample->SetOutputOrigin(source->GetOrigin());
     fltSample->SetOutputDirection(source->GetDirection());
 
     // Watch the segmentation progress
-    if(progressCommand) 
+    if(progressCommand)
       fltSample->AddObserver(itk::AnyEvent(),progressCommand);
 
     // Set the unknown intensity to positive value
@@ -753,10 +753,10 @@ IRISApplication
 
     // Perform resampling
     fltSample->UpdateLargestPossibleRegion();
-    
+
     // Change the source to the output
     source = fltSample->GetOutput();
-    }  
+    }
 
   // Creat the source iterator
   typedef itk::ImageRegionConstIterator<SourceImageType> SourceIteratorType;
@@ -872,9 +872,9 @@ IRISApplication
 
 
 
-void 
+void
 IRISApplication
-::ReleaseSNAPImageData() 
+::ReleaseSNAPImageData()
 {
   assert(m_SNAPImageData->IsMainLoaded() &&
          m_CurrentImageData != m_SNAPImageData);
@@ -907,9 +907,9 @@ IRISApplication
   InvokeEvent(CursorUpdateEvent());
 }
 
-void 
+void
 IRISApplication
-::SetCurrentImageDataToIRIS() 
+::SetCurrentImageDataToIRIS()
 {
   assert(m_IRISImageData);
   if(m_CurrentImageData != m_IRISImageData)
@@ -928,7 +928,7 @@ IRISApplication
 }
 
 void IRISApplication
-::SetCurrentImageDataToSNAP() 
+::SetCurrentImageDataToSNAP()
 {
   assert(m_SNAPImageData->IsMainLoaded());
   if(m_CurrentImageData != m_SNAPImageData)
@@ -959,14 +959,14 @@ void IRISApplication
 int IRISApplication::GetImageDirectionForAnatomicalDirection(AnatomicalDirection iAnat)
 {
   std::string myrai = this->GetImageToAnatomyRAI();
-  
+
   string rai1 = "SRA", rai2 = "ILP";
-  
+
   char c1 = rai1[iAnat], c2 = rai2[iAnat];
   for(int j = 0; j < 3; j++)
     if(myrai[j] == c1 || myrai[j] == c2)
       return j;
-  
+
   assert(0);
   return 0;
 }
@@ -990,7 +990,7 @@ IRISApplication
 ::ExportSlice(AnatomicalDirection iSliceAnat, const char *file)
 {
   // Get the slice index in image coordinates
-  size_t iSliceImg = 
+  size_t iSliceImg =
     GetImageDirectionForAnatomicalDirection(iSliceAnat);
 
   // TODO: should this not export using the default scalar representation,
@@ -1013,7 +1013,7 @@ IRISApplication
   typedef itk::FlipImageFilter<SliceType> FlipFilter;
   FlipFilter::Pointer fltFlip = FlipFilter::New();
   fltFlip->SetInput(imgGrey);
-  
+
   FlipFilter::FlipAxesArrayType arrFlips;
   arrFlips[0] = false; arrFlips[1] = true;
   fltFlip->SetFlipAxes(arrFlips);
@@ -1026,7 +1026,7 @@ IRISApplication
   writer->Update();
 }
 
-void 
+void
 IRISApplication
 ::ExportSegmentationStatistics(const char *file)
 {
@@ -1040,7 +1040,7 @@ IRISApplication
   if(!fout.good())
     throw itk::ExceptionObject(__FILE__, __LINE__,
                                "File can not be opened for writing");
-  try 
+  try
     {
     stats.ExportLegacy(fout, *m_ColorLabelTable);
     }
@@ -1057,7 +1057,7 @@ IRISApplication
 
 void
 IRISApplication
-::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *progress) 
+::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Command *progress)
 {
   // Update the list of VTK meshes
   m_MeshManager->UpdateVTKMeshes(progress);
@@ -1178,7 +1178,7 @@ IRISApplication
   // Update the segmentation
   typedef itk::ImageRegionIterator<
     LabelImageWrapper::ImageType> IteratorType;
-  for(IteratorType it(imgLabel, imgLabel->GetBufferedRegion());  
+  for(IteratorType it(imgLabel, imgLabel->GetBufferedRegion());
     !it.IsAtEnd(); ++it)
     {
     if(it.Get() == drawover)
@@ -1225,11 +1225,11 @@ IRISApplication
 
 int
 IRISApplication
-::RelabelSegmentationWithCutPlane(const Vector3d &normal, double intercept) 
+::RelabelSegmentationWithCutPlane(const Vector3d &normal, double intercept)
 {
   // Get the label image
   LabelImageWrapper::ImageType *imgLabel = this->GetSelectedSegmentationLayer()->GetImage();
-  
+
   // Create the smart target iterator
   SegmentationUpdateIterator it(
         imgLabel, imgLabel->GetBufferedRegion(),
@@ -1243,9 +1243,9 @@ IRISApplication
     {
     // Compute the distance to the plane
     itk::Index<3> index = it.GetIndex();
-    double distance = 
-      index[0]*normal[0] + 
-      index[1]*normal[1] + 
+    double distance =
+      index[0]*normal[0] +
+      index[1]*normal[1] +
       index[2]*normal[2] - intercept;
 
     // Check the side of the plane
@@ -1270,9 +1270,9 @@ IRISApplication
   return it.GetNumberOfChangedVoxels();
 }
 
-int 
+int
 IRISApplication
-::GetRayIntersectionWithSegmentation(const Vector3d &point, 
+::GetRayIntersectionWithSegmentation(const Vector3d &point,
                                      const Vector3d &ray, Vector3i &hit) const
 {
   // Get the label wrapper
@@ -1385,7 +1385,7 @@ IRISApplication
       delta[2][0] = dratio[2] * rx;
       }
 
-    // choose the shortest path 
+    // choose the shortest path
     if ( fabs(delta[0][0]) <= fabs(delta[1][0]) && fabs(delta[0][0]) <= fabs(delta[2][0]) )
       {
       dratio[0]   = delta[0][0]/rx;
@@ -1403,7 +1403,7 @@ IRISApplication
       pz += delta[1][2];
       }
     else
-      { //if (fabs(delta[2][0] <= fabs(delta[0][0] && fabs(delta[2][0] <= fabs(delta[0][0]) 
+      { //if (fabs(delta[2][0] <= fabs(delta[0][0] && fabs(delta[2][0] <= fabs(delta[0][0])
       delta[2][1] = dratio[2] * ry;
       px += delta[2][0];
       py += delta[2][1];
@@ -1800,6 +1800,91 @@ IRISApplication
   InvokeEvent(MainImageDimensionsChangeEvent());
 }
 
+
+#include "miniunz.h"
+string IRISApplication::GetTempDirName()
+{
+#ifdef WIN32
+  char tempDir[_MAX_PATH + 1] = "";
+
+  // First call return a directory only
+  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
+  if(length <= 0 || length > _MAX_PATH)
+    throw IRISException("Unable to create temporary directory");
+
+  // This will create a unique file in the temp directory
+  char* tempFile = tempnam(tempDir, "ZIPDIR_");
+
+  // We use the filename to create a directory
+  _mkdir(tempFile);
+  return tempFile;
+
+#else
+  char tmp_template[4096];
+  strcpy(tmp_template, "/tmp/ZIPDIR_XXXXXX");
+  string tmpdir = mkdtemp(tmp_template);
+  return tmpdir;
+#endif
+}
+
+#ifdef WIN32
+  #include <direct.h>
+  #include <strsafe.h>
+#else
+  #include <dirent.h>
+  #include <sys/stat.h>
+#endif
+
+
+void IRISApplication::cleanUp_tempdir()
+{
+#ifdef WIN32
+  char tempDir[_MAX_PATH + 1] = "";
+  // First call return a directory only
+  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
+  WIN32_FIND_DATA ffd;
+  TCHAR szDir[MAX_PATH];
+  HANDLE hFind = INVALID_HANDLE_VALUE;
+
+  // Prepare string for use with FindFile functions.  First, copy the
+  // string to a buffer, then append '\*' to the directory name.
+  StringCchCopy(szDir, MAX_PATH, tempDir);
+  StringCchCat(szDir, MAX_PATH, TEXT("\\*"));
+
+  // Find the first file in the directory.
+  hFind = FindFirstFile(szDir, &ffd);
+
+
+  while (FindNextFile(hFind, &ffd) != 0)
+  {
+      std::size_t find_zip = std::string(ffd.cFileName).find("ZIP");
+      if (find_zip != std::string::npos) {
+          std::string path = tempDir + std::string(ffd.cFileName);
+          itksys::SystemTools::RemoveADirectory(path);
+      }
+  }
+
+
+#else
+  //Find the folders extracted into temp directory
+  DIR* dir;
+  struct dirent* ent;
+  std::string path;
+  if ((dir = opendir("/tmp")) != NULL) {
+      while ((ent = readdir (dir)) != NULL) {
+          //Find the extracted folders
+          std::size_t find_zip = std::string(ent->d_name).find("ZIPDIR");
+          if (find_zip != std::string::npos) {
+              path = "/tmp/" + std::string(ent->d_name);
+              itksys::SystemTools::RemoveADirectory(path);
+          }
+      }
+      closedir(dir);
+  }
+#endif
+}
+
+
 ImageWrapperBase *
 IRISApplication
 ::LoadImageViaDelegate(const char *fname,
@@ -1822,8 +1907,32 @@ IRISApplication
   // Create a native image IO object
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
-  // Load the header of the image
-  io->ReadNativeImageHeader(fname, *ioHints);
+  // Extract the zip file and store paths
+  if(string(fname).find(".zip") != string::npos){
+
+      string temp = GetTempDirName();
+      chdir(temp.c_str());
+
+      // Extract in a temporary directory
+      const string file_extracted = extract_zip(fname);
+      const string folder_extracted = file_extracted.substr(0, file_extracted.find_last_of("/\\"));
+
+      // Get the absolude path of the last extracted file
+      string dir = temp + "/" + folder_extracted;
+
+      // Store paths
+      m_map_zip["DICOMdir"] = dir;
+      m_map_zip["ZIPdir"] = fname;
+
+      io->ReadNativeImageHeader(dir.c_str(), *ioHints);
+
+      io->SetZipName(m_map_zip);
+  }
+  else{
+      // Load the header of the image
+      io->ReadNativeImageHeader(fname, *ioHints);
+  }
+
 
   // Validate the header
   del->ValidateHeader(io, wl);
@@ -1843,6 +1952,9 @@ IRISApplication
   // Store the IO hints inside of the image - in case it ever gets added
   // to a project
   layer->SetIOHints(*ioHints);
+
+  // clean up temp directory
+  cleanUp_tempdir();
 
   return layer;
 }
@@ -2116,6 +2228,128 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
   preg.CleanEmptyFolders();
 }
 
+
+void IRISApplication::ExportProjectToRegistry(Registry &preg, const std::string proj_file_full, bool anonymize)
+{
+  // Clear the registry contents
+  preg.Clear();
+
+  // Get the directory in which the project will be saved
+  std::string project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
+
+  // Put version information - later versions may not be compatible
+  preg["Version"] << SNAPCurrentVersionReleaseDate;
+
+  // Save the directory to the project file. This allows us to deal with the project
+  // being moved elsewhere in the filesystem
+  preg["SaveLocation"] << project_dir;
+
+  // Save each of the layers with 'saveable' roles
+  int i = 0;
+  for(LayerIterator it = GetCurrentImageData()->GetLayers(
+        MAIN_ROLE | LABEL_ROLE | OVERLAY_ROLE); !it.IsAtEnd(); ++it)
+    {
+    ImageWrapperBase *layer = it.GetLayer();
+
+    // Get the filename of the layer
+    const char *filename = layer->GetFileName();
+
+    // If the layer does not have a filename, skip it
+    if(!filename || strlen(filename) == 0)
+      continue;
+
+    // Create a native image IO object for this image
+    SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
+
+    // The IO hints for the file
+    Registry io_hints;
+
+    // if file is a ZIP, we extract it first
+    bool zip =false;
+    string new_folder;
+    if(string(filename).find(".zip") != string::npos)
+    {
+        string layer_name = string(filename).substr(string(filename).find_last_of("/\\")+1);
+        layer_name.erase(layer_name.end()-4,layer_name.end());
+        new_folder = project_dir + "/" + layer_name;
+#ifdef WIN32
+        _mkdir(new_folder.c_str());
+        _chdir(new_folder.c_str());
+#else
+        mkdir(new_folder.c_str(),0775);
+        chdir(new_folder.c_str());
+#endif
+        string extracted_files = new_folder + "/" + extract_zip(filename);
+        // Load the header of the image and the image data
+        io->ReadNativeImage(extracted_files.c_str(), io_hints);
+        zip = true;
+    }
+    else{
+        // Load the header of the image and the image data
+        io->ReadNativeImage(filename, io_hints);
+    }
+
+
+    // Compute the hash of the image data to generate filename
+    std::string image_md5 = io->GetNativeImageMD5Hash();
+
+    // Create a filename that combines the layer index with the hash code
+    char fn_layer_new[4096];
+
+    if(!anonymize)
+    {
+      string layer_name = project_dir
+              + string(filename).substr(string(filename).find_last_of("/\\"));
+      layer_name = layer_name.substr(0, layer_name.find_last_of("."))+ ".nii.gz";
+      strcpy(fn_layer_new, layer_name.c_str());
+
+    }
+    else
+    {
+        sprintf(fn_layer_new, "%s/layer_%03d_%s.nii.gz", project_dir.c_str(), i, image_md5.c_str());
+    }
+
+    // Save the layer there. Since we are saving as a NIFTI, we don't need to
+    // provide any hints
+    Registry dummy_hints;
+    io->SaveNativeImage(fn_layer_new, dummy_hints);
+
+    // If zip file, remove the extraction folder
+    if(zip){
+        itksys::SystemTools::RemoveADirectory(new_folder);
+    }
+
+    // Get the full name of the image file
+    std::string layer_file_full = itksys::SystemTools::CollapseFullPath(filename);
+
+    // Create a folder for this layer
+    Registry &folder = preg.Folder(Registry::Key("Layers.Layer[%03d]", i++));
+
+    // Put the filename and relative filename into the folder
+    folder["AbsolutePath"] << layer_file_full;
+
+    // Put the role associated with the file into the folder
+    folder["Role"].PutEnum(SNAPRegistryIO::GetEnumMapLayerRole(), it.GetRole());
+
+    // Save the metadata associated with the layer
+    SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
+
+    // Save the layer transform - relevant only for overlays
+    if(it.GetRole() == OVERLAY_ROLE)
+      {
+      AffineTransformHelper::WriteToRegistry(&folder, layer->GetITKTransform());
+      }
+    }
+
+  // Save the annotations in the workspace
+  Registry &ann_folder = preg.Folder("Annotations");
+  this->m_IRISImageData->GetAnnotations()->SaveAnnotations(ann_folder);
+
+  // Recursively search and delete empty folders
+  preg.CleanZeroSizeArrays();
+  preg.CleanEmptyFolders();
+}
+
 void IRISApplication::SaveProject(const std::string &proj_file)
 {
   // Header for ITK-SNAP projects
@@ -2147,6 +2381,59 @@ void IRISApplication::SaveProject(const std::string &proj_file)
 
   // Store the project registry
   m_LastSavedProjectState = preg;
+}
+
+#include "minizip.h"
+void IRISApplication::ExportProject(const std::string &proj_file, bool anonymize)
+{
+
+#ifdef WIN32
+  std::string wsdir = proj_file;
+  wsdir.erase(wsdir.length()-4, wsdir.length());
+  int ret = mkdir(wsdir.c_str());
+#else
+#ifdef unix
+  std::string wsdir = proj_file;
+  wsdir.erase(wsdir.length()-4, wsdir.length());
+  int ret = mkdir (wsdir.c_str(),0775);
+#endif
+#endif
+  // Header for ITK-SNAP projects
+  static const char *header =
+      "ITK-SNAP (itksnap.org) Project File\n"
+      "\n"
+      "This file can be moved/copied along with the images that it references\n"
+      "as long as the relative location of the images to the project file is \n"
+      "the same. Do not modify the SaveLocation entry, or this will not work.\n";
+
+  // Get the full name of the project file
+  std::string proj_file_full = wsdir + proj_file.substr(proj_file.find_last_of("\\/"), proj_file.length());
+  proj_file_full.replace(proj_file_full.length()-3,7, "itksnap"); // Replace the zip extension with .itksnap
+
+  // Create a registry that will be used to save the project
+  Registry preg;
+
+  // Do the actual writing to the registry
+  ExportProjectToRegistry(preg, proj_file_full, anonymize);
+
+  // Finally, save the registry
+  preg.WriteToXMLFile(proj_file_full.c_str(), header);
+
+  // Save the project filename
+  m_GlobalState->SetProjectFilename(proj_file_full.c_str());
+
+  // Update the history
+  m_SystemInterface->GetHistoryManager()->
+      UpdateHistory("Project", proj_file_full, false);
+
+  // Store the project registry
+  m_LastSavedProjectState = preg;
+
+  // Zip the folder
+  ZipAFolder(proj_file.c_str(), wsdir.c_str());
+
+  // Remove the folder created
+  itksys::SystemTools::RemoveADirectory(wsdir);
 }
 
 void IRISApplication::OpenProject(
@@ -2244,7 +2531,7 @@ void IRISApplication::OpenProject(
     // Check if the main has been loaded
     if(role == MAIN_ROLE)
       {
-      main_loaded = true;      
+      main_loaded = true;
       }
     else if(role == LABEL_ROLE)
       {
@@ -2366,19 +2653,19 @@ IRISApplication
   // Load the settings associated with this file
   Registry regFull;
   m_SystemInterface->FindRegistryAssociatedWithFile(filename, regFull);
-    
+
   // Get the folder dealing with grey image properties
   Registry &regRGB = regFull.Folder("Files.RGB");
 
   // Create the image reader
   GuidedImageIO<RGBType> io;
-  
+
   // Load the image (exception may occur here)
   RGBImageType::Pointer imgRGB = io.ReadImage(filename, regRGB, false);
 
   if (isMain)
     {
-    // Set the image as the current main image  
+    // Set the image as the current main image
     UpdateIRISRGBImage(imgRGB);
     }
   else
@@ -2388,11 +2675,11 @@ IRISApplication
     }
 
   // Save the filename for the UI
-  m_GlobalState->SetRGBFileName(filename);  
+  m_GlobalState->SetRGBFileName(filename);
 }
 */
 
-void 
+void
 IRISApplication
 ::ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection)
 {

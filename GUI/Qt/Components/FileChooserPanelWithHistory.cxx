@@ -255,7 +255,17 @@ void FileChooserPanelWithHistory::initializeForSaveFile(
   if(initialFile.length())
     {
     // Update the filename and working directory based on the initial file
-    this->updateFilename(initialFile);    
+    // If it is a zip file, we change the default extension to NIFTI
+    if(initialFile.contains(".zip"))
+      {
+      QString new_file = initialFile;
+      new_file.replace("zip","nii.gz");
+      this->updateFilename(new_file);
+      }
+    else
+      {
+      this->updateFilename(initialFile);
+      }
     }
   else
     {
@@ -308,12 +318,13 @@ void FileChooserPanelWithHistory::updateFilename(QString filename)
   QFileInfo fi(filename);
   QString new_file;
 
+
   // If the filename given is relative, define it relative to the working directory
   if(fi.isRelative())
     fi = QFileInfo(m_workingDir, filename);
 
   // If the path exists, use it as the new working directory
-  if(fi.absoluteDir().exists() || (!m_openMode && m_allowCreateDir))
+  else if(fi.absoluteDir().exists() || (!m_openMode && m_allowCreateDir))
     {
     m_workingDir = fi.absolutePath();
     new_file = fi.fileName();
