@@ -384,3 +384,17 @@ UpdateMetaData()
     }
 }
 
+size_t
+MeshWrapperBase
+::GetNumberOfMeshes(unsigned int timepoint)
+{
+  size_t ret = 0;
+
+  if (m_MeshAssemblyMap.count(timepoint))
+    {
+    ret = m_MeshAssemblyMap[timepoint]->size();
+    }
+
+  return ret;
+}
+

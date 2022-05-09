@@ -78,57 +78,39 @@ MeshImportModel::Load(std::vector<std::string> &fn_list, FileFormat format)
   // if failed, check upstream file loading logic
   assert(fn_list.size() > 0);
 
-  // Create a new IO for loading
-  GuidedMeshIO *IO = new GuidedMeshIO();
-
-  // Create a mesh wrapper
-  auto wrapper = StandaloneMeshWrapper::New();
-  SmartPtr<MeshWrapperBase> baseWrapper = wrapper.GetPointer();
-
   // Load into the current time point
   IRISApplication *app = m_ParentModel->GetDriver();
 
-  if (m_Mode == Mode::SERIES)
-    {
-    // load each file in the list from tp 0
-    size_t tp = 0, nt = app->GetNumberOfTimePoints();
-    for (auto &fn : fn_list)
-      {
-      if (tp >= nt)
-        break;
+  // Main should be loaded
+  if (!app->IsMainImageLoaded())
+    return;
 
-      // Execute loading
-      IO->LoadMesh(fn.c_str(), format, baseWrapper, tp++, 0u);
-      }
-    }
-  else
-    {
-    // load file into current tp
-    auto crntTP = app->GetCursorTimePoint();
+  // Get image mesh layers
+  ImageMeshLayers *mesh_layers = app->GetIRISImageData()->GetMeshLayers();
 
-    IO->LoadMesh(fn_list[0].c_str(), format, baseWrapper, crntTP, 0u);
-    }
+  bool LoadFromFirstTP = m_Mode == Mode::SERIES ? true : false;
 
-  // Install the wrapper to the application
-  app->GetIRISImageData()->GetMeshLayers()->AddLayer(baseWrapper);
-
-  delete IO;
+  mesh_layers->AddLayerFromFiles(fn_list, format, LoadFromFirstTP);
 }
 
 void
 MeshImportModel::LoadToTP(const char *filename, FileFormat format)
 {
-  // Create a new IO for loading
-  GuidedMeshIO *IO = new GuidedMeshIO();
 
   // Load into the current time point
   auto app = m_ParentModel->GetDriver();
-  auto tp = app->GetCursorTimePoint();
   auto layers = app->GetIRISImageData()->GetMeshLayers();
-  auto active_layer = layers->GetLayer(layers->GetActiveLayerId());
+  auto tp = app->GetCursorTimePoint();
+  auto active_layer_id = layers->GetActiveLayerId();
+  auto layer = layers->GetLayer(active_layer_id);
+
+  // This should never happen
+  // If failed, check GetActiveLayerId why it's returning a non-exist layer_id
+  assert(layer);
+
+  // Get the mesh_count as the id for the new mesh (id is zero based)
+  auto mesh_count = layer->GetNumberOfMeshes(tp);
 
   // Execute loading
-  IO->LoadMesh(filename, format, active_layer, tp, 0u);
-
-  delete IO;
+  layers->LoadFileToLayer(filename, format, active_layer_id, tp, mesh_count);
 }

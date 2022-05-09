@@ -4,6 +4,7 @@
 #include "SNAPImageData.h"
 #include "IRISImageData.h"
 #include "IRISApplication.h"
+#include "StandaloneMeshWrapper.h"
 #include "SegmentationMeshWrapper.h"
 #include "LevelSetMeshWrapper.h"
 
@@ -152,6 +153,38 @@ ImageMeshLayers
   return 0;
 }
 
+void
+ImageMeshLayers
+::AddLayerFromFiles(std::vector<std::string> &fn_list, FileFormat format,
+                    bool startFromFirstTP)
+{
+  GuidedMeshIO *IO = new GuidedMeshIO();
+
+  // Create a mesh wrapper
+  auto wrapper = StandaloneMeshWrapper::New();
+  SmartPtr<MeshWrapperBase> baseWrapper = wrapper.GetPointer();
+
+  auto app = m_ImageData->GetParent();
+
+  size_t tp = startFromFirstTP ? 0 : app->GetCursorTimePoint();
+  size_t nt = nt = app->GetNumberOfTimePoints();
+
+  // Load one file per time point until final time point is reached
+  for (auto &fn : fn_list)
+    {
+    if (tp >= nt)
+      break;
+
+    // Execute loading
+    IO->LoadMesh(fn.c_str(), format, baseWrapper, tp++, 0u);
+    }
+
+  // Install the wrapper to the application
+  this->AddLayer(baseWrapper);
+
+  delete IO;
+}
+
 SegmentationMeshWrapper*
 ImageMeshLayers::
 AddSegmentationMeshLayer(LabelImageWrapper* segImg)
@@ -252,6 +285,27 @@ bool
 ImageMeshLayers::HasMeshForImage(unsigned long image_id) const
 {
   return m_ImageToMeshMap.count(image_id);
+}
+
+void
+ImageMeshLayers
+::LoadFileToLayer(const char *filename, FileFormat format,
+                unsigned long layer_id, unsigned int timepoint, LabelType mesh_id)
+{
+  // Create a new IO for loading
+  GuidedMeshIO *IO = new GuidedMeshIO();
+
+  // Get Mesh Layer
+  auto layer = GetLayer(layer_id);
+
+  // if failed, check the layer_id passed from the caller
+  assert(layer);
+
+  // Execute loading
+  IO->LoadMesh(filename, format, layer, timepoint, mesh_id);
+
+  delete IO;
+
 }
 
 //---------------------------------------

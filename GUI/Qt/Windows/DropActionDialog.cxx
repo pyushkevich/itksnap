@@ -15,6 +15,8 @@
 #include <QTimer>
 #include "LayoutReminderDialog.h"
 #include "MeshImportModel.h"
+#include <QtWidgetActivator.h>
+#include "LatentITKEventNotifier.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -36,6 +38,38 @@ void DropActionDialog::SetDroppedFilename(QString name)
 void DropActionDialog::SetModel(GlobalUIModel *model)
 {
   m_Model = model;
+
+  activateOnFlag(ui->btnLoadMeshToTP, m_Model, UIF_MESH_TP_LOADABLE,
+                 QtWidgetActivator::HideInactive);
+
+  LatentITKEventNotifier::connect(
+        m_Model, ActiveLayerChangeEvent(),
+        this, SLOT(onModelUpdate(EventBucket*)));
+
+}
+
+void
+DropActionDialog
+::onModelUpdate(EventBucket *bucket)
+{
+  if (bucket->HasEvent(ActiveLayerChangeEvent()))
+    this->update();
+}
+
+void
+DropActionDialog
+::SetIncludeMeshOptions(bool include_mesh)
+{
+  if (!include_mesh)
+    {
+    ui->btnLoadMeshAsLayer->hide();
+    ui->btnLoadMeshToTP->hide();
+    }
+  else
+    {
+    ui->btnLoadMeshAsLayer->show();
+    }
+
 }
 
 void DropActionDialog::InitialLoad(QString name)
@@ -88,8 +122,6 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
   std::string fn = ui->outFilename->text().toStdString();
   // Get the file extension with the dot. e.g. ".vtk"
   std::string ext = fn.substr(fn.find_last_of("."));
-
-  std::cout << "[DropActionDialog] load as layer" << std::endl;
 
   std::vector<std::string> fn_list { fn };
 

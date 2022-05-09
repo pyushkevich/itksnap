@@ -232,6 +232,14 @@ public:
   /** Return true if the mesh needs update */
   virtual bool IsMeshDirty(unsigned int timepoint) = 0;
 
+  /** Whether meshes can be loaded from external file
+   *  Internally generated meshes mostly should not be changed by external
+   *  loading; Override this method if the meshes can be externally loaded
+   *  and changed.
+  */
+  virtual bool IsExternalLoadable() const
+  { return false; }
+
   /** Get the mesh display mapping. This saves renderer a type cast */
   virtual MeshDisplayMappingPolicy *GetMeshDisplayMappingPolicy() const = 0;
 
@@ -290,6 +298,9 @@ public:
 
   // Update Mesh Meta Data
   void UpdateMetaData();
+
+  /** Return the number of polydata currently exist in a timepoint */
+  size_t GetNumberOfMeshes(unsigned int timepoint);
 
   // Give display mapping policy access to protected members for flexible
   // configuration and data retrieval

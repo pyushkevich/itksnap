@@ -74,6 +74,7 @@
 #include "RegistrationModel.h"
 #include "InteractiveRegistrationModel.h"
 #include "DistributedSegmentationModel.h"
+#include "ImageMeshLayers.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -339,6 +340,9 @@ GlobalUIModel::GlobalUIModel()
   Rebroadcast(m_Driver->GetGlobalState()->GetSegmentationROISettingsModel(),
               ValueChangedEvent(), SegmentationROIChangedEvent());
 
+  // Active Layer Id changed event
+  Rebroadcast(m_Driver, ActiveLayerChangeEvent(), ActiveLayerChangeEvent());
+
   // The initial reporter delegate is NULL
   m_ProgressReporterDelegate = NULL;
 
@@ -384,6 +388,18 @@ bool GlobalUIModel::CheckState(UIState state)
       break;
     case UIF_MESH_SAVEABLE:
       break;
+    case UIF_MESH_TP_LOADABLE:
+      {
+      bool ret = false;
+      auto mesh_layers = m_Driver->GetCurrentImageData()->GetMeshLayers();
+      auto active_mesh_layer = mesh_layers->GetLayer(mesh_layers->GetActiveLayerId());
+      if (active_mesh_layer)
+        {
+        ret = active_mesh_layer->IsExternalLoadable();
+        }
+
+      return ret;
+      }
     case UIF_OVERLAY_LOADED:
       return m_Driver->GetCurrentImageData()->AreOverlaysLoaded();
     case UIF_SNAKE_MODE:

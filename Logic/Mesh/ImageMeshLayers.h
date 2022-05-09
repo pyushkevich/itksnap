@@ -6,6 +6,7 @@
 #include "itkObjectFactory.h"
 #include "MeshWrapperBase.h"
 #include "ImageWrapperTraits.h"
+#include "GuidedMeshIO.h"
 
 class MeshLayerIterator;
 class GenericImageData;
@@ -26,6 +27,7 @@ public:
   typedef std::map<unsigned long, SmartPtr<MeshWrapperBase>> LayerMapType;
   typedef typename LayerMapType::const_iterator LayerConstIteratorType;
   typedef typename LayerMapType::iterator LayerIteratorType;
+  typedef GuidedMeshIO::FileFormat FileFormat;
 
   /** Initialize */
   void Initialize(GenericImageData *imageData);
@@ -37,6 +39,19 @@ public:
       mesh layer
   */
   void AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector = true);
+
+  /** Add a layer by reading a list of files */
+  void AddLayerFromFiles(std::vector<std::string> &fn_list, FileFormat format,
+                         bool startFromFirstTP = true);
+
+  /** Load mesh to an existing layer
+   *  Location identified by:
+   *  1. layer_id
+   *  2. Timepoint
+   *  3. mesh_id (default to 0)
+  */
+  void LoadFileToLayer(const char *filename, FileFormat format,
+                         unsigned long layer_id, unsigned int timepoint, LabelType mesh_id = 0);
 
   /** Get a layer by id */
   SmartPtr<MeshWrapperBase> GetLayer(unsigned long id);
@@ -94,7 +109,7 @@ protected:
   LayerMapType m_Layers;
 
   // Id of the mesh layer that is currently active
-  unsigned long m_ActiveLayerId = 0ul;
+  unsigned long m_ActiveLayerId = 0;
 
   // If the mesh layer belongs to a SNAP Image Data
   bool m_IsSNAP = false;

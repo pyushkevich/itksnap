@@ -5,6 +5,7 @@
 
 class GlobalUIModel;
 class AbstractLoadImageDelegate;
+class EventBucket;
 
 namespace Ui {
 class DropActionDialog;
@@ -48,6 +49,11 @@ public:
    */
   void InitialLoad(QString name);
 
+  /**
+   * Whether to include mesh options
+   */
+  void SetIncludeMeshOptions(bool include_mesh);
+
 private slots:
   void on_btnLoadMain_clicked();
 
@@ -60,6 +66,8 @@ private slots:
   void on_btnLoadMeshAsLayer_clicked();
 
   void on_btnLoadMeshToTP_clicked();
+
+  void onModelUpdate(EventBucket *bucket);
 
   /**
    * This method loads the dropped image.

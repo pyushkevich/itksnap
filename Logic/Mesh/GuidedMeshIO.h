@@ -106,9 +106,12 @@ public:
   /** Map stores supported mesh format descriptors */
   static const MeshFormatDescriptorMap m_MeshFormatDescriptorMap;
 
+  /** Get Enum File Format Registry Map */
+  static RegistryEnumMap<FileFormat> &GetEnumFileFormat()
+  { return m_EnumFileFormat; }
 protected:
   /** Registry mappings for these enums */
-  RegistryEnumMap<FileFormat> m_EnumFileFormat;
+  static RegistryEnumMap<FileFormat> m_EnumFileFormat;
 
   // Error message for unsucessful IO
   std::string m_ErrorMessage;

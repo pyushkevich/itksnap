@@ -28,6 +28,9 @@ public:
 
   void SetMesh(vtkPolyData* mesh, unsigned int timepoint, LabelType id) override;
 
+  bool IsExternalLoadable () const override
+  { return true; }
+
   /** Save the layer to registry */
   virtual void SaveToRegistry(Registry &folder) override;
 

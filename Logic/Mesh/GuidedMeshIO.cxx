@@ -11,13 +11,18 @@
 GuidedMeshIO
 ::GuidedMeshIO()
 {
-  m_EnumFileFormat.AddPair(FORMAT_VTK, "VTK Mesh");
-  m_EnumFileFormat.AddPair(FORMAT_BYU, "BYU Mesh");
-  m_EnumFileFormat.AddPair(FORMAT_STL, "STL Mesh"); 
-  m_EnumFileFormat.AddPair(FORMAT_VRML, "VRML Scene");
-  m_EnumFileFormat.AddPair(FORMAT_VTP, "VTP Mesh");
-  m_EnumFileFormat.AddPair(FORMAT_COUNT, "INVALID FORMAT");
 }
+
+RegistryEnumMap<GuidedMeshIO::FileFormat>
+GuidedMeshIO::m_EnumFileFormat =
+{
+  { FORMAT_VTK, "VTK Mesh" },
+  { FORMAT_BYU, "BYU Mesh" },
+  { FORMAT_STL, "STL Mesh" },
+  { FORMAT_VRML, "VRML Scene" },
+  { FORMAT_VTP, "VTP Mesh" },
+  { FORMAT_COUNT, "INVALID FORMAT" }
+};
 
 const GuidedMeshIO::MeshFormatDescriptorMap
 GuidedMeshIO::m_MeshFormatDescriptorMap =
@@ -43,6 +48,10 @@ GuidedMeshIO::FileFormat
 GuidedMeshIO::
 GetFormatByExtension(std::string extension)
 {
+  // All format string in the map include '.' prefix
+  if (extension.at(0) != '.')
+    extension.insert(0, 1, '.');
+
   for (auto kv : m_MeshFormatDescriptorMap)
     {
     // Looking for the first format match the extension
@@ -68,13 +77,19 @@ GuidedMeshIO::GetFormatDescription(FileFormat formatEnum)
 bool
 GuidedMeshIO::can_read(FileFormat fmt)
 {
-  return m_MeshFormatDescriptorMap.at(fmt).can_read;
+  bool ret = false;
+  if (m_MeshFormatDescriptorMap.count(fmt))
+    ret = m_MeshFormatDescriptorMap.at(fmt).can_read;
+  return ret;
 }
 
 bool
 GuidedMeshIO::can_write(FileFormat fmt)
 {
-  return m_MeshFormatDescriptorMap.at(fmt).can_write;
+  bool ret = false;
+  if (m_MeshFormatDescriptorMap.count(fmt))
+    ret = m_MeshFormatDescriptorMap.at(fmt).can_write;
+  return ret;
 }
 
 void

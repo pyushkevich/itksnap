@@ -1256,6 +1256,13 @@ void MainImageWindow::LoadDroppedFile(QString file)
       // If an image is already loaded, we show the dialog
       m_DropDialog->SetDroppedFilename(file);
       m_DropDialog->setModal(true);
+
+      // Check if the file can be loaded as mesh
+      QFileInfo fileinfo(file);
+      auto ext = fileinfo.completeSuffix();
+      auto fmt = GuidedMeshIO::GetFormatByExtension(ext.toStdString());
+      m_DropDialog->SetIncludeMeshOptions(GuidedMeshIO::can_read(fmt));
+
       RaiseDialog(m_DropDialog);
       }
     else

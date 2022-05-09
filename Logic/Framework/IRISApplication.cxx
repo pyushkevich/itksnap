@@ -129,6 +129,8 @@ IRISApplication
   Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, LayerChangeEvent(), this);
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LayerChangeEvent(), this);
 
+  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, ActiveLayerChangeEvent(), this);
+
   // TODO: should this also be a generic Wrapper Image Data change event?
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LevelSetImageChangeEvent(), this);
 
