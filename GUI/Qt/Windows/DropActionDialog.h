@@ -67,7 +67,7 @@ private slots:
 
   void on_btnLoadMeshToTP_clicked();
 
-  void onModelUpdate(EventBucket *bucket);
+  void onModelUpdate(const EventBucket &bucket);
 
   /**
    * This method loads the dropped image.

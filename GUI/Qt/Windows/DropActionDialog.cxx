@@ -44,15 +44,15 @@ void DropActionDialog::SetModel(GlobalUIModel *model)
 
   LatentITKEventNotifier::connect(
         m_Model, ActiveLayerChangeEvent(),
-        this, SLOT(onModelUpdate(EventBucket*)));
+        this, SLOT(onModelUpdate(EventBucket)));
 
 }
 
 void
 DropActionDialog
-::onModelUpdate(EventBucket *bucket)
+::onModelUpdate(const EventBucket &bucket)
 {
-  if (bucket->HasEvent(ActiveLayerChangeEvent()))
+  if (bucket.HasEvent(ActiveLayerChangeEvent()))
     this->update();
 }
 

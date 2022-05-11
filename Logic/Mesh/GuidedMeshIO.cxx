@@ -149,8 +149,12 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
       // Set polydata into the wrapper
       wrapper->SetMesh(polyData, tp, id);
 
-      // Set Filename
-      wrapper->SetFileName(FileName, tp, id);
+      // Get poly data wrapper loaded
+      auto polyDataWrapper = wrapper->GetMesh(tp, id);
+
+      polyDataWrapper->SetFileName(FileName);
+
+      polyDataWrapper->SetFileFormat(format);
 
       delete ioDelegate;
     }

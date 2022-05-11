@@ -2,6 +2,7 @@
 #define MESHWRAPPERBASE_H
 
 #include "SNAPCommon.h"
+#include "GuidedMeshIO.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 #include "vtkSmartPointer.h"
@@ -23,6 +24,8 @@ class PolyDataWrapper : public itk::Object
 {
 public:
   irisITKObjectMacro(PolyDataWrapper, itk::Object);
+
+  typedef GuidedMeshIO::FileFormat FileFormat;
 
   // comparisonn functor for map with char* key
   struct strcmp
@@ -55,6 +58,12 @@ public:
   const char * GetFileName()
   { return m_FileName.c_str(); }
 
+  FileFormat GetFileFormat()
+  { return m_FileFormat; }
+
+  void SetFileFormat(FileFormat fmt)
+  { m_FileFormat = fmt; }
+
   friend class MeshDataArrayProperty;
 protected:
   PolyDataWrapper() {}
@@ -80,6 +89,9 @@ protected:
   // Filename (default to empty string)
   // Polydata generated from segmentation don't have a file name
   std::string m_FileName = "";
+
+  // File format for polydata associated with a file
+  FileFormat m_FileFormat = FileFormat::FORMAT_COUNT;
 };
 
 
@@ -121,7 +133,11 @@ public:
   MeshAssemblyMap::size_type size()
   { return m_Meshes.size(); }
 
-  void GetCombinedBounds(double bounds[6]);
+  // Compute combined bounds as double array
+  void GetCombinedBounds(double bounds[6]) const;
+
+  // Compute combined bounds as array string
+  std::string GetCombinedBoundsString() const;
 
   /** Get actual memory usage of all the polydata in the assembly in megabytes */
   double GetTotalMemoryInMB() const;
@@ -183,6 +199,8 @@ public:
   typedef PolyDataWrapper::MeshDataArrayPropertyMap MeshDataArrayPropertyMap;
 
   typedef std::map<std::string, std::string> MetaDataMap;
+
+  typedef GuidedMeshIO::FileFormat FileFormat;
 
   //----------------------------------------------
   // Begin virtual methods definition
@@ -275,7 +293,7 @@ public:
   { return m_ActiveDataPropertyId; }
 
   /** Get mesh layer data property map */
-  MeshLayerCombinedPropertyMap GetCombinedDataProperty()
+  MeshLayerCombinedPropertyMap &GetCombinedDataProperty()
   { return m_CombinedDataPropertyMap; }
 
   /** Get mesh for a timepoint and id */

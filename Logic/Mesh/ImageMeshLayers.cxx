@@ -158,7 +158,7 @@ ImageMeshLayers
 ::AddLayerFromFiles(std::vector<std::string> &fn_list, FileFormat format,
                     bool startFromFirstTP)
 {
-  GuidedMeshIO *IO = new GuidedMeshIO();
+  GuidedMeshIO IO;
 
   // Create a mesh wrapper
   auto wrapper = StandaloneMeshWrapper::New();
@@ -169,6 +169,9 @@ ImageMeshLayers
   size_t tp = startFromFirstTP ? 0 : app->GetCursorTimePoint();
   size_t nt = nt = app->GetNumberOfTimePoints();
 
+  // We pick the first filename as placeholder of the wrapper filename
+  wrapper->SetFileName(*fn_list.begin());
+
   // Load one file per time point until final time point is reached
   for (auto &fn : fn_list)
     {
@@ -176,13 +179,152 @@ ImageMeshLayers
       break;
 
     // Execute loading
-    IO->LoadMesh(fn.c_str(), format, baseWrapper, tp++, 0u);
+    IO.LoadMesh(fn.c_str(), format, baseWrapper, tp++, 0u);
     }
 
   // Install the wrapper to the application
   this->AddLayer(baseWrapper);
+}
 
-  delete IO;
+void
+ImageMeshLayers
+::LoadFromRegistry(Registry &folder, std::string &project_dir_orig,
+                          std::string &project_dir_crnt)
+{
+  std::cout << "[ImageMeshLayers] LoadFromRegistry" << std::endl;
+
+  // Whether the project file has been moved
+  bool moved = (project_dir_orig != project_dir_crnt);
+
+  std::string key;
+
+  for (int i = 0; folder.HasFolder(key = Registry::Key("Layer[%03d]", i)); ++i)
+    {
+    // Load MeshAssmbly Time Points
+    std::cout << "-- Loading Layer " << i << std::endl;
+
+    auto folder_layer = folder.Folder(key);
+
+    // Create a new mesh wrapper
+    auto mesh_wrapper = StandaloneMeshWrapper::New();
+
+    // Restore nicknames and tags
+    mesh_wrapper->SetCustomNickname(folder_layer["NickName"][""]);
+
+    TagList tags;
+    folder_layer["Tags"].GetList(tags);
+
+    // Restore mesh timepoint assembly
+    auto folder_assembly = folder_layer.Folder("MeshTimePoints");
+
+    // Create a mesh IO for executing the actual loading from file
+    GuidedMeshIO io;
+
+    std::string key_tp;
+    bool fnSet = false;
+
+    for (int j = 1;
+         folder_assembly.HasFolder(key_tp = Registry::Key("TimePoint[%03d]", j));
+         ++j)
+      {
+      std::cout << "---- Load TP=" << j << std::endl;
+      auto folder_tp = folder_assembly.Folder(key_tp);
+
+      std::string key_poly;
+      for (int k = 0;
+           folder_tp.HasFolder(key_poly = Registry::Key("PolyData[%03d]", k));
+           ++k)
+        {
+        std::cout << "------ Load PolyData=" << k << std::endl;
+
+        auto folder_poly = folder_tp.Folder(key_poly);
+
+        std::string poly_file_full = folder_poly["AbsolutePath"][""];
+
+        if (moved)
+          poly_file_full = IRISApplication::GetMovedFilePath(
+                project_dir_orig, project_dir_crnt, poly_file_full);
+
+        // Set first filename as placeholder
+        if (!fnSet)
+          {
+          mesh_wrapper->SetFileName(poly_file_full);
+          fnSet = true;
+          }
+
+
+        std::cout << "------ FullPath=" << poly_file_full << std::endl;
+
+        FileFormat format = folder_poly["Format"]
+            .GetEnum(GuidedMeshIO::GetEnumFileFormat(), FileFormat::FORMAT_COUNT);
+
+        // Load with tp = j-1. The storeing of time point index should always be zero-based
+        io.LoadMesh(poly_file_full.c_str(), format, mesh_wrapper.GetPointer(), j-1, k);
+        }
+      }
+
+
+
+
+    // Load Data Array Properties
+    // -- Lookup array properties by name and type
+    // -- Restore color map and intensity curve
+    // -- Only load matched entries since mesh data array might be changed externally
+    auto folder_data = folder_layer.Folder("DataArrayProperties");
+
+    std::cout << "-- Load DataArrayProperties" << std::endl;
+
+    std::string key_data;
+    for (int array_id = 0;
+         folder_data.HasFolder(key_data = Registry::Key("DataArray[%03d]", array_id));
+         ++array_id)
+      {
+        std::cout << "---- Load" << key_data << std::endl;
+
+        auto folder_crnt = folder_data.Folder(key_data);
+
+        // Get Array Name and Array Type
+        auto array_name = folder_crnt["ArrayName"][""];
+        auto array_type = folder_crnt["ArrayType"].
+            GetEnum(AbstractMeshDataArrayProperty::GetMeshDataTypeEnumMap(),
+                    AbstractMeshDataArrayProperty::POINT_DATA);
+
+        std::cout << "------ Name=" << array_name
+                  << "; type=" << array_type << std::endl;
+
+        // Search the data array by array name and array type
+        // If found, restore color map and intensity curve
+        auto &array_map = mesh_wrapper->GetCombinedDataProperty();
+
+        for (auto kv : array_map)
+          {
+          if (strcmp(kv.second->GetName(), array_name) == 0 &&
+              kv.second->GetType() == array_type)
+            {
+            if (folder_crnt.HasFolder("ColorMap"))
+              {
+              std::cout << "------ Restoring Color Map" << std::endl;
+              auto folder_cm = folder_crnt.Folder("ColorMap");
+              kv.second->GetColorMap()->LoadFromRegistry(folder_cm);
+              }
+
+            if (folder_crnt.HasFolder("IntensityCurve"))
+              {
+              std::cout << "------ Restoring Intensity Curve" << std::endl;
+              auto folder_ic = folder_crnt.Folder("IntensityCurve");
+              kv.second->GetIntensityCurve()->LoadFromRegistry(folder_ic);
+              }
+            }
+          }
+
+        // We need to call set active to refresh the display mapping policy
+        mesh_wrapper->SetActiveMeshLayerDataPropertyId(0);
+      }
+
+
+    AddLayer(mesh_wrapper, true);
+    }
+
 }
 
 SegmentationMeshWrapper*
@@ -293,7 +435,7 @@ ImageMeshLayers
                 unsigned long layer_id, unsigned int timepoint, LabelType mesh_id)
 {
   // Create a new IO for loading
-  GuidedMeshIO *IO = new GuidedMeshIO();
+  GuidedMeshIO IO;
 
   // Get Mesh Layer
   auto layer = GetLayer(layer_id);
@@ -302,10 +444,7 @@ ImageMeshLayers
   assert(layer);
 
   // Execute loading
-  IO->LoadMesh(filename, format, layer, timepoint, mesh_id);
-
-  delete IO;
-
+  IO.LoadMesh(filename, format, layer, timepoint, mesh_id);
 }
 
 //---------------------------------------

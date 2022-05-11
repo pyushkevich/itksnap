@@ -32,11 +32,11 @@ public:
   /** Initialize */
   void Initialize(GenericImageData *imageData);
 
-  /** Add a layer
-      notifyInspector controls the invoking of event that triggers
-      the row rebuilding of the layer inspector
-      Sometime it needs to be turned of, such as when adding a levelset
-      mesh layer
+  /** Add a layer.
+   *  notifyInspector controls the invoking of event that triggers
+   *  the row rebuilding of the layer inspector
+   *  Sometime it needs to be turned off, such as when adding a levelset
+   *  mesh layer
   */
   void AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector = true);
 
@@ -52,6 +52,11 @@ public:
   */
   void LoadFileToLayer(const char *filename, FileFormat format,
                          unsigned long layer_id, unsigned int timepoint, LabelType mesh_id = 0);
+
+  /** Add mesh layers from registry
+  */
+  void LoadFromRegistry(Registry &folder, std::string &project_dir_orig,
+                                 std::string &project_dir_crnt);
 
   /** Get a layer by id */
   SmartPtr<MeshWrapperBase> GetLayer(unsigned long id);

@@ -93,6 +93,8 @@ UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
 // ========================================
 void MeshAssembly::AddMesh(PolyDataWrapper *mesh, LabelType id)
 {
+  std::cout << "[MeshAssembly] AddMesh" << std::endl;
+  std::cout << "-- this=" << this << std::endl;
   m_Meshes[id] = mesh;
 }
 
@@ -126,7 +128,7 @@ MeshAssembly::Erase(LabelType id)
 
 void
 MeshAssembly::
-GetCombinedBounds(double bounds[6])
+GetCombinedBounds(double bounds[6]) const
 {
   for (int i = 0; i < 6; ++i)
     bounds[i] = 0.0;
@@ -142,6 +144,24 @@ GetCombinedBounds(double bounds[6])
     bounds[4] = std::min(crnt[4], bounds[4]);
     bounds[5] = std::max(crnt[5], bounds[5]);
     }
+}
+
+std::string
+MeshAssembly
+::GetCombinedBoundsString() const
+{
+
+  double bounds[6];
+  GetCombinedBounds(bounds);
+
+  std::ostringstream oss;
+  oss.precision(3);
+  oss << '['
+      << '[' << bounds[0] << ',' << bounds[1] << ']'
+      << '[' << bounds[2] << ',' << bounds[3] << ']'
+      << '[' << bounds[4] << ',' << bounds[5] << ']'
+      << ']';
+  return oss.str();
 }
 
 double
@@ -164,6 +184,7 @@ MeshAssembly
     {
     Registry &crnt = folder.Folder(Registry::Key("PolyData[%03d]", kv.first));
     crnt["AbsolutePath"] << kv.second->GetFileName();
+    crnt["Format"].PutEnum(GuidedMeshIO::GetEnumFileFormat(), kv.second->GetFileFormat());
     }
 }
 
@@ -340,14 +361,6 @@ SetActiveMeshLayerDataPropertyId(int id)
   InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
-// Utility method for creating formatted range string
-std::string get_range_string(double min, double max)
-{
-  std::ostringstream oss;
-  oss << "[" << min << ", " << max << "]";
-  return oss.str();
-}
-
 void
 MeshWrapperBase::
 UpdateMetaData()
@@ -355,16 +368,21 @@ UpdateMetaData()
   // Clear and rebuild the map
   m_MetaDataMap.clear();
 
+  if (m_MeshAssemblyMap.size() == 0)
+    return;
+
   // Update Bounding Box
-  auto first = m_MeshAssemblyMap[0];
-  double bounds[6];
-  first->GetCombinedBounds(bounds);
-  m_MetaDataMap["X Range"] = get_range_string(bounds[0], bounds[1]);
-  m_MetaDataMap["Y Range"] = get_range_string(bounds[2], bounds[3]);
-  m_MetaDataMap["Z Range"] = get_range_string(bounds[4], bounds[5]);
+  for (auto kv : m_MeshAssemblyMap)
+    {
+    std::ostringstream oss;
+
+    // The display of timepoint index should always be one-based
+    oss << "Bound (timepoint " << kv.first + 1 << ")";
+    m_MetaDataMap[oss.str()] = kv.second->GetCombinedBoundsString();
+    }
 
   // Update Number of Time Points
-  m_MetaDataMap["Number of Time Points"] = m_MeshAssemblyMap.size();
+  m_MetaDataMap["Number of Time Points"] = std::to_string(m_MeshAssemblyMap.size());
 
   // Update Memory Usage
   double memory = 0.0;
@@ -379,8 +397,10 @@ UpdateMetaData()
   // Update Data Array Properties
   for (auto kv : m_CombinedDataPropertyMap)
     {
-    m_MetaDataMap[kv.second->GetName()] = get_range_string(
-          kv.second->GetMin(), kv.second->GetMax());
+    std::ostringstream oss;
+    oss.precision(3);
+    oss << '[' << kv.second->GetMin() << ',' << kv.second->GetMax() << ']';
+    m_MetaDataMap[kv.second->GetName()] = oss.str();
     }
 }
 
@@ -397,4 +417,3 @@ MeshWrapperBase
 
   return ret;
 }
-

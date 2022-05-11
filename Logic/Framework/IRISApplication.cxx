@@ -2166,6 +2166,43 @@ void IRISApplication::SaveProject(const std::string &proj_file)
   m_LastSavedProjectState = preg;
 }
 
+std::string
+IRISApplication
+::GetMovedFilePath(std::string &project_dir_orig, std::string &project_dir_crnt
+                   , std::string &original_file_path)
+{
+  std::string ret = original_file_path;
+
+  // Get the relative path of the layer wrt project
+  string relative_path;
+
+  // Test the simple thing: is the project location included in the file path
+  if(original_file_path.compare(0, project_dir_orig.length(), project_dir_orig) == 0)
+    {
+    // Get the balance of the path
+    relative_path = original_file_path.substr(project_dir_orig.length());
+
+    // Strip the leading slashes
+    itksys::SystemTools::ConvertToUnixSlashes(relative_path);
+    relative_path = relative_path.substr(relative_path.find_first_not_of('/'));
+    }
+  else
+    {
+    // Fallback: use relative path mechanism
+    relative_path = itksys::SystemTools::RelativePath(
+                      project_dir_orig.c_str(), original_file_path.c_str());
+    }
+
+  std::string moved_file_full = itksys::SystemTools::CollapseFullPath(
+        relative_path.c_str(), project_dir_crnt.c_str());
+
+  if(itksys::SystemTools::FileExists(moved_file_full.c_str(), true))
+    ret = moved_file_full;
+
+
+  return ret;
+}
+
 void IRISApplication::OpenProject(
     const std::string &proj_file, IRISWarningList &warn)
 {
@@ -2213,34 +2250,12 @@ void IRISApplication::OpenProject(
     // Get the filenames for the layer
     std::string layer_file_full = folder["AbsolutePath"][""];
 
+    std::string generated_file_full;
+
     // If the project has moved, try finding a relative location
     if(moved)
       {
-      // Get the relative path of the layer wrt project
-      string relative_path;
-
-      // Test the simple thing: is the project location included in the file path
-      if(layer_file_full.compare(0, project_save_dir.length(), project_save_dir) == 0)
-        {
-        // Get the balance of the path
-        relative_path = layer_file_full.substr(project_save_dir.length());
-
-        // Strip the leading slashes
-        itksys::SystemTools::ConvertToUnixSlashes(relative_path);
-        relative_path = relative_path.substr(relative_path.find_first_not_of('/'));
-        }
-      else
-        {
-        // Fallback: use relative path mechanism
-        relative_path = itksys::SystemTools::RelativePath(
-                          project_save_dir.c_str(), layer_file_full.c_str());
-        }
-
-      std::string moved_file_full = itksys::SystemTools::CollapseFullPath(
-            relative_path.c_str(), project_dir.c_str());
-
-      if(itksys::SystemTools::FileExists(moved_file_full.c_str(), true))
-        layer_file_full = moved_file_full;
+      layer_file_full = GetMovedFilePath(project_save_dir, project_dir, layer_file_full);
       }
 
     // Load the IO hints for the image from the project - but only if this
@@ -2272,6 +2287,15 @@ void IRISApplication::OpenProject(
   // If main has not been loaded, throw an exception
   if(!main_loaded)
     throw IRISException("Empty or invalid project (main image not found in the project file).");
+
+
+  auto mesh_layers = GetCurrentImageData()->GetMeshLayers();
+
+  std::cout << "[IRISApplication] OpenProject" << std::endl;
+  // Load Mesh Layers
+  if (preg.HasFolder("MeshLayers"))
+    mesh_layers->LoadFromRegistry(preg.Folder("MeshLayers"), project_save_dir, project_dir);
+
 
   // Set the selected segmentation layer to be the first one
   m_GlobalState->SetSelectedSegmentationLayerId(

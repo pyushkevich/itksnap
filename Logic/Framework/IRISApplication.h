@@ -641,6 +641,12 @@ public:
   void OpenProject(const std::string &proj_file, IRISWarningList &warn);
 
   /**
+   * Get Moved File Path from the absolute file path in the original project file
+   */
+  static std::string GetMovedFilePath(std::string &project_dir_orig, std::string &project_dir_crnt,
+                               std::string &original_file_path);
+
+  /**
    * Check if the project has modified since the last time it was saved. This
    * is a bit tricky to keep track of, because the project includes both the
    * list of images and the parameters.

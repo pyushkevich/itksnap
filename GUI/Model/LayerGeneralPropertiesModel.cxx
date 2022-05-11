@@ -556,7 +556,7 @@ GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
   if (!mesh_layer)
     return false;
 
-  auto props = mesh_layer->GetCombinedDataProperty();
+  auto &props = mesh_layer->GetCombinedDataProperty();
 
   if (domain)
     {

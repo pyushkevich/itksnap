@@ -88,6 +88,8 @@ MeshImportModel::Load(std::vector<std::string> &fn_list, FileFormat format)
   // Get image mesh layers
   ImageMeshLayers *mesh_layers = app->GetIRISImageData()->GetMeshLayers();
 
+  // We only load series of mesh from the first time point
+  // Single mesh should be loaded to current time point
   bool LoadFromFirstTP = m_Mode == Mode::SERIES ? true : false;
 
   mesh_layers->AddLayerFromFiles(fn_list, format, LoadFromFirstTP);
