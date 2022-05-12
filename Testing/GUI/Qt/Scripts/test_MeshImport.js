@@ -14,8 +14,6 @@ engine.printChildren(panel3D);
 var btnExpand = engine.findChild(panel3D, "btnExpand");
 btnExpand.click();
 
-
-
 //=== Show the layer inspector
 engine.findChild(mainwin,"actionLayerInspector").trigger();
 
