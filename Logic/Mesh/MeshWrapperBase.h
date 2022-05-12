@@ -339,7 +339,7 @@ protected:
   MeshLayerDataArrayPropertyMap m_CellDataProperties;
 
   // Indicate which data property is active
-  int m_ActiveDataPropertyId = 0;
+  int m_ActiveDataPropertyId = -1;
 
   UserDataMapType m_UserDataMap;
 

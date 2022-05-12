@@ -53,10 +53,12 @@ public:
   void LoadFileToLayer(const char *filename, FileFormat format,
                          unsigned long layer_id, unsigned int timepoint, LabelType mesh_id = 0);
 
-  /** Add mesh layers from registry
-  */
-  void LoadFromRegistry(Registry &folder, std::string &project_dir_orig,
+  /** Add mesh layers from registry */
+  void LoadFromRegistry(Registry &project, std::string &project_dir_orig,
                                  std::string &project_dir_crnt);
+
+  /** Save mesh layers to registry */
+  void SaveToRegistry(Registry &folder);
 
   /** Get a layer by id */
   SmartPtr<MeshWrapperBase> GetLayer(unsigned long id);

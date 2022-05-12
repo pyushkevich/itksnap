@@ -93,8 +93,6 @@ UpdatePropertiesFromVTKData(MeshDataArrayPropertyMap &propMap,
 // ========================================
 void MeshAssembly::AddMesh(PolyDataWrapper *mesh, LabelType id)
 {
-  std::cout << "[MeshAssembly] AddMesh" << std::endl;
-  std::cout << "-- this=" << this << std::endl;
   m_Meshes[id] = mesh;
 }
 

@@ -188,22 +188,23 @@ ImageMeshLayers
 
 void
 ImageMeshLayers
-::LoadFromRegistry(Registry &folder, std::string &project_dir_orig,
+::LoadFromRegistry(Registry &project, std::string &project_dir_orig,
                           std::string &project_dir_crnt)
 {
-  std::cout << "[ImageMeshLayers] LoadFromRegistry" << std::endl;
+  if (!project.HasFolder("MeshLayers"))
+    return;
+
+  auto folder_layers = project.Folder("MeshLayers");
 
   // Whether the project file has been moved
   bool moved = (project_dir_orig != project_dir_crnt);
 
   std::string key;
 
-  for (int i = 0; folder.HasFolder(key = Registry::Key("Layer[%03d]", i)); ++i)
+  for (int i = 0; folder_layers.HasFolder(key = Registry::Key("Layer[%03d]", i)); ++i)
     {
     // Load MeshAssmbly Time Points
-    std::cout << "-- Loading Layer " << i << std::endl;
-
-    auto folder_layer = folder.Folder(key);
+    auto folder_layer = folder_layers.Folder(key);
 
     // Create a new mesh wrapper
     auto mesh_wrapper = StandaloneMeshWrapper::New();
@@ -227,7 +228,6 @@ ImageMeshLayers
          folder_assembly.HasFolder(key_tp = Registry::Key("TimePoint[%03d]", j));
          ++j)
       {
-      std::cout << "---- Load TP=" << j << std::endl;
       auto folder_tp = folder_assembly.Folder(key_tp);
 
       std::string key_poly;
@@ -235,8 +235,6 @@ ImageMeshLayers
            folder_tp.HasFolder(key_poly = Registry::Key("PolyData[%03d]", k));
            ++k)
         {
-        std::cout << "------ Load PolyData=" << k << std::endl;
-
         auto folder_poly = folder_tp.Folder(key_poly);
 
         std::string poly_file_full = folder_poly["AbsolutePath"][""];
@@ -252,9 +250,6 @@ ImageMeshLayers
           fnSet = true;
           }
 
-
-        std::cout << "------ FullPath=" << poly_file_full << std::endl;
-
         FileFormat format = folder_poly["Format"]
             .GetEnum(GuidedMeshIO::GetEnumFileFormat(), FileFormat::FORMAT_COUNT);
 
@@ -263,24 +258,17 @@ ImageMeshLayers
         }
       }
 
-
-
-
     // Load Data Array Properties
     // -- Lookup array properties by name and type
     // -- Restore color map and intensity curve
     // -- Only load matched entries since mesh data array might be changed externally
     auto folder_data = folder_layer.Folder("DataArrayProperties");
 
-    std::cout << "-- Load DataArrayProperties" << std::endl;
-
     std::string key_data;
     for (int array_id = 0;
          folder_data.HasFolder(key_data = Registry::Key("DataArray[%03d]", array_id));
          ++array_id)
       {
-        std::cout << "---- Load" << key_data << std::endl;
-
         auto folder_crnt = folder_data.Folder(key_data);
 
         // Get Array Name and Array Type
@@ -288,9 +276,6 @@ ImageMeshLayers
         auto array_type = folder_crnt["ArrayType"].
             GetEnum(AbstractMeshDataArrayProperty::GetMeshDataTypeEnumMap(),
                     AbstractMeshDataArrayProperty::POINT_DATA);
-
-        std::cout << "------ Name=" << array_name
-                  << "; type=" << array_type << std::endl;
 
         // Search the data array by array name and array type
         // If found, restore color map and intensity curve
@@ -303,14 +288,12 @@ ImageMeshLayers
             {
             if (folder_crnt.HasFolder("ColorMap"))
               {
-              std::cout << "------ Restoring Color Map" << std::endl;
               auto folder_cm = folder_crnt.Folder("ColorMap");
               kv.second->GetColorMap()->LoadFromRegistry(folder_cm);
               }
 
             if (folder_crnt.HasFolder("IntensityCurve"))
               {
-              std::cout << "------ Restoring Intensity Curve" << std::endl;
               auto folder_ic = folder_crnt.Folder("IntensityCurve");
               kv.second->GetIntensityCurve()->LoadFromRegistry(folder_ic);
               }
@@ -321,10 +304,28 @@ ImageMeshLayers
         mesh_wrapper->SetActiveMeshLayerDataPropertyId(0);
       }
 
-
     AddLayer(mesh_wrapper, true);
     }
+}
 
+void
+ImageMeshLayers
+::SaveToRegistry(Registry &folder)
+{
+  MeshLayerIterator mesh_it(this);
+
+  for (int mesh_cnt = 0; !mesh_it.IsAtEnd(); ++mesh_it)
+    {
+    auto mesh_layer = mesh_it.GetLayer();
+
+    // We current only save standalone meshes
+    auto standalone_mesh = dynamic_cast<StandaloneMeshWrapper*>(mesh_layer);
+    if (standalone_mesh)
+      {
+      Registry &folder_crnt = folder.Folder(Registry::Key("MeshLayers.Layer[%03d]", mesh_cnt++));
+      mesh_layer->SaveToRegistry(folder_crnt);
+      }
+    }
 }
 
 SegmentationMeshWrapper*

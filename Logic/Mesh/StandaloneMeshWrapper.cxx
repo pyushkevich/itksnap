@@ -51,7 +51,6 @@ void
 StandaloneMeshWrapper
 ::SaveToRegistry(Registry &folder)
 {
-  std::cout << "[StandaloneMeshWrapper] SaveToRegistry" << std::endl;
   // What type is this mesh
   folder["MeshType"] << "StandaloneMesh";
 

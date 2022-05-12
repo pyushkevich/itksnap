@@ -2104,21 +2104,7 @@ void IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string pr
     }
 
   // Save Mesh Layers
-  auto mesh_it = GetCurrentImageData()->GetMeshLayers()->GetLayers();
-  int mesh_cnt = 0;
-
-  for (; !mesh_it.IsAtEnd(); ++mesh_it)
-    {
-    auto mesh_layer = mesh_it.GetLayer();
-
-    // We current only save standalone meshes
-    auto standalone_mesh = dynamic_cast<StandaloneMeshWrapper*>(mesh_layer);
-    if (standalone_mesh)
-      {
-      Registry &folder = preg.Folder(Registry::Key("MeshLayers.Layer[%03d]", mesh_cnt++));
-      mesh_layer->SaveToRegistry(folder);
-      }
-    }
+  GetCurrentImageData()->GetMeshLayers()->SaveToRegistry(preg);
 
   // Save the annotations in the workspace
   Registry &ann_folder = preg.Folder("Annotations");
@@ -2288,14 +2274,9 @@ void IRISApplication::OpenProject(
   if(!main_loaded)
     throw IRISException("Empty or invalid project (main image not found in the project file).");
 
-
-  auto mesh_layers = GetCurrentImageData()->GetMeshLayers();
-
-  std::cout << "[IRISApplication] OpenProject" << std::endl;
   // Load Mesh Layers
-  if (preg.HasFolder("MeshLayers"))
-    mesh_layers->LoadFromRegistry(preg.Folder("MeshLayers"), project_save_dir, project_dir);
-
+  GetCurrentImageData()->GetMeshLayers()->
+      LoadFromRegistry(preg, project_save_dir, project_dir);
 
   // Set the selected segmentation layer to be the first one
   m_GlobalState->SetSelectedSegmentationLayerId(
