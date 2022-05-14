@@ -279,13 +279,17 @@ void LayerInspectorRowDelegate::UpdateTextFont()
 
 void LayerInspectorRowDelegate::setSelected(bool value)
 {
+  auto mesh_model = dynamic_cast<MeshLayerTableRowModel*>(m_Model.GetPointer());
+
   if(m_Selected != value)
     {
     m_Selected = value;
-    emit selectionChanged(value);
 
     // Update selection in the model
     m_Model->SetActivated(value);
+
+    // Notify other delegates to change
+    emit selectionChanged(value);
 
     // Update the look and feel
     this->UpdateBackgroundPalette();
@@ -293,6 +297,15 @@ void LayerInspectorRowDelegate::setSelected(bool value)
 
     // Update!
     this->update();
+    }
+  else if (mesh_model)
+    {
+    // Remove bold label from mesh that is no longer active
+    // -- this happens when a mesh row is "activated" but not "selected" by
+    // -- selection of a related image layer. And then if another mesh layer
+    // -- is selected, we need this logic to "de-activate" current layer,
+    // -- because "m_Selected" is still false and the argument "value" is false
+    this->UpdateTextFont();
     }
 
 }

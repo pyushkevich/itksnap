@@ -104,7 +104,11 @@ public:
   /** Return true if the active mesh layer needs to be updated */
   bool IsActiveMeshLayerDirty();
 
+  /** Check if an image has a corresponding mesh layer created */
   bool HasMeshForImage(unsigned long image_id) const;
+
+  /** Return the mesh layer for an image. */
+  MeshWrapperBase *GetMeshForImage(unsigned long image_id);
 
   /** Allow an iterator to access protected members */
   friend class MeshLayerIterator;

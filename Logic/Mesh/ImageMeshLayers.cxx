@@ -88,6 +88,8 @@ ImageMeshLayers::GetLayerIds() const
 void
 ImageMeshLayers::Unload()
 {
+  m_ImageToMeshMap.clear();
+
   for (auto it = m_Layers.begin(); it != m_Layers.end(); ++it)
     it->second->Delete();
 
@@ -327,6 +329,19 @@ ImageMeshLayers
       }
     }
 }
+
+MeshWrapperBase *
+ImageMeshLayers
+::GetMeshForImage(unsigned long image_id)
+{
+  MeshWrapperBase *ret = nullptr;
+  if (HasMeshForImage(image_id))
+    {
+    ret = m_ImageToMeshMap[image_id];
+    }
+  return ret;
+}
+
 
 SegmentationMeshWrapper*
 ImageMeshLayers::

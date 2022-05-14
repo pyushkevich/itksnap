@@ -234,7 +234,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
   bool found_selected_layer = false;
 
   // Get the ID of the currently selected layer
-  unsigned long selected_layer = m_Model->GetGlobalState()->GetSelectedLayerId();
+  unsigned long selected_layer = m_Model->GetGlobalState()->GetSelectedLayerInspectorLayerId();
 
   // Get rid of all existing widgets in the pane
   m_Delegates.clear();
@@ -403,9 +403,15 @@ void LayerInspectorDialog::layerSelected(bool flag)
       wsel->setSelected(true);
     this->SetActiveLayer(wsel->GetLayer());
 
+    // Set selected layer id in gloabl state, this make sure after every rebuild
+    // of the panel, the correct layer will be selected
+    m_Model->GetGlobalState()->SetSelectedLayerInspectorLayerId(wsel->GetLayer()->GetUniqueId());
+
     // Put this layer's actions on the menu
     m_SaveSelectedButton->setDefaultAction(wsel->saveAction());
     }
+
+
 }
 
 void LayerInspectorDialog::onContrastInspectorRequested()
@@ -450,6 +456,22 @@ void LayerInspectorDialog::SetActiveLayer(WrapperBase *layer)
         dynamic_cast<AbstractLayerTableRowModel *>(layer->GetUserData("LayerTableRowModel"));
     if (row_model)
       IsContrastAdjustable = row_model->CheckState(AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
+
+    // If activated layer is a segmentation image
+    // check if there's a coreesponding segmentation mesh layer
+    auto seg_layer = dynamic_cast<LabelImageWrapper*>(layer);
+
+    if (seg_layer)
+      {
+      auto mesh_layers = m_Model->GetDriver()->GetCurrentImageData()->GetMeshLayers();
+      if (mesh_layers->HasMeshForImage(seg_layer->GetUniqueId()))
+        {
+        auto seg_mesh = mesh_layers->GetMeshForImage(seg_layer->GetUniqueId());
+
+        // Set the corresponding mesh as active
+        mesh_layers->SetActiveLayerId(seg_mesh->GetUniqueId());
+        }
+      }
     }
 
   m_Model->GetIntensityCurveModel()->SetLayer(IsContrastAdjustable ? layer : NULL);

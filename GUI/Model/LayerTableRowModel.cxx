@@ -49,12 +49,6 @@ AbstractLayerTableRowModel::AbstractLayerTableRowModel()
   m_ImageData = NULL;
 }
 
-bool
-AbstractLayerTableRowModel::IsA(const char *type) const
-{
-  return strcmp("AbstractLayerTableRowModel", type) == 0;
-}
-
 bool AbstractLayerTableRowModel::CheckState(UIState state)
 {
   // Are we in tiling mode?
@@ -256,12 +250,6 @@ ImageLayerTableRowModel::GetDisplayMode()
   AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
       AbstractMultiChannelDisplayMappingPolicy *>(m_Layer->GetDisplayMapping());
   return dp->GetDisplayMode();
-}
-
-bool
-ImageLayerTableRowModel::IsA(const char *type) const
-{
-  return Superclass::IsA(type) || (strcmp("ImageLayerTableRowModel", type) == 0);
 }
 
 bool
@@ -594,11 +582,10 @@ void ImageLayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
  *   MeshLayerTableRowModel Implementation
  * ===============================================
 */
-
-bool
-MeshLayerTableRowModel::IsA(const char *type) const
+MeshLayerTableRowModel
+::MeshLayerTableRowModel()
 {
-  return Superclass::IsA(type) || (strcmp("MeshLayerTableRowModel", type) == 0);
+
 }
 
 void
@@ -657,13 +644,13 @@ MeshLayerTableRowModel::CheckState(UIState state)
 }
 
 bool
-MeshLayerTableRowModel::GetStickyValue(bool &value)
+MeshLayerTableRowModel::GetStickyValue(bool &)
 {
   return false;
 }
 
 void
-MeshLayerTableRowModel::SetStickyValue(bool value)
+MeshLayerTableRowModel::SetStickyValue(bool )
 {
   // do nothing for mesh for now
 }
@@ -686,7 +673,9 @@ MeshLayerTableRowModel::IsActivated() const
   if(!m_Layer)
     return false;
 
-  return true;
+  return (m_Layer->GetUniqueId() ==
+          m_ParentModel->GetDriver()->GetCurrentImageData()->GetMeshLayers()->
+          GetActiveLayerId());
 }
 
 void
@@ -711,13 +700,13 @@ MeshLayerTableRowModel::CloseLayer()
 }
 
 bool
-MeshLayerTableRowModel::GetColorMapPresetValue(std::string &value)
+MeshLayerTableRowModel::GetColorMapPresetValue(std::string &)
 {
   return false;
 }
 
 void
-MeshLayerTableRowModel::SetColorMapPresetValue(std::string value)
+MeshLayerTableRowModel::SetColorMapPresetValue(std::string)
 {
 
 }

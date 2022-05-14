@@ -378,7 +378,7 @@ public:
   irisSimplePropertyAccessMacro(SelectedSegmentationLayerId, unsigned long)
 
   /** Set/Get selected mesh layer id */
-  irisSimplePropertyAccessMacro(SelectedMeshLayerId, unsigned long)
+  irisSimplePropertyAccessMacro(SelectedLayerInspectorLayerId, unsigned long)
 
   /** Set/Get 4D time point replay model */
   irisSimplePropertyAccessMacro(4DReplay, bool)
@@ -548,7 +548,7 @@ private:
   // ------------------- Selected Image ID ---------------------------------
   SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerIdModel;
   SmartPtr<ConcreteSimpleULongProperty> m_SelectedSegmentationLayerIdModel;
-  SmartPtr<ConcreteSimpleULongProperty> m_SelectedMeshLayerIdModel;
+  SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerInspectorLayerIdModel;
 
   // ------------------- Project Related -----------------------------------
   SmartPtr<ConcreteSimpleStringProperty> m_ProjectFilenameModel;

@@ -55,9 +55,6 @@ public:
   */
   virtual void Initialize(GlobalUIModel *parentModel, WrapperBase *layer);
 
-  /** Implement in a subclass to check abstract/concrete type */
-  virtual bool IsA(const char *type) const;
-
   /** Implement in a subclass to Check the state of the system */
   virtual bool CheckState(UIState state);
 
@@ -187,9 +184,6 @@ public:
    */
   void Initialize(GlobalUIModel *parentModel, WrapperBase *layer) override;
 
-  /** Implement in a subclass to check abstract/concrete type */
-  bool IsA(const char *type) const override;
-
   /** Implement in a subclass to Check the state of the system */
   bool CheckState(UIState state) override;
 
@@ -311,9 +305,6 @@ public:
   /** Implement in a subclass to do wrapper specific logic */
   void Initialize(GlobalUIModel *parentModel, WrapperBase *layer) override;
 
-  /** Implement in a subclass to check abstract/concrete type */
-  bool IsA(const char *type) const override;
-
   /** Implement in a subclass to Check the state of the system */
   bool CheckState(UIState state) override;
 
@@ -342,7 +333,7 @@ public:
   // ----------------------------------------------
 
 protected:
-  MeshLayerTableRowModel() {}
+  MeshLayerTableRowModel();
   virtual ~MeshLayerTableRowModel() = default;
 
   // ------------------------------------------

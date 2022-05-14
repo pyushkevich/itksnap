@@ -128,7 +128,7 @@ GlobalState
 
   m_SelectedLayerIdModel = NewSimpleConcreteProperty(0ul);
   m_SelectedSegmentationLayerIdModel = NewSimpleConcreteProperty(0ul);
-  m_SelectedMeshLayerIdModel = NewSimpleConcreteProperty(0ul);
+  m_SelectedLayerInspectorLayerIdModel = NewSimpleConcreteProperty(0ul);
 
   // Set annotation defaults
   m_AnnotationSettings.shownOnAllSlices = false;

@@ -222,6 +222,9 @@ GenericImageData
   // Unload all the segmentations
   this->RemoveAllWrappers(LABEL_ROLE);
 
+  // Unload all the meshes
+  m_MeshLayers->Unload();
+
   // Clear the annotations
   m_Annotations->Reset();
 
