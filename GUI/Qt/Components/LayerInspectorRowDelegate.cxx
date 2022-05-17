@@ -66,6 +66,7 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
 
   // Confirugre the popup menu
   m_PopupMenu = new QMenu(this);
+  m_PopupMenu->setObjectName("menuPopup");
   m_PopupMenu->setStyleSheet("font-size:11px;");
 
   // Add the save/close actions
@@ -101,7 +102,9 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
 
   // Create a volume rendering menu
   m_VolumeRenderingMenu = m_PopupMenu->addMenu("Volume Rendering");
+  m_VolumeRenderingMenu->setObjectName("menuVolRen");
   m_VolumeRenderingMenu->addAction(ui->actionVolumeEnable);
+  ui->actionVolumeEnable->setObjectName("actionVolumeEnable");
   m_PopupMenu->addSeparator();
 
   // Placeholder for image processing commands

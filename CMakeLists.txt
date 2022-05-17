@@ -1206,7 +1206,8 @@ SET(GUI_TESTS
   RandomForestBailOut
   MeshImport
   MeshWorkspace
-  SegmentationMesh)
+  SegmentationMesh
+  VolumeRendering)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
 set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)

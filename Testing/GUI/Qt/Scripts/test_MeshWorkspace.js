@@ -24,6 +24,9 @@ engine.findChild(mainwin,"actionLayerInspector").trigger();
 //=== Select the mesh data name box
 var boxDataArray = engine.findChild(layerdialog, "boxMeshDataName");
 
+//=== Close the inspector dialog
+engine.invoke(layerdialog, "close");
+
 //=== Validate data array settings
 for (let i = 0; i < 17; ++i){
     boxDataArray.setCurrentIndex(i);
@@ -47,9 +50,6 @@ engine.sleep(1000);
 //=== The layer should be closed
 let meshRowDelegate = engine.findChild(layerdialog, "wgtRowDelegate_0002");
 engine.validateValue(meshRowDelegate, null);
-
-//=== Close the inspector dialog
-engine.invoke(layerdialog, "close");
 
 //=== Trigger the unload all action
 engine.findChild(mainwin,"actionUnload_All").trigger();
