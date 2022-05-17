@@ -3,6 +3,7 @@
 
 #include "ImageWrapperBase.h"
 #include "LayerTableRowModel.h"
+#include "StandaloneMeshWrapper.h"
 #include "SNAPQtCommon.h"
 #include "QtAbstractButtonCoupling.h"
 #include "QtLabelCoupling.h"
@@ -649,21 +650,30 @@ void LayerInspectorRowDelegate::on_actionSave_triggered()
 
 void LayerInspectorRowDelegate::on_actionClose_triggered()
 {
-  // For mesh, just close the layer without prompt for now
+  bool do_close = false;
+
+  // Mesh specific logic
   if (m_Model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
-    return;
-
-  // Should we prompt for a single layer or all layers?
-  ImageWrapperBase *prompted_layer = nullptr;
-
-  if (!m_Model->IsMainLayer())
-    prompted_layer = dynamic_cast<ImageWrapperBase*>(m_Model->GetLayer());
-
-  // Prompt for changes
-  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), prompted_layer))
     {
-    m_Model->CloseLayer();
+    do_close = true;
     }
+  else
+    {
+    // Should we prompt for a single layer or all layers?
+    ImageWrapperBase *prompted_layer = nullptr;
+
+    if (!m_Model->IsMainLayer())
+      prompted_layer = dynamic_cast<ImageWrapperBase*>(m_Model->GetLayer());
+
+    // Prompt for changes
+    if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), prompted_layer))
+      {
+      do_close = true;
+      }
+    }
+
+  if (do_close)
+    m_Model->CloseLayer();
 }
 
 void LayerInspectorRowDelegate::onColorMapPresetSelected()

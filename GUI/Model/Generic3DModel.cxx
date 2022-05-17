@@ -75,6 +75,8 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
               ValueChangedEvent(), StateMachineChangeEvent());
   Rebroadcast(m_ParentUI->GetGlobalState()->GetMeshOptions(),
               ChildPropertyChangedEvent(), StateMachineChangeEvent());
+
+  Rebroadcast(m_Driver->GetIRISImageData()->GetMeshLayers(), LayerChangeEvent(), StateMachineChangeEvent());
 }
 
 bool Generic3DModel::CheckState(Generic3DModel::UIState state)
@@ -88,17 +90,6 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
     {
     case UIF_MESH_DIRTY:
       {
-      /*
-      unsigned int tp = m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex();
-      if(m_Driver->GetMeshManager()->IsMeshDirty(tp))
-        return true;
-
-      if(m_Driver->GetMeshManager()->GetBuildTime(tp) <= this->m_ClearTime)
-        return true;
-
-      return false;
-      */
-
       return m_Driver->IsSnakeModeActive() ?
             m_Driver->GetSNAPImageData()->GetMeshLayers()->IsActiveMeshLayerDirty() :
             m_Driver->GetIRISImageData()->GetMeshLayers()->IsActiveMeshLayerDirty();

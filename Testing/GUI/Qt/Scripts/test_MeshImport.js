@@ -19,7 +19,6 @@ engine.findChild(mainwin,"actionLayerInspector").trigger();
 
 //=== Select a specific overlay
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
-//engine.printChildren(layerdialog);
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0002");
 rowdelegate.setSelected(true);
 

@@ -40,6 +40,13 @@ let inControlId = engine.findChild(cmpContrast, "inControlId");
 
 engine.validateValue(inControlId.maximum, 7);
 
+//=== Close a specific mesh layer
+engine.invoke(rowdelegate, "on_actionClose_triggered");
+engine.sleep(1000);
+
+//=== The layer should be closed
+let meshRowDelegate = engine.findChild(layerdialog, "wgtRowDelegate_0002");
+engine.validateValue(meshRowDelegate, null);
 
 //=== Close the inspector dialog
 engine.invoke(layerdialog, "close");

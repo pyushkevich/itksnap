@@ -70,8 +70,26 @@ ImageMeshLayers::RemoveLayer(unsigned long id)
 {
   m_Layers.erase(id);
 
+  for (auto it = m_ImageToMeshMap.begin(); it != m_ImageToMeshMap.end(); ++it)
+    {
+    if (it->second->GetUniqueId() == id)
+      {
+      // use it++ to move iterator out of released memory just to be safe
+      m_ImageToMeshMap.erase(it++);
+      break;
+      }
+    }
+
   // Notify subscribers about layer changes
   InvokeEvent(LayerChangeEvent());
+
+  if (m_ActiveLayerId == id)
+    {
+    if (m_Layers.size())
+      SetActiveLayerId(m_Layers.cbegin()->first);
+    else
+      SetActiveLayerId(0ul);
+    }
 }
 
 std::vector<unsigned long>
@@ -91,9 +109,11 @@ ImageMeshLayers::Unload()
   m_ImageToMeshMap.clear();
 
   for (auto it = m_Layers.begin(); it != m_Layers.end(); ++it)
-    it->second->Delete();
+    it->second = nullptr;
 
   m_Layers.clear();
+
+  m_ActiveLayerId = 0;
 }
 
 int

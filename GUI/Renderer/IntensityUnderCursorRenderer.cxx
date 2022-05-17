@@ -132,6 +132,7 @@ void IntensityUnderCursorRenderer::UpdatePlotValues()
     {
     m_CurveX->Reset();
     m_CurveY->Reset();
+    m_Selection->Reset();
     }
 
   // Mark plot table as modified

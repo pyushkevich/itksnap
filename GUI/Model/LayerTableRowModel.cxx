@@ -695,6 +695,7 @@ MeshLayerTableRowModel::UpdateRoleInfo()
 void
 MeshLayerTableRowModel::CloseLayer()
 {
+  m_ParentModel->GetDriver()->UnloadMeshLayer(m_MeshLayer->GetUniqueId());
   m_MeshLayer = NULL;
   m_Layer = NULL;
 }

@@ -373,6 +373,13 @@ void IRISApplication::UnloadAllOverlays()
   m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
 }
 
+void
+IRISApplication
+::UnloadMeshLayer(unsigned long id)
+{
+  m_IRISImageData->UnloadMeshLayer(id);
+}
+
 void IRISApplication
 ::ChangeOverlayPosition(ImageWrapperBase *overlay, int dir)
 {

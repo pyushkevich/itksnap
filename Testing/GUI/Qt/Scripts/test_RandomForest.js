@@ -67,6 +67,10 @@ engine.sleep(1000);
 //=== Set step size
 engine.findChild(snakepanel,"inStepSize").value = 10;
 
+//=== Turn on continuous rendering
+var actionContUpdate = engine.findChild(mainwin,"actionContinuous_Update");
+actionContUpdate.trigger();
+
 //=== Run snake 100 iter
 for(var i = 0; i < 10; i++)
 {

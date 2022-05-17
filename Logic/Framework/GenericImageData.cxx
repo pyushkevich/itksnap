@@ -306,6 +306,12 @@ void GenericImageData
   this->RemoveImageWrapper(OVERLAY_ROLE, overlay);
 }
 
+void
+GenericImageData
+::UnloadMeshLayer(unsigned long id)
+{
+  m_MeshLayers->RemoveLayer(id);
+}
 
 SmartPtr<GenericImageData::LabelImage4DType>
 GenericImageData

@@ -103,11 +103,11 @@ protected:
   Generic3DModel *m_Model;
 
   // Update the actors and mappings for the renderer
-  void UpdateSegmentationMeshAssembly();
-  void UpdateSegmentationMeshAppearance();
+  void UpdateMeshAssembly();
+  void UpdateMeshAppearance();
 
   // Clear all the meshes being rendered
-  void ResetSegmentationMeshAssembly();
+  void ResetMeshAssembly();
 
   // Update the actors representing the axes
   void UpdateAxisRendering();

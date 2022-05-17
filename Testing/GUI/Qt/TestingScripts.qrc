@@ -13,5 +13,6 @@
         <file>Scripts/test_PreferencesDialog.js</file>
         <file>Scripts/test_MeshImport.js</file>
         <file>Scripts/test_MeshWorkspace.js</file>
+        <file>Scripts/test_SegmentationMesh.js</file>
     </qresource>
 </RCC>

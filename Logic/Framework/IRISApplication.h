@@ -358,6 +358,11 @@ public:
   void AddBlankSegmentation();
 
   /**
+   * Unload a specific mesh layer
+   */
+  void UnloadMeshLayer(unsigned long id);
+
+  /**
    * Update the SNAP image data with an external speed image (e.g., 
    * loaded from a file).
    */

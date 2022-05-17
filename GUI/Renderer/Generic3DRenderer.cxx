@@ -264,7 +264,7 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   m_Picker->SetModel(m_Model);
 }
 
-void Generic3DRenderer::UpdateSegmentationMeshAssembly()
+void Generic3DRenderer::UpdateMeshAssembly()
 {
   if(m_Model->IsMeshUpdating() )
     return;
@@ -279,7 +279,11 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
 
   if (layers->size() == 0 || active_layer_id == 0)
+    {
+    ResetMeshAssembly();
     return;
+    }
+
 
   MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
 
@@ -298,7 +302,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
   // Remove all mesh actors from the renderer before the update
   // -- Since we are recycling all actors without constantly create/delete,
   // -- rebuilding actor map everytime is no longer expensive
-  ResetSegmentationMeshAssembly();
+  ResetMeshAssembly();
 
   // Process all addition and update
   dmp->UpdateActorMap(m_ActorPool, tp);
@@ -330,7 +334,7 @@ void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
   m_Renderer->Render();
 }
 
-void Generic3DRenderer::ResetSegmentationMeshAssembly()
+void Generic3DRenderer::ResetMeshAssembly()
 {
   if(m_Model->IsMeshUpdating())
     return;
@@ -594,7 +598,7 @@ void Generic3DRenderer::SaveCameraState()
 
 void Generic3DRenderer::ClearRendering()
 {
-  this->ResetSegmentationMeshAssembly();
+  this->ResetMeshAssembly();
 }
 
 void Generic3DRenderer::RestoreSavedCameraState()
@@ -667,7 +671,7 @@ void Generic3DRenderer::SetRenderWindow(vtkRenderWindow *rwin)
   // rwin->SetLineSmoothing(1);
 }
 
-void Generic3DRenderer::UpdateSegmentationMeshAppearance()
+void Generic3DRenderer::UpdateMeshAppearance()
 {
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
@@ -948,12 +952,12 @@ void Generic3DRenderer::OnUpdate()
   // Deal with the updates to the mesh state
   if(main_changed || seg_layer_changed || need_rebuild_actor_map)
     {
-    UpdateSegmentationMeshAssembly();
+    UpdateMeshAssembly();
     need_render = true;
     }
   else if(labels_props_changed)
     {
-    UpdateSegmentationMeshAppearance();
+    UpdateMeshAppearance();
     need_render = true;
     }
 

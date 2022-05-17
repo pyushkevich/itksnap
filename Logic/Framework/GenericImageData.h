@@ -281,6 +281,12 @@ public:
   virtual void UnloadOverlay(ImageWrapperBase *overlay);
 
   /**
+   * Unload a specific mesh layer
+   * Re-implemente in sub-class for image data specific logic
+   */
+  virtual void UnloadMeshLayer(unsigned long id);
+
+  /**
    * Add an overlay that is obtained from the image referenced by *io by applying
    * a spatial transformation.
    */
