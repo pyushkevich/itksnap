@@ -1,5 +1,14 @@
-ITK-SNAP Release Notes - Version 3.8
+ITK-SNAP Release Notes - Version 4.0
 ====================================
+## Version 4.0.0
+----
+
+### New features
+
+
+### Bug Fixes
+
+
 
 ## Version 3.8.0
 ----
