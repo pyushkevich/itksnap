@@ -399,6 +399,12 @@ void GlobalUIModel::ResetContrastAllLayers()
     }
 }
 
+void GlobalUIModel::AdjustContrastAllLayers(double level, double window)
+{
+    IntensityCurveModel *curve_model = GetIntensityCurveModel();
+    curve_model->OnAdjustCustomContrast(level, window);
+}
+
 void GlobalUIModel::ToggleOverlayVisibility()
 {
   // Are we in tiled mode or in stack mode?
@@ -509,6 +515,7 @@ void GlobalUIModel::LoadUserPreferences()
   // Read the appearance settings
   m_AppearanceSettings->LoadFromRegistry(
         si->Folder("UserInterface.Appearance"));
+
 
   // Read the default behaviors
   dbs->ReadFromRegistry(

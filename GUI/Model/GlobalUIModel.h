@@ -326,8 +326,10 @@ public:
   /** Auto-adjust contrast in all image layers */
   void AutoContrastAllLayers();
 
-  /** Auto-adjust contrast in all image layers */
+  /** Reset contrast in all image layers */
   void ResetContrastAllLayers();
+
+  void AdjustContrastAllLayers(double level, double window);
 
   /** A function for switching between segmentation layers when there multiple */
   void CycleSelectedSegmentationLayer(int direction);

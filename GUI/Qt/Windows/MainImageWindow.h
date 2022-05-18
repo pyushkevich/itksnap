@@ -28,6 +28,8 @@
 #define MAINIMAGEWINDOW_H
 
 #include <QMainWindow>
+
+#include "ContrastXML.h"
 #include "GlobalState.h"
 #include "SNAPCommon.h"
 
@@ -134,6 +136,7 @@ public slots:
   void LoadRecentActionTriggered();
   void LoadRecentOverlayActionTriggered();
   void LoadRecentSegmentationActionTriggered();
+  void LoadContrastActionTriggered();
   void LoadAnotherRecentSegmentationActionTriggered();
   void LoadRecentProjectActionTriggered();
   void LoadAnotherDicomActionTriggered();
@@ -336,13 +339,18 @@ protected:
 
 private:
 
+  static std::string GetContrastXMLFilePath();
+
   void CreateRecentMenu(QMenu *submenu,
                         const char *history_category,
                         bool use_global_history,
                         int max_items, const char *slot,
                         bool use_shortcut = false, int shortcut_modifier = 0);
 
+  void CreateContrastMenu(QMenu *submenu, const char *slot);
+
   void UpdateRecentMenu();
+  void UpdateContrastMenu();
   void UpdateWindowTitle();
   void UpdateProjectMenuItems();
   void UpdateRecentProjectsMenu();
@@ -413,6 +421,8 @@ private:
   RegistrationDialog *m_RegistrationDialog;
 
   DistributedSegmentationDialog *m_DSSDialog;
+
+  Contrast *m_CustomContrast;
 
   // A timer used to animate components
   QTimer *m_AnimateTimer;
