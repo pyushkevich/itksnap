@@ -329,6 +329,7 @@ public:
   /** Reset contrast in all image layers */
   void ResetContrastAllLayers();
 
+  /** Adjust custom contrast in all image layers */
   void AdjustContrastAllLayers(double level, double window);
 
   /** A function for switching between segmentation layers when there multiple */

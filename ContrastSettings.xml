@@ -10,7 +10,6 @@
 <!--
 The contrast enhancement values are specifically prepared for CT analysis. 
 They are directly taken from: https://radiopaedia.org/articles/windowing-ct.
-The only exception is the Liver HCC, for which values have been proposed by one radiologist.
 
 To add a new preset, complete the file with the structure as in the examples below. 
 At "preset" change "key" to the name of the preset to be added, and at "contrastProperty" set custom "value".
@@ -23,10 +22,6 @@ At "preset" change "key" to the name of the preset to be added, and at "contrast
   <preset key="Brain" >
     <contrastProperty key="Window" value="80" />
     <contrastProperty key="Level" value="40" />
-  </preset>
-  <preset key="Liver HCC" >
-    <contrastProperty key="Window" value="150" />
-    <contrastProperty key="Level" value="85" />
   </preset>
   <preset key="Lungs" >
     <contrastProperty key="Window" value="1500" />
