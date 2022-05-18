@@ -637,6 +637,15 @@ void IntensityCurveModel::OnAutoFitWindow()
   dmp->AutoFitContrast();
 }
 
+void IntensityCurveModel::OnAdjustCustomContrast(double custom_level, double custom_window)
+{
+  int index_level = 2;
+  int index_window = 3;
+
+  SetIntensityRangeIndexedValue(index_level, custom_level);
+  SetIntensityRangeIndexedValue(index_window, custom_window);
+}
+
 bool
 IntensityCurveModel
 ::GetHistogramBinSizeValueAndRange(

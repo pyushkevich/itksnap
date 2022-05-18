@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE contrast [
+<!ELEMENT contrast (contrastProperty*,preset*)>
+<!ELEMENT preset (contrastProperty*,preset*)>
+<!ELEMENT contrastProperty EMPTY>
+<!ATTLIST preset key CDATA #REQUIRED>
+<!ATTLIST contrastProperty key CDATA #REQUIRED>
+<!ATTLIST contrastProperty value CDATA #REQUIRED>
+]>
+<!--
+The contrast enhancement values are specifically prepared for CT analysis. 
+They are directly taken from: https://radiopaedia.org/articles/windowing-ct.
+
+To add a new preset, complete the file with the structure as in the examples below. 
+At "preset" change "key" to the name of the preset to be added, and at "contrastProperty" set custom "value".
+-->
+<contrast>
+  <preset key="Abdomen-SoftTissues" >
+    <contrastProperty key="Window" value="400" />
+    <contrastProperty key="Level" value="50" />
+  </preset>
+  <preset key="Brain" >
+    <contrastProperty key="Window" value="80" />
+    <contrastProperty key="Level" value="40" />
+  </preset>
+  <preset key="Lungs" >
+    <contrastProperty key="Window" value="1500" />
+    <contrastProperty key="Level" value="-600" />
+  </preset>
+  <preset key="Mediastinum" >
+    <contrastProperty key="Window" value="350" />
+    <contrastProperty key="Level" value="50" />
+  </preset>
+  <preset key="Spine-Bone" >
+    <contrastProperty key="Window" value="1800" />
+    <contrastProperty key="Level" value="400" />
+  </preset>
+</contrast>

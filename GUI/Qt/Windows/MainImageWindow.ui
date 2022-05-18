@@ -535,6 +535,7 @@ color:rgb(103, 103, 103);
      <addaction name="separator"/>
      <addaction name="actionAutoContrastGlobal"/>
      <addaction name="actionResetContrastGlobal"/>
+     <addaction name="separator"/>
     </widget>
     <addaction name="separator"/>
     <addaction name="actionLayerInspector"/>

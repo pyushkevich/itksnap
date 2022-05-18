@@ -5,6 +5,7 @@
 
 class LabelSelectionButton;
 class LabelSelectionPopup;
+class IntensityCurveModel;
 
 namespace Ui {
 class MainControlPanel;

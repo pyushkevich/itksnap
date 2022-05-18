@@ -184,6 +184,7 @@ MainControlPanel::MainControlPanel(MainImageWindow *parent) :
 void MainControlPanel::SetModel(GlobalUIModel *model)
 {
   m_Model = model;
+
   ui->pageCursorInspector->SetModel(m_Model->GetCursorInspectionModel());
   ui->pageZoomInspector->SetModel(m_Model);
   ui->pageDisplayInspector->SetModel(m_Model->GetDisplayLayoutModel());

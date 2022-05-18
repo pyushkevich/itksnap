@@ -50,6 +50,20 @@
 
 using namespace std;
 
+namespace GenericXMLFileReader
+{
+    static int CanReadFile(const char *name)
+    {
+        if ( !itksys::SystemTools::FileExists(name)
+            || itksys::SystemTools::FileIsDirectory(name)
+            || itksys::SystemTools::FileLength(name) == 0 )
+        {
+            return 0;
+        }
+
+        return 1;
+    }
+}
 
 
 /** Reader for XML files */
@@ -79,14 +93,7 @@ protected:
 
 int RegistryXMLFileReader::CanReadFile(const char *name)
 {
-  if ( !itksys::SystemTools::FileExists(name)
-       || itksys::SystemTools::FileIsDirectory(name)
-       || itksys::SystemTools::FileLength(name) == 0 )
-    {
-    return 0;
-    }
-
-  return 1;
+    return GenericXMLFileReader::CanReadFile(name);
 }
 
 void RegistryXMLFileReader::StartElement(const char *name, const char **atts)
