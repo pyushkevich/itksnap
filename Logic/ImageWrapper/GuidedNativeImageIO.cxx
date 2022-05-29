@@ -1717,11 +1717,22 @@ GuidedNativeImageIO
   tags_refine.push_back(m_tagRows);
   tags_refine.push_back(m_tagCols);
 
+  //--Dev: Add slice location for grouping
+  const gdcm::Tag tagSliceLocation(0x0020,0x1041);
+  const gdcm::Tag tagAcquisitionTime(0x0008, 0x0032);
+  //tags_refine.push_back(tagSliceLocation);
+
   // List of tags that we want to parse - everything else may be ignored
   std::set<gdcm::Tag> tags_all;
   tags_all.insert(tags_refine.begin(), tags_refine.end());
   tags_all.insert(m_tagDesc);
   tags_all.insert(m_tagSeriesInstanceUID);
+
+  //--Dev: Add to read list
+  tags_all.insert(tagSliceLocation);
+  tags_all.insert(tagAcquisitionTime);
+  std::set<std::string> sliceLocSet;
+  std::map<std::string, std::set<std::string>> sliceMap;
 
   // Clear the information about the last parse
   m_LastDicomParseResult.Reset();
@@ -1770,6 +1781,17 @@ GuidedNativeImageIO
         }
       full_id += s;
       }
+
+    //--Dev: Push slice location to the SliceLocSet
+    auto loc = sf.ToString(tagSliceLocation);
+    sliceLocSet.insert(sf.ToString(tagSliceLocation));
+
+    if (sliceMap.count(loc) == 0)
+      sliceMap[loc] = std::set<std::string>();
+
+    sliceMap[loc].insert(sf.ToString(tagAcquisitionTime));
+
+
 
     // Eliminate non-alnum characters, including whitespace...
     //   that may have been introduced by concats.
@@ -1823,6 +1845,21 @@ GuidedNativeImageIO
     // Indicate some progress
     if(progressCommand)
       progressCommand->Execute(this, itk::ProgressEvent());
+    }
+
+  //--Dev: count the entry
+  std::cout << "[GuidedNativeImageIO] ParseDicomDirectory. sliceLocSet.size="
+            << sliceLocSet.size() << std::endl;
+
+  for (auto kv : sliceMap)
+    {
+    std::ostringstream oss;
+    oss << "loc" << "," << kv.first << ",";
+    for (auto time : kv.second)
+      {
+      oss << time << ",";
+      }
+    std::cout << oss.str() << std::endl;
     }
 
   // Complain if no series have been found
