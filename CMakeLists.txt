@@ -1446,6 +1446,11 @@ ELSEIF(WIN32)
     ENDIF(VCREDIST_EXE)
   ENDIF(MSVC_VERSION GREATER 1399)
 
+  # Try setting the MSVC environment so we can debug from MSVC
+  set_target_properties(ITK-SNAP PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:ITK-SNAP>"
+                                            VS_DEBUGGER_COMMAND           "$<TARGET_FILE:ITK-SNAP>"
+                                            VS_DEBUGGER_ENVIRONMENT       "PATH=%PATH%;${VTK_DIR}/bin/Debug;${Qt6_DIR}/../../../bin;")
+
 ELSE()
 
   # On Linux, we generate forward shared executable
