@@ -46,6 +46,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <initializer_list>
 
 #include "SNAPCommon.h"
 #include "itkXMLFile.h"
@@ -204,6 +205,14 @@ public:
     for(auto it: m)
       this->AddPair(it.first, it.second.c_str());
   }
+
+  /** Constructor based on initializer list */
+  RegistryEnumMap(std::initializer_list<std::pair<TEnum, const char*>> il)
+  {
+    for(auto kv: il)
+      this->AddPair(kv.first, kv.second);
+  }
+
 
 private:
   std::map<TEnum, StringType> m_EnumToStringMap;

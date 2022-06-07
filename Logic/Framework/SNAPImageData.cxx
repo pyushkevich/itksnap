@@ -55,6 +55,9 @@
 #include "ThresholdSettings.h"
 #include "ColorMap.h"
 #include "SNAPImageData.h"
+#include "ImageMeshLayers.h"
+#include "Rebroadcaster.h"
+#include "ImageWrapperTraits.h"
 
 #include "SlicePreviewFilterWrapper.h"
 #include "PreprocessingFilterConfigTraits.h"
@@ -72,6 +75,12 @@ SNAPImageData
   m_SnakeColorLabel = 0;
 
   m_CompressedAlternateLabelImage = NULL;
+
+  // Initialize Mesh Layers storage
+  m_MeshLayers = ImageMeshLayers::New();
+  m_MeshLayers->Initialize(this);
+  Rebroadcaster::Rebroadcast(m_MeshLayers, LayerChangeEvent(),
+                             this, LayerChangeEvent());
 }
 
 

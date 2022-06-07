@@ -35,10 +35,20 @@
 // ITK Includes
 #include "IRISImageData.h"
 #include "itkImage.h"
+#include "Rebroadcaster.h"
+#include "ImageMeshLayers.h"
 
 IRISImageData
 ::IRISImageData()
 {
+  // Initialize Mesh Layers storage
+  m_MeshLayers = ImageMeshLayers::New();
+  m_MeshLayers->Initialize(this);
+  Rebroadcaster::Rebroadcast(m_MeshLayers, LayerChangeEvent(),
+                             this, LayerChangeEvent());
+
+  Rebroadcaster::Rebroadcast(m_MeshLayers, ActiveLayerChangeEvent(),
+                             this, ActiveLayerChangeEvent());
 }
 
 IRISImageData::~IRISImageData()

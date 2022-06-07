@@ -3,6 +3,7 @@
 
 #include "AbstractVTKRenderer.h"
 #include <vtkSmartPointer.h>
+#include "ActorPool.h"
 
 class Generic3DModel;
 class vtkGenericOpenGLRenderWindow;
@@ -20,9 +21,12 @@ class vtkTransformPolyDataFilter;
 class vtkCubeSource;
 class vtkCoordinate;
 class vtkCamera;
+class vtkScalarBarActor;
+class vtkPolyDataMapper;
 class Window3DPicker;
 class ImageWrapperBase;
 class VolumeAssembly;
+class ImageMeshLayers;
 
 /**
  * A struct representing the state of the VTK camera. This struct
@@ -39,7 +43,6 @@ struct CameraState
 
 bool operator == (const CameraState &c1, const CameraState &c2);
 bool operator != (const CameraState &c1, const CameraState &c2);
-
 
 class Generic3DRenderer : public AbstractVTKRenderer
 {
@@ -100,11 +103,11 @@ protected:
   Generic3DModel *m_Model;
 
   // Update the actors and mappings for the renderer
-  void UpdateSegmentationMeshAssembly();
-  void UpdateSegmentationMeshAppearance();
+  void UpdateMeshAssembly();
+  void UpdateMeshAppearance();
 
   // Clear all the meshes being rendered
-  void ResetSegmentationMeshAssembly();
+  void ResetMeshAssembly();
 
   // Update the actors representing the axes
   void UpdateAxisRendering();
@@ -124,11 +127,15 @@ protected:
   // Configure the volume rendering
   void UpdateVolumeRendering();
 
-  typedef std::map<LabelType, vtkSmartPointer<vtkActor> > ActorMap;
-  typedef ActorMap::iterator ActorMapIterator;
+  // Apply changes in the display mapping policy to the actors
+  void ApplyDisplayMappingPolicyChange();
 
-  // Collection of actors for different color labels in use
-  ActorMap m_ActorMap;
+  // Storage of ActorMap and a pool of actors for reuse in the map
+  SmartPtr<ActorPool> m_ActorPool;
+
+  // Indicate the current layer_id and timepoint that the ActorMap represents
+  unsigned long m_CrntActorMapLayerId = 0;
+  unsigned int m_CrntActorMapTimePoint = 0;
 
   // Line sources for drawing the crosshairs
   vtkSmartPointer<vtkLineSource> m_AxisLineSource[3];
@@ -153,6 +160,9 @@ protected:
   vtkSmartPointer<vtkTransformPolyDataFilter> m_ImageCubeTransform;
   vtkSmartPointer<vtkImplicitPlaneWidget> m_ScalpelPlaneWidget;
 
+  // The actor for scalar bar
+  vtkSmartPointer<vtkScalarBarActor> m_ScalarBarActor;
+
   // Coordinate mapper
   vtkSmartPointer<vtkCoordinate> m_CoordinateMapper;
 
@@ -161,8 +171,11 @@ protected:
 
   // Picker object
   vtkSmartPointer<Window3DPicker> m_Picker;
+
   void UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssembly *va);
   void UpdateVolumeTransform(ImageWrapperBase *layer, VolumeAssembly *va);
+
+  ImageMeshLayers *m_MeshLayers;
 };
 
 #endif // GENERIC3DRENDERER_H

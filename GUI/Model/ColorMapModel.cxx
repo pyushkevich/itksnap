@@ -2,13 +2,12 @@
 #include "LayerAssociation.txx"
 #include "NumericPropertyToggleAdaptor.h"
 #include "ColorMapPresetManager.h"
-
+#include "ImageWrapperBase.h"
+#include "SegmentationMeshWrapper.h"
 #include <algorithm>
 
 // This compiles the LayerAssociation for the color map
-template class LayerAssociation<ColorMapLayerProperties,
-                                ImageWrapperBase,
-                                ColorMapModelBase::PropertiesFactory>;
+template class LayerAssociation<ColorMapLayerProperties,WrapperBase,ColorMapModelBase::PropertiesFactory>;
 
 ColorMapModel::ColorMapModel()
 {
@@ -54,7 +53,7 @@ ColorMapModel::ColorMapModel()
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
 }
 
-ColorMap* ColorMapModel::GetColorMap(ImageWrapperBase *layer)
+ColorMap* ColorMapModel::GetColorMap(WrapperBase *layer)
 {
   // Get the display mapping cast to a type that supports colormap
   return layer->GetDisplayMapping()->GetColorMap();
@@ -118,7 +117,7 @@ ColorMapModel
 }
 
 
-void ColorMapModel::RegisterWithLayer(ImageWrapperBase *layer)
+void ColorMapModel::RegisterWithLayer(WrapperBase *layer)
 {
   // Register for the model events
   ColorMap *cm = this->GetColorMap(layer);
@@ -133,7 +132,7 @@ void ColorMapModel::RegisterWithLayer(ImageWrapperBase *layer)
     p.SetSelectedPreset(m_PresetManager->QueryPreset(cm));
 }
 
-void ColorMapModel::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted)
+void ColorMapModel::UnRegisterFromLayer(WrapperBase *layer, bool being_deleted)
 {
   if(!being_deleted)
     {
@@ -422,6 +421,10 @@ ColorMapModel
 {
   // All flags are false if no layer is loaded
   if(this->GetLayer() == NULL || this->GetColorMap() == NULL)
+    return false;
+
+  // Segmentation Mesh don't need color map
+  if(dynamic_cast<SegmentationMeshWrapper*>(this->GetLayer()) != NULL)
     return false;
 
   // Otherwise get the properties

@@ -4,9 +4,10 @@
 #include "AbstractLayerAssociatedModel.h"
 #include "PropertyModel.h"
 #include "TagList.h"
+#include "MeshWrapperBase.h"
 
 class AbstractMultiChannelDisplayMappingPolicy;
-class LayerTableRowModel;
+class AbstractLayerTableRowModel;
 class TimePointProperties;
 
 /**
@@ -19,7 +20,7 @@ public:
   irisGetSetMacro(VisibilityToggleModel, AbstractSimpleBooleanProperty *)
 
   GeneralLayerProperties()
-    : m_ObserverTag(0), m_VisibilityToggleModel(NULL) {}
+    : m_VisibilityToggleModel(NULL), m_ObserverTag(0) {}
 
   virtual ~GeneralLayerProperties() {}
 
@@ -35,7 +36,7 @@ protected:
 };
 
 typedef AbstractLayerAssociatedModel<
-    GeneralLayerProperties, ImageWrapperBase> LayerGeneralPropertiesModelBase;
+    GeneralLayerProperties, WrapperBase> LayerGeneralPropertiesModelBase;
 
 class LayerGeneralPropertiesModel : public LayerGeneralPropertiesModelBase
 {
@@ -60,12 +61,14 @@ public:
     UIF_IS_OPACITY_EDITABLE,
     UIF_MOVABLE_UP,
     UIF_MOVABLE_DOWN,
-    UIF_IS_4D_IMAGE
+    UIF_IS_4D_IMAGE,
+    UIF_IS_MESH,
+    UIF_IS_MESHDATA_MULTICOMPONENT,
   };
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(ImageWrapperBase *layer) ITK_OVERRIDE;
-  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
+  void RegisterWithLayer(WrapperBase *layer) ITK_OVERRIDE;
+  void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
 
   // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);
@@ -79,6 +82,15 @@ public:
   // Typedefs for the model for component selection
   typedef SimpleItemSetDomain<DisplayMode, std::string> DisplayModeDomain;
   typedef AbstractPropertyModel<DisplayMode, DisplayModeDomain> AbstractDisplayModeModel;
+
+  // Typedefs for mesh data selection
+  typedef SimpleItemSetDomain<int, std::string> MeshDataArrayNameDomain;
+  typedef AbstractPropertyModel<int, MeshDataArrayNameDomain> AbstractMeshDataArrayNameModel;
+
+  // Typedefs for mesh data multi-component display mode
+  typedef MeshLayerDataArrayProperty::VectorModes VectorModes;
+  typedef SimpleItemSetDomain<int, std::string> MeshVectorModeDomain;
+  typedef AbstractPropertyModel<int, MeshVectorModeDomain> AbstractMeshVectorModeModel;
 
   // Models
   irisGetMacro(DisplayModeModel, AbstractDisplayModeModel *)
@@ -106,8 +118,14 @@ public:
   /** A model for the current timepoint nickname */
   irisSimplePropertyAccessMacro(CrntTimePointNickname, std::string)
 
-  /** A model for the current timtpoint taglist */
+  /** A model for the current timepoint taglist */
   irisSimplePropertyAccessMacro(CrntTimePointTagList, TagList)
+
+  /** A model for mesh data array names */
+  irisGetMacro(MeshDataArrayNameModel, AbstractMeshDataArrayNameModel *)
+
+  /** A model for mesh multi-component (vector) display mode */
+  irisGetMacro(MeshVectorModeModel, AbstractMeshVectorModeModel *)
 
   /** Move the layer up in the list */
   void MoveLayerUp();
@@ -121,6 +139,14 @@ protected:
   SmartPtr<AbstractDisplayModeModel> m_DisplayModeModel;
   bool GetDisplayModeValueAndRange(DisplayMode &value, DisplayModeDomain *domain);
   void SetDisplayModeValue(DisplayMode value);
+
+  SmartPtr<AbstractMeshDataArrayNameModel> m_MeshDataArrayNameModel;
+  bool GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain);
+  void SetMeshDataArrayNameValue(int value);
+
+  SmartPtr<AbstractMeshVectorModeModel> m_MeshVectorModeModel;
+  bool GetMeshVectorModeValueAndRange(int &value, MeshVectorModeDomain *domain);
+  void SetMeshVectorModeValue(int value);
 
   SmartPtr<AbstractRangedIntProperty> m_SelectedComponentModel;
   bool GetSelectedComponentValueAndRange(int &value, NumericValueRange<int> *domain);
@@ -170,7 +196,7 @@ protected:
   // NULL if no layer is selected. Some of the properties that this model
   // exposes are already exposed in LayerTableRowModel, so we delegate to
   // them.
-  LayerTableRowModel *GetSelectedLayerTableRowModel();
+  AbstractLayerTableRowModel *GetSelectedLayerTableRowModel();
 
   // TimePoint Properties
   TimePointProperties *m_TimePointProperties;

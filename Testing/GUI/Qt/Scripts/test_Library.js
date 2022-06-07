@@ -34,6 +34,24 @@ function openMainImage(name)
   engine.findChild(dialog, "qt_wizard_finish").click();
   engine.sleep(1000);
 }
+
+function openMesh(name)
+{
+    //=== Opening 'Open Mesh' Dialog
+    engine.findChild(mainwin, "actionAddMesh").trigger();
+    engine.sleep(2000);
+
+    //=== Entering Filename
+    var dialog = engine.findChild(mainwin, "wizMeshImport");
+    engine.print("file path=" + datadir + "/" + name);
+    engine.findChild(dialog, "inFilename").text = datadir + "/" + name;
+    engine.sleep(1000);
+
+    //=== Pressing the 'finish' button
+    engine.findChild(dialog, "qt_wizard_finish").click();
+    engine.sleep(1000);
+}
+
 function openWorkspace(name)
 {
   //=== Opening 'Open Workspace' dialog

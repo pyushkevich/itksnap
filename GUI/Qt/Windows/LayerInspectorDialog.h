@@ -9,7 +9,7 @@ class ContrastInspector;
 class GlobalUIModel;
 class EventBucket;
 class LayerInspectorRowDelegate;
-class ImageWrapperBase;
+class WrapperBase;
 class QToolButton;
 class QMenu;
 class QAction;
@@ -46,10 +46,10 @@ public:
   void SetPageToImageInfo();
 
   // Get the context menu corresponding to a specific layer.
-  QMenu *GetLayerContextMenu(ImageWrapperBase *layer);
+  QMenu *GetLayerContextMenu(WrapperBase *layer);
 
   // Get the save action for a specific layer
-  QAction *GetLayerSaveAction(ImageWrapperBase *layer);
+  QAction *GetLayerSaveAction(WrapperBase *layer);
 
   bool eventFilter(QObject *source, QEvent *event);
 
@@ -85,7 +85,7 @@ private:
 
   void GenerateModelsForLayers();
   void BuildLayerWidgetHierarchy();
-  void SetActiveLayer(ImageWrapperBase *layer);
+  void SetActiveLayer(WrapperBase *layer);
   void UpdateLayerLayoutAction();
 
   // Tool bar buttons that use actions from the selected layer widgets
