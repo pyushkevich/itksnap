@@ -2,9 +2,6 @@
 #include "itkImageBase.h"
 #include "IRISException.h"
 
-
-
-
 vnl_matrix_fixed<double, 4, 4>
 ImageWrapperBase
 ::ConstructNiftiSform(vnl_matrix<double> m_dir,

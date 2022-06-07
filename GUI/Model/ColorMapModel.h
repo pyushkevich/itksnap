@@ -49,7 +49,7 @@ protected:
 };
 
 typedef AbstractLayerAssociatedModel<
-    ColorMapLayerProperties, ImageWrapperBase> ColorMapModelBase;
+    ColorMapLayerProperties, WrapperBase> ColorMapModelBase;
 
 
 /**
@@ -91,8 +91,8 @@ public:
   bool CheckState(UIState state);
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(ImageWrapperBase *layer) ITK_OVERRIDE;
-  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
+  void RegisterWithLayer(WrapperBase *layer) ITK_OVERRIDE;
+  void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
 
   /** Before using the model, it must be coupled with a size reporter */
   irisGetSetMacro(ViewportReporter, ViewportSizeReporter *)
@@ -227,7 +227,7 @@ protected:
   void SetLayerOpacity(double value);
 
   // Extract a colormap from the layer if it has one
-  ColorMap *GetColorMap(ImageWrapperBase *layer);
+  ColorMap *GetColorMap(WrapperBase *layer);
 
 };
 

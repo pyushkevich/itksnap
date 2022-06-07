@@ -63,7 +63,7 @@ protected:
 
 typedef AbstractLayerAssociatedModel<
     IntensityCurveLayerProperties,
-    ImageWrapperBase> IntensityCurveModelBase;
+    WrapperBase> IntensityCurveModelBase;
 
 /**
   The intensity curve model is used to interact with the intensity curve in
@@ -89,8 +89,8 @@ public:
   void SetViewportReporter(ViewportSizeReporter *vr);
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(ImageWrapperBase *layer) ITK_OVERRIDE;
-  void UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
+  void RegisterWithLayer(WrapperBase *layer) ITK_OVERRIDE;
+  void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
 
 
   /**

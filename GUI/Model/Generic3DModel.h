@@ -13,6 +13,7 @@ class MeshManager;
 class Generic3DRenderer;
 class vtkPolyData;
 class MeshExportSettings;
+class ImageMeshLayers;
 
 namespace itk
 {
@@ -63,7 +64,7 @@ public:
   irisSimplePropertyAccessMacro(ContinuousUpdate, bool)
 
   // Tell the model to update the segmentation mesh
-  void UpdateSegmentationMesh(itk::Command *callback);
+  void UpdateSegmentationMesh(itk::Command *progressCmd);
 
   // Reentrant function to check if mesh is being constructed in another thread
   bool IsMeshUpdating();
@@ -101,6 +102,15 @@ public:
 
   // Get the renderer
   irisGetMacro(Renderer, Generic3DRenderer *)
+
+  // Get the driver
+  irisGetMacro(Driver, IRISApplication *)
+
+  // Get mesh layers
+  ImageMeshLayers *GetMeshLayers();
+
+  /** Set/Get selected mesh layer id */
+  irisSimplePropertyAccessMacro(SelectedMeshLayerId, unsigned long)
 
   // Get the transform from image space to world coordinates
   Mat4d &GetWorldMatrix();
@@ -164,6 +174,9 @@ protected:
 
   // Is the mesh updating
   bool m_MeshUpdating;
+
+  // Selected Mesh Layer ID
+  SmartPtr<ConcreteSimpleULongProperty> m_SelectedMeshLayerIdModel;
 
   // Time of the last mesh clear operation
   unsigned long m_ClearTime;

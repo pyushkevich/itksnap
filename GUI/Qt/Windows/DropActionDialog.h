@@ -5,6 +5,7 @@
 
 class GlobalUIModel;
 class AbstractLoadImageDelegate;
+class EventBucket;
 
 namespace Ui {
 class DropActionDialog;
@@ -36,6 +37,23 @@ public:
    */
   void LoadMainImage(QString name);
 
+  /**
+   * Attempt to load a mesh directly without showing the dialog
+   */
+  void LoadMesh(QString name);
+
+  /**
+   * Load a file without Main Image loaded
+   * If file is a valid mesh file, load as mesh layer
+   * Otherwise call LoadMainImage
+   */
+  void InitialLoad(QString name);
+
+  /**
+   * Whether to include mesh options
+   */
+  void SetIncludeMeshOptions(bool include_mesh);
+
 private slots:
   void on_btnLoadMain_clicked();
 
@@ -44,6 +62,12 @@ private slots:
   void on_btnLoadOverlay_clicked();
 
   void on_btnLoadNew_clicked();
+
+  void on_btnLoadMeshAsLayer_clicked();
+
+  void on_btnLoadMeshToTP_clicked();
+
+  void onModelUpdate(const EventBucket &bucket);
 
   /**
    * This method loads the dropped image.

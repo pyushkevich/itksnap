@@ -188,6 +188,10 @@ private slots:
 
   void on_actionAdd_Overlay_triggered();
 
+  void on_actionAddMesh_triggered();
+
+  void on_actionAddMeshSeries_triggered();
+
   void on_actionSSAxial_triggered();
 
   void on_actionSSCoronal_triggered();
@@ -254,6 +258,8 @@ private slots:
   void UpdateCanvasDimensions();
 
   void onAnimationTimeout();
+
+  void on4DReplayTimeout();
 
   void on_actionExportAxial_triggered();
 
@@ -369,6 +375,9 @@ private:
   // Common method for loading recent segmentations (either open or add)
   void LoadRecentSegmentation(QString file, bool additive);
 
+  // Update 4D Replay Timer and Interval
+  void Update4DReplay();
+
   // For convenience, an array of the four panels (3 slice/1 3D)
   QWidget *m_ViewPanels[4];
 
@@ -421,6 +430,10 @@ private:
   RegistrationDialog *m_RegistrationDialog;
 
   DistributedSegmentationDialog *m_DSSDialog;
+
+  QTimer *m_4DReplayTimer;
+  bool m_Is4DReplayOn = false;
+  int m_Crnt4DReplayInteval = 50;
 
   // A timer used to animate components
   QTimer *m_AnimateTimer;

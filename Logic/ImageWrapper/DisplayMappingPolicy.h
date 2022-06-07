@@ -2,6 +2,7 @@
 #define DISPLAYMAPPINGPOLICY_H
 
 #include "ImageWrapperBase.h"
+#include "MeshWrapperBase.h"
 #include "itkDataObject.h"
 #include "itkObjectFactory.h"
 #include "IntensityToColorLookupTableImageFilter.h"
@@ -11,6 +12,7 @@ class ColorLabelTable;
 class LabelToRGBAFilter;
 class IntensityCurveVTK;
 class Registry;
+class ActorMapperPool;
 template <class TEnum> class RegistryEnumMap;
 template <class T, class U> class LookupTableIntensityMappingFilter;
 template <class T> class RGBALookupTableIntensityMappingFilter;
@@ -112,6 +114,7 @@ protected:
   WrapperType *m_Wrapper;
 };
 
+
 /**
  * @brief The parent class for the policies that involve curve-based mappings,
  * for both scalar and vector images.
@@ -170,12 +173,6 @@ public:
                              AbstractContinuousImageDisplayMappingPolicy)
 
 };
-
-
-
-
-
-
 
 
 template<class TWrapperTraits>
@@ -505,7 +502,6 @@ protected:
     DisplaySliceType, MultiChannelDisplayMode> DisplaySliceSelector;
   SmartPtr<DisplaySliceSelector> m_DisplaySliceSelector[3];
 };
-
 
 
 #endif // DISPLAYMAPPINGPOLICY_H

@@ -30,6 +30,7 @@
 #include "DisplayLayoutModel.h"
 #include "QShortcut"
 #include <QKeyEvent>
+#include "ImageMeshLayers.h"
 
 #include <QMenu>
 
@@ -133,7 +134,7 @@ void LayerInspectorDialog::SetPageToImageInfo()
   ui->tabWidget->setCurrentWidget(ui->cmpInfo);
 }
 
-QMenu *LayerInspectorDialog::GetLayerContextMenu(ImageWrapperBase *layer)
+QMenu *LayerInspectorDialog::GetLayerContextMenu(WrapperBase *layer)
 {
   foreach(LayerInspectorRowDelegate *del, m_Delegates)
     if(del->GetLayer() == layer)
@@ -142,7 +143,7 @@ QMenu *LayerInspectorDialog::GetLayerContextMenu(ImageWrapperBase *layer)
   return NULL;
 }
 
-QAction *LayerInspectorDialog::GetLayerSaveAction(ImageWrapperBase *layer)
+QAction *LayerInspectorDialog::GetLayerSaveAction(WrapperBase *layer)
 {
   foreach(LayerInspectorRowDelegate *del, m_Delegates)
     if(del->GetLayer() == layer)
@@ -170,6 +171,7 @@ bool LayerInspectorDialog::eventFilter(QObject *source, QEvent *event)
 
 void LayerInspectorDialog::GenerateModelsForLayers()
 {
+  // Create model for image layers
   // Iterate over the layers for each class of displayed layers
   LayerIterator it = m_Model->GetDriver()->GetCurrentImageData()->GetLayers(
         MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE | LABEL_ROLE);
@@ -177,16 +179,36 @@ void LayerInspectorDialog::GenerateModelsForLayers()
   for(; !it.IsAtEnd(); ++it)
     {
     // Check if a model exists for this layer
-    SmartPtr<LayerTableRowModel> model =
-        dynamic_cast<LayerTableRowModel *>(
+    SmartPtr<ImageLayerTableRowModel> model =
+        dynamic_cast<ImageLayerTableRowModel *>(
           it.GetLayer()->GetUserData("LayerTableRowModel"));
 
     // If not, create it and stick as 'user data' into the layer
     if(!model)
       {
-      model = LayerTableRowModel::New();
+      model = ImageLayerTableRowModel::New();
       model->Initialize(m_Model, it.GetLayer());
+
       it.GetLayer()->SetUserData("LayerTableRowModel", model);
+      }
+    }
+
+  // Create model for mesh layers
+  MeshLayerIterator meshIt(m_Model->GetDriver()->GetCurrentImageData()->GetMeshLayers());
+
+  for (; !meshIt.IsAtEnd(); ++meshIt)
+    {
+    // Check if a model exists for this layer
+    SmartPtr<MeshLayerTableRowModel> model =
+        dynamic_cast<MeshLayerTableRowModel *>(
+          meshIt.GetLayer()->GetUserData("LayerTableRowModel"));
+
+    // If not, create it and stick as 'user data' into the layer
+    if (!model)
+      {
+      model = MeshLayerTableRowModel::New();
+      model->Initialize(m_Model, meshIt.GetLayer());
+      meshIt.GetLayer()->SetUserData("LayerTableRowModel", model);
       }
     }
 }
@@ -212,7 +234,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
   bool found_selected_layer = false;
 
   // Get the ID of the currently selected layer
-  unsigned long selected_layer = m_Model->GetGlobalState()->GetSelectedLayerId();
+  unsigned long selected_layer = m_Model->GetGlobalState()->GetSelectedLayerInspectorLayerId();
 
   // Get rid of all existing widgets in the pane
   m_Delegates.clear();
@@ -237,7 +259,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
   // The row widget for the main image layer (default selection)
   LayerInspectorRowDelegate *w_main = NULL;
 
-  // Loop over all the layers
+  // Loop over all the image layers
   for(; !it.IsAtEnd(); ++it)
     {
     LayerRole role = it.GetRole();
@@ -258,8 +280,8 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
       w_main = w;
 
     // Find the model for this layer
-    SmartPtr<LayerTableRowModel> model =
-        dynamic_cast<LayerTableRowModel *>(
+    SmartPtr<AbstractLayerTableRowModel> model =
+        dynamic_cast<AbstractLayerTableRowModel *>(
           it.GetLayer()->GetUserData("LayerTableRowModel"));
 
     // Set the model
@@ -288,6 +310,43 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
     currentGroupBox->addWidget(w);
     m_Delegates.push_back(w);
     }
+
+  // Process Mesh layer
+  auto mesh_layers = m_Model->GetDriver()->GetCurrentImageData()->GetMeshLayers();
+  if (mesh_layers->size())
+    {
+    // Create a mesh group box
+    auto meshGrpBox = new CollapsableGroupBox();
+    meshGrpBox->setTitle("Mesh Layers");
+    lo->addWidget(meshGrpBox);
+
+    // Iterate through mesh layers building widgets
+    for (auto mesh_it = mesh_layers->GetLayers(); !mesh_it.IsAtEnd(); ++mesh_it)
+      {
+      // Create a new inspector row delegate
+      auto meshRow = new LayerInspectorRowDelegate(this);
+
+      // Set a name for this widget for debugging purposes
+      meshRow->setObjectName(QString().asprintf("wgtRowDelegate_%04lld", m_Delegates.size()));
+
+      // Set the model for this layer
+      SmartPtr<AbstractLayerTableRowModel> model =
+          dynamic_cast<AbstractLayerTableRowModel *>(
+            mesh_it.GetLayer()->GetUserData("LayerTableRowModel"));
+
+      meshRow->SetModel(model);
+
+      // Listen to select signals from widget
+      connect(meshRow, SIGNAL(selectionChanged(bool)), this, SLOT(layerSelected(bool)));
+      connect(meshRow, SIGNAL(contrastInspectorRequested()), this, SLOT(onContrastInspectorRequested()));
+      connect(meshRow, SIGNAL(colorMapInspectorRequested()), this, SLOT(onColorMapInspectorRequested()));
+
+      // Add row to the group box
+      meshGrpBox->addWidget(meshRow);
+      m_Delegates.push_back(meshRow);
+      }
+    }
+
 
   // If we haven't selected anything, select the main layer's widget - this should not happen
   if(!found_selected_layer && w_main)
@@ -344,9 +403,15 @@ void LayerInspectorDialog::layerSelected(bool flag)
       wsel->setSelected(true);
     this->SetActiveLayer(wsel->GetLayer());
 
+    // Set selected layer id in gloabl state, this make sure after every rebuild
+    // of the panel, the correct layer will be selected
+    m_Model->GetGlobalState()->SetSelectedLayerInspectorLayerId(wsel->GetLayer()->GetUniqueId());
+
     // Put this layer's actions on the menu
     m_SaveSelectedButton->setDefaultAction(wsel->saveAction());
     }
+
+
 }
 
 void LayerInspectorDialog::onContrastInspectorRequested()
@@ -373,7 +438,7 @@ void LayerInspectorDialog::onColorMapInspectorRequested()
   this->raise();
 }
 
-void LayerInspectorDialog::SetActiveLayer(ImageWrapperBase *layer)
+void LayerInspectorDialog::SetActiveLayer(WrapperBase *layer)
 {
   // For our purposes, uninitialized layers are just the same as null layers,
   // they can not participate in layer association.
@@ -383,8 +448,33 @@ void LayerInspectorDialog::SetActiveLayer(ImageWrapperBase *layer)
   // For each model, set the layer
   m_Model->GetColorMapModel()->SetLayer(layer);
 
-  m_Model->GetIntensityCurveModel()->SetLayer(
-        (layer && layer->GetDisplayMapping()->GetIntensityCurve()) ? layer : NULL);
+  bool IsContrastAdjustable = false;
+
+  if(layer)
+    {
+    SmartPtr<AbstractLayerTableRowModel> row_model =
+        dynamic_cast<AbstractLayerTableRowModel *>(layer->GetUserData("LayerTableRowModel"));
+    if (row_model)
+      IsContrastAdjustable = row_model->CheckState(AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
+
+    // If activated layer is a segmentation image
+    // check if there's a coreesponding segmentation mesh layer
+    auto seg_layer = dynamic_cast<LabelImageWrapper*>(layer);
+
+    if (seg_layer)
+      {
+      auto mesh_layers = m_Model->GetDriver()->GetCurrentImageData()->GetMeshLayers();
+      if (mesh_layers->HasMeshForImage(seg_layer->GetUniqueId()))
+        {
+        auto seg_mesh = mesh_layers->GetMeshForImage(seg_layer->GetUniqueId());
+
+        // Set the corresponding mesh as active
+        mesh_layers->SetActiveLayerId(seg_mesh->GetUniqueId());
+        }
+      }
+    }
+
+  m_Model->GetIntensityCurveModel()->SetLayer(IsContrastAdjustable ? layer : NULL);
 
   m_Model->GetImageInfoModel()->SetLayer(layer);
   m_Model->GetLayerGeneralPropertiesModel()->SetLayer(layer);

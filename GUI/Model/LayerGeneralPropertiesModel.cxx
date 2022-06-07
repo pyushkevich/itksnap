@@ -1,12 +1,14 @@
 #include "LayerGeneralPropertiesModel.h"
 #include "DisplayMappingPolicy.h"
+#include "MeshDisplayMappingPolicy.h"
 #include "LayerAssociation.txx"
 #include "NumericPropertyToggleAdaptor.h"
 #include "LayerTableRowModel.h"
 #include "TimePointProperties.h"
+#include "StandaloneMeshWrapper.h"
 
 template class LayerAssociation<GeneralLayerProperties,
-                                ImageWrapperBase,
+                                WrapperBase,
                                 LayerGeneralPropertiesModel::PropertiesFactory>;
 
 
@@ -65,6 +67,16 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         this,
         &Self::GetCrntTimePointTagListValue,
         &Self::SetCrntTimePointTagListValue);
+
+  m_MeshDataArrayNameModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetMeshDataArrayNameValueAndRange,
+        &Self::SetMeshDataArrayNameValue);
+
+  m_MeshVectorModeModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetMeshVectorModeValueAndRange,
+        &Self::SetMeshVectorModeValue);
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -100,7 +112,7 @@ LayerGeneralPropertiesModel::SetParentModel(GlobalUIModel *parent)
 }
 
 void
-LayerGeneralPropertiesModel::RegisterWithLayer(ImageWrapperBase *layer)
+LayerGeneralPropertiesModel::RegisterWithLayer(WrapperBase *layer)
 {
   // Listen to changes in the layer's intensity curve
   // TODO: maybe we need better event granularity here? This event will fire when
@@ -114,7 +126,7 @@ LayerGeneralPropertiesModel::RegisterWithLayer(ImageWrapperBase *layer)
 }
 
 void
-LayerGeneralPropertiesModel::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted)
+LayerGeneralPropertiesModel::UnRegisterFromLayer(WrapperBase *layer, bool being_deleted)
 {
   if(!being_deleted)
     {
@@ -139,7 +151,7 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
     return false;
 
   // Defer to the row model when we can
-  LayerTableRowModel *row_model = this->GetSelectedLayerTableRowModel();
+  AbstractLayerTableRowModel *row_model = this->GetSelectedLayerTableRowModel();
 
   switch(state)
     {
@@ -151,23 +163,44 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
         return dp && dp->GetDisplayMode().SelectedScalarRep == SCALAR_REP_COMPONENT;
       }
     case UIF_MULTICOMPONENT:
-      return m_Layer->GetNumberOfComponents() > 1;
+      {
+        auto image_layer = dynamic_cast<ImageWrapperBase*>(m_Layer);
+        if (image_layer)
+          return image_layer->GetNumberOfComponents() > 1;
+        else
+          return false;
+      }
 
     case UIF_IS_STICKINESS_EDITABLE:
-      return row_model->CheckState(LayerTableRowModel::UIF_PINNABLE)
-          || row_model->CheckState(LayerTableRowModel::UIF_UNPINNABLE);
+      return row_model->CheckState(AbstractLayerTableRowModel::UIF_PINNABLE)
+          || row_model->CheckState(AbstractLayerTableRowModel::UIF_UNPINNABLE);
 
     case UIF_IS_OPACITY_EDITABLE:
-      return row_model->CheckState(LayerTableRowModel::UIF_OPACITY_EDITABLE);
+      return row_model->CheckState(AbstractLayerTableRowModel::UIF_OPACITY_EDITABLE);
 
     case UIF_MOVABLE_UP:
-      return row_model->CheckState(LayerTableRowModel::UIF_MOVABLE_UP);
+      return row_model->CheckState(AbstractLayerTableRowModel::UIF_MOVABLE_UP);
 
     case UIF_MOVABLE_DOWN:
-      return row_model->CheckState(LayerTableRowModel::UIF_MOVABLE_DOWN);
+      return row_model->CheckState(AbstractLayerTableRowModel::UIF_MOVABLE_DOWN);
 
     case UIF_IS_4D_IMAGE:
       return this->m_ParentModel->GetDriver()->GetNumberOfTimePoints() > 1;
+
+    case UIF_IS_MESH:
+      {
+      auto mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+      return mesh_layer != nullptr;
+      }
+    case UIF_IS_MESHDATA_MULTICOMPONENT:
+      {
+      auto mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
+
+      if (!mesh_layer)
+        return false;
+
+      return mesh_layer->GetActiveDataArrayProperty()->IsMultiComponent();
+      }
     }
 
   return false;
@@ -175,12 +208,20 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
 
 void LayerGeneralPropertiesModel::MoveLayerUp()
 {
-  this->GetSelectedLayerTableRowModel()->MoveLayerUp();
+  auto img_model = dynamic_cast<ImageLayerTableRowModel*>(
+        this->GetSelectedLayerTableRowModel());
+
+  if (img_model)
+    img_model->MoveLayerUp();
 }
 
 void LayerGeneralPropertiesModel::MoveLayerDown()
 {
-  this->GetSelectedLayerTableRowModel()->MoveLayerDown();
+  auto img_model = dynamic_cast<ImageLayerTableRowModel*>(
+        this->GetSelectedLayerTableRowModel());
+
+  if (img_model)
+    img_model->MoveLayerDown();
 }
 
 bool LayerGeneralPropertiesModel
@@ -352,31 +393,31 @@ void LayerGeneralPropertiesModel
 bool LayerGeneralPropertiesModel
 ::GetLayerOpacityValueAndRange(int &value, NumericValueRange<int> *domain)
 {
-  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  AbstractLayerTableRowModel *trm = GetSelectedLayerTableRowModel();
   return trm ? trm->GetLayerOpacityModel()->GetValueAndDomain(value, domain) : false;
 }
 
 void LayerGeneralPropertiesModel::SetLayerOpacityValue(int value)
 {
-  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  AbstractLayerTableRowModel *trm = GetSelectedLayerTableRowModel();
   trm->GetLayerOpacityModel()->SetValue(value);
 }
 
 bool LayerGeneralPropertiesModel::GetLayerVisibilityValue(bool &value)
 {
-  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  AbstractLayerTableRowModel *trm = GetSelectedLayerTableRowModel();
   return trm ? trm->GetVisibilityToggleModel()->GetValueAndDomain(value, NULL) : false;
 }
 
 void LayerGeneralPropertiesModel::SetLayerVisibilityValue(bool value)
 {
-  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  AbstractLayerTableRowModel *trm = GetSelectedLayerTableRowModel();
   trm->GetVisibilityToggleModel()->SetValue(value);
 }
 
 bool LayerGeneralPropertiesModel::GetFilenameValue(std::string &value)
 {
-  ImageWrapperBase *layer = this->GetLayer();
+  auto layer = this->GetLayer();
   if(layer)
     {
     value = layer->GetFileName();
@@ -387,7 +428,7 @@ bool LayerGeneralPropertiesModel::GetFilenameValue(std::string &value)
 
 bool LayerGeneralPropertiesModel::GetNicknameValue(std::string &value)
 {
-  ImageWrapperBase *layer = this->GetLayer();
+  auto layer = this->GetLayer();
   if(layer)
     {
     value = layer->GetCustomNickname();
@@ -398,13 +439,13 @@ bool LayerGeneralPropertiesModel::GetNicknameValue(std::string &value)
 
 void LayerGeneralPropertiesModel::SetNicknameValue(std::string value)
 {
-  ImageWrapperBase *layer = this->GetLayer();
+  auto layer = this->GetLayer();
   layer->SetCustomNickname(value);
 }
 
 bool LayerGeneralPropertiesModel::GetTagsValue(TagList &value)
 {
-  ImageWrapperBase *layer = this->GetLayer();
+  auto layer = this->GetLayer();
   if(layer)
     {
     value = layer->GetTags();
@@ -415,7 +456,7 @@ bool LayerGeneralPropertiesModel::GetTagsValue(TagList &value)
 
 void LayerGeneralPropertiesModel::SetTagsValue(TagList value)
 {
-  ImageWrapperBase *layer = this->GetLayer();
+  auto layer = this->GetLayer();
   layer->SetTags(value);
 }
 
@@ -429,14 +470,14 @@ LayerGeneralPropertiesModel::GetLayerAsVector()
 bool LayerGeneralPropertiesModel::GetIsStickyValue(bool &value)
 {
   // Delegate to the row model for this
-  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  AbstractLayerTableRowModel *trm = GetSelectedLayerTableRowModel();
   return trm ? trm->GetStickyModel()->GetValueAndDomain(value, NULL) : false;
 }
 
 void LayerGeneralPropertiesModel::SetIsStickyValue(bool value)
 {
   // Delegate to the row model for this
-  LayerTableRowModel *trm = GetSelectedLayerTableRowModel();
+  AbstractLayerTableRowModel *trm = GetSelectedLayerTableRowModel();
 
   // Calling this method will set the globally selected layer to the main layer
   // because the globally selected layer cannot be sticky. However, we can still
@@ -498,9 +539,111 @@ LayerGeneralPropertiesModel::GetMultiChannelDisplayPolicy()
   return dp;
 }
 
-LayerTableRowModel *LayerGeneralPropertiesModel::GetSelectedLayerTableRowModel()
+AbstractLayerTableRowModel *LayerGeneralPropertiesModel::GetSelectedLayerTableRowModel()
 {
   if(m_Layer)
-    return dynamic_cast<LayerTableRowModel *>(m_Layer->GetUserData("LayerTableRowModel"));
+    return dynamic_cast<AbstractLayerTableRowModel *>(m_Layer->GetUserData("LayerTableRowModel"));
   else return NULL;
+}
+
+bool
+LayerGeneralPropertiesModel::
+GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
+{
+
+  // The current layer has to be a mesh layer
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
+  if (!mesh_layer)
+    return false;
+
+  auto &props = mesh_layer->GetCombinedDataProperty();
+
+  if (domain)
+    {
+    for (auto it = props.cbegin(); it != props.cend(); ++it)
+      {
+      std::ostringstream oss;
+      if (it->second->GetType() == MeshDataArrayProperty::POINT_DATA)
+        oss << "(point_data) ";
+      else if (it->second->GetType() == MeshDataArrayProperty::CELL_DATA)
+        oss << "(cell_data) ";
+
+      oss << it->second->GetName();
+
+      (*domain)[it->first] = oss.str();
+      }
+
+    value = mesh_layer->GetActiveMeshLayerDataPropertyId();
+    }
+
+  return true;
+}
+
+void
+LayerGeneralPropertiesModel::
+SetMeshDataArrayNameValue(int value)
+{
+  // The current layer has to be a mesh layer
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
+  if (!mesh_layer)
+    return;
+
+  mesh_layer->SetActiveMeshLayerDataPropertyId(value);
+
+  this->GetMeshVectorModeModel()->InvokeEvent(DomainChangedEvent());
+}
+
+bool
+LayerGeneralPropertiesModel::
+GetMeshVectorModeValueAndRange(int &value, MeshVectorModeDomain *domain)
+{
+  // The current layer has to be a mesh layer
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
+  if (!mesh_layer)
+    return false;
+
+  auto names = mesh_layer->GetActiveDataArrayProperty()->GetVectorModeNameMap();
+
+  bool isRGBFeasible = false;
+  // only show magnitude mode if the array is single component
+  if(names.size() <= 3)
+    {
+    (*domain)[names.begin()->first] = names.begin()->second;
+    value = names.begin()->first;
+    return true;
+    }
+
+  else if(names.size() == 5)
+    isRGBFeasible = true;
+
+
+  if (domain)
+    {
+    for (auto kv : names)
+      {
+      // skip RGB color mode if number of component is not 3
+      if (!isRGBFeasible && kv.first == 1)
+        continue;
+
+      (*domain)[kv.first] = kv.second;
+      }
+
+
+    value = mesh_layer->GetActiveDataArrayProperty()->GetActiveVectorMode();
+    }
+
+  return true;
+}
+
+void
+LayerGeneralPropertiesModel::
+SetMeshVectorModeValue(int value)
+{
+  // The current layer has to be a mesh layer
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
+  if (!mesh_layer)
+    return;
+
+  mesh_layer->GetActiveDataArrayProperty()->SetActiveVectorMode(value);
+  mesh_layer->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
