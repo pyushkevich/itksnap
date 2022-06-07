@@ -48,6 +48,8 @@
 
 #include <vtkPen.h>
 
+class SNAPAppearanceSettings;
+
 class OpenGLAppearanceElement : public AbstractPropertyContainerModel
 {
 public:
@@ -62,7 +64,10 @@ public:
   irisRangedPropertyAccessMacro(LineThickness, double)
   irisGenericPropertyAccessMacro(LineType, int, LineTypeDomain)
   irisRangedPropertyAccessMacro(FontSize, int)
-  irisSimplePropertyAccessMacro(Visible, bool)
+  irisSimplePropertyAccessMacro(VisibilityFlag, bool)
+
+  /** Set the parent object */
+  irisGetSetMacro(Parent, SNAPAppearanceSettings *);
 
   /** An enumeration of the fields that an element may possess */
   enum UIElementFeatures
@@ -70,6 +75,9 @@ public:
     COLOR = 0, LINE_THICKNESS, LINE_TYPE,
     FONT_SIZE, VISIBLE, FEATURE_COUNT
     };
+
+  /** Check if this element is visible */
+  bool GetVisible() const;
 
   // Set the validity of all the properties at once using an int array
   // indexed by the enum UIElementFeatures
@@ -83,7 +91,10 @@ protected:
   SmartPtr<ConcreteRangedDoubleProperty> m_AlphaModel, m_LineThicknessModel;
   SmartPtr<ConcreteLineTypeModel> m_LineTypeModel;
   SmartPtr<ConcreteRangedIntProperty> m_FontSizeModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_VisibleModel, m_SmoothModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_VisibilityFlagModel, m_SmoothModel;
+
+  // Pointer to the parent object - used for visibility check
+  SNAPAppearanceSettings *m_Parent = nullptr;
 
   OpenGLAppearanceElement();
 };

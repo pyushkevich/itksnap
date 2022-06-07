@@ -2114,7 +2114,7 @@ void MainImageWindow::on_actionToggle_Crosshair_triggered()
   // Toggle the crosshair visibility
   OpenGLAppearanceElement *elt = m_Model->GetAppearanceSettings()->GetUIElement(
         SNAPAppearanceSettings::CROSSHAIRS);
-  elt->SetVisible(!elt->GetVisible());
+  elt->SetVisibilityFlag(!elt->GetVisibilityFlag());
 }
 
 void MainImageWindow::on_actionAnnotation_Preferences_triggered()

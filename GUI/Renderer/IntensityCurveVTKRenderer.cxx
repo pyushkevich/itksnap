@@ -345,7 +345,7 @@ public:
 
   virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse) override
   {
-    this->MouseMoved = false;
+    // this->MouseMoved = false;
 
     if (mouse.GetButton() == vtkContextMouseEvent::LEFT_BUTTON)
       {
@@ -354,10 +354,9 @@ public:
       pos[1] = mouse.GetPos()[1];
       vtkIdType pointUnderMouse = this->FindPoint(pos);
       this->SetCurrentPoint(pointUnderMouse);
-      return true;
       }
 
-    else return false;
+    return Superclass::MouseButtonPressEvent(mouse);
   }
 
   virtual vtkMTimeType GetControlPointsMTime() override
@@ -442,6 +441,7 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   m_CurvePlot->GetXAxis()->SetTitle("Image Intensity");
   m_CurvePlot->GetYAxis()->SetTitle("Index into Color Map");
   m_CurvePlot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
+  m_CurvePlot->SetInteractive(false);
 
   // Set up the color map plot
   m_XColorMapItem = vtkSmartPointer<HorizontalColorMapContextItem>::New();
@@ -459,6 +459,13 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   // legend is not visible. So we have to instead make the legend not draggable
   m_Chart->SetShowLegend(false);
   m_Chart->GetLegend()->SetDragEnabled(false);
+
+  // Remove the tooltip which is just annoying
+  m_Chart->SetTooltip(nullptr);
+
+  // Disable mouse wheel zooming, which is just annoying
+  m_Chart->SetZoomWithMouseWheel(false);
+  m_Chart->SetForceAxesToBounds(true);
 
   // Listen to events from the control points item, in order to synchronize
   // the selected control point in the model with the context item

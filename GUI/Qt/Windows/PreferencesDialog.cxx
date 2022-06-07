@@ -165,7 +165,7 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   // Hook up the appearance widgets
   OpenGLAppearanceElement *elt = m_Model->GetActiveUIElementAppearance();
   QtCouplingOptions opts_elt(QtCouplingOptions::DEACTIVATE_WHEN_INVALID);
-  makeCoupling(ui->chkElementVisible, elt->GetVisibleModel(), opts_elt);
+  makeCoupling(ui->chkElementVisible, elt->GetVisibilityFlagModel(), opts_elt);
   makeCoupling(ui->btnElementColor, elt->GetColorModel(), opts_elt);
   makeCoupling(ui->inElementOpacity, elt->GetAlphaModel(), opts_elt);
   makeCoupling(ui->inElementThickness, elt->GetLineThicknessModel(), opts_elt);

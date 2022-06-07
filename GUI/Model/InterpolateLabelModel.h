@@ -70,8 +70,6 @@ public:
   void Interpolate();
 
   // Added by SR
-  /** Which interpolation method to use - SR */
-  irisSimplePropertyAccessMacro(InterpolationApproach, bool)
 
   /** Whether to interpolate intermediate slices only */
   irisSimplePropertyAccessMacro(BWAInterpolateIntermediateOnly, bool)
@@ -118,9 +116,6 @@ protected:
 
   typedef ConcretePropertyModel<InterpolationType, TrivialDomain> ConcreteInterpolationType;
   SmartPtr<ConcreteInterpolationType> m_InterpolationMethodModel;
-
-  // Edited by SR
-  SmartPtr<ConcreteSimpleBooleanProperty> m_InterpolationApproachModel;
 
   //Options for BWA
   SmartPtr<ConcreteSimpleBooleanProperty> m_BWAInterpolateIntermediateOnlyModel;
