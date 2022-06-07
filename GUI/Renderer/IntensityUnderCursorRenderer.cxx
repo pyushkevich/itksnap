@@ -28,68 +28,94 @@ void IntensityUnderCursorRenderer::SetModel(ImageInfoModel *model)
               ModelUpdateEvent());
 }
 
+void IntensityUnderCursorRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
+  rwin->SetMultiSamples(0);
+  rwin->SetLineSmoothing(1);
+  rwin->SetPolygonSmoothing(1);
+}
+
 void IntensityUnderCursorRenderer::OnUpdate()
 {
+  itkAssertOrThrowMacro(
+        m_Model,
+        "Model cannot be NULL in IntensityUnderCursorRenderer::OnUpdate");
+
   m_Model->Update();
-  if(m_Model && m_Model->GetLayer() && !m_Model->GetLayer()->IsScalar())
-    this->UpdatePlotValues();
+  this->UpdatePlotValues();
 }
 
 void IntensityUnderCursorRenderer::UpdatePlotValues()
 {
   // There must be a currently selected layer
-  VectorImageWrapperBase *wrapper =
-      dynamic_cast<VectorImageWrapperBase *>(m_Model->GetLayer());
-  if(wrapper)
+  ImageWrapperBase *layer = m_Model->GetLayer();
+  if(layer)
     {
-    int n = wrapper->GetNumberOfComponents();
+    // Sample data from the wrapper in native format across all time points
+    unsigned int nc = layer->GetNumberOfComponents();
+    unsigned int nt = layer->GetNumberOfTimePoints();
+    vnl_vector<double> samples(nc * nt, 0.0);
+    layer->SampleIntensityAtReferenceIndex(layer->GetSliceIndex(), -1, true, samples);
 
+    // Figure out which indices are currently selected
+    std::vector<int> selection;
+
+    // Are we looking at a single component?
+    int act_comp = -1;
+    AbstractMultiChannelDisplayMappingPolicy *dp =
+        dynamic_cast<AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
+    if(dp && dp->GetDisplayMode().IsSingleComponent())
+      act_comp = dp->GetDisplayMode().SelectedComponent;
+
+    // Now highlight the selected component or range of components
+    if(act_comp >= 0)
+      {
+      // One selected bar
+      selection.push_back(layer->GetTimePointIndex() * nc + act_comp);
+      }
+    else if(nt > 1)
+      {
+      // A range of selected bars
+      for(unsigned int c = 0; c < nc; c++)
+        selection.push_back(layer->GetTimePointIndex() * nc + c);
+      }
+
+    // Fill out the curve
+    unsigned int n = samples.size();
     if(n != m_CurveX->GetNumberOfTuples())
       {
       m_CurveX->SetNumberOfValues(n);
       m_CurveY->SetNumberOfValues(n);
 
-      for(int i = 0; i < n; i++)
+      for(unsigned int i = 0; i < n; i++)
         m_CurveX->SetValue(i, i+1);
 
       if(n < 10)
-        {
         m_CurvePlot->GetXAxis()->SetCustomTickPositions(m_CurveX);
-        }
       else
-        {
         m_CurvePlot->GetXAxis()->SetCustomTickPositions(NULL);
-        }
-
-      // Limit the maximum width
       }
 
-    // Set the selected bar
-    AbstractMultiChannelDisplayMappingPolicy *dp =
-        dynamic_cast<AbstractMultiChannelDisplayMappingPolicy *>(wrapper->GetDisplayMapping());
-    if(dp && dp->GetDisplayMode().IsSingleComponent())
-      {
-      m_Selection->SetNumberOfValues(1);
-      m_Selection->SetValue(0, dp->GetDisplayMode().SelectedComponent);
-      }
-    else
-      {
-      m_Selection->SetNumberOfValues(0);
-      }
+    // Set the y-values
+    for(unsigned int i = 0; i < n; i++)
+      m_CurveY->SetValue(i, samples[i]);
 
-    // Get the data with voxel intensities
-    wrapper->GetVoxelMappedToNative(wrapper->GetSliceIndex(), m_CurveY->GetPointer(0));
+    // Set the selection
+    m_Selection->SetNumberOfValues(selection.size());
+    for(unsigned int s = 0; s < selection.size(); s++)
+      m_Selection->SetValue(s, selection[s]);
 
     // Set the x range
     m_CurvePlot->GetXAxis()->SetMinimumLimit(0.4);
     m_CurvePlot->GetXAxis()->SetMinimum(0.4);
-    m_CurvePlot->GetXAxis()->SetMaximumLimit(wrapper->GetNumberOfComponents() + 0.6);
-    m_CurvePlot->GetXAxis()->SetMaximum(wrapper->GetNumberOfComponents() + 0.6);
+    m_CurvePlot->GetXAxis()->SetMaximumLimit(n + 0.6);
+    m_CurvePlot->GetXAxis()->SetMaximum(n + 0.6);
 
     // Get the intensity range
     Vector2d y_range = dp ? dp->GetCurveMinMaxNative() :
-                            Vector2d(wrapper->GetImageMinNative(),
-                                     wrapper->GetImageMaxNative());
+                            Vector2d(layer->GetImageMinNative(),
+                                     layer->GetImageMaxNative());
 
     // Set the y range
     m_CurvePlot->GetYAxis()->SetMinimumLimit(y_range[0]);
@@ -97,6 +123,10 @@ void IntensityUnderCursorRenderer::UpdatePlotValues()
     m_CurvePlot->GetYAxis()->SetMaximumLimit(y_range[1]);
     m_CurvePlot->GetYAxis()->SetMaximum(y_range[1]);
 
+    // Set the axis labels
+    std::string axis_name =
+        nt > 1 ? (nc > 1 ? "Time Point x Component" : "Time Point") : "Component";
+    m_CurvePlot->GetXAxis()->SetTitle(axis_name.c_str());
     }
   else
     {
@@ -109,12 +139,6 @@ void IntensityUnderCursorRenderer::UpdatePlotValues()
   m_Chart->RecalculateBounds();
 }
 
-void IntensityUnderCursorRenderer::paintGL()
-{
-  if(m_Model && m_Model->GetLayer() && !m_Model->GetLayer()->IsScalar())
-    Superclass::paintGL();
-}
-
 void IntensityUnderCursorRenderer::OnDevicePixelRatioChange(int old_ratio, int new_ratio)
 {
   this->UpdateChartDevicePixelRatio(m_Chart, old_ratio, new_ratio);
@@ -122,10 +146,6 @@ void IntensityUnderCursorRenderer::OnDevicePixelRatioChange(int old_ratio, int n
 
 IntensityUnderCursorRenderer::IntensityUnderCursorRenderer()
 {
-  this->m_RenderWindow->SetMultiSamples(0);
-  this->m_RenderWindow->SetLineSmoothing(1);
-  this->m_RenderWindow->SetPolygonSmoothing(1);
-
   m_Model = NULL;
 
   // Set up the scene for rendering
@@ -137,7 +157,7 @@ IntensityUnderCursorRenderer::IntensityUnderCursorRenderer()
   m_Chart->GetLegend()->SetDragEnabled(false);
 
   // Add the chart to the renderer
-  m_ContextView->GetScene()->AddItem(m_Chart);
+  this->GetScene()->AddItem(m_Chart);
 
   // Set up the data
   m_CurveX = vtkSmartPointer<vtkDoubleArray>::New();
@@ -157,7 +177,6 @@ IntensityUnderCursorRenderer::IntensityUnderCursorRenderer()
   m_CurvePlot->SetSelection(m_Selection);
 
   m_CurvePlot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
-  m_CurvePlot->GetXAxis()->SetTitle("Component");
   m_CurvePlot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
   m_CurvePlot->GetYAxis()->SetTitle("Intensity");
 }

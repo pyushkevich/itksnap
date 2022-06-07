@@ -198,6 +198,13 @@ public:
       this->AddPair((TEnum) i, init[i]);
   }
 
+  /** Constructor based on an existing map */
+  RegistryEnumMap(const std::map<TEnum, StringType> &m)
+  {
+    for(auto it: m)
+      this->AddPair(it.first, it.second.c_str());
+  }
+
 private:
   std::map<TEnum, StringType> m_EnumToStringMap;
   std::map<StringType, TEnum> m_StringToEnumMap;

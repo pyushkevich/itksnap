@@ -86,8 +86,8 @@ struct StatusCheckResponse
 
 /** Tag type enum */
 enum TagType {
-  TAG_LAYER_ANATOMICAL = 0, TAG_LAYER_MAIN, TAG_LAYER_OVERLAY,
-  TAG_SEGMENTATION_LABEL, TAG_POINT_LANDMARK, TAG_UNKNOWN
+  TAG_LAYER_ANATOMICAL = 0, TAG_LAYER_MAIN, TAG_LAYER_OVERLAY, TAG_LAYER_SEGMENTATION,
+  TAG_SEGMENTATION_LABEL, TAG_POINT_LANDMARK, TAG_TIMEPOINT, TAG_UNKNOWN
 };
 
 
@@ -230,7 +230,7 @@ public:
 
   // What kind of load action should be triggered for the current tag
   enum LoadAction
-    { LOAD_MAIN = 0, LOAD_OVERLAY, LOAD_NONE };
+    { LOAD_MAIN = 0, LOAD_OVERLAY, LOAD_SEGMENTATION, LOAD_NONE };
 
   // What is done with the project when downloading
   enum DownloadAction

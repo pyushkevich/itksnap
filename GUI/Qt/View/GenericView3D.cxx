@@ -27,7 +27,7 @@ public:
 
   irisGetSetMacro(Model, Generic3DModel *)
 
-  virtual void OnLeftButtonDown()
+  virtual void OnLeftButtonDown() override
   {
     if(!m_Model->PickSegmentationVoxelUnderMouse(
          this->Interactor->GetEventPosition()[0],
@@ -50,7 +50,7 @@ public:
 
   irisGetSetMacro(Model, Generic3DModel *)
 
-  virtual void OnLeftButtonDown()
+  virtual void OnLeftButtonDown() override
   {
     // Spray a voxel
     if(m_Model->SpraySegmentationVoxelUnderMouse(
@@ -66,7 +66,7 @@ public:
       }
   }
 
-  virtual void OnLeftButtonUp()
+  virtual void OnLeftButtonUp() override
   {
     if(m_IsPainting)
       m_IsPainting = false;
@@ -74,7 +74,7 @@ public:
       vtkInteractorStyleTrackballCamera::OnLeftButtonUp();
   }
 
-  virtual void OnMouseMove()
+  virtual void OnMouseMove() override
   {
     if(m_IsPainting)
       m_Model->SpraySegmentationVoxelUnderMouse(
@@ -86,7 +86,7 @@ public:
 
 protected:
 
-  SpraycanInteractorStyle() : m_IsPainting(false), m_Model(NULL) {}
+  SpraycanInteractorStyle() : m_Model(NULL), m_IsPainting(false) {}
   virtual ~SpraycanInteractorStyle() {}
 
 private:
@@ -103,7 +103,7 @@ public:
 
   irisGetSetMacro(Model, Generic3DModel *)
 
-  virtual void OnLeftButtonDown()
+  virtual void OnLeftButtonDown() override
   {
     Vector2i xevent(this->Interactor->GetEventPosition());
     switch(m_Model->GetScalpelStatus())
@@ -124,7 +124,7 @@ public:
       }
   }
 
-  virtual void OnMouseMove()
+  virtual void OnMouseMove() override
   {
     Vector2i xevent(this->Interactor->GetEventPosition());
     switch(m_Model->GetScalpelStatus())
@@ -138,7 +138,7 @@ public:
       }
  }
 
-  virtual void OnLeftButtonUp()
+  virtual void OnLeftButtonUp() override
   {
     Vector2i xevent(this->Interactor->GetEventPosition());
     Vector2i delta = xevent - m_ClickStart;
@@ -155,7 +155,7 @@ public:
     vtkInteractorStyleTrackballCamera::OnLeftButtonUp();
   }
 
-  virtual void OnEnter()
+  virtual void OnEnter() override
   {
     vtkInteractorStyleTrackballCamera::OnEnter();
 
@@ -166,7 +166,7 @@ public:
     OnMouseMove();
   }
 
-  virtual void OnLeave()
+  virtual void OnLeave() override
   {
     vtkInteractorStyleTrackballCamera::OnLeave();
 
@@ -239,6 +239,9 @@ void GenericView3D::SetModel(Generic3DModel *model)
   connectITK(m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3DModel(),
              ValueChangedEvent(), SLOT(onToolbarModeChange()));
 
+  // This should cause the model to redraw when model changes
+  connectITK(m_Model, ModelUpdateEvent());
+
   // Use the current toolbar settings
   this->onToolbarModeChange();
 }
@@ -246,10 +249,7 @@ void GenericView3D::SetModel(Generic3DModel *model)
 void GenericView3D::onToolbarModeChange()
 {
   int mode = (int) m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3D();
-
-  m_Model->GetRenderer()->GetRenderWindowInteractor()
-      ->SetInteractorStyle(m_InteractionStyle[mode]);
-
+  this->GetRenderWindow()->GetInteractor()->SetInteractorStyle(m_InteractionStyle[mode]);
   setMouseTracking(mode == SCALPEL_MODE);
 }
 

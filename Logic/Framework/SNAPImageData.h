@@ -195,11 +195,6 @@ public:
    */
   void MergeSnakeWithIRIS(IRISImageData *target) const;
 
-  /**
-   * Get the level set image currently being evolved
-   */
-  LevelSetImageType *GetLevelSetImage();
-
   /** This method is public for testing purposes.  It will give a pointer to 
    * the level set function used internally for segmentation */
   SNAPLevelSetDriver<3>::LevelSetFunctionType *GetLevelSetFunction();
@@ -210,7 +205,7 @@ public:
    * can happen if the meshes are being generated from the level set data
    * in a background thread
    */
-  irisGetMacro(LevelSetPipelineMutexLock, itk::FastMutexLock *)
+  std::mutex *GetLevelSetPipelineMutex() { return &m_LevelSetPipelineMutex; }
 
   /** ====================================================================== */
 
@@ -292,7 +287,7 @@ protected:
 
   // SNAPImageData provides a mutex lock that prevents multiple threads from
   // causing the level set pipeline to update at once.
-  SmartPtr<itk::FastMutexLock> m_LevelSetPipelineMutexLock;
+  std::mutex m_LevelSetPipelineMutex;
 
   // Are we in example mode
   bool m_LabelImageInExampleMode;

@@ -31,25 +31,39 @@
   margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
-  color: rgb(30,30,160);
-  background-color: rgb(222,222,222);
+  background-color: palette(midlight);
   padding: 5px;
   border-radius: 2px;
-  border: 1px solid rgb(168,168,168);
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(128,128,128);
 }
+
 QGroupBox::title {
   subcontrol-origin: 	margin;
   subcontrol-position: top left;
 }
 
-QToolButton::checked {
-  background-color:rgb(210, 210, 210);
+QWidget#panelToolbarMode &gt; QToolButton,
+QWidget#panelToolbarMode3D &gt; QToolButton,
+QWidget#panelToolbarContext &gt; QToolButton 
+{
+  icon-size: 22px;
+  width: 26px;
+  height: 26px;
 }
 
-QToolButton::pressed {
-  background-color:rgb(210, 210, 210);
+QWidget#panelToolbarAction &gt; QToolButton
+{
+  icon-size: 16px;
+  width: 24px;
+  height: 20px;
 }
-</string>
+
+QMenu
+{
+  background-color: palette(window);
+}</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
    <property name="spacing">
@@ -91,72 +105,8 @@ QToolButton::pressed {
       <item>
        <widget class="QGroupBox" name="grpToolbox">
         <property name="styleSheet">
-         <string notr="true">/* *** STYLE WITH 28x28 buttons, dropdown menu option *** */
-
+         <string notr="true">
 /*
-QToolBar {
-	padding: 0px;
-}
-
-QToolButton { 
-    border: 1px solid rgba(255, 255, 255, 0);
-    border-radius: 3px;
-    padding: 0px;
-    margin: 0px;
-    height: 26px;
-    width: 26px;
-    icon-size: 28px;
-}
-
-QToolButton:hover { 
-    border-color: #8f8f91;
-    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                      stop: 0 #f6f7fa, stop: 1 #dadbde);
-}
-
-QToolButton[popupMode=&quot;1&quot;] { 
-  padding-right: 6px; 
-}
-
-QToolButton:checked {
-    border-color: #8f8f91;
-    background-color: #bbbbbb;
-}
-
-QToolButton::menu-button {
-    border: 1px solid rgba(255, 255, 255, 0);
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    width: 10px;
-}
-
-QToolButton::menu-button:hover {
-    border-top-color: #8f8f91;
-    border-bottom-color: #8f8f91;
-    border-right-color: #8f8f91;
-}
-
-QToolButton::menu-button:checked {
-    border-top-color: #8f8f91;
-    border-bottom-color: #8f8f91;
-    border-right-color: #8f8f91;
-}
-
-QToolButton::menu-button:pressed {
-    border-top-color: #8f8f91;
-    border-bottom-color: #8f8f91;
-    border-right-color: #8f8f91;
-}
-
-QToolButton::menu-arrow {
-image: url(:/root/menu-arrow_8.png);
-top:11px;
-}
-
-QToolButton::menu-arrow:open {
-    top: 12px; left: 0px; 
-}
-*/
 
 QToolButton { 
     border: 1px solid rgba(255, 255, 255, 0);
@@ -177,7 +127,9 @@ QToolButton:hover {
 QToolButton:checked {
     border-color: #8f8f91;
     background-color: #bbbbbb;
-}</string>
+}
+
+*/</string>
         </property>
         <property name="title">
          <string>Main Toolbar</string>
@@ -199,14 +151,9 @@ QToolButton:checked {
           <number>0</number>
          </property>
          <item>
-          <widget class="QWidget" name="panelToolbarMode" native="true">
+          <widget class="DarkModeToolbar" name="panelToolbarMode" native="true">
            <property name="styleSheet">
-            <string notr="true">QQQ_QToolButton {
-	width: 22px;
-	height: 22px;
-	icon-size: 22px;
-	padding: 1px;
-}</string>
+            <string notr="true"/>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <property name="spacing">
@@ -315,14 +262,9 @@ QToolButton:checked {
           </widget>
          </item>
          <item>
-          <widget class="QWidget" name="panelToolbarMode_3" native="true">
+          <widget class="DarkModeToolbar" name="panelToolbarMode_3" native="true">
            <property name="styleSheet">
-            <string notr="true">QQQ_QToolButton {
-	width: 22px;
-	height: 22px;
-	icon-size: 22px;
-	padding: 1px;
-}</string>
+            <string notr="true"/>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <property name="spacing">
@@ -344,30 +286,9 @@ QToolButton:checked {
           </widget>
          </item>
          <item>
-          <widget class="Line" name="line">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="panelToolbarAction" native="true">
+          <widget class="DarkModeToolbar" name="panelToolbarAction" native="true">
            <property name="styleSheet">
-            <string notr="true">QToolButton {
-	width: 16px;
-	height: 16px;
-	icon-size: 16px;
-	padding: 1px;
-}
-
-QToolButton::menu-indicator {
-  image:none;
-}
-
-QToolButton::menu-arrow {
-  image:none;
-}
-</string>
+            <string notr="true"/>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <property name="spacing">
@@ -394,6 +315,9 @@ QToolButton::menu-arrow {
                <iconset resource="../Resources/SNAPResources.qrc">
                 <normaloff>:/root/icons8_undo-48.png</normaloff>:/root/icons8_undo-48.png</iconset>
               </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
             <item>
@@ -404,6 +328,9 @@ QToolButton::menu-arrow {
               <property name="icon">
                <iconset resource="../Resources/SNAPResources.qrc">
                 <normaloff>:/root/icons8_redo-48.png</normaloff>:/root/icons8_redo-48.png</iconset>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -418,7 +345,7 @@ QToolButton::menu-arrow {
               <property name="sizeHint" stdset="0">
                <size>
                 <width>8</width>
-                <height>20</height>
+                <height>16</height>
                </size>
               </property>
              </spacer>
@@ -431,6 +358,9 @@ QToolButton::menu-arrow {
               <property name="icon">
                <iconset resource="../Resources/SNAPResources.qrc">
                 <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -445,18 +375,26 @@ QToolButton::menu-arrow {
               <property name="sizeHint" stdset="0">
                <size>
                 <width>8</width>
-                <height>20</height>
+                <height>16</height>
                </size>
               </property>
              </spacer>
             </item>
             <item>
-             <widget class="LabelSelectionButton" name="btnLabelSelector">
+             <widget class="QToolButton" name="btnLabelSelector">
               <property name="toolTip">
                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Quick Label Picker&lt;/span&gt;&lt;br/&gt;&lt;/p&gt;&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;&quot; cellspacing=&quot;0&quot; cellpadding=&quot;2&quot;&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;Active label:&lt;/p&gt;&lt;/td&gt;&lt;td&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&lt;!--FgStart--&gt;FFFF&lt;!--FgEnd--&gt;&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;&lt;p&gt;Draw over:&lt;/p&gt;&lt;/td&gt;&lt;td&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&lt;!--BgStart--&gt;FFFF&lt;!--BgEnd--&gt;&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;p&gt;Press this button to quickly select the active label for all segmentation operations, and the draw over mask, which determines which previously labeled voxels are affected by segmentation operations.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
               </property>
               <property name="styleSheet">
-               <string notr="true"/>
+               <string notr="true">QToolButton::menu-indicator {
+  padding-left: 16px;
+  padding-top: 8px;
+}
+
+QToolButton {
+  padding-right: 6px;
+}
+</string>
               </property>
               <property name="text">
                <string>...</string>
@@ -464,6 +402,12 @@ QToolButton::menu-arrow {
               <property name="icon">
                <iconset resource="../Resources/SNAPResources.qrc">
                 <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
+              </property>
+              <property name="popupMode">
+               <enum>QToolButton::InstantPopup</enum>
+              </property>
+              <property name="autoRaise">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
@@ -476,6 +420,9 @@ QToolButton::menu-arrow {
                <iconset resource="../Resources/SNAPResources.qrc">
                 <normaloff>:/root/layer_Inspector_16.png</normaloff>:/root/layer_Inspector_16.png</iconset>
               </property>
+              <property name="autoRaise">
+               <bool>true</bool>
+              </property>
              </widget>
             </item>
             <item>
@@ -486,7 +433,7 @@ QToolButton::menu-arrow {
               <property name="sizeHint" stdset="0">
                <size>
                 <width>40</width>
-                <height>20</height>
+                <height>16</height>
                </size>
               </property>
              </spacer>
@@ -528,29 +475,9 @@ QToolButton::menu-arrow {
           <number>0</number>
          </property>
          <item>
-          <widget class="QWidget" name="widget" native="true">
+          <widget class="DarkModeToolbar" name="panelToolbarContext" native="true">
            <property name="styleSheet">
-            <string notr="true">QToolButton {
-  icon-size: 22px;
-  min-width: 1ex;
-  border-top: 1px solid rgb(192, 192, 192);
-  border-bottom: 1px solid rgb(192, 192, 192);
-  border-left: 1px;
-  border-right: 1px;
-  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(235, 235, 235, 255), stop:0.487685 rgba(216, 216, 216, 255), stop:0.502463 rgba(205, 205, 205, 255), stop:1 rgba(235, 235, 235, 255));
-  width: 25px;
-  height: 25px;
-}
-QToolButton:hover, QToolButton:checked {
-  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(214, 228, 245, 255), stop:0.487685 rgba(193, 205, 221, 255), stop:0.502463 rgba(182, 193, 207, 255), stop:1 rgba(215, 228, 245, 255));
-  padding:0px;
-}
-QWidget#widget {
-  background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 255), stop:0.0394089 rgba(235, 235, 235, 255), stop:0.487685 rgba(216, 216, 216, 255), stop:0.502463 rgba(205, 205, 205, 255), stop:1 rgba(235, 235, 235, 255));
-  border-top: 1px solid rgb(192, 192, 192);
-  border-bottom: 1px solid rgb(192, 192, 192);
-}
-</string>
+            <string notr="true"/>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <property name="spacing">
@@ -572,7 +499,7 @@ QWidget#widget {
              <widget class="QToolButton" name="btnCursorInspector">
               <property name="minimumSize">
                <size>
-                <width>25</width>
+                <width>0</width>
                 <height>30</height>
                </size>
               </property>
@@ -604,7 +531,7 @@ QWidget#widget {
              <widget class="QToolButton" name="btnZoomInspector">
               <property name="minimumSize">
                <size>
-                <width>25</width>
+                <width>0</width>
                 <height>30</height>
                </size>
               </property>
@@ -633,7 +560,7 @@ QWidget#widget {
              <widget class="QToolButton" name="btnDisplayInspector">
               <property name="minimumSize">
                <size>
-                <width>25</width>
+                <width>0</width>
                 <height>27</height>
                </size>
               </property>
@@ -662,7 +589,7 @@ QWidget#widget {
              <widget class="QToolButton" name="btnSyncInspector">
               <property name="minimumSize">
                <size>
-                <width>25</width>
+                <width>0</width>
                 <height>27</height>
                </size>
               </property>
@@ -691,7 +618,7 @@ QWidget#widget {
              <widget class="QToolButton" name="btnPolygonInspector">
               <property name="minimumSize">
                <size>
-                <width>25</width>
+                <width>0</width>
                 <height>27</height>
                </size>
               </property>
@@ -720,7 +647,7 @@ QWidget#widget {
              <widget class="QToolButton" name="btnPaintbrushInspector">
               <property name="minimumSize">
                <size>
-                <width>25</width>
+                <width>0</width>
                 <height>27</height>
                </size>
               </property>
@@ -749,7 +676,7 @@ QWidget#widget {
              <widget class="QToolButton" name="btnSnakeInspector">
               <property name="minimumSize">
                <size>
-                <width>25</width>
+                <width>0</width>
                 <height>27</height>
                </size>
               </property>
@@ -778,7 +705,7 @@ QWidget#widget {
              <widget class="QToolButton" name="btnAnnotateInspector">
               <property name="minimumSize">
                <size>
-                <width>25</width>
+                <width>0</width>
                 <height>27</height>
                </size>
               </property>
@@ -898,26 +825,7 @@ QToolBar {
       <item>
        <widget class="QGroupBox" name="grpToolbox3D">
         <property name="styleSheet">
-         <string notr="true">QToolButton { 
-    border: 1px solid rgba(255, 255, 255, 0);
-    border-radius: 3px;
-    padding: 0px;
-    margin: 0px;
-    height: 22px;
-    width: 22px;
-    icon-size: 24px;
-}
-
-QToolButton:hover { 
-    border-color: #8f8f91;
-    background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                      stop: 0 #f6f7fa, stop: 1 #dadbde);
-}
-
-QToolButton:checked {
-    border-color: #8f8f91;
-    background-color: #bbbbbb;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="title">
          <string>3D Toolbar</string>
@@ -939,7 +847,7 @@ QToolButton:checked {
           <number>0</number>
          </property>
          <item>
-          <widget class="QWidget" name="panelToolbarMode3D" native="true">
+          <widget class="DarkModeToolbar" name="panelToolbarMode3D" native="true">
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -1083,9 +991,10 @@ QToolButton:checked {
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>LabelSelectionButton</class>
-   <extends>QToolButton</extends>
-   <header>LabelSelectionButton.h</header>
+   <class>DarkModeToolbar</class>
+   <extends>QWidget</extends>
+   <header>DarkModeToolbar.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

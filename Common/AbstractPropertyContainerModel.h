@@ -225,7 +225,7 @@ public:
 
   /** Return this objects modified time. This will return the latest of our
    * own modified time and the modified times of all the children */
-  virtual unsigned long GetMTime() const ITK_OVERRIDE;
+  virtual itk::ModifiedTimeType GetMTime() const ITK_OVERRIDE;
 
   virtual const itk::TimeStamp &GetTimeStamp() const ITK_OVERRIDE;
 
@@ -248,7 +248,9 @@ protected:
     SmartPtr<HolderType> holder = HolderType::New();
     holder->SetProperty(model);
     holder->SetRegistryKey(key);
-	m_Properties.insert(std::make_pair((std::string)key, (HolderPointer)holder));
+
+    HolderPointer holder_base_ptr(holder.GetPointer());
+    m_Properties.insert(std::make_pair(key, holder_base_ptr));
 
     // Propagate the modification events from the property
     Rebroadcast(model, ValueChangedEvent(), ChildPropertyChangedEvent());
@@ -274,13 +276,23 @@ protected:
     holder->SetRegistryKey(key);
     holder->SetTraits(traits);
 
-	m_Properties.insert(std::make_pair((std::string)key, (HolderPointer)holder));
+    HolderPointer holder_base_ptr(holder.GetPointer());
+    m_Properties.insert(std::make_pair(key, holder_base_ptr));
 
     // Propagate the modification events from the property
     Rebroadcast(model, ValueChangedEvent(), ChildPropertyChangedEvent());
     Rebroadcast(model, DomainChangedEvent(), ChildPropertyChangedEvent());
 
     return model;
+  }
+
+  template <class TAtomic, class TDomain>
+  SmartPtr< ConcretePropertyModel<TAtomic, TDomain> >
+  RegisterEnumProperty(const std::string &key,
+                       SmartPtr< ConcretePropertyModel<TAtomic, TDomain> > model,
+                       const std::map<TAtomic, std::string> &valmap)
+  {
+    return RegisterEnumProperty(key, model, RegistryEnumMap<TAtomic>(valmap));
   }
 
   // A convenience method that creates a new simple concrete property and

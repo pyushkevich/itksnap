@@ -50,6 +50,9 @@ private slots:
   void on_btnAnnotateInspector_clicked(bool checked);
 
 private:
+
+  void updateLabelSelectionButton();
+
   Ui::MainControlPanel *ui;
   GlobalUIModel *m_Model;
 

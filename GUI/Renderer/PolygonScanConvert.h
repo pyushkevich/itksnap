@@ -35,7 +35,6 @@
 #ifndef __PolygonScanConvert_h_
 #define __PolygonScanConvert_h_
 
-#include "SNAPOpenGL.h"
 #include "itkImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include <vtkPolygon.h>

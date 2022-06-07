@@ -25,7 +25,7 @@
    <property name="spacing">
     <number>0</number>
    </property>
-   <property name="margin">
+   <property name="margin" stdset="0">
     <number>0</number>
    </property>
    <item>
@@ -38,7 +38,7 @@
   border-radius:0px;
   border-top: 1px solid gray;
   border-bottom: 1px solid gray;
-  background-color: qlineargradient(spread:pad, x1:0.123, y1:0.125, x2:0.108, y2:1, stop:0 rgba(204, 204,   204, 255), stop:1 rgba(255, 255, 255, 255));
+  background-color: qlineargradient(spread:pad, x1:0.123, y1:0.125, x2:0.108, y2:1, stop:0 palette(dark), stop:1 palette(midlight));
   margin:0px;
   padding: 0px;
   text-align:left;
@@ -67,7 +67,7 @@
       <property name="spacing">
        <number>1</number>
       </property>
-      <property name="margin">
+      <property name="margin" stdset="0">
        <number>0</number>
       </property>
      </layout>

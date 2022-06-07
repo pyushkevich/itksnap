@@ -35,6 +35,8 @@ public:
   // should be rendered
   Vector3d GetCenterOfPaintbrushInSliceSpace();
 
+  bool TestInside(const Vector2d &x, const PaintbrushSettings &ps);
+  bool TestInside(const Vector3d &x, const PaintbrushSettings &ps);
 
 protected:
 
@@ -62,8 +64,6 @@ protected:
   void ComputeMousePosition(const Vector3d &xSlice);
 
   bool ApplyBrush(bool reverse_mode, bool dragging);
-  bool TestInside(const Vector2d &x, const PaintbrushSettings &ps);
-  bool TestInside(const Vector3d &x, const PaintbrushSettings &ps);
 
   GenericSliceModel *m_Parent;
   BrushWatershedPipeline *m_Watershed;

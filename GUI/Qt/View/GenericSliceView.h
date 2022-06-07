@@ -30,13 +30,13 @@
 #include <SNAPCommon.h>
 #include <GenericSliceModel.h>
 #include <GenericSliceRenderer.h>
-#include <QtAbstractOpenGLBox.h>
+#include <QtVTKRenderWindowBox.h>
 #include <EventBucket.h>
 #include "QtReporterDelegates.h"
 
 class CrosshairsInteractionMode;
 
-class GenericSliceView : public QtAbstractOpenGLBox
+class GenericSliceView : public QtVTKRenderWindowBox
 {
   Q_OBJECT
 
@@ -54,10 +54,6 @@ public:
   // Get the renderer overlays
   GenericSliceRenderer::RendererDelegateList &GetRendererOverlays();
 
-public slots:
-
-  void onModelUpdate(const EventBucket &b);
-
 protected:
 
   // Pointer to the model object for this class
@@ -66,7 +62,7 @@ protected:
   // A viewport reporter
   SmartPtr<QtViewportReporter> m_ViewportReporter;
 
-  // OpenGL renderer (owned by the view)
+  // VTK-based Renderer (owned by the view)
   SmartPtr<GenericSliceRenderer> m_Renderer;
 
   // Whether next repaint requires a resize call (Qt bug?)

@@ -11,10 +11,11 @@ namespace itk
 template <unsigned int VDim> class ImageBase;
 }
 
+template <unsigned int VDim>
 class MetaDataAccess
 {
 public:
-  MetaDataAccess(itk::ImageBase<3> *image);
+  MetaDataAccess(itk::ImageBase<VDim> *image);
 
   std::vector<std::string> GetKeysAsArray();
   std::string GetValueAsString(const std::string &key);
@@ -29,7 +30,7 @@ public:
   static std::string MapKeyToDICOM(std::string key);
 
 private:
-  itk::ImageBase<3> *m_Image;
+  itk::ImageBase<VDim> *m_Image;
 
 
 };

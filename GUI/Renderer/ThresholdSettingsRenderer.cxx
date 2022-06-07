@@ -27,7 +27,7 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
   m_Chart = vtkSmartPointer<vtkChartXY>::New();
 
   // Add the chart to the renderer
-  m_ContextView->GetScene()->AddItem(m_Chart);
+  this->GetScene()->AddItem(m_Chart);
 
   // Set up the data
   m_DataX = vtkSmartPointer<vtkFloatArray>::New();
@@ -58,12 +58,8 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
   m_Plot->GetYAxis()->SetTitle("Threshold function");
 
   // Set the background to white
-  m_BackgroundColor.fill(1.0);
+  this->SetBackgroundColor(Vector3d(1,1,1));
 
-  // Customize the render window
-  this->m_RenderWindow->SetMultiSamples(0);
-  this->m_RenderWindow->SetLineSmoothing(1);
-  this->m_RenderWindow->SetPolygonSmoothing(1);
 }
 
 ThresholdSettingsRenderer::~ThresholdSettingsRenderer()
@@ -82,6 +78,16 @@ void ThresholdSettingsRenderer::SetModel(SnakeWizardModel *model)
               ModelUpdateEvent());
 
   // TODO: We also need to listen to appearance changes....
+}
+
+void ThresholdSettingsRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
+
+  // Customize the render window
+  rwin->SetMultiSamples(0);
+  rwin->SetLineSmoothing(1);
+  rwin->SetPolygonSmoothing(1);
 }
 
 void ThresholdSettingsRenderer::UpdatePlotValues()

@@ -9,6 +9,7 @@ class vtkRenderer;
 class vtkRenderWindow;
 class vtkGenericOpenGLRenderWindow;
 class vtkRenderWindowInteractor;
+class vtkInteractorObserver;
 
 /**
  * @brief The child of AbstractRenderer that holds a VTK render window
@@ -30,12 +31,22 @@ public:
     NO_INTERACTION = 0, TRACKBALL_CAMERA, TRACKBALL_ACTOR, PICKER
   };
 
-  virtual void paintGL() ITK_OVERRIDE;
-  virtual void resizeGL(int w, int h, int device_pixel_ratio) ITK_OVERRIDE;
-  virtual void initializeGL() ITK_OVERRIDE;
+  /**
+   * This method will be called when the renderer is attached to a widget.
+   * The widget maintains a vtkRenderWindow and passes a pointer to it to
+   * the renderer. The default implementation adds the rendered and
+   * interactor to the render window
+   */
+  virtual void SetRenderWindow(vtkRenderWindow *rwin);
 
+  /** Get the render window */
   vtkRenderWindow *GetRenderWindow();
+
+  /** Get the render window interactor */
   vtkRenderWindowInteractor *GetRenderWindowInteractor();
+
+  /** Get the renderer */
+  vtkRenderer *GetRenderer();
 
   void SetInteractionStyle(InteractionStyle style);
 
@@ -45,27 +56,32 @@ public:
    */
   void SyncronizeCamera(Self *reference);
 
-  irisGetSetMacro(BackgroundColor, Vector3d)
+  virtual void SetBackgroundColor(Vector3d color);
+  virtual Vector3d GetBackgroundColor() const;
+
+  /**
+   * Notifies the renderer of change in window size and DPI. This method should
+   * be called by the widget displaying this renderer when it is resized or moved
+   * from screen to screen. Child classes should override OnDevicePixelRatioChange()
+   */
+  virtual void OnWindowResize(int w, int h, int vppr);
 
 protected:
 
   // Render window object used to render VTK stuff
-  vtkSmartPointer<vtkGenericOpenGLRenderWindow> m_RenderWindow;
+  vtkSmartPointer<vtkRenderWindow> m_RenderWindow;
   vtkSmartPointer<vtkRenderer> m_Renderer;
 
-  // The interactor
-  vtkSmartPointer<vtkRenderWindowInteractor> m_Interactor;
+  // Interaction style
+  vtkSmartPointer<vtkInteractorObserver> m_InteractionStyle;
 
   // The device pixel ratio (1 for regular screens, 2 for retina)
   // This is updated in resizeGL
   int m_DevicePixelRatio;
 
-  // Background color
-  Vector3d m_BackgroundColor;
-
   // Virtual method called when the device pixel ratio changes, allowing
   // the child classes to update some properties (e.g., font size)
-  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio) {}
+  virtual void OnDevicePixelRatioChange(int itkNotUsed(old_ratio), int itkNotUsed(new_ratio)) {}
 
   AbstractVTKRenderer();
   virtual ~AbstractVTKRenderer() {}

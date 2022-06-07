@@ -38,6 +38,7 @@
 #include "ImageIOWizard/OverlayRolePage.h"
 
 #include "DICOMListingTable.h"
+#include "LayoutReminderDialog.h"
 
 
 namespace imageiowiz {
@@ -104,6 +105,12 @@ bool AbstractPage::PerformIO()
     if(m_Model->IsLoadMode())
       {
       m_Model->LoadImage(to_utf8(filename));
+      if (fmt == GuidedNativeImageIO::FORMAT_ECHO_CARTESIAN_DICOM)
+        {
+          LayoutReminderDialog *lr = new LayoutReminderDialog(this);
+          lr->Initialize(this->m_Model->GetParent());
+          lr->ConditionalExec(LayoutReminderDialog::Echo_Cartesian_Dicom_Loading);
+        }
       }
     else
       {
@@ -376,11 +383,12 @@ void SummaryPage::initializePage()
   // Add all the top level items
   AddItem(m_Tree, "File name", ImageIOWizardModel::SI_FILENAME);
   AddItem(m_Tree, "Dimensions", ImageIOWizardModel::SI_DIMS);
+  AddItem(m_Tree, "Time Points", ImageIOWizardModel::SI_TIMEPOINTS);
+  AddItem(m_Tree, "Components/Voxel", ImageIOWizardModel::SI_COMPONENTS);
   AddItem(m_Tree, "Voxel spacing", ImageIOWizardModel::SI_SPACING);
   AddItem(m_Tree, "Origin", ImageIOWizardModel::SI_ORIGIN);
   AddItem(m_Tree, "Orientation", ImageIOWizardModel::SI_ORIENT);
   AddItem(m_Tree, "Byte order", ImageIOWizardModel::SI_ENDIAN);
-  AddItem(m_Tree, "Components/Voxel", ImageIOWizardModel::SI_COMPONENTS);
   AddItem(m_Tree, "Data type", ImageIOWizardModel::SI_DATATYPE);
   AddItem(m_Tree, "File size", ImageIOWizardModel::SI_FILESIZE);
 
@@ -389,7 +397,7 @@ void SummaryPage::initializePage()
   meta->setText(0, "Metadata");
 
   // Add all metadata items
-  MetaDataAccess mda(m_Model->GetGuidedIO()->GetNativeImage());
+  MetaDataAccess<4> mda(m_Model->GetGuidedIO()->GetNativeImage());
   std::vector<std::string> keys = mda.GetKeysAsArray();
   for(size_t i = 0; i < keys.size(); i++)
     {

@@ -29,6 +29,7 @@
 
 #include "SNAPCommon.h"
 #include "GenericSliceRenderer.h"
+#include "GenericSliceContextItem.h"
 
 class OrthogonalSliceCursorNavigationModel;
 class GenericSliceRenderer;
@@ -39,10 +40,10 @@ public:
 
   irisITKObjectMacro(CrosshairsRenderer, SliceRendererDelegate)
 
-  irisSetMacro(Model, OrthogonalSliceCursorNavigationModel *)
-  irisGetMacro(Model, OrthogonalSliceCursorNavigationModel *)
+  irisGetSetMacro(Model, OrthogonalSliceCursorNavigationModel *)
 
-  void paintGL() ITK_OVERRIDE;
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *) override;
 
 protected:
 

@@ -43,10 +43,10 @@ public:
                       TInputImage::ImageDimension);
 
   /** Add a scalar input image */
-  void AddScalarImage(InputImageType *image);
+  void AddScalarImage(const InputImageType *image);
 
   /** Add a vector (multi-component) input image */
-  void AddVectorImage(InputVectorImageType *image);
+  void AddVectorImage(const InputVectorImageType *image);
 
   /** Set the mixture model */
   void SetMixtureModel(GaussianMixtureModel *model);
@@ -61,8 +61,7 @@ protected:
 
   void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
 
-  void ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                            itk::ThreadIdType threadId) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
 
   GaussianMixtureModel *m_MixtureModel;
 };

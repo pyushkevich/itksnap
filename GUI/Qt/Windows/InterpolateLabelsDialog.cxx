@@ -15,6 +15,11 @@ InterpolateLabelsDialog::InterpolateLabelsDialog(QWidget *parent) :
   ui(new Ui::InterpolateLabelsDialog)
 {
   ui->setupUi(this);
+
+  //Added by SR. QtButtonGroup for stacked widget
+  ui->InterpolationMethods->setId(ui->btnMorphological, 0);
+  ui->InterpolationMethods->setId(ui->btnBinaryWeightedAverage, 1);
+
 }
 
 InterpolateLabelsDialog::~InterpolateLabelsDialog()
@@ -42,6 +47,27 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
   ui->morphologyInterpolationAxis->addItem("Sagittal",QVariant::fromValue(ANATOMY_SAGITTAL));
   ui->morphologyInterpolationAxis->addItem("Coronal",QVariant::fromValue(ANATOMY_CORONAL));
   makeCoupling(ui->morphologyInterpolationAxis, m_Model->GetMorphologyInterpolationAxisModel());
+
+  //Added by SR- Settings for binary weighted averge method
+
+  // Match methods with radio buttons
+  std::map<InterpolateLabelModel::InterpolationType, QAbstractButton *> method_button_map;
+  method_button_map[InterpolateLabelModel::MORPHOLOGY] = ui->btnMorphological;
+  method_button_map[InterpolateLabelModel::BINARY_WEIGHTED_AVERAGE] = ui->btnBinaryWeightedAverage;
+  makeRadioGroupCoupling(ui->widgetMethodRadio, method_button_map, m_Model->GetInterpolationMethodModel());
+
+  makeCoupling(ui->chkBWAInterpolateIntermediateOnly, m_Model->GetBWAInterpolateIntermediateOnlyModel());
+  makeCoupling(ui->chkBWAUseContourOnly, m_Model->GetBWAUseContourOnlyModel());
+  makeCoupling(ui->chkBWAOverwriteSegmentation, m_Model->GetBWAOverwriteSegmentationModel());
+  makeCoupling(ui->chkSliceDirection, m_Model->GetSliceDirectionModel());
+
+  ui->SliceDirectionAxis->clear();
+  ui->SliceDirectionAxis->addItem("Axial",QVariant::fromValue(ANATOMY_AXIAL));
+  ui->SliceDirectionAxis->addItem("Sagittal",QVariant::fromValue(ANATOMY_SAGITTAL));
+  ui->SliceDirectionAxis->addItem("Coronal",QVariant::fromValue(ANATOMY_CORONAL));
+  makeCoupling(ui->SliceDirectionAxis, m_Model->GetSliceDirectionAxisModel());
+
+
 }
 
 void InterpolateLabelsDialog::on_btnInterpolate_clicked()

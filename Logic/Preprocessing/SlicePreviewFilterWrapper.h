@@ -188,5 +188,9 @@ protected:
   void UpdateOutputPipelineReadyStatus();
 };
 
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "SlicePreviewFilterWrapper.txx"
+#endif
+
 
 #endif // SLICEPREVIEWFILTERWRAPPER_H

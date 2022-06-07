@@ -1,9 +1,9 @@
 #include "Generic3DRenderer.h"
-#include "SNAPOpenGL.h"
 #include "Generic3DModel.h"
 #include "GlobalUIModel.h"
 #include "SNAPAppearanceSettings.h"
 #include "GenericImageData.h"
+#include "Rebroadcaster.h"
 
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -72,13 +72,8 @@ bool operator != (const CameraState &c1, const CameraState &c2)
 
 Generic3DRenderer::Generic3DRenderer()
 {
-  // Why is this necessary?
-  GetRenderWindow()->SetMultiSamples(4);
-  GetRenderWindow()->SetLineSmoothing(1);
-
   // Create a picker
-  vtkSmartPointer<Window3DPicker> picker = vtkSmartPointer<Window3DPicker>::New();
-  this->GetRenderWindowInteractor()->SetPicker(picker);
+  m_Picker = vtkSmartPointer<Window3DPicker>::New();
 
   // Coordinate mapper
   m_CoordinateMapper = vtkSmartPointer<vtkCoordinate>::New();
@@ -154,7 +149,6 @@ Generic3DRenderer::Generic3DRenderer()
   m_ScalpelPlaneWidget = vtkSmartPointer<vtkImplicitPlaneWidget>::New();
   m_ScalpelPlaneWidget->SetInputConnection(m_ImageCubeTransform->GetOutputPort());
 
-  m_ScalpelPlaneWidget->SetInteractor(this->GetRenderWindowInteractor());
   m_ScalpelPlaneWidget->SetPlaceFactor(1.0);
 
   m_ScalpelPlaneWidget->OutlineTranslationOff();
@@ -164,9 +158,6 @@ Generic3DRenderer::Generic3DRenderer()
   m_ScalpelPlaneWidget->GetPlaneProperty()->SetOpacity(0.5);
   m_ScalpelPlaneWidget->GetOutlineProperty()->SetOpacity(0.2);
   m_ScalpelPlaneWidget->SetTubing(1);
-
-
-
 
   // Rebroadcast Modified event from the camera object as a CameraUpdateEvent
   Rebroadcast(m_Renderer->GetActiveCamera(), vtkCommand::ModifiedEvent, CameraUpdateEvent());
@@ -203,6 +194,9 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(app->GetGlobalState()->GetDrawingColorLabelModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 
+  // Rebroadcast generic model update event from parent model
+  Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
+
   // Respond to spray paint events
   Rebroadcast(m_Model, Generic3DModel::SprayPaintEvent(), ModelUpdateEvent());
 
@@ -221,6 +215,10 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(app->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 
+  // Appearance changes in main/overlays (for volume rendering)
+  Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperVisibilityChangeEvent(), ModelUpdateEvent());
+
   // Update the main components
   this->UpdateAxisRendering();
   this->UpdateCamera(true);
@@ -229,21 +227,23 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   m_SprayGlyphFilter->SetInputData(m_Model->GetSprayPoints());
 
   // Set the model in the picker
-  Window3DPicker::SafeDownCast(this->GetRenderWindowInteractor()->GetPicker())->SetModel(m_Model);
+  m_Picker->SetModel(m_Model);
 }
 
 
 void Generic3DRenderer::UpdateSegmentationMeshAssembly()
 {
-  if(m_Model->IsMeshUpdating())
-    return;
-
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
 
+  if(m_Model->IsMeshUpdating() )
+    return;
+
   // Get the mesh from the parent object
   MeshManager *mesh = driver->GetMeshManager();
-  MeshManager::MeshCollection meshes = mesh->GetMeshes();
+  MeshManager::MeshCollection meshes;
+  if(driver->IsMainImageLoaded())
+    meshes = mesh->GetMeshes(driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
   typedef MeshManager::MeshCollection::const_iterator MeshIterator;
 
   // Remove all actors that are no longer in use, and update the ones for which the
@@ -307,6 +307,9 @@ void Generic3DRenderer::UpdateSegmentationMeshAssembly()
       m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
       }
     }
+
+  // TODO: test code
+  m_Renderer->Modified();
 }
 
 void Generic3DRenderer::ResetSegmentationMeshAssembly()
@@ -327,6 +330,7 @@ void Generic3DRenderer::UpdateAxisRendering()
 {
   // Update the coordinates of the line source
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
+  SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
 
   if(app->IsMainImageLoaded())
     {
@@ -334,7 +338,6 @@ void Generic3DRenderer::UpdateAxisRendering()
     Vector3ui dims = app->GetCurrentImageData()->GetImageRegion().GetSize();
 
     // Get the axis appearance properties
-    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
     OpenGLAppearanceElement *axisapp =
         as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_3D);
 
@@ -355,10 +358,11 @@ void Generic3DRenderer::UpdateAxisRendering()
       vtkProperty *prop = m_AxisActor[i]->GetProperty();
       prop->SetColor(axisapp->GetColor().data_block());
       prop->SetOpacity(axisapp->GetAlpha());
-      if(axisapp->GetDashSpacing() > 0)
+      if(axisapp->GetLineType() > vtkPen::SOLID_LINE)
         {
+        // TODO: reconcile this with 2D line style stuff
         prop->SetLineStipplePattern(0x9999);
-        prop->SetLineStippleRepeatFactor(static_cast<int>(axisapp->GetDashSpacing()));
+        // prop->SetLineStippleRepeatFactor(static_cast<int>(axisapp->GetDashSpacing()));
         prop->SetLineWidth(axisapp->GetLineThickness());
         m_AxisActor[i]->SetVisibility(axisapp->GetVisible());
         }
@@ -373,6 +377,10 @@ void Generic3DRenderer::UpdateAxisRendering()
     m_ImageCubeTransform->Update();
     m_ImageCubeTransform->GetOutput()->ComputeBounds();
     }
+
+  // Set the background of the window
+  Vector3d clrBack = as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D)->GetColor();
+  m_Renderer->SetBackground(clrBack.data_block());
 }
 
 
@@ -498,14 +506,12 @@ void Generic3DRenderer::UpdateScalpelPlaneAppearance()
   color_xyz /= 1.1;
   vtkMath::XYZToRGB(color_xyz.data_block(), color_darker.data_block());
 */
-  vtkProperty *p_normal = m_ScalpelPlaneWidget->GetNormalProperty();
-  p_normal->SetColor(color_main.data_block());
-
-  vtkProperty *ps_normal = m_ScalpelPlaneWidget->GetSelectedNormalProperty();
-  ps_normal->SetColor(color_bright.data_block());
-
-  vtkProperty *p_edges = m_ScalpelPlaneWidget->GetEdgesProperty();
-  p_edges->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->GetNormalProperty()->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->GetSelectedNormalProperty()->SetColor(color_bright.data_block());
+  m_ScalpelPlaneWidget->GetEdgesProperty()->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->GetPlaneProperty()->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->GetSelectedPlaneProperty()->SetColor(color_main.data_block());
+  m_ScalpelPlaneWidget->UpdatePlacement();
 }
 
 void Generic3DRenderer::UpdateSprayGlyphAppearanceAndShape()
@@ -633,21 +639,17 @@ void Generic3DRenderer::SetCameraState(const CameraState &cs)
     InvokeEvent(ModelUpdateEvent());
 }
 
-void Generic3DRenderer::paintGL()
+void Generic3DRenderer::SetRenderWindow(vtkRenderWindow *rwin)
 {
-  // Get the appearance settings
-  SNAPAppearanceSettings *as =
-      m_Model->GetParentUI()->GetAppearanceSettings();
+  Superclass::SetRenderWindow(rwin);
 
-  // Load the background color
-  Vector3d clrBack =
-      as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_3D)->GetColor();
+  // The interactor has become available - connect it to subcomponents
+  rwin->GetInteractor()->SetPicker(m_Picker);
+  m_ScalpelPlaneWidget->SetInteractor(rwin->GetInteractor());
 
-  // Set renderer background
-  this->m_Renderer->SetBackground(clrBack.data_block());
-
-  // Call the parent's paint method
-  AbstractVTKRenderer::paintGL();
+  // Why is this necessary?
+  // rwin->SetMultiSamples(4);
+  // rwin->SetLineSmoothing(1);
 }
 
 void Generic3DRenderer::UpdateSegmentationMeshAppearance()
@@ -681,6 +683,189 @@ void Generic3DRenderer::UpdateSegmentationMeshAppearance()
     }
 }
 
+#include "IRISImageData.h"
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkImageImport.h>
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <IntensityCurveInterface.h>
+#include <ColorMap.h>
+#include <AffineTransformHelper.h>
+#include <itkTransform.h>
+
+class VolumeAssembly : public itk::Object
+{
+public:
+  irisITKObjectMacro(VolumeAssembly, itk::Object)
+
+  vtkSmartPointer<vtkVolume> Volume;
+  vtkSmartPointer<vtkSmartVolumeMapper> Mapper;
+  vtkSmartPointer<vtkColorTransferFunction> ColorCurve;
+  vtkSmartPointer<vtkVolumeProperty> Property;
+  vtkSmartPointer<vtkPiecewiseFunction> OpacityCurve;
+  vtkSmartPointer<vtkPiecewiseFunction> GradientCurve;
+
+  // Update time on the curve
+  itk::ModifiedTimeType CurveUpdateTime = 0;
+  itk::ModifiedTimeType TransformUpdateTime = 0;
+
+protected:
+  VolumeAssembly() {}
+  virtual ~VolumeAssembly() {}
+};
+
+void Generic3DRenderer::UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssembly *va)
+{
+  auto *sw = layer->GetDefaultScalarRepresentation();
+  auto *curve = sw->GetIntensityCurve();
+  auto *nmap = sw->GetNativeIntensityMapping();
+  auto *cmap = sw->GetColorMap();
+
+  double imin = sw->GetImageMinAsDouble();
+  double imax = sw->GetImageMaxAsDouble();
+  unsigned int k = 100;
+
+  va->ColorCurve->RemoveAllPoints();
+  va->OpacityCurve->RemoveAllPoints();
+  for(unsigned int j = 0; j <= k; j++)
+    {
+    double t = j * 1.0 / k;
+    double i = imin + (imax - imin) * t;
+    double x = curve->Evaluate(t);
+    auto rgba = cmap->MapIndexToRGBA(x);
+    va->ColorCurve->AddRGBPoint(i, rgba[0] / 255., rgba[1] / 255., rgba[2] / 255.);
+
+    // Here we apply additional ramp to the alpha
+    double x_ramp = (x < 0) ? 0.0 : (x > 1.0) ? 1.0 : x;
+    va->OpacityCurve->AddPoint(i, rgba[3] * x_ramp / 255.);
+    }
+
+  va->CurveUpdateTime = std::max(cmap->GetMTime(), curve->GetMTime());
+}
+
+void Generic3DRenderer::UpdateVolumeTransform(ImageWrapperBase *layer, VolumeAssembly *va)
+{
+  auto *sw = layer->GetDefaultScalarRepresentation();
+  auto dir = sw->GetImageBase()->GetDirection().GetVnlMatrix().as_matrix();
+  auto spc = sw->GetImageBase()->GetSpacing().GetVnlVector();
+  auto org = sw->GetImageBase()->GetOrigin().GetVnlVector();
+
+  // Transform applied to the volume is the product of the registration matrix and the
+  // image to physical transform
+  vnl_matrix_fixed<double, 4, 4> vtk2nii =
+      AffineTransformHelper::GetRASMatrix(sw->GetITKTransform()) *
+      ImageWrapperBase::ConstructVTKtoNiftiTransform(dir, org, spc);
+
+  vtkNew<vtkMatrix4x4> tran;
+  tran->DeepCopy(vtk2nii.data_block());
+  va->Volume->SetUserMatrix(tran);
+
+  // Update the timestamp
+  va->TransformUpdateTime = sw->GetMTime();
+  if(sw->GetITKTransform())
+    va->TransformUpdateTime = std::max(va->TransformUpdateTime, sw->GetITKTransform()->GetMTime());
+}
+
+
+void Generic3DRenderer::UpdateVolumeRendering()
+{
+  // Associate each layer with a volume rendering
+  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
+  GenericImageData *id = app->GetCurrentImageData();
+
+  // Keep track of volume renderers that are not used
+  std::set<vtkVolume *> volumes_to_remove;
+  auto *props = m_Renderer->GetViewProps();
+  for(unsigned int k = 0; k < props->GetNumberOfItems(); k++)
+    {
+    vtkVolume *vol = dynamic_cast<vtkVolume *>(props->GetItemAsObject(k));
+    if(vol)
+      volumes_to_remove.insert(vol);
+    }
+
+  for(LayerIterator li = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE); !li.IsAtEnd(); ++li)
+    {
+    auto *layer = li.GetLayer();
+
+    // If the layer is not rendering right now, free up the VR related resources
+    if(!layer->GetDefaultScalarRepresentation()->IsVolumeRenderingEnabled())
+      {
+      layer->SetUserData("volume", nullptr);
+      continue;
+      }
+
+    // Associate a volume assembly with the layer
+    typename VolumeAssembly::Pointer va =
+        dynamic_cast<VolumeAssembly *>(layer->GetUserData("volume"));
+
+    if(!va)
+      {
+      va = VolumeAssembly::New();
+      auto *vtk_import = layer->GetDefaultScalarRepresentation()->GetVTKImporter();
+      va->Mapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
+      va->Mapper->SetInputConnection(vtk_import->GetOutputPort());
+
+      va->ColorCurve = vtkSmartPointer<vtkColorTransferFunction>::New();
+      va->OpacityCurve = vtkSmartPointer<vtkPiecewiseFunction>::New();
+      UpdateVolumeCurves(layer, va);
+
+      va->GradientCurve = vtkSmartPointer<vtkPiecewiseFunction>::New();
+      va->GradientCurve->AddPoint(0, 0.0);
+      va->GradientCurve->AddPoint(90, 0.5);
+      va->GradientCurve->AddPoint(100, 1.0);
+
+      va->Property = vtkSmartPointer<vtkVolumeProperty>::New();
+      va->Property->SetColor(va->ColorCurve);
+      va->Property->SetScalarOpacity(va->OpacityCurve);
+      // va->Property->SetGradientOpacity(va->GradientCurve);
+      va->Property->SetInterpolationTypeToLinear();
+      va->Property->ShadeOn();
+      va->Property->SetAmbient(0.4);
+      va->Property->SetDiffuse(0.6);
+      va->Property->SetSpecular(0.2);
+
+      va->Volume = vtkSmartPointer<vtkVolume>::New();
+      va->Volume->SetMapper(va->Mapper);
+      va->Volume->SetProperty(va->Property);
+
+      this->m_Renderer->AddViewProp(va->Volume);
+      layer->SetUserData("volume", va);
+
+      vtk_import->Update();
+
+      // Update the volume transform
+      this->UpdateVolumeTransform(layer, va);
+      }
+    else
+      {
+      // Check if the transfer function needs updating
+      auto *sw = layer->GetDefaultScalarRepresentation();
+      if(sw->GetIntensityCurve()->GetMTime() > va->CurveUpdateTime ||
+         sw->GetColorMap()->GetMTime() > va->CurveUpdateTime)
+        {
+        UpdateVolumeCurves(layer, va);
+        }
+
+      // Check if the transform needs updating
+      if(sw->GetImageBase()->GetMTime() > va->TransformUpdateTime ||
+         sw->GetITKTransform() && sw->GetITKTransform()->GetMTime() > va->TransformUpdateTime)
+        {
+        UpdateVolumeTransform(layer, va);
+        }
+      }
+
+    // Add the volume to the used volumes set
+    if(va)
+      volumes_to_remove.erase(va->Volume);
+    }
+
+  // Remove unused volumes
+  for(auto *prop : volumes_to_remove)
+    m_Renderer->RemoveViewProp(prop);
+}
 
 void Generic3DRenderer::OnUpdate()
 {
@@ -717,14 +902,24 @@ void Generic3DRenderer::OnUpdate()
       m_EventBucket->HasEvent(ValueChangedEvent(),
                               gs->GetSelectedSegmentationLayerIdModel());
 
+  bool need_render = false;
+
+  // For volume rendering
+  bool layer_mapping_changed =
+      m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent());
+  bool wrapper_vr_options_changed =
+      m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
+
   // Deal with the updates to the mesh state
   if(mesh_updated || main_changed || seg_layer_changed)
     {
     UpdateSegmentationMeshAssembly();
+    need_render = true;
     }
   else if(labels_props_changed)
     {
     UpdateSegmentationMeshAppearance();
+    need_render = true;
     }
 
   // If the segmentation changed
@@ -733,6 +928,7 @@ void Generic3DRenderer::OnUpdate()
   if(main_changed || cursor_moved || appearance_changed)
     {
     UpdateAxisRendering();
+    need_render = true;
     }
 
   // Deal with camera
@@ -740,10 +936,12 @@ void Generic3DRenderer::OnUpdate()
     {
     UpdateCamera(true);
     DeleteSavedCameraState();
+    need_render = true;
     }
   else if(cursor_moved)
     {
     UpdateCamera(false);
+    need_render = true;
     }
 
   // Deal with the spray paint appearance and shape
@@ -751,6 +949,7 @@ void Generic3DRenderer::OnUpdate()
     {
     UpdateSprayGlyphAppearanceAndShape();
     UpdateScalpelPlaneAppearance();
+    need_render = true;
     }
 
   // Deal with spray events
@@ -760,13 +959,26 @@ void Generic3DRenderer::OnUpdate()
       this->m_Renderer->AddActor(m_SprayActor);
     else
       this->m_Renderer->RemoveActor(m_SprayActor);
+    need_render = true;
     }
 
   // Deal with scalpel events
   if(main_changed || scalpel_action || mode_changed)
     {
     UpdateScalpelRendering();
+    need_render = true;
     }
+
+  // Deal with volume rendering
+  if(main_changed || layer_mapping_changed || wrapper_vr_options_changed)
+    {
+    UpdateVolumeRendering();
+    need_render = true;
+    }
+
+  // Force rendering to occur
+  // TODO: commenting out for now because calling Render outside of GL context causes problems
+  // this->GetRenderWindow()->Render();
 }
 
 void Generic3DRenderer::ResetView()
@@ -792,13 +1004,21 @@ void Generic3DRenderer::FlipScalpelPlaneNormal()
   InvokeEvent(ModelUpdateEvent());
 }
 
-void Generic3DRenderer::ComputeRayFromClick(int x, int y, Vector3d &m_Point, Vector3d &m_Ray)
+void Generic3DRenderer::ComputeRayFromClick(int x, int y, Vector3d &point, Vector3d &ray, Vector3d &dx, Vector3d &dy)
 {
   // Get the position of the click in world coordinates
   m_CoordinateMapper->SetValue(x, y, 0);
-  m_Point = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer));
+  point = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer));
 
   // Get the normal vector to the viewport
   m_CoordinateMapper->SetValue(x, y, 1);
-  m_Ray = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - m_Point;
+  ray = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - point;
+
+  // Get the viewport in-plane vectors
+  m_CoordinateMapper->SetValue(x+1, y, 0);
+  dx = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - point;
+
+  // Get the viewport in-plane vectors
+  m_CoordinateMapper->SetValue(x, y+1, 0);
+  dy = Vector3d(m_CoordinateMapper->GetComputedWorldValue(this->m_Renderer)) - point;
 }

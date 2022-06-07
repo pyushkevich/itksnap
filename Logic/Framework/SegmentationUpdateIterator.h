@@ -46,7 +46,7 @@
 #include "SNAPCommon.h"
 #include "ImageWrapperTraits.h"
 #include "UndoDataManager.h"
-
+#include "LabelImageWrapper.h"
 
 /**
  * \class SegmentationUpdate
@@ -66,14 +66,15 @@ public:
     FOREGROUND, BACKGROUND, SKIP
   };
 
-  SegmentationUpdateIterator(LabelImageType *labelImage,
+  SegmentationUpdateIterator(LabelImageWrapper *seg_wrapper,
                              const RegionType &region,
                              LabelType active_label,
                              DrawOverFilter draw_over)
-    : m_Region(region),
+    : m_Wrapper(seg_wrapper),
+      m_Region(region),
       m_ActiveLabel(active_label),
       m_DrawOver(draw_over),
-      m_Iterator(labelImage, region),
+      m_Iterator(seg_wrapper->GetModifiableImage(), region),
       m_ChangedVoxels(0)
   {
     // Create the delta
@@ -160,8 +161,6 @@ public:
       }
   }
 
-
-
   /**
    * Reverse painting mode - applies clear label over active label (paintbrush RMB click)
    */
@@ -227,13 +226,21 @@ public:
 
   /**
    * Call this method at the end of the iteration to finish encoding. This will also set the
-   * modified flag of the label image if there were any actual updates.
+   * modified flag of the label wrapper if there were any actual updates, and store an undo
+   * point if an undo string is specified. Finally, the method returns true if any voxels
+   * were modified, and false otherwise.
    */
-  void Finalize()
+  bool Finalize(const char *undo_string = nullptr)
   {
     m_Delta->FinishEncoding();
     if(m_ChangedVoxels > 0)
-      m_Iterator.GetImage()->Modified();
+      {
+      m_Wrapper->PixelsModified();
+      if(undo_string)
+        m_Wrapper->StoreUndoPoint(undo_string, RelinquishDelta());
+      return true;
+      }
+    return false;
   }
 
   // Keep delta from being deleted
@@ -257,6 +264,9 @@ public:
   }
 
 protected:
+
+  // The label image wrapper to which segmentation is applied
+  LabelImageWrapper *m_Wrapper;
 
   // Name of the segmentation update (for undo tracking)
   std::string m_Title;

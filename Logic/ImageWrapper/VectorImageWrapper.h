@@ -57,6 +57,10 @@ public:
   typedef typename Superclass::ImagePointer                       ImagePointer;
   typedef typename Superclass::PreviewImageType               PreviewImageType;
 
+  // 4D Image types
+  typedef typename Superclass::Image4DType                         Image4DType;
+  typedef typename Superclass::Image4DPointer                   Image4DPointer;
+
   // Floating point image type
   typedef itk::Image<float, 3>                                  FloatImageType;
   typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
@@ -100,6 +104,10 @@ public:
   typedef typename Superclass::ComponentTypeObject         ComponentTypeObject;
 
   typedef typename Superclass::ITKTransformType               ITKTransformType;
+
+  // Index and size types
+  typedef typename Superclass::IndexType                             IndexType;
+  typedef typename Superclass::SizeType                               SizeType;
 
   virtual bool IsScalar() const ITK_OVERRIDE { return false; }
 
@@ -151,48 +159,14 @@ public:
   /** This image type has only one component */
   virtual size_t GetNumberOfComponents() const ITK_OVERRIDE
   {
-    return this->m_Image->GetNumberOfComponentsPerPixel();
-  }
-
-  /** Voxel access */
-  // virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const;
-
-  /** Voxel access */
-  // virtual double GetVoxelAsDouble(const Vector3ui &v) const;
-
-  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const ITK_OVERRIDE
-  {
-    const PixelType &p = Superclass::GetVoxel(x);
-    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
-      out[i] = p[i];
-  }
-
-  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
-  {
-    const PixelType &p = Superclass::GetVoxel(idx);
-    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
-      out[i] = p[i];
-  }
-
-  virtual void GetVoxelMappedToNative(const Vector3ui &x, double *out) const ITK_OVERRIDE
-  {
-    const PixelType &p = Superclass::GetVoxel(x);
-    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
-      out[i] = this->m_NativeMapping(p[i]);
-  }
-
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
-  {
-    const PixelType &p = Superclass::GetVoxel(idx);
-    for(unsigned int i = 0; i < this->GetNumberOfComponents(); i++)
-      out[i] = this->m_NativeMapping(p[i]);
+    return this->m_Image4D->GetNumberOfComponentsPerPixel();
   }
 
   /**
    * Get the component-wise minimum and maximum of the image in native format
    */
-  virtual ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
-  virtual ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
+  virtual const ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
+  virtual const ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
 
   /** Compute statistics over a run of voxels in the image starting at the index
    * startIdx. Appends the statistics to a running sum and sum of squared. The
@@ -216,7 +190,7 @@ public:
 
   virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
 
-  virtual void SetSliceIndex(const Vector3ui &cursor) ITK_OVERRIDE;
+  virtual void SetSliceIndex(const IndexType &cursor) ITK_OVERRIDE;
 
   virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom) ITK_OVERRIDE;
 
@@ -277,9 +251,9 @@ protected:
    */
   VectorImageWrapper(const Self &copy) : Superclass(copy) {}
 
-  virtual void UpdateImagePointer(ImageType *image,
-                                  ImageBaseType *refSpace = NULL,
-                                  ITKTransformType *tran = NULL) ITK_OVERRIDE;
+  virtual void UpdateWrappedImages(Image4DType *image_4d,
+                                   ImageBaseType *refSpace = NULL,
+                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
 
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
 
@@ -292,7 +266,7 @@ protected:
   /** Create a derived wrapper of a certain type */
   template <class TFunctor>
   SmartPtr<ScalarImageWrapperBase> CreateDerivedWrapper(
-      ImageType *image, ImageBaseType *refSpace, ITKTransformType *transform);
+      Image4DType *image_4d, ImageBaseType *refSpace, ITKTransformType *transform);
 
   template <class TFunctor>
   void SetNativeMappingInDerivedWrapper(

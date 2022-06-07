@@ -39,8 +39,6 @@
 #endif
 #include "MeshManager.h"
 
-#include "SNAPOpenGL.h"
-
 // SNAP Includes
 #include "ColorLabel.h"
 #include "GlobalState.h"
@@ -101,10 +99,50 @@ MeshManager
   m_GlobalState = m_Driver->GetGlobalState();  
 }
 
+MultiLabelMeshPipeline *
+MeshManager
+::GetMultiLabelMeshPipeline(LabelImageWrapper *wrapper, unsigned int timepoint, bool create_if_missing)
+{
+  // Make sure we have a workable image from which to extract mesh
+  if(!wrapper || !wrapper->GetImage() || !Is3DProper(wrapper->GetImage()))
+    return nullptr;
+
+  // Get the mesh generation pipelines associated with the layer
+  SmartPtr<MultiLabelMeshPipelineTable> pipelineTable =
+      static_cast<MultiLabelMeshPipelineTable *>(wrapper->GetUserData("MeshPipelineTable"));
+
+  if (!pipelineTable)
+    {
+      if(create_if_missing)
+        {
+        pipelineTable = MultiLabelMeshPipelineTable::New();
+        wrapper->SetUserData("MeshPipelineTable", pipelineTable);
+        }
+      else return nullptr;
+    }
+
+  // Get pipeline for the timepoint
+  SmartPtr<MultiLabelMeshPipeline> pipeline = pipelineTable->GetPipeline(timepoint);
+
+  // If the pipeline does not exist, create it
+  if(!pipeline)
+    {
+    if(create_if_missing)
+      {
+      pipeline = MultiLabelMeshPipeline::New();
+      pipelineTable->SetPipeline(timepoint, pipeline);
+      }
+    else return nullptr;
+    }
+
+  // Return the pipeline
+  return pipeline;
+}
+
 void 
 MeshManager
-::UpdateVTKMeshes(itk::Command *command)
-{
+::UpdateVTKMeshes(itk::Command *command, unsigned int timepoint)
+{ 
   // The mesh is constructed differently depending on whether there is an
   // actively evolving level set or not SNAP mode or in IRIS mode
   if (m_Driver->IsSnakeModeLevelSetActive())
@@ -132,30 +170,19 @@ MeshManager
     pipeline->SetMeshOptions(m_GlobalState->GetMeshOptions());
 
     // Compute the mesh only for the current segmentation color
-    pipeline->UpdateMesh(m_Driver->GetSNAPImageData()->GetLevelSetPipelineMutexLock());
+    pipeline->UpdateMesh(m_Driver->GetSNAPImageData()->GetLevelSetPipelineMutex());
     }
   else
     {
     // Get the mesh pipeline associated with the level set image wrapper
     LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
-
-    // Make sure we have a workable image from which to extract mesh
-    if(!wrapper || !wrapper->GetImage() || !Is3DProper(wrapper->GetImage()))
+    MultiLabelMeshPipeline *pipeline = this->GetMultiLabelMeshPipeline(wrapper, timepoint, true);
+    if(!pipeline)
       return;
 
-    // Get the mesh generation pipeline associated with the layer
-    SmartPtr<MultiLabelMeshPipeline> pipeline =
-        static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
-
-    // If the pipeline does not exist, create it
-    if(!pipeline)
-      {
-      pipeline = MultiLabelMeshPipeline::New();
-      wrapper->SetUserData("MeshPipeline", pipeline);
-      }
-
     // Make sure the pipeline has the right image
-    pipeline->SetImage(wrapper->GetImage());
+    LabelImageWrapper::ImagePointer imgpt = wrapper->GetImageByTimePoint(timepoint);
+    pipeline->SetImage(imgpt);
 
       // Pass the options to the pipeline
     pipeline->SetMeshOptions(m_GlobalState->GetMeshOptions());
@@ -168,7 +195,7 @@ MeshManager
   this->Modified();
 }
 
-MeshManager::MeshCollection MeshManager::GetMeshes()
+MeshManager::MeshCollection MeshManager::GetMeshes(unsigned int timepoint)
 {
   // Empty collection that is returned by default
   MeshCollection meshes;
@@ -192,16 +219,9 @@ MeshManager::MeshCollection MeshManager::GetMeshes()
     }
   else
     {
-    // Get the mesh pipeline associated with the level set image wrapper
-    LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
-    if(!wrapper || !wrapper->GetImage() || !Is3DProper(wrapper->GetImage()))
-      return meshes;
-
-    // Get the pipeline storing the meshes
-    SmartPtr<MultiLabelMeshPipeline> pipeline =
-        static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
-
     // Return the actual meshes in the pipeline
+    LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
+    MultiLabelMeshPipeline *pipeline = this->GetMultiLabelMeshPipeline(wrapper, timepoint);
     if(pipeline)
       return pipeline->GetMeshCollection();
     }
@@ -209,7 +229,7 @@ MeshManager::MeshCollection MeshManager::GetMeshes()
   return meshes;
 }
 
-bool MeshManager::IsMeshDirty()
+bool MeshManager::IsMeshDirty(unsigned int timepoint)
 {
   // If there is no image loaded, the mesh is not considered dirty
   if(!m_Driver->IsMainImageLoaded())
@@ -238,15 +258,12 @@ bool MeshManager::IsMeshDirty()
     {
     // Get the mesh pipeline associated with the current segmentation wrapper
     LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
-    SmartPtr<MultiLabelMeshPipeline> pipeline =
-        static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
-
-    // No pipeline? That means the mesh has not been constructed yet
+    MultiLabelMeshPipeline *pipeline = this->GetMultiLabelMeshPipeline(wrapper, timepoint);
     if(!pipeline)
       return true;
-
-    // Get the pipelines
-    tsImage = wrapper->GetImageBase()->GetMTime();
+    
+    // Get the modification times
+    tsImage = wrapper->GetImageByTimePoint(timepoint)->GetMTime();
     tsPipeline = pipeline->GetMTime();
     }
 
@@ -261,7 +278,7 @@ bool MeshManager::IsMeshDirty()
   return false;
 }
 
-itk::ModifiedTimeType MeshManager::GetBuildTime() const
+itk::ModifiedTimeType MeshManager::GetBuildTime(unsigned int timepoint)
 {
   // If there is no image loaded, the mesh is not considered dirty
   if(!m_Driver->IsMainImageLoaded())
@@ -286,41 +303,9 @@ itk::ModifiedTimeType MeshManager::GetBuildTime() const
     {
     // Get the mesh pipeline associated with the current segmentation wrapper
     LabelImageWrapper *wrapper = m_Driver->GetSelectedSegmentationLayer();
-    SmartPtr<MultiLabelMeshPipeline> pipeline =
-        static_cast<MultiLabelMeshPipeline *>(wrapper->GetUserData("MeshPipeline"));
-
-    // No pipeline? That means the mesh has not been constructed yet
-    if(!pipeline)
-      return 0;
-
-    // Get the timestamp of the pipeline.
-    return pipeline->GetMTime();
+    MultiLabelMeshPipeline *pipeline = this->GetMultiLabelMeshPipeline(wrapper, timepoint);
+    return pipeline ? pipeline->GetMTime() : 0;
     }
-}
-
-
-/*
- *  Apply color label, a shorthand
- */
-bool 
-MeshManager
-::ApplyColorLabel(const ColorLabel &label) 
-{
-  if (label.IsVisible() && label.IsVisibleIn3D()) 
-    {
-    // Adjust the label color to reduce the saturation. This in necessary
-    // in order to see the highlights on the object
-    double r = 0.75 * (label.GetRGB(0) / 255.0);
-    double g = 0.75 * (label.GetRGB(1) / 255.0);
-    double b = 0.75 * (label.GetRGB(2) / 255.0);
-    double a = label.GetAlpha() / 255.0;
-
-    if (label.IsOpaque()) glColor3d(r, g, b); 
-    else glColor4d(r, g, b, a);
-  
-    return true;
-    }
-  return false;
 }
 
 

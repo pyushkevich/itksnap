@@ -13,6 +13,7 @@
 #include <QGraphicsOpacityEffect>
 #include <QPropertyAnimation>
 #include <QFile>
+#include <QGuiApplication>
 #include <QMenu>
 #include <QContextMenuEvent>
 #include <QWidgetAction>
@@ -103,6 +104,11 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   // Create a menu listing the loaded overlays
   m_OverlaysMenu = m_PopupMenu->addMenu("Overlays");
 
+  // Create a volume rendering menu
+  m_VolumeRenderingMenu = m_PopupMenu->addMenu("Volume Rendering");
+  m_VolumeRenderingMenu->addAction(ui->actionVolumeEnable);
+  m_PopupMenu->addSeparator();
+
   // Placeholder for image processing commands
   m_PopupMenu->addSeparator();
   QMenu *processMenu = m_PopupMenu->addMenu("Image Processing");
@@ -144,6 +150,7 @@ void LayerInspectorRowDelegate::SetModel(LayerTableRowModel *model)
   makeCoupling(m_OverlayOpacitySlider, model->GetLayerOpacityModel());
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());
   makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
+  makeCoupling(ui->actionVolumeEnable, model->GetVolumeRenderingEnabledModel());
 
   const QtWidgetActivator::Options opt_hide = QtWidgetActivator::HideInactive;
   activateOnFlag(ui->actionUnpin_layer, model, LayerTableRowModel::UIF_UNPINNABLE, opt_hide);
@@ -216,33 +223,40 @@ ImageWrapperBase *LayerInspectorRowDelegate::GetLayer() const
 
 void LayerInspectorRowDelegate::UpdateBackgroundPalette()
 {
-  // Set up a pallete for the background
-  QPalette palette;
-  QLinearGradient linearGradient(QPointF(0, 0), QPointF(0, this->height()));
+  // The color scheme
+  QColor scheme_light[] = {
+    QColor(180,180,215), QColor(190,190,225), QColor(225,225,235), QColor(235,235,235)
+  };
 
+  QColor scheme_dark[] = {
+    QColor(115,115,160), QColor(105,105,150), QColor(70,70,70), QColor(60,60,60)
+  };
+
+  // Get the current palette
+  QPalette palette = QGuiApplication::palette();
+
+  // Determine if the window color is dark or bright
+  bool dark_scheme = palette.color(QPalette::Window).valueF() < 0.5;
+  QColor* scheme = dark_scheme ? scheme_dark : scheme_light;
+
+  // Set the first color in the gradient
+  QColor stop_1, stop_2;
   if(m_Selected && m_Hover)
-    {
-    linearGradient.setColorAt(0, QColor(180,180,215));
-    linearGradient.setColorAt(1, QColor(200,200,235));
-    }
+    stop_1 = scheme[0];
   else if(m_Selected)
-    {
-    linearGradient.setColorAt(0, QColor(190,190,225));
-    linearGradient.setColorAt(1, QColor(210,210,245));
-    }
+    stop_1 = scheme[1];
   else if(m_Hover)
-    {
-    linearGradient.setColorAt(0, QColor(225,225,235));
-    linearGradient.setColorAt(1, QColor(245,245,255));
-    }
+    stop_1 = scheme[2];
   else
-    {
-    linearGradient.setColorAt(0, QColor(235,235,235));
-    linearGradient.setColorAt(1, QColor(255,255,255));
-    }
+    stop_1 = scheme[3];
 
-  QBrush brush(linearGradient);
-  palette.setBrush(QPalette::Window, brush);
+  // Set the second color as the offset
+  stop_2 = dark_scheme ? stop_1.lighter(120) : stop_1.lighter(120);
+  QLinearGradient linearGradient(QPointF(0, 0), QPointF(0, this->height()));
+  linearGradient.setColorAt(0, stop_1);
+  linearGradient.setColorAt(1, stop_2);
+
+  palette.setBrush(QPalette::Window, QBrush(linearGradient));
   ui->frame->setPalette(palette);
 }
 
@@ -297,7 +311,7 @@ QMenu *LayerInspectorRowDelegate::contextMenu() const
   return this->m_PopupMenu;
 }
 
-void LayerInspectorRowDelegate::enterEvent(QEvent *)
+void LayerInspectorRowDelegate::enterEvent(QEnterEvent *)
 {
   m_Hover = true;
   this->UpdateBackgroundPalette();

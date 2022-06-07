@@ -13,16 +13,13 @@
 #include "IRISImageData.h"
 #include "GuidedNativeImageIO.h"
 #include <QTimer>
+#include "LayoutReminderDialog.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
   ui(new Ui::DropActionDialog)
 {
   ui->setupUi(this);
-
-  // Start from scratch
-  ApplyCSS(this, ":/root/itksnap.css");
-
 }
 
 DropActionDialog::~DropActionDialog()
@@ -171,6 +168,13 @@ void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
       b.setIcon(QMessageBox::Critical);
       b.exec();
       }
+    }
+
+  if (fmt == GuidedNativeImageIO::FORMAT_ECHO_CARTESIAN_DICOM)
+    {
+      LayoutReminderDialog *lr = new LayoutReminderDialog(this);
+      lr->Initialize(m_Model);
+      lr->ConditionalExec(LayoutReminderDialog::Echo_Cartesian_Dicom_Loading);
     }
 }
 

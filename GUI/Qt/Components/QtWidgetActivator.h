@@ -54,7 +54,7 @@ public:
 
     The widget can be a QWidget or a QAction. Otherwise, this will do nothing
    */
-  explicit QtWidgetActivator(QObject *parent, BooleanCondition *cond, Options options = NoOptions);
+  explicit QtWidgetActivator(QObject *parent, QList<QObject *> widgets, BooleanCondition *cond, Options options = NoOptions);
   ~QtWidgetActivator();
 
 public slots:
@@ -62,8 +62,8 @@ public slots:
   void OnStateChange(const EventBucket &);
 
 private:
-  QWidget *m_TargetWidget;
-  QAction *m_TargetAction;
+  QList<QWidget *> m_TargetWidgets;
+  QList<QAction *> m_TargetActions;
   SmartPtr<BooleanCondition> m_Condition;
   Options m_Options;
 };
@@ -76,7 +76,7 @@ void activateOnFlag(QObject *w, TModel *m, TStateEnum flag,
 {
   typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
   SmartPtr<FlagType> f = FlagType::New(m, flag);
-  new QtWidgetActivator(w, f, options);
+  new QtWidgetActivator(w, QList<QObject *>({w}), f, options);
 }
 
 template<class TModel, class TStateEnum>
@@ -86,7 +86,7 @@ void activateOnNotFlag(QObject *w, TModel *m, TStateEnum flag,
   typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
   SmartPtr<FlagType> f = FlagType::New(m, flag);
   SmartPtr<NotCondition> nf = NotCondition::New(f);
-  new QtWidgetActivator(w, nf, options);
+  new QtWidgetActivator(w, QList<QObject *>({w}), nf, options);
 }
 
 
@@ -99,7 +99,7 @@ void activateOnAllFlags(QObject *w, TModel *m,
   SmartPtr<FlagType> f1 = FlagType::New(m, flag1);
   SmartPtr<FlagType> f2 = FlagType::New(m, flag2);
   SmartPtr<AndCondition> f = AndCondition::New(f1, f2);
-  new QtWidgetActivator(w, f, options);
+  new QtWidgetActivator(w, QList<QObject *>({w}), f, options);
 }
 
 template<class TModel, class TStateEnum>
@@ -111,8 +111,52 @@ void activateOnAnyFlags(QObject *w, TModel *m,
   SmartPtr<FlagType> f1 = FlagType::New(m, flag1);
   SmartPtr<FlagType> f2 = FlagType::New(m, flag2);
   SmartPtr<OrCondition> f = OrCondition::New(f1, f2);
-  new QtWidgetActivator(w, f, options);
+  new QtWidgetActivator(w, QList<QObject *>({w}), f, options);
 }
 
+
+template<class TModel, class TStateEnum>
+void activateOnFlag(QList<QObject *> w, TModel *m, TStateEnum flag,
+                    QtWidgetActivator::Options options = QtWidgetActivator::NoOptions)
+{
+  typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
+  SmartPtr<FlagType> f = FlagType::New(m, flag);
+  new QtWidgetActivator(w[0], w, f, options);
+}
+
+template<class TModel, class TStateEnum>
+void activateOnNotFlag(QList<QObject *> w, TModel *m, TStateEnum flag,
+                       QtWidgetActivator::Options options = QtWidgetActivator::NoOptions)
+{
+  typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
+  SmartPtr<FlagType> f = FlagType::New(m, flag);
+  SmartPtr<NotCondition> nf = NotCondition::New(f);
+  new QtWidgetActivator(w[0], w, nf, options);
+}
+
+
+template<class TModel, class TStateEnum>
+void activateOnAllFlags(QList<QObject *> w, TModel *m,
+                        TStateEnum flag1, TStateEnum flag2,
+                        QtWidgetActivator::Options options = QtWidgetActivator::NoOptions)
+{
+  typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
+  SmartPtr<FlagType> f1 = FlagType::New(m, flag1);
+  SmartPtr<FlagType> f2 = FlagType::New(m, flag2);
+  SmartPtr<AndCondition> f = AndCondition::New(f1, f2);
+  new QtWidgetActivator(w[0], w, f, options);
+}
+
+template<class TModel, class TStateEnum>
+void activateOnAnyFlags(QList<QObject *> w, TModel *m,
+                        TStateEnum flag1, TStateEnum flag2,
+                        QtWidgetActivator::Options options = QtWidgetActivator::NoOptions)
+{
+  typedef SNAPUIFlag<TModel, TStateEnum> FlagType;
+  SmartPtr<FlagType> f1 = FlagType::New(m, flag1);
+  SmartPtr<FlagType> f2 = FlagType::New(m, flag2);
+  SmartPtr<OrCondition> f = OrCondition::New(f1, f2);
+  new QtWidgetActivator(w[0], w, f, options);
+}
 
 #endif // QTWIDGETACTIVATOR_H

@@ -15,6 +15,7 @@ namespace itk {
   template <class TPixel> class RGBAPixel;
   template <class TOutputImage> class ImageSource;
   template <class T, unsigned int VDim1, unsigned int VDim2> class Transform;
+  template <class TCoordRep, unsigned int VDim> class ContinuousIndex;
 
   namespace Statistics {
     class DenseFrequencyContainer;
@@ -36,6 +37,8 @@ class Registry;
 class vtkImageImport;
 struct IRISDisplayGeometry;
 
+template <unsigned int VDim> class MetaDataAccess;
+
 /**
  * Supported ways of extracting a scalar value from vector-valued data.
  * These modes allow the image to be cast to a scalar image and used in
@@ -50,6 +53,17 @@ enum ScalarRepresentation
   NUMBER_OF_SCALAR_REPS
 };
 
+/**
+ * Volume rendering modes. These modes multiply the transfer function used for 2D
+ * display mapping by either 1 or a linear function from 0 to 1. By default, this
+ * is set to off.
+ */
+enum VolumeRenderingTransferFunctionScalingMode
+{
+  VOLUME_RENDERING_LINEAR01 = 0,
+  VOLUME_RENDERING_LINEAR10,
+  VOLUME_RENDERING_CONST1
+};
 
 /**
  \class ImageWrapperBase
@@ -75,6 +89,7 @@ public:
 
   // Image base
   typedef itk::ImageBase<3> ImageBaseType;
+  typedef itk::ImageBase<4> Image4DBaseType;
 
   // Floating point and double images and sources to which data may be cast
   typedef itk::Image<float, 3>                                  FloatImageType;
@@ -91,6 +106,13 @@ public:
 
   // ITK's coordinate transform (rigid, affine, etc)
   typedef itk::Transform<double, 3, 3>                        ITKTransformType;
+
+  // Metadata access object
+  typedef MetaDataAccess<4>                                 MetaDataAccessType;
+
+  // Index and size types
+  typedef itk::Index<3>                                              IndexType;
+  typedef itk::Size<3>                                                SizeType;
 
   /**
    * The image wrapper fires a WrapperMetadataChangeEvent when properties
@@ -158,14 +180,23 @@ public:
   virtual const ImageCoordinateGeometry &GetImageGeometry() const = 0;
 
   /** Get the current slice index */
-  irisVirtualGetMacro(SliceIndex, Vector3ui)
+  irisVirtualGetMacro(SliceIndex, IndexType)
 
   /**
    * Set the current slice index in all three dimensions.  The index should
    * be specified in the image coordinates, the slices will be generated
    * in accordance with the transforms that are specified
    */
-  virtual void SetSliceIndex(const Vector3ui &) = 0;
+  virtual void SetSliceIndex(const IndexType &) = 0;
+
+  /** Get the number of time points (how many 3D images in 4D array) */
+  irisVirtualGetMacro(NumberOfTimePoints, unsigned int)
+
+  /** Get the time index (which 3D volume in the 4D array is currently shown) */
+  irisVirtualGetMacro(TimePointIndex, unsigned int)
+
+  /** Set the current time index */
+  virtual void SetTimePointIndex(unsigned int index) = 0;
 
   /**
    * Set the viewport rectangle onto which the three display slices
@@ -178,6 +209,9 @@ public:
 
   /** Return some image info independently of pixel type */
   irisVirtualGetMacro(ImageBase, ImageBaseType *)
+
+  /** Return some image info independently of pixel type */
+  irisVirtualGetMacro(Image4DBase, Image4DBaseType *)
 
   /**
    * Is the image initialized?
@@ -257,6 +291,16 @@ public:
   /** Transform NIFTI coordinates to a continuous voxel index */
   virtual Vector3d TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const = 0;
 
+  /**
+   * Transform a reference space index to a continuous index in the voxel space of
+   * the wrapped image. For images whose geometry matches the reference space, this
+   * is the identity transform, but for images that are not in referene space, this
+   * will use the S-form of the reference space, S-form of the wrapped image and the
+   * registration transform applied to the image to compute the coordinate.
+   */
+  virtual void TransformReferenceIndexToWrappedImageContinuousIndex(
+      const IndexType &ref_index, itk::ContinuousIndex<double, 3> &img_index) const = 0;
+
   /** Get the NIFTI s-form matrix for this image */
   irisVirtualGetMacro(NiftiSform, TransformType)
 
@@ -275,17 +319,26 @@ public:
   /** Get the number of components per voxel */
   virtual size_t GetNumberOfComponents() const = 0;
 
-  /** Get voxel at index as an array of double components */
-  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const = 0;
+  /**
+   * Sample image intensity at a 4D position in the reference space. If the reference
+   * space does not match the native space, the intensity will be interpolated based
+   * on the current affine transform applied to the image.
+   *
+   * You can specify a time point, in which case only n_components will be sampled. If the
+   * time point is -1, all timepoints will be sampled.
+   *
+   * The flag map_to_native specifies whether the output intensities are raw or transformed
+   * into the native intensity space.
+   */
+  virtual void SampleIntensityAtReferenceIndex(
+      const itk::Index<3> &index, int time_point,
+      bool map_to_native, vnl_vector<double> &out) const = 0;
 
-  /** Get voxel at index as an array of double components */
-  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const = 0;
-
-  /** Get voxel intensity in native space. These methods are not recommended
-      for iterating over the entire image, since there is a virutal method
-      being resolved at each iteration. */
-  virtual void GetVoxelMappedToNative(const Vector3ui &vec, double *out) const = 0;
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const = 0;
+  /**
+   * Does the image match the reference space? If true, the wrapped image and the
+   * reference image have the same 3D geometry (size, origin, spacing, direction).
+   */
+  virtual bool ImageSpaceMatchesReferenceSpace() const = 0;
 
   /** Return componentwise minimum cast to double, without mapping to native range */
   virtual double GetImageMinAsDouble() = 0;
@@ -417,6 +470,11 @@ public:
   virtual void ReadMetaData(Registry &reg) = 0;
 
   /**
+   * Get the meta data accessor object, useful for inspecting metadata
+   */
+  virtual MetaDataAccessType GetMetaDataAccess() = 0;
+
+  /**
    * This static function constructs a NIFTI matrix from the ITK direction
    * cosines matrix and Spacing and Origin vectors
    */
@@ -533,18 +591,6 @@ public:
    */
   virtual double GetImageScaleFactor() = 0;
 
-  /** Get voxel at index as a single double value */
-  virtual double GetVoxelAsDouble(const Vector3ui &x) const = 0;
-
-  /** Get voxel at index as a single double value */
-  virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const = 0;
-
-  /** Get voxel intensity in native space. These methods are not recommended
-      for iterating over the entire image, since there is a virutal method
-      being resolved at each iteration. */
-  virtual double GetVoxelMappedToNative(const Vector3ui &vec) const = 0;
-  virtual double GetVoxelMappedToNative(const itk::Index<3> &idx) const = 0;
-
   /**
     Get the maximum possible value of the gradient magnitude. This will
     compute the gradient magnitude of the image (without Gaussian smoothing)
@@ -577,7 +623,7 @@ public:
    * image filter to break up operations into pieces. Without that, there would
    * be unnecessary large memory allocation.
    */
-  virtual CommonFormatImageType* GetCommonFormatImage(
+  virtual const CommonFormatImageType* GetCommonFormatImage(
       ExportChannel channel = WHOLE_IMAGE) = 0;
 
   /**
@@ -594,6 +640,12 @@ public:
 
   /** Get a version of this image that is usable in VTK pipelines */
   virtual vtkImageImport *GetVTKImporter() = 0;
+
+  /** Is volume rendering turned on for this layer */
+  virtual bool IsVolumeRenderingEnabled() const = 0;
+
+  /** Turn on volume rendering for this layer */
+  virtual void SetVolumeRenderingEnabled(bool state) = 0;
 };
 
 

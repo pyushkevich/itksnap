@@ -18,6 +18,9 @@ SnakeParameterDialog::SnakeParameterDialog(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  // Set name for testing purposes
+  this->setObjectName("dlgSnakeParameters");
+
   // Set up the preview renderers
   for(int i = 0; i < 4; i++)
     {
@@ -90,11 +93,13 @@ void SnakeParameterDialog::SetModel(SnakeParameterModel *model)
   makeWidgetVisibilityCoupling(ui->inGammaExp, m_Model->GetAdvancedEquationModeModel());
   makeWidgetVisibilityCoupling(ui->lblGammaExp, m_Model->GetAdvancedEquationModeModel());
 
+  /*
   makeWidgetVisibilityCoupling(ui->inGammaMath, m_Model->GetCasellesOrAdvancedModeModel());
   makeWidgetVisibilityCoupling(ui->inGammaMathSlider, m_Model->GetCasellesOrAdvancedModeModel());
   makeWidgetVisibilityCoupling(ui->lblGammaMath, m_Model->GetCasellesOrAdvancedModeModel());
 
   makeWidgetVisibilityCoupling(ui->boxForceGamma, m_Model->GetCasellesOrAdvancedModeModel());
+  */
 
   // Set up the preview renderers
   for(int i = 0; i < 4; i++)

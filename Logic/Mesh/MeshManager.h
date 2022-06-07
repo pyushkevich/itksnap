@@ -44,7 +44,7 @@ class AllPurposeProgressAccumulator;
 class vtkPolyData;
 class MultiLabelMeshPipeline;
 class LevelSetMeshPipeline;
-
+class LabelImageWrapper;
 
 #include "SNAPCommon.h"
 #include "AllPurposeProgressAccumulator.h"
@@ -78,35 +78,29 @@ public:
   /**
    * Generate VTK meshes from input data.
    */
-  void UpdateVTKMeshes(itk::Command *command);
+  void UpdateVTKMeshes(itk::Command *command, unsigned int timepoint);
 
   /**
    * Get the mapping of labels to vtk mesh pointers. This method has a
    * slight overhead of copying the data
    */
   typedef std::map<LabelType, vtkSmartPointer<vtkPolyData> > MeshCollection;
-  MeshCollection GetMeshes();
+  MeshCollection GetMeshes(unsigned int timepoint);
 
   /**
    * Does the mesh need updating?
    */
-  bool IsMeshDirty();
+  bool IsMeshDirty(unsigned int timepoint);
 
   /**
    * Get the timestamp when the current mesh was built
    */
-  itk::ModifiedTimeType GetBuildTime() const;
+  itk::ModifiedTimeType GetBuildTime(unsigned int timepoint);
 
 protected:
 
   MeshManager();
   virtual ~MeshManager();
-
-  /** 
-   * This method applies the settings in a color label if color label 
-   * is displayable
-   */
-  bool ApplyColorLabel(const ColorLabel &label);
 
   // Back pointer to the application object
   IRISApplication *m_Driver;
@@ -121,6 +115,8 @@ protected:
   //different than 1
   bool Is3DProper(const itk::ImageBase<3> * apImage) const;
 
+  MultiLabelMeshPipeline *GetMultiLabelMeshPipeline(
+      LabelImageWrapper *wrapper, unsigned int timepoint, bool create_if_missing = false);
 };
 
 #endif // __MeshManager_h_

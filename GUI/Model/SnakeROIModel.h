@@ -80,8 +80,7 @@ public:
 
   bool ProcessPushEvent(double x, double y);
 
-  bool ProcessDragEvent(
-      double x, double y, double xStart, double yStart, bool release);
+  bool ProcessDragEvent(double x, double y, double xStart, double yStart, bool itkNotUsed(release));
 
   bool ProcessMoveEvent(double x, double y);
 
@@ -89,6 +88,20 @@ public:
   void ProcessEnterEvent();
 
   void ResetROI();
+
+  /** Map from system's ROI in image coordinates to 2D slice coords */
+  void GetSystemROICorners(Vector3d corner[2]);
+
+  /** Compute the slice-space vertices corresponding to an edge */
+  void GetEdgeVertices(unsigned int direction,
+    unsigned int index,Vector2d &x0,Vector2d &x1,const Vector3d corner[2]);
+
+  /** Compute a distance to an edge */
+  double GetEdgeDistance(unsigned int direction,
+    unsigned int index,const Vector2d &point,const Vector3d corner[2]);
+
+
+  irisGetMacro(Highlight, const SnakeROISideSelectionState &)
 
   friend class SnakeROIRenderer;
 
@@ -109,17 +122,6 @@ protected:
    * of interest (0 = closest to 0,0,0), (1 = closest to sx,sy,sz)
    */
   SnakeROISideSelectionState m_Highlight;
-
-  /** Map from system's ROI in image coordinates to 2D slice coords */
-  void GetSystemROICorners(Vector3d corner[2]);
-
-  /** Compute the slice-space vertices corresponding to an edge */
-  void GetEdgeVertices(unsigned int direction,
-    unsigned int index,Vector2d &x0,Vector2d &x1,const Vector3d corner[2]);
-
-  /** Compute a distance to an edge */
-  double GetEdgeDistance(unsigned int direction,
-    unsigned int index,const Vector2d &point,const Vector3d corner[2]);
 
   /**
    * Update the region of interest in response to the dragging or release

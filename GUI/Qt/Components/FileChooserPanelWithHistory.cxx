@@ -9,6 +9,7 @@
 #include <QKeyEvent>
 #include <QDir>
 #include <QFileDialog>
+#include <QRegularExpression>
 #include <SNAPQtCommon.h>
 
 
@@ -79,19 +80,19 @@ void FileChooserPanelWithHistory::parseFilters(const QString &activeFormat)
   m_defaultFormat = activeFormat;
 
   // Split the pattern into pieces
-  QStringList pats = m_filePattern.split(";;", QString::SkipEmptyParts);
+  QStringList pats = m_filePattern.split(";;");
 
   // Split each piece
   foreach(QString pat, pats)
     {
     // Handle patterns in parentheses
-    QRegExp rx("(.*)\\((.*)\\)");
-    int pos = rx.indexIn(pat);
-    if(pos >= 0)
+    QRegularExpression rx("(.*)\\((.*)\\)");
+    auto match = rx.match(pat);
+    if(match.hasMatch())
       {
       // Split into title and list of extensions
-      QString title = rx.cap(1).trimmed();
-      QString extliststr = rx.cap(2).trimmed();
+      QString title = match.captured(1).trimmed();
+      QString extliststr = match.captured(2).trimmed();
 
       // Store the extension
       QStringList extlist = extliststr.split(" ");
@@ -99,7 +100,7 @@ void FileChooserPanelWithHistory::parseFilters(const QString &activeFormat)
 
       foreach (QString myext, extlist)
         {
-        pos = myext.indexOf(".");
+        int pos = myext.indexOf(".");
         if(pos >= 0)
           extlistclean.push_back(myext.mid(pos+1));
         }

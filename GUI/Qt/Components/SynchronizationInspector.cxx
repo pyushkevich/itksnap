@@ -3,6 +3,7 @@
 #include "SynchronizationModel.h"
 #include "QtSpinBoxCoupling.h"
 #include "QtCheckBoxCoupling.h"
+#include "QtComboBoxCoupling.h"
 
 SynchronizationInspector::SynchronizationInspector(QWidget *parent) :
   QWidget(parent),
@@ -29,6 +30,9 @@ void SynchronizationInspector::SetModel(SynchronizationModel *model)
   makeCoupling(ui->chkZoom, model->GetSyncZoomModel());
   makeCoupling(ui->chkPan, model->GetSyncPanModel());
   makeCoupling(ui->chkCamera, model->GetSyncCameraModel());
+
+  // Hook up a warp model
+  makeCoupling(ui->inWarpLayer, m_Model->GetWarpLayerModel());
 
   // The checkboxes should be deactivated when the sync model is off
   makeBooleanNamedPropertyCoupling(ui->panelProperties, "enabled",

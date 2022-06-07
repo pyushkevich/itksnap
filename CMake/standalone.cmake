@@ -1,77 +1,141 @@
 #############################################
 # REQUIRE ITK 3.20 OR LATER                 #
 #############################################
-FIND_PACKAGE(ITK REQUIRED)
+FIND_PACKAGE(ITK 5.2.1 REQUIRED COMPONENTS
+  ITKAnisotropicSmoothing
+  ITKAntiAlias
+  ITKBiasCorrection
+  ITKBinaryMathematicalMorphology
+  ITKColormap
+  ITKCommon
+  ITKConnectedComponents
+  ITKConvolution
+  ITKDisplacementField
+  ITKDistanceMap
+  ITKFFT
+  ITKFiniteDifference
+  ITKGDCM
+  ITKGPUCommon
+  ITKGPUSmoothing
+  ITKIOGDCM
+  ITKIOGE
+  ITKIOGIPL
+  ITKIOImageBase
+  ITKIOMeshBase
+  ITKIOMeta
+  ITKIONIFTI
+  ITKIONRRD
+  ITKIORAW
+  ITKIOSiemens
+  ITKIOTransformBase
+  ITKIOVTK
+  ITKIOXML
+  ITKImageAdaptors
+  ITKImageCompare
+  ITKImageCompose
+  ITKImageFeature
+  ITKImageFilterBase
+  ITKImageFunction
+  ITKImageGradient
+  ITKImageGrid
+  ITKImageIntensity
+  ITKImageLabel
+  ITKImageNoise
+  ITKImageStatistics
+  ITKLabelMap
+  ITKLevelSets
+  ITKMathematicalMorphology
+  ITKMesh
+  ITKRegistrationCommon
+  ITKSmoothing
+  ITKSpatialObjects
+  ITKStatistics
+  ITKTestKernel
+  ITKThresholding
+  ITKTransform
+  ITKTransformFactory
+  ITKVTK
+  ITKWatersheds
+  ITKZLIB
+  ITKImageIO
+  ITKMeshIO
+  ITKTransformIO
+  MorphologicalContourInterpolation)
+
 INCLUDE(${ITK_USE_FILE})
 
 #############################################
 # REQUIRE VTK                               #
 #############################################
-FIND_PACKAGE(VTK REQUIRED)
-INCLUDE (${VTK_USE_FILE})
+FIND_PACKAGE(VTK 9 REQUIRED COMPONENTS
+  ChartsCore
+  CommonComputationalGeometry
+  CommonCore
+  CommonDataModel
+  CommonExecutionModel
+  CommonMath
+  CommonTransforms
+  FiltersCore
+  FiltersGeneral
+  FiltersGeometry
+  FiltersSources
+  GUISupportQt
+  IOExport
+  IOGeometry
+  IOImage
+  IOLegacy
+  IOPLY
+  ImagingCore
+  ImagingGeneral
+  InteractionStyle
+  InteractionWidgets
+  RenderingAnnotation
+  RenderingContext2D
+  RenderingContextOpenGL2
+  RenderingCore
+  RenderingLOD
+  RenderingOpenGL2
+  RenderingUI
+  RenderingVolume
+  RenderingVolumeOpenGL2
+  RenderingGL2PSOpenGL2
+  ViewsContext2D)
 
 #############################################
-# REQUIRE QT                                #
+# REQUIRE QT5                               #
 #############################################
-IF(NOT SNAP_USE_QT4)
+FIND_PACKAGE(Qt6Widgets)
+FIND_PACKAGE(Qt6OpenGL)
+FIND_PACKAGE(Qt6Concurrent)
+FIND_PACKAGE(Qt6Qml)
 
-  FIND_PACKAGE(Qt5Widgets)
-  FIND_PACKAGE(Qt5OpenGL)
-  FIND_PACKAGE(Qt5Concurrent)
-  FIND_PACKAGE(Qt5Qml)
+SET(SNAP_QT_INCLUDE_DIRS
+  ${Qt6Widgets_INCLUDE_DIRS}
+  ${Qt6OpenGL_INCLUDE_DIRS}
+  ${Qt6Concurrent_INCLUDE_DIRS}
+  ${Qt6Qml_INCLUDE_DIRS}
+)
 
-  SET(SNAP_QT_INCLUDE_DIRS
-    ${Qt5Widgets_INCLUDE_DIRS}
-    ${Qt5OpenGL_INCLUDE_DIRS}
-    ${Qt5Concurrent_INCLUDE_DIRS}
-    ${Qt5Qml_INCLUDE_DIRS}
-  )
+SET(SNAP_QT_LIBRARIES
+  Qt6::Widgets
+  Qt6::OpenGL
+  Qt6::Concurrent
+  Qt6::Qml
+)
 
-  SET(SNAP_QT_LIBRARIES
-    Qt5::Widgets
-    Qt5::OpenGL
-    Qt5::Concurrent
-    Qt5::Qml
-  )
+# On Linux the X11Extras library is required
+# IF(UNIX AND NOT APPLE)
+#   FIND_PACKAGE(Qt6X11Extras)
+#   SET(SNAP_QT_INCLUDE_DIRS ${SNAP_QT_INCLUDE_DIRS} ${Qt6X11Extras_INCLUDE_DIRS})
+#   SET(SNAP_QT_LIBRARIES ${SNAP_QT_LIBRARIES} Qt6::X11Extras)
+# ENDIF()
 
-  # Set vars for the QT binary and library directories
-  GET_FILENAME_COMPONENT(QT_BINARY_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
-  GET_FILENAME_COMPONENT(QT_LIBRARY_DIR "${Qt5Core_DIR}/../../" ABSOLUTE)
+# Set vars for the QT binary and library directories
+GET_FILENAME_COMPONENT(QT_BINARY_DIR "${Qt6Core_DIR}/../../../bin" ABSOLUTE)
+GET_FILENAME_COMPONENT(QT_LIBRARY_DIR "${Qt6Core_DIR}/../../" ABSOLUTE)
 
-  # Set the QTVERSION var
-  SET(QTVERSION ${Qt5Widgets_VERSION})
-
-ELSE(NOT SNAP_USE_QT4)
-
-  FIND_PACKAGE(Qt4 4.8 COMPONENTS QtCore QtGui QtOpenGL REQUIRED)
-  INCLUDE(${QT_USE_FILE})
-  ADD_DEFINITIONS(${QT_DEFINITIONS})
-
-  SET(SNAP_QT_INCLUDE_DIRS
-    ${QT_QTSCRIPT_INCLUDE_DIR}
-    ${QT_QTSCRIPTTOOLS_INCLUDE_DIR}
-  )
-
-  SET(SNAP_QT_LIBRARIES
-    ${QT_LIBRARIES}
-    ${QT_QTMAIN_LIBRARY}
-    ${QT_QTSCRIPT_LIBRARY}
-    ${QT_QTSCRIPTTOOLS_LIBRARY}
-  )
-
-ENDIF(NOT SNAP_USE_QT4)
-
-# Look for OpenGL.
-FIND_PACKAGE(OpenGL REQUIRED)
-
-# Look for GLKit on Apple
-IF(APPLE)
-  FIND_LIBRARY(MACOS_GLKIT_LIBRARY GLKit)
-  MARK_AS_ADVANCED(MACOS_GLKIT_LIBRARY)
-  SET(SNAP_OPENGL_LIBS ${OPENGL_LIBRARIES} ${MACOS_GLKIT_LIBRARY})
-ELSE(APPLE)
-  SET(SNAP_OPENGL_LIBS ${OPENGL_LIBRARIES} ${OPENGL_glu_LIBRARY})
-ENDIF(APPLE)
+# Set the QTVERSION var
+SET(QTVERSION ${Qt6Widgets_VERSION})
 
 # Look for CURL. It is now required part of ITK-SNAP
 FIND_PACKAGE(CURL)

@@ -34,7 +34,6 @@
 =========================================================================*/
 #include "SnakeParametersPreviewPipeline.h"
 
-#include "SNAPOpenGL.h"
 #include "GlobalState.h"
 
 #include "LevelSetExtensionFilter.h"
@@ -49,9 +48,11 @@
 #include "vtkImageData.h"
 #include "vtkImageImport.h"
 #include "vtkPolyData.h"
+#include <vtkPoints2D.h>
 
 #include "SNAPLevelSetDriver.h"
 #include "PolygonScanConvert.h"
+#include "SNAPExportITKToVTK.h"
 
 #ifndef vtkFloatingPointType
 #define vtkFloatingPointType double
@@ -84,7 +85,7 @@ public:
     m_DemoLoopLength = 160;
     m_DemoLoopStep = 2;
     m_LevelSetImage = NULL;
-
+    m_CurrentCurve = vtkSmartPointer<vtkPoints2D>::New();
     }
 
   // Destructor
@@ -97,7 +98,7 @@ public:
   void OnTimerEvent()
     {
     // Clear the output
-    m_CurrentCurve.clear();
+    m_CurrentCurve->Reset();
 
     // If the driver is dirty, we need to create a new one
     if(m_DriverDirty && m_Driver != NULL)
@@ -174,30 +175,7 @@ public:
       m_VTKImporter = vtkImageImport::New();
 
       // Pipe the importer into the exporter (that's a lot of code)
-      m_VTKImporter->SetUpdateInformationCallback(
-        m_VTKExporter->GetUpdateInformationCallback());
-      m_VTKImporter->SetPipelineModifiedCallback(
-        m_VTKExporter->GetPipelineModifiedCallback());
-      m_VTKImporter->SetWholeExtentCallback(
-        m_VTKExporter->GetWholeExtentCallback());
-      m_VTKImporter->SetSpacingCallback(
-        m_VTKExporter->GetSpacingCallback());
-      m_VTKImporter->SetOriginCallback(
-        m_VTKExporter->GetOriginCallback());
-      m_VTKImporter->SetScalarTypeCallback(
-        m_VTKExporter->GetScalarTypeCallback());
-      m_VTKImporter->SetNumberOfComponentsCallback(
-        m_VTKExporter->GetNumberOfComponentsCallback());
-      m_VTKImporter->SetPropagateUpdateExtentCallback(
-        m_VTKExporter->GetPropagateUpdateExtentCallback());
-      m_VTKImporter->SetUpdateDataCallback(
-        m_VTKExporter->GetUpdateDataCallback());
-      m_VTKImporter->SetDataExtentCallback(
-        m_VTKExporter->GetDataExtentCallback());
-      m_VTKImporter->SetBufferPointerCallback(
-        m_VTKExporter->GetBufferPointerCallback());
-      m_VTKImporter->SetCallbackUserData(
-        m_VTKExporter->GetCallbackUserData());
+      ConnectITKExporterToVTKImporter(m_VTKExporter.GetPointer(), m_VTKImporter);
 
       // Create and configure the contour filter
       m_VTKContour = vtkContourFilter::New();
@@ -210,18 +188,18 @@ public:
       m_VTKContour->SetValue(0, 0.0);
 
       // Generate a contour
-      m_VTKExporter->SetInput(m_Driver->GetCurrentState());
+      m_VTKExporter->SetInput(m_LevelSetImage);
       m_VTKContour->Update();
 
       // Get the list of points representing the evolving contour
       vtkPolyData *pd = m_VTKContour->GetOutput();
-      m_CurrentCurve.reserve(pd->GetNumberOfCells() * 2);
+      m_CurrentCurve->Allocate(pd->GetNumberOfCells() * 2);
       for(int i=0;i<pd->GetNumberOfCells();i++)
         {
         vtkFloatingPointType *pt1 = pd->GetPoint(pd->GetCell(i)->GetPointId(0));
-        m_CurrentCurve.push_back(Vector2d(pt1[0] + 0.5,pt1[1] + 0.5));
         vtkFloatingPointType *pt2 = pd->GetPoint(pd->GetCell(i)->GetPointId(1));
-        m_CurrentCurve.push_back(Vector2d(pt2[0] + 0.5,pt2[1] + 0.5));
+        m_CurrentCurve->InsertNextPoint(pt1[0] + 0.5,pt1[1] + 0.5);
+        m_CurrentCurve->InsertNextPoint(pt2[0] + 0.5,pt2[1] + 0.5);
         }
       }
 
@@ -278,15 +256,15 @@ public:
 
   // Get the level set image to display
   FloatImageType *GetLevelSetImage()
-    { return m_Driver->GetCurrentState(); }
+    { return m_LevelSetImage; }
 
   // Get the evolving contour
-  vector<Vector2d> &GetEvolvingContour()
+  vtkPoints2D *GetEvolvingContour()
     { return m_CurrentCurve; }
 
   // Restart the demo
   void Restart()
-    { m_DriverDirty = true; m_CurrentCurve.clear(); }
+    { m_DriverDirty = true; m_CurrentCurve->Reset(); }
 
 private:
   // Parameters of the level set algorithm
@@ -306,7 +284,7 @@ private:
   vtkContourFilter *m_VTKContour;
 
   // The zero level set, as it evolves
-  vector<Vector2d> m_CurrentCurve;
+  vtkSmartPointer<vtkPoints2D> m_CurrentCurve;
 
   bool m_DriverDirty, m_ContourDirty;
 };
@@ -618,7 +596,7 @@ SnakeParametersPreviewPipeline
 
 
 
-std::vector<Vector2d> &
+vtkPoints2D *
 SnakeParametersPreviewPipeline
 ::GetDemoLoopContour()
 {

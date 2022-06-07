@@ -20,6 +20,9 @@ class vtkTransformPolyDataFilter;
 class vtkCubeSource;
 class vtkCoordinate;
 class vtkCamera;
+class Window3DPicker;
+class ImageWrapperBase;
+class VolumeAssembly;
 
 /**
  * A struct representing the state of the VTK camera. This struct
@@ -49,11 +52,11 @@ public:
 
   FIRES(CameraUpdateEvent)
 
-  void paintGL() ITK_OVERRIDE;
+  void SetRenderWindow(vtkRenderWindow *rwin) override;
 
   void SetModel(Generic3DModel *model);
 
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   void ResetView();
 
@@ -88,7 +91,7 @@ public:
   void FlipScalpelPlaneNormal();
 
   /** Compute the world coordinates of a click and a ray pointing inward (not normalized) */
-  void ComputeRayFromClick(int x, int y, Vector3d &m_Point, Vector3d &m_Ray);
+  void ComputeRayFromClick(int x, int y, Vector3d &point, Vector3d &ray, Vector3d &dx, Vector3d &dy);
 
 protected:
   Generic3DRenderer();
@@ -117,6 +120,9 @@ protected:
 
   // Update the camera
   void UpdateCamera(bool reset);
+
+  // Configure the volume rendering
+  void UpdateVolumeRendering();
 
   typedef std::map<LabelType, vtkSmartPointer<vtkActor> > ActorMap;
   typedef ActorMap::iterator ActorMapIterator;
@@ -152,6 +158,11 @@ protected:
 
   // Saved camera state
   vtkSmartPointer<vtkCamera> m_SavedCameraState;
+
+  // Picker object
+  vtkSmartPointer<Window3DPicker> m_Picker;
+  void UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssembly *va);
+  void UpdateVolumeTransform(ImageWrapperBase *layer, VolumeAssembly *va);
 };
 
 #endif // GENERIC3DRENDERER_H

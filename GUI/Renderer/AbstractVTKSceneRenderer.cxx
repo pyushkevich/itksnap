@@ -2,33 +2,52 @@
 
 #include <vtkGenericOpenGLRenderWindow.h>
 #include <vtkRenderer.h>
-#include <vtkContextView.h>
+#include <vtkContextActor.h>
 #include <vtkChart.h>
 #include <vtkChartXY.h>
 #include <vtkTextProperty.h>
 #include <vtkTooltipItem.h>
+#include <vtkPlot.h>
+#include <vtkPen.h>
+#include <vtkAxis.h>
+#include <vtkRenderer.h>
+#include <vtkContextInteractorStyle.h>
+#include <vtkContextScene.h>
+#include <vtkRenderWindowInteractor.h>
+
 
 AbstractVTKSceneRenderer::AbstractVTKSceneRenderer()
   : AbstractVTKRenderer()
 {
-  // Initialize some properties of the renderer
-  this->m_RenderWindow->SwapBuffersOff();
-  this->m_RenderWindow->SetMultiSamples(0);
+  // Set up the context actor/scene
+  m_ContextActor = vtkSmartPointer<vtkContextActor>::New();
+  m_Renderer->AddViewProp(m_ContextActor);
 
-  // Set up the context view
-  m_ContextView = vtkSmartPointer<vtkContextView>::New();
-  m_ContextView->SetRenderWindow(m_RenderWindow);
-
-  // Set the background to black
-  m_BackgroundColor.fill(0.0);
+  // This seems to be a bug in VTK that we have to assign the renderer to the scene
+  // TODO: check if this is necessary in VTK9, in VTK8 this causes scene->GetViewWidth() to return 0
+  m_ContextActor->GetScene()->SetRenderer(m_Renderer);
 }
 
-#include <vtkPlot.h>
-#include <vtkPen.h>
-#include <vtkAxis.h>
+void AbstractVTKSceneRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  // Call parent method
+  Superclass::SetRenderWindow(rwin);
+
+  // Configure interaction
+  vtkNew<vtkContextInteractorStyle> style;
+  style->SetScene(m_ContextActor->GetScene());
+  rwin->GetInteractor()->SetInteractorStyle(style);
+}
+
+vtkContextScene *AbstractVTKSceneRenderer::GetScene()
+{
+  return m_ContextActor->GetScene();
+}
+
 void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(
     vtkChart *chart, int old_ratio, int new_ratio)
 {
+  /*
   // Axis titles
   const int axis_arr[] = {vtkAxis::LEFT, vtkAxis::RIGHT, vtkAxis::BOTTOM, vtkAxis::TOP};
   for(int i = 0; i < 4; i++)
@@ -54,13 +73,6 @@ void AbstractVTKSceneRenderer::UpdateChartDevicePixelRatio(
     vtkTextProperty *prop_tt = chart_xy->GetTooltip()->GetTextProperties();
     prop_tt->SetFontSize(new_ratio * prop_tt->GetFontSize() / old_ratio);
     }
+    */
 }
 
-void AbstractVTKSceneRenderer::paintGL()
-{
-  // Set renderer background
-  m_ContextView->GetRenderer()->SetBackground(m_BackgroundColor.data_block());
-
-  // Update the scene
-  AbstractVTKRenderer::paintGL();
-}

@@ -68,6 +68,8 @@
 #include "IntensityCurveInterface.h"
 #include "ColorLabelQuickListModel.h"
 #include "InterpolateLabelModel.h"
+#include "SmoothLabelsModel.h"
+#include "VoxelChangeReportModel.h"
 #include "RegistrationModel.h"
 #include "InteractiveRegistrationModel.h"
 #include "DistributedSegmentationModel.h"
@@ -215,6 +217,14 @@ GlobalUIModel::GlobalUIModel()
   m_InterpolateLabelModel = InterpolateLabelModel::New();
   m_InterpolateLabelModel->SetParentModel(this);
 
+  // issue #24: Label smoothing feature
+  m_SmoothLabelsModel = SmoothLabelsModel::New();
+  m_SmoothLabelsModel->SetParentModel(this);
+
+  // issue #24: Voxel Change Report
+  m_VoxelChangeReportModel = VoxelChangeReportModel::New();
+  m_VoxelChangeReportModel->SetParentModel(this);
+
   // Set up the cursor position model
   m_CursorPositionModel = wrapGetterSetterPairAsProperty(
         this,
@@ -228,6 +238,26 @@ GlobalUIModel::GlobalUIModel()
         this, CursorUpdateEvent(), ValueChangedEvent());
   m_CursorPositionModel->Rebroadcast(
         m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+
+  // Set up the time point model
+  m_CursorTimePointModel = wrapGetterSetterPairAsProperty(
+                             this,
+                             &Self::GetCursorTimePointValueAndRange,
+                             &Self::SetCursorTimePoint);
+
+  // Same rebroadcast logic as above
+  m_CursorTimePointModel->Rebroadcast(
+        this, CursorUpdateEvent(), ValueChangedEvent());
+  m_CursorTimePointModel->Rebroadcast(
+        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+
+  // Whether there is 4D model
+  m_WorkspaceIs4DModel = wrapGetterSetterPairAsProperty(
+                           this,
+                           &Self::GetWorkspaceIs4DValue);
+
+  m_WorkspaceIs4DModel->Rebroadcast(
+        m_Driver, MainImageDimensionsChangeEvent(), ValueChangedEvent());
 
   // ROI size and index models
   m_SnakeROIIndexModel = wrapGetterSetterPairAsProperty(
@@ -508,7 +538,7 @@ void GlobalUIModel::LoadUserPreferences()
 
   // Read the appearance settings
   m_AppearanceSettings->LoadFromRegistry(
-        si->Folder("UserInterface.Appearance"));
+        si->Folder("UserInterface.AppearanceVTK"));
 
   // Read the default behaviors
   dbs->ReadFromRegistry(
@@ -555,7 +585,7 @@ void GlobalUIModel::SaveUserPreferences()
 
   // Write the appearance settings
   m_AppearanceSettings->SaveToRegistry(
-        si->Folder("UserInterface.Appearance"));
+        si->Folder("UserInterface.AppearanceVTK"));
 
   // Write the default behaviors
   m_Driver->GetGlobalState()->GetDefaultBehaviorSettings()->WriteToRegistry(
@@ -602,6 +632,39 @@ bool GlobalUIModel::GetCursorPositionValueAndRange(
 void GlobalUIModel::SetCursorPosition(Vector3ui value)
 {
   m_Driver->SetCursorPosition(value - 1u);
+}
+
+bool GlobalUIModel::GetCursorTimePointValueAndRange(
+    unsigned int &value, NumericValueRange<unsigned int> *range)
+{
+  if(m_Driver->IsMainImageLoaded())
+    {
+    value = m_Driver->GetCursorTimePoint() + 1u;
+    if(range)
+      {
+      // We tie the number of time points allowed to the main image.
+      // TODO: in the future we may want to allow more flexibility
+      range->Set(1u, m_Driver->GetCurrentImageData()->GetMain()->GetNumberOfTimePoints(), 1u);
+      }
+    return true;
+    }
+
+  return false;
+}
+
+void GlobalUIModel::SetCursorTimePoint(unsigned int value)
+{
+  m_Driver->SetCursorTimePoint(value - 1u);
+}
+
+bool GlobalUIModel::GetWorkspaceIs4DValue(bool &value)
+{
+  if(m_Driver->IsMainImageLoaded())
+    {
+    value = m_Driver->GetCurrentImageData()->GetMain()->GetNumberOfTimePoints() > 1;
+    return true;
+    }
+  return false;
 }
 
 bool GlobalUIModel::GetSnakeROIIndexValueAndRange(

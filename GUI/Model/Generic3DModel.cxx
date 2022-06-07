@@ -11,7 +11,6 @@
 #include "vtkRendererCollection.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkPointData.h"
-#include "itkMutexLockHolder.h"
 #include "MeshOptions.h"
 #include "ImageWrapperTraits.h"
 #include "SegmentationUpdateIterator.h"
@@ -86,10 +85,11 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
     {
     case UIF_MESH_DIRTY:
       {
-      if(m_Driver->GetMeshManager()->IsMeshDirty())
+      unsigned int tp = m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex();
+      if(m_Driver->GetMeshManager()->IsMeshDirty(tp))
         return true;
 
-      if(m_Driver->GetMeshManager()->GetBuildTime() <= this->m_ClearTime)
+      if(m_Driver->GetMeshManager()->GetBuildTime(tp) <= this->m_ClearTime)
         return true;
 
       return false;
@@ -155,7 +155,7 @@ void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
   this->UpdateSegmentationMesh(m_ParentUI->GetProgressCommand());
 
   // Prevent concurrent access to this method and mesh update
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> mholder(m_MutexLock);
+  std::lock_guard<std::mutex> guard(m_Mutex);
 
   // Certain formats require a VTK exporter and use a render window. They
   // are handled directly in this code, rather than in the Guided code.
@@ -165,6 +165,7 @@ void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
   if(mesh_io.GetFileFormat(reg_format) == GuidedMeshIO::FORMAT_VRML)
     {
     // Create the exporter
+    // TODO: temporarily commented, needs to be fixed!
     vtkSmartPointer<vtkVRMLExporter> exporter = vtkSmartPointer<vtkVRMLExporter>::New();
     exporter->SetFileName(settings.GetMeshFileName().c_str());
     exporter->SetInput(m_Renderer->GetRenderWindow());
@@ -215,18 +216,16 @@ void Generic3DModel::OnImageGeometryUpdate()
     }
 }
 
-#include "itkMutexLockHolder.h"
-
 void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
 {
   // Prevent concurrent access to this method
-  itk::MutexLockHolder<itk::SimpleFastMutexLock> mholder(m_MutexLock);
+  std::lock_guard<std::mutex> guard(m_Mutex);
 
   try
   {
     // Generate all the mesh objects
     m_MeshUpdating = true;
-    m_Driver->GetMeshManager()->UpdateVTKMeshes(callback);
+    m_Driver->GetMeshManager()->UpdateVTKMeshes(callback, m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
     m_MeshUpdating = false;
 
     InvokeEvent(ModelUpdateEvent());
@@ -253,7 +252,6 @@ bool Generic3DModel::AcceptAction()
 
   // Get the segmentation image
   LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
-  LabelImageWrapper::ImageType *imSeg = seg->GetImage();
 
   // Accept the current action
   if(mode == SPRAYPAINT_MODE)
@@ -274,7 +272,7 @@ bool Generic3DModel::AcceptAction()
       region.SetIndex(2, static_cast<unsigned int>(x[2])); region.SetSize(2, 1);
 
       // Treat each point as a region update
-      SegmentationUpdateIterator it(imSeg, region,
+      SegmentationUpdateIterator it(seg, region,
                                     app->GetGlobalState()->GetDrawingColorLabel(),
                                     app->GetGlobalState()->GetDrawOverFilter());
 
@@ -284,9 +282,7 @@ bool Generic3DModel::AcceptAction()
         }
 
       // Store the delta for this update
-      it.Finalize();
-
-      if(it.GetNumberOfChangedVoxels() > 0)
+      if(it.Finalize())
         {
         update = true;
         seg->StoreIntermediateUndoDelta(it.RelinquishDelta());
@@ -366,7 +362,8 @@ void Generic3DModel::FlipAction()
 void Generic3DModel::ClearRenderingAction()
 {
   m_Renderer->ClearRendering();
-  m_ClearTime = m_Driver->GetMeshManager()->GetBuildTime();
+  unsigned int tp = m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex();
+  m_ClearTime = m_Driver->GetMeshManager()->GetBuildTime(tp);
   InvokeEvent(ModelUpdateEvent());
 }
 
@@ -402,12 +399,12 @@ public:
 bool Generic3DModel::IntersectSegmentation(int vx, int vy, Vector3i &hit)
 {
   // World coordinate of the click position and direction
-  Vector3d x_world, d_world;
-  m_Renderer->ComputeRayFromClick(vx, vy, x_world, d_world);
+  Vector3d x_world, ray_world, dx_world, dy_world;
+  m_Renderer->ComputeRayFromClick(vx, vy, x_world, ray_world, dx_world, dy_world);
 
   // Convert these to image coordinates
   Vector3d x_image = affine_transform_point(m_WorldMatrixInverse, x_world);
-  Vector3d d_image = affine_transform_vector(m_WorldMatrixInverse, d_world);
+  Vector3d d_image = affine_transform_vector(m_WorldMatrixInverse, ray_world);
 
   int result = 0;
   if(m_Driver->IsSnakeModeLevelSetActive())
@@ -431,6 +428,26 @@ bool Generic3DModel::IntersectSegmentation(int vx, int vy, Vector3i &hit)
 
   return (result == 1);
 }
+
+bool Generic3DModel::IntersectSegmentation(int vx, int vy, double v_radius, int n_samples, std::set<Vector3i> &hits)
+{
+  // World coordinate of the click position and direction
+  Vector3d x_world, ray_world, dx_world, dy_world;
+  m_Renderer->ComputeRayFromClick(vx, vy, x_world, ray_world, dx_world, dy_world);
+
+  // Convert these to image coordinates
+  Vector3d x_image = affine_transform_point(m_WorldMatrixInverse, x_world);
+  Vector3d ray_image = affine_transform_vector(m_WorldMatrixInverse, ray_world);
+  Vector3d dx_image = affine_transform_vector(m_WorldMatrixInverse, dx_world);
+  Vector3d dy_image = affine_transform_vector(m_WorldMatrixInverse, dy_world);
+
+  // TODO figure our sampling code here
+
+  return false;
+
+
+}
+
 
 bool Generic3DModel::PickSegmentationVoxelUnderMouse(int px, int py)
 {

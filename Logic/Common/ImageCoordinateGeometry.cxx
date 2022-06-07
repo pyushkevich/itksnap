@@ -287,7 +287,7 @@ ImageCoordinateGeometry::ConvertRAICodeToDirectionMatrix(
         {
         if(toupper(rai[i]) == m_RAICodes[j][k])
           {
-          dm.set_column(i, (k==0 ? 1.0 : -1.0) * eye.get_row(j));
+          dm.set_column(i, (k==0 ? 1.0 : -1.0) * eye.get_row(j).as_ref());
           }
         }
       }

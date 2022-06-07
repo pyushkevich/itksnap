@@ -267,6 +267,117 @@ std::list<std::string> WorkspaceAPI::FindLayersByTag(const string &tag)
   return matches;
 }
 
+std::list<unsigned int> WorkspaceAPI::FindTimePointByTag(const string &tag)
+{
+  // Iterate over all the timepoints stored in the workspace
+  std::list<unsigned int> matches;
+
+  if (!this->m_Registry.HasFolder("TimePointProperties.TimePoints"))
+    {
+      cout << "[WorkspaceAPI] workspace does not have time point properties folder" << endl;
+      return matches;
+    }
+
+  Registry regTPP = this->m_Registry.Folder("TimePointProperties.TimePoints");
+  unsigned int nt = regTPP["ArraySize"][0u];
+
+  // Load all of the time points in the current project
+  for(auto i = 1u; i <= nt; i++)
+    {
+    // Get the key of the time point
+    string key = Registry::Key("TimePoint[%d]", i);
+
+    Registry &f = regTPP.Folder(key);
+
+    // Get the tags in this time point
+    StringSet tags = WorkspaceAPI::GetTags(f);
+    if(tags.find(tag) != tags.end())
+      {
+      matches.push_back(i);
+      }
+    }
+
+  return matches;
+}
+
+std::list<unsigned int> WorkspaceAPI::FindTimePointByName(const string &name)
+{
+  // Iterate over all the timepoints stored in the workspace
+  std::list<unsigned int> matches;
+
+  if (!this->m_Registry.HasFolder("TimePointProperties.TimePoints"))
+    {
+      cout << "[WorkspaceAPI] workspace does not have time point properties folder" << endl;
+      return matches;
+    }
+
+  Registry regTPP = this->m_Registry.Folder("TimePointProperties.TimePoints");
+  unsigned int nt = regTPP["ArraySize"][0u];
+
+  // Load all of the time points in the current project
+  for(auto i = 1u; i <= nt; i++)
+    {
+    // Get the key of the time point
+    string key = Registry::Key("TimePoint[%d]", i);
+
+    Registry &f = regTPP.Folder(key);
+
+    // Get the tags in this time point
+    string nickname = f["Nickname"][""];
+    if(nickname.compare(name) == 0)
+      {
+      matches.push_back(i);
+      }
+    }
+
+  return matches;
+}
+
+void WorkspaceAPI::PrintTimePointList(std::ostream &os, const string &line_prefix)
+{
+  // Iterate over all the layers stored in the workspace
+  if (!this->m_Registry.HasFolder("TimePointProperties.TimePoints"))
+    {
+      cout << "[WorkspaceAPI] workspace does not have time point properties folder" << endl;
+      return;
+    }
+
+  Registry regTPP = this->m_Registry.Folder("TimePointProperties.TimePoints");
+  unsigned int nt = regTPP["ArraySize"][0u];
+
+  // Use a formatted table
+  FormattedTable table(3);
+
+  // Print the header information
+  table << "TimePoint" << "Nickname" << "Tags";
+
+  // Load all of the time points in the current project
+  for(auto i = 1u; i <= nt; i++)
+    {
+    // Get the key of the time point
+    string key = Registry::Key("TimePoint[%d]", i);
+
+    Registry &f = regTPP.Folder(key);
+
+    // Get the role
+    string nickname = f["Nickname"][""];
+
+    // Use the %03d formatting for layer numbers, to match that in the registry
+    char ifmt[16];
+    sprintf(ifmt, "%03d", i);
+
+    // Print the layer information
+    table
+        << i
+        << f["Nickname"][""]
+        << f["Tags"][""];
+    }
+
+  table.Print(os, line_prefix);
+}
+
+
+
 void WorkspaceAPI::ListLayerFilesForTag(const string &tag, ostream &sout, const string &prefix)
 {
   // Iterate over all the layers stored in the workspace
@@ -735,12 +846,12 @@ string WorkspaceAPI::GetTempDirName()
   char tempFile[_MAX_PATH + 1] = "";
 
   // First call return a directory only
-  DWORD length = GetTempPath(_MAX_PATH+1, tempDir);
+  DWORD length = GetTempPathA(_MAX_PATH+1, tempDir);
   if(length <= 0 || length > _MAX_PATH)
     throw IRISException("Unable to create temporary directory");
 
   // This will create a unique file in the temp directory
-  if (0 == GetTempFileName(tempDir, TEXT("alfabis"), 0, tempFile))
+  if (0 == GetTempFileNameA(tempDir, "alfabis", 0, tempFile))
     throw IRISException("Unable to create temporary directory");
 
   // We use the filename to create a directory

@@ -79,6 +79,10 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   ui->treeVisualElements->setModel(model);
   ui->treeVisualElements->expandAll();
 
+  // Create slice layout view icon paths
+  for (int i = 0; i < 3; ++i)
+    m_SliceLayoutPixmapPaths[i].SetDialog(this);
+
   // Set the correct page
   ui->stack->setCurrentIndex(0);
 }
@@ -106,8 +110,13 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
 
   // Hook up the display layout properties
   GlobalDisplaySettings *gds = m_Model->GetGlobalDisplaySettings();
-  makeCoupling(ui->chkLayoutAnteriorSide, gds->GetFlagLayoutPatientAnteriorShownLeftModel());
-  makeCoupling(ui->chkLayoutRightLeft, gds->GetFlagLayoutPatientRightShownLeftModel());
+  makeRadioGroupCoupling(ui->radio_sagittal_ap, ui->radio_sagittal_pa, gds->GetFlagLayoutPatientAnteriorShownLeftModel());
+  makeRadioGroupCoupling(ui->radio_axial_rl, ui->radio_axial_lr,gds->GetFlagLayoutPatientRightShownLeftModel());
+  makeCoupling(ui->chkRemindLayout, gds->GetFlagRemindLayoutSettingsModel());
+
+  // Initialize Dialog States
+  m_IsPatientsRightShownLeft = gds->GetFlagLayoutPatientRightShownLeft();
+  m_IsAnteriorShownLeft = gds->GetFlagLayoutPatientAnteriorShownLeft();
 
   // Layout radio buttons
   std::map<GlobalDisplaySettings::UISliceLayout, QAbstractButton *> btnmap;
@@ -119,10 +128,16 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   btnmap[GlobalDisplaySettings::LAYOUT_SCA] = ui->btnSCA;
   makeRadioGroupCoupling(ui->grpLayoutRadio, btnmap, gds->GetSliceLayoutModel());
 
-  // The text labels for different layouts
-  makeCoupling(ui->outViewTopLeft, m_Model->GetLayoutLabelModel(0));
-  makeCoupling(ui->outViewTopRight, m_Model->GetLayoutLabelModel(1));
-  makeCoupling(ui->outViewBottomRight, m_Model->GetLayoutLabelModel(2));
+  // The outview pixmaps for different layouts
+  CutPlane cps[3];
+  for (int i = 0; i < 3; ++i)
+    {
+      // get the lower-cased string of cutplanes for each outview
+      std::string str = m_Model->GetLayoutLabelModel(i)->GetValue();
+      std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+      cps[i] = m_StringToCutPlaneMap[str];
+    }
+  setOutViewCutPlane(cps[0], cps[1], cps[2]);
 
   makeCoupling(ui->chkShowThumbnail, gds->GetFlagDisplayZoomThumbnailModel());
   makeCoupling(ui->inThumbnailFraction, gds->GetZoomThumbnailSizeInPercentModel());
@@ -150,19 +165,18 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   // Hook up the appearance widgets
   OpenGLAppearanceElement *elt = m_Model->GetActiveUIElementAppearance();
   QtCouplingOptions opts_elt(QtCouplingOptions::DEACTIVATE_WHEN_INVALID);
-  makeCoupling(ui->chkElementVisible, elt->GetVisibleModel(), opts_elt);
+  makeCoupling(ui->chkElementVisible, elt->GetVisibilityFlagModel(), opts_elt);
   makeCoupling(ui->btnElementColor, elt->GetColorModel(), opts_elt);
   makeCoupling(ui->inElementOpacity, elt->GetAlphaModel(), opts_elt);
   makeCoupling(ui->inElementThickness, elt->GetLineThicknessModel(), opts_elt);
-  makeCoupling(ui->inElementDashSpacing, elt->GetDashSpacingModel(), opts_elt);
+  makeCoupling(ui->inElementLineType, elt->GetLineTypeModel(), opts_elt);
   makeCoupling(ui->inElementFontSize, elt->GetFontSizeModel(), opts_elt);
-  makeCoupling(ui->chkElementAntiAlias, elt->GetSmoothModel(), opts_elt);
 
   // Make sure the labels are activated along with the widgets
   activateOnFlag(ui->labelElementColor, elt->GetColorModel(), UIF_PROPERTY_IS_VALID);
   activateOnFlag(ui->labelElementOpacity, elt->GetColorModel(), UIF_PROPERTY_IS_VALID);
   activateOnFlag(ui->labelElementLineThickness, elt->GetLineThicknessModel(), UIF_PROPERTY_IS_VALID);
-  activateOnFlag(ui->labelElementDashSpacing, elt->GetDashSpacingModel(), UIF_PROPERTY_IS_VALID);
+  activateOnFlag(ui->labelElementLineType, elt->GetLineTypeModel(), UIF_PROPERTY_IS_VALID);
   activateOnFlag(ui->labelElementFontSize, elt->GetFontSizeModel(), UIF_PROPERTY_IS_VALID);
 
   // Hook up activation for the appearance panel
@@ -207,9 +221,9 @@ void PreferencesDialog::ShowDialog()
   this->raise();
 }
 
-void PreferencesDialog::GoToAppearancePage()
+void PreferencesDialog::GoToPage(enum PreferencesDialogPage page)
 {
-  ui->listWidget->setCurrentRow(2);
+  ui->listWidget->setCurrentRow(page);
 }
 
 void PreferencesDialog::on_listWidget_itemSelectionChanged()
@@ -242,6 +256,68 @@ void PreferencesDialog::on_btnElementReset_clicked()
 void PreferencesDialog::on_btnElementResetAll_clicked()
 {
   m_Model->ResetAllElements();
+}
+
+// Methods
+void PreferencesDialog::on_btnASC_toggled(bool check)
+{
+  if (check)
+     setOutViewCutPlane(Axial, Sagittal, Coronal);
+}
+void PreferencesDialog::on_btnACS_toggled(bool check)
+{
+  if (check)
+    setOutViewCutPlane(Axial, Coronal, Sagittal);
+}
+void PreferencesDialog::on_btnCAS_toggled(bool check)
+{
+  if (check)
+    setOutViewCutPlane(Coronal, Axial, Sagittal);
+}
+void PreferencesDialog::on_btnCSA_toggled(bool check)
+{
+  if (check)
+    setOutViewCutPlane(Coronal, Sagittal, Axial);
+}
+void PreferencesDialog::on_btnSAC_toggled(bool check)
+{
+  if (check)
+    setOutViewCutPlane(Sagittal, Axial, Coronal);
+}
+void PreferencesDialog::on_btnSCA_toggled(bool check)
+{
+  if (check)
+    setOutViewCutPlane(Sagittal, Coronal, Axial);
+}
+
+void PreferencesDialog::on_radio_axial_lr_toggled(bool check)
+{
+  m_IsPatientsRightShownLeft = check ? false : true;
+  UpdateOutViewPixmaps();
+}
+
+void PreferencesDialog::on_radio_sagittal_ap_toggled(bool check)
+{
+  m_IsAnteriorShownLeft = check ? true : false;
+  UpdateOutViewPixmaps();
+}
+
+void
+PreferencesDialog::setOutViewCutPlane(enum CutPlane topleft, enum CutPlane topright, enum CutPlane bottomright)
+{
+  m_SliceLayoutPixmapPaths[0].m_cp = topleft;
+  m_SliceLayoutPixmapPaths[1].m_cp = topright;
+  m_SliceLayoutPixmapPaths[2].m_cp = bottomright;
+
+  UpdateOutViewPixmaps();
+}
+
+void
+PreferencesDialog::UpdateOutViewPixmaps()
+{
+  ui->outViewTopLeft->setPixmap(m_SliceLayoutPixmapPaths[0].GetPath());
+  ui->outViewTopRight->setPixmap(m_SliceLayoutPixmapPaths[1].GetPath());
+  ui->outViewBottomRight->setPixmap(m_SliceLayoutPixmapPaths[2].GetPath());
 }
 
 void PreferencesDialog::onModelUpdate(const EventBucket &bucket)

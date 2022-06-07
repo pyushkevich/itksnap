@@ -21,6 +21,8 @@ public:
 
   void SetModel(RegistrationModel *model);
 
+  virtual void SetRenderWindow(vtkRenderWindow *rwin) override;
+
   itkGetMacro(PyramidLevel, int)
   itkSetMacro(PyramidLevel, int)
 

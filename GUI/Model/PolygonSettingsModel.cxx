@@ -59,6 +59,9 @@ void PolygonSettingsModel::SetFreehandIsPiecewiseValue(bool value)
   int rate = (int) m_ParentModel->GetPolygonDrawingModel(0)->GetFreehandFittingRate();
   if(value)
     {
+    if(m_LastFreehandRate == 0)
+      m_LastFreehandRate = PolygonDrawingModel::DefaultFreehandFittingRate;
+
     for(int i = 0; i < 3; i++)
       m_ParentModel->GetPolygonDrawingModel(i)->SetFreehandFittingRate(m_LastFreehandRate);
     }

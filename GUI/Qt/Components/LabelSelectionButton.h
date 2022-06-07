@@ -60,7 +60,6 @@ signals:
 public slots:
 
   void onModelUpdate(const EventBucket &bucket);
-  
 
 protected:
 

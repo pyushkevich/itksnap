@@ -43,6 +43,7 @@
 #include "itkImageFileWriter.h"
 
 #include "vtkImageImport.h"
+#include "SNAPExportITKToVTK.h"
 
 #include <iostream>
 
@@ -52,75 +53,35 @@ ScalarImageWrapper<TTraits,TBase>
 {
   m_MinMaxFilter = MinMaxFilter::New();
   m_HistogramFilter = HistogramFilterType::New();
-
-  // Set up VTK export pipeline
-  //this->SetupVTKImportExport();
 }
 
 template<class TTraits, class TBase>
 ScalarImageWrapper<TTraits,TBase>
 ::ScalarImageWrapper(const Self &copy)
+  : Superclass(copy)
 {
-  Superclass::CommonInitialization();
-
-  // If the source contains an image, make a copy of that image
-  if (copy.IsInitialized() && copy.GetImage())
-    {
-    // Create and allocate the image
-    ImagePointer newImage = ImageType::New();
-    newImage->SetRegions(copy.GetImage()->GetBufferedRegion());
-    newImage->Allocate();
-
-    // Copy the image contents
-    typedef typename ImageType::InternalPixelType InternalPixelType;
-    InternalPixelType *ptrTarget = newImage->GetBufferPointer();
-    InternalPixelType *ptrSource = copy.GetImage()->GetBufferPointer();
-    memcpy(ptrTarget,ptrSource,
-           sizeof(InternalPixelType) * newImage->GetBufferedRegion().GetNumberOfPixels());
-    
-    UpdateImagePointer(newImage);
-    }
-}
-
-template<>
-ScalarImageWrapper<LabelImageWrapperTraits, ScalarImageWrapperBase>
-::ScalarImageWrapper(const Self &copy)
-{
-    CommonInitialization();
-
-    // If the source contains an image, make a copy of that image
-    if (copy.IsInitialized() && copy.GetImage())
-    {
-        typedef itk::RegionOfInterestImageFilter<ImageType, ImageType> roiType;
-        roiType::Pointer roi = roiType::New();
-        roi->SetInput(copy.GetImage());
-        roi->Update();
-        ImagePointer newImage = roi->GetOutput();
-        UpdateImagePointer(newImage);
-    }
 }
 
 template<class TTraits, class TBase>
 ScalarImageWrapper<TTraits,TBase>
 ::~ScalarImageWrapper()
 {
-
 }
 
 
 template<class TTraits, class TBase>
 void 
 ScalarImageWrapper<TTraits,TBase>
-::UpdateImagePointer(ImageType *newImage, ImageBaseType *referenceSpace, ITKTransformType *transform)
+::UpdateWrappedImages(Image4DType *image_4d, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   // Call the parent
-  Superclass::UpdateImagePointer(newImage, referenceSpace, transform);
+  Superclass::UpdateWrappedImages(image_4d, referenceSpace, transform);
 
   // Update the max-min pipeline once we have one setup
-  m_MinMaxFilter->SetInput(newImage);
+  m_MinMaxFilter->SetInput(image_4d);
 
   // Update the histogram mini-pipeline
-  m_HistogramFilter->SetInput(newImage);
+  m_HistogramFilter->SetInput(image_4d);
   m_HistogramFilter->SetRangeInputs(m_MinMaxFilter->GetMinimumOutput(),
                                     m_MinMaxFilter->GetMaximumOutput());
 
@@ -128,10 +89,7 @@ ScalarImageWrapper<TTraits,TBase>
   m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
 
   // Update the common representation policy
-  m_CommonRepresentationPolicy.UpdateInputImage(newImage);
-
-  // Update the VTK export pipeline
-  // m_VTKExporter->SetInput(newImage);
+  m_CommonRepresentationPolicy.UpdateInputImage(this->GetImage());
 }
 
 template <class TTraits, class TBase>
@@ -161,17 +119,15 @@ ScalarImageWrapper<TTraits,TBase>
 }
 
 template<class TTraits, class TBase>
-typename ScalarImageWrapper<TTraits,TBase>::ComponentTypeObject *
-ScalarImageWrapper<TTraits,TBase>
-::GetImageMinObject() const
+const typename ScalarImageWrapper<TTraits, TBase>::ComponentTypeObject *
+ScalarImageWrapper<TTraits, TBase>::GetImageMinObject() const
 {
   return m_MinMaxFilter->GetMinimumOutput();
 }
 
 template<class TTraits, class TBase>
-typename ScalarImageWrapper<TTraits,TBase>::ComponentTypeObject *
-ScalarImageWrapper<TTraits,TBase>
-::GetImageMaxObject() const
+const typename ScalarImageWrapper<TTraits, TBase>::ComponentTypeObject *
+ScalarImageWrapper<TTraits, TBase>::GetImageMaxObject() const
 {
   return m_MinMaxFilter->GetMaximumOutput();
 }
@@ -271,8 +227,7 @@ public:
 
   itkGetConstReferenceMacro(Functor, FunctorType)
 
-  void ThreadedGenerateData(const OutputImageRegionType & outputRegionForThread,
-                            itk::ThreadIdType threadId) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const OutputImageRegionType & outputRegionForThread) ITK_OVERRIDE;
 
 
 protected:
@@ -289,7 +244,7 @@ protected:
 template <class TInputImage, class TOutputImage, class TFunctor>
 void
 UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, TFunctor>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread, itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
   // Use our fast iterators for vector images
   typedef itk::ImageLinearIteratorWithIndex<OutputImageType> IterBase;
@@ -402,68 +357,35 @@ ScalarImageWrapper<TTraits,TBase>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
-  // Look up the actual intensity of the voxel from the slicer
-  typename SlicerType::OutputPixelType pix_raw =
-      this->m_Slicer[0]->LookupIntensityAtSliceIndex(this->m_ReferenceSpace);
-
-  // The display value is mapped to native
-  out_value.set_size(1);
-  out_value[0] = this->m_NativeMapping(pix_raw);
+  // Sample the intensity under the cursor for the current time point
+  this->SampleIntensityAtReferenceIndex(
+        this->m_SliceIndex, this->GetTimePointIndex(), true, out_value);
 
   // Use the display mapping to map to display pixel
-  out_appearance = this->m_DisplayMapping->MapPixel(pix_raw);
+  out_appearance = this->m_DisplayMapping->MapPixel(
+                     this->m_IntensitySamplingArray.data_block() +
+                     this->GetTimePointIndex() * this->GetNumberOfComponents());
 }
-
-//template<class TTraits, class TBase>
-//void
-//ScalarImageWrapper<TTraits,TBase>
-//::SetupVTKImportExport()
-//{
-//  // Initialize the VTK Exporter
-//  m_VTKExporter = VTKExporter::New();
-//  m_VTKExporter->ReleaseDataFlagOn();
-//
-//  // Initialize the VTK Importer
-//  m_VTKImporter = vtkImageImport::New();
-//  m_VTKImporter->ReleaseDataFlagOn();
-//
-//  // Pipe the importer into the exporter (that's a lot of code)
-//  m_VTKImporter->SetUpdateInformationCallback(
-//        m_VTKExporter->GetUpdateInformationCallback());
-//  m_VTKImporter->SetPipelineModifiedCallback(
-//        m_VTKExporter->GetPipelineModifiedCallback());
-//  m_VTKImporter->SetWholeExtentCallback(
-//        m_VTKExporter->GetWholeExtentCallback());
-//  m_VTKImporter->SetSpacingCallback(
-//        m_VTKExporter->GetSpacingCallback());
-//  m_VTKImporter->SetOriginCallback(
-//        m_VTKExporter->GetOriginCallback());
-//  m_VTKImporter->SetScalarTypeCallback(
-//        m_VTKExporter->GetScalarTypeCallback());
-//  m_VTKImporter->SetNumberOfComponentsCallback(
-//        m_VTKExporter->GetNumberOfComponentsCallback());
-//  m_VTKImporter->SetPropagateUpdateExtentCallback(
-//        m_VTKExporter->GetPropagateUpdateExtentCallback());
-//  m_VTKImporter->SetUpdateDataCallback(
-//        m_VTKExporter->GetUpdateDataCallback());
-//  m_VTKImporter->SetDataExtentCallback(
-//        m_VTKExporter->GetDataExtentCallback());
-//  m_VTKImporter->SetBufferPointerCallback(
-//        m_VTKExporter->GetBufferPointerCallback());
-//  m_VTKImporter->SetCallbackUserData(
-//        m_VTKExporter->GetCallbackUserData());
-//}
 
 template<class TTraits, class TBase>
 vtkImageImport *
 ScalarImageWrapper<TTraits,TBase>
 ::GetVTKImporter()
 {
+  // Create an importer on demand
+  if(!m_VTKImporter)
+    {
+    // TODO: using the common format image may cause unnecessary memory allocation!
+    m_VTKExporter = VTKExportType::New();
+    m_VTKImporter = vtkSmartPointer<vtkImageImport>::New();
+    m_VTKExporter->SetInput(this->GetCommonFormatImage());
+    ConnectITKExporterToVTKImporter(m_VTKExporter.GetPointer(), m_VTKImporter, true, true, false);
+    }
   return m_VTKImporter;
 }
 
 template<class TTraits, class TBase>
-typename ScalarImageWrapper<TTraits, TBase>::CommonFormatImageType *
+const typename ScalarImageWrapper<TTraits, TBase>::CommonFormatImageType *
 ScalarImageWrapper<TTraits, TBase>
 ::GetCommonFormatImage(ExportChannel channel)
 {
@@ -519,6 +441,7 @@ ScalarImageWrapper<TTraits, TBase>
   writer->SetInput(pipeline->GetOutput());
   writer->Update();
 }
+
 
 
 template class ScalarImageWrapper<LabelImageWrapperTraits>;

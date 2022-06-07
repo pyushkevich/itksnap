@@ -122,9 +122,16 @@ LoadSegmentationImageDelegate
 {
   GenericImageData *id = m_Driver->GetCurrentImageData();
 
-  // Check the dimensions, throw exception
-  Vector3ui szSeg = io->GetDimensionsOfNativeImage();
+  // Get the dimensions of the main image
   Vector3ui szMain = id->GetMain()->GetSize();
+  unsigned int ntMain =  id->GetMain()->GetNumberOfTimePoints();
+
+  // Get the dimensions of the segmentation
+  Vector4ui szSeg4D = io->GetDimensionsOfNativeImage();
+  Vector3ui szSeg = szSeg4D.extract(3);
+  unsigned int ntSeg = szSeg4D[3];
+
+  // The 3D dimensions must match
   if(szSeg != szMain)
     {
     throw IRISException("Error: Mismatched Dimensions. "
@@ -143,6 +150,29 @@ LoadSegmentationImageDelegate
                         "but only one component is supported by ITK-SNAP.",
                         io->GetNumberOfComponentsInNativeImage());
     }
+  
+  // The number of components must also match
+  if(ntMain != ntSeg)
+    {
+    if(ntSeg > 1)
+      {
+      // Nothing can be done
+      throw IRISException("Error: Mismatched number of time points. "
+                          "The number of time points (%d) in the segmentation image "
+                          "does not match the number of time points (%d) in the main image. "
+                          "Images must have the same number of time points.",
+                          ntSeg, ntMain);
+      }
+    else
+      {
+      // Just issue a warning and proceed
+      wl.push_back(IRISWarning(
+                     "Warning: Mismatched number of time points."
+                     "The main image has %d time points but the segmentation image has only one time point. "
+                     "The current time point in the segmentation has been replaced by the image you are loading. ", ntMain));
+      }
+    }
+
 }
 
 void
@@ -151,8 +181,8 @@ LoadSegmentationImageDelegate
 {
   // Get the two images to compare
   GenericImageData *id = m_Driver->GetCurrentImageData();
-  itk::ImageBase<3> *main = id->GetMain()->GetImageBase();
-  itk::ImageBase<3> *native = io->GetNativeImage();
+  itk::ImageBase<4> *main = id->GetMain()->GetImage4DBase();
+  itk::ImageBase<4> *native = io->GetNativeImage();
 
   // Check the header properties
   // Check if there is a discrepancy in the header fields. This will not

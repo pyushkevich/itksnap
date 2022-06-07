@@ -13,19 +13,16 @@ public:
 
   irisGetSetMacro(Model, PaintbrushModel *)
 
-  void paintGL() ITK_OVERRIDE;
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *) override;
 
 protected:
 
-
-  PaintbrushRenderer();
+  PaintbrushRenderer() {};
+  virtual ~PaintbrushRenderer() {}
 
   PaintbrushModel *m_Model;
 
-  void BuildBrush();
-
-  // Representation of the brush
-  std::list<Vector2d> m_Walk;
 };
 
 #endif // PAINTBRUSHRENDERER_H

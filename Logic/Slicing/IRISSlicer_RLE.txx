@@ -40,7 +40,6 @@
 #include "itkVectorImageToImageAdaptor.h"
 
 //now goes version specialized for RLEImage
-//The only difference is ThreadedGenerateData method
 template< typename TPixel, typename CounterType, class TOutputImage, class TPreviewImage>
 IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
 ::IRISSlicer()

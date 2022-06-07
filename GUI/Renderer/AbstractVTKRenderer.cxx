@@ -15,10 +15,11 @@ public:
 
   vtkTypeMacro(QtRenderWindowInteractor, vtkRenderWindowInteractor);
 
-  virtual void Initialize() { this->Initialized = 1; this->Enable(); }
-  // virtual void Start() { }
-  // virtual void TerminateApp() { }
-
+  virtual void Initialize() override
+  {
+    this->Initialized = 1;
+    this->Enable();
+  }
 
 protected:
 
@@ -36,46 +37,27 @@ AbstractVTKRenderer::AbstractVTKRenderer()
   // Create a VTK renderer
   m_Renderer = vtkSmartPointer<vtkRenderer>::New();
 
-  // Set up a render window that uses GL commands to paint
-  m_RenderWindow = vtkSmartPointer<vtkGenericOpenGLRenderWindow>::New();
-
-  // Add the renderer to the window
-  m_RenderWindow->AddRenderer(m_Renderer);
-
-  // Set up the interactor
-  m_Interactor = vtkSmartPointer<QtRenderWindowInteractor>::New();
-  m_Interactor->SetRenderWindow(m_RenderWindow);
-  m_Interactor->SetInteractorStyle(NULL);
-
   // Set the pixel ratio
   m_DevicePixelRatio = 1;
 }
 
-void AbstractVTKRenderer::paintGL()
+void AbstractVTKRenderer::SetRenderWindow(vtkRenderWindow *rwin)
 {
-  // Update the scene
-  this->Update();
+  // Store the render window pointer
+  m_RenderWindow = rwin;
 
-  // Make sure the interactor is enabled
-  if(!m_Interactor->GetInitialized())
-    {
-    m_Interactor->Initialize();
-    m_Interactor->Enable();
-    }
+  // Add the renderer to the window
+  m_RenderWindow->AddRenderer(m_Renderer);
 
-  // Clear the screen
-  glClearColor(0.0, 0.0, 0.0, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  // Do the rendering but only when interactor is enabled (from QVTKWidget2)
-  m_RenderWindow->Render();
+  // Set the interaction style
+  m_RenderWindow->GetInteractor()->SetInteractorStyle(m_InteractionStyle);
 }
 
-void AbstractVTKRenderer::initializeGL()
+vtkRenderer *AbstractVTKRenderer::GetRenderer()
 {
-  // Is this what we should be calling?
-  m_RenderWindow->OpenGLInit();
+  return m_Renderer;
 }
+
 
 vtkRenderWindow *AbstractVTKRenderer::GetRenderWindow()
 {
@@ -84,28 +66,30 @@ vtkRenderWindow *AbstractVTKRenderer::GetRenderWindow()
 
 vtkRenderWindowInteractor *AbstractVTKRenderer::GetRenderWindowInteractor()
 {
-  return m_Interactor;
+  return m_RenderWindow->GetInteractor();
 }
 
 void AbstractVTKRenderer::SetInteractionStyle(AbstractVTKRenderer::InteractionStyle style)
 {
-  vtkSmartPointer<vtkInteractorObserver> stylePtr = NULL;
+  m_InteractionStyle = nullptr;
   switch(style)
     {
     case AbstractVTKRenderer::NO_INTERACTION:
-      stylePtr = NULL;
+      m_InteractionStyle = nullptr;
       break;
     case AbstractVTKRenderer::TRACKBALL_CAMERA:
-      stylePtr = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+      m_InteractionStyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
       break;
     case AbstractVTKRenderer::TRACKBALL_ACTOR:
-      stylePtr = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
+      m_InteractionStyle = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
       break;
     case AbstractVTKRenderer::PICKER:
-      stylePtr = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
+      m_InteractionStyle = vtkSmartPointer<vtkInteractorStyleTrackballActor>::New();
       break;
     }
-  m_Interactor->SetInteractorStyle(stylePtr);
+
+  if(m_RenderWindow)
+    m_RenderWindow->GetInteractor()->SetInteractorStyle(m_InteractionStyle);
 }
 
 void AbstractVTKRenderer::SyncronizeCamera(Self *reference)
@@ -114,24 +98,31 @@ void AbstractVTKRenderer::SyncronizeCamera(Self *reference)
   m_Renderer->SetActiveCamera(reference->m_Renderer->GetActiveCamera());
 
   // Respond to modified events from the source interactor
-  Rebroadcast(reference->m_Interactor,
+  Rebroadcast(reference->GetRenderWindowInteractor(),
               vtkCommand::ModifiedEvent, ModelUpdateEvent());
 
   // And vice versa
-  reference->Rebroadcast(m_Interactor,
+  reference->Rebroadcast(this->GetRenderWindowInteractor(),
                          vtkCommand::ModifiedEvent, ModelUpdateEvent());
 }
 
-void AbstractVTKRenderer::resizeGL(int w, int h, int device_pixel_ratio)
+void AbstractVTKRenderer::SetBackgroundColor(Vector3d color)
 {
-  // Pass the size to VTK
-  m_RenderWindow->SetSize(w, h);
-  m_Interactor->UpdateSize(w, h);
+  m_Renderer->SetBackground(color[0], color[1], color[2]);
+}
 
-  if(m_DevicePixelRatio != device_pixel_ratio)
+Vector3d AbstractVTKRenderer::GetBackgroundColor() const
+{
+  return Vector3d(m_Renderer->GetBackground());
+}
+
+void AbstractVTKRenderer::OnWindowResize(int itkNotUsed(w), int itkNotUsed(h), int vppr)
+{
+  if(m_DevicePixelRatio != vppr)
     {
     int old_ratio = m_DevicePixelRatio;
-    m_DevicePixelRatio = device_pixel_ratio;
-    this->OnDevicePixelRatioChange(old_ratio, device_pixel_ratio);
+    m_DevicePixelRatio = vppr;
+    this->OnDevicePixelRatioChange(old_ratio, vppr);
     }
 }
+

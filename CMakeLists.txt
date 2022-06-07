@@ -9,13 +9,13 @@ PROJECT(SNAP)
 #--------------------------------------------------------------------------------
 # CMAKE PRELIMINARIES                       
 #--------------------------------------------------------------------------------
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.16)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-IF(POLICY CMP0026)
-  cmake_policy(SET CMP0026 OLD)
-ENDIF(POLICY CMP0026)
+cmake_policy(SET CMP0026 NEW)
+cmake_policy(SET CMP0077 NEW)
+cmake_policy(SET CMP0080 OLD)
 
 SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
 
@@ -88,14 +88,14 @@ ENDIF()
 # is an arbitrary string and may be blank. 
 
 # These four fields should be modified when versions change
-SET(SNAP_VERSION_MAJOR 3)
-SET(SNAP_VERSION_MINOR 8)
-SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_MAJOR 4)
+SET(SNAP_VERSION_MINOR 0)
+SET(SNAP_VERSION_PATCH 0)
+SET(SNAP_VERSION_QUALIFIER "-alpha.4")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20210219")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Feb 19, 2021")
+SET(SNAP_VERSION_RELEASE_DATE "20220607")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "June 7, 2022")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -138,9 +138,6 @@ endif()
 #--------------------------------------------------------------------------------
 # FIND PACKAGES IF BUILDING OUTSIDE INSIGHTAPPLICATIONS 
 #--------------------------------------------------------------------------------
-
-# Add option to build on qt 4.x
-OPTION(SNAP_USE_QT4 "Compile using Qt version 4.8 for compatibility with older systems and VNC/x2go" OFF)
 
 IF(DEFINED InsightApplications_SOURCE_DIR)
   SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS FALSE CACHE BOOL 
@@ -187,11 +184,14 @@ IF(CMAKE_SYSTEM_NAME MATCHES Darwin AND CMAKE_OSX_ARCHITECTURES)
   ENDIF()
 ENDIF()
 
-IF(NOT SNAP_USE_QT4)
-  SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
-ELSE(NOT SNAP_USE_QT4)
-  SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}-qt4")
-ENDIF(NOT SNAP_USE_QT4)
+# If this is an OSMESA enabled build, add that to the name
+OPTION(SNAP_USE_OSMESA "Use off-screen software OpenGL rendering in ITK-SNAP" OFF)
+IF(SNAP_USE_OSMESA)
+  MESSAGE(STATUS "Building ITKSNAP with OSMESA support")
+  SET(CPACK_SYSTEM_NAME "${CPACK_SYSTEM_NAME}-osmesa")
+ENDIF()
+
+SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}")
 
 # Additional CPack resources
 SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
@@ -213,17 +213,6 @@ CONFIGURE_FILE(
   ${SNAP_SOURCE_DIR}/Common/GPUSettings.h.in
   ${SNAP_BINARY_DIR}/GPUSettings.h @ONLY IMMEDIATE)
 
-# Configure version-specific Qt code
-IF(SNAP_USE_QT4)
-  CONFIGURE_FILE(
-    ${SNAP_SOURCE_DIR}/GUI/Qt/Components/SNAPOpenGLWidget_Qt4.h.in
-    ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h @ONLY IMMEDIATE)
-ELSE()
-  CONFIGURE_FILE(
-    ${SNAP_SOURCE_DIR}/GUI/Qt/Components/SNAPOpenGLWidget_Qt5.h.in
-    ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h @ONLY IMMEDIATE)
-ENDIF()
-
 # The part of the source code devoted to the SNAP application logic
 # is organized into a separate library
 SET(LOGIC_CXX
@@ -238,14 +227,12 @@ SET(LOGIC_CXX
   Common/HistoryManager.cxx
   Common/IPCHandler.cxx
   Common/IRISException.cxx
+  Common/IRISVectorTemplates.cxx
   Common/Rebroadcaster.cxx
   Common/Registry.cxx
   Common/SNAPEvents.cxx
-  Common/SNAPOpenGL.cxx
   Common/SystemInterface.cxx
   Common/TagList.cxx
-  Common/ThreadSpecificData.cxx
-  Common/Trackball.cxx
   Common/ITKExtras/itkVoxBoCUBImageIO.cxx
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.cxx
   Common/JSon/jsoncpp.cpp
@@ -270,12 +257,12 @@ SET(LOGIC_CXX
   Logic/Framework/IRISImageData.cxx
   Logic/Framework/LayerIterator.cxx
   Logic/Framework/SNAPImageData.cxx
+  Logic/Framework/TimePointProperties.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
   Logic/ImageWrapper/CommonRepresentationPolicy.cxx
   Logic/ImageWrapper/DisplayMappingPolicy.cxx
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
-  Logic/ImageWrapper/InputSelectionImageFilter.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/MultiChannelDisplayMode.cxx
@@ -334,8 +321,6 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkBinaryDiamondStructuringElement.txx
   Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.h
   Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.txx
-  Common/ITKExtras/itkMorphologicalContourInterpolator.h
-  Common/ITKExtras/itkMorphologicalContourInterpolator.hxx
   Common/ITKExtras/itkParallelSparseFieldLevelSetImageFilterBugFix.h
   Common/ITKExtras/itkParallelSparseFieldLevelSetImageFilterBugFix.txx
   Common/ITKExtras/itkTopologyPreservingDigitalSurfaceEvolutionImageFilter.h
@@ -351,12 +336,10 @@ SET(LOGIC_HEADERS
   Common/Registry.h
   Common/SNAPBorlandDummyTypes.h
   Common/SNAPCommon.h
-  Common/SNAPOpenGL.h
+  Common/SNAPExportITKToVTK.h
   Common/SNAPEvents.h
   Common/SystemInterface.h
   Common/TagList.h
-  Common/ThreadSpecificData.h
-  Common/Trackball.h
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ColorMap.h
@@ -384,6 +367,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/LayerIterator.h
   Logic/Framework/SegmentationUpdateIterator.h
   Logic/Framework/SNAPImageData.h
+  Logic/Framework/TimePointProperties.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/CommonRepresentationPolicy.h
@@ -392,6 +376,10 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
   Logic/ImageWrapper/ImageWrapperTraits.h
+  Logic/ImageWrapper/IncreaseDimensionImageFilter.h
+  Logic/ImageWrapper/IncreaseDimensionImageFilter.txx
+  Logic/ImageWrapper/InputSelectionImageFilter.h
+  Logic/ImageWrapper/InputSelectionImageFilter.txx
   Logic/ImageWrapper/MultiChannelDisplayMode.h
   Logic/ImageWrapper/VectorToScalarImageAccessor.h
   Logic/RLEImage/RLEImage.h
@@ -466,6 +454,16 @@ SET(LOGIC_HEADERS
   Logic/WorkspaceAPI/FormattedTable.h
   Logic/WorkspaceAPI/RESTClient.h
   Logic/WorkspaceAPI/WorkspaceAPI.h
+  Common/ITKBinaryWeightedAverage/itkBWAfilter.h
+  Common/ITKBinaryWeightedAverage/itkBWAfilter.hxx
+  Common/ITKBinaryWeightedAverage/itkComputeInterpolation.h
+  Common/ITKBinaryWeightedAverage/itkComputeInterpolation.txx
+  Common/ITKBinaryWeightedAverage/itkRFLabelMap.h
+  Common/ITKBinaryWeightedAverage/itkRFLabelMap.txx
+  Common/ITKBinaryWeightedAverage/itkRandomForest.h
+  Common/ITKBinaryWeightedAverage/itkRandomForest.txx
+  Common/ITKBinaryWeightedAverage/itkBWAandRFinterpolation.h
+  Common/ITKBinaryWeightedAverage/itkBWAandRFinterpolation.hxx
 )
 
 # These files have the UI model code, which is GUI-TK independent
@@ -499,6 +497,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ReorientImageModel.cxx
   GUI/Model/SaveModifiedLayersModel.cxx
   GUI/Model/SliceWindowCoordinator.cxx
+  GUI/Model/SmoothLabelsModel.cxx
   GUI/Model/SnakeParameterModel.cxx
   GUI/Model/SnakeROIModel.cxx
   GUI/Model/SnakeROIResampleModel.cxx
@@ -507,6 +506,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/SynchronizationModel.cxx
   GUI/Model/UIAction.cxx
   GUI/Model/UIReporterDelegates.cxx
+  GUI/Model/VoxelChangeReportModel.cxx
   GUI/Renderer/AbstractRenderer.cxx
   GUI/Renderer/AbstractVTKRenderer.cxx
   GUI/Renderer/AbstractVTKSceneRenderer.cxx
@@ -514,25 +514,26 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/EdgePreprocessingSettingsRenderer.cxx
+  GUI/Renderer/GenericSliceContextItem.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/Generic3DRenderer.cxx
-  GUI/Renderer/GLToPNG.cxx
   GUI/Renderer/GMMRenderer.cxx
   GUI/Renderer/IntensityCurveVTKRenderer.cxx
   GUI/Renderer/IntensityUnderCursorRenderer.cxx
   GUI/Renderer/LayerHistogramPlotAssembly.cxx
-  GUI/Renderer/OpenGLSliceTexture.cxx
   GUI/Renderer/OptimizationProgressRenderer.cxx
   GUI/Renderer/OrientationGraphicRenderer.cxx
   GUI/Renderer/PaintbrushRenderer.cxx
   GUI/Renderer/PolygonDrawingRenderer.cxx
-  GUI/Renderer/PolygonScanConvert.cxx
+  GUI/Renderer/PolygonVTKProp2D.cxx
   GUI/Renderer/RegistrationRenderer.cxx
   GUI/Renderer/SliceWindowDecorationRenderer.cxx
   GUI/Renderer/SnakeParameterPreviewRenderer.cxx
   GUI/Renderer/SnakeROIRenderer.cxx
   GUI/Renderer/SnakeModeRenderer.cxx
   GUI/Renderer/ThresholdSettingsRenderer.cxx
+  GUI/Renderer/TexturedRectangleAssembly.cxx
+  GUI/Renderer/VTKRenderGeometry.cxx
   GUI/Renderer/Window3DPicker.cxx
   GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.cxx
   GUI/Renderer/OrientationWidget/Reorient/AxesWidget.cxx
@@ -576,6 +577,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/SNAPUIFlag.h
   GUI/Model/SNAPUIFlag.txx
   GUI/Model/SliceWindowCoordinator.h
+  GUI/Model/SmoothLabelsModel.h
   GUI/Model/SnakeParameterModel.h
   GUI/Model/SnakeROIModel.h
   GUI/Model/SnakeROIResampleModel.h
@@ -585,6 +587,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/UIAction.h
   GUI/Model/UIReporterDelegates.h
   GUI/Model/UIState.h
+  GUI/Model/VoxelChangeReportModel.h
   GUI/Renderer/AbstractRenderer.h
   GUI/Renderer/AbstractVTKRenderer.h
   GUI/Renderer/AbstractVTKSceneRenderer.h
@@ -593,8 +596,8 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/CrosshairsRenderer.h
   GUI/Renderer/EdgePreprocessingSettingsRenderer.h
   GUI/Renderer/Generic3DRenderer.h
+  GUI/Renderer/GenericSliceContextItem.h
   GUI/Renderer/GenericSliceRenderer.h
-  GUI/Renderer/GLToPNG.h
   GUI/Renderer/GMMRenderer.h
   GUI/Renderer/IntensityCurveVTKRenderer.h
   GUI/Renderer/IntensityUnderCursorRenderer.h
@@ -609,7 +612,9 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/SnakeParameterPreviewRenderer.h
   GUI/Renderer/SnakeROIRenderer.h
   GUI/Renderer/SnakeModeRenderer.h
+  GUI/Renderer/TexturedRectangleAssembly.h
   GUI/Renderer/ThresholdSettingsRenderer.h
+  GUI/Renderer/VTKRenderGeometry.h
   GUI/Renderer/Window3DPicker.h
   GUI/Renderer/OrientationWidget/Reorient/AbstractScannerHelper.h
   GUI/Renderer/OrientationWidget/Reorient/AxesWidget.h
@@ -627,6 +632,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/ColorMapInspector.cxx
   GUI/Qt/Components/ContrastInspector.cxx
   GUI/Qt/Components/CursorInspector.cxx
+  GUI/Qt/Components/DarkModeToolbar.cxx
   GUI/Qt/Components/DisplayLayoutInspector.cxx
   GUI/Qt/Components/DICOMListingTable.cxx
   GUI/Qt/Components/FileChooserPanelWithHistory.cxx
@@ -656,6 +662,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SnakeToolROIPanel.cxx
   GUI/Qt/Components/SnakeWizardPanel.cxx
   GUI/Qt/Components/SNAPComponent.cxx
+  GUI/Qt/Components/SNAPToolbar.cxx
   GUI/Qt/Components/SNAPQApplication.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
@@ -667,14 +674,12 @@ SET(UI_QT_CXX
   GUI/Qt/External/ColorWheel/ColorWheel.cxx
   GUI/Qt/ModelView/GMMTableModel.cxx
   GUI/Qt/View/AnnotationInteractionMode.cxx
-  GUI/Qt/View/ColorMapBox.cxx
+  GUI/Qt/View/ColorMapInteractionDelegate.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
   GUI/Qt/View/GenericSliceView.cxx
   GUI/Qt/View/GenericView3D.cxx
   GUI/Qt/View/InteractionModeClient.cxx
-  GUI/Qt/View/QtAbstractOpenGLBox.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
-  GUI/Qt/View/QtSimpleOpenGLBox.cxx
   GUI/Qt/View/QtVTKInteractionDelegateWidget.cxx
   GUI/Qt/View/QtVTKRenderWindowBox.cxx
   GUI/Qt/View/PaintbrushInteractionMode.cxx
@@ -692,6 +697,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/InterpolateLabelsDialog.cxx
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
+  GUI/Qt/Windows/LayoutReminderDialog.cxx
   GUI/Qt/Windows/LabelSelectionPopup.cxx
   GUI/Qt/Windows/MainControlPanel.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
@@ -701,10 +707,12 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/ResampleDialog.cxx
   GUI/Qt/Windows/SaveModifiedLayersDialog.cxx
   GUI/Qt/Windows/SimpleFileDialogWithHistory.cxx
+  GUI/Qt/Windows/SmoothLabelsDialog.cxx
   GUI/Qt/Windows/SnakeParameterDialog.cxx
   GUI/Qt/Windows/SpeedImageDialog.cxx
   GUI/Qt/Windows/SplashPanel.cxx
   GUI/Qt/Windows/StatisticsDialog.cxx
+  GUI/Qt/Windows/VoxelChangeReportDialog.cxx
   GUI/Qt/Windows/DSS/DistributedSegmentationDialog.cxx
   GUI/Qt/Windows/DSS/DownloadTicketDialog.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.cxx
@@ -722,6 +730,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/ColorMapInspector.h
   GUI/Qt/Components/ContrastInspector.h
   GUI/Qt/Components/CursorInspector.h
+  GUI/Qt/Components/DarkModeToolbar.h
   GUI/Qt/Components/DICOMListingTable.h
   GUI/Qt/Components/DisplayLayoutInspector.h
   GUI/Qt/Components/FileChooserPanelWithHistory.h
@@ -749,6 +758,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SnakeToolROIPanel.h
   GUI/Qt/Components/SnakeWizardPanel.h
   GUI/Qt/Components/SNAPComponent.h
+  GUI/Qt/Components/SNAPToolbar.h
   GUI/Qt/Components/SNAPQApplication.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/SynchronizationInspector.h
@@ -760,13 +770,11 @@ SET(UI_MOC_HEADERS
   GUI/Qt/External/ColorWheel/ColorWheel.h
   GUI/Qt/ModelView/GMMTableModel.h
   GUI/Qt/View/AnnotationInteractionMode.h
-  GUI/Qt/View/ColorMapBox.h
+  GUI/Qt/View/ColorMapInteractionDelegate.h
   GUI/Qt/View/CrosshairsInteractionMode.h
   GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/GenericView3D.h
-  GUI/Qt/View/QtAbstractOpenGLBox.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
-  GUI/Qt/View/QtSimpleOpenGLBox.h
   GUI/Qt/View/QtVTKInteractionDelegateWidget.h
   GUI/Qt/View/QtVTKRenderWindowBox.h
   GUI/Qt/View/PaintbrushInteractionMode.h
@@ -774,7 +782,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/RegistrationInteractionMode.h
   GUI/Qt/View/SliceWindowInteractionDelegateWidget.h
   GUI/Qt/View/SnakeROIInteractionMode.h
-  GUI/Qt/View/TestOpenGLDialog.h
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/AboutDialog.h
   GUI/Qt/Windows/AnnotationEditDialog.h
@@ -785,6 +792,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/InterpolateLabelsDialog.h
   GUI/Qt/Windows/LabelEditorDialog.h
   GUI/Qt/Windows/LayerInspectorDialog.h
+  GUI/Qt/Windows/LayoutReminderDialog.h
   GUI/Qt/Windows/LabelSelectionPopup.h
   GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
@@ -793,10 +801,12 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/ResampleDialog.h
   GUI/Qt/Windows/SaveModifiedLayersDialog.h
   GUI/Qt/Windows/SimpleFileDialogWithHistory.h
+  GUI/Qt/Windows/SmoothLabelsDialog.h
   GUI/Qt/Windows/SnakeParameterDialog.h
   GUI/Qt/Windows/SpeedImageDialog.h
   GUI/Qt/Windows/SplashPanel.h
   GUI/Qt/Windows/StatisticsDialog.h
+  GUI/Qt/Windows/VoxelChangeReportDialog.h
   GUI/Qt/Windows/DSS/DistributedSegmentationDialog.h
   GUI/Qt/Windows/DSS/DownloadTicketDialog.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.h
@@ -813,7 +823,6 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/SNAPQtCommon.h
-  ${SNAP_BINARY_DIR}/SNAPOpenGLWidget.h
   GUI/Qt/Coupling/TagListWidgetCoupling.h
   GUI/Qt/Coupling/QtAbstractButtonCoupling.h
   GUI/Qt/Coupling/QtAbstractItemViewCoupling.h
@@ -869,6 +878,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/InterpolateLabelsDialog.ui
   GUI/Qt/Windows/LabelEditorDialog.ui
   GUI/Qt/Windows/LayerInspectorDialog.ui
+  GUI/Qt/Windows/LayoutReminderDialog.ui
   GUI/Qt/Windows/LabelSelectionPopup.ui
   GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
@@ -877,10 +887,12 @@ SET(UI_FORMS
   GUI/Qt/Windows/ResampleDialog.ui
   GUI/Qt/Windows/SaveModifiedLayersDialog.ui
   GUI/Qt/Windows/SimpleFileDialogWithHistory.ui
+  GUI/Qt/Windows/SmoothLabelsDialog.ui
   GUI/Qt/Windows/SnakeParameterDialog.ui
   GUI/Qt/Windows/SpeedImageDialog.ui
   GUI/Qt/Windows/SplashPanel.ui
   GUI/Qt/Windows/StatisticsDialog.ui
+  GUI/Qt/Windows/VoxelChangeReportDialog.ui
   GUI/Qt/Windows/DSS/DistributedSegmentationDialog.ui
   GUI/Qt/Windows/DSS/DownloadTicketDialog.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.ui
@@ -955,6 +967,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Common
     ${SNAP_SOURCE_DIR}/Common/ITKExtras
     ${SNAP_SOURCE_DIR}/Common/JSon
+    ${SNAP_SOURCE_DIR}/Common/ITKBinaryWeightedAverage
     ${SNAP_SOURCE_DIR}/Logic
     ${SNAP_SOURCE_DIR}/Logic/Common
     ${SNAP_SOURCE_DIR}/Logic/Framework
@@ -972,6 +985,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/RandomForest
     ${SNAP_SOURCE_DIR}/Submodules/c3d/itkextras/PovRayIO
     ${SNAP_SOURCE_DIR}/Submodules/c3d/api
+    ${SNAP_SOURCE_DIR}/Submodules/c3d/adapters
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src/ITKFilters/include
     ${SNAP_SOURCE_DIR}/GUI
@@ -1026,12 +1040,11 @@ SET(SNAP_VTK_LIBS ${VTK_LIBRARIES})
 SET(SNAP_SUBMODULE_LIBS
   cnd_api
   cnd_driver
-  cnd_adapters
+  cnd_maxflow
   greedyapi)
 
 # System libraries
 SET(SNAP_SYSTEM_LIBS
-  ${SNAP_OPENGL_LIBS}
   ${CURL_LIBRARIES}
   ${SYSTEM_LIBS}
 )
@@ -1047,11 +1060,10 @@ SET(SNAP_EXTERNAL_LIBS
 # Non-graphical external libs (a subset)
 SET(SNAP_EXTERNAL_LIBS_LITE
   ${SNAP_SUBMODULE_LIBS}
-  ${SNAP_ITK_LIBS} 
-  vtkCommonCore vtkFiltersCore
+  ${SNAP_ITK_LIBS}
+  ${SNAP_VTK_LIBS} 
   ${CURL_LIBRARIES}
   ${SYSTEM_LIBS})
-
 
 #--------------------------------------------------------------------------------
 # Include C3D Library as submodule
@@ -1081,15 +1093,9 @@ ADD_SUBDIRECTORY(${GREEDY_SOURCE_DIR})
 #--------------------------------------------------------------------------------
 
 # Wrap the QT input files
-IF(NOT SNAP_USE_QT4)
-  QT5_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
-  QT5_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
-  QT5_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
-ELSE(NOT SNAP_USE_QT4)
-  QT4_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
-  QT4_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
-  QT4_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
-ENDIF(NOT SNAP_USE_QT4)
+QT6_WRAP_UI(UI_FORM_HEADERS ${UI_FORMS})
+QT6_WRAP_CPP(UI_WRAPPED_MOC_HEADERS ${UI_MOC_HEADERS})
+QT6_ADD_RESOURCES(UI_RESOURCES_RCC ${UI_RESOURCES})
 
 # The SNAP logic library
 ADD_LIBRARY(itksnaplogic ${LOGIC_CXX} ${LOGIC_HEADERS})
@@ -1107,7 +1113,7 @@ ADD_LIBRARY(itksnapui_qt
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS_LITE})
 TARGET_LINK_LIBRARIES(itksnapui_model itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui_qt ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui_qt itksnapui_model ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
@@ -1115,6 +1121,9 @@ SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
 # Set up include directories for these targets
 FOREACH(target ${SNAP_INTERNAL_LIBS})
   TARGET_INCLUDE_DIRECTORIES(${target} PUBLIC ${SNAP_INCLUDE_DIRS})
+
+  # VTK autoinit mechanism
+  vtk_module_autoinit(TARGETS ${target} MODULES ${VTK_LIBRARIES})
 ENDFOREACH()
 
 #--------------------------------------------------------------------------------
@@ -1168,7 +1177,12 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
+  4DContinuousRendering
   DiffSpace
+  EdgeAttraction
+  EchoCartesianDicomLoading
+  LabelSmoothing
+  PreferencesDialog
   ProbeIntensity
   RegionCompetition
   RandomForest
@@ -1257,15 +1271,8 @@ add_test(NAME IRISApplicationTest COMMAND logic_api_test)
 # Set up a test for each GUI test
 FOREACH(GUI_TEST ${GUI_TESTS})
 
-  # The path of the test - not obvious?
-  IF(APPLE)
-    GET_PROPERTY(GUI_TEST_EXE TARGET ${SNAP_BUNDLE_NAME} PROPERTY LOCATION)
-  ELSE(APPLE)
-    SET(GUI_TEST_EXE ${SNAP_BUNDLE_NAME})
-  ENDIF(APPLE)
-    
   # Add the test
-  ADD_TEST(${GUI_TEST} ${GUI_TEST_EXE} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}")
+  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_BUNDLE_NAME} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}")
 
   # Set the environment for the test to include Qt
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
@@ -1289,17 +1296,10 @@ SET(TEST_ORIENTATION_WIDGET_CXX
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/main.cxx
 )
 
-IF(NOT SNAP_USE_QT4)
-  QT5_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
-    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
-  QT5_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
-    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
-ELSE(NOT SNAP_USE_QT4)
-  QT4_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS 
-    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
-  QT4_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS 
-    GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
-ENDIF(NOT SNAP_USE_QT4)
+QT6_WRAP_UI(UI_ORIENTATION_WIDGET_SRCS
+  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.ui)
+QT6_WRAP_CPP(MOC_ORIENTATION_WIDGET_SRCS
+  GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h)
 
 ADD_EXECUTABLE(Test_OrientationWidget
   ${TEST_ORIENTATION_WIDGET_CXX} ${TEST_ORIENTATION_WIDGET_HEADERS}
@@ -1383,51 +1383,37 @@ IF(APPLE)
     PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
     GROUP_EXECUTE GROUP_READ)
 
-  IF(NOT SNAP_USE_QT4)
+  # Include the qt4 dependent libraries
+  include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
-    # Include the qt4 dependent libraries
-    include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
+  # Include plugins
+  get_filename_component(QT_COCOA_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/libqcocoa.dylib" ABSOLUTE)
+  get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/libqgif.dylib" ABSOLUTE)
+  message(STATUS "QT_COCOA_PLUGIN=${QT_COCOA_PLUGIN}")
+  message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
 
-    # Make sure the GIF plugin is included
-    get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
-
-    get_property(loc TARGET Qt5::QCocoaIntegrationPlugin PROPERTY LOCATION_RELEASE)
-
-    # Install with the plugin
-    install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN}")
-
-  ELSE(NOT SNAP_USE_QT4)
-
-    # Include the qt4 dependent libraries
-    include(DeployQt4)
-    install_qt4_executable(${SNAP_BUNDLE_NAME}.app "qsqlite;qgif")
-
-  ENDIF(NOT SNAP_USE_QT4)
+  # Install with the plugin
+  install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN};${QT_COCOA_PLUGIN}")
 
 ELSEIF(WIN32)
 
   # Install to the bin directory
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION bin)
 
-  IF(NOT SNAP_USE_QT4)
+  # Include the qt4 dependent libraries
+  include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
-      # Include the qt4 dependent libraries
-      include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
+  # Make sure the GIF plugin is included
+  get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindows.dll" ABSOLUTE)
+  get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgif.dll" ABSOLUTE)
+  message(STATUS "QT_WIN_PLUGIN=${QT_WIN_PLUGIN}")
+  message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
 
-      # Make sure the GIF plugin is included
-      get_property(QT_WIN_PLUGIN TARGET Qt5::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
-      get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+  # get_property(QT_WIN_PLUGIN TARGET Qt6::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
+  # get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
 
-      # Install with the plugin
-      install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
-
-  ELSE(NOT SNAP_USE_QT4)
-
-      # Include the qt4 dependent libraries
-      include(DeployQt4)
-      install_qt4_executable(bin/${SNAP_BUNDLE_NAME}.exe "qsqlite;qgif")
-
-  ENDIF(NOT SNAP_USE_QT4)
+  # Install with the plugin
+  install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
 
   # On windows, we have to configure NSIS
   SET(CPACK_NSIS_MUI_ICON "${SNAP_SOURCE_DIR}/Utilities/Win32/snaplogo.ico")
@@ -1471,43 +1457,69 @@ ELSE()
   SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
 
-  IF(NOT SNAP_USE_QT4)
+  # Include the qt4 dependent libraries
+  include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
-    # Include the qt4 dependent libraries
-    include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
+  # Add an option to not package QT plugins. This is needed for some special builds,
+  # for example on Debian
+  OPTION(SNAP_PACKAGE_QT_PLUGINS "Try to package Qt5 plugins with the executable" ON)
+  MARK_AS_ADVANCED(SNAP_PACKAGE_QT_PLUGINS)
 
-    # Add an option to not package QT plugins. This is needed for some special builds,
-    # for example on Debian
-    OPTION(SNAP_PACKAGE_QT_PLUGINS "Try to package Qt5 plugins with the executable" ON)
-    MARK_AS_ADVANCED(SNAP_PACKAGE_QT_PLUGINS)
+  # Get the necessary plugins
+  IF(SNAP_PACKAGE_QT_PLUGINS)
 
-    # Get the necessary plugins
-    IF(SNAP_PACKAGE_QT_PLUGINS)
+    get_filename_component(QT_XCB_GLX_PLUGIN "${QT_BINARY_DIR}/../plugins/xcbglintegrations/libqxcb-glx-integration.so" ABSOLUTE)
+    get_filename_component(QT_XCB_EGL_PLUGIN "${QT_BINARY_DIR}/../plugins/xcbglintegrations/libqxcb-egl-integration.so" ABSOLUTE)
+    get_filename_component(QT_XCB_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/libqxcb.so" ABSOLUTE)
+    get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/libqgif.so" ABSOLUTE)
+    message(STATUS "QT_XCB_GLX_PLUGIN=${QT_XCB_GLX_PLUGIN}")
+    message(STATUS "QT_XCB_EGL_PLUGIN=${QT_XCB_EGL_PLUGIN}")
+    message(STATUS "QT_XCB_PLUGIN=${QT_XCB_PLUGIN}")
+    message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
 
-      get_property(QT_XCB_PLUGIN TARGET Qt5::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
-      get_property(QT_XCB_GLX_PLUGIN TARGET Qt5::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
-      get_property(QT_XCB_EGL_PLUGIN TARGET Qt5::QXcbGlxIntegrationPlugin PROPERTY LOCATION_RELEASE)
-      get_property(QT_GIF_PLUGIN TARGET Qt5::QGifPlugin PROPERTY LOCATION_RELEASE)
+    # get_property(QT_XCB_PLUGIN TARGET Qt6::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    # get_property(QT_XCB_GLX_PLUGIN TARGET Qt6::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
+    # get_property(QT_XCB_GLX_PLUGIN TARGET Qt::QGifPlugin PROPERTY LOCATION_RELEASE)
+    # get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
 
-      # Install the plugin
-      install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} 
-        "${QT_XCB_PLUGIN};${QT_GIF_PLUGIN};${QT_XCB_GLX_PLUGIN};${QT_XCB_EGL_PLUGIN}")
+    # Install the plugin
+    install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE}
+      "${QT_XCB_PLUGIN};${QT_GIF_PLUGIN};${QT_XCB_GLX_PLUGIN};${QT_XCB_EGL_PLUGIN}")
 
-    ELSE(SNAP_PACKAGE_QT_PLUGINS)
+  ELSE(SNAP_PACKAGE_QT_PLUGINS)
 
-      # Install the exe without plugins
-      install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE})
+    # Install the exe without plugins
+    install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE})
 
-    ENDIF(SNAP_PACKAGE_QT_PLUGINS)
-
-  ELSE(NOT SNAP_USE_QT4)
-
-    include(DeployQt4)
-    install_qt4_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE} "qgif")
-
-  ENDIF(NOT SNAP_USE_QT4)
+  ENDIF(SNAP_PACKAGE_QT_PLUGINS)
 
 ENDIF()
+
+
+#--------------------------------------------------------------------------------
+# Configure Doxygen
+find_package(Doxygen OPTIONAL_COMPONENTS dot)
+if (DOXYGEN_FOUND)
+  # set(DOXYGEN_USE_MDFILE_AS_MAINPAGE "${CMAKE_SOURCE_DIR}/README.md")
+  set(DOXYGEN_PROJECT_LOGO "${CMAKE_SOURCE_DIR}/GUI/Qt/Resources/logo_square.png")
+  set(DOXYGEN_GENERATE_TREEVIEW YES)
+  set(DOXYGEN_HIDE_UNDOC_RELATIONS NO)
+  set(DOXYGEN_HAVE_DOT YES)
+  set(DOXYGEN_DOT_NUM_THREADS 8)
+  set(DOXYGEN_UML_LOOK YES)
+  set(DOXYGEN_UML_LIMIT_NUM_FIELDS 50)
+  set(DOXYGEN_TEMPLATE_RELATIONS YES)
+  set(DOXYGEN_DOT_IMAGE_FORMAT svg)
+  set(DOXYGEN_INTERACTIVE_SVG YES)
+  set(DOXYGEN_DOT_GRAPH_MAX_NODES 100)
+  set(DOXYGEN_DOT_TRANSPARENT YES)
+
+  doxygen_add_docs(doc
+    ${CMAKE_SOURCE_DIR}
+    COMMENT "Generating doxygen documentation for ${PROJECT_NAME}"
+  )
+endif (DOXYGEN_FOUND)
+
 
 
 #--------------------------------------------------------------------------------
@@ -1549,13 +1561,8 @@ MARK_AS_ADVANCED(SCP_ARGUMENTS)
 SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")
 MARK_AS_ADVANCED(SCP_USERNAME)
 
-IF(NOT SNAP_USE_QT4)
-  SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
-  SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
-ELSE(NOT SNAP_USE_QT4)
-  SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}-qt4.${CPACK_EXTENSION}")
-  SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}-qt4.${CPACK_EXTENSION}")
-ENDIF(NOT SNAP_USE_QT4)
+SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
 SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
 

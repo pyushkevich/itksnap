@@ -38,6 +38,9 @@ SpeedImageDialog::SpeedImageDialog(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  // Set name for testing purposes
+  this->setObjectName("dlgSpeedParameters");
+
   // Set up the GMM table
   m_GMMTableModel = new GMMTableModel(this);
   ui->tblClusters->setModel(m_GMMTableModel);

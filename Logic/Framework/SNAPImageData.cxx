@@ -45,7 +45,6 @@
 #include "itkMaximumImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkUnaryFunctorImageFilter.h"
-#include "itkFastMutexLock.h"
 
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "GlobalState.h"
@@ -71,9 +70,6 @@ SNAPImageData
 
   // Set the initial label color
   m_SnakeColorLabel = 0;
-
-  // Create the mutex lock
-  m_LevelSetPipelineMutexLock = itk::FastMutexLock::New();
 
   m_CompressedAlternateLabelImage = NULL;
 }
@@ -105,6 +101,7 @@ SNAPImageData
     }
 
   m_SpeedWrapper->InitializeToWrapper(m_MainImageWrapper, (GreyType) 0);
+  m_SpeedWrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
   InvokeEvent(LayerChangeEvent());
 
   // Here or after it's computed?
@@ -165,16 +162,18 @@ SNAPImageData
     {
     m_SnakeWrapper = LevelSetImageWrapper::New();
     m_SnakeWrapper->SetDefaultNickname("Evolving Contour");
+    m_SnakeWrapper->SetAlpha(0.5);
     PushBackImageWrapper(SNAP_ROLE, m_SnakeWrapper.GetPointer());
     }
 
   // Initialize the level set initialization wrapper, set pixels to OUTSIDE_VALUE
   m_SnakeWrapper->InitializeToWrapper(m_MainImageWrapper, OUTSIDE_VALUE);
+  m_SnakeWrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
 
   // Create the initial level set image by merging the segmentation data from
   // IRIS region with the bubbles
-  LabelImageType::Pointer imgInput = this->GetFirstSegmentationLayer()->GetImage();
-  FloatImageType::Pointer imgLevelSet = m_SnakeWrapper->GetImage();
+  LabelImageType::ConstPointer imgInput = this->GetFirstSegmentationLayer()->GetImage();
+  FloatImageType::Pointer imgLevelSet = m_SnakeWrapper->GetModifiableImage();
 
   // Get the target region. This really should be a region relative to the IRIS image
   // data, not an image into a needless copy of an IRIS region.
@@ -187,8 +186,8 @@ SNAPImageData
   TargetIterator itTarget(imgLevelSet,region);
 
   // During the copy loop, compute the extents of the initialization
-  Vector3l bbLower = region.GetSize();
-  Vector3l bbUpper = region.GetIndex();
+  Vector3i bbLower = region.GetSize();
+  Vector3i bbUpper = region.GetIndex();
 
   unsigned long nInitVoxels = 0;
 
@@ -199,7 +198,7 @@ SNAPImageData
     if(itSource.Value() == m_SnakeColorLabel)
       {
       // Expand the bounding box accordingly
-      Vector3l point = itTarget.GetIndex();
+      Vector3i point = itTarget.GetIndex();
       bbLower = vector_min(bbLower,point);
       bbUpper = vector_max(bbUpper,point);
       
@@ -219,7 +218,7 @@ SNAPImageData
     {
     // Compute the extents of the bubble
     typedef itk::Point<double,3> PointType;
-    PointType ptLower,ptUpper,ptCenter;
+    PointType ptCenter;
 
     // Compute the physical position of the bubble center
     imgLevelSet->TransformIndexToPhysicalPoint(
@@ -259,8 +258,8 @@ SNAPImageData
     regBubble.Crop(region);
 
     // Stretch the overall bounding box if necessary
-    bbLower = vector_min(bbLower,Vector3l(idxLower));
-    bbUpper = vector_max(bbUpper,Vector3l(idxUpper));
+    bbLower = vector_min(bbLower,Vector3i(idxLower));
+    bbUpper = vector_max(bbUpper,Vector3i(idxUpper));
 
     // Create an iterator with an index to fill out the bubble
     TargetIterator itThisBubble(imgLevelSet, regBubble);
@@ -283,6 +282,9 @@ SNAPImageData
       ++itThisBubble;
       }
     }
+
+  // Mark the image updated
+  m_SnakeWrapper->PixelsModified();
 
   // At this point, we should have an initialization image and a bounding
   // box in bbLower and bbUpper.  End the routine if there are no initialization
@@ -373,21 +375,24 @@ SNAPImageData
   m_CurrentSnakeParameters = p;
 
   // Enter a thread-safe section
-  m_LevelSetPipelineMutexLock->Lock();
+  m_LevelSetPipelineMutex.lock();
 
   // Initialize the snake driver and pass the parameters
   m_LevelSetDriver = new SNAPLevelSetDriver3d(
-    m_SnakeWrapper->GetImage(),
-    m_SpeedWrapper->GetImage(),
+    m_SnakeWrapper->GetModifiableImage(),
+    m_SpeedWrapper->GetModifiableImage(),
     m_CurrentSnakeParameters,
     m_ExternalAdvectionField);
 
-  // This makes sure that m_SnakeWrapper->IsDrawable() returns true
-  m_SnakeWrapper->SetImage(m_LevelSetDriver->GetCurrentState());
-  m_SnakeWrapper->GetImage()->Modified();
+  // Copy the output pixels from the level set filter to the snake image wrapper.
+  // The ITK pattern is to do the opposite, i.e., graft the image onto the level
+  // set filter, but the particular filter used for level set propagation,
+  // ParallelSparseFieldLevelSetImageFilter is not coded to support this.
+  m_SnakeWrapper->SetPixelContainer(m_LevelSetDriver->GetOutput()->GetPixelContainer());
+
 
   // Finish thread-safe section
-  m_LevelSetPipelineMutexLock->Unlock();
+  m_LevelSetPipelineMutex.unlock();
 
   // Fire events (layers changed and level set image changed)
   this->InvokeEvent(LayerChangeEvent());
@@ -396,7 +401,6 @@ SNAPImageData
   // Why use segmentation's alpha?
   m_SnakeWrapper->SetAlpha(
         (unsigned char)(255 * m_Parent->GetGlobalState()->GetSegmentationAlpha()));
-
 }
 
 void 
@@ -409,14 +413,17 @@ SNAPImageData
   // Pass through to the level set driver
 
   // Enter a thread-safe section
-  m_LevelSetPipelineMutexLock->Lock();
+  m_LevelSetPipelineMutex.lock();
 
   // clock_t c1 = clock();
   m_LevelSetDriver->Run(nIterations);
+  
+  // The wrapper has to be notified that pixels have been updated
+  m_SnakeWrapper->PixelsModified();
   // clock_t c2 = clock();
 
   // Leave a thread-safe section
-  m_LevelSetPipelineMutexLock->Unlock();
+  m_LevelSetPipelineMutex.unlock();
 
   /*
   std::cout << (c2 - c1) * 1.0 / (CLOCKS_PER_SEC * nIterations)
@@ -431,7 +438,7 @@ SNAPImageData
 ::IsEvolutionConverged()
 {
   // Make the method reentrant
-  itk::MutexLockHolder<itk::FastMutexLock> holder(*m_LevelSetPipelineMutexLock);
+  std::lock_guard<std::mutex> guard(m_LevelSetPipelineMutex);
 
   return m_LevelSetDriver->IsEvolutionConverged();
 }
@@ -444,13 +451,19 @@ SNAPImageData
   assert(m_LevelSetDriver);
 
   // Enter a thread-safe section
-  m_LevelSetPipelineMutexLock->Lock();
+  m_LevelSetPipelineMutex.lock();
 
   // Pass through to the level set driver
   m_LevelSetDriver->Restart();
+    
+  // Copy the output pixels from the level set filter to the snake image wrapper.
+  // The ITK pattern is to do the opposite, i.e., graft the image onto the level
+  // set filter, but the particular filter used for level set propagation,
+  // ParallelSparseFieldLevelSetImageFilter is not coded to support this.
+  m_SnakeWrapper->SetPixelContainer(m_LevelSetDriver->GetOutput()->GetPixelContainer());
 
   // Leave a thread-safe section
-  m_LevelSetPipelineMutexLock->Unlock();
+  m_LevelSetPipelineMutex.unlock();
 
   // Fire the update event
   this->InvokeEvent(LevelSetImageChangeEvent());
@@ -464,13 +477,13 @@ SNAPImageData
   assert(m_LevelSetDriver);
 
   // Enter a thread-safe section
-  m_LevelSetPipelineMutexLock->Lock();
+  m_LevelSetPipelineMutex.lock();
 
   // Delete the level set driver and all the problems that go along with it
   delete m_LevelSetDriver; m_LevelSetDriver = NULL;
 
   // Leave a thread-safe section
-  m_LevelSetPipelineMutexLock->Unlock();
+  m_LevelSetPipelineMutex.unlock();
 
   // Fire the update event
   this->InvokeEvent(LevelSetImageChangeEvent());
@@ -494,14 +507,6 @@ GetElapsedSegmentationIterations() const
   return m_LevelSetDriver->GetElapsedIterations();
 }
 
-SNAPImageData::LevelSetImageType *
-SNAPImageData
-::GetLevelSetImage()
-{
-  assert(m_LevelSetDriver);
-  return m_LevelSetDriver->GetCurrentState();
-}
-
 SNAPLevelSetDriver<3>::LevelSetFunctionType *
 SNAPImageData
 ::GetLevelSetFunction()
@@ -523,12 +528,12 @@ void SNAPImageData::SwapLabelImageWithCompressedAlternative()
   save->FinishEncoding();
 
   // Clear the undo manager
-  liw->ClearUndoPoints();
+  liw->ClearUndoPointsForAllTimePoints();
 
   // Decompress the currently saved alternative
   if(m_CompressedAlternateLabelImage)
     {
-    LabelImageWrapper::Iterator it_write(liw->GetImage(), liw->GetBufferedRegion());
+    LabelImageWrapper::Iterator it_write(liw->GetModifiableImage(), liw->GetBufferedRegion());
     for(size_t i = 0; i < m_CompressedAlternateLabelImage->GetNumberOfRLEs(); ++i)
       {
       LabelType value = m_CompressedAlternateLabelImage->GetRLEValue(i);
@@ -538,10 +543,10 @@ void SNAPImageData::SwapLabelImageWithCompressedAlternative()
     }
   else
     {
-    liw->GetImage()->FillBuffer(0);
+    liw->GetModifiableImage()->FillBuffer(0);
     }
 
-  liw->GetImage()->Modified();
+  liw->PixelsModified();
   m_CompressedAlternateLabelImage = save;
 }
 

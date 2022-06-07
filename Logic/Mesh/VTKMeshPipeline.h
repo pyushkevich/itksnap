@@ -60,6 +60,8 @@
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTransform.h>
 
+#include <mutex>
+
 #ifndef vtkFloatingPointType
 # define vtkFloatingPointType vtkFloatingPointType
 typedef float vtkFloatingPointType;
@@ -79,15 +81,16 @@ public:
   /** Input image type */
   typedef itk::Image<float,3> ImageType;
   typedef itk::SmartPointer<ImageType> ImagePointer;
+  typedef itk::SmartPointer<const ImageType> ImageConstPointer;
   
   /** Set the input segmentation image */
-  void SetImage(ImageType *input);
+  void SetImage(const ImageType *input);
 
   /** Set the mesh options for this filter */
   void SetMeshOptions(MeshOptions *options);
 
   /** Compute a mesh for a particular color label */
-  void ComputeMesh(vtkPolyData *outData, itk::FastMutexLock *lock = NULL);
+  void ComputeMesh(vtkPolyData *outData, std::mutex *mutex = nullptr);
 
   /** Get the progress accumulator */
   AllPurposeProgressAccumulator *GetProgressAccumulator()
@@ -109,7 +112,7 @@ private:
   SmartPtr<MeshOptions> m_MeshOptions;
 
   // The input image
-  ImagePointer m_InputImage;
+  ImageConstPointer m_InputImage;
 
   // The VTK exporter for the data
   VTKExportPointer m_VTKExporter;

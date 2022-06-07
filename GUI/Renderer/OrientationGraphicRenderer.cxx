@@ -45,6 +45,7 @@ OrientationGraphicRenderer::OrientationGraphicRenderer()
   pCamera->SetViewUp(0.0, -1.0, 0.0);
 
   this->SetInteractionStyle(TRACKBALL_CAMERA);
+  m_Renderer->SetBackground(0.5, 0.5, 0.5);
 }
 
 
@@ -89,5 +90,6 @@ void OrientationGraphicRenderer::Update(const vtkSmartPointer < vtkMatrix4x4 > a
 {
   m_ReorientProps.Update(apMatrix4x4);
 
-  GetRenderWindow()->Render();
+  // TODO: commenting out for now because calling Render outside of GL context causes problems
+  // GetRenderWindow()->Render();
 }

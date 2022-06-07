@@ -46,58 +46,83 @@
 
 LabelImageWrapper::LabelImageWrapper()
 {
-  m_UndoManager = new UndoManagerType(4, 200000);
 }
 
 LabelImageWrapper::~LabelImageWrapper()
 {
-  delete m_UndoManager;
+  for(auto p : m_TimePointUndoManagers)
+    delete p;
 }
 
-void LabelImageWrapper::UpdateImagePointer(
-    ImageType *image, ImageBaseType *refSpace, ITKTransformType *tran)
+void LabelImageWrapper::UpdateWrappedImages(
+    Image4DType *image_4d,
+    ImageBaseType *refSpace,
+    ITKTransformType *tran)
 {
-  Superclass::UpdateImagePointer(image, refSpace, tran);
-  m_UndoManager->Clear();
+  Superclass::UpdateWrappedImages(image_4d, refSpace, tran);
+
+  // Clean up existing undo managers
+  for(auto p : m_TimePointUndoManagers)
+    delete p;
+
+  // Set up new undo managers
+  m_TimePointUndoManagers.resize(this->GetNumberOfTimePoints());
+  for(auto &p : m_TimePointUndoManagers)
+    p = new UndoManagerType(4, 200000);
 
   // Modified event on the image is rebroadcast as the WrapperImageChangeEvent
-  Rebroadcaster::Rebroadcast(image, itk::ModifiedEvent(),
-                             this, WrapperImageChangeEvent());
+  Rebroadcaster::Rebroadcast(image_4d, itk::ModifiedEvent(), this, WrapperImageChangeEvent());
+
+  // Modified event on each of the timepoints should also be rebroadcast
+  for(auto &img : this->m_ImageTimePoints)
+    Rebroadcaster::Rebroadcast(img, itk::ModifiedEvent(), this, WrapperImageChangeEvent());
 }
 
 void LabelImageWrapper::StoreIntermediateUndoDelta(UndoManagerDelta *delta)
 {
-  m_UndoManager->AddDeltaToStaging(delta);
+  UndoManagerType *um = m_TimePointUndoManagers[m_TimePointIndex];
+  um->AddDeltaToStaging(delta);
 }
 
 void LabelImageWrapper::StoreUndoPoint(const char *text, UndoManagerDelta *delta)
 {
+  UndoManagerType *um = m_TimePointUndoManagers[m_TimePointIndex];
+
   // If there is a delta, add it to staging
   if(delta)
-    m_UndoManager->AddDeltaToStaging(delta);
+    um->AddDeltaToStaging(delta);
 
   // Commit the deltas
-  m_UndoManager->CommitStaging(text);
+  um->CommitStaging(text);
 }
 
 void LabelImageWrapper::ClearUndoPoints()
 {
-  m_UndoManager->Clear();
+  UndoManagerType *um = m_TimePointUndoManagers[m_TimePointIndex];
+  um->Clear();
+}
+
+void LabelImageWrapper::ClearUndoPointsForAllTimePoints()
+{
+  for(auto um : m_TimePointUndoManagers)
+    um->Clear();
 }
 
 bool LabelImageWrapper::IsUndoPossible()
 {
-  return m_UndoManager->IsUndoPossible();
+  UndoManagerType *um = m_TimePointUndoManagers[m_TimePointIndex];
+  return um->IsUndoPossible();
 }
 
 void LabelImageWrapper::Undo()
 {
+  UndoManagerType *um = m_TimePointUndoManagers[m_TimePointIndex];
+
   // Get the commit for the undo
-  const UndoManagerType::Commit &commit = m_UndoManager->GetCommitForUndo();
+  const UndoManagerType::Commit &commit = um->GetCommitForUndo();
 
   // The label image that will undergo undo
   typedef itk::ImageRegionIterator<ImageType> IteratorType;
-  ImageType *imSeg = this->GetImage();
 
   // Iterate over all the deltas in reverse order
   UndoManagerType::DList::const_reverse_iterator dit = commit.GetDeltas().rbegin();
@@ -107,7 +132,7 @@ void LabelImageWrapper::Undo()
     UndoManagerType::Delta *delta = *dit;
 
     // Iterator for the relevant region in the label image
-    IteratorType lit(imSeg, delta->GetRegion());
+    IteratorType lit(m_Image, delta->GetRegion());
 
     // Iterate over the rles in the delta
     for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
@@ -124,22 +149,24 @@ void LabelImageWrapper::Undo()
     }
 
   // Set modified flags
-  imSeg->Modified();
+  this->PixelsModified();
 }
 
 bool LabelImageWrapper::IsRedoPossible()
 {
-  return m_UndoManager->IsRedoPossible();
+  UndoManagerType *um = m_TimePointUndoManagers[m_TimePointIndex];
+  return um->IsRedoPossible();
 }
 
 void LabelImageWrapper::Redo()
 {
+  UndoManagerType *um = m_TimePointUndoManagers[m_TimePointIndex];
+
   // Get the commit for the redo
-  const UndoManagerType::Commit &commit = m_UndoManager->GetCommitForRedo();
+  const UndoManagerType::Commit &commit = um->GetCommitForRedo();
 
   // The label image that will undergo redo
   typedef itk::ImageRegionIterator<ImageType> IteratorType;
-  ImageType *imSeg = this->GetImage();
 
   // Iterate over all the deltas in reverse order
   UndoManagerType::DList::const_iterator dit = commit.GetDeltas().begin();
@@ -149,7 +176,7 @@ void LabelImageWrapper::Redo()
     UndoManagerType::Delta *delta = *dit;
 
     // Iterator for the relevant region in the label image
-    IteratorType lit(imSeg, delta->GetRegion());
+    IteratorType lit(m_Image, delta->GetRegion());
 
     // Iterate over the rles in the delta
     for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
@@ -166,16 +193,23 @@ void LabelImageWrapper::Redo()
     }
 
   // Set modified flags
-  imSeg->Modified();
+  this->PixelsModified();
+}
+
+const
+LabelImageWrapper::UndoManagerType *
+LabelImageWrapper
+::GetUndoManager() const
+{
+  return m_TimePointUndoManagers[m_TimePointIndex];
 }
 
 LabelImageWrapper::UndoManagerDelta *
 LabelImageWrapper::CompressImage() const
 {
   UndoManagerDelta *new_cumulative = new UndoManagerDelta();
-  ImageType *seg = this->GetImage();
 
-  itk::ImageRegionConstIterator<ImageType> it(seg, seg->GetLargestPossibleRegion());
+  itk::ImageRegionConstIterator<ImageType> it(m_Image, m_Image->GetLargestPossibleRegion());
   for (; !it.IsAtEnd(); ++it)
     new_cumulative->Encode(it.Get());
 

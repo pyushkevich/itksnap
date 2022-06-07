@@ -23,6 +23,9 @@ public:
 
   void SetModel(ImageInfoModel *model);
 
+private slots:
+  void on_btnReorientImage_clicked();
+
 private:
 
   ImageInfoModel *m_Model;

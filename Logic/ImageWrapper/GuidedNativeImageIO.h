@@ -67,9 +67,11 @@ public:
     FORMAT_ANALYZE=0,
     FORMAT_DICOM_DIR,       // A directory containing multiple DICOM files
     FORMAT_DICOM_FILE,      // A single DICOM file
+    FORMAT_ECHO_CARTESIAN_DICOM, // A Echocardiography Cartesian DICOM
     FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
     FORMAT_MHA, FORMAT_NIFTI, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
-    FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK, FORMAT_COUNT};
+    FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK,
+    FORMAT_COUNT};
 
   enum RawPixelType {
     PIXELTYPE_UCHAR=0, PIXELTYPE_CHAR, PIXELTYPE_USHORT, PIXELTYPE_SHORT, 
@@ -123,7 +125,7 @@ public:
   typedef itk::ImageIOBase IOBase;
   typedef itk::SmartPointer<IOBase> IOBasePointer;
 
-  typedef itk::ImageBase<3> ImageBase;
+  typedef itk::ImageBase<4> ImageBase;
   typedef itk::SmartPointer<ImageBase> ImageBasePointer;
 
   /**
@@ -176,7 +178,7 @@ public:
   std::string GetNicknameOfNativeImage() const
     { return m_NativeNickname; }
 
-  Vector3ui GetDimensionsOfNativeImage() const
+  vnl_vector_fixed<unsigned int, 4> GetDimensionsOfNativeImage() const
     { return m_NativeDimensions; }
 
   /**
@@ -184,7 +186,7 @@ public:
    * a pointer to an itk::VectorImage of some native format. Use one of the
    * Cast objects to cast it to an image of the type you want
    */
-  itk::ImageBase<3> *GetNativeImage() const
+  ImageBase *GetNativeImage() const
     { return m_NativeImage; }
 
   /**
@@ -283,8 +285,7 @@ public:
   void CreateImageIO(const char *fname, Registry &folder, bool read);
 
   // Get the output of the last operation
-  // irisGetMacro(IOBase, itk::ImageIOBase *);    
-
+  // irisGetMacro(IOBase, itk::ImageIOBase *);
 protected:
 
   GuidedNativeImageIO();
@@ -353,7 +354,9 @@ protected:
   std::string m_NativeTypeString, m_NativeFileName;
   std::string m_NativeNickname;
   IOBase::ByteOrder m_NativeByteOrder;
-  Vector3ui m_NativeDimensions;
+
+  // The reader supports reading up to 4-dimensional data
+  vnl_vector_fixed<unsigned int, 4> m_NativeDimensions;
 
   // Copy of the registry passed in when reading header
   Registry m_Hints;
@@ -402,7 +405,9 @@ public:
 
   typedef TOutputImage                                         OutputImageType;
   typedef typename TOutputImage::PixelType                     OutputPixelType;
-  typedef itk::ImageBase<3>                                    NativeImageType;
+
+  // Native image type
+  typedef itk::ImageBase<TOutputImage::ImageDimension>         NativeImageType;
 
   // Constructor, takes pointer to native image
   OutputImageType *operator()(GuidedNativeImageIO *nativeIO);
@@ -418,7 +423,7 @@ private:
   double m_NativeScale, m_NativeShift;
 
   // Method that does the casting
-  template<typename TNative> void DoCast(itk::ImageBase<3> *native);
+  template<typename TNative> void DoCast(NativeImageType *native);
 };
 
 template<class TPixel> class TrivialCastFunctor
@@ -460,7 +465,7 @@ private:
   TCastFunctor m_Functor;
 
   // Method that does the casting
-  template<typename TNative> void DoCast(itk::ImageBase<3> *native);
+  template<typename TNative> void DoCast(itk::ImageBase<4> *native);
 
   friend class RescaleNativeImageToIntegralType<OutputImageType>;
 };

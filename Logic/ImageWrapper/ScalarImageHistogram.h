@@ -30,7 +30,7 @@ public:
    * parameters to Initialize(). This is used in multi-threaded code to build
    * histograms
    */
-  void AddCompatibleHistogram(const Self &addee);
+  void AddCompatibleHistogram(const Self *addee);
 
   /**
    * Apply an intensity transform to the histogram. This applies scaling and

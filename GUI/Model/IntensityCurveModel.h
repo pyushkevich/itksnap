@@ -85,7 +85,8 @@ public:
 
 
   /** Before using the model, it must be coupled with a size reporter */
-  irisGetSetMacro(ViewportReporter, ViewportSizeReporter *)
+  irisGetMacro(ViewportReporter, ViewportSizeReporter *)
+  void SetViewportReporter(ViewportSizeReporter *vr);
 
   // Implementation of virtual functions from parent class
   void RegisterWithLayer(ImageWrapperBase *layer) ITK_OVERRIDE;

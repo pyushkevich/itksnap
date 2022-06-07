@@ -26,7 +26,6 @@
 #include "QtCursorOverride.h"
 #include "SNAPQtCommon.h"
 #include "SNAPTestQt.h"
-#include "TestOpenGLDialog.h"
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
@@ -41,6 +40,22 @@
 #include <iostream>
 #include <clocale>
 #include <cstdlib>
+
+#include "QVTKOpenGLNativeWidget.h"
+#include "QVTKInteractor.h"
+#include "vtkGenericOpenGLRenderWindow.h"
+#include "vtkContextView.h"
+#include "vtkProperty.h"
+#include "vtkRenderer.h"
+#include "vtkSphereSource.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkActor.h"
+#include "vtkTextActor.h"
+#include <QHBoxLayout>
+#include <QPushButton>
+
+// TODO: delete
+#include "SnakeParameterDialog.h"
 
 using namespace std;
 
@@ -254,12 +269,12 @@ protected:
 std::string DecodeFilename(const std::string &in_string)
 {
 #ifdef WIN32
-  int bufsize = GetLongPathName(in_string.c_str(), NULL, 0);
+  int bufsize = GetLongPathNameA(in_string.c_str(), NULL, 0);
   if (bufsize == 0)
     throw IRISException("Unable to decode parameter %s", in_string.c_str());
 
   char *buffer = new char[bufsize];
-  int rc = GetLongPathName(in_string.c_str(), buffer, bufsize);
+  int rc = GetLongPathNameA(in_string.c_str(), buffer, bufsize);
   
   if (rc == 0)
     throw IRISException("Unable to decode parameter %s", in_string.c_str());
@@ -551,20 +566,14 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   return 0;
 }
 
-
-int test_opengl()
-{
-  TestOpenGLDialog *dialog = new TestOpenGLDialog();
-  dialog->show();
-  return QApplication::exec();
-}
-
 int main(int argc, char *argv[])
 {  
   // Test object, which only is allocated if tests are requested. The
   // reason we declare it here is that the test object allocates a
   // script engine, which must be deleted at the very end
   SNAPTestQt *testingEngine = NULL;
+
+  std::cout << "Launching ITK-SNAP" << std::endl;
 
   // Parse the command line
   CommandLineRequest argdata;
@@ -586,6 +595,16 @@ int main(int argc, char *argv[])
 
 #if QT_VERSION > 0x050000
 
+#if VTK_MAJOR_VERSION >= 8
+
+  // We want to use multisamples everywhere by default
+  vtkOpenGLRenderWindow::SetGlobalMaximumNumberOfMultiSamples(4);
+
+  // When using VTK8 we have to set the surface format to match what it wants
+  QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
+
+#else
+
   // Starting with Qt 5.6, the OpenGL implementation uses OpenGL 2.0
   // In this version of OpenGL, transparency is handled differently and
   // looks wrong.
@@ -603,6 +622,9 @@ int main(int argc, char *argv[])
   */
 
   QSurfaceFormat::setDefaultFormat(gl_fmt);
+  // QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
+
+#endif
 
 #endif
 
@@ -652,7 +674,10 @@ int main(int argc, char *argv[])
 
   // Deal with threads
   if(argdata.nThreads > 0)
-    itk::MultiThreader::SetGlobalMaximumNumberOfThreads(argdata.nThreads);
+    {
+    itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(argdata.nThreads);
+    itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(argdata.nThreads);
+    }
 
   // Turn off ITK and VTK warning windows
   itk::Object::GlobalWarningDisplayOff();
@@ -687,8 +712,69 @@ int main(int argc, char *argv[])
 
   // Test OpenGL?
   if(argdata.flagTestOpenGL)
-    {
-    return test_opengl();
+    {    
+    // Set the default surface format
+    auto dft = QSurfaceFormat::defaultFormat();
+    QSurfaceFormat::setDefaultFormat(QVTKOpenGLNativeWidget::defaultFormat());
+
+    // Create two OpenGL windows
+    vtkNew<vtkGenericOpenGLRenderWindow> window_1, window_2;
+
+    // Create two renderers
+    vtkNew<vtkRenderer> renderer_1, renderer_2;
+    renderer_1->SetBackground(0.2,0.2,0.0);
+    renderer_2->SetBackground(0.0,0.2,0.2);
+    window_1->AddRenderer(renderer_1);
+    window_2->AddRenderer(renderer_2);
+
+    // Create two OpenGL widgets
+    QVTKOpenGLNativeWidget *widget_1 = new QVTKOpenGLNativeWidget();
+    QVTKOpenGLNativeWidget *widget_2 = new QVTKOpenGLNativeWidget();
+
+    // Hook up widgets to windows
+    widget_1->setRenderWindow(window_1.Get());
+    widget_2->setRenderWindow(window_2.Get());
+
+    // Place a sphere in window 1
+    vtkNew<vtkSphereSource> sphereSource;
+    sphereSource->SetCenter(0.0, 0.0, 0.0);
+    sphereSource->SetRadius(5.0);
+    sphereSource->SetPhiResolution(20);
+    sphereSource->SetThetaResolution(20);
+
+    vtkNew<vtkPolyDataMapper> mapper;
+    mapper->SetInputConnection(sphereSource->GetOutputPort());
+
+    vtkNew<vtkActor> actor;
+    actor->SetMapper(mapper);
+    actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
+    renderer_1->AddActor(actor);
+
+    // Place some text in window 2
+    vtkNew<vtkTextActor> txt;
+    txt->SetInput("Hello World");
+    txt->SetPosition(10, 10);
+    renderer_2->AddActor2D(txt);
+
+    // Place some overlay text in window 1
+    vtkNew<vtkRenderer> renderer_3;
+    renderer_3->SetLayer(1);
+    vtkNew<vtkTextActor> txt2;
+    txt2->SetInput("Overlay");
+    txt2->SetPosition(10, 10);
+    renderer_3->AddActor2D(txt2);
+    window_1->AddRenderer(renderer_3);
+    window_1->SetNumberOfLayers(2);
+
+    auto *dlg = new QDialog();
+    auto *lo = new QHBoxLayout(dlg);
+    lo->addWidget(widget_1);
+    lo->addWidget(widget_2);
+    lo->addWidget(new QPushButton("Ok"));
+    widget_1->setMinimumSize(QSize(256,256));
+    widget_2->setMinimumSize(QSize(256,256));
+    dlg->setModal(false);
+    dlg->show();
     }
 
   // Before we can create any of the framework classes, we need to get some
@@ -905,6 +991,11 @@ int main(int argc, char *argv[])
     // Check for updates?
     mainwin->UpdateAutoCheck();
 
+    // Remind layout preference
+    //  Ignore it for testing run, or it will interrupt the automation if not handled correctly
+    if (!argdata.xTestId.size())
+      mainwin->RemindLayoutPreference();
+
     // Assign the main window to the application. We do this right before
     // starting the event loop.
     app.setMainWindow(mainwin);
@@ -915,6 +1006,30 @@ int main(int argc, char *argv[])
       testingEngine = new SNAPTestQt(mainwin, argdata.fnTestDir, argdata.xTestAccel);
       testingEngine->LaunchTest(argdata.xTestId);
       }
+
+    // TODO: remove this
+    /*
+    QPalette p = QGuiApplication::palette();
+    int roles[] = { QPalette::WindowText, QPalette::Button, QPalette::Light, QPalette::Midlight, QPalette::Dark, QPalette::Mid,
+              QPalette::Text, QPalette::BrightText, QPalette::ButtonText, QPalette::Base, QPalette::Window, QPalette::Shadow,
+              QPalette::Highlight, QPalette::HighlightedText,
+              QPalette::Link, QPalette::LinkVisited,
+              QPalette::AlternateBase,
+              QPalette::NoRole,
+              QPalette::ToolTipBase, QPalette::ToolTipText,
+              QPalette::PlaceholderText };
+    const char *role_names[] = { "WindowText", "Button", "Light", "Midlight", "Dark", "Mid",
+                   "Text", "BrightText", "ButtonText", "Base", "Window", "Shadow",
+                   "Highlight", "HighlightedText",
+                   "Link", "LinkVisited",
+                   "AlternateBase",
+                   "NoRole",
+                   "ToolTipBase", "ToolTipText",
+                   "PlaceholderText" };
+
+    for(unsigned int i = 0; i < 21; i++)
+      qDebug() << role_names[i] << ":" << p.color((QPalette::ColorRole)roles[i]);
+    */
 
     // Run application
     int rc = app.exec();

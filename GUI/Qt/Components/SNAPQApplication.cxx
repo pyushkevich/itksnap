@@ -36,13 +36,8 @@ SNAPQApplication
   this->setApplicationName("ITK-SNAP");
   this->setOrganizationName("itksnap.org");
 
-#if QT_VERSION >= 0x050000
-  // Allow @x2 pixmaps for icons for retina displays
-  this->setAttribute(Qt::AA_UseHighDpiPixmaps, true);
-
   // System-supplied DPI screws up widget and font scaling horribly
   this->setAttribute(Qt::AA_Use96Dpi, true);
-#endif
 
   m_MainWindow = NULL;
 

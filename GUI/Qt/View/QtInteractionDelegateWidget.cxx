@@ -25,11 +25,10 @@
 =========================================================================*/
 
 #include "QtInteractionDelegateWidget.h"
-#include <QtAbstractOpenGLBox.h>
+#include <QtVTKRenderWindowBox.h>
 #include <QMouseEvent>
 #include <QGestureEvent>
 #include "GenericSliceModel.h"
-#include "SNAPOpenGL.h"
 
 QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
   SNAPComponent(parent)
@@ -68,12 +67,12 @@ bool QtInteractionDelegateWidget::event(QEvent *ev)
   return result;
 }
 
-QtAbstractOpenGLBox * QtInteractionDelegateWidget::GetParentGLWidget() const
+QtVTKRenderWindowBox * QtInteractionDelegateWidget::GetParentGLWidget() const
 {
   // Search up until a parent widget is found
   for(QObject *p = parent(); p != NULL; p = p->parent())
     {
-    QtAbstractOpenGLBox *pgl = dynamic_cast<QtAbstractOpenGLBox *>(p);
+    QtVTKRenderWindowBox *pgl = dynamic_cast<QtVTKRenderWindowBox *>(p);
     if(pgl)
       return pgl;
     }
@@ -116,8 +115,8 @@ void QtInteractionDelegateWidget::postprocessEvent(QEvent *ev)
     ButtonStatus status = PRESS_IGNORED;
     if(ev->isAccepted())
       {
-      m_LastPressPos = emouse->pos();
-      m_LastPressGlobalPos = emouse->globalPos();
+      m_LastPressPos = emouse->position();
+      m_LastPressGlobalPos = emouse->globalPosition();
       m_LastPressButton = emouse->button();
       m_LastPressXSpace = m_XSpace;
       status = PRESS_ACCEPTED;
@@ -148,8 +147,9 @@ Vector3d
 QtInteractionDelegateWidget
 ::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
 {
+  /*
   // Make the parent window the current context
-  QtAbstractOpenGLBox *parent = this->GetParentGLWidget();
+  QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
   parent->makeCurrent();
 
   // Convert the event coordinates into the model view coordinates
@@ -173,7 +173,12 @@ QtInteractionDelegateWidget
                 modelMatrix,projMatrix,viewport,
                 &xProjection[0], &xProjection[1], &xProjection[2]);
   return xProjection;
+  */
+
+  // TODO: broken
+  return Vector3d(0,0,0);
 }
+
 
 bool QtInteractionDelegateWidget::isDragging()
 {
@@ -193,6 +198,6 @@ bool QtInteractionDelegateWidget::isHovering()
 
 double QtInteractionDelegateWidget::GetNumberOfPixelsMoved(QMouseEvent *ev)
 {
-  QPoint delta = ev->pos() - m_LastPressPos;
+  QPointF delta = ev->pos() - m_LastPressPos;
   return std::sqrt((double)(delta.x() * delta.x() + delta.y() * delta.y()));
 }

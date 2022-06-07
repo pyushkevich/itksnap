@@ -27,16 +27,39 @@
 #ifndef GENERICSLICERENDERER_H
 #define GENERICSLICERENDERER_H
 
-#include <AbstractRenderer.h>
+#include <AbstractVTKRenderer.h>
 #include <GenericSliceModel.h>
 #include <ImageWrapper.h>
-#include <OpenGLSliceTexture.h>
-#include <SNAPOpenGL.h>
 #include <list>
+#include <map>
 #include <LayerAssociation.h>
 
+class vtkTexture;
+class vtkImageImport;
+class vtkActor;
+class vtkActor2D;
+class vtkPolyData;
+class vtkPolyDataMapper;
+class vtkTexturedActor;
 class GenericSliceRenderer;
+class vtkContextActor;
+class vtkContextScene;
+class vtkContextTransform;
+class vtkAbstractContextItem;
 
+namespace itk {
+template <typename TInputImage> class VTKImageExport;
+}
+
+class TexturedRectangleAssembly;
+class TexturedRectangleAssembly2D;
+
+/**
+ * @brief The parent class for overlays that are placed on top of the image
+ * layers, i.e., crosshairs, etc.
+ */
+
+// TODO: make child of AbstractModel and rename to Generic... for consistency
 class SliceRendererDelegate : public AbstractRenderer
 {
 public:
@@ -44,27 +67,39 @@ public:
 
   irisGetSetMacro(ParentRenderer, GenericSliceRenderer *)
 
+  /**
+   * This method should be overridden by child class to add any context items
+   * that should be displayed on top of the tiled images to the ContextScene.
+   *
+   * The ContextScene will have the transform set to use the slice coordinate
+   * system
+   */
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *base_layer) {};
+
+  /**
+   * This method should be overridden by child class to add any context items
+   * that should be displayed as global overlays to the ContextScene.
+   *
+   * The ContextScene will have the transform set to use the viewport coordinate
+   * system
+   */
+  virtual void AddContextItemsToGlobalOverlayScene(vtkContextScene *) {}
+
+
 protected:
   GenericSliceRenderer *m_ParentRenderer;
 };
 
-class GenericSliceRenderer : public AbstractRenderer
+class GenericSliceRenderer : public AbstractVTKRenderer
 {
 public:
-
-  // texture type
-  typedef OpenGLSliceTexture<ImageWrapperBase::DisplayPixelType> Texture;
-
 
   irisITKObjectMacro(GenericSliceRenderer, AbstractModel)
 
   FIRES(ModelUpdateEvent)
 
   void SetModel(GenericSliceModel *model);
-
-  void initializeGL() ITK_OVERRIDE;
-  virtual void resizeGL(int w, int h, int device_pixel_ratio) ITK_OVERRIDE;
-  virtual void paintGL() ITK_OVERRIDE;
 
   irisGetMacro(Model, GenericSliceModel *)
 
@@ -87,51 +122,124 @@ public:
   typedef std::list<SliceRendererDelegate *> RendererDelegateList;
 
   // Get a reference to the list of overlays stored in here
-  const RendererDelegateList &GetGlobalOverlays() const
-    { return m_GlobalOverlays; }
+  const RendererDelegateList &GetDelegates() const
+    { return m_Delegates; }
 
-  RendererDelegateList &GetGlobalOverlays()
-    { return m_GlobalOverlays; }
-
-  // Get a reference to the list of overlays stored in here
-  const RendererDelegateList &GetTiledOverlays() const
-    { return m_TiledOverlays; }
-
-  RendererDelegateList &GetTiledOverlays()
-    { return m_TiledOverlays; }
+  void SetDelegates(const RendererDelegateList &ovl);
 
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
-
-  // Get (creating if necessary) and configure the texture for a given layer
-  Texture *GetTextureForLayer(ImageWrapperBase *iw);
 
   // Set list of child renderers
   void SetChildRenderers(std::list<AbstractRenderer *> renderers);
 
 protected:
 
+  // Constants for layer depth ordering
+  const double DEPTH_OVERLAY_START = 0.01;
+  const double DEPTH_SEGMENTATION_START = 0.02;
+  const double DEPTH_STEP = 0.0001;
+
   GenericSliceRenderer();
   virtual ~GenericSliceRenderer() {}
 
-  void OnUpdate() ITK_OVERRIDE;
+  void OnUpdate() override;
 
-  void DrawSegmentationTexture();
-  void DrawOverlayTexture();
-  void DrawThumbnail();
-  void DrawTiledOverlays();
-  void DrawGlobalOverlays();
+  virtual void SetRenderWindow(vtkRenderWindow *rwin) override;
 
+  /**
+   * A data structure describing VTK objects (renderers, actors, etc) that
+   * are associated with a base image layer.
+   */
+  class BaseLayerAssembly : public AbstractModel
+  {
+  public:
+    irisITKObjectMacro(GenericSliceRenderer::BaseLayerAssembly, AbstractModel)
 
-  // Draw the image and overlays either on top of each other or separately
-  // in individual cells. Returns true if a layer was drawn, false if not,
-  // i.e., the cell is outside of the range of available layers
-  bool DrawImageLayers(
-      ImageWrapperBase *base_layer,
-      const ViewportType &vp);
+    // The main and thumbnail renderers for this tile
+    vtkSmartPointer<vtkRenderer> m_Renderer, m_ThumbRenderer;
 
-  // This method can be used by the renderer delegates to draw a texture
-  void DrawTextureForLayer(ImageWrapperBase *layer, const ViewportType &vp, bool use_transparency);
+    // The context scene actor used to display overlays on top of images.
+    vtkSmartPointer<vtkContextActor> m_OverlayContextActor;
+
+    // The top-level context item whose transform is set so that the
+    // drawing operations can use the slice coordinate system
+    vtkSmartPointer<vtkContextTransform> m_OverlayContextTransform;
+
+    // Rectangle highlighting the thumbnail
+    vtkSmartPointer<vtkContextActor> m_ThumbnailDecoratorActor;
+
+  protected:
+    BaseLayerAssembly() {}
+    virtual ~BaseLayerAssembly() {}
+  };
+
+  /**
+   * A data structure describing VTK objects associated with every image layer
+   * including textures
+   */
+  class LayerTextureAssembly : public AbstractModel
+  {
+  public:
+    irisITKObjectMacro(GenericSliceRenderer::LayerTextureAssembly, AbstractModel)
+
+    typedef itk::VTKImageExport<ImageWrapperBase::DisplaySliceType> VTKExporter;
+
+    // Exporter from ITK to VTK
+    SmartPtr<itk::Object> m_Exporter;
+
+    // Importer from ITK to VTK
+    vtkSmartPointer<vtkImageImport> m_Importer;
+
+    // Texture algorithm
+    vtkSmartPointer<vtkTexture> m_Texture;
+
+    // Actor used to draw the layer
+    vtkSmartPointer<TexturedRectangleAssembly> m_ImageRect;
+
+  protected:
+    LayerTextureAssembly() {}
+    virtual ~LayerTextureAssembly() {}
+  };
+
+  // Get a layer assembly for a layer
+  LayerTextureAssembly *GetLayerTextureAssembly(ImageWrapperBase *wrapper);
+
+  // Get a layer assembly for a layer
+  BaseLayerAssembly *GetBaseLayerAssembly(ImageWrapperBase *wrapper);
+
+  // A renderer placed on top of the tiles
+  vtkSmartPointer<vtkRenderer> m_BackgroundRenderer, m_OverlayRenderer;
+
+  // An actor holding the zoom thumbnail
+  vtkSmartPointer<TexturedRectangleAssembly2D> m_ZoomThumbnail;
+
+  // An actor holding the global overlays including zoom thumb
+  vtkSmartPointer<vtkContextActor> m_OverlaySceneActor;
+
+  // Update the renderers in response to a change in number of layers
+  void UpdateLayerAssemblies();
+
+  // Update the renderer layout in response to a change in tiling
+  void UpdateRendererLayout();
+
+  // Update the renderer model/view matrices in response to zooming or panning
+  void UpdateRendererCameras();
+
+  // Update the appearance of various props in the scene
+  void UpdateLayerApperances();
+
+  // Update the z-position of various layers
+  void UpdateLayerDepth();
+
+  // Update the zoom pan thumbnail appearance
+  void UpdateZoomPanThumbnail();
+
+  // Update the tiled overlay context scene contents for one of the tiles
+  void UpdateTiledOverlayContextSceneItems(ImageWrapperBase *wrapper);
+
+  // Update the tiled overlay context scene transform for one of the tiles
+  void UpdateTiledOverlayContextSceneTransform(ImageWrapperBase *wrapper);
 
   bool IsTiledMode() const;
 
@@ -140,16 +248,19 @@ protected:
   // Whether rendering to thumbnail or not
   bool m_DrawingZoomThumbnail, m_DrawingLayerThumbnail;
 
+  // Keys to access user data for this renderer from layers
+  std::string m_KeyLayerTextureAssembly, m_KeyBaseLayerAssembly;
+
   // The index of the viewport that is currently being drawn - for use in child renderers
   int m_DrawingViewportIndex;
 
   // A list of overlays that the user can configure
-  RendererDelegateList m_TiledOverlays, m_GlobalOverlays;
-
-  // List of child renderers
-  std::list<AbstractRenderer *>m_ChildRenderers;
+  RendererDelegateList m_Delegates;
 
   Vector3d ComputeGridPosition(const Vector3d &disp_pix, const itk::Index<2> &slice_index, ImageWrapperBase *vecimg);
+
+  void UpdateSceneAppearanceSettings();
+  void SetDepth(vtkActor *actor, double z);
 };
 
 

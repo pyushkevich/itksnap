@@ -138,8 +138,6 @@ public:
 // Common 2D vector types
 typedef iris_vector_fixed<int,2> Vector2i;
 typedef iris_vector_fixed<unsigned int,2> Vector2ui;
-typedef iris_vector_fixed<long,2> Vector2l;
-typedef iris_vector_fixed<unsigned long,2> Vector2ul;
 typedef iris_vector_fixed<float,2> Vector2f;
 typedef iris_vector_fixed<double,2> Vector2d;
 typedef iris_vector_fixed<bool,2> Vector2b;
@@ -147,11 +145,16 @@ typedef iris_vector_fixed<bool,2> Vector2b;
 // Common 3D vector types
 typedef iris_vector_fixed<int,3> Vector3i;
 typedef iris_vector_fixed<unsigned int,3> Vector3ui;
-typedef iris_vector_fixed<long,3> Vector3l;
-typedef iris_vector_fixed<unsigned long,3> Vector3ul;
 typedef iris_vector_fixed<float,3> Vector3f;
 typedef iris_vector_fixed<double,3> Vector3d;
 typedef iris_vector_fixed<bool,3> Vector3b;
+
+// Common 3D vector types
+typedef iris_vector_fixed<int,4> Vector4i;
+typedef iris_vector_fixed<unsigned int,4> Vector4ui;
+typedef iris_vector_fixed<long,4> Vector4l;
+typedef iris_vector_fixed<double,4> Vector4d;
+typedef iris_vector_fixed<bool,4> Vector4b;
 
 // A matrix definition
 typedef vnl_matrix_fixed<double,3,3> Matrix3d;

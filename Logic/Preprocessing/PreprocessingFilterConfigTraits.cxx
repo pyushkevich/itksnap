@@ -35,7 +35,6 @@
 
 #include "PreprocessingFilterConfigTraits.h"
 #include "SlicePreviewFilterWrapper.h"
-#include "SlicePreviewFilterWrapper.txx"
 #include "GMMClassifyImageFilter.h"
 #include "GMMClassifyImageFilter.txx"
 #include "RandomForestClassifyImageFilter.h"
@@ -79,10 +78,10 @@ SmoothBinaryThresholdFilterConfigTraits
 void SmoothBinaryThresholdFilterConfigTraits::SetActiveScalarLayer(
     ScalarImageWrapperBase *layer, SmoothBinaryThresholdFilterConfigTraits::FilterType *filter, int channel)
 {
-  ScalarImageWrapperBase::CommonFormatImageType *image =
+  const ScalarImageWrapperBase::CommonFormatImageType *image =
       layer->GetCommonFormatImage(
         static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
-
+  
   filter->SetInput(image);
   filter->SetInputImageMinimum(layer->GetImageMinAsDouble());
   filter->SetInputImageMaximum(layer->GetImageMaxAsDouble());
@@ -112,7 +111,7 @@ EdgePreprocessingFilterConfigTraits
 ::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
 {
   ScalarImageWrapperBase *scalar = sid->GetMain()->GetDefaultScalarRepresentation();
-  ScalarImageWrapperBase::CommonFormatImageType *image =
+  const ScalarImageWrapperBase::CommonFormatImageType *image =
       scalar->GetCommonFormatImage(
         static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
 

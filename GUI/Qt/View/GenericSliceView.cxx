@@ -37,8 +37,9 @@
 #include "QtReporterDelegates.h"
 
 GenericSliceView::GenericSliceView(QWidget *parent) :
-  QtAbstractOpenGLBox(parent)
+  QtVTKRenderWindowBox(parent)
 {
+  // For this widget, set the format to compatibility mode
   m_Model = NULL;
   m_Renderer = GenericSliceRenderer::New();
 
@@ -60,19 +61,11 @@ void GenericSliceView::SetModel(GenericSliceModel *model)
   // Pass the model to the renderer
   m_Renderer->SetModel(m_Model);
 
+  // Assign the renderer
+  this->SetRenderer(m_Renderer);
+
   // Listen to the update events on the model. In response, simply repaint
   connectITK(m_Model, ModelUpdateEvent());
   connectITK(m_Model, SliceModelGeometryChangeEvent());
   connectITK(m_Renderer, AppearanceUpdateEvent());
-}
-
-
-void GenericSliceView::onModelUpdate(const EventBucket &b)
-{
-  // Make sure the model is up to date
-  m_Model->Update();
-
-  // Ask this widget to repaint
-  this->update();
-}
-
+  }

@@ -2,9 +2,6 @@
 
 IRISDisplayGeometry::IRISDisplayGeometry()
 {
-  DisplayToAnatomyRAI[0] = "RPS";
-  DisplayToAnatomyRAI[1] = "AIR";
-  DisplayToAnatomyRAI[2] = "RIP";
 }
 
 IRISDisplayGeometry::IRISDisplayGeometry(
@@ -13,21 +10,6 @@ IRISDisplayGeometry::IRISDisplayGeometry(
   DisplayToAnatomyRAI[0] = rai0;
   DisplayToAnatomyRAI[1] = rai1;
   DisplayToAnatomyRAI[2] = rai2;
-}
-
-IRISDisplayGeometry::IRISDisplayGeometry(const IRISDisplayGeometry &other)
-{
-  DisplayToAnatomyRAI[0] = other.DisplayToAnatomyRAI[0];
-  DisplayToAnatomyRAI[1] = other.DisplayToAnatomyRAI[1];
-  DisplayToAnatomyRAI[2] = other.DisplayToAnatomyRAI[2];
-}
-
-IRISDisplayGeometry &IRISDisplayGeometry::operator =(const IRISDisplayGeometry &other)
-{
-  DisplayToAnatomyRAI[0] = other.DisplayToAnatomyRAI[0];
-  DisplayToAnatomyRAI[1] = other.DisplayToAnatomyRAI[1];
-  DisplayToAnatomyRAI[2] = other.DisplayToAnatomyRAI[2];
-  return *this;
 }
 
 int

@@ -16,7 +16,6 @@
 #include "SimpleFileDialogWithHistory.h"
 #include "ProcessEventsITKCommand.h"
 #include "OptimizationProgressRenderer.h"
-
 #include "QtVTKRenderWindowBox.h"
 
 Q_DECLARE_METATYPE(RegistrationModel::Transformation)
@@ -112,8 +111,8 @@ void RegistrationDialog::on_btnRunRegistration_clicked()
   assert(n_levels > 0);
 
   // Delete all existing render boxes
-  QList<QtVTKRenderWindowBox *> bx = ui->grpPlots->findChildren<QtVTKRenderWindowBox*>();
-  foreach (QtVTKRenderWindowBox * w, bx)
+  QList<QWidget *> bx = ui->grpPlots->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
+  foreach (QWidget *w, bx)
     delete w;
 
   // Turn on the wait cursor
@@ -128,7 +127,8 @@ void RegistrationDialog::on_btnRunRegistration_clicked()
 
   // Background color
   QPalette pMain = ui->pgAuto->palette(), pScroll = ui->scrollPlots->palette();
-  pScroll.setBrush(QPalette::Window, pMain.background());
+  pScroll.setBrush(QPalette::Window, pMain.window());
+  ui->scrollPlots->setVisible(false);
   ui->scrollPlots->setPalette(pScroll);
   ui->scrollAreaWidgetContents->setPalette(pScroll);
 
@@ -136,7 +136,7 @@ void RegistrationDialog::on_btnRunRegistration_clicked()
   for(int k = 0; k < n_levels; k++)
     {
     // Create a new VTK box
-    QtVTKRenderWindowBox *plot = new QtVTKRenderWindowBox(NULL);
+    QtVTKRenderWindowBox *plot = new QtVTKRenderWindowBox(ui->grpPlots);
     m_PlotRenderers[k] = OptimizationProgressRenderer::New();
     m_PlotRenderers[k]->SetModel(m_Model);
     m_PlotRenderers[k]->SetPyramidLevel(k);
@@ -147,6 +147,12 @@ void RegistrationDialog::on_btnRunRegistration_clicked()
 
     ui->grpPlots->layout()->addWidget(plot);
     }
+
+  // Add a spacer so that the plots behave well
+  QVBoxLayout* lo = dynamic_cast<QVBoxLayout *>(ui->grpPlots->layout());
+  lo->addStretch(1.0);
+
+  ui->scrollPlots->setVisible(true);
 
   m_Model->RunAutoRegistration();
 }

@@ -28,6 +28,8 @@
 #include "GenericSliceView.h"
 #include "OrthogonalSliceCursorNavigationModel.h"
 #include "CrosshairsRenderer.h"
+#include "GenericImageData.h"
+#include "IRISApplication.h"
 #include <QPinchGesture>
 #include <QPanGesture>
 #include <QSwipeGesture>
@@ -77,12 +79,12 @@ CrosshairsInteractionMode
 {
   if(ev->button() == Qt::RightButton)
     return Qt::RightButton;
-  if(ev->button() == Qt::MidButton)
-    return Qt::MidButton;
+  if(ev->button() == Qt::MiddleButton)
+    return Qt::MiddleButton;
   else if(ev->button() == Qt::LeftButton && ev->modifiers() == Qt::ControlModifier)
     return Qt::RightButton;
   else if(ev->button() == Qt::LeftButton && ev->modifiers() == Qt::AltModifier)
-    return Qt::MidButton;
+    return Qt::MiddleButton;
   else if(ev->button() == Qt::LeftButton)
     return Qt::LeftButton;
   else return Qt::NoButton;
@@ -250,19 +252,45 @@ void CrosshairsInteractionMode::leaveEvent(QEvent *)
 
 void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
 {
+  // Get the event position and global position
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 15, 0))
+  QPointF epos = event->position(), egpos = event->globalPosition();
+#else
+  QPointF epos = event->pos(), egpos = event->globalPos();
+#endif
+
   // We want to scroll 1 line at a time!
   int scrollLines = QApplication::wheelScrollLines();
   QApplication::setWheelScrollLines(1);
 
-  // Special case - when the user uses shift, we scroll in time, not in Z!
+  // Special case - when the user uses shift, we scroll in component/time, not in Z!
   if(event->modifiers() == Qt::ShiftModifier)
     {
     bool isThumb;
+
+    // The global UI model
+    IRISApplication *app = m_Model->GetParent()->GetDriver();
+
+    // Current layer
     ImageWrapperBase *layer =
         m_Model->GetParent()->GetContextLayerAtPosition(
-          event->pos().x(),
-          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - event->pos().y(),
+          epos.x(),
+          m_Model->GetParent()->GetSizeReporter()->GetLogicalViewportSize()[1] - epos.y(),
         isThumb);
+
+    // Check if image is 4D
+    int n_tp = (int) app->GetNumberOfTimePoints();
+
+    // Figure out the amount of component/timepoint shift
+    static double delta_accum = 0.0;
+    int comp_change = 0;
+
+    delta_accum += event->angleDelta().x() + event->angleDelta().y();
+    if(delta_accum <= -120.0 || delta_accum >= 120.0)
+      {
+      comp_change = (int) (delta_accum / 120.0);
+      delta_accum = 0.0;
+      }
 
     if(layer && layer->GetNumberOfComponents() > 1)
       {
@@ -275,26 +303,26 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
       // Mode must be single component
       if(mode.IsSingleComponent())
         {
-        static double delta_accum = 0.0;
-
-#if QT_VERSION >= 0x050000
-        delta_accum += event->angleDelta().x() + event->angleDelta().y();
-#else
-        delta_accum += event->delta();
-#endif
-
-        if(delta_accum <= -120.0 || delta_accum >= 120.0)
+        if(comp_change != 0)
           {
-          mode.SelectedComponent += (int) (delta_accum / 120.0);
-          delta_accum = 0.0;
+          mode.SelectedComponent += comp_change;
+          if(mode.SelectedComponent < 0)
+            mode.SelectedComponent = 0;
+          else if(mode.SelectedComponent >= (int) layer->GetNumberOfComponents())
+            mode.SelectedComponent = layer->GetNumberOfComponents()-1;
           }
-
-        if(mode.SelectedComponent < 0)
-          mode.SelectedComponent = 0;
-        else if(mode.SelectedComponent >= layer->GetNumberOfComponents())
-          mode.SelectedComponent = layer->GetNumberOfComponents()-1;
         dpolicy->SetDisplayMode(mode);
         }
+      event->accept();
+      }
+
+    else if(n_tp > 1)
+      {
+      int tp = (int) app->GetCursorTimePoint();
+      tp += comp_change;
+      tp = (tp < 0) ? 0 : tp;
+      tp = (tp >= n_tp) ? n_tp - 1 : tp;
+      app->SetCursorTimePoint(tp);
       event->accept();
       }
     }
@@ -302,9 +330,11 @@ void CrosshairsInteractionMode::wheelEvent(QWheelEvent *event)
   else if(m_WheelEventTarget)
     {
     QWheelEvent evnew(
-          event->pos(), event->globalPos(), event->delta(),
+          epos, egpos,
+          event->pixelDelta(), event->angleDelta(),
           event->buttons(), event->modifiers(),
-          event->orientation());
+          event->phase(), event->inverted());
+
     QCoreApplication::sendEvent(m_WheelEventTarget, &evnew);
     event->accept();
     }

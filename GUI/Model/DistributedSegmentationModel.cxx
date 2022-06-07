@@ -47,6 +47,7 @@
 #include "itksys/SystemTools.hxx"
 #include "AllPurposeProgressAccumulator.h"
 #include "ImageAnnotationData.h"
+#include "TimePointProperties.h"
 
 
 namespace dss_model {
@@ -75,7 +76,8 @@ bool TagSpec::IsLayerType() const
 {
   return (type == TAG_LAYER_ANATOMICAL
           || type == TAG_LAYER_MAIN
-          || type == TAG_LAYER_OVERLAY);
+          || type == TAG_LAYER_OVERLAY
+          || type == TAG_LAYER_SEGMENTATION);
 }
 
 const char *ticket_status_emap_initializer[] =
@@ -98,7 +100,8 @@ std::string ticket_status_strings[] =
 
 std::string tag_type_strings[] =
 {
-  "Image Layer", "Main Image", "Overlay Image", "Segmentation Label", "Point Landmark", "Unknown"
+  "Image Layer", "Main Image", "Overlay Image", "Segmentation Image",
+  "Segmentation Label", "Point Landmark", "Time Point", "Unknown"
 };
 
 UniversalTicketId::UniversalTicketId(std::string in_url, IdType in_id)
@@ -357,6 +360,10 @@ DistributedSegmentationModel::GetTagLoadAction(int tag_index) const
     {
     return LOAD_OVERLAY;
     }
+  else if(type == TAG_LAYER_SEGMENTATION && have_main)
+    {
+    return LOAD_SEGMENTATION;
+    }
   else return LOAD_NONE;
 }
 
@@ -417,6 +424,13 @@ void DistributedSegmentationModel::ApplyTagsToTargets()
           (*it)->SetTags(tags);
           }
         }
+      }
+    else if(ts.type == TAG_TIMEPOINT)
+      {
+      // Get TimePoint Properties
+      TimePointProperty *tp = id->GetTimePointProperties()->GetProperty(m_TagSpecArray[i].object_id);
+      // One TimePoint can have multiple tags
+      tp->Tags.AddTag(ts.name);
       }
     }
 }
@@ -712,8 +726,10 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
   type_map.AddPair(TAG_POINT_LANDMARK, "PointLandmark");
   type_map.AddPair(TAG_LAYER_MAIN, "MainImage");
   type_map.AddPair(TAG_LAYER_OVERLAY, "OverlayImage");
+  type_map.AddPair(TAG_LAYER_SEGMENTATION, "SegmentationImage");
   type_map.AddPair(TAG_LAYER_ANATOMICAL, "AnatomicalImage");
   type_map.AddPair(TAG_SEGMENTATION_LABEL, "SegmentationLabel");
+  type_map.AddPair(TAG_TIMEPOINT, "TimePoint");
   type_map.AddPair(TAG_UNKNOWN, "Unknown");
 
   try {
@@ -761,6 +777,7 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
       case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
       case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
       case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
+      case TAG_LAYER_SEGMENTATION: role_filter = LABEL_ROLE; break;
       default: break;
       }
 
@@ -830,6 +847,40 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
         tag.object_id = matches.front()->GetUniqueId();
         tag.desc = matches.front()->GetLandmark().Text;
         return true;
+        }
+      }
+    else if(tag.tag_spec.type == TAG_TIMEPOINT)
+      {
+      // Iterate over the available time point properties
+      unsigned int tp, cnt = 0;
+      TimePointProperty *match;
+      TimePointProperties *tpps = driver->GetIRISImageData()->GetTimePointProperties();
+      unsigned int nt = driver->GetNumberOfTimePoints();
+      for(unsigned int i = 1; i <= nt; ++i)
+        {
+        TimePointProperty *tpp = tpps->GetProperty(i);
+        if (tpp->Tags.Contains(tag.tag_spec.name))
+          {
+            tp = i;
+            match = tpp;
+            ++cnt;
+          }
+        else if (tpp->Nickname.compare(tag.tag_spec.name) == 0)
+          {
+            tp = i;
+            match = tpp;
+            ++cnt;
+          }
+        }
+
+      // Handle the matches. We only assign a match if there is one matching object per list
+      if (cnt == 1)
+        {
+          tag.object_id = tp;
+          std::ostringstream oss;
+          oss << "Time point " << tp << " (" << match->Nickname << ")";
+          tag.desc = oss.str();
+          return true;
         }
       }
     }
@@ -1114,6 +1165,7 @@ bool DistributedSegmentationModel
     {
     TagTargetSpec &tag = m_TagSpecArray[curr_tag];
     value = tag.object_id;
+
     if(domain)
       {
       domain->clear();
@@ -1129,6 +1181,7 @@ bool DistributedSegmentationModel
           case TAG_LAYER_MAIN: role_filter = MAIN_ROLE; break;
           case TAG_LAYER_OVERLAY: role_filter = OVERLAY_ROLE; break;
           case TAG_LAYER_ANATOMICAL: role_filter = MAIN_ROLE | OVERLAY_ROLE; break;
+          case TAG_LAYER_SEGMENTATION: role_filter = LABEL_ROLE; break;
           default: break;
           }
         if(role_filter >= 0 && driver->IsMainImageLoaded())
@@ -1154,7 +1207,30 @@ bool DistributedSegmentationModel
           (*domain)[(*it)->GetUniqueId()] = oss.str();
           }
         }
+
+      // Handle tags to image timepoints
+      else if(tag.tag_spec.type == TAG_TIMEPOINT)
+        {
+        if (driver->IsMainImageLoaded())
+          {
+            // Get number of timepoints
+            unsigned int nt = driver->GetNumberOfTimePoints();
+            for (unsigned int i = 1; i <= nt; ++i)
+              {
+              std::ostringstream oss;
+              oss << "Time point " << i;
+              std::string tp_nickname = driver->GetIRISImageData()->GetTimePointProperties()
+                  ->GetProperty(i)->Nickname;
+              if (tp_nickname.length() > 0)
+                oss << " (" << tp_nickname << ")";
+
+              (*domain)[i] = oss.str();
+              }
+          }
+        }
       }
+
+
     return true;
     }
   return false;
@@ -1194,6 +1270,24 @@ void DistributedSegmentationModel
           break;
           }
         }
+      }
+    else if(ts.tag_spec.type == TAG_TIMEPOINT)
+      {
+      ts.desc = "Unassigned";
+      if (value > 0)
+        {
+        std::ostringstream oss;
+        oss << "TimePoint " << value;
+
+        std::string tp_nickname = driver->GetIRISImageData()->GetTimePointProperties()
+            ->GetProperty(value)->Nickname;
+
+        if (tp_nickname.length() > 0)
+          oss << " (" << tp_nickname << ")";
+
+        ts.desc = oss.str();
+        }
+
       }
 
     // Update the domain

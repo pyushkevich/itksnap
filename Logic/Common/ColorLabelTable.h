@@ -37,7 +37,7 @@
 
 #include "Registry.h"
 #include "ColorLabel.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "itkDataObject.h"
 #include "SNAPEvents.h"
 #include "itkObjectFactory.h"
@@ -57,8 +57,8 @@ public:
   FIRES(SegmentationLabelChangeEvent)
 
   // Flat file IO
-  void LoadFromFile(const char *file) throw(itk::ExceptionObject);
-  void SaveToFile(const char *file) const throw(itk::ExceptionObject);
+  void LoadFromFile(const char *file);
+  void SaveToFile(const char *file) const;
 
   // Registry IO
   void LoadFromRegistry(Registry &registry);

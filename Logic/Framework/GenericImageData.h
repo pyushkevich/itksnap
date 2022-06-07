@@ -60,6 +60,7 @@ class LayerIterator;
 class Registry;
 class GuidedNativeImageIO;
 class ImageAnnotationData;
+class TimePointProperties;
 
 /**
  * \class GenericImageData
@@ -90,6 +91,7 @@ public:
    */
   typedef AnatomicImageWrapper::ImageType                   AnatomicImageType;
   typedef LabelImageWrapper::ImageType                         LabelImageType;
+  typedef LabelImageWrapper::Image4DType                     LabelImage4DType;
 
   // Support for lists of wrappers
   typedef SmartPtr<ImageWrapperBase> WrapperPointer;
@@ -224,12 +226,6 @@ public:
   virtual void UnloadMainImage();
 
   /**
-   * Add a segmentation image as the only segmentation wrapper. The other
-   * segmentation wrappers will be removed.
-   */
-  virtual LabelImageWrapper* SetSingleSegmentationImage(LabelImageType *image);
-
-  /**
    * Get the first segmentation image.
    */
   LabelImageWrapper* GetFirstSegmentationLayer();
@@ -237,7 +233,23 @@ public:
   /**
    * Add a secondary segmentation image without overriding the main one
    */
-  LabelImageWrapper* AddSegmentationImage(LabelImageType *addedLabelImage);
+  LabelImageWrapper* SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing);
+
+  /**
+   * Configure a new segmentation image wrapper from the main image
+   *
+   * Important:
+   * This method is the set of basic steps should be taken to make sure the newly
+   * created segmentation wrapper syncs correctly with the main image layer.
+   * It should be called after creating a new segmentation wrapper
+   *
+   */
+  void ConfigureSegmentationFromMainImage(LabelImageWrapper *wrapper);
+
+  /**
+   * Update a time point in a segmentation using image from disk
+   */
+  void UpdateSegmentationTimePoint(LabelImageWrapper *wrapper, GuidedNativeImageIO *io);
 
   /**
    * Add a blank segmentation image
@@ -289,6 +301,11 @@ public:
   virtual void SetCrosshairs(const Vector3ui &crosshairs);
 
   /**
+   * Set the time point selected
+   */
+  virtual void SetTimePoint(unsigned int time_point);
+
+  /**
    * Set the display to anatomy coordinate mapping, and propagate it to
    * all of the loaded layers
    */
@@ -312,6 +329,9 @@ public:
 
   /** Get the list of annotations created by the user */
   irisGetMacro(Annotations, ImageAnnotationData *)
+
+  /** Get the list of timepoint properties */
+  irisGetMacro(TimePointProperties, TimePointProperties *)
 
   /** Clear all segmentation undo points in this layer collection */
   void ClearUndoPoints();
@@ -352,6 +372,9 @@ protected:
   // this role is generated. The counters are reset when the main image is reloaded
   std::map<LayerRole, int> m_NicknameCounter;
 
+  // TimePointProperties - Nickname, tags etc. for timepoint
+  SmartPtr<TimePointProperties> m_TimePointProperties;
+
   friend class SNAPImageData;
   friend class LayerIterator;
 
@@ -380,6 +403,9 @@ protected:
 
   // Generate an appropriate default nickname for a particular role
   std::string GenerateNickname(LayerRole role);
+
+  // Helper method used to compress a loaded segmentation into an RLE 4D image
+  SmartPtr<LabelImage4DType> CompressSegmentation(GuidedNativeImageIO *io);
 };
 
 #endif

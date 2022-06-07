@@ -49,7 +49,6 @@ namespace itk {
   template <class TIn, class TOut> class DiscreteGaussianImageFilter;
   template <class TIn, class TOut> class GradientMagnitudeImageFilter;
   template <class TIn, class TOut, class Fun> class UnaryFunctorImageFilter;
-  template <class TIn, class TOut> class StreamingImageFilter;
   template <class TIn, class TOut> class CastImageFilter;
 }
 

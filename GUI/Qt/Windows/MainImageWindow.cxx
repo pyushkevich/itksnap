@@ -57,6 +57,7 @@
 #include "HistoryManager.h"
 #include "DefaultBehaviorSettings.h"
 #include "SynchronizationModel.h"
+#include "LayoutReminderDialog.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -70,6 +71,7 @@
 #include <PreferencesDialog.h>
 #include "SaveModifiedLayersDialog.h"
 #include <InterpolateLabelsDialog.h>
+#include <SmoothLabelsDialog.h>
 #include "RegistrationDialog.h"
 #include "DistributedSegmentationDialog.h"
 
@@ -85,9 +87,8 @@
 #include <QDesktopServices>
 #include <SNAPQtCommon.h>
 #include <QMimeData>
-#include <QDesktopWidget>
 #include <QShortcut>
-
+#include <QScreen>
 #include <QTextStream>
 
 QString read_tooltip_qt(const QString &filename)
@@ -212,6 +213,10 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   m_InterpolateLabelsDialog = new InterpolateLabelsDialog(this);
   m_InterpolateLabelsDialog->setModal(false);
+
+  // issue #24: adding label smoothing feature
+  m_SmoothLabelsDialog = new SmoothLabelsDialog(this);
+  m_SmoothLabelsDialog->setModal(false);
 
   m_DSSDialog = new DistributedSegmentationDialog(this);
   m_DSSDialog->setModal(false);
@@ -338,7 +343,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   this->HookupShortcutToAction(QKeySequence("w"), ui->actionOverlayVisibilityToggleAll);
   this->HookupShortcutToAction(QKeySequence("e"), ui->actionOverlayVisibilityIncreaseAll);
   this->HookupShortcutToAction(QKeySequence(Qt::Key_X), ui->actionToggle_All_Annotations);
-  this->HookupShortcutToAction(QKeySequence(Qt::SHIFT + Qt::Key_X), ui->actionToggle_Crosshair);
+  this->HookupShortcutToAction(QKeySequence(Qt::SHIFT | Qt::Key_X), ui->actionToggle_Crosshair);
   this->HookupShortcutToAction(QKeySequence("<"), ui->actionForegroundLabelPrev);
   this->HookupShortcutToAction(QKeySequence(">"), ui->actionForegroundLabelNext);
   this->HookupSecondaryShortcutToAction(QKeySequence(","), ui->actionForegroundLabelPrev);
@@ -478,6 +483,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   m_InterpolateLabelsDialog->SetModel(model->GetInterpolateLabelModel());
   m_RegistrationDialog->SetModel(model->GetRegistrationModel());
   m_DSSDialog->SetModel(model->GetDistributedSegmentationModel());
+  m_SmoothLabelsDialog->SetModel(model->GetSmoothLabelsModel()); // issue #24
 
   // Initialize the docked panels
   m_ControlPanel->SetModel(model);
@@ -723,7 +729,7 @@ void MainImageWindow::onActiveChanged()
 {
   if(this->isActiveWindow())
     {
-    ui->actionUnload_Last_Overlay->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_W));
+    ui->actionUnload_Last_Overlay->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_W));
     ui->actionClose_Window->setVisible(false);
     }
   else
@@ -770,9 +776,6 @@ void MainImageWindow::UpdateCanvasDimensions()
     return;
     }
 
-  // Get the current desktop dimensions
-  QRect desktop = QApplication::desktop()->availableGeometry(this);
-
   // The desired window aspect ratio
   double windowAR = 1.0;
 
@@ -802,17 +805,21 @@ void MainImageWindow::UpdateCanvasDimensions()
   int mw_width = this->width() + (cw_width - ui->centralwidget->width());
 
   // Adjust the width to be within the desktop dimensions
+  auto desktop = this->screen()->availableGeometry();
   mw_width = std::min(desktop.width(), mw_width);
 
+  // Store the old width
+  int old_width = this->width();
+  this->resize(QSize(mw_width, this->height()));
+
   // Deterimine the left point
-  int left = std::max(0, this->pos().x() + this->width() / 2 - mw_width / 2);
+  int left = std::max(0, this->pos().x() + (old_width - this->width()) / 2);
 
   // Adjust the left point if necessary
-  if(left + mw_width > desktop.right())
-    left = std::max(0, desktop.right() - mw_width);
+  if(left + this->width() > desktop.right())
+    left = std::max(0, desktop.right() - this->width());
 
   // Now we want to position the window nicely.
-  this->resize(QSize(mw_width, this->height()));
   this->move(left, this->pos().y());
 }
 
@@ -945,7 +952,7 @@ void MainImageWindow::UpdateRecentMenu()
                          SLOT(LoadRecentActionTriggered()), true, Qt::CTRL);
 
   this->CreateRecentMenu(ui->menuRecent_Overlays, "AnatomicImage", false, 5,
-                         SLOT(LoadRecentOverlayActionTriggered()), true, Qt::CTRL +  Qt::SHIFT);
+                         SLOT(LoadRecentOverlayActionTriggered()), true, Qt::CTRL | Qt::SHIFT);
 
   this->CreateRecentMenu(ui->menuRecent_Segmentations, "LabelImage", false, 5,
                          SLOT(LoadRecentSegmentationActionTriggered()));
@@ -969,7 +976,8 @@ void MainImageWindow::UpdateWindowTitle()
   if(gid && gid->IsMainLoaded())
     {
     mainfile = QFileInfo(from_utf8(gid->GetMain()->GetFileName())).fileName();
-    segfile = QFileInfo(from_utf8(m_Model->GetDriver()->GetSelectedSegmentationLayer()->GetFileName())).fileName();
+    if(m_Model->GetDriver()->GetSelectedSegmentationLayer())
+      segfile = QFileInfo(from_utf8(m_Model->GetDriver()->GetSelectedSegmentationLayer()->GetFileName())).fileName();
     }
 
   // If a project is loaded, we display the project title
@@ -1626,19 +1634,16 @@ void MainImageWindow::ExportScreenshot(int panelIndex)
     return;
 
   // What panel is this?
-  QtAbstractOpenGLBox *target = NULL;
   if(panelIndex == 3)
     {
-    target = ui->panel3D->Get3DView();
+    auto *target = ui->panel3D->Get3DView();
+    target->SaveScreenshot(to_utf8(fuser));
     }
   else
     {
     SliceViewPanel *svp = reinterpret_cast<SliceViewPanel *>(m_ViewPanels[panelIndex]);
-    target = svp->GetSliceView();
+    svp->GetSliceView()->SaveScreenshot(to_utf8(fuser));
     }
-
-  // Call the screenshot saving method, which will execute asynchronously
-  target->SaveScreenshot(to_utf8(fuser));
 
   // Store the last filename
   m_Model->SetLastScreenshotFileName(to_utf8(fuser));
@@ -1695,7 +1700,7 @@ void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
 
   // Get the panel that's saving
   SliceViewPanel *svp = reinterpret_cast<SliceViewPanel *>(m_ViewPanels[iWindow]);
-  QtAbstractOpenGLBox *target = svp->GetSliceView();
+  QtVTKRenderWindowBox *target = svp->GetSliceView();
 
   // turn sync off temporarily
   bool sync_state = m_Model->GetSynchronizationModel()->GetSyncEnabled();
@@ -2109,14 +2114,14 @@ void MainImageWindow::on_actionToggle_Crosshair_triggered()
   // Toggle the crosshair visibility
   OpenGLAppearanceElement *elt = m_Model->GetAppearanceSettings()->GetUIElement(
         SNAPAppearanceSettings::CROSSHAIRS);
-  elt->SetVisible(!elt->GetVisible());
+  elt->SetVisibilityFlag(!elt->GetVisibilityFlag());
 }
 
 void MainImageWindow::on_actionAnnotation_Preferences_triggered()
 {
   // Show the preferences dialog
   m_PreferencesDialog->ShowDialog();
-  m_PreferencesDialog->GoToAppearancePage();
+  m_PreferencesDialog->GoToPage(PreferencesDialog::Appearance);
 }
 
 void MainImageWindow::on_actionAutoContrastGlobal_triggered()
@@ -2200,6 +2205,14 @@ void MainImageWindow::UpdateAutoCheck()
     {
     DoUpdateCheck(true);
     }
+}
+
+void MainImageWindow::RemindLayoutPreference()
+{
+  LayoutReminderDialog *layoutReminder = new LayoutReminderDialog(this);
+
+  layoutReminder->Initialize(this->m_Model);
+  layoutReminder->ConditionalExec();
 }
 
 void MainImageWindow::on_actionCheck_for_Updates_triggered()
@@ -2301,6 +2314,11 @@ void MainImageWindow::on_actionActivatePreviousLayer_triggered()
 void MainImageWindow::on_actionInterpolate_Labels_triggered()
 {
   RaiseDialog(m_InterpolateLabelsDialog);
+}
+
+// issue #24: Add label smoothing feature
+void MainImageWindow::on_actionSmooth_Labels_triggered() {
+  RaiseDialog(m_SmoothLabelsDialog);
 }
 
 void MainImageWindow::on_actionRegistration_triggered()

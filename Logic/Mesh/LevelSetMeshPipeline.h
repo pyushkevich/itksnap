@@ -40,11 +40,11 @@
 #include "vtkSmartPointer.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
+#include <mutex>
 
 // Forward reference to itk classes
 namespace itk {
   template <class TPixel,unsigned int VDimension> class Image;
-  class FastMutexLock;
 }
 
 // Forward reference to our own VTK pipeline
@@ -70,7 +70,7 @@ public:
   typedef itk::SmartPointer<InputImageType> InputImagePointer;
 
   /** Set the input segmentation image */
-  void SetImage(InputImageType *input);
+  void SetImage(const InputImageType *input);
 
   /** Set the mesh options for this filter */
   void SetMeshOptions(const MeshOptions *options);
@@ -79,7 +79,7 @@ public:
       to a mutex lock can be provided. If passed in, the portion of the code
       where the image data is accessed will be locked. This is to prevent mesh
       update clashing with level set evolution iteration. */
-  void UpdateMesh(itk::FastMutexLock *lock = NULL);
+  void UpdateMesh(std::mutex *mutex = nullptr);
 
   /** Get the stored mesh */
   vtkPolyData *GetMesh();

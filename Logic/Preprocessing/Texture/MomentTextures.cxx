@@ -14,8 +14,7 @@ namespace bilwaj {
 template <class TInputImage, class TOutputImage>
 void
 MomentTextureFilter<TInputImage, TOutputImage>
-::ThreadedGenerateData(const RegionType & outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const RegionType & outputRegionForThread)
 {
   // Iterator for the output region
   typedef itk::ImageRegionIteratorWithIndex<OutputImageType> OutputIteratorType;

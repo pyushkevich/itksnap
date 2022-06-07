@@ -46,6 +46,8 @@
 #include "itkImageToImageFilter.h"
 #include "itkTransform.h"
 #include "itkDataObjectDecorator.h"
+#include "itkVectorImage.h"
+#include "itkImageAdaptor.h"
 
 using itk::DataObjectDecorator;
 using itk::ProcessObject;
@@ -55,7 +57,6 @@ template <typename TImage, typename TFloat, unsigned int VDim> class FastLinearI
 
 namespace itk
 {
-template <typename TImage, typename TAccessor> class ImageAdaptor;
 template <typename TPixelType, unsigned int Dimension> class VectorImageToImageAdaptor;
 }
 
@@ -64,13 +65,13 @@ template <typename TPixelType, unsigned int Dimension> class VectorImageToImageA
  * data in the input image by the NonOrthogonalSlicer.
  */
 template <typename TInputImage, typename TOutputImage>
-class NonOrthogonalSlicerPixelAccessTraitsWorker
+class DefaultNonOrthogonalSlicerWorkerTraits
 {
 public:
   typedef typename TOutputImage::InternalPixelType OutputComponentType;
 
-  NonOrthogonalSlicerPixelAccessTraitsWorker(TInputImage *image);
-  ~NonOrthogonalSlicerPixelAccessTraitsWorker();
+  DefaultNonOrthogonalSlicerWorkerTraits(TInputImage *image);
+  ~DefaultNonOrthogonalSlicerWorkerTraits();
 
   inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
 
@@ -91,6 +92,110 @@ protected:
 
 
 /**
+ * Partial template specialization of DefaultNonOrthogonalSlicerWorkerTraits
+ * for itk::VectorImageToImageAdaptor
+ */
+template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
+class DefaultNonOrthogonalSlicerWorkerTraits<
+    itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
+{
+public:
+  // Dimensions of the individual volume
+  typedef itk::VectorImageToImageAdaptor<TPixelType, Dimension> AdaptorType;
+  typedef typename TOutputImage::InternalPixelType OutputComponentType;
+
+  DefaultNonOrthogonalSlicerWorkerTraits(AdaptorType *adaptor);
+  ~DefaultNonOrthogonalSlicerWorkerTraits();
+
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
+
+protected:
+
+  // The actual image type
+  typedef typename AdaptorType::InternalImageType InternalImageType;
+
+  // The interpolator object used internally
+  typedef FastLinearInterpolator<InternalImageType, double, AdaptorType::ImageDimension> Interpolator;
+  Interpolator m_Interpolator;
+
+  // Number of components
+  int m_NumComponents, m_ExtractComponent;
+
+  // Temporary buffer
+  double m_BufferValue;
+};
+
+
+/**
+ * Partial template specialization of DefaultNonOrthogonalSlicerWorkerTraits
+ * for generic image adapters wrapping a vector image
+ */
+template <typename TPixelType, unsigned int Dimension, typename TAccessor, typename TOutputImage>
+class DefaultNonOrthogonalSlicerWorkerTraits<
+    itk::ImageAdaptor<itk::VectorImage<TPixelType, Dimension>, TAccessor>, TOutputImage>
+{
+public:
+
+  // Dimensions of the individual volume
+  typedef itk::VectorImage<TPixelType, Dimension> InternalImageType;
+  typedef itk::ImageAdaptor<InternalImageType, TAccessor> AdaptorType;
+  typedef typename TOutputImage::InternalPixelType OutputComponentType;
+
+  DefaultNonOrthogonalSlicerWorkerTraits(AdaptorType *adaptor);
+  ~DefaultNonOrthogonalSlicerWorkerTraits();
+
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
+
+protected:
+
+  // The interpolator object used internally
+  typedef FastLinearInterpolator<InternalImageType, double, AdaptorType::ImageDimension> Interpolator;
+  Interpolator m_Interpolator;
+
+  // Number of components
+  int m_NumComponents;
+
+  // Temporary buffer for interpolation
+  double *m_Buffer;
+
+  // Temporary buffer for computing the derived quantity
+  typename InternalImageType::PixelType m_VectorPixel;
+
+  // A pointer to the adaptor
+  typename AdaptorType::Pointer m_Adaptor;
+};
+
+
+/**
+ * Partial template specialization of DefaultNonOrthogonalSlicerWorkerTraits
+ * for RLEImage.
+ *
+ * TODO: this should be updated to support nearest neighbor interpolation!
+ */
+template <typename TPixel, unsigned int Dimension, typename TCounter, typename TOutputImage>
+class DefaultNonOrthogonalSlicerWorkerTraits<
+    RLEImage<TPixel, Dimension, TCounter>, TOutputImage>
+{
+public:
+
+  typedef RLEImage<TPixel, Dimension, TCounter> InputImageType;
+  typedef typename TOutputImage::InternalPixelType OutputComponentType;
+
+  DefaultNonOrthogonalSlicerWorkerTraits(InputImageType *adaptor);
+  ~DefaultNonOrthogonalSlicerWorkerTraits();
+
+  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
+
+  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
+
+protected:
+  typename InputImageType::Pointer m_Image;
+};
+
+
+/**
  * This is an alternative slicer that functions more or less like an ITK
  * ResampleImageFilter, but more efficiently and directly maps the data to
  * a 2D slice.
@@ -98,7 +203,8 @@ protected:
  * The filter takes a transform and a reference image from which the slice is
  * generated.
  */
-template <typename TInputImage, typename TOutputImage>
+template <typename TInputImage, typename TOutputImage,
+          typename TWorkerTraits = DefaultNonOrthogonalSlicerWorkerTraits<TInputImage, TOutputImage> >
 class NonOrthogonalSlicer
     : public itk::ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -125,7 +231,7 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(NonOrthogonalSlicer, ImageToImageFilter)
 
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  itkStaticConstMacro(SliceDimension, unsigned int, TOutputImage::ImageDimension);
   itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
 
   typedef itk::ImageBase<InputImageDimension>          ReferenceImageBaseType;
@@ -136,9 +242,6 @@ public:
   /** Some more typedefs. */
   typedef typename InputImageType::RegionType             InputImageRegionType;
   typedef typename OutputImageType::RegionType           OutputImageRegionType;
-
-  /** The worker class */
-  typedef NonOrthogonalSlicerPixelAccessTraitsWorker<TInputImage, TOutputImage> WorkerType;
 
   /** Reference image input */
   itkSetInputMacro(ReferenceImage, ReferenceImageBaseType)
@@ -159,16 +262,13 @@ protected:
 
   /** The traits class */
 
-  virtual void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                                    itk::ThreadIdType threadId) ITK_OVERRIDE;
+  virtual void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
 
-  virtual void VerifyInputInformation() ITK_OVERRIDE { }
+  virtual void VerifyInputInformation() const ITK_OVERRIDE { }
 
   virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
   virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
-
-private:
 
   bool m_UseNearestNeighbor;
 };
@@ -176,105 +276,8 @@ private:
 
 
 
-/**
- * An specialization of the traits class for RLE images
- */
-template <typename TPixel, typename CounterType, typename TOutputImage>
-class NonOrthogonalSlicerPixelAccessTraitsWorker<
-    RLEImage<TPixel, 3, CounterType>, TOutputImage>
-{
-public:
-
-  typedef RLEImage<TPixel, 3, CounterType> InputImageType;
-  typedef typename TOutputImage::InternalPixelType OutputComponentType;
-
-  NonOrthogonalSlicerPixelAccessTraitsWorker(InputImageType *adaptor) {}
-  ~NonOrthogonalSlicerPixelAccessTraitsWorker() {}
-
-  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr)
-  {
-    assert(0);
-  }
-
-  inline void SkipVoxels(int n, OutputComponentType **out_ptr) {}
-};
 
 
-/**
- * An specialization of the traits class for Image adapters
- */
-template <typename TPixelType, unsigned int Dimension, typename TAccessor, typename TOutputImage>
-class NonOrthogonalSlicerPixelAccessTraitsWorker<
-    itk::ImageAdaptor<itk::VectorImage<TPixelType, Dimension>, TAccessor>, TOutputImage>
-{
-public:
-
-  typedef itk::VectorImage<TPixelType, Dimension> VectorImageType;
-  typedef itk::ImageAdaptor<VectorImageType, TAccessor> AdaptorType;
-  typedef typename TOutputImage::InternalPixelType OutputComponentType;
-
-  NonOrthogonalSlicerPixelAccessTraitsWorker(AdaptorType *adaptor);
-  ~NonOrthogonalSlicerPixelAccessTraitsWorker();
-
-  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
-  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
-
-protected:
-
-  // The interpolator object used internally
-  typedef FastLinearInterpolator<VectorImageType, double, AdaptorType::ImageDimension> Interpolator;
-  Interpolator m_Interpolator;
-
-  // Number of components
-  int m_NumComponents;
-
-  // Temporary buffer for interpolation
-  double *m_Buffer;
-
-  // Temporary buffer for computing the derived quantity
-  typename VectorImageType::PixelType m_VectorPixel;
-
-  // A pointer to the adaptor
-  typename AdaptorType::Pointer m_Adaptor;
-};
-
-
-
-
-
-/**
- * This is a helper traits class that can be used to modify the access of pixel
- * data in the input image by the NonOrthogonalSlicer.
- */
-template <typename TPixelType, unsigned int Dimension, typename TOutputImage>
-class NonOrthogonalSlicerPixelAccessTraitsWorker<
-    itk::VectorImageToImageAdaptor<TPixelType, Dimension>, TOutputImage>
-{
-public:
-  typedef itk::VectorImageToImageAdaptor<TPixelType, Dimension> AdaptorType;
-  typedef typename TOutputImage::InternalPixelType OutputComponentType;
-
-  NonOrthogonalSlicerPixelAccessTraitsWorker(AdaptorType *adaptor);
-  ~NonOrthogonalSlicerPixelAccessTraitsWorker();
-
-  inline void ProcessVoxel(double *cix, bool use_nn, OutputComponentType **out_ptr);
-  inline void SkipVoxels(int n, OutputComponentType **out_ptr);
-
-protected:
-
-  // The actual image type
-  typedef typename AdaptorType::InternalImageType InternalImageType;
-
-  // The interpolator object used internally
-  typedef FastLinearInterpolator<InternalImageType, double, AdaptorType::ImageDimension> Interpolator;
-  Interpolator m_Interpolator;
-
-  // Number of components
-  int m_NumComponents, m_ExtractComponent;
-
-  // Temporary buffer
-  double m_BufferValue;
-};
 
 
 

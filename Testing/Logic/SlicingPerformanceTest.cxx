@@ -53,17 +53,17 @@ RLImage toRLImage(Seg3DImageType::Pointer image)
 {
     itk::Size<3> iSize = image->GetLargestPossibleRegion().GetSize();
     RLImage result(iSize[2]);
-    for (int z = 0; z < iSize[2]; z++)
+    for (unsigned int z = 0; z < iSize[2]; z++)
         result[z].resize(iSize[1]);
     itk::Index<3> ind;
-    for (int z = 0; z < iSize[2]; z++)
+    for (unsigned int z = 0; z < iSize[2]; z++)
     {
         ind[2] = z;
-        for (int y = 0; y < iSize[1]; y++)
+        for (unsigned int y = 0; y < iSize[1]; y++)
         {
             ind[1] = y;
             ind[0] = 0;
-            int x = 0;
+            unsigned int x = 0;
             RLLine l;         
             while (x < iSize[0])
             {
@@ -87,7 +87,7 @@ Seg3DImageType::RegionType reg;
 
 void uncompressLine(RLLine line, short *out)
 {
-    for (int x = 0; x < line.size(); x++)
+    for (unsigned int x = 0; x < line.size(); x++)
         for (int r = 0; r < line[x].first; r++)
             *(out++) = line[x].second;
 }
@@ -98,21 +98,21 @@ void cropRLI(RLImage image, short *outSlice)
     size[2] = image.size();
     size[1] = image[0].size();
     size[0] = 0;
-    for (int x = 0; x < image[0][0].size(); x++)
+    for (unsigned int x = 0; x < image[0][0].size(); x++)
         size[0] += image[0][0][x].first;
 
     if (axis == 2) //slicing along z
-        for (int y = 0; y < size[1]; y++)
+        for (unsigned int y = 0; y < size[1]; y++)
             uncompressLine(image[sliceIndex][y], outSlice + y*size[0]);
     else if (axis == 1) //slicing along y
-        for (int z = 0; z < size[2]; z++)
+        for (unsigned int z = 0; z < size[2]; z++)
             uncompressLine(image[z][sliceIndex], outSlice + z*size[0]);
     else //slicing along x, the low-preformance case
-        for (int z = 0; z < size[2]; z++)
-            for (int y = 0; y < size[1]; y++)
+        for (unsigned int z = 0; z < size[2]; z++)
+            for (unsigned int y = 0; y < size[1]; y++)
             {
                 int t = 0;
-                for (int x = 0; x < image[z][y].size(); x++)
+                for (unsigned int x = 0; x < image[z][y].size(); x++)
                 {
                     t += image[z][y][x].first;
                     if (t > sliceIndex)

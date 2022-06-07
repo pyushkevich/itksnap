@@ -23,26 +23,39 @@ QGroupBox {
   margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
-  font-family: helvetica;
-  color: rgb(30,30,160);
-  background-color: rgb(237,237,237);
+  background-color: palette(midlight);
   padding: 5px;
-  border-radius: 4px;
-  border: 1px solid rgb(130,130,130);
+  border-radius: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(128,128,128);
 }
-QGroupBox:!enabled {
-  color: rgb(108,108,108);
-}
+
 QGroupBox::title {
   subcontrol-origin: 	margin;
   subcontrol-position: top left;
+}
+
+QGroupBox &gt; QGroupBox {
+  background-origin: content;
+  margin-top: 15px;
+  font-weight: normal;
+  font-size: 12px;
+  font-family: helvetica;
+  background-color: palette(midlight);
+  padding: 5px;
+  border-radius: 0px;
+  border-top: 1px solid rgb(128,128,128);
+  border-left: none;
+  border-right:none;
+  border-bottom:none;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTabWidget" name="tabMode">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tabThreshold">
       <attribute name="title">
@@ -545,7 +558,7 @@ QGroupBox::title {
               <widget class="QLabel" name="label_22">
                <property name="styleSheet">
                 <string notr="true">font-size:10px;
-color: rgb(64, 64, 64);</string>
+color: rgb(108,108,108);</string>
                </property>
                <property name="text">
                 <string>Allows you to provide geometrical hints to the segmentation, for example avoiding leaking into a certain region</string>
@@ -582,7 +595,7 @@ color: rgb(64, 64, 64);</string>
               <widget class="QLabel" name="label_21">
                <property name="styleSheet">
                 <string notr="true">font-size:10px;
-color: rgb(64, 64, 64);</string>
+color: rgb(108,108,108);</string>
                </property>
                <property name="text">
                 <string>Neighboring intensity values around each voxel are included as additional features. Can help you segment images with rich texture or complex patterns, but classification will be slower</string>
@@ -731,7 +744,7 @@ color: rgb(64, 64, 64);</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">font-size:10px;
-color: rgb(64, 64, 64);</string>
+color: rgb(108,108,108);</string>
                </property>
                <property name="text">
                 <string>Boost the contribution of the foreground class to the speed image</string>
@@ -784,7 +797,7 @@ color: rgb(64, 64, 64);</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">font-size:10px;
-color: rgb(64, 64, 64);</string>
+color: rgb(108,108,108);</string>
                </property>
                <property name="text">
                 <string>More trees produce more accurate classification at the cost of more time.</string>
@@ -837,7 +850,7 @@ color: rgb(64, 64, 64);</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">font-size:10px;
-color: rgb(64, 64, 64);</string>
+color: rgb(108,108,108);</string>
                </property>
                <property name="text">
                 <string>Increase when there are many features and complex patterns to be learned</string>
@@ -1344,7 +1357,7 @@ color: rgb(64, 64, 64);</string>
         <number>2</number>
        </property>
        <item row="1" column="0">
-        <widget class="QtSimpleOpenGLBox" name="viewEdgeMapping" native="true">
+        <widget class="QtVTKRenderWindowBox" name="viewEdgeMapping" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
            <horstretch>0</horstretch>
@@ -1705,24 +1718,18 @@ color: rgb(64, 64, 64);</string>
   <customwidget>
    <class>QDoubleSlider</class>
    <extends>QSlider</extends>
-   <header location="global">QDoubleSlider.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QDoubleSliderWithEditor</class>
-   <extends>QSlider</extends>
-   <header location="global">QDoubleSliderWithEditor.h</header>
-  </customwidget>
-  <customwidget>
-   <class>QtSimpleOpenGLBox</class>
-   <extends>QWidget</extends>
-   <header location="global">QtSimpleOpenGLBox.h</header>
-   <container>1</container>
+   <header>QDoubleSlider.h</header>
   </customwidget>
   <customwidget>
    <class>QtVTKRenderWindowBox</class>
    <extends>QWidget</extends>
    <header location="global">QtVTKRenderWindowBox.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QDoubleSliderWithEditor</class>
+   <extends>QSlider</extends>
+   <header location="global">QDoubleSliderWithEditor.h</header>
   </customwidget>
  </customwidgets>
  <resources>

@@ -45,12 +45,7 @@
 #include "itkSegmentationLevelSetFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
-#include "itkVectorCastImageFilter.h"
 #include "SNAPAdvectionFieldImageFilter.h"
-
-#ifndef THREAD_SPECIFIC_DATA
-  #include "ThreadSpecificData.h"
-#endif
 
 /**
   \class SNAPLevelSetFunction
@@ -94,11 +89,6 @@
 
   PY 2012: The function has been modified to cache the speed values, so that
   separate calls to GetXXXSpeed do not result in unnecessary interpolations.
-  This takes advantage of the ThreadSpecificData object, which acts like a
-  class member that is thread-specific. A better solution still would be to
-  change the behaviour of ComputeUpdate in the LevelSetFunction to query all
-  of the speed values at once from the child class. But that requires making
-  a copy of the large chunk of the ITK API, which causes maintenance issues.
  */
 template <class TSpeedImageType, class TImageType>
 class ITK_EXPORT SNAPLevelSetFunction
@@ -127,6 +117,7 @@ public:
 
   typedef TSpeedImageType SpeedImageType;
   typedef typename SpeedImageType::Pointer             SpeedImagePointer;
+  typedef typename SpeedImageType::PixelType              SpeedPixelType;
 
   typedef typename Superclass::NeighborhoodType         NeighborhoodType;
   typedef typename Superclass::ScalarValueType           ScalarValueType;
@@ -342,18 +333,6 @@ private:
 
   /** The constant time step */
   TimeStepType m_TimeStepFactor;
-
-  /** A casting functor to convert between vector types.  */
-  itk::Functor::VectorCast< 
-    ITK_TYPENAME VectorInterpolatorType::OutputType,
-    VectorType > m_VectorCast;
-
-  /** The current value of the speed function */
-#ifndef THREAD_SPECIFIC_DATA
-  ThreadSpecificData<ScalarValueType> m_CachedSpeed;
-#else
-  ScalarValueType m_CachedSpeed;
-#endif
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

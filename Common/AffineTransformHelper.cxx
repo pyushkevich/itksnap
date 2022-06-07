@@ -246,7 +246,7 @@ AffineTransformHelper::GetRASMatrix(const ITKTransformBase *t)
   vnl_matrix<double> Q(4, 4);
   vnl_matrix<double> v(offset.GetVnlVector().data_block(), 3, 1);
   Q.set_identity();
-  Q.update(matrix.GetVnlMatrix(), 0, 0);
+  Q.update(matrix.GetVnlMatrix().as_ref(), 0, 0);
   Q.update(v, 0, 3);
 
   // Flip between RAS and LPS

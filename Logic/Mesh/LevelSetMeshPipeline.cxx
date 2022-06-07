@@ -79,7 +79,7 @@ LevelSetMeshPipeline
 
 void
 LevelSetMeshPipeline
-::UpdateMesh(itk::FastMutexLock *lock)
+::UpdateMesh(std::mutex *mutex)
 {
   // We need to generate a new mesh object. Otherwise, if there is concurrent
   // rendering and mesh computation, the mesh would be accessed by two threads
@@ -87,7 +87,7 @@ LevelSetMeshPipeline
   m_Mesh = vtkSmartPointer<vtkPolyData>::New();
 
   // Run the pipeline
-  m_VTKPipeline->ComputeMesh(m_Mesh, lock);
+  m_VTKPipeline->ComputeMesh(m_Mesh, mutex);
 
   // Set the modified flag so that we can use the MTime() of this object for dirty checks
   this->Modified();
@@ -100,7 +100,7 @@ vtkPolyData *LevelSetMeshPipeline::GetMesh()
 
 void 
 LevelSetMeshPipeline
-::SetImage(InputImageType *image)
+::SetImage(const InputImageType *image)
 {
   // Hook the input into the pipeline
   m_VTKPipeline->SetImage(image);

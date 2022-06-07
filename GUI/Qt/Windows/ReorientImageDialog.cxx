@@ -8,11 +8,11 @@
 #include <QtComboBoxCoupling.h>
 #include <QtTableWidgetCoupling.h>
 #include <QtWidgetActivator.h>
-#include <QtSimpleOpenGLBox.h>
 
 #include <QtVTKInteractionDelegateWidget.h>
 #include <vtkGenericRenderWindowInteractor.h>
 #include <vtkInteractorStyleTrackballCamera.h>
+#include <LayoutReminderDialog.h>
 
 Q_DECLARE_METATYPE(ImageCoordinateGeometry::AxisDirection);
 
@@ -87,6 +87,11 @@ void ReorientImageDialog::on_btnApply_clicked()
 {
   // Tell model to apply RAI code
   m_Model->ApplyCurrentRAI();
+
+  // Show the layout reminder dialog
+  LayoutReminderDialog *lr = new LayoutReminderDialog(this);
+  lr->Initialize(this->m_Model->GetParent());
+  lr->ConditionalExec();
 }
 
 void ReorientImageDialog::on_btnReverseX_clicked()

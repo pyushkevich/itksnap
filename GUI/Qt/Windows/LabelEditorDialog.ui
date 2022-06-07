@@ -19,15 +19,32 @@
   margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
-  color: rgb(30,30,160);
-  background-color: rgb(237,237,237);
+  background-color: palette(midlight);
   padding: 5px;
-  border-radius: 4px;
-  border: 1px solid rgb(130,130,130);
+  border-radius: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(128,128,128);
 }
+
 QGroupBox::title {
   subcontrol-origin: 	margin;
   subcontrol-position: top left;
+}
+
+QGroupBox &gt; QGroupBox {
+  background-origin: content;
+  margin-top: 15px;
+  font-weight: normal;
+  font-size: 12px;
+  font-family: helvetica;
+  background-color: palette(midlight);
+  padding: 5px;
+  border-radius: 0px;
+  border-top: 1px solid rgb(128,128,128);
+  border-left: none;
+  border-right:none;
+  border-bottom:none;
 }</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
@@ -282,19 +299,6 @@ QGroupBox::title {
            </property>
           </widget>
          </item>
-         <item row="2" column="3">
-          <widget class="QSpinBox" name="inBlue">
-           <property name="maximumSize">
-            <size>
-             <width>56</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="maximum">
-            <number>255</number>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="0" rowspan="5">
           <widget class="ColorWheel" name="inColorWheel" native="true">
            <property name="sizePolicy">
@@ -352,6 +356,19 @@ QGroupBox::title {
             </size>
            </property>
           </spacer>
+         </item>
+         <item row="2" column="3" colspan="2">
+          <widget class="QSpinBox" name="inBlue">
+           <property name="maximumSize">
+            <size>
+             <width>56</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="maximum">
+            <number>255</number>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -436,23 +453,7 @@ QGroupBox::title {
       <item>
        <widget class="QGroupBox" name="groupBox">
         <property name="styleSheet">
-         <string notr="true">QGroupBox {
-  background-origin: content;
-  margin-top: 15px;
-  font-weight: normal;
-  color: black;
-  background-color: rgb(237,237,237);
-  padding: 5px;
-  border-radius: 0px;
-  border-top: 1px solid rgb(130,130,130);
-  border-left: none;
-  border-right:none;
-  border-bottom:none;
-}
-QGroupBox::title {
-  subcontrol-origin: 	margin;
-  subcontrol-position: top left;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="title">
          <string>Visibility:</string>
@@ -512,23 +513,7 @@ QGroupBox::title {
       <item>
        <widget class="QGroupBox" name="groupBox_2">
         <property name="styleSheet">
-         <string notr="true">QGroupBox {
-  background-origin: content;
-  margin-top: 15px;
-  font-weight: normal;
-  color: black;
-  background-color: rgb(237,237,237);
-  padding: 5px;
-  border-radius: 0px;
-  border-top: 1px solid rgb(130,130,130);
-  border-left: none;
-  border-right:none;
-  border-bottom:none;
-}
-QGroupBox::title {
-  subcontrol-origin: 	margin;
-  subcontrol-position: top left;
-}</string>
+         <string notr="true"/>
         </property>
         <property name="title">
          <string>Advanced Options:</string>
@@ -670,7 +655,7 @@ QGroupBox::title {
          <bool>false</bool>
         </attribute>
         <attribute name="verticalHeaderDefaultSectionSize">
-         <number>22</number>
+         <number>24</number>
         </attribute>
        </widget>
       </item>
@@ -768,7 +753,7 @@ QGroupBox::title {
   <customwidget>
    <class>QColorButtonWidget</class>
    <extends>QWidget</extends>
-   <header>QColorButtonWidget.h</header>
+   <header location="global">QColorButtonWidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

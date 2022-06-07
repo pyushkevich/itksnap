@@ -29,7 +29,6 @@
 
 #include <SNAPCommon.h>
 #include <ImageCoordinateTransform.h>
-#include <OpenGLSliceTexture.h>
 #include <SNAPEvents.h>
 #include "AbstractModel.h"
 #include "ImageWrapper.h"
@@ -175,6 +174,11 @@ public:
   Vector2d MapSliceToWindow(const Vector3d &xSlice);
 
   /**
+   * Get the corners of the slide in window coordinates
+   */
+  std::pair<Vector2d, Vector2d> GetSliceCornersInWindowCoordinates() const;
+
+  /**
    * Map a point in slice coordinates to a point in PHYISCAL window coordinates
    */
   Vector2d MapSliceToPhysicalWindow(const Vector3d &xSlice);
@@ -292,6 +296,9 @@ public:
   /** Get the slice spacing in the display space orientation */
   irisGetMacro(SliceSize,Vector3i)
 
+  /** Get the corners of the rectangle in slice coordinates */
+  std::pair<Vector2d, Vector2d> GetSliceCorners() const;
+
   /** The id (slice direction) of this slice model */
   irisGetMacro(Id, int)
 
@@ -306,7 +313,7 @@ public:
    * view is in tiled mode, this reports the size of one of the tiles. When the
    * new is in main/thumbnail mode, this reports the size of the main view
    */
-  Vector2ui GetCanvasSize();
+  Vector2ui GetCanvasSize() const;
 
   /**
    * Whether rendering in tiled mode

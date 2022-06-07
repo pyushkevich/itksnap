@@ -224,6 +224,7 @@ IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
 #include "itkImageLinearIteratorWithIndex.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageConstIterator.h"
+#include "itkImageFileWriter.h"
 
 // This method is templated to allow preview input and actual input to be different
 // types

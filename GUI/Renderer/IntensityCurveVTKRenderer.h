@@ -25,11 +25,11 @@ public:
 
   void SetModel(IntensityCurveModel *model);
 
+  void SetRenderWindow(vtkRenderWindow *rwin) override;
+
   void OnUpdate() ITK_OVERRIDE;
 
   void UpdatePlotValues();
-
-  virtual void paintGL() ITK_OVERRIDE;
 
 protected:
 

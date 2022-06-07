@@ -15,7 +15,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QLineEdit:read-only {
-  background-color:rgb(240,240,240);
+  background-color:palette(midlight);
 }
 QTableWidget {
   font: 10px fixed;

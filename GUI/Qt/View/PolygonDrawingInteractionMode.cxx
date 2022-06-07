@@ -1,7 +1,6 @@
 #include "PolygonDrawingInteractionMode.h"
 #include "PolygonDrawingRenderer.h"
 #include "PolygonDrawingModel.h"
-#include "QtAbstractOpenGLBox.h"
 #include "QtWarningDialog.h"
 #include "QtWidgetActivator.h"
 #include "IRISApplication.h"
@@ -78,6 +77,8 @@ void PolygonDrawingInteractionMode::mousePressEvent(QMouseEvent *ev)
     }
 }
 
+#include <vtkRenderWindow.h>
+
 void PolygonDrawingInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   ev->ignore();
@@ -91,6 +92,8 @@ void PolygonDrawingInteractionMode::mouseMoveEvent(QMouseEvent *ev)
     if(m_Model->ProcessMouseMoveEvent(m_XSlice(0), m_XSlice(1)))
       {
       ev->accept();
+      // TODO: commenting out for now because calling Render outside of GL context causes problems
+      // m_ParentView->GetRenderWindow()->Render();
       m_ParentView->update();
       }
     }
@@ -133,14 +136,7 @@ void PolygonDrawingInteractionMode::onPastePolygon()
 void PolygonDrawingInteractionMode::onAcceptPolygon()
 {
   // Make current GL context current before running any GL operations
-  QtAbstractOpenGLBox *parent = this->GetParentGLWidget();
-  parent->makeCurrent();
-
-  // This is hacky, but we need the viewport in the parent GL widget to be
-  // set to the entire window. This is needed because the rendering of the
-  // slice view may set up multiple viewports, and for polygon rasterization
-  // we only need one.
-  glViewport(0, 0, parent->width(), parent->height());
+  QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
 
   // Create a warning list
   std::vector<IRISWarning> warnings;

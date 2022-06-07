@@ -12,6 +12,7 @@
 #include <vtkAxis.h>
 #include <vtkContextMouseEvent.h>
 #include "vtkGenericOpenGLRenderWindow.h"
+#include <vtkTextProperty.h>
 
 #include <cstdlib>
 #include <algorithm>
@@ -26,7 +27,7 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   m_Chart->SetActionToButton(vtkChartXY::ZOOM_AXIS, vtkContextMouseEvent::RIGHT_BUTTON);
 
   // Add the chart to the renderer
-  m_ContextView->GetScene()->AddItem(m_Chart);
+  this->GetScene()->AddItem(m_Chart);
 
   // Set up the data
   m_DataX = vtkSmartPointer<vtkFloatArray>::New();
@@ -51,14 +52,11 @@ OptimizationProgressRenderer::OptimizationProgressRenderer()
   m_Plot->GetXAxis()->SetTitle("Iteration");
   m_Plot->GetXAxis()->SetBehavior(vtkAxis::FIXED);
   m_Plot->GetYAxis()->SetTitle("Metric");
+  m_Plot->GetXAxis()->GetLabelProperties()->SetFontSize(9);
+  m_Plot->GetYAxis()->GetLabelProperties()->SetFontSize(9);
 
   // Set the background to white
-  m_BackgroundColor.fill(1.0);
-
-  // Customize the render window
-  this->m_RenderWindow->SetMultiSamples(0);
-  this->m_RenderWindow->SetLineSmoothing(1);
-  this->m_RenderWindow->SetPolygonSmoothing(1);
+  this->SetBackgroundColor(Vector3d(1.0, 1.0, 1.0));
 
   m_PyramidLevel = 0;
 }
@@ -69,8 +67,17 @@ void OptimizationProgressRenderer::SetModel(RegistrationModel *model)
 
   // Rebroadcast the relevant events from the model in order for the
   // widget that uses this renderer to cause an update
-  Rebroadcast(model->GetLastMetricValueModel(), ValueChangedEvent(), ModelUpdateEvent());
+  Rebroadcast(model->GetLastMetricValueModel(), ValueChangedEvent(), ModelUpdateEvent()); 
+}
 
+void OptimizationProgressRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  Superclass::SetRenderWindow(rwin);
+
+  // Customize the render window
+  rwin->SetMultiSamples(0);
+  rwin->SetLineSmoothing(1);
+  rwin->SetPolygonSmoothing(1);
 }
 
 void OptimizationProgressRenderer::OnUpdate()
@@ -87,7 +94,7 @@ void OptimizationProgressRenderer::OnUpdate()
     {
     for(int i = 0; i < mlog[m_PyramidLevel].size(); i++, x++)
       {
-      double y = mlog[m_PyramidLevel][i].TotalMetric;
+      double y = mlog[m_PyramidLevel][i].TotalPerPixelMetric;
       m_DataX->InsertNextValue(x);
       m_DataY->InsertNextValue(y);
 

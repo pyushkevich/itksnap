@@ -57,6 +57,9 @@ itkEventMacro(NullEvent, IRISEvent)
 /** 3D cursor update event */
 itkEventMacro(CursorUpdateEvent, IRISEvent)
 
+/** 4D cursor timepoint update event */
+itkEventMacro(CursorTimePointUpdateEvent, IRISEvent)
+
 /** The set of layers loaded into SNAP has changed */
 itkEventMacro(LayerChangeEvent, IRISEvent)
 

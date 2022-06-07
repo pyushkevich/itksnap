@@ -14,7 +14,6 @@ class GlobalUIModel;
 class QJSEngine;
 class QQmlEngine;
 class QTimer;
-class QStringList;
 
 #if QT_VERSION >= 0x050000
   class QJSEngine;
@@ -126,6 +125,9 @@ protected:
 
   // Acceleration factor
   double m_Acceleration;
+
+  // Test worker
+  TestWorker *m_Worker;
 
   // Helper functions
   QModelIndex findItem(QObject *container, QVariant text);

@@ -5,7 +5,7 @@
 #include "PropertyModel.h"
 #include "vtkSmartPointer.h"
 #include "SNAPEvents.h"
-#include "itkMutexLock.h"
+#include <mutex>
 
 class GlobalUIModel;
 class IRISApplication;
@@ -134,6 +134,9 @@ protected:
   // Find the labeled voxel under the cursor
   bool IntersectSegmentation(int vx, int vy, Vector3i &hit);
 
+  // Find the labeled voxels under the cursor within a radius
+  bool IntersectSegmentation(int vx, int vy, double v_radius, int n_samples, std::set<Vector3i> &hits);
+
   // Parent (where the global UI state is stored)
   GlobalUIModel *m_ParentUI;
 
@@ -165,9 +168,8 @@ protected:
   // Time of the last mesh clear operation
   unsigned long m_ClearTime;
 
-  // A mutex lock to allow background processing of mesh updates
-  itk::SimpleFastMutexLock m_MutexLock;
-
+  // A mutex to allow background processing of mesh updates
+  std::mutex m_Mutex;
 };
 
 #endif // GENERIC3DMODEL_H

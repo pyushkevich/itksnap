@@ -2,8 +2,8 @@
 #define ORIENTATION_WIDGET_GUI_H
 
 #include <QMainWindow>
-
-
+#include "SNAPCommon.h"
+#include <vtkSmartPointer.h>
 #include "ui_OrientationWidgetGUI.h"
 
 class vtkRenderer;
@@ -11,7 +11,6 @@ class vtkEventQtSlotConnect;
 class vtkObject;
 class vtkCommand;
 class vtkMatrix4x4;
-#include <vtkSmartPointer.h>
 
 class OrientationGraphicRenderer;
 #include "ReorientProps.h"

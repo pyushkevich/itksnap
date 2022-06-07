@@ -117,7 +117,9 @@ bool SnakeROIModel
   return true;
 }
 
-bool SnakeROIModel::ProcessDragEvent(double x, double y, double xStart, double yStart, bool release)
+bool SnakeROIModel::ProcessDragEvent(double x, double y,
+                                     double xStart, double yStart,
+                                     bool itkNotUsed(release))
 {
   // Only do something if there is a highlight
   if(m_Highlight.AnyHighlighted())
@@ -183,14 +185,14 @@ void SnakeROIModel
   GlobalState::RegionType roi = gs->GetSegmentationROI();
 
   // Get the lower-valued corner
-  Vector3l ul(roi.GetIndex().GetIndex());
+  Vector3d ul = to_double(roi.GetIndex());
 
   // Get the higher valued corner
-  Vector3ul sz(roi.GetSize().GetSize());
+  Vector3d sz = to_double(roi.GetSize());
 
   // Remap to slice coordinates
-  corner[0] = m_Parent->MapImageToSlice(to_double(ul));
-  corner[1] = m_Parent->MapImageToSlice(to_double(ul+to_long(sz)));
+  corner[0] = m_Parent->MapImageToSlice(ul);
+  corner[1] = m_Parent->MapImageToSlice(ul + sz);
 }
 
 void SnakeROIModel

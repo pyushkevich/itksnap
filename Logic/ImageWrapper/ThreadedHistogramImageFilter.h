@@ -62,7 +62,7 @@ public:
    * the pipeline mechanism if the image itself is updated. It is also possible
    * for the min/max to be sourced from another image.
    */
-  void SetRangeInputs(PixelObjectType *inMin, PixelObjectType *inMax);
+  void SetRangeInputs(const PixelObjectType *inMin, const PixelObjectType *inMax);
 
   /**
    * Set the desired number of bins for the histogram.
@@ -92,15 +92,7 @@ protected:
   void AllocateOutputs() ITK_OVERRIDE;
 
   /** Initialize some accumulators before the threads run. */
-  void BeforeThreadedGenerateData() ITK_OVERRIDE;
-
-  /** Do final mean and variance computation from data accumulated in threads.
-    */
-  void AfterThreadedGenerateData() ITK_OVERRIDE;
-
-  /** Multi-thread version GenerateData. */
-  void  ThreadedGenerateData(const RegionType &outputRegionForThread,
-                             itk::ThreadIdType threadId) ITK_OVERRIDE;
+  void GenerateData() ITK_OVERRIDE;
 
   // Override since the filter needs all the data for the algorithm
   void GenerateInputRequestedRegion() ITK_OVERRIDE;

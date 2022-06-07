@@ -40,8 +40,7 @@ public:
   void SetLookupTable(LookupTableType *lut);
 
   /** The actual work */
-  void ThreadedGenerateData(const OutputImageRegionType &region,
-                            itk::ThreadIdType threadId) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const OutputImageRegionType &region) ITK_OVERRIDE;
 
   /** Process a single pixel */
   OutputPixelType MapPixel(const InputPixelType &xin0, const InputPixelType &xin1, const InputPixelType &xin2);

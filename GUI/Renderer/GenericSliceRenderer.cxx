@@ -38,6 +38,160 @@
 #include "LayerAssociation.txx"
 #include "SliceWindowCoordinator.h"
 #include "PaintbrushSettingsModel.h"
+#include <itkImageLinearConstIteratorWithIndex.h>
+
+
+#include <vtkTexture.h>
+#include <vtkTexturedActor2D.h>
+#include <vtkRenderer.h>
+#include <vtkActor2D.h>
+#include <vtkActor.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
+#include <vtkTextActor.h>
+#include <vtkRenderWindow.h>
+#include <vtkRendererCollection.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkPointData.h>
+#include <vtkFloatArray.h>
+#include <vtkQuad.h>
+#include <vtkProperty.h>
+#include <vtkCamera.h>
+#include <vtkProperty2D.h>
+#include <vtkMapper2D.h>
+#include <vtkPolyDataMapper2D.h>
+#include <itkRGBAPixel.h>
+#include "SNAPExportITKToVTK.h"
+#include "TexturedRectangleAssembly.h"
+#include "GenericSliceContextItem.h"
+
+#include <vtkContextItem.h>
+#include <vtkContext2D.h>
+#include <vtkContextDevice2D.h>
+#include <vtkContextActor.h>
+#include <vtkContextScene.h>
+#include <vtkPen.h>
+#include <vtkBrush.h>
+#include <vtkTransform2D.h>
+#include <vtkContextTransform.h>
+
+
+
+/**
+ * @brief Context item that draws a box around the layer thumbnail
+ */
+class LayerThumbnailDecorator : public GenericSliceContextItem
+{
+public:
+  vtkTypeMacro(LayerThumbnailDecorator, GenericSliceContextItem)
+
+  static LayerThumbnailDecorator *New();
+
+  irisSetMacro(Layer, ImageWrapperBase *);
+  irisGetMacro(Layer, ImageWrapperBase *);
+
+  virtual bool Paint(vtkContext2D *painter) override
+  {
+    float w = this->GetScene()->GetSceneWidth();
+    float h = this->GetScene()->GetSceneHeight();
+
+    // Determine if the current layer is hovered over by the mouse
+    bool is_hover = m_Layer->GetUniqueId() == m_Model->GetHoveredImageLayerId();
+    bool is_selected = m_Layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId();
+    if(!is_hover && !is_selected)
+      return true;
+
+    if(is_selected && is_hover)
+      painter->GetPen()->SetColorF(1.0, 1.0, 0.5);
+    else if(is_selected)
+      painter->GetPen()->SetColorF(1.0, 0.9, 0.1);
+    else if(is_hover)
+      painter->GetPen()->SetColorF(0.6, 0.54, 0.46);
+
+    painter->GetPen()->SetOpacityF(0.75);
+    painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
+    painter->GetPen()->SetWidth(3 * this->GetVPPR());
+
+    // Use drawpoly method because DrawRect includes a fill
+    this->DrawRectNoFill(painter, 0, 0, w, h);
+    return true;
+  }
+
+private:
+  ImageWrapperBase * m_Layer;
+};
+
+vtkStandardNewMacro(LayerThumbnailDecorator);
+
+/**
+ * @brief Context item that draws zoom thumbnail outline and viewport
+ */
+class ZoomThumbnailDecorator : public GenericSliceContextItem
+{
+public:
+  vtkTypeMacro(ZoomThumbnailDecorator, GenericSliceContextItem)
+
+  static ZoomThumbnailDecorator *New();
+
+  virtual bool Paint(vtkContext2D *painter) override
+  {
+    // Thumbnail must be on
+    if(!m_Model->IsThumbnailOn())
+      return false;
+
+    // Get the thumbnail appearance properties
+    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
+
+    const OpenGLAppearanceElement *eltThumb =
+        as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL);
+
+    const OpenGLAppearanceElement *eltViewport =
+        as->GetUIElement(SNAPAppearanceSettings::ZOOM_VIEWPORT);
+
+    // Update the thumbnail info (TODO: this is redundant!)
+    m_Model->ComputeThumbnailProperties();
+    auto xy = m_Model->GetZoomThumbnailPosition();
+    auto wh = m_Model->GetZoomThumbnailSize();
+
+    // Draw the box around the thumbnail
+    if(eltThumb->GetVisible())
+      {
+      ApplyAppearanceSettingsToPen(painter, eltThumb);
+      DrawRectNoFill(painter, xy[0], xy[1], xy[0] + wh[0], xy[1] + wh[1]);
+      }
+
+    if(eltViewport->GetVisible())
+      {
+      // Radius of viewport in image voxel units
+      double wv = m_Model->GetCanvasSize()[0] * 0.5 / m_Model->GetViewZoom();
+      double hv = m_Model->GetCanvasSize()[1] * 0.5 / m_Model->GetViewZoom();
+
+      // Radius of viewport in display pixel units
+      double wp = wv * m_Model->GetThumbnailZoom();
+      double hp = hv * m_Model->GetThumbnailZoom();
+
+      // Center of viewport in image voxel units
+      double xv = m_Model->GetViewPosition()[0];
+      double yv = m_Model->GetViewPosition()[1];
+
+      // Center of viewport in display pixel units
+      double xp = xv * m_Model->GetThumbnailZoom() + xy[0];
+      double yp = yv * m_Model->GetThumbnailZoom() + xy[1];
+
+      ApplyAppearanceSettingsToPen(painter, eltViewport);
+      DrawRectNoFill(painter, xp - wp, yp - hp, xp + wp, yp + hp);
+      }
+
+    // Draw the box around the viewport
+    return true;
+  }
+
+};
+
+vtkStandardNewMacro(ZoomThumbnailDecorator);
+
+
 
 GenericSliceRenderer
 ::GenericSliceRenderer()
@@ -45,6 +199,22 @@ GenericSliceRenderer
   this->m_DrawingZoomThumbnail = false;
   this->m_DrawingLayerThumbnail = false;
   this->m_DrawingViewportIndex = -1;
+
+
+  m_BackgroundRenderer = vtkSmartPointer<vtkRenderer>::New();
+  m_BackgroundRenderer->SetLayer(0);
+
+  m_OverlayRenderer = vtkSmartPointer<vtkRenderer>::New();
+  m_OverlayRenderer->SetLayer(2);
+  m_OverlayRenderer->GetActiveCamera()->ParallelProjectionOn();
+  m_OverlayRenderer->GetActiveCamera()->SetParallelScale(1.0);
+
+  m_ZoomThumbnail = vtkSmartPointer<TexturedRectangleAssembly2D>::New();
+  m_ZoomThumbnail->GetActor()->GetProperty()->SetColor(1, 1, 0);
+  m_OverlayRenderer->AddActor2D(m_ZoomThumbnail->GetActor());
+
+  m_OverlaySceneActor = vtkSmartPointer<vtkContextActor>::New();
+  m_OverlayRenderer->AddActor2D(m_OverlaySceneActor);
 }
 
 void
@@ -52,47 +222,81 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 {
   this->m_Model = model;
 
+  // Set the keys to access user data
+  static const char * key_lta[] = {
+    "LayerTextureAssembly_0",
+    "LayerTextureAssembly_1",
+    "LayerTextureAssembly_2"
+  };
+  m_KeyLayerTextureAssembly = key_lta[model->GetId()];
+
+  static const char * key_bla[] = {
+    "BaseLayerAssembly_0",
+    "BaseLayerAssembly_1",
+    "BaseLayerAssembly_2"
+  };
+  m_KeyBaseLayerAssembly = key_bla[model->GetId()];
+
   // Record and rebroadcast changes in the model
   Rebroadcast(m_Model, ModelUpdateEvent(), ModelUpdateEvent());
+
+  // Respond to changes in image dimension - these require big updates
+  Rebroadcast(m_Model->GetDriver(), LayerChangeEvent(), ModelUpdateEvent());
 
   // Also listen to events on opacity
   Rebroadcast(m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel(),
               ValueChangedEvent(), AppearanceUpdateEvent());
 
   // Listen to changes in the appearance of any of the wrappers
-  Rebroadcast(m_Model->GetDriver(), WrapperChangeEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetDriver(), WrapperChangeEvent(), ModelUpdateEvent());
 
   // Listen to changes to the segmentation
-  Rebroadcast(m_Model->GetDriver(), SegmentationChangeEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetDriver(), SegmentationChangeEvent(), ModelUpdateEvent());
 
   // Changes to cell layout also must be rebroadcast
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
   Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(),
-              AppearanceUpdateEvent());
+              ModelUpdateEvent());
 
   // Listen to changes in appearance
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
-              ChildPropertyChangedEvent(), AppearanceUpdateEvent());
+              ChildPropertyChangedEvent(), ModelUpdateEvent());
+
+  Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
 
   // Listen to overall visibility of overlaps
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
-              ValueChangedEvent(), AppearanceUpdateEvent());
+              ValueChangedEvent(), ModelUpdateEvent());
 
   // Paintbrush appearance changes
   PaintbrushSettingsModel *psm = m_Model->GetParentUI()->GetPaintbrushSettingsModel();
-  Rebroadcast(psm->GetBrushSizeModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(psm->GetBrushSizeModel(), ValueChangedEvent(), ModelUpdateEvent());
 
   // Which layer is currently selected
-  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
-              ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
 
-  Rebroadcast(m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
-              ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
 
 
-  Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), AppearanceUpdateEvent());
-  Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), AppearanceUpdateEvent());
+  Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), ModelUpdateEvent());
+}
 
+void GenericSliceRenderer::UpdateSceneAppearanceSettings()
+{
+  // Get the appearance settings pointer since we use it a lot
+  SNAPAppearanceSettings *as =
+      m_Model->GetParentUI()->GetAppearanceSettings();
+
+  // Get the properties for the background color
+  Vector3d clrBack = as->GetUIElement(
+      SNAPAppearanceSettings::BACKGROUND_2D)->GetColor();
+
+  // Assign to the background renderer
+  m_BackgroundRenderer->SetBackground(clrBack.data_block());
 }
 
 void GenericSliceRenderer::OnUpdate()
@@ -105,231 +309,439 @@ void GenericSliceRenderer::OnUpdate()
 
   // Also make sure to update the display layout model
   m_Model->GetParentUI()->GetDisplayLayoutModel()->Update();
-}
 
-void
-GenericSliceRenderer
-::paintGL()
-{
-  // Get the current image data
-  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
+  // Check what events have occurred
+  bool appearance_settings_changed =
+      m_EventBucket->HasEvent(ChildPropertyChangedEvent(),
+                              m_Model->GetParentUI()->GetAppearanceSettings()) ||
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel());
 
-  // Get the appearance settings pointer since we use it a lot
-  SNAPAppearanceSettings *as =
-      m_Model->GetParentUI()->GetAppearanceSettings();
+  bool segmentation_opacity_changed =
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel());
 
-  // Get the properties for the background color
-  Vector3d clrBack = as->GetUIElement(
-      SNAPAppearanceSettings::BACKGROUND_2D)->GetColor();
+  bool layers_changed =
+      m_EventBucket->HasEvent(LayerChangeEvent());
 
-  // Get the overall viewport
-  Vector2ui vp_full = m_Model->GetSizeReporter()->GetViewportSize();
-  int vppr = m_Model->GetSizeReporter()->GetViewportPixelRatio();
+  bool layer_layout_changed =
+      m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
 
-  // Set up lighting attributes
-  glPushAttrib(GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT |
-               GL_PIXEL_MODE_BIT | GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT);
+  bool layer_metadata_changed =
+      m_EventBucket->HasEvent(WrapperMetadataChangeEvent());
 
-  glDisable(GL_LIGHTING);
+  bool layer_mapping_changed =
+      m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent());
 
-  glClearColor(clrBack[0], clrBack[1], clrBack[2], 1.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  bool layer_visibility_changed =
+      m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
 
-  // Set up the viewports for individual 'cells' in the display. Each cell constitutes one
-  // image with its various overlays.
+  bool zoom_pan_changed =
+      m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model);
 
-  // Slice should be initialized before display
-  if (m_Model->IsSliceInitialized())
+  // Which layer is currently selected
+  bool selected_layer_changed =
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel());
+
+  bool selected_segmentation_changed =
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel());
+
+  if(layers_changed)
     {
-    // Draw each viewport in turn. For now, the number of z-layers is hard-coded at 2
-    for(int k = 0; k < m_Model->GetViewportLayout().vpList.size(); k++)
-      {
-      const SliceViewportLayout::SubViewport &vp = m_Model->GetViewportLayout().vpList[k];
-
-      // Set up the viewport for the current cell
-      glViewport(vp.pos[0], vp.pos[1], vp.size[0], vp.size[1]);
-
-      // Set up the projection
-      glMatrixMode(GL_PROJECTION);
-      glPushMatrix();
-      glLoadIdentity();
-      irisOrtho2D(0.0, vp.size[0], 0.0, vp.size[1]);
-
-      // Establish the model view matrix
-      glMatrixMode(GL_MODELVIEW);
-      glPushMatrix();
-      glLoadIdentity();
-
-      glPushMatrix();
-
-      // First set of transforms
-      glTranslated(0.5 * vp.size[0], 0.5 * vp.size[1], 0.0);
-
-      // Zoom by display zoom. The amount of zoom depends on whether we are in thumbnail
-      // mode or in regular mode
-      double zoom = m_Model->GetViewZoom();
-      if(vp.isThumbnail)
-        {
-        double scale_x = vp.size[0] * 1.0 / m_Model->GetCanvasSize()[0];
-        double scale_y = vp.size[1] * 1.0 / m_Model->GetCanvasSize()[1];
-        zoom *= std::max(scale_x, scale_y);
-        }
-
-      // Apply the correct scaling
-      glScalef(zoom, zoom, 1.0);
-
-      // Panning
-      glTranslated(-m_Model->GetViewPosition()[0], -m_Model->GetViewPosition()[1], 0.0);
-
-      // Convert from voxel space to physical units
-      glScalef(m_Model->GetSliceSpacing()[0], m_Model->GetSliceSpacing()[1], 1.0);
-
-      // Draw the main layers for this row/column combination
-      ImageWrapperBase *layer = id->FindLayer(vp.layer_id, false);
-      if(layer && this->DrawImageLayers(layer, vp))
-        {
-        // Set the thumbnail flag
-        m_DrawingLayerThumbnail = vp.isThumbnail;
-
-        // Set the current vp index
-        m_DrawingViewportIndex = k;
-
-        // We don't want to draw segmentation over the speed image and other
-        // SNAP-mode layers.
-        this->DrawSegmentationTexture();
-
-        // Draw the overlays
-        if(as->GetOverallVisibility())
-          {
-          // Draw all the overlays added to this object
-          this->DrawTiledOverlays();
-          }
-
-        glPopMatrix();
-
-        // Determine if the current layer is hovered over by the mouse
-        bool is_hover = layer->GetUniqueId() == m_Model->GetHoveredImageLayerId();
-        bool is_thumb = vp.isThumbnail;
-        bool is_selected = layer->GetUniqueId() == m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerId();
-
-        // Draw decoration around layer thumbnail. This is done when the thumbnail is hovered over
-        // or currently selected
-        if(is_thumb && (is_hover || is_selected))
-          {
-          // If the layer has positive z, draw a line
-          glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-
-          // The element used for highlighting thumbnails
-          SmartPtr<OpenGLAppearanceElement> elt = OpenGLAppearanceElement::New();
-
-          if(is_selected && is_hover)
-            elt->SetColor(Vector3d(1.0, 1.0, 0.5));
-          else if(is_selected)
-            elt->SetColor(Vector3d(1.0, 0.9, 0.1));
-          else if(is_hover)
-            elt->SetColor(Vector3d(0.6, 0.54, 0.46));
-
-          elt->SetLineThickness(1.5 * vppr);
-          elt->SetVisible(true);
-          elt->SetSmooth(false);
-          elt->ApplyLineSettings();
-
-          if(is_selected || is_hover)
-            elt->ApplyColor();
-
-          glBegin(GL_LINE_LOOP);
-          glVertex2i(0,0);
-          glVertex2i(0,vp.size[1]);
-          glVertex2i(vp.size[0], vp.size[1]);
-          glVertex2i(vp.size[0], 0);
-          glEnd();
-
-          glPopAttrib();
-          }
-
-        // Draw context menu indicator for the layer being hovered
-        /*
-         * // NOTE - this is now being done in the Qt code instead
-        if(is_hover && is_thumb == m_Model->GetHoveredImageIsThumbnail())
-          {
-          // Load the texture for the icon
-          static GLuint icon_texture_id = -1u;
-          static Vector2ui icon_size;
-          int vpratio = m_Model->GetSizeReporter()->GetViewportPixelRatio();
-          if(icon_texture_id == -1u)
-            {
-            m_PlatformSupport->LoadTexture("context_gray_12", icon_texture_id, icon_size);
-            }
-
-          // Draw the icon in the corner of the view
-          glPushAttrib(GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
-          glEnable(GL_TEXTURE_2D);
-          glEnable(GL_BLEND);
-          glBindTexture(GL_TEXTURE_2D, icon_texture_id);
-          glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-          glColor3d(1.0, 1.0, 1.0);
-          glBegin(GL_QUADS);
-          int margin = 4 * vpratio;
-          int x0 = vp.size[0] - margin - icon_size[0], x1 = vp.size[0] - margin;
-          int y1 = vp.size[1] - margin - icon_size[1], y0 = vp.size[1] - margin;
-          glTexCoord2d(0.0, 0.0); glVertex2i(x0,y0);
-          glTexCoord2d(0.0, 1.0); glVertex2i(x0,y1);
-          glTexCoord2d(1.0, 1.0); glVertex2i(x1,y1);
-          glTexCoord2d(1.0, 0.0); glVertex2i(x1,y0);
-          glEnd();
-
-          glPopAttrib();
-          }
-          */
-
-
-        glPopMatrix();
-        glMatrixMode(GL_PROJECTION);
-        glPopMatrix();
-        }
-      }
-
-    // No longer drawing thumbnails or viewports
-    m_DrawingLayerThumbnail = false;
-    m_DrawingViewportIndex = -1;
-
-    // Set the viewport and projection to original dimensions
-    glViewport(0, 0, vp_full[0], vp_full[1]);
-
-    // Set up the projection
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    irisOrtho2D(0.0, vp_full[0], 0.0, vp_full[1]);
-
-    // Establish the model view matrix
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    if(as->GetOverallVisibility())
-      {
-      // Draw the zoom locator
-      if(m_Model->IsThumbnailOn())
-        this->DrawThumbnail();
-
-      // Draw the global overlays
-      this->DrawGlobalOverlays();
-      }
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
+    this->UpdateLayerAssemblies();
     }
 
-  // Draw the various decorations
-  glPopAttrib();
+  if(layers_changed || layer_layout_changed || selected_layer_changed || selected_segmentation_changed)
+    {
+    this->UpdateRendererLayout();
+    }
 
-  // Display!
-  glFlush();
+  if(layers_changed || layer_mapping_changed || segmentation_opacity_changed || layer_visibility_changed)
+    {
+    this->UpdateLayerApperances();
+    }
+
+  if(appearance_settings_changed)
+    {
+    this->UpdateSceneAppearanceSettings();
+    }
+
+  if(layers_changed || layer_layout_changed || zoom_pan_changed || layer_mapping_changed || layer_visibility_changed || appearance_settings_changed)
+    {
+    this->UpdateRendererCameras();
+    this->UpdateZoomPanThumbnail();
+    }
+
+}
+
+void GenericSliceRenderer::SetRenderWindow(vtkRenderWindow *rwin)
+{
+  m_RenderWindow = rwin;
+  m_RenderWindow->SetNumberOfLayers(3);
+}
+
+
+
+void GenericSliceRenderer::UpdateLayerAssemblies()
+{
+  // Synchronize the layer assemblies with available renderers
+  GenericImageData *id = m_Model->GetDriver()->GetCurrentImageData();
+
+  // For each layer either copy a reference to an existing assembly
+  // or create a new assembly
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    if(!GetLayerTextureAssembly(it.GetLayer()))
+      {
+      SmartPtr<LayerTextureAssembly> lta = LayerTextureAssembly::New();
+      it.GetLayer()->SetUserData(m_KeyLayerTextureAssembly, lta);
+
+      // Get the pointer to the display slice
+      auto *ds = it.GetLayer()->GetDisplaySlice(m_Model->GetId()).GetPointer();
+
+      // Configure the texture pipeline
+      SmartPtr<LayerTextureAssembly::VTKExporter> exporter = LayerTextureAssembly::VTKExporter::New();
+      exporter->SetInput(ds);
+
+      lta->m_Exporter = exporter.GetPointer();
+      lta->m_Importer = vtkSmartPointer<vtkImageImport>::New();
+      ConnectITKExporterToVTKImporter(exporter.GetPointer(), lta->m_Importer);
+
+      lta->m_Texture = vtkSmartPointer<vtkTexture>::New();
+      lta->m_Texture->SetInputConnection(lta->m_Importer->GetOutputPort());
+
+      // Get the corners of the slice
+      auto sc = m_Model->GetSliceCorners();
+      auto c0 = sc.first, c1 = sc.second;
+
+      // Create a polydata for the image
+      lta->m_ImageRect = vtkSmartPointer<TexturedRectangleAssembly>::New();
+      lta->m_ImageRect->SetCorners(c0[0], c0[1], c1[0], c1[1]);
+      lta->m_ImageRect->GetActor()->SetTexture(lta->m_Texture);
+      }
+    }
+
+  // Now iterate over the base layers only and set up the base layer assemblies, which
+  // consist of the base layer, sticky overlays, and segmentation layer
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    // If this is a base layer (something drawn on its own), it gets a pair of renderers
+    if(it.GetRole() == MAIN_ROLE || it.GetRole() == OVERLAY_ROLE || it.GetRole() == SNAP_ROLE)
+      {
+      if(!GetBaseLayerAssembly(it.GetLayer()))
+        {
+        SmartPtr<BaseLayerAssembly> bla = BaseLayerAssembly::New();
+        it.GetLayer()->SetUserData(m_KeyBaseLayerAssembly, bla);
+
+        // Create the renderers
+        bla->m_Renderer = vtkSmartPointer<vtkRenderer>::New();
+        bla->m_Renderer->SetLayer(1);
+        bla->m_ThumbRenderer = vtkSmartPointer<vtkRenderer>::New();
+        bla->m_ThumbRenderer->SetLayer(1);
+
+        // Set camera properties
+        bla->m_Renderer->GetActiveCamera()->ParallelProjectionOn();
+        bla->m_ThumbRenderer->GetActiveCamera()->ParallelProjectionOn();
+
+        // Create the context scene actor and transform item
+        bla->m_OverlayContextActor = vtkSmartPointer<vtkContextActor>::New();
+        bla->m_OverlayContextTransform = vtkSmartPointer<vtkContextTransform>::New();
+        bla->m_OverlayContextActor->GetScene()->AddItem(bla->m_OverlayContextTransform);
+
+        // Configure the context scene
+        this->UpdateTiledOverlayContextSceneItems(it.GetLayer());
+        this->UpdateTiledOverlayContextSceneTransform(it.GetLayer());
+
+        // Create highlight around the thumbnail.
+        vtkNew<LayerThumbnailDecorator> thumb_border;
+        thumb_border->SetModel(m_Model);
+        thumb_border->SetLayer(it.GetLayer());
+
+        bla->m_ThumbnailDecoratorActor = vtkSmartPointer<vtkContextActor>::New();
+        bla->m_ThumbnailDecoratorActor->GetScene()->AddItem(thumb_border);
+        }
+      }
+    else
+      {
+      it.GetLayer()->SetUserData(m_KeyBaseLayerAssembly, nullptr);
+      }
+    }
+
+  // Update the appearance settings
+  this->UpdateSceneAppearanceSettings();
+
+  // Assign the main image texture to the zoom thumbnail
+  m_ZoomThumbnail->GetActor()->SetTexture(
+        id->IsMainLoaded() ? GetLayerTextureAssembly(id->GetMain())->m_Texture : nullptr);
+}
+
+GenericSliceRenderer::LayerTextureAssembly *
+GenericSliceRenderer::GetLayerTextureAssembly(ImageWrapperBase *wrapper)
+{
+  auto *userdata = wrapper->GetUserData(m_KeyLayerTextureAssembly);
+  return dynamic_cast<LayerTextureAssembly *>(userdata);
+}
+
+GenericSliceRenderer::BaseLayerAssembly *
+GenericSliceRenderer::GetBaseLayerAssembly(ImageWrapperBase *wrapper)
+{
+  auto *userdata = wrapper->GetUserData(m_KeyBaseLayerAssembly);
+  return dynamic_cast<BaseLayerAssembly *>(userdata);
+}
+
+void GenericSliceRenderer::SetDepth(vtkActor *actor, double z)
+{
+  double *p = actor->GetPosition();
+  actor->SetPosition(p[0], p[1], z);
+}
+
+void GenericSliceRenderer::UpdateLayerDepth()
+{
+  double depth_ovl = DEPTH_OVERLAY_START;
+  double depth_seg = DEPTH_SEGMENTATION_START;
+
+  for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    auto *la = GetLayerTextureAssembly(it.GetLayer());
+    double depth = 0.0;
+
+    if(it.GetRole() == LABEL_ROLE)
+      {
+      // All segmentation layers get assigned the same depth because we are
+      // currently not supporting rendering of multiple segmentation layers
+      // at the same time with transparency
+      depth = depth_seg;
+      }
+    else if(it.GetLayer()->IsSticky())
+      {
+      // Overlays are placed at increasing values of z
+      depth = depth_ovl;
+      depth_ovl += DEPTH_STEP;
+      }
+
+    SetDepth(la->m_ImageRect->GetActor(), depth);
+    }
+}
+
+void GenericSliceRenderer::UpdateZoomPanThumbnail()
+{
+  if(m_Model->GetDriver()->IsMainImageLoaded())
+    {
+    // Update the geometry of the zoom thumbnail
+    m_Model->ComputeThumbnailProperties();
+    auto pos = m_Model->GetZoomThumbnailPosition();
+    auto size = m_Model->GetZoomThumbnailSize();
+
+    m_ZoomThumbnail->SetCorners(pos[0], pos[1], pos[0]+size[0], pos[1]+size[1]);
+    m_ZoomThumbnail->GetActor()->SetVisibility(
+          m_Model->IsThumbnailOn() &&
+          m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibility());
+    }
+  else
+    {
+    m_ZoomThumbnail->GetActor()->SetVisibility(false);
+    }
+}
+
+void GenericSliceRenderer
+::UpdateTiledOverlayContextSceneTransform(ImageWrapperBase *wrapper)
+{
+}
+
+
+void GenericSliceRenderer
+::UpdateTiledOverlayContextSceneItems(ImageWrapperBase *wrapper)
+{
+  // Get the scene actor
+  auto top_item = GetBaseLayerAssembly(wrapper)->m_OverlayContextTransform;
+
+  // Clear the scene
+  top_item->ClearItems();
+
+  // Iterate over the delegates
+  for(auto it : m_Delegates)
+    {
+    it->AddContextItemsToTiledOverlay(top_item, wrapper);
+    }
+}
+
+void GenericSliceRenderer::UpdateRendererLayout()
+{
+  if(!m_RenderWindow)
+    return;
+
+  // Update the depths of the layers
+  this->UpdateLayerDepth();
+
+  // Here we need to keep track of the selected segmentation layer, other segmentation
+  // layers should not be rendered
+  unsigned int ssid = m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerId();
+
+  // Create a sorted structure of layers that are rendered on top of the base
+  std::map<double, vtkActor *> depth_map;
+  for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    // Don't display segmentation layer if it is not the selected one
+    if(it.GetRole() == LABEL_ROLE && it.GetLayer()->GetUniqueId() != ssid)
+      continue;
+
+    auto *lta = GetLayerTextureAssembly(it.GetLayer());
+    if(lta)
+      {
+      auto *actor = lta->m_ImageRect->GetActor();
+      double z = actor->GetPosition()[2];
+      if(z > 0.0)
+        depth_map[z] = actor;
+      }
+    }
+
+  // Get the viewport layout
+  const SliceViewportLayout &vpl = m_Model->GetViewportLayout();
+
+  // Remove all the renderers from the current window
+  m_RenderWindow->GetRenderers()->RemoveAllItems();
+  m_RenderWindow->AddRenderer(m_BackgroundRenderer);
+
+  // Get the dimensions of the render window
+  Vector2ui szWin = m_Model->GetSizeReporter()->GetViewportSize();
+
+  // Draw each viewport in turn. For now, the number of z-layers is hard-coded at 2
+  for(unsigned int k = 0; k < vpl.vpList.size(); k++)
+    {
+    // Get the current viewport
+    const SliceViewportLayout::SubViewport &vp = m_Model->GetViewportLayout().vpList[k];
+
+    // Get the wrapper in this viewport
+    auto *layer = m_Model->GetImageData()->FindLayer(vp.layer_id, false);
+    if(!layer)
+      continue;
+
+    // Get the assembly for this layer
+    BaseLayerAssembly *bla = GetBaseLayerAssembly(layer);
+
+    // Get the renderer that is referenced by this viewport
+    vtkRenderer *renderer = vp.isThumbnail ? bla->m_ThumbRenderer : bla->m_Renderer;
+
+    // Create a VTK renderer for this viewport
+    Vector2d rel_pos[2];
+    for(unsigned int d = 0; d < 2; d++)
+      {
+      rel_pos[0][d] = vp.pos[d] * 1.0 / szWin[d];
+      rel_pos[1][d] = rel_pos[0][d] + vp.size[d] * 1.0 / szWin[d];
+      }
+
+    // Set the renderer viewport
+    renderer->SetViewport(rel_pos[0][0], rel_pos[0][1], rel_pos[1][0], rel_pos[1][1]);
+
+    // Set up the actors shown in this renderer
+    renderer->RemoveAllViewProps();
+
+    // Add the base layer actor
+    renderer->AddActor(GetLayerTextureAssembly(layer)->m_ImageRect->GetActor());
+
+    // Some stuff only gets added to the main renderer
+    if(vp.isThumbnail)
+      {
+      // Add the thumbnail highlight
+      renderer->AddActor(bla->m_ThumbnailDecoratorActor);
+      }
+    else
+      {
+      // Add the overlay layer actors
+      for(auto it : depth_map)
+        renderer->AddActor(it.second);
+
+      // Add the tiled overlay scene actor
+      renderer->AddActor(bla->m_OverlayContextActor);
+      }
+
+    // Add the renderer to the window
+    m_RenderWindow->AddRenderer(renderer);
+    }
+
+  // Add the overlay renderer
+  m_RenderWindow->AddRenderer(m_OverlayRenderer);
+}
+
+void GenericSliceRenderer::UpdateRendererCameras()
+{
+  // Get the transform parameters
+  auto v_zoom = m_Model->GetViewZoom();
+  auto v_pos = m_Model->GetViewPosition();
+  auto spacing = m_Model->GetSliceSpacing();
+
+  // Get the dimensions of a non-thumbnail viewport
+  Vector2ui vp_pos, vp_size;
+  m_Model->GetNonThumbnailViewport(vp_pos, vp_size);
+
+  for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    auto *bla = GetBaseLayerAssembly(it.GetLayer());
+    if(bla)
+      {
+      // Update the camera for the main renderer
+      auto ren = bla->m_Renderer;
+      auto rs = ren->GetSize();
+      ren->GetActiveCamera()->SetFocalPoint(rs[0] * 0.5, rs[1] * 0.5, 0.0);
+      ren->GetActiveCamera()->SetPosition(rs[0] * 0.5, rs[1] * 0.5, 2.0);
+      ren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
+      ren->GetActiveCamera()->SetParallelScale(0.5 * rs[1]);
+
+      // Update the camera for the thumbnail renderer
+      auto tren = bla->m_ThumbRenderer;
+      tren->GetActiveCamera()->SetFocalPoint(vp_size[0] * 0.5, vp_size[1] * 0.5, 0.0);
+      tren->GetActiveCamera()->SetPosition(vp_size[0] * 0.5, vp_size[1] * 0.5, 2.0);
+      tren->GetActiveCamera()->SetViewUp(0.0, 1.0, 0.0);
+      tren->GetActiveCamera()->SetParallelScale(0.5 * vp_size[1]);
+
+      // Also update the transform for the overlay scene
+      auto *tform = bla->m_OverlayContextTransform->GetTransform();
+
+      tform->Identity();
+      tform->Translate(ren->GetSize()[0] * 0.5, ren->GetSize()[1] * 0.5);
+      tform->Scale(v_zoom, v_zoom);
+      tform->Translate(-v_pos[0], -v_pos[1]);
+      tform->Scale(spacing[0], spacing[1]);
+      }
+
+    auto *lta = GetLayerTextureAssembly(it.GetLayer());
+    if(lta)
+      {
+      auto sz = m_Model->GetViewportLayout().vpList.front().size;
+      if(it.GetLayer()->IsSlicingOrthogonal())
+        {
+        // Map the corners of the slice into the viewport coordinates
+        auto sc = m_Model->GetSliceCornersInWindowCoordinates();
+        lta->m_ImageRect->SetCorners(sc.first[0], sc.first[1], sc.second[0], sc.second[1]);
+        }
+      else
+        {
+        // Nonorthogonal slicing means we render into the whole viewport
+        lta->m_ImageRect->SetCorners(0, 0, sz[0], sz[1]);
+        }
+      }
+    }
+}
+
+void GenericSliceRenderer::UpdateLayerApperances()
+{
+  // Iterate over the layers
+  for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
+    {
+    // Does this layer use transparency?
+    double alpha = 1.0;
+    if(it.GetRole() == LABEL_ROLE)
+      alpha = m_Model->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
+    else if(it.GetLayer()->IsSticky())
+      alpha = it.GetLayer()->GetAlpha();
+
+    // Set the alpha for the actor
+    auto *lta = GetLayerTextureAssembly(it.GetLayer());
+    if(lta)
+      lta->m_ImageRect->GetActor()->GetProperty()->SetOpacity(alpha);
+    }
 }
 
 const GenericSliceRenderer::ViewportType *
@@ -343,79 +755,34 @@ GenericSliceRenderer
 
 }
 
-void
-GenericSliceRenderer
-::resizeGL(int w, int h, int device_pixel_ratio)
+void GenericSliceRenderer::SetDelegates(const RendererDelegateList &ovl)
 {
-  // Set up projection matrix
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  irisOrtho2D(0.0,w,0.0,h);
-  glViewport(0,0,w,h);
+  m_Delegates = ovl;
 
-  // Establish the model view matrix
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-}
-
-bool GenericSliceRenderer::DrawImageLayers(ImageWrapperBase *base_layer, const ViewportType &vp)
-{
-  // Get the image data
-  GenericImageData *id = m_Model->GetImageData();
-
-  // If drawing the thumbnail, only draw the main layer
-  if(m_DrawingZoomThumbnail)
+  // Assign the tiled delegates to their corresponding tiles
+  auto *id = m_Model->GetDriver()->GetCurrentImageData();
+  for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    DrawTextureForLayer(base_layer, vp, false);
-    return true;
+    if(auto *bla = GetBaseLayerAssembly(it.GetLayer()))
+      {
+      this->UpdateTiledOverlayContextSceneItems(it.GetLayer());
+      }
     }
 
-  // Is the display partitioned into rows and columns?
-  if(!this->IsTiledMode())
+
+  // Assign global delegates
+  m_OverlaySceneActor->GetScene()->ClearItems();
+
+  // Add zoom decorator
+  vtkNew<ZoomThumbnailDecorator> ztdec;
+  ztdec->SetModel(m_Model);
+  m_OverlaySceneActor->GetScene()->AddItem(ztdec);
+
+  // Add all others
+  for(auto del : m_Delegates)
     {
-    // Draw the base layer without transparency
-    DrawTextureForLayer(base_layer, vp, false);
-
-    // Now draw all the sticky layers on top
-    if(!vp.isThumbnail)
-      {
-        for(LayerIterator it(id); !it.IsAtEnd(); ++it)
-        {
-        ImageWrapperBase *layer = it.GetLayer();
-        if(it.GetRole() != LABEL_ROLE
-           && layer->IsDrawable()
-           && layer->IsSticky()
-           && layer->GetAlpha() > 0)
-          {
-          DrawTextureForLayer(layer, vp, true);
-          }
-        }
-      }
-
-    return true;
+    del->AddContextItemsToGlobalOverlayScene(m_OverlaySceneActor->GetScene());
     }
-  else
-    {
-    // Draw the particular layer
-    DrawTextureForLayer(base_layer, vp, false);
-
-    // Now draw all the non-sticky layers
-    if(!vp.isThumbnail)
-      {
-      for(LayerIterator itov(id); !itov.IsAtEnd(); ++itov)
-        {
-        if(itov.GetRole() != MAIN_ROLE
-           && itov.GetLayer()->IsSticky()
-           && itov.GetLayer()->IsDrawable()
-           && itov.GetLayer()->GetAlpha() > 0)
-          {
-          DrawTextureForLayer(itov.GetLayer(), vp, true);
-          }
-        }
-      }
-
-    return true;
-  }
 }
 
 bool GenericSliceRenderer::IsTiledMode() const
@@ -424,55 +791,6 @@ bool GenericSliceRenderer::IsTiledMode() const
   Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
   return layout[0] > 1 || layout[1] > 1;
 }
-
-
-
-GenericSliceRenderer::Texture *
-GenericSliceRenderer
-::GetTextureForLayer(ImageWrapperBase *layer)
-{
-  const char *user_data_ids[] = {
-    "OpenGLTexture[0]",
-    "OpenGLTexture[1]",
-    "OpenGLTexture[2]"
-  };
-  const char *user_data_id = user_data_ids[m_Model->GetId()];
-
-  // If layer uninitialized, return NULL
-  if(!layer->IsInitialized())
-    return NULL;
-
-  // Retrieve the texture
-  SmartPtr<Texture> tex = static_cast<Texture *>(layer->GetUserData(user_data_id));
-
-  // Get the image that should be associated with the texture
-  Texture::ImageType *slice = layer->GetDisplaySlice(m_Model->GetId()).GetPointer();
-
-  // If the texture does not exist - or if the image has changed for some reason, update it
-  if(!tex || tex->GetImage() != slice)
-    {
-    tex = Texture::New();
-    tex->SetDepth(4, GL_RGBA);
-    tex->SetImage(slice);
-
-    layer->SetUserData(user_data_id, tex.GetPointer());
-    }
-
-  // Configure the texture parameters
-  const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
-  GLint imode =
-      (gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR)
-      ? GL_LINEAR : GL_NEAREST;
-  tex->SetInterpolation(imode);
-
-  // Set the mip-mapping behaviour depending on whether the image wrapper is rendering
-  // in image space or in display space
-  tex->SetMipMapping(layer->IsSlicingOrthogonal());
-
-  return tex;
-}
-
-#include <itkImageLinearConstIteratorWithIndex.h>
 
 Vector3d GenericSliceRenderer::ComputeGridPosition(
     const Vector3d &disp_pix,
@@ -539,329 +857,6 @@ Vector3d GenericSliceRenderer::ComputeGridPosition(
     Vector2d win2d = m_Model->MapSliceToWindow(disp_slice);
     win3d[0] = win2d[0]; win3d[1] = win2d[1]; win3d[2] = disp_slice[2];
     return win3d;
-    }
-}
-
-
-void GenericSliceRenderer::DrawTextureForLayer(
-    ImageWrapperBase *layer, const ViewportType &vp, bool use_transparency)
-{
-  // Get the appearance settings pointer since we use it a lot
-  SNAPAppearanceSettings *as =
-      m_Model->GetParentUI()->GetAppearanceSettings();
-
-  // Get the global display settings
-  const GlobalDisplaySettings *gds =
-      m_Model->GetParentUI()->GetGlobalDisplaySettings();
-
-  // Get the interpolation mode
-  GLenum interp =
-      gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR
-      ? GL_LINEAR : GL_NEAREST;
-
-  // Get the texture
-  Texture *tex = this->GetTextureForLayer(layer);
-
-  // Set up the drawing mode
-  glPushMatrix();
-
-  // If a layer is sliced orthogonally, it's sliced in its native voxel space
-  // and we rely on OpenGL for scaling into display space
-  // Otherwise there is a 1:1 mapping from slice pixels to display pixels
-  if(!layer->IsSlicingOrthogonal())
-    {
-    glLoadIdentity();
-    if(vp.isThumbnail)
-      {
-      double scale_x = vp.size[0] * 1.0 / m_Model->GetCanvasSize()[0];
-      double scale_y = vp.size[1] * 1.0 / m_Model->GetCanvasSize()[1];
-      double zoom = std::max(scale_x, scale_y);
-      glScalef(zoom, zoom, 0);
-      }
-
-    }
-
-  // Paint the texture with alpha
-  if(tex)
-    {
-    tex->SetInterpolation(interp);
-    if(use_transparency)
-      {
-      tex->DrawTransparent(layer->GetAlpha());
-      }
-    else
-      {
-      Vector3d clrBackground = m_DrawingZoomThumbnail
-        ? as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL)->GetColor()
-        : Vector3d(1.0);
-      tex->Draw(clrBackground);
-      }
-    }
-
-  // TODO: move this somewhere
-  AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
-      AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
-  if(dp && dp->GetDisplayMode().RenderAsGrid
-     && !this->IsDrawingZoomThumbnail() && !this->IsDrawingLayerThumbnail())
-    {
-    // Draw the texture for the layer
-    AnatomicImageWrapper *vecimg = dynamic_cast<AnatomicImageWrapper *>(layer);
-    if(vecimg && vecimg->GetNumberOfComponents() == 3)
-      {
-      // Get the slice
-      AnatomicImageWrapper::SliceType::Pointer slice = vecimg->GetSlice(m_Model->GetId());
-      slice->GetSource()->UpdateLargestPossibleRegion();
-
-      // Appearance settings for grid lines
-      SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-      const OpenGLAppearanceElement *elt =
-          as->GetUIElement(SNAPAppearanceSettings::GRID_LINES);
-
-      // Line properties
-      glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-
-      elt->ApplyLineSettings();
-
-
-      // The mapping between (index, phi[index]) and on-screen coordinate for a grid
-      // point is linear (combines a bunch of transforms). To save time, we can
-      // compute this mapping once at the beginning of the loop. We also know that the
-      // index will only be going up by one at each iteration
-      itk::Index<2> ind;
-      Vector3d phi, G0, d_grid_d_phi[3], d_grid_d_ind[2];
-
-      // Compute the initial displacement G0
-      ind.Fill(0); phi.fill(0.0f);
-      G0 = ComputeGridPosition(phi, ind, vecimg);
-
-      // Compute derivative of grid displacement wrt warp components
-      for(int a = 0; a < 3; a++)
-        {
-        ind.Fill(0); phi.fill(0.0f);
-        phi[a] = 1.0f;
-        d_grid_d_phi[a] = ComputeGridPosition(phi, ind, vecimg) - G0;
-        }
-
-      // Compute derivative of grid displacement wrt index components
-      for(int b = 0; b < 2; b++)
-        {
-        ind.Fill(0); phi.fill(0.0f);
-        ind[b] = 1;
-        d_grid_d_ind[b] = ComputeGridPosition(phi, ind, vecimg) - G0;
-        }
-
-      // Iterate line direction
-      for(int d = 0; d < 2; d++)
-        {
-
-        // The current matrix is such that we should be drawing in pixel coordinates.
-        typedef itk::ImageLinearConstIteratorWithIndex<AnatomicImageWrapper::SliceType> IterType;
-        IterType it1(slice, slice->GetBufferedRegion());
-        it1.SetDirection(d);
-        it1.GoToBegin();
-
-        int vox_increment;
-        if(vecimg->IsSlicingOrthogonal())
-          {
-          // Figure out how frequently to sample lines. The spacing on the screen should be at
-          // most every 4 pixels. Zoom is in units of px/mm. Spacing is in units of mm/vox, so
-          // zoom * spacing is (display pixels) / (image voxels).
-          double disp_pix_per_vox = m_Model->GetSliceSpacing()[d] * m_Model->GetViewZoom();
-          vox_increment = (int) ceil(8.0 / disp_pix_per_vox);
-          }
-        else
-          {
-          // The slice is in screen pixel units already - so just 8!
-          vox_increment = 8;
-          }
-
-        while( !it1.IsAtEnd() )
-          {
-          // Do we draw this line?
-          if(it1.GetIndex()[1-d] % vox_increment == 0)
-            {
-            elt->ApplyColor();
-            glBegin(GL_LINE_STRIP);
-
-            // Set up the current position and increment
-            Vector3d G1 = G0 +
-                (d_grid_d_ind[0] * (double) (it1.GetIndex()[0])) +
-                (d_grid_d_ind[1] * (double) (it1.GetIndex()[1]));
-
-            while( !it1.IsAtEndOfLine() )
-              {
-              // Read the pixel
-              AnatomicImageWrapper::SliceType::PixelType pix = it1.Get();
-
-              // Alternative version
-              Vector3d xDispSlice = G1 +
-                  (d_grid_d_phi[0] * (double) (pix[0])) +
-                  (d_grid_d_phi[1] * (double) (pix[1])) +
-                  (d_grid_d_phi[2] * (double) (pix[2]));
-
-              glVertex2d(xDispSlice[0], xDispSlice[1]);
-
-              // Add the displacement
-              ++it1;
-
-              // Update the current position
-              G1 += d_grid_d_ind[d];
-              }
-
-            glEnd();
-            }
-
-          it1.NextLine();
-          }
-
-        }
-
-      glPopAttrib();
-      }
-    }
-
-  // Pop the matrix
-  glPopMatrix();
-}
-
-
-void GenericSliceRenderer::DrawSegmentationTexture()
-  {
-  GenericImageData *id = m_Model->GetImageData();
-  double alpha = m_Model->GetParentUI()->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
-
-  if (alpha > 0)
-    {
-    // Search for the texture to draw
-    ImageWrapperBase *seg_layer =
-        id->FindLayer(m_Model->GetParentUI()->GetGlobalState()->GetSelectedSegmentationLayerId(), false, LABEL_ROLE);
-    if(seg_layer)
-      {
-      Texture *texture = this->GetTextureForLayer(seg_layer);
-      texture->DrawTransparent(alpha);
-      }
-    }
-  }
-
-void GenericSliceRenderer::DrawThumbnail()
-  {
-  // Get the thumbnail appearance properties
-  SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-
-  const OpenGLAppearanceElement *eltThumb =
-      as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL);
-
-  const OpenGLAppearanceElement *eltViewport =
-      as->GetUIElement(SNAPAppearanceSettings::ZOOM_VIEWPORT);
-
-  // If thumbnail is not to be drawn, exit
-  if(!eltThumb->GetVisible()) return;
-
-  // Tell model to figure out the thumbnail size
-  m_Model->ComputeThumbnailProperties();
-  Vector2i tPos = m_Model->GetZoomThumbnailPosition();
-  double tZoom = m_Model->GetThumbnailZoom();
-
-  // Indicate the fact that we are currently drawing in thumbnail mode
-  m_DrawingZoomThumbnail = true;
-
-  // Set up the GL matrices
-  glPushMatrix();
-  glLoadIdentity();
-  glTranslated((double) tPos[0], (double) tPos[1], 0.0);
-  glScaled(tZoom, tZoom, 1.0);
-
-  glPushMatrix();
-  glScalef(m_Model->GetSliceSpacing()[0],m_Model->GetSliceSpacing()[1],1.0);
-
-  // Draw the Main image (the background will be picked automatically)
-  if (m_Model->GetImageData()->IsMainLoaded())
-    {
-    ViewportType vp = m_Model->GetViewportLayout().vpList.front();
-    DrawTextureForLayer(m_Model->GetImageData()->GetMain(), vp, false);
-    }
-
-  // Draw the overlays that are shown on the thumbnail
-  DrawTiledOverlays();
-
-  // Line properties
-  glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-
-  // Apply the line settings
-  eltThumb->ApplyLineSettings();
-
-  // Draw the little version of the image in the corner of the window
-  double w = m_Model->GetSliceSize()[0];
-  double h = m_Model->GetSliceSize()[1];
-
-  // Draw the line around the image
-  eltThumb->ApplyColor();
-  glBegin(GL_LINE_LOOP);
-  glVertex2d(0,0);
-  glVertex2d(0,h);
-  glVertex2d(w,h);
-  glVertex2d(w,0);
-  glEnd();
-
-  glPopAttrib();
-  glPopMatrix();
-
-  if(eltViewport->GetVisible())
-    {
-    // Line properties
-    glPushAttrib(GL_LINE_BIT | GL_COLOR_BUFFER_BIT);
-
-    // Apply the line settings
-    eltViewport->ApplyLineSettings();
-
-    // Draw a box representing the current zoom level
-    glTranslated(m_Model->GetViewPosition()[0],
-                 m_Model->GetViewPosition()[1],
-                 0.0);
-    w = m_Model->GetCanvasSize()[0] * 0.5 / m_Model->GetViewZoom();
-    h = m_Model->GetCanvasSize()[1] * 0.5 / m_Model->GetViewZoom();
-
-    eltViewport->ApplyColor();
-    glBegin(GL_LINE_LOOP);
-    glVertex2d(-w,-h);
-    glVertex2d(-w, h);
-    glVertex2d( w, h);
-    glVertex2d( w,-h);
-    glEnd();
-
-    glPopAttrib();
-    }
-
-  glPopMatrix();
-
-  // Indicate the fact that we are not drawing in thumbnail mode
-  m_DrawingZoomThumbnail = false;
-  }
-
-
-void GenericSliceRenderer::initializeGL()
-{
-}
-
-void GenericSliceRenderer::DrawTiledOverlays()
-{
-  // The renderer will contain a list of overlays that implement the
-  // generic interface
-  for(RendererDelegateList::iterator it = m_TiledOverlays.begin();
-      it != m_TiledOverlays.end(); it++)
-    {
-    (*it)->paintGL();
-    }
-}
-
-void GenericSliceRenderer::DrawGlobalOverlays()
-{
-  // The renderer will contain a list of overlays that implement the
-  // generic interface
-  for(RendererDelegateList::iterator it = m_GlobalOverlays.begin();
-      it != m_GlobalOverlays.end(); it++)
-    {
-    (*it)->paintGL();
     }
 }
 

@@ -10,6 +10,7 @@
 #include "ColorMapModel.h"
 #include "IntensityCurveModel.h"
 #include "LayerGeneralPropertiesModel.h"
+#include "IncreaseDimensionImageFilter.h"
 #include "SNAPImageData.h"
 
 
@@ -46,6 +47,11 @@ LayerTableRowModel::LayerTableRowModel()
 
   m_VisibilityToggleModel = NewNumericPropertyToggleAdaptor(
         m_LayerOpacityModel.GetPointer(), 0, 50);
+
+  m_VolumeRenderingEnabledModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetVolumeRenderingEnabledValue,
+        &Self::SetVolumeRenderingEnabledValue);
 
   m_LayerRole = NO_ROLE;
   m_LayerPositionInRole = -1;
@@ -102,9 +108,12 @@ void LayerTableRowModel::UpdateRoleInfo()
 {
   LayerIterator it(m_ImageData);
   it.Find(m_Layer);
-  m_LayerRole = it.GetRole();
-  m_LayerPositionInRole = it.GetPositionInRole();
-  m_LayerNumberOfLayersInRole = it.GetNumberOfLayersInRole();
+  if(!it.IsAtEnd())
+    {
+    m_LayerRole = it.GetRole();
+    m_LayerPositionInRole = it.GetPositionInRole();
+    m_LayerNumberOfLayersInRole = it.GetNumberOfLayersInRole();
+    }
 }
 
 void LayerTableRowModel::UpdateDisplayModeList()
@@ -286,7 +295,7 @@ void LayerTableRowModel::GenerateTextureFeatures()
   if(scalar)
     {
     // Get the image out
-    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> common_rep =
+    SmartPtr<const ScalarImageWrapperBase::CommonFormatImageType> common_rep =
         scalar->GetCommonFormatImage();
 
     /*
@@ -302,6 +311,7 @@ void LayerTableRowModel::GenerateTextureFeatures()
 
     // Create a filter to generate textures
     typedef AnatomicImageWrapperTraits<GreyType>::ImageType TextureImageType;
+    typedef AnatomicImageWrapperTraits<GreyType>::Image4DType TextureImage4DType;
     typedef bilwaj::MomentTextureFilter<
         ScalarImageWrapperBase::CommonFormatImageType,
         TextureImageType> MomentFilterType;
@@ -310,11 +320,17 @@ void LayerTableRowModel::GenerateTextureFeatures()
     filter->SetInput(common_rep);
     filter->SetRadius(radius);
     filter->SetHighestDegree(3);
-    filter->Update();
 
     // Create a new image wrapper
     SmartPtr<AnatomicImageWrapper> newWrapper = AnatomicImageWrapper::New();
-    newWrapper->InitializeToWrapper(m_Layer, filter->GetOutput(), NULL, NULL);
+
+    // Up the image dimension
+    typedef IncreaseDimensionImageFilter<TextureImageType, TextureImage4DType> UpDimFilter;
+    typename UpDimFilter::Pointer updim = UpDimFilter::New();
+    updim->SetInput(filter->GetOutput());
+    updim->Update();
+
+    newWrapper->InitializeToWrapper(m_Layer, updim->GetOutput(), NULL, NULL);
     newWrapper->SetDefaultNickname("Textures");
     this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(
           m_Layer, newWrapper, false);
@@ -425,6 +441,22 @@ void LayerTableRowModel::SetDisplayModeValue(MultiChannelDisplayMode value)
   AbstractMultiChannelDisplayMappingPolicy *dp = dynamic_cast<
       AbstractMultiChannelDisplayMappingPolicy *>(m_Layer->GetDisplayMapping());
   dp->SetDisplayMode(value);
+  }
+
+bool LayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
+{
+  if(m_Layer)
+    {
+    value = m_Layer->GetDefaultScalarRepresentation()->IsVolumeRenderingEnabled();
+    return true;
+    }
+  return false;
+}
+
+void LayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
+{
+  if(m_Layer)
+    m_Layer->GetDefaultScalarRepresentation()->SetVolumeRenderingEnabled(value);
 }
 
 void LayerTableRowModel::OnUpdate()

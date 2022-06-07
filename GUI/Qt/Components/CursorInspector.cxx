@@ -22,6 +22,7 @@
 #include <QtSpinBoxCoupling.h>
 #include <QtCheckBoxCoupling.h>
 #include <QtLineEditCoupling.h>
+#include <QtPagedWidgetCoupling.h>
 #include <QtWidgetArrayCoupling.h>
 
 #include <QStandardItemModel>
@@ -117,8 +118,19 @@ void CursorInspector::SetModel(CursorInspectionModel *model)
   makeCoupling(ui->outLabelId, m_Model->GetLabelUnderTheCursorIdModel());
   makeCoupling(ui->outLabelText, m_Model->GetLabelUnderTheCursorTitleModel());
 
+  // Use parent model for cursor coordinate couplings
+  GlobalUIModel *parentModel = m_Model->GetParent();
   makeArrayCoupling(ui->inCursorX, ui->inCursorY, ui->inCursorZ,
-                    m_Model->GetCursorPositionModel());
+                    parentModel->GetCursorPositionModel());
+
+  makeArrayCoupling(ui->inCursorX_4D, ui->inCursorY_4D, ui->inCursorZ_4D,
+                    parentModel->GetCursorPositionModel());
+
+  makeCoupling(ui->inCursorT_4D, parentModel->GetCursorTimePointModel());
+
+  // Automatically match 3D/4D page to workspace state
+  std::map<bool, QWidget *> page_map {{ true, ui->page4D }, { false, ui->page3D }};
+  makePagedWidgetCoupling(ui->stkCursor, parentModel->GetWorkspaceIs4DModel(), page_map);
 
   connectITK(m_Model->GetVoxelAtCursorModel(), DomainChangedEvent());
   connectITK(m_Model->GetVoxelAtCursorModel(), DomainDescriptionChangedEvent());
@@ -166,8 +178,8 @@ void CursorInspector::UpdateVoxelTableRow(int i, const LayerCurrentVoxelInfo &vi
   QString tooltip_annot;
 
   // By default the color of the items is black
-  item_layer->setForeground(QBrush(QColor(Qt::black)));
-  item_intensity->setForeground(QBrush(QColor(Qt::black)));
+  item_layer->setForeground(QBrush(this->palette().color(QPalette::Text)));
+  item_intensity->setForeground(QBrush(this->palette().color(QPalette::Text)));
   item_layer->setIcon(QIcon());
 
   if(vi.isSelectedGroundLayer)

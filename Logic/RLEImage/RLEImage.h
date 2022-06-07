@@ -211,6 +211,21 @@ public:
             CleanUp(); //put the image into a clean state
     }
 
+    /** Pixel contaner support */
+    typedef typename BufferType::PixelContainer PixelContainer;
+
+    /** Set pixel container */
+    void SetPixelContainer(PixelContainer *container)
+    {
+      myBuffer->SetPixelContainer(container);
+    }
+
+    /** Get pixel container */
+    PixelContainer *GetPixelContainer()
+    {
+      return myBuffer->GetPixelContainer();
+    }
+
 
 protected:
     RLEImage() : itk::ImageBase < VImageDimension >()

@@ -7,34 +7,30 @@
     <x>0</x>
     <y>0</y>
     <width>454</width>
-    <height>477</height>
+    <height>489</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QMainWindow {
-  background-color: rgb(248,248,248);
-}
-
-QGroupBox {
+   <string notr="true">QGroupBox {
   background-origin: content;
   margin-top: 15px;
   font-weight: bold;
   font-size: 12px;
-  font-family: helvetica;
-  color: rgb(30,30,160);
-  background-color: rgb(237,237,237);
+  background-color: palette(midlight);
   padding: 5px;
-  border-radius: 4px;
-  border: 1px solid rgb(130,130,130);
+  border-radius: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: rgb(128,128,128);
 }
+
 QGroupBox::title {
   subcontrol-origin: 	margin;
   subcontrol-position: top left;
 }
-
 </string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -59,10 +55,10 @@ QGroupBox::title {
       <string notr="true"/>
      </property>
      <property name="title">
-      <string>Linear Contrast Adjustment:</string>
+      <string>Linear Image Contrast Adjustment:</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
-      <property name="margin">
+      <property name="margin" stdset="0">
        <number>0</number>
       </property>
       <item>
@@ -74,7 +70,7 @@ QGroupBox::title {
          <property name="verticalSpacing">
           <number>6</number>
          </property>
-         <property name="margin">
+         <property name="margin" stdset="0">
           <number>6</number>
          </property>
          <item row="1" column="3">
@@ -176,6 +172,9 @@ QGroupBox::title {
            </property>
            <property name="focusPolicy">
             <enum>Qt::WheelFocus</enum>
+           </property>
+           <property name="toolTip">
+            <string/>
            </property>
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
@@ -314,13 +313,13 @@ QGroupBox::title {
    <item>
     <widget class="QGroupBox" name="grpCurve">
      <property name="title">
-      <string>Curve-Based Contrast Adjustment:</string>
+      <string>Curve-Based Image Contrast Adjustment:</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <property name="spacing">
        <number>10</number>
       </property>
-      <property name="margin">
+      <property name="margin" stdset="0">
        <number>6</number>
       </property>
       <item>
@@ -338,7 +337,7 @@ QGroupBox::title {
          <enum>QFrame::Raised</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
-         <property name="margin">
+         <property name="margin" stdset="0">
           <number>0</number>
          </property>
          <item>
@@ -366,7 +365,7 @@ QGroupBox::title {
          <property name="verticalSpacing">
           <number>4</number>
          </property>
-         <property name="margin">
+         <property name="margin" stdset="0">
           <number>0</number>
          </property>
          <item row="1" column="1">
@@ -375,7 +374,7 @@ QGroupBox::title {
             <property name="spacing">
              <number>2</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
@@ -406,11 +405,7 @@ QGroupBox::title {
                </size>
               </property>
               <property name="toolTip">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Lucida Grande'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;The x-coordinate of the selected control point. The x-coordinate represents input image intensity.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>The x-coordinate of the selected control point. The x-coordinate represents input image intensity.</string>
               </property>
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::NoButtons</enum>
@@ -432,7 +427,7 @@ p, li { white-space: pre-wrap; }
             <property name="spacing">
              <number>2</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
@@ -463,11 +458,7 @@ p, li { white-space: pre-wrap; }
                </size>
               </property>
               <property name="toolTip">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Lucida Grande'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;The y-coordinate of the selected control point. The y-coordinate represents the index into the color map used to display the image. Its values are in the range [0 1].&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>The y-coordinate of the selected control point. The y-coordinate represents the index into the color map used to display the image. Its values are in the range [0 1].</string>
               </property>
               <property name="buttonSymbols">
                <enum>QAbstractSpinBox::NoButtons</enum>
@@ -495,7 +486,7 @@ p, li { white-space: pre-wrap; }
             <property name="spacing">
              <number>2</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
@@ -514,7 +505,7 @@ p, li { white-space: pre-wrap; }
             <property name="spacing">
              <number>2</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
@@ -532,6 +523,9 @@ p, li { white-space: pre-wrap; }
                 <height>16777215</height>
                </size>
               </property>
+              <property name="toolTip">
+               <string>Index of the selected control point</string>
+              </property>
               <property name="keyboardTracking">
                <bool>false</bool>
               </property>
@@ -546,17 +540,13 @@ p, li { white-space: pre-wrap; }
             <property name="spacing">
              <number>4</number>
             </property>
-            <property name="margin">
+            <property name="margin" stdset="0">
              <number>0</number>
             </property>
             <item>
              <widget class="QToolButton" name="btnAddControl">
               <property name="toolTip">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Lucida Grande'; font-size:12px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Increase the number of control points on the curve&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>Increase the number of control points on the curve</string>
               </property>
               <property name="text">
                <string>+</string>
@@ -566,11 +556,7 @@ p, li { white-space: pre-wrap; }
             <item>
              <widget class="QToolButton" name="btnRemoveControl">
               <property name="toolTip">
-               <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Lucida Grande'; font-size:12px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Reduce the number of control points on the curve&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+               <string>Decrease the number of control points on the curve</string>
               </property>
               <property name="text">
                <string>-</string>
@@ -608,7 +594,7 @@ p, li { white-space: pre-wrap; }
       <property name="spacing">
        <number>2</number>
       </property>
-      <property name="margin">
+      <property name="margin" stdset="0">
        <number>6</number>
       </property>
       <item>

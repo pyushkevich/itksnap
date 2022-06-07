@@ -12,10 +12,10 @@ class RegistrationRenderer : public SliceRendererDelegate
 public:
   irisITKObjectMacro(RegistrationRenderer, SliceRendererDelegate)
 
-  irisSetMacro(Model, InteractiveRegistrationModel *)
-  irisGetMacro(Model, InteractiveRegistrationModel *)
+  irisGetSetMacro(Model, InteractiveRegistrationModel *)
 
-  void paintGL() ITK_OVERRIDE;
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *) override;
 
 protected:
 
@@ -23,8 +23,6 @@ protected:
   ~RegistrationRenderer();
 
   InteractiveRegistrationModel *m_Model;
-private:
-  void DrawRotationWidget(const OpenGLAppearanceElement *ae);
 };
 
 #endif // REGISTRATIONRENDERER_H

@@ -252,6 +252,9 @@ public:
   void clear()
     { m_Map.clear(); }
 
+  const MapType &GetMap() const
+    { return m_Map; }
+
   TVal GetValue(const const_iterator &it) const
     { return it->first; }
 
@@ -794,12 +797,16 @@ MAKE_TYPEDEF_PM_RANGED(LabelType,       LabelType)
 // Common vector types
 MAKE_TYPEDEF_PM_RANGED(Vector2d,        DoubleVec2)
 MAKE_TYPEDEF_PM_RANGED(Vector3d,        DoubleVec3)
+MAKE_TYPEDEF_PM_RANGED(Vector4d,        DoubleVec4)
 MAKE_TYPEDEF_PM_RANGED(Vector2i,        IntVec2)
 MAKE_TYPEDEF_PM_RANGED(Vector3i,        IntVec3)
+MAKE_TYPEDEF_PM_RANGED(Vector4i,        IntVec4)
 MAKE_TYPEDEF_PM_RANGED(Vector2ui,       UIntVec2)
 MAKE_TYPEDEF_PM_RANGED(Vector3ui,       UIntVec3)
+MAKE_TYPEDEF_PM_RANGED(Vector4ui,       UIntVec4)
 MAKE_TYPEDEF_PM_RANGED(Vector2b,        BooleanVec2)
 MAKE_TYPEDEF_PM_RANGED(Vector3b,        BooleanVec3)
+MAKE_TYPEDEF_PM_RANGED(Vector4b,        BooleanVec4)
 
 // Macros for non-ranged types
 MAKE_TYPEDEF_PM_NONRNG(std::string,     String)
@@ -929,7 +936,7 @@ public:
 
     // p->UnRegister();
 
-    SmartPtr<Superclass> pout(p);
+    SmartPtr<Superclass> pout(p.GetPointer());
     return pout;
   }
 
@@ -1326,7 +1333,7 @@ public:
 
     // p->UnRegister();
 
-    SmartPtr<Superclass> pout(p);
+    SmartPtr<Superclass> pout(p.GetPointer());
     return pout;
   }
 

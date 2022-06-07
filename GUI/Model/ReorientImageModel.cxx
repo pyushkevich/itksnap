@@ -269,9 +269,9 @@ bool ReorientImageModel
 
   ImageWrapperBase *im = m_Parent->GetDriver()->GetCurrentImageData()->GetMain();
   value = ImageWrapperBase::ConstructNiftiSform(
-      dm,
-      im->GetImageBase()->GetOrigin().GetVnlVector(),
-        im->GetImageBase()->GetSpacing().GetVnlVector());
+            dm,
+            im->GetImageBase()->GetOrigin().GetVnlVector(),
+            im->GetImageBase()->GetSpacing().GetVnlVector()).as_matrix();
 
   return true;
 }
@@ -306,13 +306,13 @@ void ReorientImageModel::OnUpdate()
 
       // Get the direction matrix
       ImageWrapperBase *mainImage = app->GetCurrentImageData()->GetMain();
-      WorldMatrix dm = mainImage->GetImageBase()->GetDirection().GetVnlMatrix();
+      WorldMatrix dm = mainImage->GetImageBase()->GetDirection().GetVnlMatrix().as_ref();
 
       m_CurrentDirectionMatrixModel->SetIsValid(true);
       m_CurrentDirectionMatrixModel->SetValue(dm);
 
       // Get the NIFTI matrix
-      WorldMatrix mw = mainImage->GetNiftiSform();
+      WorldMatrix mw = mainImage->GetNiftiSform().as_ref();
 
       m_CurrentWorldMatrixModel->SetIsValid(true);
       m_CurrentWorldMatrixModel->SetValue(mw);

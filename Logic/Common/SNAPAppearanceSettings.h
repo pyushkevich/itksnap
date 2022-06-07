@@ -46,46 +46,55 @@
 #include "AbstractPropertyContainerModel.h"
 #include "GlobalState.h"
 
+#include <vtkPen.h>
+
+class SNAPAppearanceSettings;
 
 class OpenGLAppearanceElement : public AbstractPropertyContainerModel
 {
 public:
   irisITKObjectMacro(OpenGLAppearanceElement, AbstractPropertyContainerModel)
 
+  typedef SimpleItemSetDomain<int, std::string> LineTypeDomain;
+  typedef AbstractPropertyModel<int, LineTypeDomain> AbstractLineTypeModel;
+
   irisRangedPropertyAccessMacro(Color, Vector3d)
   irisRangedPropertyAccessMacro(Alpha, double)
 
   irisRangedPropertyAccessMacro(LineThickness, double)
-  irisRangedPropertyAccessMacro(DashSpacing, int)
+  irisGenericPropertyAccessMacro(LineType, int, LineTypeDomain)
   irisRangedPropertyAccessMacro(FontSize, int)
+  irisSimplePropertyAccessMacro(VisibilityFlag, bool)
 
-  irisSimplePropertyAccessMacro(Visible, bool)
-  irisSimplePropertyAccessMacro(Smooth, bool)
+  /** Set the parent object */
+  irisGetSetMacro(Parent, SNAPAppearanceSettings *);
 
   /** An enumeration of the fields that an element may possess */
   enum UIElementFeatures
     {
-    COLOR = 0, LINE_THICKNESS, DASH_SPACING,
-    FONT_SIZE, VISIBLE, SMOOTH, FEATURE_COUNT
+    COLOR = 0, LINE_THICKNESS, LINE_TYPE,
+    FONT_SIZE, VISIBLE, FEATURE_COUNT
     };
+
+  /** Check if this element is visible */
+  bool GetVisible() const;
 
   // Set the validity of all the properties at once using an int array
   // indexed by the enum UIElementFeatures
   void SetValid(const int validity[]);
 
-  // Apply the color in the element
-  void ApplyColor() const;
-
-  // Apply the GL line settings in the element
-  void ApplyLineSettings(bool applyThickness = true, bool applyStipple = true) const;
-
 protected:
+
+  typedef ConcretePropertyModel<int, LineTypeDomain> ConcreteLineTypeModel;
 
   SmartPtr<ConcreteRangedDoubleVec3Property> m_ColorModel;
   SmartPtr<ConcreteRangedDoubleProperty> m_AlphaModel, m_LineThicknessModel;
-  SmartPtr<ConcreteRangedIntProperty> m_DashSpacingModel;
+  SmartPtr<ConcreteLineTypeModel> m_LineTypeModel;
   SmartPtr<ConcreteRangedIntProperty> m_FontSizeModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_VisibleModel, m_SmoothModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_VisibilityFlagModel, m_SmoothModel;
+
+  // Pointer to the parent object - used for visibility check
+  SNAPAppearanceSettings *m_Parent = nullptr;
 
   OpenGLAppearanceElement();
 };
@@ -111,6 +120,7 @@ public:
   irisSimplePropertyAccessMacro(GreyInterpolationMode, UIGreyInterpolation)
   irisSimplePropertyAccessMacro(FlagLayoutPatientAnteriorShownLeft, bool)
   irisSimplePropertyAccessMacro(FlagLayoutPatientRightShownLeft, bool)
+  irisSimplePropertyAccessMacro(FlagRemindLayoutSettings, bool)
   irisSimplePropertyAccessMacro(SliceLayout, UISliceLayout)
   irisSimplePropertyAccessMacro(LayerLayout, LayerLayout)
 
@@ -131,6 +141,7 @@ protected:
   SmartPtr<ConcreteRangedIntProperty> m_ZoomThumbnailMaximumSizeModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientAnteriorShownLeftModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientRightShownLeftModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FlagRemindLayoutSettingsModel;
 
   typedef ConcretePropertyModel<UIGreyInterpolation, TrivialDomain> ConcreteInterpolationModel;
   SmartPtr<ConcreteInterpolationModel> m_GreyInterpolationModeModel;

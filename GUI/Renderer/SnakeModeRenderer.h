@@ -16,7 +16,8 @@ public:
   irisITKObjectMacro(SnakeModeRenderer, SliceRendererDelegate)
   irisGetSetMacro(Model, SnakeWizardModel *)
 
-  void paintGL() ITK_OVERRIDE;
+  virtual void AddContextItemsToTiledOverlay(
+      vtkAbstractContextItem *parent, ImageWrapperBase *) override;
 
 protected:
 
@@ -25,7 +26,6 @@ protected:
 
   SnakeWizardModel *m_Model;
 
-  void DrawBubbles();
 };
 
 #endif // SNAKEMODERENDERER_H

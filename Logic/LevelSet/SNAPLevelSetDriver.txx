@@ -49,6 +49,7 @@
 #include "itkNarrowBandLevelSetImageFilter.h"
 #include "itkDenseFiniteDifferenceImageFilter.h"
 #include "LevelSetExtensionFilter.h"
+#include "itkImageDuplicator.h"
 
 #include "itkParallelSparseFieldLevelSetImageFilter.h"
 
@@ -93,8 +94,6 @@ public:
     else
       return ts;
   }
-
-  itk::SimpleFastMutexLock locky;
 };
 
 
@@ -108,7 +107,8 @@ public:
 
 template<unsigned int VDimension>
 SNAPLevelSetDriver<VDimension>
-::SNAPLevelSetDriver(FloatImageType *init, ShortImageType *speed,
+::SNAPLevelSetDriver(FloatImageType *level_set_image,
+                     ShortImageType *speed_image,
                      const SnakeParameters &sparms,
                      VectorImageType *externalAdvection)
 {
@@ -116,7 +116,7 @@ SNAPLevelSetDriver<VDimension>
   m_LevelSetFunction = LevelSetFunctionType::New();
 
   // Pass the speed image to the function
-  m_LevelSetFunction->SetSpeedImage(speed);
+  m_LevelSetFunction->SetSpeedImage(speed_image);
 
   // Scale the speed function to range -1 to 1
   m_LevelSetFunction->SetSpeedScaleFactor(1.0 / 0x7fff);
@@ -125,8 +125,16 @@ SNAPLevelSetDriver<VDimension>
   if(externalAdvection)
     m_LevelSetFunction->SetAdvectionField(externalAdvection);
 
-  // Remember the input and output images for later initialization
-  m_InitializationImage = init;
+  // Create a copy of the level set image for reinitialization
+  // TODO: this is wasteful of memory
+  typedef itk::ImageDuplicator<FloatImageType> Duplicator;
+  typename Duplicator::Pointer dup = Duplicator::New();
+  dup->SetInputImage(level_set_image);
+  dup->Update();
+  m_InitializationCopyImage = dup->GetOutput();
+
+  // Store the pointer to the evolving level set image
+  m_LevelSetImage = level_set_image;
 
   // Pass the parameters to the level set function
   AssignParametersToPhi(sparms,true);
@@ -194,11 +202,10 @@ SNAPLevelSetDriver<VDimension>
     m_LevelSetFilter = filter.GetPointer();
 
     // Perform the special configuration tasks on the filter
-    filter->SetInput(m_InitializationImage);
+    filter->SetInput(m_InitializationCopyImage);
     filter->SetNumberOfLayers(3);
     filter->SetIsoSurfaceValue(0.0f);
     filter->SetDifferenceFunction(m_LevelSetFunction);
-    filter->InPlaceOn();
     }
 /*
   else if(m_Parameters.GetSolver() == SnakeParameters::NARROW_BAND_SOLVER)
@@ -234,9 +241,8 @@ SNAPLevelSetDriver<VDimension>
     m_LevelSetFilter = filter.GetPointer();
 
     // Perform the special configuration tasks on the filter
-    filter->SetInput(m_InitializationImage);
+    filter->SetInput(m_InitializationCopyImage);
     filter->SetDifferenceFunction(m_LevelSetFunction);
-    filter->InPlaceOn();
     }
 
   else
@@ -299,21 +305,6 @@ SNAPLevelSetDriver<VDimension>
   return (m_LevelSetFilter->GetRMSChange() == 0.0);
 }
 
-
-template<unsigned int VDimension>
-typename SNAPLevelSetDriver<VDimension>::FloatImageType * 
-SNAPLevelSetDriver<VDimension>
-::GetCurrentState()
-{
-  // Fix the spacing of the level set filter's output (huh?)
-  m_LevelSetFilter->GetOutput()->SetDirection(m_InitializationImage->GetDirection());
-  m_LevelSetFilter->GetOutput()->SetSpacing(m_InitializationImage->GetSpacing());
-  m_LevelSetFilter->GetOutput()->SetOrigin(m_InitializationImage->GetOrigin());
-
-  // Return the filter's output
-  return m_LevelSetFilter->GetOutput();
-}
-
 template<unsigned int VDimension>
 unsigned int
 SNAPLevelSetDriver<VDimension>
@@ -332,6 +323,14 @@ SNAPLevelSetDriver<VDimension>
   // function to free memory
   m_LevelSetFilter = NULL;
   m_LevelSetFunction = NULL;
+}
+
+template<unsigned int VDimension>
+typename SNAPLevelSetDriver<VDimension>::FloatImageType *
+SNAPLevelSetDriver<VDimension>
+::GetOutput()
+{
+  return m_LevelSetFilter->GetOutput();
 }
 
 template<unsigned int VDimension>

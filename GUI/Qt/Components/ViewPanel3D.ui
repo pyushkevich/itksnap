@@ -225,7 +225,7 @@ font-size: 11px;
         </property>
         <property name="icon">
          <iconset>
-          <normalon>:/root/icons8_slr_camera_12.png</normalon>
+          <normalon>:/root/icons8-camera-12.png</normalon>
          </iconset>
         </property>
         <property name="iconSize">

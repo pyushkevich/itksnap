@@ -40,7 +40,7 @@
 #include "ImageCoordinateTransform.h"
 #include "IRISDisplayGeometry.h"
 #include "itkImageRegion.h"
-#include "itkExceptionObject.h"
+#include "itkMacro.h"
 #include "GlobalState.h"
 #include "ColorLabelTable.h"
 #include "itkCommand.h"
@@ -157,6 +157,7 @@ public:
 
   // Declare events fired by this object
   FIRES(CursorUpdateEvent)
+  FIRES(CursorTimePointUpdateEvent)
   FIRES(MainImageDimensionsChangeEvent)
   FIRES(MainImagePoseChangeEvent)
   FIRES(LayerChangeEvent)
@@ -478,6 +479,24 @@ public:
   Vector3ui GetCursorPosition() const;
 
   /**
+   * Set the current cursor time point. Like setting the cursor position, but
+   * changes which image time point is actively shown
+   */
+  void SetCursorTimePoint(unsigned int time_point, bool force = false);
+
+  /**
+   * Get the current time point
+   */
+  unsigned int GetCursorTimePoint() const;
+
+  /**
+   * Get the number of available time points. For now this just checks the main
+   * image but in the future it is possible to have a workspace-wide time variable
+   * that is not tied to the main image.
+   */
+  unsigned int GetNumberOfTimePoints() const;
+
+  /**
    * Export the current slice of the image into a file
    */
   void ExportSlice(AnatomicalDirection iSliceAnatomy, const char *file);
@@ -529,6 +548,11 @@ public:
    * Check if there is an image currently loaded in SNAP.
    */
   bool IsMainImageLoaded() const;
+
+  /**
+   * Return a pointer to the main image wrapper or nullptr if not loaded
+   */
+  ImageWrapperBase *GetMainImage() const;
 
   /**
     Load label descriptions from file

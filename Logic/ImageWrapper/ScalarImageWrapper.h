@@ -79,6 +79,10 @@ public:
   typedef typename Superclass::CommonFormatImageType     CommonFormatImageType;
   typedef typename Superclass::PreviewImageType               PreviewImageType;
 
+  // 4D Image types
+  typedef typename Superclass::Image4DType                         Image4DType;
+  typedef typename Superclass::Image4DPointer                   Image4DPointer;
+
   // Floating point image type
   typedef itk::Image<float, 3>                                  FloatImageType;
   typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
@@ -105,11 +109,14 @@ public:
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
 
-  // MinMax calculator type
-  typedef itk::MinimumMaximumImageFilter<ImageType>               MinMaxFilter;
+  // MinMax calculator type (works on the 4D image)
+  typedef itk::MinimumMaximumImageFilter<Image4DType>             MinMaxFilter;
 
-  // Histogram filter
-  typedef ThreadedHistogramImageFilter<ImageType>          HistogramFilterType;
+  // Histogram filter (works on the 4D image)
+  typedef ThreadedHistogramImageFilter<Image4DType>        HistogramFilterType;
+
+  // VTK Exporter
+  typedef itk::VTKImageExport<CommonFormatImageType>             VTKExportType;
 
   // Iterator types
   typedef typename Superclass::Iterator                               Iterator;
@@ -133,7 +140,7 @@ public:
    * of a scalar image wrapper is itself.
    * @see ImageWrapperBase::GetScalarRepresentation
    */
-  ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE { return this; }
+  virtual ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE { return this; }
 
   /** Access the min/max filter */
   irisGetMacro(MinMaxFilter, MinMaxFilter *)
@@ -148,34 +155,6 @@ public:
 
   /** This image type has only one component */
   virtual size_t GetNumberOfComponents() const ITK_OVERRIDE { return 1; }
-
-  /** Voxel access */
-  virtual double GetVoxelAsDouble(const itk::Index<3> &idx) const ITK_OVERRIDE
-    { return (double) Superclass::GetVoxel(idx); }
-
-  virtual double GetVoxelAsDouble(const Vector3ui &v) const ITK_OVERRIDE
-    { return (double) Superclass::GetVoxel(v); }
-
-  virtual void GetVoxelAsDouble(const Vector3ui &x, double *out) const ITK_OVERRIDE
-    { out[0] = Superclass::GetVoxel(x); }
-
-  virtual void GetVoxelAsDouble(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
-    { out[0] = Superclass::GetVoxel(idx); }
-
-  /**
-   * Get voxel intensity in native space
-   */
-  double GetVoxelMappedToNative(const Vector3ui &vec) const ITK_OVERRIDE
-    { return this->m_NativeMapping(this->GetVoxel(vec)); }
-
-  double GetVoxelMappedToNative(const itk::Index<3> &idx) const ITK_OVERRIDE
-    { return this->m_NativeMapping(this->GetVoxel(idx)); }
-
-  virtual void GetVoxelMappedToNative(const Vector3ui &vec, double *out) const ITK_OVERRIDE
-    { out[0] = this->m_NativeMapping(Superclass::GetVoxel(vec)); }
-
-  virtual void GetVoxelMappedToNative(const itk::Index<3> &idx, double *out) const ITK_OVERRIDE
-    { out[0] = this->m_NativeMapping(Superclass::GetVoxel(idx)); }
 
   /** Compute statistics over a run of voxels in the image starting at the index
    * startIdx. Appends the statistics to a running sum and sum of squared. The
@@ -197,9 +176,9 @@ public:
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
 
-  virtual ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
+  virtual const ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
 
-  virtual ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
+  virtual const ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
 
   /**
     Compute the image histogram. The histogram is cached inside of the
@@ -256,7 +235,7 @@ public:
    * Get an image cast to a common representation.
    * @see ScalarImageWrapperBase::GetCommonFormatImage()
    */
-  CommonFormatImageType* GetCommonFormatImage(
+  const CommonFormatImageType* GetCommonFormatImage(
       ExportChannel channel = ScalarImageWrapperBase::WHOLE_IMAGE) ITK_OVERRIDE;
 
   /** Return the intensity curve for this layer if it exists */
@@ -271,6 +250,11 @@ public:
   /** Extends parent method */
   virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
 
+  /** Is volume rendering turned on for this layer */
+  irisIsMacroWithOverride(VolumeRenderingEnabled)
+
+  /** Turn on volume rendering for this layer */
+  irisSetWithEventMacroWithOverride(VolumeRenderingEnabled, bool, WrapperVisibilityChangeEvent)
 
 protected:
 
@@ -305,7 +289,11 @@ protected:
   /** The intensity scaling factor */
   double m_ImageScaleFactor;
 
+  SmartPtr<VTKExportType> m_VTKExporter;
   vtkSmartPointer<vtkImageImport> m_VTKImporter;
+
+  // Volume rendering state
+  bool m_VolumeRenderingEnabled = false;
   
   /**
    * Compute the intensity range of the image if it's out of date.  
@@ -317,14 +305,13 @@ protected:
    * Handle a change in the image pointer (i.e., a load operation on the image or 
    * an initialization operation)
    */
-  virtual void UpdateImagePointer(ImageType *image,
-                                  ImageBaseType *refSpace = NULL,
-                                  ITKTransformType *tran = NULL) ITK_OVERRIDE;
+  virtual void UpdateWrappedImages(Image4DType *image_4d,
+                                   ImageBaseType *refSpace = NULL,
+                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
 
 
   /** Write the image to disk as a floating point image (scalar or vector) */
   virtual void WriteToFileAsFloat(const char *filename, Registry &hints) ITK_OVERRIDE;
-
 };
 
 #endif // __ScalarImageWrapper_h_

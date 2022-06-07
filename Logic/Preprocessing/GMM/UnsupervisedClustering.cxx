@@ -93,7 +93,7 @@ void UnsupervisedClustering::SampleDataSource()
   assert(m_DataSource->IsSpeedLoaded());
   typedef SpeedImageWrapper::ImageType SpeedImage;
 
-  SpeedImage *speed = m_DataSource->GetSpeed()->GetImage();
+  const SpeedImage *speed = m_DataSource->GetSpeed()->GetImage();
   typedef itk::ImageRandomConstIteratorWithIndex<SpeedImage> RandomIter;
   RandomIter itRand(speed, speed->GetBufferedRegion());
   itRand.SetNumberOfSamples(nsam);
@@ -119,7 +119,8 @@ void UnsupervisedClustering::SampleDataSource()
         !lit.IsAtEnd(); ++lit)
       {
       ImageWrapperBase *iw = lit.GetLayer();
-      iw->GetVoxelAsDouble(idx, m_DataArray[pVoxel] + iOffset);
+      vnl_vector<double> svec(m_DataArray[pVoxel] + iOffset, iw->GetNumberOfComponents());
+      iw->SampleIntensityAtReferenceIndex(idx, iw->GetTimePointIndex(), false, svec);
       iOffset += iw->GetNumberOfComponents();
       }
 
@@ -216,7 +217,7 @@ void UnsupervisedClustering::SortClustersByRelevance()
     rel[k].second = k;
     }
 
-  for(int i = 0; i < m_CenterSamples.size(); i++)
+  for(unsigned int i = 0; i < m_CenterSamples.size(); i++)
     {
     int s = m_CenterSamples[i];
     for(int k = 0; k < ng; k++)
@@ -253,11 +254,8 @@ void UnsupervisedClustering::SortClustersByRelevance()
 
 void UnsupervisedClustering::Iterate()
 {
-  long start = clock();
-  double **post = m_ClusteringEM->UpdateOnce();
+  m_ClusteringEM->UpdateOnce();
   m_MixtureModel->PrintParameters();
-  long end = clock();
-  std::cout << "spending " << (end-start)/1000 << std::endl;
 }
 
 

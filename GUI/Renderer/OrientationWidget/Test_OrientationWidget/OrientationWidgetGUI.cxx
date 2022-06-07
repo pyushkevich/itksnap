@@ -11,7 +11,6 @@
 
 
 #include <OrientationGraphicRenderer.h>
-#include <QtSimpleOpenGLBox.h>
 #include <ScanningROI.h>
 #include "OrientationWidgetGUI.h"
 

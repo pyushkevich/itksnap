@@ -94,26 +94,26 @@
         <attribute name="horizontalHeaderVisible">
          <bool>false</bool>
         </attribute>
+        <attribute name="horizontalHeaderMinimumSectionSize">
+         <number>75</number>
+        </attribute>
         <attribute name="horizontalHeaderDefaultSectionSize">
          <number>75</number>
         </attribute>
         <attribute name="horizontalHeaderHighlightSections">
          <bool>false</bool>
         </attribute>
-        <attribute name="horizontalHeaderMinimumSectionSize">
-         <number>75</number>
-        </attribute>
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
+        </attribute>
+        <attribute name="verticalHeaderMinimumSectionSize">
+         <number>50</number>
         </attribute>
         <attribute name="verticalHeaderDefaultSectionSize">
          <number>50</number>
         </attribute>
         <attribute name="verticalHeaderHighlightSections">
          <bool>false</bool>
-        </attribute>
-        <attribute name="verticalHeaderMinimumSectionSize">
-         <number>50</number>
         </attribute>
         <row>
          <property name="text">
@@ -547,7 +547,7 @@
         </property>
        </widget>
       </widget>
-      <widget class="QtSimpleOpenGLBox" name="m_pQtSimpleOpenGLBox" native="true">
+      <widget class="QtVTKRenderWindowBox" name="m_pQtSimpleOpenGLBox" native="true">
        <property name="geometry">
         <rect>
          <x>9</x>
@@ -575,9 +575,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QtSimpleOpenGLBox</class>
+   <class>QtVTKRenderWindowBox</class>
    <extends>QWidget</extends>
-   <header location="global">QtSimpleOpenGLBox.h</header>
+   <header>QtVTKRenderWindowBox.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

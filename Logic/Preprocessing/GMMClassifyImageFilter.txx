@@ -31,17 +31,17 @@ GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 template <class TInputImage, class TInputVectorImage, class TOutputImage>
 void
 GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
-::AddScalarImage(InputImageType *image)
+::AddScalarImage(const InputImageType *image)
 {
-  this->AddInput(image);
+  this->AddInput(const_cast<InputImageType *>(image));
 }
 
 template <class TInputImage, class TInputVectorImage, class TOutputImage>
 void
 GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
-::AddVectorImage(InputVectorImageType *image)
+::AddVectorImage(const InputVectorImageType *image)
 {
-  this->AddInput(image);
+  this->AddInput(const_cast<InputVectorImageType *>(image));
 }
 
 
@@ -84,12 +84,10 @@ GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
 template <class TInputImage, class TInputVectorImage, class TOutputImage>
 void
 GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
-::ThreadedGenerateData(const OutputImageRegionType &outputRegionForThread,
-                       itk::ThreadIdType threadId)
+::DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread)
 {
   // Get the number of inputs
   assert(m_MixtureModel);
-  int n_input = this->GetNumberOfIndexedInputs();
   OutputImagePointer outputPtr = this->GetOutput(0);
 
   // Create a collection iterator

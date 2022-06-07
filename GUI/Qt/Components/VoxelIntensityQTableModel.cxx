@@ -59,13 +59,13 @@ QVariant VoxelIntensityQTableModel::data(const QModelIndex &index, int role) con
       // images? For the time being, we can list all of the components, but
       // we should really come up with something better
       ImageWrapperBase *iw = it.GetLayer();
-      vnl_vector<double> voxel(iw->GetNumberOfComponents(), 0.0);
-      iw->GetVoxelMappedToNative(cursor, voxel.data_block());
+      vnl_vector<double> voxel;
+      iw->SampleIntensityAtReferenceIndex(to_itkIndex(cursor), iw->GetTimePointIndex(), true, voxel);
 
       if(voxel.size() > 1)
         {
         std::ostringstream oss;
-        for(int i = 0; i < voxel.size(); i++)
+        for(unsigned int i = 0; i < voxel.size(); i++)
           {
           if(i > 0)
             oss << ",";

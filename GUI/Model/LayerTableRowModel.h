@@ -53,6 +53,9 @@ public:
   typedef AbstractPropertyModel<MultiChannelDisplayMode, TrivialDomain> AbstractDisplayModeModel;
   irisGetMacro(DisplayModeModel, AbstractDisplayModeModel *)
 
+  /** A model for volume rendering on/off */
+  irisSimplePropertyAccessMacro(VolumeRenderingEnabled, bool)
+
   /**
     States in which the model can be, which allow the activation and
     deactivation of various widgets in the interface
@@ -178,8 +181,13 @@ protected:
   bool GetDisplayModeValue(MultiChannelDisplayMode &value);
   void SetDisplayModeValue(MultiChannelDisplayMode value);
 
+  // Volume rendering enabled model
+  SmartPtr<AbstractSimpleBooleanProperty> m_VolumeRenderingEnabledModel;
+  bool GetVolumeRenderingEnabledValue(bool &value);
+  void SetVolumeRenderingEnabledValue(bool value);
+
   // Update our state in response to events from the layer
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   // Update cached role information
   void UpdateRoleInfo();

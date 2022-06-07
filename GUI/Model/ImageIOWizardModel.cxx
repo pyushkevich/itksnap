@@ -243,7 +243,7 @@ ImageIOWizardModel::GetSummaryItem(ImageIOWizardModel::SummaryItem item)
     return triple2str(m_GuidedIO->GetNativeImage()->GetOrigin());
 
   case ImageIOWizardModel::SI_ORIENT:
-    dir = m_GuidedIO->GetNativeImage()->GetDirection().GetVnlMatrix();
+    dir = m_GuidedIO->GetNativeImage()->GetDirection().GetVnlMatrix().as_matrix();
     rai = ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dir);
     if(ImageCoordinateGeometry::IsDirectionMatrixOblique(dir))
       sout << "Oblique (closest to " << rai << ")";
@@ -272,6 +272,10 @@ ImageIOWizardModel::GetSummaryItem(ImageIOWizardModel::SummaryItem item)
 
   case ImageIOWizardModel::SI_COMPONENTS:
     sout << m_GuidedIO->GetNumberOfComponentsInNativeImage();
+    return sout.str();
+
+  case ImageIOWizardModel::SI_TIMEPOINTS:
+    sout << m_GuidedIO->GetDimensionsOfNativeImage()[3];
     return sout.str();
 
   case ImageIOWizardModel::SI_FILESIZE:
@@ -321,7 +325,7 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     m_LoadDelegate->ValidateImage(m_GuidedIO, m_Warnings);
 
     // Update the application
-    m_LoadedImage =
+    m_LoadedImage =	
         m_LoadDelegate->UpdateApplicationWithImage(m_GuidedIO);
 
     // Save the IO hints to the registry

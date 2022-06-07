@@ -67,9 +67,6 @@ public:
   /** Get the model for the label description under the cursor */
   irisGetMacro(LabelUnderTheCursorTitleModel, AbstractSimpleStringProperty*)
 
-  /** Get the model for the cursor location */
-  AbstractRangedUIntVec3Property *GetCursorPositionModel() const;
-
   // The model for a table of intensity values at cursor
   irisGetMacro(VoxelAtCursorModel, ConcreteLayerVoxelAtCursorModel *)
 
@@ -86,9 +83,6 @@ private:
   // Title of the label under the cursor
   SmartPtr<AbstractSimpleStringProperty> m_LabelUnderTheCursorTitleModel;
   bool GetLabelUnderTheCursorTitleValue(std::string &value);
-
-  // A pointer to the parent's cusror model
-  AbstractRangedUIntVec3Property *m_CursorPositionModel;
 
   // The model for the intensity table
   SmartPtr<ConcreteLayerVoxelAtCursorModel> m_VoxelAtCursorModel;

@@ -151,7 +151,7 @@ QTabBar:tab:hover {
              <widget class="QFrame" name="frame">
               <property name="styleSheet">
                <string notr="true">QFrame#frame {
-	background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0.537, y2:0.0340909, stop:0 rgba(210, 230, 230, 255), stop:1 rgba(255, 255, 255, 255));
+	background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0.537, y2:0.0340909, stop:0 rgba(210, 230, 230, 255), stop:1 palette(light));
     border: 1px solid black;
 }
 
@@ -176,7 +176,8 @@ QTextBrowser {
                   <bool>false</bool>
                  </property>
                  <property name="styleSheet">
-                  <string notr="true">padding: -16px;</string>
+                  <string notr="true">padding: -16px;
+font-size: 13px;</string>
                  </property>
                  <property name="frameShape">
                   <enum>QFrame::NoFrame</enum>
@@ -189,14 +190,17 @@ QTextBrowser {
                  </property>
                  <property name="html">
                   <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.SF NS Text'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Lucida Grande'; font-size:13pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
-&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:12px; margin-bottom:4px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;Learn about the &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.NewFeaturesVersion30&quot;&gt;&lt;span style=&quot; font-size:11px; text-decoration: underline; color:#0000ff;&quot;&gt;new features&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:11px;&quot;&gt; in this version&lt;/span&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:4px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;Read a &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.UpgradingTo30&quot;&gt;&lt;span style=&quot; font-size:11px; text-decoration: underline; color:#0000ff;&quot;&gt;quick transition guide&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:11px;&quot;&gt; for Version 2 users&lt;/span&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:4px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;Download &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data&quot;&gt;&lt;span style=&quot; font-size:11px; text-decoration: underline; color:#0000ff;&quot;&gt;sample datasets&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
-&lt;li style=&quot; font-family:'Lucida Grande'; font-size:13pt;&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:11px;&quot;&gt;Connect to the &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists&quot;&gt;&lt;span style=&quot; font-size:11px; text-decoration: underline; color:#0000ff;&quot;&gt;ITK-SNAP community&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.AppleSystemUIFont'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
+&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:12px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14px;&quot;&gt;Browse &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP3&quot;&gt;&lt;span style=&quot; font-size:14px; text-decoration: underline; color:#094fd1;&quot;&gt;online documentation and tutorials&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:10px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14px;&quot;&gt;Download &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data&quot;&gt;&lt;span style=&quot; font-size:14px; text-decoration: underline; color:#094fd1;&quot;&gt;sample datasets&lt;/span&gt;&lt;/a&gt;&lt;span style=&quot; font-size:14px;&quot;&gt; &lt;/span&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:10px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:14px;&quot;&gt;Connect to the &lt;/span&gt;&lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists&quot;&gt;&lt;span style=&quot; font-size:14px; text-decoration: underline; color:#094fd1;&quot;&gt;ITK-SNAP community&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="source">
+                  <url>
+                   <string>qrc:/root/html/splash.html</string>
+                  </url>
                  </property>
                  <property name="openExternalLinks">
                   <bool>true</bool>
@@ -222,7 +226,7 @@ color:rgb(103, 103, 103);
 </string>
                  </property>
                  <property name="text">
-                  <string>Getting started with ITK-SNAP Version 3</string>
+                  <string>Getting started with ITK-SNAP Version 4</string>
                  </property>
                 </widget>
                </item>
@@ -344,7 +348,7 @@ color:rgb(103, 103, 103);
      <x>0</x>
      <y>0</y>
      <width>907</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -552,6 +556,7 @@ color:rgb(103, 103, 103);
     <addaction name="actionDSS"/>
     <addaction name="separator"/>
     <addaction name="actionInterpolate_Labels"/>
+    <addaction name="actionSmooth_Labels"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
    </widget>
@@ -1681,6 +1686,11 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>|</string>
+   </property>
+  </action>
+  <action name="actionSmooth_Labels">
+   <property name="text">
+    <string>Smooth Labels...</string>
    </property>
   </action>
  </widget>

@@ -21,7 +21,9 @@ public:
 
   void SetModel(SnakeWizardModel *model);
 
-  void OnUpdate() ITK_OVERRIDE;
+  void SetRenderWindow(vtkRenderWindow *rwin) override;
+
+  void OnUpdate() override;
 
   void UpdatePlotValues();
 protected:
@@ -43,7 +45,7 @@ protected:
   // Histogram rendering
   LayerHistogramPlotAssembly *m_HistogramAssembly;
 
-  void OnDevicePixelRatioChange(int old_ratio, int new_ratio) ITK_OVERRIDE;
+  void OnDevicePixelRatioChange(int old_ratio, int new_ratio) override;
 };
 
 #endif // THRESHOLDSETTINGSRENDERER_H

@@ -36,8 +36,8 @@ public:
     }
 
   void PrecomputeWatersheds(
-    GreyImageType *grey,
-    LabelImageType *label,
+    const GreyImageType *grey,
+    const LabelImageType *label,
     itk::ImageRegion<3> region,
     itk::Index<3> vcenter,
     size_t smoothing_iter)
@@ -402,17 +402,13 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
 
   // Iterate over the region using
   SegmentationUpdateIterator it_update(
-        imgLabel->GetImage(), xTestRegion, drawing_color, drawover);
+        imgLabel, xTestRegion, drawing_color, drawover);
 
   for(; !it_update.IsAtEnd(); ++it_update)
     {
     SegmentationUpdateIterator::IndexType idx = it_update.GetIndex();
 
-    Vector3d xDelta =
-        offset
-        + to_double(Vector3l(idx.GetIndex()))
-        - to_double(m_MousePosition);
-
+    Vector3d xDelta = offset + to_double(idx) - to_double(m_MousePosition);
     Vector3d xDeltaSliceSpace = to_double(
           m_Parent->GetImageToDisplayTransform()->TransformVector(xDelta));
 
@@ -423,8 +419,10 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
     // Check if the pixel is in the watershed
     if(flagWatershed)
       {
-      LabelImageWrapper::ImageType::IndexType idxoff = to_itkIndex(
-        Vector3l(idx.GetIndex()) - Vector3l(xTestRegion.GetIndex().GetIndex()));
+      LabelImageWrapper::ImageType::IndexType idxoff;
+      for(unsigned int i = 0; i < 3; i++)
+        idxoff[i] = idx.GetIndex()[i] - xTestRegion.GetIndex().GetIndex()[i];
+
       if(!m_Watershed->IsPixelInSegmentation(idxoff))
         continue;
       }
@@ -437,10 +435,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
     }
 
   // Finalize the iteration
-  it_update.Finalize();
-
-  // If nothing actually changed, return
-  if(it_update.GetNumberOfChangedVoxels() == 0)
+  if(!it_update.Finalize())
     return false;
 
   // Send the delta for undo

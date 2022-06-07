@@ -53,6 +53,7 @@ class StatisticsDialog;
 class QActionGroup;
 class PreferencesDialog;
 class InterpolateLabelsDialog;
+class SmoothLabelsDialog;
 class ImageIOWizard;
 class ImageIOWizardModel;
 class DistributedSegmentationDialog;
@@ -121,6 +122,9 @@ public:
 
   /** Check for updates (automatically at regular periods) */
   void UpdateAutoCheck();
+
+  /** Remind user of layout preference setting */
+  void RemindLayoutPreference();
 
   // Save the segmentation (interactively or not). Return true if save was
   // successful
@@ -303,6 +307,8 @@ private slots:
 
   void on_actionInterpolate_Labels_triggered();
 
+  void on_actionSmooth_Labels_triggered();
+
   void on_actionRegistration_triggered();
 
   void on_actionClose_Window_triggered();
@@ -409,6 +415,8 @@ private:
   PreferencesDialog *m_PreferencesDialog;
 
   InterpolateLabelsDialog *m_InterpolateLabelsDialog;
+
+  SmoothLabelsDialog *m_SmoothLabelsDialog;
 
   RegistrationDialog *m_RegistrationDialog;
 

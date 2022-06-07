@@ -9,7 +9,6 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QThread>
-#include <QRegExp>
 #include <QApplication>
 #include <QAbstractItemView>
 #include <QComboBox>
@@ -18,6 +17,7 @@
 #include <QKeySequence>
 #include <QDir>
 #include <SNAPQApplication.h>
+#include <QDeadlineTimer>
 
 
 #include "SNAPQtCommon.h"
@@ -78,11 +78,11 @@ SNAPTestQt::LaunchTest(std::string test)
     }
 
   // Create and run the thread
-  TestWorker *worker = new TestWorker(this, from_utf8(test), m_ScriptEngine, m_Acceleration);
+  m_Worker = new TestWorker(this, from_utf8(test), m_ScriptEngine, m_Acceleration);
 
-  connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+  connect(m_Worker, SIGNAL(finished()), m_Worker, SLOT(deleteLater()));
 
-  worker->start();
+  m_Worker->start();
 }
 
 QObject *SNAPTestQt::findChild(QObject *parent, QString child)
@@ -212,10 +212,12 @@ void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
   if(v1 != v2)
     {
     // Validation failed!
-    qWarning() << QString("Validation %1 == %2 failed!").arg(v1.toString(),v2.toString());
+    QString msg = QString("Validation %1 == %2 failed!").arg(v1.toString(),v2.toString());
+    qWarning() << msg;
 
     // Exit with code corresponding to test failure
-    application_exit(REGRESSION_TEST_FAILURE);
+    m_ScriptEngine->throwError(QJSValue::GenericError, msg);
+    // application_exit(REGRESSION_TEST_FAILURE);
     }
   else
     {
@@ -249,10 +251,13 @@ void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
   if(fabs(v1 - v2) > precision)
     {
     // Validation failed!
-    qWarning() << QString("Validation %1 == %2 (with precision %3) failed!").arg(v1).arg(v2).arg(precision);
+    QString msg = QString("Validation %1 == %2 (with precision %3) failed!").arg(v1).arg(v2).arg(precision);
+    qWarning() << msg;
 
     // Exit with code corresponding to test failure
-    application_exit(REGRESSION_TEST_FAILURE);
+    m_ScriptEngine->throwError(QJSValue::GenericError, msg);
+
+    // application_exit(REGRESSION_TEST_FAILURE);
     }
   else
     {
@@ -264,7 +269,8 @@ void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
 void SNAPTestQt::testFailed(QString reason)
 {
   qWarning() << reason;
-  application_exit(REGRESSION_TEST_FAILURE);
+  m_ScriptEngine->throwError(QJSValue::GenericError, reason);
+  // application_exit(REGRESSION_TEST_FAILURE);
 }
 
 
@@ -290,7 +296,7 @@ void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QSt
     else if(button == "right")
       btn = Qt::RightButton;
     else if(button == "middle")
-      btn = Qt::MidButton;
+      btn = Qt::MiddleButton;
 
     QEvent::Type type = QEvent::None;
     if(eventType == "press")
@@ -311,15 +317,9 @@ void SNAPTestQt::postKeyEvent(QObject *object, QString key)
     QKeySequence seq(key);
     if(seq.count() == 1)
       {
-      int code = seq[0];
-      int key = code & 0x01ffffff;
-      int mod = code & 0xfe000000;
-      Qt::KeyboardModifiers mods;
-
-      if(mod & Qt::ShiftModifier)
-        mods |= Qt::ShiftModifier;
-      if(mod & Qt::ControlModifier)
-        mods |= Qt::ControlModifier;
+      QKeyCombination code = seq[0];
+      Qt::Key key = code.key();
+      Qt::KeyboardModifiers mods = code.keyboardModifiers();
 
       QKeyEvent *ev = new QKeyEvent(QEvent::KeyPress, key, mods);
       QApplication::postEvent(widget, ev);
@@ -336,13 +336,14 @@ SNAPTestQt::ListTests()
   script_dir.setNameFilters(filters);
   QStringList files = script_dir.entryList();
 
-  QRegExp rx("test_(.*).js");
+  QRegularExpression rx("test_(.*).js");
 
   cout << "Available Tests" << endl;
   foreach(const QString &test, files)
     {
-    if(rx.indexIn(test) >= 0)
-      cout << "  " << rx.cap(1).toStdString() << endl;
+    auto rm = rx.match(test);
+    if(rm.hasMatch())
+      cout << "  " << rm.captured(1).toStdString() << endl;
     }
 
   return SUCCESS;
@@ -368,9 +369,6 @@ void TestWorker::run()
 
   // Run the top-level script
   source(m_MainScript);
-
-  // Exit script
-  SNAPTestQt::application_exit(SNAPTestQt::SUCCESS);
 }
 
 void TestWorker::sleep_ms(unsigned int msec)
@@ -400,22 +398,22 @@ void TestWorker::readScript(QString script_url, QString &script)
   while(!stream.atEnd())
     {
     QString line = stream.readLine();
-    QRegExp rxSleep("^\\s*$");
-    QRegExp rxComment("//===\\s+(\\w+.*)");
+    auto rmSleep = QRegularExpression("^\\s*$").match(line);
+    auto rmComment = QRegularExpression("//===\\s+(\\w+.*)").match(line);
     // QRegExp rxInclude("include.*\\((\\w+.*)\\)");
-    QRegExp rxInclude("include.*\"(\\w+.*)\".*");
+    auto rmInclude = QRegularExpression("include.*\"(\\w+.*)\".*").match(line);
 
-    if(rxSleep.indexIn(line) >= 0)
+    if(rmSleep.hasMatch())
       {
       line = QString("engine.sleep(500)");
       }
-    else if(rxComment.indexIn(line) >= 0)
+    else if(rmComment.hasMatch())
       {
-      line = QString("engine.print(\"%1\")").arg(rxComment.cap(1));
+      line = QString("engine.print(\"%1\")").arg(rmComment.captured(1));
       }
-    else if(rxInclude.indexIn(line) >= 0)
+    else if(rmInclude.hasMatch())
       {
-      QString child_url = rxInclude.cap(1);
+      QString child_url = rmInclude.captured(1);
       if(!QFileInfo(child_url).isReadable())
         child_url = QString(":/scripts/Scripts/test_%1.js").arg(child_url);
 
@@ -447,9 +445,15 @@ void TestWorker::source(QString script_url)
 
   // Execute it
   QJSValue rc = m_Engine->evaluate(script);
+  qWarning() << "Return code from evaluate is " << rc.toString();
   if(rc.isError())
     {
     qWarning() << "JavaScript exception:" << rc.toString();
     SNAPTestQt::application_exit(SNAPTestQt::EXCEPTION_CAUGHT);
+    }
+  else
+    {
+    qWarning() << "Successfully completed test script:" << rc.toString();
+    SNAPTestQt::application_exit(SNAPTestQt::SUCCESS);
     }
 }

@@ -34,7 +34,7 @@ public:
 
   enum SummaryItem {
     SI_FILENAME, SI_DIMS, SI_SPACING, SI_ORIGIN, SI_ORIENT,
-    SI_ENDIAN, SI_COMPONENTS, SI_DATATYPE, SI_FILESIZE
+    SI_ENDIAN, SI_COMPONENTS, SI_TIMEPOINTS, SI_DATATYPE, SI_FILESIZE
   };
 
   // Initialize the wizard for load operations. Note that the delegate,

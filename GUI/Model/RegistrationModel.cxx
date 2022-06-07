@@ -221,7 +221,7 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool reset_flips, bool
   // Perform the SVD of the affine matrix, which allows us to do polar decomposition
   Mat3 A = m_ManualParam.AffineMatrix.GetVnlMatrix();
   Vec3 b = m_ManualParam.AffineOffset.GetVnlVector();
-  vnl_svd<double> svd(A);
+  vnl_svd<double> svd(A.as_ref());
 
   // Get the orthonormal part of A and the positive semi-definite part of A
   Mat3 R = svd.U() * svd.V().transpose();
@@ -251,7 +251,7 @@ void RegistrationModel::UpdateManualParametersFromWrapper(bool reset_flips, bool
   // Now the Pvox matrix must be decomposed into scaling and shearing parts. This can be done
   // using eigendecomposition, but we must be careful to assign scaling and shearing to the
   // correct axes.
-  vnl_symmetric_eigensystem<double> eigen(Pvox);
+  vnl_symmetric_eigensystem<double> eigen(Pvox.as_ref());
   Mat3 S; S.fill(0.0); S.set_diagonal(eigen.D.get_diagonal());
   Mat3 B = eigen.V;
 
@@ -551,8 +551,10 @@ void RegistrationModel::ApplyRotation(const Vector3d &axis, double theta)
   vnl_vector_fixed<double, 3> b = m_ManualParam.AffineOffset.GetVnlVector();
   vnl_vector_fixed<double, 3> C = ptCenter.GetVnlVector();
 
+  auto b_prime = A * C + b - A * (R * C);
+
   m_ManualParam.AffineMatrix = A * R;
-  m_ManualParam.AffineOffset.SetVnlVector(A * C + b - A * (R * C));
+  m_ManualParam.AffineOffset.SetVnlVector(b_prime.as_vector());
 
   // Update the transform
   this->SetMovingTransform(
@@ -562,9 +564,6 @@ void RegistrationModel::ApplyRotation(const Vector3d &axis, double theta)
 
 void RegistrationModel::ApplyTranslation(const Vector3d &tran)
 {
-  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
-  assert(layer);
-
   // Get the current transform
   ITKMatrixType matrix; ITKVectorType offset;
   this->GetMovingTransform(matrix, offset);
@@ -652,22 +651,30 @@ void RegistrationModel::RunAutoRegistration()
       moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
   castMoving->UpdateOutputInformation();
 
+
+  // Update the cast filters so the buffers are loaded
+  //   Greedy is using BufferredRegion to create cost functions.
+  //   Without updating, the bufferred region will be [0,0,0],
+  //   and it will cause divide-by-zero error on the greedy side
+  castFixed->Update();
+  castMoving->Update();
+
   // Caster for the mask image - declared here so that SmartPtr does not go out of scope
   SmartPtr<ScalarImageWrapperBase::FloatImageSource> castMask;
 
   // Set up the parameters for greedy registration
   GreedyParameters param;
-  GreedyParameters::SetToDefaults(param);
 
   // Create an API object
   m_GreedyAPI = new GreedyAPI();
 
-  // Configure the fixed and moving images
+  // Create an imput group and configure the fixed and moving images
+  GreedyInputGroup ig;
   ImagePairSpec ip;
   ip.weight = 1.0;
   ip.fixed = "FIXED_IMAGE";
   ip.moving = "MOVING_IMAGE";
-  param.inputs.push_back(ip);
+  ig.inputs.push_back(ip);
 
   // Pass the actual images to the cache
   m_GreedyAPI->AddCachedInputObject(ip.fixed, castFixed->GetOutput());
@@ -676,11 +683,11 @@ void RegistrationModel::RunAutoRegistration()
   // Mask image
   if(this->GetUseSegmentationAsMask())
     {
-    param.gradient_mask = "GRADIENT_MASK";
+    ig.fixed_mask = "GRADIENT_MASK";
     ImageWrapperBase *seg = this->GetParent()->GetDriver()->GetSelectedSegmentationLayer();
     castMask = seg->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline();
     castMask->UpdateLargestPossibleRegion();
-    m_GreedyAPI->AddCachedInputObject(param.gradient_mask, castMask->GetOutput());
+    m_GreedyAPI->AddCachedInputObject(ig.fixed_mask, castMask->GetOutput());
     }
 
   // Set up the metric
@@ -718,6 +725,14 @@ void RegistrationModel::RunAutoRegistration()
   param.affine_init_mode = RAS_FILENAME;
   param.affine_init_transform.filename = "INPUT_TRANSFORM";
   param.affine_init_transform.exponent = 1;
+
+  // Add the input group to the parameters
+  //  GreedyParameters may create an empty input group during contruction
+  //  Remove the defaultly constructed group, replace it with ig
+  if (param.input_groups.size() > 0)
+    param.input_groups.clear();
+
+  param.input_groups.push_back(ig);
 
   // Pass the input transformation object to the cache
   ITKMatrixType matrix; ITKVectorType offset;
@@ -771,19 +786,26 @@ void RegistrationModel::MatchByMoments(int order)
       moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
   castMoving->UpdateOutputInformation();
 
+  // Update the cast filters so the buffers are loaded
+  //   Greedy is using BufferredRegion to create cost functions.
+  //   Without updating, the bufferred region will be [0,0,0],
+  //   and it will cause divide-by-zero error on the greedy side
+  castFixed->Update();
+  castMoving->Update();
+
   // Set up the parameters for greedy registration
   GreedyParameters param;
-  GreedyParameters::SetToDefaults(param);
 
   // Create an API object
   m_GreedyAPI = new GreedyAPI();
 
   // Configure the fixed and moving images
+  GreedyInputGroup ig;
   ImagePairSpec ip;
   ip.weight = 1.0;
   ip.fixed = "FIXED_IMAGE";
   ip.moving = "MOVING_IMAGE";
-  param.inputs.push_back(ip);
+  ig.inputs.push_back(ip);
 
   // Pass the actual images to the cache
   m_GreedyAPI->AddCachedInputObject(ip.fixed, castFixed->GetOutput());
@@ -808,6 +830,12 @@ void RegistrationModel::MatchByMoments(int order)
   param.affine_init_mode = RAS_FILENAME;
   param.affine_init_transform.filename = "INPUT_TRANSFORM";
   param.affine_init_transform.exponent = 1;
+
+  // Add the input group to the parameters
+  if (param.input_groups.size() > 0)
+    param.input_groups.clear();
+
+  param.input_groups.push_back(ig);
 
   // Pass the input transformation object to the cache
   ITKMatrixType matrix; ITKVectorType offset;
@@ -1274,7 +1302,7 @@ void RegistrationModel::IterationCallback(const itk::Object *object, const itk::
     {
     const std::vector<MultiComponentMetricReport> &last_log = metric_log.back();
     if(last_log.size())
-      m_LastMetricValueModel->SetValue(last_log.back().TotalMetric);
+      m_LastMetricValueModel->SetValue(last_log.back().TotalPerPixelMetric);
     }
 
   // Fire the iteration command - this is to force the GUI to process events, instead of

@@ -46,10 +46,10 @@
 #include "itkImageToImageFilter.h"
 #include "itkTransform.h"
 #include "itkDataObjectDecorator.h"
+#include "IRISSlicer.h"
+#include "NonOrthogonalSlicer.h"
 #include "SNAPCommon.h"
 
-template <class TInputImage, class TOutputImage, class TPreviewImage> class IRISSlicer;
-template <class TInputImage, class TOutputImage> class NonOrthogonalSlicer;
 class ImageCoordinateTransform;
 
 using itk::DataObjectDecorator;
@@ -64,9 +64,8 @@ template<typename TParametersValueType,
 
 /**
  * This filter encapsulates the ITK-SNAP slicing pipeline. It includes both
- * the straight (orthogonal) slicer and the oblique slicer.
- *
- *
+ * the straight (orthogonal) slicer and the oblique slicer. The input to this
+ * pipeline is a 3D image, and it will generate slices for selected time points
  */
 template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
 class AdaptiveSlicingPipeline
@@ -94,7 +93,10 @@ public:
   typedef typename PreviewImageType::PixelType               PreviewPixelType;
   typedef typename PreviewImageType::InternalPixelType   PreviewComponentType;
 
-  itkStaticConstMacro(ImageDimension, unsigned int, TOutputImage::ImageDimension);
+  // Output slice image dimension, should be 2
+  itkStaticConstMacro(SliceDimension, unsigned int, TOutputImage::ImageDimension);
+
+  // Input image dimension, should be 3
   itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
 
   /** Slicers */
@@ -149,18 +151,12 @@ public:
   void SetUseNearestNeighbor(bool flag);
   bool GetUseNearestNeighbor() const;
 
-  /** Look up intensity at the current slice index. This may update the filter */
-  OutputPixelType LookupIntensityAtSliceIndex(const itk::ImageBase<3> *ref_space);
-
-  /** Loop up intensity at an arbitrary slice index in reference space */
-  OutputPixelType LookupIntensityAtReferenceIndex(const itk::ImageBase<3> *ref_space, const IndexType &index);
-
 protected:
 
   AdaptiveSlicingPipeline();
   ~AdaptiveSlicingPipeline();
 
-  virtual void VerifyInputInformation() ITK_OVERRIDE { }
+  virtual void VerifyInputInformation() const ITK_OVERRIDE { }
 
   virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
@@ -179,7 +175,7 @@ protected:
 
   IndexType m_SliceIndex;
 
-  void MapInputsToSlicers();
+  void MapInputsToSlicers();  
 };
 
 

@@ -79,12 +79,11 @@ SliceWindowInteractionDelegateWidget
 ::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
 {
   // Make the parent window the current context
-  QtAbstractOpenGLBox *parent = this->GetParentGLWidget();
-  parent->makeCurrent();
+  QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
 
   // Get the x,y coordinates of the event in actual pixels (retina)
-  int xpix = (int) ev->x() * this->devicePixelRatio();
-  int ypix = (int) ev->y() * this->devicePixelRatio();
+  int xpix = (int) ev->position().x() * this->devicePixelRatio();
+  int ypix = (int) ev->position().y() * this->devicePixelRatio();
   int hpix = (int) parent->height() * this->devicePixelRatio();
   int x = xpix;
   int y = (flipY) ? hpix - 1 - ypix : ypix;
@@ -120,18 +119,8 @@ SliceWindowInteractionDelegateWidget
     icol = m_LastPressLayoutCell[1];
     }
 
-  // Convert the event coordinates into the model view coordinates
-  double modelMatrix[16], projMatrix[16];
-  // GLint viewport[] = { icol * sz[0], (nrows - 1 - irow) * sz[1], sz[0], sz[1] };
-  GLint viewport[] = { 0, 0, (GLint) (ncols * sz[0]), (GLint) (nrows * sz[1]) };
-  glGetDoublev(GL_MODELVIEW_MATRIX, modelMatrix);
-  glGetDoublev(GL_PROJECTION_MATRIX, projMatrix);
-
   // Unproject to get the coordinate of the event
-  Vector3d xProjection;
-  irisUnProject(x, y, 0,
-                modelMatrix,projMatrix,viewport,
-                &xProjection[0], &xProjection[1], &xProjection[2]);
+  Vector3d xProjection(x, y, 0);
 
   // Get the within-cell coordinates by subtracting the corner of the cell
   xProjection[0] -= icol * m_ParentModel->GetSize()[0];
