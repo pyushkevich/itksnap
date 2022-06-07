@@ -49,7 +49,7 @@ void IntensityUnderCursorRenderer::OnUpdate()
 void IntensityUnderCursorRenderer::UpdatePlotValues()
 {
   // There must be a currently selected layer
-  ImageWrapperBase *layer = m_Model->GetLayer();
+  ImageWrapperBase *layer = dynamic_cast<ImageWrapperBase*>(m_Model->GetLayer());
   if(layer)
     {
     // Sample data from the wrapper in native format across all time points
@@ -132,6 +132,7 @@ void IntensityUnderCursorRenderer::UpdatePlotValues()
     {
     m_CurveX->Reset();
     m_CurveY->Reset();
+    m_Selection->Reset();
     }
 
   // Mark plot table as modified

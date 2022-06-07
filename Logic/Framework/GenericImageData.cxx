@@ -56,6 +56,7 @@
 #include "ImageAnnotationData.h"
 #include "RLERegionOfInterestImageFilter.h"
 #include "TimePointProperties.h"
+#include "ImageMeshLayers.h"
 
 // System includes
 #include <fstream>
@@ -221,6 +222,9 @@ GenericImageData
   // Unload all the segmentations
   this->RemoveAllWrappers(LABEL_ROLE);
 
+  // Unload all the meshes
+  m_MeshLayers->Unload();
+
   // Clear the annotations
   m_Annotations->Reset();
 
@@ -302,6 +306,12 @@ void GenericImageData
   this->RemoveImageWrapper(OVERLAY_ROLE, overlay);
 }
 
+void
+GenericImageData
+::UnloadMeshLayer(unsigned long id)
+{
+  m_MeshLayers->RemoveLayer(id);
+}
 
 SmartPtr<GenericImageData::LabelImage4DType>
 GenericImageData
@@ -767,5 +777,11 @@ std::string GenericImageData::GenerateNickname(LayerRole role)
 void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
 {
   this->AddOverlayInternal(new_layer, true);
+}
+
+ImageMeshLayers *
+GenericImageData::GetMeshLayers()
+{
+  return m_MeshLayers;
 }
 

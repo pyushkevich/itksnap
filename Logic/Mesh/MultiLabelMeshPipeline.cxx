@@ -44,6 +44,7 @@
 #include "IRISVectorTypesToITKConversion.h"
 #include "VTKMeshPipeline.h"
 #include "MeshOptions.h"
+#include "vtkUnsignedShortArray.h"
 
 // ITK includes
 #include "itkBinaryThresholdImageFilter.h"
@@ -211,7 +212,7 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
   itk::Index<3> run_start;
 
   // The length of a line
-  unsigned long line_length = m_InputImage->GetLargestPossibleRegion().GetSize()[0];
+  //unsigned long line_length = m_InputImage->GetLargestPossibleRegion().GetSize()[0];
 
   // Iterate through the image updating the mesh map. This code takes advantage
   // of the organization of label data. Rather than updating the extents after
@@ -226,7 +227,7 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
     const InputIterator::RLLine &line=*(it.rlLine);
     int t = 0;
     // Iterate through the line
-    for (int x = 0; x < line.size(); x++)
+    for (size_t x = 0; x < line.size(); x++)
       {
       run_start[0] = t;
       current_label = line[x].second;
@@ -257,7 +258,6 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
       it++;
     }
 
-
   // Deal with progress accumulation
   SmartPtr<AllPurposeProgressAccumulator> progress = AllPurposeProgressAccumulator::New();
   progress->AddObserver(itk::ProgressEvent(), progressCommand);
@@ -278,6 +278,8 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
       info.BoundingBox[0] = it->second.BoundingBox[0];
       info.BoundingBox[1] = it->second.BoundingBox[1];
       info.Mesh = NULL;
+
+      //auto src = m_VTKPipeline->GetProgressAccumulator();
 
       // Capture progress from this mesh
       progress->RegisterSource(m_VTKPipeline->GetProgressAccumulator(), info.Count);

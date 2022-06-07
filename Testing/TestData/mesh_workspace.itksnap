@@ -1,0 +1,687 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--ITK-SNAP (itksnap.org) Project File
+
+This file can be moved/copied along with the images that it references
+as long as the relative location of the images to the project file is 
+the same. Do not modify the SaveLocation entry, or this will not work.
+-->
+<!DOCTYPE registry [
+<!ELEMENT registry (entry*,folder*)>
+<!ELEMENT folder (entry*,folder*)>
+<!ELEMENT entry EMPTY>
+<!ATTLIST folder key CDATA #REQUIRED>
+<!ATTLIST entry key CDATA #REQUIRED>
+<!ATTLIST entry value CDATA #REQUIRED>
+]>
+<registry>
+  <entry key="SaveLocation" value="/Users/jileihao/picsl/itksnap-dev/itksnap/Testing/TestData" />
+  <entry key="Version" value="20220203" />
+  <folder key="Annotations" >
+    <entry key="Format" value="ITK-SNAP Annotation File" />
+    <entry key="FormatDate" value="20150624" />
+  </folder>
+  <folder key="Layers" >
+    <folder key="Layer[000]" >
+      <entry key="AbsolutePath" value="/Users/jileihao/picsl/itksnap-dev/itksnap/Testing/TestData/img4d_11f.nii.gz" />
+      <entry key="Role" value="MainRole" />
+      <entry key="Tags" value="" />
+      <folder key="IOHints" >
+        <entry key="Format" value="NiFTI" />
+      </folder>
+      <folder key="LayerMetaData" >
+        <entry key="Alpha" value="255" />
+        <entry key="CustomNickName" value="" />
+        <entry key="Sticky" value="0" />
+        <entry key="Tags" value="" />
+        <folder key="DisplayMapping" >
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Grayscale" />
+          </folder>
+          <folder key="Curve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+      </folder>
+      <folder key="ProjectMetaData" >
+        <entry key="GaussianBlurScale" value="1" />
+        <entry key="RemappingExponent" value="3" />
+        <entry key="RemappingSteepness" value="0.04" />
+        <folder key="Files" >
+          <folder key="Grey" >
+            <entry key="Dimensions" value="38 35 38" />
+            <entry key="Orientation" value="LPI" />
+          </folder>
+        </folder>
+        <folder key="IOHistory" >
+          <folder key="LabelImage" >
+            <entry key="ArraySize" value="2" />
+            <entry key="Element[0]" value="/users/jileihao/picsl/data/czi-59/4D segmentation examples/mitral valve - imr02 - all 11 frames segmented/Down Sampled/seg4d_11f.nii.gz" />
+            <entry key="Element[1]" value="/Users/jileihao/picsl/itksnap-dev/itksnap/Testing/TestData/seg4d_11f.nii.gz" />
+          </folder>
+        </folder>
+        <folder key="IRIS" >
+          <entry key="SliceViewLayerLayout" value="Stacked" />
+          <folder key="BoundingBox" >
+            <entry key="InterpolationMethod" value="Nearest" />
+            <entry key="ResampleDimensions" value="38 35 38" />
+            <entry key="SeedWithCurrentSegmentation" value="0" />
+            <folder key="ROIBox[0]" >
+              <entry key="Index" value="0" />
+              <entry key="Size" value="38" />
+            </folder>
+            <folder key="ROIBox[1]" >
+              <entry key="Index" value="0" />
+              <entry key="Size" value="35" />
+            </folder>
+            <folder key="ROIBox[2]" >
+              <entry key="Index" value="0" />
+              <entry key="Size" value="38" />
+            </folder>
+          </folder>
+          <folder key="DisplayMapping" >
+            <folder key="ColorMap" >
+              <entry key="Preset" value="Grayscale" />
+            </folder>
+            <folder key="Curve" >
+              <entry key="NumberOfControlPoints" value="3" />
+              <folder key="ControlPoint[0]" >
+                <entry key="tValue" value="0" />
+                <entry key="xValue" value="0" />
+              </folder>
+              <folder key="ControlPoint[1]" >
+                <entry key="tValue" value="0.5" />
+                <entry key="xValue" value="0.5" />
+              </folder>
+              <folder key="ControlPoint[2]" >
+                <entry key="tValue" value="1" />
+                <entry key="xValue" value="1" />
+              </folder>
+            </folder>
+          </folder>
+          <folder key="LabelState" >
+            <entry key="CoverageMode" value="OverAll" />
+            <entry key="DrawingLabel" value="1" />
+            <entry key="OverwriteLabel" value="0" />
+            <entry key="PolygonInvert" value="0" />
+            <entry key="SegmentationAlpha" value="0.5" />
+          </folder>
+          <folder key="LabelTable" >
+            <entry key="NumberOfElements" value="6" />
+            <folder key="Element[0]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="255 0 0" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="1" />
+              <entry key="Label" value="Label 1" />
+            </folder>
+            <folder key="Element[1]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="0 255 0" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="2" />
+              <entry key="Label" value="Label 2" />
+            </folder>
+            <folder key="Element[2]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="0 0 255" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="3" />
+              <entry key="Label" value="Label 3" />
+            </folder>
+            <folder key="Element[3]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="255 255 0" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="4" />
+              <entry key="Label" value="Label 4" />
+            </folder>
+            <folder key="Element[4]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="0 255 255" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="5" />
+              <entry key="Label" value="Label 5" />
+            </folder>
+            <folder key="Element[5]" >
+              <entry key="Alpha" value="255" />
+              <entry key="Color" value="255 0 255" />
+              <entry key="Flags" value="1 1" />
+              <entry key="Index" value="6" />
+              <entry key="Label" value="Label 6" />
+            </folder>
+          </folder>
+          <folder key="MeshOptions" >
+            <entry key="DecimateFeatureAngle" value="45" />
+            <entry key="DecimateMaximumError" value="0.002" />
+            <entry key="DecimatePreserveTopology" value="1" />
+            <entry key="DecimateTargetReduction" value="0.95" />
+            <entry key="GaussianError" value="0.03" />
+            <entry key="GaussianStandardDeviation" value="0.8" />
+            <entry key="MeshSmoothingBoundarySmoothing" value="0" />
+            <entry key="MeshSmoothingConvergence" value="0" />
+            <entry key="MeshSmoothingFeatureAngle" value="45" />
+            <entry key="MeshSmoothingFeatureEdgeSmoothing" value="0" />
+            <entry key="MeshSmoothingIterations" value="20" />
+            <entry key="MeshSmoothingRelaxationFactor" value="0.01" />
+            <entry key="UseDecimation" value="0" />
+            <entry key="UseGaussianSmoothing" value="1" />
+            <entry key="UseMeshSmoothing" value="0" />
+          </folder>
+        </folder>
+        <folder key="SNAP" >
+          <folder key="SnakeParameters" >
+            <entry key="AdvectionSpeedExponent" value="0" />
+            <entry key="AdvectionWeight" value="0" />
+            <entry key="AutomaticTimeStep" value="1" />
+            <entry key="Clamp" value="1" />
+            <entry key="CurvatureSpeedExponent" value="-1" />
+            <entry key="CurvatureWeight" value="0.2" />
+            <entry key="Ground" value="5" />
+            <entry key="LaplacianSpeedExponent" value="0" />
+            <entry key="LaplacianWeight" value="0" />
+            <entry key="PropagationSpeedExponent" value="1" />
+            <entry key="PropagationWeight" value="1" />
+            <entry key="SnakeType" value="RegionCompetition" />
+            <entry key="SolverAlgorithm" value="ParallelSparseField" />
+            <entry key="TimeStepFactor" value="1" />
+          </folder>
+        </folder>
+      </folder>
+    </folder>
+  </folder>
+  <folder key="MeshLayers" >
+    <folder key="Layer[000]" >
+      <entry key="MeshType" value="StandaloneMesh" />
+      <entry key="NickName" value="" />
+      <entry key="Tags" value="" />
+      <folder key="DataArrayProperties" >
+        <folder key="DataArray[000]" >
+          <entry key="ArrayName" value="CurvGaussian" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Grayscale" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[001]" >
+          <entry key="ArrayName" value="CurvMean" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Jet" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[002]" >
+          <entry key="ArrayName" value="Displacement_Root" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Hot" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[003]" >
+          <entry key="ArrayName" value="Displacement_Total" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Cool" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="7" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.154268" />
+              <entry key="xValue" value="0.268652" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="0.307927" />
+              <entry key="xValue" value="0.336364" />
+            </folder>
+            <folder key="ControlPoint[3]" >
+              <entry key="tValue" value="0.500753" />
+              <entry key="xValue" value="0.404075" />
+            </folder>
+            <folder key="ControlPoint[4]" >
+              <entry key="tValue" value="0.678515" />
+              <entry key="xValue" value="0.73511" />
+            </folder>
+            <folder key="ControlPoint[5]" >
+              <entry key="tValue" value="0.907496" />
+              <entry key="xValue" value="0.990909" />
+            </folder>
+            <folder key="ControlPoint[6]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[004]" >
+          <entry key="ArrayName" value="Displacement_Wall" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Black to red" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[005]" >
+          <entry key="ArrayName" value="I1_Pt" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Black to green" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[006]" >
+          <entry key="ArrayName" value="InterAtrialSeptum" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Black to blue" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[007]" >
+          <entry key="ArrayName" value="J_Pt" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Spring" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[008]" >
+          <entry key="ArrayName" value="Label" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Summer" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[009]" >
+          <entry key="ArrayName" value="Motion" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Autumn" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[010]" >
+          <entry key="ArrayName" value="Radius" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Winter" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[011]" >
+          <entry key="ArrayName" value="STJ" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Copper" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[012]" >
+          <entry key="ArrayName" value="Thickness" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="HSV" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[013]" >
+          <entry key="ArrayName" value="TotalMotion" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Blue to white to red" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[014]" >
+          <entry key="ArrayName" value="VAJ" />
+          <entry key="ArrayType" value="PointData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Red to white to blue" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[015]" >
+          <entry key="ArrayName" value="I1" />
+          <entry key="ArrayType" value="CellData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Speed image (blue to black to white)" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+        <folder key="DataArray[016]" >
+          <entry key="ArrayName" value="J" />
+          <entry key="ArrayType" value="CellData" />
+          <folder key="ColorMap" >
+            <entry key="Preset" value="Speed image (semi-transparent overlay)" />
+          </folder>
+          <folder key="IntensityCurve" >
+            <entry key="NumberOfControlPoints" value="3" />
+            <folder key="ControlPoint[0]" >
+              <entry key="tValue" value="0" />
+              <entry key="xValue" value="0" />
+            </folder>
+            <folder key="ControlPoint[1]" >
+              <entry key="tValue" value="0.5" />
+              <entry key="xValue" value="0.5" />
+            </folder>
+            <folder key="ControlPoint[2]" >
+              <entry key="tValue" value="1" />
+              <entry key="xValue" value="1" />
+            </folder>
+          </folder>
+        </folder>
+      </folder>
+      <folder key="MeshTimePoints" >
+        <folder key="TimePoint[001]" >
+          <entry key="TimePoint" value="1" />
+          <folder key="PolyData[000]" >
+            <entry key="AbsolutePath" value="/Users/jileihao/picsl/itksnap-dev/itksnap/Testing/TestData/external_mesh_f1.vtp" />
+            <entry key="Format" value="VTP Mesh" />
+          </folder>
+        </folder>
+        <folder key="TimePoint[002]" >
+          <entry key="TimePoint" value="2" />
+          <folder key="PolyData[000]" >
+            <entry key="AbsolutePath" value="/Users/jileihao/picsl/itksnap-dev/itksnap/Testing/TestData/external_mesh_f2.vtp" />
+            <entry key="Format" value="VTP Mesh" />
+          </folder>
+        </folder>
+        <folder key="TimePoint[003]" >
+          <entry key="TimePoint" value="3" />
+          <folder key="PolyData[000]" >
+            <entry key="AbsolutePath" value="/Users/jileihao/picsl/itksnap-dev/itksnap/Testing/TestData/external_mesh_f3.vtp" />
+            <entry key="Format" value="VTP Mesh" />
+          </folder>
+        </folder>
+      </folder>
+    </folder>
+  </folder>
+  <folder key="TimePointProperties" >
+    <entry key="FormatVersion" value="1" />
+    <folder key="TimePoints" >
+      <entry key="ArraySize" value="11" />
+      <folder key="TimePoint[10]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="10" />
+      </folder>
+      <folder key="TimePoint[11]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="11" />
+      </folder>
+      <folder key="TimePoint[1]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="1" />
+      </folder>
+      <folder key="TimePoint[2]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="2" />
+      </folder>
+      <folder key="TimePoint[3]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="3" />
+      </folder>
+      <folder key="TimePoint[4]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="4" />
+      </folder>
+      <folder key="TimePoint[5]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="5" />
+      </folder>
+      <folder key="TimePoint[6]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="6" />
+      </folder>
+      <folder key="TimePoint[7]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="7" />
+      </folder>
+      <folder key="TimePoint[8]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="8" />
+      </folder>
+      <folder key="TimePoint[9]" >
+        <entry key="Nickname" value="" />
+        <entry key="Tags" value="" />
+        <entry key="TimePoint" value="9" />
+      </folder>
+    </folder>
+  </folder>
+</registry>

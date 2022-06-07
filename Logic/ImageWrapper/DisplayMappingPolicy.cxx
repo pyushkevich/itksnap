@@ -16,7 +16,6 @@
 #include "InputSelectionImageFilter.h"
 #include "Rebroadcaster.h"
 
-
 /* ===============================================================
     ColorLabelTableDisplayMappingPolicy implementation
    =============================================================== */
@@ -793,7 +792,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 template <class TWrapperTraits>
 void
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
-::SetColorMap(ColorMap *map)
+::SetColorMap(ColorMap *)
 {
   // TODO: do we really need an implementation?
 }
@@ -943,6 +942,10 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     }
 }
 
+
+
+// End of MeshDisplayPolicy Implementation
+//----------------------------------------
 
 template class ColorLabelTableDisplayMappingPolicy<LabelImageWrapperTraits>;
 

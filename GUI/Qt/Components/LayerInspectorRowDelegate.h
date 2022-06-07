@@ -6,8 +6,9 @@
 #include "SNAPCommon.h"
 #include <QWidgetAction>
 
-class LayerTableRowModel;
+class AbstractLayerTableRowModel;
 class ImageWrapperBase;
+class WrapperBase;
 class QMenu;
 class QActionGroup;
 class QContextMenuEvent;
@@ -67,9 +68,9 @@ public:
   explicit LayerInspectorRowDelegate(QWidget *parent = 0);
   ~LayerInspectorRowDelegate();
 
-  void SetModel(LayerTableRowModel *model);
+  void SetModel(AbstractLayerTableRowModel *model);
 
-  ImageWrapperBase *GetLayer() const;
+  WrapperBase *GetLayer() const;
 
   bool selected() const { return m_Selected; }
 
@@ -133,7 +134,7 @@ private:
   // It is very important here that we keep a smart pointer to the model,
   // rather than a regular pointer. That's because the layer itself may
   // be deleted, in which case, there will be noone kept holding the model.
-  SmartPtr<LayerTableRowModel> m_Model;
+  SmartPtr<AbstractLayerTableRowModel> m_Model;
 
   bool m_Selected;
   bool m_Hover;

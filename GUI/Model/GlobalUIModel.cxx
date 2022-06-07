@@ -60,6 +60,7 @@
 #include "NumericPropertyToggleAdaptor.h"
 #include "HistoryManager.h"
 #include "MeshExportModel.h"
+#include "MeshImportModel.h"
 #include "GlobalPreferencesModel.h"
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
@@ -73,6 +74,7 @@
 #include "RegistrationModel.h"
 #include "InteractiveRegistrationModel.h"
 #include "DistributedSegmentationModel.h"
+#include "ImageMeshLayers.h"
 
 #include <itksys/SystemTools.hxx>
 
@@ -205,6 +207,10 @@ GlobalUIModel::GlobalUIModel()
   m_MeshExportModel = MeshExportModel::New();
   m_MeshExportModel->SetParentModel(this);
 
+  // Mesh import model
+  m_MeshImportModel = MeshImportModel::New();
+  m_MeshImportModel->SetParentModel(this);
+
   // Global prefs model
   m_GlobalPreferencesModel = GlobalPreferencesModel::New();
   m_GlobalPreferencesModel->SetParentModel(this);
@@ -334,6 +340,9 @@ GlobalUIModel::GlobalUIModel()
   Rebroadcast(m_Driver->GetGlobalState()->GetSegmentationROISettingsModel(),
               ValueChangedEvent(), SegmentationROIChangedEvent());
 
+  // Active Layer Id changed event
+  Rebroadcast(m_Driver, ActiveLayerChangeEvent(), ActiveLayerChangeEvent());
+
   // The initial reporter delegate is NULL
   m_ProgressReporterDelegate = NULL;
 
@@ -379,6 +388,18 @@ bool GlobalUIModel::CheckState(UIState state)
       break;
     case UIF_MESH_SAVEABLE:
       break;
+    case UIF_MESH_TP_LOADABLE:
+      {
+      bool ret = false;
+      auto mesh_layers = m_Driver->GetCurrentImageData()->GetMeshLayers();
+      auto active_mesh_layer = mesh_layers->GetLayer(mesh_layers->GetActiveLayerId());
+      if (active_mesh_layer)
+        {
+        ret = active_mesh_layer->IsExternalLoadable();
+        }
+
+      return ret;
+      }
     case UIF_OVERLAY_LOADED:
       return m_Driver->GetCurrentImageData()->AreOverlaysLoaded();
     case UIF_SNAKE_MODE:
@@ -435,7 +456,10 @@ void GlobalUIModel::ToggleOverlayVisibility()
   GenericImageData *id = m_Driver->GetCurrentImageData();
 
   // Remember what layer is current in the general properties model
-  ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+  ImageWrapperBase *curr_layer = dynamic_cast<ImageWrapperBase*>(m_LayerGeneralPropertiesModel->GetLayer());
+
+  if (!curr_layer)
+    return;
 
   // Apply the toggle for all overlays
   for(LayerIterator it = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE); !it.IsAtEnd(); ++it)
@@ -460,7 +484,10 @@ void GlobalUIModel::AdjustOverlayOpacity(int delta)
   GenericImageData *id = m_Driver->GetCurrentImageData();
 
   // Remember what layer is current in the general properties model
-  ImageWrapperBase *curr_layer = m_LayerGeneralPropertiesModel->GetLayer();
+  ImageWrapperBase *curr_layer = dynamic_cast<ImageWrapperBase*>(m_LayerGeneralPropertiesModel->GetLayer());
+
+  if (!curr_layer)
+    return;
 
   // Apply the toggle for all overlays
   for(LayerIterator it = id->GetLayers(MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE); !it.IsAtEnd(); ++it)
@@ -1018,4 +1045,23 @@ GlobalUIModel
     itk::ProcessObject *po = static_cast<itk::ProcessObject *>(source);
     m_ProgressReporterDelegate->SetProgressValue(po->GetProgress());
     }
+}
+
+int
+GlobalUIModel
+::GetDefault4DReplayInterval() const
+{
+  // Default interval set to 50,
+  // because common scanning machine setting is 20Hz
+  int ret = 50;
+  if (m_Driver && m_Driver->GetNumberOfTimePoints() > 1)
+    {
+    auto spc = m_Driver->GetMainImage()->GetImage4DBase()->GetSpacing();
+    // No screen can display 500Hz+ frame rate.
+    // Use default for any frame time < 2ms
+    if (spc[3] >= 2)
+      ret = floor(spc[3]);
+    }
+
+  return ret;
 }

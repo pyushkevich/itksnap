@@ -75,6 +75,9 @@ itkEventMacro(SegmentationChangeEvent, IRISEvent)
 /** The level set image has changed (due to iteration) */
 itkEventMacro(LevelSetImageChangeEvent, IRISEvent)
 
+/** The active layer id has changed */
+itkEventMacro(ActiveLayerChangeEvent, IRISEvent)
+
 /** Change to the speed image */
 itkEventMacro(SpeedImageChangedEvent, LayerChangeEvent)
 
