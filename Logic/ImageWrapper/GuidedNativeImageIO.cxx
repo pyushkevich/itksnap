@@ -459,26 +459,6 @@ GuidedNativeImageIO
                         "image '%s' using format '%s'.",
                         FileName, m_Hints["Format"][""]);
 
-  if (m_FileFormat == FORMAT_DICOM_FILE)
-    {
-      gdcm::Reader pre_reader;
-      pre_reader.SetFileName(FileName);
-      std::set<gdcm::Tag> tSet;
-      tSet.insert(gdcm::Tag(0x8, 0x70)); // Tag: manufacturer
-      if (pre_reader.ReadSelectedTags(tSet))
-        {
-           gdcm::StringFilter sf;
-           sf.SetFile(pre_reader.GetFile());
-
-           // Extract manufacturer tag to identify image
-           std::string origManu = sf.ToString(gdcm::Tag(0x8, 0x70));
-           std::string manufacturer;
-           manufacturer.resize(origManu.size());
-           // -- transform to upper case
-           std::transform(origManu.begin(), origManu.end(), manufacturer.begin(), ::toupper);
-        }
-    }
-
   // Read the information about the image
   if(m_FileFormat == FORMAT_DICOM_DIR)
     {
@@ -1720,6 +1700,7 @@ GuidedNativeImageIO
   //--Dev: Add slice location for grouping
   const gdcm::Tag tagSliceLocation(0x0020,0x1041);
   const gdcm::Tag tagAcquisitionTime(0x0008, 0x0032);
+  const gdcm::Tag tagContentTime(0x0008, 0x0033);
   //tags_refine.push_back(tagSliceLocation);
 
   // List of tags that we want to parse - everything else may be ignored
@@ -1731,6 +1712,7 @@ GuidedNativeImageIO
   //--Dev: Add to read list
   tags_all.insert(tagSliceLocation);
   tags_all.insert(tagAcquisitionTime);
+  tags_all.insert(tagContentTime);
   std::set<std::string> sliceLocSet;
   std::map<std::string, std::set<std::string>> sliceMap;
 
@@ -1789,7 +1771,7 @@ GuidedNativeImageIO
     if (sliceMap.count(loc) == 0)
       sliceMap[loc] = std::set<std::string>();
 
-    sliceMap[loc].insert(sf.ToString(tagAcquisitionTime));
+    sliceMap[loc].insert(sf.ToString(tagContentTime));
 
 
 
@@ -1854,11 +1836,14 @@ GuidedNativeImageIO
   for (auto kv : sliceMap)
     {
     std::ostringstream oss;
-    oss << "loc" << "," << kv.first << ",";
+    oss << "loc" << "=" << kv.first << ",count=" << kv.second.size();
+    /*
+    oss << ",";
     for (auto time : kv.second)
       {
       oss << time << ",";
       }
+    */
     std::cout << oss.str() << std::endl;
     }
 
