@@ -52,11 +52,12 @@ void InterpolateLabelModel::Interpolate()
   // Are we interpolating all labels?
   bool interp_all = this->GetInterpolateAll();
 
-  // if Morphological ...
-  bool interp_morphological = this->GetInterpolationApproach();
+  // Which method is being used
+  auto method = this->GetInterpolationMethod();
 
   //Morphological Interpolation
-  if(interp_morphological){
+  if(method == MORPHOLOGY)
+    {
 
     // Create the morphological interpolation filter
     typedef itk::MorphologicalContourInterpolator<GenericImageData::LabelImageType> MCIType;
@@ -129,96 +130,94 @@ void InterpolateLabelModel::Interpolate()
     it_trg.Finalize("Interpolate label");
   }
 
-// If Binary Weighted Averaging ...
-else{
+  // If Binary Weighted Averaging ...
+  else if(method == BINARY_WEIGHTED_AVERAGE)
+    {
+    // Copy label image to short type from RLE
+    ShortType::Pointer SegmentationImageShortType = ShortType::New();
 
-  // Copy label image to short type from RLE
-  ShortType::Pointer SegmentationImageShortType = ShortType::New();
+    ShortType::RegionType ShortRegion = liw->GetImage()->GetBufferedRegion();
+    SegmentationImageShortType->CopyInformation(liw->GetImage());
+    SegmentationImageShortType->SetRegions( ShortRegion );
+    SegmentationImageShortType->Allocate();
 
-  ShortType::RegionType ShortRegion = liw->GetImage()->GetBufferedRegion();
-  SegmentationImageShortType->CopyInformation(liw->GetImage());
-  SegmentationImageShortType->SetRegions( ShortRegion );
-  SegmentationImageShortType->Allocate();
+    itk::ImageRegionIterator< ShortType > itO( SegmentationImageShortType, SegmentationImageShortType->GetBufferedRegion() );
+    itk::ImageRegionConstIterator< GenericImageData::LabelImageType > itI( liw->GetImage(), liw->GetImage()->GetBufferedRegion() );
 
-  itk::ImageRegionIterator< ShortType > itO( SegmentationImageShortType, SegmentationImageShortType->GetBufferedRegion() );
-  itk::ImageRegionConstIterator< GenericImageData::LabelImageType > itI( liw->GetImage(), liw->GetImage()->GetBufferedRegion() );
-
-  while ( !itI.IsAtEnd() )
-  {
+    while ( !itI.IsAtEnd() )
+      {
       typename GenericImageData::LabelImageType::PixelType val = itI.Get();
       itO.Set( val );
       ++itI;
       ++itO;
-  }
+      }
 
-  typedef itk::CombineBWAandRFFilter < GreyScalarType, GreyVectorType, ShortType > BinaryWeightedAverageType;
+    typedef itk::CombineBWAandRFFilter < GreyScalarType, GreyVectorType, ShortType > BinaryWeightedAverageType;
 
-  typename BinaryWeightedAverageType::Pointer bwa =  BinaryWeightedAverageType::New();
+    typename BinaryWeightedAverageType::Pointer bwa =  BinaryWeightedAverageType::New();
 
-  // Iterate through all of the relevant layers
-  for(LayerIterator it = m_CurrentImageData->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
-      !it.IsAtEnd(); ++it)
-  {
+    // Iterate through all of the relevant layers
+    for(LayerIterator it = m_CurrentImageData->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+        !it.IsAtEnd(); ++it)
+      {
       if(it.GetLayerAsScalar())
-      {
-          AnatomicScalarImageWrapper *w = dynamic_cast<AnatomicScalarImageWrapper *>(it.GetLayer());
-          bwa->AddScalarImage(w->GetImage());//;
-      }
+        {
+        AnatomicScalarImageWrapper *w = dynamic_cast<AnatomicScalarImageWrapper *>(it.GetLayer());
+        bwa->AddScalarImage(w->GetImage());//;
+        }
       else if (it.GetLayerAsVector())
-      {
-          AnatomicImageWrapper *w = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());
-          bwa->AddVectorImage(w->GetImage()); //
+        {
+        AnatomicImageWrapper *w = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());
+        bwa->AddVectorImage(w->GetImage()); //
+        }
       }
-  }
 
-  // Should we be interpolating a specific label?
-  if (!interp_all)
+    // Should we be interpolating a specific label?
+    if (!interp_all)
       bwa->SetLabel(this->GetInterpolateLabel());
 
-  bwa->SetOverwriteSegmentation(this->GetBWAOverwriteSegmentation());
-  bwa->SetSegmentationImage(SegmentationImageShortType);
-  bwa->SetContourInformationOnly(this->GetBWAUseContourOnly());
-  bwa->SetIntermediateSlicesOnly(this->GetBWAInterpolateIntermediateOnly());
+    bwa->SetOverwriteSegmentation(this->GetBWAOverwriteSegmentation());
+    bwa->SetSegmentationImage(SegmentationImageShortType);
+    bwa->SetContourInformationOnly(this->GetBWAUseContourOnly());
+    bwa->SetIntermediateSlicesOnly(this->GetBWAInterpolateIntermediateOnly());
 
-  // Did the user manually specify the slicing direction
-  if (this->GetSliceDirection())
-  {
+    // Did the user manually specify the slicing direction
+    if (this->GetSliceDirection())
+      {
       int axis = this->m_Parent->GetDriver()->GetImageDirectionForAnatomicalDirection(this->GetSliceDirectionAxis());
       bwa->SetUserAxis(axis);
-  }
+      }
 
-  bwa->Update();
+    bwa->Update();
 
-  // Apply the labels back to the segmentation
-  SegmentationUpdateIterator it_trg(liw, liw->GetImage()->GetBufferedRegion(),
-                                    this->GetDrawingLabel(), this->GetDrawOverFilter());
+    // Apply the labels back to the segmentation
+    SegmentationUpdateIterator it_trg(liw, liw->GetImage()->GetBufferedRegion(),
+                                      this->GetDrawingLabel(), this->GetDrawOverFilter());
 
-  itk::ImageRegionConstIterator<ShortType>
-          it_src(bwa->GetInterpolation(), bwa->GetInterpolation()->GetBufferedRegion());
+    itk::ImageRegionConstIterator<ShortType>
+        it_src(bwa->GetInterpolation(), bwa->GetInterpolation()->GetBufferedRegion());
 
-  if(interp_all)
-  {
+    if(interp_all)
+      {
       // Just replace the segmentation by the interpolation, respecting draw-over
       for(; !it_trg.IsAtEnd(); ++it_trg, ++it_src)
-          it_trg.PaintLabel(it_src.Get());
-  }
-  else
-  {
+        it_trg.PaintLabel(it_src.Get());
+      }
+    else
+      {
       LabelType l_interp = this->GetInterpolateLabel();
       LabelType l_replace = this->GetDrawingLabel();
       for(; !it_trg.IsAtEnd(); ++it_trg, ++it_src)
         if(it_src.Get() == l_interp)
           it_trg.PaintLabelWithExtraProtection(l_interp, l_replace);
-  }
+      }
 
-  // Finish the segmentation editing and create an undo point
-  it_trg.Finalize("Interpolate label");
+    // Finish the segmentation editing and create an undo point
+    it_trg.Finalize("Interpolate label");
+    }
 
-}
-
-// Fire event to inform GUI that segmentation has changed
-this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
-
+  // Fire event to inform GUI that segmentation has changed
+  this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());
 }
 
 
@@ -256,7 +255,6 @@ InterpolateLabelModel::InterpolateLabelModel()
   // added by SR
   m_BWAInterpolateIntermediateOnlyModel = NewSimpleConcreteProperty(false);
   m_BWAUseContourOnlyModel = NewSimpleConcreteProperty(false);
-  m_InterpolationApproachModel = NewSimpleConcreteProperty(false);
   m_BWAOverwriteSegmentationModel = NewSimpleConcreteProperty(false);
   m_SliceDirectionModel = NewSimpleConcreteProperty(false);
   m_SliceDirectionAxisModel = NewSimpleEnumProperty("InterpolationAxis", ANATOMY_AXIAL, emap_interp_axis);

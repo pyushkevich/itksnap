@@ -262,6 +262,9 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
               ChildPropertyChangedEvent(), ModelUpdateEvent());
 
+  Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
+              ValueChangedEvent(), ModelUpdateEvent());
+
   // Listen to overall visibility of overlaps
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
               ValueChangedEvent(), ModelUpdateEvent());
@@ -310,7 +313,9 @@ void GenericSliceRenderer::OnUpdate()
   // Check what events have occurred
   bool appearance_settings_changed =
       m_EventBucket->HasEvent(ChildPropertyChangedEvent(),
-                              m_Model->GetParentUI()->GetAppearanceSettings());
+                              m_Model->GetParentUI()->GetAppearanceSettings()) ||
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel());
 
   bool segmentation_opacity_changed =
       m_EventBucket->HasEvent(ValueChangedEvent(),
@@ -327,6 +332,9 @@ void GenericSliceRenderer::OnUpdate()
 
   bool layer_mapping_changed =
       m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent());
+
+  bool layer_visibility_changed =
+      m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
 
   bool zoom_pan_changed =
       m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model);
@@ -350,7 +358,7 @@ void GenericSliceRenderer::OnUpdate()
     this->UpdateRendererLayout();
     }
 
-  if(layers_changed || layer_mapping_changed || segmentation_opacity_changed)
+  if(layers_changed || layer_mapping_changed || segmentation_opacity_changed || layer_visibility_changed)
     {
     this->UpdateLayerApperances();
     }
@@ -360,7 +368,7 @@ void GenericSliceRenderer::OnUpdate()
     this->UpdateSceneAppearanceSettings();
     }
 
-  if(layers_changed || layer_layout_changed || zoom_pan_changed || layer_mapping_changed)
+  if(layers_changed || layer_layout_changed || zoom_pan_changed || layer_mapping_changed || layer_visibility_changed || appearance_settings_changed)
     {
     this->UpdateRendererCameras();
     this->UpdateZoomPanThumbnail();
@@ -527,7 +535,9 @@ void GenericSliceRenderer::UpdateZoomPanThumbnail()
     auto size = m_Model->GetZoomThumbnailSize();
 
     m_ZoomThumbnail->SetCorners(pos[0], pos[1], pos[0]+size[0], pos[1]+size[1]);
-    m_ZoomThumbnail->GetActor()->SetVisibility(m_Model->IsThumbnailOn());
+    m_ZoomThumbnail->GetActor()->SetVisibility(
+          m_Model->IsThumbnailOn() &&
+          m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibility());
     }
   else
     {

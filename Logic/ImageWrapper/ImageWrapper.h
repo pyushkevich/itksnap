@@ -192,12 +192,6 @@ public:
       ITKTransformType *tran);
 
   /**
-    Get a unique id for this wrapper. All wrappers ever created have
-    different ids.
-    */
-  irisGetMacroWithOverride(UniqueId, unsigned long)
-
-  /**
     Does this wrapper use the non-orthogonal slicing pipeline?
     */
   virtual bool IsSlicingOrthogonal() const ITK_OVERRIDE;
@@ -647,26 +641,6 @@ public:
   virtual bool HasUnsavedChanges() const ITK_OVERRIDE;
 
   /**
-   * The image wrapper has a generic mechanism for associating data with it.
-   * For example, we can associate some parameter values for a specific
-   * image processing algorithm with each layer. Do do that, we simply
-   * assign a pointer to the data to a specific string role. Internally,
-   * a smart pointer is used to point to the associated data.
-   *
-   * Users of this method might also want to rebroadcast events from the
-   * associated object as events of type WrapperUserChangeEvent(). These
-   * events will then propagate all the way up to the IRISApplication.
-   */
-  void SetUserData(const std::string &role, itk::Object *data) ITK_OVERRIDE;
-
-  /**
-   * Get the user data associated with this wrapper for a specific role. If
-   * no association exists, NULL is returned. The method is templated over the
-   * return type to avoid casting in user code.
-   */
-  itk::Object* GetUserData(const std::string &role) const ITK_OVERRIDE;
-
-  /**
    * This method is only used when this wrapper is around an image adaptor
    * (e.g., magnitude of component vector) and we need to update the native
    * mapping used in the adapter as part of the calculation. This is because
@@ -803,10 +777,6 @@ protected:
 
   // Tags for this image layer
   TagList m_Tags;
-
-  // A map to store user-associated data
-  typedef std::map<std::string, SmartPtr<itk::Object> > UserDataMapType;
-  UserDataMapType m_UserDataMap;
 
   // IO Hints registry
   Registry *m_IOHints;

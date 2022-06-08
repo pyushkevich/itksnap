@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>538</width>
-    <height>365</height>
+    <height>373</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -72,28 +72,6 @@
       <string>Open it in the current window</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
-       <widget class="QPushButton" name="btnLoadMain">
-        <property name="minimumSize">
-         <size>
-          <width>224</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>192</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>This will close all images currently open in this ITK-SNAP window and load the new image as the main image.</string>
-        </property>
-        <property name="text">
-         <string>Load as Main Image</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="0">
        <widget class="QPushButton" name="btnLoadOverlay">
         <property name="minimumSize">
@@ -138,6 +116,28 @@
         </property>
        </widget>
       </item>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="btnLoadMain">
+        <property name="minimumSize">
+         <size>
+          <width>224</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>192</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>This will close all images currently open in this ITK-SNAP window and load the new image as the main image.</string>
+        </property>
+        <property name="text">
+         <string>Load as Main Image</string>
+        </property>
+       </widget>
+      </item>
       <item row="1" column="1">
        <widget class="QPushButton" name="btnLoadAdditionalSegmentation">
         <property name="minimumSize">
@@ -157,6 +157,20 @@
         </property>
         <property name="text">
          <string>Load as Additional Segmentation</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="btnLoadMeshAsLayer">
+        <property name="text">
+         <string>Load as a new Mesh Layer</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="btnLoadMeshToTP">
+        <property name="text">
+         <string>Load as Mesh to a Time Point</string>
         </property>
        </widget>
       </item>

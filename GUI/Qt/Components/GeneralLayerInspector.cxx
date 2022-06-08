@@ -10,6 +10,7 @@
 #include "QtLineEditCoupling.h"
 #include "QtAbstractButtonCoupling.h"
 #include "TagListWidgetCoupling.h"
+#include "MeshWrapperBase.h"
 
 #include "QtWidgetActivator.h"
 #include "QtRadioButtonCoupling.h"
@@ -43,6 +44,13 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->spinBoxTP, m_Model->GetParentModel()->GetCursorTimePointModel());
   makeCoupling(ui->inTPNickname, m_Model->GetCrntTimePointNicknameModel());
   makeCoupling(ui->TPTagsWidget, m_Model->GetCrntTimePointTagListModel());
+  makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
+  makeCoupling((QAbstractButton *)ui->btn4DReplay, m_Model->GetParentModel()->GetGlobalState()->Get4DReplayModel());
+  makeCoupling(ui->in4DReplayInterval, m_Model->GetParentModel()->GetGlobalState()->Get4DReplayIntervalModel());
+
+  auto validator = new QIntValidator(this);
+  validator->setRange(1, 60000); // who would need >1min interval?
+  ui->in4DReplayInterval->setValidator(validator);
 
   // Couple the pin/unpin buttons
   std::map<bool, QAbstractButton *> button_map;
@@ -58,6 +66,10 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->inNickname, m_Model->GetNicknameModel());
 
   makeCoupling(ui->tagsWidget, m_Model->GetTagsModel());
+
+  makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
+
+  makeCoupling(ui->boxMeshVectorMode, m_Model->GetMeshVectorModeModel());
 
   activateOnFlag(ui->grpMulticomponent, m_Model,
                  LayerGeneralPropertiesModel::UIF_MULTICOMPONENT,
@@ -83,6 +95,17 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
                  LayerGeneralPropertiesModel::UIF_MOVABLE_UP);
   activateOnFlag(ui->btnDown, m_Model,
                  LayerGeneralPropertiesModel::UIF_MOVABLE_DOWN);
+
+  // Group Mesh should only display when a mesh layer is selected
+  activateOnFlag(ui->grpMesh, m_Model,
+                 LayerGeneralPropertiesModel::UIF_IS_MESH,
+                 QtWidgetActivator::HideInactive);
+
+  /*
+  activateOnFlag(ui->grpMCMesh, m_Model,
+                 LayerGeneralPropertiesModel::UIF_IS_MESHDATA_MULTICOMPONENT,
+                 QtWidgetActivator::HideInactive);
+  */
 }
 
 void GeneralLayerInspector::on_btnUp_clicked()
@@ -101,4 +124,8 @@ void GeneralLayerInspector::on_spinBoxTP_valueChanged(int value)
   txt.append(std::to_string(value).c_str());
   txt.append(":");
   ui->grpTPProperties->setTitle(txt);
+}
+
+void GeneralLayerInspector::onModelUpdate(const EventBucket &)
+{
 }

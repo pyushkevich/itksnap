@@ -38,6 +38,9 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
 
   // Allow directory creation? No by default for compatibility
   m_allowCreateDir = false;
+
+  // Load/Save multiple files. Default off
+  m_MultiFilesMode = false;
 }
 
 FileChooserPanelWithHistory::~FileChooserPanelWithHistory()
@@ -134,8 +137,9 @@ QString FileChooserPanelWithHistory::fixExtension() const
   // This method appends the extension to the currently entered filename if the
   // currently entered filename does not have an extension already. This is so
   // that we can type in test and it gets saved as test.png
-  QString filename = ui->inFilename->text();
-  QString filenameAbs = this->absoluteFilenameKeepExtension();
+  QString filename = (m_MultiFilesMode && m_SelectedFiles.length() > 1) ?
+        m_SelectedFiles.first() : ui->inFilename->text();
+  QString filenameAbs = this->absoluteFilenameKeepExtension(filename);
 
   // Cases when we don't append the extension
   if(filename.length() == 0 ||                  // No filename entered
@@ -178,7 +182,7 @@ void FileChooserPanelWithHistory::initializeForOpenFile(
   // State
   m_Model = model;
   m_openMode = true;
-  m_directoryMode = false;
+  m_MultiFilesMode = false;
   m_filePattern = filePattern;
   m_historyCategory = historyCategory;
   m_forceExtension = false;
@@ -219,6 +223,21 @@ void FileChooserPanelWithHistory::initializeForOpenFile(
     }
 }
 
+void FileChooserPanelWithHistory::initializeForOpenFiles(
+    GlobalUIModel *model,
+    const QString &labelText,
+    const QString &historyCategory,
+    const QString &filePattern,
+    const QString &initialFile,
+    const QString &activeFormat)
+{
+  initializeForOpenFile(model, labelText, historyCategory,
+                        filePattern, initialFile, activeFormat);
+
+  // overwrite member to set to directory mode
+  m_MultiFilesMode = true;
+}
+
 void FileChooserPanelWithHistory::initializeForSaveFile(
     GlobalUIModel *model,
     const QString &labelText,
@@ -231,7 +250,7 @@ void FileChooserPanelWithHistory::initializeForSaveFile(
   // State
   m_Model = model;
   m_openMode = false;
-  m_directoryMode = false;
+  m_MultiFilesMode = false;
   m_filePattern = filePattern;
   m_historyCategory = historyCategory;
   m_forceExtension = force_extension;
@@ -327,6 +346,13 @@ void FileChooserPanelWithHistory::updateFilename(QString filename)
   // Make sure the update code executes even if the text is not changed
   if(new_file == ui->inFilename->text())
     on_inFilename_textChanged(new_file);
+  else if (m_MultiFilesMode && m_SelectedFiles.length() > 1)
+    {
+    std::ostringstream oss;
+    oss << new_file.toStdString() << " and " << m_SelectedFiles.length() - 1 << " files";
+    QString multi_files(oss.str().c_str());
+    ui->inFilename->setText(multi_files);
+    }
   else
     ui->inFilename->setText(new_file);
 
@@ -348,13 +374,13 @@ void FileChooserPanelWithHistory::setFilename(QString filename)
   this->updateFilename(filename);
 }
 
-QString FileChooserPanelWithHistory::absoluteFilenameKeepExtension() const
+QString FileChooserPanelWithHistory::absoluteFilenameKeepExtension(const QString &text) const
 {
-  QFileInfo fi(ui->inFilename->text());
+  QFileInfo fi(text);
   if(fi.isAbsolute())
     return fi.absoluteFilePath();
 
-  QFileInfo fi2(QDir(m_workingDir), ui->inFilename->text());
+  QFileInfo fi2(QDir(m_workingDir), text);
   return fi2.absoluteFilePath();
 }
 
@@ -440,7 +466,7 @@ void FileChooserPanelWithHistory::setActiveFormat(QString format)
 void FileChooserPanelWithHistory::on_btnBrowse_clicked()
 {
   // Get the file name
-  QString sel;
+  QStringList selected;
 
   // Where to open the dialog?
   QFileInfo bfi(QDir(m_workingDir), ui->inFilename->text());
@@ -454,7 +480,10 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
 
   if(m_openMode)
     {
-    dialog.setFileMode(QFileDialog::ExistingFile);
+    if (m_MultiFilesMode)
+      dialog.setFileMode(QFileDialog::ExistingFiles);
+    else
+      dialog.setFileMode(QFileDialog::ExistingFile);
     dialog.setAcceptMode(QFileDialog::AcceptOpen);
     }
   else
@@ -542,12 +571,16 @@ void FileChooserPanelWithHistory::on_btnBrowse_clicked()
     }
 
   if(dialog.exec() && dialog.selectedFiles().size())
-    sel = dialog.selectedFiles().first();
+    selected = dialog.selectedFiles();
 
-  if(sel.length())
+  if(selected.length())
     {
-    // Update the selection
-    this->updateFilename(sel);
+    m_SelectedFiles.clear();
+    for (auto n : selected)
+      m_SelectedFiles.push_back(n);
+
+    // Update single file selection
+    this->updateFilename(selected.first());
     }
 }
 
@@ -597,7 +630,7 @@ void FileChooserPanelWithHistory::setCurrentFormatText(const QString &format)
 #endif
 }
 
-bool FileChooserPanelWithHistory::isFilenameNonAscii(const QString &text)
+bool FileChooserPanelWithHistory::isFilenameNonAscii(const QString &)
 {
 #ifdef WIN32
   for(int i = 0; i < text.length(); i++)
@@ -616,13 +649,14 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
   // an extension that matches one of our supported extensions. If it does, then
   // we change the active format to be that format
   QString format;
+  QString intext = m_MultiFilesMode ? m_SelectedFiles.first() : text;
 
   // Do we want to trust the currently set format (i.e., provided by caller when
   // calling initialize)
   if(m_keepActiveFormatOnFilenameUpdate)
     format = m_defaultFormat;
   else
-    format = guessFormat(absoluteFilenameKeepExtension());
+    format = guessFormat(absoluteFilenameKeepExtension(intext));
 
   if(format.length())
     {
@@ -655,9 +689,9 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
   if(m_openMode)
     {
     // Does the file exist?
-    if(text.length() && !fiwd.exists())
+    if(intext.length() && !fiwd.exists())
       ui->outError->setText("The file does not exist");
-    else if(text.length() && !fiwd.isReadable())
+    else if(intext.length() && !fiwd.isReadable())
       ui->outError->setText("The file is not readable");
     else if(ui->inFormat->currentIndex() == -1 && ui->inFilename->text().length())
       ui->outError->setText("Unable to recognize file format");

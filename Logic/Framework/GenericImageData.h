@@ -61,6 +61,7 @@ class Registry;
 class GuidedNativeImageIO;
 class ImageAnnotationData;
 class TimePointProperties;
+class ImageMeshLayers;
 
 /**
  * \class GenericImageData
@@ -121,7 +122,10 @@ public:
    */
   ImageWrapperBase* GetMain()
   {
-    assert(m_MainImageWrapper->IsInitialized());
+    // After unloading, this pointer can be set to NULL
+    // If failed, use IsMainLoaded() as precheck of GetMain()
+    assert(m_MainImageWrapper && m_MainImageWrapper->IsInitialized());
+
     return m_MainImageWrapper;
   }
 
@@ -277,6 +281,12 @@ public:
   virtual void UnloadOverlay(ImageWrapperBase *overlay);
 
   /**
+   * Unload a specific mesh layer
+   * Re-implemente in sub-class for image data specific logic
+   */
+  virtual void UnloadMeshLayer(unsigned long id);
+
+  /**
    * Add an overlay that is obtained from the image referenced by *io by applying
    * a spatial transformation.
    */
@@ -336,6 +346,8 @@ public:
   /** Clear all segmentation undo points in this layer collection */
   void ClearUndoPoints();
 
+  /** Get Mesh Layer Storage */
+  ImageMeshLayers *GetMeshLayers();
 protected:
 
   GenericImageData();
@@ -406,6 +418,8 @@ protected:
 
   // Helper method used to compress a loaded segmentation into an RLE 4D image
   SmartPtr<LabelImage4DType> CompressSegmentation(GuidedNativeImageIO *io);
+
+  SmartPtr<ImageMeshLayers> m_MeshLayers;
 };
 
 #endif

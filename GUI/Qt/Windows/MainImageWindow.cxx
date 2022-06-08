@@ -51,6 +51,8 @@
 #include "SimpleFileDialogWithHistory.h"
 #include "StatisticsDialog.h"
 #include "MeshExportWizard.h"
+#include "MeshImportWizard.h"
+#include "MeshImportModel.h"
 #include "ImageWrapperBase.h"
 #include "IRISImageData.h"
 #include "AboutDialog.h"
@@ -334,6 +336,11 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Start the timer (it doesn't cost much...)
   m_AnimateTimer->start();
 
+  // Set up the 4D replay timer
+  m_4DReplayTimer = new QTimer(this);
+  m_AnimateTimer->setInterval(m_Crnt4DReplayInteval);
+  connect(m_4DReplayTimer, SIGNAL(timeout()), SLOT(on4DReplayTimeout()));
+
   // Create keyboard shortcuts for opacity (because there seems to be a bug/feature on MacOS
   // where keyboard shortcuts require the Fn-key to be pressed in QMenu
   this->HookupShortcutToAction(QKeySequence("s"), ui->actionSegmentationToggle);
@@ -541,6 +548,16 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
         ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
 
 
+  // Listen to 4D Image Time Point Replay event
+  LatentITKEventNotifier::connect(
+        model->GetDriver()->GetGlobalState()->Get4DReplayModel(),
+        ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
+
+  LatentITKEventNotifier::connect(
+        model->GetDriver()->GetGlobalState()->Get4DReplayIntervalModel(),
+        ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
+
+
   // Couple the visibility of each view panel to the correponding property
   // model in DisplayLayoutModel
   DisplayLayoutModel *layoutModel = m_Model->GetDisplayLayoutModel();
@@ -553,6 +570,8 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // Set up activations - File menu
   activateOnFlag(ui->actionOpenMain, m_Model, UIF_IRIS_MODE);
   activateOnFlag(ui->menuRecent_Images, m_Model, UIF_IRIS_MODE);
+  activateOnFlag(ui->actionAddMesh, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionAddMeshSeries, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveMain, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSpeed, m_Model, UIF_SNAKE_MODE);
   activateOnFlag(ui->actionSaveLevelSet, m_Model, UIF_LEVEL_SET_ACTIVE);
@@ -681,6 +700,8 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
       b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetSelectedSegmentationLayerIdModel());
   bool display_layout_changed = b.HasEvent(DisplayLayoutModel::DisplayLayoutChangeEvent());
   bool layer_layout_changed = b.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
+  bool replay_4d_changed = b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->Get4DReplayModel());
+  bool replay_4d_interval_changed = b.HasEvent(ValueChangedEvent(),  m_Model->GetGlobalState()->Get4DReplayIntervalModel());
 
   if(main_changed)
     {
@@ -689,6 +710,14 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
     // TODO: figure out if we can avoid flashing altogether
     // QTimer::singleShot(200, this, SLOT(UpdateMainLayout()));
     this->UpdateMainLayout();
+
+    // If 4D main is loaded, get a new default interval from the model
+    if(m_Model->GetDriver()->GetNumberOfTimePoints() > 1)
+      {
+      m_Model->GetGlobalState()->Set4DReplayInterval(
+            m_Model->GetDefault4DReplayInterval());
+      }
+
     }
 
   if(layers_changed || main_history_changed)
@@ -714,6 +743,9 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 
   if(layers_changed || layers_meta_changed || proj_file_changed || selected_seg_layer_changed)
     this->UpdateWindowTitle();
+
+  if(replay_4d_changed || replay_4d_interval_changed)
+    this->Update4DReplay();
 
 
 }
@@ -1224,12 +1256,19 @@ void MainImageWindow::LoadDroppedFile(QString file)
       // If an image is already loaded, we show the dialog
       m_DropDialog->SetDroppedFilename(file);
       m_DropDialog->setModal(true);
+
+      // Check if the file can be loaded as mesh
+      QFileInfo fileinfo(file);
+      auto ext = fileinfo.completeSuffix();
+      auto fmt = GuidedMeshIO::GetFormatByExtension(ext.toStdString());
+      m_DropDialog->SetIncludeMeshOptions(GuidedMeshIO::can_read(fmt));
+
       RaiseDialog(m_DropDialog);
       }
     else
       {
       // Otherwise, load the main image directly
-      m_DropDialog->LoadMainImage(file);
+      m_DropDialog->InitialLoad(file);
       }
     }
 }
@@ -1492,6 +1531,16 @@ void MainImageWindow::onAnimationTimeout()
     m_Model->AnimateLayerComponents();
 }
 
+void MainImageWindow::on4DReplayTimeout()
+{
+  if(m_Model && m_Model->GetDriver()->GetNumberOfTimePoints() > 1)
+    {
+    int crntTP = m_Model->GetDriver()->GetCursorTimePoint();
+    int nextTP = (crntTP + 1) % (m_Model->GetDriver()->GetNumberOfTimePoints());
+    m_Model->GetDriver()->SetCursorTimePoint(nextTP);
+    }
+}
+
 void MainImageWindow::LoadRecentProjectActionTriggered()
 {
   // Check for unsaved changes before loading new data
@@ -1610,6 +1659,29 @@ void MainImageWindow::on_actionAdd_Overlay_triggered()
 
   // Execute the IO wizard
   ImageIOWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+}
+
+void MainImageWindow::on_actionAddMesh_triggered()
+{
+  // Get and Configure the model
+  auto model = m_Model->GetMeshImportModel();
+  model->SetMode(MeshImportModel::Mode::SINGLE);
+
+  // Show the Wizard Dialog
+  MeshImportWizard wiz(this);
+  wiz.SetModel(model);
+  wiz.exec();
+}
+
+void MainImageWindow::on_actionAddMeshSeries_triggered()
+{
+  auto model = m_Model->GetMeshImportModel();
+  model->SetMode(MeshImportModel::Mode::SERIES);
+
+  // Show the Wizard Dialog
+  MeshImportWizard wiz(this);
   wiz.SetModel(model);
   wiz.exec();
 }
@@ -2114,7 +2186,7 @@ void MainImageWindow::on_actionToggle_Crosshair_triggered()
   // Toggle the crosshair visibility
   OpenGLAppearanceElement *elt = m_Model->GetAppearanceSettings()->GetUIElement(
         SNAPAppearanceSettings::CROSSHAIRS);
-  elt->SetVisible(!elt->GetVisible());
+  elt->SetVisibilityFlag(!elt->GetVisibilityFlag());
 }
 
 void MainImageWindow::on_actionAnnotation_Preferences_triggered()
@@ -2205,6 +2277,23 @@ void MainImageWindow::UpdateAutoCheck()
     {
     DoUpdateCheck(true);
     }
+}
+
+void MainImageWindow::Update4DReplay()
+{
+  bool isReplayOn = GetModel()->GetGlobalState()->Get4DReplay();
+  int interval = GetModel()->GetGlobalState()->Get4DReplayInterval();
+
+  if (interval != m_Crnt4DReplayInteval)
+    {
+    m_Crnt4DReplayInteval = interval;
+    m_4DReplayTimer->setInterval(interval);
+    }
+
+  if (isReplayOn)
+    this->m_4DReplayTimer->start();
+  else
+    this->m_4DReplayTimer->stop();
 }
 
 void MainImageWindow::RemindLayoutPreference()

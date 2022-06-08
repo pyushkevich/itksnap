@@ -112,8 +112,8 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
     typename TLabelImage::PixelType filler = 0;
     typename TMainImage::PixelType filler_double = 0;
 
-    typename AndImageFilterType::Pointer Intersect[totalSlices-1];
-    typename SignedDistanceMapFilterType::Pointer SignedDistanceMapIntersect[totalSlices - 1];
+    std::vector<typename AndImageFilterType::Pointer> Intersect(totalSlices-1);
+    std::vector<typename SignedDistanceMapFilterType::Pointer> SignedDistanceMapIntersect(totalSlices - 1);
 
     for ( unsigned int i = 0; i < totalSlices-1; i++ )
     {
@@ -197,8 +197,8 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
             ConnectedAdifB->Update();
 
             int numCCAdB = ConnectedAdifB->GetObjectCount();
-            typename BinaryThresholdImageFilterType::Pointer ConnectedComponent_AdB[numCCAdB];
-            typename OrImageFilterType::Pointer A_dash[numCCAdB];
+            std::vector<typename BinaryThresholdImageFilterType::Pointer> ConnectedComponent_AdB(numCCAdB);
+            std::vector<typename OrImageFilterType::Pointer> A_dash(numCCAdB);
 
             //Initialize filters and varaibles to combine results across connected components
 
@@ -206,9 +206,9 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
             typename TMainImage::Pointer ProbabilityMap[2];
             typename TLabelImageSliceType::Pointer InterpolatedVolume_intermediate[2];
             typename TMainImageSliceType::Pointer ProbabilityMap_intermediate[2];
-            typename TilerType::Pointer Tiler_Interp[numCCAdB];
-            typename DoubleTilerType::Pointer Tiler_ERF[numCCAdB];
-            typename SignedDistanceMapFilterType::Pointer SignedDistanceMapA_dash[numCCAdB];
+            std::vector<typename TilerType::Pointer> Tiler_Interp(numCCAdB);
+            std::vector<typename DoubleTilerType::Pointer> Tiler_ERF(numCCAdB);
+            std::vector<typename SignedDistanceMapFilterType::Pointer> SignedDistanceMapA_dash(numCCAdB);
 
             itk::FixedArray<bool, TMainImage::ImageDimension > flipAxes;
             flipAxes[m_firstdirection] = true;
@@ -289,11 +289,11 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                         double interp = (1-t1)*x1 + t1*x2; // interpolate between the two pixels
                         int B = ItB.Get();
 
-                        if (interp >= 0 & B == 0)
+                        if (interp >= 0 && B == 0)
                         {
                             I_diffB+=1;
                         }
-                        if (interp < 0 & B == 1)
+                        if (interp < 0 && B == 1)
                         {
                             B_diffI+=1;
                         }
@@ -445,12 +445,12 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
             ConnectedBdifA->Update();
 
             int numCCBdA = ConnectedBdifA->GetObjectCount();
-            typename BinaryThresholdImageFilterType::Pointer ConnectedComponent_BdA[numCCBdA];
-            typename OrImageFilterType::Pointer B_dash[numCCBdA];
-            typename SignedDistanceMapFilterType::Pointer SignedDistanceMapB_dash[numCCBdA];
+            std::vector<typename BinaryThresholdImageFilterType::Pointer> ConnectedComponent_BdA(numCCBdA);
+            std::vector<typename OrImageFilterType::Pointer> B_dash(numCCBdA);
+            std::vector<typename SignedDistanceMapFilterType::Pointer> SignedDistanceMapB_dash(numCCBdA);
 
-            typename TilerType::Pointer TilerBdA_Interp[numCCBdA];
-            typename DoubleTilerType::Pointer TilerBdA_ERF[numCCBdA];
+            std::vector<typename TilerType::Pointer> TilerBdA_Interp(numCCBdA);
+            std::vector<typename DoubleTilerType::Pointer> TilerBdA_ERF(numCCBdA);
 
             //  Calculate the connected components  in B\A
             for( int j = 0; j < numCCBdA; j++ )
@@ -521,11 +521,11 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                         double interp = (1-t1)*x1 + t1*x2; // interpolate between the two pixels
                         int B = ItB.Get();
 
-                        if (interp >= 0 & B == 0)
+                        if (interp >= 0 && B == 0)
                         {
                             I_diffB+=1;
                         }
-                        if (interp < 0 & B == 1)
+                        if (interp < 0 && B == 1)
                         {
                             B_diffI+=1;
                         }

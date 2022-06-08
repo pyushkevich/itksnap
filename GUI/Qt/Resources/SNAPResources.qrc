@@ -189,6 +189,8 @@
         <file>layout_sagittal_pa.png</file>
         <file>icons8-camera-12@x2.png</file>
         <file>icons8-camera-12.png</file>
+        <file>html/components.html</file>
+        <file>html/splash.html</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>
@@ -198,5 +200,7 @@
     <qresource prefix="/html">
         <file alias="ModeTipTemplate">html/tooltips/ModeTipTemplate.html</file>
         <file alias="TipTableRow">html/tooltips/TipTableRow.html</file>
+        <file>html/components.html</file>
+        <file>html/splash.html</file>
     </qresource>
 </RCC>

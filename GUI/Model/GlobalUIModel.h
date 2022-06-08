@@ -68,6 +68,7 @@ class LayerGeneralPropertiesModel;
 class SynchronizationModel;
 class SnakeParameterModel;
 class MeshExportModel;
+class MeshImportModel;
 class GlobalPreferencesModel;
 class GlobalDisplaySettings;
 class ImageIOWizardModel;
@@ -237,6 +238,9 @@ public:
   /** Model for the mesh export wizard */
   irisGetMacro(MeshExportModel, MeshExportModel *)
 
+  /** Model for the mesh import wizard */
+  irisGetMacro(MeshImportModel, MeshImportModel *)
+
   /** Model for the preferences dialog */
   irisGetMacro(GlobalPreferencesModel, GlobalPreferencesModel *)
 
@@ -346,6 +350,9 @@ public:
 
   /** A function for switching between segmentation layers when there multiple */
   void CycleSelectedSegmentationLayer(int direction);
+
+  /** A function for UI to get the default 4D replay interval */
+  int GetDefault4DReplayInterval() const;
 
 
 protected:
@@ -487,6 +494,9 @@ protected:
 
   // The model for the mesh export wizard
   SmartPtr<MeshExportModel> m_MeshExportModel;
+
+  // The model for the mesh import wizard
+  SmartPtr<MeshImportModel> m_MeshImportModel;
 
   // Global preferences model
   SmartPtr<GlobalPreferencesModel> m_GlobalPreferencesModel;

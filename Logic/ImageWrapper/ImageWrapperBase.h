@@ -1,12 +1,9 @@
 #ifndef IMAGEWRAPPERBASE_H
 #define IMAGEWRAPPERBASE_H
 
-#include "SNAPCommon.h"
 #include "ImageCoordinateTransform.h"
 #include "itkImageRegion.h"
-#include "itkObject.h"
-#include "SNAPEvents.h"
-#include "TagList.h"
+#include "WrapperBase.h"
 
 namespace itk {
   template <unsigned int VDim> class ImageBase;
@@ -78,7 +75,7 @@ enum VolumeRenderingTransferFunctionScalingMode
  hierarchy is invisible to most of the SNAP classes, and accessed on special
  occasions, where the raw data of the image is needed.
  */
-class ImageWrapperBase : public itk::Object
+class ImageWrapperBase : public WrapperBase
 {
 public:
 
@@ -124,12 +121,6 @@ public:
   FIRES(WrapperDisplayMappingChangeEvent)
 
   virtual ~ImageWrapperBase() { }
-
-  /**
-    Get a unique id for this wrapper. All wrappers ever created have
-    different ids.
-    */
-  virtual unsigned long GetUniqueId() const = 0;
 
   /**
    * Every wrapper, whether it is a scalar wrapper or a vector wrapper, has a
@@ -214,11 +205,6 @@ public:
   irisVirtualGetMacro(Image4DBase, Image4DBaseType *)
 
   /**
-   * Is the image initialized?
-   */
-  irisVirtualIsMacro(Initialized)
-
-  /**
    * If the image wrapper is an output of a preview pipeline, is the pipeline ready?
    */
   irisVirtualIsMacro(PipelineReady)
@@ -232,11 +218,7 @@ public:
    */
   virtual Vector3ui GetSize() const = 0;
 
-  /** Get layer transparency */
-  irisVirtualSetMacro(Alpha, double)
 
-  /** Set layer transparency */
-  irisVirtualGetMacro(Alpha, double)
 
   /**
    * Get layer stickiness. A sticky layer always is shown 'on top' of other
@@ -352,20 +334,6 @@ public:
   /** Return componentwise maximum cast to double, after mapping to native range */
   virtual double GetImageMaxNative() = 0;
 
-  /**
-    Compute the image histogram. The histogram is cached inside of the
-    object, so repeated calls to this function with the same nBins parameter
-    will not require additional computation.
-
-    Calling with default parameter (0) will use the same number of bins that
-    is currently in the histogram (i.e., return/recompute current histogram).
-    If there is no current histogram, a default histogram with 128 entries
-    will be generated.
-
-    For multi-component data, the histogram is pooled over all components.
-    */
-  virtual const ScalarImageHistogram *GetHistogram(size_t nBins) = 0;
-
   /** Compute statistics over a run of voxels in the image starting at the index
    * startIdx. Appends the statistics to a running sum and sum of squared. The
    * statistics are returned in internal (not native mapped) format */
@@ -395,38 +363,6 @@ public:
    * or an identity mapping.
    */
   virtual const AbstractNativeIntensityMapping *GetNativeIntensityMapping() const = 0;
-
-  /**
-   * Get the display mapping policy. This policy differs from wrapper to wrapper
-   * and may involve using color labels or color maps.
-   */
-  virtual AbstractDisplayMappingPolicy *GetDisplayMapping() = 0;
-
-  /**
-   * Get the display mapping policy. This policy differs from wrapper to wrapper
-   * and may involve using color labels or color maps.
-   */
-  virtual const AbstractDisplayMappingPolicy *GetDisplayMapping() const = 0;
-
-  // Access the filename
-  irisVirtualGetStringMacro(FileName)
-  irisVirtualSetStringMacro(FileName)
-
-  // Access the nickname - which may be a custom nickname or derived from the
-  // filename if there is no custom nickname
-  irisVirtualGetMacro(Nickname, const std::string &)
-
-  // Set the custom nickname - precedence over the filename
-  irisVirtualGetMacro(CustomNickname, const std::string &)
-  irisVirtualSetMacro(CustomNickname, const std::string &)
-
-  // Fallback nickname - shown if no filename and no custom nickname set.
-  irisVirtualGetMacro(DefaultNickname, const std::string &)
-  irisVirtualSetMacro(DefaultNickname, const std::string &)
-
-  /** List of tags assigned to the image layer */
-  irisVirtualGetMacro(Tags, const TagList &)
-  irisVirtualSetMacro(Tags, const TagList &)
 
   /**
     Export one of the slices as a thumbnail (e.g., PNG file)
@@ -490,24 +426,7 @@ public:
 
   typedef itk::Image<short, 3> ShortImageType;
 
-  /**
-   * The image wrapper has a generic mechanism for associating data with it.
-   * For example, we can associate some parameter values for a specific
-   * image processing algorithm with each layer. Do do that, we simply
-   * assign a pointer to the data to a specific string role. Internally,
-   * a smart pointer is used to point to the associated data.
-   *
-   * Users of this method might also want to rebroadcast events from the
-   * associated object as events of type WrapperUserChangeEvent(). These
-   * events will then propagate all the way up to the IRISApplication.
-   */
-  virtual void SetUserData(const std::string &role, itk::Object *data) = 0;
 
-  /**
-   * Get the user data associated with this wrapper for a specific role. If
-   * no association exists, NULL is returned.
-   */
-  virtual itk::Object* GetUserData(const std::string &role) const = 0;
 
   //
 

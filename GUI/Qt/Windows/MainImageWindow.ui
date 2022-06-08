@@ -188,18 +188,9 @@ font-size: 13px;</string>
                  <property name="lineWidth">
                   <number>0</number>
                  </property>
-                 <property name="html">
-                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.AppleSystemUIFont'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
-&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Browse &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP3&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;online documentation and tutorials&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
-&lt;li style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Download &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;sample datasets&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
-&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Connect to the &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;ITK-SNAP community&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                 </property>
                  <property name="source">
                   <url>
-                   <string>qrc:/html/html/splash.html</string>
+                   <string>qrc:/root/html/splash.html</string>
                   </url>
                  </property>
                  <property name="openExternalLinks">
@@ -430,6 +421,9 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="actionAdd_Overlay"/>
     <addaction name="menuRecent_Overlays"/>
+    <addaction name="separator"/>
+    <addaction name="actionAddMesh"/>
+    <addaction name="actionAddMeshSeries"/>
     <addaction name="separator"/>
     <addaction name="menuSave_Image"/>
     <addaction name="separator"/>
@@ -1691,6 +1685,16 @@ color:rgb(103, 103, 103);
   <action name="actionSmooth_Labels">
    <property name="text">
     <string>Smooth Labels...</string>
+   </property>
+  </action>
+  <action name="actionAddMesh">
+   <property name="text">
+    <string>Add a Mesh ...</string>
+   </property>
+  </action>
+  <action name="actionAddMeshSeries">
+   <property name="text">
+    <string>Add Mesh Series ...</string>
    </property>
   </action>
  </widget>

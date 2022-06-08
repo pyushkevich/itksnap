@@ -266,17 +266,27 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/MultiChannelDisplayMode.cxx
+  Logic/ImageWrapper/MeshDisplayMappingPolicy.cxx
   Logic/ImageWrapper/ScalarImageHistogram.cxx
   Logic/ImageWrapper/ScalarImageWrapper.cxx
   Logic/ImageWrapper/VectorImageWrapper.cxx
+  Logic/ImageWrapper/WrapperBase.cxx
   Logic/LevelSet/SnakeParameters.cxx
   Logic/LevelSet/SnakeParametersPreviewPipeline.cxx
+  Logic/Mesh/ActorPool.cxx
   Logic/Mesh/AllPurposeProgressAccumulator.cxx
   Logic/Mesh/GuidedMeshIO.cxx
+  Logic/Mesh/ImageMeshLayers.cxx
   Logic/Mesh/MultiLabelMeshPipeline.cxx
   Logic/Mesh/LevelSetMeshPipeline.cxx
+  Logic/Mesh/LevelSetMeshWrapper.cxx
+  Logic/Mesh/MeshDataArrayProperty.cxx
+  Logic/Mesh/MeshIODelegates.cxx
   Logic/Mesh/MeshManager.cxx
   Logic/Mesh/MeshOptions.cxx
+  Logic/Mesh/MeshWrapperBase.cxx
+  Logic/Mesh/SegmentationMeshWrapper.cxx
+  Logic/Mesh/StandaloneMeshWrapper.cxx
   Logic/Mesh/VTKMeshPipeline.cxx
   Logic/Preprocessing/EdgePreprocessingSettings.cxx
   Logic/Preprocessing/PreprocessingFilterConfigTraits.cxx
@@ -381,7 +391,9 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/InputSelectionImageFilter.h
   Logic/ImageWrapper/InputSelectionImageFilter.txx
   Logic/ImageWrapper/MultiChannelDisplayMode.h
+  Logic/ImageWrapper/MeshDisplayMappingPolicy.h
   Logic/ImageWrapper/VectorToScalarImageAccessor.h
+  Logic/ImageWrapper/WrapperBase.h
   Logic/RLEImage/RLEImage.h
   Logic/RLEImage/RLEImage.txx
   Logic/RLEImage/RLEImageConstIterator.h
@@ -414,12 +426,20 @@ SET(LOGIC_HEADERS
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.h
   Logic/LevelSet/SNAPLevelSetStopAndGoFilter.txx
   Logic/LevelSet/SnakeParameters.h
+  Logic/Mesh/ActorPool.h
   Logic/Mesh/AllPurposeProgressAccumulator.h
   Logic/Mesh/GuidedMeshIO.h
+  Logic/Mesh/ImageMeshLayers.h
   Logic/Mesh/MultiLabelMeshPipeline.h
   Logic/Mesh/LevelSetMeshPipeline.h
+  Logic/Mesh/LevelSetMeshWrapper.h
+  Logic/Mesh/MeshDataArrayProperty.h
+  Logic/Mesh/MeshIODelegates.h
   Logic/Mesh/MeshManager.h
   Logic/Mesh/MeshOptions.h
+  Logic/Mesh/MeshWrapperBase.h
+  Logic/Mesh/SegmentationMeshWrapper.h
+  Logic/Mesh/StandaloneMeshWrapper.h
   Logic/Mesh/VTKMeshPipeline.h
   Logic/Preprocessing/EdgePreprocessingImageFilter.h
   Logic/Preprocessing/EdgePreprocessingImageFilter.txx
@@ -488,6 +508,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/LayerTableRowModel.cxx
   GUI/Model/LayerSelectionModel.cxx
   GUI/Model/MeshExportModel.cxx
+  GUI/Model/MeshImportModel.cxx
   GUI/Model/OrthogonalSliceCursorNavigationModel.cxx
   GUI/Model/PaintbrushModel.cxx
   GUI/Model/PaintbrushSettingsModel.cxx
@@ -566,6 +587,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/LayerSelectionModel.h
   GUI/Model/LayerTableRowModel.h
   GUI/Model/MeshExportModel.h
+  GUI/Model/MeshImportModel.h
   GUI/Model/OrthogonalSliceCursorNavigationModel.h
   GUI/Model/PaintbrushModel.h
   GUI/Model/PaintbrushSettingsModel.h
@@ -718,6 +740,8 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.cxx
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.cxx
+  GUI/Qt/Windows/MeshImportWizard/MeshImportWizard.cxx
+  GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.cxx
   GUI/Qt/Windows/Registration/RegistrationDialog.cxx
   Testing/GUI/Qt/SNAPTestQt.cxx
 )
@@ -812,6 +836,8 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.h
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.h
+  GUI/Qt/Windows/MeshImportWizard/MeshImportWizard.h
+  GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.h
   GUI/Qt/Windows/Registration/RegistrationDialog.h
   Testing/GUI/Qt/SNAPTestQt.h
 )
@@ -898,6 +924,8 @@ SET(UI_FORMS
   GUI/Qt/Windows/MeshExportWizard/MeshExportWizard.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportModePage.ui
   GUI/Qt/Windows/MeshExportWizard/MeshExportBrowsePage.ui
+  GUI/Qt/Windows/MeshImportWizard/MeshImportWizard.ui
+  GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.ui
   GUI/Qt/Windows/Registration/RegistrationDialog.ui
 )
 
@@ -1003,6 +1031,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/DSS
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/MeshExportWizard
+    ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/MeshImportWizard
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/Registration
     ${SNAP_SOURCE_DIR}/Testing/Logic
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt
@@ -1186,7 +1215,11 @@ SET(GUI_TESTS
   ProbeIntensity
   RegionCompetition
   RandomForest
-  RandomForestBailOut)
+  RandomForestBailOut
+  MeshImport
+  MeshWorkspace
+  SegmentationMesh
+  VolumeRendering)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
 set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)
@@ -1445,6 +1478,11 @@ ELSEIF(WIN32)
         "ExecWait '\\\"$INSTDIR\\\\bin\\\\${VCREDIST_NAME}\\\" /passive'")
     ENDIF(VCREDIST_EXE)
   ENDIF(MSVC_VERSION GREATER 1399)
+
+  # Try setting the MSVC environment so we can debug from MSVC
+  set_target_properties(ITK-SNAP PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:ITK-SNAP>"
+                                            VS_DEBUGGER_COMMAND           "$<TARGET_FILE:ITK-SNAP>"
+                                            VS_DEBUGGER_ENVIRONMENT       "PATH=%PATH%;${VTK_DIR}/bin/Debug;${Qt6_DIR}/../../../bin;")
 
 ELSE()
 

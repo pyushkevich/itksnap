@@ -82,7 +82,6 @@ void ViewPanel3D::on_btnUpdateMesh_clicked()
     {
     // Tell the model to update itself
     m_Model->UpdateSegmentationMesh(m_Model->GetParentUI()->GetProgressCommand());
-    // m_Model->UpdateSegmentationMesh(m_RenderProgressCommand);
     }
   catch(IRISException & IRISexc)
     {

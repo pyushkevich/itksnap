@@ -4,6 +4,8 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
+#include "IRISImageData.h"
+#include "SNAPImageData.h"
 #include "ImageWrapperBase.h"
 #include "MeshManager.h"
 #include "Window3DPicker.h"
@@ -14,6 +16,7 @@
 #include "MeshOptions.h"
 #include "ImageWrapperTraits.h"
 #include "SegmentationUpdateIterator.h"
+#include "ImageMeshLayers.h"
 
 // All the VTK stuff
 #include "vtkPolyData.h"
@@ -72,6 +75,8 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
               ValueChangedEvent(), StateMachineChangeEvent());
   Rebroadcast(m_ParentUI->GetGlobalState()->GetMeshOptions(),
               ChildPropertyChangedEvent(), StateMachineChangeEvent());
+
+  Rebroadcast(m_Driver->GetIRISImageData()->GetMeshLayers(), LayerChangeEvent(), StateMachineChangeEvent());
 }
 
 bool Generic3DModel::CheckState(Generic3DModel::UIState state)
@@ -85,14 +90,9 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
     {
     case UIF_MESH_DIRTY:
       {
-      unsigned int tp = m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex();
-      if(m_Driver->GetMeshManager()->IsMeshDirty(tp))
-        return true;
-
-      if(m_Driver->GetMeshManager()->GetBuildTime(tp) <= this->m_ClearTime)
-        return true;
-
-      return false;
+      return m_Driver->IsSnakeModeActive() ?
+            m_Driver->GetSNAPImageData()->GetMeshLayers()->IsActiveMeshLayerDirty() :
+            m_Driver->GetIRISImageData()->GetMeshLayers()->IsActiveMeshLayerDirty();
       }
 
     case UIF_MESH_ACTION_PENDING:
@@ -178,6 +178,15 @@ void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
         settings, m_ParentUI->GetProgressCommand());
 }
 
+ImageMeshLayers *
+Generic3DModel
+::GetMeshLayers()
+{
+  return m_Driver->IsSnakeModeActive() ?
+        m_Driver->GetSNAPImageData()->GetMeshLayers() :
+        m_Driver->GetIRISImageData()->GetMeshLayers();
+}
+
 vtkPolyData *Generic3DModel::GetSprayPoints() const
 {
   return m_SprayPoints.GetPointer();
@@ -216,7 +225,7 @@ void Generic3DModel::OnImageGeometryUpdate()
     }
 }
 
-void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
+void Generic3DModel::UpdateSegmentationMesh(itk::Command *progressCmd)
 {
   // Prevent concurrent access to this method
   std::lock_guard<std::mutex> guard(m_Mutex);
@@ -225,7 +234,14 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *callback)
   {
     // Generate all the mesh objects
     m_MeshUpdating = true;
-    m_Driver->GetMeshManager()->UpdateVTKMeshes(callback, m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
+
+    // Check if snake mode is active and get mode specific image data
+    GenericImageData *imgData = m_Driver->IsSnakeModeLevelSetActive() ?
+          (GenericImageData*) m_Driver->GetSNAPImageData() : m_Driver->GetIRISImageData();
+
+    // Update Mesh Layer
+    imgData->GetMeshLayers()->UpdateActiveMeshLayer(progressCmd);
+
     m_MeshUpdating = false;
 
     InvokeEvent(ModelUpdateEvent());

@@ -49,7 +49,13 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
   makeCoupling(ui->morphologyInterpolationAxis, m_Model->GetMorphologyInterpolationAxisModel());
 
   //Added by SR- Settings for binary weighted averge method
-  makeRadioGroupCoupling(ui->btnMorphological,ui->btnBinaryWeightedAverage, m_Model->GetInterpolationApproachModel());
+
+  // Match methods with radio buttons
+  std::map<InterpolateLabelModel::InterpolationType, QAbstractButton *> method_button_map;
+  method_button_map[InterpolateLabelModel::MORPHOLOGY] = ui->btnMorphological;
+  method_button_map[InterpolateLabelModel::BINARY_WEIGHTED_AVERAGE] = ui->btnBinaryWeightedAverage;
+  makeRadioGroupCoupling(ui->widgetMethodRadio, method_button_map, m_Model->GetInterpolationMethodModel());
+
   makeCoupling(ui->chkBWAInterpolateIntermediateOnly, m_Model->GetBWAInterpolateIntermediateOnlyModel());
   makeCoupling(ui->chkBWAUseContourOnly, m_Model->GetBWAUseContourOnlyModel());
   makeCoupling(ui->chkBWAOverwriteSegmentation, m_Model->GetBWAOverwriteSegmentationModel());

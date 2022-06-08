@@ -7,6 +7,7 @@
 #include "IRISImageData.h"
 #include "SNAPImageData.h"
 #include "ImageWrapperBase.h"
+#include "ImageMeshLayers.h"
 
 template<class TObject, class TFilter, class TFactoryDelegate>
 LayerAssociation<TObject, TFilter, TFactoryDelegate>
@@ -61,6 +62,29 @@ LayerAssociation<TObject, TFilter, TFactoryDelegate>
               m_LayerMap.insert(std::make_pair(wf->GetUniqueId(), rhs));
               }
             }
+          }
+        }
+      }
+
+    // Iterate over all the mesh layers
+    auto mesh_it = m_Source->GetIRISImageData()->GetMeshLayers()->GetLayers();
+    for (; !mesh_it.IsAtEnd(); ++mesh_it)
+      {
+      MeshWrapperBase *wb = mesh_it.GetLayer();
+      TFilter *wf = dynamic_cast<TFilter *>(wb);
+      if(wf && wf->IsInitialized())
+        {
+        iterator it = m_LayerMap.find(wf->GetUniqueId());
+        if(it != m_LayerMap.end())
+          {
+          // Mark it as visited
+          it->second.m_Visit = m_VisitCounter;
+          }
+        else
+          {
+          RHS rhs(m_Delegate.New(wf));
+          rhs.m_Visit = m_VisitCounter;
+          m_LayerMap.insert(std::make_pair(wf->GetUniqueId(), rhs));
           }
         }
       }

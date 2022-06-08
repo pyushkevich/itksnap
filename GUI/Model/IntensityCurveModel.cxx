@@ -9,7 +9,7 @@
 #include "LayerAssociation.txx"
 
 template class LayerAssociation<IntensityCurveLayerProperties,
-                                ImageWrapperBase,
+                                WrapperBase,
                                 IntensityCurveModelBase::PropertiesFactory>;
 
 
@@ -66,7 +66,7 @@ AbstractContinuousImageDisplayMappingPolicy *
 IntensityCurveModel
 ::GetDisplayPolicy()
 {
-  ImageWrapperBase *layer = this->GetLayer();
+  WrapperBase *layer = this->GetLayer();
   if(layer)
     return dynamic_cast<AbstractContinuousImageDisplayMappingPolicy *>
         (layer->GetDisplayMapping());
@@ -84,7 +84,7 @@ void IntensityCurveModel::SetViewportReporter(ViewportSizeReporter *vr)
 
 void
 IntensityCurveModel
-::RegisterWithLayer(ImageWrapperBase *layer)
+::RegisterWithLayer(WrapperBase *layer)
 {
   IntensityCurveLayerProperties &p = GetProperties();
 
@@ -113,7 +113,7 @@ IntensityCurveModel
 
 void
 IntensityCurveModel
-::UnRegisterFromLayer(ImageWrapperBase *layer, bool being_deleted)
+::UnRegisterFromLayer(WrapperBase *layer, bool being_deleted)
 {
   if(!being_deleted)
     {
@@ -651,13 +651,14 @@ IntensityCurveModel
 ::GetHistogramBinSizeValueAndRange(
     int &value, NumericValueRange<int> *range)
 {
-  if(m_Layer)
+  auto layer = dynamic_cast<ImageWrapperBase*>(m_Layer);
+  if(layer)
     {
     value = (int) GetProperties().GetHistogramBinSize();
     if(range)
       {
       range->Minimum = 1;
-      range->Maximum = m_Layer->GetNumberOfVoxels() / 10;
+      range->Maximum = layer->GetNumberOfVoxels() / 10;
       range->StepSize = 1;
       }
     return true;

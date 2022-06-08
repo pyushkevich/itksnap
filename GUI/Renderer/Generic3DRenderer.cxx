@@ -4,6 +4,15 @@
 #include "SNAPAppearanceSettings.h"
 #include "GenericImageData.h"
 #include "Rebroadcaster.h"
+#include "ColorLabel.h"
+#include "IRISApplication.h"
+#include "IRISImageData.h"
+#include "SNAPImageData.h"
+#include "ImageMeshLayers.h"
+#include "StandaloneMeshWrapper.h"
+#include "MeshWrapperBase.h"
+#include "MeshManager.h"
+#include "Window3DPicker.h"
 
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -19,16 +28,6 @@
 #include "vtkLineSource.h"
 #include "vtkPropAssembly.h"
 #include "vtkMath.h"
-
-
-#include "MeshManager.h"
-
-#include "ColorLabel.h"
-#include "IRISApplication.h"
-#include "vtkCommand.h"
-
-#include "Window3DPicker.h"
-
 #include "vtkUnstructuredGridVolumeRayCastMapper.h"
 #include "vtkDiscreteMarchingCubes.h"
 #include "vtkWindowedSincPolyDataFilter.h"
@@ -39,7 +38,6 @@
 #include "vtkLookupTable.h"
 #include "vtkDataSetSurfaceFilter.h"
 #include "vtkGeometryFilter.h"
-
 #include "vtkGlyph3D.h"
 #include "vtkCubeSource.h"
 #include "vtkSphereSource.h"
@@ -48,6 +46,11 @@
 #include "vtkCubeSource.h"
 #include "vtkCoordinate.h"
 #include "vtkQuadricLODActor.h"
+#include "vtkScalarBarActor.h"
+#include "vtkTextProperty.h"
+#include "vtkPolyData.h"
+#include "vtkPointData.h"
+#include "vtkCommand.h"
 
 #include <vnl/vnl_cross.h>
 
@@ -69,7 +72,6 @@ bool operator != (const CameraState &c1, const CameraState &c2)
   return !(c1==c2);
 }
 
-
 Generic3DRenderer::Generic3DRenderer()
 {
   // Create a picker
@@ -78,6 +80,9 @@ Generic3DRenderer::Generic3DRenderer()
   // Coordinate mapper
   m_CoordinateMapper = vtkSmartPointer<vtkCoordinate>::New();
   m_CoordinateMapper->SetCoordinateSystemToViewport();
+
+  // Actor Pool
+  m_ActorPool = ActorPool::New();
 
   // ------------------ AXES ----------------------------
 
@@ -143,6 +148,16 @@ Generic3DRenderer::Generic3DRenderer()
 
   this->m_Renderer->AddActor(m_ScalpelLineActor);
 
+  m_ScalarBarActor = vtkScalarBarActor::New();
+  m_ScalarBarActor->SetBarRatio(m_ScalarBarActor->GetBarRatio() * 0.5);
+  m_ScalarBarActor->UnconstrainedFontSizeOn();
+  m_ScalarBarActor->GetLabelTextProperty()->SetFontSize(10);
+  auto textProp = m_ScalarBarActor->GetTitleTextProperty();
+  textProp->SetFontSize(9);
+  textProp->SetJustificationToLeft();
+
+  this->m_Renderer->AddActor2D(m_ScalarBarActor);
+
   m_ImageCubeSource = vtkSmartPointer<vtkCubeSource>::New();
   m_ImageCubeTransform = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   m_ImageCubeTransform->SetInputConnection(m_ImageCubeSource->GetOutputPort());
@@ -172,7 +187,7 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
 
   // Record and rebroadcast changes in the model
-  Rebroadcast(app->GetMeshManager(), itk::ModifiedEvent(), ModelUpdateEvent());
+  //Rebroadcast(app->GetMeshManager(), itk::ModifiedEvent(), ModelUpdateEvent());
 
   // Respond to changes in image dimension - these require big updates
   Rebroadcast(app, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
@@ -219,6 +234,25 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperChangeEvent(), ModelUpdateEvent());
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperVisibilityChangeEvent(), ModelUpdateEvent());
 
+  // Respond to mesh layer display mapping policy change event
+  Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
+              WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
+
+  // Respond to active mesh layer change event
+  Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
+              ActiveLayerChangeEvent(), ModelUpdateEvent());
+
+  // Respond to mesh layer display mapping policy change event
+  Rebroadcast(app->GetSNAPImageData()->GetMeshLayers(),
+              WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
+
+  // Respond to active mesh layer change event
+  Rebroadcast(app->GetSNAPImageData()->GetMeshLayers(),
+              ActiveLayerChangeEvent(), ModelUpdateEvent());
+
+  // Respond to timepoint change event
+  Rebroadcast(app, CursorTimePointUpdateEvent(), ModelUpdateEvent());
+
   // Update the main components
   this->UpdateAxisRendering();
   this->UpdateCamera(true);
@@ -230,101 +264,90 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   m_Picker->SetModel(m_Model);
 }
 
-
-void Generic3DRenderer::UpdateSegmentationMeshAssembly()
+void Generic3DRenderer::UpdateMeshAssembly()
 {
-  // Get the app driver
-  IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
-
   if(m_Model->IsMeshUpdating() )
     return;
 
-  // Get the mesh from the parent object
-  MeshManager *mesh = driver->GetMeshManager();
-  MeshManager::MeshCollection meshes;
-  if(driver->IsMainImageLoaded())
-    meshes = mesh->GetMeshes(driver->GetSelectedSegmentationLayer()->GetTimePointIndex());
-  typedef MeshManager::MeshCollection::const_iterator MeshIterator;
+  if(!m_Model->GetDriver()->IsMainImageLoaded())
+    return;
 
-  // Remove all actors that are no longer in use, and update the ones for which the
-  // mesh has changed
-  for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); )
+  ImageMeshLayers *layers = m_Model->GetMeshLayers();
+
+  // Get active layer id and current time point
+  unsigned long active_layer_id = layers->GetActiveLayerId();
+  unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
+
+  if (layers->size() == 0 || active_layer_id == 0)
     {
-    // Is there a mesh for this actor?
-    MeshIterator it_mesh = meshes.find(it_actor->first);
-
-    if(it_mesh == meshes.end())
-      {
-      // The actor no longer has a corresponding mesh, and should be removed
-      this->m_Renderer->RemoveActor(it_actor->second);
-
-      // Delete the actor completely (funky iterator++ code that works)
-      m_ActorMap.erase(it_actor++);
-      }
-    else
-      {
-      if(it_mesh->second.GetPointer() != it_actor->second->GetMapper()->GetInput())
-        {
-        // The mesh has changed, and needs to be fed to the mapper
-        vtkPolyDataMapper::SafeDownCast(it_actor->second->GetMapper())
-            ->SetInputData(it_mesh->second);
-        }
-
-      // Increment the iterator
-      it_actor++;
-      }
+    ResetMeshAssembly();
+    return;
     }
 
-  // Now create actors for all the meshes that don't have them yet
-  for(MeshIterator it_mesh = meshes.begin(); it_mesh != meshes.end(); ++it_mesh)
+
+  MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
+
+  // Get display mapping policy for color configuration
+  MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
+
+  // Layer or timepoint change requires rebuilding the map entirely
+  if (tp != m_CrntActorMapTimePoint || active_layer_id != m_CrntActorMapLayerId)
     {
-    // See if an actor exists for this label
-    if(m_ActorMap.find(it_mesh->first) == m_ActorMap.end())
-      {
-      vtkPolyData *mesh = it_mesh->second;
-
-      // Create a mapper
-      vtkSmartPointer<vtkPolyDataMapper> pdm = vtkSmartPointer<vtkPolyDataMapper>::New();
-      pdm->SetInputData(mesh);
-
-      // Get the label of that mesh
-      const ColorLabel &cl = driver->GetColorLabelTable()->GetColorLabel(it_mesh->first);
-
-      // Create a property
-      vtkSmartPointer<vtkProperty> prop = vtkSmartPointer<vtkProperty>::New();
-      prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
-      prop->SetOpacity(cl.GetAlpha() / 255.0);
-
-      // Create an actor
-      vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
-      actor->SetMapper(pdm);
-      actor->SetProperty(prop);
-
-      // Add the actor to the renderer
-      m_Renderer->AddActor(actor);
-
-      // Keep the actor in the map
-      m_ActorMap.insert(std::make_pair(it_mesh->first, actor));
-      }
+      m_CrntActorMapTimePoint = tp;
+      m_CrntActorMapLayerId = active_layer_id;
     }
+
+  auto actorMap = m_ActorPool->GetActorMap();
+
+  // Remove all mesh actors from the renderer before the update
+  // -- Since we are recycling all actors without constantly create/delete,
+  // -- rebuilding actor map everytime is no longer expensive
+  ResetMeshAssembly();
+
+  // Process all addition and update
+  dmp->UpdateActorMap(m_ActorPool, tp);
+  dmp->UpdateApperance(m_ActorPool, tp);
+
+  // Add meshes in the actor map to the renderer
+  for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
+    m_Renderer->AddActor(it->second);
+
+  dmp->ConfigureLegend(m_ScalarBarActor);
 
   // TODO: test code
   m_Renderer->Modified();
 }
 
-void Generic3DRenderer::ResetSegmentationMeshAssembly()
+void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
+{
+  // Get current layer
+  auto active_layer = m_Model->GetMeshLayers()->GetLayer(m_CrntActorMapLayerId);
+
+  // Use display mapping policy to update appearance
+  MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
+  dmp->UpdateApperance(m_ActorPool, m_CrntActorMapTimePoint);
+
+  // Update legend
+  dmp->ConfigureLegend(m_ScalarBarActor);
+
+  // Re-render
+  m_Renderer->Render();
+}
+
+void Generic3DRenderer::ResetMeshAssembly()
 {
   if(m_Model->IsMeshUpdating())
     return;
 
-  for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); it_actor++)
+  auto actorMap = m_ActorPool->GetActorMap();
+
+  for(auto it_actor = actorMap->begin(); it_actor != actorMap->end(); it_actor++)
     this->m_Renderer->RemoveActor(it_actor->second);
 
-  m_ActorMap.clear();
+  m_ActorPool->RecycleAll();
 
   InvokeEvent(ModelUpdateEvent());
 }
-
 
 void Generic3DRenderer::UpdateAxisRendering()
 {
@@ -383,7 +406,6 @@ void Generic3DRenderer::UpdateAxisRendering()
   m_Renderer->SetBackground(clrBack.data_block());
 }
 
-
 void Generic3DRenderer::UpdateScalpelRendering()
 {
   // If not in scalpel mode, just disable everything
@@ -393,8 +415,6 @@ void Generic3DRenderer::UpdateScalpelRendering()
     m_ScalpelLineActor->SetVisibility(0);
     return;
     }
-
-  IRISApplication *app = m_Model->GetParentUI()->GetDriver();
 
   if(m_Model->GetScalpelStatus() == Generic3DModel::SCALPEL_LINE_STARTED)
     {
@@ -463,7 +483,6 @@ void Generic3DRenderer::UpdateScalpelRendering()
     m_ScalpelPlaneWidget->SetEnabled(0);
     }
 }
-
 
 void Generic3DRenderer::UpdateScalpelPlaneAppearance()
 {
@@ -579,7 +598,7 @@ void Generic3DRenderer::SaveCameraState()
 
 void Generic3DRenderer::ClearRendering()
 {
-  this->ResetSegmentationMeshAssembly();
+  this->ResetMeshAssembly();
 }
 
 void Generic3DRenderer::RestoreSavedCameraState()
@@ -652,17 +671,15 @@ void Generic3DRenderer::SetRenderWindow(vtkRenderWindow *rwin)
   // rwin->SetLineSmoothing(1);
 }
 
-void Generic3DRenderer::UpdateSegmentationMeshAppearance()
+void Generic3DRenderer::UpdateMeshAppearance()
 {
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
 
-  // Get the mesh from the parent object
-  MeshManager *mesh = driver->GetMeshManager();
-
+  auto actorMap = m_ActorPool->GetActorMap();
 
   // For each actor, update the property to reflect current state
-  for(ActorMapIterator it_actor = m_ActorMap.begin(); it_actor != m_ActorMap.end(); ++it_actor)
+  for(auto it_actor = actorMap->begin(); it_actor != actorMap->end(); ++it_actor)
     {
     // Get the next prop
     vtkActor *actor = it_actor->second;
@@ -683,7 +700,7 @@ void Generic3DRenderer::UpdateSegmentationMeshAppearance()
     }
 }
 
-#include "IRISImageData.h"
+
 #include <vtkVolume.h>
 #include <vtkVolumeProperty.h>
 #include <vtkSmartVolumeMapper.h>
@@ -721,7 +738,7 @@ void Generic3DRenderer::UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssemb
 {
   auto *sw = layer->GetDefaultScalarRepresentation();
   auto *curve = sw->GetIntensityCurve();
-  auto *nmap = sw->GetNativeIntensityMapping();
+  //auto *nmap = sw->GetNativeIntensityMapping();
   auto *cmap = sw->GetColorMap();
 
   double imin = sw->GetImageMinAsDouble();
@@ -779,7 +796,7 @@ void Generic3DRenderer::UpdateVolumeRendering()
   // Keep track of volume renderers that are not used
   std::set<vtkVolume *> volumes_to_remove;
   auto *props = m_Renderer->GetViewProps();
-  for(unsigned int k = 0; k < props->GetNumberOfItems(); k++)
+  for(int k = 0; k < props->GetNumberOfItems(); k++)
     {
     vtkVolume *vol = dynamic_cast<vtkVolume *>(props->GetItemAsObject(k));
     if(vol)
@@ -850,8 +867,8 @@ void Generic3DRenderer::UpdateVolumeRendering()
         }
 
       // Check if the transform needs updating
-      if(sw->GetImageBase()->GetMTime() > va->TransformUpdateTime ||
-         sw->GetITKTransform() && sw->GetITKTransform()->GetMTime() > va->TransformUpdateTime)
+      if((sw->GetImageBase()->GetMTime() > va->TransformUpdateTime) ||
+         (sw->GetITKTransform() && sw->GetITKTransform()->GetMTime() > va->TransformUpdateTime))
         {
         UpdateVolumeTransform(layer, va);
         }
@@ -882,7 +899,6 @@ void Generic3DRenderer::OnUpdate()
   // Define a bunch of local flags to make this code easier to read
   bool main_changed = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
   bool labels_props_changed = m_EventBucket->HasEvent(SegmentationLabelChangeEvent());
-  bool mesh_updated = m_EventBucket->HasEvent(itk::ModifiedEvent());
   bool cursor_moved = m_EventBucket->HasEvent(CursorUpdateEvent());
   bool active_label_changed = m_EventBucket->HasEvent(
         ValueChangedEvent(), gs->GetDrawingColorLabelModel());
@@ -890,9 +906,6 @@ void Generic3DRenderer::OnUpdate()
   bool scalpel_action = m_EventBucket->HasEvent(Generic3DModel::ScalpelEvent());
   bool mode_changed = m_EventBucket->HasEvent(
         ValueChangedEvent(), gs->GetToolbarMode3DModel());
-  bool segmentation_changed =
-      m_EventBucket->HasEvent(SegmentationChangeEvent()) ||
-      m_EventBucket->HasEvent(LevelSetImageChangeEvent());
 
   bool appearance_changed =
       m_EventBucket->HasEvent(ChildPropertyChangedEvent(),
@@ -910,19 +923,51 @@ void Generic3DRenderer::OnUpdate()
   bool wrapper_vr_options_changed =
       m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
 
+  // Setmentation changes event should be handled when continuous update is on
+  bool continuous_update_needed =
+      m_Model->GetContinuousUpdate() && (
+      m_EventBucket->HasEvent(SegmentationChangeEvent()) ||
+      m_EventBucket->HasEvent(LevelSetImageChangeEvent()));
+
+  bool mesh_updated =
+      m_EventBucket->HasEvent(ActiveLayerChangeEvent(),
+                              app->GetIRISImageData()->GetMeshLayers()) ||
+      m_EventBucket->HasEvent(ActiveLayerChangeEvent(),
+                              app->GetSNAPImageData()->GetMeshLayers());
+
+  // Need to rebuild the actor map
+  // -- 1. Time point has changed
+  // -- 2. Mesh update event detected
+  // -- 3. continuous update event detected
+  bool need_rebuild_actor_map =
+      m_EventBucket->HasEvent(CursorTimePointUpdateEvent(),app) ||
+      continuous_update_needed ||
+      mesh_updated;
+
+  // Without rebuilding the actor map, update the actors inside the map
+  bool need_update_actor_color =
+      m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent(),
+                              app->GetIRISImageData()->GetMeshLayers());
+
   // Deal with the updates to the mesh state
-  if(mesh_updated || main_changed || seg_layer_changed)
+  if(main_changed || seg_layer_changed || need_rebuild_actor_map)
     {
-    UpdateSegmentationMeshAssembly();
+    UpdateMeshAssembly();
     need_render = true;
     }
   else if(labels_props_changed)
     {
-    UpdateSegmentationMeshAppearance();
+    UpdateMeshAppearance();
     need_render = true;
     }
 
   // If the segmentation changed
+
+  // If Existing Mesh Assembly Display Mapping Policy changed
+  if (need_update_actor_color)
+    {
+    ApplyDisplayMappingPolicyChange();
+    }
 
   // Deal with axes
   if(main_changed || cursor_moved || appearance_changed)
@@ -978,7 +1023,8 @@ void Generic3DRenderer::OnUpdate()
 
   // Force rendering to occur
   // TODO: commenting out for now because calling Render outside of GL context causes problems
-  // this->GetRenderWindow()->Render();
+  if (need_render)
+    this->GetRenderWindow()->Render();
 }
 
 void Generic3DRenderer::ResetView()
