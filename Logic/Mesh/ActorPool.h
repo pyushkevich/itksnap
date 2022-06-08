@@ -5,6 +5,7 @@
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 #include "vtkSmartPointer.h"
+#include <stack>
 
 class vtkActor;
 class vtkPolyDataMapper;
