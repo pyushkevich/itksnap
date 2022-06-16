@@ -333,6 +333,8 @@ private slots:
 
   void on_actionNext_Display_Layout_triggered();
 
+  void on_actionToggle_Volume_Rendering_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
