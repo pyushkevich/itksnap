@@ -61,6 +61,7 @@
 #include "gdcmSerieHelper.h"
 #include "gdcmStringFilter.h"
 #include "gdcmDataSetHelper.h"
+#include "gdcmElement.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkNumericTraits.h"
@@ -70,6 +71,7 @@
 #include "itkComposeImageFilter.h"
 #include "itkStreamingImageFilter.h"
 #include "IncreaseDimensionImageFilter.h"
+#include "MultiFrameDicomSeriesSorter.h"
 
 #include <itk_zlib.h>
 #include "itkImportImageFilter.h"
@@ -87,22 +89,23 @@ RegistryEnumMap<GuidedNativeImageIO::RawPixelType> GuidedNativeImageIO::m_EnumRa
 const GuidedNativeImageIO::FileFormatDescriptor 
 GuidedNativeImageIO
 ::m_FileFormatDescrictorArray[] = {
-  {"Analyze", "img.gz,hdr,img",      true,  false, true,  true},
-  {"DICOM Image Series", "",         false, true,  true,  true},
-  {"DICOM Single Image", "dcm",      false, true,  true,  true},
-  {"Echo Cartesian DICOM", "dcm",    false, true,  true,  true},
-  {"GE Version 4", "ge4",            false, false, true,  true},
-  {"GE Version 5", "ge5",            false, false, true,  true},
-  {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
-  {"MetaImage", "mha,mhd",           true,  true,  true,  true},
-  {"NiFTI", "nii.gz,nii,nia,nia.gz", true,  true,  true,  true},
-  {"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
-  {"Raw Binary", "raw",              false, false, true,  true},
-  {"Siemens Vision", "ima",          false, false, true,  true},
-  {"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
-  {"VTK Image", "vtk",               true,  false, true,  true},
-  {"Generic ITK Image", "",          true,  true,  true,  true},
-  {"INVALID FORMAT", "",             false, false, false, false}};
+	{"Analyze", "img.gz,hdr,img",      true,  false, true,  true},
+	{"DICOM Image Series", "",         false, true,  true,  true},
+	{"4D CTA DICOM Series", "",        false, true,  true,  true},
+	{"DICOM Single Image", "dcm",      false, true,  true,  true},
+	{"Echo Cartesian DICOM", "dcm",    false, true,  true,  true},
+	{"GE Version 4", "ge4",            false, false, true,  true},
+	{"GE Version 5", "ge5",            false, false, true,  true},
+	{"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
+	{"MetaImage", "mha,mhd",           true,  true,  true,  true},
+	{"NiFTI", "nii.gz,nii,nia,nia.gz", true,  true,  true,  true},
+	{"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
+	{"Raw Binary", "raw",              false, false, true,  true},
+	{"Siemens Vision", "ima",          false, false, true,  true},
+	{"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
+	{"VTK Image", "vtk",               true,  false, true,  true},
+	{"Generic ITK Image", "",          true,  true,  true,  true},
+	{"INVALID FORMAT", "",             false, false, false, false}};
 
 
 /*************************************************************************/
@@ -405,6 +408,7 @@ GuidedNativeImageIO
     case FORMAT_VTK:        m_IOBase = itk::VTKImageIO::New();           break;
     case FORMAT_VOXBO_CUB:  m_IOBase = itk::VoxBoCUBImageIO::New();      break;
     case FORMAT_DICOM_DIR:
+		case FORMAT_DICOM_DIR_4DCTA:
     case FORMAT_ECHO_CARTESIAN_DICOM:
     case FORMAT_DICOM_FILE: m_IOBase = itk::GDCMImageIO::New();          break;
     case FORMAT_RAW:
@@ -459,8 +463,9 @@ GuidedNativeImageIO
                         "image '%s' using format '%s'.",
                         FileName, m_Hints["Format"][""]);
 
+  std::cout << "[GuidedImageIO] ReadHeader --fileformat=" << m_FileFormat << std::endl;
   // Read the information about the image
-  if(m_FileFormat == FORMAT_DICOM_DIR)
+	if(m_FileFormat == FORMAT_DICOM_DIR || m_FileFormat == FORMAT_DICOM_DIR_4DCTA)
     {
     // Get the directory where to search for the series
     std::string SeriesDir = FileName;
@@ -497,15 +502,38 @@ GuidedNativeImageIO
                           "Directory '%s' does not appear to contain a "
                           "series of DICOM images.",FileName);
 
-    // Following this quick parsing of the directory, we need to actually
-    // load the image data and sort it in a meaningful order. This is too
-    // complicated to replicate here so we revert to gdcm::SerieHelper, but
-    // we only have it parse the filenames for the current SeriesId
-    ExtendedGDCMSerieHelper helper;
-    helper.SetFilesAndOrder(m_DICOMFiles, m_DICOMImagesPerIPP);
+		if (m_FileFormat == FORMAT_DICOM_DIR)
+			{
+			// Following this quick parsing of the directory, we need to actually
+			// load the image data and sort it in a meaningful order. This is too
+			// complicated to replicate here so we revert to gdcm::SerieHelper, but
+			// we only have it parse the filenames for the current SeriesId
+			ExtendedGDCMSerieHelper helper;
+			helper.SetFilesAndOrder(m_DICOMFiles, m_DICOMImagesPerIPP);
 
-    m_IOBase->SetFileName(m_DICOMFiles[0]);
-    m_IOBase->ReadImageInformation();
+			m_IOBase->SetFileName(m_DICOMFiles[0]);
+
+			}
+		else if (m_FileFormat == FORMAT_DICOM_DIR_4DCTA)
+			{
+			MFDS::MultiFrameDicomSeriesSorter::Pointer MFDSSorter
+					= MFDS::MultiFrameDicomSeriesSorter::New();
+
+			MFDSSorter->SetInput(m_DICOMFiles);
+			MFDSSorter->SetGroupingStrategy(MFDS::MFGroupByIPP2Strategy::New());
+			MFDSSorter->SetFrameOrderingStrategy(MFDS::MFOrderByInstanceNumberStrategy::New());
+			MFDSSorter->SetSliceOrderingStrategy(MFDS::MFOrderByIPPStrategy::New());
+			MFDSSorter->Sort();
+			m_DicomFilesToFrameMap = MFDSSorter->GetOutput();
+
+			std::cout << "-- number of frames=" << m_DicomFilesToFrameMap.size() << std::endl;
+			for (auto &kv : m_DicomFilesToFrameMap)
+				std::cout << "---- frame=" << kv.first << "; size=" << kv.second.size() << std::endl;
+
+			m_IOBase->SetFileName(m_DICOMFiles[0]);
+			}
+
+		m_IOBase->ReadImageInformation();
     }
 
   if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
@@ -537,7 +565,6 @@ GuidedNativeImageIO
           m_IOBase->SetFileName(FileName);
 
           gdcm::File &file = ecd_reader.GetFile();
-          gdcm::DataSet &ds = file.GetDataSet();
           gdcm::StringFilter sf;
           sf.SetFile(file);
 
@@ -633,6 +660,8 @@ GuidedNativeImageIO
 
   // Also pull out a nickname for this file, if it's in the folder
   m_NativeNickname = m_Hints["Nickname"][""];
+
+	std::cout << "[GuidedImageIO] Read Header Completed" << std::endl;
 }
 
 GuidedNativeImageIO::DispatchBase*
@@ -681,34 +710,72 @@ GuidedNativeImageIO
   this->ReadNativeImageData();
 }
 
+template <typename TScalar>
+void
+GuidedNativeImageIO
+::ConvertToVectorImage(
+		itk::VectorImage<TScalar, 4> *output, itk::Image<TScalar, 4> *input) const
+{
+	output->CopyInformation(input);
+	output->SetRegions(input->GetBufferedRegion());
+
+	typedef itk::VectorImage<TScalar, 4> NativeImageType;
+	typedef typename NativeImageType::PixelContainer PixConType;
+	typename PixConType::Pointer pc = PixConType::New();
+	pc->SetImportPointer(
+				reinterpret_cast<TScalar *>(input->GetBufferPointer()),
+				input->GetBufferedRegion().GetNumberOfPixels(), true);
+	output->SetPixelContainer(pc);
+
+	// Prevent the container from being deleted
+	input->GetPixelContainer()->SetContainerManageMemory(false);
+}
+
+template <class TImage>
+void
+GuidedNativeImageIO
+::DeepCopyImage(
+		typename TImage::Pointer output, typename TImage::Pointer input) const
+{
+	output->SetRegions(input->GetLargestPossibleRegion());
+	output->SetOrigin(input->GetOrigin());
+	output->SetDirection(input->GetDirection());
+	output->SetSpacing(input->GetSpacing());
+	output->Allocate();
+
+	itk::ImageRegionConstIterator<TImage> inputIterator(input, input->GetLargestPossibleRegion());
+	itk::ImageRegionIterator<TImage>      outputIterator(output, output->GetLargestPossibleRegion());
+
+	while (!inputIterator.IsAtEnd())
+		{
+		outputIterator.Set(inputIterator.Get());
+		++inputIterator;
+		++outputIterator;
+		}
+}
+
 
 template<class TScalar>
 void
 GuidedNativeImageIO
-::DoReadNative(const char *FileName, Registry &folder)
+::DoReadNative(const char *FileName, Registry &)
 {
   // Define the image type of interest
   typedef itk::VectorImage<TScalar, 4> NativeImageType;
+	typedef itk::Image<TScalar, 3> GreyImageType;
+	typedef itk::Image<TScalar, 4> GreyImage4DType;
+	typedef itk::ImageSeriesReader<GreyImageType> SeriesReaderType;
 
   // There is a special handler for the DICOM case!
   if(m_FileFormat == FORMAT_DICOM_DIR && m_DICOMFiles.size() > 1)
     {
-    // TODO: how to handle this with 4D - I have no earthly idea
-
-    // It seems that ITK can't yet read DICOM into a VectorImage. 
-    typedef itk::Image<TScalar, 3> GreyImageType;
-    typedef itk::Image<TScalar, 4> GreyImage4DType;
-
-    // Create an image series reader 
-    typedef itk::ImageSeriesReader<GreyImageType> ReaderType;
-
     // Filter for increasing dimensionality
     typedef IncreaseDimensionImageFilter<GreyImageType, GreyImage4DType> UpDimFilter;
 
     if(this->m_DICOMImagesPerIPP == 1)
       {
       // When there is a single volume
-      typename ReaderType::Pointer reader = ReaderType::New();
+			typename SeriesReaderType::Pointer reader = SeriesReaderType::New();
 
       // Set the filenames and read
       reader->SetFileNames(m_DICOMFiles);
@@ -730,21 +797,10 @@ GuidedNativeImageIO
       typename NativeImageType::Pointer vector = NativeImageType::New();
       m_NativeImage = vector;
 
-      vector->CopyInformation(scalar);
-      vector->SetRegions(scalar->GetBufferedRegion());
-
-      typedef typename NativeImageType::PixelContainer PixConType;
-      typename PixConType::Pointer pc = PixConType::New();
-      pc->SetImportPointer(
-            reinterpret_cast<TScalar *>(scalar->GetBufferPointer()),
-            scalar->GetBufferedRegion().GetNumberOfPixels(), true);
-      vector->SetPixelContainer(pc);
-
-      // Prevent the container from being deleted
-      scalar->GetPixelContainer()->SetContainerManageMemory(false);
+			ConvertToVectorImage<TScalar>(vector, scalar);
 
       // Copy the metadata from the first scan in the series
-      const typename ReaderType::DictionaryArrayType *darr =
+			const typename SeriesReaderType::DictionaryArrayType *darr =
         reader->GetMetaDataDictionaryArray();
       if(darr->size() > 0)
         m_NativeImage->SetMetaDataDictionary(*((*darr)[0]));
@@ -761,7 +817,7 @@ GuidedNativeImageIO
 
       // Create separate volume readers
       int n_slices = m_DICOMFiles.size() / m_DICOMImagesPerIPP;
-      std::vector<typename ReaderType::Pointer> readers(m_DICOMImagesPerIPP);
+			std::vector<typename SeriesReaderType::Pointer> readers(m_DICOMImagesPerIPP);
       std::vector<typename UpDimFilter::Pointer> updims(m_DICOMImagesPerIPP);
       for(int i = 0; i < this->m_DICOMImagesPerIPP; i++)
         {
@@ -771,7 +827,7 @@ GuidedNativeImageIO
           myFiles.push_back(m_DICOMFiles[s * m_DICOMImagesPerIPP + i]);
 
         // Read the current volume
-        readers[i] = ReaderType::New();
+				readers[i] = SeriesReaderType::New();
         readers[i]->SetFileNames(myFiles);
         readers[i]->SetImageIO(m_IOBase);
 
@@ -797,7 +853,115 @@ GuidedNativeImageIO
       m_NativeComponents = m_DICOMImagesPerIPP;
       }
     } 
-  else if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
+	else if (m_FileFormat == FORMAT_DICOM_DIR_4DCTA)
+		{
+		std::cout << "[GuidedNativeImageIO] DoReadNative()" << std::endl;
+		std::cout << "-- reading 4DCTA" << std::endl;
+		typename SeriesReaderType::Pointer reader = SeriesReaderType::New();
+		reader->SetImageIO(m_IOBase);
+
+		std::map<unsigned int, typename GreyImageType::Pointer> frameContainer;
+
+		// read image frame by frame
+		for (auto &kv : m_DicomFilesToFrameMap)
+			{
+			std::cout << "---- reading tp = " << kv.first << std::endl;
+			MFDS::FilenamesList fnlist;
+			for (auto &df : kv.second)
+				fnlist.push_back(df.m_Filename);
+
+			reader->SetFileNames(fnlist);
+			reader->Update();
+
+			typename GreyImageType::Pointer crntImg = GreyImageType::New();
+			DeepCopyImage<GreyImageType>(crntImg, reader->GetOutput());
+			frameContainer[kv.first] = crntImg;
+			}
+
+		// assemble 3d images into the 4d native image
+
+		// -- set first 3 dimensions
+		typename GreyImage4DType::PointType origin4d;
+		typename GreyImage4DType::DirectionType direction4d;
+		typename GreyImage4DType::SpacingType spacing4d;
+		typename GreyImage4DType::RegionType region4d;
+
+		auto first3dImg = frameContainer[1];
+
+		for (int i = 0; i < 3; ++i)
+			{
+			origin4d[i] = first3dImg->GetOrigin()[i];
+			for (int j = 0; j < 3; ++j)
+					direction4d(i,j) = first3dImg->GetDirection()(i,j);
+			spacing4d[i] = first3dImg->GetSpacing()[i];
+			region4d.SetIndex(i, first3dImg->GetLargestPossibleRegion().GetIndex()[i]);
+			region4d.SetSize(i, first3dImg->GetLargestPossibleRegion().GetSize()[i]);
+			}
+
+		origin4d[3] = 0;
+
+		std::cout << "-- direction=\n" << direction4d << std::endl;
+
+		// Flip all image to RAS
+		if (first3dImg->GetDirection()(2,2) == 1)
+		{
+				std::cout << "-- Flipping direction from I to S" << std::endl;
+				direction4d(2,2) = -1;
+		}
+
+		direction4d(0,3) = 0;
+		direction4d(1,3) = 0;
+		direction4d(2,3) = 0;
+		direction4d(3,3) = 1;
+
+		spacing4d[3] = 0.05; // hardcode 50ms for now, should be extracted from the images
+
+		// region Corner Index: [x, x, x, 0], Size: [x, x, x, nt]
+		region4d.SetIndex(3, 0);
+		region4d.SetSize(3, frameContainer.size()); // number of time points
+
+		typename GreyImage4DType::Pointer image4D = GreyImage4DType::New();
+		image4D->SetOrigin(origin4d);
+		image4D->SetDirection(direction4d);
+		image4D->SetSpacing(spacing4d);
+		image4D->SetRegions(region4d);
+		image4D->SetNumberOfComponentsPerPixel(first3dImg->GetNumberOfComponentsPerPixel());
+		image4D->Allocate();
+
+		itk::ImageRegionIterator<GreyImage4DType> it4d(image4D, image4D->GetLargestPossibleRegion());
+
+		std::cout << "-- Start Loading into the 4D buffer" << std::endl;
+		for (size_t i = 0; i < frameContainer.size(); ++i)
+		{
+				auto crntTP = i + 1;
+				std::cout << "-- Loading tp=" << crntTP << std::endl;
+
+				auto crntImg = frameContainer[crntTP];
+
+				itk::ImageRegionConstIterator<GreyImageType> it3d(crntImg, crntImg->GetLargestPossibleRegion());
+				while (!it3d.IsAtEnd())
+				{
+						it4d.Set(it3d.Get());
+						++it3d;
+						++it4d;
+				}
+		}
+
+
+		// Convert the image into VectorImage format. Do this in-place to avoid
+		// allocating memory pointlessly
+		typename NativeImageType::Pointer vector = NativeImageType::New();
+		m_NativeImage = vector;
+
+		ConvertToVectorImage<TScalar>(vector, image4D);
+
+		// Copy the metadata from the first scan in the series
+		const typename SeriesReaderType::DictionaryArrayType *darr =
+			reader->GetMetaDataDictionaryArray();
+		if(darr->size() > 0)
+			m_NativeImage->SetMetaDataDictionary(*((*darr)[0]));
+		}
+	else if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
     {
       // issue #26: 4D Echocardiography Cartesian DICOM (ECD) Image Reading
 
@@ -1020,7 +1184,7 @@ GuidedNativeImageIO
       itk::ImageIORegion ioRegion(nd_actual);
       itk::ImageIORegion::IndexType ioIndex;
       itk::ImageIORegion::SizeType ioSize;
-      for(int i = 0; i < nd_actual; i++)
+			for(size_t i = 0; i < nd_actual; i++)
         {
         ioIndex.push_back(0);
         ioSize.push_back(m_IOBase->GetDimensions(i));
@@ -1697,12 +1861,6 @@ GuidedNativeImageIO
   tags_refine.push_back(m_tagRows);
   tags_refine.push_back(m_tagCols);
 
-  //--Dev: Add slice location for grouping
-  const gdcm::Tag tagSliceLocation(0x0020,0x1041);
-  const gdcm::Tag tagAcquisitionTime(0x0008, 0x0032);
-  const gdcm::Tag tagContentTime(0x0008, 0x0033);
-  //tags_refine.push_back(tagSliceLocation);
-
   // List of tags that we want to parse - everything else may be ignored
   std::set<gdcm::Tag> tags_all;
   tags_all.insert(tags_refine.begin(), tags_refine.end());
@@ -1710,9 +1868,6 @@ GuidedNativeImageIO
   tags_all.insert(m_tagSeriesInstanceUID);
 
   //--Dev: Add to read list
-  tags_all.insert(tagSliceLocation);
-  tags_all.insert(tagAcquisitionTime);
-  tags_all.insert(tagContentTime);
   std::set<std::string> sliceLocSet;
   std::map<std::string, std::set<std::string>> sliceMap;
 
@@ -1751,7 +1906,7 @@ GuidedNativeImageIO
     std::string full_id = uid;
 
     // Iterate over the tags in the refine list
-    for(int iTag = 0; iTag < tags_refine.size(); iTag++)
+		for(size_t iTag = 0u; iTag < tags_refine.size(); iTag++)
       {
       // Read the tag value
       std::string s = sf.ToString(tags_refine[iTag]);
@@ -1763,17 +1918,6 @@ GuidedNativeImageIO
         }
       full_id += s;
       }
-
-    //--Dev: Push slice location to the SliceLocSet
-    auto loc = sf.ToString(tagSliceLocation);
-    sliceLocSet.insert(sf.ToString(tagSliceLocation));
-
-    if (sliceMap.count(loc) == 0)
-      sliceMap[loc] = std::set<std::string>();
-
-    sliceMap[loc].insert(sf.ToString(tagContentTime));
-
-
 
     // Eliminate non-alnum characters, including whitespace...
     //   that may have been introduced by concats.
@@ -1827,24 +1971,6 @@ GuidedNativeImageIO
     // Indicate some progress
     if(progressCommand)
       progressCommand->Execute(this, itk::ProgressEvent());
-    }
-
-  //--Dev: count the entry
-  std::cout << "[GuidedNativeImageIO] ParseDicomDirectory. sliceLocSet.size="
-            << sliceLocSet.size() << std::endl;
-
-  for (auto kv : sliceMap)
-    {
-    std::ostringstream oss;
-    oss << "loc" << "=" << kv.first << ",count=" << kv.second.size();
-    /*
-    oss << ",";
-    for (auto time : kv.second)
-      {
-      oss << time << ",";
-      }
-    */
-    std::cout << oss.str() << std::endl;
     }
 
   // Complain if no series have been found

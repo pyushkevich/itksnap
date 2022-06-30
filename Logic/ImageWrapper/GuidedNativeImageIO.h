@@ -41,6 +41,7 @@
 #include "itkImageIOBase.h"
 #include "itkVectorImage.h"
 #include "gdcmTag.h"
+#include "MultiFrameDicomSeriesSorter.h"
 
   
 namespace itk
@@ -66,6 +67,7 @@ public:
   enum FileFormat {
     FORMAT_ANALYZE=0,
     FORMAT_DICOM_DIR,       // A directory containing multiple DICOM files
+		FORMAT_DICOM_DIR_4DCTA,    // A directory containing 4D CTA DICOM SERIES
     FORMAT_DICOM_FILE,      // A single DICOM file
     FORMAT_ECHO_CARTESIAN_DICOM, // A Echocardiography Cartesian DICOM
     FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
@@ -304,6 +306,14 @@ protected:
   /** Templated function that computes an MD5 hash from the stored image */
   template <typename TScalar> std::string DoGetNativeMD5Hash();
 
+	/** convert 4D itk image into 4D itk vector image */
+	template <typename TScalar> void ConvertToVectorImage(
+			itk::VectorImage<TScalar, 4> *output, itk::Image<TScalar, 4> *input) const;
+
+	/** deep copy images */
+	template <class TImage> void DeepCopyImage(
+			typename TImage::Pointer output, typename TImage::Pointer input) const;
+
   /** A dispatch class that calls templated functions in the main class. */
   class DispatchBase {
   public:
@@ -369,6 +379,8 @@ protected:
 
   // Number of images per z-position in the DICOM series (e.g., multi-echo data)
   int m_DICOMImagesPerIPP;
+
+	MFDS::DicomFilesToFrameMap m_DicomFilesToFrameMap;
 
   /** Registry mappings for these enums */
   static bool m_StaticDataInitialized;

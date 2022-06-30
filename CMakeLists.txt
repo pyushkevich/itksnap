@@ -228,6 +228,7 @@ SET(LOGIC_CXX
   Common/IPCHandler.cxx
   Common/IRISException.cxx
   Common/IRISVectorTemplates.cxx
+  Common/MultiFrameDicomSeriesSorter.cxx
   Common/Rebroadcaster.cxx
   Common/Registry.cxx
   Common/SNAPEvents.cxx
@@ -339,6 +340,7 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
   Common/JSon/json/json.h
   Common/JSon/json/json-forwards.h
+  Common/MultiFrameDicomSeriesSorter.h
   Common/PresetManager.h
   Common/PresetManager.hxx
   Common/PropertyModel.h
