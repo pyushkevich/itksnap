@@ -72,6 +72,7 @@
 #include "itkStreamingImageFilter.h"
 #include "IncreaseDimensionImageFilter.h"
 #include "MultiFrameDicomSeriesSorter.h"
+#include "itkStringTools.h"
 
 #include <itk_zlib.h>
 #include "itkImportImageFilter.h"
@@ -1777,17 +1778,32 @@ GuidedNativeImageIO::GuessFormatForFileName(
       gdcm::Tag tag_manuf(0x0008, 0x0070); // manufacturer
       tags.insert(tag_manuf);
 
+			gdcm::Tag tag_modality(0x0008,0x0060); // modality
+			tags.insert(tag_modality);
+
       reader.ReadSelectedTags(tags, true);
 
       gdcm::StringFilter sf;
       sf.SetFile(reader.GetFile());
 
+			// Echo cartesian dicom test
       std::string manuf = sf.ToString(tag_manuf);
-
-      // transform to upper case
       std::transform(manuf.begin(), manuf.end(), manuf.begin(), ::toupper);
+			itk::StringTools::Trim(manuf);
+
       if (!manuf.compare("PMS QLAB CART EXPORT"))
         return FORMAT_ECHO_CARTESIAN_DICOM;
+
+			// 4DCTA test
+			std::string modality = sf.ToString(tag_modality);
+			std::transform(modality.begin(), modality.end(), modality.begin(), ::toupper);
+			itk::StringTools::Trim(modality);
+			if (!modality.compare("CT"))
+				{
+				if (!manuf.compare("SIEMENS") ||
+						!manuf.compare("GE MEDICAL SYSTEMS"))
+					return FORMAT_DICOM_DIR_4DCTA;
+				}
 
       // PY: Now that I cleaned up the DICOM reader, we should never default
       // to single DICOM file anymore. That's just too annoying
