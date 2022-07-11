@@ -630,7 +630,7 @@ void FileChooserPanelWithHistory::setCurrentFormatText(const QString &format)
 #endif
 }
 
-bool FileChooserPanelWithHistory::isFilenameNonAscii(const QString &)
+bool FileChooserPanelWithHistory::isFilenameNonAscii(const QString &text)
 {
 #ifdef WIN32
   for(int i = 0; i < text.length(); i++)
