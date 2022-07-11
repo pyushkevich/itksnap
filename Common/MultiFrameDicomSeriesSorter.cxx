@@ -167,7 +167,7 @@ MultiFrameDicomSeriesSorter
 {
 	std::cout << "[MFDSSorter] Sort()" << std::endl;
 	// the Sorter has to be initialized correctly
-	assert(m_FilenamesList.size() > 0 && m_GrouopingStrat
+	assert(m_FilenamesList.size() > 0 && m_GroupingStrat
 				 && m_FrameOrderingStrat && m_SliceOrderingStrat);
 
 	// build dicom file list
