@@ -1436,9 +1436,20 @@ ELSEIF(WIN32)
   # Include the qt4 dependent libraries
   include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
+  # Prepare a case-insensitive configuration check
+  string(TOLOWER "${CMAKE_BUILD_TYPE}" config_lower)
+
   # Make sure the GIF plugin is included
-  get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindows.dll" ABSOLUTE)
-  get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgif.dll" ABSOLUTE)
+  if(config_lower STREQUAL "debug")
+    MESSAGE(STATUS "Using Debug Mode Qt Plugins")
+    get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindowsd.dll" ABSOLUTE)
+    get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgifd.dll" ABSOLUTE)
+  else(config_lower STREQUAL "release")
+    MESSAGE(STATUS "Using Release Mode Qt Plugins")
+    get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindows.dll" ABSOLUTE)
+    get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgif.dll" ABSOLUTE)
+  endif(config_lower STREQUAL "debug")
+  
   message(STATUS "QT_WIN_PLUGIN=${QT_WIN_PLUGIN}")
   message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
 
