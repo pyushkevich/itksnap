@@ -1311,7 +1311,11 @@ FOREACH(GUI_TEST ${GUI_TESTS})
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
 
   IF(WIN32)
-    SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT PATH=${QT_BINARY_DIR_NATIVE})
+    message(${VTK_DIR})
+    string(REPLACE "/" "\\" vtk_dir_win "${VTK_DIR}")
+    message(${vtk_dir_win})
+    SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT 
+    PATH="${QT_BINARY_DIR_NATIVE};${vtk_dir_win}\\bin")
   ELSE(WIN32)
     SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT PATH="${QT_BINARY_DIR_NATIVE}:$ENV{PATH}")
   ENDIF(WIN32)
@@ -1449,7 +1453,7 @@ ELSEIF(WIN32)
     get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindows.dll" ABSOLUTE)
     get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgif.dll" ABSOLUTE)
   endif(config_lower STREQUAL "debug")
-  
+
   message(STATUS "QT_WIN_PLUGIN=${QT_WIN_PLUGIN}")
   message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
 
