@@ -170,6 +170,9 @@ MultiFrameDicomSeriesSorter
 	assert(m_FilenamesList.size() > 0 && m_GroupingStrat
 				 && m_FrameOrderingStrat && m_SliceOrderingStrat);
 
+	this->InvokeEvent(itk::StartEvent());
+	this->UpdateProgress(0.0);
+
 	// build dicom file list
 	for (auto &fn : m_FilenamesList)
 		m_DicomFilesList.push_back(DicomFile(fn));
@@ -181,6 +184,9 @@ MultiFrameDicomSeriesSorter
 	m_GroupingStrat->Apply();
 	m_SliceGroupingResult = m_GroupingStrat->GetOutput();
 
+	this->UpdateProgress(0.3);
+
+	float frmOrdProgInc = 0.3 / m_SliceGroupingResult.size(); // frame ordering progress increment
 
 	// apply frame ordering strat for each slice and populate the frame map
 	for (auto &kv : m_SliceGroupingResult)
@@ -196,6 +202,7 @@ MultiFrameDicomSeriesSorter
 
 			++crntFrame;
 			}
+		this->UpdateProgress(Superclass::GetProgress() + frmOrdProgInc);
 		}
 
 	std::cout << "-- SliceGrouping Ordered and FrameMap built" << std::endl;
@@ -205,10 +212,12 @@ MultiFrameDicomSeriesSorter
 		std::cout << "---- frame=" << kv.first << "; size=" << kv.second.size() << std::endl;
 		}
 
+	float sliceOrdProgInc = 0.4 / m_FilesToFrameMap.size();
 	// apply slice ordering strat for each frame
 	for (auto &kv : m_FilesToFrameMap)
 		{
 		m_SliceOrderingStrat->Apply(kv.second);
+		this->UpdateProgress(Superclass::GetProgress() + sliceOrdProgInc);
 		}
 
 	std::cout << "-- FilesToFrameMap ordered" << std::endl;
@@ -216,6 +225,8 @@ MultiFrameDicomSeriesSorter
 		{
 		std::cout << "---- ipp2=" << df.m_IPP[2] << std::endl;
 		}
+
+	this->UpdateProgress(1.0);
 
 	return EXIT_SUCCESS;
 }

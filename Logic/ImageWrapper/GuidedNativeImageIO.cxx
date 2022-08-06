@@ -55,7 +55,6 @@
 #include "itkImageFileWriter.h"
 #include "itkImageSeriesReader.h"
 #include "itkImageIOFactory.h"
-#include "itkCommand.h"
 #include "gdcmFile.h"
 #include "gdcmReader.h"
 #include "gdcmSerieHelper.h"
@@ -73,6 +72,7 @@
 #include "IncreaseDimensionImageFilter.h"
 #include "MultiFrameDicomSeriesSorter.h"
 #include "itkStringTools.h"
+#include "AllPurposeProgressAccumulator.h"
 
 #include <itk_zlib.h>
 #include "itkImportImageFilter.h"
@@ -451,8 +451,27 @@ GuidedNativeImageIO
 
 void
 GuidedNativeImageIO
-::ReadNativeImageHeader(const char *FileName, Registry &folder)
+::ReadNativeImageHeader(const char *FileName, Registry &folder, itk::Command *progressCmd)
 {
+	std::cout << "[GuidedNativeImageIO] ReadHeader" << std::endl;
+
+	/* Progress Command Usage:
+	 * We only add progressCmd as observers to each conditional branch, which
+	 * means we don't have shared progress in the header reading method. Assuming
+	 * shared logic potion does not have significant impact on overall progress.
+	 *
+	 * In the future, if we need to distinguish beetween shared progress vs conditional
+	 * progress, we need to use an AllPurposeProgressAccumulator to combine the two.
+	 */
+
+	// create an empty command to prevent errors
+	if (progressCmd == nullptr)
+		{
+		std::cout << "-- Do nothing command created" << std::endl;
+		progressCmd = DoNothingCommandSingleton::GetInstance().GetCommand();
+		}
+
+
   // Save the hints
   m_Hints = folder;
 
@@ -464,7 +483,6 @@ GuidedNativeImageIO
                         "image '%s' using format '%s'.",
                         FileName, m_Hints["Format"][""]);
 
-  std::cout << "[GuidedImageIO] ReadHeader --fileformat=" << m_FileFormat << std::endl;
   // Read the information about the image
 	if(m_FileFormat == FORMAT_DICOM_DIR || m_FileFormat == FORMAT_DICOM_DIR_4DCTA)
     {
@@ -477,7 +495,7 @@ GuidedNativeImageIO
     if(m_LastDicomParseResult.Directory != SeriesDir)
       {
       // Parse the specified directory
-      this->ParseDicomDirectory(SeriesDir);
+			this->ParseDicomDirectory(SeriesDir);
       }
 
     // Select which series
@@ -520,17 +538,13 @@ GuidedNativeImageIO
 			MFDS::MultiFrameDicomSeriesSorter::Pointer MFDSSorter
 					= MFDS::MultiFrameDicomSeriesSorter::New();
 
-			MFDSSorter->SetInput(m_DICOMFiles);
+			MFDSSorter->SetFileNameList(m_DICOMFiles);
 			MFDSSorter->SetGroupingStrategy(MFDS::MFGroupByIPP2Strategy::New());
 			MFDSSorter->SetFrameOrderingStrategy(MFDS::MFOrderByInstanceNumberStrategy::New());
 			MFDSSorter->SetSliceOrderingStrategy(MFDS::MFOrderByIPPStrategy::New());
+			MFDSSorter->AddObserver(itk::ProgressEvent(), progressCmd);
 			MFDSSorter->Sort();
 			m_DicomFilesToFrameMap = MFDSSorter->GetOutput();
-
-			std::cout << "-- number of frames=" << m_DicomFilesToFrameMap.size() << std::endl;
-			for (auto &kv : m_DicomFilesToFrameMap)
-				std::cout << "---- frame=" << kv.first << "; size=" << kv.second.size() << std::endl;
-
 			m_IOBase->SetFileName(m_DICOMFiles[0]);
 			}
 
@@ -539,90 +553,98 @@ GuidedNativeImageIO
 
   if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
     {
-      gdcm::Reader ecd_reader;
-      ecd_reader.SetFileName(FileName);
-      std::set<gdcm::Tag> headerTags;
+		SmartPtr<TrivalProgressSource> ecdHeaderProgSrc = TrivalProgressSource::New();
+		ecdHeaderProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
 
-      const gdcm::Tag deltaX(0x18, 0x602c);
-      const gdcm::Tag deltaY(0x18, 0x602e);
-      const gdcm::Tag deltaZ(0x3001, 0x1003);
-      const gdcm::Tag numVolumes(0x28, 0x8);
-      const gdcm::Tag height(0x28, 0x10);
-      const gdcm::Tag width(0x28, 0x11);
-      const gdcm::Tag depth(0x3001, 0x1001);
-      const gdcm::Tag frameTime(0x18, 0x1063);
+		gdcm::Reader ecd_reader;
+		ecd_reader.SetFileName(FileName);
+		std::set<gdcm::Tag> headerTags;
 
-      headerTags.insert(deltaX);
-      headerTags.insert(deltaY);
-      headerTags.insert(deltaZ);
-      headerTags.insert(numVolumes);
-      headerTags.insert(height);
-      headerTags.insert(width);
-      headerTags.insert(depth);
-      headerTags.insert(frameTime);
+		const gdcm::Tag deltaX(0x18, 0x602c);
+		const gdcm::Tag deltaY(0x18, 0x602e);
+		const gdcm::Tag deltaZ(0x3001, 0x1003);
+		const gdcm::Tag numVolumes(0x28, 0x8);
+		const gdcm::Tag height(0x28, 0x10);
+		const gdcm::Tag width(0x28, 0x11);
+		const gdcm::Tag depth(0x3001, 0x1001);
+		const gdcm::Tag frameTime(0x18, 0x1063);
 
-      if (ecd_reader.ReadSelectedTags(headerTags))
-        {
-          m_IOBase->SetFileName(FileName);
+		headerTags.insert(deltaX);
+		headerTags.insert(deltaY);
+		headerTags.insert(deltaZ);
+		headerTags.insert(numVolumes);
+		headerTags.insert(height);
+		headerTags.insert(width);
+		headerTags.insert(depth);
+		headerTags.insert(frameTime);
 
-          gdcm::File &file = ecd_reader.GetFile();
-          gdcm::StringFilter sf;
-          sf.SetFile(file);
+		if (ecd_reader.ReadSelectedTags(headerTags))
+			{
+			ecdHeaderProgSrc->AddProgress(0.8);
+			m_IOBase->SetFileName(FileName);
 
-          std::vector<double> ecd_spc;
-          try
-          {
-            ecd_spc.push_back(std::stod(sf.ToString(deltaX)) * 10.0);
-            ecd_spc.push_back(std::stod(sf.ToString(deltaY)) * 10.0);
-            ecd_spc.push_back(std::stod(sf.ToString(deltaZ)) * 10.0);
-            // frame time is the spacing along the time axis
-            ecd_spc.push_back(std::stod(sf.ToString(frameTime)));
-          } catch (const std::exception &e)
-          {
-            std::cerr << e.what() << std::endl;
-          }
+			gdcm::File &file = ecd_reader.GetFile();
+			gdcm::StringFilter sf;
+			sf.SetFile(file);
 
-          // Set to 4d
-          m_IOBase->SetNumberOfDimensions(4);
+			std::vector<double> ecd_spc;
+			try
+				{
+				ecd_spc.push_back(std::stod(sf.ToString(deltaX)) * 10.0);
+				ecd_spc.push_back(std::stod(sf.ToString(deltaY)) * 10.0);
+				ecd_spc.push_back(std::stod(sf.ToString(deltaZ)) * 10.0);
+				// frame time is the spacing along the time axis
+				ecd_spc.push_back(std::stod(sf.ToString(frameTime)));
+				}
+			catch (const std::exception &e)
+				{
+				std::cerr << e.what() << std::endl;
+				}
 
-          // Set spacing in IOBase
-          for (unsigned int i = 0; i < 4; ++i)
-            m_IOBase->SetSpacing(i, ecd_spc[i]);
+			// Set to 4d
+			m_IOBase->SetNumberOfDimensions(4);
 
-          // Set origin in IOBase
-          for (unsigned int i = 0; i < 4; ++i)
-            m_IOBase->SetOrigin(i, 0.0);
+			// Set spacing in IOBase
+			for (unsigned int i = 0; i < 4; ++i)
+				m_IOBase->SetSpacing(i, ecd_spc[i]);
 
-          // Set direction to LPS
-          for (unsigned int i = 0; i < 3; ++i)
-            {
-              std::vector<double> ecd_dir = {0.0, 0.0, 0.0, 0.0};
-              ecd_dir[i] = -1.0;
-              m_IOBase->SetDirection(i, ecd_dir);
-            }
-          m_IOBase->SetDirection(3, std::vector<double>{0.0, 0.0, 0.0, 1.0});
+			// Set origin in IOBase
+			for (unsigned int i = 0; i < 4; ++i)
+				m_IOBase->SetOrigin(i, 0.0);
 
-          std::vector<itk::ImageIOBase::SizeType> ecd_dim(4);
+			// Set direction to LPS
+			for (unsigned int i = 0; i < 3; ++i)
+				{
+				std::vector<double> ecd_dir = {0.0, 0.0, 0.0, 0.0};
+				ecd_dir[i] = -1.0;
+				m_IOBase->SetDirection(i, ecd_dir);
+				}
+			m_IOBase->SetDirection(3, std::vector<double>{0.0, 0.0, 0.0, 1.0});
 
-          try
-          {
-            ecd_dim[0] = stol(sf.ToString(width));
-            ecd_dim[1] = stol(sf.ToString(height));
-            ecd_dim[2] = stol(sf.ToString(depth));
-            ecd_dim[3] = stol(sf.ToString(numVolumes));
-          }  catch (std::exception &e)
-          {
-            std::cerr << e.what() << std::endl;
-          }
+			std::vector<itk::ImageIOBase::SizeType> ecd_dim(4);
 
-          for (unsigned int i = 0; i < 4; ++i)
-            {
-              m_IOBase->SetDimensions(i, ecd_dim[i]);
-            }
+			try
+				{
+				ecd_dim[0] = stol(sf.ToString(width));
+				ecd_dim[1] = stol(sf.ToString(height));
+				ecd_dim[2] = stol(sf.ToString(depth));
+				ecd_dim[3] = stol(sf.ToString(numVolumes));
+				}
+			catch (std::exception &e)
+				{
+				std::cerr << e.what() << std::endl;
+				}
 
-          m_IOBase->SetNumberOfComponents(1);
-          m_IOBase->SetComponentType(itk::IOComponentEnum::UCHAR);
-        }
+			for (unsigned int i = 0; i < 4; ++i)
+				{
+				m_IOBase->SetDimensions(i, ecd_dim[i]);
+				}
+
+			m_IOBase->SetNumberOfComponents(1);
+			m_IOBase->SetComponentType(itk::IOComponentEnum::UCHAR);
+
+			ecdHeaderProgSrc->AddProgress(0.2);
+			}
     }
   else
     {
@@ -635,7 +657,13 @@ GuidedNativeImageIO
           "The IO library for the format '%s' can not read the image file.",
           m_Hints["Format"][""]);
     m_IOBase->SetFileName(FileName);
+
+		// IOBase not reporting progress. Using a trivial progress source
+		SmartPtr<TrivalProgressSource> progSrc = TrivalProgressSource::New();
+		progSrc->AddObserver(itk::ProgressEvent(), progressCmd);
+
     m_IOBase->ReadImageInformation();
+		progSrc->AddProgress(1.0);
     }
 
   // Get the data dimensions
@@ -692,11 +720,11 @@ GuidedNativeImageIO
 
 void
 GuidedNativeImageIO
-::ReadNativeImageData()
+::ReadNativeImageData(itk::Command *progressCmd)
 {
   // Based on the component type, read image in native mode
   DispatchBase *dispatch = this->CreateDispatch(m_IOBase->GetComponentType());
-  dispatch->ReadNative(this, m_NativeFileName.c_str(), m_Hints);
+	dispatch->ReadNative(this, m_NativeFileName.c_str(), m_Hints, progressCmd);
   delete dispatch;
 
   // Get rid of the IOBase, it may store useless data (in case of NIFTI)
@@ -705,10 +733,10 @@ GuidedNativeImageIO
 
 void
 GuidedNativeImageIO
-::ReadNativeImage(const char *FileName, Registry &folder)
+::ReadNativeImage(const char *FileName, Registry &folder, itk::Command *progressCmd)
 {
-  this->ReadNativeImageHeader(FileName, folder);
-  this->ReadNativeImageData();
+	this->ReadNativeImageHeader(FileName, folder, progressCmd);
+	this->ReadNativeImageData(progressCmd);
 }
 
 template <typename TScalar>
@@ -759,8 +787,15 @@ GuidedNativeImageIO
 template<class TScalar>
 void
 GuidedNativeImageIO
-::DoReadNative(const char *FileName, Registry &)
+::DoReadNative(const char *FileName, Registry &, itk::Command *progressCmd)
 {
+	if (!progressCmd)
+		{
+		std::cout << "[GuidedImageIO] DoNothingCommand Created" << std::endl;
+		progressCmd = DoNothingCommandSingleton::GetInstance().GetCommand();
+		}
+
+
   // Define the image type of interest
   typedef itk::VectorImage<TScalar, 4> NativeImageType;
 	typedef itk::Image<TScalar, 3> GreyImageType;
@@ -777,6 +812,8 @@ GuidedNativeImageIO
       {
       // When there is a single volume
 			typename SeriesReaderType::Pointer reader = SeriesReaderType::New();
+
+			reader->AddObserver(itk::ProgressEvent(), progressCmd);
 
       // Set the filenames and read
       reader->SetFileNames(m_DICOMFiles);
@@ -861,6 +898,18 @@ GuidedNativeImageIO
 		typename SeriesReaderType::Pointer reader = SeriesReaderType::New();
 		reader->SetImageIO(m_IOBase);
 
+		SmartPtr<TrivalProgressSource> progSrc = TrivalProgressSource::New();
+		progSrc->AddObserver(itk::StartEvent(), progressCmd);
+		progSrc->AddObserver(itk::ProgressEvent(), progressCmd);
+		progSrc->AddObserver(itk::EndEvent(), progressCmd);
+
+		std::cout << "-- progressCmd observed" << std::endl;
+
+		const float weightReading = 0.7, weightLoading = 0.25, weightMisc = 0.05;
+		float readingDelta = weightReading/m_DicomFilesToFrameMap.size();
+
+		progSrc->StartProgress(1.0);
+
 		std::map<unsigned int, typename GreyImageType::Pointer> frameContainer;
 
 		// read image frame by frame
@@ -877,6 +926,8 @@ GuidedNativeImageIO
 			typename GreyImageType::Pointer crntImg = GreyImageType::New();
 			DeepCopyImage<GreyImageType>(crntImg, reader->GetOutput());
 			frameContainer[kv.first] = crntImg;
+
+			progSrc->AddProgress(readingDelta);
 			}
 
 		// assemble 3d images into the 4d native image
@@ -931,6 +982,8 @@ GuidedNativeImageIO
 
 		itk::ImageRegionIterator<GreyImage4DType> it4d(image4D, image4D->GetLargestPossibleRegion());
 
+		float loadingDelta = weightLoading/frameContainer.size();
+
 		std::cout << "-- Start Loading into the 4D buffer" << std::endl;
 		for (size_t i = 0; i < frameContainer.size(); ++i)
 		{
@@ -946,8 +999,8 @@ GuidedNativeImageIO
 						++it3d;
 						++it4d;
 				}
+				progSrc->AddProgress(loadingDelta);
 		}
-
 
 		// Convert the image into VectorImage format. Do this in-place to avoid
 		// allocating memory pointlessly
@@ -961,166 +1014,176 @@ GuidedNativeImageIO
 			reader->GetMetaDataDictionaryArray();
 		if(darr->size() > 0)
 			m_NativeImage->SetMetaDataDictionary(*((*darr)[0]));
+
+		progSrc->AddProgress(weightMisc);
+		progSrc->EndProgress();
 		}
 	else if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
     {
-      // issue #26: 4D Echocardiography Cartesian DICOM (ECD) Image Reading
+		SmartPtr<TrivalProgressSource> ecdProgSrc = TrivalProgressSource::New();
+		ecdProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
 
-      gdcm::Reader ecd_data_reader;
-      ecd_data_reader.SetFileName(FileName);
+		// issue #26: 4D Echocardiography Cartesian DICOM (ECD) Image Reading
 
-      const gdcm::Tag data(0x7fe0, 0x0010);
-      typename NativeImageType::SizeType ecd_dim;
-      typename NativeImageType::SpacingType ecd_spc;
-      typename NativeImageType::DirectionType ecd_dir;
-      typename NativeImageType::PointType ecd_org;
+		gdcm::Reader ecd_data_reader;
+		ecd_data_reader.SetFileName(FileName);
 
-      std::set<gdcm::Tag> tSet;
-      tSet.insert(data);
+		const gdcm::Tag data(0x7fe0, 0x0010);
+		typename NativeImageType::SizeType ecd_dim;
+		typename NativeImageType::SpacingType ecd_spc;
+		typename NativeImageType::DirectionType ecd_dir;
+		typename NativeImageType::PointType ecd_org;
 
-      // Only read the data tag
-      if (!ecd_data_reader.ReadSelectedTags(tSet))
-        std::cerr << "Can not read:" << FileName << std::endl;
-      else
-        {
-          gdcm::DataSet &ds = ecd_data_reader.GetFile().GetDataSet();
+		std::set<gdcm::Tag> tSet;
+		tSet.insert(data);
 
-          if (!ds.FindDataElement(data))
-            std::cerr << "data element not found!" << std::endl;
+		// Only read the data tag
+		if (!ecd_data_reader.ReadSelectedTags(tSet))
+			std::cerr << "Can not read:" << FileName << std::endl;
+		else
+			{
+			ecdProgSrc->AddProgress(0.3);
+			gdcm::DataSet &ds = ecd_data_reader.GetFile().GetDataSet();
 
-          const gdcm::DataElement &de = ds.GetDataElement(data);
-          if (de.IsEmpty())
-            std::cerr << "data element is empty!" << std::endl;
+			if (!ds.FindDataElement(data))
+				std::cerr << "data element not found!" << std::endl;
 
-          for (unsigned int i = 0; i < 4; ++i)
-            {
-              ecd_dim[i] = m_IOBase->GetDimensions(i);
-              ecd_spc[i] = m_IOBase->GetSpacing(i);
-              for(size_t j = 0; j < 4; j++)
-                ecd_dir(j,i) = m_IOBase->GetDirection(i)[j];
-            }
-          ecd_org.Fill(0);
+			const gdcm::DataElement &de = ds.GetDataElement(data);
+			if (de.IsEmpty())
+				std::cerr << "data element is empty!" << std::endl;
 
-          unsigned long len = ecd_dim[0] * ecd_dim[1] * ecd_dim[2] * ecd_dim[3];
+			for (unsigned int i = 0; i < 4; ++i)
+				{
+				ecd_dim[i] = m_IOBase->GetDimensions(i);
+				ecd_spc[i] = m_IOBase->GetSpacing(i);
+				for(size_t j = 0; j < 4; j++)
+					ecd_dir(j,i) = m_IOBase->GetDirection(i)[j];
+				}
+			ecd_org.Fill(0);
 
-          const gdcm::ByteValue *bv = de.GetByteValue();
+			unsigned long len = ecd_dim[0] * ecd_dim[1] * ecd_dim[2] * ecd_dim[3];
 
-          // Start loading image
-          typename NativeImageType::Pointer ecd_image = NativeImageType::New();
-          ecd_image->SetOrigin(ecd_org);
-          ecd_image->SetSpacing(ecd_spc);
-          ecd_image->SetDirection(ecd_dir);
+			const gdcm::ByteValue *bv = de.GetByteValue();
 
-          // Configure target image container
-          typename NativeImageType::RegionType ecd_region;
-          typename NativeImageType::IndexType ecd_index = {{0, 0, 0, 0}};
-          ecd_region.SetIndex(ecd_index);
-          ecd_region.SetSize(ecd_dim);
-          ecd_image->SetRegions(ecd_region);
-          ecd_image->SetVectorLength(1);
-          ecd_image->SetNumberOfComponentsPerPixel(1);
-          ecd_image->Allocate();
+			// Start loading image
+			typename NativeImageType::Pointer ecd_image = NativeImageType::New();
+			ecd_image->SetOrigin(ecd_org);
+			ecd_image->SetSpacing(ecd_spc);
+			ecd_image->SetDirection(ecd_dir);
 
-          // -- Extract the buffer from file
-          char *ecd_buffer = (char*)malloc(len);
-          bv->GetBuffer(ecd_buffer, len);
+			// Configure target image container
+			typename NativeImageType::RegionType ecd_region;
+			typename NativeImageType::IndexType ecd_index = {{0, 0, 0, 0}};
+			ecd_region.SetIndex(ecd_index);
+			ecd_region.SetSize(ecd_dim);
+			ecd_image->SetRegions(ecd_region);
+			ecd_image->SetVectorLength(1);
+			ecd_image->SetNumberOfComponentsPerPixel(1);
+			ecd_image->Allocate();
 
-          // -- Pass buffer into ecd_image
-          typedef typename NativeImageType::PixelContainer PixConType;
-          typename PixConType::Pointer pPixCon = PixConType::New();
-          pPixCon->SetImportPointer(reinterpret_cast<TScalar*>(ecd_buffer), len, true);
-          ecd_image->SetPixelContainer(pPixCon);
+			ecdProgSrc->AddProgress(0.1);
 
-          // Read and Import Dictionary
-          // -- Choose and import basic information into the metadata dictionary
+			// -- Extract the buffer from file
+			char *ecd_buffer = (char*)malloc(len);
+			bv->GetBuffer(ecd_buffer, len);
 
-          // -- Following code segment loading metadata dictionary is from itkGDCMImageIO.cxx
-          // -- Modified to adapt to 4D Echocardiography Cartesian DICOM (ECD) Image
+			// -- Pass buffer into ecd_image
+			typedef typename NativeImageType::PixelContainer PixConType;
+			typename PixConType::Pointer pPixCon = PixConType::New();
+			pPixCon->SetImportPointer(reinterpret_cast<TScalar*>(ecd_buffer), len, true);
+			ecd_image->SetPixelContainer(pPixCon);
 
-          gdcm::Reader ecd_meta_reader;
-          ecd_meta_reader.SetFileName(FileName);
-          typedef itk::ImageIOBase::SizeValueType SizeValueType;
-          itk::MetaDataDictionary &dico = m_IOBase->GetMetaDataDictionary();
-          gdcm::StringFilter strF;
-          strF.SetFile(ecd_meta_reader.GetFile());
+			ecdProgSrc->AddProgress(0.3);
 
-          if (!ecd_meta_reader.ReadUpToTag(data))
-            std::cerr << "Can not read:" << FileName << std::endl;
-          else
-            {
-              const gdcm::File &file = ecd_meta_reader.GetFile();
-              const gdcm::DataSet &ds = file.GetDataSet();
+			// Read and Import Dictionary
+			// -- Choose and import basic information into the metadata dictionary
 
-              // Iterate through tags for metadata
-              for (auto it = ds.Begin(); it != ds.End(); ++it)
-                {
+			// -- Following code segment loading metadata dictionary is from itkGDCMImageIO.cxx
+			// -- Modified to adapt to 4D Echocardiography Cartesian DICOM (ECD) Image
 
-                  const gdcm::DataElement &de = *it;
-                  const gdcm::Tag &tag = de.GetTag();
+			gdcm::Reader ecd_meta_reader;
+			ecd_meta_reader.SetFileName(FileName);
+			typedef itk::ImageIOBase::SizeValueType SizeValueType;
+			itk::MetaDataDictionary &dico = m_IOBase->GetMetaDataDictionary();
+			gdcm::StringFilter strF;
+			strF.SetFile(ecd_meta_reader.GetFile());
 
+			if (!ecd_meta_reader.ReadUpToTag(data))
+				std::cerr << "Can not read:" << FileName << std::endl;
+			else
+				{
+				const gdcm::File &file = ecd_meta_reader.GetFile();
+				const gdcm::DataSet &ds = file.GetDataSet();
 
-                  // Customized reading of following attributes for the non-standard 4D ECD image
-                  // -- Depth (z-axis dimension)
-                  if (tag == gdcm::Tag(0x3001, 0x1001))
-                    {
-                      itk::EncapsulateMetaData<std::string>(dico, "Depth", strF.ToString(tag));
-                      continue;
-                    }
+				// Iterate through tags for metadata
+				for (auto it = ds.Begin(); it != ds.End(); ++it)
+					{
 
-                  // -- Delta Z (physical delta in z direction)
-                  if (tag == gdcm::Tag(0x3001, 0x1003))
-                    {
-                      itk::EncapsulateMetaData<std::string>(dico, "Physical Delta Z", strF.ToString(tag));
-                      continue;
-                    }
+					const gdcm::DataElement &de = *it;
+					const gdcm::Tag &tag = de.GetTag();
 
-                  // Otherwise read public tags as normal
-                  gdcm::VR vr = gdcm::DataSetHelper::ComputeVR(file, ds, tag);
+					// Customized reading of following attributes for the non-standard 4D ECD image
+					// -- Depth (z-axis dimension)
+					if (tag == gdcm::Tag(0x3001, 0x1001))
+						{
+						itk::EncapsulateMetaData<std::string>(dico, "Depth", strF.ToString(tag));
+						continue;
+						}
 
-                  if (vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::SQ | gdcm::VR::UN))
-                  {
-                    // itkAssertInDebugAndIgnoreInReleaseMacro( vr & gdcm::VR::VRBINARY );
-                    /*
-                     * Old behavior was to skip SQ, Pixel Data element. I decided that it is not safe to mime64
-                     * VR::UN element. There used to be a bug in gdcm 1.2.0 and VR:UN element.
-                     */
-                    if ((tag.IsPublic()) && vr != gdcm::VR::SQ &&
-                        tag != gdcm::Tag(0x7fe0, 0x0010) /* && vr != gdcm::VR::UN*/)
-                    {
-                      const gdcm::ByteValue * bv = de.GetByteValue();
-                      if (bv)
-                      {
-                        // base64 streams have to be a multiple of 4 bytes in length
-                        int encodedLengthEstimate = 2 * bv->GetLength();
-                        encodedLengthEstimate = ((encodedLengthEstimate / 4) + 1) * 4;
+					// -- Delta Z (physical delta in z direction)
+					if (tag == gdcm::Tag(0x3001, 0x1003))
+						{
+						itk::EncapsulateMetaData<std::string>(dico, "Physical Delta Z", strF.ToString(tag));
+						continue;
+						}
 
-                        auto * bin = new char[encodedLengthEstimate];
-                        auto   encodedLengthActual =
-                          static_cast<unsigned int>(itksysBase64_Encode((const unsigned char *)bv->GetPointer(),
-                                                                        static_cast<SizeValueType>(bv->GetLength()),
-                                                                        (unsigned char *)bin,
-                                                                        static_cast<int>(0)));
-                        std::string encodedValue(bin, encodedLengthActual);
-                        itk::EncapsulateMetaData<std::string>(dico, tag.PrintAsPipeSeparatedString(), encodedValue);
-                        delete[] bin;
-                      }
-                    }
-                  }
-                  else /* if ( vr & gdcm::VR::VRASCII ) */
-                  {
-                    // Only copying field from the public DICOM dictionary
-                    if (tag.IsPublic())
-                    {
-                      itk::EncapsulateMetaData<std::string>(dico, tag.PrintAsPipeSeparatedString(), strF.ToString(tag));
-                    }
-                  }
-                }
-            }
+					// Otherwise read public tags as normal
+					gdcm::VR vr = gdcm::DataSetHelper::ComputeVR(file, ds, tag);
 
-          ecd_image->SetMetaDataDictionary(dico);
+					if (vr & (gdcm::VR::OB | gdcm::VR::OF | gdcm::VR::OW | gdcm::VR::SQ | gdcm::VR::UN))
+						{
+						// itkAssertInDebugAndIgnoreInReleaseMacro( vr & gdcm::VR::VRBINARY );
+						/*
+						 * Old behavior was to skip SQ, Pixel Data element. I decided that it is not safe to mime64
+						 * VR::UN element. There used to be a bug in gdcm 1.2.0 and VR:UN element.
+						 */
+						if ((tag.IsPublic()) && vr != gdcm::VR::SQ &&
+								tag != gdcm::Tag(0x7fe0, 0x0010) /* && vr != gdcm::VR::UN*/)
+							{
+							const gdcm::ByteValue * bv = de.GetByteValue();
+							if (bv)
+								{
+								// base64 streams have to be a multiple of 4 bytes in length
+								int encodedLengthEstimate = 2 * bv->GetLength();
+								encodedLengthEstimate = ((encodedLengthEstimate / 4) + 1) * 4;
 
-          m_NativeImage = ecd_image;
-        }
+								auto * bin = new char[encodedLengthEstimate];
+								auto   encodedLengthActual =
+									static_cast<unsigned int>(itksysBase64_Encode((const unsigned char *)bv->GetPointer(),
+																																static_cast<SizeValueType>(bv->GetLength()),
+																																(unsigned char *)bin,
+																																static_cast<int>(0)));
+								std::string encodedValue(bin, encodedLengthActual);
+								itk::EncapsulateMetaData<std::string>(dico, tag.PrintAsPipeSeparatedString(), encodedValue);
+								delete[] bin;
+								}
+							}
+						}
+					else /* if ( vr & gdcm::VR::VRASCII ) */
+						{
+						// Only copying field from the public DICOM dictionary
+						if (tag.IsPublic())
+							itk::EncapsulateMetaData<std::string>(dico, tag.PrintAsPipeSeparatedString(), strF.ToString(tag));
+						}
+					}
+				}
+
+			ecd_image->SetMetaDataDictionary(dico);
+
+			m_NativeImage = ecd_image;
+
+			ecdProgSrc->AddProgress(0.2);
+			}
     }
   else
     {
@@ -1129,6 +1192,13 @@ GuidedNativeImageIO
     // m_IOBase may have an open file handle (from call to ReadImageInfo)
     // so passing it in to the Reader would cause an IO error (this actually
     // happens for GIPL). So we copy some of the code from ImageFileReader
+
+		// Unfortunately the itk reader does not invoke the progress event during
+		// the reading. Using a trivial source to have something reported to the UI.
+		SmartPtr<TrivalProgressSource> regularImageReadingProgSrc =
+				TrivalProgressSource::New();
+
+		regularImageReadingProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
 
     // Create the native image
     typename NativeImageType::Pointer image = NativeImageType::New();
@@ -1172,6 +1242,9 @@ GuidedNativeImageIO
     image->SetRegions(region);
     image->SetVectorLength(ncomp);
     image->Allocate();
+
+		regularImageReadingProgSrc->AddProgress(0.05);
+
     // Set the IO region
     if(nd_actual <= 4)
       {
@@ -1195,9 +1268,13 @@ GuidedNativeImageIO
       m_IOBase->SetIORegion(ioRegion);
       }
 
+		regularImageReadingProgSrc->AddProgress(0.05);
+
     // Read the image into the buffer
-    m_IOBase->Read(image->GetBufferPointer());
+		m_IOBase->Read(image->GetBufferPointer());
     m_NativeImage = image;
+
+		regularImageReadingProgSrc->AddProgress(0.9);
 
 
     // If the image is 4-dimensional or more, we must perform an in-place transpose

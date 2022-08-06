@@ -6,6 +6,7 @@
 #include <string>
 #include "SNAPCommon.h"
 #include "itkObject.h"
+#include "itkProcessObject.h"
 #include "itkObjectFactory.h"
 
 namespace MFDS //Multi-Frame Dicom Series
@@ -118,12 +119,12 @@ protected:
  * Take a list of filenames and returns the sorted result grouped by
  * volume_id
  */
-class MultiFrameDicomSeriesSorter : public itk::Object
+class MultiFrameDicomSeriesSorter : public itk::ProcessObject
 {
 public:
-  irisITKObjectMacro(MultiFrameDicomSeriesSorter, itk::Object)
+	irisITKObjectMacro(MultiFrameDicomSeriesSorter, itk::ProcessObject)
 
-	void SetInput(FilenamesList &input) { m_FilenamesList = input; }
+	void SetFileNameList(FilenamesList &input) { m_FilenamesList = input; }
 
 	void SetGroupingStrategy(MFGroupByStrategyBase *gs)
 	{ this->m_GroupingStrat = gs; }

@@ -10,6 +10,8 @@
 #include "ImageIODelegates.h"
 #include "HistoryManager.h"
 #include "GenericImageData.h"
+#include "QtReporterDelegates.h"
+#include "AllPurposeProgressAccumulator.h"
 
 #include "IRISException.h"
 #include <sstream>
@@ -299,10 +301,23 @@ ImageIOWizardModel::FileFormat ImageIOWizardModel::GetSelectedFormat()
 
 
 
-void ImageIOWizardModel::LoadImage(std::string filename)
+void ImageIOWizardModel::LoadImage(std::string filename, ProgressReporterDelegate *prd)
 {
   // There is no loaded image to start with
   m_LoadedImage = NULL;
+
+	SmartPtr<itk::Command> progressCmd = prd->CreateCommand();
+	SmartPtr<AllPurposeProgressAccumulator> ioAccum = AllPurposeProgressAccumulator::New();
+	ioAccum->AddObserver(itk::ProgressEvent(), progressCmd);
+
+	SmartPtr<itk::Command> headerProgCmd = ioAccum->RegisterITKSourceViaCommand(0.1);
+	SmartPtr<itk::Command> dataProgCmd = ioAccum->RegisterITKSourceViaCommand(0.85);
+	SmartPtr<itk::Command> miscProgCmd = ioAccum->RegisterITKSourceViaCommand(0.05);
+
+	SmartPtr<TrivalProgressSource> miscProgSrc = TrivalProgressSource::New();
+	miscProgSrc->AddObserver(itk::StartEvent(), miscProgCmd);
+	miscProgSrc->AddObserver(itk::EndEvent(), miscProgCmd);
+	miscProgSrc->AddObserver(itk::ProgressEvent(), miscProgCmd);
 
   try
   {
@@ -310,7 +325,7 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     m_Warnings.clear();
 
     // Load the header
-    m_GuidedIO->ReadNativeImageHeader(filename.c_str(), m_Registry);
+		m_GuidedIO->ReadNativeImageHeader(filename.c_str(), m_Registry, headerProgCmd);
 
     // Check if the header is valid
     m_LoadDelegate->ValidateHeader(m_GuidedIO, m_Warnings);
@@ -319,7 +334,7 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     m_LoadDelegate->UnloadCurrentImage();
 
     // Load the data from the image
-    m_GuidedIO->ReadNativeImageData();
+		m_GuidedIO->ReadNativeImageData(dataProgCmd);
 
     // Validate the image data
     m_LoadDelegate->ValidateImage(m_GuidedIO, m_Warnings);
@@ -327,6 +342,8 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     // Update the application
     m_LoadedImage =	
         m_LoadDelegate->UpdateApplicationWithImage(m_GuidedIO);
+
+		miscProgSrc->AddProgress(0.9);
 
     // Save the IO hints to the registry
     Registry regAssoc;
@@ -336,6 +353,8 @@ void ImageIOWizardModel::LoadImage(std::string filename)
     regAssoc.Folder("Files.Grey").Update(m_Registry);
     si->AssociateRegistryWithFile(
           m_GuidedIO->GetFileNameOfNativeImage().c_str(), regAssoc);
+
+		miscProgSrc->AddProgress(0.1);
 
     // Also place the IO hints into the layer
     m_LoadedImage->SetIOHints(m_Registry);
@@ -436,7 +455,8 @@ ImageIOWizardModel
 
 void ImageIOWizardModel
 ::LoadDicomSeries(const std::string &filename,
-                  const std::string &series_id)
+									const std::string &series_id,
+									ProgressReporterDelegate *prd)
 {
   // Get the DICOM registry from the GuidedIO
   typedef GuidedNativeImageIO::DicomDirectoryParseResult ParseResult;
@@ -473,7 +493,7 @@ void ImageIOWizardModel
   std::string dir = GetBrowseDirectory(filename);
 
   // Call the main load method
-  this->LoadImage(dir);
+	this->LoadImage(dir, prd);
 
   // DICOM filenames are meaningless. Assign a nickname based on series name
   if(m_LoadedImage->GetCustomNickname().length() == 0)

@@ -21,6 +21,8 @@
 #include <QSpinBox>
 #include <QFrame>
 #include <QTimer>
+#include <QProgressDialog>
+#include "QtReporterDelegates.h"
 
 
 #include <QtCursorOverride.h>
@@ -90,6 +92,12 @@ AbstractPage::WarningMessage(const IRISWarningList &wl)
     }
 }
 
+#if QT_VERSION >= 0x050000
+typedef QScopedPointer<QProgressDialog, QScopedPointerDeleteLater> QtProgressDialogScopedPointer;
+#else
+typedef QScopedPointer<QProgressDialog> QtProgressDialogScopedPointer;
+#endif
+
 bool AbstractPage::PerformIO()
 {
   // Get the selected format
@@ -98,13 +106,23 @@ bool AbstractPage::PerformIO()
 
   ImageIOWizardModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
 
+	// Show a progress dialog
+	QtProgressDialogScopedPointer progress(new QProgressDialog(this));
+	QtProgressReporterDelegate progress_delegate;
+	progress_delegate.SetProgressDialog(progress.data());
+	progress->setLabelText("Reading Image...");
+	progress->setMinimumDuration(0);
+	progress->show();
+	progress->activateWindow();
+	progress->raise();
+
   try
     {
     QtCursorOverride curse(Qt::WaitCursor);
     m_Model->SetSelectedFormat(fmt);
     if(m_Model->IsLoadMode())
       {
-      m_Model->LoadImage(to_utf8(filename));
+			m_Model->LoadImage(to_utf8(filename), &progress_delegate);
       if (fmt == GuidedNativeImageIO::FORMAT_ECHO_CARTESIAN_DICOM)
         {
           LayoutReminderDialog *lr = new LayoutReminderDialog(this);
@@ -512,10 +530,21 @@ bool DICOMPage::validatePage()
   std::string series_id =
       to_utf8(m_Table->item(row, 0)->data(Qt::UserRole).toString());
 
+	// Show a progress dialog
+	QtProgressDialogScopedPointer progress(new QProgressDialog(this));
+	QtProgressReporterDelegate progress_delegate;
+	progress_delegate.SetProgressDialog(progress.data());
+	progress->setLabelText("Reading Image...");
+	progress->setMinimumDuration(0);
+	progress->show();
+	progress->activateWindow();
+	progress->raise();
+
   try
     {
     QtCursorOverride curse(Qt::WaitCursor);
-    m_Model->LoadDicomSeries(to_utf8(this->field("Filename").toString()), series_id);
+		m_Model->LoadDicomSeries(to_utf8(this->field("Filename").toString()), series_id,
+														 &progress_delegate);
     }
   catch(IRISException &exc)
     {
@@ -736,12 +765,22 @@ bool RawPage::validatePage()
     : (GuidedNativeImageIO::RawPixelType) iPixType;
   GuidedNativeImageIO::SetPixelType(hint, pixtype);
 
+	// Show a progress dialog
+	QtProgressDialogScopedPointer progress(new QProgressDialog(this));
+	QtProgressReporterDelegate progress_delegate;
+	progress_delegate.SetProgressDialog(progress.data());
+	progress->setLabelText("Reading Image...");
+	progress->setMinimumDuration(0);
+	progress->show();
+	progress->activateWindow();
+	progress->raise();
+
   // Try loading the image
   QtCursorOverride curse(Qt::WaitCursor);
   try
     {
     m_Model->SetSelectedFormat(GuidedNativeImageIO::FORMAT_RAW);
-    m_Model->LoadImage(to_utf8(field("Filename").toString()));
+		m_Model->LoadImage(to_utf8(field("Filename").toString()), &progress_delegate);
     }
   catch(IRISException &exc)
     {
@@ -749,15 +788,6 @@ bool RawPage::validatePage()
     }
   return true;
 }
-
-
-
-
-
-
-
-
-
 
 
 } // namespace

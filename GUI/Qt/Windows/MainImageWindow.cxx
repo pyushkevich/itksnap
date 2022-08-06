@@ -60,6 +60,7 @@
 #include "DefaultBehaviorSettings.h"
 #include "SynchronizationModel.h"
 #include "LayoutReminderDialog.h"
+#include "AllPurposeProgressAccumulator.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -92,6 +93,8 @@
 #include <QShortcut>
 #include <QScreen>
 #include <QTextStream>
+#include <QProgressDialog>
+#include "QtReporterDelegates.h"
 
 QString read_tooltip_qt(const QString &filename)
 {
@@ -1365,8 +1368,31 @@ LayerInspectorDialog *MainImageWindow::GetLayerInspector()
   return m_LayerInspector;
 }
 
+#if QT_VERSION >= 0x050000
+typedef QScopedPointer<QProgressDialog, QScopedPointerDeleteLater> QtProgressDialogScopedPointer;
+#else
+typedef QScopedPointer<QProgressDialog> QtProgressDialogScopedPointer;
+#endif
+
 void MainImageWindow::LoadMainImage(const QString &file)
 {
+	std::cout << "[MainImageWindow] LoadMainImage" << std::endl;
+
+	// Show a progress dialog
+	QtProgressDialogScopedPointer progress(new QProgressDialog(this));
+	QtProgressReporterDelegate progress_delegate;
+	progress_delegate.SetProgressDialog(progress.data());
+	progress->setLabelText("Reading Image...");
+	progress->setMinimumDuration(0);
+	progress->show();
+	progress->activateWindow();
+	progress->raise();
+
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress_delegate.CreateCommand());
+
   // Prompt for unsaved changes
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     return;
@@ -1379,7 +1405,8 @@ void MainImageWindow::LoadMainImage(const QString &file)
     IRISWarningList warnings;
     SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
-    m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
+		m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings,
+																							 NULL, irProgAccum.GetPointer());
     }
   catch(exception &exc)
     {

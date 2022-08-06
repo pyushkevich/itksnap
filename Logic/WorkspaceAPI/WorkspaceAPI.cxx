@@ -595,7 +595,7 @@ void WorkspaceAPI::UpdateMainLayerFieldsFromImage(Registry &main_layer_folder)
   // TODO: there has to be a way to supply some hints!
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
   Registry hints;
-  io->ReadNativeImageHeader(filename.c_str(), hints);
+	io->ReadNativeImageHeader(filename.c_str(), hints);
   Vector3i dims(0);
   for(int k = 0; k < io->GetIOBase()->GetNumberOfDimensions(); k++)
     dims[k] = io->GetIOBase()->GetDimensions(k);
