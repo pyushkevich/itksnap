@@ -464,10 +464,7 @@ GuidedNativeImageIO
 
 	// create an empty command to prevent errors
 	if (progressCmd == nullptr)
-		{
-		std::cout << "-- Do nothing command created" << std::endl;
 		progressCmd = DoNothingCommandSingleton::GetInstance().GetCommand();
-		}
 
 
   // Save the hints
@@ -554,8 +551,7 @@ GuidedNativeImageIO
 
 		m_IOBase->ReadImageInformation();
     }
-
-  if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
+	else if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
     {
 		SmartPtr<TrivalProgressSource> ecdHeaderProgSrc = TrivalProgressSource::New();
 		ecdHeaderProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
@@ -792,9 +788,7 @@ GuidedNativeImageIO
 ::DoReadNative(const char *FileName, Registry &, itk::Command *progressCmd)
 {
 	if (!progressCmd)
-		{
 		progressCmd = DoNothingCommandSingleton::GetInstance().GetCommand();
-		}
 
 
   // Define the image type of interest
@@ -816,7 +810,6 @@ GuidedNativeImageIO
       {
       // When there is a single volume
 			typename SeriesReaderType::Pointer reader = SeriesReaderType::New();
-
 			reader->AddObserver(itk::ProgressEvent(), progressCmd);
 
       // Set the filenames and read
@@ -828,15 +821,11 @@ GuidedNativeImageIO
       // m_IOBase = dicomio;
       reader->SetImageIO(m_IOBase);
 
-			dcmSeriesProgSrc->AddProgress(0.1);
-
       // Present this scalar as a 4D image
       typename UpDimFilter::Pointer updim = UpDimFilter::New();
       updim->SetInput(reader->GetOutput());
       updim->Update();
       GreyImage4DType *scalar = updim->GetOutput();
-
-			dcmSeriesProgSrc->AddProgress(0.9);
 
       // Convert the image into VectorImage format. Do this in-place to avoid
       // allocating memory pointlessly
@@ -850,6 +839,8 @@ GuidedNativeImageIO
         reader->GetMetaDataDictionaryArray();
       if(darr->size() > 0)
         m_NativeImage->SetMetaDataDictionary(*((*darr)[0]));
+
+			dcmSeriesProgSrc->AddProgress(1.0);
       }
     else
       {
@@ -897,12 +888,12 @@ GuidedNativeImageIO
 
       // Set the number of components
       m_NativeComponents = m_DICOMImagesPerIPP;
+
+			dcmSeriesProgSrc->AddProgress(1.0);
       }
     } 
 	else if (m_FileFormat == FORMAT_DICOM_DIR_4DCTA)
 		{
-		std::cout << "[GuidedNativeImageIO] DoReadNative()" << std::endl;
-		std::cout << "-- reading 4DCTA" << std::endl;
 		typename SeriesReaderType::Pointer reader = SeriesReaderType::New();
 		reader->SetImageIO(m_IOBase);
 
@@ -910,8 +901,6 @@ GuidedNativeImageIO
 		progSrc->AddObserver(itk::StartEvent(), progressCmd);
 		progSrc->AddObserver(itk::ProgressEvent(), progressCmd);
 		progSrc->AddObserver(itk::EndEvent(), progressCmd);
-
-		std::cout << "-- progressCmd observed" << std::endl;
 
 		const float weightReading = 0.7, weightLoading = 0.25, weightMisc = 0.05;
 		float readingDelta = weightReading/m_DicomFilesToFrameMap.size();
@@ -923,7 +912,6 @@ GuidedNativeImageIO
 		// read image frame by frame
 		for (auto &kv : m_DicomFilesToFrameMap)
 			{
-			std::cout << "---- reading tp = " << kv.first << std::endl;
 			MFDS::FilenamesList fnlist;
 			for (auto &df : kv.second)
 				fnlist.push_back(df.m_Filename);
@@ -939,7 +927,6 @@ GuidedNativeImageIO
 			}
 
 		// assemble 3d images into the 4d native image
-
 		// -- set first 3 dimensions
 		typename GreyImage4DType::PointType origin4d;
 		typename GreyImage4DType::DirectionType direction4d;
@@ -952,7 +939,7 @@ GuidedNativeImageIO
 			{
 			origin4d[i] = first3dImg->GetOrigin()[i];
 			for (int j = 0; j < 3; ++j)
-					direction4d(i,j) = first3dImg->GetDirection()(i,j);
+				direction4d(i,j) = first3dImg->GetDirection()(i,j);
 			spacing4d[i] = first3dImg->GetSpacing()[i];
 			region4d.SetIndex(i, first3dImg->GetLargestPossibleRegion().GetIndex()[i]);
 			region4d.SetSize(i, first3dImg->GetLargestPossibleRegion().GetSize()[i]);
@@ -960,14 +947,9 @@ GuidedNativeImageIO
 
 		origin4d[3] = 0;
 
-		std::cout << "-- direction=\n" << direction4d << std::endl;
-
 		// Flip all image to RAS
 		if (first3dImg->GetDirection()(2,2) == 1)
-		{
-				std::cout << "-- Flipping direction from I to S" << std::endl;
-				direction4d(2,2) = -1;
-		}
+			direction4d(2,2) = -1;
 
 		direction4d(0,3) = 0;
 		direction4d(1,3) = 0;
@@ -992,23 +974,20 @@ GuidedNativeImageIO
 
 		float loadingDelta = weightLoading/frameContainer.size();
 
-		std::cout << "-- Start Loading into the 4D buffer" << std::endl;
 		for (size_t i = 0; i < frameContainer.size(); ++i)
-		{
-				auto crntTP = i + 1;
-				std::cout << "-- Loading tp=" << crntTP << std::endl;
+			{
+			auto crntTP = i + 1;
+			auto crntImg = frameContainer[crntTP];
 
-				auto crntImg = frameContainer[crntTP];
-
-				itk::ImageRegionConstIterator<GreyImageType> it3d(crntImg, crntImg->GetLargestPossibleRegion());
-				while (!it3d.IsAtEnd())
+			itk::ImageRegionConstIterator<GreyImageType> it3d(crntImg, crntImg->GetLargestPossibleRegion());
+			while (!it3d.IsAtEnd())
 				{
-						it4d.Set(it3d.Get());
-						++it3d;
-						++it4d;
+				it4d.Set(it3d.Get());
+				++it3d;
+				++it4d;
 				}
-				progSrc->AddProgress(loadingDelta);
-		}
+			progSrc->AddProgress(loadingDelta);
+			}
 
 		// Convert the image into VectorImage format. Do this in-place to avoid
 		// allocating memory pointlessly
