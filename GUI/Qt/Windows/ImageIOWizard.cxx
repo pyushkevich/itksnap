@@ -41,6 +41,7 @@
 
 #include "DICOMListingTable.h"
 #include "LayoutReminderDialog.h"
+#include "AllPurposeProgressAccumulator.h"
 
 
 namespace imageiowiz {
@@ -116,13 +117,17 @@ bool AbstractPage::PerformIO()
 	progress->activateWindow();
 	progress->raise();
 
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress_delegate.CreateCommand());
+
   try
     {
     QtCursorOverride curse(Qt::WaitCursor);
     m_Model->SetSelectedFormat(fmt);
     if(m_Model->IsLoadMode())
       {
-			m_Model->LoadImage(to_utf8(filename), &progress_delegate);
+			m_Model->LoadImage(to_utf8(filename), irProgAccum);
       if (fmt == GuidedNativeImageIO::FORMAT_ECHO_CARTESIAN_DICOM)
         {
           LayoutReminderDialog *lr = new LayoutReminderDialog(this);
@@ -540,11 +545,15 @@ bool DICOMPage::validatePage()
 	progress->activateWindow();
 	progress->raise();
 
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress_delegate.CreateCommand());
+
   try
     {
     QtCursorOverride curse(Qt::WaitCursor);
 		m_Model->LoadDicomSeries(to_utf8(this->field("Filename").toString()), series_id,
-														 &progress_delegate);
+														 irProgAccum);
     }
   catch(IRISException &exc)
     {
@@ -775,12 +784,16 @@ bool RawPage::validatePage()
 	progress->activateWindow();
 	progress->raise();
 
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress_delegate.CreateCommand());
+
   // Try loading the image
   QtCursorOverride curse(Qt::WaitCursor);
   try
     {
     m_Model->SetSelectedFormat(GuidedNativeImageIO::FORMAT_RAW);
-		m_Model->LoadImage(to_utf8(field("Filename").toString()), &progress_delegate);
+		m_Model->LoadImage(to_utf8(field("Filename").toString()), irProgAccum);
     }
   catch(IRISException &exc)
     {

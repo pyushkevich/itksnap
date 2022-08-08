@@ -1390,7 +1390,6 @@ void MainImageWindow::LoadMainImage(const QString &file)
 
 	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
 			ImageReadingProgressAccumulator::New();
-
 	irProgAccum->AddObserver(itk::ProgressEvent(), progress_delegate.CreateCommand());
 
   // Prompt for unsaved changes

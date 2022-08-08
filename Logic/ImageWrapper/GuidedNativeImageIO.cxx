@@ -453,8 +453,6 @@ void
 GuidedNativeImageIO
 ::ReadNativeImageHeader(const char *FileName, Registry &folder, itk::Command *progressCmd)
 {
-	std::cout << "[GuidedNativeImageIO] ReadHeader" << std::endl;
-
 	/* Progress Command Usage:
 	 * We only add progressCmd as observers to each conditional branch, which
 	 * means we don't have shared progress in the header reading method. Assuming
@@ -523,6 +521,10 @@ GuidedNativeImageIO
 
 		if (m_FileFormat == FORMAT_DICOM_DIR)
 			{
+			SmartPtr<TrivalProgressSource> dcmHdrProgSrc = TrivalProgressSource::New();
+			dcmHdrProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
+			dcmHdrProgSrc->AddProgress(0.1);
+
 			// Following this quick parsing of the directory, we need to actually
 			// load the image data and sort it in a meaningful order. This is too
 			// complicated to replicate here so we revert to gdcm::SerieHelper, but
@@ -531,6 +533,8 @@ GuidedNativeImageIO
 			helper.SetFilesAndOrder(m_DICOMFiles, m_DICOMImagesPerIPP);
 
 			m_IOBase->SetFileName(m_DICOMFiles[0]);
+
+			dcmHdrProgSrc->AddProgress(0.9);
 
 			}
 		else if (m_FileFormat == FORMAT_DICOM_DIR_4DCTA)
@@ -689,8 +693,6 @@ GuidedNativeImageIO
 
   // Also pull out a nickname for this file, if it's in the folder
   m_NativeNickname = m_Hints["Nickname"][""];
-
-	std::cout << "[GuidedImageIO] Read Header Completed" << std::endl;
 }
 
 GuidedNativeImageIO::DispatchBase*
@@ -791,7 +793,6 @@ GuidedNativeImageIO
 {
 	if (!progressCmd)
 		{
-		std::cout << "[GuidedImageIO] DoNothingCommand Created" << std::endl;
 		progressCmd = DoNothingCommandSingleton::GetInstance().GetCommand();
 		}
 
@@ -807,6 +808,9 @@ GuidedNativeImageIO
     {
     // Filter for increasing dimensionality
     typedef IncreaseDimensionImageFilter<GreyImageType, GreyImage4DType> UpDimFilter;
+
+		SmartPtr<TrivalProgressSource> dcmSeriesProgSrc = TrivalProgressSource::New();
+		dcmSeriesProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
 
     if(this->m_DICOMImagesPerIPP == 1)
       {
@@ -824,11 +828,15 @@ GuidedNativeImageIO
       // m_IOBase = dicomio;
       reader->SetImageIO(m_IOBase);
 
+			dcmSeriesProgSrc->AddProgress(0.1);
+
       // Present this scalar as a 4D image
       typename UpDimFilter::Pointer updim = UpDimFilter::New();
       updim->SetInput(reader->GetOutput());
       updim->Update();
       GreyImage4DType *scalar = updim->GetOutput();
+
+			dcmSeriesProgSrc->AddProgress(0.9);
 
       // Convert the image into VectorImage format. Do this in-place to avoid
       // allocating memory pointlessly

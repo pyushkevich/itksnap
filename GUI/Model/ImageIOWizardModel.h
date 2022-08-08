@@ -140,7 +140,7 @@ public:
     Load the image from filename, putting warnings into a warning list. This
     may also fire an exception (e.g., if validation failed)
     */
-	void LoadImage(std::string filename, ProgressReporterDelegate *prd);
+	void LoadImage(std::string filename, ImageReadingProgressAccumulator *irAccum);
 
   /**
    Save the image to a filename
@@ -183,7 +183,7 @@ public:
     */
   void LoadDicomSeries(const std::string &filename,
 											 const std::string &series_id,
-											 ProgressReporterDelegate *prd);
+											 ImageReadingProgressAccumulator *irAccum);
 
 
   irisGetSetMacro(SuggestedFilename, std::string)

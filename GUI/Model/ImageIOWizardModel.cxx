@@ -301,22 +301,16 @@ ImageIOWizardModel::FileFormat ImageIOWizardModel::GetSelectedFormat()
 
 
 
-void ImageIOWizardModel::LoadImage(std::string filename, ProgressReporterDelegate *prd)
+void ImageIOWizardModel::LoadImage(std::string filename, ImageReadingProgressAccumulator *irAccum)
 {
   // There is no loaded image to start with
   m_LoadedImage = NULL;
 
-	SmartPtr<itk::Command> progressCmd = prd->CreateCommand();
-	SmartPtr<AllPurposeProgressAccumulator> ioAccum = AllPurposeProgressAccumulator::New();
-	ioAccum->AddObserver(itk::ProgressEvent(), progressCmd);
-
-	SmartPtr<itk::Command> headerProgCmd = ioAccum->RegisterITKSourceViaCommand(0.1);
-	SmartPtr<itk::Command> dataProgCmd = ioAccum->RegisterITKSourceViaCommand(0.85);
-	SmartPtr<itk::Command> miscProgCmd = ioAccum->RegisterITKSourceViaCommand(0.05);
+	SmartPtr<itk::Command> headerProgCmd = irAccum->GetHeaderProgressCommand();
+	SmartPtr<itk::Command> dataProgCmd = irAccum->GetDataProgressCommand();
+	SmartPtr<itk::Command> miscProgCmd = irAccum->GetMiscProgressCommand();
 
 	SmartPtr<TrivalProgressSource> miscProgSrc = TrivalProgressSource::New();
-	miscProgSrc->AddObserver(itk::StartEvent(), miscProgCmd);
-	miscProgSrc->AddObserver(itk::EndEvent(), miscProgCmd);
 	miscProgSrc->AddObserver(itk::ProgressEvent(), miscProgCmd);
 
   try
@@ -456,7 +450,7 @@ ImageIOWizardModel
 void ImageIOWizardModel
 ::LoadDicomSeries(const std::string &filename,
 									const std::string &series_id,
-									ProgressReporterDelegate *prd)
+									ImageReadingProgressAccumulator *irAccum)
 {
   // Get the DICOM registry from the GuidedIO
   typedef GuidedNativeImageIO::DicomDirectoryParseResult ParseResult;
@@ -493,7 +487,7 @@ void ImageIOWizardModel
   std::string dir = GetBrowseDirectory(filename);
 
   // Call the main load method
-	this->LoadImage(dir, prd);
+	this->LoadImage(dir, irAccum);
 
   // DICOM filenames are meaningless. Assign a nickname based on series name
   if(m_LoadedImage->GetCustomNickname().length() == 0)
