@@ -4,9 +4,11 @@
 #include <QDebug>
 #include <QWizard>
 #include <QThread>
+#include <QProgressDialog>
 
 #include "SNAPCommon.h"
 #include "ImageIOWizardModel.h"
+#include "QtReporterDelegates.h"
 
 class QLineEdit;
 class QPushButton;
@@ -161,6 +163,41 @@ private:
   QComboBox *m_InFormat, *m_InEndian;
   QSpinBox *m_OutImpliedSize, *m_OutActualSize;
   unsigned long m_FileSize;
+};
+
+/**
+ * @brief The ImageIOProgressDialog class
+ * Customized progress dialog for Image IO Progress Display
+ */
+class ImageIOProgressDialog : public QProgressDialog
+{
+	Q_OBJECT
+public:
+	explicit ImageIOProgressDialog(QWidget *parent = 0);
+
+	#if QT_VERSION >= 0x050000
+	typedef QScopedPointer<ImageIOProgressDialog, QScopedPointerDeleteLater> ScopedPointer;
+	#else
+	typedef QScopedPointer<ImageIOProgressDialog> ScopedPointer;
+	#endif
+
+	void SetSaveMode()
+	{
+		m_SaveMode = true;
+		this->setLabelText("Saving Image...");
+	}
+	void SetReadMode()
+	{
+		m_SaveMode = false;
+		this->setLabelText("Reading Image...");
+	} // default
+
+	void display();
+
+	SmartPtr<itk::Command> createCommand();
+private:
+	bool m_SaveMode = false;
+	QtProgressReporterDelegate m_Delegate;
 };
 
 

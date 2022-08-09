@@ -93,8 +93,6 @@
 #include <QShortcut>
 #include <QScreen>
 #include <QTextStream>
-#include <QProgressDialog>
-#include "QtReporterDelegates.h"
 
 QString read_tooltip_qt(const QString &filename)
 {
@@ -1368,29 +1366,16 @@ LayerInspectorDialog *MainImageWindow::GetLayerInspector()
   return m_LayerInspector;
 }
 
-#if QT_VERSION >= 0x050000
-typedef QScopedPointer<QProgressDialog, QScopedPointerDeleteLater> QtProgressDialogScopedPointer;
-#else
-typedef QScopedPointer<QProgressDialog> QtProgressDialogScopedPointer;
-#endif
-
 void MainImageWindow::LoadMainImage(const QString &file)
 {
-	std::cout << "[MainImageWindow] LoadMainImage" << std::endl;
-
 	// Show a progress dialog
-	QtProgressDialogScopedPointer progress(new QProgressDialog(this));
-	QtProgressReporterDelegate progress_delegate;
-	progress_delegate.SetProgressDialog(progress.data());
-	progress->setLabelText("Reading Image...");
-	progress->setMinimumDuration(0);
-	progress->show();
-	progress->activateWindow();
-	progress->raise();
+	using namespace imageiowiz;
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
 
 	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
 			ImageReadingProgressAccumulator::New();
-	irProgAccum->AddObserver(itk::ProgressEvent(), progress_delegate.CreateCommand());
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
 
   // Prompt for unsaved changes
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
@@ -1429,6 +1414,15 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
   QAction *action = qobject_cast<QAction *>(sender());
   QString file = action->text();
 
+	// Show a progress dialog
+	using namespace imageiowiz;
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
+
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+
   // Try loading the image
   try
     {
@@ -1437,7 +1431,8 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
     IRISWarningList warnings;
     SmartPtr<LoadOverlayImageDelegate> del = LoadOverlayImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
-    m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
+		m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings,
+																							 NULL, irProgAccum);
     }
   catch(exception &exc)
     {
@@ -1452,6 +1447,15 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
   if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
     return;
 
+	// Show a progress dialog
+	using namespace imageiowiz;
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
+
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+
   // Try loading the image
   try
     {
@@ -1461,7 +1465,8 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
     SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
     del->SetAdditiveMode(additive);
-    m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
+		m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings,
+																							 NULL, irProgAccum);
     }
   catch(exception &exc)
     {

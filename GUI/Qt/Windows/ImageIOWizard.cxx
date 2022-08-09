@@ -21,12 +21,9 @@
 #include <QSpinBox>
 #include <QFrame>
 #include <QTimer>
-#include <QProgressDialog>
-#include "QtReporterDelegates.h"
-
+#include <QProgressBar>
 
 #include <QtCursorOverride.h>
-
 #include <QtComboBoxCoupling.h>
 #include <QtWidgetCoupling.h>
 #include "QtVTKRenderWindowBox.h"
@@ -93,12 +90,6 @@ AbstractPage::WarningMessage(const IRISWarningList &wl)
     }
 }
 
-#if QT_VERSION >= 0x050000
-typedef QScopedPointer<QProgressDialog, QScopedPointerDeleteLater> QtProgressDialogScopedPointer;
-#else
-typedef QScopedPointer<QProgressDialog> QtProgressDialogScopedPointer;
-#endif
-
 bool AbstractPage::PerformIO()
 {
   // Get the selected format
@@ -108,18 +99,12 @@ bool AbstractPage::PerformIO()
   ImageIOWizardModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
 
 	// Show a progress dialog
-	QtProgressDialogScopedPointer progress(new QProgressDialog(this));
-	QtProgressReporterDelegate progress_delegate;
-	progress_delegate.SetProgressDialog(progress.data());
-	progress->setLabelText("Reading Image...");
-	progress->setMinimumDuration(0);
-	progress->show();
-	progress->activateWindow();
-	progress->raise();
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
 
 	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
 			ImageReadingProgressAccumulator::New();
-	irProgAccum->AddObserver(itk::ProgressEvent(), progress_delegate.CreateCommand());
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
 
   try
     {
@@ -536,18 +521,12 @@ bool DICOMPage::validatePage()
       to_utf8(m_Table->item(row, 0)->data(Qt::UserRole).toString());
 
 	// Show a progress dialog
-	QtProgressDialogScopedPointer progress(new QProgressDialog(this));
-	QtProgressReporterDelegate progress_delegate;
-	progress_delegate.SetProgressDialog(progress.data());
-	progress->setLabelText("Reading Image...");
-	progress->setMinimumDuration(0);
-	progress->show();
-	progress->activateWindow();
-	progress->raise();
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
 
 	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
 			ImageReadingProgressAccumulator::New();
-	irProgAccum->AddObserver(itk::ProgressEvent(), progress_delegate.CreateCommand());
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
 
   try
     {
@@ -775,18 +754,12 @@ bool RawPage::validatePage()
   GuidedNativeImageIO::SetPixelType(hint, pixtype);
 
 	// Show a progress dialog
-	QtProgressDialogScopedPointer progress(new QProgressDialog(this));
-	QtProgressReporterDelegate progress_delegate;
-	progress_delegate.SetProgressDialog(progress.data());
-	progress->setLabelText("Reading Image...");
-	progress->setMinimumDuration(0);
-	progress->show();
-	progress->activateWindow();
-	progress->raise();
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
 
 	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
 			ImageReadingProgressAccumulator::New();
-	irProgAccum->AddObserver(itk::ProgressEvent(), progress_delegate.CreateCommand());
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
 
   // Try loading the image
   QtCursorOverride curse(Qt::WaitCursor);
@@ -800,6 +773,43 @@ bool RawPage::validatePage()
     return ErrorMessage(exc);
     }
   return true;
+}
+
+ImageIOProgressDialog
+::ImageIOProgressDialog(QWidget *parent)
+	: QProgressDialog(parent)
+{
+	this->setObjectName("progressDialogImageIO");
+
+	// Set a bar without text
+	QProgressBar *progBar = new QProgressBar(this);
+	progBar->setTextVisible(false);
+	this->setBar(progBar);
+
+	// Configure delegate. This needs to happen after setBar
+	m_Delegate.SetProgressDialog(this);
+
+	if (m_SaveMode)
+		this->setLabelText("Saving Image...");
+	else
+		this->setLabelText("Reading Image...");
+
+	this->setCancelButton(nullptr); // hide the cancel button
+	this->setMinimumDuration(0); // display for all duration
+}
+
+void
+ImageIOProgressDialog
+::display()
+{
+	this->raise();
+}
+
+SmartPtr<itk::Command>
+ImageIOProgressDialog
+::createCommand()
+{
+	return m_Delegate.CreateCommand();
 }
 
 
