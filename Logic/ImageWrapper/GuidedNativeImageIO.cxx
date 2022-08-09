@@ -89,23 +89,23 @@ RegistryEnumMap<GuidedNativeImageIO::RawPixelType> GuidedNativeImageIO::m_EnumRa
 const GuidedNativeImageIO::FileFormatDescriptor 
 GuidedNativeImageIO
 ::m_FileFormatDescrictorArray[] = {
-  {"Analyze", "img.gz,hdr,img",      true,  false, true,  true},
-  {"DICOM Image Series", "",         false, true,  true,  true},
-  {"DICOM Single Image", "dcm",      false, true,  true,  true},
-  {"Echo Cartesian DICOM", "dcm",    false, true,  true,  true},
-  {"GE Version 4", "ge4",            false, false, true,  true},
-  {"GE Version 5", "ge5",            false, false, true,  true},
-  {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
-  {"MetaImage", "mha,mhd",           true,  true,  true,  true},
+	{"Analyze", "img.gz,hdr,img",      true,  false, true,  true},
+	{"DICOM Image Series", "",         false, true,  true,  true},
+	{"DICOM Single Image", "dcm",      false, true,  true,  true},
+	{"Echo Cartesian DICOM", "dcm",    false, true,  true,  true},
+	{"GE Version 4", "ge4",            false, false, true,  true},
+	{"GE Version 5", "ge5",            false, false, true,  true},
+	{"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
+	{"MetaImage", "mha,mhd",           true,  true,  true,  true},
 	{"MINC", "mnc",                    true,  true,  true,  true},
-  {"NiFTI", "nii.gz,nii,nia,nia.gz", true,  true,  true,  true},
-  {"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
-  {"Raw Binary", "raw",              false, false, true,  true},
-  {"Siemens Vision", "ima",          false, false, true,  true},
-  {"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
-  {"VTK Image", "vtk",               true,  false, true,  true},
-  {"Generic ITK Image", "",          true,  true,  true,  true},
-  {"INVALID FORMAT", "",             false, false, false, false}};
+	{"NiFTI", "nii.gz,nii,nia,nia.gz", true,  true,  true,  true},
+	{"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
+	{"Raw Binary", "raw",              false, false, true,  true},
+	{"Siemens Vision", "ima",          false, false, true,  true},
+	{"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
+	{"VTK Image", "vtk",               true,  false, true,  true},
+	{"Generic ITK Image", "",          true,  true,  true,  true},
+	{"INVALID FORMAT", "",             false, false, false, false}};
 
 
 /*************************************************************************/
@@ -397,21 +397,21 @@ GuidedNativeImageIO
   // Choose the approach based on the file format
   switch(m_FileFormat)
     {
-    case FORMAT_MHA:        m_IOBase = itk::MetaImageIO::New();          break;
-    case FORMAT_NRRD:       m_IOBase = itk::NrrdImageIO::New();          break;
-    case FORMAT_ANALYZE:    m_IOBase = itk::NiftiImageIO::New();       break;
-    case FORMAT_GIPL:       m_IOBase = itk::GiplImageIO::New();          break;
-    case FORMAT_GE4:        m_IOBase = itk::GE4ImageIO::New();           break;
-    case FORMAT_GE5:        m_IOBase = itk::GE5ImageIO::New();           break;
+		case FORMAT_MHA:        m_IOBase = itk::MetaImageIO::New();          break;
+		case FORMAT_NRRD:       m_IOBase = itk::NrrdImageIO::New();          break;
+		case FORMAT_ANALYZE:    m_IOBase = itk::NiftiImageIO::New();         break;
+		case FORMAT_GIPL:       m_IOBase = itk::GiplImageIO::New();          break;
+		case FORMAT_GE4:        m_IOBase = itk::GE4ImageIO::New();           break;
+		case FORMAT_GE5:        m_IOBase = itk::GE5ImageIO::New();           break;
 		case FORMAT_MINC:       m_IOBase = itk::MINCImageIO::New();          break;
-    case FORMAT_NIFTI:      m_IOBase = itk::NiftiImageIO::New();         break;
-    case FORMAT_SIEMENS:    m_IOBase = itk::SiemensVisionImageIO::New(); break;
-    case FORMAT_VTK:        m_IOBase = itk::VTKImageIO::New();           break;
-    case FORMAT_VOXBO_CUB:  m_IOBase = itk::VoxBoCUBImageIO::New();      break;
-    case FORMAT_DICOM_DIR:
-    case FORMAT_ECHO_CARTESIAN_DICOM:
-    case FORMAT_DICOM_FILE: m_IOBase = itk::GDCMImageIO::New();          break;
-    case FORMAT_RAW:
+		case FORMAT_NIFTI:      m_IOBase = itk::NiftiImageIO::New();         break;
+		case FORMAT_SIEMENS:    m_IOBase = itk::SiemensVisionImageIO::New(); break;
+		case FORMAT_VTK:        m_IOBase = itk::VTKImageIO::New();           break;
+		case FORMAT_VOXBO_CUB:  m_IOBase = itk::VoxBoCUBImageIO::New();      break;
+		case FORMAT_DICOM_DIR:
+		case FORMAT_ECHO_CARTESIAN_DICOM:
+		case FORMAT_DICOM_FILE: m_IOBase = itk::GDCMImageIO::New();          break;
+		case FORMAT_RAW:
       {
       // Get the Raw header sub-folder
       Registry fldRaw = folder.Folder("Raw");
