@@ -46,9 +46,10 @@ void MeshExportBrowsePage::initializePage()
 
   if(m_Model->GetSaveMode() == MeshExportModel::SAVE_SCENE)
     {
-    filter = QString("%1 (.vtk);; %2 (.vrml)")
+		filter = QString("%1 (.vtk);; %2 (.vrml);; %3 (.stl)")
         .arg(from_utf8(domain[GuidedMeshIO::FORMAT_VTK]))
-        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_VRML]));
+				.arg(from_utf8(domain[GuidedMeshIO::FORMAT_VRML]))
+				.arg(from_utf8(domain[GuidedMeshIO::FORMAT_STL]));
     }
   else
     {
