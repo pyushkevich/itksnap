@@ -39,6 +39,10 @@ typedef std::map<unsigned int, FilenamesList> DicomFilenamesToFrameMap;
 typedef double SliceIDType;
 typedef std::map<SliceIDType, DicomFilesList> SliceGroupingResult;
 
+/**
+ * @brief The MFGroupByStrategyBase class
+ * Group slices by specified tag(s) that should be defined in subclasses
+ */
 class MFGroupByStrategyBase : public itk::Object
 {
 public:
@@ -63,6 +67,12 @@ protected:
 	SliceGroupingResult m_SliceGroupingResult;
 };
 
+/**
+ * @brief The MFGroupByIPP2Strategy class
+ * Group slices by Image Position Patient [2], i.e. Z-axis position
+ * For time-series multi-frame image, this will put all time point slices
+ * belong to the same z-axis slice into one group.
+ */
 class MFGroupByIPP2Strategy : public MFGroupByStrategyBase
 {
 public:
@@ -75,6 +85,10 @@ protected:
 
 };
 
+/**
+ * @brief The MFOrderByStrategyBase class
+ * Order slices based on specified tag(s) that should be defined in subclasses
+ */
 class MFOrderByStrategyBase : public itk::Object
 {
 public:
@@ -88,6 +102,10 @@ protected:
 	virtual ~MFOrderByStrategyBase() {}
 };
 
+/**
+ * @brief The MFOrderByInstanceNumberStrategy class
+ * Order slices by Instance Number
+ */
 class MFOrderByInstanceNumberStrategy : public MFOrderByStrategyBase
 {
 public:
@@ -101,6 +119,11 @@ protected:
 	virtual ~MFOrderByInstanceNumberStrategy() {}
 };
 
+
+/**
+ * @brief The MFOrderByIPPStrategy class
+ * Order slices by Image Position Patient
+ */
 class MFOrderByIPPStrategy : public MFOrderByStrategyBase
 {
 public:

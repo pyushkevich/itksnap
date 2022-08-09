@@ -1828,8 +1828,6 @@ IRISApplication
 	SmartPtr<TrivalProgressSource> miscProgSrc = TrivalProgressSource::New();
 	miscProgSrc->AddObserver(itk::ProgressEvent(), miscProgCmd);
 
-	std::cout << "[IRISApplication] LoadImageViaDelegate" << std::endl;
-
   // When hints are not provided, we load them using the association system
   if(!ioHints)
     {

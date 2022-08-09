@@ -89,8 +89,6 @@ int
 MFGroupByIPP2Strategy
 ::Apply()
 {
-	std::cout << "[MFGroupByIPP2Strategy] Apply()" << std::endl;
-
 	for (auto &df : m_DicomFilesContainer)
 		{
 		double ipp_z = df.m_IPP[2];
@@ -99,10 +97,6 @@ MFGroupByIPP2Strategy
 		else
 			m_SliceGroupingResult[ipp_z] = DicomFilesList{ df };
 		}
-
-	std::cout << "-- number of IPP-Z=" << m_SliceGroupingResult.size() << std::endl;
-	for (auto &kv : m_SliceGroupingResult)
-		std::cout << "---- frame: " << kv.first << "; size=" << kv.second.size() << std::endl;
 
 	return EXIT_SUCCESS;
 }
@@ -165,7 +159,6 @@ int
 MultiFrameDicomSeriesSorter
 ::Sort()
 {
-	std::cout << "[MFDSSorter] Sort()" << std::endl;
 	// the Sorter has to be initialized correctly
 	assert(m_FilenamesList.size() > 0 && m_GroupingStrat
 				 && m_FrameOrderingStrat && m_SliceOrderingStrat);
@@ -176,8 +169,6 @@ MultiFrameDicomSeriesSorter
 	// build dicom file list
 	for (auto &fn : m_FilenamesList)
 		m_DicomFilesList.push_back(DicomFile(fn));
-
-	std::cout << "-- DicomFileList loaded. size=" << m_DicomFilesList.size() << std::endl;
 
 	// apply grouping strat
 	m_GroupingStrat->SetInput(m_DicomFilesList);
@@ -205,25 +196,12 @@ MultiFrameDicomSeriesSorter
 		this->UpdateProgress(Superclass::GetProgress() + frmOrdProgInc);
 		}
 
-	std::cout << "-- SliceGrouping Ordered and FrameMap built" << std::endl;
-
-	for (auto &kv : m_FilesToFrameMap)
-		{
-		std::cout << "---- frame=" << kv.first << "; size=" << kv.second.size() << std::endl;
-		}
-
 	float sliceOrdProgInc = 0.4 / m_FilesToFrameMap.size();
 	// apply slice ordering strat for each frame
 	for (auto &kv : m_FilesToFrameMap)
 		{
 		m_SliceOrderingStrat->Apply(kv.second);
 		this->UpdateProgress(Superclass::GetProgress() + sliceOrdProgInc);
-		}
-
-	std::cout << "-- FilesToFrameMap ordered" << std::endl;
-	for (auto &df : m_FilesToFrameMap.begin()->second)
-		{
-		std::cout << "---- ipp2=" << df.m_IPP[2] << std::endl;
 		}
 
 	this->UpdateProgress(1.0);
