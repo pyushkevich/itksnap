@@ -47,6 +47,7 @@
 #include "itkGDCMImageIO.h"
 #include "itkGE4ImageIO.h"
 #include "itkGE5ImageIO.h"
+#include "itkMINCImageIO.h"
 #include "itkNiftiImageIO.h"
 #include "itkSiemensVisionImageIO.h"
 #include "itkVTKImageIO.h"
@@ -84,6 +85,7 @@ bool GuidedNativeImageIO::m_StaticDataInitialized = false;
 RegistryEnumMap<GuidedNativeImageIO::FileFormat> GuidedNativeImageIO::m_EnumFileFormat;
 RegistryEnumMap<GuidedNativeImageIO::RawPixelType> GuidedNativeImageIO::m_EnumRawPixelType;
 
+/* name, pattern, can_write, can_store_orientation, can_store_float, can_store_short */
 const GuidedNativeImageIO::FileFormatDescriptor 
 GuidedNativeImageIO
 ::m_FileFormatDescrictorArray[] = {
@@ -95,6 +97,7 @@ GuidedNativeImageIO
   {"GE Version 5", "ge5",            false, false, true,  true},
   {"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
   {"MetaImage", "mha,mhd",           true,  true,  true,  true},
+	{"MINC", "mnc",                    true,  true,  true,  true},
   {"NiFTI", "nii.gz,nii,nia,nia.gz", true,  true,  true,  true},
   {"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
   {"Raw Binary", "raw",              false, false, true,  true},
@@ -400,6 +403,7 @@ GuidedNativeImageIO
     case FORMAT_GIPL:       m_IOBase = itk::GiplImageIO::New();          break;
     case FORMAT_GE4:        m_IOBase = itk::GE4ImageIO::New();           break;
     case FORMAT_GE5:        m_IOBase = itk::GE5ImageIO::New();           break;
+		case FORMAT_MINC:       m_IOBase = itk::MINCImageIO::New();          break;
     case FORMAT_NIFTI:      m_IOBase = itk::NiftiImageIO::New();         break;
     case FORMAT_SIEMENS:    m_IOBase = itk::SiemensVisionImageIO::New(); break;
     case FORMAT_VTK:        m_IOBase = itk::VTKImageIO::New();           break;
