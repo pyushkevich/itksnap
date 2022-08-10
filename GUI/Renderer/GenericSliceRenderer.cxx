@@ -283,6 +283,9 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
   Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), ModelUpdateEvent());
   Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), ModelUpdateEvent());
+
+	Rebroadcast(m_Model->GetParentUI()->GetGlobalDisplaySettings()->GetGreyInterpolationModeModel(),
+							ValueChangedEvent(), ModelUpdateEvent());
 }
 
 void GenericSliceRenderer::UpdateSceneAppearanceSettings()
@@ -321,6 +324,10 @@ void GenericSliceRenderer::OnUpdate()
       m_EventBucket->HasEvent(ValueChangedEvent(),
                               m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel());
 
+	bool display_setting_changed =
+			m_EventBucket->HasEvent(ValueChangedEvent(),
+															m_Model->GetParentUI()->GetGlobalDisplaySettings()->GetGreyInterpolationModeModel());
+
   bool layers_changed =
       m_EventBucket->HasEvent(LayerChangeEvent());
 
@@ -358,7 +365,7 @@ void GenericSliceRenderer::OnUpdate()
     this->UpdateRendererLayout();
     }
 
-  if(layers_changed || layer_mapping_changed || segmentation_opacity_changed || layer_visibility_changed)
+	if(layers_changed || layer_mapping_changed || segmentation_opacity_changed || layer_visibility_changed || display_setting_changed)
     {
     this->UpdateLayerApperances();
     }
@@ -737,10 +744,20 @@ void GenericSliceRenderer::UpdateLayerApperances()
     else if(it.GetLayer()->IsSticky())
       alpha = it.GetLayer()->GetAlpha();
 
-    // Set the alpha for the actor
     auto *lta = GetLayerTextureAssembly(it.GetLayer());
     if(lta)
-      lta->m_ImageRect->GetActor()->GetProperty()->SetOpacity(alpha);
+			{
+			// Configure the texture interpolation
+			const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
+			if (gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR)
+				lta->m_Texture->InterpolateOn();
+			else
+				lta->m_Texture->InterpolateOff();
+
+			// Set the alpha for the actor
+			lta->m_ImageRect->GetActor()->GetProperty()->SetOpacity(alpha);
+			}
+
     }
 }
 
