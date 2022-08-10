@@ -492,7 +492,7 @@ GetCrntTimePointNicknameValue(std::string &value)
     return false;
 
   unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
-  value = m_TimePointProperties->GetProperty(crntTP)->Nickname;
+	value = m_TimePointProperties->GetProperty(crntTP)->GetNickname();
   return true;
 }
 
@@ -503,7 +503,7 @@ SetCrntTimePointNicknameValue(std::string value)
     return;
 
   unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
-  m_TimePointProperties->GetProperty(crntTP)->Nickname = value;
+	m_TimePointProperties->GetProperty(crntTP)->SetNickname(value);
 }
 
 bool LayerGeneralPropertiesModel::
@@ -514,7 +514,7 @@ GetCrntTimePointTagListValue(TagList &value)
 
   unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
   TimePointProperty *tpp = m_TimePointProperties->GetProperty(crntTP);
-  value = tpp->Tags;
+	value = tpp->GetTags();
   return true;
 }
 
@@ -526,7 +526,7 @@ SetCrntTimePointTagListValue(TagList value)
 
   unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
   TimePointProperty *tpp = m_TimePointProperties->GetProperty(crntTP);
-  tpp->Tags = value;
+	tpp->SetTagList(value);
 }
 
 

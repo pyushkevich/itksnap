@@ -2,6 +2,7 @@
 #define TIMEPOINTPROPERTIES_H
 
 #include "SNAPCommon.h"
+#include "SNAPEvents.h"
 #include "itkDataObject.h"
 #include "itkObjectFactory.h"
 #include "TagList.h"
@@ -10,8 +11,41 @@
 class Registry;
 class GenericImageData;
 
-struct TimePointProperty
+class TimePointProperty : public itk::DataObject
 {
+public:
+	irisITKObjectMacro(TimePointProperty, itk::DataObject)
+
+	std::string GetNickname() const
+	{ return Nickname; }
+
+	void SetNickname(std::string _nickname)
+	{
+		Nickname = _nickname;
+		InvokeEvent(WrapperGlobalMetadataChangeEvent());
+	}
+
+	TagList GetTags() const
+	{ return Tags; }
+
+	TagList &GetModifiableTags()
+	{ return Tags; }
+
+	void AddTag(std::string &tag)
+	{
+		Tags.AddTag(tag);
+	}
+
+	void SetTagList(TagList tlist)
+	{
+		Tags = tlist;
+	}
+
+protected:
+	TimePointProperty() {};
+	virtual ~TimePointProperty() {}
+
+private:
   std::string Nickname;
   TagList Tags;
 };
@@ -44,7 +78,7 @@ protected:
   virtual ~TimePointProperties();
 
 private:
-  std::map<unsigned int, TimePointProperty> m_TPPropertiesMap;
+	std::map<unsigned int, SmartPtr<TimePointProperty>> m_TPPropertiesMap;
   GenericImageData *m_Parent;
 };
 
