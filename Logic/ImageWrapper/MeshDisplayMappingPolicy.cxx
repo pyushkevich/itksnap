@@ -261,8 +261,7 @@ UpdateLUT()
   for (auto i = 0u; i < numClr; ++i)
     {
     auto val = m_IntensityCurve->Evaluate(i * numdiv);
-    auto rgbaC = m_ColorMap->MapIndexToRGBA(val).GetDataPointer();
-
+		auto rgbaC = m_ColorMap->MapIndexToRGBA(val);
     double rgbaD[4];
     for (auto i = 0; i < 4; ++i)
       rgbaD[i] = rgbaC[i] * clrdiv;
