@@ -5,9 +5,11 @@
 #include "GenericSliceRenderer.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
+#include "GenericImageData.h"
 #include "DisplayLayoutModel.h"
 #include "GenericImageData.h"
 #include "GenericSliceContextItem.h"
+#include "TimePointProperties.h"
 #include <vtkObjectFactory.h>
 #include <vtkContext2D.h>
 #include <vtkTransform2D.h>
@@ -22,7 +24,7 @@ public:
   vtkTypeMacro(GlobalDecorationContextItem, GenericSliceContextItem)
   static GlobalDecorationContextItem *New();
 
-  std::string CapStringLength(const std::string &str, int max_size)
+	std::string CapStringLength(const std::string &str, size_t max_size)
   {
     if(str.size() <= max_size)
       return str;
@@ -66,8 +68,15 @@ public:
     // Get the time point for the image
     if(layer->GetNumberOfTimePoints() > 1)
       {
+			std::ostringstream oss_tpn; // timepoint nickname stream
+			uint32_t crnt_tp_ind = m_Model->GetDriver()->GetCursorTimePoint() + 1; // cursor is 0-based, tp is 1-based
+			auto tpp = m_Model->GetDriver()->GetCurrentImageData()->GetTimePointProperties();
+			std::string tpn = tpp->GetProperty(crnt_tp_ind)->GetNickname();
+			if (tpn.size() > 0) // only append a space when nickname exists
+				tpn = tpn + ' ';
+
       std::ostringstream oss;
-      oss << " [" << layer->GetTimePointIndex()+1 << "/" << layer->GetNumberOfTimePoints() <<  "]";
+			oss << " [" << tpn << layer->GetTimePointIndex()+1 << "/" << layer->GetNumberOfTimePoints() <<  "]";
       nickname += oss.str();
       }
 

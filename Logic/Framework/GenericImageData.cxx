@@ -79,6 +79,8 @@ GenericImageData
   // Create TimePointProperties
   m_TimePointProperties = TimePointProperties::New();
   m_TimePointProperties->SetParent(this);
+	Rebroadcaster::Rebroadcast(m_TimePointProperties, WrapperGlobalMetadataChangeEvent(),
+														 this, WrapperGlobalMetadataChangeEvent());
 
   // Initialize the display viewport geometry objects
   m_DisplayViewportGeometry[0] = ImageBaseType::New();

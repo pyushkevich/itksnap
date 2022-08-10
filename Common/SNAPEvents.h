@@ -139,6 +139,9 @@ itkEventMacro(WrapperUserDataChangeEvent, WrapperChangeEvent)
 /** A change to the intensity values in the wrapper */
 itkEventMacro(WrapperImageChangeEvent, WrapperChangeEvent)
 
+/** A change to the global metadata for all wrappers, such as timepoint properties */
+itkEventMacro(WrapperGlobalMetadataChangeEvent, WrapperChangeEvent)
+
 /** A change to wrapper-associated image processing settings */
 itkEventMacro(WrapperProcessingSettingsChangeEvent, WrapperUserDataChangeEvent)
 
