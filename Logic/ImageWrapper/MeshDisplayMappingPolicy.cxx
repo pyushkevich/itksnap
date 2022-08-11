@@ -246,19 +246,32 @@ UpdateLUT()
     return;
 
   // Build lookup table
-  auto min = prop->GetMin();
-  auto max = prop->GetMax();
+	double min = prop->GetMin();
+	double max = prop->GetMax();
 
-  const size_t numClr = 256;
-  // div change dividing to multiplying, more efficient
-  double numdiv = 1.0/numClr;
+	// Find the min/max ratio to value range based on contrast curve
+	float minr, vminr;
+	m_IntensityCurve->GetControlPoint(0, minr, vminr);
+	float maxr, vmaxr;
+	m_IntensityCurve->GetControlPoint(m_IntensityCurve->GetControlPointCount() - 1, maxr, vmaxr);
+
+	// Configure LUT range
+	double range = max - min;
+	max = min + range * maxr; // new max based on contrast curve
+	min = min + range * minr; // new min based on contrast curve
+	m_LookupTable->SetRange(min, max); // lut only define values between contrast range
+
+	// Prepare color generation
+	double indRange = maxr - minr;
+	const size_t numClr = 256;
+	double numdiv = 1.0/numClr;
   double clrdiv = 1.0/255.0;
 
-  m_LookupTable->SetRange(min, max);
   m_LookupTable->SetNumberOfColors(numClr);
   for (auto i = 0u; i < numClr; ++i)
     {
-    auto val = m_IntensityCurve->Evaluate(i * numdiv);
+		float ind = minr + indRange * i * numdiv;
+		auto val = m_IntensityCurve->Evaluate(ind);
 		auto rgbaC = m_ColorMap->MapIndexToRGBA(val);
     double rgbaD[4];
     for (auto i = 0; i < 4; ++i)
