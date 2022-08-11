@@ -667,6 +667,11 @@ void GenericSliceRenderer::UpdateRendererLayout()
 
 void GenericSliceRenderer::UpdateRendererCameras()
 {
+	// Preference settings change can trigger this update
+	// Add this check to prevent segfault when main image is not loaded
+	if (!m_Model->GetDriver()->IsMainImageLoaded())
+		return;
+
   // Get the transform parameters
   auto v_zoom = m_Model->GetViewZoom();
   auto v_pos = m_Model->GetViewPosition();
