@@ -112,6 +112,9 @@ protected:
   // Update the actors representing the axes
   void UpdateAxisRendering();
 
+	// Update the scalar bar actor apperance
+	void UpdateColorLegendAppearance();
+
   // Update the spray paint glyph properties
   void UpdateSprayGlyphAppearanceAndShape();
 
