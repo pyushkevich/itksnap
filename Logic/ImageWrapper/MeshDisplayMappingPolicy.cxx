@@ -232,8 +232,6 @@ ConfigureLegend(vtkScalarBarActor* legend)
     return;
 
   legend->SetTitle(prop->GetName());
-
-  legend->SetVisibility(true);
 }
 
 
@@ -334,9 +332,6 @@ ConfigureLegend(vtkScalarBarActor* legend)
   legend->SetLookupTable(m_LookupTable);
   legend->SetTitle("Label");
   legend->SetNumberOfLabels(m_LookupTable->GetNumberOfColors());
-
-  // Hide the legend for label mesh
-  legend->SetVisibility(false);
 }
 
 void

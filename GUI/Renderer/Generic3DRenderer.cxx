@@ -406,6 +406,15 @@ void Generic3DRenderer::UpdateAxisRendering()
   m_Renderer->SetBackground(clrBack.data_block());
 }
 
+void Generic3DRenderer::UpdateColorLegendAppearance()
+{
+	// Set color legend visibility
+	unsigned int elmClrLegend = SNAPAppearanceSettings::COLORLEGEND_3D;
+	OpenGLAppearanceElement *clsetting = m_Model->GetParentUI()
+			->GetAppearanceSettings()->GetUIElement(elmClrLegend);
+	m_ScalarBarActor->SetVisibility(clsetting->GetVisible());
+}
+
 void Generic3DRenderer::UpdateScalpelRendering()
 {
   // If not in scalpel mode, just disable everything
@@ -675,6 +684,9 @@ void Generic3DRenderer::UpdateMeshAppearance()
 {
   // Get the app driver
   IRISApplication *driver = m_Model->GetParentUI()->GetDriver();
+
+	if (!driver->IsMainImageLoaded())
+		return;
 
   auto actorMap = m_ActorPool->GetActorMap();
 
@@ -955,7 +967,7 @@ void Generic3DRenderer::OnUpdate()
     UpdateMeshAssembly();
     need_render = true;
     }
-  else if(labels_props_changed)
+	else if(labels_props_changed)
     {
     UpdateMeshAppearance();
     need_render = true;
@@ -973,6 +985,7 @@ void Generic3DRenderer::OnUpdate()
   if(main_changed || cursor_moved || appearance_changed)
     {
     UpdateAxisRendering();
+		UpdateColorLegendAppearance();
     need_render = true;
     }
 
