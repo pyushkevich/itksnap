@@ -96,16 +96,10 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   activateOnFlag(ui->btnDown, m_Model,
                  LayerGeneralPropertiesModel::UIF_MOVABLE_DOWN);
 
-  // Group Mesh should only display when a mesh layer is selected
+	// Group Mesh should only display when a mesh layer with data is selected
   activateOnFlag(ui->grpMesh, m_Model,
-                 LayerGeneralPropertiesModel::UIF_IS_MESH,
+								 LayerGeneralPropertiesModel::UIF_MESH_HAS_DATA,
                  QtWidgetActivator::HideInactive);
-
-  /*
-  activateOnFlag(ui->grpMCMesh, m_Model,
-                 LayerGeneralPropertiesModel::UIF_IS_MESHDATA_MULTICOMPONENT,
-                 QtWidgetActivator::HideInactive);
-  */
 }
 
 void GeneralLayerInspector::on_btnUp_clicked()

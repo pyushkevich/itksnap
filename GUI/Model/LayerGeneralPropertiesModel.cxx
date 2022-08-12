@@ -188,19 +188,12 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
       return this->m_ParentModel->GetDriver()->GetNumberOfTimePoints() > 1;
 
     case UIF_IS_MESH:
-      {
-      auto mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
-      return mesh_layer != nullptr;
-      }
+			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH);
     case UIF_IS_MESHDATA_MULTICOMPONENT:
-      {
-      auto mesh_layer = dynamic_cast<MeshWrapperBase*>(m_Layer);
-
-      if (!mesh_layer)
-        return false;
-
-      return mesh_layer->GetActiveDataArrayProperty()->IsMultiComponent();
-      }
+			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH)
+					&& row_model->CheckState(AbstractLayerTableRowModel::UIF_MULTICOMPONENT);
+		case UIF_MESH_HAS_DATA:
+			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH_HAS_DATA);
     }
 
   return false;
