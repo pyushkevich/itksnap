@@ -152,6 +152,10 @@ public:
   /** Build m_LookupTable based on the active array property */
   virtual void UpdateLUT() override;
 
+	/** Return null for LabelMesh */
+	virtual ColorMap *GetColorMap() const override
+	{ return nullptr; }
+
   // end of virtual methods implementation
   //--------------------------------------------
 
