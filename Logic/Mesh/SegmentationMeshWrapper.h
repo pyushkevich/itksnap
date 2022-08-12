@@ -67,6 +67,9 @@ public:
   /** Add a new blank segmentation mesh assembly to the assembly map*/
   void CreateNewAssembly(unsigned int timepoint);
 
+	const char* GetNicknamePrefix() const
+	{ return m_NicknamePrefix; }
+
 protected:
   SegmentationMeshWrapper();
   virtual ~SegmentationMeshWrapper() = default;
@@ -76,6 +79,46 @@ protected:
   SmartPtr<LabelImageWrapper> m_ImagePointer;
 
   SmartPtr<MeshOptions> m_MeshOptions;
+
+	const char* m_NicknamePrefix = "Mesh-";
+};
+
+/**
+ * @brief The SegmentationMetadataUpdateCallback class
+ * Observe the metadata event from the caller, and update the mesh layer accordingly
+ */
+class SegmentationMetadataUpdateCallback : public itk::Command
+{
+public:
+	irisITKObjectMacro(SegmentationMetadataUpdateCallback, itk::Command)
+
+	void Execute(itk::Object * caller, const itk::EventObject &) override
+	{
+		assert(m_SegMesh); // If failed, you forgot to call the Initialize method
+
+		LabelImageWrapper * liw = dynamic_cast<LabelImageWrapper*>(caller);
+		if (liw)
+			UpdateMeshFromImage(liw);
+	}
+
+	void Execute(const itk::Object * , const itk::EventObject & ) override {}
+
+	void Initialize(SegmentationMeshWrapper *segMesh)
+	{ m_SegMesh = segMesh; }
+
+protected:
+	SegmentationMetadataUpdateCallback() {}
+	virtual ~SegmentationMetadataUpdateCallback() {}
+
+private:
+	void UpdateMeshFromImage(LabelImageWrapper *liw)
+	{
+		std::ostringstream oss;
+		oss << m_SegMesh->GetNicknamePrefix() << liw->GetNickname();
+		m_SegMesh->SetCustomNickname(oss.str());
+	}
+
+	SmartPtr<SegmentationMeshWrapper> m_SegMesh;
 };
 
 #endif // SEGMENTATIONMESHWRAPPER_H

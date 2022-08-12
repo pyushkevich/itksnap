@@ -324,8 +324,6 @@ UpdateApperance(ActorPool *pool, unsigned int)
   // Always update LUT first
   UpdateLUT();
 
-  // Converting division to multiplication for efficiency
-
   for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
     {
     LabelType label = it->first;
@@ -343,16 +341,14 @@ LabelMeshDisplayMappingPolicy::
 ConfigureLegend(vtkScalarBarActor* legend)
 {
   legend->SetLookupTable(m_LookupTable);
-  legend->SetTitle("Label");
-  legend->SetNumberOfLabels(m_LookupTable->GetNumberOfColors());
 }
 
 void
 LabelMeshDisplayMappingPolicy::
 UpdateLUT()
 {
-  //m_LookupTable->SetIndexedLookup(true);
-  size_t numClr = m_ColorLabelTable->GetNumberOfValidLabels();
+	size_t numClr = m_ColorLabelTable->GetNumberOfValidLabels();
+	m_LookupTable->SetIndexedLookup(true);
   m_LookupTable->SetNumberOfColors(numClr);
   m_LookupTable->SetRange(0, 6);
 
@@ -368,6 +364,7 @@ UpdateLUT()
     rgbaD[3] = cit->second.GetAlpha() / 255.0;
 
     m_LookupTable->SetTableValue(cit->first, rgbaD);
+		m_LookupTable->SetAnnotation(cit->first, std::to_string(cit->first));
     }
   m_LookupTable->Build();
 }
