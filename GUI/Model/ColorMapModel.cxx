@@ -153,6 +153,10 @@ bool ColorMapModel::ProcessMousePressEvent(const Vector3d &x)
   // Reference to the color map
   ColorMap *cm = this->GetColorMap();
 
+	// For some layer such as segmentation image and mesh, cm can be nullptr
+	if (!cm)
+		return false;
+
   // Check if the press occurs near a control point
   for(size_t i = 0; i < cm->GetNumberOfCMPoints(); i++)
     {
@@ -195,6 +199,11 @@ bool ColorMapModel::ProcessMouseDragEvent(const Vector3d &x)
 {
   // Reference to the color map
   ColorMap *cm = this->GetColorMap();
+
+	// For some layer such as segmentation image and mesh, cm can be nullptr
+	if (!cm)
+		return false;
+
   ColorMapLayerProperties &p  = this->GetProperties();
   int isel = p.GetSelectedControlIndex();
   Side side = p.GetSelectedControlSide();
