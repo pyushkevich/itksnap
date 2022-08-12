@@ -64,6 +64,7 @@ public:
     UIF_IS_4D_IMAGE,
     UIF_IS_MESH,
     UIF_IS_MESHDATA_MULTICOMPONENT,
+		UIF_MESH_HAS_DATA
   };
 
   // Implementation of virtual functions from parent class

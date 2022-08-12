@@ -43,6 +43,7 @@ public:
     UIF_CONTRAST_ADJUSTABLE,
     UIF_MULTICOMPONENT,
     UIF_MESH,
+		UIF_MESH_HAS_DATA // mesh has data for color rendering
     };
 
   // ----------------------------------------------
