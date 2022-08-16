@@ -5,6 +5,7 @@
 #include "PropertyModel.h"
 #include "TagList.h"
 #include "MeshWrapperBase.h"
+#include "MeshDataArrayProperty.h"
 
 class AbstractMultiChannelDisplayMappingPolicy;
 class AbstractLayerTableRowModel;
@@ -66,6 +67,9 @@ public:
     UIF_IS_MESHDATA_MULTICOMPONENT,
 		UIF_MESH_HAS_DATA
   };
+
+	/** For UI layer to map mesh data type to resources */
+	typedef MeshDataArrayProperty::MeshDataType MeshDataType;
 
   // Implementation of virtual functions from parent class
   void RegisterWithLayer(WrapperBase *layer) ITK_OVERRIDE;

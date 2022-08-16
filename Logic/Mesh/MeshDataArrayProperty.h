@@ -21,7 +21,7 @@ public:
 
   typedef std::map<vtkIdType, std::string> ComponentNameMap;
 
-  enum MeshDataType { POINT_DATA=0, CELL_DATA, COUNT };
+	enum MeshDataType { POINT_DATA=0, CELL_DATA, FIELD_DATA, COUNT };
 
   void Initialize(vtkDataArray *array, MeshDataType type);
 

@@ -21,7 +21,8 @@ RegistryEnumMap<AbstractMeshDataArrayProperty::MeshDataType>
 AbstractMeshDataArrayProperty::m_MeshDataTypeEnumMap =
 {
   { AbstractMeshDataArrayProperty::POINT_DATA, "PointData" },
-  { AbstractMeshDataArrayProperty::CELL_DATA, "CellData" }
+	{ AbstractMeshDataArrayProperty::CELL_DATA, "CellData" },
+	{ AbstractMeshDataArrayProperty::FIELD_DATA, "FieldData" }
 };
 
 
@@ -31,7 +32,7 @@ Initialize(vtkDataArray *array, MeshDataType type)
 {
   // Copy the array name to
   m_Name = new char[strlen(array->GetName())];
-  strcpy(m_Name, array->GetName());
+	strcpy(m_Name, array->GetName());
 
   double *range = array->GetRange();
   m_min = range[0];
