@@ -76,10 +76,6 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 
   makeCoupling(ui->tagsWidget, m_Model->GetTagsModel());
 
-	//makeCoupling(ui->boxMeshDataName, m_Model->GetMeshDataArrayNameModel());
-
-	//makeCoupling(ui->boxMeshVectorMode, m_Model->GetMeshVectorModeModel());
-
   activateOnFlag(ui->grpMulticomponent, m_Model,
                  LayerGeneralPropertiesModel::UIF_MULTICOMPONENT,
                  QtWidgetActivator::HideInactive);
