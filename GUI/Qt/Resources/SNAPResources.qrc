@@ -191,6 +191,8 @@
         <file>icons8-camera-12.png</file>
         <file>html/components.html</file>
         <file>html/splash.html</file>
+        <file>mesh_cell_data.png</file>
+        <file>mesh_point_data.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

@@ -28,12 +28,16 @@ private slots:
   void on_btnUp_clicked();
   void on_btnDown_clicked();
   void on_spinBoxTP_valueChanged(int value);
+	void meshData_domainChanged();
+	void meshData_selectionChanged(int value);
 
 
 private:
   Ui::GeneralLayerInspector *ui;
 
   LayerGeneralPropertiesModel *m_Model;
+
+	static std::map<int, const char*> m_MeshDataTypeToIcon;
 };
 
 #endif // MULTICHANNELINSPECTOR_H
