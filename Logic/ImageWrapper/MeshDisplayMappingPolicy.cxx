@@ -239,8 +239,6 @@ UpdateLUT()
   if (!prop)
 		return;
 
-	vtkIdType activeComp = -1; // CompID for Magnitude Mode (default)
-
 	// Check vector mode setting for multi-component data
 	using VectorMode = MeshLayerDataArrayProperty::VectorMode;
 
@@ -265,42 +263,30 @@ UpdateLUT()
 				this->SetIntensityCurve(compCurve);
 				}
 			}
-
-		if (activeVecMode == VectorMode::COMPONENT)
-			activeComp = prop->GetActiveComponentId();
 		}
 
   // Build lookup table
-	double min = prop->GetMin(activeComp);
-	double max = prop->GetMax(activeComp);
-
 	// Find the min/max ratio to value range based on contrast curve
-	float minr, vminr;
-	m_IntensityCurve->GetControlPoint(0, minr, vminr);
-	float maxr, vmaxr;
-	m_IntensityCurve->GetControlPoint(m_IntensityCurve->GetControlPointCount() - 1, maxr, vmaxr);
-
-	// Configure LUT range
-	double range = max - min;
-	max = min + range * maxr; // new max based on contrast curve
-	min = min + range * minr; // new min based on contrast curve
-	m_LookupTable->SetRange(min, max); // lut only define values between contrast range
+	float xMin, tMin, xMax, tMax;
+	m_IntensityCurve->GetControlPoint(0, xMin, tMin);
+	m_IntensityCurve->GetControlPoint(m_IntensityCurve->GetControlPointCount() - 1, xMax, tMax);
+	m_LookupTable->SetRange(xMin, xMax); // lut range should be contrast range
 
 	// Prepare color generation
-	double indRange = maxr - minr;
 	const size_t numClr = 256;
 	double numdiv = 1.0/numClr;
   double clrdiv = 1.0/255.0;
+	double indRange = xMax - xMin;
 
   m_LookupTable->SetNumberOfColors(numClr);
   for (auto i = 0u; i < numClr; ++i)
     {
-		float ind = minr + indRange * i * numdiv;
+		float ind = xMin + indRange * i * numdiv;
 		auto val = m_IntensityCurve->Evaluate(ind);
 		auto rgbaC = m_ColorMap->MapIndexToRGBA(val);
-    double rgbaD[4];
-    for (auto i = 0; i < 4; ++i)
-      rgbaD[i] = rgbaC[i] * clrdiv;
+
+		double rgbaD[4] = {rgbaC[0] * clrdiv, rgbaC[1] * clrdiv,
+											 rgbaC[2] * clrdiv, rgbaC[3] * clrdiv};
 
     m_LookupTable->SetTableValue(i, rgbaD);
     }

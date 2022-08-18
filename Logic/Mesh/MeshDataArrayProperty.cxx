@@ -244,8 +244,6 @@ ScalarImageHistogram*
 MeshLayerDataArrayProperty::
 GetHistogram(size_t nBins)
 {
-	std::cout << "[MeshLayerDataArray] GetHistorgram" << std::endl;
-
   if (nBins > 0)
     m_HistogramFilter->SetNumberOfBins(nBins);
 
