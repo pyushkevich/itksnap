@@ -168,7 +168,7 @@ GenericMeshDisplayMappingPolicy::
 
 void
 GenericMeshDisplayMappingPolicy::
-UpdateApperance(ActorPool *pool, unsigned int)
+UpdateAppearance(ActorPool *pool, unsigned int)
 {
   // Get active data array property
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
@@ -182,6 +182,7 @@ UpdateApperance(ActorPool *pool, unsigned int)
   // Update lookup table
   UpdateLUT();
 
+	// Build the actorMap
   auto actorMap = pool->GetActorMap();
 
   for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
@@ -192,7 +193,6 @@ UpdateApperance(ActorPool *pool, unsigned int)
     // Configure mapper
     mapper->SetLookupTable(m_LookupTable);
     mapper->UseLookupTableScalarRangeOn();
-
 
     // -- point/cell data specific logic
     if (prop->GetType() == MeshDataType::POINT_DATA)
@@ -212,13 +212,7 @@ UpdateApperance(ActorPool *pool, unsigned int)
 
     // -- set active attribute
     mapper->SetColorModeToMapScalars();
-
-    if (prop->GetActiveVectorMode() > 1)
-      {
-      mapper->ColorByArrayComponent(prop->GetName(), prop->GetActiveComponentId());
-      }
-
-    }
+		}
 }
 
 void GenericMeshDisplayMappingPolicy::
@@ -243,11 +237,42 @@ UpdateLUT()
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
 
   if (!prop)
-    return;
+		return;
+
+	vtkIdType activeComp = -1; // CompID for Magnitude Mode (default)
+
+	// Check vector mode setting for multi-component data
+	using VectorMode = MeshLayerDataArrayProperty::VectorMode;
+
+	if (prop->GetNumberOfComponents() > 1)
+		{
+		VectorMode activeVecMode = prop->GetActiveVectorMode();
+
+		// Set which value lut will use for vector data
+		switch (activeVecMode)
+			{
+			case VectorMode::MAGNITUDE:
+				{
+				m_LookupTable->SetVectorMode(vtkScalarsToColors::MAGNITUDE);
+				this->SetIntensityCurve(prop->GetIntensityCurve());
+				break;
+				}
+			default:
+				{
+				m_LookupTable->SetVectorMode(vtkScalarsToColors::COMPONENT);
+				m_LookupTable->SetVectorComponent(prop->GetActiveComponentId());
+				auto compCurve = prop->GetActiveComponent().m_IntensityCurve;
+				this->SetIntensityCurve(compCurve);
+				}
+			}
+
+		if (activeVecMode == VectorMode::COMPONENT)
+			activeComp = prop->GetActiveComponentId();
+		}
 
   // Build lookup table
-	double min = prop->GetMin();
-	double max = prop->GetMax();
+	double min = prop->GetMin(activeComp);
+	double max = prop->GetMax(activeComp);
 
 	// Find the min/max ratio to value range based on contrast curve
 	float minr, vminr;
@@ -280,21 +305,6 @@ UpdateLUT()
     m_LookupTable->SetTableValue(i, rgbaD);
     }
 
-  switch (prop->GetActiveVectorMode())
-    {
-    case 0:
-      m_LookupTable->SetVectorMode(vtkScalarsToColors::MAGNITUDE);
-      break;
-    case 1:
-      m_LookupTable->SetVectorMode(vtkScalarsToColors::RGBCOLORS);
-      break;
-    default:
-      {
-      m_LookupTable->SetVectorMode(vtkScalarsToColors::COMPONENT);
-      m_LookupTable->SetVectorComponent(prop->GetActiveComponentId());
-      }
-    }
-
   m_LookupTable->Build();
 }
 
@@ -317,7 +327,7 @@ LabelMeshDisplayMappingPolicy::
 
 void
 LabelMeshDisplayMappingPolicy::
-UpdateApperance(ActorPool *pool, unsigned int)
+UpdateAppearance(ActorPool *pool, unsigned int)
 {
   auto actorMap = pool->GetActorMap();
 

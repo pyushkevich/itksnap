@@ -334,7 +334,6 @@ SetActiveMeshLayerDataPropertyId(int id)
       {
       for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)
         {
-
         auto pointData = polyIt->second->GetPolyData()->GetPointData();
         pointData->SetActiveAttribute(prop->GetName(),
                                vtkDataSetAttributes::SCALARS);
@@ -370,7 +369,7 @@ UpdateMetaData()
     return;
 
   // Update Bounding Box
-  for (auto kv : m_MeshAssemblyMap)
+	for (auto &kv : m_MeshAssemblyMap)
     {
     std::ostringstream oss;
 
@@ -384,7 +383,7 @@ UpdateMetaData()
 
   // Update Memory Usage
   double memory = 0.0;
-  for (auto kv : m_MeshAssemblyMap)
+	for (auto &kv : m_MeshAssemblyMap)
     memory += kv.second->GetTotalMemoryInMB();
 
   // Use an oss to format string
@@ -393,7 +392,7 @@ UpdateMetaData()
   m_MetaDataMap["Memory Usage (MB)"] = oss.str();
 
   // Update Data Array Properties
-  for (auto kv : m_CombinedDataPropertyMap)
+	for (auto &kv : m_CombinedDataPropertyMap)
     {
     std::ostringstream oss;
     oss.precision(3);

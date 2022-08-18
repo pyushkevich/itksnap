@@ -93,9 +93,8 @@ public:
   typedef AbstractPropertyModel<int, MeshDataArrayNameDomain> AbstractMeshDataArrayNameModel;
 
   // Typedefs for mesh data multi-component display mode
-  typedef MeshLayerDataArrayProperty::VectorModes VectorModes;
-  typedef SimpleItemSetDomain<int, std::string> MeshVectorModeDomain;
-  typedef AbstractPropertyModel<int, MeshVectorModeDomain> AbstractMeshVectorModeModel;
+	typedef SimpleItemSetDomain<vtkIdType, std::string> MeshVectorModeDomain;
+	typedef AbstractPropertyModel<vtkIdType, MeshVectorModeDomain> AbstractMeshVectorModeModel;
 
   // Models
   irisGetMacro(DisplayModeModel, AbstractDisplayModeModel *)
@@ -150,8 +149,8 @@ protected:
   void SetMeshDataArrayNameValue(int value);
 
   SmartPtr<AbstractMeshVectorModeModel> m_MeshVectorModeModel;
-  bool GetMeshVectorModeValueAndRange(int &value, MeshVectorModeDomain *domain);
-  void SetMeshVectorModeValue(int value);
+	bool GetMeshVectorModeValueAndRange(vtkIdType &value, MeshVectorModeDomain *domain);
+	void SetMeshVectorModeValue(vtkIdType value);
 
   SmartPtr<AbstractRangedIntProperty> m_SelectedComponentModel;
   bool GetSelectedComponentValueAndRange(int &value, NumericValueRange<int> *domain);

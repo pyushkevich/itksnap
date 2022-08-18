@@ -19,7 +19,7 @@ public:
   irisITKAbstractObjectMacro(MeshDisplayMappingPolicy, AbstractContinuousImageDisplayMappingPolicy)
 
   typedef MeshDataArrayProperty::MeshDataType MeshDataType;
-  typedef MeshLayerDataArrayProperty::VectorModes VectorModes;
+	typedef MeshLayerDataArrayProperty::VectorMode VectorMode;
 
   //--------------------------------------------
   // virtual methods implementation
@@ -58,7 +58,7 @@ public:
   virtual void SetColorMap(ColorMap *map) override;
 
   /** Configure actor */
-  virtual void UpdateApperance(ActorPool *pool, unsigned int timepoint) = 0;
+	virtual void UpdateAppearance(ActorPool *pool, unsigned int timepoint) = 0;
 
   /** Configure legend scalar bar */
   virtual void ConfigureLegend(vtkScalarBarActor *legend) = 0;
@@ -113,7 +113,7 @@ public:
   // virtual methods implementation
 
   /** Configure mapper */
-  virtual void UpdateApperance(ActorPool *pool, unsigned int timepoint) override;
+	virtual void UpdateAppearance(ActorPool *pool, unsigned int timepoint) override;
 
   /** Configure legend scalar bar */
   virtual void ConfigureLegend(vtkScalarBarActor *legend) override;
@@ -144,7 +144,7 @@ public:
   // virtual methods implementation
 
   /** Configure mapper */
-  virtual void UpdateApperance(ActorPool *pool, unsigned int timepoint) override;
+	virtual void UpdateAppearance(ActorPool *pool, unsigned int timepoint) override;
 
   /** Configure legend scalar bar */
   virtual void ConfigureLegend(vtkScalarBarActor *legend) override;

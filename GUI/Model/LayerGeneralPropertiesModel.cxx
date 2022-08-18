@@ -191,9 +191,11 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
 			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH);
     case UIF_IS_MESHDATA_MULTICOMPONENT:
 			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH)
+					&& row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH_HAS_DATA)
 					&& row_model->CheckState(AbstractLayerTableRowModel::UIF_MULTICOMPONENT);
 		case UIF_MESH_HAS_DATA:
-			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH_HAS_DATA);
+			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH)
+					&& row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH_HAS_DATA);
     }
 
   return false;
@@ -541,33 +543,12 @@ AbstractLayerTableRowModel *LayerGeneralPropertiesModel::GetSelectedLayerTableRo
 
 bool
 LayerGeneralPropertiesModel::
-GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain)
+GetMeshDataArrayNameValueAndRange(int &, MeshDataArrayNameDomain *)
 {
-
   // The current layer has to be a mesh layer
   StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
   if (!mesh_layer)
     return false;
-
-  auto &props = mesh_layer->GetCombinedDataProperty();
-
-  if (domain)
-    {
-    for (auto it = props.cbegin(); it != props.cend(); ++it)
-      {
-      std::ostringstream oss;
-      if (it->second->GetType() == MeshDataArrayProperty::POINT_DATA)
-        oss << "(point_data) ";
-      else if (it->second->GetType() == MeshDataArrayProperty::CELL_DATA)
-        oss << "(cell_data) ";
-
-      oss << it->second->GetName();
-
-      (*domain)[it->first] = oss.str();
-      }
-
-    value = mesh_layer->GetActiveMeshLayerDataPropertyId();
-    }
 
   return true;
 }
@@ -583,60 +564,81 @@ SetMeshDataArrayNameValue(int value)
 
   mesh_layer->SetActiveMeshLayerDataPropertyId(value);
 
+	// ask UI to recheck the state of this model
+	// -- this is for the activation of the vector mode layout
+	this->InvokeEvent(StateMachineChangeEvent());
+	// Trigger vector mode to update domain
   this->GetMeshVectorModeModel()->InvokeEvent(DomainChangedEvent());
 }
 
 bool
 LayerGeneralPropertiesModel::
-GetMeshVectorModeValueAndRange(int &value, MeshVectorModeDomain *domain)
+GetMeshVectorModeValueAndRange(vtkIdType &value, MeshVectorModeDomain *domain)
 {
   // The current layer has to be a mesh layer
   StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
   if (!mesh_layer)
     return false;
 
-  auto names = mesh_layer->GetActiveDataArrayProperty()->GetVectorModeNameMap();
+	using VectorMode = MeshLayerDataArrayProperty::VectorMode;
 
-  bool isRGBFeasible = false;
-  // only show magnitude mode if the array is single component
-  if(names.size() <= 3)
-    {
-    (*domain)[names.begin()->first] = names.begin()->second;
-    value = names.begin()->first;
-    return true;
-    }
+	auto layer_prop = mesh_layer->GetActiveDataArrayProperty();
+	size_t nc = layer_prop->GetNumberOfComponents();
 
-  else if(names.size() == 5)
-    isRGBFeasible = true;
+	// Start populating the domain
+	size_t domain_ind = 0;
 
+	if (domain)
+		{
+		(*domain)[domain_ind++] = "Magnitude"; // always starts with magnitude
 
-  if (domain)
-    {
-    for (auto kv : names)
-      {
-      // skip RGB color mode if number of component is not 3
-      if (!isRGBFeasible && kv.first == 1)
-        continue;
+		for (size_t i = 0; i < nc; ++i) // process each components
+			(*domain)[domain_ind++] = std::string(layer_prop->GetComponent(i).m_Name);
+		}
 
-      (*domain)[kv.first] = kv.second;
-      }
-
-
-    value = mesh_layer->GetActiveDataArrayProperty()->GetActiveVectorMode();
-    }
+	// Processs current value
+	switch(layer_prop->GetActiveVectorMode())
+		{
+		case VectorMode::MAGNITUDE:
+			value = 0;
+			break;
+		default: // COMPONENT Mode
+			{
+			int shift = 1; // skip magnitude 0
+			value = layer_prop->GetActiveComponentId() + shift;
+			}
+		}
 
   return true;
 }
 
 void
 LayerGeneralPropertiesModel::
-SetMeshVectorModeValue(int value)
+SetMeshVectorModeValue(vtkIdType value)
 {
   // The current layer has to be a mesh layer
   StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
   if (!mesh_layer)
     return;
 
-  mesh_layer->GetActiveDataArrayProperty()->SetActiveVectorMode(value);
+	assert(value >= 0);
+
+	auto layer_prop = mesh_layer->GetActiveDataArrayProperty();
+	using VectorMode = MeshLayerDataArrayProperty::VectorMode;
+
+	if (value == 0) // magnitude
+		layer_prop->SetActiveVectorMode(VectorMode::MAGNITUDE);
+	else
+		{
+		int shift = 1; // skip magnitude 0
+		// process individual components
+		layer_prop->SetActiveVectorMode(VectorMode::COMPONENT);
+		layer_prop->SetActiveComponentId(value - shift);
+		}
+
+	std::cout << "[LayerGeneralPropertiesModel] VecMode="
+						<< layer_prop->GetActiveVectorMode() << ", ActiveComp="
+						<< layer_prop->GetActiveComponentId() << std::endl;
+
   mesh_layer->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }

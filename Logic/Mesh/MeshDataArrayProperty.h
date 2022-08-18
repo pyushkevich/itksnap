@@ -14,12 +14,65 @@
 
 template<class TIn> class ThreadedHistogramImageFilter;
 
+struct MeshArrayComponent
+{
+	MeshArrayComponent() {}
+
+	MeshArrayComponent(const char *_name, double _min, double _max)
+		:m_Min(_min), m_Max(_max)
+	{
+		this->m_Name = new char[strlen(_name)];
+		strcpy(this->m_Name, _name);
+		this->m_IntensityCurve = IntensityCurveVTK::New();
+		this->m_IntensityCurve->Initialize(3);
+	}
+
+	~MeshArrayComponent()
+	{
+		delete[] m_Name;
+	}
+
+	MeshArrayComponent(const MeshArrayComponent &other)
+	{
+		this->m_Name = new char[strlen(other.m_Name)];
+		strcpy(this->m_Name, other.m_Name);
+		this->m_Min = other.m_Min;
+		this->m_Max = other.m_Max;
+		if (other.m_IntensityCurve)
+			this->m_IntensityCurve = other.m_IntensityCurve;
+	}
+
+	MeshArrayComponent &operator=(const MeshArrayComponent &other)
+	{
+		this->m_Name = new char[strlen(other.m_Name)];
+		strcpy(this->m_Name, other.m_Name);
+		this->m_Min = other.m_Min;
+		this->m_Max = other.m_Max;
+		if (other.m_IntensityCurve)
+			this->m_IntensityCurve = other.m_IntensityCurve;
+		return *this;
+	}
+
+	void Print(std::ostream &os)
+	{
+		os.precision(7);
+		os << "MeshArrayComponent ----" << std::endl;
+		os << "-- Name: " << m_Name << std::endl;
+		os << "-- Range: [" << m_Min << ',' << m_Max << "]" << std::endl;
+	}
+
+	char *m_Name;
+	double m_Min;
+	double m_Max;
+	SmartPtr<IntensityCurveVTK> m_IntensityCurve;
+};
+
 class AbstractMeshDataArrayProperty : public itk::Object
 {
 public:
   irisITKAbstractObjectMacro(AbstractMeshDataArrayProperty, itk::Object);
 
-  typedef std::map<vtkIdType, std::string> ComponentNameMap;
+	typedef std::map<vtkIdType, MeshArrayComponent> MeshArrayComponentMap;
 
 	enum MeshDataType { POINT_DATA=0, CELL_DATA, FIELD_DATA, COUNT };
 
@@ -31,10 +84,10 @@ public:
   MeshDataType GetType() const;
 
   /** Get min */
-  double GetMin() const { return m_min; }
+	double GetMin(vtkIdType comp = -1) const;
 
   /** Get max */
-  double GetMax() const { return m_max; }
+	double GetMax(vtkIdType comp = -1) const;
 
   /** Get name */
   const char* GetName()
@@ -42,11 +95,14 @@ public:
 
   void Print(std::ostream &os) const;
 
-  bool IsMultiComponent()
-  { return m_ComponentNameMap.size() > 1; }
+	bool IsMultiComponent() const
+	{ return m_MeshArrayComponentMap.size() > 1; }
 
-  ComponentNameMap &GetComponentNameMap()
-  { return m_ComponentNameMap; }
+	size_t GetNumberOfComponents() const
+	{ return m_MeshArrayComponentMap.size(); }
+
+	MeshArrayComponentMap &GetMeshArrayComponentMap()
+	{ return m_MeshArrayComponentMap; }
 
   static RegistryEnumMap<MeshDataType>& GetMeshDataTypeEnumMap()
   { return m_MeshDataTypeEnumMap; }
@@ -57,10 +113,10 @@ protected:
   virtual ~AbstractMeshDataArrayProperty();
 
   char* m_Name;
-  double m_min;
-  double m_max;
+	double m_MagMin; // min Magnitude
+	double m_MagMax; // max Magnitude
 
-  ComponentNameMap m_ComponentNameMap;
+	MeshArrayComponentMap m_MeshArrayComponentMap;
 
   MeshDataType m_Type;
 
@@ -107,9 +163,13 @@ public:
   typedef itk::MinimumMaximumImageFilter<DataArrayImageType> MinMaxFilterType;
 
   /** Multi-Component (Vector) Display Mode */
-  typedef vtkScalarsToColors::VectorModes VectorModes;
-  typedef std::map<int, std::string> VectorModeNameMap;
-
+	enum VectorMode
+	{
+		MAGNITUDE = 0,
+		RGBCOLOR,
+		COMPONENT,
+		COUNT
+	};
 
   /** Get Color Map */
   ColorMap* GetColorMap()
@@ -129,23 +189,36 @@ public:
     If there is no current histogram, a default histogram with 128 entries
     will be generated.
     */
-  ScalarImageHistogram* GetHistogram(size_t nBins) const;
+	ScalarImageHistogram* GetHistogram(size_t nBins);
 
   /** Merge another property into this. Adjusting min/max etc. */
   void Merge(MeshDataArrayProperty *other);
 
-  VectorModeNameMap &GetVectorModeNameMap()
-  { return m_VectorModeNameMap; }
-
-  int GetActiveVectorMode()
+	VectorMode GetActiveVectorMode()
   { return m_ActiveVectorMode; }
 
-  void SetActiveVectorMode(int mode);
+	void SetActiveVectorMode(int mode);
 
-  int GetActiveComponentId()
+	vtkIdType GetActiveComponentId()
   {
-    return (m_ActiveVectorMode > 1 ? m_ActiveVectorMode - m_VectorModeShiftSize : 0);
+		return m_ActiveComponentId;
   }
+
+	void SetActiveComponentId(vtkIdType comp)
+	{
+		m_ActiveComponentId = comp;
+	}
+
+	MeshArrayComponent &GetActiveComponent()
+	{
+		return m_MeshArrayComponentMap.at(m_ActiveComponentId);
+	}
+
+	MeshArrayComponent &GetComponent(vtkIdType id)
+	{
+		assert(m_MeshArrayComponentMap.count(id));
+		return m_MeshArrayComponentMap.at(id);
+	}
 
   /** Deep copy self to the other object */
   void Initialize(MeshDataArrayProperty *other);
@@ -154,8 +227,6 @@ protected:
   MeshLayerDataArrayProperty();
   ~MeshLayerDataArrayProperty() {};
 
-  void UpdateVectorModeNameMap();
-
   SmartPtr<ColorMap> m_ColorMap;
   SmartPtr<IntensityCurveVTK> m_IntensityCurve;
   SmartPtr<HistogramFilterType> m_HistogramFilter;
@@ -163,19 +234,10 @@ protected:
   std::list<vtkDataArray*> m_DataPointerList;
 
   // Active Vector Mode
-  int m_ActiveVectorMode = VectorModes::MAGNITUDE;
+	VectorMode m_ActiveVectorMode = VectorMode::MAGNITUDE;
 
-  // The number of VectorModes that are not component-specific
-  const int m_VectorModeShiftSize = 2;
-
-  /** A hybrid map consists of both non-component-specific VectorModes
-   *  and all single components that can be rendered independently.
-   *  The first M entries are always non-component-specific, where M
-   *  is defined by the number of supported non-component-specific VectorModes
-   *  stored in the const m_VectorModeShiftSize. All component-specific mode
-   *  are stored with their index shifted by M.
-   */
-  VectorModeNameMap m_VectorModeNameMap;
+	// Active Component
+	vtkIdType m_ActiveComponentId = 0;
 };
 
 #endif // MESHDATAARRAYPROPERTY_H
