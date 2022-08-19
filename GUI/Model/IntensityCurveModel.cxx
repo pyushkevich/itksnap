@@ -86,6 +86,7 @@ void
 IntensityCurveModel
 ::RegisterWithLayer(WrapperBase *layer)
 {
+	m_Layer = layer;
   IntensityCurveLayerProperties &p = GetProperties();
 
   // Listen to changes in the layer's intensity curve
@@ -105,10 +106,18 @@ IntensityCurveModel
   if(p.IsFirstTime())
     {
     // Set the cutoff automatically
-    const ScalarImageHistogram *hist = layer->GetHistogram(0);
-    p.SetHistogramCutoff(hist->GetReasonableDisplayCutoff(0.95, 0.6));
-    p.SetFirstTime(false);
+		SetInitialHistogramCutoff();
     }
+}
+
+void
+IntensityCurveModel
+::SetInitialHistogramCutoff()
+{
+	IntensityCurveLayerProperties &p = GetProperties();
+	const ScalarImageHistogram *hist = m_Layer->GetHistogram(0);
+	p.SetHistogramCutoff(hist->GetReasonableDisplayCutoff(0.95, 0.6));
+	p.SetFirstTime(false);
 }
 
 void
@@ -627,6 +636,13 @@ void IntensityCurveModel::OnResetCurveAction()
 void IntensityCurveModel::OnUpdate()
 {
   Superclass::OnUpdate();
+
+	if (m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent()))
+		{
+		SetInitialHistogramCutoff();
+		std::cout << "[IntensityCurveModel] Wrapper DMP Changed" << std::endl;
+		}
+
 }
 
 AbstractRangedDoubleProperty *

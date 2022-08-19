@@ -57,8 +57,14 @@ MeshDisplayMappingPolicy::GetNativeImageRangeForCurve()
 {
   // Get Active prop
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
+	vtkIdType activeComp = -1;
+	if (prop->GetActiveVectorMode() == VectorMode::COMPONENT)
+		{
+		activeComp = prop->GetActiveComponentId();
+		}
 
-  return Vector2d(prop->GetMin(), prop->GetMax());
+
+	return Vector2d(prop->GetMin(activeComp), prop->GetMax(activeComp));
 }
 
 ScalarImageHistogram *
@@ -265,35 +271,36 @@ UpdateLUT()
 		}
 
 	// Build the lookup table
-	// Find the min/max ratio to value range based on contrast curve
+	// -- Find data range
 	double dmin, dmax; // data min and max
 	dmin = prop->GetMin(activeComp);
 	dmax = prop->GetMax(activeComp);
 
+	// -- Find contrast range (ratio)
 	float rMin, tMin, rMax, tMax;
 	m_IntensityCurve->GetControlPoint(0, rMin, tMin);
 	m_IntensityCurve->GetControlPoint(m_IntensityCurve->GetControlPointCount() - 1, rMax, tMax);
 
+	// -- Calculate the lut range
 	double lutMin, lutMax, drange;
 	drange = dmax - dmin;
 	lutMin = dmin + drange * rMin;
 	lutMax = dmin + drange * rMax;
 
-	m_LookupTable->SetRange(lutMin, lutMax); // lut range should be contrast range
+	m_LookupTable->SetRange(lutMin, lutMax);
 
 	// Prepare color generation
 	const size_t numClr = 256;
 	double numdiv = 1.0/numClr;
   double clrdiv = 1.0/255.0;
-	double indRange = rMax - rMin;
-
   m_LookupTable->SetNumberOfColors(numClr);
+
+	double indRange = rMax - rMin; // index range is based on contrast range
   for (auto i = 0u; i < numClr; ++i)
     {
 		float ind = rMin + indRange * i * numdiv;
 		auto val = m_IntensityCurve->Evaluate(ind);
 		auto rgbaC = m_ColorMap->MapIndexToRGBA(val);
-
 		double rgbaD[4] = {rgbaC[0] * clrdiv, rgbaC[1] * clrdiv,
 											 rgbaC[2] * clrdiv, rgbaC[3] * clrdiv};
 

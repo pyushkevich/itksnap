@@ -221,7 +221,11 @@ MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMa
 			// Any change in data property triggers dmp update
 			auto genericDMP = dynamic_cast<GenericMeshDisplayMappingPolicy*>(GetDisplayMapping());
 			if (genericDMP)
+				{
+				std::cout << "[MeshWrapperBase] dmp observed" << std::endl;
 				newprop->AddObserver(itk::ModifiedEvent(), genericDMP->GetUpdateCallbackCommand());
+				}
+
       }
     }
 }

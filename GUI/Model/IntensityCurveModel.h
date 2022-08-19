@@ -172,6 +172,8 @@ public:
   AbstractRangedDoubleProperty *GetIntensityRangeModel(
       IntensityRangePropertyType index) const;
 
+	void SetInitialHistogramCutoff();
+
   void OnAutoFitWindow();
 protected:
 

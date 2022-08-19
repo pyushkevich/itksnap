@@ -25,7 +25,6 @@ struct MeshArrayComponent
 		strcpy(this->m_Name, _name);
 		this->m_IntensityCurve = IntensityCurveVTK::New();
 		this->m_IntensityCurve->Initialize(3);
-		this->m_IntensityCurve->ScaleControlPointsToWindow(_min, _max);
 	}
 
 	~MeshArrayComponent()

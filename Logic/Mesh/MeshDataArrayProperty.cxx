@@ -226,7 +226,7 @@ Merge(MeshDataArrayProperty *other)
 			m_MeshArrayComponentMap[kv.first] = kv.second;
     }
 
-	this->Modified();
+	InvokeEvent(itk::ModifiedEvent());
 }
 
 void
@@ -242,7 +242,7 @@ MeshLayerDataArrayProperty
 	m_ActiveVectorMode = (VectorMode)mode;
 	m_ActiveComponentId = compId;
 
-	this->Modified();
+	InvokeEvent(itk::ModifiedEvent());
 }
 
 inline double GetMagnitude(double *vector, size_t len)
