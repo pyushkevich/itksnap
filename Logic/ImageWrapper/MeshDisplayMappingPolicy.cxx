@@ -204,6 +204,7 @@ UpdateAppearance(ActorPool *pool, unsigned int)
       auto pointData = mapper->GetInput()->GetPointData();
       pointData->SetActiveAttribute(prop->GetName(),
                                     vtkDataSetAttributes::AttributeTypes::SCALARS);
+
       }
     else if (prop->GetType() == MeshDataType::CELL_DATA)
       {
@@ -212,6 +213,22 @@ UpdateAppearance(ActorPool *pool, unsigned int)
       cellData->SetActiveAttribute(prop->GetName(),
                                    vtkDataSetAttributes::AttributeTypes::SCALARS);
       }
+
+		// This methods are marked legacy and should be replaced by lut setting
+		// But obviously just setting lut does not work for this version
+		if (prop->GetNumberOfComponents() > 1)
+			{
+			switch(prop->GetActiveVectorMode())
+				{
+				case VectorMode::COMPONENT:
+					mapper->ColorByArrayComponent(prop->GetName(), prop->GetActiveComponentId());
+					break;
+				case VectorMode::MAGNITUDE:
+					mapper->ColorByArrayComponent(prop->GetName(), -1);
+					break;
+				default:;
+				}
+			}
 
     // -- set active attribute
     mapper->SetColorModeToMapScalars();
@@ -247,6 +264,7 @@ UpdateLUT()
 
 	vtkIdType activeComp = -1;
 
+
 	if (prop->GetNumberOfComponents() > 1)
 		{
 		VectorMode activeVecMode = prop->GetActiveVectorMode();
@@ -256,14 +274,17 @@ UpdateLUT()
 			{
 			case VectorMode::MAGNITUDE:
 				{
-				m_LookupTable->SetVectorMode(vtkScalarsToColors::MAGNITUDE);
+				m_LookupTable->SetVectorModeToMagnitude();
+				m_LookupTable->SetVectorSize(-1);
 				this->SetIntensityCurve(prop->GetIntensityCurve());
 				break;
 				}
 			default:
 				{
-				m_LookupTable->SetVectorMode(vtkScalarsToColors::COMPONENT);
+				m_LookupTable->SetVectorModeToComponent();
+				m_LookupTable->SetVectorSize(1);
 				m_LookupTable->SetVectorComponent(prop->GetActiveComponentId());
+
 				activeComp = prop->GetActiveComponentId();
 				auto compCurve = prop->GetActiveComponent().m_IntensityCurve;
 				}

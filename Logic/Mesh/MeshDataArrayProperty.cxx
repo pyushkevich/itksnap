@@ -1,6 +1,7 @@
 #include "MeshDataArrayProperty.h"
 #include "MeshDisplayMappingPolicy.h"
 #include "ColorMap.h"
+#include "Rebroadcaster.h"
 
 // ========================================
 //  AbstractMeshDataArrayProperty Implementation
@@ -165,6 +166,9 @@ MeshLayerDataArrayProperty()
         (ColorMap::SystemPreset::COLORMAP_JET));
 	m_MagnitudeIntensityCurve = IntensityCurveVTK::New();
 	m_MagnitudeIntensityCurve->Initialize();
+	SetIntensityCurve(m_MagnitudeIntensityCurve);
+	m_ActiveVectorMode = VectorMode::MAGNITUDE;
+	m_ActiveComponentId = 0;
   m_HistogramFilter = HistogramFilterType::New();
   m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
   m_MinMaxFilter = MinMaxFilterType::New();
@@ -194,17 +198,28 @@ IntensityCurveVTK*
 MeshLayerDataArrayProperty
 ::GetIntensityCurve()
 {
-	if (m_ActiveVectorMode == VectorMode::MAGNITUDE)
-		return m_MagnitudeIntensityCurve;
+	return m_ActiveIntensityCurve;
+}
 
-	return GetActiveComponent().m_IntensityCurve;
+void
+MeshLayerDataArrayProperty
+::SetIntensityCurve(IntensityCurveVTK *curve)
+{
+	// Remove observers from old curve
+	if (m_ActiveIntensityCurve)
+		m_ActiveIntensityCurve->RemoveObserver(m_ActiveIntensityCurveObserverTag);
+
+	// Add new curve
+	m_ActiveIntensityCurve = curve;
+	m_ActiveIntensityCurveObserverTag =
+			Rebroadcaster::Rebroadcast(curve, itk::ModifiedEvent(), this, itk::ModifiedEvent());
 }
 
 void
 MeshLayerDataArrayProperty::
 Merge(MeshDataArrayProperty *other)
 {
-  // the name must be same
+	// the name must be same
   assert(!strcmp(this->m_Name, other->GetName()));
 
 	if (other->GetMax(-1) > this->m_MagMax)
@@ -241,6 +256,11 @@ MeshLayerDataArrayProperty
 
 	m_ActiveVectorMode = (VectorMode)mode;
 	m_ActiveComponentId = compId;
+
+	if (mode == VectorMode::MAGNITUDE)
+		SetIntensityCurve(m_MagnitudeIntensityCurve);
+	else
+		SetIntensityCurve(GetActiveComponent().m_IntensityCurve);
 
 	InvokeEvent(itk::ModifiedEvent());
 }

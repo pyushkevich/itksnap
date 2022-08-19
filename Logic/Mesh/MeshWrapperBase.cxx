@@ -225,7 +225,6 @@ MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMa
 				std::cout << "[MeshWrapperBase] dmp observed" << std::endl;
 				newprop->AddObserver(itk::ModifiedEvent(), genericDMP->GetUpdateCallbackCommand());
 				}
-
       }
     }
 }

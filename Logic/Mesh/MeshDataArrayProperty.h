@@ -178,6 +178,9 @@ public:
   /** Get Intensity Curve */
 	IntensityCurveVTK* GetIntensityCurve();
 
+	/** Set Intensity Curve */
+	void SetIntensityCurve(IntensityCurveVTK * curve);
+
   /**
     Compute the array histogram. The histogram is cached inside of the
     object, so repeated calls to this function with the same nBins parameter
@@ -222,7 +225,14 @@ protected:
   ~MeshLayerDataArrayProperty() {};
 
   SmartPtr<ColorMap> m_ColorMap;
+
+	// Stores intensity curve for magnitude vector mode
 	SmartPtr<IntensityCurveVTK> m_MagnitudeIntensityCurve;
+
+	// Current active intensity curve, for magnitude or specific component
+	SmartPtr<IntensityCurveVTK> m_ActiveIntensityCurve;
+	unsigned long m_ActiveIntensityCurveObserverTag;
+
   SmartPtr<HistogramFilterType> m_HistogramFilter;
   SmartPtr<MinMaxFilterType> m_MinMaxFilter;
   std::list<vtkDataArray*> m_DataPointerList;
