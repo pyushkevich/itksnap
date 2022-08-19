@@ -1,5 +1,6 @@
 #include "MeshWrapperBase.h"
 #include "MeshDisplayMappingPolicy.h"
+#include "Rebroadcaster.h"
 #include "vtkPointData.h"
 #include "vtkCellData.h"
 #include "vtkDataSetAttributes.h"
@@ -217,8 +218,11 @@ MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMa
       newprop->Initialize(cit->second);
       dest[cit->first] = newprop;
       m_CombinedDataPropertyMap[m_CombinedPropID++] = newprop;
+			// Any change in data property triggers dmp update
+			auto genericDMP = dynamic_cast<GenericMeshDisplayMappingPolicy*>(GetDisplayMapping());
+			if (genericDMP)
+				newprop->AddObserver(itk::ModifiedEvent(), genericDMP->GetUpdateCallbackCommand());
       }
-
     }
 }
 

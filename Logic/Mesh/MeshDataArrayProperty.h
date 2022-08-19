@@ -177,8 +177,7 @@ public:
   { return m_ColorMap; }
 
   /** Get Intensity Curve */
-  IntensityCurveVTK* GetIntensityCurve()
-  { return m_IntensityCurve; }
+	IntensityCurveVTK* GetIntensityCurve();
 
   /**
     Compute the array histogram. The histogram is cached inside of the
@@ -198,17 +197,12 @@ public:
 	VectorMode GetActiveVectorMode()
   { return m_ActiveVectorMode; }
 
-	void SetActiveVectorMode(int mode);
+	void SetActiveVectorMode(int mode, vtkIdType compId = -1);
 
 	vtkIdType GetActiveComponentId()
   {
 		return m_ActiveComponentId;
   }
-
-	void SetActiveComponentId(vtkIdType comp)
-	{
-		m_ActiveComponentId = comp;
-	}
 
 	MeshArrayComponent &GetActiveComponent()
 	{
@@ -229,7 +223,7 @@ protected:
   ~MeshLayerDataArrayProperty() {};
 
   SmartPtr<ColorMap> m_ColorMap;
-  SmartPtr<IntensityCurveVTK> m_IntensityCurve;
+	SmartPtr<IntensityCurveVTK> m_MagnitudeIntensityCurve;
   SmartPtr<HistogramFilterType> m_HistogramFilter;
   SmartPtr<MinMaxFilterType> m_MinMaxFilter;
   std::list<vtkDataArray*> m_DataPointerList;

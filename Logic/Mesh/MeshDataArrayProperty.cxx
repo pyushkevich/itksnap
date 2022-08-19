@@ -163,8 +163,8 @@ MeshLayerDataArrayProperty()
   m_ColorMap->SetToSystemPreset(
         static_cast<ColorMap::SystemPreset>
         (ColorMap::SystemPreset::COLORMAP_JET));
-  m_IntensityCurve = IntensityCurveVTK::New();
-  m_IntensityCurve->Initialize();
+	m_MagnitudeIntensityCurve = IntensityCurveVTK::New();
+	m_MagnitudeIntensityCurve->Initialize();
   m_HistogramFilter = HistogramFilterType::New();
   m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
   m_MinMaxFilter = MinMaxFilterType::New();
@@ -188,6 +188,16 @@ Initialize(MeshDataArrayProperty *other)
     {
 		m_MeshArrayComponentMap[kv.first] = kv.second;
     }
+}
+
+IntensityCurveVTK*
+MeshLayerDataArrayProperty
+::GetIntensityCurve()
+{
+	if (m_ActiveVectorMode == VectorMode::MAGNITUDE)
+		return m_MagnitudeIntensityCurve;
+
+	return GetActiveComponent().m_IntensityCurve;
 }
 
 void
@@ -215,14 +225,24 @@ Merge(MeshDataArrayProperty *other)
 		if (m_MeshArrayComponentMap.count(kv.first) == 0)
 			m_MeshArrayComponentMap[kv.first] = kv.second;
     }
+
+	this->Modified();
 }
 
 void
 MeshLayerDataArrayProperty
-::SetActiveVectorMode(int mode)
+::SetActiveVectorMode(int mode, vtkIdType compId)
 {
 	assert (mode > 0 && mode < VectorMode::COUNT);
+
+	if ((VectorMode)mode == m_ActiveVectorMode &&
+			(compId < 0 || compId == m_ActiveComponentId))
+		return; // No Change to make
+
 	m_ActiveVectorMode = (VectorMode)mode;
+	m_ActiveComponentId = compId;
+
+	this->Modified();
 }
 
 inline double GetMagnitude(double *vector, size_t len)
@@ -279,7 +299,6 @@ GetHistogram(size_t nBins)
 	if (this->GetActiveVectorMode() == VectorMode::COMPONENT)
 		activeVecComp = this->GetActiveComponentId();
 
-
   for (auto cit = m_DataPointerList.cbegin(); cit != m_DataPointerList.cend(); ++cit)
     {
     auto array = *cit;
@@ -311,6 +330,11 @@ GetHistogram(size_t nBins)
   m_MinMaxFilter->SetInput(img);
   m_HistogramFilter->SetRangeInputs(m_MinMaxFilter->GetMinimumOutput(),
                                     m_MinMaxFilter->GetMaximumOutput());
+	m_MinMaxFilter->Update();
+
+	std::cout << "[GetHistogram] activeComp=" << activeVecComp << "; range=["
+						<< m_MinMaxFilter->GetMinimum() << "," << m_MinMaxFilter->GetMaximum() << "]"
+						<< std::endl;
   m_HistogramFilter->Update();
 
   return m_HistogramFilter->GetHistogramOutput();

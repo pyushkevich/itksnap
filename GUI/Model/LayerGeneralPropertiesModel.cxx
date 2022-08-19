@@ -545,11 +545,8 @@ bool
 LayerGeneralPropertiesModel::
 GetMeshDataArrayNameValueAndRange(int &, MeshDataArrayNameDomain *)
 {
-  // The current layer has to be a mesh layer
-  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
-  if (!mesh_layer)
-    return false;
-
+	// This method is only a placeholder now
+	// Actual domain-value building has moved to UI now with the Icon Logic
   return true;
 }
 
@@ -630,10 +627,9 @@ SetMeshVectorModeValue(vtkIdType value)
 		layer_prop->SetActiveVectorMode(VectorMode::MAGNITUDE);
 	else
 		{
-		int shift = 1; // skip magnitude 0
+		const int shift = 1; // skip magnitude 0
 		// process individual components
-		layer_prop->SetActiveVectorMode(VectorMode::COMPONENT);
-		layer_prop->SetActiveComponentId(value - shift);
+		layer_prop->SetActiveVectorMode(VectorMode::COMPONENT, value - shift);
 		}
 
 	std::cout << "[LayerGeneralPropertiesModel] VecMode="

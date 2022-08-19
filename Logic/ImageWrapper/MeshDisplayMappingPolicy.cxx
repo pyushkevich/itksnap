@@ -71,18 +71,14 @@ void
 MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
 {
   m_ColorMap = map;
-
-  Rebroadcaster::Rebroadcast(m_ColorMap, itk::ModifiedEvent(),
-                             m_Wrapper, WrapperDisplayMappingChangeEvent());
+	m_Wrapper->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 void
 MeshDisplayMappingPolicy::SetIntensityCurve(IntensityCurveVTK *curve)
 {
   m_IntensityCurve = curve;
-
-  Rebroadcaster::Rebroadcast(m_IntensityCurve, itk::ModifiedEvent(),
-                             m_Wrapper, WrapperDisplayMappingChangeEvent());
+	m_Wrapper->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 void
@@ -157,7 +153,8 @@ MeshDisplayMappingPolicy::GetMeshLayer()
 GenericMeshDisplayMappingPolicy::
 GenericMeshDisplayMappingPolicy()
 {
-
+	m_UpdateCallbackCmd = UpdateGenericMeshDMPCommand::New();
+	m_UpdateCallbackCmd->SetDMP(this);
 }
 
 GenericMeshDisplayMappingPolicy::
@@ -242,6 +239,8 @@ UpdateLUT()
 	// Check vector mode setting for multi-component data
 	using VectorMode = MeshLayerDataArrayProperty::VectorMode;
 
+	vtkIdType activeComp = -1;
+
 	if (prop->GetNumberOfComponents() > 1)
 		{
 		VectorMode activeVecMode = prop->GetActiveVectorMode();
@@ -259,29 +258,39 @@ UpdateLUT()
 				{
 				m_LookupTable->SetVectorMode(vtkScalarsToColors::COMPONENT);
 				m_LookupTable->SetVectorComponent(prop->GetActiveComponentId());
+				activeComp = prop->GetActiveComponentId();
 				auto compCurve = prop->GetActiveComponent().m_IntensityCurve;
-				this->SetIntensityCurve(compCurve);
 				}
 			}
 		}
 
-  // Build lookup table
+	// Build the lookup table
 	// Find the min/max ratio to value range based on contrast curve
-	float xMin, tMin, xMax, tMax;
-	m_IntensityCurve->GetControlPoint(0, xMin, tMin);
-	m_IntensityCurve->GetControlPoint(m_IntensityCurve->GetControlPointCount() - 1, xMax, tMax);
-	m_LookupTable->SetRange(xMin, xMax); // lut range should be contrast range
+	double dmin, dmax; // data min and max
+	dmin = prop->GetMin(activeComp);
+	dmax = prop->GetMax(activeComp);
+
+	float rMin, tMin, rMax, tMax;
+	m_IntensityCurve->GetControlPoint(0, rMin, tMin);
+	m_IntensityCurve->GetControlPoint(m_IntensityCurve->GetControlPointCount() - 1, rMax, tMax);
+
+	double lutMin, lutMax, drange;
+	drange = dmax - dmin;
+	lutMin = dmin + drange * rMin;
+	lutMax = dmin + drange * rMax;
+
+	m_LookupTable->SetRange(lutMin, lutMax); // lut range should be contrast range
 
 	// Prepare color generation
 	const size_t numClr = 256;
 	double numdiv = 1.0/numClr;
   double clrdiv = 1.0/255.0;
-	double indRange = xMax - xMin;
+	double indRange = rMax - rMin;
 
   m_LookupTable->SetNumberOfColors(numClr);
   for (auto i = 0u; i < numClr; ++i)
     {
-		float ind = xMin + indRange * i * numdiv;
+		float ind = rMin + indRange * i * numdiv;
 		auto val = m_IntensityCurve->Evaluate(ind);
 		auto rgbaC = m_ColorMap->MapIndexToRGBA(val);
 
@@ -294,7 +303,17 @@ UpdateLUT()
   m_LookupTable->Build();
 }
 
-
+void
+GenericMeshDisplayMappingPolicy
+::UpdateGenericMeshDMPCommand
+::Execute(itk::Object *, const itk::EventObject &)
+{
+	std::cout << "[DMPUpdateCommand] execute()" << std::endl;
+	// Just pull the latest active info
+	auto layer_prop = m_DMP->GetMeshLayer()->GetActiveDataArrayProperty();
+	m_DMP->SetColorMap(layer_prop->GetColorMap());
+	m_DMP->SetIntensityCurve(layer_prop->GetIntensityCurve());
+}
 
 // ==================================================
 //  LabelMeshDisplayMappingPolicy Implementation
