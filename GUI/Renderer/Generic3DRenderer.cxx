@@ -238,13 +238,13 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
               WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
 
+	// Respond to levelset mesh layer display mapping policy change event
+	Rebroadcast(app->GetSNAPImageData()->GetMeshLayers(),
+							WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
+
   // Respond to active mesh layer change event
   Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
               ActiveLayerChangeEvent(), ModelUpdateEvent());
-
-  // Respond to mesh layer display mapping policy change event
-  Rebroadcast(app->GetSNAPImageData()->GetMeshLayers(),
-              WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
 
   // Respond to active mesh layer change event
   Rebroadcast(app->GetSNAPImageData()->GetMeshLayers(),
@@ -284,7 +284,6 @@ void Generic3DRenderer::UpdateMeshAssembly()
     return;
     }
 
-
   MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
 
   // Get display mapping policy for color configuration
@@ -297,8 +296,6 @@ void Generic3DRenderer::UpdateMeshAssembly()
       m_CrntActorMapLayerId = active_layer_id;
     }
 
-  auto actorMap = m_ActorPool->GetActorMap();
-
   // Remove all mesh actors from the renderer before the update
   // -- Since we are recycling all actors without constantly create/delete,
   // -- rebuilding actor map everytime is no longer expensive
@@ -306,13 +303,14 @@ void Generic3DRenderer::UpdateMeshAssembly()
 
   // Process all addition and update
   dmp->UpdateActorMap(m_ActorPool, tp);
-  dmp->UpdateApperance(m_ActorPool, tp);
 
-  // Add meshes in the actor map to the renderer
+	// Add meshes in the actor map to the renderer
+	auto actorMap = m_ActorPool->GetActorMap();
+
   for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
     m_Renderer->AddActor(it->second);
 
-  dmp->ConfigureLegend(m_ScalarBarActor);
+	ApplyDisplayMappingPolicyChange();
 
   // TODO: test code
   m_Renderer->Modified();
@@ -325,7 +323,7 @@ void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
 
   // Use display mapping policy to update appearance
   MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
-  dmp->UpdateApperance(m_ActorPool, m_CrntActorMapTimePoint);
+	dmp->UpdateAppearance(m_ActorPool, m_CrntActorMapTimePoint);
 
   // Update legend
   dmp->ConfigureLegend(m_ScalarBarActor);

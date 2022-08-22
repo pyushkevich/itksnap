@@ -133,6 +133,9 @@ itkEventMacro(WrapperVisibilityChangeEvent, WrapperMetadataChangeEvent)
 /** A change to the display mapping of an image wrapper (e.g. color map) */
 itkEventMacro(WrapperDisplayMappingChangeEvent, WrapperChangeEvent)
 
+/** A change to the mesh vector mode */
+itkEventMacro(WrapperHistogramChangeEvent, WrapperDisplayMappingChangeEvent)
+
 /** A change to wrapper-associated user data */
 itkEventMacro(WrapperUserDataChangeEvent, WrapperChangeEvent)
 

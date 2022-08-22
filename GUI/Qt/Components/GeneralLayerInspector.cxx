@@ -106,12 +106,24 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 								 LayerGeneralPropertiesModel::UIF_MESH_HAS_DATA,
                  QtWidgetActivator::HideInactive);
 
+	// Mesh data array display connection
 	LatentITKEventNotifier::connect(
 				m_Model->GetMeshDataArrayNameModel(), DomainChangedEvent(),
 				this, SLOT(meshData_domainChanged()));
 
-	QObject::connect(ui->boxMeshDataName, SIGNAL(currentIndexChanged(int)),
+	QObject::connect(ui->boxMeshDataName, SIGNAL(activated(int)),
 									 this, SLOT(meshData_selectionChanged(int)));
+
+	// Mesh vector data connection
+	activateOnFlag(ui->grpMeshVectorMode, m_Model,
+								 LayerGeneralPropertiesModel::UIF_IS_MESHDATA_MULTICOMPONENT,
+								 QtWidgetActivator::HideInactive);
+
+	makeCoupling(ui->boxMeshVectorMode, m_Model->GetMeshVectorModeModel());
+
+//	QObject::connect(ui->boxMeshVectorMode, SIGNAL(activated(int)),
+//									 this, SLOT(meshVector_selectionChanged(int)));
+
 }
 
 void GeneralLayerInspector::on_btnUp_clicked()
@@ -148,6 +160,7 @@ GeneralLayerInspector
 			boxMetaName->addItem(QIcon(m_MeshDataTypeToIcon[kv.second->GetType()]),
 					kv.second->GetName(), kv.first);
 			}
+		ui->boxMeshDataName->setCurrentIndex(mesh->GetActiveMeshLayerDataPropertyId());
 		}
 }
 

@@ -633,7 +633,6 @@ MeshLayerTableRowModel::CheckState(UIState state)
 			if (prop)
 				return prop->IsMultiComponent();
 			}
-
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
       return hasGenericDMP;
 

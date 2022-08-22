@@ -30,6 +30,7 @@ private slots:
   void on_spinBoxTP_valueChanged(int value);
 	void meshData_domainChanged();
 	void meshData_selectionChanged(int value);
+//	void meshVector_selectionChanged(int value);
 
 
 private:
