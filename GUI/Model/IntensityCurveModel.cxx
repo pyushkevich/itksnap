@@ -96,6 +96,16 @@ IntensityCurveModel
   // Set a flag so we don't register a listener again
   p.SetObserverTag(tag);
 
+	// For mesh layers, also observe the wrapper histogram change event
+	// Because one layer can have multiple properties, and one property can have
+	// multiple components. Each component has its own histogram
+	if (dynamic_cast<MeshWrapperBase*>(m_Layer))
+		{
+		p.SetHistogramChangeObserverTag(
+					Rebroadcast(layer, WrapperHistogramChangeEvent(), ModelUpdateEvent()));
+		}
+
+
   // If this is the first time we are registered with this layer, we are going
   // to set the histogram cutoff optimally. The user may change this later so
   // we only do this for the first-time registration.
@@ -106,18 +116,18 @@ IntensityCurveModel
   if(p.IsFirstTime())
     {
     // Set the cutoff automatically
-		SetInitialHistogramCutoff();
+		UpdateHistogramCutoff();
+		p.SetFirstTime(false);
     }
 }
 
 void
 IntensityCurveModel
-::SetInitialHistogramCutoff()
+::UpdateHistogramCutoff()
 {
 	IntensityCurveLayerProperties &p = GetProperties();
 	const ScalarImageHistogram *hist = m_Layer->GetHistogram(0);
 	p.SetHistogramCutoff(hist->GetReasonableDisplayCutoff(0.95, 0.6));
-	p.SetFirstTime(false);
 }
 
 void
@@ -129,9 +139,18 @@ IntensityCurveModel
     // It's safe to call GetProperties()
     unsigned long tag = GetProperties().GetObserverTag();
     if(tag)
-      {
-      layer->GetDisplayMapping()->RemoveObserver(tag);
-      }
+			{
+			layer->RemoveObserver(tag);
+			}
+
+		if (dynamic_cast<MeshWrapperBase*>(m_Layer))
+			{
+			unsigned long histoTag = GetProperties().GetHistogramChangeObserverTag();
+			if (histoTag)
+				{
+				layer->RemoveObserver(histoTag);
+				}
+			}
     }
 }
 
@@ -637,12 +656,8 @@ void IntensityCurveModel::OnUpdate()
 {
   Superclass::OnUpdate();
 
-	if (m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent()))
-		{
-		SetInitialHistogramCutoff();
-		std::cout << "[IntensityCurveModel] Wrapper DMP Changed" << std::endl;
-		}
-
+	if (m_EventBucket->HasEvent(WrapperHistogramChangeEvent()))
+		UpdateHistogramCutoff();
 }
 
 AbstractRangedDoubleProperty *

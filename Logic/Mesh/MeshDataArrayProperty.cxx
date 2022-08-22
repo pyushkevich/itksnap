@@ -205,14 +205,8 @@ void
 MeshLayerDataArrayProperty
 ::SetIntensityCurve(IntensityCurveVTK *curve)
 {
-	// Remove observers from old curve
-	if (m_ActiveIntensityCurve)
-		m_ActiveIntensityCurve->RemoveObserver(m_ActiveIntensityCurveObserverTag);
-
 	// Add new curve
 	m_ActiveIntensityCurve = curve;
-	m_ActiveIntensityCurveObserverTag =
-			Rebroadcaster::Rebroadcast(curve, itk::ModifiedEvent(), this, itk::ModifiedEvent());
 }
 
 void
@@ -262,7 +256,7 @@ MeshLayerDataArrayProperty
 	else
 		SetIntensityCurve(GetActiveComponent().m_IntensityCurve);
 
-	InvokeEvent(itk::ModifiedEvent());
+	InvokeEvent(WrapperHistogramChangeEvent());
 }
 
 inline double GetMagnitude(double *vector, size_t len)
@@ -351,10 +345,6 @@ GetHistogram(size_t nBins)
   m_HistogramFilter->SetRangeInputs(m_MinMaxFilter->GetMinimumOutput(),
                                     m_MinMaxFilter->GetMaximumOutput());
 	m_MinMaxFilter->Update();
-
-	std::cout << "[GetHistogram] activeComp=" << activeVecComp << "; range=["
-						<< m_MinMaxFilter->GetMinimum() << "," << m_MinMaxFilter->GetMaximum() << "]"
-						<< std::endl;
   m_HistogramFilter->Update();
 
   return m_HistogramFilter->GetHistogramOutput();

@@ -218,13 +218,6 @@ MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMa
       newprop->Initialize(cit->second);
       dest[cit->first] = newprop;
       m_CombinedDataPropertyMap[m_CombinedPropID++] = newprop;
-			// Any change in data property triggers dmp update
-			auto genericDMP = dynamic_cast<GenericMeshDisplayMappingPolicy*>(GetDisplayMapping());
-			if (genericDMP)
-				{
-				std::cout << "[MeshWrapperBase] dmp observed" << std::endl;
-				newprop->AddObserver(itk::ModifiedEvent(), genericDMP->GetUpdateCallbackCommand());
-				}
       }
     }
 }
@@ -326,6 +319,14 @@ SetActiveMeshLayerDataPropertyId(int id)
   if (id < 0 || m_ActiveDataPropertyId == id)
     return;
 
+	// Remove existing observer from previous active prop
+	if (m_CombinedDataPropertyMap.count(m_ActiveDataPropertyId))
+		{
+		auto oldprop = m_CombinedDataPropertyMap[m_ActiveDataPropertyId];
+		oldprop->RemoveObserver(m_ActiveMeshDataPropertyObserverTag);
+		}
+
+
   m_ActiveDataPropertyId = id;
 
   // if failed check caller's logic
@@ -333,6 +334,14 @@ SetActiveMeshLayerDataPropertyId(int id)
 
   // check is point or cell data
   auto prop = m_CombinedDataPropertyMap[id];
+
+	// Rebroadcast vector level histogram change event
+	m_ActiveMeshDataPropertyObserverTag =
+			Rebroadcaster::Rebroadcast(prop, WrapperHistogramChangeEvent(),
+																 this, WrapperHistogramChangeEvent());
+
+	// Change Active Property itself is a histogram change event
+	InvokeEvent(WrapperHistogramChangeEvent());
 
   // Change the active array
   if (prop->GetType() == MeshDataArrayProperty::POINT_DATA)
@@ -361,8 +370,6 @@ SetActiveMeshLayerDataPropertyId(int id)
   auto dmp = GetMeshDisplayMappingPolicy();
   dmp->SetColorMap(prop->GetColorMap());
   dmp->SetIntensityCurve(prop->GetIntensityCurve());
-
-  InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 void

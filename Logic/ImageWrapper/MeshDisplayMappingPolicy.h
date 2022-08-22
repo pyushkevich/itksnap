@@ -98,6 +98,8 @@ protected:
   SmartPtr<IntensityCurveVTK> m_IntensityCurve;
 
   bool m_Initialized = false;
+
+	unsigned long m_ColorMapObserverTag, m_IntensityCurveObserverTag;
 };
 
 /**
@@ -123,36 +125,10 @@ public:
   virtual void UpdateLUT() override;
 
   // end of virtual methods implementation
-  //--------------------------------------------
-
-	class UpdateGenericMeshDMPCommand : public itk::Command
-	{
-	public:
-		irisITKObjectMacro(UpdateGenericMeshDMPCommand, itk::Command)
-
-		void Execute(const itk::Object *, const itk::EventObject &) override {}
-		void Execute(itk::Object *caller, const itk::EventObject &event) override;
-
-		void SetDMP(GenericMeshDisplayMappingPolicy *dmp)
-		{ m_DMP = dmp; }
-
-	protected:
-		UpdateGenericMeshDMPCommand() {}
-		virtual ~UpdateGenericMeshDMPCommand() {}
-
-	private:
-		SmartPtr<GenericMeshDisplayMappingPolicy> m_DMP;
-	};
-
-
-	UpdateGenericMeshDMPCommand *GetUpdateCallbackCommand()
-	{ return m_UpdateCallbackCmd; }
-
+	//--------------------------------------------
 protected:
   GenericMeshDisplayMappingPolicy();
   virtual ~GenericMeshDisplayMappingPolicy();
-
-	SmartPtr<UpdateGenericMeshDMPCommand> m_UpdateCallbackCmd;
 };
 
 /**

@@ -39,6 +39,8 @@ public:
 
   irisGetSetMacro(ObserverTag, unsigned long)
 
+	irisGetSetMacro(HistogramChangeObserverTag, unsigned long)
+
   IntensityCurveLayerProperties();
   virtual ~IntensityCurveLayerProperties();
 
@@ -59,6 +61,9 @@ protected:
 
   // Whether or not we are already listening to events from this layer
   unsigned long m_ObserverTag;
+
+	// Observer tag for mesh vector mode change to update histogram cutoff
+	unsigned long m_HistogramChangeObserverTag;
 };
 
 typedef AbstractLayerAssociatedModel<
@@ -172,7 +177,7 @@ public:
   AbstractRangedDoubleProperty *GetIntensityRangeModel(
       IntensityRangePropertyType index) const;
 
-	void SetInitialHistogramCutoff();
+	void UpdateHistogramCutoff();
 
   void OnAutoFitWindow();
 protected:

@@ -76,14 +76,36 @@ MeshDisplayMappingPolicy::GetHistogram(int nBins)
 void
 MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
 {
+	if (m_ColorMap)
+		{
+		m_ColorMap->RemoveObserver(m_ColorMapObserverTag);
+		}
+
   m_ColorMap = map;
+
+	// ColorMap modified event should notify upstream observers
+	m_IntensityCurveObserverTag =
+			Rebroadcaster::Rebroadcast(map, itk::ModifiedEvent(),
+																 m_Wrapper, WrapperDisplayMappingChangeEvent());
+
 	m_Wrapper->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 void
 MeshDisplayMappingPolicy::SetIntensityCurve(IntensityCurveVTK *curve)
 {
+	if (m_IntensityCurve)
+		{
+		m_IntensityCurve->RemoveObserver(m_IntensityCurveObserverTag);
+		}
+
   m_IntensityCurve = curve;
+
+	// Curve modified event should notify upstream observers
+	m_IntensityCurveObserverTag =
+			Rebroadcaster::Rebroadcast(curve, itk::ModifiedEvent(),
+																 m_Wrapper, WrapperDisplayMappingChangeEvent());
+
 	m_Wrapper->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
@@ -159,8 +181,7 @@ MeshDisplayMappingPolicy::GetMeshLayer()
 GenericMeshDisplayMappingPolicy::
 GenericMeshDisplayMappingPolicy()
 {
-	m_UpdateCallbackCmd = UpdateGenericMeshDMPCommand::New();
-	m_UpdateCallbackCmd->SetDMP(this);
+
 }
 
 GenericMeshDisplayMappingPolicy::
@@ -204,7 +225,6 @@ UpdateAppearance(ActorPool *pool, unsigned int)
       auto pointData = mapper->GetInput()->GetPointData();
       pointData->SetActiveAttribute(prop->GetName(),
                                     vtkDataSetAttributes::AttributeTypes::SCALARS);
-
       }
     else if (prop->GetType() == MeshDataType::CELL_DATA)
       {
@@ -329,18 +349,6 @@ UpdateLUT()
     }
 
   m_LookupTable->Build();
-}
-
-void
-GenericMeshDisplayMappingPolicy
-::UpdateGenericMeshDMPCommand
-::Execute(itk::Object *, const itk::EventObject &)
-{
-	std::cout << "[DMPUpdateCommand] execute()" << std::endl;
-	// Just pull the latest active info
-	auto layer_prop = m_DMP->GetMeshLayer()->GetActiveDataArrayProperty();
-	m_DMP->SetColorMap(layer_prop->GetColorMap());
-	m_DMP->SetIntensityCurve(layer_prop->GetIntensityCurve());
 }
 
 // ==================================================

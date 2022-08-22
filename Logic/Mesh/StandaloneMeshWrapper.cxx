@@ -88,7 +88,7 @@ StandaloneMeshWrapper
 
 void
 StandaloneMeshWrapper
-::ReadFromRegistry(Registry &folder)
+::ReadFromRegistry(Registry &)
 {
 
 }

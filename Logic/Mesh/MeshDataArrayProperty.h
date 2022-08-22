@@ -231,8 +231,6 @@ protected:
 
 	// Current active intensity curve, for magnitude or specific component
 	SmartPtr<IntensityCurveVTK> m_ActiveIntensityCurve;
-	unsigned long m_ActiveIntensityCurveObserverTag;
-
   SmartPtr<HistogramFilterType> m_HistogramFilter;
   SmartPtr<MinMaxFilterType> m_MinMaxFilter;
   std::list<vtkDataArray*> m_DataPointerList;

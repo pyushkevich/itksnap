@@ -160,9 +160,6 @@ GeneralLayerInspector
 			boxMetaName->addItem(QIcon(m_MeshDataTypeToIcon[kv.second->GetType()]),
 					kv.second->GetName(), kv.first);
 			}
-
-		std::cout << "[GeneralLayerInspector] meshData_domainChanged() active_id="
-							<< mesh->GetActiveMeshLayerDataPropertyId() << std::endl;
 		ui->boxMeshDataName->setCurrentIndex(mesh->GetActiveMeshLayerDataPropertyId());
 		}
 }
