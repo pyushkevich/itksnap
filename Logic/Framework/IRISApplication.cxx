@@ -172,7 +172,7 @@ IRISApplication
 {
   assert(m_CurrentImageData->IsMainLoaded());
   return ImageCoordinateGeometry::IsDirectionMatrixOblique(
-    m_CurrentImageData->GetImageGeometry().GetImageDirectionCosineMatrix());
+    m_CurrentImageData->GetImageGeometry()->GetImageDirectionCosineMatrix());
 }
 
 
@@ -182,7 +182,7 @@ GetImageToAnatomyRAI()
 {
   assert(m_CurrentImageData->IsMainLoaded());
   return ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(
-    m_CurrentImageData->GetImageGeometry().GetImageDirectionCosineMatrix());
+    m_CurrentImageData->GetImageGeometry()->GetImageDirectionCosineMatrix());
 }
 
 IRISApplication

@@ -179,10 +179,10 @@ bool ImageInfoModel
 {
   if(!this->GetLayer()) return false;
 
-  const ImageCoordinateGeometry &geo =
+  const ImageCoordinateGeometry *geo =
       m_ParentModel->GetDriver()->GetCurrentImageData()->GetImageGeometry();
   ImageCoordinateGeometry::DirectionMatrix dmat =
-      geo.GetImageDirectionCosineMatrix();
+      geo->GetImageDirectionCosineMatrix();
 
   std::string raicode =
     ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dmat);
