@@ -617,6 +617,12 @@ color:rgb(103, 103, 103);
      <addaction name="separator"/>
      <addaction name="actionNext_Display_Layout"/>
     </widget>
+    <widget class="QMenu" name="menu3D_Panel">
+     <property name="title">
+      <string>3D Panel</string>
+     </property>
+     <addaction name="actionToggle_Volume_Rendering"/>
+    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
@@ -628,6 +634,8 @@ color:rgb(103, 103, 103);
     <addaction name="menuSlice_Annotations"/>
     <addaction name="separator"/>
     <addaction name="menuViews"/>
+    <addaction name="separator"/>
+    <addaction name="menu3D_Panel"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1695,6 +1703,14 @@ color:rgb(103, 103, 103);
   <action name="actionAddMeshSeries">
    <property name="text">
     <string>Add Mesh Series ...</string>
+   </property>
+  </action>
+  <action name="actionToggle_Volume_Rendering">
+   <property name="text">
+    <string>Toggle Volume Rendering</string>
+   </property>
+   <property name="shortcut">
+    <string>V</string>
    </property>
   </action>
  </widget>

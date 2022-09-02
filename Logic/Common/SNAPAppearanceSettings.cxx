@@ -221,8 +221,8 @@ SNAPAppearanceSettings
   // Registration widget
   elt = m_DefaultElementSettings[REGISTRATION_GRID];
   elt->SetColor(Vector3d(0.8, 0.8, 0.8));
-  elt->SetAlpha(0.25);
-  elt->SetLineThickness(1.25);
+  elt->SetAlpha(0.2);
+  elt->SetLineThickness(1.0);
   elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisibilityFlag(true);
 

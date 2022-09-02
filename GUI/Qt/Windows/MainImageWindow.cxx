@@ -2548,3 +2548,29 @@ void MainImageWindow::on_actionNext_Display_Layout_triggered()
   lo = (DisplayLayoutModel::ViewPanelLayout)((lo + 1) % 5);
   m_Model->GetDisplayLayoutModel()->SetViewPanelLayout(lo);
 }
+
+#include <LayerTableRowModel.h>
+void MainImageWindow::on_actionToggle_Volume_Rendering_triggered()
+{
+  // Iterate over the layers for each class of displayed layers
+  LayerIterator it = m_Model->GetDriver()->GetCurrentImageData()->GetLayers(
+        MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE | LABEL_ROLE);
+
+  for(; !it.IsAtEnd(); ++it)
+    {
+    // Check if a model exists for this layer
+    SmartPtr<LayerTableRowModel> model =
+        dynamic_cast<LayerTableRowModel *>(
+          it.GetLayer()->GetUserData("LayerTableRowModel"));
+
+    // If not, create it and stick as 'user data' into the layer
+    if(model)
+      {
+      if(model->GetLayer()->GetUniqueId() == m_Model->GetGlobalState()->GetSelectedLayerId())
+        model->SetVolumeRenderingEnabled(!model->GetVolumeRenderingEnabled());
+      else
+        model->SetVolumeRenderingEnabled(false);
+      }
+    }
+}
+

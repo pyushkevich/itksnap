@@ -78,39 +78,57 @@ public:
     painter->PopMatrix();
   }
 
-  virtual bool Paint(vtkContext2D *painter) override
-  {
-    // Find out what layer is being used for registration
-    RegistrationModel *rmodel = m_IRModel->GetRegistrationModel();
-    ImageWrapperBase *moving = rmodel->GetMovingLayerWrapper();
-    if(!moving)
-      return false;
+  virtual void DrawGrid(vtkContext2D *painter)
+    {
+    // Get the dimensions of the viewport that should be gridded
+    Vector2ui vp_pos, vp_size;
+    m_Model->GetNonThumbnailViewport(vp_pos, vp_size);
 
     // Get the registration grid lines appearance
     SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
     auto *eltGrid = as->GetUIElement(SNAPAppearanceSettings::REGISTRATION_GRID);
     this->ApplyAppearanceSettingsToPen(painter, eltGrid);
 
+    // Gridlines should be drawn in window space, not image space
+    painter->PushMatrix();
+    vtkNew<vtkTransform2D> tran;
+    tran->Identity();
+    painter->SetTransform(tran);
+
     // Draw gridlines at regular intervals
-    Vector2ui canvas = m_Model->GetCanvasSize();
+    // Vector2ui canvas = m_Model->GetCanvasSize();
     int spacing = 16 * this->GetVPPR();
 
     // Create a point container
     vtkNew<vtkPoints2D> vtx;
-    for(unsigned int i = 0; i <= canvas[0]; i+=spacing)
+    for(unsigned int i = 0; i <= vp_size[0]; i+=spacing)
       {
-      vtx->InsertNextPoint(i, 0);
-      vtx->InsertNextPoint(i, canvas[1]);
+      vtx->InsertNextPoint(vp_pos[0]+i, vp_pos[1]);
+      vtx->InsertNextPoint(vp_pos[0]+i, vp_pos[1]+vp_size[1]);
       }
 
-    for(unsigned int i = 0; i <= canvas[1]; i+=spacing)
+    for(unsigned int i = 0; i <= vp_size[1]; i+=spacing)
       {
-      vtx->InsertNextPoint(0, i);
-      vtx->InsertNextPoint(canvas[0], i);
+      vtx->InsertNextPoint(vp_pos[0], vp_pos[1]+i);
+      vtx->InsertNextPoint(vp_pos[0]+vp_size[0], vp_pos[1]+i);
       }
 
     // Draw the lines
     painter->DrawLines(vtx);
+    painter->PopMatrix();
+    }
+
+  virtual bool Paint(vtkContext2D *painter) override
+  {
+    // Find out what layer is being used for registration
+    RegistrationModel *rmodel = m_IRModel->GetRegistrationModel();
+    SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
+    ImageWrapperBase *moving = rmodel->GetMovingLayerWrapper();
+    if(!moving)
+      return false;
+
+    // Draw the grid
+    this->DrawGrid(painter);
 
     // Should we draw the widget? Yes, if we are in tiled mode and are viewing the moving layer,
     // and yes if we are in non-tiled mode.

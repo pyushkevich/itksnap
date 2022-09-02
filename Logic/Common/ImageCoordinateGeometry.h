@@ -35,6 +35,7 @@
 #ifndef __ImageCoordinateGeometry_h_
 #define __ImageCoordinateGeometry_h_
 
+#include "itkObject.h"
 #include "ImageCoordinateTransform.h"
 #include "IRISDisplayGeometry.h"
 #include <map>
@@ -46,9 +47,16 @@
  * coordinate system, the patient coordinate system, and the display coordinate
  * system.
  */
-class ImageCoordinateGeometry
-  {
+class ImageCoordinateGeometry : public itk::Object
+{
 public:
+  typedef ImageCoordinateGeometry                                         Self;
+  typedef itk::Object                                               Superclass;
+  typedef SmartPtr<Self>                                               Pointer;
+  typedef SmartPtr<const Self>                                    ConstPointer;
+  itkTypeMacro(ImageCoordinateGeometry, itk::Object)
+  itkNewMacro(Self)
+
   typedef vnl_matrix<double> DirectionMatrix;
 
   /**
@@ -63,17 +71,6 @@ public:
 
   /** A map from AxisDirection enum to user readable strings */
   typedef std::map<AxisDirection, std::string> AxisDirectionDescriptionMap;
-
-  /** Constructor initializes geometry with default identity transforms */
-  ImageCoordinateGeometry();
-
-  /** Constructor that calls GetGeometry */
-  ImageCoordinateGeometry(DirectionMatrix imageDirection,
-                          const IRISDisplayGeometry &dispGeom,
-                          const Vector3ui &imageSize);
-
-  /** Virtual destructor */
-  virtual ~ImageCoordinateGeometry() {}
 
   /** Initializes geometry with tranforms specified by character
    * RAI codes for the image-anatomy and display-anatomy transforms and the 
@@ -138,6 +135,16 @@ public:
 
   /** Invert a mapping vector of 1,2,3 */
   static Vector3i InvertMappingVector(const Vector3i &mapping);
+
+protected:
+
+  /** Constructor initializes geometry with default identity transforms */
+  ImageCoordinateGeometry();
+
+  /** Virtual destructor */
+  virtual ~ImageCoordinateGeometry() {}
+
+
 
 private:
 

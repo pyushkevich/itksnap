@@ -168,7 +168,7 @@ public:
    * Get the image geometry from the wrapper. The image geometry captures
    * the transforms between each of the display slices and the 3D image.
    */
-  virtual const ImageCoordinateGeometry &GetImageGeometry() const = 0;
+  virtual const ImageCoordinateGeometry *GetImageGeometry() const = 0;
 
   /** Get the current slice index */
   irisVirtualGetMacro(SliceIndex, IndexType)
