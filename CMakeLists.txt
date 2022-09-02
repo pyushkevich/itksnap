@@ -91,11 +91,11 @@ ENDIF()
 SET(SNAP_VERSION_MAJOR 4)
 SET(SNAP_VERSION_MINOR 0)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "-alpha.3")
+SET(SNAP_VERSION_QUALIFIER "-alpha.4")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20220203")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Feb 03, 2022")
+SET(SNAP_VERSION_RELEASE_DATE "20220607")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "June 7, 2022")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -228,6 +228,7 @@ SET(LOGIC_CXX
   Common/IPCHandler.cxx
   Common/IRISException.cxx
   Common/IRISVectorTemplates.cxx
+  Common/MultiFrameDicomSeriesSorter.cxx
   Common/Rebroadcaster.cxx
   Common/Registry.cxx
   Common/SNAPEvents.cxx
@@ -339,6 +340,7 @@ SET(LOGIC_HEADERS
   Common/ITKExtras/itkVoxBoCUBImageIOFactory.h
   Common/JSon/json/json.h
   Common/JSon/json/json-forwards.h
+  Common/MultiFrameDicomSeriesSorter.h
   Common/PresetManager.h
   Common/PresetManager.hxx
   Common/PropertyModel.h
@@ -1436,9 +1438,20 @@ ELSEIF(WIN32)
   # Include the qt4 dependent libraries
   include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
+  # Prepare a case-insensitive configuration check
+  string(TOLOWER "${CMAKE_BUILD_TYPE}" config_lower)
+
   # Make sure the GIF plugin is included
-  get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindows.dll" ABSOLUTE)
-  get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgif.dll" ABSOLUTE)
+  if(config_lower STREQUAL "debug")
+    MESSAGE(STATUS "Using Debug Mode Qt Plugins")
+    get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindowsd.dll" ABSOLUTE)
+    get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgifd.dll" ABSOLUTE)
+  else(config_lower STREQUAL "release")
+    MESSAGE(STATUS "Using Release Mode Qt Plugins")
+    get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindows.dll" ABSOLUTE)
+    get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgif.dll" ABSOLUTE)
+  endif(config_lower STREQUAL "debug")
+
   message(STATUS "QT_WIN_PLUGIN=${QT_WIN_PLUGIN}")
   message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
 

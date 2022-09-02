@@ -214,15 +214,7 @@ bool RESTClient::PostVA(const char *rel_url, const char *post_string, std::va_li
 
   // The POST data
   if(post_string)
-    {
     curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_filled.c_str());
-    // cout << "POST " << url << " VALUES " << post_filled.c_str() << endl;
-    }
-  else 
-    {
-    // cout << "GET " << url << endl;
-    }
-
 
   // Capture output
   m_Output.clear();

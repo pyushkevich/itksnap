@@ -71,6 +71,7 @@ struct IRISDisplayGeometry;
 class LabelUseHistory;
 class ImageAnnotationData;
 class LabelImageWrapper;
+class ImageReadingProgressAccumulator;
 
 template <class TPixel, class TLabel, int VDim> class RandomForestClassifier;
 template <class TPixel, class TLabel, int VDim> class RFClassificationEngine;
@@ -215,7 +216,8 @@ public:
   ImageWrapperBase* LoadImageViaDelegate(const char *fname,
                                          AbstractLoadImageDelegate *del,
                                          IRISWarningList &wl,
-                                         Registry *ioHints = NULL);
+																				 Registry *ioHints = NULL,
+																				 ImageReadingProgressAccumulator *irAccum = nullptr);
 
   /**
    * List available additional DICOM series that can be loaded given the currently

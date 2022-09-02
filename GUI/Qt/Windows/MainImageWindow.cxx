@@ -60,6 +60,7 @@
 #include "DefaultBehaviorSettings.h"
 #include "SynchronizationModel.h"
 #include "LayoutReminderDialog.h"
+#include "AllPurposeProgressAccumulator.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -1367,6 +1368,15 @@ LayerInspectorDialog *MainImageWindow::GetLayerInspector()
 
 void MainImageWindow::LoadMainImage(const QString &file)
 {
+	// Show a progress dialog
+	using namespace imageiowiz;
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
+
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+
   // Prompt for unsaved changes
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     return;
@@ -1379,7 +1389,8 @@ void MainImageWindow::LoadMainImage(const QString &file)
     IRISWarningList warnings;
     SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
-    m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
+		m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings,
+																							 NULL, irProgAccum.GetPointer());
     }
   catch(exception &exc)
     {
@@ -1403,6 +1414,15 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
   QAction *action = qobject_cast<QAction *>(sender());
   QString file = action->text();
 
+	// Show a progress dialog
+	using namespace imageiowiz;
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
+
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+
   // Try loading the image
   try
     {
@@ -1411,7 +1431,8 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
     IRISWarningList warnings;
     SmartPtr<LoadOverlayImageDelegate> del = LoadOverlayImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
-    m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
+		m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings,
+																							 NULL, irProgAccum);
     }
   catch(exception &exc)
     {
@@ -1426,6 +1447,15 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
   if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
     return;
 
+	// Show a progress dialog
+	using namespace imageiowiz;
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
+
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+
   // Try loading the image
   try
     {
@@ -1435,7 +1465,8 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
     SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
     del->SetAdditiveMode(additive);
-    m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings);
+		m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings,
+																							 NULL, irProgAccum);
     }
   catch(exception &exc)
     {
@@ -2517,3 +2548,29 @@ void MainImageWindow::on_actionNext_Display_Layout_triggered()
   lo = (DisplayLayoutModel::ViewPanelLayout)((lo + 1) % 5);
   m_Model->GetDisplayLayoutModel()->SetViewPanelLayout(lo);
 }
+
+#include <LayerTableRowModel.h>
+void MainImageWindow::on_actionToggle_Volume_Rendering_triggered()
+{
+  // Iterate over the layers for each class of displayed layers
+  LayerIterator it = m_Model->GetDriver()->GetCurrentImageData()->GetLayers(
+        MAIN_ROLE | OVERLAY_ROLE | SNAP_ROLE | LABEL_ROLE);
+
+  for(; !it.IsAtEnd(); ++it)
+    {
+    // Check if a model exists for this layer
+		SmartPtr<ImageLayerTableRowModel> model =
+				dynamic_cast<ImageLayerTableRowModel *>(
+          it.GetLayer()->GetUserData("LayerTableRowModel"));
+
+    // If not, create it and stick as 'user data' into the layer
+    if(model)
+      {
+      if(model->GetLayer()->GetUniqueId() == m_Model->GetGlobalState()->GetSelectedLayerId())
+        model->SetVolumeRenderingEnabled(!model->GetVolumeRenderingEnabled());
+      else
+        model->SetVolumeRenderingEnabled(false);
+      }
+    }
+}
+

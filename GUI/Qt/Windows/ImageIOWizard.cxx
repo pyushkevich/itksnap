@@ -21,10 +21,9 @@
 #include <QSpinBox>
 #include <QFrame>
 #include <QTimer>
-
+#include <QProgressBar>
 
 #include <QtCursorOverride.h>
-
 #include <QtComboBoxCoupling.h>
 #include <QtWidgetCoupling.h>
 #include "QtVTKRenderWindowBox.h"
@@ -39,6 +38,7 @@
 
 #include "DICOMListingTable.h"
 #include "LayoutReminderDialog.h"
+#include "AllPurposeProgressAccumulator.h"
 
 
 namespace imageiowiz {
@@ -98,13 +98,21 @@ bool AbstractPage::PerformIO()
 
   ImageIOWizardModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
 
+	// Show a progress dialog
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
+
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+
   try
     {
     QtCursorOverride curse(Qt::WaitCursor);
     m_Model->SetSelectedFormat(fmt);
     if(m_Model->IsLoadMode())
       {
-      m_Model->LoadImage(to_utf8(filename));
+			m_Model->LoadImage(to_utf8(filename), irProgAccum);
       if (fmt == GuidedNativeImageIO::FORMAT_ECHO_CARTESIAN_DICOM)
         {
           LayoutReminderDialog *lr = new LayoutReminderDialog(this);
@@ -512,10 +520,19 @@ bool DICOMPage::validatePage()
   std::string series_id =
       to_utf8(m_Table->item(row, 0)->data(Qt::UserRole).toString());
 
+	// Show a progress dialog
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
+
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+
   try
     {
     QtCursorOverride curse(Qt::WaitCursor);
-    m_Model->LoadDicomSeries(to_utf8(this->field("Filename").toString()), series_id);
+		m_Model->LoadDicomSeries(to_utf8(this->field("Filename").toString()), series_id,
+														 irProgAccum);
     }
   catch(IRISException &exc)
     {
@@ -736,12 +753,20 @@ bool RawPage::validatePage()
     : (GuidedNativeImageIO::RawPixelType) iPixType;
   GuidedNativeImageIO::SetPixelType(hint, pixtype);
 
+	// Show a progress dialog
+	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
+	progress->display();
+
+	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+			ImageReadingProgressAccumulator::New();
+	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+
   // Try loading the image
   QtCursorOverride curse(Qt::WaitCursor);
   try
     {
     m_Model->SetSelectedFormat(GuidedNativeImageIO::FORMAT_RAW);
-    m_Model->LoadImage(to_utf8(field("Filename").toString()));
+		m_Model->LoadImage(to_utf8(field("Filename").toString()), irProgAccum);
     }
   catch(IRISException &exc)
     {
@@ -750,14 +775,42 @@ bool RawPage::validatePage()
   return true;
 }
 
+ImageIOProgressDialog
+::ImageIOProgressDialog(QWidget *parent)
+	: QProgressDialog(parent)
+{
+	this->setObjectName("progressDialogImageIO");
 
+	// Set a bar without text
+	QProgressBar *progBar = new QProgressBar(this);
+	progBar->setTextVisible(false);
+	this->setBar(progBar);
 
+	// Configure delegate. This needs to happen after setBar
+	m_Delegate.SetProgressDialog(this);
 
+	if (m_SaveMode)
+		this->setLabelText("Saving Image...");
+	else
+		this->setLabelText("Reading Image...");
 
+	this->setCancelButton(nullptr); // hide the cancel button
+	this->setMinimumDuration(0); // display for all duration
+}
 
+void
+ImageIOProgressDialog
+::display()
+{
+	this->raise();
+}
 
-
-
+SmartPtr<itk::Command>
+ImageIOProgressDialog
+::createCommand()
+{
+	return m_Delegate.CreateCommand();
+}
 
 
 } // namespace

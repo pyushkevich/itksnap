@@ -335,7 +335,7 @@ public:
   virtual void SetDirectionMatrix(const vnl_matrix<double> &direction);
 
   /** Get the image coordinate geometry */
-  const ImageCoordinateGeometry &GetImageGeometry() const;
+  const ImageCoordinateGeometry *GetImageGeometry() const;
 
   /** Get the list of annotations created by the user */
   irisGetMacro(Annotations, ImageAnnotationData *)

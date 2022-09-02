@@ -31,7 +31,7 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
   ui->inFilename->installEventFilter(this);
 
   // Connect up the format selector to the filename
-  connect(ui->inFormat, SIGNAL(activated(QString)), this, SLOT(setActiveFormat(QString)));
+  connect(ui->inFormat, SIGNAL(textActivated(QString)), this, SLOT(setActiveFormat(QString)));
 
   // This flag should be false almost always
   m_keepActiveFormatOnFilenameUpdate = false;
