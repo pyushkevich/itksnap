@@ -73,7 +73,6 @@ void MeshExportModel::OnDialogOpen()
 
 void MeshExportModel::SaveMesh()
 {
-  IRISApplication *app = m_ParentModel->GetDriver();
   MeshExportSettings settings;
   settings.SetMeshFileName(m_ExportFileName);
   switch(this->GetSaveMode())
@@ -130,7 +129,8 @@ void MeshExportModel::UpdateFormatDomain()
   if(GetSaveMode() == SAVE_SCENE)
     {
     format_domain[GuidedMeshIO::FORMAT_VTK] = "VTK PolyData File";
-    format_domain[GuidedMeshIO::FORMAT_VRML] = "VRML 2.0 File";
+		format_domain[GuidedMeshIO::FORMAT_VRML] = "VRML 2.0 File";
+		format_domain[GuidedMeshIO::FORMAT_STL] = "STL Mesh File";
     }
   else
     {
