@@ -2559,8 +2559,8 @@ void MainImageWindow::on_actionToggle_Volume_Rendering_triggered()
   for(; !it.IsAtEnd(); ++it)
     {
     // Check if a model exists for this layer
-    SmartPtr<LayerTableRowModel> model =
-        dynamic_cast<LayerTableRowModel *>(
+		SmartPtr<ImageLayerTableRowModel> model =
+				dynamic_cast<ImageLayerTableRowModel *>(
           it.GetLayer()->GetUserData("LayerTableRowModel"));
 
     // If not, create it and stick as 'user data' into the layer
