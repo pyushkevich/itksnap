@@ -9,6 +9,7 @@
 #include "ImageIODelegates.h"
 
 class GlobalUIModel;
+class ProgressReporterDelegate;
 
 namespace itk {
   class GDCMSeriesFileNames;
@@ -139,7 +140,7 @@ public:
     Load the image from filename, putting warnings into a warning list. This
     may also fire an exception (e.g., if validation failed)
     */
-  void LoadImage(std::string filename);
+	void LoadImage(std::string filename, ImageReadingProgressAccumulator *irAccum);
 
   /**
    Save the image to a filename
@@ -181,7 +182,8 @@ public:
     Load n-th series from DICOM directory
     */
   void LoadDicomSeries(const std::string &filename,
-                       const std::string &series_id);
+											 const std::string &series_id,
+											 ImageReadingProgressAccumulator *irAccum);
 
 
   irisGetSetMacro(SuggestedFilename, std::string)

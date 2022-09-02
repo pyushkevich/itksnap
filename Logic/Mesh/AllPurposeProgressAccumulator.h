@@ -17,7 +17,9 @@
 
 #include <map>
 #include <vector>
+#include "SNAPCommon.h"
 #include "itkProcessObject.h"
+#include "itkCommand.h"
 
 // Some ugly code here because VTK decided to change its architecture 
 // from 4.2 to 4.4. 
@@ -30,7 +32,50 @@
   #define vtkAlgorithmClass vtkAlgorithm
 #endif
 
-namespace itk { class Command; }
+/**
+ * @brief DoNothingCommand is a simple placeholder to execute methods
+ * that requires a itk::command to run, and a nullptr will cause crash.
+ *
+ * It is better to be used via DoNothingCommandSingleton class
+ */
+class DoNothingCommand : public itk::Command
+{
+public:
+	irisITKObjectMacro(DoNothingCommand, itk::Command)
+	void Execute(const Object *, const itk::EventObject &) override {}
+	void Execute(Object *, const itk::EventObject &) override {}
+protected:
+	DoNothingCommand() {}
+	virtual ~DoNothingCommand() {}
+};
+
+/**
+ * @brief DoNothingCommandSingleton maintain one instance of DoNothingCommand
+ * to avoid creating multiple instances that are really not necessary.
+ */
+class DoNothingCommandSingleton
+{
+public:
+	~DoNothingCommandSingleton() {}
+	DoNothingCommandSingleton(const DoNothingCommandSingleton& other) = delete;
+	void operator=(const DoNothingCommandSingleton& other) = delete;
+
+	static DoNothingCommandSingleton &GetInstance()
+	{
+		static DoNothingCommandSingleton instance;
+		return instance;
+	}
+
+	DoNothingCommand *GetCommand()
+	{ return m_DoNothingCommand.GetPointer(); }
+
+private:
+	DoNothingCommandSingleton()
+	{
+		m_DoNothingCommand = DoNothingCommand::New();
+	}
+	SmartPtr<DoNothingCommand> m_DoNothingCommand;
+};
 
 class TrivalProgressSource;
 
@@ -235,5 +280,53 @@ private:
   double m_MaxProgress;
 
 };
+
+class ImageReadingProgressAccumulator: public AllPurposeProgressAccumulator
+{
+public:
+	irisITKObjectMacro(ImageReadingProgressAccumulator, AllPurposeProgressAccumulator)
+
+	void AddProgressReporterCommand(itk::Command *cmd)
+	{
+		this->AddObserver(itk::ProgressEvent(), cmd);
+	}
+
+	/**
+	 * @brief GetHeaderProgressCommand, return an itk::Command for tracking image
+	 * header reading progress
+	 */
+	SmartPtr<itk::Command> GetHeaderProgressCommand()
+	{ return this->m_HeaderProgressCommand; }
+
+	/**
+	 * @brief GetDataProgressCommand, return an itk::Command for tracking image
+	 * data reading progress
+	 */
+	SmartPtr<itk::Command> GetDataProgressCommand()
+	{ return this->m_DataProgressCommand; }
+
+	/**
+	 * @brief GetMiscProgressCommand, return an itk::Command for tracking progress
+	 * other than image header and data
+	 */
+	SmartPtr<itk::Command> GetMiscProgressCommand()
+	{ return this->m_MiscProgressCommand; }
+
+
+protected:
+	ImageReadingProgressAccumulator()
+	{
+		m_HeaderProgressCommand = RegisterITKSourceViaCommand(0.1);
+		m_DataProgressCommand = RegisterITKSourceViaCommand(0.85);
+		m_MiscProgressCommand = RegisterITKSourceViaCommand(0.05);
+	}
+
+	virtual ~ImageReadingProgressAccumulator() {}
+
+	SmartPtr<itk::Command> m_HeaderProgressCommand;
+	SmartPtr<itk::Command> m_DataProgressCommand;
+	SmartPtr<itk::Command> m_MiscProgressCommand;
+};
+
 
 #endif

@@ -34,7 +34,6 @@
 =========================================================================*/
 #include "AllPurposeProgressAccumulator.h"
 #include "vtkCallbackCommand.h" 
-#include "itkCommand.h"
 #include "itkEventObject.h"
 #include <cassert>
 

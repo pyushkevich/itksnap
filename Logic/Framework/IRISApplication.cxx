@@ -88,6 +88,7 @@
 #include "TimePointProperties.h"
 #include "ImageMeshLayers.h"
 #include "StandaloneMeshWrapper.h"
+#include "AllPurposeProgressAccumulator.h"
 
 #include <stdio.h>
 #include <sstream>
@@ -1808,9 +1809,24 @@ IRISApplication
 ::LoadImageViaDelegate(const char *fname,
                        AbstractLoadImageDelegate *del,
                        IRISWarningList &wl,
-                       Registry *ioHints)
+											 Registry *ioHints,
+											 ImageReadingProgressAccumulator *irAccum)
 {
   Registry regAssoc;
+
+	SmartPtr<itk::Command> headerProgCmd = DoNothingCommandSingleton::GetInstance().GetCommand();
+	SmartPtr<itk::Command> dataProgCmd = DoNothingCommandSingleton::GetInstance().GetCommand();
+	SmartPtr<itk::Command> miscProgCmd = DoNothingCommandSingleton::GetInstance().GetCommand();
+
+	if (irAccum)
+		{
+		headerProgCmd = irAccum->GetHeaderProgressCommand();
+		dataProgCmd = irAccum->GetDataProgressCommand();
+		miscProgCmd = irAccum->GetMiscProgressCommand();
+		}
+
+	SmartPtr<TrivalProgressSource> miscProgSrc = TrivalProgressSource::New();
+	miscProgSrc->AddObserver(itk::ProgressEvent(), miscProgCmd);
 
   // When hints are not provided, we load them using the association system
   if(!ioHints)
@@ -1826,7 +1842,7 @@ IRISApplication
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
   // Load the header of the image
-  io->ReadNativeImageHeader(fname, *ioHints);
+	io->ReadNativeImageHeader(fname, *ioHints, headerProgCmd);
 
   // Validate the header
   del->ValidateHeader(io, wl);
@@ -1835,13 +1851,15 @@ IRISApplication
   del->UnloadCurrentImage();
 
   // Read the image body
-  io->ReadNativeImageData();
+	io->ReadNativeImageData(dataProgCmd);
 
   // Validate the image data
   del->ValidateImage(io, wl);
 
   // Put the image in the right place
   ImageWrapperBase *layer = del->UpdateApplicationWithImage(io);
+
+	miscProgSrc->AddProgress(0.9);
 
   // Store the IO hints inside of the image - in case it ever gets added
   // to a project

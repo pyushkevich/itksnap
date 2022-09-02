@@ -40,14 +40,16 @@
 #include "itkImage.h"
 #include "itkImageIOBase.h"
 #include "itkVectorImage.h"
+#include "itkCommand.h"
+#include "itkEventObject.h"
 #include "gdcmTag.h"
+#include "MultiFrameDicomSeriesSorter.h"
 
-  
+
 namespace itk
 {
   template<class TPixel, unsigned int VDim> class Image;
   class ImageIOBase;
-  class Command;
 }
 
 
@@ -66,6 +68,7 @@ public:
   enum FileFormat {
     FORMAT_ANALYZE=0,
     FORMAT_DICOM_DIR,       // A directory containing multiple DICOM files
+		FORMAT_DICOM_DIR_4DCTA,    // A directory containing 4D CTA DICOM SERIES
     FORMAT_DICOM_FILE,      // A single DICOM file
     FORMAT_ECHO_CARTESIAN_DICOM, // A Echocardiography Cartesian DICOM
     FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
@@ -137,11 +140,11 @@ public:
    * the format of interest, the user must cast the image to one of the 
    * desired formats.
    */
-  void ReadNativeImage(const char *FileName, Registry &folder);
+	void ReadNativeImage(const char *FileName, Registry &folder, itk::Command *progressCmd = nullptr);
 
-  void ReadNativeImageHeader(const char *FileName, Registry &folder);
+	void ReadNativeImageHeader(const char *FileName, Registry &folder, itk::Command *progressCmd = nullptr);
 
-  void ReadNativeImageData();
+	void ReadNativeImageData(itk::Command *progressCmd = nullptr);
 
   /**
    * Get the number of components in the native image read by ReadNativeImage.
@@ -296,7 +299,7 @@ protected:
   template <typename TRaw> void CreateRawImageIO(Registry &folder);
 
   /** Templated function that reads a scalar image in its native datatype */
-  template <typename TScalar> void DoReadNative(const char *fname, Registry &folder);
+	template <typename TScalar> void DoReadNative(const char *fname, Registry &folder, itk::Command *ProgressCmd = nullptr);
 
   /** Templated function that reads a scalar image in its native datatype */
   template <typename TScalar> void DoSaveNative(const char *fname, Registry &folder);
@@ -304,21 +307,31 @@ protected:
   /** Templated function that computes an MD5 hash from the stored image */
   template <typename TScalar> std::string DoGetNativeMD5Hash();
 
+	/** convert 4D itk image into 4D itk vector image */
+	template <typename TScalar> void ConvertToVectorImage(
+			itk::VectorImage<TScalar, 4> *output, itk::Image<TScalar, 4> *input) const;
+
+	/** deep copy images */
+	template <class TImage> void DeepCopyImage(
+			typename TImage::Pointer output, typename TImage::Pointer input) const;
+
   /** A dispatch class that calls templated functions in the main class. */
   class DispatchBase {
   public:
-    virtual void ReadNative(GuidedNativeImageIO *self, const char *fname, Registry &folder) = 0;
-    virtual void SaveNative(GuidedNativeImageIO *self, const char *fname, Registry &folder) = 0;
+		virtual void ReadNative(GuidedNativeImageIO *self, const char *fname, Registry &folder,
+														itk::Command *progressCmd = nullptr) = 0;
+		virtual void SaveNative(GuidedNativeImageIO *self, const char *fname, Registry &folder) = 0;
     virtual std::string GetNativeMD5Hash(GuidedNativeImageIO *self) = 0;
     virtual ~DispatchBase() {}
   };
 
   template <typename TScalar> class Dispatch : public DispatchBase {
   public:
-    virtual void ReadNative(GuidedNativeImageIO *self, const char *fname, Registry &folder)
-      { self->DoReadNative<TScalar>(fname, folder); }
+		virtual void ReadNative(GuidedNativeImageIO *self, const char *fname, Registry &folder,
+														itk::Command *progressCmd = nullptr)
+			{ self->DoReadNative<TScalar>(fname, folder, progressCmd); }
     virtual void SaveNative(GuidedNativeImageIO *self, const char *fname, Registry &folder)
-      { self->DoSaveNative<TScalar>(fname, folder); }
+			{ self->DoSaveNative<TScalar>(fname, folder); }
     virtual std::string GetNativeMD5Hash(GuidedNativeImageIO *self)
       { return self->DoGetNativeMD5Hash<TScalar>(); }
   };
@@ -369,6 +382,8 @@ protected:
 
   // Number of images per z-position in the DICOM series (e.g., multi-echo data)
   int m_DICOMImagesPerIPP;
+
+	MFDS::DicomFilesToFrameMap m_DicomFilesToFrameMap;
 
   /** Registry mappings for these enums */
   static bool m_StaticDataInitialized;

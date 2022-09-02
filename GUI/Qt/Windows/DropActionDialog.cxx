@@ -17,6 +17,7 @@
 #include "MeshImportModel.h"
 #include <QtWidgetActivator.h>
 #include "LatentITKEventNotifier.h"
+#include "AllPurposeProgressAccumulator.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -255,10 +256,22 @@ void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
     {
     // Load without the wizard
     QtCursorOverride c(Qt::WaitCursor);
+
+		// Show a progress dialog
+		auto parentWidget = static_cast<QWidget*>(this->parent());
+		using namespace imageiowiz;
+		ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(parentWidget));
+		this->hide();
+		progress->display();
+
+		SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
+				ImageReadingProgressAccumulator::New();
+		irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+
     try
       {
       IRISWarningList warnings;
-      m_Model->GetDriver()->LoadImageViaDelegate(file.c_str(), delegate, warnings, &ioHints);
+			m_Model->GetDriver()->LoadImageViaDelegate(file.c_str(), delegate, warnings, &ioHints, irProgAccum);
       this->accept();
       }
     catch(exception &exc)
