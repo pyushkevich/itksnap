@@ -57,15 +57,6 @@ ImageCoordinateGeometry
     }
 }
 
-ImageCoordinateGeometry
-::ImageCoordinateGeometry(DirectionMatrix imageDirection,
-                          const IRISDisplayGeometry &dispGeom,
-                          const Vector3ui &imageSize)
-{
-  SetGeometry(imageDirection,dispGeom,imageSize);
-}
-
-
 void
 ImageCoordinateGeometry
 ::SetGeometry(DirectionMatrix imageDirection,

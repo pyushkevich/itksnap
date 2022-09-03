@@ -889,7 +889,7 @@ const ImageCoordinateTransform *
 ImageWrapper<TTraits,TBase>
 ::GetImageToDisplayTransform(unsigned int iSlice) const
 {
-  return m_ImageGeometry.GetImageToDisplayTransform(iSlice);
+  return m_ImageGeometry->GetImageToDisplayTransform(iSlice);
 }
 
 template<class TTraits, class TBase>
@@ -1292,12 +1292,12 @@ ImageWrapper<TTraits,TBase>
   // Update the image in the display mapping
   m_DisplayMapping->UpdateImagePointer(m_Image);
 
+  // Update the time point select filter, so that m_Image and m_ImageBase have the right
+  // spatial information. This has to be done before the call to SetITKTransform()
+  m_TimePointSelectFilter->Update();
+
   // Update the reference space and transform
   this->SetITKTransform(referenceSpace, transform);
-
-  // Update the time point select filter, so that m_Image and m_ImageBase have the right
-  // spatial information
-  m_TimePointSelectFilter->Update();
 
   // Store the time when the image was assigned
   m_ImageAssignTime = m_ImageSaveTime = m_Image4D->GetTimeStamp();
@@ -1469,7 +1469,7 @@ ImageWrapper<TTraits,TBase>
     {
     m_Slicers[i]->SetObliqueTransform(m_AffineTransform);
     m_Slicers[i]->SetUseOrthogonalSlicing(m_ImageSpaceMatchesReferenceSpace);
-    m_Slicers[i]->SetOrthogonalTransform(m_ImageGeometry.GetImageToDisplayTransform(i));
+    m_Slicers[i]->SetOrthogonalTransform(m_ImageGeometry->GetImageToDisplayTransform(i));
     }
 
   // Fire an update event
@@ -1769,8 +1769,12 @@ ImageWrapper<TTraits,TBase>
   // Create an image coordinate geometry based on the current state
   if(m_ReferenceSpace)
     {
+    // Create an new image geometry object
+    SmartPtr<ImageCoordinateGeometry> p = ImageCoordinateGeometry::New();
+    m_ImageGeometry = p;
+
     // Set the geometry based on the current image characteristics
-    m_ImageGeometry.SetGeometry(
+    m_ImageGeometry->SetGeometry(
           m_ReferenceSpace->GetDirection().GetVnlMatrix().as_matrix(),
           m_DisplayGeometry,
           m_ReferenceSpace->GetLargestPossibleRegion().GetSize());
@@ -1779,7 +1783,7 @@ ImageWrapper<TTraits,TBase>
     for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
       {
       // Assign the new geometry to the slicers
-      m_Slicers[iSlice]->SetOrthogonalTransform(m_ImageGeometry.GetImageToDisplayTransform(iSlice));
+      m_Slicers[iSlice]->SetOrthogonalTransform(m_ImageGeometry->GetImageToDisplayTransform(iSlice));
 
       // TODO: is this necessary and the right place to do ut?
       // Invalidate the requested region in the display slice. This will
@@ -1793,20 +1797,7 @@ ImageWrapper<TTraits,TBase>
     }
   else
     {
-    // Identity matrix
-    typename ImageType::DirectionType dirmat;
-    dirmat.SetIdentity();
-
-    // Zero size
-    typename ImageType::SizeType size;
-    size.Fill(0);
-
-    // Set the geometry to default values
-    m_ImageGeometry.SetGeometry(dirmat.GetVnlMatrix().as_matrix(),
-                                m_DisplayGeometry, size);
-
-    // TODO: why are we not updating the slicers?
-    // TODO: does this code even get run?
+    m_ImageGeometry = nullptr;
     }
 }
 

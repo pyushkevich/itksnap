@@ -226,8 +226,7 @@ public:
   /**
    * Get the image geometry from the wrapper
    */
-  irisGetMacroWithOverride(ImageGeometry, const ImageCoordinateGeometry &)
-
+  const ImageCoordinateGeometry *GetImageGeometry() const override { return m_ImageGeometry; }
 
   /** Get the current slice index - which really means cursor position */
   irisGetMacroWithOverride(SliceIndex, IndexType)
@@ -758,7 +757,7 @@ protected:
   //
   // The code should not directly modify this variable. It should only be
   // modified by the UpdateImageGeometry() method.
-  ImageCoordinateGeometry m_ImageGeometry;
+  SmartPtr<ImageCoordinateGeometry> m_ImageGeometry;
 
   // Transform from image index to NIFTI world coordinates. This is derived
   // from the origin, spacing, and direction cosine matrix in the image header.

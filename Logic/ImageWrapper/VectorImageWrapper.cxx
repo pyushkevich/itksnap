@@ -244,6 +244,9 @@ VectorImageWrapper<TTraits,TBase>
     typedef itk::VectorImageToImageAdaptor<InternalPixelType,4> ComponentImage;
     SmartPtr<ComponentImage> comp = ComponentImage::New();
     comp->SetImage(image_4d);
+    comp->SetSpacing(image_4d->GetSpacing());
+    comp->SetOrigin(image_4d->GetOrigin());
+    comp->SetDirection(image_4d->GetDirection());
     comp->SetExtractComponentIndex(i);
 
     // Create a wrapper for this image and assign the component image

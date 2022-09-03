@@ -238,11 +238,11 @@ GenericSliceModel
 
   // Store the transforms between the display and image spaces
   m_ImageToDisplayTransform->SetTransform(
-        imageData->GetImageGeometry().GetImageToDisplayTransform(m_Id));
+        imageData->GetImageGeometry()->GetImageToDisplayTransform(m_Id));
   m_DisplayToImageTransform->SetTransform(
-    imageData->GetImageGeometry().GetDisplayToImageTransform(m_Id));
+    imageData->GetImageGeometry()->GetDisplayToImageTransform(m_Id));
 
-  imageData->GetImageGeometry().GetAnatomyToDisplayTransform(m_Id)->
+  imageData->GetImageGeometry()->GetAnatomyToDisplayTransform(m_Id)->
       ComputeInverse(m_DisplayToAnatomyTransform);
 
   // Get the volume extents & voxel scale factors

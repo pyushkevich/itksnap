@@ -71,7 +71,7 @@ using namespace std;
 void SegmentationFaultHandler(int sig)
 {
   cerr << "*************************************" << endl;
-  cerr << "ITK-SNAP: " << sys_siglist[sig] << endl;
+  cerr << "ITK-SNAP: " << strsignal(sig) << endl;
   cerr << "BACKTRACE: " << endl;
   void *array[50];
   int nsize = backtrace(array, 50);

@@ -540,7 +540,7 @@ void GenericImageData::SetDirectionMatrix(const vnl_matrix<double> &direction)
       }
 }
 
-const ImageCoordinateGeometry &GenericImageData::GetImageGeometry() const
+const ImageCoordinateGeometry *GenericImageData::GetImageGeometry() const
 {
   assert(m_MainImageWrapper->IsInitialized());
   return m_MainImageWrapper->GetImageGeometry();
