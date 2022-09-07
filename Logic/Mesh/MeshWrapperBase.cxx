@@ -1,5 +1,6 @@
 #include "MeshWrapperBase.h"
 #include "MeshDisplayMappingPolicy.h"
+#include "Rebroadcaster.h"
 #include "vtkPointData.h"
 #include "vtkCellData.h"
 #include "vtkDataSetAttributes.h"
@@ -218,7 +219,6 @@ MergeDataProperties(MeshLayerDataArrayPropertyMap &dest, MeshDataArrayPropertyMa
       dest[cit->first] = newprop;
       m_CombinedDataPropertyMap[m_CombinedPropID++] = newprop;
       }
-
     }
 }
 
@@ -319,6 +319,14 @@ SetActiveMeshLayerDataPropertyId(int id)
   if (id < 0 || m_ActiveDataPropertyId == id)
     return;
 
+	// Remove existing observer from previous active prop
+	if (m_CombinedDataPropertyMap.count(m_ActiveDataPropertyId))
+		{
+		auto oldprop = m_CombinedDataPropertyMap[m_ActiveDataPropertyId];
+		oldprop->RemoveObserver(m_ActiveMeshDataPropertyObserverTag);
+		}
+
+
   m_ActiveDataPropertyId = id;
 
   // if failed check caller's logic
@@ -327,6 +335,14 @@ SetActiveMeshLayerDataPropertyId(int id)
   // check is point or cell data
   auto prop = m_CombinedDataPropertyMap[id];
 
+	// Rebroadcast vector level histogram change event
+	m_ActiveMeshDataPropertyObserverTag =
+			Rebroadcaster::Rebroadcast(prop, WrapperHistogramChangeEvent(),
+																 this, WrapperHistogramChangeEvent());
+
+	// Change Active Property itself is a histogram change event
+	InvokeEvent(WrapperHistogramChangeEvent());
+
   // Change the active array
   if (prop->GetType() == MeshDataArrayProperty::POINT_DATA)
     {
@@ -334,7 +350,6 @@ SetActiveMeshLayerDataPropertyId(int id)
       {
       for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)
         {
-
         auto pointData = polyIt->second->GetPolyData()->GetPointData();
         pointData->SetActiveAttribute(prop->GetName(),
                                vtkDataSetAttributes::SCALARS);
@@ -355,8 +370,6 @@ SetActiveMeshLayerDataPropertyId(int id)
   auto dmp = GetMeshDisplayMappingPolicy();
   dmp->SetColorMap(prop->GetColorMap());
   dmp->SetIntensityCurve(prop->GetIntensityCurve());
-
-  InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 void
@@ -370,7 +383,7 @@ UpdateMetaData()
     return;
 
   // Update Bounding Box
-  for (auto kv : m_MeshAssemblyMap)
+	for (auto &kv : m_MeshAssemblyMap)
     {
     std::ostringstream oss;
 
@@ -384,7 +397,7 @@ UpdateMetaData()
 
   // Update Memory Usage
   double memory = 0.0;
-  for (auto kv : m_MeshAssemblyMap)
+	for (auto &kv : m_MeshAssemblyMap)
     memory += kv.second->GetTotalMemoryInMB();
 
   // Use an oss to format string
@@ -393,7 +406,7 @@ UpdateMetaData()
   m_MetaDataMap["Memory Usage (MB)"] = oss.str();
 
   // Update Data Array Properties
-  for (auto kv : m_CombinedDataPropertyMap)
+	for (auto &kv : m_CombinedDataPropertyMap)
     {
     std::ostringstream oss;
     oss.precision(3);

@@ -628,13 +628,19 @@ MeshLayerTableRowModel::CheckState(UIState state)
 
     // We don't consider multicomponent mesh for now
     case AbstractLayerTableRowModel::UIF_MULTICOMPONENT:
-      return false;
-
+			{
+			auto prop = m_MeshLayer->GetActiveDataArrayProperty();
+			if (prop)
+				return prop->IsMultiComponent();
+			}
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
       return hasGenericDMP;
 
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
       return hasGenericDMP;
+
+		case AbstractLayerTableRowModel::UIF_MESH_HAS_DATA:
+			return hasGenericDMP;
 
     default:
       break;

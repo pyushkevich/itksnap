@@ -2,6 +2,7 @@
 #include "Registry.h"
 #include "GenericImageData.h"
 #include "IRISApplication.h"
+#include "Rebroadcaster.h"
 
 TimePointProperties::TimePointProperties()
 {
@@ -15,6 +16,8 @@ void
 TimePointProperties::SetParent(GenericImageData * parent)
 {
   m_Parent = parent;
+	Rebroadcaster::Rebroadcast(this, WrapperGlobalMetadataChangeEvent(),
+														 parent, WrapperGlobalMetadataChangeEvent());
 }
 
 void
@@ -36,7 +39,10 @@ TimePointProperties::CreateNewData()
   unsigned int nt = m_Parent->GetParent()->GetNumberOfTimePoints();
   for (unsigned int i = 1; i <= nt; ++i)
     {
-      m_TPPropertiesMap[i] = TimePointProperty();
+		auto tpp = TimePointProperty::New();
+		m_TPPropertiesMap[i] = tpp;
+		Rebroadcaster::Rebroadcast(tpp, WrapperGlobalMetadataChangeEvent(),
+															 this, WrapperGlobalMetadataChangeEvent());
     }
 }
 
@@ -46,7 +52,7 @@ TimePointProperties::GetProperty(unsigned int tp)
   // Map size should always consistent with current main image timepoint #
   assert(tp <= m_TPPropertiesMap.size());
 
-  return &m_TPPropertiesMap[tp];
+	return m_TPPropertiesMap[tp];
 }
 
 
@@ -68,14 +74,14 @@ TimePointProperties::Load(Registry &folder)
       // Check folder existence
       // To make this robust, create an empty property for a missing entry
       std::string key = Registry::Key("TimePoints.TimePoint[%d]", i);
-      TimePointProperty tpp;
+			auto tpp = TimePointProperty::New();
 
       if (folder.HasFolder(key))
         {
           Registry &tpFolder = folder.Folder(key);
 
-          tpp.Nickname = tpFolder["Nickname"][""];
-          tpFolder["Tags"].GetList(tpp.Tags);
+					tpp->SetNickname(tpFolder["Nickname"][""]);
+					tpFolder["Tags"].GetList(tpp->GetModifiableTags());
         }
 
       this->m_TPPropertiesMap[i] = tpp;
@@ -101,8 +107,8 @@ TimePointProperties::Save(Registry &folder) const
 
       // Write timepoint properties to the folder
       tp_folder["TimePoint"] << cit->first;
-      tp_folder["Nickname"] << cit->second.Nickname;
-      tp_folder["Tags"].PutList(cit->second.Tags);
+			tp_folder["Nickname"] << cit->second->GetNickname();
+			tp_folder["Tags"].PutList(cit->second->GetTags());
     }
 }
 

@@ -3,6 +3,7 @@
 
 #include "DisplayMappingPolicy.h"
 #include "ColorLabelTable.h"
+#include "itkCommand.h"
 
 class vtkScalarBarActor;
 class vtkLookupTable;
@@ -19,7 +20,7 @@ public:
   irisITKAbstractObjectMacro(MeshDisplayMappingPolicy, AbstractContinuousImageDisplayMappingPolicy)
 
   typedef MeshDataArrayProperty::MeshDataType MeshDataType;
-  typedef MeshLayerDataArrayProperty::VectorModes VectorModes;
+	typedef MeshLayerDataArrayProperty::VectorMode VectorMode;
 
   //--------------------------------------------
   // virtual methods implementation
@@ -58,7 +59,7 @@ public:
   virtual void SetColorMap(ColorMap *map) override;
 
   /** Configure actor */
-  virtual void UpdateApperance(ActorPool *pool, unsigned int timepoint) = 0;
+	virtual void UpdateAppearance(ActorPool *pool, unsigned int timepoint) = 0;
 
   /** Configure legend scalar bar */
   virtual void ConfigureLegend(vtkScalarBarActor *legend) = 0;
@@ -97,6 +98,8 @@ protected:
   SmartPtr<IntensityCurveVTK> m_IntensityCurve;
 
   bool m_Initialized = false;
+
+	unsigned long m_ColorMapObserverTag, m_IntensityCurveObserverTag;
 };
 
 /**
@@ -113,7 +116,7 @@ public:
   // virtual methods implementation
 
   /** Configure mapper */
-  virtual void UpdateApperance(ActorPool *pool, unsigned int timepoint) override;
+	virtual void UpdateAppearance(ActorPool *pool, unsigned int timepoint) override;
 
   /** Configure legend scalar bar */
   virtual void ConfigureLegend(vtkScalarBarActor *legend) override;
@@ -122,13 +125,11 @@ public:
   virtual void UpdateLUT() override;
 
   // end of virtual methods implementation
-  //--------------------------------------------
-
+	//--------------------------------------------
 protected:
   GenericMeshDisplayMappingPolicy();
   virtual ~GenericMeshDisplayMappingPolicy();
 };
-
 
 /**
  * @brief The LabelMeshDisplayMappingPolicy class
@@ -144,13 +145,17 @@ public:
   // virtual methods implementation
 
   /** Configure mapper */
-  virtual void UpdateApperance(ActorPool *pool, unsigned int timepoint) override;
+	virtual void UpdateAppearance(ActorPool *pool, unsigned int timepoint) override;
 
   /** Configure legend scalar bar */
   virtual void ConfigureLegend(vtkScalarBarActor *legend) override;
 
   /** Build m_LookupTable based on the active array property */
   virtual void UpdateLUT() override;
+
+	/** Return null for LabelMesh */
+	virtual ColorMap *GetColorMap() const override
+	{ return nullptr; }
 
   // end of virtual methods implementation
   //--------------------------------------------

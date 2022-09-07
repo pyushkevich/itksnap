@@ -57,8 +57,14 @@ MeshDisplayMappingPolicy::GetNativeImageRangeForCurve()
 {
   // Get Active prop
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
+	vtkIdType activeComp = -1;
+	if (prop->GetActiveVectorMode() == VectorMode::COMPONENT)
+		{
+		activeComp = prop->GetActiveComponentId();
+		}
 
-  return Vector2d(prop->GetMin(), prop->GetMax());
+
+	return Vector2d(prop->GetMin(activeComp), prop->GetMax(activeComp));
 }
 
 ScalarImageHistogram *
@@ -70,19 +76,37 @@ MeshDisplayMappingPolicy::GetHistogram(int nBins)
 void
 MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
 {
+	if (m_ColorMap)
+		{
+		m_ColorMap->RemoveObserver(m_ColorMapObserverTag);
+		}
+
   m_ColorMap = map;
 
-  Rebroadcaster::Rebroadcast(m_ColorMap, itk::ModifiedEvent(),
-                             m_Wrapper, WrapperDisplayMappingChangeEvent());
+	// ColorMap modified event should notify upstream observers
+	m_IntensityCurveObserverTag =
+			Rebroadcaster::Rebroadcast(map, itk::ModifiedEvent(),
+																 m_Wrapper, WrapperDisplayMappingChangeEvent());
+
+	m_Wrapper->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 void
 MeshDisplayMappingPolicy::SetIntensityCurve(IntensityCurveVTK *curve)
 {
+	if (m_IntensityCurve)
+		{
+		m_IntensityCurve->RemoveObserver(m_IntensityCurveObserverTag);
+		}
+
   m_IntensityCurve = curve;
 
-  Rebroadcaster::Rebroadcast(m_IntensityCurve, itk::ModifiedEvent(),
-                             m_Wrapper, WrapperDisplayMappingChangeEvent());
+	// Curve modified event should notify upstream observers
+	m_IntensityCurveObserverTag =
+			Rebroadcaster::Rebroadcast(curve, itk::ModifiedEvent(),
+																 m_Wrapper, WrapperDisplayMappingChangeEvent());
+
+	m_Wrapper->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 void
@@ -168,7 +192,7 @@ GenericMeshDisplayMappingPolicy::
 
 void
 GenericMeshDisplayMappingPolicy::
-UpdateApperance(ActorPool *pool, unsigned int)
+UpdateAppearance(ActorPool *pool, unsigned int)
 {
   // Get active data array property
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
@@ -182,6 +206,7 @@ UpdateApperance(ActorPool *pool, unsigned int)
   // Update lookup table
   UpdateLUT();
 
+	// Build the actorMap
   auto actorMap = pool->GetActorMap();
 
   for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
@@ -192,7 +217,6 @@ UpdateApperance(ActorPool *pool, unsigned int)
     // Configure mapper
     mapper->SetLookupTable(m_LookupTable);
     mapper->UseLookupTableScalarRangeOn();
-
 
     // -- point/cell data specific logic
     if (prop->GetType() == MeshDataType::POINT_DATA)
@@ -210,15 +234,25 @@ UpdateApperance(ActorPool *pool, unsigned int)
                                    vtkDataSetAttributes::AttributeTypes::SCALARS);
       }
 
+		// This methods are marked legacy and should be replaced by lut setting
+		// But obviously just setting lut does not work for this version
+		if (prop->GetNumberOfComponents() > 1)
+			{
+			switch(prop->GetActiveVectorMode())
+				{
+				case VectorMode::COMPONENT:
+					mapper->ColorByArrayComponent(prop->GetName(), prop->GetActiveComponentId());
+					break;
+				case VectorMode::MAGNITUDE:
+					mapper->ColorByArrayComponent(prop->GetName(), -1);
+					break;
+				default:;
+				}
+			}
+
     // -- set active attribute
     mapper->SetColorModeToMapScalars();
-
-    if (prop->GetActiveVectorMode() > 1)
-      {
-      mapper->ColorByArrayComponent(prop->GetName(), prop->GetActiveComponentId());
-      }
-
-    }
+		}
 }
 
 void GenericMeshDisplayMappingPolicy::
@@ -232,8 +266,6 @@ ConfigureLegend(vtkScalarBarActor* legend)
     return;
 
   legend->SetTitle(prop->GetName());
-
-  legend->SetVisibility(true);
 }
 
 
@@ -245,50 +277,79 @@ UpdateLUT()
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
 
   if (!prop)
-    return;
+		return;
 
-  // Build lookup table
-  auto min = prop->GetMin();
-  auto max = prop->GetMax();
+	// Check vector mode setting for multi-component data
+	using VectorMode = MeshLayerDataArrayProperty::VectorMode;
 
-  const size_t numClr = 256;
-  // div change dividing to multiplying, more efficient
-  double numdiv = 1.0/numClr;
+	vtkIdType activeComp = -1;
+
+
+	if (prop->GetNumberOfComponents() > 1)
+		{
+		VectorMode activeVecMode = prop->GetActiveVectorMode();
+
+		// Set which value lut will use for vector data
+		switch (activeVecMode)
+			{
+			case VectorMode::MAGNITUDE:
+				{
+				m_LookupTable->SetVectorModeToMagnitude();
+				m_LookupTable->SetVectorSize(-1);
+				this->SetIntensityCurve(prop->GetIntensityCurve());
+				break;
+				}
+			default:
+				{
+				m_LookupTable->SetVectorModeToComponent();
+				m_LookupTable->SetVectorSize(1);
+				m_LookupTable->SetVectorComponent(prop->GetActiveComponentId());
+
+				activeComp = prop->GetActiveComponentId();
+				auto compCurve = prop->GetActiveComponent().m_IntensityCurve;
+				}
+			}
+		}
+
+	// Build the lookup table
+	// -- Find data range
+	double dmin, dmax; // data min and max
+	dmin = prop->GetMin(activeComp);
+	dmax = prop->GetMax(activeComp);
+
+	// -- Find contrast range (ratio)
+	float rMin, tMin, rMax, tMax;
+	m_IntensityCurve->GetControlPoint(0, rMin, tMin);
+	m_IntensityCurve->GetControlPoint(m_IntensityCurve->GetControlPointCount() - 1, rMax, tMax);
+
+	// -- Calculate the lut range
+	double lutMin, lutMax, drange;
+	drange = dmax - dmin;
+	lutMin = dmin + drange * rMin;
+	lutMax = dmin + drange * rMax;
+
+	m_LookupTable->SetRange(lutMin, lutMax);
+
+	// Prepare color generation
+	const size_t numClr = 256;
+	double numdiv = 1.0/numClr;
   double clrdiv = 1.0/255.0;
-
-  m_LookupTable->SetRange(min, max);
   m_LookupTable->SetNumberOfColors(numClr);
+
+	double indRange = rMax - rMin; // index range is based on contrast range
   for (auto i = 0u; i < numClr; ++i)
     {
-    auto val = m_IntensityCurve->Evaluate(i * numdiv);
-    auto rgbaC = m_ColorMap->MapIndexToRGBA(val).GetDataPointer();
-
-    double rgbaD[4];
-    for (auto i = 0; i < 4; ++i)
-      rgbaD[i] = rgbaC[i] * clrdiv;
+		float ind = rMin + indRange * i * numdiv;
+		auto val = m_IntensityCurve->Evaluate(ind);
+		auto rgbaC = m_ColorMap->MapIndexToRGBA(val);
+		double rgbaD[4] = {rgbaC[0] * clrdiv, rgbaC[1] * clrdiv,
+											 rgbaC[2] * clrdiv, rgbaC[3] * clrdiv};
 
     m_LookupTable->SetTableValue(i, rgbaD);
     }
 
-  switch (prop->GetActiveVectorMode())
-    {
-    case 0:
-      m_LookupTable->SetVectorMode(vtkScalarsToColors::MAGNITUDE);
-      break;
-    case 1:
-      m_LookupTable->SetVectorMode(vtkScalarsToColors::RGBCOLORS);
-      break;
-    default:
-      {
-      m_LookupTable->SetVectorMode(vtkScalarsToColors::COMPONENT);
-      m_LookupTable->SetVectorComponent(prop->GetActiveComponentId());
-      }
-    }
-
   m_LookupTable->Build();
 }
-
-
 
 // ==================================================
 //  LabelMeshDisplayMappingPolicy Implementation
@@ -307,14 +368,12 @@ LabelMeshDisplayMappingPolicy::
 
 void
 LabelMeshDisplayMappingPolicy::
-UpdateApperance(ActorPool *pool, unsigned int)
+UpdateAppearance(ActorPool *pool, unsigned int)
 {
   auto actorMap = pool->GetActorMap();
 
   // Always update LUT first
   UpdateLUT();
-
-  // Converting division to multiplication for efficiency
 
   for (auto it = actorMap->begin(); it != actorMap->end(); ++it)
     {
@@ -333,19 +392,14 @@ LabelMeshDisplayMappingPolicy::
 ConfigureLegend(vtkScalarBarActor* legend)
 {
   legend->SetLookupTable(m_LookupTable);
-  legend->SetTitle("Label");
-  legend->SetNumberOfLabels(m_LookupTable->GetNumberOfColors());
-
-  // Hide the legend for label mesh
-  legend->SetVisibility(false);
 }
 
 void
 LabelMeshDisplayMappingPolicy::
 UpdateLUT()
 {
-  //m_LookupTable->SetIndexedLookup(true);
-  size_t numClr = m_ColorLabelTable->GetNumberOfValidLabels();
+	size_t numClr = m_ColorLabelTable->GetNumberOfValidLabels();
+	m_LookupTable->SetIndexedLookup(true);
   m_LookupTable->SetNumberOfColors(numClr);
   m_LookupTable->SetRange(0, 6);
 
@@ -361,6 +415,7 @@ UpdateLUT()
     rgbaD[3] = cit->second.GetAlpha() / 255.0;
 
     m_LookupTable->SetTableValue(cit->first, rgbaD);
+		m_LookupTable->SetAnnotation(cit->first, std::to_string(cit->first));
     }
   m_LookupTable->Build();
 }

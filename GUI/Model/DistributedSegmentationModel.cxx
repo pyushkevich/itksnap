@@ -430,7 +430,7 @@ void DistributedSegmentationModel::ApplyTagsToTargets()
       // Get TimePoint Properties
       TimePointProperty *tp = id->GetTimePointProperties()->GetProperty(m_TagSpecArray[i].object_id);
       // One TimePoint can have multiple tags
-      tp->Tags.AddTag(ts.name);
+			tp->AddTag(ts.name);
       }
     }
 }
@@ -859,13 +859,13 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
       for(unsigned int i = 1; i <= nt; ++i)
         {
         TimePointProperty *tpp = tpps->GetProperty(i);
-        if (tpp->Tags.Contains(tag.tag_spec.name))
+				if (tpp->GetTags().Contains(tag.tag_spec.name))
           {
             tp = i;
             match = tpp;
             ++cnt;
           }
-        else if (tpp->Nickname.compare(tag.tag_spec.name) == 0)
+				else if (tpp->GetNickname().compare(tag.tag_spec.name) == 0)
           {
             tp = i;
             match = tpp;
@@ -878,7 +878,7 @@ bool DistributedSegmentationModel::FindUniqueObjectForTag(TagTargetSpec &tag)
         {
           tag.object_id = tp;
           std::ostringstream oss;
-          oss << "Time point " << tp << " (" << match->Nickname << ")";
+					oss << "Time point " << tp << " (" << match->GetNickname() << ")";
           tag.desc = oss.str();
           return true;
         }
@@ -1220,7 +1220,7 @@ bool DistributedSegmentationModel
               std::ostringstream oss;
               oss << "Time point " << i;
               std::string tp_nickname = driver->GetIRISImageData()->GetTimePointProperties()
-                  ->GetProperty(i)->Nickname;
+									->GetProperty(i)->GetNickname();
               if (tp_nickname.length() > 0)
                 oss << " (" << tp_nickname << ")";
 
@@ -1280,7 +1280,7 @@ void DistributedSegmentationModel
         oss << "TimePoint " << value;
 
         std::string tp_nickname = driver->GetIRISImageData()->GetTimePointProperties()
-            ->GetProperty(value)->Nickname;
+						->GetProperty(value)->GetNickname();
 
         if (tp_nickname.length() > 0)
           oss << " (" << tp_nickname << ")";

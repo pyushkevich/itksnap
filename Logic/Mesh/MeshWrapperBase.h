@@ -367,6 +367,9 @@ protected:
 
   // Meta Data Map
   MetaDataMap m_MetaDataMap;
+
+	// Data property observer tag
+	unsigned long m_ActiveMeshDataPropertyObserverTag;
 };
 
 #endif // MESHWRAPPERBASE_H

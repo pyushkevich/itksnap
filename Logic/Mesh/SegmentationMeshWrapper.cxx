@@ -70,7 +70,6 @@ SegmentationMeshWrapper::SegmentationMeshWrapper()
 {
 }
 
-
 void
 SegmentationMeshWrapper::Initialize(LabelImageWrapper *segImg, MeshOptions *meshOptions)
 {
@@ -79,8 +78,13 @@ SegmentationMeshWrapper::Initialize(LabelImageWrapper *segImg, MeshOptions *mesh
 
   // Set Default nickname
   std::ostringstream oss;
-  oss << segImg->GetDefaultNickname();
+	oss << m_NicknamePrefix << segImg->GetNickname();
   SetDefaultNickname(oss.str());
+
+	auto metaCallback = SegmentationMetadataUpdateCallback::New();
+	metaCallback->Initialize(this);
+
+	segImg->AddObserver(WrapperMetadataChangeEvent(), metaCallback);
 
   // Configure display mapping policy
   m_DisplayMapping = LabelMeshDisplayMappingPolicy::New();
@@ -112,9 +116,7 @@ SegmentationMeshWrapper::IsMeshDirty(unsigned int timepoint)
       return true;
     }
   else
-    {
     return true;
-    }
 
   return false;
 }
