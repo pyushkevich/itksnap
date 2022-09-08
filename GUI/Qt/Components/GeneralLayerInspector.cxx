@@ -111,7 +111,7 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 				m_Model->GetMeshDataArrayNameModel(), DomainChangedEvent(),
 				this, SLOT(meshData_domainChanged()));
 
-	QObject::connect(ui->boxMeshDataName, SIGNAL(activated(int)),
+	QObject::connect(ui->boxMeshDataName, SIGNAL(currentIndexChanged(int)),
 									 this, SLOT(meshData_selectionChanged(int)));
 
 	// Mesh vector data connection
