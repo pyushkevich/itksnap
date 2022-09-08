@@ -323,10 +323,11 @@ GetHistogram(size_t nBins)
 			if (activeVecComp == -1) // use magnitude
 				{
 				size_t nc = array->GetNumberOfComponents();
-				double vec[nc];
+				double *vec  = new double[nc];
 				for (size_t c = 0; c < nc; ++c)
 					vec[c] = array->GetComponent(i, c);
 				v = GetMagnitude(vec, nc);
+				delete [] vec;
 				}
 			else
 				v = array->GetComponent(i, activeVecComp);

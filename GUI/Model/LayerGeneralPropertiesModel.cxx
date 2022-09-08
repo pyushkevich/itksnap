@@ -632,9 +632,5 @@ SetMeshVectorModeValue(vtkIdType value)
 		layer_prop->SetActiveVectorMode(VectorMode::COMPONENT, value - shift);
 		}
 
-	std::cout << "[LayerGeneralPropertiesModel] VecMode="
-						<< layer_prop->GetActiveVectorMode() << ", ActiveComp="
-						<< layer_prop->GetActiveComponentId() << std::endl;
-
   mesh_layer->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
