@@ -8,7 +8,6 @@ engine.sleep(1000);
 
 //=== Expand 3D Panel
 var panel3D = engine.findChild(mainwin, "panel3D");
-engine.printChildren(panel3D);
 var btnExpand = engine.findChild(panel3D, "btnExpand");
 btnExpand.click();
 
