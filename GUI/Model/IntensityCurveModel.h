@@ -173,6 +173,7 @@ public:
       IntensityRangePropertyType index) const;
 
   void OnAutoFitWindow();
+  void OnAdjustCustomContrast(double custom_level, double custom_window);
 protected:
 
   IntensityCurveModel();

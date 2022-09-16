@@ -74,6 +74,7 @@
 #include <SmoothLabelsDialog.h>
 #include "RegistrationDialog.h"
 #include "DistributedSegmentationDialog.h"
+#include "ContrastXML.h"
 
 #include <QAbstractListModel>
 #include <QItemDelegate>
@@ -90,6 +91,7 @@
 #include <QShortcut>
 #include <QScreen>
 #include <QTextStream>
+#include <itksys/SystemTools.hxx>
 
 QString read_tooltip_qt(const QString &filename)
 {
@@ -97,7 +99,7 @@ QString read_tooltip_qt(const QString &filename)
   file.open(QFile::ReadOnly);
   QTextStream ts(&file);
   QString result = ts.readAll();
-  file.close();;
+  file.close();
 
   return result;
 }
@@ -171,6 +173,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
     m_Model(NULL)
 {
   ui->setupUi(this);
+  m_CustomContrast = new Contrast();
 
   // Group mutually exclusive actions into action groups
   QActionGroup *grpToolbarMain = new QActionGroup(this);
@@ -652,6 +655,7 @@ void MainImageWindow::ShowFirstTime()
 
   // Also make sure the other elements look right before showing the window
   this->UpdateRecentMenu();
+  this->UpdateContrastMenu();
   this->UpdateRecentProjectsMenu();
   this->UpdateWindowTitle();
   this->UpdateLayerLayoutActions();
@@ -945,6 +949,38 @@ void MainImageWindow::CreateRecentMenu(
   submenu->menuAction()->setVisible(recent.size() > 0);
 }
 
+std::string MainImageWindow::GetContrastXMLFilePath()
+{
+    char rawPath[MAX_PATH];
+    GetModuleFileNameA(nullptr, rawPath, MAX_PATH);
+    auto exePath = std::string(rawPath);
+    auto filenameDir = exePath.substr(0, exePath.find_last_of("\\/"));
+    auto filePath = filenameDir + "\\ContrastSettings.xml";
+    return filePath;
+}
+
+void MainImageWindow::CreateContrastMenu(QMenu *submenu,
+                                         const char *slot)
+{ 
+    const auto filePath = GetContrastXMLFilePath();
+
+    SmartPtr<ContrastXMLFileReader> reader = ContrastXMLFileReader::New();
+    if (reader->CanReadFile(filePath.c_str()))
+    {
+        // Read the XML with custom contrast settings
+        m_CustomContrast->ReadFromCustomContrastXMLFile(filePath.c_str(), reader);
+
+        auto presetNames = m_CustomContrast->GetPresetNames();
+
+        for (auto presetName : presetNames)
+        {
+            QAction* action = submenu->addAction(from_utf8(presetName));
+            activateOnFlag(action, m_Model, UIF_BASEIMG_LOADED);
+            connect(action, SIGNAL(triggered(bool)), this, slot);
+        }
+    }   
+}
+
 void MainImageWindow::UpdateRecentMenu()
 {
   // Create recent menus for various history categories
@@ -959,6 +995,12 @@ void MainImageWindow::UpdateRecentMenu()
 
   this->CreateRecentMenu(ui->menuAddSegmentation_Recent, "LabelImage", false, 5,
                          SLOT(LoadAnotherRecentSegmentationActionTriggered()));
+}
+
+void MainImageWindow::UpdateContrastMenu()
+{
+  // Create contrast menu for various preset categories
+  this->CreateContrastMenu(ui->menuContrast, SLOT(LoadContrastActionTriggered()));
 }
 
 void MainImageWindow::UpdateRecentProjectsMenu()
@@ -1412,6 +1454,17 @@ void MainImageWindow::LoadRecentSegmentationActionTriggered()
   QAction *action = qobject_cast<QAction *>(sender());
   QString file = action->text();
   LoadRecentSegmentation(file, false);
+}
+
+void MainImageWindow::LoadContrastActionTriggered()
+{
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString preset = action->text();
+  auto level = m_CustomContrast->GetLevel(preset.toStdString());
+  auto window = m_CustomContrast->GetWindow(preset.toStdString());
+
+  m_Model->AdjustContrastAllLayers(level, window);
 }
 
 void MainImageWindow::LoadAnotherRecentSegmentationActionTriggered()
@@ -2135,6 +2188,7 @@ void MainImageWindow::on_actionResetContrastGlobal_triggered()
   // This triggers the autocontrast option for all layers.
   m_Model->ResetContrastAllLayers();
 }
+
 
 void MainImageWindow::DoUpdateCheck(bool quiet)
 {
