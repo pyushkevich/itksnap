@@ -311,7 +311,8 @@ void ImageIOWizardModel::LoadImage(std::string filename, ImageReadingProgressAcc
 	SmartPtr<itk::Command> miscProgCmd = irAccum->GetMiscProgressCommand();
 
 	SmartPtr<TrivalProgressSource> miscProgSrc = TrivalProgressSource::New();
-	miscProgSrc->AddObserver(itk::ProgressEvent(), miscProgCmd);
+  miscProgSrc->AddObserverToProgressEvents(miscProgCmd);
+  miscProgSrc->StartProgress();
 
   try
   {
