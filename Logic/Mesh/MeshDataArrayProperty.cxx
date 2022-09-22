@@ -35,7 +35,7 @@ AbstractMeshDataArrayProperty
 		return m_MagMin;
 	else
 		{
-		assert(comp > 0 && comp < this->GetNumberOfComponents());
+    assert(comp >= 0 && comp < (vtkIdType)this->GetNumberOfComponents());
 		return m_MeshArrayComponentMap.at(comp).m_Min;
 		}
 }
@@ -48,7 +48,7 @@ AbstractMeshDataArrayProperty
 		return m_MagMax;
 	else
 		{
-		assert(comp > 0 && comp < this->GetNumberOfComponents());
+    assert(comp >= 0 && comp < (vtkIdType)this->GetNumberOfComponents());
 		return m_MeshArrayComponentMap.at(comp).m_Max;
 		}
 }
@@ -166,7 +166,7 @@ MeshLayerDataArrayProperty()
         (ColorMap::SystemPreset::COLORMAP_JET));
 	m_MagnitudeIntensityCurve = IntensityCurveVTK::New();
 	m_MagnitudeIntensityCurve->Initialize();
-	SetIntensityCurve(m_MagnitudeIntensityCurve);
+  SetActiveIntensityCurve(m_MagnitudeIntensityCurve);
 	m_ActiveVectorMode = VectorMode::MAGNITUDE;
 	m_ActiveComponentId = 0;
   m_HistogramFilter = HistogramFilterType::New();
@@ -196,14 +196,14 @@ Initialize(MeshDataArrayProperty *other)
 
 IntensityCurveVTK*
 MeshLayerDataArrayProperty
-::GetIntensityCurve()
+::GetActiveIntensityCurve()
 {
 	return m_ActiveIntensityCurve;
 }
 
 void
 MeshLayerDataArrayProperty
-::SetIntensityCurve(IntensityCurveVTK *curve)
+::SetActiveIntensityCurve(IntensityCurveVTK *curve)
 {
 	// Add new curve
 	m_ActiveIntensityCurve = curve;
@@ -242,7 +242,7 @@ void
 MeshLayerDataArrayProperty
 ::SetActiveVectorMode(int mode, vtkIdType compId)
 {
-	assert (mode > 0 && mode < VectorMode::COUNT);
+  assert (mode >= 0 && mode < VectorMode::COUNT);
 
 	if ((VectorMode)mode == m_ActiveVectorMode &&
 			(compId < 0 || compId == m_ActiveComponentId))
@@ -252,9 +252,9 @@ MeshLayerDataArrayProperty
 	m_ActiveComponentId = compId;
 
 	if (mode == VectorMode::MAGNITUDE)
-		SetIntensityCurve(m_MagnitudeIntensityCurve);
+    SetActiveIntensityCurve(m_MagnitudeIntensityCurve);
 	else
-		SetIntensityCurve(GetActiveComponent().m_IntensityCurve);
+    SetActiveIntensityCurve(GetActiveComponent().m_IntensityCurve);
 
 	InvokeEvent(WrapperHistogramChangeEvent());
 }
