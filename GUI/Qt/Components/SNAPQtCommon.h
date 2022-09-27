@@ -137,7 +137,7 @@ QString ShowSimpleOpenDialogWithHistory(QWidget *parent, GlobalUIModel *model, Q
  */
 bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
                     LayerRole role, bool force_interactive = false,
-                    QWidget *parent = NULL);
+                    QWidget *parent = NULL, bool currentTPOnly = false);
 
 
 /**

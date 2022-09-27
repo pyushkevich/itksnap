@@ -400,6 +400,10 @@ bool GlobalUIModel::CheckState(UIState state)
 
       return ret;
       }
+    case UIF_IS_4D:
+      {
+      return m_Driver->GetNumberOfTimePoints() > 1;
+      }
     case UIF_OVERLAY_LOADED:
       return m_Driver->GetCurrentImageData()->AreOverlaysLoaded();
     case UIF_SNAKE_MODE:

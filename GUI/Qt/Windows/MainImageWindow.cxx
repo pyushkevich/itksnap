@@ -609,6 +609,8 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->menuAddSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSegmentationAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnAllFlags(ui->actionSaveTimePointSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED, UIF_IS_4D,
+                     QtWidgetActivator::HideInactive);
   activateOnFlag(ui->actionSave_as_Mesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionLoadLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);

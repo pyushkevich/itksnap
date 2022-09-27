@@ -9,6 +9,7 @@ enum UIState {
   UIF_IRIS_MODE,                 // Not in snake mode (or other future such mode)
   UIF_IRIS_WITH_BASEIMG_LOADED,  // i.e., system in main interaction mode
   UIF_IRIS_WITH_OVERLAY_LOADED,  // i.e., system in main interaction mode
+  UIF_IS_4D,
   UIF_ROI_VALID,
   UIF_LINKED_ZOOM,
   UIF_UNDO_POSSIBLE,
