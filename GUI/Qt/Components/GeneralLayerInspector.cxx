@@ -121,8 +121,6 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 
 	makeCoupling(ui->boxMeshVectorMode, m_Model->GetMeshVectorModeModel());
 
-//	QObject::connect(ui->boxMeshVectorMode, SIGNAL(activated(int)),
-//									 this, SLOT(meshVector_selectionChanged(int)));
 
 }
 

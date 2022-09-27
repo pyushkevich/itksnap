@@ -329,7 +329,7 @@ public:
    * conjunction with an IO wizard. We pass in the Layer and the LayerRole
    */
   SmartPtr<ImageIOWizardModel> CreateIOWizardModelForSave(
-      ImageWrapperBase *layer, LayerRole role);
+      ImageWrapperBase *layer, LayerRole role, bool crntTPOnly = false);
 
   /**
    * Perform an animation step

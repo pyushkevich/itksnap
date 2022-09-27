@@ -2068,6 +2068,16 @@ ImageWrapper<TTraits,TBase>
       m_ImageSaveTime = img->GetTimeStamp();
 }
 
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits, TBase>
+::WriteCurrentTPImageToFile(const char *filename)
+{
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+  Registry reg;
+  Specialization::Write(m_Image, filename, reg);
+}
+
 
 template<class TTraits, class TBase>
 void

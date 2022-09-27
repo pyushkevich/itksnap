@@ -652,6 +652,10 @@ public:
     */
   virtual const ImagePointer GetImageByTimePoint(unsigned int timepoint) const;
 
+
+  /** Write timepoint image to file */
+  void WriteCurrentTPImageToFile(const char *filename);
+
 protected:
 
   /**

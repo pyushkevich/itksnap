@@ -486,6 +486,7 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="actionSaveSegmentation"/>
     <addaction name="actionSaveSegmentationAs"/>
+    <addaction name="actionSaveTimePointSegmentation"/>
     <addaction name="separator"/>
     <addaction name="actionClear"/>
     <addaction name="actionClearActive"/>
@@ -1711,6 +1712,14 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>V</string>
+   </property>
+  </action>
+  <action name="actionSaveTimePointSegmentation">
+   <property name="text">
+    <string>Save Current Time Point Segmentation in 3D...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Time Point as 3D Segmentation</string>
    </property>
   </action>
  </widget>

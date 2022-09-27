@@ -122,7 +122,10 @@ bool AbstractPage::PerformIO()
       }
     else
       {
-      m_Model->SaveImage(to_utf8(filename));
+      if (m_Model->IsSaveCurrentTPOn())
+        m_Model->SaveCurrentTPSegmentationIn3D(to_utf8(filename));
+      else
+        m_Model->SaveImage(to_utf8(filename));
       }
     }
   catch(IRISException &exc)

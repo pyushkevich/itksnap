@@ -937,7 +937,7 @@ std::string GlobalUIModel::GenerateScreenshotFilename()
 }
 
 SmartPtr<ImageIOWizardModel>
-GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole role)
+GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole role, bool crntTPOnly)
 {
   // Create save delegate for this layer
   SmartPtr<AbstractSaveImageDelegate> delegate =
@@ -945,7 +945,7 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
 
   // Create a model for IO
   SmartPtr<ImageIOWizardModel> modelIO = ImageIOWizardModel::New();
-  modelIO->InitializeForSave(this, delegate, delegate->GetCategory().c_str());
+  modelIO->InitializeForSave(this, delegate, delegate->GetCategory().c_str(), crntTPOnly);
 
   return modelIO;
 }

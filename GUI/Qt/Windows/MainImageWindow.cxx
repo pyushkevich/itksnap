@@ -1913,11 +1913,11 @@ void MainImageWindow::on_actionVolumesAndStatistics_triggered()
   m_StatisticsDialog->Activate();
 }
 
-bool MainImageWindow::SaveSegmentation(bool interactive)
+bool MainImageWindow::SaveSegmentation(bool interactive, bool currentTPOnly)
 {
   return SaveImageLayer(
         m_Model, m_Model->GetDriver()->GetSelectedSegmentationLayer(),
-        LABEL_ROLE, interactive, this);
+        LABEL_ROLE, interactive, this, currentTPOnly);
 }
 
 void MainImageWindow::RaiseDialog(QDialog *dialog)
@@ -1938,6 +1938,11 @@ void MainImageWindow::on_actionSaveSegmentation_triggered()
 void MainImageWindow::on_actionSaveSegmentationAs_triggered()
 {
   SaveSegmentation(true);
+}
+
+void MainImageWindow::on_actionSaveTimePointSegmentation_triggered()
+{
+  SaveSegmentation(true, true);
 }
 
 
