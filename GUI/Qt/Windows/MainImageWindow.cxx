@@ -1375,7 +1375,7 @@ void MainImageWindow::LoadMainImage(const QString &file)
 
 	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
 			ImageReadingProgressAccumulator::New();
-	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+  irProgAccum->AddProgressReporterCommand(progress->createCommand());
 
   // Prompt for unsaved changes
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))

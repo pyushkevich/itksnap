@@ -82,14 +82,55 @@ StandaloneMeshWrapper
           AbstractMeshDataArrayProperty::GetMeshDataTypeEnumMap(),
           kv.second->GetType());
     kv.second->GetColorMap()->SaveToRegistry(crnt.Folder("ColorMap"));
-    kv.second->GetIntensityCurve()->SaveToRegistry(crnt.Folder("IntensityCurve"));
+    kv.second->GetActiveIntensityCurve()->SaveToRegistry(crnt.Folder("IntensityCurve"));
     }
 }
 
 void
 StandaloneMeshWrapper
-::ReadFromRegistry(Registry &)
+::LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir)
 {
+  Superclass::LoadFromRegistry(folder, orig_dir, crnt_dir); // Load basic structures using parent method
 
+  auto folder_data = folder.Folder("DataArrayProperties");
+  unsigned int array_id = 0;
+  std::string key_data = Registry::Key("DataArray[%03d]", array_id);
+
+  while (folder_data.HasFolder(key_data))
+    {
+    auto folder_crnt = folder_data.Folder(key_data);
+    auto array_name = folder_crnt["ArrayName"][""];
+    auto array_type = folder_crnt["ArrayType"].
+        GetEnum(AbstractMeshDataArrayProperty::GetMeshDataTypeEnumMap(),
+                AbstractMeshDataArrayProperty::POINT_DATA);
+
+    // Search the data array by array name and array type
+    // If found, restore color map and intensity curve
+    auto &array_map = this->GetCombinedDataProperty();
+
+    for (auto &kv : array_map)
+      {
+      if (strcmp(kv.second->GetName(), array_name) == 0 &&
+          kv.second->GetType() == array_type)
+        {
+        if (folder_crnt.HasFolder("ColorMap"))
+          {
+          auto folder_cm = folder_crnt.Folder("ColorMap");
+          kv.second->GetColorMap()->LoadFromRegistry(folder_cm);
+          }
+
+        if (folder_crnt.HasFolder("IntensityCurve"))
+          {
+          auto folder_ic = folder_crnt.Folder("IntensityCurve");
+          kv.second->GetActiveIntensityCurve()->LoadFromRegistry(folder_ic);
+          }
+        }
+      }
+
+    ++array_id;
+    key_data = Registry::Key("DataArray[%03d]", array_id);
+    }
+
+  SetActiveMeshLayerDataPropertyId(0);
 }
 

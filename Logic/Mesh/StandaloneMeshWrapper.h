@@ -4,6 +4,16 @@
 #include "MeshWrapperBase.h"
 #include "MeshDisplayMappingPolicy.h"
 
+class StandaloneMeshAssembly : public MeshAssembly
+{
+public:
+  irisITKObjectMacro(StandaloneMeshAssembly, MeshAssembly);
+
+protected:
+  StandaloneMeshAssembly() {}
+  virtual ~StandaloneMeshAssembly() {}
+};
+
 class StandaloneMeshWrapper : public MeshWrapperBase
 {
 public:
@@ -35,7 +45,7 @@ public:
   virtual void SaveToRegistry(Registry &folder) override;
 
   /** Build the layer from registry */
-  virtual void ReadFromRegistry(Registry &folder) override;
+  virtual void LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir)override;
 
   // End of virtual methods definition
   //-------------------------------------------------

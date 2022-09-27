@@ -523,7 +523,8 @@ GuidedNativeImageIO
 		if (m_FileFormat == FORMAT_DICOM_DIR)
 			{
 			SmartPtr<TrivalProgressSource> dcmHdrProgSrc = TrivalProgressSource::New();
-			dcmHdrProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
+      dcmHdrProgSrc->AddObserverToProgressEvents(progressCmd);
+      dcmHdrProgSrc->StartProgress();
 			dcmHdrProgSrc->AddProgress(0.1);
 
 			// Following this quick parsing of the directory, we need to actually
@@ -555,10 +556,11 @@ GuidedNativeImageIO
 
 		m_IOBase->ReadImageInformation();
     }
-	else if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
+  else if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
     {
-		SmartPtr<TrivalProgressSource> ecdHeaderProgSrc = TrivalProgressSource::New();
-		ecdHeaderProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
+    SmartPtr<TrivalProgressSource> ecdHeaderProgSrc = TrivalProgressSource::New();
+    ecdHeaderProgSrc->AddObserverToProgressEvents(progressCmd);
+    ecdHeaderProgSrc->StartProgress();
 
 		gdcm::Reader ecd_reader;
 		ecd_reader.SetFileName(FileName);
@@ -664,7 +666,8 @@ GuidedNativeImageIO
 
 		// IOBase not reporting progress. Using a trivial progress source
 		SmartPtr<TrivalProgressSource> progSrc = TrivalProgressSource::New();
-		progSrc->AddObserver(itk::ProgressEvent(), progressCmd);
+    progSrc->AddObserverToProgressEvents(progressCmd);
+    progSrc->StartProgress();
 
     m_IOBase->ReadImageInformation();
 		progSrc->AddProgress(1.0);
@@ -808,7 +811,8 @@ GuidedNativeImageIO
     typedef IncreaseDimensionImageFilter<GreyImageType, GreyImage4DType> UpDimFilter;
 
 		SmartPtr<TrivalProgressSource> dcmSeriesProgSrc = TrivalProgressSource::New();
-		dcmSeriesProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
+    dcmSeriesProgSrc->AddObserverToProgressEvents(progressCmd);
+    dcmSeriesProgSrc->StartProgress();
 
     if(this->m_DICOMImagesPerIPP == 1)
       {
@@ -902,14 +906,11 @@ GuidedNativeImageIO
 		reader->SetImageIO(m_IOBase);
 
 		SmartPtr<TrivalProgressSource> progSrc = TrivalProgressSource::New();
-		progSrc->AddObserver(itk::StartEvent(), progressCmd);
-		progSrc->AddObserver(itk::ProgressEvent(), progressCmd);
-		progSrc->AddObserver(itk::EndEvent(), progressCmd);
+    progSrc->AddObserverToProgressEvents(progressCmd);
+    progSrc->StartProgress(1.0);
 
 		const float weightReading = 0.7, weightLoading = 0.25, weightMisc = 0.05;
 		float readingDelta = weightReading/m_DicomFilesToFrameMap.size();
-
-		progSrc->StartProgress(1.0);
 
 		std::map<unsigned int, typename GreyImageType::Pointer> frameContainer;
 
@@ -1012,7 +1013,8 @@ GuidedNativeImageIO
 	else if (m_FileFormat == FORMAT_ECHO_CARTESIAN_DICOM)
     {
 		SmartPtr<TrivalProgressSource> ecdProgSrc = TrivalProgressSource::New();
-		ecdProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
+    ecdProgSrc->AddObserverToProgressEvents(progressCmd);
+    ecdProgSrc->StartProgress();
 
 		// issue #26: 4D Echocardiography Cartesian DICOM (ECD) Image Reading
 
@@ -1186,10 +1188,9 @@ GuidedNativeImageIO
 
 		// Unfortunately the itk reader does not invoke the progress event during
 		// the reading. Using a trivial source to have something reported to the UI.
-		SmartPtr<TrivalProgressSource> regularImageReadingProgSrc =
-				TrivalProgressSource::New();
-
-		regularImageReadingProgSrc->AddObserver(itk::ProgressEvent(), progressCmd);
+    SmartPtr<TrivalProgressSource> regularImageReadingProgSrc = TrivalProgressSource::New();
+    regularImageReadingProgSrc->AddObserverToProgressEvents(progressCmd);
+    regularImageReadingProgSrc->StartProgress();
 
     // Create the native image
     typename NativeImageType::Pointer image = NativeImageType::New();

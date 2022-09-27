@@ -1,9 +1,10 @@
 #include "MeshWrapperBase.h"
 #include "MeshDisplayMappingPolicy.h"
 #include "Rebroadcaster.h"
-#include "vtkPointData.h"
-#include "vtkCellData.h"
-#include "vtkDataSetAttributes.h"
+#include "IRISApplication.h"
+#include <vtkPointData.h>
+#include <vtkCellData.h>
+#include <vtkDataSetAttributes.h>
 #include <itksys/SystemTools.hxx>
 
 // ========================================
@@ -369,7 +370,7 @@ SetActiveMeshLayerDataPropertyId(int id)
 
   auto dmp = GetMeshDisplayMappingPolicy();
   dmp->SetColorMap(prop->GetColorMap());
-  dmp->SetIntensityCurve(prop->GetIntensityCurve());
+  dmp->SetIntensityCurve(prop->GetActiveIntensityCurve());
 }
 
 void
@@ -428,3 +429,63 @@ MeshWrapperBase
 
   return ret;
 }
+
+void
+MeshWrapperBase
+::LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir)
+{
+  GuidedMeshIO io;
+  bool moved = (orig_dir.compare(crnt_dir) != 0);
+
+  // Load nicknames and tags
+  this->SetCustomNickname(folder["NickName"][""]);
+  folder["Tags"].GetList(this->m_Tags);
+
+  // Load mesh timepoint assembly
+  auto folder_assembly = folder.Folder("MeshTimePoints");
+  bool fnSet = false;
+  unsigned int crnt_tp = 1;
+  std::string key_tp = Registry::Key("TimePoint[%03d]", crnt_tp);
+
+  while (folder_assembly.HasFolder(key_tp))
+    {
+    auto folder_tp = folder_assembly.Folder(key_tp);
+    unsigned int crnt_poly = 0;
+    std::string key_poly = Registry::Key("PolyData[%03d]", crnt_poly);
+
+    while (folder_tp.HasFolder(key_poly))
+      {
+      auto folder_poly = folder_tp.Folder(key_poly);
+      std::string poly_file_full = folder_poly["AbsolutePath"][""];
+      if (moved)
+        poly_file_full = IRISApplication::GetMovedFilePath(orig_dir, crnt_dir, poly_file_full);
+
+      // Set first filename as placeholder
+      if (!fnSet)
+        {
+        this->SetFileName(poly_file_full);
+        fnSet = true;
+        }
+
+      FileFormat format = folder_poly["Format"]
+          .GetEnum(GuidedMeshIO::GetEnumFileFormat(), FileFormat::FORMAT_COUNT);
+
+      // Load with tp = j-1. The storeing of time point index is zero-based
+      io.LoadMesh(poly_file_full.c_str(), format, this, crnt_tp - 1, crnt_poly);
+
+      ++crnt_poly;
+      key_poly = Registry::Key("TimePoint[%03d]", crnt_poly);
+      }
+
+    ++crnt_tp;
+    key_tp = Registry::Key("TimePoint[%03d]", crnt_tp);
+    }
+}
+
+void
+MeshWrapperBase
+::SaveToRegistry(Registry &)
+{
+
+}
+

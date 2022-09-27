@@ -150,7 +150,7 @@ LevelSetMeshWrapper
 
 void
 LevelSetMeshWrapper
-::ReadFromRegistry(Registry &)
+::LoadFromRegistry(Registry &, std::string &, std::string &)
 {
 
 }

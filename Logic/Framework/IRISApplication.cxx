@@ -1826,7 +1826,8 @@ IRISApplication
 		}
 
 	SmartPtr<TrivalProgressSource> miscProgSrc = TrivalProgressSource::New();
-	miscProgSrc->AddObserver(itk::ProgressEvent(), miscProgCmd);
+  miscProgSrc->AddObserverToProgressEvents(miscProgCmd);
+  miscProgSrc->StartProgress();
 
   // When hints are not provided, we load them using the association system
   if(!ioHints)

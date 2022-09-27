@@ -272,6 +272,9 @@ public:
   /** A callback that is used in conjunction with AllPurposeProgressAccumulator */
   void Callback(itk::Object *source, const itk::EventObject &event);
 
+  /** Add observer to all 3 progress related events */
+  void AddObserverToProgressEvents(itk::Command *cmd);
+
 protected:
   TrivalProgressSource();
 
@@ -288,7 +291,9 @@ public:
 
 	void AddProgressReporterCommand(itk::Command *cmd)
 	{
+    this->AddObserver(itk::StartEvent(), cmd);
 		this->AddObserver(itk::ProgressEvent(), cmd);
+    this->AddObserver(itk::EndEvent(), cmd);
 	}
 
 	/**
