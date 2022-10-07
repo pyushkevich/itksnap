@@ -370,6 +370,9 @@ void Generic3DRenderer::UpdateAxisRendering()
 
     for(int i = 0; i < 3; i++)
       {
+      // Update visibility
+      m_AxisActor[i]->SetVisibility(axisapp->GetVisibilityFlag());
+
       // Update the cursor position
       Vector3d p1 = to_double(cursor), p2 = to_double(cursor);
       p1[i] = 0; p2[i] = dims[i];
