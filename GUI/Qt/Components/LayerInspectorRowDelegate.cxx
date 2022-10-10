@@ -24,6 +24,7 @@
 #include "ImageIODelegates.h"
 #include "ImageIOWizard.h"
 #include "MainImageWindow.h"
+#include "MeshExportWizard.h"
 #include "SaveModifiedLayersDialog.h"
 
 #include "DisplayMappingPolicy.h"
@@ -177,6 +178,7 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   // activateOnFlag(ui->btnMoveUp, model, AbstractLayerTableRowModel::UIF_MOVABLE_UP);
   // activateOnFlag(ui->btnMoveDown, model, AbstractLayerTableRowModel::UIF_MOVABLE_DOWN);
   activateOnFlag(ui->actionClose, model, AbstractLayerTableRowModel::UIF_CLOSABLE);
+  activateOnFlag(ui->actionSave, model, AbstractLayerTableRowModel::UIF_SAVABLE);
   activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
   activateOnFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE, opt_hide);
   activateOnFlag(m_PopupMenu->findChild<QMenu*>("menuProcess"), model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
@@ -534,11 +536,14 @@ void LayerInspectorRowDelegate::UpdateOverlaysMenu()
 
 void LayerInspectorRowDelegate::OnNicknameUpdate()
 {
+  const char *layer_type =
+      (dynamic_cast<MeshLayerTableRowModel*>(m_Model.GetPointer())) ? "mesh" : "image";
+
   // Update things that depend on the nickname
   QString name = from_utf8(m_Model->GetNickname());
-  ui->actionSave->setText(QString("Save image \"%1\" ...").arg(name));
+  ui->actionSave->setText(QString("Save %1 \"%2\" ...").arg(layer_type).arg(name));
   ui->actionSave->setToolTip(ui->actionSave->text());
-  ui->actionClose->setText(QString("Close image \"%1\"").arg(name));
+  ui->actionClose->setText(QString("Close %1 \"%2\"").arg(layer_type).arg(name));
   ui->actionClose->setToolTip(ui->actionClose->text());
   ui->outLayerNickname->setToolTip(name);
 
@@ -638,8 +643,17 @@ void LayerInspectorRowDelegate::on_btnMoveDown_pressed()
 
 void LayerInspectorRowDelegate::on_actionSave_triggered()
 {
-  if (m_Model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
+  auto mesh_model = dynamic_cast<MeshLayerTableRowModel*>(m_Model.GetPointer());
+  if (mesh_model)
+    {
+    if (mesh_model->CheckState(AbstractLayerTableRowModel::UIF_SAVABLE))
+      {
+      MeshExportWizard wizard(this);
+      wizard.SetModel(m_Model->GetParentModel()->GetMeshExportModel());
+      wizard.exec();
+      }
     return;
+    }
 
   auto image_model = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
   if (!image_model)

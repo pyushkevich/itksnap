@@ -284,6 +284,9 @@ ImageLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_IMAGE:
       return true;
 
+    case AbstractLayerTableRowModel::UIF_SAVABLE:
+      return true;
+
     default:
       return Superclass::CheckState(state); // Children override Parents
     }
@@ -643,6 +646,9 @@ MeshLayerTableRowModel::CheckState(UIState state)
 
 		case AbstractLayerTableRowModel::UIF_MESH_HAS_DATA:
 			return hasGenericDMP;
+
+    case AbstractLayerTableRowModel::UIF_SAVABLE:
+      return !hasGenericDMP; // Mesh layer is currently read only
 
     default:
       return Superclass::CheckState(state); // Children override parents
