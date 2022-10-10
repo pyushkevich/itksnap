@@ -255,9 +255,6 @@ ImageLayerTableRowModel::GetDisplayMode()
 bool
 ImageLayerTableRowModel::CheckState(UIState state)
 {
-  if (Superclass::CheckState(state))
-    return true;
-
   switch (state)
     {
     // Opacity can be edited for all layers except the main image layer
@@ -281,8 +278,14 @@ ImageLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
       return (m_Layer && m_Layer->GetDisplayMapping()->GetColorMap());
 
+    case AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE:
+      return m_LayerRole != LABEL_ROLE;
+
+    case AbstractLayerTableRowModel::UIF_IMAGE:
+      return true;
+
     default:
-      break;
+      return Superclass::CheckState(state); // Children override Parents
     }
 
   return false;
@@ -602,9 +605,6 @@ MeshLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *laye
 bool
 MeshLayerTableRowModel::CheckState(UIState state)
 {
-  if (Superclass::CheckState(state))
-    return true;
-
   bool hasGenericDMP = (dynamic_cast<GenericMeshDisplayMappingPolicy*>(
                           m_MeshLayer->GetDisplayMapping()) != NULL);
 
@@ -626,7 +626,9 @@ MeshLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_UNPINNABLE:
       return false;
 
-    // We don't consider multicomponent mesh for now
+    case AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE:
+      return false;
+
     case AbstractLayerTableRowModel::UIF_MULTICOMPONENT:
 			{
 			auto prop = m_MeshLayer->GetActiveDataArrayProperty();
@@ -643,7 +645,7 @@ MeshLayerTableRowModel::CheckState(UIState state)
 			return hasGenericDMP;
 
     default:
-      break;
+      return Superclass::CheckState(state); // Children override parents
     }
 
   return false;

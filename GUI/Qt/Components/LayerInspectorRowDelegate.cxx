@@ -110,6 +110,7 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   // Placeholder for image processing commands
   m_PopupMenu->addSeparator();
   QMenu *processMenu = m_PopupMenu->addMenu("Image Processing");
+  processMenu->setObjectName("menuProcess");
   processMenu->addAction(ui->actionTextureFeatures);
 
   // set up an event filter
@@ -177,7 +178,9 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   // activateOnFlag(ui->btnMoveDown, model, AbstractLayerTableRowModel::UIF_MOVABLE_DOWN);
   activateOnFlag(ui->actionClose, model, AbstractLayerTableRowModel::UIF_CLOSABLE);
   activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
-  activateOnNotFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_MESH);
+  activateOnFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE, opt_hide);
+  activateOnFlag(m_PopupMenu->findChild<QMenu*>("menuProcess"), model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
+  activateOnFlag(m_OverlaysMenu, model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
