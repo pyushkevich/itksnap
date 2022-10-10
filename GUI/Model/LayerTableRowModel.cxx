@@ -666,7 +666,6 @@ MeshLayerTableRowModel::GetStickyValue(bool &)
 void
 MeshLayerTableRowModel::SetStickyValue(bool )
 {
-  // do nothing for mesh for now
 }
 
 void
@@ -695,7 +694,11 @@ MeshLayerTableRowModel::IsActivated() const
 void
 MeshLayerTableRowModel::AutoAdjustContrast()
 {
-
+  auto genericDMP = dynamic_cast<GenericMeshDisplayMappingPolicy*>(m_Layer->GetDisplayMapping());
+  if(m_Layer && genericDMP && genericDMP->GetIntensityCurve())
+    {
+    genericDMP->AutoFitContrast();
+    }
 }
 
 void
@@ -715,13 +718,23 @@ MeshLayerTableRowModel::CloseLayer()
 }
 
 bool
-MeshLayerTableRowModel::GetColorMapPresetValue(std::string &)
+MeshLayerTableRowModel::GetColorMapPresetValue(std::string &value)
 {
+  if(m_Layer && m_Layer->GetDisplayMapping()->GetColorMap())
+    {
+    value = ColorMap::GetPresetName(
+          m_Layer->GetDisplayMapping()->GetColorMap()->GetSystemPreset());
+    return true;
+    }
   return false;
 }
 
 void
-MeshLayerTableRowModel::SetColorMapPresetValue(std::string)
+MeshLayerTableRowModel::SetColorMapPresetValue(std::string value)
 {
-
+  ColorMapModel *cmm = m_ParentModel->GetColorMapModel();
+  WrapperBase *currentLayer = cmm->GetLayer();
+  cmm->SetLayer(m_MeshLayer);
+  cmm->SelectPreset(value);
+  cmm->SetLayer(currentLayer);
 }
