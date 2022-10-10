@@ -339,7 +339,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Set up the 4D replay timer
   m_4DReplayTimer = new QTimer(this);
-  m_AnimateTimer->setInterval(m_Crnt4DReplayInteval);
+  m_4DReplayTimer->setInterval(m_Crnt4DReplayInteval);
   connect(m_4DReplayTimer, SIGNAL(timeout()), SLOT(on4DReplayTimeout()));
 
   // Create keyboard shortcuts for opacity (because there seems to be a bug/feature on MacOS
@@ -2579,5 +2579,11 @@ void MainImageWindow::on_actionToggle_Volume_Rendering_triggered()
         model->SetVolumeRenderingEnabled(false);
       }
     }
+}
+
+void MainImageWindow::on_actionToggle_4D_Replay_triggered()
+{
+  GetModel()->GetGlobalState()->Toggle4DReplay();
+  Update4DReplay();
 }
 

@@ -624,6 +624,12 @@ color:rgb(103, 103, 103);
      </property>
      <addaction name="actionToggle_Volume_Rendering"/>
     </widget>
+    <widget class="QMenu" name="menu4D_Display">
+     <property name="title">
+      <string>4D Display</string>
+     </property>
+     <addaction name="actionToggle_4D_Replay"/>
+    </widget>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="separator"/>
@@ -637,6 +643,7 @@ color:rgb(103, 103, 103);
     <addaction name="menuViews"/>
     <addaction name="separator"/>
     <addaction name="menu3D_Panel"/>
+    <addaction name="menu4D_Display"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1720,6 +1727,19 @@ color:rgb(103, 103, 103);
    </property>
    <property name="toolTip">
     <string>Save Time Point as 3D Segmentation</string>
+   </property>
+  </action>
+  <action name="action4D_Display">
+   <property name="text">
+    <string>4D Display</string>
+   </property>
+  </action>
+  <action name="actionToggle_4D_Replay">
+   <property name="text">
+    <string>Toggle 4D Replay</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+P</string>
    </property>
   </action>
  </widget>

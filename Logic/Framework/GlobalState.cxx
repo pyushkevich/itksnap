@@ -246,6 +246,12 @@ void GlobalState::Set4DReplayValue(bool value)
   this->Get4DReplayModel()->InvokeEvent(ValueChangedEvent());
 }
 
+bool GlobalState::Toggle4DReplay()
+{
+  Set4DReplayValue(!m_4DReplay);
+  return m_4DReplay;
+}
+
 bool GlobalState::Get4DReplayIntervalValue(int &value)
 {
   value = this->m_4DReplayInterval;
