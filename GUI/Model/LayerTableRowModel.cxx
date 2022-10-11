@@ -204,8 +204,8 @@ void ImageLayerTableRowModel::UpdateDisplayModeList()
   if(m_Layer && m_ImageLayer->GetNumberOfComponents() > 1)
     {
     for(std::size_t i = 0; i < m_ImageLayer->GetNumberOfComponents(); i++)
-      m_AvailableDisplayModes.push_back(
-            MultiChannelDisplayMode(false, false, SCALAR_REP_COMPONENT, i));
+      m_AvailableDisplayModes.push_back(MultiChannelDisplayMode(false, false, SCALAR_REP_COMPONENT, i));
+
     m_AvailableDisplayModes.push_back(
           MultiChannelDisplayMode(false, false, SCALAR_REP_MAGNITUDE, 0));
     m_AvailableDisplayModes.push_back(
@@ -297,6 +297,9 @@ ImageLayerTableRowModel::CheckState(UIState state)
 void
 ImageLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
 {
+  // Initialize superclass first
+  Superclass::Initialize(parentModel, layer);
+
   // Downcast wrapper. It has to be a ImageWrapperBase or raise error
   ImageWrapperBase *img_wrapper = static_cast<ImageWrapperBase*>(layer);
   m_ImageLayer = img_wrapper;
@@ -304,9 +307,6 @@ ImageLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *lay
   // Update the list of display modes (again, should not change during the
   // lifetime of this object
   UpdateDisplayModeList();
-
-  // At the end, call parent initialize
-  Superclass::Initialize(parentModel, layer);
 }
 
 void
@@ -597,12 +597,11 @@ MeshLayerTableRowModel
 void
 MeshLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
 {
+  Superclass::Initialize(parentModel, layer);
+
   // Downcast wrapper. It has to be a MeshWrapperBase or raise error
   MeshWrapperBase *mesh_wrapper = static_cast<MeshWrapperBase*>(layer);
   m_MeshLayer = mesh_wrapper;
-
-  // In the end, call parent initialize
-  Superclass::Initialize(parentModel, layer);
 }
 
 bool
@@ -705,7 +704,7 @@ void
 MeshLayerTableRowModel::UpdateRoleInfo()
 {
   m_LayerRole = MESH_ROLE;
-  m_LayerPositionInRole = m_MeshLayer->GetUniqueId();
+  m_LayerPositionInRole = m_Layer->GetUniqueId();
   m_LayerNumberOfLayersInRole = m_ImageData->GetMeshLayers()->size();
 }
 
