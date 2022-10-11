@@ -593,6 +593,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionActivatePreviousLayer, m_Model, UIF_MULTIPLE_BASE_LAYERS);
   activateOnFlag(ui->actionActivateNextSegmentationLayer, m_Model, UIF_MULTIPLE_SEGMENTATION_LAYERS);
   activateOnFlag(ui->actionActivatePreviousSegmentationLayer, m_Model, UIF_MULTIPLE_SEGMENTATION_LAYERS);
+  activateOnFlag(ui->actionToggle_4D_Replay, m_Model, UIF_IS_4D);
 
   // Add actions that are not on the menu
   activateOnFlag(ui->actionZoomToFitInAllViews, m_Model, UIF_BASEIMG_LOADED);
@@ -2583,6 +2584,9 @@ void MainImageWindow::on_actionToggle_Volume_Rendering_triggered()
 
 void MainImageWindow::on_actionToggle_4D_Replay_triggered()
 {
+  if (!m_Model->CheckState(UIF_IS_4D))
+    return;
+
   GetModel()->GetGlobalState()->Toggle4DReplay();
   Update4DReplay();
 }
