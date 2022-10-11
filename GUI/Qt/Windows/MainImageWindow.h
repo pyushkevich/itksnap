@@ -343,6 +343,8 @@ private slots:
 
   void on_actionToggle_Volume_Rendering_triggered();
 
+  void on_actionToggle_4D_Replay_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

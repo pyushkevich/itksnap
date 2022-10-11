@@ -339,7 +339,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Set up the 4D replay timer
   m_4DReplayTimer = new QTimer(this);
-  m_AnimateTimer->setInterval(m_Crnt4DReplayInteval);
+  m_4DReplayTimer->setInterval(m_Crnt4DReplayInteval);
   connect(m_4DReplayTimer, SIGNAL(timeout()), SLOT(on4DReplayTimeout()));
 
   // Create keyboard shortcuts for opacity (because there seems to be a bug/feature on MacOS
@@ -593,6 +593,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionActivatePreviousLayer, m_Model, UIF_MULTIPLE_BASE_LAYERS);
   activateOnFlag(ui->actionActivateNextSegmentationLayer, m_Model, UIF_MULTIPLE_SEGMENTATION_LAYERS);
   activateOnFlag(ui->actionActivatePreviousSegmentationLayer, m_Model, UIF_MULTIPLE_SEGMENTATION_LAYERS);
+  activateOnFlag(ui->actionToggle_4D_Replay, m_Model, UIF_IS_4D);
 
   // Add actions that are not on the menu
   activateOnFlag(ui->actionZoomToFitInAllViews, m_Model, UIF_BASEIMG_LOADED);
@@ -2579,5 +2580,14 @@ void MainImageWindow::on_actionToggle_Volume_Rendering_triggered()
         model->SetVolumeRenderingEnabled(false);
       }
     }
+}
+
+void MainImageWindow::on_actionToggle_4D_Replay_triggered()
+{
+  if (!m_Model->CheckState(UIF_IS_4D))
+    return;
+
+  GetModel()->GetGlobalState()->Toggle4DReplay();
+  Update4DReplay();
 }
 

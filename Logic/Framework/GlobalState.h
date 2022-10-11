@@ -382,6 +382,7 @@ public:
 
   /** Set/Get 4D time point replay model */
   irisSimplePropertyAccessMacro(4DReplay, bool)
+  bool Toggle4DReplay();
 
   /** Set/Get 4D time point replay interval */
   irisSimplePropertyAccessMacro(4DReplayInterval, int)
