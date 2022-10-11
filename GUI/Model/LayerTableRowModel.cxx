@@ -704,7 +704,7 @@ void
 MeshLayerTableRowModel::UpdateRoleInfo()
 {
   m_LayerRole = MESH_ROLE;
-  m_LayerPositionInRole = m_MeshLayer->GetUniqueId();
+  m_LayerPositionInRole = m_Layer->GetUniqueId();
   m_LayerNumberOfLayersInRole = m_ImageData->GetMeshLayers()->size();
 }
 
