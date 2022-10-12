@@ -42,8 +42,11 @@ ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector)
 void
 ImageMeshLayers::SetActiveLayerId(unsigned long id)
 {
-  m_ActiveLayerId = id;
-  InvokeEvent(ActiveLayerChangeEvent());
+  if (id != m_ActiveLayerId) // avoid unnecessary downstream event triggering
+    {
+    m_ActiveLayerId = id;
+    InvokeEvent(ActiveLayerChangeEvent());
+    }
 }
 
 SmartPtr<MeshWrapperBase>
