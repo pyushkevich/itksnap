@@ -419,7 +419,7 @@ void
 ImageLayerTableRowModel::UpdateRoleInfo()
 {
   LayerIterator it(m_ImageData);
-  it.Find(m_ImageLayer);
+  it.Find(static_cast<ImageWrapperBase*>(m_Layer.GetPointer()));
   if(!it.IsAtEnd())
     {
     m_LayerRole = it.GetRole();
