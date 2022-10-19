@@ -257,7 +257,7 @@ protected:
   // A list of overlays that the user can configure
   RendererDelegateList m_Delegates;
 
-  Vector3d ComputeGridPosition(const Vector3d &disp_pix, const itk::Index<2> &slice_index, ImageWrapperBase *vecimg);
+  //Vector3d ComputeGridPosition(const Vector3d &disp_pix, const itk::Index<2> &slice_index, ImageWrapperBase *vecimg);
 
   void UpdateSceneAppearanceSettings();
   void SetDepth(vtkActor *actor, double z);
