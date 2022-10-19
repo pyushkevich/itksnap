@@ -277,11 +277,15 @@ void Generic3DRenderer::UpdateMeshAssembly()
   unsigned long active_layer_id = layers->GetActiveLayerId();
   unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
 
+  // Remove all mesh actors from the renderer before the update
+  ResetMeshAssembly();
+
+  // turn color bar off at the beginning of update
+  // this is to make sure if nothing to render, color bar is not visible
+  m_ScalarBarActor->SetVisibility(false);
+
   if (layers->size() == 0 || active_layer_id == 0)
-    {
-    ResetMeshAssembly();
     return;
-    }
 
   MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
   assert(active_layer);
@@ -296,9 +300,6 @@ void Generic3DRenderer::UpdateMeshAssembly()
       m_CrntActorMapLayerId = active_layer_id;
     }
 
-  // Remove all mesh actors from the renderer before the update
-  ResetMeshAssembly();
-
   // Process all addition and update
   dmp->UpdateActorMap(m_ActorPool, tp);
 
@@ -310,7 +311,9 @@ void Generic3DRenderer::UpdateMeshAssembly()
 
 	ApplyDisplayMappingPolicyChange();
 
-  // TODO: test code
+  // Update color bar visibility
+  UpdateColorLegendAppearance();
+
   m_Renderer->Modified();
 }
 
@@ -329,9 +332,6 @@ void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
 
   // Update legend
   dmp->ConfigureLegend(m_ScalarBarActor);
-
-  // Re-render
-  //m_Renderer->Render();
 }
 
 void Generic3DRenderer::ResetMeshAssembly()

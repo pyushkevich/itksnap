@@ -456,8 +456,16 @@ LabelImageWrapper *GenericImageData::AddBlankSegmentation()
 void GenericImageData
 ::UnloadSegmentation(ImageWrapperBase *seg)
 {
+  auto id = seg->GetUniqueId();
+
   // Erase the segmentation image
   this->RemoveImageWrapper(LABEL_ROLE, seg);
+
+  // If it has mesh, also remove it
+  if (m_MeshLayers->HasMeshForImage(id))
+    {
+    m_MeshLayers->RemoveLayer(m_MeshLayers->GetMeshForImage(id)->GetUniqueId());
+    }
 
   // If main is loaded and this is the only segmentation, reset so that
   // there is a blank segmentation left
