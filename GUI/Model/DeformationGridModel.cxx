@@ -26,7 +26,7 @@ DeformationGridModel
 
 int
 DeformationGridModel::
-GetVertices(const ViewportType &vp, std::list<DeformationGridVertex> &list) const
+GetVertices(const ViewportType &vp, DeformationGridVertices &v) const
 {
   auto layer = m_Parent->GetImageData()->FindLayer(vp.layer_id, false);
   assert(layer); // if failed, find out why this viewport keeps a non-exist layer_id
@@ -75,6 +75,9 @@ GetVertices(const ViewportType &vp, std::list<DeformationGridVertex> &list) cons
       d_grid_d_ind[b] = m_Parent->ComputeGridPosition(phi, ind, vecimg) - G0;
       }
 
+    size_t nd0[2] {0, 0}, nd1[2] {0, 0};
+    bool counted = false;
+
     // Iterate line direction
     for(int d = 0; d < 2; d++)
       {
@@ -83,6 +86,9 @@ GetVertices(const ViewportType &vp, std::list<DeformationGridVertex> &list) cons
       IterType it1(slice, slice->GetBufferedRegion());
       it1.SetDirection(d);
       it1.GoToBegin();
+
+      auto d0 = it1.GetRegion().GetSize()[0];
+      auto d1 = it1.GetRegion().GetSize()[1];
 
       int vox_increment;
       if(vecimg->IsSlicingOrthogonal())
@@ -99,12 +105,17 @@ GetVertices(const ViewportType &vp, std::list<DeformationGridVertex> &list) cons
         vox_increment = 8;
         }
 
+      std::cout << "[DGModel] d0 = " << d0 << "; n0 = " << ceil(d0/vox_increment)
+                << "; d1 = " << d1 << "; n1 = " << ceil(d1/vox_increment)
+                << std::endl;
+
+      counted = false;
       while( !it1.IsAtEnd() )
         {
         // Do we draw this line?
         if(it1.GetIndex()[1-d] % vox_increment == 0)
           {
-          //elt->ApplyColor();
+          ++nd0[d];
 
           // Set up the current position and increment
           Vector3d G1 = G0 +
@@ -113,6 +124,9 @@ GetVertices(const ViewportType &vp, std::list<DeformationGridVertex> &list) cons
 
           while( !it1.IsAtEndOfLine() )
             {
+            if (!counted)
+              ++nd1[d];
+
             // Read the pixel
             AnatomicImageWrapper::SliceType::PixelType pix = it1.Get();
 
@@ -122,7 +136,9 @@ GetVertices(const ViewportType &vp, std::list<DeformationGridVertex> &list) cons
                 (d_grid_d_phi[1] * (double) (pix[1])) +
                 (d_grid_d_phi[2] * (double) (pix[2]));
 
-            list.push_back(DeformationGridVertex(xDispSlice[0], xDispSlice[1]));
+            //v.vlist[d].push_back(DeformationGridVertex(xDispSlice[0], xDispSlice[1]));
+            v.vvec.push_back(xDispSlice[0]);
+            v.vvec.push_back(xDispSlice[1]);
 
             // Add the displacement
             ++it1;
@@ -130,12 +146,21 @@ GetVertices(const ViewportType &vp, std::list<DeformationGridVertex> &list) cons
             // Update the current position
             G1 += d_grid_d_ind[d];
             }
+          counted = true;
           }
 
         it1.NextLine();
         }
       }
+
+    v.d0_nline = nd0[0];
+    v.d0_nvert = nd1[0];
+    v.d1_nline = nd0[1];
+    v.d1_nvert = nd1[1];
+
     }
+
+
 
   return EXIT_SUCCESS;
 }
