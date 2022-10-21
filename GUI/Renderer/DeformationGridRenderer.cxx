@@ -46,6 +46,11 @@ DeformationGridContextItem
   // AddContextItemsToTiledOverlay of the renderer should take care of this
   assert(m_ImageLayer);
 
+  auto mcdmp = dynamic_cast<AbstractMultiChannelDisplayMappingPolicy*>(m_ImageLayer->GetDisplayMapping());
+  if (!mcdmp || !mcdmp->GetDisplayMode().RenderAsGrid)
+    return true;
+
+
   DeformationGridVertices verts;
   m_DeformationGridModel->GetVertices(m_ImageLayer, verts);
 
@@ -53,7 +58,7 @@ DeformationGridContextItem
   auto elt = as->GetUIElement(SNAPAppearanceSettings::GRID_LINES);
   this->ApplyAppearanceSettingsToPen(painter, elt);
 
-  // Draw horizontal 0 then vertical 1
+  // Draw horizontal (d = 0) then vertical (d = 1)
   size_t skip = 0;
   for (int d = 0; d < 2; ++d)
     {
