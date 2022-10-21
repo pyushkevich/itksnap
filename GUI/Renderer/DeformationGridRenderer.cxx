@@ -17,14 +17,35 @@ DeformationGridContextItem
 
 }
 
+void DeformationGridContextItem
+::AddLine(vtkPoints2D *pv, std::vector<double> &verts,
+          size_t skip, size_t l, size_t nv, bool reverse)
+{
+  if (!reverse)
+    for (size_t i = 0; i < nv; ++i)
+      {
+      pv->InsertNextPoint(
+            verts[skip + (l * nv + i) * 2],
+            verts[skip + (l * nv + i) * 2 + 1]
+          );
+      }
+  else
+    for (long long v = nv - 1; v >= 0; --v)
+      {
+      pv->InsertNextPoint(
+            verts[skip + (l * nv + v) * 2],
+            verts[skip + (l * nv + v) * 2 + 1]
+          );
+      }
+}
+
 bool
 DeformationGridContextItem
 ::Paint(vtkContext2D *painter)
 {
-  //std::cout << "[DeformationGridContextItem] Paint" << std::endl;
-
   auto vplayout = m_Model->GetViewportLayout();
-  //hack
+
+  // TODO, this should be viewport specific
   auto vp = vplayout.vpList[0];
   DeformationGridVertices verts;
   m_DeformationGridModel->GetVertices(vp, verts);
@@ -33,83 +54,23 @@ DeformationGridContextItem
   auto elt = as->GetUIElement(SNAPAppearanceSettings::GRID_LINES);
   this->ApplyAppearanceSettingsToPen(painter, elt);
 
-
-//  std::cout << "[DGPaint] d0: (" << verts.d0_nline << ',' << verts.d0_nvert
-//            << ") d1:(" << verts.d1_nline << ',' << verts.d1_nvert
-//            << ") total0: " << verts.vlist[0].size()
-//            << "; total1: " << verts.vlist[1].size()
-//            << std::endl;
-
-  //std::cout << "-- vertices count: " << vertices.size() << std::endl;
-
-  // testing with horizontal lines only
-
-  vtkNew<vtkPoints2D> pts;
-  pts->Allocate(verts.d0_nvert * verts.d0_nline);
-
-  bool reverse = false;
-
-  for (size_t l = 0; l < verts.d0_nline; ++l)
+  // Draw horizontal 0 then vertical 1
+  size_t skip = 0;
+  for (int d = 0; d < 2; ++d)
     {
-    if (!reverse)
-      for (size_t v = 0; v < verts.d0_nvert; ++v)
-        {
-        pts->InsertNextPoint(
-              verts.vvec[(l * verts.d0_nvert + v) * 2],
-              verts.vvec[(l * verts.d0_nvert + v) * 2 + 1]
-            );
-        }
-    else
-      for (long long v = verts.d0_nvert - 1; v >= 0; --v)
-        {
-        pts->InsertNextPoint(
-              verts.vvec[(l * verts.d0_nvert + v) * 2],
-              verts.vvec[(l * verts.d0_nvert + v) * 2 + 1]
-            );
-        }
-    reverse = !reverse;
+    vtkNew<vtkPoints2D> pts;
+    pts->Allocate(verts.nvert[d] * verts.nline[d]);
+    bool reverse = false;
+
+    for (size_t l = 0; l < verts.nline[d]; ++l)
+      {
+      AddLine(pts, verts.vvec, skip, l, verts.nvert[d], reverse);
+      reverse = !reverse;
+      }
+
+    painter->DrawPoly(pts);
+    skip += verts.nvert[d] * verts.nline[d] * 2;
     }
-  painter->DrawPoly(pts);
-
-
-  size_t jump = verts.d0_nline * verts.d0_nvert * 2;
-
-  vtkNew<vtkPoints2D> pts1;
-  pts->Allocate(verts.d1_nvert * verts.d1_nline);
-
-  reverse = false;
-
-  for (size_t l = 0; l < verts.d1_nline; ++l)
-    {
-    if (!reverse)
-      for (size_t v = 0; v < verts.d1_nvert; ++v)
-        {
-        pts1->InsertNextPoint(
-              verts.vvec[jump + (l * verts.d1_nvert + v) * 2],
-              verts.vvec[jump + (l * verts.d1_nvert + v) * 2 + 1]
-            );
-        }
-    else
-      for (long long v = verts.d1_nvert - 1; v >= 0; --v)
-        {
-        pts1->InsertNextPoint(
-              verts.vvec[jump + (l * verts.d1_nvert + v) * 2],
-              verts.vvec[jump + (l * verts.d1_nvert + v) * 2 + 1]
-            );
-        }
-    reverse = !reverse;
-    }
-  painter->DrawPoly(pts1);
-
-//  vtkNew<vtkPoints2D> polyline;
-//  polyline->Allocate(vertices.size());
-//  for(auto &it : vertices)
-//    polyline->InsertNextPoint(it.x, it.y);
-
-
-
-
-  //painter->DrawPoly(polyline);
 
   return true;
 }

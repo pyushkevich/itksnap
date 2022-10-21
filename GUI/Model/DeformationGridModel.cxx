@@ -4,19 +4,6 @@
 #include "SNAPAppearanceSettings.h"
 #include <itkImageLinearConstIteratorWithIndex.h>
 
-DeformationGridVertex
-::DeformationGridVertex()
-{
-
-}
-
-DeformationGridVertex
-::DeformationGridVertex(double x, double y)
-  : x(x), y(y)
-{
-
-}
-
 
 DeformationGridModel
 ::DeformationGridModel()
@@ -39,14 +26,6 @@ GetVertices(const ViewportType &vp, DeformationGridVertices &v) const
     // Get the slice
     AnatomicImageWrapper::SliceType::Pointer slice = vecimg->GetSlice(m_Parent->GetId());
     slice->GetSource()->UpdateLargestPossibleRegion();
-
-    // Appearance settings for grid lines
-    SNAPAppearanceSettings *as = m_Parent->GetParentUI()->GetAppearanceSettings();
-    const OpenGLAppearanceElement *elt =
-        as->GetUIElement(SNAPAppearanceSettings::GRID_LINES);
-
-    // Line properties
-    //elt->ApplyLineSettings();
 
     // The mapping between (index, phi[index]) and on-screen coordinate for a grid
     // point is linear (combines a bunch of transforms). To save time, we can
@@ -87,9 +66,6 @@ GetVertices(const ViewportType &vp, DeformationGridVertices &v) const
       it1.SetDirection(d);
       it1.GoToBegin();
 
-      auto d0 = it1.GetRegion().GetSize()[0];
-      auto d1 = it1.GetRegion().GetSize()[1];
-
       int vox_increment;
       if(vecimg->IsSlicingOrthogonal())
         {
@@ -104,10 +80,6 @@ GetVertices(const ViewportType &vp, DeformationGridVertices &v) const
         // The slice is in screen pixel units already - so just 8!
         vox_increment = 8;
         }
-
-      std::cout << "[DGModel] d0 = " << d0 << "; n0 = " << ceil(d0/vox_increment)
-                << "; d1 = " << d1 << "; n1 = " << ceil(d1/vox_increment)
-                << std::endl;
 
       counted = false;
       while( !it1.IsAtEnd() )
@@ -153,14 +125,12 @@ GetVertices(const ViewportType &vp, DeformationGridVertices &v) const
         }
       }
 
-    v.d0_nline = nd0[0];
-    v.d0_nvert = nd1[0];
-    v.d1_nline = nd0[1];
-    v.d1_nvert = nd1[1];
+    v.nline[0] = nd0[0];
+    v.nvert[0] = nd1[0];
+    v.nline[1] = nd0[1];
+    v.nvert[1] = nd1[1];
 
     }
-
-
 
   return EXIT_SUCCESS;
 }

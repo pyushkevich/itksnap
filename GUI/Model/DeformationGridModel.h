@@ -6,22 +6,10 @@
 #include "GenericSliceModel.h"
 #include "DisplayMappingPolicy.h"
 
-struct DeformationGridVertex
-{
-  double x;
-  double y;
-  DeformationGridVertex();
-  DeformationGridVertex(double x, double y);
-};
-
 struct DeformationGridVertices
 {
-  std::list<DeformationGridVertex> vlist[2];
-
   std::vector<double> vvec;
-  float *vts0; // horizontal vertices
-  float *vts1; // vertical vertices
-  size_t d0_nline, d0_nvert, d1_nline, d1_nvert;
+  size_t nline[2], nvert[2];
 };
 
 class DeformationGridModel : public AbstractModel

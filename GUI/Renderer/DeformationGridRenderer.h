@@ -5,6 +5,7 @@
 #include "GenericSliceContextItem.h"
 #include "DeformationGridModel.h"
 
+class vtkPoints2D;
 
 class DeformationGridContextItem : public GenericSliceContextItem
 {
@@ -19,6 +20,9 @@ public:
 protected:
   DeformationGridContextItem();
   virtual ~DeformationGridContextItem() {}
+
+  static inline void AddLine(vtkPoints2D *pv, std::vector<double> &verts,
+                             size_t skip, size_t l, size_t nv, bool reverse);
 
   DeformationGridModel *m_DeformationGridModel;
 };
