@@ -6,9 +6,16 @@
 #include "GenericSliceModel.h"
 #include "DisplayMappingPolicy.h"
 
+/** This struct contains vertices' coordinates for a deformation grid.
+ *  nline and nvert define the dimension of the grid */
 struct DeformationGridVertices
 {
+  /** Vertice points are packed in x1, y1, x2, y2, .... format */
   std::vector<double> vvec;
+
+  /** Index 0 represents horizontal lines, index 1 represens vertical lines
+   *  Dimension of the lines are defined by number of lines (nline),
+   *  and number of vertices on each line (nvert) */
   size_t nline[2], nvert[2];
 };
 
@@ -20,7 +27,7 @@ public:
 
   typedef SliceViewportLayout::SubViewport ViewportType;
 
-  int GetVertices(const ViewportType &vp, DeformationGridVertices &v) const;
+  int GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const;
 
 protected:
   DeformationGridModel();

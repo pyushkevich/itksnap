@@ -43,12 +43,11 @@ bool
 DeformationGridContextItem
 ::Paint(vtkContext2D *painter)
 {
-  auto vplayout = m_Model->GetViewportLayout();
+  // AddContextItemsToTiledOverlay of the renderer should take care of this
+  assert(m_ImageLayer);
 
-  // TODO, this should be viewport specific
-  auto vp = vplayout.vpList[0];
   DeformationGridVertices verts;
-  m_DeformationGridModel->GetVertices(vp, verts);
+  m_DeformationGridModel->GetVertices(m_ImageLayer, verts);
 
   auto as = m_Model->GetParentUI()->GetAppearanceSettings();
   auto elt = as->GetUIElement(SNAPAppearanceSettings::GRID_LINES);
@@ -69,7 +68,7 @@ DeformationGridContextItem
       }
 
     painter->DrawPoly(pts);
-    skip += verts.nvert[d] * verts.nline[d] * 2;
+    skip += verts.nvert[d] * verts.nline[d] * 2; // skip verts for horizontal lines
     }
 
   return true;
@@ -89,13 +88,14 @@ DeformationGridRenderer
 void
 DeformationGridRenderer
 ::AddContextItemsToTiledOverlay(
-      vtkAbstractContextItem *parent, ImageWrapperBase *)
+      vtkAbstractContextItem *parent, ImageWrapperBase *image)
 {
   if(m_Model)
     {
     vtkNew<DeformationGridContextItem> ci;
     ci->SetModel(m_Model->GetParent());
     ci->SetDeformationGridModel(m_Model);
+    ci->SetImageLayer(image);
     parent->AddItem(ci);
     }
 }

@@ -13,11 +13,8 @@ DeformationGridModel
 
 int
 DeformationGridModel::
-GetVertices(const ViewportType &vp, DeformationGridVertices &v) const
+GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
 {
-  auto layer = m_Parent->GetImageData()->FindLayer(vp.layer_id, false);
-  assert(layer); // if failed, find out why this viewport keeps a non-exist layer_id
-
   // Draw the texture for the layer
   AnatomicImageWrapper *vecimg = dynamic_cast<AnatomicImageWrapper *>(layer);
 

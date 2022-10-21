@@ -14,6 +14,7 @@ public:
   static DeformationGridContextItem *New();
 
   irisGetSetMacro(DeformationGridModel, DeformationGridModel*)
+  irisGetSetMacro(ImageLayer, ImageWrapperBase*)
 
   virtual bool Paint(vtkContext2D *painter) override;
 
@@ -25,6 +26,8 @@ protected:
                              size_t skip, size_t l, size_t nv, bool reverse);
 
   DeformationGridModel *m_DeformationGridModel;
+
+  ImageWrapperBase *m_ImageLayer;
 };
 
 
