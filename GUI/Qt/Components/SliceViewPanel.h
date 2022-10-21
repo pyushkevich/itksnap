@@ -9,6 +9,7 @@ class QMenu;
 class QtInteractionDelegateWidget;
 class SnakeModeRenderer;
 class SliceWindowDecorationRenderer;
+class DeformationGridRenderer;
 class GenericSliceModel;
 class QCursor;
 class QToolButton;
@@ -119,6 +120,7 @@ private:
   // and so they are owned by this panel.
   SmartPtr<SnakeModeRenderer> m_SnakeModeRenderer;
   SmartPtr<SliceWindowDecorationRenderer> m_DecorationRenderer;
+  SmartPtr<DeformationGridRenderer> m_DeformationGridRenderer;
 
   // Index of the panel
   unsigned int m_Index;

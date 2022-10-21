@@ -280,7 +280,6 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   Rebroadcast(m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
               ValueChangedEvent(), ModelUpdateEvent());
 
-
   Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), ModelUpdateEvent());
   Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), ModelUpdateEvent());
 
@@ -380,7 +379,6 @@ void GenericSliceRenderer::OnUpdate()
     this->UpdateRendererCameras();
     this->UpdateZoomPanThumbnail();
     }
-
 }
 
 void GenericSliceRenderer::SetRenderWindow(vtkRenderWindow *rwin)
@@ -762,7 +760,6 @@ void GenericSliceRenderer::UpdateLayerApperances()
 			// Set the alpha for the actor
 			lta->m_ImageRect->GetActor()->GetProperty()->SetOpacity(alpha);
 			}
-
     }
 }
 
@@ -812,73 +809,5 @@ bool GenericSliceRenderer::IsTiledMode() const
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
   Vector2ui layout = dlm->GetSliceViewLayerTilingModel()->GetValue();
   return layout[0] > 1 || layout[1] > 1;
-}
-
-Vector3d GenericSliceRenderer::ComputeGridPosition(
-    const Vector3d &disp_pix,
-    const itk::Index<2> &slice_index,
-    ImageWrapperBase *vecimg)
-{
-  // The pixel must be mapped to native
-  Vector3d disp;
-  disp[0] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(disp_pix[0]);
-  disp[1] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(disp_pix[1]);
-  disp[2] = vecimg->GetNativeIntensityMapping()->MapInternalToNative(disp_pix[2]);
-
-  // This is the physical coordinate of the current pixel - in LPS
-  Vector3d xPhys;
-  if(vecimg->IsSlicingOrthogonal())
-    {
-    // The pixel gives the displacement in LPS coordinates (by ANTS/Greedy convention)
-    // We need to map it back into the slice domain. First, we need to know the 3D index
-    // of the current pixel in the image space
-    Vector3d xSlice;
-    xSlice[0] = slice_index[0] + 0.5;
-    xSlice[1] = slice_index[1] + 0.5;
-    xSlice[2] = m_Model->GetSliceIndex();
-
-    // For orthogonal slicing, the input coordinates are in units of image voxels
-    xPhys = m_Model->MapSliceToImagePhysical(xSlice);
-    }
-  else
-    {
-    // Otherwise, the slice coordinates are relative to the rendered slice
-    GenericImageData *gid = m_Model->GetImageData();
-    GenericImageData::ImageBaseType *dispimg =
-        gid->GetDisplayViewportGeometry(m_Model->GetId());
-
-    // Use that image to transform coordinates
-    itk::Point<double, 3> pPhys;
-    itk::Index<3> index;
-    index[0] = slice_index[0]; index[1] = slice_index[1]; index[2] = 0;
-    dispimg->TransformIndexToPhysicalPoint(index, pPhys);
-    xPhys = pPhys;
-    }
-
-  // Add displacement and map back to slice space
-  itk::ContinuousIndex<double, 3> cix;
-  itk::Point<double, 3> pt = to_itkPoint(xPhys + disp);
-
-  m_Model->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
-      ->TransformPhysicalPointToContinuousIndex(pt, cix);
-
-  // The displaced location in slice coordinates
-  Vector3d disp_slice = m_Model->MapImageToSlice(Vector3d(cix));
-
-  // What we return also depends on whether slicing is ortho or not. For ortho
-  // slicing, the renderer is configured in the "Slice" coordinate system (1 unit =
-  // 1 image voxel) while for oblique slicing, the renderer uses the window coordinate
-  // system (1 unit = 1 screen pixel). Whatever we return needs to be in those units.
-  if(vecimg->IsSlicingOrthogonal())
-    {
-    return disp_slice;
-    }
-  else
-    {
-    Vector3d win3d;
-    Vector2d win2d = m_Model->MapSliceToWindow(disp_slice);
-    win3d[0] = win2d[0]; win3d[1] = win2d[1]; win3d[2] = disp_slice[2];
-    return win3d;
-    }
 }
 

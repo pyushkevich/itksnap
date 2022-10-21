@@ -494,6 +494,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ColorLabelQuickListModel.cxx
   GUI/Model/ColorMapModel.cxx
   GUI/Model/CursorInspectionModel.cxx
+  GUI/Model/DeformationGridModel.cxx
   GUI/Model/DisplayLayoutModel.cxx
   GUI/Model/DistributedSegmentationModel.cxx
   GUI/Model/Generic3DModel.cxx
@@ -536,6 +537,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/AnnotationRenderer.cxx
   GUI/Renderer/ColorMapRenderer.cxx
   GUI/Renderer/CrosshairsRenderer.cxx
+  GUI/Renderer/DeformationGridRenderer.cxx
   GUI/Renderer/EdgePreprocessingSettingsRenderer.cxx
   GUI/Renderer/GenericSliceContextItem.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
@@ -573,6 +575,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelQuickListModel.h
   GUI/Model/CursorInspectionModel.h
+  GUI/Model/DeformationGridModel.h
   GUI/Model/DisplayLayoutModel.h
   GUI/Model/DistributedSegmentationModel.h
   GUI/Model/Generic3DModel.h
@@ -618,6 +621,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/AnnotationRenderer.h
   GUI/Renderer/ColorMapRenderer.h
   GUI/Renderer/CrosshairsRenderer.h
+  GUI/Renderer/DeformationGridRenderer.h
   GUI/Renderer/EdgePreprocessingSettingsRenderer.h
   GUI/Renderer/Generic3DRenderer.h
   GUI/Renderer/GenericSliceContextItem.h

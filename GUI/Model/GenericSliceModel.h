@@ -40,6 +40,7 @@ class GlobalUIModel;
 class IRISApplication;
 class GenericImageData;
 class GenericSliceModel;
+class DeformationGridModel;
 
 // An event fired when the geometry of the slice view changes
 itkEventMacro(SliceModelImageDimensionsChangeEvent, IRISEvent)
@@ -389,6 +390,12 @@ public:
   unsigned int MergeSliceSegmentation(
         itk::Image<unsigned char, 2> *drawing);
 
+  Vector3d ComputeGridPosition(const Vector3d &disp_pix,
+                               const itk::Index<2> &slice_index,
+                               ImageWrapperBase *vecimg);
+
+  DeformationGridModel *GetDeformationGridModel();
+
 
 protected:
 
@@ -480,7 +487,7 @@ protected:
   bool GetCurrentComponentInSelectedLayerValueAndDomain(unsigned int &value, NumericValueRange<unsigned int> *domain);
   void SetCurrentComponentInSelectedLayerValue(unsigned int value);
 
-
+  SmartPtr<DeformationGridModel> m_DeformationGridModel;
 
   /** Update the state of the viewport based on current layout settings */
   void UpdateViewportLayout();

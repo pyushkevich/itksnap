@@ -9,6 +9,7 @@
 #include "itkCommand.h"
 #include "CrosshairsRenderer.h"
 #include "PolygonDrawingRenderer.h"
+#include "DeformationGridRenderer.h"
 #include "PaintbrushRenderer.h"
 #include "SnakeROIRenderer.h"
 #include "SnakeROIModel.h"
@@ -59,6 +60,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   // Create my own renderers
   m_SnakeModeRenderer = SnakeModeRenderer::New();
   m_DecorationRenderer = SliceWindowDecorationRenderer::New();
+  m_DeformationGridRenderer = DeformationGridRenderer::New();
 
   // Create the interaction modes
   m_CrosshairsMode = new CrosshairsInteractionMode(ui->sliceView);
@@ -244,6 +246,8 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   m_DecorationRenderer->SetModel(m_SliceModel);
   m_SnakeModeRenderer->SetParentRenderer(parentRenderer);
   m_SnakeModeRenderer->SetModel(m_GlobalUI->GetSnakeWizardModel());
+  m_DeformationGridRenderer->SetParentRenderer(parentRenderer);
+  m_DeformationGridRenderer->SetModel(m_SliceModel->GetDeformationGridModel());
 
   // Listen to cursor change events, which require a repaint of the slice view
   connectITK(m_GlobalUI->GetDriver(), CursorUpdateEvent());
@@ -476,6 +480,7 @@ void SliceViewPanel::OnToolbarModeChange()
     }
 
   delegates.push_back(m_DecorationRenderer);
+  delegates.push_back(m_DeformationGridRenderer);
 
   // Set the overlays
   ren->SetDelegates(delegates);
