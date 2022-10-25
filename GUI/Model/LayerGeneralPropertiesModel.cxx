@@ -265,8 +265,13 @@ bool LayerGeneralPropertiesModel
     if(layer->GetNumberOfComponents() == 3)
       {
       (*domain)[MODE_RGB] = "RGB Display";
+      }
+
+    if (layer->GetNumberOfComponents() == 2 || layer->GetNumberOfComponents() == 3)
+      {
       (*domain)[MODE_GRID] = "Deformation Grid Display";
       }
+
     }
 
   return true;
@@ -483,10 +488,11 @@ void LayerGeneralPropertiesModel::SetIsStickyValue(bool value)
 bool LayerGeneralPropertiesModel::
 GetCrntTimePointNicknameValue(std::string &value)
 {
-  if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
+  auto driver = m_ParentModel->GetDriver();
+  if (!driver->IsMainImageLoaded() || driver->GetNumberOfTimePoints() <= 1)
     return false;
 
-  unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
+  unsigned int crntTP = driver->GetCursorTimePoint() + 1;
 	value = m_TimePointProperties->GetProperty(crntTP)->GetNickname();
   return true;
 }
@@ -494,20 +500,22 @@ GetCrntTimePointNicknameValue(std::string &value)
 void LayerGeneralPropertiesModel::
 SetCrntTimePointNicknameValue(std::string value)
 {
-  if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
+  auto driver = m_ParentModel->GetDriver();
+  if (!driver->IsMainImageLoaded() || driver->GetNumberOfTimePoints() <= 1)
     return;
 
-  unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
+  unsigned int crntTP = driver->GetCursorTimePoint() + 1;
 	m_TimePointProperties->GetProperty(crntTP)->SetNickname(value);
 }
 
 bool LayerGeneralPropertiesModel::
 GetCrntTimePointTagListValue(TagList &value)
 {
-  if(!m_ParentModel->GetDriver()->IsMainImageLoaded())
+  auto driver = m_ParentModel->GetDriver();
+  if (!driver->IsMainImageLoaded() || driver->GetNumberOfTimePoints() <= 1)
     return false;
 
-  unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
+  unsigned int crntTP = driver->GetCursorTimePoint() + 1;
   TimePointProperty *tpp = m_TimePointProperties->GetProperty(crntTP);
 	value = tpp->GetTags();
   return true;
@@ -516,10 +524,11 @@ GetCrntTimePointTagListValue(TagList &value)
 void LayerGeneralPropertiesModel::
 SetCrntTimePointTagListValue(TagList value)
 {
-  if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
+  auto driver = m_ParentModel->GetDriver();
+  if (!driver->IsMainImageLoaded() || driver->GetNumberOfTimePoints() <= 1)
     return;
 
-  unsigned int crntTP = m_ParentModel->GetDriver()->GetCursorTimePoint() + 1;
+  unsigned int crntTP = driver->GetCursorTimePoint() + 1;
   TimePointProperty *tpp = m_TimePointProperties->GetProperty(crntTP);
 	tpp->SetTagList(value);
 }

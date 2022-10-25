@@ -689,6 +689,19 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
       }
     }
 
+  if(m_Wrapper->GetNumberOfComponents() == 2 &&
+     m_Wrapper->GetImage()->GetLargestPossibleRegion().GetSize()[2] == 1)
+    {
+    // For 2D images we add grid display to 2-component image layers
+    for(unsigned int i=0; i<3; ++i)
+      {
+      const auto rep = SCALAR_REP_MAGNITUDE;
+      m_DisplaySliceSelector[i]->AddSelectableInput(
+            MultiChannelDisplayMode(false, true, rep, 0),
+            m_Wrapper->GetScalarRepresentation(rep, 0)->GetDisplaySlice(i));
+      }
+    }
+
   // Set display mode to default
   SetDisplayMode(MultiChannelDisplayMode());
 }
@@ -715,9 +728,16 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     }
   else if(mode.RenderAsGrid)
     {
-    if(nc != 3)
+    if(nc != 3 && nc != 2)
       throw IRISException("Grid rendering mode requested for %d component image", nc);
-    m_ScalarRepresentation = NULL;
+    if(nc == 3)
+      m_ScalarRepresentation = NULL;
+    if(nc == 2)
+      {
+      m_ScalarRepresentation =
+          m_Wrapper->GetScalarRepresentation(
+            SCALAR_REP_MAGNITUDE, 0);
+      }
     }
   else
     {
@@ -803,7 +823,8 @@ bool
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::IsContrastMultiComponent() const
 {
-  if(m_DisplayMode.UseRGB || m_DisplayMode.RenderAsGrid || m_Animate)
+  if(m_DisplayMode.UseRGB ||
+     (m_DisplayMode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() == 3) || m_Animate)
     return true;
 
   return false;
@@ -820,7 +841,8 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   // The native range is global componentwise max/min when we are in RGB mode
   // or when we are in single component mode (because the curves are shared
   // between these display modes).
-  if(m_DisplayMode.UseRGB || m_DisplayMode.RenderAsGrid ||
+  if(m_DisplayMode.UseRGB ||
+     (m_DisplayMode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() == 3) ||
      m_DisplayMode.SelectedScalarRep == SCALAR_REP_COMPONENT)
     {
     cmin = m_Wrapper->GetImageMinNative();
@@ -843,7 +865,7 @@ const ScalarImageHistogram *
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::GetHistogram(int nBins)
 {
-  if(m_DisplayMode.UseRGB || m_DisplayMode.RenderAsGrid)
+  if(m_DisplayMode.UseRGB || (m_DisplayMode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() == 3))
     {
     // In RGB mode, we should return a pooled histogram of the data.
     return m_Wrapper->GetHistogram(nBins);
@@ -932,7 +954,8 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     if(m_Wrapper && mode.UseRGB && m_Wrapper->GetNumberOfComponents() != 3)
       mode = MultiChannelDisplayMode();
 
-    if(m_Wrapper && mode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() != 3)
+    if(m_Wrapper && mode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() != 3
+       && m_Wrapper->GetNumberOfComponents() != 2)
       mode = MultiChannelDisplayMode();
 
     if(m_Wrapper && mode.SelectedComponent >= m_Wrapper->GetNumberOfComponents())

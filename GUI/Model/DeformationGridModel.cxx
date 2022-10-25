@@ -18,7 +18,8 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
   // Draw the texture for the layer
   AnatomicImageWrapper *vecimg = dynamic_cast<AnatomicImageWrapper *>(layer);
 
-  if (vecimg && vecimg->GetNumberOfComponents() == 3)
+  if (vecimg && (vecimg->GetNumberOfComponents() == 3 ||
+                 vecimg->GetNumberOfComponents() == 2))
     {
     // Get the slice
     AnatomicImageWrapper::SliceType::Pointer slice = vecimg->GetSlice(m_Parent->GetId());
@@ -105,7 +106,6 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
                 (d_grid_d_phi[1] * (double) (pix[1])) +
                 (d_grid_d_phi[2] * (double) (pix[2]));
 
-            //v.vlist[d].push_back(DeformationGridVertex(xDispSlice[0], xDispSlice[1]));
             v.vvec.push_back(xDispSlice[0]);
             v.vvec.push_back(xDispSlice[1]);
 

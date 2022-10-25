@@ -273,7 +273,10 @@ ImageLayerTableRowModel::CheckState(UIState state)
       return (m_Layer && m_ImageLayer->GetNumberOfComponents() > 1);
 
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
+      {
       return (m_Layer && m_Layer->GetDisplayMapping()->GetIntensityCurve());
+      }
+
 
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
       return (m_Layer && m_Layer->GetDisplayMapping()->GetColorMap());

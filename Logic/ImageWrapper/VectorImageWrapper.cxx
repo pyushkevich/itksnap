@@ -113,7 +113,7 @@ VectorImageWrapper<TTraits,TBase>
 {
   // Get the numerical value
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
-  if(mode.UseRGB || mode.RenderAsGrid)
+  if(mode.UseRGB || (mode.RenderAsGrid && this->GetNumberOfComponents() == 3))
     {
     // Sample the intensity under the cursor for the current time point
     this->SampleIntensityAtReferenceIndex(
