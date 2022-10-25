@@ -7,6 +7,7 @@
 
 #include "itkImageAdaptor.h"
 #include "itkVectorImageToImageAdaptor.h"
+#include "MultiChannelDisplayMode.h"
 
 template<class TInputImage, typename TTag>
 InputSelectionImageFilter<TInputImage,TTag>

@@ -220,6 +220,12 @@ void ImageLayerTableRowModel::UpdateDisplayModeList()
       m_AvailableDisplayModes.push_back(
             MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT));
       }
+    else if(m_ImageLayer->GetNumberOfComponents() == 2 &&
+            m_ImageLayer->GetSize()[2] == 1)
+      {
+      m_AvailableDisplayModes.push_back(
+            MultiChannelDisplayMode(false, true, SCALAR_REP_MAGNITUDE, 0));
+      }
     }
 }
 
@@ -273,7 +279,10 @@ ImageLayerTableRowModel::CheckState(UIState state)
       return (m_Layer && m_ImageLayer->GetNumberOfComponents() > 1);
 
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
+      {
       return (m_Layer && m_Layer->GetDisplayMapping()->GetIntensityCurve());
+      }
+
 
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
       return (m_Layer && m_Layer->GetDisplayMapping()->GetColorMap());
