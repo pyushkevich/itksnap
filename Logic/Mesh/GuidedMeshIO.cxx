@@ -92,6 +92,16 @@ GuidedMeshIO::can_write(FileFormat fmt)
   return ret;
 }
 
+std::string
+GuidedMeshIO
+::GetSlicerCoordSysComment() const
+{
+  // Adding a comment illustrating the purpose
+  std::ostringstream oss;
+  oss << "ITK-SNAP coord sys for 3D Slicer: " << slicer_coord_sys_string;
+  return oss.str();
+}
+
 void
 GuidedMeshIO
 ::SaveMesh(const char *FileName, Registry &folder, vtkPolyData *mesh)
@@ -105,6 +115,7 @@ GuidedMeshIO
     vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
     writer->SetInputData(mesh);
     writer->SetFileName(FileName);
+    writer->SetHeader(GetSlicerCoordSysComment().c_str());
     writer->Update();
     writer->Delete();
     }
@@ -115,6 +126,7 @@ GuidedMeshIO
     tri->SetInputData(mesh);
     writer->SetInputConnection(tri->GetOutputPort());
     writer->SetFileName(FileName);
+    writer->SetHeader(GetSlicerCoordSysComment().c_str());
     writer->Update();
     writer->Delete();
     tri->Delete();

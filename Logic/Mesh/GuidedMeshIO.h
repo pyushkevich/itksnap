@@ -115,6 +115,13 @@ protected:
 
   // Error message for unsucessful IO
   std::string m_ErrorMessage;
+
+  // Export format string to help importing into 3D slicer
+  // -- Hardcode to RAS since snap force exporting in RAS system
+  // -- Reference: https://www.slicer.org/wiki/Documentation/Nightly/Developers/Tutorials/MigrationGuide/Slicer#Slicer_5.0:_Models_are_saved_in_LPS_coordinate_system_by_default
+  const std::string slicer_coord_sys_string = "SPACE=RAS";
+
+  std::string GetSlicerCoordSysComment() const;
 };
 
 #endif
