@@ -276,6 +276,7 @@ void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
       }
     catch(exception &exc)
       {
+      progress->close();
       QMessageBox b(this);
       b.setText(QString("Failed to load image %1").arg(ui->outFilename->text()));
       b.setDetailedText(exc.what());

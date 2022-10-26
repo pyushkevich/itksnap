@@ -130,6 +130,7 @@ bool AbstractPage::PerformIO()
     }
   catch(IRISException &exc)
     {
+    progress->close();
     return ErrorMessage(exc);
     }
 
@@ -539,6 +540,7 @@ bool DICOMPage::validatePage()
     }
   catch(IRISException &exc)
     {
+    progress->close();
     return ErrorMessage(exc);
     }
 
@@ -773,6 +775,7 @@ bool RawPage::validatePage()
     }
   catch(IRISException &exc)
     {
+    progress->close();
     return ErrorMessage(exc);
     }
   return true;
