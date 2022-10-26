@@ -1397,6 +1397,7 @@ void MainImageWindow::LoadMainImage(const QString &file)
     }
   catch(exception &exc)
     {
+    progress->close();
     ReportNonLethalException(this, exc, "Image IO Error",
                              QString("Failed to load image %1").arg(file));
 
@@ -1439,6 +1440,7 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
     }
   catch(exception &exc)
     {
+    progress->close();
     ReportNonLethalException(this, exc, "Image IO Error",
                              QString("Failed to load overlay image %1").arg(file));
     }
@@ -1473,6 +1475,7 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
     }
   catch(exception &exc)
     {
+    progress->close();
     ReportNonLethalException(this, exc, "Image IO Error",
                              QString("Failed to load segmentation image %1").arg(file));
     }
