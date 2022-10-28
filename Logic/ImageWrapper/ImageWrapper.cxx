@@ -1267,10 +1267,6 @@ ImageWrapper<TTraits,TBase>
     m_TimePointSelectFilter->AddSelectableInput(i, ip);
     }
 
-  // TODO: probably we don't need to reset the timepoint every time an image is updated but
-  // we do this here for now to be safe
-  m_TimePointIndex = 0;
-
   // Update the selected time point in the selector
   m_TimePointSelectFilter->SetSelectedInput(m_TimePointIndex);
 
@@ -2066,6 +2062,16 @@ ImageWrapper<TTraits,TBase>
   for(ImagePointer img : m_ImageTimePoints)
     if(m_ImageSaveTime < img->GetTimeStamp())
       m_ImageSaveTime = img->GetTimeStamp();
+}
+
+template<class TTraits, class TBase>
+void
+ImageWrapper<TTraits, TBase>
+::WriteCurrentTPImageToFile(const char *filename)
+{
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+  Registry reg;
+  Specialization::Write(m_Image, filename, reg);
 }
 
 

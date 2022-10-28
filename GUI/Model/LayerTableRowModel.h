@@ -39,11 +39,14 @@ public:
     UIF_MOVABLE_UP,
     UIF_MOVABLE_DOWN,
     UIF_CLOSABLE,
+    UIF_SAVABLE,
     UIF_COLORMAP_ADJUSTABLE,
     UIF_CONTRAST_ADJUSTABLE,
     UIF_MULTICOMPONENT,
+    UIF_VOLUME_RENDERABLE,
+    UIF_IMAGE,
     UIF_MESH,
-		UIF_MESH_HAS_DATA // mesh has data for color rendering
+    UIF_MESH_HAS_DATA // mesh has data for color rendering
     };
 
   // ----------------------------------------------

@@ -175,11 +175,11 @@ public:
   ColorMap* GetColorMap()
   { return m_ColorMap; }
 
-  /** Get Intensity Curve */
-	IntensityCurveVTK* GetIntensityCurve();
+  /** Get Active Intensity Curve depending on active vector mode */
+  IntensityCurveVTK* GetActiveIntensityCurve();
 
 	/** Set Intensity Curve */
-	void SetIntensityCurve(IntensityCurveVTK * curve);
+  void SetActiveIntensityCurve(IntensityCurveVTK * curve);
 
   /**
     Compute the array histogram. The histogram is cached inside of the

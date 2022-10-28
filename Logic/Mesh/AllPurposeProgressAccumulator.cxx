@@ -546,4 +546,12 @@ void TrivalProgressSource::Callback(itk::Object *source, const itk::EventObject 
     this->InvokeEvent(event);
 }
 
+void TrivalProgressSource
+::AddObserverToProgressEvents(itk::Command *cmd)
+{
+  this->AddObserver(itk::StartEvent(), cmd);
+  this->AddObserver(itk::ProgressEvent(), cmd);
+  this->AddObserver(itk::EndEvent(), cmd);
+}
+
 TrivalProgressSource::TrivalProgressSource() : m_MaxProgress(1.0) {}

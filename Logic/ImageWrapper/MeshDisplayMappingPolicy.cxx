@@ -84,7 +84,7 @@ MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
   m_ColorMap = map;
 
 	// ColorMap modified event should notify upstream observers
-	m_IntensityCurveObserverTag =
+  m_ColorMapObserverTag =
 			Rebroadcaster::Rebroadcast(map, itk::ModifiedEvent(),
 																 m_Wrapper, WrapperDisplayMappingChangeEvent());
 
@@ -281,9 +281,7 @@ UpdateLUT()
 
 	// Check vector mode setting for multi-component data
 	using VectorMode = MeshLayerDataArrayProperty::VectorMode;
-
 	vtkIdType activeComp = -1;
-
 
 	if (prop->GetNumberOfComponents() > 1)
 		{
@@ -296,7 +294,7 @@ UpdateLUT()
 				{
 				m_LookupTable->SetVectorModeToMagnitude();
 				m_LookupTable->SetVectorSize(-1);
-				this->SetIntensityCurve(prop->GetIntensityCurve());
+        this->SetIntensityCurve(prop->GetActiveIntensityCurve());
 				break;
 				}
 			default:
@@ -327,11 +325,10 @@ UpdateLUT()
 	drange = dmax - dmin;
 	lutMin = dmin + drange * rMin;
 	lutMax = dmin + drange * rMax;
-
 	m_LookupTable->SetRange(lutMin, lutMax);
 
 	// Prepare color generation
-	const size_t numClr = 256;
+  const size_t numClr = 256;
 	double numdiv = 1.0/numClr;
   double clrdiv = 1.0/255.0;
   m_LookupTable->SetNumberOfColors(numClr);
@@ -344,7 +341,6 @@ UpdateLUT()
 		auto rgbaC = m_ColorMap->MapIndexToRGBA(val);
 		double rgbaD[4] = {rgbaC[0] * clrdiv, rgbaC[1] * clrdiv,
 											 rgbaC[2] * clrdiv, rgbaC[3] * clrdiv};
-
     m_LookupTable->SetTableValue(i, rgbaD);
     }
 

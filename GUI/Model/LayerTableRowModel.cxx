@@ -204,8 +204,8 @@ void ImageLayerTableRowModel::UpdateDisplayModeList()
   if(m_Layer && m_ImageLayer->GetNumberOfComponents() > 1)
     {
     for(std::size_t i = 0; i < m_ImageLayer->GetNumberOfComponents(); i++)
-      m_AvailableDisplayModes.push_back(
-            MultiChannelDisplayMode(false, false, SCALAR_REP_COMPONENT, i));
+      m_AvailableDisplayModes.push_back(MultiChannelDisplayMode(false, false, SCALAR_REP_COMPONENT, i));
+
     m_AvailableDisplayModes.push_back(
           MultiChannelDisplayMode(false, false, SCALAR_REP_MAGNITUDE, 0));
     m_AvailableDisplayModes.push_back(
@@ -219,6 +219,12 @@ void ImageLayerTableRowModel::UpdateDisplayModeList()
             MultiChannelDisplayMode(true, false, SCALAR_REP_COMPONENT));
       m_AvailableDisplayModes.push_back(
             MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT));
+      }
+    else if(m_ImageLayer->GetNumberOfComponents() == 2 &&
+            m_ImageLayer->GetSize()[2] == 1)
+      {
+      m_AvailableDisplayModes.push_back(
+            MultiChannelDisplayMode(false, true, SCALAR_REP_MAGNITUDE, 0));
       }
     }
 }
@@ -255,9 +261,6 @@ ImageLayerTableRowModel::GetDisplayMode()
 bool
 ImageLayerTableRowModel::CheckState(UIState state)
 {
-  if (Superclass::CheckState(state))
-    return true;
-
   switch (state)
     {
     // Opacity can be edited for all layers except the main image layer
@@ -276,13 +279,25 @@ ImageLayerTableRowModel::CheckState(UIState state)
       return (m_Layer && m_ImageLayer->GetNumberOfComponents() > 1);
 
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
+      {
       return (m_Layer && m_Layer->GetDisplayMapping()->GetIntensityCurve());
+      }
+
 
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
       return (m_Layer && m_Layer->GetDisplayMapping()->GetColorMap());
 
+    case AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE:
+      return m_LayerRole != LABEL_ROLE;
+
+    case AbstractLayerTableRowModel::UIF_IMAGE:
+      return true;
+
+    case AbstractLayerTableRowModel::UIF_SAVABLE:
+      return true;
+
     default:
-      break;
+      return Superclass::CheckState(state); // Children override Parents
     }
 
   return false;
@@ -291,6 +306,9 @@ ImageLayerTableRowModel::CheckState(UIState state)
 void
 ImageLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
 {
+  // Initialize superclass first
+  Superclass::Initialize(parentModel, layer);
+
   // Downcast wrapper. It has to be a ImageWrapperBase or raise error
   ImageWrapperBase *img_wrapper = static_cast<ImageWrapperBase*>(layer);
   m_ImageLayer = img_wrapper;
@@ -298,9 +316,6 @@ ImageLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *lay
   // Update the list of display modes (again, should not change during the
   // lifetime of this object
   UpdateDisplayModeList();
-
-  // At the end, call parent initialize
-  Superclass::Initialize(parentModel, layer);
 }
 
 void
@@ -413,7 +428,7 @@ void
 ImageLayerTableRowModel::UpdateRoleInfo()
 {
   LayerIterator it(m_ImageData);
-  it.Find(m_ImageLayer);
+  it.Find(static_cast<ImageWrapperBase*>(m_Layer.GetPointer()));
   if(!it.IsAtEnd())
     {
     m_LayerRole = it.GetRole();
@@ -591,20 +606,16 @@ MeshLayerTableRowModel
 void
 MeshLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *layer)
 {
+  Superclass::Initialize(parentModel, layer);
+
   // Downcast wrapper. It has to be a MeshWrapperBase or raise error
   MeshWrapperBase *mesh_wrapper = static_cast<MeshWrapperBase*>(layer);
   m_MeshLayer = mesh_wrapper;
-
-  // In the end, call parent initialize
-  Superclass::Initialize(parentModel, layer);
 }
 
 bool
 MeshLayerTableRowModel::CheckState(UIState state)
 {
-  if (Superclass::CheckState(state))
-    return true;
-
   bool hasGenericDMP = (dynamic_cast<GenericMeshDisplayMappingPolicy*>(
                           m_MeshLayer->GetDisplayMapping()) != NULL);
 
@@ -626,7 +637,9 @@ MeshLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_UNPINNABLE:
       return false;
 
-    // We don't consider multicomponent mesh for now
+    case AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE:
+      return false;
+
     case AbstractLayerTableRowModel::UIF_MULTICOMPONENT:
 			{
 			auto prop = m_MeshLayer->GetActiveDataArrayProperty();
@@ -642,8 +655,11 @@ MeshLayerTableRowModel::CheckState(UIState state)
 		case AbstractLayerTableRowModel::UIF_MESH_HAS_DATA:
 			return hasGenericDMP;
 
+    case AbstractLayerTableRowModel::UIF_SAVABLE:
+      return !hasGenericDMP; // Mesh layer is currently read only
+
     default:
-      break;
+      return Superclass::CheckState(state); // Children override parents
     }
 
   return false;
@@ -658,7 +674,6 @@ MeshLayerTableRowModel::GetStickyValue(bool &)
 void
 MeshLayerTableRowModel::SetStickyValue(bool )
 {
-  // do nothing for mesh for now
 }
 
 void
@@ -687,14 +702,18 @@ MeshLayerTableRowModel::IsActivated() const
 void
 MeshLayerTableRowModel::AutoAdjustContrast()
 {
-
+  auto genericDMP = dynamic_cast<GenericMeshDisplayMappingPolicy*>(m_Layer->GetDisplayMapping());
+  if(m_Layer && genericDMP && genericDMP->GetIntensityCurve())
+    {
+    genericDMP->AutoFitContrast();
+    }
 }
 
 void
 MeshLayerTableRowModel::UpdateRoleInfo()
 {
   m_LayerRole = MESH_ROLE;
-  m_LayerPositionInRole = m_MeshLayer->GetUniqueId();
+  m_LayerPositionInRole = m_Layer->GetUniqueId();
   m_LayerNumberOfLayersInRole = m_ImageData->GetMeshLayers()->size();
 }
 
@@ -707,13 +726,23 @@ MeshLayerTableRowModel::CloseLayer()
 }
 
 bool
-MeshLayerTableRowModel::GetColorMapPresetValue(std::string &)
+MeshLayerTableRowModel::GetColorMapPresetValue(std::string &value)
 {
+  if(m_Layer && m_Layer->GetDisplayMapping()->GetColorMap())
+    {
+    value = ColorMap::GetPresetName(
+          m_Layer->GetDisplayMapping()->GetColorMap()->GetSystemPreset());
+    return true;
+    }
   return false;
 }
 
 void
-MeshLayerTableRowModel::SetColorMapPresetValue(std::string)
+MeshLayerTableRowModel::SetColorMapPresetValue(std::string value)
 {
-
+  ColorMapModel *cmm = m_ParentModel->GetColorMapModel();
+  WrapperBase *currentLayer = cmm->GetLayer();
+  cmm->SetLayer(m_MeshLayer);
+  cmm->SelectPreset(value);
+  cmm->SetLayer(currentLayer);
 }

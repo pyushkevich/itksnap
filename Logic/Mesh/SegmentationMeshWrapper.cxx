@@ -159,7 +159,7 @@ SegmentationMeshWrapper
 
 void
 SegmentationMeshWrapper
-::ReadFromRegistry(Registry &)
+::LoadFromRegistry(Registry &, std::string &, std::string &)
 {
 
 }

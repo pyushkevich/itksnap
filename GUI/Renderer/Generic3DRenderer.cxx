@@ -155,7 +155,6 @@ Generic3DRenderer::Generic3DRenderer()
   auto textProp = m_ScalarBarActor->GetTitleTextProperty();
   textProp->SetFontSize(9);
   textProp->SetJustificationToLeft();
-
   this->m_Renderer->AddActor2D(m_ScalarBarActor);
 
   m_ImageCubeSource = vtkSmartPointer<vtkCubeSource>::New();
@@ -278,13 +277,18 @@ void Generic3DRenderer::UpdateMeshAssembly()
   unsigned long active_layer_id = layers->GetActiveLayerId();
   unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
 
+  // Remove all mesh actors from the renderer before the update
+  ResetMeshAssembly();
+
+  // turn color bar off at the beginning of update
+  // this is to make sure if nothing to render, color bar is not visible
+  m_ScalarBarActor->SetVisibility(false);
+
   if (layers->size() == 0 || active_layer_id == 0)
-    {
-    ResetMeshAssembly();
     return;
-    }
 
   MeshWrapperBase* active_layer = layers->GetLayer(active_layer_id);
+  assert(active_layer);
 
   // Get display mapping policy for color configuration
   MeshDisplayMappingPolicy* dmp = active_layer->GetMeshDisplayMappingPolicy();
@@ -295,11 +299,6 @@ void Generic3DRenderer::UpdateMeshAssembly()
       m_CrntActorMapTimePoint = tp;
       m_CrntActorMapLayerId = active_layer_id;
     }
-
-  // Remove all mesh actors from the renderer before the update
-  // -- Since we are recycling all actors without constantly create/delete,
-  // -- rebuilding actor map everytime is no longer expensive
-  ResetMeshAssembly();
 
   // Process all addition and update
   dmp->UpdateActorMap(m_ActorPool, tp);
@@ -312,12 +311,18 @@ void Generic3DRenderer::UpdateMeshAssembly()
 
 	ApplyDisplayMappingPolicyChange();
 
-  // TODO: test code
+  // Update color bar visibility
+  UpdateColorLegendAppearance();
+
   m_Renderer->Modified();
 }
 
 void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
 {
+  //UpdateColorLegendAppearance();
+  if (m_CrntActorMapLayerId == 0) // no layer activated yet
+    return;
+
   // Get current layer
   auto active_layer = m_Model->GetMeshLayers()->GetLayer(m_CrntActorMapLayerId);
 
@@ -327,9 +332,6 @@ void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
 
   // Update legend
   dmp->ConfigureLegend(m_ScalarBarActor);
-
-  // Re-render
-  m_Renderer->Render();
 }
 
 void Generic3DRenderer::ResetMeshAssembly()
@@ -368,6 +370,9 @@ void Generic3DRenderer::UpdateAxisRendering()
 
     for(int i = 0; i < 3; i++)
       {
+      // Update visibility
+      m_AxisActor[i]->SetVisibility(axisapp->GetVisibilityFlag());
+
       // Update the cursor position
       Vector3d p1 = to_double(cursor), p2 = to_double(cursor);
       p1[i] = 0; p2[i] = dims[i];
@@ -946,9 +951,6 @@ void Generic3DRenderer::OnUpdate()
                               app->GetSNAPImageData()->GetMeshLayers());
 
   // Need to rebuild the actor map
-  // -- 1. Time point has changed
-  // -- 2. Mesh update event detected
-  // -- 3. continuous update event detected
   bool need_rebuild_actor_map =
       m_EventBucket->HasEvent(CursorTimePointUpdateEvent(),app) ||
       continuous_update_needed ||
@@ -977,13 +979,20 @@ void Generic3DRenderer::OnUpdate()
   if (need_update_actor_color)
     {
     ApplyDisplayMappingPolicyChange();
+    need_render = true;
     }
 
   // Deal with axes
-  if(main_changed || cursor_moved || appearance_changed)
+  if(main_changed || cursor_moved)
     {
     UpdateAxisRendering();
-		UpdateColorLegendAppearance();
+    need_render = true;
+    }
+
+  if(appearance_changed)
+    {
+    UpdateAxisRendering();
+    UpdateColorLegendAppearance();
     need_render = true;
     }
 
@@ -1033,7 +1042,6 @@ void Generic3DRenderer::OnUpdate()
     }
 
   // Force rendering to occur
-  // TODO: commenting out for now because calling Render outside of GL context causes problems
   if (need_render)
     this->GetRenderWindow()->Render();
 }

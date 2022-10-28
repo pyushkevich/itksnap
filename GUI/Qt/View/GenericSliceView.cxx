@@ -25,7 +25,6 @@
 =========================================================================*/
 
 #include "GenericSliceView.h"
-#include "CrosshairsInteractionMode.h"
 #include "LatentITKEventNotifier.h"
 #include <MainImageWindow.h>
 #include <LayerInspectorDialog.h>

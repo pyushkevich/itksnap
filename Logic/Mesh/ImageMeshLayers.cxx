@@ -32,9 +32,7 @@ ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector)
                              this, WrapperDisplayMappingChangeEvent());
 
   // Invoke to trigger initial rendering of the mesh
-  // Always make the latest added layer active
-  m_ActiveLayerId = meshLayer->GetUniqueId();
-  InvokeEvent(ActiveLayerChangeEvent());
+  SetActiveLayerId(id);
 
   // Invoke to trigger rebuild of the layer inspector row
   if (notifyInspector)
@@ -44,8 +42,11 @@ ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector)
 void
 ImageMeshLayers::SetActiveLayerId(unsigned long id)
 {
-  m_ActiveLayerId = id;
-  InvokeEvent(ActiveLayerChangeEvent());
+  if (id != m_ActiveLayerId) // avoid unnecessary downstream event triggering
+    {
+    m_ActiveLayerId = id;
+    InvokeEvent(ActiveLayerChangeEvent());
+    }
 }
 
 SmartPtr<MeshWrapperBase>
@@ -218,115 +219,18 @@ ImageMeshLayers
 
   auto folder_layers = project.Folder("MeshLayers");
 
-  // Whether the project file has been moved
-  bool moved = (project_dir_orig != project_dir_crnt);
+  unsigned int layer_id = 0;
+  std::string layer_key = Registry::Key("Layer[%03d]", layer_id);
 
-  std::string key;
-
-  for (int i = 0; folder_layers.HasFolder(key = Registry::Key("Layer[%03d]", i)); ++i)
+  while (folder_layers.HasFolder(layer_key))
     {
-    // Load MeshAssmbly Time Points
-    auto folder_layer = folder_layers.Folder(key);
-
-    // Create a new mesh wrapper
+    auto folder_crnt_layer = folder_layers.Folder(layer_key);
     auto mesh_wrapper = StandaloneMeshWrapper::New();
-
-    // Restore nicknames and tags
-    mesh_wrapper->SetCustomNickname(folder_layer["NickName"][""]);
-
-    TagList tags;
-    folder_layer["Tags"].GetList(tags);
-
-    // Restore mesh timepoint assembly
-    auto folder_assembly = folder_layer.Folder("MeshTimePoints");
-
-    // Create a mesh IO for executing the actual loading from file
-    GuidedMeshIO io;
-
-    std::string key_tp;
-    bool fnSet = false;
-
-    for (int j = 1;
-         folder_assembly.HasFolder(key_tp = Registry::Key("TimePoint[%03d]", j));
-         ++j)
-      {
-      auto folder_tp = folder_assembly.Folder(key_tp);
-
-      std::string key_poly;
-      for (int k = 0;
-           folder_tp.HasFolder(key_poly = Registry::Key("PolyData[%03d]", k));
-           ++k)
-        {
-        auto folder_poly = folder_tp.Folder(key_poly);
-
-        std::string poly_file_full = folder_poly["AbsolutePath"][""];
-
-        if (moved)
-          poly_file_full = IRISApplication::GetMovedFilePath(
-                project_dir_orig, project_dir_crnt, poly_file_full);
-
-        // Set first filename as placeholder
-        if (!fnSet)
-          {
-          mesh_wrapper->SetFileName(poly_file_full);
-          fnSet = true;
-          }
-
-        FileFormat format = folder_poly["Format"]
-            .GetEnum(GuidedMeshIO::GetEnumFileFormat(), FileFormat::FORMAT_COUNT);
-
-        // Load with tp = j-1. The storeing of time point index should always be zero-based
-        io.LoadMesh(poly_file_full.c_str(), format, mesh_wrapper.GetPointer(), j-1, k);
-        }
-      }
-
-    // Load Data Array Properties
-    // -- Lookup array properties by name and type
-    // -- Restore color map and intensity curve
-    // -- Only load matched entries since mesh data array might be changed externally
-    auto folder_data = folder_layer.Folder("DataArrayProperties");
-
-    std::string key_data;
-    for (int array_id = 0;
-         folder_data.HasFolder(key_data = Registry::Key("DataArray[%03d]", array_id));
-         ++array_id)
-      {
-        auto folder_crnt = folder_data.Folder(key_data);
-
-        // Get Array Name and Array Type
-        auto array_name = folder_crnt["ArrayName"][""];
-        auto array_type = folder_crnt["ArrayType"].
-            GetEnum(AbstractMeshDataArrayProperty::GetMeshDataTypeEnumMap(),
-                    AbstractMeshDataArrayProperty::POINT_DATA);
-
-        // Search the data array by array name and array type
-        // If found, restore color map and intensity curve
-        auto &array_map = mesh_wrapper->GetCombinedDataProperty();
-
-        for (auto kv : array_map)
-          {
-          if (strcmp(kv.second->GetName(), array_name) == 0 &&
-              kv.second->GetType() == array_type)
-            {
-            if (folder_crnt.HasFolder("ColorMap"))
-              {
-              auto folder_cm = folder_crnt.Folder("ColorMap");
-              kv.second->GetColorMap()->LoadFromRegistry(folder_cm);
-              }
-
-            if (folder_crnt.HasFolder("IntensityCurve"))
-              {
-              auto folder_ic = folder_crnt.Folder("IntensityCurve");
-              kv.second->GetIntensityCurve()->LoadFromRegistry(folder_ic);
-              }
-            }
-          }
-
-        // We need to call set active to refresh the display mapping policy
-        mesh_wrapper->SetActiveMeshLayerDataPropertyId(0);
-      }
-
+    mesh_wrapper->LoadFromRegistry(folder_crnt_layer, project_dir_orig, project_dir_crnt);
     AddLayer(mesh_wrapper, true);
+
+    ++layer_id;
+    layer_key = Registry::Key("Layer[%03d]", layer_id);
     }
 }
 

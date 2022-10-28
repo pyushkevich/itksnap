@@ -34,8 +34,6 @@
 #include <EventBucket.h>
 #include "QtReporterDelegates.h"
 
-class CrosshairsInteractionMode;
-
 class GenericSliceView : public QtVTKRenderWindowBox
 {
   Q_OBJECT
@@ -51,9 +49,6 @@ public:
   // Return the renderer
   irisGetMacro(Renderer, AbstractRenderer *)
 
-  // Get the renderer overlays
-  GenericSliceRenderer::RendererDelegateList &GetRendererOverlays();
-
 protected:
 
   // Pointer to the model object for this class
@@ -64,9 +59,6 @@ protected:
 
   // VTK-based Renderer (owned by the view)
   SmartPtr<GenericSliceRenderer> m_Renderer;
-
-  // Whether next repaint requires a resize call (Qt bug?)
-  CrosshairsInteractionMode *m_Crosshairs;
 };
 
 #endif // GENERICSLICEVIEW_H

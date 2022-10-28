@@ -128,7 +128,7 @@ public:
 
   // Save the segmentation (interactively or not). Return true if save was
   // successful
-  bool SaveSegmentation(bool interactive);
+  bool SaveSegmentation(bool interactive, bool currentTPOnly = false);
 
   /** Save the project (interactively or not) */
   bool SaveWorkspace(bool interactive);
@@ -213,6 +213,8 @@ private slots:
   void on_actionSaveSegmentation_triggered();
 
   void on_actionSaveSegmentationAs_triggered();
+
+  void on_actionSaveTimePointSegmentation_triggered();
 
 
   void on_actionOverlayVisibilityToggleAll_triggered();
@@ -340,6 +342,8 @@ private slots:
   void on_actionNext_Display_Layout_triggered();
 
   void on_actionToggle_Volume_Rendering_triggered();
+
+  void on_actionToggle_4D_Replay_triggered();
 
 protected:
 

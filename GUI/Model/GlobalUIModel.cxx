@@ -400,6 +400,10 @@ bool GlobalUIModel::CheckState(UIState state)
 
       return ret;
       }
+    case UIF_IS_4D:
+      {
+      return m_Driver->GetNumberOfTimePoints() > 1;
+      }
     case UIF_OVERLAY_LOADED:
       return m_Driver->GetCurrentImageData()->AreOverlaysLoaded();
     case UIF_SNAKE_MODE:
@@ -937,7 +941,7 @@ std::string GlobalUIModel::GenerateScreenshotFilename()
 }
 
 SmartPtr<ImageIOWizardModel>
-GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole role)
+GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole role, bool crntTPOnly)
 {
   // Create save delegate for this layer
   SmartPtr<AbstractSaveImageDelegate> delegate =
@@ -945,7 +949,7 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
 
   // Create a model for IO
   SmartPtr<ImageIOWizardModel> modelIO = ImageIOWizardModel::New();
-  modelIO->InitializeForSave(this, delegate, delegate->GetCategory().c_str());
+  modelIO->InitializeForSave(this, delegate, delegate->GetCategory().c_str(), crntTPOnly);
 
   return modelIO;
 }

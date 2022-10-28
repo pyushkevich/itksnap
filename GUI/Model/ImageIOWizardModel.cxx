@@ -46,7 +46,7 @@ void
 ImageIOWizardModel
 ::InitializeForSave(GlobalUIModel *parent,
                     AbstractSaveImageDelegate *delegate,
-                    const char *dispName)
+                    const char *dispName, bool saveCrntTP)
 {
   m_Parent = parent;
   m_Mode = SAVE;
@@ -58,6 +58,7 @@ ImageIOWizardModel
   m_SuggestedFilename = delegate->GetCurrentFilename();
   m_Overlay = false;
   m_LoadedImage = NULL;
+  m_SaveCurrentTPIn3D = saveCrntTP;
 
   m_SaveDelegate->ValidateBeforeSaving(m_SuggestedFilename, m_GuidedIO, m_Warnings);
 }
@@ -311,7 +312,8 @@ void ImageIOWizardModel::LoadImage(std::string filename, ImageReadingProgressAcc
 	SmartPtr<itk::Command> miscProgCmd = irAccum->GetMiscProgressCommand();
 
 	SmartPtr<TrivalProgressSource> miscProgSrc = TrivalProgressSource::New();
-	miscProgSrc->AddObserver(itk::ProgressEvent(), miscProgCmd);
+  miscProgSrc->AddObserverToProgressEvents(miscProgCmd);
+  miscProgSrc->StartProgress();
 
   try
   {
@@ -375,6 +377,12 @@ void ImageIOWizardModel::SaveImage(std::string filename)
     throw IRISException("Error: exception occured during image IO. "
                         "Exception: %s", exc.what());
   }
+}
+
+void ImageIOWizardModel::SaveCurrentTPSegmentationIn3D(std::string filename)
+{
+  auto seg_layer = m_Parent->GetDriver()->GetSelectedSegmentationLayer();
+  seg_layer->WriteCurrentTPImageToFile(filename.c_str());
 }
 
 bool ImageIOWizardModel::CheckImageValidity()

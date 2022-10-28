@@ -443,11 +443,11 @@ QString ShowSimpleOpenDialogWithHistory(
 
 bool SaveImageLayer(GlobalUIModel *model, ImageWrapperBase *wrapper,
                     LayerRole role, bool force_interactive,
-                    QWidget *parent)
+                    QWidget *parent, bool currentTPOnly)
 {
   // Create a model for saving the segmentation image via a wizard
   SmartPtr<ImageIOWizardModel> wiz_model =
-      model->CreateIOWizardModelForSave(wrapper, role);
+      model->CreateIOWizardModelForSave(wrapper, role, currentTPOnly);
 
   // Interactive or not?
   if(force_interactive || wiz_model->GetSuggestedFilename().size() == 0)

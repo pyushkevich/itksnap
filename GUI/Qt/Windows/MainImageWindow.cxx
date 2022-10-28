@@ -339,7 +339,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Set up the 4D replay timer
   m_4DReplayTimer = new QTimer(this);
-  m_AnimateTimer->setInterval(m_Crnt4DReplayInteval);
+  m_4DReplayTimer->setInterval(m_Crnt4DReplayInteval);
   connect(m_4DReplayTimer, SIGNAL(timeout()), SLOT(on4DReplayTimeout()));
 
   // Create keyboard shortcuts for opacity (because there seems to be a bug/feature on MacOS
@@ -593,6 +593,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionActivatePreviousLayer, m_Model, UIF_MULTIPLE_BASE_LAYERS);
   activateOnFlag(ui->actionActivateNextSegmentationLayer, m_Model, UIF_MULTIPLE_SEGMENTATION_LAYERS);
   activateOnFlag(ui->actionActivatePreviousSegmentationLayer, m_Model, UIF_MULTIPLE_SEGMENTATION_LAYERS);
+  activateOnFlag(ui->actionToggle_4D_Replay, m_Model, UIF_IS_4D);
 
   // Add actions that are not on the menu
   activateOnFlag(ui->actionZoomToFitInAllViews, m_Model, UIF_BASEIMG_LOADED);
@@ -609,6 +610,8 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->menuAddSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSegmentationAs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnAllFlags(ui->actionSaveTimePointSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED, UIF_IS_4D,
+                     QtWidgetActivator::HideInactive);
   activateOnFlag(ui->actionSave_as_Mesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionLoadLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
@@ -1375,7 +1378,7 @@ void MainImageWindow::LoadMainImage(const QString &file)
 
 	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
 			ImageReadingProgressAccumulator::New();
-	irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+  irProgAccum->AddProgressReporterCommand(progress->createCommand());
 
   // Prompt for unsaved changes
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
@@ -1394,6 +1397,7 @@ void MainImageWindow::LoadMainImage(const QString &file)
     }
   catch(exception &exc)
     {
+    progress->close();
     ReportNonLethalException(this, exc, "Image IO Error",
                              QString("Failed to load image %1").arg(file));
 
@@ -1436,6 +1440,7 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
     }
   catch(exception &exc)
     {
+    progress->close();
     ReportNonLethalException(this, exc, "Image IO Error",
                              QString("Failed to load overlay image %1").arg(file));
     }
@@ -1470,6 +1475,7 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
     }
   catch(exception &exc)
     {
+    progress->close();
     ReportNonLethalException(this, exc, "Image IO Error",
                              QString("Failed to load segmentation image %1").arg(file));
     }
@@ -1913,11 +1919,11 @@ void MainImageWindow::on_actionVolumesAndStatistics_triggered()
   m_StatisticsDialog->Activate();
 }
 
-bool MainImageWindow::SaveSegmentation(bool interactive)
+bool MainImageWindow::SaveSegmentation(bool interactive, bool currentTPOnly)
 {
   return SaveImageLayer(
         m_Model, m_Model->GetDriver()->GetSelectedSegmentationLayer(),
-        LABEL_ROLE, interactive, this);
+        LABEL_ROLE, interactive, this, currentTPOnly);
 }
 
 void MainImageWindow::RaiseDialog(QDialog *dialog)
@@ -1938,6 +1944,11 @@ void MainImageWindow::on_actionSaveSegmentation_triggered()
 void MainImageWindow::on_actionSaveSegmentationAs_triggered()
 {
   SaveSegmentation(true);
+}
+
+void MainImageWindow::on_actionSaveTimePointSegmentation_triggered()
+{
+  SaveSegmentation(true, true);
 }
 
 
@@ -2572,5 +2583,14 @@ void MainImageWindow::on_actionToggle_Volume_Rendering_triggered()
         model->SetVolumeRenderingEnabled(false);
       }
     }
+}
+
+void MainImageWindow::on_actionToggle_4D_Replay_triggered()
+{
+  if (!m_Model->CheckState(UIF_IS_4D))
+    return;
+
+  GetModel()->GetGlobalState()->Toggle4DReplay();
+  Update4DReplay();
 }
 
