@@ -161,8 +161,7 @@ public:
   //--------------------------------------------
 
   /** Set color label table for label color rendering */
-  void SetColorLabelTable(ColorLabelTable* labelTable)
-  { m_ColorLabelTable = labelTable; }
+  void SetColorLabelTable(ColorLabelTable* labelTable);
 
   /** Get the color label table */
   ColorLabelTable *GetColorLabelTable()
