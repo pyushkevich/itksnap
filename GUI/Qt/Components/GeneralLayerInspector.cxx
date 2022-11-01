@@ -107,9 +107,8 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
                  QtWidgetActivator::HideInactive);
 
 	// Mesh data array display connection
-	LatentITKEventNotifier::connect(
-				m_Model->GetMeshDataArrayNameModel(), DomainChangedEvent(),
-				this, SLOT(meshData_domainChanged()));
+  LatentITKEventNotifier::connect(
+        m_Model, ActiveLayerChangeEvent(), this, SLOT(meshData_domainChanged()));
 
 	QObject::connect(ui->boxMeshDataName, SIGNAL(currentIndexChanged(int)),
 									 this, SLOT(meshData_selectionChanged(int)));
@@ -147,18 +146,25 @@ GeneralLayerInspector
 ::meshData_domainChanged()
 {
 	auto mesh = dynamic_cast<StandaloneMeshWrapper*>(m_Model->GetLayer());
-	if (mesh)
+
+  if (mesh && mesh->GetUniqueId() != this->m_CurrentlyActiveMeshLayerId)
 		{
+    this->m_CurrentlyActiveMeshLayerId = mesh->GetUniqueId();
+
 		auto boxMetaName = ui->boxMeshDataName;
 		boxMetaName->clear();
 
-		auto &propMap = mesh->GetCombinedDataProperty();
-		for (auto &kv : propMap)
-			{
-			boxMetaName->addItem(QIcon(m_MeshDataTypeToIcon[kv.second->GetType()]),
-					kv.second->GetName(), kv.first);
-			}
-		ui->boxMeshDataName->setCurrentIndex(mesh->GetActiveMeshLayerDataPropertyId());
+    //auto &propMap = mesh->GetCombinedDataProperty();
+    LayerGeneralPropertiesModel::MeshLayerDataPropertiesMap propMap;
+    if (m_Model->GetMeshDataArrayPropertiesMap(propMap))
+      {
+      for (auto &kv : propMap)
+        {
+        boxMetaName->addItem(QIcon(m_MeshDataTypeToIcon[kv.second->GetType()]),
+            kv.second->GetName(), kv.first);
+        }
+      ui->boxMeshDataName->setCurrentIndex(mesh->GetActiveMeshLayerDataPropertyId());
+      }
 		}
 }
 
@@ -166,7 +172,7 @@ void
 GeneralLayerInspector
 ::meshData_selectionChanged(int value)
 {
-	m_Model->GetMeshDataArrayNameModel()->SetValue(value);
+  m_Model->SetActiveMeshLayerDataPropertyId(value);
 }
 
 void GeneralLayerInspector::onModelUpdate(const EventBucket &)
