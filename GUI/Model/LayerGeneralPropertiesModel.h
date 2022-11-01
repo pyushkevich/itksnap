@@ -88,13 +88,11 @@ public:
   typedef SimpleItemSetDomain<DisplayMode, std::string> DisplayModeDomain;
   typedef AbstractPropertyModel<DisplayMode, DisplayModeDomain> AbstractDisplayModeModel;
 
-  // Typedefs for mesh data selection
-  typedef SimpleItemSetDomain<int, std::string> MeshDataArrayNameDomain;
-  typedef AbstractPropertyModel<int, MeshDataArrayNameDomain> AbstractMeshDataArrayNameModel;
-
   // Typedefs for mesh data multi-component display mode
 	typedef SimpleItemSetDomain<vtkIdType, std::string> MeshVectorModeDomain;
 	typedef AbstractPropertyModel<vtkIdType, MeshVectorModeDomain> AbstractMeshVectorModeModel;
+
+  typedef MeshWrapperBase::MeshLayerCombinedPropertyMap MeshLayerDataPropertiesMap;
 
   // Models
   irisGetMacro(DisplayModeModel, AbstractDisplayModeModel *)
@@ -125,11 +123,14 @@ public:
   /** A model for the current timepoint taglist */
   irisSimplePropertyAccessMacro(CrntTimePointTagList, TagList)
 
-  /** A model for mesh data array names */
-  irisGetMacro(MeshDataArrayNameModel, AbstractMeshDataArrayNameModel *)
-
   /** A model for mesh multi-component (vector) display mode */
   irisGetMacro(MeshVectorModeModel, AbstractMeshVectorModeModel *)
+
+  /** Getter for Mesh Layer Data Array Properties */
+  bool GetMeshDataArrayPropertiesMap(MeshLayerDataPropertiesMap &outmap);
+
+  /** Setter for Active Layer Data Array Property Id */
+  void SetActiveMeshLayerDataPropertyId(int id);
 
   /** Move the layer up in the list */
   void MoveLayerUp();
@@ -143,10 +144,6 @@ protected:
   SmartPtr<AbstractDisplayModeModel> m_DisplayModeModel;
   bool GetDisplayModeValueAndRange(DisplayMode &value, DisplayModeDomain *domain);
   void SetDisplayModeValue(DisplayMode value);
-
-  SmartPtr<AbstractMeshDataArrayNameModel> m_MeshDataArrayNameModel;
-  bool GetMeshDataArrayNameValueAndRange(int &value, MeshDataArrayNameDomain *domain);
-  void SetMeshDataArrayNameValue(int value);
 
   SmartPtr<AbstractMeshVectorModeModel> m_MeshVectorModeModel;
 	bool GetMeshVectorModeValueAndRange(vtkIdType &value, MeshVectorModeDomain *domain);
