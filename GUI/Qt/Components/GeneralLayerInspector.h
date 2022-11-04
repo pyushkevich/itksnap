@@ -38,6 +38,9 @@ private:
 
   LayerGeneralPropertiesModel *m_Model;
 
+  // storing the id to detect mesh layer change
+  unsigned long m_CurrentlyActiveMeshLayerId;
+
 	static std::map<int, const char*> m_MeshDataTypeToIcon;
 };
 

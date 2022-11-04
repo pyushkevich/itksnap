@@ -363,6 +363,16 @@ LabelMeshDisplayMappingPolicy::
 }
 
 void
+LabelMeshDisplayMappingPolicy
+::SetColorLabelTable(ColorLabelTable *labelTable)
+{
+  m_ColorLabelTable = labelTable;
+
+  Rebroadcaster::Rebroadcast(labelTable, SegmentationLabelPropertyChangeEvent(),
+                             m_Wrapper, WrapperDisplayMappingChangeEvent());
+}
+
+void
 LabelMeshDisplayMappingPolicy::
 UpdateAppearance(ActorPool *pool, unsigned int)
 {
@@ -377,6 +387,7 @@ UpdateAppearance(ActorPool *pool, unsigned int)
     auto actor = it->second;
     const ColorLabel &cl = m_ColorLabelTable->GetColorLabel(label);
 
+    actor->SetVisibility(cl.IsVisibleIn3D());
     auto prop = actor->GetProperty();
     prop->SetColor(cl.GetRGBAsDoubleVector().data_block());
     prop->SetOpacity(cl.GetAlpha() / 255.0);

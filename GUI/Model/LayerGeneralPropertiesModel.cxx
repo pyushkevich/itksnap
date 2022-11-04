@@ -68,11 +68,6 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         &Self::GetCrntTimePointTagListValue,
         &Self::SetCrntTimePointTagListValue);
 
-  m_MeshDataArrayNameModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetMeshDataArrayNameValueAndRange,
-        &Self::SetMeshDataArrayNameValue);
-
   m_MeshVectorModeModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMeshVectorModeValueAndRange,
@@ -551,29 +546,39 @@ AbstractLayerTableRowModel *LayerGeneralPropertiesModel::GetSelectedLayerTableRo
 }
 
 bool
-LayerGeneralPropertiesModel::
-GetMeshDataArrayNameValueAndRange(int &, MeshDataArrayNameDomain *)
+LayerGeneralPropertiesModel
+::GetMeshDataArrayPropertiesMap(MeshLayerDataPropertiesMap &outmap)
 {
-	// This method is only a placeholder now
-	// Actual domain-value building has moved to UI now with the Icon Logic
+  if (!m_Layer)
+    return false;
+
+  auto mesh = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
+
+  if (!mesh)
+    return false;
+
+  outmap = mesh->GetCombinedDataProperty();
   return true;
 }
 
 void
 LayerGeneralPropertiesModel::
-SetMeshDataArrayNameValue(int value)
+SetActiveMeshLayerDataPropertyId(int id)
 {
+  if (!m_Layer)
+    return;
+
   // The current layer has to be a mesh layer
   StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
   if (!mesh_layer)
     return;
 
-  mesh_layer->SetActiveMeshLayerDataPropertyId(value);
+  mesh_layer->SetActiveMeshLayerDataPropertyId(id);
 
-	// ask UI to recheck the state of this model
-	// -- this is for the activation of the vector mode layout
-	this->InvokeEvent(StateMachineChangeEvent());
-	// Trigger vector mode to update domain
+  // ask UI to recheck the state of this model
+  // -- this is for the activation of the vector mode layout
+  this->InvokeEvent(StateMachineChangeEvent());
+  // Trigger vector mode to update domain
   this->GetMeshVectorModeModel()->InvokeEvent(DomainChangedEvent());
 }
 

@@ -2270,6 +2270,9 @@ void IRISApplication::OpenProject(
       layer_file_full = GetMovedFilePath(project_save_dir, project_dir, layer_file_full);
       }
 
+    if (!itksys::SystemTools::FileExists(layer_file_full.c_str()))
+      throw IRISException("The image file in Layer %d: \"%s\" does not exist",i ,layer_file_full.c_str());
+
     // Load the IO hints for the image from the project - but only if this
     // folder is actually present (otherwise some projects from before 2016
     // will not load hints)
