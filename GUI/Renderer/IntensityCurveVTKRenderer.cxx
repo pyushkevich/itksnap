@@ -343,7 +343,8 @@ public:
     return true;
   }
 
-  void TransformToViewport(const double inX, const double inY, double &outX, double &outY)
+  // Transform input x,y in plot unit to viewport coordinates
+  void inline TransformToViewport(const double inX, const double inY, double &outX, double &outY)
   {
     auto vpSize = m_Model->GetViewportReporter()->GetViewportSize();
     auto xRange = m_Model->GetNativeImageRangeForCurve();
