@@ -356,7 +356,7 @@ public:
 
   virtual vtkIdType FindPointWithTolerance(double* pos)
   {
-    const double baseRadius = 15.0; // in viewport space
+    const double baseRadius = 20.0; // in viewport space
     const double tolerance = baseRadius * 1.3;
 
     double vpPos[2];
