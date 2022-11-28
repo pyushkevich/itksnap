@@ -126,15 +126,35 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
 
   std::vector<std::string> fn_list { fn };
 
-  auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
-  if (fmt != GuidedMeshIO::FORMAT_COUNT)
-    {
-      auto model = m_Model->GetMeshImportModel();
-      model->Load(fn_list, fmt);
-    }
+  QMessageBox msgBox;
+  msgBox.setText("Load file as a new mesh layer?");
+  msgBox.setInformativeText("The mesh will be loaded to the current time point in the new layer.");
+  msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+  msgBox.setDefaultButton(QMessageBox::Ok);
+  int ret = msgBox.exec();
 
-  // close the dialog
-  this->accept();
+  switch (ret)
+    {
+    case QMessageBox::Ok:
+      {
+      auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
+      if (fmt != GuidedMeshIO::FORMAT_COUNT)
+        {
+          auto model = m_Model->GetMeshImportModel();
+          model->Load(fn_list, fmt);
+        }
+
+      // close the dialog
+      this->accept();
+      return;
+      }
+    case QMessageBox::Cancel:
+    default:
+      {
+      this->reject();
+      return;
+      }
+    }
 }
 
 void DropActionDialog::on_btnLoadMeshToTP_clicked()
