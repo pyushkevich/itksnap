@@ -606,7 +606,7 @@ IntensityCurveVTKRenderer
 
 
     // While we are here, we need to set the bounds on the control point plot
-    m_Controls->SetUserBounds(x0, x1, 0.0, 1.0);
+    m_Controls->SetUserBounds(x0 - margin, x1 + margin, -0.1, 1.1);
 
     // And also make sure the selected point is correctly set
     int cpoint;
