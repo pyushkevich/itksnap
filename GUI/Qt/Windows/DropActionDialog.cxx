@@ -165,14 +165,42 @@ void DropActionDialog::on_btnLoadMeshToTP_clicked()
   std::string ext = fn.substr(fn.find_last_of("."));
 
   auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
-  if (fmt != GuidedMeshIO::FORMAT_COUNT)
+  if (fmt == GuidedMeshIO::FORMAT_COUNT)
     {
-      auto model = m_Model->GetMeshImportModel();
-      model->LoadToTP(fn.c_str(), fmt);
+    QMessageBox msgBox;
+    std::ostringstream oss;
+    oss << "Unsupported mesh file type (" << ext << ")!";
+    msgBox.setText(oss.str().c_str());
+    msgBox.exec();
+    this->reject();
+    return;
     }
 
-  // close the dialog
-  this->accept();
+  QMessageBox msgBox;
+  std::ostringstream oss;
+  auto tp = m_Model->GetDriver()->GetCursorTimePoint() + 1; // always display 1-based tp index
+  oss << "Load mesh file to the current time point (" << tp << ")?";
+  msgBox.setText(oss.str().c_str());
+  msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+  msgBox.setDefaultButton(QMessageBox::Ok);
+  int ret = msgBox.exec();
+
+  switch (ret)
+    {
+    case QMessageBox::Ok:
+      {
+      auto model = m_Model->GetMeshImportModel();
+      model->LoadToTP(fn.c_str(), fmt);
+      this->accept();
+      return;
+      }
+    case QMessageBox::Cancel:
+    default:
+      {
+      this->reject();
+      return;
+      }
+    }
 }
 
 void DropActionDialog::on_btnLoadSegmentation_clicked()
