@@ -156,6 +156,7 @@ bool MeshImportFileSelectionPage::validatePage()
     {
     // Must create new layer. Only remind user about current TP
     QMessageBox *boxNewLayer = MeshImportWizard::CreateLoadToNewLayerMessageBox(this, displayTP);
+    boxNewLayer->setObjectName("msgboxNewLayer");
     int ret = boxNewLayer->exec();
     delete boxNewLayer;
 

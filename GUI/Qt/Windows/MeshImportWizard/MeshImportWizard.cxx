@@ -2,6 +2,7 @@
 #include "ui_MeshImportWizard.h"
 #include "MeshImportFileSelectionPage.h"
 #include "MeshImportModel.h"
+#include <QAbstractButton>
 
 MeshImportWizard::MeshImportWizard(QWidget *parent) :
   QWizard(parent),
@@ -45,6 +46,9 @@ MeshImportWizard
   msgBox->setInformativeText(oss.str().c_str());
   msgBox->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
   msgBox->setDefaultButton(QMessageBox::Ok);
+  // for testing purpose
+  msgBox->button(QMessageBox::Ok)->setObjectName("btnOK");
+  msgBox->button(QMessageBox::Cancel)->setObjectName("btnCancel");
   return msgBox;
 }
 
@@ -58,6 +62,9 @@ MeshImportWizard
   msgBox->setText(oss.str().c_str());
   msgBox->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
   msgBox->setDefaultButton(QMessageBox::Ok);
+  // for testing purpose
+  msgBox->button(QMessageBox::Ok)->setObjectName("btnOK");
+  msgBox->button(QMessageBox::Cancel)->setObjectName("btnCancel");
   return msgBox;
 }
 
