@@ -39,11 +39,16 @@ public:
   /** Get File format enum by format name (description) */
   FileFormat GetFileFormatByName(const std::string &formatName) const;
 
-  /** Load file using a GuidedMeshIO */
-  void Load(std::vector<std::string> &fn_list, FileFormat format);
+  /** Load file using a GuidedMeshIO
+   *  LoadFromTP Specify from which tp to start loading */
+  void Load(std::vector<std::string> &fn_list, FileFormat format,
+            unsigned int loadFromTP = 1);
 
   /** Load file using a GuidedMeshIO */
   void LoadToTP(const char *filename, FileFormat format);
+
+  /** If current active mesh layer is a generic mesh */
+  bool IsActiveMeshStandalone();
 
   irisGetSetMacro(Mode, Mode)
 
