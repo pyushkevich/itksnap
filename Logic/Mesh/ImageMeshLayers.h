@@ -42,7 +42,7 @@ public:
 
   /** Add a layer by reading a list of files */
   void AddLayerFromFiles(std::vector<std::string> &fn_list, FileFormat format,
-                         bool startFromFirstTP = true);
+                         unsigned int startFromTP = 1);
 
   /** Load mesh to an existing layer
    *  Location identified by:

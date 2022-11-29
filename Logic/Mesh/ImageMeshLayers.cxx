@@ -179,7 +179,7 @@ ImageMeshLayers
 void
 ImageMeshLayers
 ::AddLayerFromFiles(std::vector<std::string> &fn_list, FileFormat format,
-                    bool startFromFirstTP)
+                    unsigned int startFromTP)
 {
   GuidedMeshIO IO;
 
@@ -189,7 +189,7 @@ ImageMeshLayers
 
   auto app = m_ImageData->GetParent();
 
-  size_t tp = startFromFirstTP ? 0 : app->GetCursorTimePoint();
+  size_t tp = startFromTP - 1; // tp storage is 0-based
   size_t nt = nt = app->GetNumberOfTimePoints();
 
   // We pick the first filename as placeholder of the wrapper filename

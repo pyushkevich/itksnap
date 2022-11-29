@@ -18,6 +18,7 @@
 #include <QtWidgetActivator.h>
 #include "LatentITKEventNotifier.h"
 #include "AllPurposeProgressAccumulator.h"
+#include "MeshImportWizard.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -76,22 +77,6 @@ DropActionDialog
 void DropActionDialog::InitialLoad(QString name)
 {
   LoadMainImage(name);
-
-  // Todo load mesh without main image loaded
-  // Create a blank image
-  /*
-  // Get file extension
-  std::string fn = ui->outFilename->text().toStdString();
-  // Get the file extension with the dot. e.g. ".vtk"
-  std::string ext = fn.substr(fn.find_last_of("."));
-
-  // Check if it's a supported mesh file
-  auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
-  if (fmt != GuidedMeshIO::FORMAT_COUNT)
-    LoadMesh(name); // Load standalone mesh layer
-  else
-    LoadMainImage(name); // Load as main image
-   */
 }
 
 void DropActionDialog::LoadMainImage(QString name)
@@ -123,15 +108,13 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
   std::string fn = ui->outFilename->text().toStdString();
   // Get the file extension with the dot. e.g. ".vtk"
   std::string ext = fn.substr(fn.find_last_of("."));
-
   std::vector<std::string> fn_list { fn };
 
-  QMessageBox msgBox;
-  msgBox.setText("Load file as a new mesh layer?");
-  msgBox.setInformativeText("The mesh will be loaded to the current time point in the new layer.");
-  msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-  msgBox.setDefaultButton(QMessageBox::Ok);
-  int ret = msgBox.exec();
+  // Create a message box reminding user
+  unsigned int displayTP = m_Model->GetDriver()->GetCursorTimePoint() + 1; // always display 1-based time point
+  QMessageBox *msgBox = MeshImportWizard::CreateLoadToNewLayerMessageBox(this, displayTP);
+  int ret = msgBox->exec();
+  delete msgBox;
 
   switch (ret)
     {
@@ -143,8 +126,6 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
           auto model = m_Model->GetMeshImportModel();
           model->Load(fn_list, fmt);
         }
-
-      // close the dialog
       this->accept();
       return;
       }
@@ -176,14 +157,10 @@ void DropActionDialog::on_btnLoadMeshToTP_clicked()
     return;
     }
 
-  QMessageBox msgBox;
-  std::ostringstream oss;
-  auto tp = m_Model->GetDriver()->GetCursorTimePoint() + 1; // always display 1-based tp index
-  oss << "Load mesh file to the current time point (" << tp << ")?";
-  msgBox.setText(oss.str().c_str());
-  msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-  msgBox.setDefaultButton(QMessageBox::Ok);
-  int ret = msgBox.exec();
+  unsigned int displayTP = m_Model->GetDriver()->GetCursorTimePoint() + 1; // always display 1-based tp index
+  QMessageBox *box = MeshImportWizard::CreateLoadToTimePointMessageBox(this, displayTP);
+  int ret = box->exec();
+  delete box;
 
   switch (ret)
     {
