@@ -75,9 +75,9 @@ void sleep(int n_sec)
 
 int usage(int rc) 
 {
-  cout << "itksnap_ws : ITK-SNAP Workspace Tool" << endl;
+  cout << "itksnap-wt : ITK-SNAP Workspace Tool" << endl;
   cout << "Usage: " << endl;
-  cout << "  itksnap_ws [commands]" << endl;
+  cout << "  itksnap-wt [commands]" << endl;
   cout << "I/O commands: " << endl;
   cout << "  -i <workspace>                    : Read workspace file" << endl;
   cout << "  -o <workspace>                    : Write workspace file (without touching external images)" << endl;

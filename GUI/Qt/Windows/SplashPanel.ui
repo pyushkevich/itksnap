@@ -109,7 +109,9 @@ color:rgb(109, 109, 109);</string>
      <property name="text">
       <string>Copyright (C) 1998-2022
 Paul A. Yushkevich 
-Guido Gerig</string>
+Guido Gerig 
+Alison Pouch 
+Jilei Hao</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -138,7 +140,7 @@ color:rgb(109, 109, 109);</string>
      <property name="text">
       <string>Supported by grants R01 EB014346, R01 EB017255, R03 EB008200, and PO 467-MZ-202446-1 from the 
 US National Insitutes of Health
- and a grant from the Chen-Zuckerberg Initiative</string>
+ and grant CZI EOSS2 2020-219012 from the Chan-Zuckerberg Initiative</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
