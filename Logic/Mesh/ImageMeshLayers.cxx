@@ -363,6 +363,33 @@ ImageMeshLayers::IsActiveMeshLayerDirty()
   return false;
 }
 
+unsigned long
+ImageMeshLayers
+::GetActiveMeshMTime()
+{
+  unsigned long ret = 0;
+
+  if (!m_Layers.count(m_ActiveLayerId))
+    return ret;
+
+  auto app = m_ImageData->GetParent();
+  MeshWrapperBase *activeMesh = m_Layers[m_ActiveLayerId];
+  auto tp = app->GetCursorTimePoint();
+
+  if (m_IsSNAP)
+    {
+    auto lsMesh = static_cast<LevelSetMeshWrapper*>(activeMesh);
+    ret = lsMesh->GetAssemblyMTime(tp);
+    }
+  else
+    {
+    auto segMesh = static_cast<SegmentationMeshWrapper*>(activeMesh);
+    ret = segMesh->GetAssemblyMTime(tp);
+    }
+
+  return ret;
+}
+
 bool
 ImageMeshLayers::HasMeshForImage(unsigned long image_id) const
 {

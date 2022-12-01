@@ -63,7 +63,20 @@ bool
 LevelSetMeshAssembly
 ::IsAssemblyDirty() const
 {
-  return this->GetMTime() < m_Image->GetMTime();
+  bool ret = this->GetMTime() < m_Image->GetMTime();
+
+  if (m_MeshOptions && m_MeshOptions->GetMTime() >= this->GetMTime())
+    ret = true;
+
+  return ret;
+}
+
+void
+LevelSetMeshAssembly
+::SetMeshOptions(const MeshOptions *options)
+{
+  m_MeshOptions = options;
+  m_Pipeline->SetMeshOptions(options);
 }
 
 
@@ -107,6 +120,21 @@ LevelSetMeshWrapper
 
   return false;
 }
+
+unsigned long
+LevelSetMeshWrapper
+::GetAssemblyMTime(unsigned int tp)
+{
+  if (m_MeshAssemblyMap.count(tp))
+    {
+    auto lsAssembly = static_cast<LevelSetMeshAssembly*>(m_MeshAssemblyMap[tp].GetPointer());
+    if (lsAssembly)
+      return lsAssembly->GetMTime();
+    }
+
+  return 0;
+}
+
 
 void
 LevelSetMeshWrapper
