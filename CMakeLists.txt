@@ -1068,8 +1068,43 @@ ENDIF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Stud
 # ITK Libraries
 SET(SNAP_ITK_LIBS ${ITK_LIBRARIES})
 
+# VTK libs without QT
+SET(SNAP_VTK_NONQT_LIBS
+  VTK::ChartsCore
+  VTK::CommonComputationalGeometry
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::CommonMath
+  VTK::CommonTransforms
+  VTK::FiltersCore
+  VTK::FiltersGeneral
+  VTK::FiltersGeometry
+  VTK::FiltersSources
+  VTK::IOExport
+  VTK::IOGeometry
+  VTK::IOImage
+  VTK::IOLegacy
+  VTK::IOPLY
+  VTK::ImagingCore
+  VTK::ImagingGeneral
+  VTK::InteractionStyle
+  VTK::InteractionWidgets
+  VTK::RenderingAnnotation
+  VTK::RenderingContext2D
+  VTK::RenderingContextOpenGL2
+  VTK::RenderingCore
+  VTK::RenderingLOD
+  VTK::RenderingOpenGL2
+  VTK::RenderingUI
+  VTK::RenderingVolume
+  VTK::RenderingVolumeOpenGL2
+  VTK::RenderingGL2PSOpenGL2
+  VTK::ViewsContext2D
+)
+
 # Core VTK libraries
-SET(SNAP_VTK_LIBS ${VTK_LIBRARIES})
+SET(SNAP_VTK_LIBS ${SNAP_VTK_NONQT_LIBS} VTK::GUISupportQt)
 
 # Libraries provided by the submodules
 SET(SNAP_SUBMODULE_LIBS
@@ -1096,7 +1131,7 @@ SET(SNAP_EXTERNAL_LIBS
 SET(SNAP_EXTERNAL_LIBS_LITE
   ${SNAP_SUBMODULE_LIBS}
   ${SNAP_ITK_LIBS}
-  ${SNAP_VTK_LIBS} 
+  ${SNAP_VTK_NONQT_LIBS}
   ${CURL_LIBRARIES}
   ${SYSTEM_LIBS})
 
