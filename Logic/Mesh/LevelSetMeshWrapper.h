@@ -19,8 +19,7 @@ public:
 
   void UpdateMeshAssembly(LabelType id, std::mutex *mutex = nullptr);
 
-  void SetMeshOptions(const MeshOptions *options)
-  { m_Pipeline->SetMeshOptions(options); }
+  void SetMeshOptions(const MeshOptions *options);
 
   void SetImage(InputImageType *image);
 
@@ -29,6 +28,8 @@ public:
 protected:
   LevelSetMeshAssembly();
   virtual ~LevelSetMeshAssembly();
+
+  const MeshOptions *m_MeshOptions;
 
   SmartPtr<LevelSetMeshPipeline> m_Pipeline;
 
@@ -67,6 +68,8 @@ public:
   /** Build the layer from registry */
   virtual void LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir) override;
 
+  /** Get Pipeline Modified Time */
+  unsigned long GetAssemblyMTime(unsigned int tp);
   //  End of virtual methods implementation
   //-----------------------------------------------------
 

@@ -61,7 +61,6 @@ UpdateMeshAssembly(itk::Command *progress, ImagePointer img, MeshOptions *option
   this->Modified();
 }
 
-
 //--------------------------------------------
 //  SegmentationMeshWrapper Implementation
 //--------------------------------------------
@@ -111,8 +110,9 @@ SegmentationMeshWrapper::IsMeshDirty(unsigned int timepoint)
   if (assembly)
     {
     auto pipeMTime = assembly->GetMTime();
+    auto optionMTime = m_MeshOptions->GetMTime();
 
-    if (imgMTime > pipeMTime)
+    if (imgMTime > pipeMTime || optionMTime >= pipeMTime)
       return true;
     }
   else
@@ -162,4 +162,15 @@ SegmentationMeshWrapper
 ::LoadFromRegistry(Registry &, std::string &, std::string &)
 {
 
+}
+
+unsigned long
+SegmentationMeshWrapper
+::GetAssemblyMTime(unsigned int tp)
+{
+  auto assembly = GetMeshAssembly(tp);
+  assert(assembly);
+
+  auto segAssembly = static_cast<SegmentationMeshAssembly*>(assembly);
+  return segAssembly->GetMTime();
 }

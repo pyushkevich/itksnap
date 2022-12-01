@@ -90,6 +90,9 @@ public:
    */
   int UpdateActiveMeshLayer(itk::Command *progressCmd);
 
+  /** Return the active layer Modified Time */
+  unsigned long GetActiveMeshMTime();
+
   /** Create a new segmentation mesh layer for a segmentation image
    *  and add it to the layer map
    */

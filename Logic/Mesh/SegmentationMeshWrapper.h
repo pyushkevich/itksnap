@@ -18,7 +18,6 @@ public:
   MultiLabelMeshPipeline *GetPipeline();
 
   void UpdateMeshAssembly(itk::Command *progress, ImagePointer img, MeshOptions *options);
-
 protected:
   SegmentationMeshAssembly();
   virtual ~SegmentationMeshAssembly();
@@ -69,6 +68,8 @@ public:
 
 	const char* GetNicknamePrefix() const
 	{ return m_NicknamePrefix; }
+
+  unsigned long GetAssemblyMTime(unsigned int tp);
 
 protected:
   SegmentationMeshWrapper();

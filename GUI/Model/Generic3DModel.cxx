@@ -85,14 +85,21 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
     return false;
 
   ToolbarMode3DType mode = m_ParentUI->GetGlobalState()->GetToolbarMode3D();
+  ImageMeshLayers *layer = m_Driver->IsSnakeModeActive() ?
+        m_Driver->GetSNAPImageData()->GetMeshLayers():
+        m_Driver->GetIRISImageData()->GetMeshLayers();
 
   switch(state)
     {
     case UIF_MESH_DIRTY:
       {
-      return m_Driver->IsSnakeModeActive() ?
-            m_Driver->GetSNAPImageData()->GetMeshLayers()->IsActiveMeshLayerDirty() :
-            m_Driver->GetIRISImageData()->GetMeshLayers()->IsActiveMeshLayerDirty();
+      bool ret = layer->IsActiveMeshLayerDirty();
+
+      // clearing time
+      if (this->m_ClearTime >= layer->GetActiveMeshMTime())
+        ret = true;
+
+      return ret;
       }
 
     case UIF_MESH_ACTION_PENDING:
@@ -378,8 +385,12 @@ void Generic3DModel::FlipAction()
 void Generic3DModel::ClearRenderingAction()
 {
   m_Renderer->ClearRendering();
-  unsigned int tp = m_Driver->GetSelectedSegmentationLayer()->GetTimePointIndex();
-  m_ClearTime = m_Driver->GetMeshManager()->GetBuildTime(tp);
+
+  ImageMeshLayers *layer = m_Driver->IsSnakeModeActive() ?
+        m_Driver->GetSNAPImageData()->GetMeshLayers():
+        m_Driver->GetIRISImageData()->GetMeshLayers();
+
+  m_ClearTime = layer->GetActiveMeshMTime();
   InvokeEvent(ModelUpdateEvent());
 }
 
