@@ -91,11 +91,11 @@ ENDIF()
 SET(SNAP_VERSION_MAJOR 4)
 SET(SNAP_VERSION_MINOR 0)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "-alpha.5")
+SET(SNAP_VERSION_QUALIFIER "-alpha.6")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20221027")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "October 27, 2022")
+SET(SNAP_VERSION_RELEASE_DATE "20221202")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "December 2, 2022")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -1068,8 +1068,43 @@ ENDIF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Stud
 # ITK Libraries
 SET(SNAP_ITK_LIBS ${ITK_LIBRARIES})
 
+# VTK libs without QT
+SET(SNAP_VTK_NONQT_LIBS
+  VTK::ChartsCore
+  VTK::CommonComputationalGeometry
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::CommonMath
+  VTK::CommonTransforms
+  VTK::FiltersCore
+  VTK::FiltersGeneral
+  VTK::FiltersGeometry
+  VTK::FiltersSources
+  VTK::IOExport
+  VTK::IOGeometry
+  VTK::IOImage
+  VTK::IOLegacy
+  VTK::IOPLY
+  VTK::ImagingCore
+  VTK::ImagingGeneral
+  VTK::InteractionStyle
+  VTK::InteractionWidgets
+  VTK::RenderingAnnotation
+  VTK::RenderingContext2D
+  VTK::RenderingContextOpenGL2
+  VTK::RenderingCore
+  VTK::RenderingLOD
+  VTK::RenderingOpenGL2
+  VTK::RenderingUI
+  VTK::RenderingVolume
+  VTK::RenderingVolumeOpenGL2
+  VTK::RenderingGL2PSOpenGL2
+  VTK::ViewsContext2D
+)
+
 # Core VTK libraries
-SET(SNAP_VTK_LIBS ${VTK_LIBRARIES})
+SET(SNAP_VTK_LIBS ${SNAP_VTK_NONQT_LIBS} VTK::GUISupportQt)
 
 # Libraries provided by the submodules
 SET(SNAP_SUBMODULE_LIBS
@@ -1096,7 +1131,7 @@ SET(SNAP_EXTERNAL_LIBS
 SET(SNAP_EXTERNAL_LIBS_LITE
   ${SNAP_SUBMODULE_LIBS}
   ${SNAP_ITK_LIBS}
-  ${SNAP_VTK_LIBS} 
+  ${SNAP_VTK_NONQT_LIBS}
   ${CURL_LIBRARIES}
   ${SYSTEM_LIBS})
 

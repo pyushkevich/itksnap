@@ -46,13 +46,13 @@ void LayoutReminderDialog::ConditionalExec(enum ExecScenarios sce)
 
   if (dsp->GetFlagLayoutPatientRightShownLeft())
     {
-      msg_axial.append("<b>neurological convention</b>");
-      msg_axial.append(":&nbsp;the patient’s left side is shown on the right of the screen.&nbsp;This may not be optimal for non-brain images.");
+      msg_axial.append("<b>radiological convention</b>");
+      msg_axial.append(":&nbsp;the patient’s left side is shown on the right of the screen.&nbsp;");
     }
   else
     {
-      msg_axial.append("<b>radiological convention</b>");
-      msg_axial.append(":&nbsp;the patient’s left side is shown on the left of the screen.&nbsp;This may not be optimal for brain images.");
+      msg_axial.append("<b>neurological convention</b>");
+      msg_axial.append(":&nbsp;the patient’s left side is shown on the left of the screen.&nbsp;");
     }
   msg_axial.append("</html>");
 

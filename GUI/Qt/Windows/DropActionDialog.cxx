@@ -18,6 +18,7 @@
 #include <QtWidgetActivator.h>
 #include "LatentITKEventNotifier.h"
 #include "AllPurposeProgressAccumulator.h"
+#include "MeshImportWizard.h"
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -76,22 +77,6 @@ DropActionDialog
 void DropActionDialog::InitialLoad(QString name)
 {
   LoadMainImage(name);
-
-  // Todo load mesh without main image loaded
-  // Create a blank image
-  /*
-  // Get file extension
-  std::string fn = ui->outFilename->text().toStdString();
-  // Get the file extension with the dot. e.g. ".vtk"
-  std::string ext = fn.substr(fn.find_last_of("."));
-
-  // Check if it's a supported mesh file
-  auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
-  if (fmt != GuidedMeshIO::FORMAT_COUNT)
-    LoadMesh(name); // Load standalone mesh layer
-  else
-    LoadMainImage(name); // Load as main image
-   */
 }
 
 void DropActionDialog::LoadMainImage(QString name)
@@ -123,18 +108,34 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
   std::string fn = ui->outFilename->text().toStdString();
   // Get the file extension with the dot. e.g. ".vtk"
   std::string ext = fn.substr(fn.find_last_of("."));
-
   std::vector<std::string> fn_list { fn };
 
-  auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
-  if (fmt != GuidedMeshIO::FORMAT_COUNT)
-    {
-      auto model = m_Model->GetMeshImportModel();
-      model->Load(fn_list, fmt);
-    }
+  // Create a message box reminding user
+  unsigned int displayTP = m_Model->GetDriver()->GetCursorTimePoint() + 1; // always display 1-based time point
+  QMessageBox *msgBox = MeshImportWizard::CreateLoadToNewLayerMessageBox(this, displayTP);
+  int ret = msgBox->exec();
+  delete msgBox;
 
-  // close the dialog
-  this->accept();
+  switch (ret)
+    {
+    case QMessageBox::Ok:
+      {
+      auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
+      if (fmt != GuidedMeshIO::FORMAT_COUNT)
+        {
+          auto model = m_Model->GetMeshImportModel();
+          model->Load(fn_list, fmt, displayTP);
+        }
+      this->accept();
+      return;
+      }
+    case QMessageBox::Cancel:
+    default:
+      {
+      this->reject();
+      return;
+      }
+    }
 }
 
 void DropActionDialog::on_btnLoadMeshToTP_clicked()
@@ -145,14 +146,38 @@ void DropActionDialog::on_btnLoadMeshToTP_clicked()
   std::string ext = fn.substr(fn.find_last_of("."));
 
   auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
-  if (fmt != GuidedMeshIO::FORMAT_COUNT)
+  if (fmt == GuidedMeshIO::FORMAT_COUNT)
     {
-      auto model = m_Model->GetMeshImportModel();
-      model->LoadToTP(fn.c_str(), fmt);
+    QMessageBox msgBox;
+    std::ostringstream oss;
+    oss << "Unsupported mesh file type (" << ext << ")!";
+    msgBox.setText(oss.str().c_str());
+    msgBox.exec();
+    this->reject();
+    return;
     }
 
-  // close the dialog
-  this->accept();
+  unsigned int displayTP = m_Model->GetDriver()->GetCursorTimePoint() + 1; // always display 1-based tp index
+  QMessageBox *box = MeshImportWizard::CreateLoadToTimePointMessageBox(this, displayTP);
+  int ret = box->exec();
+  delete box;
+
+  switch (ret)
+    {
+    case QMessageBox::Ok:
+      {
+      auto model = m_Model->GetMeshImportModel();
+      model->LoadToTP(fn.c_str(), fmt);
+      this->accept();
+      return;
+      }
+    case QMessageBox::Cancel:
+    default:
+      {
+      this->reject();
+      return;
+      }
+    }
 }
 
 void DropActionDialog::on_btnLoadSegmentation_clicked()

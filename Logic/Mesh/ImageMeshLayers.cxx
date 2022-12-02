@@ -179,7 +179,7 @@ ImageMeshLayers
 void
 ImageMeshLayers
 ::AddLayerFromFiles(std::vector<std::string> &fn_list, FileFormat format,
-                    bool startFromFirstTP)
+                    unsigned int startFromTP)
 {
   GuidedMeshIO IO;
 
@@ -189,7 +189,7 @@ ImageMeshLayers
 
   auto app = m_ImageData->GetParent();
 
-  size_t tp = startFromFirstTP ? 0 : app->GetCursorTimePoint();
+  size_t tp = startFromTP - 1; // tp storage is 0-based
   size_t nt = nt = app->GetNumberOfTimePoints();
 
   // We pick the first filename as placeholder of the wrapper filename
@@ -361,6 +361,33 @@ ImageMeshLayers::IsActiveMeshLayerDirty()
     }
 
   return false;
+}
+
+unsigned long
+ImageMeshLayers
+::GetActiveMeshMTime()
+{
+  unsigned long ret = 0;
+
+  if (!m_Layers.count(m_ActiveLayerId))
+    return ret;
+
+  auto app = m_ImageData->GetParent();
+  MeshWrapperBase *activeMesh = m_Layers[m_ActiveLayerId];
+  auto tp = app->GetCursorTimePoint();
+
+  if (m_IsSNAP)
+    {
+    auto lsMesh = static_cast<LevelSetMeshWrapper*>(activeMesh);
+    ret = lsMesh->GetAssemblyMTime(tp);
+    }
+  else
+    {
+    auto segMesh = static_cast<SegmentationMeshWrapper*>(activeMesh);
+    ret = segMesh->GetAssemblyMTime(tp);
+    }
+
+  return ret;
 }
 
 bool

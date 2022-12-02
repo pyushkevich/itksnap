@@ -4,9 +4,31 @@ ITK-SNAP Release Notes - Version 4.0
 ----
 
 ### New features
-
-
-### Bug Fixes
+- New VTK-based slice rendering logic
+- New build for Apple silicon
+- Support for 4D images
+  - UI support for the 4th dimension
+  - New Time Point Properties for 4D images
+  - New 4D playing feature
+- Support for Volume Rendering in the 3D window
+- Support for loading and displaying external meshes into workspace
+  - Now external VTK, VTP polydata meshes can be loaded into workspace
+  - Support for mesh series loading into a 4D workspace
+  - Color rendering for point and cell data
+  - Adjustable contrast and color map for each data array
+  - Rendering separate components or magnitude for vector arrays
+- Segmentation Meshes now have dedicated layer row in the Layer Inspector
+- Support for following image formats
+  - Echo Cartesian Dicom
+  - 4D CTA Dicom Series
+  - MINC
+- Added Color Legend in the 3D window
+- Redesigned Slice View Layout Page in the Preference Dialog
+- Now mesh scene can be exported in STL format
+- Added orientation code in mesh export for 3D Slicer reading. (More info: https://www.slicer.org/wiki/Documentation/Nightly/Developers/Tutorials/MigrationGuide/Slicer#Slicer_5.0:_Models_are_saved_in_LPS_coordinate_system_by_default)
+- New Multi Label Smoothing Tool
+- New Dark Mode Appearance
+- Updated library references to ITK 5, VTK 9, and Qt 6
 
 
 

@@ -50,6 +50,11 @@ function openMesh(name)
     //=== Pressing the 'finish' button
     engine.findChild(dialog, "qt_wizard_finish").click();
     engine.sleep(1000);
+
+    //=== Pressing the 'OK' button
+    msgbox = engine.findChild(dialog, "msgboxNewLayer");
+    engine.findChild(msgbox, "btnOK").click();
+    engine.sleep(1000);
 }
 
 function openWorkspace(name)

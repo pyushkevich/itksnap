@@ -73,13 +73,15 @@ MeshImportModel::GetFileFormatByName(const std::string &formatName) const
 }
 
 void
-MeshImportModel::Load(std::vector<std::string> &fn_list, FileFormat format)
+MeshImportModel::Load(std::vector<std::string> &fn_list, FileFormat format,
+                      unsigned int loadFromTP)
 {
   // if failed, check upstream file loading logic
   assert(fn_list.size() > 0);
 
   // Load into the current time point
   IRISApplication *app = m_ParentModel->GetDriver();
+  assert(loadFromTP <= app->GetNumberOfTimePoints());
 
   // Main should be loaded
   if (!app->IsMainImageLoaded())
@@ -88,11 +90,7 @@ MeshImportModel::Load(std::vector<std::string> &fn_list, FileFormat format)
   // Get image mesh layers
   ImageMeshLayers *mesh_layers = app->GetIRISImageData()->GetMeshLayers();
 
-  // We only load series of mesh from the first time point
-  // Single mesh should be loaded to current time point
-  bool LoadFromFirstTP = m_Mode == Mode::SERIES ? true : false;
-
-  mesh_layers->AddLayerFromFiles(fn_list, format, LoadFromFirstTP);
+  mesh_layers->AddLayerFromFiles(fn_list, format, loadFromTP);
 }
 
 void
@@ -115,4 +113,14 @@ MeshImportModel::LoadToTP(const char *filename, FileFormat format)
 
   // Execute loading
   layers->LoadFileToLayer(filename, format, active_layer_id, tp, mesh_count);
+}
+
+bool
+MeshImportModel
+::IsActiveMeshStandalone()
+{
+  auto meshLayers = m_ParentModel->GetDriver()->GetIRISImageData()->GetMeshLayers();
+  auto activeMesh = meshLayers->GetLayer(meshLayers->GetActiveLayerId());
+  auto standaloneMesh = dynamic_cast<StandaloneMeshWrapper*>(activeMesh.GetPointer());
+  return standaloneMesh != nullptr;
 }

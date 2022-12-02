@@ -2,6 +2,7 @@
 #define MESHIMPORTWIZARD_H
 
 #include <QWizard>
+#include <QMessageBox>
 
 class MeshImportModel;
 
@@ -18,6 +19,20 @@ public:
   ~MeshImportWizard();
 
   void SetModel(MeshImportModel *model);
+
+  /** Create a message box reminding user about loading mesh
+   *  to the current time point of a new mesh layer
+   *  ***Caller should delete the returned object after use! ***
+   */
+  static QMessageBox *
+  CreateLoadToNewLayerMessageBox(QWidget *parent, unsigned int displayTP);
+
+  /** Create a message box reminding user about loading mesh
+   *  to the current time point of a new mesh layer
+   *  ***Caller should delete the returned object after use! ***
+   */
+  static QMessageBox *
+  CreateLoadToTimePointMessageBox(QWidget *parent, unsigned int displayTP);
 
 protected:
   MeshImportModel *m_Model;

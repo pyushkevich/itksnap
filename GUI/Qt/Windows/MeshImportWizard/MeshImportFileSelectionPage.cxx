@@ -1,10 +1,14 @@
 #include "MeshImportFileSelectionPage.h"
 #include "ui_MeshImportFileSelectionPage.h"
 #include "MeshImportModel.h"
+#include "MeshImportWizard.h"
 #include "SNAPQtCommon.h"
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
+#include "GenericImageData.h"
 #include "qfileinfo.h"
+#include <QMessageBox>
+
 
 MeshImportFileSelectionPage::MeshImportFileSelectionPage(QWidget *parent) :
   QWizardPage(parent),
@@ -127,23 +131,137 @@ bool MeshImportFileSelectionPage::validatePage()
     oss << "Number of selected files (" << filenames.length()
         << ") cannot exceed the number of time points (" << nt << ")!";
     ui->lblMessage->setText(GetErrorText(oss.str()));
+    ui->lblMessage->setWordWrap(true);
     return false;
     }
 
+  // Start loading
   std::vector<std::string> fn_list;
-
   for (auto fn : filenames)
-    {
     fn_list.push_back(fn.toStdString());
-    }
 
   std::sort(fn_list.begin(), fn_list.end());
-
-
+  const unsigned int crntTP = m_Model->GetParentModel()->GetDriver()->GetCursorTimePoint();
+  const unsigned int displayTP =  crntTP + 1;
   MeshImportModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
 
-  // Import the file
-  m_Model->Load(fn_list, fmt);
+  // First we handle two easy cases
+  if (nt == 1)
+    {
+    // For 3D workspace, direct load to new layer
+    m_Model->Load(fn_list, fmt);
+    return true;
+    }
 
-  return true;
+  if (fn_list.size() == 1 && !m_Model->IsActiveMeshStandalone())
+    {
+    // Must create new layer. Only remind user about current TP
+    QMessageBox *boxNewLayer = MeshImportWizard::CreateLoadToNewLayerMessageBox(this, displayTP);
+    boxNewLayer->setObjectName("msgboxNewLayer");
+    int ret = boxNewLayer->exec();
+    delete boxNewLayer;
+
+    switch (ret)
+      {
+      case QMessageBox::Ok:
+        {
+        m_Model->Load(fn_list, fmt);
+        return true;
+        }
+      case QMessageBox::Cancel:
+      default:
+        {
+        return false;
+        }
+      }
+    }
+
+  // For more complicated cases, use a message box
+  // -- Active Mesh Layer is a standalone mesh
+  QMessageBox *msgBox = new QMessageBox(this);
+  QPushButton *btnSeriesFromTP = nullptr;
+  QPushButton *btnSeriesFromBegin = nullptr;
+  QPushButton *btnNewLayer = nullptr;
+  QPushButton *btnLoadTP = nullptr;
+
+  if (fn_list.size() > 1)
+    {
+    msgBox->setText("How do you want the mesh series to be loaded?");
+    std::ostringstream oss;
+    oss << "From Current Time Point (" << displayTP << ")";
+    btnSeriesFromTP = msgBox->addButton(tr(oss.str().c_str()), QMessageBox::ActionRole);
+    btnSeriesFromBegin = msgBox->addButton(tr("From the Beginning"), QMessageBox::ActionRole);
+    }
+  else
+    {
+    msgBox->setText("How do you want the mesh to be loaded?");
+    std::ostringstream oss;
+    oss << "To Current Time Point (" << displayTP << ")";
+    btnLoadTP = msgBox->addButton(tr(oss.str().c_str()), QMessageBox::ActionRole);
+    btnNewLayer = msgBox->addButton(tr("To a New Layer"), QMessageBox::ActionRole);
+    }
+
+  msgBox->setStandardButtons(QMessageBox::Cancel);
+  msgBox->setDefaultButton(btnNewLayer);
+  int ret = msgBox->exec();
+  auto clicked = msgBox->clickedButton();
+  delete msgBox;
+
+  if (ret == QMessageBox::Cancel)
+    {
+    return false;
+    }
+
+  if (clicked == (QAbstractButton*)btnNewLayer)
+    {
+    QMessageBox *boxNewLayer = MeshImportWizard::CreateLoadToNewLayerMessageBox(this, displayTP);
+    int ret = boxNewLayer->exec();
+    delete boxNewLayer;
+
+    switch (ret)
+      {
+      case QMessageBox::Ok:
+        {
+        m_Model->Load(fn_list, fmt, displayTP);
+        return true;
+        }
+      case QMessageBox::Cancel:
+      default:
+        {
+        return false;
+        }
+      }
+    }
+  else if (clicked == (QAbstractButton*)btnLoadTP)
+    {
+    QMessageBox *boxLoadTP = MeshImportWizard::CreateLoadToTimePointMessageBox(this, displayTP);
+    int ret = boxLoadTP->exec();
+    delete boxLoadTP;
+
+    switch (ret)
+      {
+      case QMessageBox::Ok:
+        {
+        m_Model->LoadToTP(fn_list.front().c_str(), fmt);
+        return true;
+        }
+      case QMessageBox::Cancel:
+      default:
+        {
+        return false;
+        }
+      }
+    }
+  else if (clicked == (QAbstractButton*)btnSeriesFromBegin)
+    {
+    m_Model->Load(fn_list, fmt);
+    return true;
+    }
+  else if (clicked == (QAbstractButton*)btnSeriesFromTP)
+    {
+    m_Model->Load(fn_list, fmt, displayTP);
+    return true;
+    }
+
+  return false;
 }

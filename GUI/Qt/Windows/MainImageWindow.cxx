@@ -572,7 +572,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionOpenMain, m_Model, UIF_IRIS_MODE);
   activateOnFlag(ui->menuRecent_Images, m_Model, UIF_IRIS_MODE);
   activateOnFlag(ui->actionAddMesh, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionAddMeshSeries, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionAddMeshSeries, m_Model, UIF_IS_4D);
   activateOnFlag(ui->actionSaveMain, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveSpeed, m_Model, UIF_SNAKE_MODE);
   activateOnFlag(ui->actionSaveLevelSet, m_Model, UIF_LEVEL_SET_ACTIVE);

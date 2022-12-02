@@ -261,35 +261,6 @@ font-size: 12px;
        <number>0</number>
       </property>
       <item>
-       <widget class="QToolButton" name="btnTile">
-        <property name="minimumSize">
-         <size>
-          <width>140</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In &lt;span style=&quot; font-weight:600;&quot;&gt;tiled&lt;/span&gt; layout, multiple image layers are shown side by side.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>Tiled layout</string>
-        </property>
-        <property name="icon">
-         <iconset resource="../Resources/SNAPResources.qrc">
-          <normaloff>:/root/layout_tile_16.png</normaloff>:/root/layout_tile_16.png</iconset>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-        <property name="autoExclusive">
-         <bool>true</bool>
-        </property>
-        <property name="toolButtonStyle">
-         <enum>Qt::ToolButtonTextBesideIcon</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QToolButton" name="btnStack">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -312,6 +283,35 @@ font-size: 12px;
         <property name="icon">
          <iconset resource="../Resources/SNAPResources.qrc">
           <normaloff>:/root/layout_thumb_16.png</normaloff>:/root/layout_thumb_16.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="autoExclusive">
+         <bool>true</bool>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonTextBesideIcon</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnTile">
+        <property name="minimumSize">
+         <size>
+          <width>140</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In &lt;span style=&quot; font-weight:600;&quot;&gt;tiled&lt;/span&gt; layout, multiple image layers are shown side by side.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>Tiled layout</string>
+        </property>
+        <property name="icon">
+         <iconset resource="../Resources/SNAPResources.qrc">
+          <normaloff>:/root/layout_tile_16.png</normaloff>:/root/layout_tile_16.png</iconset>
         </property>
         <property name="checkable">
          <bool>true</bool>

@@ -343,20 +343,73 @@ public:
     return true;
   }
 
+  // Transform input x,y in plot unit to viewport coordinates
+  void inline TransformToViewport(const double inX, const double inY, double &outX, double &outY)
+  {
+    auto vpSize = m_Model->GetViewportReporter()->GetViewportSize();
+    auto xRange = m_Model->GetNativeImageRangeForCurve();
+
+    double vpXPerX = vpSize[0] / (xRange[1] - xRange[0]);
+    outX = (inX - xRange[0]) * vpXPerX;
+    outY = inY * vpSize[1];
+  }
+
+  virtual vtkIdType FindPointWithTolerance(double* pos)
+  {
+    const double baseRadius = 20.0; // in viewport space
+    const double tolerance = baseRadius * 1.3;
+
+    double vpPos[2];
+    this->TransformDataToScreen(pos[0], pos[1], vpPos[0], vpPos[1]);
+    this->ControlPointsTransform->TransformPoints(vpPos, vpPos, 1);
+    this->TransformToViewport(vpPos[0], vpPos[1], vpPos[0], vpPos[1]);
+
+    vtkIdType pointId = -1;
+    double minDist = VTK_DOUBLE_MAX;
+    const int numberOfPoints = this->GetNumberOfPoints();
+    for (vtkIdType i = 0; i < numberOfPoints; ++i)
+    {
+      double point[2], vpPoint[2];
+      this->GetControlPoint(i, point);
+      this->TransformDataToScreen(point[0], point[1], point[0], point[1]);
+      this->ControlPointsTransform->TransformPoints(point, point, 1);
+      this->TransformToViewport(point[0], point[1], vpPoint[0], vpPoint[1]);
+
+      double distX = abs(vpPoint[0] - vpPos[0]), distY = abs(vpPoint[1] - vpPos[1]);
+      double distSquare = distX * distX + distY * distY; // we only use this for comparing closeness
+      if (distX <= tolerance && distY <= tolerance)
+      {
+        if (distSquare == 0.)
+        { // we found the best match ever
+          return i;
+        }
+        else if (distSquare < minDist)
+        { // we found something not too bad, maybe we can find closer
+          pointId = i;
+          minDist = distSquare;
+        }
+      }
+      // don't search any further if the x is already too large
+      // -- since points were sorted by x incrementally
+      if (vpPoint[0] > (vpPos[0] + tolerance))
+      {
+        break;
+      }
+    }
+    return pointId;
+  }
+
   virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse) override
   {
-    // this->MouseMoved = false;
-
     if (mouse.GetButton() == vtkContextMouseEvent::LEFT_BUTTON)
       {
-      double pos[2];
-      pos[0] = mouse.GetPos()[0];
-      pos[1] = mouse.GetPos()[1];
-      vtkIdType pointUnderMouse = this->FindPoint(pos);
+      double pos[2] { mouse.GetPos()[0], mouse.GetPos()[1] };
+      vtkIdType pointUnderMouse = this->FindPointWithTolerance(pos);
       this->SetCurrentPoint(pointUnderMouse);
+      return true;
       }
 
-    return Superclass::MouseButtonPressEvent(mouse);
+    return false;
   }
 
   virtual vtkMTimeType GetControlPointsMTime() override
@@ -385,7 +438,6 @@ protected:
 
   IntensityCurveModel *m_Model;
   vtkSmartPointer<vtkPoints2D> m_CircleOutline, m_CircleInterior;
-
 };
 
 
@@ -554,7 +606,7 @@ IntensityCurveVTKRenderer
 
 
     // While we are here, we need to set the bounds on the control point plot
-    m_Controls->SetUserBounds(x0, x1, 0.0, 1.0);
+    m_Controls->SetUserBounds(x0 - margin, x1 + margin, -0.1, 1.1);
 
     // And also make sure the selected point is correctly set
     int cpoint;
