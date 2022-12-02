@@ -169,7 +169,8 @@ SegmentationMeshWrapper
 ::GetAssemblyMTime(unsigned int tp)
 {
   auto assembly = GetMeshAssembly(tp);
-  assert(assembly);
+  if (!assembly)
+    return 0;
 
   auto segAssembly = static_cast<SegmentationMeshAssembly*>(assembly);
   return segAssembly->GetMTime();
