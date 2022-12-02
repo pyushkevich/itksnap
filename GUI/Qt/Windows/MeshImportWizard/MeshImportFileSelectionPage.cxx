@@ -141,7 +141,8 @@ bool MeshImportFileSelectionPage::validatePage()
     fn_list.push_back(fn.toStdString());
 
   std::sort(fn_list.begin(), fn_list.end());
-  unsigned int displayTP =  m_Model->GetParentModel()->GetDriver()->GetCursorTimePoint() + 1;
+  const unsigned int crntTP = m_Model->GetParentModel()->GetDriver()->GetCursorTimePoint();
+  const unsigned int displayTP =  crntTP + 1;
   MeshImportModel::FileFormat fmt = m_Model->GetFileFormatByName(to_utf8(format));
 
   // First we handle two easy cases
@@ -221,7 +222,7 @@ bool MeshImportFileSelectionPage::validatePage()
       {
       case QMessageBox::Ok:
         {
-        m_Model->Load(fn_list, fmt);
+        m_Model->Load(fn_list, fmt, displayTP);
         return true;
         }
       case QMessageBox::Cancel:
