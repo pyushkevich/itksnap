@@ -124,7 +124,7 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
       if (fmt != GuidedMeshIO::FORMAT_COUNT)
         {
           auto model = m_Model->GetMeshImportModel();
-          model->Load(fn_list, fmt);
+          model->Load(fn_list, fmt, displayTP);
         }
       this->accept();
       return;
