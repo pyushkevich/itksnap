@@ -633,6 +633,9 @@ void FileChooserPanelWithHistory::setCurrentFormatText(const QString &format)
 bool FileChooserPanelWithHistory::isFilenameNonAscii(const QString &text)
 {
 #ifdef WIN32
+  QString prev_loc = std::setlocale(LC_ALL, nullptr);
+  if (prev_loc.endsWith(".utf8") || prev_loc.endsWith(".UTF8"))
+    return false;
   for(int i = 0; i < text.length(); i++)
     {
     if(text[i].unicode() > 127)

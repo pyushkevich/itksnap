@@ -1,22 +1,9 @@
-#include <QApplication>
-#include <QSettings>
-#include <QAction>
-#include <QShortcutEvent>
-#include <QStyleFactory>
-#include <QUrl>
-#include <QDir>
-#include <QFileSystemWatcher>
-
-#if QT_VERSION > 0x050000
-#include <QSurfaceFormat>
-#endif
-
+#include "IRISApplication.h"
 #include "SNAPQApplication.h"
 #include "MainImageWindow.h"
 #include "SliceViewPanel.h"
 #include "ImageIODelegates.h"
 #include "IRISException.h"
-#include "IRISApplication.h"
 #include "SNAPAppearanceSettings.h"
 #include "CommandLineArgumentParser.h"
 #include "SliceWindowCoordinator.h"
@@ -40,6 +27,19 @@
 #include <iostream>
 #include <clocale>
 #include <cstdlib>
+
+#include <QApplication>
+#include <QSettings>
+#include <QAction>
+#include <QShortcutEvent>
+#include <QStyleFactory>
+#include <QUrl>
+#include <QDir>
+#include <QFileSystemWatcher>
+
+#if QT_VERSION > 0x050000
+#include <QSurfaceFormat>
+#endif
 
 #include "QVTKOpenGLNativeWidget.h"
 #include "QVTKInteractor.h"
@@ -568,6 +568,11 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
 
 int main(int argc, char *argv[])
 {  
+  // Set locale to UTF8 on Windows, this allows files with non-ANSI characters to be loaded
+#ifdef WIN32
+  std::setlocale(LC_ALL, ".UTF8");
+#endif
+
   // Test object, which only is allocated if tests are requested. The
   // reason we declare it here is that the test object allocates a
   // script engine, which must be deleted at the very end
@@ -846,6 +851,7 @@ int main(int argc, char *argv[])
     // Start parsing options
     IRISWarningList warnings;
 
+
     // Check if a workspace is being loaded
     if(argdata.fnWorkspace.size())
       {
@@ -876,14 +882,14 @@ int main(int argc, char *argv[])
         try
           {
           // Load the main image. If that fails, all else should fail too
-          driver->LoadImage(argdata.fnMain.c_str(), MAIN_ROLE, warnings);
+          driver->OpenImage(argdata.fnMain.c_str(), MAIN_ROLE, warnings);
 
           // Load the segmentation
           if(argdata.fnSegmentation.size())
             {
             try
               {
-              driver->LoadImage(argdata.fnSegmentation.c_str(), LABEL_ROLE, warnings);
+              driver->OpenImage(argdata.fnSegmentation.c_str(), LABEL_ROLE, warnings);
               }
             catch(std::exception &exc)
               {
@@ -902,7 +908,7 @@ int main(int argc, char *argv[])
               for(int i = 0; i < argdata.fnOverlay.size(); i++)
                 {
                 current_overlay = argdata.fnOverlay[i];
-                driver->LoadImage(current_overlay.c_str(), OVERLAY_ROLE, warnings);
+                driver->OpenImage(current_overlay.c_str(), OVERLAY_ROLE, warnings);
                 }
             }
             catch(std::exception &exc)

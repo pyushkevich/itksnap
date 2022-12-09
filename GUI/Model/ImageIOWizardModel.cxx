@@ -66,7 +66,7 @@ ImageIOWizardModel
 void
 ImageIOWizardModel
 ::InitializeForLoad(GlobalUIModel *parent,
-                    AbstractLoadImageDelegate *delegate)
+                    AbstractOpenImageDelegate *delegate)
 {
   m_Parent = parent;
   m_Mode = LOAD;
@@ -302,7 +302,7 @@ ImageIOWizardModel::FileFormat ImageIOWizardModel::GetSelectedFormat()
 
 
 
-void ImageIOWizardModel::LoadImage(std::string filename, ImageReadingProgressAccumulator *irAccum)
+void ImageIOWizardModel::OpenImage(std::string filename, ImageReadingProgressAccumulator *irAccum)
 {
   // There is no loaded image to start with
   m_LoadedImage = NULL;
@@ -495,7 +495,7 @@ void ImageIOWizardModel
   std::string dir = GetBrowseDirectory(filename);
 
   // Call the main load method
-	this->LoadImage(dir, irAccum);
+	this->OpenImage(dir, irAccum);
 
   // DICOM filenames are meaningless. Assign a nickname based on series name
   if(m_LoadedImage->GetCustomNickname().length() == 0)

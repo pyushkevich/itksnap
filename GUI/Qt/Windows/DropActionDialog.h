@@ -4,7 +4,7 @@
 #include <QDialog>
 
 class GlobalUIModel;
-class AbstractLoadImageDelegate;
+class AbstractOpenImageDelegate;
 class EventBucket;
 
 namespace Ui {
@@ -72,7 +72,7 @@ private slots:
   /**
    * This method loads the dropped image.
    */
-  void LoadCommon(AbstractLoadImageDelegate *delegate);
+  void LoadCommon(AbstractOpenImageDelegate *delegate);
 
 
   void on_btnLoadAdditionalSegmentation_clicked();

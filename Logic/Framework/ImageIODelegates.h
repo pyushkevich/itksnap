@@ -19,11 +19,11 @@ class IRISWarningList : public std::vector<IRISWarning> {};
   the behavior of image IO wizards, as well as to load images from
   command line.
   */
-class AbstractLoadImageDelegate : public itk::Object
+class AbstractOpenImageDelegate : public itk::Object
 {
 public:
 
-  irisITKAbstractObjectMacro(AbstractLoadImageDelegate, itk::Object)
+  irisITKAbstractObjectMacro(AbstractOpenImageDelegate, itk::Object)
 
   virtual void Initialize(IRISApplication *driver)
     { m_Driver = driver; }
@@ -57,8 +57,8 @@ public:
   virtual bool IsOverlay() const { return false; }
 
 protected:
-  AbstractLoadImageDelegate() : m_MetaDataRegistry(NULL) {}
-  virtual ~AbstractLoadImageDelegate() {}
+  AbstractOpenImageDelegate() : m_MetaDataRegistry(NULL) {}
+  virtual ~AbstractOpenImageDelegate() {}
 
   IRISApplication *m_Driver;
 
@@ -72,11 +72,11 @@ private:
   Registry *m_MetaDataRegistry;
 };
 
-class LoadAnatomicImageDelegate : public AbstractLoadImageDelegate
+class LoadAnatomicImageDelegate : public AbstractOpenImageDelegate
 {
 public:
 
-  irisITKAbstractObjectMacro(LoadAnatomicImageDelegate, AbstractLoadImageDelegate)
+  irisITKAbstractObjectMacro(LoadAnatomicImageDelegate, AbstractOpenImageDelegate)
 
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
 
@@ -117,11 +117,11 @@ protected:
 };
 
 
-class LoadSegmentationImageDelegate : public AbstractLoadImageDelegate
+class LoadSegmentationImageDelegate : public AbstractOpenImageDelegate
 {
 public:
 
-  irisITKObjectMacro(LoadSegmentationImageDelegate, AbstractLoadImageDelegate)
+  irisITKObjectMacro(LoadSegmentationImageDelegate, AbstractOpenImageDelegate)
 
   irisGetSetMacro(AdditiveMode, bool)
 

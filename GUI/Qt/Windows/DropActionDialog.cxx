@@ -230,7 +230,7 @@ void DropActionDialog::on_btnLoadNew_clicked()
 #include "ImageIOWizardModel.h"
 #include "ImageIOWizard.h"
 
-void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
+void DropActionDialog::LoadCommon(AbstractOpenImageDelegate *delegate)
 {
   // File being loaded
   std::string file = to_utf8(ui->outFilename->text());
@@ -296,7 +296,7 @@ void DropActionDialog::LoadCommon(AbstractLoadImageDelegate *delegate)
     try
       {
       IRISWarningList warnings;
-			m_Model->GetDriver()->LoadImageViaDelegate(file.c_str(), delegate, warnings, &ioHints, irProgAccum);
+			m_Model->GetDriver()->OpenImageViaDelegate(file.c_str(), delegate, warnings, &ioHints, irProgAccum);
       this->accept();
       }
     catch(exception &exc)

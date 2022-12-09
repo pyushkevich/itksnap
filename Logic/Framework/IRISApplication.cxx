@@ -1806,8 +1806,8 @@ IRISApplication
 
 ImageWrapperBase *
 IRISApplication
-::LoadImageViaDelegate(const char *fname,
-                       AbstractLoadImageDelegate *del,
+::OpenImageViaDelegate(const char *fname,
+                       AbstractOpenImageDelegate *del,
                        IRISWarningList &wl,
 											 Registry *ioHints,
 											 ImageReadingProgressAccumulator *irAccum)
@@ -1958,7 +1958,7 @@ void IRISApplication
 void IRISApplication
 ::LoadAnotherDicomSeriesViaDelegate(unsigned long reference_layer_id,
                                     const char *series_id,
-                                    AbstractLoadImageDelegate *del,
+                                    AbstractOpenImageDelegate *del,
                                     IRISWarningList &wl)
 {
   // We will use the main image's IO hints to create the IO hints for the
@@ -1976,7 +1976,7 @@ void IRISApplication
 
     // Use the current filename of the main image
     ImageWrapperBase *layer =
-        this->LoadImageViaDelegate(ref->GetFileName(), del, wl, &io_hints);
+        this->OpenImageViaDelegate(ref->GetFileName(), del, wl, &io_hints);
 
     // Assign the series ID of the loaded image as the nickname
     if(layer->GetCustomNickname().length() == 0)
@@ -1985,11 +1985,11 @@ void IRISApplication
 }
 
 void IRISApplication
-::LoadImage(const char *fname, LayerRole role, IRISWarningList &wl,
+::OpenImage(const char *fname, LayerRole role, IRISWarningList &wl,
             Registry *meta_data_reg, Registry *io_hints_reg, bool additive)
 {
   // Pointer to the delegate
-  SmartPtr<AbstractLoadImageDelegate> delegate;
+  SmartPtr<AbstractOpenImageDelegate> delegate;
 
   switch(role)
     {
@@ -2007,7 +2007,7 @@ void IRISApplication
       }
       break;
     default:
-      throw IRISException("LoadImage does not support role %d", role);
+      throw IRISException("OpenImage does not support role %d", role);
     }
 
   delegate->Initialize(this);
@@ -2015,7 +2015,7 @@ void IRISApplication
     delegate->SetMetaDataRegistry(meta_data_reg);
 
   // Load via delegate, providing the IO hints
-  this->LoadImageViaDelegate(fname, delegate, wl, io_hints_reg);
+  this->OpenImageViaDelegate(fname, delegate, wl, io_hints_reg);
 }
 
 SmartPtr<AbstractSaveImageDelegate>
@@ -2286,7 +2286,7 @@ void IRISApplication::OpenProject(
       load_additive = true;
 
     // Load the image and its metadata
-    LoadImage(layer_file_full.c_str(), role, warn, &folder, io_hints, load_additive);
+    OpenImage(layer_file_full.c_str(), role, warn, &folder, io_hints, load_additive);
 
     // Check if the main has been loaded
     if(role == MAIN_ROLE)
