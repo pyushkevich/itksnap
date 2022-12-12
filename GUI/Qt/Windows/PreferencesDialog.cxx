@@ -59,7 +59,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   QStandardItem *item3DView = append_category_item(model->invisibleRootItem(), "3D View");
   append_appearance_item(item3DView, SNAPAppearanceSettings::BACKGROUND_3D, "Background");
   append_appearance_item(item3DView, SNAPAppearanceSettings::CROSSHAIRS_3D, "Crosshair");
-	append_appearance_item(item3DView, SNAPAppearanceSettings::COLORLEGEND_3D, "ColorLegend");
+  append_appearance_item(item3DView, SNAPAppearanceSettings::COLORLEGEND_3D_LABEL, "Color legend (label)");
+  append_appearance_item(item3DView, SNAPAppearanceSettings::COLORLEGEND_3D_NONLABEL, "Color legend (non-label)");
 
   QStandardItem *itemThumb = append_category_item(model->invisibleRootItem(), "Zoom Thumbnail");
   append_appearance_item(itemThumb, SNAPAppearanceSettings::ZOOM_THUMBNAIL, "Thumbnail");

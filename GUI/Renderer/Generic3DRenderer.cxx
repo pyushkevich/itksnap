@@ -10,6 +10,7 @@
 #include "SNAPImageData.h"
 #include "ImageMeshLayers.h"
 #include "StandaloneMeshWrapper.h"
+#include "SegmentationMeshWrapper.h"
 #include "MeshWrapperBase.h"
 #include "MeshManager.h"
 #include "Window3DPicker.h"
@@ -411,8 +412,20 @@ void Generic3DRenderer::UpdateAxisRendering()
 
 void Generic3DRenderer::UpdateColorLegendAppearance()
 {
+  unsigned int elmClrLegend = SNAPAppearanceSettings::COLORLEGEND_3D_NONLABEL;
+
+  ImageMeshLayers *layers = m_Model->GetMeshLayers();
+  unsigned long active_layer_id = layers->GetActiveLayerId();
+  auto layer = layers->GetLayer(active_layer_id);
+  if (!layer)
+    return;
+
+  SegmentationMeshWrapper * seg_mesh = dynamic_cast<SegmentationMeshWrapper*>(layer.GetPointer());
+
+  if (seg_mesh)
+    elmClrLegend = SNAPAppearanceSettings::COLORLEGEND_3D_LABEL;
+
 	// Set color legend visibility
-	unsigned int elmClrLegend = SNAPAppearanceSettings::COLORLEGEND_3D;
 	OpenGLAppearanceElement *clsetting = m_Model->GetParentUI()
 			->GetAppearanceSettings()->GetUIElement(elmClrLegend);
 	m_ScalarBarActor->SetVisibility(clsetting->GetVisible());
