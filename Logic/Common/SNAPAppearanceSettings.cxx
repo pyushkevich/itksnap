@@ -39,7 +39,8 @@ SNAPAppearanceSettings
     { 1, 1, 1, 0, 1 },    // Zoom thumbnail
     { 1, 1, 1, 0, 1 },    // Zoom viewport
     { 1, 1, 1, 0, 1 },    // 3D Crosshairs
-		{ 0, 0, 0, 0, 1 },    // 3D Color Legend
+    { 0, 0, 0, 0, 1 },    // 3D Color Legend (Label)
+    { 0, 0, 0, 0, 1 },    // 3D Color Legend (Non-Label)
     { 1, 1, 1, 0, 1 },    // Thumbnail Crosshairs
     { 1, 1, 1, 0, 1 },    // 3D Image Box
     { 1, 1, 1, 0, 1 },    // 3D ROI Box
@@ -133,9 +134,13 @@ SNAPAppearanceSettings
   elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisibilityFlag(true);
 
-	// 3D color legend
-	elt = m_DefaultElementSettings[COLORLEGEND_3D];
-	elt->SetVisibilityFlag(true);
+  // 3D color legend (label)
+  elt = m_DefaultElementSettings[COLORLEGEND_3D_LABEL];
+  elt->SetVisibilityFlag(false);
+
+  // 3D color legend (non-label)
+  elt = m_DefaultElementSettings[COLORLEGEND_3D_NONLABEL];
+  elt->SetVisibilityFlag(true);
 
   // Thumbnail crosshairs
   elt = m_DefaultElementSettings[CROSSHAIRS_THUMB];
@@ -244,7 +249,7 @@ const char *
 SNAPAppearanceSettings
 ::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = 
   { "CROSSHAIRS", "MARKERS", "ROI_BOX", "ROI_BOX_ACTIVE", "BACKGROUND_2D", "BACKGROUND_3D",
-		"ZOOM_THUMBNAIL", "ZOOM_VIEWPORT", "CROSSHAIRS_3D", "COLORLEGEND_3D", "CROSSHAIRS_THUMB", "IMAGE_BOX_3D",
+    "ZOOM_THUMBNAIL", "ZOOM_VIEWPORT", "CROSSHAIRS_3D", "COLORLEGEND_3D_LABEL", "COLORLEGEND_3D_NONLABEL", "CROSSHAIRS_THUMB", "IMAGE_BOX_3D",
     "ROI_BOX_3D", "RULER", "PAINTBRUSH_OUTLINE", 
     "POLY_DRAW_MAIN", "POLY_DRAW_CLOSE", "POLY_EDIT", "POLY_EDIT_SELECT",
     "REGISTRATION_WIDGETS", "REGISTRATION_WIDGETS_ACTIVE", "REGISTRATION_GRID", "GRID_LINES"};
