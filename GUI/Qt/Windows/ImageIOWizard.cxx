@@ -801,7 +801,7 @@ ImageIOProgressDialog
 		this->setLabelText("Reading Image...");
 
 	this->setCancelButton(nullptr); // hide the cancel button
-	this->setMinimumDuration(0); // display for all duration
+  this->setMinimumDuration(1000); // display after 1000ms
 }
 
 void
