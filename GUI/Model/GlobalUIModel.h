@@ -45,7 +45,7 @@ class SliceWindowCoordinator;
 class GuidedNativeImageIO;
 class SystemInterface;
 class GlobalState;
-class AbstractLoadImageDelegate;
+class AbstractOpenImageDelegate;
 class IRISWarningList;
 class IntensityCurveModel;
 class LayerSelectionModel;

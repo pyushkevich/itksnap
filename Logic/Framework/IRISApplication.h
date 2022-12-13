@@ -63,7 +63,7 @@ class AbstractSlicePreviewFilterWrapper;
 class UnsupervisedClustering;
 class ImageWrapperBase;
 class MeshManager;
-class AbstractLoadImageDelegate;
+class AbstractOpenImageDelegate;
 class AbstractSaveImageDelegate;
 class IRISWarningList;
 class GaussianMixtureModel;
@@ -213,8 +213,8 @@ public:
    * directory. But it is also possible to provide a pointer to the ioHints, i.e.,
    * if the image is being as part of loading a workspace.
    */
-  ImageWrapperBase* LoadImageViaDelegate(const char *fname,
-                                         AbstractLoadImageDelegate *del,
+  ImageWrapperBase* OpenImageViaDelegate(const char *fname,
+                                         AbstractOpenImageDelegate *del,
                                          IRISWarningList &wl,
 																				 Registry *ioHints = NULL,
 																				 ImageReadingProgressAccumulator *irAccum = nullptr);
@@ -227,13 +227,13 @@ public:
   DicomSeriesTree ListAvailableSiblingDicomSeries();
 
   /**
-   * Load another dicom series via delegate. This is similar to LoadImageViaDelegate
+   * Load another dicom series via delegate. This is similar to OpenImageViaDelegate
    * but the input is a SeriesId assumed to be in the same DICOM directory as the
    * main image
    */
   void LoadAnotherDicomSeriesViaDelegate(unsigned long reference_layer_id,
                                          const char *series_id,
-                                         AbstractLoadImageDelegate *del,
+                                         AbstractOpenImageDelegate *del,
                                          IRISWarningList &wl);
 
   /**
@@ -254,7 +254,7 @@ public:
    * rid of the overlay role completely and just label layers as anatomical/segment-n
    * in which case the additive flag would actually begin to make some sense.
    */
-  void LoadImage(const char *fname, LayerRole role,
+  void OpenImage(const char *fname, LayerRole role,
                  IRISWarningList &wl,
                  Registry *meta_data_reg = NULL,
                  Registry *io_hints_reg = NULL,

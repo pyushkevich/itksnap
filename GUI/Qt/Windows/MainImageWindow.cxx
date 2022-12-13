@@ -1392,7 +1392,7 @@ void MainImageWindow::LoadMainImage(const QString &file)
     IRISWarningList warnings;
     SmartPtr<LoadMainImageDelegate> del = LoadMainImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
-		m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings,
+		m_Model->GetDriver()->OpenImageViaDelegate(file.toUtf8().constData(), del, warnings,
 																							 NULL, irProgAccum.GetPointer());
     }
   catch(exception &exc)
@@ -1435,7 +1435,7 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
     IRISWarningList warnings;
     SmartPtr<LoadOverlayImageDelegate> del = LoadOverlayImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
-		m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings,
+		m_Model->GetDriver()->OpenImageViaDelegate(file.toUtf8().constData(), del, warnings,
 																							 NULL, irProgAccum);
     }
   catch(exception &exc)
@@ -1470,7 +1470,7 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
     SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
     del->Initialize(m_Model->GetDriver());
     del->SetAdditiveMode(additive);
-		m_Model->GetDriver()->LoadImageViaDelegate(file.toUtf8().constData(), del, warnings,
+		m_Model->GetDriver()->OpenImageViaDelegate(file.toUtf8().constData(), del, warnings,
 																							 NULL, irProgAccum);
     }
   catch(exception &exc)

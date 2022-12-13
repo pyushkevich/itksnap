@@ -112,7 +112,7 @@ bool AbstractPage::PerformIO()
     m_Model->SetSelectedFormat(fmt);
     if(m_Model->IsLoadMode())
       {
-			m_Model->LoadImage(to_utf8(filename), irProgAccum);
+			m_Model->OpenImage(to_utf8(filename), irProgAccum);
       if (fmt == GuidedNativeImageIO::FORMAT_ECHO_CARTESIAN_DICOM)
         {
           LayoutReminderDialog *lr = new LayoutReminderDialog(this);
@@ -771,7 +771,7 @@ bool RawPage::validatePage()
   try
     {
     m_Model->SetSelectedFormat(GuidedNativeImageIO::FORMAT_RAW);
-		m_Model->LoadImage(to_utf8(field("Filename").toString()), irProgAccum);
+		m_Model->OpenImage(to_utf8(field("Filename").toString()), irProgAccum);
     }
   catch(IRISException &exc)
     {
