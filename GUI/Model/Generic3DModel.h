@@ -63,6 +63,9 @@ public:
   // TODO: replace this with an update in a background thread
   irisSimplePropertyAccessMacro(ContinuousUpdate, bool)
 
+  // A flag indicating the color bar should be displayed
+  irisSimplePropertyAccessMacro(DisplayColorBar, bool)
+
   // Tell the model to update the segmentation mesh
   void UpdateSegmentationMesh(itk::Command *progressCmd);
 
@@ -171,6 +174,9 @@ protected:
 
   // Continuous update model
   SmartPtr<ConcreteSimpleBooleanProperty> m_ContinuousUpdateModel;
+
+  // Display Color Bar model
+  SmartPtr<ConcreteSimpleBooleanProperty> m_DisplayColorBarModel;
 
   // Is the mesh updating
   bool m_MeshUpdating;
