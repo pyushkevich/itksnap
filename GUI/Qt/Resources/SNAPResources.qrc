@@ -193,6 +193,7 @@
         <file>html/splash.html</file>
         <file>mesh_cell_data.png</file>
         <file>mesh_point_data.png</file>
+        <file>color_bar.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

@@ -39,6 +39,9 @@ Generic3DModel::Generic3DModel()
   // Continuous update model
   m_ContinuousUpdateModel = NewSimpleConcreteProperty(false);
 
+  // Display Color Bar model
+  m_DisplayColorBarModel = NewSimpleConcreteProperty(false);
+
   // Scalpel
   m_ScalpelStatus = SCALPEL_LINE_NULL;
 

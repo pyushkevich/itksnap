@@ -4,6 +4,10 @@
 #include "Generic3DModel.h"
 #include "itkCommand.h"
 #include "IRISException.h"
+#include "IRISApplication.h"
+#include "IRISImageData.h"
+#include "ImageMeshLayers.h"
+#include "StandaloneMeshWrapper.h"
 #include <QMessageBox>
 #include "MainImageWindow.h"
 #include "SNAPQtCommon.h"
@@ -74,6 +78,45 @@ void ViewPanel3D::onModelUpdate(const EventBucket &bucket)
     {
     UpdateActionButtons();
     }
+
+  if(bucket.HasEvent(ActiveLayerChangeEvent()),
+     m_Model->GetParentUI()->GetDriver()->GetIRISImageData()->GetMeshLayers())
+    {
+    ApplyDefaultColorBarVisibility();
+    }
+}
+
+void ViewPanel3D::ApplyDefaultColorBarVisibility()
+{
+  if (!m_Model->GetParentUI()->GetDriver()->IsMainImageLoaded())
+    return;
+
+  // Do nothing if user has changed color bar visibility
+  if (m_ColorBarUserInputOverride)
+    return;
+
+  ImageMeshLayers *mesh_layers =
+      m_Model->GetParentUI()->GetDriver()->GetIRISImageData()->GetMeshLayers();
+
+  auto active_layer = mesh_layers->GetLayer(mesh_layers->GetActiveLayerId());
+
+  // we only turn on color bar by default for standalone mesh layers
+  if (dynamic_cast<StandaloneMeshWrapper*>(active_layer.GetPointer()))
+    {
+    if (!ui->btnColorBar->isChecked())
+      {
+      ui->btnColorBar->setChecked(true);
+      on_btnColorBar_clicked(false); // click the button programmatically
+      }
+    }
+  else
+    {
+    if (ui->btnColorBar->isChecked())
+      {
+      ui->btnColorBar->setChecked(false);
+      on_btnColorBar_clicked(false); // click the button programmatically
+      }
+    }
 }
 
 void ViewPanel3D::on_btnUpdateMesh_clicked()
@@ -113,6 +156,10 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   // Listen to changes in active tool to adjust button visibility
   connectITK(m_Model->GetParentUI()->GetGlobalState()->GetToolbarMode3DModel(),
              ValueChangedEvent());
+
+  // Listen to changes in layer change for 3d view
+  connectITK(globalUI->GetDriver()->GetIRISImageData()->GetMeshLayers(),
+             ActiveLayerChangeEvent());
 
   // Set up the buttons
   this->UpdateActionButtons();
@@ -191,6 +238,14 @@ void ViewPanel3D::on_btnExpand_clicked()
 
   // Apply this layout
   dlm->GetViewPanelLayoutModel()->SetValue(layout);
+}
+
+void ViewPanel3D::on_btnColorBar_clicked(bool isUser)
+{
+  if (isUser)
+    m_ColorBarUserInputOverride = true;
+
+  m_Model->SetDisplayColorBar(!m_Model->GetDisplayColorBar());
 }
 
 void ViewPanel3D::onTimer()
