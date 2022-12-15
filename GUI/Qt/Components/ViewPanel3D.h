@@ -54,6 +54,8 @@ private slots:
 
   void on_btnExpand_clicked();
 
+  void on_btnColorBar_clicked(bool isUser = true);
+
   void onTimer();
 
 
@@ -103,7 +105,12 @@ private:
 
   void UpdateActionButtons();
 
+  // Apply color bar visibility based on the active mesh layer type
+  void ApplyDefaultColorBarVisibility();
+
   void ProgressCallback(itk::Object *source, const itk::EventObject &event);
+
+  bool m_ColorBarUserInputOverride = false;
 };
 
 #endif // VIEWPANEL3D_H

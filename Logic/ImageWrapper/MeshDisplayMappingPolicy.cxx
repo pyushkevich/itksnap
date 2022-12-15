@@ -399,6 +399,7 @@ LabelMeshDisplayMappingPolicy::
 ConfigureLegend(vtkScalarBarActor* legend)
 {
   legend->SetLookupTable(m_LookupTable);
+  legend->SetTitle("Labels");
 }
 
 void
@@ -408,9 +409,10 @@ UpdateLUT()
 	size_t numClr = m_ColorLabelTable->GetNumberOfValidLabels();
 	m_LookupTable->SetIndexedLookup(true);
   m_LookupTable->SetNumberOfColors(numClr);
-  m_LookupTable->SetRange(0, 6);
+  m_LookupTable->ResetAnnotations();
 
   double rgbaD[4];
+  unsigned int crntIndex = 0u;
   for (auto cit = m_ColorLabelTable->begin();
        cit != m_ColorLabelTable->end(); ++cit)
     {
@@ -421,7 +423,7 @@ UpdateLUT()
     rgbaD[2] = rgbD[2];
     rgbaD[3] = cit->second.GetAlpha() / 255.0;
 
-    m_LookupTable->SetTableValue(cit->first, rgbaD);
+    m_LookupTable->SetTableValue(crntIndex++, rgbaD);
 		m_LookupTable->SetAnnotation(cit->first, std::to_string(cit->first));
     }
   m_LookupTable->Build();

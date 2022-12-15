@@ -10,6 +10,7 @@
 #include "SNAPImageData.h"
 #include "ImageMeshLayers.h"
 #include "StandaloneMeshWrapper.h"
+#include "SegmentationMeshWrapper.h"
 #include "MeshWrapperBase.h"
 #include "MeshManager.h"
 #include "Window3DPicker.h"
@@ -233,6 +234,9 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperChangeEvent(), ModelUpdateEvent());
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperVisibilityChangeEvent(), ModelUpdateEvent());
 
+  // Visibility of Color Bar
+  Rebroadcast(m_Model->GetDisplayColorBarModel(), ValueChangedEvent(), ModelUpdateEvent());
+
   // Respond to mesh layer display mapping policy change event
   Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
               WrapperDisplayMappingChangeEvent(), ModelUpdateEvent());
@@ -261,6 +265,8 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 
   // Set the model in the picker
   m_Picker->SetModel(m_Model);
+
+  UpdateColorLegendAppearance();
 }
 
 void Generic3DRenderer::UpdateMeshAssembly()
@@ -279,10 +285,6 @@ void Generic3DRenderer::UpdateMeshAssembly()
 
   // Remove all mesh actors from the renderer before the update
   ResetMeshAssembly();
-
-  // turn color bar off at the beginning of update
-  // this is to make sure if nothing to render, color bar is not visible
-  m_ScalarBarActor->SetVisibility(false);
 
   if (layers->size() == 0 || active_layer_id == 0)
     return;
@@ -311,15 +313,11 @@ void Generic3DRenderer::UpdateMeshAssembly()
 
 	ApplyDisplayMappingPolicyChange();
 
-  // Update color bar visibility
-  UpdateColorLegendAppearance();
-
   m_Renderer->Modified();
 }
 
 void Generic3DRenderer::ApplyDisplayMappingPolicyChange()
 {
-  //UpdateColorLegendAppearance();
   if (m_CrntActorMapLayerId == 0) // no layer activated yet
     return;
 
@@ -411,11 +409,7 @@ void Generic3DRenderer::UpdateAxisRendering()
 
 void Generic3DRenderer::UpdateColorLegendAppearance()
 {
-	// Set color legend visibility
-	unsigned int elmClrLegend = SNAPAppearanceSettings::COLORLEGEND_3D;
-	OpenGLAppearanceElement *clsetting = m_Model->GetParentUI()
-			->GetAppearanceSettings()->GetUIElement(elmClrLegend);
-	m_ScalarBarActor->SetVisibility(clsetting->GetVisible());
+  m_ScalarBarActor->SetVisibility(m_Model->GetDisplayColorBar());
 }
 
 void Generic3DRenderer::UpdateScalpelRendering()
@@ -961,6 +955,11 @@ void Generic3DRenderer::OnUpdate()
       m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent(),
                               app->GetIRISImageData()->GetMeshLayers());
 
+  // Update visibility of the color bar
+  bool color_bar_visiblity_changed =
+      m_EventBucket->HasEvent(ValueChangedEvent(),
+                              m_Model->GetDisplayColorBarModel());
+
   // Deal with the updates to the mesh state
   if(main_changed || seg_layer_changed || need_rebuild_actor_map)
     {
@@ -992,7 +991,6 @@ void Generic3DRenderer::OnUpdate()
   if(appearance_changed)
     {
     UpdateAxisRendering();
-    UpdateColorLegendAppearance();
     need_render = true;
     }
 
@@ -1039,6 +1037,12 @@ void Generic3DRenderer::OnUpdate()
     {
     UpdateVolumeRendering();
     need_render = true;
+    }
+
+  // Deal with color bar visibility
+  if(color_bar_visiblity_changed)
+    {
+    UpdateColorLegendAppearance();
     }
 
   // Force rendering to occur
