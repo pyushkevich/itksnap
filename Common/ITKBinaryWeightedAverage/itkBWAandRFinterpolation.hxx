@@ -9,7 +9,6 @@
 #include "itkImageRegionIterator.h"
 #include "itkBWAandRFinterpolation.h"
 #include "ImageCollectionToImageFilter.h"
-#include "itkImageFileWriter.h"
 
 namespace itk
 {
@@ -250,12 +249,6 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
                                                           bbox, bbox);
     }
 
-    using WriterType = itk::ImageFileWriter<TLabelImage>;
-    auto writer = WriterType::New();
-    writer->SetFileName("/Users/sravikumar/Downloads/debug_BWAoutputonly.nii.gz");
-    writer->SetInput(BWAfilter->GetInterpolation());
-    writer->Update();
-
     if(!m_ContourInformationOnly){ // Incorporate intensity information using random forests
 
         typename RFLabelFilterType::Pointer generateRFlabelmap = RFLabelFilterType::New();
@@ -291,12 +284,6 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
         randomForestClassifier->SetSlicingAxis(m_SlicingAxis);
         randomForestClassifier->Update();
 
-        using WriterType = itk::ImageFileWriter<ProbabilityType>;
-        auto writer = WriterType::New();
-        writer->SetFileName("/Users/sravikumar/Downloads/debug_RFoutput.nii.gz");
-        writer->SetInput(randomForestClassifier->GetOutput());
-        writer->Update();
-
         // Combine probability maps by taking the average
         typename AddImageFilterType::Pointer addProbabilityMaps = AddImageFilterType::New();
         addProbabilityMaps->SetInput1(BWAfilter->GetProbabilityMap());
@@ -314,8 +301,6 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
         thresholdProbabilityMap->SetUpperThreshold(1);
         thresholdProbabilityMap->SetInsideValue(1);
         thresholdProbabilityMap->Update();
-
-        //this->GetInterpolation()->Graft(thresholdProbabilityMap->GetOutput());
 
         this->GetProbabilityMap()->Graft(scaleProbabilityMap->GetOutput());
 
@@ -377,9 +362,6 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
             m_SlicingAxis = axis;
         }
     }
-
-    using WriterType = itk::ImageFileWriter<TLabelImage>;
-    auto writer = WriterType::New();
 
     typename TLabelImage::RegionType bbox;
 

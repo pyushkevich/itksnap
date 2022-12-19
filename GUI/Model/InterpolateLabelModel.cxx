@@ -133,6 +133,7 @@ void InterpolateLabelModel::Interpolate()
   // If Binary Weighted Averaging ...
   else if(method == BINARY_WEIGHTED_AVERAGE)
     {
+
     // Copy label image to short type from RLE
     ShortType::Pointer SegmentationImageShortType = ShortType::New();
 
@@ -152,11 +153,11 @@ void InterpolateLabelModel::Interpolate()
       ++itO;
       }
 
+    //Initialize interpolation filter
     typedef itk::CombineBWAandRFFilter < GreyScalarType, GreyVectorType, ShortType > BinaryWeightedAverageType;
-
     typename BinaryWeightedAverageType::Pointer bwa =  BinaryWeightedAverageType::New();
 
-    // Iterate through all of the relevant layers
+    // Iterate through all of the relevant layers to get the main image
     for(LayerIterator it = m_CurrentImageData->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
         !it.IsAtEnd(); ++it)
       {
@@ -173,8 +174,9 @@ void InterpolateLabelModel::Interpolate()
       }
 
     // Should we be interpolating a specific label?
-    if (!interp_all)
+    if (!interp_all){
       bwa->SetLabel(this->GetInterpolateLabel());
+    }
 
     bwa->SetOverwriteSegmentation(this->GetBWAOverwriteSegmentation());
     bwa->SetSegmentationImage(SegmentationImageShortType);

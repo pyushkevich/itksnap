@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <iostream>
 #include "itkRegionOfInterestImageFilter.h"
-#include "itkImageFileWriter.h"
 #include <iostream>
 
 namespace itk
@@ -89,12 +88,6 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
     TrimImageFilter->SetInput(input);
     TrimImageFilter->SetRegionOfInterest(m_boundingbox);
     TrimImageFilter->Update();
-
-    using WriterType = itk::ImageFileWriter<TLabelImage>;
-    auto writer = WriterType::New();
-    writer->SetFileName("/Users/sravikumar/Downloads/debug_BWA_trimmedimage.nii.gz");
-    writer->SetInput(TrimImageFilter->GetOutput());
-    writer->Update();
 
     std::vector<int> dimensions;
     dimensions.push_back(0);
@@ -713,11 +706,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                 flip_image->Update();
                 typename TLabelImage::Pointer permuted_region = flip_image->GetOutput();
 
-                writer->SetFileName("/Users/sravikumar/Downloads/debug_BWA_interpolatedimage_beforenewregion.nii.gz");
-                writer->SetInput(flip_image->GetOutput());
-                writer->Update();
-
-                //This code is wrong! Giving weird result
+                //Fixed this code
                 typename TLabelImage::IndexType newRegionIndex = bbox_index;
                 newRegionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] +1;
 
@@ -726,10 +715,6 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
 
                 ImageAlgorithm::Copy< TLabelImage, TLabelImage >( permuted_region.GetPointer(), interpolation.GetPointer(),
                                                                   permuted_region->GetLargestPossibleRegion(), newRegion);
-
-                writer->SetFileName("/Users/sravikumar/Downloads/debug_BWA_interpolatedimage.nii.gz");
-                writer->SetInput(this->GetInterpolation());
-                writer->Update();
 
                 // Copy probability map
                 typename PermuteAxesDoubleImageFilterType::Pointer permute_axes_double = PermuteAxesDoubleImageFilterType::New();
@@ -747,7 +732,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
 
                 typename TMainImage::Pointer permuted_double_region = flip_double_image->GetOutput();
 
-                //Was permuted_double_region
+                 //Define new region to copy interpolation into
                 typename TMainImage::IndexType newRegionIndex_double = bbox_index;
                 newRegionIndex_double[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] +1;
                 typename TMainImage::RegionType newRegion_double = permuted_double_region->GetLargestPossibleRegion();
@@ -773,15 +758,13 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                 typename TMainImageSliceType::Pointer pmap_segment = CombineProbabilityMaps->GetOutput();
                 pmap_segment->DisconnectPipeline();
 
-                typename TLabelImageSliceType::SizeType sourceDim = interpolated_segment->GetLargestPossibleRegion().GetSize();
-
                 typename FlipSliceImageFilterType::Pointer flip_image = FlipSliceImageFilterType::New();
                 flip_image->SetInput(interpolated_segment);
                 flip_image->SetFlipAxes(flipAxesSliceType);
                 flip_image->Update();
                 typename TLabelImageSliceType::Pointer permuted_region = flip_image->GetOutput();
 
-                //Somthing going wrong here with new region
+                //Define new Region to copy interpolated result into
                 typename TLabelImage::IndexType newRegionIndex = bbox_index;
                 newRegionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] + intermediate_slice;
 
