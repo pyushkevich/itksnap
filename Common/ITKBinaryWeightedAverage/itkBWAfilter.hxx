@@ -12,6 +12,7 @@
 #include <iostream>
 #include "itkRegionOfInterestImageFilter.h"
 #include "itkImageFileWriter.h"
+#include <iostream>
 
 namespace itk
 {
@@ -82,11 +83,18 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
     ImageAlgorithm::Copy< TLabelImage, TMainImage >( input.GetPointer(), probabilitymap.GetPointer(),
                                                      probabilitymap->GetRequestedRegion(), probabilitymap->GetRequestedRegion() );
 
+    // Trim image to just the region including the segmentation
     typedef itk::RegionOfInterestImageFilter<TLabelImage, TLabelImage> TrimFilter;
     typename TrimFilter::Pointer TrimImageFilter = TrimFilter::New();
     TrimImageFilter->SetInput(input);
     TrimImageFilter->SetRegionOfInterest(m_boundingbox);
     TrimImageFilter->Update();
+
+    using WriterType = itk::ImageFileWriter<TLabelImage>;
+    auto writer = WriterType::New();
+    writer->SetFileName("/Users/sravikumar/Downloads/debug_BWA_trimmedimage.nii.gz");
+    writer->SetInput(TrimImageFilter->GetOutput());
+    writer->Update();
 
     std::vector<int> dimensions;
     dimensions.push_back(0);
@@ -97,7 +105,6 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
     m_seconddirection = dimensions[1];
 
     //Initialize filters to extract slices amd restack to form a 3D volume
-
     int totalSlices =  m_SegmentationIndices.size();
     typename TLabelImage::IndexType bbox_index = m_boundingbox.GetIndex();
 
@@ -123,6 +130,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
         if(numSlices > 1){ // Only if the slices are not adjacent
 
             int intermediate_slice = numSlices/2;
+
             // Extract the first slice
             Slicer[0] = IrisSlicerFilterType::New();
             Slicer[0]->SetInput(TrimImageFilter->GetOutput());
@@ -167,6 +175,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                 throw itk::ExceptionObject("Consecutive segmentations must be intersecting for Binary Weighted Averaging");
             }
 
+            //Compute the Signed Distance Map of the intersecting portion
             SignedDistanceMapIntersect[i] = SignedDistanceMapFilterType::New();
             SignedDistanceMapIntersect[i]->SetInput(Intersect[i]->GetOutput());
             SignedDistanceMapIntersect[i]->UseImageSpacingOff();
@@ -361,7 +370,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                     Tiler_Interp[j]->Update();
                     Tiler_ERF[j]->Update();
 
-                    if(j == 0){
+                    if(j == 0){ //for the first connected component
 
                         InterpolatedVolume[0] = Tiler_Interp[j]->GetOutput();
                         ProbabilityMap[0] = Tiler_ERF[j]->GetOutput();
@@ -384,7 +393,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                         ProbabilityMap[0] = MaximumImageFilterAdB->GetOutput();
                         ProbabilityMap[0]->DisconnectPipeline();
                     }
-                }
+                } // m_intermediateslices == false
 
                 if(m_intermediateslices == true){
 
@@ -691,11 +700,12 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
 
                 typename PermuteAxesImageFilterType::Pointer permute_axes = PermuteAxesImageFilterType::New();
                 permute_axes->SetInput(interpolated_segment);
+
                 typename PermuteAxesImageFilterType::PermuteOrderArrayType order;
-                order[0] = 2;
-                order[1] = 0;
-                order[2] = 1;
-                permute_axes->SetOrder( order );
+                order[m_firstdirection] = 0;
+                order[m_seconddirection] = 1;
+                order[m_slicingaxis] = 2;
+                permute_axes->SetOrder(order);
 
                 typename FlipImageFilterType::Pointer flip_image = FlipImageFilterType::New();
                 flip_image->SetInput(permute_axes->GetOutput());
@@ -703,29 +713,41 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                 flip_image->Update();
                 typename TLabelImage::Pointer permuted_region = flip_image->GetOutput();
 
+                writer->SetFileName("/Users/sravikumar/Downloads/debug_BWA_interpolatedimage_beforenewregion.nii.gz");
+                writer->SetInput(flip_image->GetOutput());
+                writer->Update();
+
+                //This code is wrong! Giving weird result
                 typename TLabelImage::IndexType newRegionIndex = bbox_index;
                 newRegionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] +1;
+
                 typename TLabelImage::RegionType newRegion = permuted_region->GetLargestPossibleRegion();
-                newRegion.SetIndex(newRegionIndex) ;
+                newRegion.SetIndex(newRegionIndex);
 
                 ImageAlgorithm::Copy< TLabelImage, TLabelImage >( permuted_region.GetPointer(), interpolation.GetPointer(),
                                                                   permuted_region->GetLargestPossibleRegion(), newRegion);
+
+                writer->SetFileName("/Users/sravikumar/Downloads/debug_BWA_interpolatedimage.nii.gz");
+                writer->SetInput(this->GetInterpolation());
+                writer->Update();
 
                 // Copy probability map
                 typename PermuteAxesDoubleImageFilterType::Pointer permute_axes_double = PermuteAxesDoubleImageFilterType::New();
                 permute_axes_double->SetInput(pmap_segment);
                 typename PermuteAxesDoubleImageFilterType::PermuteOrderArrayType pmap_order;
-                pmap_order[0] = 2;
-                pmap_order[1] = 0;
-                pmap_order[2] = 1;
+                order[m_firstdirection] = 0;
+                order[m_seconddirection] = 1;
+                order[m_slicingaxis] = 2;
                 permute_axes_double->SetOrder( order );
 
                 typename FlipDoubleImageFilterType::Pointer flip_double_image = FlipDoubleImageFilterType::New();
                 flip_double_image->SetInput(permute_axes_double->GetOutput());
                 flip_double_image->SetFlipAxes(flipAxes);
                 flip_double_image->Update();
+
                 typename TMainImage::Pointer permuted_double_region = flip_double_image->GetOutput();
 
+                //Was permuted_double_region
                 typename TMainImage::IndexType newRegionIndex_double = bbox_index;
                 newRegionIndex_double[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] +1;
                 typename TMainImage::RegionType newRegion_double = permuted_double_region->GetLargestPossibleRegion();
@@ -759,14 +781,13 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                 flip_image->Update();
                 typename TLabelImageSliceType::Pointer permuted_region = flip_image->GetOutput();
 
-
+                //Somthing going wrong here with new region
                 typename TLabelImage::IndexType newRegionIndex = bbox_index;
                 newRegionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] + intermediate_slice;
-                typename TLabelImage::SizeType newRegionSize;
 
-                newRegionSize[0] = 1;
-                newRegionSize[1] = sourceDim[0];
-                newRegionSize[2] = sourceDim[1];
+                typename TLabelImage::SizeType newRegionSize = m_boundingbox.GetSize();
+                newRegionSize[m_slicingaxis] = 1;
+
                 typename TMainImage::RegionType newRegion;
                 newRegion.SetSize(newRegionSize);
                 newRegion.SetIndex(newRegionIndex);
@@ -775,7 +796,6 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                                                                            permuted_region->GetLargestPossibleRegion(), newRegion);
 
                 // Copy probability map
-
                 typename FlipDoubleSliceImageFilterType::Pointer flip_double_image = FlipDoubleSliceImageFilterType::New();
                 flip_double_image->SetInput(pmap_segment);
                 flip_double_image->SetFlipAxes(flipAxesSliceType);
@@ -785,10 +805,8 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                 typename TMainImage::IndexType newRegionIndex_double = bbox_index;
                 newRegionIndex_double[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] + intermediate_slice;
                 typename TMainImage::RegionType newRegion_double;
-                typename TMainImage::SizeType newRegionSize_double;
-                newRegionSize_double[0] = 1;
-                newRegionSize_double[1] = sourceDim[0];
-                newRegionSize_double[2] = sourceDim[1];
+                typename TMainImage::SizeType newRegionSize_double = m_boundingbox.GetSize();
+                newRegionSize_double[m_slicingaxis] = 1;
                 newRegion_double.SetSize(newRegionSize_double);
                 newRegion_double.SetIndex(newRegionIndex_double) ;
 
@@ -796,7 +814,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                                                                          permuted_double_region->GetLargestPossibleRegion(), newRegion_double);
             }
 
-        }
+        } // end of 'if segmented slices are not consecutive'
         else{
             continue;
         }

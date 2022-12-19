@@ -197,9 +197,10 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
 
     // Set up requested region
     typename TLabelImage::SizeType regionSize;
-    regionSize[0] = 1;
-    regionSize[1] = bbox_size[1];
-    regionSize[2] = bbox_size[2];
+
+
+     regionSize = bbox_size;
+     regionSize[m_slicingaxis] = 1;
 
     typename TLabelImage::IndexType bbox_index = m_boundingbox.GetIndex();
 
@@ -217,7 +218,7 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
             int intermediate_slice = numSlices/2;
 
             typename TLabelImage::IndexType regionIndex = bbox_index;
-            regionIndex[0] = bbox_index[0] + m_SegmentationIndices[i] + intermediate_slice; // took out -1
+            regionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] + intermediate_slice; // took out -1
 
             typename TLabelImage::RegionType slice_region(regionIndex, regionSize);
 
@@ -263,10 +264,11 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
 
     }
     else{
+
         //Loop through all the slices not contained in m_SegmentationIndices;
         std::vector<int> sliceRange;
         for( int i = 0; i < bbox_size[m_slicingaxis]; i++ )
-            sliceRange.push_back( i );
+            sliceRange.push_back(i);
 
         std::vector<int> noSegmentations;
 
@@ -277,10 +279,8 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
 
             int slice_index = noSegmentations[i];
 
-            typename TLabelImage::IndexType regionIndex;
-            regionIndex[0] = bbox_index[0] + slice_index; // took out -1
-            regionIndex[1] = bbox_index[1];
-            regionIndex[2] = bbox_index[2];
+            typename TLabelImage::IndexType regionIndex = bbox_index;
+            regionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + slice_index; // took out -1
 
             typename TLabelImage::RegionType slice_region(regionIndex, regionSize);
 

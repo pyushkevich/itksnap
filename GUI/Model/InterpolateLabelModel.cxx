@@ -191,7 +191,7 @@ void InterpolateLabelModel::Interpolate()
     bwa->Update();
 
     // Apply the labels back to the segmentation
-    SegmentationUpdateIterator it_trg(liw, liw->GetImage()->GetBufferedRegion(),
+    SegmentationUpdateIterator it_trg(liw, liw->GetBufferedRegion(),
                                       this->GetDrawingLabel(), this->GetDrawOverFilter());
 
     itk::ImageRegionConstIterator<ShortType>

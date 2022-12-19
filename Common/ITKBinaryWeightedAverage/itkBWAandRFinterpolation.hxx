@@ -9,6 +9,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkBWAandRFinterpolation.h"
 #include "ImageCollectionToImageFilter.h"
+#include "itkImageFileWriter.h"
 
 namespace itk
 {
@@ -247,8 +248,13 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
 
         ImageAlgorithm::Copy< TLabelImage, TLabelImage >( interpolated_region.GetPointer(), m_Output.GetPointer(),
                                                           bbox, bbox);
-
     }
+
+    using WriterType = itk::ImageFileWriter<TLabelImage>;
+    auto writer = WriterType::New();
+    writer->SetFileName("/Users/sravikumar/Downloads/debug_BWAoutputonly.nii.gz");
+    writer->SetInput(BWAfilter->GetInterpolation());
+    writer->Update();
 
     if(!m_ContourInformationOnly){ // Incorporate intensity information using random forests
 
@@ -285,6 +291,12 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
         randomForestClassifier->SetSlicingAxis(m_SlicingAxis);
         randomForestClassifier->Update();
 
+        using WriterType = itk::ImageFileWriter<ProbabilityType>;
+        auto writer = WriterType::New();
+        writer->SetFileName("/Users/sravikumar/Downloads/debug_RFoutput.nii.gz");
+        writer->SetInput(randomForestClassifier->GetOutput());
+        writer->Update();
+
         // Combine probability maps by taking the average
         typename AddImageFilterType::Pointer addProbabilityMaps = AddImageFilterType::New();
         addProbabilityMaps->SetInput1(BWAfilter->GetProbabilityMap());
@@ -320,7 +332,7 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
         }
 
         ImageAlgorithm::Copy< TLabelImage, TLabelImage >( interpolated_region.GetPointer(), m_Output.GetPointer(),
-                                                          bbox, bbox);
+                                                         bbox, bbox);
 
     }
 
@@ -333,29 +345,24 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
 {
 
     typename TLabelImage::ConstPointer SegmentationImage = this->GetSegmentationImage();
-
-    //DataObject *dataobj = this->ProcessObject::GetInput(0);
-
     typename TLabelImage::Pointer m_Output = this->GetInterpolation();
     this->AllocateOutputs();
 
     this->DetermineSliceOrientations();
 
-    if ( m_BoundingBoxes.size() == 0)
+    if ( m_BoundingBoxes.empty() )
     {
         ImageAlgorithm::Copy< TLabelImage, TLabelImage >( SegmentationImage.GetPointer(), m_Output.GetPointer(),
                                                           m_Output->GetRequestedRegion(), m_Output->GetRequestedRegion() );
         return; // no contours detected - no segmentations drawn
     }
 
-    typename TLabelImage::RegionType bbox;
-
     // If the user entered a slicing direction, check that it is a valid axis for interpolation
     if (m_UserAxis != -1)
         if (!(m_LabeledSlices[m_UserAxis].size() >= 1)) // If it is empty
             throw itk::ExceptionObject("Invalid axis selcted for interpolation");
 
-    // To dertemine slicing direcion,get the size of m_LabelledSlices along each axis
+    // To dertemine slicing direcion, get the size of m_LabelledSlices along each axis
     bool flag_slice = 0;
     for ( unsigned axis = 0; axis < TLabelImage::ImageDimension; axis++ ) // loop through axes
     {
@@ -371,13 +378,17 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
         }
     }
 
+    using WriterType = itk::ImageFileWriter<TLabelImage>;
+    auto writer = WriterType::New();
+
+    typename TLabelImage::RegionType bbox;
+
     // Interpolate along the detected slicing direction
     if (m_Label == 0){ // If all the labels need to be interpolated
 
         for ( typename LabeledSlicesType::iterator itS = m_LabeledSlices[m_SlicingAxis].begin();itS != m_LabeledSlices[m_SlicingAxis].end(); ++itS )
         {
             typename TLabelImage::PixelType label = itS->first;
-            std::cout << "label" << label << std::endl;
 
             //Determine the bounding box for the label of interest
             for ( typename BoundingBoxesType::iterator iBB = m_BoundingBoxes.begin();iBB != m_BoundingBoxes.end(); ++iBB )
@@ -387,7 +398,6 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
                     bbox = iBB->second;
                 }
             }
-
 
             //Iterate in the detected slicing direction and include any slice containing the label of interest
             // Added this since DetermineSlicingDirection doesn't always detect the correct slices
@@ -406,9 +416,8 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
             }
 
             std::copy(unique_slices.begin(), unique_slices.end(), inserter(m_SegmentationIndices, m_SegmentationIndices.begin()));
-            for (std::vector<int>::const_iterator s = m_SegmentationIndices.begin(); s != m_SegmentationIndices.end(); ++s)
-                std::cout << *s << ' ';
 
+             //Compute the interpolation
             this->InterpolateLabel(label, m_SegmentationIndices, bbox);
         }
     }
@@ -443,7 +452,9 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
             ++it;
         }
 
+        //Retain unique slice indices
         std::copy(unique_slices.begin(), unique_slices.end(), inserter(m_SegmentationIndices, m_SegmentationIndices.begin()));
+        for (std::vector<int>::const_iterator s = m_SegmentationIndices.begin(); s != m_SegmentationIndices.end(); ++s)
 
         this->InterpolateLabel(m_Label, m_SegmentationIndices, bbox);
     }
@@ -463,7 +474,7 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
             ++itO;
         }
     }
-    else {
+    else { // Same as whats in Morphological interpolation
         ImageRegionIterator< TLabelImage > itO( this->GetInterpolation(), this->GetInterpolation()->GetBufferedRegion() );
         ImageRegionConstIterator< TLabelImage > itI( this->GetSegmentationImage(), this->GetInterpolation()->GetBufferedRegion() );
         while ( !itI.IsAtEnd() )
