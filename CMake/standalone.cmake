@@ -43,6 +43,7 @@ FIND_PACKAGE(ITK 5.2.1 REQUIRED COMPONENTS
   ITKImageNoise
   ITKImageStatistics
   ITKLabelMap
+  ITKLabelVoting
   ITKLevelSets
   ITKMathematicalMorphology
   ITKMesh
