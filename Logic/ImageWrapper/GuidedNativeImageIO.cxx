@@ -618,13 +618,10 @@ GuidedNativeImageIO
 			for (unsigned int i = 0; i < 4; ++i)
 				m_IOBase->SetOrigin(i, 0.0);
 
-			// Set direction to LPS
-			for (unsigned int i = 0; i < 3; ++i)
-				{
-				std::vector<double> ecd_dir = {0.0, 0.0, 0.0, 0.0};
-				ecd_dir[i] = -1.0;
-				m_IOBase->SetDirection(i, ecd_dir);
-				}
+      // Set direction to LAS
+      m_IOBase->SetDirection(0, std::vector<double>{-1.0, 0.0, 0.0, 0.0}); // L
+      m_IOBase->SetDirection(1, std::vector<double>{0.0, 1.0, 0.0, 0.0});  // A
+      m_IOBase->SetDirection(2, std::vector<double>{0.0, 0.0, -1.0, 0.0}); // S
 			m_IOBase->SetDirection(3, std::vector<double>{0.0, 0.0, 0.0, 1.0});
 
 			std::vector<itk::ImageIOBase::SizeType> ecd_dim(4);
