@@ -85,6 +85,13 @@ public:
    */
   virtual itk::Object* GetUserData(const std::string &role) const;
 
+
+  virtual void RemoveUserData(const std::string &role)
+  {
+    if (m_UserDataMap.count(role))
+      m_UserDataMap.erase(role);
+  }
+
   /**
     Compute the image histogram. The histogram is cached inside of the
     object, so repeated calls to this function with the same nBins parameter

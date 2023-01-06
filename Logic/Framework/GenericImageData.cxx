@@ -710,7 +710,13 @@ void GenericImageData::RemoveImageWrapper(LayerRole role,
   WrapperIterator it =
       std::find(wrappers.begin(), wrappers.end(), wrapper);
   if(it != wrappers.end())
+    {
+    auto *volume = it->GetPointer()->GetUserData("volume");
+    if (volume)
+      it->GetPointer()->RemoveUserData("volume");
+
     wrappers.erase(it);
+    }
 
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
