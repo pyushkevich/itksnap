@@ -733,6 +733,7 @@ public:
   vtkSmartPointer<vtkVolumeProperty> Property;
   vtkSmartPointer<vtkPiecewiseFunction> OpacityCurve;
   vtkSmartPointer<vtkPiecewiseFunction> GradientCurve;
+  vtkSmartPointer<vtkRenderer> Renderer;
 
   // Update time on the curve
   itk::ModifiedTimeType CurveUpdateTime = 0;
@@ -740,7 +741,11 @@ public:
 
 protected:
   VolumeAssembly() {}
-  virtual ~VolumeAssembly() {}
+  virtual ~VolumeAssembly()
+  {
+    // Remove this from the renderer when owner gets unloaded to avoid seg fault
+    Renderer->RemoveViewProp(this->Volume);
+  }
 };
 
 void Generic3DRenderer::UpdateVolumeCurves(ImageWrapperBase *layer, VolumeAssembly *va)
@@ -856,6 +861,8 @@ void Generic3DRenderer::UpdateVolumeRendering()
       va->Volume = vtkSmartPointer<vtkVolume>::New();
       va->Volume->SetMapper(va->Mapper);
       va->Volume->SetProperty(va->Property);
+
+      va->Renderer = this->m_Renderer; // when image get removed, volume can remove itself
 
       this->m_Renderer->AddViewProp(va->Volume);
       layer->SetUserData("volume", va);
