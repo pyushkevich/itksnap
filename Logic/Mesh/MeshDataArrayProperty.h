@@ -21,20 +21,21 @@ struct MeshArrayComponent
 	MeshArrayComponent(const char *_name, double _min, double _max)
 		:m_Min(_min), m_Max(_max)
 	{
-		this->m_Name = new char[strlen(_name)];
-		strcpy(this->m_Name, _name);
+
+        this->m_Name = new char[strlen(_name) + 1];
+        strcpy(this->m_Name, _name);
 		this->m_IntensityCurve = IntensityCurveVTK::New();
 		this->m_IntensityCurve->Initialize(3);
 	}
 
 	~MeshArrayComponent()
 	{
-		delete[] m_Name;
+        delete[] m_Name;
 	}
 
 	MeshArrayComponent(const MeshArrayComponent &other)
 	{
-		this->m_Name = new char[strlen(other.m_Name)];
+        this->m_Name = new char[strlen(other.m_Name) + 1];
 		strcpy(this->m_Name, other.m_Name);
 		this->m_Min = other.m_Min;
 		this->m_Max = other.m_Max;
@@ -44,7 +45,7 @@ struct MeshArrayComponent
 
 	MeshArrayComponent &operator=(const MeshArrayComponent &other)
 	{
-		this->m_Name = new char[strlen(other.m_Name)];
+        this->m_Name = new char[strlen(other.m_Name) + 1];
 		strcpy(this->m_Name, other.m_Name);
 		this->m_Min = other.m_Min;
 		this->m_Max = other.m_Max;
