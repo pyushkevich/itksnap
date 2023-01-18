@@ -15,8 +15,7 @@ AbstractMeshDataArrayProperty()
 AbstractMeshDataArrayProperty::
 ~AbstractMeshDataArrayProperty()
 {
-	if (m_Name)
-		delete[] m_Name;
+  delete[] m_Name;
 }
 
 RegistryEnumMap<AbstractMeshDataArrayProperty::MeshDataType>
@@ -59,7 +58,7 @@ AbstractMeshDataArrayProperty::
 Initialize(vtkDataArray *array, MeshDataType type)
 {
   // Copy the array name to
-  m_Name = new char[strlen(array->GetName())];
+  m_Name = new char[strlen(array->GetName()) + 1];
 	strcpy(m_Name, array->GetName());
 
 	double *range = array->GetRange(-1);
@@ -179,7 +178,7 @@ void
 MeshLayerDataArrayProperty::
 Initialize(MeshDataArrayProperty *other)
 {
-  this->m_Name = new char[strlen(other->GetName())];
+  this->m_Name = new char[strlen(other->GetName()) + 1];
   strcpy(this->m_Name, other->GetName());
 	this->m_MagMin = other->GetMin(-1);
 	this->m_MagMax = other->GetMax(-1);
