@@ -975,12 +975,14 @@ template class ColorLabelTableDisplayMappingPolicy<LabelImageWrapperTraits>;
 template class LinearColorMapDisplayMappingPolicy<LevelSetImageWrapperTraits>;
 template class LinearColorMapDisplayMappingPolicy<SpeedImageWrapperTraits>;
 
-template class MultiChannelDisplayMappingPolicy<AnatomicImageWrapperTraits<GreyType> >;
+AnatomicImageWrapperTraitsInstantiateMacro(
+    MultiChannelDisplayMappingPolicy, false)
+
+AnatomicScalarImageWrapperTraitsInstantiateMacro(
+    CachingCurveAndColorMapDisplayMappingPolicy, false)
 
 template class CachingCurveAndColorMapDisplayMappingPolicy<
-    ComponentImageWrapperTraits<GreyType> >;
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    AnatomicScalarImageWrapperTraits<GreyType> >;
+    ComponentImageWrapperTraits<GreyType, false> >;
 template class CachingCurveAndColorMapDisplayMappingPolicy<
     VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> >;
 template class CachingCurveAndColorMapDisplayMappingPolicy<

@@ -509,38 +509,29 @@ ImageLayerTableRowModel::AutoAdjustContrast()
 void
 ImageLayerTableRowModel::GenerateTextureFeatures()
 {
-  ScalarImageWrapperBase *scalar = dynamic_cast<ScalarImageWrapperBase *>(m_Layer.GetPointer());
-  if(scalar)
+  ImageWrapperBase *iw = dynamic_cast<ImageWrapperBase *>(m_Layer.GetPointer());
+  if(iw && iw->GetNumberOfComponents() == 1)
     {
-    // Get the image out
-    SmartPtr<const ScalarImageWrapperBase::CommonFormatImageType> common_rep =
-        scalar->GetCommonFormatImage();
-
-    /*
-    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> texture_image =
-        ScalarImageWrapperBase::CommonFormatImageType::New();
-
-    texture_image->CopyInformation(common_rep);
-    texture_image->SetRegions(common_rep->GetBufferedRegion());
-    texture_image->Allocate();*/
+    // Cast the image to floating point
+    auto float_src = iw->CreateCastToFloatPipeline();
 
     // Create a radius - hard-coded for now
     itk::Size<3> radius; radius.Fill(2);
 
+    // The texture image should be floating point
+    typedef AnatomicImageWrapperTraits<float> TextureWrapperTraitsType;
+    typedef TextureWrapperTraitsType::ImageType TextureImageType;
+    typedef TextureWrapperTraitsType::Image4DType TextureImage4DType;
+    typedef TextureWrapperTraitsType::WrapperType TextureWrapperType;
+
     // Create a filter to generate textures
-    typedef AnatomicImageWrapperTraits<GreyType>::ImageType TextureImageType;
-    typedef AnatomicImageWrapperTraits<GreyType>::Image4DType TextureImage4DType;
     typedef bilwaj::MomentTextureFilter<
-        ScalarImageWrapperBase::CommonFormatImageType,
-        TextureImageType> MomentFilterType;
+        ImageWrapperBase::FloatImageType, TextureImageType> MomentFilterType;
 
     MomentFilterType::Pointer filter = MomentFilterType::New();
-    filter->SetInput(common_rep);
+    filter->SetInput(float_src->GetOutput());
     filter->SetRadius(radius);
     filter->SetHighestDegree(3);
-
-    // Create a new image wrapper
-    SmartPtr<AnatomicImageWrapper> newWrapper = AnatomicImageWrapper::New();
 
     // Up the image dimension
     typedef IncreaseDimensionImageFilter<TextureImageType, TextureImage4DType> UpDimFilter;
@@ -548,10 +539,11 @@ ImageLayerTableRowModel::GenerateTextureFeatures()
     updim->SetInput(filter->GetOutput());
     updim->Update();
 
-    newWrapper->InitializeToWrapper(m_ImageLayer, updim->GetOutput(), NULL, NULL);
+    // Create a new image wrapper
+    SmartPtr<TextureWrapperType> newWrapper = TextureWrapperType::New();
+    newWrapper->InitializeToWrapper(m_ImageLayer, updim->GetOutput());
     newWrapper->SetDefaultNickname("Textures");
-    this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(
-          m_ImageLayer, newWrapper, false);
+    this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(m_ImageLayer, newWrapper, false);
     }
 }
 

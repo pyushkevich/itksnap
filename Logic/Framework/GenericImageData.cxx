@@ -133,6 +133,82 @@ GenericImageData
 
 #include "itkIdentityTransform.h"
 
+class GenericImageDataWrapperCreator
+{
+public:
+  typedef GenericImageData::ImageBaseType ImageBaseType;
+  typedef GenericImageData::ITKTransformType ITKTransformType;
+  typedef SmartPtr<ImageBaseType> ImageBasePointer;
+  typedef SmartPtr<ImageWrapperBase> ImageWrapperBasePointer;
+
+  /** Non-templated method that takes parameters */
+  GenericImageDataWrapperCreator(GuidedNativeImageIO *io,
+                                 ImageBaseType *ref_space,
+                                 ITKTransformType *transform,
+                                 IRISDisplayGeometry *display_geometry)
+    : io(io), ref_space(ref_space), transform(transform), display_geometry(display_geometry) {}
+
+  /** Function that actually creates the wrapper */
+  template<typename TWrapperTraits, bool TLinearMapping> ImageWrapperBasePointer CreateFromTraits();
+  template<typename TComponent, bool TLinearMapping> ImageWrapperBasePointer Create();
+
+private:
+  GuidedNativeImageIO *io;
+  ImageBaseType *ref_space;
+  ITKTransformType *transform;
+  IRISDisplayGeometry *display_geometry;
+};
+
+template<typename TWrapperTraits, bool TLinearMapping>
+typename GenericImageDataWrapperCreator::ImageWrapperBasePointer
+GenericImageDataWrapperCreator::CreateFromTraits()
+{
+  // The output wrapper
+  SmartPtr<ImageWrapperBase> out_wrapper;
+
+  // The image will be cast to a vector anatomic image
+  typedef typename TWrapperTraits::WrapperType WrapperType;
+  typedef typename WrapperType::Image4DType Image4DType;
+
+  // Optionally rescale the image and cast to TComponent
+  RescaleNativeImageToIntegralType<Image4DType> rescaler;
+  typename Image4DType::Pointer image = rescaler(io);
+
+  // Create a main wrapper of fixed type.
+  SmartPtr<WrapperType> wrapper = WrapperType::New();
+
+  // Assign the image to the wrapper
+  wrapper->SetDisplayGeometry(*display_geometry);
+  wrapper->SetImage4D(image, ref_space, transform);
+
+  // Create a mapper to native intensity
+  if(TLinearMapping)
+    {
+    LinearInternalToNativeIntensityMapping mapper(
+          rescaler.GetNativeScale(), rescaler.GetNativeShift());
+    }
+
+  // Return the wrapper
+  return out_wrapper;
+}
+
+template<typename TComponent, bool TLinearMapping>
+typename GenericImageDataWrapperCreator::ImageWrapperBasePointer
+GenericImageDataWrapperCreator::Create()
+{
+  // Split depending on whether the image is scalar or vector
+  if(io->GetNumberOfComponentsInNativeImage() > 1)
+    {
+    typedef AnatomicImageWrapperTraits<TComponent, TLinearMapping> TraitsType;
+    return CreateFromTraits<TraitsType, TLinearMapping>();
+    }
+  else
+    {
+    typedef AnatomicScalarImageWrapperTraits<TComponent, TLinearMapping> TraitsType;
+    return CreateFromTraits<TraitsType, TLinearMapping>();
+    }
+}
+
 SmartPtr<ImageWrapperBase>
 GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformType *transform)
 {
@@ -142,59 +218,22 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformTyp
   // If the transform is not NULL, the reference space must be specified
   ImageBaseType *refSpace = (transform) ? this->GetMain()->GetImageBase() : NULL;
 
-  // Split depending on whether the image is scalar or vector
-  if(io->GetNumberOfComponentsInNativeImage() > 1)
+  // The object used to create the wrapper of correct type
+  GenericImageDataWrapperCreator c(io, refSpace, transform, &m_DisplayGeometry);
+
+  // Create the wrapper to match native type
+  switch(io->GetComponentTypeInNativeImage())
     {
-    // The image will be cast to a vector anatomic image
-    typedef AnatomicImageWrapper::Image4DType AnatomicImage4DType;
-
-    // Rescale the image to desired number of bits
-    RescaleNativeImageToIntegralType<AnatomicImage4DType> rescaler;
-    AnatomicImage4DType::Pointer image = rescaler(io);
-
-    // Create a mapper to native intensity
-    LinearInternalToNativeIntensityMapping mapper(
-          rescaler.GetNativeScale(), rescaler.GetNativeShift());
-
-    // Create a main wrapper of fixed type.
-    SmartPtr<AnatomicImageWrapper> wrapper = AnatomicImageWrapper::New();
-
-    // Set properties
-    wrapper->SetDisplayGeometry(m_DisplayGeometry);
-    wrapper->SetImage4D(image, refSpace, transform);
-    wrapper->SetNativeMapping(mapper);
-    for(int i = 0; i < 3; i++)
-      wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
-
-    out_wrapper = wrapper.GetPointer();
+    case itk::ImageIOBase::UCHAR:  out_wrapper = c.Create<unsigned char, false>();   break;
+    case itk::ImageIOBase::CHAR:   out_wrapper = c.Create<char, false>();            break;
+    case itk::ImageIOBase::USHORT: out_wrapper = c.Create<unsigned short, false>();  break;
+    case itk::ImageIOBase::SHORT:  out_wrapper = c.Create<short, false>();           break;
+    default: out_wrapper = c.Create<float, false>();                                 break;
     }
 
-  else
-    {
-    // Rescale the image to desired number of bits
-    typedef AnatomicScalarImageWrapper::Image4DType AnatomicImage4DType;
-
-    // Rescale the image to desired number of bits
-    RescaleNativeImageToIntegralType<AnatomicImage4DType> rescaler;
-    AnatomicImage4DType::Pointer image = rescaler(io);
-
-    // Create a mapper to native intensity
-    LinearInternalToNativeIntensityMapping mapper(
-          rescaler.GetNativeScale(), rescaler.GetNativeShift());
-
-    // Create a main wrapper of fixed type.
-    SmartPtr<AnatomicScalarImageWrapper> wrapper = AnatomicScalarImageWrapper::New();
-
-    // Set properties
-    wrapper->SetDisplayGeometry(m_DisplayGeometry);
-    wrapper->SetImage4D(image, refSpace, transform);
-    wrapper->SetNativeMapping(mapper);
-
-    for(int i = 0; i < 3; i++)
-      wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
-
-    out_wrapper = wrapper.GetPointer();
-    }
+  // Additional configuration for the wrapper
+  for(int i = 0; i < 3; i++)
+    out_wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
 
   // Create an image coordinate geometry object
   return out_wrapper;
@@ -800,4 +839,5 @@ GenericImageData::GetMeshLayers()
 {
   return m_MeshLayers;
 }
+
 

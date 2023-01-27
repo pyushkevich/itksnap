@@ -42,6 +42,7 @@
 template<class TIn> class ThreadedHistogramImageFilter;
 namespace itk {
   template<class TIn> class MinimumMaximumImageFilter;
+  class VTKImageExportBase;
   template<class TInputImage> class VTKImageExport;
   template<class TOut> class ImageSource;
 }
@@ -57,45 +58,29 @@ class vtkImageImport;
  * is used to unify the treatment of different kinds of scalar images in
  * SNaP.  
  */
-template<class TTraits, class TBase = ScalarImageWrapperBase>
-class ScalarImageWrapper : public ImageWrapper<TTraits, TBase>
+template<class TTraits>
+class ScalarImageWrapper : public ImageWrapper<TTraits>
 {
 public:
 
   // Standard ITK business
-  typedef ScalarImageWrapper<TTraits, TBase>                              Self;
-  typedef ImageWrapper<TTraits, TBase>                              Superclass;
+  typedef ScalarImageWrapper<TTraits>                                     Self;
+  typedef ImageWrapper<TTraits>                                     Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(ScalarImageWrapper, ImageWrapper)
   itkNewMacro(Self)
-
 
   // Image Types
   typedef typename Superclass::ImageBaseType                     ImageBaseType;
   typedef typename Superclass::ImageType                             ImageType;
   typedef typename Superclass::ImagePointer                       ImagePointer;
   typedef typename Superclass::PixelType                             PixelType;
-  typedef typename Superclass::CommonFormatImageType     CommonFormatImageType;
   typedef typename Superclass::PreviewImageType               PreviewImageType;
 
   // 4D Image types
   typedef typename Superclass::Image4DType                         Image4DType;
   typedef typename Superclass::Image4DPointer                   Image4DPointer;
-
-  // Floating point image type
-  typedef itk::Image<float, 3>                                  FloatImageType;
-  typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
-
-  // Double precision floating point image type
-  typedef itk::Image<double, 3>                                DoubleImageType;
-  typedef itk::ImageSource<DoubleImageType>                  DoubleImageSource;
-
-  // Vector image types
-  typedef itk::VectorImage<float, 3>                      FloatVectorImageType;
-  typedef itk::ImageSource<FloatVectorImageType>        FloatVectorImageSource;
-  typedef itk::VectorImage<double, 3>                    DoubleVectorImageType;
-  typedef itk::ImageSource<DoubleVectorImageType>      DoubleVectorImageSource;
 
   // Slice image type
   typedef typename Superclass::SliceType                             SliceType;
@@ -116,7 +101,7 @@ public:
   typedef ThreadedHistogramImageFilter<Image4DType>        HistogramFilterType;
 
   // VTK Exporter
-  typedef itk::VTKImageExport<CommonFormatImageType>             VTKExportType;
+  // typedef itk::VTKImageExport<CommonFormatImageType>             VTKExportType;
 
   // Iterator types
   typedef typename Superclass::Iterator                               Iterator;
@@ -207,36 +192,14 @@ public:
     */
   double GetImageGradientMagnitudeUpperLimitNative() ITK_OVERRIDE;
 
-
-  /**
-    This method creates an ITK mini-pipeline that can be used to cast the internal
-    image to a floating point image. The ownership of the mini-pipeline is passed
-    to the caller of this method. This method should be used with caution, since
-    there is potential to create duplicates of the internally stored image without
-    need. The best practice is to use this method with filters that only access a
-    portion of the casted image at a time, such as streaming filters.
-
-    When you call Update() on the returned mini-pipeline, the data will be cast to
-    floating point, and if necessary, converted to the native intensity range.
-    */
-  SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const ITK_OVERRIDE;
-
-  /** Same as above, but casts to double. For compatibility with C3D, until we
-   * safely switch C3D to use float instead of double */
-  SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const ITK_OVERRIDE;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const ITK_OVERRIDE;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const ITK_OVERRIDE;
-
   /**
    * Get an image cast to a common representation.
    * @see ScalarImageWrapperBase::GetCommonFormatImage()
    */
+  /*
   const CommonFormatImageType* GetCommonFormatImage(
       ExportChannel channel = ScalarImageWrapperBase::WHOLE_IMAGE) ITK_OVERRIDE;
+      */
 
   /** Return the intensity curve for this layer if it exists */
   virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE;
@@ -244,8 +207,16 @@ public:
   /** Return the color map for this layer if it exists */
   virtual ColorMap *GetColorMap() const ITK_OVERRIDE;
 
-  /** Get a version of this image that is usable in VTK pipelines */
-  vtkImageImport *GetVTKImporter() ITK_OVERRIDE;
+  /** A data type representing a pipeline for exporting to VTK */
+  typedef ScalarImageWrapperBase::VTKImporterMiniPipeline VTKImporterMiniPipeline;
+
+  /**
+   * Create a mini-pipeline that can be used to import the image to VTK. Like
+   * other pipelines created with Create..., this is meant for temporary use
+   * since the pipeline may have to allocate large amounts of memory and we'
+   * don't want this memory lingering around when it is not used
+   */
+  VTKImporterMiniPipeline CreateVTKImporterPipeline() const ITK_OVERRIDE;
 
   /** Extends parent method */
   virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
@@ -288,9 +259,6 @@ protected:
 
   /** The intensity scaling factor */
   double m_ImageScaleFactor;
-
-  SmartPtr<VTKExportType> m_VTKExporter;
-  vtkSmartPointer<vtkImageImport> m_VTKImporter;
 
   // Volume rendering state
   bool m_VolumeRenderingEnabled = false;

@@ -57,6 +57,7 @@
 #include <itkIdentityTransform.h>
 #include <itkFlipImageFilter.h>
 #include <itkUnaryFunctorImageFilter.h>
+#include "UnaryFunctorVectorImageFilter.h"
 #include "ImageWrapperTraits.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
@@ -69,11 +70,12 @@
 #include "UnaryValueToValueFilter.h"
 #include "ScalarImageHistogram.h"
 #include "GuidedNativeImageIO.h"
-#include "itkTransform.h"
+#include "itkMatrixOffsetTransformBase.h"
 #include "itkExtractImageFilter.h"
 #include "AffineTransformHelper.h"
 #include "InputSelectionImageFilter.h"
 #include "MetaDataAccess.h"
+#include "itkCastImageFilter.h"
 
 #include <vnl/vnl_inverse.h>
 #include <iostream>
@@ -375,6 +377,7 @@ public:
     image_4d->SetPixelContainer(container);
   }
 
+
   /*
   template <class TPixel>
   static void UpdateImportPointer(Image4DType *image_4d,
@@ -470,6 +473,11 @@ public:
   typedef typename ImageType::PixelType PixelType;
   typedef ImageWrapperPartialSpecializationTraitsCommon<ImageType,Image4DType> Superclass;
 
+  typedef itk::Image<float, 3> FloatImageType;
+  typedef itk::ImageSource<FloatImageType> FloatImageSource;
+  typedef itk::VectorImage<float, 3> FloatVectorImageType;
+  typedef itk::ImageSource<FloatVectorImageType> FloatVectorImageSource;
+
   static void FillBuffer(ImageType *image, PixelType p)
   {
     image->FillBuffer(p);
@@ -509,7 +517,6 @@ public:
 
     return Superclass::template DeepCopyImageRegion<Interpolator>(image,refspace,transform,interp,roi,force_resampling,progressCommand);
   }
-
 };
 
 
@@ -826,8 +833,8 @@ struct ImageWrapperPixelPartialSpecializationTraits< itk::VariableLengthVector<T
 /* ================================================================================
  * IMAGE WRAPPER IMPLEMENTATION BEGINS
  * ================================================================================ */
-template<class TTraits, class TBase>
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+ImageWrapper<TTraits>
 ::ImageWrapper()
 {
   // Set initial state
@@ -856,16 +863,16 @@ ImageWrapper<TTraits,TBase>
   this->UpdateImageGeometry();
 }
 
-template<class TTraits, class TBase>
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+ImageWrapper<TTraits>
 ::~ImageWrapper()
 {
   Reset();
   delete m_IOHints;
 }
 
-template<class TTraits, class TBase>
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+ImageWrapper<TTraits>
 ::ImageWrapper(const Self &copy)
   : ImageWrapper()
 {
@@ -884,17 +891,17 @@ ImageWrapper<TTraits,TBase>
   *m_IOHints = copy.GetIOHints();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 const ImageCoordinateTransform *
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::GetImageToDisplayTransform(unsigned int iSlice) const
 {
   return m_ImageGeometry->GetImageToDisplayTransform(iSlice);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
   // Set the display geometry
@@ -904,9 +911,9 @@ ImageWrapper<TTraits,TBase>
   this->UpdateImageGeometry();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SetDirectionMatrix(const vnl_matrix<double> &direction)
 {
   // Update the direction matrix in the image
@@ -920,9 +927,9 @@ ImageWrapper<TTraits,TBase>
   this->UpdateImageGeometry();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::CopyImageCoordinateTransform(const ImageWrapperBase *source)
 {
   // Better have the image!
@@ -950,27 +957,27 @@ ImageWrapper<TTraits,TBase>
   this->UpdateImageGeometry();
 }
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::ImageBaseType *
-ImageWrapper<TTraits, TBase>
+template<class TTraits>
+typename ImageWrapper<TTraits>::ImageBaseType *
+ImageWrapper<TTraits>
 ::GetImageBase() const
 {
   m_TimePointSelectFilter->Update();
   return m_Image;
 }
 
-template<class TTraits, class TBase>
-const typename ImageWrapper<TTraits,TBase>::ImageType *
-ImageWrapper<TTraits, TBase>
+template<class TTraits>
+const typename ImageWrapper<TTraits>::ImageType *
+ImageWrapper<TTraits>
 ::GetImage() const
 {
   m_TimePointSelectFilter->Update();
   return m_Image;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 Vector3ui
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::GetSize() const
 {
   // Cast the size to our vector format
@@ -981,9 +988,9 @@ ImageWrapper<TTraits,TBase>
         (unsigned int) size[2]);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 bool
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::IsDrawable() const
 {
   // If not initialized, the layer is not drawable
@@ -1004,26 +1011,26 @@ ImageWrapper<TTraits,TBase>
 }
 
 
-template<class TTraits, class TBase>
+template<class TTraits>
 itk::ImageRegion<3>
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::GetBufferedRegion() const
 {
   return m_ImageBase->GetBufferedRegion();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 size_t
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::GetNumberOfVoxels() const
 {
   return m_ImageBase->GetBufferedRegion().GetNumberOfPixels();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 Vector3d
-ImageWrapper<TTraits,TBase>
-::TransformVoxelCIndexToPosition(const Vector3d &iVoxel) const
+ImageWrapper<TTraits>
+::TransformVoxelCIndexToLPSCoordinates(const Vector3d &iVoxel) const
 {
   // Use the ITK method to do this
   itk::ContinuousIndex<double, 3> xIndex;
@@ -1035,10 +1042,10 @@ ImageWrapper<TTraits,TBase>
   return Vector3d(xPoint);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 Vector3d
-ImageWrapper<TTraits,TBase>
-::TransformVoxelIndexToPosition(const Vector3i &iVoxel) const
+ImageWrapper<TTraits>
+::TransformVoxelIndexToLPSCoordinates(const Vector3i &iVoxel) const
 {
   // Use the ITK method to do this
   typename ImageBaseType::IndexType xIndex = to_itkIndex(iVoxel);
@@ -1049,10 +1056,10 @@ ImageWrapper<TTraits,TBase>
   return Vector3d(xPoint);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 Vector3d
-ImageWrapper<TTraits,TBase>
-::TransformPositionToVoxelCIndex(const Vector3d &vLPS) const
+ImageWrapper<TTraits>
+::TransformLPSCoordinatesToVoxelCIndex(const Vector3d &vLPS) const
 {
   itk::Point<double, 3> xPoint;
   for(size_t d = 0; d < 3; d++) xPoint[d] = vLPS[d];
@@ -1065,10 +1072,10 @@ ImageWrapper<TTraits,TBase>
   return Vector3d(xIndex);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 Vector3i
-ImageWrapper<TTraits,TBase>
-::TransformPositionToVoxelIndex(const Vector3d &vLPS) const
+ImageWrapper<TTraits>
+::TransformLPSCoordinatesToVoxelIndex(const Vector3d &vLPS) const
 {
   itk::Point<double, 3> xPoint;
   for(size_t d = 0; d < 3; d++) xPoint[d] = vLPS[d];
@@ -1081,9 +1088,9 @@ ImageWrapper<TTraits,TBase>
   return Vector3i(xIndex);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 Vector3d
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::TransformVoxelCIndexToNIFTICoordinates(const Vector3d &iVoxel) const
 {
   // Create homogeneous vector
@@ -1099,9 +1106,9 @@ ImageWrapper<TTraits,TBase>
   return Vector3d(p[0], p[1], p[2]);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 Vector3d
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const
 {
   // Create homogeneous vector
@@ -1117,9 +1124,9 @@ ImageWrapper<TTraits,TBase>
   return Vector3d(p[0], p[1], p[2]);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::TransformReferenceIndexToWrappedImageContinuousIndex(
     const IndexType &ref_index, itk::ContinuousIndex<double, 3> &img_index) const
 {
@@ -1156,17 +1163,17 @@ ImageWrapper<TTraits, TBase>
     }
 }
 
-template<class TTraits, class TBase>
-bool ImageWrapper<TTraits, TBase>
+template<class TTraits>
+bool ImageWrapper<TTraits>
 ::ImageSpaceMatchesReferenceSpace() const
 {
   return m_ImageSpaceMatchesReferenceSpace;
 }
 
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::PrintDebugInformation()
 {
   std::cout << "=== Image Properties ===" << std::endl;
@@ -1178,9 +1185,9 @@ ImageWrapper<TTraits,TBase>
 }
 
 
-template<class TTraits, class TBase>
+template<class TTraits>
 bool
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::CompareGeometry(
     ImageBaseType *image1,
     ImageBaseType *image2,
@@ -1212,9 +1219,9 @@ ImageWrapper<TTraits,TBase>
   return same_size && same_space;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 bool
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::CanOrthogonalSlicingBeUsed(
     ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
@@ -1233,9 +1240,9 @@ ImageWrapper<TTraits,TBase>
   return same_geom && is_identity;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::UpdateWrappedImages(
     Image4DType *image_4d,
     ImageBaseType *referenceSpace,
@@ -1302,35 +1309,54 @@ ImageWrapper<TTraits,TBase>
   m_Initialized = true;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
-::InitializeToWrapper(const ImageWrapperBase *source,
-                      Image4DType *image_4d,
-                      ImageBaseType *refSpace,
-                      ITKTransformType *tran)
+ImageWrapper<TTraits>
+::InitializeToWrapper(const ImageWrapperBase *source, Image4DType *image_4d,
+                      ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   // Update the display geometry from the source wrapper
   m_DisplayGeometry = source->GetDisplayGeometry();
 
   // Call the common update method
-  UpdateWrappedImages(image_4d, refSpace, tran);
+  UpdateWrappedImages(image_4d, referenceSpace, transform);
 
   // Update the slice index
   SetSliceIndex(source->GetSliceIndex());
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
+void
+ImageWrapper<TTraits>
+::InitializeToWrapper(const ImageWrapperBase *source, Image4DType *image_4d)
+{
+  // Create a copy of the transform if it exists
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
+  const AffineTransform *src_tran =
+      dynamic_cast<const AffineTransform *>(source->GetITKTransform());
+  SmartPtr<AffineTransform> tran = nullptr;
+  if(src_tran)
+    {
+    tran = AffineTransform::New();
+    tran->SetMatrix(src_tran->GetMatrix());
+    tran->SetOffset(src_tran->GetOffset());
+    }
+
+  // Call the common update method
+  this->InitializeToWrapper(source, image_4d, source->GetReferenceSpace(), tran);
+}
+
+template<class TTraits>
 bool
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::IsSlicingOrthogonal() const
 {
   return m_Slicers[0]->GetUseOrthogonalSlicing();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::InitializeToWrapper(const ImageWrapperBase *source, const PixelType &value)
 {
   typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
@@ -1359,25 +1385,25 @@ ImageWrapper<TTraits,TBase>
   SetTimePointIndex(source->GetTimePointIndex());
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SetImage4D(Image4DType *image_4d)
 {
   UpdateWrappedImages(image_4d);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SetImage4D(Image4DType *image_4d, ImageBaseType *refSpace, ITKTransformType *transform)
 {
   UpdateWrappedImages(image_4d, refSpace, transform);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::UpdateTimePoint(ImageType *image, int time_point)
 {
   itkAssertOrThrowMacro(
@@ -1408,15 +1434,15 @@ ImageWrapper<TTraits,TBase>
   PixelsModified();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SetITKTransform(ImageBaseType *refSpace, ITKTransformType *transform)
 {
   // If nullptr passed as the reference space, make the reference be the image itself
   if(!refSpace)
     {
-    refSpace = m_ImageBase.GetPointer();
+    refSpace = m_ImageBase;
     }
 
   // If the transform is nullptr, set it to identity
@@ -1472,25 +1498,25 @@ ImageWrapper<TTraits,TBase>
   this->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
-template<class TTraits, class TBase>
-const typename ImageWrapper<TTraits,TBase>::ITKTransformType *
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+const typename ImageWrapper<TTraits>::ITKTransformType *
+ImageWrapper<TTraits>
 ::GetITKTransform() const
 {
   return m_Slicers[0]->GetObliqueTransform();
 }
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::ImageBaseType *
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+typename ImageWrapper<TTraits>::ImageBaseType *
+ImageWrapper<TTraits>
 ::GetReferenceSpace() const
 {
   return m_ReferenceSpace;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void 
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::Reset()
 {
   if (m_Initialized)
@@ -1508,17 +1534,17 @@ ImageWrapper<TTraits,TBase>
 }
 
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::SetVoxel(const Vector3ui &index, const PixelType &value)
 {
   this->SetVoxel(to_itkIndex(index), value);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SetVoxel(const itk::Index<3> &index, const PixelType &value)
 {
   // Verify that the pixel is contained by the image at debug time
@@ -1533,9 +1559,9 @@ ImageWrapper<TTraits,TBase>
   m_Image4D->Modified();
 }
 
-template<class TTraits, class TBase>
-inline typename ImageWrapper<TTraits,TBase>::PixelType
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+inline typename ImageWrapper<TTraits>::PixelType
+ImageWrapper<TTraits>
 ::GetVoxel(const itk::Index<3> &index, int time_point) const
 {
   itkAssertOrThrowMacro(
@@ -1550,9 +1576,9 @@ ImageWrapper<TTraits,TBase>
 }
 
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SampleIntensityAtReferenceIndex(
     const itk::Index<3> &index, int time_point,
     bool map_to_native, vnl_vector<double> &out) const
@@ -1584,9 +1610,9 @@ ImageWrapper<TTraits,TBase>
 }
 
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SampleIntensityAtReferenceIndexInternal(
     const itk::Index<3> &index, unsigned int tp_begin, unsigned int tp_end) const
 {
@@ -1650,26 +1676,26 @@ ImageWrapper<TTraits,TBase>
       iw.ProcessVoxel(cidx.GetDataPointer(), false, &arr);
       }
     }
-}
+  }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::SetNativeMapping(NativeIntensityMapping nim)
 {
   m_NativeMapping = nim;
 }
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::SlicerType *
-ImageWrapper<TTraits,TBase>::GetSlicer(unsigned int iDirection) const
+template<class TTraits>
+typename ImageWrapper<TTraits>::SlicerType *
+ImageWrapper<TTraits>::GetSlicer(unsigned int iDirection) const
 {
   return m_Slicers[iDirection];
 }
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::ConstIterator
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+typename ImageWrapper<TTraits>::ConstIterator
+ImageWrapper<TTraits>
 ::GetImageConstIterator() const
 {
   ConstIterator it(m_Image,m_Image->GetLargestPossibleRegion());
@@ -1677,9 +1703,9 @@ ImageWrapper<TTraits,TBase>
   return it;
 }
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::Iterator
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+typename ImageWrapper<TTraits>::Iterator
+ImageWrapper<TTraits>
 ::GetImageIterator()
 {
   Iterator it(m_Image,m_Image->GetLargestPossibleRegion());
@@ -1687,9 +1713,9 @@ ImageWrapper<TTraits,TBase>
   return it;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SetSliceIndex(const IndexType &cursor)
 {
   // Save the cursor position
@@ -1700,9 +1726,9 @@ ImageWrapper<TTraits,TBase>
     m_Slicers[i]->SetSliceIndex(cursor);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SetTimePointIndex(unsigned int index)
 {
   itkAssertOrThrowMacro(
@@ -1720,9 +1746,9 @@ ImageWrapper<TTraits,TBase>
     }
 }
 
-template<class TTraits, class TBase>
-const typename ImageWrapper<TTraits, TBase>::ImagePointer
-ImageWrapper<TTraits, TBase>::GetImageByTimePoint(unsigned int timepoint) const
+template<class TTraits>
+const typename ImageWrapper<TTraits>::ImagePointer
+ImageWrapper<TTraits>::GetImageByTimePoint(unsigned int timepoint) const
 {
   itkAssertOrThrowMacro(
         timepoint < m_ImageTimePoints.size(),
@@ -1731,27 +1757,27 @@ ImageWrapper<TTraits, TBase>::GetImageByTimePoint(unsigned int timepoint) const
   return m_ImageTimePoints[timepoint];
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SetDisplayViewportGeometry(unsigned int index,
     const ImageBaseType *viewport_image)
 {
   m_Slicers[index]->SetObliqueReferenceImage(viewport_image);
 }
 
-template<class TTraits, class TBase>
-const typename ImageWrapper<TTraits,TBase>::ImageBaseType*
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+const typename ImageWrapper<TTraits>::ImageBaseType*
+ImageWrapper<TTraits>
 ::GetDisplayViewportGeometry(unsigned int index) const
 {
   return m_Slicers[index]->GetObliqueReferenceImage();
 }
 
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::UpdateImageGeometry()
 {
   // This method updates the internally stored image geometry object and
@@ -1797,9 +1823,9 @@ ImageWrapper<TTraits,TBase>
     }
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::UpdateNiftiTransforms()
 {
   itkAssertOrThrowMacro(
@@ -1816,9 +1842,9 @@ ImageWrapper<TTraits,TBase>
   m_NiftiInvSform = vnl_inverse(m_NiftiSform);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::PixelsModified()
 {
   // Update the 4D image
@@ -1830,8 +1856,8 @@ ImageWrapper<TTraits, TBase>
   m_ImageTimePoints[m_TimePointIndex]->Modified();
   }
 
-template<class TTraits, class TBase>
-void ImageWrapper<TTraits, TBase>
+template<class TTraits>
+void ImageWrapper<TTraits>
 ::SetPixelContainer(typename ImageType::PixelContainer *container)
 {
   itkAssertOrThrowMacro(
@@ -1847,36 +1873,36 @@ void ImageWrapper<TTraits, TBase>
   this->PixelsModified();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 inline double
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::GetImageMinAsDouble()
 {
   const_cast<ComponentTypeObject *>(this->GetImageMinObject())->Update();
   return static_cast<double>(this->GetImageMinObject()->Get());
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 inline double
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::GetImageMaxAsDouble()
 {
   const_cast<ComponentTypeObject *>(this->GetImageMaxObject())->Update();
   return static_cast<double>(this->GetImageMaxObject()->Get());
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 inline double
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::GetImageMinNative()
 {
   const_cast<ComponentTypeObject *>(this->GetImageMinObject())->Update();
   return m_NativeMapping(this->GetImageMinObject()->Get());
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 inline double
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::GetImageMaxNative()
 {
   const_cast<ComponentTypeObject *>(this->GetImageMaxObject())->Update();
@@ -1884,9 +1910,9 @@ ImageWrapper<TTraits,TBase>
 }
 
 /** For each slicer, find out which image dimension does is slice along */
-template<class TTraits, class TBase>
+template<class TTraits>
 unsigned int
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::GetDisplaySliceImageAxis(unsigned int iSlice)
 {
   // TODO: this is wasteful computing inverse for something that should be cached
@@ -1896,18 +1922,18 @@ ImageWrapper<TTraits,TBase>
   return traninv->GetCoordinateIndexZeroBased(2);
 }
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::SliceType*
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+typename ImageWrapper<TTraits>::SliceType*
+ImageWrapper<TTraits>
 ::GetSlice(unsigned int dimension)
 {
   return m_Slicers[dimension]->GetOutput();
 }
 
 // TODO: this should take advantage of an in-place filter!
-template<class TTraits, class TBase>
+template<class TTraits>
 unsigned int
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::ReplaceIntensity(PixelType iOld, PixelType iNew)
 {
   // Counter for the number of replaced voxels
@@ -1929,9 +1955,9 @@ ImageWrapper<TTraits,TBase>
   return nReplaced;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 unsigned int
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::SwapIntensities(PixelType iFirst, PixelType iSecond)
 {
   // Counter for the number of replaced voxels
@@ -1961,16 +1987,16 @@ ImageWrapper<TTraits,TBase>
   return nReplaced;
 }
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::DisplaySlicePointer
-ImageWrapper<TTraits,TBase>::GetDisplaySlice(unsigned int dim)
+template<class TTraits>
+typename ImageWrapper<TTraits>::DisplaySlicePointer
+ImageWrapper<TTraits>::GetDisplaySlice(unsigned int dim)
 {
   return m_DisplayMapping->GetDisplaySlice(dim);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::SetFileName(const std::string &name)
 {
   m_FileName = name;
@@ -1979,9 +2005,9 @@ ImageWrapper<TTraits, TBase>
   this->InvokeEvent(WrapperMetadataChangeEvent());
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 const std::string &
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::GetNickname() const
 {
   if(m_CustomNickname.length())
@@ -1993,9 +2019,9 @@ ImageWrapper<TTraits, TBase>
   else return m_DefaultNickname;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::SetCustomNickname(const std::string &nickname)
 {
   // Make sure the nickname is real
@@ -2007,25 +2033,25 @@ ImageWrapper<TTraits, TBase>
   this->InvokeEvent(WrapperMetadataChangeEvent());
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 const Registry &
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::GetIOHints() const
 {
   return *this->m_IOHints;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::SetIOHints(const Registry &io_hints)
 {
   *this->m_IOHints = io_hints;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::WriteToFileInInternalFormat(const char *filename, Registry &hints)
 {
   typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
@@ -2037,10 +2063,9 @@ ImageWrapper<TTraits,TBase>
     Specialization::Write(m_Image, filename, hints);
 }
 
-
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::WriteToFile(const char *filename, Registry &hints)
 {
   // What kind of mapping are we using
@@ -2064,20 +2089,19 @@ ImageWrapper<TTraits,TBase>
       m_ImageSaveTime = img->GetTimeStamp();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::WriteCurrentTPImageToFile(const char *filename)
 {
   typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
   Registry reg;
   Specialization::Write(m_Image, filename, reg);
-}
+  }
 
-
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::AttachPreviewPipeline(
     PreviewFilterType *f0, PreviewFilterType *f1, PreviewFilterType *f2)
 {
@@ -2101,9 +2125,9 @@ ImageWrapper<TTraits,TBase>
   m_ImageAssignTime = m_Image->GetTimeStamp();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::DetachPreviewPipeline()
 {
   // Preview pipelines are not supported for image wrappers containing 4D images
@@ -2117,9 +2141,9 @@ ImageWrapper<TTraits,TBase>
     }
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 bool
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::IsPreviewPipelineAttached() const
 {
   // Preview pipelines are not supported for image wrappers containing 4D images
@@ -2141,9 +2165,9 @@ struct RemoveTransparencyFunctor
   }
 };
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::DisplaySlicePointer
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+typename ImageWrapper<TTraits>::DisplaySlicePointer
+ImageWrapper<TTraits>
 ::MakeThumbnail(unsigned int maxdim)
 {
   // For images with extreme aspect ratios (greater than 1:2) we
@@ -2242,9 +2266,9 @@ ImageWrapper<TTraits,TBase>
   return result;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::WriteMetaData(Registry &reg)
 {
   // Save the display mapping
@@ -2257,9 +2281,9 @@ ImageWrapper<TTraits,TBase>
   reg["Tags"].PutList(m_Tags);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::ReadMetaData(Registry &reg)
 {
   // Load the display mapping
@@ -2272,17 +2296,17 @@ ImageWrapper<TTraits,TBase>
   reg["Tags"].GetList(m_Tags);
 }
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::MetaDataAccessType
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+typename ImageWrapper<TTraits>::MetaDataAccessType
+ImageWrapper<TTraits>
 ::GetMetaDataAccess()
 {
   return MetaDataAccessType(m_Image4D);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 bool
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::HasUnsavedChanges() const
 {
   // Check each of the timepoint images
@@ -2294,9 +2318,9 @@ ImageWrapper<TTraits,TBase>
   return m_Image4D->GetTimeStamp() > m_ImageSaveTime;
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ImageWrapper<TTraits, TBase>
+ImageWrapper<TTraits>
 ::SetSourceNativeMapping(double scale, double shift)
 {
   typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
@@ -2305,9 +2329,9 @@ ImageWrapper<TTraits, TBase>
     Specialization::ConfigureTimePointImageFromImage4D(m_Image4D, m_ImageTimePoints[j], j);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 SmartPtr<ImageWrapperBase>
-ImageWrapper<TTraits,TBase>
+ImageWrapper<TTraits>
 ::ExtractROI(const SNAPSegmentationROISettings &roi,
              itk::Command *progressCommand) const
 {
@@ -2372,9 +2396,9 @@ ImageWrapper<TTraits,TBase>
 }
 
 
-template<class TTraits, class TBase>
-typename ImageWrapper<TTraits,TBase>::ImagePointer
-ImageWrapper<TTraits,TBase>
+template<class TTraits>
+typename ImageWrapper<TTraits>::ImagePointer
+ImageWrapper<TTraits>
 ::DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                  itk::Command *progressCommand) const
 {
@@ -2391,29 +2415,208 @@ ImageWrapper<TTraits,TBase>
         force_resampling, progressCommand);
 }
 
+/*
+ * The following chunks of code deal with setting up pipelines that cast the internal
+ * image to floating point or other type
+ */
+template <unsigned int VDim, class TInputImage, class TOutputComponent, class TNativeMapping>
+class CreateCastToTargetTypePipelinePartialSpecializationTraits
+{
+public:
+  typedef itk::Image<TOutputComponent, VDim> TargetTypeImageType;
+  typedef itk::ImageSource<TargetTypeImageType> TargetTypeImageSource;
+  typedef itk::VectorImage<TOutputComponent, VDim> TargetTypeVectorImageType;
+  typedef itk::ImageSource<TargetTypeVectorImageType> TargetTypeVectorImageSource;
+
+  static typename TargetTypeImageSource::Pointer CreateScalarPipeline(
+      TInputImage *img, TNativeMapping native_mapping)
+    {
+    if(native_mapping.IsAlwaysIdentity())
+      {
+      // We can use an in-place cast filter, which makes sure that if the internal image
+      // is already the target type, then no memory allocation and iteration is done
+      typedef itk::CastImageFilter<TInputImage, TargetTypeImageType> CastFilter;
+      typename CastFilter::Pointer filter = CastFilter::New();
+      filter->SetInput(img);
+      filter->SetInPlace(true);
+
+      SmartPtr<TargetTypeImageSource> output = filter.GetPointer();
+      return output;
+      }
+    else
+      {
+      typedef itk::UnaryFunctorImageFilter<TInputImage, TargetTypeImageType, TNativeMapping> FilterType;
+      SmartPtr<FilterType> filter = FilterType::New();
+      filter->SetInput(img);
+      filter->SetFunctor(native_mapping);
+
+      SmartPtr<TargetTypeImageSource> output = filter.GetPointer();
+      return output;
+      }
+    }
+
+  static typename TargetTypeVectorImageSource::Pointer CreateVectorPipeline(
+      TInputImage *img, TNativeMapping native_mapping)
+    {
+    throw IRISException("Cannot cast scalar image to vector TargetTypeing point image");
+    return nullptr;
+    }
+
+  static typename TargetTypeImageSource::Pointer CreatePipeline(
+      TInputImage *img, TNativeMapping native_mapping)
+    {
+    return CreateScalarPipeline(img, native_mapping);
+    }
+};
 
 
+template <class TInputPixel, class TOutputComponent, class TScalarFunctor>
+class MultiComponentChannelWiseFunctor
+{
+public:
+  typedef MultiComponentChannelWiseFunctor<TInputPixel,TOutputComponent,TScalarFunctor> Self;
+
+  void SetNumberOfComponentsPerPixel(unsigned int n) { m_Components = n; }
+  unsigned int GetNumberOfComponentsPerPixel() const { return m_Components; }
+
+  void SetFunctor(const TScalarFunctor &functor) { m_Functor = functor; }
+
+  void operator() (const TInputPixel &x, TOutputComponent *y) const
+  {
+    for(unsigned int k = 0; k < m_Components; k++)
+      y[k] = m_Functor(x[k]);
+  }
+
+  bool operator != (const Self &other) const
+  {
+    return m_Components != other.m_Components || m_Functor != other.m_Functor;
+  }
+
+protected:
+  unsigned int m_Components;
+  TScalarFunctor m_Functor;
+};
 
 
+template <unsigned int VDim, class TPixel, class TOutputComponent, class TNativeMapping>
+class CreateCastToTargetTypePipelinePartialSpecializationTraits<
+    VDim, itk::VectorImage<TPixel, VDim>, TOutputComponent, TNativeMapping>
+{
+public:
+  typedef itk::Image<TOutputComponent, VDim> TargetTypeImageType;
+  typedef itk::ImageSource<TargetTypeImageType> TargetTypeImageSource;
+  typedef itk::VectorImage<TOutputComponent, VDim> TargetTypeVectorImageType;
+  typedef itk::ImageSource<TargetTypeVectorImageType> TargetTypeVectorImageSource;
+  typedef itk::VectorImage<TPixel, VDim> InputImageType;
+  typedef typename InputImageType::PixelType InputPixelType;
+
+  static typename TargetTypeImageSource::Pointer CreateScalarPipeline(
+      InputImageType *img, TNativeMapping native_mapping)
+    {
+    throw IRISException("Cannot cast vector image to scalar image");
+    return nullptr;
+    }
+
+  static typename TargetTypeVectorImageSource::Pointer CreateVectorPipeline(
+      InputImageType *img, TNativeMapping native_mapping)
+    {
+    if(native_mapping.IsAlwaysIdentity())
+      {
+      // We can use an in-place cast filter, which makes sure that if the internal image
+      // is already the target type, then no memory allocation and iteration is done
+      typedef itk::CastImageFilter<InputImageType, TargetTypeVectorImageType> CastFilter;
+      typename CastFilter::Pointer filter = CastFilter::New();
+      filter->SetInput(img);
+      filter->SetInPlace(true);
+      SmartPtr<TargetTypeVectorImageSource> ret = filter.GetPointer();
+      return ret;
+      }
+    else
+      {
+      typedef MultiComponentChannelWiseFunctor<InputPixelType, TOutputComponent, TNativeMapping> FunctorType;
+      typedef UnaryFunctorVectorImageFilter<InputImageType, TargetTypeVectorImageType, FunctorType> FilterType;
+      FunctorType functor;
+      functor.SetNumberOfComponentsPerPixel(img->GetNumberOfComponentsPerPixel());
+      functor.SetFunctor(native_mapping);
+      SmartPtr<FilterType> filter = FilterType::New();
+      filter->SetInput(img);
+      filter->SetFunctor(functor);
+
+      SmartPtr<TargetTypeVectorImageSource> output = filter.GetPointer();
+      return output;
+      }
+    }
+
+  static typename TargetTypeVectorImageSource::Pointer CreatePipeline(
+      InputImageType *img, TNativeMapping native_mapping)
+    {
+    return CreateVectorPipeline(img, native_mapping);
+    }
+};
 
 
+template<class TTraits>
+SmartPtr<typename ImageWrapper<TTraits>::FloatImageSource>
+ImageWrapper<TTraits>::CreateCastToFloatPipeline() const
+{
+  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
+      3, ImageType, float, NativeIntensityMapping> Specialization;
+  return Specialization::CreateScalarPipeline(this->m_Image, this->m_NativeMapping);
+}
+
+template<class TTraits>
+SmartPtr<typename ImageWrapper<TTraits>::FloatVectorImageSource>
+ImageWrapper<TTraits>::CreateCastToFloatVectorPipeline() const
+{
+  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
+      3, ImageType, float, NativeIntensityMapping> Specialization;
+  return Specialization::CreateVectorPipeline(this->m_Image, this->m_NativeMapping);
+}
+
+template<class TTraits>
+SmartPtr<typename ImageWrapper<TTraits>::FloatSliceSource>
+ImageWrapper<TTraits>::CreateCastToFloatSlicePipeline(unsigned int slice)
+{
+  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
+      2, SliceType, float, NativeIntensityMapping> Specialization;
+  return Specialization::CreateScalarPipeline(this->GetSlice(slice), this->m_NativeMapping);
+}
 
 
+template<class TTraits>
+SmartPtr<typename ImageWrapper<TTraits>::FloatVectorSliceSource>
+ImageWrapper<TTraits>::CreateCastToFloatVectorSlicePipeline(unsigned int slice)
+{
+  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
+      2, SliceType, float, NativeIntensityMapping> Specialization;
+  return Specialization::CreateVectorPipeline(this->GetSlice(slice), this->m_NativeMapping);
+}
 
+
+template<class TTraits>
+SmartPtr<typename ImageWrapper<TTraits>::ConcreteImageSource>
+ImageWrapper<TTraits>::CreateCastToConcreteImagePipeline() const
+{
+  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
+      3, ImageType, ComponentType, IdentityInternalToNativeIntensityMapping> Specialization;
+  IdentityInternalToNativeIntensityMapping dummy_mapping;
+  return Specialization::CreatePipeline(this->m_Image, dummy_mapping);
+}
 
 
 // Allowed types of image wrappers
-template class ImageWrapper<SpeedImageWrapperTraits, ScalarImageWrapperBase>;
-template class ImageWrapper<LabelImageWrapperTraits, ScalarImageWrapperBase>;
-template class ImageWrapper<LevelSetImageWrapperTraits, ScalarImageWrapperBase>;
+template class ImageWrapper<SpeedImageWrapperTraits>;
+template class ImageWrapper<LabelImageWrapperTraits>;
+template class ImageWrapper<LevelSetImageWrapperTraits>;
 
-template class ImageWrapper<AnatomicImageWrapperTraits<GreyType>, VectorImageWrapperBase>;
-template class ImageWrapper<AnatomicScalarImageWrapperTraits<GreyType>, ScalarImageWrapperBase>;
-template class ImageWrapper<ComponentImageWrapperTraits<GreyType>, ScalarImageWrapperBase>;
+AnatomicImageWrapperTraitsInstantiateMacro(ImageWrapper, false)
+AnatomicScalarImageWrapperTraitsInstantiateMacro(ImageWrapper, false)
+
+// template class ImageWrapper< ComponentImageWrapperTraits<GreyType> >;
 
 typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> MagTraits;
 typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor> MaxTraits;
 typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor> MeanTraits;
-template class ImageWrapper<MagTraits, ScalarImageWrapperBase>;
-template class ImageWrapper<MaxTraits, ScalarImageWrapperBase>;
-template class ImageWrapper<MeanTraits, ScalarImageWrapperBase>;
+template class ImageWrapper<MagTraits>;
+template class ImageWrapper<MaxTraits>;
+template class ImageWrapper<MeanTraits>;

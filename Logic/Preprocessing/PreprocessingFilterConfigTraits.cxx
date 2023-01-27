@@ -78,11 +78,11 @@ SmoothBinaryThresholdFilterConfigTraits
 void SmoothBinaryThresholdFilterConfigTraits::SetActiveScalarLayer(
     ScalarImageWrapperBase *layer, SmoothBinaryThresholdFilterConfigTraits::FilterType *filter, int channel)
 {
-  const ScalarImageWrapperBase::CommonFormatImageType *image =
-      layer->GetCommonFormatImage(
-        static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
-  
-  filter->SetInput(image);
+  auto float_caster = layer->CreateCastToFloatPipeline();
+
+  // TODO: is it safe to just assign image here or do we need to save a pointer to float_caster,
+  // will it go out of scope?
+  filter->SetInput(float_caster->GetOutput());
   filter->SetInputImageMinimum(layer->GetImageMinAsDouble());
   filter->SetInputImageMaximum(layer->GetImageMaxAsDouble());
 
@@ -111,11 +111,11 @@ EdgePreprocessingFilterConfigTraits
 ::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
 {
   ScalarImageWrapperBase *scalar = sid->GetMain()->GetDefaultScalarRepresentation();
-  const ScalarImageWrapperBase::CommonFormatImageType *image =
-      scalar->GetCommonFormatImage(
-        static_cast<ScalarImageWrapperBase::ExportChannel>(channel));
+  auto float_caster = scalar->CreateCastToFloatPipeline();
 
-  filter->SetInput(image);
+  // TODO: is it safe to just assign image here or do we need to save a pointer to float_caster,
+  // will it go out of scope?
+  filter->SetInput(float_caster->GetOutput());
   filter->SetInputImageMaximumGradientMagnitude(
         scalar->GetImageGradientMagnitudeUpperLimit());
 }
@@ -124,7 +124,7 @@ void
 EdgePreprocessingFilterConfigTraits
 ::DetachInputs(FilterType *filter)
 {
-  filter->SetInput(NULL);
+  filter->SetInput(nullptr);
 }
 
 void
@@ -146,13 +146,17 @@ GMMPreprocessingFilterConfigTraits
     {
     if(it.GetLayerAsScalar())
       {
-      AnatomicScalarImageWrapper *w = dynamic_cast<AnatomicScalarImageWrapper *>(it.GetLayer());
-      filter->AddScalarImage(w->GetImage());
+      // TODO: this might crash, depends on whether internally the filter has a smart
+      // pointer to the image source
+      SmartPtr<ImageWrapperBase::FloatImageSource> src =
+          it.GetLayer()->CreateCastToFloatPipeline();
+      filter->AddScalarImage(src->GetOutput());
       }
     else if (it.GetLayerAsVector())
       {
-      AnatomicImageWrapper *w = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());
-      filter->AddVectorImage(w->GetImage());
+      SmartPtr<ImageWrapperBase::FloatVectorImageSource> src =
+          it.GetLayer()->CreateCastToFloatVectorPipeline();
+      filter->AddVectorImage(src->GetOutput());
       }
     }
 
@@ -196,13 +200,19 @@ RFPreprocessingFilterConfigTraits
     {
     if(it.GetLayerAsScalar())
       {
-      AnatomicScalarImageWrapper *w = dynamic_cast<AnatomicScalarImageWrapper *>(it.GetLayer());
-      filter->AddScalarImage(w->GetImage());
+      auto float_caster = it.GetLayer()->CreateCastToFloatPipeline();
+
+      // TODO: is it safe to just assign image here or do we need to save a pointer to float_caster,
+      // will it go out of scope?
+      filter->AddScalarImage(float_caster->GetOutput());
       }
     else if (it.GetLayerAsVector())
       {
-      AnatomicImageWrapper *w = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());
-      filter->AddVectorImage(w->GetImage());
+      auto float_caster = it.GetLayer()->CreateCastToFloatVectorPipeline();
+
+      // TODO: is it safe to just assign image here or do we need to save a pointer to float_caster,
+      // will it go out of scope?
+      filter->AddVectorImage(float_caster->GetOutput());
       }
     }
 

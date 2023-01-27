@@ -53,9 +53,15 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
 {
   assert(m_DataSource && m_DataSource->IsMainLoaded());
 
-  typedef ImageCollectionConstRegionIteratorWithIndex<
-      AnatomicScalarImageWrapper::ImageType,
-      AnatomicImageWrapper::ImageType> CollectionIter;
+  // All the images will be cast to float. For this to be efficient, the snake mode
+  // must convert all the images to float during processing. Otherwise we will be
+  // creating huge additional chunks of memory during RF training
+  typedef itk::Image<float, 3> FloatImage;
+  typedef itk::VectorImage<float, 3> FloatVectorImage;
+
+  // Use a collection iterator to sample multiple images at once. Not sure how efficient this
+  // really is compared to asking each wrapper to provide patches
+  typedef ImageCollectionConstRegionIteratorWithIndex<FloatImage, FloatVectorImage> CollectionIter;
 
   // TODO: in the future, we should only recompute the sample when we know
   // that the data has changed. However, currently, we are just going to
@@ -90,6 +96,8 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
   for(LayerIterator it = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
       !it.IsAtEnd(); ++it)
     {
+    // Currently this will throw an error if the layer's image cannot be cast to
+    // a FloatImage* or FloatVectorImage*
     cit.AddImage(it.GetLayer()->GetImageBase());
     }
 
@@ -113,7 +121,7 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
     if(label)
       {
       // Fill in the data
-      std::vector<GreyType> &column = m_Sample->data[iSample];
+      auto &column = m_Sample->data[iSample];
       int k = 0;
       for(int i = 0; i < nComp; i++)
         for(int j = 0; j < nPatch; j++)
@@ -163,7 +171,7 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
 
   // Create the classification engine
   typedef typename ClassifierType::RFAxisClassifierType RFAxisClassifierType;
-  typedef Classification<GreyType, LabelType, RFAxisClassifierType> ClassificationType;
+  typedef Classification<float, LabelType, RFAxisClassifierType> ClassificationType;
   ClassificationType classification;
 
   // Before resetting the classifier, we want to retain whatever the
@@ -252,4 +260,4 @@ int RFClassificationEngine<TPixel,TLabel,VDim>::GetNumberOfComponents() const
 }
 
 // Template instantiation
-template class RFClassificationEngine<GreyType, LabelType, 3>;
+template class RFClassificationEngine<float, LabelType, 3>;

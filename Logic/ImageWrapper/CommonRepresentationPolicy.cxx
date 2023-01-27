@@ -3,6 +3,8 @@
 #include "itkCastImageFilter.h"
 #include "itkVectorImageToImageAdaptor.h"
 
+// TODO: This class is no longer needed
+
 template<class TOutputPixel, class TWrapperTraits>
 InPlaceScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
 ::InPlaceScalarImageWrapperCommonRepresentation()
@@ -70,6 +72,7 @@ CastingScalarImageWrapperCommonRepresentation<TOutputPixel, TWrapperTraits>
   return m_CastFilter[channel]->GetOutput();
 }
 
+/*
 template class CastingScalarImageWrapperCommonRepresentation<
     GreyType, GreyComponentImageWrapperTraits >;
 
@@ -93,7 +96,7 @@ template class CastingScalarImageWrapperCommonRepresentation<
 
 template class CastingScalarImageWrapperCommonRepresentation<
     GreyType, GreyAnatomicScalarImageWrapperTraits >;
-
+*/
 
 
 

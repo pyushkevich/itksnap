@@ -61,10 +61,6 @@ namespace itk {
   template <class TImage> class ImageSource;
   template <typename TScalar, unsigned int V1, unsigned int V2> class Transform;
   template<typename TInputImage,
-           typename TOutputImage,
-           typename TInterpolatorPrecisionType,
-           typename TTransformPrecisionType> class ResampleImageFilter;
-  template<typename TInputImage,
            typename TOutputImage> class ExtractImageFilter;
 }
 
@@ -82,14 +78,14 @@ namespace itk {
  * This is done to avoid multiple inheritance. TBase must be a
  * subclass of ImageWrapperBase.
  */
-template<class TTraits, class TBase = ImageWrapperBase>
-class ImageWrapper : public TBase
+template<class TTraits>
+class ImageWrapper : public TTraits::WrapperBaseType
 {
 public:
 
   // Standard ITK business
-  typedef ImageWrapper<TTraits, TBase>                                    Self;
-  typedef TBase                                                     Superclass;
+  typedef ImageWrapper<TTraits>                                           Self;
+  typedef typename TTraits::WrapperBaseType                         Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(ImageWrapper, TBase)
@@ -104,6 +100,12 @@ public:
   typedef typename Superclass::Image4DBaseType                 Image4DBaseType;
   typedef typename TTraits::Image4DType                            Image4DType;
   typedef SmartPtr<Image4DType>                                 Image4DPointer;
+
+  // Floating image sources
+  typedef typename Superclass::FloatImageSource               FloatImageSource;
+  typedef typename Superclass::FloatVectorImageSource   FloatVectorImageSource;
+  typedef typename Superclass::FloatSliceSource               FloatSliceSource;
+  typedef typename Superclass::FloatVectorSliceSource   FloatVectorSliceSource;
 
   // This is the pixel type of the buffer pointer, i.e., internal representation
   typedef typename ImageType::InternalPixelType              InternalPixelType;
@@ -181,15 +183,22 @@ public:
     const ImageWrapperBase *source, const PixelType &value);
 
   /** 
-   * Initialize the image wrapper with a combination of another image wrapper and
-   * an actual set of images. This will update the indices and transforms from the
-   * source wrapper, otherwise, it's equivalent to SetImage()
-   */ 
-  virtual void InitializeToWrapper(
-      const ImageWrapperBase *source,
-      Image4DType *image_4d,
-      ImageBaseType *refSpace,
-      ITKTransformType *tran);
+   * Initialize the image wrapper with a source wrapper and a 4D image. This will take
+   * the metadata from the source wrapper but assign the provided image. The reference
+   * space and transform are taken from the source wrapper, but the transform is copied
+   * so that if the transform of the source wrapper changes, this image will not be
+   * affected.
+   */
+  virtual void InitializeToWrapper(const ImageWrapperBase *source, Image4DType *image_4d);
+
+  /**
+   * Initialize the image wrapper with a source wrapper and a 4D image. This will take
+   * the metadata from the source wrapper but assign the provided image. The reference
+   * space and transform are specified explicitly in this version of the method and
+   * will be assigned to the wrapper.
+   */
+  virtual void InitializeToWrapper(const ImageWrapperBase *source, Image4DType *image_4d,
+                                   ImageBaseType *referenceSpace, ITKTransformType *transform);
 
   /**
     Does this wrapper use the non-orthogonal slicing pipeline?
@@ -279,16 +288,16 @@ public:
   virtual itk::ImageRegion<3> GetBufferedRegion() const ITK_OVERRIDE;
 
   /** Transform a voxel index into a spatial position */
-  virtual Vector3d TransformVoxelIndexToPosition(const Vector3i &iVoxel) const ITK_OVERRIDE;
+  virtual Vector3d TransformVoxelIndexToLPSCoordinates(const Vector3i &iVoxel) const ITK_OVERRIDE;
 
   /** Transform a voxel index into a spatial position */
-  virtual Vector3d TransformVoxelCIndexToPosition(const Vector3d &iVoxel) const ITK_OVERRIDE;
+  virtual Vector3d TransformVoxelCIndexToLPSCoordinates(const Vector3d &iVoxel) const ITK_OVERRIDE;
 
   /** Transform spatial position to voxel continuous index (LPS) */
-  virtual Vector3d TransformPositionToVoxelCIndex(const Vector3d &vLPS) const ITK_OVERRIDE;
+  virtual Vector3d TransformLPSCoordinatesToVoxelCIndex(const Vector3d &vLPS) const ITK_OVERRIDE;
 
   /** Transform spatial position to voxel index (LPS) */
-  virtual Vector3i TransformPositionToVoxelIndex(const Vector3d &vLPS) const ITK_OVERRIDE;
+  virtual Vector3i TransformLPSCoordinatesToVoxelIndex(const Vector3d &vLPS) const ITK_OVERRIDE;
 
   /** Transform a voxel index into NIFTI coordinates (RAS) */
   virtual Vector3d TransformVoxelCIndexToNIFTICoordinates(const Vector3d &iVoxel) const ITK_OVERRIDE;
@@ -656,6 +665,35 @@ public:
   /** Write timepoint image to file */
   void WriteCurrentTPImageToFile(const char *filename);
 
+  /**
+    Cast the internally stored image to a floating point image. The returned
+    image is connected to the internally stored image by a mini-pipeline that
+    may include a cast filter or a scale/shift filter, depending on the internal
+    format of the image and the internal-to-native intensity mapping. This mini
+    pipeline is not memory managed by the wrapper, and as soon as the returned
+    image smartpointer goes out of scope, the mini-pipeline is deallocated.
+
+    The method is intended for use with external pipelines that don't know what
+    the internal data representation is for the image. There is a cost with using
+    this method in terms of memory, so the recommended use is in conjunction with
+    streaming filters, so that the cast mini-pipeline does not allocate the whole
+    floating point image all at once.
+
+    The mini-pipeline should not be kept around in memory after it's used. This would
+    result in unnecessary duplication of memory.
+    */
+  virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const ITK_OVERRIDE;
+
+  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
+  virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const ITK_OVERRIDE;
+
+  /** Create a pipeline for casting an image slice to floating point */
+  virtual SmartPtr<FloatSliceSource> CreateCastToFloatSlicePipeline(unsigned int slice) ITK_OVERRIDE;
+
+  /** Create a pipeline for casting an image slice to floating point vector image */
+  virtual SmartPtr<FloatVectorSliceSource> CreateCastToFloatVectorSlicePipeline(unsigned int slice) ITK_OVERRIDE;
+
+
 protected:
 
   /**
@@ -687,25 +725,32 @@ protected:
    */
   std::vector<ImagePointer> m_ImageTimePoints;
 
+  /** The current time point (index into m_ImageTimePoints) */
+  unsigned int m_TimePointIndex = 0;
+
   /** This image selector is used to pull out the current time point */
   typedef InputSelectionImageFilter<ImageType, unsigned int> TimePointSelectFilter;
   typedef SmartPtr<TimePointSelectFilter> TimePointSelectPointer;
   TimePointSelectPointer m_TimePointSelectFilter;
 
   /**
-   * The image that we are wrapping. This image points to one of the images
-   * in the m_ImageTimePoints array
+   * The currently selected 3D image from the 4D image. This is the output
+   * of the time point select filter.
    */
   ImageType *m_Image;
 
-  /** The associated slicer filters */
-  std::array<SlicerPointer, 3> m_Slicers;
+  /**
+   * Same as m_Image, but cast to ImageBase so that we can call functions
+   * without knowing what the specific type of the wrapped image is
+   */
+  ImageBaseType *m_ImageBase;
 
-  /** The pointer to the base class of the wrapped image */
-  SmartPtr<ImageBaseType> m_ImageBase;
-
-  /** The reference space - this is the space into which the image is sliced */
-  SmartPtr<ImageBaseType> m_ReferenceSpace;
+  /**
+   * The reference space - this is the 3D image into the space of which the
+   * image is resliced. For the main image, this points to the image itself
+   * and for overlays, it points to the main image
+   */
+  ImageBaseType *m_ReferenceSpace;
 
   /**
    * A flag indicating whether the image 'lives' in reference space. This
@@ -723,8 +768,8 @@ protected:
   /** The current cursor position (slice index) in image dimensions */
   IndexType m_SliceIndex;
 
-  /** The current time point (index into m_ImageTimePoints) */
-  unsigned int m_TimePointIndex = 0;
+  /** The associated slicer filters */
+  std::array<SlicerPointer, 3> m_Slicers;
 
   /**
    * Is the image wrapper initialized? That is a prerequisite for all
@@ -747,24 +792,39 @@ protected:
   /** The pipeline that handles mapping intensities to the display slices */
   SmartPtr<DisplayMapping> m_DisplayMapping;
 
-  // Mapping from native to internal format
+  /**
+   * The native intensity mapping is a linear mapping from the format in which
+   * the image is stored internally (e.g., 16-bit integer) to the values that
+   * the user interacts with (e.g., float). For some images in ITK-SNAP, we
+   * represent them internally as 16-bit integers even though they are meant
+   * to represent floating point numbers in some range (e.g., -1 to 1). This
+   * is to save memory.
+   */
   NativeIntensityMapping m_NativeMapping;
 
-  // Mapping between the display coordinates and anatomical coordinates
+  /**
+   * This holds the transformation between the physical image coordinates (LPS)
+   * and display coordinates (i.e., slices shown to the user). Through version
+   * ITK-SNAP 4.0, this is an orthogonal transformation, but we intend to allow
+   * non-orthogonal transformations as well.
+   */
   IRISDisplayGeometry m_DisplayGeometry;
 
-  // This object encapsulates information about the coordinate mapping between
-  // the image coordinate space, the anatomical coordinate space, and the
-  // display coordinate space. It depends on three parameters: the size of the
-  // image, the Direction cosine matrix of the image, and the DisplayGeometry
-  // (transformation between the display and the anatomy spaces).
-  //
-  // The code should not directly modify this variable. It should only be
-  // modified by the UpdateImageGeometry() method.
+  /**
+   * This object encapsulates information about the coordinate mapping between
+   * the image coordinate space, the anatomical coordinate space, and the
+   * display coordinate space. It depends on three parameters: the size of the
+   * image, the Direction cosine matrix of the image, and the DisplayGeometry
+   * (transformation between the display and the anatomy spaces).
+   * The code should not directly modify this variable. It should only be
+   * modified by the UpdateImageGeometry() method.
+   */
   SmartPtr<ImageCoordinateGeometry> m_ImageGeometry;
 
-  // Transform from image index to NIFTI world coordinates. This is derived
-  // from the origin, spacing, and direction cosine matrix in the image header.
+  /**
+   * Internally cached transform from image coordinates to RAS (NIFTI) physical coordinates.
+   * This is derived from the origin, spacing, and direction cosine matrix in the image header.
+   */
   TransformType m_NiftiSform, m_NiftiInvSform;
 
   // Each layer has a filename, from which it is belived to have come
@@ -809,17 +869,11 @@ protected:
    */
   virtual void UpdateNiftiTransforms();
 
-  /** Parent wrapper */
-  ImageWrapperBase *m_ParentWrapper;
-
   /**
-   * Resampling filter data type. These filters are used when slicing is required in
-   * non-orthogonal directions. There are four of these filters, and they are used to
-   * produce three display slices and also a complete image that matches the dimensions
-   * of the main image (this is for feature extraction, etc.)
+   * Parent wrapper, this is used for scalar image wrappers derived from
+   * vector image wrappers
    */
-  typedef itk::ResampleImageFilter<ImageType, PreviewImageType, double, double> ResampleFilter;
-  SmartPtr<ResampleFilter> m_ResampleFilter[6];
+  ImageWrapperBase *m_ParentWrapper;
 
   // An internal array to store intensity samples for SampleIntensityAtReferenceIndex function
   mutable vnl_vector<ComponentType> m_IntensitySamplingArray;
@@ -841,6 +895,25 @@ protected:
   /** Sample voxels at a reference index and place sampled values in m_IntensitySamplingArray */
   void SampleIntensityAtReferenceIndexInternal(
       const itk::Index<3> &index, unsigned int tp_begin, unsigned int tp_end) const;
+
+  /** Whether the current wrapper is of vector type or scalar type (for internal use) */
+  typedef std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
+
+  /**
+   * A type representing the 'concrete' image corresponding to the wrapped image. An image wrapper
+   * may wrap something derived from an image, like an image adaptor, or a special kind of image,
+   * like an RLEImage. A concrete image is either an itk::VectorImage or an itk::Image corresponding
+   * to whatever is wrapped by this wrappper
+   */
+  typedef typename std::conditional<IsVector::value, ImageType, itk::Image<ComponentType, 3> >::type ConcreteImageType;
+
+  /** A concrete image source, used to return pipelines */
+  typedef itk::ImageSource<ConcreteImageType> ConcreteImageSource;
+
+  /**
+    Create a mini-pipeline that casts the current time point to the concrete image type
+    */
+  virtual SmartPtr<ConcreteImageSource> CreateCastToConcreteImagePipeline() const;
 };
 
 #endif // __ImageWrapper_h_

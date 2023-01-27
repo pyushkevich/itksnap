@@ -140,25 +140,20 @@ void SynchronizationModel::OnUpdate()
     ImageWrapperBase *iw = app->GetCurrentImageData()->GetMain();
 
     // Get the NIFTI coordinate of the current cursor position
-    message.cursor =
-        iw->TransformVoxelCIndexToNIFTICoordinates(
-          to_double(app->GetCursorPosition()));
+    auto cp = app->GetCursorPosition();
+    message.cursor = iw->TransformVoxelCIndexToNIFTICoordinates(to_double(cp));
 
     // Handle special case of warp fields
-    AnatomicImageWrapper *warp =
-        m_WarpLayerId > 0
-        ? dynamic_cast<AnatomicImageWrapper *>(
-            app->GetCurrentImageData()->FindLayer(m_WarpLayerId, false))
-        : nullptr;
-
-    if(warp)
+    ImageWrapperBase *warp = m_WarpLayerId > 0
+        ? app->GetCurrentImageData()->FindLayer(m_WarpLayerId, false) : nullptr;
+    if(warp && warp->GetNumberOfComponents() == 3)
       {
       // Look up the warp at this position and add to the RAS coordinate
-      auto voxel = warp->GetVoxel(to_itkIndex(app->GetCursorPosition()));
-      if(voxel.GetNumberOfElements() == 3)
-        for(unsigned int j = 0; j < 3; j++)
-          message.cursor[j] += (j < 2 ? -1 : 1) * warp->GetNativeMapping().MapInternalToNative(voxel[j]);
-
+      vnl_vector<double> voxel(3);
+      warp->SampleIntensityAtReferenceIndex(
+            to_itkIndex(cp), warp->GetTimePointIndex(), true, voxel);
+      for(unsigned int j = 0; j < 3; j++)
+        message.cursor[j] += (j < 2 ? -1 : 1) * voxel[j];
       }
     }
 

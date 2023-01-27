@@ -29,7 +29,6 @@
 #include "ThreadedHistogramImageFilter.h"
 #include "ScalarImageHistogram.h"
 #include "Rebroadcaster.h"
-#include "UnaryFunctorVectorImageFilter.h"
 #include "GuidedNativeImageIO.h"
 #include "itkImageFileWriter.h"
 
@@ -38,8 +37,8 @@
 #include "itkVectorGradientAnisotropicDiffusionImageFilter.h"
 
 
-template <class TTraits, class TBase>
-VectorImageWrapper<TTraits,TBase>
+template <class TTraits>
+VectorImageWrapper<TTraits>
 ::VectorImageWrapper()
 {
   // Initialize the flattened image
@@ -50,26 +49,26 @@ VectorImageWrapper<TTraits,TBase>
   m_HistogramFilter = HistogramFilterType::New();
 }
 
-template <class TTraits, class TBase>
-VectorImageWrapper<TTraits,TBase>
+template <class TTraits>
+VectorImageWrapper<TTraits>
 ::~VectorImageWrapper()
 {
 }
 
 
 
-template <class TTraits, class TBase>
-typename VectorImageWrapper<TTraits,TBase>::ImagePointer
-VectorImageWrapper<TTraits,TBase>
+template <class TTraits>
+typename VectorImageWrapper<TTraits>::ImagePointer
+VectorImageWrapper<TTraits>
 ::DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                  itk::Command *progressCommand) const
 {
    return Superclass::DeepCopyRegion(roi, progressCommand);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-VectorImageWrapper<TTraits, TBase>
+VectorImageWrapper<TTraits>
 ::GetRunLengthIntensityStatistics(
     const itk::ImageRegion<3> &region,
     const itk::Index<3> &startIdx, long runlength,
@@ -105,9 +104,9 @@ VectorImageWrapper<TTraits, TBase>
     }
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
@@ -135,9 +134,9 @@ VectorImageWrapper<TTraits,TBase>
 }
 
 
-template <class TTraits, class TBase>
+template <class TTraits>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::SetNativeMapping(NativeIntensityMapping mapping)
 {
   Superclass::SetNativeMapping(mapping);
@@ -176,10 +175,10 @@ VectorImageWrapper<TTraits,TBase>
     }
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 template <class TFunctor>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::SetNativeMappingInDerivedWrapper(
     ScalarImageWrapperBase *w,
     NativeIntensityMapping &mapping)
@@ -194,10 +193,10 @@ VectorImageWrapper<TTraits,TBase>
   dw->SetSourceNativeMapping(mapping.GetScale(), mapping.GetShift());
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 template <class TFunctor>
 SmartPtr<ScalarImageWrapperBase>
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::CreateDerivedWrapper(Image4DType *image_4d, ImageBaseType *refSpace, ITKTransformType *transform)
 {
   typedef VectorDerivedQuantityImageWrapperTraits<TFunctor> WrapperTraits;
@@ -226,9 +225,9 @@ VectorImageWrapper<TTraits,TBase>
   return ptrout;
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::UpdateWrappedImages(Image4DType *image_4d, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   // Create the component wrappers before calling the parent's method.
@@ -328,9 +327,9 @@ VectorImageWrapper<TTraits,TBase>
   Superclass::UpdateWrappedImages(image_4d, referenceSpace, transform);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   Superclass::SetITKTransform(referenceSpace, transform);
@@ -341,9 +340,9 @@ VectorImageWrapper<TTraits,TBase>
 }
 
 
-template <class TTraits, class TBase>
+template <class TTraits>
 inline ScalarImageWrapperBase *
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::GetDefaultScalarRepresentation()
 {
   ScalarImageWrapperBase *rep =
@@ -356,9 +355,9 @@ VectorImageWrapper<TTraits,TBase>
   return this->GetScalarRepresentation(SCALAR_REP_MAX);
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 const ScalarImageHistogram *
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::GetHistogram(size_t nBins)
 {
   // If the user passes in a non-zero number of bins, we pass that as a
@@ -371,9 +370,9 @@ VectorImageWrapper<TTraits,TBase>
 }
 
 
-template <class TTraits, class TBase>
+template <class TTraits>
 inline ScalarImageWrapperBase *
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::GetScalarRepresentation(
     ScalarRepresentation type,
     int index)
@@ -381,18 +380,18 @@ VectorImageWrapper<TTraits,TBase>
   return m_ScalarReps[std::make_pair(type, index)];
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 inline ScalarImageWrapperBase *
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::GetScalarRepresentation(const ScalarRepresentationIterator &it)
 {
   assert(!it.IsAtEnd());
   return this->GetScalarRepresentation(it.GetCurrent(), it.GetIndex());
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 bool
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::FindScalarRepresentation(
     ImageWrapperBase *scalar_rep, ScalarRepresentation &type, int &index) const
 {
@@ -409,18 +408,18 @@ VectorImageWrapper<TTraits,TBase>
   return false;
 }
 
-template <class TTraits, class TBase>
-typename VectorImageWrapper<TTraits,TBase>::ComponentWrapperType *
-VectorImageWrapper<TTraits,TBase>
+template <class TTraits>
+typename VectorImageWrapper<TTraits>::ComponentWrapperType *
+VectorImageWrapper<TTraits>
 ::GetComponentWrapper(unsigned int index)
 {
   ScalarRepIndex repidx(SCALAR_REP_COMPONENT, index);
   return static_cast<ComponentWrapperType *>(m_ScalarReps[repidx].GetPointer());
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::SetSliceIndex(const IndexType &cursor)
 {
   Superclass::SetSliceIndex(cursor);
@@ -432,9 +431,9 @@ VectorImageWrapper<TTraits,TBase>
     }
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::SetDisplayViewportGeometry(
     unsigned int index,
     ImageBaseType *viewport_image)
@@ -448,9 +447,9 @@ VectorImageWrapper<TTraits,TBase>
     }
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
   Superclass::SetDisplayGeometry(dispGeom);
@@ -458,9 +457,9 @@ VectorImageWrapper<TTraits,TBase>
     it->second->SetDisplayGeometry(dispGeom);
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::SetDirectionMatrix(const vnl_matrix<double> &direction)
 {
   Superclass::SetDirectionMatrix(direction);
@@ -468,9 +467,9 @@ VectorImageWrapper<TTraits,TBase>
     it->second->SetDirectionMatrix(direction);
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 void
-VectorImageWrapper<TTraits,TBase>
+VectorImageWrapper<TTraits>
 ::CopyImageCoordinateTransform(const ImageWrapperBase *source)
 {
   Superclass::CopyImageCoordinateTransform(source);
@@ -479,17 +478,17 @@ VectorImageWrapper<TTraits,TBase>
 }
 
 
-template<class TTraits, class TBase>
-const typename VectorImageWrapper<TTraits,TBase>::ComponentTypeObject *
-VectorImageWrapper<TTraits,TBase>
+template<class TTraits>
+const typename VectorImageWrapper<TTraits>::ComponentTypeObject *
+VectorImageWrapper<TTraits>
 ::GetImageMinObject() const
 {
   return m_MinMaxFilter->GetMinimumOutput();
 }
 
-template<class TTraits, class TBase>
-const typename VectorImageWrapper<TTraits,TBase>::ComponentTypeObject *
-VectorImageWrapper<TTraits,TBase>
+template<class TTraits>
+const typename VectorImageWrapper<TTraits>::ComponentTypeObject *
+VectorImageWrapper<TTraits>
 ::GetImageMaxObject() const
 {
   return m_MinMaxFilter->GetMaximumOutput();
@@ -518,94 +517,17 @@ VectorImageWrapper<TImage,TBase>
 */
 
 
-template<class TTraits, class TBase>
-SmartPtr<typename VectorImageWrapper<TTraits, TBase>::FloatImageSource>
-VectorImageWrapper<TTraits, TBase>::CreateCastToFloatPipeline() const
-{
-  // Just use the default representation
-  return NULL;
-}
-
-template<class TTraits, class TBase>
-SmartPtr<typename VectorImageWrapper<TTraits, TBase>::DoubleImageSource>
-VectorImageWrapper<TTraits, TBase>::CreateCastToDoublePipeline() const
-{
-  // Just use the default representation
-  return NULL;
-}
-
-template <class TInputPixel, class TOutputComponent, class TScalarFunctor>
-class MultiComponentChannelWiseFunctor
-{
-public:
-  typedef MultiComponentChannelWiseFunctor<TInputPixel,TOutputComponent,TScalarFunctor> Self;
-
-  void SetNumberOfComponentsPerPixel(unsigned int n) { m_Components = n; }
-  unsigned int GetNumberOfComponentsPerPixel() const { return m_Components; }
-
-  void SetFunctor(const TScalarFunctor &functor) { m_Functor = functor; }
-
-  void operator() (const TInputPixel &x, TOutputComponent *y) const
-  {
-    for(unsigned int k = 0; k < m_Components; k++)
-      y[k] = m_Functor(x[k]);
-  }
-
-  bool operator != (const Self &other) const
-  {
-    return m_Components != other.m_Components || m_Functor != other.m_Functor;
-  }
-
-protected:
-  unsigned int m_Components;
-  TScalarFunctor m_Functor;
-};
-
-template<class TTraits, class TBase>
-SmartPtr<typename VectorImageWrapper<TTraits, TBase>::FloatVectorImageSource>
-VectorImageWrapper<TTraits, TBase>::CreateCastToFloatVectorPipeline() const
-{
-  typedef MultiComponentChannelWiseFunctor<PixelType, float, NativeIntensityMapping> FunctorType;
-  typedef UnaryFunctorVectorImageFilter<ImageType, FloatVectorImageType, FunctorType> FilterType;
-  FunctorType functor;
-  functor.SetNumberOfComponentsPerPixel(this->GetNumberOfComponents());
-  functor.SetFunctor(this->m_NativeMapping);
-  SmartPtr<FilterType> filter = FilterType::New();
-  filter->SetInput(this->m_Image);
-  filter->SetFunctor(functor);
-
-  SmartPtr<FloatVectorImageSource> output = filter.GetPointer();
-  return output;
-}
-
-template<class TTraits, class TBase>
-SmartPtr<typename VectorImageWrapper<TTraits, TBase>::DoubleVectorImageSource>
-VectorImageWrapper<TTraits, TBase>::CreateCastToDoubleVectorPipeline() const
-{
-  typedef MultiComponentChannelWiseFunctor<PixelType, double, NativeIntensityMapping> FunctorType;
-  typedef UnaryFunctorVectorImageFilter<ImageType, DoubleVectorImageType, FunctorType> FilterType;
-  FunctorType functor;
-  functor.SetNumberOfComponentsPerPixel(this->GetNumberOfComponents());
-  functor.SetFunctor(this->m_NativeMapping);
-  SmartPtr<FilterType> filter = FilterType::New();
-  filter->SetInput(this->m_Image);
-  filter->SetFunctor(functor);
-
-  SmartPtr<DoubleVectorImageSource> output = filter.GetPointer();
-  return output;
-}
-
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-VectorImageWrapper<TTraits, TBase>
+VectorImageWrapper<TTraits>
 ::WriteToFileAsFloat(const char *fname, Registry &hints)
 {
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
   io->CreateImageIO(fname, hints, false);
   itk::ImageIOBase *base = io->GetIOBase();
 
-  SmartPtr<FloatVectorImageSource> pipeline = this->CreateCastToFloatVectorPipeline();
-  typedef itk::ImageFileWriter<FloatVectorImageType> WriterType;
+  auto pipeline = this->CreateCastToFloatVectorPipeline();
+  typedef itk::ImageFileWriter<typename ImageWrapperBase::FloatVectorImageType> WriterType;
   SmartPtr<WriterType> writer = WriterType::New();
   writer->SetFileName(fname);
   if(base)

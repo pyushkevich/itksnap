@@ -37,15 +37,14 @@ template<class TIn> class MinimumMaximumImageFilter;
  * is used to unify the treatment of different kinds of vector images in
  * SNaP.  
  */
-template<class TTraits, class TBase = VectorImageWrapperBase>
-class VectorImageWrapper
-    : public ImageWrapper<TTraits, TBase>
+template<class TTraits>
+class VectorImageWrapper : public ImageWrapper<TTraits>
 {
 public:
 
   // Standard ITK business
-  typedef VectorImageWrapper<TTraits, TBase>                              Self;
-  typedef ImageWrapper<TTraits, TBase>                              Superclass;
+  typedef VectorImageWrapper<TTraits>                                     Self;
+  typedef ImageWrapper<TTraits>                                     Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(VectorImageWrapper, ImageWrapper)
@@ -60,20 +59,6 @@ public:
   // 4D Image types
   typedef typename Superclass::Image4DType                         Image4DType;
   typedef typename Superclass::Image4DPointer                   Image4DPointer;
-
-  // Floating point image type
-  typedef itk::Image<float, 3>                                  FloatImageType;
-  typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
-
-  // Double precision floating point image type
-  typedef itk::Image<double, 3>                                DoubleImageType;
-  typedef itk::ImageSource<DoubleImageType>                  DoubleImageSource;
-
-  // Vector image types
-  typedef itk::VectorImage<float, 3>                      FloatVectorImageType;
-  typedef itk::ImageSource<FloatVectorImageType>        FloatVectorImageSource;
-  typedef itk::VectorImage<double, 3>                    DoubleVectorImageType;
-  typedef itk::ImageSource<DoubleVectorImageType>      DoubleVectorImageSource;
 
   // Pixel type
   typedef typename Superclass::PixelType                             PixelType;
@@ -213,30 +198,6 @@ public:
     For multi-component data, the histogram is pooled over all components.
     */
   const ScalarImageHistogram *GetHistogram(size_t nBins = 0) ITK_OVERRIDE;
-
-
-  /**
-    This method creates an ITK mini-pipeline that can be used to cast the internal
-    image to a floating point image. The ownership of the mini-pipeline is passed
-    to the caller of this method. This method should be used with caution, since
-    there is potential to create duplicates of the internally stored image without
-    need. The best practice is to use this method with filters that only access a
-    portion of the casted image at a time, such as streaming filters.
-
-    When you call Update() on the returned mini-pipeline, the data will be cast to
-    floating point, and if necessary, converted to the native intensity range.
-    */
-  virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const ITK_OVERRIDE;
-
-  /** Same as above, but casts to double. For compatibility with C3D, until we
-   * safely switch C3D to use float instead of double */
-  virtual SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const ITK_OVERRIDE;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const ITK_OVERRIDE;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  virtual SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const ITK_OVERRIDE;
 
 protected:
 

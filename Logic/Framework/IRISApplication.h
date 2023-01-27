@@ -153,8 +153,8 @@ public:
   typedef std::map<std::string, DicomSeriesListing> DicomSeriesTree;
 
   // Classifier stuff
-  typedef RFClassificationEngine<GreyType, LabelType, 3> RFEngine;
-  typedef RandomForestClassifier<GreyType, LabelType, 3> RFClassifier;
+  typedef RFClassificationEngine<float, LabelType, 3> RFEngine;
+  typedef RandomForestClassifier<float, LabelType, 3> RFClassifier;
 
   // Declare events fired by this object
   FIRES(CursorUpdateEvent)

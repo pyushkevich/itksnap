@@ -47,31 +47,31 @@
 
 #include <iostream>
 
-template<class TTraits, class TBase>
-ScalarImageWrapper<TTraits,TBase>
+template<class TTraits>
+ScalarImageWrapper<TTraits>
 ::ScalarImageWrapper()
 {
   m_MinMaxFilter = MinMaxFilter::New();
   m_HistogramFilter = HistogramFilterType::New();
 }
 
-template<class TTraits, class TBase>
-ScalarImageWrapper<TTraits,TBase>
+template<class TTraits>
+ScalarImageWrapper<TTraits>
 ::ScalarImageWrapper(const Self &copy)
   : Superclass(copy)
 {
 }
 
-template<class TTraits, class TBase>
-ScalarImageWrapper<TTraits,TBase>
+template<class TTraits>
+ScalarImageWrapper<TTraits>
 ::~ScalarImageWrapper()
 {
 }
 
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void 
-ScalarImageWrapper<TTraits,TBase>
+ScalarImageWrapper<TTraits>
 ::UpdateWrappedImages(Image4DType *image_4d, ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   // Call the parent
@@ -92,9 +92,9 @@ ScalarImageWrapper<TTraits,TBase>
   m_CommonRepresentationPolicy.UpdateInputImage(this->GetImage());
 }
 
-template <class TTraits, class TBase>
+template <class TTraits>
 void
-ScalarImageWrapper<TTraits,TBase>
+ScalarImageWrapper<TTraits>
 ::SetNativeMapping(NativeIntensityMapping mapping)
 {
   Superclass::SetNativeMapping(mapping);
@@ -104,9 +104,9 @@ ScalarImageWrapper<TTraits,TBase>
 }
 
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void 
-ScalarImageWrapper<TTraits,TBase>
+ScalarImageWrapper<TTraits>
 ::CheckImageIntensityRange() 
 {
   // Image should be loaded
@@ -118,23 +118,23 @@ ScalarImageWrapper<TTraits,TBase>
   m_ImageScaleFactor = 1.0 / (m_MinMaxFilter->GetMaximum() - m_MinMaxFilter->GetMinimum());
 }
 
-template<class TTraits, class TBase>
-const typename ScalarImageWrapper<TTraits, TBase>::ComponentTypeObject *
-ScalarImageWrapper<TTraits, TBase>::GetImageMinObject() const
+template<class TTraits>
+const typename ScalarImageWrapper<TTraits>::ComponentTypeObject *
+ScalarImageWrapper<TTraits>::GetImageMinObject() const
 {
   return m_MinMaxFilter->GetMinimumOutput();
 }
 
-template<class TTraits, class TBase>
-const typename ScalarImageWrapper<TTraits, TBase>::ComponentTypeObject *
-ScalarImageWrapper<TTraits, TBase>::GetImageMaxObject() const
+template<class TTraits>
+const typename ScalarImageWrapper<TTraits>::ComponentTypeObject *
+ScalarImageWrapper<TTraits>::GetImageMaxObject() const
 {
   return m_MinMaxFilter->GetMaximumOutput();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 double
-ScalarImageWrapper<TTraits,TBase>
+ScalarImageWrapper<TTraits>
 ::GetImageGradientMagnitudeUpperLimit()
 {
   // Paul - 12/1/2014: I have modified this code to not compute the gradient magnitude
@@ -146,50 +146,16 @@ ScalarImageWrapper<TTraits,TBase>
   return m_MinMaxFilter->GetMaximum() - m_MinMaxFilter->GetMinimum();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 double
-ScalarImageWrapper<TTraits,TBase>
+ScalarImageWrapper<TTraits>
 ::GetImageGradientMagnitudeUpperLimitNative()
 {
   return this->m_NativeMapping.MapGradientMagnitudeToNative(
         this->GetImageGradientMagnitudeUpperLimit());
 }
 
-
-template<class TTraits, class TBase>
-SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::FloatImageSource>
-ScalarImageWrapper<TTraits, TBase>::CreateCastToFloatPipeline() const
-{
-  // The kind of mini-pipeline that is created here depends on whether the
-  // internal image is a floating point image or not, and whether the native
-  // to intensity mapping is identity or not. We use template specialization to
-  // select the right behavior
-  typedef itk::UnaryFunctorImageFilter<ImageType, FloatImageType, NativeIntensityMapping> FilterType;
-  SmartPtr<FilterType> filter = FilterType::New();
-  filter->SetInput(this->m_Image);
-  filter->SetFunctor(this->m_NativeMapping);
-
-  SmartPtr<FloatImageSource> output = filter.GetPointer();
-  return output;
-}
-
-template<class TTraits, class TBase>
-SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::DoubleImageSource>
-ScalarImageWrapper<TTraits, TBase>::CreateCastToDoublePipeline() const
-{
-  // The kind of mini-pipeline that is created here depends on whether the
-  // internal image is a floating point image or not, and whether the native
-  // to intensity mapping is identity or not. We use template specialization to
-  // select the right behavior
-  typedef itk::UnaryFunctorImageFilter<ImageType, DoubleImageType, NativeIntensityMapping> FilterType;
-  SmartPtr<FilterType> filter = FilterType::New();
-  filter->SetInput(this->m_Image);
-  filter->SetFunctor(this->m_NativeMapping);
-
-  SmartPtr<DoubleImageSource> output = filter.GetPointer();
-  return output;
-}
-
+#ifdef __DELETE_THIS_CODE_
 template <class TInputImage, class TOutputImage, class TFunctor>
 class UnaryFunctorImageToSingleComponentVectorImageFilter
     : public itk::ImageToImageFilter<TInputImage, TOutputImage>
@@ -275,37 +241,12 @@ UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, T
     }
 }
 
-template<class TTraits, class TBase>
-SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::FloatVectorImageSource>
-ScalarImageWrapper<TTraits, TBase>::CreateCastToFloatVectorPipeline() const
-{
-  typedef UnaryFunctorImageToSingleComponentVectorImageFilter<
-      ImageType, FloatVectorImageType, NativeIntensityMapping> FilterType;
-  SmartPtr<FilterType> filter = FilterType::New();
-  filter->SetInput(this->m_Image);
-  filter->SetFunctor(this->m_NativeMapping);
+#endif // __DELETE_THIS_CODE_
 
-  SmartPtr<FloatVectorImageSource> output = filter.GetPointer();
-  return output;
-}
 
-template<class TTraits, class TBase>
-SmartPtr<typename ScalarImageWrapper<TTraits, TBase>::DoubleVectorImageSource>
-ScalarImageWrapper<TTraits, TBase>::CreateCastToDoubleVectorPipeline() const
-{
-  typedef UnaryFunctorImageToSingleComponentVectorImageFilter<
-      ImageType, DoubleVectorImageType, NativeIntensityMapping> FilterType;
-  SmartPtr<FilterType> filter = FilterType::New();
-  filter->SetInput(this->m_Image);
-  filter->SetFunctor(this->m_NativeMapping);
-
-  SmartPtr<DoubleVectorImageSource> output = filter.GetPointer();
-  return output;
-}
-
-template<class TTraits, class TBase>
+template<class TTraits>
 double 
-ScalarImageWrapper<TTraits,TBase>
+ScalarImageWrapper<TTraits>
 ::GetImageScaleFactor()
 {
   // Make sure min/max are up-to-date
@@ -318,9 +259,9 @@ ScalarImageWrapper<TTraits,TBase>
 /** Compute statistics over a run of voxels in the image starting at the index
  * startIdx. Appends the statistics to a running sum and sum of squared. The
  * statistics are returned in internal (not native mapped) format */
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ScalarImageWrapper<TTraits, TBase>
+ScalarImageWrapper<TTraits>
 ::GetRunLengthIntensityStatistics(
     const itk::ImageRegion<3> &region,
     const itk::Index<3> &startIdx, long runlength,
@@ -351,9 +292,9 @@ ScalarImageWrapper<TTraits, TBase>
   Get the RGBA apperance of the voxel at the intersection of the three
   display slices.
   */
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ScalarImageWrapper<TTraits,TBase>
+ScalarImageWrapper<TTraits>
 ::GetVoxelUnderCursorDisplayedValueAndAppearance(
     vnl_vector<double> &out_value, DisplayPixelType &out_appearance)
 {
@@ -364,53 +305,55 @@ ScalarImageWrapper<TTraits,TBase>
   // Use the display mapping to map to display pixel
   out_appearance = this->m_DisplayMapping->MapPixel(
                      this->m_IntensitySamplingArray.data_block() +
-                     this->GetTimePointIndex() * this->GetNumberOfComponents());
-}
+        this->GetTimePointIndex() * this->GetNumberOfComponents());
+  }
 
-template<class TTraits, class TBase>
-vtkImageImport *
-ScalarImageWrapper<TTraits,TBase>
-::GetVTKImporter()
+template<class TTraits>
+typename ScalarImageWrapper<TTraits>::VTKImporterMiniPipeline
+ScalarImageWrapper<TTraits>::CreateVTKImporterPipeline() const
 {
-  // Create an importer on demand
-  if(!m_VTKImporter)
-    {
-    // TODO: using the common format image may cause unnecessary memory allocation!
-    m_VTKExporter = VTKExportType::New();
-    m_VTKImporter = vtkSmartPointer<vtkImageImport>::New();
-    m_VTKExporter->SetInput(this->GetCommonFormatImage());
-    ConnectITKExporterToVTKImporter(m_VTKExporter.GetPointer(), m_VTKImporter, true, true, false);
-    }
-  return m_VTKImporter;
+  // This filter casts to concrete image
+  auto cast_to_concrete = this->CreateCastToConcreteImagePipeline();
+
+  // This filter is the exporter
+  typedef typename Superclass::ConcreteImageType ConcreteImageType;
+  typedef itk::VTKImageExport<ConcreteImageType> Exporter;
+  SmartPtr<Exporter> exporter = Exporter::New();
+  exporter->SetInput(cast_to_concrete->GetOutput());
+
+  // This is the importer
+  vtkNew<vtkImageImport> importer;
+  ConnectITKExporterToVTKImporter(exporter.GetPointer(), importer, true, true, false);
+
+  // Create return struct
+  VTKImporterMiniPipeline pip;
+  pip.caster = cast_to_concrete.GetPointer();
+  pip.exporter = exporter.GetPointer();
+  pip.importer = importer;
+
+  return pip;
 }
 
-template<class TTraits, class TBase>
-const typename ScalarImageWrapper<TTraits, TBase>::CommonFormatImageType *
-ScalarImageWrapper<TTraits, TBase>
-::GetCommonFormatImage(ExportChannel channel)
-{
-  return m_CommonRepresentationPolicy.GetOutput(channel);
-}
-
-template<class TTraits, class TBase>
+template<class TTraits>
 IntensityCurveInterface *
-ScalarImageWrapper<TTraits, TBase>
+ScalarImageWrapper<TTraits>
 ::GetIntensityCurve() const
 {
   return this->m_DisplayMapping->GetIntensityCurve();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 ColorMap *
-ScalarImageWrapper<TTraits, TBase>
+ScalarImageWrapper<TTraits>
 ::GetColorMap() const
 {
   return this->m_DisplayMapping->GetColorMap();
 }
 
-template<class TTraits, class TBase>
+
+template<class TTraits>
 const ScalarImageHistogram *
-ScalarImageWrapper<TTraits,TBase>
+ScalarImageWrapper<TTraits>
 ::GetHistogram(size_t nBins)
 {
   // If the user passes in a non-zero number of bins, we pass that as a
@@ -422,17 +365,19 @@ ScalarImageWrapper<TTraits,TBase>
   return m_HistogramFilter->GetHistogramOutput();
 }
 
-template<class TTraits, class TBase>
+template<class TTraits>
 void
-ScalarImageWrapper<TTraits, TBase>
+ScalarImageWrapper<TTraits>
 ::WriteToFileAsFloat(const char *fname, Registry &hints)
 {
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
   io->CreateImageIO(fname, hints, false);
   itk::ImageIOBase *base = io->GetIOBase();
 
-  SmartPtr<FloatImageSource> pipeline = this->CreateCastToFloatPipeline();
+  // Create a pipeline that casts the image to floating type
+  auto pipeline = this->CreateCastToFloatPipeline();
 
+  typedef typename ImageWrapperBase::FloatImageType FloatImageType;
   typedef itk::ImageFileWriter<FloatImageType> WriterType;
   SmartPtr<WriterType> writer = WriterType::New();
   writer->SetFileName(fname);
@@ -443,12 +388,12 @@ ScalarImageWrapper<TTraits, TBase>
 }
 
 
+AnatomicScalarImageWrapperTraitsInstantiateMacro(ScalarImageWrapper, false)
+ComponentImageWrapperTraitsInstantiateMacro(ScalarImageWrapper, false)
 
 template class ScalarImageWrapper<LabelImageWrapperTraits>;
 template class ScalarImageWrapper<SpeedImageWrapperTraits>;
 template class ScalarImageWrapper<LevelSetImageWrapperTraits>;
-template class ScalarImageWrapper< ComponentImageWrapperTraits<GreyType> >;
-template class ScalarImageWrapper< AnatomicScalarImageWrapperTraits<GreyType> >;
 
 typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> MagTraits;
 typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor> MaxTraits;

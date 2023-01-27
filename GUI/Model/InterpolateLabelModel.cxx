@@ -131,8 +131,14 @@ void InterpolateLabelModel::Interpolate()
   }
 
   // If Binary Weighted Averaging ...
+  // TODO: this can become a memory hog - should crop around the region of interest
+  // TODO: label mapping code should be parallelized
   else if(method == BINARY_WEIGHTED_AVERAGE)
     {
+    // Inputs to the filter will be floating point images
+    typedef ImageWrapperBase::FloatImageType ImageType;
+    typedef ImageWrapperBase::FloatVectorImageType VectorImageType;
+
     // Copy label image to short type from RLE
     ShortType::Pointer SegmentationImageShortType = ShortType::New();
 
@@ -152,8 +158,7 @@ void InterpolateLabelModel::Interpolate()
       ++itO;
       }
 
-    typedef itk::CombineBWAandRFFilter < GreyScalarType, GreyVectorType, ShortType > BinaryWeightedAverageType;
-
+    using BinaryWeightedAverageType = itk::CombineBWAandRFFilter<ImageType,VectorImageType,ShortType>;
     typename BinaryWeightedAverageType::Pointer bwa =  BinaryWeightedAverageType::New();
 
     // Iterate through all of the relevant layers
@@ -162,13 +167,14 @@ void InterpolateLabelModel::Interpolate()
       {
       if(it.GetLayerAsScalar())
         {
-        AnatomicScalarImageWrapper *w = dynamic_cast<AnatomicScalarImageWrapper *>(it.GetLayer());
-        bwa->AddScalarImage(w->GetImage());//;
+        // This may crash, if so, we need to keep these mini-pipelines around
+        auto src = it.GetLayer()->CreateCastToFloatPipeline();
+        bwa->AddScalarImage(src->GetOutput());
         }
       else if (it.GetLayerAsVector())
         {
-        AnatomicImageWrapper *w = dynamic_cast<AnatomicImageWrapper *>(it.GetLayer());
-        bwa->AddVectorImage(w->GetImage()); //
+        auto src = it.GetLayer()->CreateCastToFloatVectorPipeline();
+        bwa->AddVectorImage(src->GetOutput());
         }
       }
 

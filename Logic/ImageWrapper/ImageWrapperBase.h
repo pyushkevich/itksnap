@@ -4,6 +4,7 @@
 #include "ImageCoordinateTransform.h"
 #include "itkImageRegion.h"
 #include "WrapperBase.h"
+#include "vtkSmartPointer.h"
 
 namespace itk {
   template <unsigned int VDim> class ImageBase;
@@ -13,6 +14,7 @@ namespace itk {
   template <class TOutputImage> class ImageSource;
   template <class T, unsigned int VDim1, unsigned int VDim2> class Transform;
   template <class TCoordRep, unsigned int VDim> class ContinuousIndex;
+  class ProcessObject;
 
   namespace Statistics {
     class DenseFrequencyContainer;
@@ -88,15 +90,16 @@ public:
   typedef itk::ImageBase<3> ImageBaseType;
   typedef itk::ImageBase<4> Image4DBaseType;
 
-  // Floating point and double images and sources to which data may be cast
+  // Floating point images and sources to which data may be cast
   typedef itk::Image<float, 3>                                  FloatImageType;
   typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
-  typedef itk::Image<double, 3>                                DoubleImageType;
-  typedef itk::ImageSource<DoubleImageType>                  DoubleImageSource;
   typedef itk::VectorImage<float, 3>                      FloatVectorImageType;
   typedef itk::ImageSource<FloatVectorImageType>        FloatVectorImageSource;
-  typedef itk::VectorImage<double, 3>                    DoubleVectorImageType;
-  typedef itk::ImageSource<DoubleVectorImageType>      DoubleVectorImageSource;
+
+  typedef itk::Image<float, 2>                                  FloatSliceType;
+  typedef itk::ImageSource<FloatSliceType>                    FloatSliceSource;
+  typedef itk::VectorImage<float, 2>                      FloatVectorSliceType;
+  typedef itk::ImageSource<FloatVectorSliceType>        FloatVectorSliceSource;
 
   // Transform matrices
   typedef vnl_matrix_fixed<double, 4, 4>                         TransformType;
@@ -256,16 +259,16 @@ public:
       const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const = 0;
 
   /** Transform a voxel index into a spatial position */
-  virtual Vector3d TransformVoxelIndexToPosition(const Vector3i &iVoxel) const = 0;
+  virtual Vector3d TransformVoxelIndexToLPSCoordinates(const Vector3i &iVoxel) const = 0;
 
   /** Transform a voxel index into a spatial position */
-  virtual Vector3d TransformVoxelCIndexToPosition(const Vector3d &iVoxel) const = 0;
+  virtual Vector3d TransformVoxelCIndexToLPSCoordinates(const Vector3d &iVoxel) const = 0;
 
   /** Transform spatial position to voxel continuous index (LPS) */
-  virtual Vector3d TransformPositionToVoxelCIndex(const Vector3d &vLPS) const = 0;
+  virtual Vector3d TransformLPSCoordinatesToVoxelCIndex(const Vector3d &vLPS) const = 0;
 
   /** Transform spatial position to voxel index (LPS) */
-  virtual Vector3i TransformPositionToVoxelIndex(const Vector3d &vLPS) const = 0;
+  virtual Vector3i TransformLPSCoordinatesToVoxelIndex(const Vector3d &vLPS) const = 0;
 
   /** Transform a voxel index into NIFTI coordinates (RAS) */
   virtual Vector3d TransformVoxelCIndexToNIFTICoordinates(const Vector3d &iVoxel) const = 0;
@@ -464,16 +467,14 @@ public:
     */
   virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const = 0;
 
-  /** Same as CreateCastToFloatPipeline, but for double precision */
-  virtual SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const = 0;
-
   /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
   virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const = 0;
 
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  virtual SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const = 0;
+  /** Create a pipeline for casting an image slice to floating point */
+  virtual SmartPtr<FloatSliceSource> CreateCastToFloatSlicePipeline(unsigned int slice) = 0;
 
-
+  /** Create a pipeline for casting an image slice to floating point vector image */
+  virtual SmartPtr<FloatVectorSliceSource> CreateCastToFloatVectorSlicePipeline(unsigned int slice) = 0;
 
 protected:
 
@@ -489,9 +490,13 @@ class ScalarImageWrapperBase : public virtual ImageWrapperBase
 {
 public:
 
-  // A common image format to which the contents of the scalar image wrapper
-  // may be cast for downstream processing
-  typedef itk::Image<GreyType, 3>                      CommonFormatImageType;
+  /** A data type representing a pipeline for exporting to VTK */
+  struct VTKImporterMiniPipeline
+  {
+    SmartPtr<itk::ProcessObject> caster;
+    SmartPtr<itk::ProcessObject> exporter;
+    vtkSmartPointer<vtkImageImport> importer;
+  };
 
   /**
    * An enum of export channel types. Export channels are used to present the
@@ -542,8 +547,10 @@ public:
    * image filter to break up operations into pieces. Without that, there would
    * be unnecessary large memory allocation.
    */
+  /*
   virtual const CommonFormatImageType* GetCommonFormatImage(
       ExportChannel channel = WHOLE_IMAGE) = 0;
+      */
 
   /**
    * Get the intensity curve used to map raw intensities to color map inputs.
@@ -557,8 +564,13 @@ public:
    */
   virtual ColorMap *GetColorMap() const = 0;
 
-  /** Get a version of this image that is usable in VTK pipelines */
-  virtual vtkImageImport *GetVTKImporter() = 0;
+  /**
+   * Create a mini-pipeline that can be used to import the image to VTK. Like
+   * other pipelines created with Create..., this is meant for temporary use
+   * since the pipeline may have to allocate large amounts of memory and we'
+   * don't want this memory lingering around when it is not used
+   */
+  virtual VTKImporterMiniPipeline CreateVTKImporterPipeline() const = 0;
 
   /** Is volume rendering turned on for this layer */
   virtual bool IsVolumeRenderingEnabled() const = 0;
@@ -625,6 +637,7 @@ public:
    */
   virtual bool FindScalarRepresentation(
       ImageWrapperBase *scalar_rep, ScalarRepresentation &type, int &index) const = 0;
+
 };
 
 
