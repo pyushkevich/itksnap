@@ -87,9 +87,6 @@ ScalarImageWrapper<TTraits>
 
   // Set the number of bins to default
   m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
-
-  // Update the common representation policy
-  m_CommonRepresentationPolicy.UpdateInputImage(this->GetImage());
 }
 
 template <class TTraits>

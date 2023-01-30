@@ -5,7 +5,6 @@
 #include "ImageWrapperBase.h"
 #include "RLEImageRegionIterator.h"
 
-#include "CommonRepresentationPolicy.h"
 #include "DisplayMappingPolicy.h"
 #include "NativeIntensityMappingPolicy.h"
 
@@ -46,7 +45,6 @@ public:
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef ColorLabelTableDisplayMappingPolicy<Self> DisplayMapping;
-  typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   // Whether this image is shown on top of all other layers by default
   itkStaticConstMacro(StickyByDefault, bool, true);
@@ -70,7 +68,6 @@ public:
 
   typedef SpeedImageInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   static void GetFixedIntensityRange(float &min, float &max)
     { min = -0x7fff; max = 0x7fff; }
@@ -99,7 +96,6 @@ public:
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   static void GetFixedIntensityRange(float &min, float &max)
     { min = -4.0; max = 4.0; }
@@ -111,24 +107,6 @@ public:
 
   // Whether this image is produced from another by a pipeline (e.g., speed image)
   itkStaticConstMacro(PipelineOutput, bool, true);
-};
-
-/**
- * This helper traits class is used to select the appropriate common representation
- * policy depending on the internal pixel type
- */
-template <class TPixel, class TWrapperTraits>
-class DefaultCommonRepresentationPolicy
-{
-public:
-  typedef CastingScalarImageWrapperCommonRepresentation<GreyType, TWrapperTraits> Policy;
-};
-
-template <class TWrapperTraits>
-class DefaultCommonRepresentationPolicy<GreyType, TWrapperTraits>
-{
-public:
-  typedef InPlaceScalarImageWrapperCommonRepresentation<GreyType, TWrapperTraits> Policy;
 };
 
 template <class TPixel, bool TLinearMapping>
@@ -152,7 +130,6 @@ public:
     IdentityInternalToNativeIntensityMapping>::type NativeIntensityMapping;
 
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
 
@@ -184,7 +161,6 @@ public:
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
 
@@ -246,7 +222,6 @@ public:
   typedef itk::Image<ComponentType, 4> Image4DType;
 
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef typename DefaultCommonRepresentationPolicy<TPixel, Self>::Policy CommonRepresentationPolicy;
 
   // The type of internal to native intensity mapping used in the traits is controlled
   // by the boolean template parameter

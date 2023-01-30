@@ -260,7 +260,6 @@ SET(LOGIC_CXX
   Logic/Framework/SNAPImageData.cxx
   Logic/Framework/TimePointProperties.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
-  Logic/ImageWrapper/CommonRepresentationPolicy.cxx
   Logic/ImageWrapper/DisplayMappingPolicy.cxx
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
@@ -382,7 +381,6 @@ SET(LOGIC_HEADERS
   Logic/Framework/TimePointProperties.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
-  Logic/ImageWrapper/CommonRepresentationPolicy.h
   Logic/ImageWrapper/DisplayMappingPolicy.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
   Logic/ImageWrapper/ImageWrapper.h

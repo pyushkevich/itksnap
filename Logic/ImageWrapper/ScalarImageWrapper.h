@@ -253,10 +253,6 @@ protected:
    */
   SmartPtr<HistogramFilterType> m_HistogramFilter;
 
-  // The policy used to extract a common representation image
-  typedef typename TTraits::CommonRepresentationPolicy CommonRepresentationPolicy;
-  CommonRepresentationPolicy m_CommonRepresentationPolicy;
-
   /** The intensity scaling factor */
   double m_ImageScaleFactor;
 
