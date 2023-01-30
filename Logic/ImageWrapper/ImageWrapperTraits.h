@@ -264,38 +264,25 @@ public:
   itkStaticConstMacro(PipelineOutput, bool, false);
 };
 
-// This macro helps instantiate wrappers of different types in one go
-#define AnatomicImageWrapperTraitsInstantiateMacro(x, y) \
-  template class x< AnatomicImageWrapperTraits<unsigned char, y> >; \
-  template class x< AnatomicImageWrapperTraits<char, y> >; \
-  template class x< AnatomicImageWrapperTraits<unsigned short, y> >; \
-  template class x< AnatomicImageWrapperTraits<short, y> >; \
-  template class x< AnatomicImageWrapperTraits<float, y> >;
+/**
+ * This class defines all the traits available for a pixel type
+ * to help with template instantiation
+ */
+template<class TPixel>
+class ImageWrapperTraits
+{
+public:
+  typedef AnatomicImageWrapperTraits<TPixel, false> VectorTraits;
+  typedef AnatomicScalarImageWrapperTraits<TPixel, false> ScalarTraits;
+  typedef ComponentImageWrapperTraits<TPixel, false> ComponentTraits;
 
-#define AnatomicScalarImageWrapperTraitsInstantiateMacro(x, y) \
-  template class x< AnatomicScalarImageWrapperTraits<unsigned char, y> >; \
-  template class x< AnatomicScalarImageWrapperTraits<char, y> >; \
-  template class x< AnatomicScalarImageWrapperTraits<unsigned short, y> >; \
-  template class x< AnatomicScalarImageWrapperTraits<short, y> >; \
-  template class x< AnatomicScalarImageWrapperTraits<float, y> >;
-
-#define ComponentImageWrapperTraitsInstantiateMacro(x, y) \
-  template class x< ComponentImageWrapperTraits<unsigned char, y> >; \
-  template class x< ComponentImageWrapperTraits<char, y> >; \
-  template class x< ComponentImageWrapperTraits<unsigned short, y> >; \
-  template class x< ComponentImageWrapperTraits<short, y> >; \
-  template class x< ComponentImageWrapperTraits<float, y> >;
-
-
-
-
-// Global typedefs for traits with GreyType
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor>
-  GreyVectorMagnitudeImageWrapperTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor>
-  GreyVectorMaxImageWrapperTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor>
-  GreyVectorMeanImageWrapperTraits;
+  typedef VectorToScalarMagnitudeFunctor<TPixel, float> MagnitudeFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MagnitudeFunctor> MagnitudeTraits;
+  typedef VectorToScalarMaxFunctor<TPixel, float> MaxFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MaxFunctor> MaxTraits;
+  typedef VectorToScalarMeanFunctor<TPixel, float> MeanFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MeanFunctor> MeanTraits;
+};
 
 // Some global typedefs
 typedef SpeedImageWrapperTraits::WrapperType SpeedImageWrapper;

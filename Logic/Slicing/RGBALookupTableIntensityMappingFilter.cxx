@@ -111,6 +111,14 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
   return xout;
 }
 
-// Declare specific instances that will exist
-template class RGBALookupTableIntensityMappingFilter< itk::Image<short, 2> >;
+
+// Template instantiation
+#define RGBALookupTableIntensityMappingFilterInstantiateMacro(type) \
+  template class RGBALookupTableIntensityMappingFilter<itk::Image<type, 2> >;
+
+RGBALookupTableIntensityMappingFilterInstantiateMacro(unsigned char)
+RGBALookupTableIntensityMappingFilterInstantiateMacro(char)
+RGBALookupTableIntensityMappingFilterInstantiateMacro(unsigned short)
+RGBALookupTableIntensityMappingFilterInstantiateMacro(short)
+RGBALookupTableIntensityMappingFilterInstantiateMacro(float)
 

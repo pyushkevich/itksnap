@@ -2218,24 +2218,22 @@ CastNativeImageToScalar<TPixel>
 
 */
 
-template class RescaleNativeImageToIntegralType<itk::Image<GreyType, 4> >;
-template class RescaleNativeImageToIntegralType<itk::VectorImage<GreyType, 4> >;
-template class CastNativeImage<itk::Image<unsigned short, 4> >;
+#define GuidedNativeImageIOInstantiateMacro(type) \
+  template class RescaleNativeImageToIntegralType< itk::Image<type, 4> >; \
+  template class RescaleNativeImageToIntegralType< itk::VectorImage<type, 4> >; \
+  template class CastNativeImage<itk::Image<type, 4> >; \
+  template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<type, 3> *);
 
-// template class CastNativeImageBase<RGBType, CastToArrayFunctor<RGBType, 3> >;
-// template class CastNativeImageBase<LabelType, CastToScalarFunctor<LabelType> >;
-// template class CastNativeImageBase<float, CastToScalarFunctor<float> >;
+GuidedNativeImageIOInstantiateMacro(unsigned char)
+GuidedNativeImageIOInstantiateMacro(char)
+GuidedNativeImageIOInstantiateMacro(unsigned short)
+GuidedNativeImageIOInstantiateMacro(short)
+GuidedNativeImageIOInstantiateMacro(float)
 
-/*
-template class CastNativeImageToRGB<RGBType>; 
-template class CastNativeImageToScalar<LabelType>; 
-template class CastNativeImageToScalar<float>; 
-*/
-
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<GreyType,3> *);
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<LabelType,3> *);
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<float,3> *);
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<RGBType,3> *);
+//template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<GreyType,3> *);
+//template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<LabelType,3> *);
+//template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<float,3> *);
+//template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<RGBType,3> *);
 
 
 

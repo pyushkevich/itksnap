@@ -965,31 +965,38 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     }
 }
 
-
-
-// End of MeshDisplayPolicy Implementation
+// Template instantiation
 //----------------------------------------
-
 template class ColorLabelTableDisplayMappingPolicy<LabelImageWrapperTraits>;
-
 template class LinearColorMapDisplayMappingPolicy<LevelSetImageWrapperTraits>;
 template class LinearColorMapDisplayMappingPolicy<SpeedImageWrapperTraits>;
 
-AnatomicImageWrapperTraitsInstantiateMacro(
-    MultiChannelDisplayMappingPolicy, false)
+/** Helper class for template instantiation */
+template <class TPixel> class DisplayMappingPolicyTypes
+{
+public:
+  typedef AnatomicImageWrapperTraits<TPixel, false> VectorWrapperTraits;
+  typedef AnatomicScalarImageWrapperTraits<TPixel, false> ScalarWrapperTraits;
+  typedef ComponentImageWrapperTraits<TPixel, false> ComponentWrapperTraits;
+  typedef typename VectorToScalarImageAccessorTypes<TPixel>::MagnitudeFunctor MagnitudeFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MagnitudeFunctor> MagnitudeWrapperTraits;
+  typedef typename VectorToScalarImageAccessorTypes<TPixel>::MaxFunctor MaxFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MaxFunctor> MaxWrapperTraits;
+  typedef typename VectorToScalarImageAccessorTypes<TPixel>::MeanFunctor MeanFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MeanFunctor> MeanWrapperTraits;
+};
 
-AnatomicScalarImageWrapperTraitsInstantiateMacro(
-    CachingCurveAndColorMapDisplayMappingPolicy, false)
+#define DisplayMappingPolicyInstantiateMacro(type) \
+  template class MultiChannelDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::VectorWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::ScalarWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::ComponentWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::MagnitudeWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::MaxWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::MeanWrapperTraits>;
 
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    ComponentImageWrapperTraits<GreyType, false> >;
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> >;
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor> >;
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor> >;
-
-
-
+DisplayMappingPolicyInstantiateMacro(unsigned char)
+DisplayMappingPolicyInstantiateMacro(char)
+DisplayMappingPolicyInstantiateMacro(unsigned short)
+DisplayMappingPolicyInstantiateMacro(short)
+DisplayMappingPolicyInstantiateMacro(float)
 

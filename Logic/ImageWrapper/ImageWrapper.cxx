@@ -42,13 +42,9 @@
 =========================================================================*/
 
 #include "ImageWrapper.h"
-#include "RLEImageRegionIterator.h"
-#include "RLERegionOfInterestImageFilter.h"
-#include "itkImageSliceConstIteratorWithIndex.h"
-#include "itkNumericTraits.h"
-#include "itkRegionOfInterestImageFilter.h"
-#include "itkIdentityTransform.h"
+#include "ImageWrapperTraits.h"
 #include "AdaptiveSlicingPipeline.h"
+#include "itkRegionOfInterestImageFilter.h"
 #include "SNAPSegmentationROISettings.h"
 #include "itkCommand.h"
 #include "ImageCoordinateGeometry.h"
@@ -58,7 +54,6 @@
 #include <itkFlipImageFilter.h>
 #include <itkUnaryFunctorImageFilter.h>
 #include "UnaryFunctorVectorImageFilter.h"
-#include "ImageWrapperTraits.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
@@ -71,7 +66,6 @@
 #include "ScalarImageHistogram.h"
 #include "GuidedNativeImageIO.h"
 #include "itkMatrixOffsetTransformBase.h"
-#include "itkExtractImageFilter.h"
 #include "AffineTransformHelper.h"
 #include "InputSelectionImageFilter.h"
 #include "MetaDataAccess.h"
@@ -82,7 +76,6 @@
 #include <cassert>
 
 #include <itksys/SystemTools.hxx>
-
 
 template <class TPixel>
 class SimpleCastToDoubleFunctor
@@ -2603,20 +2596,22 @@ ImageWrapper<TTraits>::CreateCastToConcreteImagePipeline() const
   return Specialization::CreatePipeline(this->m_Image, dummy_mapping);
 }
 
+// --------------------------------------------
+// Explicit template instantiation
+#define ImageWrapperInstantiateMacro(type) \
+  template class ImageWrapper<typename ImageWrapperTraits<type>::ScalarTraits>; \
+  template class ImageWrapper<typename ImageWrapperTraits<type>::VectorTraits>; \
+  template class ImageWrapper<typename ImageWrapperTraits<type>::ComponentTraits>; \
+  template class ImageWrapper<typename ImageWrapperTraits<type>::MagnitudeTraits>; \
+  template class ImageWrapper<typename ImageWrapperTraits<type>::MaxTraits>; \
+  template class ImageWrapper<typename ImageWrapperTraits<type>::MeanTraits>;
 
-// Allowed types of image wrappers
+ImageWrapperInstantiateMacro(unsigned char)
+ImageWrapperInstantiateMacro(char)
+ImageWrapperInstantiateMacro(unsigned short)
+ImageWrapperInstantiateMacro(short)
+ImageWrapperInstantiateMacro(float)
+
 template class ImageWrapper<SpeedImageWrapperTraits>;
 template class ImageWrapper<LabelImageWrapperTraits>;
 template class ImageWrapper<LevelSetImageWrapperTraits>;
-
-AnatomicImageWrapperTraitsInstantiateMacro(ImageWrapper, false)
-AnatomicScalarImageWrapperTraitsInstantiateMacro(ImageWrapper, false)
-
-// template class ImageWrapper< ComponentImageWrapperTraits<GreyType> >;
-
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> MagTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor> MaxTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor> MeanTraits;
-template class ImageWrapper<MagTraits>;
-template class ImageWrapper<MaxTraits>;
-template class ImageWrapper<MeanTraits>;

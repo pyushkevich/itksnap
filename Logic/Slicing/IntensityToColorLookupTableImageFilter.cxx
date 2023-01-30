@@ -1,3 +1,4 @@
+
 #include "IntensityToColorLookupTableImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 
@@ -5,6 +6,8 @@
 #include "IntensityCurveInterface.h"
 #include "ColorMap.h"
 #include "itkImage.h"
+#include "itkVectorImage.h"
+#include "VectorToScalarImageAccessor.h"
 
 
 /* ===============================================================
@@ -216,10 +219,30 @@ MultiComponentImageToScalarLookupTableImageFilter<TInputImage, TOutputLUT, TComp
   return static_cast<OutputPixelType>(255.0 * outZeroOne);
 }
 
+typedef itk::Image<unsigned char, 1> ScalarLUTType;
+typedef itk::Image<itk::RGBAPixel<unsigned char>, 1> LUTType;
 
+#define LookupTableImageFilterInstantiateMacro(type) \
+  template class AbstractLookupTableImageFilter<itk::Image<type, 3>, LUTType, type>; \
+  template class AbstractLookupTableImageFilter<itk::VectorImage<type, 3>, ScalarLUTType, type>; \
+  template class AbstractLookupTableImageFilter<typename VectorToScalarImageAccessorTypes<type>::ComponentImageAdaptor, LUTType, type>; \
+  template class AbstractLookupTableImageFilter<typename VectorToScalarImageAccessorTypes<type>::MagnitudeImageAdaptor, LUTType, float>; \
+  template class AbstractLookupTableImageFilter<typename VectorToScalarImageAccessorTypes<type>::MaxImageAdaptor, LUTType, float>; \
+  template class AbstractLookupTableImageFilter<typename VectorToScalarImageAccessorTypes<type>::MeanImageAdaptor, LUTType, float>; \
+  template class IntensityToColorLookupTableImageFilter<itk::Image<type, 3>, LUTType, type>; \
+  template class IntensityToColorLookupTableImageFilter<itk::VectorImageToImageAdaptor<type, 3>, LUTType, type>; \
+  template class IntensityToColorLookupTableImageFilter<typename VectorToScalarImageAccessorTypes<type>::MagnitudeImageAdaptor, LUTType, float>; \
+  template class IntensityToColorLookupTableImageFilter<typename VectorToScalarImageAccessorTypes<type>::MaxImageAdaptor, LUTType, float>; \
+  template class IntensityToColorLookupTableImageFilter<typename VectorToScalarImageAccessorTypes<type>::MeanImageAdaptor, LUTType, float>; \
+  template class MultiComponentImageToScalarLookupTableImageFilter<itk::VectorImage<type, 3>, ScalarLUTType, type>;
 
+LookupTableImageFilterInstantiateMacro(unsigned char)
+LookupTableImageFilterInstantiateMacro(char)
+LookupTableImageFilterInstantiateMacro(unsigned short)
+LookupTableImageFilterInstantiateMacro(short)
+LookupTableImageFilterInstantiateMacro(float)
 
-
+/*
 
 
 
@@ -251,3 +274,4 @@ template class IntensityToColorLookupTableImageFilter<GreyVectorMeanImageAdaptor
 
 template class MultiComponentImageToScalarLookupTableImageFilter<AnatomicImageType, ScalarLUTType>;
 
+*/

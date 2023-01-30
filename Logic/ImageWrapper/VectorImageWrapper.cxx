@@ -36,7 +36,6 @@
 
 #include "itkVectorGradientAnisotropicDiffusionImageFilter.h"
 
-
 template <class TTraits>
 VectorImageWrapper<TTraits>
 ::VectorImageWrapper()
@@ -536,6 +535,13 @@ VectorImageWrapper<TTraits>
   writer->Update();
 }
 
+// --------------------------------------------
+// Explicit template instantiation
+#define VectorImageWrapperInstantiateMacro(type) \
+  template class VectorImageWrapper<typename ImageWrapperTraits<type>::VectorTraits>;
 
-template class VectorImageWrapper<AnatomicImageWrapperTraits<GreyType> >;
-
+VectorImageWrapperInstantiateMacro(unsigned char)
+VectorImageWrapperInstantiateMacro(char)
+VectorImageWrapperInstantiateMacro(unsigned short)
+VectorImageWrapperInstantiateMacro(short)
+VectorImageWrapperInstantiateMacro(float)

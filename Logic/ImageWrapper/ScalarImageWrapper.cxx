@@ -387,18 +387,21 @@ ScalarImageWrapper<TTraits>
   writer->Update();
 }
 
+// --------------------------------------------
+// Explicit template instantiation
+#define ScalarImageWrapperInstantiateMacro(type) \
+  template class ScalarImageWrapper<typename ImageWrapperTraits<type>::ScalarTraits>; \
+  template class ScalarImageWrapper<typename ImageWrapperTraits<type>::ComponentTraits>; \
+  template class ScalarImageWrapper<typename ImageWrapperTraits<type>::MagnitudeTraits>; \
+  template class ScalarImageWrapper<typename ImageWrapperTraits<type>::MaxTraits>; \
+  template class ScalarImageWrapper<typename ImageWrapperTraits<type>::MeanTraits>;
 
-AnatomicScalarImageWrapperTraitsInstantiateMacro(ScalarImageWrapper, false)
-ComponentImageWrapperTraitsInstantiateMacro(ScalarImageWrapper, false)
+ScalarImageWrapperInstantiateMacro(unsigned char)
+ScalarImageWrapperInstantiateMacro(char)
+ScalarImageWrapperInstantiateMacro(unsigned short)
+ScalarImageWrapperInstantiateMacro(short)
+ScalarImageWrapperInstantiateMacro(float)
 
 template class ScalarImageWrapper<LabelImageWrapperTraits>;
 template class ScalarImageWrapper<SpeedImageWrapperTraits>;
 template class ScalarImageWrapper<LevelSetImageWrapperTraits>;
-
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> MagTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor> MaxTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor> MeanTraits;
-template class ScalarImageWrapper<MagTraits>;
-template class ScalarImageWrapper<MaxTraits>;
-template class ScalarImageWrapper<MeanTraits>;
-

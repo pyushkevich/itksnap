@@ -149,11 +149,14 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   return xout;
 }
 
-// Declare specific instances that will exist
-template class LookupTableIntensityMappingFilter<
-    itk::Image<short, 2>, itk::Image< itk::RGBAPixel<unsigned char> > >;
+// Template instantiation
+#define LookupTableIntensityMappingFilterInstantiateMacro(type) \
+  template class LookupTableIntensityMappingFilter<itk::Image<type, 2>, itk::Image< itk::RGBAPixel<unsigned char> > >;
 
-template class LookupTableIntensityMappingFilter<
-    itk::Image<float, 2>, itk::Image< itk::RGBAPixel<unsigned char> > >;
+LookupTableIntensityMappingFilterInstantiateMacro(unsigned char)
+LookupTableIntensityMappingFilterInstantiateMacro(char)
+LookupTableIntensityMappingFilterInstantiateMacro(unsigned short)
+LookupTableIntensityMappingFilterInstantiateMacro(short)
+LookupTableIntensityMappingFilterInstantiateMacro(float)
 
 

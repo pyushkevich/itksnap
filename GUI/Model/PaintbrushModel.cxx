@@ -17,7 +17,6 @@
 class BrushWatershedPipeline
 {
 public:
-  typedef itk::Image<GreyType, 3> GreyImageType;
   typedef LabelImageWrapperTraits::ImageType LabelImageType;
   typedef itk::Image<float, 3> FloatImageType;
   typedef itk::Image<itk::IdentifierType, 3> WatershedImageType;
@@ -36,7 +35,7 @@ public:
     }
 
   void PrecomputeWatersheds(
-    const GreyImageType *grey,
+    const FloatImageType *grey,
     const LabelImageType *label,
     itk::ImageRegion<3> region,
     itk::Index<3> vcenter,
@@ -86,7 +85,7 @@ public:
     }
 
 private:
-  typedef itk::RegionOfInterestImageFilter<GreyImageType, FloatImageType> ROIType;
+  typedef itk::RegionOfInterestImageFilter<FloatImageType, FloatImageType> ROIType;
   typedef itk::RegionOfInterestImageFilter<LabelImageType, LabelImageType> LROIType;
   typedef itk::GradientAnisotropicDiffusionImageFilter<FloatImageType,FloatImageType> ADFType;
   typedef itk::GradientMagnitudeImageFilter<FloatImageType, FloatImageType> GMFType;
@@ -382,15 +381,17 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   // Special code for Watershed brush
   if(flagWatershed)
     {
-
     // Get the currently engaged layer
     ImageWrapperBase *context_layer = gid->FindLayer(m_ContextLayerId, false);
     if(!context_layer)
       context_layer = gid->GetMain();
 
+    // Obtain a cast to float pipeline from the layer
+    auto img_source = context_layer->CreateCastToFloatPipeline();
+
     // Precompute the watersheds
     m_Watershed->PrecomputeWatersheds(
-          context_layer->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
+          img_source->GetOutput(),
           driver->GetSelectedSegmentationLayer()->GetImage(),
           xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
 
