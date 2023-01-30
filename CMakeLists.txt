@@ -1654,7 +1654,7 @@ MARK_AS_ADVANCED(SCP_USERNAME)
 SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
-SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
+SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/itk-snap/itk-snap")
 
 #--------------------------------------------------------------------------------
 # Create targets
