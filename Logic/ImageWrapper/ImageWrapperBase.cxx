@@ -49,8 +49,7 @@ ImageWrapperBase
     vtk2vox(i,3) = - v_origin[i] / v_spacing[i];
     }
   return vox2nii * vtk2vox;
-}
-
+  }
 
 ScalarRepresentationIterator
 ::ScalarRepresentationIterator(const VectorImageWrapperBase *wrapper)

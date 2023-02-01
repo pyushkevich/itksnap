@@ -167,14 +167,15 @@ void InterpolateLabelModel::Interpolate()
       {
       if(it.GetLayerAsScalar())
         {
-        // This may crash, if so, we need to keep these mini-pipelines around
-        auto src = it.GetLayer()->CreateCastToFloatPipeline();
-        bwa->AddScalarImage(src->GetOutput());
+        // Critical that these pipelines be released later
+        auto src = it.GetLayer()->CreateCastToFloatPipeline("BinaryWeightedAverage");
+        bwa->AddScalarImage(src);
         }
       else if (it.GetLayerAsVector())
         {
-        auto src = it.GetLayer()->CreateCastToFloatVectorPipeline();
-        bwa->AddVectorImage(src->GetOutput());
+        // Critical that these pipelines be released later
+        auto src = it.GetLayer()->CreateCastToFloatVectorPipeline("BinaryWeightedAverage");
+        bwa->AddVectorImage(src);
         }
       }
 
@@ -221,6 +222,14 @@ void InterpolateLabelModel::Interpolate()
     // Finish the segmentation editing and create an undo point
     it_trg.Finalize("Interpolate label");
     }
+
+  // Iterate through all of the relevant layers and release the pipelines we created
+  for(LayerIterator it = m_CurrentImageData->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+      !it.IsAtEnd(); ++it)
+    {
+    it.GetLayer()->ReleaseInternalPipeline("BinaryWeightedAverage");
+    }
+
 
   // Fire event to inform GUI that segmentation has changed
   this->m_Parent->GetDriver()->InvokeEvent(SegmentationChangeEvent());

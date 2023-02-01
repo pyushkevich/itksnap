@@ -19,6 +19,9 @@ cmake_policy(SET CMP0080 OLD)
 
 SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
 
+OPTION(BUILD_SHARED_LIBS "Build shared (dynamic) libraries" OFF)
+MARK_AS_ADVANCED(BUILD_SHARED_LIBS)
+
 #--------------------------------------------------------------------------------
 # MACROS
 #--------------------------------------------------------------------------------

@@ -2230,10 +2230,5 @@ GuidedNativeImageIOInstantiateMacro(unsigned short)
 GuidedNativeImageIOInstantiateMacro(short)
 GuidedNativeImageIOInstantiateMacro(float)
 
-//template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<GreyType,3> *);
-//template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<LabelType,3> *);
-//template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<float,3> *);
-//template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<RGBType,3> *);
-
 
 

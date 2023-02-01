@@ -14,6 +14,7 @@ namespace itk {
   template <class TOutputImage> class ImageSource;
   template <class T, unsigned int VDim1, unsigned int VDim2> class Transform;
   template <class TCoordRep, unsigned int VDim> class ContinuousIndex;
+  class DataObject;
   class ProcessObject;
 
   namespace Statistics {
@@ -92,14 +93,9 @@ public:
 
   // Floating point images and sources to which data may be cast
   typedef itk::Image<float, 3>                                  FloatImageType;
-  typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
   typedef itk::VectorImage<float, 3>                      FloatVectorImageType;
-  typedef itk::ImageSource<FloatVectorImageType>        FloatVectorImageSource;
-
   typedef itk::Image<float, 2>                                  FloatSliceType;
-  typedef itk::ImageSource<FloatSliceType>                    FloatSliceSource;
   typedef itk::VectorImage<float, 2>                      FloatVectorSliceType;
-  typedef itk::ImageSource<FloatVectorSliceType>        FloatVectorSliceSource;
 
   // Transform matrices
   typedef vnl_matrix_fixed<double, 4, 4>                         TransformType;
@@ -113,6 +109,16 @@ public:
   // Index and size types
   typedef itk::Index<3>                                              IndexType;
   typedef itk::Size<3>                                                SizeType;
+
+  /** This class is used to store mini-pipeline created by this class */
+  struct MiniPipeline
+  {
+    // A list of named filters in the pipeline
+    std::list< itk::SmartPointer<itk::ProcessObject> > filters;
+
+    // Output of the pipeline
+    itk::SmartPointer<itk::DataObject> output;
+  };
 
   /**
    * The image wrapper fires a WrapperMetadataChangeEvent when properties
@@ -357,6 +363,23 @@ public:
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) = 0;
 
+  typedef std::vector< std::pair<int, int> > PatchOffsetTable;
+
+  /**
+   * Support for random access sampling of patches from the image. This method
+   * generates a set of offsets in the image that can be used efficiently to
+   * sample patches from the image.
+   */
+  virtual PatchOffsetTable GetPatchOffsetTable(const SizeType &radius) const = 0;
+
+  /**
+   * Sample the image patch around a pixel location. No bounds checking is done,
+   * so it is assumed that the location has enough margin to sample from. It is
+   * also assumed that the output vector has been allocated already
+   */
+  virtual void SamplePatchAsDouble(const IndexType &idx, const PatchOffsetTable &offset_table,
+                                   double *out_patch) const = 0;
+
   /** Clear the data associated with storing an image */
   virtual void Reset() = 0;
 
@@ -452,29 +475,35 @@ public:
     Cast the internally stored image to a floating point image. The returned
     image is connected to the internally stored image by a mini-pipeline that
     may include a cast filter or a scale/shift filter, depending on the internal
-    format of the image and the internal-to-native intensity mapping. This mini
-    pipeline is not memory managed by the wrapper, and as soon as the returned
-    image smartpointer goes out of scope, the mini-pipeline is deallocated.
+    format of the image and the internal-to-native intensity mapping. The wrapper
+    retains a smart pointer to the filters in the pipeline until the pipeline is
+    released by calling ReleaseInternalPipeline()
+
+    The pipeline is identified with a key and an optional index, which should be
+    passed to ReleaseInternalPipeline() when it is no longer needed.
 
     The method is intended for use with external pipelines that don't know what
     the internal data representation is for the image. There is a cost with using
     this method in terms of memory, so the recommended use is in conjunction with
     streaming filters, so that the cast mini-pipeline does not allocate the whole
     floating point image all at once.
-
-    The mini-pipeline should not be kept around in memory after it's used. This would
-    result in unnecessary duplication of memory.
     */
-  virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const = 0;
+  virtual FloatImageType* CreateCastToFloatPipeline(const char *key, int index = 0) = 0;
 
   /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const = 0;
+  virtual FloatVectorImageType* CreateCastToFloatVectorPipeline(const char *key, int index = 0) = 0;
 
   /** Create a pipeline for casting an image slice to floating point */
-  virtual SmartPtr<FloatSliceSource> CreateCastToFloatSlicePipeline(unsigned int slice) = 0;
+  virtual FloatSliceType* CreateCastToFloatSlicePipeline(const char *key, unsigned int slice) = 0;
 
   /** Create a pipeline for casting an image slice to floating point vector image */
-  virtual SmartPtr<FloatVectorSliceSource> CreateCastToFloatVectorSlicePipeline(unsigned int slice) = 0;
+  virtual FloatVectorSliceType* CreateCastToFloatVectorSlicePipeline(const char *key, unsigned int slice) = 0;
+
+  /**
+   * Release the filters and images in an internally managed pipeline. Passing -1 for
+   * the index will release all the indices for this key
+   */
+  virtual void ReleaseInternalPipeline(const char *key, int index = -1) = 0;
 
 protected:
 
@@ -527,30 +556,6 @@ public:
     Get the maximum possible value of the gradient magnitude in native units
     */
   virtual double GetImageGradientMagnitudeUpperLimitNative() = 0;
-
-  /**
-   * Extract a GreyType representation from the image wrapper. Note that
-   * internally, the scalar image wrapper can be of many itk types, e.g.,
-   * it could be a component of a vector image computed dynamically. In
-   * order to use the scalar image in downstream filters, we must have a
-   * way to map it to some common datatype. If not, we would have to template
-   * the downstream filter on the type of the image in the wrapper, which would
-   * lead to an exponential explosion of types.
-   *
-   * There are actually four representations for each image wrapper, one of
-   * which is intended for pipelines that act on entire image volumes and the
-   * other three intended for use in preview-capable pipelines, which generate
-   * output for just one slice. Since ITK only allocates the requested image
-   * region, these four representations should not really use much extra memory.
-   *
-   * However, it is very important that downstream filters use the itk streaming
-   * image filter to break up operations into pieces. Without that, there would
-   * be unnecessary large memory allocation.
-   */
-  /*
-  virtual const CommonFormatImageType* GetCommonFormatImage(
-      ExportChannel channel = WHOLE_IMAGE) = 0;
-      */
 
   /**
    * Get the intensity curve used to map raw intensities to color map inputs.

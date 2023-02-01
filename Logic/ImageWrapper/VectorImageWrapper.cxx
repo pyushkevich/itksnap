@@ -525,14 +525,19 @@ VectorImageWrapper<TTraits>
   io->CreateImageIO(fname, hints, false);
   itk::ImageIOBase *base = io->GetIOBase();
 
-  auto pipeline = this->CreateCastToFloatVectorPipeline();
+  // Create a pipeline that casts the image to floating type
+  auto *float_img = this->CreateCastToFloatVectorPipeline("WriteToFileAsFloat");
+
   typedef itk::ImageFileWriter<typename ImageWrapperBase::FloatVectorImageType> WriterType;
   SmartPtr<WriterType> writer = WriterType::New();
   writer->SetFileName(fname);
   if(base)
     writer->SetImageIO(base);
-  writer->SetInput(pipeline->GetOutput());
+  writer->SetInput(float_img);
   writer->Update();
+
+  // Release the pipeline (what a pain)
+  this->ReleaseInternalPipeline("WriteToFileAsFloat");
 }
 
 // --------------------------------------------

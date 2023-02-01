@@ -16,7 +16,6 @@ DeformationGridModel::
 GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
 {
   typedef ImageWrapperBase::FloatVectorSliceType SliceType;
-  typedef ImageWrapperBase::FloatVectorSliceSource SliceSourceType;
 
   // Draw the texture for the layer
   if (layer && (layer->GetNumberOfComponents() == 3 || layer->GetNumberOfComponents() == 2))
@@ -25,10 +24,8 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
     // TODO: this involves new memory allocation in each call, in the future we might
     // want to create this pipeline when deformation grid visualization is enabled
     // and delete it when it is disabled
-    SmartPtr<SliceSourceType> slice_src =
-        layer->CreateCastToFloatVectorSlicePipeline(m_Parent->GetId());
-    slice_src->Update();
-    SliceType *slice = slice_src->GetOutput();
+    SliceType *slice = layer->CreateCastToFloatVectorSlicePipeline(
+          "DeformationGridModelCastToFloat",m_Parent->GetId());
 
     // Get the slice
     slice->GetSource()->UpdateLargestPossibleRegion();
@@ -135,6 +132,8 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
     v.nline[1] = nd0[1];
     v.nvert[1] = nd1[1];
 
+    // Release the mini-pipeline
+    layer->ReleaseInternalPipeline("DeformationGridModelCastToFloat", m_Parent->GetId());
     }
 
   return EXIT_SUCCESS;

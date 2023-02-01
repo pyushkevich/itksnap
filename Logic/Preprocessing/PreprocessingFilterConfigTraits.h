@@ -47,7 +47,35 @@ class EdgePreprocessingSettings;
 class GaussianMixtureModel;
 template <class TPixel, class TLabel, int VDim> class RandomForestClassifier;
 
-class SmoothBinaryThresholdFilterConfigTraits {
+
+class AbstractFilterConfigTraits
+{
+public:
+  /**
+   * This method calls the layer's create cast to float pipeline method and stores
+   * the resulting filter as UserData in the layer.
+   */
+  static ScalarImageWrapperBase::FloatImageType *
+    CreateCastToFloatPipelineForLayer(ScalarImageWrapperBase *layer, int channel);
+
+  /**
+   * This method calls the layer's create cast to float pipeline method and stores
+   * the resulting filter as UserData in the layer.
+   */
+  static VectorImageWrapperBase::FloatVectorImageType *
+    CreateCastToFloatPipelineForLayer(VectorImageWrapperBase *layer, int channel);
+
+  /**
+   * This method deletes all the create cast to float pipelines created for all
+   * the layers in the SNAPImageData class by this class
+   */
+  static void RemoveAllCastToFloatPipelines(SNAPImageData *sid);
+
+};
+
+
+class SmoothBinaryThresholdFilterConfigTraits : public AbstractFilterConfigTraits
+{
 public:
 
   typedef SNAPImageData                                            InputDataType;
@@ -63,7 +91,7 @@ public:
   typedef ThresholdSettings                                        ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
-  static void DetachInputs(FilterType *filter);
+  static void DetachInputs(SNAPImageData *sid, FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 
@@ -73,9 +101,13 @@ public:
   static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid);
   static void SetActiveScalarLayer(
       ScalarImageWrapperBase *layer, FilterType *filter, int channel);
+
+protected:
+  static std::string CasterPipelineKeyString(int channel);
 };
 
-class EdgePreprocessingFilterConfigTraits {
+class EdgePreprocessingFilterConfigTraits : public AbstractFilterConfigTraits
+{
 public:
 
   typedef SNAPImageData                                          InputDataType;
@@ -87,7 +119,7 @@ public:
   typedef EdgePreprocessingSettings                              ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
-  static void DetachInputs(FilterType *filter);
+  static void DetachInputs(SNAPImageData *sid, FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 
@@ -100,7 +132,8 @@ public:
 };
 
 
-class GMMPreprocessingFilterConfigTraits {
+class GMMPreprocessingFilterConfigTraits : public AbstractFilterConfigTraits
+{
 public:
 
   typedef SNAPImageData                                          InputDataType;
@@ -116,7 +149,7 @@ public:
   typedef GaussianMixtureModel                                   ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
-  static void DetachInputs(FilterType *filter);
+  static void DetachInputs(SNAPImageData *sid, FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 
@@ -130,7 +163,8 @@ public:
 
 
 /** Traits class for random forest based preprocessing */
-class RFPreprocessingFilterConfigTraits {
+class RFPreprocessingFilterConfigTraits : public AbstractFilterConfigTraits
+{
 public:
 
   typedef SNAPImageData                                          InputDataType;
@@ -147,7 +181,7 @@ public:
   typedef RandomForestClassifier<float, LabelType, 3>            ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
-  static void DetachInputs(FilterType *filter);
+  static void DetachInputs(SNAPImageData *sid, FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 

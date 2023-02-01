@@ -44,6 +44,27 @@
 #include "RFClassificationEngine.h"
 #include "Rebroadcaster.h"
 
+
+ScalarImageWrapperBase::FloatImageType *
+AbstractFilterConfigTraits::CreateCastToFloatPipelineForLayer(
+    ScalarImageWrapperBase *layer, int channel)
+{
+  return layer->CreateCastToFloatPipeline("PreprocessingFilter", channel);
+}
+
+ImageWrapperBase::FloatVectorImageType *
+AbstractFilterConfigTraits::CreateCastToFloatPipelineForLayer(VectorImageWrapperBase *layer, int channel)
+{
+  return layer->CreateCastToFloatVectorPipeline("PreprocessingFilter", channel);
+}
+
+void AbstractFilterConfigTraits::RemoveAllCastToFloatPipelines(SNAPImageData *sid)
+{
+  for(auto it = sid->GetLayers(); !it.IsAtEnd(); ++it)
+    it.GetLayer()->ReleaseInternalPipeline("PreprocessingFilter");
+}
+
+
 void
 SmoothBinaryThresholdFilterConfigTraits
 ::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
@@ -61,11 +82,14 @@ SmoothBinaryThresholdFilterConfigTraits
 
 void
 SmoothBinaryThresholdFilterConfigTraits
-::DetachInputs(FilterType *filter)
+::DetachInputs(SNAPImageData *sid, FilterType *filter)
 {
   filter->SetInput(NULL);
   filter->SetInputImageMinimum(0);
   filter->SetInputImageMaximum(0);
+
+  // We must get rid of all the mini-pipelines created during the use of this filter
+  RemoveAllCastToFloatPipelines(sid);
 }
 
 void
@@ -78,11 +102,7 @@ SmoothBinaryThresholdFilterConfigTraits
 void SmoothBinaryThresholdFilterConfigTraits::SetActiveScalarLayer(
     ScalarImageWrapperBase *layer, SmoothBinaryThresholdFilterConfigTraits::FilterType *filter, int channel)
 {
-  auto float_caster = layer->CreateCastToFloatPipeline();
-
-  // TODO: is it safe to just assign image here or do we need to save a pointer to float_caster,
-  // will it go out of scope?
-  filter->SetInput(float_caster->GetOutput());
+  filter->SetInput(CreateCastToFloatPipelineForLayer(layer, channel));
   filter->SetInputImageMinimum(layer->GetImageMinAsDouble());
   filter->SetInputImageMaximum(layer->GetImageMaxAsDouble());
 
@@ -104,27 +124,27 @@ void SmoothBinaryThresholdFilterConfigTraits::SetActiveScalarLayer(
 
   // Pass the parameters to the filter
   filter->SetParameters(ts);
-}
+  }
+
 
 void
 EdgePreprocessingFilterConfigTraits
 ::AttachInputs(SNAPImageData *sid, FilterType *filter, int channel)
 {
   ScalarImageWrapperBase *scalar = sid->GetMain()->GetDefaultScalarRepresentation();
-  auto float_caster = scalar->CreateCastToFloatPipeline();
-
-  // TODO: is it safe to just assign image here or do we need to save a pointer to float_caster,
-  // will it go out of scope?
-  filter->SetInput(float_caster->GetOutput());
+  filter->SetInput(CreateCastToFloatPipelineForLayer(scalar, channel));
   filter->SetInputImageMaximumGradientMagnitude(
         scalar->GetImageGradientMagnitudeUpperLimit());
 }
 
 void
 EdgePreprocessingFilterConfigTraits
-::DetachInputs(FilterType *filter)
+::DetachInputs(SNAPImageData *sid, FilterType *filter)
 {
   filter->SetInput(nullptr);
+
+  // We must get rid of all the mini-pipelines created during the use of this filter
+  RemoveAllCastToFloatPipelines(sid);
 }
 
 void
@@ -146,17 +166,13 @@ GMMPreprocessingFilterConfigTraits
     {
     if(it.GetLayerAsScalar())
       {
-      // TODO: this might crash, depends on whether internally the filter has a smart
-      // pointer to the image source
-      SmartPtr<ImageWrapperBase::FloatImageSource> src =
-          it.GetLayer()->CreateCastToFloatPipeline();
-      filter->AddScalarImage(src->GetOutput());
+      auto *src = CreateCastToFloatPipelineForLayer(it.GetLayerAsScalar(), channel);
+      filter->AddScalarImage(src);
       }
     else if (it.GetLayerAsVector())
       {
-      SmartPtr<ImageWrapperBase::FloatVectorImageSource> src =
-          it.GetLayer()->CreateCastToFloatVectorPipeline();
-      filter->AddVectorImage(src->GetOutput());
+      auto *src = CreateCastToFloatPipelineForLayer(it.GetLayerAsVector(), channel);
+      filter->AddVectorImage(src);
       }
     }
 
@@ -168,12 +184,15 @@ GMMPreprocessingFilterConfigTraits
 
 void
 GMMPreprocessingFilterConfigTraits
-::DetachInputs(FilterType *filter)
+::DetachInputs(SNAPImageData *sid, FilterType *filter)
 {
   while(filter->GetNumberOfValidRequiredInputs())
     filter->PopBackInput();
 
   filter->SetMixtureModel(NULL);
+
+  // We must get rid of all the mini-pipelines created during the use of this filter
+  RemoveAllCastToFloatPipelines(sid);
 }
 
 void
@@ -182,13 +201,6 @@ GMMPreprocessingFilterConfigTraits
 {
   filter->SetMixtureModel(p);
 }
-
-
-
-
-
-
-
 
 void
 RFPreprocessingFilterConfigTraits
@@ -200,19 +212,13 @@ RFPreprocessingFilterConfigTraits
     {
     if(it.GetLayerAsScalar())
       {
-      auto float_caster = it.GetLayer()->CreateCastToFloatPipeline();
-
-      // TODO: is it safe to just assign image here or do we need to save a pointer to float_caster,
-      // will it go out of scope?
-      filter->AddScalarImage(float_caster->GetOutput());
+      auto *src = CreateCastToFloatPipelineForLayer(it.GetLayerAsScalar(), channel);
+      filter->AddScalarImage(src);
       }
     else if (it.GetLayerAsVector())
       {
-      auto float_caster = it.GetLayer()->CreateCastToFloatVectorPipeline();
-
-      // TODO: is it safe to just assign image here or do we need to save a pointer to float_caster,
-      // will it go out of scope?
-      filter->AddVectorImage(float_caster->GetOutput());
+      auto *src = CreateCastToFloatPipelineForLayer(it.GetLayerAsVector(), channel);
+      filter->AddVectorImage(src);
       }
     }
 
@@ -224,12 +230,15 @@ RFPreprocessingFilterConfigTraits
 
 void
 RFPreprocessingFilterConfigTraits
-::DetachInputs(FilterType *filter)
+::DetachInputs(SNAPImageData *sid, FilterType *filter)
 {
   while(filter->GetNumberOfValidRequiredInputs())
     filter->PopBackInput();
 
   filter->SetClassifier(NULL);
+
+  // We must get rid of all the mini-pipelines created during the use of this filter
+  RemoveAllCastToFloatPipelines(sid);
 }
 
 void
@@ -245,13 +254,6 @@ RFPreprocessingFilterConfigTraits
 {
   return (filter[0]->GetClassifier() != NULL && filter[0]->GetClassifier()->IsValidClassifier());
 }
-
-
-
-
-
-
-
 
 // Instantiate preview wrappers
 template class SlicePreviewFilterWrapper<SmoothBinaryThresholdFilterConfigTraits>;

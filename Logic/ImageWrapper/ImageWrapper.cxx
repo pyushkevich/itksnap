@@ -139,6 +139,7 @@ public:
   typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
   typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
   typedef TImage4D Image4DType;
+  typedef std::vector<std::pair<int, int> > PatchOffsetTable;
 
   static void FillBuffer(ImageType *image, PixelType itkNotUsed(value))
   {
@@ -211,6 +212,20 @@ public:
                         image_4d->GetNameOfClass());
   }
 
+  static PatchOffsetTable GetPatchOffsetTable(TImage *image, const itk::Size<3> &)
+  {
+    throw IRISException("GetPatchOffsetTable unsupported for class %s", image->GetNameOfClass());
+    return PatchOffsetTable();
+  }
+
+  static void SamplePatchAsDouble(TImage *image, const itk::Index<3> &idx,
+                                  const PatchOffsetTable &offset_table,
+                                  double *out)
+  {
+    throw IRISException("SamplePatchAsDouble unsupported for class %s", image->GetNameOfClass());
+
+  }
+
   /*
   template <typename TPixel>
   static void UpdateImportPointer(Image4DType *image_4d,
@@ -233,12 +248,13 @@ class ImageWrapperPartialSpecializationTraitsCommon :
     public ImageWrapperPartialSpecializationTraitsBase<TImage, TImage4D>
 {
 public:
+  typedef ImageWrapperPartialSpecializationTraitsBase<TImage, TImage4D> Superclass;
   typedef TImage ImageType;
   typedef TImage4D Image4DType;
   typedef typename TImage::PixelType PixelType;
   typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
   typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
-  typedef ImageWrapperPartialSpecializationTraitsBase<TImage, TImage4D> Superclass;
+  typedef typename Superclass::PatchOffsetTable PatchOffsetTable;
 
   static void FillBuffer(ImageType *image, PixelType p)
   {
@@ -369,6 +385,63 @@ public:
   {
     image_4d->SetPixelContainer(container);
   }
+
+  static PatchOffsetTable GetPatchOffsetTable(TImage *image, const itk::Size<3> &radius)
+  {
+    // Create an iterator over the output image
+    typedef itk::ImageLinearIteratorWithIndex<ImageType> IterBase;
+    typedef IteratorExtender<IterBase> IterType;
+    PatchOffsetTable offset_table;
+
+    // Create the region
+    itk::ImageRegion<3> region;
+    itk::Index<3> center;
+    for(unsigned int i = 0; i < 3; i++)
+      {
+      region.SetIndex(i, 0);
+      region.SetSize(i, 2*radius[i]+1);
+      center[i] = radius[i];
+      }
+
+    // Get the offset of the center
+    IterType it(image, region);
+    it.SetIndex(center);
+    const auto *p_center = it.GetPixelPointer(image);
+
+    // Iterate over lines in the region
+    for(it.GoToBegin(); !it.IsAtEnd(); it.NextLine())
+      {
+      // The offset at the beginning of the line
+      int offset_in_bytes_begin = (int)(it.GetPixelPointer(image) - p_center);
+
+      // The offset at the end of line
+      it.GoToEndOfLine();
+      int offset_in_bytes_end = (int)(it.GetPixelPointer(image) - p_center);
+
+      // Representation of the line
+      offset_table.push_back(std::make_pair(offset_in_bytes_begin, offset_in_bytes_end));
+      }
+
+    return offset_table;
+  }
+
+  static void SamplePatchAsDouble(TImage *image, const itk::Index<3> &idx,
+                                  const PatchOffsetTable &offset_table,
+                                  double *out)
+  {
+    // Compute the buffer offset for the center pixel
+    typedef itk::ImageHelper<3, 3> Helper;
+    typename Helper::OffsetValueType offset = 0;
+    Helper::ComputeOffset(image->GetBufferedRegion().GetIndex(), idx, image->GetOffsetTable(), offset);
+    auto *buffer = image->GetBufferPointer();
+
+    // Sample around the center pixel
+    int i = 0;
+    for(auto &p : offset_table)
+      for(int k = p.first + offset; k < p.second + offset; k++)
+        out[i++] = (double) buffer[k];
+  }
+
 
 
   /*
@@ -833,6 +906,7 @@ ImageWrapper<TTraits>
   // Set initial state
   m_Initialized = false;
   m_PipelineReady = false;
+  m_ReferenceSpace = nullptr;
 
   // Create empty IO hints
   m_IOHints = new Registry();
@@ -1566,6 +1640,25 @@ ImageWrapper<TTraits>
 
   // Simply use ITK's GetPixel method
   return m_ImageTimePoints[time_point]->GetPixel(index);
+  }
+
+template<class TTraits>
+typename ImageWrapper<TTraits>::PatchOffsetTable
+ImageWrapper<TTraits>
+::GetPatchOffsetTable(const SizeType &radius) const
+{
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+  return Specialization::GetPatchOffsetTable(m_Image, radius);
+}
+
+template<class TTraits>
+void
+ImageWrapper<TTraits>
+::SamplePatchAsDouble(
+    const IndexType &idx, const PatchOffsetTable &offset_table, double *out_patch) const
+{
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+  Specialization::SamplePatchAsDouble(m_Image, idx, offset_table, out_patch);
 }
 
 
@@ -2408,61 +2501,49 @@ ImageWrapper<TTraits>
         force_resampling, progressCommand);
 }
 
-/*
- * The following chunks of code deal with setting up pipelines that cast the internal
- * image to floating point or other type
+
+/**
+ * A cast to target pipeline implementation that uses the cast image filter
  */
-template <unsigned int VDim, class TInputImage, class TOutputComponent, class TNativeMapping>
-class CreateCastToTargetTypePipelinePartialSpecializationTraits
+template <class TInputImage, class TOutputImage, class TNativeMapping>
+class CreateCastToTargetTypePipelineUsingCastFilter
 {
 public:
-  typedef itk::Image<TOutputComponent, VDim> TargetTypeImageType;
-  typedef itk::ImageSource<TargetTypeImageType> TargetTypeImageSource;
-  typedef itk::VectorImage<TOutputComponent, VDim> TargetTypeVectorImageType;
-  typedef itk::ImageSource<TargetTypeVectorImageType> TargetTypeVectorImageSource;
-
-  static typename TargetTypeImageSource::Pointer CreateScalarPipeline(
-      TInputImage *img, TNativeMapping native_mapping)
+  typedef std::pair<ImageWrapperBase::MiniPipeline, SmartPtr<TOutputImage> > ReturnType;
+  static ReturnType CreatePipeline(TInputImage *image, TNativeMapping native_mapping)
     {
-    if(native_mapping.IsAlwaysIdentity())
-      {
-      // We can use an in-place cast filter, which makes sure that if the internal image
-      // is already the target type, then no memory allocation and iteration is done
-      typedef itk::CastImageFilter<TInputImage, TargetTypeImageType> CastFilter;
-      typename CastFilter::Pointer filter = CastFilter::New();
-      filter->SetInput(img);
-      filter->SetInPlace(true);
+    // Create a casting filter
+    typedef itk::CastImageFilter<TInputImage, TOutputImage> CastFilter;
+    typename CastFilter::Pointer filter = CastFilter::New();
+    filter->SetInput(image);
 
-      SmartPtr<TargetTypeImageSource> output = filter.GetPointer();
-      return output;
-      }
-    else
-      {
-      typedef itk::UnaryFunctorImageFilter<TInputImage, TargetTypeImageType, TNativeMapping> FilterType;
-      SmartPtr<FilterType> filter = FilterType::New();
-      filter->SetInput(img);
-      filter->SetFunctor(native_mapping);
+    // Populate the mini-pipeline with the filter
+    ImageWrapperBase::MiniPipeline mp;
+    mp.filters.push_back(filter.GetPointer());
 
-      SmartPtr<TargetTypeImageSource> output = filter.GetPointer();
-      return output;
-      }
-    }
-
-  static typename TargetTypeVectorImageSource::Pointer CreateVectorPipeline(
-      TInputImage *img, TNativeMapping native_mapping)
-    {
-    throw IRISException("Cannot cast scalar image to vector TargetTypeing point image");
-    return nullptr;
-    }
-
-  static typename TargetTypeImageSource::Pointer CreatePipeline(
-      TInputImage *img, TNativeMapping native_mapping)
-    {
-    return CreateScalarPipeline(img, native_mapping);
+    // Return the pipeline and its output
+    return std::make_pair(mp, filter->GetOutput());
     }
 };
 
+/**
+ * A cast to target pipeline implementation that just returns the input image
+ */
+template <class TInputImage, class TNativeMapping>
+class CreateCastToTargetTypePipelineUsingImageCopy
+{
+public:
+  typedef std::pair<ImageWrapperBase::MiniPipeline, SmartPtr<TInputImage> > ReturnType;
+  static ReturnType CreatePipeline(TInputImage *image, TNativeMapping native_mapping)
+    {
+    // No pipeline needed, just return the image itself
+    return std::make_pair(ImageWrapperBase::MiniPipeline(), image);
+    }
+};
 
+/**
+ * A functor used to apply linear mapping to each image channel
+ */
 template <class TInputPixel, class TOutputComponent, class TScalarFunctor>
 class MultiComponentChannelWiseFunctor
 {
@@ -2491,99 +2572,211 @@ protected:
 };
 
 
-template <unsigned int VDim, class TPixel, class TOutputComponent, class TNativeMapping>
-class CreateCastToTargetTypePipelinePartialSpecializationTraits<
-    VDim, itk::VectorImage<TPixel, VDim>, TOutputComponent, TNativeMapping>
+/**
+ * CreateCastToTargetTypePipelinePartialSpecializationTraits is a helper class that
+ * can create a mini-pipeline between the internally stored image in ImageWrapper and
+ * an image of desired output type, with optional linear mapping. This implementation
+ * throws an error; actual work is done in the various specializations below
+ */
+template <class TInputImage, class TOutputImage, class TNativeMapping, bool LinearMapping, bool Compatible>
+class CreateCastToTargetTypePipelinePartialSpecializationTraits
 {
 public:
-  typedef itk::Image<TOutputComponent, VDim> TargetTypeImageType;
-  typedef itk::ImageSource<TargetTypeImageType> TargetTypeImageSource;
-  typedef itk::VectorImage<TOutputComponent, VDim> TargetTypeVectorImageType;
-  typedef itk::ImageSource<TargetTypeVectorImageType> TargetTypeVectorImageSource;
-  typedef itk::VectorImage<TPixel, VDim> InputImageType;
-  typedef typename InputImageType::PixelType InputPixelType;
-
-  static typename TargetTypeImageSource::Pointer CreateScalarPipeline(
-      InputImageType *img, TNativeMapping native_mapping)
+  typedef std::pair<ImageWrapperBase::MiniPipeline, SmartPtr<TOutputImage> > ReturnType;
+  static ReturnType CreatePipeline(TInputImage *image, TNativeMapping native_mapping)
     {
-    throw IRISException("Cannot cast vector image to scalar image");
-    return nullptr;
+    throw IRISException("CreatePipeline not implemented for these input types");
+    return std::make_pair(ImageWrapperBase::MiniPipeline(), SmartPtr<TOutputImage>());
     }
+};
 
-  static typename TargetTypeVectorImageSource::Pointer CreateVectorPipeline(
-      InputImageType *img, TNativeMapping native_mapping)
+/**
+ * This specialization is for when the input image and output image are not the same
+ * class, but there is no intensity mapping, so it is possible to use ITK's cast filter
+ */
+template <class TInputImage, class TOutputImage>
+class CreateCastToTargetTypePipelinePartialSpecializationTraits<
+    TInputImage, TOutputImage, IdentityInternalToNativeIntensityMapping, false, true>
+    : public CreateCastToTargetTypePipelineUsingCastFilter<
+      TInputImage, TOutputImage, IdentityInternalToNativeIntensityMapping>
+{
+};
+
+
+/**
+ * This specialization is for when the input image and output image are VectorImages
+ * and a linear mapping is used
+ */
+template <class TSourcePixel, class TTargetPixel, unsigned int VDim, class TLinearMapping>
+class CreateCastToTargetTypePipelinePartialSpecializationTraits<
+    itk::VectorImage<TSourcePixel, VDim>, itk::VectorImage<TTargetPixel, VDim>,
+    TLinearMapping, true, true>
+{
+public:
+  typedef itk::VectorImage<TSourcePixel, VDim> TInputImage;
+  typedef itk::VectorImage<TTargetPixel, VDim> TOutputImage;
+  typedef std::pair<ImageWrapperBase::MiniPipeline, SmartPtr<TOutputImage> > ReturnType;
+
+  static ReturnType CreatePipeline(TInputImage *image, TLinearMapping native_mapping)
     {
-    if(native_mapping.IsAlwaysIdentity())
-      {
-      // We can use an in-place cast filter, which makes sure that if the internal image
-      // is already the target type, then no memory allocation and iteration is done
-      typedef itk::CastImageFilter<InputImageType, TargetTypeVectorImageType> CastFilter;
-      typename CastFilter::Pointer filter = CastFilter::New();
-      filter->SetInput(img);
-      filter->SetInPlace(true);
-      SmartPtr<TargetTypeVectorImageSource> ret = filter.GetPointer();
-      return ret;
-      }
-    else
-      {
-      typedef MultiComponentChannelWiseFunctor<InputPixelType, TOutputComponent, TNativeMapping> FunctorType;
-      typedef UnaryFunctorVectorImageFilter<InputImageType, TargetTypeVectorImageType, FunctorType> FilterType;
-      FunctorType functor;
-      functor.SetNumberOfComponentsPerPixel(img->GetNumberOfComponentsPerPixel());
-      functor.SetFunctor(native_mapping);
-      SmartPtr<FilterType> filter = FilterType::New();
-      filter->SetInput(img);
-      filter->SetFunctor(functor);
+    typedef MultiComponentChannelWiseFunctor<TSourcePixel, TTargetPixel, TLinearMapping> FunctorType;
+    typedef UnaryFunctorVectorImageFilter<TInputImage, TOutputImage, FunctorType> FilterType;
+    FunctorType functor;
+    functor.SetNumberOfComponentsPerPixel(image->GetNumberOfComponentsPerPixel());
+    functor.SetFunctor(native_mapping);
+    SmartPtr<FilterType> filter = FilterType::New();
+    filter->SetInput(image);
+    filter->SetFunctor(functor);
 
-      SmartPtr<TargetTypeVectorImageSource> output = filter.GetPointer();
-      return output;
-      }
+    // Populate the mini-pipeline with the filter
+    ImageWrapperBase::MiniPipeline mp;
+    mp.filters.push_back(filter.GetPointer());
+
+    // Return the pipeline and its output
+    return std::make_pair(mp, filter->GetOutput());
     }
+};
 
-  static typename TargetTypeVectorImageSource::Pointer CreatePipeline(
-      InputImageType *img, TNativeMapping native_mapping)
+/**
+ * This specialization is for when a linear mapping is used and the output is not
+ * a vector image
+ */
+template <class TInputImage, class TTargetPixel, unsigned int VDim, class TLinearMapping>
+class CreateCastToTargetTypePipelinePartialSpecializationTraits<
+    TInputImage, itk::Image<TTargetPixel, VDim>, TLinearMapping, true, true>
+{
+public:
+  typedef itk::Image<TTargetPixel, VDim> TOutputImage;
+  typedef std::pair<ImageWrapperBase::MiniPipeline, SmartPtr<TOutputImage> > ReturnType;
+
+  static ReturnType CreatePipeline(TInputImage *image, TLinearMapping native_mapping)
     {
-    return CreateVectorPipeline(img, native_mapping);
+    typedef itk::UnaryFunctorImageFilter<TInputImage, TOutputImage, TLinearMapping> FilterType;
+    SmartPtr<FilterType> filter = FilterType::New();
+    filter->SetInput(image);
+    filter->SetFunctor(native_mapping);
+
+    // Populate the mini-pipeline with the filter
+    ImageWrapperBase::MiniPipeline mp;
+    mp.filters.push_back(filter.GetPointer());
+
+    // Return the pipeline and its output
+    return std::make_pair(mp, filter->GetOutput());
     }
 };
 
 
-template<class TTraits>
-SmartPtr<typename ImageWrapper<TTraits>::FloatImageSource>
-ImageWrapper<TTraits>::CreateCastToFloatPipeline() const
+/**
+ * This specialization is for when the input image and output images are the same
+ * class and there is no intensity mapping, so we can just return the input instead
+ * of casting to another type
+ */
+template <class TImage>
+class CreateCastToTargetTypePipelinePartialSpecializationTraits<
+    TImage, TImage,
+    IdentityInternalToNativeIntensityMapping, false, true>
+    : public CreateCastToTargetTypePipelineUsingImageCopy<TImage, IdentityInternalToNativeIntensityMapping>
 {
-  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
-      3, ImageType, float, NativeIntensityMapping> Specialization;
-  return Specialization::CreateScalarPipeline(this->m_Image, this->m_NativeMapping);
-}
-
-template<class TTraits>
-SmartPtr<typename ImageWrapper<TTraits>::FloatVectorImageSource>
-ImageWrapper<TTraits>::CreateCastToFloatVectorPipeline() const
-{
-  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
-      3, ImageType, float, NativeIntensityMapping> Specialization;
-  return Specialization::CreateVectorPipeline(this->m_Image, this->m_NativeMapping);
-}
-
-template<class TTraits>
-SmartPtr<typename ImageWrapper<TTraits>::FloatSliceSource>
-ImageWrapper<TTraits>::CreateCastToFloatSlicePipeline(unsigned int slice)
-{
-  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
-      2, SliceType, float, NativeIntensityMapping> Specialization;
-  return Specialization::CreateScalarPipeline(this->GetSlice(slice), this->m_NativeMapping);
-}
+};
 
 
 template<class TTraits>
-SmartPtr<typename ImageWrapper<TTraits>::FloatVectorSliceSource>
-ImageWrapper<TTraits>::CreateCastToFloatVectorSlicePipeline(unsigned int slice)
+typename ImageWrapper<TTraits>::FloatImageType *
+ImageWrapper<TTraits>
+::CreateCastToFloatPipeline(const char *key, int index)
 {
+  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
+
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
-      2, SliceType, float, NativeIntensityMapping> Specialization;
-  return Specialization::CreateVectorPipeline(this->GetSlice(slice), this->m_NativeMapping);
+      ImageType, FloatImageType, NativeIntensityMapping, IsLinear::value, !IsVector::value> Specialization;
+
+  auto p = Specialization::CreatePipeline(this->m_Image, this->m_NativeMapping);
+
+  if(p.second)
+    this->AddInternalPipeline(p.first, key, index);
+
+  return p.second;
 }
+
+template<class TTraits>
+typename ImageWrapper<TTraits>::FloatVectorImageType *
+ImageWrapper<TTraits>
+::CreateCastToFloatVectorPipeline(const char *key, int index)
+{
+  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
+
+  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
+      ImageType, FloatVectorImageType, NativeIntensityMapping, IsLinear::value, IsVector::value> Specialization;
+
+  auto p = Specialization::CreatePipeline(this->m_Image, this->m_NativeMapping);
+
+  if(p.second)
+    this->AddInternalPipeline(p.first, key, index);
+
+  return p.second;
+}
+
+template<class TTraits>
+typename ImageWrapper<TTraits>::FloatSliceType *
+ImageWrapper<TTraits>::CreateCastToFloatSlicePipeline(const char *key, unsigned int slice)
+{
+  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
+
+  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
+      SliceType, FloatSliceType, NativeIntensityMapping, IsLinear::value, !IsVector::value> Specialization;
+
+  auto p = Specialization::CreatePipeline(this->GetSlice(slice), this->m_NativeMapping);
+
+  if(p.second)
+    this->AddInternalPipeline(p.first, key, slice);
+
+  return p.second;
+}
+
+template<class TTraits>
+typename ImageWrapper<TTraits>::FloatVectorSliceType *
+ImageWrapper<TTraits>::CreateCastToFloatVectorSlicePipeline(const char *key, unsigned int slice)
+{
+  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
+
+  typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
+      SliceType, FloatVectorSliceType, NativeIntensityMapping, IsLinear::value, !IsVector::value> Specialization;
+
+  auto p = Specialization::CreatePipeline(this->GetSlice(slice), this->m_NativeMapping);
+
+  if(p.second)
+    this->AddInternalPipeline(p.first, key, slice);
+
+  return p.second;
+  }
+
+
+template<class TTraits>
+void ImageWrapper<TTraits>::AddInternalPipeline(const MiniPipeline &mp, const char *key, int index)
+{
+  m_ManagedPipelines[std::string(key)][index] = mp;
+}
+
+template<class TTraits>
+void ImageWrapper<TTraits>::ReleaseInternalPipeline(const char *key, int index)
+{
+  std::string k(key);
+  if(index < 0)
+    {
+    m_ManagedPipelines.erase(k);
+    }
+  else
+    {
+    m_ManagedPipelines[k].erase(index);
+    if(m_ManagedPipelines[k].size() == 0)
+      m_ManagedPipelines.erase(k);
+    }
+}
+
 
 
 template<class TTraits>
@@ -2591,9 +2784,13 @@ SmartPtr<typename ImageWrapper<TTraits>::ConcreteImageSource>
 ImageWrapper<TTraits>::CreateCastToConcreteImagePipeline() const
 {
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
-      3, ImageType, ComponentType, IdentityInternalToNativeIntensityMapping> Specialization;
+      ImageType, ConcreteImageType, IdentityInternalToNativeIntensityMapping, false, true> Specialization;
   IdentityInternalToNativeIntensityMapping dummy_mapping;
-  return Specialization::CreatePipeline(this->m_Image, dummy_mapping);
+  auto p = Specialization::CreatePipeline(this->m_Image, dummy_mapping);
+
+  // TODO: store the mini-pipeline internally!
+  ConcreteImageSource *filter = dynamic_cast<ConcreteImageSource *>(p.first.filters.begin()->GetPointer());
+  return filter;
 }
 
 // --------------------------------------------

@@ -102,10 +102,11 @@ public:
   typedef SmartPtr<Image4DType>                                 Image4DPointer;
 
   // Floating image sources
-  typedef typename Superclass::FloatImageSource               FloatImageSource;
-  typedef typename Superclass::FloatVectorImageSource   FloatVectorImageSource;
-  typedef typename Superclass::FloatSliceSource               FloatSliceSource;
-  typedef typename Superclass::FloatVectorSliceSource   FloatVectorSliceSource;
+  typedef typename Superclass::FloatImageType                   FloatImageType;
+  typedef typename Superclass::FloatVectorImageType       FloatVectorImageType;
+  typedef typename Superclass::FloatSliceType                   FloatSliceType;
+  typedef typename Superclass::FloatVectorSliceType       FloatVectorSliceType;
+  typedef typename Superclass::MiniPipeline                       MiniPipeline;
 
   // This is the pixel type of the buffer pointer, i.e., internal representation
   typedef typename ImageType::InternalPixelType              InternalPixelType;
@@ -325,6 +326,24 @@ public:
    * are of the wrapped image, not of the reference image.
    */
   PixelType GetVoxel(const itk::Index<3> &index, int time_point = -1) const;
+
+  /** Offset table used for random access sampling of patches */
+  typedef ImageWrapperBase::PatchOffsetTable PatchOffsetTable;
+
+  /**
+   * Support for random access sampling of patches from the image. This method
+   * generates a set of offsets in the image that can be used efficiently to
+   * sample patches from the image.
+   */
+  virtual PatchOffsetTable GetPatchOffsetTable(const SizeType &radius) const ITK_OVERRIDE;
+
+  /**
+   * Sample the image patch around a pixel location. No bounds checking is done,
+   * so it is assumed that the location has enough margin to sample from. It is
+   * also assumed that the output vector has been allocated already
+   */
+  virtual void SamplePatchAsDouble(const IndexType &idx, const PatchOffsetTable &offset_table,
+                                   double *out_patch) const ITK_OVERRIDE;
 
   /**
    * Sample image intensity at a 4D position in the reference space. If the reference
@@ -669,30 +688,35 @@ public:
     Cast the internally stored image to a floating point image. The returned
     image is connected to the internally stored image by a mini-pipeline that
     may include a cast filter or a scale/shift filter, depending on the internal
-    format of the image and the internal-to-native intensity mapping. This mini
-    pipeline is not memory managed by the wrapper, and as soon as the returned
-    image smartpointer goes out of scope, the mini-pipeline is deallocated.
+    format of the image and the internal-to-native intensity mapping. The wrapper
+    retains a smart pointer to the filters in the pipeline until the pipeline is
+    released by calling ReleaseInternalPipeline()
+
+    The pipeline is identified with a key and an optional index, which should be
+    passed to ReleaseInternalPipeline() when it is no longer needed.
 
     The method is intended for use with external pipelines that don't know what
     the internal data representation is for the image. There is a cost with using
     this method in terms of memory, so the recommended use is in conjunction with
     streaming filters, so that the cast mini-pipeline does not allocate the whole
     floating point image all at once.
-
-    The mini-pipeline should not be kept around in memory after it's used. This would
-    result in unnecessary duplication of memory.
     */
-  virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const ITK_OVERRIDE;
+  virtual FloatImageType* CreateCastToFloatPipeline(const char *key, int index = 0) ITK_OVERRIDE;
 
   /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const ITK_OVERRIDE;
+  virtual FloatVectorImageType* CreateCastToFloatVectorPipeline(const char *key, int index = 0) ITK_OVERRIDE;
 
   /** Create a pipeline for casting an image slice to floating point */
-  virtual SmartPtr<FloatSliceSource> CreateCastToFloatSlicePipeline(unsigned int slice) ITK_OVERRIDE;
+  virtual FloatSliceType* CreateCastToFloatSlicePipeline(const char *key, unsigned int slice) ITK_OVERRIDE;
 
   /** Create a pipeline for casting an image slice to floating point vector image */
-  virtual SmartPtr<FloatVectorSliceSource> CreateCastToFloatVectorSlicePipeline(unsigned int slice) ITK_OVERRIDE;
+  virtual FloatVectorSliceType* CreateCastToFloatVectorSlicePipeline(const char *key, unsigned int slice) ITK_OVERRIDE;
 
+  /**
+   * Release the filters and images in an internally managed pipeline. Passing -1 for
+   * the index will release all the indices for this key
+   */
+  virtual void ReleaseInternalPipeline(const char *key, int index = -1) ITK_OVERRIDE;
 
 protected:
 
@@ -843,6 +867,17 @@ protected:
 
   // IO Hints registry
   Registry *m_IOHints;
+
+  /**
+   * Storage for the internally-managed mini-pipelines, i.e., pipelines that
+   * are created with CreateXYZPipeline() and removed with ReleaseXYZPipeline()
+   */
+  std::map< std::string, std::map<int, MiniPipeline> > m_ManagedPipelines;
+
+  /** Internally used method to create a mini-pipeline */
+  virtual void AddInternalPipeline(const MiniPipeline &mp, const char *key, int index);
+
+
 
   /**
    * Handle a change in the image data (i.e., a load operation on the image or

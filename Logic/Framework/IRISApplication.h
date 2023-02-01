@@ -124,9 +124,6 @@ public:
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::Size<3> SizeType;
 
-  // The internal representation of anatomical images
-  typedef itk::VectorImage<GreyType, 3> AnatomyImageType;
-
   //typedef RLEImage<LabelType> LabelImageType;
   //avoid duplicating definition of LabelImageType, like this:
   typedef LabelImageWrapperTraits::ImageType LabelImageType;

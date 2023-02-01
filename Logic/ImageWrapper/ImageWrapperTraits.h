@@ -61,7 +61,7 @@ public:
   typedef ScalarImageWrapperBase WrapperBaseType;
   typedef ScalarImageWrapper<SpeedImageWrapperTraits> WrapperType;
 
-  typedef GreyType ComponentType;
+  typedef short ComponentType;
   typedef itk::Image<ComponentType, 3> ImageType;
   typedef itk::Image<ComponentType, 2> SliceType;
   typedef itk::Image<ComponentType, 4> Image4DType;

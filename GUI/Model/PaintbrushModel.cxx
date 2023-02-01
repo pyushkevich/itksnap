@@ -387,15 +387,20 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
       context_layer = gid->GetMain();
 
     // Obtain a cast to float pipeline from the layer
-    auto img_source = context_layer->CreateCastToFloatPipeline();
+    // TODO: this causes repeated memory allocation - should probably create when entering mode
+    auto *img_source = context_layer->CreateCastToFloatPipeline("WatershedBrush", this->m_Parent->GetId());
 
     // Precompute the watersheds
     m_Watershed->PrecomputeWatersheds(
-          img_source->GetOutput(),
+          img_source,
           driver->GetSelectedSegmentationLayer()->GetImage(),
           xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
 
     m_Watershed->RecomputeWatersheds(pbs.watershed.level);
+
+    // Release the casting pipeline
+    context_layer->ReleaseInternalPipeline("WatershedBrush", this->m_Parent->GetId());
+
     }
 
   // Shift vector (different depending on whether the brush has odd/even diameter

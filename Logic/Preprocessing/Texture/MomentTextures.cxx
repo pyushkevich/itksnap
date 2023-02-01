@@ -87,7 +87,7 @@ MomentTextureFilter<TInputImage, TOutputImage>
   this->GetOutput()->SetNumberOfComponentsPerPixel(m_HighestDegree);
 }
 
-template class MomentTextureFilter<itk::Image<short, 3>, itk::VectorImage<short, 3> >;
+template class MomentTextureFilter<itk::Image<float, 3>, itk::VectorImage<float, 3> >;
 
 /*
 //Returns the estimated moment around the mean associated of the degree(th) order

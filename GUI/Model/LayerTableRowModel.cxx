@@ -513,7 +513,7 @@ ImageLayerTableRowModel::GenerateTextureFeatures()
   if(iw && iw->GetNumberOfComponents() == 1)
     {
     // Cast the image to floating point
-    auto float_src = iw->CreateCastToFloatPipeline();
+    auto *float_src = iw->CreateCastToFloatPipeline("GenerateTextureFeatures");
 
     // Create a radius - hard-coded for now
     itk::Size<3> radius; radius.Fill(2);
@@ -529,7 +529,7 @@ ImageLayerTableRowModel::GenerateTextureFeatures()
         ImageWrapperBase::FloatImageType, TextureImageType> MomentFilterType;
 
     MomentFilterType::Pointer filter = MomentFilterType::New();
-    filter->SetInput(float_src->GetOutput());
+    filter->SetInput(float_src);
     filter->SetRadius(radius);
     filter->SetHighestDegree(3);
 
@@ -544,6 +544,9 @@ ImageLayerTableRowModel::GenerateTextureFeatures()
     newWrapper->InitializeToWrapper(m_ImageLayer, updim->GetOutput());
     newWrapper->SetDefaultNickname("Textures");
     this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(m_ImageLayer, newWrapper, false);
+
+    // Release the cast pipeline
+    iw->ReleaseInternalPipeline("GenerateTextureFeatures");
     }
 }
 

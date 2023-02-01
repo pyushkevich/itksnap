@@ -242,36 +242,3 @@ LookupTableImageFilterInstantiateMacro(unsigned short)
 LookupTableImageFilterInstantiateMacro(short)
 LookupTableImageFilterInstantiateMacro(float)
 
-/*
-
-
-
-// Template instantiation
-#include "itkVectorImageToImageAdaptor.h"
-#include "VectorToScalarImageAccessor.h"
-
-typedef itk::Image<short, 3> GreyImageType;
-typedef itk::VectorImageToImageAdaptor<GreyType, 3> GreyComponentAdaptorType;
-typedef itk::Image<itk::RGBAPixel<unsigned char>, 1> LUTType;
-typedef itk::Image<unsigned char, 1> ScalarLUTType;
-typedef itk::Image<float, 3> FloatImageType;
-typedef itk::VectorImage<short, 3> AnatomicImageType;
-
-template class AbstractLookupTableImageFilter<GreyImageType, LUTType, GreyType>;
-template class AbstractLookupTableImageFilter<FloatImageType, LUTType, float>;
-template class AbstractLookupTableImageFilter<GreyComponentAdaptorType, LUTType, GreyType>;
-template class AbstractLookupTableImageFilter<GreyVectorMagnitudeImageAdaptor, LUTType, float>;
-template class AbstractLookupTableImageFilter<GreyVectorMaxImageAdaptor, LUTType, float>;
-template class AbstractLookupTableImageFilter<GreyVectorMeanImageAdaptor, LUTType, float>;
-template class AbstractLookupTableImageFilter<AnatomicImageType, ScalarLUTType, GreyType>;
-
-template class IntensityToColorLookupTableImageFilter<GreyImageType, LUTType>;
-template class IntensityToColorLookupTableImageFilter<FloatImageType, LUTType>;
-template class IntensityToColorLookupTableImageFilter<GreyComponentAdaptorType, LUTType>;
-template class IntensityToColorLookupTableImageFilter<GreyVectorMagnitudeImageAdaptor, LUTType>;
-template class IntensityToColorLookupTableImageFilter<GreyVectorMaxImageAdaptor, LUTType>;
-template class IntensityToColorLookupTableImageFilter<GreyVectorMeanImageAdaptor, LUTType>;
-
-template class MultiComponentImageToScalarLookupTableImageFilter<AnatomicImageType, ScalarLUTType>;
-
-*/

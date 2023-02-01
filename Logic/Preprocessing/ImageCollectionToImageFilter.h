@@ -242,7 +242,8 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
   if(m_TotalComponents == 0)
     ComputeMechanics(image);
   else
-    assert(m_DummyImage->GetBufferedRegion() == image->GetBufferedRegion());
+    itkAssertOrThrowMacro(m_DummyImage->GetBufferedRegion() == image->GetBufferedRegion(),
+                          "All images in ImageCollectionConstRegionIteratorWithIndex must have the same buffered region")
 
   // Add the image to the list
   m_ScalarImages.push_back(image);
@@ -335,6 +336,9 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
   typedef itk::ConstNeighborhoodIterator<ImageType> DummyIter;
   DummyIter diter(m_Radius, m_DummyImage, m_DummyImage->GetBufferedRegion());
 
+  // Index of the first pixel in the buffered region
+  IndexType start_index = m_DummyImage->GetBufferedRegion().GetIndex();
+
   // Compute offsets in memory
   m_NeighborhoodOffsetTable.resize(diter.Size(), 0);
   for(int i = 0; i < diter.Size(); i++)
@@ -342,7 +346,7 @@ ImageCollectionConstRegionIteratorWithIndex<TImage, TVectorImage>
     OffsetType offset = diter.GetOffset(i);
     IndexType index;
     for(int j = 0; j < TImage::ImageDimension; j++)
-      index[j] = offset[j];
+      index[j] = start_index[j] + offset[j];
     m_NeighborhoodOffsetTable[i] = m_DummyImage->ComputeOffset(index);
     }
 

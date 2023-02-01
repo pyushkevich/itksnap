@@ -13,6 +13,7 @@ class AdaptiveSlicingPipeline;
 
 namespace itk {
   template<class TIn, class TOut> class StreamingImageFilter;
+  template<class TIn> class PipelineMonitorImageFilter;
 }
 
 class SNAPImageData;
@@ -156,7 +157,7 @@ public:
   void SetParameters(ParameterType *param);
 
   /** Detach from a wrapper */
-  void DetachInputsAndOutputs();
+  void DetachInputsAndOutputs(InputDataType *sid);
 
   /** Compute the output volume (corresponds to the 'Apply' operation) */
   void ComputeOutputVolume(itk::Command *progress) ITK_OVERRIDE;
@@ -173,6 +174,10 @@ protected:
   // Streamer - to allow reduced memory footprint
   typedef itk::StreamingImageFilter<OutputImageType, OutputImageType> Streamer;
 
+  // Pipeline monitors - can be used to debug issues with pipeline execution
+  typedef itk::PipelineMonitorImageFilter<OutputImageType> Monitor;
+
+  SmartPtr<Monitor> m_PreviewMonitor[3], m_VolumeMonitor;
   SmartPtr<FilterType> m_PreviewFilter[3];
   SmartPtr<FilterType> m_VolumeFilter;
   SmartPtr<Streamer> m_VolumeStreamer;

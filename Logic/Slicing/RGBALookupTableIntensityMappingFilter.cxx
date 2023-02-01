@@ -64,9 +64,10 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
       }
     else
       {
-      xout[0] = *(lutp + xin0);
-      xout[1] = *(lutp + xin1);
-      xout[2] = *(lutp + xin2);
+      // TODO: this will probably crash for floating point images.
+      xout[0] = *(lutp + (int) xin0);
+      xout[1] = *(lutp + (int) xin1);
+      xout[2] = *(lutp + (int) xin2);
       xout[3] = 255; // alpha = 1
       }
 
@@ -102,9 +103,10 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
     }
   else
     {
-    xout[0] = *(lutp + xin0);
-    xout[1] = *(lutp + xin1);
-    xout[2] = *(lutp + xin2);
+    // TODO: this will probably crash for floating point images.
+    xout[0] = *(lutp + (int) xin0);
+    xout[1] = *(lutp + (int) xin1);
+    xout[2] = *(lutp + (int) xin2);
     xout[3] = 255; // alpha = 1
     }
 

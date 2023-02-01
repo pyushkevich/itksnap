@@ -59,10 +59,6 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
   typedef itk::Image<float, 3> FloatImage;
   typedef itk::VectorImage<float, 3> FloatVectorImage;
 
-  // Use a collection iterator to sample multiple images at once. Not sure how efficient this
-  // really is compared to asking each wrapper to provide patches
-  typedef ImageCollectionConstRegionIteratorWithIndex<FloatImage, FloatVectorImage> CollectionIter;
-
   // TODO: in the future, we should only recompute the sample when we know
   // that the data has changed. However, currently, we are just going to
   // compute a new sample every time
@@ -88,44 +84,70 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
     if(lit.Value())
       nSamples++;
 
-  // Create an iterator for going over all the anatomical image data
-  CollectionIter cit(reg);
-  cit.SetRadius(m_PatchRadius);
+  // TODO: if the number of samples is greater than max number of training samples,
+  // we should choose a random subset of samples.
 
-  // Add all the anatomical images to this iterator
-  for(LayerIterator it = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
-      !it.IsAtEnd(); ++it)
+  // Compute the patch size
+  int patch_size = 1;
+  for(unsigned int i = 0; i < 3; i++)
+    patch_size *= m_PatchRadius[i] * 2 + 1;
+
+  // A structure holding information we need to sample from one layer
+  struct SampleData
+  {
+    ImageWrapperBase *layer;
+    ImageWrapperBase::PatchOffsetTable offset_table;
+    int n_comp, i_comp;
+  };
+
+  // Compute the offset tables and dimensions of the patches
+  int total_comp = 0;
+  std::vector<SampleData> sample_data;
+  for(auto it = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE); !it.IsAtEnd(); ++it)
     {
-    // Currently this will throw an error if the layer's image cannot be cast to
-    // a FloatImage* or FloatVectorImage*
-    cit.AddImage(it.GetLayer()->GetImageBase());
+    // Compute the patch offset table
+    ImageWrapperBase::PatchOffsetTable offset_table = it.GetLayer()->GetPatchOffsetTable(m_PatchRadius);
+
+    // Number of components sampled per pixel from this image
+    int n_comp = it.GetLayer()->GetNumberOfComponents() * patch_size;
+
+    // Save the sample data structure
+    SampleData sd = { it.GetLayer(), offset_table, n_comp, total_comp };
+    sample_data.push_back(sd);
+
+    // Update total components
+    total_comp += n_comp;
     }
 
-  // Get the number of components
-  int nComp = cit.GetTotalComponents();
-  int nPatch = cit.GetNeighborhoodSize();
-  int nColumns = nComp * nPatch;
-
-  // Are we using coordinate informtion
-  if(m_UseCoordinateFeatures)
-    nColumns += 3;
+  // Allocate the patches
+  int nColumns = m_UseCoordinateFeatures ? total_comp + 3 : total_comp;
 
   // Create a new sample
   m_Sample = new SampleType(nSamples, nColumns);
 
+  // TODO: the SampleType uses std::vector, which is not very nice for passing to
+  // the ImageWrapper methods so here we have to create a temporary storage for each
+  // row and then copy into the sample array - negligible computationally but ugly
+  vnl_vector<double> current_sample(total_comp);
+
   // Now fill out the samples
   int iSample = 0;
-  for(LabelIter lit(imgSeg, reg); !lit.IsAtEnd(); ++lit, ++cit)
+  for(LabelIter lit(imgSeg, reg); !lit.IsAtEnd(); ++lit)
     {
     LabelType label = lit.Value();
     if(label)
       {
       // Fill in the data
       auto &column = m_Sample->data[iSample];
-      int k = 0;
-      for(int i = 0; i < nComp; i++)
-        for(int j = 0; j < nPatch; j++)
-          column[k++] = cit.NeighborValue(i,j);
+
+      // Sample from each image
+      for(auto &sd : sample_data)
+        sd.layer->SamplePatchAsDouble(lit.GetIndex(), sd.offset_table, current_sample.data_block() + sd.i_comp);
+
+      // Copy the data into destination array
+      int k;
+      for(k = 0; k < total_comp; k++)
+        column[k] = (float) current_sample[k];
 
       // Add the coordinate features if used
       if(m_UseCoordinateFeatures)
@@ -233,6 +255,12 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
   // training is repeated
   m_Classifier->SetPatchRadius(m_PatchRadius);
   m_Classifier->SetUseCoordinateFeatures(m_UseCoordinateFeatures);
+
+  // TODO: get rid of this!
+  // Dump the classifier to a file
+  std::ofstream out_file("/tmp/debug.rf");
+  m_Classifier->Write(out_file);
+  out_file.close();
 }
 
 template <class TPixel, class TLabel, int VDim>

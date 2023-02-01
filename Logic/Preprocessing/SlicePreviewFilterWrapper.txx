@@ -6,6 +6,7 @@
 #include "SmoothBinaryThresholdImageFilter.h"
 #include "EdgePreprocessingImageFilter.h"
 #include "itkStreamingImageFilter.h"
+#include "itkPipelineMonitorImageFilter.h"
 #include <AdaptiveSlicingPipeline.h>
 #include <ColorMap.h>
 #include <itkTimeProbe.h>
@@ -20,13 +21,21 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   // Allocate the volume filter and the preview filters
   m_VolumeFilter = FilterType::New();
   m_VolumeFilter->ReleaseDataFlagOn();
+  m_VolumeMonitor = Monitor::New();
 
   for(int i = 0; i < 3; i++)
+    {
     m_PreviewFilter[i] = FilterType::New();
+    m_PreviewMonitor[i] = Monitor::New();
+    m_PreviewMonitor[i]->SetInput(m_PreviewFilter[i]->GetOutput());
+    m_PreviewMonitor[i]->SetDebug(true);
+    }
 
   // Allocate the streamer and attach to the volume filter
   m_VolumeStreamer = Streamer::New();
-  m_VolumeStreamer->SetInput(m_VolumeFilter->GetOutput());
+
+  m_VolumeMonitor->SetInput(m_VolumeFilter->GetOutput());
+  m_VolumeStreamer->SetInput(m_VolumeMonitor->GetOutput());
 
   // Set up a streaming filter to reduce the memory footprint during execution
   m_VolumeStreamer->SetNumberOfStreamDivisions(9);
@@ -105,7 +114,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 template <class TFilterConfigTraits>
 void
 SlicePreviewFilterWrapper<TFilterConfigTraits>
-::DetachInputsAndOutputs()
+::DetachInputsAndOutputs(InputDataType *sid)
 {
   if(m_OutputWrapper)
     {
@@ -124,7 +133,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   for(unsigned int i = 0; i < 4; i++)
     {
     // Disconnect wrapper from this pipeline
-    Traits::DetachInputs(this->GetNthFilter(i));
+    Traits::DetachInputs(sid, this->GetNthFilter(i));
     }
 
   m_ActiveScalarLayer = NULL;
@@ -135,13 +144,13 @@ void
 SlicePreviewFilterWrapper<TFilterConfigTraits>
 ::UpdatePipeline()
 {
-    if(m_OutputWrapper)
+  if(m_OutputWrapper)
     {
     if(m_PreviewMode)
       {
       // Attach the pipeline filters
       m_OutputWrapper->AttachPreviewPipeline(
-            m_PreviewFilter[0], m_PreviewFilter[1], m_PreviewFilter[2]);
+            m_PreviewMonitor[0], m_PreviewMonitor[1], m_PreviewMonitor[2]);
 
       this->UpdateOutputPipelineReadyStatus();
       }

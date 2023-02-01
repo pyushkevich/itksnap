@@ -15,6 +15,11 @@ class IntensityCurveInterface;
  * input values to RGB components. The class requires three inputs: the image,
  * and objects representing the image min/max intensities. The image may be a
  * vector image, a regular image, or an ImageAdaptor.
+ *
+ * TODO: the current approach is to map the entire range between the image
+ * minimum and maximum to the color map. However, since the user only sees
+ * the intensities between the intensity curve min and max, this means that
+ * a lot of the color map gets wasted.
  */
 template <class TInputImage, class TOutputLUT, class TComponent>
 class AbstractLookupTableImageFilter

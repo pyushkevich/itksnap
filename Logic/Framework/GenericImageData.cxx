@@ -189,7 +189,7 @@ GenericImageDataWrapperCreator::CreateFromTraits()
     }
 
   // Return the wrapper
-  return out_wrapper;
+  return wrapper.GetPointer();
 }
 
 template<typename TComponent, bool TLinearMapping>

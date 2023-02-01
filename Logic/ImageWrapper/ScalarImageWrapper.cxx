@@ -372,7 +372,7 @@ ScalarImageWrapper<TTraits>
   itk::ImageIOBase *base = io->GetIOBase();
 
   // Create a pipeline that casts the image to floating type
-  auto pipeline = this->CreateCastToFloatPipeline();
+  auto *float_img = this->CreateCastToFloatPipeline("WriteToFileAsFloat");
 
   typedef typename ImageWrapperBase::FloatImageType FloatImageType;
   typedef itk::ImageFileWriter<FloatImageType> WriterType;
@@ -380,8 +380,11 @@ ScalarImageWrapper<TTraits>
   writer->SetFileName(fname);
   if(base)
     writer->SetImageIO(base);
-  writer->SetInput(pipeline->GetOutput());
+  writer->SetInput(float_img);
   writer->Update();
+
+  // Release the pipeline (what a pain)
+  this->ReleaseInternalPipeline("WriteToFileAsFloat");
 }
 
 // --------------------------------------------

@@ -2573,7 +2573,7 @@ SnakeType IRISApplication::GetSnakeMode() const
 
 void IRISApplication::LeaveGMMPreprocessingMode()
 {
-  m_GMMPreviewWrapper->DetachInputsAndOutputs();
+  m_GMMPreviewWrapper->DetachInputsAndOutputs(m_SNAPImageData);
 
   // Before deleting the clustering engine, we store the mixture model
   // The smart pointer mechanism makes sure the mixture model lives on
@@ -2677,7 +2677,7 @@ void IRISApplication::EnterRandomForestPreprocessingMode()
 
 void IRISApplication::LeaveRandomForestPreprocessingMode()
 {
-  m_RandomForestPreviewWrapper->DetachInputsAndOutputs();
+  m_RandomForestPreviewWrapper->DetachInputsAndOutputs(m_SNAPImageData);
 
   // Before deleting the classification engine, we store the classifier
   // The smart pointer mechanism makes sure the classifier lives on
@@ -2710,11 +2710,11 @@ void IRISApplication::EnterPreprocessingMode(PreprocessingMode mode)
   switch(m_PreprocessingMode)
     {
     case PREPROCESS_THRESHOLD:
-      m_ThresholdPreviewWrapper->DetachInputsAndOutputs();
+      m_ThresholdPreviewWrapper->DetachInputsAndOutputs(m_SNAPImageData);
       break;
 
     case PREPROCESS_EDGE:
-      m_EdgePreviewWrapper->DetachInputsAndOutputs();
+      m_EdgePreviewWrapper->DetachInputsAndOutputs(m_SNAPImageData);
       break;
 
     case PREPROCESS_GMM:
