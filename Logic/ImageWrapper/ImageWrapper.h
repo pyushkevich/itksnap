@@ -774,7 +774,7 @@ protected:
    * image is resliced. For the main image, this points to the image itself
    * and for overlays, it points to the main image
    */
-  ImageBaseType *m_ReferenceSpace;
+  itk::WeakPointer<ImageBaseType> m_ReferenceSpace;
 
   /**
    * A flag indicating whether the image 'lives' in reference space. This

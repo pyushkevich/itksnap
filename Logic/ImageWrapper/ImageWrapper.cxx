@@ -62,8 +62,6 @@
 #include "IRISException.h"
 #include "itkImageAdaptor.h"
 #include "itkVectorImageToImageAdaptor.h"
-#include "UnaryValueToValueFilter.h"
-#include "ScalarImageHistogram.h"
 #include "GuidedNativeImageIO.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "AffineTransformHelper.h"
@@ -943,6 +941,8 @@ ImageWrapper<TTraits>
 ::ImageWrapper(const Self &copy)
   : ImageWrapper()
 {
+  m_ReferenceSpace = nullptr;
+
   // If the source contains an image, make a copy of that image
   if (copy.IsInitialized() && copy.GetImage())
     {
