@@ -179,7 +179,7 @@ public:
 
   virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom) ITK_OVERRIDE;
 
-  virtual void SetDisplayViewportGeometry(unsigned int index, ImageBaseType *viewport_image);
+  virtual void SetDisplayViewportGeometry(unsigned int index, const ImageBaseType *viewport_image) ITK_OVERRIDE;
 
   virtual void SetDirectionMatrix(const vnl_matrix<double> &direction) ITK_OVERRIDE;
 

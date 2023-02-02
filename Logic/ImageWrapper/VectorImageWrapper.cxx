@@ -435,7 +435,7 @@ void
 VectorImageWrapper<TTraits>
 ::SetDisplayViewportGeometry(
     unsigned int index,
-    ImageBaseType *viewport_image)
+    const ImageBaseType *viewport_image)
 {
   Superclass::SetDisplayViewportGeometry(index, viewport_image);
 

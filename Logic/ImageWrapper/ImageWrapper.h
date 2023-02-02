@@ -952,7 +952,7 @@ protected:
   /**
     Create a mini-pipeline that casts the current time point to the concrete image type
     */
-  virtual SmartPtr<ConcreteImageSource> CreateCastToConcreteImagePipeline() const;
+  virtual std::pair<MiniPipeline, ConcreteImageType*> CreateCastToConcreteImagePipeline() const;
 };
 
 #endif // __ImageWrapper_h_

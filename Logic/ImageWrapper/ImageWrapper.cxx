@@ -2747,11 +2747,15 @@ ImageWrapper<TTraits>
 ::CreateCastToFloatVectorPipeline(const char *key, int index)
 {
   typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
-  typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
 
+  // This is the floating image that matches the internal image in terms of being a vector image or not
+  typedef typename std::conditional<IsVector::value, ImageType, itk::VectorImage<PixelType, 3> >::type MatchingFloatImage;
+
+  // Create a pipeline that maps us to the matching image
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
-      ImageType, FloatVectorImageType, NativeIntensityMapping, IsLinear::value, IsVector::value> Specialization;
+      ImageType, MatchingFloatImage, NativeIntensityMapping, IsLinear::value, IsVector::value> Specialization;
 
+  // If this is not alrady a vector image, we have to
   auto p = Specialization::CreatePipeline(this->m_Image, this->m_NativeMapping);
 
   if(p.second)
@@ -2843,19 +2847,14 @@ string ImageWrapper<TTraits>::GetPixelFormatDescription()
 }
 
 
-
 template<class TTraits>
-SmartPtr<typename ImageWrapper<TTraits>::ConcreteImageSource>
+std::pair<typename ImageWrapper<TTraits>::MiniPipeline, typename ImageWrapper<TTraits>::ConcreteImageType*>
 ImageWrapper<TTraits>::CreateCastToConcreteImagePipeline() const
 {
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
       ImageType, ConcreteImageType, IdentityInternalToNativeIntensityMapping, false, true> Specialization;
   IdentityInternalToNativeIntensityMapping dummy_mapping;
-  auto p = Specialization::CreatePipeline(this->m_Image, dummy_mapping);
-
-  // TODO: store the mini-pipeline internally!
-  ConcreteImageSource *filter = dynamic_cast<ConcreteImageSource *>(p.first.filters.begin()->GetPointer());
-  return filter;
+  return Specialization::CreatePipeline(this->m_Image, dummy_mapping);
 }
 
 // --------------------------------------------

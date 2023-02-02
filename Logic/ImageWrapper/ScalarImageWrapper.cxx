@@ -309,14 +309,14 @@ template<class TTraits>
 typename ScalarImageWrapper<TTraits>::VTKImporterMiniPipeline
 ScalarImageWrapper<TTraits>::CreateVTKImporterPipeline() const
 {
-  // This filter casts to concrete image
-  auto cast_to_concrete = this->CreateCastToConcreteImagePipeline();
+  // The cast pipeline
+  auto cast_pipeline = this->CreateCastToConcreteImagePipeline();
 
   // This filter is the exporter
   typedef typename Superclass::ConcreteImageType ConcreteImageType;
   typedef itk::VTKImageExport<ConcreteImageType> Exporter;
   SmartPtr<Exporter> exporter = Exporter::New();
-  exporter->SetInput(cast_to_concrete->GetOutput());
+  exporter->SetInput(cast_pipeline.second);
 
   // This is the importer
   vtkNew<vtkImageImport> importer;
@@ -324,7 +324,7 @@ ScalarImageWrapper<TTraits>::CreateVTKImporterPipeline() const
 
   // Create return struct
   VTKImporterMiniPipeline pip;
-  pip.caster = cast_to_concrete.GetPointer();
+  pip.cast_pipeline = cast_pipeline.first;
   pip.exporter = exporter.GetPointer();
   pip.importer = importer;
 

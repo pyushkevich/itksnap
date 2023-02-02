@@ -525,7 +525,7 @@ public:
   /** A data type representing a pipeline for exporting to VTK */
   struct VTKImporterMiniPipeline
   {
-    SmartPtr<itk::ProcessObject> caster;
+    ImageWrapperBase::MiniPipeline cast_pipeline;
     SmartPtr<itk::ProcessObject> exporter;
     vtkSmartPointer<vtkImageImport> importer;
   };
