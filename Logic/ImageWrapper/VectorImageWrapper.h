@@ -185,6 +185,8 @@ public:
 
   virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) ITK_OVERRIDE;
 
+
+
   /**
     Compute the image histogram. The histogram is cached inside of the
     object, so repeated calls to this function with the same nBins parameter

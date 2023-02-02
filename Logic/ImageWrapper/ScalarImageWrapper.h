@@ -218,6 +218,13 @@ public:
    */
   VTKImporterMiniPipeline CreateVTKImporterPipeline() const ITK_OVERRIDE;
 
+  /**
+   * A reimplementation of CreateCastToFloatVectorPipeline that presents the
+   * scalar float image as a float vector image
+   */
+  virtual typename ImageWrapperBase::FloatVectorImageType*
+  CreateCastToFloatVectorPipeline(const char *key, int index = 0) ITK_OVERRIDE;
+
   /** Extends parent method */
   virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
 

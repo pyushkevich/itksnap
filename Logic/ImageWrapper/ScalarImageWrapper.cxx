@@ -329,6 +329,33 @@ ScalarImageWrapper<TTraits>::CreateVTKImporterPipeline() const
   pip.importer = importer;
 
   return pip;
+  }
+
+#include "itkRepresentImageAsVectorImageFilter.h"
+
+template<class TTraits>
+ImageWrapperBase::FloatVectorImageType *
+ScalarImageWrapper<TTraits>::CreateCastToFloatVectorPipeline(const char *key, int index)
+{
+  // Cast to a float scalar image
+  auto *scalar = this->CreateCastToFloatPipeline(key, index);
+
+  // Retrieve the stored mini-pipeline
+  auto &mp = this->m_ManagedPipelines[std::string(key)][index];
+
+  // Add a filter that represents this as a vector image
+  typedef itk::RepresentImageAsVectorImageFilter<
+      typename ImageWrapperBase::FloatImageType,
+      typename ImageWrapperBase::FloatVectorImageType> VectorMasquerader;
+
+  typename VectorMasquerader::Pointer vm = VectorMasquerader::New();
+  vm->SetInput(scalar);
+
+  // Update the mini-pipeline
+  mp.filters.push_back(vm.GetPointer());
+  mp.output = vm->GetOutput();
+
+  return vm->GetOutput();
 }
 
 template<class TTraits>

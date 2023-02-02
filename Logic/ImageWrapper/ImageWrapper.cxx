@@ -2748,15 +2748,13 @@ ImageWrapper<TTraits>
 {
   typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
 
-  // This is the floating image that matches the internal image in terms of being a vector image or not
-  typedef typename std::conditional<IsVector::value, ImageType, itk::VectorImage<PixelType, 3> >::type MatchingFloatImage;
-
   // Create a pipeline that maps us to the matching image
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
-      ImageType, MatchingFloatImage, NativeIntensityMapping, IsLinear::value, IsVector::value> Specialization;
-
-  // If this is not alrady a vector image, we have to
+      ImageType, FloatVectorImageType, NativeIntensityMapping, IsLinear::value, IsVector::value> Specialization;
   auto p = Specialization::CreatePipeline(this->m_Image, this->m_NativeMapping);
+
+  // Now, if MatchingFloatImage is not a FloatVectorImageType, we have to create a filter that
+  // will disguise it as one
 
   if(p.second)
     this->AddInternalPipeline(p.first, key, index);
@@ -2769,7 +2767,6 @@ typename ImageWrapper<TTraits>::FloatSliceType *
 ImageWrapper<TTraits>::CreateCastToFloatSlicePipeline(const char *key, unsigned int slice)
 {
   typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
-  typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
 
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
       SliceType, FloatSliceType, NativeIntensityMapping, IsLinear::value, !IsVector::value> Specialization;
