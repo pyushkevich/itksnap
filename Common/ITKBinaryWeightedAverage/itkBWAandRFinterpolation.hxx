@@ -146,7 +146,7 @@ CombineBWAandRFFilter<ImageScalarType,  ImageVectorType,TLabelImage>
                 boundingBox1.SetSize( a, 1 );
             } //region of size [1,1,1]
             std::pair< typename BoundingBoxesType::iterator, bool > resBB = m_BoundingBoxes.insert( std::make_pair( val, boundingBox1 ) );
-            if ( !resBB.second ) // include this index in existing BB
+            if ( !resBB.second ) // include this index in existing BB - grow the bounding box?
             {
                 ExpandRegion< TLabelImage >( resBB.first->second, ind );
             }
@@ -171,7 +171,7 @@ CombineBWAandRFFilter<ImageScalarType,  ImageVectorType,TLabelImage>
                 {
                     next = m_Input->GetPixel( indNext );
                 }
-                if ( prev != val && next != val ) // && - isolated slices only, || - flat edges too SR changed this to !=val instead of zerp
+                if ( prev == 0 && next == 0 ) // && - isolated slices only, || - flat edges too (SR changed this to !=val instead of zero)
                 {
                     axis = a;
                     ++cTrue;
@@ -181,14 +181,12 @@ CombineBWAandRFFilter<ImageScalarType,  ImageVectorType,TLabelImage>
                     ++cAdjacent;
                 }
             }
-            if ( cTrue == 1 && cAdjacent == TLabelImage::ImageDimension - 1 )
-                // slice has empty adjacent space only along one axis
+            if ( cTrue == 1 && cAdjacent == TLabelImage::ImageDimension - 1 ) // if slice has empty adjacent space only along one axis
             {
-                if ( m_UserAxis == -1 || m_UserAxis == int(axis) )
+                if ( m_UserAxis == -1 || m_UserAxis == int(axis) ) //if User hasn't selected an axis, or the axis matches the one selcted by the User, then add the label to the
+                        //labelled slices list
                  {
-                    if (m_Label == 0 || m_Label == val){
-                         m_LabeledSlices[axis][val].insert( ind[axis] ); // Set so doesn't take duplicate values
-                    }
+                    m_LabeledSlices[axis][val].insert( ind[axis] ); // Set so doesn't take duplicate values
 
                 }
             }
@@ -201,30 +199,47 @@ CombineBWAandRFFilter<ImageScalarType,  ImageVectorType,TLabelImage>
 template< class ImageScalarType, class ImageVectorType, class TLabelImage>
 void
 CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
-::InterpolateLabel(typename TLabelImage::PixelType label, std::vector<int> SegIndices,typename TLabelImage::RegionType bbox )
+::InterpolateLabelAlongAxis(typename TLabelImage::PixelType label, int axis)
 {
+    std::set<long> SegIndices = m_LabeledSlices[axis][label];
+
+    typename TLabelImage::RegionType bbox;
+
+    //Determine the bounding box for the label of interest
+    for ( typename BoundingBoxesType::iterator iBB = m_BoundingBoxes.begin();iBB != m_BoundingBoxes.end(); ++iBB )
+    {
+        if (label == iBB->first)
+        {
+            bbox = iBB->second;
+        }
+    }
+
     // Get input segmentation image
-    typename TLabelImage::ConstPointer SegmentationImage = this->GetSegmentationImage();
+    typename TLabelImage::ConstPointer InputSegmentationImage = this->GetSegmentationImage();
 
     // Pointer to output image
     typename TLabelImage::Pointer m_Output = this->GetInterpolation();
 
     DataObject *dataobj = this->ProcessObject::GetInput(0);
 
+    //If interpolating all labels, threshold for label of interest. So pixel being interpolated always has a value of 1
+    typename TLabelImage::ConstPointer BinarySegmentationImage;
+
     // Threshold the image so that it only contains the label of interest
     typename BinarizerType::Pointer Binarizer = BinarizerType::New();
-    Binarizer->SetInput(SegmentationImage);
+    Binarizer->SetInput(InputSegmentationImage);
     Binarizer->SetLowerThreshold( label );
     Binarizer->SetUpperThreshold( label );
     Binarizer->SetInsideValue(1);
     Binarizer->SetOutsideValue(0);
     Binarizer->Update();
+    BinarySegmentationImage = Binarizer->GetOutput();
 
     // Perform contour interpolation
     typename BWAFilterType::Pointer BWAfilter = BWAFilterType::New();
-    BWAfilter->SetInput(Binarizer->GetOutput());
+    BWAfilter->SetInput(BinarySegmentationImage);
     BWAfilter->SetIntermediateSlicesOnly(m_intermediateslices);
-    BWAfilter->SetSlicingAxis(m_SlicingAxis);
+    BWAfilter->SetSlicingAxis(axis);
     BWAfilter->SetSegmentationIndices(SegIndices);
     BWAfilter->SetBoundingBox(bbox);
     BWAfilter->Update();
@@ -236,24 +251,26 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
         typename TLabelImage::Pointer interpolated_region = BWAfilter->GetInterpolation();
 
         // Interpolation made to have the same label as the interpolated label in order to paint segmentation correctly
+        // Need this since I Binarize each label before interpolation
         ImageRegionIterator< TLabelImage > itO( interpolated_region.GetPointer(),interpolated_region->GetBufferedRegion() );
+        ImageRegionIterator< TLabelImage > itOutput( m_Output, interpolated_region->GetBufferedRegion());
         while ( !itO.IsAtEnd() )
         {
             if( itO.Get() != 0){
-                itO.Set(label);
+                itOutput.Set(label);
             }
+
             ++itO;
+            ++itOutput;
         }
 
-        ImageAlgorithm::Copy< TLabelImage, TLabelImage >( interpolated_region.GetPointer(), m_Output.GetPointer(),
-                                                          bbox, bbox);
     }
 
     if(!m_ContourInformationOnly){ // Incorporate intensity information using random forests
 
         typename RFLabelFilterType::Pointer generateRFlabelmap = RFLabelFilterType::New();
-        generateRFlabelmap->SetInput(Binarizer->GetOutput());
-        generateRFlabelmap->SetSlicingAxis(m_SlicingAxis);
+        generateRFlabelmap->SetInput(BinarySegmentationImage);
+        generateRFlabelmap->SetSlicingAxis(axis);
         generateRFlabelmap->Update();
 
         typename RandomForestClassifierType::Pointer randomForestClassifier = RandomForestClassifierType::New();
@@ -281,7 +298,7 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
         randomForestClassifier->SetBoundingBox(bbox);
         randomForestClassifier->SetIntermediateSlicesOnly(m_intermediateslices);
         randomForestClassifier->SetSegmentationIndices(SegIndices);
-        randomForestClassifier->SetSlicingAxis(m_SlicingAxis);
+        randomForestClassifier->SetSlicingAxis(axis);
         randomForestClassifier->Update();
 
         // Combine probability maps by taking the average
@@ -307,21 +324,22 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
         typename TLabelImage::Pointer interpolated_region = thresholdProbabilityMap->GetOutput();
 
         // Interpolation made to have the same label as the interpolated label in order to paint segmentation correctly
+        // Need this since I Binarize each label before interpolation
         ImageRegionIterator< TLabelImage > itO( interpolated_region.GetPointer(),interpolated_region->GetBufferedRegion() );
+        ImageRegionIterator< TLabelImage > itOutput( m_Output, interpolated_region->GetBufferedRegion());
         while ( !itO.IsAtEnd() )
         {
             if( itO.Get() != 0){
-                itO.Set(label);
+                itOutput.Set(label);
             }
-            ++itO;
-        }
 
-        ImageAlgorithm::Copy< TLabelImage, TLabelImage >( interpolated_region.GetPointer(), m_Output.GetPointer(),
-                                                         bbox, bbox);
+            ++itO;
+            ++itOutput;
+        }
 
     }
 
-}// >::InterpolateLabel
+}// >::InterpolateLabelAlongAxis
 
 template< class ImageScalarType, class ImageVectorType, class TLabelImage>
 void
@@ -333,8 +351,10 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
     typename TLabelImage::Pointer m_Output = this->GetInterpolation();
     this->AllocateOutputs();
 
-    this->DetermineSliceOrientations();
+    this->DetermineSliceOrientations(); //m_LabeledSlices[axis][val] contains the labeled slices along each axis/value pair.
+    //Will only contain one axis if the user selected one.
 
+    // If no bounding boxes detected then exit
     if ( m_BoundingBoxes.empty() )
     {
         ImageAlgorithm::Copy< TLabelImage, TLabelImage >( SegmentationImage.GetPointer(), m_Output.GetPointer(),
@@ -342,135 +362,62 @@ CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
         return; // no contours detected - no segmentations drawn
     }
 
-    // If the user entered a slicing direction, check that it is a valid axis for interpolation
-    if (m_UserAxis != -1)
-        if (!(m_LabeledSlices[m_UserAxis].size() >= 1)) // If it is empty
-            throw itk::ExceptionObject("Invalid axis selcted for interpolation");
+    //Create an outter loop through all of the axes/labels of interpolation
+    if ( m_UserAxis == -1 ) // interpolate along all axes
+      {
+        for ( unsigned i = 0; i < TLabelImage::ImageDimension; i++ )
+          {
+            if ( this->m_Label == 0 ) // examine all labels
+              {
+                for ( unsigned l = 0; l < m_LabeledSlices[i].size(); l++ )
+                  {
+                    if ( m_LabeledSlices[i][l].size() > 1 )
+                      {
+                        this->InterpolateLabelAlongAxis(l,i);
+                      }
+                  }
+              }
+            else // we only care about one label
+              {
+                if ( m_LabeledSlices[i][m_Label].size() > 1 )
+                  {
+                    this->InterpolateLabelAlongAxis(m_Label,i);
+                  }
+              }
+          }
+      }  // interpolate along all axes
+    else // interpolate along the specified axis
+      {
+        if ( m_Label == 0 ) { // examine all labels
+            for ( unsigned l = 0; l < m_LabeledSlices[m_UserAxis].size(); l++ ){
+                if ( m_LabeledSlices[m_UserAxis][l].size() > 1 )
+                {
+                    this->InterpolateLabelAlongAxis(l,m_UserAxis);
 
-    // To dertemine slicing direcion, get the size of m_LabelledSlices along each axis
-    bool flag_slice = 0;
-    for ( unsigned axis = 0; axis < TLabelImage::ImageDimension; axis++ ) // loop through axes
+                }
+            } // loop through all labels along that axis
+        }
+        else{
+            if ( m_LabeledSlices[m_UserAxis][m_Label].size() > 1 )
+              {
+                this->InterpolateLabelAlongAxis(m_Label,m_UserAxis);
+              }
+        }
+      }
+
+    // Overwrites Output with non-zeroes from input Segmentation
+    ImageRegionIterator< TLabelImage > itO( this->GetInterpolation(), this->GetInterpolation()->GetBufferedRegion() );
+    ImageRegionConstIterator< TLabelImage > itI( this->GetSegmentationImage(), this->GetInterpolation()->GetBufferedRegion() );
+    while ( !itI.IsAtEnd() )
     {
-        if ((m_LabeledSlices[axis].size() != 0) && (flag_slice == 1))
+        typename TLabelImage::PixelType val = itI.Get(); // input segmentation value
+        if ( val != 0 )
         {
-            throw itk::ExceptionObject("Detected multiple slicing directions. Please select the option to manually specify the interpolation axis");
+            itO.Set( val );
         }
 
-        if ((m_LabeledSlices[axis].size() != 0) && (flag_slice == 0)) //if the axis has some labelled slices then
-        {
-            flag_slice = 1;
-            m_SlicingAxis = axis;
-        }
-    }
-
-    typename TLabelImage::RegionType bbox;
-
-    // Interpolate along the detected slicing direction
-    if (m_Label == 0){ // If all the labels need to be interpolated
-
-        for ( typename LabeledSlicesType::iterator itS = m_LabeledSlices[m_SlicingAxis].begin();itS != m_LabeledSlices[m_SlicingAxis].end(); ++itS )
-        {
-            typename TLabelImage::PixelType label = itS->first;
-
-            //Determine the bounding box for the label of interest
-            for ( typename BoundingBoxesType::iterator iBB = m_BoundingBoxes.begin();iBB != m_BoundingBoxes.end(); ++iBB )
-            {
-                if (label == iBB->first)
-                {
-                    bbox = iBB->second;
-                }
-            }
-
-            //Iterate in the detected slicing direction and include any slice containing the label of interest
-            // Added this since DetermineSlicingDirection doesn't always detect the correct slices
-            std::set<int> unique_slices;
-
-            ImageRegionConstIteratorWithIndex< TLabelImage > it( SegmentationImage, SegmentationImage->GetRequestedRegion() );
-            while ( !it.IsAtEnd() )
-            {
-                const typename TLabelImage::IndexType ind = it.GetIndex();
-                const typename TLabelImage::PixelType val = SegmentationImage->GetPixel( ind );
-                if (val == label)
-                {
-                    unique_slices.insert(ind[m_SlicingAxis] - bbox.GetIndex()[m_SlicingAxis]);
-                }
-                ++it;
-            }
-
-            std::copy(unique_slices.begin(), unique_slices.end(), inserter(m_SegmentationIndices, m_SegmentationIndices.begin()));
-
-             //Compute the interpolation
-            this->InterpolateLabel(label, m_SegmentationIndices, bbox);
-        }
-    }
-    else {
-
-        //Determine the bounding box for the label of interest
-        for ( typename LabeledSlicesType::iterator itS = m_LabeledSlices[m_SlicingAxis].begin();itS != m_LabeledSlices[m_SlicingAxis].end(); ++itS )
-        {
-            if ( m_Label == itS->first ) { // label needs to be interpolated
-                for ( typename BoundingBoxesType::iterator iBB = m_BoundingBoxes.begin();iBB != m_BoundingBoxes.end(); ++iBB )
-                {
-                    if (m_Label == iBB->first){
-                        bbox = iBB->second;
-                    }
-                }
-            }
-        }
-
-        //Iterate in the detected slicing direction and include any slice containing the label of interest
-        // Added this since DetermineSlicingDirection doesn't always detect the correct slices
-        std::set<int> unique_slices;
-
-        ImageRegionConstIteratorWithIndex< TLabelImage > it( SegmentationImage, SegmentationImage->GetRequestedRegion() );
-        while ( !it.IsAtEnd() )
-        {
-            const typename TLabelImage::IndexType ind = it.GetIndex();
-            const typename TLabelImage::PixelType val = SegmentationImage->GetPixel( ind );
-            if (val == m_Label)
-            {
-                unique_slices.insert(ind[m_SlicingAxis] - bbox.GetIndex()[m_SlicingAxis]);
-            }
-            ++it;
-        }
-
-        //Retain unique slice indices
-        std::copy(unique_slices.begin(), unique_slices.end(), inserter(m_SegmentationIndices, m_SegmentationIndices.begin()));
-        for (std::vector<int>::const_iterator s = m_SegmentationIndices.begin(); s != m_SegmentationIndices.end(); ++s)
-
-        this->InterpolateLabel(m_Label, m_SegmentationIndices, bbox);
-    }
-
-    // Overwrites m_Output with non non-zeroes from m_Input
-    if (m_OverwriteSegmentation){
-        ImageRegionIterator< TLabelImage > itO( this->GetInterpolation(), this->GetInterpolation()->GetBufferedRegion() );
-        ImageRegionConstIterator< TLabelImage > itI( this->GetSegmentationImage(), this->GetInterpolation()->GetBufferedRegion() );
-        while ( !itI.IsAtEnd() )
-        {
-            typename TLabelImage::PixelType val = itI.Get(); // input segmentation value
-            if (val != 0 && itO.Get() == 0) { // Overwrite m_Output with non-zeroes from m_Input which aren't included in the interpolation
-                itO.Set( val );
-            }
-
-            ++itI;
-            ++itO;
-        }
-    }
-    else { // Same as whats in Morphological interpolation
-        ImageRegionIterator< TLabelImage > itO( this->GetInterpolation(), this->GetInterpolation()->GetBufferedRegion() );
-        ImageRegionConstIterator< TLabelImage > itI( this->GetSegmentationImage(), this->GetInterpolation()->GetBufferedRegion() );
-        while ( !itI.IsAtEnd() )
-        {
-            typename TLabelImage::PixelType val = itI.Get(); // input segmentation value
-            if ( val != 0 )
-            {
-                itO.Set( val );
-            }
-
-            ++itI;
-            ++itO;
-        }
-
+        ++itI;
+        ++itO;
     }
 
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>374</width>
-    <height>672</height>
+    <width>355</width>
+    <height>689</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -163,7 +163,7 @@ color: gray;</string>
    <item>
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="morphoptions">
       <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -303,13 +303,6 @@ color: gray;</string>
            <widget class="QCheckBox" name="chkBWAUseContourOnly">
             <property name="text">
              <string>Use binary weighted averaging only</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="chkBWAOverwriteSegmentation">
-            <property name="text">
-             <string>Overwrite existing segmentation</string>
             </property>
            </widget>
           </item>

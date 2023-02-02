@@ -98,7 +98,6 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
     m_seconddirection = dimensions[1];
 
     //Initialize filters to extract slices amd restack to form a 3D volume
-    int totalSlices =  m_SegmentationIndices.size();
     typename TLabelImage::IndexType bbox_index = m_boundingbox.GetIndex();
 
     typedef IRISSlicer< TLabelImage, TLabelImageSliceType, TLabelImage> IrisSlicerFilterType;
@@ -112,23 +111,38 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
     typename TLabelImage::PixelType filler = 0;
     typename TMainImage::PixelType filler_double = 0;
 
+    //Get total number of slices to iterate through
+    std::set<long>::iterator it;
+    int totalSlices = 0;
+    for (it = m_SegmentationIndices.begin(); it != m_SegmentationIndices.end(); ++it) {
+        totalSlices += 1;
+    }
+
     std::vector<typename AndImageFilterType::Pointer> Intersect(totalSlices-1);
     std::vector<typename SignedDistanceMapFilterType::Pointer> SignedDistanceMapIntersect(totalSlices - 1);
 
-    for ( unsigned int i = 0; i < totalSlices-1; i++ )
-    {
+    //Loop through set
+    unsigned int i = 0; // to keep track of slice index?
+    std::set<long>::iterator it_first;
+    std::set<long>::iterator it_second;
+    for (it_first = m_SegmentationIndices.begin(); it_first != std::prev(m_SegmentationIndices.end()); it_first++) {
 
-        const int numSlices =  m_SegmentationIndices[i+1] -  m_SegmentationIndices[i];
+        typename TLabelImage::IndexValueType first_sliceindex = *it_first - bbox_index[m_slicingaxis]; // Indices relative to bounding box, not whole image
 
-        if(numSlices > 1){ // Only if the slices are not adjacent
+        std::set<long>::iterator it_second = std::next(it_first);
+        typename TLabelImage::IndexValueType second_sliceindex = *it_second - bbox_index[m_slicingaxis];
+
+        const int numSlices = second_sliceindex - first_sliceindex;
+
+        if(numSlices > 1){ // Only if the slices are not adjacent - DetermineSliceOrientation can detect adjacent slices sometimes
 
             int intermediate_slice = numSlices/2;
 
             // Extract the first slice
             Slicer[0] = IrisSlicerFilterType::New();
             Slicer[0]->SetInput(TrimImageFilter->GetOutput());
-            Slicer[0]->SetSliceIndex( m_SegmentationIndices[i]); // -1 in old version
-            Slicer[0]->SetSliceDirectionImageAxis(m_slicingaxis); //Needs to generalize
+            Slicer[0]->SetSliceIndex(first_sliceindex); // -1 in old version
+            Slicer[0]->SetSliceDirectionImageAxis(m_slicingaxis);
             Slicer[0]->SetLineDirectionImageAxis(m_seconddirection);
             Slicer[0]->SetPixelDirectionImageAxis(m_firstdirection);
             Slicer[0]->SetLineTraverseForward(0);
@@ -138,7 +152,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
             // Extract the second slice
             Slicer[1] = IrisSlicerFilterType::New();
             Slicer[1]->SetInput(TrimImageFilter->GetOutput());
-            Slicer[1]->SetSliceIndex( m_SegmentationIndices[i+1]); //-1 in old version
+            Slicer[1]->SetSliceIndex(second_sliceindex); //-1 in old version
             Slicer[1]->SetSliceDirectionImageAxis(m_slicingaxis);
             Slicer[1]->SetLineDirectionImageAxis(m_seconddirection);
             Slicer[1]->SetPixelDirectionImageAxis(m_firstdirection);
@@ -224,8 +238,8 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
             //Loop through connected components in A\B
 
             for( int j = 0; j < numCCAdB; j++ )
-
             {
+
                 //Isolate single connected component
                 ConnectedComponent_AdB[j] = BinaryThresholdImageFilterType::New();
                 ConnectedComponent_AdB[j]->SetInput(ConnectedAdifB->GetOutput());
@@ -677,6 +691,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
 
             if ( m_intermediateslices == false){
 
+
                 typename ThreeDOrImageFilterType::Pointer CombineInterpolations = ThreeDOrImageFilterType::New();
                 CombineInterpolations->SetInput1(InterpolatedVolume[0]);
                 CombineInterpolations->SetInput2(InterpolatedVolume[1]);
@@ -708,7 +723,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
 
                 //Fixed this code
                 typename TLabelImage::IndexType newRegionIndex = bbox_index;
-                newRegionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] +1;
+                newRegionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + first_sliceindex +1;
 
                 typename TLabelImage::RegionType newRegion = permuted_region->GetLargestPossibleRegion();
                 newRegion.SetIndex(newRegionIndex);
@@ -734,7 +749,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
 
                  //Define new region to copy interpolation into
                 typename TMainImage::IndexType newRegionIndex_double = bbox_index;
-                newRegionIndex_double[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] +1;
+                newRegionIndex_double[m_slicingaxis] = bbox_index[m_slicingaxis] + first_sliceindex +1;
                 typename TMainImage::RegionType newRegion_double = permuted_double_region->GetLargestPossibleRegion();
                 newRegion_double.SetIndex(newRegionIndex_double) ;
 
@@ -766,7 +781,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
 
                 //Define new Region to copy interpolated result into
                 typename TLabelImage::IndexType newRegionIndex = bbox_index;
-                newRegionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] + intermediate_slice;
+                newRegionIndex[m_slicingaxis] = bbox_index[m_slicingaxis] + first_sliceindex + intermediate_slice;
 
                 typename TLabelImage::SizeType newRegionSize = m_boundingbox.GetSize();
                 newRegionSize[m_slicingaxis] = 1;
@@ -786,7 +801,7 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                 typename TMainImageSliceType::Pointer permuted_double_region = flip_double_image->GetOutput();
 
                 typename TMainImage::IndexType newRegionIndex_double = bbox_index;
-                newRegionIndex_double[m_slicingaxis] = bbox_index[m_slicingaxis] + m_SegmentationIndices[i] + intermediate_slice;
+                newRegionIndex_double[m_slicingaxis] = bbox_index[m_slicingaxis] + first_sliceindex + intermediate_slice;
                 typename TMainImage::RegionType newRegion_double;
                 typename TMainImage::SizeType newRegionSize_double = m_boundingbox.GetSize();
                 newRegionSize_double[m_slicingaxis] = 1;
@@ -800,7 +815,8 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
         } // end of 'if segmented slices are not consecutive'
         else{
             continue;
-        }
+        } // Slices are consecutive
+        i += 1; // Increment slice counter
     } // End of loop through slices
 
 } // End of GenerateData()

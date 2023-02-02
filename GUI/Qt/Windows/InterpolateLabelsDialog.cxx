@@ -58,7 +58,6 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
 
   makeCoupling(ui->chkBWAInterpolateIntermediateOnly, m_Model->GetBWAInterpolateIntermediateOnlyModel());
   makeCoupling(ui->chkBWAUseContourOnly, m_Model->GetBWAUseContourOnlyModel());
-  makeCoupling(ui->chkBWAOverwriteSegmentation, m_Model->GetBWAOverwriteSegmentationModel());
   makeCoupling(ui->chkSliceDirection, m_Model->GetSliceDirectionModel());
 
   ui->SliceDirectionAxis->clear();

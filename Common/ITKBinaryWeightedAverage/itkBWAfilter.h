@@ -74,7 +74,7 @@ public:
         m_intermediateslices = flag;
     }
 
-    void SetSegmentationIndices(std::vector<int> seg_index){
+    void SetSegmentationIndices(std::set<long> seg_index){
         m_SegmentationIndices = seg_index;
     }
 
@@ -100,7 +100,7 @@ private:
     BinaryWeightedAveragingFilter(const Self &); //purposely not implemented
     void operator=(const Self &);  //purposely not implemented
     bool m_intermediateslices;
-    std::vector<int> m_SegmentationIndices;
+    std::set<long> m_SegmentationIndices;
     int m_slicingaxis;
     int m_firstdirection;
     int m_seconddirection;

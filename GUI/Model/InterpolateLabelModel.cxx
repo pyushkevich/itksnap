@@ -173,13 +173,32 @@ void InterpolateLabelModel::Interpolate()
         }
       }
 
-    // Should we be interpolating a specific label?
-    if (!interp_all){
-      bwa->SetLabel(this->GetInterpolateLabel());
-    }
 
-    bwa->SetOverwriteSegmentation(this->GetBWAOverwriteSegmentation());
-    bwa->SetSegmentationImage(SegmentationImageShortType);
+    // Should we be interpolating a specific label or all labels?
+    if(interp_all)
+      {
+      bwa->SetSegmentationImage(SegmentationImageShortType);
+      }
+    else
+      {
+      // We need to extract a single component from the segmentation image to interpolate
+        typename BinarizerType::Pointer Binarizer = BinarizerType::New();
+        Binarizer->SetInput(SegmentationImageShortType);
+        Binarizer->SetLowerThreshold(this->GetInterpolateLabel());
+        Binarizer->SetUpperThreshold(this->GetInterpolateLabel());
+        Binarizer->SetInsideValue(this->GetInterpolateLabel());
+        Binarizer->SetOutsideValue(0);
+        Binarizer->Update();
+        bwa->SetSegmentationImage(Binarizer->GetOutput());
+        bwa->SetLabel(this->GetInterpolateLabel());
+      }
+
+    // Should we be interpolating a specific label?
+//    if (!interp_all){
+//      bwa->SetLabel(this->GetInterpolateLabel());
+//    }
+
+    //    bwa->SetSegmentationImage(SegmentationImageShortType);
     bwa->SetContourInformationOnly(this->GetBWAUseContourOnly());
     bwa->SetIntermediateSlicesOnly(this->GetBWAInterpolateIntermediateOnly());
 
@@ -192,7 +211,7 @@ void InterpolateLabelModel::Interpolate()
 
     bwa->Update();
 
-    // Apply the labels back to the segmentation
+    // Apply the labels back to the segmentation - same as Morphological
     SegmentationUpdateIterator it_trg(liw, liw->GetBufferedRegion(),
                                       this->GetDrawingLabel(), this->GetDrawOverFilter());
 
@@ -257,7 +276,6 @@ InterpolateLabelModel::InterpolateLabelModel()
   // added by SR
   m_BWAInterpolateIntermediateOnlyModel = NewSimpleConcreteProperty(false);
   m_BWAUseContourOnlyModel = NewSimpleConcreteProperty(false);
-  m_BWAOverwriteSegmentationModel = NewSimpleConcreteProperty(false);
   m_SliceDirectionModel = NewSimpleConcreteProperty(false);
   m_SliceDirectionAxisModel = NewSimpleEnumProperty("InterpolationAxis", ANATOMY_AXIAL, emap_interp_axis);
 

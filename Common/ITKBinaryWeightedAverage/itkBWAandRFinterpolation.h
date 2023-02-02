@@ -45,9 +45,6 @@ public:
     /** Interpolate using Contour information only - no random forest*/
     itkSetMacro( ContourInformationOnly, bool);
 
-    /** Allows interpolation to overwrite existig segmentation labels (not including the interpolated label)*/
-    itkSetMacro( OverwriteSegmentation, bool);
-
     /** Which label is interpolated. 0 means all labels (default). */
     itkGetMacro( Label, typename TLabelImage::PixelType );
 
@@ -128,7 +125,7 @@ protected:
     bool                                    m_ContourInformationOnly;
 
     /* Contains the functions to perform the interpolation*/
-    void InterpolateLabel(typename TLabelImage::PixelType label, std::vector<int> SegIndices,typename TLabelImage::RegionType bbox );
+    void InterpolateLabelAlongAxis(typename TLabelImage::PixelType label, int axis);
 
 private:
 
@@ -138,7 +135,6 @@ private:
     int         m_SlicingAxis {-1};
     int         m_UserAxis {-1};
     bool        m_intermediateslices {true};
-    bool        m_OverwriteSegmentation {false};
 
 };
 } //namespace ITK

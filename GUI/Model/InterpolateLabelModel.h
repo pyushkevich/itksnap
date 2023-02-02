@@ -10,6 +10,7 @@
 
 #include "SNAPImageData.h"
 #include "itkImage.h"
+#include "itkBinaryThresholdImageFilter.h"
 
 class GlobalUIModel;
 class GenericImageData; // DO I need this?
@@ -77,9 +78,6 @@ public:
   /** Whether to use contour interpolation only */
   irisSimplePropertyAccessMacro(BWAUseContourOnly, bool)
 
-  /** Whether to overwrite an existing segmentation or not */
-  irisSimplePropertyAccessMacro(BWAOverwriteSegmentation, bool)
-
   /** Manually select slicing direction */
   irisSimplePropertyAccessMacro(SliceDirection, bool)
   irisSimplePropertyAccessMacro(SliceDirectionAxis, AnatomicalDirection)
@@ -88,6 +86,8 @@ public:
   using ShortType =  itk::Image<short,3>;
   using GreyScalarType =  AnatomicScalarImageWrapper::ImageType;
   using GreyVectorType =  AnatomicImageWrapper::ImageType;
+
+  using BinarizerType = itk::BinaryThresholdImageFilter< ShortType, ShortType >;
 
 protected:
 
@@ -120,7 +120,6 @@ protected:
   //Options for BWA
   SmartPtr<ConcreteSimpleBooleanProperty> m_BWAInterpolateIntermediateOnlyModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_BWAUseContourOnlyModel;
-  SmartPtr<ConcreteSimpleBooleanProperty> m_BWAOverwriteSegmentationModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_SliceDirectionModel;
   SmartPtr<ConcreteInterpolationAxisType> m_SliceDirectionAxisModel;
 
