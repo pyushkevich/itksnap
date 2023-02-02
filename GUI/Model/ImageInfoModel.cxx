@@ -48,6 +48,9 @@ ImageInfoModel::ImageInfoModel()
   m_ImageScalarIntensityUnderCursorModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageScalarIntensityUnderCursor);
 
+  m_ImagePixelFormatDescriptionModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetImagePixelFormatDescription);
+
   // Create the property model for the filter
   m_MetadataFilterModel = ConcreteSimpleStringProperty::New();
 
@@ -232,6 +235,14 @@ bool ImageInfoModel::GetImageScalarIntensityUnderCursor(double &value)
     return true;
   }
   return false;
+}
+
+bool ImageInfoModel::GetImagePixelFormatDescription(std::string &value)
+{
+  ImageWrapperBase *l = dynamic_cast<ImageWrapperBase*>(this->GetLayer());
+  if(!l) return false;
+    value = l->GetPixelFormatDescription();
+  return true;
 }
 
 bool

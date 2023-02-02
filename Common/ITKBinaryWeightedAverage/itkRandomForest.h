@@ -3,7 +3,7 @@
 
 #include "itkImageToImageFilter.h"
 #include "RFTrain.h"
-#include "ImageCollectionToImageFilter.h"
+#include "ImageCollectionConstIteratorWithIndex.h"
 #include "itkVectorImage.h"
 #include "Library/classifier.h"
 #include "Library/classification.h"

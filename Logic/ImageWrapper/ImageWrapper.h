@@ -718,6 +718,10 @@ public:
    */
   virtual void ReleaseInternalPipeline(const char *key, int index = -1) ITK_OVERRIDE;
 
+  /** Get the format of the image for display */
+  virtual std::string GetPixelFormatDescription() ITK_OVERRIDE;
+
+
 protected:
 
   /**

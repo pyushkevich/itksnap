@@ -88,25 +88,20 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
             nSamples++;
 
     // Iterator for grouping images into a multi-component image
-    typedef ImageCollectionConstRegionIteratorWithIndex<
+    typedef ImageCollectionConstIteratorWithIndex<
         ImageScalarType,
         ImageVectorType> CollectionIter;
 
     // Create an iterator for going over all the anatomical image data
-    CollectionIter cit(reg);
     param.patch_radius.Fill(2); // Use a neighborhood patch for features
-    cit.SetRadius(param.patch_radius);
-
+    CollectionIter cit(param.patch_radius, reg);
     cit.AddImage(intensity_obj);
 
     // Get the number of components
     int nComp = cit.GetTotalComponents();
     int nPatch = cit.GetNeighborhoodSize();
-    int nColumns = nComp * nPatch;
-
-    // Are we using coordinate informtion
-    if(param.use_coordinate_features)
-        nColumns += VDim;
+    int nImageFeatures = nComp * nPatch;
+    int nColumns = nImageFeatures + (param.use_coordinate_features ? VDim : 0);
 
     // Create a new sample
     typedef MLData<InputPixelType, LabelPixelType> SampleType;
@@ -121,15 +116,12 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
         {
             // Fill in the data
             std::vector<InputPixelType> &column = sample->data[iSample];
-            int k = 0;
-            for(int i = 0; i < nComp; i++)
-                for(int j = 0; j < nPatch; j++)
-                    column[k++] = cit.NeighborValue(i,j);
+            cit.GetNeighborhoodValues(column);
 
             // Add the coordinate features if used
             if(param.use_coordinate_features)
                 for(int d = 0; d < VDim; d++)
-                    column[k++] = lit.GetIndex()[d];
+                    column[nImageFeatures + d] = lit.GetIndex()[d];
 
             // Fill in the label
             sample->label[iSample] = label;

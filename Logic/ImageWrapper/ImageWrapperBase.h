@@ -505,6 +505,9 @@ public:
    */
   virtual void ReleaseInternalPipeline(const char *key, int index = -1) = 0;
 
+  /** Get the format of the image for display */
+  virtual std::string GetPixelFormatDescription() = 0;
+
 protected:
 
   /** Write the image to disk with whatever the internal format is */

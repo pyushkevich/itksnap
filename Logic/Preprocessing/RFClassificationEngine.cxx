@@ -3,7 +3,7 @@
 
 #include "SNAPImageData.h"
 #include "ImageWrapper.h"
-#include "ImageCollectionToImageFilter.h"
+#include "ImageCollectionConstIteratorWithIndex.h"
 #include "RLEImageRegionIterator.h"
 
 // Includes from the random forest library
@@ -98,6 +98,7 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
     ImageWrapperBase *layer;
     ImageWrapperBase::PatchOffsetTable offset_table;
     int n_comp, i_comp;
+    vnl_matrix<double> sample_matrix;
   };
 
   // Compute the offset tables and dimensions of the patches
@@ -115,6 +116,9 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
     SampleData sd = { it.GetLayer(), offset_table, n_comp, total_comp };
     sample_data.push_back(sd);
 
+    // Allocate the storage for the data
+    sample_data.back().sample_matrix.set_size(patch_size, it.GetLayer()->GetNumberOfComponents());
+
     // Update total components
     total_comp += n_comp;
     }
@@ -125,9 +129,7 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
   // Create a new sample
   m_Sample = new SampleType(nSamples, nColumns);
 
-  // TODO: the SampleType uses std::vector, which is not very nice for passing to
-  // the ImageWrapper methods so here we have to create a temporary storage for each
-  // row and then copy into the sample array - negligible computationally but ugly
+  // Allocate the sample storage and matrices that point to its storage
   vnl_vector<double> current_sample(total_comp);
 
   // Now fill out the samples
@@ -141,13 +143,23 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
       auto &column = m_Sample->data[iSample];
 
       // Sample from each image
+      int k = 0;
       for(auto &sd : sample_data)
-        sd.layer->SamplePatchAsDouble(lit.GetIndex(), sd.offset_table, current_sample.data_block() + sd.i_comp);
+        {
+        // Sample this patch
+        double *p = sd.sample_matrix.data_block();
+        sd.layer->SamplePatchAsDouble(lit.GetIndex(), sd.offset_table, p);
 
-      // Copy the data into destination array
-      int k;
-      for(k = 0; k < total_comp; k++)
-        column[k] = (float) current_sample[k];
+        // This in-place transpose operation is required because the RF classes expect the
+        // sample to be ordered first by component and then by patch location, but the
+        // SamplePatchAsDouble samples first by patch location, then by component
+        if(sd.sample_matrix.rows() > 1)
+          sd.sample_matrix.inplace_transpose();
+
+        // Copy data to actual sample
+        for(unsigned int i = 0; i < sd.n_comp; i++)
+          column[k++] = (float) p[i];
+        }
 
       // Add the coordinate features if used
       if(m_UseCoordinateFeatures)
@@ -156,7 +168,6 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
 
       // Fill in the label
       m_Sample->label[iSample] = label;
-
       ++iSample;
       }
     }

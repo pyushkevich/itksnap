@@ -119,6 +119,32 @@ void CopyInformationFrom4DToTimePoint(Image4DType *image_4d, ImageType *image_tp
  * IMAGE-LEVEL PARTIAL SPECIALIZATION CODE
  * ================================================================================ */
 
+/**
+ * Image-level template specialization code: things we need
+ * to obtain from images when we don't know their exact type
+ */
+template <class TImage>
+class ImagePartialSpecialization
+{
+public:
+  typedef typename TImage::PixelType PixelType;
+  typedef typename TImage::InternalPixelType InternalPixelType;
+  typedef itk::VariableLengthVector<InternalPixelType> VectorPixelType;
+
+  static int GetNumberOfComponents(TImage *image) { return 1; }
+  typedef std::is_base_of<VectorPixelType, PixelType> IsVector;
+};
+
+template <class TPixel, unsigned int VDim>
+class ImagePartialSpecialization<itk::VectorImage<TPixel, VDim> >
+{
+public:
+  typedef itk::VectorImage<TPixel, VDim> TImage;
+  typedef std::true_type IsVector;
+  static int GetNumberOfComponents(TImage *image) { return image->GetNumberOfComponentsPerPixel(); }
+};
+
+
 
 /**
  * Some functions in the image wrapper are only defined for 'concrete' image
@@ -250,6 +276,7 @@ public:
   typedef TImage ImageType;
   typedef TImage4D Image4DType;
   typedef typename TImage::PixelType PixelType;
+  typedef typename TImage::InternalPixelType InternalPixelType;
   typedef itk::ImageBase<TImage::ImageDimension> ImageBaseType;
   typedef itk::Transform<double, TImage::ImageDimension, TImage::ImageDimension> TransformType;
   typedef typename Superclass::PatchOffsetTable PatchOffsetTable;
@@ -427,11 +454,18 @@ public:
                                   const PatchOffsetTable &offset_table,
                                   double *out)
   {
+
     // Compute the buffer offset for the center pixel
     typedef itk::ImageHelper<3, 3> Helper;
     typename Helper::OffsetValueType offset = 0;
     Helper::ComputeOffset(image->GetBufferedRegion().GetIndex(), idx, image->GetOffsetTable(), offset);
     auto *buffer = image->GetBufferPointer();
+
+    // The offset may need to be scaled, using std::is_base_of should make the compiler
+    // ignore the multiplication for non-vector types
+    typedef ImagePartialSpecialization<TImage> Specializaton;
+    if(Specializaton::IsVector::value)
+      offset *= Specializaton::GetNumberOfComponents(image);
 
     // Sample around the center pixel
     int i = 0;
@@ -1344,6 +1378,12 @@ ImageWrapper<TTraits>
   // Update the selected time point in the selector
   m_TimePointSelectFilter->SetSelectedInput(m_TimePointIndex);
 
+  // The current logic has the reference space point to the image itself if the image
+  // it its own reference. This is not smart because we have to worry about zombie
+  // pointers. Here to preserve this logic, we clear m_ReferenceSpace if matches m_ImageBase
+  if(m_ReferenceSpace == m_ImageBase)
+    m_ReferenceSpace = nullptr;
+
   // Assign the current timepoint pointers
   m_Image = m_TimePointSelectFilter->GetOutput();
   m_ImageBase = m_Image;
@@ -1592,8 +1632,10 @@ ImageWrapper<TTraits>
       img->ReleaseData();
 
     m_ImageTimePoints.clear();
-    m_ImageBase = NULL;
-    m_Image = NULL;
+    if(m_ReferenceSpace == m_ImageBase)
+      m_ReferenceSpace = nullptr;
+    m_ImageBase = nullptr;
+    m_Image = nullptr;
     }
   m_Initialized = false;
 
@@ -2775,6 +2817,29 @@ void ImageWrapper<TTraits>::ReleaseInternalPipeline(const char *key, int index)
     if(m_ManagedPipelines[k].size() == 0)
       m_ManagedPipelines.erase(k);
     }
+  }
+
+
+template<class TTraits>
+string ImageWrapper<TTraits>::GetPixelFormatDescription()
+{
+  bool is_signed = std::is_signed<InternalPixelType>::value;
+  bool is_integer = std::is_integral<InternalPixelType>::value;
+  bool is_float = std::is_floating_point<InternalPixelType>::value;
+  bool is_vector = std::is_base_of<itk::VariableLengthVector<InternalPixelType>, PixelType>::value;
+
+  std::string component_type =
+      is_float ? "float" : (is_integer ? (is_signed ? "int" : "uint") : "unknown");
+
+  int n_bits = sizeof(InternalPixelType) * 8;
+
+  std::ostringstream oss;
+  if(is_vector)
+    oss << this->GetNumberOfComponents() << " x " << component_type << n_bits;
+  else
+    oss << component_type << n_bits;
+
+  return oss.str();
 }
 
 

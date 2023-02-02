@@ -35,7 +35,7 @@
 #include "SegmentationStatistics.h"
 #include "GenericImageData.h"
 #include "IRISApplication.h"
-#include "ImageCollectionToImageFilter.h"
+#include "ImageCollectionConstIteratorWithIndex.h"
 
 #include <iostream>
 #include <iomanip>
