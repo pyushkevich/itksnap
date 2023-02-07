@@ -7,6 +7,7 @@
 #include "IntensityCurveInterface.h"
 #include "DisplayMappingPolicy.h"
 #include "LayerAssociation.txx"
+#include "TDigestImageFilter.h"
 
 template class LayerAssociation<IntensityCurveLayerProperties,
                                 WrapperBase,
@@ -50,6 +51,12 @@ IntensityCurveModel::IntensityCurveModel()
         this,
         &Self::GetHistogramScale,
         &Self::SetHistogramScale);
+
+  // Histogram source is nullptr
+  m_HistogramSource = nullptr;
+
+  // Create a blank histogram
+  m_Histogram = ScalarImageHistogram::New();
 
   // Model events are also state changes for GUI activation
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
@@ -126,7 +133,7 @@ IntensityCurveModel
 ::UpdateHistogramCutoff()
 {
 	IntensityCurveLayerProperties &p = GetProperties();
-	const ScalarImageHistogram *hist = m_Layer->GetHistogram(0);
+  const ScalarImageHistogram *hist = this->GetHistogram();
 	p.SetHistogramCutoff(hist->GetReasonableDisplayCutoff(0.95, 0.6));
 }
 
@@ -134,6 +141,10 @@ void
 IntensityCurveModel
 ::UnRegisterFromLayer(WrapperBase *layer, bool being_deleted)
 {
+  // Clear the histogram and histogram source
+  m_Histogram = nullptr;
+  m_HistogramSource = nullptr;
+
   if(!being_deleted)
     {
     // It's safe to call GetProperties()
@@ -173,8 +184,20 @@ IntensityCurveModel
     nBins = width / p->GetHistogramBinSize();
     }
 
-  // Get the histogram
-  return dmp->GetHistogram(nBins);
+  // Get the correct t-digest (either active scalar layer or vector)
+  const auto *tdigest = dmp->GetTDigest();
+
+  // Check if the histogram has become stale
+  if(tdigest != m_HistogramSource
+     || tdigest->GetMTime() > m_Histogram->GetMTime()
+     || m_Histogram->GetSize() != nBins)
+    {
+    m_Histogram->ComputeFromTDigest(tdigest, nBins);
+    m_Histogram->Modified();
+    m_HistogramSource = tdigest;
+    }
+
+  return m_Histogram;
 }
 
 IntensityCurveLayerProperties::IntensityCurveLayerProperties()

@@ -184,7 +184,7 @@ void WorkspaceAPI::PrintLayerList(std::ostream &os, const string &line_prefix)
 
     // Use the %03d formatting for layer numbers, to match that in the registry
     char ifmt[16];
-    sprintf(ifmt, "%03d", i);
+    snprintf(ifmt, 16, "%03d", i);
 
     // Print the layer information
     table
@@ -364,7 +364,7 @@ void WorkspaceAPI::PrintTimePointList(std::ostream &os, const string &line_prefi
 
     // Use the %03d formatting for layer numbers, to match that in the registry
     char ifmt[16];
-    sprintf(ifmt, "%03d", i);
+    snprintf(ifmt, 16, "%03d", i);
 
     // Print the layer information
     table
@@ -791,7 +791,7 @@ void WorkspaceAPI::AddLabels(const string &label_file, int offset, const string 
       {
       ColorLabel cl = it->second;
       char buffer[1024];
-      sprintf(buffer, rename_pattern.c_str(), cl.GetLabel());
+      snprintf(buffer, 1024, rename_pattern.c_str(), cl.GetLabel());
       cl.SetLabel(buffer);
       clt->SetColorLabel(it->first + offset, cl);
       }
@@ -933,7 +933,7 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace,
 
     // Create a filename that combines the layer index with the hash code
     char fn_layer_new[4096];
-    sprintf(fn_layer_new, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, fn_layer_basename.c_str());
+    snprintf(fn_layer_new, 4096, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, fn_layer_basename.c_str());
 
     // Save the layer there. Since we are saving as a NIFTI, we don't need to
     // provide any hints
@@ -980,7 +980,7 @@ void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id,
 
   // Export the workspace file to the temporary directory
   char ws_fname_buffer[4096];
-  sprintf(ws_fname_buffer, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
+  snprintf(ws_fname_buffer, 4096, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
   ExportWorkspace(ws_fname_buffer, cmd_export);
 
   // Count the number of files in the directory

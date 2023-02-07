@@ -37,8 +37,6 @@
 #include "itkCastImageFilter.h"
 #include "IRISException.h"
 #include "VectorImageWrapper.h"
-#include "ScalarImageHistogram.h"
-#include "ThreadedHistogramImageFilter.h"
 #include "GuidedNativeImageIO.h"
 #include "itkImageFileWriter.h"
 
@@ -51,8 +49,6 @@ template<class TTraits>
 ScalarImageWrapper<TTraits>
 ::ScalarImageWrapper()
 {
-  m_MinMaxFilter = MinMaxFilter::New();
-  m_HistogramFilter = HistogramFilterType::New();
 }
 
 template<class TTraits>
@@ -68,67 +64,6 @@ ScalarImageWrapper<TTraits>
 {
 }
 
-
-template<class TTraits>
-void 
-ScalarImageWrapper<TTraits>
-::UpdateWrappedImages(Image4DType *image_4d, ImageBaseType *referenceSpace, ITKTransformType *transform)
-{
-  // Call the parent
-  Superclass::UpdateWrappedImages(image_4d, referenceSpace, transform);
-
-  // Update the max-min pipeline once we have one setup
-  m_MinMaxFilter->SetInput(image_4d);
-
-  // Update the histogram mini-pipeline
-  m_HistogramFilter->SetInput(image_4d);
-  m_HistogramFilter->SetRangeInputs(m_MinMaxFilter->GetMinimumOutput(),
-                                    m_MinMaxFilter->GetMaximumOutput());
-
-  // Set the number of bins to default
-  m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
-}
-
-template <class TTraits>
-void
-ScalarImageWrapper<TTraits>
-::SetNativeMapping(NativeIntensityMapping mapping)
-{
-  Superclass::SetNativeMapping(mapping);
-
-  // Propagate the mapping to the histogram
-  m_HistogramFilter->SetIntensityTransform(mapping.GetScale(), mapping.GetShift());
-}
-
-
-template<class TTraits>
-void 
-ScalarImageWrapper<TTraits>
-::CheckImageIntensityRange() 
-{
-  // Image should be loaded
-  assert(this->m_Image);
-
-  // Check if the image has been updated since the last time that
-  // the min/max has been computed
-  m_MinMaxFilter->Update();
-  m_ImageScaleFactor = 1.0 / (m_MinMaxFilter->GetMaximum() - m_MinMaxFilter->GetMinimum());
-}
-
-template<class TTraits>
-const typename ScalarImageWrapper<TTraits>::ComponentTypeObject *
-ScalarImageWrapper<TTraits>::GetImageMinObject() const
-{
-  return m_MinMaxFilter->GetMinimumOutput();
-}
-
-template<class TTraits>
-const typename ScalarImageWrapper<TTraits>::ComponentTypeObject *
-ScalarImageWrapper<TTraits>::GetImageMaxObject() const
-{
-  return m_MinMaxFilter->GetMaximumOutput();
-}
-
 template<class TTraits>
 double
 ScalarImageWrapper<TTraits>
@@ -140,7 +75,7 @@ ScalarImageWrapper<TTraits>
   // wrappers that wrap around ImageAdapter objects.
   //
   // I hope this does not cause too much trouble...
-  return m_MinMaxFilter->GetMaximum() - m_MinMaxFilter->GetMinimum();
+  return this->GetImageMaxAsDouble() - this->GetImageMinAsDouble();
 }
 
 template<class TTraits>
@@ -239,19 +174,6 @@ UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, T
 }
 
 #endif // __DELETE_THIS_CODE_
-
-
-template<class TTraits>
-double 
-ScalarImageWrapper<TTraits>
-::GetImageScaleFactor()
-{
-  // Make sure min/max are up-to-date
-  CheckImageIntensityRange();
-
-  // Return the max or min
-  return m_ImageScaleFactor;
-}
 
 /** Compute statistics over a run of voxels in the image starting at the index
  * startIdx. Appends the statistics to a running sum and sum of squared. The
@@ -374,20 +296,6 @@ ScalarImageWrapper<TTraits>
   return this->m_DisplayMapping->GetColorMap();
 }
 
-
-template<class TTraits>
-const ScalarImageHistogram *
-ScalarImageWrapper<TTraits>
-::GetHistogram(size_t nBins)
-{
-  // If the user passes in a non-zero number of bins, we pass that as a
-  // parameter to the filter
-  if(nBins > 0)
-    m_HistogramFilter->SetNumberOfBins(nBins);
-
-  m_HistogramFilter->Update();
-  return m_HistogramFilter->GetHistogramOutput();
-}
 
 template<class TTraits>
 void

@@ -23,12 +23,6 @@
 #include "itkImageAdaptor.h"
 #include "VectorToScalarImageAccessor.h"
 
-template<class TIn> class ThreadedHistogramImageFilter;
-namespace itk
-{
-template<class TIn> class MinimumMaximumImageFilter;
-}
-
 /**
  * \class VectorImageWrapper
  * \brief A wrapper around an itk::Image and related pipelines.
@@ -147,12 +141,6 @@ public:
     return this->m_Image4D->GetNumberOfComponentsPerPixel();
   }
 
-  /**
-   * Get the component-wise minimum and maximum of the image in native format
-   */
-  virtual const ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
-  virtual const ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
-
   /** Compute statistics over a run of voxels in the image starting at the index
    * startIdx. Appends the statistics to a running sum and sum of squared. The
    * statistics are returned in internal (not native mapped) format */
@@ -184,22 +172,6 @@ public:
   virtual void SetDirectionMatrix(const vnl_matrix<double> &direction) ITK_OVERRIDE;
 
   virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) ITK_OVERRIDE;
-
-
-
-  /**
-    Compute the image histogram. The histogram is cached inside of the
-    object, so repeated calls to this function with the same nBins parameter
-    will not require additional computation.
-
-    Calling with default parameter (0) will use the same number of bins that
-    is currently in the histogram (i.e., return/recompute current histogram).
-    If there is no current histogram, a default histogram with 128 entries
-    will be generated.
-
-    For multi-component data, the histogram is pooled over all components.
-    */
-  const ScalarImageHistogram *GetHistogram(size_t nBins = 0) ITK_OVERRIDE;
 
 protected:
 
@@ -243,21 +215,6 @@ protected:
   typedef typename ScalarRepMap::iterator ScalarRepIterator;
   typedef typename ScalarRepMap::const_iterator ScalarRepConstIterator;
   ScalarRepMap m_ScalarReps;
-
-  // For computing image statistics, we can represent the image as a one-dimensional
-  // image of size n_voxels * n_components. This image can then be fed as input to
-  // the min/max and histogram computation filters. Of course the flat image
-  // shares the buffer with the 3D image so there is no memory waste
-  typedef itk::Image<InternalPixelType, 1>                       FlatImageType;
-  SmartPtr<FlatImageType> m_FlatImage;
-
-  // Min/max filter
-  typedef itk::MinimumMaximumImageFilter<FlatImageType> MinMaxFilterType;
-  SmartPtr<MinMaxFilterType> m_MinMaxFilter;
-
-  // Histogram filter
-  typedef ThreadedHistogramImageFilter<FlatImageType> HistogramFilterType;
-  SmartPtr<HistogramFilterType> m_HistogramFilter;
 
   // Other derived wrappers
   typedef VectorToScalarMagnitudeFunctor<InternalPixelType,float> MagnitudeFunctor;

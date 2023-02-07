@@ -4,3 +4,6 @@
 [submodule "Submodules/greedy"]
 	path = Submodules/greedy
 	url = https://github.com/pyushkevich/greedy.git
+[submodule "Submodules/digestible"]
+	path = Submodules/digestible
+	url = https://github.com/SpirentOrion/digestible.git

@@ -125,6 +125,9 @@ public:
   irisITKAbstractObjectMacro(AbstractContinuousImageDisplayMappingPolicy,
                              AbstractDisplayMappingPolicy)
 
+  /** The T-Digest is used to get image range and histogram information */
+  typedef TDigestDataObject TDigest;
+
   /**
    * @brief Get the intensity range relative to which the contrast mapping
    * curve is constructed. This is primarily used when displaying the curve
@@ -139,8 +142,10 @@ public:
    * component's histogram. For multi-component layers, it may return the
    * pooled histogram, e.g., when the display is in RGB mode
    * @param nBins Number of bins desired in the histogram
+   *
+   * TODO: make this pure virtual and implement in mesh policies
    */
-  virtual const ScalarImageHistogram *GetHistogram(int nBins) = 0;
+  virtual const TDigest *GetTDigest() { return nullptr; }
 
   virtual void SetColorMap(ColorMap *map) = 0;
 
@@ -225,8 +230,7 @@ public:
 
   Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
 
-  virtual const ScalarImageHistogram *GetHistogram(int nBins) ITK_OVERRIDE;
-
+  virtual const TDigest *GetTDigest() override;
 
   /**
    * Get the display slice in a given direction.  To change the
@@ -453,7 +457,7 @@ public:
   DisplaySlicePointer GetDisplaySlice(unsigned int slice) ITK_OVERRIDE;
 
   Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
-  virtual const ScalarImageHistogram *GetHistogram(int nBins) ITK_OVERRIDE;
+  virtual const TDigest *GetTDigest() override;
 
   /**
    * @brief Returns true when the display mode is such that the image min, max

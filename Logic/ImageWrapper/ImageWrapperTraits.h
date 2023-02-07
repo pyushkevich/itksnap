@@ -26,6 +26,62 @@ template <class TImage, class TBase> class VectorImageWrapper;
 template <class TImage, class TBase> class ScalarImageWrapper;
 */
 
+
+#if(false)
+
+/**
+ * A special pixel type that is internally a short but is presented to the
+ * outside world as a floating point number. Used to represent speed image
+ * values, where precision offered by short is enough. The first parameter
+ * is floating point type (float or double), and the second is the short
+ * value corresponding to the floating point value 1.0, the default is 10000
+ */
+
+template <class TFloat, short VRange = 10000>
+class SmallClippedFloat
+{
+public:
+  typedef SmallClippedFloat<TFloat, VRange> Self;
+
+  TFloat operator()() const { return m_Value * m_Scale; }
+  Self &operator = (const TFloat &f) { m_Value = (short) VRange * f; return *this; }
+
+  /** Construct from floating point */
+  SmallClippedFloat(float value) { *this = value; }
+
+private:
+  static constexpr TFloat m_Scale = 1.0 / VRange;
+  short m_Value;
+};
+
+template<class TFloat, short VRange>
+class vnl_numeric_traits< SmallClippedFloat<TFloat, VRange> >
+{
+public:
+  typedef SmallClippedFloat<TFloat, VRange> T;
+  //: Additive identity
+  static const T zero = T(0.0);
+  //: Multiplicative identity
+  static const T one = T(1.0);
+  //: Maximum value which this type can assume
+  static const T maxval = T(1.0);
+  //: Return value of abs()
+  typedef T abs_t;
+  //: Name of a type twice as long as this one for accumulators and products.
+  typedef typename vnl_numeric_traits<short>::double_t double_t;
+  //: Name of type which results from multiplying this type with a double
+  typedef double real_t;
+};
+
+/**
+ * To save memory, we define the pixels in the speed image as shorts in the range
+ * between -10000 and 10000. This should provide enough precision.
+ */
+typedef SmallClippedFloat<float> SpeedImagePixel;
+
+#endif
+
+
 /**
  * Each of the traits classes below defines types and policies for a specific
  * type of image wrapper.

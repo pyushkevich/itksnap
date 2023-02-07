@@ -67,12 +67,6 @@ MeshDisplayMappingPolicy::GetNativeImageRangeForCurve()
 	return Vector2d(prop->GetMin(activeComp), prop->GetMax(activeComp));
 }
 
-ScalarImageHistogram *
-MeshDisplayMappingPolicy::GetHistogram(int nBins)
-{
-  return m_Wrapper->GetActiveDataArrayProperty()->GetHistogram(nBins);
-}
-
 void
 MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
 {

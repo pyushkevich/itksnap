@@ -129,14 +129,14 @@ public:
   Vector2d GetVisibleImageRange();
 
   /**
+   * Access the histogram of the current layer, updating if necessary
+   */
+  const ScalarImageHistogram *GetHistogram();
+
+  /**
     Check the state flags above
     */
   bool CheckState(UIState state);
-
-  /**
-    Get the histogram of the current layer
-    */
-  const ScalarImageHistogram *GetHistogram();
 
   /**
     Process curve interaction event
@@ -186,6 +186,12 @@ protected:
   virtual ~IntensityCurveModel();
 
   AbstractContinuousImageDisplayMappingPolicy *GetDisplayPolicy();
+
+  // A histogram computed from a t-digest
+  SmartPtr<ScalarImageHistogram> m_Histogram;
+
+  // The pointer to a t-digest from which the histogram was derived
+  const TDigestDataObject *m_HistogramSource;
 
   // A size reporter delegate
   ViewportSizeReporter *m_ViewportReporter;

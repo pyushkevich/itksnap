@@ -15,6 +15,7 @@
 #include "itkUnaryFunctorImageFilter.h"
 #include "InputSelectionImageFilter.h"
 #include "Rebroadcaster.h"
+#include "TDigestImageFilter.h"
 
 /* ===============================================================
     ColorLabelTableDisplayMappingPolicy implementation
@@ -163,14 +164,14 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_LookupTableFilter->SetInput(m_Wrapper->GetImage());
 
   // Hook up the min/max filters
-  m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetMinMaxFilter()->GetMinimumOutput());
-  m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetMinMaxFilter()->GetMaximumOutput());
+  m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetImageMinObject());
+  m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
 
   for(unsigned int i=0; i<3; i++)
     {
     m_IntensityFilter[i]->SetInput(m_Wrapper->GetSlice(i));
-    m_IntensityFilter[i]->SetImageMinInput(m_Wrapper->GetMinMaxFilter()->GetMinimumOutput());
-    m_IntensityFilter[i]->SetImageMaxInput(m_Wrapper->GetMinMaxFilter()->GetMaximumOutput());
+    m_IntensityFilter[i]->SetImageMinInput(m_Wrapper->GetImageMinObject());
+    m_IntensityFilter[i]->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
     }
 }
 
@@ -210,8 +211,8 @@ void
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 ::ClearReferenceIntensityRange()
 {
-  m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetMinMaxFilter()->GetMinimumOutput());
-  m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetMinMaxFilter()->GetMaximumOutput());
+  m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetImageMinObject());
+  m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
 }
 
 template<class TWrapperTraits>
@@ -239,11 +240,11 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 }
 
 template<class TWrapperTraits>
-const ScalarImageHistogram *
+const typename CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::TDigest *
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
-::GetHistogram(int nBins)
+::GetTDigest()
 {
-  return m_Wrapper->GetHistogram(nBins);
+  return m_Wrapper->GetTDigest();
 }
 
 template<class TWrapperTraits>
@@ -342,39 +343,14 @@ void
 AbstractContinuousImageDisplayMappingPolicy
 ::AutoFitContrast()
 {
-  // Get the histogram with the current number of bins
-  const ScalarImageHistogram *hist = this->GetHistogram(0);
-
-  // Integrate the histogram until reaching 0.1%
-  double imin = hist->GetBinMin(0);
-  double ilow = imin;
-  size_t accum = 0;
-  size_t accum_goal = hist->GetTotalSamples() / 1000;
-  for(size_t i = 0; i < hist->GetSize(); i++)
-    {
-    if(accum + hist->GetFrequency(i) < accum_goal)
-      {
-      accum += hist->GetFrequency(i);
-      ilow = hist->GetBinMax(i);
-      }
-    else break;
-    }
-
-  // Same, but from above
-  double imax = hist->GetBinMax(hist->GetSize() - 1);
-  double ihigh = imax;
-  accum = 0;
-  for(int i = (int) hist->GetSize() - 1; i >= 0; i--)
-    {
-    if(accum + hist->GetFrequency(i) < accum_goal)
-      {
-      accum += hist->GetFrequency(i);
-      ihigh = hist->GetBinMin(i);
-      }
-    else break;
-    }
+  // Get the quantiles to fit to on the bottom and top
+  double imin = this->GetTDigest()->GetImageMinimum();
+  double imax = this->GetTDigest()->GetImageMaximum();
+  double ilow = this->GetTDigest()->GetImageQuantile(0.001);
+  double ihigh = this->GetTDigest()->GetImageQuantile(0.999);
 
   // If for some reason the window is off, we set everything to max/min
+  // TODO: check for infinity values
   if(ilow >= ihigh)
     { ilow = imin; ihigh = imax; }
 
@@ -861,21 +837,14 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 }
 
 template<class TWrapperTraits>
-const ScalarImageHistogram *
+const typename MultiChannelDisplayMappingPolicy<TWrapperTraits>::TDigest *
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
-::GetHistogram(int nBins)
+::GetTDigest()
 {
   if(m_DisplayMode.UseRGB || (m_DisplayMode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() == 3))
-    {
-    // In RGB mode, we should return a pooled histogram of the data.
-    return m_Wrapper->GetHistogram(nBins);
-    }
+    return m_Wrapper->GetTDigest();
   else
-    {
-    // Otherwise, we return the component-specific histogram
-    return m_ScalarRepresentation->GetHistogram(nBins);
-    }
-
+    return m_ScalarRepresentation->GetTDigest();
 }
 
 

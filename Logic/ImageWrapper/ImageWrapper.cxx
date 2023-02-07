@@ -68,6 +68,8 @@
 #include "InputSelectionImageFilter.h"
 #include "MetaDataAccess.h"
 #include "itkCastImageFilter.h"
+#include "RLEImageRegionConstIterator.h"
+#include "TDigestImageFilter.h"
 
 #include <vnl/vnl_inverse.h>
 #include <iostream>
@@ -958,6 +960,9 @@ ImageWrapper<TTraits>
   // that are derived from vector wrappers. See VectorImageWrapper::CreateDerivedWrapper
   m_ParentWrapper = NULL;
 
+  // Initialize the t-digest filter
+  m_TDigestFilter = TDigestFilterType::New();
+
   // Update the image geometry to default value
   this->UpdateImageGeometry();
 }
@@ -1399,6 +1404,12 @@ ImageWrapper<TTraits>
   // operations with MinMaxCalc
   m_Image4D->Modified();
 
+  // Set the image as the input to the TDigest
+  m_TDigestFilter->SetInput(m_Image4D);
+  std::cout << m_Image4D->GetBufferedRegion() << std::endl;
+  m_TDigestFilter->Update();
+  std::cout << m_Image4D->GetBufferedRegion() << std::endl;
+
   // Update the image in the display mapping
   m_DisplayMapping->UpdateImagePointer(m_Image);
 
@@ -1812,6 +1823,9 @@ ImageWrapper<TTraits>
 ::SetNativeMapping(NativeIntensityMapping nim)
 {
   m_NativeMapping = nim;
+
+  // Propagate the mapping to the tdigest
+  m_TDigestFilter->SetIntensityTransform(nim.GetScale(), nim.GetShift());
 }
 
 template<class TTraits>
@@ -1893,6 +1907,32 @@ ImageWrapper<TTraits>
 {
   m_Slicers[index]->SetObliqueReferenceImage(viewport_image);
 }
+
+template<class TTraits>
+const TDigestDataObject *
+ImageWrapper<TTraits>::GetTDigest()
+{
+  m_TDigestFilter->Update();
+  return m_TDigestFilter->GetTDigest();
+}
+
+template<class TTraits>
+const typename ImageWrapper<TTraits>::MinMaxObjectType *
+ImageWrapper<TTraits>::GetImageMinObject()
+{
+  m_TDigestFilter->Update();
+  return m_TDigestFilter->GetImageMin();
+}
+
+template<class TTraits>
+const typename ImageWrapper<TTraits>::MinMaxObjectType *
+ImageWrapper<TTraits>::GetImageMaxObject()
+{
+  m_TDigestFilter->Update();
+  return m_TDigestFilter->GetImageMax();
+}
+
+
 
 template<class TTraits>
 const typename ImageWrapper<TTraits>::ImageBaseType*
@@ -2006,8 +2046,8 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMinAsDouble()
 {
-  const_cast<ComponentTypeObject *>(this->GetImageMinObject())->Update();
-  return static_cast<double>(this->GetImageMinObject()->Get());
+  m_TDigestFilter->Update();
+  return (double) m_TDigestFilter->GetTDigest()->GetImageMinimum();
 }
 
 template<class TTraits>
@@ -2015,8 +2055,8 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMaxAsDouble()
 {
-  const_cast<ComponentTypeObject *>(this->GetImageMaxObject())->Update();
-  return static_cast<double>(this->GetImageMaxObject()->Get());
+  m_TDigestFilter->Update();
+  return (double) m_TDigestFilter->GetTDigest()->GetImageMaximum();
 }
 
 template<class TTraits>
@@ -2024,8 +2064,8 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMinNative()
 {
-  const_cast<ComponentTypeObject *>(this->GetImageMinObject())->Update();
-  return m_NativeMapping(this->GetImageMinObject()->Get());
+  m_TDigestFilter->Update();
+  return (double) m_TDigestFilter->GetTDigest()->GetImageMinimum();
 }
 
 template<class TTraits>
@@ -2033,8 +2073,8 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMaxNative()
 {
-  const_cast<ComponentTypeObject *>(this->GetImageMaxObject())->Update();
-  return m_NativeMapping(this->GetImageMaxObject()->Get());
+  m_TDigestFilter->Update();
+  return (double) m_TDigestFilter->GetTDigest()->GetImageMaximum();
 }
 
 /** For each slicer, find out which image dimension does is slice along */

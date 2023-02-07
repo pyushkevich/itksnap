@@ -26,8 +26,6 @@
 #include "ImageWrapperTraits.h"
 #include "itkVectorImageToImageAdaptor.h"
 #include "itkMinimumMaximumImageFilter.h"
-#include "ThreadedHistogramImageFilter.h"
-#include "ScalarImageHistogram.h"
 #include "Rebroadcaster.h"
 #include "GuidedNativeImageIO.h"
 #include "itkImageFileWriter.h"
@@ -40,12 +38,6 @@ template <class TTraits>
 VectorImageWrapper<TTraits>
 ::VectorImageWrapper()
 {
-  // Initialize the flattened image
-  m_FlatImage = NULL;
-
-  // Initialize the filters
-  m_MinMaxFilter = MinMaxFilterType::New();
-  m_HistogramFilter = HistogramFilterType::New();
 }
 
 template <class TTraits>
@@ -139,9 +131,6 @@ VectorImageWrapper<TTraits>
 ::SetNativeMapping(NativeIntensityMapping mapping)
 {
   Superclass::SetNativeMapping(mapping);
-
-  // Propagate the mapping to the histogram
-  m_HistogramFilter->SetIntensityTransform(mapping.GetScale(), mapping.GetShift());
 
   // Propagate to owned scalar wrappers
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
@@ -276,24 +265,6 @@ VectorImageWrapper<TTraits>
   m_ScalarReps[std::make_pair(SCALAR_REP_AVERAGE, 0)]
       = this->template CreateDerivedWrapper<MeanFunctor>(image_4d, referenceSpace, transform);
 
-  // Create a flat representation of the image
-  m_FlatImage = FlatImageType::New();
-  typename FlatImageType::SizeType flatsize;
-  flatsize[0] = image_4d->GetPixelContainer()->Size();
-  m_FlatImage->SetRegions(flatsize);
-  m_FlatImage->SetPixelContainer(image_4d->GetPixelContainer());
-
-  // Connect the flat image to the min/max computer
-  m_MinMaxFilter->SetInput(m_FlatImage);
-
-  // Hook up the histogram computer to the flat image and min/max filter
-  m_HistogramFilter->SetInput(m_FlatImage);
-  m_HistogramFilter->SetRangeInputs(m_MinMaxFilter->GetMinimumOutput(),
-                                    m_MinMaxFilter->GetMaximumOutput());
-
-  // Set the number of bins (TODO - how to do this smartly?)
-  m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
-
   /*
 
     // Make sure intensity curve is shared by the components
@@ -353,21 +324,6 @@ VectorImageWrapper<TTraits>
   // can change under settings, i.e., "Default scalar representation for RGB images".
   return this->GetScalarRepresentation(SCALAR_REP_MAX);
 }
-
-template<class TTraits>
-const ScalarImageHistogram *
-VectorImageWrapper<TTraits>
-::GetHistogram(size_t nBins)
-{
-  // If the user passes in a non-zero number of bins, we pass that as a
-  // parameter to the filter
-  if(nBins > 0)
-    m_HistogramFilter->SetNumberOfBins(nBins);
-
-  m_HistogramFilter->Update();
-  return m_HistogramFilter->GetHistogramOutput();
-}
-
 
 template <class TTraits>
 inline ScalarImageWrapperBase *
@@ -475,24 +431,6 @@ VectorImageWrapper<TTraits>
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
     it->second->CopyImageCoordinateTransform(source);
 }
-
-
-template<class TTraits>
-const typename VectorImageWrapper<TTraits>::ComponentTypeObject *
-VectorImageWrapper<TTraits>
-::GetImageMinObject() const
-{
-  return m_MinMaxFilter->GetMinimumOutput();
-}
-
-template<class TTraits>
-const typename VectorImageWrapper<TTraits>::ComponentTypeObject *
-VectorImageWrapper<TTraits>
-::GetImageMaxObject() const
-{
-  return m_MinMaxFilter->GetMaximumOutput();
-}
-
 
 
 /*

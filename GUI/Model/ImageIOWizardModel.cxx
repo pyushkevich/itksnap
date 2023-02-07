@@ -113,13 +113,13 @@ ImageIOWizardModel
           ossLine << extSeparator;
         size_t pend = fd.pattern.find(',', pos);
         std::string ext = fd.pattern.substr(pos, pend-pos);
-        sprintf(buffer, extEntry, ext.c_str());
+        snprintf(buffer, 1024, extEntry, ext.c_str());
         ossLine << buffer;
         pos = (pend == std::string::npos) ? pend : pend+1;
         }
 
       // Append a row to the format list
-      sprintf(buffer, lineEntry, fd.name.c_str(), ossLine.str().c_str());
+      snprintf(buffer, 1024, lineEntry, fd.name.c_str(), ossLine.str().c_str());
       ossMain << buffer;
       ossMain << rowSeparator;
       }

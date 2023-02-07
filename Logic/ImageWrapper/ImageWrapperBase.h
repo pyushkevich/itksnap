@@ -36,6 +36,8 @@ class GuidedNativeImageIO;
 class Registry;
 class vtkImageImport;
 struct IRISDisplayGeometry;
+class TDigestDataObject;
+
 
 template <unsigned int VDim> class MetaDataAccess;
 
@@ -450,12 +452,6 @@ public:
     vnl_vector<double> v_origin,
     vnl_vector<double> v_spacing);
 
-  typedef itk::Image<short, 3> ShortImageType;
-
-
-
-  //
-
   /**
    * Set an ITK transform between this image and a reference image.
    */
@@ -540,12 +536,6 @@ public:
   enum ExportChannel {
     WHOLE_IMAGE=0, PREVIEW_X, PREVIEW_Y, PREVIEW_Z, CHANNEL_COUNT
   };
-
-  /**
-   * Get the scaling factor used to convert between intensities stored
-   * in this image and the 'true' image intensities
-   */
-  virtual double GetImageScaleFactor() = 0;
 
   /**
     Get the maximum possible value of the gradient magnitude. This will

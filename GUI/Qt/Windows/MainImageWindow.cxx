@@ -2150,7 +2150,7 @@ void MainImageWindow::ExportSlice(AnatomicalDirection direction)
   size_t iSliceImg =
     m_Model->GetDriver()->GetImageDirectionForAnatomicalDirection(direction);
 
-  sprintf(deffn,"%s_slice_%04d.png", defpref[direction],
+  snprintf(deffn, 40, "%s_slice_%04d.png", defpref[direction],
     m_Model->GetDriver()->GetCursorPosition()[iSliceImg] + 1);
 
   // Open a file browser and have the user select something

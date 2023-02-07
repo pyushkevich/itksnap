@@ -1168,7 +1168,7 @@ IRISApplication
 
       // Generate filename
       char outfn[4096];
-      sprintf(outfn, "%s/%s%05d%s", path.c_str(), prefix.c_str(), it->first, extn.c_str());
+      snprintf(outfn, 4096, "%s/%s%05d%s", path.c_str(), prefix.c_str(), it->first, extn.c_str());
 
       // Export the mesh
       GuidedMeshIO io;

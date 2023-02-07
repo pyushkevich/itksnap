@@ -54,6 +54,9 @@ class AdaptiveSlicingPipeline;
 
 template <class TInputImage, class TTag> class InputSelectionImageFilter;
 
+template<class TIn> class TDigestImageFilter;
+class TDigestDataObject;
+
 class SNAPSegmentationROISettings;
 
 namespace itk {
@@ -137,6 +140,9 @@ public:
 
   // Preview source for preview pipelines
   typedef itk::ImageSource<PreviewImageType>                 PreviewFilterType;
+
+  // Filter used for fast approximation of image quantiles
+  typedef TDigestImageFilter<Image4DType>                    TDigestFilterType;
 
   // Iterator types
   typedef typename itk::ImageRegionIterator<ImageType>                Iterator;
@@ -437,11 +443,24 @@ public:
       const ImageBaseType *viewport_image) ITK_OVERRIDE;
 
   /**
-   * Get an ITK pipeline object holding the minimum value in the image. For
-   * multi-component images, this is the minimum value over all components.
-   */
-  virtual const ComponentTypeObject *GetImageMinObject() const = 0;
-  virtual const ComponentTypeObject *GetImageMaxObject() const = 0;
+    Compute the image t-digest, from which the quantiles of the image can be
+    approximated. The t-digest is a fast algorithm for approximating image
+    statistics such as quantiles, histogram, CDF, etc. It replaces earlier
+    code that separately computed the image min/max and histogram using
+    separate filters and required the number of bins to be specified explicitly
+
+    The t-digest is over the 4D image.
+    For multi-component data, the t-digest is pooled over all components.
+    */
+  virtual const TDigestDataObject *GetTDigest() ITK_OVERRIDE;
+
+  typedef itk::SimpleDataObjectDecorator<ComponentType> MinMaxObjectType;
+
+  /** Legacy code returning image min as an object. TODO: refactor this out */
+  virtual const MinMaxObjectType *GetImageMinObject();
+
+  /** Legacy code returning image max as an object. TODO: refactor this out */
+  virtual const MinMaxObjectType *GetImageMaxObject();
 
   /** Return componentwise minimum cast to double, without mapping to native range */
   virtual double GetImageMinAsDouble() ITK_OVERRIDE;
@@ -848,6 +867,11 @@ protected:
    * modified by the UpdateImageGeometry() method.
    */
   SmartPtr<ImageCoordinateGeometry> m_ImageGeometry;
+
+  /**
+   * The filter that computes the t-digest
+   */
+  SmartPtr<TDigestFilterType> m_TDigestFilter;
 
   /**
    * Internally cached transform from image coordinates to RAS (NIFTI) physical coordinates.

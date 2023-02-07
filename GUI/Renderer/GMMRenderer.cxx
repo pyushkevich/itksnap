@@ -88,8 +88,10 @@ void GMMRenderer::UpdatePlotValues()
     // Remove all plots from the chart
     m_Chart->ClearPlots();
 
-    // Add and set up the histogram plot
-    const ScalarImageHistogram *hist = cw->GetHistogram(0);
+    // Add and set up the histogram plot. Here we don't cache the histogram
+    // because this is not code that is used a whole lot anyway
+    SmartPtr<ScalarImageHistogram> hist = ScalarImageHistogram::New();
+    hist->ComputeFromTDigest(cw->GetTDigest());
     m_HistogramAssembly->AddToChart(m_Chart);
     double ymax = m_HistogramAssembly->PlotAsEmpiricalDensity(hist);
 

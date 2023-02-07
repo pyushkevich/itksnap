@@ -39,9 +39,7 @@
 #include "vtkSmartPointer.h"
 
 // Forward references
-template<class TIn> class ThreadedHistogramImageFilter;
 namespace itk {
-  template<class TIn> class MinimumMaximumImageFilter;
   class VTKImageExportBase;
   template<class TInputImage> class VTKImageExport;
   template<class TOut> class ImageSource;
@@ -94,15 +92,6 @@ public:
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
 
-  // MinMax calculator type (works on the 4D image)
-  typedef itk::MinimumMaximumImageFilter<Image4DType>             MinMaxFilter;
-
-  // Histogram filter (works on the 4D image)
-  typedef ThreadedHistogramImageFilter<Image4DType>        HistogramFilterType;
-
-  // VTK Exporter
-  // typedef itk::VTKImageExport<CommonFormatImageType>             VTKExportType;
-
   // Iterator types
   typedef typename Superclass::Iterator                               Iterator;
   typedef typename Superclass::ConstIterator                     ConstIterator;
@@ -127,17 +116,6 @@ public:
    */
   virtual ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE { return this; }
 
-  /** Access the min/max filter */
-  irisGetMacro(MinMaxFilter, MinMaxFilter *)
-
-  /**
-   * Get the scaling factor used to convert between intensities stored
-   * in this image and the 'true' image intensities
-   */
-  virtual double GetImageScaleFactor() ITK_OVERRIDE;
-
-  typedef typename ImageWrapperBase::ShortImageType ShortImageType;
-
   /** This image type has only one component */
   virtual size_t GetNumberOfComponents() const ITK_OVERRIDE { return 1; }
 
@@ -160,24 +138,6 @@ public:
    */
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
-
-  virtual const ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
-
-  virtual const ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
-
-  /**
-    Compute the image histogram. The histogram is cached inside of the
-    object, so repeated calls to this function with the same nBins parameter
-    will not require additional computation.
-
-    Calling with default parameter (0) will use the same number of bins that
-    is currently in the histogram (i.e., return/recompute current histogram).
-    If there is no current histogram, a default histogram with 128 entries
-    will be generated.
-
-    For multi-component data, the histogram is pooled over all components.
-    */
-  const ScalarImageHistogram *GetHistogram(size_t nBins = 0) ITK_OVERRIDE;
 
   /**
     Get the maximum possible value of the gradient magnitude. This will
@@ -225,9 +185,6 @@ public:
   virtual typename ImageWrapperBase::FloatVectorImageType*
   CreateCastToFloatVectorPipeline(const char *key, int index = 0) ITK_OVERRIDE;
 
-  /** Extends parent method */
-  virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
-
   /** Is volume rendering turned on for this layer */
   irisIsMacroWithOverride(VolumeRenderingEnabled)
 
@@ -250,37 +207,9 @@ protected:
   /** Destructor */
   virtual ~ScalarImageWrapper();
 
-  /** 
-   * The min-max filter used to compute the range of the image on demand.
-   */
-  SmartPtr<MinMaxFilter> m_MinMaxFilter;
-
-  /**
-   * The filter used for histogram computation
-   */
-  SmartPtr<HistogramFilterType> m_HistogramFilter;
-
-  /** The intensity scaling factor */
-  double m_ImageScaleFactor;
-
   // Volume rendering state
   bool m_VolumeRenderingEnabled = false;
   
-  /**
-   * Compute the intensity range of the image if it's out of date.  
-   * This is done before calling GetImateMin, GetImateMax and GetImageScaleFactor methods.
-   */
-  void CheckImageIntensityRange();
-
-  /**
-   * Handle a change in the image pointer (i.e., a load operation on the image or 
-   * an initialization operation)
-   */
-  virtual void UpdateWrappedImages(Image4DType *image_4d,
-                                   ImageBaseType *refSpace = NULL,
-                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
-
-
   /** Write the image to disk as a floating point image (scalar or vector) */
   virtual void WriteToFileAsFloat(const char *filename, Registry &hints) ITK_OVERRIDE;
 };

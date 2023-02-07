@@ -50,6 +50,8 @@ protected:
 class ProgressReporterDelegate
 {
 public:
+  ProgressReporterDelegate() {}
+  virtual ~ProgressReporterDelegate() {}
 
   /** Set the progress value between 0 and 1 */
   virtual void SetProgressValue(double) = 0;
