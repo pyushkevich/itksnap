@@ -25,8 +25,11 @@ void ScalarImageHistogram
   for(int i = 0; i < m_BinCount; i++)
     {
     cdf_left = (i > 0) ? cdf_right : digest->GetCDF(m_FirstBinStart);
-    cdf_right = digest->GetCDF(m_FirstBinStart + i * m_BinWidth);
-    m_Bins[i] = std::floor(0.5 + (cdf_right - cdf_left) * digest->GetTotalWeight());
+    cdf_right = digest->GetCDF(m_FirstBinStart + (i+1) * m_BinWidth);
+    unsigned long freq = (unsigned long) std::floor(0.5 + (cdf_right - cdf_left) * digest->GetTotalWeight());
+    m_Bins[i] = freq;
+    m_MaxFrequency = std::max(m_MaxFrequency, freq);
+    m_TotalSamples += freq;
     }
 }
 

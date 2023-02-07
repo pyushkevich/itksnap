@@ -129,9 +129,14 @@ UpdateActorMap(ActorPool *pool, unsigned int timepoint)
     // Keep the actor in the map
     actorMap->insert(std::make_pair(it_mesh->first, actor));
     }// end of updating actors
+  }
+
+const
+MeshDisplayMappingPolicy::TDigest *
+MeshDisplayMappingPolicy::GetTDigest()
+{
+  return m_Wrapper->GetActiveDataArrayProperty()->GetTDigest();
 }
-
-
 
 void
 MeshDisplayMappingPolicy::SetMesh(MeshWrapperBase *mesh_wrapper)

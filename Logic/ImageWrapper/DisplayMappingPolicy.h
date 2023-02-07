@@ -142,10 +142,8 @@ public:
    * component's histogram. For multi-component layers, it may return the
    * pooled histogram, e.g., when the display is in RGB mode
    * @param nBins Number of bins desired in the histogram
-   *
-   * TODO: make this pure virtual and implement in mesh policies
    */
-  virtual const TDigest *GetTDigest() { return nullptr; }
+  virtual const TDigest *GetTDigest() = 0;
 
   virtual void SetColorMap(ColorMap *map) = 0;
 

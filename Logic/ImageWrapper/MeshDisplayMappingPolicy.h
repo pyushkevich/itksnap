@@ -21,6 +21,7 @@ public:
 
   typedef MeshDataArrayProperty::MeshDataType MeshDataType;
 	typedef MeshLayerDataArrayProperty::VectorMode VectorMode;
+  typedef Superclass::TDigest TDigest;
 
   //--------------------------------------------
   // virtual methods implementation
@@ -60,6 +61,9 @@ public:
 
   /** Update actor map with meshes from given timepoint */
   virtual void UpdateActorMap(ActorPool* pool, unsigned int timepoint);
+
+  /** Get the TDigest for the active array (i.e., histogram) */
+  virtual const TDigest *GetTDigest() override;
 
   // end of virtual methods implementation
   //--------------------------------------------

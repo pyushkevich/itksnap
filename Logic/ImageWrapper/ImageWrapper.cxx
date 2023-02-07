@@ -1406,9 +1406,6 @@ ImageWrapper<TTraits>
 
   // Set the image as the input to the TDigest
   m_TDigestFilter->SetInput(m_Image4D);
-  std::cout << m_Image4D->GetBufferedRegion() << std::endl;
-  m_TDigestFilter->Update();
-  std::cout << m_Image4D->GetBufferedRegion() << std::endl;
 
   // Update the image in the display mapping
   m_DisplayMapping->UpdateImagePointer(m_Image);

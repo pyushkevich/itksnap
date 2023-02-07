@@ -1,18 +1,10 @@
 #include "IntensityCurveModel.h"
 #include "ImageWrapperBase.h"
-#include "IRISApplication.h"
-#include "itkImageBase.h"
 #include "ScalarImageHistogram.h"
-#include "GlobalUIModel.h"
 #include "IntensityCurveInterface.h"
 #include "DisplayMappingPolicy.h"
-#include "LayerAssociation.txx"
 #include "TDigestImageFilter.h"
-
-template class LayerAssociation<IntensityCurveLayerProperties,
-                                WrapperBase,
-                                IntensityCurveModelBase::PropertiesFactory>;
-
+#include "LayerAssociation.txx"
 
 IntensityCurveModel::IntensityCurveModel()
   : IntensityCurveModelBase()
@@ -141,10 +133,6 @@ void
 IntensityCurveModel
 ::UnRegisterFromLayer(WrapperBase *layer, bool being_deleted)
 {
-  // Clear the histogram and histogram source
-  m_Histogram = nullptr;
-  m_HistogramSource = nullptr;
-
   if(!being_deleted)
     {
     // It's safe to call GetProperties()
