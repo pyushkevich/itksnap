@@ -14,6 +14,22 @@ void
 IncreaseDimensionImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
 {
+  // Just pass the container to the output image
+  InputImageType *inputPtr = const_cast<InputImageType *>(this->GetInput());
+  OutputImageType *outputPtr = this->GetOutput();
+  outputPtr->SetPixelContainer(inputPtr->GetPixelContainer());
+}
+
+template <class TInputImage, class TOutputImage>
+void
+IncreaseDimensionImageFilter<TInputImage, TOutputImage>
+::GenerateOutputInformation()
+{
+  // From itk::TiledImageFilter, which does similar thing as this filter
+  // "Do not call the superclass's GenerateOutptuInformation method.
+  //  The input images are likely a different dimension than the input,
+  //  so the superclass's implementation is not compatible."
+
   unsigned int n_in = InputImageType::ImageDimension;
   unsigned int n_out = OutputImageType::ImageDimension;
 
@@ -45,8 +61,8 @@ IncreaseDimensionImageFilter<TInputImage, TOutputImage>
     {
     origin[i] = inputPtr->GetOrigin()[i];
     spacing[i] = inputPtr->GetSpacing()[i];
-    index[i] = inputPtr->GetBufferedRegion().GetIndex()[i];
-    size[i] = inputPtr->GetBufferedRegion().GetSize()[i];
+    index[i] = inputPtr->GetLargestPossibleRegion().GetIndex()[i];
+    size[i] = inputPtr->GetLargestPossibleRegion().GetSize()[i];
     for(unsigned int j = 0; j < n_in; j++)
       direction(i,j) = inputPtr->GetDirection()(i,j);
     }
@@ -56,8 +72,9 @@ IncreaseDimensionImageFilter<TInputImage, TOutputImage>
   outputPtr->SetOrigin(origin);
   outputPtr->SetSpacing(spacing);
   outputPtr->SetDirection(direction);
+  outputPtr->SetLargestPossibleRegion(region);
+  outputPtr->SetRequestedRegionToLargestPossibleRegion();
   outputPtr->SetBufferedRegion(region);
-  outputPtr->SetPixelContainer(inputPtr->GetPixelContainer());
 }
 
 
