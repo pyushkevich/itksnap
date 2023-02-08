@@ -225,7 +225,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_IntensityCurveVTK->Initialize(ici->GetControlPointCount());
   for(size_t i = 0; i < m_IntensityCurveVTK->GetControlPointCount(); i++)
     {
-    float t, x;
+    double t, x;
     ici->GetControlPoint(i, t, x);
     m_IntensityCurveVTK->UpdateControlPoint(i, t, x);
     }
@@ -361,7 +361,7 @@ AbstractContinuousImageDisplayMappingPolicy
   double t1 = factor * (ihigh - irange[0]);
 
   // Set the window and level
-  this->GetIntensityCurve()->ScaleControlPointsToWindow((float) t0, (float) t1);
+  this->GetIntensityCurve()->ScaleControlPointsToWindow(t0, t1);
 }
 
 bool AbstractContinuousImageDisplayMappingPolicy::IsContrastInDefaultState()
@@ -375,7 +375,7 @@ Vector2d AbstractContinuousImageDisplayMappingPolicy::GetCurveMinMaxNative()
   assert(curve);
 
   // Get the control point range
-  float t0, y0, t1, y1;
+  double t0, y0, t1, y1;
   curve->GetControlPoint(0, t0, y0);
   curve->GetControlPoint(curve->GetControlPointCount() - 1, t1, y1);
 

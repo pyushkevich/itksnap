@@ -26,8 +26,10 @@ public:
 
   template <class TInputImage> friend class TDigestImageFilter;
 
+  static constexpr int DIGEST_SIZE = 10000;
+
 protected:
-  TDigestDataObject() : m_Digest(1000) {}
+  TDigestDataObject() : m_Digest(DIGEST_SIZE) {}
   virtual ~TDigestDataObject() {}
 
   // The t-digest - the compression parameter determines accuracy and memory use

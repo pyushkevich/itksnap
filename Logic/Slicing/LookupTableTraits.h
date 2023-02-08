@@ -1,6 +1,8 @@
 #ifndef LOOKUPTABLETRAITS_H
 #define LOOKUPTABLETRAITS_H
 
+#include <algorithm>
+
 /**
  * This is a traits class that modifies the behavior of this filter for
  * integral and non-integral data types. For data types whose range is
@@ -23,8 +25,8 @@ public:
   }
 
   static void ComputeLinearMappingToUnitInterval(
-      TPixel imin, TPixel imax,
-      float &scale, float &shift)
+      TPixel imin, TPixel imax, double itkNotUsed(t0), double itkNotUsed(t1),
+      double &scale, double &shift)
   {
     shift = imin;
     scale = 1.0f / (imax - imin);
@@ -59,7 +61,7 @@ template <class TPixel>
 class RealTypeLookupTableTraits
 {
 public:
-  enum { LUT_MIN = 0, LUT_MAX = 10000 };
+  static constexpr int LUT_MIN = 0, LUT_MAX = 10000;
   typedef itk::ImageRegion<1> LUTRange;
   static LUTRange ComputeLUTRange(TPixel imin, TPixel imax)
   {
@@ -70,10 +72,18 @@ public:
   }
 
   static void ComputeLinearMappingToUnitInterval(
-      TPixel, TPixel, float &scale, float &shift)
+      TPixel imin, TPixel imax, double t0, double t1,
+      double &scale, double &shift)
   {
-    scale = 1.0f / (LUT_MAX - LUT_MIN);
-    shift = LUT_MIN;
+    // t = t0 + (t1 - t0) q, where q = (x - LUT_MIN) / (LUT_MAX - LUT_MIN)
+    // t = t0 + (t1 - t0) / (LUT_MAX - LUT_MIN) x - (t1 - t0) LUT_MIN / (LUT_MAX - LUT_MIN)
+    scale = (t1 - t0) / (LUT_MAX - LUT_MIN);
+    shift = t0 - scale * LUT_MIN;
+
+
+    // OLD:
+    // scale = (t1 - t0) / (LUT_MAX - LUT_MIN);
+    // shift = LUT_MIN;
   }
 
   static void ComputeLinearMappingToLUT(
@@ -87,7 +97,8 @@ public:
   // Compute offset into the LUT for an input value
   static int ComputeLUTOffset(float scale, TPixel shift, TPixel value)
   {
-    return static_cast<int>((value - shift) * scale);
+    int pos = static_cast<int>((value - shift) * scale);
+    return std::clamp(pos, LUT_MIN, LUT_MAX);
   }
 
 

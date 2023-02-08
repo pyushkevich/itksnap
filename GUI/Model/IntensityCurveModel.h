@@ -155,7 +155,7 @@ public:
   void OnResetCurveAction();
 
   /** Try changing the control point to new values */
-  bool UpdateControlPoint(size_t i, float t, float x);
+  bool UpdateControlPoint(size_t i, double t, double x);
 
 
   /** Update the model in response to upstream events */
@@ -201,7 +201,7 @@ protected:
 
 
   Vector3d GetEventCurveCoordiantes(const Vector3d &x);
-  int GetControlPointInVicinity(float x, float y, int pixelRadius);
+  int GetControlPointInVicinity(double x, double y, int pixelRadius);
 
   // Model for the control point index
   SmartPtr<AbstractRangedIntProperty> m_MovingControlIdModel;

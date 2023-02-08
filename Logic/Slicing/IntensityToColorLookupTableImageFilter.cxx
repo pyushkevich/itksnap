@@ -8,74 +8,85 @@
 #include "itkImage.h"
 #include "itkVectorImage.h"
 #include "VectorToScalarImageAccessor.h"
-
+#include "itkMultiThreaderBase.h"
 
 /* ===============================================================
     AbstractLookupTableImageFilter implementation
    =============================================================== */
 
 
-template<class TInputImage, class TOutputLUT, class TComponent>
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+template<class TInputImage, class TDisplayPixel>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::AbstractLookupTableImageFilter()
 {
+  this->SetNumberOfRequiredInputs(1);
+  this->SetNumberOfRequiredOutputs(2);
+
   // By default not using a reference range
   m_UseReferenceRange = false;
   m_ImageMinInput = NULL;
   m_ImageMaxInput = NULL;
+
+  // Allocate the output LUT and assign as output
+  m_LookupTable = LookupTableType::New();
+  this->SetNthOutput(m_LookupTable);
 }
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::SetImageMinInput(const MinMaxObjectType *input)
 {
   m_ImageMinInput = const_cast<MinMaxObjectType *>(input);
   this->SetInput("image_min", m_ImageMinInput);
 }
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::SetImageMaxInput(const MinMaxObjectType *input)
 {
   m_ImageMaxInput = const_cast<MinMaxObjectType *>(input);
   this->SetInput("image_max", m_ImageMaxInput);
 }
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::SetReferenceIntensityRange(double min, double max)
 {
   m_UseReferenceRange = true;
-  m_ReferenceMin = (InputComponentType) min;
-  m_ReferenceMax = (InputComponentType) max;
+  m_ReferenceMin = (ComponentType) min;
+  m_ReferenceMax = (ComponentType) max;
   this->Modified();
 }
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::RemoveReferenceIntensityRange()
 {
   m_UseReferenceRange = false;
   this->Modified();
 }
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::AllocateOutputs()
 {
-  const InputImageType *inputPtr = dynamic_cast<const  InputImageType * >( this->GetInput() );
-  const LookupTableType *outputPtr = dynamic_cast<const  LookupTableType * >( this->GetOutput() );
-  Superclass::AllocateOutputs();
+  // Just pass the container to the output image
+  ImageType *inputPtr = const_cast<ImageType *>(this->GetInput());
+  ImageType *outputPtr = this->GetOutput();
+  outputPtr->CopyInformation(inputPtr);
+  outputPtr->SetBufferedRegion(inputPtr->GetBufferedRegion());
+  outputPtr->SetPixelContainer(inputPtr->GetPixelContainer());
 }
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+/*
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::GenerateOutputInformation()
 {
   // Since this method could be called before the upstream pipeline has
@@ -93,39 +104,84 @@ AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
   output->SetLargestPossibleRegion(region);
 }
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::EnlargeOutputRequestedRegion(itk::DataObject *)
 {
   LookupTableType *output = this->GetOutput();
   output->SetRequestedRegion(output->GetLargestPossibleRegion());
 }
+*/
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::GenerateInputRequestedRegion()
 {
   // The input region is the whole image
-  InputImageType *input = const_cast<InputImageType *>(this->GetInput());
+  ImageType *input = const_cast<ImageType *>(this->GetInput());
   input->SetRequestedRegionToLargestPossibleRegion();
 }
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
-::DynamicThreadedGenerateData(const OutputImageRegionType &region)
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
+::GenerateData()
 {
-  // Get the image max and min
-  InputComponentType imin = m_ImageMinInput->Get(), imax = m_ImageMaxInput->Get();
+  typedef LookupTableTraits<ComponentType> LUTTraits;
 
-  // Compute the mapping from LUT position to [0 1] range for the curve
-  float scale, shift;  
-  LookupTableTraits<InputComponentType>::ComputeLinearMappingToUnitInterval(
-        m_UseReferenceRange ? m_ReferenceMin : imin,
-        m_UseReferenceRange ? m_ReferenceMax : imax,
-        scale, shift);
+  // Allocate the image output
+  this->AllocateOutputs();
+
+  // What we do next really depends on TComponent. For char/short, we just want to
+  // cache the RGB value for every possible intensity between image min and image
+  // max, so we can map intensity to color by trivial lookup. For floating point
+  // images, we want the LUT to be 10000 values between the min and max of the
+  // intensity curve. We compute everything here and let the traits decide.
+  ComponentType imin = m_UseReferenceRange ? m_ReferenceMin : m_ImageMinInput->Get();
+  ComponentType imax = m_UseReferenceRange ? m_ReferenceMax : m_ImageMaxInput->Get();
+
+  // Range of the curve (a pair)
+  auto [tmin, tmax] = m_IntensityCurve->GetRange();
+
+  // Get the region representing the LUT, for multithreading
+  auto lut_region = LUTTraits::ComputeLUTRange(imin, imax);
+
+  // Get the mapping from index into lut_region to the curve coordinate value. For
+  // short/char imin->0 and imax->1. For float, 0->trange[0] and 10000->trange[1]
+  double scale, shift;
+  LUTTraits::ComputeLinearMappingToUnitInterval(imin, imax, tmin, tmax, scale, shift);
+
+  // Allocate the LUT
+  m_LookupTable->m_LUT.resize(lut_region.GetSize(0));
+  // m_LookupTable->m_StartValue = lut_region
+
+  // Multi-threaded computation
+  itk::MultiThreaderBase::Pointer mt = itk::MultiThreaderBase::New();
+  mt->ParallelizeImageRegion<1>(lut_region,
+        [this, scale, shift](const auto &thread_region)
+    {
+    // Iterate over the range of LUT values we are computing
+    int i0 = (int) thread_region.GetIndex()[0];
+    int i1 = i0 + (int) thread_region.GetSize()[0];
+    for(int i = i0; i < i1; i++)
+      {
+      // This is the t coordinate of the intensity curve to loop up
+      double t = (i - shift) * scale;
+
+      // Get the corresponding color map index
+      double x = m_IntensityCurve->Evaluate(t);
+
+      // Finally, we use the color map to send this to RGBA or if there
+      // is no color map, just scale it to the 0-255 range.
+      DisplayPixelType rgb = (m_ColorMap) ? m_ColorMap->MapIndexToRGBA(x) : 255.0 * x;
+
+      // Assign to colormap
+      m_LookupTable->m_LUT[i - i0] = rgb;
+      }
+    }, nullptr);
+
 
   // Do the actual computation of the cache
   LookupTableType *output = this->GetOutput();
@@ -143,9 +199,9 @@ AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
     }
 }
 
-template<class TInputImage, class TOutputLUT, class TComponent>
+template<class TInputImage, class TDisplayPixel>
 void
-AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 ::SetFixedLookupTableRange(InputComponentType imin, InputComponentType imax)
 {
   SmartPtr<MinMaxObjectType> omin = MinMaxObjectType::New();

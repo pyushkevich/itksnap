@@ -3,10 +3,39 @@
 
 #include "SNAPCommon.h"
 #include <itkImageToImageFilter.h>
+#include <itkVectorImage.h>
 #include <itkSimpleDataObjectDecorator.h>
 
 class ColorMap;
 class IntensityCurveInterface;
+
+/**
+ * This class defines a lookup table that is used to map from raw intensity to
+ * a color value. It is just a vector of RGBA pixels with some extra metadata
+ * to specify range and color for NaN values.
+ */
+template <class TInputPixel, class TDisplayPixel> class ColorLookupTable
+    : public itk::DataObject
+{
+public:
+  irisITKObjectMacro(ColorLookupTable, itk::DataObject)
+
+  // Allow the filter access to the protected data
+  template <class I, class D> friend class AbstractLookupTableImageFilter;
+
+protected:
+  ColorLookupTable() {}
+  virtual ~ColorLookupTable() {}
+
+  // The table itself
+  std::vector<TDisplayPixel> m_LUT;
+
+  // Colors for the values outside of the specified range
+  TDisplayPixel m_ColorBelow, m_ColorAbove, m_ColorNaN;
+
+  // Specification for the ends of the table
+  TInputPixel m_StartValue, m_EndValue;
+};
 
 /**
  * This is a parent class for filters that generate a lookup table based on the
@@ -21,29 +50,33 @@ class IntensityCurveInterface;
  * the intensities between the intensity curve min and max, this means that
  * a lot of the color map gets wasted.
  */
-template <class TInputImage, class TOutputLUT, class TComponent>
+template <class TInputImage, class TDisplayPixel>
 class AbstractLookupTableImageFilter
-    : public itk::ImageToImageFilter<TInputImage, TOutputLUT>
+    : public itk::ImageToImageFilter<TInputImage, TInputImage>
 {
 public:
 
-  typedef AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
-                                                                          Self;
-  typedef itk::ImageToImageFilter<TInputImage, TOutputLUT>          Superclass;
-  typedef SmartPtr<Self>                                               Pointer;
-  typedef SmartPtr<const Self>                                    ConstPointer;
+  using Self = AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>;
+  using Superclass = itk::ImageToImageFilter<TInputImage,TInputImage>;
+  using Pointer = SmartPtr<Self>;
+  using ConstPointer = SmartPtr<const Self>;
 
-  typedef TInputImage                                          InputImageType;
-  typedef typename InputImageType::PixelType                   InputPixelType;
-  typedef TOutputLUT                                          LookupTableType;
-  typedef typename LookupTableType::PixelType                 OutputPixelType;
+  // All the stuff from the input image
+  using ImageType = TInputImage;
+  using PixelType = typename ImageType::PixelType;
+  using InternalPixelType = typename ImageType::InternalPixelType;
+  static constexpr unsigned int ImageDimension = ImageType::ImageDimension;
+  using IsVector = std::is_base_of<itk::VectorImage<InternalPixelType, ImageDimension>, ImageType>;
+  using ComponentType = typename std::conditional<IsVector::value, InternalPixelType, PixelType>::type;
+  using RegionType = typename ImageType::RegionType;
 
-  typedef typename Superclass::OutputImageRegionType    OutputImageRegionType;
+  // Output LUT
+  using DisplayPixelType = TDisplayPixel;
+  using LookupTableType = ColorLookupTable<ComponentType, DisplayPixelType>;
 
   // The type of the min/max inputs. The are usually InputPixelType, but may
   // be different, i.e., for VectorImage it's InternalPixelType.
-  typedef TComponent                                       InputComponentType;
-  typedef itk::SimpleDataObjectDecorator<InputComponentType> MinMaxObjectType;
+  using MinMaxObjectType = itk::SimpleDataObjectDecorator<ComponentType>;
 
   itkTypeMacro(AbstractLookupTableImageFilter, ImageToImageFilter)
 
@@ -70,7 +103,7 @@ public:
   /** Set intensity range to a pair of constants. This is useful when the
     range of the lookup table will never change. This is an alternative to
     calling SetImageMinInput() and SetImageMaxInput() */
-  void SetFixedLookupTableRange(InputComponentType imin, InputComponentType imax);
+  void SetFixedLookupTableRange(ComponentType imin, ComponentType imax);
 
   /**
     It is possible to use a separate reference intensity range when mapping
@@ -84,13 +117,9 @@ public:
 
   virtual void AllocateOutputs() ITK_OVERRIDE;
 
-  virtual void GenerateOutputInformation() ITK_OVERRIDE;
-
-  virtual void EnlargeOutputRequestedRegion(itk::DataObject *output) ITK_OVERRIDE;
-
   virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
 
-  virtual void DynamicThreadedGenerateData(const OutputImageRegionType &region) ITK_OVERRIDE;
+  virtual void GenerateData() override;
 
 
 protected:
@@ -98,18 +127,27 @@ protected:
   AbstractLookupTableImageFilter();
   virtual ~AbstractLookupTableImageFilter() {}
 
+  // Intensity curve and color map used to do the actual work
+  SmartPtr<IntensityCurveInterface> m_IntensityCurve;
+  SmartPtr<ColorMap> m_ColorMap;
+
   // Things that affect the LUT computation
   SmartPtr<MinMaxObjectType> m_ImageMinInput, m_ImageMaxInput;
 
+  // The output
+  SmartPtr<LookupTableType> m_LookupTable;
+
   // This method does the actual computation
-  virtual OutputPixelType ComputeLUTValue(float inZeroOne) = 0;
+  virtual DisplayPixelType ComputeLUTValue(float inZeroOne) = 0;
 
   // Reference intensity range
-  InputComponentType m_ReferenceMin, m_ReferenceMax;
+  ComponentType m_ReferenceMin, m_ReferenceMax;
 
   // Whether the reference intensity range is being used
   bool m_UseReferenceRange;
 };
+
+#ifdef __DELETE_ME_LATER_
 
 /**
   This filter is used to generate a color lookup table from an intensity curve,
@@ -117,28 +155,25 @@ protected:
   input image is not really used in the computation, but it should still be passed
   in. The color lookup table is implemented as a 1-D image of RGBAPixel.
   */
-template<class TInputImage, class TOutputLUT,
-         class TComponent = typename TInputImage::PixelType>
+template <class TInputImage, class TDisplayPixel>
 class IntensityToColorLookupTableImageFilter
-    : public AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
+    : public AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
 {
 public:
-  typedef IntensityToColorLookupTableImageFilter<
-            TInputImage, TOutputLUT, TComponent>                          Self;
-  typedef AbstractLookupTableImageFilter<
-            TInputImage, TOutputLUT, TComponent>                    Superclass;
-  typedef SmartPtr<Self>                                               Pointer;
-  typedef SmartPtr<const Self>                                    ConstPointer;
+  using Self = IntensityToColorLookupTableImageFilter<TInputImage, TDisplayPixel>;
+  using Superclass = AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>;
+  using Pointer = SmartPtr<Self>;
+  using ConstPointer = SmartPtr<const Self>;
 
-  typedef typename Superclass::OutputPixelType                 OutputPixelType;
+  using DisplayPixelType = typename Superclass::DisplayPixelType;
 
-  itkTypeMacro(IntensityToColorLookupTableImageFilter,
-               AbstractLookupTableImageFilter)
+  itkTypeMacro(IntensityToColorLookupTableImageFilter, AbstractLookupTableImageFilter)
   itkNewMacro(Self)
 
   /** Set the intensity remapping curve - for contrast adjustment */
-  void SetIntensityCurve(IntensityCurveInterface *curve) ITK_OVERRIDE;
+  void SetIntensityCurve(IntensityCurveInterface *curve) override;
 
+  /** Get the intensity remapping curve - for contrast adjustment */
   irisGetMacro(IntensityCurve, IntensityCurveInterface *)
 
   /** Set the color map - for mapping scalars to RGB space */
@@ -149,7 +184,7 @@ protected:
   SmartPtr<IntensityCurveInterface> m_IntensityCurve;
   SmartPtr<ColorMap> m_ColorMap;
 
-  virtual OutputPixelType ComputeLUTValue(float inZeroOne) ITK_OVERRIDE;
+  virtual DisplayPixelType ComputeLUTValue(float inZeroOne) ITK_OVERRIDE;
 };
 
 /**
@@ -190,6 +225,6 @@ protected:
   virtual OutputPixelType ComputeLUTValue(float inZeroOne) ITK_OVERRIDE;
 };
 
-
+#endif
 
 #endif // INTENSITYTOCOLORLOOKUPTABLEIMAGEFILTER_H

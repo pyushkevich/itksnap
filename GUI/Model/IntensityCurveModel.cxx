@@ -227,7 +227,7 @@ Vector2d IntensityCurveModel::GetVisibleImageRange()
   assert(curve);
 
   // Get the control point range
-  float t0, y0, t1, y1;
+  double t0, y0, t1, y1;
   curve->GetControlPoint(0, t0, y0);
   curve->GetControlPoint(curve->GetControlPointCount() - 1, t1, y1);
 
@@ -236,8 +236,8 @@ Vector2d IntensityCurveModel::GetVisibleImageRange()
 
   // Compute the range over which the curve is plotted, where [0 1] is the
   // image intensity range
-  float z0 = std::min(t0, 0.0f);
-  float z1 = std::max(t1, 1.0f);
+  double z0 = std::min(t0, 0.0);
+  double z1 = std::max(t1, 1.0);
 
   // Compute the range over which the curve is plotted, in intensity units
   Vector2d outRange;
@@ -248,7 +248,7 @@ Vector2d IntensityCurveModel::GetVisibleImageRange()
 
 bool
 IntensityCurveModel
-::UpdateControlPoint(size_t i, float t, float x)
+::UpdateControlPoint(size_t i, double t, double x)
 {
   IntensityCurveInterface *curve = this->GetCurve();
 
@@ -256,7 +256,7 @@ IntensityCurveModel
   assert(i < curve->GetControlPointCount());
 
   // Get the current values
-  float told, xold;
+  double told, xold;
   curve->GetControlPoint(i, told, xold);
 
   // The control value should be in range
@@ -269,12 +269,12 @@ IntensityCurveModel
   if (i == 0 || i == (size_t) last)
     {
     // Get the current domain
-    float tMin,tMax,x;
+    double tMin,tMax,x;
     curve->GetControlPoint(0,   tMin, x);
     curve->GetControlPoint(last,tMax, x);
 
     // Check if the new domain is valid
-    float epsilon = 0.02;
+    double epsilon = 0.02;
     if (i == 0 && t < tMax - epsilon)
       tMin = t;
     else if (i == (size_t) last && t > tMin + epsilon)
@@ -307,28 +307,28 @@ IntensityCurveModel
 
 int
 IntensityCurveModel
-::GetControlPointInVicinity(float x, float y, int pixelRadius)
+::GetControlPointInVicinity(double x, double y, int pixelRadius)
 {
   assert(m_ViewportReporter && m_ViewportReporter->CanReportSize());
   Vector2ui vp = m_ViewportReporter->GetViewportSize();
   IntensityCurveInterface *curve = GetCurve();
 
-  float rx = pixelRadius * 1.0f / vp[0];
-  float ry = pixelRadius * 1.0f / vp[1];
-  float fx = 1.0f / (rx * rx);
-  float fy = 1.0f / (ry * ry);
+  double rx = pixelRadius * 1.0f / vp[0];
+  double ry = pixelRadius * 1.0f / vp[1];
+  double fx = 1.0f / (rx * rx);
+  double fy = 1.0f / (ry * ry);
 
-  float minDistance = 1.0f;
+  double minDistance = 1.0f;
   int nearestPoint = -1;
 
   for (unsigned int c=0;c<curve->GetControlPointCount();c++) {
 
     // Get the next control point
-    float cx,cy;
+    double cx,cy;
     curve->GetControlPoint(c,cx,cy);
 
     // Check the distance to the control point
-    float d = (cx - x) * (cx - x) * fx + (cy - y) * (cy - y) * fy;
+    double d = (cx - x) * (cx - x) * fx + (cy - y) * (cy - y) * fy;
     if (minDistance >= d) {
       minDistance = d;
       nearestPoint = c;
@@ -341,12 +341,12 @@ IntensityCurveModel
 
 Vector3d IntensityCurveModel::GetEventCurveCoordiantes(const Vector3d &x)
 {
-  float t0, t1, xDummy;
+  double t0, t1, xDummy;
   GetCurve()->GetControlPoint(0, t0, xDummy);
   GetCurve()->GetControlPoint(
         GetCurve()->GetControlPointCount() - 1, t1, xDummy);
-  float z0 = std::min(t0, 0.0f);
-  float z1 = std::max(t1, 1.0f);
+  double z0 = std::min(t0, 0.0);
+  double z1 = std::max(t1, 1.0);
 
   // Scale the display so that leftmost point to plot maps to 0, rightmost to 1
   return Vector3d(x[0] * (z1 - z0) + z0, x[1], x[2]);
@@ -558,7 +558,7 @@ IntensityCurveModel
   Vector2d iAbsRange = dmp->GetNativeImageRangeForCurve();
 
   // Compute the position
-  float x, t;
+  double x, t;
   curve->GetControlPoint(cp, t, x);
   double intensity = iAbsRange[0] * (1-t) + iAbsRange[1] * t;
 
@@ -567,7 +567,7 @@ IntensityCurveModel
   // Compute the range
   if(range)
     {
-    float t0, x0, t1, x1;
+    double t0, x0, t1, x1;
 
     double iAbsSpan = iAbsRange[1] - iAbsRange[0];
 

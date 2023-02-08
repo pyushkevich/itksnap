@@ -315,7 +315,7 @@ UpdateLUT()
 	dmax = prop->GetMax(activeComp);
 
 	// -- Find contrast range (ratio)
-	float rMin, tMin, rMax, tMax;
+  double rMin, tMin, rMax, tMax;
 	m_IntensityCurve->GetControlPoint(0, rMin, tMin);
 	m_IntensityCurve->GetControlPoint(m_IntensityCurve->GetControlPointCount() - 1, rMax, tMax);
 
@@ -335,7 +335,7 @@ UpdateLUT()
 	double indRange = rMax - rMin; // index range is based on contrast range
   for (auto i = 0u; i < numClr; ++i)
     {
-		float ind = rMin + indRange * i * numdiv;
+    double ind = rMin + indRange * i * numdiv;
 		auto val = m_IntensityCurve->Evaluate(ind);
 		auto rgbaC = m_ColorMap->MapIndexToRGBA(val);
 		double rgbaD[4] = {rgbaC[0] * clrdiv, rgbaC[1] * clrdiv,

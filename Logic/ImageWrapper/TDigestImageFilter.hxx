@@ -16,10 +16,13 @@ constexpr void add_value(const TValue &value, TDigest &tdigest, unsigned long &n
 {
   if constexpr (std::is_floating_point<TValue>::value)
     {
-    if(std::isnan(value))
-      nan_count++;
-    else
+    // Finite values are added to the TDigest
+    if(std::isfinite(value))
       tdigest.insert(value);
+    else if(std::isnan(value))
+      nan_count++;
+
+    // TODO: what should we do with +Inf and -Inf? They complicate things
     }
   else
     {
@@ -146,7 +149,7 @@ TDigestImageFilter<TInputImage>
   const TInputImage *img = this->GetInput();
 
   // Fill the digest for this thread
-  typename TDigestDataObject::TDigest thread_digest(1000);
+  typename TDigestDataObject::TDigest thread_digest(TDigestDataObject::DIGEST_SIZE);
   unsigned long thread_nan_count = 0;
   using HelperType = Helper<TInputImage, typename TDigestDataObject::TDigest>;
   HelperType::fill_digest(img, region, thread_digest, thread_nan_count);
@@ -181,6 +184,16 @@ TDigestImageFilter<TInputImage>
     m_ImageMinDataObject->Set((ComponentType) std::floor(m_TDigestDataObject->GetImageMinimum()));
     m_ImageMaxDataObject->Set((ComponentType) std::ceil(m_TDigestDataObject->GetImageMaximum()));
   }
+
+  printf("TDigest: range: %f to %f, Percentiles: 1: %f, 5: %f, 50: %f, 95: %f, 99: %f\n",
+         m_TDigestDataObject->GetImageMinimum(),
+         m_TDigestDataObject->GetImageMaximum(),
+         m_TDigestDataObject->GetImageQuantile(0.01),
+         m_TDigestDataObject->GetImageQuantile(0.05),
+         m_TDigestDataObject->GetImageQuantile(0.5),
+         m_TDigestDataObject->GetImageQuantile(0.95),
+         m_TDigestDataObject->GetImageQuantile(0.99));
+
 }
 
 template< class TInputImage >
