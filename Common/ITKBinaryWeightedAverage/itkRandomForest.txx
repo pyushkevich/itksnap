@@ -197,9 +197,9 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
 
     // Set up requested region
     typename TLabelImage::SizeType regionSize;
-    regionSize[0] = 1;
-    regionSize[1] = bbox_size[1];
-    regionSize[2] = bbox_size[2];
+
+     regionSize = bbox_size;
+     regionSize[m_slicingaxis] = 1;
 
     typename TLabelImage::IndexType bbox_index = m_boundingbox.GetIndex();
 
@@ -209,78 +209,90 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
     // Create the filter for this label (TODO: this is wasting computation)
     typename FilterType::Pointer filter = FilterType::New();
 
+     std::set<long>::iterator it_first;
+     std::set<long>::iterator it_second;
+
     if(m_intermediateslices == true){
+        for (it_first = m_SegmentationIndices.begin(); it_first != std::prev(m_SegmentationIndices.end()); it_first++) {
 
-        for ( unsigned int i = 0; i < m_SegmentationIndices.size()-1; i++ ){ // Need to extract intermediate slice
+            typename TLabelImage::IndexValueType first_sliceindex = *it_first;
 
-            const int numSlices =  m_SegmentationIndices[i+1] -  m_SegmentationIndices[i];
-            int intermediate_slice = numSlices/2;
+            std::set<long>::iterator it_second = std::next(it_first);
+            typename TLabelImage::IndexValueType second_sliceindex = *it_second;
 
-            typename TLabelImage::IndexType regionIndex = bbox_index;
-            regionIndex[0] = bbox_index[0] + m_SegmentationIndices[i] + intermediate_slice; // took out -1
+            const int numSlices = second_sliceindex - first_sliceindex;
 
-            typename TLabelImage::RegionType slice_region(regionIndex, regionSize);
+            if(numSlices > 1){
 
-            // Add all the images on the stack to the filter
-            ImageScalarType *image = dynamic_cast<ImageScalarType *>(intensity_obj);
-            if(image)
-              {
-              filter->AddScalarImage(image);
-              }
-            else
-              {
-              ImageVectorType *vecImage = dynamic_cast<ImageVectorType *>(intensity_obj);
-              if(vecImage)
-                {
-                filter->AddVectorImage(vecImage);
+                    int intermediate_slice = numSlices/2;
+
+                typename TLabelImage::IndexType regionIndex = bbox_index;
+                regionIndex[m_slicingaxis] = first_sliceindex + intermediate_slice;
+
+                typename TLabelImage::RegionType slice_region(regionIndex, regionSize);
+
+                // Add all the images on the stack to the filter
+                ImageScalarType *image = dynamic_cast<ImageScalarType *>(intensity_obj);
+                if(image)
+                  {
+                  filter->AddScalarImage(image);
+                  }
+                else
+                  {
+                  ImageVectorType *vecImage = dynamic_cast<ImageVectorType *>(intensity_obj);
+                  if(vecImage)
+                    {
+                    filter->AddVectorImage(vecImage);
+                    }
+                  else
+                    {
+                    itkAssertInDebugOrThrowInReleaseMacro(
+                          "Wrong input type to ImageCollectionConstRegionIteratorWithIndex");
+                    }
+                  }
+
+                // Pass the classifier to the filter
+                filter->SetClassifier(classifier);
+
+                // Set the filter behavior
+                filter->SetGenerateClassProbabilities(true);
+
+                filter->GetOutput()->SetRequestedRegion(slice_region);
+
+                // Run the filter for this set of weights
+                filter->Update();
+
+                ProbabilityType::Pointer RFprobability = filter->GetOutput(1);
+                RFprobability->DisconnectPipeline();
+
+                // Copy the probability map to the original image space
+                ImageAlgorithm::Copy< ProbabilityType, ProbabilityType >( RFprobability.GetPointer(), output.GetPointer(),
+                  RFprobability->GetRequestedRegion(), slice_region);
                 }
-              else
-                {
-                itkAssertInDebugOrThrowInReleaseMacro(
-                      "Wrong input type to ImageCollectionConstRegionIteratorWithIndex");
-                }
-              }
 
-            // Pass the classifier to the filter
-            filter->SetClassifier(classifier);
-
-            // Set the filter behavior
-            filter->SetGenerateClassProbabilities(true);
-
-            filter->GetOutput()->SetRequestedRegion(slice_region);
-
-            // Run the filter for this set of weights
-            filter->Update();
-
-            ProbabilityType::Pointer RFprobability = filter->GetOutput(1);
-            RFprobability->DisconnectPipeline();
-
-            // Copy the probability map to the original image space
-            ImageAlgorithm::Copy< ProbabilityType, ProbabilityType >( RFprobability.GetPointer(), output.GetPointer(),
-              RFprobability->GetRequestedRegion(), slice_region);
-
-        } // end of slice iterator
+           } // end of slice iterator
 
     }
     else{
+
         //Loop through all the slices not contained in m_SegmentationIndices;
         std::vector<int> sliceRange;
-        for( int i = 0; i < bbox_size[m_slicingaxis]; i++ )
-            sliceRange.push_back( i );
+        for( int i = bbox_index[m_slicingaxis]; i < (bbox_index[m_slicingaxis] + bbox_size[m_slicingaxis]); i++ )
+            sliceRange.push_back(i);
 
-        std::vector<int> noSegmentations;
+         std::vector<int> noSegmentations;
 
          std::set_difference(sliceRange.begin(), sliceRange.end(), m_SegmentationIndices.begin(), m_SegmentationIndices.end(),
                              std::inserter(noSegmentations, noSegmentations.begin()));
 
-        for ( unsigned int i = 0; i < noSegmentations.size(); i++ ){ // took out -1
+         //Loop through set
+        for ( unsigned int i = 0; i < noSegmentations.size(); i++ ){
 
             int slice_index = noSegmentations[i];
 
-            typename TLabelImage::IndexType regionIndex;
-            regionIndex[0] = bbox_index[0] + slice_index; // took out -1
-            regionIndex[1] = bbox_index[1];
-            regionIndex[2] = bbox_index[2];
+            typename TLabelImage::IndexType regionIndex = bbox_index;
+
+            regionIndex[m_slicingaxis] = slice_index;
 
             typename TLabelImage::RegionType slice_region(regionIndex, regionSize);
 

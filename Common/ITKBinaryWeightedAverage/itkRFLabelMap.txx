@@ -44,7 +44,7 @@ RFLabelMap<TInputImage>
     AddImages->SetInput2(input);
     AddImages->Update();
 
-    this->GetOutput()->Graft(AddImages->GetOutput());
+    this->GetOutput()->Graft(AddImages->GetOutput()); //Label 2 for foreground, 1 for background
 }
 
 }// end namespace
