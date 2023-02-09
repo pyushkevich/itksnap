@@ -74,6 +74,7 @@ IncreaseDimensionImageFilter<TInputImage, TOutputImage>
   outputPtr->SetDirection(direction);
   outputPtr->SetLargestPossibleRegion(region);
   outputPtr->SetRequestedRegionToLargestPossibleRegion();
+  outputPtr->SetNumberOfComponentsPerPixel(inputPtr->GetNumberOfComponentsPerPixel());
   outputPtr->SetBufferedRegion(region);
 }
 
