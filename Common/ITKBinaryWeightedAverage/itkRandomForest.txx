@@ -209,16 +209,13 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
     // Create the filter for this label (TODO: this is wasting computation)
     typename FilterType::Pointer filter = FilterType::New();
 
-     std::set<long>::iterator it_first;
-     std::set<long>::iterator it_second;
-
     if(m_intermediateslices == true){
-        for (it_first = m_SegmentationIndices.begin(); it_first != std::prev(m_SegmentationIndices.end()); it_first++) {
+        for (auto it_first = m_SegmentationIndices.begin(); it_first != std::prev(m_SegmentationIndices.end()); it_first++) {
 
-            typename TLabelImage::IndexValueType first_sliceindex = *it_first;
+            auto first_sliceindex = *it_first;
 
-            std::set<long>::iterator it_second = std::next(it_first);
-            typename TLabelImage::IndexValueType second_sliceindex = *it_second;
+            auto it_second = std::next(it_first);
+            auto second_sliceindex = *it_second;
 
             const int numSlices = second_sliceindex - first_sliceindex;
 

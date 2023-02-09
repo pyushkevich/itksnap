@@ -35,11 +35,12 @@ public:
     void SetLabelMap(const TLabelImage* mask);
 
     typedef typename TLabelImage::PixelType TPixel;
+    typedef typename TLabelImage::IndexValueType LabelIndexType;
     typedef itk::VectorImage<TPixel,3 > VectorImageType;
     typedef RandomForestClassifier<TPixel, TPixel,3> RFClassifierType;
 
 
-    void SetSegmentationIndices(std::set<long> SegmentationIndices)
+    void SetSegmentationIndices(std::set<LabelIndexType> SegmentationIndices)
     {
         m_SegmentationIndices = SegmentationIndices;
     }
@@ -80,7 +81,7 @@ private:
 
     RandomForest(const Self &); //purposely not implemented
     void operator=(const Self &);  //purposely not implemented
-    std::set<long> m_SegmentationIndices;
+    std::set<LabelIndexType> m_SegmentationIndices;
     typename TLabelImage::RegionType m_boundingbox;
     bool m_intermediateslices;
     int m_slicingaxis;

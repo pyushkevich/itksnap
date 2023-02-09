@@ -40,6 +40,7 @@ public:
    * of the two images is assumed to be the same. */
     typedef typename TLabelImage::PixelType          LabelPixelType;
     typedef typename TLabelImage::InternalPixelType  LabelInternalPixelType;
+    typedef typename TLabelImage::IndexValueType     LabelIndexType;
 
     typedef typename TMainImage::PixelType          MainPixelType;
     typedef typename TMainImage::InternalPixelType  MainInternalPixelType;
@@ -74,7 +75,7 @@ public:
         m_intermediateslices = flag;
     }
 
-    void SetSegmentationIndices(std::set<long> seg_index){
+    void SetSegmentationIndices(std::set<LabelIndexType> seg_index){
         m_SegmentationIndices = seg_index;
     }
 
@@ -100,7 +101,7 @@ private:
     BinaryWeightedAveragingFilter(const Self &); //purposely not implemented
     void operator=(const Self &);  //purposely not implemented
     bool m_intermediateslices;
-    std::set<long> m_SegmentationIndices;
+    std::set<LabelIndexType> m_SegmentationIndices;
     int m_slicingaxis;
     int m_firstdirection;
     int m_seconddirection;

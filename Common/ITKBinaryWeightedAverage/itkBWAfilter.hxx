@@ -112,9 +112,8 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
     typename TMainImage::PixelType filler_double = 0;
 
     //Get total number of slices to iterate through
-    std::set<long>::iterator it;
     int totalSlices = 0;
-    for (it = m_SegmentationIndices.begin(); it != m_SegmentationIndices.end(); ++it) {
+    for (auto it = m_SegmentationIndices.begin(); it != m_SegmentationIndices.end(); ++it) {
         totalSlices += 1;
     }
 
@@ -123,14 +122,12 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
 
     //Loop through set
     unsigned int i = 0; // to keep track of slice index?
-    std::set<long>::iterator it_first;
-    std::set<long>::iterator it_second;
-    for (it_first = m_SegmentationIndices.begin(); it_first != std::prev(m_SegmentationIndices.end()); it_first++) {
+    for (auto it_first = m_SegmentationIndices.begin(); it_first != std::prev(m_SegmentationIndices.end()); it_first++) {
 
-        typename TLabelImage::IndexValueType first_sliceindex = *it_first - bbox_index[m_slicingaxis]; // Indices relative to bounding box, not whole image
+        auto first_sliceindex = *it_first - bbox_index[m_slicingaxis]; // Indices relative to bounding box, not whole image
 
-        std::set<long>::iterator it_second = std::next(it_first);
-        typename TLabelImage::IndexValueType second_sliceindex = *it_second - bbox_index[m_slicingaxis];
+        auto it_second = std::next(it_first);
+        auto second_sliceindex = *it_second - bbox_index[m_slicingaxis];
 
         const int numSlices = second_sliceindex - first_sliceindex;
 
