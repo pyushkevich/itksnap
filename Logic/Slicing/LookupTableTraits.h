@@ -2,6 +2,7 @@
 #define LOOKUPTABLETRAITS_H
 
 #include <algorithm>
+#include <itkMacro.h>
 
 /**
  * This is a traits class that modifies the behavior of this filter for
@@ -15,13 +16,17 @@ template <class TPixel>
 class SmallIntegralTypeLookupTableTraits
 {
 public:
-  typedef itk::ImageRegion<1> LUTRange;
-  static LUTRange ComputeLUTRange(TPixel imin, TPixel imax)
+
+  static unsigned int GetLUTSize(TPixel imin, TPixel imax)
   {
-    LUTRange range;
-    range.SetIndex(0, imin);
-    range.SetSize(0, 1 + imax - imin);
-    return range;
+    return 1 + imax - imin;
+  }
+
+  static void GetLUTIntensityRange(
+      TPixel imin, TPixel imax, double itkNotUsed(t0), double itkNotUsed(t1),
+      TPixel &i0, TPixel &i1)
+  {
+    i0 = imin; i1 = imax;
   }
 
   static void ComputeLinearMappingToUnitInterval(
@@ -32,20 +37,16 @@ public:
     scale = 1.0f / (imax - imin);
   }
 
-  static void ComputeLinearMappingToLUT(
-      TPixel imin, TPixel imax,
-      float &scale, TPixel &shift)
-  {
-    scale = 1.0;
-    shift = 0;
-  }
+  static double ComputeIntensityToLUTIndexScaleFactor(const TPixel &itkNotUsed(lut_start), const TPixel &itkNotUsed(lut_end))
+    {
+    return 1.0;
+    }
+
 
   // Compute offset into the LUT for an input value
-  static int ComputeLUTOffset(float itkNotUsed(scale),
-                              TPixel itkNotUsed(shift),
-                              TPixel value)
+  static int ComputeLUTOffset(double itkNotUsed(scale), int shift, int value)
   {
-    return value;
+    return value - shift;
   }
 
 protected:
@@ -62,17 +63,22 @@ class RealTypeLookupTableTraits
 {
 public:
   static constexpr int LUT_MIN = 0, LUT_MAX = 10000;
-  typedef itk::ImageRegion<1> LUTRange;
-  static LUTRange ComputeLUTRange(TPixel imin, TPixel imax)
+
+  static unsigned int GetLUTSize(TPixel itkNotUsed(imin), TPixel itkNotUsed(imax))
   {
-    LUTRange range;
-    range.SetIndex(0, LUT_MIN);
-    range.SetSize(0, 1 + LUT_MAX - LUT_MIN);
-    return range;
+    return 1 + LUT_MAX - LUT_MIN;
+  }
+
+  static void GetLUTIntensityRange(
+      TPixel imin, TPixel imax, double t0, double t1,
+      TPixel &i0, TPixel &i1)
+  {
+    i0 = (TPixel) (t0 * (imax - imin) + imin);
+    i1 = (TPixel) (t1 * (imax - imin) + imin);
   }
 
   static void ComputeLinearMappingToUnitInterval(
-      TPixel imin, TPixel imax, double t0, double t1,
+      TPixel itkNotUsed(imin), TPixel itkNotUsed(imax), double t0, double t1,
       double &scale, double &shift)
   {
     // t = t0 + (t1 - t0) q, where q = (x - LUT_MIN) / (LUT_MAX - LUT_MIN)
@@ -86,20 +92,17 @@ public:
     // shift = LUT_MIN;
   }
 
-  static void ComputeLinearMappingToLUT(
-      TPixel imin, TPixel imax,
-      float &scale, TPixel &shift)
-  {
-    scale = (LUT_MAX - LUT_MIN) * 1.0 / (imax - imin);
-    shift = imin;
-  }
+  static double ComputeIntensityToLUTIndexScaleFactor(const TPixel &lut_start, const TPixel &lut_end)
+    {
+    return (LUT_MAX - LUT_MIN) * 1.0 / (lut_end - lut_start);
+    }
 
-  // Compute offset into the LUT for an input value
-  static int ComputeLUTOffset(float scale, TPixel shift, TPixel value)
+  static int ComputeLUTOffset(double scale, TPixel shift, TPixel value)
   {
     int pos = static_cast<int>((value - shift) * scale);
     return std::clamp(pos, LUT_MIN, LUT_MAX);
   }
+
 
 
 };

@@ -5,6 +5,7 @@
 #include <itkImageToImageFilter.h>
 #include <itkVectorImage.h>
 #include <itkSimpleDataObjectDecorator.h>
+#include "ColorMap.h"
 
 class ColorMap;
 class IntensityCurveInterface;
@@ -21,7 +22,9 @@ public:
   irisITKObjectMacro(ColorLookupTable, itk::DataObject)
 
   // Allow the filter access to the protected data
-  template <class I, class D> friend class AbstractLookupTableImageFilter;
+  template <class I, class T> friend class IntensityToColorLookupTableImageFilter;
+  template <class I, class O> friend class LookupTableIntensityMappingFilter;
+  template <class I> friend class RGBALookupTableIntensityMappingFilter;
 
 protected:
   ColorLookupTable() {}
@@ -38,6 +41,34 @@ protected:
 };
 
 /**
+ * Traits that determine color map behavior (to use one or not, basically)
+ */
+class DefaultColorMapTraits
+{
+public:
+  using ColorMapType = ColorMap;
+  using DisplayPixelType = itk::RGBAPixel<unsigned char>;
+  static DisplayPixelType apply(const ColorMapType *cm, double x)
+  {
+    return cm->MapIndexToRGBA(x);
+  }
+};
+
+/**
+ * Traits that determine color map behavior (to use one or not, basically)
+ */
+class VectorToRGBColorMapTraits
+{
+public:
+  using ColorMapType = ColorMap;
+  using DisplayPixelType = unsigned char;
+  static DisplayPixelType apply(const ColorMapType *, double x)
+  {
+    return (DisplayPixelType) 255.0 * x;
+  }
+};
+
+/**
  * This is a parent class for filters that generate a lookup table based on the
  * intensity range of an input image. There are two subclasses in SNAP, one for
  * LUTs that map input values to RGBA colors directly, and another that maps
@@ -50,13 +81,13 @@ protected:
  * the intensities between the intensity curve min and max, this means that
  * a lot of the color map gets wasted.
  */
-template <class TInputImage, class TDisplayPixel>
-class AbstractLookupTableImageFilter
+template <class TInputImage, class TColorMapTraits>
+class IntensityToColorLookupTableImageFilter
     : public itk::ImageToImageFilter<TInputImage, TInputImage>
 {
 public:
 
-  using Self = AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>;
+  using Self = IntensityToColorLookupTableImageFilter<TInputImage, TColorMapTraits>;
   using Superclass = itk::ImageToImageFilter<TInputImage,TInputImage>;
   using Pointer = SmartPtr<Self>;
   using ConstPointer = SmartPtr<const Self>;
@@ -71,17 +102,27 @@ public:
   using RegionType = typename ImageType::RegionType;
 
   // Output LUT
-  using DisplayPixelType = TDisplayPixel;
+  using DisplayPixelType = typename TColorMapTraits::DisplayPixelType;
   using LookupTableType = ColorLookupTable<ComponentType, DisplayPixelType>;
 
   // The type of the min/max inputs. The are usually InputPixelType, but may
   // be different, i.e., for VectorImage it's InternalPixelType.
   using MinMaxObjectType = itk::SimpleDataObjectDecorator<ComponentType>;
 
-  itkTypeMacro(AbstractLookupTableImageFilter, ImageToImageFilter)
+  itkTypeMacro(IntensityToColorLookupTableImageFilter, ImageToImageFilter)
+  itkNewMacro(Self)
 
   /** Set the intensity remapping curve - for contrast adjustment */
-  virtual void SetIntensityCurve(IntensityCurveInterface *curve) = 0;
+  virtual void SetIntensityCurve(IntensityCurveInterface *curve);
+
+  /** Get the intensity remapping curve - for contrast adjustment */
+  irisGetMacro(IntensityCurve, IntensityCurveInterface *)
+
+  /** Set the color map - whether it is used depends on color map traits */
+  void SetColorMap(ColorMap *map);
+
+  /** Get the intensity remapping curve - for contrast adjustment */
+  irisGetMacro(ColorMap, ColorMap *)
 
   /**
     One of the inputs to the filter is an object representing the minimum
@@ -106,6 +147,12 @@ public:
   void SetFixedLookupTableRange(ComponentType imin, ComponentType imax);
 
   /**
+   * Get the lookup table, which is the main output of this filter
+   */
+  itkGetMacro(LookupTable, LookupTableType *)
+
+
+  /**
     It is possible to use a separate reference intensity range when mapping
     raw intensities into the domain of the intensity curve. This is relevant
     when working with images derived from another image.
@@ -124,11 +171,13 @@ public:
 
 protected:
 
-  AbstractLookupTableImageFilter();
-  virtual ~AbstractLookupTableImageFilter() {}
+  IntensityToColorLookupTableImageFilter();
+  virtual ~IntensityToColorLookupTableImageFilter() {}
 
   // Intensity curve and color map used to do the actual work
   SmartPtr<IntensityCurveInterface> m_IntensityCurve;
+
+  // The colormap - only used when necessary
   SmartPtr<ColorMap> m_ColorMap;
 
   // Things that affect the LUT computation
@@ -136,9 +185,6 @@ protected:
 
   // The output
   SmartPtr<LookupTableType> m_LookupTable;
-
-  // This method does the actual computation
-  virtual DisplayPixelType ComputeLUTValue(float inZeroOne) = 0;
 
   // Reference intensity range
   ComponentType m_ReferenceMin, m_ReferenceMax;

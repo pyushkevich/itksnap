@@ -151,7 +151,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   for(unsigned int i=0; i<3; i++)
     {
     m_IntensityFilter[i] = IntensityFilterType::New();
-    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetOutput());
+    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetLookupTable());
     }
 }
 
@@ -168,11 +168,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
 
   for(unsigned int i=0; i<3; i++)
-    {
     m_IntensityFilter[i]->SetInput(m_Wrapper->GetSlice(i));
-    m_IntensityFilter[i]->SetImageMinInput(m_Wrapper->GetImageMinObject());
-    m_IntensityFilter[i]->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
-    }
 }
 
 template<class TWrapperTraits>
@@ -186,11 +182,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 
   // Configure the per-slice filters
   for(unsigned int i=0; i<3; i++)
-    {
-    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetOutput());
-    m_IntensityFilter[i]->SetImageMinInput(m_LookupTableFilter->GetImageMinInput());
-    m_IntensityFilter[i]->SetImageMaxInput(m_LookupTableFilter->GetImageMaxInput());
-    }
+    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetLookupTable());
 
   // Copy the color map and the intensity curve
   this->SetColorMap(reference->m_ColorMap);
@@ -346,8 +338,8 @@ AbstractContinuousImageDisplayMappingPolicy
   // Get the quantiles to fit to on the bottom and top
   double imin = this->GetTDigest()->GetImageMinimum();
   double imax = this->GetTDigest()->GetImageMaximum();
-  double ilow = this->GetTDigest()->GetImageQuantile(0.001);
-  double ihigh = this->GetTDigest()->GetImageQuantile(0.999);
+  double ilow = this->GetTDigest()->GetImageQuantile(0.005);
+  double ihigh = this->GetTDigest()->GetImageQuantile(0.995);
 
   // If for some reason the window is off, we set everything to max/min
   // TODO: check for infinity values
@@ -588,7 +580,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     for(unsigned int i=0; i<3; i++)
       {
       m_RGBMapper[i] = ApplyLUTFilter::New();
-      m_RGBMapper[i]->SetLookupTable(m_LUTGenerator->GetOutput());
+      m_RGBMapper[i]->SetLookupTable(m_LUTGenerator->GetLookupTable());
 
       for(unsigned int j=0; j<3; j++)
         {

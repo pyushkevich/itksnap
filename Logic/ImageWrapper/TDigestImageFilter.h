@@ -26,7 +26,7 @@ public:
 
   template <class TInputImage> friend class TDigestImageFilter;
 
-  static constexpr int DIGEST_SIZE = 10000;
+  static constexpr int DIGEST_SIZE = 1000;
 
 protected:
   TDigestDataObject() : m_Digest(DIGEST_SIZE) {}

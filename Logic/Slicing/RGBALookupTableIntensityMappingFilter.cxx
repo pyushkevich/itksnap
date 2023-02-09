@@ -1,12 +1,14 @@
 #include "RGBALookupTableIntensityMappingFilter.h"
 #include "RLEImageRegionIterator.h"
+#include "LookupTableTraits.h"
+#include "IntensityToColorLookupTableImageFilter.h"
 
 template<class TInputImage>
 RGBALookupTableIntensityMappingFilter<TInputImage>
 ::RGBALookupTableIntensityMappingFilter()
 {
   // Multiple images and the LUT are inputs
-  this->SetNumberOfIndexedInputs(4);
+  this->SetNumberOfIndexedInputs(2);
 }
 
 template<class TInputImage>
@@ -15,7 +17,7 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
 ::SetLookupTable(LookupTableType *lut)
 {
   m_LookupTable = lut;
-  this->SetNthInput(3, lut);
+  this->SetNthInput(1, lut);
 }
 
 template<class TInputImage>
@@ -23,6 +25,8 @@ void
 RGBALookupTableIntensityMappingFilter<TInputImage>
 ::DynamicThreadedGenerateData(const OutputImageRegionType &region)
 {
+  typedef LookupTableTraits<InputPixelType> LUTTraits;
+
   // Get all the inputs
   std::vector<const InputImageType *> inputs(3);
   for(int d = 0; d < 3; d++)
@@ -31,12 +35,15 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
   // Get the output
   OutputImageType *output = this->GetOutput(0);
 
-  // Lookup table range
-  int lut_min = m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
-  int lut_max = lut_min + m_LookupTable->GetLargestPossibleRegion().GetSize()[0] - 1;
+  // Get the range of intensities mapped that the LUT handles
+  auto lut_i0 = this->m_LookupTable->m_StartValue;
+  auto lut_i1 = this->m_LookupTable->m_EndValue;
 
-  // Get the pointer to the zero value in the LUT
-  OutputComponentType *lutp = m_LookupTable->GetBufferPointer() - lut_min;
+  // Compute the shift and scale factors that map the input values into
+  // the LUT values. These are ignored for integral pixel types, but used
+  // for floating point types
+  double lut_scale = LUTTraits::ComputeIntensityToLUTIndexScaleFactor(lut_i0, lut_i1);
+  const auto &lut = this->m_LookupTable->m_LUT;
 
   // Define the iterators
   typedef itk::ImageRegionConstIterator<InputImageType> InputIteratorType;
@@ -58,16 +65,15 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
     // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
     // better than this, i.e., via a special value reserved for such voxels.
     // Right now, defaulting to zero is a DISASTER!
-    if(xin0 == 0 && xin1 == 0 && xin2 == 0 && (lut_min > 0 || lut_max < 0))
+    if(xin0 == 0 && xin1 == 0 && xin2 == 0 && (lut_i0 > 0 || lut_i1 < 0))
       {
       xout.Fill(0);
       }
     else
       {
-      // TODO: this will probably crash for floating point images.
-      xout[0] = *(lutp + (int) xin0);
-      xout[1] = *(lutp + (int) xin1);
-      xout[2] = *(lutp + (int) xin2);
+      xout[0] = lut[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin0)];
+      xout[1] = lut[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin1)];
+      xout[2] = lut[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin2)];
       xout[3] = 255; // alpha = 1
       }
 
@@ -82,31 +88,36 @@ typename RGBALookupTableIntensityMappingFilter<TInputImage>::OutputPixelType
 RGBALookupTableIntensityMappingFilter<TInputImage>
 ::MapPixel(const InputPixelType &xin0, const InputPixelType &xin1, const InputPixelType &xin2)
 {
+  typedef LookupTableTraits<InputPixelType> LUTTraits;
+
   // Update the lookup table
   m_LookupTable->Update();
 
-  // Lookup table range
-  int lut_min = m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
-  int lut_max = lut_min + m_LookupTable->GetLargestPossibleRegion().GetSize()[0] - 1;
+  // Get the range of intensities mapped that the LUT handles
+  auto lut_i0 = this->m_LookupTable->m_StartValue;
+  auto lut_i1 = this->m_LookupTable->m_EndValue;
 
-  // Get the pointer to the zero value in the LUT
-  OutputComponentType *lutp = m_LookupTable->GetBufferPointer() - lut_min;
+  // Compute the shift and scale factors that map the input values into
+  // the LUT values. These are ignored for integral pixel types, but used
+  // for floating point types
+  double lut_scale = LUTTraits::ComputeIntensityToLUTIndexScaleFactor(lut_i0, lut_i1);
+  const auto &lut = this->m_LookupTable->m_LUT;
 
   OutputPixelType xout;
 
   // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
   // better than this, i.e., via a special value reserved for such voxels.
   // Right now, defaulting to zero is a DISASTER!
-  if(xin0 == 0 && xin1 == 0 && xin2 == 0 && (lut_min > 0 || lut_max < 0))
+  if(xin0 == 0 && xin1 == 0 && xin2 == 0 && (lut_i0 > 0 || lut_i1 < 0))
     {
     xout.Fill(0);
     }
   else
     {
     // TODO: this will probably crash for floating point images.
-    xout[0] = *(lutp + (int) xin0);
-    xout[1] = *(lutp + (int) xin1);
-    xout[2] = *(lutp + (int) xin2);
+    xout[0] = lut[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin0)];
+    xout[1] = lut[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin1)];
+    xout[2] = lut[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin2)];
     xout[3] = 255; // alpha = 1
     }
 

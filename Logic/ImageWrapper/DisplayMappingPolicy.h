@@ -198,9 +198,6 @@ public:
   typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
   typedef ImageWrapperBase::DisplayPixelType DisplayPixelType;
 
-  // Lookup table
-  typedef itk::Image<DisplayPixelType, 1>                     LookupTableType;
-
   // Min/Max inputs
   typedef itk::SimpleDataObjectDecorator<ComponentType>   ComponentObjectType;
 
@@ -269,13 +266,10 @@ protected:
 
 
   // Filter that generates the lookup table
-  typedef IntensityToColorLookupTableImageFilter<
-              ImageType, LookupTableType>               LookupTableFilterType;
+  typedef IntensityToColorLookupTableImageFilter<ImageType, DefaultColorMapTraits> LookupTableFilterType;
 
   // Filter that applies the lookup table to slices
-  typedef LookupTableIntensityMappingFilter<
-                InputSliceType, DisplaySliceType>         IntensityFilterType;
-
+  typedef LookupTableIntensityMappingFilter<InputSliceType, DisplaySliceType> IntensityFilterType;
 
   // LUT generator
   SmartPtr<LookupTableFilterType> m_LookupTableFilter;
@@ -483,11 +477,10 @@ protected:
   MultiChannelDisplayMappingPolicy();
   ~MultiChannelDisplayMappingPolicy();
 
+  typedef IntensityToColorLookupTableImageFilter<ImageType, VectorToRGBColorMapTraits> GenerateLUTFilter;
   typedef RGBALookupTableIntensityMappingFilter<InputSliceType> ApplyLUTFilter;
-  typedef itk::Image<unsigned char, 1>                         LookupTableType;
+  // typedef itk::Image<unsigned char, 1>                         LookupTableType;
 
-  typedef MultiComponentImageToScalarLookupTableImageFilter<ImageType, LookupTableType>
-                                                             GenerateLUTFilter;
 
   MultiChannelDisplayMode m_DisplayMode;
 

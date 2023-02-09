@@ -5,6 +5,8 @@
 #include "itkRGBAPixel.h"
 #include <itkImageToImageFilter.h>
 
+template <class TInputPixel, class TDisplayPixel> class ColorLookupTable;
+
 
 /**
  * This filter takes multiple input channels and a common lookup table, and
@@ -30,7 +32,7 @@ public:
 
   typedef typename OutputPixelType::ComponentType         OutputComponentType;
 
-  typedef itk::Image<OutputComponentType, 1>                  LookupTableType;
+  typedef ColorLookupTable<InputPixelType, OutputComponentType> LookupTableType;
   typedef typename Superclass::OutputImageRegionType    OutputImageRegionType;
 
   itkTypeMacro(RGBALookupTableIntensityMappingFilter, ImageToImageFilter)
