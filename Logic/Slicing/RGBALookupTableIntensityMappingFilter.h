@@ -39,7 +39,10 @@ public:
   itkNewMacro(Self)
 
   /** Set the intensity remapping curve - for contrast adjustment */
-  void SetLookupTable(LookupTableType *lut);
+  itkSetInputMacro(LookupTable, LookupTableType)
+
+  /** Get the intensity remapping curve - for contrast adjustment */
+  itkGetInputMacro(LookupTable, LookupTableType)
 
   /** The actual work */
   void DynamicThreadedGenerateData(const OutputImageRegionType &region) ITK_OVERRIDE;
@@ -52,8 +55,6 @@ protected:
 
   RGBALookupTableIntensityMappingFilter();
   virtual ~RGBALookupTableIntensityMappingFilter() {}
-
-  SmartPtr<LookupTableType> m_LookupTable;
 };
 
 

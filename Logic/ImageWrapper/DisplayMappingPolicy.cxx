@@ -740,11 +740,11 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 {
   if(m_ScalarRepresentation)
     {
-    return m_ScalarRepresentation->GetIntensityCurve();
+    return const_cast<IntensityCurveInterface *>(m_ScalarRepresentation->GetIntensityCurve());
     }
   else
     {
-    return m_LUTGenerator->GetIntensityCurve();
+    return const_cast<IntensityCurveInterface *>(m_LUTGenerator->GetIntensityCurve());
     }
 }
 

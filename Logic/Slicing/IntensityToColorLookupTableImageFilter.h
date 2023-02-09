@@ -91,6 +91,8 @@ public:
   using Superclass = itk::ImageToImageFilter<TInputImage,TInputImage>;
   using Pointer = SmartPtr<Self>;
   using ConstPointer = SmartPtr<const Self>;
+  using DataObjectPointer = itk::ProcessObject::DataObjectPointer;
+  using DataObjectIdentifierType = itk::ProcessObject::DataObjectIdentifierType;
 
   // All the stuff from the input image
   using ImageType = TInputImage;
@@ -113,16 +115,16 @@ public:
   itkNewMacro(Self)
 
   /** Set the intensity remapping curve - for contrast adjustment */
-  virtual void SetIntensityCurve(IntensityCurveInterface *curve);
+  itkSetInputMacro(IntensityCurve, IntensityCurveInterface)
 
   /** Get the intensity remapping curve - for contrast adjustment */
-  irisGetMacro(IntensityCurve, IntensityCurveInterface *)
+  itkGetInputMacro(IntensityCurve, IntensityCurveInterface)
 
   /** Set the color map - whether it is used depends on color map traits */
-  void SetColorMap(ColorMap *map);
+  itkSetInputMacro(ColorMap, ColorMap)
 
   /** Get the intensity remapping curve - for contrast adjustment */
-  irisGetMacro(ColorMap, ColorMap *)
+  itkGetInputMacro(ColorMap, ColorMap)
 
   /**
     One of the inputs to the filter is an object representing the minimum
@@ -132,25 +134,20 @@ public:
     simple constant is to allow pipeline execution - for example recomputing
     the minimum and maximum of an image, if necessary
     */
-  void SetImageMinInput(const MinMaxObjectType *input);
+  itkSetInputMacro(ImageMinInput, MinMaxObjectType)
+  itkGetInputMacro(ImageMinInput, MinMaxObjectType)
 
   /** See notes for SetImageMinInput */
-  void SetImageMaxInput(const MinMaxObjectType *input);
-
-  itkGetMacro(ImageMinInput, MinMaxObjectType *)
-  itkGetMacro(ImageMaxInput, MinMaxObjectType *)
-
+  itkSetInputMacro(ImageMaxInput, MinMaxObjectType)
+  itkGetInputMacro(ImageMaxInput, MinMaxObjectType)
 
   /** Set intensity range to a pair of constants. This is useful when the
     range of the lookup table will never change. This is an alternative to
     calling SetImageMinInput() and SetImageMaxInput() */
   void SetFixedLookupTableRange(ComponentType imin, ComponentType imax);
 
-  /**
-   * Get the lookup table, which is the main output of this filter
-   */
-  itkGetMacro(LookupTable, LookupTableType *)
-
+  /** Get the lookup table, which is the main output of this filter */
+  LookupTableType *GetLookupTable();
 
   /**
     It is possible to use a separate reference intensity range when mapping
@@ -168,23 +165,13 @@ public:
 
   virtual void GenerateData() override;
 
+  virtual DataObjectPointer MakeOutput(const DataObjectIdentifierType &name) override;
+
 
 protected:
 
   IntensityToColorLookupTableImageFilter();
   virtual ~IntensityToColorLookupTableImageFilter() {}
-
-  // Intensity curve and color map used to do the actual work
-  SmartPtr<IntensityCurveInterface> m_IntensityCurve;
-
-  // The colormap - only used when necessary
-  SmartPtr<ColorMap> m_ColorMap;
-
-  // Things that affect the LUT computation
-  SmartPtr<MinMaxObjectType> m_ImageMinInput, m_ImageMaxInput;
-
-  // The output
-  SmartPtr<LookupTableType> m_LookupTable;
 
   // Reference intensity range
   ComponentType m_ReferenceMin, m_ReferenceMax;

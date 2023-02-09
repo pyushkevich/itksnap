@@ -9,16 +9,8 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
 ::LookupTableIntensityMappingFilter()
 {
   // The image and the LUT are inputs
-  this->SetNumberOfIndexedInputs(2);
-}
-
-template<class TInputImage, class TOutputImage>
-void
-LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
-::SetLookupTable(LookupTableType *lut)
-{
-  m_LookupTable = lut;
-  this->SetNthInput(1, lut);
+  this->SetNumberOfIndexedInputs(1);
+  this->AddRequiredInputName("LookupTable");
 }
 
 template<class TInputImage, class TOutputImage>
@@ -33,8 +25,9 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   OutputImageType *output = this->GetOutput(0);
 
   // Get the range of intensities mapped that the LUT handles
-  InputComponentType lut_i0 = this->m_LookupTable->m_StartValue;
-  InputComponentType lut_i1 = this->m_LookupTable->m_EndValue;
+  const LookupTableType *lut = this->GetLookupTable();
+  auto lut_i0 = lut->m_StartValue;
+  auto lut_i1 = lut->m_EndValue;
 
   // How do we map from the intensity value to the LUT location?
   // - for small integral types, the LUT starts at the minimim
@@ -53,7 +46,6 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   // the LUT values. These are ignored for integral pixel types, but used
   // for floating point types
   double lut_scale = LUTTraits::ComputeIntensityToLUTIndexScaleFactor(lut_i0, lut_i1);
-  const auto &lut = this->m_LookupTable->m_LUT;
 
   // Define the iterators
   itk::ImageRegionConstIterator<TInputImage> inputIt(input, region);
@@ -79,7 +71,7 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
       // TODO: handle NAN
       // Find the corresponding LUT offset
       int lut_offset = LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin);
-      xout = lut[lut_offset];
+      xout = lut->m_LUT[lut_offset];
       }
 
     outputIt.Set(xout);
@@ -97,17 +89,17 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   typedef LookupTableTraits<InputComponentType> LUTTraits;
 
   // Make sure all the inputs are up to date
-  m_LookupTable->Update();
+  LookupTableType *lut = const_cast<LookupTableType *>(this->GetLookupTable());
+  lut->Update();
 
   // Get the range of intensities mapped that the LUT handles
-  InputComponentType lut_i0 = this->m_LookupTable->m_StartValue;
-  InputComponentType lut_i1 = this->m_LookupTable->m_EndValue;
+  auto lut_i0 = lut->m_StartValue;
+  auto lut_i1 = lut->m_EndValue;
 
   // Compute the shift and scale factors that map the input values into
   // the LUT values. These are ignored for integral pixel types, but used
   // for floating point types
   double lut_scale = LUTTraits::ComputeIntensityToLUTIndexScaleFactor(lut_i0, lut_i1);
-  const auto &lut = this->m_LookupTable->m_LUT;
 
   // Get the input intensity
   OutputPixelType xout;
@@ -125,7 +117,7 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
     // TODO: handle NAN
     // Find the corresponding LUT offset
     int lut_offset = LookupTableTraits<InputPixelType>::ComputeLUTOffset(lut_scale, lut_i0, xin);
-    xout = lut[lut_offset];
+    xout = lut->m_LUT[lut_offset];
     }
 
   return xout;

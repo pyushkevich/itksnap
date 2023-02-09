@@ -33,7 +33,9 @@ public:
       TPixel imin, TPixel imax, double itkNotUsed(t0), double itkNotUsed(t1),
       double &scale, double &shift)
   {
-    shift = imin;
+    // Linear mapping t = ax + b, where x is the LUT index and t is the intensity curve
+    // position, satisfying t(0) = 0 and t(imax-imin) = 1
+    shift = 0;
     scale = 1.0f / (imax - imin);
   }
 
@@ -62,11 +64,12 @@ template <class TPixel>
 class RealTypeLookupTableTraits
 {
 public:
-  static constexpr int LUT_MIN = 0, LUT_MAX = 10000;
+  // The range of the lookup table is 0 through LUT_MAX, inclusive
+  static constexpr int LUT_MAX = 10000;
 
   static unsigned int GetLUTSize(TPixel itkNotUsed(imin), TPixel itkNotUsed(imax))
   {
-    return 1 + LUT_MAX - LUT_MIN;
+    return 1 + LUT_MAX;
   }
 
   static void GetLUTIntensityRange(
@@ -81,26 +84,21 @@ public:
       TPixel itkNotUsed(imin), TPixel itkNotUsed(imax), double t0, double t1,
       double &scale, double &shift)
   {
-    // t = t0 + (t1 - t0) q, where q = (x - LUT_MIN) / (LUT_MAX - LUT_MIN)
-    // t = t0 + (t1 - t0) / (LUT_MAX - LUT_MIN) x - (t1 - t0) LUT_MIN / (LUT_MAX - LUT_MIN)
-    scale = (t1 - t0) / (LUT_MAX - LUT_MIN);
-    shift = t0 - scale * LUT_MIN;
-
-
-    // OLD:
-    // scale = (t1 - t0) / (LUT_MAX - LUT_MIN);
-    // shift = LUT_MIN;
+    // Linear mapping t = ax + b, where x is the LUT index and t is the intensity curve
+    // position, satisfying t(0) = t0 and t(LUT_MAX) = t1
+    scale = (t1 - t0) / LUT_MAX;
+    shift = t0;
   }
 
   static double ComputeIntensityToLUTIndexScaleFactor(const TPixel &lut_start, const TPixel &lut_end)
     {
-    return (LUT_MAX - LUT_MIN) * 1.0 / (lut_end - lut_start);
+    return LUT_MAX * 1.0 / (lut_end - lut_start);
     }
 
   static int ComputeLUTOffset(double scale, TPixel shift, TPixel value)
   {
     int pos = static_cast<int>((value - shift) * scale);
-    return std::clamp(pos, LUT_MIN, LUT_MAX);
+    return std::clamp(pos, 0, LUT_MAX);
   }
 
 
