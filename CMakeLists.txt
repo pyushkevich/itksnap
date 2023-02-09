@@ -303,6 +303,7 @@ SET(LOGIC_CXX
   Logic/Preprocessing/Texture/MomentTextures.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
+  Logic/Slicing/ColorLookupTable.cxx
   Logic/Slicing/LookupTableIntensityMappingFilter.cxx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.cxx
   Logic/WorkspaceAPI/CSVParser.cxx
@@ -468,6 +469,7 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IRISSlicer_RLE.txx
   Logic/Slicing/IntensityCurveInterface.h
   Logic/Slicing/IntensityCurveVTK.h
+  Logic/Slicing/ColorLookupTable.h
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
   Logic/Slicing/NonOrthogonalSlicer.h

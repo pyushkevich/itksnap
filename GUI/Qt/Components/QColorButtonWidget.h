@@ -15,6 +15,8 @@ public:
 
   void setValue(QColor value);
 
+  void click();
+
   QColor value() { return m_value; }
 
 signals:

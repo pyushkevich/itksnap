@@ -256,12 +256,12 @@ ImageIOWizardModel::GetSummaryItem(ImageIOWizardModel::SummaryItem item)
 
   case ImageIOWizardModel::SI_ENDIAN:
     return (m_GuidedIO->GetByteOrderInNativeImage()
-            == itk::ImageIOBase::BigEndian)
+            == itk::IOByteOrderEnum::BigEndian)
         ? "Big Endian" : "Little Endian";
 
   case ImageIOWizardModel::SI_DATATYPE:
     if(m_GuidedIO->GetComponentTypeInNativeImage()
-       != itk::ImageIOBase::UNKNOWNCOMPONENTTYPE)
+       != itk::IOComponentEnum::UNKNOWNCOMPONENTTYPE)
       {
       // There actually is a type in the IO object
       return m_GuidedIO->GetComponentTypeAsStringInNativeImage();

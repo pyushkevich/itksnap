@@ -1,7 +1,6 @@
 #include "RGBALookupTableIntensityMappingFilter.h"
 #include "RLEImageRegionIterator.h"
-#include "LookupTableTraits.h"
-#include "IntensityToColorLookupTableImageFilter.h"
+#include "ColorLookupTable.h"
 
 template<class TInputImage>
 RGBALookupTableIntensityMappingFilter<TInputImage>
@@ -17,8 +16,6 @@ void
 RGBALookupTableIntensityMappingFilter<TInputImage>
 ::DynamicThreadedGenerateData(const OutputImageRegionType &region)
 {
-  typedef LookupTableTraits<InputPixelType> LUTTraits;
-
   // Get all the inputs
   std::vector<const InputImageType *> inputs(3);
   for(int d = 0; d < 3; d++)
@@ -29,13 +26,13 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
 
   // Get the range of intensities mapped that the LUT handles
   const LookupTableType *lut = this->GetLookupTable();
-  auto lut_i0 = lut->m_StartValue;
-  auto lut_i1 = lut->m_EndValue;
 
-  // Compute the shift and scale factors that map the input values into
-  // the LUT values. These are ignored for integral pixel types, but used
-  // for floating point types
-  double lut_scale = LUTTraits::ComputeIntensityToLUTIndexScaleFactor(lut_i0, lut_i1);
+  // Does zero map out of the LUT's range? We may get inputs of zero from
+  // the non-orthogonal slicer (data outside of image range) that would fall
+  // outside of the colormap. This is really a poor way to handle this but
+  // there is not a good alternative solution right now.
+  // TODO: fix this.
+  bool zero_out_of_range = !lut->CheckRange(0);
 
   // Define the iterators
   typedef itk::ImageRegionConstIterator<InputImageType> InputIteratorType;
@@ -57,15 +54,15 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
     // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
     // better than this, i.e., via a special value reserved for such voxels.
     // Right now, defaulting to zero is a DISASTER!
-    if(xin0 == 0 && xin1 == 0 && xin2 == 0 && (lut_i0 > 0 || lut_i1 < 0))
+    if(zero_out_of_range && xin0 == 0 && xin1 == 0 && xin2 == 0)
       {
       xout.Fill(0);
       }
     else
       {
-      xout[0] = lut->m_LUT[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin0)];
-      xout[1] = lut->m_LUT[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin1)];
-      xout[2] = lut->m_LUT[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin2)];
+      xout[0] = lut->MapIntensityToDisplay(xin0);
+      xout[1] = lut->MapIntensityToDisplay(xin1);
+      xout[2] = lut->MapIntensityToDisplay(xin2);
       xout[3] = 255; // alpha = 1
       }
 
@@ -80,36 +77,25 @@ typename RGBALookupTableIntensityMappingFilter<TInputImage>::OutputPixelType
 RGBALookupTableIntensityMappingFilter<TInputImage>
 ::MapPixel(const InputPixelType &xin0, const InputPixelType &xin1, const InputPixelType &xin2)
 {
-  typedef LookupTableTraits<InputPixelType> LUTTraits;
-
   // Update the lookup table
   LookupTableType *lut = const_cast<LookupTableType *>(this->GetLookupTable());
   lut->Update();
-
-  // Get the range of intensities mapped that the LUT handles
-  auto lut_i0 = lut->m_StartValue;
-  auto lut_i1 = lut->m_EndValue;
-
-  // Compute the shift and scale factors that map the input values into
-  // the LUT values. These are ignored for integral pixel types, but used
-  // for floating point types
-  double lut_scale = LUTTraits::ComputeIntensityToLUTIndexScaleFactor(lut_i0, lut_i1);
 
   OutputPixelType xout;
 
   // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
   // better than this, i.e., via a special value reserved for such voxels.
   // Right now, defaulting to zero is a DISASTER!
-  if(xin0 == 0 && xin1 == 0 && xin2 == 0 && (lut_i0 > 0 || lut_i1 < 0))
+  if(xin0 == 0 && xin1 == 0 && xin2 == 0 && !lut->CheckRange(0))
     {
     xout.Fill(0);
     }
   else
     {
     // TODO: this will probably crash for floating point images.
-    xout[0] = lut->m_LUT[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin0)];
-    xout[1] = lut->m_LUT[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin1)];
-    xout[2] = lut->m_LUT[LUTTraits::ComputeLUTOffset(lut_scale, lut_i0, xin2)];
+    xout[0] = lut->MapIntensityToDisplay(xin0);
+    xout[1] = lut->MapIntensityToDisplay(xin1);
+    xout[2] = lut->MapIntensityToDisplay(xin2);
     xout[3] = 255; // alpha = 1
     }
 

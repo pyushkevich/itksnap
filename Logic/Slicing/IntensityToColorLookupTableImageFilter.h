@@ -9,36 +9,8 @@
 
 class ColorMap;
 class IntensityCurveInterface;
+template <class TInputPixel, class TDisplayPixel> class ColorLookupTable;
 
-/**
- * This class defines a lookup table that is used to map from raw intensity to
- * a color value. It is just a vector of RGBA pixels with some extra metadata
- * to specify range and color for NaN values.
- */
-template <class TInputPixel, class TDisplayPixel> class ColorLookupTable
-    : public itk::DataObject
-{
-public:
-  irisITKObjectMacro(ColorLookupTable, itk::DataObject)
-
-  // Allow the filter access to the protected data
-  template <class I, class T> friend class IntensityToColorLookupTableImageFilter;
-  template <class I, class O> friend class LookupTableIntensityMappingFilter;
-  template <class I> friend class RGBALookupTableIntensityMappingFilter;
-
-protected:
-  ColorLookupTable() {}
-  virtual ~ColorLookupTable() {}
-
-  // The table itself
-  std::vector<TDisplayPixel> m_LUT;
-
-  // Colors for the values outside of the specified range
-  TDisplayPixel m_ColorBelow, m_ColorAbove, m_ColorNaN;
-
-  // Specification for the ends of the table
-  TInputPixel m_StartValue, m_EndValue;
-};
 
 /**
  * Traits that determine color map behavior (to use one or not, basically)
@@ -48,10 +20,31 @@ class DefaultColorMapTraits
 public:
   using ColorMapType = ColorMap;
   using DisplayPixelType = itk::RGBAPixel<unsigned char>;
-  static DisplayPixelType apply(const ColorMapType *cm, double x)
+
+  static constexpr bool IsRequired = true;
+
+  static DisplayPixelType apply(const ColorMapType *cm, double x, bool ignore_alpha)
   {
-    return cm->MapIndexToRGBA(x);
+    DisplayPixelType p = cm->MapIndexToRGBA(x);
+    if(ignore_alpha)
+      p[3] = 255;
+    return p;
   }
+
+  static void get_outside_and_nan_values(
+      const ColorMapType *cm, bool ignore_alpha,
+      DisplayPixelType &lower, DisplayPixelType &upper, DisplayPixelType &nan)
+    {
+    lower = cm->MapIndexToRGBA(-1.0);
+    upper = cm->MapIndexToRGBA(2.0);
+    nan = cm->GetNANColor();
+    if(ignore_alpha)
+      {
+      lower[3] = 255;
+      upper[3] = 255;
+      nan[3] = 255;
+      }
+    }
 };
 
 /**
@@ -62,10 +55,20 @@ class VectorToRGBColorMapTraits
 public:
   using ColorMapType = ColorMap;
   using DisplayPixelType = unsigned char;
-  static DisplayPixelType apply(const ColorMapType *, double x)
+  static constexpr bool IsRequired = false;
+  static DisplayPixelType apply(const ColorMapType *, double x, bool itkNotUsed(ignore_alpha))
   {
     return (DisplayPixelType) 255.0 * x;
   }
+
+  static void get_outside_and_nan_values(
+      const ColorMapType *cm,  bool ignore_alpha,
+      DisplayPixelType &lower, DisplayPixelType &upper, DisplayPixelType &nan)
+    {
+    lower = 0;
+    upper = 255;
+    nan = 0;
+    }
 };
 
 /**
@@ -150,6 +153,13 @@ public:
   LookupTableType *GetLookupTable();
 
   /**
+   * Specify whether the alpha in the color map should be ignored, i.e.,
+   * when rendering base layers instead of overlays
+   */
+  itkSetMacro(IgnoreAlpha, bool)
+  itkGetMacro(IgnoreAlpha, bool)
+
+  /**
     It is possible to use a separate reference intensity range when mapping
     raw intensities into the domain of the intensity curve. This is relevant
     when working with images derived from another image.
@@ -178,86 +188,9 @@ protected:
 
   // Whether the reference intensity range is being used
   bool m_UseReferenceRange;
+
+  // Whether transparency is used or ignored
+  bool m_IgnoreAlpha = false;
 };
-
-#ifdef __DELETE_ME_LATER_
-
-/**
-  This filter is used to generate a color lookup table from an intensity curve,
-  color map, and information regarding the range of the input image. The actual
-  input image is not really used in the computation, but it should still be passed
-  in. The color lookup table is implemented as a 1-D image of RGBAPixel.
-  */
-template <class TInputImage, class TDisplayPixel>
-class IntensityToColorLookupTableImageFilter
-    : public AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>
-{
-public:
-  using Self = IntensityToColorLookupTableImageFilter<TInputImage, TDisplayPixel>;
-  using Superclass = AbstractLookupTableImageFilter<TInputImage, TDisplayPixel>;
-  using Pointer = SmartPtr<Self>;
-  using ConstPointer = SmartPtr<const Self>;
-
-  using DisplayPixelType = typename Superclass::DisplayPixelType;
-
-  itkTypeMacro(IntensityToColorLookupTableImageFilter, AbstractLookupTableImageFilter)
-  itkNewMacro(Self)
-
-  /** Set the intensity remapping curve - for contrast adjustment */
-  void SetIntensityCurve(IntensityCurveInterface *curve) override;
-
-  /** Get the intensity remapping curve - for contrast adjustment */
-  irisGetMacro(IntensityCurve, IntensityCurveInterface *)
-
-  /** Set the color map - for mapping scalars to RGB space */
-  void SetColorMap(ColorMap *map);
-
-protected:
-
-  SmartPtr<IntensityCurveInterface> m_IntensityCurve;
-  SmartPtr<ColorMap> m_ColorMap;
-
-  virtual DisplayPixelType ComputeLUTValue(float inZeroOne) ITK_OVERRIDE;
-};
-
-/**
- * This filter creates a common lookup table shared by a set of input images.
- * It is mainly used to map intensities in a multi-channel image to the
- * unsigned char, before combining them into a RGBAPixel. The class admits
- * any number of components.
- * @see IntensityToColorLookupTableImageFilter
- */
-template <class TInputImage, class TOutputLUT,
-          class TComponent = typename TInputImage::InternalPixelType>
-class MultiComponentImageToScalarLookupTableImageFilter
-    : public AbstractLookupTableImageFilter<TInputImage, TOutputLUT, TComponent>
-{
-public:
-  typedef MultiComponentImageToScalarLookupTableImageFilter<
-            TInputImage, TOutputLUT, TComponent>                          Self;
-  typedef AbstractLookupTableImageFilter<
-            TInputImage, TOutputLUT, TComponent>                    Superclass;
-  typedef SmartPtr<Self>                                               Pointer;
-  typedef SmartPtr<const Self>                                    ConstPointer;
-
-  typedef typename Superclass::OutputPixelType                 OutputPixelType;
-
-  itkTypeMacro(MultiComponentImageToScalarLookupTableImageFilter,
-               AbstractLookupTableImageFilter)
-  itkNewMacro(Self)
-
-  /** Set the intensity remapping curve - for contrast adjustment */
-  void SetIntensityCurve(IntensityCurveInterface *curve) ITK_OVERRIDE;
-
-  irisGetMacro(IntensityCurve, IntensityCurveInterface *)
-	
-protected:
-
-  SmartPtr<IntensityCurveInterface> m_IntensityCurve;
-
-  virtual OutputPixelType ComputeLUTValue(float inZeroOne) ITK_OVERRIDE;
-};
-
-#endif
 
 #endif // INTENSITYTOCOLORLOOKUPTABLEIMAGEFILTER_H

@@ -1,7 +1,7 @@
 
 #include "IntensityToColorLookupTableImageFilter.h"
 
-#include "LookupTableTraits.h"
+#include "ColorLookupTable.h"
 #include "IntensityCurveInterface.h"
 #include "itkImage.h"
 #include "itkVectorImage.h"
@@ -22,9 +22,14 @@ IntensityToColorLookupTableImageFilter<TInputImage, TColorMapTraits>
 
   // Set required and optional inputs
   this->AddRequiredInputName("IntensityCurve");
-  this->AddOptionalInputName("ColorMap");
   this->AddOptionalInputName("ImageMinInput");
   this->AddOptionalInputName("ImageMaxInput");
+
+  // Colormap required if traits say so
+  if(TColorMapTraits::IsRequired)
+    this->AddRequiredInputName("ColorMap");
+  else
+    this->AddOptionalInputName("ColorMap");
 
   // Allocate the output LUT and assign as output
   this->SetOutput("LookupTable", this->MakeOutput("LookupTable"));
@@ -78,10 +83,12 @@ void
 IntensityToColorLookupTableImageFilter<TInputImage, TColorMapTraits>
 ::GenerateData()
 {
-  typedef LookupTableTraits<ComponentType> LUTTraits;
-
   // Allocate the image output
   this->AllocateOutputs();
+
+  // Get the intensity curve and the colormap
+  const IntensityCurveInterface *curve = this->GetIntensityCurve();
+  const ColorMap *colormap = this->GetColorMap();
 
   // What we do next really depends on TComponent. For char/short, we just want to
   // cache the RGB value for every possible intensity between image min and image
@@ -90,35 +97,23 @@ IntensityToColorLookupTableImageFilter<TInputImage, TColorMapTraits>
   // intensity curve. We compute everything here and let the traits decide.
   ComponentType imin = m_UseReferenceRange ? m_ReferenceMin : this->GetImageMinInput()->Get();
   ComponentType imax = m_UseReferenceRange ? m_ReferenceMax : this->GetImageMaxInput()->Get();
-  const IntensityCurveInterface *curve = this->GetIntensityCurve();
-  const ColorMap *colormap = this->GetColorMap();
 
   // Range of the curve (a pair)
   auto [tmin, tmax] = curve->GetRange();
 
-  // Get the region representing the LUT, for multithreading
-  unsigned int lut_size = LUTTraits::GetLUTSize(imin, imax);
-
-  // Get the mapping from index into lut_region to the curve coordinate value. For
-  // short/char imin->0 and imax->1. For float, 0->trange[0] and 10000->trange[1]
-  double scale, shift;
-  LUTTraits::ComputeLinearMappingToUnitInterval(imin, imax, tmin, tmax, scale, shift);
-
-  // Allocate the LUT
+  // Initialize the LUT
   LookupTableType *lut = this->GetLookupTable();
-  lut->m_LUT.resize(lut_size);
+  lut->Initialize(imin, imax, tmin, tmax);
 
-  // Set the starting and ending indices of the LUT. For short/char this is the
-  // minimum intensity, and for float, this is tmin
-  LUTTraits::GetLUTIntensityRange(imin, imax, tmin, tmax,
-                                  lut->m_StartValue, lut->m_EndValue);
+  // Get the region representing the LUT, for multithreading
+  unsigned int lut_size = lut->GetSize();
 
   // Multi-threaded computation
   itk::MultiThreaderBase::Pointer mt = itk::MultiThreaderBase::New();
   itk::ImageRegion<1> lut_region;
   lut_region.SetSize(0, lut_size);
   mt->ParallelizeImageRegion<1>(lut_region,
-        [curve, colormap, scale, shift, lut, lut_region](const auto &thread_region)
+        [this, curve, colormap, lut](const auto &thread_region)
     {
     // Iterate over the range of LUT entries we are computing
     int i0 = (int) thread_region.GetIndex()[0];
@@ -126,19 +121,26 @@ IntensityToColorLookupTableImageFilter<TInputImage, TColorMapTraits>
     for(int i = i0; i < i1; i++)
       {
       // This is the t coordinate of the intensity curve to loop up
-      double t = i * scale + shift;
+      double t = lut->GetIntensityCurveDomainValueForIndex(i);
 
       // Get the corresponding color map index
       double x = curve->Evaluate(t);
 
       // Finally, we use the color map to send this to RGBA or if there
       // is no color map, just scale it to the 0-255 range.
-      DisplayPixelType rgb = TColorMapTraits::apply(colormap, x);
+      DisplayPixelType rgb = TColorMapTraits::apply(colormap, x, m_IgnoreAlpha);
 
       // Assign to colormap
-      lut->m_LUT[i] = rgb;
+      lut->SetLUTValue(i, rgb);
       }
     }, nullptr);
+
+  // Set outside/nan colors
+  DisplayPixelType color_below, color_above, color_nan;
+  TColorMapTraits::get_outside_and_nan_values(colormap, m_IgnoreAlpha, color_below, color_above, color_nan);
+  lut->SetColorBelow(color_below);
+  lut->SetColorAbove(color_above);
+  lut->SetColorNaN(color_nan);
   }
 
 template<class TInputImage, class TColorMapTraits>

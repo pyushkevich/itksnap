@@ -40,6 +40,8 @@ public:
 
   virtual void Save(Registry &folder) = 0;
   virtual void Restore(Registry &folder) = 0;
+
+  virtual void SetSticky(bool sticky) {}
 };
 
 class AbstractColorLabelTableDisplayMappingPolicy : public AbstractDisplayMappingPolicy
@@ -258,6 +260,8 @@ public:
 
   virtual DisplayPixelType MapPixel(const InputComponentType *val);
 
+  virtual void SetSticky(bool sticky) override;
+
 
 protected:
 
@@ -471,6 +475,9 @@ public:
   irisGetMacro(ScalarRepresentation, ScalarImageWrapperBase *)
 
   DisplayPixelType MapPixel(const InputComponentType *val);
+
+  virtual void SetSticky(bool sticky) override;
+
 
 protected:
 

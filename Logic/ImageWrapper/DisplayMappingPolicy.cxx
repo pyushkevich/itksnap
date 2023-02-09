@@ -16,6 +16,7 @@
 #include "InputSelectionImageFilter.h"
 #include "Rebroadcaster.h"
 #include "TDigestImageFilter.h"
+#include "ColorLookupTable.h"
 
 /* ===============================================================
     ColorLabelTableDisplayMappingPolicy implementation
@@ -135,6 +136,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 
   // Initialize the LUT filter
   m_LookupTableFilter = LookupTableFilterType::New();
+  m_LookupTableFilter->SetIgnoreAlpha(!wrapper->IsSticky());
 
   // Initialize the colormap
   m_ColorMap = ColorMap::New();
@@ -321,6 +323,12 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 {
   DisplayPixelType pix = m_IntensityFilter[0]->MapPixel(*val);
   return pix;
+}
+
+template<class TWrapperTraits>
+void CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::SetSticky(bool sticky)
+{
+  m_LookupTableFilter->SetIgnoreAlpha(!sticky);
 }
 
 
@@ -575,6 +583,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     m_LUTGenerator->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
     m_LUTGenerator->SetIntensityCurve(
           m_Wrapper->GetComponentWrapper(0)->GetIntensityCurve());
+    m_LUTGenerator->SetIgnoreAlpha(!m_Wrapper->IsSticky());
 
     // Initialize the filters that apply the LUT
     for(unsigned int i=0; i<3; i++)
@@ -773,6 +782,13 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   // Use the LUT
   DisplayPixelType pix = m_RGBMapper[0]->MapPixel(val[0], val[1], val[2]);
   return pix;
+  }
+
+template<class TWrapperTraits>
+void MultiChannelDisplayMappingPolicy<TWrapperTraits>::SetSticky(bool sticky)
+{
+  if(m_LUTGenerator)
+    m_LUTGenerator->SetIgnoreAlpha(!sticky);
 }
 
 

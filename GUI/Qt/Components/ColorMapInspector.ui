@@ -367,7 +367,7 @@ QGroupBox &gt; QGroupBox {
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The color and opacity at this control point is continuous.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
-                  <string>Continuous</string>
+                  <string>Regular</string>
                  </property>
                 </widget>
                </item>
@@ -383,7 +383,7 @@ QGroupBox &gt; QGroupBox {
                   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The color and opacity at this control point are discontinuous. You can set different color and opacity at the left and right side of this control point.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="text">
-                  <string>Discontinuous</string>
+                  <string>Two-sided</string>
                  </property>
                 </widget>
                </item>
@@ -428,6 +428,12 @@ QGroupBox &gt; QGroupBox {
             </item>
             <item row="0" column="0">
              <widget class="QLabel" name="label_9">
+              <property name="minimumSize">
+               <size>
+                <width>65</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string>Index:</string>
               </property>
@@ -438,6 +444,12 @@ QGroupBox &gt; QGroupBox {
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="label_4">
+              <property name="minimumSize">
+               <size>
+                <width>65</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string>Position:</string>
               </property>
@@ -486,6 +498,12 @@ p, li { white-space: pre-wrap; }
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="label_8">
+              <property name="minimumSize">
+               <size>
+                <width>65</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string>Opacity:</string>
               </property>
@@ -496,30 +514,17 @@ p, li { white-space: pre-wrap; }
             </item>
             <item row="5" column="0">
              <widget class="QLabel" name="label_7">
+              <property name="minimumSize">
+               <size>
+                <width>65</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="text">
                <string>Color:</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="1" colspan="2">
-             <widget class="QToolButton" name="btnControlColor">
-              <property name="minimumSize">
-               <size>
-                <width>96</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>The color at this control point.</string>
-              </property>
-              <property name="text">
-               <string>Choose...</string>
-              </property>
-              <property name="toolButtonStyle">
-               <enum>Qt::ToolButtonTextBesideIcon</enum>
               </property>
              </widget>
             </item>
@@ -631,8 +636,72 @@ p, li { white-space: pre-wrap; }
               </property>
              </spacer>
             </item>
+            <item row="5" column="1" colspan="2">
+             <widget class="QColorButtonWidget" name="btnControlColor" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>96</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>The color at this control point.</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_3">
+        <property name="title">
+         <string>Advanced Properties:</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="label_10">
+           <property name="minimumSize">
+            <size>
+             <width>65</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>NaN Color:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QColorButtonWidget" name="btnNaNColor" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>96</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>The color used to represent the value NaN (not a number), used in some images to represent missing data.</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -660,6 +729,12 @@ p, li { white-space: pre-wrap; }
    <class>QtVTKRenderWindowBox</class>
    <extends>QWidget</extends>
    <header location="global">QtVTKRenderWindowBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QColorButtonWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">QColorButtonWidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

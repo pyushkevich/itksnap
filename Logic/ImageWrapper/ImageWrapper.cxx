@@ -955,6 +955,7 @@ ImageWrapper<TTraits>
 
   // Set sticky flag
   m_Sticky = TTraits::StickyByDefault;
+  m_DisplayMapping->SetSticky(m_Sticky);
 
   // By default, the parent wrapper is NULL. This is overridden for wrappers
   // that are derived from vector wrappers. See VectorImageWrapper::CreateDerivedWrapper
@@ -1091,7 +1092,17 @@ ImageWrapper<TTraits>
   return Vector3ui(
         (unsigned int) size[0],
         (unsigned int) size[1],
-        (unsigned int) size[2]);
+      (unsigned int) size[2]);
+  }
+
+template<class TTraits>
+void ImageWrapper<TTraits>::SetSticky(bool value)
+{
+  m_Sticky = value;
+  m_DisplayMapping->SetSticky(value);
+  this->Modified();
+  this->InvokeEvent(WrapperVisibilityChangeEvent());
+  this->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 template<class TTraits>

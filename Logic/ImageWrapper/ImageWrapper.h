@@ -280,7 +280,7 @@ public:
    * layers, e.g., the segmentation layer, or the level set image. A layer that
    * is not sticky is shown in its own tile when the display is in tiled mode
    */
-  irisSetWithEventMacroWithOverride(Sticky, bool, WrapperVisibilityChangeEvent)
+  virtual void SetSticky(bool value) override;
 
   /** Set layer stickiness */
   irisIsMacroWithOverride(Sticky)
