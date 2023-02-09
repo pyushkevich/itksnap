@@ -28,15 +28,19 @@ public:
   itkNewMacro(Self)
   itkStaticConstMacro(ImageDimension, unsigned int, InputImageType::ImageDimension);
 
+protected:
+
+  IncreaseDimensionImageFilter();
+  virtual ~IncreaseDimensionImageFilter() {};
+
   /**
    * Generate the data - by selecting an input and presenting it as output
    */
   void GenerateData() ITK_OVERRIDE;
 
-protected:
+  void GenerateOutputInformation() ITK_OVERRIDE;
 
-  IncreaseDimensionImageFilter();
-  virtual ~IncreaseDimensionImageFilter() {};
+
 };
 
 #ifndef ITK_MANUAL_INSTANTIATION

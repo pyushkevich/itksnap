@@ -183,6 +183,7 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   activateOnFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE, opt_hide);
   activateOnFlag(m_PopupMenu->findChild<QMenu*>("menuProcess"), model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
   activateOnFlag(m_OverlaysMenu, model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
+  activateOnFlag(ui->actionTextureFeatures, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
