@@ -201,7 +201,7 @@ void
 CombineBWAandRFFilter <ImageScalarType,  ImageVectorType,TLabelImage>
 ::InterpolateLabelAlongAxis(typename TLabelImage::PixelType label, int axis)
 {
-    std::set<long> SegIndices = m_LabeledSlices[axis][label];
+    std::set<typename TLabelImage::IndexValueType> SegIndices = m_LabeledSlices[axis][label];
 
     typename TLabelImage::RegionType bbox;
 
