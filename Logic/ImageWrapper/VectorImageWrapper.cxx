@@ -63,7 +63,7 @@ VectorImageWrapper<TTraits>
 ::GetRunLengthIntensityStatistics(
     const itk::ImageRegion<3> &region,
     const itk::Index<3> &startIdx, long runlength,
-    double *out_sum, double *out_sumsq) const
+    double *out_nvalid, double *out_sum, double *out_sumsq) const
 {
   if(this->IsSlicingOrthogonal())
     {
@@ -78,8 +78,12 @@ VectorImageWrapper<TTraits>
       for(size_t c = 0; c < nc; c++)
         {
         double v = (double) p[c];
-        out_sum[c] += v;
-        out_sumsq[c] += v * v;
+        if(!std::isnan(v))
+          {
+          *out_nvalid += 1.0;
+          *out_sum += v;
+          *out_sumsq += v * v;
+          }
         }
       }
     }

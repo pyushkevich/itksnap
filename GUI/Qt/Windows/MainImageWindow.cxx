@@ -1159,7 +1159,7 @@ void MainImageWindow::on_actionImage_Contrast_triggered()
 void MainImageWindow::on_actionColor_Map_Editor_triggered()
 {
   // Go to the contrast page in the dialog
-  m_LayerInspector->SetPageToContrastAdjustment();
+  m_LayerInspector->SetPageToColorMap();
 
   // Show the dialog
   RaiseDialog(m_LayerInspector);

@@ -139,8 +139,8 @@ SegmentationStatistics
     for(size_t j = 0; j < ngray; j++)
       {
       // Map to native format
-      double mean = entry.sum[j] / entry.count;
-      double stdev = sqrt((entry.sumsq[j] - entry.sum[j] * mean) / (entry.count - 1));
+      double mean = entry.sum[j] / entry.nvalid[j];
+      double stdev = sqrt((entry.sumsq[j] - entry.sum[j] * mean) / (entry.nvalid[j] - 1));
 
       // Map with scale and shift
       entry.mean[j] = layers[j]->GetNativeIntensityMapping()->MapInternalToNative(mean);
@@ -162,6 +162,7 @@ void SegmentationStatistics
     {
     layers[j]->GetRunLengthIntensityStatistics(
           region, runStart, runLength,
+          cachedEntry->nvalid.data_block() + j,
           cachedEntry->sum.data_block() + j,
           cachedEntry->sumsq.data_block() + j);
     }

@@ -44,6 +44,7 @@
 #include "SNAPExportITKToVTK.h"
 
 #include <iostream>
+#include <type_traits>
 
 template<class TTraits>
 ScalarImageWrapper<TTraits>
@@ -184,7 +185,7 @@ ScalarImageWrapper<TTraits>
 ::GetRunLengthIntensityStatistics(
     const itk::ImageRegion<3> &region,
     const itk::Index<3> &startIdx, long runlength,
-    double *out_sum, double *out_sumsq) const
+    double *out_nvalid, double *out_sum, double *out_sumsq) const
 {
   if(this->IsSlicingOrthogonal())
     {
@@ -195,8 +196,12 @@ ScalarImageWrapper<TTraits>
     for(long q = 0; q < runlength; q++, ++it)
       {
       double p = (double) it.Get();
-      *out_sum += p;
-      *out_sumsq += p * p;
+      if(!std::isnan(p))
+        {
+        *out_nvalid += 1.0;
+        *out_sum += p;
+        *out_sumsq += p * p;
+        }
       }
     }
   else

@@ -351,7 +351,7 @@ public:
   virtual void GetRunLengthIntensityStatistics(
       const itk::ImageRegion<3> &region,
       const itk::Index<3> &startIdx, long runlength,
-      double *out_sum, double *out_sumsq) const = 0;
+      double *out_nvalid, double *out_sum, double *out_sumsq) const = 0;
 
   /**
    * This method returns a vector of values for the voxel under the cursor.

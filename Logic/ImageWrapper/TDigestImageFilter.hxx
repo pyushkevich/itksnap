@@ -185,6 +185,7 @@ TDigestImageFilter<TInputImage>
     m_ImageMaxDataObject->Set((ComponentType) std::ceil(m_TDigestDataObject->GetImageMaximum()));
   }
 
+  /*
   printf("TDigest: range: %f to %f, Percentiles: 1: %f, 5: %f, 50: %f, 95: %f, 99: %f\n",
          m_TDigestDataObject->GetImageMinimum(),
          m_TDigestDataObject->GetImageMaximum(),
@@ -193,6 +194,7 @@ TDigestImageFilter<TInputImage>
          m_TDigestDataObject->GetImageQuantile(0.5),
          m_TDigestDataObject->GetImageQuantile(0.95),
          m_TDigestDataObject->GetImageQuantile(0.99));
+  */
 
 }
 

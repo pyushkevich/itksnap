@@ -94,11 +94,11 @@ ENDIF()
 SET(SNAP_VERSION_MAJOR 4)
 SET(SNAP_VERSION_MINOR 0)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "-rc.1")
+SET(SNAP_VERSION_QUALIFIER "-rc.2")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20230120")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "January 20, 2023")
+SET(SNAP_VERSION_RELEASE_DATE "20230215")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "February 15, 2023")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -1251,6 +1251,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
+  NaNs
   4DContinuousRendering
   DiffSpace
   EdgeAttraction
@@ -1662,7 +1663,7 @@ MARK_AS_ADVANCED(SCP_USERNAME)
 SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
-SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/i/it/itk-snap/itk-snap")
+SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/itk-snap/itk-snap")
 
 #--------------------------------------------------------------------------------
 # Create targets
