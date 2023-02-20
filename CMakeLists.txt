@@ -1439,8 +1439,38 @@ IF(APPLE)
   # Code signing certificate - optional
   SET(SNAP_MACOSX_CODESIGN_CERT "" CACHE STRING "Name of the Apple Developer Certificate to sign application")
   MARK_AS_ADVANCED(SNAP_MACOSX_CODESIGN_CERT)
+
+  # Notarization keychain profile
+  SET(SNAP_MACOS_NOTARYTOOL_PROFILE "" CACHE STRING "Notary tool keychain profile, see https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow")
+  MARK_AS_ADVANCED(SNAP_MACOS_NOTARYTOOL_PROFILE)
+
   IF(SNAP_MACOSX_CODESIGN_CERT)
     SET(CPACK_BUNDLE_APPLE_CERT_APP ${SNAP_MACOSX_CODESIGN_CERT})
+
+    SET(CPACK_BUNDLE_APPLE_CODESIGN_FILES "/Contents/bin/c3d" "/Contents/bin/c2d")
+
+    # TODO: there has to be some way to determine all the executables that are included in
+    # the package but I spent an hour trying and I give up. So here it is, hard-coded.
+    SET(SNAP_MACOSX_CLI_EXES "c3d;c2d;c4d;c3d_affine_tool;greedy;greedy_template_average;itksnap-wt;itksnap")
+    FOREACH(exe ${SNAP_MACOSX_CLI_EXES})
+      LIST(APPEND CPACK_BUNDLE_APPLE_CODESIGN_FILES "/Contents/bin/${exe}")
+    ENDFOREACH()
+    MESSAGE(STATUS "CPACK_BUNDLE_APPLE_CODESIGN_FILES: ${CPACK_BUNDLE_APPLE_CODESIGN_FILES}")
+
+    # ADD COMMANDS FOR NOTARIZATION
+    IF(SNAP_MACOS_NOTARYTOOL_PROFILE)
+      add_custom_target(notarize
+        COMMENT "Notarizing installer package..."
+        COMMAND xcrun notarytool submit "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.dmg" --keychain-profile "${SNAP_MACOS_NOTARYTOOL_PROFILE}" --wait
+        VERBATIM)
+      add_custom_target(staple
+        COMMENT "Stapling notarization ticket to installer package..."
+        COMMAND xcrun stapler staple "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.dmg"
+        VERBATIM)
+    ENDIF()
+
+    SET(CPACK_APPLE_BUNDLE_ID "itk-snap")
+    SET(CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER "-vv --deep -f --options=runtime")
   ENDIF()
 
   # Install the main executable
@@ -1632,10 +1662,6 @@ SET(CPACK_PACKAGE_FILE_NAME_WEXT "${CPACK_PACKAGE_FILE_NAME}.${CPACK_EXTENSION}"
 
 
 #--------------------------------------------------------------------------------
-# Set up package target
-include(CPack)
-
-#--------------------------------------------------------------------------------
 # Uploading code to SourceForge
 #--------------------------------------------------------------------------------
 
@@ -1653,6 +1679,7 @@ MARK_AS_ADVANCED(SCP_USERNAME)
 
 SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+SET(RELEASE_TARGET "itksnap-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
 SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/itk-snap/itk-snap")
 
@@ -1673,6 +1700,17 @@ ADD_CUSTOM_TARGET(itksnap_upload_experimental
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
   COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${EXPERIMENTAL_TARGET}")
 
+ADD_CUSTOM_TARGET(itksnap_upload_release
+  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} 
+    ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/${SNAP_VERSION_GIT_BRANCH}/${EXPERIMENTAL_TARGET}
+  DEPENDS ${CPACK_TARGET}
+  WORKING_DIRECTORY ${SNAP_BINARY_DIR}
+  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${RELEASE_TARGET}")
+
+
+#--------------------------------------------------------------------------------
+# Set up package target
+include(CPack)
 
 #--------------------------------------------------------------------------------
 # ALFABIS utilities (experimental)
