@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <set>
+#include <string>
 
 /**
  * Base class for IPCHandler. This class contains the definitions of the
@@ -60,8 +61,11 @@ protected:
   short m_ProtocolVersion;
 
   // System-specific IPC related stuff
-#ifdef WIN32
+#if defined(WIN32)
   void *m_Handle;
+#elif defined(__APPLE__)
+  int m_Handle;
+  std::string m_SharedMemoryObjectName;
 #else
   int m_Handle;
 #endif

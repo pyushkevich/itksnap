@@ -3,8 +3,10 @@
 #include <cstring>
 #include <iostream>
 #include <cerrno>
+#include <functional>
+#include <sstream>
 
-#ifdef WIN32
+#if defined(WIN32)
   #ifdef _WIN32_WINNT
   #undef _WIN32_WINNT
   #endif //_WIN32_WINNT
@@ -15,6 +17,11 @@
   #include <process.h>
   #include <windows.h>
   #include <cstdlib>
+#elif defined(__APPLE__)
+  #include <sys/mman.h>
+  #include <sys/stat.h>
+  #include <fcntl.h>
+  #include <unistd.h>
 #else
   #include <sys/types.h>
   #include <sys/ipc.h>
@@ -29,7 +36,8 @@ using namespace std;
 void IPCHandler::Attach(const char *path, short version, size_t message_size)
 {
   // Initialize the data pointer
-  m_SharedData = NULL;
+  m_SharedData = nullptr;
+  m_UserData = nullptr;
 
   // Store the size of the actual message
   m_MessageSize = message_size;
@@ -40,7 +48,7 @@ void IPCHandler::Attach(const char *path, short version, size_t message_size)
   // Determine size of shared memory
   size_t msize = message_size + sizeof(Header);
 
-#ifdef WIN32
+#if defined(WIN32)
   // Create a shared memory block (key based on the preferences file)
   m_Handle = CreateFileMappingA(
     INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, (DWORD) msize, path);
@@ -50,6 +58,46 @@ void IPCHandler::Attach(const char *path, short version, size_t message_size)
     {
     // Attach to the shared memory block
     m_SharedData = MapViewOfFile(m_Handle, FILE_MAP_ALL_ACCESS, 0, 0, msize);
+    }
+
+#elif defined(__APPLE__)
+
+  // Generate a hash based on file and version
+  std::ostringstream oss; oss << path << "_" << version;
+  std::string to_hash = oss.str();
+  std::size_t str_hash = std::hash<std::string>{}(to_hash);
+
+  // Generate a complete key
+  // std::ostringstream oss_key;
+  // oss_key << "5A636Q488D.itksnap." << str_hash;
+  m_SharedMemoryObjectName = "5A636Q488D.itksnap";
+
+  // Try to connect to an existing memory space
+  m_Handle = shm_open(m_SharedMemoryObjectName.c_str(), O_RDWR, 0644);
+  if(m_Handle < 0)
+    {
+    m_Handle = shm_open(m_SharedMemoryObjectName.c_str(), O_RDWR | O_CREAT, 0644);
+    if(m_Handle < 0)
+      {
+      cerr << "Shared memory (shmget) error: " << strerror(errno) << endl;
+      cerr << "This error may occur if a user is running two versions of ITK-SNAP" << endl;
+      cerr << "Multisession support is disabled" << endl;
+      return;
+      }
+
+    // Set the size of the chunk
+    ftruncate(m_Handle, msize);
+    }
+
+  m_SharedData = mmap(nullptr, msize, PROT_WRITE, MAP_SHARED, m_Handle, 0);
+
+  // Check errors again
+  if(m_SharedData == MAP_FAILED)
+    {
+    cerr << "Shared memory (shmat) error: " << strerror(errno) << endl;
+    cerr << "Multisession support is disabled" << endl;
+    m_SharedData = nullptr;
+    return;
     }
 
 #else
@@ -90,10 +138,6 @@ void IPCHandler::Attach(const char *path, short version, size_t message_size)
     Header *hptr = static_cast<Header *>(m_SharedData);
     m_UserData = static_cast<void *>(hptr + 1);
     }
-  else
-    {
-    m_UserData = NULL;
-    }
 }
 
 bool IPCHandler::Read(void *target_ptr)
@@ -118,21 +162,6 @@ bool IPCHandler::Read(void *target_ptr)
   return true;
 }
 
-bool IPCHandler::IsProcessRunning(int pid)
-{
-#ifdef WIN32
-  HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, (DWORD) pid);
-  DWORD exitCode = 0;
-  GetExitCodeProcess(hProcess, &exitCode);
-  CloseHandle(hProcess);
-  return (exitCode == STILL_ACTIVE);
-#else
-  // Send signal 0 to the PID
-  return (0 == kill(pid, 0));
-#endif
-
-}
-
 bool IPCHandler::ReadIfNew(void *target_ptr)
 {
   // Must have some shared memory
@@ -144,24 +173,13 @@ bool IPCHandler::ReadIfNew(void *target_ptr)
   if(header->version != m_ProtocolVersion)
     return false;
 
-  // Ignore our own messages
-  if(header->sender_pid == m_ProcessID)
+  // Ignore our own messages or messages from dead processes
+  if(header->sender_pid == m_ProcessID || header->sender_pid == -1)
     return false;
 
   // If we have already seen this message from this sender, also ignore it
   if(m_LastSender == header->sender_pid && m_LastReceivedMessageID == header->message_id)
     return false;
-
-  // If the PID is known to be dead, ignore it
-  if(m_KnownDeadPIDs.find(header->sender_pid) != m_KnownDeadPIDs.end())
-    return false;
-
-  // Check if this is a dead PID
-  if(!this->IsProcessRunning(header->sender_pid))
-    {
-    m_KnownDeadPIDs.insert(header->sender_pid);
-    return false;
-    }
 
   // Store the last sender / id
   m_LastSender = header->sender_pid;
@@ -204,8 +222,27 @@ IPCHandler
 
 void IPCHandler::Close()
 {
-#ifdef WIN32
+  // Update the message with sender PID of -1 so that if shared memory is retained
+  // for future runs of ITK-SNAP, it will be ignored
+  if(m_SharedData)
+    {
+    // Access the message header
+    Header *header = static_cast<Header *>(m_SharedData);
+
+    // Is the current shared memory created by us? If so, we need to clear it
+    if(header->version == m_ProtocolVersion && header->sender_pid == m_ProcessID)
+      header->sender_pid = -1;
+    }
+
+#if defined(WIN32)
   CloseHandle(m_Handle);
+#elif defined(__APPLE__)
+  munmap(m_SharedData, m_MessageSize + sizeof(Header));
+
+  // Unlinking causes new processes to use a new handle and I can't find a way
+  // to keep track of the number of attached processes without messing with the
+  // header, so I am going to let this be
+  // shm_unlink(m_SharedMemoryObjectName.c_str());
 #else
   // Detach from the shared memory segment
   shmdt(m_SharedData);

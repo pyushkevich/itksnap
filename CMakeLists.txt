@@ -1446,8 +1446,7 @@ IF(APPLE)
 
   IF(SNAP_MACOSX_CODESIGN_CERT)
     SET(CPACK_BUNDLE_APPLE_CERT_APP ${SNAP_MACOSX_CODESIGN_CERT})
-
-    SET(CPACK_BUNDLE_APPLE_CODESIGN_FILES "/Contents/bin/c3d" "/Contents/bin/c2d")
+    SET(CPACK_BUNDLE_APPLE_ENTITLEMENTS ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/entitlements.plist)
 
     # TODO: there has to be some way to determine all the executables that are included in
     # the package but I spent an hour trying and I give up. So here it is, hard-coded.
