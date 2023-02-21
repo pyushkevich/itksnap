@@ -6,7 +6,8 @@ on run argv
 	set BG_H to 320
 	set TITLE_BAR_H to 22
 
-	set diskImage to item 1 of argv
+        delay 10
+        set diskImage to item 1 of argv
 
 	tell application "Finder"
 		tell disk diskImage
@@ -26,7 +27,7 @@ on run argv
 			tell container window
 				set sidebar width to 0
 				set statusbar visible to false
-				set toolbar visible to false
+                                set toolbar visible to false
 				set the bounds to {X_POS, Y_POS, X_POS + BG_W, Y_POS + BG_H + TITLE_BAR_H}
 
 				-- Move the icons; this is really finicky, the coordinates don't seem
