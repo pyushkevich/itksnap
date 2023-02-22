@@ -651,7 +651,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionColor_Map_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionImage_Information, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionRegistration, m_Model, UIF_IRIS_WITH_OVERLAY_LOADED);
+  activateOnFlag(ui->actionRegistration, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   activateOnFlag(ui->actionReorient_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 

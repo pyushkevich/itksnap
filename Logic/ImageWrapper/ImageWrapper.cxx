@@ -1244,8 +1244,8 @@ ImageWrapper<TTraits>
 template<class TTraits>
 void
 ImageWrapper<TTraits>
-::TransformReferenceIndexToWrappedImageContinuousIndex(
-    const IndexType &ref_index, itk::ContinuousIndex<double, 3> &img_index) const
+::TransformReferenceCIndexToWrappedImageCIndex(
+    const itk::ContinuousIndex<double, 3> &ref_index, itk::ContinuousIndex<double, 3> &img_index) const
 {
   // There appears to be a bug in ITK, where in itk::ImageAdaptor, the methods
   // TransformPhysicalPointToContinuousIndex, etc. are not marked as override
@@ -1253,7 +1253,7 @@ ImageWrapper<TTraits>
   // this we rely on the parent method when available.
   if(m_ParentWrapper)
     {
-    m_ParentWrapper->TransformReferenceIndexToWrappedImageContinuousIndex(ref_index, img_index);
+    m_ParentWrapper->TransformReferenceCIndexToWrappedImageCIndex(ref_index, img_index);
     }
   else
     {
@@ -1269,7 +1269,7 @@ ImageWrapper<TTraits>
       itk::Point<double, 3> x_phys_ref, x_phys_img;
 
       // Map the index to the physical space of the reference image
-      m_ReferenceSpace->TransformIndexToPhysicalPoint(ref_index, x_phys_ref);
+      m_ReferenceSpace->TransformContinuousIndexToPhysicalPoint(ref_index, x_phys_ref);
 
       // Apply the transform to the reference point
       x_phys_img = m_AffineTransform->TransformPoint(x_phys_ref);
@@ -1810,7 +1810,7 @@ ImageWrapper<TTraits>
     {
     // The index at which to sample (will be reused in the loop below)
     itk::ContinuousIndex<double, 3> cidx;
-    this->TransformReferenceIndexToWrappedImageContinuousIndex(index, cidx);
+    this->TransformReferenceCIndexToWrappedImageCIndex(index, cidx);
 
     // Sample all time points
     for(unsigned int tp = tp_begin; tp < tp_end; tp++)

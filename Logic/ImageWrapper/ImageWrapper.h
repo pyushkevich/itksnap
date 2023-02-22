@@ -312,8 +312,15 @@ public:
   /** Transform NIFTI coordinates to a continuous voxel index */
   virtual Vector3d TransformNIFTICoordinatesToVoxelCIndex(const Vector3d &vNifti) const ITK_OVERRIDE;
 
-  virtual void TransformReferenceIndexToWrappedImageContinuousIndex(
-      const IndexType &ref_index, itk::ContinuousIndex<double, 3> &img_index) const ITK_OVERRIDE;
+  /**
+   * Transform a reference space index to a continuous index in the voxel space of
+   * the wrapped image. For images whose geometry matches the reference space, this
+   * is the identity transform, but for images that are not in referene space, this
+   * will use the S-form of the reference space, S-form of the wrapped image and the
+   * registration transform applied to the image to compute the coordinate.
+   */
+  virtual void TransformReferenceCIndexToWrappedImageCIndex(
+      const itk::ContinuousIndex<double, 3> &ref_index, itk::ContinuousIndex<double, 3> &img_index) const override;
 
   virtual bool ImageSpaceMatchesReferenceSpace() const ITK_OVERRIDE;
 

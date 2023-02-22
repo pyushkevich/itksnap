@@ -291,8 +291,8 @@ public:
    * will use the S-form of the reference space, S-form of the wrapped image and the
    * registration transform applied to the image to compute the coordinate.
    */
-  virtual void TransformReferenceIndexToWrappedImageContinuousIndex(
-      const IndexType &ref_index, itk::ContinuousIndex<double, 3> &img_index) const = 0;
+  virtual void TransformReferenceCIndexToWrappedImageCIndex(
+      const itk::ContinuousIndex<double, 3> &ref_index, itk::ContinuousIndex<double, 3> &img_index) const = 0;
 
   /** Get the NIFTI s-form matrix for this image */
   irisVirtualGetMacro(NiftiSform, TransformType)

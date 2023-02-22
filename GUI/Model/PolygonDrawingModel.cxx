@@ -11,6 +11,7 @@
 #include "itkPointSet.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "IRISApplication.h"
+#include "LabelImageWrapper.h"
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -606,6 +607,8 @@ bool PolygonVertexTest(const PolygonVertex &v1, const PolygonVertex &v2)
   return v1.x == v2.x && v1.y == v2.y;
 }
 
+#include "DrawTriangles.h"
+
 /**
  * AcceptPolygon()
  *
@@ -642,35 +645,136 @@ PolygonDrawingModel
   VertexIterator itEnd = std::unique(m_Vertices.begin(), m_Vertices.end(), PolygonVertexTest);
   m_Vertices.erase(itEnd, m_Vertices.end());
 
-  // There may still be duplicates in the array, in which case we should
-  // add a tiny offset to them. Thanks to Jeff Tsao for this bug fix!
-  std::set< std::pair<double, double> > xVertexSet;
-  vnl_random rnd;
-  for(VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
+  // Are we rendering into a 2D slice or into a rotated 3D volume?
+  LabelImageWrapper *seg = this->m_Parent->GetDriver()->GetSelectedSegmentationLayer();
+
+  if(!seg->ImageSpaceMatchesReferenceSpace())
     {
-    while(xVertexSet.find(make_pair(it->x, it->y)) != xVertexSet.end())
+    // Perform 2D contour triangulation from the polygon data
+    vtkNew<vtkPoints> cont_pts;
+    vtkNew<vtkPolyData> cont_pd;
+    vtkNew<vtkContourTriangulator> cont_tri;
+
+    // Create the contour from the polygon
+    cont_pts->Allocate(m_Vertices.size());
+    cont_pd->SetPoints(cont_pts);
+    cont_pd->Allocate(m_Vertices.size());
+
+    // Allocate the data structure for 3D scan conversion
+    int i = 0;
+    for(auto &v : m_Vertices)
       {
-      it->x += 0.0001 * rnd.drand32(-1.0, 1.0);
-      it->y += 0.0001 * rnd.drand32(-1.0, 1.0);
+      cont_pts->InsertNextPoint(v.x, v.y, 0.0);
+      vtkIdType ids[2];
+      ids[0] = i;
+      ids[1] = i < m_Vertices.size()-1 ? i+1 : 0;
+      cont_pd->InsertNextCell(VTK_LINE, 2, ids);
+      i++;
       }
-    xVertexSet.insert(make_pair(it->x, it->y));
+
+    // Perform triangulation
+    cont_tri->SetInputData(cont_pd);
+    cont_tri->Update();
+    vtkPolyData *tri_pd = cont_tri->GetOutput();
+
+    // Transform the vertex coordinates to image space
+    for(unsigned int i = 0; i < tri_pd->GetNumberOfPoints(); i++)
+      {
+      // Get the display coordinates
+      Vector3d x_disp, x_ref;
+      x_disp[0] = tri_pd->GetPoint(i)[0];
+      x_disp[1] = tri_pd->GetPoint(i)[1];
+      x_disp[2] = m_Parent->GetCursorPositionInSliceCoordinates()[2];
+
+      // Transform the point to reference space coordinates
+      x_ref = this->GetParent()->GetDisplayToImageTransform()->TransformPoint(x_disp);
+
+      // Transform the point to actual voxel coordinates of the wrapped segmentation image
+      itk::ContinuousIndex<double, 3> ci_ref = to_itkContinuousIndex(x_ref), ci_vox;
+      seg->TransformReferenceCIndexToWrappedImageCIndex(ci_ref, ci_vox);
+
+      // Update the points in the VTK data structure
+      tri_pd->GetPoints()->SetPoint(i, ci_vox.GetDataPointer());
+      }
+
+    // Convert the triangles into the data structure expected by scan converter
+    double **varr = new double *[tri_pd->GetNumberOfCells() * 3];
+    for(unsigned int i = 0; i < tri_pd->GetNumberOfCells(); i++)
+      {
+      vtkIdType *ids[3];
+      for(unsigned int j = 0; j < 3; j++)
+        {
+        varr[i * 3 + j] = new double[3];
+        tri_pd->GetPoint(tri_pd->GetCell(i)->GetPointId(j), varr[i * 3 + j]);
+        }
+      }
+
+    // Create a new RLE representation of the segmentation.
+    // TODO: we should only create this for the region covered by the polygon, which should
+    // not be difficult to obtain from the extents.
+
+    // Image dimensions
+    int seg_dim[3] = { (int) seg->GetSize()[0], (int) seg->GetSize()[1], (int) seg->GetSize()[2] };
+    int w_line = seg_dim[2];
+
+    // Get the segmentation image and create an iterator for it
+    auto *iseg = seg->GetModifiableImage();
+    itk::ImageRegionIterator<LabelImageWrapper::ImageType> it(iseg, iseg->GetBufferedRegion());
+
+    // Get the color label
+    auto draw_label = GetParent()->GetDriver()->GetGlobalState()->GetDrawingColorLabel();
+
+    // Create a lambda that can update pixels in an RLE image
+    auto functor = [&it, draw_label](auto *img, int offset)
+      {
+      // Go to the indexed vertex
+      it.SetIndex(img->ComputeIndex(offset));
+
+      // Check the value
+      // auto label = it.Get();
+
+      // Apply paint properties
+      it.Set(draw_label);
+      };
+
+    // Actual call to the scan conversion code
+    DrawBinaryTrianglesSheetFilled(seg->GetModifiableImage(), seg_dim, varr, tri_pd->GetNumberOfCells(), functor);
+
+    // Mark as modified
+    seg->PixelsModified();
     }
-
-  // Scan convert the points into the slice
-  typedef PolygonScanConvert<PolygonSliceType, float, VertexIterator> ScanConvertType;
-
-  ScanConvertType::RasterizeFilled(
-    m_Vertices.begin(), m_Vertices.size(), m_PolygonSlice);
-
-  // Apply the segmentation to the main segmentation
-  int nUpdates = m_Parent->MergeSliceSegmentation(m_PolygonSlice);
-  if(nUpdates == 0)
+  else
     {
-    warnings.push_back(
-          IRISWarning("Warning: No voxels updated."
-                      "No voxels in the segmentation image were changed as the "
-                      "result of accepting this polygon. Check that the foreground "
-                      "and background labels are set correctly."));
+    // There may still be duplicates in the array, in which case we should
+    // add a tiny offset to them. Thanks to Jeff Tsao for this bug fix!
+    std::set< std::pair<double, double> > xVertexSet;
+    vnl_random rnd;
+    for(VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
+      {
+      while(xVertexSet.find(make_pair(it->x, it->y)) != xVertexSet.end())
+        {
+        it->x += 0.0001 * rnd.drand32(-1.0, 1.0);
+        it->y += 0.0001 * rnd.drand32(-1.0, 1.0);
+        }
+      xVertexSet.insert(make_pair(it->x, it->y));
+      }
+
+    // Scan convert the points into the slice
+    typedef PolygonScanConvert<PolygonSliceType, float, VertexIterator> ScanConvertType;
+
+    ScanConvertType::RasterizeFilled(
+      m_Vertices.begin(), m_Vertices.size(), m_PolygonSlice);
+
+    // Apply the segmentation to the main segmentation
+    int nUpdates = m_Parent->MergeSliceSegmentation(m_PolygonSlice);
+    if(nUpdates == 0)
+      {
+      warnings.push_back(
+            IRISWarning("Warning: No voxels updated."
+                        "No voxels in the segmentation image were changed as the "
+                        "result of accepting this polygon. Check that the foreground "
+                        "and background labels are set correctly."));
+      }
     }
 
   // Copy polygon into polygon m_Cache

@@ -410,6 +410,10 @@ GenericImageData
 
   // Sync up spacing between the main and label image
   wrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
+
+  // Additional configuration for the wrapper
+  for(int i = 0; i < 3; i++)
+    wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
 }
 
 LabelImageWrapper *

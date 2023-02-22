@@ -462,6 +462,7 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMM/KMeansPlusPlus.h
   Logic/Preprocessing/GMM/UnsupervisedClustering.h
   Logic/Preprocessing/Texture/MomentTextures.h
+  Logic/Slicing/DrawTriangles.h
   Logic/Slicing/ImageRegionConstIteratorWithIndexOverride.h
   Logic/Slicing/FastLinearInterpolator.h
   Logic/Slicing/IRISSlicer.h
@@ -1450,7 +1451,11 @@ IF(APPLE)
   MARK_AS_ADVANCED(SNAP_MACOSX_CODESIGN_CERT)
   IF(SNAP_MACOSX_CODESIGN_CERT)
     SET(CPACK_BUNDLE_APPLE_CERT_APP ${SNAP_MACOSX_CODESIGN_CERT})
+    SET(CPACK_BUNDLE_APPLE_CODESIGN_FILES "../bin/c3d" "../bin/c2d" "fdfdf.sdfsdf")
+    SET(CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER "-vvvv --deep -f -graparpaasda")
   ENDIF()
+
+  MESSAGE(STATUS "CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER: ${CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER}")
 
   # Install the main executable
   SNAP_INSTALL_GUI(${SNAP_BUNDLE_NAME} itksnap "--console")

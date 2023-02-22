@@ -162,9 +162,9 @@ bool ImageInfoModel::GetImageVoxelCoordinatesOblique(Vector3d &value)
   if(!l) return false;
 
   // Get the cursor coordinate in reference space units
-  itk::Index<3> x_ref = l->GetSliceIndex();
+  itk::ContinuousIndex<double, 3> x_ref = l->GetSliceIndex();
   itk::ContinuousIndex<double, 3> x_img;
-  l->TransformReferenceIndexToWrappedImageContinuousIndex(x_ref, x_img);
+  l->TransformReferenceCIndexToWrappedImageCIndex(x_ref, x_img);
 
   // Set everything
   for(unsigned int d = 0; d < 3; d++)
