@@ -701,7 +701,6 @@ PolygonDrawingModel
     double **varr = new double *[tri_pd->GetNumberOfCells() * 3];
     for(unsigned int i = 0; i < tri_pd->GetNumberOfCells(); i++)
       {
-      vtkIdType *ids[3];
       for(unsigned int j = 0; j < 3; j++)
         {
         varr[i * 3 + j] = new double[3];
@@ -738,7 +737,8 @@ PolygonDrawingModel
       };
 
     // Actual call to the scan conversion code
-    DrawBinaryTrianglesSheetFilled(seg->GetModifiableImage(), seg_dim, varr, tri_pd->GetNumberOfCells(), functor);
+    // DrawBinaryTrianglesSheetFilled(seg->GetModifiableImage(), seg_dim, varr, tri_pd->GetNumberOfCells(), functor);
+    cpu_voxelizer::DrawBinaryTrianglesSheetFilled(seg->GetModifiableImage(), seg_dim, varr, tri_pd->GetNumberOfCells(), functor);
 
     // Mark as modified
     seg->PixelsModified();
