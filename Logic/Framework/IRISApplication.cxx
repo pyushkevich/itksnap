@@ -649,6 +649,39 @@ IRISApplication
   return itVol.GetNumberOfChangedVoxels();
 }
 
+unsigned int
+IRISApplication
+::UpdateSegmentationWithBinarySegmentation(
+    const LabelImageType *binseg, const std::string &undoTitle)
+{
+  // Work out the 3D region to merge
+  RegionType r_vol = binseg->GetBufferedRegion();
+  r_vol.Crop(this->GetSelectedSegmentationLayer()->GetBufferedRegion());
+
+  // Create an iterator for painting
+  SegmentationUpdateIterator it_trg(this->GetSelectedSegmentationLayer(), r_vol,
+                                    m_GlobalState->GetDrawingColorLabel(),
+                                    m_GlobalState->GetDrawOverFilter());
+
+  // Drawing parameters
+  bool invert = m_GlobalState->GetPolygonInvert();
+
+  // Iterate over the volume region
+  for(LabelImageWrapper::ConstIterator it_src(binseg, r_vol); !it_src.IsAtEnd(); ++it_src, ++it_trg)
+    if((it_src.Get() != 0) ^ invert)
+      it_trg.PaintAsForeground();
+
+  // Finalize
+  if(it_trg.Finalize(undoTitle.c_str()))
+    {
+    // Voxels were updated
+    this->RecordCurrentLabelUse();
+    InvokeEvent(SegmentationChangeEvent());
+    }
+
+  return it_trg.GetNumberOfChangedVoxels();
+}
+
 void 
 IRISApplication
 ::UpdateIRISWithSnapImageData(CommandType *progressCommand)

@@ -12,6 +12,7 @@
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "IRISApplication.h"
 #include "LabelImageWrapper.h"
+#include "SegmentationUpdateIterator.h"
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -650,6 +651,9 @@ PolygonDrawingModel
 
   if(!seg->ImageSpaceMatchesReferenceSpace())
     {
+    // Pointer to the segmentation image
+    auto *iseg = seg->GetModifiableImage();
+
     // Perform 2D contour triangulation from the polygon data
     vtkNew<vtkPoints> cont_pts;
     vtkNew<vtkPolyData> cont_pd;
@@ -677,6 +681,9 @@ PolygonDrawingModel
     cont_tri->Update();
     vtkPolyData *tri_pd = cont_tri->GetOutput();
 
+    // Extents of the polygon in voxel units
+    Vector3i ext_min, ext_max;
+
     // Transform the vertex coordinates to image space
     for(unsigned int i = 0; i < tri_pd->GetNumberOfPoints(); i++)
       {
@@ -695,9 +702,31 @@ PolygonDrawingModel
 
       // Update the points in the VTK data structure
       tri_pd->GetPoints()->SetPoint(i, ci_vox.GetDataPointer());
+
+      // Print point
+      printf("Point %02d   %6.3f %6.3f %6.3f \n", i, ci_vox[0], ci_vox[1], ci_vox[2]);
+
+      // Update the extents of the object
+      for(unsigned int j = 0; j < 3; j++)
+        {
+        int v = ci_vox[j];
+        ext_min[j] = (i == 0) ? v : std::min(v, ext_min[j]);
+        ext_max[j] = (i == 0) ? v : std::max(v, ext_max[j]);
+        }
       }
 
-    // Convert the triangles into the data structure expected by scan converter
+    // Create a new RLE representation of the segmentation.
+    itk::ImageRegion<3> seg_region(to_itkIndex(ext_min), to_itkSize(1 + ext_max - ext_min));
+    seg_region.Crop(seg->GetBufferedRegion());
+
+    LabelImageWrapper::ImagePointer seg_temp = LabelImageWrapper::ImageType::New();
+    seg_temp->CopyInformation(iseg);
+    seg_temp->SetRegions(seg_region);
+    seg_temp->Allocate();
+
+    // Convert the triangles into the data structure expected by scan converter and subtract
+    // the lower corner since the rasterization code expects the image to start at the
+    // coordinate zero
     double **varr = new double *[tri_pd->GetNumberOfCells() * 3];
     for(unsigned int i = 0; i < tri_pd->GetNumberOfCells(); i++)
       {
@@ -705,43 +734,34 @@ PolygonDrawingModel
         {
         varr[i * 3 + j] = new double[3];
         tri_pd->GetPoint(tri_pd->GetCell(i)->GetPointId(j), varr[i * 3 + j]);
+        for(unsigned int k = 0; k < 3; k++)
+          varr[i * 3 + j][k] -= ext_min[k];
         }
       }
 
-    // Create a new RLE representation of the segmentation.
-    // TODO: we should only create this for the region covered by the polygon, which should
-    // not be difficult to obtain from the extents.
-
     // Image dimensions
-    int seg_dim[3] = { (int) seg->GetSize()[0], (int) seg->GetSize()[1], (int) seg->GetSize()[2] };
+    int seg_dim[3] = { (int) seg_region.GetSize()[0], (int) seg_region.GetSize()[1], (int) seg_region.GetSize()[2] };
     int w_line = seg_dim[2];
 
     // Get the segmentation image and create an iterator for it
-    auto *iseg = seg->GetModifiableImage();
-    itk::ImageRegionIterator<LabelImageWrapper::ImageType> it(iseg, iseg->GetBufferedRegion());
+    using RLEIter = itk::ImageRegionIterator<LabelImageWrapper::ImageType>;
+    RLEIter it_temp(seg_temp, seg_region);
 
-    // Get the color label
-    auto draw_label = GetParent()->GetDriver()->GetGlobalState()->GetDrawingColorLabel();
 
-    // Create a lambda that can update pixels in an RLE image
-    auto functor = [&it, draw_label](auto *img, int offset)
+    // Create a lambda that can update pixels in an RLE image via the iterator
+    auto functor = [&it_temp](auto *img, int offset)
       {
-      // Go to the indexed vertex
-      it.SetIndex(img->ComputeIndex(offset));
-
-      // Check the value
-      // auto label = it.Get();
-
-      // Apply paint properties
-      it.Set(draw_label);
+      // Go to the indexed vertex and set value to 1
+      it_temp.SetIndex(img->ComputeIndex(offset));
+      it_temp.Set(1);
       };
 
     // Actual call to the scan conversion code
     // DrawBinaryTrianglesSheetFilled(seg->GetModifiableImage(), seg_dim, varr, tri_pd->GetNumberOfCells(), functor);
-    cpu_voxelizer::DrawBinaryTrianglesSheetFilled(seg->GetModifiableImage(), seg_dim, varr, tri_pd->GetNumberOfCells(), functor);
+    cpu_voxelizer::DrawBinaryTrianglesSheetFilled(seg_temp.GetPointer(), seg_dim, varr, tri_pd->GetNumberOfCells(), functor);
 
-    // Mark as modified
-    seg->PixelsModified();
+    // Update the segmentation via IRIS
+    m_Parent->GetDriver()->UpdateSegmentationWithBinarySegmentation(seg_temp, "Oblique Polygon Drawing");
     }
   else
     {

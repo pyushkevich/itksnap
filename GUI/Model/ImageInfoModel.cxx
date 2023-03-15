@@ -1,5 +1,5 @@
 #include "ImageInfoModel.h"
-#include "LayerAssociation.txx"
+#include "LayerAssociation.h"
 #include "MetaDataAccess.h"
 #include <cctype>
 #include <algorithm>

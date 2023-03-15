@@ -35,7 +35,7 @@
 #include "IntensityCurveModel.h"
 #include "DisplayLayoutModel.h"
 #include "ColorMapModel.h"
-#include "LayerAssociation.txx"
+#include "LayerAssociation.h"
 #include "SliceWindowCoordinator.h"
 #include "PaintbrushSettingsModel.h"
 #include <itkImageLinearConstIteratorWithIndex.h>

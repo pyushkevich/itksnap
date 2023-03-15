@@ -1,5 +1,5 @@
 #include "ColorMapModel.h"
-#include "LayerAssociation.txx"
+#include "LayerAssociation.h"
 #include "NumericPropertyToggleAdaptor.h"
 #include "ColorMapPresetManager.h"
 #include "ImageWrapperBase.h"

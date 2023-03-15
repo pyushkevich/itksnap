@@ -4,7 +4,7 @@
 #include "IntensityCurveInterface.h"
 #include "DisplayMappingPolicy.h"
 #include "TDigestImageFilter.h"
-#include "LayerAssociation.txx"
+#include "LayerAssociation.h"
 
 IntensityCurveModel::IntensityCurveModel()
   : IntensityCurveModelBase()

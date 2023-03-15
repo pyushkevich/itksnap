@@ -601,6 +601,12 @@ public:
       double zSlice,
       const std::string &undoTitle);
 
+  /**
+   * Apply a binary drawing represented as an RLE image
+   */
+  unsigned int UpdateSegmentationWithBinarySegmentation(
+      const LabelImageType *binseg, const std::string &undoTitle);
+
   /** Get the pointer to the settings used for threshold-based preprocessing */
   // irisGetMacro(ThresholdSettings, ThresholdSettings *)
 
@@ -683,6 +689,7 @@ public:
    * This is to maintain a history of commonly used labels.
    */
   void RecordCurrentLabelUse();
+
 
 protected:
 
