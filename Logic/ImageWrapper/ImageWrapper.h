@@ -487,6 +487,13 @@ public:
   virtual SmartPtr<ImageWrapperBase> ExtractROI(
       const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const ITK_OVERRIDE;
 
+  /**
+   * Extract a 3d region of interest from all time points in the image wrapper,
+   * as a new wrapper of the same type
+   */
+  virtual SmartPtr<ImageWrapperBase> ExtractROI4D(
+      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const ITK_OVERRIDE;
+
 
   /**
    * This method is used to perform a deep copy of a region of this image 

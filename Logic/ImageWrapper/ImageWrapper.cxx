@@ -2312,6 +2312,72 @@ ImageWrapper<TTraits,TBase>
 ::ExtractROI(const SNAPSegmentationROISettings &roi,
              itk::Command *progressCommand) const
 {
+  // Get the ITK image for the ROI (it will be a single time point image)
+  ImagePointer newImage = this->DeepCopyRegion(roi, progressCommand);
+
+  // Dress this image up as a 4D image.
+  Image4DPointer newImage4D = Image4DType::New();
+
+  // Initialize the region
+  typename Image4DType::RegionType region_4d;
+  region_4d.SetIndex(3, 0); region_4d.SetSize(3, 1);
+
+  // Set the spacing, origin, direction for the last coordinate
+  auto spacing_4d = m_Image4D->GetSpacing();
+  auto origin_4d  = m_Image4D->GetOrigin();
+  auto dir_4d     = m_Image4D->GetDirection();
+
+  for(unsigned int j = 0; j < 3; j++)
+    {
+    region_4d.SetIndex(j, newImage->GetBufferedRegion().GetIndex(j));
+    region_4d.SetSize(j, newImage->GetBufferedRegion().GetSize(j));
+    spacing_4d[j] = newImage->GetSpacing()[j];
+    origin_4d[j] = newImage->GetOrigin()[j];
+    for(unsigned int k = 0; k < 3; k++)
+      dir_4d(j,k) = newImage->GetDirection() (j,k);
+    }
+
+  newImage4D->SetRegions(region_4d);
+  newImage4D->SetSpacing(spacing_4d);
+  newImage4D->SetOrigin(origin_4d);
+  newImage4D->SetDirection(dir_4d);
+  newImage4D->SetNumberOfComponentsPerPixel(newImage->GetNumberOfComponentsPerPixel());
+
+  // Take the 3D image's container into the 4D image
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+  Specialization::AssignPixelContainerFromTimePointTo4D(newImage4D, newImage);
+
+  // Initialize the new wrapper
+  typedef typename TTraits::WrapperType WrapperType;
+  SmartPtr<WrapperType> newWrapper = WrapperType::New();
+
+  // Copy the display to anatomy geometry to the new wrapper
+  IRISDisplayGeometry temp = m_DisplayGeometry;
+  newWrapper->SetDisplayGeometry(temp);
+
+  // Assign the new image to the new wrapper
+  newWrapper->SetImage4D(newImage4D);
+  newWrapper->SetNativeMapping(this->GetNativeMapping());
+
+  // Appropriate the default nickname?
+  newWrapper->SetDefaultNickname(this->GetDefaultNickname());
+  newWrapper->SetAlpha(this->GetAlpha());
+  newWrapper->SetSticky(this->IsSticky());
+
+  // We should not copy the user-assigned metadata. It's up to the
+  // user what should propagate to the ROI
+
+  // Cast to base class
+  SmartPtr<ImageWrapperBase> retptr = newWrapper.GetPointer();
+  return retptr;
+}
+
+template<class TTraits, class TBase>
+SmartPtr<ImageWrapperBase>
+ImageWrapper<TTraits,TBase>
+::ExtractROI4D(const SNAPSegmentationROISettings &roi,
+             itk::Command *progressCommand) const
+{
   Image4DPointer newImage = this->DeepCopyRegion4D(roi, progressCommand);
 
   // Initialize the new wrapper
