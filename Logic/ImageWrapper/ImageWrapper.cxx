@@ -74,6 +74,7 @@
 #include "AffineTransformHelper.h"
 #include "InputSelectionImageFilter.h"
 #include "MetaDataAccess.h"
+#include "AllPurposeProgressAccumulator.h"
 
 #include <vnl/vnl_inverse.h>
 #include <iostream>
@@ -2311,40 +2312,7 @@ ImageWrapper<TTraits,TBase>
 ::ExtractROI(const SNAPSegmentationROISettings &roi,
              itk::Command *progressCommand) const
 {
-  // Get the ITK image for the ROI (it will be a single time point image)
-  ImagePointer newImage = this->DeepCopyRegion(roi, progressCommand);
-
-  // Dress this image up as a 4D image.
-  Image4DPointer newImage4D = Image4DType::New();
-
-  // Initialize the region
-  typename Image4DType::RegionType region_4d;
-  region_4d.SetIndex(3, 0); region_4d.SetSize(3, 1);
-
-  // Set the spacing, origin, direction for the last coordinate
-  auto spacing_4d = m_Image4D->GetSpacing();
-  auto origin_4d  = m_Image4D->GetOrigin();
-  auto dir_4d     = m_Image4D->GetDirection();
-
-  for(unsigned int j = 0; j < 3; j++)
-    {
-    region_4d.SetIndex(j, newImage->GetBufferedRegion().GetIndex(j));
-    region_4d.SetSize(j, newImage->GetBufferedRegion().GetSize(j));
-    spacing_4d[j] = newImage->GetSpacing()[j];
-    origin_4d[j] = newImage->GetOrigin()[j];
-    for(unsigned int k = 0; k < 3; k++)
-      dir_4d(j,k) = newImage->GetDirection() (j,k);
-    }
-
-  newImage4D->SetRegions(region_4d);
-  newImage4D->SetSpacing(spacing_4d);
-  newImage4D->SetOrigin(origin_4d);
-  newImage4D->SetDirection(dir_4d);
-  newImage4D->SetNumberOfComponentsPerPixel(newImage->GetNumberOfComponentsPerPixel());
-
-  // Take the 3D image's container into the 4D image
-  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
-  Specialization::AssignPixelContainerFromTimePointTo4D(newImage4D, newImage);
+  Image4DPointer newImage = this->DeepCopyRegion4D(roi, progressCommand);
 
   // Initialize the new wrapper
   typedef typename TTraits::WrapperType WrapperType;
@@ -2355,7 +2323,7 @@ ImageWrapper<TTraits,TBase>
   newWrapper->SetDisplayGeometry(temp);
 
   // Assign the new image to the new wrapper
-  newWrapper->SetImage4D(newImage4D);
+  newWrapper->SetImage4D(newImage);
   newWrapper->SetNativeMapping(this->GetNativeMapping());
 
   // Appropriate the default nickname?
@@ -2389,6 +2357,70 @@ ImageWrapper<TTraits,TBase>
         m_Image, m_ReferenceSpace,
         this->GetITKTransform(), roi,
         force_resampling, progressCommand);
+}
+
+template<class TTraits, class TBase>
+typename ImageWrapper<TTraits,TBase>::Image4DPointer
+ImageWrapper<TTraits,TBase>
+::DeepCopyRegion4D(const SNAPSegmentationROISettings &roi,
+                 itk::Command *progressCommand) const
+{
+  // If the image in this wrapper is not the same as the reference space,
+  // we must force resampling to occur
+  bool force_resampling = !this->IsSlicingOrthogonal();
+
+  Image4DPointer outImg = Image4DType::New();
+  const unsigned int nT = this->GetNumberOfTimePoints();
+
+  // Set the spacing, origin, direction for the last coordinate
+  auto spacing_4d = m_Image4D->GetSpacing();
+  auto origin_4d = m_Image4D->GetOrigin();
+  auto dir_4d = m_Image4D->GetDirection();
+  auto region_4d = m_Image4D->GetBufferedRegion();
+  auto size_4d = region_4d.GetSize();
+
+  // Create a 4d buffer
+  typedef typename Image4DType::PixelContainer::Element ElementType;
+  typedef typename Image4DType::PixelContainer::ElementIdentifier ElementIdType;
+  ElementIdType buffer3dSize = size_4d[0] * size_4d[1] * size_4d[2];
+  ElementIdType buffer3dSizeInBytes = buffer3dSize * sizeof(ElementType);
+  ElementIdType buffer4dSize = buffer3dSize * nT;
+  ElementType *buffer4d = new ElementType[buffer4dSize];
+  ElementType *pCrntTPStart = buffer4d; // starting mem location of the current tp
+
+
+  outImg->SetRegions(region_4d);
+  outImg->SetSpacing(spacing_4d);
+  outImg->SetOrigin(origin_4d);
+  outImg->SetDirection(dir_4d);
+  outImg->SetNumberOfComponentsPerPixel(m_Image4D->GetNumberOfComponentsPerPixel());
+
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+
+  // Prepare progress accumulation
+  SmartPtr<AllPurposeProgressAccumulator> progress = AllPurposeProgressAccumulator::New();
+  progress->AddObserver(itk::ProgressEvent(), progressCommand);
+  typedef AllPurposeProgressAccumulator::CommandPointer CmdPtr;
+  std::vector<CmdPtr> TPCommand;
+
+  for (unsigned int t = 0u; t < nT; ++t)
+    {
+    TPCommand.push_back(progress->RegisterITKSourceViaCommand(1));
+    }
+
+  for (unsigned int t = 0u; t < nT; ++t)
+    {
+    typename ImageType::Pointer imgCopy, tpImg = this->GetImageByTimePoint(t);
+    imgCopy = Specialization::CopyRegion(tpImg, m_ReferenceSpace, this->GetITKTransform(),
+                                         roi, force_resampling, TPCommand[t]);
+
+    auto buffer3d = imgCopy->GetPixelContainer()->GetBufferPointer();
+    memcpy(pCrntTPStart, buffer3d, buffer3dSizeInBytes);
+    pCrntTPStart += buffer3dSize; // Increment pointer to next tp start
+    }
+
+  outImg->GetPixelContainer()->SetImportPointer(buffer4d, buffer4dSize, true);
+  return outImg;
 }
 
 

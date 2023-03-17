@@ -496,6 +496,14 @@ public:
   virtual ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
                               itk::Command *progressCommand = NULL) const;
 
+  /**
+   * This method is used to perform a deep copy of a 3D region of each time points
+   * of this image into another 4D image, potentially resampling the region to use a
+   * different voxel size
+   */
+  virtual Image4DPointer DeepCopyRegion4D(const SNAPSegmentationROISettings &roi,
+                              itk::Command *progressCommand = NULL) const;
+
 
   /**
    * Get an iterator for traversing the image.  The iterator is initialized
