@@ -2388,13 +2388,6 @@ ImageWrapper<TTraits,TBase>
   ElementType *buffer4d = new ElementType[buffer4dSize];
   ElementType *pCrntTPStart = buffer4d; // starting mem location of the current tp
 
-
-  outImg->SetRegions(region_4d);
-  outImg->SetSpacing(spacing_4d);
-  outImg->SetOrigin(origin_4d);
-  outImg->SetDirection(dir_4d);
-  outImg->SetNumberOfComponentsPerPixel(m_Image4D->GetNumberOfComponentsPerPixel());
-
   typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
 
   // Prepare progress accumulation
@@ -2408,16 +2401,36 @@ ImageWrapper<TTraits,TBase>
     TPCommand.push_back(progress->RegisterITKSourceViaCommand(1));
     }
 
+  typename ImageType::Pointer tpResliced, tpImg;
+
   for (unsigned int t = 0u; t < nT; ++t)
     {
-    typename ImageType::Pointer imgCopy, tpImg = this->GetImageByTimePoint(t);
-    imgCopy = Specialization::CopyRegion(tpImg, m_ReferenceSpace, this->GetITKTransform(),
+    tpImg = this->GetImageByTimePoint(t);
+    tpResliced = Specialization::CopyRegion(tpImg, m_ReferenceSpace, this->GetITKTransform(),
                                          roi, force_resampling, TPCommand[t]);
 
-    auto buffer3d = imgCopy->GetPixelContainer()->GetBufferPointer();
+    auto buffer3d = tpResliced->GetPixelContainer()->GetBufferPointer();
     memcpy(pCrntTPStart, buffer3d, buffer3dSizeInBytes);
     pCrntTPStart += buffer3dSize; // Increment pointer to next tp start
     }
+
+  // use the last resliced tp image to configure the output origin/spacing/direction/region
+  // -- this only configures the first three dimensions
+  for (int j = 0; j < 3; ++j)
+    {
+    region_4d.SetIndex(j, tpResliced->GetBufferedRegion().GetIndex(j));
+    region_4d.SetSize(j, tpResliced->GetBufferedRegion().GetSize(j));
+    spacing_4d[j] = tpResliced->GetSpacing()[j];
+    origin_4d[j] = tpResliced->GetOrigin()[j];
+    for(unsigned int k = 0; k < 3; k++)
+      dir_4d(j,k) = tpResliced->GetDirection() (j,k);
+    }
+
+  outImg->SetRegions(region_4d);
+  outImg->SetSpacing(spacing_4d);
+  outImg->SetOrigin(origin_4d);
+  outImg->SetDirection(dir_4d);
+  outImg->SetNumberOfComponentsPerPixel(m_Image4D->GetNumberOfComponentsPerPixel());
 
   outImg->GetPixelContainer()->SetImportPointer(buffer4d, buffer4dSize, true);
   return outImg;
