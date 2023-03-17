@@ -2443,12 +2443,13 @@ ImageWrapper<TTraits,TBase>
   auto origin_4d = m_Image4D->GetOrigin();
   auto dir_4d = m_Image4D->GetDirection();
   auto region_4d = m_Image4D->GetBufferedRegion();
-  auto size_4d = region_4d.GetSize();
 
   // Create a 4d buffer
   typedef typename Image4DType::PixelContainer::Element ElementType;
   typedef typename Image4DType::PixelContainer::ElementIdentifier ElementIdType;
-  ElementIdType buffer3dSize = size_4d[0] * size_4d[1] * size_4d[2];
+  auto size_3d = roi.GetROI().GetSize();
+  auto nC = m_Image4D->GetNumberOfComponentsPerPixel();
+  ElementIdType buffer3dSize = size_3d[0] * size_3d[1] * size_3d[2] * nC;
   ElementIdType buffer3dSizeInBytes = buffer3dSize * sizeof(ElementType);
   ElementIdType buffer4dSize = buffer3dSize * nT;
   ElementType *buffer4d = new ElementType[buffer4dSize];
@@ -2496,8 +2497,9 @@ ImageWrapper<TTraits,TBase>
   outImg->SetSpacing(spacing_4d);
   outImg->SetOrigin(origin_4d);
   outImg->SetDirection(dir_4d);
-  outImg->SetNumberOfComponentsPerPixel(m_Image4D->GetNumberOfComponentsPerPixel());
+  outImg->SetNumberOfComponentsPerPixel(tpResliced->GetNumberOfComponentsPerPixel());
 
+  // set the constructed 4d buffer to output's pixel container
   outImg->GetPixelContainer()->SetImportPointer(buffer4d, buffer4dSize, true);
   return outImg;
 }
