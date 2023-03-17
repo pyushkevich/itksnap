@@ -255,6 +255,13 @@ public:
   virtual SmartPtr<ImageWrapperBase> ExtractROI(
       const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const = 0;
 
+  /**
+   * Extract a 3d region of interest from all time points in the image wrapper,
+   * as a new wrapper of the same type
+   */
+  virtual SmartPtr<ImageWrapperBase> ExtractROI4D(
+      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const = 0;
+
   /** Transform a voxel index into a spatial position */
   virtual Vector3d TransformVoxelIndexToPosition(const Vector3i &iVoxel) const = 0;
 

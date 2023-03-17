@@ -90,12 +90,12 @@ ENDIF()
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 4)
 SET(SNAP_VERSION_MINOR 0)
-SET(SNAP_VERSION_PATCH 0)
+SET(SNAP_VERSION_PATCH 1)
 SET(SNAP_VERSION_QUALIFIER "")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20230220")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "February 20, 2023")
+SET(SNAP_VERSION_RELEASE_DATE "20230320")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "March 20, 2023")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way

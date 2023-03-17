@@ -159,45 +159,14 @@ void ScanningROI::setSpacing(double aarrdbXYZ[3])
 
 void ScanningROI::Update()
 {
+  m_pAxesWidget->GetAxesActor()->SetPosition(- m_dbGraphicScale / 2.0, -m_dbGraphicScale / 2.0, -m_dbGraphicScale / 2.0);
+  m_pAxesWidget->SetLabels("i", "j", "k");
+  m_pAxesWidget->SetColors(AxesWidget::m_arrdbColRed, AxesWidget::m_arrdbColGreen, AxesWidget::m_arrdbColBlue);
+  m_pAxesWidget->SetLengths(2.0 * m_dbGraphicScale);
 
-  vtkSmartPointer < vtkMatrix4x4 > pMatrix4x4DirectionsAccompanying =
-	  vtkSmartPointer < vtkMatrix4x4 >::New();
-  pMatrix4x4DirectionsAccompanying->Identity();
-
-  if(m_pMatrix4x4Directions->Determinant() > 0.0)
-    {
-    m_pAxesWidget->GetAxesActor()->SetPosition(- m_dbGraphicScale / 2.0, -m_dbGraphicScale / 2.0, -m_dbGraphicScale / 2.0);
-	m_pAxesWidget->SetLabels("i", "j", "k");
-    m_pAxesWidget->SetColors(AxesWidget::m_arrdbColRed, AxesWidget::m_arrdbColGreen, AxesWidget::m_arrdbColBlue);
-    }
-  else
-    {
-	//m_pAxesWidget->GetAxesActor()->SetPosition(m_dbGraphicScale / 2.0, m_dbGraphicScale / 2.0, m_dbGraphicScale / 2.0);
-	
-    pMatrix4x4DirectionsAccompanying->SetElement(0, 0, -1.0);
-    pMatrix4x4DirectionsAccompanying->SetElement(1, 1, 0.0);
-    pMatrix4x4DirectionsAccompanying->SetElement(1, 2, -1.0);
-    pMatrix4x4DirectionsAccompanying->SetElement(2, 1, -1.0);
-    pMatrix4x4DirectionsAccompanying->SetElement(2, 2, 0.0);
-
-	changeOrientation3x3(m_pMatrix4x4Directions);
-	m_pAxesWidget->SetLabels("i", "k", "j");
-    m_pAxesWidget->SetColors(AxesWidget::m_arrdbColRed, AxesWidget::m_arrdbColBlue, AxesWidget::m_arrdbColGreen);
-    }
-
-  m_pAxesWidget->GetAxesActor()->SetUserMatrix(pMatrix4x4DirectionsAccompanying);
-
-  //m_pMatrix4x4Directions->DeepCopy(apMatrix4x4);
-  //widget->GetProp3D()->SetUserTransform(t);
   vtkSmartPointer < vtkTransform > pTransform = vtkSmartPointer < vtkTransform >::New();
   pTransform->SetMatrix(m_pMatrix4x4Directions);
-  vtkLinearTransform *pLinearTransform = m_pvtkAssembly->GetUserTransform();
-  if(pLinearTransform == 0)
-    m_pvtkAssembly->SetUserTransform(pTransform);
-  else
-	pLinearTransform->DeepCopy(pTransform);
-
-  m_pAxesWidget->SetLengths(2.0 * m_dbGraphicScale);
+  m_pvtkAssembly->SetUserTransform(pTransform);
   
   int nI;
   int nPlanesNr = getPlanesNr();
@@ -205,25 +174,21 @@ void ScanningROI::Update()
   for(nI = 0; nI < nPlanesNr; nI++)
     {
     //First, create the transparent planes
-    double arrdbOrigin[4] = {0.0, 0.0, 0.0, 1.0},
-      arrdbP1[4] = {0.0, 0.0, 0.0, 1.0},
-	  arrdbP2[4] = {0.0, 0.0, 0.0, 1.0};
+    double arrdbOrigin[4] = {0.0, 0.0, 0.0, 1.0};
+    double arrdbP1[4] = {0.0, 0.0, 0.0, 1.0};
+    double arrdbP2[4] = {0.0, 0.0, 0.0, 1.0};
 
     arrdbOrigin[0] = - m_dbGraphicScale / 2.0;
-	arrdbOrigin[1] = - m_dbGraphicScale / 2.0;
+    arrdbOrigin[1] = - m_dbGraphicScale / 2.0;
     arrdbOrigin[2] = dbDelta * nI - ((int)(((double)nPlanesNr) / 2.0))  * dbDelta;
 
-	arrdbP1[0] = m_dbGraphicScale / 2.0;
-	arrdbP1[1] = - m_dbGraphicScale / 2.0;
-	arrdbP1[2] = arrdbOrigin[2];
+    arrdbP1[0] = m_dbGraphicScale / 2.0;
+    arrdbP1[1] = - m_dbGraphicScale / 2.0;
+    arrdbP1[2] = arrdbOrigin[2];
 
-	arrdbP2[0] = - m_dbGraphicScale / 2.0;
-	arrdbP2[1] = m_dbGraphicScale / 2.0;
-	arrdbP2[2] = arrdbOrigin[2];
-
-    //pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbOrigin);
-    //pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
-    //pMatrix4x4DirectionsAccompanying->MultiplyDoublePoint(arrdbP2);
+    arrdbP2[0] = - m_dbGraphicScale / 2.0;
+    arrdbP2[1] = m_dbGraphicScale / 2.0;
+    arrdbP2[2] = arrdbOrigin[2];
 
     Pairs_Plane_Pipe & ppp = m_arrpPairsPP_Axial[nI];
     vtkSmartPointer < vtkPlaneSource > pPlaneSource = ppp.m_p_PlaneSource;

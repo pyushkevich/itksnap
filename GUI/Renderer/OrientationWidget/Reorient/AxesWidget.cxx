@@ -21,9 +21,14 @@ AxesWidget::AxesWidget()
   m_pvtkAxesActor->SetYAxisLabelText( "y" );
   m_pvtkAxesActor->SetZAxisLabelText( "z" );
 
+  // Turn off lighting to prevent normal flipping effect
+  m_pvtkAxesActor->GetXAxisShaftProperty()->SetLighting(false);
+  m_pvtkAxesActor->GetYAxisShaftProperty()->SetLighting(false);
+  m_pvtkAxesActor->GetZAxisShaftProperty()->SetLighting(false);
+
   m_pvtkAxesActor->SetTotalLength( 1.5, 1.5, 1.5 );
-  m_pvtkAxesActor->SetCylinderRadius( 0.500 * m_pvtkAxesActor->GetCylinderRadius() );
-  m_pvtkAxesActor->SetConeRadius    ( 1.025 * m_pvtkAxesActor->GetConeRadius() );
+  m_pvtkAxesActor->SetCylinderRadius( 0.250 * m_pvtkAxesActor->GetCylinderRadius() );
+  m_pvtkAxesActor->SetConeRadius    ( 0.750 * m_pvtkAxesActor->GetConeRadius() );
   m_pvtkAxesActor->SetSphereRadius  ( 1.500 * m_pvtkAxesActor->GetSphereRadius() );
 
   m_pvtkAxesActor->SetConeResolution(100);
