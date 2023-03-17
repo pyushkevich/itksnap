@@ -934,7 +934,7 @@ void RegistrationModel
   roi.SetInterpolationMethod(method);
   roi.SetROI(m_Driver->GetCurrentImageData()->GetMain()->GetBufferedRegion());
   SmartPtr<ImageWrapperBase> reslice =
-      moving->ExtractROI(roi, m_Parent->GetProgressCommand());
+      moving->ExtractROI4D(roi, m_Parent->GetProgressCommand());
 
   // Give it a nickname
   reslice->SetCustomNickname(std::string("resliced ") + moving->GetNickname());
