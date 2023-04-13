@@ -2,6 +2,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkActor.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 
 #include "PolyDataAlgorithm2ActorPipe.h"
 
@@ -13,6 +14,7 @@ PolyDataAlgorithm2ActorPipe::PolyDataAlgorithm2ActorPipe()
   m_pvtkPolyDataMapper = vtkSmartPointer < vtkPolyDataMapper >::New();
   m_pvtkActor = vtkSmartPointer < vtkActor >::New();
   m_pvtkActor->SetMapper(m_pvtkPolyDataMapper);
+  m_pvtkActor->GetProperty()->SetLighting(false);
 
 }
 

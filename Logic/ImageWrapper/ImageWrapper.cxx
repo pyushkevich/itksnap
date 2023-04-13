@@ -74,6 +74,7 @@
 #include "AffineTransformHelper.h"
 #include "InputSelectionImageFilter.h"
 #include "MetaDataAccess.h"
+#include "AllPurposeProgressAccumulator.h"
 
 #include <vnl/vnl_inverse.h>
 #include <iostream>
@@ -2371,6 +2372,39 @@ ImageWrapper<TTraits,TBase>
   return retptr;
 }
 
+template<class TTraits, class TBase>
+SmartPtr<ImageWrapperBase>
+ImageWrapper<TTraits,TBase>
+::ExtractROI4D(const SNAPSegmentationROISettings &roi,
+             itk::Command *progressCommand) const
+{
+  Image4DPointer newImage = this->DeepCopyRegion4D(roi, progressCommand);
+
+  // Initialize the new wrapper
+  typedef typename TTraits::WrapperType WrapperType;
+  SmartPtr<WrapperType> newWrapper = WrapperType::New();
+
+  // Copy the display to anatomy geometry to the new wrapper
+  IRISDisplayGeometry temp = m_DisplayGeometry;
+  newWrapper->SetDisplayGeometry(temp);
+
+  // Assign the new image to the new wrapper
+  newWrapper->SetImage4D(newImage);
+  newWrapper->SetNativeMapping(this->GetNativeMapping());
+
+  // Appropriate the default nickname?
+  newWrapper->SetDefaultNickname(this->GetDefaultNickname());
+  newWrapper->SetAlpha(this->GetAlpha());
+  newWrapper->SetSticky(this->IsSticky());
+
+  // We should not copy the user-assigned metadata. It's up to the
+  // user what should propagate to the ROI
+
+  // Cast to base class
+  SmartPtr<ImageWrapperBase> retptr = newWrapper.GetPointer();
+  return retptr;
+}
+
 
 template<class TTraits, class TBase>
 typename ImageWrapper<TTraits,TBase>::ImagePointer
@@ -2389,6 +2423,85 @@ ImageWrapper<TTraits,TBase>
         m_Image, m_ReferenceSpace,
         this->GetITKTransform(), roi,
         force_resampling, progressCommand);
+}
+
+template<class TTraits, class TBase>
+typename ImageWrapper<TTraits,TBase>::Image4DPointer
+ImageWrapper<TTraits,TBase>
+::DeepCopyRegion4D(const SNAPSegmentationROISettings &roi,
+                 itk::Command *progressCommand) const
+{
+  // If the image in this wrapper is not the same as the reference space,
+  // we must force resampling to occur
+  bool force_resampling = !this->IsSlicingOrthogonal();
+
+  Image4DPointer outImg = Image4DType::New();
+  const unsigned int nT = this->GetNumberOfTimePoints();
+
+  // Set the spacing, origin, direction for the last coordinate
+  auto spacing_4d = m_Image4D->GetSpacing();
+  auto origin_4d = m_Image4D->GetOrigin();
+  auto dir_4d = m_Image4D->GetDirection();
+  auto region_4d = m_Image4D->GetBufferedRegion();
+
+  // Create a 4d buffer
+  typedef typename Image4DType::PixelContainer::Element ElementType;
+  typedef typename Image4DType::PixelContainer::ElementIdentifier ElementIdType;
+  auto size_3d = roi.GetROI().GetSize();
+  auto nC = m_Image4D->GetNumberOfComponentsPerPixel();
+  ElementIdType buffer3dSize = size_3d[0] * size_3d[1] * size_3d[2] * nC;
+  ElementIdType buffer3dSizeInBytes = buffer3dSize * sizeof(ElementType);
+  ElementIdType buffer4dSize = buffer3dSize * nT;
+  ElementType *buffer4d = new ElementType[buffer4dSize];
+  ElementType *pCrntTPStart = buffer4d; // starting mem location of the current tp
+
+  typedef ImageWrapperPartialSpecializationTraits<ImageType, Image4DType> Specialization;
+
+  // Prepare progress accumulation
+  SmartPtr<AllPurposeProgressAccumulator> progress = AllPurposeProgressAccumulator::New();
+  progress->AddObserver(itk::ProgressEvent(), progressCommand);
+  typedef AllPurposeProgressAccumulator::CommandPointer CmdPtr;
+  std::vector<CmdPtr> TPCommand;
+
+  for (unsigned int t = 0u; t < nT; ++t)
+    {
+    TPCommand.push_back(progress->RegisterITKSourceViaCommand(1));
+    }
+
+  typename ImageType::Pointer tpResliced, tpImg;
+
+  for (unsigned int t = 0u; t < nT; ++t)
+    {
+    tpImg = this->GetImageByTimePoint(t);
+    tpResliced = Specialization::CopyRegion(tpImg, m_ReferenceSpace, this->GetITKTransform(),
+                                         roi, force_resampling, TPCommand[t]);
+
+    auto buffer3d = tpResliced->GetPixelContainer()->GetBufferPointer();
+    memcpy(pCrntTPStart, buffer3d, buffer3dSizeInBytes);
+    pCrntTPStart += buffer3dSize; // Increment pointer to next tp start
+    }
+
+  // use the last resliced tp image to configure the output origin/spacing/direction/region
+  // -- this only configures the first three dimensions
+  for (int j = 0; j < 3; ++j)
+    {
+    region_4d.SetIndex(j, tpResliced->GetBufferedRegion().GetIndex(j));
+    region_4d.SetSize(j, tpResliced->GetBufferedRegion().GetSize(j));
+    spacing_4d[j] = tpResliced->GetSpacing()[j];
+    origin_4d[j] = tpResliced->GetOrigin()[j];
+    for(unsigned int k = 0; k < 3; k++)
+      dir_4d(j,k) = tpResliced->GetDirection() (j,k);
+    }
+
+  outImg->SetRegions(region_4d);
+  outImg->SetSpacing(spacing_4d);
+  outImg->SetOrigin(origin_4d);
+  outImg->SetDirection(dir_4d);
+  outImg->SetNumberOfComponentsPerPixel(tpResliced->GetNumberOfComponentsPerPixel());
+
+  // set the constructed 4d buffer to output's pixel container
+  outImg->GetPixelContainer()->SetImportPointer(buffer4d, buffer4dSize, true);
+  return outImg;
 }
 
 

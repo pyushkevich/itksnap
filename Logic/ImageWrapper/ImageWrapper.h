@@ -487,6 +487,13 @@ public:
   virtual SmartPtr<ImageWrapperBase> ExtractROI(
       const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const ITK_OVERRIDE;
 
+  /**
+   * Extract a 3d region of interest from all time points in the image wrapper,
+   * as a new wrapper of the same type
+   */
+  virtual SmartPtr<ImageWrapperBase> ExtractROI4D(
+      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const ITK_OVERRIDE;
+
 
   /**
    * This method is used to perform a deep copy of a region of this image 
@@ -494,6 +501,14 @@ public:
    * voxel size
    */
   virtual ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
+                              itk::Command *progressCommand = NULL) const;
+
+  /**
+   * This method is used to perform a deep copy of a 3D region of each time points
+   * of this image into another 4D image, potentially resampling the region to use a
+   * different voxel size
+   */
+  virtual Image4DPointer DeepCopyRegion4D(const SNAPSegmentationROISettings &roi,
                               itk::Command *progressCommand = NULL) const;
 
 

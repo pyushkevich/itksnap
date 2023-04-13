@@ -8,6 +8,7 @@ class vtkAssembly;
 class vtkPlaneSource;
 class vtkCaptionActor2D;
 class vtkTubeFilter;
+class vtkMatrix4x4;
 
 class AxesWidget;
 class PolyDataAlgorithm2ActorPipe;
