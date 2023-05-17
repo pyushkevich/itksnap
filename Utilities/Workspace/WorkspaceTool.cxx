@@ -92,6 +92,7 @@ int usage(int rc)
   cout << "Commands for adding/setting/select image layers: " << endl;
   cout << "  -layers-add-anat <file>           : Add an image as next anatomical layer" << endl;
   cout << "  -layers-add-seg <file>            : Add an image as next segmentation layer" << endl;
+  cout << "  -layers-add-mesh <file> <tp>      : Add a mesh to a time point as next standalone mesh layer" << endl;
   cout << "  -layers-set-main <file>           : Set the main anatomical image" << endl;
   cout << "  -layers-set-seg <file>            : Set a single segmentation image - all other segs are trashed" << endl;
   cout << "  -layers-list                      : List all the layers in the workspace" << endl;
@@ -496,6 +497,16 @@ int main(int argc, char *argv[])
         {
         string filename = cl.read_existing_filename();
         string key = ws.AddLayer("SegmentationRole", filename.c_str());
+        layer_folder = key;
+        cout << "INFO: picked layer " << layer_folder << endl;
+        }
+
+      // Add a layer - the layer will be added in the mesh role
+      else if (arg == "-layers-add-mesh" || arg == "-lam")
+        {
+        string filename = cl.read_existing_filename();
+        unsigned int tp = cl.read_integer();
+        string key = ws.AddMeshLayer(filename, tp);
         layer_folder = key;
         cout << "INFO: picked layer " << layer_folder << endl;
         }

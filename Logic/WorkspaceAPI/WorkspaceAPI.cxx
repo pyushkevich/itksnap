@@ -10,6 +10,7 @@
 #include "MultiChannelDisplayMode.h"
 #include "RESTClient.h"
 #include "itkCommand.h"
+#include "GuidedMeshIO.h"
 
 using namespace std;
 using itksys::SystemTools;
@@ -69,6 +70,15 @@ int WorkspaceAPI::GetNumberOfLayers() const
   // supports arrays of folders.
   int n_layers = 0;
   while(m_Registry.HasFolder(Registry::Key("Layers.Layer[%03d]", n_layers)))
+    n_layers++;
+
+  return n_layers;
+}
+
+int WorkspaceAPI::GetNumberOfMeshLayers() const
+{
+  int n_layers = 0;
+  while (m_Registry.HasFolder(Registry::Key("MeshLayers.Layer[%03d]", n_layers)))
     n_layers++;
 
   return n_layers;
@@ -184,7 +194,7 @@ void WorkspaceAPI::PrintLayerList(std::ostream &os, const string &line_prefix)
 
     // Use the %03d formatting for layer numbers, to match that in the registry
     char ifmt[16];
-    sprintf(ifmt, "%03d", i);
+    snprintf(ifmt, 16, "%03d", i);
 
     // Print the layer information
     table
@@ -364,7 +374,7 @@ void WorkspaceAPI::PrintTimePointList(std::ostream &os, const string &line_prefi
 
     // Use the %03d formatting for layer numbers, to match that in the registry
     char ifmt[16];
-    sprintf(ifmt, "%03d", i);
+    snprintf(ifmt, 16, "%03d", i);
 
     // Print the layer information
     table
@@ -660,6 +670,38 @@ string WorkspaceAPI::SetLayer(string role, const string &filename)
   return key;
 }
 
+string WorkspaceAPI::AddMeshLayer(const string &filename, unsigned int tp)
+{
+  // Main image has to be loaded already
+  if (this->FindLayerByRole("MainRole", 0).length() == 0)
+    throw IRISException("Cannot add mesh to a workspace without a main image!");
+
+  if (tp < 1)
+    throw IRISException("Time point value must start from 1! current: %d.", tp);
+
+  // Append a mesh layer folder
+  string key = Registry::Key("MeshLayers.Layer[%03d]", this->GetNumberOfMeshLayers());
+
+  // Create a folder for this key
+  Registry &meshLayer = m_Registry.Folder(key);
+  Registry &tpMesh = meshLayer.Folder("MeshTimePoints");
+
+  Registry &newTP = meshLayer.Folder(Registry::Key("TimePoint[%03d]", tp));
+  newTP["TimePoint"] << tp;
+
+  // Add the filename
+  Registry &polyData = m_Registry.Folder("PolyData[000]"); // only support 1 polydata for now
+  polyData["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
+
+  // Add format string from file extension
+  size_t dotInd = filename.find_last_of(".");
+  string ext = (dotInd != string::npos) ? filename.substr(dotInd + 1) : "";
+  GuidedMeshIO::FileFormat fmtEnum = GuidedMeshIO::GetFormatByExtension(ext);
+  GuidedMeshIO::SetFileFormat(polyData, fmtEnum);
+
+  return key;
+}
+
 void WorkspaceAPI::WriteLayerContrastToRegistry(Registry &folder, int n, double *tarray, double *yarray)
 {
   folder.Clear();
@@ -791,7 +833,7 @@ void WorkspaceAPI::AddLabels(const string &label_file, int offset, const string 
       {
       ColorLabel cl = it->second;
       char buffer[1024];
-      sprintf(buffer, rename_pattern.c_str(), cl.GetLabel());
+      snprintf(buffer, 1024, rename_pattern.c_str(), cl.GetLabel());
       cl.SetLabel(buffer);
       clt->SetColorLabel(it->first + offset, cl);
       }
@@ -933,7 +975,7 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace,
 
     // Create a filename that combines the layer index with the hash code
     char fn_layer_new[4096];
-    sprintf(fn_layer_new, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, fn_layer_basename.c_str());
+    snprintf(fn_layer_new, 4096, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, fn_layer_basename.c_str());
 
     // Save the layer there. Since we are saving as a NIFTI, we don't need to
     // provide any hints
@@ -980,7 +1022,7 @@ void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id,
 
   // Export the workspace file to the temporary directory
   char ws_fname_buffer[4096];
-  sprintf(ws_fname_buffer, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
+  snprintf(ws_fname_buffer, 4096, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
   ExportWorkspace(ws_fname_buffer, cmd_export);
 
   // Count the number of files in the directory

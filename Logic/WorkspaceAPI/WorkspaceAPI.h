@@ -46,6 +46,11 @@ public:
   int GetNumberOfLayers() const;
 
   /**
+   * Get number of mesh layers in the workspace
+   */
+  int GetNumberOfMeshLayers() const;
+
+  /**
    * Get the folder for the n-th layer
    */
   Registry &GetLayerFolder(int layer_index);
@@ -154,11 +159,14 @@ public:
    */
   void UpdateMainLayerFieldsFromImage(Registry &main_layer_folder);
 
-  /** Add a layer to the workspace in a given role */
+  /** Add an image layer to the workspace in a given role */
   std::string AddLayer(std::string role, const std::string &filename);
 
-  /** Assign a layer to a specific role (main/seg) */
+  /** Assign an image layer to a specific role (main/seg) */
   std::string SetLayer(std::string role, const std::string &filename);
+
+  /** Add a standalone mesh layer to the workspace */
+  std::string AddMeshLayer(const std::string &filename, unsigned int tp = 1);
 
   /** Write a control point sequence to the folder for a contrast mapping */
   void WriteLayerContrastToRegistry(Registry &folder, int n, double *tarray, double *yarray);
