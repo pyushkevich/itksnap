@@ -684,13 +684,18 @@ string WorkspaceAPI::AddMeshLayer(const string &filename, unsigned int tp)
 
   // Create a folder for this key
   Registry &meshLayer = m_Registry.Folder(key);
+  meshLayer["MeshType"] << "StandaloneMesh";
+  meshLayer["Nickname"] << "";
+  meshLayer["Tags"] << "";
+
+  // Create mesh time points
   Registry &tpMesh = meshLayer.Folder("MeshTimePoints");
 
-  Registry &newTP = meshLayer.Folder(Registry::Key("TimePoint[%03d]", tp));
+  Registry &newTP = tpMesh.Folder(Registry::Key("TimePoint[%03d]", tp));
   newTP["TimePoint"] << tp;
 
   // Add the filename
-  Registry &polyData = m_Registry.Folder("PolyData[000]"); // only support 1 polydata for now
+  Registry &polyData = newTP.Folder("PolyData[000]"); // this method only support 1 poly
   polyData["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
 
   // Add format string from file extension
@@ -698,6 +703,8 @@ string WorkspaceAPI::AddMeshLayer(const string &filename, unsigned int tp)
   string ext = (dotInd != string::npos) ? filename.substr(dotInd + 1) : "";
   GuidedMeshIO::FileFormat fmtEnum = GuidedMeshIO::GetFormatByExtension(ext);
   GuidedMeshIO::SetFileFormat(polyData, fmtEnum);
+
+
 
   return key;
 }

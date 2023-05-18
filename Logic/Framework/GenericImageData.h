@@ -187,6 +187,11 @@ public:
 
   int GetNumberOfOverlays();
 
+  /**
+   * Get Number of Timepoints in the workspace
+   */
+  unsigned int GetNumberOfTimePoints() const;
+
   ImageWrapperBase *GetLastOverlay();
 
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;

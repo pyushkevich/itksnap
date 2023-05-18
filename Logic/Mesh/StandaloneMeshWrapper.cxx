@@ -35,8 +35,13 @@ StandaloneMeshWrapper
       m_MeshAssemblyMap[timepoint] = assembly.GetPointer();
     }
 
+  int propId = (m_CombinedDataPropertyMap.size() > 0) ?
+        m_CombinedDataPropertyMap.cbegin()->first : -1;
+
+  std::cout << "[StandaloneMeshWrapper]::SetMesh() propId = " << propId << std::endl;
+
   // Set Default active array id
-  SetActiveMeshLayerDataPropertyId(m_CombinedDataPropertyMap.cbegin()->first);
+  SetActiveMeshLayerDataPropertyId(propId);
 
   InvokeEvent(ValueChangedEvent());
 }
@@ -88,9 +93,10 @@ StandaloneMeshWrapper
 
 void
 StandaloneMeshWrapper
-::LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir)
+::LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir,
+                   unsigned int nT)
 {
-  Superclass::LoadFromRegistry(folder, orig_dir, crnt_dir); // Load basic structures using parent method
+  Superclass::LoadFromRegistry(folder, orig_dir, crnt_dir, nT); // Load basic structures using parent method
 
   auto folder_data = folder.Folder("DataArrayProperties");
   unsigned int array_id = 0;
@@ -130,7 +136,5 @@ StandaloneMeshWrapper
     ++array_id;
     key_data = Registry::Key("DataArray[%03d]", array_id);
     }
-
-  SetActiveMeshLayerDataPropertyId(0);
 }
 
