@@ -56,6 +56,11 @@ public:
   Registry &GetLayerFolder(int layer_index);
 
   /**
+   * Get the folder for the n-th mesh layer
+   */
+  Registry &GetMeshLayerFolder(int layer_index);
+
+  /**
    * Get the layer folder by key. This function throws an exception if the key does
    * not correspond to a valid layer.
    */

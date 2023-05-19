@@ -90,6 +90,14 @@ Registry &WorkspaceAPI::GetLayerFolder(int layer_index)
   return m_Registry.Folder(key);
 }
 
+Registry&
+WorkspaceAPI
+::GetMeshLayerFolder(int layer_index)
+{
+  string key = Registry::Key("MeshLayers.Layer[%03d]", layer_index);
+  return m_Registry.Folder(key);
+}
+
 Registry &WorkspaceAPI::GetLayerFolder(const string &layer_key)
 {
   if(!layer_key.length() || !m_Registry.HasFolder(layer_key))
@@ -175,6 +183,7 @@ void WorkspaceAPI::PrintLayerList(std::ostream &os, const string &line_prefix)
 {
   // Iterate over all the layers stored in the workspace
   int n_layers = this->GetNumberOfLayers();
+  int n_mesh_layers = this->GetNumberOfMeshLayers();
 
   // Use a formatted table
   FormattedTable table(5);
@@ -206,6 +215,41 @@ void WorkspaceAPI::PrintLayerList(std::ostream &os, const string &line_prefix)
     }
 
   table.Print(os, line_prefix);
+
+  // Print mesh layers
+  if (n_mesh_layers <= 0)
+    return;
+
+  FormattedTable meshTable(5);
+  meshTable << "Mesh_Layer" << "Nickname" << "Tags" << "Timepoint" << "Polydata_File" ;
+
+  for (int i = 0; i < n_mesh_layers; ++i)
+    {
+    Registry &meshLayer = this->GetMeshLayerFolder(i);
+    Registry &tpMeshes = meshLayer.Folder("MeshTimePoints");
+    auto tpMeshKeyList = tpMeshes.FindFoldersFromPattern("TimePoint*");
+
+    for (auto tpMeshKey : tpMeshKeyList)
+      {
+      Registry &tpMesh = tpMeshes.Folder(tpMeshKey);
+      auto polyKeyList = tpMesh.FindFoldersFromPattern("PolyData*");
+      for (auto polyKey : polyKeyList)
+        {
+        Registry &polyData = tpMesh.Folder(polyKey);
+
+        // Use the %03d formatting for layer numbers, to match that in the registry
+        string key = Registry::Key("%03d", i);
+        meshTable << key
+                  << meshLayer["NickName"][""]
+                  << meshLayer["Tags"][""]
+                  << tpMeshKey
+                  << polyData["AbsolutePath"][""];
+        }
+      }
+    }
+
+  os << std::endl;
+  meshTable.Print(os, line_prefix);
 }
 
 int WorkspaceAPI::GetNumberOfAnnotations()
@@ -703,8 +747,6 @@ string WorkspaceAPI::AddMeshLayer(const string &filename, unsigned int tp)
   string ext = (dotInd != string::npos) ? filename.substr(dotInd + 1) : "";
   GuidedMeshIO::FileFormat fmtEnum = GuidedMeshIO::GetFormatByExtension(ext);
   GuidedMeshIO::SetFileFormat(polyData, fmtEnum);
-
-
 
   return key;
 }
