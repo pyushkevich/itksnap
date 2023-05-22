@@ -74,10 +74,29 @@ public:
   bool IsKeyValidLayer(const std::string &key);
 
   /**
+   * Check if the provided key specifies a valid mesh layer - a valid mesh layer is specified
+   * as "MeshLayers.Layer[xxx]" and contains at least one timepoint and one polydata filename
+   * for the timepoint
+   */
+  bool IsKeyValidMeshLayer(const std::string &key);
+
+  /**
    * Find a physical file corresponding to a file referenced by the project, accouting
    * for the possibility that the project may have been moved or copied
    */
   std::string GetLayerActualPath(Registry &folder);
+
+  /**
+   * Find a physical file corresponding to a polydata component in the specified meshlayer timepoint,
+   * accouting for the possibility that the project may have been moved or copied
+   */
+  std::string GetMeshLayerPolyDataPath(const std::string &folder, unsigned int tp, unsigned int polyId);
+
+  /**
+   * Add a polydata component to an existing mesh time point
+   * Returns the polydata_id of the newly created polydata component
+   */
+  unsigned int AddMeshPolyData(std::string &layer_key, unsigned int tp, std::string &filename);
 
   /**
    * Convert all layer paths in the workspace to actual paths - should be done
@@ -126,6 +145,12 @@ public:
    * the end for that role
    */
   std::string FindLayerByRole(const std::string &role, int pos_in_role);
+
+  /**
+   * Find a mesh layer by id
+   * e.g. Passing 1 will find MeshLayers.Layer[001]
+   */
+  std::string FindMeshLayerById(int id);
 
   /**
    * Find layers that match a tag

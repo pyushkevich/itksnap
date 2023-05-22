@@ -439,8 +439,6 @@ MeshWrapperBase
   GuidedMeshIO io;
   bool moved = (orig_dir.compare(crnt_dir) != 0);
 
-  std::cout << "[MWB::LoadFromRegistry]" << std::endl;
-
   // Load nicknames and tags
   this->SetCustomNickname(folder["NickName"][""]);
   folder["Tags"].GetList(this->m_Tags);
@@ -457,14 +455,12 @@ MeshWrapperBase
     if (!folder_assembly.HasFolder(key_tp))
       continue;
 
-    std::cout << "-- Parsing TP: " << key_tp << std::endl;
     auto folder_tp = folder_assembly.Folder(key_tp);
     unsigned int crnt_poly = 0; // polydata must start with index 0
     std::string key_poly = Registry::Key("PolyData[%03d]", crnt_poly);
 
     while (folder_tp.HasFolder(key_poly))
       {
-      std::cout << "---- Loading: " << key_poly << std::endl;
       auto folder_poly = folder_tp.Folder(key_poly);
       std::string poly_file_full = folder_poly["AbsolutePath"][""];
       if (moved)

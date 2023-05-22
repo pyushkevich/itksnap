@@ -38,8 +38,6 @@ StandaloneMeshWrapper
   int propId = (m_CombinedDataPropertyMap.size() > 0) ?
         m_CombinedDataPropertyMap.cbegin()->first : -1;
 
-  std::cout << "[StandaloneMeshWrapper]::SetMesh() propId = " << propId << std::endl;
-
   // Set Default active array id
   SetActiveMeshLayerDataPropertyId(propId);
 

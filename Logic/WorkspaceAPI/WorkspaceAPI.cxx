@@ -119,6 +119,50 @@ bool WorkspaceAPI::IsKeyValidLayer(const string &key)
   return folder.HasEntry("AbsolutePath") && folder.HasEntry("Role");
 }
 
+bool WorkspaceAPI::IsKeyValidMeshLayer(const std::string &key)
+{
+  RegularExpression re("MeshLayers.Layer\\[[0-9]+\\]");
+  if (!re.find(key))
+    return false;
+
+  if (!m_Registry.HasFolder(key))
+    return false;
+
+  Registry &meshLayer = m_Registry.Folder(key);
+
+  if (!meshLayer.HasFolder("MeshTimePoints"))
+    return false;
+
+  Registry &tpMeshes = meshLayer.Folder("MeshTimePoints");
+
+  // Get a list of time points
+  auto tpList = tpMeshes.FindFoldersFromPattern("TimePoint\\[[0-9]+\\]");
+  if (tpList.size() <= 0)
+    return false;
+
+  for (auto &tpKey : tpList)
+    {
+    Registry &tpMesh = tpMeshes.Folder(tpKey);
+
+    // All time points should have at least one polydata file
+    auto polyList = tpMesh.FindFoldersFromPattern("PolyData\\[[0-9]+\\]");
+    if (polyList.size() <= 0)
+      return false;
+
+    for (auto &polyKey : polyList)
+      {
+      Registry &polyData = tpMesh.Folder(polyKey);
+
+      if (!polyData.HasEntry("AbsolutePath") || !polyData.HasEntry("Format"))
+        return false;
+      }
+    }
+
+  return true;
+
+
+}
+
 // TODO: merge with IRISApplication
 string WorkspaceAPI::GetLayerActualPath(Registry &folder)
 {
@@ -157,6 +201,58 @@ string WorkspaceAPI::GetLayerActualPath(Registry &folder)
 
   // Return the file - no guarantee that it exists...
   return layer_file_full;
+}
+
+std::string
+WorkspaceAPI
+::GetMeshLayerPolyDataPath(const std::string &folder, unsigned int tp, unsigned int polyId)
+{
+  std::string ret = "";
+
+  if (!m_Registry.HasFolder(folder))
+    return ret;
+
+  Registry &layerFolder = m_Registry.Folder(folder);
+
+  std::string targetKey = Registry::Key("MeshTimePoints.TimePoint[%03d].PolyData[%03d]",
+                                        tp, polyId);
+
+  if (layerFolder.HasFolder(targetKey))
+    {
+    Registry &polyData = layerFolder.Folder(targetKey);
+    ret = polyData.Entry("AbsolutePath")[""];
+    }
+  else
+    throw IRISException("Target object %s does not exist", targetKey.c_str());
+
+  return ret;
+}
+
+unsigned int
+WorkspaceAPI
+::AddMeshPolyData(std::string &layer_key, unsigned int tp, std::string &filename)
+{
+  Registry &layer = m_Registry.Folder(layer_key);
+  std::string tpMeshKey = Registry::Key("MeshTimePoints.TimePoint[%03d]", tp);
+
+  bool tpExist = layer.HasFolder(tpMeshKey);
+  Registry &tpMesh = layer.Folder(tpMeshKey);
+  if (!tpExist)
+    tpMesh["TimePoint"] = to_string(tp);
+
+  auto polyKeyList = tpMesh.FindFoldersFromPattern("PolyData[\\[0-9]+\\]");
+  auto newPolyId = polyKeyList.size();
+  auto targetKey = Registry::Key("PolyData[%03d]", newPolyId);
+
+  Registry &polyData = tpMesh.Folder(targetKey);
+  polyData["AbsolutePath"] = filename;
+
+  size_t dotInd = filename.find_last_of(".");
+  string ext = (dotInd != string::npos) ? filename.substr(dotInd + 1) : "";
+  GuidedMeshIO::FileFormat fmtEnum = GuidedMeshIO::GetFormatByExtension(ext);
+  GuidedMeshIO::SetFileFormat(polyData, fmtEnum);
+
+  return newPolyId;
 }
 
 void WorkspaceAPI::SetAllLayerPathsToActualPaths()
@@ -579,6 +675,15 @@ string WorkspaceAPI::FindLayerByRole(const string &role, int pos_in_role)
   return string();
 }
 
+string WorkspaceAPI::FindMeshLayerById(int id)
+{
+  string targetKey = Registry::Key("MeshLayers.Layer[%03d]", id);
+  if (m_Registry.HasFolder(targetKey))
+    return targetKey;
+
+  return "";
+}
+
 string WorkspaceAPI::LayerSpecToKey(const string &layer_spec)
 {
   // Basic pattern (001)
@@ -616,6 +721,10 @@ string WorkspaceAPI::LayerSpecToKey(const string &layer_spec)
   else if(reStrNum.find(layer_spec.c_str()))
     {
     string str_spec = reStrNum.match(1);
+    string str_spec_upper;
+    std::transform(str_spec.begin(), str_spec.end(),
+                   std::back_inserter(str_spec_upper),::toupper);
+
     int index = atoi(reStrNum.match(2).c_str());
     if(str_spec == "A" || str_spec == "a" || str_spec == "anat")
       {
@@ -626,6 +735,12 @@ string WorkspaceAPI::LayerSpecToKey(const string &layer_spec)
     else if(str_spec == "O" || str_spec == "o" || str_spec == "overlay")
       {
       string key = this->FindLayerByRole("OverlayRole", index);
+      if(key.length() && m_Registry.HasFolder(key))
+        return key;
+      }
+    else if(str_spec_upper == "MESH")
+      {
+      string key = this->FindMeshLayerById(index);
       if(key.length() && m_Registry.HasFolder(key))
         return key;
       }

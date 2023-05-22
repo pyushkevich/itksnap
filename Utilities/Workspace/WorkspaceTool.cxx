@@ -102,6 +102,12 @@ int usage(int rc)
   cout << "Commands for modifying picked layer properties:" << endl;
   cout << "  -props-get-filename               : Print the filename of the picked layer" << endl;
   cout << "  -props-get-transform              : Print the affine transform relative to main image" << endl;
+  cout << "  -props-get-mesh-filename <tp> <polydata_id> " << endl;
+  cout << "                                    : Print the filename of the timepoint and polydata_id" << endl;
+  cout << "                                      in the picked mesh layer. " << endl;
+  cout << "                                      <tp> starts from 1; For key PolyData[000], pass <polydata_id> as 0" << endl;
+  cout << "  -props-add-mesh-polydata <file> <tp> : Add polydata file to the timepoint <tp> of the picked mesh layer." << endl;
+  cout << "                                      Command will print out added polydata id if succeed." << endl;
   cout << "  -props-rename-file                : Rename the picked layer on disk and in workspace" << endl;
   cout << "  -props-set-nickname <name>        : Set the nickname of the selected layer" << endl;
   cout << "  -props-set-colormap <preset>      : Set colormap to a given system preset" << endl;
@@ -535,6 +541,28 @@ int main(int argc, char *argv[])
           throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
 
         cout << prefix << ws.GetLayerActualPath(ws.GetFolder(layer_folder)) << endl;
+        }
+
+      else if(arg == "-props-get-mesh-filename" || arg == "-pgmf")
+        {
+        if(!ws.IsKeyValidMeshLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid mesh layer", layer_folder.c_str());
+
+        unsigned int tp = cl.read_integer();
+        unsigned int polyId = cl.read_integer();
+
+        cout << prefix << ws.GetMeshLayerPolyDataPath(layer_folder, tp, polyId) << endl;
+        }
+
+      else if(arg == "-props-add-mesh-polydata")
+        {
+        if(!ws.IsKeyValidMeshLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid mesh layer", layer_folder.c_str());
+
+        string filename = cl.read_existing_filename();
+        int tp = cl.read_integer();
+
+        ws.AddMeshPolyData(layer_folder, tp, filename);
         }
 
       else if(arg == "-props-registry-get" || arg == "-prg")
