@@ -67,6 +67,11 @@ public:
   Registry &GetLayerFolder(const std::string &layer_key);
 
   /**
+   * Get the mesh layer folder by key.
+   */
+  Registry &GetMeshLayerFolder(const std::string &layer_key);
+
+  /**
    * Check if the provided key specifies a valid layer - a valid layer is specified
    * as "Layers.Layer[xxx]" and contains an absolute filename and a role as the minimum
    * required entries

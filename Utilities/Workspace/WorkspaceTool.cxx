@@ -548,13 +548,19 @@ int main(int argc, char *argv[])
         if(!ws.IsKeyValidMeshLayer(layer_folder))
           throw IRISException("Selected object %s is not a valid mesh layer", layer_folder.c_str());
 
-        unsigned int tp = cl.read_integer();
-        unsigned int polyId = cl.read_integer();
+        int tp = cl.read_integer();
+        int polyId = cl.read_integer();
+
+        if (tp <= 0)
+          throw IRISException("Invalid time point value %d. Time point should start from 1.", tp);
+
+        if (polyId < 0)
+          throw IRISException("Invalid polydata_id value %d. Polydata Id should start from 0.", polyId);
 
         cout << prefix << ws.GetMeshLayerPolyDataPath(layer_folder, tp, polyId) << endl;
         }
 
-      else if(arg == "-props-add-mesh-polydata")
+      else if(arg == "-props-add-mesh-polydata" || arg == "-pamp")
         {
         if(!ws.IsKeyValidMeshLayer(layer_folder))
           throw IRISException("Selected object %s is not a valid mesh layer", layer_folder.c_str());
@@ -562,7 +568,13 @@ int main(int argc, char *argv[])
         string filename = cl.read_existing_filename();
         int tp = cl.read_integer();
 
-        ws.AddMeshPolyData(layer_folder, tp, filename);
+        if (tp <= 0)
+          throw IRISException("Invalid time point value %d. Time point should start from 1.", tp);
+
+        unsigned int newPolyId = ws.AddMeshPolyData(layer_folder, tp, filename);
+
+        cout << "INFO: polydata added to timepoint: " << tp
+             << "; New polydata id: " << newPolyId << std::endl;
         }
 
       else if(arg == "-props-registry-get" || arg == "-prg")

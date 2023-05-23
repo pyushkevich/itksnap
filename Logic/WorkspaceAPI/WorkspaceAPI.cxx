@@ -90,11 +90,12 @@ Registry &WorkspaceAPI::GetLayerFolder(int layer_index)
   return m_Registry.Folder(key);
 }
 
-Registry&
-WorkspaceAPI
-::GetMeshLayerFolder(int layer_index)
+Registry &WorkspaceAPI::GetMeshLayerFolder(int layer_index)
 {
   string key = Registry::Key("MeshLayers.Layer[%03d]", layer_index);
+  if (!m_Registry.HasFolder(key))
+    throw IRISException("Mesh layer folder %s does not exist", key.c_str());
+
   return m_Registry.Folder(key);
 }
 
@@ -104,6 +105,12 @@ Registry &WorkspaceAPI::GetLayerFolder(const string &layer_key)
     throw IRISException("Layer folder %s does not exist", layer_key.c_str());
   return m_Registry.Folder(layer_key);
 }
+
+Registry &WorkspaceAPI::GetMeshLayerFolder(const string &layer_key)
+{
+  return GetLayerFolder(layer_key);
+}
+
 
 bool WorkspaceAPI::IsKeyValidLayer(const string &key)
 {
@@ -159,8 +166,6 @@ bool WorkspaceAPI::IsKeyValidMeshLayer(const std::string &key)
     }
 
   return true;
-
-
 }
 
 // TODO: merge with IRISApplication
@@ -880,7 +885,10 @@ void WorkspaceAPI::WriteLayerContrastToRegistry(Registry &folder, int n, double 
 
 void WorkspaceAPI::SetLayerNickname(const string &layer_key, const string &value)
 {
-  GetLayerFolder(layer_key)["LayerMetaData.CustomNickName"] << value;
+  const char *target_key = IsKeyValidMeshLayer(layer_key) ?
+        "NickName" : "LayerMetaData.CustomNickName";
+
+  GetLayerFolder(layer_key)[target_key] << value;
 }
 
 void WorkspaceAPI::SetLayerColormapPreset(const string &layer_key, const string &value)
