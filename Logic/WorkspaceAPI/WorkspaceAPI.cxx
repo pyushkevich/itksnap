@@ -419,6 +419,18 @@ std::list<std::string> WorkspaceAPI::FindLayersByTag(const string &tag)
       }
     }
 
+  // Iterate over all mesh layers
+  int n_mesh_layers = this->GetNumberOfMeshLayers();
+
+  for (int i = 0; i < n_mesh_layers; ++i)
+    {
+    string key = Registry::Key("MeshLayers.Layer[%03d]", i);
+    Registry &f = m_Registry.Folder(key);
+    StringSet tags = WorkspaceAPI::GetTags(f);
+    if (tags.find(tag) != tags.end())
+      matches.push_back(key);
+    }
+
   return matches;
 }
 

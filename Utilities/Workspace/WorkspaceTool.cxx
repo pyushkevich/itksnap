@@ -187,6 +187,7 @@ int usage(int rc)
   cout << "  S|seg                             : Selects the segmentation layer " << endl;
   cout << "  <O|overlay>:N                     : Selects N-th overlay layer (N may be -1 for last)" << endl;
   cout << "  <A|anat>:N                        : Selects N-th anatomical (main|overlay) layer" << endl;
+  cout << "  <mesh>:N                          : Selects N-th mesh layer" << endl;
   cout << "Contrast Mapping Specification:" << endl;
   cout << "  LINEAR N1 N2                      : Linear contrast between specified numbers" << endl;
   cout << "  AUTO                              : Automatic, as determined by ITK-SNAP" << endl;
