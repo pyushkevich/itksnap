@@ -157,6 +157,7 @@ ExtendedGDCMSerieHelper
     {
     gdcmWarningMacro("Looks like all images have the exact same image position"
       << ". No PositionPatientOrdering sort performed" );
+    n_images_per_ipp = fileList->size(); // all files will be read into components for the same IPP
     return false;
     }
 
