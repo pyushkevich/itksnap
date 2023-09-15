@@ -549,6 +549,8 @@ GuidedNativeImageIO
 			MFDSSorter->SetFrameOrderingStrategy(MFDS::MFOrderByInstanceNumberStrategy::New());
 			MFDSSorter->SetSliceOrderingStrategy(MFDS::MFOrderByIPPStrategy::New());
 			MFDSSorter->AddObserver(itk::ProgressEvent(), progressCmd);
+      MFDSSorter->AddObserver(itk::StartEvent(), progressCmd);
+      MFDSSorter->AddObserver(itk::EndEvent(), progressCmd);
 			MFDSSorter->Sort();
 			m_DicomFilesToFrameMap = MFDSSorter->GetOutput();
 			m_IOBase->SetFileName(m_DICOMFiles[0]);
@@ -1866,7 +1868,8 @@ GuidedNativeImageIO::GuessFormatForFileName(
 			itk::StringTools::Trim(modality);
 			if (!modality.compare("CT"))
 				{
-				if (!manuf.compare("SIEMENS") ||
+        bool hasSiemens = manuf.find("SIEMENS") != std::string::npos;
+        if (hasSiemens ||
 						!manuf.compare("GE MEDICAL SYSTEMS"))
 					return FORMAT_DICOM_DIR_4DCTA;
 				}
