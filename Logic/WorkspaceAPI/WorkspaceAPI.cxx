@@ -10,6 +10,7 @@
 #include "MultiChannelDisplayMode.h"
 #include "RESTClient.h"
 #include "itkCommand.h"
+#include "GuidedMeshIO.h"
 
 using namespace std;
 using itksys::SystemTools;
@@ -74,9 +75,27 @@ int WorkspaceAPI::GetNumberOfLayers() const
   return n_layers;
 }
 
+int WorkspaceAPI::GetNumberOfMeshLayers() const
+{
+  int n_layers = 0;
+  while (m_Registry.HasFolder(Registry::Key("MeshLayers.Layer[%03d]", n_layers)))
+    n_layers++;
+
+  return n_layers;
+}
+
 Registry &WorkspaceAPI::GetLayerFolder(int layer_index)
 {
   string key = Registry::Key("Layers.Layer[%03d]", layer_index);
+  return m_Registry.Folder(key);
+}
+
+Registry &WorkspaceAPI::GetMeshLayerFolder(int layer_index)
+{
+  string key = Registry::Key("MeshLayers.Layer[%03d]", layer_index);
+  if (!m_Registry.HasFolder(key))
+    throw IRISException("Mesh layer folder %s does not exist", key.c_str());
+
   return m_Registry.Folder(key);
 }
 
@@ -86,6 +105,12 @@ Registry &WorkspaceAPI::GetLayerFolder(const string &layer_key)
     throw IRISException("Layer folder %s does not exist", layer_key.c_str());
   return m_Registry.Folder(layer_key);
 }
+
+Registry &WorkspaceAPI::GetMeshLayerFolder(const string &layer_key)
+{
+  return GetLayerFolder(layer_key);
+}
+
 
 bool WorkspaceAPI::IsKeyValidLayer(const string &key)
 {
@@ -99,6 +124,48 @@ bool WorkspaceAPI::IsKeyValidLayer(const string &key)
   Registry &folder = m_Registry.Folder(key);
 
   return folder.HasEntry("AbsolutePath") && folder.HasEntry("Role");
+}
+
+bool WorkspaceAPI::IsKeyValidMeshLayer(const std::string &key)
+{
+  RegularExpression re("MeshLayers.Layer\\[[0-9]+\\]");
+  if (!re.find(key))
+    return false;
+
+  if (!m_Registry.HasFolder(key))
+    return false;
+
+  Registry &meshLayer = m_Registry.Folder(key);
+
+  if (!meshLayer.HasFolder("MeshTimePoints"))
+    return false;
+
+  Registry &tpMeshes = meshLayer.Folder("MeshTimePoints");
+
+  // Get a list of time points
+  auto tpList = tpMeshes.FindFoldersFromPattern("TimePoint\\[[0-9]+\\]");
+  if (tpList.size() <= 0)
+    return false;
+
+  for (auto &tpKey : tpList)
+    {
+    Registry &tpMesh = tpMeshes.Folder(tpKey);
+
+    // All time points should have at least one polydata file
+    auto polyList = tpMesh.FindFoldersFromPattern("PolyData\\[[0-9]+\\]");
+    if (polyList.size() <= 0)
+      return false;
+
+    for (auto &polyKey : polyList)
+      {
+      Registry &polyData = tpMesh.Folder(polyKey);
+
+      if (!polyData.HasEntry("AbsolutePath") || !polyData.HasEntry("Format"))
+        return false;
+      }
+    }
+
+  return true;
 }
 
 // TODO: merge with IRISApplication
@@ -141,6 +208,58 @@ string WorkspaceAPI::GetLayerActualPath(Registry &folder)
   return layer_file_full;
 }
 
+std::string
+WorkspaceAPI
+::GetMeshLayerPolyDataPath(const std::string &folder, unsigned int tp, unsigned int polyId)
+{
+  std::string ret = "";
+
+  if (!m_Registry.HasFolder(folder))
+    return ret;
+
+  Registry &layerFolder = m_Registry.Folder(folder);
+
+  std::string targetKey = Registry::Key("MeshTimePoints.TimePoint[%03d].PolyData[%03d]",
+                                        tp, polyId);
+
+  if (layerFolder.HasFolder(targetKey))
+    {
+    Registry &polyData = layerFolder.Folder(targetKey);
+    ret = polyData.Entry("AbsolutePath")[""];
+    }
+  else
+    throw IRISException("Target object %s does not exist", targetKey.c_str());
+
+  return ret;
+}
+
+unsigned int
+WorkspaceAPI
+::AddMeshPolyData(std::string &layer_key, unsigned int tp, std::string &filename)
+{
+  Registry &layer = m_Registry.Folder(layer_key);
+  std::string tpMeshKey = Registry::Key("MeshTimePoints.TimePoint[%03d]", tp);
+
+  bool tpExist = layer.HasFolder(tpMeshKey);
+  Registry &tpMesh = layer.Folder(tpMeshKey);
+  if (!tpExist)
+    tpMesh["TimePoint"] = to_string(tp);
+
+  auto polyKeyList = tpMesh.FindFoldersFromPattern("PolyData[\\[0-9]+\\]");
+  auto newPolyId = polyKeyList.size();
+  auto targetKey = Registry::Key("PolyData[%03d]", newPolyId);
+
+  Registry &polyData = tpMesh.Folder(targetKey);
+  polyData["AbsolutePath"] = filename;
+
+  size_t dotInd = filename.find_last_of(".");
+  string ext = (dotInd != string::npos) ? filename.substr(dotInd + 1) : "";
+  GuidedMeshIO::FileFormat fmtEnum = GuidedMeshIO::GetFormatByExtension(ext);
+  GuidedMeshIO::SetFileFormat(polyData, fmtEnum);
+
+  return newPolyId;
+}
+
 void WorkspaceAPI::SetAllLayerPathsToActualPaths()
 {
   for(int i = 0; i < this->GetNumberOfLayers(); i++)
@@ -165,6 +284,7 @@ void WorkspaceAPI::PrintLayerList(std::ostream &os, const string &line_prefix)
 {
   // Iterate over all the layers stored in the workspace
   int n_layers = this->GetNumberOfLayers();
+  int n_mesh_layers = this->GetNumberOfMeshLayers();
 
   // Use a formatted table
   FormattedTable table(5);
@@ -184,7 +304,7 @@ void WorkspaceAPI::PrintLayerList(std::ostream &os, const string &line_prefix)
 
     // Use the %03d formatting for layer numbers, to match that in the registry
     char ifmt[16];
-    sprintf(ifmt, "%03d", i);
+    snprintf(ifmt, 16, "%03d", i);
 
     // Print the layer information
     table
@@ -196,6 +316,41 @@ void WorkspaceAPI::PrintLayerList(std::ostream &os, const string &line_prefix)
     }
 
   table.Print(os, line_prefix);
+
+  // Print mesh layers
+  if (n_mesh_layers <= 0)
+    return;
+
+  FormattedTable meshTable(5);
+  meshTable << "Mesh_Layer" << "Nickname" << "Tags" << "Timepoint" << "Polydata_File" ;
+
+  for (int i = 0; i < n_mesh_layers; ++i)
+    {
+    Registry &meshLayer = this->GetMeshLayerFolder(i);
+    Registry &tpMeshes = meshLayer.Folder("MeshTimePoints");
+    auto tpMeshKeyList = tpMeshes.FindFoldersFromPattern("TimePoint*");
+
+    for (auto tpMeshKey : tpMeshKeyList)
+      {
+      Registry &tpMesh = tpMeshes.Folder(tpMeshKey);
+      auto polyKeyList = tpMesh.FindFoldersFromPattern("PolyData*");
+      for (auto polyKey : polyKeyList)
+        {
+        Registry &polyData = tpMesh.Folder(polyKey);
+
+        // Use the %03d formatting for layer numbers, to match that in the registry
+        string key = Registry::Key("%03d", i);
+        meshTable << key
+                  << meshLayer["NickName"][""]
+                  << meshLayer["Tags"][""]
+                  << tpMeshKey
+                  << polyData["AbsolutePath"][""];
+        }
+      }
+    }
+
+  os << std::endl;
+  meshTable.Print(os, line_prefix);
 }
 
 int WorkspaceAPI::GetNumberOfAnnotations()
@@ -262,6 +417,18 @@ std::list<std::string> WorkspaceAPI::FindLayersByTag(const string &tag)
       {
       matches.push_back(key);
       }
+    }
+
+  // Iterate over all mesh layers
+  int n_mesh_layers = this->GetNumberOfMeshLayers();
+
+  for (int i = 0; i < n_mesh_layers; ++i)
+    {
+    string key = Registry::Key("MeshLayers.Layer[%03d]", i);
+    Registry &f = m_Registry.Folder(key);
+    StringSet tags = WorkspaceAPI::GetTags(f);
+    if (tags.find(tag) != tags.end())
+      matches.push_back(key);
     }
 
   return matches;
@@ -364,7 +531,7 @@ void WorkspaceAPI::PrintTimePointList(std::ostream &os, const string &line_prefi
 
     // Use the %03d formatting for layer numbers, to match that in the registry
     char ifmt[16];
-    sprintf(ifmt, "%03d", i);
+    snprintf(ifmt, 16, "%03d", i);
 
     // Print the layer information
     table
@@ -525,6 +692,15 @@ string WorkspaceAPI::FindLayerByRole(const string &role, int pos_in_role)
   return string();
 }
 
+string WorkspaceAPI::FindMeshLayerById(int id)
+{
+  string targetKey = Registry::Key("MeshLayers.Layer[%03d]", id);
+  if (m_Registry.HasFolder(targetKey))
+    return targetKey;
+
+  return "";
+}
+
 string WorkspaceAPI::LayerSpecToKey(const string &layer_spec)
 {
   // Basic pattern (001)
@@ -562,6 +738,10 @@ string WorkspaceAPI::LayerSpecToKey(const string &layer_spec)
   else if(reStrNum.find(layer_spec.c_str()))
     {
     string str_spec = reStrNum.match(1);
+    string str_spec_upper;
+    std::transform(str_spec.begin(), str_spec.end(),
+                   std::back_inserter(str_spec_upper),::toupper);
+
     int index = atoi(reStrNum.match(2).c_str());
     if(str_spec == "A" || str_spec == "a" || str_spec == "anat")
       {
@@ -572,6 +752,12 @@ string WorkspaceAPI::LayerSpecToKey(const string &layer_spec)
     else if(str_spec == "O" || str_spec == "o" || str_spec == "overlay")
       {
       string key = this->FindLayerByRole("OverlayRole", index);
+      if(key.length() && m_Registry.HasFolder(key))
+        return key;
+      }
+    else if(str_spec_upper == "MESH")
+      {
+      string key = this->FindMeshLayerById(index);
       if(key.length() && m_Registry.HasFolder(key))
         return key;
       }
@@ -660,6 +846,43 @@ string WorkspaceAPI::SetLayer(string role, const string &filename)
   return key;
 }
 
+string WorkspaceAPI::AddMeshLayer(const string &filename, unsigned int tp)
+{
+  // Main image has to be loaded already
+  if (this->FindLayerByRole("MainRole", 0).length() == 0)
+    throw IRISException("Cannot add mesh to a workspace without a main image!");
+
+  if (tp < 1)
+    throw IRISException("Time point value must start from 1! current: %d.", tp);
+
+  // Append a mesh layer folder
+  string key = Registry::Key("MeshLayers.Layer[%03d]", this->GetNumberOfMeshLayers());
+
+  // Create a folder for this key
+  Registry &meshLayer = m_Registry.Folder(key);
+  meshLayer["MeshType"] << "StandaloneMesh";
+  meshLayer["Nickname"] << "";
+  meshLayer["Tags"] << "";
+
+  // Create mesh time points
+  Registry &tpMesh = meshLayer.Folder("MeshTimePoints");
+
+  Registry &newTP = tpMesh.Folder(Registry::Key("TimePoint[%03d]", tp));
+  newTP["TimePoint"] << tp;
+
+  // Add the filename
+  Registry &polyData = newTP.Folder("PolyData[000]"); // this method only support 1 poly
+  polyData["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
+
+  // Add format string from file extension
+  size_t dotInd = filename.find_last_of(".");
+  string ext = (dotInd != string::npos) ? filename.substr(dotInd + 1) : "";
+  GuidedMeshIO::FileFormat fmtEnum = GuidedMeshIO::GetFormatByExtension(ext);
+  GuidedMeshIO::SetFileFormat(polyData, fmtEnum);
+
+  return key;
+}
+
 void WorkspaceAPI::WriteLayerContrastToRegistry(Registry &folder, int n, double *tarray, double *yarray)
 {
   folder.Clear();
@@ -674,7 +897,10 @@ void WorkspaceAPI::WriteLayerContrastToRegistry(Registry &folder, int n, double 
 
 void WorkspaceAPI::SetLayerNickname(const string &layer_key, const string &value)
 {
-  GetLayerFolder(layer_key)["LayerMetaData.CustomNickName"] << value;
+  const char *target_key = IsKeyValidMeshLayer(layer_key) ?
+        "NickName" : "LayerMetaData.CustomNickName";
+
+  GetLayerFolder(layer_key)[target_key] << value;
 }
 
 void WorkspaceAPI::SetLayerColormapPreset(const string &layer_key, const string &value)
@@ -791,7 +1017,7 @@ void WorkspaceAPI::AddLabels(const string &label_file, int offset, const string 
       {
       ColorLabel cl = it->second;
       char buffer[1024];
-      sprintf(buffer, rename_pattern.c_str(), cl.GetLabel());
+      snprintf(buffer, 1024, rename_pattern.c_str(), cl.GetLabel());
       cl.SetLabel(buffer);
       clt->SetColorLabel(it->first + offset, cl);
       }
@@ -933,7 +1159,7 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace,
 
     // Create a filename that combines the layer index with the hash code
     char fn_layer_new[4096];
-    sprintf(fn_layer_new, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, fn_layer_basename.c_str());
+    snprintf(fn_layer_new, 4096, "%s/layer_%03d_%s.nii.gz", wsdir.c_str(), i, fn_layer_basename.c_str());
 
     // Save the layer there. Since we are saving as a NIFTI, we don't need to
     // provide any hints
@@ -980,7 +1206,7 @@ void WorkspaceAPI::UploadWorkspace(const char *url, int ticket_id,
 
   // Export the workspace file to the temporary directory
   char ws_fname_buffer[4096];
-  sprintf(ws_fname_buffer, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
+  snprintf(ws_fname_buffer, 4096, "%s/ticket_%08d%s.itksnap", tempdir.c_str(), ticket_id, wsfile_suffix);
   ExportWorkspace(ws_fname_buffer, cmd_export);
 
   // Count the number of files in the directory

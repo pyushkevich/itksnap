@@ -268,8 +268,11 @@ public:
   /** Save the layer to registry */
   virtual void SaveToRegistry(Registry &folder);
 
-  /** Build the layer from registry */
-  virtual void LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir);
+  /**
+   *  Build the layer from registry
+   */
+  virtual void LoadFromRegistry(Registry &folder, std::string &orig_dir,
+                                std::string &crnt_dir, unsigned int nT);
 
   // End of virtual methods definition
   //------------------------------------------------

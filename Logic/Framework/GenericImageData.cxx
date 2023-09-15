@@ -649,6 +649,13 @@ int GenericImageData::GetNumberOfOverlays()
   return m_Wrappers[OVERLAY_ROLE].size();
 }
 
+unsigned int
+GenericImageData
+::GetNumberOfTimePoints() const
+{
+  return m_Parent->GetNumberOfTimePoints();
+}
+
 ImageWrapperBase *GenericImageData::GetLastOverlay()
 {
   return m_Wrappers[OVERLAY_ROLE].back();

@@ -92,6 +92,7 @@ int usage(int rc)
   cout << "Commands for adding/setting/select image layers: " << endl;
   cout << "  -layers-add-anat <file>           : Add an image as next anatomical layer" << endl;
   cout << "  -layers-add-seg <file>            : Add an image as next segmentation layer" << endl;
+  cout << "  -layers-add-mesh <file> <tp>      : Add a mesh to a time point as next standalone mesh layer" << endl;
   cout << "  -layers-set-main <file>           : Set the main anatomical image" << endl;
   cout << "  -layers-set-seg <file>            : Set a single segmentation image - all other segs are trashed" << endl;
   cout << "  -layers-list                      : List all the layers in the workspace" << endl;
@@ -101,6 +102,12 @@ int usage(int rc)
   cout << "Commands for modifying picked layer properties:" << endl;
   cout << "  -props-get-filename               : Print the filename of the picked layer" << endl;
   cout << "  -props-get-transform              : Print the affine transform relative to main image" << endl;
+  cout << "  -props-get-mesh-filename <tp> <polydata_id> " << endl;
+  cout << "                                    : Print the filename of the timepoint and polydata_id" << endl;
+  cout << "                                      in the picked mesh layer. " << endl;
+  cout << "                                      <tp> starts from 1; For key PolyData[000], pass <polydata_id> as 0" << endl;
+  cout << "  -props-add-mesh-polydata <file> <tp> : Add polydata file to the timepoint <tp> of the picked mesh layer." << endl;
+  cout << "                                      Command will print out added polydata id if succeed." << endl;
   cout << "  -props-rename-file                : Rename the picked layer on disk and in workspace" << endl;
   cout << "  -props-set-nickname <name>        : Set the nickname of the selected layer" << endl;
   cout << "  -props-set-colormap <preset>      : Set colormap to a given system preset" << endl;
@@ -180,6 +187,7 @@ int usage(int rc)
   cout << "  S|seg                             : Selects the segmentation layer " << endl;
   cout << "  <O|overlay>:N                     : Selects N-th overlay layer (N may be -1 for last)" << endl;
   cout << "  <A|anat>:N                        : Selects N-th anatomical (main|overlay) layer" << endl;
+  cout << "  <mesh>:N                          : Selects N-th mesh layer" << endl;
   cout << "Contrast Mapping Specification:" << endl;
   cout << "  LINEAR N1 N2                      : Linear contrast between specified numbers" << endl;
   cout << "  AUTO                              : Automatic, as determined by ITK-SNAP" << endl;
@@ -500,6 +508,16 @@ int main(int argc, char *argv[])
         cout << "INFO: picked layer " << layer_folder << endl;
         }
 
+      // Add a layer - the layer will be added in the mesh role
+      else if (arg == "-layers-add-mesh" || arg == "-lam")
+        {
+        string filename = cl.read_existing_filename();
+        unsigned int tp = cl.read_integer();
+        string key = ws.AddMeshLayer(filename, tp);
+        layer_folder = key;
+        cout << "INFO: picked layer " << layer_folder << endl;
+        }
+
       // Set the main layer
       else if(arg == "-layers-set-main" || arg == "-ls-main" || arg == "-lsm")
         {
@@ -524,6 +542,40 @@ int main(int argc, char *argv[])
           throw IRISException("Selected object %s is not a valid layer", layer_folder.c_str());
 
         cout << prefix << ws.GetLayerActualPath(ws.GetFolder(layer_folder)) << endl;
+        }
+
+      else if(arg == "-props-get-mesh-filename" || arg == "-pgmf")
+        {
+        if(!ws.IsKeyValidMeshLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid mesh layer", layer_folder.c_str());
+
+        int tp = cl.read_integer();
+        int polyId = cl.read_integer();
+
+        if (tp <= 0)
+          throw IRISException("Invalid time point value %d. Time point should start from 1.", tp);
+
+        if (polyId < 0)
+          throw IRISException("Invalid polydata_id value %d. Polydata Id should start from 0.", polyId);
+
+        cout << prefix << ws.GetMeshLayerPolyDataPath(layer_folder, tp, polyId) << endl;
+        }
+
+      else if(arg == "-props-add-mesh-polydata" || arg == "-pamp")
+        {
+        if(!ws.IsKeyValidMeshLayer(layer_folder))
+          throw IRISException("Selected object %s is not a valid mesh layer", layer_folder.c_str());
+
+        string filename = cl.read_existing_filename();
+        int tp = cl.read_integer();
+
+        if (tp <= 0)
+          throw IRISException("Invalid time point value %d. Time point should start from 1.", tp);
+
+        unsigned int newPolyId = ws.AddMeshPolyData(layer_folder, tp, filename);
+
+        cout << "INFO: polydata added to timepoint: " << tp
+             << "; New polydata id: " << newPolyId << std::endl;
         }
 
       else if(arg == "-props-registry-get" || arg == "-prg")

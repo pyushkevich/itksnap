@@ -460,6 +460,9 @@ public:
   /** Find a value in a folder or return "" */
   StringType FindValue(const StringType& value);
 
+  /** Find a list of folders keys with string pattern */
+  StringListType FindFoldersFromPattern(const StringType& _pattern) const;
+
   /** Empty the contents of the registry */
   void Clear();
 

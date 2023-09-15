@@ -79,7 +79,7 @@ public:
   FileFormat GetFileFormat(Registry &folder, FileFormat dflt = FORMAT_COUNT);
 
   /** Set the file format in a registry */
-  void SetFileFormat(Registry &folder, FileFormat format);
+  static void SetFileFormat(Registry &folder, FileFormat format);
 
   /** Get enum description */
   std::string GetFormatDescription(FileFormat formatEnum);
