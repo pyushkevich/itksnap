@@ -72,7 +72,7 @@ public:
     FORMAT_DICOM_FILE,      // A single DICOM file
     FORMAT_ECHO_CARTESIAN_DICOM, // A Echocardiography Cartesian DICOM
     FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
-		FORMAT_MHA, FORMAT_MINC, FORMAT_NIFTI, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
+    FORMAT_MHA, FORMAT_MINC, FORMAT_NIFTI, FORMAT_NRRD_SEQ, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
     FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK,
     FORMAT_COUNT};
 
@@ -382,6 +382,9 @@ protected:
 
   // Number of images per z-position in the DICOM series (e.g., multi-echo data)
   int m_DICOMImagesPerIPP;
+
+  // Number of volumes in a nrrd volume sequence
+  unsigned int m_SeqNrrdNComp = 1u;
 
 	MFDS::DicomFilesToFrameMap m_DicomFilesToFrameMap;
 
