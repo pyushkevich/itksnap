@@ -2573,7 +2573,7 @@ ImageWrapper<TTraits>
 }
 
 template<class TTraits>
-typename ImageWrapper<TTraits>::ImagePointer
+SmartPtr<ImageWrapperBase>
 ImageWrapper<TTraits>
 ::ExtractROI4D(const SNAPSegmentationROISettings &roi,
              itk::Command *progressCommand) const
