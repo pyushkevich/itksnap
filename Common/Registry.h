@@ -563,6 +563,20 @@ public:
     SyntaxException(const char *text) : StringType(text) {}
   };
 
+  /** quick method check if a file is an XML file */
+  static bool IsXML(const char *name)
+  {
+    std::ifstream file(name);
+    if (file) {
+      std::string line;
+      std::getline(file, line);
+      if (line.find("<?xml") != std::string::npos) {
+          return true;
+      }
+    }
+    return false;
+  }
+
 private:
 
   // Hashtable type definition
