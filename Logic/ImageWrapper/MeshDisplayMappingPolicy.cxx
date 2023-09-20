@@ -67,12 +67,6 @@ MeshDisplayMappingPolicy::GetNativeImageRangeForCurve()
 	return Vector2d(prop->GetMin(activeComp), prop->GetMax(activeComp));
 }
 
-ScalarImageHistogram *
-MeshDisplayMappingPolicy::GetHistogram(int nBins)
-{
-  return m_Wrapper->GetActiveDataArrayProperty()->GetHistogram(nBins);
-}
-
 void
 MeshDisplayMappingPolicy::SetColorMap(ColorMap *map)
 {
@@ -135,9 +129,14 @@ UpdateActorMap(ActorPool *pool, unsigned int timepoint)
     // Keep the actor in the map
     actorMap->insert(std::make_pair(it_mesh->first, actor));
     }// end of updating actors
+  }
+
+const
+MeshDisplayMappingPolicy::TDigest *
+MeshDisplayMappingPolicy::GetTDigest()
+{
+  return m_Wrapper->GetActiveDataArrayProperty()->GetTDigest();
 }
-
-
 
 void
 MeshDisplayMappingPolicy::SetMesh(MeshWrapperBase *mesh_wrapper)
@@ -316,7 +315,7 @@ UpdateLUT()
 	dmax = prop->GetMax(activeComp);
 
 	// -- Find contrast range (ratio)
-	float rMin, tMin, rMax, tMax;
+  double rMin, tMin, rMax, tMax;
 	m_IntensityCurve->GetControlPoint(0, rMin, tMin);
 	m_IntensityCurve->GetControlPoint(m_IntensityCurve->GetControlPointCount() - 1, rMax, tMax);
 
@@ -336,7 +335,7 @@ UpdateLUT()
 	double indRange = rMax - rMin; // index range is based on contrast range
   for (auto i = 0u; i < numClr; ++i)
     {
-		float ind = rMin + indRange * i * numdiv;
+    double ind = rMin + indRange * i * numdiv;
 		auto val = m_IntensityCurve->Evaluate(ind);
 		auto rgbaC = m_ColorMap->MapIndexToRGBA(val);
 		double rgbaD[4] = {rgbaC[0] * clrdiv, rgbaC[1] * clrdiv,

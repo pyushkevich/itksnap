@@ -82,15 +82,6 @@ public:
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::ImageBase<3> ImageBaseType;
   typedef SmartPtr<ImageBaseType> ImageBasePointer;
-
-  /**
-   * The type of anatomical images. For the time being, all anatomic images
-   * are made to be of type short. Eventually, it may make sense to allow
-   * both short and char images, to save memory in some cases. However, it
-   * is not that common to only have 8-bit precision, so for the time being
-   * we are going to stick to short
-   */
-  typedef AnatomicImageWrapper::ImageType                   AnatomicImageType;
   typedef LabelImageWrapper::ImageType                         LabelImageType;
   typedef LabelImageWrapper::Image4DType                     LabelImage4DType;
 

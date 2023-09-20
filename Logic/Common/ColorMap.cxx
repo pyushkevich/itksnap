@@ -326,6 +326,11 @@ ColorMap
   if(preset == COLORMAP_CUSTOM)
     return;
 
+  // The default color for NAN should be something that is distinct from the main
+  // color map. We follow the Paraview scheme here and assign it to yellow except
+  // for color maps that have lots of yellow in them
+  SetNANColor(0xff, 0xff, 0x00, 0xff);
+
   m_CMPoints.clear();
   switch(preset)
   {
@@ -350,6 +355,7 @@ ColorMap
       break;
 
     case COLORMAP_HOT:
+      SetNANColor(0x00, 0x7f, 0xff, 0xff);
       m_CMPoints.push_back( CMPoint(0.0        , 0x00, 0x00, 0x00, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint( 2.0 / 63.0, 0x00, 0x00, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(22.0 / 63.0, 0xd8, 0x00, 0x00, 0xff) );
@@ -364,16 +370,19 @@ ColorMap
       break;
 
     case COLORMAP_SPRING:
+      SetNANColor(0x00, 0x7f, 0xff, 0xff);
       m_CMPoints.push_back( CMPoint(0.0, 0xff, 0x00, 0xff, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0x00, 0xff, 0xff) );
       break;
 
     case COLORMAP_SUMMER:
+      SetNANColor(0x00, 0x7f, 0xff, 0xff);
       m_CMPoints.push_back( CMPoint(0.0, 0x00, 0x80, 0x66, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0x66, 0xff, 0xff) );
       break;
 
     case COLORMAP_AUTUMN:
+      SetNANColor(0x00, 0x7f, 0xff, 0xff);
       m_CMPoints.push_back( CMPoint(0.0, 0xff, 0x00, 0x00, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(1.0, 0xff, 0xff, 0x00, 0xff, 0xff) );
       break;
@@ -384,12 +393,14 @@ ColorMap
       break;
 
     case COLORMAP_COPPER:
+      SetNANColor(0xff, 0xff, 0xff, 0xff);
       m_CMPoints.push_back( CMPoint(0.0,    0x00, 0x00, 0xff, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(0.8334, 0xff, 0xaa, 0x6a, 0xff) );
       m_CMPoints.push_back( CMPoint(1.0,    0xff, 0xcc, 0x80, 0xff, 0xff) );
       break;
 
     case COLORMAP_HSV:
+      SetNANColor(0xff, 0xff, 0xff, 0xff);
       m_CMPoints.push_back( CMPoint(0.0,    0xff, 0x00, 0x00, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(0.1667, 0xff, 0xff, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(0.3334, 0x00, 0xff, 0x00, 0xff) );
@@ -400,6 +411,7 @@ ColorMap
       break;
 
     case COLORMAP_JET:
+      SetNANColor(0xff, 0xff, 0xff, 0xff);
       m_CMPoints.push_back( CMPoint(0.0,    0x00, 0x00, 0x80, 0x00, 0xff) );
       m_CMPoints.push_back( CMPoint(0.1   , 0x00, 0x00, 0xff, 0xff) );
       m_CMPoints.push_back( CMPoint(0.36  , 0x00, 0xff, 0xff, 0xff) );
@@ -476,6 +488,12 @@ void ColorMap
     // Store the number of control points
     reg["NumberOfControlPoints"] << m_CMPoints.size();
 
+    // Store the NaN color
+    reg["NaNColor.R"] << (int) m_NANColor[0];
+    reg["NaNColor.G"] << (int) m_NANColor[1];
+    reg["NaNColor.B"] << (int) m_NANColor[2];
+    reg["NaNColor.A"] << (int) m_NANColor[3];
+
     RegistryEnumMap<CMPointType> emap;
     emap.AddPair(CONTINUOUS,"Continuous");
     emap.AddPair(DISCONTINUOUS,"Discontinuous");
@@ -531,6 +549,12 @@ void ColorMap
     emap.AddPair(CONTINUOUS,"Continuous");
     emap.AddPair(DISCONTINUOUS,"Discontinuous");
 
+    // Read the NaN color
+    m_NANColor[0] = (unsigned char) reg["NaNColor.R"][0xff];
+    m_NANColor[1] = (unsigned char) reg["NaNColor.G"][0xff];
+    m_NANColor[2] = (unsigned char) reg["NaNColor.B"][0x00];
+    m_NANColor[3] = (unsigned char) reg["NaNColor.A"][0xff];
+
     // Save each control point
     for(size_t iPoint = 0; iPoint < n; iPoint++)
       {
@@ -581,7 +605,17 @@ void ColorMap
 
     m_CMPreset = COLORMAP_CUSTOM;
     }
- }
+  }
+
+void ColorMap::SetNANColor(EltType r, EltType g, EltType b, EltType alpha)
+{
+  RGBAType pixel;
+  pixel[0] = r;
+  pixel[1] = g;
+  pixel[2] = b;
+  pixel[3] = alpha;
+  SetNANColor(pixel);
+}
 
 void ColorMap::CopyInformation(const itk::DataObject *source)
 {
@@ -589,6 +623,7 @@ void ColorMap::CopyInformation(const itk::DataObject *source)
   m_CMPreset = cm_source->m_CMPreset;
   m_CMPoints = cm_source->m_CMPoints;
   m_Interpolants = cm_source->m_Interpolants;
+  m_NANColor = cm_source->m_NANColor;
   this->Modified();
 }
 

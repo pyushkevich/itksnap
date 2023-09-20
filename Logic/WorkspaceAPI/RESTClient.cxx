@@ -150,7 +150,7 @@ bool RESTClient::GetVA(const char *rel_url, std::va_list args)
 {
   // Expand the URL
   char url_buffer[4096];
-  vsprintf(url_buffer, rel_url, args);
+  vsnprintf(url_buffer, 4096, rel_url, args);
 
   // Use the same code as POST, but with null string
   return this->Post(url_buffer, NULL);
@@ -187,7 +187,7 @@ bool RESTClient::PostVA(const char *rel_url, const char *post_string, std::va_li
 
   // Expand the URL
   char url_buffer[4096];
-  vsprintf(url_buffer, joint_pattern.c_str(), args);
+  vsnprintf(url_buffer, 4096, joint_pattern.c_str(), args);
 
   // Split into url and post sections
   std::string url_filled, post_filled;
@@ -267,7 +267,7 @@ bool RESTClient::UploadFile(
   std::va_list args;
   va_start(args, extra_fields);
   char url_buffer[4096];
-  vsprintf(url_buffer, rel_url, args);
+  vsnprintf(url_buffer, 4096, rel_url, args);
 
   // The URL to post to
   string url = this->GetServerURL() + "/" + url_buffer;
@@ -310,7 +310,7 @@ bool RESTClient::UploadFile(
       it != extra_fields.end(); ++it)
     {
     char post_buffer[4096];
-    vsprintf(post_buffer, it->second.c_str(), args);
+    vsnprintf(post_buffer, 4096, it->second.c_str(), args);
 
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, it->first.c_str(),

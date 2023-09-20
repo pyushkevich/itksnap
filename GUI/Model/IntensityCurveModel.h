@@ -129,14 +129,14 @@ public:
   Vector2d GetVisibleImageRange();
 
   /**
+   * Access the histogram of the current layer, updating if necessary
+   */
+  const ScalarImageHistogram *GetHistogram();
+
+  /**
     Check the state flags above
     */
   bool CheckState(UIState state);
-
-  /**
-    Get the histogram of the current layer
-    */
-  const ScalarImageHistogram *GetHistogram();
 
   /**
     Process curve interaction event
@@ -155,7 +155,7 @@ public:
   void OnResetCurveAction();
 
   /** Try changing the control point to new values */
-  bool UpdateControlPoint(size_t i, float t, float x);
+  bool UpdateControlPoint(size_t i, double t, double x);
 
 
   /** Update the model in response to upstream events */
@@ -187,6 +187,12 @@ protected:
 
   AbstractContinuousImageDisplayMappingPolicy *GetDisplayPolicy();
 
+  // A histogram computed from a t-digest
+  SmartPtr<ScalarImageHistogram> m_Histogram;
+
+  // The pointer to a t-digest from which the histogram was derived
+  const TDigestDataObject *m_HistogramSource;
+
   // A size reporter delegate
   ViewportSizeReporter *m_ViewportReporter;
 
@@ -195,7 +201,7 @@ protected:
 
 
   Vector3d GetEventCurveCoordiantes(const Vector3d &x);
-  int GetControlPointInVicinity(float x, float y, int pixelRadius);
+  int GetControlPointInVicinity(double x, double y, int pixelRadius);
 
   // Model for the control point index
   SmartPtr<AbstractRangedIntProperty> m_MovingControlIdModel;

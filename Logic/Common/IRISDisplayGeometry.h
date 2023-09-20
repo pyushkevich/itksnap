@@ -3,6 +3,7 @@
 
 #include "SNAPCommon.h"
 #include <array>
+#include <vnl/vnl_quaternion.h>
 
 /**
  * \class IRISDisplayGeometry
@@ -16,6 +17,9 @@ struct IRISDisplayGeometry
 {
   /** Three strings of 3 characters each (RAILPS) defining the mapping */
   std::array<std::string, 3> DisplayToAnatomyRAI = { "RPS", "AIR", "RIP" };
+
+  /** Allow for an additional freeform rotation around the cursor */
+  vnl_quaternion<double> CustomRotation;
 
   /** Constructor: creates default mapping */
   IRISDisplayGeometry();

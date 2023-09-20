@@ -315,7 +315,7 @@ Vector3d GenericSliceModel::MapSliceToImagePhysical(const Vector3d &xSlice)
 {
   Vector3d xImage = this->MapSliceToImage(xSlice);
   ImageWrapperBase *main = this->GetDriver()->GetCurrentImageData()->GetMain();
-  return main->TransformVoxelCIndexToPosition(xImage);
+  return main->TransformVoxelCIndexToLPSCoordinates(xImage);
 }
 
 /**

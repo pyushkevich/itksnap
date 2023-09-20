@@ -156,7 +156,7 @@ public:
   void SetParameters(ParameterType *param);
 
   /** Detach from a wrapper */
-  void DetachInputsAndOutputs();
+  void DetachInputsAndOutputs(InputDataType *sid);
 
   /** Compute the output volume (corresponds to the 'Apply' operation) */
   void ComputeOutputVolume(itk::Command *progress) ITK_OVERRIDE;

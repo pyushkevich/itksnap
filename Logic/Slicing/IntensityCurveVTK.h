@@ -61,17 +61,19 @@ public:
 
   // Defined in the parent class
   void Initialize(unsigned int nControlPoints = 3) ITK_OVERRIDE;
-  void GetControlPoint(unsigned int iControlPoint, float &t, float &x) const ITK_OVERRIDE;
-  void UpdateControlPoint(unsigned int iControlPoint, float t, float x) ITK_OVERRIDE;
+  void GetControlPoint(unsigned int iControlPoint, double &t, double &x) const ITK_OVERRIDE;
+  void UpdateControlPoint(unsigned int iControlPoint, double t, double x) ITK_OVERRIDE;
   bool IsMonotonic() const ITK_OVERRIDE;
-  void ScaleControlPointsToWindow(float tMin, float tMax) ITK_OVERRIDE;
+  void ScaleControlPointsToWindow(double tMin, double tMax) ITK_OVERRIDE;
+
+  std::pair<double, double> GetRange() const override;
 
   unsigned int GetControlPointCount() const ITK_OVERRIDE {
     return m_ControlPoints.size();
   }
 
   // Evaluate the curve
-  float Evaluate(const float &t) const ITK_OVERRIDE {
+  double Evaluate(const double &t) const ITK_OVERRIDE {
     if(t < m_ControlPoints.front().t)
       return -.000001;
     else if(t > m_ControlPoints.back().t)
@@ -103,8 +105,8 @@ private:
 
   // Control point structure
   struct ControlPoint {
-    float t;
-    float x;
+    double t;
+    double x;
   };
 
   // A storage for the control points

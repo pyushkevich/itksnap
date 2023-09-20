@@ -15,14 +15,19 @@ int
 DeformationGridModel::
 GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
 {
-  // Draw the texture for the layer
-  AnatomicImageWrapper *vecimg = dynamic_cast<AnatomicImageWrapper *>(layer);
+  typedef ImageWrapperBase::FloatVectorSliceType SliceType;
 
-  if (vecimg && (vecimg->GetNumberOfComponents() == 3 ||
-                 vecimg->GetNumberOfComponents() == 2))
+  // Draw the texture for the layer
+  if (layer && (layer->GetNumberOfComponents() == 3 || layer->GetNumberOfComponents() == 2))
     {
+    // Create a pipeline that casts the slice to a floating point vector image
+    // TODO: this involves new memory allocation in each call, in the future we might
+    // want to create this pipeline when deformation grid visualization is enabled
+    // and delete it when it is disabled
+    SliceType *slice = layer->CreateCastToFloatVectorSlicePipeline(
+          "DeformationGridModelCastToFloat",m_Parent->GetId());
+
     // Get the slice
-    AnatomicImageWrapper::SliceType::Pointer slice = vecimg->GetSlice(m_Parent->GetId());
     slice->GetSource()->UpdateLargestPossibleRegion();
 
     // The mapping between (index, phi[index]) and on-screen coordinate for a grid
@@ -34,14 +39,14 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
 
     // Compute the initial displacement G0
     ind.Fill(0); phi.fill(0.0f);
-    G0 = m_Parent->ComputeGridPosition(phi, ind, vecimg);
+    G0 = m_Parent->ComputeGridPosition(phi, ind, layer);
 
     // Compute derivative of grid displacement wrt warp components
     for(int a = 0; a < 3; a++)
       {
       ind.Fill(0); phi.fill(0.0f);
       phi[a] = 1.0f;
-      d_grid_d_phi[a] = m_Parent->ComputeGridPosition(phi, ind, vecimg) - G0;
+      d_grid_d_phi[a] = m_Parent->ComputeGridPosition(phi, ind, layer) - G0;
       }
 
     // Compute derivative of grid displacement wrt index components
@@ -49,7 +54,7 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
       {
       ind.Fill(0); phi.fill(0.0f);
       ind[b] = 1;
-      d_grid_d_ind[b] = m_Parent->ComputeGridPosition(phi, ind, vecimg) - G0;
+      d_grid_d_ind[b] = m_Parent->ComputeGridPosition(phi, ind, layer) - G0;
       }
 
     size_t nd0[2] {0, 0}, nd1[2] {0, 0};
@@ -59,13 +64,13 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
     for(int d = 0; d < 2; d++)
       {
       // The current matrix is such that we should be drawing in pixel coordinates.
-      typedef itk::ImageLinearConstIteratorWithIndex<AnatomicImageWrapper::SliceType> IterType;
+      typedef itk::ImageLinearConstIteratorWithIndex<SliceType> IterType;
       IterType it1(slice, slice->GetBufferedRegion());
       it1.SetDirection(d);
       it1.GoToBegin();
 
       int vox_increment;
-      if(vecimg->IsSlicingOrthogonal())
+      if(layer->IsSlicingOrthogonal())
         {
         // Figure out how frequently to sample lines. The spacing on the screen should be at
         // most every 4 pixels. Zoom is in units of px/mm. Spacing is in units of mm/vox, so
@@ -98,7 +103,7 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
               ++nd1[d];
 
             // Read the pixel
-            AnatomicImageWrapper::SliceType::PixelType pix = it1.Get();
+            auto pix = it1.Get();
 
             // Alternative version
             Vector3d xDispSlice = G1 +
@@ -127,6 +132,8 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
     v.nline[1] = nd0[1];
     v.nvert[1] = nd1[1];
 
+    // Release the mini-pipeline
+    layer->ReleaseInternalPipeline("DeformationGridModelCastToFloat", m_Parent->GetId());
     }
 
   return EXIT_SUCCESS;

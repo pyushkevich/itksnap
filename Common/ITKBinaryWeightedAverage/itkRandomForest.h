@@ -3,7 +3,7 @@
 
 #include "itkImageToImageFilter.h"
 #include "RFTrain.h"
-#include "ImageCollectionToImageFilter.h"
+#include "ImageCollectionConstIteratorWithIndex.h"
 #include "itkVectorImage.h"
 #include "Library/classifier.h"
 #include "Library/classification.h"
@@ -34,11 +34,10 @@ public:
     /** The mask to be inpainted. White pixels will be inpainted, black pixels will be passed through to the output.*/
     void SetLabelMap(const TLabelImage* mask);
 
-    typedef typename TLabelImage::PixelType TPixel;
+    typedef typename TLabelImage::PixelType LabelPixelType;
+    typedef typename ImageScalarType::PixelType InputPixelType;
+    typedef RandomForestClassifier<InputPixelType, LabelPixelType,3> RFClassifierType;
     typedef typename TLabelImage::IndexValueType LabelIndexType;
-    typedef itk::VectorImage<TPixel,3 > VectorImageType;
-    typedef RandomForestClassifier<TPixel, TPixel,3> RFClassifierType;
-
 
     void SetSegmentationIndices(std::set<LabelIndexType> SegmentationIndices)
     {

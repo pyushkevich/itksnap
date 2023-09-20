@@ -52,6 +52,17 @@
 #include "vtkPolyData.h"
 #include "vtkPointData.h"
 #include "vtkCommand.h"
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkImageImport.h>
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <IntensityCurveInterface.h>
+#include <ColorMap.h>
+#include <AffineTransformHelper.h>
+#include <itkTransform.h>
 
 #include <vnl/vnl_cross.h>
 
@@ -710,23 +721,16 @@ void Generic3DRenderer::UpdateMeshAppearance()
 }
 
 
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkImageImport.h>
-#include <vtkImageData.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
-#include <IntensityCurveInterface.h>
-#include <ColorMap.h>
-#include <AffineTransformHelper.h>
-#include <itkTransform.h>
 
 class VolumeAssembly : public itk::Object
 {
 public:
   irisITKObjectMacro(VolumeAssembly, itk::Object)
 
+  // Minipipeline used to import ITK data
+  ScalarImageWrapperBase::VTKImporterMiniPipeline ImportPipeline;
+
+  // VTK assembly
   vtkSmartPointer<vtkVolume> Volume;
   vtkSmartPointer<vtkSmartVolumeMapper> Mapper;
   vtkSmartPointer<vtkColorTransferFunction> ColorCurve;
@@ -835,9 +839,9 @@ void Generic3DRenderer::UpdateVolumeRendering()
     if(!va)
       {
       va = VolumeAssembly::New();
-      auto *vtk_import = layer->GetDefaultScalarRepresentation()->GetVTKImporter();
+      va->ImportPipeline = layer->GetDefaultScalarRepresentation()->CreateVTKImporterPipeline();
       va->Mapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
-      va->Mapper->SetInputConnection(vtk_import->GetOutputPort());
+      va->Mapper->SetInputConnection(va->ImportPipeline.importer->GetOutputPort());
 
       va->ColorCurve = vtkSmartPointer<vtkColorTransferFunction>::New();
       va->OpacityCurve = vtkSmartPointer<vtkPiecewiseFunction>::New();
@@ -867,7 +871,7 @@ void Generic3DRenderer::UpdateVolumeRendering()
       this->m_Renderer->AddViewProp(va->Volume);
       layer->SetUserData("volume", va);
 
-      vtk_import->Update();
+      va->ImportPipeline.importer->Update();
 
       // Update the volume transform
       this->UpdateVolumeTransform(layer, va);

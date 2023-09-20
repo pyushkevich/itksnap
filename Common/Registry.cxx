@@ -208,7 +208,7 @@ Registry::Key(const char *format,...)
   // Do the printf operation
   va_list al;
   va_start(al,format);
-  vsprintf(buffer,format,al);
+  vsnprintf(buffer, 1024, format, al);
   va_end(al);
 
   // Use the string as parameter

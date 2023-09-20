@@ -116,6 +116,9 @@ public:
   /** The model for setting moving control point opacity */
   irisGetMacro(MovingControlOpacityModel, AbstractRangedDoubleProperty *)
 
+  /** The overall visibility of the selected layer */
+  irisGetMacro(MovingControlColorModel, AbstractSimpleDoubleVec3Property *)
+
   /** The model for setting moving control point continuity */
   irisGetMacro(MovingControlContinuityModel, ContinuityValueModel *)
 
@@ -130,6 +133,9 @@ public:
 
   /** The overall visibility of the selected layer */
   irisGetMacro(LayerVisibilityModel, AbstractSimpleBooleanProperty *)
+
+  /** The overall visibility of the selected layer */
+  irisGetMacro(NaNColorModel, AbstractSimpleDoubleVec3Property *)
 
   /** Get the color map in associated layer */
   ColorMap *GetColorMap();
@@ -178,8 +184,10 @@ protected:
   SmartPtr<SideValueModel> m_MovingControlSideModel;
   SmartPtr<ContinuityValueModel> m_MovingControlContinuityModel;
   SmartPtr<AbstractRangedIntProperty> m_MovingControlIndexModel;
+  SmartPtr<AbstractSimpleDoubleVec3Property> m_MovingControlColorModel;
   SmartPtr<AbstractRangedDoubleProperty> m_LayerOpacityModel;
   SmartPtr<AbstractSimpleBooleanProperty> m_LayerVisibilityModel;
+  SmartPtr<AbstractSimpleDoubleVec3Property> m_NaNColorModel;
 
   // A pointer to the system interface object
   SystemInterface *m_System;
@@ -203,6 +211,10 @@ protected:
       double &value, NumericValueRange<double> *range);
   void SetMovingControlPosition(double value);
 
+  // Moving control point color
+  bool GetMovingControlColorValue(Vector3d &value);
+  void SetMovingControlColorValue(Vector3d value);
+
   // Control point opacity
   bool GetMovingControlOpacityValueAndRange(
       double &value, NumericValueRange<double> *range);
@@ -225,6 +237,10 @@ protected:
   bool GetLayerOpacityValueAndRange(
       double &value, NumericValueRange<double> *range);
   void SetLayerOpacity(double value);
+
+  // NaN color
+  bool GetNaNColorValue(Vector3d &value);
+  void SetNaNColorValue(Vector3d value);
 
   // Extract a colormap from the layer if it has one
   ColorMap *GetColorMap(WrapperBase *layer);

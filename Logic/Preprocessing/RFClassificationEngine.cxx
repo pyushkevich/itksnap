@@ -3,7 +3,7 @@
 
 #include "SNAPImageData.h"
 #include "ImageWrapper.h"
-#include "ImageCollectionToImageFilter.h"
+#include "ImageCollectionConstIteratorWithIndex.h"
 #include "RLEImageRegionIterator.h"
 
 // Includes from the random forest library
@@ -53,9 +53,11 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
 {
   assert(m_DataSource && m_DataSource->IsMainLoaded());
 
-  typedef ImageCollectionConstRegionIteratorWithIndex<
-      AnatomicScalarImageWrapper::ImageType,
-      AnatomicImageWrapper::ImageType> CollectionIter;
+  // All the images will be cast to float. For this to be efficient, the snake mode
+  // must convert all the images to float during processing. Otherwise we will be
+  // creating huge additional chunks of memory during RF training
+  typedef itk::Image<float, 3> FloatImage;
+  typedef itk::VectorImage<float, 3> FloatVectorImage;
 
   // TODO: in the future, we should only recompute the sample when we know
   // that the data has changed. However, currently, we are just going to
@@ -82,42 +84,82 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
     if(lit.Value())
       nSamples++;
 
-  // Create an iterator for going over all the anatomical image data
-  CollectionIter cit(reg);
-  cit.SetRadius(m_PatchRadius);
+  // TODO: if the number of samples is greater than max number of training samples,
+  // we should choose a random subset of samples.
 
-  // Add all the anatomical images to this iterator
-  for(LayerIterator it = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
-      !it.IsAtEnd(); ++it)
+  // Compute the patch size
+  int patch_size = 1;
+  for(unsigned int i = 0; i < 3; i++)
+    patch_size *= m_PatchRadius[i] * 2 + 1;
+
+  // A structure holding information we need to sample from one layer
+  struct SampleData
+  {
+    ImageWrapperBase *layer;
+    ImageWrapperBase::PatchOffsetTable offset_table;
+    int n_comp, i_comp;
+    vnl_matrix<double> sample_matrix;
+  };
+
+  // Compute the offset tables and dimensions of the patches
+  int total_comp = 0;
+  std::vector<SampleData> sample_data;
+  for(auto it = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE); !it.IsAtEnd(); ++it)
     {
-    cit.AddImage(it.GetLayer()->GetImageBase());
+    // Compute the patch offset table
+    ImageWrapperBase::PatchOffsetTable offset_table = it.GetLayer()->GetPatchOffsetTable(m_PatchRadius);
+
+    // Number of components sampled per pixel from this image
+    int n_comp = it.GetLayer()->GetNumberOfComponents() * patch_size;
+
+    // Save the sample data structure
+    SampleData sd = { it.GetLayer(), offset_table, n_comp, total_comp };
+    sample_data.push_back(sd);
+
+    // Allocate the storage for the data
+    sample_data.back().sample_matrix.set_size(patch_size, it.GetLayer()->GetNumberOfComponents());
+
+    // Update total components
+    total_comp += n_comp;
     }
 
-  // Get the number of components
-  int nComp = cit.GetTotalComponents();
-  int nPatch = cit.GetNeighborhoodSize();
-  int nColumns = nComp * nPatch;
-
-  // Are we using coordinate informtion
-  if(m_UseCoordinateFeatures)
-    nColumns += 3;
+  // Allocate the patches
+  int nColumns = m_UseCoordinateFeatures ? total_comp + 3 : total_comp;
 
   // Create a new sample
   m_Sample = new SampleType(nSamples, nColumns);
 
+  // Allocate the sample storage and matrices that point to its storage
+  vnl_vector<double> current_sample(total_comp);
+
   // Now fill out the samples
   int iSample = 0;
-  for(LabelIter lit(imgSeg, reg); !lit.IsAtEnd(); ++lit, ++cit)
+  for(LabelIter lit(imgSeg, reg); !lit.IsAtEnd(); ++lit)
     {
     LabelType label = lit.Value();
     if(label)
       {
       // Fill in the data
-      std::vector<GreyType> &column = m_Sample->data[iSample];
+      auto &column = m_Sample->data[iSample];
+
+      // Sample from each image
       int k = 0;
-      for(int i = 0; i < nComp; i++)
-        for(int j = 0; j < nPatch; j++)
-          column[k++] = cit.NeighborValue(i,j);
+      for(auto &sd : sample_data)
+        {
+        // Sample this patch
+        double *p = sd.sample_matrix.data_block();
+        sd.layer->SamplePatchAsDouble(lit.GetIndex(), sd.offset_table, p);
+
+        // This in-place transpose operation is required because the RF classes expect the
+        // sample to be ordered first by component and then by patch location, but the
+        // SamplePatchAsDouble samples first by patch location, then by component
+        if(sd.sample_matrix.rows() > 1)
+          sd.sample_matrix.inplace_transpose();
+
+        // Copy data to actual sample
+        for(unsigned int i = 0; i < sd.n_comp; i++)
+          column[k++] = (float) p[i];
+        }
 
       // Add the coordinate features if used
       if(m_UseCoordinateFeatures)
@@ -126,7 +168,6 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
 
       // Fill in the label
       m_Sample->label[iSample] = label;
-
       ++iSample;
       }
     }
@@ -163,7 +204,7 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
 
   // Create the classification engine
   typedef typename ClassifierType::RFAxisClassifierType RFAxisClassifierType;
-  typedef Classification<GreyType, LabelType, RFAxisClassifierType> ClassificationType;
+  typedef Classification<float, LabelType, RFAxisClassifierType> ClassificationType;
   ClassificationType classification;
 
   // Before resetting the classifier, we want to retain whatever the
@@ -225,6 +266,12 @@ void RFClassificationEngine<TPixel,TLabel,VDim>:: TrainClassifier()
   // training is repeated
   m_Classifier->SetPatchRadius(m_PatchRadius);
   m_Classifier->SetUseCoordinateFeatures(m_UseCoordinateFeatures);
+
+  // TODO: get rid of this!
+  // Dump the classifier to a file
+  std::ofstream out_file("/tmp/debug.rf");
+  m_Classifier->Write(out_file);
+  out_file.close();
 }
 
 template <class TPixel, class TLabel, int VDim>
@@ -252,4 +299,4 @@ int RFClassificationEngine<TPixel,TLabel,VDim>::GetNumberOfComponents() const
 }
 
 // Template instantiation
-template class RFClassificationEngine<GreyType, LabelType, 3>;
+template class RFClassificationEngine<float, LabelType, 3>;

@@ -21,6 +21,7 @@ public:
 
   typedef MeshDataArrayProperty::MeshDataType MeshDataType;
 	typedef MeshLayerDataArrayProperty::VectorMode VectorMode;
+  typedef Superclass::TDigest TDigest;
 
   //--------------------------------------------
   // virtual methods implementation
@@ -47,15 +48,6 @@ public:
    */
   virtual Vector2d GetNativeImageRangeForCurve() override;
 
-  /**
-   * @brief Get the histogram associated with the current state of the display
-   * policy. For single-component layers, this method just returns the
-   * component's histogram. For multi-component layers, it may return the
-   * pooled histogram, e.g., when the display is in RGB mode
-   * @param nBins Number of bins desired in the histogram
-   */
-  virtual ScalarImageHistogram *GetHistogram(int nBins) override;
-
   virtual void SetColorMap(ColorMap *map) override;
 
   /** Configure actor */
@@ -69,6 +61,9 @@ public:
 
   /** Update actor map with meshes from given timepoint */
   virtual void UpdateActorMap(ActorPool* pool, unsigned int timepoint);
+
+  /** Get the TDigest for the active array (i.e., histogram) */
+  virtual const TDigest *GetTDigest() override;
 
   // end of virtual methods implementation
   //--------------------------------------------

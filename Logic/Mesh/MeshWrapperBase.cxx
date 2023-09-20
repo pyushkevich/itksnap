@@ -273,11 +273,11 @@ MeshWrapperBase
     }
 }
 
-const ScalarImageHistogram *
-MeshWrapperBase::GetHistogram(size_t nBins)
+const TDigestDataObject *
+MeshWrapperBase::GetTDigest()
 {
   auto prop = GetActiveDataArrayProperty();
-  return prop->GetHistogram(nBins);
+  return prop->GetTDigest();
 }
 
 void

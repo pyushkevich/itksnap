@@ -15,17 +15,22 @@ void LoadAnatomicImageDelegate
 {
   typedef itk::ImageIOBase IOB;
 
-  IOB::IOComponentType ct = io->GetComponentTypeInNativeImage();
-  if(ct > IOB::SHORT)
+  itk::IOComponentEnum ct = io->GetComponentTypeInNativeImage();
+  if(ct != IOB::UCHAR &&
+     ct != IOB::CHAR &&
+     ct != IOB::USHORT &&
+     ct != IOB::SHORT &&
+     ct != IOB::FLOAT)
     {
+    std::ostringstream oss;
+    oss << ct;
     wl.push_back(
           IRISWarning(
-            "Warning: Loss of Precision."
-            "You are opening an image with 32-bit or greater precision, "
-            "but ITK-SNAP only provides 16-bit precision. "
-            "Intensity values reported in ITK-SNAP may differ slightly from the "
-            "actual values in the image."
-            ));
+            "Warning: Possible Loss of Precision."
+            "The file you opened represents image data using the '%s' data type, "
+            "but ITK-SNAP only supports 16-bit integer and 32-bit floating point data types. "
+            "Intensity values reported in ITK-SNAP may differ from the "
+            "actual values in the image.", oss.str().c_str()));
     }
 }
 
@@ -287,19 +292,6 @@ void DefaultSaveImageDelegate
 ::ValidateBeforeSaving(
     const std::string &fname, GuidedNativeImageIO *io, IRISWarningList &wl)
 {
-  if(!m_Wrapper->GetNativeIntensityMapping()->IsIdentity()
-     && strlen(m_Wrapper->GetFileName()) > 0)
-    {
-    // if the wrapper uses a non-identity native mapping, then there will be loss of
-    // precision relative to the input image
-    wl.push_back(
-          IRISWarning(
-            "Warning: Loss of Precision."
-            "ITK-SNAP represents images using 16-bit precision. The image you are saving "
-            "was previously loaded from an image file that used greater than 16-bit precision. "
-            "Voxel intensities may be changed in the saved image relative to the original image."
-            ));
-    }
 }
 
 

@@ -157,6 +157,15 @@ public:
   void SaveToRegistry(Registry &reg);
   void LoadFromRegistry(Registry &reg);
 
+  /** Get the color used to render NaN values */
+  itkSetMacro(NANColor, RGBAType)
+
+  /** Set the color used to render NaN values */
+  itkGetConstMacro(NANColor, RGBAType)
+
+  /** Set the color used to render NaN values */
+  void SetNANColor(EltType r, EltType g, EltType b, EltType alpha);
+
   /**
     * Copy the colormap properties from another colormap into the current
     * colormap.
@@ -180,6 +189,9 @@ private:
 
   // Array of points, which must always be sorted by the index
   CMPointList m_CMPoints;
+
+  // Special color for NAN
+  RGBAType m_NANColor;
 
   // Preset
   SystemPreset m_CMPreset;

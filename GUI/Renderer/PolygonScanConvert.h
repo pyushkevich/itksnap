@@ -40,6 +40,7 @@
 #include <vtkPolygon.h>
 #include <vtkPoints.h>
 #include <vtkSmartPointer.h>
+#include <vtkContourTriangulator.h>
 
 template<class TImage, class TVertex, class TVertexIterator>
 class PolygonScanConvert

@@ -59,6 +59,7 @@ public:
   irisGetMacro(ImageOrientationModel, AbstractSimpleStringProperty *)
   irisGetMacro(ImageNumberOfTimePointsModel, AbstractSimpleUIntProperty *)
   irisGetMacro(ImageCurrentTimePointModel, AbstractRangedUIntProperty *)
+  irisGetMacro(ImagePixelFormatDescriptionModel, AbstractSimpleStringProperty *)
   irisGetMacro(ImageScalarIntensityUnderCursorModel, AbstractSimpleDoubleProperty *)
 
   /** This model reports whether the active layer is in reference space */
@@ -97,6 +98,7 @@ protected:
   SmartPtr<AbstractSimpleUIntProperty> m_ImageNumberOfTimePointsModel;
   SmartPtr<AbstractRangedUIntProperty> m_ImageCurrentTimePointModel;
   SmartPtr<AbstractSimpleDoubleProperty> m_ImageScalarIntensityUnderCursorModel;
+  SmartPtr<AbstractSimpleStringProperty> m_ImagePixelFormatDescriptionModel;
 
 
   bool GetImageIsInReferenceSpace(bool &value);
@@ -110,6 +112,7 @@ protected:
   bool GetImageOrientation(std::string &value);
   bool GetImageNumberOfTimePoints(unsigned int &value);
   bool GetImageScalarIntensityUnderCursor(double &value);
+  bool GetImagePixelFormatDescription(std::string &value);
 
   // Current time point model
   bool GetCurrentTimePointValueAndRange(unsigned int &value, NumericValueRange<unsigned int> *range);

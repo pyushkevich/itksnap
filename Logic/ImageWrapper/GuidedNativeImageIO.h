@@ -163,10 +163,10 @@ public:
   /**
    * Get the component type in the native image
    */
-  itk::ImageIOBase::IOComponentType GetComponentTypeInNativeImage() const
+  itk::IOComponentEnum GetComponentTypeInNativeImage() const
     { return m_NativeType; }
 
-  itk::ImageIOBase::ByteOrder GetByteOrderInNativeImage() const
+  itk::IOByteOrderEnum GetByteOrderInNativeImage() const
     { return m_NativeByteOrder; }
 
   std::string GetComponentTypeAsStringInNativeImage() const
@@ -342,7 +342,7 @@ protected:
    *
    * The dispatch should be deleted after it is used.
    */
-  DispatchBase *CreateDispatch(itk::ImageIOBase::IOComponentType comp_type);
+  DispatchBase *CreateDispatch(itk::IOComponentEnum comp_type);
 
   /** 
    This is a vector image in native format. It stores the data read from the
@@ -361,7 +361,7 @@ protected:
 
   // This information is copied from IOBase in order to delete IOBase at the 
   // earliest possible point, so as to conserve memory
-  IOBase::IOComponentType m_NativeType;
+  itk::IOComponentEnum m_NativeType;
   size_t m_NativeComponents;
   unsigned long m_NativeSizeInBytes;
   std::string m_NativeTypeString, m_NativeFileName;
