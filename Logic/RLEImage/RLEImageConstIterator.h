@@ -9,6 +9,8 @@
 #include "itkImageConstIteratorWithIndex.h"
 #include "itkImageConstIteratorWithOnlyIndex.h"
 #include "itkImageRegionIterator.h"
+#include "itkImageScanlineConstIterator.h"
+#include "itkImageScanlineIterator.h"
 
 class MultiLabelMeshPipeline;
 
@@ -17,6 +19,15 @@ namespace itk
 /** \class ImageConstIterator
  * \brief A multi-dimensional image iterator templated over image type.
  */
+
+template<typename TPixel, unsigned int VImageDimension, typename CounterType>
+ImageScanlineConstIterator(
+    SmartPointer<const RLEImage<TPixel, VImageDimension, CounterType>>,
+    const typename RLEImage<TPixel, VImageDimension, CounterType>::RegionType &)
+  ->ImageScanlineConstIterator<RLEImage<TPixel, VImageDimension, CounterType>>;
+
+template <typename TImage>
+ImageScanlineIterator(SmartPointer<TImage>, const typename TImage::RegionType &)->ImageScanlineIterator<TImage>;
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 class ImageConstIterator<RLEImage<TPixel, VImageDimension, CounterType> >
