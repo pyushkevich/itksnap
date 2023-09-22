@@ -2594,3 +2594,8 @@ void MainImageWindow::on_actionToggle_4D_Replay_triggered()
   Update4DReplay();
 }
 
+void MainImageWindow::on_actionSwitch_Foreground_Background_Labels_triggered()
+{
+  GetModel()->SwitchForegroundBackgroundLabels();
+}
+
