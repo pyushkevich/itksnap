@@ -339,7 +339,7 @@ color:rgb(103, 103, 103);
      <x>0</x>
      <y>0</y>
      <width>907</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -497,6 +497,7 @@ color:rgb(103, 103, 103);
     <addaction name="actionSaveLabels"/>
     <addaction name="separator"/>
     <addaction name="actionLabel_Editor"/>
+    <addaction name="actionSwitch_Foreground_Background_Labels"/>
     <addaction name="separator"/>
     <addaction name="actionVolumesAndStatistics"/>
     <addaction name="separator"/>
@@ -1740,6 +1741,17 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+P</string>
+   </property>
+  </action>
+  <action name="actionSwitch_Foreground_Background_Labels">
+   <property name="text">
+    <string>Switch Foreground/Background Labels</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch Foreground/Background Labels</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
    </property>
   </action>
  </widget>
