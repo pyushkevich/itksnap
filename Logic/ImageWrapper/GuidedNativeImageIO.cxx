@@ -92,24 +92,25 @@ RegistryEnumMap<GuidedNativeImageIO::RawPixelType> GuidedNativeImageIO::m_EnumRa
 const GuidedNativeImageIO::FileFormatDescriptor 
 GuidedNativeImageIO
 ::m_FileFormatDescrictorArray[] = {
-	{"Analyze", "img.gz,hdr,img",      true,  false, true,  true},
-	{"DICOM Image Series", "",         false, true,  true,  true},
-	{"4D CTA DICOM Series", "",        false, true,  true,  true},
-	{"DICOM Single Image", "dcm",      false, true,  true,  true},
-	{"Echo Cartesian DICOM", "dcm",    false, true,  true,  true},
-	{"GE Version 4", "ge4",            false, false, true,  true},
-	{"GE Version 5", "ge5",            false, false, true,  true},
-	{"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
-	{"MetaImage", "mha,mhd",           true,  true,  true,  true},
-	{"MINC", "mnc",                    true,  true,  true,  true},
-	{"NiFTI", "nii.gz,nii,nia,nia.gz", true,  true,  true,  true},
-	{"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
-	{"Raw Binary", "raw",              false, false, true,  true},
-	{"Siemens Vision", "ima",          false, false, true,  true},
-	{"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
-	{"VTK Image", "vtk",               true,  false, true,  true},
-	{"Generic ITK Image", "",          true,  true,  true,  true},
-	{"INVALID FORMAT", "",             false, false, false, false}};
+  {"Analyze", "img.gz,hdr,img",         true,  false, true,  true},
+  {"DICOM Image Series", "",            false, true,  true,  true},
+  {"4D CTA DICOM Series", "",           false, true,  true,  true},
+  {"DICOM Single Image", "dcm",         false, true,  true,  true},
+  {"Echo Cartesian DICOM", "dcm",       false, true,  true,  true},
+  {"GE Version 4", "ge4",               false, false, true,  true},
+  {"GE Version 5", "ge5",               false, false, true,  true},
+  {"GIPL", "gipl,gipl.gz",              true,  false, true,  true},
+  {"MetaImage", "mha,mhd",              true,  true,  true,  true},
+  {"MINC", "mnc",                       true,  true,  true,  true},
+  {"NiFTI", "nii.gz,nii,nia,nia.gz",    true,  true,  true,  true},
+  {"NRRD Volume Sequence", "seq.nrrd",  false, true,  true,  true},
+  {"NRRD", "nrrd,nhdr",                 true,  true,  true,  true},
+  {"Raw Binary", "raw",                 false, false, true,  true},
+  {"Siemens Vision", "ima",             false, false, true,  true},
+  {"VoxBo CUB", "cub,cub.gz",           true,  false, true,  true},
+  {"VTK Image", "vtk",                  true,  false, true,  true},
+  {"Generic ITK Image", "",             true,  true,  true,  true},
+  {"INVALID FORMAT", "",                false, false, false, false}};
 
 
 /*************************************************************************/
@@ -258,7 +259,6 @@ void transpose_toms513(R *a, INT nx, INT ny, char *move, INT move_size, R *buf)
     }
 }
 
-
 bool GuidedNativeImageIO::FileFormatDescriptor
 ::TestFilename(std::string fname)
 {
@@ -402,6 +402,7 @@ GuidedNativeImageIO
   switch(m_FileFormat)
     {
 		case FORMAT_MHA:        m_IOBase = itk::MetaImageIO::New();          break;
+    case FORMAT_NRRD_SEQ:   m_IOBase = itk::NrrdImageIO::New();          break;
 		case FORMAT_NRRD:       m_IOBase = itk::NrrdImageIO::New();          break;
 		case FORMAT_ANALYZE:    m_IOBase = itk::NiftiImageIO::New();         break;
 		case FORMAT_GIPL:       m_IOBase = itk::GiplImageIO::New();          break;
@@ -674,6 +675,40 @@ GuidedNativeImageIO
 
   // Get the data dimensions
   int ncomp = m_IOBase->GetNumberOfComponents();
+
+  // logic for reading nrrd volume sequence as nd + 1 (2d->3d, 3d->4d)
+  if (m_FileFormat == FORMAT_NRRD_SEQ && ncomp > 0)
+    {
+    // because ncomp will change after modification
+    // we store the original ncomp to an instance variable
+    m_SeqNrrdNComp = ncomp;
+    auto nd = m_IOBase->GetNumberOfDimensions();
+    auto ndPlus = m_IOBase->GetNumberOfDimensions() + 1;
+
+    std::vector<std::vector<double>> dir {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+    std::vector<double> org {0, 0, 0, 0}, spc {1, 1, 1, 1};
+    for (int i = 0; i < nd; ++i)
+      {
+      org[i] = m_IOBase->GetOrigin(i);
+      spc[i] = m_IOBase->GetSpacing(i);
+      for (int j = 0; j < nd; ++j)
+        {
+        dir[i][j] = m_IOBase->GetDirection(i)[j];
+        }
+      }
+
+    m_IOBase->SetNumberOfDimensions(ndPlus);
+    m_IOBase->SetDimensions(nd, ncomp); // set # components as last dim
+    m_IOBase->SetNumberOfComponents(1);
+    ncomp = 1;
+
+    for (int i = 0; i < ndPlus; ++i)
+      {
+      m_IOBase->SetDirection(i, dir[i]);
+      m_IOBase->SetOrigin(i, org[i]);
+      m_IOBase->SetSpacing(i, spc[i]);
+      }
+    }
 
   // Set the dimensions (if 2D image, we set last dim to 1)
   m_NativeDimensions.fill(1);
@@ -1263,6 +1298,35 @@ GuidedNativeImageIO
 
     // Read the image into the buffer
 		m_IOBase->Read(image->GetBufferPointer());
+
+    // For seq.nrrd, convert the component dimension to the sequence dimension
+
+    if (m_FileFormat == FORMAT_NRRD_SEQ && m_SeqNrrdNComp > 1)
+      {
+      using ElementType = typename NativeImageType::PixelContainer::Element;
+      using ElementIdType = typename NativeImageType::PixelContainer::ElementIdentifier;
+      ElementIdType ne = 1; // # of elements in one slice
+      typename NativeImageType::SizeType pcSize = image->GetLargestPossibleRegion().GetSize();
+      for (int i = 0; i < m_IOBase->GetNumberOfDimensions(); ++i)
+        {
+        ne *= pcSize[i];
+        }
+
+      ElementIdType neSlice = ne / m_SeqNrrdNComp;
+      ElementIdType bufferSizeInBytes = ne * sizeof(ElementType);
+      ElementType *tempBuffer = new ElementType[ne]; // including # of sequneces
+
+      auto *imgBuffer = image->GetPixelContainer()->GetBufferPointer();
+      memcpy(tempBuffer, imgBuffer, bufferSizeInBytes);
+
+      // reorder voxels from multi-component to 4d
+      for (ElementIdType i = 0; i < m_SeqNrrdNComp; ++i)
+        for (ElementIdType j = 0; j < neSlice; ++j)
+          imgBuffer[i * neSlice + j] = tempBuffer[m_SeqNrrdNComp * j + i];
+
+      delete []tempBuffer;
+      }
+
     m_NativeImage = image;
 
 		regularImageReadingProgSrc->AddProgress(0.9);
