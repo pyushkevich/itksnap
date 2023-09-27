@@ -99,7 +99,8 @@ void ThresholdSettingsRenderer::UpdatePlotValues()
                                        m_DataY->GetPointer(0));
 
     ScalarImageWrapperBase *layer = m_Model->GetActiveScalarLayer(PREPROCESS_THRESHOLD);
-    const ScalarImageHistogram *hist = layer->GetHistogram(0);
+    SmartPtr<ScalarImageHistogram> hist = ScalarImageHistogram::New();
+    hist->ComputeFromTDigest(layer->GetTDigest());
     m_HistogramAssembly->PlotWithFixedLimits(hist, 0.0, 1.0);
 
     m_Plot->GetXAxis()->SetRange(

@@ -429,7 +429,7 @@ SystemInterface
     else
       {
       char buffer[5];
-      sprintf(buffer, "_%03d", (int) c);
+      snprintf(buffer, 5, "_%03d", (int) c);
       oss << buffer;
       }
     }

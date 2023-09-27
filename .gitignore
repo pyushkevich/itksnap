@@ -13,3 +13,4 @@ Thumbs.db
 CMakeLists.txt.user*
 CTestConfig.cmake.user*
 *.autosave
+.clangd

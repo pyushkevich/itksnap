@@ -8,7 +8,7 @@
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 #include "itkBWAandRFinterpolation.h"
-#include "ImageCollectionToImageFilter.h"
+#include "ImageCollectionConstIteratorWithIndex.h"
 
 namespace itk
 {

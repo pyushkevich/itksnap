@@ -84,8 +84,6 @@ public:
 
   typedef SNAPImageData                                          InputDataType;
   using ShortType =  itk::Image<short,3>;
-  using GreyScalarType =  AnatomicScalarImageWrapper::ImageType;
-  using GreyVectorType =  AnatomicImageWrapper::ImageType;
 
   using BinarizerType = itk::BinaryThresholdImageFilter< ShortType, ShortType >;
 

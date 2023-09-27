@@ -50,7 +50,7 @@
 template <typename TInputImage, typename TOutputImage, typename TWorkerTraits>
 NonOrthogonalSlicer<TInputImage, TOutputImage, TWorkerTraits>
 ::NonOrthogonalSlicer()
-    : m_UseNearestNeighbor(false)
+    : m_UseNearestNeighbor(true)
 {
 }
 

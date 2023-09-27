@@ -1,5 +1,5 @@
 #include "ColorMapModel.h"
-#include "LayerAssociation.txx"
+#include "LayerAssociation.h"
 #include "NumericPropertyToggleAdaptor.h"
 #include "ColorMapPresetManager.h"
 #include "ImageWrapperBase.h"
@@ -23,6 +23,11 @@ ColorMapModel::ColorMapModel()
         &Self::GetMovingControlOpacityValueAndRange,
         &Self::SetMovingControlOpacity);
 
+  m_MovingControlColorModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetMovingControlColorValue,
+        &Self::SetMovingControlColorValue);
+
   m_MovingControlSideModel = wrapGetterSetterPairAsProperty(
         this,
         &Self::GetMovingControlSide,
@@ -43,8 +48,14 @@ ColorMapModel::ColorMapModel()
         &Self::GetLayerOpacityValueAndRange,
         &Self::SetLayerOpacity);
 
+  m_NaNColorModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetNaNColorValue,
+        &Self::SetNaNColorValue);
+
   m_LayerVisibilityModel =
       NewNumericPropertyToggleAdaptor(m_LayerOpacityModel.GetPointer(), 0., 50.);
+
 
   // Create the color map preset manager
   m_PresetManager = NULL;
@@ -324,6 +335,32 @@ ColorMapModel
   ColorMap::CMPoint pt = cmap->GetCMPoint(idx);
   pt.m_Index = value;
   cmap->UpdateCMPoint(idx, pt);
+  }
+
+bool ColorMapModel::GetMovingControlColorValue(Vector3d &value)
+{
+  ColorMap::RGBAType rgba;
+  if(this->GetSelectedRGBA(rgba))
+    {
+    value[0] = rgba[0] / 255.0;
+    value[1] = rgba[1] / 255.0;
+    value[2] = rgba[1] / 255.0;
+    return true;
+    }
+
+  return false;
+}
+
+void ColorMapModel::SetMovingControlColorValue(Vector3d value)
+{
+  ColorMap::RGBAType rgba;
+  if(this->GetSelectedRGBA(rgba))
+    {
+    rgba[0] = (unsigned char)(255.0 * value[0]);
+    rgba[1] = (unsigned char)(255.0 * value[1]);
+    rgba[2] = (unsigned char)(255.0 * value[2]);
+    this->SetSelectedRGBA(rgba);
+    }
 }
 
 
@@ -366,29 +403,6 @@ void ColorMapModel::SetSelectedRGBA(ColorMap::RGBAType rgba)
 
   cmap->UpdateCMPoint(idx, pt);
 }
-
-Vector3d ColorMapModel::GetSelectedColor()
-{
-  ColorMap::RGBAType rgba;
-  if(this->GetSelectedRGBA(rgba))
-    return Vector3d(rgba[0] / 255., rgba[1] / 255., rgba[2] / 255.);
-  else
-    return Vector3d(0,0,0);
-}
-
-
-void ColorMapModel::SetSelectedColor(Vector3d rgb)
-{
-  ColorMap::RGBAType rgba;
-  if(this->GetSelectedRGBA(rgba))
-    {
-    rgba[0] = (unsigned char)(255.0 * rgb[0]);
-    rgba[1] = (unsigned char)(255.0 * rgb[1]);
-    rgba[2] = (unsigned char)(255.0 * rgb[2]);
-    this->SetSelectedRGBA(rgba);
-    }
-}
-
 
 bool
 ColorMapModel
@@ -663,6 +677,30 @@ void ColorMapModel::SetLayerOpacity(double value)
 {
   assert(m_Layer);
   m_Layer->SetAlpha(value / 255.0);
+  }
+
+bool ColorMapModel::GetNaNColorValue(Vector3d &value)
+{
+  auto *cm = this->GetColorMap();
+  if(!cm)
+    return false;
+  auto nan_rgba = cm->GetNANColor();
+  value[0] = nan_rgba[0] / 255.;
+  value[1] = nan_rgba[1] / 255.;
+  value[2] = nan_rgba[2] / 255.;
+  return true;
+}
+
+void ColorMapModel::SetNaNColorValue(Vector3d value)
+{
+  auto *cm = this->GetColorMap();
+  itkAssertOrThrowMacro(cm, "Null colormap in ColorMapModel::SetNaNColorValue");
+
+  auto nan_rgba = cm->GetNANColor();
+  nan_rgba[0] = (unsigned char) (255 * value[0]);
+  nan_rgba[1] = (unsigned char) (255 * value[1]);
+  nan_rgba[2] = (unsigned char) (255 * value[2]);
+  cm->SetNANColor(nan_rgba);
 }
 
 

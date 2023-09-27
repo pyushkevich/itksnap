@@ -47,24 +47,51 @@ class EdgePreprocessingSettings;
 class GaussianMixtureModel;
 template <class TPixel, class TLabel, int VDim> class RandomForestClassifier;
 
-class SmoothBinaryThresholdFilterConfigTraits {
+
+class AbstractFilterConfigTraits
+{
+public:
+  /**
+   * This method calls the layer's create cast to float pipeline method and stores
+   * the resulting filter as UserData in the layer.
+   */
+  static ScalarImageWrapperBase::FloatImageType *
+    CreateCastToFloatPipelineForLayer(ScalarImageWrapperBase *layer, int channel);
+
+  /**
+   * This method calls the layer's create cast to float pipeline method and stores
+   * the resulting filter as UserData in the layer.
+   */
+  static VectorImageWrapperBase::FloatVectorImageType *
+    CreateCastToFloatPipelineForLayer(VectorImageWrapperBase *layer, int channel);
+
+  /**
+   * This method deletes all the create cast to float pipelines created for all
+   * the layers in the SNAPImageData class by this class
+   */
+  static void RemoveAllCastToFloatPipelines(SNAPImageData *sid);
+
+};
+
+
+class SmoothBinaryThresholdFilterConfigTraits : public AbstractFilterConfigTraits
+{
 public:
 
-  typedef SNAPImageData                                          InputDataType;
+  typedef SNAPImageData                                            InputDataType;
+  typedef ImageWrapperBase::FloatImageType                        InputImageType;
+  typedef SNAPImageData::SpeedImageType                                SpeedType;
+  typedef SpeedImageWrapper                                    OutputWrapperType;
 
-  typedef ScalarImageWrapperBase::CommonFormatImageType               GreyType;
-  typedef SNAPImageData::SpeedImageType                              SpeedType;
-  typedef SpeedImageWrapper                                  OutputWrapperType;
-
-  typedef SmoothBinaryThresholdImageFilter<GreyType, SpeedType>     FilterType;
+  typedef SmoothBinaryThresholdImageFilter<InputImageType, SpeedType> FilterType;
 
   // The 'parameters' for this filter consist of just the scalar image layer to
   // which the filter should be applied. The actual parameters (thresholds) are
   // obtained from the selected layer's user data.
-  typedef ThresholdSettings                                      ParameterType;
+  typedef ThresholdSettings                                        ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
-  static void DetachInputs(FilterType *filter);
+  static void DetachInputs(SNAPImageData *sid, FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 
@@ -74,22 +101,25 @@ public:
   static ScalarImageWrapperBase* GetDefaultScalarLayer(SNAPImageData *sid);
   static void SetActiveScalarLayer(
       ScalarImageWrapperBase *layer, FilterType *filter, int channel);
+
+protected:
+  static std::string CasterPipelineKeyString(int channel);
 };
 
-class EdgePreprocessingFilterConfigTraits {
+class EdgePreprocessingFilterConfigTraits : public AbstractFilterConfigTraits
+{
 public:
 
   typedef SNAPImageData                                          InputDataType;
-
-  typedef ScalarImageWrapperBase::CommonFormatImageType               GreyType;
+  typedef ImageWrapperBase::FloatImageType                      InputImageType;
   typedef SNAPImageData::SpeedImageType                              SpeedType;
   typedef SpeedImageWrapper                                  OutputWrapperType;
 
-  typedef EdgePreprocessingImageFilter<GreyType, SpeedType>         FilterType;
+  typedef EdgePreprocessingImageFilter<InputImageType, SpeedType>   FilterType;
   typedef EdgePreprocessingSettings                              ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
-  static void DetachInputs(FilterType *filter);
+  static void DetachInputs(SNAPImageData *sid, FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 
@@ -102,23 +132,24 @@ public:
 };
 
 
-class GMMPreprocessingFilterConfigTraits {
+class GMMPreprocessingFilterConfigTraits : public AbstractFilterConfigTraits
+{
 public:
 
   typedef SNAPImageData                                          InputDataType;
 
-  typedef AnatomicScalarImageWrapper::ImageType                 GreyScalarType;
-  typedef AnatomicImageWrapper::ImageType                       GreyVectorType;
+  typedef ImageWrapperBase::FloatImageType                FloatScalarImageType;
+  typedef ImageWrapperBase::FloatVectorImageType          FloatVectorImageType;
   typedef SNAPImageData::SpeedImageType                              SpeedType;
   typedef SpeedImageWrapper                                  OutputWrapperType;
 
   typedef GMMClassifyImageFilter<
-    GreyScalarType, GreyVectorType, SpeedType>                      FilterType;
+    FloatScalarImageType, FloatVectorImageType, SpeedType>          FilterType;
 
   typedef GaussianMixtureModel                                   ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
-  static void DetachInputs(FilterType *filter);
+  static void DetachInputs(SNAPImageData *sid, FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 
@@ -132,23 +163,25 @@ public:
 
 
 /** Traits class for random forest based preprocessing */
-class RFPreprocessingFilterConfigTraits {
+class RFPreprocessingFilterConfigTraits : public AbstractFilterConfigTraits
+{
 public:
 
   typedef SNAPImageData                                          InputDataType;
 
-  typedef AnatomicScalarImageWrapper::ImageType                 GreyScalarType;
-  typedef AnatomicImageWrapper::ImageType                       GreyVectorType;
+  typedef ImageWrapperBase::FloatImageType                FloatScalarImageType;
+  typedef ImageWrapperBase::FloatVectorImageType          FloatVectorImageType;
   typedef SNAPImageData::SpeedImageType                              SpeedType;
   typedef SpeedImageWrapper                                  OutputWrapperType;
 
   typedef RandomForestClassifyImageFilter<
-    GreyScalarType, GreyVectorType, SpeedType, LabelType>           FilterType;
+    FloatScalarImageType, FloatVectorImageType,
+    SpeedType, LabelType>                                           FilterType;
 
-  typedef RandomForestClassifier<GreyType,LabelType,3>           ParameterType;
+  typedef RandomForestClassifier<float, LabelType, 3>            ParameterType;
 
   static void AttachInputs(SNAPImageData *sid, FilterType *filter, int channel);
-  static void DetachInputs(FilterType *filter);
+  static void DetachInputs(SNAPImageData *sid, FilterType *filter);
   static void SetParameters(ParameterType *p, FilterType *filter, int channel);
   static bool GetDefaultPreviewMode() { return true; }
 

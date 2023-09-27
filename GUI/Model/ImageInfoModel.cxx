@@ -1,5 +1,5 @@
 #include "ImageInfoModel.h"
-#include "LayerAssociation.txx"
+#include "LayerAssociation.h"
 #include "MetaDataAccess.h"
 #include <cctype>
 #include <algorithm>
@@ -47,6 +47,9 @@ ImageInfoModel::ImageInfoModel()
 
   m_ImageScalarIntensityUnderCursorModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetImageScalarIntensityUnderCursor);
+
+  m_ImagePixelFormatDescriptionModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetImagePixelFormatDescription);
 
   // Create the property model for the filter
   m_MetadataFilterModel = ConcreteSimpleStringProperty::New();
@@ -125,7 +128,7 @@ bool ImageInfoModel
   if(!l) return false;
 
   Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
-  Vector3d x = l->TransformVoxelIndexToPosition(to_int(cursor));
+  Vector3d x = l->TransformVoxelIndexToLPSCoordinates(to_int(cursor));
 
   for(unsigned int i = 0; i < 3; i++)
     value[i] = x[i];
@@ -159,9 +162,9 @@ bool ImageInfoModel::GetImageVoxelCoordinatesOblique(Vector3d &value)
   if(!l) return false;
 
   // Get the cursor coordinate in reference space units
-  itk::Index<3> x_ref = l->GetSliceIndex();
+  itk::ContinuousIndex<double, 3> x_ref = l->GetSliceIndex();
   itk::ContinuousIndex<double, 3> x_img;
-  l->TransformReferenceIndexToWrappedImageContinuousIndex(x_ref, x_img);
+  l->TransformReferenceCIndexToWrappedImageCIndex(x_ref, x_img);
 
   // Set everything
   for(unsigned int d = 0; d < 3; d++)
@@ -232,6 +235,14 @@ bool ImageInfoModel::GetImageScalarIntensityUnderCursor(double &value)
     return true;
   }
   return false;
+}
+
+bool ImageInfoModel::GetImagePixelFormatDescription(std::string &value)
+{
+  ImageWrapperBase *l = dynamic_cast<ImageWrapperBase*>(this->GetLayer());
+  if(!l) return false;
+    value = l->GetPixelFormatDescription();
+  return true;
 }
 
 bool

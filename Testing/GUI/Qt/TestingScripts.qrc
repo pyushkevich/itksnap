@@ -15,5 +15,6 @@
         <file>Scripts/test_MeshWorkspace.js</file>
         <file>Scripts/test_SegmentationMesh.js</file>
         <file>Scripts/test_VolumeRendering.js</file>
+        <file>Scripts/test_NaNs.js</file>
     </qresource>
 </RCC>

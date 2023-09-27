@@ -997,6 +997,27 @@ void GlobalUIModel::IncrementDrawingColorLabel(int delta)
     m_Driver->GetGlobalState()->SetDrawingColorLabel(pos->first);
 }
 
+void GlobalUIModel::SwitchForegroundBackgroundLabels()
+{
+  DrawOverFilter dof = m_Driver->GetGlobalState()->GetDrawOverFilter();
+  if(dof.CoverageMode == PAINT_OVER_ONE)
+    {
+    ColorLabelTable *clt = m_Driver->GetColorLabelTable();
+    ColorLabelTable::ValidLabelConstIterator oldBackground =
+        clt->GetValidLabels().find(dof.DrawOverLabel);
+    ColorLabelTable::ValidLabelConstIterator oldForeground =
+        clt->GetValidLabels().find(m_Driver->GetGlobalState()->GetDrawingColorLabel());
+
+    if (oldBackground != clt->GetValidLabels().end()
+        && oldForeground != clt->GetValidLabels().end())
+      {
+      dof.DrawOverLabel = oldForeground->first;
+      m_Driver->GetGlobalState()->SetDrawOverFilter(dof);
+      m_Driver->GetGlobalState()->SetDrawingColorLabel(oldBackground->first);
+      }
+    }
+}
+
 void GlobalUIModel::IncrementDrawOverColorLabel(int delta)
 {
   // Handle basic cases

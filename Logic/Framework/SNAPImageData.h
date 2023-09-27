@@ -79,7 +79,6 @@ public:
 
   // The type of the internal level set image
   typedef itk::Image<float,3>                                   FloatImageType;
-  typedef Superclass::AnatomicImageType                      AnatomicImageType;
   typedef SpeedImageWrapper::ImageType                          SpeedImageType;
   typedef LevelSetImageWrapper::ImageType                    LevelSetImageType;
 

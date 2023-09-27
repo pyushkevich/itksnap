@@ -2,7 +2,7 @@
 
 #include <vtkChartXY.h>
 #include <vtkPlot.h>
-#include <vtkFloatArray.h>
+#include <vtkDoubleArray.h>
 #include <vtkTable.h>
 #include <vtkContextView.h>
 #include <vtkContextScene.h>
@@ -176,7 +176,7 @@ protected:
     if(m_Model && m_Model->GetLayer())
       {
       Vector2d vis_range = m_Model->GetVisibleImageRange();
-      float margin = (vis_range[1] - vis_range[0]) / 40.0;
+      double margin = (vis_range[1] - vis_range[0]) / 40.0;
       bounds[0] = vis_range[0] - 0.9 * margin;
       bounds[1] = vis_range[0] - 0.1 * margin;
       bounds[2] = 0.0;
@@ -256,7 +256,7 @@ public:
     IntensityCurveInterface *curve = m_Model->GetCurve();
     Vector2d range = m_Model->GetNativeImageRangeForCurve();
 
-    float t, x, y;
+    double t, x, y;
     curve->GetControlPoint(index, t, y);
     x = range[0] * (1 - t) + range[1] * t;
 
@@ -283,8 +283,8 @@ public:
     Vector2d range = m_Model->GetNativeImageRangeForCurve();
 
     // Force the positions of the starting and ending points
-    float t = (point[0] - range[0]) / (range[1] - range[0]);
-    float y = point[1];
+    double t = (point[0] - range[0]) / (range[1] - range[0]);
+    double y = point[1];
 
     m_Model->UpdateControlPoint(index, t, y);
   }
@@ -301,7 +301,7 @@ public:
   {
     if(m_Model && m_Model->GetLayer())
       {
-      float vppr = m_Model->GetViewportReporter()->GetViewportPixelRatio();
+      double vppr = m_Model->GetViewportReporter()->GetViewportPixelRatio();
       painter->GetBrush()->SetColor(255, 255, 0, 255);
       painter->GetBrush()->SetTexture(nullptr);
       painter->GetPen()->SetLineType(vtkPen::SOLID_LINE);
@@ -462,9 +462,9 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   this->GetScene()->AddItem(m_Chart);
 
   // Set up the data
-  m_CurveX = vtkSmartPointer<vtkFloatArray>::New();
+  m_CurveX = vtkSmartPointer<vtkDoubleArray>::New();
   m_CurveX->SetName("Image Intensity");
-  m_CurveY = vtkSmartPointer<vtkFloatArray>::New();
+  m_CurveY = vtkSmartPointer<vtkDoubleArray>::New();
   m_CurveY->SetName("Output Intensity");
 
   // Set up the table
@@ -565,33 +565,33 @@ IntensityCurveVTKRenderer
     Vector2d range = m_Model->GetNativeImageRangeForCurve();
 
     // Get the range over which to draw the curve
-    float t0, t1, y0, y1;
+    double t0, t1, y0, y1;
     curve->GetControlPoint(0, t0, y0);
     curve->GetControlPoint(curve->GetControlPointCount() - 1, t1, y1);
 
     // Compute the range over which the curve is plotted, where [0 1] is the
     // image intensity range
-    float z0 = std::min(t0, 0.0f);
-    float z1 = std::max(t1, 1.0f);
+    double z0 = std::min(t0, 0.0);
+    double z1 = std::max(t1, 1.0);
 
     // Compute the range over which the curve is plotted, in intensity units
-    float x0 = range[0] * (1 - z0) + range[1] * z0;
-    float x1 = range[0] * (1 - z1) + range[1] * z1;
+    double x0 = range[0] * (1 - z0) + range[1] * z0;
+    double x1 = range[0] * (1 - z1) + range[1] * z1;
 
     // Sample the curve
     for(int i = 0; i <= CURVE_RESOLUTION; i++)
       {
-      float p = i * 1.0 / CURVE_RESOLUTION;
-      float t = z0 * (1.0 - p) + z1 * p;
-      float x = x0 * (1.0 - p) + x1 * p;
-      float y = curve->Evaluate(t);
+      double p = i * 1.0 / CURVE_RESOLUTION;
+      double t = z0 * (1.0 - p) + z1 * p;
+      double x = x0 * (1.0 - p) + x1 * p;
+      double y = curve->Evaluate(t);
       m_CurveX->SetValue(i+1, x);
       m_CurveY->SetValue(i+1, y);
       }
 
     // Set the range of the plot. In order for the control points to be visible,
     // we include a small margin on the left and right.
-    float margin = (x1 - x0) / 40.0;
+    double margin = (x1 - x0) / 40.0;
     m_CurvePlot->GetXAxis()->SetMinimumLimit(x0 - margin);
     m_CurvePlot->GetXAxis()->SetMaximumLimit(x1 + margin);
     m_CurvePlot->GetXAxis()->SetMinimum(x0 - margin);

@@ -304,11 +304,11 @@ GuidedNativeImageIO
     m_StaticDataInitialized = true;
     }
 
-  m_NativeType = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  m_NativeType = itk::IOComponentEnum::UNKNOWNCOMPONENTTYPE;
   m_NativeComponents = 0;
   m_NativeTypeString = m_IOBase->GetComponentTypeAsString(m_NativeType);
   m_NativeFileName = "";
-  m_NativeByteOrder = itk::ImageIOBase::OrderNotApplicable;
+  m_NativeByteOrder = itk::IOByteOrderEnum::OrderNotApplicable;
   m_NativeSizeInBytes = 0;
 }
 
@@ -734,21 +734,21 @@ GuidedNativeImageIO
 
 GuidedNativeImageIO::DispatchBase*
 GuidedNativeImageIO
-::CreateDispatch(itk::ImageIOBase::IOComponentType comp_type)
+::CreateDispatch(itk::IOComponentEnum comp_type)
 {
   // Based on the component type, read image in native mode
   switch(comp_type)
     {
-    case itk::ImageIOBase::UCHAR:  return new Dispatch<unsigned char>();   break;
-    case itk::ImageIOBase::CHAR:   return new Dispatch<signed char>();            break;
-    case itk::ImageIOBase::USHORT: return new Dispatch<unsigned short>();  break;
-    case itk::ImageIOBase::SHORT:  return new Dispatch<short>();           break;
-    case itk::ImageIOBase::UINT:   return new Dispatch<unsigned int>();    break;
-    case itk::ImageIOBase::INT:    return new Dispatch<int>();             break;
-    case itk::ImageIOBase::ULONG:  return new Dispatch<unsigned long>();   break;
-    case itk::ImageIOBase::LONG:   return new Dispatch<long>();            break;
-    case itk::ImageIOBase::FLOAT:  return new Dispatch<float>();           break;
-    case itk::ImageIOBase::DOUBLE: return new Dispatch<double>();          break;
+    case itk::IOComponentEnum::UCHAR:  return new Dispatch<unsigned char>();   break;
+    case itk::IOComponentEnum::CHAR:   return new Dispatch<signed char>();            break;
+    case itk::IOComponentEnum::USHORT: return new Dispatch<unsigned short>();  break;
+    case itk::IOComponentEnum::SHORT:  return new Dispatch<short>();           break;
+    case itk::IOComponentEnum::UINT:   return new Dispatch<unsigned int>();    break;
+    case itk::IOComponentEnum::INT:    return new Dispatch<int>();             break;
+    case itk::IOComponentEnum::ULONG:  return new Dispatch<unsigned long>();   break;
+    case itk::IOComponentEnum::LONG:   return new Dispatch<long>();            break;
+    case itk::IOComponentEnum::FLOAT:  return new Dispatch<float>();           break;
+    case itk::IOComponentEnum::DOUBLE: return new Dispatch<double>();          break;
     default:
       throw IRISException("Error: Unsupported voxel type."
                           "Unsupported voxel type ('%s') encountered in GuidedNativeImageIO",
@@ -1499,19 +1499,19 @@ RescaleNativeImageToIntegralType<TOutputImage>::operator()(
   auto *native = nativeIO->GetNativeImage();
 
   // Cast image from native format to TPixel
-  itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
+  itk::IOComponentEnum itype = nativeIO->GetComponentTypeInNativeImage();
   switch(itype) 
     {
-    case itk::ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
-    case itk::ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
-    case itk::ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
-    case itk::ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
-    case itk::ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
-    case itk::ImageIOBase::INT:    DoCast<signed int>(native);      break;
-    case itk::ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
-    case itk::ImageIOBase::LONG:   DoCast<signed long>(native);     break;
-    case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
-    case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
+    case itk::IOComponentEnum::UCHAR:  DoCast<unsigned char>(native);   break;
+    case itk::IOComponentEnum::CHAR:   DoCast<signed char>(native);     break;
+    case itk::IOComponentEnum::USHORT: DoCast<unsigned short>(native);  break;
+    case itk::IOComponentEnum::SHORT:  DoCast<signed short>(native);    break;
+    case itk::IOComponentEnum::UINT:   DoCast<unsigned int>(native);    break;
+    case itk::IOComponentEnum::INT:    DoCast<signed int>(native);      break;
+    case itk::IOComponentEnum::ULONG:  DoCast<unsigned long>(native);   break;
+    case itk::IOComponentEnum::LONG:   DoCast<signed long>(native);     break;
+    case itk::IOComponentEnum::FLOAT:  DoCast<float>(native);           break;
+    case itk::IOComponentEnum::DOUBLE: DoCast<double>(native);          break;
     default: 
       throw IRISException("Unknown pixel type when reading image");
     }
@@ -1742,19 +1742,19 @@ CastNativeImage<TOutputImage,TCastFunctor>
   itk::ImageBase<4> *native = nativeIO->GetNativeImage();
 
   // Cast image from native format to TPixel
-  itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
+  itk::IOComponentEnum itype = nativeIO->GetComponentTypeInNativeImage();
   switch(itype) 
     {
-    case itk::ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
-    case itk::ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
-    case itk::ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
-    case itk::ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
-    case itk::ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
-    case itk::ImageIOBase::INT:    DoCast<signed int>(native);      break;
-    case itk::ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
-    case itk::ImageIOBase::LONG:   DoCast<signed long>(native);     break;
-    case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
-    case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
+    case itk::IOComponentEnum::UCHAR:  DoCast<unsigned char>(native);   break;
+    case itk::IOComponentEnum::CHAR:   DoCast<signed char>(native);     break;
+    case itk::IOComponentEnum::USHORT: DoCast<unsigned short>(native);  break;
+    case itk::IOComponentEnum::SHORT:  DoCast<signed short>(native);    break;
+    case itk::IOComponentEnum::UINT:   DoCast<unsigned int>(native);    break;
+    case itk::IOComponentEnum::INT:    DoCast<signed int>(native);      break;
+    case itk::IOComponentEnum::ULONG:  DoCast<unsigned long>(native);   break;
+    case itk::IOComponentEnum::LONG:   DoCast<signed long>(native);     break;
+    case itk::IOComponentEnum::FLOAT:  DoCast<float>(native);           break;
+    case itk::IOComponentEnum::DOUBLE: DoCast<double>(native);          break;
     default: 
       throw IRISException("Error: Unknown pixel type when reading image."
                           "The voxels in the image you are loading have format '%s', "
@@ -2232,19 +2232,19 @@ CastNativeImageToScalar<TPixel>
   m_Output->Allocate();
 
   // Cast image from native format to TPixel
-  itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
+  itk::IOComponentEnum itype = nativeIO->GetComponentTypeInNativeImage();
   switch(itype) 
     {
-    case itk::ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
-    case itk::ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
-    case itk::ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
-    case itk::ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
-    case itk::ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
-    case itk::ImageIOBase::INT:    DoCast<signed int>(native);      break;
-    case itk::ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
-    case itk::ImageIOBase::LONG:   DoCast<signed long>(native);     break;
-    case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
-    case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
+    case itk::IOComponentEnum::UCHAR:  DoCast<unsigned char>(native);   break;
+    case itk::IOComponentEnum::CHAR:   DoCast<signed char>(native);     break;
+    case itk::IOComponentEnum::USHORT: DoCast<unsigned short>(native);  break;
+    case itk::IOComponentEnum::SHORT:  DoCast<signed short>(native);    break;
+    case itk::IOComponentEnum::UINT:   DoCast<unsigned int>(native);    break;
+    case itk::IOComponentEnum::INT:    DoCast<signed int>(native);      break;
+    case itk::IOComponentEnum::ULONG:  DoCast<unsigned long>(native);   break;
+    case itk::IOComponentEnum::LONG:   DoCast<signed long>(native);     break;
+    case itk::IOComponentEnum::FLOAT:  DoCast<float>(native);           break;
+    case itk::IOComponentEnum::DOUBLE: DoCast<double>(native);          break;
     default: 
       throw itk::ExceptionObject("Unknown Pixel Type when reading image");
     }
@@ -2285,24 +2285,17 @@ CastNativeImageToScalar<TPixel>
 
 */
 
-template class RescaleNativeImageToIntegralType<itk::Image<GreyType, 4> >;
-template class RescaleNativeImageToIntegralType<itk::VectorImage<GreyType, 4> >;
-template class CastNativeImage<itk::Image<unsigned short, 4> >;
+#define GuidedNativeImageIOInstantiateMacro(type) \
+  template class RescaleNativeImageToIntegralType< itk::Image<type, 4> >; \
+  template class RescaleNativeImageToIntegralType< itk::VectorImage<type, 4> >; \
+  template class CastNativeImage<itk::Image<type, 4> >; \
+  template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<type, 3> *);
 
-// template class CastNativeImageBase<RGBType, CastToArrayFunctor<RGBType, 3> >;
-// template class CastNativeImageBase<LabelType, CastToScalarFunctor<LabelType> >;
-// template class CastNativeImageBase<float, CastToScalarFunctor<float> >;
-
-/*
-template class CastNativeImageToRGB<RGBType>; 
-template class CastNativeImageToScalar<LabelType>; 
-template class CastNativeImageToScalar<float>; 
-*/
-
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<GreyType,3> *);
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<LabelType,3> *);
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<float,3> *);
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<RGBType,3> *);
+GuidedNativeImageIOInstantiateMacro(unsigned char)
+GuidedNativeImageIOInstantiateMacro(char)
+GuidedNativeImageIOInstantiateMacro(unsigned short)
+GuidedNativeImageIOInstantiateMacro(short)
+GuidedNativeImageIOInstantiateMacro(float)
 
 
 

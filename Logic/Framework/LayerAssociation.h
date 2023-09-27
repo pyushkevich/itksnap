@@ -76,5 +76,8 @@ protected:
 
 };
 
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "LayerAssociation.txx"
+#endif
 
 #endif // LAYERASSOCIATION_H
