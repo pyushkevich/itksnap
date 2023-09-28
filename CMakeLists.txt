@@ -1441,8 +1441,10 @@ IF(APPLE)
   MARK_AS_ADVANCED(SNAP_MACOSX_CODESIGN_CERT)
 
   # Notarization keychain profile
-  SET(SNAP_MACOS_NOTARYTOOL_PROFILE "" CACHE STRING "Notary tool keychain profile, see https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow")
+  SET(SNAP_MACOS_NOTARYTOOL_PROFILE "" CACHE STRING "Notary tool password name, see https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow")
+  SET(SNAP_MACOS_NOTARYTOOL_KEYCHAIN "default" CACHE STRING "Notary tool keychain, if not storing password in default keychain")
   MARK_AS_ADVANCED(SNAP_MACOS_NOTARYTOOL_PROFILE)
+  MARK_AS_ADVANCED(SNAP_MACOS_NOTARYTOOL_KEYCHAIN)
 
   IF(SNAP_MACOSX_CODESIGN_CERT)
     SET(CPACK_BUNDLE_APPLE_CERT_APP ${SNAP_MACOSX_CODESIGN_CERT})
@@ -1460,7 +1462,7 @@ IF(APPLE)
     IF(SNAP_MACOS_NOTARYTOOL_PROFILE)
       add_custom_target(notarize
         COMMENT "Notarizing installer package..."
-        COMMAND xcrun notarytool submit "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.dmg" --keychain-profile "${SNAP_MACOS_NOTARYTOOL_PROFILE}" --wait
+	COMMAND xcrun notarytool submit "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.dmg" --keychain-profile "${SNAP_MACOS_NOTARYTOOL_PROFILE}" --keychain "${SNAP_MACOS_NOTARYTOOL_KEYCHAIN}" --wait
         VERBATIM)
       add_custom_target(staple
         COMMENT "Stapling notarization ticket to installer package..."
