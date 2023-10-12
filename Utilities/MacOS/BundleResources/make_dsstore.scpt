@@ -6,7 +6,7 @@ on run argv
 	set BG_H to 320
 	set TITLE_BAR_H to 22
 
-        delay 10
+        delay 10 * @SNAP_MACOSX_DSSTORE_SPEED_FACTOR@
         set diskImage to item 1 of argv
 
 	tell application "Finder"
@@ -18,7 +18,7 @@ on run argv
 			set background picture of theViewOptions to file ".background:background.tiff"
 			set arrangement of theViewOptions to not arranged
 			set icon size of theViewOptions to 120
-			delay 5
+			delay 5 * @SNAP_MACOSX_DSSTORE_SPEED_FACTOR@
 			close
 
 			-- Setup window decoration and icon positions
@@ -40,7 +40,7 @@ on run argv
 				-- set position of item ".fseventsd" to {332, 500}
 			end tell
 			update without registering applications
-			delay 5
+			delay 5 * @SNAP_MACOSX_DSSTORE_SPEED_FACTOR@
 			close
 
 			-- Show window one more time for a final check
