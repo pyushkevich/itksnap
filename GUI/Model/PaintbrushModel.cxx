@@ -167,6 +167,11 @@ void PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
     }
 }
 
+bool PaintbrushModel::HasMainImageTransformed()
+{
+  return !m_Parent->GetDriver()->GetMainImage()->ImageSpaceMatchesReferenceSpace();
+}
+
 bool PaintbrushModel::TestInside(const Vector2d &x, const PaintbrushSettings &ps)
 {
   return this->TestInside(Vector3d(x(0), x(1), 0.0), ps);

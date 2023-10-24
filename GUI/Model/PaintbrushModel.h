@@ -35,6 +35,9 @@ public:
   // should be rendered
   Vector3d GetCenterOfPaintbrushInSliceSpace();
 
+  // Get whether main image has been transformed
+  bool HasMainImageTransformed();
+
   bool TestInside(const Vector2d &x, const PaintbrushSettings &ps);
   bool TestInside(const Vector3d &x, const PaintbrushSettings &ps);
 
