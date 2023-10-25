@@ -603,9 +603,12 @@ public:
 
   /**
    * Apply a binary drawing represented as an RLE image
+   * if invert == true, draw foreground with value 1 and background with 0
+   * if reverse = true, draw background with value 1
    */
   unsigned int UpdateSegmentationWithBinarySegmentation(
-      const LabelImageType *binseg, const std::string &undoTitle);
+      const LabelImageType *binseg, const std::string &undoTitle,
+      bool invert = false, bool reverse = false);
 
   /** Get the pointer to the settings used for threshold-based preprocessing */
   // irisGetMacro(ThresholdSettings, ThresholdSettings *)

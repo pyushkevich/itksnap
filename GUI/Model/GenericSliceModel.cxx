@@ -31,7 +31,9 @@
 #include <GenericImageData.h>
 #include <SNAPAppearanceSettings.h>
 #include <DisplayLayoutModel.h>
+#include <vtkContourTriangulator.h>
 #include "DeformationGridModel.h"
+#include "DrawTriangles.h"
 
 #include <itkImage.h>
 #include <itkImageRegionIteratorWithIndex.h>
@@ -1143,4 +1145,115 @@ GenericSliceModel
     }
 
   return m_DeformationGridModel;
+}
+
+
+
+void
+GenericSliceModel
+::Voxelize2DPolygonToSegmentationSlice(
+    const std::vector<Vector2d> &vts2d, const std::string &undoTitle,
+    bool invert, bool reverse)
+{
+  LabelImageWrapper *seg = m_Driver->GetSelectedSegmentationLayer();
+
+  // build polygon
+  auto z = GetCursorPositionInSliceCoordinates()[2];
+  auto np = vts2d.size();
+
+  vtkNew<vtkPoints> pts;
+  pts->Allocate(np);
+
+  vtkNew<vtkPolyData> cont_pd; // the contour polydata
+  cont_pd->SetPoints(pts);
+  cont_pd->Allocate(np);
+
+  Vector3i ext_min, ext_max; // Extents of the polygon in voxel units
+
+  // process vertices and create edges
+  for (int i = 0; i < np; ++i)
+    {
+    Vector2d v_2d = vts2d[i]; // get a 2d vertex
+
+    // transform point from display to image
+    Vector3d x_disp, x_ref;
+    x_disp[0] = v_2d[0];
+    x_disp[1] = v_2d[1];
+    x_disp[2] = z;
+
+    // transform to reference space first
+    x_ref = GetDisplayToImageTransform()->TransformPoint(x_disp);
+
+    // transform the point to actual image space
+    itk::ContinuousIndex<double, 3> ci_ref = to_itkContinuousIndex(x_ref), ci_vox;
+    seg->TransformReferenceCIndexToWrappedImageCIndex(ci_ref, ci_vox);
+    pts->InsertNextPoint(ci_vox[0], ci_vox[1], ci_vox[2]);
+
+    // Update the extents of the object
+    for(unsigned int j = 0; j < 3; j++)
+      {
+      int v = ci_vox[j];
+      ext_min[j] = (i == 0) ? v : std::min(v, ext_min[j]);
+      ext_max[j] = (i == 0) ? v : std::max(v, ext_max[j]);
+      }
+
+    // create an edge
+    vtkIdType vids[2]; // two vertices
+    vids[0] = i;
+    vids[1] = i < np - 1 ? i + 1 : 0;
+    cont_pd->InsertNextCell(VTK_LINE, 2, vids);
+    }
+
+  vtkNew<vtkContourTriangulator> fltContTri;
+  fltContTri->SetInputData(cont_pd);
+  fltContTri->Update();
+  auto tri_pd = fltContTri->GetOutput();
+
+  // Create a temporary RLE image for rasterization
+  itk::ImageRegion<3> seg_region(to_itkIndex(ext_min), to_itkSize(1 + ext_max - ext_min));
+  seg_region.Crop(seg->GetBufferedRegion());
+
+  LabelImageWrapper::ImagePointer seg_temp = LabelImageWrapper::ImageType::New();
+  auto *iseg = seg->GetModifiableImage();
+  seg_temp->CopyInformation(iseg);
+  seg_temp->SetRegions(seg_region);
+  seg_temp->Allocate();
+
+  // Convert the triangles into the data structure expected by scan converter and subtract
+  // the lower corner since the rasterization code expects the image to start at the
+  // coordinate zero
+  double **varr = new double *[tri_pd->GetNumberOfCells() * 3];
+  for(unsigned int i = 0; i < tri_pd->GetNumberOfCells(); i++)
+    {
+    for(unsigned int j = 0; j < 3; j++)
+      {
+      varr[i * 3 + j] = new double[3];
+      tri_pd->GetPoint(tri_pd->GetCell(i)->GetPointId(j), varr[i * 3 + j]);
+      for(unsigned int k = 0; k < 3; k++)
+        varr[i * 3 + j][k] -= ext_min[k];
+      }
+    }
+
+  // Image dimensions
+  int seg_dim[3] = { (int) seg_region.GetSize()[0], (int) seg_region.GetSize()[1], (int) seg_region.GetSize()[2] };
+  int w_line = seg_dim[2];
+
+  // Get the segmentation image and create an iterator for it
+  using RLEIter = itk::ImageRegionIterator<LabelImageWrapper::ImageType>;
+  RLEIter it_temp(seg_temp, seg_region);
+
+  // Create a lambda that can update pixels in an RLE image via the iterator
+  auto functor = [&it_temp](auto *img, int offset)
+    {
+    // Go to the indexed vertex and set value to 1
+    it_temp.SetIndex(img->ComputeIndex(offset));
+    it_temp.Set(1);
+    };
+
+  // Actual call to the scan conversion code
+  // DrawBinaryTrianglesSheetFilled(seg->GetModifiableImage(), seg_dim, varr, tri_pd->GetNumberOfCells(), functor);
+  cpu_voxelizer::DrawBinaryTrianglesSheetFilled(seg_temp.GetPointer(), seg_dim, varr, tri_pd->GetNumberOfCells(), functor);
+
+  // Update the segmentation via IRIS
+  m_Driver->UpdateSegmentationWithBinarySegmentation(seg_temp, undoTitle, invert, reverse);
 }
