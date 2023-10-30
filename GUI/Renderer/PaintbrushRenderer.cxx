@@ -146,6 +146,8 @@ public:
     // Build the mask edges
     BuildBrush();
 
+    m_PaintbrushModel->SetBrushPoints(m_Walk);
+
     // Apply the line properties
     this->ApplyAppearanceSettingsToPen(painter, elt);
 

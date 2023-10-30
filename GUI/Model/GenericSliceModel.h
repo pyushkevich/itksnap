@@ -396,6 +396,16 @@ public:
 
   DeformationGridModel *GetDeformationGridModel();
 
+  /**
+   * Voxelize a 2d polygon (represented by list of 2d vertices) into
+   * the segmentation slice of this model
+   * if invert == true, draw foreground within the polygon and backgournd outside
+   * if reverse = true, draw background with within the polygon
+   */
+  void Voxelize2DPolygonToSegmentationSlice(
+      const std::vector<Vector2d> &vts2d, const std::string &undoTitle,
+      bool invert = false, bool reverse = false);
+
 
 protected:
 

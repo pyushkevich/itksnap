@@ -167,6 +167,11 @@ void PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
     }
 }
 
+bool PaintbrushModel::HasMainImageTransformed()
+{
+  return !m_Parent->GetDriver()->GetMainImage()->ImageSpaceMatchesReferenceSpace();
+}
+
 bool PaintbrushModel::TestInside(const Vector2d &x, const PaintbrushSettings &ps)
 {
   return this->TestInside(Vector3d(x(0), x(1), 0.0), ps);
@@ -336,6 +341,9 @@ void PaintbrushModel::AcceptAtCursor()
 bool
 PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
 {
+  if (HasMainImageTransformed())
+    return ApplyBrushByPolygonRasterization(reverse_mode, dragging);
+
   // Get the global objects
   IRISApplication *driver = m_Parent->GetDriver();
   GlobalState *gs = driver->GetGlobalState();
@@ -462,3 +470,30 @@ Vector3d PaintbrushModel::GetCenterOfPaintbrushInSliceSpace()
   else
     return m_Parent->MapImageToSlice(to_double(m_MousePosition) + Vector3d(0.5));
 }
+
+bool
+PaintbrushModel
+::ApplyBrushByPolygonRasterization(bool reverse_mode, bool dragging)
+{
+  // build 2d vertices
+  std::vector<Vector2d> vts2d;
+  auto np = m_BrushPoints->GetNumberOfPoints();
+  Vector3d ctr = GetCenterOfPaintbrushInSliceSpace();
+
+  for (int i = 0; i < np; ++i)
+    {
+    double v[2];
+    m_BrushPoints->GetPoint(i, v);
+    // translate to center of pixel
+    v[0] += ctr[0];
+    v[1] += ctr[1];
+
+    vts2d.push_back(Vector2d(v[0], v[1]));
+    }
+
+  // run voxelization code
+  m_Parent->Voxelize2DPolygonToSegmentationSlice(vts2d, "Oblique Paintbrush Update",
+                                                 false, reverse_mode);
+  return true;
+}
+
