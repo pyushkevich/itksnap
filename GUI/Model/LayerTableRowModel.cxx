@@ -569,6 +569,16 @@ ImageLayerTableRowModel::CloseLayer()
   m_Layer = NULL;
 }
 
+void ImageLayerTableRowModel::ReloadAsMultiComponent()
+{
+  std::cout << "[ImageLayerTableRowModel] ReloadAsMultiComponent" << std::endl;
+}
+
+void ImageLayerTableRowModel::ReloadAs4D()
+{
+  std::cout << "[ImageLayerTableRowModel] ReloadAs4D" << std::endl;
+}
+
 bool ImageLayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
 {
   auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());

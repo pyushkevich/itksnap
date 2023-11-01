@@ -246,6 +246,16 @@ public:
    */
   void GenerateTextureFeatures();
 
+  /**
+   * Reload current 4d image layer to a multi-component image layer
+   */
+  void ReloadAsMultiComponent();
+
+  /**
+   * Reload current multi-component image layer to a 4d image layer
+   */
+  void ReloadAs4D();
+
 protected:
   ImageLayerTableRowModel();
   virtual ~ImageLayerTableRowModel() = default;

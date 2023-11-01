@@ -114,6 +114,10 @@ private slots:
 
   void on_actionClose_triggered();
 
+  void on_actionReloadAsMultiComponent_triggered();
+
+  void on_actionReloadAs4D_triggered();
+
   void onColorMapPresetSelected();
 
   void on_actionAutoContrast_triggered();
