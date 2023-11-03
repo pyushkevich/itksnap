@@ -1878,6 +1878,9 @@ IRISApplication
   // Create a native image IO object
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
+  // Configure io using delegate
+  del->ConfigureImageIO(io);
+
   // Load the header of the image
 	io->ReadNativeImageHeader(fname, *ioHints, headerProgCmd);
 

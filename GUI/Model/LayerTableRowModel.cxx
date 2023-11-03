@@ -572,6 +572,21 @@ ImageLayerTableRowModel::CloseLayer()
 void ImageLayerTableRowModel::ReloadAsMultiComponent()
 {
   std::cout << "[ImageLayerTableRowModel] ReloadAsMultiComponent" << std::endl;
+  auto driver = m_ParentModel->GetDriver();
+  auto filename = driver->GetMainImage()->GetFileName();
+
+  std::cout << "-- filename: " << filename << std::endl;
+
+  SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
+  delegate->Initialize(driver);
+  delegate->SetLoad4DAsMultiComponent(true);
+
+  IRISWarningList warningList;
+
+  driver->OpenImageViaDelegate(filename, delegate, warningList);
+
+  this->Initialize(m_ParentModel, driver->GetMainImage());
+
 }
 
 void ImageLayerTableRowModel::ReloadAs4D()

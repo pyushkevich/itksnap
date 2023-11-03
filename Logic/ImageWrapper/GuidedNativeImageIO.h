@@ -287,6 +287,19 @@ public:
    */
   void CreateImageIO(const char *fname, Registry &folder, bool read);
 
+  void SetLoadMultiComponentAs4D(bool value)
+  {
+    m_LoadMultiComponentAs4D = value;
+    m_Load4DAsMultiComponent = !value;
+  }
+
+  void SetLoad4DAsMultiComponent(bool value)
+  {
+    m_Load4DAsMultiComponent = value;
+    m_LoadMultiComponentAs4D = !value;
+  }
+
+
   // Get the output of the last operation
   // irisGetMacro(IOBase, itk::ImageIOBase *);
 protected:
@@ -344,6 +357,26 @@ protected:
    */
   DispatchBase *CreateDispatch(itk::IOComponentEnum comp_type);
 
+  template <typename NativeImageType>
+  void Convert4DLoadToMultiComponent(typename NativeImageType::Pointer image);
+
+  template <typename NativeImageType>
+  void ConvertMultiComponentLoadTo4D(typename NativeImageType::Pointer image);
+
+  /**
+   *  Update member variables using loaded header
+   *  Crucial step because application use these variables to update UI
+   *  It should be called every time after modifying the header
+   */
+  void UpdateMemberVariables();
+
+  /**
+   * Update an image pointer header based on m_IOBase
+   */
+  template <typename NativeImageType>
+  void UpdateImageHeader(typename NativeImageType::Pointer image);
+
+
   /** 
    This is a vector image in native format. It stores the data read from the
    image file. The user must cast it to a desired type to use it. Once it has
@@ -386,6 +419,12 @@ protected:
   // Number of volumes in a nrrd volume sequence
   unsigned int m_SeqNrrdNComp = 1u;
 
+  // final ncomp after folding higher dimensions
+  size_t m_NCompFinal;
+
+  // orinal dimension before folding higher dimensions
+  size_t m_NDimOriginal;
+
 	MFDS::DicomFilesToFrameMap m_DicomFilesToFrameMap;
 
   /** Registry mappings for these enums */
@@ -405,6 +444,10 @@ protected:
   static const gdcm::Tag m_tagInstanceNumber;
   static const gdcm::Tag m_tagSequenceName;
   static const gdcm::Tag m_tagSliceThickness;
+
+  /** Flags for delegate specific configurations */
+  bool m_LoadMultiComponentAs4D = false;
+  bool m_Load4DAsMultiComponent = false;
 
 };
 
