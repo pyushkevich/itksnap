@@ -906,6 +906,9 @@ GuidedNativeImageIO
   m_NDimOriginal = m_IOBase->GetNumberOfDimensions();
   size_t nd = (m_NDimOriginal > 4) ? 4 : m_NDimOriginal;
 
+  std::cout << "[GuidedImageIO::UpdateImgaeHeader] m_IOBase print " << std::endl;
+  m_IOBase->Print(std::cout);
+
   for(unsigned int i = 0; i < nd; i++)
     {
     spc[i] = m_IOBase->GetSpacing(i);
@@ -961,12 +964,13 @@ GuidedNativeImageIO
 }
 
 template <typename NativeImageType>
-void
+typename NativeImageType::Pointer
 GuidedNativeImageIO
 ::Convert4DLoadToMultiComponent(typename NativeImageType::Pointer image)
 {
   std::cout << "[GuidedNativeImgeIO::Convert4DLoadToMultiComponent] " << std::endl;
 
+  // rearrange the pixel container
   auto nd = m_IOBase->GetNumberOfDimensions();
 
   assert("Image to convert should be 4d" && nd == 4);
@@ -993,10 +997,10 @@ GuidedNativeImageIO
     for (ElementIdType j = 0; j < neTP; ++j)
       bufferMC[j * nt + i] = buffer4D[i * neTP + j];
 
-  std::cout << "-- after rearranging pixels " << std::endl;
 
   // Modify Header
   m_IOBase->SetNumberOfComponents(nt);
+  m_IOBase->SetDimensions(3, 1);
 
   itk::ImageIORegion ioRegion(m_NDimOriginal);
   itk::ImageIORegion::IndexType ioIndex;
@@ -1015,10 +1019,15 @@ GuidedNativeImageIO
   // important after modifying header, or UI won't render correctly
   UpdateMemberVariables();
 
-  UpdateImageHeader<NativeImageType>(image);
+  // create a new multi-component image
+  auto mcImage = NativeImageType::New();
 
-  std::cout << "-- Print Image Headers:" << std::endl;
-  image->Print(std::cout);
+  UpdateImageHeader<NativeImageType>(mcImage);
+  mcImage->Allocate();
+  image->GetPixelContainer()->SetContainerManageMemory(false);
+  mcImage->GetPixelContainer()->SetImportPointer(bufferMC, ne, true); // mcImage will take care of this memory
+
+  return mcImage;
 
   delete []buffer4D;
 }
@@ -1479,7 +1488,10 @@ GuidedNativeImageIO
       }
 
     if (m_Load4DAsMultiComponent)
-      this->Convert4DLoadToMultiComponent<NativeImageType>(image);
+      image = this->Convert4DLoadToMultiComponent<NativeImageType>(image);
+
+    std::cout << "[GuidedImageIO::DoReadNative] print mcImage" << std::endl;
+    image->Print(std::cout);
 
     m_NativeImage = image;
 

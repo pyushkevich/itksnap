@@ -358,7 +358,8 @@ protected:
   DispatchBase *CreateDispatch(itk::IOComponentEnum comp_type);
 
   template <typename NativeImageType>
-  void Convert4DLoadToMultiComponent(typename NativeImageType::Pointer image);
+  typename NativeImageType::Pointer
+  Convert4DLoadToMultiComponent(typename NativeImageType::Pointer image);
 
   template <typename NativeImageType>
   void ConvertMultiComponentLoadTo4D(typename NativeImageType::Pointer image);
