@@ -296,6 +296,9 @@ ImageLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_SAVABLE:
       return true;
 
+    case AbstractLayerTableRowModel::UIF_IS_4D:
+      return (m_Layer && m_ImageLayer->GetNumberOfTimePoints() > 1);
+
     default:
       return Superclass::CheckState(state); // Children override Parents
     }
@@ -567,6 +570,40 @@ ImageLayerTableRowModel::CloseLayer()
 
   m_ImageLayer = NULL;
   m_Layer = NULL;
+}
+
+void ImageLayerTableRowModel::ReloadAsMultiComponent()
+{
+  auto driver = m_ParentModel->GetDriver();
+  auto filename = driver->GetMainImage()->GetFileName();
+
+  SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
+  delegate->Initialize(driver);
+  delegate->SetLoad4DAsMultiComponent(true);
+
+  IRISWarningList warningList;
+
+  driver->OpenImageViaDelegate(filename, delegate, warningList);
+
+  this->Initialize(m_ParentModel, driver->GetMainImage());
+
+}
+
+void ImageLayerTableRowModel::ReloadAs4D()
+{
+  auto driver = m_ParentModel->GetDriver();
+  auto filename = driver->GetMainImage()->GetFileName();
+
+  SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
+  delegate->Initialize(driver);
+  delegate->SetLoadMultiComponentAs4D(true);
+
+  IRISWarningList warningList;
+
+  driver->OpenImageViaDelegate(filename, delegate, warningList);
+
+  this->Initialize(m_ParentModel, driver->GetMainImage());
+
 }
 
 bool ImageLayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)

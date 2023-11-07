@@ -43,6 +43,7 @@ public:
     UIF_COLORMAP_ADJUSTABLE,
     UIF_CONTRAST_ADJUSTABLE,
     UIF_MULTICOMPONENT,
+    UIF_IS_4D, // the 4th dimension greater than 1
     UIF_VOLUME_RENDERABLE,
     UIF_IMAGE,
     UIF_MESH,
@@ -245,6 +246,16 @@ public:
    * TODO: this is a placeholder for the future more complex functionality
    */
   void GenerateTextureFeatures();
+
+  /**
+   * Reload current 4d image layer to a multi-component image layer
+   */
+  void ReloadAsMultiComponent();
+
+  /**
+   * Reload current multi-component image layer to a 4d image layer
+   */
+  void ReloadAs4D();
 
 protected:
   ImageLayerTableRowModel();

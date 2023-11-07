@@ -47,6 +47,9 @@ public:
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void UnloadCurrentImage() = 0;
 
+  // Apply delegate specific settings to image io
+  virtual void ConfigureImageIO(GuidedNativeImageIO *io) {}
+
   /**
    * Update the application with the image contained in the Guided IO object and
    * return a pointer to the loaded image layer
@@ -94,9 +97,29 @@ public:
   void UnloadCurrentImage() ITK_OVERRIDE;
   ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) ITK_OVERRIDE;
 
+  void ConfigureImageIO(GuidedNativeImageIO *io) ITK_OVERRIDE;
+
+  /** When called, set this delegate to read a 4d image as multi-component image */
+  void SetLoad4DAsMultiComponent(bool value)
+  {
+    m_Load4DAsMultiComponent = value;
+    m_LoadMultiComponentAs4D = !value;
+  }
+
+  /** When called, set this delegate to read a multi-component image as 4d */
+  void SetLoadMultiComponentAs4D(bool value)
+  {
+    m_LoadMultiComponentAs4D = value;
+    m_Load4DAsMultiComponent = !value;
+  }
+
+
 protected:
   LoadMainImageDelegate();
   virtual ~LoadMainImageDelegate() {}
+
+  bool m_LoadMultiComponentAs4D = false;
+  bool m_Load4DAsMultiComponent = false;
 
 };
 

@@ -74,6 +74,9 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addAction(ui->actionSave);
   m_PopupMenu->addAction(ui->actionClose);
   m_PopupMenu->addSeparator();
+  m_PopupMenu->addAction(ui->actionReloadAsMultiComponent);
+  m_PopupMenu->addAction(ui->actionReloadAs4D);
+  m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionAutoContrast);
   m_PopupMenu->addAction(ui->actionContrast_Inspector);
   m_PopupMenu->addSeparator();
@@ -184,6 +187,8 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   activateOnFlag(m_PopupMenu->findChild<QMenu*>("menuProcess"), model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
   activateOnFlag(m_OverlaysMenu, model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
   activateOnFlag(ui->actionTextureFeatures, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE);
+  activateOnFlag(ui->actionReloadAs4D, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
+  activateOnFlag(ui->actionReloadAsMultiComponent, model, AbstractLayerTableRowModel::UIF_IS_4D, opt_hide);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
@@ -680,21 +685,58 @@ void LayerInspectorRowDelegate::on_actionClose_triggered()
     }
   else
     {
-    // Should we prompt for a single layer or all layers?
-    ImageWrapperBase *prompted_layer = nullptr;
-
+    // Prompt for saving changes
+    // -- for current layer if this is not main layer
     if (!m_Model->IsMainLayer())
-      prompted_layer = dynamic_cast<ImageWrapperBase*>(m_Model->GetLayer());
-
-    // Prompt for changes
-    if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), prompted_layer))
       {
-      do_close = true;
+      auto prompted_layer = dynamic_cast<ImageWrapperBase*>(m_Model->GetLayer());
+
+      // Prompt for changes for current layer
+      if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), prompted_layer))
+        do_close = true;
+      }
+    // -- for all overlay layers if this is main layer
+    else
+      {
+      if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), OVERLAY_ROLE))
+        do_close = true;
       }
     }
 
   if (do_close)
     m_Model->CloseLayer();
+}
+
+void
+LayerInspectorRowDelegate::
+on_actionReloadAsMultiComponent_triggered()
+{
+  auto imgLTRM = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
+
+  if (!imgLTRM || !m_Model->IsMainLayer())
+    return;
+
+  // Prompt for saving changes
+  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), OVERLAY_ROLE))
+    {
+    imgLTRM->ReloadAsMultiComponent();
+    }
+}
+
+void
+LayerInspectorRowDelegate::
+on_actionReloadAs4D_triggered()
+{
+  auto imgLTRM = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
+
+  if (!imgLTRM || !m_Model->IsMainLayer())
+    return;
+
+  // Prompt for saving changes
+  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), OVERLAY_ROLE))
+    {
+    imgLTRM->ReloadAs4D();
+    }
 }
 
 void LayerInspectorRowDelegate::onColorMapPresetSelected()

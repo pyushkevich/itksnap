@@ -60,6 +60,16 @@ LoadMainImageDelegate::LoadMainImageDelegate()
   this->m_DisplayName = "Main Image";
 }
 
+void
+LoadMainImageDelegate
+::ConfigureImageIO(GuidedNativeImageIO *io)
+{
+  if (m_Load4DAsMultiComponent)
+    io->SetLoad4DAsMultiComponent(true);
+  else if (m_LoadMultiComponentAs4D)
+    io->SetLoadMultiComponentAs4D(true);
+}
+
 
 /* =============================
    OVERLAY Image
