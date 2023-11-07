@@ -418,14 +418,14 @@ protected:
   // Number of images per z-position in the DICOM series (e.g., multi-echo data)
   int m_DICOMImagesPerIPP;
 
-  // Number of volumes in a nrrd volume sequence
-  unsigned int m_SeqNrrdNComp = 1u;
+  // original ncomp after folding higher dimensions
+  size_t m_NCompBeforeFolding;
 
   // final ncomp after folding higher dimensions
-  size_t m_NCompFinal;
+  size_t m_NCompAfterFolding;
 
   // orinal dimension before folding higher dimensions
-  size_t m_NDimOriginal;
+  size_t m_NDimBeforeFolding;
 
 	MFDS::DicomFilesToFrameMap m_DicomFilesToFrameMap;
 
