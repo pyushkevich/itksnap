@@ -362,7 +362,8 @@ protected:
   Convert4DLoadToMultiComponent(typename NativeImageType::Pointer image);
 
   template <typename NativeImageType>
-  void ConvertMultiComponentLoadTo4D(typename NativeImageType::Pointer image);
+  typename NativeImageType::Pointer
+  ConvertMultiComponentLoadTo4D(typename NativeImageType::Pointer image);
 
   /**
    *  Update member variables using loaded header

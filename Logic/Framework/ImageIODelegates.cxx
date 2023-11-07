@@ -64,8 +64,6 @@ void
 LoadMainImageDelegate
 ::ConfigureImageIO(GuidedNativeImageIO *io)
 {
-  std::cout << "[LoadMainImageDelegate] ConfigureImageIO" << std::endl;
-
   if (m_Load4DAsMultiComponent)
     io->SetLoad4DAsMultiComponent(true);
   else if (m_LoadMultiComponentAs4D)

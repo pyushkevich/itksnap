@@ -711,65 +711,6 @@ GuidedNativeImageIO
       }
     }
 
-  if (m_LoadMultiComponentAs4D && ncomp > 1 && ndim == 3)
-    {
-    std::cout << "[GuidedNativeImageIO::ReadHeader] load mc as 4d" << std::endl;
-
-    std::vector<std::vector<double>> dir {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
-    std::vector<double> org {0, 0, 0, 0}, spc {1, 1, 1, 1};
-    for (int i = 0; i < 3; ++i)
-      {
-      org[i] = m_IOBase->GetOrigin(i);
-      spc[i] = m_IOBase->GetSpacing(i);
-      for (int j = 0; j < 3; ++j)
-        {
-        dir[i][j] = m_IOBase->GetDirection(i)[j];
-        }
-      }
-
-    m_IOBase->SetNumberOfDimensions(4);
-    m_IOBase->SetDimensions(3, ncomp); // set # components as last dim
-    m_IOBase->SetNumberOfComponents(1);
-    ncomp = 1;
-
-    for (int i = 0; i < 4; ++i)
-      {
-      m_IOBase->SetDirection(i, dir[i]);
-      m_IOBase->SetOrigin(i, org[i]);
-      m_IOBase->SetSpacing(i, spc[i]);
-      }
-    }
-
-  // if (m_Load4DAsMultiComponent)
-  //   {
-  //   std::cout << "[GuidedNativeImageIO::ReadHeader] load mc as 4d" << std::endl;
-
-  //   ncomp = m_IOBase->GetDimensions(3); // set nT as ncomp
-
-  //   std::vector<std::vector<double>> dir {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
-  //   std::vector<double> org {0, 0, 0, 0}, spc {1, 1, 1, 1};
-  //   for (int i = 0; i < 3; ++i)
-  //     {
-  //     org[i] = m_IOBase->GetOrigin(i);
-  //     spc[i] = m_IOBase->GetSpacing(i);
-  //     for (int j = 0; j < 3; ++j)
-  //       {
-  //       dir[i][j] = m_IOBase->GetDirection(i)[j];
-  //       }
-  //     }
-
-  //   m_IOBase->SetNumberOfDimensions(4);
-  //   m_IOBase->SetDimensions(3, 1);
-  //   m_IOBase->SetNumberOfComponents(ncomp);
-
-  //   for (int i = 0; i < 4; ++i)
-  //     {
-  //     m_IOBase->SetDirection(i, dir[i]);
-  //     m_IOBase->SetOrigin(i, org[i]);
-  //     m_IOBase->SetSpacing(i, spc[i]);
-  //     }
-  //   }
-
   UpdateMemberVariables();
 }
 
@@ -906,7 +847,8 @@ GuidedNativeImageIO
   m_NDimOriginal = m_IOBase->GetNumberOfDimensions();
   size_t nd = (m_NDimOriginal > 4) ? 4 : m_NDimOriginal;
 
-  std::cout << "[GuidedImageIO::UpdateImgaeHeader] m_IOBase print " << std::endl;
+  std::cout << "-- m_IOBase print: dimOriginal: "
+            << m_NDimOriginal << std::endl;
   m_IOBase->Print(std::cout);
 
   for(unsigned int i = 0; i < nd; i++)
@@ -966,31 +908,24 @@ GuidedNativeImageIO
 template <typename NativeImageType>
 typename NativeImageType::Pointer
 GuidedNativeImageIO
-::Convert4DLoadToMultiComponent(typename NativeImageType::Pointer image)
+::Convert4DLoadToMultiComponent(typename NativeImageType::Pointer image4D)
 {
   std::cout << "[GuidedNativeImgeIO::Convert4DLoadToMultiComponent] " << std::endl;
 
   // rearrange the pixel container
-  auto nd = m_IOBase->GetNumberOfDimensions();
-
-  assert("Image to convert should be 4d" && nd == 4);
-  auto nt = m_IOBase->GetDimensions(nd - 1);
+  auto nt = m_IOBase->GetDimensions(m_NDimOriginal - 1);
 
   using ElementType = typename NativeImageType::PixelContainer::Element;
   using ElementIdType = typename NativeImageType::PixelContainer::ElementIdentifier;
   ElementIdType ne = 1; // # of elements in one slice
-  typename NativeImageType::SizeType pcSize = image->GetLargestPossibleRegion().GetSize();
+  typename NativeImageType::SizeType pcSize = image4D->GetLargestPossibleRegion().GetSize();
   for (int i = 0; i < m_IOBase->GetNumberOfDimensions(); ++i)
-    {
     ne *= pcSize[i];
-    }
 
-  ElementIdType neTP = ne / nt;
-  ElementIdType bufferSizeInBytes = ne * sizeof(ElementType);
-  ElementType *buffer4D = new ElementType[ne]; // including # of sequneces
+  ElementIdType neTP = ne / nt; // # of Elements per Time Point
+  ElementType *bufferMC = new ElementType[ne];
 
-  auto *bufferMC = image->GetPixelContainer()->GetBufferPointer();
-  memcpy(buffer4D, bufferMC, bufferSizeInBytes);
+  auto *buffer4D = image4D->GetPixelContainer()->GetBufferPointer();
 
   // reorder voxels from 4d to multi-component
   for (ElementIdType i = 0; i < nt; ++i)
@@ -1000,44 +935,68 @@ GuidedNativeImageIO
 
   // Modify Header
   m_IOBase->SetNumberOfComponents(nt);
-  m_IOBase->SetDimensions(3, 1);
-
-  itk::ImageIORegion ioRegion(m_NDimOriginal);
-  itk::ImageIORegion::IndexType ioIndex;
-  itk::ImageIORegion::SizeType ioSize;
-  for(size_t i = 0; i < 3; i++)
-    {
-    ioIndex.push_back(0);
-    ioSize.push_back(m_IOBase->GetDimensions(i));
-    }
-  ioIndex.push_back(0);
-  ioSize.push_back(1);
-  ioRegion.SetIndex(ioIndex);
-  ioRegion.SetSize(ioSize);
-  m_IOBase->SetIORegion(ioRegion);
+  m_IOBase->SetDimensions(m_NDimOriginal - 1, 1);
 
   // important after modifying header, or UI won't render correctly
   UpdateMemberVariables();
 
   // create a new multi-component image
-  auto mcImage = NativeImageType::New();
+  auto imageMC = NativeImageType::New();
 
-  UpdateImageHeader<NativeImageType>(mcImage);
-  mcImage->Allocate();
-  image->GetPixelContainer()->SetContainerManageMemory(false);
-  mcImage->GetPixelContainer()->SetImportPointer(bufferMC, ne, true); // mcImage will take care of this memory
+  UpdateImageHeader<NativeImageType>(imageMC);
+  imageMC->Allocate();
+  imageMC->GetPixelContainer()->SetImportPointer(bufferMC, ne, true);
 
-  return mcImage;
-
-  delete []buffer4D;
+  return imageMC;
 }
 
 template <typename NativeImageType>
-void
+typename NativeImageType::Pointer
 GuidedNativeImageIO
-::ConvertMultiComponentLoadTo4D(typename NativeImageType::Pointer image)
+::ConvertMultiComponentLoadTo4D(typename NativeImageType::Pointer imageMC)
 {
+  std::cout << "[GuidedNativeImgeIO::ConvertMultiComponentLoadTo4D] " << std::endl;
 
+  std::cout << "-- number of dimensions: " << m_IOBase->GetNumberOfDimensions() << std::endl;
+
+  // rearrange the pixel container
+  auto nc = m_IOBase->GetNumberOfComponents();
+
+  using ElementType = typename NativeImageType::PixelContainer::Element;
+  using ElementIdType = typename NativeImageType::PixelContainer::ElementIdentifier;
+  ElementIdType neTP = 1, ne; // # of elements in one slice
+  typename NativeImageType::SizeType pcSize = imageMC->GetLargestPossibleRegion().GetSize();
+  for (int i = 0; i < m_IOBase->GetNumberOfDimensions(); ++i)
+    {
+    neTP *= pcSize[i];
+    }
+
+  ne = neTP * nc; // # of Elements per Time Point
+  ElementType *buffer4D = new ElementType[ne];
+
+  auto *bufferMC = imageMC->GetPixelContainer()->GetBufferPointer();
+
+  // reorder voxels from multi-component to 4d
+  for (ElementIdType i = 0; i < nc; ++i)
+    for (ElementIdType j = 0; j < neTP; ++j)
+      buffer4D[i * neTP + j] = bufferMC[j * nc + i];
+
+  // Modify Header
+  m_IOBase->SetNumberOfComponents(1);
+  m_NDimOriginal += 1; // increment the dimension
+  m_IOBase->SetNumberOfDimensions(m_NDimOriginal);
+  m_IOBase->SetDimensions(m_NDimOriginal - 1, nc);
+
+  // important after modifying header, or UI won't render correctly
+  UpdateMemberVariables();
+
+  // create a new multi-component image
+  auto image4D = NativeImageType::New();
+
+  UpdateImageHeader<NativeImageType>(image4D);
+  image4D->Allocate();
+  image4D->GetPixelContainer()->SetImportPointer(buffer4D, ne, true); // imageMC will take care of this memory
+  return image4D;
 }
 
 
@@ -1452,12 +1411,8 @@ GuidedNativeImageIO
 
     regularImageReadingProgSrc->AddProgress(0.1);
 
-    std::cout << "[GuidedIO::ReadData] before attempted reading" << std::endl;
-
     // Read the image into the buffer
 		m_IOBase->Read(image->GetBufferPointer());
-
-    std::cout << "[GuidedIO::ReadData] after attempted reading" << std::endl;
 
     // For seq.nrrd, convert the component dimension to the sequence dimension
 
@@ -1487,13 +1442,18 @@ GuidedNativeImageIO
       delete []tempBuffer;
       }
 
+    std::cout << "[GuidedImageIO::DoReadNative] loadAsMC: " << m_Load4DAsMultiComponent
+              << "; loadAs4D: " << m_LoadMultiComponentAs4D << std::endl;
+
     if (m_Load4DAsMultiComponent)
       image = this->Convert4DLoadToMultiComponent<NativeImageType>(image);
-
-    std::cout << "[GuidedImageIO::DoReadNative] print mcImage" << std::endl;
-    image->Print(std::cout);
+    else if (m_LoadMultiComponentAs4D)
+      image = this->ConvertMultiComponentLoadTo4D<NativeImageType>(image);
 
     m_NativeImage = image;
+
+    std::cout << "[GuidedImageIO::DoReadNative] native image set" << std::endl;
+    m_NativeImage->Print(std::cout);
 
 		regularImageReadingProgSrc->AddProgress(0.9);
 
@@ -1504,7 +1464,8 @@ GuidedNativeImageIO
     // of each voxel are the thing that moves fastest. The problem can be represented as
     // a transpose of a N x M array, where N = dimX*dimY*dimZ*dimT and M = dimW
 
-    std::cout << "-- ndimOriginal: " << m_NCompFinal << "; ncompFinal: " << m_NCompFinal << std::endl;
+    std::cout << "-- ndimOriginal: " << m_NDimOriginal
+              << "; ncompFinal: " << m_NCompFinal << std::endl;
 
     size_t nd = (m_NDimOriginal > 4) ? 4 : m_NDimOriginal;
     typename NativeImageType::SizeType dim;  dim.Fill(1);

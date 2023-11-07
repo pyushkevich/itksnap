@@ -592,6 +592,22 @@ void ImageLayerTableRowModel::ReloadAsMultiComponent()
 void ImageLayerTableRowModel::ReloadAs4D()
 {
   std::cout << "[ImageLayerTableRowModel] ReloadAs4D" << std::endl;
+
+  auto driver = m_ParentModel->GetDriver();
+  auto filename = driver->GetMainImage()->GetFileName();
+
+  std::cout << "-- filename: " << filename << std::endl;
+
+  SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
+  delegate->Initialize(driver);
+  delegate->SetLoadMultiComponentAs4D(true);
+
+  IRISWarningList warningList;
+
+  driver->OpenImageViaDelegate(filename, delegate, warningList);
+
+  this->Initialize(m_ParentModel, driver->GetMainImage());
+
 }
 
 bool ImageLayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
