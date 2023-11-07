@@ -823,7 +823,8 @@ GuidedNativeImageIO
   image->SetMetaDataDictionary(m_IOBase->GetMetaDataDictionary());
 
   // Fold in any higher number of dimensions as additional components.
-  m_NCompAfterFolding = m_IOBase->GetNumberOfComponents();
+  m_NCompBeforeFolding = m_IOBase->GetNumberOfComponents();
+  m_NCompAfterFolding = m_NCompBeforeFolding;
   if(m_NDimBeforeFolding > nd)
     {
     for(int i = nd; i < (int) m_NDimBeforeFolding; i++)
@@ -1394,9 +1395,9 @@ GuidedNativeImageIO
       image = this->ConvertMultiComponentLoadTo4D<NativeImageType>(image);
       }
 
-    if (m_Load4DAsMultiComponent)
+    if (m_Load4DAsMultiComponent && m_NCompBeforeFolding == 1)
       image = this->Convert4DLoadToMultiComponent<NativeImageType>(image);
-    else if (m_LoadMultiComponentAs4D)
+    else if (m_LoadMultiComponentAs4D && m_NDimBeforeFolding < 4)
       image = this->ConvertMultiComponentLoadTo4D<NativeImageType>(image);
 
     m_NativeImage = image;

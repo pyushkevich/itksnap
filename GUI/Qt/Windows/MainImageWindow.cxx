@@ -709,7 +709,6 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 
   if(main_changed)
     {
-    std::cout << "[MainImageWindow::OnModelUpdate] main changed" << std::endl;
     // Delaying the relayout of the main window seems to reduce the amount of
     // flashing that occurs when loading images.
     // TODO: figure out if we can avoid flashing altogether

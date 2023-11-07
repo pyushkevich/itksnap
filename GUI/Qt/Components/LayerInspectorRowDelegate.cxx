@@ -187,6 +187,8 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   activateOnFlag(m_PopupMenu->findChild<QMenu*>("menuProcess"), model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
   activateOnFlag(m_OverlaysMenu, model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
   activateOnFlag(ui->actionTextureFeatures, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE);
+  activateOnFlag(ui->actionReloadAs4D, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
+  activateOnFlag(ui->actionReloadAsMultiComponent, model, AbstractLayerTableRowModel::UIF_IS_4D, opt_hide);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
@@ -709,8 +711,6 @@ void
 LayerInspectorRowDelegate::
 on_actionReloadAsMultiComponent_triggered()
 {
-  std::cout << "[LayerInspectorRowDelegate] on_actionReloadAsMultiComponent_triggered" << std::endl;
-
   auto imgLTRM = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
 
   if (!imgLTRM || !m_Model->IsMainLayer())
@@ -727,8 +727,6 @@ void
 LayerInspectorRowDelegate::
 on_actionReloadAs4D_triggered()
 {
-  std::cout << "[LayerInspectorRowDelegate] on_actionReloadAs4D_triggered" << std::endl;
-
   auto imgLTRM = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
 
   if (!imgLTRM || !m_Model->IsMainLayer())

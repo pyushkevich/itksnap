@@ -296,6 +296,9 @@ ImageLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_SAVABLE:
       return true;
 
+    case AbstractLayerTableRowModel::UIF_IS_4D:
+      return (m_Layer && m_ImageLayer->GetNumberOfTimePoints() > 1);
+
     default:
       return Superclass::CheckState(state); // Children override Parents
     }
@@ -571,11 +574,8 @@ ImageLayerTableRowModel::CloseLayer()
 
 void ImageLayerTableRowModel::ReloadAsMultiComponent()
 {
-  std::cout << "[ImageLayerTableRowModel] ReloadAsMultiComponent" << std::endl;
   auto driver = m_ParentModel->GetDriver();
   auto filename = driver->GetMainImage()->GetFileName();
-
-  std::cout << "-- filename: " << filename << std::endl;
 
   SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
   delegate->Initialize(driver);
@@ -591,12 +591,8 @@ void ImageLayerTableRowModel::ReloadAsMultiComponent()
 
 void ImageLayerTableRowModel::ReloadAs4D()
 {
-  std::cout << "[ImageLayerTableRowModel] ReloadAs4D" << std::endl;
-
   auto driver = m_ParentModel->GetDriver();
   auto filename = driver->GetMainImage()->GetFileName();
-
-  std::cout << "-- filename: " << filename << std::endl;
 
   SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
   delegate->Initialize(driver);

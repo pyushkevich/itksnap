@@ -43,6 +43,7 @@ public:
     UIF_COLORMAP_ADJUSTABLE,
     UIF_CONTRAST_ADJUSTABLE,
     UIF_MULTICOMPONENT,
+    UIF_IS_4D, // the 4th dimension greater than 1
     UIF_VOLUME_RENDERABLE,
     UIF_IMAGE,
     UIF_MESH,
