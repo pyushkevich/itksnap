@@ -498,7 +498,7 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="actionLabel_Editor"/>
     <addaction name="actionSwitch_Foreground_Background_Labels"/>
-    <addaction name="actionContinuousUpdate3D"/>
+    <addaction name="actionContinuous_Update"/>
     <addaction name="separator"/>
     <addaction name="actionVolumesAndStatistics"/>
     <addaction name="separator"/>
@@ -1755,7 +1755,7 @@ color:rgb(103, 103, 103);
     <string>Ctrl+Shift+L</string>
    </property>
   </action>
-  <action name="actionContinuousUpdate3D">
+  <action name="actionContinuous_Update">
    <property name="text">
     <string>Continuous Update 3D View</string>
    </property>
