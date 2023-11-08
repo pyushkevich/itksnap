@@ -121,7 +121,8 @@ public:
 
   void RunAutoRegistration();
 
-  void LoadTransform(const char *filename, TransformFormat format);
+  void LoadTransform(const char *filename, TransformFormat format,
+                     bool compose = false, bool inverse = false);
 
   void SaveTransform(const char *filename, TransformFormat format);
 

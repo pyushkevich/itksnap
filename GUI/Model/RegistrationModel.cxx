@@ -512,14 +512,8 @@ void RegistrationModel::UpdateWrapperFromManualParameters()
   m_ManualParam.AffineMatrix.GetVnlMatrix() = M.extract(3,3);
   m_ManualParam.AffineOffset.SetVnlVector(M.get_column(3).extract(3));
 
-  // Create a new transform
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
-  AffineTransform::Pointer affine = AffineTransform::New();
-  affine->SetMatrix(m_ManualParam.AffineMatrix);
-  affine->SetOffset(m_ManualParam.AffineOffset);
-
   // Update the layer's transform
-  layer->SetITKTransform(layer->GetReferenceSpace(), affine);
+  SetMovingTransform(m_ManualParam.AffineMatrix, m_ManualParam.AffineOffset);
 
   // Update the state of the cache
   m_ManualParam.LayerID = m_MovingLayerId;
@@ -881,11 +875,15 @@ void RegistrationModel::MatchByMoments(int order)
   moving->GetDefaultScalarRepresentation()->ReleaseInternalPipeline("RegistrationModel");
 }
 
+#include <itkCompositeTransform.h>
 
-void RegistrationModel::LoadTransform(const char *filename, TransformFormat format)
+
+void RegistrationModel::LoadTransform(const char *filename, TransformFormat format,
+                                      bool compose, bool inverse)
 {
-  // Read the transform
-  SmartPtr<AffineTransformHelper::ITKTransformMOTB> tran;
+  using MOTB = AffineTransformHelper::ITKTransformMOTB;
+  SmartPtr<MOTB> tran;
+
   if(format == FORMAT_C3D)
     tran = AffineTransformHelper::ReadAsRASMatrix(filename);
   else
@@ -895,9 +893,22 @@ void RegistrationModel::LoadTransform(const char *filename, TransformFormat form
   this->GetParent()->GetSystemInterface()
       ->GetHistoryManager()->UpdateHistory("AffineTransform", filename, true);
 
+  if (inverse)
+    tran->GetInverse(tran);
+
+  if (compose)
+    {
+    auto existing = this->GetMovingLayerWrapper()->GetITKTransform();
+    SmartPtr<MOTB> existingMOTB = dynamic_cast<MOTB*>(existing->Clone().GetPointer());
+
+    auto newMatrix = tran->GetMatrix() * existingMOTB->GetMatrix();
+    auto newOffset = tran->GetMatrix() * existingMOTB->GetOffset() + tran->GetOffset();
+    tran->SetMatrix(newMatrix);
+    tran->SetOffset(newOffset);
+    }
+
   // Now, the transform tran should hold our matrix and offset
-  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
-  layer->SetITKTransform(layer->GetReferenceSpace(), tran);
+  SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
 
   // Update our parameters
   this->UpdateManualParametersFromWrapper(true, false);

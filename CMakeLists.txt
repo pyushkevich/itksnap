@@ -730,6 +730,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
   GUI/Qt/Windows/LayoutReminderDialog.cxx
+  GUI/Qt/Windows/LoadTransformationDialog.cxx
   GUI/Qt/Windows/LabelSelectionPopup.cxx
   GUI/Qt/Windows/MainControlPanel.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
@@ -828,6 +829,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/LayoutReminderDialog.h
   GUI/Qt/Windows/LabelSelectionPopup.h
+  GUI/Qt/Windows/LoadTransformationDialog.h
   GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
   GUI/Qt/Windows/PreferencesDialog.h
@@ -916,6 +918,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/LayerInspectorDialog.ui
   GUI/Qt/Windows/LayoutReminderDialog.ui
   GUI/Qt/Windows/LabelSelectionPopup.ui
+  GUI/Qt/Windows/LoadTransformationDialog.ui
   GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
   GUI/Qt/Windows/PreferencesDialog.ui
