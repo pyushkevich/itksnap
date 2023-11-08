@@ -2599,3 +2599,9 @@ void MainImageWindow::on_actionSwitch_Foreground_Background_Labels_triggered()
   GetModel()->SwitchForegroundBackgroundLabels();
 }
 
+void MainImageWindow::on_actionContinuous_Update_triggered()
+{
+  bool currentValue = GetModel()->GetModel3D()->GetContinuousUpdate();
+  GetModel()->GetModel3D()->SetContinuousUpdate(!currentValue);
+}
+
