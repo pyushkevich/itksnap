@@ -347,6 +347,8 @@ private slots:
 
   void on_actionSwitch_Foreground_Background_Labels_triggered();
 
+  void on_actionContinuousUpdate3D_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

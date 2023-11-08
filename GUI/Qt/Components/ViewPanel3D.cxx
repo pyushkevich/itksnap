@@ -17,6 +17,8 @@
 #include <qtconcurrentrun.h>
 #include "itkProcessObject.h"
 #include <QMenu>
+#include "QtWidgetCoupling.h"
+#include "QtActionCoupling.h"
 
 
 
@@ -49,6 +51,7 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   m_DropMenu->addAction(ui->actionRestore_Viewpoint);
   m_DropMenu->addSeparator();
   m_DropMenu->addAction(ui->actionContinuous_Update);
+  ui->actionContinuous_Update->setObjectName("actionContinuousUpdate");
   m_DropMenu->addSeparator();
   m_DropMenu->addAction(ui->actionClear_Rendering);
 
@@ -160,6 +163,9 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   // Listen to changes in layer change for 3d view
   connectITK(globalUI->GetDriver()->GetIRISImageData()->GetMeshLayers(),
              ActiveLayerChangeEvent());
+
+
+  makeCoupling(ui->actionContinuous_Update, m_Model->GetContinuousUpdateModel());
 
   // Set up the buttons
   this->UpdateActionButtons();

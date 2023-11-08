@@ -339,7 +339,7 @@ color:rgb(103, 103, 103);
      <x>0</x>
      <y>0</y>
      <width>907</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -498,6 +498,7 @@ color:rgb(103, 103, 103);
     <addaction name="separator"/>
     <addaction name="actionLabel_Editor"/>
     <addaction name="actionSwitch_Foreground_Background_Labels"/>
+    <addaction name="actionContinuousUpdate3D"/>
     <addaction name="separator"/>
     <addaction name="actionVolumesAndStatistics"/>
     <addaction name="separator"/>
@@ -1752,6 +1753,20 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+L</string>
+   </property>
+  </action>
+  <action name="actionContinuousUpdate3D">
+   <property name="text">
+    <string>Continuous Update 3D View</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle on/off continuous update in the 3D View</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+U</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
  </widget>
