@@ -875,8 +875,6 @@ void RegistrationModel::MatchByMoments(int order)
   moving->GetDefaultScalarRepresentation()->ReleaseInternalPipeline("RegistrationModel");
 }
 
-#include <itkCompositeTransform.h>
-
 
 void RegistrationModel::LoadTransform(const char *filename, TransformFormat format,
                                       bool compose, bool inverse)
