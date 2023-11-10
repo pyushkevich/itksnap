@@ -1242,8 +1242,9 @@ void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainImageWindow::LoadDroppedFile(QString file)
 {
+  std::string filename = to_utf8(file);
   // Check if the dropped file is a project
-  if(m_Model->GetDriver()->IsProjectFile(to_utf8(file).c_str()))
+  if(m_Model->GetDriver()->IsProjectFile(filename.c_str()))
     {
     // For the time being, the feature of opening the workspace in a new
     // window is not implemented. Instead, we just prompt the user for
@@ -1259,6 +1260,13 @@ void MainImageWindow::LoadDroppedFile(QString file)
     {
     if(m_Model->GetDriver()->IsMainImageLoaded())
       {
+      // check if it's a label description file
+      if (m_Model->GetDriver()->GetColorLabelTable()->ValidateFile(filename.c_str()))
+        {
+        m_Model->GetDriver()->LoadLabelDescriptions(filename.c_str());
+        return;
+        }
+
       // If an image is already loaded, we show the dialog
       m_DropDialog->SetDroppedFilename(file);
       m_DropDialog->setModal(true);

@@ -59,6 +59,7 @@ public:
   // Flat file IO
   void LoadFromFile(const char *file);
   void SaveToFile(const char *file) const;
+  bool ValidateFile(const char *file) const;
 
   // Registry IO
   void LoadFromRegistry(Registry &registry);
@@ -131,6 +132,7 @@ protected:
 
   static const char *m_ColorList[];
   static const size_t m_ColorListSize;
+  static const char *m_FileHeader;
 };
 
 
