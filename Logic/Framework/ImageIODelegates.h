@@ -153,6 +153,9 @@ public:
   void UnloadCurrentImage() ITK_OVERRIDE;
   ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) ITK_OVERRIDE;
 
+  /* check if the load could overwrite unsaved changes */
+  bool CanLoadOverwriteUnsavedChanges(GuidedNativeImageIO *io, std::string filename);
+
 protected:
   // TODO: this is probably a temporary band-aid. In some situations, we want to be
   // able to load segmentation images as the one and only segmentation layer and in

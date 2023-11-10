@@ -30,6 +30,8 @@
 
 #include "IRISException.h"
 #include "ImageIOWizardModel.h"
+#include "GlobalUIModel.h"
+#include "IRISApplication.h"
 #include "MetaDataAccess.h"
 #include "SNAPQtCommon.h"
 #include "FileChooserPanelWithHistory.h"
@@ -39,6 +41,7 @@
 #include "DICOMListingTable.h"
 #include "LayoutReminderDialog.h"
 #include "AllPurposeProgressAccumulator.h"
+#include "SaveModifiedLayersDialog.h"
 
 
 namespace imageiowiz {
@@ -100,7 +103,6 @@ bool AbstractPage::PerformIO()
 
 	// Show a progress dialog
 	ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(this));
-	progress->display();
 
 	SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
 			ImageReadingProgressAccumulator::New();
@@ -112,6 +114,17 @@ bool AbstractPage::PerformIO()
     m_Model->SetSelectedFormat(fmt);
     if(m_Model->IsLoadMode())
       {
+       // we don't want progress to show up while user is being prompted
+      progress->cancel();
+
+      if (m_Model->CanLoadOverwriteUnsavedChanges(to_utf8(filename)) &&
+          !SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model->GetParent()))
+        {
+        return false;
+        }
+      progress->reset();
+      progress->display();
+
 			m_Model->OpenImage(to_utf8(filename), irProgAccum);
       if (fmt == GuidedNativeImageIO::FORMAT_ECHO_CARTESIAN_DICOM)
         {

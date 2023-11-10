@@ -2496,6 +2496,19 @@ ImageWrapper<TTraits>
 }
 
 template<class TTraits>
+bool
+ImageWrapper<TTraits>
+::HasUnsavedChanges(unsigned int tp) const
+{
+  if (m_ImageTimePoints.size() <= tp)
+    return false;
+
+  auto img = m_ImageTimePoints[tp];
+  return img->GetTimeStamp() > m_ImageSaveTime;
+}
+
+
+template<class TTraits>
 void
 ImageWrapper<TTraits>
 ::SetSourceNativeMapping(double scale, double shift)

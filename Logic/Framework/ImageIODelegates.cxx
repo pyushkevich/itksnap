@@ -274,6 +274,28 @@ LoadSegmentationImageDelegate
   // just will reinitialize it with zeros. It's safe to just do nothing.
 }
 
+bool
+LoadSegmentationImageDelegate
+::CanLoadOverwriteUnsavedChanges(GuidedNativeImageIO *io, std::string filename)
+{
+  auto header = io->PeekHeader(filename);
+  auto nDimIncoming = header->GetNumberOfDimensions();
+  auto nt = m_Driver->GetNumberOfTimePoints();
+
+  // for 4d workspace
+  if (nt > 1)
+    {
+    auto layer = m_Driver->GetSelectedSegmentationLayer();
+    auto crntTP = m_Driver->GetCursorTimePoint();
+    // true case 1: incoming image is 4d
+    // true case 2: incoming 3d but unsaved changes are in the current time point
+    if (nDimIncoming > 3 || layer->HasUnsavedChanges(crntTP))
+      return true;
+    }
+
+  return false;
+}
+
 
 void
 DefaultSaveImageDelegate::Initialize(
