@@ -2214,6 +2214,15 @@ void GuidedNativeImageIO::DicomDirectoryParseResult::Reset()
   SeriesMap.clear();
 }
 
+GuidedNativeImageIO::IOBasePointer
+GuidedNativeImageIO
+::PeekHeader(std::string filename)
+{
+  Registry dummyRegistry;
+  ReadNativeImageHeader(filename.c_str(), dummyRegistry);
+  return m_IOBase;
+}
+
 /*
 {
   // Must have a directory

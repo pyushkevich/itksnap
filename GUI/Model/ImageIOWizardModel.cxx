@@ -300,6 +300,20 @@ ImageIOWizardModel::FileFormat ImageIOWizardModel::GetSelectedFormat()
   return GuidedNativeImageIO::GetFileFormat(m_Registry);
 }
 
+bool
+ImageIOWizardModel
+::CanLoadOverwriteUnsavedChanges(std::string filename)
+{
+  // only check when loading segmentation
+  auto segDel = dynamic_cast<LoadSegmentationImageDelegate*>(m_LoadDelegate.GetPointer());
+  if (segDel)
+    {
+    return segDel->CanLoadOverwriteUnsavedChanges(m_GuidedIO, filename);
+    }
+
+  return false;
+}
+
 
 
 void ImageIOWizardModel::OpenImage(std::string filename, ImageReadingProgressAccumulator *irAccum)

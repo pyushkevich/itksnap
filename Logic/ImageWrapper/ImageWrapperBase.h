@@ -428,6 +428,11 @@ public:
   virtual bool HasUnsavedChanges() const = 0;
 
   /**
+   * Check if the time point has unsaved changes
+   */
+  virtual bool HasUnsavedChanges(unsigned int tp) const = 0;
+
+  /**
    * Save metadata to a Registry file. The metadata are data that are not
    * contained in the image header are need to be restored when the image
    * is reloaded. Currently, this mainly includes the display mapping, but

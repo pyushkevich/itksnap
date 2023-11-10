@@ -1130,7 +1130,9 @@ void MainImageWindow::on_actionQuit_triggered()
 void MainImageWindow::on_actionLoad_from_Image_triggered()
 {
   // Prompt for unsaved changes
-  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+  // -- only prompt for 3d
+  if(m_Model->GetDriver()->GetNumberOfTimePoints() == 1 &&
+     !SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
     return;
 
   // Create a model for IO

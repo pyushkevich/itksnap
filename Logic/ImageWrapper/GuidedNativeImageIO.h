@@ -299,6 +299,7 @@ public:
     m_LoadMultiComponentAs4D = !value;
   }
 
+  IOBasePointer PeekHeader(std::string filename);
 
   // Get the output of the last operation
   // irisGetMacro(IOBase, itk::ImageIOBase *);

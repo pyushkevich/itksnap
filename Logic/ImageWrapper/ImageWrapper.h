@@ -709,6 +709,11 @@ public:
   virtual bool HasUnsavedChanges() const ITK_OVERRIDE;
 
   /**
+   * Check if the time point has unsaved changes
+   */
+  virtual bool HasUnsavedChanges(unsigned int tp) const ITK_OVERRIDE;
+
+  /**
    * This method is only used when this wrapper is around an image adaptor
    * (e.g., magnitude of component vector) and we need to update the native
    * mapping used in the adapter as part of the calculation. This is because

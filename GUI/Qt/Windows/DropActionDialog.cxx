@@ -182,12 +182,16 @@ void DropActionDialog::on_btnLoadMeshToTP_clicked()
 
 void DropActionDialog::on_btnLoadSegmentation_clicked()
 {
-  // Prompt for unsaved changes before replacing the segmentation
-  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
-    return;
-
   SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
   del->Initialize(m_Model->GetDriver());
+
+  auto io = GuidedNativeImageIO::New();
+
+  // if incoming load can overwrite unsaved changes, prompt user for saving
+  if (del->CanLoadOverwriteUnsavedChanges(io, to_utf8(ui->outFilename->text())) &&
+      !SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+    return;
+
   this->LoadCommon(del);
 }
 
