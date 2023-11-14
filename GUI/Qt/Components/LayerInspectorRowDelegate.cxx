@@ -74,6 +74,8 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addAction(ui->actionSave);
   m_PopupMenu->addAction(ui->actionClose);
   m_PopupMenu->addSeparator();
+  m_PopupMenu->addAction(ui->actionReloadFromFile);
+  m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionReloadAsMultiComponent);
   m_PopupMenu->addAction(ui->actionReloadAs4D);
   m_PopupMenu->addSeparator();
@@ -182,6 +184,7 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   // activateOnFlag(ui->btnMoveDown, model, AbstractLayerTableRowModel::UIF_MOVABLE_DOWN);
   activateOnFlag(ui->actionClose, model, AbstractLayerTableRowModel::UIF_CLOSABLE);
   activateOnFlag(ui->actionSave, model, AbstractLayerTableRowModel::UIF_SAVABLE);
+  activateOnFlag(ui->actionReloadFromFile, model, AbstractLayerTableRowModel::UIF_FILE_RELOADABLE);
   activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
   activateOnFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE, opt_hide);
   activateOnFlag(m_PopupMenu->findChild<QMenu*>("menuProcess"), model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
@@ -737,6 +740,14 @@ on_actionReloadAs4D_triggered()
     {
     imgLTRM->ReloadAs4D();
     }
+}
+
+void
+LayerInspectorRowDelegate
+::on_actionReloadFromFile_triggered()
+{
+  std::cout << "[LayerInspectorRowDelegate::ReloadFromFile]" << std::endl;
+  m_Model->ReloadWrapperFromFile();
 }
 
 void LayerInspectorRowDelegate::onColorMapPresetSelected()
