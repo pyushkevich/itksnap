@@ -631,18 +631,25 @@ void ImageLayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
 
 void
 ImageLayerTableRowModel
-::ReloadWrapperFromFile()
+::ReloadWrapperFromFile(IRISWarningList &wl)
 {
   std::cout << "[ImageLayerTableRowModel::ReloadWrapperFromFile]" << std::endl;
-  switch (m_LayerRole)
-    {
-    case LABEL_ROLE:
-      {
-      break;
-      }
-    }
 
+  SmartPtr<AbstractReloadWrapperDelegate> delegate;
 
+  if (m_LayerRole == LABEL_ROLE)
+    delegate = ReloadSegmentationWrapperDelegate::New().GetPointer();
+  else
+    delegate = ReloadAnatomicWrapperDelegate::New().GetPointer();
+
+  ImageWrapperBase *imgWrapper = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+
+  if (!imgWrapper)
+    return;
+
+  delegate->Initialize(m_ParentModel->GetDriver(), imgWrapper);
+  delegate->ValidateHeader(wl);
+  delegate->UpdateWrapper();
 }
 
 /*
@@ -802,7 +809,7 @@ MeshLayerTableRowModel::SetColorMapPresetValue(std::string value)
 
 void
 MeshLayerTableRowModel
-::ReloadWrapperFromFile()
+::ReloadWrapperFromFile(IRISWarningList &)
 {
   /*
   not implemented for now

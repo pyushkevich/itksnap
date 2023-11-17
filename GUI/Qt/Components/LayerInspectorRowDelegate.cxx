@@ -747,7 +747,8 @@ LayerInspectorRowDelegate
 ::on_actionReloadFromFile_triggered()
 {
   std::cout << "[LayerInspectorRowDelegate::ReloadFromFile]" << std::endl;
-  m_Model->ReloadWrapperFromFile();
+  IRISWarningList wl;
+  m_Model->ReloadWrapperFromFile(wl);
 }
 
 void LayerInspectorRowDelegate::onColorMapPresetSelected()

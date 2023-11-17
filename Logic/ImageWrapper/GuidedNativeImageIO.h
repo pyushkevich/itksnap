@@ -299,6 +299,11 @@ public:
     m_LoadMultiComponentAs4D = !value;
   }
 
+  /**
+   * If header already exists, return it. Otherwise read the header and return it.
+   * This is needed because sometimes an io object is passed to a method, and it may not be
+   * safe to re-read the header since it can interfere with upstream/downstream processing
+   */
   IOBasePointer PeekHeader(std::string filename);
 
   // Get the output of the last operation

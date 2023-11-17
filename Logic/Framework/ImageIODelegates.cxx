@@ -1,9 +1,11 @@
 #include "ImageIODelegates.h"
-#include "GuidedNativeImageIO.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "HistoryManager.h"
 #include "IRISImageData.h"
+#include "ImageWrapperTraits.h"
+#include <itkImageIOBase.h>
+#include <itkImageBase.h>
 
 
 /* =============================
@@ -356,3 +358,133 @@ const char *DefaultSaveImageDelegate::GetCurrentFilename()
 }
 
 
+/* =============================
+   AbstractReloadImageDelegate
+   ============================= */
+void
+AbstractReloadWrapperDelegate
+::ValidateHeader(IRISWarningList &wl)
+{
+  Registry dummyReg;
+  m_IO->ReadNativeImageHeader(m_Filename.c_str(), dummyReg, nullptr);
+  auto headerFile = m_IO->GetIOBase();
+
+  auto imageNative = m_Wrapper->GetImage4DBase();
+
+  // compare dimension, spacing, origin and direction
+  auto regNative = imageNative->GetLargestPossibleRegion();
+  auto dimNative = regNative.GetSize();
+
+  // Check the header properties
+  // Check if there is a discrepancy in the header fields.
+  bool match_spacing = true, match_origin = true, match_direction = true, match_dimension = true;
+
+  for(unsigned int i = 0; i < 3; i++)
+    {
+    match_spacing = (headerFile->GetSpacing(i) == imageNative->GetSpacing()[i]);
+    match_origin = (headerFile->GetOrigin(i) == imageNative->GetOrigin()[i]);
+    match_dimension = (headerFile->GetDimensions(i) == dimNative[i]);
+
+    for(size_t j = 0; j < 3; j++)
+      {
+      double diff = fabs(headerFile->GetDirection(i)[j] - imageNative->GetDirection()(i,j));
+      match_direction = (diff <= 1.0e-4);
+      }
+    }
+
+  if(!match_spacing || !match_origin || !match_direction || ! match_dimension)
+    {
+    std::ostringstream oss;
+    oss << "Following header elements mismatch between header of the file and the "
+        << "image header currently open in ITK-SNAP: ("
+        << (match_spacing ? "" : "spacing ")
+        << (match_origin ? "" : "origin ")
+        << (match_direction ? "" : "direction ")
+        << (match_dimension ? "" : "dimension")
+        << "). Image cannot be reloaded from the file!";
+    // Create an alert box
+    throw IRISException("Validation failed during image file reload: %s", oss.str().c_str());
+    }
+}
+
+void
+AbstractReloadWrapperDelegate
+::ReadData()
+{
+  m_IO->ReadNativeImageData();
+}
+
+
+/* =============================
+   RELOAD anatomic wrapper
+   ============================= */
+
+
+void
+ReloadAnatomicWrapperDelegate
+::UpdateWrapper()
+{
+  ReadData();
+
+  // this logic tracks GenericImageData::CreateAnatomicWrapper
+  switch(m_IO->GetComponentTypeInNativeImage())
+    {
+    case itk::IOComponentEnum::UCHAR:  UpdateWrapperInternal<unsigned char>(); break;
+    case itk::IOComponentEnum::CHAR:   UpdateWrapperInternal<char>(); break;
+    case itk::IOComponentEnum::USHORT: UpdateWrapperInternal<unsigned short>(); break;
+    case itk::IOComponentEnum::SHORT:  UpdateWrapperInternal<short>(); break;
+    default: UpdateWrapperInternal<float>(); break;
+    }
+}
+
+template<typename TPixel>
+void
+ReloadAnatomicWrapperDelegate
+::UpdateWrapperInternal()
+{
+  if (m_IO->GetNumberOfComponentsInNativeImage() > 1)
+    UpdateWrapperWithTraits<AnatomicImageWrapperTraits<TPixel>>();
+  else
+    UpdateWrapperWithTraits<AnatomicScalarImageWrapperTraits<TPixel>>();
+}
+
+template<typename TTraits>
+void
+ReloadAnatomicWrapperDelegate
+::UpdateWrapperWithTraits()
+{
+  using WrapperType = typename TTraits::WrapperType;
+  using Image4DType = typename WrapperType::Image4DType;
+
+  RescaleNativeImageToIntegralType<Image4DType> rescaler;
+  typename Image4DType::Pointer image4d = rescaler(m_IO);
+
+  auto anatomicWrapper = dynamic_cast<WrapperType*>(m_Wrapper.GetPointer());
+
+  if (!anatomicWrapper)
+    {
+    std::ostringstream oss;
+    oss << "Cannot cast wrapper to: \""
+        << typeid(WrapperType).name() << "\"";
+    throw IRISException("Error reloading image from file: %s", oss.str().c_str());
+    }
+
+  anatomicWrapper->SetImage4D(image4d);
+  m_Driver->SetCursorPosition(m_Driver->GetCursorPosition(), true);
+  m_Driver->InvokeEvent(LayerChangeEvent()); // important, to trigger renderer rebuild assemblies
+}
+
+
+
+/* =============================
+   RELOAD segmentation wrapper
+   ============================= */
+
+void
+ReloadSegmentationWrapperDelegate
+::UpdateWrapper()
+{
+  std::cout << "[ReloadSegmentationWrapperDelegate::UpdateWrapper]" << std::endl;
+
+  ReadData();
+}

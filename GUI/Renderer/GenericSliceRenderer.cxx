@@ -398,6 +398,14 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
   // or create a new assembly
   for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
     {
+    // for multi-component layers, we want a complete rebuild
+    // because the component wrappers can be completely different than the previous ones
+    // which could cause rendering not reflecting latests changes
+
+    if (!it.GetLayer()->IsScalar())
+      it.GetLayer()->SetUserData(m_KeyLayerTextureAssembly, nullptr);
+
+
     if(!GetLayerTextureAssembly(it.GetLayer()))
       {
       SmartPtr<LayerTextureAssembly> lta = LayerTextureAssembly::New();

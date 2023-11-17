@@ -10,6 +10,8 @@ class GlobalUIModel;
 class ImageIOWizardModel;
 struct MultiChannelDisplayMode;
 class GenericImageData;
+class AbstractReloadWrapperDelegate;
+class IRISWarningList;
 
 /**
  * @brief The LayerTableRowModel class
@@ -117,7 +119,7 @@ public:
   /**
    * Reload wrapper data from the file on disk
    */
-  virtual void ReloadWrapperFromFile() = 0;
+  virtual void ReloadWrapperFromFile(IRISWarningList &wl) = 0;
 
 protected:
   AbstractLayerTableRowModel();
@@ -266,7 +268,7 @@ public:
   /**
    * Reload wrapper data from the file on disk
    */
-  void ReloadWrapperFromFile() ITK_OVERRIDE;
+  void ReloadWrapperFromFile(IRISWarningList &wl) ITK_OVERRIDE;
 
 protected:
   ImageLayerTableRowModel();
@@ -358,7 +360,7 @@ public:
   /**
    * Reload wrapper data from the file on disk
    */
-  void ReloadWrapperFromFile() ITK_OVERRIDE;
+  void ReloadWrapperFromFile(IRISWarningList &wl) ITK_OVERRIDE;
 
   // End of virtual methods implementation
   // ----------------------------------------------

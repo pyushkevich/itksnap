@@ -2218,6 +2218,9 @@ GuidedNativeImageIO::IOBasePointer
 GuidedNativeImageIO
 ::PeekHeader(std::string filename)
 {
+  if (m_IOBase)
+    return m_IOBase;
+
   Registry dummyRegistry;
   ReadNativeImageHeader(filename.c_str(), dummyRegistry);
   return m_IOBase;
