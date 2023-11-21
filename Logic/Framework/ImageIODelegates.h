@@ -267,7 +267,6 @@ public:
   }
 
   virtual void ValidateHeader(IRISWarningList &wl); // whether the file can be reloaded
-  virtual void ReadData();
   virtual void UpdateWrapper() = 0; // reload and update wrapper
 
 protected:

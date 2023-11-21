@@ -407,13 +407,6 @@ AbstractReloadWrapperDelegate
     }
 }
 
-void
-AbstractReloadWrapperDelegate
-::ReadData()
-{
-  m_IO->ReadNativeImageData();
-}
-
 
 /* =============================
    RELOAD anatomic wrapper
@@ -424,7 +417,7 @@ void
 ReloadAnatomicWrapperDelegate
 ::UpdateWrapper()
 {
-  ReadData();
+  m_IO->ReadNativeImageData();
 
   // this logic tracks GenericImageData::CreateAnatomicWrapper
   switch(m_IO->GetComponentTypeInNativeImage())
@@ -453,6 +446,8 @@ void
 ReloadAnatomicWrapperDelegate
 ::UpdateWrapperWithTraits()
 {
+  std::cout << "[ReloadAnatomicWrapperDelegate::UpdateWrapper]" << std::endl;
+
   using WrapperType = typename TTraits::WrapperType;
   using Image4DType = typename WrapperType::Image4DType;
 
@@ -486,5 +481,17 @@ ReloadSegmentationWrapperDelegate
 {
   std::cout << "[ReloadSegmentationWrapperDelegate::UpdateWrapper]" << std::endl;
 
-  ReadData();
+  m_IO->ReadNativeImageData();
+
+  auto labelWrapper = dynamic_cast<LabelImageWrapper*>(m_Wrapper.GetPointer());
+  if (!labelWrapper)
+    {
+    throw IRISException("Error reloading segmentation from file: Error casting to LabelIamgeWrapper!");
+    }
+
+
+  auto labelImage = m_Driver->GetIRISImageData()->CompressSegmentation(m_IO);
+  labelWrapper->SetImage4D(labelImage);
+  m_Driver->SetCursorPosition(m_Driver->GetCursorPosition(), true);
+  m_Driver->InvokeEvent(LayerChangeEvent()); // important, to trigger renderer rebuild assemblies
 }

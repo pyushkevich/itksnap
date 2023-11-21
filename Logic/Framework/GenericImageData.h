@@ -344,6 +344,9 @@ public:
 
   /** Get Mesh Layer Storage */
   ImageMeshLayers *GetMeshLayers();
+
+  // Helper method used to compress a loaded segmentation into an RLE 4D image
+  SmartPtr<LabelImage4DType> CompressSegmentation(GuidedNativeImageIO *io);
 protected:
 
   GenericImageData();
@@ -412,9 +415,7 @@ protected:
   // Generate an appropriate default nickname for a particular role
   std::string GenerateNickname(LayerRole role);
 
-  // Helper method used to compress a loaded segmentation into an RLE 4D image
-  SmartPtr<LabelImage4DType> CompressSegmentation(GuidedNativeImageIO *io);
-
+  // Storage of all mesh layers
   SmartPtr<ImageMeshLayers> m_MeshLayers;
 };
 

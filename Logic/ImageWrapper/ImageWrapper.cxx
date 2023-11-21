@@ -1434,6 +1434,10 @@ ImageWrapper<TTraits>
 
   // We have been initialized
   m_Initialized = true;
+
+  // Update MTime so downstream users can update accordingly
+  this->Modified();
+
 }
 
 template<class TTraits>

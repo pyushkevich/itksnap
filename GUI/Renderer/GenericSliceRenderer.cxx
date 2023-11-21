@@ -398,21 +398,26 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
   // or create a new assembly
   for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    // for multi-component layers, we want a complete rebuild
-    // because the component wrappers can be completely different than the previous ones
-    // which could cause rendering not reflecting latests changes
+    auto layer = it.GetLayer();
+    auto data = GetLayerTextureAssembly(layer);
 
-    if (!it.GetLayer()->IsScalar())
-      it.GetLayer()->SetUserData(m_KeyLayerTextureAssembly, nullptr);
+    if (data)
+      {
+      auto MTimeAssembly = data->GetMTime();
+      auto MTimeLayer = layer->GetMTime();
 
+      // assembly outdated and need a complete rebuild
+      if (MTimeAssembly < MTimeLayer)
+        layer->SetUserData(m_KeyLayerTextureAssembly, nullptr);
+      }
 
-    if(!GetLayerTextureAssembly(it.GetLayer()))
+    if(!GetLayerTextureAssembly(layer))
       {
       SmartPtr<LayerTextureAssembly> lta = LayerTextureAssembly::New();
-      it.GetLayer()->SetUserData(m_KeyLayerTextureAssembly, lta);
+      layer->SetUserData(m_KeyLayerTextureAssembly, lta);
 
       // Get the pointer to the display slice
-      auto *ds = it.GetLayer()->GetDisplaySlice(m_Model->GetId()).GetPointer();
+      auto *ds = layer->GetDisplaySlice(m_Model->GetId()).GetPointer();
 
       // Configure the texture pipeline
       SmartPtr<LayerTextureAssembly::VTKExporter> exporter = LayerTextureAssembly::VTKExporter::New();
