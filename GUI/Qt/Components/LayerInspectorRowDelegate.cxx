@@ -748,7 +748,15 @@ LayerInspectorRowDelegate
 {
   std::cout << "[LayerInspectorRowDelegate::ReloadFromFile]" << std::endl;
   IRISWarningList wl;
-  m_Model->ReloadWrapperFromFile(wl);
+  try
+    {
+    m_Model->ReloadWrapperFromFile(wl);
+    }
+  catch (IRISException &ex)
+    {
+    ReportNonLethalException(this, ex, "Error reloading image from file");
+    }
+
 }
 
 void LayerInspectorRowDelegate::onColorMapPresetSelected()

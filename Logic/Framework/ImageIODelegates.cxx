@@ -379,13 +379,14 @@ AbstractReloadWrapperDelegate
   // Check if there is a discrepancy in the header fields.
   bool match_spacing = true, match_origin = true, match_direction = true, match_dimension = true;
 
-  for(unsigned int i = 0; i < 3; i++)
+  auto ndimFile = headerFile->GetNumberOfDimensions();
+  for(unsigned int i = 0; i < (ndimFile < 4 ? ndimFile : 4); i++)
     {
     match_spacing = (headerFile->GetSpacing(i) == imageNative->GetSpacing()[i]);
     match_origin = (headerFile->GetOrigin(i) == imageNative->GetOrigin()[i]);
     match_dimension = (headerFile->GetDimensions(i) == dimNative[i]);
 
-    for(size_t j = 0; j < 3; j++)
+    for(size_t j = 0; j < (ndimFile < 4 ? ndimFile : 4); j++)
       {
       double diff = fabs(headerFile->GetDirection(i)[j] - imageNative->GetDirection()(i,j));
       match_direction = (diff <= 1.0e-4);
