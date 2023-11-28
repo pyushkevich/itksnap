@@ -1008,6 +1008,7 @@ void MainImageWindow::UpdateRecentProjectsMenu()
 void MainImageWindow::UpdateWindowTitle()
 {
   GenericImageData *gid = m_Model->GetDriver()->GetIRISImageData();
+  bool is4D = m_Model->GetDriver()->GetNumberOfTimePoints() > 1;
   QString mainfile, segfile, projfile;
   if(gid && gid->IsMainLoaded())
     {
@@ -1048,7 +1049,8 @@ void MainImageWindow::UpdateWindowTitle()
     }
   else if(mainfile.length())
     {
-    ui->actionSaveSegmentation->setText(QString("Save Segmentation Image ..."));
+    QString infix4D(is4D ? "4D " : "");
+    ui->actionSaveSegmentation->setText(QString("Save %1Segmentation Image ...").arg(infix4D));
     ui->actionSaveSegmentationAs->setVisible(false);
     }
   else
