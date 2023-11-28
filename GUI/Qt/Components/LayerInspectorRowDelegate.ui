@@ -561,6 +561,17 @@ color: rgb(120, 120, 120)</string>
     <enum>QAction::NoRole</enum>
    </property>
   </action>
+  <action name="actionReloadFromFile">
+   <property name="text">
+    <string>Reload from File</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload image data from the disk</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>

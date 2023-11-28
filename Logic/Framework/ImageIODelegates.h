@@ -5,6 +5,7 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "IRISException.h"
+#include "GuidedNativeImageIO.h"
 #include <vector>
 
 class IRISApplication;
@@ -246,6 +247,71 @@ protected:
   ImageWrapperBase *m_Wrapper;
   std::list<std::string> m_HistoryNames;
   bool m_Track;
+};
+
+
+/**
+ * This class reload image wrapper from its source file on the disk
+ */
+class AbstractReloadWrapperDelegate : public itk::Object
+{
+public:
+
+  irisITKAbstractObjectMacro(AbstractReloadWrapperDelegate, itk::Object)
+
+  virtual void Initialize(IRISApplication *driver, ImageWrapperBase *wrapper)
+  {
+    m_Driver = driver;
+    m_Wrapper = wrapper;
+    m_Filename = wrapper->GetFileName();
+  }
+
+  virtual void ValidateHeader(IRISWarningList &wl); // whether the file can be reloaded
+  virtual void UpdateWrapper() = 0; // reload and update wrapper
+
+protected:
+  AbstractReloadWrapperDelegate() { m_IO = GuidedNativeImageIO::New(); }
+  virtual ~AbstractReloadWrapperDelegate() {}
+
+  IRISApplication *m_Driver;
+  SmartPtr<ImageWrapperBase> m_Wrapper;
+  std::string m_Filename;
+  SmartPtr<GuidedNativeImageIO> m_IO;
+};
+
+/**
+ * This class reload anatomic image wrapper from its source file on the disk
+ */
+class ReloadAnatomicWrapperDelegate : public AbstractReloadWrapperDelegate
+{
+public:
+
+  irisITKObjectMacro(ReloadAnatomicWrapperDelegate, AbstractReloadWrapperDelegate)
+
+  void UpdateWrapper() ITK_OVERRIDE; // reload and update wrapper
+
+protected:
+  ReloadAnatomicWrapperDelegate() {}
+  virtual ~ReloadAnatomicWrapperDelegate() {}
+
+  template<typename TPixel> void UpdateWrapperInternal();
+  template<typename TTraits> void UpdateWrapperWithTraits();
+};
+
+/**
+ * This class reload segmentation image wrapper from its source file on the disk
+ */
+class ReloadSegmentationWrapperDelegate : public AbstractReloadWrapperDelegate
+{
+public:
+
+  irisITKObjectMacro(ReloadSegmentationWrapperDelegate, AbstractReloadWrapperDelegate)
+
+  void UpdateWrapper() ITK_OVERRIDE; // reload and update wrapper
+
+protected:
+  ReloadSegmentationWrapperDelegate() {}
+  virtual ~ReloadSegmentationWrapperDelegate() {}
 };
 
 #endif // IMAGEIODELEGATES_H

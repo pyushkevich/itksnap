@@ -15,6 +15,7 @@
 #include "ImageMeshLayers.h"
 #include "MomentTextures.h"
 #include "SegmentationMeshWrapper.h"
+#include "GuidedNativeImageIO.h"
 
 
 AbstractLayerTableRowModel::AbstractLayerTableRowModel()
@@ -70,6 +71,10 @@ bool AbstractLayerTableRowModel::CheckState(UIState state)
 
     case AbstractLayerTableRowModel::UIF_CLOSABLE:
       return !snapmode;
+
+    case AbstractLayerTableRowModel::UIF_FILE_RELOADABLE:
+      return (m_LayerRole != MESH_ROLE &&
+          !(strcmp(m_Layer->GetFileName(), "") == 0));
 
     default:
       break;
@@ -624,6 +629,27 @@ void ImageLayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
     imageLayer->GetDefaultScalarRepresentation()->SetVolumeRenderingEnabled(value);
 }
 
+void
+ImageLayerTableRowModel
+::ReloadWrapperFromFile(IRISWarningList &wl)
+{
+  SmartPtr<AbstractReloadWrapperDelegate> delegate;
+
+  if (m_LayerRole == LABEL_ROLE)
+    delegate = ReloadSegmentationWrapperDelegate::New().GetPointer();
+  else
+    delegate = ReloadAnatomicWrapperDelegate::New().GetPointer();
+
+  ImageWrapperBase *imgWrapper = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+
+  if (!imgWrapper)
+    return;
+
+  delegate->Initialize(m_ParentModel->GetDriver(), imgWrapper);
+  delegate->ValidateHeader(wl);
+  delegate->UpdateWrapper();
+}
+
 /*
  * ===============================================
  *   MeshLayerTableRowModel Implementation
@@ -777,4 +803,16 @@ MeshLayerTableRowModel::SetColorMapPresetValue(std::string value)
   cmm->SetLayer(m_MeshLayer);
   cmm->SelectPreset(value);
   cmm->SetLayer(currentLayer);
+}
+
+void
+MeshLayerTableRowModel
+::ReloadWrapperFromFile(IRISWarningList &)
+{
+  /*
+  not implemented for now
+  reloading mesh data could cause dramatic change of wrapper
+  all of the data arrays and properties could chnage
+  should recreate the wrapper entirely instead
+  */
 }

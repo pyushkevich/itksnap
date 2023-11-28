@@ -693,6 +693,16 @@ public:
    */
   void RecordCurrentLabelUse();
 
+  /**
+   * Reload a grey image wrapper from the source file on the disk
+   */
+  void ReloadGreyImageWrapperFromFile(ImageWrapperBase *wrapper);
+
+  /**
+   * Reload a segmentation image wrapper from the source file on the disk
+   */
+  void ReloadSegmentationWrapperFromFile(ImageWrapperBase *wrapper);
+
 
 protected:
 

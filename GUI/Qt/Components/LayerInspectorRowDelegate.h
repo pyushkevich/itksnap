@@ -132,6 +132,8 @@ private slots:
 
   void on_actionColor_Map_Editor_triggered();
 
+  void on_actionReloadFromFile_triggered();
+
 private:
   Ui::LayerInspectorRowDelegate *ui;
 
