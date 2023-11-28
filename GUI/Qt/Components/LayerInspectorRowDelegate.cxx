@@ -746,7 +746,6 @@ void
 LayerInspectorRowDelegate
 ::on_actionReloadFromFile_triggered()
 {
-  std::cout << "[LayerInspectorRowDelegate::ReloadFromFile]" << std::endl;
   IRISWarningList wl;
   try
     {

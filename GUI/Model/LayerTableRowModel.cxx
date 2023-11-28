@@ -633,8 +633,6 @@ void
 ImageLayerTableRowModel
 ::ReloadWrapperFromFile(IRISWarningList &wl)
 {
-  std::cout << "[ImageLayerTableRowModel::ReloadWrapperFromFile]" << std::endl;
-
   SmartPtr<AbstractReloadWrapperDelegate> delegate;
 
   if (m_LayerRole == LABEL_ROLE)

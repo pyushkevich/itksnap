@@ -447,8 +447,6 @@ void
 ReloadAnatomicWrapperDelegate
 ::UpdateWrapperWithTraits()
 {
-  std::cout << "[ReloadAnatomicWrapperDelegate::UpdateWrapper]" << std::endl;
-
   using WrapperType = typename TTraits::WrapperType;
   using Image4DType = typename WrapperType::Image4DType;
 
@@ -480,8 +478,6 @@ void
 ReloadSegmentationWrapperDelegate
 ::UpdateWrapper()
 {
-  std::cout << "[ReloadSegmentationWrapperDelegate::UpdateWrapper]" << std::endl;
-
   m_IO->ReadNativeImageData();
 
   auto labelWrapper = dynamic_cast<LabelImageWrapper*>(m_Wrapper.GetPointer());
