@@ -2805,7 +2805,10 @@ public:
   typedef std::pair<ImageWrapperBase::MiniPipeline, SmartPtr<TOutputImage> > ReturnType;
   static ReturnType CreatePipeline(TInputImage *image, TNativeMapping native_mapping)
     {
-    throw IRISException("CreatePipeline not implemented for these input types");
+    throw IRISException("CreatePipeline not implemented for these input types: %s, %s, %s, %d, %d. "
+                        "(ImageWrapper::CreateCastToTargetTypePipelinePartialSpecializationTraits)",
+                        typeid(TInputImage).name(), typeid(TOutputImage).name(), typeid(TNativeMapping).name(),
+                        static_cast<int>(LinearMapping), static_cast<int>(Compatible));
     return std::make_pair(ImageWrapperBase::MiniPipeline(), SmartPtr<TOutputImage>());
     }
 };
@@ -2965,7 +2968,7 @@ ImageWrapper<TTraits>::CreateCastToFloatVectorSlicePipeline(const char *key, uns
   typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
 
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
-      SliceType, FloatVectorSliceType, NativeIntensityMapping, IsLinear::value, !IsVector::value> Specialization;
+      SliceType, FloatVectorSliceType, NativeIntensityMapping, IsLinear::value, IsVector::value> Specialization;
 
   auto p = Specialization::CreatePipeline(this->GetSlice(slice), this->m_NativeMapping);
 
