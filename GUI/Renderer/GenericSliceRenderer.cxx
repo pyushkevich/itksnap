@@ -599,6 +599,7 @@ void GenericSliceRenderer::UpdateRendererLayout()
 
   // Create a sorted structure of layers that are rendered on top of the base
   std::map<double, vtkActor *> depth_map;
+  std::map<double, vtkContextActor *> depth_map_context;
   for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
     // Don't display segmentation layer if it is not the selected one
@@ -606,12 +607,18 @@ void GenericSliceRenderer::UpdateRendererLayout()
       continue;
 
     auto *lta = GetLayerTextureAssembly(it.GetLayer());
+    auto *bla = GetBaseLayerAssembly(it.GetLayer());
     if(lta)
       {
       auto *actor = lta->m_ImageRect->GetActor();
       double z = actor->GetPosition()[2];
       if(z > 0.0)
+        {
         depth_map[z] = actor;
+        if (bla)
+          depth_map_context[z] = bla->m_OverlayContextActor;
+        }
+
       }
     }
 
@@ -670,6 +677,10 @@ void GenericSliceRenderer::UpdateRendererLayout()
       // Add the overlay layer actors
       for(auto it : depth_map)
         renderer->AddActor(it.second);
+
+      for(auto it : depth_map_context)
+        renderer->AddActor(it.second);
+
 
       // Add the tiled overlay scene actor
       renderer->AddActor(bla->m_OverlayContextActor);
