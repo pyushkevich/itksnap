@@ -1725,7 +1725,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionSaveTimePointSegmentation">
    <property name="text">
-    <string>Save Current Time Point Segmentation in 3D...</string>
+    <string>Save 3D Segmentation in Current Time Point...</string>
    </property>
    <property name="toolTip">
     <string>Save Time Point as 3D Segmentation</string>
