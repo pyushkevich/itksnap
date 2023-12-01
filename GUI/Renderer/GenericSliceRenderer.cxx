@@ -599,7 +599,7 @@ void GenericSliceRenderer::UpdateRendererLayout()
 
   // Create a sorted structure of layers that are rendered on top of the base
   std::map<double, vtkActor *> depth_map;
-  std::map<double, vtkContextActor *> depth_map_context;
+  std::map<double, BaseLayerAssembly *> depth_map_bla;
   for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
     // Don't display segmentation layer if it is not the selected one
@@ -616,9 +616,10 @@ void GenericSliceRenderer::UpdateRendererLayout()
         {
         depth_map[z] = actor;
         if (bla)
-          depth_map_context[z] = bla->m_OverlayContextActor;
+          {
+          depth_map_bla[z] = bla;
+          }
         }
-
       }
     }
 
@@ -678,9 +679,13 @@ void GenericSliceRenderer::UpdateRendererLayout()
       for(auto it : depth_map)
         renderer->AddActor(it.second);
 
-      for(auto it : depth_map_context)
-        renderer->AddActor(it.second);
-
+      for(auto kv : depth_map_bla)
+        {
+        // first change the renderer size, it will be used to compute context transform later
+        auto *blaLocal = kv.second;
+        blaLocal->m_Renderer->SetViewport(rel_pos[0][0], rel_pos[0][1], rel_pos[1][0], rel_pos[1][1]);
+        renderer->AddActor(blaLocal->m_OverlayContextActor);
+        }
 
       // Add the tiled overlay scene actor
       renderer->AddActor(bla->m_OverlayContextActor);
