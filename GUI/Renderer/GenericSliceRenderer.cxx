@@ -732,7 +732,6 @@ void GenericSliceRenderer::UpdateRendererCameras()
 
       // Also update the transform for the overlay scene
       auto *tform = bla->m_OverlayContextTransform->GetTransform();
-
       tform->Identity();
       tform->Translate(ren->GetSize()[0] * 0.5, ren->GetSize()[1] * 0.5);
       tform->Scale(v_zoom, v_zoom);
