@@ -2268,6 +2268,10 @@ ImageWrapper<TTraits>
   for(ImagePointer img : m_ImageTimePoints)
     if(m_ImageSaveTime < img->GetTimeStamp())
       m_ImageSaveTime = img->GetTimeStamp();
+
+  // Also check global 4d image time stamp
+  if (m_ImageSaveTime < m_Image4D->GetTimeStamp())
+    m_ImageSaveTime = m_Image4D->GetTimeStamp();
 }
 
 template<class TTraits>
