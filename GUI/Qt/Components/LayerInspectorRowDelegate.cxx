@@ -723,6 +723,11 @@ on_actionReloadAsMultiComponent_triggered()
   if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), OVERLAY_ROLE))
     {
     imgLTRM->ReloadAsMultiComponent();
+
+    // render the image as having unsaved changes
+    auto imageLayer = dynamic_cast<ImageWrapperBase*>(imgLTRM->GetLayer());
+    if (imageLayer)
+      imageLayer->GetImage4DBase()->Modified();
     }
 }
 
@@ -739,6 +744,11 @@ on_actionReloadAs4D_triggered()
   if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), OVERLAY_ROLE))
     {
     imgLTRM->ReloadAs4D();
+
+    // render the image as having unsaved changes
+    auto imageLayer = dynamic_cast<ImageWrapperBase*>(imgLTRM->GetLayer());
+    if (imageLayer)
+      imageLayer->GetImage4DBase()->Modified();
     }
 }
 

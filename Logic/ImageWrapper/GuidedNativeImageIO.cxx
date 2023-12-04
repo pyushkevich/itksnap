@@ -900,7 +900,6 @@ GuidedNativeImageIO
   auto imageMC = NativeImageType::New();
 
   UpdateImageHeader<NativeImageType>(imageMC);
-  imageMC->Allocate();
   imageMC->GetPixelContainer()->SetImportPointer(bufferMC, ne, true);
 
   return imageMC;
@@ -968,7 +967,6 @@ GuidedNativeImageIO
   auto image4D = NativeImageType::New();
 
   UpdateImageHeader<NativeImageType>(image4D);
-  image4D->Allocate();
   image4D->GetPixelContainer()->SetImportPointer(buffer4D, ne, true); // imageMC will take care of this memory
   return image4D;
 }
