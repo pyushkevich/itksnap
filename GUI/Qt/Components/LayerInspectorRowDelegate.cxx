@@ -89,6 +89,7 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
 
   // Add the component selection menu
   m_DisplayModeMenu = m_PopupMenu->addMenu("Multi-Component Display");
+  m_DisplayModeMenu->setObjectName("menuMCDisplay"); // set object name for testing
   m_DisplayModeActionGroup = NULL;
 
   m_PopupMenu->addSeparator();
@@ -483,7 +484,7 @@ void LayerInspectorRowDelegate::UpdateComponentMenu()
     // Create an action
     QAction *action = m_DisplayModeMenu->addAction(
           from_utf8(image_model->GetDisplayModeString(mode)));
-
+    action->setObjectName(from_utf8(image_model->GetDisplayModeString(mode)));
     action->setCheckable(true);
 
     m_DisplayModeActionGroup->addAction(action);

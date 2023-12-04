@@ -16,5 +16,10 @@
         <file>Scripts/test_SegmentationMesh.js</file>
         <file>Scripts/test_VolumeRendering.js</file>
         <file>Scripts/test_NaNs.js</file>
+        <file>Scripts/test_Reloading.js</file>
+        <file>Scripts/test_4DToMC.js</file>
+        <file>Scripts/test_MCTo4D.js</file>
+        <file>Scripts/test_DeformationGrid.js</file>
     </qresource>
+    <qresource prefix="/"/>
 </RCC>
