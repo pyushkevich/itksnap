@@ -988,9 +988,9 @@ void GlobalUIModel::IncrementDrawingColorLabel(int delta)
   LabelType current = m_Driver->GetGlobalState()->GetDrawingColorLabel();
   ColorLabelTable::ValidLabelConstIterator pos =
       clt->GetValidLabels().find(current);
-  if(delta == 1)
+  if(delta == 1 && pos != clt->GetValidLabels().end())
     ++pos;
-  else if(delta == -1)
+  else if(delta == -1 && pos != clt->GetValidLabels().begin())
     --pos;
 
   if(pos != clt->GetValidLabels().end())

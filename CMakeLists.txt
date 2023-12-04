@@ -1449,36 +1449,41 @@ IF(APPLE)
   SET(CPACK_BUNDLE_ICON ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns)
   SET(CPACK_PACKAGE_ICON ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns)
 
+  # The keychain used to store codesigning certificate and the notary tool password
+  SET(SNAP_MACOS_KEYCHAIN "default" CACHE STRING "Keychain where the code signing certificate, notarize password are stored")
+  SET(SNAP_MACOS_KEYCHAIN_PASSWORD_FILE "" CACHE STRING "File containing the password to unlock the keychain")
+  MARK_AS_ADVANCED(SNAP_MACOS_KEYCHAIN)
+  MARK_AS_ADVANCED(SNAP_MACOS_KEYCHAIN_PASSWORD_FILE)
+
   # Code signing certificate - optional
   SET(SNAP_MACOSX_CODESIGN_CERT "" CACHE STRING "Name of the Apple Developer Certificate to sign application")
   MARK_AS_ADVANCED(SNAP_MACOSX_CODESIGN_CERT)
 
   # Notarization keychain profile
-  SET(SNAP_MACOS_NOTARYTOOL_PROFILE "" CACHE STRING "Notary tool keychain profile, see https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow")
+  SET(SNAP_MACOS_NOTARYTOOL_PROFILE "" CACHE STRING "Notary tool password name, see https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow")
+  # SET(SNAP_MACOS_NOTARYTOOL_KEYCHAIN "default" CACHE STRING "Notary tool keychain, if not storing password in default keychain")
   MARK_AS_ADVANCED(SNAP_MACOS_NOTARYTOOL_PROFILE)
+  # MARK_AS_ADVANCED(SNAP_MACOS_NOTARYTOOL_KEYCHAIN)
+
+  # Create a script that can unlock the keychain
+  CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/Utilities/MacOS/unlock_keychain.cmake ${CMAKE_BINARY_DIR}/Utilities/MacOS/unlock_keychain.cmake @ONLY)
 
   IF(SNAP_MACOSX_CODESIGN_CERT)
     SET(CPACK_BUNDLE_APPLE_CERT_APP ${SNAP_MACOSX_CODESIGN_CERT})
     SET(CPACK_BUNDLE_APPLE_ENTITLEMENTS ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/entitlements.plist)
+    SET(CPACK_PRE_BUILD_SCRIPTS ${CMAKE_BINARY_DIR}/Utilities/MacOS/unlock_keychain.cmake)
 
     # TODO: there has to be some way to determine all the executables that are included in
     # the package but I spent an hour trying and I give up. So here it is, hard-coded.
-    SET(SNAP_MACOSX_CLI_EXES "c3d;c2d;c4d;c3d_affine_tool;greedy;greedy_template_average;itksnap-wt;itksnap")
+    SET(SNAP_MACOSX_CLI_EXES "c3d;c2d;c4d;c3d_affine_tool;greedy;greedy_template_average;itksnap-wt;itksnap;multi_chunk_greedy")
     FOREACH(exe ${SNAP_MACOSX_CLI_EXES})
       LIST(APPEND CPACK_BUNDLE_APPLE_CODESIGN_FILES "/Contents/bin/${exe}")
     ENDFOREACH()
-    MESSAGE(STATUS "CPACK_BUNDLE_APPLE_CODESIGN_FILES: ${CPACK_BUNDLE_APPLE_CODESIGN_FILES}")
 
     # ADD COMMANDS FOR NOTARIZATION
     IF(SNAP_MACOS_NOTARYTOOL_PROFILE)
-      add_custom_target(notarize
-        COMMENT "Notarizing installer package..."
-        COMMAND xcrun notarytool submit "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.dmg" --keychain-profile "${SNAP_MACOS_NOTARYTOOL_PROFILE}" --wait
-        VERBATIM)
-      add_custom_target(staple
-        COMMENT "Stapling notarization ticket to installer package..."
-        COMMAND xcrun stapler staple "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.dmg"
-        VERBATIM)
+      CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/Utilities/MacOS/notarize_and_staple.cmake ${CMAKE_BINARY_DIR}/Utilities/MacOS/notarize_and_staple.cmake @ONLY)
+      SET(CPACK_POST_BUILD_SCRIPTS ${CMAKE_BINARY_DIR}/Utilities/MacOS/notarize_and_staple.cmake)
     ENDIF()
 
     SET(CPACK_APPLE_BUNDLE_ID "itk-snap")
@@ -1490,8 +1495,12 @@ IF(APPLE)
   # Install the main executable
   SNAP_INSTALL_GUI(${SNAP_BUNDLE_NAME} itksnap "--console")
 
-  # Set the DS STORE
-  SET(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt)
+  # Set the DS STORE speedup
+  SET(SNAP_MACOSX_DSSTORE_SPEED_FACTOR 1.0 CACHE STRING "Speedup factor for Apple .DS_Store generator script")
+  MARK_AS_ADVANCED(SNAP_MACOSX_DSSTORE_SPEED_FACTOR)
+
+  CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt ${CMAKE_BINARY_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt)
+  SET(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${CMAKE_BINARY_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt)
   SET(CPACK_DMG_BACKGROUND_IMAGE ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/background.tiff)
 
   # Install the command-line installer

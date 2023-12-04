@@ -2391,6 +2391,10 @@ bool IRISApplication::IsProjectFile(const char *filename)
   // This is pretty weak. What we really need is XML validation to check
   // that this is a real registry, and then some minimal check to see that
   // this is a project file
+
+  if (!Registry::IsXML(filename))
+    return false;
+
   try
   {
   Registry preg;
