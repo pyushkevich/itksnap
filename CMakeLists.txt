@@ -1269,7 +1269,12 @@ SET(GUI_TESTS
   MeshImport
   MeshWorkspace
   SegmentationMesh
-  VolumeRendering)
+  VolumeRendering
+  Reloading
+  4DToMC
+  MCTo4D
+  DeformationGrid
+)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
 set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)

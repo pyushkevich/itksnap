@@ -4,21 +4,21 @@ ITK-SNAP Release Notes - Version 4.2
 ----
 
 ### New Features
-- Native Floating-Point type support
-- Main Image now can be transformed using manual registration tool
+- Native floating point type support and NaN support
+- Main image now can be transformed using manual registration tool
 - Workspace tool now have commands for mesh layers
 - Image IO Improvements:
   - NRRD Volume Sequence Reading
-  - 4DCTA auto format detection now detects wider range of images
-- Added a hotkey to switch between Background & Foreground Labels
-- 4D image now can be reloaded as Multi-Component image
-- Multi-Component image now can be reloaded as 4D image
+  - 4DCTA auto format detection now can detect wider range of images
+- Added a hotkey to switch between background & foreground Labels
+- 4D image now can be reloaded as multi-component image
+- Multi-component image now can be reloaded as 4D image
 - Now image data can be reloaded from source file, without reopening the workspace
 - Now multiple segmentation images can be loaded from the command line
 - Added a hotkey for continuous update
-- Added compose and/or inverse transforms options to the Opening Transform Dialog in the Registration Panel
+- Added compose and inverse transforms options to the opening transform dialog in the registration panel
 - More accurate UI text for loading/saving 3d/4d segmentations in 4d workspace
-- Now Label Description Files can be loaded by drag & drop
+- Now label description files can be loaded by drag & drop
 ### Bug Fixes
 - Closing main image from layer context menu now will correctly prompt saving changes for overlay layers
 - Loading 3d segmentation into a 4d time point no longer prompts warning, if the time point does not have unsaved changes
