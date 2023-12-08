@@ -1,9 +1,11 @@
 #include "ImageIODelegates.h"
-#include "GuidedNativeImageIO.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
 #include "HistoryManager.h"
 #include "IRISImageData.h"
+#include "ImageWrapperTraits.h"
+#include <itkImageIOBase.h>
+#include <itkImageBase.h>
 
 
 /* =============================
@@ -15,17 +17,22 @@ void LoadAnatomicImageDelegate
 {
   typedef itk::ImageIOBase IOB;
 
-  IOB::IOComponentType ct = io->GetComponentTypeInNativeImage();
-  if(ct > IOB::SHORT)
+  itk::IOComponentEnum ct = io->GetComponentTypeInNativeImage();
+  if(ct != IOB::UCHAR &&
+     ct != IOB::CHAR &&
+     ct != IOB::USHORT &&
+     ct != IOB::SHORT &&
+     ct != IOB::FLOAT)
     {
+    std::ostringstream oss;
+    oss << ct;
     wl.push_back(
           IRISWarning(
-            "Warning: Loss of Precision."
-            "You are opening an image with 32-bit or greater precision, "
-            "but ITK-SNAP only provides 16-bit precision. "
-            "Intensity values reported in ITK-SNAP may differ slightly from the "
-            "actual values in the image."
-            ));
+            "Warning: Possible Loss of Precision."
+            "The file you opened represents image data using the '%s' data type, "
+            "but ITK-SNAP only supports 16-bit integer and 32-bit floating point data types. "
+            "Intensity values reported in ITK-SNAP may differ from the "
+            "actual values in the image.", oss.str().c_str()));
     }
 }
 
@@ -53,6 +60,16 @@ LoadMainImageDelegate::LoadMainImageDelegate()
 {
   this->m_HistoryName = "AnatomicImage";
   this->m_DisplayName = "Main Image";
+}
+
+void
+LoadMainImageDelegate
+::ConfigureImageIO(GuidedNativeImageIO *io)
+{
+  if (m_Load4DAsMultiComponent)
+    io->SetLoad4DAsMultiComponent(true);
+  else if (m_LoadMultiComponentAs4D)
+    io->SetLoadMultiComponentAs4D(true);
 }
 
 
@@ -259,6 +276,28 @@ LoadSegmentationImageDelegate
   // just will reinitialize it with zeros. It's safe to just do nothing.
 }
 
+bool
+LoadSegmentationImageDelegate
+::CanLoadOverwriteUnsavedChanges(GuidedNativeImageIO *io, std::string filename)
+{
+  auto header = io->PeekHeader(filename);
+  auto nDimIncoming = header->GetNumberOfDimensions();
+  auto nt = m_Driver->GetNumberOfTimePoints();
+
+  // for 4d workspace
+  if (nt > 1)
+    {
+    auto layer = m_Driver->GetSelectedSegmentationLayer();
+    auto crntTP = m_Driver->GetCursorTimePoint();
+    // true case 1: incoming image is 4d
+    // true case 2: incoming 3d but unsaved changes are in the current time point
+    if (nDimIncoming > 3 || layer->HasUnsavedChanges(crntTP))
+      return true;
+    }
+
+  return false;
+}
+
 
 void
 DefaultSaveImageDelegate::Initialize(
@@ -287,19 +326,6 @@ void DefaultSaveImageDelegate
 ::ValidateBeforeSaving(
     const std::string &fname, GuidedNativeImageIO *io, IRISWarningList &wl)
 {
-  if(!m_Wrapper->GetNativeIntensityMapping()->IsIdentity()
-     && strlen(m_Wrapper->GetFileName()) > 0)
-    {
-    // if the wrapper uses a non-identity native mapping, then there will be loss of
-    // precision relative to the input image
-    wl.push_back(
-          IRISWarning(
-            "Warning: Loss of Precision."
-            "ITK-SNAP represents images using 16-bit precision. The image you are saving "
-            "was previously loaded from an image file that used greater than 16-bit precision. "
-            "Voxel intensities may be changed in the saved image relative to the original image."
-            ));
-    }
 }
 
 
@@ -332,3 +358,137 @@ const char *DefaultSaveImageDelegate::GetCurrentFilename()
 }
 
 
+/* =============================
+   AbstractReloadImageDelegate
+   ============================= */
+void
+AbstractReloadWrapperDelegate
+::ValidateHeader(IRISWarningList &wl)
+{
+  Registry dummyReg;
+  m_IO->ReadNativeImageHeader(m_Filename.c_str(), dummyReg, nullptr);
+  auto headerFile = m_IO->GetIOBase();
+
+  auto imageNative = m_Wrapper->GetImage4DBase();
+
+  // compare dimension, spacing, origin and direction
+  auto regNative = imageNative->GetLargestPossibleRegion();
+  auto dimNative = regNative.GetSize();
+
+  // Check the header properties
+  // Check if there is a discrepancy in the header fields.
+  bool match_spacing = true, match_origin = true, match_direction = true, match_dimension = true;
+
+  auto ndimFile = headerFile->GetNumberOfDimensions();
+  for(unsigned int i = 0; i < (ndimFile < 4 ? ndimFile : 4); i++)
+    {
+    match_spacing = (headerFile->GetSpacing(i) == imageNative->GetSpacing()[i]);
+    match_origin = (headerFile->GetOrigin(i) == imageNative->GetOrigin()[i]);
+    match_dimension = (headerFile->GetDimensions(i) == dimNative[i]);
+
+    for(size_t j = 0; j < (ndimFile < 4 ? ndimFile : 4); j++)
+      {
+      double diff = fabs(headerFile->GetDirection(i)[j] - imageNative->GetDirection()(i,j));
+      match_direction = (diff <= 1.0e-4);
+      }
+    }
+
+  if(!match_spacing || !match_origin || !match_direction || ! match_dimension)
+    {
+    std::ostringstream oss;
+    oss << "Following header elements mismatch between header of the file and the "
+        << "image header currently open in ITK-SNAP: ("
+        << (match_spacing ? "" : "spacing ")
+        << (match_origin ? "" : "origin ")
+        << (match_direction ? "" : "direction ")
+        << (match_dimension ? "" : "dimension")
+        << "). Image cannot be reloaded from the file!";
+    // Create an alert box
+    throw IRISException("Validation failed during image file reload: %s", oss.str().c_str());
+    }
+}
+
+
+/* =============================
+   RELOAD anatomic wrapper
+   ============================= */
+
+
+void
+ReloadAnatomicWrapperDelegate
+::UpdateWrapper()
+{
+  m_IO->ReadNativeImageData();
+
+  // this logic tracks GenericImageData::CreateAnatomicWrapper
+  switch(m_IO->GetComponentTypeInNativeImage())
+    {
+    case itk::IOComponentEnum::UCHAR:  UpdateWrapperInternal<unsigned char>(); break;
+    case itk::IOComponentEnum::CHAR:   UpdateWrapperInternal<char>(); break;
+    case itk::IOComponentEnum::USHORT: UpdateWrapperInternal<unsigned short>(); break;
+    case itk::IOComponentEnum::SHORT:  UpdateWrapperInternal<short>(); break;
+    default: UpdateWrapperInternal<float>(); break;
+    }
+}
+
+template<typename TPixel>
+void
+ReloadAnatomicWrapperDelegate
+::UpdateWrapperInternal()
+{
+  if (m_IO->GetNumberOfComponentsInNativeImage() > 1)
+    UpdateWrapperWithTraits<AnatomicImageWrapperTraits<TPixel>>();
+  else
+    UpdateWrapperWithTraits<AnatomicScalarImageWrapperTraits<TPixel>>();
+}
+
+template<typename TTraits>
+void
+ReloadAnatomicWrapperDelegate
+::UpdateWrapperWithTraits()
+{
+  using WrapperType = typename TTraits::WrapperType;
+  using Image4DType = typename WrapperType::Image4DType;
+
+  RescaleNativeImageToIntegralType<Image4DType> rescaler;
+  typename Image4DType::Pointer image4d = rescaler(m_IO);
+
+  auto anatomicWrapper = dynamic_cast<WrapperType*>(m_Wrapper.GetPointer());
+
+  if (!anatomicWrapper)
+    {
+    std::ostringstream oss;
+    oss << "Cannot cast wrapper to: \""
+        << typeid(WrapperType).name() << "\"";
+    throw IRISException("Error reloading image from file: %s", oss.str().c_str());
+    }
+
+  anatomicWrapper->SetImage4D(image4d);
+  m_Driver->SetCursorPosition(m_Driver->GetCursorPosition(), true);
+  m_Driver->InvokeEvent(LayerChangeEvent()); // important, to trigger renderer rebuild assemblies
+}
+
+
+
+/* =============================
+   RELOAD segmentation wrapper
+   ============================= */
+
+void
+ReloadSegmentationWrapperDelegate
+::UpdateWrapper()
+{
+  m_IO->ReadNativeImageData();
+
+  auto labelWrapper = dynamic_cast<LabelImageWrapper*>(m_Wrapper.GetPointer());
+  if (!labelWrapper)
+    {
+    throw IRISException("Error reloading segmentation from file: Error casting to LabelIamgeWrapper!");
+    }
+
+
+  auto labelImage = m_Driver->GetIRISImageData()->CompressSegmentation(m_IO);
+  labelWrapper->SetImage4D(labelImage);
+  m_Driver->SetCursorPosition(m_Driver->GetCursorPosition(), true);
+  m_Driver->InvokeEvent(LayerChangeEvent()); // important, to trigger renderer rebuild assemblies
+}

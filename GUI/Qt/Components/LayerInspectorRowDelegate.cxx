@@ -74,6 +74,11 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addAction(ui->actionSave);
   m_PopupMenu->addAction(ui->actionClose);
   m_PopupMenu->addSeparator();
+  m_PopupMenu->addAction(ui->actionReloadFromFile);
+  m_PopupMenu->addSeparator();
+  m_PopupMenu->addAction(ui->actionReloadAsMultiComponent);
+  m_PopupMenu->addAction(ui->actionReloadAs4D);
+  m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionAutoContrast);
   m_PopupMenu->addAction(ui->actionContrast_Inspector);
   m_PopupMenu->addSeparator();
@@ -84,6 +89,7 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
 
   // Add the component selection menu
   m_DisplayModeMenu = m_PopupMenu->addMenu("Multi-Component Display");
+  m_DisplayModeMenu->setObjectName("menuMCDisplay"); // set object name for testing
   m_DisplayModeActionGroup = NULL;
 
   m_PopupMenu->addSeparator();
@@ -179,11 +185,14 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   // activateOnFlag(ui->btnMoveDown, model, AbstractLayerTableRowModel::UIF_MOVABLE_DOWN);
   activateOnFlag(ui->actionClose, model, AbstractLayerTableRowModel::UIF_CLOSABLE);
   activateOnFlag(ui->actionSave, model, AbstractLayerTableRowModel::UIF_SAVABLE);
+  activateOnFlag(ui->actionReloadFromFile, model, AbstractLayerTableRowModel::UIF_FILE_RELOADABLE);
   activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
   activateOnFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE, opt_hide);
   activateOnFlag(m_PopupMenu->findChild<QMenu*>("menuProcess"), model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
   activateOnFlag(m_OverlaysMenu, model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
   activateOnFlag(ui->actionTextureFeatures, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE);
+  activateOnFlag(ui->actionReloadAs4D, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
+  activateOnFlag(ui->actionReloadAsMultiComponent, model, AbstractLayerTableRowModel::UIF_IS_4D, opt_hide);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
@@ -475,7 +484,7 @@ void LayerInspectorRowDelegate::UpdateComponentMenu()
     // Create an action
     QAction *action = m_DisplayModeMenu->addAction(
           from_utf8(image_model->GetDisplayModeString(mode)));
-
+    action->setObjectName(from_utf8(image_model->GetDisplayModeString(mode)));
     action->setCheckable(true);
 
     m_DisplayModeActionGroup->addAction(action);
@@ -680,21 +689,84 @@ void LayerInspectorRowDelegate::on_actionClose_triggered()
     }
   else
     {
-    // Should we prompt for a single layer or all layers?
-    ImageWrapperBase *prompted_layer = nullptr;
-
+    // Prompt for saving changes
+    // -- for current layer if this is not main layer
     if (!m_Model->IsMainLayer())
-      prompted_layer = dynamic_cast<ImageWrapperBase*>(m_Model->GetLayer());
-
-    // Prompt for changes
-    if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), prompted_layer))
       {
-      do_close = true;
+      auto prompted_layer = dynamic_cast<ImageWrapperBase*>(m_Model->GetLayer());
+
+      // Prompt for changes for current layer
+      if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), prompted_layer))
+        do_close = true;
+      }
+    // -- for all overlay layers if this is main layer
+    else
+      {
+      if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), OVERLAY_ROLE))
+        do_close = true;
       }
     }
 
   if (do_close)
     m_Model->CloseLayer();
+}
+
+void
+LayerInspectorRowDelegate::
+on_actionReloadAsMultiComponent_triggered()
+{
+  auto imgLTRM = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
+
+  if (!imgLTRM || !m_Model->IsMainLayer())
+    return;
+
+  // Prompt for saving changes
+  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), OVERLAY_ROLE))
+    {
+    imgLTRM->ReloadAsMultiComponent();
+
+    // render the image as having unsaved changes
+    auto imageLayer = dynamic_cast<ImageWrapperBase*>(imgLTRM->GetLayer());
+    if (imageLayer)
+      imageLayer->GetImage4DBase()->Modified();
+    }
+}
+
+void
+LayerInspectorRowDelegate::
+on_actionReloadAs4D_triggered()
+{
+  auto imgLTRM = dynamic_cast<ImageLayerTableRowModel*>(m_Model.GetPointer());
+
+  if (!imgLTRM || !m_Model->IsMainLayer())
+    return;
+
+  // Prompt for saving changes
+  if(SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model->GetParentModel(), OVERLAY_ROLE))
+    {
+    imgLTRM->ReloadAs4D();
+
+    // render the image as having unsaved changes
+    auto imageLayer = dynamic_cast<ImageWrapperBase*>(imgLTRM->GetLayer());
+    if (imageLayer)
+      imageLayer->GetImage4DBase()->Modified();
+    }
+}
+
+void
+LayerInspectorRowDelegate
+::on_actionReloadFromFile_triggered()
+{
+  IRISWarningList wl;
+  try
+    {
+    m_Model->ReloadWrapperFromFile(wl);
+    }
+  catch (IRISException &ex)
+    {
+    ReportNonLethalException(this, ex, "Error reloading image from file");
+    }
+
 }
 
 void LayerInspectorRowDelegate::onColorMapPresetSelected()

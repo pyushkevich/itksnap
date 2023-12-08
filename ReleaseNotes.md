@@ -1,5 +1,43 @@
-ITK-SNAP Release Notes - Version 4.0
+ITK-SNAP Release Notes - Version 4.2
 ====================================
+## Version 4.2.0 alpha.1
+----
+
+### New Features
+- Native floating point type support and NaN support
+- Main image now can be transformed using manual registration tool
+- Workspace tool now have commands for mesh layers
+- Image IO Improvements:
+  - NRRD Volume Sequence Reading
+  - 4DCTA auto format detection now can detect wider range of images
+- Added a hotkey to switch between background & foreground Labels
+- 4D image now can be reloaded as multi-component image
+- Multi-component image now can be reloaded as 4D image
+- Now image data can be reloaded from source file, without reopening the workspace
+- Now multiple segmentation images can be loaded from the command line
+- Added a hotkey for continuous update
+- Added compose and inverse transforms options to the opening transform dialog in the registration panel
+- More accurate UI text for loading/saving 3d/4d segmentations in 4d workspace
+- Now label description files can be loaded by drag & drop
+### Bug Fixes
+- Closing main image from layer context menu now will correctly prompt saving changes for overlay layers
+- Loading 3d segmentation into a 4d time point no longer prompts warning, if the time point does not have unsaved changes
+- Now correctly displaying deformation grid for image layers displayed on top of main image
+
+## Version 4.0.2
+### Bug Fixes
+- Fixed an issue reporting invalid vector error when reading dicom series containing multiple images for only one slice
+- Fixed an issue caused long reading time when drag&drop large image files
+- Fixed an issue caused crash when using hotkeys < and > to change foreground labels
+
+
+## Version 4.0.1
+### Bug Fixes
+- Interpolation Dialog now displays correct initial settings
+- Reorient Dialog now correctly renders the axes direction when determinant of the direction matrix is negative
+- Registration panel now reslices 4D moving images into 4D
+
+
 ## Version 4.0.0
 ----
 

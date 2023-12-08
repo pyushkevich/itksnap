@@ -109,7 +109,7 @@ SNAPImageData
     PushBackImageWrapper(SNAP_ROLE, m_SpeedWrapper.GetPointer());
     }
 
-  m_SpeedWrapper->InitializeToWrapper(m_MainImageWrapper, (GreyType) 0);
+  m_SpeedWrapper->InitializeToWrapper(m_MainImageWrapper, (SpeedImageWrapper::PixelType) 0);
   m_SpeedWrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
   InvokeEvent(LayerChangeEvent());
 

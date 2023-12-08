@@ -40,6 +40,8 @@ public:
 
   virtual void Save(Registry &folder) = 0;
   virtual void Restore(Registry &folder) = 0;
+
+  virtual void SetSticky(bool sticky) {}
 };
 
 class AbstractColorLabelTableDisplayMappingPolicy : public AbstractDisplayMappingPolicy
@@ -125,6 +127,9 @@ public:
   irisITKAbstractObjectMacro(AbstractContinuousImageDisplayMappingPolicy,
                              AbstractDisplayMappingPolicy)
 
+  /** The T-Digest is used to get image range and histogram information */
+  typedef TDigestDataObject TDigest;
+
   /**
    * @brief Get the intensity range relative to which the contrast mapping
    * curve is constructed. This is primarily used when displaying the curve
@@ -140,7 +145,7 @@ public:
    * pooled histogram, e.g., when the display is in RGB mode
    * @param nBins Number of bins desired in the histogram
    */
-  virtual const ScalarImageHistogram *GetHistogram(int nBins) = 0;
+  virtual const TDigest *GetTDigest() = 0;
 
   virtual void SetColorMap(ColorMap *map) = 0;
 
@@ -195,9 +200,6 @@ public:
   typedef ImageWrapperBase::DisplaySlicePointer DisplaySlicePointer;
   typedef ImageWrapperBase::DisplayPixelType DisplayPixelType;
 
-  // Lookup table
-  typedef itk::Image<DisplayPixelType, 1>                     LookupTableType;
-
   // Min/Max inputs
   typedef itk::SimpleDataObjectDecorator<ComponentType>   ComponentObjectType;
 
@@ -225,8 +227,7 @@ public:
 
   Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
 
-  virtual const ScalarImageHistogram *GetHistogram(int nBins) ITK_OVERRIDE;
-
+  virtual const TDigest *GetTDigest() override;
 
   /**
    * Get the display slice in a given direction.  To change the
@@ -259,6 +260,8 @@ public:
 
   virtual DisplayPixelType MapPixel(const InputComponentType *val);
 
+  virtual void SetSticky(bool sticky) override;
+
 
 protected:
 
@@ -267,13 +270,10 @@ protected:
 
 
   // Filter that generates the lookup table
-  typedef IntensityToColorLookupTableImageFilter<
-              ImageType, LookupTableType>               LookupTableFilterType;
+  typedef IntensityToColorLookupTableImageFilter<ImageType, DefaultColorMapTraits> LookupTableFilterType;
 
   // Filter that applies the lookup table to slices
-  typedef LookupTableIntensityMappingFilter<
-                InputSliceType, DisplaySliceType>         IntensityFilterType;
-
+  typedef LookupTableIntensityMappingFilter<InputSliceType, DisplaySliceType> IntensityFilterType;
 
   // LUT generator
   SmartPtr<LookupTableFilterType> m_LookupTableFilter;
@@ -453,7 +453,7 @@ public:
   DisplaySlicePointer GetDisplaySlice(unsigned int slice) ITK_OVERRIDE;
 
   Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
-  virtual const ScalarImageHistogram *GetHistogram(int nBins) ITK_OVERRIDE;
+  virtual const TDigest *GetTDigest() override;
 
   /**
    * @brief Returns true when the display mode is such that the image min, max
@@ -476,16 +476,18 @@ public:
 
   DisplayPixelType MapPixel(const InputComponentType *val);
 
+  virtual void SetSticky(bool sticky) override;
+
+
 protected:
 
   MultiChannelDisplayMappingPolicy();
   ~MultiChannelDisplayMappingPolicy();
 
+  typedef IntensityToColorLookupTableImageFilter<ImageType, VectorToRGBColorMapTraits> GenerateLUTFilter;
   typedef RGBALookupTableIntensityMappingFilter<InputSliceType> ApplyLUTFilter;
-  typedef itk::Image<unsigned char, 1>                         LookupTableType;
+  // typedef itk::Image<unsigned char, 1>                         LookupTableType;
 
-  typedef MultiComponentImageToScalarLookupTableImageFilter<ImageType, LookupTableType>
-                                                             GenerateLUTFilter;
 
   MultiChannelDisplayMode m_DisplayMode;
 

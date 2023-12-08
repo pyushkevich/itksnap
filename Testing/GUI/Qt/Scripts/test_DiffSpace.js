@@ -22,6 +22,7 @@ engine.findChild(mainwin,"actionRegistration").trigger();
 var regpanel = engine.findChild(mainwin,"RegistrationDialog");
 
 //=== Run automatic registration 
+engine.findChild(regpanel, "inMovingLayer").currentText = "t2_chunk";
 engine.findChild(regpanel, "btnRunRegistration").click();
 engine.sleep(5000);
 

@@ -13,6 +13,7 @@
 #include "RegistrationModel.h"
 #include "QtWidgetActivator.h"
 #include "QtCursorOverride.h"
+#include "LoadTransformationDialog.h"
 #include "SimpleFileDialogWithHistory.h"
 #include "ProcessEventsITKCommand.h"
 #include "OptimizationProgressRenderer.h"
@@ -170,12 +171,8 @@ int RegistrationDialog::GetTransformFormat(QString &format)
 void RegistrationDialog::on_btnLoad_clicked()
 {
   // Ask for a filename
-  SimpleFileDialogWithHistory::QueryResult result =
-      SimpleFileDialogWithHistory::showOpenDialog(
-        this, m_Model->GetParent(),
-        "Open Transform - ITK-SNAP", "Transform File",
-        "AffineTransform",
-        "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)");
+  LoadTransformationDialog::QueryResult result =
+      LoadTransformationDialog::showDialog(this, m_Model->GetParent());
 
   RegistrationModel::TransformFormat format =
       (RegistrationModel::TransformFormat) this->GetTransformFormat(result.activeFormat);
@@ -187,7 +184,7 @@ void RegistrationDialog::on_btnLoad_clicked()
     try
       {
       std::string utf = to_utf8(result.filename);
-      m_Model->LoadTransform(utf.c_str(), format);
+      m_Model->LoadTransform(utf.c_str(), format, result.compose, result.inverse);
       }
     catch(std::exception &exc)
       {

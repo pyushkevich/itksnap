@@ -226,7 +226,8 @@ ImageMeshLayers
     {
     auto folder_crnt_layer = folder_layers.Folder(layer_key);
     auto mesh_wrapper = StandaloneMeshWrapper::New();
-    mesh_wrapper->LoadFromRegistry(folder_crnt_layer, project_dir_orig, project_dir_crnt);
+    mesh_wrapper->LoadFromRegistry(folder_crnt_layer, project_dir_orig,
+                                   project_dir_crnt, m_ImageData->GetNumberOfTimePoints());
     AddLayer(mesh_wrapper, true);
 
     ++layer_id;

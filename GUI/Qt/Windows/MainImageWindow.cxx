@@ -651,7 +651,7 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionColor_Map_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionImage_Information, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionRegistration, m_Model, UIF_IRIS_WITH_OVERLAY_LOADED);
+  activateOnFlag(ui->actionRegistration, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
   activateOnFlag(ui->actionReorient_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
 
@@ -1008,6 +1008,7 @@ void MainImageWindow::UpdateRecentProjectsMenu()
 void MainImageWindow::UpdateWindowTitle()
 {
   GenericImageData *gid = m_Model->GetDriver()->GetIRISImageData();
+  bool is4D = m_Model->GetDriver()->GetNumberOfTimePoints() > 1;
   QString mainfile, segfile, projfile;
   if(gid && gid->IsMainLoaded())
     {
@@ -1048,7 +1049,8 @@ void MainImageWindow::UpdateWindowTitle()
     }
   else if(mainfile.length())
     {
-    ui->actionSaveSegmentation->setText(QString("Save Segmentation Image ..."));
+    QString infix4D(is4D ? "4D " : "");
+    ui->actionSaveSegmentation->setText(QString("Save %1Segmentation Image ...").arg(infix4D));
     ui->actionSaveSegmentationAs->setVisible(false);
     }
   else
@@ -1130,7 +1132,9 @@ void MainImageWindow::on_actionQuit_triggered()
 void MainImageWindow::on_actionLoad_from_Image_triggered()
 {
   // Prompt for unsaved changes
-  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+  // -- only prompt for 3d
+  if(m_Model->GetDriver()->GetNumberOfTimePoints() == 1 &&
+     !SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
     return;
 
   // Create a model for IO
@@ -1159,7 +1163,7 @@ void MainImageWindow::on_actionImage_Contrast_triggered()
 void MainImageWindow::on_actionColor_Map_Editor_triggered()
 {
   // Go to the contrast page in the dialog
-  m_LayerInspector->SetPageToContrastAdjustment();
+  m_LayerInspector->SetPageToColorMap();
 
   // Show the dialog
   RaiseDialog(m_LayerInspector);
@@ -1240,8 +1244,9 @@ void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainImageWindow::LoadDroppedFile(QString file)
 {
+  std::string filename = to_utf8(file);
   // Check if the dropped file is a project
-  if(m_Model->GetDriver()->IsProjectFile(to_utf8(file).c_str()))
+  if(m_Model->GetDriver()->IsProjectFile(filename.c_str()))
     {
     // For the time being, the feature of opening the workspace in a new
     // window is not implemented. Instead, we just prompt the user for
@@ -1257,6 +1262,13 @@ void MainImageWindow::LoadDroppedFile(QString file)
     {
     if(m_Model->GetDriver()->IsMainImageLoaded())
       {
+      // check if it's a label description file
+      if (m_Model->GetDriver()->GetColorLabelTable()->ValidateFile(filename.c_str()))
+        {
+        m_Model->GetDriver()->LoadLabelDescriptions(filename.c_str());
+        return;
+        }
+
       // If an image is already loaded, we show the dialog
       m_DropDialog->SetDroppedFilename(file);
       m_DropDialog->setModal(true);
@@ -2150,7 +2162,7 @@ void MainImageWindow::ExportSlice(AnatomicalDirection direction)
   size_t iSliceImg =
     m_Model->GetDriver()->GetImageDirectionForAnatomicalDirection(direction);
 
-  sprintf(deffn,"%s_slice_%04d.png", defpref[direction],
+  snprintf(deffn, 40, "%s_slice_%04d.png", defpref[direction],
     m_Model->GetDriver()->GetCursorPosition()[iSliceImg] + 1);
 
   // Open a file browser and have the user select something
@@ -2592,5 +2604,16 @@ void MainImageWindow::on_actionToggle_4D_Replay_triggered()
 
   GetModel()->GetGlobalState()->Toggle4DReplay();
   Update4DReplay();
+}
+
+void MainImageWindow::on_actionSwitch_Foreground_Background_Labels_triggered()
+{
+  GetModel()->SwitchForegroundBackgroundLabels();
+}
+
+void MainImageWindow::on_actionContinuous_Update_triggered()
+{
+  bool currentValue = GetModel()->GetModel3D()->GetContinuousUpdate();
+  GetModel()->GetModel3D()->SetContinuousUpdate(!currentValue);
 }
 

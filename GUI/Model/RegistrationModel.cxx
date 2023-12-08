@@ -512,14 +512,8 @@ void RegistrationModel::UpdateWrapperFromManualParameters()
   m_ManualParam.AffineMatrix.GetVnlMatrix() = M.extract(3,3);
   m_ManualParam.AffineOffset.SetVnlVector(M.get_column(3).extract(3));
 
-  // Create a new transform
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
-  AffineTransform::Pointer affine = AffineTransform::New();
-  affine->SetMatrix(m_ManualParam.AffineMatrix);
-  affine->SetOffset(m_ManualParam.AffineOffset);
-
   // Update the layer's transform
-  layer->SetITKTransform(layer->GetReferenceSpace(), affine);
+  SetMovingTransform(m_ManualParam.AffineMatrix, m_ManualParam.AffineOffset);
 
   // Update the state of the cache
   m_ManualParam.LayerID = m_MovingLayerId;
@@ -597,6 +591,14 @@ void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixTyp
   ImageWrapperBase *layer = this->GetMovingLayerWrapper();
   layer->SetITKTransform(layer->GetReferenceSpace(), affine);
 
+  // If the moving layer is the main layer, also apply this transform to the segmentation
+  auto *cid = m_Driver->GetCurrentImageData();
+  if(layer == cid->GetMain())
+    {
+    for(auto it = cid->GetLayers(LABEL_ROLE); !it.IsAtEnd(); ++it)
+      it.GetLayer()->SetITKTransform(cid->GetMain()->GetReferenceSpace(), affine);
+    }
+
   // Update our parameters
   this->UpdateManualParametersFromWrapper(false, false);
 }
@@ -626,7 +628,7 @@ ImageWrapperBase *RegistrationModel::GetMovingLayerWrapper() const
   if(m_MovingLayerId == NOID)
     return NULL;
 
-  return m_Driver->GetCurrentImageData()->FindLayer(m_MovingLayerId, false, OVERLAY_ROLE);
+  return m_Driver->GetCurrentImageData()->FindLayer(m_MovingLayerId, false, MAIN_ROLE | OVERLAY_ROLE);
 }
 
 void RegistrationModel::SetIterationCommand(itk::Command *command)
@@ -643,24 +645,22 @@ void RegistrationModel::RunAutoRegistration()
 
   // TODO: for now, we are not supporting vector image registration, only registration between
   // scalar components; and we use the default scalar component.
-  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castFixed =
-      fixed->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
-  castFixed->UpdateOutputInformation();
+  ImageWrapperBase::FloatVectorImageType *fixed_cast =
+      fixed->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline("RegistrationModel");
 
-  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castMoving =
-      moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
-  castMoving->UpdateOutputInformation();
+  ImageWrapperBase::FloatVectorImageType *moving_cast =
+      moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline("RegistrationModel");
 
 
   // Update the cast filters so the buffers are loaded
   //   Greedy is using BufferredRegion to create cost functions.
   //   Without updating, the bufferred region will be [0,0,0],
   //   and it will cause divide-by-zero error on the greedy side
-  castFixed->Update();
-  castMoving->Update();
+  if(fixed_cast->GetSource()) fixed_cast->GetSource()->Update();
+  if(moving_cast->GetSource()) moving_cast->GetSource()->Update();
 
   // Caster for the mask image - declared here so that SmartPtr does not go out of scope
-  SmartPtr<ScalarImageWrapperBase::FloatImageSource> castMask;
+  ImageWrapperBase::FloatImageType *mask_cast;
 
   // Set up the parameters for greedy registration
   GreedyParameters param;
@@ -677,17 +677,18 @@ void RegistrationModel::RunAutoRegistration()
   ig.inputs.push_back(ip);
 
   // Pass the actual images to the cache
-  m_GreedyAPI->AddCachedInputObject(ip.fixed, castFixed->GetOutput());
-  m_GreedyAPI->AddCachedInputObject(ip.moving, castMoving->GetOutput());
+  m_GreedyAPI->AddCachedInputObject(ip.fixed, fixed_cast);
+  m_GreedyAPI->AddCachedInputObject(ip.moving, moving_cast);
 
   // Mask image
   if(this->GetUseSegmentationAsMask())
     {
     ig.fixed_mask = "GRADIENT_MASK";
     ImageWrapperBase *seg = this->GetParent()->GetDriver()->GetSelectedSegmentationLayer();
-    castMask = seg->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline();
-    castMask->UpdateLargestPossibleRegion();
-    m_GreedyAPI->AddCachedInputObject(ig.fixed_mask, castMask->GetOutput());
+    mask_cast = seg->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline("RegistrationModel");
+    if(mask_cast->GetSource())
+      mask_cast->GetSource()->UpdateLargestPossibleRegion();
+    m_GreedyAPI->AddCachedInputObject(ig.fixed_mask, mask_cast);
     }
 
   // Set up the metric
@@ -768,6 +769,12 @@ void RegistrationModel::RunAutoRegistration()
 
   // Delete the API
   delete(m_GreedyAPI); m_GreedyAPI = NULL;
+
+  // Release the pipelines
+  fixed->GetDefaultScalarRepresentation()->ReleaseInternalPipeline("RegistrationModel");
+  moving->GetDefaultScalarRepresentation()->ReleaseInternalPipeline("RegistrationModel");
+  if(mask_cast)
+    this->GetParent()->GetDriver()->GetSelectedSegmentationLayer()->ReleaseInternalPipeline("RegistrationModel");
 }
 
 void RegistrationModel::MatchByMoments(int order)
@@ -778,20 +785,18 @@ void RegistrationModel::MatchByMoments(int order)
 
   // TODO: for now, we are not supporting vector image registration, only registration between
   // scalar components; and we use the default scalar component.
-  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castFixed =
-      fixed->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
-  castFixed->UpdateOutputInformation();
+  ImageWrapperBase::FloatVectorImageType *fixed_cast =
+      fixed->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline("RegistrationModel");
 
-  SmartPtr<ScalarImageWrapperBase::FloatVectorImageSource> castMoving =
-      moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline();
-  castMoving->UpdateOutputInformation();
+  ImageWrapperBase::FloatVectorImageType *moving_cast =
+      moving->GetDefaultScalarRepresentation()->CreateCastToFloatVectorPipeline("RegistrationModel");
 
   // Update the cast filters so the buffers are loaded
   //   Greedy is using BufferredRegion to create cost functions.
   //   Without updating, the bufferred region will be [0,0,0],
   //   and it will cause divide-by-zero error on the greedy side
-  castFixed->Update();
-  castMoving->Update();
+  if(fixed_cast->GetSource()) fixed_cast->GetSource()->Update();
+  if(moving_cast->GetSource()) moving_cast->GetSource()->Update();
 
   // Set up the parameters for greedy registration
   GreedyParameters param;
@@ -808,8 +813,8 @@ void RegistrationModel::MatchByMoments(int order)
   ig.inputs.push_back(ip);
 
   // Pass the actual images to the cache
-  m_GreedyAPI->AddCachedInputObject(ip.fixed, castFixed->GetOutput());
-  m_GreedyAPI->AddCachedInputObject(ip.moving, castMoving->GetOutput());
+  m_GreedyAPI->AddCachedInputObject(ip.fixed, fixed_cast);
+  m_GreedyAPI->AddCachedInputObject(ip.moving, moving_cast);
 
   // Set up the metric
   switch(m_SimilarityMetricModel->GetValue())
@@ -864,13 +869,19 @@ void RegistrationModel::MatchByMoments(int order)
 
   // Delete the API
   delete(m_GreedyAPI); m_GreedyAPI = NULL;
+
+  // Release the casting pipelines
+  fixed->GetDefaultScalarRepresentation()->ReleaseInternalPipeline("RegistrationModel");
+  moving->GetDefaultScalarRepresentation()->ReleaseInternalPipeline("RegistrationModel");
 }
 
 
-void RegistrationModel::LoadTransform(const char *filename, TransformFormat format)
+void RegistrationModel::LoadTransform(const char *filename, TransformFormat format,
+                                      bool compose, bool inverse)
 {
-  // Read the transform
-  SmartPtr<AffineTransformHelper::ITKTransformMOTB> tran;
+  using MOTB = AffineTransformHelper::ITKTransformMOTB;
+  SmartPtr<MOTB> tran;
+
   if(format == FORMAT_C3D)
     tran = AffineTransformHelper::ReadAsRASMatrix(filename);
   else
@@ -880,9 +891,22 @@ void RegistrationModel::LoadTransform(const char *filename, TransformFormat form
   this->GetParent()->GetSystemInterface()
       ->GetHistoryManager()->UpdateHistory("AffineTransform", filename, true);
 
+  if (inverse)
+    tran->GetInverse(tran);
+
+  if (compose)
+    {
+    auto existing = this->GetMovingLayerWrapper()->GetITKTransform();
+    SmartPtr<MOTB> existingMOTB = dynamic_cast<MOTB*>(existing->Clone().GetPointer());
+
+    auto newMatrix = tran->GetMatrix() * existingMOTB->GetMatrix();
+    auto newOffset = tran->GetMatrix() * existingMOTB->GetOffset() + tran->GetOffset();
+    tran->SetMatrix(newMatrix);
+    tran->SetOffset(newOffset);
+    }
+
   // Now, the transform tran should hold our matrix and offset
-  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
-  layer->SetITKTransform(layer->GetReferenceSpace(), tran);
+  SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
 
   // Update our parameters
   this->UpdateManualParametersFromWrapper(true, false);
@@ -948,7 +972,7 @@ bool RegistrationModel::CheckState(RegistrationModel::UIState state)
   switch(state)
     {
     case UIF_MOVING_SELECTION_AVAILABLE:
-      return m_Driver->GetIRISImageData()->GetNumberOfLayers(OVERLAY_ROLE) > 0;
+      return m_Driver->GetIRISImageData()->IsMainLoaded();
     case UIF_MOVING_SELECTED:
       return m_MovingLayerId != NOID;
     default:
@@ -983,10 +1007,10 @@ void RegistrationModel::OnUpdate()
   if(layers_changed)
     {
     // Check if the active layer is still available
-    if(!m_Driver->GetCurrentImageData()->FindLayer(m_MovingLayerId, false, OVERLAY_ROLE))
+    if(!m_Driver->GetCurrentImageData()->FindLayer(m_MovingLayerId, false, MAIN_ROLE | OVERLAY_ROLE))
       {
       // Set the moving layer ID to the first available overlay
-      LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(OVERLAY_ROLE);
+      LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
       m_MovingLayerId = it.IsAtEnd() ? NOID : it.GetLayer()->GetUniqueId();
       }
     }
@@ -1063,7 +1087,7 @@ void RegistrationModel::MatchImageCenters()
 bool RegistrationModel::GetMovingLayerValueAndRange(unsigned long &value, RegistrationModel::LayerSelectionDomain *range)
 {
   // There must be at least one layer
-  LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(OVERLAY_ROLE);
+  LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
   if(it.IsAtEnd())
     return false;
 

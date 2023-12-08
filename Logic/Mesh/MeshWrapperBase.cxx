@@ -2,6 +2,7 @@
 #include "MeshDisplayMappingPolicy.h"
 #include "Rebroadcaster.h"
 #include "IRISApplication.h"
+#include "IRISException.h"
 #include <vtkPointData.h>
 #include <vtkCellData.h>
 #include <vtkDataSetAttributes.h>
@@ -272,11 +273,11 @@ MeshWrapperBase
     }
 }
 
-const ScalarImageHistogram *
-MeshWrapperBase::GetHistogram(size_t nBins)
+const TDigestDataObject *
+MeshWrapperBase::GetTDigest()
 {
   auto prop = GetActiveDataArrayProperty();
-  return prop->GetHistogram(nBins);
+  return prop->GetTDigest();
 }
 
 void
@@ -432,7 +433,8 @@ MeshWrapperBase
 
 void
 MeshWrapperBase
-::LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir)
+::LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir,
+                   unsigned int nT)
 {
   GuidedMeshIO io;
   bool moved = (orig_dir.compare(crnt_dir) != 0);
@@ -444,13 +446,17 @@ MeshWrapperBase
   // Load mesh timepoint assembly
   auto folder_assembly = folder.Folder("MeshTimePoints");
   bool fnSet = false;
-  unsigned int crnt_tp = 1;
-  std::string key_tp = Registry::Key("TimePoint[%03d]", crnt_tp);
+  bool has_poly = false;
 
-  while (folder_assembly.HasFolder(key_tp))
+  for (unsigned int tp = 1; tp <= nT; ++tp)
     {
+    std::string key_tp = Registry::Key("TimePoint[%03d]", tp);
+
+    if (!folder_assembly.HasFolder(key_tp))
+      continue;
+
     auto folder_tp = folder_assembly.Folder(key_tp);
-    unsigned int crnt_poly = 0;
+    unsigned int crnt_poly = 0; // polydata must start with index 0
     std::string key_poly = Registry::Key("PolyData[%03d]", crnt_poly);
 
     while (folder_tp.HasFolder(key_poly))
@@ -471,15 +477,16 @@ MeshWrapperBase
           .GetEnum(GuidedMeshIO::GetEnumFileFormat(), FileFormat::FORMAT_COUNT);
 
       // Load with tp = j-1. The storeing of time point index is zero-based
-      io.LoadMesh(poly_file_full.c_str(), format, this, crnt_tp - 1, crnt_poly);
+      io.LoadMesh(poly_file_full.c_str(), format, this, tp - 1, crnt_poly);
 
       ++crnt_poly;
+      has_poly = true;
       key_poly = Registry::Key("TimePoint[%03d]", crnt_poly);
       }
-
-    ++crnt_tp;
-    key_tp = Registry::Key("TimePoint[%03d]", crnt_tp);
     }
+
+  if (!has_poly)
+    throw IRISException("Mesh polydata not found in the workspace file!");
 }
 
 void

@@ -10,7 +10,7 @@ PROJECT(SNAP)
 # CMAKE PRELIMINARIES                       
 #--------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.16)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_policy(SET CMP0026 NEW)
@@ -18,6 +18,9 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0080 OLD)
 
 SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
+
+OPTION(BUILD_SHARED_LIBS "Build shared (dynamic) libraries" OFF)
+MARK_AS_ADVANCED(BUILD_SHARED_LIBS)
 
 #--------------------------------------------------------------------------------
 # MACROS
@@ -89,13 +92,13 @@ ENDIF()
 
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 4)
-SET(SNAP_VERSION_MINOR 0)
-SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_MINOR 2)
+SET(SNAP_VERSION_PATCH 0)
+SET(SNAP_VERSION_QUALIFIER "-alpha.1")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20230925")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "September 25, 2023")
+SET(SNAP_VERSION_RELEASE_DATE "20231204")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "December 4, 2023")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -260,7 +263,6 @@ SET(LOGIC_CXX
   Logic/Framework/SNAPImageData.cxx
   Logic/Framework/TimePointProperties.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
-  Logic/ImageWrapper/CommonRepresentationPolicy.cxx
   Logic/ImageWrapper/DisplayMappingPolicy.cxx
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
@@ -301,6 +303,7 @@ SET(LOGIC_CXX
   Logic/Preprocessing/Texture/MomentTextures.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
+  Logic/Slicing/ColorLookupTable.cxx
   Logic/Slicing/LookupTableIntensityMappingFilter.cxx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.cxx
   Logic/WorkspaceAPI/CSVParser.cxx
@@ -382,7 +385,6 @@ SET(LOGIC_HEADERS
   Logic/Framework/TimePointProperties.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
-  Logic/ImageWrapper/CommonRepresentationPolicy.h
   Logic/ImageWrapper/DisplayMappingPolicy.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
   Logic/ImageWrapper/ImageWrapper.h
@@ -460,6 +462,7 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMM/KMeansPlusPlus.h
   Logic/Preprocessing/GMM/UnsupervisedClustering.h
   Logic/Preprocessing/Texture/MomentTextures.h
+  Logic/Slicing/DrawTriangles.h
   Logic/Slicing/ImageRegionConstIteratorWithIndexOverride.h
   Logic/Slicing/FastLinearInterpolator.h
   Logic/Slicing/IRISSlicer.h
@@ -467,6 +470,7 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IRISSlicer_RLE.txx
   Logic/Slicing/IntensityCurveInterface.h
   Logic/Slicing/IntensityCurveVTK.h
+  Logic/Slicing/ColorLookupTable.h
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
   Logic/Slicing/NonOrthogonalSlicer.h
@@ -726,6 +730,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
   GUI/Qt/Windows/LayoutReminderDialog.cxx
+  GUI/Qt/Windows/LoadTransformationDialog.cxx
   GUI/Qt/Windows/LabelSelectionPopup.cxx
   GUI/Qt/Windows/MainControlPanel.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
@@ -824,6 +829,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/LayoutReminderDialog.h
   GUI/Qt/Windows/LabelSelectionPopup.h
+  GUI/Qt/Windows/LoadTransformationDialog.h
   GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
   GUI/Qt/Windows/PreferencesDialog.h
@@ -912,6 +918,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/LayerInspectorDialog.ui
   GUI/Qt/Windows/LayoutReminderDialog.ui
   GUI/Qt/Windows/LabelSelectionPopup.ui
+  GUI/Qt/Windows/LoadTransformationDialog.ui
   GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
   GUI/Qt/Windows/PreferencesDialog.ui
@@ -1022,6 +1029,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Submodules/c3d/adapters
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src/ITKFilters/include
+    ${SNAP_SOURCE_DIR}/Submodules/digestible/include
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
@@ -1247,6 +1255,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
+  NaNs
   4DContinuousRendering
   DiffSpace
   EdgeAttraction
@@ -1260,7 +1269,12 @@ SET(GUI_TESTS
   MeshImport
   MeshWorkspace
   SegmentationMesh
-  VolumeRendering)
+  VolumeRendering
+  Reloading
+  4DToMC
+  MCTo4D
+  DeformationGrid
+)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
 set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)
@@ -1272,6 +1286,10 @@ TARGET_INCLUDE_DIRECTORIES(SlicingPerformanceTest PUBLIC ${SNAP_INCLUDE_DIRS})
 ADD_EXECUTABLE(testRLE Testing/Logic/testRLE.cxx)
 TARGET_LINK_LIBRARIES(testRLE ${ITK_LIBRARIES})
 TARGET_INCLUDE_DIRECTORIES(testRLE PUBLIC ${SNAP_INCLUDE_DIRS})
+
+ADD_EXECUTABLE(testTDigest Testing/Logic/TestTDigest.cxx)
+TARGET_LINK_LIBRARIES(testTDigest ${ITK_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(testTDigest PUBLIC ${SNAP_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(iteratorTests
     Testing/Logic/itkRegionOfInterestImageFilterTest.cxx
@@ -1476,6 +1494,8 @@ IF(APPLE)
     SET(CPACK_APPLE_BUNDLE_ID "itk-snap")
     SET(CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER "-vv --deep -f --options=runtime")
   ENDIF()
+
+  MESSAGE(STATUS "CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER: ${CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER}")
 
   # Install the main executable
   SNAP_INSTALL_GUI(${SNAP_BUNDLE_NAME} itksnap "--console")

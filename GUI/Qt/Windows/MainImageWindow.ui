@@ -497,6 +497,8 @@ color:rgb(103, 103, 103);
     <addaction name="actionSaveLabels"/>
     <addaction name="separator"/>
     <addaction name="actionLabel_Editor"/>
+    <addaction name="actionSwitch_Foreground_Background_Labels"/>
+    <addaction name="actionContinuous_Update"/>
     <addaction name="separator"/>
     <addaction name="actionVolumesAndStatistics"/>
     <addaction name="separator"/>
@@ -1723,7 +1725,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionSaveTimePointSegmentation">
    <property name="text">
-    <string>Save Current Time Point Segmentation in 3D...</string>
+    <string>Save 3D Segmentation in Current Time Point...</string>
    </property>
    <property name="toolTip">
     <string>Save Time Point as 3D Segmentation</string>
@@ -1740,6 +1742,31 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+P</string>
+   </property>
+  </action>
+  <action name="actionSwitch_Foreground_Background_Labels">
+   <property name="text">
+    <string>Switch Foreground/Background Labels</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch Foreground/Background Labels</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
+   </property>
+  </action>
+  <action name="actionContinuous_Update">
+   <property name="text">
+    <string>Continuous Update 3D View</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle on/off continuous update in the 3D View</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+U</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
    </property>
   </action>
  </widget>

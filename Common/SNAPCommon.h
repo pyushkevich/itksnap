@@ -92,9 +92,6 @@ extern const char SNAPBuildInfo[];
 // UnaryFunctorCache in the GreyImageWrapper type.  Greyscale instensities
 // 0 to MAXGREYVAL are used in a cache table, which would be too big with int
 typedef unsigned short LabelType;
-typedef short GreyType;
-extern const GreyType MAXGREYVAL;
-extern const GreyType MINGREYVAL;
 typedef itk::RGBPixel<unsigned char> RGBType;
 
 /************************************************************************/

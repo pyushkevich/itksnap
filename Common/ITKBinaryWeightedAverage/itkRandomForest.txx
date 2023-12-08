@@ -71,7 +71,7 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
 /*    std::string rf_file = "myforest.rf";
     const char * train_file = rf_file.c_str()*/;
     const int VDim = 3;
-    RFParameters<TPixel, VDim> param;
+    RFParameters<InputPixelType, VDim> param;
 
     // Get the segmentation image - which determines the samples
     typedef itk::ImageRegionConstIteratorWithIndex<TLabelImage> LabelIter;
@@ -88,28 +88,23 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
             nSamples++;
 
     // Iterator for grouping images into a multi-component image
-    typedef ImageCollectionConstRegionIteratorWithIndex<
+    typedef ImageCollectionConstIteratorWithIndex<
         ImageScalarType,
         ImageVectorType> CollectionIter;
 
     // Create an iterator for going over all the anatomical image data
-    CollectionIter cit(reg);
     param.patch_radius.Fill(2); // Use a neighborhood patch for features
-    cit.SetRadius(param.patch_radius);
-
+    CollectionIter cit(param.patch_radius, reg);
     cit.AddImage(intensity_obj);
 
     // Get the number of components
     int nComp = cit.GetTotalComponents();
     int nPatch = cit.GetNeighborhoodSize();
-    int nColumns = nComp * nPatch;
-
-    // Are we using coordinate informtion
-    if(param.use_coordinate_features)
-        nColumns += VDim;
+    int nImageFeatures = nComp * nPatch;
+    int nColumns = nImageFeatures + (param.use_coordinate_features ? VDim : 0);
 
     // Create a new sample
-    typedef MLData<TPixel, TPixel> SampleType;
+    typedef MLData<InputPixelType, LabelPixelType> SampleType;
     SampleType *sample = new SampleType(nSamples, nColumns);
 
     // Now fill out the samples
@@ -120,16 +115,13 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
         if(label > 0)
         {
             // Fill in the data
-            std::vector<TPixel> &column = sample->data[iSample];
-            int k = 0;
-            for(int i = 0; i < nComp; i++)
-                for(int j = 0; j < nPatch; j++)
-                    column[k++] = cit.NeighborValue(i,j);
+            std::vector<InputPixelType> &column = sample->data[iSample];
+            cit.GetNeighborhoodValues(column);
 
             // Add the coordinate features if used
             if(param.use_coordinate_features)
                 for(int d = 0; d < VDim; d++)
-                    column[k++] = lit.GetIndex()[d];
+                    column[nImageFeatures + d] = lit.GetIndex()[d];
 
             // Fill in the label
             sample->label[iSample] = label;
@@ -164,7 +156,7 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
 
     // Create the classification engine
     typedef typename RFClassifierType::RFAxisClassifierType RFAxisClassifierType;
-    typedef Classification<TPixel, TPixel, RFAxisClassifierType> ClassificationType;
+    typedef Classification<InputPixelType, LabelPixelType, RFAxisClassifierType> ClassificationType;
 
     typename RFClassifierType::Pointer classifier = RFClassifierType::New();
     ClassificationType classification;
@@ -204,7 +196,7 @@ RandomForest<ImageScalarType, ImageVectorType, TLabelImage>
     typename TLabelImage::IndexType bbox_index = m_boundingbox.GetIndex();
 
     // Define the random forest classification filter
-    typedef RandomForestClassifyImageFilter <TLabelImage, ImageVectorType, ProbabilityType, TPixel> FilterType;
+    typedef RandomForestClassifyImageFilter <ImageScalarType, ImageVectorType, ProbabilityType, LabelPixelType> FilterType;
 
     // Create the filter for this label (TODO: this is wasting computation)
     typename FilterType::Pointer filter = FilterType::New();

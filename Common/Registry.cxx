@@ -41,6 +41,7 @@
 #include <cstdarg>
 #include <fstream>
 #include <iomanip>
+#include <regex>
 #include "itksys/SystemTools.hxx"
 #include "IRISException.h"
 
@@ -207,7 +208,7 @@ Registry::Key(const char *format,...)
   // Do the printf operation
   va_list al;
   va_start(al,format);
-  vsprintf(buffer,format,al);
+  vsnprintf(buffer, 1024, format, al);
   va_end(al);
 
   // Use the string as parameter
@@ -489,6 +490,23 @@ Registry
       return ite->first;
     }
   return "";
+}
+
+Registry::StringListType
+Registry
+::FindFoldersFromPattern(const StringType &_pattern) const
+{
+  StringListType ret;
+  std::regex pattern(_pattern);
+  std::smatch match;
+
+  for (auto &kv : m_FolderMap)
+    {
+    if (std::regex_search(kv.first, match, pattern))
+      ret.push_back(kv.first);
+    }
+
+  return ret;
 }
 
 void 

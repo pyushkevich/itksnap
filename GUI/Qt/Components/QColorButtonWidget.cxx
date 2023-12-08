@@ -25,6 +25,11 @@ void QColorButtonWidget::setValue(QColor value)
   m_value = value;
   m_Button->setIcon(CreateColorBoxIcon(16,16,value));
   emit valueChanged();
+  }
+
+void QColorButtonWidget::click()
+{
+  m_Button->click();
 }
 
 void QColorButtonWidget::onButtonPress()

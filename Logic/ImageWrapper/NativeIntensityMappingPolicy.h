@@ -18,6 +18,7 @@ public:
   virtual double GetScale() const = 0;
   virtual double GetShift() const = 0;
   virtual bool IsIdentity() const = 0;
+  virtual bool IsAlwaysIdentity() const = 0;
 };
 
 class LinearInternalToNativeIntensityMapping : public AbstractNativeIntensityMapping
@@ -48,6 +49,8 @@ public:
 
   bool IsIdentity() const
     { return scale == 1.0 && shift == 0.0; }
+
+  virtual bool IsAlwaysIdentity() const { return false; }
 
 protected:
   double scale;
@@ -95,6 +98,8 @@ public:
 
   bool IsIdentity() const
     { return true; }
+
+  virtual bool IsAlwaysIdentity() const { return true; }
 
   bool operator != (const Self &other) const { return false; }
 };

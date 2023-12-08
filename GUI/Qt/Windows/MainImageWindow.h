@@ -345,6 +345,10 @@ private slots:
 
   void on_actionToggle_4D_Replay_triggered();
 
+  void on_actionSwitch_Foreground_Background_Labels_triggered();
+
+  void on_actionContinuous_Update_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

@@ -124,9 +124,6 @@ public:
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::Size<3> SizeType;
 
-  // The internal representation of anatomical images
-  typedef itk::VectorImage<GreyType, 3> AnatomyImageType;
-
   //typedef RLEImage<LabelType> LabelImageType;
   //avoid duplicating definition of LabelImageType, like this:
   typedef LabelImageWrapperTraits::ImageType LabelImageType;
@@ -153,8 +150,8 @@ public:
   typedef std::map<std::string, DicomSeriesListing> DicomSeriesTree;
 
   // Classifier stuff
-  typedef RFClassificationEngine<GreyType, LabelType, 3> RFEngine;
-  typedef RandomForestClassifier<GreyType, LabelType, 3> RFClassifier;
+  typedef RFClassificationEngine<float, LabelType, 3> RFEngine;
+  typedef RandomForestClassifier<float, LabelType, 3> RFClassifier;
 
   // Declare events fired by this object
   FIRES(CursorUpdateEvent)
@@ -604,6 +601,15 @@ public:
       double zSlice,
       const std::string &undoTitle);
 
+  /**
+   * Apply a binary drawing represented as an RLE image
+   * if invert == true, draw foreground with value 1 and background with 0
+   * if reverse = true, draw background with value 1
+   */
+  unsigned int UpdateSegmentationWithBinarySegmentation(
+      const LabelImageType *binseg, const std::string &undoTitle,
+      bool invert = false, bool reverse = false);
+
   /** Get the pointer to the settings used for threshold-based preprocessing */
   // irisGetMacro(ThresholdSettings, ThresholdSettings *)
 
@@ -686,6 +692,17 @@ public:
    * This is to maintain a history of commonly used labels.
    */
   void RecordCurrentLabelUse();
+
+  /**
+   * Reload a grey image wrapper from the source file on the disk
+   */
+  void ReloadGreyImageWrapperFromFile(ImageWrapperBase *wrapper);
+
+  /**
+   * Reload a segmentation image wrapper from the source file on the disk
+   */
+  void ReloadSegmentationWrapperFromFile(ImageWrapperBase *wrapper);
+
 
 protected:
 

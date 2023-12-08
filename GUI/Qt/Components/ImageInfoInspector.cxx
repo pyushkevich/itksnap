@@ -68,6 +68,8 @@ void ImageInfoInspector::SetModel(ImageInfoModel *model)
 
   makeCoupling(ui->outRAI, m_Model->GetImageOrientationModel());
 
+  makeCoupling(ui->outPixelFormat, m_Model->GetImagePixelFormatDescriptionModel());
+
   // makeCoupling(ui->inVoxT, m_Model->GetImageCurrentTimePointModel());
 
   makeCoupling(ui->outIntensityUnderCursor, m_Model->GetImageScalarIntensityUnderCursorModel(), tr_real);

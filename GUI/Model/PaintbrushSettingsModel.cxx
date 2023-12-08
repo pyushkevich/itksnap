@@ -3,6 +3,7 @@
 #include "GlobalState.h"
 #include "GlobalPreferencesModel.h"
 #include "DefaultBehaviorSettings.h"
+#include "IRISApplication.h"
 
 
 PaintbrushSettingsModel::PaintbrushSettingsModel()
@@ -61,6 +62,8 @@ void PaintbrushSettingsModel::SetParentModel(GlobalUIModel *parent)
   // For the initial size, we actually need some custom code - to set the brush value to default
   Rebroadcast(dbs->GetPaintbrushDefaultInitialSizeModel(), ValueChangedEvent(), ModelUpdateEvent());
 
+  Rebroadcast(m_ParentModel->GetDriver(), WrapperDisplayMappingChangeEvent(), StateMachineChangeEvent());
+
   // For the maximum size, we just need the size model to be updated, no custom code
   m_BrushSizeModel->RebroadcastFromSourceProperty(dbs->GetPaintbrushDefaultMaximumSizeModel());
 }
@@ -73,6 +76,27 @@ void PaintbrushSettingsModel::OnUpdate()
   if(m_EventBucket->HasEvent(ValueChangedEvent(), dbs->GetPaintbrushDefaultInitialSizeModel()))
     {
     this->SetBrushSizeValue(dbs->GetPaintbrushDefaultInitialSizeModel()->GetValue());
+    }
+}
+
+bool
+PaintbrushSettingsModel
+::CheckState(PaintbrushSettingsModel::UIState state)
+{
+  if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
+    return false;
+
+  bool mainTransformed =
+      !m_ParentModel->GetDriver()->GetMainImage()->ImageSpaceMatchesReferenceSpace();
+
+  switch(state)
+    {
+    case UIF_VOLUMETRIC_OK:
+      return !mainTransformed;
+    case UIF_ADAPTIVE_OK:
+      return !mainTransformed;
+    default:
+      return false;
     }
 }
 

@@ -61,8 +61,8 @@ IntensityCurveVTK
 ::Initialize(unsigned int nControlPoints) 
 {   
   // Set up the intervals for the control points
-  float interval = 1.0 / (nControlPoints - 1);
-  float t = 0;
+  double interval = 1.0 / (nControlPoints - 1);
+  double t = 0;
 
   // Initialize the control points
   m_ControlPoints.clear();
@@ -84,8 +84,8 @@ IntensityCurveVTK
 ::IsInDefaultState()
 {
   // Set up the intervals for the control points
-  float interval = 1.0 / (m_ControlPoints.size() - 1);
-  float t = 0;
+  double interval = 1.0 / (m_ControlPoints.size() - 1);
+  double t = 0;
 
   for(unsigned int i=0;i<m_ControlPoints.size();i++,t+=interval)
     {
@@ -99,7 +99,7 @@ IntensityCurveVTK
 
 void 
 IntensityCurveVTK
-::GetControlPoint(unsigned int iControlPoint,float &t,float &x)  const
+::GetControlPoint(unsigned int iControlPoint,double &t,double &x)  const
 {
   assert(iControlPoint < m_ControlPoints.size());
   t = m_ControlPoints[iControlPoint].t;
@@ -108,7 +108,7 @@ IntensityCurveVTK
 
 void 
 IntensityCurveVTK
-::UpdateControlPoint(unsigned int iControlPoint, float t, float x) 
+::UpdateControlPoint(unsigned int iControlPoint, double t, double x)
 {
   assert(iControlPoint < m_ControlPoints.size());
 
@@ -137,9 +137,9 @@ IntensityCurveVTK
   unsigned int nRegions = 8;
 
   for(unsigned int i=0;i<m_ControlPoints.size()-1;i++) {
-    float t =  m_ControlPoints[i].t;
+    double t =  m_ControlPoints[i].t;
     double tStep = (m_ControlPoints[i+1].t - t) / (nRegions - 1);
-    float t1 = t + tStep;
+    double t1 = t + tStep;
 
     for(unsigned int j=0;j<nRegions-1;j++) {
       if(m_Spline->Evaluate(t) >= m_Spline->Evaluate(t1))
@@ -154,17 +154,17 @@ IntensityCurveVTK
 
 void 
 IntensityCurveVTK
-::ScaleControlPointsToWindow(float tMin, float tMax)
+::ScaleControlPointsToWindow(double tMin, double tMax)
 {
   assert(tMin < tMax);
 
   // Get the current range
-  float t1 = m_ControlPoints.front().t;
-  float tn = m_ControlPoints.back().t;
+  double t1 = m_ControlPoints.front().t;
+  double tn = m_ControlPoints.back().t;
 
   // Compute coefficients of the mapping t' = b t + k
-  float b = (tMax - tMin) / (tn - t1);
-  float k = tMin - b * t1;
+  double b = (tMax - tMin) / (tn - t1);
+  double k = tMin - b * t1;
 
   m_Spline->RemoveAllPoints();
 
@@ -176,6 +176,13 @@ IntensityCurveVTK
 
   m_Spline->Compute();
   this->Modified();
+  }
+
+std::pair<double, double> IntensityCurveVTK::GetRange() const
+{
+  double t1 = m_ControlPoints.front().t;
+  double tn = m_ControlPoints.back().t;
+  return std::pair(t1, tn);
 }
 
 void
@@ -201,13 +208,13 @@ IntensityCurveVTK
   for(size_t iPoint = 0; iPoint < nPoints; iPoint++)
     {
     // Get the default values, just in case
-    float t0, x0;
+    double t0, x0;
     this->GetControlPoint(iPoint, t0, x0);
 
     // Read the registry
     Registry &folder = registry.Folder(registry.Key("ControlPoint[%d]",iPoint));
-    float t = (float) folder["tValue"][(double) t0];
-    float x = (float) folder["xValue"][(double) x0];
+    double t = (double) folder["tValue"][(double) t0];
+    double x = (double) folder["xValue"][(double) x0];
 
     // Set the control point
     this->UpdateControlPoint(iPoint, t, x);
@@ -225,7 +232,7 @@ IntensityCurveVTK
   for(size_t iPoint = 0; iPoint < this->GetControlPointCount(); iPoint++)
     {
     // Get the current values, just in case
-    float t, x;
+    double t, x;
     this->GetControlPoint(iPoint, t, x);
 
     // Create a folder in the registry

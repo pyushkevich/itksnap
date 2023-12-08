@@ -11,6 +11,8 @@
 #include "itkPointSet.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "IRISApplication.h"
+#include "LabelImageWrapper.h"
+#include "SegmentationUpdateIterator.h"
 
 #include <SNAPUIFlag.h>
 #include <SNAPUIFlag.txx>
@@ -642,35 +644,50 @@ PolygonDrawingModel
   VertexIterator itEnd = std::unique(m_Vertices.begin(), m_Vertices.end(), PolygonVertexTest);
   m_Vertices.erase(itEnd, m_Vertices.end());
 
-  // There may still be duplicates in the array, in which case we should
-  // add a tiny offset to them. Thanks to Jeff Tsao for this bug fix!
-  std::set< std::pair<double, double> > xVertexSet;
-  vnl_random rnd;
-  for(VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
+  // Are we rendering into a 2D slice or into a rotated 3D volume?
+  LabelImageWrapper *seg = this->m_Parent->GetDriver()->GetSelectedSegmentationLayer();
+
+  if(!seg->ImageSpaceMatchesReferenceSpace())
     {
-    while(xVertexSet.find(make_pair(it->x, it->y)) != xVertexSet.end())
-      {
-      it->x += 0.0001 * rnd.drand32(-1.0, 1.0);
-      it->y += 0.0001 * rnd.drand32(-1.0, 1.0);
-      }
-    xVertexSet.insert(make_pair(it->x, it->y));
+    std::vector<Vector2d> vts2d;
+    for (auto &v : m_Vertices)
+      vts2d.push_back(Vector2d(v.x, v.y));
+
+    bool invert = m_Parent->GetDriver()->GetGlobalState()->GetPolygonInvert();
+    m_Parent->Voxelize2DPolygonToSegmentationSlice(vts2d, "Oblique Polygon Drawing", invert, false);
     }
-
-  // Scan convert the points into the slice
-  typedef PolygonScanConvert<PolygonSliceType, float, VertexIterator> ScanConvertType;
-
-  ScanConvertType::RasterizeFilled(
-    m_Vertices.begin(), m_Vertices.size(), m_PolygonSlice);
-
-  // Apply the segmentation to the main segmentation
-  int nUpdates = m_Parent->MergeSliceSegmentation(m_PolygonSlice);
-  if(nUpdates == 0)
+  else
     {
-    warnings.push_back(
-          IRISWarning("Warning: No voxels updated."
-                      "No voxels in the segmentation image were changed as the "
-                      "result of accepting this polygon. Check that the foreground "
-                      "and background labels are set correctly."));
+    // There may still be duplicates in the array, in which case we should
+    // add a tiny offset to them. Thanks to Jeff Tsao for this bug fix!
+    std::set< std::pair<double, double> > xVertexSet;
+    vnl_random rnd;
+    for(VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
+      {
+      while(xVertexSet.find(make_pair(it->x, it->y)) != xVertexSet.end())
+        {
+        it->x += 0.0001 * rnd.drand32(-1.0, 1.0);
+        it->y += 0.0001 * rnd.drand32(-1.0, 1.0);
+        }
+      xVertexSet.insert(make_pair(it->x, it->y));
+      }
+
+    // Scan convert the points into the slice
+    typedef PolygonScanConvert<PolygonSliceType, float, VertexIterator> ScanConvertType;
+
+    ScanConvertType::RasterizeFilled(
+      m_Vertices.begin(), m_Vertices.size(), m_PolygonSlice);
+
+    // Apply the segmentation to the main segmentation
+    int nUpdates = m_Parent->MergeSliceSegmentation(m_PolygonSlice);
+    if(nUpdates == 0)
+      {
+      warnings.push_back(
+            IRISWarning("Warning: No voxels updated."
+                        "No voxels in the segmentation image were changed as the "
+                        "result of accepting this polygon. Check that the foreground "
+                        "and background labels are set correctly."));
+      }
     }
 
   // Copy polygon into polygon m_Cache

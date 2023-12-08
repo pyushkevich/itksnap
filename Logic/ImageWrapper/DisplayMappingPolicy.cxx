@@ -15,6 +15,8 @@
 #include "itkUnaryFunctorImageFilter.h"
 #include "InputSelectionImageFilter.h"
 #include "Rebroadcaster.h"
+#include "TDigestImageFilter.h"
+#include "ColorLookupTable.h"
 
 /* ===============================================================
     ColorLabelTableDisplayMappingPolicy implementation
@@ -134,6 +136,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 
   // Initialize the LUT filter
   m_LookupTableFilter = LookupTableFilterType::New();
+  m_LookupTableFilter->SetIgnoreAlpha(!wrapper->IsSticky());
 
   // Initialize the colormap
   m_ColorMap = ColorMap::New();
@@ -150,7 +153,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   for(unsigned int i=0; i<3; i++)
     {
     m_IntensityFilter[i] = IntensityFilterType::New();
-    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetOutput());
+    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetLookupTable());
     }
 }
 
@@ -163,15 +166,11 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_LookupTableFilter->SetInput(m_Wrapper->GetImage());
 
   // Hook up the min/max filters
-  m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetMinMaxFilter()->GetMinimumOutput());
-  m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetMinMaxFilter()->GetMaximumOutput());
+  m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetImageMinObject());
+  m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
 
   for(unsigned int i=0; i<3; i++)
-    {
     m_IntensityFilter[i]->SetInput(m_Wrapper->GetSlice(i));
-    m_IntensityFilter[i]->SetImageMinInput(m_Wrapper->GetMinMaxFilter()->GetMinimumOutput());
-    m_IntensityFilter[i]->SetImageMaxInput(m_Wrapper->GetMinMaxFilter()->GetMaximumOutput());
-    }
 }
 
 template<class TWrapperTraits>
@@ -185,11 +184,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 
   // Configure the per-slice filters
   for(unsigned int i=0; i<3; i++)
-    {
-    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetOutput());
-    m_IntensityFilter[i]->SetImageMinInput(m_LookupTableFilter->GetImageMinInput());
-    m_IntensityFilter[i]->SetImageMaxInput(m_LookupTableFilter->GetImageMaxInput());
-    }
+    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetLookupTable());
 
   // Copy the color map and the intensity curve
   this->SetColorMap(reference->m_ColorMap);
@@ -210,8 +205,8 @@ void
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 ::ClearReferenceIntensityRange()
 {
-  m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetMinMaxFilter()->GetMinimumOutput());
-  m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetMinMaxFilter()->GetMaximumOutput());
+  m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetImageMinObject());
+  m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
 }
 
 template<class TWrapperTraits>
@@ -224,7 +219,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_IntensityCurveVTK->Initialize(ici->GetControlPointCount());
   for(size_t i = 0; i < m_IntensityCurveVTK->GetControlPointCount(); i++)
     {
-    float t, x;
+    double t, x;
     ici->GetControlPoint(i, t, x);
     m_IntensityCurveVTK->UpdateControlPoint(i, t, x);
     }
@@ -239,11 +234,11 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 }
 
 template<class TWrapperTraits>
-const ScalarImageHistogram *
+const typename CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::TDigest *
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
-::GetHistogram(int nBins)
+::GetTDigest()
 {
-  return m_Wrapper->GetHistogram(nBins);
+  return m_Wrapper->GetTDigest();
 }
 
 template<class TWrapperTraits>
@@ -330,6 +325,12 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   return pix;
 }
 
+template<class TWrapperTraits>
+void CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::SetSticky(bool sticky)
+{
+  m_LookupTableFilter->SetIgnoreAlpha(!sticky);
+}
+
 
 
 
@@ -342,39 +343,14 @@ void
 AbstractContinuousImageDisplayMappingPolicy
 ::AutoFitContrast()
 {
-  // Get the histogram with the current number of bins
-  const ScalarImageHistogram *hist = this->GetHistogram(0);
-
-  // Integrate the histogram until reaching 0.1%
-  double imin = hist->GetBinMin(0);
-  double ilow = imin;
-  size_t accum = 0;
-  size_t accum_goal = hist->GetTotalSamples() / 1000;
-  for(size_t i = 0; i < hist->GetSize(); i++)
-    {
-    if(accum + hist->GetFrequency(i) < accum_goal)
-      {
-      accum += hist->GetFrequency(i);
-      ilow = hist->GetBinMax(i);
-      }
-    else break;
-    }
-
-  // Same, but from above
-  double imax = hist->GetBinMax(hist->GetSize() - 1);
-  double ihigh = imax;
-  accum = 0;
-  for(int i = (int) hist->GetSize() - 1; i >= 0; i--)
-    {
-    if(accum + hist->GetFrequency(i) < accum_goal)
-      {
-      accum += hist->GetFrequency(i);
-      ihigh = hist->GetBinMin(i);
-      }
-    else break;
-    }
+  // Get the quantiles to fit to on the bottom and top
+  double imin = this->GetTDigest()->GetImageMinimum();
+  double imax = this->GetTDigest()->GetImageMaximum();
+  double ilow = this->GetTDigest()->GetImageQuantile(0.005);
+  double ihigh = this->GetTDigest()->GetImageQuantile(0.995);
 
   // If for some reason the window is off, we set everything to max/min
+  // TODO: check for infinity values
   if(ilow >= ihigh)
     { ilow = imin; ihigh = imax; }
 
@@ -385,7 +361,7 @@ AbstractContinuousImageDisplayMappingPolicy
   double t1 = factor * (ihigh - irange[0]);
 
   // Set the window and level
-  this->GetIntensityCurve()->ScaleControlPointsToWindow((float) t0, (float) t1);
+  this->GetIntensityCurve()->ScaleControlPointsToWindow(t0, t1);
 }
 
 bool AbstractContinuousImageDisplayMappingPolicy::IsContrastInDefaultState()
@@ -399,7 +375,7 @@ Vector2d AbstractContinuousImageDisplayMappingPolicy::GetCurveMinMaxNative()
   assert(curve);
 
   // Get the control point range
-  float t0, y0, t1, y1;
+  double t0, y0, t1, y1;
   curve->GetControlPoint(0, t0, y0);
   curve->GetControlPoint(curve->GetControlPointCount() - 1, t1, y1);
 
@@ -607,12 +583,13 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     m_LUTGenerator->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
     m_LUTGenerator->SetIntensityCurve(
           m_Wrapper->GetComponentWrapper(0)->GetIntensityCurve());
+    m_LUTGenerator->SetIgnoreAlpha(!m_Wrapper->IsSticky());
 
     // Initialize the filters that apply the LUT
     for(unsigned int i=0; i<3; i++)
       {
       m_RGBMapper[i] = ApplyLUTFilter::New();
-      m_RGBMapper[i]->SetLookupTable(m_LUTGenerator->GetOutput());
+      m_RGBMapper[i]->SetLookupTable(m_LUTGenerator->GetLookupTable());
 
       for(unsigned int j=0; j<3; j++)
         {
@@ -772,11 +749,11 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 {
   if(m_ScalarRepresentation)
     {
-    return m_ScalarRepresentation->GetIntensityCurve();
+    return const_cast<IntensityCurveInterface *>(m_ScalarRepresentation->GetIntensityCurve());
     }
   else
     {
-    return m_LUTGenerator->GetIntensityCurve();
+    return const_cast<IntensityCurveInterface *>(m_LUTGenerator->GetIntensityCurve());
     }
 }
 
@@ -805,6 +782,13 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   // Use the LUT
   DisplayPixelType pix = m_RGBMapper[0]->MapPixel(val[0], val[1], val[2]);
   return pix;
+  }
+
+template<class TWrapperTraits>
+void MultiChannelDisplayMappingPolicy<TWrapperTraits>::SetSticky(bool sticky)
+{
+  if(m_LUTGenerator)
+    m_LUTGenerator->SetIgnoreAlpha(!sticky);
 }
 
 
@@ -861,21 +845,14 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 }
 
 template<class TWrapperTraits>
-const ScalarImageHistogram *
+const typename MultiChannelDisplayMappingPolicy<TWrapperTraits>::TDigest *
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
-::GetHistogram(int nBins)
+::GetTDigest()
 {
   if(m_DisplayMode.UseRGB || (m_DisplayMode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() == 3))
-    {
-    // In RGB mode, we should return a pooled histogram of the data.
-    return m_Wrapper->GetHistogram(nBins);
-    }
+    return m_Wrapper->GetTDigest();
   else
-    {
-    // Otherwise, we return the component-specific histogram
-    return m_ScalarRepresentation->GetHistogram(nBins);
-    }
-
+    return m_ScalarRepresentation->GetTDigest();
 }
 
 
@@ -965,29 +942,38 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     }
 }
 
-
-
-// End of MeshDisplayPolicy Implementation
+// Template instantiation
 //----------------------------------------
-
 template class ColorLabelTableDisplayMappingPolicy<LabelImageWrapperTraits>;
-
 template class LinearColorMapDisplayMappingPolicy<LevelSetImageWrapperTraits>;
 template class LinearColorMapDisplayMappingPolicy<SpeedImageWrapperTraits>;
 
-template class MultiChannelDisplayMappingPolicy<AnatomicImageWrapperTraits<GreyType> >;
+/** Helper class for template instantiation */
+template <class TPixel> class DisplayMappingPolicyTypes
+{
+public:
+  typedef AnatomicImageWrapperTraits<TPixel, false> VectorWrapperTraits;
+  typedef AnatomicScalarImageWrapperTraits<TPixel, false> ScalarWrapperTraits;
+  typedef ComponentImageWrapperTraits<TPixel, false> ComponentWrapperTraits;
+  typedef typename VectorToScalarImageAccessorTypes<TPixel>::MagnitudeFunctor MagnitudeFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MagnitudeFunctor> MagnitudeWrapperTraits;
+  typedef typename VectorToScalarImageAccessorTypes<TPixel>::MaxFunctor MaxFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MaxFunctor> MaxWrapperTraits;
+  typedef typename VectorToScalarImageAccessorTypes<TPixel>::MeanFunctor MeanFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MeanFunctor> MeanWrapperTraits;
+};
 
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    ComponentImageWrapperTraits<GreyType> >;
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    AnatomicScalarImageWrapperTraits<GreyType> >;
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor> >;
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor> >;
-template class CachingCurveAndColorMapDisplayMappingPolicy<
-    VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor> >;
+#define DisplayMappingPolicyInstantiateMacro(type) \
+  template class MultiChannelDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::VectorWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::ScalarWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::ComponentWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::MagnitudeWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::MaxWrapperTraits>; \
+  template class CachingCurveAndColorMapDisplayMappingPolicy<typename DisplayMappingPolicyTypes<type>::MeanWrapperTraits>;
 
-
-
+DisplayMappingPolicyInstantiateMacro(unsigned char)
+DisplayMappingPolicyInstantiateMacro(char)
+DisplayMappingPolicyInstantiateMacro(unsigned short)
+DisplayMappingPolicyInstantiateMacro(short)
+DisplayMappingPolicyInstantiateMacro(float)
 

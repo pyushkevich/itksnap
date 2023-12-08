@@ -92,24 +92,25 @@ RegistryEnumMap<GuidedNativeImageIO::RawPixelType> GuidedNativeImageIO::m_EnumRa
 const GuidedNativeImageIO::FileFormatDescriptor 
 GuidedNativeImageIO
 ::m_FileFormatDescrictorArray[] = {
-	{"Analyze", "img.gz,hdr,img",      true,  false, true,  true},
-	{"DICOM Image Series", "",         false, true,  true,  true},
-	{"4D CTA DICOM Series", "",        false, true,  true,  true},
-	{"DICOM Single Image", "dcm",      false, true,  true,  true},
-	{"Echo Cartesian DICOM", "dcm",    false, true,  true,  true},
-	{"GE Version 4", "ge4",            false, false, true,  true},
-	{"GE Version 5", "ge5",            false, false, true,  true},
-	{"GIPL", "gipl,gipl.gz",           true,  false, true,  true},
-	{"MetaImage", "mha,mhd",           true,  true,  true,  true},
-	{"MINC", "mnc",                    true,  true,  true,  true},
-	{"NiFTI", "nii.gz,nii,nia,nia.gz", true,  true,  true,  true},
-	{"NRRD", "nrrd,nhdr",              true,  true,  true,  true},
-	{"Raw Binary", "raw",              false, false, true,  true},
-	{"Siemens Vision", "ima",          false, false, true,  true},
-	{"VoxBo CUB", "cub,cub.gz",        true,  false, true,  true},
-	{"VTK Image", "vtk",               true,  false, true,  true},
-	{"Generic ITK Image", "",          true,  true,  true,  true},
-	{"INVALID FORMAT", "",             false, false, false, false}};
+  {"Analyze", "img.gz,hdr,img",         true,  false, true,  true},
+  {"DICOM Image Series", "",            false, true,  true,  true},
+  {"4D CTA DICOM Series", "",           false, true,  true,  true},
+  {"DICOM Single Image", "dcm",         false, true,  true,  true},
+  {"Echo Cartesian DICOM", "dcm",       false, true,  true,  true},
+  {"GE Version 4", "ge4",               false, false, true,  true},
+  {"GE Version 5", "ge5",               false, false, true,  true},
+  {"GIPL", "gipl,gipl.gz",              true,  false, true,  true},
+  {"MetaImage", "mha,mhd",              true,  true,  true,  true},
+  {"MINC", "mnc",                       true,  true,  true,  true},
+  {"NiFTI", "nii.gz,nii,nia,nia.gz",    true,  true,  true,  true},
+  {"NRRD Volume Sequence", "seq.nrrd",  false, true,  true,  true},
+  {"NRRD", "nrrd,nhdr",                 true,  true,  true,  true},
+  {"Raw Binary", "raw",                 false, false, true,  true},
+  {"Siemens Vision", "ima",             false, false, true,  true},
+  {"VoxBo CUB", "cub,cub.gz",           true,  false, true,  true},
+  {"VTK Image", "vtk",                  true,  false, true,  true},
+  {"Generic ITK Image", "",             true,  true,  true,  true},
+  {"INVALID FORMAT", "",                false, false, false, false}};
 
 
 /*************************************************************************/
@@ -258,7 +259,6 @@ void transpose_toms513(R *a, INT nx, INT ny, char *move, INT move_size, R *buf)
     }
 }
 
-
 bool GuidedNativeImageIO::FileFormatDescriptor
 ::TestFilename(std::string fname)
 {
@@ -304,11 +304,11 @@ GuidedNativeImageIO
     m_StaticDataInitialized = true;
     }
 
-  m_NativeType = itk::ImageIOBase::UNKNOWNCOMPONENTTYPE;
+  m_NativeType = itk::IOComponentEnum::UNKNOWNCOMPONENTTYPE;
   m_NativeComponents = 0;
   m_NativeTypeString = m_IOBase->GetComponentTypeAsString(m_NativeType);
   m_NativeFileName = "";
-  m_NativeByteOrder = itk::ImageIOBase::OrderNotApplicable;
+  m_NativeByteOrder = itk::IOByteOrderEnum::OrderNotApplicable;
   m_NativeSizeInBytes = 0;
 }
 
@@ -402,6 +402,7 @@ GuidedNativeImageIO
   switch(m_FileFormat)
     {
 		case FORMAT_MHA:        m_IOBase = itk::MetaImageIO::New();          break;
+    case FORMAT_NRRD_SEQ:   m_IOBase = itk::NrrdImageIO::New();          break;
 		case FORMAT_NRRD:       m_IOBase = itk::NrrdImageIO::New();          break;
 		case FORMAT_ANALYZE:    m_IOBase = itk::NiftiImageIO::New();         break;
 		case FORMAT_GIPL:       m_IOBase = itk::GiplImageIO::New();          break;
@@ -549,6 +550,8 @@ GuidedNativeImageIO
 			MFDSSorter->SetFrameOrderingStrategy(MFDS::MFOrderByInstanceNumberStrategy::New());
 			MFDSSorter->SetSliceOrderingStrategy(MFDS::MFOrderByIPPStrategy::New());
 			MFDSSorter->AddObserver(itk::ProgressEvent(), progressCmd);
+      MFDSSorter->AddObserver(itk::StartEvent(), progressCmd);
+      MFDSSorter->AddObserver(itk::EndEvent(), progressCmd);
 			MFDSSorter->Sort();
 			m_DicomFilesToFrameMap = MFDSSorter->GetOutput();
 			m_IOBase->SetFileName(m_DICOMFiles[0]);
@@ -670,48 +673,26 @@ GuidedNativeImageIO
 		progSrc->AddProgress(1.0);
     }
 
-  // Get the data dimensions
-  int ncomp = m_IOBase->GetNumberOfComponents();
-
-  // Set the dimensions (if 2D image, we set last dim to 1)
-  m_NativeDimensions.fill(1);
-  for(size_t i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
-    {
-    if(i < 4)
-      m_NativeDimensions[i] = m_IOBase->GetDimensions(i);
-    else
-      ncomp *= m_IOBase->GetDimensions(i);
-    }
-
-  // Extract properties from IO base
-  m_NativeType = m_IOBase->GetComponentType();
-  m_NativeComponents = ncomp;
-  m_NativeTypeString = m_IOBase->GetComponentTypeAsString(m_NativeType);
-  m_NativeFileName = m_IOBase->GetFileName();
-  m_NativeByteOrder = m_IOBase->GetByteOrder();
-  m_NativeSizeInBytes = m_IOBase->GetImageSizeInBytes();
-
-  // Also pull out a nickname for this file, if it's in the folder
-  m_NativeNickname = m_Hints["Nickname"][""];
+  UpdateMemberVariables();
 }
 
 GuidedNativeImageIO::DispatchBase*
 GuidedNativeImageIO
-::CreateDispatch(itk::ImageIOBase::IOComponentType comp_type)
+::CreateDispatch(itk::IOComponentEnum comp_type)
 {
   // Based on the component type, read image in native mode
   switch(comp_type)
     {
-    case itk::ImageIOBase::UCHAR:  return new Dispatch<unsigned char>();   break;
-    case itk::ImageIOBase::CHAR:   return new Dispatch<signed char>();            break;
-    case itk::ImageIOBase::USHORT: return new Dispatch<unsigned short>();  break;
-    case itk::ImageIOBase::SHORT:  return new Dispatch<short>();           break;
-    case itk::ImageIOBase::UINT:   return new Dispatch<unsigned int>();    break;
-    case itk::ImageIOBase::INT:    return new Dispatch<int>();             break;
-    case itk::ImageIOBase::ULONG:  return new Dispatch<unsigned long>();   break;
-    case itk::ImageIOBase::LONG:   return new Dispatch<long>();            break;
-    case itk::ImageIOBase::FLOAT:  return new Dispatch<float>();           break;
-    case itk::ImageIOBase::DOUBLE: return new Dispatch<double>();          break;
+    case itk::IOComponentEnum::UCHAR:  return new Dispatch<unsigned char>();   break;
+    case itk::IOComponentEnum::CHAR:   return new Dispatch<signed char>();            break;
+    case itk::IOComponentEnum::USHORT: return new Dispatch<unsigned short>();  break;
+    case itk::IOComponentEnum::SHORT:  return new Dispatch<short>();           break;
+    case itk::IOComponentEnum::UINT:   return new Dispatch<unsigned int>();    break;
+    case itk::IOComponentEnum::INT:    return new Dispatch<int>();             break;
+    case itk::IOComponentEnum::ULONG:  return new Dispatch<unsigned long>();   break;
+    case itk::IOComponentEnum::LONG:   return new Dispatch<long>();            break;
+    case itk::IOComponentEnum::FLOAT:  return new Dispatch<float>();           break;
+    case itk::IOComponentEnum::DOUBLE: return new Dispatch<double>();          break;
     default:
       throw IRISException("Error: Unsupported voxel type."
                           "Unsupported voxel type ('%s') encountered in GuidedNativeImageIO",
@@ -783,6 +764,211 @@ GuidedNativeImageIO
 		++inputIterator;
 		++outputIterator;
 		}
+}
+
+void
+GuidedNativeImageIO
+::UpdateMemberVariables()
+{
+  auto ncomp = m_IOBase->GetNumberOfComponents();
+
+  // Set the dimensions (if 2D image, we set last dim to 1)
+  m_NativeDimensions.fill(1);
+  for(size_t i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
+    {
+    if(i < 4)
+      m_NativeDimensions[i] = m_IOBase->GetDimensions(i);
+    else
+      ncomp *= m_IOBase->GetDimensions(i);
+    }
+
+  // Extract properties from IO base
+  m_NativeType = m_IOBase->GetComponentType();
+  m_NativeComponents = ncomp;
+  m_NativeTypeString = m_IOBase->GetComponentTypeAsString(m_NativeType);
+  m_NativeFileName = m_IOBase->GetFileName();
+  m_NativeByteOrder = m_IOBase->GetByteOrder();
+  m_NativeSizeInBytes = m_IOBase->GetImageSizeInBytes();
+
+  // Also pull out a nickname for this file, if it's in the folder
+  m_NativeNickname = m_Hints["Nickname"][""];
+}
+
+template <typename NativeImageType>
+void
+GuidedNativeImageIO
+::UpdateImageHeader(typename NativeImageType::Pointer image)
+{
+  // Initialize the direction and spacing, etc
+  typename NativeImageType::SizeType dim;      dim.Fill(1);
+  typename NativeImageType::PointType org;     org.Fill(0.0);
+  typename NativeImageType::SpacingType spc;   spc.Fill(1.0);
+  typename NativeImageType::DirectionType dir; dir.SetIdentity();
+
+  m_NDimBeforeFolding = m_IOBase->GetNumberOfDimensions();
+  size_t nd = (m_NDimBeforeFolding > 4) ? 4 : m_NDimBeforeFolding;
+
+  for(unsigned int i = 0; i < nd; i++)
+    {
+    spc[i] = m_IOBase->GetSpacing(i);
+    org[i] = m_IOBase->GetOrigin(i);
+    for(size_t j = 0; j < nd; j++)
+      dir(j,i) = m_IOBase->GetDirection(i)[j];
+    dim[i] = m_IOBase->GetDimensions(i);
+    }
+
+  image->SetSpacing(spc);
+  image->SetOrigin(org);
+  image->SetDirection(dir);
+  image->SetMetaDataDictionary(m_IOBase->GetMetaDataDictionary());
+
+  // Fold in any higher number of dimensions as additional components.
+  m_NCompBeforeFolding = m_IOBase->GetNumberOfComponents();
+  m_NCompAfterFolding = m_NCompBeforeFolding;
+  if(m_NDimBeforeFolding > nd)
+    {
+    for(int i = nd; i < (int) m_NDimBeforeFolding; i++)
+      m_NCompAfterFolding *= m_IOBase->GetDimensions(i);
+    }
+
+  // Set the regions
+  typename NativeImageType::RegionType region;
+  typename NativeImageType::IndexType index = {{0, 0, 0, 0}};
+  region.SetIndex(index);
+  region.SetSize(dim);
+  image->SetRegions(region);
+  image->SetVectorLength(m_NCompAfterFolding);
+
+  // Set the IO region
+  if(m_NDimBeforeFolding <= 4)
+    {
+    // This is the old code, which we preserve
+    itk::ImageIORegion ioRegion(4);
+    itk::ImageIORegionAdaptor<4>::Convert(region, ioRegion, index);
+    m_IOBase->SetIORegion(ioRegion);
+    }
+  else
+    {
+    itk::ImageIORegion ioRegion(m_NDimBeforeFolding);
+    itk::ImageIORegion::IndexType ioIndex;
+    itk::ImageIORegion::SizeType ioSize;
+    for(size_t i = 0; i < m_NDimBeforeFolding; i++)
+      {
+      ioIndex.push_back(0);
+      ioSize.push_back(m_IOBase->GetDimensions(i));
+      }
+    ioRegion.SetIndex(ioIndex);
+    ioRegion.SetSize(ioSize);
+    m_IOBase->SetIORegion(ioRegion);
+    }
+}
+
+template <typename NativeImageType>
+typename NativeImageType::Pointer
+GuidedNativeImageIO
+::Convert4DLoadToMultiComponent(typename NativeImageType::Pointer image4D)
+{
+  // rearrange the pixel container
+  auto nt = m_IOBase->GetDimensions(m_NDimBeforeFolding - 1);
+
+  using ElementType = typename NativeImageType::PixelContainer::Element;
+  using ElementIdType = typename NativeImageType::PixelContainer::ElementIdentifier;
+  ElementIdType ne = 1; // # of elements in one slice
+  typename NativeImageType::SizeType pcSize = image4D->GetLargestPossibleRegion().GetSize();
+  for (int i = 0; i < m_IOBase->GetNumberOfDimensions(); ++i)
+    ne *= pcSize[i];
+
+  ElementIdType neTP = ne / nt; // # of Elements per Time Point
+  ElementType *bufferMC = new ElementType[ne];
+
+  auto *buffer4D = image4D->GetPixelContainer()->GetBufferPointer();
+
+  // reorder voxels from 4d to multi-component
+  for (ElementIdType i = 0; i < nt; ++i)
+    for (ElementIdType j = 0; j < neTP; ++j)
+      bufferMC[j * nt + i] = buffer4D[i * neTP + j];
+
+
+  // Modify Header
+  m_IOBase->SetNumberOfComponents(nt);
+  m_IOBase->SetDimensions(m_NDimBeforeFolding - 1, 1);
+
+  // important after modifying header, or UI won't render correctly
+  UpdateMemberVariables();
+
+  // create a new multi-component image
+  auto imageMC = NativeImageType::New();
+
+  UpdateImageHeader<NativeImageType>(imageMC);
+  imageMC->GetPixelContainer()->SetImportPointer(bufferMC, ne, true);
+
+  return imageMC;
+}
+
+template <typename NativeImageType>
+typename NativeImageType::Pointer
+GuidedNativeImageIO
+::ConvertMultiComponentLoadTo4D(typename NativeImageType::Pointer imageMC)
+{
+  // rearrange the pixel container
+  auto nc = m_IOBase->GetNumberOfComponents();
+
+  using ElementType = typename NativeImageType::PixelContainer::Element;
+  using ElementIdType = typename NativeImageType::PixelContainer::ElementIdentifier;
+  ElementIdType neTP = 1, ne; // # of elements in one slice
+  typename NativeImageType::SizeType pcSize = imageMC->GetLargestPossibleRegion().GetSize();
+  for (int i = 0; i < m_IOBase->GetNumberOfDimensions(); ++i)
+    {
+    neTP *= pcSize[i];
+    }
+
+  ne = neTP * nc; // # of Elements per Time Point
+  ElementType *buffer4D = new ElementType[ne];
+
+  auto *bufferMC = imageMC->GetPixelContainer()->GetBufferPointer();
+
+  // reorder voxels from multi-component to 4d
+  for (ElementIdType i = 0; i < nc; ++i)
+    for (ElementIdType j = 0; j < neTP; ++j)
+      buffer4D[i * neTP + j] = bufferMC[j * nc + i];
+
+  // Modify Header
+  // -- backup origin, spacing and direction
+  std::vector<std::vector<double>> dir {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+  std::vector<double> org {0, 0, 0, 0}, spc {1, 1, 1, 1};
+  for (int i = 0; i < m_NDimBeforeFolding; ++i)
+    {
+    org[i] = m_IOBase->GetOrigin(i);
+    spc[i] = m_IOBase->GetSpacing(i);
+    for (int j = 0; j < m_NDimBeforeFolding; ++j)
+      {
+      dir[i][j] = m_IOBase->GetDirection(i)[j];
+      }
+    }
+
+  m_IOBase->SetNumberOfComponents(1);
+  m_NDimBeforeFolding += 1; // increment the dimension
+  m_IOBase->SetNumberOfDimensions(m_NDimBeforeFolding);
+  m_IOBase->SetDimensions(m_NDimBeforeFolding - 1, nc);
+
+  // -- restore spacing, direction and origin
+  for (int i = 0; i < m_NDimBeforeFolding - 1; ++i)
+    {
+    m_IOBase->SetOrigin(i, org[i]);
+    m_IOBase->SetSpacing(i, spc[i]);
+    m_IOBase->SetDirection(i, dir[i]);
+    }
+
+
+  // important after modifying header, or UI won't render correctly
+  UpdateMemberVariables();
+
+  // create a new multi-component image
+  auto image4D = NativeImageType::New();
+
+  UpdateImageHeader<NativeImageType>(image4D);
+  image4D->GetPixelContainer()->SetImportPointer(buffer4D, ne, true); // imageMC will take care of this memory
+  return image4D;
 }
 
 
@@ -1192,75 +1378,26 @@ GuidedNativeImageIO
     // Create the native image
     typename NativeImageType::Pointer image = NativeImageType::New();
 
-    // Initialize the direction and spacing, etc
-    typename NativeImageType::SizeType dim;      dim.Fill(1);
-    typename NativeImageType::PointType org;     org.Fill(0.0);
-    typename NativeImageType::SpacingType spc;   spc.Fill(1.0);
-    typename NativeImageType::DirectionType dir; dir.SetIdentity();
-
-    size_t nd_actual = m_IOBase->GetNumberOfDimensions();
-    size_t nd = (nd_actual > 4) ? 4 : nd_actual;
-    
-    for(unsigned int i = 0; i < nd; i++)
-      {
-      spc[i] = m_IOBase->GetSpacing(i);
-      org[i] = m_IOBase->GetOrigin(i);
-      for(size_t j = 0; j < nd; j++)
-        dir(j,i) = m_IOBase->GetDirection(i)[j];
-      dim[i] = m_IOBase->GetDimensions(i);
-      }
-
-    image->SetSpacing(spc);
-    image->SetOrigin(org);
-    image->SetDirection(dir);
-    image->SetMetaDataDictionary(m_IOBase->GetMetaDataDictionary());
-
-    // Fold in any higher number of dimensions as additional components.
-    int ncomp = m_IOBase->GetNumberOfComponents();
-    if(nd_actual > nd)
-      {
-      for(int i = nd; i < (int) nd_actual; i++)
-        ncomp *= m_IOBase->GetDimensions(i);
-      }
-
-    // Set the regions and allocate
-    typename NativeImageType::RegionType region;
-    typename NativeImageType::IndexType index = {{0, 0, 0, 0}};
-    region.SetIndex(index);
-    region.SetSize(dim);
-    image->SetRegions(region);
-    image->SetVectorLength(ncomp);
+    UpdateImageHeader<NativeImageType>(image);
     image->Allocate();
 
-		regularImageReadingProgSrc->AddProgress(0.05);
-
-    // Set the IO region
-    if(nd_actual <= 4)
-      {
-      // This is the old code, which we preserve
-      itk::ImageIORegion ioRegion(4);
-      itk::ImageIORegionAdaptor<4>::Convert(region, ioRegion, index);
-      m_IOBase->SetIORegion(ioRegion);
-      }
-    else
-      {
-      itk::ImageIORegion ioRegion(nd_actual);
-      itk::ImageIORegion::IndexType ioIndex;
-      itk::ImageIORegion::SizeType ioSize;
-			for(size_t i = 0; i < nd_actual; i++)
-        {
-        ioIndex.push_back(0);
-        ioSize.push_back(m_IOBase->GetDimensions(i));
-        }
-      ioRegion.SetIndex(ioIndex);
-      ioRegion.SetSize(ioSize);
-      m_IOBase->SetIORegion(ioRegion);
-      }
-
-		regularImageReadingProgSrc->AddProgress(0.05);
+    regularImageReadingProgSrc->AddProgress(0.1);
 
     // Read the image into the buffer
 		m_IOBase->Read(image->GetBufferPointer());
+
+    // For seq.nrrd, convert the component dimension to the sequence dimension
+    if (m_FileFormat == FORMAT_NRRD_SEQ && m_NCompBeforeFolding > 1 &&
+        !m_Load4DAsMultiComponent && !m_LoadMultiComponentAs4D)
+      {
+      image = this->ConvertMultiComponentLoadTo4D<NativeImageType>(image);
+      }
+
+    if (m_Load4DAsMultiComponent && m_NCompBeforeFolding == 1)
+      image = this->Convert4DLoadToMultiComponent<NativeImageType>(image);
+    else if (m_LoadMultiComponentAs4D && m_NDimBeforeFolding < 4)
+      image = this->ConvertMultiComponentLoadTo4D<NativeImageType>(image);
+
     m_NativeImage = image;
 
 		regularImageReadingProgSrc->AddProgress(0.9);
@@ -1271,10 +1408,17 @@ GuidedNativeImageIO
     // representation, the image is represented as a VectorImage, where the components
     // of each voxel are the thing that moves fastest. The problem can be represented as
     // a transpose of a N x M array, where N = dimX*dimY*dimZ*dimT and M = dimW
-    if(nd_actual > 4)
+
+    size_t nd = (m_NDimBeforeFolding > 4) ? 4 : m_NDimBeforeFolding;
+    typename NativeImageType::SizeType dim;  dim.Fill(1);
+
+    for(unsigned int i = 0; i < nd; i++)
+      dim[i] = m_IOBase->GetDimensions(i);
+
+    if(m_NDimBeforeFolding > 4)
       {
       long N = dim[0] * dim[1] * dim[2] * dim[3];
-      long M = ncomp;
+      long M = m_NCompAfterFolding;
       long move_size = (2 * M) * sizeof(TScalar);
       char *move = new char[move_size];
       TScalar buffer[2];
@@ -1286,11 +1430,10 @@ GuidedNativeImageIO
       transpose_toms513(image->GetBufferPointer(), M, N, move, move_size, buffer);
       probe.Stop();
 
-      std::cout << "Transpose of " << N << " by " << M << " matrix computed in " << probe.GetTotal() << " sec." << std::endl;
+      //std::cout << "Transpose of " << N << " by " << M << " matrix computed in " << probe.GetTotal() << " sec." << std::endl;
       delete[] move;
       }
 
-    
     /*
     typedef ImageFileReader<NativeImageType> ReaderType;
     typename ReaderType::Pointer reader = ReaderType::New();
@@ -1433,19 +1576,19 @@ RescaleNativeImageToIntegralType<TOutputImage>::operator()(
   auto *native = nativeIO->GetNativeImage();
 
   // Cast image from native format to TPixel
-  itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
+  itk::IOComponentEnum itype = nativeIO->GetComponentTypeInNativeImage();
   switch(itype) 
     {
-    case itk::ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
-    case itk::ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
-    case itk::ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
-    case itk::ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
-    case itk::ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
-    case itk::ImageIOBase::INT:    DoCast<signed int>(native);      break;
-    case itk::ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
-    case itk::ImageIOBase::LONG:   DoCast<signed long>(native);     break;
-    case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
-    case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
+    case itk::IOComponentEnum::UCHAR:  DoCast<unsigned char>(native);   break;
+    case itk::IOComponentEnum::CHAR:   DoCast<signed char>(native);     break;
+    case itk::IOComponentEnum::USHORT: DoCast<unsigned short>(native);  break;
+    case itk::IOComponentEnum::SHORT:  DoCast<signed short>(native);    break;
+    case itk::IOComponentEnum::UINT:   DoCast<unsigned int>(native);    break;
+    case itk::IOComponentEnum::INT:    DoCast<signed int>(native);      break;
+    case itk::IOComponentEnum::ULONG:  DoCast<unsigned long>(native);   break;
+    case itk::IOComponentEnum::LONG:   DoCast<signed long>(native);     break;
+    case itk::IOComponentEnum::FLOAT:  DoCast<float>(native);           break;
+    case itk::IOComponentEnum::DOUBLE: DoCast<double>(native);          break;
     default: 
       throw IRISException("Unknown pixel type when reading image");
     }
@@ -1676,19 +1819,19 @@ CastNativeImage<TOutputImage,TCastFunctor>
   itk::ImageBase<4> *native = nativeIO->GetNativeImage();
 
   // Cast image from native format to TPixel
-  itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
+  itk::IOComponentEnum itype = nativeIO->GetComponentTypeInNativeImage();
   switch(itype) 
     {
-    case itk::ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
-    case itk::ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
-    case itk::ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
-    case itk::ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
-    case itk::ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
-    case itk::ImageIOBase::INT:    DoCast<signed int>(native);      break;
-    case itk::ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
-    case itk::ImageIOBase::LONG:   DoCast<signed long>(native);     break;
-    case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
-    case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
+    case itk::IOComponentEnum::UCHAR:  DoCast<unsigned char>(native);   break;
+    case itk::IOComponentEnum::CHAR:   DoCast<signed char>(native);     break;
+    case itk::IOComponentEnum::USHORT: DoCast<unsigned short>(native);  break;
+    case itk::IOComponentEnum::SHORT:  DoCast<signed short>(native);    break;
+    case itk::IOComponentEnum::UINT:   DoCast<unsigned int>(native);    break;
+    case itk::IOComponentEnum::INT:    DoCast<signed int>(native);      break;
+    case itk::IOComponentEnum::ULONG:  DoCast<unsigned long>(native);   break;
+    case itk::IOComponentEnum::LONG:   DoCast<signed long>(native);     break;
+    case itk::IOComponentEnum::FLOAT:  DoCast<float>(native);           break;
+    case itk::IOComponentEnum::DOUBLE: DoCast<double>(native);          break;
     default: 
       throw IRISException("Error: Unknown pixel type when reading image."
                           "The voxels in the image you are loading have format '%s', "
@@ -1866,7 +2009,8 @@ GuidedNativeImageIO::GuessFormatForFileName(
 			itk::StringTools::Trim(modality);
 			if (!modality.compare("CT"))
 				{
-				if (!manuf.compare("SIEMENS") ||
+        bool hasSiemens = manuf.find("SIEMENS") != std::string::npos;
+        if (hasSiemens ||
 						!manuf.compare("GE MEDICAL SYSTEMS"))
 					return FORMAT_DICOM_DIR_4DCTA;
 				}
@@ -2068,6 +2212,18 @@ void GuidedNativeImageIO::DicomDirectoryParseResult::Reset()
   SeriesMap.clear();
 }
 
+GuidedNativeImageIO::IOBasePointer
+GuidedNativeImageIO
+::PeekHeader(std::string filename)
+{
+  if (m_IOBase)
+    return m_IOBase;
+
+  Registry dummyRegistry;
+  ReadNativeImageHeader(filename.c_str(), dummyRegistry);
+  return m_IOBase;
+}
+
 /*
 {
   // Must have a directory
@@ -2165,19 +2321,19 @@ CastNativeImageToScalar<TPixel>
   m_Output->Allocate();
 
   // Cast image from native format to TPixel
-  itk::ImageIOBase::IOComponentType itype = nativeIO->GetComponentTypeInNativeImage();
+  itk::IOComponentEnum itype = nativeIO->GetComponentTypeInNativeImage();
   switch(itype) 
     {
-    case itk::ImageIOBase::UCHAR:  DoCast<unsigned char>(native);   break;
-    case itk::ImageIOBase::CHAR:   DoCast<signed char>(native);     break;
-    case itk::ImageIOBase::USHORT: DoCast<unsigned short>(native);  break;
-    case itk::ImageIOBase::SHORT:  DoCast<signed short>(native);    break;
-    case itk::ImageIOBase::UINT:   DoCast<unsigned int>(native);    break;
-    case itk::ImageIOBase::INT:    DoCast<signed int>(native);      break;
-    case itk::ImageIOBase::ULONG:  DoCast<unsigned long>(native);   break;
-    case itk::ImageIOBase::LONG:   DoCast<signed long>(native);     break;
-    case itk::ImageIOBase::FLOAT:  DoCast<float>(native);           break;
-    case itk::ImageIOBase::DOUBLE: DoCast<double>(native);          break;
+    case itk::IOComponentEnum::UCHAR:  DoCast<unsigned char>(native);   break;
+    case itk::IOComponentEnum::CHAR:   DoCast<signed char>(native);     break;
+    case itk::IOComponentEnum::USHORT: DoCast<unsigned short>(native);  break;
+    case itk::IOComponentEnum::SHORT:  DoCast<signed short>(native);    break;
+    case itk::IOComponentEnum::UINT:   DoCast<unsigned int>(native);    break;
+    case itk::IOComponentEnum::INT:    DoCast<signed int>(native);      break;
+    case itk::IOComponentEnum::ULONG:  DoCast<unsigned long>(native);   break;
+    case itk::IOComponentEnum::LONG:   DoCast<signed long>(native);     break;
+    case itk::IOComponentEnum::FLOAT:  DoCast<float>(native);           break;
+    case itk::IOComponentEnum::DOUBLE: DoCast<double>(native);          break;
     default: 
       throw itk::ExceptionObject("Unknown Pixel Type when reading image");
     }
@@ -2218,24 +2374,17 @@ CastNativeImageToScalar<TPixel>
 
 */
 
-template class RescaleNativeImageToIntegralType<itk::Image<GreyType, 4> >;
-template class RescaleNativeImageToIntegralType<itk::VectorImage<GreyType, 4> >;
-template class CastNativeImage<itk::Image<unsigned short, 4> >;
+#define GuidedNativeImageIOInstantiateMacro(type) \
+  template class RescaleNativeImageToIntegralType< itk::Image<type, 4> >; \
+  template class RescaleNativeImageToIntegralType< itk::VectorImage<type, 4> >; \
+  template class CastNativeImage<itk::Image<type, 4> >; \
+  template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<type, 3> *);
 
-// template class CastNativeImageBase<RGBType, CastToArrayFunctor<RGBType, 3> >;
-// template class CastNativeImageBase<LabelType, CastToScalarFunctor<LabelType> >;
-// template class CastNativeImageBase<float, CastToScalarFunctor<float> >;
-
-/*
-template class CastNativeImageToRGB<RGBType>; 
-template class CastNativeImageToScalar<LabelType>; 
-template class CastNativeImageToScalar<float>; 
-*/
-
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<GreyType,3> *);
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<LabelType,3> *);
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<float,3> *);
-template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<RGBType,3> *);
+GuidedNativeImageIOInstantiateMacro(unsigned char)
+GuidedNativeImageIOInstantiateMacro(char)
+GuidedNativeImageIOInstantiateMacro(unsigned short)
+GuidedNativeImageIOInstantiateMacro(short)
+GuidedNativeImageIOInstantiateMacro(float)
 
 
 

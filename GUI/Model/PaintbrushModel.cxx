@@ -17,7 +17,6 @@
 class BrushWatershedPipeline
 {
 public:
-  typedef itk::Image<GreyType, 3> GreyImageType;
   typedef LabelImageWrapperTraits::ImageType LabelImageType;
   typedef itk::Image<float, 3> FloatImageType;
   typedef itk::Image<itk::IdentifierType, 3> WatershedImageType;
@@ -36,7 +35,7 @@ public:
     }
 
   void PrecomputeWatersheds(
-    const GreyImageType *grey,
+    const FloatImageType *grey,
     const LabelImageType *label,
     itk::ImageRegion<3> region,
     itk::Index<3> vcenter,
@@ -86,7 +85,7 @@ public:
     }
 
 private:
-  typedef itk::RegionOfInterestImageFilter<GreyImageType, FloatImageType> ROIType;
+  typedef itk::RegionOfInterestImageFilter<FloatImageType, FloatImageType> ROIType;
   typedef itk::RegionOfInterestImageFilter<LabelImageType, LabelImageType> LROIType;
   typedef itk::GradientAnisotropicDiffusionImageFilter<FloatImageType,FloatImageType> ADFType;
   typedef itk::GradientMagnitudeImageFilter<FloatImageType, FloatImageType> GMFType;
@@ -166,6 +165,11 @@ void PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
     m_MouseInside = true;
     InvokeEvent(PaintbrushMovedEvent());
     }
+}
+
+bool PaintbrushModel::HasMainImageTransformed()
+{
+  return !m_Parent->GetDriver()->GetMainImage()->ImageSpaceMatchesReferenceSpace();
 }
 
 bool PaintbrushModel::TestInside(const Vector2d &x, const PaintbrushSettings &ps)
@@ -337,6 +341,9 @@ void PaintbrushModel::AcceptAtCursor()
 bool
 PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
 {
+  if (HasMainImageTransformed())
+    return ApplyBrushByPolygonRasterization(reverse_mode, dragging);
+
   // Get the global objects
   IRISApplication *driver = m_Parent->GetDriver();
   GlobalState *gs = driver->GetGlobalState();
@@ -382,19 +389,26 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging)
   // Special code for Watershed brush
   if(flagWatershed)
     {
-
     // Get the currently engaged layer
     ImageWrapperBase *context_layer = gid->FindLayer(m_ContextLayerId, false);
     if(!context_layer)
       context_layer = gid->GetMain();
 
+    // Obtain a cast to float pipeline from the layer
+    // TODO: this causes repeated memory allocation - should probably create when entering mode
+    auto *img_source = context_layer->CreateCastToFloatPipeline("WatershedBrush", this->m_Parent->GetId());
+
     // Precompute the watersheds
     m_Watershed->PrecomputeWatersheds(
-          context_layer->GetDefaultScalarRepresentation()->GetCommonFormatImage(),
+          img_source,
           driver->GetSelectedSegmentationLayer()->GetImage(),
           xTestRegion, to_itkIndex(m_MousePosition), pbs.watershed.smooth_iterations);
 
     m_Watershed->RecomputeWatersheds(pbs.watershed.level);
+
+    // Release the casting pipeline
+    context_layer->ReleaseInternalPipeline("WatershedBrush", this->m_Parent->GetId());
+
     }
 
   // Shift vector (different depending on whether the brush has odd/even diameter
@@ -456,3 +470,30 @@ Vector3d PaintbrushModel::GetCenterOfPaintbrushInSliceSpace()
   else
     return m_Parent->MapImageToSlice(to_double(m_MousePosition) + Vector3d(0.5));
 }
+
+bool
+PaintbrushModel
+::ApplyBrushByPolygonRasterization(bool reverse_mode, bool dragging)
+{
+  // build 2d vertices
+  std::vector<Vector2d> vts2d;
+  auto np = m_BrushPoints->GetNumberOfPoints();
+  Vector3d ctr = GetCenterOfPaintbrushInSliceSpace();
+
+  for (int i = 0; i < np; ++i)
+    {
+    double v[2];
+    m_BrushPoints->GetPoint(i, v);
+    // translate to center of pixel
+    v[0] += ctr[0];
+    v[1] += ctr[1];
+
+    vts2d.push_back(Vector2d(v[0], v[1]));
+    }
+
+  // run voxelization code
+  m_Parent->Voxelize2DPolygonToSegmentationSlice(vts2d, "Oblique Paintbrush Update",
+                                                 false, reverse_mode);
+  return true;
+}
+

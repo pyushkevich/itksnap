@@ -72,7 +72,7 @@ public:
     FORMAT_DICOM_FILE,      // A single DICOM file
     FORMAT_ECHO_CARTESIAN_DICOM, // A Echocardiography Cartesian DICOM
     FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
-		FORMAT_MHA, FORMAT_MINC, FORMAT_NIFTI, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
+    FORMAT_MHA, FORMAT_MINC, FORMAT_NIFTI, FORMAT_NRRD_SEQ, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
     FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK,
     FORMAT_COUNT};
 
@@ -163,10 +163,10 @@ public:
   /**
    * Get the component type in the native image
    */
-  itk::ImageIOBase::IOComponentType GetComponentTypeInNativeImage() const
+  itk::IOComponentEnum GetComponentTypeInNativeImage() const
     { return m_NativeType; }
 
-  itk::ImageIOBase::ByteOrder GetByteOrderInNativeImage() const
+  itk::IOByteOrderEnum GetByteOrderInNativeImage() const
     { return m_NativeByteOrder; }
 
   std::string GetComponentTypeAsStringInNativeImage() const
@@ -287,6 +287,25 @@ public:
    */
   void CreateImageIO(const char *fname, Registry &folder, bool read);
 
+  void SetLoadMultiComponentAs4D(bool value)
+  {
+    m_LoadMultiComponentAs4D = value;
+    m_Load4DAsMultiComponent = !value;
+  }
+
+  void SetLoad4DAsMultiComponent(bool value)
+  {
+    m_Load4DAsMultiComponent = value;
+    m_LoadMultiComponentAs4D = !value;
+  }
+
+  /**
+   * If header already exists, return it. Otherwise read the header and return it.
+   * This is needed because sometimes an io object is passed to a method, and it may not be
+   * safe to re-read the header since it can interfere with upstream/downstream processing
+   */
+  IOBasePointer PeekHeader(std::string filename);
+
   // Get the output of the last operation
   // irisGetMacro(IOBase, itk::ImageIOBase *);
 protected:
@@ -342,7 +361,29 @@ protected:
    *
    * The dispatch should be deleted after it is used.
    */
-  DispatchBase *CreateDispatch(itk::ImageIOBase::IOComponentType comp_type);
+  DispatchBase *CreateDispatch(itk::IOComponentEnum comp_type);
+
+  template <typename NativeImageType>
+  typename NativeImageType::Pointer
+  Convert4DLoadToMultiComponent(typename NativeImageType::Pointer image);
+
+  template <typename NativeImageType>
+  typename NativeImageType::Pointer
+  ConvertMultiComponentLoadTo4D(typename NativeImageType::Pointer image);
+
+  /**
+   *  Update member variables using loaded header
+   *  Crucial step because application use these variables to update UI
+   *  It should be called every time after modifying the header
+   */
+  void UpdateMemberVariables();
+
+  /**
+   * Update an image pointer header based on m_IOBase
+   */
+  template <typename NativeImageType>
+  void UpdateImageHeader(typename NativeImageType::Pointer image);
+
 
   /** 
    This is a vector image in native format. It stores the data read from the
@@ -361,7 +402,7 @@ protected:
 
   // This information is copied from IOBase in order to delete IOBase at the 
   // earliest possible point, so as to conserve memory
-  IOBase::IOComponentType m_NativeType;
+  itk::IOComponentEnum m_NativeType;
   size_t m_NativeComponents;
   unsigned long m_NativeSizeInBytes;
   std::string m_NativeTypeString, m_NativeFileName;
@@ -383,6 +424,15 @@ protected:
   // Number of images per z-position in the DICOM series (e.g., multi-echo data)
   int m_DICOMImagesPerIPP;
 
+  // original ncomp after folding higher dimensions
+  size_t m_NCompBeforeFolding;
+
+  // final ncomp after folding higher dimensions
+  size_t m_NCompAfterFolding;
+
+  // orinal dimension before folding higher dimensions
+  size_t m_NDimBeforeFolding;
+
 	MFDS::DicomFilesToFrameMap m_DicomFilesToFrameMap;
 
   /** Registry mappings for these enums */
@@ -402,6 +452,10 @@ protected:
   static const gdcm::Tag m_tagInstanceNumber;
   static const gdcm::Tag m_tagSequenceName;
   static const gdcm::Tag m_tagSliceThickness;
+
+  /** Flags for delegate specific configurations */
+  bool m_LoadMultiComponentAs4D = false;
+  bool m_Load4DAsMultiComponent = false;
 
 };
 

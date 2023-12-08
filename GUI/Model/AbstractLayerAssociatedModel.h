@@ -60,7 +60,7 @@ public:
     Rebroadcast(m_ParentModel, LayerChangeEvent(), LayerStructureChangedEvent());
 
     // Set active layer to NULL
-    this->SetLayer(NULL);
+    this->SetLayer(nullptr);
   }
 
 

@@ -5,7 +5,6 @@
 #include "ImageWrapperBase.h"
 #include "RLEImageRegionIterator.h"
 
-#include "CommonRepresentationPolicy.h"
 #include "DisplayMappingPolicy.h"
 #include "NativeIntensityMappingPolicy.h"
 
@@ -27,6 +26,62 @@ template <class TImage, class TBase> class VectorImageWrapper;
 template <class TImage, class TBase> class ScalarImageWrapper;
 */
 
+
+#if(false)
+
+/**
+ * A special pixel type that is internally a short but is presented to the
+ * outside world as a floating point number. Used to represent speed image
+ * values, where precision offered by short is enough. The first parameter
+ * is floating point type (float or double), and the second is the short
+ * value corresponding to the floating point value 1.0, the default is 10000
+ */
+
+template <class TFloat, short VRange = 10000>
+class SmallClippedFloat
+{
+public:
+  typedef SmallClippedFloat<TFloat, VRange> Self;
+
+  TFloat operator()() const { return m_Value * m_Scale; }
+  Self &operator = (const TFloat &f) { m_Value = (short) VRange * f; return *this; }
+
+  /** Construct from floating point */
+  SmallClippedFloat(float value) { *this = value; }
+
+private:
+  static constexpr TFloat m_Scale = 1.0 / VRange;
+  short m_Value;
+};
+
+template<class TFloat, short VRange>
+class vnl_numeric_traits< SmallClippedFloat<TFloat, VRange> >
+{
+public:
+  typedef SmallClippedFloat<TFloat, VRange> T;
+  //: Additive identity
+  static const T zero = T(0.0);
+  //: Multiplicative identity
+  static const T one = T(1.0);
+  //: Maximum value which this type can assume
+  static const T maxval = T(1.0);
+  //: Return value of abs()
+  typedef T abs_t;
+  //: Name of a type twice as long as this one for accumulators and products.
+  typedef typename vnl_numeric_traits<short>::double_t double_t;
+  //: Name of type which results from multiplying this type with a double
+  typedef double real_t;
+};
+
+/**
+ * To save memory, we define the pixels in the speed image as shorts in the range
+ * between -10000 and 10000. This should provide enough precision.
+ */
+typedef SmallClippedFloat<float> SpeedImagePixel;
+
+#endif
+
+
 /**
  * Each of the traits classes below defines types and policies for a specific
  * type of image wrapper.
@@ -36,6 +91,7 @@ class LabelImageWrapperTraits
 public:
   typedef LabelImageWrapperTraits Self;
 
+  typedef ScalarImageWrapperBase WrapperBaseType;
   typedef ScalarImageWrapper<LabelImageWrapperTraits> WrapperType;
 
   typedef LabelType ComponentType;
@@ -45,7 +101,6 @@ public:
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef ColorLabelTableDisplayMappingPolicy<Self> DisplayMapping;
-  typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   // Whether this image is shown on top of all other layers by default
   itkStaticConstMacro(StickyByDefault, bool, true);
@@ -59,16 +114,16 @@ class SpeedImageWrapperTraits
 public:
   typedef SpeedImageWrapperTraits Self;
 
+  typedef ScalarImageWrapperBase WrapperBaseType;
   typedef ScalarImageWrapper<SpeedImageWrapperTraits> WrapperType;
 
-  typedef GreyType ComponentType;
+  typedef short ComponentType;
   typedef itk::Image<ComponentType, 3> ImageType;
   typedef itk::Image<ComponentType, 2> SliceType;
   typedef itk::Image<ComponentType, 4> Image4DType;
 
   typedef SpeedImageInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   static void GetFixedIntensityRange(float &min, float &max)
     { min = -0x7fff; max = 0x7fff; }
@@ -87,6 +142,7 @@ class LevelSetImageWrapperTraits
 public:
   typedef LevelSetImageWrapperTraits Self;
 
+  typedef ScalarImageWrapperBase WrapperBaseType;
   typedef ScalarImageWrapper<LevelSetImageWrapperTraits> WrapperType;
 
   typedef float ComponentType;
@@ -96,7 +152,6 @@ public:
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef LinearColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef NullScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   static void GetFixedIntensityRange(float &min, float &max)
     { min = -4.0; max = 4.0; }
@@ -110,30 +165,13 @@ public:
   itkStaticConstMacro(PipelineOutput, bool, true);
 };
 
-/**
- * This helper traits class is used to select the appropriate common representation
- * policy depending on the internal pixel type
- */
-template <class TPixel, class TWrapperTraits>
-class DefaultCommonRepresentationPolicy
-{
-public:
-  typedef CastingScalarImageWrapperCommonRepresentation<GreyType, TWrapperTraits> Policy;
-};
-
-template <class TWrapperTraits>
-class DefaultCommonRepresentationPolicy<GreyType, TWrapperTraits>
-{
-public:
-  typedef InPlaceScalarImageWrapperCommonRepresentation<GreyType, TWrapperTraits> Policy;
-};
-
-template <class TPixel>
+template <class TPixel, bool TLinearMapping>
 class ComponentImageWrapperTraits
 {
 public:
-  typedef ComponentImageWrapperTraits<TPixel> Self;
+  typedef ComponentImageWrapperTraits<TPixel, TLinearMapping> Self;
 
+  typedef ScalarImageWrapperBase WrapperBaseType;
   typedef ScalarImageWrapper<Self> WrapperType;
 
   typedef TPixel ComponentType;
@@ -141,9 +179,13 @@ public:
   typedef itk::Image<ComponentType, 2> SliceType;
   typedef itk::VectorImageToImageAdaptor<ComponentType, 4> Image4DType;
 
-  typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
+  // The type of internal to native intensity mapping used in the traits is controlled
+  // by the boolean template parameter
+  typedef typename std::conditional<TLinearMapping,
+    LinearInternalToNativeIntensityMapping,
+    IdentityInternalToNativeIntensityMapping>::type NativeIntensityMapping;
+
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
 
@@ -159,6 +201,7 @@ class VectorDerivedQuantityImageWrapperTraits
 {
 public:
   typedef VectorDerivedQuantityImageWrapperTraits<TFunctor> Self;
+  typedef ScalarImageWrapperBase WrapperBaseType;
   typedef ScalarImageWrapper<Self> WrapperType;
 
   typedef typename TFunctor::OutputPixelType ComponentType;
@@ -174,7 +217,6 @@ public:
 
   typedef IdentityInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef CastingScalarImageWrapperCommonRepresentation<GreyType, Self> CommonRepresentationPolicy;
 
   itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
 
@@ -186,25 +228,31 @@ public:
 };
 
 
-template <class TPixel>
+template <class TPixel, bool TLinearMapping = false>
 class AnatomicImageWrapperTraits
 {
 public:
   typedef AnatomicImageWrapperTraits<TPixel> Self;
 
+  typedef VectorImageWrapperBase WrapperBaseType;
   typedef VectorImageWrapper<Self> WrapperType;
 
   // Component stuff
   typedef TPixel ComponentType;
 
-  typedef ComponentImageWrapperTraits<ComponentType> ComponentWrapperTraits;
+  typedef ComponentImageWrapperTraits<ComponentType, TLinearMapping> ComponentWrapperTraits;
   typedef ScalarImageWrapper<ComponentWrapperTraits> ComponentWrapperType;
 
   typedef itk::VectorImage<ComponentType, 3> ImageType;
   typedef itk::VectorImage<ComponentType, 2> SliceType;
   typedef itk::VectorImage<ComponentType, 4> Image4DType;
 
-  typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
+  // The type of internal to native intensity mapping used in the traits is controlled
+  // by the boolean template parameter
+  typedef typename std::conditional<TLinearMapping,
+    LinearInternalToNativeIntensityMapping,
+    IdentityInternalToNativeIntensityMapping>::type NativeIntensityMapping;
+
   typedef MultiChannelDisplayMappingPolicy<Self> DisplayMapping;
 
   // Whether this image is shown on top of all other layers by default
@@ -215,12 +263,13 @@ public:
 };
 
 
-template <class TPixel>
+template <class TPixel, bool TLinearMapping = false>
 class AnatomicScalarImageWrapperTraits
 {
 public:
   typedef AnatomicScalarImageWrapperTraits<TPixel> Self;
 
+  typedef ScalarImageWrapperBase WrapperBaseType;
   typedef ScalarImageWrapper<Self> WrapperType;
 
   typedef TPixel ComponentType;
@@ -228,9 +277,13 @@ public:
   typedef itk::Image<ComponentType, 2> SliceType;
   typedef itk::Image<ComponentType, 4> Image4DType;
 
-  typedef LinearInternalToNativeIntensityMapping NativeIntensityMapping;
   typedef CachingCurveAndColorMapDisplayMappingPolicy<Self> DisplayMapping;
-  typedef typename DefaultCommonRepresentationPolicy<TPixel, Self>::Policy CommonRepresentationPolicy;
+
+  // The type of internal to native intensity mapping used in the traits is controlled
+  // by the boolean template parameter
+  typedef typename std::conditional<TLinearMapping,
+    LinearInternalToNativeIntensityMapping,
+    IdentityInternalToNativeIntensityMapping>::type NativeIntensityMapping;
 
   // Default color map
   itkStaticConstMacro(DefaultColorMap, ColorMap::SystemPreset, ColorMap::COLORMAP_GREY);
@@ -242,20 +295,27 @@ public:
   itkStaticConstMacro(PipelineOutput, bool, false);
 };
 
+/**
+ * This class defines all the traits available for a pixel type
+ * to help with template instantiation
+ */
+template<class TPixel>
+class ImageWrapperTraits
+{
+public:
+  typedef AnatomicImageWrapperTraits<TPixel, false> VectorTraits;
+  typedef AnatomicScalarImageWrapperTraits<TPixel, false> ScalarTraits;
+  typedef ComponentImageWrapperTraits<TPixel, false> ComponentTraits;
 
-// Global typedefs for traits with GreyType
-typedef AnatomicScalarImageWrapperTraits<GreyType> GreyAnatomicScalarImageWrapperTraits;
-typedef ComponentImageWrapperTraits<GreyType> GreyComponentImageWrapperTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMagnitudeFunctor>
-  GreyVectorMagnitudeImageWrapperTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMaxFunctor>
-  GreyVectorMaxImageWrapperTraits;
-typedef VectorDerivedQuantityImageWrapperTraits<GreyVectorToScalarMeanFunctor>
-  GreyVectorMeanImageWrapperTraits;
+  typedef VectorToScalarMagnitudeFunctor<TPixel, float> MagnitudeFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MagnitudeFunctor> MagnitudeTraits;
+  typedef VectorToScalarMaxFunctor<TPixel, float> MaxFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MaxFunctor> MaxTraits;
+  typedef VectorToScalarMeanFunctor<TPixel, float> MeanFunctor;
+  typedef VectorDerivedQuantityImageWrapperTraits<MeanFunctor> MeanTraits;
+};
 
 // Some global typedefs
-typedef AnatomicImageWrapperTraits<GreyType>::WrapperType AnatomicImageWrapper;
-typedef AnatomicScalarImageWrapperTraits<GreyType>::WrapperType AnatomicScalarImageWrapper;
 typedef SpeedImageWrapperTraits::WrapperType SpeedImageWrapper;
 typedef LevelSetImageWrapperTraits::WrapperType LevelSetImageWrapper;
 
