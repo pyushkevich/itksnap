@@ -35,6 +35,9 @@ public:
   typedef ColorLookupTable<InputPixelType, OutputComponentType> LookupTableType;
   typedef typename Superclass::OutputImageRegionType    OutputImageRegionType;
 
+  // This is necessary to use itkGet/SetInputMacros to avoid gcc compiling error
+  using ProcessObject = itk::ProcessObject;
+
   itkTypeMacro(RGBALookupTableIntensityMappingFilter, ImageToImageFilter)
   itkNewMacro(Self)
 
