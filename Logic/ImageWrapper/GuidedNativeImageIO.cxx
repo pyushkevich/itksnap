@@ -1705,7 +1705,10 @@ RescaleNativeImageToIntegralType<TOutputImage>
     {
     // We must compute the range of the input data    
     OutputComponentType omax = itk::NumericTraits<OutputComponentType>::max();
-    OutputComponentType omin = itk::NumericTraits<OutputComponentType>::min();
+    // -- we need to use lowest() instead of min(), because for double/float, min()
+    // -- only returns the smallest positive value a type can represent
+    // -- here we want to know the range including the negative values
+    OutputComponentType omin = itk::NumericTraits<OutputComponentType>::lowest();
 
     // Scan over all the image components. Avoid using iterators here because of
     // unnecessary overhead for vector images.
