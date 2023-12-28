@@ -94,8 +94,12 @@ public:
   using Superclass = itk::ImageToImageFilter<TInputImage,TInputImage>;
   using Pointer = SmartPtr<Self>;
   using ConstPointer = SmartPtr<const Self>;
-  using DataObjectPointer = itk::ProcessObject::DataObjectPointer;
-  using DataObjectIdentifierType = itk::ProcessObject::DataObjectIdentifierType;
+
+  // This is necessary to use itkGet/SetInputMacros to avoid gcc compiling error
+  using ProcessObject = itk::ProcessObject;
+
+  using DataObjectPointer = ProcessObject::DataObjectPointer;
+  using DataObjectIdentifierType = ProcessObject::DataObjectIdentifierType;
 
   // All the stuff from the input image
   using ImageType = TInputImage;

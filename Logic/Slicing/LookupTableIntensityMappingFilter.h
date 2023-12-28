@@ -38,6 +38,9 @@ public:
   // Output LUT
   using LookupTableType = ColorLookupTable<InputComponentType, OutputPixelType>;
 
+  // This is necessary to use itkGet/SetInputMacros to avoid gcc compiling error
+  using ProcessObject = itk::ProcessObject;
+
   itkTypeMacro(LookupTableIntensityMappingFilter, ImageToImageFilter)
   itkNewMacro(Self)
 
