@@ -173,6 +173,7 @@ public:
 
   virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) ITK_OVERRIDE;
 
+  virtual void SetSticky(bool value) ITK_OVERRIDE;
 protected:
 
   /**

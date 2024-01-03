@@ -409,6 +409,18 @@ VectorImageWrapper<TTraits>
 template <class TTraits>
 void
 VectorImageWrapper<TTraits>
+::SetSticky(bool value)
+{
+  Superclass::SetSticky(value);
+
+  // Propagate to owned scalar wrappers
+  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+    it->second->SetSticky(value);
+}
+
+template <class TTraits>
+void
+VectorImageWrapper<TTraits>
 ::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
   Superclass::SetDisplayGeometry(dispGeom);
