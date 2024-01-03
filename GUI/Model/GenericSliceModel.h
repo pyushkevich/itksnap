@@ -30,6 +30,7 @@
 #include <SNAPCommon.h>
 #include <ImageCoordinateTransform.h>
 #include <SNAPEvents.h>
+#include <string>
 #include "AbstractModel.h"
 #include "ImageWrapper.h"
 #include "UIReporterDelegates.h"
@@ -220,6 +221,11 @@ public:
    * Get the model that handles slice index information
    */
   irisGetMacro(SliceIndexModel, AbstractRangedIntProperty *)
+
+  /**
+   * Get the model that handles text display of slice index ("128 of 256")
+   */
+  irisGetMacro(SliceIndexTextModel, AbstractSimpleStringProperty *)
 
   /**
    * Get the model than handles the selected component (timepoint) in the
@@ -496,6 +502,9 @@ protected:
   SmartPtr<AbstractRangedUIntProperty> m_CurrentComponentInSelectedLayerModel;
   bool GetCurrentComponentInSelectedLayerValueAndDomain(unsigned int &value, NumericValueRange<unsigned int> *domain);
   void SetCurrentComponentInSelectedLayerValue(unsigned int value);
+
+  SmartPtr<AbstractSimpleStringProperty> m_SliceIndexTextModel;
+  bool GetSliceIndexTextValue(std::string &value);
 
   SmartPtr<DeformationGridModel> m_DeformationGridModel;
 

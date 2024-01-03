@@ -71,6 +71,10 @@ GenericSliceModel::GenericSliceModel()
         &Self::GetCurrentComponentInSelectedLayerValueAndDomain,
         &Self::SetCurrentComponentInSelectedLayerValue);
 
+  m_SliceIndexTextModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetSliceIndexTextValue);
+
   // Nothing is hovered over
   m_HoveredImageLayerIdModel = NewSimpleConcreteProperty(-1ul);
   m_HoveredImageIsThumbnailModel = NewSimpleConcreteProperty(false);
@@ -833,6 +837,18 @@ void GenericSliceModel::SetCurrentComponentInSelectedLayerValue(unsigned int val
   // Update the mode
   mode.SelectedComponent = value;
   dpolicy->SetDisplayMode(mode);
+  }
+
+bool GenericSliceModel::GetSliceIndexTextValue(std::string &value)
+{
+  if(!m_Driver->IsMainImageLoaded())
+    return false;
+
+  int pos = this->GetSliceIndex(), n = this->GetNumberOfSlices();
+  std::ostringstream oss;
+  oss << (pos + 1) << " of " << n;
+  value = oss.str();
+  return true;
 }
 
 void GenericSliceModel::UpdateViewportLayout()
