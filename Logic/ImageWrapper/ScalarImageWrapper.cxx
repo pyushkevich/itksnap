@@ -341,6 +341,7 @@ ScalarImageWrapperInstantiateMacro(char)
 ScalarImageWrapperInstantiateMacro(unsigned short)
 ScalarImageWrapperInstantiateMacro(short)
 ScalarImageWrapperInstantiateMacro(float)
+ScalarImageWrapperInstantiateMacro(double)
 
 template class ScalarImageWrapper<LabelImageWrapperTraits>;
 template class ScalarImageWrapper<SpeedImageWrapperTraits>;

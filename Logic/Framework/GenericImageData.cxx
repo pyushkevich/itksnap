@@ -228,6 +228,7 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformTyp
     case itk::IOComponentEnum::CHAR:   out_wrapper = c.Create<char, false>();            break;
     case itk::IOComponentEnum::USHORT: out_wrapper = c.Create<unsigned short, false>();  break;
     case itk::IOComponentEnum::SHORT:  out_wrapper = c.Create<short, false>();           break;
+    case itk::IOComponentEnum::DOUBLE:  out_wrapper = c.Create<double, false>();         break;
     default: out_wrapper = c.Create<float, false>();                                     break;
     }
 

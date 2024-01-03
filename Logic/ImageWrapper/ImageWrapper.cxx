@@ -3054,6 +3054,7 @@ ImageWrapperInstantiateMacro(char)
 ImageWrapperInstantiateMacro(unsigned short)
 ImageWrapperInstantiateMacro(short)
 ImageWrapperInstantiateMacro(float)
+ImageWrapperInstantiateMacro(double)
 
 template class ImageWrapper<SpeedImageWrapperTraits>;
 template class ImageWrapper<LabelImageWrapperTraits>;

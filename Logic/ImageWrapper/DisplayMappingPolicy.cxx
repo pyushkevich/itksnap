@@ -976,4 +976,4 @@ DisplayMappingPolicyInstantiateMacro(char)
 DisplayMappingPolicyInstantiateMacro(unsigned short)
 DisplayMappingPolicyInstantiateMacro(short)
 DisplayMappingPolicyInstantiateMacro(float)
-
+DisplayMappingPolicyInstantiateMacro(double)

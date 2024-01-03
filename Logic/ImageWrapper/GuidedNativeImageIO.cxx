@@ -2388,6 +2388,4 @@ GuidedNativeImageIOInstantiateMacro(char)
 GuidedNativeImageIOInstantiateMacro(unsigned short)
 GuidedNativeImageIOInstantiateMacro(short)
 GuidedNativeImageIOInstantiateMacro(float)
-
-
-
+GuidedNativeImageIOInstantiateMacro(double)
