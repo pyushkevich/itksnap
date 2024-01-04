@@ -459,7 +459,7 @@ public:
     The t-digest is over the 4D image.
     For multi-component data, the t-digest is pooled over all components.
     */
-  virtual const TDigestDataObject *GetTDigest() ITK_OVERRIDE;
+  virtual TDigestDataObject *GetTDigest() ITK_OVERRIDE;
 
   typedef itk::SimpleDataObjectDecorator<ComponentType> MinMaxObjectType;
 

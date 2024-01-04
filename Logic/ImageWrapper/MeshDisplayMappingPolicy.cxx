@@ -131,7 +131,6 @@ UpdateActorMap(ActorPool *pool, unsigned int timepoint)
     }// end of updating actors
   }
 
-const
 MeshDisplayMappingPolicy::TDigest *
 MeshDisplayMappingPolicy::GetTDigest()
 {

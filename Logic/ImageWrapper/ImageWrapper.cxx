@@ -1419,6 +1419,14 @@ ImageWrapper<TTraits>
   // Set the image as the input to the TDigest
   m_TDigestFilter->SetInput(m_Image4D);
 
+  // Set the sampling rate in the TDigest. For large images it is too computationally
+  // expensive to digest the whole image, so instead we can digest a subset of the pixels.
+  // The values here restrict sampling to a value between 500000 and 1000000.
+  auto n_values = m_Image4D->GetBufferedRegion().GetNumberOfPixels() * m_Image4D->GetNumberOfComponentsPerPixel();
+  double x_oversampling = n_values * 1.0e-6;
+  int digest_sampling_rate_log2 = x_oversampling > 1.0 ? (int) std::log2(x_oversampling * 2.0) : 0;
+  m_TDigestFilter->SetLog2SamplingRate(digest_sampling_rate_log2);
+
   // Update the image in the display mapping
   m_DisplayMapping->UpdateImagePointer(m_Image);
 
@@ -1922,10 +1930,9 @@ ImageWrapper<TTraits>
 }
 
 template<class TTraits>
-const TDigestDataObject *
+TDigestDataObject *
 ImageWrapper<TTraits>::GetTDigest()
 {
-  m_TDigestFilter->Update();
   return m_TDigestFilter->GetTDigest();
 }
 
@@ -1933,7 +1940,6 @@ template<class TTraits>
 const typename ImageWrapper<TTraits>::MinMaxObjectType *
 ImageWrapper<TTraits>::GetImageMinObject()
 {
-  m_TDigestFilter->Update();
   return m_TDigestFilter->GetImageMin();
 }
 
@@ -1941,7 +1947,6 @@ template<class TTraits>
 const typename ImageWrapper<TTraits>::MinMaxObjectType *
 ImageWrapper<TTraits>::GetImageMaxObject()
 {
-  m_TDigestFilter->Update();
   return m_TDigestFilter->GetImageMax();
 }
 
@@ -2059,7 +2064,7 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMinAsDouble()
 {
-  m_TDigestFilter->Update();
+  m_TDigestFilter->GetTDigest()->Update();
   return (double) m_TDigestFilter->GetTDigest()->GetImageMinimum();
 }
 
@@ -2068,7 +2073,7 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMaxAsDouble()
 {
-  m_TDigestFilter->Update();
+  m_TDigestFilter->GetTDigest()->Update();
   return (double) m_TDigestFilter->GetTDigest()->GetImageMaximum();
 }
 
@@ -2077,7 +2082,7 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMinNative()
 {
-  m_TDigestFilter->Update();
+  m_TDigestFilter->GetTDigest()->Update();
   return (double) m_TDigestFilter->GetTDigest()->GetImageMinimum();
 }
 
@@ -2086,7 +2091,7 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMaxNative()
 {
-  m_TDigestFilter->Update();
+  m_TDigestFilter->GetTDigest()->Update();
   return (double) m_TDigestFilter->GetTDigest()->GetImageMaximum();
 }
 

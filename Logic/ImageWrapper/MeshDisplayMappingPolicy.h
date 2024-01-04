@@ -63,7 +63,7 @@ public:
   virtual void UpdateActorMap(ActorPool* pool, unsigned int timepoint);
 
   /** Get the TDigest for the active array (i.e., histogram) */
-  virtual const TDigest *GetTDigest() override;
+  virtual TDigest *GetTDigest() override;
 
   // end of virtual methods implementation
   //--------------------------------------------

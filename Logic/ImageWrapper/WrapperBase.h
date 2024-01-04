@@ -101,7 +101,7 @@ public:
     t-digest code: https://github.com/SpirentOrion/digestible
     t-digest paper: https://www.sciencedirect.com/science/article/pii/S2665963820300403
     */
-  virtual const TDigestDataObject *GetTDigest() = 0;
+  virtual TDigestDataObject *GetTDigest() = 0;
 
   //  End of virtual methods
   //------------------------------------------
