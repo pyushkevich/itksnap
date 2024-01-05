@@ -372,6 +372,14 @@ public:
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) = 0;
 
+  /**
+   * This method samples a 2D slice based on a reference geometry from
+   * the current image and maps it using the current display mapping. It
+   * is used to generate thumbnails and for other sampling of image
+   * appearance that is outside of the main display pipeline
+   */
+  virtual DisplaySlicePointer SampleArbitraryDisplaySlice(const ImageBaseType *ref_space) = 0;
+
   typedef std::vector< std::pair<int, int> > PatchOffsetTable;
 
   /**

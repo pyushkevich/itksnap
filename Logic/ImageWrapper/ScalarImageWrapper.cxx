@@ -230,7 +230,49 @@ ScalarImageWrapper<TTraits>
   out_appearance = this->m_DisplayMapping->MapPixel(
                      this->m_IntensitySamplingArray.data_block() +
         this->GetTimePointIndex() * this->GetNumberOfComponents());
-  }
+}
+
+
+template<class TTraits>
+typename ScalarImageWrapper<TTraits>::DisplaySlicePointer
+ScalarImageWrapper<TTraits>
+::SampleArbitraryDisplaySlice(const ImageBaseType *ref_space)
+{
+  // Create a non-orthogonal slicer for this task - we don't want to interfere with the
+  // main slicing pipeline
+  using ThumbSlicer = typename SlicerType::NonOrthogonalSlicerType;
+  typename ThumbSlicer::Pointer thumb_slicer = ThumbSlicer::New();
+  thumb_slicer->SetReferenceImage(ref_space);
+  thumb_slicer->SetInput(this->GetImage());
+
+  // The affine transform is set to identity
+  typedef itk::IdentityTransform<double, 3> IdTransformType;
+  typename IdTransformType::Pointer idTran = IdTransformType::New();
+  thumb_slicer->SetTransform(idTran);
+
+  // Perform slicing
+  thumb_slicer->Update();
+  auto *raw_thumb = thumb_slicer->GetOutput();
+
+  // Allocate the output image
+  typename Superclass::DisplaySlicePointer thumb_image = DisplaySliceType::New();
+  typename DisplaySliceType::RegionType thumb_region;
+  thumb_region.SetSize(0, ref_space->GetBufferedRegion().GetSize()[0]);
+  thumb_region.SetSize(1, ref_space->GetBufferedRegion().GetSize()[1]);
+  thumb_image->SetRegions(thumb_region);
+  thumb_image->Allocate();
+
+  // Now, put this through the display pipeline
+  auto *src_pix = raw_thumb->GetBufferPointer(), *p = src_pix;
+  auto *dst_pix = thumb_image->GetBufferPointer(), *q = dst_pix;
+  unsigned int n_pix = thumb_region.GetNumberOfPixels();
+  unsigned int k = raw_thumb->GetNumberOfComponentsPerPixel();
+  for(; q < dst_pix + n_pix; p += k, q++)
+    *q = this->GetDisplayMapping()->MapPixel(p);
+
+  return thumb_image;
+}
+
 
 template<class TTraits>
 typename ScalarImageWrapper<TTraits>::VTKImporterMiniPipeline
