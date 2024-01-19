@@ -263,7 +263,7 @@ TDigestImageFilter<TInputImage>
   buffer_size = std::max(buffer_size, 128 * sampling_rate);
 
   // Allocate the buffer
-  ComponentType buffer[buffer_size];
+  ComponentType *buffer = new ComponentType[buffer_size];
 
   // Split depending on whether we are randomly sampling or not
   if(sampling_rate == 1)
@@ -317,6 +317,9 @@ TDigestImageFilter<TInputImage>
     if(skip_min > thread_digest.min())
       thread_digest.insert(skip_min);
     }
+
+  // Get rid of the buffer
+  delete[] buffer;
 
   // Complete the digest
   thread_digest.merge();
