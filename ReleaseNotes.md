@@ -1,6 +1,6 @@
 ITK-SNAP Release Notes - Version 4.2
 ====================================
-## Version 4.2.0 alpha.1
+## Version 4.2.0
 ----
 
 ### New Features
@@ -19,10 +19,15 @@ ITK-SNAP Release Notes - Version 4.2
 - Added compose and inverse transforms options to the opening transform dialog in the registration panel
 - More accurate UI text for loading/saving 3d/4d segmentations in 4d workspace
 - Now label description files can be loaded by drag & drop
+### Performance
+- Faster rendering of large 2D images
+- Reduced image loading time through improved histogram computing logic
 ### Bug Fixes
 - Closing main image from layer context menu now will correctly prompt saving changes for overlay layers
 - Loading 3d segmentation into a 4d time point no longer prompts warning, if the time point does not have unsaved changes
 - Now correctly displaying deformation grid for image layers displayed on top of main image
+- Now correctly displaying the slice number for 2D images
+- Fixed a bug where multicomponent overlays were ignoring opacity setting
 
 ## Version 4.0.2
 ### Bug Fixes
