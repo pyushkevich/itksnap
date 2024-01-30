@@ -61,6 +61,7 @@
 #include "SynchronizationModel.h"
 #include "LayoutReminderDialog.h"
 #include "AllPurposeProgressAccumulator.h"
+#include "LabelEditorModel.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -615,7 +616,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionSave_as_Mesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionLoadLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->menuRecentLabelDefs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionResetLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionVolumesAndStatistics, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionReloadSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSwitch_Foreground_Background_Labels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->menuAppearance, m_Model, UIF_BASEIMG_LOADED);
 
   // Overlay action activations
@@ -995,6 +1000,9 @@ void MainImageWindow::UpdateRecentMenu()
 
   this->CreateRecentMenu(ui->menuAddSegmentation_Recent, "LabelImage", false, 5,
                          SLOT(LoadAnotherRecentSegmentationActionTriggered()));
+
+  this->CreateRecentMenu(ui->menuRecentLabelDefs, "LabelDescriptions", true, 5,
+                         SLOT(LoadRecentLabelDefinitionsTriggered()));
 }
 
 void MainImageWindow::UpdateRecentProjectsMenu()
@@ -1046,17 +1054,21 @@ void MainImageWindow::UpdateWindowTitle()
     ui->actionSaveSegmentation->setText(QString("Save \"%1\"").arg(segfile));
     ui->actionSaveSegmentationAs->setText(QString("Save \"%1\" as...").arg(segfile));
     ui->actionSaveSegmentationAs->setVisible(true);
+    ui->actionReloadSegmentation->setText(QString("Reload \"%1\" from File").arg(segfile));
+    ui->actionReloadSegmentation->setVisible(true);
     }
   else if(mainfile.length())
     {
     QString infix4D(is4D ? "4D " : "");
     ui->actionSaveSegmentation->setText(QString("Save %1Segmentation Image ...").arg(infix4D));
     ui->actionSaveSegmentationAs->setVisible(false);
+    ui->actionReloadSegmentation->setVisible(false);
     }
   else
     {
     ui->actionSaveSegmentation->setText(QString("Save"));
     ui->actionSaveSegmentationAs->setText(QString("Save as..."));
+    ui->actionReloadSegmentation->setVisible(false);
     }
 
   // Set up the segmentation items
@@ -1510,6 +1522,28 @@ void MainImageWindow::LoadAnotherRecentSegmentationActionTriggered()
   LoadRecentSegmentation(file, true);
 }
 
+void MainImageWindow::LoadLabelDefinitions(QString file)
+{
+  try
+    {
+    std::string utf = to_utf8(file);
+    m_Model->GetDriver()->LoadLabelDescriptions(utf.c_str());
+    }
+  catch(std::exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Label Definitions IO Error",
+                             QString("Failed to load label definitions from file"));
+    }
+}
+
+void MainImageWindow::LoadRecentLabelDefinitionsTriggered()
+{
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString file = action->text();
+  LoadLabelDefinitions(file);
+}
+
 void MainImageWindow::LoadAnotherDicomActionTriggered()
 {
   // Request to load another DICOM from the main image's folder
@@ -1886,18 +1920,7 @@ void MainImageWindow::on_actionLoadLabels_triggered()
 
   // Open the labels from the selection
   if(selection.length())
-    {
-    try
-      {
-      std::string utf = to_utf8(selection);
-      m_Model->GetDriver()->LoadLabelDescriptions(utf.c_str());
-      }
-    catch(std::exception &exc)
-      {
-      ReportNonLethalException(this, exc, "Label Description IO Error",
-                               QString("Failed to load label descriptions"));
-      }
-    }
+    LoadLabelDefinitions(selection);
 }
 
 void MainImageWindow::on_actionSaveLabels_triggered()
@@ -2615,5 +2638,30 @@ void MainImageWindow::on_actionContinuous_Update_triggered()
 {
   bool currentValue = GetModel()->GetModel3D()->GetContinuousUpdate();
   GetModel()->GetModel3D()->SetContinuousUpdate(!currentValue);
+}
+
+
+void MainImageWindow::on_actionResetLabels_triggered()
+{
+  this->GetModel()->GetLabelEditorModel()->ResetLabels();
+}
+
+
+void MainImageWindow::on_actionReloadSegmentation_triggered()
+{
+  auto *seg_wrapper = m_Model->GetDriver()->GetSelectedSegmentationLayer();
+  if(seg_wrapper)
+    {
+    auto *model = dynamic_cast<AbstractLayerTableRowModel *>(seg_wrapper->GetUserData("LayerTableRowModel"));
+    IRISWarningList wl;
+    try
+      {
+      model->ReloadWrapperFromFile(wl);
+      }
+    catch (IRISException &ex)
+      {
+      ReportNonLethalException(this, ex, "Error reloading image from file");
+      }
+    }
 }
 
