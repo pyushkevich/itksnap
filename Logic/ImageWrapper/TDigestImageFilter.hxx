@@ -216,10 +216,13 @@ TDigestImageFilter<TInputImage>
   auto n_pixels = this->GetInput()->GetBufferedRegion().GetNumberOfPixels();
   auto n_comp = this->GetInput()->GetNumberOfComponentsPerPixel();
   auto n_digest = this->m_TDigestDataObject->GetTotalWeight();
+
+  /*
   std::cout << "TDigest of size " << n_digest
             << " for image " << this->GetInput() << " with " << n_pixels << " pixels and " << n_comp << " components"
             << " computed in " << duration.count() << "ms."
             << std::endl;
+  */
 }
 
 
