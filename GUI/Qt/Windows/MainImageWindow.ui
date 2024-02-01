@@ -569,6 +569,7 @@ color:rgb(103, 103, 103);
     <addaction name="menuActive_3D_Tool"/>
     <addaction name="separator"/>
     <addaction name="actionReorient_Image"/>
+    <addaction name="actionFree_Rotation_Mode"/>
     <addaction name="actionRegistration"/>
     <addaction name="separator"/>
     <addaction name="actionDSS"/>
@@ -1574,7 +1575,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionRegistration">
    <property name="text">
-    <string>Registration ...</string>
+    <string>Image Registration Mode</string>
    </property>
    <property name="toolTip">
     <string>Perform image registration</string>
@@ -1846,6 +1847,11 @@ color:rgb(103, 103, 103);
   <action name="actionReloadSegmentation">
    <property name="text">
     <string>Reload Active Segmentation from File</string>
+   </property>
+  </action>
+  <action name="actionFree_Rotation_Mode">
+   <property name="text">
+    <string>Free Rotation Mode</string>
    </property>
   </action>
  </widget>

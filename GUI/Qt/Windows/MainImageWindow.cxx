@@ -62,6 +62,7 @@
 #include "LayoutReminderDialog.h"
 #include "AllPurposeProgressAccumulator.h"
 #include "LabelEditorModel.h"
+#include "RegistrationModel.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -2491,12 +2492,22 @@ void MainImageWindow::on_actionRegistration_triggered()
 {
   // Remember the size of the window before the right dock was shown
   m_SizeWithoutRightDock = this->size();
-
   m_DockRight->setWindowTitle("Registration");
+  m_Model->GetRegistrationModel()->SetFreeRotationMode(false);
   m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
   m_DockRight->setVisible(true);
 }
 
+
+void MainImageWindow::on_actionFree_Rotation_Mode_triggered()
+{
+  // Remember the size of the window before the right dock was shown
+  m_SizeWithoutRightDock = this->size();
+  m_DockRight->setWindowTitle("Free Rotation");
+  m_Model->GetRegistrationModel()->SetFreeRotationMode(true);
+  m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
+  m_DockRight->setVisible(true);
+}
 
 void MainImageWindow::on_actionMainControlPanel_triggered()
 {
@@ -2664,4 +2675,6 @@ void MainImageWindow::on_actionReloadSegmentation_triggered()
       }
     }
 }
+
+
 

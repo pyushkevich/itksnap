@@ -93,6 +93,9 @@ RegistrationModel::RegistrationModel()
   // Initialize the moving layer ID to be -1
   m_MovingLayerId = NOID;
 
+  // Free rotation mode is off
+  m_FreeRotationModeModel = NewSimpleConcreteProperty(false);
+
   // Set up the metric renderer
   m_RegistrationProgressRenderer = OptimizationProgressRenderer::New();
   m_RegistrationProgressRenderer->SetModel(this);
@@ -975,6 +978,10 @@ bool RegistrationModel::CheckState(RegistrationModel::UIState state)
       return m_Driver->GetIRISImageData()->IsMainLoaded();
     case UIF_MOVING_SELECTED:
       return m_MovingLayerId != NOID;
+    case UIF_FREE_ROTATION_MODE:
+      return this->GetFreeRotationMode();
+    case UIF_REGISTRATION_MODE:
+      return !this->GetFreeRotationMode();
     default:
       return false;
     }

@@ -354,6 +354,8 @@ private slots:
 
   void on_actionReloadSegmentation_triggered();
 
+  void on_actionFree_Rotation_Mode_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

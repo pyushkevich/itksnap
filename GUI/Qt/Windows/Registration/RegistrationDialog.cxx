@@ -9,6 +9,7 @@
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtSliderCoupling.h"
 #include "QtAbstractButtonCoupling.h"
+#include "QtPagedWidgetCoupling.h"
 #include "QtWidgetArrayCoupling.h"
 #include "RegistrationModel.h"
 #include "QtWidgetActivator.h"
@@ -46,6 +47,13 @@ RegistrationDialog::~RegistrationDialog()
 void RegistrationDialog::SetModel(RegistrationModel *model)
 {
   m_Model = model;
+
+  // Couple top page to registration/rotation mode
+  std::map<bool, QWidget *> free_rotation_page_map;
+  free_rotation_page_map[false] = ui->pgRegistration;
+  free_rotation_page_map[true] = ui->pgRotation;
+  makePagedWidgetCoupling(ui->stackFreeRotationMode, m_Model->GetFreeRotationModeModel(),
+                          free_rotation_page_map);
 
   makeCoupling(ui->inMovingLayer, m_Model->GetMovingLayerModel());
 
@@ -85,6 +93,9 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
                  RegistrationModel::UIF_MOVING_SELECTION_AVAILABLE);
   activateOnFlag(ui->pgManual, m_Model,
                  RegistrationModel::UIF_MOVING_SELECTED);
+  activateOnAllFlags(ui->pgAuto, m_Model,
+                     RegistrationModel::UIF_MOVING_SELECTED, RegistrationModel::UIF_REGISTRATION_MODE,
+                     QtWidgetActivator::HideInactive);
 
   // This command just updates the GUI after each iteration - causing the images to
   // jitter over different iterations

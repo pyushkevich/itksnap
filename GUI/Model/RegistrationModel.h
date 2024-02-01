@@ -35,7 +35,9 @@ public:
     */
   enum UIState {
     UIF_MOVING_SELECTION_AVAILABLE,
-    UIF_MOVING_SELECTED
+    UIF_MOVING_SELECTED,
+    UIF_FREE_ROTATION_MODE,
+    UIF_REGISTRATION_MODE
   };
 
   /** Allowed transformation models - to be expanded in the future */
@@ -116,6 +118,7 @@ public:
   irisSimplePropertyAccessMacro(UseSegmentationAsMask, bool)
   irisGenericPropertyAccessMacro(CoarsestResolutionLevel, int, ResolutionLevelDomain)
   irisGenericPropertyAccessMacro(FinestResolutionLevel, int, ResolutionLevelDomain)
+  irisSimplePropertyAccessMacro(FreeRotationMode, bool)
 
   void SetIterationCommand(itk::Command *command);
 
@@ -222,6 +225,8 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_UseSegmentationAsMaskModel;
 
   SmartPtr<ConcreteSimpleDoubleProperty> m_LastMetricValueModel;
+
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FreeRotationModeModel;
 
   // Multi-resolution schedule - coarsest and finest levels
   int m_CoarsestResolutionLevel, m_FinestResolutionLevel;
