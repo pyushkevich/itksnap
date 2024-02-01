@@ -49,6 +49,8 @@ private slots:
 
   void on_actionMoments_of_Inertia_triggered();
 
+  void onFreeRotationModeChange(const EventBucket &);
+
 private:
   Ui::RegistrationDialog *ui;
 

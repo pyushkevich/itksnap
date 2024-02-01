@@ -73,24 +73,92 @@ QToolButton::pressed {
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="label_15">
+         <property name="styleSheet">
+          <string notr="true">font-size:10pt;
+color: dimgray;</string>
+         </property>
          <property name="text">
-          <string>Moving image layer:</string>
+          <string>Perform rigid or affine registration between the main image and one of the additional image layers.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QComboBox" name="inMovingLayer"/>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>0</height>
+          </size>
+         </property>
+        </spacer>
        </item>
       </layout>
      </widget>
      <widget class="QWidget" name="pgRotation">
       <layout class="QVBoxLayout" name="verticalLayout_7">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
-        <widget class="QWidget" name="widget_5" native="true"/>
+        <widget class="QLabel" name="label_16">
+         <property name="styleSheet">
+          <string notr="true">font-size:10pt;
+color: dimgray;</string>
+         </property>
+         <property name="text">
+          <string>View the main image and perform segmentation from arbitrary oblique viewing angles. Some segmentation functionality is disabled in this mode.</string>
+         </property>
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="grpMovingImage" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout_8">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Moving image layer:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="inMovingLayer"/>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -110,7 +178,7 @@ QToolButton::pressed {
     </spacer>
    </item>
    <item>
-    <widget class="QTabWidget" name="tabWidget">
+    <widget class="QTabWidget" name="tabAutoManual">
      <property name="styleSheet">
       <string notr="true">QDoubleSpinBox {
   font-size: 10px;
@@ -333,7 +401,7 @@ QComboBox {
             <x>0</x>
             <y>0</y>
             <width>161</width>
-            <height>180</height>
+            <height>110</height>
            </rect>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">

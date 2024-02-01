@@ -48,6 +48,10 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
 {
   m_Model = model;
 
+  // Handling the transition from free rotation to registration is too complex to
+  // do through flags and activation. Instead we have a dedicated slot for this
+  connectITK(m_Model->GetFreeRotationModeModel(), ValueChangedEvent(), SLOT(onFreeRotationModeChange(const EventBucket *)));
+
   // Couple top page to registration/rotation mode
   std::map<bool, QWidget *> free_rotation_page_map;
   free_rotation_page_map[false] = ui->pgRegistration;
@@ -93,9 +97,11 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
                  RegistrationModel::UIF_MOVING_SELECTION_AVAILABLE);
   activateOnFlag(ui->pgManual, m_Model,
                  RegistrationModel::UIF_MOVING_SELECTED);
-  activateOnAllFlags(ui->pgAuto, m_Model,
-                     RegistrationModel::UIF_MOVING_SELECTED, RegistrationModel::UIF_REGISTRATION_MODE,
-                     QtWidgetActivator::HideInactive);
+  activateOnFlag(ui->pgAuto, m_Model,
+                 RegistrationModel::UIF_MOVING_SELECTED);
+  // activateOnAllFlags(ui->grpMovingImage, m_Model,
+  //                    RegistrationModel::UIF_MOVING_SELECTED, RegistrationModel::UIF_REGISTRATION_MODE,
+  //                    QtWidgetActivator::HideInactive);
 
   // This command just updates the GUI after each iteration - causing the images to
   // jitter over different iterations
@@ -246,7 +252,7 @@ void RegistrationDialog::on_buttonBox_clicked(QAbstractButton *button)
 void RegistrationDialog::on_tabWidget_currentChanged(int index)
 {
   // Activate the interactive tool when the user switches to the manual page
-  if(ui->tabWidget->currentWidget() == ui->pgManual)
+  if(ui->tabAutoManual->currentWidget() == ui->pgManual)
     m_Model->GetInteractiveToolModel()->SetValue(true);
 }
 
@@ -323,4 +329,19 @@ void RegistrationDialog::on_actionMoments_of_Inertia_triggered()
   // Turn on the wait cursor
   QtCursorOverride cursor(Qt::WaitCursor);
   m_Model->MatchByMoments(2);
+  }
+
+void RegistrationDialog::onFreeRotationModeChange(const EventBucket &)
+{
+  std::cout << "ROTATION MODE CHANGE" << std::endl;
+  if(m_Model->GetFreeRotationMode())
+    {
+    ui->tabAutoManual->setTabEnabled(ui->tabAutoManual->indexOf(ui->pgAuto), false);
+    ui->grpMovingImage->setVisible(false);
+    }
+  else
+    {
+    ui->tabAutoManual->setTabEnabled(ui->tabAutoManual->indexOf(ui->pgAuto), true);
+    ui->grpMovingImage->setVisible(true);
+    }
 }

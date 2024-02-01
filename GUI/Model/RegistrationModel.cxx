@@ -95,6 +95,7 @@ RegistrationModel::RegistrationModel()
 
   // Free rotation mode is off
   m_FreeRotationModeModel = NewSimpleConcreteProperty(false);
+  Rebroadcast(m_FreeRotationModeModel, ValueChangedEvent(), StateMachineChangeEvent());
 
   // Set up the metric renderer
   m_RegistrationProgressRenderer = OptimizationProgressRenderer::New();
