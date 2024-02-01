@@ -50,7 +50,8 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
 
   // Handling the transition from free rotation to registration is too complex to
   // do through flags and activation. Instead we have a dedicated slot for this
-  connectITK(m_Model->GetFreeRotationModeModel(), ValueChangedEvent(), SLOT(onFreeRotationModeChange(const EventBucket *)));
+  connectITK(m_Model->GetFreeRotationModeModel(), ValueChangedEvent(),
+             SLOT(onFreeRotationModeChange(const EventBucket &)));
 
   // Couple top page to registration/rotation mode
   std::map<bool, QWidget *> free_rotation_page_map;
@@ -249,7 +250,7 @@ void RegistrationDialog::on_buttonBox_clicked(QAbstractButton *button)
   emit wizardFinished();
 }
 
-void RegistrationDialog::on_tabWidget_currentChanged(int index)
+void RegistrationDialog::on_tabAutoManual_currentChanged(int index)
 {
   // Activate the interactive tool when the user switches to the manual page
   if(ui->tabAutoManual->currentWidget() == ui->pgManual)
@@ -338,10 +339,14 @@ void RegistrationDialog::onFreeRotationModeChange(const EventBucket &)
     {
     ui->tabAutoManual->setTabEnabled(ui->tabAutoManual->indexOf(ui->pgAuto), false);
     ui->grpMovingImage->setVisible(false);
+    ui->grpScaling->setVisible(false);
+    ui->btnMatchCenters->setVisible(false);
     }
   else
     {
     ui->tabAutoManual->setTabEnabled(ui->tabAutoManual->indexOf(ui->pgAuto), true);
     ui->grpMovingImage->setVisible(true);
+    ui->grpScaling->setVisible(true);
+    ui->btnMatchCenters->setVisible(true);
     }
 }

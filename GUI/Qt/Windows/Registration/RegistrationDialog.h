@@ -39,7 +39,7 @@ private slots:
 
   void on_buttonBox_clicked(QAbstractButton *button);
 
-  void on_tabWidget_currentChanged(int index);
+  void on_tabAutoManual_currentChanged(int index);
 
   void on_btnReslice_clicked();
 

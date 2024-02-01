@@ -17,6 +17,7 @@ template <unsigned int VDim, class TReal> class GreedyApproach;
 namespace itk
 {
   class Command;
+  template <typename TParametersValueType, unsigned int N1, unsigned int N2> class MatrixOffsetTransformBase;
 }
 
 class RegistrationModel : public AbstractModel
@@ -160,6 +161,7 @@ protected:
   typedef itk::Matrix<double, 3, 3> ITKMatrixType;
   typedef itk::Vector<double, 3> ITKVectorType;
   typedef GreedyApproach<3, float> GreedyAPI;
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
 
   // A little function to make homogeneous matrices from matrix/offset
   static Mat4 make_homog(const Mat3 &A, const Vec3 &b) ;
@@ -169,6 +171,10 @@ protected:
 
   // Pointer to the GreedyAPI. This is only non-null during RunAutoRegistration();
   GreedyAPI *m_GreedyAPI;
+
+  // Shorthand to generate an ITK affine transform from a matrix and a vector
+  SmartPtr<AffineTransform> MakeTransform(const ITKMatrixType &matrix, const ITKVectorType &offset) const;
+  SmartPtr<AffineTransform> MakeIdentityTransform() const;
 
   void ResetOnMainImageChange();
 

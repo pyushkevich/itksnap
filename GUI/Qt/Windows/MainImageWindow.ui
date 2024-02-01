@@ -1575,7 +1575,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionRegistration">
    <property name="text">
-    <string>Image Registration Mode</string>
+    <string>Image Registration...</string>
    </property>
    <property name="toolTip">
     <string>Perform image registration</string>
@@ -1851,7 +1851,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionFree_Rotation_Mode">
    <property name="text">
-    <string>Free Rotation Mode</string>
+    <string>Image Free Rotation...</string>
    </property>
   </action>
  </widget>
