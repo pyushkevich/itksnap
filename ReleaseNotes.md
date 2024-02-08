@@ -4,21 +4,29 @@ ITK-SNAP Release Notes - Version 4.2
 ----
 
 ### New Features
-- Native floating point type support and NaN support
-- Main image now can be transformed using manual registration tool
-- Workspace tool now have commands for mesh layers
+- Experimental support for free rotation of the main image (`Tools->Image Free Rotation...`)
+  - Polygon and paintbrush tools can be applied from oblique rotation angles 
+- Native support for 32 and 64 bit floating point images
+  - Previously, these images were represented internally as 16 bit integer, with rounding errors
+  - NaN (not a number) values are supported, custom color can be assigned in the color map
+- Performance improvements:
+  - Faster image load times made possible by efficient computatation of histogram and quantiles using the **[tdigest](https://github.com/SpirentOrion/digestible)** data structure
+  - Faster rendering of large 2D images
 - Image IO Improvements:
   - NRRD Volume Sequence Reading
   - 4DCTA auto format detection now can detect wider range of images
-- Added a hotkey to switch between background & foreground Labels
-- 4D image now can be reloaded as multi-component image
-- Multi-component image now can be reloaded as 4D image
-- Now image data can be reloaded from source file, without reopening the workspace
-- Now multiple segmentation images can be loaded from the command line
-- Added a hotkey for continuous update
-- Added compose and inverse transforms options to the opening transform dialog in the registration panel
+- Improvements to label definitions file IO:
+  - A new submenu (`Segmentation->Label Definitions` includes recent items submenu)
+  - Label definitions can be loaded by drag & drop
+- New commands for reloading image layers (in context menus and layer editor):
+  - Main image and overlay can be reloaded from disk without closing the workspace
+  - 4D (3D+time) images can be reloaded as multi-component images and vice versa
+- Added options to compose and invert transforms to the "open transform" dialog in the registration panel
+- Added a hotkey to switch between background & foreground labels
+- Added a hotkey to toggle continuous update of 3D rendering
 - More accurate UI text for loading/saving 3d/4d segmentations in 4d workspace
-- Now label description files can be loaded by drag & drop
+- Multiple segmentation images can be loaded from the command line
+- Workspace tool `itksnap-wt` includes new commands for mesh layers
 ### Bug Fixes
 - Closing main image from layer context menu now will correctly prompt saving changes for overlay layers
 - Loading 3d segmentation into a 4d time point no longer prompts warning, if the time point does not have unsaved changes
