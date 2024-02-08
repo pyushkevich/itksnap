@@ -1,6 +1,6 @@
 ITK-SNAP Release Notes - Version 4.2
 ====================================
-## Version 4.2.0 alpha.1
+## Version 4.2.0 alpha.3
 ----
 
 ### New Features
