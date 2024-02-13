@@ -3074,7 +3074,7 @@ typename ImageWrapper<TTraits>::FloatImageType *
 ImageWrapper<TTraits>
 ::CreateCastToFloatPipeline(const char *key, int index)
 {
-  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
   typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
 
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
@@ -3093,7 +3093,7 @@ typename ImageWrapper<TTraits>::FloatVectorImageType *
 ImageWrapper<TTraits>
 ::CreateCastToFloatVectorPipeline(const char *key, int index)
 {
-  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
 
   // Create a pipeline that maps us to the matching image
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
@@ -3113,7 +3113,7 @@ template<class TTraits>
 typename ImageWrapper<TTraits>::FloatSliceType *
 ImageWrapper<TTraits>::CreateCastToFloatSlicePipeline(const char *key, unsigned int slice)
 {
-  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
 
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
       SliceType, FloatSliceType, NativeIntensityMapping, IsLinear::value, !IsVector::value> Specialization;
@@ -3130,7 +3130,7 @@ template<class TTraits>
 typename ImageWrapper<TTraits>::FloatVectorSliceType *
 ImageWrapper<TTraits>::CreateCastToFloatVectorSlicePipeline(const char *key, unsigned int slice)
 {
-  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
   typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
 
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
