@@ -539,7 +539,7 @@ void RegistrationModel::UpdateWrapperFromManualParameters()
   m_ManualParam.AffineOffset.SetVnlVector(M.get_column(3).extract(3));
 
   // Update the layer's transform
-  SetMovingTransform(m_ManualParam.AffineMatrix, m_ManualParam.AffineOffset);
+  SetMovingTransform(m_ManualParam.AffineMatrix, m_ManualParam.AffineOffset, true);
 
   // Update the state of the cache
   m_ManualParam.LayerID = m_MovingLayerId;
@@ -603,7 +603,9 @@ void RegistrationModel::SetRotationCenter(const Vector3ui &pos)
   this->UpdateManualParametersFromWrapper(false, true);
 }
 
-void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixType &matrix, const RegistrationModel::ITKVectorType &offset)
+void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixType &matrix,
+                                           const RegistrationModel::ITKVectorType &offset,
+                                           bool skipParameterUpdate)
 {
   // Create a new transform
   AffineTransform::Pointer affine = MakeTransform(matrix, offset);
@@ -621,7 +623,8 @@ void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixTyp
     }
 
   // Update our parameters
-  this->UpdateManualParametersFromWrapper(false, false);
+  if (!skipParameterUpdate)
+    this->UpdateManualParametersFromWrapper(false, false);
 }
 
 void RegistrationModel::GetMovingTransform(ITKMatrixType &matrix, ITKVectorType &offset)
