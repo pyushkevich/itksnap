@@ -192,7 +192,7 @@ protected:
   void GetMovingTransform(ITKMatrixType &matrix, ITKVectorType &offset);
 
   // Set the transform in the moving layer
-  void SetMovingTransform(const ITKMatrixType &matrix, const ITKVectorType &offset);
+  void SetMovingTransform(const ITKMatrixType &matrix, const ITKVectorType &offset, bool skipParameterUpdate = false);
 
   SmartPtr<AbstractLayerSelectionModel> m_MovingLayerModel;
   bool GetMovingLayerValueAndRange(unsigned long &value, LayerSelectionDomain *range);
