@@ -141,6 +141,7 @@ public slots:
   void LoadAnotherRecentSegmentationActionTriggered();
   void LoadRecentProjectActionTriggered();
   void LoadAnotherDicomActionTriggered();
+  void LoadRecentLabelDefinitionsTriggered();
 
   void AdjustMarginsForDocks();
   void onModelUpdate(const EventBucket &b);
@@ -345,6 +346,16 @@ private slots:
 
   void on_actionToggle_4D_Replay_triggered();
 
+  void on_actionSwitch_Foreground_Background_Labels_triggered();
+
+  void on_actionContinuous_Update_triggered();
+
+  void on_actionResetLabels_triggered();
+
+  void on_actionReloadSegmentation_triggered();
+
+  void on_actionFree_Rotation_Mode_triggered();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);
@@ -380,6 +391,9 @@ private:
 
   // Common method for loading recent segmentations (either open or add)
   void LoadRecentSegmentation(QString file, bool additive);
+
+  // Common method for loading label definitions
+  void LoadLabelDefinitions(QString file);
 
   // Update 4D Replay Timer and Interval
   void Update4DReplay();

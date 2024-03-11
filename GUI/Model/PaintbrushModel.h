@@ -3,10 +3,11 @@
 
 #include "AbstractModel.h"
 #include "GlobalState.h"
+#include <vtkSmartPointer.h>
+#include <vtkPoints2D.h>
 
 class GenericSliceModel;
 class BrushWatershedPipeline;
-
 
 class PaintbrushModel : public AbstractModel
 {
@@ -35,8 +36,14 @@ public:
   // should be rendered
   Vector3d GetCenterOfPaintbrushInSliceSpace();
 
+  // Get whether main image has been transformed
+  bool HasMainImageTransformed();
+
   bool TestInside(const Vector2d &x, const PaintbrushSettings &ps);
   bool TestInside(const Vector3d &x, const PaintbrushSettings &ps);
+
+  // Getter and Setter for brush points
+  irisGetSetMacro(BrushPoints, vtkSmartPointer<vtkPoints2D>)
 
 protected:
 
@@ -67,6 +74,13 @@ protected:
 
   GenericSliceModel *m_Parent;
   BrushWatershedPipeline *m_Watershed;
+
+  // Stores the brush points built by the renderer
+  vtkSmartPointer<vtkPoints2D> m_BrushPoints;
+
+  // Apply brush logic if main is transformed
+  // Returns true if changes were made
+  bool ApplyBrushByPolygonRasterization(bool reverse_mode, bool dragging);
 
   friend class PaintbrushRenderer;
 

@@ -8,6 +8,7 @@
 #include <digestible/digestible.h>
 #include <itkVectorImage.h>
 #include <itkImageToImageFilter.h>
+#include <itkImageSink.h>
 
 /**
  * A wrapper around the t-digest data structure that can be used in ITK
@@ -57,7 +58,7 @@ protected:
  *
  */
 template <class TInputImage>
-class TDigestImageFilter : public itk::ImageToImageFilter<TInputImage, TInputImage>
+class TDigestImageFilter : public itk::ImageSink<TInputImage>
 {
 public:
 
@@ -67,7 +68,7 @@ public:
 
   /** Standard class typedefs. */
   typedef TDigestImageFilter                                  Self;
-  typedef itk::ImageToImageFilter<TInputImage, TInputImage>   Superclass;
+  typedef itk::ImageSink<TInputImage>                         Superclass;
   typedef itk::SmartPointer< Self >                           Pointer;
   typedef itk::SmartPointer< const Self >                     ConstPointer;
 
@@ -110,9 +111,20 @@ public:
   void SetIntensityTransform(double scale, double shift);
 
   /**
-   * Get the t-digest output, wrapped as an itk::DataObject
+   * Only insert a fraction of pixels into the TDigest. The fraction inserted will
+   * be approximately 2^log_2_sampling_rate i.e., if log_2_sampling_rate is 4, then
+   * every 16th pixel will be sampled, on average. Sampling uses a pseudo-random
+   * number generator to skip pixels. Min, max and the number of NaN values are still
+   * computed from the entire image. Sampling is recommended for very large images
+   * for performance reasons, since TDigest insertion is around 60ns per pixel.
    */
-  const TDigestDataObject *GetTDigest() const { return m_TDigestDataObject; }
+  void SetLog2SamplingRate(int log_2_sampling_rate);
+
+  /**
+   * Get the t-digest output, wrapped as an itk::DataObject. Before using this object
+   * call Update() on it.
+   */
+  TDigestDataObject *GetTDigest() { return m_TDigestDataObject; }
 
   /** Get the image min as an itk::DataObject for use in pipelines */
   const MinMaxObjectType *GetImageMin() const { return m_ImageMinDataObject; }
@@ -126,10 +138,10 @@ protected:
   virtual ~TDigestImageFilter() {}
   void PrintSelf(std::ostream & os, itk::Indent indent) const ITK_OVERRIDE;
 
-  void AllocateOutputs() override;
-  void BeforeThreadedGenerateData() override;
-  void AfterThreadedGenerateData() override;
-  void DynamicThreadedGenerateData(const RegionType &) override;
+  virtual void BeforeStreamedGenerateData() override;
+  virtual void AfterStreamedGenerateData() override;
+  virtual void ThreadedStreamedGenerateData(const RegionType &) override;
+  virtual void StreamedGenerateData(unsigned int inputRequestedRegionNumber) override;
 
 private:
 
@@ -144,6 +156,9 @@ private:
 
   // Intensity transform
   double m_TransformScale, m_TransformShift;
+
+  // Sampling rate
+  int m_Log2SamplingRate;
 
   // Mutex for combining digests
   std::mutex m_Mutex;

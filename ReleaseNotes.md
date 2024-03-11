@@ -1,5 +1,51 @@
-ITK-SNAP Release Notes - Version 4.0
+ITK-SNAP Release Notes - Version 4.2
 ====================================
+## Version 4.2.0 alpha.3
+----
+
+### New Features
+- Experimental support for free rotation of the main image (`Tools->Image Free Rotation...`)
+  - Polygon and paintbrush tools can be applied from oblique rotation angles 
+- Native support for 32 and 64 bit floating point images
+  - Previously, these images were represented internally as 16 bit integer, with rounding errors
+  - NaN (not a number) values are supported, custom color can be assigned in the color map
+- Performance improvements:
+  - Faster image load times made possible by efficient computatation of histogram and quantiles using the **[tdigest](https://github.com/SpirentOrion/digestible)** data structure
+  - Faster rendering of large 2D images
+- Image IO Improvements:
+  - NRRD Volume Sequence Reading
+  - 4DCTA auto format detection now can detect wider range of images
+- Improvements to label definitions file IO:
+  - A new submenu (`Segmentation->Label Definitions` includes recent items submenu)
+  - Label definitions can be loaded by drag & drop
+- New commands for reloading image layers (in context menus and layer editor):
+  - Main image and overlay can be reloaded from disk without closing the workspace
+  - 4D (3D+time) images can be reloaded as multi-component images and vice versa
+- Added options to compose and invert transforms to the "open transform" dialog in the registration panel
+- Added a hotkey to switch between background & foreground labels
+- Added a hotkey to toggle continuous update of 3D rendering
+- More accurate UI text for loading/saving 3d/4d segmentations in 4d workspace
+- Multiple segmentation images can be loaded from the command line
+- Workspace tool `itksnap-wt` includes new commands for mesh layers
+### Bug Fixes
+- Closing main image from layer context menu now will correctly prompt saving changes for overlay layers
+- Loading 3d segmentation into a 4d time point no longer prompts warning, if the time point does not have unsaved changes
+- Now correctly displaying deformation grid for image layers displayed on top of main image
+
+## Version 4.0.2
+### Bug Fixes
+- Fixed an issue reporting invalid vector error when reading dicom series containing multiple images for only one slice
+- Fixed an issue caused long reading time when drag&drop large image files
+- Fixed an issue caused crash when using hotkeys < and > to change foreground labels
+
+
+## Version 4.0.1
+### Bug Fixes
+- Interpolation Dialog now displays correct initial settings
+- Reorient Dialog now correctly renders the axes direction when determinant of the direction matrix is negative
+- Registration panel now reslices 4D moving images into 4D
+
+
 ## Version 4.0.0
 ----
 

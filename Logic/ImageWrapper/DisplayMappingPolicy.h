@@ -145,7 +145,7 @@ public:
    * pooled histogram, e.g., when the display is in RGB mode
    * @param nBins Number of bins desired in the histogram
    */
-  virtual const TDigest *GetTDigest() = 0;
+  virtual TDigest *GetTDigest() = 0;
 
   virtual void SetColorMap(ColorMap *map) = 0;
 
@@ -227,7 +227,7 @@ public:
 
   Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
 
-  virtual const TDigest *GetTDigest() override;
+  virtual TDigest *GetTDigest() override;
 
   /**
    * Get the display slice in a given direction.  To change the
@@ -453,7 +453,7 @@ public:
   DisplaySlicePointer GetDisplaySlice(unsigned int slice) ITK_OVERRIDE;
 
   Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
-  virtual const TDigest *GetTDigest() override;
+  virtual TDigest *GetTDigest() override;
 
   /**
    * @brief Returns true when the display mode is such that the image min, max

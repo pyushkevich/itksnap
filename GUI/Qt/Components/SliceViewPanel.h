@@ -52,8 +52,6 @@ private slots:
   void on_actionAnnotationEdit_triggered();
 
 private slots:
-  void on_inSlicePosition_valueChanged(int value);
-
   void on_btnZoomToFit_clicked();
 
   void onModelUpdate(const EventBucket &eb);

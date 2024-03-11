@@ -18,8 +18,9 @@ ScalarImageHistogram::~ScalarImageHistogram()
 }
 
 void ScalarImageHistogram
-::ComputeFromTDigest(const TDigestDataObject *digest, unsigned int nBins)
+::ComputeFromTDigest(TDigestDataObject *digest, unsigned int nBins)
 {
+  digest->Update();
   this->Initialize(digest->GetImageMinimum(), digest->GetImageMaximum(), nBins);
   double cdf_left, cdf_right;
   for(int i = 0; i < m_BinCount; i++)

@@ -15,10 +15,17 @@ public:
   typedef AbstractPropertyModel<PaintbrushMode> AbstractPaintbrushModeModel;
   typedef ConcretePropertyModel<PaintbrushMode> ConcretePaintbrushModeModel;
 
+  enum UIState {
+    UIF_VOLUMETRIC_OK,
+    UIF_ADAPTIVE_OK
+  };
+
   irisGetMacro(ParentModel, GlobalUIModel *)
   void SetParentModel(GlobalUIModel *parent);
 
   virtual void OnUpdate() ITK_OVERRIDE;
+
+  bool CheckState(PaintbrushSettingsModel::UIState state);
 
   irisGetMacro(PaintbrushModeModel, AbstractPaintbrushModeModel *)
 

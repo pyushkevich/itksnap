@@ -19,7 +19,7 @@ public:
   irisITKObjectMacro(ScalarImageHistogram, itk::DataObject)
 
   /** Compute the histogram from a t-digest */
-  void ComputeFromTDigest(const TDigestDataObject *, unsigned int nBins = 128);
+  void ComputeFromTDigest(TDigestDataObject *, unsigned int nBins = 128);
 
   void Initialize(double vmin, double vmax, size_t nBins);
   void AddSample(double v);

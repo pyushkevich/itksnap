@@ -19,6 +19,10 @@
 #include "LatentITKEventNotifier.h"
 #include "AllPurposeProgressAccumulator.h"
 #include "MeshImportWizard.h"
+#include "ImageIOWizardModel.h"
+#include "ImageIOWizard.h"
+#include "GuidedNativeImageIO.h"
+#include <itkImageIOBase.h>
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -35,6 +39,24 @@ DropActionDialog::~DropActionDialog()
 void DropActionDialog::SetDroppedFilename(QString name)
 {
   ui->outFilename->setText(name);
+
+  bool isWorkspace4D = m_Model->GetDriver()->GetNumberOfTimePoints() > 1;
+
+  auto io = GuidedNativeImageIO::New();
+  Registry dummyReg;
+  io->ReadNativeImageHeader(name.toStdString().c_str(), dummyReg);
+  auto header = io->GetIOBase();
+  QString btnLoadSegText("Load as Segmentation");
+  QString btnLoadSegToolTip("This will replace the current segmentation image with the dropped image.");
+
+  if (header->GetNumberOfDimensions() < 4 && isWorkspace4D)
+    {
+    btnLoadSegText = QString("Load as Segmentation in Time Point");
+    btnLoadSegToolTip = QString("This will replace the segmentation in current time point");
+    }
+
+  ui->btnLoadSegmentation->setText(btnLoadSegText);
+  ui->btnLoadSegmentation->setToolTip(btnLoadSegToolTip);
 }
 
 void DropActionDialog::SetModel(GlobalUIModel *model)
@@ -182,12 +204,16 @@ void DropActionDialog::on_btnLoadMeshToTP_clicked()
 
 void DropActionDialog::on_btnLoadSegmentation_clicked()
 {
-  // Prompt for unsaved changes before replacing the segmentation
-  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
-    return;
-
   SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
   del->Initialize(m_Model->GetDriver());
+
+  auto io = GuidedNativeImageIO::New();
+
+  // if incoming load can overwrite unsaved changes, prompt user for saving
+  if (del->CanLoadOverwriteUnsavedChanges(io, to_utf8(ui->outFilename->text())) &&
+      !SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+    return;
+
   this->LoadCommon(del);
 }
 
@@ -225,10 +251,6 @@ void DropActionDialog::on_btnLoadNew_clicked()
     b.exec();
     }
 }
-
-
-#include "ImageIOWizardModel.h"
-#include "ImageIOWizard.h"
 
 void DropActionDialog::LoadCommon(AbstractOpenImageDelegate *delegate)
 {

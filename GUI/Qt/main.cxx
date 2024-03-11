@@ -142,7 +142,8 @@ void usage(const char *progname)
   cout << "   " << progname << " [options] [main_image]" << endl;
   cout << "Image Options:" << endl;
   cout << "   -g FILE              : Load the main image from FILE" << endl;
-  cout << "   -s FILE              : Load the segmentation image from FILE" << endl;
+  cout << "   -s FILE [FILE+]      : Load the segmentation image from FILE" << endl;
+  cout << "                        :   (multiple files may be provided)" << endl;
   cout << "   -l FILE              : Load label descriptions from FILE" << endl;
   cout << "   -o FILE [FILE+]      : Load additional images from FILE" << endl;
   cout << "                        :   (multiple files may be provided)" << endl;
@@ -185,7 +186,7 @@ struct CommandLineRequest
 public:
   std::string fnMain;
   std::vector<std::string> fnOverlay;
-  std::string fnSegmentation;
+  std::vector<std::string> fnSegmentation;
   std::string fnLabelDesc;
   std::string fnWorkspace;
   double xZoomFactor;
@@ -304,7 +305,7 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--grey",1);
   parser.AddSynonim("--grey","-g");
 
-  parser.AddOption("--segmentation",1);
+  parser.AddOption("--segmentation",-1);
   parser.AddSynonim("--segmentation","-s");
   parser.AddSynonim("--segmentation","-seg");
 
@@ -459,7 +460,10 @@ int parse(int argc, char *argv[], CommandLineRequest &argdata)
       if(parseResult.IsOptionPresent("--segmentation"))
         {
         // Get the filename
-        argdata.fnSegmentation = DecodeFilename(parseResult.GetOptionParameter("--segmentation"));
+        for(int i = 0; i < parseResult.GetNumberOfOptionParameters("--segmentation"); i++)
+          {
+          argdata.fnSegmentation.push_back(DecodeFilename(parseResult.GetOptionParameter("--segmentation", i)));
+          }
         }
 
       // Load overlay fs supplied
@@ -887,15 +891,21 @@ int main(int argc, char *argv[])
           // Load the segmentation
           if(argdata.fnSegmentation.size())
             {
+            std::string current_seg;
             try
               {
-              driver->OpenImage(argdata.fnSegmentation.c_str(), LABEL_ROLE, warnings);
+              for (int i = 0; i < argdata.fnSegmentation.size(); ++i)
+                {
+                current_seg = argdata.fnSegmentation[i];
+                driver->OpenImage(current_seg.c_str(), LABEL_ROLE, warnings
+                                  , nullptr, nullptr, i > 0);
+                }
               }
             catch(std::exception &exc)
               {
               ReportNonLethalException(mainwin, exc, "Image IO Error",
                                        QString("Failed to load segmentation %1").arg(
-                                         from_utf8(argdata.fnSegmentation)));
+                                         from_utf8(current_seg)));
               }
             }
 

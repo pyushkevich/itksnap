@@ -224,6 +224,10 @@ public:
   /** Which is the colormap of the sticky overlay */
   irisSimplePropertyAccessMacro(StickyOverlayColorMap, std::string)
 
+  /** Check if current loading may cause unsaved change lost */
+  bool CanLoadOverwriteUnsavedChanges(std::string filename);
+
+
 protected:
 
   // Standard ITK protected constructors

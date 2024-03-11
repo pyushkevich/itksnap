@@ -6,6 +6,8 @@
 #include "TDigestImageFilter.h"
 #include <itkImageRegionConstIterator.h>
 #include <itkVectorImage.h>
+#include <random>
+#include <chrono>
 
 // Type-specific functions are placed in their own namespace
 namespace TDigestImageFilter_impl {
@@ -30,27 +32,70 @@ constexpr void add_value(const TValue &value, TDigest &tdigest, unsigned long &n
     }
 };
 
+// This is the function applied to each component
+template <class TValue>
+constexpr void skip_value(const TValue &value, TValue &skip_min, TValue &skip_max, unsigned long &nan_count)
+{
+  if constexpr (std::is_floating_point<TValue>::value)
+    {
+    // Finite values are added to the TDigest
+    if(std::isfinite(value))
+      {
+      skip_min = std::min(value, skip_min);
+      skip_max = std::min(value, skip_max);
+      }
+    else if(std::isnan(value))
+      nan_count++;
+    }
+  else
+    {
+    skip_min = std::min(value, skip_min);
+    skip_max = std::min(value, skip_max);
+    }
+};
+
 template <class TImage, class TDigest>
 class Helper
 {
 public:
   using RegionType = typename TImage::RegionType;
   using PixelType = typename TImage::PixelType;
+  using Iterator = itk::ImageRegionConstIterator<TImage>;
   static constexpr unsigned int Dim = TImage::ImageDimension;
 
+  static void to_buffer(Iterator &it, PixelType *buffer, int buffer_size, int &n_read)
+    {
+    for(n_read = 0; n_read < buffer_size && !it.IsAtEnd(); ++it, ++n_read)
+      buffer[n_read] = it.Get();
+    }
+
+  /*
   static void fill_digest(
       const TImage *image, const typename TImage::RegionType &region,
+      int sampling_rate,
       TDigest &tdigest, unsigned long &nan_count)
   {
     // Keep track of NaNs
     nan_count = 0;
 
+    // Random generator for the sampling
+    std::random_device r;
+    std::seed_seq seed2{r(), r(), r(), r(), r(), r(), r(), r()};
+    std::ranlux48_base rand_src(seed2);
+    std::uniform_int_distribution<int> uniform_dist(1, sampling_rate);
+
     typedef itk::ImageRegionConstIterator<TImage> Iterator;
-    for(Iterator it(image, region); !it.IsAtEnd(); ++it)
-      add_value(it.Get(), tdigest, nan_count);
+    int samples_to_go = uniform_dist(rand_src);
+    for(Iterator it(image, region); !it.IsAtEnd(); ++it, --samples_to_go)
+      if(samples_to_go == 0)
+        {
+        add_value(it.Get(), tdigest, nan_count);
+
+        }
 
     tdigest.merge();
   }
+  */
 };
 
 template <class TPixel, unsigned int VDim, class TDigest>
@@ -60,8 +105,23 @@ public:
   using TImage = itk::VectorImage<TPixel, VDim>;
   using RegionType = typename TImage::RegionType;
   using PixelType = typename TImage::PixelType;
+  using ComponentType = typename TImage::InternalPixelType;
   static constexpr unsigned int Dim = TImage::ImageDimension;
+  using Iterator = itk::ImageRegionConstIterator<TImage>;
 
+  static void to_buffer(Iterator &it, ComponentType *buffer, int buffer_size, int &n_read)
+    {
+    unsigned int ncomp = it.GetImage()->GetNumberOfComponentsPerPixel();
+    unsigned int buffer_size_adj = ncomp * (buffer_size / ncomp);
+    for(n_read = 0; n_read < buffer_size_adj && !it.IsAtEnd(); ++it)
+      {
+      const auto &p = it.Get();
+      for(int k = 0; k < ncomp; k++, n_read++)
+        buffer[n_read] = p[k];
+      }
+    }
+
+  /*
   static void fill_digest(
       const TImage *image, const typename TImage::RegionType &region,
       TDigest &tdigest, unsigned long &nan_count)
@@ -80,6 +140,7 @@ public:
 
     tdigest.merge();
   }
+  */
 };
 
 }; // namespace
@@ -105,6 +166,7 @@ TDigestImageFilter<TInputImage>
 
   m_TransformScale = 1.0;
   m_TransformShift = 0.0;
+  m_Log2SamplingRate = 0;
 }
 
 template <class TInputImage>
@@ -114,9 +176,19 @@ TDigestImageFilter<TInputImage>
 {
   this->m_TDigestDataObject->m_TransformScale = scale;
   this->m_TDigestDataObject->m_TransformShift = shift;
+  this->Modified();
 }
 
+template <class TInputImage>
+void
+TDigestImageFilter<TInputImage>
+::SetLog2SamplingRate(int log_2_sampling_rate)
+{
+  this->m_Log2SamplingRate = log_2_sampling_rate;
+  this->Modified();
+}
 
+/*
 template< class TInputImage >
 void
 TDigestImageFilter<TInputImage>
@@ -129,12 +201,35 @@ TDigestImageFilter<TInputImage>
   outputPtr->SetBufferedRegion(inputPtr->GetBufferedRegion());
   outputPtr->SetPixelContainer(inputPtr->GetPixelContainer());
 }
+*/
+
+template< class TInputImage >
+void
+TDigestImageFilter<TInputImage>
+::StreamedGenerateData(unsigned int inputRequestedRegionNumber)
+{
+  auto t_start = std::chrono::steady_clock::now();
+  Superclass::StreamedGenerateData(inputRequestedRegionNumber);
+  auto t_stop = std::chrono::steady_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t_stop - t_start);
+
+  auto n_pixels = this->GetInput()->GetBufferedRegion().GetNumberOfPixels();
+  auto n_comp = this->GetInput()->GetNumberOfComponentsPerPixel();
+  auto n_digest = this->m_TDigestDataObject->GetTotalWeight();
+
+  /*
+  std::cout << "TDigest of size " << n_digest
+            << " for image " << this->GetInput() << " with " << n_pixels << " pixels and " << n_comp << " components"
+            << " computed in " << duration.count() << "ms."
+            << std::endl;
+  */
+}
 
 
 template< class TInputImage >
 void
 TDigestImageFilter<TInputImage>
-::BeforeThreadedGenerateData()
+::BeforeStreamedGenerateData()
 {
   m_TDigestDataObject->m_Digest.reset();
   m_TDigestDataObject->m_NaNCount = 0;
@@ -143,7 +238,7 @@ TDigestImageFilter<TInputImage>
 template< class TInputImage >
 void
 TDigestImageFilter<TInputImage>
-::DynamicThreadedGenerateData(const RegionType &region)
+::ThreadedStreamedGenerateData(const RegionType &region)
 {
   // Get the input image
   const TInputImage *img = this->GetInput();
@@ -151,8 +246,86 @@ TDigestImageFilter<TInputImage>
   // Fill the digest for this thread
   typename TDigestDataObject::TDigest thread_digest(TDigestDataObject::DIGEST_SIZE);
   unsigned long thread_nan_count = 0;
+
+  // An iterator used to parse the image
+  typedef itk::ImageRegionConstIterator<TInputImage> Iterator;
+  Iterator it(img, region);
+
+  // A helper class used to access pixels depending on iterator type
   using HelperType = Helper<TInputImage, typename TDigestDataObject::TDigest>;
-  HelperType::fill_digest(img, region, thread_digest, thread_nan_count);
+
+  // A buffer used to hold data extracted by the image iterator, assuming the overhead
+  // of copying the data to this buffer will be negligible. The buffer size should be
+  // at least as large as the number of components for multicomponent images
+  int buffer_size = std::max(1024u, img->GetNumberOfComponentsPerPixel());
+  int buffer_read = 0;
+
+  // Determine the sampling rate. Samples will be taken pseudorandomly from the
+  // buffer, so the buffer should be sized proportional to the sampling rate.
+  int sampling_rate = 1 << this->m_Log2SamplingRate;
+  buffer_size = std::max(buffer_size, 128 * sampling_rate);
+
+  // Allocate the buffer
+  ComponentType *buffer = new ComponentType[buffer_size];
+
+  // Split depending on whether we are randomly sampling or not
+  if(sampling_rate == 1)
+    {
+    // If not sampling, the procedure is basic
+    while(!it.IsAtEnd())
+      {
+      // Copy a chunk of the image to the buffer
+      HelperType::to_buffer(it, buffer, buffer_size, buffer_read);
+
+      // Digest the buffer
+      for(int i = 0; i < buffer_read; i++)
+        add_value(buffer[i], thread_digest, thread_nan_count);
+      }
+    }
+  else
+    {
+    // Random generator for the sampling
+    std::random_device r;
+    std::seed_seq seed2{r(), r(), r(), r(), r(), r(), r(), r()};
+    std::ranlux48_base rand_src(seed2);
+
+    // Keep track of the min/max of the skipped pixels, they need to be added to the digest
+    unsigned long dummy_nan_count;
+    ComponentType skip_min = std::numeric_limits<ComponentType>::max();
+    ComponentType skip_max = std::numeric_limits<ComponentType>::min();
+
+    // If not sampling, the procedure is basic
+    while(!it.IsAtEnd())
+      {
+      // Copy a chunk of the image to the buffer
+      HelperType::to_buffer(it, buffer, buffer_size, buffer_read);
+
+      // Use the entire buffer to determine min/max and number of nans
+      for(int i = 0; i < buffer_read; i++)
+        skip_value(buffer[i], skip_min, skip_max, thread_nan_count);
+
+      // Sample from the buffer with replacement
+      std::uniform_int_distribution<int> uniform_dist(0, buffer_read - 1);
+      int n_samples = buffer_read / sampling_rate;
+      for(int j = 0; j < n_samples; j++)
+        {
+        int i = uniform_dist(rand_src);
+        add_value(buffer[i], thread_digest, dummy_nan_count);
+        }
+      }
+
+    // Incorporate the min/max into the digest.
+    if(skip_max > thread_digest.max())
+      thread_digest.insert(skip_max);
+    if(skip_min > thread_digest.min())
+      thread_digest.insert(skip_min);
+    }
+
+  // Get rid of the buffer
+  delete[] buffer;
+
+  // Complete the digest
+  thread_digest.merge();
 
   // Use mutex to update the global heaps
   std::lock_guard<std::mutex> guard(m_Mutex);
@@ -167,7 +340,7 @@ TDigestImageFilter<TInputImage>
 template< class TInputImage >
 void
 TDigestImageFilter<TInputImage>
-::AfterThreadedGenerateData()
+::AfterStreamedGenerateData()
 {
   // Mark the output as modified (do we need to?)
   m_TDigestDataObject->Modified();

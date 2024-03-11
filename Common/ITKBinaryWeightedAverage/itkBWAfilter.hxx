@@ -176,7 +176,10 @@ void BinaryWeightedAveragingFilter< TLabelImage, TMainImage >
                 ++It;
             }
             if(sum ==0){
-                throw itk::ExceptionObject("Consecutive segmentations must be intersecting for Binary Weighted Averaging");
+                throw itk::ExceptionObject(
+                    "Error: consecutive segmentations must be intersecting for "
+                    "Binary Weighted Averaging. Manually specifying the axis "
+                    "of interploation may resolve this error.");
             }
 
             //Compute the Signed Distance Map of the intersecting portion

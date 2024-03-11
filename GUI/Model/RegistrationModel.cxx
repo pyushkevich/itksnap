@@ -93,6 +93,11 @@ RegistrationModel::RegistrationModel()
   // Initialize the moving layer ID to be -1
   m_MovingLayerId = NOID;
 
+  // Free rotation mode is off
+  m_FreeRotationModeModel = NewSimpleConcreteProperty(false);
+  Rebroadcast(m_FreeRotationModeModel, ValueChangedEvent(), ModelUpdateEvent());
+  Rebroadcast(m_FreeRotationModeModel, ValueChangedEvent(), StateMachineChangeEvent());
+
   // Set up the metric renderer
   m_RegistrationProgressRenderer = OptimizationProgressRenderer::New();
   m_RegistrationProgressRenderer->SetModel(this);
@@ -386,6 +391,27 @@ RegistrationModel::make_homog(const Mat3 &A, const Vec3 &b)
     M(i,3) = b[i];
     }
   return M;
+  }
+
+SmartPtr<RegistrationModel::AffineTransform>
+RegistrationModel
+::MakeTransform(const ITKMatrixType &matrix, const ITKVectorType &offset) const
+{
+  AffineTransform::Pointer affine = AffineTransform::New();
+  affine->SetMatrix(matrix);
+  affine->SetOffset(offset);
+  return affine;
+}
+
+SmartPtr<RegistrationModel::AffineTransform>
+RegistrationModel
+::MakeIdentityTransform() const
+{
+  ITKMatrixType matrix;
+  ITKVectorType offset;
+  matrix.SetIdentity();
+  offset.Fill(0.0);
+  return MakeTransform(matrix, offset);
 }
 
 RegistrationModel::Mat3
@@ -512,14 +538,8 @@ void RegistrationModel::UpdateWrapperFromManualParameters()
   m_ManualParam.AffineMatrix.GetVnlMatrix() = M.extract(3,3);
   m_ManualParam.AffineOffset.SetVnlVector(M.get_column(3).extract(3));
 
-  // Create a new transform
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
-  AffineTransform::Pointer affine = AffineTransform::New();
-  affine->SetMatrix(m_ManualParam.AffineMatrix);
-  affine->SetOffset(m_ManualParam.AffineOffset);
-
   // Update the layer's transform
-  layer->SetITKTransform(layer->GetReferenceSpace(), affine);
+  SetMovingTransform(m_ManualParam.AffineMatrix, m_ManualParam.AffineOffset, true);
 
   // Update the state of the cache
   m_ManualParam.LayerID = m_MovingLayerId;
@@ -583,15 +603,12 @@ void RegistrationModel::SetRotationCenter(const Vector3ui &pos)
   this->UpdateManualParametersFromWrapper(false, true);
 }
 
-void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixType &matrix, const RegistrationModel::ITKVectorType &offset)
+void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixType &matrix,
+                                           const RegistrationModel::ITKVectorType &offset,
+                                           bool skipParameterUpdate)
 {
   // Create a new transform
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
-  AffineTransform::Pointer affine = AffineTransform::New();
-
-  // Set the matrix of the new transform y = R ( A x + b ) + z
-  affine->SetMatrix(matrix);
-  affine->SetOffset(offset);
+  AffineTransform::Pointer affine = MakeTransform(matrix, offset);
 
   // Create a new euler transform
   ImageWrapperBase *layer = this->GetMovingLayerWrapper();
@@ -606,7 +623,8 @@ void RegistrationModel::SetMovingTransform(const RegistrationModel::ITKMatrixTyp
     }
 
   // Update our parameters
-  this->UpdateManualParametersFromWrapper(false, false);
+  if (!skipParameterUpdate)
+    this->UpdateManualParametersFromWrapper(false, false);
 }
 
 void RegistrationModel::GetMovingTransform(ITKMatrixType &matrix, ITKVectorType &offset)
@@ -882,10 +900,12 @@ void RegistrationModel::MatchByMoments(int order)
 }
 
 
-void RegistrationModel::LoadTransform(const char *filename, TransformFormat format)
+void RegistrationModel::LoadTransform(const char *filename, TransformFormat format,
+                                      bool compose, bool inverse)
 {
-  // Read the transform
-  SmartPtr<AffineTransformHelper::ITKTransformMOTB> tran;
+  using MOTB = AffineTransformHelper::ITKTransformMOTB;
+  SmartPtr<MOTB> tran;
+
   if(format == FORMAT_C3D)
     tran = AffineTransformHelper::ReadAsRASMatrix(filename);
   else
@@ -895,9 +915,22 @@ void RegistrationModel::LoadTransform(const char *filename, TransformFormat form
   this->GetParent()->GetSystemInterface()
       ->GetHistoryManager()->UpdateHistory("AffineTransform", filename, true);
 
+  if (inverse)
+    tran->GetInverse(tran);
+
+  if (compose)
+    {
+    auto existing = this->GetMovingLayerWrapper()->GetITKTransform();
+    SmartPtr<MOTB> existingMOTB = dynamic_cast<MOTB*>(existing->Clone().GetPointer());
+
+    auto newMatrix = tran->GetMatrix() * existingMOTB->GetMatrix();
+    auto newOffset = tran->GetMatrix() * existingMOTB->GetOffset() + tran->GetOffset();
+    tran->SetMatrix(newMatrix);
+    tran->SetOffset(newOffset);
+    }
+
   // Now, the transform tran should hold our matrix and offset
-  ImageWrapperBase *layer = this->GetMovingLayerWrapper();
-  layer->SetITKTransform(layer->GetReferenceSpace(), tran);
+  SetMovingTransform(tran->GetMatrix(), tran->GetOffset());
 
   // Update our parameters
   this->UpdateManualParametersFromWrapper(true, false);
@@ -966,6 +999,10 @@ bool RegistrationModel::CheckState(RegistrationModel::UIState state)
       return m_Driver->GetIRISImageData()->IsMainLoaded();
     case UIF_MOVING_SELECTED:
       return m_MovingLayerId != NOID;
+    case UIF_FREE_ROTATION_MODE:
+      return this->GetFreeRotationMode();
+    case UIF_REGISTRATION_MODE:
+      return !this->GetFreeRotationMode();
     default:
       return false;
     }
@@ -993,17 +1030,28 @@ void RegistrationModel::OnUpdate()
   bool main_changed = this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
   bool layers_changed = this->m_EventBucket->HasEvent(LayerChangeEvent());
   bool wrapper_updated = this->m_EventBucket->HasEvent(WrapperChangeEvent());
+  bool free_rotation_mode_changed = this->m_EventBucket->HasEvent(ValueChangedEvent(), m_FreeRotationModeModel);
 
   // Check for changes in the active layers
-  if(layers_changed)
+  if(layers_changed || free_rotation_mode_changed)
     {
     // Check if the active layer is still available
-    if(!m_Driver->GetCurrentImageData()->FindLayer(m_MovingLayerId, false, MAIN_ROLE | OVERLAY_ROLE))
+    auto role = this->GetFreeRotationMode() ? MAIN_ROLE : OVERLAY_ROLE;
+    if(!m_Driver->GetCurrentImageData()->FindLayer(m_MovingLayerId, false, role))
       {
       // Set the moving layer ID to the first available overlay
-      LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+      LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(role);
       m_MovingLayerId = it.IsAtEnd() ? NOID : it.GetLayer()->GetUniqueId();
       }
+    }
+
+  if(free_rotation_mode_changed)
+    {
+    // Changed free rotation mode. We should reset the transforms on all layers to identity
+    AffineTransform::Pointer identity = MakeIdentityTransform();
+    auto *cid = m_Driver->GetCurrentImageData();
+    for(auto it = cid->GetLayers(ALL_ROLES); !it.IsAtEnd(); ++it)
+        it.GetLayer()->SetITKTransform(it.GetLayer()->GetReferenceSpace(), identity);
     }
 
   // Specifically for when the main image changes
@@ -1014,7 +1062,7 @@ void RegistrationModel::OnUpdate()
     }
 
   // If there is a wrapper update, update the transform parameters
-  if(wrapper_updated || layers_changed)
+  if(wrapper_updated || layers_changed || free_rotation_mode_changed)
     {
     // This will update the cached parameters
     this->UpdateManualParametersFromWrapper(true, false);
@@ -1077,8 +1125,12 @@ void RegistrationModel::MatchImageCenters()
 
 bool RegistrationModel::GetMovingLayerValueAndRange(unsigned long &value, RegistrationModel::LayerSelectionDomain *range)
 {
-  // There must be at least one layer
-  LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
+  // This is disabled if in free rotation mode
+  if(this->GetFreeRotationMode())
+    return false;
+
+  // There must be at least one overlay layer
+  LayerIterator it = m_Driver->GetCurrentImageData()->GetLayers(OVERLAY_ROLE);
   if(it.IsAtEnd())
     return false;
 
@@ -1300,7 +1352,7 @@ void RegistrationModel::SetFinestResolutionLevelValue(int value)
     m_CoarsestResolutionLevelModel->SetValue(value);
     this->InvokeEvent(ModelUpdateEvent());
     }
-}
+  }
 
 void RegistrationModel::IterationCallback(const itk::Object *object, const itk::EventObject &event)
 {

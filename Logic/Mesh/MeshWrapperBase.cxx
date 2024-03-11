@@ -273,7 +273,7 @@ MeshWrapperBase
     }
 }
 
-const TDigestDataObject *
+TDigestDataObject *
 MeshWrapperBase::GetTDigest()
 {
   auto prop = GetActiveDataArrayProperty();

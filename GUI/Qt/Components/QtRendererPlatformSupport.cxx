@@ -5,6 +5,7 @@
 #include <QFontMetrics>
 #include "SNAPQtCommon.h"
 #include <QDebug>
+#include <QFontDatabase>
 #include <iostream>
 
 void QtRendererPlatformSupport
@@ -45,11 +46,11 @@ void QtRendererPlatformSupport
   switch(font.type)
     {
     case AbstractRendererPlatformSupport::SERIF:
-      qfont.setFamily("Times");     break;
+      qfont = QFontDatabase::systemFont(QFontDatabase::GeneralFont); break;
     case AbstractRendererPlatformSupport::SANS:
-      qfont.setFamily("Helvetica"); break;
+      qfont = QFontDatabase::systemFont(QFontDatabase::GeneralFont); break;
     case AbstractRendererPlatformSupport::TYPEWRITER:
-      qfont.setFamily("Courier"); break;
+      qfont = QFontDatabase::systemFont(QFontDatabase::FixedFont); break;
     }
 
   qfont.setPixelSize(font.pixel_size);

@@ -30,6 +30,7 @@
 #include "SNAPQtCommon.h"
 #include "QtScrollbarCoupling.h"
 #include "QtSliderCoupling.h"
+#include "QtLabelCoupling.h"
 #include <QCursor>
 #include <QBitmap>
 #include <QToolButton>
@@ -282,6 +283,7 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   // Widget coupling
   makeCoupling(ui->inSlicePosition, m_SliceModel->GetSliceIndexModel());  
+  makeCoupling(ui->lblSliceInfo, m_SliceModel->GetSliceIndexTextModel());
 
   // Activation
   activateOnFlag(this, m_GlobalUI, UIF_BASEIMG_LOADED);
@@ -349,14 +351,6 @@ void SliceViewPanel::onModelUpdate(const EventBucket &eb)
   // this is causing crash on Linux
   // ui->sliceView->GetRenderWindow()->Render();
   ui->sliceView->update();
-}
-
-void SliceViewPanel::on_inSlicePosition_valueChanged(int value)
-{
-  // Update the text output
-  int pos = ui->inSlicePosition->value();
-  int lim = ui->inSlicePosition->maximum();
-  ui->lblSliceInfo->setText(QString("%1 of %2").arg(pos+1).arg(lim+1));
 }
 
 void SliceViewPanel::ConfigureEventChain(QWidget *w)

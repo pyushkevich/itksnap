@@ -30,6 +30,7 @@
 #include <SNAPCommon.h>
 #include <ImageCoordinateTransform.h>
 #include <SNAPEvents.h>
+#include <string>
 #include "AbstractModel.h"
 #include "ImageWrapper.h"
 #include "UIReporterDelegates.h"
@@ -222,6 +223,11 @@ public:
   irisGetMacro(SliceIndexModel, AbstractRangedIntProperty *)
 
   /**
+   * Get the model that handles text display of slice index ("128 of 256")
+   */
+  irisGetMacro(SliceIndexTextModel, AbstractSimpleStringProperty *)
+
+  /**
    * Get the model than handles the selected component (timepoint) in the
    * currently selected image
    */
@@ -396,6 +402,16 @@ public:
 
   DeformationGridModel *GetDeformationGridModel();
 
+  /**
+   * Voxelize a 2d polygon (represented by list of 2d vertices) into
+   * the segmentation slice of this model
+   * if invert == true, draw foreground within the polygon and backgournd outside
+   * if reverse = true, draw background with within the polygon
+   */
+  void Voxelize2DPolygonToSegmentationSlice(
+      const std::vector<Vector2d> &vts2d, const std::string &undoTitle,
+      bool invert = false, bool reverse = false);
+
 
 protected:
 
@@ -486,6 +502,9 @@ protected:
   SmartPtr<AbstractRangedUIntProperty> m_CurrentComponentInSelectedLayerModel;
   bool GetCurrentComponentInSelectedLayerValueAndDomain(unsigned int &value, NumericValueRange<unsigned int> *domain);
   void SetCurrentComponentInSelectedLayerValue(unsigned int value);
+
+  SmartPtr<AbstractSimpleStringProperty> m_SliceIndexTextModel;
+  bool GetSliceIndexTextValue(std::string &value);
 
   SmartPtr<DeformationGridModel> m_DeformationGridModel;
 

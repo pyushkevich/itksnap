@@ -189,4 +189,5 @@ LookupTableImageFilterInstantiateMacro(char)
 LookupTableImageFilterInstantiateMacro(unsigned short)
 LookupTableImageFilterInstantiateMacro(short)
 LookupTableImageFilterInstantiateMacro(float)
+LookupTableImageFilterInstantiateMacro(double)
 

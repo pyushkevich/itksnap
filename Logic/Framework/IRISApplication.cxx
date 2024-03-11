@@ -652,7 +652,7 @@ IRISApplication
 unsigned int
 IRISApplication
 ::UpdateSegmentationWithBinarySegmentation(
-    const LabelImageType *binseg, const std::string &undoTitle)
+    const LabelImageType *binseg, const std::string &undoTitle, bool invert, bool reverse)
 {
   // Work out the 3D region to merge
   RegionType r_vol = binseg->GetBufferedRegion();
@@ -663,13 +663,16 @@ IRISApplication
                                     m_GlobalState->GetDrawingColorLabel(),
                                     m_GlobalState->GetDrawOverFilter());
 
-  // Drawing parameters
-  bool invert = m_GlobalState->GetPolygonInvert();
-
   // Iterate over the volume region
   for(LabelImageWrapper::ConstIterator it_src(binseg, r_vol); !it_src.IsAtEnd(); ++it_src, ++it_trg)
     if((it_src.Get() != 0) ^ invert)
-      it_trg.PaintAsForeground();
+      {
+      if (it_src.Get() != 0 && reverse)
+        it_trg.PaintAsBackground();
+      else
+        it_trg.PaintAsForeground();
+      }
+
 
   // Finalize
   if(it_trg.Finalize(undoTitle.c_str()))
@@ -1875,6 +1878,9 @@ IRISApplication
   // Create a native image IO object
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
+  // Configure io using delegate
+  del->ConfigureImageIO(io);
+
   // Load the header of the image
 	io->ReadNativeImageHeader(fname, *ioHints, headerProgCmd);
 
@@ -2385,6 +2391,10 @@ bool IRISApplication::IsProjectFile(const char *filename)
   // This is pretty weak. What we really need is XML validation to check
   // that this is a real registry, and then some minimal check to see that
   // this is a project file
+
+  if (!Registry::IsXML(filename))
+    return false;
+
   try
   {
   Registry preg;

@@ -459,7 +459,7 @@ public:
     The t-digest is over the 4D image.
     For multi-component data, the t-digest is pooled over all components.
     */
-  virtual const TDigestDataObject *GetTDigest() ITK_OVERRIDE;
+  virtual TDigestDataObject *GetTDigest() ITK_OVERRIDE;
 
   typedef itk::SimpleDataObjectDecorator<ComponentType> MinMaxObjectType;
 
@@ -707,6 +707,11 @@ public:
    * Check if the image has unsaved changes
    */
   virtual bool HasUnsavedChanges() const ITK_OVERRIDE;
+
+  /**
+   * Check if the time point has unsaved changes
+   */
+  virtual bool HasUnsavedChanges(unsigned int tp) const ITK_OVERRIDE;
 
   /**
    * This method is only used when this wrapper is around an image adaptor

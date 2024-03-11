@@ -279,7 +279,7 @@ inline double GetMagnitude(double *vector, size_t len)
 }
 
 
-const TDigestDataObject*
+TDigestDataObject*
 MeshLayerDataArrayProperty::
 GetTDigest()
 {

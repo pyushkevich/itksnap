@@ -173,7 +173,8 @@ IntensityCurveModel
     }
 
   // Get the correct t-digest (either active scalar layer or vector)
-  const auto *tdigest = dmp->GetTDigest();
+  auto *tdigest = dmp->GetTDigest();
+  tdigest->Update();
 
   // Check if the histogram has become stale
   if(tdigest != m_HistogramSource

@@ -90,6 +90,7 @@ public:
 
   // Display types
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
+  typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
 
   // Iterator types
@@ -138,6 +139,14 @@ public:
    */
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
+
+  /**
+   * This method samples a 2D slice based on a reference geometry from
+   * the current image and maps it using the current display mapping. It
+   * is used to generate thumbnails and for other sampling of image
+   * appearance that is outside of the main display pipeline
+   */
+  virtual DisplaySlicePointer SampleArbitraryDisplaySlice(const ImageBaseType *ref_space) ITK_OVERRIDE;
 
   /**
     Get the maximum possible value of the gradient magnitude. This will

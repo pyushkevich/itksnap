@@ -96,5 +96,5 @@ LookupTableIntensityMappingFilterInstantiateMacro(char)
 LookupTableIntensityMappingFilterInstantiateMacro(unsigned short)
 LookupTableIntensityMappingFilterInstantiateMacro(short)
 LookupTableIntensityMappingFilterInstantiateMacro(float)
-
+LookupTableIntensityMappingFilterInstantiateMacro(double)
 

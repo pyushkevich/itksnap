@@ -128,6 +128,59 @@ VectorImageWrapper<TTraits>
     }
 }
 
+template<class TTraits>
+typename VectorImageWrapper<TTraits>::DisplaySlicePointer
+VectorImageWrapper<TTraits>
+::SampleArbitraryDisplaySlice(const ImageBaseType *ref_space)
+{
+  // Get the numerical value
+  MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
+  if(mode.UseRGB || (mode.RenderAsGrid && this->GetNumberOfComponents() == 3))
+    {
+    // Create a non-orthogonal slicer for this task - we don't want to interfere with the
+    // main slicing pipeline
+    using ThumbSlicer = typename SlicerType::NonOrthogonalSlicerType;
+    typename ThumbSlicer::Pointer thumb_slicer = ThumbSlicer::New();
+    thumb_slicer->SetReferenceImage(ref_space);
+    thumb_slicer->SetInput(this->GetImage());
+
+    // The affine transform is set to identity
+    typedef itk::IdentityTransform<double, 3> IdTransformType;
+    typename IdTransformType::Pointer idTran = IdTransformType::New();
+    thumb_slicer->SetTransform(idTran);
+
+    // Perform slicing
+    thumb_slicer->Update();
+    auto *raw_thumb = thumb_slicer->GetOutput();
+
+    // Allocate the output image
+    typename Superclass::DisplaySlicePointer thumb_image = DisplaySliceType::New();
+    typename DisplaySliceType::RegionType thumb_region;
+    thumb_region.SetSize(0, ref_space->GetBufferedRegion().GetSize()[0]);
+    thumb_region.SetSize(1, ref_space->GetBufferedRegion().GetSize()[1]);
+    thumb_image->SetRegions(thumb_region);
+    thumb_image->Allocate();
+
+    // Now, put this through the display pipeline
+    auto *src_pix = raw_thumb->GetBufferPointer(), *p = src_pix;
+    auto *dst_pix = thumb_image->GetBufferPointer(), *q = dst_pix;
+    unsigned int n_pix = thumb_region.GetNumberOfPixels();
+    unsigned int k = raw_thumb->GetNumberOfComponentsPerPixel();
+    for(; q < dst_pix + n_pix; p += k, q++)
+      *q = this->GetDisplayMapping()->MapPixel(p);
+
+    return thumb_image;
+    }
+  else
+    {
+    // Just delegate to the scalar wrapper
+    ScalarImageWrapperBase *siw =
+        this->GetScalarRepresentation(mode.SelectedScalarRep, mode.SelectedComponent);
+    return siw->SampleArbitraryDisplaySlice(ref_space);
+    }
+}
+
+
 
 template <class TTraits>
 void
@@ -409,6 +462,18 @@ VectorImageWrapper<TTraits>
 template <class TTraits>
 void
 VectorImageWrapper<TTraits>
+::SetSticky(bool value)
+{
+  Superclass::SetSticky(value);
+
+  // Propagate to owned scalar wrappers
+  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+    it->second->SetSticky(value);
+}
+
+template <class TTraits>
+void
+VectorImageWrapper<TTraits>
 ::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
 {
   Superclass::SetDisplayGeometry(dispGeom);
@@ -492,3 +557,4 @@ VectorImageWrapperInstantiateMacro(char)
 VectorImageWrapperInstantiateMacro(unsigned short)
 VectorImageWrapperInstantiateMacro(short)
 VectorImageWrapperInstantiateMacro(float)
+VectorImageWrapperInstantiateMacro(double)

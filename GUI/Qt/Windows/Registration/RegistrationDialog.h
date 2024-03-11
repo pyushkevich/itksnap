@@ -39,7 +39,7 @@ private slots:
 
   void on_buttonBox_clicked(QAbstractButton *button);
 
-  void on_tabWidget_currentChanged(int index);
+  void on_tabAutoManual_currentChanged(int index);
 
   void on_btnReslice_clicked();
 
@@ -48,6 +48,8 @@ private slots:
   void on_actionCenters_of_Mass_triggered();
 
   void on_actionMoments_of_Inertia_triggered();
+
+  void onFreeRotationModeChange(const EventBucket &);
 
 private:
   Ui::RegistrationDialog *ui;

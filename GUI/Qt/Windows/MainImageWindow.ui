@@ -479,6 +479,27 @@ color:rgb(103, 103, 103);
      <addaction name="actionAddSegmentation_Open"/>
      <addaction name="menuAddSegmentation_Recent"/>
     </widget>
+    <widget class="QMenu" name="menuLabel_Definitions">
+     <property name="title">
+      <string>Label Definitions</string>
+     </property>
+     <widget class="QMenu" name="menuRecentLabelDefs">
+      <property name="title">
+       <string>Recent</string>
+      </property>
+      <addaction name="actionRecentLabelDefs1"/>
+      <addaction name="actionRecentLabelDefs2"/>
+      <addaction name="actionRecentLabelDefs3"/>
+      <addaction name="actionRecentLabelDefs4"/>
+      <addaction name="actionRecentLabelDefs5"/>
+     </widget>
+     <addaction name="menuRecentLabelDefs"/>
+     <addaction name="separator"/>
+     <addaction name="actionLoadLabels"/>
+     <addaction name="actionSaveLabels"/>
+     <addaction name="separator"/>
+     <addaction name="actionResetLabels"/>
+    </widget>
     <addaction name="actionLoad_from_Image"/>
     <addaction name="menuRecent_Segmentations"/>
     <addaction name="separator"/>
@@ -488,15 +509,17 @@ color:rgb(103, 103, 103);
     <addaction name="actionSaveSegmentationAs"/>
     <addaction name="actionSaveTimePointSegmentation"/>
     <addaction name="separator"/>
-    <addaction name="actionClear"/>
+    <addaction name="actionReloadSegmentation"/>
     <addaction name="actionClearActive"/>
+    <addaction name="actionClear"/>
     <addaction name="separator"/>
     <addaction name="actionSave_as_Mesh"/>
     <addaction name="separator"/>
-    <addaction name="actionLoadLabels"/>
-    <addaction name="actionSaveLabels"/>
-    <addaction name="separator"/>
+    <addaction name="menuLabel_Definitions"/>
     <addaction name="actionLabel_Editor"/>
+    <addaction name="separator"/>
+    <addaction name="actionSwitch_Foreground_Background_Labels"/>
+    <addaction name="actionContinuous_Update"/>
     <addaction name="separator"/>
     <addaction name="actionVolumesAndStatistics"/>
     <addaction name="separator"/>
@@ -546,6 +569,7 @@ color:rgb(103, 103, 103);
     <addaction name="menuActive_3D_Tool"/>
     <addaction name="separator"/>
     <addaction name="actionReorient_Image"/>
+    <addaction name="actionFree_Rotation_Mode"/>
     <addaction name="actionRegistration"/>
     <addaction name="separator"/>
     <addaction name="actionDSS"/>
@@ -819,7 +843,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionClear">
    <property name="text">
-    <string>Unload Segmentation</string>
+    <string>Unload All Segmentations</string>
    </property>
   </action>
   <action name="actionAdd_Overlay">
@@ -847,7 +871,7 @@ color:rgb(103, 103, 103);
      <normaloff>:/root/icons8_palette_16.png</normaloff>:/root/icons8_palette_16.png</iconset>
    </property>
    <property name="text">
-    <string>Label Editor ...</string>
+    <string>Label Editor...</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Label Editor (⌘L)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Opens the label editor, where you can edit segmentation labels.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -967,12 +991,12 @@ color:rgb(103, 103, 103);
     <string>Export as Surface Mesh...</string>
    </property>
   </action>
-  <action name="actionLoadLabels">
+  <action name="actionLoadLabelsOld">
    <property name="text">
     <string>Import Label Descriptions...</string>
    </property>
   </action>
-  <action name="actionSaveLabels">
+  <action name="actionSaveLabelsOld">
    <property name="text">
     <string>Export Label Descriptions...</string>
    </property>
@@ -1551,7 +1575,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionRegistration">
    <property name="text">
-    <string>Registration ...</string>
+    <string>Image Registration...</string>
    </property>
    <property name="toolTip">
     <string>Perform image registration</string>
@@ -1723,7 +1747,7 @@ color:rgb(103, 103, 103);
   </action>
   <action name="actionSaveTimePointSegmentation">
    <property name="text">
-    <string>Save Current Time Point Segmentation in 3D...</string>
+    <string>Save 3D Segmentation in Current Time Point...</string>
    </property>
    <property name="toolTip">
     <string>Save Time Point as 3D Segmentation</string>
@@ -1740,6 +1764,94 @@ color:rgb(103, 103, 103);
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+P</string>
+   </property>
+  </action>
+  <action name="actionSwitch_Foreground_Background_Labels">
+   <property name="text">
+    <string>Switch Foreground/Background Labels</string>
+   </property>
+   <property name="toolTip">
+    <string>Switch Foreground/Background Labels</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+L</string>
+   </property>
+  </action>
+  <action name="actionContinuous_Update">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Continuous Update 3D View</string>
+   </property>
+   <property name="toolTip">
+    <string>Toggle on/off continuous update in the 3D View</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+U</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionImport_Label_Descriptions">
+   <property name="text">
+    <string>Import...</string>
+   </property>
+  </action>
+  <action name="actionExport_to_File">
+   <property name="text">
+    <string>Export...</string>
+   </property>
+  </action>
+  <action name="actionResetLabels">
+   <property name="text">
+    <string>Reset to Defaults</string>
+   </property>
+  </action>
+  <action name="actionLoadLabels">
+   <property name="text">
+    <string>Import...</string>
+   </property>
+  </action>
+  <action name="actionSaveLabels">
+   <property name="text">
+    <string>Export...</string>
+   </property>
+  </action>
+  <action name="actionRecentLabelDefs1">
+   <property name="text">
+    <string>Recent1</string>
+   </property>
+  </action>
+  <action name="actionRecentLabelDefs2">
+   <property name="text">
+    <string>Recent2</string>
+   </property>
+  </action>
+  <action name="actionRecentLabelDefs3">
+   <property name="text">
+    <string>Recent3</string>
+   </property>
+  </action>
+  <action name="actionRecentLabelDefs4">
+   <property name="text">
+    <string>Recent4</string>
+   </property>
+  </action>
+  <action name="actionRecentLabelDefs5">
+   <property name="text">
+    <string>Recent5</string>
+   </property>
+  </action>
+  <action name="actionReloadSegmentation">
+   <property name="text">
+    <string>Reload Active Segmentation from File</string>
+   </property>
+  </action>
+  <action name="actionFree_Rotation_Mode">
+   <property name="text">
+    <string>Image Free Rotation...</string>
    </property>
   </action>
  </widget>

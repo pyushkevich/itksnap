@@ -73,6 +73,13 @@ void PaintbrushToolPanel::SetModel(PaintbrushSettingsModel *model)
 
   makeCoupling(ui->inGranularity, model->GetThresholdLevelModel());
   makeCoupling(ui->inSmoothness, model->GetSmoothingIterationsModel());
+
+  activateOnFlag(ui->chkVolumetric, m_Model,
+                 PaintbrushSettingsModel::UIF_VOLUMETRIC_OK);
+
+  activateOnFlag(ui->btnWatershed, m_Model,
+                 PaintbrushSettingsModel::UIF_ADAPTIVE_OK);
+
 }
 
 void PaintbrushToolPanel::on_actionBrushStyle_triggered()

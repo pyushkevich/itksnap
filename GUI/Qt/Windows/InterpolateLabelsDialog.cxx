@@ -6,6 +6,8 @@
 #include "QtRadioButtonCoupling.h"
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtCheckBoxCoupling.h"
+#include "QtCursorOverride.h"
+#include <QMessageBox>
 
 Q_DECLARE_METATYPE(InterpolateLabelModel::InterpolationType)
 Q_DECLARE_METATYPE(AnatomicalDirection)
@@ -71,7 +73,18 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
 
 void InterpolateLabelsDialog::on_btnInterpolate_clicked()
 {
-  m_Model->Interpolate();
+  QtCursorOverride c(Qt::WaitCursor);
+  try
+    {
+    m_Model->Interpolate();
+    }
+  catch(std::exception &exc)
+    {
+    QMessageBox b(this);
+    b.setText(exc.what());
+    b.setIcon(QMessageBox::Critical);
+    b.exec();
+    }
 }
 
 void InterpolateLabelsDialog::on_btnClose_clicked()

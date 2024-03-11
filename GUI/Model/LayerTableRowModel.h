@@ -10,6 +10,8 @@ class GlobalUIModel;
 class ImageIOWizardModel;
 struct MultiChannelDisplayMode;
 class GenericImageData;
+class AbstractReloadWrapperDelegate;
+class IRISWarningList;
 
 /**
  * @brief The LayerTableRowModel class
@@ -43,10 +45,12 @@ public:
     UIF_COLORMAP_ADJUSTABLE,
     UIF_CONTRAST_ADJUSTABLE,
     UIF_MULTICOMPONENT,
+    UIF_IS_4D, // the 4th dimension greater than 1
     UIF_VOLUME_RENDERABLE,
     UIF_IMAGE,
     UIF_MESH,
-    UIF_MESH_HAS_DATA // mesh has data for color rendering
+    UIF_MESH_HAS_DATA, // mesh has data for color rendering
+    UIF_FILE_RELOADABLE // has a corresponding file for reloading
     };
 
   // ----------------------------------------------
@@ -111,6 +115,11 @@ public:
    * Whether closing the layer requires prompting for changes
    */
   bool IsMainLayer();
+
+  /**
+   * Reload wrapper data from the file on disk
+   */
+  virtual void ReloadWrapperFromFile(IRISWarningList &wl) = 0;
 
 protected:
   AbstractLayerTableRowModel();
@@ -246,6 +255,21 @@ public:
    */
   void GenerateTextureFeatures();
 
+  /**
+   * Reload current 4d image layer to a multi-component image layer
+   */
+  void ReloadAsMultiComponent();
+
+  /**
+   * Reload current multi-component image layer to a 4d image layer
+   */
+  void ReloadAs4D();
+
+  /**
+   * Reload wrapper data from the file on disk
+   */
+  void ReloadWrapperFromFile(IRISWarningList &wl) ITK_OVERRIDE;
+
 protected:
   ImageLayerTableRowModel();
   virtual ~ImageLayerTableRowModel() = default;
@@ -332,6 +356,11 @@ public:
 
   /** Auto-adjust contrast (via the IntensityCurveModel) */
   void AutoAdjustContrast() override;
+
+  /**
+   * Reload wrapper data from the file on disk
+   */
+  void ReloadWrapperFromFile(IRISWarningList &wl) ITK_OVERRIDE;
 
   // End of virtual methods implementation
   // ----------------------------------------------

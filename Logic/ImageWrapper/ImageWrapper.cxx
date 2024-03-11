@@ -1347,6 +1347,12 @@ ImageWrapper<TTraits>
   //   1. The reference space and the new image must have the same geometry
   //   2. The transform must be identity
 
+  // Additionally, orthogonal slicing becomes quite expensive for very large images
+  // because the slice extracted is much larger that the screen region onto which
+  // it is then mapped. So we can heuristically set a maximum size after which we
+  // do not use orthogonal slicing
+  const int max_ortho_dim = 1024;
+
   // Check if the images have same dimensions
   double tol = 1e-5;
   bool same_geom = CompareGeometry(image, referenceSpace, tol);
@@ -1354,8 +1360,13 @@ ImageWrapper<TTraits>
   // Use helper class to check for identity
   bool is_identity = AffineTransformHelper::IsIdentity(transform);
 
+  // Check if any of the image dimensions are above the max
+  bool is_large = false;
+  for(unsigned int d = 0; d < 3; d++)
+    if(image->GetBufferedRegion().GetSize()[d] > max_ortho_dim)
+      is_large = true;
 
-  return same_geom && is_identity;
+  return same_geom && is_identity && (!is_large);
 }
 
 template<class TTraits>
@@ -1419,6 +1430,14 @@ ImageWrapper<TTraits>
   // Set the image as the input to the TDigest
   m_TDigestFilter->SetInput(m_Image4D);
 
+  // Set the sampling rate in the TDigest. For large images it is too computationally
+  // expensive to digest the whole image, so instead we can digest a subset of the pixels.
+  // The values here restrict sampling to a value between 500000 and 1000000.
+  auto n_values = m_Image4D->GetBufferedRegion().GetNumberOfPixels() * m_Image4D->GetNumberOfComponentsPerPixel();
+  double x_oversampling = n_values * 1.0e-6;
+  int digest_sampling_rate_log2 = x_oversampling > 1.0 ? (int) std::log2(x_oversampling * 2.0) : 0;
+  m_TDigestFilter->SetLog2SamplingRate(digest_sampling_rate_log2);
+
   // Update the image in the display mapping
   m_DisplayMapping->UpdateImagePointer(m_Image);
 
@@ -1434,6 +1453,10 @@ ImageWrapper<TTraits>
 
   // We have been initialized
   m_Initialized = true;
+
+  // Update MTime so downstream users can update accordingly
+  this->Modified();
+
 }
 
 template<class TTraits>
@@ -1918,10 +1941,9 @@ ImageWrapper<TTraits>
 }
 
 template<class TTraits>
-const TDigestDataObject *
+TDigestDataObject *
 ImageWrapper<TTraits>::GetTDigest()
 {
-  m_TDigestFilter->Update();
   return m_TDigestFilter->GetTDigest();
 }
 
@@ -1929,7 +1951,6 @@ template<class TTraits>
 const typename ImageWrapper<TTraits>::MinMaxObjectType *
 ImageWrapper<TTraits>::GetImageMinObject()
 {
-  m_TDigestFilter->Update();
   return m_TDigestFilter->GetImageMin();
 }
 
@@ -1937,7 +1958,6 @@ template<class TTraits>
 const typename ImageWrapper<TTraits>::MinMaxObjectType *
 ImageWrapper<TTraits>::GetImageMaxObject()
 {
-  m_TDigestFilter->Update();
   return m_TDigestFilter->GetImageMax();
 }
 
@@ -2055,7 +2075,7 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMinAsDouble()
 {
-  m_TDigestFilter->Update();
+  m_TDigestFilter->GetTDigest()->Update();
   return (double) m_TDigestFilter->GetTDigest()->GetImageMinimum();
 }
 
@@ -2064,7 +2084,7 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMaxAsDouble()
 {
-  m_TDigestFilter->Update();
+  m_TDigestFilter->GetTDigest()->Update();
   return (double) m_TDigestFilter->GetTDigest()->GetImageMaximum();
 }
 
@@ -2073,7 +2093,7 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMinNative()
 {
-  m_TDigestFilter->Update();
+  m_TDigestFilter->GetTDigest()->Update();
   return (double) m_TDigestFilter->GetTDigest()->GetImageMinimum();
 }
 
@@ -2082,7 +2102,7 @@ inline double
 ImageWrapper<TTraits>
 ::GetImageMaxNative()
 {
-  m_TDigestFilter->Update();
+  m_TDigestFilter->GetTDigest()->Update();
   return (double) m_TDigestFilter->GetTDigest()->GetImageMaximum();
 }
 
@@ -2264,6 +2284,10 @@ ImageWrapper<TTraits>
   for(ImagePointer img : m_ImageTimePoints)
     if(m_ImageSaveTime < img->GetTimeStamp())
       m_ImageSaveTime = img->GetTimeStamp();
+
+  // Also check global 4d image time stamp
+  if (m_ImageSaveTime < m_Image4D->GetTimeStamp())
+    m_ImageSaveTime = m_Image4D->GetTimeStamp();
 }
 
 template<class TTraits>
@@ -2341,6 +2365,150 @@ struct RemoveTransparencyFunctor
     return pnew;
   }
 };
+
+template<class TTraits>
+typename ImageWrapper<TTraits>::DisplaySlicePointer
+ImageWrapper<TTraits>
+::MakeThumbnail(unsigned int maxdim)
+{
+  // Determine which axis to use for thumbnail generation. Each axis is assigned
+  // a penalty based on the following
+  //   - Type 1 penalty is 1 if one of the slice dimensions is 1, 0 otherwise
+  //   - Type 2 penalty is 0 if slice aspect ratio is < 2.0, otherwise equal to the aspect ratio
+  //   - Type 3 penalty is the angle with the axial direction
+  using penalty = std::tuple<bool, double, double>;
+  using axis_info = std::tuple<penalty, int>;
+  std::vector<axis_info> axis_score;
+
+  auto direction = this->GetImageBase()->GetDirection().GetVnlMatrix();
+  for(int i = 0; i < 3; i++)
+    {
+    int j = (i + 1) % 3, k = (i + 2) % 3;
+    auto sz_j = this->GetSize()[j], sz_k = this->GetSize()[k];
+    double ext_j = sz_j * this->GetImageBase()->GetSpacing()[j];
+    double ext_k = sz_k * this->GetImageBase()->GetSpacing()[k];
+
+    // Is the slice 1D?
+    bool is_one_d = (sz_j == 1) || (sz_k == 1);
+
+    // Is the aspect ratio off?
+    double aspect_ratio = ext_j < ext_k ? ext_j / ext_k : ext_k / ext_j;
+    double ar_penalty = (aspect_ratio > 0.5) ? 0.0 : (0.5 - aspect_ratio);
+
+    // Angle with the axial direction
+    auto y = direction.get_column(i);
+    y.normalize();
+    double cos_alpha = y[2];
+    double sin_alpha = sqrt(1 - cos_alpha * cos_alpha);
+
+    // Create penalty
+    axis_score.push_back(std::make_tuple(std::make_tuple(is_one_d, ar_penalty, sin_alpha), i));
+    }
+
+  // Sort based on penalty
+  std::sort(axis_score.begin(), axis_score.end());
+  int thumb_z_axis = std::get<1>(axis_score[0]);
+
+  // Now that we have sorted this out, we need to find the display axis that best matches
+  // the selected direction and use the geometry of that display axis to set up the thumbnail
+  // plane. This will make the thumbnail more consistent with what is viewed on the screen
+  int display_axis = -1;
+  for(int i = 0; i < 3; i++)
+    {
+    auto *d_to_i = this->GetImageGeometry()->GetDisplayToImageTransform(i);
+    unsigned int z_coord_for_display_axis = d_to_i->GetCoordinateIndexZeroBased(2);
+    if(z_coord_for_display_axis == thumb_z_axis)
+      {
+      display_axis = i;
+      break;
+      }
+    }
+  auto d_to_i = this->GetImageGeometry()->GetDisplayToImageTransform(display_axis);
+
+  // Now that we have done this, we need to create a reference image that matches the slice
+  // direction. We already know the axis in image space of the slicing direction, but now
+  // we need to determine how the x and y axes of the thumbnail will map to the other
+  // image axes
+  int thumb_x_axis = d_to_i->GetCoordinateIndexZeroBased(0);
+  int thumb_y_axis = d_to_i->GetCoordinateIndexZeroBased(1);
+  double thumb_x_dir = d_to_i->GetCoordinateOrientation(0);
+  double thumb_y_dir = d_to_i->GetCoordinateOrientation(1);
+
+  // Compute the spacing of the referene slice
+  double spc_x = this->GetSize()[thumb_x_axis] * this->GetImageBase()->GetSpacing()[thumb_x_axis] / maxdim;
+  double spc_y = this->GetSize()[thumb_y_axis] * this->GetImageBase()->GetSpacing()[thumb_y_axis] / maxdim;
+  double spc_max = std::max(spc_x, spc_y);
+  typename ImageBaseType::SpacingType ref_spacing;
+  ref_spacing[0] = spc_max;
+  ref_spacing[1] = spc_max;
+  ref_spacing[2] = this->GetImageBase()->GetSpacing()[thumb_z_axis];
+
+  // Compute the direction matrix of the reference slice. The direction matrix should be the
+  // corresponding column from the image direction matrix, but the sign may be flipped.
+  auto ref_direction = direction;
+  ref_direction.set_identity();
+  ref_direction.set_column(0, direction.get_column(thumb_x_axis) * thumb_x_dir);
+  ref_direction.set_column(1, direction.get_column(thumb_y_axis) * thumb_y_dir);
+  ref_direction.set_column(2, direction.get_column(thumb_z_axis));
+
+  // Compute the origin of the reference slice. Here we want the center of the thumbnail
+  // to match the center of the image.
+  auto origin_img = this->GetImageBase()->GetOrigin().GetVnlVector();
+  Vector3d offset_ctr;
+  for(unsigned int d = 0; d < 3; d++)
+    offset_ctr[d] = 0.5 * this->GetImageBase()->GetSpacing()[d] * (this->GetSize()[d] - 1);
+  Vector3d center_img = origin_img + direction * offset_ctr;
+
+  // Compute the origin for the thumb
+  Vector3d ref_offset_ctr;
+  ref_offset_ctr[0] = 0.5 * ref_spacing[0] * (maxdim - 1);
+  ref_offset_ctr[1] = 0.5 * ref_spacing[1] * (maxdim - 1);
+  ref_offset_ctr[2] = 0;
+  Vector3d ref_origin = center_img - ref_direction * ref_offset_ctr;
+
+  // Create the reference space
+  using RefType = itk::Image<unsigned char, 3>;
+  typename RefType::Pointer ref_slice = RefType::New();
+  ref_slice->SetSpacing(ref_spacing);
+  ref_slice->SetOrigin(to_itkPoint(ref_origin));
+
+  typename ImageBaseType::DirectionType ref_direction_itk;
+  ref_direction_itk = ref_direction;
+  ref_slice->SetDirection(ref_direction_itk);
+
+  // The size of the viewport is fairly easy
+  typename ImageBaseType::RegionType ref_region;
+  ref_region.SetSize(0, maxdim); ref_region.SetSize(1, maxdim); ref_region.SetSize(2, 1);
+  ref_slice->SetRegions(ref_region);
+
+  // Sample the display slice
+  DisplaySlicePointer thumb_image = this->SampleArbitraryDisplaySlice(ref_slice);
+
+  // Background color for thumbnails
+  unsigned char defrgb[] = {0,0,0,255};
+
+  // For thumbnails, the image needs to be flipped
+  typedef itk::FlipImageFilter<DisplaySliceType> FlipFilter;
+  SmartPtr<FlipFilter> flipper = FlipFilter::New();
+  flipper->SetInput(thumb_image);
+  typename FlipFilter::FlipAxesArrayType flipaxes;
+  flipaxes[0] = false; flipaxes[1] = true;
+  flipper->SetFlipAxes(flipaxes);
+
+  // We also need to replace the transparency
+  typedef itk::UnaryFunctorImageFilter<
+      DisplaySliceType, DisplaySliceType, RemoveTransparencyFunctor> OpaqueFilter;
+  SmartPtr<OpaqueFilter> opaquer = OpaqueFilter::New();
+  opaquer->SetInput(flipper->GetOutput());
+
+  // Return the result
+  opaquer->Update();
+  DisplaySlicePointer result = opaquer->GetOutput();
+  return result;
+}
+
+/*
+
 
 template<class TTraits>
 typename ImageWrapper<TTraits>::DisplaySlicePointer
@@ -2443,6 +2611,8 @@ ImageWrapper<TTraits>
   return result;
 }
 
+*/
+
 template<class TTraits>
 void
 ImageWrapper<TTraits>
@@ -2494,6 +2664,19 @@ ImageWrapper<TTraits>
   // Check the 4D image
   return m_Image4D->GetTimeStamp() > m_ImageSaveTime;
 }
+
+template<class TTraits>
+bool
+ImageWrapper<TTraits>
+::HasUnsavedChanges(unsigned int tp) const
+{
+  if (m_ImageTimePoints.size() <= tp)
+    return false;
+
+  auto img = m_ImageTimePoints[tp];
+  return img->GetTimeStamp() > m_ImageSaveTime;
+}
+
 
 template<class TTraits>
 void
@@ -2788,7 +2971,10 @@ public:
   typedef std::pair<ImageWrapperBase::MiniPipeline, SmartPtr<TOutputImage> > ReturnType;
   static ReturnType CreatePipeline(TInputImage *image, TNativeMapping native_mapping)
     {
-    throw IRISException("CreatePipeline not implemented for these input types");
+    throw IRISException("CreatePipeline not implemented for these input types: %s, %s, %s, %d, %d. "
+                        "(ImageWrapper::CreateCastToTargetTypePipelinePartialSpecializationTraits)",
+                        typeid(TInputImage).name(), typeid(TOutputImage).name(), typeid(TNativeMapping).name(),
+                        static_cast<int>(LinearMapping), static_cast<int>(Compatible));
     return std::make_pair(ImageWrapperBase::MiniPipeline(), SmartPtr<TOutputImage>());
     }
 };
@@ -2888,7 +3074,7 @@ typename ImageWrapper<TTraits>::FloatImageType *
 ImageWrapper<TTraits>
 ::CreateCastToFloatPipeline(const char *key, int index)
 {
-  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
   typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
 
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
@@ -2907,7 +3093,7 @@ typename ImageWrapper<TTraits>::FloatVectorImageType *
 ImageWrapper<TTraits>
 ::CreateCastToFloatVectorPipeline(const char *key, int index)
 {
-  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
 
   // Create a pipeline that maps us to the matching image
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
@@ -2927,7 +3113,7 @@ template<class TTraits>
 typename ImageWrapper<TTraits>::FloatSliceType *
 ImageWrapper<TTraits>::CreateCastToFloatSlicePipeline(const char *key, unsigned int slice)
 {
-  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
 
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
       SliceType, FloatSliceType, NativeIntensityMapping, IsLinear::value, !IsVector::value> Specialization;
@@ -2944,11 +3130,11 @@ template<class TTraits>
 typename ImageWrapper<TTraits>::FloatVectorSliceType *
 ImageWrapper<TTraits>::CreateCastToFloatVectorSlicePipeline(const char *key, unsigned int slice)
 {
-  typedef typename std::is_base_of<NativeIntensityMapping, LinearInternalToNativeIntensityMapping> IsLinear;
+  typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
   typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
 
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
-      SliceType, FloatVectorSliceType, NativeIntensityMapping, IsLinear::value, !IsVector::value> Specialization;
+      SliceType, FloatVectorSliceType, NativeIntensityMapping, IsLinear::value, IsVector::value> Specialization;
 
   auto p = Specialization::CreatePipeline(this->GetSlice(slice), this->m_NativeMapping);
 
@@ -3030,6 +3216,7 @@ ImageWrapperInstantiateMacro(char)
 ImageWrapperInstantiateMacro(unsigned short)
 ImageWrapperInstantiateMacro(short)
 ImageWrapperInstantiateMacro(float)
+ImageWrapperInstantiateMacro(double)
 
 template class ImageWrapper<SpeedImageWrapperTraits>;
 template class ImageWrapper<LabelImageWrapperTraits>;

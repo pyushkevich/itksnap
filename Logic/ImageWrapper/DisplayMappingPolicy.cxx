@@ -234,7 +234,7 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 }
 
 template<class TWrapperTraits>
-const typename CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::TDigest *
+typename CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::TDigest *
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 ::GetTDigest()
 {
@@ -344,6 +344,7 @@ AbstractContinuousImageDisplayMappingPolicy
 ::AutoFitContrast()
 {
   // Get the quantiles to fit to on the bottom and top
+  this->GetTDigest()->Update();
   double imin = this->GetTDigest()->GetImageMinimum();
   double imax = this->GetTDigest()->GetImageMaximum();
   double ilow = this->GetTDigest()->GetImageQuantile(0.005);
@@ -845,7 +846,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 }
 
 template<class TWrapperTraits>
-const typename MultiChannelDisplayMappingPolicy<TWrapperTraits>::TDigest *
+typename MultiChannelDisplayMappingPolicy<TWrapperTraits>::TDigest *
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::GetTDigest()
 {
@@ -976,4 +977,4 @@ DisplayMappingPolicyInstantiateMacro(char)
 DisplayMappingPolicyInstantiateMacro(unsigned short)
 DisplayMappingPolicyInstantiateMacro(short)
 DisplayMappingPolicyInstantiateMacro(float)
-
+DisplayMappingPolicyInstantiateMacro(double)
