@@ -2140,6 +2140,27 @@ GuidedNativeImageIO
       // Read the tag value
       std::string s = sf.ToString(tags_refine[iTag]);
 
+      // Remove trailing zeros from fractional part of SliceThickness
+      if(tags_refine[iTag] == m_tagSliceThickness)
+        {
+        // Ensure that decimal point is present and exponent is missing
+        if(s.find('.') != std::string::npos &&
+           s.find('e') == std::string::npos &&
+           s.find('E') == std::string::npos)
+          {
+          // Remove trailing zeros
+          while(!s.empty() && s.back() == '0')
+            {
+            s.pop_back();
+            }
+          // Remove trailing decimal point
+          if(!s.empty() && s.back() == '.')
+            {
+            s.pop_back();
+            }
+          }
+        }
+
       // This code is from gdcmSerieHelper
       if( full_id == uid && !s.empty() )
         {
