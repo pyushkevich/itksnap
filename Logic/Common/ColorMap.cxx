@@ -300,16 +300,16 @@ ColorMap
     CMPoint p = m_CMPoints[i];
     if(p.m_Type == CONTINUOUS)
       {
-      sprintf(buffer,
+      snprintf(buffer, sizeof(buffer),
               "%02d-C %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], p.m_RGBA[0][3]);
       os << indent << buffer;
       }
     else
       {
-      sprintf(buffer,
+      snprintf(buffer, sizeof(buffer),
              "%02d-L %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[0][0], p.m_RGBA[0][1], p.m_RGBA[0][2], p.m_RGBA[0][3]);
       os << indent << buffer;
-      sprintf(buffer,
+      snprintf(buffer, sizeof(buffer),
               "%02d-R %7.2f   (%03d %03d %03d %03d)\n", (int) i, p.m_Index, p.m_RGBA[1][0], p.m_RGBA[1][1], p.m_RGBA[1][2], p.m_RGBA[1][3]);
       os << indent << buffer;
       }

@@ -113,6 +113,6 @@ void OptimizationProgressRenderer::OnUpdate()
   m_Plot->GetYAxis()->SetRange(min_rnd, max_rnd);
 
   char plotLabel[64];
-  sprintf(plotLabel, "%dx Level", m_PyramidZoom);
+  snprintf(plotLabel, sizeof(plotLabel), "%dx Level", m_PyramidZoom);
   m_Chart->SetTitle(plotLabel);
 }
