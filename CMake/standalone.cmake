@@ -60,7 +60,9 @@ FIND_PACKAGE(ITK 5.2.1 REQUIRED COMPONENTS
   ITKZLIB
   ITKImageIO
   ITKMeshIO
+  ITKNIFTI
   ITKTransformIO
+  RLEImage
   MorphologicalContourInterpolation)
 
 INCLUDE(${ITK_USE_FILE})
