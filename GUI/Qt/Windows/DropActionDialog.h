@@ -26,9 +26,17 @@ public:
   explicit DropActionDialog(QWidget *parent = 0);
   ~DropActionDialog();
 
+  enum FileDropMode {
+    Image = 0,
+    Mesh,
+    ModeCount
+  };
+
   void SetDroppedFilename(QString name);
 
   void SetModel(GlobalUIModel *model);
+
+  void SetMode(FileDropMode mode);
 
   /**
    * Attempt to load the main image directly, without showing the dialog,
