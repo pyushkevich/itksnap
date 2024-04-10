@@ -54,7 +54,7 @@ void DropActionDialog::SetDroppedFilename(QString name)
     {
     if (GuidedMeshIO::can_read(fmt))
       {
-      this->SetInlcudeMeshOptions(true);
+      this->SetIncludeMeshOptions(true);
       }
     else
       {
@@ -69,8 +69,7 @@ void DropActionDialog::SetDroppedFilename(QString name)
     }
   else
     {
-    this->SetMode(FileDropMode::Image);
-
+    this->SetIncludeMeshOptions(false);
     // Run segmentation 3d & 4d check
     auto io = GuidedNativeImageIO::New();
     Registry dummyReg;
