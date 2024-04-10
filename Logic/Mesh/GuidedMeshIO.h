@@ -109,6 +109,11 @@ public:
   /** Get Enum File Format Registry Map */
   static RegistryEnumMap<FileFormat> &GetEnumFileFormat()
   { return m_EnumFileFormat; }
+
+  static bool IsFilePolyData(const char *filename);
+
+  static FileFormat GetFormatByFilename(const char *filename);
+
 protected:
   /** Registry mappings for these enums */
   static RegistryEnumMap<FileFormat> m_EnumFileFormat;
