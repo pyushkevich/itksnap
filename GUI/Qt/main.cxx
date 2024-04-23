@@ -143,10 +143,10 @@ void usage(const char *progname)
   cout << "Image Options:" << endl;
   cout << "   -g FILE              : Load the main image from FILE" << endl;
   cout << "   -s FILE [FILE+]      : Load the segmentation image from FILE" << endl;
-  cout << "                        :   (multiple files may be provided)" << endl;
+  cout << "                        :   (multiple space separated files may be provided)" << endl;
   cout << "   -l FILE              : Load label descriptions from FILE" << endl;
   cout << "   -o FILE [FILE+]      : Load additional images from FILE" << endl;
-  cout << "                        :   (multiple files may be provided)" << endl;
+  cout << "                        :   (multiple space separated files may be provided)" << endl;
   cout << "   -w FILE              : Load workspace from FILE" << endl;
   cout << "                        :   (-w cannot be mixed with -g,-s,-l,-o options)" << endl;
   cout << "Additional Options:" << endl;
