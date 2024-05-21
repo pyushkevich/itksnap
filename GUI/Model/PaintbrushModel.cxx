@@ -6,7 +6,7 @@
 #include "GenericImageData.h"
 #include "ImageWrapperTraits.h"
 #include "SegmentationUpdateIterator.h"
-#include "BrushWatershedPipeline.h"
+#include "BrushWatershedPipeline.hxx"
 
 
 PaintbrushModel::PaintbrushModel()

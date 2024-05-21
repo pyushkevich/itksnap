@@ -355,6 +355,7 @@ SET(LOGIC_HEADERS
   Common/SNAPEvents.h
   Common/SystemInterface.h
   Common/TagList.h
+  Logic/Common/BrushWatershedPipeline.hxx
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ColorMap.h
