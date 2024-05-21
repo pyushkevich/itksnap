@@ -288,6 +288,17 @@ GenericImageData
   this->AddOverlayInternal(wrapper);
 }
 
+void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
+{
+  // Additional configuration for the wrapper (normally called in CreateAnatomicImageWrapper)
+  for(int i = 0; i < 3; i++)
+    new_layer->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
+
+  this->AddOverlayInternal(new_layer, true);
+}
+
+
+
 void
 GenericImageData
 ::AddCoregOverlay(GuidedNativeImageIO *io, ITKTransformType *transform)
@@ -714,6 +725,11 @@ LabelImageWrapper *GenericImageData::GetFirstSegmentationLayer()
 void GenericImageData::PushBackImageWrapper(LayerRole role,
                                             ImageWrapperBase *wrapper)
 {
+  // TODO: this is being called in too many places, but for now this is a band-aid bug
+  // fix to avoid crash when the viewport geometry is not set in a wrapper
+  for(int i = 0; i < 3; i++)
+    wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
+
   // Append the wrapper
   m_Wrappers[role].push_back(wrapper);
 
@@ -777,6 +793,13 @@ void GenericImageData::SetSingleImageWrapper(LayerRole role,
                                              ImageWrapperBase *wrapper)
 {
   assert(m_Wrappers[role].size() == 1);
+
+  // TODO: this is being called in too many places, but for now this is a band-aid bug
+  // fix to avoid crash when the viewport geometry is not set in a wrapper
+  for(int i = 0; i < 3; i++)
+    wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
+
+  // Assign the first wrapper in role
   m_Wrappers[role].front() = wrapper;
 
   // Rebroadcast the wrapper-related events as our own events
@@ -840,11 +863,6 @@ std::string GenericImageData::GenerateNickname(LayerRole role)
   return name;
 }
 
-
-void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
-{
-  this->AddOverlayInternal(new_layer, true);
-}
 
 ImageMeshLayers *
 GenericImageData::GetMeshLayers()
