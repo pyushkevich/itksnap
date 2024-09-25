@@ -14,14 +14,14 @@ Institute of Biomedical Imaging and BioEngineering and the NIH Blueprint for
 Neuroscience through grant 1 R03 EB008200-01. Development of ITK-SNAP versions
 3.0 - 3.6 has been supported by the NIH grant 1R01 EB014346. 
 
-ITK-SNAP is the result of over 15 years of work by many researchers, software
+ITK-SNAP is the result of over 20 years of work by many researchers, software
 engineers and students. Please visit the [Credits page](http:/itksnap.org/credits.php) 
 to learn about the team that made ITK-SNAP possible!
 
 ### Please remember to cite ITK-SNAP
 
 Citations in published work is the best way for us to gauge ITK-SNAP impact.
-As of the Fall of 2016, ITK-SNAP has been cited by [over 2000 papers](https://goo.gl/YoM9EK). 
+As of the Summer of 2024, ITK-SNAP has been cited by [over 8000 papers](https://goo.gl/YoM9EK). 
 If you use ITK-SNAP for a publication, please cite the paper below.
 
 * Paul A. Yushkevich, Joseph Piven, Heather Cody Hazlett, Rachel Gimpel Smith,

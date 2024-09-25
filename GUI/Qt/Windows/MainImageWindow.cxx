@@ -2672,6 +2672,3 @@ void MainImageWindow::on_actionReloadSegmentation_triggered()
       }
     }
 }
-
-
-
