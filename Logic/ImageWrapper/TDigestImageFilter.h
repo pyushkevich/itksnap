@@ -98,7 +98,7 @@ public:
   itkNewMacro(Self)
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ThreadedHistogramImageFilter, ImageToImageFilter)
+  itkTypeMacro(TDigestImageFilter, ImageSink)
 
   /** Image typedef support. */
   typedef TInputImage InputImageType;
