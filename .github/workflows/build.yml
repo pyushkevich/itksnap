@@ -84,6 +84,41 @@ jobs:
             VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
      
+      # Use cached ITK build if available
+      - name: Cache ITK
+        id: cache-itk
+        uses: actions/cache@v4
+        with:
+          path: ${{github.workspace}}/itk/install
+          key: ${{ runner.os }}-itk-5.4.0
+
+      # Check out ITK
+      - name: Checkout ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+            repository: 'InsightSoftwareConsortium/ITK.git'
+            ref: 'v5.4.0'
+            submodules: true
+            path: 'itk'
+
+      # Build ITK
+      - name: Build ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: threeal/cmake-action@v2.0.0
+        with:
+          source-dir: ${{github.workspace}}/itk
+          build-dir: ${{github.workspace}}/itk/build
+          build-args: |
+            -t
+            install
+          generator: Ninja
+          options: |
+            BUILD_TESTING:BOOL=FALSE
+            BUILD_EXAMPLES:BOOL=FALSE
+            Module_MorphologicalContourInterpolation:BOOL=TRUE
+            CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
+     
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
