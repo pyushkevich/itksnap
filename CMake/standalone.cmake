@@ -1,7 +1,7 @@
 #############################################
-# REQUIRE ITK 3.20 OR LATER                 #
+# REQUIRE ITK 5.4 OR LATER                 #
 #############################################
-FIND_PACKAGE(ITK 5.2.1 REQUIRED COMPONENTS
+FIND_PACKAGE(ITK 5.4 REQUIRED COMPONENTS
   ITKAnisotropicSmoothing
   ITKAntiAlias
   ITKBiasCorrection
@@ -62,7 +62,6 @@ FIND_PACKAGE(ITK 5.2.1 REQUIRED COMPONENTS
   ITKMeshIO
   ITKNIFTI
   ITKTransformIO
-  RLEImage
   MorphologicalContourInterpolation)
 
 INCLUDE(${ITK_USE_FILE})
@@ -70,7 +69,7 @@ INCLUDE(${ITK_USE_FILE})
 #############################################
 # REQUIRE VTK                               #
 #############################################
-FIND_PACKAGE(VTK 9 REQUIRED COMPONENTS
+FIND_PACKAGE(VTK 9.3.1 REQUIRED COMPONENTS
   ChartsCore
   CommonComputationalGeometry
   CommonCore
@@ -105,7 +104,7 @@ FIND_PACKAGE(VTK 9 REQUIRED COMPONENTS
   ViewsContext2D)
 
 #############################################
-# REQUIRE QT5                               #
+# REQUIRE QT6                               #
 #############################################
 FIND_PACKAGE(Qt6Widgets)
 FIND_PACKAGE(Qt6OpenGL)
