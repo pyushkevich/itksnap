@@ -60,6 +60,8 @@ jobs:
         with:
           source-dir: ${{github.workspace}}/vtk
           build-dir: ${{github.workspace}}/build
+          build-args: |
+            install
           generator: Ninja
           options: |
             BUILD_TESTING:BOOL=FALSE
