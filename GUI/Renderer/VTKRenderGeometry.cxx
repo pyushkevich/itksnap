@@ -1,6 +1,6 @@
 #include "VTKRenderGeometry.h"
 #include <vtkPoints2D.h>
-#include <vnl_math.h>
+#include <vnl/vnl_math.h>
 
 vtkSmartPointer<vtkPoints2D> VTKRenderGeometry::MakeUnitCircle(unsigned int n_pts)
 {

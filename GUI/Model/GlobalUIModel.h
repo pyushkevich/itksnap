@@ -354,6 +354,9 @@ public:
   /** A function for UI to get the default 4D replay interval */
   int GetDefault4DReplayInterval() const;
 
+  /** A function for UI to swtich foreground and background labels */
+  void SwitchForegroundBackgroundLabels();
+
 
 protected:
 

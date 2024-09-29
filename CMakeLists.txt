@@ -10,7 +10,7 @@ PROJECT(SNAP)
 # CMAKE PRELIMINARIES                       
 #--------------------------------------------------------------------------------
 cmake_minimum_required(VERSION 3.16)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_policy(SET CMP0026 NEW)
@@ -18,6 +18,9 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0080 OLD)
 
 SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
+
+OPTION(BUILD_SHARED_LIBS "Build shared (dynamic) libraries" OFF)
+MARK_AS_ADVANCED(BUILD_SHARED_LIBS)
 
 #--------------------------------------------------------------------------------
 # MACROS
@@ -89,13 +92,13 @@ ENDIF()
 
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 4)
-SET(SNAP_VERSION_MINOR 0)
+SET(SNAP_VERSION_MINOR 2)
 SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_QUALIFIER "-beta")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20230925")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "September 25, 2023")
+SET(SNAP_VERSION_RELEASE_DATE "20240926")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "September 26, 2024")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -260,7 +263,6 @@ SET(LOGIC_CXX
   Logic/Framework/SNAPImageData.cxx
   Logic/Framework/TimePointProperties.cxx
   Logic/Framework/UndoDataManager_LabelType.cxx
-  Logic/ImageWrapper/CommonRepresentationPolicy.cxx
   Logic/ImageWrapper/DisplayMappingPolicy.cxx
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
@@ -301,6 +303,7 @@ SET(LOGIC_CXX
   Logic/Preprocessing/Texture/MomentTextures.cxx
   Logic/Slicing/IntensityCurveVTK.cxx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.cxx
+  Logic/Slicing/ColorLookupTable.cxx
   Logic/Slicing/LookupTableIntensityMappingFilter.cxx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.cxx
   Logic/WorkspaceAPI/CSVParser.cxx
@@ -326,8 +329,6 @@ SET(LOGIC_HEADERS
   Common/IRISVectorTypes.h
   Common/IRISVectorTypes.txx
   Common/IRISVectorTypesToITKConversion.h
-  Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.h
-  Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.txx
   Common/ITKExtras/itkBinaryDiamondStructuringElement.h
   Common/ITKExtras/itkBinaryDiamondStructuringElement.txx
   Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.h
@@ -352,6 +353,7 @@ SET(LOGIC_HEADERS
   Common/SNAPEvents.h
   Common/SystemInterface.h
   Common/TagList.h
+  Logic/Common/BrushWatershedPipeline.hxx
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ColorMap.h
@@ -382,7 +384,6 @@ SET(LOGIC_HEADERS
   Logic/Framework/TimePointProperties.h
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
-  Logic/ImageWrapper/CommonRepresentationPolicy.h
   Logic/ImageWrapper/DisplayMappingPolicy.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
   Logic/ImageWrapper/ImageWrapper.h
@@ -460,6 +461,7 @@ SET(LOGIC_HEADERS
   Logic/Preprocessing/GMM/KMeansPlusPlus.h
   Logic/Preprocessing/GMM/UnsupervisedClustering.h
   Logic/Preprocessing/Texture/MomentTextures.h
+  Logic/Slicing/DrawTriangles.h
   Logic/Slicing/ImageRegionConstIteratorWithIndexOverride.h
   Logic/Slicing/FastLinearInterpolator.h
   Logic/Slicing/IRISSlicer.h
@@ -467,6 +469,7 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IRISSlicer_RLE.txx
   Logic/Slicing/IntensityCurveInterface.h
   Logic/Slicing/IntensityCurveVTK.h
+  Logic/Slicing/ColorLookupTable.h
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
   Logic/Slicing/NonOrthogonalSlicer.h
@@ -726,6 +729,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/LabelEditorDialog.cxx
   GUI/Qt/Windows/LayerInspectorDialog.cxx
   GUI/Qt/Windows/LayoutReminderDialog.cxx
+  GUI/Qt/Windows/LoadTransformationDialog.cxx
   GUI/Qt/Windows/LabelSelectionPopup.cxx
   GUI/Qt/Windows/MainControlPanel.cxx
   GUI/Qt/Windows/MainImageWindow.cxx
@@ -824,6 +828,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/LayerInspectorDialog.h
   GUI/Qt/Windows/LayoutReminderDialog.h
   GUI/Qt/Windows/LabelSelectionPopup.h
+  GUI/Qt/Windows/LoadTransformationDialog.h
   GUI/Qt/Windows/MainControlPanel.h
   GUI/Qt/Windows/MainImageWindow.h
   GUI/Qt/Windows/PreferencesDialog.h
@@ -912,6 +917,7 @@ SET(UI_FORMS
   GUI/Qt/Windows/LayerInspectorDialog.ui
   GUI/Qt/Windows/LayoutReminderDialog.ui
   GUI/Qt/Windows/LabelSelectionPopup.ui
+  GUI/Qt/Windows/LoadTransformationDialog.ui
   GUI/Qt/Windows/MainControlPanel.ui
   GUI/Qt/Windows/MainImageWindow.ui
   GUI/Qt/Windows/PreferencesDialog.ui
@@ -1022,6 +1028,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Submodules/c3d/adapters
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src/ITKFilters/include
+    ${SNAP_SOURCE_DIR}/Submodules/digestible/include
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
@@ -1247,6 +1254,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
+  NaNs
   4DContinuousRendering
   DiffSpace
   EdgeAttraction
@@ -1260,7 +1268,12 @@ SET(GUI_TESTS
   MeshImport
   MeshWorkspace
   SegmentationMesh
-  VolumeRendering)
+  VolumeRendering
+  Reloading
+  4DToMC
+  MCTo4D
+  DeformationGrid
+)
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
 set(TEMP ${SNAP_BINARY_DIR}/Testing/Temporary)
@@ -1272,6 +1285,10 @@ TARGET_INCLUDE_DIRECTORIES(SlicingPerformanceTest PUBLIC ${SNAP_INCLUDE_DIRS})
 ADD_EXECUTABLE(testRLE Testing/Logic/testRLE.cxx)
 TARGET_LINK_LIBRARIES(testRLE ${ITK_LIBRARIES})
 TARGET_INCLUDE_DIRECTORIES(testRLE PUBLIC ${SNAP_INCLUDE_DIRS})
+
+ADD_EXECUTABLE(testTDigest Testing/Logic/TestTDigest.cxx)
+TARGET_LINK_LIBRARIES(testTDigest ${ITK_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(testTDigest PUBLIC ${SNAP_INCLUDE_DIRS})
 
 ADD_EXECUTABLE(iteratorTests
     Testing/Logic/itkRegionOfInterestImageFilterTest.cxx
@@ -1436,49 +1453,58 @@ IF(APPLE)
   SET(CPACK_BUNDLE_ICON ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns)
   SET(CPACK_PACKAGE_ICON ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns)
 
+  # The keychain used to store codesigning certificate and the notary tool password
+  SET(SNAP_MACOS_KEYCHAIN "default" CACHE STRING "Keychain where the code signing certificate, notarize password are stored")
+  SET(SNAP_MACOS_KEYCHAIN_PASSWORD_FILE "" CACHE STRING "File containing the password to unlock the keychain")
+  MARK_AS_ADVANCED(SNAP_MACOS_KEYCHAIN)
+  MARK_AS_ADVANCED(SNAP_MACOS_KEYCHAIN_PASSWORD_FILE)
+
   # Code signing certificate - optional
   SET(SNAP_MACOSX_CODESIGN_CERT "" CACHE STRING "Name of the Apple Developer Certificate to sign application")
   MARK_AS_ADVANCED(SNAP_MACOSX_CODESIGN_CERT)
 
   # Notarization keychain profile
   SET(SNAP_MACOS_NOTARYTOOL_PROFILE "" CACHE STRING "Notary tool password name, see https://developer.apple.com/documentation/security/notarizing_macos_software_before_distribution/customizing_the_notarization_workflow")
-  SET(SNAP_MACOS_NOTARYTOOL_KEYCHAIN "default" CACHE STRING "Notary tool keychain, if not storing password in default keychain")
+  # SET(SNAP_MACOS_NOTARYTOOL_KEYCHAIN "default" CACHE STRING "Notary tool keychain, if not storing password in default keychain")
   MARK_AS_ADVANCED(SNAP_MACOS_NOTARYTOOL_PROFILE)
-  MARK_AS_ADVANCED(SNAP_MACOS_NOTARYTOOL_KEYCHAIN)
+  # MARK_AS_ADVANCED(SNAP_MACOS_NOTARYTOOL_KEYCHAIN)
+
+  # Create a script that can unlock the keychain
+  CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/Utilities/MacOS/unlock_keychain.cmake ${CMAKE_BINARY_DIR}/Utilities/MacOS/unlock_keychain.cmake @ONLY)
 
   IF(SNAP_MACOSX_CODESIGN_CERT)
     SET(CPACK_BUNDLE_APPLE_CERT_APP ${SNAP_MACOSX_CODESIGN_CERT})
     SET(CPACK_BUNDLE_APPLE_ENTITLEMENTS ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/entitlements.plist)
+    SET(CPACK_PRE_BUILD_SCRIPTS ${CMAKE_BINARY_DIR}/Utilities/MacOS/unlock_keychain.cmake)
 
     # TODO: there has to be some way to determine all the executables that are included in
     # the package but I spent an hour trying and I give up. So here it is, hard-coded.
-    SET(SNAP_MACOSX_CLI_EXES "c3d;c2d;c4d;c3d_affine_tool;greedy;greedy_template_average;itksnap-wt;itksnap")
+    SET(SNAP_MACOSX_CLI_EXES "c3d;c2d;c4d;c3d_affine_tool;greedy;greedy_template_average;itksnap-wt;itksnap;multi_chunk_greedy")
     FOREACH(exe ${SNAP_MACOSX_CLI_EXES})
       LIST(APPEND CPACK_BUNDLE_APPLE_CODESIGN_FILES "/Contents/bin/${exe}")
     ENDFOREACH()
-    MESSAGE(STATUS "CPACK_BUNDLE_APPLE_CODESIGN_FILES: ${CPACK_BUNDLE_APPLE_CODESIGN_FILES}")
 
     # ADD COMMANDS FOR NOTARIZATION
     IF(SNAP_MACOS_NOTARYTOOL_PROFILE)
-      add_custom_target(notarize
-        COMMENT "Notarizing installer package..."
-	COMMAND xcrun notarytool submit "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.dmg" --keychain-profile "${SNAP_MACOS_NOTARYTOOL_PROFILE}" --keychain "${SNAP_MACOS_NOTARYTOOL_KEYCHAIN}" --wait
-        VERBATIM)
-      add_custom_target(staple
-        COMMENT "Stapling notarization ticket to installer package..."
-        COMMAND xcrun stapler staple "${CMAKE_CURRENT_BINARY_DIR}/${CPACK_PACKAGE_FILE_NAME}.dmg"
-        VERBATIM)
+      CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/Utilities/MacOS/notarize_and_staple.cmake ${CMAKE_BINARY_DIR}/Utilities/MacOS/notarize_and_staple.cmake @ONLY)
+      SET(CPACK_POST_BUILD_SCRIPTS ${CMAKE_BINARY_DIR}/Utilities/MacOS/notarize_and_staple.cmake)
     ENDIF()
 
     SET(CPACK_APPLE_BUNDLE_ID "itk-snap")
     SET(CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER "-vv --deep -f --options=runtime")
   ENDIF()
 
+  MESSAGE(STATUS "CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER: ${CPACK_BUNDLE_APPLE_CODESIGN_PARAMETER}")
+
   # Install the main executable
   SNAP_INSTALL_GUI(${SNAP_BUNDLE_NAME} itksnap "--console")
 
-  # Set the DS STORE
-  SET(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt)
+  # Set the DS STORE speedup
+  SET(SNAP_MACOSX_DSSTORE_SPEED_FACTOR 1.0 CACHE STRING "Speedup factor for Apple .DS_Store generator script")
+  MARK_AS_ADVANCED(SNAP_MACOSX_DSSTORE_SPEED_FACTOR)
+
+  CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt ${CMAKE_BINARY_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt)
+  SET(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${CMAKE_BINARY_DIR}/Utilities/MacOS/BundleResources/make_dsstore.scpt)
   SET(CPACK_DMG_BACKGROUND_IMAGE ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/background.tiff)
 
   # Install the command-line installer

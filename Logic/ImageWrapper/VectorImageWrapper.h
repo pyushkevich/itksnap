@@ -23,12 +23,6 @@
 #include "itkImageAdaptor.h"
 #include "VectorToScalarImageAccessor.h"
 
-template<class TIn> class ThreadedHistogramImageFilter;
-namespace itk
-{
-template<class TIn> class MinimumMaximumImageFilter;
-}
-
 /**
  * \class VectorImageWrapper
  * \brief A wrapper around an itk::Image and related pipelines.
@@ -37,15 +31,14 @@ template<class TIn> class MinimumMaximumImageFilter;
  * is used to unify the treatment of different kinds of vector images in
  * SNaP.  
  */
-template<class TTraits, class TBase = VectorImageWrapperBase>
-class VectorImageWrapper
-    : public ImageWrapper<TTraits, TBase>
+template<class TTraits>
+class VectorImageWrapper : public ImageWrapper<TTraits>
 {
 public:
 
   // Standard ITK business
-  typedef VectorImageWrapper<TTraits, TBase>                              Self;
-  typedef ImageWrapper<TTraits, TBase>                              Superclass;
+  typedef VectorImageWrapper<TTraits>                                     Self;
+  typedef ImageWrapper<TTraits>                                     Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(VectorImageWrapper, ImageWrapper)
@@ -61,20 +54,6 @@ public:
   typedef typename Superclass::Image4DType                         Image4DType;
   typedef typename Superclass::Image4DPointer                   Image4DPointer;
 
-  // Floating point image type
-  typedef itk::Image<float, 3>                                  FloatImageType;
-  typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
-
-  // Double precision floating point image type
-  typedef itk::Image<double, 3>                                DoubleImageType;
-  typedef itk::ImageSource<DoubleImageType>                  DoubleImageSource;
-
-  // Vector image types
-  typedef itk::VectorImage<float, 3>                      FloatVectorImageType;
-  typedef itk::ImageSource<FloatVectorImageType>        FloatVectorImageSource;
-  typedef itk::VectorImage<double, 3>                    DoubleVectorImageType;
-  typedef itk::ImageSource<DoubleVectorImageType>      DoubleVectorImageSource;
-
   // Pixel type
   typedef typename Superclass::PixelType                             PixelType;
   typedef typename ImageType::InternalPixelType              InternalPixelType;
@@ -89,6 +68,7 @@ public:
 
   // Display types
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
+  typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
 
   // Iterator types
@@ -162,19 +142,13 @@ public:
     return this->m_Image4D->GetNumberOfComponentsPerPixel();
   }
 
-  /**
-   * Get the component-wise minimum and maximum of the image in native format
-   */
-  virtual const ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
-  virtual const ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
-
   /** Compute statistics over a run of voxels in the image starting at the index
    * startIdx. Appends the statistics to a running sum and sum of squared. The
    * statistics are returned in internal (not native mapped) format */
   virtual void GetRunLengthIntensityStatistics(
       const itk::ImageRegion<3> &region,
       const itk::Index<3> &startIdx, long runlength,
-      double *out_sum, double *out_sumsq) const ITK_OVERRIDE;
+      double *out_nvalid, double *out_sum, double *out_sumsq) const ITK_OVERRIDE;
 
   /**
    * This method returns a vector of values for the voxel under the cursor.
@@ -188,56 +162,27 @@ public:
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
 
+  /**
+   * This method samples a 2D slice based on a reference geometry from
+   * the current image and maps it using the current display mapping. It
+   * is used to generate thumbnails and for other sampling of image
+   * appearance that is outside of the main display pipeline
+   */
+  virtual DisplaySlicePointer SampleArbitraryDisplaySlice(const ImageBaseType *ref_space) ITK_OVERRIDE;
+
   virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
 
   virtual void SetSliceIndex(const IndexType &cursor) ITK_OVERRIDE;
 
   virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom) ITK_OVERRIDE;
 
-  virtual void SetDisplayViewportGeometry(unsigned int index, ImageBaseType *viewport_image);
+  virtual void SetDisplayViewportGeometry(unsigned int index, const ImageBaseType *viewport_image) ITK_OVERRIDE;
 
   virtual void SetDirectionMatrix(const vnl_matrix<double> &direction) ITK_OVERRIDE;
 
   virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) ITK_OVERRIDE;
 
-  /**
-    Compute the image histogram. The histogram is cached inside of the
-    object, so repeated calls to this function with the same nBins parameter
-    will not require additional computation.
-
-    Calling with default parameter (0) will use the same number of bins that
-    is currently in the histogram (i.e., return/recompute current histogram).
-    If there is no current histogram, a default histogram with 128 entries
-    will be generated.
-
-    For multi-component data, the histogram is pooled over all components.
-    */
-  const ScalarImageHistogram *GetHistogram(size_t nBins = 0) ITK_OVERRIDE;
-
-
-  /**
-    This method creates an ITK mini-pipeline that can be used to cast the internal
-    image to a floating point image. The ownership of the mini-pipeline is passed
-    to the caller of this method. This method should be used with caution, since
-    there is potential to create duplicates of the internally stored image without
-    need. The best practice is to use this method with filters that only access a
-    portion of the casted image at a time, such as streaming filters.
-
-    When you call Update() on the returned mini-pipeline, the data will be cast to
-    floating point, and if necessary, converted to the native intensity range.
-    */
-  virtual SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const ITK_OVERRIDE;
-
-  /** Same as above, but casts to double. For compatibility with C3D, until we
-   * safely switch C3D to use float instead of double */
-  virtual SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const ITK_OVERRIDE;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  virtual SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const ITK_OVERRIDE;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  virtual SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const ITK_OVERRIDE;
-
+  virtual void SetSticky(bool value) ITK_OVERRIDE;
 protected:
 
   /**
@@ -280,21 +225,6 @@ protected:
   typedef typename ScalarRepMap::iterator ScalarRepIterator;
   typedef typename ScalarRepMap::const_iterator ScalarRepConstIterator;
   ScalarRepMap m_ScalarReps;
-
-  // For computing image statistics, we can represent the image as a one-dimensional
-  // image of size n_voxels * n_components. This image can then be fed as input to
-  // the min/max and histogram computation filters. Of course the flat image
-  // shares the buffer with the 3D image so there is no memory waste
-  typedef itk::Image<InternalPixelType, 1>                       FlatImageType;
-  SmartPtr<FlatImageType> m_FlatImage;
-
-  // Min/max filter
-  typedef itk::MinimumMaximumImageFilter<FlatImageType> MinMaxFilterType;
-  SmartPtr<MinMaxFilterType> m_MinMaxFilter;
-
-  // Histogram filter
-  typedef ThreadedHistogramImageFilter<FlatImageType> HistogramFilterType;
-  SmartPtr<HistogramFilterType> m_HistogramFilter;
 
   // Other derived wrappers
   typedef VectorToScalarMagnitudeFunctor<InternalPixelType,float> MagnitudeFunctor;

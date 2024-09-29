@@ -7,8 +7,7 @@
 #include "TagList.h"
 
 class AbstractDisplayMappingPolicy;
-class ScalarImageHistogram;
-
+class TDigestDataObject;
 
 class WrapperBase : public itk::Object
 {
@@ -93,18 +92,16 @@ public:
   }
 
   /**
-    Compute the image histogram. The histogram is cached inside of the
-    object, so repeated calls to this function with the same nBins parameter
-    will not require additional computation.
+    Obtain the t-digest, from which the quantiles of the image/mesh can be
+    approximated. The t-digest algorithm by T. Dunning is a fast algorithm for
+    approximating statistics such as quantiles, histogram, CDF, etc. It replaces
+    earliercode that separately computed the image or mesh min/max and histogram using
+    separate filters and required the number of histogram bins to be specified explicitly.
 
-    Calling with default parameter (0) will use the same number of bins that
-    is currently in the histogram (i.e., return/recompute current histogram).
-    If there is no current histogram, a default histogram with 128 entries
-    will be generated.
-
-    For multi-component data, the histogram is pooled over all components.
+    t-digest code: https://github.com/SpirentOrion/digestible
+    t-digest paper: https://www.sciencedirect.com/science/article/pii/S2665963820300403
     */
-  virtual const ScalarImageHistogram *GetHistogram(size_t nBins) = 0;
+  virtual TDigestDataObject *GetTDigest() = 0;
 
   //  End of virtual methods
   //------------------------------------------

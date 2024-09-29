@@ -55,7 +55,7 @@ IRISException::IRISException(const char *message, ...)
   char buffer[1024];
   va_list args;
   va_start(args, message);
-  vsprintf(buffer,message,args);
+  vsnprintf(buffer, 1024, message, args);
   va_end (args);
   m_SimpleMessage = buffer;
 }
@@ -73,7 +73,7 @@ IRISWarning::IRISWarning(const char *message, ...)
   char buffer[1024];
   va_list args;
   va_start(args, message);
-  vsprintf(buffer,message,args);
+  vsnprintf(buffer, 1024, message, args);
   va_end (args);
   m_SimpleMessage = buffer;
 }

@@ -1,72 +1,39 @@
 #include "LookupTableIntensityMappingFilter.h"
 #include "RLEImageRegionIterator.h"
 #include <itkRGBAPixel.h>
-#include "LookupTableTraits.h"
+#include "ColorLookupTable.h"
 
 template<class TInputImage, class TOutputImage>
 LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
 ::LookupTableIntensityMappingFilter()
 {
   // The image and the LUT are inputs
-  this->SetNumberOfIndexedInputs(4);
+  this->SetNumberOfIndexedInputs(1);
+  this->AddRequiredInputName("LookupTable");
 }
 
 template<class TInputImage, class TOutputImage>
 void
 LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
-::SetLookupTable(LookupTableType *lut)
+::DynamicThreadedGenerateData(const OutputRegionType &region)
 {
-  m_LookupTable = lut;
-  this->SetNthInput(1, lut);
-}
-
-template<class TInputImage, class TOutputImage>
-void
-LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
-::SetImageMinInput(const InputPixelObject *input)
-{
-  m_InputMin = const_cast<InputPixelObject *>(input);
-  this->SetNthInput(2, m_InputMin);
-}
-
-template<class TInputImage, class TOutputImage>
-void
-LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
-::SetImageMaxInput(const InputPixelObject *input)
-{
-  m_InputMax = const_cast<InputPixelObject *>(input);
-  this->SetNthInput(3, m_InputMax);
-}
-
-template<class TInputImage, class TOutputImage>
-void
-LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
-::DynamicThreadedGenerateData(const OutputImageRegionType &region)
-{
-  // Get the input, output and the LUT
+  // Get the input and output images
   const InputImageType *input = this->GetInput();
   OutputImageType *output = this->GetOutput(0);
 
-  // Get the pointer to the zero value in the LUT
-  OutputPixelType *lutp =
-      m_LookupTable->GetBufferPointer()
-      - m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
-
-  // Range of the input image
-  InputPixelType input_min = m_InputMin->Get();
-  InputPixelType input_max = m_InputMax->Get();
-
-  // Compute the shift and scale factors that map the input values into
-  // the LUT values. These are ignored for integral pixel types, but used
-  // for floating point types
-  float lutScale;
-  InputPixelType lutShift;
-  LookupTableTraits<InputPixelType>::ComputeLinearMappingToLUT(
-        input_min, input_max, lutScale, lutShift);
+  // Get the range of intensities mapped that the LUT handles
+  const LookupTableType *lut = this->GetLookupTable();
 
   // Define the iterators
   itk::ImageRegionConstIterator<TInputImage> inputIt(input, region);
   itk::ImageRegionIterator<TOutputImage> outputIt(output, region);
+
+  // Does zero map out of the LUT's range? We may get inputs of zero from
+  // the non-orthogonal slicer (data outside of image range) that would fall
+  // outside of the colormap. This is really a poor way to handle this but
+  // there is not a good alternative solution right now.
+  // TODO: fix this.
+  bool zero_out_of_range = !lut->CheckRange(0);
 
   // Perform the intensity mapping using the LUT (no bounds checking!)
   while( !inputIt.IsAtEnd() )
@@ -75,21 +42,14 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
     InputPixelType xin = inputIt.Get();
     OutputPixelType xout;
 
-    // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
-    // better than this, i.e., via a special value reserved for such voxels.
-    // Right now, defaulting to zero is a DISASTER!
-    if(xin == 0 && (input_min > 0 || input_max < 0))
+    if(zero_out_of_range && xin == 0)
       {
       // Special case: intensity is actually outside of the min/max range
       xout.Fill(0);
       }
     else
       {
-      // Find the corresponding LUT offset
-      int lut_offset = LookupTableTraits<InputPixelType>::ComputeLUTOffset(
-            lutScale, lutShift, xin);
-
-      xout = *(lutp + lut_offset);
+      xout = lut->MapIntensityToDisplay(xin);
       }
 
     outputIt.Set(xout);
@@ -105,26 +65,8 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
 ::MapPixel(const InputPixelType &xin)
 {
   // Make sure all the inputs are up to date
-  m_InputMin->Update();
-  m_InputMax->Update();
-  m_LookupTable->Update();
-
-  // Get the pointer to the zero value in the LUT
-  OutputPixelType *lutp =
-      m_LookupTable->GetBufferPointer()
-      - m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
-
-  // Range of the input image
-  InputPixelType input_min = m_InputMin->Get();
-  InputPixelType input_max = m_InputMax->Get();
-
-  // Compute the shift and scale factors that map the input values into
-  // the LUT values. These are ignored for integral pixel types, but used
-  // for floating point types
-  float lutScale;
-  InputPixelType lutShift;
-  LookupTableTraits<InputPixelType>::ComputeLinearMappingToLUT(
-        input_min, input_max, lutScale, lutShift);
+  LookupTableType *lut = const_cast<LookupTableType *>(this->GetLookupTable());
+  lut->Update();
 
   // Get the input intensity
   OutputPixelType xout;
@@ -132,28 +74,27 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
   // better than this, i.e., via a special value reserved for such voxels.
   // Right now, defaulting to zero is a DISASTER!
-  if(xin == 0 && (input_min > 0 || input_max < 0))
+  if(xin == 0 && !lut->CheckRange(0))
     {
     // Special case: intensity is actually outside of the min/max range
     xout.Fill(0);
     }
   else
     {
-    // Find the corresponding LUT offset
-    int lut_offset = LookupTableTraits<InputPixelType>::ComputeLUTOffset(
-          lutScale, lutShift, xin);
-
-    xout = *(lutp + lut_offset);
+    xout = lut->MapIntensityToDisplay(xin);
     }
 
   return xout;
 }
 
-// Declare specific instances that will exist
-template class LookupTableIntensityMappingFilter<
-    itk::Image<short, 2>, itk::Image< itk::RGBAPixel<unsigned char> > >;
+// Template instantiation
+#define LookupTableIntensityMappingFilterInstantiateMacro(type) \
+  template class LookupTableIntensityMappingFilter<itk::Image<type, 2>, itk::Image< itk::RGBAPixel<unsigned char> > >;
 
-template class LookupTableIntensityMappingFilter<
-    itk::Image<float, 2>, itk::Image< itk::RGBAPixel<unsigned char> > >;
-
+LookupTableIntensityMappingFilterInstantiateMacro(unsigned char)
+LookupTableIntensityMappingFilterInstantiateMacro(char)
+LookupTableIntensityMappingFilterInstantiateMacro(unsigned short)
+LookupTableIntensityMappingFilterInstantiateMacro(short)
+LookupTableIntensityMappingFilterInstantiateMacro(float)
+LookupTableIntensityMappingFilterInstantiateMacro(double)
 

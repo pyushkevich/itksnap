@@ -258,10 +258,12 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *progressCmd)
   }
   catch(std::bad_alloc &)
   {
+    m_MeshUpdating = false;
     throw IRISException("Out of memory during mesh computation");
   }
   catch(IRISException & IRISexc)
   {
+    m_MeshUpdating = false;
     throw IRISexc;
   }
 }

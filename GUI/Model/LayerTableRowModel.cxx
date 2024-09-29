@@ -15,6 +15,7 @@
 #include "ImageMeshLayers.h"
 #include "MomentTextures.h"
 #include "SegmentationMeshWrapper.h"
+#include "GuidedNativeImageIO.h"
 
 
 AbstractLayerTableRowModel::AbstractLayerTableRowModel()
@@ -70,6 +71,10 @@ bool AbstractLayerTableRowModel::CheckState(UIState state)
 
     case AbstractLayerTableRowModel::UIF_CLOSABLE:
       return !snapmode;
+
+    case AbstractLayerTableRowModel::UIF_FILE_RELOADABLE:
+      return (m_LayerRole != MESH_ROLE &&
+          !(strcmp(m_Layer->GetFileName(), "") == 0));
 
     default:
       break;
@@ -296,6 +301,9 @@ ImageLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_SAVABLE:
       return true;
 
+    case AbstractLayerTableRowModel::UIF_IS_4D:
+      return (m_Layer && m_ImageLayer->GetNumberOfTimePoints() > 1);
+
     default:
       return Superclass::CheckState(state); // Children override Parents
     }
@@ -509,38 +517,29 @@ ImageLayerTableRowModel::AutoAdjustContrast()
 void
 ImageLayerTableRowModel::GenerateTextureFeatures()
 {
-  ScalarImageWrapperBase *scalar = dynamic_cast<ScalarImageWrapperBase *>(m_Layer.GetPointer());
-  if(scalar)
+  ImageWrapperBase *iw = dynamic_cast<ImageWrapperBase *>(m_Layer.GetPointer());
+  if(iw && iw->GetNumberOfComponents() == 1)
     {
-    // Get the image out
-    SmartPtr<const ScalarImageWrapperBase::CommonFormatImageType> common_rep =
-        scalar->GetCommonFormatImage();
-
-    /*
-    SmartPtr<ScalarImageWrapperBase::CommonFormatImageType> texture_image =
-        ScalarImageWrapperBase::CommonFormatImageType::New();
-
-    texture_image->CopyInformation(common_rep);
-    texture_image->SetRegions(common_rep->GetBufferedRegion());
-    texture_image->Allocate();*/
+    // Cast the image to floating point
+    auto *float_src = iw->CreateCastToFloatPipeline("GenerateTextureFeatures");
 
     // Create a radius - hard-coded for now
     itk::Size<3> radius; radius.Fill(2);
 
+    // The texture image should be floating point
+    typedef AnatomicImageWrapperTraits<float> TextureWrapperTraitsType;
+    typedef TextureWrapperTraitsType::ImageType TextureImageType;
+    typedef TextureWrapperTraitsType::Image4DType TextureImage4DType;
+    typedef TextureWrapperTraitsType::WrapperType TextureWrapperType;
+
     // Create a filter to generate textures
-    typedef AnatomicImageWrapperTraits<GreyType>::ImageType TextureImageType;
-    typedef AnatomicImageWrapperTraits<GreyType>::Image4DType TextureImage4DType;
     typedef bilwaj::MomentTextureFilter<
-        ScalarImageWrapperBase::CommonFormatImageType,
-        TextureImageType> MomentFilterType;
+        ImageWrapperBase::FloatImageType, TextureImageType> MomentFilterType;
 
     MomentFilterType::Pointer filter = MomentFilterType::New();
-    filter->SetInput(common_rep);
+    filter->SetInput(float_src);
     filter->SetRadius(radius);
     filter->SetHighestDegree(3);
-
-    // Create a new image wrapper
-    SmartPtr<AnatomicImageWrapper> newWrapper = AnatomicImageWrapper::New();
 
     // Up the image dimension
     typedef IncreaseDimensionImageFilter<TextureImageType, TextureImage4DType> UpDimFilter;
@@ -548,10 +547,14 @@ ImageLayerTableRowModel::GenerateTextureFeatures()
     updim->SetInput(filter->GetOutput());
     updim->Update();
 
-    newWrapper->InitializeToWrapper(m_ImageLayer, updim->GetOutput(), NULL, NULL);
+    // Create a new image wrapper
+    SmartPtr<TextureWrapperType> newWrapper = TextureWrapperType::New();
+    newWrapper->InitializeToWrapper(m_ImageLayer, updim->GetOutput());
     newWrapper->SetDefaultNickname("Textures");
-    this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(
-          m_ImageLayer, newWrapper, false);
+    this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(m_ImageLayer, newWrapper, false);
+
+    // Release the cast pipeline
+    iw->ReleaseInternalPipeline("GenerateTextureFeatures");
     }
 }
 
@@ -574,6 +577,40 @@ ImageLayerTableRowModel::CloseLayer()
   m_Layer = NULL;
 }
 
+void ImageLayerTableRowModel::ReloadAsMultiComponent()
+{
+  auto driver = m_ParentModel->GetDriver();
+  auto filename = driver->GetMainImage()->GetFileName();
+
+  SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
+  delegate->Initialize(driver);
+  delegate->SetLoad4DAsMultiComponent(true);
+
+  IRISWarningList warningList;
+
+  driver->OpenImageViaDelegate(filename, delegate, warningList);
+
+  this->Initialize(m_ParentModel, driver->GetMainImage());
+
+}
+
+void ImageLayerTableRowModel::ReloadAs4D()
+{
+  auto driver = m_ParentModel->GetDriver();
+  auto filename = driver->GetMainImage()->GetFileName();
+
+  SmartPtr<LoadMainImageDelegate> delegate = LoadMainImageDelegate::New();
+  delegate->Initialize(driver);
+  delegate->SetLoadMultiComponentAs4D(true);
+
+  IRISWarningList warningList;
+
+  driver->OpenImageViaDelegate(filename, delegate, warningList);
+
+  this->Initialize(m_ParentModel, driver->GetMainImage());
+
+}
+
 bool ImageLayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
 {
   auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
@@ -590,6 +627,27 @@ void ImageLayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
   auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
   if(imageLayer)
     imageLayer->GetDefaultScalarRepresentation()->SetVolumeRenderingEnabled(value);
+}
+
+void
+ImageLayerTableRowModel
+::ReloadWrapperFromFile(IRISWarningList &wl)
+{
+  SmartPtr<AbstractReloadWrapperDelegate> delegate;
+
+  if (m_LayerRole == LABEL_ROLE)
+    delegate = ReloadSegmentationWrapperDelegate::New().GetPointer();
+  else
+    delegate = ReloadAnatomicWrapperDelegate::New().GetPointer();
+
+  ImageWrapperBase *imgWrapper = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+
+  if (!imgWrapper)
+    return;
+
+  delegate->Initialize(m_ParentModel->GetDriver(), imgWrapper);
+  delegate->ValidateHeader(wl);
+  delegate->UpdateWrapper();
 }
 
 /*
@@ -745,4 +803,16 @@ MeshLayerTableRowModel::SetColorMapPresetValue(std::string value)
   cmm->SetLayer(m_MeshLayer);
   cmm->SelectPreset(value);
   cmm->SetLayer(currentLayer);
+}
+
+void
+MeshLayerTableRowModel
+::ReloadWrapperFromFile(IRISWarningList &)
+{
+  /*
+  not implemented for now
+  reloading mesh data could cause dramatic change of wrapper
+  all of the data arrays and properties could chnage
+  should recreate the wrapper entirely instead
+  */
 }

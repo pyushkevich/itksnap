@@ -2,6 +2,7 @@
 #include "ui_ColorMapInspector.h"
 #include "ColorMapModel.h"
 #include "QtReporterDelegates.h"
+#include "QtAbstractButtonCoupling.h"
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
 #include "QtRadioButtonCoupling.h"
@@ -10,7 +11,6 @@
 #include <QInputDialog>
 #include "SNAPQtCommon.h"
 #include "ColorMapRenderer.h"
-#include "ColorMapInteractionDelegate.h"
 
 ColorMapInspector::ColorMapInspector(QWidget *parent) :
   SNAPComponent(parent),
@@ -59,6 +59,11 @@ void ColorMapInspector::SetModel(ColorMapModel *model)
   makeCoupling(ui->inControlOpacity, m_Model->GetMovingControlOpacityModel());
   makeCoupling(ui->inControlIndex, m_Model->GetMovingControlIndexModel());
 
+  // Connect the NaN color button
+  makeCoupling(ui->btnControlColor, m_Model->GetMovingControlColorModel());
+  makeCoupling(ui->btnNaNColor, m_Model->GetNaNColorModel());
+
+
   // Connect radio button groups to corresponding enums
   makeRadioGroupCoupling(ui->grpRadioCont,
                          m_Model->GetMovingControlContinuityModel());
@@ -106,13 +111,6 @@ void ColorMapInspector::onModelUpdate(const EventBucket &b)
     {
     this->PopulatePresets();
     }
-  if(b.HasEvent(ModelUpdateEvent()))
-    {
-    // We don't have a coupling for the color button, so we assign the
-    // color to it directly
-    Vector3ui rgb = to_unsigned_int(m_Model->GetSelectedColor() * 255.0);
-    ui->btnControlColor->setIcon(CreateColorBoxIcon(25,25,rgb));
-    }
 
   // Also we don't have a coupling for the current preset, so we will
   // update it too
@@ -128,16 +126,16 @@ void ColorMapInspector::onModelUpdate(const EventBucket &b)
 
 void ColorMapInspector::PromptUserForColor()
 {
-  Vector3d clr = m_Model->GetSelectedColor();
+  /*
+  Vector3d clr = m_Model->GetMovingControlColorModel()->GetValue();
   QColor qc; qc.setRgbF(clr(0), clr(1), clr(2));
   QColor color = QColorDialog::getColor(qc, this);
-  m_Model->SetSelectedColor(Vector3d(color.redF(), color.greenF(), color.blueF()));
+  m_Model->GetMovingControlColorModel()->SetValue(Vector3d(color.redF(), color.greenF(), color.blueF()));
+  // this->bt
+  */
+  ui->btnControlColor->click();
 }
 
-void ColorMapInspector::on_btnControlColor_clicked()
-{
-  this->PromptUserForColor();
-}
 
 // TODO: this should be done using a combo box coupling!
 void ColorMapInspector::PopulatePresets()

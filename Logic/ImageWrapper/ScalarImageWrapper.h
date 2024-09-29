@@ -39,9 +39,8 @@
 #include "vtkSmartPointer.h"
 
 // Forward references
-template<class TIn> class ThreadedHistogramImageFilter;
 namespace itk {
-  template<class TIn> class MinimumMaximumImageFilter;
+  class VTKImageExportBase;
   template<class TInputImage> class VTKImageExport;
   template<class TOut> class ImageSource;
 }
@@ -57,45 +56,29 @@ class vtkImageImport;
  * is used to unify the treatment of different kinds of scalar images in
  * SNaP.  
  */
-template<class TTraits, class TBase = ScalarImageWrapperBase>
-class ScalarImageWrapper : public ImageWrapper<TTraits, TBase>
+template<class TTraits>
+class ScalarImageWrapper : public ImageWrapper<TTraits>
 {
 public:
 
   // Standard ITK business
-  typedef ScalarImageWrapper<TTraits, TBase>                              Self;
-  typedef ImageWrapper<TTraits, TBase>                              Superclass;
+  typedef ScalarImageWrapper<TTraits>                                     Self;
+  typedef ImageWrapper<TTraits>                                     Superclass;
   typedef SmartPtr<Self>                                               Pointer;
   typedef SmartPtr<const Self>                                    ConstPointer;
   itkTypeMacro(ScalarImageWrapper, ImageWrapper)
   itkNewMacro(Self)
-
 
   // Image Types
   typedef typename Superclass::ImageBaseType                     ImageBaseType;
   typedef typename Superclass::ImageType                             ImageType;
   typedef typename Superclass::ImagePointer                       ImagePointer;
   typedef typename Superclass::PixelType                             PixelType;
-  typedef typename Superclass::CommonFormatImageType     CommonFormatImageType;
   typedef typename Superclass::PreviewImageType               PreviewImageType;
 
   // 4D Image types
   typedef typename Superclass::Image4DType                         Image4DType;
   typedef typename Superclass::Image4DPointer                   Image4DPointer;
-
-  // Floating point image type
-  typedef itk::Image<float, 3>                                  FloatImageType;
-  typedef itk::ImageSource<FloatImageType>                    FloatImageSource;
-
-  // Double precision floating point image type
-  typedef itk::Image<double, 3>                                DoubleImageType;
-  typedef itk::ImageSource<DoubleImageType>                  DoubleImageSource;
-
-  // Vector image types
-  typedef itk::VectorImage<float, 3>                      FloatVectorImageType;
-  typedef itk::ImageSource<FloatVectorImageType>        FloatVectorImageSource;
-  typedef itk::VectorImage<double, 3>                    DoubleVectorImageType;
-  typedef itk::ImageSource<DoubleVectorImageType>      DoubleVectorImageSource;
 
   // Slice image type
   typedef typename Superclass::SliceType                             SliceType;
@@ -107,16 +90,8 @@ public:
 
   // Display types
   typedef typename Superclass::DisplaySliceType               DisplaySliceType;
+  typedef typename Superclass::DisplaySlicePointer         DisplaySlicePointer;
   typedef typename Superclass::DisplayPixelType               DisplayPixelType;
-
-  // MinMax calculator type (works on the 4D image)
-  typedef itk::MinimumMaximumImageFilter<Image4DType>             MinMaxFilter;
-
-  // Histogram filter (works on the 4D image)
-  typedef ThreadedHistogramImageFilter<Image4DType>        HistogramFilterType;
-
-  // VTK Exporter
-  typedef itk::VTKImageExport<CommonFormatImageType>             VTKExportType;
 
   // Iterator types
   typedef typename Superclass::Iterator                               Iterator;
@@ -142,17 +117,6 @@ public:
    */
   virtual ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE { return this; }
 
-  /** Access the min/max filter */
-  irisGetMacro(MinMaxFilter, MinMaxFilter *)
-
-  /**
-   * Get the scaling factor used to convert between intensities stored
-   * in this image and the 'true' image intensities
-   */
-  virtual double GetImageScaleFactor() ITK_OVERRIDE;
-
-  typedef typename ImageWrapperBase::ShortImageType ShortImageType;
-
   /** This image type has only one component */
   virtual size_t GetNumberOfComponents() const ITK_OVERRIDE { return 1; }
 
@@ -162,7 +126,7 @@ public:
   virtual void GetRunLengthIntensityStatistics(
       const itk::ImageRegion<3> &region,
       const itk::Index<3> &startIdx, long runlength,
-      double *out_sum, double *out_sumsq) const ITK_OVERRIDE;
+      double *out_nvalid, double *out_sum, double *out_sumsq) const ITK_OVERRIDE;
 
   /**
    * This method returns a vector of values for the voxel under the cursor.
@@ -176,23 +140,13 @@ public:
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
       vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
 
-  virtual const ComponentTypeObject *GetImageMinObject() const ITK_OVERRIDE;
-
-  virtual const ComponentTypeObject *GetImageMaxObject() const ITK_OVERRIDE;
-
   /**
-    Compute the image histogram. The histogram is cached inside of the
-    object, so repeated calls to this function with the same nBins parameter
-    will not require additional computation.
-
-    Calling with default parameter (0) will use the same number of bins that
-    is currently in the histogram (i.e., return/recompute current histogram).
-    If there is no current histogram, a default histogram with 128 entries
-    will be generated.
-
-    For multi-component data, the histogram is pooled over all components.
-    */
-  const ScalarImageHistogram *GetHistogram(size_t nBins = 0) ITK_OVERRIDE;
+   * This method samples a 2D slice based on a reference geometry from
+   * the current image and maps it using the current display mapping. It
+   * is used to generate thumbnails and for other sampling of image
+   * appearance that is outside of the main display pipeline
+   */
+  virtual DisplaySlicePointer SampleArbitraryDisplaySlice(const ImageBaseType *ref_space) ITK_OVERRIDE;
 
   /**
     Get the maximum possible value of the gradient magnitude. This will
@@ -207,36 +161,14 @@ public:
     */
   double GetImageGradientMagnitudeUpperLimitNative() ITK_OVERRIDE;
 
-
-  /**
-    This method creates an ITK mini-pipeline that can be used to cast the internal
-    image to a floating point image. The ownership of the mini-pipeline is passed
-    to the caller of this method. This method should be used with caution, since
-    there is potential to create duplicates of the internally stored image without
-    need. The best practice is to use this method with filters that only access a
-    portion of the casted image at a time, such as streaming filters.
-
-    When you call Update() on the returned mini-pipeline, the data will be cast to
-    floating point, and if necessary, converted to the native intensity range.
-    */
-  SmartPtr<FloatImageSource> CreateCastToFloatPipeline() const ITK_OVERRIDE;
-
-  /** Same as above, but casts to double. For compatibility with C3D, until we
-   * safely switch C3D to use float instead of double */
-  SmartPtr<DoubleImageSource> CreateCastToDoublePipeline() const ITK_OVERRIDE;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  SmartPtr<FloatVectorImageSource> CreateCastToFloatVectorPipeline() const ITK_OVERRIDE;
-
-  /** Same as CreateCastToFloatPipeline, but for vector images of single dimension */
-  SmartPtr<DoubleVectorImageSource> CreateCastToDoubleVectorPipeline() const ITK_OVERRIDE;
-
   /**
    * Get an image cast to a common representation.
    * @see ScalarImageWrapperBase::GetCommonFormatImage()
    */
+  /*
   const CommonFormatImageType* GetCommonFormatImage(
       ExportChannel channel = ScalarImageWrapperBase::WHOLE_IMAGE) ITK_OVERRIDE;
+      */
 
   /** Return the intensity curve for this layer if it exists */
   virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE;
@@ -244,11 +176,23 @@ public:
   /** Return the color map for this layer if it exists */
   virtual ColorMap *GetColorMap() const ITK_OVERRIDE;
 
-  /** Get a version of this image that is usable in VTK pipelines */
-  vtkImageImport *GetVTKImporter() ITK_OVERRIDE;
+  /** A data type representing a pipeline for exporting to VTK */
+  typedef ScalarImageWrapperBase::VTKImporterMiniPipeline VTKImporterMiniPipeline;
 
-  /** Extends parent method */
-  virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
+  /**
+   * Create a mini-pipeline that can be used to import the image to VTK. Like
+   * other pipelines created with Create..., this is meant for temporary use
+   * since the pipeline may have to allocate large amounts of memory and we'
+   * don't want this memory lingering around when it is not used
+   */
+  VTKImporterMiniPipeline CreateVTKImporterPipeline() const ITK_OVERRIDE;
+
+  /**
+   * A reimplementation of CreateCastToFloatVectorPipeline that presents the
+   * scalar float image as a float vector image
+   */
+  virtual typename ImageWrapperBase::FloatVectorImageType*
+  CreateCastToFloatVectorPipeline(const char *key, int index = 0) ITK_OVERRIDE;
 
   /** Is volume rendering turned on for this layer */
   irisIsMacroWithOverride(VolumeRenderingEnabled)
@@ -272,44 +216,9 @@ protected:
   /** Destructor */
   virtual ~ScalarImageWrapper();
 
-  /** 
-   * The min-max filter used to compute the range of the image on demand.
-   */
-  SmartPtr<MinMaxFilter> m_MinMaxFilter;
-
-  /**
-   * The filter used for histogram computation
-   */
-  SmartPtr<HistogramFilterType> m_HistogramFilter;
-
-  // The policy used to extract a common representation image
-  typedef typename TTraits::CommonRepresentationPolicy CommonRepresentationPolicy;
-  CommonRepresentationPolicy m_CommonRepresentationPolicy;
-
-  /** The intensity scaling factor */
-  double m_ImageScaleFactor;
-
-  SmartPtr<VTKExportType> m_VTKExporter;
-  vtkSmartPointer<vtkImageImport> m_VTKImporter;
-
   // Volume rendering state
   bool m_VolumeRenderingEnabled = false;
   
-  /**
-   * Compute the intensity range of the image if it's out of date.  
-   * This is done before calling GetImateMin, GetImateMax and GetImageScaleFactor methods.
-   */
-  void CheckImageIntensityRange();
-
-  /**
-   * Handle a change in the image pointer (i.e., a load operation on the image or 
-   * an initialization operation)
-   */
-  virtual void UpdateWrappedImages(Image4DType *image_4d,
-                                   ImageBaseType *refSpace = NULL,
-                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
-
-
   /** Write the image to disk as a floating point image (scalar or vector) */
   virtual void WriteToFileAsFloat(const char *filename, Registry &hints) ITK_OVERRIDE;
 };

@@ -114,6 +114,10 @@ private slots:
 
   void on_actionClose_triggered();
 
+  void on_actionReloadAsMultiComponent_triggered();
+
+  void on_actionReloadAs4D_triggered();
+
   void onColorMapPresetSelected();
 
   void on_actionAutoContrast_triggered();
@@ -127,6 +131,8 @@ private slots:
   void on_actionContrast_Inspector_triggered();
 
   void on_actionColor_Map_Editor_triggered();
+
+  void on_actionReloadFromFile_triggered();
 
 private:
   Ui::LayerInspectorRowDelegate *ui;

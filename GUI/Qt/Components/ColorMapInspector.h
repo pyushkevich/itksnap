@@ -31,8 +31,6 @@ private slots:
   // Slot for model updates
   void onModelUpdate(const EventBucket &b);
 
-  void on_btnControlColor_clicked();
-
   void on_inPreset_currentIndexChanged(int index);
 
   void on_btnAddPreset_clicked();

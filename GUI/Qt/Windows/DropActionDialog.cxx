@@ -19,6 +19,11 @@
 #include "LatentITKEventNotifier.h"
 #include "AllPurposeProgressAccumulator.h"
 #include "MeshImportWizard.h"
+#include "ImageIOWizardModel.h"
+#include "ImageIOWizard.h"
+#include "GuidedMeshIO.h"
+#include <itkImageIOBase.h>
+#include <QFileInfo>
 
 DropActionDialog::DropActionDialog(QWidget *parent) :
   QDialog(parent),
@@ -35,6 +40,53 @@ DropActionDialog::~DropActionDialog()
 void DropActionDialog::SetDroppedFilename(QString name)
 {
   ui->outFilename->setText(name);
+
+  bool isWorkspace4D = m_Model->GetDriver()->GetNumberOfTimePoints() > 1;
+
+  // Check if the file can be loaded as mesh
+  bool isPolyData = GuidedMeshIO::IsFilePolyData(to_utf8(name).c_str());
+
+  if (isPolyData)
+    {
+    QFileInfo fileinfo(name);
+    auto ext = fileinfo.completeSuffix();
+    auto fmt = GuidedMeshIO::GetFormatByExtension(ext.toStdString());
+
+    if (GuidedMeshIO::can_read(fmt))
+      {
+      this->SetIncludeMeshOptions(true);
+      }
+    else
+      {
+      QMessageBox msgBox;
+      std::ostringstream oss;
+      oss << "Unsupported mesh file type (" << ext.toStdString() << ")!";
+      msgBox.setText(oss.str().c_str());
+      msgBox.exec();
+      this->reject();
+      return;
+      }
+    }
+  else
+    {
+    this->SetIncludeMeshOptions(false);
+    // Run segmentation 3d & 4d check
+    auto io = GuidedNativeImageIO::New();
+    Registry dummyReg;
+    io->ReadNativeImageHeader(name.toStdString().c_str(), dummyReg);
+    auto header = io->GetIOBase();
+    QString btnLoadSegText("Load as Segmentation");
+    QString btnLoadSegToolTip("This will replace the current segmentation image with the dropped image.");
+
+    if (header->GetNumberOfDimensions() < 4 && isWorkspace4D)
+      {
+      btnLoadSegText = QString("Load as Segmentation in Time Point");
+      btnLoadSegToolTip = QString("This will replace the segmentation in current time point");
+      }
+
+    ui->btnLoadSegmentation->setText(btnLoadSegText);
+    ui->btnLoadSegmentation->setToolTip(btnLoadSegToolTip);
+    }
 }
 
 void DropActionDialog::SetModel(GlobalUIModel *model)
@@ -142,20 +194,6 @@ void DropActionDialog::on_btnLoadMeshToTP_clicked()
 {
   // Get file extension
   std::string fn = ui->outFilename->text().toStdString();
-  // Get the file extension with the dot. e.g. ".vtk"
-  std::string ext = fn.substr(fn.find_last_of("."));
-
-  auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
-  if (fmt == GuidedMeshIO::FORMAT_COUNT)
-    {
-    QMessageBox msgBox;
-    std::ostringstream oss;
-    oss << "Unsupported mesh file type (" << ext << ")!";
-    msgBox.setText(oss.str().c_str());
-    msgBox.exec();
-    this->reject();
-    return;
-    }
 
   unsigned int displayTP = m_Model->GetDriver()->GetCursorTimePoint() + 1; // always display 1-based tp index
   QMessageBox *box = MeshImportWizard::CreateLoadToTimePointMessageBox(this, displayTP);
@@ -167,7 +205,7 @@ void DropActionDialog::on_btnLoadMeshToTP_clicked()
     case QMessageBox::Ok:
       {
       auto model = m_Model->GetMeshImportModel();
-      model->LoadToTP(fn.c_str(), fmt);
+      model->LoadToTP(fn.c_str(), GuidedMeshIO::GetFormatByFilename((fn.c_str())));
       this->accept();
       return;
       }
@@ -182,12 +220,16 @@ void DropActionDialog::on_btnLoadMeshToTP_clicked()
 
 void DropActionDialog::on_btnLoadSegmentation_clicked()
 {
-  // Prompt for unsaved changes before replacing the segmentation
-  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
-    return;
-
   SmartPtr<LoadSegmentationImageDelegate> del = LoadSegmentationImageDelegate::New();
   del->Initialize(m_Model->GetDriver());
+
+  auto io = GuidedNativeImageIO::New();
+
+  // if incoming load can overwrite unsaved changes, prompt user for saving
+  if (del->CanLoadOverwriteUnsavedChanges(io, to_utf8(ui->outFilename->text())) &&
+      !SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+    return;
+
   this->LoadCommon(del);
 }
 
@@ -225,10 +267,6 @@ void DropActionDialog::on_btnLoadNew_clicked()
     b.exec();
     }
 }
-
-
-#include "ImageIOWizardModel.h"
-#include "ImageIOWizard.h"
 
 void DropActionDialog::LoadCommon(AbstractOpenImageDelegate *delegate)
 {

@@ -61,6 +61,8 @@
 #include "SynchronizationModel.h"
 #include "LayoutReminderDialog.h"
 #include "AllPurposeProgressAccumulator.h"
+#include "LabelEditorModel.h"
+#include "RegistrationModel.h"
 
 #include "QtCursorOverride.h"
 #include "QtWarningDialog.h"
@@ -615,7 +617,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionSave_as_Mesh, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionLoadLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionSaveLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->menuRecentLabelDefs, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionResetLabels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->actionVolumesAndStatistics, m_Model, UIF_BASEIMG_LOADED);
+  activateOnFlag(ui->actionReloadSegmentation, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSwitch_Foreground_Background_Labels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
   activateOnFlag(ui->menuAppearance, m_Model, UIF_BASEIMG_LOADED);
 
   // Overlay action activations
@@ -651,9 +657,12 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   activateOnFlag(ui->actionColor_Map_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionLabel_Editor, m_Model, UIF_BASEIMG_LOADED);
   activateOnFlag(ui->actionImage_Information, m_Model, UIF_BASEIMG_LOADED);
-  activateOnFlag(ui->actionRegistration, m_Model, UIF_IRIS_WITH_OVERLAY_LOADED);
-
   activateOnFlag(ui->actionReorient_Image, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionFree_Rotation_Mode, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionInterpolate_Labels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnFlag(ui->actionSmooth_Labels, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED);
+  activateOnAllFlags(ui->actionRegistration, m_Model, UIF_IRIS_WITH_BASEIMG_LOADED, UIF_OVERLAY_LOADED);
+
 
   // Hook up toolbar actions to the toolbar
   makeActionGroupCoupling(this->GetMainToolActionGroup(),
@@ -995,6 +1004,9 @@ void MainImageWindow::UpdateRecentMenu()
 
   this->CreateRecentMenu(ui->menuAddSegmentation_Recent, "LabelImage", false, 5,
                          SLOT(LoadAnotherRecentSegmentationActionTriggered()));
+
+  this->CreateRecentMenu(ui->menuRecentLabelDefs, "LabelDescriptions", true, 5,
+                         SLOT(LoadRecentLabelDefinitionsTriggered()));
 }
 
 void MainImageWindow::UpdateRecentProjectsMenu()
@@ -1008,6 +1020,7 @@ void MainImageWindow::UpdateRecentProjectsMenu()
 void MainImageWindow::UpdateWindowTitle()
 {
   GenericImageData *gid = m_Model->GetDriver()->GetIRISImageData();
+  bool is4D = m_Model->GetDriver()->GetNumberOfTimePoints() > 1;
   QString mainfile, segfile, projfile;
   if(gid && gid->IsMainLoaded())
     {
@@ -1045,16 +1058,21 @@ void MainImageWindow::UpdateWindowTitle()
     ui->actionSaveSegmentation->setText(QString("Save \"%1\"").arg(segfile));
     ui->actionSaveSegmentationAs->setText(QString("Save \"%1\" as...").arg(segfile));
     ui->actionSaveSegmentationAs->setVisible(true);
+    ui->actionReloadSegmentation->setText(QString("Reload \"%1\" from File").arg(segfile));
+    ui->actionReloadSegmentation->setVisible(true);
     }
   else if(mainfile.length())
     {
-    ui->actionSaveSegmentation->setText(QString("Save Segmentation Image ..."));
+    QString infix4D(is4D ? "4D " : "");
+    ui->actionSaveSegmentation->setText(QString("Save %1Segmentation Image ...").arg(infix4D));
     ui->actionSaveSegmentationAs->setVisible(false);
+    ui->actionReloadSegmentation->setVisible(false);
     }
   else
     {
     ui->actionSaveSegmentation->setText(QString("Save"));
     ui->actionSaveSegmentationAs->setText(QString("Save as..."));
+    ui->actionReloadSegmentation->setVisible(false);
     }
 
   // Set up the segmentation items
@@ -1130,7 +1148,9 @@ void MainImageWindow::on_actionQuit_triggered()
 void MainImageWindow::on_actionLoad_from_Image_triggered()
 {
   // Prompt for unsaved changes
-  if(!SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
+  // -- only prompt for 3d
+  if(m_Model->GetDriver()->GetNumberOfTimePoints() == 1 &&
+     !SaveModifiedLayersDialog::PromptForUnsavedSegmentationChanges(m_Model))
     return;
 
   // Create a model for IO
@@ -1159,7 +1179,7 @@ void MainImageWindow::on_actionImage_Contrast_triggered()
 void MainImageWindow::on_actionColor_Map_Editor_triggered()
 {
   // Go to the contrast page in the dialog
-  m_LayerInspector->SetPageToContrastAdjustment();
+  m_LayerInspector->SetPageToColorMap();
 
   // Show the dialog
   RaiseDialog(m_LayerInspector);
@@ -1240,8 +1260,9 @@ void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainImageWindow::LoadDroppedFile(QString file)
 {
+  std::string filename = to_utf8(file);
   // Check if the dropped file is a project
-  if(m_Model->GetDriver()->IsProjectFile(to_utf8(file).c_str()))
+  if(m_Model->GetDriver()->IsProjectFile(filename.c_str()))
     {
     // For the time being, the feature of opening the workspace in a new
     // window is not implemented. Instead, we just prompt the user for
@@ -1257,15 +1278,16 @@ void MainImageWindow::LoadDroppedFile(QString file)
     {
     if(m_Model->GetDriver()->IsMainImageLoaded())
       {
+      // check if it's a label description file
+      if (m_Model->GetDriver()->GetColorLabelTable()->ValidateFile(filename.c_str()))
+        {
+        m_Model->GetDriver()->LoadLabelDescriptions(filename.c_str());
+        return;
+        }
+
       // If an image is already loaded, we show the dialog
       m_DropDialog->SetDroppedFilename(file);
       m_DropDialog->setModal(true);
-
-      // Check if the file can be loaded as mesh
-      QFileInfo fileinfo(file);
-      auto ext = fileinfo.completeSuffix();
-      auto fmt = GuidedMeshIO::GetFormatByExtension(ext.toStdString());
-      m_DropDialog->SetIncludeMeshOptions(GuidedMeshIO::can_read(fmt));
 
       RaiseDialog(m_DropDialog);
       }
@@ -1496,6 +1518,28 @@ void MainImageWindow::LoadAnotherRecentSegmentationActionTriggered()
   QAction *action = qobject_cast<QAction *>(sender());
   QString file = action->text();
   LoadRecentSegmentation(file, true);
+}
+
+void MainImageWindow::LoadLabelDefinitions(QString file)
+{
+  try
+    {
+    std::string utf = to_utf8(file);
+    m_Model->GetDriver()->LoadLabelDescriptions(utf.c_str());
+    }
+  catch(std::exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Label Definitions IO Error",
+                             QString("Failed to load label definitions from file"));
+    }
+}
+
+void MainImageWindow::LoadRecentLabelDefinitionsTriggered()
+{
+  // Get the filename that wants to be loaded
+  QAction *action = qobject_cast<QAction *>(sender());
+  QString file = action->text();
+  LoadLabelDefinitions(file);
 }
 
 void MainImageWindow::LoadAnotherDicomActionTriggered()
@@ -1874,18 +1918,7 @@ void MainImageWindow::on_actionLoadLabels_triggered()
 
   // Open the labels from the selection
   if(selection.length())
-    {
-    try
-      {
-      std::string utf = to_utf8(selection);
-      m_Model->GetDriver()->LoadLabelDescriptions(utf.c_str());
-      }
-    catch(std::exception &exc)
-      {
-      ReportNonLethalException(this, exc, "Label Description IO Error",
-                               QString("Failed to load label descriptions"));
-      }
-    }
+    LoadLabelDefinitions(selection);
 }
 
 void MainImageWindow::on_actionSaveLabels_triggered()
@@ -2150,7 +2183,7 @@ void MainImageWindow::ExportSlice(AnatomicalDirection direction)
   size_t iSliceImg =
     m_Model->GetDriver()->GetImageDirectionForAnatomicalDirection(direction);
 
-  sprintf(deffn,"%s_slice_%04d.png", defpref[direction],
+  snprintf(deffn, 40, "%s_slice_%04d.png", defpref[direction],
     m_Model->GetDriver()->GetCursorPosition()[iSliceImg] + 1);
 
   // Open a file browser and have the user select something
@@ -2456,12 +2489,22 @@ void MainImageWindow::on_actionRegistration_triggered()
 {
   // Remember the size of the window before the right dock was shown
   m_SizeWithoutRightDock = this->size();
-
   m_DockRight->setWindowTitle("Registration");
+  m_Model->GetRegistrationModel()->SetFreeRotationMode(false);
   m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
   m_DockRight->setVisible(true);
 }
 
+
+void MainImageWindow::on_actionFree_Rotation_Mode_triggered()
+{
+  // Remember the size of the window before the right dock was shown
+  m_SizeWithoutRightDock = this->size();
+  m_DockRight->setWindowTitle("Free Rotation");
+  m_Model->GetRegistrationModel()->SetFreeRotationMode(true);
+  m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
+  m_DockRight->setVisible(true);
+}
 
 void MainImageWindow::on_actionMainControlPanel_triggered()
 {
@@ -2594,3 +2637,38 @@ void MainImageWindow::on_actionToggle_4D_Replay_triggered()
   Update4DReplay();
 }
 
+void MainImageWindow::on_actionSwitch_Foreground_Background_Labels_triggered()
+{
+  GetModel()->SwitchForegroundBackgroundLabels();
+}
+
+void MainImageWindow::on_actionContinuous_Update_triggered()
+{
+  bool currentValue = GetModel()->GetModel3D()->GetContinuousUpdate();
+  GetModel()->GetModel3D()->SetContinuousUpdate(!currentValue);
+}
+
+
+void MainImageWindow::on_actionResetLabels_triggered()
+{
+  this->GetModel()->GetLabelEditorModel()->ResetLabels();
+}
+
+
+void MainImageWindow::on_actionReloadSegmentation_triggered()
+{
+  auto *seg_wrapper = m_Model->GetDriver()->GetSelectedSegmentationLayer();
+  if(seg_wrapper)
+    {
+    auto *model = dynamic_cast<AbstractLayerTableRowModel *>(seg_wrapper->GetUserData("LayerTableRowModel"));
+    IRISWarningList wl;
+    try
+      {
+      model->ReloadWrapperFromFile(wl);
+      }
+    catch (IRISException &ex)
+      {
+      ReportNonLethalException(this, ex, "Error reloading image from file");
+      }
+    }
+}

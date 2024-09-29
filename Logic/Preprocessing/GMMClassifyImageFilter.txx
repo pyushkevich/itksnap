@@ -4,7 +4,7 @@
 #include "GMMClassifyImageFilter.h"
 #include "itkImageRegionConstIterator.h"
 #include "EMGaussianMixtures.h"
-#include "ImageCollectionToImageFilter.h"
+#include "ImageCollectionConstIteratorWithIndex.h"
 
 template <class TInputImage, class TInputVectorImage, class TOutputImage>
 GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
@@ -91,8 +91,7 @@ GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
   OutputImagePointer outputPtr = this->GetOutput(0);
 
   // Create a collection iterator
-  typedef ImageCollectionConstRegionIteratorWithIndex<
-      TInputImage, TInputVectorImage> CollectionIter;
+  typedef ImageCollectionConstIteratorWithIndex<TInputImage, TInputVectorImage> CollectionIter;
 
   typedef itk::ImageRegionIterator<TOutputImage> OutputIter;
   OutputIter it_out(outputPtr, outputRegionForThread);
@@ -115,7 +114,8 @@ GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
     }
 
   // Configure the input collection iterator
-  CollectionIter cit(outputRegionForThread);
+  itk::Size<ImageDimension> radius; radius.Fill(0);
+  CollectionIter cit(radius, outputRegionForThread);
   for( itk::InputDataObjectIterator it( this ); !it.IsAtEnd(); it++ )
     cit.AddImage(it.GetInput());
 
@@ -125,10 +125,7 @@ GMMClassifyImageFilter<TInputImage, TInputVectorImage, TOutputImage>
   // Iterate through all the voxels
   while ( !it_out.IsAtEnd() )
     {
-    for(int i = 0; i < nComp; i++)
-      {
-      x[i] = cit.Value(i);
-      }
+    cit.GetNeighborhoodValues(x);
 
     // Evaluate the posterior probability robustly
     for(int k = 0; k < m_MixtureModel->GetNumberOfGaussians(); k++)

@@ -74,8 +74,7 @@ public:
   /**
    * Get the value of a control point
    */
-  virtual void GetControlPoint(unsigned int iControlPoint, 
-    float &t, float &x) const = 0;
+  virtual void GetControlPoint(unsigned int iControlPoint, double &t, double &x) const = 0;
 
   /**
    * Get the value of a control point
@@ -85,8 +84,7 @@ public:
   /**
    * Update the value of a control point
    */
-  virtual void UpdateControlPoint(unsigned int iControlPoint, 
-    float t, float x) = 0;
+  virtual void UpdateControlPoint(unsigned int iControlPoint, double t, double x) = 0;
 
   /**
    * This method linearly maps the t-values of all the control points to 
@@ -94,7 +92,12 @@ public:
    * where we want to adjust the domain of the curve without changing its 
    * shape
    */
-  virtual void ScaleControlPointsToWindow(float tMin, float tMax) = 0;
+  virtual void ScaleControlPointsToWindow(double tMin, double tMax) = 0;
+
+  /**
+   * Get the current range of the curve (t of the first and last points)
+   */
+  virtual std::pair<double, double> GetRange() const = 0;
 
   /**
    * Check the monotonicity of the spline curve
@@ -108,7 +111,7 @@ public:
   virtual void SaveToRegistry(Registry &registry) const = 0;
 
   /** Evaluate the curve */
-  virtual float Evaluate(const float &t) const = 0;
+  virtual double Evaluate(const double &t) const = 0;
 
 protected:
   IntensityCurveInterface(){};

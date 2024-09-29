@@ -535,14 +535,14 @@ std::string DistributedSegmentationModel::SuggestDownloadFilename()
     if(local_ws.size())
       {
       // Create the ticket in the same folder as the local workspace
-      sprintf(ticket_file, "%s/ticket_%08ld_results.itksnap",
+      snprintf(ticket_file, 4096, "%s/ticket_%08ld_results.itksnap",
               itksys::SystemTools::GetFilenamePath(local_ws).c_str(),
               selected_ticket_id);
       }
     else
       {
       // Generate a default path for download
-      sprintf(ticket_file, "%s/ticket_%08ld/ticket_%08ld_results.itksnap",
+      snprintf(ticket_file, 4096, "%s/ticket_%08ld/ticket_%08ld_results.itksnap",
               this->GetDownloadLocation().c_str(),
               selected_ticket_id, selected_ticket_id);
       }

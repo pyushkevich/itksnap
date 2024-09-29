@@ -539,6 +539,39 @@ color: rgb(120, 120, 120)</string>
     <string>Enable volume rendering of this layer</string>
    </property>
   </action>
+  <action name="actionReloadAsMultiComponent">
+   <property name="text">
+    <string>Reload as a Multi-Component Image</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload a 4d main image as a multi-component image</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionReloadAs4D">
+   <property name="text">
+    <string>Reload as a 4D Image</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload a multi-component image as a 4D image</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionReloadFromFile">
+   <property name="text">
+    <string>Reload from File</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload image data from the disk</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>

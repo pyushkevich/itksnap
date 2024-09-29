@@ -92,7 +92,7 @@ bool RESTClient::Authenticate(const char *baseurl, const char *token)
 
   // Data to post
   char post_buffer[1024];
-  sprintf(post_buffer, "token=%s", token);
+  snprintf(post_buffer, sizeof(post_buffer), "token=%s", token);
   curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_buffer);
 
   // Cookie file
@@ -150,7 +150,7 @@ bool RESTClient::GetVA(const char *rel_url, std::va_list args)
 {
   // Expand the URL
   char url_buffer[4096];
-  vsprintf(url_buffer, rel_url, args);
+  vsnprintf(url_buffer, 4096, rel_url, args);
 
   // Use the same code as POST, but with null string
   return this->Post(url_buffer, NULL);
@@ -176,8 +176,8 @@ bool RESTClient::Post(const char *rel_url, const char *post_string, ...)
   
 bool RESTClient::PostVA(const char *rel_url, const char *post_string, std::va_list args)
 {
-  // Calling vsprintf multiple times with the same args fails on Windows. Instead we
-  // can concatenate the URL string and the post string, call vasprintf once, and then
+  // Calling vsnprintf multiple times with the same args fails on Windows. Instead we
+  // can concatenate the URL string and the post string, call vasnprintf once, and then
   // split the buffers. We just need a separator that would not be expected.
   const char *sep="@@@SEP@@@";
   std::string joint_pattern = 
@@ -187,7 +187,7 @@ bool RESTClient::PostVA(const char *rel_url, const char *post_string, std::va_li
 
   // Expand the URL
   char url_buffer[4096];
-  vsprintf(url_buffer, joint_pattern.c_str(), args);
+  vsnprintf(url_buffer, 4096, joint_pattern.c_str(), args);
 
   // Split into url and post sections
   std::string url_filled, post_filled;
@@ -267,7 +267,7 @@ bool RESTClient::UploadFile(
   std::va_list args;
   va_start(args, extra_fields);
   char url_buffer[4096];
-  vsprintf(url_buffer, rel_url, args);
+  vsnprintf(url_buffer, 4096, rel_url, args);
 
   // The URL to post to
   string url = this->GetServerURL() + "/" + url_buffer;
@@ -310,7 +310,7 @@ bool RESTClient::UploadFile(
       it != extra_fields.end(); ++it)
     {
     char post_buffer[4096];
-    vsprintf(post_buffer, it->second.c_str(), args);
+    vsnprintf(post_buffer, 4096, it->second.c_str(), args);
 
     curl_formadd(&formpost, &lastptr,
                  CURLFORM_COPYNAME, it->first.c_str(),
@@ -350,7 +350,7 @@ bool RESTClient::UploadFile(
   double upload_size, upload_time;
   curl_easy_getinfo(m_Curl, CURLINFO_SIZE_UPLOAD, &upload_size);
   curl_easy_getinfo(m_Curl, CURLINFO_TOTAL_TIME, &upload_time);
-  sprintf( m_UploadMessageBuffer, "%.1f Mb in %.1f s", upload_size / 1.0e6, upload_time);
+  snprintf( m_UploadMessageBuffer, sizeof(m_UploadMessageBuffer), "%.1f Mb in %.1f s", upload_size / 1.0e6, upload_time);
 
   /* then cleanup the formpost chain */
   curl_formfree(formpost);
@@ -382,7 +382,7 @@ std::string RESTClient::GetFormattedCSVOutput(bool header)
 
 const char *RESTClient::GetResponseText()
 {
-  sprintf(m_MessageBuffer, "Response %ld, Text: %s", m_HTTPCode, m_Output.c_str());
+  snprintf(m_MessageBuffer, sizeof(m_MessageBuffer), "Response %ld, Text: %s", m_HTTPCode, m_Output.c_str());
   return m_MessageBuffer;
 }
 

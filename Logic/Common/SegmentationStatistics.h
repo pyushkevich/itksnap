@@ -66,9 +66,10 @@ public:
   struct Entry {
     unsigned long int count;
     double volume_mm3;
-    vnl_vector<double> sum, sumsq, mean, stdev;
+    vnl_vector<double> nvalid, sum, sumsq, mean, stdev;
     Entry() : count(0),volume_mm3(0) {}
     void resize(int n) {
+      nvalid.set_size(n); nvalid.fill(0);
       sum.set_size(n); sum.fill(0);
       sumsq.set_size(n); sumsq.fill(0);
       mean.set_size(n); mean.fill(0);

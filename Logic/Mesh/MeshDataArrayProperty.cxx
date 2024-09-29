@@ -2,6 +2,7 @@
 #include "MeshDisplayMappingPolicy.h"
 #include "ColorMap.h"
 #include "Rebroadcaster.h"
+#include "TDigestImageFilter.h"
 
 // ========================================
 //  AbstractMeshDataArrayProperty Implementation
@@ -168,9 +169,13 @@ MeshLayerDataArrayProperty()
   SetActiveIntensityCurve(m_MagnitudeIntensityCurve);
 	m_ActiveVectorMode = VectorMode::MAGNITUDE;
 	m_ActiveComponentId = 0;
-  m_HistogramFilter = HistogramFilterType::New();
-  m_HistogramFilter->SetNumberOfBins(DEFAULT_HISTOGRAM_BINS);
-  m_MinMaxFilter = MinMaxFilterType::New();
+
+  m_TDigestFilter = TDigestFilter::New();
+}
+
+MeshLayerDataArrayProperty::
+~MeshLayerDataArrayProperty()
+{
 }
 
 
@@ -273,13 +278,11 @@ inline double GetMagnitude(double *vector, size_t len)
 	return sqrt(sum);
 }
 
-ScalarImageHistogram*
-MeshLayerDataArrayProperty::
-GetHistogram(size_t nBins)
-{
-  if (nBins > 0)
-    m_HistogramFilter->SetNumberOfBins(nBins);
 
+TDigestDataObject*
+MeshLayerDataArrayProperty::
+GetTDigest()
+{
   std::vector<double> tmpdata;
   long n = 0;
 
@@ -340,12 +343,11 @@ GetHistogram(size_t nBins)
       break;
     }
 
-  m_HistogramFilter->SetInput(img);
-  m_MinMaxFilter->SetInput(img);
-  m_HistogramFilter->SetRangeInputs(m_MinMaxFilter->GetMinimumOutput(),
-                                    m_MinMaxFilter->GetMaximumOutput());
-	m_MinMaxFilter->Update();
-  m_HistogramFilter->Update();
+  // TODO: this method recomputes the t-digest on every call. This should not be necessary; the
+  // ITK pipeline mechanichs could be used to perform lazy updating. There is also duplication
+  // of the data because the tmpimage is held in memory as long as the filter exists.
+  m_TDigestFilter->SetInput(img);
+  m_TDigestFilter->Update();
 
-  return m_HistogramFilter->GetHistogramOutput();
+  return m_TDigestFilter->GetTDigest();
 }

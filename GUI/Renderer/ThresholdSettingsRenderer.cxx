@@ -48,7 +48,7 @@ ThresholdSettingsRenderer::ThresholdSettingsRenderer()
   // Set up the plot
   m_Plot = m_Chart->AddPlot(vtkChart::LINE);
   m_Plot->SetInputData(m_PlotTable, 0, 1);
-  m_Plot->SetColor(1, 0, 0);
+  m_Plot->SetColorF(1, 0, 0);
   m_Plot->SetWidth(2.0);
   m_Plot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
   m_Plot->GetYAxis()->SetMinimum(-0.05);
@@ -99,7 +99,8 @@ void ThresholdSettingsRenderer::UpdatePlotValues()
                                        m_DataY->GetPointer(0));
 
     ScalarImageWrapperBase *layer = m_Model->GetActiveScalarLayer(PREPROCESS_THRESHOLD);
-    const ScalarImageHistogram *hist = layer->GetHistogram(0);
+    SmartPtr<ScalarImageHistogram> hist = ScalarImageHistogram::New();
+    hist->ComputeFromTDigest(layer->GetTDigest());
     m_HistogramAssembly->PlotWithFixedLimits(hist, 0.0, 1.0);
 
     m_Plot->GetXAxis()->SetRange(

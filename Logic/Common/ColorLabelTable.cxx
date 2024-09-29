@@ -7,6 +7,7 @@
 
 using namespace std;
 
+
 int parse_color(
   const char* p, unsigned char& r, unsigned char& g, unsigned char& b)
 {
@@ -35,6 +36,7 @@ int parse_color(
 
 
 // Some randomly ordered colors
+const char *ColorLabelTable::m_FileHeader = "# ITK-SnAP Label Description File";
 const size_t ColorLabelTable::m_ColorListSize = 130;
 const char *ColorLabelTable::m_ColorList[ColorLabelTable::m_ColorListSize] = {
   "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#00FFFF", "#FF00FF",
@@ -65,6 +67,31 @@ ColorLabelTable
 {
   // Copy default labels to active labels
   InitializeToDefaults();
+}
+
+bool
+ColorLabelTable
+::ValidateFile(const char *file) const
+{
+  // Create a stream for reading the file
+  ifstream fin(file);
+  string line1, line2;
+
+  if(!fin.good())
+    {
+    throw itk::ExceptionObject(
+      __FILE__, __LINE__,"File does not exist or can not be opened");
+    }
+
+  // read first 2 lines
+  std::getline(fin,line1);
+  std::getline(fin,line2);
+
+  // only validate header for now
+  if (std::strcmp(line2.c_str(), m_FileHeader) == 0)
+    return true;
+
+  return false;
 }
 
 void
@@ -188,7 +215,7 @@ ColorLabelTable
 
   // Print out a header to the file
   fout << "################################################"<< endl;
-  fout << "# ITK-SnAP Label Description File"               << endl;
+  fout << m_FileHeader                                      << endl;
   fout << "# File format: "                                 << endl;
   fout << "# IDX   -R-  -G-  -B-  -A--  VIS MSH  LABEL"     << endl;
   fout << "# Fields: "                                      << endl;

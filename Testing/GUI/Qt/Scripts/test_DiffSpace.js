@@ -22,13 +22,14 @@ engine.findChild(mainwin,"actionRegistration").trigger();
 var regpanel = engine.findChild(mainwin,"RegistrationDialog");
 
 //=== Run automatic registration 
+engine.findChild(regpanel, "inMovingLayer").currentText = "t2_chunk";
 engine.findChild(regpanel, "btnRunRegistration").click();
 engine.sleep(5000);
 
 //=== Play with the multi_chunk, make sure it can be resliced
-engine.print(engine.findChild(regpanel, "tabWidget").currentIndex);
-engine.print(engine.findChild(regpanel, "tabWidget").currentTabText);
-engine.findChild(regpanel, "tabWidget").currentIndex = 1;
+engine.print(engine.findChild(regpanel, "tabAutoManual").currentIndex);
+engine.print(engine.findChild(regpanel, "tabAutoManual").currentTabText);
+engine.findChild(regpanel, "tabAutoManual").currentIndex = 1;
 engine.findChild(regpanel, "inMovingLayer").currentText = "multi_chunk";
 
 //=== Set manual registration parameters

@@ -2,7 +2,7 @@
 #define VTKRENDERGEOMETRY_H
 
 #include <vtkSmartPointer.h>
-#include <vnl_math.h>
+#include <vnl/vnl_math.h>
 
 class vtkPoints2D;
 

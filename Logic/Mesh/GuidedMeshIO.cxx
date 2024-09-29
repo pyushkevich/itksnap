@@ -1,12 +1,15 @@
 #include "GuidedMeshIO.h"
-#include "vtkPolyDataWriter.h"
-#include "vtkSTLWriter.h"
-#include "vtkBYUWriter.h"
-#include "vtkTriangleFilter.h"
-#include "itkMacro.h"
 #include "MeshIODelegates.h"
 #include "MeshWrapperBase.h"
 #include "StandaloneMeshWrapper.h"
+
+#include <itkMacro.h>
+#include <itksys/SystemTools.hxx>
+#include <vtkDataReader.h>
+#include <vtkPolyDataWriter.h>
+#include <vtkSTLWriter.h>
+#include <vtkBYUWriter.h>
+#include <vtkTriangleFilter.h>
 
 GuidedMeshIO
 ::GuidedMeshIO()
@@ -178,4 +181,22 @@ std::string
 GuidedMeshIO::GetErrorMessage() const
 {
   return m_ErrorMessage;
+}
+
+bool
+GuidedMeshIO
+::IsFilePolyData(const char *filename)
+{
+  auto reader = vtkNew<vtkDataReader>();
+  reader->SetFileName(filename);
+  return reader->IsFilePolyData();
+}
+
+GuidedMeshIO::FileFormat
+GuidedMeshIO
+::GetFormatByFilename(const char *filename)
+{
+  // extract extension
+  std::string ext = itksys::SystemTools::GetFilenameLastExtension(filename);
+  return GetFormatByExtension(ext);
 }

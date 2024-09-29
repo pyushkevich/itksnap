@@ -105,7 +105,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 template <class TFilterConfigTraits>
 void
 SlicePreviewFilterWrapper<TFilterConfigTraits>
-::DetachInputsAndOutputs()
+::DetachInputsAndOutputs(InputDataType *sid)
 {
   if(m_OutputWrapper)
     {
@@ -124,7 +124,7 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
   for(unsigned int i = 0; i < 4; i++)
     {
     // Disconnect wrapper from this pipeline
-    Traits::DetachInputs(this->GetNthFilter(i));
+    Traits::DetachInputs(sid, this->GetNthFilter(i));
     }
 
   m_ActiveScalarLayer = NULL;
@@ -135,7 +135,7 @@ void
 SlicePreviewFilterWrapper<TFilterConfigTraits>
 ::UpdatePipeline()
 {
-    if(m_OutputWrapper)
+  if(m_OutputWrapper)
     {
     if(m_PreviewMode)
       {

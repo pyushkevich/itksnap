@@ -8,7 +8,7 @@
 class vtkActor;
 class vtkPropAssembly;
 class vtkChartXY;
-class vtkFloatArray;
+class vtkDoubleArray;
 class vtkPlot;
 class vtkTable;
 
@@ -40,7 +40,7 @@ protected:
   vtkSmartPointer<vtkChartXY> m_Chart;
   vtkSmartPointer<vtkTable> m_PlotTable;
   vtkSmartPointer<vtkPlot> m_CurvePlot;
-  vtkSmartPointer<vtkFloatArray> m_CurveX, m_CurveY;
+  vtkSmartPointer<vtkDoubleArray> m_CurveX, m_CurveY;
 
   // vtkSmartPointer<IntensityCurveControlPointsContextItem> m_ControlPoints;
 

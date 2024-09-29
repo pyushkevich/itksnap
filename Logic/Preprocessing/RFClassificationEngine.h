@@ -90,7 +90,7 @@ protected:
   bool m_UseCoordinateFeatures;
 
   // Cached samples used to train the classifier
-  typedef MLData<GreyType, LabelType> SampleType;
+  typedef MLData<float, LabelType> SampleType;
   SampleType *m_Sample;
 
 };

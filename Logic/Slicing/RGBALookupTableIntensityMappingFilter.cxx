@@ -1,21 +1,14 @@
 #include "RGBALookupTableIntensityMappingFilter.h"
 #include "RLEImageRegionIterator.h"
+#include "ColorLookupTable.h"
 
 template<class TInputImage>
 RGBALookupTableIntensityMappingFilter<TInputImage>
 ::RGBALookupTableIntensityMappingFilter()
 {
-  // Multiple images and the LUT are inputs
-  this->SetNumberOfIndexedInputs(4);
-}
-
-template<class TInputImage>
-void
-RGBALookupTableIntensityMappingFilter<TInputImage>
-::SetLookupTable(LookupTableType *lut)
-{
-  m_LookupTable = lut;
-  this->SetNthInput(3, lut);
+  // Multiple images are indexed inputs
+  this->SetNumberOfRequiredInputs(3);
+  this->AddRequiredInputName("LookupTable");
 }
 
 template<class TInputImage>
@@ -31,12 +24,15 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
   // Get the output
   OutputImageType *output = this->GetOutput(0);
 
-  // Lookup table range
-  int lut_min = m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
-  int lut_max = lut_min + m_LookupTable->GetLargestPossibleRegion().GetSize()[0] - 1;
+  // Get the range of intensities mapped that the LUT handles
+  const LookupTableType *lut = this->GetLookupTable();
 
-  // Get the pointer to the zero value in the LUT
-  OutputComponentType *lutp = m_LookupTable->GetBufferPointer() - lut_min;
+  // Does zero map out of the LUT's range? We may get inputs of zero from
+  // the non-orthogonal slicer (data outside of image range) that would fall
+  // outside of the colormap. This is really a poor way to handle this but
+  // there is not a good alternative solution right now.
+  // TODO: fix this.
+  bool zero_out_of_range = !lut->CheckRange(0);
 
   // Define the iterators
   typedef itk::ImageRegionConstIterator<InputImageType> InputIteratorType;
@@ -58,15 +54,15 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
     // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
     // better than this, i.e., via a special value reserved for such voxels.
     // Right now, defaulting to zero is a DISASTER!
-    if(xin0 == 0 && xin1 == 0 && xin2 == 0 && (lut_min > 0 || lut_max < 0))
+    if(zero_out_of_range && xin0 == 0 && xin1 == 0 && xin2 == 0)
       {
       xout.Fill(0);
       }
     else
       {
-      xout[0] = *(lutp + xin0);
-      xout[1] = *(lutp + xin1);
-      xout[2] = *(lutp + xin2);
+      xout[0] = lut->MapIntensityToDisplay(xin0);
+      xout[1] = lut->MapIntensityToDisplay(xin1);
+      xout[2] = lut->MapIntensityToDisplay(xin2);
       xout[3] = 255; // alpha = 1
       }
 
@@ -82,35 +78,38 @@ RGBALookupTableIntensityMappingFilter<TInputImage>
 ::MapPixel(const InputPixelType &xin0, const InputPixelType &xin1, const InputPixelType &xin2)
 {
   // Update the lookup table
-  m_LookupTable->Update();
-
-  // Lookup table range
-  int lut_min = m_LookupTable->GetLargestPossibleRegion().GetIndex()[0];
-  int lut_max = lut_min + m_LookupTable->GetLargestPossibleRegion().GetSize()[0] - 1;
-
-  // Get the pointer to the zero value in the LUT
-  OutputComponentType *lutp = m_LookupTable->GetBufferPointer() - lut_min;
+  LookupTableType *lut = const_cast<LookupTableType *>(this->GetLookupTable());
+  lut->Update();
 
   OutputPixelType xout;
 
   // TODO: we need to handle out of bounds voxels in non-orthogonal slicing
   // better than this, i.e., via a special value reserved for such voxels.
   // Right now, defaulting to zero is a DISASTER!
-  if(xin0 == 0 && xin1 == 0 && xin2 == 0 && (lut_min > 0 || lut_max < 0))
+  if(xin0 == 0 && xin1 == 0 && xin2 == 0 && !lut->CheckRange(0))
     {
     xout.Fill(0);
     }
   else
     {
-    xout[0] = *(lutp + xin0);
-    xout[1] = *(lutp + xin1);
-    xout[2] = *(lutp + xin2);
+    // TODO: this will probably crash for floating point images.
+    xout[0] = lut->MapIntensityToDisplay(xin0);
+    xout[1] = lut->MapIntensityToDisplay(xin1);
+    xout[2] = lut->MapIntensityToDisplay(xin2);
     xout[3] = 255; // alpha = 1
     }
 
   return xout;
 }
 
-// Declare specific instances that will exist
-template class RGBALookupTableIntensityMappingFilter< itk::Image<short, 2> >;
 
+// Template instantiation
+#define RGBALookupTableIntensityMappingFilterInstantiateMacro(type) \
+  template class RGBALookupTableIntensityMappingFilter<itk::Image<type, 2> >;
+
+RGBALookupTableIntensityMappingFilterInstantiateMacro(unsigned char)
+RGBALookupTableIntensityMappingFilterInstantiateMacro(char)
+RGBALookupTableIntensityMappingFilterInstantiateMacro(unsigned short)
+RGBALookupTableIntensityMappingFilterInstantiateMacro(short)
+RGBALookupTableIntensityMappingFilterInstantiateMacro(float)
+RGBALookupTableIntensityMappingFilterInstantiateMacro(double)

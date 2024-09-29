@@ -35,7 +35,7 @@
 #include "IntensityCurveModel.h"
 #include "DisplayLayoutModel.h"
 #include "ColorMapModel.h"
-#include "LayerAssociation.txx"
+#include "LayerAssociation.h"
 #include "SliceWindowCoordinator.h"
 #include "PaintbrushSettingsModel.h"
 #include <itkImageLinearConstIteratorWithIndex.h>
@@ -398,13 +398,26 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
   // or create a new assembly
   for(LayerIterator it = id->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    if(!GetLayerTextureAssembly(it.GetLayer()))
+    auto layer = it.GetLayer();
+    auto data = GetLayerTextureAssembly(layer);
+
+    if (data)
+      {
+      auto MTimeAssembly = data->GetMTime();
+      auto MTimeLayer = layer->GetMTime();
+
+      // assembly outdated and need a complete rebuild
+      if (MTimeAssembly < MTimeLayer)
+        layer->SetUserData(m_KeyLayerTextureAssembly, nullptr);
+      }
+
+    if(!GetLayerTextureAssembly(layer))
       {
       SmartPtr<LayerTextureAssembly> lta = LayerTextureAssembly::New();
-      it.GetLayer()->SetUserData(m_KeyLayerTextureAssembly, lta);
+      layer->SetUserData(m_KeyLayerTextureAssembly, lta);
 
       // Get the pointer to the display slice
-      auto *ds = it.GetLayer()->GetDisplaySlice(m_Model->GetId()).GetPointer();
+      auto *ds = layer->GetDisplaySlice(m_Model->GetId()).GetPointer();
 
       // Configure the texture pipeline
       SmartPtr<LayerTextureAssembly::VTKExporter> exporter = LayerTextureAssembly::VTKExporter::New();
@@ -586,6 +599,7 @@ void GenericSliceRenderer::UpdateRendererLayout()
 
   // Create a sorted structure of layers that are rendered on top of the base
   std::map<double, vtkActor *> depth_map;
+  std::map<double, BaseLayerAssembly *> depth_map_bla;
   for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
     // Don't display segmentation layer if it is not the selected one
@@ -593,12 +607,19 @@ void GenericSliceRenderer::UpdateRendererLayout()
       continue;
 
     auto *lta = GetLayerTextureAssembly(it.GetLayer());
+    auto *bla = GetBaseLayerAssembly(it.GetLayer());
     if(lta)
       {
       auto *actor = lta->m_ImageRect->GetActor();
       double z = actor->GetPosition()[2];
       if(z > 0.0)
+        {
         depth_map[z] = actor;
+        if (bla)
+          {
+          depth_map_bla[z] = bla;
+          }
+        }
       }
     }
 
@@ -658,6 +679,14 @@ void GenericSliceRenderer::UpdateRendererLayout()
       for(auto it : depth_map)
         renderer->AddActor(it.second);
 
+      for(auto kv : depth_map_bla)
+        {
+        // first change the renderer size, it will be used to compute context transform later
+        auto *blaLocal = kv.second;
+        blaLocal->m_Renderer->SetViewport(rel_pos[0][0], rel_pos[0][1], rel_pos[1][0], rel_pos[1][1]);
+        renderer->AddActor(blaLocal->m_OverlayContextActor);
+        }
+
       // Add the tiled overlay scene actor
       renderer->AddActor(bla->m_OverlayContextActor);
       }
@@ -708,7 +737,6 @@ void GenericSliceRenderer::UpdateRendererCameras()
 
       // Also update the transform for the overlay scene
       auto *tform = bla->m_OverlayContextTransform->GetTransform();
-
       tform->Identity();
       tform->Translate(ren->GetSize()[0] * 0.5, ren->GetSize()[1] * 0.5);
       tform->Scale(v_zoom, v_zoom);

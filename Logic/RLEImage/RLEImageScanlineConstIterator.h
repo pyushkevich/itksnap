@@ -139,6 +139,18 @@ public:
         return *this;
     }
 };
+
+// Backport from itkRLEImage module (todo: move to itkRLEImage)
+// Deduction guide for class template argument deduction (CTAD).
+template <typename TPixel, unsigned int VImageDimension, typename CounterType>
+ImageScanlineConstIterator(SmartPointer<const RLEImage<TPixel, VImageDimension, CounterType>>,
+                           const typename RLEImage<TPixel, VImageDimension, CounterType>::RegionType &)
+  ->ImageScanlineConstIterator<RLEImage<TPixel, VImageDimension, CounterType>>;
+template <typename TPixel, unsigned int VImageDimension, typename CounterType>
+ImageScanlineConstIterator(const RLEImage<TPixel, VImageDimension, CounterType> *,
+                           const typename RLEImage<TPixel, VImageDimension, CounterType>::RegionType &)
+  ->ImageScanlineConstIterator<RLEImage<TPixel, VImageDimension, CounterType>>;
+
 } // end namespace itk
 
 #endif //RLEImageScanlineConstIterator_h

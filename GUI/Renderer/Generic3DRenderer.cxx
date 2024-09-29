@@ -52,8 +52,21 @@
 #include "vtkPolyData.h"
 #include "vtkPointData.h"
 #include "vtkCommand.h"
+#include <vtkVolume.h>
+#include <vtkVolumeProperty.h>
+#include <vtkSmartVolumeMapper.h>
+#include <vtkImageImport.h>
+#include <vtkImageData.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <IntensityCurveInterface.h>
+#include <ColorMap.h>
+#include <AffineTransformHelper.h>
+#include <itkTransform.h>
 
 #include <vnl/vnl_cross.h>
+#include <chrono>
+#include <thread>
 
 
 bool operator == (const CameraState &c1, const CameraState &c2)
@@ -272,7 +285,9 @@ void Generic3DRenderer::SetModel(Generic3DModel *model)
 void Generic3DRenderer::UpdateMeshAssembly()
 {
   if(m_Model->IsMeshUpdating() )
+    {
     return;
+    }
 
   if(!m_Model->GetDriver()->IsMainImageLoaded())
     return;
@@ -710,23 +725,16 @@ void Generic3DRenderer::UpdateMeshAppearance()
 }
 
 
-#include <vtkVolume.h>
-#include <vtkVolumeProperty.h>
-#include <vtkSmartVolumeMapper.h>
-#include <vtkImageImport.h>
-#include <vtkImageData.h>
-#include <vtkColorTransferFunction.h>
-#include <vtkPiecewiseFunction.h>
-#include <IntensityCurveInterface.h>
-#include <ColorMap.h>
-#include <AffineTransformHelper.h>
-#include <itkTransform.h>
 
 class VolumeAssembly : public itk::Object
 {
 public:
   irisITKObjectMacro(VolumeAssembly, itk::Object)
 
+  // Minipipeline used to import ITK data
+  ScalarImageWrapperBase::VTKImporterMiniPipeline ImportPipeline;
+
+  // VTK assembly
   vtkSmartPointer<vtkVolume> Volume;
   vtkSmartPointer<vtkSmartVolumeMapper> Mapper;
   vtkSmartPointer<vtkColorTransferFunction> ColorCurve;
@@ -835,9 +843,9 @@ void Generic3DRenderer::UpdateVolumeRendering()
     if(!va)
       {
       va = VolumeAssembly::New();
-      auto *vtk_import = layer->GetDefaultScalarRepresentation()->GetVTKImporter();
+      va->ImportPipeline = layer->GetDefaultScalarRepresentation()->CreateVTKImporterPipeline();
       va->Mapper = vtkSmartPointer<vtkSmartVolumeMapper>::New();
-      va->Mapper->SetInputConnection(vtk_import->GetOutputPort());
+      va->Mapper->SetInputConnection(va->ImportPipeline.importer->GetOutputPort());
 
       va->ColorCurve = vtkSmartPointer<vtkColorTransferFunction>::New();
       va->OpacityCurve = vtkSmartPointer<vtkPiecewiseFunction>::New();
@@ -867,7 +875,7 @@ void Generic3DRenderer::UpdateVolumeRendering()
       this->m_Renderer->AddViewProp(va->Volume);
       layer->SetUserData("volume", va);
 
-      vtk_import->Update();
+      va->ImportPipeline.importer->Update();
 
       // Update the volume transform
       this->UpdateVolumeTransform(layer, va);
@@ -970,6 +978,12 @@ void Generic3DRenderer::OnUpdate()
   // Deal with the updates to the mesh state
   if(main_changed || seg_layer_changed || need_rebuild_actor_map)
     {
+    // This line fixes an issue with continuous rendering not working sometimes.
+    // The real problem is that this method is being called multiple times with
+    // the same event bucket and locking the mesh update. The correct solution
+    // is to prevent this by using some kind of threading approach to collect
+    // events in buckets before invoking the callback.
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     UpdateMeshAssembly();
     need_render = true;
     }

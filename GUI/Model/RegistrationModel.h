@@ -17,6 +17,7 @@ template <unsigned int VDim, class TReal> class GreedyApproach;
 namespace itk
 {
   class Command;
+  template <typename TParametersValueType, unsigned int N1, unsigned int N2> class MatrixOffsetTransformBase;
 }
 
 class RegistrationModel : public AbstractModel
@@ -35,7 +36,9 @@ public:
     */
   enum UIState {
     UIF_MOVING_SELECTION_AVAILABLE,
-    UIF_MOVING_SELECTED
+    UIF_MOVING_SELECTED,
+    UIF_FREE_ROTATION_MODE,
+    UIF_REGISTRATION_MODE
   };
 
   /** Allowed transformation models - to be expanded in the future */
@@ -116,12 +119,14 @@ public:
   irisSimplePropertyAccessMacro(UseSegmentationAsMask, bool)
   irisGenericPropertyAccessMacro(CoarsestResolutionLevel, int, ResolutionLevelDomain)
   irisGenericPropertyAccessMacro(FinestResolutionLevel, int, ResolutionLevelDomain)
+  irisSimplePropertyAccessMacro(FreeRotationMode, bool)
 
   void SetIterationCommand(itk::Command *command);
 
   void RunAutoRegistration();
 
-  void LoadTransform(const char *filename, TransformFormat format);
+  void LoadTransform(const char *filename, TransformFormat format,
+                     bool compose = false, bool inverse = false);
 
   void SaveTransform(const char *filename, TransformFormat format);
 
@@ -156,6 +161,7 @@ protected:
   typedef itk::Matrix<double, 3, 3> ITKMatrixType;
   typedef itk::Vector<double, 3> ITKVectorType;
   typedef GreedyApproach<3, float> GreedyAPI;
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransform;
 
   // A little function to make homogeneous matrices from matrix/offset
   static Mat4 make_homog(const Mat3 &A, const Vec3 &b) ;
@@ -165,6 +171,10 @@ protected:
 
   // Pointer to the GreedyAPI. This is only non-null during RunAutoRegistration();
   GreedyAPI *m_GreedyAPI;
+
+  // Shorthand to generate an ITK affine transform from a matrix and a vector
+  SmartPtr<AffineTransform> MakeTransform(const ITKMatrixType &matrix, const ITKVectorType &offset) const;
+  SmartPtr<AffineTransform> MakeIdentityTransform() const;
 
   void ResetOnMainImageChange();
 
@@ -182,7 +192,7 @@ protected:
   void GetMovingTransform(ITKMatrixType &matrix, ITKVectorType &offset);
 
   // Set the transform in the moving layer
-  void SetMovingTransform(const ITKMatrixType &matrix, const ITKVectorType &offset);
+  void SetMovingTransform(const ITKMatrixType &matrix, const ITKVectorType &offset, bool skipParameterUpdate = false);
 
   SmartPtr<AbstractLayerSelectionModel> m_MovingLayerModel;
   bool GetMovingLayerValueAndRange(unsigned long &value, LayerSelectionDomain *range);
@@ -221,6 +231,8 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_UseSegmentationAsMaskModel;
 
   SmartPtr<ConcreteSimpleDoubleProperty> m_LastMetricValueModel;
+
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FreeRotationModeModel;
 
   // Multi-resolution schedule - coarsest and finest levels
   int m_CoarsestResolutionLevel, m_FinestResolutionLevel;

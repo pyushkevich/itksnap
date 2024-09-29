@@ -9,10 +9,12 @@
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtSliderCoupling.h"
 #include "QtAbstractButtonCoupling.h"
+#include "QtPagedWidgetCoupling.h"
 #include "QtWidgetArrayCoupling.h"
 #include "RegistrationModel.h"
 #include "QtWidgetActivator.h"
 #include "QtCursorOverride.h"
+#include "LoadTransformationDialog.h"
 #include "SimpleFileDialogWithHistory.h"
 #include "ProcessEventsITKCommand.h"
 #include "OptimizationProgressRenderer.h"
@@ -45,6 +47,18 @@ RegistrationDialog::~RegistrationDialog()
 void RegistrationDialog::SetModel(RegistrationModel *model)
 {
   m_Model = model;
+
+  // Handling the transition from free rotation to registration is too complex to
+  // do through flags and activation. Instead we have a dedicated slot for this
+  connectITK(m_Model->GetFreeRotationModeModel(), ValueChangedEvent(),
+             SLOT(onFreeRotationModeChange(const EventBucket &)));
+
+  // Couple top page to registration/rotation mode
+  std::map<bool, QWidget *> free_rotation_page_map;
+  free_rotation_page_map[false] = ui->pgRegistration;
+  free_rotation_page_map[true] = ui->pgRotation;
+  makePagedWidgetCoupling(ui->stackFreeRotationMode, m_Model->GetFreeRotationModeModel(),
+                          free_rotation_page_map);
 
   makeCoupling(ui->inMovingLayer, m_Model->GetMovingLayerModel());
 
@@ -84,6 +98,11 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
                  RegistrationModel::UIF_MOVING_SELECTION_AVAILABLE);
   activateOnFlag(ui->pgManual, m_Model,
                  RegistrationModel::UIF_MOVING_SELECTED);
+  activateOnFlag(ui->pgAuto, m_Model,
+                 RegistrationModel::UIF_MOVING_SELECTED);
+  // activateOnAllFlags(ui->grpMovingImage, m_Model,
+  //                    RegistrationModel::UIF_MOVING_SELECTED, RegistrationModel::UIF_REGISTRATION_MODE,
+  //                    QtWidgetActivator::HideInactive);
 
   // This command just updates the GUI after each iteration - causing the images to
   // jitter over different iterations
@@ -170,12 +189,8 @@ int RegistrationDialog::GetTransformFormat(QString &format)
 void RegistrationDialog::on_btnLoad_clicked()
 {
   // Ask for a filename
-  SimpleFileDialogWithHistory::QueryResult result =
-      SimpleFileDialogWithHistory::showOpenDialog(
-        this, m_Model->GetParent(),
-        "Open Transform - ITK-SNAP", "Transform File",
-        "AffineTransform",
-        "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)");
+  LoadTransformationDialog::QueryResult result =
+      LoadTransformationDialog::showDialog(this, m_Model->GetParent());
 
   RegistrationModel::TransformFormat format =
       (RegistrationModel::TransformFormat) this->GetTransformFormat(result.activeFormat);
@@ -187,7 +202,7 @@ void RegistrationDialog::on_btnLoad_clicked()
     try
       {
       std::string utf = to_utf8(result.filename);
-      m_Model->LoadTransform(utf.c_str(), format);
+      m_Model->LoadTransform(utf.c_str(), format, result.compose, result.inverse);
       }
     catch(std::exception &exc)
       {
@@ -235,10 +250,10 @@ void RegistrationDialog::on_buttonBox_clicked(QAbstractButton *button)
   emit wizardFinished();
 }
 
-void RegistrationDialog::on_tabWidget_currentChanged(int index)
+void RegistrationDialog::on_tabAutoManual_currentChanged(int index)
 {
   // Activate the interactive tool when the user switches to the manual page
-  if(ui->tabWidget->currentWidget() == ui->pgManual)
+  if(ui->tabAutoManual->currentWidget() == ui->pgManual)
     m_Model->GetInteractiveToolModel()->SetValue(true);
 }
 
@@ -315,4 +330,23 @@ void RegistrationDialog::on_actionMoments_of_Inertia_triggered()
   // Turn on the wait cursor
   QtCursorOverride cursor(Qt::WaitCursor);
   m_Model->MatchByMoments(2);
+  }
+
+void RegistrationDialog::onFreeRotationModeChange(const EventBucket &)
+{
+  std::cout << "ROTATION MODE CHANGE" << std::endl;
+  if(m_Model->GetFreeRotationMode())
+    {
+    ui->tabAutoManual->setTabEnabled(ui->tabAutoManual->indexOf(ui->pgAuto), false);
+    ui->grpMovingImage->setVisible(false);
+    ui->grpScaling->setVisible(false);
+    ui->btnMatchCenters->setVisible(false);
+    }
+  else
+    {
+    ui->tabAutoManual->setTabEnabled(ui->tabAutoManual->indexOf(ui->pgAuto), true);
+    ui->grpMovingImage->setVisible(true);
+    ui->grpScaling->setVisible(true);
+    ui->btnMatchCenters->setVisible(true);
+    }
 }

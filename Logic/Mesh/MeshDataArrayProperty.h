@@ -13,6 +13,8 @@
 #include "Registry.h"
 
 template<class TIn> class ThreadedHistogramImageFilter;
+template<class TIn> class TDigestImageFilter;
+class TDigestDataObject;
 
 struct MeshArrayComponent
 {
@@ -21,11 +23,10 @@ struct MeshArrayComponent
 	MeshArrayComponent(const char *_name, double _min, double _max)
 		:m_Min(_min), m_Max(_max)
 	{
-
-        this->m_Name = new char[strlen(_name) + 1];
-        strcpy(this->m_Name, _name);
-		this->m_IntensityCurve = IntensityCurveVTK::New();
-		this->m_IntensityCurve->Initialize(3);
+    this->m_Name = new char[strlen(_name) + 1];
+    strcpy(this->m_Name, _name);
+    this->m_IntensityCurve = IntensityCurveVTK::New();
+    this->m_IntensityCurve->Initialize(3);
 	}
 
 	~MeshArrayComponent()
@@ -160,8 +161,7 @@ public:
   irisITKObjectMacro(MeshLayerDataArrayProperty, AbstractMeshDataArrayProperty)
 
   typedef itk::Image<double, 1> DataArrayImageType;
-  typedef ThreadedHistogramImageFilter<DataArrayImageType> HistogramFilterType;
-  typedef itk::MinimumMaximumImageFilter<DataArrayImageType> MinMaxFilterType;
+  typedef TDigestImageFilter<DataArrayImageType> TDigestFilter;
 
   /** Multi-Component (Vector) Display Mode */
 	enum VectorMode
@@ -183,16 +183,16 @@ public:
   void SetActiveIntensityCurve(IntensityCurveVTK * curve);
 
   /**
-    Compute the array histogram. The histogram is cached inside of the
-    object, so repeated calls to this function with the same nBins parameter
-    will not require additional computation.
+    Obtain the t-digest, from which the quantiles of the image/mesh can be
+    approximated. The t-digest algorithm by T. Dunning is a fast algorithm for
+    approximating statistics such as quantiles, histogram, CDF, etc. It replaces
+    earliercode that separately computed the image or mesh min/max and histogram using
+    separate filters and required the number of histogram bins to be specified explicitly.
 
-    Calling with default parameter (0) will use the same number of bins that
-    is currently in the histogram (i.e., return/recompute current histogram).
-    If there is no current histogram, a default histogram with 128 entries
-    will be generated.
+    t-digest code: https://github.com/SpirentOrion/digestible
+    t-digest paper: https://www.sciencedirect.com/science/article/pii/S2665963820300403
     */
-	ScalarImageHistogram* GetHistogram(size_t nBins);
+  virtual TDigestDataObject *GetTDigest();
 
   /** Merge another property into this. Adjusting min/max etc. */
   void Merge(MeshDataArrayProperty *other);
@@ -223,7 +223,7 @@ public:
 
 protected:
   MeshLayerDataArrayProperty();
-  ~MeshLayerDataArrayProperty() {};
+  ~MeshLayerDataArrayProperty();
 
   SmartPtr<ColorMap> m_ColorMap;
 
@@ -232,8 +232,10 @@ protected:
 
 	// Current active intensity curve, for magnitude or specific component
 	SmartPtr<IntensityCurveVTK> m_ActiveIntensityCurve;
-  SmartPtr<HistogramFilterType> m_HistogramFilter;
-  SmartPtr<MinMaxFilterType> m_MinMaxFilter;
+
+  // TDigest filter used to compute min/max and histogram
+  SmartPtr<TDigestFilter> m_TDigestFilter;
+
   std::list<vtkDataArray*> m_DataPointerList;
 
   // Active Vector Mode

@@ -82,15 +82,6 @@ public:
   typedef itk::ImageRegion<3> RegionType;
   typedef itk::ImageBase<3> ImageBaseType;
   typedef SmartPtr<ImageBaseType> ImageBasePointer;
-
-  /**
-   * The type of anatomical images. For the time being, all anatomic images
-   * are made to be of type short. Eventually, it may make sense to allow
-   * both short and char images, to save memory in some cases. However, it
-   * is not that common to only have 8-bit precision, so for the time being
-   * we are going to stick to short
-   */
-  typedef AnatomicImageWrapper::ImageType                   AnatomicImageType;
   typedef LabelImageWrapper::ImageType                         LabelImageType;
   typedef LabelImageWrapper::Image4DType                     LabelImage4DType;
 
@@ -186,6 +177,11 @@ public:
   std::list<ImageWrapperBase *> FindLayersByRole(int role_filter = ALL_ROLES);
 
   int GetNumberOfOverlays();
+
+  /**
+   * Get Number of Timepoints in the workspace
+   */
+  unsigned int GetNumberOfTimePoints() const;
 
   ImageWrapperBase *GetLastOverlay();
 
@@ -348,6 +344,9 @@ public:
 
   /** Get Mesh Layer Storage */
   ImageMeshLayers *GetMeshLayers();
+
+  // Helper method used to compress a loaded segmentation into an RLE 4D image
+  SmartPtr<LabelImage4DType> CompressSegmentation(GuidedNativeImageIO *io);
 protected:
 
   GenericImageData();
@@ -416,9 +415,7 @@ protected:
   // Generate an appropriate default nickname for a particular role
   std::string GenerateNickname(LayerRole role);
 
-  // Helper method used to compress a loaded segmentation into an RLE 4D image
-  SmartPtr<LabelImage4DType> CompressSegmentation(GuidedNativeImageIO *io);
-
+  // Storage of all mesh layers
   SmartPtr<ImageMeshLayers> m_MeshLayers;
 };
 

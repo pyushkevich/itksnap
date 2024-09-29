@@ -20,7 +20,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
     ui->outLicense->setPlainText(QString(fLicense.readAll()));
 
   // Load the build information
-  ui->outBuild->setPlainText(QString::fromUtf8(SNAPBuildInfo));
+  ui->outBuild->setHtml(QString("<pre>%1</pre>").arg(QString::fromUtf8(SNAPBuildInfo)));
 }
 
 AboutDialog::~AboutDialog()

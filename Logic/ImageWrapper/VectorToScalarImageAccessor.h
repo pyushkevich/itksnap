@@ -2,6 +2,8 @@
 #define VECTORTOSCALARIMAGEACCESSOR_H
 
 #include "itkDefaultVectorPixelAccessor.h"
+#include "itkVectorImageToImageAdaptor.h"
+
 
 namespace itk
 {
@@ -200,26 +202,30 @@ public:
   }
 };
 
+/**
+ * A helper class for template instantiation and accessing types involved in vector
+ * to scalar reduction in image wrappers
+ */
+template <class TPixel>
+class VectorToScalarImageAccessorTypes
+{
+public:
+  typedef itk::VectorImage<TPixel, 3> VectorImageType;
 
-// Typedefs for GreyType
-typedef VectorToScalarMagnitudeFunctor<GreyType, float> GreyVectorToScalarMagnitudeFunctor;
-typedef VectorToScalarImageAccessor<GreyVectorToScalarMagnitudeFunctor>
-  GreyVectorMagnitudeImageAccessor;
-typedef itk::ImageAdaptor< itk::VectorImage<GreyType, 3>, GreyVectorMagnitudeImageAccessor>
-  GreyVectorMagnitudeImageAdaptor;
+  typedef itk::VectorImageToImageAdaptor<TPixel, 3> ComponentImageAdaptor;
 
-typedef VectorToScalarMaxFunctor<GreyType, float> GreyVectorToScalarMaxFunctor;
-typedef VectorToScalarImageAccessor<GreyVectorToScalarMaxFunctor>
-  GreyVectorMaxImageAccessor;
-typedef itk::ImageAdaptor< itk::VectorImage<GreyType, 3>, GreyVectorMaxImageAccessor>
-  GreyVectorMaxImageAdaptor;
+  typedef VectorToScalarMagnitudeFunctor<TPixel, float> MagnitudeFunctor;
+  typedef VectorToScalarImageAccessor<MagnitudeFunctor> MagnitudeImageAccessor;
+  typedef itk::ImageAdaptor<VectorImageType, MagnitudeImageAccessor> MagnitudeImageAdaptor;
 
-typedef VectorToScalarMeanFunctor<GreyType,float> GreyVectorToScalarMeanFunctor;
-typedef VectorToScalarImageAccessor<GreyVectorToScalarMeanFunctor>
-  GreyVectorMeanImageAccessor;
-typedef itk::ImageAdaptor< itk::VectorImage<GreyType, 3>, GreyVectorMeanImageAccessor>
-  GreyVectorMeanImageAdaptor;
+  typedef VectorToScalarMaxFunctor<TPixel, float> MaxFunctor;
+  typedef VectorToScalarImageAccessor<MaxFunctor> MaxImageAccessor;
+  typedef itk::ImageAdaptor<VectorImageType, MaxImageAccessor> MaxImageAdaptor;
 
+  typedef VectorToScalarMeanFunctor<TPixel, float> MeanFunctor;
+  typedef VectorToScalarImageAccessor<MeanFunctor> MeanImageAccessor;
+  typedef itk::ImageAdaptor<VectorImageType, MeanImageAccessor> MeanImageAdaptor;
+};
 
 
 #endif // VECTORTOSCALARIMAGEACCESSOR_H

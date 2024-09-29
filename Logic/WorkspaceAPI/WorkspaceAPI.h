@@ -46,15 +46,30 @@ public:
   int GetNumberOfLayers() const;
 
   /**
+   * Get number of mesh layers in the workspace
+   */
+  int GetNumberOfMeshLayers() const;
+
+  /**
    * Get the folder for the n-th layer
    */
   Registry &GetLayerFolder(int layer_index);
+
+  /**
+   * Get the folder for the n-th mesh layer
+   */
+  Registry &GetMeshLayerFolder(int layer_index);
 
   /**
    * Get the layer folder by key. This function throws an exception if the key does
    * not correspond to a valid layer.
    */
   Registry &GetLayerFolder(const std::string &layer_key);
+
+  /**
+   * Get the mesh layer folder by key.
+   */
+  Registry &GetMeshLayerFolder(const std::string &layer_key);
 
   /**
    * Check if the provided key specifies a valid layer - a valid layer is specified
@@ -64,10 +79,29 @@ public:
   bool IsKeyValidLayer(const std::string &key);
 
   /**
+   * Check if the provided key specifies a valid mesh layer - a valid mesh layer is specified
+   * as "MeshLayers.Layer[xxx]" and contains at least one timepoint and one polydata filename
+   * for the timepoint
+   */
+  bool IsKeyValidMeshLayer(const std::string &key);
+
+  /**
    * Find a physical file corresponding to a file referenced by the project, accouting
    * for the possibility that the project may have been moved or copied
    */
   std::string GetLayerActualPath(Registry &folder);
+
+  /**
+   * Find a physical file corresponding to a polydata component in the specified meshlayer timepoint,
+   * accouting for the possibility that the project may have been moved or copied
+   */
+  std::string GetMeshLayerPolyDataPath(const std::string &folder, unsigned int tp, unsigned int polyId);
+
+  /**
+   * Add a polydata component to an existing mesh time point
+   * Returns the polydata_id of the newly created polydata component
+   */
+  unsigned int AddMeshPolyData(std::string &layer_key, unsigned int tp, std::string &filename);
 
   /**
    * Convert all layer paths in the workspace to actual paths - should be done
@@ -118,6 +152,12 @@ public:
   std::string FindLayerByRole(const std::string &role, int pos_in_role);
 
   /**
+   * Find a mesh layer by id
+   * e.g. Passing 1 will find MeshLayers.Layer[001]
+   */
+  std::string FindMeshLayerById(int id);
+
+  /**
    * Find layers that match a tag
    */
   std::list<std::string> FindLayersByTag(const std::string &tag);
@@ -154,11 +194,14 @@ public:
    */
   void UpdateMainLayerFieldsFromImage(Registry &main_layer_folder);
 
-  /** Add a layer to the workspace in a given role */
+  /** Add an image layer to the workspace in a given role */
   std::string AddLayer(std::string role, const std::string &filename);
 
-  /** Assign a layer to a specific role (main/seg) */
+  /** Assign an image layer to a specific role (main/seg) */
   std::string SetLayer(std::string role, const std::string &filename);
+
+  /** Add a standalone mesh layer to the workspace */
+  std::string AddMeshLayer(const std::string &filename, unsigned int tp = 1);
 
   /** Write a control point sequence to the folder for a contrast mapping */
   void WriteLayerContrastToRegistry(Registry &folder, int n, double *tarray, double *yarray);

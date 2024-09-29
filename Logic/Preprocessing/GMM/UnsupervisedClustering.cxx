@@ -6,6 +6,7 @@
 #include "ImageWrapper.h"
 #include "ImageWrapperTraits.h"
 
+#include <itkImageRandomConstIteratorWithIndex.h>
 #include <algorithm>
 
 UnsupervisedClustering::UnsupervisedClustering()
@@ -54,8 +55,6 @@ void UnsupervisedClustering::SetMixtureModel(GaussianMixtureModel *model)
   m_ClusteringEM->SetGaussianMixtureModel(model);
   m_MixtureModel = m_ClusteringEM->GetGaussianMixtureModel();
 }
-
-#include "itkImageRandomConstIteratorWithIndex.hxx"
 
 void UnsupervisedClustering::SampleDataSource()
 {
