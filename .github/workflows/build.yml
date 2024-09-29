@@ -71,6 +71,7 @@ jobs:
           source-dir: ${{github.workspace}}/vtk
           build-dir: ${{github.workspace}}/build
           build-args: |
+            -t
             install
           generator: Ninja
           options: |
@@ -81,7 +82,7 @@ jobs:
             VTK_GROUP_ENABLE_Qt:STRING=YES
             VTK_MODULE_ENABLE_VTK_GUISupportQtQuick:STRING=NO
             VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
-            CMAKE_INSTALL_PATH=${{github.workspace}}/install
+            CMAKE_INSTALL_PREFIX=${{github.workspace}}/install
      
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
