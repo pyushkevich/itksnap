@@ -24,13 +24,6 @@ jobs:
 
     steps:
 
-      # Checkout ITK-SNAP code
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-            submodules: true
-            path: 'itksnap'
-
       # Setup ninja
       - name: Setup Ninja
         uses: seanmiddleditch/gha-setup-ninja@master
@@ -122,3 +115,29 @@ jobs:
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
+      # Checkout ITK-SNAP code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+            submodules: true
+            path: 'itksnap'
+
+      # Build ITK-SNAP
+      - name: Build ITK-SNAP
+        uses: threeal/cmake-action@v2.0.0
+        with:
+          source-dir: ${{github.workspace}}/itksnap
+          build-dir: ${{github.workspace}}/itksnap/build
+          build-args: |
+            -t
+            install
+          generator: Ninja
+          options: |
+            ITK-DIR:FILEPATH=${{github.workspace}}/itk/install/lib/cmake/ITK-5.4
+            VTK-DIR:FILEPATH=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
+            CMAKE_PREFIX_PATH:FILEPATH=${{github.workspace}}/Qt/6.6.3/linux/lib/cmake
+            CMAKE_BUILD_TYPE:STRING=Release
+      
+
+
