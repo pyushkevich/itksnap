@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+  # push:
+  # release:
+  # types:
+  #   - published
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # os: [ubuntu-20.04,macos-13,macos-14,windows-2019]
+        os: [ubuntu-20.04]
+
+    steps:
+
+      # Checkout ITK-SNAP code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+            submodules: true
+
+      # Install Qt
+      - name: Install Qt on Ubuntu
+        uses: jurplel/install-qt-action@v4
+        if: ${{ startsWith(matrix.os,'ubuntu') }}
+        with:
+          version: '6.6.3'
+          host: 'linux'
+          target: 'desktop'
+          arch: 'gcc_64'
+      
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
