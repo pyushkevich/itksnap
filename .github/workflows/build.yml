@@ -112,16 +112,16 @@ jobs:
             Module_MorphologicalContourInterpolation:BOOL=TRUE
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
      
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-
       # Checkout ITK-SNAP code
       - name: Checkout code
         uses: actions/checkout@v4
         with:
             submodules: true
             path: 'itksnap'
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Build ITK-SNAP
       - name: Build ITK-SNAP
