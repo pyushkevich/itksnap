@@ -45,8 +45,17 @@ jobs:
           target: 'desktop'
           arch: 'gcc_64'
 
+      # Use cached VTK build if available
+      - name: Cache VTK
+        id: cache-vtk
+        uses: actions/cache@v4
+        with:
+          path: prime-numbers
+          key: ${{ runner.os }}-vtk-9.3.1
+
       # Check out VTK
       - name: Checkout VTK
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
             repository: 'Kitware/VTK.git'
@@ -56,6 +65,7 @@ jobs:
 
       # Build VTK
       - name: Build VTK
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
         uses: threeal/cmake-action@v2.0.0
         with:
           source-dir: ${{github.workspace}}/vtk
