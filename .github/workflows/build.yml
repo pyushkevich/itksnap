@@ -29,6 +29,11 @@ jobs:
         uses: actions/checkout@v4
         with:
             submodules: true
+            path: 'itksnap'
+
+      # Setup ninja
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
 
       # Install Qt
       - name: Install Qt on Ubuntu
