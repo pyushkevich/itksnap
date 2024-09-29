@@ -49,7 +49,7 @@ MetaDataAccess<VDim>
 
   // Orientation flag object
   itk::SpatialOrientation::ValidCoordinateOrientationFlags v_oflags =
-    itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_INVALID;
+    itk::SpatialOrientationEnums::ValidCoordinateOrientations::ITK_COORDINATE_ORIENTATION_INVALID;
 
   // Is the value a string?
   if(itk::ExposeMetaData<string>(mdd, key, value))

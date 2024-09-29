@@ -288,7 +288,8 @@ void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QSt
   if(widget)
     {
     QSize size = widget->size();
-    QPoint point((int)(size.width() * rel_x), (int)(size.height() * rel_y));
+    QPointF localPos((int)(size.width() * rel_x), (int)(size.height() * rel_y));
+    QPointF globalPos = widget->mapToGlobal(localPos); // added global pos to fix deprected QMouseEvent Constructor issue
 
     Qt::MouseButton btn = Qt::NoButton;
     if(button == "left")
@@ -304,7 +305,7 @@ void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QSt
     else if(eventType == "release")
       type = QEvent::MouseButtonRelease;
 
-    QMouseEvent *event = new QMouseEvent(QEvent::MouseButtonPress, point, btn, btn, Qt::NoModifier);
+    QMouseEvent *event = new QMouseEvent(type, localPos, globalPos, btn, btn, Qt::NoModifier);
     QApplication::postEvent(widget, event);
     }
 }

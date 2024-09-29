@@ -1,9 +1,9 @@
 [submodule "Submodules/c3d"]
 	path = Submodules/c3d
-	url = https://github.com/pyushkevich/c3d.git
+  url = https://github.com/pyushkevich/c3d.git
 [submodule "Submodules/greedy"]
 	path = Submodules/greedy
-	url = https://github.com/pyushkevich/greedy.git
+  url = https://github.com/pyushkevich/greedy.git
 [submodule "Submodules/digestible"]
 	path = Submodules/digestible
 	url = https://github.com/pyushkevich/digestible.git

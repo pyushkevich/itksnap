@@ -93,12 +93,12 @@ ENDIF()
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 4)
 SET(SNAP_VERSION_MINOR 2)
-SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_PATCH 2)
+SET(SNAP_VERSION_QUALIFIER "-beta")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20240422")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "April 22, 2024")
+SET(SNAP_VERSION_RELEASE_DATE "20240926")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "September 26, 2024")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -329,8 +329,6 @@ SET(LOGIC_HEADERS
   Common/IRISVectorTypes.h
   Common/IRISVectorTypes.txx
   Common/IRISVectorTypesToITKConversion.h
-  Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.h
-  Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.txx
   Common/ITKExtras/itkBinaryDiamondStructuringElement.h
   Common/ITKExtras/itkBinaryDiamondStructuringElement.txx
   Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.h
@@ -355,6 +353,7 @@ SET(LOGIC_HEADERS
   Common/SNAPEvents.h
   Common/SystemInterface.h
   Common/TagList.h
+  Logic/Common/BrushWatershedPipeline.hxx
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ColorMap.h
