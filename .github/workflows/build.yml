@@ -44,7 +44,33 @@ jobs:
           host: 'linux'
           target: 'desktop'
           arch: 'gcc_64'
-      
+
+      # Check out VTK
+      - name: Checkout VTK
+        uses: actions/checkout@v4
+        with:
+            repository: 'https://github.com/Kitware/VTK.git'
+            ref: 'v9.3.1'
+            submodules: true
+            path: 'vtk'
+
+      # Build VTK
+      - name: Build VTK
+        uses: threeal/cmake-action@v2.0.0
+        with:
+          source-dir: ${{github.workspace}}/vtk
+          build-dir: ${{github.workspace}}/build
+          generator: Ninja
+          options: |
+            BUILD_TESTING:BOOL=FALSE
+            BUILD_EXAMPLES:BOOL=FALSE
+            BUILD_SHARED_LIBS:BOOL=FALSE
+            VTK_REQUIRED_OBJCXX_FLAGS:STRING=
+            VTK_GROUP_ENABLE_Qt:STRING=YES
+            VTK_MODULE_ENABLE_VTK_GUISupportQtQuick:STRING=NO
+            VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
+            CMAKE_INSTALL_PATH=${{github.workspace}}/install
+     
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
