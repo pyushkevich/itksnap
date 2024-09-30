@@ -8,6 +8,11 @@ on:
         description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
         required: false
         default: false
+      use_cached_itksnap_build:
+        type: boolean
+        description: 'Use cached build results from last run'
+        required: false
+        default: false        
   # push:
   # release:
   # types:
@@ -129,6 +134,17 @@ jobs:
             submodules: true
             path: 'itksnap'
 
+      # Use cached ITK build if available. Unfortunately ITK make install fails to 
+      # install one file, vnl_vector_ref.hxx so instead of caching the install dir
+      # we are caching the build dir
+      - name: Restore ITK-SNAP Cache (optional)
+        id: cache-restore-itksnap
+        uses: actions/cache/restore@v4
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
+        with:
+          path: ${{github.workspace}}/itksnap/build
+          key: ${{ runner.os }}-itksnap-${{ github.ref }}-build
+
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
@@ -149,6 +165,15 @@ jobs:
             VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
             CMAKE_PREFIX_PATH=${{github.workspace}}/../Qt/6.6.3/linux/lib/cmake
             CMAKE_BUILD_TYPE=Release
+
+      # Cache the ITK-SNAP build
+      - name: Cache ITK-SNAP build directory
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/itksnap/build
+          key: ${{ runner.os }}-itksnap-${{ github.ref }}-build
+
+      
       
 
 
