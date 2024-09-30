@@ -23,9 +23,17 @@ jobs:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         # os: [ubuntu-20.04,macos-13,macos-14,windows-2019]
-        os: [ubuntu-20.04]
+        os: [ubuntu-20.04,macos-14]
+        include:
+          - os: ubuntu-20.04
+            qt_host: linux
+            qt_arch: gcc_64
+          - os: macos-13
+            qt_host: mac
+            qt_arch: clang_64
 
     steps:
 
@@ -47,9 +55,9 @@ jobs:
         if: ${{ startsWith(matrix.os,'ubuntu') }}
         with:
           version: '6.6.3'
-          host: 'linux'
           target: 'desktop'
-          arch: 'gcc_64'
+          host: ${{ matrix.qt_host }}
+          arch: ${{ matrix.qt_arch }}
 
       # Use cached VTK build if available
       - name: Cache VTK
