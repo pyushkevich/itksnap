@@ -25,8 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-20.04,macos-13,macos-14,windows-2019]
-        os: [ubuntu-20.04,macos-14]
+        os: [ubuntu-20.04,macos-13,macos-14,windows-2019]
         include:
           - os: ubuntu-20.04
             qt_host: linux
@@ -34,6 +33,12 @@ jobs:
           - os: macos-13
             qt_host: mac
             qt_arch: clang_64
+          - os: macos-14
+            qt_host: mac
+            qt_arch: clang_64
+          - os: windows-2019
+            qt_host: windows
+            qt_arch: win64_msvc2019_64
 
     steps:
 
