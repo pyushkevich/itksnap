@@ -135,23 +135,22 @@ jobs:
             Module_MorphologicalContourInterpolation:BOOL=TRUE
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
      
+      # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
+      # because only the updated files should require rebuilding
+      - name: Restore ITK-SNAP Cache (optional)
+        id: cache-restore-itksnap
+        uses: actions/cache/restore@v4
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
+        with:
+          path: ${{github.workspace}}/itksnap
+          key: ${{ runner.os }}-itksnap-${{ github.ref }}
+
       # Checkout ITK-SNAP code
       - name: Checkout code
         uses: actions/checkout@v4
         with:
             submodules: true
             path: 'itksnap'
-
-      # Use cached ITK build if available. Unfortunately ITK make install fails to 
-      # install one file, vnl_vector_ref.hxx so instead of caching the install dir
-      # we are caching the build dir
-      - name: Restore ITK-SNAP Cache (optional)
-        id: cache-restore-itksnap
-        uses: actions/cache/restore@v4
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
-        with:
-          path: ${{github.workspace}}/itksnap/build
-          key: ${{ runner.os }}-itksnap-${{ github.ref }}-build
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -178,8 +177,8 @@ jobs:
       - name: Cache ITK-SNAP build directory
         uses: actions/cache/save@v4
         with:
-          path: ${{github.workspace}}/itksnap/build
-          key: ${{ runner.os }}-itksnap-${{ github.ref }}-build
+          path: ${{github.workspace}}/itksnap
+          key: ${{ runner.os }}-itksnap-${{ github.ref }}
 
       
       
