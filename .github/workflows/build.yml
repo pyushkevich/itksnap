@@ -52,7 +52,6 @@ jobs:
       # Install Qt
       - name: Install Qt on Ubuntu
         uses: jurplel/install-qt-action@v4
-        if: ${{ startsWith(matrix.os,'ubuntu') }}
         with:
           version: '6.6.3'
           target: 'desktop'
@@ -96,6 +95,7 @@ jobs:
             VTK_GROUP_ENABLE_Qt:STRING=YES
             VTK_MODULE_ENABLE_VTK_GUISupportQtQuick:STRING=NO
             VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
+            CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
      
       # Use cached ITK build if available. Unfortunately ITK make install fails to 
@@ -133,6 +133,7 @@ jobs:
             BUILD_TESTING:BOOL=FALSE
             BUILD_EXAMPLES:BOOL=FALSE
             Module_MorphologicalContourInterpolation:BOOL=TRUE
+            CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
      
       # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
@@ -170,7 +171,6 @@ jobs:
           options: |
             ITK_DIR=${{github.workspace}}/itk/build
             VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
-            CMAKE_PREFIX_PATH=${{github.workspace}}/../Qt/6.6.3/linux/lib/cmake
             CMAKE_BUILD_TYPE=Release
 
       # Cache the ITK-SNAP build
