@@ -85,13 +85,15 @@ jobs:
             VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
      
-      # Use cached ITK build if available
+      # Use cached ITK build if available. Unfortunately ITK make install fails to 
+      # install one file, vnl_vector_ref.hxx so instead of caching the install dir
+      # we are caching the build dir
       - name: Cache ITK
         id: cache-itk
         uses: actions/cache@v4
         with:
-          path: ${{github.workspace}}/itk/install
-          key: ${{ runner.os }}-itk-5.4.0
+          path: ${{github.workspace}}/itk/build
+          key: ${{ runner.os }}-itk-5.4.0-build
 
       # Check out ITK
       - name: Checkout ITK
@@ -142,7 +144,7 @@ jobs:
             install
           generator: Ninja
           options: |
-            ITK_DIR=${{github.workspace}}/itk/install/lib/cmake/ITK-5.4
+            ITK_DIR=${{github.workspace}}/itk/build
             VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
             CMAKE_PREFIX_PATH=${{github.workspace}}/../Qt/6.6.3/linux/lib/cmake
             CMAKE_BUILD_TYPE=Release
