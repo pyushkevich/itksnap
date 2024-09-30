@@ -97,12 +97,12 @@ jobs:
         id: cache-itk
         uses: actions/cache@v4
         with:
-          path: ${{github.workspace}}/itk/build
+          path: ${{github.workspace}}/itk
           key: ${{ runner.os }}-itk-5.4.0-build
 
       # Check out ITK
       - name: Checkout ITK
-        # if: steps.cache-itk.outputs.cache-hit != 'true'
+        if: steps.cache-itk.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
             repository: 'InsightSoftwareConsortium/ITK.git'
