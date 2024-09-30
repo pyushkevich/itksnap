@@ -142,10 +142,10 @@ jobs:
             install
           generator: Ninja
           options: |
-            ITK-DIR:FILEPATH=${{github.workspace}}/itk/install/lib/cmake/ITK-5.4
-            VTK-DIR:FILEPATH=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
-            CMAKE_PREFIX_PATH:FILEPATH=${{github.workspace}}/../Qt/6.6.3/linux/lib/cmake
-            CMAKE_BUILD_TYPE:STRING=Release
+            ITK-DIR=${{github.workspace}}/itk/install/lib/cmake/ITK-5.4
+            VTK-DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
+            CMAKE_PREFIX_PATH=${{github.workspace}}/../Qt/6.6.3/linux/lib/cmake
+            CMAKE_BUILD_TYPE=Release
       
 
 
