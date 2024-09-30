@@ -18,7 +18,7 @@
   #define itksys_SHARED_FORWARD_CONFIG_NAME CMAKE_INTDIR
 #endif
 
-#include <itksys/SharedForward.h>
+#include <@CMAKE_CURRENT_BINARY_DIR@/SharedForward.h>
 
 int main(int argc, char** argv)
 {
