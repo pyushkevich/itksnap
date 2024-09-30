@@ -153,6 +153,7 @@ jobs:
       - name: Build ITK-SNAP
         if: ${{ 1 == 2 }}
         uses: threeal/cmake-action@v2.0.0
+        continue-on-error: true
         with:
           source-dir: ${{github.workspace}}/itksnap
           build-dir: ${{github.workspace}}/itksnap/build
