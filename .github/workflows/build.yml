@@ -97,7 +97,7 @@ jobs:
 
       # Check out ITK
       - name: Checkout ITK
-        if: steps.cache-itk.outputs.cache-hit != 'true'
+        # if: steps.cache-itk.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
             repository: 'InsightSoftwareConsortium/ITK.git'
