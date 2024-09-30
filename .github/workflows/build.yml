@@ -165,9 +165,6 @@ jobs:
         with:
           source-dir: ${{github.workspace}}/itksnap
           build-dir: ${{github.workspace}}/itksnap/build
-          build-args: |
-            -t
-            install
           generator: Ninja
           options: |
             ITK_DIR=${{github.workspace}}/itk/build
