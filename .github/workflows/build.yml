@@ -166,6 +166,9 @@ jobs:
           source-dir: ${{github.workspace}}/itksnap
           build-dir: ${{github.workspace}}/itksnap/build
           generator: Ninja
+          build-args: |
+            -t
+            package
           options: |
             ITK_DIR=${{github.workspace}}/itk/build
             VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
