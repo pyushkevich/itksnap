@@ -28,6 +28,14 @@ jobs:
       - name: Setup Ninja
         uses: seanmiddleditch/gha-setup-ninja@master
 
+      # Install system packages
+      - name: Install System Packages
+        uses: ConorMacBride/install-package@v1
+        with:
+          brew: curl
+          apt: libcurl4-openssl-dev
+          choco: curl
+
       # Install Qt
       - name: Install Qt on Ubuntu
         uses: jurplel/install-qt-action@v4
@@ -136,7 +144,7 @@ jobs:
           options: |
             ITK-DIR:FILEPATH=${{github.workspace}}/itk/install/lib/cmake/ITK-5.4
             VTK-DIR:FILEPATH=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
-            CMAKE_PREFIX_PATH:FILEPATH=${{github.workspace}}/Qt/6.6.3/linux/lib/cmake
+            CMAKE_PREFIX_PATH:FILEPATH=${{github.workspace}}/../Qt/6.6.3/linux/lib/cmake
             CMAKE_BUILD_TYPE:STRING=Release
       
 
