@@ -42,6 +42,11 @@ jobs:
 
     steps:
 
+      # Select MSVC tools on windows
+      - name: Select MSVC 2019
+        uses: ilammy/msvc-dev-cmd@v1
+        if: ${{ runner.os == 'Windows' }}
+
       # Setup ninja
       - name: Setup Ninja
         uses: seanmiddleditch/gha-setup-ninja@master
