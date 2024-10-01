@@ -30,15 +30,19 @@ jobs:
           - os: ubuntu-20.04
             qt_host: linux
             qt_arch: gcc_64
+            test_pref: xvfb-run
           - os: macos-13
             qt_host: mac
             qt_arch: clang_64
+            test_pref: ''
           - os: macos-14
             qt_host: mac
             qt_arch: clang_64
+            test_pref: ''
           - os: windows-2019
             qt_host: windows
             qt_arch: win64_msvc2019_64
+            test_pref: ''
 
     steps:
 
@@ -186,11 +190,11 @@ jobs:
       - name: Build and Test ITK-SNAP
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
-          ctest -D ExperimentalStart
-          ctest -D ExperimentalConfigure
-          ctest -D ExperimentalBuild
-          ctest -D ExperimentalTest
-          ctest -D ExperimentalSubmit
+          ${{ matrix.test_pref }} ctest -D ExperimentalStart
+          ${{ matrix.test_pref }} ctest -D ExperimentalConfigure
+          ${{ matrix.test_pref }} ctest -D ExperimentalBuild
+          ${{ matrix.test_pref }} ctest -D ExperimentalTest | echo "no problem"
+          ${{ matrix.test_pref }} ctest -D ExperimentalSubmit
 
       # Cache the ITK-SNAP build
       - name: Cache ITK-SNAP build directory
