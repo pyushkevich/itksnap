@@ -1004,13 +1004,15 @@ int main(int argc, char *argv[])
     // Show the panel
     mainwin->ShowFirstTime();
 
-    // Check for updates?
-    mainwin->UpdateAutoCheck();
-
-    // Remind layout preference
-    //  Ignore it for testing run, or it will interrupt the automation if not handled correctly
+    // Skip these checks when testing, or it will interrupt the automation if not handled correctly
     if (!argdata.xTestId.size())
+      {
+      // Check for updates?
+      mainwin->UpdateAutoCheck();
+
+      // Remind layout preference
       mainwin->RemindLayoutPreference();
+      }
 
     // Assign the main window to the application. We do this right before
     // starting the event loop.
