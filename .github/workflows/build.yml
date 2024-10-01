@@ -164,25 +164,23 @@ jobs:
             clean: false
             path: 'itksnap'
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-
-      # Build ITK-SNAP
-      - name: Build ITK-SNAP
+      # Configure ITK-SNAP
+      - name: Configure ITK-SNAP
         uses: threeal/cmake-action@v2.0.0
         continue-on-error: true
         with:
           source-dir: ${{github.workspace}}/itksnap
           build-dir: ${{github.workspace}}/itksnap/build
           generator: Ninja
-          build-args: |
-            -t
-            package
+          run-build: false
           options: |
             ITK_DIR=${{github.workspace}}/itk/build
             VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
             CMAKE_BUILD_TYPE=Release
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Cache the ITK-SNAP build
       - name: Cache ITK-SNAP build directory
