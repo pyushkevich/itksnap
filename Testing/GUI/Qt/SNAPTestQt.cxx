@@ -34,7 +34,7 @@ using namespace std;
 
 SNAPTestQt::SNAPTestQt(MainImageWindow *win,
     std::string datadir, double accel_factor)
-  : m_Acceleration(accel_factor)
+: m_Acceleration(accel_factor), m_Parent(win)
 {
   // We need a dummy parent to prevent self-deletion
   m_DummyParent = new QObject();
@@ -138,7 +138,28 @@ QModelIndex SNAPTestQt::findItem(QObject *container, QVariant text)
 
 void SNAPTestQt::invoke(QObject *object, QString slot)
 {
-  QMetaObject::invokeMethod(object, slot.toStdString().c_str(), Qt::QueuedConnection);
+  if(!object)
+    m_ScriptEngine->throwError(QJSValue::ReferenceError,
+                               QString("Invoked slot %1 on null object").arg(slot));
+  else
+    QMetaObject::invokeMethod(object, slot.toStdString().c_str(), Qt::QueuedConnection);
+}
+
+void SNAPTestQt::trigger(QString action_name, QObject *parent)
+{
+  auto *action = dynamic_cast<QAction *>(findChild(parent ? parent : this->m_Parent, action_name));
+  invoke(action, "trigger");
+}
+
+void SNAPTestQt::comboBoxSelect(QObject *widget, QString itemText)
+{
+  auto *combo = dynamic_cast<QComboBox *>(widget);
+  if(!combo)
+    m_ScriptEngine->throwError(QJSValue::ReferenceError,
+                               QString("comboBoxSelect target not a combo box"));
+
+  int row = findItemRow(widget, itemText).toInt();
+  QMetaObject::invokeMethod(widget, "setCurrentIndex", Qt::QueuedConnection, Q_ARG(int, row));
 }
 
 
@@ -240,7 +261,6 @@ void SNAPTestQt::sleep(int milli_sec)
   int ms_actual = (int)(milli_sec / m_Acceleration);
 
   // Sleep
-  qDebug() << "sleeping for " << ms_actual << "ms.";
   TestWorker::sleep_ms(ms_actual);
 }
 

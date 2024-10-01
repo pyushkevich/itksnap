@@ -81,6 +81,12 @@ public slots:
   // Invoke a slot
   void invoke(QObject *object, QString slot);
 
+  // Trigger an action_name(by default, in the main menu)
+  void trigger(QString action_name, QObject *parent = nullptr);
+
+  // Select an item in a combo box
+  void comboBoxSelect(QObject *widget, QString itemText);
+
   // Return the contents of an item in a table
   QVariant tableItemText(QObject *table, int row, int col);
 
@@ -128,6 +134,9 @@ protected:
 
   // Test worker
   TestWorker *m_Worker;
+
+  // Main window pointer
+  MainImageWindow *m_Parent;
 
   // Helper functions
   QModelIndex findItem(QObject *container, QVariant text);

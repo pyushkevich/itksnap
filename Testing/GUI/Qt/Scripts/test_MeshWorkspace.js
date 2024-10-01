@@ -18,7 +18,7 @@ var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0002");
 rowdelegate.setSelected(true);
 
 //=== Show the layer inspector
-engine.findChild(mainwin,"actionLayerInspector").trigger();
+engine.trigger("actionLayerInspector");
 
 //=== Select the mesh data name box
 var boxDataArray = engine.findChild(layerdialog, "boxMeshDataName");
@@ -43,7 +43,7 @@ let inControlId = engine.findChild(cmpContrast, "inControlId");
 engine.validateValue(inControlId.maximum, 7);
 
 //=== Close a specific mesh layer
-engine.invoke(rowdelegate, "on_actionClose_triggered");
+engine.trigger("actionClose", rowdelegate);
 engine.sleep(1000);
 
 //=== The layer should be closed
@@ -51,4 +51,4 @@ let meshRowDelegate = engine.findChild(layerdialog, "wgtRowDelegate_0002");
 engine.validateValue(meshRowDelegate, null);
 
 //=== Trigger the unload all action
-engine.findChild(mainwin,"actionUnload_All").trigger();
+engine.trigger("actionUnload_All");

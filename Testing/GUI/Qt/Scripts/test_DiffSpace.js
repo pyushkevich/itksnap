@@ -18,7 +18,7 @@ var value3 = readVoxelIntensity(2);
 engine.validateFloatValue(value3, 554, 10)
 
 //=== Opening registration panel
-engine.findChild(mainwin,"actionRegistration").trigger();
+engine.trigger("actionRegistration");
 var regpanel = engine.findChild(mainwin,"RegistrationDialog");
 
 //=== Run automatic registration 

@@ -2,7 +2,7 @@
 include("Library");
 
 // Show the preferences dialog
-engine.findChild(mainwin,"actionPreferences").trigger();
+engine.trigger("actionPreferences");
 
 // Get Preferences Dialog
 var prefDialog = engine.findChild(mainwin, "PreferencesDialog");
