@@ -481,7 +481,7 @@ void TestWorker::source(QString script_url)
     }
   else
     {
-    qWarning() << "Successfully completed test script:" << rc.toString();
+    qDebug() << "Successfully completed test script with return code " << rc.toString();
     SNAPTestQt::application_exit(SNAPTestQt::SUCCESS);
     }
 }
