@@ -182,6 +182,16 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
+      # Build ITK-SNAP using CDash
+      - name: Build and Test ITK-SNAP
+        working-directory: ${{github.workspace}}/itksnap/build
+        run: |
+          ctest -D ExperimentalStart
+          ctest -D ExperimentalConfigure
+          ctest -D ExperimentalBuild
+          ctest -D ExperimentalTest
+          ctest -D ExperimentalSubmit
+
       # Cache the ITK-SNAP build
       - name: Cache ITK-SNAP build directory
         uses: actions/cache/save@v4
