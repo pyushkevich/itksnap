@@ -116,6 +116,10 @@ public slots:
 
   static void application_exit(int rc);
 
+protected slots:
+
+  void postKeyEventInternal(QObject *object, QString key);
+
 protected:
 
   ReturnCode ListTests();

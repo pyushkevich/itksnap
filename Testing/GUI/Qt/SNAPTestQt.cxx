@@ -255,6 +255,24 @@ void SNAPTestQt::application_exit(int rc)
         Q_ARG(int, rc));
 }
 
+void SNAPTestQt::postKeyEventInternal(QObject *object, QString key)
+{
+    QWidget *widget = dynamic_cast<QWidget *>(object);
+    if(widget)
+    {
+        QKeySequence seq(key);
+        if(seq.count() == 1)
+        {
+            QKeyCombination code = seq[0];
+            Qt::Key key = code.key();
+            Qt::KeyboardModifiers mods = code.keyboardModifiers();
+
+            QKeyEvent *ev = new QKeyEvent(QEvent::KeyPress, key, mods);
+            QApplication::postEvent(widget, ev);
+        }
+    }
+}
+
 void SNAPTestQt::sleep(int milli_sec)
 {
   // Scale requested sleep time by acceleration factor
@@ -332,20 +350,9 @@ void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QSt
 
 void SNAPTestQt::postKeyEvent(QObject *object, QString key)
 {
-  QWidget *widget = dynamic_cast<QWidget *>(object);
-  if(widget)
-    {
-    QKeySequence seq(key);
-    if(seq.count() == 1)
-      {
-      QKeyCombination code = seq[0];
-      Qt::Key key = code.key();
-      Qt::KeyboardModifiers mods = code.keyboardModifiers();
-
-      QKeyEvent *ev = new QKeyEvent(QEvent::KeyPress, key, mods);
-      QApplication::postEvent(widget, ev);
-      }
-    }
+  // We need the code to run in the main thread
+  QMetaObject::invokeMethod(
+    this, "postKeyEventInternal", Qt::QueuedConnection, Q_ARG(QObject *, object), Q_ARG(QString, key));
 }
 
 
