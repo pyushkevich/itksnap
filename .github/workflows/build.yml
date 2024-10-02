@@ -30,7 +30,7 @@ jobs:
           - os: ubuntu-20.04
             qt_host: linux
             qt_arch: gcc_64
-            test_pref: xvfb-run
+            test_pref: xvfb-run -a
           - os: macos-13
             qt_host: mac
             qt_arch: clang_64
@@ -181,6 +181,8 @@ jobs:
             ITK_DIR=${{github.workspace}}/itk/build
             VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
             CMAKE_BUILD_TYPE=Release
+            DO_UPLOAD=ON
+            SITE=github-runner-${{ matrix.os }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
