@@ -111,7 +111,7 @@ jobs:
             VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
             CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
-            ${{ runner.os == 'Windows' && 'SMP_IMPLEMENTATION_TYPE=Sequential' || '' }}
+            ${{ runner.os == 'Windows' && 'VTK_SMP_IMPLEMENTATION_TYPE=Sequential' || '' }}
      
       # Use cached ITK build if available. Unfortunately ITK make install fails to 
       # install one file, vnl_vector_ref.hxx so instead of caching the install dir
