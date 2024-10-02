@@ -208,6 +208,8 @@ jobs:
             CMAKE_BUILD_TYPE=Release
             DO_UPLOAD=ON
             SITE=github-runner-${{ matrix.os }}
+            ${{ runner.os == 'Windows' && 'CURL_LIBRARY=../../vcpkg/installed/x64-windows-release/lib/libcurl.lib' || '' }}
+            ${{ runner.os == 'Windows' && 'CURL_INCLUDE_DIR=../../vcpkg/installed/x64-windows-release/include' || '' }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
