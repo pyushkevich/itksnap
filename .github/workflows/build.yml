@@ -63,6 +63,19 @@ jobs:
           apt: libcurl4-openssl-dev
           choco: curl
 
+      # Install curl on Windows
+      - name: Install libcurl on Windows
+        uses: johnwason/vcpkg-action@v6
+        with:
+          pkgs: curl
+          triplet: x64-windows-release
+          token: ${{ github.token }}
+          github-binarycache: false
+    
+      - name: Setup tmate session 0
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
       # Install Qt
       - name: Install Qt on Ubuntu
         uses: jurplel/install-qt-action@v4
