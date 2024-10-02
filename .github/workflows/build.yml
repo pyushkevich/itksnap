@@ -61,11 +61,12 @@ jobs:
         with:
           brew: curl
           apt: libcurl4-openssl-dev
-          choco: curl
+          # choco: curl
 
       # Install curl on Windows
       - name: Install libcurl on Windows
         uses: johnwason/vcpkg-action@v6
+        if: ${{ runner.os == 'Windows' }}
         with:
           pkgs: curl
           triplet: x64-windows-release
