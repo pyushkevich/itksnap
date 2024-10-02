@@ -124,6 +124,7 @@ jobs:
      
       # Cache the VTK build
       - name: Cache VTK
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/vtk/install
@@ -132,9 +133,9 @@ jobs:
       # Use cached ITK build if available. Unfortunately ITK make install fails to 
       # install one file, vnl_vector_ref.hxx so instead of caching the install dir
       # we are caching the build dir
-      - name: Cache ITK
+      - name: Restore ITK Cache
         id: cache-itk
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/itk
           key: ${{ matrix.os }}-itk-5.4.0-build
@@ -166,6 +167,13 @@ jobs:
             Module_MorphologicalContourInterpolation:BOOL=TRUE
             CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
+
+      - name: Cache ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/itk
+          key: ${{ matrix.os }}-itk-5.4.0-build
      
       # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
       # because only the updated files should require rebuilding
