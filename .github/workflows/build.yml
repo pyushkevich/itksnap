@@ -73,10 +73,6 @@ jobs:
           token: ${{ github.token }}
           github-binarycache: false
     
-      - name: Setup tmate session 0
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-
       # Install Qt
       - name: Install Qt on Ubuntu
         uses: jurplel/install-qt-action@v4
@@ -85,11 +81,12 @@ jobs:
           target: 'desktop'
           host: ${{ matrix.qt_host }}
           arch: ${{ matrix.qt_arch }}
+          cache: true
 
       # Use cached VTK build if available
-      - name: Cache VTK
+      - name: Restore VTK Cache
         id: cache-vtk
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/vtk/install
           key: ${{ matrix.os }}-vtk-9.3.1
@@ -125,6 +122,13 @@ jobs:
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
             ${{ runner.os == 'Windows' && 'VTK_SMP_ENABLE_STDTHREAD=OFF' || '' }}
      
+      # Cache the VTK build
+      - name: Cache VTK
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/vtk/install
+          key: ${{ matrix.os }}-vtk-9.3.1
+
       # Use cached ITK build if available. Unfortunately ITK make install fails to 
       # install one file, vnl_vector_ref.hxx so instead of caching the install dir
       # we are caching the build dir
