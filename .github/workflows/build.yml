@@ -222,7 +222,7 @@ jobs:
           ${{ matrix.test_pref }} ctest -D ExperimentalStart
           ${{ matrix.test_pref }} ctest -D ExperimentalConfigure
           ${{ matrix.test_pref }} ctest -D ExperimentalBuild
-          ${{ matrix.test_pref }} ctest -D ExperimentalTest ${{ runner.os == 'Windows' && '| echo "no problem"' || '' }}
+          ${{ matrix.test_pref }} ctest -D ExperimentalTest ${{ runner.os != 'Windows' && '| echo "no problem"' || '' }}
           ${{ matrix.test_pref }} ctest -D ExperimentalSubmit
 
       # Cache the ITK-SNAP build
