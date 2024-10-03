@@ -26,6 +26,9 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04,macos-13,macos-14,windows-2022]
+        itk_ver: [ '5.4.0' ]
+        vtk_ver: [ '9.3.1' ]
+        qt_ver: [ '6.6.3' ]
         include:
           - os: ubuntu-20.04
             qt_host: linux
@@ -77,7 +80,7 @@ jobs:
       - name: Install Qt on Ubuntu
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.6.3'
+          version: ${{ matrix.qt_ver }}
           target: 'desktop'
           host: ${{ matrix.qt_host }}
           arch: ${{ matrix.qt_arch }}
@@ -89,7 +92,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/vtk/install
-          key: ${{ matrix.os }}-vtk-9.3.1
+          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}
 
       # Check out VTK
       - name: Checkout VTK
@@ -97,7 +100,7 @@ jobs:
         uses: actions/checkout@v4
         with:
             repository: 'Kitware/VTK.git'
-            ref: 'v9.3.1'
+            ref: v${{ matrix.vtk_ver }}
             submodules: true
             path: 'vtk'
 
@@ -128,7 +131,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/vtk/install
-          key: ${{ matrix.os }}-vtk-9.3.1
+          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}
 
       # Use cached ITK build if available. Unfortunately ITK make install fails to 
       # install one file, vnl_vector_ref.hxx so instead of caching the install dir
@@ -138,7 +141,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/itk
-          key: ${{ matrix.os }}-itk-5.4.0-build
+          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build
 
       # Check out ITK
       - name: Checkout ITK
@@ -146,7 +149,7 @@ jobs:
         uses: actions/checkout@v4
         with:
             repository: 'InsightSoftwareConsortium/ITK.git'
-            ref: 'v5.4.0'
+            ref: v${{ matrix.itk_ver }}
             submodules: true
             path: 'itk'
 
@@ -173,7 +176,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/itk
-          key: ${{ matrix.os }}-itk-5.4.0-build
+          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build
      
       # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
       # because only the updated files should require rebuilding
