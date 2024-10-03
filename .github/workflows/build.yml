@@ -39,7 +39,7 @@ jobs:
             qt_host: mac
             qt_arch: clang_64
             test_pref: ''
-          - os: windows-2019
+          - os: windows-2022
             qt_host: windows
             qt_arch: win64_msvc2019_64
             test_pref: ''
