@@ -237,6 +237,11 @@ jobs:
           path: ${{github.workspace}}/itksnap
           key: ${{ matrix.os }}-itksnap-${{ github.ref }}
 
+      # Package ITK-SNAP
+      - name: Package ITK-SNAP
+        working-directory: ${{github.workspace}}/itksnap/build
+        run: |
+          cmake --build -t package
       
       
 
