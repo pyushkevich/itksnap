@@ -205,14 +205,15 @@ jobs:
           build-dir: ${{github.workspace}}/itksnap/build
           generator: Ninja
           run-build: true
+          args: ${{ runner.os == 'Windows' && steps.vcpkg.outputs.vcpkg-cmake-config || '' }} 
           options: |
             ITK_DIR=${{github.workspace}}/itk/build
             VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
             CMAKE_BUILD_TYPE=Release
             DO_UPLOAD=ON
             SITE=github-runner-${{ matrix.os }}
-            ${{ runner.os == 'Windows' && 'CURL_LIBRARY=../../vcpkg/installed/x64-windows-release/lib/libcurl.lib' || '' }}
-            ${{ runner.os == 'Windows' && 'CURL_INCLUDE_DIR=../../vcpkg/installed/x64-windows-release/include' || '' }}
+      #      ${{ runner.os == 'Windows' && 'CURL_LIBRARY=../../vcpkg/installed/x64-windows-release/lib/libcurl.lib' || '' }}
+      #      ${{ runner.os == 'Windows' && 'CURL_INCLUDE_DIR=../../vcpkg/installed/x64-windows-release/include' || '' }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
