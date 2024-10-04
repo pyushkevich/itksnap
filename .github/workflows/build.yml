@@ -205,7 +205,7 @@ jobs:
           source-dir: ${{github.workspace}}/itksnap
           build-dir: ${{github.workspace}}/itksnap/build
           generator: Ninja
-          run-build: true
+          run-build: false
           args: ${{ runner.os == 'Windows' && steps.vcpkg.outputs.vcpkg-cmake-config || '' }} 
           options: |
             ITK_DIR=${{github.workspace}}/itk/build
