@@ -4,8 +4,6 @@
 # This CMake file is modeled after QtTest example project from
 # http://www.cmake.org/Wiki/BundleUtilitiesExample
 
-PROJECT(SNAP)
-
 #--------------------------------------------------------------------------------
 # CMAKE PRELIMINARIES                       
 #--------------------------------------------------------------------------------
@@ -17,6 +15,10 @@ cmake_policy(SET CMP0026 NEW)
 cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0080 OLD)
 
+#--------------------------------------------------------------------------------
+# PROJECT DEFINITION
+#--------------------------------------------------------------------------------
+PROJECT(SNAP)
 SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
 
 OPTION(BUILD_SHARED_LIBS "Build shared (dynamic) libraries" OFF)
