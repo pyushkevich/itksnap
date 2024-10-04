@@ -237,15 +237,16 @@ jobs:
           path: ${{github.workspace}}/itksnap
           key: ${{ matrix.os }}-itksnap-${{ github.ref }}
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
       # Package ITK-SNAP
       - name: Package ITK-SNAP
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
           cmake --build . -- package
       
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       
 
