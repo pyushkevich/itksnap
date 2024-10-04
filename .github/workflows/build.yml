@@ -241,7 +241,7 @@ jobs:
       - name: Package ITK-SNAP
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
-          cmake --build . -- -t package
+          cmake --build . -- package
       
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
