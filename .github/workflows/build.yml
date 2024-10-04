@@ -69,6 +69,7 @@ jobs:
       # Install curl on Windows
       - name: Install libcurl on Windows
         uses: johnwason/vcpkg-action@v6
+        id: vcpkg
         if: ${{ runner.os == 'Windows' }}
         with:
           pkgs: curl
