@@ -64,7 +64,7 @@ jobs:
         with:
           brew: curl
           apt: libcurl4-openssl-dev
-          # choco: curl
+          choco: nsis
 
       # Install curl on Windows
       - name: Install libcurl on Windows
@@ -191,6 +191,7 @@ jobs:
 
       # Checkout ITK-SNAP code
       - name: Checkout code
+        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
             submodules: true
@@ -199,6 +200,7 @@ jobs:
 
       # Configure ITK-SNAP
       - name: Configure ITK-SNAP
+        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
         uses: threeal/cmake-action@v2.0.0
         continue-on-error: true
         with:
@@ -218,6 +220,7 @@ jobs:
 
       # Build ITK-SNAP using CDash
       - name: Build and Test ITK-SNAP
+        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
           ${{ matrix.test_pref }} ctest -D ExperimentalStart
@@ -228,6 +231,7 @@ jobs:
 
       # Cache the ITK-SNAP build
       - name: Cache ITK-SNAP build directory
+        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/itksnap
