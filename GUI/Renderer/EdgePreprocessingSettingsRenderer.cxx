@@ -40,7 +40,7 @@ EdgePreprocessingSettingsRenderer::EdgePreprocessingSettingsRenderer()
   // Set up the plot
   vtkPlot *plot = m_Chart->AddPlot(vtkChart::LINE);
   plot->SetInputData(m_PlotTable, 0, 1);
-  plot->SetColor(1, 0, 0);
+  plot->SetColorF(1, 0, 0);
   plot->SetWidth(2.0);
   plot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
   plot->GetYAxis()->SetMinimum(-0.05);
