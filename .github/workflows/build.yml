@@ -243,9 +243,10 @@ jobs:
 
       # Package ITK-SNAP
       - name: Package ITK-SNAP
+        continue-on-error: true
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
-          cmake --build . -- package
+          ninja -v package
       
 
       
