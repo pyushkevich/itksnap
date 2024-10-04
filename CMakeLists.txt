@@ -230,7 +230,6 @@ SET(LOGIC_CXX
   Common/HistoryManager.cxx
   Common/IPCHandler.cxx
   Common/IRISException.cxx
-  Common/IRISVectorTemplates.cxx
   Common/MultiFrameDicomSeriesSorter.cxx
   Common/Rebroadcaster.cxx
   Common/Registry.cxx
