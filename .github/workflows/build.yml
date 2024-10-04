@@ -191,7 +191,6 @@ jobs:
 
       # Checkout ITK-SNAP code
       - name: Checkout code
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
         uses: actions/checkout@v4
         with:
             submodules: true
@@ -200,7 +199,6 @@ jobs:
 
       # Configure ITK-SNAP
       - name: Configure ITK-SNAP
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
         uses: threeal/cmake-action@v2.0.0
         continue-on-error: true
         with:
@@ -220,7 +218,6 @@ jobs:
 
       # Build ITK-SNAP using CDash
       - name: Build and Test ITK-SNAP
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
           ${{ matrix.test_pref }} ctest -D ExperimentalStart
@@ -231,7 +228,6 @@ jobs:
 
       # Cache the ITK-SNAP build
       - name: Cache ITK-SNAP build directory
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/itksnap
