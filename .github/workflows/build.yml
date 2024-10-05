@@ -187,7 +187,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
         with:
           path: ${{github.workspace}}/itksnap
-          key: ${{ matrix.os }}-itksnap-${{ github.ref }}
+          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
 
       # Checkout ITK-SNAP code
       - name: Checkout code
@@ -235,7 +235,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/itksnap
-          key: ${{ matrix.os }}-itksnap-${{ github.ref }}
+          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
