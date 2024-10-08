@@ -244,7 +244,7 @@ jobs:
       - name: Append directory with libcurl.dll to PATH
         if: runner.os == 'Windows'
         run: |
-          echo ${{github.workspace}}/vcpkg/installed/x64-windows-release/bin >> $GITHUB_PATH
+          echo "${{github.workspace}}/vcpkg/installed/x64-windows-release/bin" >> $GITHUB_PATH
 
       # Package ITK-SNAP
       - name: Package ITK-SNAP
@@ -254,10 +254,10 @@ jobs:
         run: |
           ninja -v package
           PACKAGE_FILE=$(jq -r '.filename' ${{github.workspace}}/itksnap/build/package_info.json)
-          echo "::set-output name=package_file::$PACKAGE_FILE"
+          echo "package_file=$PACKAGE_FILE" >> $GITHUB_OUTPUT
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{steps.package_itksnap.outputs.package_file}}
           path: ${{github.workspace}}/itksnap/build/${{steps.package_itksnap.outputs.package_file}}
