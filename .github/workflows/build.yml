@@ -201,6 +201,7 @@ jobs:
             submodules: true
             clean: false
             path: 'itksnap'
+            persist-credentials: false
 
       # Configure ITK-SNAP
       - name: Configure ITK-SNAP
@@ -338,7 +339,14 @@ jobs:
           echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
           cmake -DSCP_ARGUMENTS=-v -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
-          
+
+      - name: Cleanup secrets
+        if: ${{ always() }}
+        shell: bash
+        working-directory: ${{github.workspace}}/itksnap/build
+        run: |
+          rm -rf $HOME/.ssh/sfkey.pub $HOME/.ssh/sfkey
+          ${{ runner.os == 'MacOS' && 'security delete-keychain build.keychain' || 'echo na' }}          
         
       
 
