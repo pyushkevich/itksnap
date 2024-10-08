@@ -50,9 +50,16 @@ jobs:
     steps:
 
       # Select MSVC tools on windows
-      - name: Select MSVC 2019
+      - name: Select MSVC 2019/2022
         uses: ilammy/msvc-dev-cmd@v1
         if: ${{ runner.os == 'Windows' }}
+
+      # Find the path to the redistributable
+      - name: Find MSVC redistributable
+        id: msvc_redist
+        if: ${{ runner.os == 'Windows }}
+        run: |
+          $env:GITHUB_OUTPUT += "path=$env:VCToolsRedistDir\vcredist_x64.exe"
 
       # Setup ninja
       - name: Setup Ninja
@@ -199,7 +206,6 @@ jobs:
 
       # Configure ITK-SNAP
       - name: Configure ITK-SNAP
-        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
         uses: threeal/cmake-action@v2.0.0
         continue-on-error: true
         with:
@@ -216,6 +222,7 @@ jobs:
             SITE=github-runner-${{ matrix.os }}
             ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
+            ${{ runner.os == 'Windows' && format('VCREDIST_EXE={0}', steps.msvc_redist.outputs.path || '' }}
 
       # Build ITK-SNAP using CDash
       - name: Build and Test ITK-SNAP
@@ -249,13 +256,20 @@ jobs:
 
       # Package ITK-SNAP
       - name: Package ITK-SNAP
-        id: package_itksnap
         continue-on-error: true
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
           ninja package
           PACKAGE_FILE=$(jq -r '.filename' ${{github.workspace}}/itksnap/build/package_info.json)
           echo "package_file=$PACKAGE_FILE" >> $GITHUB_OUTPUT
+
+      # Extract the filename of ITK-SNAP package
+      - name: Read package name
+        id: package_itksnap
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        run: |
+          echo "package_file=$(jq -r '.filename' package_info.json)" >> $GITHUB_OUTPUT
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
