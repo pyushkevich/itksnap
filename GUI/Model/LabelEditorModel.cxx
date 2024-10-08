@@ -130,7 +130,7 @@ void LabelEditorModel::SetCurrentLabelOpacity(int value)
     }
 }
 
-bool LabelEditorModel::GetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> &value)
+bool LabelEditorModel::GetCurrentLabelHiddenState(Vector2i &value)
 {
   if(GetAndStoreCurrentLabel())
     {
@@ -141,7 +141,7 @@ bool LabelEditorModel::GetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> &va
   return false;
 }
 
-void LabelEditorModel::SetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> value)
+void LabelEditorModel::SetCurrentLabelHiddenState(Vector2i value)
 {
   if(GetAndStoreCurrentLabel())
     {
@@ -174,7 +174,7 @@ void LabelEditorModel::SetCurrentLabelColor(Vector3ui value)
     }
 }
 
-bool LabelEditorModel::GetIsForegroundBackground(Vector2b &value)
+bool LabelEditorModel::GetIsForegroundBackground(Vector2i &value)
 {
   if(GetAndStoreCurrentLabel())
     {
@@ -188,7 +188,7 @@ bool LabelEditorModel::GetIsForegroundBackground(Vector2b &value)
   return false;
 }
 
-void LabelEditorModel::SetIsForegroundBackground(Vector2b value)
+void LabelEditorModel::SetIsForegroundBackground(Vector2i value)
 {
   GlobalState *gs = m_Parent->GetGlobalState();
   if(GetAndStoreCurrentLabel())

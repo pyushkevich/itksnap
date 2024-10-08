@@ -19,7 +19,7 @@ function setCursor4D(x, y, z, t)
 function openMainImage(name)
 {
     //=== Opening 'Open Main' Dialog
-    engine.findChild(mainwin,"actionOpenMain").trigger();
+    engine.trigger("actionOpenMain");
     engine.sleep(2000);
 
     //=== Entering Filename
@@ -38,7 +38,7 @@ function openMainImage(name)
 function openMesh(name)
 {
     //=== Opening 'Open Mesh' Dialog
-    engine.findChild(mainwin, "actionAddMesh").trigger();
+    engine.trigger("actionAddMesh");
     engine.sleep(2000);
 
     //=== Entering Filename
@@ -60,7 +60,7 @@ function openMesh(name)
 function openWorkspace(name)
 {
     //=== Opening 'Open Workspace' dialog
-    engine.findChild(mainwin,"actionOpenWorkspace").trigger();
+    engine.trigger("actionOpenWorkspace");
     engine.sleep(2000);
 
     //=== Entering workspace filename
@@ -74,7 +74,7 @@ function openWorkspace(name)
 function enterSnakeMode(pos_x, pos_y, pos_z, size_x, size_y, size_z)
 {
     //=== Entering snake mode
-    engine.findChild(mainwin,"actionSnake").trigger();
+    engine.trigger("actionSnake");
 
     var roipanel = engine.findChild(mainwin, "pageSnakeTool");
 
@@ -95,7 +95,7 @@ function enterSnakeMode(pos_x, pos_y, pos_z, size_x, size_y, size_z)
 function enterSnakeModeFullROI()
 {
     //=== Entering snake mode
-    engine.findChild(mainwin,"actionSnake").trigger();
+    engine.trigger("actionSnake");
 
     var roipanel = engine.findChild(mainwin, "pageSnakeTool");
 

@@ -15,7 +15,7 @@ var btnExpand = engine.findChild(panel3D, "btnExpand");
 btnExpand.click();
 
 //=== Show the layer inspector
-engine.findChild(mainwin,"actionLayerInspector").trigger();
+engine.trigger("actionLayerInspector");
 
 //=== Select a specific overlay
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");

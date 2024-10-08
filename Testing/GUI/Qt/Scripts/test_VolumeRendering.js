@@ -5,7 +5,7 @@ include("Library");
 openWorkspace("img4d_11f_volren.itksnap");
 
 //=== Show the layer inspector
-engine.findChild(mainwin,"actionLayerInspector").trigger();
+engine.trigger("actionLayerInspector");
 
 //=== Select a specific overlay
 let layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
@@ -13,9 +13,7 @@ let rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0000");
 rowdelegate.setSelected(true);
 
 //=== Enable volume rendering
-let actionVolRen = engine.findChild(rowdelegate, "actionVolumeEnable");
-
-actionVolRen.trigger();
+engine.trigger("actionVolumeEnable", rowdelegate);
 
 //=== Close the inspector dialog
 engine.invoke(layerdialog, "close");
@@ -34,6 +32,5 @@ engine.sleep(3000);
 btnReplay.click();
 
 //=== Disable volume rendering
-actionVolRen.trigger();
-
+engine.trigger("actionVolumeEnable", rowdelegate);
 engine.sleep(500);

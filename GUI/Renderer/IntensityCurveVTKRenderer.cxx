@@ -12,8 +12,6 @@
 #include "vtkContext2D.h"
 #include "vtkPen.h"
 #include "vtkBrush.h"
-#include "vtkGenericOpenGLRenderWindow.h"
-#include "vtkIdTypeArray.h"
 #include "vtkPlotPoints.h"
 #include "vtkTransform2D.h"
 #include "vtkScalarsToColorsItem.h"
@@ -30,7 +28,6 @@
 #include "IntensityCurveModel.h"
 #include "IntensityCurveInterface.h"
 #include "LayerHistogramPlotAssembly.h"
-#include "ScalarImageHistogram.h"
 #include "ColorMapModel.h"
 
 
@@ -238,9 +235,6 @@ protected:
     this->Texture->Modified();
   }
 };
-
-
-#include "vtkPiecewiseControlPointsItem.h"
 
 
 class IntensityCurveControlPointsContextItem : public vtkControlPointsItem
@@ -483,7 +477,7 @@ IntensityCurveVTKRenderer::IntensityCurveVTKRenderer()
   // Set up the curve plot
   m_CurvePlot = m_Chart->AddPlot(vtkChart::LINE);
   m_CurvePlot->SetInputData(m_PlotTable, 0, 1);
-  m_CurvePlot->SetColor(1, 0, 0);
+  m_CurvePlot->SetColorF(1, 0, 0);
   m_CurvePlot->SetOpacity(0.85);
   m_CurvePlot->GetYAxis()->SetBehavior(vtkAxis::FIXED);
   m_CurvePlot->GetYAxis()->SetMinimumLimit(-0.1);

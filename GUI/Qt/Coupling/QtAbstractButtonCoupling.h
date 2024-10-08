@@ -129,11 +129,14 @@ public:
 
 
 /**
- * A simple coupling between a button and a boolean value.
+ * A simple coupling between a button and a true/false value strored in an int.
  */
-template <>
-class DefaultWidgetValueTraits<bool, QAbstractButton>
-    : public WidgetValueTraitsBase<bool, QAbstractButton *>
+template <typename TAtomic>
+class DefaultWidgetValueTraits<
+    TAtomic,
+    QAbstractButton,
+    typename std::enable_if<std::is_integral<TAtomic>::value>::type>
+    : public WidgetValueTraitsBase<TAtomic, QAbstractButton *>
 {
 public:
   const char *GetSignal()
@@ -141,12 +144,12 @@ public:
     return SIGNAL(toggled(bool));
   }
 
-  bool GetValue(QAbstractButton *w)
+  TAtomic GetValue(QAbstractButton *w)
   {
     return w->isChecked();
   }
 
-  void SetValue(QAbstractButton *w, const bool &value)
+  void SetValue(QAbstractButton *w, const TAtomic &value)
   {
     w->setChecked(value);
   }

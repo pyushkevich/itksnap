@@ -10,7 +10,7 @@ var intensity = readVoxelIntensity(0)
 engine.validateValue(intensity, "nan")
 
 //=== Show the layer inspector contrast dialog
-engine.findChild(mainwin,"actionImage_Contrast").trigger();
+engine.trigger("actionImage_Contrast");
 
 //=== Auto-adjust contrast
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");

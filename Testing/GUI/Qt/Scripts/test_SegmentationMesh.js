@@ -29,13 +29,11 @@ function scrollThroughTimePoints() {
 openWorkspace("segmentation_mesh.itksnap");
 
 //=== Find continuous update and triggers
-var actionContUpdate = engine.findChild(mainwin,"actionContinuous_Update");
-actionContUpdate.trigger();
-
+engine.trigger("actionContinuous_Update");
 engine.sleep(1000);
 
 //=== Show the layer inspector
-engine.findChild(mainwin,"actionLayerInspector").trigger();
+engine.trigger("actionLayerInspector");
 
 //=== Select a specific overlay
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");

@@ -31,14 +31,14 @@ public:
   irisGetMacro(CurrentLabelOpacityModel, AbstractRangedIntProperty *)
 
   /** Get the model for the current label id */
-  irisGetMacro(CurrentLabelHiddenStateModel, AbstractSimpleBooleanVec2Property *)
+  irisGetMacro(CurrentLabelHiddenStateModel, AbstractSimpleIntVec2Property *)
 
   /** Get the model for the current label id */
   irisGetMacro(CurrentLabelColorModel, AbstractSimpleUIntVec3Property *)
 
   /** Get the model that specifies whether the current label is background or
    * foreground label */
-  irisGetMacro(IsForegroundBackgroundModel, AbstractSimpleBooleanVec2Property *)
+  irisGetMacro(IsForegroundBackgroundModel, AbstractSimpleIntVec2Property *)
 
   /** Change the label id of the selected label */
   bool ReassignLabelId(LabelType newid);
@@ -101,9 +101,9 @@ protected:
   void SetCurrentLabelDescription(std::string value);
 
   // Visibility of the current label
-  SmartPtr<AbstractSimpleBooleanVec2Property> m_CurrentLabelHiddenStateModel;
-  bool GetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> &value);
-  void SetCurrentLabelHiddenState(iris_vector_fixed<bool, 2> value);
+  SmartPtr<AbstractSimpleIntVec2Property> m_CurrentLabelHiddenStateModel;
+  bool GetCurrentLabelHiddenState(Vector2i &value);
+  void SetCurrentLabelHiddenState(Vector2i value);
 
   // Color of the current label
   SmartPtr<AbstractSimpleUIntVec3Property> m_CurrentLabelColorModel;
@@ -111,9 +111,9 @@ protected:
   void SetCurrentLabelColor(Vector3ui value);
 
   // Foreground/background status
-  SmartPtr<AbstractSimpleBooleanVec2Property> m_IsForegroundBackgroundModel;
-  bool GetIsForegroundBackground(Vector2b &value);
-  void SetIsForegroundBackground(Vector2b value);
+  SmartPtr<AbstractSimpleIntVec2Property> m_IsForegroundBackgroundModel;
+  bool GetIsForegroundBackground(Vector2i &value);
+  void SetIsForegroundBackground(Vector2i value);
 
   // The parent model
   GlobalUIModel *m_Parent;

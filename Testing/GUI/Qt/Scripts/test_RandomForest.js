@@ -10,8 +10,7 @@ enterSnakeModeFullROI();
 //=== Entering classification mode
 var snakepanel = engine.findChild(mainwin,"SnakeWizardPanel");
 var combo = engine.findChild(snakepanel,"inPreprocessMode");
-var index = engine.findItemRow(combo,"Classification");
-combo.setCurrentIndex(index);
+engine.comboBoxSelect(combo, "Classification");
 
 //=== Show just the axial view
 engine.findChild(mainwin, "btnAxial").click();
@@ -21,7 +20,7 @@ var panel0 = engine.findChild(mainwin,"panel0");
 var sliceViewInternalWidget0 = engine.findChild(engine.findChild(panel0, "sliceView"), "internalWidget");
 
 //=== Enter paintbrush mode
-engine.findChild(mainwin,"actionPaintbrush").trigger();
+engine.trigger("actionPaintbrush");
 
 //=== Paint with foreground label
 setForegroundLabel("Label 1");
@@ -68,8 +67,7 @@ engine.sleep(1000);
 engine.findChild(snakepanel,"inStepSize").value = 10;
 
 //=== Turn on continuous rendering
-var actionContUpdate = engine.findChild(mainwin,"actionContinuous_Update");
-actionContUpdate.trigger();
+engine.trigger("actionContinuous_Update");
 
 //=== Run snake 100 iter
 for(var i = 0; i < 10; i++)
@@ -83,7 +81,7 @@ engine.findChild(snakepanel,"btnEvolutionNext").click()
 engine.sleep(1000)
 
 //=== Open volumes and statistics
-engine.findChild(mainwin,"actionVolumesAndStatistics").trigger();
+engine.trigger("actionVolumesAndStatistics");
 
 //=== Check the value
 var dialog = engine.findChild(mainwin, "dlgStatistics");

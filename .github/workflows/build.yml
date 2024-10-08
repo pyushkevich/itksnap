@@ -8,6 +8,11 @@ on:
         description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
         required: false
         default: false
+      use_cached_itksnap_build:
+        type: boolean
+        description: 'Use cached build results from last run'
+        required: false
+        default: false        
   # push:
   # release:
   # types:
@@ -18,11 +23,36 @@ jobs:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        # os: [ubuntu-20.04,macos-13,macos-14,windows-2019]
-        os: [ubuntu-20.04]
+        os: [ubuntu-20.04,macos-13,macos-14,windows-2022]
+        itk_ver: [ '5.4.0' ]
+        vtk_ver: [ '9.3.1' ]
+        qt_ver: [ '6.6.3' ]
+        include:
+          - os: ubuntu-20.04
+            qt_host: linux
+            qt_arch: gcc_64
+            test_pref: xvfb-run -a
+          - os: macos-13
+            qt_host: mac
+            qt_arch: clang_64
+            test_pref: ''
+          - os: macos-14
+            qt_host: mac
+            qt_arch: clang_64
+            test_pref: ''
+          - os: windows-2022
+            qt_host: windows
+            qt_arch: win64_msvc2019_64
+            test_pref: ''
 
     steps:
+
+      # Select MSVC tools on windows
+      - name: Select MSVC 2019
+        uses: ilammy/msvc-dev-cmd@v1
+        if: ${{ runner.os == 'Windows' }}
 
       # Setup ninja
       - name: Setup Ninja
@@ -34,25 +64,36 @@ jobs:
         with:
           brew: curl
           apt: libcurl4-openssl-dev
-          choco: curl
+          choco: nsis
 
+      # Install curl on Windows
+      - name: Install libcurl on Windows
+        uses: johnwason/vcpkg-action@v6
+        id: vcpkg
+        if: ${{ runner.os == 'Windows' }}
+        with:
+          pkgs: curl
+          triplet: x64-windows-release
+          token: ${{ github.token }}
+          github-binarycache: false
+    
       # Install Qt
       - name: Install Qt on Ubuntu
         uses: jurplel/install-qt-action@v4
-        if: ${{ startsWith(matrix.os,'ubuntu') }}
         with:
-          version: '6.6.3'
-          host: 'linux'
+          version: ${{ matrix.qt_ver }}
           target: 'desktop'
-          arch: 'gcc_64'
+          host: ${{ matrix.qt_host }}
+          arch: ${{ matrix.qt_arch }}
+          cache: true
 
       # Use cached VTK build if available
-      - name: Cache VTK
+      - name: Restore VTK Cache
         id: cache-vtk
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/vtk/install
-          key: ${{ runner.os }}-vtk-9.3.1
+          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}
 
       # Check out VTK
       - name: Checkout VTK
@@ -60,7 +101,7 @@ jobs:
         uses: actions/checkout@v4
         with:
             repository: 'Kitware/VTK.git'
-            ref: 'v9.3.1'
+            ref: v${{ matrix.vtk_ver }}
             submodules: true
             path: 'vtk'
 
@@ -71,9 +112,7 @@ jobs:
         with:
           source-dir: ${{github.workspace}}/vtk
           build-dir: ${{github.workspace}}/vtk/build
-          build-args: |
-            -t
-            install
+          build-args: "-t install -- -k 0"
           generator: Ninja
           options: |
             BUILD_TESTING:BOOL=FALSE
@@ -83,17 +122,27 @@ jobs:
             VTK_GROUP_ENABLE_Qt:STRING=YES
             VTK_MODULE_ENABLE_VTK_GUISupportQtQuick:STRING=NO
             VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
+            CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
+            ${{ runner.os == 'Windows' && 'VTK_SMP_ENABLE_STDTHREAD=OFF' || '' }}
      
+      # Cache the VTK build
+      - name: Cache VTK
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/vtk/install
+          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}
+
       # Use cached ITK build if available. Unfortunately ITK make install fails to 
       # install one file, vnl_vector_ref.hxx so instead of caching the install dir
       # we are caching the build dir
-      - name: Cache ITK
+      - name: Restore ITK Cache
         id: cache-itk
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
-          path: ${{github.workspace}}/itk/build
-          key: ${{ runner.os }}-itk-5.4.0-build
+          path: ${{github.workspace}}/itk
+          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build
 
       # Check out ITK
       - name: Checkout ITK
@@ -101,7 +150,7 @@ jobs:
         uses: actions/checkout@v4
         with:
             repository: 'InsightSoftwareConsortium/ITK.git'
-            ref: 'v5.4.0'
+            ref: v${{ matrix.itk_ver }}
             submodules: true
             path: 'itk'
 
@@ -120,35 +169,86 @@ jobs:
             BUILD_TESTING:BOOL=FALSE
             BUILD_EXAMPLES:BOOL=FALSE
             Module_MorphologicalContourInterpolation:BOOL=TRUE
+            CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
+
+      - name: Cache ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/itk
+          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build
      
+      # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
+      # because only the updated files should require rebuilding
+      - name: Restore ITK-SNAP Cache (optional)
+        id: cache-restore-itksnap
+        uses: actions/cache/restore@v4
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
+        with:
+          path: ${{github.workspace}}/itksnap
+          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
+
       # Checkout ITK-SNAP code
       - name: Checkout code
+        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
             submodules: true
+            clean: false
             path: 'itksnap'
+
+      # Configure ITK-SNAP
+      - name: Configure ITK-SNAP
+        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
+        uses: threeal/cmake-action@v2.0.0
+        continue-on-error: true
+        with:
+          source-dir: ${{github.workspace}}/itksnap
+          build-dir: ${{github.workspace}}/itksnap/build
+          generator: Ninja
+          run-build: false
+          args: ${{ runner.os == 'Windows' && steps.vcpkg.outputs.vcpkg-cmake-config || '' }} 
+          options: |
+            ITK_DIR=${{github.workspace}}/itk/build
+            VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
+            CMAKE_BUILD_TYPE=Release
+            DO_UPLOAD=ON
+            SITE=github-runner-${{ matrix.os }}
+            ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
+            ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
+
+      # Build ITK-SNAP using CDash
+      - name: Build and Test ITK-SNAP
+        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
+        working-directory: ${{github.workspace}}/itksnap/build
+        run: |
+          ${{ matrix.test_pref }} ctest -D ExperimentalStart
+          ${{ matrix.test_pref }} ctest -D ExperimentalConfigure
+          ${{ matrix.test_pref }} ctest -D ExperimentalBuild
+          ${{ matrix.test_pref }} ctest -D ExperimentalTest ${{ runner.os != 'Windows' && '| echo "no problem"' || '' }}
+          ${{ matrix.test_pref }} ctest -D ExperimentalSubmit
+
+      # Cache the ITK-SNAP build
+      - name: Cache ITK-SNAP build directory
+        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/itksnap
+          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
-      # Build ITK-SNAP
-      - name: Build ITK-SNAP
-        if: ${{ 1 == 2 }}
-        uses: threeal/cmake-action@v2.0.0
-        with:
-          source-dir: ${{github.workspace}}/itksnap
-          build-dir: ${{github.workspace}}/itksnap/build
-          build-args: |
-            -t
-            install
-          generator: Ninja
-          options: |
-            ITK_DIR=${{github.workspace}}/itk/build
-            VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
-            CMAKE_PREFIX_PATH=${{github.workspace}}/../Qt/6.6.3/linux/lib/cmake
-            CMAKE_BUILD_TYPE=Release
+      # Package ITK-SNAP
+      - name: Package ITK-SNAP
+        continue-on-error: true
+        working-directory: ${{github.workspace}}/itksnap/build
+        run: |
+          ninja -v package
+      
+
       
 
 
