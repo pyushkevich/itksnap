@@ -57,7 +57,7 @@ jobs:
       # Find the path to the redistributable
       - name: Find MSVC redistributable
         id: msvc_redist
-        if: ${{ runner.os == 'Windows }}
+        if: ${{ runner.os == 'Windows' }}
         run: |
           $env:GITHUB_OUTPUT += "path=$env:VCToolsRedistDir\vcredist_x64.exe"
 
