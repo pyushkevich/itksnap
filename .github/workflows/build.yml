@@ -216,6 +216,7 @@ jobs:
             ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('VCREDIST_EXE={0}', steps.msvc_redist.outputs.path) || '' }}
+            ${{ runner.os == 'MacOS' && 'SNAP_MACOSX_CODESIGN_CERT="Developer ID Application: Paul Yushkevich (5A636Q488D)"' || '' }}
 
       # Build ITK-SNAP using CDash
       - name: Build and Test ITK-SNAP
@@ -243,10 +244,21 @@ jobs:
         run: |
           echo "${{github.workspace}}/vcpkg/installed/x64-windows-release/bin" >> $GITHUB_PATH
 
+      # On MacOS, setup keychain for application signing
+      - name: Setup codesign keychain
+        if: ${{ runner.os == 'MacOS' }}
+        working-directory: ${{github.workspace}}/itksnap
+        env:
+          CODESIGN_P12_KEY: ${{ secrets.SNAP_MACOSX_CODESIGN_P12_KEY }}
+        run: |
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import Utilities/MacOS/apple_developer_for_github.p12 -k build.keychain -P "$CODESIGN_P12_KEY" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        env:
-          CERTIFICATE_PASSWORD: ${{ secrets.SNAP_MACOSX_CODESIGN_P12_KEY }}
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Package ITK-SNAP
