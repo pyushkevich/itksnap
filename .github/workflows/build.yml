@@ -62,7 +62,7 @@ jobs:
       - name: Install System Packages
         uses: ConorMacBride/install-package@v1
         with:
-          brew: curl
+          # brew: 
           apt: libcurl4-openssl-dev
           choco: nsis
 
@@ -238,7 +238,7 @@ jobs:
 
       # Add libcurl.dll to PATH on windows
       - name: Append directory with libcurl.dll to PATH
-        if: runner.os == 'Windows'
+        if: ${{ runner.os == 'Windows' }}
         run: |
           echo "${{github.workspace}}/vcpkg/installed/x64-windows-release/bin" >> $GITHUB_PATH
 
@@ -252,7 +252,7 @@ jobs:
         continue-on-error: true
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
-          ninja -v package
+          ninja package
           PACKAGE_FILE=$(jq -r '.filename' ${{github.workspace}}/itksnap/build/package_info.json)
           echo "package_file=$PACKAGE_FILE" >> $GITHUB_OUTPUT
 
