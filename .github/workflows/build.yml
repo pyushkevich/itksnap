@@ -38,10 +38,12 @@ jobs:
             qt_host: mac
             qt_arch: clang_64
             test_pref: ''
+            codesign_cert: 'Developer ID Application: Paul Yushkevich (5A636Q488D)'
           - os: macos-14
             qt_host: mac
             qt_arch: clang_64
             test_pref: ''
+            codesign_cert: 'Developer ID Application: Paul Yushkevich (5A636Q488D)'
           - os: windows-2022
             qt_host: windows
             qt_arch: win64_msvc2019_64
@@ -216,7 +218,7 @@ jobs:
             ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('VCREDIST_EXE={0}', steps.msvc_redist.outputs.path) || '' }}
-            ${{ runner.os == 'MacOS' && 'SNAP_MACOSX_CODESIGN_CERT=Developer\ ID\ Application:\ Paul\ Yushkevich\ (5A636Q488D)' || '' }}
+            ${{ runner.os == 'MacOS' && format('SNAP_MACOSX_CODESIGN_CERT={0}', matrix.codesign_cert) || '' }}
 
       # Build ITK-SNAP using CDash
       - name: Build and Test ITK-SNAP
