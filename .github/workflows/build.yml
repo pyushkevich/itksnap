@@ -203,6 +203,14 @@ jobs:
             path: itksnap
             persist-credentials: false
 
+      # Post-checkout fetch. This is to prevent errors from the ExperimentalUpdate command due to 
+      # some bizarre git error with greedy submodule. 
+      - name: Post-checkout fetch
+        working-directory: ${{github.workspace}}/itksnap
+        shell: bash
+        continue-on-error: true
+        run: git fetch
+
       # Configure ITK-SNAP
       - name: Configure ITK-SNAP
         uses: threeal/cmake-action@v2.0.0
@@ -228,15 +236,12 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Build ITK-SNAP using CDash
-      # The first git fetch command is to prevent errors from the Update command due to 
-      # some bizarre git error
       - name: ITK-SNAP Dashboard -- Configure and Build
         id: ctest-config
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         continue-on-error: true
         run: |
-          cd .. & git fetch | echo "ignore error"
           ${{ matrix.ctest_cmd }} -D ExperimentalStart
           ${{ matrix.ctest_cmd }} -D ExperimentalUpdate
           ${{ matrix.ctest_cmd }} -D ExperimentalConfigure
