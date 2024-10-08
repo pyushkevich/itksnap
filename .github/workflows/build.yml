@@ -268,9 +268,9 @@ jobs:
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         env:
-          CERT_CMD: ${{ runner.os == 'MacOS' && format('-DSNAP_MACOSX_CODESIGN_CERT="{0}"', secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME) || '' }}
+          ITKSNAP_MACOS_CODESIGN_CERTIFICATE: "${{ secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME }}"
         run: |
-          VERBOSE=1 cmake $CERT_CMD --build . --target package
+          VERBOSE=1 cmake --build . --target package
 
       # Extract the filename of ITK-SNAP package
       - name: Read package name
