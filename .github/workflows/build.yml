@@ -5,12 +5,17 @@ on:
     inputs:
       debug_enabled:
         type: boolean
-        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        description: 'Enable tmate debugging'
         required: false
         default: false
       use_cached_itksnap_build:
         type: boolean
-        description: 'Use cached build results from last run'
+        description: 'Use cached ITK-SNAP build'
+        required: false
+        default: false        
+      skip_testing:
+        type: boolean
+        description: 'Skip testing'
         required: false
         default: false        
   # push:
@@ -33,19 +38,19 @@ jobs:
           - os: ubuntu-20.04
             qt_host: linux
             qt_arch: gcc_64
-            test_pref: xvfb-run -a
+            ctest_cmd: xvfb-run -a ctest
           - os: macos-13
             qt_host: mac
             qt_arch: clang_64
-            test_pref: ''
+            ctest_cmd: ctest
           - os: macos-14
             qt_host: mac
             qt_arch: clang_64
-            test_pref: ''
+            ctest_cmd: ctest
           - os: windows-2022
             qt_host: windows
             qt_arch: win64_msvc2019_64
-            test_pref: ''
+            ctest_cmd: ctest
 
     steps:
 
@@ -217,16 +222,36 @@ jobs:
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
 
       # Build ITK-SNAP using CDash
-      - name: Build and Test ITK-SNAP
-        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
+      - name: ITK-SNAP Dashboard -- Configure and Build
+        id: ctest-config
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
+        continue-on-error: true
         run: |
-          ${{ matrix.test_pref }} ctest -D ExperimentalStart
-          ${{ matrix.test_pref }} ctest -D ExperimentalConfigure
-          ${{ matrix.test_pref }} ctest -D ExperimentalBuild
-          ${{ matrix.test_pref }} ctest -D ExperimentalTest | echo "Some tests failed, proceeding"
-          ${{ matrix.test_pref }} ctest -D ExperimentalSubmit
+          ${{ matrix.ctest_cmd }} -D ExperimentalStart
+          ${{ matrix.ctest_cmd }} -D ExperimentalConfigure
+          ${{ matrix.ctest_cmd }} -D ExperimentalBuild
+
+      - name: ITK-SNAP Dashboard -- Test
+        id: ctest-test
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.skip_testing }}
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        continue-on-error: true
+        run: |
+          ${{ matrix.ctest_cmd }} -D ExperimentalTest
+
+      - name: ITK-SNAP Dashboard -- Submit
+        id: ctest-submit
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        continue-on-error: true
+        run: |
+          ${{ matrix.ctest_cmd }} -D ExperimentalSubmit
+
+      - name: ITK-SNAP Dashboard -- Gatekeeper
+        if: ${{ steps.ctest-config.outcome != 'success' || steps.ctest-submit.outcome != 'success' }}
+        run: exit -1          
 
       # Cache the ITK-SNAP build
       - name: Cache ITK-SNAP build directory
@@ -278,8 +303,6 @@ jobs:
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         run: |
-          cmake .
-          cmake --build .
           cpack --verbose 
 
       # Extract the filename of ITK-SNAP package
@@ -307,7 +330,7 @@ jobs:
           mkdir -p $HOME/.ssh && chmod 700 $HOME/.ssh
           echo $PUBLIC_KEY | base64 -d > $HOME/.ssh/sfkey.pub && chmod 600 $HOME/.ssh/sfkey.pub
           echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/sfkey && chmod 600 $HOME/.ssh/sfkey
-          cmake -DSCP_ARGUMENTS=-visfkey -DSCP_USERNAME=$USER .
+          cmake -DSCP_ARGUMENTS=-vi$HOME/.ssh/sfkey -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
           
         
