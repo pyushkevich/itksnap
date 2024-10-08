@@ -295,6 +295,22 @@ jobs:
         with:
           name: ${{steps.package_itksnap.outputs.package_file}}
           path: ${{github.workspace}}/itksnap/build/${{steps.package_itksnap.outputs.package_file}}
+
+      - name: Upload to sourceforge
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        env:
+          PRIVATE_KEY: ${{ secrets.SNAP_SOURCEFORGE_PRIVATE_KEY }}
+          PUBLIC_KEY: ${{ secrets.SNAP_SOURCEFORGE_PUBLIC_KEY }}
+          USER: ${{ secrets.SNAP_SOURCEFORGE_PUBLIC_USERNAME }}
+        run: |
+          mkdir -p $HOME/.ssh && chmod 700 $HOME/.ssh
+          echo $PUBLIC_KEY | base64 -d > $HOME/.ssh/sfkey.pub && chmod 600 $HOME/.ssh/sfkey.pub
+          echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/sfkey && chmod 600 $HOME/.ssh/sfkey
+          cmake -DSCP_ARGUMENTS=-visfkey -DSCP_USERNAME=$USER .
+          cmake --build . --target itksnap_upload_experimental
+          
+        
       
 
       
