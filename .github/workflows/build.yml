@@ -266,7 +266,7 @@ jobs:
           echo $NOTARIZE_KEY | base64 -d > notarize_key
           xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER --keychain /Users/runner/Library/Keychains/build.keychain-db itksnap_notarize
           rm -rf notarize_key
-          cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize -DSNAP_MACOSX_CODESIGN_CERT=$CODESIGN_CERT .
+          cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize -DSNAP_MACOS_KEYCHAIN=/Users/runner/Library/Keychains/build.keychain-db -DSNAP_MACOSX_CODESIGN_CERT=$CODESIGN_CERT .
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
