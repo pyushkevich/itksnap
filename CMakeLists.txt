@@ -1580,8 +1580,19 @@ ELSEIF(WIN32)
 
   # On Win32, we must include the redistributable
   IF(MSVC_VERSION GREATER 1399)
-    FIND_PROGRAM(VCREDIST_EXE vcredist_x86.exe vcredist_x64.exe)
+
+    # Determine which redistributable to use
+    IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+      SET(VCREDIST_SEARCH_NAME vc_redist.arm64.exe)
+    ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
+      SET(VCREDIST_SEARCH_NAME vc_redist.x86.exe vcredist_x86.exe)
+    ELSE(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+      SET(VCREDIST_SEARCH_NAME vc_redist.x64.exe vcredist_x64.exe)
+    ENDIF()
+
+    MESSAGE(STATUS "Searching for MSVC redistributable ${VCREDIST_SEARCH_NAME} in $ENV{VCToolsRedistDir}")
     IF(VCREDIST_EXE)
+      MESSAGE(STATUS "Including MSVC redistributable ${VCREDIST_EXE} in package")
       GET_FILENAME_COMPONENT(VCREDIST_NAME ${VCREDIST_EXE} NAME)
       INSTALL(FILES ${VCREDIST_EXE} DESTINATION bin)
       SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
