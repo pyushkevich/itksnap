@@ -1455,7 +1455,7 @@ IF(APPLE)
   SET(CPACK_PACKAGE_ICON ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns)
 
   # The keychain used to store codesigning certificate and the notary tool password
-  SET(SNAP_MACOS_KEYCHAIN "default" CACHE STRING "Keychain where the code signing certificate, notarize password are stored")
+  SET(SNAP_MACOS_KEYCHAIN "" CACHE STRING "Keychain where the code signing certificate, notarize password are stored")
   SET(SNAP_MACOS_KEYCHAIN_PASSWORD_FILE "" CACHE STRING "File containing the password to unlock the keychain")
   MARK_AS_ADVANCED(SNAP_MACOS_KEYCHAIN)
   MARK_AS_ADVANCED(SNAP_MACOS_KEYCHAIN_PASSWORD_FILE)
