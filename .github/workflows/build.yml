@@ -201,7 +201,8 @@ jobs:
             submodules: true
             clean: false
             path: 'itksnap'
-            persist-credentials: false
+            # This expires after one year
+            token: ${{ secrets.SNAP_GITHUB_PAT }}
 
       # Configure ITK-SNAP
       - name: Configure ITK-SNAP
