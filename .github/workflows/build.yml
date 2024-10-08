@@ -240,12 +240,27 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
+      # Add libcurl.dll to PATH on windows
+      - name: Append directory with libcurl.dll to PATH
+        if: runner.os == 'Windows'
+        run: |
+          echo ${{github.workspace}}/vcpkg/installed/x64-windows-release/bin >> $GITHUB_PATH
+
       # Package ITK-SNAP
       - name: Package ITK-SNAP
+        id: package_itksnap
         continue-on-error: true
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
           ninja -v package
+          PACKAGE_FILE=$(jq -r '.filename' ${{github.workspace}}/itksnap/build/package_info.json)
+          echo "::set-output name=package_file::$PACKAGE_FILE"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{steps.package_itksnap.outputs.package_file}}
+          path: ${{github.workspace}}/itksnap/build/${{steps.package_itksnap.outputs.package_file}}
       
 
       
