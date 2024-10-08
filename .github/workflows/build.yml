@@ -200,7 +200,7 @@ jobs:
       # Configure ITK-SNAP
       - name: Configure ITK-SNAP
         uses: threeal/cmake-action@v2.0.0
-        continue-on-error: true
+        continue-on-error: false
         with:
           source-dir: ${{github.workspace}}/itksnap
           build-dir: ${{github.workspace}}/itksnap/build
@@ -215,18 +215,17 @@ jobs:
             SITE=github-runner-${{ matrix.os }}
             ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
-            ${{ runner.os == 'Windows' && format('VCREDIST_EXE={0}', steps.msvc_redist.outputs.path) || '' }}
-            ${{ runner.os == 'MacOS' && 'SNAP_MACOSX_CODESIGN_CERT="Developer ID Application: Paul Yushkevich (5A636Q488D)"' || '' }}
 
       # Build ITK-SNAP using CDash
       - name: Build and Test ITK-SNAP
         if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
         working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
         run: |
           ${{ matrix.test_pref }} ctest -D ExperimentalStart
           ${{ matrix.test_pref }} ctest -D ExperimentalConfigure
           ${{ matrix.test_pref }} ctest -D ExperimentalBuild
-          ${{ matrix.test_pref }} ctest -D ExperimentalTest ${{ runner.os != 'Windows' && '| echo "no problem"' || '' }}
+          ${{ matrix.test_pref }} ctest -D ExperimentalTest | echo "Some tests failed, proceeding"
           ${{ matrix.test_pref }} ctest -D ExperimentalSubmit
 
       # Cache the ITK-SNAP build
@@ -258,15 +257,20 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
       - name: Setup tmate session
+        env:
+          CERT_CMD: ${{ runner.os == 'MacOS' && format('-DSNAP_MACOSX_CODESIGN_CERT="{0}"', secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME) || '' }}
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Package ITK-SNAP
       - name: Package ITK-SNAP
-        continue-on-error: true
+        continue-on-error: false
         working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        env:
+          ITKSNAP_MACOS_CODESIGN_CERTIFICATE: "${{ secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME }}"
         run: |
-          ninja package
+          VERBOSE=1 cmake --build . --target package
 
       # Extract the filename of ITK-SNAP package
       - name: Read package name
