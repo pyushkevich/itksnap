@@ -215,7 +215,6 @@ jobs:
             SITE=github-runner-${{ matrix.os }}
             ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
-            ${{ runner.os == 'MacOS' && 'SNAP_MACOSX_CODESIGN_CERT=my_itksnap_cert' || '' }}
 
       # Build ITK-SNAP using CDash
       - name: Build and Test ITK-SNAP
@@ -254,7 +253,7 @@ jobs:
           security create-keychain -p "" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
-          security import Utilities/MacOS/apple_developer_for_github.p12 -k build.keychain -P "$CODESIGN_P12_KEY" -T /usr/bin/codesign -l my_itksnap_cert
+          security import Utilities/MacOS/apple_developer_for_github.p12 -k build.keychain -P "$CODESIGN_P12_KEY" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
       - name: Setup tmate session
@@ -266,8 +265,10 @@ jobs:
         continue-on-error: false
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
+        env:
+          CERT_CMD: ${{ runner.os == 'MacOS' && format('-DSNAP_MACOSX_CODESIGN_CERT="{0}"', secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME) || '' }}
         run: |
-          cmake --build . --target package
+          cmake $CERT_CMD --build . --target package
 
       # Extract the filename of ITK-SNAP package
       - name: Read package name
