@@ -220,6 +220,7 @@ jobs:
             SITE=github-runner-${{ matrix.os }}
             ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
+            ${{ runner.os == 'MacOS' && 'CMAKE_OSX_DEPLOYMENT_TARGET=12.6' || '' }}
 
       # Build ITK-SNAP using CDash
       - name: ITK-SNAP Dashboard -- Configure and Build
@@ -333,7 +334,8 @@ jobs:
           touch $HOME/.ssh/config && chmod 600 $HOME/.ssh/config
           echo "StrictHostKeyChecking=no" >> $HOME/.ssh/config
           echo "BatchMode=yes" >> $HOME/.ssh/config
-          cmake -DSCP_ARGUMENTS=-vi$HOME/.ssh/sfkey -DSCP_USERNAME=$USER .
+          echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
+          cmake -DSCP_ARGUMENTS=-v -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
           
         
