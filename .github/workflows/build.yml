@@ -191,7 +191,6 @@ jobs:
 
       # Checkout ITK-SNAP code
       - name: Checkout code
-        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
         uses: actions/checkout@v4
         with:
             submodules: true
