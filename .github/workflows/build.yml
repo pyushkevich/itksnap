@@ -330,7 +330,7 @@ jobs:
           mkdir -p $HOME/.ssh && chmod 700 $HOME/.ssh
           echo $PUBLIC_KEY | base64 -d > $HOME/.ssh/sfkey.pub && chmod 600 $HOME/.ssh/sfkey.pub
           echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/sfkey && chmod 600 $HOME/.ssh/sfkey
-          cmake -DSCP_ARGUMENTS=-vi$HOME/.ssh/sfkey -DSCP_USERNAME=$USER .
+          cmake -DSCP_ARGUMENTS=-nvi$HOME/.ssh/sfkey -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
           
         
