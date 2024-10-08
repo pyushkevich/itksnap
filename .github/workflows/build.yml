@@ -244,17 +244,26 @@ jobs:
           echo "${{github.workspace}}/vcpkg/installed/x64-windows-release/bin" >> $GITHUB_PATH
 
       # On MacOS, setup keychain for application signing
+      # The notarization keys are from https://appstoreconnect.apple.com/access/integrations/api
       - name: Setup codesign keychain
         if: ${{ runner.os == 'MacOS' }}
-        working-directory: ${{github.workspace}}/itksnap
+        working-directory: ${{github.workspace}}/itksnap/build
         env:
           CODESIGN_P12_KEY: ${{ secrets.SNAP_MACOSX_CODESIGN_P12_KEY }}
+          NOTARIZE_KEY: ${{ secrets.SNAP_MACOS_NOTARIZE_PRIVATE_KEY }}
+          NOTARIZE_KEY_ID: ${{ secrets.SNAP_MACOS_NOTARIZE_KEY_ID }}
+          NOTARIZE_ISSUER: ${{ secrets.SNAP_MACOS_NOTARIZE_ISSUER_UUID }}
+          ITKSNAP_MACOS_CODESIGN_CERTIFICATE: "${{ secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME }}"
         run: |
           security create-keychain -p "" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
           security import Utilities/MacOS/apple_developer_for_github.p12 -k build.keychain -P "$CODESIGN_P12_KEY" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+          echo $NOTARIZE_KEY | base64 -d > notarize_key
+          xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER itksnap_notarize
+          rm -rf notarize_key
+          cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize .
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -265,8 +274,6 @@ jobs:
         continue-on-error: false
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
-        env:
-          ITKSNAP_MACOS_CODESIGN_CERTIFICATE: "${{ secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME }}"
         run: |
           cmake .
           cmake --build .
