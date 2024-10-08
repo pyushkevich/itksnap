@@ -261,12 +261,12 @@ jobs:
           security create-keychain -p "" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "" build.keychain
-          security import Utilities/MacOS/apple_developer_for_github.p12 -k build.keychain -P "$CODESIGN_P12_KEY" -T /usr/bin/codesign
+          security import ../Utilities/MacOS/apple_developer_for_github.p12 -k build.keychain -P "$CODESIGN_P12_KEY" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
           echo $NOTARIZE_KEY | base64 -d > notarize_key
-          xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER itksnap_notarize
+          xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER --keychain /Users/runner/Library/Keychains/build.keychain-db itksnap_notarize
           rm -rf notarize_key
-          cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize -DSNAP_MACOSX_CODESIGN_CERT=$CODESIGN_CERT .
+          cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize -DSNAP_MACOS_KEYCHAIN=/Users/runner/Library/Keychains/build.keychain-db -DSNAP_MACOSX_CODESIGN_CERT=$CODESIGN_CERT .
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -295,6 +295,22 @@ jobs:
         with:
           name: ${{steps.package_itksnap.outputs.package_file}}
           path: ${{github.workspace}}/itksnap/build/${{steps.package_itksnap.outputs.package_file}}
+
+      - name: Upload to sourceforge
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        env:
+          PRIVATE_KEY: ${{ secrets.SNAP_SOURCEFORGE_PRIVATE_KEY }}
+          PUBLIC_KEY: ${{ secrets.SNAP_SOURCEFORGE_PUBLIC_KEY }}
+          USER: ${{ secrets.SNAP_SOURCEFORGE_PUBLIC_USERNAME }}
+        run: |
+          mkdir -p $HOME/.ssh && chmod 700 $HOME/.ssh
+          echo $PUBLIC_KEY | base64 -d > $HOME/.ssh/sfkey.pub && chmod 600 $HOME/.ssh/sfkey.pub
+          echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/sfkey && chmod 600 $HOME/.ssh/sfkey
+          cmake -DSCP_ARGUMENTS=-visfkey -DSCP_USERNAME=$USER .
+          cmake --build . --target itksnap_upload_experimental
+          
+        
       
 
       
