@@ -264,7 +264,7 @@ jobs:
           security import ../Utilities/MacOS/apple_developer_for_github.p12 -k build.keychain -P "$CODESIGN_P12_KEY" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
           echo $NOTARIZE_KEY | base64 -d > notarize_key
-          xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER itksnap_notarize
+          xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER --keychain /Users/runner/Library/Keychains/build.keychain-db itksnap_notarize
           rm -rf notarize_key
           cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize -DSNAP_MACOSX_CODESIGN_CERT=$CODESIGN_CERT .
 
