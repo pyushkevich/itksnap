@@ -17,8 +17,8 @@ on:
         type: boolean
         description: 'Skip testing'
         required: false
-        default: false        
-  # push:
+        default: false       
+  push:
   # release:
   # types:
   #   - published
