@@ -249,11 +249,14 @@ jobs:
         if: ${{ runner.os == 'MacOS' }}
         working-directory: ${{github.workspace}}/itksnap/build
         env:
+          # Private key from the .p12 file (export certificate & key to .p12)
           CODESIGN_P12_KEY: ${{ secrets.SNAP_MACOSX_CODESIGN_P12_KEY }}
+          # Unique substring of the certificate name (the number part is ok)
+          CODESIGN_CERT: "${{ secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME }}"
+          # Notarization pkey/keyid/issuer triplet (pkey is base64 encoded)
           NOTARIZE_KEY: ${{ secrets.SNAP_MACOS_NOTARIZE_PRIVATE_KEY }}
           NOTARIZE_KEY_ID: ${{ secrets.SNAP_MACOS_NOTARIZE_KEY_ID }}
           NOTARIZE_ISSUER: ${{ secrets.SNAP_MACOS_NOTARIZE_ISSUER_UUID }}
-          ITKSNAP_MACOS_CODESIGN_CERTIFICATE: "${{ secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME }}"
         run: |
           security create-keychain -p "" build.keychain
           security default-keychain -s build.keychain
@@ -263,7 +266,7 @@ jobs:
           echo $NOTARIZE_KEY | base64 -d > notarize_key
           xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER itksnap_notarize
           rm -rf notarize_key
-          cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize .
+          cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize -DSNAP_MACOSX_CODESIGN_CERT=$CODESIGN_CERT .
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
