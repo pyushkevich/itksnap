@@ -54,13 +54,6 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         if: ${{ runner.os == 'Windows' }}
 
-      # Find the path to the redistributable
-      - name: Find MSVC redistributable
-        id: msvc_redist
-        if: ${{ runner.os == 'Windows' }}
-        run: |
-          $env:GITHUB_OUTPUT += "path=$env:VCToolsRedistDir\vcredist_x64.exe"
-
       # Setup ninja
       - name: Setup Ninja
         uses: seanmiddleditch/gha-setup-ninja@master
@@ -252,6 +245,8 @@ jobs:
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
+        env:
+          CERTIFICATE_PASSWORD: ${{ secrets.SNAP_MACOSX_CODESIGN_P12_KEY }}
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Package ITK-SNAP
@@ -260,8 +255,6 @@ jobs:
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
           ninja package
-          PACKAGE_FILE=$(jq -r '.filename' ${{github.workspace}}/itksnap/build/package_info.json)
-          echo "package_file=$PACKAGE_FILE" >> $GITHUB_OUTPUT
 
       # Extract the filename of ITK-SNAP package
       - name: Read package name
