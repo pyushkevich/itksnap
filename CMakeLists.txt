@@ -1461,6 +1461,8 @@ IF(APPLE)
   MARK_AS_ADVANCED(SNAP_MACOS_KEYCHAIN_PASSWORD_FILE)
 
   # Code signing certificate - optional
+  # Make it possible to specify the certificate name in an environment variable
+  # because they contain spaces and CMake can't handle the spaces in -D arguments
   SET(SNAP_MACOSX_CODESIGN_CERT "" CACHE STRING "Name of the Apple Developer Certificate to sign application")
   MARK_AS_ADVANCED(SNAP_MACOSX_CODESIGN_CERT)
 
@@ -1472,6 +1474,16 @@ IF(APPLE)
 
   # Create a script that can unlock the keychain
   CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/Utilities/MacOS/unlock_keychain.cmake ${CMAKE_BINARY_DIR}/Utilities/MacOS/unlock_keychain.cmake @ONLY)
+
+  # Make it possible to specify the certificate name in an environment variable
+  # because they contain spaces and CMake can't handle the spaces in -D arguments
+  IF(NOT SNAP_MACOSX_CODESIGN_CERT)
+    IF(DEFINED ENV{ITKSNAP_MACOS_CODESIGN_CERTIFICATE})
+      SET(SNAP_MACOSX_CODESIGN_CERT "$ENV{ITKSNAP_MACOS_CODESIGN_CERTIFICATE}")
+      MESSAGE(STATUS "SNAP_MACOSX_CODESIGN_CERT set to '${SNAP_MACOSX_CODESIGN_CERT}' via environment")
+    ENDIF()
+  ENDIF()
+
 
   IF(SNAP_MACOSX_CODESIGN_CERT)
     SET(CPACK_BUNDLE_APPLE_CERT_APP ${SNAP_MACOSX_CODESIGN_CERT})
