@@ -1687,6 +1687,12 @@ ENDIF(APPLE)
 # Construct the name of the package
 SET(CPACK_PACKAGE_FILE_NAME_WEXT "${CPACK_PACKAGE_FILE_NAME}.${CPACK_EXTENSION}")
 
+# Write the package name to a file in the build directory - to help external tools
+# know what the current package name is expected to be
+CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utilities/package_info.json
+    ${CMAKE_CURRENT_BINARY_DIR}/package_info.json
+    @ONLY)
 
 #--------------------------------------------------------------------------------
 # Uploading code to SourceForge
