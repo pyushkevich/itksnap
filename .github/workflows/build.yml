@@ -257,6 +257,8 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
 
       - name: Setup tmate session
+        env:
+          CERT_CMD: ${{ runner.os == 'MacOS' && format('-DSNAP_MACOSX_CODESIGN_CERT="{0}"', secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME) || '' }}
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
