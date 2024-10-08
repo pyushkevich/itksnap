@@ -268,6 +268,7 @@ jobs:
         env:
           ITKSNAP_MACOS_CODESIGN_CERTIFICATE: "${{ secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME }}"
         run: |
+          cmake .
           cmake --build .
           cpack --verbose 
 
