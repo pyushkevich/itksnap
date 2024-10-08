@@ -249,7 +249,7 @@ jobs:
 
       - name: ITK-SNAP Dashboard -- Test
         id: ctest-test
-        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.skip_testing }}
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_testing }}
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         continue-on-error: true
