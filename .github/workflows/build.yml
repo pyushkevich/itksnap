@@ -228,12 +228,15 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Build ITK-SNAP using CDash
+      # The first git fetch command is to prevent errors from the Update command due to 
+      # some bizarre git error
       - name: ITK-SNAP Dashboard -- Configure and Build
         id: ctest-config
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         continue-on-error: true
         run: |
+          cd .. & git fetch | echo "ignore error"
           ${{ matrix.ctest_cmd }} -D ExperimentalStart
           ${{ matrix.ctest_cmd }} -D ExperimentalUpdate
           ${{ matrix.ctest_cmd }} -D ExperimentalConfigure
