@@ -216,7 +216,7 @@ jobs:
             ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('VCREDIST_EXE={0}', steps.msvc_redist.outputs.path) || '' }}
-            ${{ runner.os == 'MacOS' && 'SNAP_MACOSX_CODESIGN_CERT="Developer ID Application: Paul Yushkevich (5A636Q488D)"' || '' }}
+            ${{ runner.os == 'MacOS' && 'SNAP_MACOSX_CODESIGN_CERT=Developer\ ID\ Application:\ Paul\ Yushkevich\ (5A636Q488D)' || '' }}
 
       # Build ITK-SNAP using CDash
       - name: Build and Test ITK-SNAP
