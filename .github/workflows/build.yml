@@ -18,6 +18,11 @@ on:
         description: 'Skip testing'
         required: false
         default: false       
+      upload_release:
+        type: boolean
+        description: 'Upload a named release to SourceForge'
+        required: false
+        default: false       
   push:
   # release:
   # types:
@@ -347,6 +352,13 @@ jobs:
           echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
           cmake -DSCP_ARGUMENTS=-v -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
+
+      - name: Upload named release to sourceforge
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_release }}
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        run: |
+          cmake --build . --target itksnap_upload_release
 
       - name: Cleanup secrets
         if: ${{ always() }}
