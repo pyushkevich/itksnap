@@ -71,11 +71,5 @@ protected:
   // Enter and leave events
   virtual void enterEvent(QEnterEvent *) override;
   virtual void leaveEvent(QEvent *) override;
-
-  // TODO delete this stuff
-  vtkSmartPointer<vtkSphereSource> sphereSource;
-  vtkSmartPointer<vtkPolyDataMapper> mapper;
-  vtkSmartPointer<vtkActor> actor;
-  vtkSmartPointer<vtkRenderer> renderer;
 };
 #endif // QTVTKRENDERWINDOWBOX_H

@@ -525,6 +525,11 @@ public:
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
 
   /**
+   * Set the reference image without changing the transform
+   */
+  virtual void SetReferenceSpace(ImageBaseType *referenceSpace) ITK_OVERRIDE;
+
+  /**
    * Get the ITK transform between this layer and its reference space
    */
   virtual const ITKTransformType *GetITKTransform() const ITK_OVERRIDE;

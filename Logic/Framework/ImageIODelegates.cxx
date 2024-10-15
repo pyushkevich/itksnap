@@ -453,9 +453,9 @@ ReloadAnatomicWrapperDelegate
   RescaleNativeImageToIntegralType<Image4DType> rescaler;
   typename Image4DType::Pointer image4d = rescaler(m_IO);
 
-  auto anatomicWrapper = dynamic_cast<WrapperType*>(m_Wrapper.GetPointer());
+  auto *aw = dynamic_cast<WrapperType*>(m_Wrapper.GetPointer());
 
-  if (!anatomicWrapper)
+  if (!aw)
     {
     std::ostringstream oss;
     oss << "Cannot cast wrapper to: \""
@@ -463,7 +463,19 @@ ReloadAnatomicWrapperDelegate
     throw IRISException("Error reloading image from file: %s", oss.str().c_str());
     }
 
-  anatomicWrapper->SetImage4D(image4d);
+  // Maintain the reference space and transform when reloading an image
+  auto *old_tform = aw->GetITKTransform();
+  auto *old_refspace = aw->GetReferenceSpace();
+  if(old_refspace == aw->GetImageBase())
+    old_refspace = nullptr;
+  aw->SetImage4D(image4d,
+                 old_refspace,
+                 const_cast<typename WrapperType::ITKTransformType *>(old_tform));
+
+  // This line takes care of stale pointers to reference_space in image wrappers
+  if(m_Wrapper == m_Driver->GetCurrentImageData()->GetMain())
+    m_Driver->GetCurrentImageData()->UpdateReferenceImageInAllLayers();
+
   m_Driver->SetCursorPosition(m_Driver->GetCursorPosition(), true);
   m_Driver->InvokeEvent(LayerChangeEvent()); // important, to trigger renderer rebuild assemblies
 }

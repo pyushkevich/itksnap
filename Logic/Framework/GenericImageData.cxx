@@ -274,6 +274,21 @@ GenericImageData
   m_TimePointProperties->Reset();
 }
 
+void GenericImageData::UpdateReferenceImageInAllLayers()
+{
+  for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
+  {
+    auto *wrapper = lit.GetLayer();
+    if(wrapper && wrapper->IsInitialized())
+      {
+      if(wrapper->GetReferenceSpace() && wrapper->GetReferenceSpace() != wrapper->GetImageBase())
+        {
+        wrapper->SetReferenceSpace(this->GetMain()->GetImageBase());
+        }
+      }
+  }
+}
+
 
 
 void

@@ -1649,6 +1649,14 @@ ImageWrapper<TTraits>
 }
 
 template<class TTraits>
+void
+ImageWrapper<TTraits>
+::SetReferenceSpace(ImageBaseType *referenceSpace)
+{
+  this->SetITKTransform(referenceSpace, m_AffineTransform);
+}
+
+template<class TTraits>
 const typename ImageWrapper<TTraits>::ITKTransformType *
 ImageWrapper<TTraits>
 ::GetITKTransform() const

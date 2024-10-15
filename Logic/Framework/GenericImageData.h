@@ -225,6 +225,9 @@ public:
   /** Unload the main image (and everything else) */
   virtual void UnloadMainImage();
 
+  /** Update the reference space after the reload of the main image */
+  virtual void UpdateReferenceImageInAllLayers();
+
   /**
    * Get the first segmentation image.
    */

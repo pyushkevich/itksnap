@@ -478,6 +478,11 @@ public:
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) = 0;
 
   /**
+   * Set the reference image without changing the transform
+   */
+  virtual void SetReferenceSpace(ImageBaseType *referenceSpace) = 0;
+
+  /**
    * Get the ITK transform between this image and the reference space
    */
   virtual const ITKTransformType *GetITKTransform() const = 0;

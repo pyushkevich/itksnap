@@ -183,6 +183,11 @@ public:
   virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) ITK_OVERRIDE;
 
   virtual void SetSticky(bool value) ITK_OVERRIDE;
+
+  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
+
+  virtual void SetReferenceSpace(ImageBaseType *referenceSpace) ITK_OVERRIDE;
+
 protected:
 
   /**
@@ -199,8 +204,6 @@ protected:
   virtual void UpdateWrappedImages(Image4DType *image_4d,
                                    ImageBaseType *refSpace = NULL,
                                    ITKTransformType *tran = NULL) ITK_OVERRIDE;
-
-  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
 
   /** Destructor */
   virtual ~VectorImageWrapper();

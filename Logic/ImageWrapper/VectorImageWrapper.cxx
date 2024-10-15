@@ -360,10 +360,18 @@ VectorImageWrapper<TTraits>
 ::SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   Superclass::SetITKTransform(referenceSpace, transform);
-  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
-    {
-    it->second->SetITKTransform(referenceSpace, transform);
-    }
+  for(auto &it : m_ScalarReps)
+    it.second->SetITKTransform(referenceSpace, transform);
+}
+
+template<class TTraits>
+void
+VectorImageWrapper<TTraits>
+::SetReferenceSpace(ImageBaseType *referenceSpace)
+{
+  Superclass::SetReferenceSpace(referenceSpace);
+  for(auto &it : m_ScalarReps)
+    it.second->SetReferenceSpace(referenceSpace);
 }
 
 
