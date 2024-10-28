@@ -187,9 +187,18 @@ bool
 GuidedMeshIO
 ::IsFilePolyData(const char *filename)
 {
-  auto reader = vtkNew<vtkDataReader>();
-  reader->SetFileName(filename);
-  return reader->IsFilePolyData();
+  auto fmt = GetFormatByFilename(filename);
+  if (fmt == FORMAT_COUNT)
+    return false;
+
+  AbstractMeshIODelegate *ioDelegate = AbstractMeshIODelegate::GetDelegate(fmt);
+
+  if (!ioDelegate)
+    return false;
+
+  bool ret = ioDelegate->IsFilePolyData(filename);
+  delete ioDelegate;
+  return ret;
 }
 
 GuidedMeshIO::FileFormat
