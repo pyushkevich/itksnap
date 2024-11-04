@@ -51,6 +51,9 @@ GuidedMeshIO::FileFormat
 GuidedMeshIO::
 GetFormatByExtension(std::string extension)
 {
+  if (extension.empty()) // possible when reading dicom series
+    return FileFormat::FORMAT_COUNT;
+
   // All format string in the map include '.' prefix
   if (extension.at(0) != '.')
     extension.insert(0, 1, '.');
