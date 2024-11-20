@@ -1260,43 +1260,52 @@ void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainImageWindow::LoadDroppedFile(QString file)
 {
-  std::string filename = to_utf8(file);
-  // Check if the dropped file is a project
-  if(m_Model->GetDriver()->IsProjectFile(filename.c_str()))
+  try
     {
-    // For the time being, the feature of opening the workspace in a new
-    // window is not implemented. Instead, we just prompt the user for
-    // unsaved changes.
-    if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
-      return;
-
-    // Load the project
-    LoadProject(file);
-    }
-
-  else
-    {
-    if(m_Model->GetDriver()->IsMainImageLoaded())
+    std::string filename = to_utf8(file);
+    // Check if the dropped file is a project
+    if(m_Model->GetDriver()->IsProjectFile(filename.c_str()))
       {
-      // check if it's a label description file
-      if (m_Model->GetDriver()->GetColorLabelTable()->ValidateFile(filename.c_str()))
-        {
-        m_Model->GetDriver()->LoadLabelDescriptions(filename.c_str());
+      // For the time being, the feature of opening the workspace in a new
+      // window is not implemented. Instead, we just prompt the user for
+      // unsaved changes.
+      if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
         return;
-        }
 
-      // If an image is already loaded, we show the dialog
-      m_DropDialog->SetDroppedFilename(file);
-      m_DropDialog->setModal(true);
-
-      RaiseDialog(m_DropDialog);
+      // Load the project
+      LoadProject(file);
       }
+
     else
       {
-      // Otherwise, load the main image directly
-      m_DropDialog->InitialLoad(file);
+      if(m_Model->GetDriver()->IsMainImageLoaded())
+        {
+        // check if it's a label description file
+        if (m_Model->GetDriver()->GetColorLabelTable()->ValidateFile(filename.c_str()))
+          {
+          m_Model->GetDriver()->LoadLabelDescriptions(filename.c_str());
+          return;
+          }
+
+        // If an image is already loaded, we show the dialog
+        m_DropDialog->SetDroppedFilename(file);
+        m_DropDialog->setModal(true);
+
+        RaiseDialog(m_DropDialog);
+        }
+      else
+        {
+        // Otherwise, load the main image directly
+        m_DropDialog->InitialLoad(file);
+        }
       }
     }
+  catch (exception &exc) // for minor exceptions, no need to crash the entire program
+    {
+    ReportNonLethalException(this, exc, "File Dropping Error",
+                             QString("Failed to load file %1").arg(file));
+    }
+
 }
 
 #ifdef __APPLE__
