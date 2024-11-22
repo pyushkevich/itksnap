@@ -24,9 +24,26 @@ VTKMeshIODelegate::ReadPolyData(const char *filename)
   return polyData;
 }
 
+bool
+VTKMeshIODelegate::IsFilePolyData(const char *filename)
+{
+  // VTK file format support 5 different types of data
+  // So we need to use the reader to check whether the underlying data is polydata or not
+  vtkNew<vtkPolyDataReader> reader;
+  reader->SetFileName(filename);
+  return reader->IsFilePolyData();
+}
+
+
 VTPMeshIODelegate::VTPMeshIODelegate()
 {
 
+}
+
+bool
+VTPMeshIODelegate::IsFilePolyData(const char *)
+{
+  return true; // VTP file format is always polydata
 }
 
 vtkSmartPointer<vtkPolyData>
