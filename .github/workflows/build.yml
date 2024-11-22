@@ -36,7 +36,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04,macos-13,macos-14,windows-2022]
-        itk_ver: [ 'master/18d683ec792bfa7b7a950f781cf9836a5ef64a4d' ]
+        itk_ver: [ '27f1b1f6fde59f19a33771e6d953048553380169' ]
         vtk_ver: [ '9.3.1' ]
         qt_ver: [ '6.6.3' ]
         include:
@@ -160,7 +160,7 @@ jobs:
         uses: actions/checkout@v4
         with:
             repository: 'InsightSoftwareConsortium/ITK.git'
-            ref: v${{ matrix.itk_ver }}
+            ref: ${{ matrix.itk_ver }}
             submodules: true
             path: 'itk'
 
