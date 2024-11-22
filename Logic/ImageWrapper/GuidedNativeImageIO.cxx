@@ -1663,9 +1663,16 @@ public:
   RescaleVectorNativeImageToVectorFunctor()
     : m_Shift(0), m_Scale(1) {}
 
+  template <typename U = TPixel, typename std::enable_if<std::is_integral<U>::value, int>::type = 0>
   void operator()(TNative *src, TPixel *trg)
   {
-    *trg = (TPixel) ((*src + m_Shift) * m_Scale + 0.5);
+    *trg = static_cast<TPixel>(std::round((*src + m_Shift) * m_Scale));
+  }
+
+  template <typename U = TPixel, typename std::enable_if<std::is_floating_point<U>::value, int>::type = 0>
+  void operator()(TNative *src, TPixel *trg)
+  {
+    *trg = static_cast<TPixel>((*src + m_Shift) * m_Scale);
   }
 
 protected:
@@ -1701,7 +1708,8 @@ RescaleNativeImageToIntegralType<TOutputImage>
   typedef typename OutputImageType::InternalPixelType OutputComponentType;
 
   // Only bother with computing the scale and shift if the types are different
-  if(typeid(OutputComponentType) != typeid(TNative))
+  // and if the output type is not floating point
+  if(typeid(OutputComponentType) != typeid(TNative) && itk::NumericTraits<OutputComponentType>::is_integer)
     {
     // We must compute the range of the input data    
     OutputComponentType omax = itk::NumericTraits<OutputComponentType>::max();

@@ -1852,7 +1852,7 @@ ImageWrapper<TTraits>
       InterpolateWorker iw(m_ImageTimePoints[tp]);
 
       // Process the voxel, arr will be updated by the function
-      iw.ProcessVoxel(cidx.GetDataPointer(), false, &arr);
+      iw.ProcessVoxel(cidx.GetDataPointer(), true, &arr);
       }
     }
   }
