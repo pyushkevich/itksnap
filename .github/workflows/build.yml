@@ -36,7 +36,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04,macos-13,macos-14,windows-2022]
-        itk_ver: [ '27f1b1f6fde59f19a33771e6d953048553380169' ]
+        itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.3.1' ]
         qt_ver: [ '6.6.3' ]
         include:
@@ -181,6 +181,9 @@ jobs:
             Module_MorphologicalContourInterpolation:BOOL=TRUE
             CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
+            
 
       - name: Cache ITK
         if: steps.cache-itk.outputs.cache-hit != 'true'
