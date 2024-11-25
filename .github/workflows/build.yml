@@ -36,7 +36,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04,macos-13,macos-14,windows-2022]
-        itk_ver: [ '5.4.0' ]
+        itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.3.1' ]
         qt_ver: [ '6.6.3' ]
         include:
@@ -160,7 +160,7 @@ jobs:
         uses: actions/checkout@v4
         with:
             repository: 'InsightSoftwareConsortium/ITK.git'
-            ref: v${{ matrix.itk_ver }}
+            ref: ${{ matrix.itk_ver }}
             submodules: true
             path: 'itk'
 
@@ -181,6 +181,9 @@ jobs:
             Module_MorphologicalContourInterpolation:BOOL=TRUE
             CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
+            
 
       - name: Cache ITK
         if: steps.cache-itk.outputs.cache-hit != 'true'
@@ -217,6 +220,7 @@ jobs:
         run: git fetch
 
       # Configure ITK-SNAP
+      # Note: /FORCE:MULTIPLE is a temporary fix for ITK issues in 5.4.0
       - name: Configure ITK-SNAP
         uses: threeal/cmake-action@v2.0.0
         continue-on-error: false
@@ -234,6 +238,8 @@ jobs:
             SITE=github-runner-${{ matrix.os }}
             ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'MacOS' && 'CMAKE_OSX_DEPLOYMENT_TARGET=12.6' || '' }}
 
       - name: Setup tmate session
