@@ -786,28 +786,51 @@ void MainImageWindow::onActiveChanged()
 
 void MainImageWindow::UpdateMainLayout()
 {
-  // Update the image dimensions
-  this->UpdateCanvasDimensions();
+    // Update the layout depending on whether this is a 2D or 3D image
+    auto *main = m_Model->GetDriver()->GetIRISImageData()->GetMain();
 
-  // Choose what page to show depending on if an image has been loaded
-  if(m_Model->GetDriver()->IsMainImageLoaded())
+    // If the image is 2D, update the display layout to only show the 2D view
+    auto *dlm = m_Model->GetDisplayLayoutModel();
+    if(main->GetSize()[2] == 1)
     {
-    ui->stackMain->setCurrentWidget(ui->pageMain);
-    m_DockLeft->setWidget(m_ControlPanel);
+        for (int i = 0; i < 3; i++)
+        {
+            auto *slice_model = m_Model->GetSliceModel(i);
+            if (slice_model->GetSliceDirectionInImageSpace() == 2)
+            {
+                auto layout = dlm->GetViewPanelExpandButtonActionModel(i)->GetValue();
+                dlm->GetViewPanelLayoutModel()->SetValue(layout);
+                break;
+            }
+        }
     }
-  else
+    else
     {
-    // Go to the splash page
-    ui->stackMain->setCurrentWidget(ui->pageSplash);
-    m_DockLeft->setWidget(m_SplashPanel);
+        dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
+    }
 
-    // Choose the appropriate page depending on whether there are recent images
-    // available
-    if(m_Model->IsHistoryEmpty("MainImage"))
-      ui->tabSplash->setCurrentWidget(ui->tabGettingStarted);
+    // Update the image dimensions
+    this->UpdateCanvasDimensions();
 
-    else if(ui->tabSplash->currentWidget() == ui->tabGettingStarted)
-      ui->tabSplash->setCurrentWidget(ui->tabRecent);
+    // Choose what page to show depending on if an image has been loaded
+    if(m_Model->GetDriver()->IsMainImageLoaded())
+    {
+        ui->stackMain->setCurrentWidget(ui->pageMain);
+        m_DockLeft->setWidget(m_ControlPanel);
+    }
+    else
+    {
+        // Go to the splash page
+        ui->stackMain->setCurrentWidget(ui->pageSplash);
+        m_DockLeft->setWidget(m_SplashPanel);
+
+        // Choose the appropriate page depending on whether there are recent images
+        // available
+        if(m_Model->IsHistoryEmpty("MainImage"))
+            ui->tabSplash->setCurrentWidget(ui->tabGettingStarted);
+
+        else if(ui->tabSplash->currentWidget() == ui->tabGettingStarted)
+            ui->tabSplash->setCurrentWidget(ui->tabRecent);
     }
 }
 

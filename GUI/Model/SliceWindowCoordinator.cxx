@@ -124,11 +124,13 @@ void SliceWindowCoordinator::OnUpdate()
     // recomputation of optimal zoom in each window and resetting of the zoom.
     if(m_LinkedZoom && AreSliceModelsInitialized())
       {
-      // Is the current zoom same as the optimal zoom? If so, we will force a
-      // reset after the optimal zooms have been computed
-      double common_opt_zoom = ComputeSmallestOptimalZoomLevel();
+      // Check if the current zoom level matches one of the windows, in which case
+      // we will reapply the optimal zoom to all windows (make them all fit)
       double common_zoom = GetCommonZoomLevel();
-      bool rezoom = (common_zoom == common_opt_zoom);
+      bool rezoom = false;
+      for(unsigned int i = 0; i < 3; i++)
+          if(common_zoom == m_SliceModel[i]->GetOptimalZoom())
+              rezoom = true;
 
       // Recompute the optimal zoom in each of the views
       for(unsigned int i = 0; i < 3; i++)
