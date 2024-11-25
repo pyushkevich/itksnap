@@ -2,6 +2,7 @@
 #include "ui_ViewPanel3D.h"
 #include "GlobalUIModel.h"
 #include "Generic3DModel.h"
+#include "Generic3DRenderer.h"
 #include "itkCommand.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
@@ -49,6 +50,9 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   m_DropMenu->addAction(ui->actionReset_Viewpoint);
   m_DropMenu->addAction(ui->actionSave_Viewpoint);
   m_DropMenu->addAction(ui->actionRestore_Viewpoint);
+  m_DropMenu->addSeparator();
+  m_DropMenu->addAction(ui->actionImport_Viewpoint);
+  m_DropMenu->addAction(ui->actionExport_Viewpoint);
   m_DropMenu->addSeparator();
   m_DropMenu->addAction(ui->actionContinuous_Update);
   ui->actionContinuous_Update->setObjectName("actionContinuousUpdate");
@@ -299,6 +303,80 @@ void ViewPanel3D::on_actionSave_Viewpoint_triggered()
 void ViewPanel3D::on_actionRestore_Viewpoint_triggered()
 {
   m_Model->RestoreCameraState();
+}
+
+void ViewPanel3D::LoadCameraViewpoint(QString file)
+{
+  try
+    {
+      std::string utf = to_utf8(file);
+      CameraState cam = {};
+      std::ifstream input(utf);
+      input >> cam.position;
+      input >> cam.focal_point;
+      input >> cam.view_up;
+      input >> cam.view_angle;
+      input >> cam.parallel_projection;
+      input >> cam.parallel_scale;
+      input >> cam.clipping_range;
+      m_Model->GetRenderer()->SetCameraState(cam);
+    }
+  catch(std::exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Camera Viewpoint IO Error",
+                             QString("Failed to load camera viewpoint from file"));
+    }
+}
+
+void ViewPanel3D::SaveCameraViewpoint(QString file)
+{
+  try
+    {
+      std::string utf = to_utf8(file);
+      CameraState cam = m_Model->GetRenderer()->GetCameraState();
+      std::ofstream output(utf);
+      output << cam.position << std::endl;
+      output << cam.focal_point << std::endl;
+      output << cam.view_up << std::endl;
+      output << cam.view_angle << std::endl;
+      output << cam.parallel_projection << std::endl;
+      output << cam.parallel_scale << std::endl;
+      output << cam.clipping_range << std::endl;
+    }
+  catch(std::exception &exc)
+    {
+    ReportNonLethalException(this, exc, "Camera Viewpoint IO Error",
+                             QString("Failed to save camera viewpoint to file"));
+    }
+}
+
+void ViewPanel3D::on_actionImport_Viewpoint_triggered()
+{
+  // Ask for a filename
+  QString selection = ShowSimpleOpenDialogWithHistory(
+        this, m_Model->GetParentUI(), "CameraViewpoint",
+        "Load Camera Viewpoint - ITK-SNAP",
+        "Camera Viewpoint File",
+        "Camera Files (*.vtkcam)");
+
+  // Open the labels from the selection
+  if(selection.length())
+    LoadCameraViewpoint(selection);
+}
+
+void ViewPanel3D::on_actionExport_Viewpoint_triggered()
+{
+  // Ask for a filename
+  QString selection = ShowSimpleSaveDialogWithHistory(
+        this, m_Model->GetParentUI(), "CameraViewpoint",
+        "Save Camera Viewpoint - ITK-SNAP",
+        "Camera Viewpoint File",
+        "Camera Files (*.vtkcam)",
+        true);
+
+  // Open the labels from the selection
+  if(selection.length())
+    SaveCameraViewpoint(selection);
 }
 
 void ViewPanel3D::on_actionContinuous_Update_triggered()
