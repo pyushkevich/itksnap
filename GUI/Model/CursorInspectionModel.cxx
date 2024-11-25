@@ -44,13 +44,11 @@ CurrentVoxelInfoItemSetDomain
     char buffer[64];
 
     if(v.size() == 1)
-      {
       snprintf(buffer, 64, "%.4g", v[0]);
-      }
+    if(v.size() == 2)
+      snprintf(buffer, 64, "%.4g,%.4g", v[0], v[1]);
     else if(v.size() == 3)
-      {
       snprintf(buffer, 64, "%.4g,%.4g,%.4g", v[0], v[1], v[2]);
-      }
 
     vox.IntensityValue = buffer;
 

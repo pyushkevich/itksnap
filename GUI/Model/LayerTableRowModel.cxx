@@ -218,18 +218,13 @@ void ImageLayerTableRowModel::UpdateDisplayModeList()
     m_AvailableDisplayModes.push_back(
           MultiChannelDisplayMode(false, false, SCALAR_REP_AVERAGE, 0));
 
-    if(m_ImageLayer->GetNumberOfComponents() == 3)
+    int nc = m_ImageLayer->GetNumberOfComponents();
+    if(nc == 3 || nc == 2)
       {
       m_AvailableDisplayModes.push_back(
             MultiChannelDisplayMode(true, false, SCALAR_REP_COMPONENT));
       m_AvailableDisplayModes.push_back(
             MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT));
-      }
-    else if(m_ImageLayer->GetNumberOfComponents() == 2 &&
-            m_ImageLayer->GetSize()[2] == 1)
-      {
-      m_AvailableDisplayModes.push_back(
-            MultiChannelDisplayMode(false, true, SCALAR_REP_MAGNITUDE, 0));
       }
     }
 }

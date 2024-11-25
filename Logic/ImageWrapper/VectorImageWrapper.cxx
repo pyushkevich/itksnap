@@ -107,7 +107,7 @@ VectorImageWrapper<TTraits>
 {
   // Get the numerical value
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
-  if(mode.UseRGB || (mode.RenderAsGrid && this->GetNumberOfComponents() == 3))
+  if(mode.UseRGB || mode.RenderAsGrid)
     {
     // Sample the intensity under the cursor for the current time point
     this->SampleIntensityAtReferenceIndex(
@@ -135,7 +135,7 @@ VectorImageWrapper<TTraits>
 {
   // Get the numerical value
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
-  if(mode.UseRGB || (mode.RenderAsGrid && this->GetNumberOfComponents() == 3))
+  if(mode.UseRGB || mode.RenderAsGrid)
     {
     // Create a non-orthogonal slicer for this task - we don't want to interfere with the
     // main slicing pipeline

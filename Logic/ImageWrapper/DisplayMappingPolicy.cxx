@@ -576,7 +576,9 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
     m_DisplaySliceSelector[i] = DisplaySliceSelector::New();
 
   // If the number of components is 3, set up the RGB pipeline
-  if(m_Wrapper->GetNumberOfComponents() == 3)
+  int nc = m_Wrapper->GetNumberOfComponents();
+  bool is_2d = m_Wrapper->GetImage()->GetLargestPossibleRegion().GetSize()[2] == 1;
+  if(nc == 2 || nc == 3)
     {
     m_LUTGenerator = GenerateLUTFilter::New();
     m_LUTGenerator->SetInput(m_Wrapper->GetImage());
@@ -592,20 +594,21 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
       m_RGBMapper[i] = ApplyLUTFilter::New();
       m_RGBMapper[i]->SetLookupTable(m_LUTGenerator->GetLookupTable());
 
-      for(unsigned int j=0; j<3; j++)
-        {
-        ComponentWrapperType *comp = m_Wrapper->GetComponentWrapper(j);
-        m_RGBMapper[i]->SetInput(j, comp->GetSlice(i));
-        }
+      // For two components, use the hue/value mapper (experimental)
+      if(nc == 2)
+          m_RGBMapper[i]->SetMappingModeToTwoChannelHueValue();
+      for(unsigned int j=0; j<nc; j++)
+          m_RGBMapper[i]->SetInput(j, m_Wrapper->GetComponentWrapper(j)->GetSlice(i));
 
       // Add this filter as the input to the selector
       m_DisplaySliceSelector[i]->AddSelectableInput(
             MultiChannelDisplayMode(true, false, SCALAR_REP_COMPONENT),
             m_RGBMapper[i]->GetOutput());
 
-      m_DisplaySliceSelector[i]->AddSelectableInput(
-            MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT),
-            m_RGBMapper[i]->GetOutput());
+      if(nc == 3 || (nc == 2 && is_2d))
+          m_DisplaySliceSelector[i]->AddSelectableInput(
+                MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT),
+                m_RGBMapper[i]->GetOutput());
       }
     }
   else
@@ -667,19 +670,6 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
       }
     }
 
-  if(m_Wrapper->GetNumberOfComponents() == 2 &&
-     m_Wrapper->GetImage()->GetLargestPossibleRegion().GetSize()[2] == 1)
-    {
-    // For 2D images we add grid display to 2-component image layers
-    for(unsigned int i=0; i<3; ++i)
-      {
-      const auto rep = SCALAR_REP_MAGNITUDE;
-      m_DisplaySliceSelector[i]->AddSelectableInput(
-            MultiChannelDisplayMode(false, true, rep, 0),
-            m_Wrapper->GetScalarRepresentation(rep, 0)->GetDisplaySlice(i));
-      }
-    }
-
   // Set display mode to default
   SetDisplayMode(MultiChannelDisplayMode());
 }
@@ -698,24 +688,11 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 
   // Point to the selected scalar representation
   int nc = m_Wrapper->GetNumberOfComponents();
-  if(mode.UseRGB)
-    {
-    if(nc != 3)
-      throw IRISException("RGB mode requested for %d component image", nc);
-    m_ScalarRepresentation = NULL;
-    }
-  else if(mode.RenderAsGrid)
+  if(mode.UseRGB || mode.RenderAsGrid)
     {
     if(nc != 3 && nc != 2)
-      throw IRISException("Grid rendering mode requested for %d component image", nc);
-    if(nc == 3)
-      m_ScalarRepresentation = NULL;
-    if(nc == 2)
-      {
-      m_ScalarRepresentation =
-          m_Wrapper->GetScalarRepresentation(
-            SCALAR_REP_MAGNITUDE, 0);
-      }
+      throw IRISException("RGB mode requested for %d component image", nc);
+    m_ScalarRepresentation = NULL;
     }
   else
     {
@@ -781,8 +758,10 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   assert(!m_ScalarRepresentation);
 
   // Use the LUT
-  DisplayPixelType pix = m_RGBMapper[0]->MapPixel(val[0], val[1], val[2]);
-  return pix;
+  if(m_Wrapper->GetNumberOfComponents() == 3)
+    return m_RGBMapper[0]->MapPixel(val[0], val[1], val[2]);
+  else
+    return m_RGBMapper[0]->MapPixel(val[0], val[1], val[1]);
   }
 
 template<class TWrapperTraits>
@@ -808,11 +787,7 @@ bool
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::IsContrastMultiComponent() const
 {
-  if(m_DisplayMode.UseRGB ||
-     (m_DisplayMode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() == 3) || m_Animate)
-    return true;
-
-  return false;
+  return m_DisplayMode.UseRGB || m_DisplayMode.RenderAsGrid || m_Animate;
 }
 
 
@@ -826,8 +801,7 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   // The native range is global componentwise max/min when we are in RGB mode
   // or when we are in single component mode (because the curves are shared
   // between these display modes).
-  if(m_DisplayMode.UseRGB ||
-     (m_DisplayMode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() == 3) ||
+  if(m_DisplayMode.UseRGB || m_DisplayMode.RenderAsGrid ||
      m_DisplayMode.SelectedScalarRep == SCALAR_REP_COMPONENT)
     {
     cmin = m_Wrapper->GetImageMinNative();
@@ -850,7 +824,7 @@ typename MultiChannelDisplayMappingPolicy<TWrapperTraits>::TDigest *
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
 ::GetTDigest()
 {
-  if(m_DisplayMode.UseRGB || (m_DisplayMode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() == 3))
+  if(m_DisplayMode.UseRGB || m_DisplayMode.RenderAsGrid)
     return m_Wrapper->GetTDigest();
   else
     return m_ScalarRepresentation->GetTDigest();
@@ -927,16 +901,13 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 
     // Restore the display mode
     MultiChannelDisplayMode mode = MultiChannelDisplayMode::Load(folder);
+    int nc = m_Wrapper->GetNumberOfComponents();
 
     // Make sure the display mode is compatible
-    if(m_Wrapper && mode.UseRGB && m_Wrapper->GetNumberOfComponents() != 3)
+    if(m_Wrapper && (mode.UseRGB || mode.RenderAsGrid) && nc != 3 && nc != 2)
       mode = MultiChannelDisplayMode();
 
-    if(m_Wrapper && mode.RenderAsGrid && m_Wrapper->GetNumberOfComponents() != 3
-       && m_Wrapper->GetNumberOfComponents() != 2)
-      mode = MultiChannelDisplayMode();
-
-    if(m_Wrapper && mode.SelectedComponent >= m_Wrapper->GetNumberOfComponents())
+    if(m_Wrapper && mode.SelectedComponent >= nc)
       mode = MultiChannelDisplayMode();
 
     this->SetDisplayMode(mode);
