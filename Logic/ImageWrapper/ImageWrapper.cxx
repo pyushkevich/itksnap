@@ -1754,6 +1754,22 @@ ImageWrapper<TTraits>
   Specialization::SamplePatchAsDouble(m_Image, idx, offset_table, out_patch);
 }
 
+template<class TTraits>
+void
+ImageWrapper<TTraits>
+::SetSlicingInterpolationMode(InterpolationMode mode)
+{
+    for(unsigned int i = 0; i < 3; i++)
+        m_Slicers[i]->SetUseNearestNeighbor(mode == Superclass::NEAREST);
+}
+
+template<class TTraits>
+typename ImageWrapper<TTraits>::InterpolationMode
+ImageWrapper<TTraits>
+::GetSlicingInterpolationMode() const
+{
+    return m_Slicers[0]->GetUseNearestNeighbor() ? Superclass::NEAREST : Superclass::LINEAR;
+}
 
 template<class TTraits>
 void
@@ -1843,6 +1859,7 @@ ImageWrapper<TTraits>
     // The index at which to sample (will be reused in the loop below)
     itk::ContinuousIndex<double, 3> cidx;
     this->TransformReferenceCIndexToWrappedImageCIndex(index, cidx);
+    bool is_nn = this->GetSlicingInterpolationMode() == ImageWrapperBase::NEAREST;
 
     // Sample all time points
     for(unsigned int tp = tp_begin; tp < tp_end; tp++)
@@ -1852,7 +1869,7 @@ ImageWrapper<TTraits>
       InterpolateWorker iw(m_ImageTimePoints[tp]);
 
       // Process the voxel, arr will be updated by the function
-      iw.ProcessVoxel(cidx.GetDataPointer(), true, &arr);
+      iw.ProcessVoxel(cidx.GetDataPointer(), is_nn, &arr);
       }
     }
   }

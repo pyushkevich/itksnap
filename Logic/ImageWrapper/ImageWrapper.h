@@ -171,6 +171,9 @@ public:
   typedef typename Superclass::IndexType                             IndexType;
   typedef typename Superclass::SizeType                               SizeType;
 
+  // Interpolation mode
+  typedef typename Superclass::InterpolationMode             InterpolationMode;
+
   /**
    * Get the parent wrapper for this wrapper. For 'normal' wrappers, this method
    * returns NULL, indicating that the wrapper is a top-level wrapper. For derived
@@ -357,6 +360,16 @@ public:
    */
   virtual void SamplePatchAsDouble(const IndexType &idx, const PatchOffsetTable &offset_table,
                                    double *out_patch) const ITK_OVERRIDE;
+
+  /**
+   * Get current interpolation mode
+   */
+  virtual typename Superclass::InterpolationMode GetSlicingInterpolationMode() const override;
+
+  /**
+   * Set interpolation mode for non-orthogonal slicing
+   */
+  virtual void SetSlicingInterpolationMode(InterpolationMode mode) override;
 
   /**
    * Sample image intensity at a 4D position in the reference space. If the reference

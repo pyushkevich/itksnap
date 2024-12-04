@@ -89,6 +89,9 @@ public:
   typedef typename Superclass::IndexType                             IndexType;
   typedef typename Superclass::SizeType                               SizeType;
 
+  // Interpolation mode
+  typedef typename Superclass::InterpolationMode             InterpolationMode;
+
   virtual bool IsScalar() const ITK_OVERRIDE { return false; }
 
   /**
@@ -187,6 +190,8 @@ public:
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
 
   virtual void SetReferenceSpace(ImageBaseType *referenceSpace) ITK_OVERRIDE;
+
+  virtual void SetSlicingInterpolationMode(InterpolationMode mode) override;
 
 protected:
 

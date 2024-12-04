@@ -255,8 +255,7 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
   // Changes to cell layout also must be rebroadcast
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
-  Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(),
-              ModelUpdateEvent());
+  Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(), ModelUpdateEvent());
 
   // Listen to changes in appearance
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
@@ -765,29 +764,34 @@ void GenericSliceRenderer::UpdateRendererCameras()
 
 void GenericSliceRenderer::UpdateLayerApperances()
 {
-  // Iterate over the layers
-  for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
+    // Iterate over the layers
+    for(LayerIterator it = m_Model->GetImageData()->GetLayers(); !it.IsAtEnd(); ++it)
     {
-    // Does this layer use transparency?
-    double alpha = 1.0;
-    if(it.GetRole() == LABEL_ROLE)
-      alpha = m_Model->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
-    else if(it.GetLayer()->IsSticky())
-      alpha = it.GetLayer()->GetAlpha();
+        // Does this layer use transparency?
+        double alpha = 1.0;
+        if(it.GetRole() == LABEL_ROLE)
+            alpha = m_Model->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
+        else if(it.GetLayer()->IsSticky())
+            alpha = it.GetLayer()->GetAlpha();
 
-    auto *lta = GetLayerTextureAssembly(it.GetLayer());
-    if(lta)
-			{
-			// Configure the texture interpolation
-			const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
-			if (gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR)
-				lta->m_Texture->InterpolateOn();
-			else
-				lta->m_Texture->InterpolateOff();
+        // Pass the interpolation mode to the layer (for non-orthogonal slicing)
+        const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
+        bool is_linear = gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR;
+        it.GetLayer()->SetSlicingInterpolationMode(is_linear ? ImageWrapperBase::LINEAR : ImageWrapperBase::NEAREST);
 
-			// Set the alpha for the actor
-			lta->m_ImageRect->GetActor()->GetProperty()->SetOpacity(alpha);
-			}
+        // For orthogonal slicing, interpolation is passed to the texture assembly
+        auto *lta = GetLayerTextureAssembly(it.GetLayer());
+        if(lta)
+        {
+            // Configure the texture interpolation
+            if(is_linear)
+                lta->m_Texture->InterpolateOn();
+            else
+                lta->m_Texture->InterpolateOff();
+
+            // Set the alpha for the actor
+            lta->m_ImageRect->GetActor()->GetProperty()->SetOpacity(alpha);
+        }
     }
 }
 

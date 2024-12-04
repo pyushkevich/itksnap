@@ -68,6 +68,22 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
 }
 
 template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+bool
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
+::GetUseNearestNeighbor() const
+{
+    return m_ObliqueSlicer->GetUseNearestNeighbor();
+}
+
+template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+void
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
+::SetUseNearestNeighbor(bool flag)
+{
+    return m_ObliqueSlicer->SetUseNearestNeighbor(flag);
+}
+
+template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
 void
 AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
 ::MapInputsToSlicers()

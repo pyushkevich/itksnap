@@ -4,6 +4,18 @@ include("Library");
 // Open the test workspace
 openWorkspace("diffspace.itksnap");
 
+//=== Set Preferences to use linear interpolation
+engine.trigger("actionPreferences");
+var prefDialog = engine.findChild(mainwin, "PreferencesDialog");
+engine.invoke(prefDialog, "set_page_to_slice_views_display")
+var inInterp = engine.findChild(prefDialog, "inInterpolationMode");
+
+// Set the value of the interpolation mode
+inInterp.currentText = "Linear";
+
+// Accept the dialog
+engine.invoke(prefDialog, "accept");
+
 //=== Probe the image intensities at one location
 setCursor(21,33,14);
 

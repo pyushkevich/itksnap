@@ -1005,7 +1005,8 @@ int main(int argc, char *argv[])
     mainwin->ShowFirstTime();
 
     // Skip these checks when testing, or it will interrupt the automation if not handled correctly
-    if (!argdata.xTestId.size())
+    bool ui_testing = argdata.xTestId.size() > 0;
+    if (!ui_testing)
       {
       // Check for updates?
       mainwin->UpdateAutoCheck();
@@ -1019,7 +1020,7 @@ int main(int argc, char *argv[])
     app.setMainWindow(mainwin);
 
     // Do the test
-    if(argdata.xTestId.size())
+    if(ui_testing)
       {
       testingEngine = new SNAPTestQt(mainwin, argdata.fnTestDir, argdata.xTestAccel);
       testingEngine->LaunchTest(argdata.xTestId);
@@ -1052,8 +1053,9 @@ int main(int argc, char *argv[])
     // Run application
     int rc = app.exec();
 
-    // If everything cool, save the preferences
-    if(!rc)
+    // If everything cool, save the preferences, but not when testing because preferences
+    // set in test mode should not be kept
+    if(!rc && !ui_testing)
       gui->SaveUserPreferences();
 
     // Unload the main image before all the destructors start firing

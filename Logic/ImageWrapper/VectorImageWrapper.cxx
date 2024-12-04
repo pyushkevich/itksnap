@@ -499,6 +499,16 @@ VectorImageWrapper<TTraits>
     it->second->SetDirectionMatrix(direction);
 }
 
+template<class TTraits>
+void
+VectorImageWrapper<TTraits>
+::SetSlicingInterpolationMode(InterpolationMode mode)
+{
+    Superclass::SetSlicingInterpolationMode(mode);
+    for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+        it->second->SetSlicingInterpolationMode(mode);
+}
+
 template <class TTraits>
 void
 VectorImageWrapper<TTraits>

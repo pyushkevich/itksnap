@@ -226,6 +226,52 @@ void PreferencesDialog::GoToPage(enum PreferencesDialogPage page)
   ui->listWidget->setCurrentRow(page);
 }
 
+void PreferencesDialog::set_page_to_general_default_behavior()
+{
+    this->GoToPage(General);
+    ui->tabWidgetGeneral->setCurrentWidget(ui->tabGeneralDefault);
+}
+
+void PreferencesDialog::set_page_to_general_default_permissions()
+{
+    this->GoToPage(General);
+    ui->tabWidgetGeneral->setCurrentWidget(ui->tabGeneralPermissions);
+}
+
+void PreferencesDialog::set_page_to_slice_views_display()
+{
+    this->GoToPage(SliceView);
+    ui->tabWidgetSliceViews->setCurrentWidget(ui->tabSliceViewsDisplay);
+}
+
+void PreferencesDialog::set_page_to_slice_views_layout()
+{
+    this->GoToPage(SliceView);
+    ui->tabWidgetSliceViews->setCurrentWidget(ui->tabSliceViewsLayout);
+}
+
+void PreferencesDialog::set_page_to_appearance()
+{
+    this->GoToPage(Appearance);
+}
+
+void PreferencesDialog::set_page_to_3d_smoothing()
+{
+    this->GoToPage(Rendering3D);
+    ui->tabWidgetRendering->setCurrentWidget(ui->tabRenderingSmoothing);
+}
+
+void PreferencesDialog::set_page_to_3d_decimation()
+{
+    this->GoToPage(Rendering3D);
+    ui->tabWidgetRendering->setCurrentWidget(ui->tabRenderingDecimation);
+}
+
+void PreferencesDialog::set_page_to_tools()
+{
+    this->GoToPage(Tools);
+}
+
 void PreferencesDialog::on_listWidget_itemSelectionChanged()
 {
   // Select the right page in the right pane
@@ -243,7 +289,6 @@ void PreferencesDialog::on_buttonBox_clicked(QAbstractButton *button)
     }
   else if (button == ui->buttonBox->button(QDialogButtonBox::Ok))
     {
-    m_Model->ApplyPreferences();
     this->accept();
     }
 }
@@ -357,5 +402,11 @@ QStandardItem *PreferencesDialog::append_category_item(
   item->setSelectable(false);
   parent->appendRow(item);
   return item;
+}
+
+
+void PreferencesDialog::on_PreferencesDialog_accepted()
+{
+    m_Model->ApplyPreferences();
 }
 
