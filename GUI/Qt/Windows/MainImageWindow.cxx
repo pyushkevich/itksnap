@@ -786,29 +786,6 @@ void MainImageWindow::onActiveChanged()
 
 void MainImageWindow::UpdateMainLayout()
 {
-    // Update the layout depending on whether this is a 2D or 3D image
-    auto *main = m_Model->GetDriver()->GetIRISImageData()->GetMain();
-
-    // If the image is 2D, update the display layout to only show the 2D view
-    auto *dlm = m_Model->GetDisplayLayoutModel();
-    if(main->GetSize()[2] == 1)
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            auto *slice_model = m_Model->GetSliceModel(i);
-            if (slice_model->GetSliceDirectionInImageSpace() == 2)
-            {
-                auto layout = dlm->GetViewPanelExpandButtonActionModel(i)->GetValue();
-                dlm->GetViewPanelLayoutModel()->SetValue(layout);
-                break;
-            }
-        }
-    }
-    else
-    {
-        dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
-    }
-
     // Update the image dimensions
     this->UpdateCanvasDimensions();
 
@@ -817,6 +794,29 @@ void MainImageWindow::UpdateMainLayout()
     {
         ui->stackMain->setCurrentWidget(ui->pageMain);
         m_DockLeft->setWidget(m_ControlPanel);
+
+        // Update the layout depending on whether this is a 2D or 3D image
+        auto *main = m_Model->GetDriver()->GetIRISImageData()->GetMain();
+
+        // If the image is 2D, update the display layout to only show the 2D view
+        auto *dlm = m_Model->GetDisplayLayoutModel();
+        if(main->GetSize()[2] == 1)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                auto *slice_model = m_Model->GetSliceModel(i);
+                if (slice_model->GetSliceDirectionInImageSpace() == 2)
+                {
+                    auto layout = dlm->GetViewPanelExpandButtonActionModel(i)->GetValue();
+                    dlm->GetViewPanelLayoutModel()->SetValue(layout);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
+        }
     }
     else
     {
