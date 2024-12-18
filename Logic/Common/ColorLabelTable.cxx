@@ -225,7 +225,7 @@ ColorLabelTable
   fout << "#    -B-:   Blue color component (0..255)"       << endl;
   fout << "#    -A-:   Label transparency (0.00 .. 1.00)"   << endl;
   fout << "#    VIS:   Label visibility (0 or 1)"           << endl;
-  fout << "#    IDX:   Label mesh visibility (0 or 1)"      << endl;
+  fout << "#    MSH:   Label mesh visibility (0 or 1)"      << endl;
   fout << "#  LABEL:   Label description "                  << endl;
   fout << "################################################"<< endl;
 
