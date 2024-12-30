@@ -1145,15 +1145,15 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 
 void MainImageWindow::closeEvent(QCloseEvent *event)
 {
+  // Close all the windows that are open
+  QApplication::closeAllWindows();
+
   // Prompt for unsaved changes
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     {
     event->ignore();
     return;
     }
-
-  // Close all the windows that are open
-  QApplication::closeAllWindows();
 
   // Unload all images (this causes the associations to be saved)
   m_Model->GetDriver()->Quit();
