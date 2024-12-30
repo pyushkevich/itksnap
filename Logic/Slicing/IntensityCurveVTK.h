@@ -60,20 +60,21 @@ public:
   itkNewMacro(Self)
 
   // Defined in the parent class
-  void Initialize(unsigned int nControlPoints = 3) ITK_OVERRIDE;
-  void GetControlPoint(unsigned int iControlPoint, double &t, double &x) const ITK_OVERRIDE;
-  void UpdateControlPoint(unsigned int iControlPoint, double t, double x) ITK_OVERRIDE;
-  bool IsMonotonic() const ITK_OVERRIDE;
-  void ScaleControlPointsToWindow(double tMin, double tMax) ITK_OVERRIDE;
+  void Initialize(unsigned int nControlPoints = 3) override;
+  void GetControlPoint(unsigned int iControlPoint, double &t, double &x) const override;
+  void UpdateControlPoint(unsigned int iControlPoint, double t, double x) override;
+  bool IsMonotonic() const override;
+  void ScaleControlPointsToWindow(double tMin, double tMax) override;
+  void RecomputeInteriorControlPoints(unsigned int nControlPoints) override;
 
   std::pair<double, double> GetRange() const override;
 
-  unsigned int GetControlPointCount() const ITK_OVERRIDE {
+  unsigned int GetControlPointCount() const override {
     return m_ControlPoints.size();
   }
 
   // Evaluate the curve
-  double Evaluate(const double &t) const ITK_OVERRIDE {
+  double Evaluate(const double &t) const override {
     if(t < m_ControlPoints.front().t)
       return -.000001;
     else if(t > m_ControlPoints.back().t)
@@ -83,18 +84,18 @@ public:
   }
 
   // Load the curve from a registry
-  void LoadFromRegistry(Registry &registry) ITK_OVERRIDE;
+  void LoadFromRegistry(Registry &registry) override;
 
   // Save the curve to a registry
-  void SaveToRegistry(Registry &registry) const ITK_OVERRIDE;
+  void SaveToRegistry(Registry &registry) const override;
 
   // Check if the curve is in default state (linear from 0 to 1)
-  bool IsInDefaultState() ITK_OVERRIDE;
+  bool IsInDefaultState() override;
 
 protected:
   IntensityCurveVTK();
   virtual ~IntensityCurveVTK();
-  void PrintSelf(std::ostream &s, itk::Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream &s, itk::Indent indent) const override;
 
 private:
   IntensityCurveVTK(const Self& ); //purposely not implemented

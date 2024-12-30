@@ -178,16 +178,49 @@ IntensityCurveVTK
   this->Modified();
   }
 
-std::pair<double, double> IntensityCurveVTK::GetRange() const
-{
-  double t1 = m_ControlPoints.front().t;
-  double tn = m_ControlPoints.back().t;
-  return std::pair(t1, tn);
+  std::pair<double, double>
+  IntensityCurveVTK::GetRange() const
+  {
+    double t1 = m_ControlPoints.front().t;
+    double tn = m_ControlPoints.back().t;
+    return std::pair(t1, tn);
 }
 
 void
-IntensityCurveVTK
-::PrintSelf(std::ostream &os, itk::Indent indent) const
+IntensityCurveVTK::RecomputeInteriorControlPoints(unsigned int nControlPoints)
+{
+  itkAssertOrThrowMacro(nControlPoints >= 2, "Too few control points")
+
+  // Compute the positions of the intermediate control points. Their t
+  // positions will be equally spaced while their x positions should be
+  // fitted to the original curve
+  std::vector<struct ControlPoint> cp_new;
+  double                           t1 = m_ControlPoints.front().t;
+  double                           tn = m_ControlPoints.back().t;
+
+  // Compute the new control points
+  cp_new.push_back(m_ControlPoints.front());
+  for(unsigned int i = 0; i < nControlPoints-2; i++)
+  {
+    ControlPoint cp;
+    cp.t = t1 + (i + 1) * (tn - t1) / (nControlPoints - 1);
+    cp.x = this->Evaluate(cp.t);
+    cp_new.push_back(cp);
+  }
+  cp_new.push_back(m_ControlPoints.back());
+  m_ControlPoints = cp_new;
+
+  // Replace the spline internals
+  m_Spline->RemoveAllPoints();
+  for(auto it : m_ControlPoints)
+    m_Spline->AddPoint(it.t,it.x);
+  m_Spline->Compute();
+
+  this->Modified();
+}
+
+void
+IntensityCurveVTK ::PrintSelf(std::ostream &os, itk::Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
 

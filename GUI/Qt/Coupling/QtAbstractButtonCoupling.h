@@ -30,6 +30,8 @@
 #include <QtWidgetCoupling.h>
 #include "SNAPQtCommon.h"
 #include <QAbstractButton>
+#include <QPushButton>
+#include <QMenu>
 #include <QColorDialog>
 #include <QColorButtonWidget.h>
 
@@ -159,5 +161,98 @@ public:
     w->setChecked(false);
   }
 };
+
+/**
+  These are the row traits for adding and updating rows in menus attached to buttons.
+  This class is further parameterized by the class TItemDesriptionTraits, which is
+  used to obtain the text and icon information from the value/description pairs
+  provided by the model.
+  */
+template <class TAtomic>
+class SimplePushButtonWithMenuRowTraits
+{
+public:
+  static void removeAll(QPushButton *w)
+  {
+    w->menu()->clear();
+  }
+
+  static int getNumberOfRows(QPushButton *w)
+  {
+    return w->menu()->actions().count();
+  }
+
+  static TAtomic getValueInRow(QPushButton *w, int i)
+  {
+    return w->menu()->actions()[i]->data().value<TAtomic>();
+  }
+
+  static void appendRow(QPushButton *w, TAtomic label, const std::string &desc)
+  {
+    // The description
+    QString text = from_utf8(desc);
+
+    // Icon based on the color
+    QAction *action = new QAction(w->menu());
+    action->setData(QVariant::fromValue(label));
+    action->setText(text);
+    w->menu()->addAction(action);
+  }
+
+  static void updateRowDescription(QPushButton *w, int index, const std::string &desc)
+  {
+    // The current value
+    QAction *action = w->menu()->actions()[index];
+    TAtomic label = action->data().value<TAtomic>();
+
+    // Get the properies and compare them to the color label
+    QString currentText = action->text();
+    QString newText = from_utf8(desc);
+    if(currentText != newText)
+      action->setText(newText);
+  }
+};
+
+
+// Define the defaults
+template <class TDomain>
+class SimplePushButtonWithMenuDomainTraits
+  : public ItemSetWidgetDomainTraits<
+      TDomain, QPushButton,
+      SimplePushButtonWithMenuRowTraits<typename TDomain::ValueType> >
+{
+};
+
+
+/**
+ * A coupling between a button with an attached menu and a set of items for
+ * this menu.
+ */
+template <typename TAtomic>
+class PushButtonWithMenuValueTraits
+  : public WidgetValueTraitsBase<TAtomic, QPushButton *>
+{
+public:
+  const char *GetSignal()
+  {
+    // return SIGNAL(toggled(bool));
+  }
+
+  TAtomic GetValue(QPushButton *w)
+  {
+    // return w->isChecked();
+  }
+
+  void SetValue(QPushButton *w, const TAtomic &value)
+  {
+    // w->setChecked(value);
+  }
+
+  void SetValueToNull(QPushButton *w)
+  {
+    // w->setChecked(false);
+  }
+};
+
 
 #endif // QTABSTRACTBUTTONCOUPLING_H
