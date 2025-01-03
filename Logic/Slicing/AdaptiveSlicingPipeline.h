@@ -143,13 +143,21 @@ public:
   itkSetMacro(UseOrthogonalSlicing, bool)
   itkGetMacro(UseOrthogonalSlicing, bool)
 
-  /** Set the slice index for the orthogonal slicer */
+  /** Get the slice index for the orthogonal slicer */
   itkGetMacro(SliceIndex, IndexType)
-  itkSetMacro(SliceIndex, IndexType)
+
+  /** Set the slice index for orthogonal slicer */
+  void SetSliceIndex(const IndexType &index);
 
   /** Interpolation type */
   void SetUseNearestNeighbor(bool flag);
   bool GetUseNearestNeighbor() const;
+
+  /** Access the internal orthogonal slicer */
+  itkGetMacro(OrthogonalSlicer, OrthogonalSlicerType *)
+
+  /** Access the internal oblique slicer */
+  itkGetMacro(ObliqueSlicer, NonOrthogonalSlicerType *)
 
 protected:
 

@@ -126,10 +126,25 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
     }
 }
 
-template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
 void
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
-::GenerateOutputInformation()
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::SetSliceIndex(
+  const IndexType &index)
+{
+  // Handle modified carefully, since slice index only affects us if slicing is
+  // orthogonal and if the direction of slicing is changed
+  if(m_UseOrthogonalSlicing)
+  {
+    auto axis = m_OrthogonalSlicer->GetSliceDirectionImageAxis();
+    if(index[axis] != m_SliceIndex[axis])
+      this->Modified();
+  }
+  m_SliceIndex = index;
+}
+
+
+  template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+  void AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::GenerateOutputInformation()
 {
   // Make sure the inputs are assigned to the corresponding slicers
   this->MapInputsToSlicers();
