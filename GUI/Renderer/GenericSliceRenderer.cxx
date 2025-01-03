@@ -776,8 +776,11 @@ void GenericSliceRenderer::UpdateLayerApperances()
 
         // Pass the interpolation mode to the layer (for non-orthogonal slicing)
         const GlobalDisplaySettings *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
-        bool is_linear = gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR;
-        it.GetLayer()->SetSlicingInterpolationMode(is_linear ? ImageWrapperBase::LINEAR : ImageWrapperBase::NEAREST);
+        bool is_linear =
+          (it.GetRole() != LABEL_ROLE) &&
+          (gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR);
+        it.GetLayer()->SetSlicingInterpolationMode(
+          is_linear ? ImageWrapperBase::LINEAR : ImageWrapperBase::NEAREST);
 
         // For orthogonal slicing, interpolation is passed to the texture assembly
         auto *lta = GetLayerTextureAssembly(it.GetLayer());
