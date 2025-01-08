@@ -162,13 +162,13 @@ void ThumbnailInteractionMode::onModelUpdate(const EventBucket &bucket)
 void ThumbnailInteractionMode::enterEvent(QEvent *)
 {
   // TODO: this is hideous!
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
   panel->SetMouseMotionTracking(true);
 }
 
 void ThumbnailInteractionMode::leaveEvent(QEvent *)
 {
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
   panel->SetMouseMotionTracking(false);
 
   m_Model->GetParent()->SetHoveredImageLayerId(-1ul);

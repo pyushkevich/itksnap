@@ -35,7 +35,7 @@ MeshDisplayMappingPolicy::GetColorMap() const
 }
 
 ImageWrapperBase::DisplaySlicePointer
-MeshDisplayMappingPolicy::GetDisplaySlice(unsigned int)
+MeshDisplayMappingPolicy::GetDisplaySlice(DisplaySliceIndex index)
 {
   return nullptr;
 }

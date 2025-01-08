@@ -134,7 +134,7 @@ BreakInheritanceList: BeforeComma
 BreakStringLiterals: true
 BreakTemplateDeclarations: Yes
 ## The following line allows larger lines in non-documentation code
-ColumnLimit:     79
+ColumnLimit:     99
 CommentPragmas:  '^ IWYU pragma:'
 CompactNamespaces: false
 ConstructorInitializerIndentWidth: 2
@@ -304,6 +304,8 @@ StatementMacros:
   - INTEL_SUPPRESS_warning_1292
   - itkTemplateFloatingToIntegerMacro
   - itkLegacyMacro
+  - itkGetMacro
+  - itkSetMacro
   - itkAssertOrThrowMacro
   - irisGetSetMacro
   - irisGetMacro
@@ -312,6 +314,7 @@ StatementMacros:
   - irisITKObjectMacro
   - irisSimplePropertyAccessMacro
   - irisGenericPropertyAccessMacro
+  - irisVirtualGetMacro
 TableGenBreakInsideDAGArg: DontBreak
 TabWidth:        2
 UseTab:          Never

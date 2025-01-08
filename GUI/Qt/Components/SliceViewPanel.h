@@ -22,11 +22,12 @@ class PaintbrushInteractionMode;
 class AnnotationInteractionMode;
 class RegistrationInteractionMode;
 
+class GenericSliceNewRenderer;
+class QtViewportReporter;
+
 namespace Ui {
     class SliceViewPanel;
 }
-
-
 
 class SliceViewPanel : public SNAPComponent
 {
@@ -84,6 +85,8 @@ private slots:
 
   void on_actionAnnotationPrevious_triggered();
 
+  void on_btnChangeViewer_clicked(bool checked);
+
 private:
   Ui::SliceViewPanel *ui;
 
@@ -114,11 +117,20 @@ private:
   AnnotationInteractionMode *m_AnnotationMode;
   RegistrationInteractionMode *m_RegistrationMode;
 
+  // Main renderer - owns this
+  SmartPtr<GenericSliceNewRenderer> m_NewRenderer;
+
+  // Canvas on which we are rendering
+  QWidget *m_NewRendererCanvas;
+
   // Some renderers don't require a separate widget (no user interaction)
   // and so they are owned by this panel.
   SmartPtr<SnakeModeRenderer> m_SnakeModeRenderer;
   SmartPtr<SliceWindowDecorationRenderer> m_DecorationRenderer;
   SmartPtr<DeformationGridRenderer> m_DeformationGridRenderer;
+
+  // A size reporter for the area being painted by the renderers
+  SmartPtr<QtViewportReporter> m_ViewportReporter;
 
   // Index of the panel
   unsigned int m_Index;

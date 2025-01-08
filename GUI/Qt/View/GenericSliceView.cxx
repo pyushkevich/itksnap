@@ -35,27 +35,22 @@
 #include <LayerSelectionModel.h>
 #include "QtReporterDelegates.h"
 
-GenericSliceView::GenericSliceView(QWidget *parent) :
-  QtVTKRenderWindowBox(parent)
+GenericSliceView::GenericSliceView(QWidget *parent)
+  : QtVTKRenderWindowBox(parent)
 {
   // For this widget, set the format to compatibility mode
   m_Model = NULL;
   m_Renderer = GenericSliceRenderer::New();
 
-  m_ViewportReporter = QtViewportReporter::New();
-  m_ViewportReporter->SetClientWidget(this);
-
   // We need to grab keyboard focus
   this->SetGrabFocusOnEntry(true);
 }
 
-void GenericSliceView::SetModel(GenericSliceModel *model)
+void
+GenericSliceView::SetModel(GenericSliceModel *model)
 {
   // Set the model
   m_Model = model;
-
-  // Pass the viewport reporter to the model
-  m_Model->SetSizeReporter(m_ViewportReporter);
 
   // Pass the model to the renderer
   m_Renderer->SetModel(m_Model);
@@ -67,4 +62,4 @@ void GenericSliceView::SetModel(GenericSliceModel *model)
   connectITK(m_Model, ModelUpdateEvent());
   connectITK(m_Model, SliceModelGeometryChangeEvent());
   connectITK(m_Renderer, AppearanceUpdateEvent());
-  }
+}

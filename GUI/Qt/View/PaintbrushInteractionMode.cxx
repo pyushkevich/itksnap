@@ -71,13 +71,13 @@ void PaintbrushInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 void PaintbrushInteractionMode::enterEvent(QEvent *)
 {
   // TODO: this is hideous!
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
   panel->SetMouseMotionTracking(true);
 }
 
 void PaintbrushInteractionMode::leaveEvent(QEvent *)
 {
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
   panel->SetMouseMotionTracking(false);
 
   // This fixes a crash when you press quit in paintbrush mode

@@ -45,7 +45,7 @@ protected:
   SynchronizationModel();
   virtual ~SynchronizationModel();
 
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncEnabledModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncCursorModel;

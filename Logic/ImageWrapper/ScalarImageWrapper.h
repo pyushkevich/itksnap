@@ -108,17 +108,17 @@ public:
   typedef typename Superclass::ITKTransformType               ITKTransformType;
 
 
-  virtual bool IsScalar() const ITK_OVERRIDE { return true; }
+  virtual bool IsScalar() const override { return true; }
 
   /**
    * This function just returns the pointer to itself, as the scalar representation
    * of a scalar image wrapper is itself.
    * @see ImageWrapperBase::GetScalarRepresentation
    */
-  virtual ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE { return this; }
+  virtual ScalarImageWrapperBase *GetDefaultScalarRepresentation() override { return this; }
 
   /** This image type has only one component */
-  virtual size_t GetNumberOfComponents() const ITK_OVERRIDE { return 1; }
+  virtual size_t GetNumberOfComponents() const override { return 1; }
 
   /** Compute statistics over a run of voxels in the image starting at the index
    * startIdx. Appends the statistics to a running sum and sum of squared. The
@@ -126,7 +126,7 @@ public:
   virtual void GetRunLengthIntensityStatistics(
       const itk::ImageRegion<3> &region,
       const itk::Index<3> &startIdx, long runlength,
-      double *out_nvalid, double *out_sum, double *out_sumsq) const ITK_OVERRIDE;
+      double *out_nvalid, double *out_sum, double *out_sumsq) const override;
 
   /**
    * This method returns a vector of values for the voxel under the cursor.
@@ -138,7 +138,7 @@ public:
    * the method returns the RGB appearance of the voxel under the cursor
    */
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
-      vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
+      vnl_vector<double> &out_value, DisplayPixelType &out_appearance) override;
 
   /**
    * This method samples a 2D slice based on a reference geometry from
@@ -146,7 +146,7 @@ public:
    * is used to generate thumbnails and for other sampling of image
    * appearance that is outside of the main display pipeline
    */
-  virtual DisplaySlicePointer SampleArbitraryDisplaySlice(const ImageBaseType *ref_space) ITK_OVERRIDE;
+  virtual DisplaySlicePointer SampleArbitraryDisplaySlice(const ImageBaseType *ref_space) override;
 
   /**
     Get the maximum possible value of the gradient magnitude. This will
@@ -154,12 +154,12 @@ public:
     and return the maximum. The value will be cached so repeated calls to
     this are not expensive.
     */
-  double GetImageGradientMagnitudeUpperLimit() ITK_OVERRIDE;
+  double GetImageGradientMagnitudeUpperLimit() override;
 
   /**
     Get the maximum possible value of the gradient magnitude in native units
     */
-  double GetImageGradientMagnitudeUpperLimitNative() ITK_OVERRIDE;
+  double GetImageGradientMagnitudeUpperLimitNative() override;
 
   /**
    * Get an image cast to a common representation.
@@ -171,10 +171,10 @@ public:
       */
 
   /** Return the intensity curve for this layer if it exists */
-  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE;
+  virtual IntensityCurveInterface *GetIntensityCurve() const override;
 
   /** Return the color map for this layer if it exists */
-  virtual ColorMap *GetColorMap() const ITK_OVERRIDE;
+  virtual ColorMap *GetColorMap() const override;
 
   /** A data type representing a pipeline for exporting to VTK */
   typedef ScalarImageWrapperBase::VTKImporterMiniPipeline VTKImporterMiniPipeline;
@@ -185,14 +185,14 @@ public:
    * since the pipeline may have to allocate large amounts of memory and we'
    * don't want this memory lingering around when it is not used
    */
-  VTKImporterMiniPipeline CreateVTKImporterPipeline() const ITK_OVERRIDE;
+  VTKImporterMiniPipeline CreateVTKImporterPipeline() const override;
 
   /**
    * A reimplementation of CreateCastToFloatVectorPipeline that presents the
    * scalar float image as a float vector image
    */
   virtual typename ImageWrapperBase::FloatVectorImageType*
-  CreateCastToFloatVectorPipeline(const char *key, int index = 0) ITK_OVERRIDE;
+  CreateCastToFloatVectorPipeline(const char *key, int index = 0) override;
 
   /** Is volume rendering turned on for this layer */
   irisIsMacroWithOverride(VolumeRenderingEnabled)
@@ -220,7 +220,7 @@ protected:
   bool m_VolumeRenderingEnabled = false;
   
   /** Write the image to disk as a floating point image (scalar or vector) */
-  virtual void WriteToFileAsFloat(const char *filename, Registry &hints) ITK_OVERRIDE;
+  virtual void WriteToFileAsFloat(const char *filename, Registry &hints) override;
 };
 
 #endif // __ScalarImageWrapper_h_

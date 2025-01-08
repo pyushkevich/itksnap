@@ -72,7 +72,7 @@ void SnakeROIInteractionMode::enterEvent(QEvent *)
   m_Model->ProcessEnterEvent();
 
   // TODO: this is hideous!
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
   panel->SetMouseMotionTracking(true);
 }
 
@@ -81,7 +81,7 @@ void SnakeROIInteractionMode::leaveEvent(QEvent *)
   if(!this->isDragging())
     m_Model->ProcessLeaveEvent();
 
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
   panel->SetMouseMotionTracking(false);
 }
 

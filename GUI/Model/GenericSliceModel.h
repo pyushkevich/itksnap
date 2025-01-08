@@ -145,7 +145,7 @@ public:
   /**
     Update if necessary
     */
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   /**
    * Initialize the slice view with image data
@@ -511,6 +511,7 @@ protected:
   /** Update the state of the viewport based on current layout settings */
   void UpdateViewportLayout();
   void UpdateUpstreamViewportGeometry();
+  void UpdateUpstreamThumbnailViewportGeometry();
 };
 
 #endif // GENERICSLICEMODEL_H

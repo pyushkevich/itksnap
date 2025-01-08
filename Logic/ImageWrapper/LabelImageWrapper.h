@@ -40,7 +40,7 @@ public:
    */
   virtual void UpdateWrappedImages(Image4DType *image_4d,
                                    ImageBaseType *refSpace = NULL,
-                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
+                                   ITKTransformType *tran = NULL) override;
 
   /**
    * Store an intermediate delta without committing it as an undo point

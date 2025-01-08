@@ -85,20 +85,20 @@ protected:
 
   ThreadedHistogramImageFilter();
   virtual ~ThreadedHistogramImageFilter() {}
-  void PrintSelf(std::ostream & os, itk::Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream & os, itk::Indent indent) const override;
 
   /** Pass the input through unmodified. Do this by Grafting in the
     AllocateOutputs method. */
-  void AllocateOutputs() ITK_OVERRIDE;
+  void AllocateOutputs() override;
 
   /** Initialize some accumulators before the threads run. */
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
   // Override since the filter needs all the data for the algorithm
-  void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
   // Override since the filter produces all of its output
-  void EnlargeOutputRequestedRegion(itk::DataObject *data) ITK_OVERRIDE;
+  void EnlargeOutputRequestedRegion(itk::DataObject *data) override;
 
 private:
 

@@ -1,6 +1,7 @@
 #ifndef DISPLAYMAPPINGPOLICY_H
 #define DISPLAYMAPPINGPOLICY_H
 
+#include "DisplaySlicePipelineContainer.h"
 #include "ImageWrapperBase.h"
 #include "MeshWrapperBase.h"
 #include "itkDataObject.h"
@@ -36,7 +37,7 @@ public:
   virtual IntensityCurveInterface *GetIntensityCurve() const = 0;
   virtual ColorMap *GetColorMap() const = 0;
 
-  virtual DisplaySlicePointer GetDisplaySlice(unsigned int slice) = 0;
+  virtual DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) = 0;
 
   virtual void Save(Registry &folder) = 0;
   virtual void Restore(Registry &folder) = 0;
@@ -84,23 +85,23 @@ public:
   /**
    * Set the table of color labels used to produce color slice images
    */
-  void SetLabelColorTable(ColorLabelTable *labels) ITK_OVERRIDE;
+  void SetLabelColorTable(ColorLabelTable *labels) override;
 
   /**
    * Get the color label table
    */
-  ColorLabelTable *GetLabelColorTable() const ITK_OVERRIDE;
+  ColorLabelTable *GetLabelColorTable() const override;
 
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
 
-  DisplaySlicePointer GetDisplaySlice(unsigned int slice) ITK_OVERRIDE;
+  DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) override;
 
-  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE { return NULL; }
-  virtual ColorMap *GetColorMap() const ITK_OVERRIDE { return NULL; }
+  virtual IntensityCurveInterface *GetIntensityCurve() const override { return NULL; }
+  virtual ColorMap *GetColorMap() const override { return NULL; }
 
-  virtual void Save(Registry &folder) ITK_OVERRIDE {}
-  virtual void Restore(Registry &folder) ITK_OVERRIDE {}
+  virtual void Save(Registry &folder) override {}
+  virtual void Restore(Registry &folder) override {}
 
   virtual DisplayPixelType MapPixel(const InputComponentType *val);
 
@@ -112,7 +113,7 @@ protected:
   typedef LabelToRGBAFilter RGBAFilterType;
   typedef SmartPtr<RGBAFilterType> RGBAFilterPointer;
 
-  RGBAFilterPointer m_RGBAFilter[3];
+  DisplaySlicePipelineArray<RGBAFilterType> m_RGBAFilter;
   WrapperType *m_Wrapper;
 };
 
@@ -225,7 +226,7 @@ public:
 
   void ClearReferenceIntensityRange();
 
-  Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
+  Vector2d GetNativeImageRangeForCurve() override;
 
   virtual TDigest *GetTDigest() override;
 
@@ -233,19 +234,19 @@ public:
    * Get the display slice in a given direction.  To change the
    * display slice, call parent's MoveToSlice() method
    */
-  DisplaySlicePointer GetDisplaySlice(unsigned int dim) ITK_OVERRIDE;
+  DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) override;
 
   /**
     Get a pointer to the colormap
     */
-  ColorMap *GetColorMap () const ITK_OVERRIDE;
+  ColorMap *GetColorMap () const override;
 
-  void SetColorMap(ColorMap *map) ITK_OVERRIDE;
+  void SetColorMap(ColorMap *map) override;
 
   /**
    * Get a pointer to the intensity curve
    */
-  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE;
+  virtual IntensityCurveInterface *GetIntensityCurve() const override;
 
   /**
    * Set a new intensity curve
@@ -255,8 +256,8 @@ public:
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
 
-  virtual void Save(Registry &folder) ITK_OVERRIDE;
-  virtual void Restore(Registry &folder) ITK_OVERRIDE;
+  virtual void Save(Registry &folder) override;
+  virtual void Restore(Registry &folder) override;
 
   virtual DisplayPixelType MapPixel(const InputComponentType *val);
 
@@ -279,7 +280,7 @@ protected:
   SmartPtr<LookupTableFilterType> m_LookupTableFilter;
 
   // Filters for the three slice directions
-  SmartPtr<IntensityFilterType> m_IntensityFilter[3];
+  DisplaySlicePipelineArray<IntensityFilterType> m_IntensityFilter;
 
   /**
    * Implementation of the intensity curve funcitonality. The intensity map
@@ -364,12 +365,12 @@ public:
   void Initialize(WrapperType *wrapper);
   void UpdateImagePointer(ImageType *image);
 
-  virtual DisplaySlicePointer GetDisplaySlice(unsigned int slice) ITK_OVERRIDE;
+  virtual DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) override;
 
-  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE { return NULL; }
+  virtual IntensityCurveInterface *GetIntensityCurve() const override { return NULL; }
 
-  virtual void Save(Registry &folder) ITK_OVERRIDE;
-  virtual void Restore(Registry &folder) ITK_OVERRIDE;
+  virtual void Save(Registry &folder) override;
+  virtual void Restore(Registry &folder) override;
 
   irisGetMacroWithOverride(ColorMap, ColorMap *)
 
@@ -393,7 +394,7 @@ protected:
     <InputSliceType, DisplaySliceType, MappingFunctor> IntensityFilterType;
   typedef SmartPtr<IntensityFilterType> IntensityFilterPointer;
 
-  IntensityFilterPointer m_Filter[3];
+  DisplaySlicePipelineArray<IntensityFilterType> m_Filter;
   MappingFunctor m_Functor;
 
   SmartPtr<ColorMap> m_ColorMap;
@@ -442,7 +443,7 @@ public:
   void UpdateImagePointer(ImageType *image);
 
   /** Set the display mode */
-  virtual void SetDisplayMode(MultiChannelDisplayMode mode) ITK_OVERRIDE;
+  virtual void SetDisplayMode(MultiChannelDisplayMode mode) override;
 
   /** Get the display mode */
   irisGetMacroWithOverride(DisplayMode, MultiChannelDisplayMode)
@@ -450,9 +451,9 @@ public:
   /** Get/Set the animation status */
   irisGetSetMacroWithOverride(Animate, bool)
 
-  DisplaySlicePointer GetDisplaySlice(unsigned int slice) ITK_OVERRIDE;
+  DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) override;
 
-  Vector2d GetNativeImageRangeForCurve() ITK_OVERRIDE;
+  Vector2d GetNativeImageRangeForCurve() override;
   virtual TDigest *GetTDigest() override;
 
   /**
@@ -463,14 +464,14 @@ public:
    */
   bool IsContrastMultiComponent() const;
 
-  virtual IntensityCurveInterface *GetIntensityCurve() const ITK_OVERRIDE;
-  virtual ColorMap *GetColorMap() const ITK_OVERRIDE;
-  virtual void SetColorMap(ColorMap *map) ITK_OVERRIDE;
+  virtual IntensityCurveInterface *GetIntensityCurve() const override;
+  virtual ColorMap *GetColorMap() const override;
+  virtual void SetColorMap(ColorMap *map) override;
 
-  virtual void Save(Registry &folder) ITK_OVERRIDE;
-  virtual void Restore(Registry &folder) ITK_OVERRIDE;
+  virtual void Save(Registry &folder) override;
+  virtual void Restore(Registry &folder) override;
 
-  virtual void AutoFitContrast() ITK_OVERRIDE;
+  virtual void AutoFitContrast() override;
 
   irisGetMacro(ScalarRepresentation, ScalarImageWrapperBase *)
 
@@ -497,12 +498,12 @@ protected:
   WrapperType *m_Wrapper;
 
   SmartPtr<GenerateLUTFilter> m_LUTGenerator;
-  SmartPtr<ApplyLUTFilter> m_RGBMapper[3];
+  DisplaySlicePipelineArray<ApplyLUTFilter> m_RGBMapper;
 
   // Filters used to select the right pipeline for display
   typedef InputSelectionImageFilter<
     DisplaySliceType, MultiChannelDisplayMode> DisplaySliceSelector;
-  SmartPtr<DisplaySliceSelector> m_DisplaySliceSelector[3];
+  DisplaySlicePipelineArray<DisplaySliceSelector> m_DisplaySliceSelector;
 };
 
 

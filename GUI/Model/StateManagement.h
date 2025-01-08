@@ -79,7 +79,7 @@ public:
 
   static SmartPtr<Self> New(BooleanCondition *a, BooleanCondition *b);
 
-  bool operator() () const ITK_OVERRIDE;
+  bool operator() () const override;
 
 protected:
 
@@ -98,7 +98,7 @@ public:
 
   static SmartPtr<Self> New(BooleanCondition *a, BooleanCondition *b);
 
-  bool operator() () const ITK_OVERRIDE;
+  bool operator() () const override;
 
 protected:
 
@@ -117,7 +117,7 @@ public:
 
   static SmartPtr<Self> New(BooleanCondition *a);
 
-  bool operator () () const ITK_OVERRIDE;
+  bool operator () () const override;
 
 protected:
 

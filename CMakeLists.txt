@@ -544,6 +544,7 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/DeformationGridRenderer.cxx
   GUI/Renderer/EdgePreprocessingSettingsRenderer.cxx
   GUI/Renderer/GenericSliceContextItem.cxx
+  GUI/Renderer/GenericSliceNewRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/Generic3DRenderer.cxx
   GUI/Renderer/GMMRenderer.cxx
@@ -1237,7 +1238,12 @@ SET(SNAP_BUNDLE_NAME ITK-SNAP)
 # Configure the executable's sources and libraries
 ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC}
   .clang-format
-  GUI/Qt/Coupling/QtMenuCoupling.h)
+  GUI/Qt/Coupling/QtMenuCoupling.h
+  GUI/Renderer/GenericSliceNewRenderer.h
+  GUI/Renderer/AbstractNewRenderer.h
+  GUI/Renderer/GenericSliceNewRenderer.cxx
+  GUI/Qt/Components/QPainterNewRenderContext.h
+  Logic/ImageWrapper/DisplaySlicePipelineContainer.h)
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 

@@ -68,6 +68,64 @@ enum VolumeRenderingTransferFunctionScalingMode
 };
 
 /**
+ * The type of display slice that may be requested from an image wrapper.
+ */
+enum DisplaySliceIntent
+{
+  DISPLAY_SLICE_MAIN = 0,         // Main display slice
+  DISPLAY_SLICE_THUMBNAIL         // Whole image thumbnail
+};
+
+constexpr std::array<DisplaySliceIntent, 2> DisplaySliceIntents = {
+  DISPLAY_SLICE_MAIN,
+  DISPLAY_SLICE_THUMBNAIL
+};
+
+struct DisplaySliceIndex
+{
+  int slice;
+  DisplaySliceIntent intent;
+  constexpr DisplaySliceIndex(int in_slice, DisplaySliceIntent in_intent) : slice(in_slice), intent(in_intent) {}
+  constexpr int numeric_index() { return static_cast<int>(intent) * 3 + slice; }
+};
+
+/**
+ * This array makes it easier to iterate over all display slice indices, just use
+ * for(auto index : DisplaySliceIndices) in your code.
+ */
+constexpr std::array<DisplaySliceIndex, 6> DisplaySliceIndices = {
+  DisplaySliceIndex(0, DISPLAY_SLICE_MAIN),
+  DisplaySliceIndex(1, DISPLAY_SLICE_MAIN),
+  DisplaySliceIndex(2, DISPLAY_SLICE_MAIN),
+  DisplaySliceIndex(0, DISPLAY_SLICE_THUMBNAIL),
+  DisplaySliceIndex(1, DISPLAY_SLICE_THUMBNAIL),
+  DisplaySliceIndex(2, DISPLAY_SLICE_THUMBNAIL),
+};
+
+/**
+ * An array of ITK object pointers indexed by DisplaySliceIndex
+ */
+template <class TPipeline>
+class DisplaySlicePipelineArray
+  : public std::array<SmartPtr<TPipeline>, DisplaySliceIndices.size()>
+{
+public:
+  using Base = std::array<SmartPtr<TPipeline>, DisplaySliceIndices.size()>;
+  using Pipeline = TPipeline;
+  using PipelinePointer = SmartPtr<TPipeline>;
+
+  PipelinePointer &operator[](DisplaySliceIndex index)
+  {
+    return Base::operator[](index.numeric_index());
+  }
+
+  const PipelinePointer &operator[](DisplaySliceIndex index) const
+  {
+    return Base::operator[](index.numeric_index());
+  }
+};
+
+/**
  \class ImageWrapperBase
  \brief Abstract parent class for all image wrappers
 
@@ -207,9 +265,8 @@ public:
    * Set the viewport rectangle onto which the three display slices
    * will be rendered
    */
-  virtual void SetDisplayViewportGeometry(
-      unsigned int index,
-      const ImageBaseType *viewport_image) = 0;
+  virtual void SetDisplayViewportGeometry(DisplaySliceIndex    index,
+                                          const ImageBaseType *viewport_image) = 0;
 
 
   /** Return some image info independently of pixel type */
@@ -302,7 +359,8 @@ public:
    * registration transform applied to the image to compute the coordinate.
    */
   virtual void TransformReferenceCIndexToWrappedImageCIndex(
-      const itk::ContinuousIndex<double, 3> &ref_index, itk::ContinuousIndex<double, 3> &img_index) const = 0;
+    const itk::ContinuousIndex<double, 3> &ref_index,
+    itk::ContinuousIndex<double, 3>       &img_index) const = 0;
 
   /** Get the NIFTI s-form matrix for this image */
   irisVirtualGetMacro(NiftiSform, TransformType)
@@ -311,7 +369,7 @@ public:
   irisVirtualGetMacro(NiftiInvSform, TransformType)
 
   /** Get a display slice correpsponding to the current index */
-  virtual DisplaySlicePointer GetDisplaySlice(unsigned int dim) = 0;
+  virtual DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) = 0;
 
   /** For each slicer, find out which image dimension does is slice along */
   virtual unsigned int GetDisplaySliceImageAxis(unsigned int slice) = 0;
@@ -528,16 +586,24 @@ public:
   virtual FloatVectorImageType* CreateCastToFloatVectorPipeline(const char *key, int index = 0) = 0;
 
   /** Create a pipeline for casting an image slice to floating point */
-  virtual FloatSliceType* CreateCastToFloatSlicePipeline(const char *key, unsigned int slice) = 0;
+  virtual FloatSliceType *CreateCastToFloatSlicePipeline(const char        *key,
+                                                         DisplaySliceIndex index) = 0;
 
   /** Create a pipeline for casting an image slice to floating point vector image */
-  virtual FloatVectorSliceType* CreateCastToFloatVectorSlicePipeline(const char *key, unsigned int slice) = 0;
+  virtual FloatVectorSliceType *CreateCastToFloatVectorSlicePipeline(const char  *key,
+                                                                     DisplaySliceIndex index) = 0;
 
   /**
    * Release the filters and images in an internally managed pipeline. Passing -1 for
    * the index will release all the indices for this key
    */
   virtual void ReleaseInternalPipeline(const char *key, int index = -1) = 0;
+
+  /**
+   * Release the filters and images in an internally managed pipeline associated with
+   * a display slice index.
+   */
+  virtual void ReleaseInternalPipeline(const char *key, DisplaySliceIndex index) = 0;
 
   /** Get the format of the image for display */
   virtual std::string GetPixelFormatDescription() = 0;

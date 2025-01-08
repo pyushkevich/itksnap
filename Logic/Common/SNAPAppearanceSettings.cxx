@@ -38,6 +38,9 @@ SNAPAppearanceSettings
     { 1, 0, 0, 0, 0 },    // 3D Background
     { 1, 1, 1, 0, 1 },    // Zoom thumbnail
     { 1, 1, 1, 0, 1 },    // Zoom viewport
+    { 1, 1, 1, 0, 1 },    // Layer thumbnail (selected)
+    { 1, 1, 1, 0, 1 },    // Layer thumbnail (hovered)
+    { 1, 1, 1, 0, 1 },    // Layer thumbnail (selected and hovered)
     { 1, 1, 1, 0, 1 },    // 3D Crosshairs
     { 1, 1, 1, 0, 1 },    // Thumbnail Crosshairs
     { 1, 1, 1, 0, 1 },    // 3D Image Box
@@ -120,6 +123,30 @@ SNAPAppearanceSettings
   // Zoom viewport marker
   elt = m_DefaultElementSettings[ZOOM_VIEWPORT];
   elt->SetColor(Vector3d(1.0, 1.0, 1.0));
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
+  elt->SetVisibilityFlag(true);
+
+  // Layer thumbnail (selected)
+  elt = m_DefaultElementSettings[LAYER_THUMBNAIL_SELECTED];
+  elt->SetColor(Vector3d(1.0, 0.9, 0.1));
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
+  elt->SetVisibilityFlag(true);
+
+  // Layer thumbnail (selected)
+  elt = m_DefaultElementSettings[LAYER_THUMBNAIL_HOVER];
+  elt->SetColor(Vector3d(0.6, 0.54, 0.46));
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
+  elt->SetVisibilityFlag(true);
+
+  // Layer thumbnail (selected)
+  elt = m_DefaultElementSettings[LAYER_THUMBNAIL_SELECTED_AND_HOVER];
+  elt->SetColor(Vector3d(1.0, 1.0, 0.5));
   elt->SetAlpha(0.75);
   elt->SetLineThickness(1.5);
   elt->SetLineType(vtkPen::SOLID_LINE);
@@ -235,14 +262,33 @@ SNAPAppearanceSettings
   elt->SetVisibilityFlag(true);
 }
 
-const char *
-SNAPAppearanceSettings
-::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = 
-  { "CROSSHAIRS", "MARKERS", "ROI_BOX", "ROI_BOX_ACTIVE", "BACKGROUND_2D", "BACKGROUND_3D",
-    "ZOOM_THUMBNAIL", "ZOOM_VIEWPORT", "CROSSHAIRS_3D", "CROSSHAIRS_THUMB", "IMAGE_BOX_3D",
-    "ROI_BOX_3D", "RULER", "PAINTBRUSH_OUTLINE", 
-    "POLY_DRAW_MAIN", "POLY_DRAW_CLOSE", "POLY_EDIT", "POLY_EDIT_SELECT",
-    "REGISTRATION_WIDGETS", "REGISTRATION_WIDGETS_ACTIVE", "REGISTRATION_GRID", "GRID_LINES"};
+const char *SNAPAppearanceSettings ::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = {
+  "CROSSHAIRS",
+  "MARKERS",
+  "ROI_BOX",
+  "ROI_BOX_ACTIVE",
+  "BACKGROUND_2D",
+  "BACKGROUND_3D",
+  "ZOOM_THUMBNAIL",
+  "ZOOM_VIEWPORT",
+  "LAYER_THUMBNAIL_SELECTED",
+  "LAYER_THUMBNAIL_HOVER",
+  "LAYER_THUMBNAIL_SELECTED_AND_HOVER",
+  "CROSSHAIRS_3D",
+  "CROSSHAIRS_THUMB",
+  "IMAGE_BOX_3D",
+  "ROI_BOX_3D",
+  "RULER",
+  "PAINTBRUSH_OUTLINE",
+  "POLY_DRAW_MAIN",
+  "POLY_DRAW_CLOSE",
+  "POLY_EDIT",
+  "POLY_EDIT_SELECT",
+  "REGISTRATION_WIDGETS",
+  "REGISTRATION_WIDGETS_ACTIVE",
+  "REGISTRATION_GRID",
+  "GRID_LINES"
+};
 
 SNAPAppearanceSettings
 ::SNAPAppearanceSettings()

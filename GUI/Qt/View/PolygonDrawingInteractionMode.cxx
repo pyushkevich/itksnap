@@ -199,13 +199,13 @@ void PolygonDrawingInteractionMode::onCancelDrawing()
 void PolygonDrawingInteractionMode::enterEvent(QEvent *)
 {
   // TODO: this is hideous!
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
   panel->SetMouseMotionTracking(true);
 }
 
 void PolygonDrawingInteractionMode::leaveEvent(QEvent *)
 {
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
+  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
   panel->SetMouseMotionTracking(false);
 }
 

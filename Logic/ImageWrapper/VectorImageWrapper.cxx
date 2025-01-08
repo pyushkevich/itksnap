@@ -258,8 +258,8 @@ VectorImageWrapper<TTraits>
   wrapper->SetParentWrapper(this);
 
   // Pass the display geometry to the component wrapper
-  for(int k = 0; k < 3; k++)
-    wrapper->SetDisplayViewportGeometry(k, this->GetDisplayViewportGeometry(k));
+  for(auto index : DisplaySliceIndices)
+    wrapper->SetDisplayViewportGeometry(index, this->GetDisplayViewportGeometry(index));
 
   SmartPtr<ScalarImageWrapperBase> ptrout = wrapper.GetPointer();
 
@@ -297,8 +297,8 @@ VectorImageWrapper<TTraits>
     SmartPtr<ComponentWrapperType> cw = ComponentWrapperType::New();
 
     // Pass the display geometry to the component wrapper
-    for(int k = 0; k < 3; k++)
-      cw->SetDisplayViewportGeometry(k, this->GetDisplayViewportGeometry(k));
+    for(auto index : DisplaySliceIndices)
+      cw->SetDisplayViewportGeometry(index, this->GetDisplayViewportGeometry(index));
 
     // Initialize referencing the current wrapper
     cw->InitializeToWrapper(this, comp, referenceSpace, transform);
@@ -453,18 +453,16 @@ VectorImageWrapper<TTraits>
 
 template <class TTraits>
 void
-VectorImageWrapper<TTraits>
-::SetDisplayViewportGeometry(
-    unsigned int index,
-    const ImageBaseType *viewport_image)
+VectorImageWrapper<TTraits>::SetDisplayViewportGeometry(DisplaySliceIndex    index,
+                                                        const ImageBaseType *viewport_image)
 {
   Superclass::SetDisplayViewportGeometry(index, viewport_image);
 
   // Propagate to owned scalar wrappers
-  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
-    {
+  for (ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+  {
     it->second->SetDisplayViewportGeometry(index, viewport_image);
-    }
+  }
 }
 
 template <class TTraits>

@@ -268,7 +268,7 @@ public:
   /**
    * Reload wrapper data from the file on disk
    */
-  void ReloadWrapperFromFile(IRISWarningList &wl) ITK_OVERRIDE;
+  void ReloadWrapperFromFile(IRISWarningList &wl) override;
 
 protected:
   ImageLayerTableRowModel();
@@ -360,7 +360,7 @@ public:
   /**
    * Reload wrapper data from the file on disk
    */
-  void ReloadWrapperFromFile(IRISWarningList &wl) ITK_OVERRIDE;
+  void ReloadWrapperFromFile(IRISWarningList &wl) override;
 
   // End of virtual methods implementation
   // ----------------------------------------------

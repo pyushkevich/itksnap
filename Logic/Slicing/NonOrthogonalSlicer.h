@@ -262,13 +262,13 @@ protected:
 
   /** The traits class */
 
-  virtual void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) ITK_OVERRIDE;
+  virtual void DynamicThreadedGenerateData(const OutputImageRegionType& outputRegionForThread) override;
 
-  virtual void VerifyInputInformation() const ITK_OVERRIDE { }
+  virtual void VerifyInputInformation() const override { }
 
-  virtual void GenerateOutputInformation() ITK_OVERRIDE;
+  virtual void GenerateOutputInformation() override;
 
-  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  virtual void GenerateInputRequestedRegion() override;
 
   bool m_UseNearestNeighbor;
 };

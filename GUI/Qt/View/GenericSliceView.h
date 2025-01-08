@@ -49,13 +49,25 @@ public:
   // Return the renderer
   irisGetMacro(Renderer, AbstractRenderer *)
 
+  // Find a parent of specific type or nullptr if none
+  template <class T> T* FindParentOfType()
+  {
+    QObject *parent = this->parent();
+    while(parent)
+    {
+      T* parent_cast = dynamic_cast<T*>(parent);
+      if(parent_cast)
+        return parent_cast;
+      else
+        parent = parent->parent();
+    }
+    return nullptr;
+  }
+
 protected:
 
   // Pointer to the model object for this class
   GenericSliceModel *m_Model;
-
-  // A viewport reporter
-  SmartPtr<QtViewportReporter> m_ViewportReporter;
 
   // VTK-based Renderer (owned by the view)
   SmartPtr<GenericSliceRenderer> m_Renderer;

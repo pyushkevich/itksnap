@@ -50,7 +50,7 @@ protected:
   ~ColorLabelQuickListModel();
 
   // Respond to an update in the model
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   // Compute the recent labels
   void ComputeRecent();

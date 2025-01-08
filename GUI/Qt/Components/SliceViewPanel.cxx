@@ -45,8 +45,76 @@
 #include "AnnotationInteractionMode.h"
 #include "RegistrationInteractionMode.h"
 
+#include "GenericSliceNewRenderer.h"
+#include "AbstractNewRenderer.h"
+#include "QtReporterDelegates.h"
 #include <QStackedLayout>
 #include <QMenu>
+#include <QPainter>
+#include <QPainterPath>
+#include <QPaintEngine>
+#include <QPixmap>
+#include <QOpenGLTexture>
+#include <QOpenGLFunctions>
+
+#include "QPainterNewRenderContext.h"
+#include <chrono>
+
+/**
+ * An OpenGL widget connected to an AbstractNewRenderer
+ */
+class SimpleOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
+{
+public:
+  SimpleOpenGLWidget(QWidget *parent) : QOpenGLWidget(parent) {}
+
+  void SetRenderer(AbstractNewRenderer *r)
+  {
+    this->renderer = r;
+  }
+
+  void initializeGL() override
+  {
+    initializeOpenGLFunctions();
+    QOpenGLContext* context = QOpenGLContext::currentContext();
+    if (context) {
+      qDebug() << "OpenGL Vendor:" << reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+      qDebug() << "OpenGL Renderer:" << reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+      qDebug() << "OpenGL Version:" << reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    } else {
+      qDebug() << "No OpenGL context available.";
+    }
+  }
+
+  void resizeGL(int w, int h) override
+  {
+  }
+
+  void paintGL() override
+  {
+    auto t0 = std::chrono::system_clock::now();
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    QPainterNewRenderContext context(painter);
+    renderer->Render(&context);
+    auto t1 = std::chrono::system_clock::now();
+
+    static int n_calls = 0;
+    static double total_ms = 0;
+    const std::chrono::duration<double, std::milli> fp_ms = t1 - t0;
+    total_ms += fp_ms.count();
+    n_calls++;
+    if(n_calls % 100 == 0)
+    {
+      std::cout << "Average paintGL duration last 100 runs: " << total_ms / n_calls << "ms." << std::endl;
+      total_ms = 0;
+      n_calls = 0;
+    }
+  }
+
+private:
+  AbstractNewRenderer *renderer;
+};
 
 SliceViewPanel::SliceViewPanel(QWidget *parent) :
     SNAPComponent(parent),
@@ -201,6 +269,23 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   m_ContextToolButton->setMaximumSize(QSize(16,16));
   m_ContextToolButton->setPopupMode(QToolButton::InstantPopup);
   m_ContextToolButton->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+
+  // Create a viewport reporter and associate it with the main stack
+  // TODO: eventually this should just be m_NewRendererCanvas
+  m_ViewportReporter = QtViewportReporter::New();
+  m_ViewportReporter->SetClientWidget(ui->stackMain);
+
+  // New stuff - set up the target panel for QPainter
+  QHBoxLayout *lo = new QHBoxLayout(ui->sliceViewNew);
+  lo->setContentsMargins(0,0,0,0);
+  ui->sliceViewNew->setLayout(lo);
+  auto *canvas = new SimpleOpenGLWidget(ui->sliceViewNew);
+  lo->addWidget(canvas);
+
+  // Create a renderer
+  m_NewRenderer = GenericSliceNewRenderer::New();
+  canvas->SetRenderer(m_NewRenderer.GetPointer());
+  m_NewRendererCanvas = canvas;
 }
 
 SliceViewPanel::~SliceViewPanel()
@@ -225,6 +310,9 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   // Initialize the slice view
   ui->sliceView->SetModel(m_SliceModel);
+
+  // Assign the viewport reporter to the model
+  m_SliceModel->SetSizeReporter(m_ViewportReporter.GetPointer());
 
   // Initialize the interaction modes
   this->m_CrosshairsMode->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
@@ -333,6 +421,9 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   connectITK(m_SliceModel->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(),
              SLOT(OnHoveredLayerChange(const EventBucket &)));
+
+  // Connect renderer to model
+  m_NewRenderer->SetModel(m_SliceModel);
 }
 
 void SliceViewPanel::onModelUpdate(const EventBucket &eb)
@@ -351,6 +442,9 @@ void SliceViewPanel::onModelUpdate(const EventBucket &eb)
   // this is causing crash on Linux
   // ui->sliceView->GetRenderWindow()->Render();
   ui->sliceView->update();
+
+  // Update the new renderer
+  m_NewRendererCanvas->update();
 }
 
 void SliceViewPanel::ConfigureEventChain(QWidget *w)
@@ -700,4 +794,10 @@ void SliceViewPanel::on_actionAnnotationEdit_triggered()
   dialog->show();
   dialog->activateWindow();
   dialog->raise();
+}
+
+void
+SliceViewPanel::on_btnChangeViewer_clicked(bool checked)
+{
+  ui->stackMain->setCurrentIndex(checked ? 1 : 0);
 }

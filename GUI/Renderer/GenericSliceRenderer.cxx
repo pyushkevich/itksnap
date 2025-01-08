@@ -416,7 +416,7 @@ void GenericSliceRenderer::UpdateLayerAssemblies()
       layer->SetUserData(m_KeyLayerTextureAssembly, lta);
 
       // Get the pointer to the display slice
-      auto *ds = layer->GetDisplaySlice(m_Model->GetId()).GetPointer();
+      auto *ds = layer->GetDisplaySlice(DisplaySliceIndex(m_Model->GetId(), DISPLAY_SLICE_MAIN)).GetPointer();
 
       // Configure the texture pipeline
       SmartPtr<LayerTextureAssembly::VTKExporter> exporter = LayerTextureAssembly::VTKExporter::New();

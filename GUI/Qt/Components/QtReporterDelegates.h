@@ -20,13 +20,13 @@ public:
   /** Set the widget that we report on */
   void SetClientWidget(QWidget *widget);
 
-  bool CanReportSize() ITK_OVERRIDE;
+  bool CanReportSize() override;
 
-  Vector2ui GetViewportSize() ITK_OVERRIDE;
+  Vector2ui GetViewportSize() override;
 
-  float GetViewportPixelRatio() ITK_OVERRIDE;
+  float GetViewportPixelRatio() override;
 
-  Vector2ui GetLogicalViewportSize() ITK_OVERRIDE;
+  Vector2ui GetLogicalViewportSize() override;
 
 protected:
 

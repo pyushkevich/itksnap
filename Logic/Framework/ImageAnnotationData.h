@@ -122,19 +122,19 @@ public:
 
   irisGetSetMacro(Segment, const LineSegment &)
 
-  virtual void Save(Registry &folder) ITK_OVERRIDE;
-  virtual void Load(Registry &folder) ITK_OVERRIDE;
+  virtual void Save(Registry &folder) override;
+  virtual void Load(Registry &folder) override;
 
-  virtual void MoveBy(const Vector3d &offset) ITK_OVERRIDE;
-  virtual Vector3d GetCenter() const ITK_OVERRIDE;
-  virtual AnnotationType GetType() const ITK_OVERRIDE { return LINE_SEGMENT; }
+  virtual void MoveBy(const Vector3d &offset) override;
+  virtual Vector3d GetCenter() const override;
+  virtual AnnotationType GetType() const override { return LINE_SEGMENT; }
 
 
 protected:
 
-  virtual int GetSliceIndex(int plane) const ITK_OVERRIDE;
+  virtual int GetSliceIndex(int plane) const override;
 
-  virtual Vector3d GetAnchorPoint(int plane) const ITK_OVERRIDE;
+  virtual Vector3d GetAnchorPoint(int plane) const override;
 
   LineSegment m_Segment;
 };
@@ -158,17 +158,17 @@ public:
 
   irisGetSetMacro(Landmark, const Landmark &)
 
-  virtual void MoveBy(const Vector3d &offset) ITK_OVERRIDE;
-  virtual Vector3d GetCenter() const ITK_OVERRIDE;
-  virtual AnnotationType GetType() const ITK_OVERRIDE { return LANDMARK; }
+  virtual void MoveBy(const Vector3d &offset) override;
+  virtual Vector3d GetCenter() const override;
+  virtual AnnotationType GetType() const override { return LANDMARK; }
 
 protected:
 
-  virtual int GetSliceIndex(int plane) const ITK_OVERRIDE;
-  virtual Vector3d GetAnchorPoint(int plane) const ITK_OVERRIDE;
+  virtual int GetSliceIndex(int plane) const override;
+  virtual Vector3d GetAnchorPoint(int plane) const override;
 
-  virtual void Save(Registry &folder) ITK_OVERRIDE;
-  virtual void Load(Registry &folder) ITK_OVERRIDE;
+  virtual void Save(Registry &folder) override;
+  virtual void Load(Registry &folder) override;
 
 
 

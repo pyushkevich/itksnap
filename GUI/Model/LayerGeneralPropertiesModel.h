@@ -72,14 +72,14 @@ public:
 	typedef MeshDataArrayProperty::MeshDataType MeshDataType;
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(WrapperBase *layer) ITK_OVERRIDE;
-  void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
+  void RegisterWithLayer(WrapperBase *layer) override;
+  void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) override;
 
   // Parent model assignment override
   virtual void SetParentModel(GlobalUIModel *parent);
 
   // Function called in response to events
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   // State management
   bool CheckState(UIState state);

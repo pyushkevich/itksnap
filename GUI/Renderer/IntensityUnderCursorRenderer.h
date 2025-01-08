@@ -21,11 +21,11 @@ public:
 
   void SetRenderWindow(vtkRenderWindow *rwin) override;
 
-  void OnUpdate() ITK_OVERRIDE;
+  void OnUpdate() override;
 
   void UpdatePlotValues();
 
-  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio) ITK_OVERRIDE;
+  virtual void OnDevicePixelRatioChange(int old_ratio, int new_ratio) override;
 
 protected:
   IntensityUnderCursorRenderer();

@@ -92,7 +92,7 @@ public:
   // Interpolation mode
   typedef typename Superclass::InterpolationMode             InterpolationMode;
 
-  virtual bool IsScalar() const ITK_OVERRIDE { return false; }
+  virtual bool IsScalar() const override { return false; }
 
   /**
    * This function returns whatever scalar representation is current. The
@@ -102,27 +102,27 @@ public:
    * is also some ambiguity as to what the default scalar component should be.
    * @see ImageWrapperBase::GetScalarRepresentation
    */
-  ScalarImageWrapperBase *GetDefaultScalarRepresentation() ITK_OVERRIDE;
+  ScalarImageWrapperBase *GetDefaultScalarRepresentation() override;
 
   /**
    * Get a pointer to the given scalar representation of this vector image.
    */
   ScalarImageWrapperBase *GetScalarRepresentation(
       ScalarRepresentation type,
-      int index = 0) ITK_OVERRIDE;
+      int index = 0) override;
 
   /**
    * Access a scalar representation using an iterator
    */
   virtual ScalarImageWrapperBase *GetScalarRepresentation(
-      const ScalarRepresentationIterator &it) ITK_OVERRIDE;
+      const ScalarRepresentationIterator &it) override;
 
   /**
    * If scalar_rep is a scalar representation of the vector image wrapper, find
    * the type of the representation and the index. Otherwise return false;
    */
   bool FindScalarRepresentation(
-      ImageWrapperBase *scalar_rep, ScalarRepresentation &type, int &index) const ITK_OVERRIDE;
+      ImageWrapperBase *scalar_rep, ScalarRepresentation &type, int &index) const override;
 
   /**
    * This returns the same as GetScalarRepresentation(SCALAR_REP_COMPONENT, i),
@@ -136,11 +136,11 @@ public:
    * voxel size
    */
   ImagePointer DeepCopyRegion(const SNAPSegmentationROISettings &roi,
-                              itk::Command *progressCommand = NULL) const ITK_OVERRIDE;
+                              itk::Command *progressCommand = NULL) const override;
 
 
   /** This image type has only one component */
-  virtual size_t GetNumberOfComponents() const ITK_OVERRIDE
+  virtual size_t GetNumberOfComponents() const override
   {
     return this->m_Image4D->GetNumberOfComponentsPerPixel();
   }
@@ -151,7 +151,7 @@ public:
   virtual void GetRunLengthIntensityStatistics(
       const itk::ImageRegion<3> &region,
       const itk::Index<3> &startIdx, long runlength,
-      double *out_nvalid, double *out_sum, double *out_sumsq) const ITK_OVERRIDE;
+      double *out_nvalid, double *out_sum, double *out_sumsq) const override;
 
   /**
    * This method returns a vector of values for the voxel under the cursor.
@@ -163,7 +163,7 @@ public:
    * the method returns the RGB appearance of the voxel under the cursor
    */
   virtual void GetVoxelUnderCursorDisplayedValueAndAppearance(
-      vnl_vector<double> &out_value, DisplayPixelType &out_appearance) ITK_OVERRIDE;
+      vnl_vector<double> &out_value, DisplayPixelType &out_appearance) override;
 
   /**
    * This method samples a 2D slice based on a reference geometry from
@@ -171,25 +171,26 @@ public:
    * is used to generate thumbnails and for other sampling of image
    * appearance that is outside of the main display pipeline
    */
-  virtual DisplaySlicePointer SampleArbitraryDisplaySlice(const ImageBaseType *ref_space) ITK_OVERRIDE;
+  virtual DisplaySlicePointer SampleArbitraryDisplaySlice(const ImageBaseType *ref_space) override;
 
-  virtual void SetNativeMapping(NativeIntensityMapping mapping) ITK_OVERRIDE;
+  virtual void SetNativeMapping(NativeIntensityMapping mapping) override;
 
-  virtual void SetSliceIndex(const IndexType &cursor) ITK_OVERRIDE;
+  virtual void SetSliceIndex(const IndexType &cursor) override;
 
-  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom) ITK_OVERRIDE;
+  virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom) override;
 
-  virtual void SetDisplayViewportGeometry(unsigned int index, const ImageBaseType *viewport_image) ITK_OVERRIDE;
+  virtual void SetDisplayViewportGeometry(DisplaySliceIndex index,
+                                          const ImageBaseType *viewport_image) override;
 
-  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction) ITK_OVERRIDE;
+  virtual void SetDirectionMatrix(const vnl_matrix<double> &direction) override;
 
-  virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) ITK_OVERRIDE;
+  virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) override;
 
-  virtual void SetSticky(bool value) ITK_OVERRIDE;
+  virtual void SetSticky(bool value) override;
 
-  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
+  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) override;
 
-  virtual void SetReferenceSpace(ImageBaseType *referenceSpace) ITK_OVERRIDE;
+  virtual void SetReferenceSpace(ImageBaseType *referenceSpace) override;
 
   virtual void SetSlicingInterpolationMode(InterpolationMode mode) override;
 
@@ -208,13 +209,13 @@ protected:
 
   virtual void UpdateWrappedImages(Image4DType *image_4d,
                                    ImageBaseType *refSpace = NULL,
-                                   ITKTransformType *tran = NULL) ITK_OVERRIDE;
+                                   ITKTransformType *tran = NULL) override;
 
   /** Destructor */
   virtual ~VectorImageWrapper();
 
   /** Write the image to disk as a floating point image (scalar or vector) */
-  virtual void WriteToFileAsFloat(const char *filename, Registry &hints) ITK_OVERRIDE;
+  virtual void WriteToFileAsFloat(const char *filename, Registry &hints) override;
 
   /** Create a derived wrapper of a certain type */
   template <class TFunctor>

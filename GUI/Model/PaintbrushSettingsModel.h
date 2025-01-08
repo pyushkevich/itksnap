@@ -23,7 +23,7 @@ public:
   irisGetMacro(ParentModel, GlobalUIModel *)
   void SetParentModel(GlobalUIModel *parent);
 
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   bool CheckState(PaintbrushSettingsModel::UIState state);
 

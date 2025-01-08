@@ -1034,41 +1034,42 @@ IRISApplication::GetAnatomicalDirectionForDisplayWindow(int iWin) const
 }
 
 void
-IRISApplication
-::ExportSlice(AnatomicalDirection iSliceAnat, const char *file)
+IRISApplication ::ExportSlice(AnatomicalDirection iSliceAnat, const char *file)
 {
   // Get the slice index in image coordinates
-  size_t iSliceImg = 
-    GetImageDirectionForAnatomicalDirection(iSliceAnat);
+  size_t iSliceImg = GetImageDirectionForAnatomicalDirection(iSliceAnat);
 
   // TODO: should this not export using the default scalar representation,
   // rather than RGB? Not sure...
 
   // Find the slicer that slices along that direction
   typedef ImageWrapperBase::DisplaySliceType SliceType;
-  SmartPtr<SliceType> imgGrey = NULL;
-  for(size_t i = 0; i < 3; i++)
+  SmartPtr<SliceType>                        imgGrey = NULL;
+  for (size_t i = 0; i < 3; i++)
+  {
+    if (iSliceImg == m_CurrentImageData->GetMain()->GetDisplaySliceImageAxis(i))
     {
-    if(iSliceImg == m_CurrentImageData->GetMain()->GetDisplaySliceImageAxis(i))
-      {
-      imgGrey = m_CurrentImageData->GetMain()->GetDisplaySlice(i);
+      imgGrey =
+        m_CurrentImageData->GetMain()->GetDisplaySlice(DisplaySliceIndex(i, DISPLAY_SLICE_MAIN));
       break;
-      }
     }
-  assert(imgGrey);
+  }
+
+  itkAssertOrThrowMacro(imgGrey, "Failed to generate slice for export");
 
   // Flip the image in the Y direction
   typedef itk::FlipImageFilter<SliceType> FlipFilter;
-  FlipFilter::Pointer fltFlip = FlipFilter::New();
+  FlipFilter::Pointer                     fltFlip = FlipFilter::New();
   fltFlip->SetInput(imgGrey);
-  
+
   FlipFilter::FlipAxesArrayType arrFlips;
-  arrFlips[0] = false; arrFlips[1] = true;
+  arrFlips[0] = false;
+  arrFlips[1] = true;
   fltFlip->SetFlipAxes(arrFlips);
 
   // Create a writer for saving the image
   typedef itk::ImageFileWriter<SliceType> WriterType;
-  WriterType::Pointer writer = WriterType::New();
+  WriterType::Pointer                     writer = WriterType::New();
   writer->SetInput(fltFlip->GetOutput());
   writer->SetFileName(file);
   writer->Update();

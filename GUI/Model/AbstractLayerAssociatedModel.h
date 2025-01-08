@@ -165,7 +165,7 @@ public:
     If child models reimplement OnUpdate(), they must call
     AbstractLayerAssociatedModel::OnUpdate() within the reimplemented method.
     */
-  virtual void OnUpdate() ITK_OVERRIDE
+  virtual void OnUpdate() override
   {
     if(m_EventBucket->HasEvent(LayerChangeEvent()))
       {

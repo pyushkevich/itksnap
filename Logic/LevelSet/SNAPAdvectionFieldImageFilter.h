@@ -95,10 +95,10 @@ protected:
 
   SNAPAdvectionFieldImageFilter();
   virtual ~SNAPAdvectionFieldImageFilter() {};
-  void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream& os, itk::Indent indent) const override;
   
   /** Generate Data */
-  void GenerateData( void ) ITK_OVERRIDE;
+  void GenerateData( void ) override;
 
 private:
 
