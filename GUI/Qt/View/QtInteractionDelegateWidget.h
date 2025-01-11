@@ -41,7 +41,11 @@ class QtInteractionDelegateWidget : public SNAPComponent
   Q_OBJECT
 
 public:
-  explicit QtInteractionDelegateWidget(QWidget *parent = 0);
+  /**
+   * The constructor takes as input the widget that owns this delegate and the
+   * client widget to which the relevant events are sent.
+   */
+  explicit QtInteractionDelegateWidget(QWidget *parent, QWidget *canvasWidget);
 
 signals:
 
@@ -84,9 +88,6 @@ protected:
   // Return the number of pixels moved since last press
   double GetNumberOfPixelsMoved(QMouseEvent *ev);
 
-  // Get a pointer to the parent GL widget
-  QtVTKRenderWindowBox *GetParentGLWidget() const;
-
   // Information about the mouse press event
   QPointF m_LastPressPos, m_LastPressGlobalPos;
   Qt::MouseButton m_LastPressButton;
@@ -106,6 +107,10 @@ protected:
 
   // Whether we are currently filtering an event from another widget
   bool m_Filtering;
+
+  // Client widget - the OpenGL or otherwise widget on which drawing is performed
+  // and whose events this delegate aims to catch
+  QWidget *m_CanvasWidget;
 };
 
 #endif // QTINTERACTIONDELEGATEWIDGET_H

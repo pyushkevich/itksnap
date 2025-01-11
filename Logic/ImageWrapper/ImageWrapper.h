@@ -42,7 +42,6 @@
 #include <itkVectorImage.h>
 #include <itkRGBAPixel.h>
 #include "DisplayMappingPolicy.h"
-#include "DisplaySlicePipelineContainer.h"
 #include <itkSimpleDataObjectDecorator.h>
 #include <array>
 #include <vector>

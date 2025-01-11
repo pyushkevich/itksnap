@@ -3,6 +3,8 @@
 
 #include "SNAPCommon.h"
 #include "GenericSliceRenderer.h"
+#include "GenericSliceNewRenderer.h"
+
 
 class SnakeROIModel;
 
@@ -24,5 +26,26 @@ protected:
 
   SnakeROIModel *m_Model;
 };
+
+
+class SnakeROINewRenderer : public SliceNewRendererDelegate
+{
+public:
+  irisITKObjectMacro(SnakeROINewRenderer, SliceNewRendererDelegate)
+
+  void RenderOverTiledLayer(AbstractNewRenderContext *context,
+                            ImageWrapperBase         *base_layer,
+                            const SubViewport        &vp) override;
+
+  irisGetSetMacro(Model, SnakeROIModel *)
+
+protected:
+  SnakeROINewRenderer() {}
+  virtual ~SnakeROINewRenderer() {}
+
+
+  SnakeROIModel *m_Model;
+};
+
 
 #endif // SNAKEROIRENDERER_H

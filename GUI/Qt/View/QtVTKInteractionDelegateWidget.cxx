@@ -3,8 +3,8 @@
 #include "QtVTKRenderWindowBox.h"
 #include <QApplication>
 
-QtVTKInteractionDelegateWidget::QtVTKInteractionDelegateWidget(QWidget *parent) :
-    QtInteractionDelegateWidget(parent)
+QtVTKInteractionDelegateWidget::QtVTKInteractionDelegateWidget(QWidget *parent, QWidget *canvasWidget) :
+    QtInteractionDelegateWidget(parent, canvasWidget)
 {
 }
 
@@ -36,7 +36,7 @@ void QtVTKInteractionDelegateWidget::mousePressEvent(QMouseEvent *ev)
     m_VTKInteractor->MiddleButtonPressEvent();
 
   // TODO: why do we need to force this?
-  this->GetParentGLWidget()->update();
+  this->m_CanvasWidget->update();
 }
 
 void QtVTKInteractionDelegateWidget::mouseReleaseEvent(QMouseEvent *ev)
@@ -53,7 +53,7 @@ void QtVTKInteractionDelegateWidget::mouseReleaseEvent(QMouseEvent *ev)
     m_VTKInteractor->MiddleButtonReleaseEvent();
 
   // TODO: why do we need to force this?
-  this->GetParentGLWidget()->update();
+  this->m_CanvasWidget->update();
 }
 
 void QtVTKInteractionDelegateWidget::mouseMoveEvent(QMouseEvent *ev)
@@ -63,7 +63,7 @@ void QtVTKInteractionDelegateWidget::mouseMoveEvent(QMouseEvent *ev)
   m_VTKInteractor->MouseMoveEvent();
 
   // TODO: why do we need to force this?
-  this->GetParentGLWidget()->update();
+  this->m_CanvasWidget->update();
 }
 
 void QtVTKInteractionDelegateWidget::SetVTKInteractor(vtkRenderWindowInteractor *iren)

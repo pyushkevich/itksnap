@@ -55,10 +55,10 @@ class ImageCoordinateTransform;
 using itk::DataObjectDecorator;
 using itk::ProcessObject;
 
-namespace itk {
-template<typename TParametersValueType,
-          unsigned int NInputDimensions,
-          unsigned int NOutputDimensions> class Transform;
+namespace itk
+{
+template <typename TParametersValueType, unsigned int NInputDimensions, unsigned int NOutputDimensions>
+class Transform;
 }
 
 
@@ -68,30 +68,29 @@ template<typename TParametersValueType,
  * pipeline is a 3D image, and it will generate slices for selected time points
  */
 template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
-class AdaptiveSlicingPipeline
-    : public itk::ImageToImageFilter<TInputImage, TOutputImage>
+class AdaptiveSlicingPipeline : public itk::ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef AdaptiveSlicingPipeline                                        Self;
-  typedef itk::ImageToImageFilter<TInputImage, TOutputImage>       Superclass;
-  typedef itk::SmartPointer<Self>                                     Pointer;
-  typedef itk::SmartPointer<const Self>                          ConstPointer;
+  typedef AdaptiveSlicingPipeline                            Self;
+  typedef itk::ImageToImageFilter<TInputImage, TOutputImage> Superclass;
+  typedef itk::SmartPointer<Self>                            Pointer;
+  typedef itk::SmartPointer<const Self>                      ConstPointer;
 
-  typedef TInputImage                                          InputImageType;
-  typedef typename InputImageType::ConstPointer             InputImagePointer;
-  typedef typename InputImageType::PixelType                   InputPixelType;
-  typedef typename InputImageType::InternalPixelType       InputComponentType;
+  typedef TInputImage                                InputImageType;
+  typedef typename InputImageType::ConstPointer      InputImagePointer;
+  typedef typename InputImageType::PixelType         InputPixelType;
+  typedef typename InputImageType::InternalPixelType InputComponentType;
 
-  typedef TOutputImage                                        OutputImageType;
-  typedef typename OutputImageType::Pointer                OutputImagePointer;
-  typedef typename OutputImageType::PixelType                 OutputPixelType;
-  typedef typename OutputImageType::InternalPixelType     OutputComponentType;
+  typedef TOutputImage                                OutputImageType;
+  typedef typename OutputImageType::Pointer           OutputImagePointer;
+  typedef typename OutputImageType::PixelType         OutputPixelType;
+  typedef typename OutputImageType::InternalPixelType OutputComponentType;
 
-  typedef TPreviewImage                                      PreviewImageType;
-  typedef typename PreviewImageType::Pointer              PreviewImagePointer;
-  typedef typename PreviewImageType::PixelType               PreviewPixelType;
-  typedef typename PreviewImageType::InternalPixelType   PreviewComponentType;
+  typedef TPreviewImage                                PreviewImageType;
+  typedef typename PreviewImageType::Pointer           PreviewImagePointer;
+  typedef typename PreviewImageType::PixelType         PreviewPixelType;
+  typedef typename PreviewImageType::InternalPixelType PreviewComponentType;
 
   // Output slice image dimension, should be 2
   itkStaticConstMacro(SliceDimension, unsigned int, TOutputImage::ImageDimension);
@@ -100,22 +99,22 @@ public:
   itkStaticConstMacro(InputImageDimension, unsigned int, TInputImage::ImageDimension);
 
   /** Slicers */
-  typedef IRISSlicer<TInputImage,TOutputImage,TPreviewImage> OrthogonalSlicerType;
-  typedef NonOrthogonalSlicer<TInputImage,TOutputImage>   NonOrthogonalSlicerType;
+  typedef IRISSlicer<TInputImage, TOutputImage, TPreviewImage> OrthogonalSlicerType;
+  typedef NonOrthogonalSlicer<TInputImage, TOutputImage>       NonOrthogonalSlicerType;
 
   /** Reference space for non-orthogonal slicing */
   typedef typename itk::ImageBase<InputImageDimension> NonOrthogonalSliceReferenceSpace;
 
   /** Transform */
-  typedef ImageCoordinateTransform                     OrthogonalTransformType;
+  typedef ImageCoordinateTransform                                         OrthogonalTransformType;
   typedef itk::Transform<double, InputImageDimension, InputImageDimension> ObliqueTransformType;
 
   /** Some more typedefs. */
-  typedef typename InputImageType::RegionType             InputImageRegionType;
-  typedef typename OutputImageType::RegionType           OutputImageRegionType;
+  typedef typename InputImageType::RegionType  InputImageRegionType;
+  typedef typename OutputImageType::RegionType OutputImageRegionType;
 
   /** Slice index */
-  typedef itk::Index<InputImageDimension>                            IndexType;
+  typedef itk::Index<InputImageDimension> IndexType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self)
@@ -124,8 +123,10 @@ public:
   itkTypeMacro(AdaptiveSlicingPipeline, ImageToImageFilter)
 
   /** Reference image input */
-  itkSetInputMacro(ObliqueReferenceImage, NonOrthogonalSliceReferenceSpace)
-  itkGetInputMacro(ObliqueReferenceImage, NonOrthogonalSliceReferenceSpace)
+  virtual void SetObliqueReferenceImage(const NonOrthogonalSliceReferenceSpace *input);
+  virtual const NonOrthogonalSliceReferenceSpace *GetObliqueReferenceImage() const;
+  // itkSetInputMacro(ObliqueReferenceImage, NonOrthogonalSliceReferenceSpace)
+  // itkGetInputMacro(ObliqueReferenceImage, NonOrthogonalSliceReferenceSpace)
 
   /** Preview image input */
   itkSetInputMacro(PreviewImage, PreviewImageType)
@@ -140,7 +141,7 @@ public:
   itkGetDecoratedObjectInputMacro(ObliqueTransform, ObliqueTransformType)
 
   /** Which slicing pipeline to use */
-  itkSetMacro(UseOrthogonalSlicing, bool)
+  virtual void SetUseOrthogonalSlicing(bool value);
   itkGetMacro(UseOrthogonalSlicing, bool)
 
   /** Get the slice index for the orthogonal slicer */
@@ -160,35 +161,34 @@ public:
   itkGetMacro(ObliqueSlicer, NonOrthogonalSlicerType *)
 
 protected:
-
   AdaptiveSlicingPipeline();
   ~AdaptiveSlicingPipeline();
 
-  virtual void VerifyInputInformation() const ITK_OVERRIDE { }
+  virtual void VerifyInputInformation() const ITK_OVERRIDE {}
 
   virtual void GenerateOutputInformation() ITK_OVERRIDE;
 
   virtual void PropagateRequestedRegion(itk::DataObject *object) ITK_OVERRIDE;
 
-  virtual void CallCopyOutputRegionToInputRegion(
-      InputImageRegionType &destRegion,
-      const OutputImageRegionType &srcRegion) ITK_OVERRIDE;
+  virtual void CallCopyOutputRegionToInputRegion(InputImageRegionType &destRegion,
+                                                 const OutputImageRegionType &srcRegion) ITK_OVERRIDE;
 
   virtual void GenerateData() ITK_OVERRIDE;
 
-  itk::SmartPointer<OrthogonalSlicerType> m_OrthogonalSlicer;
-  itk::SmartPointer<NonOrthogonalSlicerType> m_ObliqueSlicer;
+  itk::SmartPointer<OrthogonalSlicerType>                   m_OrthogonalSlicer;
+  itk::SmartPointer<NonOrthogonalSlicerType>                m_ObliqueSlicer;
+  itk::SmartPointer<const NonOrthogonalSliceReferenceSpace> m_ObliqueReferenceImage;
 
   bool m_UseOrthogonalSlicing;
 
   IndexType m_SliceIndex;
 
-  void MapInputsToSlicers();  
+  void MapInputsToSlicers();
 };
 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "AdaptiveSlicingPipeline.txx"
+#  include "AdaptiveSlicingPipeline.txx"
 #endif
 
 

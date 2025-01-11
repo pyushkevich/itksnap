@@ -25,8 +25,8 @@ void ColorMapInteractionDelegate::mouseDoubleClickEvent(QMouseEvent *)
   m_InspectorWidget->PromptUserForColor();
 }
 
-ColorMapInteractionDelegate::ColorMapInteractionDelegate(QWidget *parent)
-  : QtInteractionDelegateWidget(parent)
+ColorMapInteractionDelegate::ColorMapInteractionDelegate(QWidget *parent, QWidget *canvasWidget)
+  : QtInteractionDelegateWidget(parent, canvasWidget)
 {
   m_Model = NULL;
 }

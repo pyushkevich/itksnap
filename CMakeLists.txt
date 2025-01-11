@@ -621,6 +621,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/UIState.h
   GUI/Model/VoxelChangeReportModel.h
   GUI/Renderer/AbstractRenderer.h
+  GUI/Renderer/AbstractNewRenderer.h
   GUI/Renderer/AbstractVTKRenderer.h
   GUI/Renderer/AbstractVTKSceneRenderer.h
   GUI/Renderer/AnnotationRenderer.h
@@ -629,6 +630,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/DeformationGridRenderer.h
   GUI/Renderer/EdgePreprocessingSettingsRenderer.h
   GUI/Renderer/Generic3DRenderer.h
+  GUI/Renderer/GenericSliceNewRenderer.h
   GUI/Renderer/GenericSliceContextItem.h
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/GMMRenderer.h
@@ -788,6 +790,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtFlowLayout.h
   GUI/Qt/Components/QtHideOnDeactivateContainer.h
   GUI/Qt/Components/QtIPCManager.h
+  GUI/Qt/Components/QPainterNewRenderContext.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/RecentHistoryItemsView.h
@@ -1236,14 +1239,7 @@ ENDIF(WIN32)
 SET(SNAP_BUNDLE_NAME ITK-SNAP)
 
 # Configure the executable's sources and libraries
-ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC}
-  .clang-format
-  GUI/Qt/Coupling/QtMenuCoupling.h
-  GUI/Renderer/GenericSliceNewRenderer.h
-  GUI/Renderer/AbstractNewRenderer.h
-  GUI/Renderer/GenericSliceNewRenderer.cxx
-  GUI/Qt/Components/QPainterNewRenderContext.h
-  Logic/ImageWrapper/DisplaySlicePipelineContainer.h)
+ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 

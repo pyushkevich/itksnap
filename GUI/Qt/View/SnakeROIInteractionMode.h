@@ -14,7 +14,7 @@ class SnakeROIInteractionMode : public SliceWindowInteractionDelegateWidget
   Q_OBJECT
 
 public:
-  explicit SnakeROIInteractionMode(GenericSliceView *parent = NULL);
+  explicit SnakeROIInteractionMode(QWidget *parent, QWidget *canvasWidget);
   ~SnakeROIInteractionMode();
 
   irisGetMacro(Renderer, SnakeROIRenderer *)

@@ -83,6 +83,11 @@ public:
   // indexed by the enum UIElementFeatures
   void SetValid(const int validity[]);
 
+  /**
+   * Copy settings from another appearance element
+   */
+  void Copy(const OpenGLAppearanceElement *other);
+
 protected:
 
   typedef ConcretePropertyModel<int, LineTypeDomain> ConcreteLineTypeModel;

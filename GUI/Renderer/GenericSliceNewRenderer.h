@@ -28,10 +28,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <GenericSliceModel.h>
 #include <ImageWrapper.h>
-#include <list>
 #include <map>
+#include <list>
 #include <LayerAssociation.h>
 #include "AbstractNewRenderer.h"
+
+class SliceNewRendererDelegate : public AbstractModel
+{
+public:
+  irisITKAbstractObjectMacro(SliceNewRendererDelegate, AbstractModel)
+  FIRES(ModelUpdateEvent)
+
+  using SubViewport = SliceViewportLayout::SubViewport;
+
+  void SetModel(GenericSliceModel *model);
+
+  /**
+   * This method should be overridden by child class to perform drawing on the
+   * whole slice window. The render context will have the transform set to
+   * use the viewport coordinate
+   */
+  virtual void RenderOverMainViewport(AbstractNewRenderContext *context) {};
+
+  /**
+   * This method should be overridden by child class to perform drawing on a
+   * specific tiled layer. The render context will have the transform set to
+   * use the slice coordinate system
+   */
+  virtual void RenderOverTiledLayer(AbstractNewRenderContext *context,
+                                    ImageWrapperBase         *base_layer,
+                                    const SubViewport        &vp) {};
+};
+
 
 class GenericSliceNewRenderer : public AbstractNewRenderer
 {
@@ -43,12 +71,6 @@ public:
   void SetModel(GenericSliceModel *model);
 
   irisGetMacro(Model, GenericSliceModel *)
-
-  /** This flag is on while the zoom thumbnail is being painted */
-  // irisIsMacro(DrawingZoomThumbnail)
-
-  /** This flag is on while the layer thumbnail is being painted */
-  // irisIsMacro(DrawingLayerThumbnail)
 
   // Viewport object
   typedef SliceViewportLayout::SubViewport ViewportType;
@@ -63,12 +85,13 @@ public:
   // underlying paint engine.
   virtual void Render(AbstractNewRenderContext *context) override;
 
-  // typedef std::list<SliceRendererDelegate *> RendererDelegateList;
+  typedef std::list<SliceNewRendererDelegate *> RendererDelegateList;
 
   // Get a reference to the list of overlays stored in here
-  // const RendererDelegateList &GetDelegates() const { return m_Delegates; }
+  const RendererDelegateList &GetDelegates() const { return m_Delegates; }
 
-  // void SetDelegates(const RendererDelegateList &ovl);
+  /** Set the array of delegates who perform overlay rendering tasks */
+  void SetDelegates(const RendererDelegateList &ovl);
 
   // A callback for when the model is reinitialized
   // void OnModelReinitialize();
@@ -87,34 +110,6 @@ protected:
 
   void OnUpdate() override;
 
-  // Get a layer assembly for a layer
-  // BaseLayerAssembly *GetBaseLayerAssembly(ImageWrapperBase *wrapper);
-
-  /*
-  // Update the renderer layout in response to a change in tiling
-  void UpdateRendererLayout();
-
-  // Update the renderer model/view matrices in response to zooming or panning
-  void UpdateRendererCameras();
-
-  // Update the appearance of various props in the scene
-  void UpdateLayerApperances();
-
-  // Update the z-position of various layers
-  void UpdateLayerDepth();
-
-  // Update the zoom pan thumbnail appearance
-  void UpdateZoomPanThumbnail();
-
-  // Update the tiled overlay context scene contents for one of the tiles
-  void UpdateTiledOverlayContextSceneItems(ImageWrapperBase *wrapper);
-
-  // Update the tiled overlay context scene transform for one of the tiles
-  void UpdateTiledOverlayContextSceneTransform(ImageWrapperBase *wrapper);
-
-  bool IsTiledMode() const;
-*/
-
   GenericSliceModel *m_Model = nullptr;
 
   // Whether rendering to thumbnail or not
@@ -126,14 +121,8 @@ protected:
   // The index of the viewport that is currently being drawn - for use in child renderers
   int m_DrawingViewportIndex;
 
-  /*
-
   // A list of overlays that the user can configure
   RendererDelegateList m_Delegates;
-
-  void UpdateSceneAppearanceSettings();
-
-*/
 
   using Texture = AbstractNewRenderContext::Texture;
   struct TextureInfo

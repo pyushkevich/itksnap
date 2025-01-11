@@ -17,7 +17,7 @@ class PolygonDrawingInteractionMode : public SliceWindowInteractionDelegateWidge
   Q_OBJECT
 
 public:
-  explicit PolygonDrawingInteractionMode(GenericSliceView *parent = 0);
+  explicit PolygonDrawingInteractionMode(QWidget *parent, QWidget *canvasWidget);
   ~PolygonDrawingInteractionMode();
 
   irisGetMacro(Model, PolygonDrawingModel *)
@@ -26,13 +26,13 @@ public:
   irisGetMacro(Renderer, PolygonDrawingRenderer *)
 
 
-  void mousePressEvent(QMouseEvent *ev);
-  void mouseMoveEvent(QMouseEvent *ev);
-  void mouseReleaseEvent(QMouseEvent *ev);
-  void enterEvent(QEvent *);
-  void leaveEvent(QEvent *);
+  virtual void mousePressEvent(QMouseEvent *ev) override;
+  virtual void mouseMoveEvent(QMouseEvent *ev) override;
+  virtual void mouseReleaseEvent(QMouseEvent *ev) override;
+  virtual void enterEvent(QEnterEvent *) override;
+  virtual void leaveEvent(QEvent *) override;
 
-  void contextMenuEvent(QContextMenuEvent *);
+  virtual void contextMenuEvent(QContextMenuEvent *) override;
 
 signals:
 
@@ -50,7 +50,7 @@ public slots:
   void onUndoLastPoint();
   void onCancelDrawing();
 
-  void onModelUpdate(const EventBucket &bucket);
+  void onModelUpdate(const EventBucket &bucket) override;
 
 
 protected:

@@ -4,13 +4,10 @@
 #include "PaintbrushModel.h"
 #include "SliceViewPanel.h"
 
-PaintbrushInteractionMode::PaintbrushInteractionMode(GenericSliceView *parent)
-  : SliceWindowInteractionDelegateWidget(parent)
+PaintbrushInteractionMode::PaintbrushInteractionMode(QWidget *parent, QWidget *canvasWidget)
+  : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
   m_Renderer = PaintbrushRenderer::New();
-  m_Renderer->SetParentRenderer(
-        static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
-
   m_Model = NULL;
 }
 
@@ -41,7 +38,6 @@ void PaintbrushInteractionMode::mousePressEvent(QMouseEvent *ev)
 void PaintbrushInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 {
   ev->ignore();
-
   if(this->isDragging())
     {
     if(m_Model->ProcessDragEvent(
@@ -68,20 +64,17 @@ void PaintbrushInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
     }
 }
 
-void PaintbrushInteractionMode::enterEvent(QEvent *)
+void PaintbrushInteractionMode::enterEvent(QEnterEvent *)
 {
-  // TODO: this is hideous!
-  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
-  panel->SetMouseMotionTracking(true);
+  this->setMouseMotionTracking(true);
 }
 
 void PaintbrushInteractionMode::leaveEvent(QEvent *)
 {
-  SliceViewPanel *panel = m_ParentView->FindParentOfType<SliceViewPanel>();
-  panel->SetMouseMotionTracking(false);
+  this->setMouseMotionTracking(false);
 
   // This fixes a crash when you press quit in paintbrush mode
-  if(panel->isVisible())
+  if(isClientVisible())
     m_Model->ProcessMouseLeaveEvent();
 }
 

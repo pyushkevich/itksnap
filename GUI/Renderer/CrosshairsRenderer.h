@@ -30,6 +30,8 @@
 #include "SNAPCommon.h"
 #include "GenericSliceRenderer.h"
 #include "GenericSliceContextItem.h"
+#include "GenericSliceNewRenderer.h"
+
 
 class OrthogonalSliceCursorNavigationModel;
 class GenericSliceRenderer;
@@ -51,6 +53,25 @@ protected:
   virtual ~CrosshairsRenderer() {}
 
   OrthogonalSliceCursorNavigationModel *m_Model;
+};
+
+
+class CrosshairsNewRenderer : public SliceNewRendererDelegate
+{
+public:
+  irisITKObjectMacro(CrosshairsNewRenderer, SliceNewRendererDelegate)
+
+  void RenderOverTiledLayer(AbstractNewRenderContext *context,
+                            ImageWrapperBase         *base_layer,
+                            const SubViewport        &vp) override;
+
+  irisGetSetMacro(Model, GenericSliceModel *)
+
+protected:
+  CrosshairsNewRenderer() {}
+  virtual ~CrosshairsNewRenderer() {}
+
+  GenericSliceModel *m_Model;
 };
 
 #endif // CROSSHAIRSRENDERER_H

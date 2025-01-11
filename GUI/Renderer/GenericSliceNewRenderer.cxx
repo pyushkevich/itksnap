@@ -43,20 +43,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "AdaptiveSlicingPipeline.h"
 
-itk::ModifiedTimeType check_pipeline_mtime(itk::DataObject *object)
+itk::ModifiedTimeType
+check_pipeline_mtime(itk::DataObject *object)
 {
   auto latest_ts = object->GetMTime();
   auto src = object->GetSource();
-  if(src)
+  if (src)
   {
-    if(src->GetMTime() > latest_ts)
+    if (src->GetMTime() > latest_ts)
       latest_ts = src->GetMTime();
 
-    for(auto input : src->GetInputs())
+    for (auto input : src->GetInputs())
     {
-      auto in_ts = check_pipeline_mtime(input);
-      if(in_ts > latest_ts)
-        latest_ts = in_ts;
+      if (input)
+      {
+        auto in_ts = check_pipeline_mtime(input);
+        if (in_ts > latest_ts)
+          latest_ts = in_ts;
+      }
     }
   }
   return latest_ts;
@@ -67,30 +71,32 @@ check_pipeline_mtime_detail(itk::DataObject      *object,
                             itk::ModifiedTimeType thresh = 0,
                             std::string           indent = "")
 {
-  if(thresh == 0)
+  if (thresh == 0)
   {
     thresh = object->GetMTime();
     std::cout << indent.c_str() << "t(endpoint): " << thresh << std::endl;
   }
   std::string my_indent = std::string("  ") + indent;
-  auto src = object->GetSource();
-  if(src)
+  auto        src = object->GetSource();
+  if (src)
   {
-    if(src->GetMTime() > thresh)
+    if (src->GetMTime() > thresh)
     {
       std::cout << my_indent.c_str() << "t(PipelineObject): " << src->GetMTime() << std::endl;
       src->Print(std::cout, my_indent.size() + 4);
     }
 
-    for(auto input : src->GetInputs())
+    for (auto input : src->GetInputs())
     {
-      if(input->GetMTime() > thresh)
+      if (input)
       {
-        std::cout << my_indent.c_str() << "t(DataObject): " << input->GetMTime() << std::endl;
-        input->Print(std::cout, my_indent.size() + 4);
+        if (input->GetMTime() > thresh)
+        {
+          std::cout << my_indent.c_str() << "t(DataObject): " << input->GetMTime() << std::endl;
+          input->Print(std::cout, my_indent.size() + 4);
+        }
+        check_pipeline_mtime_detail(input, thresh, my_indent);
       }
-
-      check_pipeline_mtime_detail(input, thresh, my_indent);
     }
   }
 }
@@ -207,6 +213,11 @@ GenericSliceNewRenderer::GetTexture(AbstractNewRenderContext *context,
 
       // Get the display slice that we will render as the base layer
       auto rgba = layer->GetDisplaySlice(DisplaySliceIndex(m_Model->GetId(), intent));
+
+      // CODE below can be used to check what caused pipeline update
+      // auto pipe_mtime = check_pipeline_mtime(rgba);
+      // if(pipe_mtime > rgba->GetMTime())
+      //   check_pipeline_mtime_detail(rgba, rgba->GetMTime(), "  ");
 
       // Update the display slice
       auto ts_before = rgba->GetMTime();
@@ -340,6 +351,7 @@ GenericSliceNewRenderer::Render(AbstractNewRenderContext *context)
 
   // Are we doing linear interpolation?
   bool global_linear_mode = gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR;
+  double vppr = m_Model->GetSizeReporter()->GetViewportPixelRatio();
 
   // Here we need to keep track of the selected segmentation layer, other segmentation
   // layers should not be rendered
@@ -368,7 +380,10 @@ GenericSliceNewRenderer::Render(AbstractNewRenderContext *context)
     context->PushMatrix();
 
     // Set the viewport
-    context->SetViewport(vp.pos[0], vp.pos[1], vp.size[0], vp.size[1]);
+    // TODO: Currently these Viewports are reported scaled to physical pixel units
+    // on high DPI displays. In the future we should change this behavior to use
+    // logical pixel units. For now we account for this by hand
+    context->SetViewport(vp.pos[0] / vppr, vp.pos[1] / vppr, vp.size[0] / vppr, vp.size[1] / vppr);
     context->SetLogicalWindow(0, 0, vp.size[0], vp.size[1]);
 
     // Apply transforms
@@ -414,13 +429,13 @@ GenericSliceNewRenderer::Render(AbstractNewRenderContext *context)
     {
       // The element used for highlighting thumbnails
       if (is_selected && is_hover)
-        context->SetPen(*as->GetUIElement(
+        context->SetPenAppearance(*as->GetUIElement(
           SNAPAppearanceSettings::LAYER_THUMBNAIL_SELECTED_AND_HOVER));
       else if (is_selected)
-        context->SetPen(
+        context->SetPenAppearance(
           *as->GetUIElement(SNAPAppearanceSettings::LAYER_THUMBNAIL_SELECTED));
       else if (is_hover)
-        context->SetPen(
+        context->SetPenAppearance(
           *as->GetUIElement(SNAPAppearanceSettings::LAYER_THUMBNAIL_HOVER));
 
       context->PushMatrix();
@@ -429,29 +444,9 @@ GenericSliceNewRenderer::Render(AbstractNewRenderContext *context)
       context->PopMatrix();
     }
 
-    // Draw cursor on this image
-    // Get the current cursor position
-    Vector3ui xCursorInteger = m_Model->GetDriver()->GetCursorPosition();
-
-    // Shift the cursor position by by 0.5 in order to have it appear
-    // between voxels
-    Vector3d xCursorImage = to_double(xCursorInteger) + Vector3d(0.5);
-
-    // Get the cursor position on the slice
-    Vector3d pos = m_Model->MapImageToSlice(xCursorImage);
-
-    // Upper and lober bounds to which the crosshairs are drawn
-    Vector2i lower(0);
-    Vector2i upper = m_Model->GetSliceSize().extract(2);
-
-    // Apply the color
-    context->SetPen(*as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS));
-
-    // Draw the four cross-hair pieces
-    context->DrawLine(pos[0], pos[1], lower[0], pos[1]);
-    context->DrawLine(pos[0], pos[1], upper[0], pos[1]);
-    context->DrawLine(pos[0], pos[1], pos[0], lower[1]);
-    context->DrawLine(pos[0], pos[1], pos[0], upper[1]);
+    // Render the various overlays (called delegates) for this tile
+    for(auto *del : m_Delegates)
+      del->RenderOverTiledLayer(context, layer, vp);
 
     // Restore the matrix
     context->PopMatrix();
@@ -459,7 +454,7 @@ GenericSliceNewRenderer::Render(AbstractNewRenderContext *context)
 
   // Set the viewport to the full viewport
   Vector2ui vp_full = m_Model->GetSizeReporter()->GetViewportSize();
-  context->SetViewport(0, 0, vp_full[0], vp_full[1]);
+  context->SetViewport(0, 0, vp_full[0] / vppr, vp_full[1] / vppr);
   context->SetLogicalWindow(0, 0, vp_full[0], vp_full[1]);
 
   if(as->GetOverallVisibility())
@@ -509,7 +504,7 @@ GenericSliceNewRenderer::Render(AbstractNewRenderContext *context)
         }
 
         // Draw the outline of the thumbnail
-        context->SetPen(*eltThumb);
+        context->SetPenAppearance(*eltThumb);
         context->DrawRect(0, 0, w_main, h_main);
 
         // Undo the scaling by spacing
@@ -522,14 +517,24 @@ GenericSliceNewRenderer::Render(AbstractNewRenderContext *context)
           context->Translate(v_pos[0], v_pos[1]);
           double w_vp = m_Model->GetCanvasSize()[0] * 0.5 / m_Model->GetViewZoom();
           double h_vp = m_Model->GetCanvasSize()[1] * 0.5 / m_Model->GetViewZoom();
-          context->SetPen(*eltViewport);
+          context->SetPenAppearance(*eltViewport);
           context->DrawRect(-w_vp, -h_vp, 2 * w_vp, 2 * h_vp);
         }
 
         context->PopMatrix();
       }
     }
+
+    // Render the various overlays (called delegates) for this tile
+    for (auto *del : m_Delegates)
+      del->RenderOverMainViewport(context);
   }
+}
+
+void
+GenericSliceNewRenderer::SetDelegates(const RendererDelegateList &ovl)
+{
+  m_Delegates = ovl;
 }
 
 void

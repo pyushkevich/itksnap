@@ -39,7 +39,7 @@ class RegistrationInteractionMode : public SliceWindowInteractionDelegateWidget
   Q_OBJECT
 
 public:
-  explicit RegistrationInteractionMode(GenericSliceView *parent = NULL);
+  explicit RegistrationInteractionMode(QWidget *parent, QWidget *canvasWidget);
   ~RegistrationInteractionMode();
 
   void SetModel(InteractiveRegistrationModel *model);

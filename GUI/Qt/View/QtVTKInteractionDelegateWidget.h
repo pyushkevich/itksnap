@@ -14,7 +14,7 @@ class QtVTKInteractionDelegateWidget : public QtInteractionDelegateWidget
 {
   Q_OBJECT
 public:
-  explicit QtVTKInteractionDelegateWidget(QWidget *parent = 0);
+  explicit QtVTKInteractionDelegateWidget(QWidget *parent, QWidget *canvasWidget);
 
   void mousePressEvent(QMouseEvent *);
   void mouseReleaseEvent(QMouseEvent *);

@@ -1,7 +1,6 @@
 #ifndef DISPLAYMAPPINGPOLICY_H
 #define DISPLAYMAPPINGPOLICY_H
 
-#include "DisplaySlicePipelineContainer.h"
 #include "ImageWrapperBase.h"
 #include "MeshWrapperBase.h"
 #include "itkDataObject.h"

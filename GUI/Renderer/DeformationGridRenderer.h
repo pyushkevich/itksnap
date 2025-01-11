@@ -4,6 +4,7 @@
 #include "GenericSliceRenderer.h"
 #include "GenericSliceContextItem.h"
 #include "DeformationGridModel.h"
+#include "GenericSliceNewRenderer.h"
 
 class vtkPoints2D;
 
@@ -47,5 +48,33 @@ protected:
 
   DeformationGridModel *m_Model;
 };
+
+
+class DeformationGridNewRenderer : public SliceNewRendererDelegate
+{
+public:
+  using Path2D = typename AbstractNewRenderContext::Path2D;
+
+  irisITKObjectMacro(DeformationGridNewRenderer, SliceNewRendererDelegate)
+
+  void RenderOverTiledLayer(AbstractNewRenderContext *context,
+                            ImageWrapperBase         *base_layer,
+                            const SubViewport        &vp) override;
+
+  irisGetSetMacro(Model, DeformationGridModel *)
+
+protected:
+  DeformationGridNewRenderer();
+  virtual ~DeformationGridNewRenderer() {}
+
+  void AddLine(AbstractNewRenderContext *context,
+               Path2D *path,
+               std::vector<double> &verts,
+               size_t skip, size_t l, size_t nv, bool reverse);
+
+
+  DeformationGridModel *m_Model;
+};
+
 
 #endif // DEFORMATIONGRIDRENDERER_H

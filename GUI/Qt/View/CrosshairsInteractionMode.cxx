@@ -35,15 +35,11 @@
 #include <QSwipeGesture>
 #include <QApplication>
 
-CrosshairsInteractionMode::CrosshairsInteractionMode(GenericSliceView *parent) :
-    SliceWindowInteractionDelegateWidget(parent)
+CrosshairsInteractionMode::CrosshairsInteractionMode(QWidget *parent, QWidget *canvasWidget)
+  : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
   // Create the renderer
   m_Renderer = CrosshairsRenderer::New();
-  m_Renderer->SetParentRenderer(
-          static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
-
-
   m_WheelEventTarget = NULL;
   m_Model = NULL;
 
@@ -236,10 +232,11 @@ void CrosshairsInteractionMode::keyPressEvent(QKeyEvent *ev)
   ev->accept();
 }
 
-void CrosshairsInteractionMode::enterEvent(QEvent *)
+void
+CrosshairsInteractionMode::enterEvent(QEnterEvent *)
 {
   // Respond to standard gestures
-  this->m_ParentView->grabGesture(Qt::PinchGesture);
+  grabGesture(Qt::PinchGesture);
   // this->m_ParentView->grabGesture(Qt::PanGesture);
   // this->m_ParentView->grabGesture(Qt::SwipeGesture);
 }

@@ -7,6 +7,7 @@
 #include <QPainterPath>
 #include <QPainter>
 #include <QDebug>
+#include <QFontDatabase>
 
 class QPainterNewRenderContextTexture : public AbstractNewRenderContext::Texture
 {
@@ -102,29 +103,35 @@ public:
   using TexturePtr = AbstractNewRenderContext::TexturePtr;
   using Path2D = AbstractNewRenderContext::Path2D;
   using Path2DPtr = AbstractNewRenderContext::Path2DPtr;
+  using VertexVector = AbstractNewRenderContext::VertexVector;
 
   QPainterNewRenderContext(QPainter &painter) : painter(painter) {}
 
-  virtual Path2DPtr CreateClosedPolygonPath(std::vector<Vector2d> &path) override
+  virtual Path2DPtr CreatePath() override
   {
     // Create the object that will store the path data
     auto wrapper = QPainterNewRenderContextPath2D::New();
-
-    // Create the path from the points supplied
     wrapper->path = new QPainterPath();
-    if (path.size())
-      wrapper->path->moveTo(path.front()[0], path.front()[1]);
-    for (auto &v : path)
-    {
-      if (wrapper->path->isEmpty())
-        wrapper->path->moveTo(v[0], v[1]);
-      else
-        wrapper->path->lineTo(v[0], v[1]);
-    }
     wrapper->Modified();
-
-    // Downcast to generic path2d pointer
     return Path2DPtr(wrapper.GetPointer());
+  }
+
+  virtual void AddPolygonSegmentToPath(Path2D *path, const VertexVector &segment, bool closed) override
+  {
+    // Get the QPainterPath from the passed in pointer
+    auto *wrapper = static_cast<QPainterNewRenderContextPath2D *>(path);
+    auto *p = wrapper->path;
+
+    // Add the segment
+    QPolygonF polygon;
+    for(const auto &pt : segment)
+      polygon << QPointF(pt[0], pt[1]);
+
+    if(closed && segment.size() > 2)
+      polygon << QPointF(segment.front()[0], segment.front()[1]);
+
+    p->addPolygon(polygon);
+    wrapper->Modified();
   }
 
   virtual TexturePtr CreateTexture(RGBAImage *image) override
@@ -171,15 +178,39 @@ public:
     return TexturePtr(new_texture.GetPointer());
   }
 
-  virtual void DrawPath(void *path) override
+  virtual void DrawPath(Path2D *path) override
   {
-    QPainterPath *p = static_cast<QPainterPath *>(path);
+    auto *wrapper = static_cast<QPainterNewRenderContextPath2D *>(path);
+    QPainterPath *p = wrapper->path;
     painter.drawPath(*p);
   }
 
   virtual void DrawLine(double x0, double y0, double x1, double y1) override
   {
     painter.drawLine(QLineF(x0, y0, x1, y1));
+  }
+
+  virtual void DrawLines(const VertexVector &vertex_pairs) override
+  {
+    QList<QPointF> pp;
+    pp.reserve(vertex_pairs.size());
+    for(auto v : vertex_pairs)
+      pp.append(QPointF(v[0], v[1]));
+    painter.drawLines(pp);
+  }
+
+  virtual void DrawPolyLine(const VertexVector &polyline) override
+  {
+    QPolygonF p;
+    p.reserve(polyline.size());
+    for(const auto &v : polyline)
+      p << QPointF(v[0], v[1]);
+    painter.drawPolyline(p);
+  }
+
+  virtual void DrawPoint(double x, double y) override
+  {
+    painter.drawPoint(QPointF(x, y));
   }
 
   virtual void DrawRect(double x, double y, double w, double h) override
@@ -192,20 +223,47 @@ public:
     painter.fillRect(QRectF(x, y, w, h), painter.brush());
   }
 
-  virtual void SetPen(const Vector3d &rgb) override
+  virtual void DrawEllipse(double x, double y, double rx, double ry) override
   {
-    painter.setPen(QColor::fromRgbF(rgb[0], rgb[1], rgb[2]));
+    painter.drawEllipse(QPointF(x,y), rx, ry);
   }
 
-  virtual void SetPen(const OpenGLAppearanceElement &as) override
+  virtual void SetPenColor(const Vector3d &rgb) override
   {
-    // TODO: check deviceratio for width
-    QPen pen;
-    auto c = as.GetColor();
-    pen.setColor(QColor::fromRgbF(c[0], c[1], c[2], as.GetAlpha()));
+    QPen pen = painter.pen();
+    QColor color = pen.color();
+    color.setRgbF(rgb[0], rgb[1], rgb[2], color.alphaF());
+    pen.setColor(color);
+    painter.setPen(pen);
+  }
+
+  virtual void SetPenColor(const Vector3d &rgb, double opacity) override
+  {
+    QPen pen = painter.pen();
+    pen.setColor(QColor::fromRgbF(rgb[0], rgb[1], rgb[2], opacity));
+    painter.setPen(pen);
+  }
+
+  virtual void SetPenOpacity(double alpha) override
+  {
+    QPen pen = painter.pen();
+    QColor color = pen.color();
+    color.setAlphaF(alpha);
+    pen.setColor(color);
+    painter.setPen(pen);
+  }
+
+  virtual void SetPenWidth(double width) override
+  {
+    QPen pen = painter.pen();
+    pen.setWidthF(width * painter.device()->devicePixelRatioF());
     pen.setCosmetic(true);
-    pen.setWidthF(as.GetLineThickness());
-    switch(as.GetLineType())
+    painter.setPen(pen);
+  }
+
+  void SetPenStyleFromVTK(QPen &pen, int vtk_type)
+  {
+    switch(vtk_type)
     {
       case vtkPen::NO_PEN:
         pen.setStyle(Qt::NoPen);
@@ -229,7 +287,24 @@ public:
         pen.setStyle(Qt::SolidLine);
         break;
     }
+  }
 
+  virtual void SetPenLineType(int type) override
+  {
+    QPen pen = painter.pen();
+    SetPenStyleFromVTK(pen, type);
+    painter.setPen(pen);
+  }
+
+  virtual void SetPenAppearance(const OpenGLAppearanceElement &as) override
+  {
+    // TODO: check deviceratio for width
+    QPen pen;
+    auto c = as.GetColor();
+    pen.setColor(QColor::fromRgbF(c[0], c[1], c[2], as.GetAlpha()));
+    pen.setCosmetic(true);
+    pen.setWidthF(as.GetLineThickness() * painter.device()->devicePixelRatioF());
+    SetPenStyleFromVTK(pen, as.GetLineType());
     painter.setPen(pen);
   }
 
@@ -283,12 +358,69 @@ public:
     painter.restore();
   }
 
+  virtual void SetFont(const FontInfo &fi) override
+  {
+    QFont qfont;
+    switch(fi.type)
+    {
+      case AbstractRendererPlatformSupport::SERIF:
+        qfont = QFontDatabase::systemFont(QFontDatabase::GeneralFont); break;
+      case AbstractRendererPlatformSupport::SANS:
+        qfont = QFontDatabase::systemFont(QFontDatabase::GeneralFont); break;
+      case AbstractRendererPlatformSupport::TYPEWRITER:
+        qfont = QFontDatabase::systemFont(QFontDatabase::FixedFont); break;
+    }
+
+    qfont.setPixelSize(fi.pixel_size);
+    qfont.setBold(fi.bold);
+    painter.setFont(qfont);
+  }
+
+  virtual int TextWidth(const std::string &str) override
+  {
+    return painter.fontMetrics().horizontalAdvance(QString::fromUtf8(str.c_str()));
+  }
+
   virtual void DrawText(const std::string &str) override
   {
     painter.setFont(QFont("Arial", 30));
     // QRect rect(0, 0, painter.device()->width(), painter.device()->height());
     // painter.drawText(rect, Qt::AlignCenter, str.c_str());
-    painter.drawText(QPointF(0, 0), str.c_str());
+    painter.drawText(QPointF(0, 0), QString::fromUtf8(str.c_str()));
+  }
+
+  virtual void DrawText(const std::string &text,
+                        double             x,
+                        double             y,
+                        double             w,
+                        double             h,
+                        int                halign,
+                        int                valign) override
+  {
+    int ah = Qt::AlignHCenter, av = Qt::AlignVCenter;
+    switch(halign)
+    {
+      case AbstractRendererPlatformSupport::LEFT    : ah = Qt::AlignLeft;    break;
+      case AbstractRendererPlatformSupport::HCENTER : ah = Qt::AlignHCenter; break;
+      case AbstractRendererPlatformSupport::RIGHT   : ah = Qt::AlignRight;   break;
+    }
+    switch(valign)
+    {
+      case AbstractRendererPlatformSupport::BOTTOM  : av = Qt::AlignBottom;  break;
+      case AbstractRendererPlatformSupport::VCENTER : av = Qt::AlignVCenter; break;
+      case AbstractRendererPlatformSupport::TOP     : av = Qt::AlignTop;     break;
+    }
+
+    QRectF r_tran(x, y, w, h);
+    QRectF r_phys = painter.combinedTransform().mapRect(r_tran);
+    double vpprs = 1.0 / painter.device()->devicePixelRatioF();
+    QRectF r_logi(
+      r_phys.x() * vpprs, r_phys.y() * vpprs, r_phys.width() * vpprs, r_phys.height() * vpprs);
+
+    painter.save();
+    painter.resetTransform();
+    painter.drawText(r_logi, ah | av, QString::fromUtf8(text));
+    painter.restore();
   }
 
   virtual QRect Mirror(const QRect &r)
@@ -363,9 +495,7 @@ public:
 
   virtual void SetViewport(int x, int y, int width, int height) override
   {
-    // painter.setViewport(x, y, width, height);
-    auto dev_h = painter.device()->height();
-
+    auto dev_h = painter.device()->height() / painter.device()->devicePixelRatio();
     painter.setViewport(x, dev_h - y - height, width, height);
   }
 
@@ -390,9 +520,24 @@ public:
     painter.scale(sx, sy);
   }
 
+  virtual void Rotate(double angle_in_degrees) override
+  {
+    painter.rotate(angle_in_degrees);
+  }
+
   virtual void Translate(double tx, double ty) override
   {
     painter.translate(tx, ty);
+  }
+
+  virtual Vector2d MapScreenOffsetToWorldOffset(const Vector2d &offset, bool physical_units = false) override
+  {
+    double scale = physical_units ? 1 : painter.device()->devicePixelRatioF();
+    QPointF s0(0., 0.);
+    QPointF s1(offset[0] * scale, -offset[1] * scale);
+    QPointF w0 = painter.combinedTransform().inverted().map(s0);
+    QPointF w1 = painter.combinedTransform().inverted().map(s1);
+    return Vector2d(w1.x() - w0.x(), w1.y() - w0.y());
   }
 
 protected:

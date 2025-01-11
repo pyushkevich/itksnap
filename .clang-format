@@ -299,13 +299,20 @@ StatementMacros:
   - CLANG_PRAGMA_PUSH
   - CLANG_PRAGMA_POP
   - CLANG_SUPPRESS_Wfloat_equal
+  - FIRES
   - INTEL_PRAGMA_WARN_PUSH
   - INTEL_PRAGMA_WARN_POP
   - INTEL_SUPPRESS_warning_1292
   - itkTemplateFloatingToIntegerMacro
   - itkLegacyMacro
+  - itkNewMacro
+  - itkTypeMacro
   - itkGetMacro
+  - itkGetInputMacro
+  - itkGetDecoratedObjectInputMacro
   - itkSetMacro
+  - itkSetInputMacro
+  - itkSetDecoratedObjectInputMacro
   - itkAssertOrThrowMacro
   - irisGetSetMacro
   - irisGetMacro

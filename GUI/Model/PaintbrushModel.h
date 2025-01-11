@@ -43,7 +43,7 @@ public:
   bool TestInside(const Vector3d &x, const PaintbrushSettings &ps);
 
   // Getter and Setter for brush points
-  irisGetSetMacro(BrushPoints, vtkSmartPointer<vtkPoints2D>)
+  irisGetSetMacro(BrushPoints, std::vector<Vector2d>)
 
 protected:
 
@@ -76,7 +76,7 @@ protected:
   BrushWatershedPipeline *m_Watershed;
 
   // Stores the brush points built by the renderer
-  vtkSmartPointer<vtkPoints2D> m_BrushPoints;
+  std::vector<Vector2d> m_BrushPoints;
 
   // Apply brush logic if main is transformed
   // Returns true if changes were made

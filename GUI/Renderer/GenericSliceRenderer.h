@@ -65,8 +65,6 @@ class SliceRendererDelegate : public AbstractRenderer
 public:
   virtual ~SliceRendererDelegate() {}
 
-  irisGetSetMacro(ParentRenderer, GenericSliceRenderer *)
-
   /**
    * This method should be overridden by child class to add any context items
    * that should be displayed on top of the tiled images to the ContextScene.
@@ -86,9 +84,6 @@ public:
    */
   virtual void AddContextItemsToGlobalOverlayScene(vtkContextScene *) {}
 
-
-protected:
-  GenericSliceRenderer *m_ParentRenderer;
 };
 
 class GenericSliceRenderer : public AbstractVTKRenderer

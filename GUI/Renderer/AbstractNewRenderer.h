@@ -36,6 +36,9 @@ public:
   using Path2DPtr = SmartPtr<Path2D>;
   using Texture = NewRenderOptimizedDataset<TextureTraits>;
   using TexturePtr = SmartPtr<Texture>;
+  using FontInfo = AbstractRendererPlatformSupport::FontInfo;
+
+  using VertexVector = std::vector<Vector2d>;
 
   // Composition modes
   enum CompositionMode {
@@ -95,12 +98,17 @@ public:
                                      double   opacity) = 0;
 
   // Path creation and use
-  virtual Path2DPtr  CreateClosedPolygonPath(std::vector<Vector2d> &path) = 0;
-  virtual void DrawPath(void *path) = 0;
+  virtual Path2DPtr CreatePath() = 0;
+  virtual void AddPolygonSegmentToPath(Path2D *path, const VertexVector &segment, bool closed) = 0;
+  virtual void DrawPath(Path2D *path) = 0;
 
   // Pen and brush functions
-  virtual void SetPen(const Vector3d &rgb) = 0;
-  virtual void SetPen(const OpenGLAppearanceElement &as) = 0;
+  virtual void SetPenColor(const Vector3d &rgb) = 0;
+  virtual void SetPenColor(const Vector3d &rgb, double alpha) = 0;
+  virtual void SetPenOpacity(double alpha) = 0;
+  virtual void SetPenWidth(double width) = 0;
+  virtual void SetPenLineType(int type) = 0;
+  virtual void SetPenAppearance(const OpenGLAppearanceElement &as) = 0;
 
   // Set brush functions
   virtual void SetBrush(const Vector3d &rgb, double alpha = 1.0) = 0;
@@ -110,11 +118,24 @@ public:
   // Basic drawing functions
   virtual void FillViewport(const Vector3d &rgb) = 0;
   virtual void DrawLine(double x0, double y0, double x1, double y1) = 0;
+  virtual void DrawLines(const VertexVector &vertex_pairs) = 0;
+  virtual void DrawPolyLine(const VertexVector &polyline) = 0;
   virtual void FillRect(double x, double y, double w, double h) = 0;
   virtual void DrawRect(double x, double y, double w, double h) = 0;
+  virtual void DrawPoint(double x, double y) = 0;
+  virtual void DrawEllipse(double x, double y, double rx, double ry) = 0;
 
   // Text functions
+  virtual void SetFont(const FontInfo &fi) = 0;
+  virtual int TextWidth(const std::string &str) = 0;
   virtual void DrawText(const std::string &str) = 0;
+  virtual void DrawText(const std::string &text,
+                        double             x,
+                        double             y,
+                        double             w,
+                        double             h,
+                        int                halign,
+                        int                valign) = 0;
 
   // Transform functions
   virtual void PushMatrix() = 0;
@@ -122,10 +143,15 @@ public:
   virtual void LoadIdentity() = 0;
   virtual void Scale(double sx, double sy) = 0;
   virtual void Translate(double sx, double sy) = 0;
+  virtual void Rotate(double angle_in_degrees) = 0;
 
   // Viewport and window control
   virtual void SetViewport(int x, int y, int width, int height) = 0;
   virtual void SetLogicalWindow(int x, int y, int width, int height) = 0;
+
+  // Transform support functions
+  virtual Vector2d MapScreenOffsetToWorldOffset(const Vector2d &offset,
+                                                bool            physical_units = false) = 0;
 };
 
 class AbstractNewRenderer : public AbstractRenderer

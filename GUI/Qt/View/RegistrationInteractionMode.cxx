@@ -28,14 +28,12 @@
 #include "InteractiveRegistrationModel.h"
 #include "GenericSliceView.h"
 
-RegistrationInteractionMode::RegistrationInteractionMode(GenericSliceView *parent)
-  : SliceWindowInteractionDelegateWidget(parent),
-    m_Model(NULL)
+RegistrationInteractionMode::RegistrationInteractionMode(QWidget *parent, QWidget *canvasWidget)
+  : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
+  , m_Model(NULL)
 {
   // Create the renderer
   m_Renderer = RegistrationRenderer::New();
-  m_Renderer->SetParentRenderer(
-        static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
 }
 
 RegistrationInteractionMode::~RegistrationInteractionMode()

@@ -111,3 +111,44 @@ void CrosshairsRenderer::AddContextItemsToTiledOverlay(
     }
 }
 
+
+void
+CrosshairsNewRenderer::RenderOverTiledLayer(AbstractNewRenderContext *context,
+                                            ImageWrapperBase         *base_layer,
+                                            const SubViewport        &vp)
+{
+  SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
+
+  // Get the line color, thickness and dash spacing for the crosshairs
+  OpenGLAppearanceElement *elt = vp.isThumbnail
+                                   ? as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_THUMB)
+                                   : as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
+
+  // Exit if the crosshars are not drawn
+  if(elt->GetVisible() && !vp.isThumbnail)
+  {
+    // Draw cursor on this image
+    // Get the current cursor position
+    Vector3ui xCursorInteger = m_Model->GetDriver()->GetCursorPosition();
+
+    // Shift the cursor position by by 0.5 in order to have it appear
+    // between voxels
+    Vector3d xCursorImage = to_double(xCursorInteger) + Vector3d(0.5);
+
+    // Get the cursor position on the slice
+    Vector3d pos = m_Model->MapImageToSlice(xCursorImage);
+
+    // Upper and lober bounds to which the crosshairs are drawn
+    Vector2i lower(0);
+    Vector2i upper = m_Model->GetSliceSize().extract(2);
+
+    // Apply the color
+    context->SetPenAppearance(*as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS));
+
+    // Draw the four cross-hair pieces
+    context->DrawLine(pos[0], pos[1], lower[0], pos[1]);
+    context->DrawLine(pos[0], pos[1], upper[0], pos[1]);
+    context->DrawLine(pos[0], pos[1], pos[0], lower[1]);
+    context->DrawLine(pos[0], pos[1], pos[0], upper[1]);
+  }
+}

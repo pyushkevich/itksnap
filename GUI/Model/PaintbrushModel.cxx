@@ -379,20 +379,14 @@ PaintbrushModel
 ::ApplyBrushByPolygonRasterization(bool reverse_mode, bool dragging)
 {
   // build 2d vertices
-  std::vector<Vector2d> vts2d;
-  auto np = m_BrushPoints->GetNumberOfPoints();
+  std::vector<Vector2d> vts2d = m_BrushPoints;
   Vector3d ctr = GetCenterOfPaintbrushInSliceSpace();
 
-  for (int i = 0; i < np; ++i)
-    {
-    double v[2];
-    m_BrushPoints->GetPoint(i, v);
-    // translate to center of pixel
+  for(auto &v : vts2d)
+  {
     v[0] += ctr[0];
     v[1] += ctr[1];
-
-    vts2d.push_back(Vector2d(v[0], v[1]));
-    }
+  }
 
   // run voxelization code
   m_Parent->Voxelize2DPolygonToSegmentationSlice(vts2d, "Oblique Paintbrush Update",
