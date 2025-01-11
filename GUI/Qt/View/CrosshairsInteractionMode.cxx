@@ -237,12 +237,17 @@ CrosshairsInteractionMode::enterEvent(QEnterEvent *)
 {
   // Respond to standard gestures
   grabGesture(Qt::PinchGesture);
+
+  // Grab keyboard focus
+  this->m_CanvasWidget->setFocus();
+
   // this->m_ParentView->grabGesture(Qt::PanGesture);
   // this->m_ParentView->grabGesture(Qt::SwipeGesture);
 }
 
 void CrosshairsInteractionMode::leaveEvent(QEvent *)
 {
+  this->m_CanvasWidget->clearFocus();
   // Stop responding to gestures
   // this->ungrabGesture(Qt::PinchGesture);
 }

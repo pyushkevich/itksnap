@@ -1827,7 +1827,7 @@ void MainImageWindow::ExportScreenshot(int panelIndex)
   else
     {
     SliceViewPanel *svp = reinterpret_cast<SliceViewPanel *>(m_ViewPanels[panelIndex]);
-    svp->GetSliceView()->SaveScreenshot(to_utf8(fuser));
+    svp->SaveScreenshot(to_utf8(fuser));
     }
 
   // Store the last filename
@@ -1885,7 +1885,6 @@ void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
 
   // Get the panel that's saving
   SliceViewPanel *svp = reinterpret_cast<SliceViewPanel *>(m_ViewPanels[iWindow]);
-  QtVTKRenderWindowBox *target = svp->GetSliceView();
 
   // turn sync off temporarily
   bool sync_state = m_Model->GetSynchronizationModel()->GetSyncEnabled();
@@ -1897,8 +1896,7 @@ void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
     m_Model->GetDriver()->SetCursorPosition(xCrossImage);
 
     // Repaint the GL window and save screenshot
-    target->SaveScreenshot(filename);
-    target->update();
+    svp->SaveScreenshot(filename);
 
     // Needed for this to actually save individual screenshots
     QCoreApplication::processEvents();

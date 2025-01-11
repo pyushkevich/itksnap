@@ -540,6 +540,11 @@ public:
     return Vector2d(w1.x() - w0.x(), w1.y() - w0.y());
   }
 
+  virtual double GetDevicePixelRatio() override
+  {
+    return painter.device()->devicePixelRatioF();
+  }
+
 protected:
   QPainter &painter;
 };

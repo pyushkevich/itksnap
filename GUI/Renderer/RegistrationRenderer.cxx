@@ -274,7 +274,7 @@ RegistrationNewRenderer::DrawGrid(AbstractNewRenderContext *context)
   slice_model->GetNonThumbnailViewport(vp_pos, vp_size);
 
   // Generate the grid path
-  int spacing = 32; // * this->GetVPPR();
+  int spacing = 16 * context->GetDevicePixelRatio();
 
   if(m_Grid.size() == 0 || m_GridViewportPos != vp_pos || m_GridViewportSize != vp_size)
   {

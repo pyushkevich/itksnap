@@ -90,6 +90,9 @@ public:
   // Callback for when the toolbar changes
   void SetMouseMotionTracking(bool enable);
 
+  // Save screenshot to file
+  void SaveScreenshot(const std::string &filename);
+
 
 private slots:
   void on_actionAnnotationEdit_triggered();

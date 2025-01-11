@@ -148,6 +148,7 @@ public:
   // Viewport and window control
   virtual void SetViewport(int x, int y, int width, int height) = 0;
   virtual void SetLogicalWindow(int x, int y, int width, int height) = 0;
+  virtual double GetDevicePixelRatio() = 0;
 
   // Transform support functions
   virtual Vector2d MapScreenOffsetToWorldOffset(const Vector2d &offset,

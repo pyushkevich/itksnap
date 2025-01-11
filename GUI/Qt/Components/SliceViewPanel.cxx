@@ -195,6 +195,13 @@ public:
 
     fbo->release();
 
+    // Save screenshot if needed
+    if(m_ScreenshotRequest.size())
+    {
+      fbo->toImage().save(QString::fromUtf8(m_ScreenshotRequest));
+      m_ScreenshotRequest.clear();
+    }
+
     QOpenGLFramebufferObject::blitFramebuffer(
       nullptr, // Target is the default framebuffer (the screen)
       QRect(0, 0, vppr * width(), vppr * height()), // Target rectangle
@@ -220,8 +227,11 @@ public:
     }
   }
 
+  void setScreenshotRequest(const std::string &filename) { m_ScreenshotRequest = filename; }
+
 private:
   AbstractNewRenderer *renderer;
+  std::string m_ScreenshotRequest;
 
   QOpenGLFramebufferObject* fbo = nullptr;
 };
@@ -362,17 +372,6 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   QBitmap bmMask(":/root/crosshair_cursor_mask.png");
   m_DrawingCrosshairCursor = new QCursor(bmBitmap, bmMask, 7, 7);
 
-  // Configure the context tool button
-  m_ContextToolButton = new QToolButton(ui->sliceView->GetInternalWidget());
-  m_ContextToolButton->setIcon(QIcon(":/root/context_gray_10.png"));
-  m_ContextToolButton->setVisible(false);
-  m_ContextToolButton->setAutoRaise(true);
-  m_ContextToolButton->setIconSize(QSize(10,10));
-  m_ContextToolButton->setMinimumSize(QSize(16,16));
-  m_ContextToolButton->setMaximumSize(QSize(16,16));
-  m_ContextToolButton->setPopupMode(QToolButton::InstantPopup);
-  m_ContextToolButton->setStyleSheet("QToolButton::menu-indicator { image: none; }");
-
   // Create a viewport reporter and associate it with the main stack
   // TODO: eventually this should just be m_NewRendererCanvas
   m_ViewportReporter = QtViewportReporter::New();
@@ -392,6 +391,19 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   m_NewRendererCanvas = canvas;
   m_InteractionModesNew = new SliceViewPanelInteractionModes(ui->sliceViewNew, m_NewRendererCanvas);
   m_InteractionModesNew->m_CrosshairsMode->SetWheelEventTargetWidget(ui->inSlicePosition);
+
+  // Configure the context tool button
+  m_ContextToolButton = new QToolButton(m_NewRendererCanvas);
+  m_ContextToolButton->setIcon(QIcon(":/root/context_gray_10.png"));
+  m_ContextToolButton->setVisible(false);
+  m_ContextToolButton->setAutoRaise(true);
+  m_ContextToolButton->setIconSize(QSize(10,10));
+  m_ContextToolButton->setMinimumSize(QSize(16,16));
+  m_ContextToolButton->setMaximumSize(QSize(16,16));
+  m_ContextToolButton->setPopupMode(QToolButton::InstantPopup);
+  m_ContextToolButton->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+
+
 
 }
 
@@ -604,6 +616,17 @@ void SliceViewPanel::SetActiveMode(QWidget *mode, bool clearChildren)
         lo->setCurrentIndex(0);
       }
     }
+}
+
+void
+SliceViewPanel::SaveScreenshot(const std::string &filename)
+{
+  auto *w = dynamic_cast<FrameBufferOpenGLWidget *>(m_NewRendererCanvas);
+  if (w)
+  {
+    w->setScreenshotRequest(filename);
+    w->update();
+  }
 }
 
 void SliceViewPanel::OnToolbarModeChange()
