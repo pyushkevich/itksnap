@@ -33,6 +33,7 @@
 #include <QPanGesture>
 #include <QSwipeGesture>
 #include <QApplication>
+#include <QMessageBox>
 
 CrosshairsInteractionMode::CrosshairsInteractionMode(QWidget *parent, QWidget *canvasWidget)
   : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
@@ -208,26 +209,51 @@ bool CrosshairsInteractionMode::gestureEvent(QGestureEvent *ev)
   else return false;
 }
 
-void CrosshairsInteractionMode::keyPressEvent(QKeyEvent *ev)
+void
+CrosshairsInteractionMode::keyPressEvent(QKeyEvent *ev)
 {
-  Vector3i dx(0,0,0);
-  switch(ev->key())
-    {
-    case Qt::Key_Up:       dx = Vector3i( 0, 1, 0); break;
-    case Qt::Key_Down:     dx = Vector3i( 0,-1, 0); break;
-    case Qt::Key_Left:     dx = Vector3i(-1, 0, 0); break;
-    case Qt::Key_Right:    dx = Vector3i( 1, 0, 0); break;
-    case Qt::Key_PageUp:   dx = Vector3i( 0, 0, 1); break;
-    case Qt::Key_PageDown: dx = Vector3i( 0, 0,-1); break;
+  Vector3i dx(0, 0, 0);
+  switch (ev->key())
+  {
+    case Qt::Key_Up:
+      dx = Vector3i(0, 1, 0);
+      break;
+    case Qt::Key_Down:
+      dx = Vector3i(0, -1, 0);
+      break;
+    case Qt::Key_Left:
+      dx = Vector3i(-1, 0, 0);
+      break;
+    case Qt::Key_Right:
+      dx = Vector3i(1, 0, 0);
+      break;
+    case Qt::Key_PageUp:
+      dx = Vector3i(0, 0, 1);
+      break;
+    case Qt::Key_PageDown:
+      dx = Vector3i(0, 0, -1);
+      break;
     case Qt::Key_G:
-      throw std::runtime_error("Silly error");
+      if ((ev->modifiers() & Qt::AltModifier) && (ev->modifiers() & Qt::ShiftModifier))
+      {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+          this,
+          "Crash simulation",
+          "This key combination simulates a crash in ITK-SNAP. Do you want ITK-SNAP to crash now?",
+          QMessageBox::Yes | QMessageBox::No);
+        if (reply == QMessageBox::Yes)
+        {
+          throw std::runtime_error("Simulated uncaught exception");
+        }
+      }
+
       break;
     default:
       SliceWindowInteractionDelegateWidget::keyPressEvent(ev);
       return;
-    }
+  }
 
-  if(ev->modifiers() & Qt::ShiftModifier)
+  if (ev->modifiers() & Qt::ShiftModifier)
     dx *= 5;
 
   m_Model->ProcessKeyNavigation(dx);

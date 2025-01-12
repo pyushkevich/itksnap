@@ -17,7 +17,7 @@ engine.findChild(mainwin, "btnAxial").click();
 
 // Get the axial panel
 var panel0 = engine.findChild(mainwin,"panel0");
-var sliceViewInternalWidget0 = engine.findChild(engine.findChild(panel0, "sliceView"), "internalWidget");
+var sliceViewInternalWidget0 = engine.findChild(panel0, "sliceViewCanvas");
 
 //=== Enter paintbrush mode
 engine.trigger("actionPaintbrush");

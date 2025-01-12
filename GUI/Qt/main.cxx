@@ -159,7 +159,19 @@ SegmentationFaultHandler(int sig)
 void
 test_terminate_handler()
 {
+  // Save backup file
   QString backup_dir = BackupSegmentationToEmergencyFile();
+
+  // Print stack trace
+  cerr << "*************************************" << endl;
+  cerr << "ITK-SNAP Crash Report: " << endl;
+  cerr << "BACKTRACE: " << endl;
+  void *array[50];
+  int   nsize = backtrace(array, 50);
+  backtrace_symbols_fd(array, nsize, 2);
+  cerr << "*************************************" << endl;
+
+  // Let the user know what we did
   if (backup_dir.size())
   {
     try
@@ -707,7 +719,6 @@ main(int argc, char *argv[])
   std::setlocale(LC_ALL, ".UTF8");
 #endif
 
-  std::set_terminate(test_terminate_handler);
 
 
   // Test object, which only is allocated if tests are requested. The
@@ -809,9 +820,6 @@ main(int argc, char *argv[])
 #ifdef SNAP_DEBUG_EVENTS
   flag_snap_debug_events = argdata.flagDebugEvents;
 #endif
-
-  // Setup crash signal handlers
-  SetupSignalHandlers();
 
   // Deal with threads
   if (argdata.nThreads > 0)
@@ -1153,6 +1161,12 @@ main(int argc, char *argv[])
 
       // Remind layout preference
       mainwin->RemindLayoutPreference();
+
+      // Set up crash recovery
+      std::set_terminate(test_terminate_handler);
+
+      // This is somewhat redundant - not sure if this is already handled by set::terminate
+      SetupSignalHandlers();
     }
 
     // Assign the main window to the application. We do this right before

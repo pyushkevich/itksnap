@@ -117,6 +117,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   m_NewRenderer = GenericSliceNewRenderer::New();
   canvas->SetRenderer(m_NewRenderer.GetPointer());
   m_NewRendererCanvas = canvas;
+  m_NewRendererCanvas->setObjectName("sliceViewCanvas");
 
   // Create a viewport reporter and associate it with the main stack
   // TODO: eventually this should just be m_NewRendererCanvas
