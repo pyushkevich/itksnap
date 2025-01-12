@@ -45,7 +45,6 @@
 #include "SliceWindowCoordinator.h"
 #include "HistoryQListModel.h"
 #include "GenericView3D.h"
-#include "GenericSliceView.h"
 #include "SplashPanel.h"
 #include "QtWidgetCoupling.h"
 #include "SimpleFileDialogWithHistory.h"

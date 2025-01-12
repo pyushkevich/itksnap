@@ -35,7 +35,6 @@
 #include <GenericImageData.h>
 #include <QMenu>
 #include <SNAPQtCommon.h>
-#include "GenericSliceView.h"
 
 
 ThumbnailInteractionMode::ThumbnailInteractionMode(QWidget *parent, QWidget *canvasWidget)

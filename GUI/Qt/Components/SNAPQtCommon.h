@@ -99,10 +99,10 @@ TWidget *findParentWidget(QObject *w)
 // Couple a slider and a
 
 // Standard way for handling non-lethal exceptions
-void ReportNonLethalException(QWidget *parent,
-                              std::exception &exc,
-                              QString windowTitleText,
-                              QString mainErrorText = QString());
+void ReportNonLethalException(QWidget              *parent,
+                              const std::exception &exc,
+                              QString               windowTitleText,
+                              QString               mainErrorText = QString());
 
 /** Populate a menu with history items */
 void PopulateHistoryMenu(

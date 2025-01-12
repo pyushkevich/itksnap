@@ -5,7 +5,6 @@
 #include <SNAPCommon.h>
 
 class GenericSliceModel;
-class GenericSliceView;
 class PaintbrushModel;
 class PaintbrushRenderer;
 

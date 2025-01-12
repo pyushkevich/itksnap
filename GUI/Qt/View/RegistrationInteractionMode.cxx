@@ -26,7 +26,6 @@
 #include "RegistrationInteractionMode.h"
 #include "RegistrationRenderer.h"
 #include "InteractiveRegistrationModel.h"
-#include "GenericSliceView.h"
 
 RegistrationInteractionMode::RegistrationInteractionMode(QWidget *parent, QWidget *canvasWidget)
   : SliceWindowInteractionDelegateWidget(parent, canvasWidget)

@@ -5,7 +5,6 @@
 #include <SNAPCommon.h>
 
 class GenericSliceModel;
-class GenericSliceView;
 class SnakeROIRenderer;
 class SnakeROIModel;
 
@@ -21,11 +20,11 @@ public:
 
   void SetModel(SnakeROIModel *model);
 
-  void mousePressEvent(QMouseEvent *ev);
-  void mouseMoveEvent(QMouseEvent *);
-  void mouseReleaseEvent(QMouseEvent *);
-  void enterEvent(QEvent *);
-  void leaveEvent(QEvent *);
+  virtual void mousePressEvent(QMouseEvent *ev) override;
+  virtual void mouseMoveEvent(QMouseEvent *) override;
+  virtual void mouseReleaseEvent(QMouseEvent *) override;
+  virtual void enterEvent(QEnterEvent *) override;
+  virtual void leaveEvent(QEvent *) override;
 
 protected:
 

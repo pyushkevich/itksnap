@@ -31,7 +31,6 @@
 #include "GlobalState.h"
 #include "SNAPCommon.h"
 
-class GenericSliceView;
 class SliceViewPanel;
 class GlobalUIModel;
 class QDockWidget;

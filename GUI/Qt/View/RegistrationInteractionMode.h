@@ -31,7 +31,6 @@
 
 class GenericSliceModel;
 class InteractiveRegistrationModel;
-class GenericSliceView;
 class RegistrationRenderer;
 
 class RegistrationInteractionMode : public SliceWindowInteractionDelegateWidget

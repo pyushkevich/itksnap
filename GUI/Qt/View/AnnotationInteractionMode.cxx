@@ -1,7 +1,6 @@
 #include "AnnotationInteractionMode.h"
 #include "AnnotationRenderer.h"
 #include "AnnotationModel.h"
-#include "GenericSliceView.h"
 #include "SliceViewPanel.h"
 #include <QTimer>
 

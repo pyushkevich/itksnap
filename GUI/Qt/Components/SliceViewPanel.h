@@ -4,7 +4,6 @@
 #include <SNAPComponent.h>
 #include <GlobalState.h>
 
-class GenericSliceView;
 class QMenu;
 class QtInteractionDelegateWidget;
 class SnakeModeRenderer;
@@ -85,11 +84,6 @@ public:
   // Get the index of this panel
   irisGetMacro(Index, unsigned int)
 
-  GenericSliceView *GetSliceView();
-
-  // Callback for when the toolbar changes
-  void SetMouseMotionTracking(bool enable);
-
   // Save screenshot to file
   void SaveScreenshot(const std::string &filename);
 
@@ -130,16 +124,11 @@ private slots:
 
   void on_actionAnnotationPrevious_triggered();
 
-  void on_btnChangeViewer_clicked(bool checked);
-
 private:
   Ui::SliceViewPanel *ui;
 
   // Popup menus used for polygon operations
   QMenu *m_MenuPolyInactive, *m_MenuPolyEditing, *m_MenuPolyDrawing;
-
-  // Current event filter on the crosshair widget
-  QWidget *m_CurrentEventFilter;
 
   // Global UI pointer
   GlobalUIModel *m_GlobalUI;
@@ -160,12 +149,6 @@ private:
   // Canvas on which we are rendering
   QWidget *m_NewRendererCanvas;
 
-  // Some renderers don't require a separate widget (no user interaction)
-  // and so they are owned by this panel.
-  SmartPtr<SnakeModeRenderer> m_SnakeModeRenderer;
-  SmartPtr<SliceWindowDecorationRenderer> m_DecorationRenderer;
-  SmartPtr<DeformationGridRenderer> m_DeformationGridRenderer;
-
   // Renderers
   SmartPtr<CrosshairsNewRenderer> m_CrosshairsNewRenderer;
   SmartPtr<PolygonDrawingNewRenderer> m_PolygonDrawingNewRenderer;
@@ -175,28 +158,17 @@ private:
   SmartPtr<SnakeModeNewRenderer> m_SnakeModeNewRenderer;
   SmartPtr<SnakeROINewRenderer> m_SnakeROINewRenderer;
   SmartPtr<RegistrationNewRenderer> m_RegistrationNewRenderer;
-
-  // Some renderers don't require a separate widget (no user interaction)
-  // and so they are owned by this panel.
   SmartPtr<SliceWindowDecorationNewRenderer> m_DecorationNewRenderer;
 
   // Collection of interaction modes
-  SliceViewPanelInteractionModes *m_InteractionModes, *m_InteractionModesNew;
+  SliceViewPanelInteractionModes *m_InteractionModesNew;
 
   // A size reporter for the area being painted by the renderers
   SmartPtr<QtViewportReporter> m_ViewportReporter;
 
   // Index of the panel
   unsigned int m_Index;
-
   void SetActiveMode(QWidget *mode, bool clearChildren = true);
-
-
-  /**
-   * Listen to mouse enter/exit events in order to show and hide toolbars
-   */
-  void enterEvent(QEvent *);
-  void leaveEvent(QEvent *);
 
   /** Update the expand view / contract view button based on the state */
   void UpdateExpandViewButton();

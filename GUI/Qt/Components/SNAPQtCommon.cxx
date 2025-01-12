@@ -340,7 +340,7 @@ QStringList toQStringList(const std::vector<std::string> inlist)
 }
 
 void ReportNonLethalException(QWidget *parent,
-                              std::exception &exc,
+                              const std::exception &exc,
                               QString windowTitleText,
                               QString mainErrorText)
 {

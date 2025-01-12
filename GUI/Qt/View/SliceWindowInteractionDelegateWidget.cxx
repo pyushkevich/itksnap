@@ -1,6 +1,5 @@
 #include "SliceWindowInteractionDelegateWidget.h"
 #include "GenericSliceModel.h"
-#include "GenericSliceView.h"
 #include "GlobalUIModel.h"
 #include "DisplayLayoutModel.h"
 #include "SliceViewPanel.h"

@@ -333,6 +333,9 @@ GenericSliceNewRenderer::Render(AbstractNewRenderContext *context)
   auto *gs = m_Model->GetDriver()->GetGlobalState();
   auto *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
   auto *id = m_Model->GetImageData();
+  if(!id)
+    return;
+
   SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
   Vector3d clrBack = as->GetUIElement(SNAPAppearanceSettings::BACKGROUND_2D)->GetColor();
   context->FillViewport(clrBack);

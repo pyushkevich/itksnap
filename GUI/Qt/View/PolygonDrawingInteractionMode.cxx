@@ -5,7 +5,6 @@
 #include "QtWidgetActivator.h"
 #include "IRISApplication.h"
 #include "GlobalState.h"
-#include "GenericSliceView.h"
 
 #include <QMenu>
 

@@ -25,7 +25,6 @@
 =========================================================================*/
 
 #include "CrosshairsInteractionMode.h"
-#include "GenericSliceView.h"
 #include "OrthogonalSliceCursorNavigationModel.h"
 #include "CrosshairsRenderer.h"
 #include "GenericImageData.h"
@@ -220,6 +219,9 @@ void CrosshairsInteractionMode::keyPressEvent(QKeyEvent *ev)
     case Qt::Key_Right:    dx = Vector3i( 1, 0, 0); break;
     case Qt::Key_PageUp:   dx = Vector3i( 0, 0, 1); break;
     case Qt::Key_PageDown: dx = Vector3i( 0, 0,-1); break;
+    case Qt::Key_G:
+      throw std::runtime_error("Silly error");
+      break;
     default:
       SliceWindowInteractionDelegateWidget::keyPressEvent(ev);
       return;

@@ -687,6 +687,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QDoubleSlider.cxx
   GUI/Qt/Components/QDoubleSliderWithEditor.cxx  
   GUI/Qt/Components/QtFlowLayout.cxx
+  GUI/Qt/Components/QtFrameBufferOpenGLWidget.cxx
   GUI/Qt/Components/QtHideOnDeactivateContainer.cxx
   GUI/Qt/Components/QtIPCManager.cxx
   GUI/Qt/Components/QtRendererPlatformSupport.cxx
@@ -711,7 +712,6 @@ SET(UI_QT_CXX
   GUI/Qt/View/AnnotationInteractionMode.cxx
   GUI/Qt/View/ColorMapInteractionDelegate.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
-  GUI/Qt/View/GenericSliceView.cxx
   GUI/Qt/View/GenericView3D.cxx
   GUI/Qt/View/InteractionModeClient.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
@@ -811,7 +811,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/AnnotationInteractionMode.h
   GUI/Qt/View/ColorMapInteractionDelegate.h
   GUI/Qt/View/CrosshairsInteractionMode.h
-  GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/GenericView3D.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
   GUI/Qt/View/QtVTKInteractionDelegateWidget.h
@@ -862,6 +861,7 @@ SET(UI_MOC_HEADERS
 SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/ProcessEventsITKCommand.h
   GUI/Qt/Components/QtCursorOverride.h
+  GUI/Qt/Components/QtFrameBufferOpenGLWidget.h
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/SNAPQtCommon.h

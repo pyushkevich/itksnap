@@ -41,9 +41,10 @@ public:
   SNAPQApplication(int &argc, char **argv);
 
   void setMainWindow(MainImageWindow *mainwin);
+  MainImageWindow *mainWindow() const { return m_MainWindow; }
 
-  bool notify(QObject *object, QEvent *event);
-  virtual bool event(QEvent *event);
+  virtual bool notify(QObject *object, QEvent *event) override;
+  virtual bool event(QEvent *event) override;
 
 public slots:
 

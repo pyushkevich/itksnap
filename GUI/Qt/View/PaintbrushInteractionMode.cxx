@@ -1,6 +1,5 @@
 #include "PaintbrushInteractionMode.h"
 #include "PaintbrushRenderer.h"
-#include "GenericSliceView.h"
 #include "PaintbrushModel.h"
 #include "SliceViewPanel.h"
 

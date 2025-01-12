@@ -1,5 +1,4 @@
 #include "SnakeROIInteractionMode.h"
-#include "GenericSliceView.h"
 #include "SnakeROIModel.h"
 #include "SnakeROIRenderer.h"
 
@@ -63,7 +62,8 @@ void SnakeROIInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
     }
 }
 
-void SnakeROIInteractionMode::enterEvent(QEvent *)
+void
+SnakeROIInteractionMode::enterEvent(QEnterEvent *)
 {
   m_Model->ProcessEnterEvent();
   this->setMouseMotionTracking(true);

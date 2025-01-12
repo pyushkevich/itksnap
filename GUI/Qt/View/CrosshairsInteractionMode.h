@@ -32,7 +32,6 @@
 
 class GenericSliceModel;
 class OrthogonalSliceCursorNavigationModel;
-class GenericSliceView;
 class CrosshairsRenderer;
 
 class CrosshairsInteractionMode : public SliceWindowInteractionDelegateWidget

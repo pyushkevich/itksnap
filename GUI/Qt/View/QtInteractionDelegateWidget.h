@@ -54,10 +54,10 @@ public slots:
 protected:
 
   // Event handler
-  virtual bool event(QEvent *);
+  virtual bool event(QEvent *) override;
 
   // Handler for event filtering
-  virtual bool eventFilter(QObject *, QEvent *ev);
+  virtual bool eventFilter(QObject *, QEvent *ev) override;
 
   // Children may override this method to provide additional event processing,
   // but should call QtInteractionDelegateWidget::preprocessEvent in there.

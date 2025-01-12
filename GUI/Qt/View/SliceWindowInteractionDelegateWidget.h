@@ -3,7 +3,6 @@
 
 #include <QtInteractionDelegateWidget.h>
 
-class GenericSliceView;
 class ImageWrapperBase;
 
 class SliceWindowInteractionDelegateWidget : public QtInteractionDelegateWidget
