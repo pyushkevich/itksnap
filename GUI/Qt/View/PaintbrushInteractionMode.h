@@ -19,9 +19,6 @@ public:
   irisGetMacro(Model, PaintbrushModel *)
   void SetModel(PaintbrushModel *m_Model);
 
-  irisGetMacro(Renderer, PaintbrushRenderer *)
-
-
   virtual void mousePressEvent(QMouseEvent *ev) override;
   virtual void mouseMoveEvent(QMouseEvent *ev) override;
   virtual void mouseReleaseEvent(QMouseEvent *ev) override;
@@ -38,7 +35,6 @@ public slots:
 protected:
 
   PaintbrushModel *m_Model;
-  SmartPtr<PaintbrushRenderer> m_Renderer;
 };
 
 #endif // PAINTBRUSHINTERACTIONMODE_H

@@ -5,7 +5,6 @@
 #include <SNAPCommon.h>
 
 class GenericSliceModel;
-class SnakeROIRenderer;
 class SnakeROIModel;
 
 class SnakeROIInteractionMode : public SliceWindowInteractionDelegateWidget
@@ -16,8 +15,6 @@ public:
   explicit SnakeROIInteractionMode(QWidget *parent, QWidget *canvasWidget);
   ~SnakeROIInteractionMode();
 
-  irisGetMacro(Renderer, SnakeROIRenderer *)
-
   void SetModel(SnakeROIModel *model);
 
   virtual void mousePressEvent(QMouseEvent *ev) override;
@@ -27,8 +24,6 @@ public:
   virtual void leaveEvent(QEvent *) override;
 
 protected:
-
-  SmartPtr<SnakeROIRenderer> m_Renderer;
 
   SnakeROIModel *m_Model;
 };

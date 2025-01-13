@@ -6,7 +6,6 @@
 
 class GenericSliceModel;
 class AnnotationModel;
-class AnnotationRenderer;
 class SliceViewPanel;
 
 class AnnotationInteractionMode : public SliceWindowInteractionDelegateWidget
@@ -19,8 +18,6 @@ public:
 
   irisGetMacro(Model, AnnotationModel *)
   void SetModel(AnnotationModel *model);
-
-  irisGetMacro(Renderer, AnnotationRenderer *)
 
   virtual void mousePressEvent(QMouseEvent *ev) override;
   virtual void mouseMoveEvent(QMouseEvent *ev) override;
@@ -37,7 +34,6 @@ public slots:
 protected:
 
   AnnotationModel *m_Model;
-  SmartPtr<AnnotationRenderer> m_Renderer;
 };
 
 #endif // ANNOTATIONINTERACTIONMODE_H

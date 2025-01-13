@@ -543,8 +543,6 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/DeformationGridRenderer.cxx
   GUI/Renderer/EdgePreprocessingSettingsRenderer.cxx
-  GUI/Renderer/GenericSliceContextItem.cxx
-  GUI/Renderer/GenericSliceNewRenderer.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/Generic3DRenderer.cxx
   GUI/Renderer/GMMRenderer.cxx
@@ -621,7 +619,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/UIState.h
   GUI/Model/VoxelChangeReportModel.h
   GUI/Renderer/AbstractRenderer.h
-  GUI/Renderer/AbstractNewRenderer.h
+  GUI/Renderer/AbstractContextBasedRenderer.h
   GUI/Renderer/AbstractVTKRenderer.h
   GUI/Renderer/AbstractVTKSceneRenderer.h
   GUI/Renderer/AnnotationRenderer.h
@@ -630,8 +628,6 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/DeformationGridRenderer.h
   GUI/Renderer/EdgePreprocessingSettingsRenderer.h
   GUI/Renderer/Generic3DRenderer.h
-  GUI/Renderer/GenericSliceNewRenderer.h
-  GUI/Renderer/GenericSliceContextItem.h
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/GMMRenderer.h
   GUI/Renderer/IntensityCurveVTKRenderer.h
@@ -790,7 +786,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtFlowLayout.h
   GUI/Qt/Components/QtHideOnDeactivateContainer.h
   GUI/Qt/Components/QtIPCManager.h
-  GUI/Qt/Components/QPainterNewRenderContext.h
+  GUI/Qt/Components/QPainterRenderContext.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/RecentHistoryItemsView.h

@@ -31,7 +31,6 @@
 
 class GenericSliceModel;
 class InteractiveRegistrationModel;
-class RegistrationRenderer;
 
 class RegistrationInteractionMode : public SliceWindowInteractionDelegateWidget
 {
@@ -42,8 +41,6 @@ public:
   ~RegistrationInteractionMode();
 
   void SetModel(InteractiveRegistrationModel *model);
-
-  irisGetMacro(Renderer, RegistrationRenderer *)
 
   void mousePressEvent(QMouseEvent *ev);
   void mouseMoveEvent(QMouseEvent *);
@@ -58,7 +55,6 @@ public slots:
 protected:
 
   InteractiveRegistrationModel *m_Model;
-  SmartPtr<RegistrationRenderer> m_Renderer;
 };
 
 #endif // REGISTRATIONINTERACTIONMODE_H

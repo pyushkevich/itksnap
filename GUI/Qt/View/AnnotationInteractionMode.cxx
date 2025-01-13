@@ -7,7 +7,6 @@
 AnnotationInteractionMode::AnnotationInteractionMode(QWidget *parent, QWidget *canvasWidget)
   : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
-  m_Renderer = AnnotationRenderer::New();
   m_Model = NULL;
 }
 
@@ -19,7 +18,6 @@ AnnotationInteractionMode::~AnnotationInteractionMode()
 void AnnotationInteractionMode::SetModel(AnnotationModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   SetParentModel(model->GetParent());
 
   connectITK(m_Model, StateMachineChangeEvent());

@@ -31,8 +31,6 @@ RegistrationInteractionMode::RegistrationInteractionMode(QWidget *parent, QWidge
   : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
   , m_Model(NULL)
 {
-  // Create the renderer
-  m_Renderer = RegistrationRenderer::New();
 }
 
 RegistrationInteractionMode::~RegistrationInteractionMode()
@@ -43,7 +41,6 @@ RegistrationInteractionMode::~RegistrationInteractionMode()
 void RegistrationInteractionMode::SetModel(InteractiveRegistrationModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   this->SetParentModel(model->GetParent());
 
   connectITK(m_Model, StateMachineChangeEvent());

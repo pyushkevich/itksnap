@@ -6,7 +6,6 @@
 
 class GenericSliceModel;
 class PolygonDrawingModel;
-class PolygonDrawingRenderer;
 
 class QMenu;
 class QAction;
@@ -21,9 +20,6 @@ public:
 
   irisGetMacro(Model, PolygonDrawingModel *)
   void SetModel(PolygonDrawingModel *m_Model);
-
-  irisGetMacro(Renderer, PolygonDrawingRenderer *)
-
 
   virtual void mousePressEvent(QMouseEvent *ev) override;
   virtual void mouseMoveEvent(QMouseEvent *ev) override;
@@ -55,7 +51,6 @@ public slots:
 protected:
 
   PolygonDrawingModel *m_Model;
-  SmartPtr<PolygonDrawingRenderer> m_Renderer;
 
 };
 

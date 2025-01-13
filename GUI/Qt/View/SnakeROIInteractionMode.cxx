@@ -5,8 +5,6 @@
 SnakeROIInteractionMode::SnakeROIInteractionMode(QWidget *parent, QWidget *canvasWidget)
   : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
-  // Create the renderer
-  m_Renderer = SnakeROIRenderer::New();
 }
 
 SnakeROIInteractionMode::~SnakeROIInteractionMode()
@@ -17,7 +15,6 @@ SnakeROIInteractionMode::~SnakeROIInteractionMode()
 void SnakeROIInteractionMode::SetModel(SnakeROIModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   SetParentModel(model->GetParent());
 }
 

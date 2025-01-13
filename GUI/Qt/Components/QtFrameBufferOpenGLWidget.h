@@ -4,11 +4,11 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 
-class AbstractNewRenderer;
+class AbstractContextBasedRenderer;
 class QOpenGLFramebufferObject;
 
 /**
- * A simple OpenGL widget with a framebuffer to use with AbstractNewRenderer,
+ * A simple OpenGL widget with a framebuffer to use with AbstractRenderer,
  * supports multisampling
  */
 class QtFrameBufferOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -18,7 +18,7 @@ public:
 
   ~QtFrameBufferOpenGLWidget();
 
-  void SetRenderer(AbstractNewRenderer *r);
+  void SetRenderer(AbstractContextBasedRenderer *r);
 
   void updateFBO();
 
@@ -31,7 +31,7 @@ public:
   void setScreenshotRequest(const std::string &filename);
 
 private:
-  AbstractNewRenderer *m_Renderer;
+  AbstractContextBasedRenderer *m_Renderer;
   std::string m_ScreenshotRequest;
 
   QOpenGLFramebufferObject* m_FrameBufferObject = nullptr;
@@ -39,7 +39,7 @@ private:
 
 
 /**
- * An OpenGL widget connected to an AbstractNewRenderer, does not use internal frame
+ * An OpenGL widget connected to an AbstractRenderer, does not use internal frame
  * buffer and might not support multisampling. Provided as a backup.
  */
 class QtDirectRenderOpenGLWidget : public QOpenGLWidget, protected QOpenGLFunctions
@@ -47,14 +47,14 @@ class QtDirectRenderOpenGLWidget : public QOpenGLWidget, protected QOpenGLFuncti
 public:
   QtDirectRenderOpenGLWidget(QWidget *parent);
 
-  void SetRenderer(AbstractNewRenderer *r);
+  void SetRenderer(AbstractContextBasedRenderer *r);
 
   void initializeGL() override;
 
   void paintGL() override;
 
 private:
-  AbstractNewRenderer *renderer;
+  AbstractContextBasedRenderer *renderer;
 };
 
 

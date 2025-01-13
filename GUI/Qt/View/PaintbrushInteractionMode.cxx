@@ -6,7 +6,6 @@
 PaintbrushInteractionMode::PaintbrushInteractionMode(QWidget *parent, QWidget *canvasWidget)
   : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
-  m_Renderer = PaintbrushRenderer::New();
   m_Model = NULL;
 }
 
@@ -19,7 +18,6 @@ PaintbrushInteractionMode
 ::SetModel(PaintbrushModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   SetParentModel(model->GetParent());
 }
 

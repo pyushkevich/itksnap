@@ -32,7 +32,6 @@
 
 class GenericSliceModel;
 class OrthogonalSliceCursorNavigationModel;
-class CrosshairsRenderer;
 
 class CrosshairsInteractionMode : public SliceWindowInteractionDelegateWidget
 {
@@ -41,9 +40,6 @@ class CrosshairsInteractionMode : public SliceWindowInteractionDelegateWidget
 public:
   explicit CrosshairsInteractionMode(QWidget *parent, QWidget *canvasWidget);
   ~ CrosshairsInteractionMode();
-
-
-  irisGetMacro(Renderer, CrosshairsRenderer *)
 
   void SetModel(OrthogonalSliceCursorNavigationModel *model);
 
@@ -72,7 +68,6 @@ public slots:
 
 protected:
   OrthogonalSliceCursorNavigationModel *m_Model;
-  SmartPtr<CrosshairsRenderer> m_Renderer;
 
   // The behavior of buttons when envoking zoom/pan/cursor actions
   Qt::MouseButton m_BtnCursor, m_BtnZoom, m_BtnPan;

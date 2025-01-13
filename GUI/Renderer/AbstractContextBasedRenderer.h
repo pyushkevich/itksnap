@@ -17,14 +17,14 @@
  * context to represent the texture or path.
  */
 template <class Traits>
-class NewRenderOptimizedDataset : public AbstractModel
+class RenderOptimizedDataset : public AbstractModel
 {
 public:
-  irisITKAbstractObjectMacro(NewRenderOptimizedDataset, AbstractModel)
+  irisITKAbstractObjectMacro(RenderOptimizedDataset, AbstractModel)
 };
 
 
-class AbstractNewRenderContext
+class AbstractRenderContext
 {
 public:
   class TextureTraits {};
@@ -32,9 +32,9 @@ public:
 
   using RGBAPixel = itk::RGBAPixel<unsigned char>;
   using RGBAImage = itk::Image<RGBAPixel>;
-  using Path2D = NewRenderOptimizedDataset<Path2DTraits>;
+  using Path2D = RenderOptimizedDataset<Path2DTraits>;
   using Path2DPtr = SmartPtr<Path2D>;
-  using Texture = NewRenderOptimizedDataset<TextureTraits>;
+  using Texture = RenderOptimizedDataset<TextureTraits>;
   using TexturePtr = SmartPtr<Texture>;
   using FontInfo = AbstractRendererPlatformSupport::FontInfo;
 
@@ -155,10 +155,10 @@ public:
                                                 bool            physical_units = false) = 0;
 };
 
-class AbstractNewRenderer : public AbstractRenderer
+class AbstractContextBasedRenderer : public AbstractRenderer
 {
 public:
-  virtual void Render(AbstractNewRenderContext *context) = 0;
+  virtual void Render(AbstractRenderContext *context) = 0;
 };
 
 

@@ -1,7 +1,7 @@
 #ifndef QPAINTERNEWRENDERCONTEXT_H
 #define QPAINTERNEWRENDERCONTEXT_H
 
-#include "AbstractNewRenderer.h"
+#include "AbstractContextBasedRenderer.h"
 #include "SNAPCommon.h"
 #include <QImage>
 #include <QPainterPath>
@@ -9,31 +9,31 @@
 #include <QDebug>
 #include <QFontDatabase>
 
-class QPainterNewRenderContextTexture : public AbstractNewRenderContext::Texture
+class QPainterRenderContextTexture : public AbstractRenderContext::Texture
 {
 public:
-  irisITKObjectMacro(QPainterNewRenderContextTexture, AbstractNewRenderContext::Texture)
+  irisITKObjectMacro(QPainterRenderContextTexture, AbstractRenderContext::Texture)
 
 protected:
   QPixmap qpixmap;
   QBrush qbrush;
 
-  QPainterNewRenderContextTexture() {}
-  virtual ~QPainterNewRenderContextTexture() override {}
-  friend class QPainterNewRenderContext;
+  QPainterRenderContextTexture() {}
+  virtual ~QPainterRenderContextTexture() override {}
+  friend class QPainterRenderContext;
 };
 
-class QPainterNewRenderContextPath2D : public AbstractNewRenderContext::Path2D
+class QPainterRenderContextPath2D : public AbstractRenderContext::Path2D
 {
 public:
-  irisITKObjectMacro(QPainterNewRenderContextPath2D, AbstractNewRenderContext::Texture)
+  irisITKObjectMacro(QPainterRenderContextPath2D, AbstractRenderContext::Texture)
 
 protected:
   QPainterPath *path = nullptr;
 
-  QPainterNewRenderContextPath2D() {}
-  virtual ~QPainterNewRenderContextPath2D() override { if(path) delete(path); }
-  friend class QPainterNewRenderContext;
+  QPainterRenderContextPath2D() {}
+  virtual ~QPainterRenderContextPath2D() override { if(path) delete(path); }
+  friend class QPainterRenderContext;
 };
 
 // Template class that takes a member function pointer as a template parameter
@@ -94,23 +94,23 @@ using QPainterCompositionModeRestorer =
                                &QPainter::setCompositionMode>;
 
 
-class QPainterNewRenderContext : public AbstractNewRenderContext
+class QPainterRenderContext : public AbstractRenderContext
 {
 public:
-  using RGBAPixel = AbstractNewRenderContext::RGBAPixel;
-  using RGBAImage = AbstractNewRenderContext::RGBAImage;
-  using Texture = AbstractNewRenderContext::Texture;
-  using TexturePtr = AbstractNewRenderContext::TexturePtr;
-  using Path2D = AbstractNewRenderContext::Path2D;
-  using Path2DPtr = AbstractNewRenderContext::Path2DPtr;
-  using VertexVector = AbstractNewRenderContext::VertexVector;
+  using RGBAPixel = AbstractRenderContext::RGBAPixel;
+  using RGBAImage = AbstractRenderContext::RGBAImage;
+  using Texture = AbstractRenderContext::Texture;
+  using TexturePtr = AbstractRenderContext::TexturePtr;
+  using Path2D = AbstractRenderContext::Path2D;
+  using Path2DPtr = AbstractRenderContext::Path2DPtr;
+  using VertexVector = AbstractRenderContext::VertexVector;
 
-  QPainterNewRenderContext(QPainter &painter) : painter(painter) {}
+  QPainterRenderContext(QPainter &painter) : painter(painter) {}
 
   virtual Path2DPtr CreatePath() override
   {
     // Create the object that will store the path data
-    auto wrapper = QPainterNewRenderContextPath2D::New();
+    auto wrapper = QPainterRenderContextPath2D::New();
     wrapper->path = new QPainterPath();
     wrapper->Modified();
     return Path2DPtr(wrapper.GetPointer());
@@ -119,7 +119,7 @@ public:
   virtual void AddPolygonSegmentToPath(Path2D *path, const VertexVector &segment, bool closed) override
   {
     // Get the QPainterPath from the passed in pointer
-    auto *wrapper = static_cast<QPainterNewRenderContextPath2D *>(path);
+    auto *wrapper = static_cast<QPainterRenderContextPath2D *>(path);
     auto *p = wrapper->path;
 
     // Add the segment
@@ -137,7 +137,7 @@ public:
   virtual TexturePtr CreateTexture(RGBAImage *image) override
   {
     // Create the object that will store the texture data
-    auto texture = QPainterNewRenderContextTexture::New();
+    auto texture = QPainterRenderContextTexture::New();
 
     // Load the texture from ITK
     auto   size = image->GetBufferedRegion().GetSize();
@@ -160,7 +160,7 @@ public:
   virtual TexturePtr ColorizeTexture(Texture *texture, const Vector3d &color) override
   {
     // Get the original texture
-    auto *q_texture = static_cast<QPainterNewRenderContextTexture *>(texture);
+    auto *q_texture = static_cast<QPainterRenderContextTexture *>(texture);
 
     QPixmap result(q_texture->qpixmap.size());
     result.fill(Qt::transparent); // Fill with transparency initially
@@ -172,7 +172,7 @@ public:
     rpainter.fillRect(result.rect(), QColor::fromRgbF(color[0], color[1], color[2]));
     rpainter.end(); // End painting
 
-    auto new_texture = QPainterNewRenderContextTexture::New();
+    auto new_texture = QPainterRenderContextTexture::New();
     new_texture->qpixmap = result;
     new_texture->Modified();
     return TexturePtr(new_texture.GetPointer());
@@ -180,7 +180,7 @@ public:
 
   virtual void DrawPath(Path2D *path) override
   {
-    auto *wrapper = static_cast<QPainterNewRenderContextPath2D *>(path);
+    auto *wrapper = static_cast<QPainterRenderContextPath2D *>(path);
     QPainterPath *p = wrapper->path;
     painter.drawPath(*p);
   }
@@ -315,22 +315,22 @@ public:
     painter.setBrush(brush);
   }
 
-  using CompositionMode = AbstractNewRenderContext::CompositionMode;
+  using CompositionMode = AbstractRenderContext::CompositionMode;
 
   virtual void SetCompositionMode(CompositionMode mode) override
   {
     switch(mode)
     {
-      case AbstractNewRenderContext::SOURCE_OVER:
+      case AbstractRenderContext::SOURCE_OVER:
         painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
         break;
-      case AbstractNewRenderContext::DESTINATION_OVER:
+      case AbstractRenderContext::DESTINATION_OVER:
         painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
         break;
-      case AbstractNewRenderContext::MULTIPLY:
+      case AbstractRenderContext::MULTIPLY:
         painter.setCompositionMode(QPainter::CompositionMode_Xor);
         break;
-      case AbstractNewRenderContext::UNKNOWN:
+      case AbstractRenderContext::UNKNOWN:
         break;
     }
   }
@@ -340,13 +340,13 @@ public:
     switch(painter.compositionMode())
     {
       case QPainter::CompositionMode_SourceOver:
-        return AbstractNewRenderContext::SOURCE_OVER;
+        return AbstractRenderContext::SOURCE_OVER;
       case QPainter::CompositionMode_DestinationOver:
-        return AbstractNewRenderContext::DESTINATION_OVER;
+        return AbstractRenderContext::DESTINATION_OVER;
       case QPainter::CompositionMode_Multiply:
-        return AbstractNewRenderContext::MULTIPLY;
+        return AbstractRenderContext::MULTIPLY;
       default:
-        return AbstractNewRenderContext::UNKNOWN;
+        return AbstractRenderContext::UNKNOWN;
     }
   }
 
@@ -437,7 +437,7 @@ public:
                          bool     bilinear,
                          double   opacity) override
   {
-    auto *q_texture = static_cast<QPainterNewRenderContextTexture *>(texture);
+    auto *q_texture = static_cast<QPainterRenderContextTexture *>(texture);
     QPainterOpacityRestorer op(painter, opacity);
     QPainterCompositionModeRestorer comp(painter, QPainter::CompositionMode_SourceOver);
     QPainterRenderHintsRestorer hints(painter, QPainter::SmoothPixmapTransform, bilinear);
@@ -457,7 +457,7 @@ public:
                                   double   opacity,
                                   Vector3d &color) override
   {
-    auto *q_texture = static_cast<QPainterNewRenderContextTexture *>(texture);
+    auto *q_texture = static_cast<QPainterRenderContextTexture *>(texture);
     this->DrawImage(x,y,width,height,texture,bilinear,opacity);
     QRectF target(x, y, width, height);
     QPainterCompositionModeRestorer comp(painter, QPainter::CompositionMode_Multiply);
@@ -476,7 +476,7 @@ public:
                                bool     bilinear,
                                double   opacity) override
   {
-    auto *q_texture = static_cast<QPainterNewRenderContextTexture *>(texture);
+    auto *q_texture = static_cast<QPainterRenderContextTexture *>(texture);
     QPainterOpacityRestorer op(painter, opacity);
     QPainterCompositionModeRestorer comp(painter, QPainter::CompositionMode_SourceOver);
     QPainterRenderHintsRestorer hints(painter, QPainter::SmoothPixmapTransform, bilinear);

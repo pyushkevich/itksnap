@@ -1,11 +1,9 @@
 #include "PolygonDrawingInteractionMode.h"
-#include "PolygonDrawingRenderer.h"
 #include "PolygonDrawingModel.h"
 #include "QtWarningDialog.h"
 #include "QtWidgetActivator.h"
+#include "GenericSliceModel.h"
 #include "IRISApplication.h"
-#include "GlobalState.h"
-
 #include <QMenu>
 
 QAction *setupAction(PolygonDrawingInteractionMode *w, QMenu *menu,
@@ -33,7 +31,6 @@ QAction *setupAction(PolygonDrawingInteractionMode *w, QMenu *menu,
 PolygonDrawingInteractionMode ::PolygonDrawingInteractionMode(QWidget *parent, QWidget *canvasWidget)
   : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
-  m_Renderer = PolygonDrawingRenderer::New();
   m_Model = NULL;
 }
 
@@ -48,7 +45,6 @@ PolygonDrawingInteractionMode
 ::SetModel(PolygonDrawingModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   SetParentModel(model->GetParent());
 
   // Listen to events in the model (update buttons)

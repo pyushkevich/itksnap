@@ -39,13 +39,11 @@ CrosshairsInteractionMode::CrosshairsInteractionMode(QWidget *parent, QWidget *c
   : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
   // Create the renderer
-  m_Renderer = CrosshairsRenderer::New();
   m_WheelEventTarget = NULL;
   m_Model = NULL;
 
   SetMouseButtonBehaviorToCrosshairsMode();
   setAttribute(Qt::WA_AcceptTouchEvents, true);
-
 }
 
 CrosshairsInteractionMode::~CrosshairsInteractionMode()
@@ -90,7 +88,6 @@ void CrosshairsInteractionMode
 ::SetModel(OrthogonalSliceCursorNavigationModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   SetParentModel(model->GetParent());
 }
 
