@@ -72,31 +72,48 @@ void printBacktrace()
 
 #else
 
-void printBacktrace()
+#  include <windows.h>
+#  include <dbghelp.h>
+#  pragma comment(lib, "dbghelp.lib")
+
+void
+printBacktrace()
 {
-  unsigned int   i;
-  void         * stack[ 100 ];
-  unsigned short frames;
-  SYMBOL_INFO  * symbol;
-  HANDLE         process;
+  std::cerr << "*************************************" << std::endl;
+  std::cerr << "BACKTRACE: " << std::endl;
 
-  process = GetCurrentProcess();
+  // Initialize symbol handler
+  HANDLE process = GetCurrentProcess();
+  SymInitialize(process, nullptr, TRUE);
 
-  SymInitialize( process, NULL, TRUE );
+  // Capture the backtrace
+  void  *stack[50];
+  USHORT frames = CaptureStackBackTrace(0, 50, stack, nullptr);
 
-  frames               = CaptureStackBackTrace( 0, 100, stack, NULL );
-  symbol               = ( SYMBOL_INFO * )calloc( sizeof( SYMBOL_INFO ) + 256 * sizeof( char ), 1 );
-  symbol->MaxNameLen   = 255;
-  symbol->SizeOfStruct = sizeof( SYMBOL_INFO );
+  // Symbol info structure
+  SYMBOL_INFO *symbol = (SYMBOL_INFO *)calloc(sizeof(SYMBOL_INFO) + 256 * sizeof(char), 1);
+  symbol->MaxNameLen = 255;
+  symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
-  for( i = 0; i < frames; i++ )
+  for (USHORT i = 0; i < frames; ++i)
   {
-    SymFromAddr( process, ( DWORD64 )( stack[ i ] ), 0, symbol );
-    fprintf(stderr, "%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address );
+    DWORD64 address = (DWORD64)(stack[i]);
+    if (SymFromAddr(process, address, 0, symbol))
+    {
+      std::cerr << i << ": " << symbol->Name << " - 0x" << std::hex << symbol->Address << std::endl;
+    }
+    else
+    {
+      std::cerr << i << ": [Unable to retrieve symbol]" << std::endl;
+    }
   }
 
-  free( symbol );
+  free(symbol);
+  SymCleanup(process);
+
+  std::cerr << "*************************************" << std::endl;
 }
+
 
 #endif
 
