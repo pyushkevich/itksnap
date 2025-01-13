@@ -8,28 +8,9 @@
 #include <chrono>
 
 #if defined(WIN32)
-  #ifdef _WIN32_WINNT
-  #undef _WIN32_WINNT
-  #endif //_WIN32_WINNT
-  #define _WIN32_WINNT	0x0600
-
-  #include <Shlobj.h>
-  #include <iostream>
   #include <process.h>
-  #include <windows.h>
-  #include <cstdlib>
-#elif defined(__APPLE__)
-  #include <sys/mman.h>
-  #include <sys/stat.h>
-  #include <fcntl.h>
-  #include <unistd.h>
 #else
-  #include <sys/types.h>
-  #include <sys/ipc.h>
-  #include <sys/shm.h>
   #include <unistd.h>
-  #include <signal.h>
-  #include <sys/time.h>
 #endif
 
 using namespace std;
@@ -213,7 +194,6 @@ IPCHandler::Close()
   m_Interface->Detach();
   m_SharedData = NULL;
 }
-
 
 IPCHandler::IPCHandler(AbstractSharedMemorySystemInterface *interface)
 {
