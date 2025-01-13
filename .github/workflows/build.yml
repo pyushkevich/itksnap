@@ -42,7 +42,7 @@ jobs:
         include:
           - os: ubuntu-20.04
             qt_host: linux
-            qt_arch: gcc_64
+            qt_arch: linux_gcc_64
             ctest_cmd: xvfb-run -a ctest
           - os: macos-13
             qt_host: mac
@@ -54,7 +54,7 @@ jobs:
             ctest_cmd: ctest
           - os: windows-2022
             qt_host: windows
-            qt_arch: win64_msvc2019_64
+            qt_arch: win64_msvc2022_64
             ctest_cmd: ctest
 
     steps:
