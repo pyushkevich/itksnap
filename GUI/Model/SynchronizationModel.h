@@ -6,6 +6,7 @@
 class GlobalUIModel;
 class SystemInterface;
 class IPCHandler;
+class AbstractSharedMemorySystemInterface;
 
 /**
  * @brief Model that interfaces with the GUI controls that handle
@@ -17,6 +18,12 @@ public:
   irisITKObjectMacro(SynchronizationModel, AbstractModel)
 
   void SetParentModel(GlobalUIModel *parent);
+
+  /** Pass a system object that is used to make IPC calls */
+  void SetSystemInterface(AbstractSharedMemorySystemInterface *si);
+
+  /** Attach the model to shared memory - this must be called after SetSystemInterface */
+  void Attach();
 
   /** Models controlling sync state */
   irisSimplePropertyAccessMacro(SyncEnabled, bool)
@@ -62,7 +69,7 @@ protected:
   GlobalUIModel *m_Parent;
   SystemInterface *m_SystemInterface;
   unsigned long m_WarpLayerId;
-  IPCHandler *m_IPCHandler;
+  IPCHandler *m_IPCHandler = nullptr;
 
   bool m_CanBroadcast;
 };

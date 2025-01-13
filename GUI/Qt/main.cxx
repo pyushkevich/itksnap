@@ -13,6 +13,7 @@
 #include "SNAPTestQt.h"
 
 #include "GenericSliceModel.h"
+#include "SynchronizationModel.h"
 #include "GlobalUIModel.h"
 
 #include "itkObject.h"
@@ -48,20 +49,58 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 #include <QDesktopServices>
+#include "IRISImageData.h"
 
 using namespace std;
 
 // Interrupt handler. This will attempt to clean up
 
-// Setup printing of stack trace on segmentation faults. This only
-// works on POSIX systems
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 
-#  include <signal.h>
-#  include <execinfo.h>
-#  include <set>
+#include <execinfo.h>
 
-#  include "IRISImageData.h"
+void printBacktrace()
+{
+  cerr << "*************************************" << endl;
+  cerr << "BACKTRACE: " << endl;
+  void *array[50];
+  int   nsize = backtrace(array, 50);
+  backtrace_symbols_fd(array, nsize, 2);
+  cerr << "*************************************" << endl;
+
+}
+
+#else
+
+void printBacktrace()
+{
+  unsigned int   i;
+  void         * stack[ 100 ];
+  unsigned short frames;
+  SYMBOL_INFO  * symbol;
+  HANDLE         process;
+
+  process = GetCurrentProcess();
+
+  SymInitialize( process, NULL, TRUE );
+
+  frames               = CaptureStackBackTrace( 0, 100, stack, NULL );
+  symbol               = ( SYMBOL_INFO * )calloc( sizeof( SYMBOL_INFO ) + 256 * sizeof( char ), 1 );
+  symbol->MaxNameLen   = 255;
+  symbol->SizeOfStruct = sizeof( SYMBOL_INFO );
+
+  for( i = 0; i < frames; i++ )
+  {
+    SymFromAddr( process, ( DWORD64 )( stack[ i ] ), 0, symbol );
+    fprintf(stderr, "%i: %s - 0x%0X\n", frames - i - 1, symbol->Name, symbol->Address );
+  }
+
+  free( symbol );
+}
+
+#endif
+
+
 
 QString
 BackupSegmentationToEmergencyFile()
@@ -135,41 +174,13 @@ BackupSegmentationToEmergencyFile()
 }
 
 void
-SegmentationFaultHandler(int sig)
-{
-  cerr << "*************************************" << endl;
-  cerr << "ITK-SNAP: " << strsignal(sig) << endl;
-  cerr << "BACKTRACE: " << endl;
-  void *array[50];
-  int   nsize = backtrace(array, 50);
-  backtrace_symbols_fd(array, nsize, 2);
-  cerr << "*************************************" << endl;
-
-  QString backup_dir = BackupSegmentationToEmergencyFile();
-  if (backup_dir.size())
-    QMessageBox::critical(nullptr,
-                          "Segmentation Fault",
-                          QString("ITK-SNAP has crashed due to a segmentation fault. Your unsaved "
-                                  "segmentation files were saved to %1")
-                            .arg(backup_dir));
-
-  exit(-1);
-}
-
-void
 test_terminate_handler()
 {
   // Save backup file
   QString backup_dir = BackupSegmentationToEmergencyFile();
 
   // Print stack trace
-  cerr << "*************************************" << endl;
-  cerr << "ITK-SNAP Crash Report: " << endl;
-  cerr << "BACKTRACE: " << endl;
-  void *array[50];
-  int   nsize = backtrace(array, 50);
-  backtrace_symbols_fd(array, nsize, 2);
-  cerr << "*************************************" << endl;
+  printBacktrace();
 
   // Let the user know what we did
   if (backup_dir.size())
@@ -212,25 +223,6 @@ test_terminate_handler()
   std::abort();
 }
 
-void
-SetupSignalHandlers()
-{
-  signal(SIGSEGV, SegmentationFaultHandler);
-}
-
-
-#else
-
-void
-SetupSignalHandlers()
-{
-  // Nothing to do!
-}
-
-#endif
-
-
-// Setting environment variables
 
 #ifdef WIN32
 
@@ -931,6 +923,10 @@ main(int argc, char *argv[])
   QtSystemInfoDelegate siDelegate;
   SystemInterface::SetSystemInfoDelegate(&siDelegate);
 
+  // We also need to create the Qt-based object that handles shared memory communication
+  // and pass it to the appropriate model
+  QtSharedMemorySystemInterface siSharedMem;
+
   // Create the global UI
   try
   {
@@ -1131,6 +1127,10 @@ main(int argc, char *argv[])
       }
       */
 
+    // Pass the shared memory interface to its model
+    gui->GetSynchronizationModel()->SetSystemInterface(&siSharedMem);
+    gui->GetSynchronizationModel()->Attach();
+
     // Configure the IPC communications (as a hidden widget)
     QtIPCManager *ipcman = new QtIPCManager(mainwin);
     ipcman->hide();
@@ -1164,9 +1164,6 @@ main(int argc, char *argv[])
 
       // Set up crash recovery
       std::set_terminate(test_terminate_handler);
-
-      // This is somewhat redundant - not sure if this is already handled by set::terminate
-      SetupSignalHandlers();
     }
 
     // Assign the main window to the application. We do this right before

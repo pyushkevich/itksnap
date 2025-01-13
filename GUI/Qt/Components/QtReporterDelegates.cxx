@@ -231,3 +231,72 @@ void QtSystemInfoDelegate::WriteRGBAImage2D(std::string file, RGBAImageType *ima
     }
   iq.save(from_utf8(file));
 }
+
+#include <QSharedMemory>
+QtSharedMemorySystemInterface::QtSharedMemorySystemInterface()
+{
+  m_SharedMem = new QSharedMemory();
+}
+
+QtSharedMemorySystemInterface::~QtSharedMemorySystemInterface()
+{
+  if (m_SharedMem->isAttached())
+    m_SharedMem->detach();
+  delete m_SharedMem;
+}
+
+void
+QtSharedMemorySystemInterface::SetKey(const std::string &key)
+{
+  m_SharedMem->setKey(QString::fromUtf8(key));
+}
+
+bool
+QtSharedMemorySystemInterface::Attach()
+{
+  return m_SharedMem->attach();
+}
+
+bool
+QtSharedMemorySystemInterface::Detach()
+{
+  return m_SharedMem->detach();
+}
+
+bool
+QtSharedMemorySystemInterface::Create(unsigned int size)
+{
+  return m_SharedMem->create(size);
+}
+
+bool
+QtSharedMemorySystemInterface::IsAttached()
+{
+  return m_SharedMem->isAttached();
+}
+
+std::string
+QtSharedMemorySystemInterface::GetErrorMessage()
+{
+  return m_SharedMem->errorString().toStdString();
+}
+
+void *
+QtSharedMemorySystemInterface::Data()
+{
+  return m_SharedMem->data();
+}
+
+bool
+QtSharedMemorySystemInterface::Lock()
+{
+  return m_SharedMem->lock();
+}
+
+bool
+QtSharedMemorySystemInterface::Unlock()
+{
+  return m_SharedMem->unlock();
+}
+
+

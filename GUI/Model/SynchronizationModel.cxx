@@ -44,9 +44,6 @@ SynchronizationModel::SynchronizationModel()
 
   m_SyncChannelModel = NewRangedConcreteProperty(1, 1, 99, 1);
 
-  // Create an IPC handler
-  m_IPCHandler = new IPCHandler();
-
   // Warp layer ID is zero by default (no warp)
   m_WarpLayerId = 0;
 
@@ -62,7 +59,7 @@ SynchronizationModel::SynchronizationModel()
 
 SynchronizationModel::~SynchronizationModel()
 {
-  if(m_IPCHandler->IsAttached())
+  if(m_IPCHandler && m_IPCHandler->IsAttached())
     m_IPCHandler->Close();
   delete m_IPCHandler;
 }
@@ -72,13 +69,6 @@ void SynchronizationModel::SetParentModel(GlobalUIModel *parent)
   // Set the parent
   m_Parent = parent;
   m_SystemInterface = m_Parent->GetDriver()->GetSystemInterface();
-
-  // Initialize the IPC handler
-  m_IPCHandler->Attach(
-        m_SystemInterface->GetUserPreferencesFileName(),
-        (short) IPCMessage::VERSION, sizeof(IPCMessage));
-
-  // TODO: the defaults should be read from global preferences
 
   // Listen to the events from the parent that correspond to changes that
   // need to be broadcast, and send them downstream as model update events
@@ -101,6 +91,25 @@ void SynchronizationModel::SetParentModel(GlobalUIModel *parent)
   Rebroadcast(m_Parent->GetDriver(), LayerChangeEvent(), ModelUpdateEvent());
 }
 
+void
+SynchronizationModel::SetSystemInterface(AbstractSharedMemorySystemInterface *si)
+{
+  m_IPCHandler = new IPCHandler(si);
+}
+
+void
+SynchronizationModel::Attach()
+{
+  itkAssertOrThrowMacro(
+    m_SystemInterface && m_IPCHandler,
+    "SynchronizationModel::Attach called before setting parent model or system interface.");
+
+  // Initialize the IPC handler
+  m_IPCHandler->Attach(
+    m_SystemInterface->GetUserPreferencesFileName(),
+    (short) IPCMessage::VERSION, sizeof(IPCMessage));
+}
+
 
 void SynchronizationModel::OnUpdate()
 {
@@ -110,6 +119,9 @@ void SynchronizationModel::OnUpdate()
      || !m_SyncEnabledModel->GetValue()
      || !m_CanBroadcast)
     return;
+
+  bool bc_main_update = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
+  bool bc_sync_state_changed = m_EventBucket->HasEvent(ValueChangedEvent(), m_SyncEnabledModel);
 
   // Figure out what to broadcast
   bool bc_cursor =
@@ -128,6 +140,14 @@ void SynchronizationModel::OnUpdate()
   bool bc_camera =
       m_EventBucket->HasEvent(Generic3DRenderer::CameraUpdateEvent())
       && m_SyncCameraModel->GetValue();
+
+  // If the main image has been updated, then we should read the IPC because whatever cursor
+  // state we are in, this is not coming from the user's interaction
+  if(bc_main_update)
+  {
+    this->ReadIPCState();
+    return;
+  }
 
   // Read the contents of shared memory into the local message object
   IPCMessage message;
@@ -235,7 +255,7 @@ void SynchronizationModel::SetWarpLayerValue(unsigned long value)
 void SynchronizationModel::ReadIPCState()
 {
   IRISApplication *app = m_Parent->GetDriver();
-  if(!app->IsMainImageLoaded() || !m_SyncCursorModel->GetValue())
+  if(!app->IsMainImageLoaded() || !m_SyncEnabledModel->GetValue())
     return;
 
   // Read the IPC message
