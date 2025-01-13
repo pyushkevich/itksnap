@@ -5,6 +5,7 @@
 #include <cerrno>
 #include <functional>
 #include <sstream>
+#include <chrono>
 
 #if defined(WIN32)
   #ifdef _WIN32_WINNT
