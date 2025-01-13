@@ -38,7 +38,7 @@ jobs:
         os: [ubuntu-20.04,macos-13,macos-14,windows-2022]
         itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.3.1' ]
-        qt_ver: [ '6.6.3' ]
+        qt_ver: [ '6.8.1' ]
         include:
           - os: ubuntu-20.04
             qt_host: linux
