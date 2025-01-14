@@ -31,6 +31,10 @@ public:
   IPCHandler(AbstractSharedMemorySystemInterface *interface);
   ~IPCHandler();
 
+  enum AttachStatus {
+    CREATED, ATTACHED, ERROR
+  };
+
   /**
    * Attach to the shared memory. The caller should supply the path to the
    * program executable (or a derived string), and a version number. The version
@@ -39,13 +43,13 @@ public:
    * incremented whenever the data structure being shared changes. The last parameter
    * is the size of the message in bytes (obtained using size_of)
    */
-  void Attach(const char *path, short version, size_t message_size);
+  AttachStatus Attach(const char *path, short version, size_t message_size);
 
   /** Release shared memory */
-  void Close();
+  void Detach();
 
   /** Whether the shared memory is attached */
-  bool IsAttached() { return m_SharedData != NULL; }
+  bool IsAttached();
 
   /** Read a 'message', i.e., the contents of shared memory */
   bool Read(void *target_ptr);

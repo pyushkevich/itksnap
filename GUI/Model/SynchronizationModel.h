@@ -2,6 +2,7 @@
 #define SYNCHRONIZATIONMODEL_H
 
 #include "PropertyModel.h"
+#include <itkCommand.h>
 
 class GlobalUIModel;
 class SystemInterface;
@@ -21,9 +22,6 @@ public:
 
   /** Pass a system object that is used to make IPC calls */
   void SetSystemInterface(AbstractSharedMemorySystemInterface *si);
-
-  /** Attach the model to shared memory - this must be called after SetSystemInterface */
-  void Attach();
 
   /** Models controlling sync state */
   irisSimplePropertyAccessMacro(SyncEnabled, bool)
@@ -45,7 +43,7 @@ public:
   irisGetSetMacro(CanBroadcast, bool)
 
   /** This method should be called by UI at regular intervals to read IPC state */
-  void ReadIPCState();
+  void ReadIPCState(bool only_read_new=true);
 
 protected:
 

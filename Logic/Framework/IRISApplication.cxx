@@ -1659,9 +1659,6 @@ IRISApplication
   if(layer->IsSticky())
     layer->SetSticky(false);
 
-  // Fire the dimensions change event
-  InvokeEvent(MainImageDimensionsChangeEvent());
-
   // Update the crosshairs position to the center of the image
   this->SetCursorPosition(layer->GetSize() / 2u);
 
@@ -1692,6 +1689,9 @@ IRISApplication
 
   // Reset timepoint properties
   m_IRISImageData->GetTimePointProperties()->CreateNewData();
+
+  // Fire the dimensions change event
+  InvokeEvent(MainImageDimensionsChangeEvent());
 }
 
 void IRISApplication::LoadMetaDataAssociatedWithLayer(
