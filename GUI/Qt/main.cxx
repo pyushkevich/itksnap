@@ -216,7 +216,7 @@ test_terminate_handler()
       QPushButton *openFolderButton = msgBox.addButton("Open Folder", QMessageBox::AcceptRole);
 
       // Add the "Close" button
-      msgBox.addButton(QMessageBox::Close);
+      msgBox.addButton("Close", QMessageBox::RejectRole);
 
       // Execute the message box and handle the button press
       msgBox.exec();
@@ -1224,15 +1224,7 @@ main(int argc, char *argv[])
     }
     catch (std::exception &exc)
     {
-      qWarning() << "ITK-SNAP has crashed due to an uncaught exception: " << exc.what();
-      QString backup_dir = BackupSegmentationToEmergencyFile();
-      if (backup_dir.size())
-        QMessageBox::critical(
-          nullptr,
-          "Uncaught exception",
-          QString("ITK-SNAP has crashed due to an uncaught exception. Your unsaved "
-                  "segmentation files were saved to %1")
-            .arg(backup_dir));
+      test_terminate_handler();
       rc = -1;
     }
 

@@ -146,7 +146,7 @@ void SynchronizationModel::OnUpdate()
       //     << endl;
 
       // If we attached to an existing session, then update from that session.
-      if (status == IPCHandler::ATTACHED)
+      if (status == IPCHandler::IPC_ATTACHED)
       {
         // std::cout << "Reading IPC state after main image update and exiting" << std::endl;
         ReadIPCState(false);

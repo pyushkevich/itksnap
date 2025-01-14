@@ -35,11 +35,11 @@ IPCHandler::Attach(const char *path, short version, size_t message_size)
   m_Interface->SetKey("5A636Q488E.itksnap");
 
   // Attach or create shared memory
-  AttachStatus status = ATTACHED;
+  AttachStatus status = IPC_ATTACHED;
   if (!m_Interface->Attach())
   {
     m_Interface->Create(msize);
-    status = CREATED;
+    status = IPC_CREATED;
   }
 
   // Check if attached
@@ -53,7 +53,7 @@ IPCHandler::Attach(const char *path, short version, size_t message_size)
     cerr << "Error attaching to or creating shared memory: " << strerror(errno) << endl;
     cerr << "This error may occur if a user is running two versions of ITK-SNAP" << endl;
     cerr << "Multisession support is disabled" << endl;
-    return ERROR;
+    return IPC_ERROR;
   }
 
   // Set the user data pointer

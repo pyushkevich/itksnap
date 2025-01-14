@@ -32,7 +32,7 @@ public:
   ~IPCHandler();
 
   enum AttachStatus {
-    CREATED, ATTACHED, ERROR
+    IPC_CREATED, IPC_ATTACHED, IPC_ERROR
   };
 
   /**

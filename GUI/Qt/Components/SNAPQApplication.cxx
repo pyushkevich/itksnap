@@ -55,23 +55,7 @@ void SNAPQApplication::setMainWindow(MainImageWindow *mainwin)
 bool
 SNAPQApplication::notify(QObject *object, QEvent *event)
 {
-  try
-  {
-    return QApplication::notify(object, event);
-  }
-  // catch (const std::exception &exc)
-  catch(...)
-  {
-    // Crash!
-    qCritical() << "Caught exception, exiting!!!";
-    // ReportNonLethalException(
-    //  NULL, exc, "Unexpected Error", "ITK-SNAP has crashed due to an unexpected error");
-
-    // Exit the application
-    QApplication::exit(-1);
-
-    return false;
-  }
+  return QApplication::notify(object, event);
 }
 
 bool SNAPQApplication::event(QEvent *event)
