@@ -113,10 +113,10 @@ public:
     {
     unsigned int ncomp = it.GetImage()->GetNumberOfComponentsPerPixel();
     unsigned int buffer_size_adj = ncomp * (buffer_size / ncomp);
-    for(n_read = 0; n_read < buffer_size_adj && !it.IsAtEnd(); ++it)
+    for(n_read = 0; n_read < (int) buffer_size_adj && !it.IsAtEnd(); ++it)
       {
       const auto &p = it.Get();
-      for(int k = 0; k < ncomp; k++, n_read++)
+      for(unsigned int k = 0; k < ncomp; k++, n_read++)
         buffer[n_read] = p[k];
       }
     }
