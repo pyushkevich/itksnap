@@ -91,9 +91,8 @@ public:
     // Configure mode map
     m_ToolbarModeMap[POLYGON_DRAWING_MODE] = std::make_pair(m_PolygonMode, nullptr);
     m_ToolbarModeMap[PAINTBRUSH_MODE] = std::make_pair(m_PaintbrushMode, m_PaintbrushRenderer);
-    m_ToolbarModeMap[ANNOTATION_MODE] = std::make_pair(m_AnnotationMode, nullptr);
-    m_ToolbarModeMap[REGISTRATION_MODE] =
-      std::make_pair(m_RegistrationMode, m_RegistrationRenderer);
+    m_ToolbarModeMap[ANNOTATION_MODE] = std::make_pair(m_AnnotationMode, m_AnnotationRenderer);
+    m_ToolbarModeMap[REGISTRATION_MODE] = std::make_pair(m_RegistrationMode, m_RegistrationRenderer);
     m_ToolbarModeMap[ROI_MODE] = std::make_pair(m_SnakeROIMode, m_SnakeROIRenderer);
     m_ToolbarModeMap[CROSSHAIRS_MODE] = std::make_pair(m_CrosshairsMode, nullptr);
     m_ToolbarModeMap[NAVIGATION_MODE] = std::make_pair(m_ZoomPanMode, nullptr);
