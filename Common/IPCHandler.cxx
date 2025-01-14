@@ -15,7 +15,8 @@
 
 using namespace std;
 
-void IPCHandler::Attach(const char *path, short version, size_t message_size)
+IPCHandler::AttachStatus
+IPCHandler::Attach(const char *path, short version, size_t message_size)
 {
   // Initialize the data pointer
   m_SharedData = nullptr;
@@ -34,29 +35,35 @@ void IPCHandler::Attach(const char *path, short version, size_t message_size)
   m_Interface->SetKey("5A636Q488E.itksnap");
 
   // Attach or create shared memory
-  if(!m_Interface->Attach())
-    m_Interface->Create(msize);
-
-  // Check if attached
-  if(m_Interface->IsAttached())
+  AttachStatus status = ATTACHED;
+  if (!m_Interface->Attach())
   {
-    m_SharedData=m_Interface->Data();
+    m_Interface->Create(msize);
+    status = CREATED;
   }
 
-  if(!m_SharedData)
+  // Check if attached
+  if (m_Interface->IsAttached())
+  {
+    m_SharedData = m_Interface->Data();
+  }
+
+  if (!m_SharedData)
   {
     cerr << "Error attaching to or creating shared memory: " << strerror(errno) << endl;
     cerr << "This error may occur if a user is running two versions of ITK-SNAP" << endl;
     cerr << "Multisession support is disabled" << endl;
-    return;
+    return ERROR;
   }
 
   // Set the user data pointer
-  if(m_SharedData)
-    {
+  if (m_SharedData)
+  {
     Header *hptr = static_cast<Header *>(m_SharedData);
     m_UserData = static_cast<void *>(hptr + 1);
-    }
+  }
+
+  return status;
 }
 
 bool IPCHandler::Read(void *target_ptr)
@@ -170,7 +177,7 @@ IPCHandler::Broadcast(const void *message_ptr)
 }
 
 void
-IPCHandler::Close()
+IPCHandler::Detach()
 {
   // Update the message with sender PID of -1 so that if shared memory is retained
   // for future runs of ITK-SNAP, it will be ignored
@@ -193,6 +200,12 @@ IPCHandler::Close()
   // Detach from shared memory
   m_Interface->Detach();
   m_SharedData = NULL;
+}
+
+bool
+IPCHandler::IsAttached()
+{
+  return m_Interface->IsAttached();
 }
 
 IPCHandler::IPCHandler(AbstractSharedMemorySystemInterface *interface)

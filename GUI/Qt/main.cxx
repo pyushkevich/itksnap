@@ -950,6 +950,9 @@ main(int argc, char *argv[])
     SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
     IRISApplication        *driver = gui->GetDriver();
 
+    // Pass the shared memory interface to its model
+    gui->GetSynchronizationModel()->SetSystemInterface(&siSharedMem);
+
     // Set the initial directory. The fallthough is to set to the user's home
     // directory
     QString init_dir = QDir::homePath();
@@ -1143,10 +1146,6 @@ main(int argc, char *argv[])
         }
       }
       */
-
-    // Pass the shared memory interface to its model
-    gui->GetSynchronizationModel()->SetSystemInterface(&siSharedMem);
-    gui->GetSynchronizationModel()->Attach();
 
     // Configure the IPC communications (as a hidden widget)
     QtIPCManager *ipcman = new QtIPCManager(mainwin);

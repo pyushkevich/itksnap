@@ -8,8 +8,6 @@
 #include "SliceWindowCoordinator.h"
 #include "Generic3DModel.h"
 #include "Generic3DRenderer.h"
-#include "vtkCamera.h"
-#include "vtkCommand.h"
 #include "IPCHandler.h"
 
 /** Structure passed on to IPC */
@@ -55,12 +53,15 @@ SynchronizationModel::SynchronizationModel()
                        this,
                        &Self::GetWarpLayerValueAndRange,
                        &Self::SetWarpLayerValue);
+
+  // Rebroadcast changes from the sync enabled model
+  Rebroadcast(m_SyncEnabledModel, ValueChangedEvent(), ModelUpdateEvent());
 }
 
 SynchronizationModel::~SynchronizationModel()
 {
   if(m_IPCHandler && m_IPCHandler->IsAttached())
-    m_IPCHandler->Close();
+    m_IPCHandler->Detach();
   delete m_IPCHandler;
 }
 
@@ -87,8 +88,8 @@ void SynchronizationModel::SetParentModel(GlobalUIModel *parent)
   Rebroadcast(m_Parent->GetModel3D()->GetRenderer(),
               Generic3DRenderer::CameraUpdateEvent(), ModelUpdateEvent());
 
-  // Changes to the loaded layers
-  Rebroadcast(m_Parent->GetDriver(), LayerChangeEvent(), ModelUpdateEvent());
+  // Changes to main image dimensions have to be rebroadcast
+  Rebroadcast(m_Parent->GetDriver(), MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 }
 
 void
@@ -97,31 +98,69 @@ SynchronizationModel::SetSystemInterface(AbstractSharedMemorySystemInterface *si
   m_IPCHandler = new IPCHandler(si);
 }
 
-void
-SynchronizationModel::Attach()
-{
-  itkAssertOrThrowMacro(
-    m_SystemInterface && m_IPCHandler,
-    "SynchronizationModel::Attach called before setting parent model or system interface.");
-
-  // Initialize the IPC handler
-  m_IPCHandler->Attach(
-    m_SystemInterface->GetUserPreferencesFileName(),
-    (short) IPCMessage::VERSION, sizeof(IPCMessage));
-}
-
-
 void SynchronizationModel::OnUpdate()
 {
-  // If there is no synchronization or no image, get out
   IRISApplication *app = m_Parent->GetDriver();
-  if(!app->IsMainImageLoaded()
-     || !m_SyncEnabledModel->GetValue()
-     || !m_CanBroadcast)
-    return;
-
   bool bc_main_update = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
   bool bc_sync_state_changed = m_EventBucket->HasEvent(ValueChangedEvent(), m_SyncEnabledModel);
+  bool do_sync = m_SyncEnabledModel->GetValue();
+  bool have_main = app->IsMainImageLoaded();
+
+  /*
+  cout << "SynchronizationModel::OnUpdate" << endl;
+  cout << "Event bucket: " << *m_EventBucket << endl;
+  cout << "Main updated: " << bc_main_update << endl;
+  cout << "have_main: " << have_main << endl;
+  cout << "do_sync: " << do_sync << endl;
+  cout << "bc_sync_state_changed: " << bc_sync_state_changed << endl;
+  cout << "can broadcast: " << m_CanBroadcast << endl;
+  */
+
+  // If we are not participating in sync, or there is no main image, we should make sure that
+  // we are detached from the shared memory and not proceed further.
+  if(!do_sync || !have_main)
+  {
+    if (m_IPCHandler->IsAttached())
+    {
+      // cout << "Detaching from IPC" << endl;
+      m_IPCHandler->Detach();
+    }
+    // cout << "Leaving function - sync should not be used" << endl;
+    return;
+  }
+
+  // Behavior depends greatly on whether the main image has been loaded or not
+  if(bc_main_update || bc_sync_state_changed)
+  {
+    if(!m_IPCHandler->IsAttached())
+    {
+      // Main image has just been loaded. We should attach to the shared memory and
+      // read the shared memory state if it exists.
+      auto status = m_IPCHandler->Attach(m_SystemInterface->GetUserPreferencesFileName(),
+                                         (short)IPCMessage::VERSION,
+                                         sizeof(IPCMessage));
+
+      //  << "Attaching tp IPC, return status: "
+      //     << (status == IPCHandler::ATTACHED ? "attached"
+      //                                        : (status == IPCHandler::CREATED ? "created" : "error"))
+      //     << endl;
+
+      // If we attached to an existing session, then update from that session.
+      if (status == IPCHandler::ATTACHED)
+      {
+        // std::cout << "Reading IPC state after main image update and exiting" << std::endl;
+        ReadIPCState(false);
+        return;
+      }
+    }
+  }
+
+  // If we reached this point, either there has not been a change in main image and
+  // not a change in sync state; or a main image has been loaded, but shared memory
+  // was created. In both of these situations, we want to broadcast our current state
+  // to other ITK-SNAP sessions.
+  if(!m_CanBroadcast)
+    return;
 
   // Figure out what to broadcast
   bool bc_cursor =
@@ -141,14 +180,6 @@ void SynchronizationModel::OnUpdate()
       m_EventBucket->HasEvent(Generic3DRenderer::CameraUpdateEvent())
       && m_SyncCameraModel->GetValue();
 
-  // If the main image has been updated, then we should read the IPC because whatever cursor
-  // state we are in, this is not coming from the user's interaction
-  if(bc_main_update)
-  {
-    this->ReadIPCState();
-    return;
-  }
-
   // Read the contents of shared memory into the local message object
   IPCMessage message;
   m_IPCHandler->Read(static_cast<void *>(&message));
@@ -160,6 +191,7 @@ void SynchronizationModel::OnUpdate()
     ImageWrapperBase *iw = app->GetCurrentImageData()->GetMain();
 
     // Get the NIFTI coordinate of the current cursor position
+    // std::cout << "Broadcasting cursor position " << app->GetCursorPosition() << " to shared memory" << std::endl;
     auto cp = app->GetCursorPosition();
     message.cursor = iw->TransformVoxelCIndexToNIFTICoordinates(to_double(cp));
 
@@ -252,7 +284,8 @@ void SynchronizationModel::SetWarpLayerValue(unsigned long value)
 }
 
 
-void SynchronizationModel::ReadIPCState()
+void
+SynchronizationModel::ReadIPCState(bool only_read_new)
 {
   IRISApplication *app = m_Parent->GetDriver();
   if(!app->IsMainImageLoaded() || !m_SyncEnabledModel->GetValue())
@@ -260,7 +293,10 @@ void SynchronizationModel::ReadIPCState()
 
   // Read the IPC message
   IPCMessage message;
-  if(m_IPCHandler->ReadIfNew(static_cast<void *>(&message)))
+  bool       rc = only_read_new ? m_IPCHandler->ReadIfNew(static_cast<void *>(&message))
+                                : m_IPCHandler->Read(static_cast<void *>(&message));
+
+  if(rc)
     {
     if(m_SyncCursorModel->GetValue())
       {
@@ -278,6 +314,7 @@ void SynchronizationModel::ReadIPCState()
       // Check if the voxel position is inside the image region
       if(vpos != app->GetCursorPosition() && id->GetImageRegion().IsInside(pos))
         {
+        // std::cout << "Setting cursor position to " << vpos << " from shared memory" << std::endl;
         app->SetCursorPosition(vpos);
         }
       }
@@ -294,6 +331,7 @@ void SynchronizationModel::ReadIPCState()
          && static_cast<float>(message.zoom_level[dir]) > 0.0f)
         {
           gsm->SetViewZoom(message.zoom_level[dir]);
+          // std::cout << "Setting view zoom " << dir << " to " << message.zoom_level[dir] << " from shared memory" << std::endl;
         }
 
       if(m_SyncPanModel->GetValue()
