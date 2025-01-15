@@ -98,6 +98,7 @@ public:
   virtual void* Data() override;
   virtual bool Lock() override;
   virtual bool Unlock() override;
+  virtual int GetProcessID() override;
 
 protected:
   QSharedMemory *m_SharedMem;

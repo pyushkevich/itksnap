@@ -335,61 +335,42 @@ public:
   std::vector<std::string> fnSegmentation;
   std::string              fnLabelDesc;
   std::string              fnWorkspace;
-  double                   xZoomFactor;
-  bool                     flagDebugEvents;
+  double                   xZoomFactor = 0.0;
+  bool                     flagDebugEvents = false;
+  bool                     flagDebugSync = false;
 
   // Whether the console-based application should not fork
-  bool flagNoFork;
+  bool flagNoFork = false;
 
   // Whether the application is being launched from the console
-  bool flagConsole;
+  bool flagConsole = false;
 
   // Whether widgets are double-buffered
-  bool flagX11DoubleBuffer;
+  bool flagX11DoubleBuffer = false;
 
   // Test-related stuff
   std::string xTestId;
   std::string fnTestDir;
-  double      xTestAccel;
+  double      xTestAccel = 1.0;
 
   // Current working directory
   std::string cwd;
 
   // GUI related
-  std::string style, cssfile;
+  std::string style = "fusion", cssfile;
 
   // OpenGL version preferred
-  int  opengl_major, opengl_minor;
-  bool flagTestOpenGL;
+  int  opengl_major = 1, opengl_minor = 3;
+  bool flagTestOpenGL = false;
 
   // Number of threads
-  int nThreads;
+  int nThreads = 0;
 
   // GUI scaling
-  int nDevicePixelRatio;
+  int nDevicePixelRatio = 0;
 
   // Screen geometry
-  int geometry[4];
-
-  CommandLineRequest()
-    : flagDebugEvents(false)
-    , flagNoFork(false)
-    , flagConsole(false)
-    , xZoomFactor(0.0)
-    , flagX11DoubleBuffer(false)
-    , nThreads(0)
-    , nDevicePixelRatio(0)
-    , flagTestOpenGL(false)
-  {
-#if QT_VERSION >= 0x050000
-    style = "fusion";
-#else
-    style = "plastique";
-#endif
-    opengl_major = 1;
-    opengl_minor = 3;
-    geometry[0] = geometry[1] = geometry[2] = geometry[3] = -1;
-  }
+  int geometry[4] = {-1, -1, -1, -1};
 };
 
 
@@ -482,6 +463,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddSynonim("--help", "-h");
 
   parser.AddOption("--debug-events", 0);
+  parser.AddOption("--debug-sync", 0);
 
   parser.AddOption("--no-fork", 0);
   parser.AddOption("--console", 0);
@@ -550,6 +532,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
          << endl;
 #endif
   }
+
+  if (parseResult.IsOptionPresent("--debug-sync"))
+    argdata.flagDebugSync = true;
 
   // Initial directory
   if (parseResult.IsOptionPresent("--cwd"))
@@ -952,6 +937,7 @@ main(int argc, char *argv[])
 
     // Pass the shared memory interface to its model
     gui->GetSynchronizationModel()->SetSystemInterface(&siSharedMem);
+    gui->GetSynchronizationModel()->SetDebugSync(argdata.flagDebugSync);
 
     // Set the initial directory. The fallthough is to set to the user's home
     // directory

@@ -3,15 +3,7 @@
 #include <cstring>
 #include <iostream>
 #include <cerrno>
-#include <functional>
-#include <sstream>
 #include <chrono>
-
-#if defined(WIN32)
-  #include <process.h>
-#else
-  #include <unistd.h>
-#endif
 
 using namespace std;
 
@@ -222,11 +214,7 @@ IPCHandler::IPCHandler(AbstractSharedMemorySystemInterface *interface)
   m_SharedData = NULL;
 
   // Get the process ID
-#ifdef WIN32
-  m_ProcessID = _getpid();
-#else
-  m_ProcessID = getpid();
-#endif
+  m_ProcessID = m_Interface->GetProcessID();
 }
 
 IPCHandler::~IPCHandler()

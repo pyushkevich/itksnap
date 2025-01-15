@@ -18,6 +18,7 @@ public:
   virtual void* Data() = 0;
   virtual bool Lock() = 0;
   virtual bool Unlock() = 0;
+  virtual int GetProcessID() = 0;
 };
 
 /**
@@ -59,6 +60,12 @@ public:
 
   /** Broadcast a 'message' (i.e. replace shared memory contents */
   bool Broadcast(const void *message_ptr);
+
+  /** Get the process Id */
+  long GetProcessID() { return m_ProcessID; };
+
+  /** Get the PID of last sender */
+  long GetLastMessageSenderProcessID() { return m_LastSender; }
 
 protected:
 

@@ -141,7 +141,7 @@ MultiLabelMeshPipeline
 
   // Graft the polydata to the last filter in the pipeline
   m_VTKPipeline->SetImage(m_ThrehsoldFilter->GetOutput());
-  m_VTKPipeline->ComputeMesh(outMesh);
+  m_VTKPipeline->ComputeMesh(outMesh, label);
 
   // Done
   return true;
@@ -319,7 +319,7 @@ void MultiLabelMeshPipeline::UpdateMeshes(itk::Command *progressCommand)
 
       // Graft the polydata to the last filter in the pipeline
       m_VTKPipeline->SetImage(m_ThrehsoldFilter->GetOutput());
-      m_VTKPipeline->ComputeMesh(it->second.Mesh);
+      m_VTKPipeline->ComputeMesh(it->second.Mesh, it->first);
 
       // Update progress
       progress->StartNextRun(m_VTKPipeline->GetProgressAccumulator());

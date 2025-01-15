@@ -299,4 +299,8 @@ QtSharedMemorySystemInterface::Unlock()
   return m_SharedMem->unlock();
 }
 
-
+int
+QtSharedMemorySystemInterface::GetProcessID()
+{
+  return (int) QCoreApplication::applicationPid();
+}

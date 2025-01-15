@@ -59,6 +59,8 @@
 #include <vtkDecimatePro.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTransform.h>
+#include <vtkPolyDataNormals.h>
+class vtkFlipPolyFaces;
 
 #include <mutex>
 
@@ -90,7 +92,7 @@ public:
   void SetMeshOptions(MeshOptions *options);
 
   /** Compute a mesh for a particular color label */
-  void ComputeMesh(vtkPolyData *outData, std::mutex *mutex = nullptr);
+  void ComputeMesh(vtkPolyData *outData, long mesh_id, std::mutex *mutex = nullptr);
 
   /** Get the progress accumulator */
   AllPurposeProgressAccumulator *GetProgressAccumulator()
@@ -102,12 +104,11 @@ public:
   /** Deallocate the pipeline filters */
   ~VTKMeshPipeline();
 
-private:
-  
+protected:
   // VTK-ITK Connection typedefs
   typedef itk::VTKImageExport<ImageType> VTKExportType;
   typedef itk::SmartPointer<VTKExportType> VTKExportPointer;
-  
+
   // Current set of mesh options
   SmartPtr<MeshOptions> m_MeshOptions;
 
@@ -118,33 +119,37 @@ private:
   VTKExportPointer m_VTKExporter;
 
   // The VTK importer for the data
-  vtkImageImport *m_VTKImporter;
+  vtkSmartPointer<vtkImageImport> m_VTKImporter;
 
-  // VTK Gaussian (because we care about the speed and not so much about
-  // precision)
-  vtkImageGaussianSmooth *m_VTKGaussianFilter;
+  // Normal orientation fixing filter
+  vtkSmartPointer<vtkFlipPolyFaces> m_FlipPolyFaces;
+
+  // VTK Gaussian (because we care about the speed and not so much about precision)
+  vtkSmartPointer<vtkImageGaussianSmooth> m_VTKGaussianFilter;
 
   // The polygon smoothing filter
-  vtkSmoothPolyDataFilter *m_PolygonSmoothingFilter;
+  vtkSmartPointer<vtkSmoothPolyDataFilter> m_PolygonSmoothingFilter;
 
   // Triangle stripper
-  vtkStripper *m_StripperFilter;  
-  
+  vtkSmartPointer<vtkStripper> m_StripperFilter;
+
   // Marching cubes filter
-  vtkMarchingCubes *     m_MarchingCubesFilter;
+  vtkSmartPointer<vtkMarchingCubes> m_MarchingCubesFilter;
 
   // Transform filter used to map to RAS space
-  vtkTransformPolyDataFilter *m_TransformFilter;
+  vtkSmartPointer<vtkTransformPolyDataFilter> m_TransformFilter;
 
   // The transform used
-  vtkTransform * m_Transform;
-  
+  vtkSmartPointer<vtkTransform> m_Transform;
+
   // The triangle decimation driver
-  vtkDecimatePro *               m_DecimateFilter;
+  vtkSmartPointer<vtkDecimatePro> m_DecimateFilter;
 
   // Progress event monitor
   AllPurposeProgressAccumulator::Pointer m_Progress;
 
+  // Current pipeline - list of chained filters in order
+  std::list<vtkAlgorithm *> m_Pipeline;
 };
 
 #endif // __VTKMeshPipeline_h_

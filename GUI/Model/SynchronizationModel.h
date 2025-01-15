@@ -42,6 +42,9 @@ public:
    * flag depending on whether the window is active or not */
   irisGetSetMacro(CanBroadcast, bool)
 
+  /** Enable sync debugging */
+  irisGetSetMacro(DebugSync, bool)
+
   /** This method should be called by UI at regular intervals to read IPC state */
   void ReadIPCState(bool only_read_new=true);
 
@@ -70,6 +73,7 @@ protected:
   IPCHandler *m_IPCHandler = nullptr;
 
   bool m_CanBroadcast;
+  bool m_DebugSync = false;
 };
 
 #endif // SYNCHRONIZATIONMODEL_H
