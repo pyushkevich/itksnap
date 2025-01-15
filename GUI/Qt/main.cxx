@@ -196,6 +196,13 @@ test_terminate_handler()
   // Save backup file
   QString backup_dir = BackupSegmentationToEmergencyFile();
 
+  // Detach synchronization - otherwise a stale state is left
+  SNAPQApplication *app = dynamic_cast<SNAPQApplication *>(QCoreApplication::instance());
+  MainImageWindow  *mwin = app ? app->mainWindow() : nullptr;
+  GlobalUIModel *model = mwin ? mwin->GetModel() : nullptr;
+  if(model)
+    model->GetSynchronizationModel()->ForceDetach();
+
   // Print stack trace
   printBacktrace();
 

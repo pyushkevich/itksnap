@@ -72,7 +72,7 @@ SynchronizationModel::~SynchronizationModel()
   if(m_IPCHandler && m_IPCHandler->IsAttached())
     {
     if (m_DebugSync)
-      cout << "*Detaching* from IPC" << endl;
+      cout << "  *Detaching* from IPC" << endl;
     m_IPCHandler->Detach();
     }
 
@@ -110,6 +110,27 @@ void
 SynchronizationModel::SetSystemInterface(AbstractSharedMemorySystemInterface *si)
 {
   m_IPCHandler = new IPCHandler(si);
+}
+
+void
+SynchronizationModel::ForceDetach()
+{
+  if (m_DebugSync)
+  {
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    cout << "PID " << std::setw(6) << m_IPCHandler->GetProcessID() << "    "
+         << std::put_time(std::localtime(&now_time_t), "%X")
+         << "    SynchronizationModel::ForceDetach" << endl;
+  }
+
+  if(m_IPCHandler && m_IPCHandler->IsAttached())
+  {
+    if (m_DebugSync)
+      cout << "  *Detaching* from IPC" << endl;
+    m_IPCHandler->Detach();
+  }
+
 }
 
 void

@@ -328,8 +328,8 @@ VTKMeshPipeline ::ComputeMesh(vtkPolyData *outMesh, long mesh_id, std::mutex *mu
   m_FlipPolyFaces->SetFlipFaces(m_Transform->GetMatrix()->Determinant() < 0);
 
   // Run and time each portion of the pipeline
-  std::cout << "VTKMeshPipeline::ComputeMesh "
-            << " label " << mesh_id << " timings: " << std::endl;
+  // std::cout << "VTKMeshPipeline::ComputeMesh "
+  //           << " label " << mesh_id << " timings: " << std::endl;
   for (auto *algorithm : m_Pipeline)
   {
     if (algorithm == m_VTKImporter && mutex)

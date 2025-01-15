@@ -23,6 +23,9 @@ public:
   /** Pass a system object that is used to make IPC calls */
   void SetSystemInterface(AbstractSharedMemorySystemInterface *si);
 
+  /** Force detach - do this in a crash */
+  void ForceDetach();
+
   /** Models controlling sync state */
   irisSimplePropertyAccessMacro(SyncEnabled, bool)
   irisRangedPropertyAccessMacro(SyncChannel, int)
