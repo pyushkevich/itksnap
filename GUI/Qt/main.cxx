@@ -16,6 +16,7 @@
 
 #include "GenericSliceView.h"
 #include "GenericSliceModel.h"
+#include "Generic3DModel.h"
 #include "GlobalUIModel.h"
 #include "IRISImageData.h"
 
@@ -900,6 +901,7 @@ int main(int argc, char *argv[])
                 driver->OpenImage(current_seg.c_str(), LABEL_ROLE, warnings
                                   , nullptr, nullptr, i > 0);
                 }
+              gui->GetModel3D()->SetContinuousUpdate(true);
               }
             catch(std::exception &exc)
               {
