@@ -147,6 +147,9 @@ protected:
                    double                    thumbnail_zoom,
                    double                    opacity,
                    DisplaySliceIntent        intent);
+
+  // Internal function to render mesh intersections with the cutting plane
+  void RenderMeshes(AbstractRenderContext *context);
 };
 
 

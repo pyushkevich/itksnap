@@ -315,6 +315,67 @@ GenericSliceRenderer::RenderLayer(AbstractRenderContext *context,
 }
 
 void
+GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
+{
+  auto *ml = m_Model->GetImageData()->GetMeshLayers();
+  unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
+  auto index = DisplaySliceIndex(m_Model->GetId(), DISPLAY_SLICE_MAIN);
+  auto *main_image = m_Model->GetDriver()->GetMainImage();
+
+  for(auto it = ml->GetLayers(); !it.IsAtEnd(); ++it)
+  {
+    auto *layer = it.GetLayer();
+    for(unsigned int i = 0; i < layer->GetNumberOfMeshes(tp); i++)
+    {
+      vtkPolyData *pd = layer->GetIntersectionWithSlicePlane(tp, i, index);
+      if(!pd)
+        return;
+
+      // Set pen color to red
+      context->SetPenColor(Vector3d(1.0, 0.0, 0.0));
+      context->SetPenWidth(2.0);
+
+      // Get the transform for the current slice to map between physical
+      // and screen coordinates
+      vtkSmartPointer<vtkPoints> points = pd->GetPoints();
+      vtkSmartPointer<vtkCellArray> lines = pd->GetLines();
+
+      if (!points || !lines)
+      {
+        return;
+      }
+
+      vtkIdType npts;
+      const vtkIdType *pts;
+
+      lines->InitTraversal();
+      while (lines->GetNextCell(npts, pts))
+      {
+        AbstractRenderContext::VertexVector edgeVertices;
+        for (vtkIdType i = 0; i < npts; ++i)
+        {
+          Vector3d p_ras;
+          points->GetPoint(pts[i], p_ras.data_block());
+          Vector3d p_itk = main_image->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
+          p_itk += 0.5;
+          Vector3d p_slice = m_Model->MapImageToSlice(p_itk);
+          edgeVertices.emplace_back(Vector2d(p_slice[0], p_slice[1]));
+        }
+
+        // Close the polygon by adding the first point again
+        if (npts > 1)
+          edgeVertices.push_back(edgeVertices.front());
+
+        // Draw the polygon outline
+        context->DrawPolyLine(edgeVertices);
+      }
+
+    }
+  }
+}
+
+
+void
 GenericSliceRenderer::Render(AbstractRenderContext *context)
 {
   using Texture = AbstractRenderContext::Texture;
@@ -418,6 +479,9 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
         if(opacity > 0)
           this->RenderLayer(context, tcache, seg_layer, false, 1.0, opacity, DISPLAY_SLICE_MAIN);
       }
+
+      // Draw the meshes intersection with the cutting plane
+      this->RenderMeshes(context);
     }
 
     // Draw decorators around the layer selection thumbnail, if hovered over by the mouse or selected

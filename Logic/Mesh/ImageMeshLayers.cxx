@@ -34,6 +34,9 @@ ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector)
   // Invoke to trigger initial rendering of the mesh
   SetActiveLayerId(id);
 
+  for (auto index : DisplaySliceIndices)
+    meshLayer->SetDisplayViewportGeometry(index, m_ImageData->GetDisplayViewportGeometry(index));
+
   // Invoke to trigger rebuild of the layer inspector row
   if (notifyInspector)
     InvokeEvent(LayerChangeEvent());

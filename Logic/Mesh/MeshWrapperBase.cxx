@@ -7,6 +7,8 @@
 #include <vtkCellData.h>
 #include <vtkDataSetAttributes.h>
 #include <itksys/SystemTools.hxx>
+#include <vtkPlane.h>
+#include <vtkPlaneCutter.h>
 
 // ========================================
 //  PolyDataWrapper Implementation
@@ -23,6 +25,59 @@ PolyDataWrapper::GetPolyData()
 {
   assert(m_PolyData);
   return m_PolyData;
+}
+
+vtkPolyData *
+PolyDataWrapper::GetIntersectionWithSlicePlane(DisplaySliceIndex            index,
+                                               const DisplayViewportGeometryType *geometry)
+{
+  if(!m_PolyData || !geometry)
+    return nullptr;
+
+  // Create the cutter assembly if it does not already exist
+  auto &cut_assembly = m_PlaneCut[index];
+  if(cut_assembly.IsNull())
+  {
+    cut_assembly = PlaneCutterAssembly::New();
+    cut_assembly->m_Plane = vtkNew<vtkPlane>();
+    cut_assembly->m_Cutter = vtkNew<vtkPlaneCutter>();
+    cut_assembly->m_Cutter->SetPlane(cut_assembly->m_Plane);
+    m_PlaneCut[index] = cut_assembly;
+  }
+
+  // Configure the plane
+  // TODO: check if these have actually changed from the last call to the pipeline!
+  auto plane = cut_assembly->m_Plane;
+
+  // Origin is modified to account for the RAS/LPS transformation
+  itk::ContinuousIndex<double, 3> idx0 = {{ 0, 0, 0 }}, idx1 = {{ 0, 0, 1 }};
+  itk::Point<double, 3> lps0, lps1;
+  geometry->TransformContinuousIndexToPhysicalPoint(idx0, lps0);
+  geometry->TransformContinuousIndexToPhysicalPoint(idx1, lps1);
+
+  // auto origin_lps = geometry->GetOrigin();
+  // plane->SetOrigin(-origin_lps[0], -origin_lps[1], origin_lps[2]);
+  plane->SetOrigin(-lps0[0], -lps0[1], lps0[2]);
+
+  // The normal is just the z direction
+  vnl_vector_fixed<double, 3> n_lps(lps1[0] - lps0[0], lps1[1] - lps0[1], lps1[2] - lps0[2]);
+  n_lps.normalize();
+  plane->SetNormal(-n_lps[0], -n_lps[1], n_lps[2]);
+
+  /*
+  auto dir_lps = geometry->GetDirection().GetVnlMatrix().get_row(2);
+  auto dir_ras = vnl_vector_fixed<double, 3>(dir_lps[0], dir_lps[1], dir_lps[2]);
+  dir_ras.normalize();
+  plane->SetNormal(dir_ras[0], dir_ras[1], dir_ras[2]);
+  */
+
+  // Perform the cutting
+  auto cutter = cut_assembly->m_Cutter;
+  cutter->SetInputData(m_PolyData);
+  cutter->UpdateWholeExtent();
+
+  // Return the resulting polydata
+  return dynamic_cast<vtkPolyData *>(cutter->GetOutput());
 }
 
 void
@@ -233,6 +288,24 @@ MeshWrapperBase::GetMesh(unsigned int timepoint, LabelType id)
     ret = m_MeshAssemblyMap[timepoint]->GetMesh(id);
 
   return ret;
+}
+
+vtkPolyData *
+MeshWrapperBase::GetIntersectionWithSlicePlane(unsigned int      timepoint,
+                                               LabelType         id,
+                                               DisplaySliceIndex index)
+{
+  // Get the mesh for this timepoint and this label
+  auto *mesh = this->GetMesh(timepoint, id);
+  if(!mesh)
+    return nullptr;
+
+  // Assign the cutplane properties
+  auto *geom = this->GetDisplayViewportGeometry(index);
+
+  // Return the result
+  return mesh->GetIntersectionWithSlicePlane(index, geom);
+
 }
 
 MeshAssembly*

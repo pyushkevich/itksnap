@@ -44,11 +44,8 @@ IRISImageData
   // Initialize Mesh Layers storage
   m_MeshLayers = ImageMeshLayers::New();
   m_MeshLayers->Initialize(this);
-  Rebroadcaster::Rebroadcast(m_MeshLayers, LayerChangeEvent(),
-                             this, LayerChangeEvent());
-
-  Rebroadcaster::Rebroadcast(m_MeshLayers, ActiveLayerChangeEvent(),
-                             this, ActiveLayerChangeEvent());
+  Rebroadcaster::Rebroadcast(m_MeshLayers, LayerChangeEvent(), this, LayerChangeEvent());
+  Rebroadcaster::Rebroadcast(m_MeshLayers, ActiveLayerChangeEvent(), this, ActiveLayerChangeEvent());
 }
 
 IRISImageData::~IRISImageData()
