@@ -105,21 +105,19 @@ constexpr std::array<DisplaySliceIndex, 6> DisplaySliceIndices = {
 /**
  * An array of ITK object pointers indexed by DisplaySliceIndex
  */
-template <class TPipeline>
+template <class TPipeline, class TPipelinePointer = SmartPtr<TPipeline>>
 class DisplaySlicePipelineArray
-  : public std::array<SmartPtr<TPipeline>, DisplaySliceIndices.size()>
+  : public std::array<TPipelinePointer, DisplaySliceIndices.size()>
 {
 public:
-  using Base = std::array<SmartPtr<TPipeline>, DisplaySliceIndices.size()>;
-  using Pipeline = TPipeline;
-  using PipelinePointer = SmartPtr<TPipeline>;
+  using Base = std::array<TPipelinePointer, DisplaySliceIndices.size()>;
 
-  PipelinePointer &operator[](DisplaySliceIndex index)
+  TPipelinePointer &operator[](DisplaySliceIndex index)
   {
     return Base::operator[](index.numeric_index());
   }
 
-  const PipelinePointer &operator[](DisplaySliceIndex index) const
+  const TPipelinePointer &operator[](DisplaySliceIndex index) const
   {
     return Base::operator[](index.numeric_index());
   }

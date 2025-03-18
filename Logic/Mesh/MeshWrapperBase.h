@@ -16,6 +16,7 @@ class AbstractMeshIODelegate;
 class MeshDisplayMappingPolicy;
 class MeshAssembly;
 class vtkDataSetAttributes;
+class vtkPlaneCutter;
 
 /**
  * @brief The PolyDataWrapper class
@@ -85,6 +86,9 @@ protected:
 
   // Cell Data Properties
   MeshDataArrayPropertyMap m_CellDataProperties;
+
+  // Cutters used to display 2D intersections of the mesh with display slices
+  DisplaySlicePipelineArray<vtkPlaneCutter, vtkSmartPointer<vtkPlaneCutter>> m_PlaneCutters;
 
   // Filename (default to empty string)
   // Polydata generated from segmentation don't have a file name

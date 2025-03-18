@@ -95,7 +95,7 @@ SliceWindowCoordinator
   // this change occurs, we have to modify the size of the slice views
   DisplayLayoutModel *dlm = m_ParentModel->GetDisplayLayoutModel();
   Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(), ModelUpdateEvent());
-
+  Rebroadcast(dlm, DisplayLayoutModel::ViewPanelLayoutChangeEvent(), ModelUpdateEvent());
 }
 
 void SliceWindowCoordinator::OnUpdate()
@@ -118,7 +118,7 @@ void SliceWindowCoordinator::OnUpdate()
     }
 
   if(this->m_EventBucket->HasEvent(GenericSliceModel::ViewportResizeEvent())
-     || this->m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()))
+     || this->m_EventBucket->HasEvent(DisplayLayoutModel::DisplayLayoutChangeEvent()))
     {
     // If we are maintaining linked zoom, then this class is going to manage the
     // recomputation of optimal zoom in each window and resetting of the zoom.

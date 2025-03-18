@@ -58,20 +58,47 @@ font-size:13px;
          <number>4</number>
         </property>
         <item row="0" column="0">
-         <widget class="SliceViewPanel" name="panel0" native="true"/>
+         <widget class="SliceViewPanel" name="panel0" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="0" column="1">
-         <widget class="SliceViewPanel" name="panel1" native="true"/>
+         <widget class="SliceViewPanel" name="panel1" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
         <item row="1" column="0">
          <widget class="ViewPanel3D" name="panel3D" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="styleSheet">
            <string notr="true"/>
           </property>
          </widget>
         </item>
         <item row="1" column="1">
-         <widget class="SliceViewPanel" name="panel2" native="true"/>
+         <widget class="SliceViewPanel" name="panel2" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

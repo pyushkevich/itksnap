@@ -377,6 +377,7 @@ private:
   void UpdateLayerLayoutActions();
   void UpdateSelectedLayerActions();
   void UpdateDICOMContentsMenu();
+  void UpdateViewPanelVisibility();
 
   // Raise a dialog (equivalent to calling show, raise, activateWindow)
   void RaiseDialog(QDialog *dialog);

@@ -559,16 +559,6 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
         model->GetDriver()->GetGlobalState()->Get4DReplayIntervalModel(),
         ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
 
-
-  // Couple the visibility of each view panel to the correponding property
-  // model in DisplayLayoutModel
-  DisplayLayoutModel *layoutModel = m_Model->GetDisplayLayoutModel();
-  for(int i = 0; i < 4; i++)
-    {
-    makeWidgetVisibilityCoupling(m_ViewPanels[i],
-                                 layoutModel->GetViewPanelVisibilityModel(i));
-    }
-
   // Set up activations - File menu
   activateOnFlag(ui->actionOpenMain, m_Model, UIF_IRIS_MODE);
   activateOnFlag(ui->menuRecent_Images, m_Model, UIF_IRIS_MODE);
@@ -711,6 +701,7 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
   bool selected_seg_layer_changed =
       b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->GetSelectedSegmentationLayerIdModel());
   bool display_layout_changed = b.HasEvent(DisplayLayoutModel::DisplayLayoutChangeEvent());
+  bool view_panel_layout_changed = b.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent());
   bool layer_layout_changed = b.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
   bool replay_4d_changed = b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->Get4DReplayModel());
   bool replay_4d_interval_changed = b.HasEvent(ValueChangedEvent(),  m_Model->GetGlobalState()->Get4DReplayIntervalModel());
@@ -744,6 +735,9 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
   if(proj_file_changed)
     this->UpdateProjectMenuItems();
 
+  if(view_panel_layout_changed)
+    this->UpdateViewPanelVisibility();
+
   if(display_layout_changed)
     this->UpdateCanvasDimensions();
 
@@ -758,6 +752,11 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
 
   if(replay_4d_changed || replay_4d_interval_changed)
     this->Update4DReplay();
+
+  // The slide window coordinator is a model that is not connected to any widget,
+  // so when it rebroadcasts events, these events are not responded to. Here we
+  // call it's update method to make sure that those events are attended to
+  this->GetModel()->GetSliceCoordinator()->Update();
 
 
 }
@@ -783,54 +782,55 @@ void MainImageWindow::onActiveChanged()
     }
 }
 
-void MainImageWindow::UpdateMainLayout()
+void
+MainImageWindow::UpdateMainLayout()
 {
-    // Update the image dimensions
-    this->UpdateCanvasDimensions();
+  // Update the image dimensions
+  this->UpdateCanvasDimensions();
 
-    // Choose what page to show depending on if an image has been loaded
-    if(m_Model->GetDriver()->IsMainImageLoaded())
+  // Choose what page to show depending on if an image has been loaded
+  if (m_Model->GetDriver()->IsMainImageLoaded())
+  {
+    ui->stackMain->setCurrentWidget(ui->pageMain);
+    m_DockLeft->setWidget(m_ControlPanel);
+
+    // Update the layout depending on whether this is a 2D or 3D image
+    auto *main = m_Model->GetDriver()->GetIRISImageData()->GetMain();
+
+    // If the image is 2D, update the display layout to only show the 2D view
+    auto *dlm = m_Model->GetDisplayLayoutModel();
+    if (main->GetSize()[2] == 1)
     {
-        ui->stackMain->setCurrentWidget(ui->pageMain);
-        m_DockLeft->setWidget(m_ControlPanel);
-
-        // Update the layout depending on whether this is a 2D or 3D image
-        auto *main = m_Model->GetDriver()->GetIRISImageData()->GetMain();
-
-        // If the image is 2D, update the display layout to only show the 2D view
-        auto *dlm = m_Model->GetDisplayLayoutModel();
-        if(main->GetSize()[2] == 1)
+      for (int i = 0; i < 3; i++)
+      {
+        auto *slice_model = m_Model->GetSliceModel(i);
+        if (slice_model->GetSliceDirectionInImageSpace() == 2)
         {
-            for (int i = 0; i < 3; i++)
-            {
-                auto *slice_model = m_Model->GetSliceModel(i);
-                if (slice_model->GetSliceDirectionInImageSpace() == 2)
-                {
-                    auto layout = dlm->GetViewPanelExpandButtonActionModel(i)->GetValue();
-                    dlm->GetViewPanelLayoutModel()->SetValue(layout);
-                    break;
-                }
-            }
+          auto layout = dlm->GetViewPanelExpandButtonActionModel(i)->GetValue();
+          dlm->GetViewPanelLayoutModel()->SetValue(layout);
+          break;
         }
-        else
-        {
-            dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
-        }
+      }
     }
     else
     {
-        // Go to the splash page
-        ui->stackMain->setCurrentWidget(ui->pageSplash);
-        m_DockLeft->setWidget(m_SplashPanel);
-
-        // Choose the appropriate page depending on whether there are recent images
-        // available
-        if(m_Model->IsHistoryEmpty("MainImage"))
-            ui->tabSplash->setCurrentWidget(ui->tabGettingStarted);
-
-        else if(ui->tabSplash->currentWidget() == ui->tabGettingStarted)
-            ui->tabSplash->setCurrentWidget(ui->tabRecent);
+      dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
     }
+  }
+  else
+  {
+    // Go to the splash page
+    ui->stackMain->setCurrentWidget(ui->pageSplash);
+    m_DockLeft->setWidget(m_SplashPanel);
+
+    // Choose the appropriate page depending on whether there are recent images
+    // available
+    if (m_Model->IsHistoryEmpty("MainImage"))
+      ui->tabSplash->setCurrentWidget(ui->tabGettingStarted);
+
+    else if (ui->tabSplash->currentWidget() == ui->tabGettingStarted)
+      ui->tabSplash->setCurrentWidget(ui->tabRecent);
+  }
 }
 
 
@@ -981,6 +981,34 @@ void MainImageWindow::UpdateDICOMContentsMenu()
 
   // Hide or show the menu based on availability of actions
   ui->menuAddAnotherDicomImage->menuAction()->setVisible(have_actions);
+}
+
+void
+MainImageWindow::UpdateViewPanelVisibility()
+{
+  QGridLayout *layout = dynamic_cast<QGridLayout *>(ui->pageMain->layout());
+  int col_stretch[2] = {0, 0}, row_stretch[2] = {0, 0};
+
+  for(unsigned int i = 0; i < 4; i++)
+  {
+    auto *m = m_Model->GetDisplayLayoutModel()->GetViewPanelVisibilityModel(i);
+    bool visible = m->GetValue();
+    m_ViewPanels[i]->setVisible(visible);
+    if(visible)
+    {
+      // Look up the position of the widget in the layout
+      int row, column, rowSpan, columnSpan;
+      layout->getItemPosition(layout->indexOf(m_ViewPanels[i]), &row, &column, &rowSpan, &columnSpan);
+      col_stretch[column] = 1;
+      row_stretch[row] = 1;
+    }
+  }
+
+  for(unsigned int i = 0; i < 2; i++)
+  {
+    layout->setColumnStretch(i, col_stretch[i]);
+    layout->setRowStretch(i, row_stretch[i]);
+  }
 }
 
 void MainImageWindow::CreateRecentMenu(
