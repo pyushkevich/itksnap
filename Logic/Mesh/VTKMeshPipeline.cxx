@@ -38,6 +38,7 @@
 #include "MeshOptions.h"
 #include "SNAPExportITKToVTK.h"
 #include <map>
+#include <chrono>
 #include <vtkCellArrayIterator.h>
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
