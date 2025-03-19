@@ -9,6 +9,7 @@
 #include "Generic3DModel.h"
 #include "Generic3DRenderer.h"
 #include "IPCHandler.h"
+#include <chrono>
 
 /** Structure passed on to IPC */
 struct IPCMessage
