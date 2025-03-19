@@ -176,6 +176,16 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
     m_Model->GetParentUI()->GetGlobalDisplaySettings()->GetGreyInterpolationModeModel(),
     ValueChangedEvent(),
     ModelUpdateEvent());
+
+  // Respond to mesh layer display mapping policy change event
+  Rebroadcast(m_Model->GetDriver()->GetIRISImageData()->GetMeshLayers(),
+              WrapperDisplayMappingChangeEvent(),
+              ModelUpdateEvent());
+
+  // Respond to levelset mesh layer display mapping policy change event
+  Rebroadcast(m_Model->GetDriver()->GetSNAPImageData()->GetMeshLayers(),
+              WrapperDisplayMappingChangeEvent(),
+              ModelUpdateEvent());
 }
 
 #include <chrono>
@@ -322,6 +332,9 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
   auto index = DisplaySliceIndex(m_Model->GetId(), DISPLAY_SLICE_MAIN);
   auto *main_image = m_Model->GetDriver()->GetMainImage();
 
+  SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
+  const auto &eltMesh = as->GetUIElement(SNAPAppearanceSettings::MESH_OUTLINE);
+
   for(auto it = ml->GetLayers(); !it.IsAtEnd(); ++it)
   {
     auto *layer = it.GetLayer();
@@ -331,9 +344,10 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
       if(!pd)
         return;
 
-      // Set pen color to red
-      context->SetPenColor(Vector3d(1.0, 0.0, 0.0));
-      context->SetPenWidth(2.0);
+      // Set pen color to the solid color (TODO: render arrays)
+      context->SetPenAppearance(*eltMesh);
+      context->SetPenColor(layer->GetSolidColor());
+      context->SetPenOpacity(layer->GetSliceViewOpacity() * eltMesh->GetAlpha());
 
       // Get the transform for the current slice to map between physical
       // and screen coordinates
@@ -605,65 +619,60 @@ GenericSliceRenderer::OnUpdate()
   // Make sure the model has been updated first
   m_Model->Update();
 
-         // Also make sure to update the model zoom coordinator (this is confusing)
+  // Also make sure to update the model zoom coordinator (this is confusing)
   m_Model->GetParentUI()->GetSliceCoordinator()->Update();
 
-         // Also make sure to update the display layout model
+  // Also make sure to update the display layout model
   m_Model->GetParentUI()->GetDisplayLayoutModel()->Update();
 
-         // Check what events have occurred
+  // Check what events have occurred
   bool appearance_settings_changed =
     m_EventBucket->HasEvent(ChildPropertyChangedEvent(),
                             m_Model->GetParentUI()->GetAppearanceSettings()) ||
-    m_EventBucket->HasEvent(ValueChangedEvent(),
-                            m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel());
+    m_EventBucket->HasEvent(
+      ValueChangedEvent(),
+      m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel());
 
-  bool segmentation_opacity_changed =
-    m_EventBucket->HasEvent(ValueChangedEvent(),
-                            m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel());
+  bool segmentation_opacity_changed = m_EventBucket->HasEvent(
+    ValueChangedEvent(), m_Model->GetParentUI()->GetGlobalState()->GetSegmentationAlphaModel());
 
-  bool display_setting_changed =
-    m_EventBucket->HasEvent(ValueChangedEvent(),
-                            m_Model->GetParentUI()->GetGlobalDisplaySettings()->GetGreyInterpolationModeModel());
+  bool display_setting_changed = m_EventBucket->HasEvent(
+    ValueChangedEvent(),
+    m_Model->GetParentUI()->GetGlobalDisplaySettings()->GetGreyInterpolationModeModel());
 
-  bool layers_changed =
-    m_EventBucket->HasEvent(LayerChangeEvent());
+  bool layers_changed = m_EventBucket->HasEvent(LayerChangeEvent());
 
-  bool layer_layout_changed =
-    m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
+  bool layer_layout_changed = m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
 
-  bool layer_metadata_changed =
-    m_EventBucket->HasEvent(WrapperMetadataChangeEvent());
+  bool layer_metadata_changed = m_EventBucket->HasEvent(WrapperMetadataChangeEvent());
 
-  bool layer_mapping_changed =
-    m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent());
+  bool layer_mapping_changed = m_EventBucket->HasEvent(WrapperDisplayMappingChangeEvent());
 
-  bool layer_visibility_changed =
-    m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
+  bool layer_visibility_changed = m_EventBucket->HasEvent(WrapperVisibilityChangeEvent());
 
-  bool zoom_pan_changed =
-    m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model);
+  bool zoom_pan_changed = m_EventBucket->HasEvent(ModelUpdateEvent(), m_Model);
 
   // Which layer is currently selected
-  bool selected_layer_changed =
-    m_EventBucket->HasEvent(ValueChangedEvent(),
-                            m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel());
+  bool selected_layer_changed = m_EventBucket->HasEvent(
+    ValueChangedEvent(), m_Model->GetDriver()->GetGlobalState()->GetSelectedLayerIdModel());
 
-  bool selected_segmentation_changed =
-    m_EventBucket->HasEvent(ValueChangedEvent(),
-                            m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel());
+  bool selected_segmentation_changed = m_EventBucket->HasEvent(
+    ValueChangedEvent(),
+    m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel());
   /*
   if(layers_changed)
   {
     this->UpdateLayerAssemblies();
   }
 
-  if(layers_changed || layer_layout_changed || selected_layer_changed || selected_segmentation_changed)
+  if(layers_changed || layer_layout_changed || selected_layer_changed ||
+  selected_segmentation_changed)
   {
     this->UpdateRendererLayout();
   }
 
-  if(layers_changed || layer_mapping_changed || segmentation_opacity_changed || layer_visibility_changed || display_setting_changed)
+  if(layers_changed || layer_mapping_changed || segmentation_opacity_changed ||
+  layer_visibility_changed || display_setting_changed)
   {
     this->UpdateLayerApperances();
   }
@@ -673,7 +682,8 @@ GenericSliceRenderer::OnUpdate()
     this->UpdateSceneAppearanceSettings();
   }
 
-  if(layers_changed || layer_layout_changed || zoom_pan_changed || layer_mapping_changed || layer_visibility_changed || appearance_settings_changed)
+  if(layers_changed || layer_layout_changed || zoom_pan_changed || layer_mapping_changed ||
+  layer_visibility_changed || appearance_settings_changed)
   {
     this->UpdateRendererCameras();
     this->UpdateZoomPanThumbnail();

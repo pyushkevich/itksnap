@@ -160,14 +160,18 @@ IntensityCurveModel::GetHistogram()
 
   // Get the correct t-digest (either active scalar layer or vector)
   auto *tdigest = dmp->GetTDigest();
-  tdigest->Update();
+  if (tdigest)
+    tdigest->Update();
 
   // Check if the histogram has become stale
-  if (tdigest != m_HistogramSource ||
-      tdigest->GetMTime() > m_Histogram->GetMTime() ||
+  if (tdigest != m_HistogramSource || (tdigest && tdigest->GetMTime() > m_Histogram->GetMTime()) ||
       m_Histogram->GetSize() != nBins)
   {
-    m_Histogram->ComputeFromTDigest(tdigest, nBins);
+    if (tdigest)
+      m_Histogram->ComputeFromTDigest(tdigest, nBins);
+    else
+      m_Histogram->Initialize(0., 0., 1);
+
     m_Histogram->Modified();
     m_HistogramSource = tdigest;
   }
@@ -827,6 +831,11 @@ IntensityCurveModel::CheckState(IntensityCurveModel::UIState state)
 {
   // All flags are false if no layer is loaded
   if (this->GetLayer() == NULL)
+    return false;
+
+  // If this is a mesh and is using solid color, there is no color map
+  auto *mesh_wrapper = dynamic_cast<MeshWrapperBase *>(this->GetLayer());
+  if(mesh_wrapper && mesh_wrapper->GetActiveMeshLayerDataPropertyId() < 0)
     return false;
 
   // Otherwise get the properties

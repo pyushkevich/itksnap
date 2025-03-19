@@ -450,6 +450,11 @@ ColorMapModel
   if(dynamic_cast<SegmentationMeshWrapper*>(this->GetLayer()) != NULL)
     return false;
 
+  // If this is a mesh and is using solid color, there is no color map
+  auto *mesh_wrapper = dynamic_cast<MeshWrapperBase *>(this->GetLayer());
+  if(mesh_wrapper && mesh_wrapper->GetActiveMeshLayerDataPropertyId() < 0)
+    return false;
+
   // Otherwise get the properties
   ColorMapLayerProperties &p = this->GetProperties();
   int idx = p.GetSelectedControlIndex();

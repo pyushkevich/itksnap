@@ -250,7 +250,8 @@ MeshAssembly
 
 MeshWrapperBase::MeshWrapperBase()
 {
-
+  // Start with white as default solid color, mirroring ParaView
+  m_SolidColor.fill(1.0);
 }
 
 MeshWrapperBase::~MeshWrapperBase()
@@ -391,7 +392,7 @@ void
 MeshWrapperBase::
 SetActiveMeshLayerDataPropertyId(int id)
 {
-  if (id < 0 || m_ActiveDataPropertyId == id)
+  if (m_ActiveDataPropertyId == id)
     return;
 
 	// Remove existing observer from previous active prop
@@ -401,50 +402,77 @@ SetActiveMeshLayerDataPropertyId(int id)
 		oldprop->RemoveObserver(m_ActiveMeshDataPropertyObserverTag);
 		}
 
-
+  // Assign property - or -1 if none (solid color)
   m_ActiveDataPropertyId = id;
 
   // if failed check caller's logic
-  assert(m_CombinedDataPropertyMap.count(id));
-
-  // check is point or cell data
-  auto prop = m_CombinedDataPropertyMap[id];
-
-	// Rebroadcast vector level histogram change event
-	m_ActiveMeshDataPropertyObserverTag =
-			Rebroadcaster::Rebroadcast(prop, WrapperHistogramChangeEvent(),
-																 this, WrapperHistogramChangeEvent());
-
-	// Change Active Property itself is a histogram change event
-	InvokeEvent(WrapperHistogramChangeEvent());
-
-  // Change the active array
-  if (prop->GetType() == MeshDataArrayProperty::POINT_DATA)
+  if(m_CombinedDataPropertyMap.count(id))
     {
-    for (auto cit = m_MeshAssemblyMap.cbegin(); cit != m_MeshAssemblyMap.cend(); ++cit)
+    // check is point or cell data
+    auto prop = m_CombinedDataPropertyMap[id];
+
+    // Rebroadcast vector level histogram change event
+    m_ActiveMeshDataPropertyObserverTag =
+        Rebroadcaster::Rebroadcast(prop, WrapperHistogramChangeEvent(),
+                                   this, WrapperHistogramChangeEvent());
+
+    // Change the active array
+    if (prop->GetType() == MeshDataArrayProperty::POINT_DATA)
       {
-      for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)
+      for (auto cit = m_MeshAssemblyMap.cbegin(); cit != m_MeshAssemblyMap.cend(); ++cit)
         {
-        auto pointData = polyIt->second->GetPolyData()->GetPointData();
-        pointData->SetActiveAttribute(prop->GetName(),
-                               vtkDataSetAttributes::SCALARS);
+        for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)
+          {
+          auto pointData = polyIt->second->GetPolyData()->GetPointData();
+          pointData->SetActiveAttribute(prop->GetName(),
+                                 vtkDataSetAttributes::SCALARS);
+          }
         }
       }
-    }
-  else if (prop->GetType() == MeshDataArrayProperty::CELL_DATA)
-    {
-    for (auto cit = m_MeshAssemblyMap.cbegin(); cit != m_MeshAssemblyMap.cend(); ++cit)
-      for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)
-        {
-        polyIt->second->GetPolyData()->GetCellData()->
-            SetActiveAttribute(prop->GetName(),
-                               vtkDataSetAttributes::SCALARS);
-        }
+    else if (prop->GetType() == MeshDataArrayProperty::CELL_DATA)
+      {
+      for (auto cit = m_MeshAssemblyMap.cbegin(); cit != m_MeshAssemblyMap.cend(); ++cit)
+        for (auto polyIt = cit->second->cbegin(); polyIt != cit->second->cend(); ++polyIt)
+          {
+          polyIt->second->GetPolyData()->GetCellData()->
+              SetActiveAttribute(prop->GetName(),
+                                 vtkDataSetAttributes::SCALARS);
+          }
+      }
+
+    auto dmp = GetMeshDisplayMappingPolicy();
+    dmp->SetColorMap(prop->GetColorMap());
+    dmp->SetIntensityCurve(prop->GetActiveIntensityCurve());
     }
 
-  auto dmp = GetMeshDisplayMappingPolicy();
-  dmp->SetColorMap(prop->GetColorMap());
-  dmp->SetIntensityCurve(prop->GetActiveIntensityCurve());
+    // Change Active Property itself is a histogram change event
+    InvokeEvent(WrapperHistogramChangeEvent());
+}
+
+void
+MeshWrapperBase::SetSolidColor(Vector3d color)
+{
+  m_SolidColor = color;
+  InvokeEvent(WrapperHistogramChangeEvent());
+}
+
+Vector3d
+MeshWrapperBase::GetSolidColor() const
+{
+  return m_SolidColor;
+}
+
+void
+MeshWrapperBase::SetSliceViewOpacity(double alpha)
+{
+  m_SliceViewOpacity = alpha;
+  InvokeEvent(WrapperHistogramChangeEvent());
+}
+
+double
+MeshWrapperBase::GetSliceViewOpacity() const
+{
+  return m_SliceViewOpacity;
 }
 
 void

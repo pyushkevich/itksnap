@@ -12,8 +12,7 @@ StandaloneMeshWrapper::StandaloneMeshWrapper()
 }
 
 void
-StandaloneMeshWrapper
-::SetMesh(vtkPolyData *mesh, unsigned int timepoint, LabelType id)
+StandaloneMeshWrapper::SetMesh(vtkPolyData *mesh, unsigned int timepoint, LabelType id)
 {
   auto wrapper = PolyDataWrapper::New();
   wrapper->SetPolyData(mesh);
@@ -29,14 +28,14 @@ StandaloneMeshWrapper
   if (m_MeshAssemblyMap.count(timepoint))
     m_MeshAssemblyMap[timepoint]->AddMesh(wrapper, id);
   else
-    {
-      auto assembly = StandaloneMeshAssembly::New();
-      assembly->AddMesh(wrapper, id);
-      m_MeshAssemblyMap[timepoint] = assembly.GetPointer();
-    }
+  {
+    auto assembly = StandaloneMeshAssembly::New();
+    assembly->AddMesh(wrapper, id);
+    m_MeshAssemblyMap[timepoint] = assembly.GetPointer();
+  }
 
-  int propId = (m_CombinedDataPropertyMap.size() > 0) ?
-        m_CombinedDataPropertyMap.cbegin()->first : -1;
+  int propId =
+    (m_CombinedDataPropertyMap.size() > 0) ? m_CombinedDataPropertyMap.cbegin()->first : -1;
 
   // Set Default active array id
   SetActiveMeshLayerDataPropertyId(propId);

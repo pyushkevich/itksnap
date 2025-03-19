@@ -72,6 +72,17 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
         this,
         &Self::GetMeshVectorModeValueAndRange,
         &Self::SetMeshVectorModeValue);
+
+  m_MeshSolidColorModel = wrapGetterSetterPairAsProperty(
+    this,
+    &Self::GetMeshSolidColorValue,
+    &Self::SetMeshSolidColorValue);
+
+  m_MeshSliceViewOpacityModel = wrapGetterSetterPairAsProperty(
+    this,
+    &Self::GetMeshSliceViewOpacityValueAndRange,
+    &Self::SetMeshSliceViewOpacityValue);
+
 }
 
 LayerGeneralPropertiesModel::~LayerGeneralPropertiesModel()
@@ -184,13 +195,19 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
 
     case UIF_IS_MESH:
 			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH);
+
     case UIF_IS_MESHDATA_MULTICOMPONENT:
 			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH)
 					&& row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH_HAS_DATA)
 					&& row_model->CheckState(AbstractLayerTableRowModel::UIF_MULTICOMPONENT);
+
 		case UIF_MESH_HAS_DATA:
 			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH)
 					&& row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH_HAS_DATA);
+
+    case UIF_IS_MESHDATA_SOLID_COLOR:
+      return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH) &&
+             row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH_SOLID_COLOR);
     }
 
   return false;
@@ -529,6 +546,53 @@ SetCrntTimePointTagListValue(TagList value)
 	tpp->SetTagList(value);
 }
 
+bool
+LayerGeneralPropertiesModel::GetMeshSolidColorValue(Vector3d &value)
+{
+  // The current layer has to be a mesh layer
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
+  if (!mesh_layer)
+    return false;
+
+  value = mesh_layer->GetSolidColor();
+  return true;
+}
+
+void
+LayerGeneralPropertiesModel::SetMeshSolidColorValue(const Vector3d value)
+{
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
+  if(mesh_layer)
+  {
+    mesh_layer->SetSolidColor(value);
+  }
+}
+
+bool
+LayerGeneralPropertiesModel::GetMeshSliceViewOpacityValueAndRange(int                    &value,
+                                                                  NumericValueRange<int> *domain)
+{
+  // The current layer has to be a mesh layer
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper *>(m_Layer);
+  if (!mesh_layer)
+    return false;
+
+  value = static_cast<int>(100 * mesh_layer->GetSliceViewOpacity());
+  if (domain)
+    domain->Set(0, 100, 1);
+  return true;
+}
+
+void
+LayerGeneralPropertiesModel::SetMeshSliceViewOpacityValue(int value)
+{
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Layer);
+  if(mesh_layer)
+  {
+    mesh_layer->SetSliceViewOpacity(value / 100.0);
+  }
+}
+
 
 AbstractMultiChannelDisplayMappingPolicy *
 LayerGeneralPropertiesModel::GetMultiChannelDisplayPolicy()
@@ -595,6 +659,9 @@ GetMeshVectorModeValueAndRange(vtkIdType &value, MeshVectorModeDomain *domain)
 	using VectorMode = MeshLayerDataArrayProperty::VectorMode;
 
 	auto layer_prop = mesh_layer->GetActiveDataArrayProperty();
+  if (!layer_prop)
+    return false;
+
 	size_t nc = layer_prop->GetNumberOfComponents();
 
 	// Start populating the domain

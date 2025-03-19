@@ -50,6 +50,7 @@ public:
     UIF_IMAGE,
     UIF_MESH,
     UIF_MESH_HAS_DATA, // mesh has data for color rendering
+    UIF_MESH_SOLID_COLOR, // mesh displayed in solid color
     UIF_FILE_RELOADABLE // has a corresponding file for reloading
     };
 
@@ -362,6 +363,9 @@ public:
    */
   void ReloadWrapperFromFile(IRISWarningList &wl) override;
 
+  /** A model for the component name */
+  irisSimplePropertyAccessMacro(ActiveProperty, std::string)
+
   // End of virtual methods implementation
   // ----------------------------------------------
 
@@ -382,6 +386,11 @@ protected:
   /** Implement in subclass to access the layer's color map */
   bool GetColorMapPresetValue(std::string &value) override;
   void SetColorMapPresetValue(std::string value) override;
+
+  // Component name model
+  SmartPtr<AbstractSimpleStringProperty> m_ActivePropertyModel;
+  bool GetActivePropertyValue(std::string &value);
+
 
   //  End of virtual methods implementation
   // ------------------------------------------

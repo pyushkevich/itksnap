@@ -54,6 +54,7 @@ SNAPAppearanceSettings
     { 1, 1, 1, 0, 0 },    // REGISTRATION_WIDGETS
     { 1, 1, 1, 0, 0 },    // REGISTRATION_WIDGETS_ACTIVE
     { 1, 1, 1, 0, 0 },    // REGISTRATION_GRID
+    { 1, 1, 1, 0, 1 },    // MESH OUTLINE
     { 1, 1, 0, 0, 0 }     // GRID_LINES
     };
 
@@ -260,6 +261,14 @@ SNAPAppearanceSettings
   elt->SetLineThickness(1.5);
   elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisibilityFlag(true);
+
+  // Mesh outline
+  elt = m_DefaultElementSettings[MESH_OUTLINE];
+  elt->SetColor(Vector3d(1.0, 1.0, 0.0));
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.0);
+  elt->SetLineType(vtkPen::SOLID_LINE);
+  elt->SetVisibilityFlag(true);
 }
 
 const char *SNAPAppearanceSettings ::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = {
@@ -287,6 +296,7 @@ const char *SNAPAppearanceSettings ::m_ElementNames[SNAPAppearanceSettings::ELEM
   "REGISTRATION_WIDGETS",
   "REGISTRATION_WIDGETS_ACTIVE",
   "REGISTRATION_GRID",
+  "MESH_OUTLINE",
   "GRID_LINES"
 };
 

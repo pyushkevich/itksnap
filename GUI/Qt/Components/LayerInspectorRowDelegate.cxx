@@ -148,6 +148,8 @@ LayerInspectorRowDelegate::~LayerInspectorRowDelegate()
 
 void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
 {
+  const QtWidgetActivator::Options opt_hide = QtWidgetActivator::HideInactive;
+
   m_Model = model;
 
   makeCoupling(ui->inLayerOpacity, model->GetLayerOpacityModel());
@@ -157,22 +159,26 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());
   makeCoupling((QAbstractButton *) ui->btnSticky, model->GetStickyModel());
 
-  if (!model->CheckState(AbstractLayerTableRowModel::UIF_MESH))
+  auto *image_model = dynamic_cast<ImageLayerTableRowModel*>(model);
+  auto *mesh_model = dynamic_cast<MeshLayerTableRowModel*>(model);
+
+  if(image_model)
     {
-    auto image_model = dynamic_cast<ImageLayerTableRowModel*>(model);
-    makeCoupling(ui->outComponent, image_model->GetComponentNameModel());
-    makeCoupling(ui->actionVolumeEnable, image_model->GetVolumeRenderingEnabledModel());
+      makeCoupling(ui->outComponent, image_model->GetComponentNameModel());
+      makeCoupling(ui->actionVolumeEnable, image_model->GetVolumeRenderingEnabledModel());
+      activateOnFlag(ui->outComponent, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
+    }
+    else if(mesh_model)
+    {
+      makeCoupling(ui->outComponent, mesh_model->GetActivePropertyModel());
     }
 
-
-  const QtWidgetActivator::Options opt_hide = QtWidgetActivator::HideInactive;
   activateOnFlag(ui->actionUnpin_layer, model, AbstractLayerTableRowModel::UIF_UNPINNABLE, opt_hide);
   activateOnFlag(ui->actionPin_layer, model, AbstractLayerTableRowModel::UIF_PINNABLE, opt_hide);
   activateOnAnyFlags(ui->btnSticky, model, AbstractLayerTableRowModel::UIF_UNPINNABLE, AbstractLayerTableRowModel::UIF_PINNABLE, opt_hide);
   activateOnFlag(m_OverlayOpacitySliderAction, model, AbstractLayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
   activateOnFlag(m_ColorMapMenu, model, AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE, opt_hide);
   activateOnFlag(m_DisplayModeMenu, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
-  activateOnFlag(ui->outComponent, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
 
   // makeActionVisibilityCoupling(ui->actionUnpin_layer, model->GetStickyModel());
   // makeActionVisibilityCoupling(ui->actionPin_layer, model->GetStickyModel(), true);

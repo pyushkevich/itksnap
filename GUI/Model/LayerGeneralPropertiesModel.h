@@ -64,6 +64,7 @@ public:
     UIF_MOVABLE_DOWN,
     UIF_IS_4D_IMAGE,
     UIF_IS_MESH,
+    UIF_IS_MESHDATA_SOLID_COLOR,
     UIF_IS_MESHDATA_MULTICOMPONENT,
 		UIF_MESH_HAS_DATA
   };
@@ -131,6 +132,12 @@ public:
 
   /** Setter for Active Layer Data Array Property Id */
   void SetActiveMeshLayerDataPropertyId(int id);
+
+  /** Model for the current mesh solid color */
+  irisSimplePropertyAccessMacro(MeshSolidColor, Vector3d)
+
+  /** Model for the current mesh view opacity (0-100 range) */
+  irisRangedPropertyAccessMacro(MeshSliceViewOpacity, int)
 
   /** Move the layer up in the list */
   void MoveLayerUp();
@@ -211,6 +218,16 @@ protected:
   SmartPtr<AbstractSimpleTagListProperty> m_CrntTimePointTagListModel;
   bool GetCrntTimePointTagListValue(TagList &value);
   void SetCrntTimePointTagListValue(TagList value);
+
+  // Mesh solid color
+  SmartPtr<AbstractSimpleDoubleVec3Property> m_MeshSolidColorModel;
+  bool GetMeshSolidColorValue(Vector3d &value);
+  void SetMeshSolidColorValue(const Vector3d value);
+
+  // Mesh opacity in slice views
+  SmartPtr<AbstractRangedIntProperty> m_MeshSliceViewOpacityModel;
+  bool GetMeshSliceViewOpacityValueAndRange(int &value, NumericValueRange<int> *domain);
+  void SetMeshSliceViewOpacityValue(int value);
 };
 
 #endif // LAYERGENERALPROPERTIESMODEL_H

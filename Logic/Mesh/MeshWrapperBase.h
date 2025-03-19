@@ -311,6 +311,18 @@ public:
   int GetActiveMeshLayerDataPropertyId()
   { return m_ActiveDataPropertyId; }
 
+  /** Set the solid color to use for this mesh when no property is selected */
+  void SetSolidColor(Vector3d color);
+
+  /** Get the solid color to use for this mesh when no property is selected */
+  Vector3d GetSolidColor() const;
+
+  /** Set the solid color to use for this mesh when no property is selected */
+  void SetSliceViewOpacity(double alpha);
+
+  /** Get the solid color to use for this mesh when no property is selected */
+  double GetSliceViewOpacity() const;
+
   /** Get mesh layer data property map */
   MeshLayerCombinedPropertyMap &GetCombinedDataProperty()
   { return m_CombinedDataPropertyMap; }
@@ -400,6 +412,12 @@ protected:
 
   // Transparency
   double m_Alpha;
+
+  // Solid color
+  Vector3d m_SolidColor;
+
+  // Opacity for display on slice views
+  double m_SliceViewOpacity = 1.0;
 
   // Data Array Property Id
   int m_CombinedPropID = 0;
