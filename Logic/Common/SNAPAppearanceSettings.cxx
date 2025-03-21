@@ -55,7 +55,7 @@ SNAPAppearanceSettings
     { 1, 1, 1, 0, 0 },    // REGISTRATION_WIDGETS_ACTIVE
     { 1, 1, 1, 0, 0 },    // REGISTRATION_GRID
     { 1, 1, 1, 0, 1 },    // MESH OUTLINE
-    { 1, 1, 0, 0, 0 }     // GRID_LINES
+    { 0, 1, 1, 0, 0 }     // GRID_LINES
     };
 
 void 

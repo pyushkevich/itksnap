@@ -1,4 +1,5 @@
 #include "IRISApplication.h"
+#include "MeshImportModel.h"
 #include "SNAPQApplication.h"
 #include "MainImageWindow.h"
 #include "ImageIODelegates.h"
@@ -297,6 +298,8 @@ usage(const char *progname)
   cout << "   -l FILE              : Load label descriptions from FILE" << endl;
   cout << "   -o FILE [FILE+]      : Load additional images from FILE" << endl;
   cout << "                        :   (multiple space separated files may be provided)" << endl;
+  cout << "   -m FILE [FILE+]      : Load additional meshes from FILE" << endl;
+  cout << "                        :   (multiple space separated files may be provided)" << endl;
   cout << "   -w FILE              : Load workspace from FILE" << endl;
   cout << "                        :   (-w cannot be mixed with -g,-s,-l,-o options)" << endl;
   cout << "Additional Options:" << endl;
@@ -340,6 +343,7 @@ public:
   std::string              fnMain;
   std::vector<std::string> fnOverlay;
   std::vector<std::string> fnSegmentation;
+  std::vector<std::string> fnMesh;
   std::string              fnLabelDesc;
   std::string              fnWorkspace;
   double                   xZoomFactor = 0.0;
@@ -452,6 +456,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--overlay", -1);
   parser.AddSynonim("--overlay", "-o");
 
+  parser.AddOption("--mesh", -1);
+  parser.AddSynonim("--mesh", "-m");
+
   parser.AddOption("--labels", 1);
   parser.AddSynonim("--labels", "--label");
   parser.AddSynonim("--labels", "-l");
@@ -552,9 +559,10 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   {
     // Check for incompatible options
     if (parseResult.IsOptionPresent("--grey") || parseResult.IsOptionPresent("--overlay") ||
-        parseResult.IsOptionPresent("--labels") || parseResult.IsOptionPresent("--segmentation"))
+        parseResult.IsOptionPresent("--labels") || parseResult.IsOptionPresent("--segmentation") ||
+        parseResult.IsOptionPresent("--mesh"))
     {
-      cerr << "Error: Option -w may not be used with -g, -o, -l or -s options." << endl;
+      cerr << "Error: Option -w may not be used with -g, -o, -l, -m or -s options." << endl;
       return -1;
     }
 
@@ -592,7 +600,13 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
     if (!have_main && parseResult.IsOptionPresent("--overlay"))
     {
-      cerr << "Error: Option -p must be used together with option -g" << endl;
+      cerr << "Error: Option -o must be used together with option -g" << endl;
+      return -1;
+    }
+
+    if (!have_main && parseResult.IsOptionPresent("--mesh"))
+    {
+      cerr << "Error: Option -m must be used together with option -g" << endl;
       return -1;
     }
 
@@ -610,13 +624,23 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
         }
       }
 
-      // Load overlay fs supplied
+      // Load overlay if supplied
       if (parseResult.IsOptionPresent("--overlay"))
       {
         for (int i = 0; i < parseResult.GetNumberOfOptionParameters("--overlay"); i++)
         {
           // Get the filename
           argdata.fnOverlay.push_back(DecodeFilename(parseResult.GetOptionParameter("--overlay", i)));
+        }
+      }
+
+      // Load meshes if supplied
+      if (parseResult.IsOptionPresent("--mesh"))
+      {
+        for (int i = 0; i < parseResult.GetNumberOfOptionParameters("--mesh"); i++)
+        {
+          // Get the filename
+          argdata.fnMesh.push_back(DecodeFilename(parseResult.GetOptionParameter("--mesh", i)));
         }
       }
     } // if main image filename supplied
@@ -1080,6 +1104,36 @@ main(int argc, char *argv[])
                 exc,
                 "Overlay IO Error",
                 QString("Failed to load overlay %1").arg(from_utf8(current_overlay)));
+            }
+          }
+
+          // Load the meshes
+          if (argdata.fnMesh.size())
+          {
+            std::string current_mesh;
+            try
+            {
+              auto *model = gui->GetMeshImportModel();
+              for (int i = 0; i < argdata.fnMesh.size(); i++)
+              {
+                current_mesh = argdata.fnMesh[i];
+                std::string ext = current_mesh.substr(current_mesh.find_last_of("."));
+                auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
+                std::vector<std::string> fn_list { current_mesh };
+                if (fmt != GuidedMeshIO::FORMAT_COUNT)
+                {
+                  std::cout << "Loading mesh " << current_mesh << std::endl;
+                  model->Load(fn_list, fmt, 1);
+                }
+              }
+            }
+            catch (std::exception &exc)
+            {
+              ReportNonLethalException(
+                mainwin,
+                exc,
+                "Mesh IO Error",
+                QString("Failed to load mesh %1").arg(from_utf8(current_mesh)));
             }
           }
         }

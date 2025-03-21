@@ -78,7 +78,7 @@ QtFrameBufferOpenGLWidget::paintGL()
   auto     t0 = std::chrono::system_clock::now();
   QPainter painter(&device);
   painter.setRenderHint(QPainter::Antialiasing, true);
-  QPainterRenderContext context(painter);
+  QPainterRenderContext context(painter, *this);
   m_Renderer->Render(&context);
 
   auto t1 = std::chrono::system_clock::now();
@@ -161,7 +161,7 @@ QtDirectRenderOpenGLWidget::paintGL()
   auto     t0 = std::chrono::system_clock::now();
   QPainter painter(this);
   painter.setRenderHint(QPainter::Antialiasing, true);
-  QPainterRenderContext context(painter);
+  QPainterRenderContext context(painter, *this);
 
   renderer->Render(&context);
   auto t1 = std::chrono::system_clock::now();

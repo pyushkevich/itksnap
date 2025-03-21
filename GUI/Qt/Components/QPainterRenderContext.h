@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QDebug>
 #include <QFontDatabase>
+#include <QtGui/qopenglfunctions.h>
 
 class QPainterRenderContextTexture : public AbstractRenderContext::Texture
 {
@@ -105,7 +106,7 @@ public:
   using Path2DPtr = AbstractRenderContext::Path2DPtr;
   using VertexVector = AbstractRenderContext::VertexVector;
 
-  QPainterRenderContext(QPainter &painter) : painter(painter) {}
+  QPainterRenderContext(QPainter &painter, QOpenGLFunctions &glfunc) : painter(painter), glfunc(glfunc) {}
 
   virtual Path2DPtr CreatePath() override
   {
@@ -182,7 +183,16 @@ public:
   {
     auto *wrapper = static_cast<QPainterRenderContextPath2D *>(path);
     QPainterPath *p = wrapper->path;
-    painter.drawPath(*p);
+    typedef std::chrono::high_resolution_clock Clock;
+    Clock clk;
+    auto pp = p->toSubpathPolygons();
+    auto t0 = clk.now();
+    for(auto poly : pp)
+      painter.drawPolyline(poly);
+    auto t1 = clk.now();
+    std::chrono::duration<double, std::milli> dt01 = t1 - t0;
+    std::cout << "QPainterPath::draw time == " << dt01.count() << std::endl;
+
   }
 
   virtual void DrawLine(double x0, double y0, double x1, double y1) override
@@ -547,6 +557,7 @@ public:
 
 protected:
   QPainter &painter;
+  QOpenGLFunctions &glfunc;
 };
 
 

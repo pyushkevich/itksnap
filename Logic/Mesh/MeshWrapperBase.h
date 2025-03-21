@@ -18,6 +18,8 @@ class MeshAssembly;
 class vtkDataSetAttributes;
 class vtkPlaneCutter;
 class vtkPlane;
+class vtkStripper;
+class vtkCleanPolyData;
 namespace itk {
 template <unsigned int VDim> class ImageBase;
 }
@@ -31,6 +33,8 @@ protected:
 
   vtkSmartPointer<vtkPlaneCutter> m_Cutter;
   vtkSmartPointer<vtkPlane> m_Plane;
+  vtkSmartPointer<vtkStripper> m_Stripper;
+  vtkSmartPointer<vtkCleanPolyData> m_Cleaner;
 };
 
 /**

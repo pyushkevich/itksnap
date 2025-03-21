@@ -3,12 +3,14 @@
 #include "Rebroadcaster.h"
 #include "IRISApplication.h"
 #include "IRISException.h"
+#include <vtkCleanPolyData.h>
 #include <vtkPointData.h>
 #include <vtkCellData.h>
 #include <vtkDataSetAttributes.h>
 #include <itksys/SystemTools.hxx>
 #include <vtkPlane.h>
 #include <vtkPlaneCutter.h>
+#include <vtkStripper.h>
 
 // ========================================
 //  PolyDataWrapper Implementation
@@ -42,6 +44,11 @@ PolyDataWrapper::GetIntersectionWithSlicePlane(DisplaySliceIndex            inde
     cut_assembly->m_Plane = vtkNew<vtkPlane>();
     cut_assembly->m_Cutter = vtkNew<vtkPlaneCutter>();
     cut_assembly->m_Cutter->SetPlane(cut_assembly->m_Plane);
+    cut_assembly->m_Cleaner = vtkNew<vtkCleanPolyData>();
+    cut_assembly->m_Cleaner->SetInputConnection(cut_assembly->m_Cutter->GetOutputPort());
+    cut_assembly->m_Stripper = vtkNew<vtkStripper>();
+    cut_assembly->m_Stripper->SetInputConnection(cut_assembly->m_Cleaner->GetOutputPort());
+    cut_assembly->m_Stripper->JoinContiguousSegmentsOn();
     m_PlaneCut[index] = cut_assembly;
   }
 
@@ -72,12 +79,11 @@ PolyDataWrapper::GetIntersectionWithSlicePlane(DisplaySliceIndex            inde
   */
 
   // Perform the cutting
-  auto cutter = cut_assembly->m_Cutter;
-  cutter->SetInputData(m_PolyData);
-  cutter->UpdateWholeExtent();
+  cut_assembly->m_Cutter->SetInputData(m_PolyData);
+  cut_assembly->m_Stripper->UpdateWholeExtent();
 
   // Return the resulting polydata
-  return dynamic_cast<vtkPolyData *>(cutter->GetOutput());
+  return dynamic_cast<vtkPolyData *>(cut_assembly->m_Stripper->GetOutput());
 }
 
 void
@@ -452,8 +458,12 @@ SetActiveMeshLayerDataPropertyId(int id)
 void
 MeshWrapperBase::SetSolidColor(Vector3d color)
 {
-  m_SolidColor = color;
-  InvokeEvent(WrapperHistogramChangeEvent());
+  if(m_SolidColor != color)
+  {
+    m_SolidColor = color;
+    this->Modified();
+    InvokeEvent(WrapperHistogramChangeEvent());
+  }
 }
 
 Vector3d
@@ -465,8 +475,12 @@ MeshWrapperBase::GetSolidColor() const
 void
 MeshWrapperBase::SetSliceViewOpacity(double alpha)
 {
-  m_SliceViewOpacity = alpha;
-  InvokeEvent(WrapperHistogramChangeEvent());
+  if(m_SliceViewOpacity != alpha)
+  {
+    m_SliceViewOpacity = alpha;
+    this->Modified();
+    InvokeEvent(WrapperHistogramChangeEvent());
+  }
 }
 
 double

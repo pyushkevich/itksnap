@@ -10,6 +10,7 @@
 #include <vtkSTLWriter.h>
 #include <vtkBYUWriter.h>
 #include <vtkTriangleFilter.h>
+#include <vtkCleanPolyData.h>
 
 GuidedMeshIO
 ::GuidedMeshIO()
@@ -164,7 +165,22 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
       // Apply IO logic of the delegate
       vtkSmartPointer<vtkPolyData> polyData = ioDelegate->ReadPolyData(FileName);
 
+      /*
+      // Clean the mesh - some external meshes have problems that slow rendering
+      vtkNew<vtkTriangleFilter> triangle;
+      vtkNew<vtkCleanPolyData> cleaner;
+      triangle->SetInputData(polyData);
+      cleaner->SetInputConnection(triangle->GetOutputPort());
+      cleaner->UpdateWholeExtent();
+      std::cout << "Polydata cleaner: "
+                << polyData->GetNumberOfPoints() << " -> " << cleaner->GetOutput()->GetNumberOfPoints() << " points; "
+                << polyData->GetNumberOfCells() << " -> " << cleaner->GetOutput()->GetNumberOfCells() << " cells."
+                << std::endl;
+
       // Set polydata into the wrapper
+      wrapper->SetMesh(cleaner->GetOutput(), tp, id);
+      */
+
       wrapper->SetMesh(polyData, tp, id);
 
       // Get poly data wrapper loaded

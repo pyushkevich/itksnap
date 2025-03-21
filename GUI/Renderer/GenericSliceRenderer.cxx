@@ -103,9 +103,7 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
   m_Model = model;
 
   // Set the keys to access user data
-  static const char *key_texture[] = { "LayerTexture_0",
-                                       "LayerTexture_1",
-                                       "LayerTexture_2" };
+  static const char *key_texture[] = { "LayerTexture_0", "LayerTexture_1", "LayerTexture_2" };
   static const char *key_zt_texture[] = { "LayerZoomThumbTexture_0",
                                           "LayerZoomThumbTexture_1",
                                           "LayerZoomThumbTexture_2" };
@@ -131,28 +129,24 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
 
   // Changes to cell layout also must be rebroadcast
   DisplayLayoutModel *dlm = m_Model->GetParentUI()->GetDisplayLayoutModel();
-  Rebroadcast(
-    dlm, DisplayLayoutModel::LayerLayoutChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(dlm, DisplayLayoutModel::LayerLayoutChangeEvent(), ModelUpdateEvent());
 
   // Listen to changes in appearance
   Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings(),
               ChildPropertyChangedEvent(),
               ModelUpdateEvent());
 
-  Rebroadcast(
-    m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
-    ValueChangedEvent(),
-    ModelUpdateEvent());
+  Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
+              ValueChangedEvent(),
+              ModelUpdateEvent());
 
   // Listen to overall visibility of overlaps
-  Rebroadcast(
-    m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
-    ValueChangedEvent(),
-    ModelUpdateEvent());
+  Rebroadcast(m_Model->GetParentUI()->GetAppearanceSettings()->GetOverallVisibilityModel(),
+              ValueChangedEvent(),
+              ModelUpdateEvent());
 
   // Paintbrush appearance changes
-  PaintbrushSettingsModel *psm =
-    m_Model->GetParentUI()->GetPaintbrushSettingsModel();
+  PaintbrushSettingsModel *psm = m_Model->GetParentUI()->GetPaintbrushSettingsModel();
   Rebroadcast(psm->GetBrushSizeModel(), ValueChangedEvent(), ModelUpdateEvent());
 
   // Which layer is currently selected
@@ -160,22 +154,16 @@ GenericSliceRenderer::SetModel(GenericSliceModel *model)
               ValueChangedEvent(),
               ModelUpdateEvent());
 
-  Rebroadcast(
-    m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
-    ValueChangedEvent(),
-    ModelUpdateEvent());
-
-  Rebroadcast(m_Model->GetHoveredImageLayerIdModel(),
-              ValueChangedEvent(),
-              ModelUpdateEvent());
-  Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(),
+  Rebroadcast(m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
               ValueChangedEvent(),
               ModelUpdateEvent());
 
-  Rebroadcast(
-    m_Model->GetParentUI()->GetGlobalDisplaySettings()->GetGreyInterpolationModeModel(),
-    ValueChangedEvent(),
-    ModelUpdateEvent());
+  Rebroadcast(m_Model->GetHoveredImageLayerIdModel(), ValueChangedEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Model->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(), ModelUpdateEvent());
+
+  Rebroadcast(m_Model->GetParentUI()->GetGlobalDisplaySettings()->GetGreyInterpolationModeModel(),
+              ValueChangedEvent(),
+              ModelUpdateEvent());
 
   // Respond to mesh layer display mapping policy change event
   Rebroadcast(m_Model->GetDriver()->GetIRISImageData()->GetMeshLayers(),
@@ -194,9 +182,9 @@ typedef std::chrono::high_resolution_clock Clock;
 
 GenericSliceRenderer::TextureInfo
 GenericSliceRenderer::GetTexture(AbstractRenderContext *context,
-                                    TextureCache             &texture_cache,
-                                    ImageWrapperBase         *layer,
-                                    DisplaySliceIntent        intent)
+                                 TextureCache          &texture_cache,
+                                 ImageWrapperBase      *layer,
+                                 DisplaySliceIntent     intent)
 {
   // Key for the local cache storing textures
   auto cache_key = std::make_pair(layer->GetUniqueId(), intent);
@@ -206,9 +194,9 @@ GenericSliceRenderer::GetTexture(AbstractRenderContext *context,
 
   // Find cached texture information
   TextureInfo tex;
-  auto it = texture_cache.find(cache_key);
+  auto        it = texture_cache.find(cache_key);
 
-  if(it == texture_cache.end())
+  if (it == texture_cache.end())
   {
     if (intent == DISPLAY_SLICE_MAIN ||
         (intent == DISPLAY_SLICE_THUMBNAIL && !layer->IsSlicingOrthogonal()))
@@ -234,10 +222,10 @@ GenericSliceRenderer::GetTexture(AbstractRenderContext *context,
 
       /*
       std::cout << "Texture update: " << updated << " duration : "
-                << std::chrono::duration_cast<std::chrono::nanoseconds>(end_time -
-                                                                        start_time)
-                     .count()
-                << " ns" << std::endl;
+      << std::chrono::duration_cast<std::chrono::nanoseconds>(end_time -
+                                                  start_time)
+      .count()
+      << " ns" << std::endl;
       */
 
       // Check if a texture is cached in the layer
@@ -248,7 +236,7 @@ GenericSliceRenderer::GetTexture(AbstractRenderContext *context,
         texptr = context->CreateTexture(rgba);
 
         // If zoom thumbnail, colorize it
-        if(intent == DISPLAY_SLICE_THUMBNAIL)
+        if (intent == DISPLAY_SLICE_THUMBNAIL)
           texptr = context->ColorizeTexture(texptr, Vector3d(1., 1., 0.));
 
         // Store the texture in the layer
@@ -297,12 +285,12 @@ GenericSliceRenderer::GetTexture(AbstractRenderContext *context,
 
 void
 GenericSliceRenderer::RenderLayer(AbstractRenderContext *context,
-                                     TextureCache             &texture_cache,
-                                     ImageWrapperBase         *layer,
-                                     bool                      bilinear,
-                                     double                    thumbnail_zoom,
-                                     double                    opacity,
-                                     DisplaySliceIntent        intent)
+                                  TextureCache          &texture_cache,
+                                  ImageWrapperBase      *layer,
+                                  bool                   bilinear,
+                                  double                 thumbnail_zoom,
+                                  double                 opacity,
+                                  DisplaySliceIntent     intent)
 {
   // Get the texture for this layer
   TextureInfo tex = GetTexture(context, texture_cache, layer, intent);
@@ -327,64 +315,95 @@ GenericSliceRenderer::RenderLayer(AbstractRenderContext *context,
 void
 GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
 {
-  auto *ml = m_Model->GetImageData()->GetMeshLayers();
+  auto        *ml = m_Model->GetImageData()->GetMeshLayers();
   unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
-  auto index = DisplaySliceIndex(m_Model->GetId(), DISPLAY_SLICE_MAIN);
-  auto *main_image = m_Model->GetDriver()->GetMainImage();
+  auto         index = DisplaySliceIndex(m_Model->GetId(), DISPLAY_SLICE_MAIN);
+  auto        *main_image = m_Model->GetDriver()->GetMainImage();
+
+  // Get the key to access the stored path from the layer
+  static const char *key_path[] = { "MeshSliceViewPath_0", "MeshSliceViewPath_1", "MeshSliceViewPath_2" };
+  auto layer_key = key_path[m_Model->GetId()];
 
   SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
-  const auto &eltMesh = as->GetUIElement(SNAPAppearanceSettings::MESH_OUTLINE);
+  const auto             &eltMesh = as->GetUIElement(SNAPAppearanceSettings::MESH_OUTLINE);
 
-  for(auto it = ml->GetLayers(); !it.IsAtEnd(); ++it)
+  for (auto it = ml->GetLayers(); !it.IsAtEnd(); ++it)
   {
     auto *layer = it.GetLayer();
-    for(unsigned int i = 0; i < layer->GetNumberOfMeshes(tp); i++)
+
+    // Check the layer for a stored path
+    using Path2D = typename AbstractRenderContext::Path2D;
+    SmartPtr<Path2D> stored_path = dynamic_cast<Path2D *>(layer->GetUserData(layer_key));
+
+    // Check the update times of all the inputs that affect the rendering of the mesh
+    // This is a bit clunky because this is not a proper ITK pipeline
+    auto mtime = layer->GetMTime();
+    mtime = std::max(mtime, layer->GetDisplayViewportGeometry(index)->GetMTime());
+    for (unsigned int i = 0; i < layer->GetNumberOfMeshes(tp); i++)
+      if (layer->GetMesh(tp, i))
+        mtime = std::max(mtime, layer->GetMesh(tp, i)->GetMTime());
+
+    // Update the stored path
+    Clock clk;
+    if (!stored_path || stored_path->GetMTime() < mtime)
     {
-      vtkPolyData *pd = layer->GetIntersectionWithSlicePlane(tp, i, index);
-      if(!pd)
-        return;
-
-      // Set pen color to the solid color (TODO: render arrays)
-      context->SetPenAppearance(*eltMesh);
-      context->SetPenColor(layer->GetSolidColor());
-      context->SetPenOpacity(layer->GetSliceViewOpacity() * eltMesh->GetAlpha());
-
-      // Get the transform for the current slice to map between physical
-      // and screen coordinates
-      vtkSmartPointer<vtkPoints> points = pd->GetPoints();
-      vtkSmartPointer<vtkCellArray> lines = pd->GetLines();
-
-      if (!points || !lines)
+      stored_path = context->CreatePath();
+      for (unsigned int i = 0; i < layer->GetNumberOfMeshes(tp); i++)
       {
-        return;
-      }
-
-      vtkIdType npts;
-      const vtkIdType *pts;
-
-      lines->InitTraversal();
-      while (lines->GetNextCell(npts, pts))
-      {
-        AbstractRenderContext::VertexVector edgeVertices;
-        for (vtkIdType i = 0; i < npts; ++i)
+        auto t0 = clk.now();
+        vtkPolyData *pd = layer->GetIntersectionWithSlicePlane(tp, i, index);
+        auto t1 = clk.now();
+        unsigned int n_lines = 0, n_strips = 0;
+        if (pd)
         {
-          Vector3d p_ras;
-          points->GetPoint(pts[i], p_ras.data_block());
-          Vector3d p_itk = main_image->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
-          p_itk += 0.5;
-          Vector3d p_slice = m_Model->MapImageToSlice(p_itk);
-          edgeVertices.emplace_back(Vector2d(p_slice[0], p_slice[1]));
+          // Get the transform for the current slice to map between physical
+          // and screen coordinates
+          vtkSmartPointer<vtkPoints>    points = pd->GetPoints();
+          vtkSmartPointer<vtkCellArray> lines = pd->GetLines();
+          if (points && lines)
+          {
+            vtkIdType        npts;
+            const vtkIdType *pts;
+
+            lines->InitTraversal();
+            while (lines->GetNextCell(npts, pts))
+            {
+              AbstractRenderContext::VertexVector edgeVertices;
+              for (vtkIdType i = 0; i < npts; ++i)
+              {
+                Vector3d p_ras;
+                points->GetPoint(pts[i], p_ras.data_block());
+                Vector3d p_itk = main_image->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
+                p_itk += 0.5;
+                Vector3d p_slice = m_Model->MapImageToSlice(p_itk);
+                edgeVertices.emplace_back(Vector2d(p_slice[0], p_slice[1]));
+              }
+
+              // Draw the polygon outline
+              context->AddPolygonSegmentToPath(stored_path, edgeVertices, false);
+              n_lines += npts;
+              n_strips++;
+            }
+          }
+          auto t2 = clk.now();
+          std::chrono::duration<double, std::milli> dt01 = t1 - t0, dt12 = t2 - t1;
+          std::cout << "Contour size: " << n_strips << " strips " << n_lines << " lines" << std::endl;
+          std::cout << "Time for VTK filter: " << dt01.count() << std::endl;
+          std::cout << "Time for path build: " << dt12.count() << std::endl;
         }
-
-        // Close the polygon by adding the first point again
-        if (npts > 1)
-          edgeVertices.push_back(edgeVertices.front());
-
-        // Draw the polygon outline
-        context->DrawPolyLine(edgeVertices);
       }
-
+      layer->SetUserData(layer_key, stored_path);
     }
+
+    // Set pen color to the solid color (TODO: render arrays)
+    context->SetPenAppearance(*eltMesh);
+    context->SetPenColor(layer->GetSolidColor());
+    context->SetPenOpacity(layer->GetSliceViewOpacity() * eltMesh->GetAlpha());
+    auto t0 = clk.now();
+    context->DrawPath(stored_path);
+    auto t1 = clk.now();
+    std::chrono::duration<double, std::milli> dt01 = t1 - t0;
+    std::cout << "Time for QPainter drawing: " << dt01.count() << std::endl;
   }
 }
 
@@ -403,7 +422,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
   auto *gs = m_Model->GetDriver()->GetGlobalState();
   auto *gds = m_Model->GetParentUI()->GetGlobalDisplaySettings();
   auto *id = m_Model->GetImageData();
-  if(!id)
+  if (!id)
     return;
 
   SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
@@ -423,7 +442,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
   m_Model->GetNonThumbnailViewport(vp_pos, vp_size);
 
   // Are we doing linear interpolation?
-  bool global_linear_mode = gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR;
+  bool   global_linear_mode = gds->GetGreyInterpolationMode() == GlobalDisplaySettings::LINEAR;
   double vppr = m_Model->GetSizeReporter()->GetViewportPixelRatio();
 
   // Here we need to keep track of the selected segmentation layer, other segmentation
@@ -431,12 +450,12 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
 
   // Iterate over the base layers in the viewport layout
   const SliceViewportLayout &vpl = m_Model->GetViewportLayout();
-  Vector2ui szWin = m_Model->GetSizeReporter()->GetViewportSize();
-  for(const auto &vp : vpl.vpList)
+  Vector2ui                  szWin = m_Model->GetSizeReporter()->GetViewportSize();
+  for (const auto &vp : vpl.vpList)
   {
     // Get the wrapper in this viewport
     auto *layer = id->FindLayer(vp.layer_id, false);
-    if(!layer)
+    if (!layer)
       continue;
 
     // Zoom scaling for thumbnails
@@ -470,15 +489,15 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
       context, tcache, layer, global_linear_mode, thumbnail_zoom, 1.0, DISPLAY_SLICE_MAIN);
 
     // If the base layer is not in thumbnail mode, draw overlays and segmentation
-    if(!vp.isThumbnail)
+    if (!vp.isThumbnail)
     {
       // Draw the sticky overlays on top of this image
-      for(LayerIterator it_ovl(id); !it_ovl.IsAtEnd(); ++it_ovl)
+      for (LayerIterator it_ovl(id); !it_ovl.IsAtEnd(); ++it_ovl)
       {
-        if(it_ovl.GetRole() != LABEL_ROLE && it_ovl.GetLayer()->IsSticky())
+        if (it_ovl.GetRole() != LABEL_ROLE && it_ovl.GetLayer()->IsSticky())
         {
           double opacity = it_ovl.GetLayer()->GetAlpha();
-          if(opacity > 0)
+          if (opacity > 0)
             this->RenderLayer(
               context, tcache, it_ovl.GetLayer(), global_linear_mode, 1.0, opacity, DISPLAY_SLICE_MAIN);
         }
@@ -486,11 +505,11 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
 
       // Draw the current segmentation on top of this iamge
       unsigned int ssid = m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerId();
-      auto *seg_layer = id->FindLayer(ssid, false, LABEL_ROLE);
-      if(seg_layer)
+      auto        *seg_layer = id->FindLayer(ssid, false, LABEL_ROLE);
+      if (seg_layer)
       {
         double opacity = m_Model->GetDriver()->GetGlobalState()->GetSegmentationAlpha();
-        if(opacity > 0)
+        if (opacity > 0)
           this->RenderLayer(context, tcache, seg_layer, false, 1.0, opacity, DISPLAY_SLICE_MAIN);
       }
 
@@ -501,18 +520,16 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
     // Draw decorators around the layer selection thumbnail, if hovered over by the mouse or selected
     bool is_hover = layer->GetUniqueId() == m_Model->GetHoveredImageLayerId();
     bool is_selected = layer->GetUniqueId() == gs->GetSelectedLayerId();
-    if(vp.isThumbnail && (is_hover || is_selected))
+    if (vp.isThumbnail && (is_hover || is_selected))
     {
       // The element used for highlighting thumbnails
       if (is_selected && is_hover)
-        context->SetPenAppearance(*as->GetUIElement(
-          SNAPAppearanceSettings::LAYER_THUMBNAIL_SELECTED_AND_HOVER));
+        context->SetPenAppearance(
+          *as->GetUIElement(SNAPAppearanceSettings::LAYER_THUMBNAIL_SELECTED_AND_HOVER));
       else if (is_selected)
-        context->SetPenAppearance(
-          *as->GetUIElement(SNAPAppearanceSettings::LAYER_THUMBNAIL_SELECTED));
+        context->SetPenAppearance(*as->GetUIElement(SNAPAppearanceSettings::LAYER_THUMBNAIL_SELECTED));
       else if (is_hover)
-        context->SetPenAppearance(
-          *as->GetUIElement(SNAPAppearanceSettings::LAYER_THUMBNAIL_HOVER));
+        context->SetPenAppearance(*as->GetUIElement(SNAPAppearanceSettings::LAYER_THUMBNAIL_HOVER));
 
       context->PushMatrix();
       context->LoadIdentity();
@@ -521,7 +538,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
     }
 
     // Render the various overlays (called delegates) for this tile
-    for(auto *del : m_Delegates)
+    for (auto *del : m_Delegates)
       del->RenderOverTiledLayer(context, layer, vp);
 
     // Restore the matrix
@@ -533,20 +550,20 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
   context->SetViewport(0, 0, vp_full[0] / vppr, vp_full[1] / vppr);
   context->SetLogicalWindow(0, 0, vp_full[0], vp_full[1]);
 
-  if(as->GetOverallVisibility())
+  if (as->GetOverallVisibility())
   {
     // Should we render the zoom thumbnail?
-    if(id->IsMainLoaded() && m_Model->IsThumbnailOn())
+    if (id->IsMainLoaded() && m_Model->IsThumbnailOn())
     {
       // Draw the zoom thumbnail
       auto *eltThumb = as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL);
       auto *eltViewport = as->GetUIElement(SNAPAppearanceSettings::ZOOM_VIEWPORT);
-      if(eltThumb->GetVisible())
+      if (eltThumb->GetVisible())
       {
         // Draw the outline of the zoom thumbnail
         m_Model->ComputeThumbnailProperties();
-        auto xy = m_Model->GetZoomThumbnailPosition();
-        auto wh = m_Model->GetZoomThumbnailSize();
+        auto   xy = m_Model->GetZoomThumbnailPosition();
+        auto   wh = m_Model->GetZoomThumbnailSize();
         double tZoom = m_Model->GetThumbnailZoom();
         double w_main = m_Model->GetSliceSize()[0], h_main = m_Model->GetSliceSize()[1];
 
@@ -587,7 +604,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
         context->PopMatrix();
 
         // Draw the viewport rectangle
-        if(eltViewport->GetVisible())
+        if (eltViewport->GetVisible())
         {
           // Draw a box representing the current zoom level
           context->Translate(v_pos[0], v_pos[1]);
@@ -662,31 +679,31 @@ GenericSliceRenderer::OnUpdate()
   /*
   if(layers_changed)
   {
-    this->UpdateLayerAssemblies();
+  this->UpdateLayerAssemblies();
   }
 
   if(layers_changed || layer_layout_changed || selected_layer_changed ||
   selected_segmentation_changed)
   {
-    this->UpdateRendererLayout();
+  this->UpdateRendererLayout();
   }
 
   if(layers_changed || layer_mapping_changed || segmentation_opacity_changed ||
   layer_visibility_changed || display_setting_changed)
   {
-    this->UpdateLayerApperances();
+  this->UpdateLayerApperances();
   }
 
   if(appearance_settings_changed)
   {
-    this->UpdateSceneAppearanceSettings();
+  this->UpdateSceneAppearanceSettings();
   }
 
   if(layers_changed || layer_layout_changed || zoom_pan_changed || layer_mapping_changed ||
   layer_visibility_changed || appearance_settings_changed)
   {
-    this->UpdateRendererCameras();
-    this->UpdateZoomPanThumbnail();
+  this->UpdateRendererCameras();
+  this->UpdateZoomPanThumbnail();
   }
-*/
+  */
 }
