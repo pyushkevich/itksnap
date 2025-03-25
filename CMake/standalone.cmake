@@ -95,6 +95,7 @@ FIND_PACKAGE(VTK 9.3.1 REQUIRED COMPONENTS
   RenderingContext2D
   RenderingContextOpenGL2
   RenderingCore
+  RenderingExternal
   RenderingLOD
   RenderingOpenGL2
   RenderingUI

@@ -682,6 +682,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QColorButtonWidget.cxx
   GUI/Qt/Components/QDoubleSlider.cxx
   GUI/Qt/Components/QDoubleSliderWithEditor.cxx  
+  GUI/Qt/Components/QPainterRenderContext.cxx
   GUI/Qt/Components/QtFlowLayout.cxx
   GUI/Qt/Components/QtFrameBufferOpenGLWidget.cxx
   GUI/Qt/Components/QtHideOnDeactivateContainer.cxx
@@ -786,7 +787,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtFlowLayout.h
   GUI/Qt/Components/QtHideOnDeactivateContainer.h
   GUI/Qt/Components/QtIPCManager.h
-  GUI/Qt/Components/QPainterRenderContext.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/RecentHistoryItemsView.h
@@ -856,6 +856,7 @@ SET(UI_MOC_HEADERS
 # These UI headers don't need to be MOC'd
 SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/ProcessEventsITKCommand.h
+  GUI/Qt/Components/QPainterRenderContext.h
   GUI/Qt/Components/QtCursorOverride.h
   GUI/Qt/Components/QtFrameBufferOpenGLWidget.h
   GUI/Qt/Components/QtRendererPlatformSupport.h
@@ -1102,6 +1103,7 @@ SET(SNAP_VTK_NONQT_LIBS
   VTK::RenderingContext2D
   VTK::RenderingContextOpenGL2
   VTK::RenderingCore
+  VTK::RenderingExternal
   VTK::RenderingLOD
   VTK::RenderingOpenGL2
   VTK::RenderingUI
@@ -1235,7 +1237,8 @@ ENDIF(WIN32)
 SET(SNAP_BUNDLE_NAME ITK-SNAP)
 
 # Configure the executable's sources and libraries
-ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})
+ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC}
+  GUI/Qt/Components/QPainterRenderContext.cxx)
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 

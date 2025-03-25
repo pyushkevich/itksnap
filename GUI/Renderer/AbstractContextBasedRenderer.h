@@ -9,6 +9,8 @@
 #include "SNAPCommon.h"
 #include "SNAPAppearanceSettings.h"
 
+class vtkPolyData;
+
 /**
  * A dataset (texture or path) optimized for rendering. It inherits from AbstractModel
  * and thus has modification date and can be associated with ITK-SNAP image layers.
@@ -29,6 +31,7 @@ class AbstractRenderContext
 public:
   class TextureTraits {};
   class Path2DTraits {};
+  class ContourSet2DTraits {};
 
   using RGBAPixel = itk::RGBAPixel<unsigned char>;
   using RGBAImage = itk::Image<RGBAPixel>;
@@ -36,6 +39,8 @@ public:
   using Path2DPtr = SmartPtr<Path2D>;
   using Texture = RenderOptimizedDataset<TextureTraits>;
   using TexturePtr = SmartPtr<Texture>;
+  using ContourSet2D = RenderOptimizedDataset<ContourSet2DTraits>;
+  using ContourSet2DPtr = SmartPtr<ContourSet2D>;
   using FontInfo = AbstractRendererPlatformSupport::FontInfo;
 
   using VertexVector = std::vector<Vector2d>;
@@ -100,7 +105,14 @@ public:
   // Path creation and use
   virtual Path2DPtr CreatePath() = 0;
   virtual void AddPolygonSegmentToPath(Path2D *path, const VertexVector &segment, bool closed) = 0;
+  virtual void BuildPath(Path2D *path) = 0;
   virtual void DrawPath(Path2D *path) = 0;
+
+  // Contour rendering using VTK
+  virtual ContourSet2DPtr CreateContourSet() = 0;
+  virtual void AddContoursToSet(ContourSet2D *cset, vtkPolyData *pd) = 0;
+  virtual void BuildContourSet(ContourSet2D *cset) = 0;
+  virtual void DrawContourSet(ContourSet2D *cset) = 0;
 
   // Pen and brush functions
   virtual void SetPenColor(const Vector3d &rgb) = 0;

@@ -55,7 +55,7 @@ DeformationGridRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
       }
       skip += verts.nvert[d] * verts.nline[d] * 2; // skip verts for horizontal lines
     }
-
+    context->BuildPath(stored_path);
     base_layer->SetUserData(layer_key, stored_path);
   }
 

@@ -125,11 +125,13 @@ PolygonDrawingRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
     if(have_sel)
     {
       context->SetPenAppearance(*aeEditSelect);
+      context->BuildPath(path_selected);
       context->DrawPath(path_selected);
     }
     if(have_unsel)
     {
       context->SetPenAppearance(*aeEdit);
+      context->BuildPath(path_unselected);
       context->DrawPath(path_unselected);
     }
   }

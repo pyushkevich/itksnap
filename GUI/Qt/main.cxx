@@ -45,6 +45,7 @@
 #include "vtkPolyDataMapper.h"
 #include "vtkActor.h"
 #include "vtkTextActor.h"
+#include <vtkLogger.h>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QStandardPaths>
@@ -852,6 +853,9 @@ main(int argc, char *argv[])
     itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(argdata.nThreads);
     itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(argdata.nThreads);
   }
+
+  // VTK verbosity
+  vtkLogger::SetStderrVerbosity(vtkLogger::VERBOSITY_WARNING);
 
   // Turn off ITK and VTK warning windows
   itk::Object::GlobalWarningDisplayOff();

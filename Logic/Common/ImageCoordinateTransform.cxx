@@ -153,6 +153,23 @@ Vector3d ImageCoordinateTransform::TransformPoint(const Vector3d &x) const
   return m_Transform * x + m_Offset;
 }
 
+typename ImageCoordinateTransform::HomogMatrixType
+ImageCoordinateTransform::ComputeHomogeneousMatrix() const
+{
+  HomogMatrixType M;
+  M.set_identity();
+  for (unsigned int i = 0; i < 3; i++)
+  {
+    for (unsigned int j = 0; j < 3; j++)
+    {
+      M(i, j) = m_Transform(i, j);
+    }
+    M(i, 3) = m_Offset[i];
+  }
+  return M;
+}
+
+
 Vector3d
 ImageCoordinateTransform
 ::TransformVector(const Vector3d &x) const

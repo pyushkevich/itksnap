@@ -6,6 +6,11 @@
 
 class AbstractContextBasedRenderer;
 class QOpenGLFramebufferObject;
+class QOpenGLPaintDevice;
+class QPainter;
+class ShaderTest;
+class QPainterRenderContext;
+class VTKTest;
 
 /**
  * A simple OpenGL widget with a framebuffer to use with AbstractRenderer,
@@ -35,6 +40,8 @@ private:
   std::string m_ScreenshotRequest;
 
   QOpenGLFramebufferObject* m_FrameBufferObject = nullptr;
+  ShaderTest *shader_test = nullptr;
+  VTKTest *vtk_test = nullptr;
 };
 
 

@@ -161,4 +161,5 @@ PaintbrushRenderer::BuildBrush(AbstractRenderContext *context)
   // Create a renderer path
   m_BrushOutlinePath = context->CreatePath();
   context->AddPolygonSegmentToPath(m_BrushOutlinePath, m_BrushOutline, false);
+  context->BuildPath(m_BrushOutlinePath);
 }

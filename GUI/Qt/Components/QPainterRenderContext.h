@@ -8,7 +8,12 @@
 #include <QPainter>
 #include <QDebug>
 #include <QFontDatabase>
-#include <QtGui/qopenglfunctions.h>
+#include <QOpenGLBuffer>
+#include <QOpenGLFunctions>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLShaderProgram>
+#include <QOpenGLPaintDevice>
+#include <vtkPolyData.h>
 
 class QPainterRenderContextTexture : public AbstractRenderContext::Texture
 {
@@ -31,9 +36,41 @@ public:
 
 protected:
   QPainterPath *path = nullptr;
+  QList<QPolygonF> subpath_polygons;
 
   QPainterRenderContextPath2D() {}
-  virtual ~QPainterRenderContextPath2D() override { if(path) delete(path); }
+  virtual ~QPainterRenderContextPath2D() override
+  {
+    if(path)
+      delete path;
+  }
+  friend class QPainterRenderContext;
+};
+
+class QPainterRenderContextContourSet2D : public AbstractRenderContext::ContourSet2D
+{
+public:
+  irisITKObjectMacro(QPainterRenderContextContourSet2D, AbstractRenderContext::Texture)
+
+protected:
+  SmartPtr<AbstractRenderContext::Path2D> m_path;
+  QOpenGLBuffer *m_vbo = nullptr;
+  QOpenGLVertexArrayObject *m_vao = nullptr;
+  QOpenGLShaderProgram *m_program = nullptr;
+  QList<GLfloat> m_vertex_coords;
+  QList<int> m_strip_sizes;
+  bool use_gl;
+
+  QPainterRenderContextContourSet2D() {}
+  virtual ~QPainterRenderContextContourSet2D() override
+  {
+    if(m_vbo)
+      delete m_vbo;
+    if(m_vao)
+      delete m_vao;
+    if(m_program)
+      delete m_program;
+  }
   friend class QPainterRenderContext;
 };
 
@@ -95,6 +132,8 @@ using QPainterCompositionModeRestorer =
                                &QPainter::setCompositionMode>;
 
 
+
+
 class QPainterRenderContext : public AbstractRenderContext
 {
 public:
@@ -104,7 +143,64 @@ public:
   using TexturePtr = AbstractRenderContext::TexturePtr;
   using Path2D = AbstractRenderContext::Path2D;
   using Path2DPtr = AbstractRenderContext::Path2DPtr;
+  using ContourSet2D = AbstractRenderContext::ContourSet2D;
+  using ContourSet2DPtr = AbstractRenderContext::ContourSet2DPtr;
   using VertexVector = AbstractRenderContext::VertexVector;
+
+  static constexpr char vertexShaderSourceCore[] =
+    "#version 150\n"
+    "in vec4 vertex;\n"
+    "out vec3 vert;\n"
+    "uniform mat4 projMatrix;\n"
+    "uniform mat4 mvMatrix;\n"
+    "void main() {\n"
+    "   vert = vertex.xyz;\n"
+    "   gl_Position = projMatrix * mvMatrix * vertex;\n"
+    "}\n";
+
+  static constexpr char fragmentShaderSourceCore[] =
+    "#version 150\n"
+    "in vec2 texCoord;\n"
+    "in float edgeAlpha;\n"
+    "out highp vec4 fragColor;\n"
+    "uniform vec4 solidColor;\n"
+    "void main() {\n"
+    "    float dist = abs(texCoord.x);\n"
+    "    float alpha = 1.0 - smoothstep(0.8, 1.0, dist);\n"
+    "    fragColor = vec4(solidColor.rgb, solidColor.a * alpha * edgeAlpha);\n"
+    "}\n";
+
+  static constexpr char geometryShaderSourceCore[] =
+    "#version 150\n"
+    "layout(lines) in;\n"
+    "layout(triangle_strip, max_vertices = 4) out;\n"
+    "uniform float lineWidth; // In pixels\n"
+    "uniform vec2 viewport_size;\n"
+    "out vec2 texCoord;\n"
+    "out float edgeAlpha;\n"
+    "void main() {\n"
+    "    float u_width = viewport_size[0];\n"
+    "    float u_height = viewport_size[1];\n"
+    "    vec2 p0 = gl_in[0].gl_Position.xy;\n"
+    "    vec2 p1 = gl_in[1].gl_Position.xy;\n"
+    "    vec2 dir = normalize(p1 - p0);\n"
+    "    vec2 perp = vec2(-dir.y, dir.x); // Perpendicular vector\n"
+    "    float halfWidth = max(lineWidth, 0.5) / max(u_width, u_height);\n"
+    "    vec2 offset = perp * halfWidth;\n"
+    "    vec4 v0 = vec4(p0 - offset, 0.0, 1.0);\n"
+    "    vec4 v1 = vec4(p0 + offset, 0.0, 1.0);\n"
+    "    vec4 v2 = vec4(p1 - offset, 0.0, 1.0);\n"
+    "    vec4 v3 = vec4(p1 + offset, 0.0, 1.0);\n"
+    "    texCoord = vec2(-1.0, 0.0); edgeAlpha = 1.0;\n"
+    "    gl_Position = v0; EmitVertex();\n"
+    "    texCoord = vec2(1.0, 0.0); edgeAlpha = 1.0;\n"
+    "    gl_Position = v1; EmitVertex();\n"
+    "    texCoord = vec2(-1.0, 1.0); edgeAlpha = 1.0;\n"
+    "    gl_Position = v2; EmitVertex();\n"
+    "    texCoord = vec2(1.0, 1.0); edgeAlpha = 1.0;\n"
+    "    gl_Position = v3; EmitVertex();\n"
+    "    EndPrimitive();\n"
+    "}\n";
 
   QPainterRenderContext(QPainter &painter, QOpenGLFunctions &glfunc) : painter(painter), glfunc(glfunc) {}
 
@@ -133,6 +229,12 @@ public:
 
     p->addPolygon(polygon);
     wrapper->Modified();
+  }
+
+  virtual void BuildPath(Path2D *path) override
+  {
+    auto *wrapper = static_cast<QPainterRenderContextPath2D *>(path);
+    wrapper->subpath_polygons = wrapper->path->toSubpathPolygons();
   }
 
   virtual TexturePtr CreateTexture(RGBAImage *image) override
@@ -182,17 +284,192 @@ public:
   virtual void DrawPath(Path2D *path) override
   {
     auto *wrapper = static_cast<QPainterRenderContextPath2D *>(path);
-    QPainterPath *p = wrapper->path;
-    typedef std::chrono::high_resolution_clock Clock;
-    Clock clk;
-    auto pp = p->toSubpathPolygons();
-    auto t0 = clk.now();
-    for(auto poly : pp)
+    for(auto poly : wrapper->subpath_polygons)
       painter.drawPolyline(poly);
-    auto t1 = clk.now();
-    std::chrono::duration<double, std::milli> dt01 = t1 - t0;
-    std::cout << "QPainterPath::draw time == " << dt01.count() << std::endl;
+  }
 
+  virtual ContourSet2DPtr CreateContourSet() override
+  {
+    // Create the object that will store the path data
+    auto wrapper = QPainterRenderContextContourSet2D::New();
+
+    // Check if the device is a compatible OpenGL device
+    wrapper->use_gl = false;
+    auto *device = dynamic_cast<QOpenGLPaintDevice *>(this->painter.device());
+    if(device && device->context() && device->context() == QOpenGLContext::currentContext())
+    {
+      auto fmt = device->context()->format();
+      if(fmt.majorVersion() >= 3)
+        wrapper->use_gl = true;
+      else if (fmt.majorVersion() == 2 && fmt.minorVersion() >= 1 &&
+               glfunc.hasOpenGLFeature(QOpenGLFunctions::Buffers) &&
+               glfunc.hasOpenGLFeature(QOpenGLFunctions::Shaders))
+        wrapper->use_gl = true;
+    }
+
+    // Depending on gl, we create a path or a vertex buffer object
+    if(wrapper->use_gl)
+    {
+      // Create a shader program
+      wrapper->m_program = new QOpenGLShaderProgram;
+      wrapper->m_program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSourceCore);
+      wrapper->m_program->addShaderFromSourceCode(QOpenGLShader::Geometry, geometryShaderSourceCore);
+      wrapper->m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSourceCore);
+      wrapper->m_program->bindAttributeLocation("vertex", 0);
+      bool success = wrapper->m_program->link();
+
+      // Create a vertex array object and a buffer
+      wrapper->m_vao = new QOpenGLVertexArrayObject();
+      wrapper->m_vao->create();
+      QOpenGLVertexArrayObject::Binder vao_binder(wrapper->m_vao);
+      wrapper->m_vbo = new QOpenGLBuffer();
+      wrapper->m_vbo->create();
+      wrapper->m_vbo->bind();
+
+      glfunc.glEnableVertexAttribArray(0);
+      glfunc.glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), nullptr);
+      wrapper->m_vbo->release();
+      wrapper->m_program->release();
+    }
+    else
+    {
+      wrapper->m_path = CreatePath();
+    }
+
+    wrapper->Modified();
+    return ContourSet2DPtr(wrapper.GetPointer());
+  }
+
+  virtual void AddContoursToSet(ContourSet2D *cset, vtkPolyData *pd) override
+  {
+    auto *wrapper = dynamic_cast<QPainterRenderContextContourSet2D *>(cset);
+
+    vtkSmartPointer<vtkPoints>    points = pd->GetPoints();
+    vtkSmartPointer<vtkCellArray> lines = pd->GetLines();
+    if (points && lines)
+    {
+      vtkIdType        npts;
+      const vtkIdType *pts;
+      double p[3];
+
+      lines->InitTraversal();
+      while (lines->GetNextCell(npts, pts))
+      {
+        if(wrapper->use_gl)
+        {
+          /*
+          for (vtkIdType i = 0; i < npts; ++i)
+          {
+            points->GetPoint(pts[i], p);
+            wrapper->m_vertex_coords << (GLfloat)(p[0]) << (GLfloat)(p[1]);
+          }
+          wrapper->m_strip_sizes << npts;
+          */
+          for (vtkIdType i = 0; i < npts-1; ++i)
+          {
+            points->GetPoint(pts[i], p);
+            wrapper->m_vertex_coords << (GLfloat)(p[0]) << (GLfloat)(p[1]);
+            points->GetPoint(pts[i+1], p);
+            wrapper->m_vertex_coords << (GLfloat)(p[0]) << (GLfloat)(p[1]);
+          }
+          wrapper->m_strip_sizes << 2 * (npts-1);
+
+        }
+        else
+        {
+          AbstractRenderContext::VertexVector edgeVertices;
+          for (vtkIdType i = 0; i < npts; ++i)
+          {
+            points->GetPoint(pts[i], p);
+            edgeVertices.emplace_back(Vector2d(p[0], p[1]));
+          }
+          AddPolygonSegmentToPath(wrapper->m_path, edgeVertices, false);
+        }
+      }
+    }
+  }
+
+  virtual void BuildContourSet(ContourSet2D *cset) override
+  {
+    auto *wrapper = dynamic_cast<QPainterRenderContextContourSet2D *>(cset);
+    if(wrapper->use_gl)
+    {
+      QOpenGLVertexArrayObject::Binder vao_binder(wrapper->m_vao);
+      wrapper->m_vbo->bind();
+      wrapper->m_vbo->allocate(wrapper->m_vertex_coords.constData(),
+                               wrapper->m_vertex_coords.count() * sizeof(GLfloat));
+      wrapper->m_vbo->release();
+    }
+    else
+    {
+      BuildPath(wrapper->m_path);
+    }
+  }
+
+  virtual void DrawContourSet(ContourSet2D *cset) override
+  {
+    auto *wrapper = dynamic_cast<QPainterRenderContextContourSet2D *>(cset);
+    if(wrapper->use_gl)
+    {
+      painter.beginNativePainting();
+
+      GLfloat lineWidthRange[2];
+      glfunc.glGetFloatv(GL_ALIASED_LINE_WIDTH_RANGE, lineWidthRange);
+      GLfloat lineWidthGranularity;
+      glfunc.glGetFloatv(GL_LINE_WIDTH_GRANULARITY, &lineWidthGranularity);
+
+      // Set the attribute state
+      GLfloat old_line_width;
+      glfunc.glGetFloatv(GL_LINE_WIDTH, &old_line_width);
+      GLboolean blend = glfunc.glIsEnabled(GL_BLEND);
+      GLboolean multi_sample = glfunc.glIsEnabled(GL_MULTISAMPLE);
+      glfunc.glEnable(GL_BLEND);
+      glfunc.glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glfunc.glBlendEquation(GL_FUNC_ADD);
+      glfunc.glEnable(GL_MULTISAMPLE);
+
+      // Set the projection and world matrices
+      m_proj.setToIdentity();
+      m_proj.ortho(0, painter.device()->width(), painter.device()->height(), 0, -1, 1);
+      QTransform tt = painter.worldTransform();
+      QMatrix4x4 m_world(
+        tt.m11(), tt.m21(), 0, tt.dx(), tt.m12(), tt.m22(), 0, tt.dy(), 0, 0, 1, 0, 0, 0, 0, 1);
+
+      // Run the program
+      QOpenGLVertexArrayObject::Binder vao_binder(wrapper->m_vao);
+      wrapper->m_program->bind();
+      wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("projMatrix"), m_proj);
+      wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("mvMatrix"), m_world);
+      wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("solidColor"), painter.pen().color());
+      wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("lineWidth"), (GLfloat) std::max(0.5, painter.pen().widthF()));
+      wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("viewport_size"),
+                                          painter.viewport().width(), painter.viewport().height());
+
+      // Draw the line strips
+      int s0 = 0;
+      for(auto ss : wrapper->m_strip_sizes)
+      {
+        // glfunc.glDrawArrays(GL_LINE_STRIP, s0, ss);
+        glfunc.glDrawArrays(GL_LINES, s0, ss);
+        s0 += ss;
+      }
+
+      // Restore attribute state
+      if(!blend)
+        glfunc.glDisable(GL_BLEND);
+      if(!multi_sample)
+        glfunc.glDisable(GL_MULTISAMPLE);
+      glfunc.glLineWidth(old_line_width);
+
+      // Done drawing
+      wrapper->m_program->release();
+
+      painter.endNativePainting();
+    }
+    else
+    {
+      DrawPath(wrapper->m_path);
+    }
   }
 
   virtual void DrawLine(double x0, double y0, double x1, double y1) override
@@ -558,6 +835,11 @@ public:
 protected:
   QPainter &painter;
   QOpenGLFunctions &glfunc;
+
+  // GL stuff - organize later
+  QOpenGLVertexArrayObject m_vao;
+  static QOpenGLShaderProgram *m_program;
+  QMatrix4x4 m_proj, m_world;
 };
 
 

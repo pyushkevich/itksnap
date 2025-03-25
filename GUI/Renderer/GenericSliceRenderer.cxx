@@ -37,6 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "SliceWindowCoordinator.h"
 #include "PaintbrushSettingsModel.h"
 #include <itkImageLinearConstIteratorWithIndex.h>
+#include <vtkTransform.h>
+#include <vtkTransformPolyDataFilter.h>
 
 itk::ModifiedTimeType
 check_pipeline_mtime(itk::DataObject *object)
@@ -332,8 +334,10 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
     auto *layer = it.GetLayer();
 
     // Check the layer for a stored path
-    using Path2D = typename AbstractRenderContext::Path2D;
-    SmartPtr<Path2D> stored_path = dynamic_cast<Path2D *>(layer->GetUserData(layer_key));
+    // using Path2D = typename AbstractRenderContext::Path2D;
+    using ContourSet2D = typename AbstractRenderContext::ContourSet2D;
+    SmartPtr<ContourSet2D> stored_contour =
+      dynamic_cast<ContourSet2D *>(layer->GetUserData(layer_key));
 
     // Check the update times of all the inputs that affect the rendering of the mesh
     // This is a bit clunky because this is not a proper ITK pipeline
@@ -345,14 +349,57 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
 
     // Update the stored path
     Clock clk;
-    if (!stored_path || stored_path->GetMTime() < mtime)
+    if (!stored_contour || stored_contour->GetMTime() < mtime)
     {
-      stored_path = context->CreatePath();
+      stored_contour = context->CreateContourSet();
       for (unsigned int i = 0; i < layer->GetNumberOfMeshes(tp); i++)
       {
-        auto t0 = clk.now();
+        auto         t0 = clk.now();
         vtkPolyData *pd = layer->GetIntersectionWithSlicePlane(tp, i, index);
-        auto t1 = clk.now();
+        auto         t1 = clk.now();
+
+        // Transform the polydata into slice coordinates that we are rendering
+        if(pd)
+        {
+          vnl_matrix_fixed<double, 4, 4> Id, Q;
+          Id.set_identity();
+          for(int i = 3; i >= 0; i--)
+          {
+            Vector3d p_ras = Id.get_column(i).extract(3);
+            Vector3d p_itk = main_image->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
+            p_itk += 0.5;
+            Vector3d p_slice = m_Model->MapImageToSlice(p_itk);
+            auto Qi = Id.get_column(i);
+            Qi.update(i == 3 ? p_slice.as_ref() : p_slice.as_ref() - Q.get_column(3).extract(3));
+            Q.set_column(i, Qi);
+          }
+
+          vnl_matrix_fixed<double, 4, 4> inv_sform = main_image->GetNiftiInvSform();
+          vnl_matrix_fixed<double, 4, 4> vox_offset;
+          vox_offset.set_identity();
+          for (unsigned int i = 0; i < 3; i++)
+            vox_offset(i,3) = 0.5;
+          vnl_matrix_fixed<double, 4, 4> img_to_disp = m_Model->GetImageToDisplayTransform()->ComputeHomogeneousMatrix();
+          vnl_matrix_fixed<double, 4, 4> phys_to_screen = img_to_disp * vox_offset * inv_sform;
+
+          vtkNew<vtkTransformPolyDataFilter> transform_filter;
+          vtkNew<vtkTransform>               transform;
+          vtkNew<vtkMatrix4x4>               total_tform;
+
+          for (unsigned int i = 0; i < 4; i++)
+            for (unsigned int j = 0; j < 4; j++)
+              total_tform->SetElement(i,j,phys_to_screen(i,j));
+
+          transform->SetMatrix(total_tform);
+          transform_filter->SetTransform(transform);
+          transform_filter->SetInputData(pd);
+          transform_filter->UpdateWholeExtent();
+
+          // Add to the contour set
+          context->AddContoursToSet(stored_contour, transform_filter->GetOutput());
+        }
+
+        // Append the polydata
         unsigned int n_lines = 0, n_strips = 0;
         if (pd)
         {
@@ -376,23 +423,26 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
                 Vector3d p_itk = main_image->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
                 p_itk += 0.5;
                 Vector3d p_slice = m_Model->MapImageToSlice(p_itk);
-                edgeVertices.emplace_back(Vector2d(p_slice[0], p_slice[1]));
+                // edgeVertices.emplace_back(Vector2d(p_slice[0], p_slice[1]));
               }
 
               // Draw the polygon outline
-              context->AddPolygonSegmentToPath(stored_path, edgeVertices, false);
+              // context->AddPolygonSegmentToPath(stored_contour, edgeVertices, false);
               n_lines += npts;
               n_strips++;
             }
           }
-          auto t2 = clk.now();
-          std::chrono::duration<double, std::milli> dt01 = t1 - t0, dt12 = t2 - t1;
-          std::cout << "Contour size: " << n_strips << " strips " << n_lines << " lines" << std::endl;
-          std::cout << "Time for VTK filter: " << dt01.count() << std::endl;
-          std::cout << "Time for path build: " << dt12.count() << std::endl;
         }
+
+        auto                                      t2 = clk.now();
+        std::chrono::duration<double, std::milli> dt01 = t1 - t0, dt12 = t2 - t1;
+        // std::cout << "Time for VTK filter: " << dt01.count() << std::endl;
+        // std::cout << "Time for path build: " << dt12.count() << std::endl;
       }
-      layer->SetUserData(layer_key, stored_path);
+
+      // Build the contour set
+      context->BuildContourSet(stored_contour);
+      layer->SetUserData(layer_key, stored_contour);
     }
 
     // Set pen color to the solid color (TODO: render arrays)
@@ -400,10 +450,10 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
     context->SetPenColor(layer->GetSolidColor());
     context->SetPenOpacity(layer->GetSliceViewOpacity() * eltMesh->GetAlpha());
     auto t0 = clk.now();
-    context->DrawPath(stored_path);
-    auto t1 = clk.now();
+    context->DrawContourSet(stored_contour);
+    auto                                      t1 = clk.now();
     std::chrono::duration<double, std::milli> dt01 = t1 - t0;
-    std::cout << "Time for QPainter drawing: " << dt01.count() << std::endl;
+    // std::cout << "Time for QPainter drawing: " << dt01.count() << std::endl;
   }
 }
 

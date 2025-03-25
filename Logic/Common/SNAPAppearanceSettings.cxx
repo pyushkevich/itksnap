@@ -25,8 +25,7 @@
 
 using namespace std;
 
-// Columns: NORMAL_COLOR, LINE_THICKNESS, DASH_SPACING,
-//          FONT_SIZE,    VISIBLE,      ALPHA_BLEND,    FEATURE_COUNT
+// Columns: COLOR, LINE_THICKNESS, LINE_TYPE, FONT_SIZE, VISIBLE, FEATURE_COUNT
 const int 
 SNAPAppearanceSettings
 ::m_Applicable[SNAPAppearanceSettings::ELEMENT_COUNT][OpenGLAppearanceElement::FEATURE_COUNT] = {
@@ -54,8 +53,8 @@ SNAPAppearanceSettings
     { 1, 1, 1, 0, 0 },    // REGISTRATION_WIDGETS
     { 1, 1, 1, 0, 0 },    // REGISTRATION_WIDGETS_ACTIVE
     { 1, 1, 1, 0, 0 },    // REGISTRATION_GRID
-    { 1, 1, 1, 0, 1 },    // MESH OUTLINE
-    { 0, 1, 1, 0, 0 }     // GRID_LINES
+    { 1, 1, 1, 0, 1 },    // GRID_LINES
+    { 1, 1, 0, 0, 1 }     // MESH OUTLINE
     };
 
 void 
@@ -264,9 +263,9 @@ SNAPAppearanceSettings
 
   // Mesh outline
   elt = m_DefaultElementSettings[MESH_OUTLINE];
-  elt->SetColor(Vector3d(1.0, 1.0, 0.0));
+  elt->SetColor(Vector3d(1.0, 1.0, 1.0));
   elt->SetAlpha(0.75);
-  elt->SetLineThickness(1.0);
+  elt->SetLineThickness(2.0);
   elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisibilityFlag(true);
 }
