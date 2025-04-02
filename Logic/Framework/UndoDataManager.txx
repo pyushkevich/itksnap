@@ -224,7 +224,15 @@ UndoDataManager<TPixel>
   return commit;
 }
 
-
+template<typename TPixel>
+const typename UndoDataManager<TPixel>::Commit &
+UndoDataManager<TPixel>::PeekCommit(unsigned int commit) const
+{
+  CConstIterator pos = m_CommitList.begin();
+  for(unsigned int i = 0; i < commit; i++)
+    pos++;
+  return *pos;
+}
 
 template<typename TPixel>
 UndoDataManager<TPixel>::Commit::Commit(const DList &list, const char *name)

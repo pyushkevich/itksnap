@@ -147,6 +147,31 @@ QtProgressReporterDelegate::QtProgressReporterDelegate()
   m_Dialog = NULL;
 }
 
+void
+QtProgressReporterDelegate::Show(const char *title)
+{
+  if(m_Dialog)
+  {
+    m_Dialog->setMinimumDuration(0);
+    if(title)
+      m_Dialog->setLabelText(QString::fromUtf8(title));
+    m_Dialog->show();
+    m_Dialog->activateWindow();
+    m_Dialog->raise();
+    QCoreApplication::processEvents();
+  }
+}
+
+void
+QtProgressReporterDelegate::Hide()
+{
+  if(m_Dialog)
+  {
+    m_Dialog->hide();
+    QCoreApplication::processEvents();
+  }
+}
+
 void QtProgressReporterDelegate::SetProgressDialog(QProgressDialog *dialog)
 {
   m_Dialog = dialog;

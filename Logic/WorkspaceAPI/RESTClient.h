@@ -5,10 +5,67 @@
 #include <cstdarg>
 #include <map>
 
+/** Distributed segmentation service */
+class DSSServerTraits
+{
+public:
+  static constexpr char DirectoryPrefix[] = "~/.alfabis";
+};
+
+/** Deep Learning Segmentation Server */
+class DLSServerTraits
+{
+public:
+  static constexpr char DirectoryPrefix[] = "~/.itksnap_dls";
+};
+
+
+/**
+ * This class encapsulates CURL MIME capabilities. Use it to send multipart
+ * data to the server.
+ */
+class RESTMultipartData
+{
+public:
+
+  void addString(const char *name, const char *mime_type, const std::string &content)
+  {
+    MimePart mp;
+    mp.mime_type = mime_type;
+    mp.value = content;
+    m_Parts[name] = mp;
+  }
+  void addBytes(const char *name, const char *mime_type, const char *filename, const char *content, size_t size)
+  {
+    MimePart mp;
+    mp.mime_type = mime_type;
+    mp.byte_array = content;
+    mp.byte_array_size = size;
+    mp.filename = filename;
+    m_Parts[name] = mp;
+  }
+
+protected:
+
+  struct MimePart
+  {
+    std::string mime_type, filename;
+    std::string value;
+    const char *byte_array = nullptr;
+    size_t byte_array_size = 0;
+  };
+
+  std::map<std::string, MimePart> m_Parts;
+
+  template <class ServerTraits> friend class RESTClient;
+};
+
+
 /**
  * This class encapsulates the client side of the ALFABIS RESTful API.
  * It uses HTTP and CURL to communicate with the server
  */
+template <class ServerTraits>
 class RESTClient
 {
 public:
@@ -76,7 +133,17 @@ public:
   bool UploadFile(const char *rel_url, const char *filename,
     std::map<std::string,std::string> extra_fields, ...);
 
+  /**
+   * Upload raw bytes to the server, similar to file upload but without having
+   * to store the data on disk
+   */
+  bool PostMultipart(const char *rel_url, RESTMultipartData *data, ...);
+
   const char *GetOutput();
+
+  const char *GetErrorString() const;
+
+  long GetHTTPCode() const;
 
   std::string GetFormattedCSVOutput(bool header);
 
@@ -127,10 +194,7 @@ protected:
 
   static size_t WriteToFileCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
-
-
 };
-
 
 
 #endif // RESTCLIENT_H

@@ -142,11 +142,12 @@ public:
 
   bool IsUndoPossible();
   const Commit &GetCommitForUndo();
+  const Commit &PeekCommit(unsigned int commit) const;
 
   bool IsRedoPossible();
   const Commit &GetCommitForRedo();
 
-  size_t GetNumberOfCommits()
+  size_t GetNumberOfCommits() const
     { return m_CommitList.size(); }
 
 private:
@@ -164,5 +165,7 @@ private:
   CIterator m_Position;
   size_t m_TotalSize, m_MinCommits, m_MaxTotalSize;
 };
+
+
 
 #endif // __UndoDataManager_h_

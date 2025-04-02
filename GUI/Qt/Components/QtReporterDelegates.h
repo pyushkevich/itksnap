@@ -54,8 +54,10 @@ class QtProgressReporterDelegate : public ProgressReporterDelegate
 public:
   QtProgressReporterDelegate();
 
+  virtual void Show(const char *title = nullptr) override;
+  virtual void Hide() override;
   void SetProgressDialog(QProgressDialog *dialog);
-  void SetProgressValue(double);
+  virtual void SetProgressValue(double) override;
 
 private:
   QProgressDialog *m_Dialog;

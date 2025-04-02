@@ -33,4 +33,7 @@ DefaultBehaviorSettings::DefaultBehaviorSettings()
   // Paintbrush defaults
   m_PaintbrushDefaultInitialSizeModel = NewRangedProperty("PaintbrushDefaultInitialSize", 8, 1, 10000, 1);
   m_PaintbrushDefaultMaximumSizeModel = NewRangedProperty("PaintbrushDefaultMaximumSize", 40, 10, 10000, 1);
+
+  // Deep learning service
+  m_DeepLearningServerURLModel = NewSimpleProperty("DeepLearningServer", std::string());
 }

@@ -74,6 +74,7 @@
 #include "RegistrationModel.h"
 #include "InteractiveRegistrationModel.h"
 #include "DistributedSegmentationModel.h"
+#include "DeepLearningSegmentationModel.h"
 #include "ImageMeshLayers.h"
 
 #include <itksys/SystemTools.hxx>
@@ -112,6 +113,10 @@ GlobalUIModel::GlobalUIModel()
   // Distributed segmentation model
   m_DistributedSegmentationModel = DistributedSegmentationModel::New();
   m_DistributedSegmentationModel->SetParentModel(this);
+
+  // Distributed segmentation model
+  m_DeepLearningSegmentationModel = DeepLearningSegmentationModel::New();
+  m_DeepLearningSegmentationModel->SetParentModel(this);
 
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)
@@ -608,6 +613,10 @@ void GlobalUIModel::LoadUserPreferences()
   // Read the DSS-related preferences
   m_DistributedSegmentationModel->LoadPreferences(
         si->Folder("DistributedSegmentationSystem"));
+
+  // Read the DSS-related preferences
+  m_DeepLearningSegmentationModel->LoadPreferences(
+    si->Folder("DeepLearningSegmentationServer"));
 }
 
 void GlobalUIModel::SaveUserPreferences()
@@ -637,6 +646,10 @@ void GlobalUIModel::SaveUserPreferences()
   // Write the DSS-related preferences
   m_DistributedSegmentationModel->SavePreferences(
         si->Folder("DistributedSegmentationSystem"));
+
+  // Read the DSS-related preferences
+  m_DeepLearningSegmentationModel->SavePreferences(
+    si->Folder("DeepLearningSegmentationServer"));
 
   // Save the preferences
   si->SaveUserPreferences();

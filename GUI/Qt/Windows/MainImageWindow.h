@@ -119,6 +119,9 @@ public:
   // Get the layer inspector
   LayerInspectorDialog *GetLayerInspector();
 
+  // Get the preferences dialog
+  PreferencesDialog *GetPreferencesDialog() const;
+
   /** Check for updates (automatically at regular periods) */
   void UpdateAutoCheck();
 

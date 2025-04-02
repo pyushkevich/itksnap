@@ -401,6 +401,9 @@ GlobalDisplaySettings::GlobalDisplaySettings()
   m_FlagRemindLayoutSettingsModel =
       NewSimpleProperty("FlagRemindLayoutSettings", true);
 
+  m_FlagRemindDeepLearningExtensionsModel =
+    NewSimpleProperty("FlagRemindDeepLearningExtensions", true);
+
   m_LayerLayoutModel =
       NewSimpleEnumProperty("LayerLayout", LAYOUT_STACKED, emap_layer_layout);
 }

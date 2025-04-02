@@ -89,13 +89,19 @@ enum ConstraintsType
   USER
 };
   
-enum PaintbrushMode
+enum PaintbrushShape
 {
   PAINTBRUSH_RECTANGULAR = 0,
-  PAINTBRUSH_ROUND = 1,
-  PAINTBRUSH_WATERSHED = 2
+  PAINTBRUSH_ROUND
 };
-  
+
+enum PaintbrushSmartMode
+{
+  PAINTBRUSH_MANUAL = 0,
+  PAINTBRUSH_WATERSHED,
+  PAINTBRUSH_DLS
+};
+
 enum DisplayPanel
 {
   PANEL_AXIAL = 0,
@@ -150,7 +156,8 @@ struct PaintbrushWatershedSettings
 struct PaintbrushSettings
 {
   double radius;
-  PaintbrushMode mode;
+  PaintbrushShape shape;
+  PaintbrushSmartMode smart_mode;
   bool volumetric;
   bool isotropic;
   bool chase;

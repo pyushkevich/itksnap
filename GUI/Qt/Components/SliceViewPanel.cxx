@@ -249,6 +249,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   lo->setSpacing(0);
   ui->sliceViewNew->setLayout(lo);
   auto *canvas = new QtFrameBufferOpenGLWidget(ui->sliceViewNew); //  FrameBufferOpenGLWidget(ui->sliceViewNew);
+  canvas->grabGesture(Qt::PinchGesture);
   lo->addWidget(canvas);
 
   // Create a renderer

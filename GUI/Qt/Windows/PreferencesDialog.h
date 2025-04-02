@@ -11,6 +11,7 @@ class PreferencesDialog;
 class GlobalPreferencesModel;
 class QAbstractButton;
 class QStandardItem;
+class QTimer;
 
 class PreferencesDialog : public QDialog
 {
@@ -25,7 +26,7 @@ public:
   // This method should be used to show the dialog each time!
   void ShowDialog();
 
-  enum PreferencesDialogPage {General = 0, SliceView, Appearance, Rendering3D, Tools};
+  enum PreferencesDialogPage {General = 0, SliceView, Appearance, Rendering3D, Tools, DeepLearningServer};
 
   // Goes to a particular page
   void GoToPage(enum PreferencesDialogPage page);
@@ -40,6 +41,7 @@ public slots:
   void set_page_to_3d_smoothing(void);
   void set_page_to_3d_decimation(void);
   void set_page_to_tools(void);
+  void set_page_to_dls(void);
 
 private slots:
   void on_listWidget_itemSelectionChanged();
@@ -63,6 +65,10 @@ private slots:
   void on_radio_sagittal_ap_toggled(bool check);
 
   void on_PreferencesDialog_accepted();
+
+  void on_btnDLServerManage_clicked();
+  void checkServerStatus();
+  void updateServerStatus();
 
 private:
   Ui::PreferencesDialog *ui;
@@ -146,6 +152,9 @@ private:
   bool m_IsAnteriorShownLeft = true;
 
   SliceLayoutPixmapPath m_SliceLayoutPixmapPaths[3];
+
+  constexpr static unsigned int STATUS_CHECK_INIT_DELAY_MS=500, STATUS_CHECK_FREQUENCY_MS=10000;
+  QTimer *m_DLSStatusCheckTimer;
 
 };
 

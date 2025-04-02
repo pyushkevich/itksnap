@@ -61,6 +61,7 @@ using namespace std;
 using itksys::SystemTools;
 using itksys::RegularExpression;
 using itksys::Directory;
+using DSSRESTClient = RESTClient<DSSServerTraits>;
 
 #ifdef WIN32
 
@@ -218,7 +219,7 @@ void UploadResultWorkspace(const WorkspaceAPI &ws, int ticket_id)
 
 void PostAttachment(int ticket_id, string desc, string filename, string mimetype = "")
 {
-  RESTClient rcu;
+  DSSRESTClient rcu;
   std::map<string, string> extra_param;
   extra_param["desc"] = desc;
   if(mimetype.size())
@@ -231,7 +232,7 @@ void PostAttachment(int ticket_id, string desc, string filename, string mimetype
 
 void PostLogMessage(int ticket_id, string category, string message)
 {
-  RESTClient rc;
+  DSSRESTClient rc;
   if(!rc.Post("api/pro/tickets/%d/%s","message=%s",
               ticket_id, category.c_str(), message.c_str()))
     throw IRISException("Error posting message on ticket %d: %s",
@@ -253,7 +254,7 @@ void simple_rest_get(const char *url, const char *exception_message, const char 
   va_start(args, prefix);
 
   // Execute the REST command
-  RESTClient rc;
+  DSSRESTClient rc;
 
   // Try calling command
   try {
@@ -277,7 +278,7 @@ void simple_rest_post(const char *url, const char *params, const char *exception
   va_start(args, prefix);
 
   // Execute the REST command
-  RESTClient rc;
+  DSSRESTClient rc;
 
   // Try calling command
   std::cout << "prefix: " << prefix << std::endl;
@@ -299,7 +300,7 @@ void simple_rest_post(const char *url, const char *params, const char *exception
  */
 int PrintTicketLog(int ticket_id, int id_start = 0)
 {
-  RESTClient rc;
+  DSSRESTClient rc;
 
   // Check for new log updates
   if(!rc.Get("api/tickets/%d/log?since=%d", ticket_id, id_start))
@@ -333,7 +334,7 @@ int PrintTicketLog(int ticket_id, int id_start = 0)
       // Process the attachments
       if(n_attach > 0)
         {
-        RESTClient rca;
+        DSSRESTClient rca;
         if(!rca.Get("api/tickets/logs/%d/attachments", id_start))
           throw IRISException("Error getting attachment for ticket %d: %s", ticket_id, rca.GetResponseText());
 
@@ -812,7 +813,7 @@ int main(int argc, char *argv[])
         std::cin >> token_string;
 
         // Authenticate with the token
-        RESTClient rc;
+        DSSRESTClient rc;
         if(!rc.Authenticate(url.c_str(), token_string.c_str()))
           throw IRISException("Authentication error: %s", rc.GetResponseText());
         else
@@ -820,7 +821,7 @@ int main(int argc, char *argv[])
         }
       else if(arg == "-dss-services-list")
         {
-        RESTClient rc;
+        DSSRESTClient rc;
         if(rc.Get("api/services"))
           print_string_with_prefix(cout, rc.GetFormattedCSVOutput(false), prefix);
         else
@@ -829,7 +830,7 @@ int main(int argc, char *argv[])
       else if(arg == "-dss-services-detail")
         {
         string service_githash = cl.read_string();
-        RESTClient rc;
+        DSSRESTClient rc;
         if(rc.Get("api/services/%s/detail", service_githash.c_str()))
           print_string_with_prefix(cout, rc.GetOutput(), prefix);
         else
@@ -844,7 +845,7 @@ int main(int argc, char *argv[])
         }
       else if(arg == "-dss-tickets-list" || arg == "-dtl")
         {
-        RESTClient rc;
+        DSSRESTClient rc;
         if(rc.Get("api/tickets"))
           print_string_with_prefix(cout, rc.GetFormattedCSVOutput(false), prefix);
         else
@@ -853,7 +854,7 @@ int main(int argc, char *argv[])
       else if(arg == "-dss-tickets-delete" || arg == "-dt-del")
         {
         int ticket_id = cl.read_integer();
-        RESTClient rc;
+        DSSRESTClient rc;
         if(rc.Get("api/tickets/%d/delete", ticket_id))
           cout << prefix << rc.GetOutput() << endl;
         else
@@ -868,7 +869,7 @@ int main(int argc, char *argv[])
       else if(arg == "-dss-tickets-progress")
         {
         int ticket_id = cl.read_integer();
-        RESTClient rc;
+        DSSRESTClient rc;
         if(rc.Get("api/tickets/%d/progress", ticket_id))
           cout << prefix << rc.GetOutput() << endl;
         else
@@ -885,7 +886,7 @@ int main(int argc, char *argv[])
         clock_t t_end = t_start + timeout * CLOCKS_PER_SEC;
 
         // Use a single REST client
-        RESTClient rc;
+        DSSRESTClient rc;
 
         // Run main loop until timeout
         long last_log = 0;
@@ -982,7 +983,7 @@ int main(int argc, char *argv[])
         }
       else if(arg == "-dssp-services-list")
         {
-        RESTClient rc;
+        DSSRESTClient rc;
         if(rc.Get("api/pro/services"))
           print_string_with_prefix(cout, rc.GetFormattedCSVOutput(false), prefix);
         else
@@ -999,7 +1000,7 @@ int main(int argc, char *argv[])
         while(true)
           {
           // Try claiming the ticket
-          RESTClient rc;
+          DSSRESTClient rc;
           if(!rc.Post("api/pro/services/claims","services=%s&provider=%s&code=%s",
                       service_githash.c_str(), provider_name.c_str(), provider_code.c_str()))
             throw IRISException("Error claiming ticket for service %s: %s", 
@@ -1051,7 +1052,7 @@ int main(int argc, char *argv[])
         PostLogMessage(ticket_id, "error", message);
 
         // Change the status of the ticket to failed
-        RESTClient rc;
+        DSSRESTClient rc;
         if (rc.Post("api/pro/tickets/%d/status","status=failed", ticket_id))
           {
           cout << prefix << rc.GetOutput() << endl;
@@ -1064,7 +1065,7 @@ int main(int argc, char *argv[])
         {
         int ticket_id = cl.read_integer();
 
-        RESTClient rc;
+        DSSRESTClient rc;
         if (rc.Post("api/pro/tickets/%d/status","status=success", ticket_id))
           {
           cout << prefix << rc.GetOutput() << endl;
@@ -1076,7 +1077,7 @@ int main(int argc, char *argv[])
       else if(arg == "-dssp-tickets-status")
         {
         int ticket_id = cl.read_integer();
-        RESTClient rc;
+        DSSRESTClient rc;
         if(!rc.Get("api/pro/tickets/%d/status", ticket_id))
           throw IRISException("Error checking status of ticket %d: %s",
             ticket_id, rc.GetResponseText());
@@ -1085,7 +1086,7 @@ int main(int argc, char *argv[])
       else if(arg == "-dssp-tickets-set-progress")
         {
         int ticket_id = cl.read_integer();
-        RESTClient rc;
+        DSSRESTClient rc;
         double chunk_start = cl.read_double();
         double chunk_end = cl.read_double();
         double chunk_prog = cl.read_double();

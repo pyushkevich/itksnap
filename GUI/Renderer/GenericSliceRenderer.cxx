@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "LayerAssociation.h"
 #include "SliceWindowCoordinator.h"
 #include "PaintbrushSettingsModel.h"
+#include "StandaloneMeshWrapper.h"
 #include <itkImageLinearConstIteratorWithIndex.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
@@ -227,7 +228,6 @@ GenericSliceRenderer::GetTexture(AbstractRenderContext *context,
       << std::chrono::duration_cast<std::chrono::nanoseconds>(end_time -
                                                   start_time)
       .count()
-      << " ns" << std::endl;
       */
 
       // Check if a texture is cached in the layer
@@ -331,7 +331,9 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
 
   for (auto it = ml->GetLayers(); !it.IsAtEnd(); ++it)
   {
-    auto *layer = it.GetLayer();
+    auto *layer = dynamic_cast<StandaloneMeshWrapper *>(it.GetLayer());
+    if(!layer)
+      continue;
 
     // Check the layer for a stored path
     // using Path2D = typename AbstractRenderContext::Path2D;

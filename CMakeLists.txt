@@ -498,6 +498,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ColorLabelQuickListModel.cxx
   GUI/Model/ColorMapModel.cxx
   GUI/Model/CursorInspectionModel.cxx
+  GUI/Model/DeepLearningSegmentationModel.cxx
   GUI/Model/DeformationGridModel.cxx
   GUI/Model/DisplayLayoutModel.cxx
   GUI/Model/DistributedSegmentationModel.cxx
@@ -578,6 +579,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelQuickListModel.h
   GUI/Model/CursorInspectionModel.h
+  GUI/Model/DeepLearningSegmentationModel.h
   GUI/Model/DeformationGridModel.h
   GUI/Model/DisplayLayoutModel.h
   GUI/Model/DistributedSegmentationModel.h
@@ -722,6 +724,7 @@ SET(UI_QT_CXX
   GUI/Qt/View/ThumbnailInteractionMode.cxx
   GUI/Qt/Windows/AboutDialog.cxx
   GUI/Qt/Windows/AnnotationEditDialog.cxx
+  GUI/Qt/Windows/DeepLearningInfoDialog.cxx
   GUI/Qt/Windows/DropActionDialog.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
@@ -819,6 +822,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/AboutDialog.h
   GUI/Qt/Windows/AnnotationEditDialog.h
+  GUI/Qt/Windows/DeepLearningInfoDialog.h
   GUI/Qt/Windows/DropActionDialog.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
@@ -911,6 +915,7 @@ SET(UI_FORMS
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/AboutDialog.ui
   GUI/Qt/Windows/AnnotationEditDialog.ui
+  GUI/Qt/Windows/DeepLearningInfoDialog.ui
   GUI/Qt/Windows/DropActionDialog.ui
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.ui
@@ -1238,7 +1243,8 @@ SET(SNAP_BUNDLE_NAME ITK-SNAP)
 
 # Configure the executable's sources and libraries
 ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC}
-  GUI/Qt/Components/QPainterRenderContext.cxx)
+  GUI/Qt/Components/QPainterRenderContext.cxx
+  GUI/Qt/Windows/DeepLearningInfoDialog.h GUI/Qt/Windows/DeepLearningInfoDialog.cxx GUI/Qt/Windows/DeepLearningInfoDialog.ui)
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 

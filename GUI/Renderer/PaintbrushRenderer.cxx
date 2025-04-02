@@ -75,7 +75,7 @@ PaintbrushRenderer::BuildBrush(AbstractRenderContext *context)
 
   // Check if the cached settings can be used
   if (m_BrushOutline.size() && ps.radius == m_CachedBrushSettings.radius &&
-      ps.isotropic == m_CachedBrushSettings.isotropic && ps.mode == m_CachedBrushSettings.mode &&
+      ps.isotropic == m_CachedBrushSettings.isotropic && ps.shape == m_CachedBrushSettings.shape &&
       ps.volumetric == m_CachedBrushSettings.volumetric)
     return;
 

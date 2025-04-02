@@ -194,6 +194,12 @@
         <file>mesh_cell_data.png</file>
         <file>mesh_point_data.png</file>
         <file>color_bar.png</file>
+        <file>nnInteractive@2x.png</file>
+        <file>nnInteractive.png</file>
+        <file>logo_dkfz.png</file>
+        <file>logo_helmholz.png</file>
+        <file>gear_16.png</file>
+        <file>gear_16@x2.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

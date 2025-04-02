@@ -26,6 +26,7 @@
 #include "MainImageWindow.h"
 #include "MeshExportWizard.h"
 #include "SaveModifiedLayersDialog.h"
+#include "LayerGeneralPropertiesModel.h"
 
 #include "DisplayMappingPolicy.h"
 #include "ColorMap.h"
@@ -75,6 +76,7 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addAction(ui->actionClose);
   m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionReloadFromFile);
+  m_PopupMenu->addAction(ui->actionReveal);
   m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionReloadAsMultiComponent);
   m_PopupMenu->addAction(ui->actionReloadAs4D);
@@ -192,6 +194,7 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   activateOnFlag(ui->actionClose, model, AbstractLayerTableRowModel::UIF_CLOSABLE);
   activateOnFlag(ui->actionSave, model, AbstractLayerTableRowModel::UIF_SAVABLE);
   activateOnFlag(ui->actionReloadFromFile, model, AbstractLayerTableRowModel::UIF_FILE_RELOADABLE);
+  activateOnFlag(ui->actionReveal, model, AbstractLayerTableRowModel::UIF_FILE_RELOADABLE);
   activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
   activateOnFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE, opt_hide);
   activateOnFlag(m_PopupMenu->findChild<QMenu*>("menuProcess"), model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
@@ -850,4 +853,95 @@ void WidgetWithLabelAction::onChanged()
 void LayerInspectorRowDelegate::on_actionColor_Map_Editor_triggered()
 {
   emit colorMapInspectorRequested();
+}
+
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QProcess>
+#include <QDir>
+#include <QProcessEnvironment>
+
+enum OsType {
+  OS_WINDOWS,
+  OS_MAC,
+  OS_LINUX,
+  OS_OTHERUNIX,
+  OS_OTHER
+};
+
+static constexpr OsType get_host_os()
+{
+#if defined(Q_OS_WIN)
+  return OS_WINDOWS;
+#elif defined(Q_OS_LINUX)
+  return OS_LINUX;
+#elif defined(Q_OS_MAC)
+  return OS_MAC;
+#elif defined(Q_OS_UNIX)
+  return OS_OTHERUNIX;
+#else
+  return OS_OTHER;
+#endif
+}
+
+void
+showInGraphicalShell(QWidget *parent, const QString &pathIn)
+{
+  const QFileInfo fileInfo(pathIn);
+  auto            os = get_host_os();
+
+  if (os == OS_WINDOWS)
+  {
+    QString explorer = QLatin1String("explorer.exe");
+    /*
+  const FileName explorer =
+    Environment::systemEnvironment().searchInPath(QLatin1String("explorer.exe"));
+  if (explorer.isEmpty())
+  {
+    QMessageBox::warning(
+      parent,
+      QApplication::translate("Core::Internal", "Launching Windows Explorer Failed"),
+      QApplication::translate("Core::Internal",
+                              "Could not find explorer.exe in path to launch Windows Explorer."));
+    return;
+  }*/
+    QStringList param;
+    if (!fileInfo.isDir())
+      param += QLatin1String("/select,");
+    param += QDir::toNativeSeparators(fileInfo.canonicalFilePath());
+    QProcess::startDetached(explorer, param);
+  }
+  else if (os == OS_MAC)
+  {
+    QStringList scriptArgs;
+    scriptArgs << QLatin1String("-e")
+               << QString::fromLatin1("tell application \"Finder\" to reveal POSIX file \"%1\"")
+                    .arg(fileInfo.canonicalFilePath());
+    QProcess::execute(QLatin1String("/usr/bin/osascript"), scriptArgs);
+    scriptArgs.clear();
+    scriptArgs << QLatin1String("-e") << QLatin1String("tell application \"Finder\" to activate");
+    QProcess::execute(QLatin1String("/usr/bin/osascript"), scriptArgs);
+  }
+  else
+  {
+    /*
+    // we cannot select a file here, because no file browser really supports it...
+    const QString folder = fileInfo.isDir() ? fileInfo.absoluteFilePath() : fileInfo.filePath();
+    const QString app = UnixUtils::fileBrowser(ICore::settings());
+    QProcess      browserProc;
+    const QString browserArgs = UnixUtils::substituteFileBrowserParameters(app, folder);
+    bool          success = browserProc.startDetached(browserArgs);
+    const QString error = QString::fromLocal8Bit(browserProc.readAllStandardError());
+    success = success && error.isEmpty();
+    if (!success)
+      showGraphicalShellError(parent, app, error);
+*/
+  }
+}
+
+void
+LayerInspectorRowDelegate::on_actionReveal_triggered()
+{
+  std::string fn = m_Model->GetParentModel()->GetLayerGeneralPropertiesModel()->GetFilename();
+  showInGraphicalShell(this, QString::fromStdString(fn));
 }

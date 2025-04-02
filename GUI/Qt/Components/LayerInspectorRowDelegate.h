@@ -134,6 +134,8 @@ private slots:
 
   void on_actionReloadFromFile_triggered();
 
+  void on_actionReveal_triggered();
+
 private:
   Ui::LayerInspectorRowDelegate *ui;
 

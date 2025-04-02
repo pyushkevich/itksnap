@@ -1,5 +1,6 @@
 #include "IRISApplication.h"
 #include "MeshImportModel.h"
+#include "RESTClient.h"
 #include "SNAPQApplication.h"
 #include "MainImageWindow.h"
 #include "ImageIODelegates.h"
@@ -1174,6 +1175,8 @@ main(int argc, char *argv[])
       gui->GetSliceCoordinator()->SetLinkedZoom(true);
       gui->GetSliceCoordinator()->SetZoomLevelAllWindows(argdata.xZoomFactor);
     }
+
+
 
     /*
      * ADD THIS LATER!

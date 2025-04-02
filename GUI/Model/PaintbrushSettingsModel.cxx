@@ -14,9 +14,13 @@ PaintbrushSettingsModel::PaintbrushSettingsModel()
                                      &Self::SetPaintbrushSettings);
 
   // Create models for the fields of PaintbrushSettings
-  m_PaintbrushModeModel =
-      wrapStructMemberAsSimpleProperty<PaintbrushSettings, PaintbrushMode>(
-        m_PaintbrushSettingsModel, offsetof(PaintbrushSettings, mode));
+  m_PaintbrushShapeModel =
+      wrapStructMemberAsSimpleProperty<PaintbrushSettings, PaintbrushShape>(
+        m_PaintbrushSettingsModel, offsetof(PaintbrushSettings, shape));
+
+  m_PaintbrushSmartModeModel =
+    wrapStructMemberAsSimpleProperty<PaintbrushSettings, PaintbrushSmartMode>(
+      m_PaintbrushSettingsModel, offsetof(PaintbrushSettings, smart_mode));
 
   m_VolumetricBrushModel =
       wrapStructMemberAsSimpleProperty<PaintbrushSettings, bool>(
@@ -39,6 +43,9 @@ PaintbrushSettingsModel::PaintbrushSettingsModel()
 
   m_AdaptiveModeModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetAdaptiveModeValue);
+
+  m_DeepLearningModeModel = wrapGetterSetterPairAsProperty(
+    this, &Self::GetDeepLearningModeValue);
 
   m_ThresholdLevelModel = wrapGetterSetterPairAsProperty(
         this,
@@ -145,8 +152,15 @@ void PaintbrushSettingsModel::SetBrushSizeValue(int value)
 bool PaintbrushSettingsModel::GetAdaptiveModeValue(bool &value)
 {
   PaintbrushSettings pbs = GetPaintbrushSettings();
+  value = (pbs.smart_mode == PAINTBRUSH_WATERSHED);
+  return true;
+}
 
-  value = (pbs.mode == PAINTBRUSH_WATERSHED);
+bool
+PaintbrushSettingsModel::GetDeepLearningModeValue(bool &value)
+{
+  PaintbrushSettings pbs = GetPaintbrushSettings();
+  value = (pbs.smart_mode == PAINTBRUSH_DLS);
   return true;
 }
 

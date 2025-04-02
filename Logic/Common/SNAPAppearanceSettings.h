@@ -126,6 +126,7 @@ public:
   irisSimplePropertyAccessMacro(FlagLayoutPatientAnteriorShownLeft, bool)
   irisSimplePropertyAccessMacro(FlagLayoutPatientRightShownLeft, bool)
   irisSimplePropertyAccessMacro(FlagRemindLayoutSettings, bool)
+  irisSimplePropertyAccessMacro(FlagRemindDeepLearningExtensions, bool)
   irisSimplePropertyAccessMacro(SliceLayout, UISliceLayout)
   irisSimplePropertyAccessMacro(LayerLayout, LayerLayout)
 
@@ -147,6 +148,7 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientAnteriorShownLeftModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientRightShownLeftModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagRemindLayoutSettingsModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FlagRemindDeepLearningExtensionsModel;
 
   typedef ConcretePropertyModel<UIGreyInterpolation, TrivialDomain> ConcreteInterpolationModel;
   SmartPtr<ConcreteInterpolationModel> m_GreyInterpolationModeModel;

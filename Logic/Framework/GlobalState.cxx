@@ -88,7 +88,8 @@ GlobalState
 
   // Set paintbrush defaults
   m_PaintbrushSettings.radius = 4;
-  m_PaintbrushSettings.mode = PAINTBRUSH_RECTANGULAR;
+  m_PaintbrushSettings.shape = PAINTBRUSH_RECTANGULAR;
+  m_PaintbrushSettings.smart_mode = PAINTBRUSH_MANUAL;
   m_PaintbrushSettings.volumetric = false;
   m_PaintbrushSettings.isotropic = false;
   m_PaintbrushSettings.chase = false;

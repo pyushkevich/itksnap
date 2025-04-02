@@ -1450,6 +1450,12 @@ LayerInspectorDialog *MainImageWindow::GetLayerInspector()
   return m_LayerInspector;
 }
 
+PreferencesDialog *
+MainImageWindow::GetPreferencesDialog() const
+{
+  return m_PreferencesDialog;
+}
+
 void MainImageWindow::LoadMainImage(const QString &file)
 {
 	// Show a progress dialog

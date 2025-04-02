@@ -59,7 +59,7 @@ struct AuthResponse
   AuthResponse() : status(AUTH_NOT_CONNECTED) {}
 
   bool operator != (const AuthResponse &o) const
-    { return status != o.status && user_email != o.user_email; }
+    { return status != o.status || user_email != o.user_email; }
 };
 
 /** Structure describing a single service summary */
