@@ -17,7 +17,7 @@
    <item row="1" column="1">
     <widget class="QStackedWidget" name="stack">
      <property name="currentIndex">
-      <number>5</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="pageGeneral">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -1758,7 +1758,7 @@ color:white;</string>
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="pageDL">
+     <widget class="DeepLearningServerPanel" name="pageDL">
       <layout class="QVBoxLayout" name="verticalLayout_16">
        <property name="leftMargin">
         <number>0</number>
@@ -1772,96 +1772,6 @@ color:white;</string>
        <property name="bottomMargin">
         <number>0</number>
        </property>
-       <item>
-        <widget class="QTabWidget" name="tabWidgetDL">
-         <widget class="QWidget" name="tabServer">
-          <attribute name="title">
-           <string>Deep Learning Server</string>
-          </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_17">
-           <item>
-            <widget class="QGroupBox" name="groupBox_9">
-             <property name="maximumSize">
-              <size>
-               <width>478</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="title">
-              <string>ITK-SNAP Deep Learning Segmentation Extensions</string>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_8" columnstretch="0,1,0">
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Server URL:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="1" column="1">
-               <widget class="QComboBox" name="inDLServerURL"/>
-              </item>
-              <item row="1" column="2">
-               <widget class="QPushButton" name="btnDLServerManage">
-                <property name="text">
-                 <string>Manage ...</string>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="0" colspan="3">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The ITK-SNAP deep learning extension allows you to take advantage of powerful AI-based interactive segmentation tools provided by &lt;a href=&quot;https://github.com/MIC-DKFZ/nnInteractive&quot;&gt;nnInteractive&lt;/a&gt; directly from ITK-SNAP. &lt;/p&gt;
-&lt;p&gt;
-Please follow &lt;a href=&quot;https://itksnap-dls.readthedocs.io/en/latest&quot;&gt;online documentation &lt;/a&gt; to set up the deep learning extension.
-&lt;/p&gt;
-&lt;/html&gt;</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-                <property name="openExternalLinks">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <widget class="QLabel" name="label_11">
-                <property name="text">
-                 <string>Server Status:</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QLabel" name="outStatus">
-                <property name="text">
-                 <string>Server not configured</string>
-                </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer_3">
-             <property name="orientation">
-              <enum>Qt::Orientation::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
-        </widget>
-       </item>
       </layout>
      </widget>
     </widget>
@@ -1943,6 +1853,12 @@ font-weight:bold;</string>
    <class>QColorButtonWidget</class>
    <extends>QWidget</extends>
    <header location="global">QColorButtonWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DeepLearningServerPanel</class>
+   <extends>QWidget</extends>
+   <header>DeepLearningServerPanel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

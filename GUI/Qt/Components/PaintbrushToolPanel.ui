@@ -640,13 +640,6 @@ font-size:11px;
            </item>
           </widget>
          </item>
-         <item row="0" column="0" colspan="2">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Model:</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QToolButton" name="btnConfigDL">
            <property name="maximumSize">
@@ -665,6 +658,29 @@ font-size:11px;
             <iconset>
              <normalon>:/root/gear_16.png</normalon>
             </iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Model:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLabel" name="outDLStatus">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Status of the deep learning extensions server.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;●: Checking status&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#941100;&quot;&gt;●&lt;/span&gt;: Connection Error&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#008f00;&quot;&gt;●&lt;/span&gt;: Connected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
+           <property name="text">
+            <string>●</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignCenter</set>
            </property>
           </widget>
          </item>

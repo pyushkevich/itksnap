@@ -12,7 +12,44 @@
 #include "QtSpinBoxCoupling.h"
 #include "QtSliderCoupling.h"
 #include "DeepLearningInfoDialog.h"
+#include "DeepLearningSegmentationModel.h"
 #include "GlobalUIModel.h"
+
+/**
+ * Traits for mapping status codes to a label
+ */
+class MiniConnectionStatusQLabelValueTraits
+  : public WidgetValueTraitsBase<dls_model::ConnectionStatus, QLabel *>
+{
+public:
+  typedef dls_model::ConnectionStatus TAtomic;
+
+  virtual TAtomic GetValue(QLabel *w)
+  {
+    return dls_model::ConnectionStatus();
+  }
+
+  virtual void SetValue(QLabel *w, const TAtomic &value)
+  {
+    QString color;
+    switch(value.status)
+    {
+      case dls_model::CONN_NO_SERVER:
+        color = "darkred";
+        break;
+      case dls_model::CONN_CHECKING:
+        color = "black";
+        break;
+      case dls_model::CONN_NOT_CONNECTED:
+        color = "darkred";
+        break;
+      case dls_model::CONN_CONNECTED:
+        color = "darkgreen";
+        break;
+    }
+    w->setStyleSheet(QString("QLabel { color: %1; font-weight: bold; opacity: 0.5; }").arg(color));
+  }
+};
 
 PaintbrushToolPanel::PaintbrushToolPanel(QWidget *parent) :
   SNAPComponent(parent),
@@ -99,6 +136,10 @@ void PaintbrushToolPanel::SetModel(PaintbrushSettingsModel *model)
 
   // Listen to changes in smart mode, to display a popup
   connectITK(m_Model->GetPaintbrushSmartModeModel(), ValueChangedEvent());
+
+  // Connect with the deep learning model
+  auto *dls = m_Model->GetParentModel()->GetDeepLearningSegmentationModel();
+  makeCoupling(ui->outDLStatus, dls->GetServerStatusModel(), MiniConnectionStatusQLabelValueTraits());
 }
 
 void

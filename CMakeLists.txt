@@ -725,6 +725,8 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/AboutDialog.cxx
   GUI/Qt/Windows/AnnotationEditDialog.cxx
   GUI/Qt/Windows/DeepLearningInfoDialog.cxx
+  GUI/Qt/Windows/DeepLearningServerEditor.cxx
+  GUI/Qt/Windows/DeepLearningServerPanel.cxx
   GUI/Qt/Windows/DropActionDialog.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
@@ -823,6 +825,8 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/AboutDialog.h
   GUI/Qt/Windows/AnnotationEditDialog.h
   GUI/Qt/Windows/DeepLearningInfoDialog.h
+  GUI/Qt/Windows/DeepLearningServerEditor.h
+  GUI/Qt/Windows/DeepLearningServerPanel.h
   GUI/Qt/Windows/DropActionDialog.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
@@ -916,6 +920,8 @@ SET(UI_FORMS
   GUI/Qt/Windows/AboutDialog.ui
   GUI/Qt/Windows/AnnotationEditDialog.ui
   GUI/Qt/Windows/DeepLearningInfoDialog.ui
+  GUI/Qt/Windows/DeepLearningServerEditor.ui
+  GUI/Qt/Windows/DeepLearningServerPanel.ui
   GUI/Qt/Windows/DropActionDialog.ui
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.ui
@@ -1244,7 +1250,9 @@ SET(SNAP_BUNDLE_NAME ITK-SNAP)
 # Configure the executable's sources and libraries
 ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC}
   GUI/Qt/Components/QPainterRenderContext.cxx
-  GUI/Qt/Windows/DeepLearningInfoDialog.h GUI/Qt/Windows/DeepLearningInfoDialog.cxx GUI/Qt/Windows/DeepLearningInfoDialog.ui)
+  GUI/Qt/Windows/DeepLearningInfoDialog.h GUI/Qt/Windows/DeepLearningInfoDialog.cxx GUI/Qt/Windows/DeepLearningInfoDialog.ui
+  GUI/Qt/Windows/DeepLearningServerPanel.h GUI/Qt/Windows/DeepLearningServerPanel.cxx GUI/Qt/Windows/DeepLearningServerPanel.ui
+  GUI/Qt/Windows/DeepLearningServerEditor.h GUI/Qt/Windows/DeepLearningServerEditor.cxx GUI/Qt/Windows/DeepLearningServerEditor.ui)
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 
@@ -1265,7 +1273,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
 SET(GUI_TESTS
   Workspace
   NaNs
-  4DContinuousRendering
+  4DContinuousRenderingD
   DiffSpace
   EdgeAttraction
   EchoCartesianDicomLoading

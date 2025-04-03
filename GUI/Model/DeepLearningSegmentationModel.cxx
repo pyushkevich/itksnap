@@ -179,10 +179,11 @@ using DLSClient = RESTClient<DLSServerTraits>;
 
 DeepLearningSegmentationModel::DeepLearningSegmentationModel()
 {
-  m_ServerURLIndex = -1;
-  m_ServerURLModel = wrapGetterSetterPairAsProperty(this,
-                                                    &DeepLearningSegmentationModel::GetServerURLValueAndRange,
-                                                    &DeepLearningSegmentationModel::SetServerURLValue);
+  m_ServerURLModel =
+    wrapGetterSetterPairAsProperty(this, &Self::GetServerURLValueAndRange, &Self::SetServerURLValue);
+
+  m_ServerConfiguredModel = wrapGetterSetterPairAsProperty(this, &Self::GetServerConfiguredValue);
+  m_ServerConfiguredModel->RebroadcastFromSourceProperty(m_ServerURLModel);
 
   // Server status model
   m_ServerStatusModel = NewSimpleConcreteProperty(dls_model::ConnectionStatus());
@@ -194,6 +195,13 @@ DeepLearningSegmentationModel::DeepLearningSegmentationModel()
 
   this->Rebroadcast(m_ServerURLModel, ValueChangedEvent(), ServerChangeEvent());
   this->Rebroadcast(m_ServerURLModel, DomainChangedEvent(), ServerChangeEvent());
+}
+
+bool
+DeepLearningSegmentationModel::GetServerConfiguredValue(bool &value)
+{
+  value = m_Server.size() > 0 && m_ServerProperties.find(m_Server) != m_ServerProperties.end();
+  return true;
 }
 
 void
@@ -209,33 +217,31 @@ DeepLearningSegmentationModel::ProgressCallback(Object *source, const itk::Event
 }
 
 bool
-DeepLearningSegmentationModel::GetServerURLValueAndRange(int &value, ServerURLDomain *domain)
+DeepLearningSegmentationModel::GetServerURLValueAndRange(std::string &value, ServerURLDomain *domain)
 {
-  value = m_ServerURLIndex;
+  value = m_Server;
   if(domain)
-    domain->SetWrappedVector(&m_ServerURLList);
+    for(auto it: m_ServerProperties)
+      (*domain)[it.first] = it.first;
   return true;
 }
 
 void
-DeepLearningSegmentationModel::SetServerURLValue(int value)
+DeepLearningSegmentationModel::SetServerURLValue(std::string value)
 {
-  m_ServerURLIndex = value;
-  if(m_ServerURLIndex >= 0 && m_ServerURLIndex < m_ServerURLList.size())
-  {
-    // Reset everything
-    DLSClient cli;
-    cli.SetServerURL(m_ServerURLList[m_ServerURLIndex].c_str());
-    m_ActiveSession = std::string();
-    m_ActiveLayer = std::make_tuple(0u, 0u);
+  m_Server = value;
+  const auto &sp = m_ServerProperties.find(m_Server);
+  std::string url = sp == m_ServerProperties.end() ? std::string() : sp->second->GetFullURL();
 
-    // Fire event
-    // TODO: I don't understand why this is not automatically fired from the
-    // set method?
-    m_ServerURLModel->InvokeEvent(ValueChangedEvent());
-  }
+  // Reset everything
+  DLSClient cli;
+  cli.SetServerURL(url.c_str());
+  m_ActiveSession = std::string();
+  m_ActiveLayer = std::make_tuple(0u, 0u);
+
+  // Fire some events
+  m_ServerURLModel->InvokeEvent(ValueChangedEvent());
 }
-
 
 void
 DeepLearningSegmentationModel::SetParentModel(GlobalUIModel *parent)
@@ -243,32 +249,99 @@ DeepLearningSegmentationModel::SetParentModel(GlobalUIModel *parent)
   m_ParentModel = parent;
 }
 
-
 void
 DeepLearningSegmentationModel::LoadPreferences(Registry &folder)
 {
-  // Read the list of servers
-  std::vector<std::string> user_servers = folder.Folder("UserServerList").GetArray(std::string());
-  this->SetUserServerList(user_servers);
+  // Clear the server list
+  m_ServerProperties.clear();
 
-  // Read the preferred server
-  int pref_server = folder["PreferredServerIndex"][0];
-  if (pref_server < m_ServerURLList.size())
-    m_ServerURLModel->SetValue(pref_server);
+  // Read the available server names
+  auto &server_folder = folder.Folder("UserServers");
+  Registry::StringListType server_names;
+  server_folder.GetFolderKeys(server_names);
+
+  // Read each available server's properties
+  for(auto key : server_names)
+  {
+    SmartPtr<DeepLearningServerPropertiesModel> spm = DeepLearningServerPropertiesModel::New();
+    spm->ReadFromRegistry(server_folder.Folder(key));
+    m_ServerProperties[spm->GetFullURL()] = spm;
+  }
+
+  // Read the currently selected server, make sure it is one of the servers in the list
+  auto pref = folder["PreferredServer"][std::string()];
+  if(m_ServerProperties.find(pref) == m_ServerProperties.end())
+    pref = std::string();
+
+  // Set the current server
+  m_ServerURLModel->SetValue(pref);
+
+  // Update everything
+  m_ServerURLModel->InvokeEvent(ValueChangedEvent());
+  m_ServerURLModel->InvokeEvent(DomainChangedEvent());
+  m_ServerConfiguredModel->InvokeEvent(ValueChangedEvent());
 }
 
 void
 DeepLearningSegmentationModel::SavePreferences(Registry &folder)
 {
-  // Save the list of servers
-  std::vector<std::string> user_servers = this->GetUserServerList();
-  folder.Folder("UserServerList").PutArray(user_servers);
+  // Clear the list of servers
+  auto &server_folder = folder.Folder("UserServers");
+  server_folder.Clear();
 
-  // Save the preferred server index
-  folder["PreferredServerIndex"] << m_ServerURLModel->GetValue();
+  // Write each server
+  for(auto &it : m_ServerProperties)
+  {
+    it.second->WriteToRegistry(server_folder.Folder(it.second->GetFullURL()));
+  }
+
+  // Write the selected server
+  folder["PreferredServer"] = m_Server;
 }
 
+DeepLearningServerPropertiesModel *
+DeepLearningSegmentationModel::GetServerProperties()
+{
+  const auto &sp = m_ServerProperties.find(m_Server);
+  return sp == m_ServerProperties.end() ? nullptr : sp->second;
+}
 
+void
+DeepLearningSegmentationModel::UpdateServerProperties(DeepLearningServerPropertiesModel *model,
+                                                      bool add_as_new)
+{
+  if(!add_as_new)
+  {
+    auto it = m_ServerProperties.find(m_Server);
+    if(it != m_ServerProperties.end())
+      m_ServerProperties.erase(it);
+  }
+  m_Server = model->GetFullURL();
+  m_ServerProperties[m_Server] = model;
+  m_ServerURLModel->InvokeEvent(ValueChangedEvent());
+  m_ServerURLModel->InvokeEvent(DomainChangedEvent());
+  m_ServerConfiguredModel->InvokeEvent(ValueChangedEvent());
+}
+
+void
+DeepLearningSegmentationModel::DeleteCurrentServer()
+{
+  auto it = m_ServerProperties.find(m_Server);
+  if(it != m_ServerProperties.end())
+  {
+    auto next_it = std::next(it);
+    if(next_it == m_ServerProperties.end())
+      next_it = std::prev(it);
+
+    m_ServerProperties.erase(it);
+    m_Server = next_it == m_ServerProperties.end() ? std::string() : next_it->second->GetFullURL();
+    m_ServerURLModel->InvokeEvent(ValueChangedEvent());
+    m_ServerURLModel->InvokeEvent(DomainChangedEvent());
+    m_ServerConfiguredModel->InvokeEvent(ValueChangedEvent());
+  }
+}
+
+/*
 std::vector<std::string> DeepLearningSegmentationModel::GetUserServerList() const
 {
   return m_ServerURLList;
@@ -302,13 +375,15 @@ void DeepLearningSegmentationModel::SetUserServerList(const std::vector<std::str
   // Update the domain
   m_ServerURLModel->InvokeEvent(DomainChangedEvent());
 }
+*/
 
 std::string DeepLearningSegmentationModel::GetURL(const std::string &path)
 {
   // Get the main part of the URL
-  if (this->GetServerURL() >= 0 && this->GetServerURL() < m_ServerURLList.size())
+  auto it = m_ServerProperties.find(m_Server);
+  if(it != m_ServerProperties.end())
   {
-    std::string server = m_ServerURLList[this->GetServerURL()];
+    std::string server = it->second->GetFullURL();
     return path.length() ? server + "/" + path : server;
   }
   else
@@ -317,7 +392,7 @@ std::string DeepLearningSegmentationModel::GetURL(const std::string &path)
   }
 }
 
-dls_model::ConnectionStatus
+DeepLearningSegmentationModel::StatusCheck
 DeepLearningSegmentationModel::AsyncCheckStatus(std::string url)
 {
   dls_model::ConnectionStatus response;
@@ -326,7 +401,7 @@ DeepLearningSegmentationModel::AsyncCheckStatus(std::string url)
   if(!url.size())
   {
     response.status = dls_model::CONN_NO_SERVER;
-    return response;
+    return std::make_pair(url, response);
   }
 
   DLSClient cli;
@@ -358,14 +433,17 @@ DeepLearningSegmentationModel::AsyncCheckStatus(std::string url)
     response.error_message = exc.what();
   }
 
-  return response;
+  return std::make_pair(url, response);
 }
 
 void
-DeepLearningSegmentationModel::ApplyStatusCheckResponse(const dls_model::ConnectionStatus &result)
+DeepLearningSegmentationModel::ApplyStatusCheckResponse(const StatusCheck &result)
 {
   // Set the status
-  this->SetServerStatus(result);
+  if(result.first == this->GetURL(""))
+  {
+    this->SetServerStatus(result.second);
+  }
 }
 
 void
@@ -638,4 +716,33 @@ DeepLearningSegmentationModel::PerformScribbleInteraction(ImageWrapperBase  *lay
             << std::endl;
 
   return this->UpdateSegmentation(cli.GetOutput(), "nnInteractive scribble interaction");
+}
+
+bool
+DeepLearningServerPropertiesModel::GetFullURLValue(std::string &value)
+{
+  if(GetHostname().size() > 0 && GetPort() > 0)
+  {
+    char buffer[256];
+    snprintf(buffer, 256, "http://%s:%d", GetHostname().c_str(), GetPort());
+    value = buffer;
+    return true;
+  }
+  else
+  {
+    value = "";
+    return false;
+  }
+}
+
+DeepLearningServerPropertiesModel::DeepLearningServerPropertiesModel()
+{
+  m_HostnameModel = NewSimpleProperty("Hostname", std::string());
+  m_NicknameModel = NewSimpleProperty("Nickname", std::string());
+  m_PortModel = NewSimpleProperty("Port", 8911);
+  m_UseSSHTunnelModel = NewSimpleProperty("UseSSHTunnel", false);
+
+  m_FullURLModel = wrapGetterSetterPairAsProperty(this, &Self::GetFullURLValue);  
+  m_FullURLModel->RebroadcastFromSourceProperty(m_HostnameModel);
+  m_FullURLModel->RebroadcastFromSourceProperty(m_PortModel);
 }

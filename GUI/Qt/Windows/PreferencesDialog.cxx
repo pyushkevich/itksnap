@@ -29,41 +29,6 @@ Q_DECLARE_METATYPE(GlobalDisplaySettings::UIGreyInterpolation)
 Q_DECLARE_METATYPE(SNAPAppearanceSettings::UIElements)
 Q_DECLARE_METATYPE(LayerLayout)
 
-/**
- * Traits for mapping status codes to a label
- */
-template<>
-class DefaultWidgetValueTraits<dls_model::ConnectionStatus, QLabel>
-  : public WidgetValueTraitsBase<dls_model::ConnectionStatus, QLabel *>
-{
-public:
-  typedef dls_model::ConnectionStatus TAtomic;
-
-  virtual TAtomic GetValue(QLabel *w)
-  {
-    return dls_model::ConnectionStatus();
-  }
-
-  virtual void SetValue(QLabel *w, const TAtomic &value)
-  {
-    switch(value.status)
-    {
-      case dls_model::CONN_NO_SERVER:
-        w->setText("Server not configured");
-        w->setStyleSheet("color: darkred; font-weight: bold;");
-        break;
-      case dls_model::CONN_NOT_CONNECTED:
-        w->setText(QString("Not connected: %1").arg(from_utf8(value.error_message)));
-        w->setStyleSheet("color: darkred; font-weight: bold;");
-        break;
-      case dls_model::CONN_CONNECTED:
-        w->setText(QString("Connected, server version: %1").arg(from_utf8(value.server_version)));
-        w->setStyleSheet("color: darkgreen; font-weight: bold;");
-        break;
-    }
-  }
-};
-
 
 PreferencesDialog::PreferencesDialog(QWidget *parent)
   : QDialog(parent)
@@ -130,10 +95,6 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
 
   // Set the correct page
   ui->stack->setCurrentIndex(0);
-
-  // Update check timer
-  m_DLSStatusCheckTimer = new QTimer(this);
-  connect(m_DLSStatusCheckTimer, &QTimer::timeout, this, &PreferencesDialog::checkServerStatus);
 }
 
 PreferencesDialog::~PreferencesDialog() { delete ui; }
@@ -259,16 +220,7 @@ PreferencesDialog::SetModel(GlobalPreferencesModel *model)
 
   // Deep learning service
   auto *dlm = m_Model->GetParentModel()->GetDeepLearningSegmentationModel();
-  makeCoupling(ui->inDLServerURL, dlm->GetServerURLModel());
-  makeCoupling(ui->outStatus, dlm->GetServerStatusModel());
-
-  // Listen for server changes
-  LatentITKEventNotifier::connect(
-    dlm, DeepLearningSegmentationModel::ServerChangeEvent(),
-    this, SLOT(onModelUpdate(const EventBucket &)));
-
-  // Set up the timer
-  m_DLSStatusCheckTimer->start(STATUS_CHECK_INIT_DELAY_MS);
+  ui->pageDL->SetModel(dlm);
 }
 
 void
@@ -469,46 +421,9 @@ PreferencesDialog::onModelUpdate(const EventBucket &bucket)
     // TODO: what to do if the preset was deleted?
   }
 
-  if(bucket.HasEvent(DeepLearningSegmentationModel::ServerChangeEvent()))
-  {
-    // The server has changed. We should launch a separate job to connect to the
-    // server, get the list of services, and update the status.
-    checkServerStatus();
-  }
+
 }
 
-void PreferencesDialog::checkServerStatus()
-{
-  // Stop the timer if active
-  if(m_DLSStatusCheckTimer->isActive())
-    m_DLSStatusCheckTimer->stop();
-
-  // The server has changed. We should launch a separate job to connect to the
-  // server, get the list of services, and update the status.
-  auto *dls = m_Model->GetParentModel()->GetDeepLearningSegmentationModel();
-  QFuture<dls_model::ConnectionStatus> future =
-    QtConcurrent::run(DeepLearningSegmentationModel::AsyncCheckStatus, dls->GetURL(""));
-
-  QFutureWatcher<dls_model::ConnectionStatus> *watcher =
-    new QFutureWatcher<dls_model::ConnectionStatus>();
-  connect(watcher, SIGNAL(finished()), this, SLOT(updateServerStatus()));
-  watcher->setFuture(future);
-}
-
-void PreferencesDialog::updateServerStatus()
-{
-  auto *dls = m_Model->GetParentModel()->GetDeepLearningSegmentationModel();
-  QFutureWatcher<dls_model::ConnectionStatus> *watcher =
-    dynamic_cast<QFutureWatcher<dls_model::ConnectionStatus> *>(this->sender());
-
-  dls->ApplyStatusCheckResponse(watcher->result());
-
-  delete watcher;
-
-  // Schedule another status check
-  // TODO: this can cause more than one status check per second
-  m_DLSStatusCheckTimer->start(STATUS_CHECK_FREQUENCY_MS);
-}
 
 void
 PreferencesDialog::UpdateColorMapPresets()
@@ -543,47 +458,4 @@ void
 PreferencesDialog::on_PreferencesDialog_accepted()
 {
   m_Model->ApplyPreferences();
-}
-
-void
-PreferencesDialog::on_btnDLServerManage_clicked()
-{
-  auto *model = m_Model->GetParentModel()->GetDeepLearningSegmentationModel();
-
-  // Get the current list of user URLs
-  std::vector<std::string> input_urls = model->GetUserServerList();
-
-  // Concatenate them into a multi-line string
-  QString input;
-  for (int i = 0; i < input_urls.size(); i++)
-    input.append(QString("%1%2").arg(i > 0 ? "\n" : "", from_utf8(input_urls[i])));
-
-  // Create a dialog box with a list of servers
-  bool    ok = false;
-  QString servers = QInputDialog::getMultiLineText(
-    this, "Edit Server List", "Enter additional server URLs on separate lines below:", input, &ok);
-
-  if (!ok)
-    return;
-
-  // Split into individual strings
-  QStringList url_list = servers.split("\n");
-
-  std::vector<std::string> valid_urls;
-  foreach (QString url_string, url_list)
-  {
-    QUrl url(url_string);
-    if (!url.isValid() || url.isRelative() || url.isLocalFile() || url.isEmpty())
-    {
-      QMessageBox::warning(
-        this, "Invalid server URL", QString("%1 is not a valid URL.").arg(url_string));
-    }
-    else
-    {
-      valid_urls.push_back(to_utf8(url.toString()));
-    }
-  }
-
-  // Set the custom URL list
-  model->SetUserServerList(valid_urls);
 }

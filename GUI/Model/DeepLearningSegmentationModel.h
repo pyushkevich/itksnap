@@ -1,16 +1,17 @@
 #ifndef DEEPLEARNINGSEGMENTATIONCLIENT_H
 #define DEEPLEARNINGSEGMENTATIONCLIENT_H
 
+#include "AbstractPropertyContainerModel.h"
 #include "PropertyModel.h"
 #include <tuple>
 #include "Registry.h"
+#include "itkCommand.h"
 
 class GlobalUIModel;
 class ImageWrapperBase;
 class LabelImageWrapper;
 namespace itk {
 template <unsigned int VDim> class ImageBase;
-template <class T> class MemberCommand;
 }
 
 namespace dls_model {
@@ -18,6 +19,7 @@ namespace dls_model {
 /** Status of the authorization */
 enum ConnectionStatusEnum {
   CONN_NO_SERVER,
+  CONN_CHECKING,
   CONN_NOT_CONNECTED,
   CONN_CONNECTED
 };
@@ -32,9 +34,39 @@ struct ConnectionStatus
    { return status != o.status
             || error_message != o.error_message
             || server_version != o.server_version; }
+
+   ConnectionStatus(ConnectionStatusEnum s = CONN_NOT_CONNECTED) : status(s) {}
 };
 
 }
+
+/**
+ * Properties of a deep learning extension server
+ */
+struct DeepLearningServerPropertiesModel : public AbstractPropertyContainerModel
+{
+public:
+  irisITKObjectMacro(DeepLearningServerPropertiesModel, AbstractPropertyContainerModel)
+
+  irisSimplePropertyAccessMacro(Hostname, std::string)
+  irisSimplePropertyAccessMacro(Nickname, std::string)
+  irisSimplePropertyAccessMacro(Port, int)
+  irisSimplePropertyAccessMacro(UseSSHTunnel, bool)
+
+  irisSimplePropertyAccessMacro(FullURL, std::string)
+
+protected:
+  SmartPtr<ConcreteSimpleStringProperty> m_HostnameModel;
+  SmartPtr<ConcreteSimpleStringProperty> m_NicknameModel;
+  SmartPtr<ConcreteSimpleIntProperty> m_PortModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_UseSSHTunnelModel;
+  SmartPtr<AbstractSimpleStringProperty> m_FullURLModel;
+
+  bool GetFullURLValue(std::string &value);
+
+  DeepLearningServerPropertiesModel();
+};
+
 
 class DeepLearningSegmentationModel : public AbstractModel
 {
@@ -48,17 +80,21 @@ public:
   void SetParentModel(GlobalUIModel *parent);
 
   /** Server URL property model */
-  typedef STLVectorWrapperItemSetDomain<int, std::string> ServerURLDomain;
-  irisGenericPropertyAccessMacro(ServerURL, int, ServerURLDomain)
+  // typedef STLVectorWrapperItemSetDomain<int, std::string> ServerURLDomain;
+  using ServerURLDomain = SimpleItemSetDomain<std::string, std::string>;
+  irisGenericPropertyAccessMacro(ServerURL, std::string, ServerURLDomain)
+
+  /** Is there a current server */
+  irisSimplePropertyAccessMacro(ServerConfigured, bool)
 
   /** Server status */
   irisSimplePropertyAccessMacro(ServerStatus, dls_model::ConnectionStatus)
 
   /** Get the list of servers */
-  std::vector<std::string> GetUserServerList() const;
+  // std::vector<std::string> GetUserServerList() const;
 
   /** Set the list of servers */
-  void SetUserServerList(const std::vector<std::string> &servers);
+  // void SetUserServerList(const std::vector<std::string> &servers);
 
   /** Load preferences from registry */
   void LoadPreferences(Registry &folder);
@@ -66,14 +102,25 @@ public:
   /** Write preferences to registry */
   void SavePreferences(Registry &folder);
 
+  /** Get the properties for the current server */
+  DeepLearningServerPropertiesModel *GetServerProperties();
+
+  /** Update a server, either as new, or replacing the current server */
+  void UpdateServerProperties(DeepLearningServerPropertiesModel *model, bool add_as_new);
+
+  /** Delete the selected server */
+  void DeleteCurrentServer();
+
   /** Get the full URL or empty string if there is not a current server */
   std::string GetURL(const std::string &path);
 
+  using StatusCheck = std::pair<std::string, dls_model::ConnectionStatus>;
+
   /** Static function that runs asynchronously to perform server authentication */
-  static dls_model::ConnectionStatus AsyncCheckStatus(std::string url);
+  static StatusCheck AsyncCheckStatus(std::string url);
 
   /** Apply the results of async server authentication to the model */
-  void ApplyStatusCheckResponse(const dls_model::ConnectionStatus &result);
+  void ApplyStatusCheckResponse(const StatusCheck &result);
 
   /** Progress for server interactions */
   irisRangedPropertyAccessMacro(ServerProgress, double)
@@ -99,15 +146,15 @@ protected:
 
   GlobalUIModel *m_ParentModel;  
 
-  // List of known server URLs
-  std::vector<std::string> m_ServerURLList;
-
   // Property model for server selection
-  typedef AbstractPropertyModel<int, ServerURLDomain> ServerURLModelType;
+  typedef AbstractPropertyModel<std::string, ServerURLDomain> ServerURLModelType;
   SmartPtr<ServerURLModelType> m_ServerURLModel;
 
-  // Current server URL index in the list of URLs
-  int m_ServerURLIndex;
+  SmartPtr<AbstractSimpleBooleanProperty> m_ServerConfiguredModel;
+  bool GetServerConfiguredValue(bool &value);
+
+  // Currently selected server, empty string indicates no server selected
+  std::string m_Server;
 
   // Server status
   typedef ConcretePropertyModel<dls_model::ConnectionStatus, TrivialDomain> ServerStatusModelType;
@@ -121,9 +168,15 @@ protected:
   using CommandType = itk::MemberCommand<Self>;
   SmartPtr<CommandType> m_ProgressCommand;
 
+  // Available servers and their properties. The key is the displayed name of the
+  // server (either nickname or URL)
+  std::map<std::string, SmartPtr<DeepLearningServerPropertiesModel>> m_ServerProperties;
+
+  // Properties for all servers, stored in serialized format
+
   // Get and set the server url index
-  bool GetServerURLValueAndRange(int &value, ServerURLDomain *domain);
-  void SetServerURLValue(int value);
+  bool GetServerURLValueAndRange(std::string &value, ServerURLDomain *domain);
+  void SetServerURLValue(std::string value);
   bool ResetInteractionsIfNeeded();
   bool UpdateSegmentation(const char *json, const char *commit_name);
 

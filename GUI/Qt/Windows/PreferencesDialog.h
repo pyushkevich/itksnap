@@ -66,10 +66,6 @@ private slots:
 
   void on_PreferencesDialog_accepted();
 
-  void on_btnDLServerManage_clicked();
-  void checkServerStatus();
-  void updateServerStatus();
-
 private:
   Ui::PreferencesDialog *ui;
 
@@ -153,8 +149,6 @@ private:
 
   SliceLayoutPixmapPath m_SliceLayoutPixmapPaths[3];
 
-  constexpr static unsigned int STATUS_CHECK_INIT_DELAY_MS=500, STATUS_CHECK_FREQUENCY_MS=10000;
-  QTimer *m_DLSStatusCheckTimer;
 
 };
 
