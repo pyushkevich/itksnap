@@ -357,7 +357,7 @@ jobs:
           echo "StrictHostKeyChecking=no" >> $HOME/.ssh/config
           echo "BatchMode=yes" >> $HOME/.ssh/config
           echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
-          cmake -DSCP_ARGUMENTS=-v -DSCP_USERNAME=$USER .
+          cmake -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
 
       - name: Upload named release to sourceforge
