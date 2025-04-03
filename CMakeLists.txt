@@ -1737,7 +1737,7 @@ CONFIGURE_FILE(
 FIND_PROGRAM(SCP_PROGRAM NAMES scp DOC "Location of the scp program (optional)")
 MARK_AS_ADVANCED(SCP_PROGRAM)
 
-SET(SCP_ARGUMENTS "-v" CACHE STRING "Optional arguments to the scp command for uploads to SourceForge")
+SET(SCP_ARGUMENTS "-v -o BatchMode=yes" CACHE STRING "Optional arguments to the scp command for uploads to SourceForge")
 MARK_AS_ADVANCED(SCP_ARGUMENTS)
 
 SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")
