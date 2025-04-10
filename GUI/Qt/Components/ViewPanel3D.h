@@ -65,6 +65,10 @@ private slots:
 
   void on_actionRestore_Viewpoint_triggered();
 
+  void on_actionImport_Viewpoint_triggered();
+
+  void on_actionExport_Viewpoint_triggered();
+
   void on_actionContinuous_Update_triggered();
 
   void on_btnMenu_pressed();
@@ -104,6 +108,12 @@ private:
   void UpdateMeshesInBackground();
 
   void UpdateActionButtons();
+
+  // Load camera viewpoint
+  void LoadCameraViewpoint(QString file);
+
+  // Save camera viewpoint
+  void SaveCameraViewpoint(QString file);
 
   // Apply color bar visibility based on the active mesh layer type
   void ApplyDefaultColorBarVisibility();

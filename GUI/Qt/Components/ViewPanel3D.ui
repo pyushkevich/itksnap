@@ -325,6 +325,22 @@ font-size: 11px;
     <string>Ctrl+K, R</string>
    </property>
   </action>
+  <action name="actionImport_Viewpoint">
+   <property name="text">
+    <string>Import Viewpoint</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K, I</string>
+   </property>
+  </action>
+  <action name="actionExport_Viewpoint">
+   <property name="text">
+    <string>Export Viewpoint</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K, E</string>
+   </property>
+  </action>
   <action name="actionContinuous_Update">
    <property name="checkable">
     <bool>true</bool>
