@@ -26,7 +26,7 @@ MARK_AS_ADVANCED(BUILD_SHARED_LIBS)
 
 #--------------------------------------------------------------------------------
 # MACROS
-#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------C
 # Get today's date (see http://cmake.3232098.n2.nabble.com/How-to-get-the-current-date-td5776870.html)
 MACRO (TODAY RESULT)
     IF (WIN32)
@@ -310,6 +310,7 @@ SET(LOGIC_CXX
   Logic/WorkspaceAPI/CSVParser.cxx
   Logic/WorkspaceAPI/FormattedTable.cxx
   Logic/WorkspaceAPI/RESTClient.cxx
+  Logic/WorkspaceAPI/SSHTunnel.cxx
   Logic/WorkspaceAPI/WorkspaceAPI.cxx
 )
 
@@ -479,6 +480,7 @@ SET(LOGIC_HEADERS
   Logic/WorkspaceAPI/CSVParser.h
   Logic/WorkspaceAPI/FormattedTable.h
   Logic/WorkspaceAPI/RESTClient.h
+  Logic/WorkspaceAPI/SSHTunnel.h
   Logic/WorkspaceAPI/WorkspaceAPI.h
   Common/ITKBinaryWeightedAverage/itkBWAfilter.h
   Common/ITKBinaryWeightedAverage/itkBWAfilter.hxx
@@ -760,6 +762,7 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.cxx
   GUI/Qt/Windows/Registration/RegistrationDialog.cxx
   Testing/GUI/Qt/SNAPTestQt.cxx
+  Testing/GUI/Qt/SSHTunnelTest/SSHTunnelServer.cxx
 )
 
 # The header files for the UI project
@@ -859,6 +862,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.h
   GUI/Qt/Windows/Registration/RegistrationDialog.h
   Testing/GUI/Qt/SNAPTestQt.h
+  Testing/GUI/Qt/SSHTunnelTest/SSHTunnelServer.h
 )
 
 # These UI headers don't need to be MOC'd
@@ -1061,6 +1065,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/Registration
     ${SNAP_SOURCE_DIR}/Testing/Logic
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/SSHTunnelTest
     ${SNAP_SYSTEM_INCLUDE_DIRS}
   )
 
@@ -1111,7 +1116,6 @@ SET(SNAP_VTK_NONQT_LIBS
   VTK::InteractionStyle
   VTK::InteractionWidgets
   VTK::RenderingAnnotation
-  VTK::RenderingContext2D
   VTK::RenderingContextOpenGL2
   VTK::RenderingCore
   VTK::RenderingExternal
@@ -1137,6 +1141,7 @@ SET(SNAP_SUBMODULE_LIBS
 # System libraries
 SET(SNAP_SYSTEM_LIBS
   ${CURL_LIBRARIES}
+  ssh
   ${SYSTEM_LIBS}
 )
 
@@ -1248,11 +1253,7 @@ ENDIF(WIN32)
 SET(SNAP_BUNDLE_NAME ITK-SNAP)
 
 # Configure the executable's sources and libraries
-ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC}
-  GUI/Qt/Components/QPainterRenderContext.cxx
-  GUI/Qt/Windows/DeepLearningInfoDialog.h GUI/Qt/Windows/DeepLearningInfoDialog.cxx GUI/Qt/Windows/DeepLearningInfoDialog.ui
-  GUI/Qt/Windows/DeepLearningServerPanel.h GUI/Qt/Windows/DeepLearningServerPanel.cxx GUI/Qt/Windows/DeepLearningServerPanel.ui
-  GUI/Qt/Windows/DeepLearningServerEditor.h GUI/Qt/Windows/DeepLearningServerEditor.cxx GUI/Qt/Windows/DeepLearningServerEditor.ui)
+ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 
@@ -1421,6 +1422,23 @@ TARGET_LINK_LIBRARIES(Test_OrientationWidget
 )
 
 TARGET_INCLUDE_DIRECTORIES(Test_OrientationWidget PUBLIC ${SNAP_INCLUDE_DIRS})
+
+# SSH tunnel test
+SET(SSH_TUNNEL_TEST_CXX
+  Testing/GUI/Qt/SSHTunnelTest/main.cxx
+)
+
+ADD_EXECUTABLE(ssh_tunnel_test
+  ${SSH_TUNNEL_TEST_CXX} ${MOC_SSH_TUNNEL_TEST_SRCS}
+)
+
+TARGET_LINK_LIBRARIES(ssh_tunnel_test
+  ${SNAP_INTERNAL_LIBS}
+  ${SNAP_EXTERNAL_LIBS}
+)
+
+TARGET_INCLUDE_DIRECTORIES(ssh_tunnel_test PUBLIC ${SNAP_INCLUDE_DIRS})
+
 
 INCLUDE(CTest)
 

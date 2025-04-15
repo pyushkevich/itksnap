@@ -28,6 +28,7 @@ DeepLearningServerEditor::SetModel(DeepLearningServerPropertiesModel *model)
   makeCoupling(ui->inHostname, m_Model->GetHostnameModel());
   makeCoupling(ui->inPort, m_Model->GetPortModel());
   makeCoupling(ui->chkTunnel, m_Model->GetUseSSHTunnelModel());
-
+  makeCoupling(ui->inSSHUsername, m_Model->GetSSHUsernameModel());
+  makeCoupling(ui->inSSHPrivateKey, m_Model->GetSSHPrivateKeyFileModel());
   makeCoupling(ui->outURL, m_Model->GetFullURLModel());
 }

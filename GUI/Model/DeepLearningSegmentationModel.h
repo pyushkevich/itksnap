@@ -6,6 +6,7 @@
 #include <tuple>
 #include "Registry.h"
 #include "itkCommand.h"
+#include <mutex>
 
 class GlobalUIModel;
 class ImageWrapperBase;
@@ -14,11 +15,18 @@ namespace itk {
 template <unsigned int VDim> class ImageBase;
 }
 
+template <class ServerTraits> class RESTClient;
+template <class ServerTraits> class RESTSharedData;
+class DLSServerTraits;
+class CURLSHCookieJar;
+
 namespace dls_model {
 
 /** Status of the authorization */
 enum ConnectionStatusEnum {
   CONN_NO_SERVER,
+  CONN_TUNNEL_ESTABLISHING,
+  CONN_TUNNEL_FAILED,
   CONN_CHECKING,
   CONN_NOT_CONNECTED,
   CONN_CONNECTED
@@ -52,8 +60,12 @@ public:
   irisSimplePropertyAccessMacro(Nickname, std::string)
   irisSimplePropertyAccessMacro(Port, int)
   irisSimplePropertyAccessMacro(UseSSHTunnel, bool)
+  irisSimplePropertyAccessMacro(SSHUsername, std::string)
+  irisSimplePropertyAccessMacro(SSHPrivateKeyFile, std::string)
 
   irisSimplePropertyAccessMacro(FullURL, std::string)
+
+  std::string GetHash() const;
 
 protected:
   SmartPtr<ConcreteSimpleStringProperty> m_HostnameModel;
@@ -61,8 +73,11 @@ protected:
   SmartPtr<ConcreteSimpleIntProperty> m_PortModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_UseSSHTunnelModel;
   SmartPtr<AbstractSimpleStringProperty> m_FullURLModel;
+  SmartPtr<ConcreteSimpleStringProperty> m_SSHUsernameModel;
+  SmartPtr<ConcreteSimpleStringProperty> m_SSHPrivateKeyFileModel;
 
   bool GetFullURLValue(std::string &value);
+
 
   DeepLearningServerPropertiesModel();
 };
@@ -71,6 +86,8 @@ protected:
 class DeepLearningSegmentationModel : public AbstractModel
 {
 public:
+  using ServerDomain = STLVectorWrapperItemSetDomain<int, SmartPtr<DeepLearningServerPropertiesModel>>;
+
   irisITKObjectMacro(DeepLearningSegmentationModel, AbstractModel)
 
   // A custom event fired when the server configuration changes
@@ -79,22 +96,26 @@ public:
 
   void SetParentModel(GlobalUIModel *parent);
 
-  /** Server URL property model */
-  // typedef STLVectorWrapperItemSetDomain<int, std::string> ServerURLDomain;
-  using ServerURLDomain = SimpleItemSetDomain<std::string, std::string>;
-  irisGenericPropertyAccessMacro(ServerURL, std::string, ServerURLDomain)
+  /** Property model referring to the currently selected server */
+  irisGenericPropertyAccessMacro(Server, int, ServerDomain)
+
+  /**
+   * Is the model active? This is a simple flag, when not active, we don't
+   * nag the user.
+   */
+  irisSimplePropertyAccessMacro(IsActive, bool)
 
   /** Is there a current server */
-  irisSimplePropertyAccessMacro(ServerConfigured, bool)
+  irisSimplePropertyAccessMacro(IsServerConfigured, bool)
 
   /** Server status */
   irisSimplePropertyAccessMacro(ServerStatus, dls_model::ConnectionStatus)
 
-  /** Get the list of servers */
-  // std::vector<std::string> GetUserServerList() const;
+  /** The actual hostname and port of the server - may be localhost if tunneling */
+  irisSimplePropertyAccessMacro(ProxyURL, std::string)
 
-  /** Set the list of servers */
-  // void SetUserServerList(const std::vector<std::string> &servers);
+  /** Display URL */
+  irisSimplePropertyAccessMacro(ServerDisplayURL, std::string)
 
   /** Load preferences from registry */
   void LoadPreferences(Registry &folder);
@@ -111,13 +132,11 @@ public:
   /** Delete the selected server */
   void DeleteCurrentServer();
 
-  /** Get the full URL or empty string if there is not a current server */
-  std::string GetURL(const std::string &path);
-
+  /** Status check: includes a hash of the server for which the check was issued and status */
   using StatusCheck = std::pair<std::string, dls_model::ConnectionStatus>;
 
   /** Static function that runs asynchronously to perform server authentication */
-  static StatusCheck AsyncCheckStatus(std::string url);
+  StatusCheck AsyncCheckStatus();
 
   /** Apply the results of async server authentication to the model */
   void ApplyStatusCheckResponse(const StatusCheck &result);
@@ -139,7 +158,7 @@ public:
 
 protected:
   DeepLearningSegmentationModel();
-  virtual ~DeepLearningSegmentationModel() {};
+  virtual ~DeepLearningSegmentationModel();
 
   std::string m_ActiveSession;
 
@@ -147,14 +166,21 @@ protected:
   GlobalUIModel *m_ParentModel;  
 
   // Property model for server selection
-  typedef AbstractPropertyModel<std::string, ServerURLDomain> ServerURLModelType;
-  SmartPtr<ServerURLModelType> m_ServerURLModel;
+  typedef AbstractPropertyModel<int, ServerDomain> ServerModelType;
+  SmartPtr<ServerModelType> m_ServerModel;
 
-  SmartPtr<AbstractSimpleBooleanProperty> m_ServerConfiguredModel;
-  bool GetServerConfiguredValue(bool &value);
+  SmartPtr<AbstractSimpleBooleanProperty> m_IsServerConfiguredModel;
 
-  // Currently selected server, empty string indicates no server selected
-  std::string m_Server;
+  SmartPtr<AbstractSimpleStringProperty> m_ServerDisplayURLModel;
+
+  // Index of the currently selected server or -1 if no server is selected
+  int m_ServerIndex = -1;
+
+  // Whether or not the communication with the server is active.
+  SmartPtr<ConcreteSimpleBooleanProperty> m_IsActiveModel;
+
+  // Proxy URL - used when tunneling is enabled
+  SmartPtr<ConcreteSimpleStringProperty> m_ProxyURLModel;
 
   // Server status
   typedef ConcretePropertyModel<dls_model::ConnectionStatus, TrivialDomain> ServerStatusModelType;
@@ -168,23 +194,36 @@ protected:
   using CommandType = itk::MemberCommand<Self>;
   SmartPtr<CommandType> m_ProgressCommand;
 
-  // Available servers and their properties. The key is the displayed name of the
-  // server (either nickname or URL)
-  std::map<std::string, SmartPtr<DeepLearningServerPropertiesModel>> m_ServerProperties;
+  // List of available servers
+  std::vector<SmartPtr<DeepLearningServerPropertiesModel>> m_ServerProperties;
 
-  // Properties for all servers, stored in serialized format
+  // REST client definition
+  using RESTClient = RESTClient<DLSServerTraits>;
+  using RESTSharedData = RESTSharedData<DLSServerTraits>;
 
-  // Get and set the server url index
-  bool GetServerURLValueAndRange(std::string &value, ServerURLDomain *domain);
-  void SetServerURLValue(std::string value);
-  bool ResetInteractionsIfNeeded();
-  bool UpdateSegmentation(const char *json, const char *commit_name);
+  // Data shared between REST sessions, includes cookies, etc.
+  RESTSharedData *m_RESTSharedData;
 
   using LayerSelection = std::tuple<unsigned int, unsigned int>;
   LayerSelection m_ActiveLayer = std::make_tuple(0u,0u);
 
   using LabelSelection = int;
   LabelSelection m_LabelState = -1;
+
+  bool GetServerValueAndRange(int &value, ServerDomain *domain);
+  void SetServerValue(int value);
+  bool GetServerIsConfiguredValue(bool &value);
+  bool GetServerDisplayURLValue(std::string &value);
+
+  bool ResetInteractionsIfNeeded();
+  bool UpdateSegmentation(const char *json, const char *commit_name);
+
+  std::string GetActualServerURL();
+
+  // A mutex used to prevent multiple overlapping REST calls.
+  // TODO: make tunneling more flexible so we don't have to do this
+  std::mutex m_Mutex;
 };
+
 
 #endif // DEEPLEARNINGSEGMENTATIONCLIENT_H

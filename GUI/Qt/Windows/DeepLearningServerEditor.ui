@@ -42,7 +42,11 @@
     </widget>
    </item>
    <item row="11" column="3">
-    <widget class="QLineEdit" name="inSSHPassword"/>
+    <widget class="QLineEdit" name="inSSHPassword">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
    </item>
    <item row="15" column="1">
     <spacer name="verticalSpacer">
@@ -105,6 +109,9 @@
    </item>
    <item row="11" column="2">
     <widget class="QLabel" name="label_13">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>Password:</string>
      </property>
@@ -136,9 +143,6 @@
       <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
      </property>
     </widget>
-   </item>
-   <item row="14" column="1">
-    <widget class="QComboBox" name="inSSHKey"/>
    </item>
    <item row="11" column="1">
     <widget class="QLineEdit" name="inSSHUsername"/>
@@ -193,6 +197,9 @@
      </property>
     </widget>
    </item>
+   <item row="14" column="1">
+    <widget class="QLineEdit" name="inSSHPrivateKey"/>
+   </item>
   </layout>
  </widget>
  <tabstops>
@@ -203,7 +210,6 @@
   <tabstop>chkTunnel</tabstop>
   <tabstop>inSSHUsername</tabstop>
   <tabstop>inSSHPassword</tabstop>
-  <tabstop>inSSHKey</tabstop>
  </tabstops>
  <resources/>
  <connections>

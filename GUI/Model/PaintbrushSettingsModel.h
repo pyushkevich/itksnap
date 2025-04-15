@@ -54,11 +54,14 @@ protected:
   PaintbrushSettings GetPaintbrushSettings();
   void SetPaintbrushSettings(PaintbrushSettings ps);
 
-  SmartPtr<AbstractPaintbrushShapeModel> m_PaintbrushShapeModel;
-  SmartPtr<AbstractPaintbrushSmartModeModel> m_PaintbrushSmartModeModel;
+  SmartPtr<AbstractPaintbrushShapeModel> m_PaintbrushShapeModel;  
   SmartPtr<AbstractSimpleBooleanProperty> m_VolumetricBrushModel;
   SmartPtr<AbstractSimpleBooleanProperty> m_IsotropicBrushModel;
   SmartPtr<AbstractSimpleBooleanProperty> m_ChaseCursorModel;
+
+  SmartPtr<AbstractPaintbrushSmartModeModel> m_PaintbrushSmartModeModel;
+  bool GetPaintbrushSmartModeValue(PaintbrushSmartMode &value);
+  void SetPaintbrushSmartModeValue(PaintbrushSmartMode value);
 
   SmartPtr<AbstractRangedIntProperty> m_BrushSizeModel;
   bool GetBrushSizeValueAndRange(int &value, NumericValueRange<int> *domain);

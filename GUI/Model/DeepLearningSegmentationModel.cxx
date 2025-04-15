@@ -7,11 +7,12 @@
 #include "IRISApplication.h"
 #include "IRISException.h"
 #include "UIReporterDelegates.h"
-#include "itkImageFileWriter.h"
 #include "SegmentationUpdateIterator.h"
 #include "AllPurposeProgressAccumulator.h"
 #include "base64.h"
 #include <chrono>
+#include "itksys/MD5.h"
+
 typedef std::chrono::high_resolution_clock Clock;
 
 
@@ -20,6 +21,73 @@ typedef std::chrono::high_resolution_clock Clock;
 #else
 #include "zlib.h"
 #endif
+
+#include "libssh/libssh.h"
+
+bool
+startSshTunnel(const std::string &remoteHost,
+               int                remotePort,
+               int                localPort,
+               const std::string &username,
+               const std::string &password,
+               const std::string &private_key)
+{
+  ssh_session session = ssh_new();
+  if (!session)
+  {
+    return false;
+  }
+
+  ssh_options_set(session, SSH_OPTIONS_HOST, remoteHost.c_str());
+  ssh_options_set(session, SSH_OPTIONS_USER, username.c_str());
+
+  if (ssh_connect(session) != SSH_OK)
+  {
+    std::cerr << "SSH Connection failed: " << ssh_get_error(session) << std::endl;
+    ssh_free(session);
+    return false;
+  }
+
+  // Authenticate using the private key
+  bool auth = false;
+  if (ssh_userauth_publickey_auto(session, NULL, NULL) == SSH_AUTH_SUCCESS)
+  {
+    std::cout << "Successfully authenticated using auto-detected key" << std::endl;
+    auth = true;
+  }
+  else if (ssh_userauth_password(session, nullptr, password.c_str()) != SSH_AUTH_SUCCESS)
+  {
+    std::cout << "Successfully authenticated using password" << std::endl;
+    auth = true;
+  }
+  else
+  {
+    std::cerr << "Authentication failed: " << ssh_get_error(session) << std::endl;
+    ssh_disconnect(session);
+    ssh_free(session);
+    return false;
+  }
+
+  // Open a direct TCP/IP tunnel
+  ssh_channel channel = ssh_channel_new(session);
+  if (!channel)
+  {
+    ssh_disconnect(session);
+    ssh_free(session);
+    return false;
+  }
+
+  if (ssh_channel_open_forward(channel, "localhost", remotePort, "localhost", localPort) != SSH_OK)
+  {
+    std::cerr << "Failed to open tunnel: " << ssh_get_error(session) << std::endl;
+    ssh_channel_free(channel);
+    ssh_disconnect(session);
+    ssh_free(session);
+    return false;
+  }
+
+  return true; // Tunnel is now open
+}
 
 
 bool gzipInflate( const std::string& compressedBytes, std::string& uncompressedBytes )
@@ -174,16 +242,21 @@ void EncodeImage(RESTMultipartData &mpd, TImage *image, std::string &buffer_stor
 }
 
 
-using DLSClient = RESTClient<DLSServerTraits>;
-
-
 DeepLearningSegmentationModel::DeepLearningSegmentationModel()
 {
-  m_ServerURLModel =
-    wrapGetterSetterPairAsProperty(this, &Self::GetServerURLValueAndRange, &Self::SetServerURLValue);
+  m_ServerModel =
+    wrapGetterSetterPairAsProperty(this, &Self::GetServerValueAndRange, &Self::SetServerValue);
 
-  m_ServerConfiguredModel = wrapGetterSetterPairAsProperty(this, &Self::GetServerConfiguredValue);
-  m_ServerConfiguredModel->RebroadcastFromSourceProperty(m_ServerURLModel);
+  m_IsActiveModel = NewSimpleConcreteProperty(false);
+  this->Rebroadcast(m_IsActiveModel, ValueChangedEvent(), ServerChangeEvent());
+
+  m_IsServerConfiguredModel = wrapGetterSetterPairAsProperty(this, &Self::GetServerIsConfiguredValue);
+  m_IsServerConfiguredModel->RebroadcastFromSourceProperty(m_ServerModel);
+
+  m_ServerDisplayURLModel = wrapGetterSetterPairAsProperty(this, &Self::GetServerDisplayURLValue);
+  m_ServerDisplayURLModel->RebroadcastFromSourceProperty(m_ServerModel);
+
+  m_ProxyURLModel = NewSimpleConcreteProperty(std::string());
 
   // Server status model
   m_ServerStatusModel = NewSimpleConcreteProperty(dls_model::ConnectionStatus());
@@ -193,14 +266,32 @@ DeepLearningSegmentationModel::DeepLearningSegmentationModel()
   m_ProgressCommand = itk::MemberCommand<Self>::New();
   m_ProgressCommand->SetCallbackFunction(this, &Self::ProgressCallback);
 
-  this->Rebroadcast(m_ServerURLModel, ValueChangedEvent(), ServerChangeEvent());
-  this->Rebroadcast(m_ServerURLModel, DomainChangedEvent(), ServerChangeEvent());
+  this->Rebroadcast(m_ServerModel, ValueChangedEvent(), ServerChangeEvent());
+  this->Rebroadcast(m_ServerModel, DomainChangedEvent(), ServerChangeEvent());
+
+  // Initialize the cookie jar
+  m_RESTSharedData = new RESTSharedData();
+}
+
+DeepLearningSegmentationModel::~DeepLearningSegmentationModel()
+{
+  delete m_RESTSharedData;
 }
 
 bool
-DeepLearningSegmentationModel::GetServerConfiguredValue(bool &value)
+DeepLearningSegmentationModel::GetServerIsConfiguredValue(bool &value)
 {
-  value = m_Server.size() > 0 && m_ServerProperties.find(m_Server) != m_ServerProperties.end();
+  value = (m_ServerIndex >= 0 && m_ServerIndex < m_ServerProperties.size());
+  return true;
+}
+
+bool
+DeepLearningSegmentationModel::GetServerDisplayURLValue(std::string &value)
+{
+  if(m_ServerIndex >= 0 && m_ServerIndex < m_ServerProperties.size())
+    value = m_ServerProperties[m_ServerIndex]->GetFullURL();
+  else
+    value = std::string();
   return true;
 }
 
@@ -217,30 +308,37 @@ DeepLearningSegmentationModel::ProgressCallback(Object *source, const itk::Event
 }
 
 bool
-DeepLearningSegmentationModel::GetServerURLValueAndRange(std::string &value, ServerURLDomain *domain)
+DeepLearningSegmentationModel::GetServerValueAndRange(int &value, ServerDomain *domain)
 {
-  value = m_Server;
+  value = m_ServerIndex;
   if(domain)
-    for(auto it: m_ServerProperties)
-      (*domain)[it.first] = it.first;
+    domain->SetWrappedVector(&m_ServerProperties);
   return true;
 }
 
 void
-DeepLearningSegmentationModel::SetServerURLValue(std::string value)
+DeepLearningSegmentationModel::SetServerValue(int value)
 {
-  m_Server = value;
-  const auto &sp = m_ServerProperties.find(m_Server);
-  std::string url = sp == m_ServerProperties.end() ? std::string() : sp->second->GetFullURL();
+  // Check if the value is in range
+  itkAssertOrThrowMacro(value == -1 || (value >= 0 && value < m_ServerProperties.size()),
+                        "Incorrect value in DeepLearningSegmentationModel::SetServerValue");
 
-  // Reset everything
-  DLSClient cli;
-  cli.SetServerURL(url.c_str());
+  // Set the current server index
+  m_ServerIndex = value;
+
+  // Reset the session variables - we are starting over
   m_ActiveSession = std::string();
   m_ActiveLayer = std::make_tuple(0u, 0u);
 
+  // Reset the proxy URL
+  SetProxyURL(std::string());
+
+  // Reset the connection status to not connected state
+  SetServerStatus(value >= 0 ? dls_model::ConnectionStatus(dls_model::CONN_NO_SERVER)
+                             : dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED));
+
   // Fire some events
-  m_ServerURLModel->InvokeEvent(ValueChangedEvent());
+  m_ServerModel->InvokeEvent(ValueChangedEvent());
 }
 
 void
@@ -256,204 +354,169 @@ DeepLearningSegmentationModel::LoadPreferences(Registry &folder)
   m_ServerProperties.clear();
 
   // Read the available server names
-  auto &server_folder = folder.Folder("UserServers");
-  Registry::StringListType server_names;
-  server_folder.GetFolderKeys(server_names);
-
-  // Read each available server's properties
-  for(auto key : server_names)
+  auto &server_folder = folder.Folder("Servers");
+  for (int k = 0; k < server_folder["ArraySize"][0]; k++)
   {
+    Registry &f = server_folder.Folder(server_folder.Key("Element[%d]", k));
     SmartPtr<DeepLearningServerPropertiesModel> spm = DeepLearningServerPropertiesModel::New();
-    spm->ReadFromRegistry(server_folder.Folder(key));
-    m_ServerProperties[spm->GetFullURL()] = spm;
+    spm->ReadFromRegistry(f);
+    m_ServerProperties.push_back(spm);
   }
 
-  // Read the currently selected server, make sure it is one of the servers in the list
-  auto pref = folder["PreferredServer"][std::string()];
-  if(m_ServerProperties.find(pref) == m_ServerProperties.end())
-    pref = std::string();
+  // Read the active server index
+  int server_index = folder["ActiveServerIndex"][0];
+  if(server_index < 0 || server_index >= m_ServerProperties.size())
+    server_index = m_ServerProperties.size() ? 0 : -1;
 
-  // Set the current server
-  m_ServerURLModel->SetValue(pref);
+  // Set the current server - and all that goes with that
+  m_ServerModel->SetValue(server_index);
 
-  // Update everything
-  m_ServerURLModel->InvokeEvent(ValueChangedEvent());
-  m_ServerURLModel->InvokeEvent(DomainChangedEvent());
-  m_ServerConfiguredModel->InvokeEvent(ValueChangedEvent());
+  // Not only the value, but the domain has changed
+  m_ServerModel->InvokeEvent(DomainChangedEvent());
 }
 
 void
 DeepLearningSegmentationModel::SavePreferences(Registry &folder)
 {
   // Clear the list of servers
-  auto &server_folder = folder.Folder("UserServers");
+  auto &server_folder = folder.Folder("Servers");
   server_folder.Clear();
 
   // Write each server
-  for(auto &it : m_ServerProperties)
+  server_folder["ArraySize"] << m_ServerProperties.size();
+  for(int k = 0; k < m_ServerProperties.size(); k++)
   {
-    it.second->WriteToRegistry(server_folder.Folder(it.second->GetFullURL()));
+    Registry &f = server_folder.Folder(server_folder.Key("Element[%d]", k));
+    m_ServerProperties[k]->WriteToRegistry(f);
   }
 
   // Write the selected server
-  folder["PreferredServer"] = m_Server;
+  folder["ActiveServerIndex"] << m_ServerIndex;
 }
 
 DeepLearningServerPropertiesModel *
 DeepLearningSegmentationModel::GetServerProperties()
 {
-  const auto &sp = m_ServerProperties.find(m_Server);
-  return sp == m_ServerProperties.end() ? nullptr : sp->second;
+  return m_ServerIndex >= 0 && m_ServerIndex < m_ServerProperties.size()
+           ? m_ServerProperties[m_ServerIndex]
+           : nullptr;
 }
 
 void
 DeepLearningSegmentationModel::UpdateServerProperties(DeepLearningServerPropertiesModel *model,
                                                       bool add_as_new)
 {
-  if(!add_as_new)
+  itkAssertOrThrowMacro(
+    add_as_new || (m_ServerIndex >= 0 && m_ServerIndex < m_ServerProperties.size()),
+    "Incorrect state in DeepLearningSegmentationModel::UpdateServerProperties");
+
+  if (add_as_new)
   {
-    auto it = m_ServerProperties.find(m_Server);
-    if(it != m_ServerProperties.end())
-      m_ServerProperties.erase(it);
+    m_ServerProperties.push_back(model);
+    SetServerValue(m_ServerProperties.size() - 1);
   }
-  m_Server = model->GetFullURL();
-  m_ServerProperties[m_Server] = model;
-  m_ServerURLModel->InvokeEvent(ValueChangedEvent());
-  m_ServerURLModel->InvokeEvent(DomainChangedEvent());
-  m_ServerConfiguredModel->InvokeEvent(ValueChangedEvent());
+  else
+  {
+    m_ServerProperties[m_ServerIndex] = model;
+    SetServerValue(m_ServerIndex);
+  }
+
+  m_ServerModel->InvokeEvent(DomainChangedEvent());
 }
 
 void
 DeepLearningSegmentationModel::DeleteCurrentServer()
 {
-  auto it = m_ServerProperties.find(m_Server);
-  if(it != m_ServerProperties.end())
-  {
-    auto next_it = std::next(it);
-    if(next_it == m_ServerProperties.end())
-      next_it = std::prev(it);
+  itkAssertOrThrowMacro(
+    m_ServerIndex >= 0 && m_ServerIndex < m_ServerProperties.size(),
+    "Incorrect state in DeepLearningSegmentationModel::DeleteCurrentServer");
 
-    m_ServerProperties.erase(it);
-    m_Server = next_it == m_ServerProperties.end() ? std::string() : next_it->second->GetFullURL();
-    m_ServerURLModel->InvokeEvent(ValueChangedEvent());
-    m_ServerURLModel->InvokeEvent(DomainChangedEvent());
-    m_ServerConfiguredModel->InvokeEvent(ValueChangedEvent());
-  }
-}
+  // Remove the properties
+  m_ServerProperties.erase(m_ServerProperties.begin() + m_ServerIndex);
+  if(m_ServerIndex >= m_ServerProperties.size())
+    m_ServerIndex = m_ServerProperties.size() - 1;
 
-/*
-std::vector<std::string> DeepLearningSegmentationModel::GetUserServerList() const
-{
-  return m_ServerURLList;
-}
-
-void DeepLearningSegmentationModel::SetUserServerList(const std::vector<std::string> &servers)
-{
-  // Get the current server (the URL model is always valid)
-  std::string my_server;
-  int         curr_index = this->GetServerURL();
-  if (curr_index >= 0 && curr_index < m_ServerURLList.size())
-    my_server = m_ServerURLList[curr_index];
-
-  // Reset the list of servers
-  m_ServerURLList = servers;
-
-  // Is the selected server still on the list
-  if (m_ServerURLList.size() > 0)
-  {
-    auto it = std::find(m_ServerURLList.begin(), m_ServerURLList.end(), my_server);
-    if (it == m_ServerURLList.end())
-      this->SetServerURL(0);
-    else
-      this->SetServerURL(it - m_ServerURLList.begin());
-  }
-  else
-  {
-    this->SetServerURL(-1);
-  }
-
-  // Update the domain
-  m_ServerURLModel->InvokeEvent(DomainChangedEvent());
-}
-*/
-
-std::string DeepLearningSegmentationModel::GetURL(const std::string &path)
-{
-  // Get the main part of the URL
-  auto it = m_ServerProperties.find(m_Server);
-  if(it != m_ServerProperties.end())
-  {
-    std::string server = it->second->GetFullURL();
-    return path.length() ? server + "/" + path : server;
-  }
-  else
-  {
-    return std::string();
-  }
+  // Update the server
+  SetServerValue(m_ServerIndex);
+  m_ServerModel->InvokeEvent(DomainChangedEvent());
 }
 
 DeepLearningSegmentationModel::StatusCheck
-DeepLearningSegmentationModel::AsyncCheckStatus(std::string url)
+DeepLearningSegmentationModel::AsyncCheckStatus()
 {
+  std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
+
   dls_model::ConnectionStatus response;
 
   // Check if URL has been set
-  if(!url.size())
+  if (m_ServerIndex < 0)
   {
     response.status = dls_model::CONN_NO_SERVER;
-    return std::make_pair(url, response);
+    return std::make_pair(std::string(), response);
   }
 
-  DLSClient cli;
-  try
-  {
-    cli.SetServerURL(url.c_str());
-    bool status = cli.Get("status");
-    if(!status)
-    {
-      response.status = dls_model::CONN_NOT_CONNECTED;
-      response.error_message = cli.GetErrorString();
-    }
-    else
-    {
-      Json::Reader json_reader;
-      Json::Value root;
-      if(json_reader.parse(cli.GetOutput(), root, false))
-      {
-        response.status = dls_model::CONN_CONNECTED;
-        response.server_version = root["version"].asString();
-      }
-      else
-        throw IRISException("Server did not provide version number");
-    }
-  }
-  catch(IRISException &exc)
+  // Check if the proxy has been set up for an SSH connection
+  auto sp = m_ServerProperties[m_ServerIndex];
+  if (sp->GetUseSSHTunnel() && GetProxyURL().size() == 0)
   {
     response.status = dls_model::CONN_NOT_CONNECTED;
-    response.error_message = exc.what();
+    response.error_message = "SSH tunnel has not been configured";
+  }
+  else
+  {
+    try
+    {
+      RESTClient cli(m_RESTSharedData);
+      cli.SetServerURL(GetActualServerURL().c_str());
+      bool status = cli.Get("status");
+      if (!status)
+      {
+        response.status = dls_model::CONN_NOT_CONNECTED;
+        response.error_message = cli.GetErrorString();
+      }
+      else
+      {
+        Json::Reader json_reader;
+        Json::Value  root;
+        if (json_reader.parse(cli.GetOutput(), root, false))
+        {
+          response.status = dls_model::CONN_CONNECTED;
+          response.server_version = root["version"].asString();
+        }
+        else
+          throw IRISException("Server did not provide version number");
+      }
+    }
+    catch (IRISException &exc)
+    {
+      response.status = dls_model::CONN_NOT_CONNECTED;
+      response.error_message = exc.what();
+    }
   }
 
-  return std::make_pair(url, response);
+  return std::make_pair(sp->GetHash(), response);
 }
 
 void
 DeepLearningSegmentationModel::ApplyStatusCheckResponse(const StatusCheck &result)
 {
-  // Set the status
-  if(result.first == this->GetURL(""))
-  {
+  std::string hash = m_ServerIndex < 0 ? std::string() : m_ServerProperties[m_ServerIndex]->GetHash();
+  if(hash == result.first)
     this->SetServerStatus(result.second);
-  }
 }
 
 void
 DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
 {
+  std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
+
+  RESTClient cli(m_RESTSharedData);
+  cli.SetServerURL(GetActualServerURL().c_str());
+
   // Check if we have an open session with the server, if not establish it
   if(m_ActiveSession.size() == 0)
   {
-    std::chrono::steady_clock::time_point t0, t1;
-    DLSClient cli;
+    Clock::time_point t0, t1;
     t0 = Clock::now();
     if(!cli.Get("start_session"))
       throw IRISException("Error creating session on DLS server: %s", cli.GetErrorString());
@@ -480,7 +543,7 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
   LayerSelection sel = std::make_tuple(layer->GetUniqueId(), tp);
   if(m_ActiveLayer != sel)
   {
-    std::chrono::steady_clock::time_point t0, t1, t2, t3, t4, t5;
+    Clock::time_point t0, t1, t2, t3, t4, t5;
 
     // Export the current image to a file that can be uploaded
     t0 = Clock::now();
@@ -506,8 +569,6 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
     void *transfer_progress_src = accum->RegisterGenericSource(1, 1.0);
 
     // Write the image in NIFTI format to a temporary location
-    DLSClient cli;
-    // cli.SetProgressCallback()
     cli.SetProgressCallback(transfer_progress_src, AllPurposeProgressAccumulator::GenericProgressCallback);
 
     t4 = Clock::now();
@@ -545,8 +606,12 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
 void
 DeepLearningSegmentationModel::ResetInteractions()
 {
+  std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
+
   // Perform the drawing command
-  DLSClient cli;
+  RESTClient cli(m_RESTSharedData);
+  cli.SetServerURL(GetActualServerURL().c_str());
+
   if (!cli.Get("reset_interactions/%s", m_ActiveSession.c_str()))
   {
     std::cerr << "RESP:" << cli.GetOutput() << std::endl;
@@ -642,6 +707,19 @@ DeepLearningSegmentationModel::UpdateSegmentation(const char *json, const char *
   return false;
 }
 
+std::string
+DeepLearningSegmentationModel::GetActualServerURL()
+{
+  if(m_ServerIndex < 0)
+    return std::string();
+
+  auto sp = m_ServerProperties[m_ServerIndex];
+  if(sp->GetUseSSHTunnel())
+    return GetProxyURL();
+  else
+    return sp->GetFullURL();
+}
+
 
 bool
 DeepLearningSegmentationModel::PerformPointInteraction(ImageWrapperBase *layer, Vector3ui pos, bool reverse)
@@ -652,10 +730,13 @@ DeepLearningSegmentationModel::PerformPointInteraction(ImageWrapperBase *layer, 
   // Reset interactions if needed
   this->ResetInteractionsIfNeeded();
 
-  // Perform the drawing command
-  std::chrono::steady_clock::time_point t0, t1, t2, t3;
+  std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
+
+         // Perform the drawing command
+  Clock::time_point t0, t1, t2, t3;
   t0 = Clock::now();
-  DLSClient cli;
+  RESTClient cli(m_RESTSharedData);
+  cli.SetServerURL(GetActualServerURL().c_str());
   if(!cli.Get("process_point_interaction/%s?x=%d&y=%d&z=%d&foreground=%s",
                m_ActiveSession.c_str(),
                pos[0], pos[1], pos[2],
@@ -683,7 +764,9 @@ DeepLearningSegmentationModel::PerformScribbleInteraction(ImageWrapperBase  *lay
   // Reset interactions if needed
   this->ResetInteractionsIfNeeded();
 
-  // Create a multipart dataset with the segmentation
+  std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
+
+         // Create a multipart dataset with the segmentation
   RESTMultipartData mpd;
   std::string gzip_buffer;
 
@@ -698,7 +781,8 @@ DeepLearningSegmentationModel::PerformScribbleInteraction(ImageWrapperBase  *lay
 
   // Perform the drawing command
   auto t2 = Clock::now();
-  DLSClient cli;
+  RESTClient cli(m_RESTSharedData);
+  cli.SetServerURL(GetActualServerURL().c_str());
   if (!cli.PostMultipart("process_scribble_interaction/%s?foreground=%s",
                          &mpd,
                          m_ActiveSession.c_str(),
@@ -735,12 +819,35 @@ DeepLearningServerPropertiesModel::GetFullURLValue(std::string &value)
   }
 }
 
+string
+DeepLearningServerPropertiesModel::GetHash() const
+{
+  std::ostringstream oss;
+  oss << this->GetHostname()
+      << this->GetPort()
+      << this->GetUseSSHTunnel()
+      << this->GetSSHUsername()
+      << this->GetSSHPrivateKeyFile();
+
+  char hex_code[33];
+  hex_code[32] = 0;
+  itksysMD5 *md5 = itksysMD5_New();
+  itksysMD5_Initialize(md5);
+  itksysMD5_Append(md5, (unsigned char *) oss.str().c_str(), oss.str().size());
+  itksysMD5_FinalizeHex(md5, hex_code);
+  itksysMD5_Delete(md5);
+
+  return std::string(hex_code);
+}
+
 DeepLearningServerPropertiesModel::DeepLearningServerPropertiesModel()
 {
   m_HostnameModel = NewSimpleProperty("Hostname", std::string());
   m_NicknameModel = NewSimpleProperty("Nickname", std::string());
   m_PortModel = NewSimpleProperty("Port", 8911);
   m_UseSSHTunnelModel = NewSimpleProperty("UseSSHTunnel", false);
+  m_SSHUsernameModel = NewSimpleProperty("SSHUsername", std::string());
+  m_SSHPrivateKeyFileModel = NewSimpleProperty("SSHPrivateKeyFile", std::string());
 
   m_FullURLModel = wrapGetterSetterPairAsProperty(this, &Self::GetFullURLValue);  
   m_FullURLModel->RebroadcastFromSourceProperty(m_HostnameModel);

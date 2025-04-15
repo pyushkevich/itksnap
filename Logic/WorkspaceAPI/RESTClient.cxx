@@ -35,20 +35,60 @@ progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, d
   return 0;
 }
 
+void mutex_lock(CURL *handle, curl_lock_data data, curl_lock_access access, void *clientp)
+{
+  std::mutex* m = static_cast<std::mutex*>(clientp);
+  m->lock();
+}
+
+void mutex_unlock(CURL *handle, curl_lock_data data, curl_lock_access access, void *clientp)
+{
+  std::mutex* m = static_cast<std::mutex*>(clientp);
+  m->unlock();
+}
+
+
 } // namespace RESTClient_internal
 
 using namespace std;
 
+template <class ServerTraits>
+RESTSharedData<ServerTraits>::RESTSharedData()
+{
+  m_CurlShare = curl_share_init();
+
+  if constexpr(ServerTraits::IncludeCookiesInCurlShare)
+    curl_share_setopt(m_CurlShare, CURLSHOPT_SHARE, CURL_LOCK_DATA_COOKIE);
+
+  if constexpr(ServerTraits::IncludeSSLSessionInCurlShare)
+    curl_share_setopt(m_CurlShare, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
+
+  curl_share_setopt(m_CurlShare, CURLSHOPT_LOCKFUNC, RESTClient_internal::mutex_lock);
+  curl_share_setopt(m_CurlShare, CURLSHOPT_UNLOCKFUNC, RESTClient_internal::mutex_unlock);
+  curl_share_setopt(m_CurlShare, CURLSHOPT_USERDATA, &m_Mutex);
+}
+
+template <class ServerTraits>
+RESTSharedData<ServerTraits>::~RESTSharedData()
+{
+  curl_share_setopt(m_CurlShare, CURLSHOPT_LOCKFUNC, nullptr);
+  curl_share_setopt(m_CurlShare, CURLSHOPT_UNLOCKFUNC, nullptr);
+  curl_share_cleanup(m_CurlShare);
+}
+
+
 template <typename ServerTraits>
-RESTClient<ServerTraits>::RESTClient()
+RESTClient<ServerTraits>::RESTClient(SharedData *sd)
 {
   // Initialize CURL
   m_Curl = curl_easy_init();
 
   // Sharing business
-  m_Share = curl_share_init();
-  curl_share_setopt((CURLSH *)m_Share, CURLSHOPT_SHARE, CURL_LOCK_DATA_SSL_SESSION);
-  curl_easy_setopt(m_Curl, CURLOPT_SHARE, m_Share);
+  if(sd)
+  {
+    m_SharedData = sd;
+    curl_easy_setopt(m_Curl, CURLOPT_SHARE, m_SharedData);
+  }
 
   // Error buffer
   m_ErrorBuffer = new char[CURL_ERROR_SIZE];
@@ -68,7 +108,6 @@ template <typename ServerTraits>
 RESTClient<ServerTraits>::~RESTClient()
 {
   curl_easy_cleanup(m_Curl);
-  curl_share_cleanup((CURLSH *)m_Share);
   delete m_ErrorBuffer;
 }
 
@@ -87,27 +126,29 @@ RESTClient<ServerTraits>::SetOutputFile(FILE *outfile)
 }
 
 template <typename ServerTraits>
+void
+RESTClient<ServerTraits>::SetupCookies(bool read_only)
+{
+  m_Traits.SetupCookies(
+    m_SharedData ? m_SharedData->GetShare() : nullptr, m_Curl, GetServerURL().c_str(), read_only);
+}
+
+template <typename ServerTraits>
 bool
-RESTClient<ServerTraits>::Authenticate(const char *baseurl, const char *token)
+RESTClient<ServerTraits>::Authenticate(const char *token)
 {
   // Create and perform the request
   ostringstream o_url;
-  o_url << baseurl << "/api/login";
+  o_url << GetServerURL() << "/api/login";
   curl_easy_setopt(m_Curl, CURLOPT_URL, o_url.str().c_str());
-
-  // Store the URL for the future
-  ofstream f_url(this->GetServerURLFile().c_str());
-  f_url << baseurl;
-  f_url.close();
 
   // Data to post
   char post_buffer[1024];
   snprintf(post_buffer, sizeof(post_buffer), "token=%s", token);
   curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_buffer);
 
-  // Cookie file
-  string cookie_jar = this->GetCookieFile();
-  curl_easy_setopt(m_Curl, CURLOPT_COOKIEJAR, cookie_jar.c_str());
+  // Set up the cookie jar to receive cookies
+  SetupCookies(false);
 
   // Capture output
   m_Output.clear();
@@ -129,10 +170,7 @@ template <typename ServerTraits>
 void
 RESTClient<ServerTraits>::SetServerURL(const char *baseurl)
 {
-  // Store the URL for the future
-  ofstream f_url(GetServerURLFile().c_str());
-  f_url << baseurl;
-  f_url.close();
+  m_Traits.SetServerURL(baseurl);
 }
 
 template <typename ServerTraits>
@@ -231,11 +269,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
-  string cookie_jar = this->GetCookieFile();
-  if (m_ReceiveCookieMode)
-    curl_easy_setopt(m_Curl, CURLOPT_COOKIEJAR, cookie_jar.c_str());
-  else
-    curl_easy_setopt(m_Curl, CURLOPT_COOKIEFILE, cookie_jar.c_str());
+  SetupCookies(m_ReceiveCookieMode);
 
   // The POST data
   if (post_string)
@@ -302,8 +336,7 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
-  string cookie_jar = this->GetCookieFile();
-  curl_easy_setopt(m_Curl, CURLOPT_COOKIEFILE, cookie_jar.c_str());
+  SetupCookies(m_ReceiveCookieMode);
 
   // Use the new mime interface
   curl_mime *mime = curl_mime_init(m_Curl);
@@ -387,8 +420,7 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
-  string cookie_jar = this->GetCookieFile();
-  curl_easy_setopt(m_Curl, CURLOPT_COOKIEFILE, cookie_jar.c_str());
+  SetupCookies(m_ReceiveCookieMode);
 
   // Get the full path and just the name from the filename
   string fn_full_path = SystemTools::CollapseFullPath(filename);
@@ -546,56 +578,9 @@ RESTClient<ServerTraits>::GetDataDirectory()
 
 template <typename ServerTraits>
 string
-RESTClient<ServerTraits>::GetCookieFile()
-{
-  // MD5 encode the server
-  string server = RESTClient::GetServerURL();
-
-  char hex_code[33];
-  hex_code[32] = 0;
-  itksysMD5 *md5 = itksysMD5_New();
-  itksysMD5_Initialize(md5);
-  itksysMD5_Append(md5, (unsigned char *)server.c_str(), server.size());
-  itksysMD5_FinalizeHex(md5, hex_code);
-  itksysMD5_Delete(md5);
-
-  string cfile = RESTClient::GetDataDirectory() + "/cookie_" + hex_code + ".jar";
-  return SystemTools::ConvertToOutputPath(cfile);
-}
-
-template <typename ServerTraits>
-string
-RESTClient<ServerTraits>::GetServerURLFile()
-{
-  string sfile = RESTClient::GetDataDirectory() + "/server";
-  return SystemTools::ConvertToOutputPath(sfile);
-}
-
-template <typename ServerTraits>
-string
 RESTClient<ServerTraits>::GetServerURL()
 {
-  // If environment variable is set, then use it
-  const char *server_env = SystemTools::GetEnv("ITKSNAP_WT_DSS_SERVER");
-  if (server_env)
-    return server_env;
-
-  string sfile = RESTClient::GetServerURLFile();
-  if (!SystemTools::FileExists(sfile))
-    throw IRISException("A server has not been configured yet - please sign in");
-  try
-  {
-    string   url;
-    ifstream ifs(sfile.c_str());
-    ifs >> url;
-    ifs.close();
-    return url;
-  }
-  catch (std::exception &exc)
-  {
-    throw IRISException(
-      "Failed to read server URL from %s, system exception: %s", sfile.c_str(), exc.what());
-  }
+  return m_Traits.GetServerURL();
 }
 
 template <typename ServerTraits>
@@ -719,3 +704,102 @@ REST_DebugCallback(void *handle, curl_infotype type, char *data, size_t size, vo
 
 template class RESTClient<DSSServerTraits>;
 template class RESTClient<DLSServerTraits>;
+
+template class RESTSharedData<DSSServerTraits>;
+template class RESTSharedData<DLSServerTraits>;
+
+void
+DSSServerTraits::SetServerURL(const char *baseurl)
+{
+  // Write server to file
+  std::ofstream f_url(GetServerURLFile().c_str());
+  f_url << baseurl;
+  f_url.close();
+}
+
+void
+DSSServerTraits::SetupCookies(void *share, void *handle, const char *url, bool read_only)
+{
+  // MD5 encode the server
+  char hex_code[33];
+  hex_code[32] = 0;
+  itksysMD5 *md5 = itksysMD5_New();
+  itksysMD5_Initialize(md5);
+  itksysMD5_Append(md5, (unsigned char *) url, strlen(url));
+  itksysMD5_FinalizeHex(md5, hex_code);
+  itksysMD5_Delete(md5);
+
+  string cookie_jar = GetDataDirectory() + "/cookie_" + hex_code + ".jar";
+  if(read_only)
+    curl_easy_setopt(handle, CURLOPT_COOKIEFILE, cookie_jar.c_str());
+  else
+    curl_easy_setopt(handle, CURLOPT_COOKIEJAR, cookie_jar.c_str());
+}
+
+string
+DSSServerTraits::GetServerURLFile()
+{
+  std::string sfile = GetDataDirectory() + "/server";
+  return SystemTools::ConvertToOutputPath(sfile);
+}
+
+string
+DSSServerTraits::GetDataDirectory()
+{
+  // Compute the platform-independent home directory
+  std::vector<std::string> split_path;
+  SystemTools::SplitPath(DirectoryPrefix, split_path, true);
+  std::string ddir = SystemTools::JoinPath(split_path);
+  SystemTools::MakeDirectory(ddir.c_str());
+  return ddir;
+}
+
+string
+DSSServerTraits::GetServerURL()
+{
+  // If environment variable is set, then use it
+  const char *server_env = SystemTools::GetEnv(ServerURLEnvironmentVariable);
+  if (server_env)
+    return server_env;
+
+  std::string sfile = GetServerURLFile();
+  if (!SystemTools::FileExists(sfile))
+    throw IRISException("A server has not been configured yet - please sign in");
+  try
+  {
+    std::string   url;
+    std::ifstream ifs(sfile.c_str());
+    ifs >> url;
+    ifs.close();
+    return url;
+  }
+  catch (std::exception &exc)
+  {
+    throw IRISException(
+      "Failed to read server URL from %s, system exception: %s", sfile.c_str(), exc.what());
+  }
+}
+
+void
+DLSServerTraits::SetServerURL(const char *baseurl)
+{
+  m_ServerURL = baseurl;
+}
+
+void
+DLSServerTraits::SetupCookies(void *share, void *handle, const char *url, bool read_only)
+{
+  if (share)
+  {
+    if(read_only)
+      curl_easy_setopt(handle, CURLOPT_COOKIEFILE, "");
+    else
+      curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "");
+  }
+}
+
+string
+DLSServerTraits::GetServerURL()
+{
+  return m_ServerURL;
+}

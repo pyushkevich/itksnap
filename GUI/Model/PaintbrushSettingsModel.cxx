@@ -4,7 +4,7 @@
 #include "GlobalPreferencesModel.h"
 #include "DefaultBehaviorSettings.h"
 #include "IRISApplication.h"
-
+#include "DeepLearningSegmentationModel.h"
 
 PaintbrushSettingsModel::PaintbrushSettingsModel()
 {
@@ -19,8 +19,9 @@ PaintbrushSettingsModel::PaintbrushSettingsModel()
         m_PaintbrushSettingsModel, offsetof(PaintbrushSettings, shape));
 
   m_PaintbrushSmartModeModel =
-    wrapStructMemberAsSimpleProperty<PaintbrushSettings, PaintbrushSmartMode>(
-      m_PaintbrushSettingsModel, offsetof(PaintbrushSettings, smart_mode));
+    wrapGetterSetterPairAsProperty(this,
+                                   &Self::GetPaintbrushSmartModeValue,
+                                   &Self::SetPaintbrushSmartModeValue);
 
   m_VolumetricBrushModel =
       wrapStructMemberAsSimpleProperty<PaintbrushSettings, bool>(
@@ -121,6 +122,25 @@ void PaintbrushSettingsModel::SetPaintbrushSettings(PaintbrushSettings ps)
 {
   m_ParentModel->GetGlobalState()->SetPaintbrushSettings(ps);
   InvokeEvent(ModelUpdateEvent());
+}
+
+bool
+PaintbrushSettingsModel::GetPaintbrushSmartModeValue(PaintbrushSmartMode &value)
+{
+  value = GetPaintbrushSettings().smart_mode;
+  return true;
+}
+
+void
+PaintbrushSettingsModel::SetPaintbrushSmartModeValue(PaintbrushSmartMode value)
+{
+  auto pbs = GetPaintbrushSettings();
+  pbs.smart_mode = value;
+  SetPaintbrushSettings(pbs);
+
+  // We need to active the smart paintbrush model
+  if(value == PAINTBRUSH_DLS)
+    m_ParentModel->GetDeepLearningSegmentationModel()->SetIsActive(true);
 }
 
 

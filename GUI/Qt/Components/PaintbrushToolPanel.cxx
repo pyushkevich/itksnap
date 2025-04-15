@@ -37,10 +37,12 @@ public:
       case dls_model::CONN_NO_SERVER:
         color = "darkred";
         break;
+      case dls_model::CONN_TUNNEL_ESTABLISHING:
       case dls_model::CONN_CHECKING:
         color = "black";
         break;
       case dls_model::CONN_NOT_CONNECTED:
+      case dls_model::CONN_TUNNEL_FAILED:
         color = "darkred";
         break;
       case dls_model::CONN_CONNECTED:

@@ -48,15 +48,19 @@
           <property name="horizontalSpacing">
            <number>4</number>
           </property>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_5">
+          <item row="1" column="3">
+           <widget class="QToolButton" name="btnEdit">
             <property name="text">
-             <string>Server:</string>
+             <string>Edit...</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="1">
-           <widget class="QComboBox" name="inActiveServer"/>
+          <item row="1" column="2">
+           <widget class="QToolButton" name="btnNew">
+            <property name="text">
+             <string>New...</string>
+            </property>
+           </widget>
           </item>
           <item row="1" column="4">
            <widget class="QToolButton" name="btnDelete">
@@ -82,31 +86,49 @@ Please follow &lt;a href=&quot;https://itksnap-dls.readthedocs.io/en/latest&quot
             </property>
            </widget>
           </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Server:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="inActiveServer"/>
+          </item>
+          <item row="2" column="1" colspan="2">
+           <widget class="QLabel" name="lblStatus">
+            <property name="maximumSize">
+             <size>
+              <width>500</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
           <item row="2" column="0">
            <widget class="QLabel" name="label_12">
             <property name="text">
              <string>Status:</string>
             </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QToolButton" name="btnEdit">
-            <property name="text">
-             <string>Edit...</string>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignTop</set>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QToolButton" name="btnNew">
+          <item row="2" column="3" colspan="2">
+           <widget class="QToolButton" name="btnReconnect">
             <property name="text">
-             <string>New...</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="lblStatus">
-            <property name="text">
-             <string>TextLabel</string>
+             <string>Reconnect</string>
             </property>
            </widget>
           </item>
