@@ -132,6 +132,7 @@ jobs:
             VTK_GROUP_ENABLE_Qt:STRING=YES
             VTK_MODULE_ENABLE_VTK_GUISupportQtQuick:STRING=NO
             VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
+            VTK_MODULE_ENABLE_VTK_RenderingExternal:STRING=WANT
             CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
             ${{ runner.os == 'Windows' && 'VTK_SMP_ENABLE_STDTHREAD=OFF' || '' }}
@@ -356,7 +357,7 @@ jobs:
           echo "StrictHostKeyChecking=no" >> $HOME/.ssh/config
           echo "BatchMode=yes" >> $HOME/.ssh/config
           echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
-          cmake -DSCP_ARGUMENTS=-v -DSCP_USERNAME=$USER .
+          cmake -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
 
       - name: Upload named release to sourceforge
