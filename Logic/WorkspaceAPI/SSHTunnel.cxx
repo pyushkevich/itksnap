@@ -13,6 +13,9 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+#include <cstring>
+#include <cstdio>
+#include <algorithm>
 
 /*
 
