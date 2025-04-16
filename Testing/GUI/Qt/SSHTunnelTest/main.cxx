@@ -2,10 +2,13 @@
 #include <QDebug>
 #include <QApplication>
 
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#endif 
+
 #include <libssh/libssh.h>
 #include <set>
 #include "SSHTunnel.h"

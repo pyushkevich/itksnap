@@ -100,7 +100,7 @@ bool gzipInflate( const std::string& compressedBytes, std::string& uncompressedB
 
   uncompressedBytes.clear();
   constexpr unsigned buffer_size = 1024 * 1024;
-  unsigned char buffer[buffer_size];
+  std::vector<unsigned char> buffer(buffer_size);
 
   z_stream strm;
   strm.next_in = (Bytef *) compressedBytes.c_str();
@@ -118,7 +118,7 @@ bool gzipInflate( const std::string& compressedBytes, std::string& uncompressedB
 
   while (!done)
   {
-    strm.next_out = buffer;
+    strm.next_out = buffer.data();
     strm.avail_out = buffer_size;
 
            // strm.next_out = (Bytef *) (uncomp + strm.total_out);
@@ -130,7 +130,7 @@ bool gzipInflate( const std::string& compressedBytes, std::string& uncompressedB
     size_t n = strm.total_out - n0;
 
            // Paste the read bytes
-    uncompressedBytes.append((char *) buffer, n);
+    uncompressedBytes.append((char *) buffer.data(), n);
 
     if (err == Z_STREAM_END) done = true;
     else if (err != Z_OK)  {
@@ -154,7 +154,7 @@ bool gzipDeflate(const char *uncompressedBytes, size_t n_bytes, std::string& com
   }
 
   constexpr unsigned buffer_size = 1024 * 1024;
-  unsigned char buffer[buffer_size];
+  std::vector<unsigned char> buffer(buffer_size);
 
   z_stream strm;
   strm.next_in = (Bytef *) uncompressedBytes;
@@ -172,14 +172,14 @@ bool gzipDeflate(const char *uncompressedBytes, size_t n_bytes, std::string& com
 
   while (!done)
   {
-    strm.next_out = buffer;
+    strm.next_out = buffer.data();
     strm.avail_out = buffer_size;
     size_t n0 = strm.total_out;
     int err = deflate(&strm, Z_FINISH);
     size_t n = strm.total_out - n0;
 
     // Paste the read bytes
-    compressedBytes.append((char *) buffer, n);
+    compressedBytes.append((char *) buffer.data(), n);
 
     if (err == Z_STREAM_END) done = true;
     else if (err != Z_OK)  {
@@ -217,7 +217,7 @@ void EncodeImage(RESTMultipartData &mpd, TImage *image, std::string &buffer_stor
   // Encode the raw data
   size_t n_bytes_raw = image->GetPixelContainer()->Size() * sizeof(typename TImage::InternalPixelType);
   buffer_storage.reserve((size_t) (n_bytes_raw * reserve_ratio));
-  gzipDeflate((char *) image->GetBufferPointer(), n_bytes_raw, buffer_storage);
+  gzipDeflate((char*)image->GetBufferPointer(), n_bytes_raw, buffer_storage);
   mpd.addBytes("file", "application/gzip", "image.gz", buffer_storage.c_str(), buffer_storage.size());
 
   // Generate json with the image metadata

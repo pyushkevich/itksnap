@@ -230,7 +230,7 @@ protected:
   void *m_Curl;
 
   /** The shared data */
-  SharedData *m_SharedData;
+  SharedData *m_SharedData = nullptr;
 
   /** Optional file for output */
   FILE *m_OutputFile;

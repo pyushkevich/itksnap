@@ -271,7 +271,7 @@ DeepLearningServerPanel::resetConnection()
   m_Model->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_CHECKING));
   m_Model->SetProxyURL(std::string());
 
-  if(m_Model->GetServerProperties()->GetUseSSHTunnel())
+  if(m_Model->GetIsServerConfigured() && m_Model->GetServerProperties()->GetUseSSHTunnel())
   {
     setupSSHTunnel();
   }
