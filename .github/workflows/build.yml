@@ -72,8 +72,8 @@ jobs:
       - name: Install System Packages
         uses: ConorMacBride/install-package@v1
         with:
-          # brew: 
-          apt: libcurl4-openssl-dev
+          brew: libssh
+          apt: libcurl4-openssl-dev libssh-dev
           choco: nsis
 
       # Install curl on Windows
@@ -82,7 +82,7 @@ jobs:
         id: vcpkg
         if: ${{ runner.os == 'Windows' }}
         with:
-          pkgs: curl
+          pkgs: curl libssh zlib 
           triplet: x64-windows-release
           token: ${{ github.token }}
           github-binarycache: false
