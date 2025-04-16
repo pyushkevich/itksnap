@@ -1,11 +1,18 @@
 #include "SSHTunnel.h"
+
+#ifndef _WIN32
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#else
+#include <ws2tcpip.h>
+#endif
 #include <libssh/libssh.h>
 #include <set>
 #include <iostream>
+#include <vector>
+#include <chrono>
 
 /*
 
@@ -167,7 +174,7 @@ SSHTunnel::run(const char *remote_host,
   bind(server_socket, (struct sockaddr *) &address, address_size);
 
   // Get the port to which the socket is bound
-  bzero(&bound_address, sizeof(bound_address));
+  memset(&bound_address, '\0', sizeof(bound_address));
   socklen_t bound_address_size = sizeof(bound_address);
   getsockname(server_socket, (struct sockaddr *) &bound_address, &bound_address_size);
   char bound_ip[16];
@@ -241,7 +248,7 @@ SSHTunnel::run(const char *remote_host,
   if(!auth)
   {
     // If there is no username, we cannot continue
-    if(!strlen(username))
+    if(!username || !strlen(username))
       return fail(RC_SSH_ERROR, "No username provided for SSH authentication");
     std::string error_msg;
     while(true)
@@ -469,7 +476,12 @@ SSHTunnel::SessionGuard::CleanupTunnel(int socket_fd, ssh_channel channel)
     ssh_channel_close(channel);
   }
   ssh_channel_free(channel);
+#ifndef _WIN32
   shutdown(socket_fd, SHUT_RDWR);
   close(socket_fd);
+#else
+  shutdown(socket_fd, SD_BOTH);
+  closesocket(socket_fd);
+#endif
   std::cout << "Disconnected from socket " << socket_fd << std::endl;
 }

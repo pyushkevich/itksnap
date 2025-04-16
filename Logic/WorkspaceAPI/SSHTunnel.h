@@ -4,6 +4,7 @@
 #include <libssh/libssh.h>
 #include <string>
 #include <map>
+#include <variant>
 
 /*
 class SSHTunnel

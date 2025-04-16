@@ -51,7 +51,7 @@ struct ConnectionStatus
 /**
  * Properties of a deep learning extension server
  */
-struct DeepLearningServerPropertiesModel : public AbstractPropertyContainerModel
+class DeepLearningServerPropertiesModel : public AbstractPropertyContainerModel
 {
 public:
   irisITKObjectMacro(DeepLearningServerPropertiesModel, AbstractPropertyContainerModel)
