@@ -35,12 +35,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04,macos-13,macos-14,windows-2022]
+        os: [ubuntu-latest,macos-13,macos-14,windows-2022]
         itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.3.1' ]
         qt_ver: [ '6.8.1' ]
         include:
-          - os: ubuntu-20.04
+          - os: ubuntu-latest
             qt_host: linux
             qt_arch: linux_gcc_64
             ctest_cmd: xvfb-run -a ctest
@@ -76,7 +76,7 @@ jobs:
           apt: libcurl4-openssl-dev libssh-dev
           choco: nsis
 
-      # Install curl on Windows
+      # Install curl and libssh on Windows
       - name: Install libcurl on Windows
         uses: johnwason/vcpkg-action@v6
         id: vcpkg
