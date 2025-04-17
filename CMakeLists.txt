@@ -703,6 +703,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SNAPQApplication.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
+  GUI/Qt/Components/SSHTunnelWorkerThread.cxx
   GUI/Qt/Components/SynchronizationInspector.cxx
   GUI/Qt/Components/TagListWidget.cxx
   GUI/Qt/Components/ViewPanel3D.cxx
@@ -762,7 +763,6 @@ SET(UI_QT_CXX
   GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.cxx
   GUI/Qt/Windows/Registration/RegistrationDialog.cxx
   Testing/GUI/Qt/SNAPTestQt.cxx
-  Testing/GUI/Qt/SSHTunnelTest/SSHTunnelServer.cxx
 )
 
 # The header files for the UI project
@@ -804,6 +804,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SNAPToolbar.h
   GUI/Qt/Components/SNAPQApplication.h
   GUI/Qt/Components/SliceViewPanel.h
+  GUI/Qt/Components/SSHTunnelWorkerThread.h
   GUI/Qt/Components/SynchronizationInspector.h
   GUI/Qt/Components/TagListWidget.h
   GUI/Qt/Components/ViewPanel3D.h
@@ -862,7 +863,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Windows/MeshImportWizard/MeshImportFileSelectionPage.h
   GUI/Qt/Windows/Registration/RegistrationDialog.h
   Testing/GUI/Qt/SNAPTestQt.h
-  Testing/GUI/Qt/SSHTunnelTest/SSHTunnelServer.h
 )
 
 # These UI headers don't need to be MOC'd

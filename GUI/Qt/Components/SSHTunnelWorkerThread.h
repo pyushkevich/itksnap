@@ -1,15 +1,11 @@
-#ifndef SSHTUNNELSERVER_H
-#define SSHTUNNELSERVER_H
+#ifndef SSHTUNNELWORKERTHREAD_H
+#define SSHTUNNELWORKERTHREAD_H
 
 #include <QObject>
-#include <QTcpServer>
-#include <QTcpSocket>
 #include <QThread>
 #include <QMutex>
 #include <QEventLoop>
 #include "SSHTunnel.h"
-
-class DeepLearningServerPropertiesModel;
 
 class SSHTunnelWorkerThread : public QThread
 {
@@ -57,61 +53,9 @@ protected:
   QString m_PasswordCallbackValue;
   bool m_PasswordCallbackAbort;
   QEventLoop m_PasswordCallbackLoop;
-  QMutex m_PasswordMutex;
 
   bool m_Terminate = false;
   QMutex m_TerminateMutex;
 };
 
-/*
-
-class SSHTunnelServer : public QObject
-{
-  Q_OBJECT
-public:
-  SSHTunnelServer(QObject *parent);
-
-  void SetServerProperties(const DeepLearningServerPropertiesModel *model);
-
-  int GetLocalPort();
-
-public slots:
-  void createTunnel();
-
-signals:
-  void tunnelEstablished(int localPort);
-  void tunnelCreationFailed(const QString &error);
-
-private slots:
-  void handleConnection();
-
-protected:
-  // void incomingConnection(qintptr socketDescriptor) override;
-  void initServer();
-
-  // Server properties
-  QString m_Hostname, m_SSHUserName, m_SSHPrivateKeyFile;
-  int m_RemotePort;
-
-  SSHTunnel *m_Tunnel;
-  QTcpServer *m_Server = nullptr;
-};
-
-
-class SSHTunnelManager : public QThread
-{
-  Q_OBJECT
-
-public:
-  SSHTunnelManager(QObject *parent, const DeepLearningServerPropertiesModel *props);
-
-protected:
-  QString m_Hostname, m_SSHUserName, m_SSHPrivateKeyFile;
-  int m_RemotePort;
-
-  bool m_BreakLoop = false;
-};
-
-*/
-
-#endif // SSHTUNNELSERVER_H
+#endif // SSHTUNNELWORKERTHREAD_H

@@ -14,12 +14,10 @@
 #include <QTcpServer>
 #include <SSHTunnel.h>
 #include <libssh/libssh.h>
-#include "SSHTunnelServer.h"
-#include "IRISException.h"
+#include "SSHTunnelWorkerThread.h"
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QShowEvent>
-#include "SSHTunnel.h"
 
 /**
  * Traits for mapping status codes to a label

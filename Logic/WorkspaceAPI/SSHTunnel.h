@@ -6,34 +6,6 @@
 #include <map>
 #include <variant>
 
-/*
-class SSHTunnel
-{
-public:
-  SSHTunnel();
-  ~SSHTunnel();
-
-  void CreateTunnel(const char *remote_host,
-                    int local_port, int remote_port,
-                    const char *username, const char *password, const char *keyfile);
-
-  bool ReestablishChannel();
-
-  int GetLocalPort() const { return m_LocalPort; }
-  ssh_channel GetChannel() const { return m_Channel; }
-  ssh_session GetSession() const { return m_Session; }
-
-protected:
-
-  virtual void CreateChannel(ssh_session &session);
-
-  int m_LocalPort, m_RemotePort;
-  std::string m_RemoteHost;
-  ssh_session m_Session;
-  ssh_channel m_Channel;
-};
-*/
-
 /**
  * A streamlined SSH tunnel that uses just a single static function to run a ssh
  * tunnel in a loop. All communication with the caller is done using a callback
