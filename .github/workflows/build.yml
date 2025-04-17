@@ -105,6 +105,7 @@ jobs:
           host: ${{ matrix.qt_host }}
           arch: ${{ matrix.qt_arch }}
           cache: true
+          extra: '--timeout 60'
 
       # Use cached VTK build if available
       - name: Restore VTK Cache
