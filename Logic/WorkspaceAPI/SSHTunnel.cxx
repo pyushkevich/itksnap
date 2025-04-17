@@ -304,7 +304,8 @@ SSHTunnel::run(const char *remote_host,
     for (auto it : sguard.GetTunnels())
     {
       FD_SET(it.first, &fs);
-      max_fd = std::max(max_fd, it.first);
+      if(it.first > max_fd)
+        max_fd = it.first;
       ch_in.push_back(it.second);
     }
     ch_in.push_back(nullptr);
