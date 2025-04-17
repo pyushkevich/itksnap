@@ -8,6 +8,11 @@ on:
         description: 'Enable tmate debugging'
         required: false
         default: false
+      debug_preqt_enabled:
+        type: boolean
+        description: 'Enable tmate debugging before Qt install'
+        required: false
+        default: false
       use_cached_itksnap_build:
         type: boolean
         description: 'Use cached ITK-SNAP build'
@@ -87,6 +92,10 @@ jobs:
           token: ${{ github.token }}
           github-binarycache: false
     
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_preqt_enabled }}
+
       # Install Qt
       - name: Install Qt on Ubuntu
         uses: jurplel/install-qt-action@v4
