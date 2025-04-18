@@ -216,3 +216,52 @@ LabelImageWrapper::CompressImage() const
   new_cumulative->FinishEncoding();
   return new_cumulative;
 }
+
+LabelImageWrapper::GenerateImageForUndoRedoResult
+LabelImageWrapper::GenerateImageForRedo(const UndoDataManagerCommit &commit,
+                                        ImageType                   *img_delta,
+                                        LabelType                    activeLabel)
+{
+  GenerateImageForUndoRedoResult result = {0u, 0u, 0u};
+  for (auto *delta : commit.GetDeltas())
+  {
+    // Iterator for the relevant region in the label image
+    using IteratorType = itk::ImageRegionIterator<LabelImageWrapper::ImageType>;
+    using CIteratorType = itk::ImageRegionConstIterator<LabelImageWrapper::ImageType>;
+    CIteratorType src_it(this->GetImage(), delta->GetRegion());
+    IteratorType  dst_it(img_delta, delta->GetRegion());
+
+    // Iterate over the rles in the delta
+    for (size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
+    {
+      size_t    n = delta->GetRLELength(i);
+      LabelType d = delta->GetRLEValue(i);
+      for (size_t j = 0; j < n; j++)
+      {
+        if (d != 0)
+        {
+          LabelType old_value = src_it.Get();
+          LabelType new_value = old_value + d;
+          if (new_value == activeLabel)
+          {
+            dst_it.Set(1);
+            result.n_foreground++;
+          }
+          else if (new_value == 0)
+          {
+            dst_it.Set(1);
+            result.n_background++;
+          }
+          else
+          {
+            result.n_other++;
+          }
+        }
+        ++src_it;
+        ++dst_it;
+      }
+    }
+  }
+
+  return result;
+}

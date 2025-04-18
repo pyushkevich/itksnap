@@ -867,6 +867,7 @@ SET(UI_MOC_HEADERS
 
 # These UI headers don't need to be MOC'd
 SET(UI_NONMOC_HEADERS
+  GUI/Qt/Components/DeepLearningConnectionStatusCouplingTraits.h
   GUI/Qt/Components/ProcessEventsITKCommand.h
   GUI/Qt/Components/QPainterRenderContext.h
   GUI/Qt/Components/QtCursorOverride.h

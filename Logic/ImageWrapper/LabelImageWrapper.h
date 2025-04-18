@@ -5,6 +5,7 @@
 #include "ScalarImageWrapper.h"
 
 template <typename TPixel> class UndoDataManager;
+template <typename TPixel> class UndoDataManagerCommit;
 template <typename TPixel> class UndoDelta;
 class SegmentationUpdateIterator;
 
@@ -28,8 +29,9 @@ public:
   typedef Superclass::ITKTransformType                        ITKTransformType;
 
   // Undo manager typedefs
-  typedef UndoDataManager<PixelType> UndoManagerType;
-  typedef UndoDelta<PixelType>       UndoManagerDelta;
+  typedef UndoDataManager<PixelType>       UndoManagerType;
+  typedef UndoDelta<PixelType>             UndoManagerDelta;
+  typedef UndoDataManagerCommit<PixelType> UndoDataManagerCommit;
 
   // We are friends with the SegmentationUpdateIterator
   friend class SegmentationUpdateIterator;
@@ -82,6 +84,22 @@ public:
    * be stored in memory compactly. The caller is responsible for deleting the
    * array created in this call. */
   UndoManagerDelta *CompressImage() const;
+
+  /**
+   * Return type for GenerateImageForRedo
+   */
+  struct GenerateImageForUndoRedoResult
+  {
+    unsigned int n_other, n_background, n_foreground;
+  };
+
+  /**
+   * Given an empty segmentation image, apply deltas from an redo commit to this
+   * image, basically generating a segmentation corresponding just to the commit
+   */
+  GenerateImageForUndoRedoResult GenerateImageForRedo(const UndoDataManagerCommit &commit,
+                                                      ImageType                   *image,
+                                                      LabelType                    activeLabel);
 
 protected:
 

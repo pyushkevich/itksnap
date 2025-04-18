@@ -154,7 +154,16 @@ public:
   bool PerformPointInteraction(ImageWrapperBase *layer, Vector3ui pos, bool reverse);
 
   /** Perform a scribble interaction */
-  bool PerformScribbleInteraction(ImageWrapperBase *layer, LabelImageWrapper *seg, bool reverse);
+  bool PerformScribbleInteraction(ImageWrapperBase *layer, LabelImageWrapper *seg, bool reverse)
+  {
+    return this->PerformScribbleOrLassoInteraction("process_scribble_interaction", layer, seg, reverse);
+  }
+
+  /** Perform a lasso interaction */
+  bool PerformLassoInteraction(ImageWrapperBase *layer, LabelImageWrapper *seg, bool reverse)
+  {
+    return this->PerformScribbleOrLassoInteraction("process_lasso_interaction", layer, seg, reverse);
+  }
 
 protected:
   DeepLearningSegmentationModel();
@@ -217,6 +226,11 @@ protected:
 
   bool ResetInteractionsIfNeeded();
   bool UpdateSegmentation(const char *json, const char *commit_name);
+
+  bool PerformScribbleOrLassoInteraction(const char        *target_url,
+                                         ImageWrapperBase  *layer,
+                                         LabelImageWrapper *seg,
+                                         bool               reverse);
 
   std::string GetActualServerURL();
 

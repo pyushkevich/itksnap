@@ -754,9 +754,10 @@ DeepLearningSegmentationModel::PerformPointInteraction(ImageWrapperBase *layer, 
 }
 
 bool
-DeepLearningSegmentationModel::PerformScribbleInteraction(ImageWrapperBase  *layer,
-                                                          LabelImageWrapper *seg,
-                                                          bool               reverse)
+DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char        *target_url,
+                                                                 ImageWrapperBase  *layer,
+                                                                 LabelImageWrapper *seg,
+                                                                 bool               reverse)
 {
   // Update the source image
   this->SetSourceImage(layer);
@@ -766,9 +767,9 @@ DeepLearningSegmentationModel::PerformScribbleInteraction(ImageWrapperBase  *lay
 
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
-         // Create a multipart dataset with the segmentation
+  // Create a multipart dataset with the segmentation
   RESTMultipartData mpd;
-  std::string gzip_buffer;
+  std::string       gzip_buffer;
 
   // TODO: this is a ridiculous waste of time, expanding a small RLE image to then compress
   // it with gzip. Instead, implement RLE on the server.
@@ -780,13 +781,11 @@ DeepLearningSegmentationModel::PerformScribbleInteraction(ImageWrapperBase  *lay
   auto t1 = Clock::now();
 
   // Perform the drawing command
-  auto t2 = Clock::now();
+  auto       t2 = Clock::now();
   RESTClient cli(m_RESTSharedData);
   cli.SetServerURL(GetActualServerURL().c_str());
-  if (!cli.PostMultipart("process_scribble_interaction/%s?foreground=%s",
-                         &mpd,
-                         m_ActiveSession.c_str(),
-                         reverse ? "false" : "true"))
+  if (!cli.PostMultipart(
+        "%s/%s?foreground=%s", &mpd, target_url, m_ActiveSession.c_str(), reverse ? "false" : "true"))
   {
     std::cerr << "RESP:" << cli.GetOutput() << std::endl;
     throw IRISException("Failed to send current coordinate to the server");

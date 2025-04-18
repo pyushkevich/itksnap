@@ -250,65 +250,15 @@ PaintbrushModel::CommitDrawing()
     }
     else if(commit.GetDeltas().size() > 1)
     {
-      // TODO: move this code somewhere else, like in LabelImageWrapper
+      // Compute the image corresponding to the last drawing
       SmartPtr<LabelImageWrapper> w_delta = LabelImageWrapper::New();
       w_delta->InitializeToWrapper(seg, (LabelType) 0);
       auto *img_delta = const_cast<LabelImageWrapper::ImageType *>(w_delta->GetImage());
-      const auto *img_seg = seg->GetImage();
-
-      unsigned int n_fore = 0, n_back = 0, n_other = 0;
-      LabelType active_label = gs->GetDrawingColorLabel();
-      for(auto *delta : commit.GetDeltas())
-      {
-        // Iterator for the relevant region in the label image
-        using IteratorType = itk::ImageRegionIterator<LabelImageWrapper::ImageType>;
-        using CIteratorType = itk::ImageRegionConstIterator<LabelImageWrapper::ImageType>;
-        CIteratorType src_it(img_seg, delta->GetRegion());
-        IteratorType dst_it(img_delta, delta->GetRegion());
-
-        // Iterate over the rles in the delta
-        for(size_t i = 0; i < delta->GetNumberOfRLEs(); i++)
-        {
-          size_t n = delta->GetRLELength(i);
-          LabelType d = delta->GetRLEValue(i);
-          for(size_t j = 0; j < n; j++)
-          {
-            if(d != 0)
-            {
-              LabelType old_value = src_it.Get();
-              LabelType new_value = old_value + d;
-              if(new_value == active_label)
-              {
-                dst_it.Set(1);
-                n_fore++;
-              }
-              else if(new_value == 0)
-              {
-                dst_it.Set(1);
-                n_back++;
-              }
-              else
-              {
-                n_other++;
-              }
-            }
-            ++src_it;
-            ++dst_it;
-          }
-        }
-      }
-
+      auto counts = seg->GenerateImageForRedo(commit, img_delta, gs->GetDrawingColorLabel());
       w_delta->PixelsModified();
-      // printf("%d deltas applied, n_fore=%d, n_back=%d, n_other=%d\n", (int) commit.GetDeltas().size(), n_fore, n_back, n_other);
-
-      model->PerformScribbleInteraction(img, w_delta, n_back > n_fore);
+      model->PerformScribbleInteraction(img, w_delta, counts.n_background > counts.n_foreground);
     }
 
-  }
-  else
-  {
-    driver->GetSelectedSegmentationLayer()->StoreUndoPoint("Drawing with paintbrush");
-    driver->RecordCurrentLabelUse();
   }
 
   // We need to commit the drawing
