@@ -21,12 +21,13 @@ public:
 
   void SetModel(LabelEditorModel *model);
 
+public slots:
+
+  void createNewLabel();
+  void duplicateLabel();
+
 private slots:
   void on_btnClose_clicked();
-
-  void on_btnNew_clicked();
-
-  void on_btnDuplicate_clicked();
 
   void on_btnDelete_clicked();
 

@@ -68,6 +68,9 @@ QString CreateLabelComboTooltip(LabelType fg, DrawOverFilter bg, ColorLabelTable
 // Find an upstream action for a widget
 QAction* FindUpstreamAction(QWidget *w, const QString &targetActionName);
 
+// Find an upstream action for a widget
+QDialog* FindUpstreamDialog(QWidget *w, const QString &targetDialogName);
+
 // Connect a widget to the trigger slot in an upstream action
 void ConnectWidgetToTopLevelAction(QWidget *w, const char *signal, QString actionName);
 

@@ -200,6 +200,8 @@
         <file>logo_helmholz.png</file>
         <file>gear_16.png</file>
         <file>gear_16@x2.png</file>
+        <file>icons8_swap_12.png</file>
+        <file>icons8_swap_12@2x.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>

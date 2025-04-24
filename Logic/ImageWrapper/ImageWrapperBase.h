@@ -16,11 +16,6 @@ namespace itk {
   template <class TCoordRep, unsigned int VDim> class ContinuousIndex;
   class DataObject;
   class ProcessObject;
-
-  namespace Statistics {
-    class DenseFrequencyContainer;
-    template <class TReal, unsigned int VDim, class TContainer> class Histogram;
-  }
 }
 
 class ScalarImageWrapperBase;

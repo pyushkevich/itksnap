@@ -38,6 +38,9 @@
 #include "SNAPBorlandDummyTypes.h"
 #endif
 
+#include "itkLabelMap.h"
+#include "itkStatisticsLabelObject.h"
+#include "itkLabelImageToStatisticsLabelMapFilter.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "GlobalState.h"
@@ -59,6 +62,7 @@
 #include "itkImageFileWriter.h"
 #include "itkFlipImageFilter.h"
 #include "itkConstantBoundaryCondition.h"
+
 #include <itksys/SystemTools.hxx>
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"
@@ -875,6 +879,51 @@ IRISApplication
   m_LabelUseHistory->RecordLabelUse(
         m_GlobalState->GetDrawingColorLabel(),
         m_GlobalState->GetDrawOverFilter());
+}
+
+
+bool
+IRISApplication::LocateLabelCenterOfMass(LabelType label)
+{
+  // Start the label image iteration
+  auto *seg = this->GetSelectedSegmentationLayer();
+  LabelImageWrapper::ConstIterator itLabel = seg->GetImageConstIterator();
+  itk::ImageRegion<3> region = itLabel.GetRegion();
+
+  // Cache the entry to avoid many calls to std::map
+  LabelType runLabel = 0;
+  long runLength = 0;
+
+  // Compute the center of mass
+  Vector3d x(0.0);
+  int n = 0;
+  for( ; !itLabel.IsAtEnd(); ++itLabel, ++runLength)
+  {
+    // Get the label and the corresponding entry (use cache to reduce time wasted in std::map)
+    if(label == itLabel.Value())
+    {
+      auto idx = itLabel.GetIndex();
+      for(unsigned int i = 0; i < 3; i++)
+        x[i] += idx[i];
+      n++;
+    }
+  }
+
+  if(n > 0)
+  {
+    Vector3ui cursor;
+    for (unsigned int i = 0; i < 3; ++i)
+      cursor[i] = static_cast<unsigned int>(std::round(x[i] / n));
+
+    this->SetCursorPosition(cursor, false);
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+
+  return true;
 }
 
 void

@@ -1013,22 +1013,23 @@ void GlobalUIModel::IncrementDrawingColorLabel(int delta)
 void GlobalUIModel::SwitchForegroundBackgroundLabels()
 {
   DrawOverFilter dof = m_Driver->GetGlobalState()->GetDrawOverFilter();
-  if(dof.CoverageMode == PAINT_OVER_ONE)
-    {
-    ColorLabelTable *clt = m_Driver->GetColorLabelTable();
-    ColorLabelTable::ValidLabelConstIterator oldBackground =
-        clt->GetValidLabels().find(dof.DrawOverLabel);
-    ColorLabelTable::ValidLabelConstIterator oldForeground =
-        clt->GetValidLabels().find(m_Driver->GetGlobalState()->GetDrawingColorLabel());
 
-    if (oldBackground != clt->GetValidLabels().end()
-        && oldForeground != clt->GetValidLabels().end())
-      {
-      dof.DrawOverLabel = oldForeground->first;
-      m_Driver->GetGlobalState()->SetDrawOverFilter(dof);
-      m_Driver->GetGlobalState()->SetDrawingColorLabel(oldBackground->first);
-      }
-    }
+  auto target_foreground = dof.CoverageMode == PAINT_OVER_ONE ? dof.DrawOverLabel : 0;
+  auto target_coverage = dof.CoverageMode == PAINT_OVER_ONE;
+
+  ColorLabelTable                         *clt = m_Driver->GetColorLabelTable();
+  ColorLabelTable::ValidLabelConstIterator oldBackground =
+    clt->GetValidLabels().find(target_foreground);
+  ColorLabelTable::ValidLabelConstIterator oldForeground =
+    clt->GetValidLabels().find(m_Driver->GetGlobalState()->GetDrawingColorLabel());
+
+  if (oldBackground != clt->GetValidLabels().end() && oldForeground != clt->GetValidLabels().end())
+  {
+    dof.DrawOverLabel = oldForeground->first;
+    dof.CoverageMode = PAINT_OVER_ONE;
+    m_Driver->GetGlobalState()->SetDrawOverFilter(dof);
+    m_Driver->GetGlobalState()->SetDrawingColorLabel(oldBackground->first);
+  }
 }
 
 void GlobalUIModel::IncrementDrawOverColorLabel(int delta)

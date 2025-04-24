@@ -8,6 +8,9 @@
 #include "QtCheckBoxCoupling.h"
 #include "QtSliderCoupling.h"
 #include "QtSpinBoxCoupling.h"
+#include "LabelEditorModel.h"
+#include "QMenu"
+#include "LabelEditorDialog.h"
 
 LabelInspector::LabelInspector(QWidget *parent) :
   SNAPComponent(parent),
@@ -17,8 +20,24 @@ LabelInspector::LabelInspector(QWidget *parent) :
   ui->inForeLabel->setIconSize(QSize(16,16));
   ui->inBackLabel->setIconSize(QSize(16,16));
 
+  // Find the label editor
+  LabelEditorDialog *led =
+    dynamic_cast<LabelEditorDialog *>(FindUpstreamDialog(this, "LabelEditorDialog"));
+  QObject::connect(ui->actionNew_label, &QAction::triggered, led, &LabelEditorDialog::createNewLabel);
+  QObject::connect(ui->actionDuplicate_Label, &QAction::triggered, led, &LabelEditorDialog::duplicateLabel);
+
   // Connect to the action in the menubar
-  // ui->btnEdit->setAction("actionLabel_Editor");
+  QMenu *contextMenu = new QMenu(ui->btnLabelContext);
+  contextMenu->addAction(ui->actionEdit_Label);
+  contextMenu->addAction(ui->actionNew_label);
+  contextMenu->addAction(ui->actionDuplicate_Label);
+  contextMenu->addSeparator();
+  contextMenu->addAction(ui->actionLocate_Center_of_Mass);
+  ui->btnLabelContext->setMenu(contextMenu);
+  ui->btnLabelContext->setPopupMode(QToolButton::InstantPopup);
+  ui->btnLabelContext->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+
+  ui->bntLabelSwap->setDefaultAction(FindUpstreamAction(this, "actionSwitch_Foreground_Background_Labels"));
 }
 
 LabelInspector::~LabelInspector()
@@ -32,7 +51,9 @@ void LabelInspector
   // Get the model
   m_Model = model;
 
-  // Attach to quick list
+
+
+         // Attach to quick list
   // ui->quickList->SetModel(model);
 
   // Use couplings where we can
@@ -52,3 +73,30 @@ void LabelInspector
 }
 
 
+void
+LabelInspector::on_actionEdit_Label_triggered()
+{
+  // Select the current label
+  m_Model->GetLabelEditorModel()->GetCurrentLabelModel()->SetValue(
+    m_Model->GetGlobalState()->GetDrawingColorLabel());
+
+  // Open the label editor
+  FindUpstreamAction(this, "actionLabel_Editor")->trigger();
+}
+
+void
+LabelInspector::on_actionLocate_Center_of_Mass_triggered()
+{
+  auto label = m_Model->GetGlobalState()->GetDrawingColorLabel();
+  if(!m_Model->GetDriver()->LocateLabelCenterOfMass(label))
+    ReportNonLethalException(
+      this,
+      IRISException("There are no voxels with label %d in the segmentation", label),
+      "Operation Failed");
+}
+
+void
+LabelInspector::on_actionNew_label_triggered()
+{
+
+}

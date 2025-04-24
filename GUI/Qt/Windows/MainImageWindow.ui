@@ -1794,6 +1794,11 @@ color:rgb(103, 103, 103);
    </property>
   </action>
   <action name="actionSwitch_Foreground_Background_Labels">
+   <property name="icon">
+    <iconset>
+     <normalon>:/root/icons8_swap_12.png</normalon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Swap Foreground/Background</string>
    </property>

@@ -703,6 +703,10 @@ public:
    */
   void ReloadSegmentationWrapperFromFile(ImageWrapperBase *wrapper);
 
+  /**
+   *
+   */
+  bool LocateLabelCenterOfMass(LabelType label);
 
 protected:
 
