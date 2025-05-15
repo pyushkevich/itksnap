@@ -324,10 +324,13 @@ void ViewPanel3D::LoadCameraViewpoint(QString file)
 
   // QJsonArray to Vector3d
   if (!json["position"].isArray()
-      || json["position"].toArray().count() != 3)
+      || json["position"].toArray().count() != 3
+      || !json["position"][0].isDouble()
+      || !json["position"][1].isDouble()
+      || !json["position"][2].isDouble())
   {
     QMessageBox::warning(this, "Import camera viewpoint error",
-        QString("JSON error: position: expected an array of size 3"));
+        QString("JSON error: position: expected an array of 3 numbers"));
     return;
   }
   Vector3d camPosition(
@@ -337,10 +340,13 @@ void ViewPanel3D::LoadCameraViewpoint(QString file)
 
   // QJsonArray to Vector3d
   if (!json["focal_point"].isArray()
-      || json["focal_point"].toArray().count() != 3)
+      || json["focal_point"].toArray().count() != 3
+      || !json["focal_point"][0].isDouble()
+      || !json["focal_point"][1].isDouble()
+      || !json["focal_point"][2].isDouble())
   {
     QMessageBox::warning(this, "Import camera viewpoint error",
-        QString("JSON error: focal_point: expected an array of size 3"));
+        QString("JSON error: focal_point: expected an array of 3 numbers"));
     return;
   }
   Vector3d camFocalPoint(
@@ -350,10 +356,13 @@ void ViewPanel3D::LoadCameraViewpoint(QString file)
 
   // QJsonArray to Vector3d
   if (!json["view_up"].isArray()
-      || json["view_up"].toArray().count() != 3)
+      || json["view_up"].toArray().count() != 3
+      || !json["view_up"][0].isDouble()
+      || !json["view_up"][1].isDouble()
+      || !json["view_up"][2].isDouble())
   {
     QMessageBox::warning(this, "Import camera viewpoint error",
-        QString("JSON error: view_up: expected an array of size 3"));
+        QString("JSON error: view_up: expected an array of 3 numbers"));
     return;
   }
   Vector3d camViewUp(
@@ -363,10 +372,12 @@ void ViewPanel3D::LoadCameraViewpoint(QString file)
 
   // QJsonArray to Vector2d
   if (!json["clipping_range"].isArray()
-      || json["clipping_range"].toArray().count() != 2)
+      || json["clipping_range"].toArray().count() != 2
+      || !json["clipping_range"][0].isDouble()
+      || !json["clipping_range"][1].isDouble())
   {
     QMessageBox::warning(this, "Import camera viewpoint error",
-        QString("JSON error: clipping_range: expected an array of size 2"));
+        QString("JSON error: clipping_range: expected an array of 2 numbers"));
     return;
   }
   Vector2d camClippingRange(
