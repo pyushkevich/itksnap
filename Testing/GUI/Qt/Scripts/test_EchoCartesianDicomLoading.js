@@ -12,7 +12,7 @@ for (let i = 30; i > 20; i--)
 
 // Following statements copied from the workspace test to test basic operations
 //=== Show the layer inspector
-engine.findChild(mainwin,"actionLayerInspector").trigger();
+engine.trigger("actionLayerInspector");
 
 //=== Select a specific overlay
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
@@ -20,7 +20,7 @@ var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
 //rowdelegate.setSelected(true);
 
 //=== Toggle the layout
-engine.findChild(layerdialog, "actionLayoutToggle").trigger();
+engine.trigger("actionLayoutToggle", layerdialog);
 
 //=== Go to the color map widget
 var cmpcolormap = engine.findChild(layerdialog, "cmpColorMap");
@@ -34,7 +34,7 @@ inpreset.setCurrentIndex(8);
 engine.invoke(layerdialog, "close");
 
 //=== Trigger the unload all action
-engine.findChild(mainwin,"actionUnload_All").trigger();
+engine.trigger("actionUnload_All");
 
 //=== Check that the unsaved changes dialog is open
 var savedialog = engine.findWidget("dlgSaveModified");

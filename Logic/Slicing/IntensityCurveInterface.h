@@ -87,6 +87,12 @@ public:
   virtual void UpdateControlPoint(unsigned int iControlPoint, double t, double x) = 0;
 
   /**
+   * Change the number of control points, keeping the first and last control points
+   * the same, but reinterpolating the intermediate control points
+   */
+  virtual void RecomputeInteriorControlPoints(unsigned int nControlPoints) = 0;
+
+  /**
    * This method linearly maps the t-values of all the control points to 
    * the range between tMin and tMax.  It's used for intensity windowing 
    * where we want to adjust the domain of the curve without changing its 

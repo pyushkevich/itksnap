@@ -1083,7 +1083,7 @@ void RegistrationModel::ResetTransformToIdentity()
   offset.Fill(0.0);
 
   // Reset the flips
-  this->m_ManualParam.Flip.fill(false);
+  this->m_ManualParam.Flip.fill(0);
   this->SetMovingTransform(matrix, offset);
 }
 
@@ -1257,7 +1257,7 @@ void RegistrationModel::SetScalingValue(Vector3d value)
   this->UpdateWrapperFromManualParameters();
 }
 
-bool RegistrationModel::GetFlipValue(Vector3b &value)
+bool RegistrationModel::GetFlipValue(Vector3i &value)
 {
   // Make sure that the manual parameters are valid
   if(m_ManualParam.LayerID == NOID)
@@ -1269,7 +1269,7 @@ bool RegistrationModel::GetFlipValue(Vector3b &value)
   return true;
 }
 
-void RegistrationModel::SetFlipValue(Vector3b value)
+void RegistrationModel::SetFlipValue(Vector3i value)
 {
   // Update the flips
   m_ManualParam.Flip = value;

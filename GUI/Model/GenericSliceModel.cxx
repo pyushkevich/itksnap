@@ -1107,6 +1107,18 @@ Vector3d GenericSliceModel::ComputeGridPosition(
 
     // For orthogonal slicing, the input coordinates are in units of image voxels
     xPhys = this->MapSliceToImagePhysical(xSlice);
+
+    // Add displacement and map back to slice space
+    itk::ContinuousIndex<double, 3> cix;
+    itk::Point<double, 3> pt = to_itkPoint(xPhys + disp);
+
+    this->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
+        ->TransformPhysicalPointToContinuousIndex(pt, cix);
+
+    // The displaced location in slice coordinates
+    Vector3d disp_slice = this->MapImageToSlice(Vector3d(cix));
+
+    return disp_slice;
     }
   else
     {
@@ -1121,32 +1133,20 @@ Vector3d GenericSliceModel::ComputeGridPosition(
     index[0] = slice_index[0]; index[1] = slice_index[1]; index[2] = 0;
     dispimg->TransformIndexToPhysicalPoint(index, pPhys);
     xPhys = pPhys;
-    }
 
-  // Add displacement and map back to slice space
-  itk::ContinuousIndex<double, 3> cix;
-  itk::Point<double, 3> pt = to_itkPoint(xPhys + disp);
+    // Map this physical position to slice coordinate system
+    itk::Point<double, 3> pt = to_itkPoint(xPhys + disp);
+    itk::ContinuousIndex<double, 3> cix;
+    this->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
+        ->TransformPhysicalPointToContinuousIndex(pt, cix);
+    return this->MapImageToSlice(Vector3d(cix));
 
-  this->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
-      ->TransformPhysicalPointToContinuousIndex(pt, cix);
-
-  // The displaced location in slice coordinates
-  Vector3d disp_slice = this->MapImageToSlice(Vector3d(cix));
-
-  // What we return also depends on whether slicing is ortho or not. For ortho
-  // slicing, the renderer is configured in the "Slice" coordinate system (1 unit =
-  // 1 image voxel) while for oblique slicing, the renderer uses the window coordinate
-  // system (1 unit = 1 screen pixel). Whatever we return needs to be in those units.
-  if(vecimg->IsSlicingOrthogonal())
-    {
-    return disp_slice;
-    }
-  else
-    {
-    Vector3d win3d;
-    Vector2d win2d = this->MapSliceToWindow(disp_slice);
-    win3d[0] = win2d[0]; win3d[1] = win2d[1]; win3d[2] = disp_slice[2];
-    return win3d;
+    // What we return also depends on whether slicing is ortho or not. For ortho
+    // slicing, the renderer is configured in the "Slice" coordinate system (1 unit =
+    // 1 image voxel) while for oblique slicing, the renderer uses the window coordinate
+    // system (1 unit = 1 screen pixel). Whatever we return needs to be in those units.
+    // dispimg->TransformPhysicalPointToContinuousIndex(pt, cix);
+    // return Vector3d(cix[0], cix[1], this->GetSliceIndex());
     }
 }
 

@@ -171,6 +171,9 @@ public:
   typedef typename Superclass::IndexType                             IndexType;
   typedef typename Superclass::SizeType                               SizeType;
 
+  // Interpolation mode
+  typedef typename Superclass::InterpolationMode             InterpolationMode;
+
   /**
    * Get the parent wrapper for this wrapper. For 'normal' wrappers, this method
    * returns NULL, indicating that the wrapper is a top-level wrapper. For derived
@@ -359,6 +362,16 @@ public:
                                    double *out_patch) const ITK_OVERRIDE;
 
   /**
+   * Get current interpolation mode
+   */
+  virtual typename Superclass::InterpolationMode GetSlicingInterpolationMode() const override;
+
+  /**
+   * Set interpolation mode for non-orthogonal slicing
+   */
+  virtual void SetSlicingInterpolationMode(InterpolationMode mode) override;
+
+  /**
    * Sample image intensity at a 4D position in the reference space. If the reference
    * space does not match the native space, the intensity will be interpolated based
    * on the current affine transform applied to the image.
@@ -523,6 +536,11 @@ public:
    * main reference space
    */
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
+
+  /**
+   * Set the reference image without changing the transform
+   */
+  virtual void SetReferenceSpace(ImageBaseType *referenceSpace) ITK_OVERRIDE;
 
   /**
    * Get the ITK transform between this layer and its reference space

@@ -112,6 +112,9 @@ public:
   typedef itk::Index<3>                                              IndexType;
   typedef itk::Size<3>                                                SizeType;
 
+  // Interpolation mode enum
+  enum InterpolationMode { NEAREST=0, LINEAR };
+
   /** This class is used to store mini-pipeline created by this class */
   struct MiniPipeline
   {
@@ -361,6 +364,16 @@ public:
       double *out_nvalid, double *out_sum, double *out_sumsq) const = 0;
 
   /**
+   * Get current interpolation mode
+   */
+  virtual InterpolationMode GetSlicingInterpolationMode() const = 0;
+
+  /**
+   * Set interpolation mode for non-orthogonal slicing
+   */
+  virtual void SetSlicingInterpolationMode(InterpolationMode mode) = 0;
+
+  /**
    * This method returns a vector of values for the voxel under the cursor.
    * This is the natural value or set of values that should be displayed to
    * the user. The value depends on the current display mode. For scalar
@@ -476,6 +489,11 @@ public:
    * Set an ITK transform between this image and a reference image.
    */
   virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) = 0;
+
+  /**
+   * Set the reference image without changing the transform
+   */
+  virtual void SetReferenceSpace(ImageBaseType *referenceSpace) = 0;
 
   /**
    * Get the ITK transform between this image and the reference space

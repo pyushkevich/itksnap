@@ -89,6 +89,9 @@ public:
   typedef typename Superclass::IndexType                             IndexType;
   typedef typename Superclass::SizeType                               SizeType;
 
+  // Interpolation mode
+  typedef typename Superclass::InterpolationMode             InterpolationMode;
+
   virtual bool IsScalar() const ITK_OVERRIDE { return false; }
 
   /**
@@ -183,6 +186,13 @@ public:
   virtual void CopyImageCoordinateTransform(const ImageWrapperBase *source) ITK_OVERRIDE;
 
   virtual void SetSticky(bool value) ITK_OVERRIDE;
+
+  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
+
+  virtual void SetReferenceSpace(ImageBaseType *referenceSpace) ITK_OVERRIDE;
+
+  virtual void SetSlicingInterpolationMode(InterpolationMode mode) override;
+
 protected:
 
   /**
@@ -199,8 +209,6 @@ protected:
   virtual void UpdateWrappedImages(Image4DType *image_4d,
                                    ImageBaseType *refSpace = NULL,
                                    ITKTransformType *tran = NULL) ITK_OVERRIDE;
-
-  virtual void SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform) ITK_OVERRIDE;
 
   /** Destructor */
   virtual ~VectorImageWrapper();

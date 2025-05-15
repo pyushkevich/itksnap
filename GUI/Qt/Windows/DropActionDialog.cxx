@@ -46,12 +46,12 @@ void DropActionDialog::SetDroppedFilename(QString name)
   // Check if the file can be loaded as mesh
   bool isPolyData = GuidedMeshIO::IsFilePolyData(to_utf8(name).c_str());
 
-  QFileInfo fileinfo(name);
-  auto ext = fileinfo.completeSuffix();
-  auto fmt = GuidedMeshIO::GetFormatByExtension(ext.toStdString());
-
   if (isPolyData)
     {
+    QFileInfo fileinfo(name);
+    auto ext = fileinfo.completeSuffix();
+    auto fmt = GuidedMeshIO::GetFormatByExtension(ext.toStdString());
+
     if (GuidedMeshIO::can_read(fmt))
       {
       this->SetIncludeMeshOptions(true);

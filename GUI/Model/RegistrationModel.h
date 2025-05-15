@@ -76,7 +76,7 @@ public:
   irisGetMacro(ScalingModel, AbstractRangedDoubleVec3Property *)
 
   /** Scaling factor */
-  irisGetMacro(FlipModel, AbstractSimpleBooleanVec3Property *)
+  irisGetMacro(FlipModel, AbstractSimpleIntVec3Property *)
 
   /** Logarithm of the scaling factor - for the slider */
   irisGetMacro(LogScalingModel, AbstractRangedDoubleVec3Property *)
@@ -214,9 +214,9 @@ protected:
   bool GetScalingValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *range);
   void SetScalingValue(Vector3d value);
 
-  SmartPtr<AbstractSimpleBooleanVec3Property> m_FlipModel;
-  bool GetFlipValue(Vector3b &value);
-  void SetFlipValue(Vector3b value);
+  SmartPtr<AbstractSimpleIntVec3Property> m_FlipModel;
+  bool GetFlipValue(Vector3i &value);
+  void SetFlipValue(Vector3i value);
 
   SmartPtr<AbstractRangedDoubleVec3Property> m_LogScalingModel;
   bool GetLogScalingValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *range);
@@ -283,7 +283,7 @@ protected:
     itk::TimeStamp UpdateTime;
 
     // Flipping
-    Vector3b Flip;
+    Vector3i Flip;
 
     TransformManualParameters() : LayerID(NOID) {}
   };

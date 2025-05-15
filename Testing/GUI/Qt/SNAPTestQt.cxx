@@ -34,7 +34,7 @@ using namespace std;
 
 SNAPTestQt::SNAPTestQt(MainImageWindow *win,
     std::string datadir, double accel_factor)
-  : m_Acceleration(accel_factor)
+: m_Acceleration(accel_factor), m_Parent(win)
 {
   // We need a dummy parent to prevent self-deletion
   m_DummyParent = new QObject();
@@ -138,7 +138,28 @@ QModelIndex SNAPTestQt::findItem(QObject *container, QVariant text)
 
 void SNAPTestQt::invoke(QObject *object, QString slot)
 {
-  QMetaObject::invokeMethod(object, slot.toStdString().c_str(), Qt::QueuedConnection);
+  if(!object)
+    m_ScriptEngine->throwError(QJSValue::ReferenceError,
+                               QString("Invoked slot %1 on null object").arg(slot));
+  else
+    QMetaObject::invokeMethod(object, slot.toStdString().c_str(), Qt::QueuedConnection);
+}
+
+void SNAPTestQt::trigger(QString action_name, QObject *parent)
+{
+  auto *action = dynamic_cast<QAction *>(findChild(parent ? parent : this->m_Parent, action_name));
+  invoke(action, "trigger");
+}
+
+void SNAPTestQt::comboBoxSelect(QObject *widget, QString itemText)
+{
+  auto *combo = dynamic_cast<QComboBox *>(widget);
+  if(!combo)
+    m_ScriptEngine->throwError(QJSValue::ReferenceError,
+                               QString("comboBoxSelect target not a combo box"));
+
+  int row = findItemRow(widget, itemText).toInt();
+  QMetaObject::invokeMethod(widget, "setCurrentIndex", Qt::QueuedConnection, Q_ARG(int, row));
 }
 
 
@@ -234,13 +255,30 @@ void SNAPTestQt::application_exit(int rc)
         Q_ARG(int, rc));
 }
 
+void SNAPTestQt::postKeyEventInternal(QObject *object, QString key)
+{
+    QWidget *widget = dynamic_cast<QWidget *>(object);
+    if(widget)
+    {
+        QKeySequence seq(key);
+        if(seq.count() == 1)
+        {
+            QKeyCombination code = seq[0];
+            Qt::Key key = code.key();
+            Qt::KeyboardModifiers mods = code.keyboardModifiers();
+
+            QKeyEvent *ev = new QKeyEvent(QEvent::KeyPress, key, mods);
+            QApplication::postEvent(widget, ev);
+        }
+    }
+}
+
 void SNAPTestQt::sleep(int milli_sec)
 {
   // Scale requested sleep time by acceleration factor
   int ms_actual = (int)(milli_sec / m_Acceleration);
 
   // Sleep
-  qDebug() << "sleeping for " << ms_actual << "ms.";
   TestWorker::sleep_ms(ms_actual);
 }
 
@@ -288,7 +326,8 @@ void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QSt
   if(widget)
     {
     QSize size = widget->size();
-    QPoint point((int)(size.width() * rel_x), (int)(size.height() * rel_y));
+    QPointF localPos((int)(size.width() * rel_x), (int)(size.height() * rel_y));
+    QPointF globalPos = widget->mapToGlobal(localPos); // added global pos to fix deprected QMouseEvent Constructor issue
 
     Qt::MouseButton btn = Qt::NoButton;
     if(button == "left")
@@ -304,27 +343,16 @@ void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QSt
     else if(eventType == "release")
       type = QEvent::MouseButtonRelease;
 
-    QMouseEvent *event = new QMouseEvent(QEvent::MouseButtonPress, point, btn, btn, Qt::NoModifier);
+    QMouseEvent *event = new QMouseEvent(type, localPos, globalPos, btn, btn, Qt::NoModifier);
     QApplication::postEvent(widget, event);
     }
 }
 
 void SNAPTestQt::postKeyEvent(QObject *object, QString key)
 {
-  QWidget *widget = dynamic_cast<QWidget *>(object);
-  if(widget)
-    {
-    QKeySequence seq(key);
-    if(seq.count() == 1)
-      {
-      QKeyCombination code = seq[0];
-      Qt::Key key = code.key();
-      Qt::KeyboardModifiers mods = code.keyboardModifiers();
-
-      QKeyEvent *ev = new QKeyEvent(QEvent::KeyPress, key, mods);
-      QApplication::postEvent(widget, ev);
-      }
-    }
+  // We need the code to run in the main thread
+  QMetaObject::invokeMethod(
+    this, "postKeyEventInternal", Qt::QueuedConnection, Q_ARG(QObject *, object), Q_ARG(QString, key));
 }
 
 
@@ -453,7 +481,7 @@ void TestWorker::source(QString script_url)
     }
   else
     {
-    qWarning() << "Successfully completed test script:" << rc.toString();
+    qDebug() << "Successfully completed test script with return code " << rc.toString();
     SNAPTestQt::application_exit(SNAPTestQt::SUCCESS);
     }
 }

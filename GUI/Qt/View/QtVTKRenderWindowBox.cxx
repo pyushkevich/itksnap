@@ -175,37 +175,25 @@ protected:
 QtVTKRenderWindowBox::QtVTKRenderWindowBox(QWidget *parent) :
   QWidget(parent)
 {
-  // Create a sphere
-  sphereSource = vtkSmartPointer<vtkSphereSource>::New();
-  sphereSource->SetCenter(0.0, 0.0, 0.0);
-  sphereSource->SetRadius(5.0);
-  sphereSource->SetPhiResolution(100);
-  sphereSource->SetThetaResolution(100);
-
-  mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  mapper->SetInputConnection(sphereSource->GetOutputPort());
-
-  actor = vtkSmartPointer<vtkActor>::New();
-  actor->SetMapper(mapper);
-  actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
-
+  /*
   renderer = vtkSmartPointer<vtkRenderer>::New();
   renderer->AddActor(actor);
   renderer->ResetCamera();
   renderer->SetBackground(0.2,0.2,0.0);
+  */
 
   // Create an internal GL rendering widget
 #ifndef VTK_OPENGL_HAS_OSMESA
   auto *iw = new QVTKOpenGLNativeWidgetWithScreenshot(this);
   iw->setRenderWindow(vtkNew<vtkGenericOpenGLRenderWindow>());
-  iw->renderWindow()->AddRenderer(renderer);
+  // iw->renderWindow()->AddRenderer(renderer);
   iw->setObjectName("internalWidget");
   m_InternalWidget = iw;
 
 #else
   auto *iw = new QtVTKOffscreenMesaWidget(this);
   vtkNew<vtkRenderWindow> rwin;
-  rwin->AddRenderer(renderer);
+  // rwin->AddRenderer(renderer);
 
   vtkNew<QVTKInteractor> inter;
   inter->SetRenderWindow(rwin);

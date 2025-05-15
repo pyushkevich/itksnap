@@ -804,9 +804,6 @@ MAKE_TYPEDEF_PM_RANGED(Vector4i,        IntVec4)
 MAKE_TYPEDEF_PM_RANGED(Vector2ui,       UIntVec2)
 MAKE_TYPEDEF_PM_RANGED(Vector3ui,       UIntVec3)
 MAKE_TYPEDEF_PM_RANGED(Vector4ui,       UIntVec4)
-MAKE_TYPEDEF_PM_RANGED(Vector2b,        BooleanVec2)
-MAKE_TYPEDEF_PM_RANGED(Vector3b,        BooleanVec3)
-MAKE_TYPEDEF_PM_RANGED(Vector4b,        BooleanVec4)
 
 // Macros for non-ranged types
 MAKE_TYPEDEF_PM_NONRNG(std::string,     String)

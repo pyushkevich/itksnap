@@ -257,12 +257,13 @@ bool LayerGeneralPropertiesModel
     (*domain)[MODE_AVERAGE] = "Average of Components";
 
     // RGB is available only if there are three components
-    if(layer->GetNumberOfComponents() == 3)
+    if(layer->GetNumberOfComponents() == 2 || layer->GetNumberOfComponents() == 3)
       {
       (*domain)[MODE_RGB] = "RGB Display";
       }
 
-    if (layer->GetNumberOfComponents() == 2 || layer->GetNumberOfComponents() == 3)
+    if (layer->GetNumberOfComponents() == 3 ||
+          (layer->GetNumberOfComponents() == 2 && layer->GetBufferedRegion().GetSize()[2] == 1))
       {
       (*domain)[MODE_GRID] = "Deformation Grid Display";
       }

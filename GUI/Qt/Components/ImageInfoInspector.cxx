@@ -63,6 +63,8 @@ void ImageInfoInspector::SetModel(ImageInfoModel *model)
   makeArrayCoupling(ui->outVoxelObliqueX, ui->outVoxelObliqueY, ui->outVoxelObliqueZ,
                     m_Model->GetImageVoxelCoordinatesObliqueModel(), tr_real);
 
+  makeCoupling(ui->outVoxelObliqueT, m_Model->GetImageCurrentTimePointModel());
+
   makeArrayCoupling(ui->outMin, ui->outMax,
                     m_Model->GetImageMinMaxModel(), tr_real);
 

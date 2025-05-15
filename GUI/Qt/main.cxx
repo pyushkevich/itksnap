@@ -143,10 +143,10 @@ void usage(const char *progname)
   cout << "Image Options:" << endl;
   cout << "   -g FILE              : Load the main image from FILE" << endl;
   cout << "   -s FILE [FILE+]      : Load the segmentation image from FILE" << endl;
-  cout << "                        :   (multiple files may be provided)" << endl;
+  cout << "                        :   (multiple space separated files may be provided)" << endl;
   cout << "   -l FILE              : Load label descriptions from FILE" << endl;
   cout << "   -o FILE [FILE+]      : Load additional images from FILE" << endl;
-  cout << "                        :   (multiple files may be provided)" << endl;
+  cout << "                        :   (multiple space separated files may be provided)" << endl;
   cout << "   -w FILE              : Load workspace from FILE" << endl;
   cout << "                        :   (-w cannot be mixed with -g,-s,-l,-o options)" << endl;
   cout << "Additional Options:" << endl;
@@ -1004,20 +1004,23 @@ int main(int argc, char *argv[])
     // Show the panel
     mainwin->ShowFirstTime();
 
-    // Check for updates?
-    mainwin->UpdateAutoCheck();
+    // Skip these checks when testing, or it will interrupt the automation if not handled correctly
+    bool ui_testing = argdata.xTestId.size() > 0;
+    if (!ui_testing)
+      {
+      // Check for updates?
+      mainwin->UpdateAutoCheck();
 
-    // Remind layout preference
-    //  Ignore it for testing run, or it will interrupt the automation if not handled correctly
-    if (!argdata.xTestId.size())
+      // Remind layout preference
       mainwin->RemindLayoutPreference();
+      }
 
     // Assign the main window to the application. We do this right before
     // starting the event loop.
     app.setMainWindow(mainwin);
 
     // Do the test
-    if(argdata.xTestId.size())
+    if(ui_testing)
       {
       testingEngine = new SNAPTestQt(mainwin, argdata.fnTestDir, argdata.xTestAccel);
       testingEngine->LaunchTest(argdata.xTestId);
@@ -1050,8 +1053,9 @@ int main(int argc, char *argv[])
     // Run application
     int rc = app.exec();
 
-    // If everything cool, save the preferences
-    if(!rc)
+    // If everything cool, save the preferences, but not when testing because preferences
+    // set in test mode should not be kept
+    if(!rc && !ui_testing)
       gui->SaveUserPreferences();
 
     // Unload the main image before all the destructors start firing

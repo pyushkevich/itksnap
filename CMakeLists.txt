@@ -4,8 +4,6 @@
 # This CMake file is modeled after QtTest example project from
 # http://www.cmake.org/Wiki/BundleUtilitiesExample
 
-PROJECT(SNAP)
-
 #--------------------------------------------------------------------------------
 # CMAKE PRELIMINARIES                       
 #--------------------------------------------------------------------------------
@@ -17,6 +15,10 @@ cmake_policy(SET CMP0026 NEW)
 cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0080 OLD)
 
+#--------------------------------------------------------------------------------
+# PROJECT DEFINITION
+#--------------------------------------------------------------------------------
+PROJECT(SNAP)
 SET(CMAKE_MODULE_PATH ${SNAP_SOURCE_DIR}/CMake)
 
 OPTION(BUILD_SHARED_LIBS "Build shared (dynamic) libraries" OFF)
@@ -93,12 +95,12 @@ ENDIF()
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 4)
 SET(SNAP_VERSION_MINOR 2)
-SET(SNAP_VERSION_PATCH 0)
+SET(SNAP_VERSION_PATCH 2)
 SET(SNAP_VERSION_QUALIFIER "")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20240422")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "April 22, 2024")
+SET(SNAP_VERSION_RELEASE_DATE "20241202")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "December 02, 2024")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -230,7 +232,6 @@ SET(LOGIC_CXX
   Common/HistoryManager.cxx
   Common/IPCHandler.cxx
   Common/IRISException.cxx
-  Common/IRISVectorTemplates.cxx
   Common/MultiFrameDicomSeriesSorter.cxx
   Common/Rebroadcaster.cxx
   Common/Registry.cxx
@@ -329,8 +330,6 @@ SET(LOGIC_HEADERS
   Common/IRISVectorTypes.h
   Common/IRISVectorTypes.txx
   Common/IRISVectorTypesToITKConversion.h
-  Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.h
-  Common/ITKExtras/itkBSplineScatteredDataPointSetToImageFilter.txx
   Common/ITKExtras/itkBinaryDiamondStructuringElement.h
   Common/ITKExtras/itkBinaryDiamondStructuringElement.txx
   Common/ITKExtras/itkCoxDeBoorBSplineKernelFunction.h
@@ -355,6 +354,7 @@ SET(LOGIC_HEADERS
   Common/SNAPEvents.h
   Common/SystemInterface.h
   Common/TagList.h
+  Logic/Common/BrushWatershedPipeline.hxx
   Logic/Common/ColorLabel.h
   Logic/Common/ColorLabelTable.h
   Logic/Common/ColorMap.h
@@ -1235,7 +1235,9 @@ ENDIF(WIN32)
 SET(SNAP_BUNDLE_NAME ITK-SNAP)
 
 # Configure the executable's sources and libraries
-ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})
+ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC}
+  .clang-format
+  GUI/Qt/Coupling/QtMenuCoupling.h)
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 
@@ -1455,12 +1457,14 @@ IF(APPLE)
   SET(CPACK_PACKAGE_ICON ${SNAP_SOURCE_DIR}/Utilities/MacOS/BundleResources/itksnap.icns)
 
   # The keychain used to store codesigning certificate and the notary tool password
-  SET(SNAP_MACOS_KEYCHAIN "default" CACHE STRING "Keychain where the code signing certificate, notarize password are stored")
+  SET(SNAP_MACOS_KEYCHAIN "" CACHE STRING "Keychain where the code signing certificate, notarize password are stored")
   SET(SNAP_MACOS_KEYCHAIN_PASSWORD_FILE "" CACHE STRING "File containing the password to unlock the keychain")
   MARK_AS_ADVANCED(SNAP_MACOS_KEYCHAIN)
   MARK_AS_ADVANCED(SNAP_MACOS_KEYCHAIN_PASSWORD_FILE)
 
   # Code signing certificate - optional
+  # Make it possible to specify the certificate name in an environment variable
+  # because they contain spaces and CMake can't handle the spaces in -D arguments
   SET(SNAP_MACOSX_CODESIGN_CERT "" CACHE STRING "Name of the Apple Developer Certificate to sign application")
   MARK_AS_ADVANCED(SNAP_MACOSX_CODESIGN_CERT)
 
@@ -1472,6 +1476,16 @@ IF(APPLE)
 
   # Create a script that can unlock the keychain
   CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/Utilities/MacOS/unlock_keychain.cmake ${CMAKE_BINARY_DIR}/Utilities/MacOS/unlock_keychain.cmake @ONLY)
+
+  # Make it possible to specify the certificate name in an environment variable
+  # because they contain spaces and CMake can't handle the spaces in -D arguments
+  IF(NOT SNAP_MACOSX_CODESIGN_CERT)
+    IF(DEFINED ENV{ITKSNAP_MACOS_CODESIGN_CERTIFICATE})
+      SET(SNAP_MACOSX_CODESIGN_CERT "$ENV{ITKSNAP_MACOS_CODESIGN_CERTIFICATE}")
+      MESSAGE(STATUS "SNAP_MACOSX_CODESIGN_CERT set to '${SNAP_MACOSX_CODESIGN_CERT}' via environment")
+    ENDIF()
+  ENDIF()
+
 
   IF(SNAP_MACOSX_CODESIGN_CERT)
     SET(CPACK_BUNDLE_APPLE_CERT_APP ${SNAP_MACOSX_CODESIGN_CERT})
@@ -1580,8 +1594,19 @@ ELSEIF(WIN32)
 
   # On Win32, we must include the redistributable
   IF(MSVC_VERSION GREATER 1399)
-    FIND_PROGRAM(VCREDIST_EXE vcredist_x86.exe vcredist_x64.exe)
+
+    # Determine which redistributable to use
+    IF(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+      SET(VCREDIST_SEARCH_NAME vc_redist.arm64.exe)
+    ELSEIF(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
+      SET(VCREDIST_SEARCH_NAME vc_redist.x86.exe vcredist_x86.exe)
+    ELSE(CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
+      SET(VCREDIST_SEARCH_NAME vc_redist.x64.exe vcredist_x64.exe)
+    ENDIF()
+
+    FIND_PROGRAM(VCREDIST_EXE NAMES ${VCREDIST_SEARCH_NAME} PATHS $ENV{VCToolsRedistDir})
     IF(VCREDIST_EXE)
+      MESSAGE(STATUS "Found MSVC redistributable ${VCREDIST_EXE}")
       GET_FILENAME_COMPONENT(VCREDIST_NAME ${VCREDIST_EXE} NAME)
       INSTALL(FILES ${VCREDIST_EXE} DESTINATION bin)
       SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS 
@@ -1688,6 +1713,12 @@ ENDIF(APPLE)
 # Construct the name of the package
 SET(CPACK_PACKAGE_FILE_NAME_WEXT "${CPACK_PACKAGE_FILE_NAME}.${CPACK_EXTENSION}")
 
+# Write the package name to a file in the build directory - to help external tools
+# know what the current package name is expected to be
+CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utilities/package_info.json
+    ${CMAKE_CURRENT_BINARY_DIR}/package_info.json
+    @ONLY)
 
 #--------------------------------------------------------------------------------
 # Uploading code to SourceForge
@@ -1699,7 +1730,7 @@ SET(CPACK_PACKAGE_FILE_NAME_WEXT "${CPACK_PACKAGE_FILE_NAME}.${CPACK_EXTENSION}"
 FIND_PROGRAM(SCP_PROGRAM NAMES scp DOC "Location of the scp program (optional)")
 MARK_AS_ADVANCED(SCP_PROGRAM)
 
-SET(SCP_ARGUMENTS "-v" CACHE STRING "Optional arguments to the scp command for uploads to SourceForge")
+SET(SCP_ARGUMENTS "-v -o BatchMode=yes" CACHE STRING "Optional arguments to the scp command for uploads to SourceForge")
 MARK_AS_ADVANCED(SCP_ARGUMENTS)
 
 SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")

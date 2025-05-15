@@ -51,6 +51,9 @@ GuidedMeshIO::FileFormat
 GuidedMeshIO::
 GetFormatByExtension(std::string extension)
 {
+  if (extension.empty()) // possible when reading dicom series
+    return FileFormat::FORMAT_COUNT;
+
   // All format string in the map include '.' prefix
   if (extension.at(0) != '.')
     extension.insert(0, 1, '.');
@@ -187,9 +190,18 @@ bool
 GuidedMeshIO
 ::IsFilePolyData(const char *filename)
 {
-  auto reader = vtkNew<vtkDataReader>();
-  reader->SetFileName(filename);
-  return reader->IsFilePolyData();
+  auto fmt = GetFormatByFilename(filename);
+  if (fmt == FORMAT_COUNT)
+    return false;
+
+  AbstractMeshIODelegate *ioDelegate = AbstractMeshIODelegate::GetDelegate(fmt);
+
+  if (!ioDelegate)
+    return false;
+
+  bool ret = ioDelegate->IsFilePolyData(filename);
+  delete ioDelegate;
+  return ret;
 }
 
 GuidedMeshIO::FileFormat

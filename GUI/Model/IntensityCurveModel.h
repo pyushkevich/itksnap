@@ -4,8 +4,6 @@
 #include <AbstractLayerAssociatedModel.h>
 #include <ImageWrapperBase.h>
 #include <UIReporterDelegates.h>
-
-#include "GenericImageData.h"
 #include <LayerAssociation.h>
 
 #include "PropertyModel.h"
@@ -14,6 +12,43 @@ class GlobalUIModel;
 class IntensityCurveModel;
 class AbstractContinuousImageDisplayMappingPolicy;
 
+
+/**
+ * A struct representing a selection of layers to which contrast properties
+ * can be applied to. Currently this can be a specific layer or all layers,
+ * and this may be expanded in the future to include tag-based selection
+ */
+struct ApplyToLayerSelection
+{
+  enum Mode
+  {
+    APPLY_TO_ALL = 0,
+    APPLY_TO_ONE
+  };
+  Mode         mode = APPLY_TO_ALL;
+  unsigned int target_layer = 0;
+  ApplyToLayerSelection(Mode mode = APPLY_TO_ALL, unsigned int target = 0)
+  {
+    this->mode = mode;
+    this->target_layer = target;
+  }
+
+  bool operator<(const ApplyToLayerSelection &other) const
+  {
+    return mode < other.mode ||
+           (mode == other.mode && target_layer < other.target_layer);
+  }
+
+  bool operator==(const ApplyToLayerSelection &other) const
+  {
+    return mode == other.mode && target_layer == other.target_layer;
+  }
+
+  bool operator!=(const ApplyToLayerSelection &other) const
+  {
+    return !(*this == other);
+  }
+};
 
 /**
   A set of properties associated with a specific layer
@@ -38,20 +73,16 @@ public:
   irisSetMacro(FirstTime, bool)
 
   irisGetSetMacro(ObserverTag, unsigned long)
-
-	irisGetSetMacro(HistogramChangeObserverTag, unsigned long)
+  irisGetSetMacro(HistogramChangeObserverTag, unsigned long)
 
   IntensityCurveLayerProperties();
   virtual ~IntensityCurveLayerProperties();
 
-
 protected:
-
   unsigned int m_HistogramBinSize;
-  bool m_HistogramLog;
-  double m_HistogramCutoff;
-
-  int m_MovingControlPoint;
+  bool         m_HistogramLog;
+  double       m_HistogramCutoff;
+  int          m_MovingControlPoint;
 
   // Whether or not we have been registered with this layer before.
   // By default, this is set to true. This flag allows us to perform
@@ -62,13 +93,12 @@ protected:
   // Whether or not we are already listening to events from this layer
   unsigned long m_ObserverTag;
 
-	// Observer tag for mesh vector mode change to update histogram cutoff
-	unsigned long m_HistogramChangeObserverTag;
+  // Observer tag for mesh vector mode change to update histogram cutoff
+  unsigned long m_HistogramChangeObserverTag;
 };
 
-typedef AbstractLayerAssociatedModel<
-    IntensityCurveLayerProperties,
-    WrapperBase> IntensityCurveModelBase;
+typedef AbstractLayerAssociatedModel<IntensityCurveLayerProperties, WrapperBase>
+  IntensityCurveModelBase;
 
 /**
   The intensity curve model is used to interact with the intensity curve in
@@ -81,13 +111,11 @@ typedef AbstractLayerAssociatedModel<
   To change the layer with which the model is associated, call SetLayer. The
   model will fire an event, to which the UI should listen, refreshing the UI
   in response.
-  */
+*/
 class IntensityCurveModel : public IntensityCurveModelBase
 {
 public:
-
   irisITKObjectMacro(IntensityCurveModel, IntensityCurveModelBase)
-
 
   /** Before using the model, it must be coupled with a size reporter */
   irisGetMacro(ViewportReporter, ViewportSizeReporter *)
@@ -97,15 +125,15 @@ public:
   void RegisterWithLayer(WrapperBase *layer) ITK_OVERRIDE;
   void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
 
-
   /**
     States in which the model can be, which allow the activation and
     deactivation of various widgets in the interface
     */
-  enum UIState {
+  enum UIState
+  {
     UIF_LAYER_ACTIVE,
     UIF_CONTROL_SELECTED
-    };
+  };
 
   /**
     Get the curve stored in the current layer
@@ -170,18 +198,32 @@ public:
 
   // This enum lists the types of global intensity range properties for which
   // separate models are defined
-  enum IntensityRangePropertyType { MINIMUM = 0, MAXIMUM, LEVEL, WINDOW };
+  enum IntensityRangePropertyType
+  {
+    MINIMUM = 0,
+    MAXIMUM,
+    LEVEL,
+    WINDOW
+  };
 
   // Access the models for the intensity min, max, level and window. These
   // models are specified by an index
   AbstractRangedDoubleProperty *GetIntensityRangeModel(
-      IntensityRangePropertyType index) const;
+    IntensityRangePropertyType index) const;
 
-	void UpdateHistogramCutoff();
+  void UpdateHistogramCutoff();
 
   void OnAutoFitWindow();
-protected:
 
+  typedef std::pair<ApplyToLayerSelection, std::string> ApplyToLayerTargetDesc;
+
+  /** Get a list of targets to which the intensity properties can be applied to */
+  std::list<ApplyToLayerTargetDesc> GetApplyToLayerTargets();
+
+  /** Apply intensity settings to another layer */
+  void ApplyToLayers(ApplyToLayerSelection target);
+
+protected:
   IntensityCurveModel();
   virtual ~IntensityCurveModel();
 
@@ -201,13 +243,13 @@ protected:
 
 
   Vector3d GetEventCurveCoordiantes(const Vector3d &x);
-  int GetControlPointInVicinity(double x, double y, int pixelRadius);
+  int      GetControlPointInVicinity(double x, double y, int pixelRadius);
 
   // Model for the control point index
   SmartPtr<AbstractRangedIntProperty> m_MovingControlIdModel;
 
   // Moving control point Id access methods
-  bool GetMovingControlPointIdValueAndRange(int &value,
+  bool GetMovingControlPointIdValueAndRange(int                    &value,
                                             NumericValueRange<int> *range);
   void SetMovingControlPointId(int value);
 
@@ -223,24 +265,23 @@ protected:
   SmartPtr<AbstractRangedDoubleProperty> m_IntensityRangeModel[4];
 
   // Window and level access methods
-  bool GetIntensityRangeIndexedValueAndRange(int index,
-                                      double &value,
-                                      NumericValueRange<double> *range);
+  bool GetIntensityRangeIndexedValueAndRange(int                        index,
+                                             double                    &value,
+                                             NumericValueRange<double> *range);
   void SetIntensityRangeIndexedValue(int index, double value);
 
   // Child model for histogram bin size
   SmartPtr<AbstractRangedIntProperty> m_HistogramBinSizeModel;
 
   // Histogram bin size access methods
-  bool GetHistogramBinSizeValueAndRange(int &value,
-                                        NumericValueRange<int> *range);
+  bool GetHistogramBinSizeValueAndRange(int &value, NumericValueRange<int> *range);
   void SetHistogramBinSize(int value);
 
   // Child model for histogram cutoff
   SmartPtr<AbstractRangedDoubleProperty> m_HistogramCutoffModel;
 
   // Histogram bin size access methods
-  bool GetHistogramCutoffValueAndRange(double &value,
+  bool GetHistogramCutoffValueAndRange(double                    &value,
                                        NumericValueRange<double> *range);
   void SetHistogramCutoff(double value);
 
@@ -250,7 +291,6 @@ protected:
   // Histogram bin size access methods
   bool GetHistogramScale(bool &value);
   void SetHistogramScale(bool value);
-
 };
 
 #endif // INTENSITYCURVEMODEL_H

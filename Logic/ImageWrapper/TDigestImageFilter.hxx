@@ -42,7 +42,7 @@ constexpr void skip_value(const TValue &value, TValue &skip_min, TValue &skip_ma
     if(std::isfinite(value))
       {
       skip_min = std::min(value, skip_min);
-      skip_max = std::min(value, skip_max);
+      skip_max = std::max(value, skip_max);
       }
     else if(std::isnan(value))
       nan_count++;
@@ -50,7 +50,7 @@ constexpr void skip_value(const TValue &value, TValue &skip_min, TValue &skip_ma
   else
     {
     skip_min = std::min(value, skip_min);
-    skip_max = std::min(value, skip_max);
+    skip_max = std::max(value, skip_max);
     }
 };
 

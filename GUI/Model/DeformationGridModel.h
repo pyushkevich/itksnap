@@ -16,7 +16,7 @@ struct DeformationGridVertices
   /** Index 0 represents horizontal lines, index 1 represens vertical lines
    *  Dimension of the lines are defined by number of lines (nline),
    *  and number of vertices on each line (nvert) */
-  size_t nline[2], nvert[2];
+  size_t nline[2] = {0l, 0l}, nvert[2] = {0l, 0l};
 };
 
 class DeformationGridModel : public AbstractModel

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>454</width>
-    <height>489</height>
+    <height>561</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -79,7 +79,7 @@ QGroupBox::title {
             <string>Window:</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -104,7 +104,7 @@ QGroupBox::title {
             </size>
            </property>
            <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
+            <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
            </property>
            <property name="keyboardTracking">
             <bool>false</bool>
@@ -133,7 +133,7 @@ QGroupBox::title {
             <string>Minimum:</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -171,13 +171,13 @@ QGroupBox::title {
             </size>
            </property>
            <property name="focusPolicy">
-            <enum>Qt::WheelFocus</enum>
+            <enum>Qt::FocusPolicy::WheelFocus</enum>
            </property>
            <property name="toolTip">
             <string/>
            </property>
            <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
+            <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
            </property>
            <property name="keyboardTracking">
             <bool>false</bool>
@@ -190,7 +190,7 @@ QGroupBox::title {
          <item row="0" column="5">
           <spacer name="horizontalSpacer">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -221,10 +221,10 @@ QGroupBox::title {
             </size>
            </property>
            <property name="focusPolicy">
-            <enum>Qt::WheelFocus</enum>
+            <enum>Qt::FocusPolicy::WheelFocus</enum>
            </property>
            <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
+            <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
            </property>
            <property name="keyboardTracking">
             <bool>false</bool>
@@ -240,7 +240,7 @@ QGroupBox::title {
             <string>Maximum:</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
           </widget>
          </item>
@@ -265,10 +265,10 @@ QGroupBox::title {
             </size>
            </property>
            <property name="focusPolicy">
-            <enum>Qt::WheelFocus</enum>
+            <enum>Qt::FocusPolicy::WheelFocus</enum>
            </property>
            <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
+            <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
            </property>
            <property name="keyboardTracking">
             <bool>false</bool>
@@ -284,17 +284,17 @@ QGroupBox::title {
             <string>Level:</string>
            </property>
            <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
            </property>
           </widget>
          </item>
          <item row="0" column="2">
           <spacer name="horizontalSpacer_2">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Fixed</enum>
+            <enum>QSizePolicy::Policy::Fixed</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -331,10 +331,10 @@ QGroupBox::title {
          </size>
         </property>
         <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
+         <enum>QFrame::Shape::StyledPanel</enum>
         </property>
         <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
+         <enum>QFrame::Shadow::Raised</enum>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_3">
          <property name="margin" stdset="0">
@@ -408,7 +408,7 @@ QGroupBox::title {
                <string>The x-coordinate of the selected control point. The x-coordinate represents input image intensity.</string>
               </property>
               <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::NoButtons</enum>
+               <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
               </property>
               <property name="keyboardTracking">
                <bool>false</bool>
@@ -461,7 +461,7 @@ QGroupBox::title {
                <string>The y-coordinate of the selected control point. The y-coordinate represents the index into the color map used to display the image. Its values are in the range [0 1].</string>
               </property>
               <property name="buttonSymbols">
-               <enum>QAbstractSpinBox::NoButtons</enum>
+               <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
               </property>
               <property name="keyboardTracking">
                <bool>false</bool>
@@ -548,8 +548,10 @@ QGroupBox::title {
               <property name="toolTip">
                <string>Increase the number of control points on the curve</string>
               </property>
-              <property name="text">
-               <string>+</string>
+              <property name="icon">
+               <iconset>
+                <normalon>:/root/icons8_plus_16.png</normalon>
+               </iconset>
               </property>
              </widget>
             </item>
@@ -558,8 +560,10 @@ QGroupBox::title {
               <property name="toolTip">
                <string>Decrease the number of control points on the curve</string>
               </property>
-              <property name="text">
-               <string>-</string>
+              <property name="icon">
+               <iconset>
+                <normalon>:/root/icons8_no_entry_16.png</normalon>
+               </iconset>
               </property>
              </widget>
             </item>
@@ -569,7 +573,7 @@ QGroupBox::title {
          <item row="1" column="3">
           <spacer name="horizontalSpacer_3">
            <property name="orientation">
-            <enum>Qt::Horizontal</enum>
+            <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -587,6 +591,9 @@ QGroupBox::title {
    </item>
    <item>
     <widget class="QGroupBox" name="grpHistogram">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="title">
       <string>Histogram Display Options:</string>
      </property>
@@ -614,7 +621,7 @@ QGroupBox::title {
       <item>
        <spacer name="horizontalSpacer_4">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -656,7 +663,7 @@ QGroupBox::title {
       <item>
        <spacer name="horizontalSpacer_5">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
@@ -676,7 +683,57 @@ QGroupBox::title {
      </layout>
     </widget>
    </item>
+   <item>
+    <widget class="QWidget" name="widget_5" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <spacer name="horizontalSpacer_6">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnContrastActions">
+        <property name="contextMenuPolicy">
+         <enum>Qt::ContextMenuPolicy::DefaultContextMenu</enum>
+        </property>
+        <property name="text">
+         <string>Actions ...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Orientation::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
   </layout>
+  <action name="actionHistogram_display_preferences">
+   <property name="text">
+    <string>Histogram display preferences ...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -697,7 +754,6 @@ QGroupBox::title {
   <tabstop>inControlX</tabstop>
   <tabstop>inControlY</tabstop>
   <tabstop>btnAddControl</tabstop>
-  <tabstop>btnRemoveControl</tabstop>
   <tabstop>inBinSize</tabstop>
   <tabstop>inCutoff</tabstop>
   <tabstop>inLogScale</tabstop>

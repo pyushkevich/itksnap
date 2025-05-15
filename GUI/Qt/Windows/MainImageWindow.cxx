@@ -786,28 +786,51 @@ void MainImageWindow::onActiveChanged()
 
 void MainImageWindow::UpdateMainLayout()
 {
-  // Update the image dimensions
-  this->UpdateCanvasDimensions();
+    // Update the image dimensions
+    this->UpdateCanvasDimensions();
 
-  // Choose what page to show depending on if an image has been loaded
-  if(m_Model->GetDriver()->IsMainImageLoaded())
+    // Choose what page to show depending on if an image has been loaded
+    if(m_Model->GetDriver()->IsMainImageLoaded())
     {
-    ui->stackMain->setCurrentWidget(ui->pageMain);
-    m_DockLeft->setWidget(m_ControlPanel);
+        ui->stackMain->setCurrentWidget(ui->pageMain);
+        m_DockLeft->setWidget(m_ControlPanel);
+
+        // Update the layout depending on whether this is a 2D or 3D image
+        auto *main = m_Model->GetDriver()->GetIRISImageData()->GetMain();
+
+        // If the image is 2D, update the display layout to only show the 2D view
+        auto *dlm = m_Model->GetDisplayLayoutModel();
+        if(main->GetSize()[2] == 1)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                auto *slice_model = m_Model->GetSliceModel(i);
+                if (slice_model->GetSliceDirectionInImageSpace() == 2)
+                {
+                    auto layout = dlm->GetViewPanelExpandButtonActionModel(i)->GetValue();
+                    dlm->GetViewPanelLayoutModel()->SetValue(layout);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
+        }
     }
-  else
+    else
     {
-    // Go to the splash page
-    ui->stackMain->setCurrentWidget(ui->pageSplash);
-    m_DockLeft->setWidget(m_SplashPanel);
+        // Go to the splash page
+        ui->stackMain->setCurrentWidget(ui->pageSplash);
+        m_DockLeft->setWidget(m_SplashPanel);
 
-    // Choose the appropriate page depending on whether there are recent images
-    // available
-    if(m_Model->IsHistoryEmpty("MainImage"))
-      ui->tabSplash->setCurrentWidget(ui->tabGettingStarted);
+        // Choose the appropriate page depending on whether there are recent images
+        // available
+        if(m_Model->IsHistoryEmpty("MainImage"))
+            ui->tabSplash->setCurrentWidget(ui->tabGettingStarted);
 
-    else if(ui->tabSplash->currentWidget() == ui->tabGettingStarted)
-      ui->tabSplash->setCurrentWidget(ui->tabRecent);
+        else if(ui->tabSplash->currentWidget() == ui->tabGettingStarted)
+            ui->tabSplash->setCurrentWidget(ui->tabRecent);
     }
 }
 
@@ -1122,15 +1145,15 @@ SliceViewPanel * MainImageWindow::GetSlicePanel(unsigned int i)
 
 void MainImageWindow::closeEvent(QCloseEvent *event)
 {
+  // Close all the windows that are open
+  QApplication::closeAllWindows();
+
   // Prompt for unsaved changes
   if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
     {
     event->ignore();
     return;
     }
-
-  // Close all the windows that are open
-  QApplication::closeAllWindows();
 
   // Unload all images (this causes the associations to be saved)
   m_Model->GetDriver()->Quit();
@@ -1260,43 +1283,52 @@ void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
 
 void MainImageWindow::LoadDroppedFile(QString file)
 {
-  std::string filename = to_utf8(file);
-  // Check if the dropped file is a project
-  if(m_Model->GetDriver()->IsProjectFile(filename.c_str()))
+  try
     {
-    // For the time being, the feature of opening the workspace in a new
-    // window is not implemented. Instead, we just prompt the user for
-    // unsaved changes.
-    if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
-      return;
-
-    // Load the project
-    LoadProject(file);
-    }
-
-  else
-    {
-    if(m_Model->GetDriver()->IsMainImageLoaded())
+    std::string filename = to_utf8(file);
+    // Check if the dropped file is a project
+    if(m_Model->GetDriver()->IsProjectFile(filename.c_str()))
       {
-      // check if it's a label description file
-      if (m_Model->GetDriver()->GetColorLabelTable()->ValidateFile(filename.c_str()))
-        {
-        m_Model->GetDriver()->LoadLabelDescriptions(filename.c_str());
+      // For the time being, the feature of opening the workspace in a new
+      // window is not implemented. Instead, we just prompt the user for
+      // unsaved changes.
+      if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
         return;
-        }
 
-      // If an image is already loaded, we show the dialog
-      m_DropDialog->SetDroppedFilename(file);
-      m_DropDialog->setModal(true);
-
-      RaiseDialog(m_DropDialog);
+      // Load the project
+      LoadProject(file);
       }
+
     else
       {
-      // Otherwise, load the main image directly
-      m_DropDialog->InitialLoad(file);
+      if(m_Model->GetDriver()->IsMainImageLoaded())
+        {
+        // check if it's a label description file
+        if (m_Model->GetDriver()->GetColorLabelTable()->ValidateFile(filename.c_str()))
+          {
+          m_Model->GetDriver()->LoadLabelDescriptions(filename.c_str());
+          return;
+          }
+
+        // If an image is already loaded, we show the dialog
+        m_DropDialog->SetDroppedFilename(file);
+        m_DropDialog->setModal(true);
+
+        RaiseDialog(m_DropDialog);
+        }
+      else
+        {
+        // Otherwise, load the main image directly
+        m_DropDialog->InitialLoad(file);
+        }
       }
     }
+  catch (exception &exc) // for minor exceptions, no need to crash the entire program
+    {
+    ReportNonLethalException(this, exc, "File Dropping Error",
+                             QString("Failed to load file %1").arg(file));
+    }
+
 }
 
 #ifdef __APPLE__
@@ -2672,6 +2704,3 @@ void MainImageWindow::on_actionReloadSegmentation_triggered()
       }
     }
 }
-
-
-

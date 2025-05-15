@@ -7,6 +7,7 @@
 class IntensityCurveModel;
 class QtViewportReporter;
 class IntensityCurveVTKRenderer;
+class QMenu;
 
 namespace Ui {
   class ContrastInspector;
@@ -36,6 +37,10 @@ private slots:
 
   void on_btnAuto_clicked();
 
+  void onApplyToMenuTriggered(QAction *a);
+
+  void on_actionHistogram_display_preferences_triggered();
+
 private:
 
   IntensityCurveModel *m_Model;
@@ -46,6 +51,9 @@ private:
   SmartPtr<QtViewportReporter> m_CurveBoxViewportReporter;
 
   SmartPtr<IntensityCurveVTKRenderer> m_CurveRenderer;
+
+  QMenu *m_ApplyToMenu = nullptr;
+  void UpdateApplyToMenu();
 };
 
 #endif // CONTRASTINSPECTOR_H

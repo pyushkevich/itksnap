@@ -107,7 +107,7 @@ VectorImageWrapper<TTraits>
 {
   // Get the numerical value
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
-  if(mode.UseRGB || (mode.RenderAsGrid && this->GetNumberOfComponents() == 3))
+  if(mode.UseRGB || mode.RenderAsGrid)
     {
     // Sample the intensity under the cursor for the current time point
     this->SampleIntensityAtReferenceIndex(
@@ -135,7 +135,7 @@ VectorImageWrapper<TTraits>
 {
   // Get the numerical value
   MultiChannelDisplayMode mode = this->m_DisplayMapping->GetDisplayMode();
-  if(mode.UseRGB || (mode.RenderAsGrid && this->GetNumberOfComponents() == 3))
+  if(mode.UseRGB || mode.RenderAsGrid)
     {
     // Create a non-orthogonal slicer for this task - we don't want to interfere with the
     // main slicing pipeline
@@ -360,10 +360,18 @@ VectorImageWrapper<TTraits>
 ::SetITKTransform(ImageBaseType *referenceSpace, ITKTransformType *transform)
 {
   Superclass::SetITKTransform(referenceSpace, transform);
-  for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
-    {
-    it->second->SetITKTransform(referenceSpace, transform);
-    }
+  for(auto &it : m_ScalarReps)
+    it.second->SetITKTransform(referenceSpace, transform);
+}
+
+template<class TTraits>
+void
+VectorImageWrapper<TTraits>
+::SetReferenceSpace(ImageBaseType *referenceSpace)
+{
+  Superclass::SetReferenceSpace(referenceSpace);
+  for(auto &it : m_ScalarReps)
+    it.second->SetReferenceSpace(referenceSpace);
 }
 
 
@@ -489,6 +497,16 @@ VectorImageWrapper<TTraits>
   Superclass::SetDirectionMatrix(direction);
   for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
     it->second->SetDirectionMatrix(direction);
+}
+
+template<class TTraits>
+void
+VectorImageWrapper<TTraits>
+::SetSlicingInterpolationMode(InterpolationMode mode)
+{
+    Superclass::SetSlicingInterpolationMode(mode);
+    for(ScalarRepIterator it = m_ScalarReps.begin(); it != m_ScalarReps.end(); ++it)
+        it->second->SetSlicingInterpolationMode(mode);
 }
 
 template <class TTraits>

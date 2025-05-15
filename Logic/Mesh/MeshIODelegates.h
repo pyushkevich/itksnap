@@ -18,6 +18,8 @@ public:
 
   static void GetDelegate(GuidedMeshIO::FileFormat fmt, AbstractMeshIODelegate *delegate);
 
+  virtual bool IsFilePolyData(const char *filename) = 0;
+
 
 };
 
@@ -28,6 +30,8 @@ public:
   ~VTKMeshIODelegate() = default;
 
   vtkSmartPointer<vtkPolyData> ReadPolyData(const char *filename) override;
+
+  bool IsFilePolyData(const char *filename) override;
 };
 
 class VTPMeshIODelegate : public AbstractMeshIODelegate
@@ -37,6 +41,8 @@ public:
   virtual ~VTPMeshIODelegate() = default;
 
   vtkSmartPointer<vtkPolyData> ReadPolyData(const char *filename) override;
+
+  bool IsFilePolyData(const char *filename) override;
 };
 
 #endif // MESHIODELEGATES_H

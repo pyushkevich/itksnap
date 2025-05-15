@@ -5,7 +5,7 @@ include("Library");
 openWorkspace("tensor.itksnap");
 
 //=== Show the layer inspector
-engine.findChild(mainwin,"actionLayerInspector").trigger();
+engine.trigger("actionLayerInspector");
 
 //=== Select a specific overlay
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
@@ -13,7 +13,7 @@ var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0003");
 rowdelegate.setSelected(true);
 
 //=== Toggle the layout
-engine.findChild(layerdialog, "actionLayoutToggle").trigger();
+engine.trigger("actionLayoutToggle", layerdialog);
 
 //=== Go to the color map widget
 var cmpcolormap = engine.findChild(layerdialog, "cmpColorMap");
@@ -27,7 +27,7 @@ inpreset.setCurrentIndex(8);
 engine.invoke(layerdialog, "close");
 
 //=== Trigger the unload all action
-engine.findChild(mainwin,"actionUnload_All").trigger();
+engine.trigger("actionUnload_All");
 
 //=== Check that the unsaved changes dialog is open
 var savedialog = engine.findWidget("dlgSaveModified");

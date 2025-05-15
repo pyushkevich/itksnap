@@ -350,7 +350,7 @@ public:
 };
 
 /** Empty template for default value traits. Specialize for different Qt widgets */
-template <class TAtomic, class TWidget>
+template <class TAtomic, class TWidget, typename Enable=void>
 class DefaultWidgetValueTraits {};
 
 /** Empty template for default domain traits. Specialize for different Qt widgets */

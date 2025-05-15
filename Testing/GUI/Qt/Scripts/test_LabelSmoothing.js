@@ -5,7 +5,7 @@ include("Library");
 openWorkspace("ultrasound_ws4d.itksnap");
 
 // Open the Smoothing Dialog
-engine.findChild(mainwin, "actionSmooth_Labels").trigger();
+engine.trigger("actionSmooth_Labels");
 
 // Test label selection
 var sDialog = engine.findChild(mainwin, "SmoothLabelsDialog");

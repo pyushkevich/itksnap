@@ -129,8 +129,7 @@ public:
 
     // Compute date in easy to read format
     QString t_stamp = from_utf8(entry.atime).split(".").first();
-    QDateTime dt = QDateTime::fromString(t_stamp, "yyyy-MM-dd hh:mm:ss");
-    dt.setTimeSpec(Qt::UTC);
+    QDateTime dt = QDateTime::fromString(t_stamp, "yyyy-MM-dd hh:mm:ss").toUTC();
 
     // First item is the date/time
     items[0]->setText(get_user_friendly_date_string(dt));

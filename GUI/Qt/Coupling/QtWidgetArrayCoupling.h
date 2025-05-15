@@ -97,7 +97,7 @@ protected:
   // want that widget's value to be sent to the model, while using the cached
   // values for the other widgets.
   ValueType m_CachedModelValue, m_CachedWidgetValue;
-  iris_vector_fixed<bool, VDim> m_CacheValid;
+  iris_vector_fixed<int, VDim> m_CacheValid;
 };
 
 /**

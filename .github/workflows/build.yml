@@ -1,0 +1,381 @@
+name: Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        type: boolean
+        description: 'Enable tmate debugging'
+        required: false
+        default: false
+      use_cached_itksnap_build:
+        type: boolean
+        description: 'Use cached ITK-SNAP build'
+        required: false
+        default: false        
+      skip_testing:
+        type: boolean
+        description: 'Skip testing'
+        required: false
+        default: false       
+      upload_release:
+        type: boolean
+        description: 'Upload a named release to SourceForge'
+        required: false
+        default: false       
+  push:
+  # release:
+  # types:
+  #   - published
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest,macos-13,macos-14,windows-2022]
+        itk_ver: [ 'v5.4.0' ]
+        vtk_ver: [ '9.3.1' ]
+        qt_ver: [ '6.6.3' ]
+        include:
+          - os: ubuntu-latest
+            qt_host: linux
+            qt_arch: gcc_64
+            ctest_cmd: xvfb-run -a ctest
+          - os: macos-13
+            qt_host: mac
+            qt_arch: clang_64
+            ctest_cmd: ctest
+          - os: macos-14
+            qt_host: mac
+            qt_arch: clang_64
+            ctest_cmd: ctest
+          - os: windows-2022
+            qt_host: windows
+            qt_arch: win64_msvc2019_64
+            ctest_cmd: ctest
+
+    steps:
+
+      # Select MSVC tools on windows
+      - name: Select MSVC 2019/2022
+        uses: ilammy/msvc-dev-cmd@v1
+        if: ${{ runner.os == 'Windows' }}
+
+      # Setup ninja
+      - name: Setup Ninja
+        uses: seanmiddleditch/gha-setup-ninja@master
+
+      # Install system packages
+      - name: Install System Packages
+        uses: ConorMacBride/install-package@v1
+        with:
+          # brew: 
+          apt: libcurl4-openssl-dev
+          choco: nsis
+
+      # Install curl on Windows
+      - name: Install libcurl on Windows
+        uses: johnwason/vcpkg-action@v6
+        id: vcpkg
+        if: ${{ runner.os == 'Windows' }}
+        with:
+          pkgs: curl
+          triplet: x64-windows-release
+          token: ${{ github.token }}
+          github-binarycache: false
+    
+      # Install Qt
+      - name: Install Qt on Ubuntu
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ matrix.qt_ver }}
+          target: 'desktop'
+          host: ${{ matrix.qt_host }}
+          arch: ${{ matrix.qt_arch }}
+          cache: true
+
+      # Use cached VTK build if available
+      - name: Restore VTK Cache
+        id: cache-vtk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{github.workspace}}/vtk/install
+          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}
+
+      # Check out VTK
+      - name: Checkout VTK
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+            repository: 'Kitware/VTK.git'
+            ref: v${{ matrix.vtk_ver }}
+            submodules: true
+            path: 'vtk'
+
+      # Build VTK
+      - name: Build VTK
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
+        uses: threeal/cmake-action@v2.0.0
+        with:
+          source-dir: ${{github.workspace}}/vtk
+          build-dir: ${{github.workspace}}/vtk/build
+          build-args: "-t install -- -k 0"
+          generator: Ninja
+          options: |
+            BUILD_TESTING:BOOL=FALSE
+            BUILD_EXAMPLES:BOOL=FALSE
+            BUILD_SHARED_LIBS:BOOL=FALSE
+            VTK_REQUIRED_OBJCXX_FLAGS:STRING=
+            VTK_GROUP_ENABLE_Qt:STRING=YES
+            VTK_MODULE_ENABLE_VTK_GUISupportQtQuick:STRING=NO
+            VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
+            CMAKE_BUILD_TYPE=Release
+            CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
+            ${{ runner.os == 'Windows' && 'VTK_SMP_ENABLE_STDTHREAD=OFF' || '' }}
+     
+      # Cache the VTK build
+      - name: Cache VTK
+        if: steps.cache-vtk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/vtk/install
+          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}
+
+      # Use cached ITK build if available. Unfortunately ITK make install fails to 
+      # install one file, vnl_vector_ref.hxx so instead of caching the install dir
+      # we are caching the build dir
+      - name: Restore ITK Cache
+        id: cache-itk
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{github.workspace}}/itk
+          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build
+
+      # Check out ITK
+      - name: Checkout ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: actions/checkout@v4
+        with:
+            repository: 'InsightSoftwareConsortium/ITK.git'
+            ref: ${{ matrix.itk_ver }}
+            submodules: true
+            path: 'itk'
+
+      # Build ITK
+      - name: Build ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: threeal/cmake-action@v2.0.0
+        with:
+          source-dir: ${{github.workspace}}/itk
+          build-dir: ${{github.workspace}}/itk/build
+          build-args: |
+            -t
+            install
+          generator: Ninja
+          options: |
+            BUILD_TESTING:BOOL=FALSE
+            BUILD_EXAMPLES:BOOL=FALSE
+            Module_MorphologicalContourInterpolation:BOOL=TRUE
+            CMAKE_BUILD_TYPE=Release
+            CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
+            
+
+      - name: Cache ITK
+        if: steps.cache-itk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/itk
+          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build
+     
+      # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
+      # because only the updated files should require rebuilding
+      - name: Restore ITK-SNAP Cache (optional)
+        id: cache-restore-itksnap
+        uses: actions/cache/restore@v4
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
+        with:
+          path: ${{github.workspace}}/itksnap
+          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
+
+      # Checkout ITK-SNAP code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+            submodules: true
+            clean: false
+            path: itksnap
+            persist-credentials: false
+
+      # Post-checkout fetch. This is to prevent errors from the ExperimentalUpdate command due to 
+      # some bizarre git error with greedy submodule. 
+      - name: Post-checkout fetch
+        working-directory: ${{github.workspace}}/itksnap
+        shell: bash
+        continue-on-error: true
+        run: git fetch
+
+      # Configure ITK-SNAP
+      # Note: /FORCE:MULTIPLE is a temporary fix for ITK issues in 5.4.0
+      - name: Configure ITK-SNAP
+        uses: threeal/cmake-action@v2.0.0
+        continue-on-error: false
+        with:
+          source-dir: ${{github.workspace}}/itksnap
+          build-dir: ${{github.workspace}}/itksnap/build
+          generator: Ninja
+          run-build: false
+          args: ${{ runner.os == 'Windows' && steps.vcpkg.outputs.vcpkg-cmake-config || '' }} 
+          options: |
+            ITK_DIR=${{github.workspace}}/itk/build
+            VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
+            CMAKE_BUILD_TYPE=Release
+            DO_UPLOAD=ON
+            SITE=github-runner-${{ matrix.os }}
+            ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
+            ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
+            ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
+            ${{ runner.os == 'MacOS' && 'CMAKE_OSX_DEPLOYMENT_TARGET=12.6' || '' }}
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+
+      # Build ITK-SNAP using CDash
+      - name: ITK-SNAP Dashboard -- Configure and Build
+        id: ctest-config
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        continue-on-error: true
+        run: |
+          ${{ matrix.ctest_cmd }} -D ExperimentalStart
+          ${{ matrix.ctest_cmd }} -D ExperimentalUpdate
+          ${{ matrix.ctest_cmd }} -D ExperimentalConfigure
+          ${{ matrix.ctest_cmd }} -D ExperimentalBuild
+
+      - name: ITK-SNAP Dashboard -- Test
+        id: ctest-test
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_testing }}
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        continue-on-error: true
+        run: |
+          ${{ matrix.ctest_cmd }} -D ExperimentalTest
+
+      - name: ITK-SNAP Dashboard -- Submit
+        id: ctest-submit
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        continue-on-error: true
+        run: |
+          ${{ matrix.ctest_cmd }} -D ExperimentalSubmit
+
+      - name: ITK-SNAP Dashboard -- Gatekeeper
+        if: ${{ steps.ctest-config.outcome != 'success' || steps.ctest-submit.outcome != 'success' }}
+        run: exit -1          
+
+      # Cache the ITK-SNAP build
+      - name: Cache ITK-SNAP build directory
+        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/itksnap
+          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
+
+      # Add libcurl.dll to PATH on windows
+      - name: Append directory with libcurl.dll to PATH
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        run: |
+          echo "${{github.workspace}}/vcpkg/installed/x64-windows-release/bin" >> $GITHUB_PATH
+
+      # On MacOS, setup keychain for application signing
+      # The notarization keys are from https://appstoreconnect.apple.com/access/integrations/api
+      - name: Setup codesign keychain
+        if: ${{ runner.os == 'MacOS' }}
+        working-directory: ${{github.workspace}}/itksnap/build
+        env:
+          # Private key from the .p12 file (export certificate & key to .p12)
+          CODESIGN_P12_KEY: ${{ secrets.SNAP_MACOSX_CODESIGN_P12_KEY }}
+          # Unique substring of the certificate name (the number part is ok)
+          CODESIGN_CERT: "${{ secrets.SNAP_MACOS_DEV_CERTIFICATE_NAME }}"
+          # Notarization pkey/keyid/issuer triplet (pkey is base64 encoded)
+          NOTARIZE_KEY: ${{ secrets.SNAP_MACOS_NOTARIZE_PRIVATE_KEY }}
+          NOTARIZE_KEY_ID: ${{ secrets.SNAP_MACOS_NOTARIZE_KEY_ID }}
+          NOTARIZE_ISSUER: ${{ secrets.SNAP_MACOS_NOTARIZE_ISSUER_UUID }}
+        run: |
+          security create-keychain -p "" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "" build.keychain
+          security import ../Utilities/MacOS/apple_developer_for_github.p12 -k build.keychain -P "$CODESIGN_P12_KEY" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+          echo $NOTARIZE_KEY | base64 -d > notarize_key
+          xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER --keychain /Users/runner/Library/Keychains/build.keychain-db itksnap_notarize
+          rm -rf notarize_key
+          cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize -DSNAP_MACOS_KEYCHAIN=/Users/runner/Library/Keychains/build.keychain-db -DSNAP_MACOSX_CODESIGN_CERT=$CODESIGN_CERT .
+
+      # Package ITK-SNAP
+      - name: Package ITK-SNAP
+        continue-on-error: false
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        run: |
+          cpack --verbose 
+
+      # Extract the filename of ITK-SNAP package
+      - name: Read package name
+        id: package_itksnap
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        run: |
+          echo "package_file=$(jq -r '.filename' package_info.json)" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{steps.package_itksnap.outputs.package_file}}
+          path: ${{github.workspace}}/itksnap/build/${{steps.package_itksnap.outputs.package_file}}
+
+      - name: Upload to sourceforge
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        env:
+          PRIVATE_KEY: ${{ secrets.SNAP_SOURCEFORGE_PRIVATE_KEY }}
+          PUBLIC_KEY: ${{ secrets.SNAP_SOURCEFORGE_PUBLIC_KEY }}
+          USER: ${{ secrets.SNAP_SOURCEFORGE_PUBLIC_USERNAME }}
+        run: |
+          mkdir -p $HOME/.ssh && chmod 700 $HOME/.ssh
+          echo $PUBLIC_KEY | base64 -d > $HOME/.ssh/sfkey.pub && chmod 600 $HOME/.ssh/sfkey.pub
+          echo $PRIVATE_KEY | base64 -d > $HOME/.ssh/sfkey && chmod 600 $HOME/.ssh/sfkey
+          touch $HOME/.ssh/config && chmod 600 $HOME/.ssh/config
+          echo "StrictHostKeyChecking=no" >> $HOME/.ssh/config
+          echo "BatchMode=yes" >> $HOME/.ssh/config
+          echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
+          cmake -DSCP_ARGUMENTS=-v -DSCP_USERNAME=$USER .
+          cmake --build . --target itksnap_upload_experimental
+
+      - name: Upload named release to sourceforge
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_release }}
+        working-directory: ${{github.workspace}}/itksnap/build
+        shell: bash
+        run: |
+          cmake --build . --target itksnap_upload_release
+
+      - name: Cleanup secrets
+        if: ${{ always() }}
+        shell: bash
+        working-directory: ${{github.workspace}}/itksnap/build
+        run: |
+          rm -rf $HOME/.ssh/sfkey.pub $HOME/.ssh/sfkey
+          ${{ runner.os == 'MacOS' && 'security delete-keychain build.keychain' || 'echo na' }}          
+        
+      
+
+      
+
+

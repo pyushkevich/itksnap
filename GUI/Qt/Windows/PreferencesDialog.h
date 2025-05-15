@@ -30,6 +30,17 @@ public:
   // Goes to a particular page
   void GoToPage(enum PreferencesDialogPage page);
 
+public slots:
+
+  void set_page_to_general_default_behavior(void);
+  void set_page_to_general_default_permissions(void);
+  void set_page_to_slice_views_display(void);
+  void set_page_to_slice_views_layout(void);
+  void set_page_to_appearance(void);
+  void set_page_to_3d_smoothing(void);
+  void set_page_to_3d_decimation(void);
+  void set_page_to_tools(void);
+
 private slots:
   void on_listWidget_itemSelectionChanged();
 
@@ -50,6 +61,8 @@ private slots:
 
   void on_radio_axial_lr_toggled(bool check);
   void on_radio_sagittal_ap_toggled(bool check);
+
+  void on_PreferencesDialog_accepted();
 
 private:
   Ui::PreferencesDialog *ui;
