@@ -361,36 +361,6 @@ void ViewPanel3D::LoadCameraViewpoint(QString file)
       json["view_up"][1].toDouble(),
       json["view_up"][2].toDouble());
 
-  // QJsonValue to double
-  double camViewAngle;
-  if (!json["view_angle"].isDouble())
-  {
-    QMessageBox::warning(this, "Import camera viewpoint error",
-        QString("JSON error: view_angle: expected a number"));
-    return;
-  }
-  camViewAngle = json["view_angle"].toDouble();
-
-  // QJsonValue to boolean
-  int camParallelProjection;
-  if (!json["parallel_projection"].isBool())
-  {
-    QMessageBox::warning(this, "Import camera viewpoint error",
-        QString("JSON error: parallel_projection: expected a boolean"));
-    return;
-  }
-  camParallelProjection = json["parallel_projection"].toBool();
-
-  // QJsonValue to double
-  double camParallelScale;
-  if (!json["parallel_scale"].isDouble())
-  {
-    QMessageBox::warning(this, "Import camera viewpoint error",
-        QString("JSON error: parallel_scale: expected a number"));
-    return;
-  }
-  camParallelScale = json["parallel_scale"].toDouble();
-
   // QJsonArray to Vector2d
   if (!json["clipping_range"].isArray()
       || json["clipping_range"].toArray().count() != 2)
@@ -402,6 +372,36 @@ void ViewPanel3D::LoadCameraViewpoint(QString file)
   Vector2d camClippingRange(
       json["clipping_range"][0].toDouble(),
       json["clipping_range"][1].toDouble());
+
+  // QJsonValue to double
+  double camViewAngle;
+  if (!json["view_angle"].isDouble())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: view_angle: expected a number"));
+    return;
+  }
+  camViewAngle = json["view_angle"].toDouble();
+
+  // QJsonValue to double
+  double camParallelScale;
+  if (!json["parallel_scale"].isDouble())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: parallel_scale: expected a number"));
+    return;
+  }
+  camParallelScale = json["parallel_scale"].toDouble();
+
+  // QJsonValue to boolean
+  int camParallelProjection;
+  if (!json["parallel_projection"].isBool())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: parallel_projection: expected a boolean"));
+    return;
+  }
+  camParallelProjection = json["parallel_projection"].toBool();
 
   CameraState cam = {
     .position = camPosition,
