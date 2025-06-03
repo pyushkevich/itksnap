@@ -243,11 +243,11 @@ protected:
   std::vector<SmartPtr<DeepLearningServerPropertiesModel>> m_ServerProperties;
 
   // REST client definition
-  using RESTClient = RESTClient<DLSServerTraits>;
-  using RESTSharedData = RESTSharedData<DLSServerTraits>;
+  using RESTClientType = RESTClient<DLSServerTraits>;
+  using RESTSharedDataType = RESTSharedData<DLSServerTraits>;
 
   // Data shared between REST sessions, includes cookies, etc.
-  RESTSharedData *m_RESTSharedData;
+  RESTSharedDataType *m_RESTSharedData;
 
   using LayerSelection = std::tuple<unsigned int, unsigned int>;
   LayerSelection m_ActiveLayer = std::make_tuple(0u,0u);

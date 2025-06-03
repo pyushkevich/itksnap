@@ -31,7 +31,7 @@ public:
   // Undo manager typedefs
   typedef UndoDataManager<PixelType>       UndoManagerType;
   typedef UndoDelta<PixelType>             UndoManagerDelta;
-  typedef UndoDataManagerCommit<PixelType> UndoDataManagerCommit;
+  typedef UndoDataManagerCommit<PixelType> UndoDataManagerCommitType;
 
   // We are friends with the SegmentationUpdateIterator
   friend class SegmentationUpdateIterator;
@@ -97,7 +97,7 @@ public:
    * Given an empty segmentation image, apply deltas from an redo commit to this
    * image, basically generating a segmentation corresponding just to the commit
    */
-  GenerateImageForUndoRedoResult GenerateImageForRedo(const UndoDataManagerCommit &commit,
+  GenerateImageForUndoRedoResult GenerateImageForRedo(const UndoDataManagerCommitType &commit,
                                                       ImageType                   *image,
                                                       LabelType                    activeLabel);
 

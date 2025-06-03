@@ -218,7 +218,7 @@ LabelImageWrapper::CompressImage() const
 }
 
 LabelImageWrapper::GenerateImageForUndoRedoResult
-LabelImageWrapper::GenerateImageForRedo(const UndoDataManagerCommit &commit,
+LabelImageWrapper::GenerateImageForRedo(const UndoDataManagerCommitType &commit,
                                         ImageType                   *img_delta,
                                         LabelType                    activeLabel)
 {
