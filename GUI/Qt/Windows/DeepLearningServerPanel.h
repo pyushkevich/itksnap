@@ -14,6 +14,7 @@ class DeepLearningServerPanel;
 
 class DeepLearningServerEditor;
 class SSHTunnelWorkerThread;
+class QtLocalDeepLearningServerDelegate;
 
 class DeepLearningServerPanel : public SNAPComponent
 {
@@ -71,16 +72,21 @@ private:
 
   SmartPtr<DeepLearningServerPropertiesModel> m_CurrentEditorModel;
   bool m_IsNewServer;
-  DeepLearningServerEditor *m_EditorDialog = nullptr;
+  DeepLearningServerEditor *m_Editor = nullptr;
+  QDialog *m_EditorDialog = nullptr;
 
   // How often to perform a status check
   constexpr static unsigned int STATUS_CHECK_INIT_DELAY_MS=500, STATUS_CHECK_FREQUENCY_MS=10000;
   QTimer *m_StatusCheckTimer;
 
+  // Delegate that handles starting system process
+  QtLocalDeepLearningServerDelegate *m_LocalDeepLearningServerDelegate;
+
 
   SSHTunnelWorkerThread *m_SSHTunnelWorkerThread = nullptr;
   void setupSSHTunnel();
   void removeSSHTunnel();
+  void                   ShowEditorDialog();
 };
 
 #endif // DEEPLEARNINGSERVERPANEL_H

@@ -342,6 +342,12 @@ DeepLearningSegmentationModel::SetServerValue(int value)
 }
 
 void
+DeepLearningSegmentationModel::SetLocalServerDelegate(AbstractLocalDeepLearningServerDelegate *delegate)
+{
+  m_LocalServerDelegate = delegate;
+}
+
+void
 DeepLearningSegmentationModel::SetParentModel(GlobalUIModel *parent)
 {
   m_ParentModel = parent;
@@ -438,7 +444,15 @@ DeepLearningSegmentationModel::DeleteCurrentServer()
 
   // Update the server
   SetServerValue(m_ServerIndex);
+
   m_ServerModel->InvokeEvent(DomainChangedEvent());
+}
+
+void
+DeepLearningSegmentationModel::StartLocalServerIfNeeded()
+{
+  itkAssertOrThrowMacro(m_LocalServerDelegate, "DeepLearningSegmentationModel::StartLocalServerIfNeeded called without a delegate assigned");
+  m_LocalPortNumber = m_LocalServerDelegate->StartServerIfNeeded(this->GetServerProperties());
 }
 
 DeepLearningSegmentationModel::StatusCheck
@@ -714,6 +728,20 @@ DeepLearningSegmentationModel::GetActualServerURL()
     return std::string();
 
   auto sp = m_ServerProperties[m_ServerIndex];
+
+  if (!sp->GetRemoteConnection())
+  {
+    if (m_LocalPortNumber >= 0)
+    {
+      std::ostringstream oss;
+      oss << "http://localhost:";
+      oss << m_LocalPortNumber;
+      return oss.str();
+    }
+    else
+      return std::string();
+  }
+
   if(sp->GetUseSSHTunnel())
     return GetProxyURL();
   else
@@ -818,6 +846,25 @@ DeepLearningServerPropertiesModel::GetFullURLValue(std::string &value)
   }
 }
 
+bool
+DeepLearningServerPropertiesModel::GetDisplayNameValue(std::string &value)
+{
+  if(GetNickname().size())
+  {
+    value = GetNickname();
+  }
+  else if(GetRemoteConnection())
+  {
+    value = GetFullURL();
+  }
+  else
+  {
+    value = GetLocalPythonVEnvPath();
+  }
+  return true;
+}
+
+
 string
 DeepLearningServerPropertiesModel::GetHash() const
 {
@@ -841,14 +888,24 @@ DeepLearningServerPropertiesModel::GetHash() const
 
 DeepLearningServerPropertiesModel::DeepLearningServerPropertiesModel()
 {
-  m_HostnameModel = NewSimpleProperty("Hostname", std::string());
   m_NicknameModel = NewSimpleProperty("Nickname", std::string());
+  m_RemoteConnectionModel = NewSimpleProperty("RemoteConnection", false);
+  m_HostnameModel = NewSimpleProperty("Hostname", std::string());
   m_PortModel = NewSimpleProperty("Port", 8911);
   m_UseSSHTunnelModel = NewSimpleProperty("UseSSHTunnel", false);
   m_SSHUsernameModel = NewSimpleProperty("SSHUsername", std::string());
   m_SSHPrivateKeyFileModel = NewSimpleProperty("SSHPrivateKeyFile", std::string());
+  m_LocalPythonExePathModel = NewSimpleProperty("LocalPythonExePath", std::string());
+  m_LocalPythonVEnvPathModel = NewSimpleProperty("LocalPythonVEnvPath", std::string());
 
   m_FullURLModel = wrapGetterSetterPairAsProperty(this, &Self::GetFullURLValue);  
   m_FullURLModel->RebroadcastFromSourceProperty(m_HostnameModel);
   m_FullURLModel->RebroadcastFromSourceProperty(m_PortModel);
+
+  m_DisplayNameModel = wrapGetterSetterPairAsProperty(this, &Self::GetDisplayNameValue);
+  m_DisplayNameModel->RebroadcastFromSourceProperty(m_HostnameModel);
+  m_DisplayNameModel->RebroadcastFromSourceProperty(m_PortModel);
+  m_DisplayNameModel->RebroadcastFromSourceProperty(m_RemoteConnectionModel);
+  m_DisplayNameModel->RebroadcastFromSourceProperty(m_NicknameModel);
+  m_DisplayNameModel->RebroadcastFromSourceProperty(m_LocalPythonVEnvPathModel);
 }

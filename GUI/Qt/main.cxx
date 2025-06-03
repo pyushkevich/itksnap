@@ -1,5 +1,6 @@
 #include "IRISApplication.h"
 #include "MeshImportModel.h"
+#include "QtLocalDeepLearningServerDelegate.h"
 #include "RESTClient.h"
 #include "SNAPQApplication.h"
 #include "MainImageWindow.h"
@@ -38,6 +39,7 @@
 #  include <QSurfaceFormat>
 #endif
 
+
 #include "QVTKOpenGLNativeWidget.h"
 #include "vtkGenericOpenGLRenderWindow.h"
 #include "vtkProperty.h"
@@ -53,6 +55,7 @@
 #include <QMessageBox>
 #include <QDesktopServices>
 #include "IRISImageData.h"
+
 
 using namespace std;
 
@@ -745,8 +748,6 @@ main(int argc, char *argv[])
 #ifdef WIN32
   std::setlocale(LC_ALL, ".UTF8");
 #endif
-
-
 
   // Test object, which only is allocated if tests are requested. The
   // reason we declare it here is that the test object allocates a

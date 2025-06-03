@@ -7,3 +7,7 @@
 [submodule "Submodules/digestible"]
 	path = Submodules/digestible
 	url = https://github.com/pyushkevich/digestible.git
+[submodule "Submodules/pybind11"]
+	path = Submodules/pybind11
+	url = ../../pybind/pybind11
+	branch = stable

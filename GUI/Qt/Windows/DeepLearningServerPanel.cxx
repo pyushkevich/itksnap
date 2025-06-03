@@ -6,6 +6,7 @@
 #include "QtAbstractButtonCoupling.h"
 #include "QtLabelCoupling.h"
 #include "QtWidgetActivator.h"
+#include "QtLocalDeepLearningServerDelegate.h"
 #include "GlobalUIModel.h"
 #include <QtConcurrent>
 #include <QtCore>
@@ -18,6 +19,10 @@
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QShowEvent>
+#include <QFont>
+#include <QPixmap>
+#include <QPainter>
+#include <QPaintDevice>
 
 /**
  * Traits for mapping status codes to a label
@@ -72,12 +77,12 @@ public:
   using Value = SmartPtr<DeepLearningServerPropertiesModel>;
   static QString GetText(int row, const Value &m)
   {
-    return QString::fromStdString(m->GetFullURL());
+    return QString::fromStdString(m->GetDisplayName());
   }
 
-  static QIcon GetIcon(int, const Value &)
+  static QIcon GetIcon(int row, const Value &m)
   {
-    return QIcon();
+    return QIcon::fromTheme(m->GetRemoteConnection() ? QIcon::ThemeIcon::NetworkWireless : QIcon::ThemeIcon::FolderOpen);
   }
 
   static QVariant GetIconSignature(int, const Value &)
@@ -98,6 +103,8 @@ DeepLearningServerPanel::DeepLearningServerPanel(QWidget *parent)
   , ui(new Ui::DeepLearningServerPanel)
 {
   ui->setupUi(this);
+
+  m_LocalDeepLearningServerDelegate = new QtLocalDeepLearningServerDelegate(this, ui->txtEditServerLog);
 
   // Update check timer
   m_StatusCheckTimer = new QTimer(this);
@@ -123,6 +130,12 @@ DeepLearningServerPanel::SetModel(DeepLearningSegmentationModel *model)
 
   makeWidgetVisibilityCoupling(ui->btnEdit, m_Model->GetIsServerConfiguredModel());
   makeWidgetVisibilityCoupling(ui->btnDelete, m_Model->GetIsServerConfiguredModel());
+
+  // Assign our delegate to the model
+  // Delegate for running itksnap_dls locally
+  m_Model->SetLocalServerDelegate(m_LocalDeepLearningServerDelegate);
+
+
 
   // Listen for server changes
   LatentITKEventNotifier::connect(m_Model,
@@ -265,6 +278,9 @@ DeepLearningServerPanel::resetConnection()
   if(!m_Model || !m_Model->GetIsActive())
     return;
 
+  // Start the local server if needed
+  m_Model->StartLocalServerIfNeeded();
+
   // Reset the server status
   m_Model->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_CHECKING));
   m_Model->SetProxyURL(std::string());
@@ -336,18 +352,37 @@ DeepLearningServerPanel::onServerEditorFinished(int accepted)
 }
 
 void
+DeepLearningServerPanel::ShowEditorDialog()
+{
+  // Create a new dialog
+  m_EditorDialog = new QDialog(this);
+  m_Editor = new DeepLearningServerEditor(m_EditorDialog);
+  connect(m_EditorDialog,
+          &QDialog::finished,
+          this,
+          &DeepLearningServerPanel::onServerEditorFinished);
+
+  m_Editor->SetModel(m_CurrentEditorModel);
+
+  QVBoxLayout *lo = new QVBoxLayout(m_EditorDialog);
+  QDialogButtonBox *bbox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, m_EditorDialog);
+  connect(bbox, &QDialogButtonBox::accepted, m_EditorDialog, &QDialog::accept);
+  connect(bbox, &QDialogButtonBox::rejected, m_EditorDialog, &QDialog::reject);
+
+  m_EditorDialog->setLayout(lo);
+  lo->addWidget(m_Editor);
+  lo->addWidget(bbox);
+  m_EditorDialog->setModal(true);
+  m_EditorDialog->open();
+}
+
+void
 DeepLearningServerPanel::on_btnNew_clicked()
 {
   // Create a new server for editing
   m_CurrentEditorModel = DeepLearningServerPropertiesModel::New();
   m_IsNewServer = true;
-  m_EditorDialog = new DeepLearningServerEditor(this);
-  connect(m_EditorDialog,
-          &DeepLearningServerEditor::finished,
-          this,
-          &DeepLearningServerPanel::onServerEditorFinished);
-  m_EditorDialog->SetModel(m_CurrentEditorModel);
-  m_EditorDialog->open();
+  ShowEditorDialog();
 }
 
 void
@@ -358,10 +393,7 @@ DeepLearningServerPanel::on_btnEdit_clicked()
   if(m_CurrentEditorModel)
   {
     m_IsNewServer = false;
-    m_EditorDialog = new DeepLearningServerEditor(this);
-    connect(m_EditorDialog, &DeepLearningServerEditor::finished, this, &DeepLearningServerPanel::onServerEditorFinished);
-    m_EditorDialog->SetModel(m_CurrentEditorModel);
-    m_EditorDialog->open();
+    ShowEditorDialog();
   }
 }
 

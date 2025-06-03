@@ -56,31 +56,55 @@ class DeepLearningServerPropertiesModel : public AbstractPropertyContainerModel
 public:
   irisITKObjectMacro(DeepLearningServerPropertiesModel, AbstractPropertyContainerModel)
 
-  irisSimplePropertyAccessMacro(Hostname, std::string)
   irisSimplePropertyAccessMacro(Nickname, std::string)
+  irisSimplePropertyAccessMacro(RemoteConnection, bool)
+  irisSimplePropertyAccessMacro(Hostname, std::string)
   irisSimplePropertyAccessMacro(Port, int)
   irisSimplePropertyAccessMacro(UseSSHTunnel, bool)
   irisSimplePropertyAccessMacro(SSHUsername, std::string)
   irisSimplePropertyAccessMacro(SSHPrivateKeyFile, std::string)
+  irisSimplePropertyAccessMacro(LocalPythonExePath, std::string)
+  irisSimplePropertyAccessMacro(LocalPythonVEnvPath, std::string)
 
   irisSimplePropertyAccessMacro(FullURL, std::string)
+  irisSimplePropertyAccessMacro(DisplayName, std::string)
 
   std::string GetHash() const;
 
 protected:
-  SmartPtr<ConcreteSimpleStringProperty> m_HostnameModel;
   SmartPtr<ConcreteSimpleStringProperty> m_NicknameModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_RemoteConnectionModel;
+  SmartPtr<ConcreteSimpleStringProperty> m_HostnameModel;
   SmartPtr<ConcreteSimpleIntProperty> m_PortModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_UseSSHTunnelModel;
   SmartPtr<AbstractSimpleStringProperty> m_FullURLModel;
+  SmartPtr<AbstractSimpleStringProperty> m_DisplayNameModel;
   SmartPtr<ConcreteSimpleStringProperty> m_SSHUsernameModel;
   SmartPtr<ConcreteSimpleStringProperty> m_SSHPrivateKeyFileModel;
+  SmartPtr<ConcreteSimpleStringProperty> m_LocalPythonExePathModel;
+  SmartPtr<ConcreteSimpleStringProperty> m_LocalPythonVEnvPathModel;
 
   bool GetFullURLValue(std::string &value);
+  bool GetDisplayNameValue(std::string &value);
 
 
   DeepLearningServerPropertiesModel();
 };
+
+
+/**
+ * Abstract class defining what we require from a local DLS server running as a subprocess
+ */
+class AbstractLocalDeepLearningServerDelegate
+{
+public:
+  /**
+   * Start the local server, returning the port address on which the server will be running.
+   */
+  virtual int StartServerIfNeeded(DeepLearningServerPropertiesModel *properties) = 0;
+};
+
+
 
 
 class DeepLearningSegmentationModel : public AbstractModel
@@ -93,6 +117,9 @@ public:
   // A custom event fired when the server configuration changes
   itkEventMacro(ServerChangeEvent, IRISEvent)
   FIRES(ServerChangeEvent)
+
+  /** Set the delegate that can launch/control local server */
+  void SetLocalServerDelegate(AbstractLocalDeepLearningServerDelegate *delegate);
 
   void SetParentModel(GlobalUIModel *parent);
 
@@ -134,6 +161,12 @@ public:
 
   /** Status check: includes a hash of the server for which the check was issued and status */
   using StatusCheck = std::pair<std::string, dls_model::ConnectionStatus>;
+
+  /**
+   * Start local server, if applicable. If the selected server is local, this will start
+   * the process to run that server
+   */
+  void StartLocalServerIfNeeded();
 
   /** Static function that runs asynchronously to perform server authentication */
   StatusCheck AsyncCheckStatus();
@@ -184,6 +217,9 @@ protected:
 
   // Index of the currently selected server or -1 if no server is selected
   int m_ServerIndex = -1;
+
+  // Local port number - local servers run on an ephemeral port
+  int m_LocalPortNumber = -1;
 
   // Whether or not the communication with the server is active.
   SmartPtr<ConcreteSimpleBooleanProperty> m_IsActiveModel;
@@ -237,6 +273,9 @@ protected:
   // A mutex used to prevent multiple overlapping REST calls.
   // TODO: make tunneling more flexible so we don't have to do this
   std::mutex m_Mutex;
+
+  // Local server delegate
+  AbstractLocalDeepLearningServerDelegate *m_LocalServerDelegate = nullptr;
 };
 
 

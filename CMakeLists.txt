@@ -201,6 +201,15 @@ SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NA
 # Additional CPack resources
 SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
 
+
+#--------------------------------------------------------------------------------
+# Python embedding and binding
+#--------------------------------------------------------------------------------
+
+set(PYBIND11_FINDPYTHON ON)
+add_subdirectory(Submodules/pybind11)
+message(STATUS "Python dir: ${ITKSNAP_PYTHON_DIR}")
+
 #--------------------------------------------------------------------------------
 # SOURCE FILE SPECIFICATION                 
 #--------------------------------------------------------------------------------
@@ -687,6 +696,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QDoubleSlider.cxx
   GUI/Qt/Components/QDoubleSliderWithEditor.cxx  
   GUI/Qt/Components/QPainterRenderContext.cxx
+  GUI/Qt/Components/QtLocalDeepLearningServerDelegate.cxx
   GUI/Qt/Components/QtFlowLayout.cxx
   GUI/Qt/Components/QtFrameBufferOpenGLWidget.cxx
   GUI/Qt/Components/QtHideOnDeactivateContainer.cxx
@@ -795,6 +805,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtFlowLayout.h
   GUI/Qt/Components/QtHideOnDeactivateContainer.h
   GUI/Qt/Components/QtIPCManager.h
+  GUI/Qt/Components/QtLocalDeepLearningServerDelegate.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/RecentHistoryItemsView.h
@@ -1210,7 +1221,7 @@ ADD_LIBRARY(itksnapui_qt
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS_LITE})
 TARGET_LINK_LIBRARIES(itksnapui_model itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui_qt itksnapui_model ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
+TARGET_LINK_LIBRARIES(itksnapui_qt itksnapui_model ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS} pybind11::embed)
 
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)
@@ -1257,6 +1268,8 @@ SET(SNAP_BUNDLE_NAME ITK-SNAP)
 ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
+set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 
 #--------------------------------------------------------------------------------
 # Testing-related executables

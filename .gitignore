@@ -14,3 +14,4 @@ CMakeLists.txt.user*
 CTestConfig.cmake.user*
 *.autosave
 .clangd
+.vscode
