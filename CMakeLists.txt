@@ -201,17 +201,6 @@ SET(CPACK_PACKAGE_FILE_NAME "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NA
 # Additional CPack resources
 SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
 
-
-#--------------------------------------------------------------------------------
-# Python embedding and binding
-#--------------------------------------------------------------------------------
-
-set(Python3_FIND_FRAMEWORK NEVER)
-set(PYBIND11_FINDPYTHON ON)
-add_subdirectory(Submodules/pybind11)
-message(STATUS "Python executable: ${Python_EXECUTABLE}")
-message(STATUS "Python library: ${Python_LIBRARY}")
-
 #--------------------------------------------------------------------------------
 # SOURCE FILE SPECIFICATION                 
 #--------------------------------------------------------------------------------
@@ -1225,7 +1214,7 @@ ADD_LIBRARY(itksnapui_qt
 # two lines
 TARGET_LINK_LIBRARIES(itksnaplogic ${SNAP_EXTERNAL_LIBS_LITE})
 TARGET_LINK_LIBRARIES(itksnapui_model itksnaplogic ${SNAP_EXTERNAL_LIBS})
-TARGET_LINK_LIBRARIES(itksnapui_qt itksnapui_model ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS} pybind11::embed)
+TARGET_LINK_LIBRARIES(itksnapui_qt itksnapui_model ${SNAP_QT_LIBRARIES} ${SNAP_EXTERNAL_LIBS})
 
 # Designate the SNAP internal libraries
 SET(SNAP_INTERNAL_LIBS itksnapui_qt itksnapui_model itksnaplogic)

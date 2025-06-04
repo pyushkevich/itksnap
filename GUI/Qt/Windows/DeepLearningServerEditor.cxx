@@ -1,8 +1,5 @@
-#include "pybind11/embed.h"
-#include "Python.h"
 #include <QtGui/qdesktopservices.h>
 #include <QtWidgets/qfiledialog.h>
-namespace py = pybind11;
 
 #include "DeepLearningServerEditor.h"
 #include "QtRadioButtonCoupling.h"
@@ -119,7 +116,7 @@ PythonProcess::PythonProcess(const QString     &pythonExe,
 void PythonProcess::start()
 {
   m_OutputWidget->appendPlainText("---------------------------------------");
-  m_OutputWidget->appendPlainText(QString("Running %1 %2").arg(m_PythonExe).arg(m_Args.join(" ")));
+  m_OutputWidget->appendPlainText(QString("Running %1 %2").arg(m_PythonExe, m_Args.join(" ")));
   m_OutputWidget->appendPlainText("---------------------------------------");
   m_Process->start(m_PythonExe, m_Args);
 }
@@ -260,35 +257,6 @@ DeepLearningServerEditor::onModelUpdate(const EventBucket &bucket)
     }
   }
 }
-
-
-void
-initialize_python_with_custom_interpreter(const std::wstring &python_exe_path)
-{
-  PyStatus status;
-  PyConfig config;
-  PyConfig_InitPythonConfig(&config);
-
-  // Set the path to the Python interpreter executable
-  status = PyConfig_SetString(&config, &config.program_name, python_exe_path.c_str());
-  if (PyStatus_Exception(status))
-  {
-    Py_ExitStatusException(status);
-  }
-
-  // Optional: disable isolated mode if needed
-  config.isolated = 0;
-
-  // Initialize Python with the config
-  status = Py_InitializeFromConfig(&config);
-  if (PyStatus_Exception(status))
-  {
-    Py_ExitStatusException(status);
-  }
-
-  PyConfig_Clear(&config);
-}
-
 
 void
 DeepLearningServerEditor::on_btnVEnvConfigure_clicked()
