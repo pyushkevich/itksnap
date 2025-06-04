@@ -829,6 +829,17 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
   return this->UpdateSegmentation(cli.GetOutput(), "nnInteractive scribble interaction");
 }
 
+void
+DeepLearningServerPropertiesModel::AddKnownLocalPythonExePath(const std::string exepath)
+{
+  m_LocalPythonExeDomain[exepath] = exepath;
+  if(m_LocalPythonExePathInternalModel->GetValue().empty())
+    m_LocalPythonExePathInternalModel->SetValue(exepath);
+
+  m_LocalPythonExePathModel->InvokeEvent(DomainChangedEvent());
+  m_LocalPythonExePathModel->InvokeEvent(ValueChangedEvent());
+}
+
 bool
 DeepLearningServerPropertiesModel::GetFullURLValue(std::string &value)
 {
@@ -864,16 +875,48 @@ DeepLearningServerPropertiesModel::GetDisplayNameValue(std::string &value)
   return true;
 }
 
+bool
+DeepLearningServerPropertiesModel::GetLocalPythonExePathValueAndRange(std::string     &value,
+                                                                      PythonExeDomain *domain)
+{
+  bool retval = m_LocalPythonExePathInternalModel->GetValueAndDomain(value, nullptr);
+  if(!retval || value.empty())
+    return false;
+
+  // Make sure that the current value is part of the domain
+  if(m_LocalPythonExeDomain.find(value) == m_LocalPythonExeDomain.end())
+  {
+    m_LocalPythonExeDomain[value] = value;
+    m_LocalPythonExePathModel->InvokeEvent(DomainChangedEvent());
+  }
+
+  if(domain)
+    *domain = m_LocalPythonExeDomain;
+
+  return retval;
+}
+
+void
+DeepLearningServerPropertiesModel::SetLocalPythonExePathValue(std::string value)
+{
+  m_LocalPythonExePathInternalModel->SetValue(value);
+  if(!value.empty())
+  {
+    m_LocalPythonExeDomain[value] = value;
+    m_LocalPythonExePathModel->InvokeEvent(DomainChangedEvent());
+  }
+}
+
 
 string
 DeepLearningServerPropertiesModel::GetHash() const
 {
   std::ostringstream oss;
-  oss << this->GetHostname()
-      << this->GetPort()
-      << this->GetUseSSHTunnel()
-      << this->GetSSHUsername()
-      << this->GetSSHPrivateKeyFile();
+
+  // Complete code below to use all fields in this class
+  oss << this->GetHostname() << this->GetPort() << this->GetUseSSHTunnel()
+      << this->GetSSHUsername() << this->GetSSHPrivateKeyFile() << this->GetRemoteConnection()
+      << this->GetLocalPythonVEnvPath();
 
   char hex_code[33];
   hex_code[32] = 0;
@@ -895,8 +938,9 @@ DeepLearningServerPropertiesModel::DeepLearningServerPropertiesModel()
   m_UseSSHTunnelModel = NewSimpleProperty("UseSSHTunnel", false);
   m_SSHUsernameModel = NewSimpleProperty("SSHUsername", std::string());
   m_SSHPrivateKeyFileModel = NewSimpleProperty("SSHPrivateKeyFile", std::string());
-  m_LocalPythonExePathModel = NewSimpleProperty("LocalPythonExePath", std::string());
+  m_LocalPythonExePathInternalModel = NewSimpleProperty("LocalPythonExePath", std::string());
   m_LocalPythonVEnvPathModel = NewSimpleProperty("LocalPythonVEnvPath", std::string());
+  m_NoSSLVerifyModel = NewSimpleProperty("NoSSLVerify", false);
 
   m_FullURLModel = wrapGetterSetterPairAsProperty(this, &Self::GetFullURLValue);  
   m_FullURLModel->RebroadcastFromSourceProperty(m_HostnameModel);
@@ -908,4 +952,8 @@ DeepLearningServerPropertiesModel::DeepLearningServerPropertiesModel()
   m_DisplayNameModel->RebroadcastFromSourceProperty(m_RemoteConnectionModel);
   m_DisplayNameModel->RebroadcastFromSourceProperty(m_NicknameModel);
   m_DisplayNameModel->RebroadcastFromSourceProperty(m_LocalPythonVEnvPathModel);
+
+  m_LocalPythonExePathModel = wrapGetterSetterPairAsProperty(
+    this, &Self::GetLocalPythonExePathValueAndRange, &Self::SetLocalPythonExePathValue);
+  m_LocalPythonExePathModel->RebroadcastFromSourceProperty(m_LocalPythonExePathInternalModel);
 }

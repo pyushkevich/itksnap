@@ -63,11 +63,18 @@ public:
   irisSimplePropertyAccessMacro(UseSSHTunnel, bool)
   irisSimplePropertyAccessMacro(SSHUsername, std::string)
   irisSimplePropertyAccessMacro(SSHPrivateKeyFile, std::string)
-  irisSimplePropertyAccessMacro(LocalPythonExePath, std::string)
   irisSimplePropertyAccessMacro(LocalPythonVEnvPath, std::string)
+  irisSimplePropertyAccessMacro(NoSSLVerify, bool)
 
   irisSimplePropertyAccessMacro(FullURL, std::string)
   irisSimplePropertyAccessMacro(DisplayName, std::string)
+
+  using PythonExeDomain = SimpleItemSetDomain<std::string, std::string>;
+  using PythonExeModelType = AbstractPropertyModel<std::string, PythonExeDomain>;
+
+  irisGenericPropertyAccessMacro(LocalPythonExePath, std::string, PythonExeDomain)
+
+  virtual void AddKnownLocalPythonExePath(const std::string exepath);
 
   std::string GetHash() const;
 
@@ -81,12 +88,21 @@ protected:
   SmartPtr<AbstractSimpleStringProperty> m_DisplayNameModel;
   SmartPtr<ConcreteSimpleStringProperty> m_SSHUsernameModel;
   SmartPtr<ConcreteSimpleStringProperty> m_SSHPrivateKeyFileModel;
-  SmartPtr<ConcreteSimpleStringProperty> m_LocalPythonExePathModel;
+  SmartPtr<ConcreteSimpleStringProperty> m_LocalPythonExePathInternalModel;
   SmartPtr<ConcreteSimpleStringProperty> m_LocalPythonVEnvPathModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_NoSSLVerifyModel;
+
+  // World-facing python exe model, with a domain.
+  SmartPtr<PythonExeModelType> m_LocalPythonExePathModel;
 
   bool GetFullURLValue(std::string &value);
   bool GetDisplayNameValue(std::string &value);
 
+  bool GetLocalPythonExePathValueAndRange(std::string &value, PythonExeDomain *domain);
+  void SetLocalPythonExePathValue(std::string value);
+
+  // The domain keeps track of known Python locations
+  PythonExeDomain m_LocalPythonExeDomain;
 
   DeepLearningServerPropertiesModel();
 };

@@ -7,6 +7,8 @@
 #include "SNAPComponent.h"
 #include "DeepLearningSegmentationModel.h"
 
+class QProcessOutputTextWidget;
+
 namespace Ui
 {
 class DeepLearningServerEditor;
@@ -27,7 +29,7 @@ class PythonProcess : public QObject
   Q_OBJECT
 
 public:
-  PythonProcess(const QString& pythonExe, const QStringList &args, QPlainTextEdit* outputWidget, QObject* parent = nullptr);
+  PythonProcess(const QString& pythonExe, const QStringList &args, QProcessOutputTextWidget* outputWidget, QObject* parent = nullptr);
 
   void start();
   bool waitForFinished();
@@ -36,13 +38,11 @@ signals:
   void finished(int exitCode, QProcess::ExitStatus status);
 
 private slots:
-  void onReadyReadStandardOutput();
-  void onReadyReadStandardError();
   void onFinished(int exitCode, QProcess::ExitStatus status);
 
 private:
   QProcess* m_Process;
-  QPlainTextEdit* m_OutputWidget;
+  QProcessOutputTextWidget* m_OutputWidget;
   QString m_PythonExe;
   QStringList m_Args;
 };
@@ -60,7 +60,6 @@ public:
 
 private slots:
   void onModelUpdate(const EventBucket &bucket);
-  void on_btnVEnvConfigure_clicked();
   void on_VEnvInstallFinished(int exitCode, QProcess::ExitStatus status);
   void on_PipUpgradePipFinished(int exitCode, QProcess::ExitStatus status);
   void on_PipInstallDLSFinished(int exitCode, QProcess::ExitStatus status);
@@ -70,10 +69,13 @@ private slots:
   void on_btnResetVEnvFolderToDefault_clicked();
   void on_btnFindPythonExe_clicked();
 
+  void on_btnConfigurePackages_clicked();
+
 private:
   Ui::DeepLearningServerEditor *ui;
   DeepLearningServerPropertiesModel *m_Model;
   QStringList m_KnownPythonExes;
+  void                               StartPythonExeSearch();
 };
 
 #endif // DEEPLEARNINGSERVEREDITOR_H

@@ -2,6 +2,7 @@
 #include <QtWidgets/qfiledialog.h>
 
 #include "DeepLearningServerEditor.h"
+#include "QProcessOutputTextWidget.h"
 #include "QtRadioButtonCoupling.h"
 #include "ui_DeepLearningServerEditor.h"
 
@@ -93,16 +94,22 @@ isVEFolderInitialized(const QString &path)
 
 PythonProcess::PythonProcess(const QString     &pythonExe,
                              const QStringList &args,
-                             QPlainTextEdit    *outputWidget,
+                             QProcessOutputTextWidget    *outputWidget,
                              QObject           *parent)
   : QObject(parent)
   , m_PythonExe(pythonExe)
   , m_Args(args)
   , m_OutputWidget(outputWidget)
 {
+  // Set environment for the process
+  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+  env.insert("FORCE_COLOR", "1");
+
   m_Process = new QProcess(this);
-  connect(m_Process, &QProcess::readyReadStandardOutput, this, &PythonProcess::onReadyReadStandardOutput);
-  connect(m_Process, &QProcess::readyReadStandardError, this, &PythonProcess::onReadyReadStandardError);
+  m_Process->setProcessEnvironment(env);
+
+  connect(m_Process, &QProcess::readyReadStandardOutput, outputWidget, &QProcessOutputTextWidget::appendStdout);
+  connect(m_Process, &QProcess::readyReadStandardError, outputWidget, &QProcessOutputTextWidget::appendStdout);
   connect(m_Process,
           QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
           this,
@@ -115,9 +122,9 @@ PythonProcess::PythonProcess(const QString     &pythonExe,
 
 void PythonProcess::start()
 {
-  m_OutputWidget->appendPlainText("---------------------------------------");
-  m_OutputWidget->appendPlainText(QString("Running %1 %2").arg(m_PythonExe, m_Args.join(" ")));
-  m_OutputWidget->appendPlainText("---------------------------------------");
+  m_OutputWidget->appendPlainText("---------------------------------------\n");
+  m_OutputWidget->appendPlainText(QString("Running %1 %2\n").arg(m_PythonExe, m_Args.join(" ")));
+  m_OutputWidget->appendPlainText("---------------------------------------\n");
   m_Process->start(m_PythonExe, m_Args);
 }
 
@@ -126,21 +133,9 @@ bool PythonProcess::waitForFinished()
   return m_Process->waitForFinished();
 }
 
-void PythonProcess::onReadyReadStandardOutput()
-{
-  QByteArray data = m_Process->readAllStandardOutput();
-  m_OutputWidget->appendPlainText(QString::fromLocal8Bit(data));
-}
-
-void PythonProcess::onReadyReadStandardError()
-{
-  QByteArray data = m_Process->readAllStandardError();
-  m_OutputWidget->appendPlainText(QString::fromLocal8Bit(data));
-}
-
 void PythonProcess::onFinished(int exitCode, QProcess::ExitStatus status)
 {
-  m_OutputWidget->appendPlainText(QString("Pip process finished with code %1").arg(exitCode));
+  m_OutputWidget->appendPlainText(QString("Process %1 finished with code %2\n").arg(m_PythonExe, exitCode));
   this->deleteLater();
 }
 
@@ -155,18 +150,25 @@ DeepLearningServerEditor::DeepLearningServerEditor(QWidget *parent)
   // Hide the text edit
   ui->txtInstallLog->hide();
 
+
+}
+
+DeepLearningServerEditor::~DeepLearningServerEditor() { delete ui; }
+
+
+
+void DeepLearningServerEditor::StartPythonExeSearch()
+{
   // Build the list of known Python environments
   auto *worker = new PythonFinderWorker();
   auto *thread = new QThread();
-
   worker->moveToThread(thread);
 
   connect(thread, &QThread::started, worker, &PythonFinderWorker::findPythonInterpreters);
   connect(worker, &PythonFinderWorker::interpretersFound, this, [this, thread, worker](const QStringList &interpreters) {
-    this->m_KnownPythonExes = interpreters;
-    for(auto &exe : this->m_KnownPythonExes)
+    for(auto &exe : interpreters)
     {
-      this->ui->inPythonExe->addItem(exe, exe);
+      m_Model->AddKnownLocalPythonExePath(exe.toStdString());
     }
     thread->quit();
     thread->wait();
@@ -176,8 +178,6 @@ DeepLearningServerEditor::DeepLearningServerEditor(QWidget *parent)
 
   thread->start();
 }
-
-DeepLearningServerEditor::~DeepLearningServerEditor() { delete ui; }
 
 class DeepLearningServeModeDescriptionTraits
 {
@@ -212,6 +212,8 @@ DeepLearningServerEditor::SetModel(DeepLearningServerPropertiesModel *model)
   makeCoupling(ui->inSSHPrivateKey, m_Model->GetSSHPrivateKeyFileModel());
   makeCoupling(ui->outURL, m_Model->GetFullURLModel());
   makeCoupling(ui->inPythonVEnv, m_Model->GetLocalPythonVEnvPathModel());
+  makeCoupling(ui->inPythonExe, m_Model->GetLocalPythonExePathModel());
+  makeCoupling(ui->chkNoSSLVerify, m_Model->GetNoSSLVerifyModel());
 
   makeWidgetVisibilityCoupling(ui->grpRemote, m_Model->GetRemoteConnectionModel(), false);
   makeWidgetVisibilityCoupling(ui->grpLocal, m_Model->GetRemoteConnectionModel(), true);
@@ -228,6 +230,9 @@ DeepLearningServerEditor::SetModel(DeepLearningServerPropertiesModel *model)
     QString venvPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/dls_venv";
     m_Model->SetLocalPythonVEnvPath(venvPath.toStdString());
   }
+
+  // Search for local python exes in the background
+  StartPythonExeSearch();
 
   // Listen for changes in the python virtual environment path
 }
@@ -251,24 +256,25 @@ DeepLearningServerEditor::onModelUpdate(const EventBucket &bucket)
       else
         ui->lblPythonVEnvStatus->setText("Virtual Environment is not initialized");
 
-      // If the VEnv exists, then the python should just be the path to the python in the venv
-      // and the virtual environment selector should be a read-only field
-
     }
   }
 }
 
+
 void
-DeepLearningServerEditor::on_btnVEnvConfigure_clicked()
+DeepLearningServerEditor::on_btnConfigurePackages_clicked()
 {
   // Install the environment with pip
   ui->txtInstallLog->show();
   ui->txtInstallLog->clear();
 
+  // Get the python exe to run
+  auto python_exe = QString::fromStdString(m_Model->GetLocalPythonExePath());
+
   // Use the current python to install the virtual environment
   QStringList args;
   args << "-m" << "venv" << "--clear" << ui->inPythonVEnv->text();
-  auto *venv = new PythonProcess(ui->inPythonExe->currentText(), args, ui->txtInstallLog, this);
+  auto *venv = new PythonProcess(python_exe, args, ui->txtInstallLog, this);
   connect(venv, &PythonProcess::finished, this, &DeepLearningServerEditor::on_VEnvInstallFinished);
   venv->start();
 }
@@ -335,7 +341,7 @@ DeepLearningServerEditor::on_PipInstallDLSFinished(int exitCode, QProcess::ExitS
     QStringList args;
     args << "-m" << "itksnap_dls" << "--setup-only";
     auto *pip = new PythonProcess(venvPython, args, ui->txtInstallLog, this);
-    connect(pip, &PythonProcess::finished, this, &DeepLearningServerEditor::on_PipInstallDLSFinished);
+    connect(pip, &PythonProcess::finished, this, &DeepLearningServerEditor::on_SetupDLSFinished);
     pip->start();
   }
 }
@@ -362,17 +368,17 @@ void
 DeepLearningServerEditor::on_btnFindPythonExe_clicked()
 {
 #ifdef Q_OS_WIN
-  QString defaultName = "python.exe";
+  QString defaultName = "python.exe python3.exe pythonw.exe";
   QString defaultDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "\\AppData\\Local\\Programs\\Python";
 #else
-  QString defaultName = "python3";
+  QString defaultName = "python python3 python3.*";
   QString defaultDir = "/usr/bin";
 #endif
 
   QString filter = QString("Python Interpreter (%1)").arg(defaultName);
   QString file = QFileDialog::getOpenFileName(this, "Select Python Interpreter", defaultDir, filter);
   if(!file.isNull())
-    ui->inPythonExe->addItem(file);
+    m_Model->SetLocalPythonExePath(file.toStdString());
 }
 
 void

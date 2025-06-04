@@ -83,6 +83,8 @@ QtLocalDeepLearningServerDelegate::StartServerIfNeeded(DeepLearningServerPropert
     auto port = findAvailablePort();
     QStringList args;
     args << "-m" << "itksnap_dls" << "--port" << QString("%1").arg(port) << "--use-colors";
+    if(properties->GetNoSSLVerify())
+      args << "-k";
     m_Process->start(venvPython, args);
 
     // Show the text output
