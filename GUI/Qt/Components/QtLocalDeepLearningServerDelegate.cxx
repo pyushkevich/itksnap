@@ -39,7 +39,8 @@ QtLocalDeepLearningServerDelegate::StartServerIfNeeded(DeepLearningServerPropert
     // Are we already running a local server with these properties?
     if(properties->GetHash() == m_CurrentProcessHash && m_Process && m_Process->state() != QProcess::NotRunning)
     {
-      return m_CurrentProcessPort;
+      // Return code of 0 means keep same port
+      return 0;
     }
 
     // Shutdown the current process and start over
@@ -106,6 +107,7 @@ QtLocalDeepLearningServerDelegate::StartServerIfNeeded(DeepLearningServerPropert
     // Hide the text output
     m_OutputWidget->hide();
 
+    // Means failed to start
     return -1;
   }
 }

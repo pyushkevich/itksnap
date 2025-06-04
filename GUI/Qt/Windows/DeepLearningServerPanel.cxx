@@ -23,6 +23,7 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QPaintDevice>
+#include "DeepLearningConnectionStatusCouplingTraits.h"
 
 /**
  * Traits for mapping status codes to a label
@@ -41,33 +42,10 @@ public:
 
   virtual void SetValue(QLabel *w, const TAtomic &value)
   {
-    switch(value.status)
-    {
-      case dls_model::CONN_NO_SERVER:
-        w->setText("Server not configured");
-        w->setStyleSheet("color: darkred; font-weight: bold;");
-        break;
-      case dls_model::CONN_TUNNEL_ESTABLISHING:
-        w->setText("Opening tunnel to SSH server ...");
-        w->setStyleSheet("color: black; font-weight: bold;");
-        break;
-      case dls_model::CONN_TUNNEL_FAILED:
-        w->setText(QString("SSH tunnel failure: %1").arg(from_utf8(value.error_message)));
-        w->setStyleSheet("color: darkred; font-weight: bold;");
-        break;
-      case dls_model::CONN_CHECKING:
-        w->setText("Establishing connection ...");
-        w->setStyleSheet("color: black; font-weight: bold;");
-        break;
-      case dls_model::CONN_NOT_CONNECTED:
-        w->setText(QString("Not connected: %1").arg(from_utf8(value.error_message)));
-        w->setStyleSheet("color: darkred; font-weight: bold;");
-        break;
-      case dls_model::CONN_CONNECTED:
-        w->setText(QString("Connected, server version: %1").arg(from_utf8(value.server_version)));
-        w->setStyleSheet("color: darkgreen; font-weight: bold;");
-        break;
-    }
+    QString color, text;
+    std::tie(color, text) = GetDLSConnectionStatusColorAndText(value);
+    w->setText(text);
+    w->setStyleSheet(QString("color: %1; font-weight: bold;").arg(color));
   }
 };
 
@@ -278,12 +256,13 @@ DeepLearningServerPanel::resetConnection()
   if(!m_Model || !m_Model->GetIsActive())
     return;
 
-  // Start the local server if needed
-  m_Model->StartLocalServerIfNeeded();
-
   // Reset the server status
   m_Model->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_CHECKING));
   m_Model->SetProxyURL(std::string());
+
+  // Start the local server if needed. This may override the status to
+  // CONN_LOCAL_SERVER_STARTING or CONN_LOCAL_SERVER_FAILED
+  m_Model->StartLocalServerIfNeeded();
 
   if(m_Model->GetIsServerConfigured() && m_Model->GetServerProperties()->GetUseSSHTunnel())
   {
@@ -327,8 +306,6 @@ void DeepLearningServerPanel::updateServerStatus()
     qDebug() << "Canceled watcher triggered signal";
 
   m_Model->ApplyStatusCheckResponse(watcher->result());
-  qDebug() << "SERVER " << m_Model->GetServerDisplayURL() << " status " << m_Model->GetServerStatus().status;
-
   delete watcher;
 
   // Schedule another status check

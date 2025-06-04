@@ -102,14 +102,10 @@ PythonProcess::PythonProcess(const QString     &pythonExe,
   , m_OutputWidget(outputWidget)
 {
   // Set environment for the process
-  QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-  env.insert("FORCE_COLOR", "1");
-
   m_Process = new QProcess(this);
-  m_Process->setProcessEnvironment(env);
 
   connect(m_Process, &QProcess::readyReadStandardOutput, outputWidget, &QProcessOutputTextWidget::appendStdout);
-  connect(m_Process, &QProcess::readyReadStandardError, outputWidget, &QProcessOutputTextWidget::appendStdout);
+  connect(m_Process, &QProcess::readyReadStandardError, outputWidget, &QProcessOutputTextWidget::appendStderr);
   connect(m_Process,
           QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
           this,
@@ -135,7 +131,7 @@ bool PythonProcess::waitForFinished()
 
 void PythonProcess::onFinished(int exitCode, QProcess::ExitStatus status)
 {
-  m_OutputWidget->appendPlainText(QString("Process %1 finished with code %2\n").arg(m_PythonExe, exitCode));
+  m_OutputWidget->appendPlainText(QString("Process %1 finished with code %2\n").arg(m_PythonExe).arg(exitCode));
   this->deleteLater();
 }
 
@@ -314,9 +310,10 @@ DeepLearningServerEditor::on_PipUpgradePipFinished(int exitCode, QProcess::ExitS
     venvPython = QDir(ui->inPythonVEnv->text()).filePath("bin/python");
 #endif
 
+    // TODO: the desired version of itksnap-dls should not go here!
     // This is where you would do the pip install
     QStringList args;
-    args << "-m" << "pip" << "install" << "itksnap-dls>=0.0.5";
+    args << "-m" << "pip" << "install" << "itksnap-dls>=0.0.6";
     auto *pip = new PythonProcess(venvPython, args, ui->txtInstallLog, this);
     connect(pip, &PythonProcess::finished, this, &DeepLearningServerEditor::on_PipInstallDLSFinished);
     pip->start();
@@ -351,7 +348,9 @@ DeepLearningServerEditor::on_SetupDLSFinished(int exitCode, QProcess::ExitStatus
 {
   if(exitCode == 0 && status == QProcess::NormalExit)
   {
-    ui->txtInstallLog->appendPlainText("SUCCESSFULLY CONFIGURED ITK-SNAP Deep Learning Extension!");
+    ui->txtInstallLog->append("<b>=======================================</b>\n");
+    ui->txtInstallLog->append("<b>ITK-SNAP Deep Learning Server is Ready!</b>\n");
+    ui->txtInstallLog->append("<b>=======================================</b>\n");
   }
 }
 

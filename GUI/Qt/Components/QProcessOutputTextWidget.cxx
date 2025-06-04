@@ -74,7 +74,7 @@ QProcessOutputTextWidget::appendStderr()
   auto *process = dynamic_cast<QProcess *>(sender());
   if (process)
   {
-    appendPlainText(QString::fromUtf8(process->readAllStandardOutput()));
+    appendPlainText(QString::fromUtf8(process->readAllStandardError()));
   }
 }
 

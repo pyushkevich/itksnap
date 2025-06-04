@@ -70,7 +70,8 @@ public:
                  const char *username,
                  const char *keyfile,
                  Callback    callback,
-                 void       *callback_data);
+                 void       *callback_data,
+                 bool        verbose = false);
 
 protected:
   // static int ssh_error_callback(ssh_session session, Callback callback, void *cdata);
@@ -80,7 +81,7 @@ protected:
   {
   public:
     using ChannelMap = std::map<int, ssh_channel>;
-    SessionGuard(ssh_session s) : session(s) {};
+    SessionGuard(ssh_session s, bool verbose) : session(s), verbose(verbose) {};
     ~SessionGuard();
 
     void AddTunnel(int socket_id, ssh_channel channel);
@@ -91,6 +92,7 @@ protected:
     void CleanupTunnel(int socket_fd, ssh_channel channel);
 
     ssh_session session;
+    bool verbose;
     ChannelMap channel_map;
   };
 

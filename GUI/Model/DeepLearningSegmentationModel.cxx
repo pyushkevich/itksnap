@@ -259,7 +259,8 @@ DeepLearningSegmentationModel::DeepLearningSegmentationModel()
   m_ProxyURLModel = NewSimpleConcreteProperty(std::string());
 
   // Server status model
-  m_ServerStatusModel = NewSimpleConcreteProperty(dls_model::ConnectionStatus());
+  m_ServerStatusModel =
+    wrapGetterSetterPairAsProperty(this, &Self::GetServerStatusValue, &Self::SetServerStatusValue);
   m_ServerProgressModel = NewRangedConcreteProperty(0., 0., 0., 0.);
 
   // Set up the progress command
@@ -276,6 +277,25 @@ DeepLearningSegmentationModel::DeepLearningSegmentationModel()
 DeepLearningSegmentationModel::~DeepLearningSegmentationModel()
 {
   delete m_RESTSharedData;
+}
+
+bool
+DeepLearningSegmentationModel::GetServerStatusValue(dls_model::ConnectionStatus &value)
+{
+  value = m_ServerStatus;
+  return true;
+}
+
+void
+DeepLearningSegmentationModel::SetServerStatusValue(dls_model::ConnectionStatus value)
+{
+  m_ServerStatus = value;
+  std::vector<std::string> names = { "CONN_NO_SERVER",           "CONN_TUNNEL_ESTABLISHING",
+                                     "CONN_TUNNEL_FAILED",       "CONN_LOCAL_SERVER_STARTING",
+                                     "CONN_LOCAL_SERVER_FAILED", "CONN_CHECKING",
+                                     "CONN_NOT_CONNECTED",       "CONN_CONNECTED" };
+  // std::cout << "Server Status changed to " << names[value.status] << " message " << value.error_message << std::endl;
+  m_ServerStatusModel->InvokeEvent(ValueChangedEvent());
 }
 
 bool
@@ -334,8 +354,8 @@ DeepLearningSegmentationModel::SetServerValue(int value)
   SetProxyURL(std::string());
 
   // Reset the connection status to not connected state
-  SetServerStatus(value >= 0 ? dls_model::ConnectionStatus(dls_model::CONN_NO_SERVER)
-                             : dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED));
+  SetServerStatus(value >= 0 ? dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED)
+                             : dls_model::ConnectionStatus(dls_model::CONN_NO_SERVER));
 
   // Fire some events
   m_ServerModel->InvokeEvent(ValueChangedEvent());
@@ -452,7 +472,17 @@ void
 DeepLearningSegmentationModel::StartLocalServerIfNeeded()
 {
   itkAssertOrThrowMacro(m_LocalServerDelegate, "DeepLearningSegmentationModel::StartLocalServerIfNeeded called without a delegate assigned");
-  m_LocalPortNumber = m_LocalServerDelegate->StartServerIfNeeded(this->GetServerProperties());
+  int port = m_LocalServerDelegate->StartServerIfNeeded(this->GetServerProperties());
+  if(port > 0)
+  {
+    m_LocalPortNumber = port;
+    this->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_LOCAL_SERVER_STARTING));
+  }
+  else if(port < 0)
+  {
+    m_LocalPortNumber = -1;
+    this->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_LOCAL_SERVER_FAILED));
+  }
 }
 
 DeepLearningSegmentationModel::StatusCheck
@@ -503,8 +533,17 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
     }
     catch (IRISException &exc)
     {
-      response.status = dls_model::CONN_NOT_CONNECTED;
-      response.error_message = exc.what();
+      // TODO: this is a bad workaround the fact that we don't know when the local
+      // startup is over.
+      if(m_ServerStatusModel->GetValue() != dls_model::CONN_LOCAL_SERVER_STARTING)
+      {
+        response.status = dls_model::CONN_NOT_CONNECTED;
+        response.error_message = exc.what();
+      }
+      else
+      {
+        response.status = dls_model::CONN_LOCAL_SERVER_STARTING;
+      }
     }
   }
 
@@ -517,6 +556,7 @@ DeepLearningSegmentationModel::ApplyStatusCheckResponse(const StatusCheck &resul
   std::string hash = m_ServerIndex < 0 ? std::string() : m_ServerProperties[m_ServerIndex]->GetHash();
   if(hash == result.first)
     this->SetServerStatus(result.second);
+
 }
 
 void

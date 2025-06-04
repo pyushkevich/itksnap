@@ -24,7 +24,8 @@ SSHTunnel::run(const char *remote_host,
                const char *username,
                const char *keyfile,
                Callback    callback,
-               void       *callback_data)
+               void       *callback_data,
+               bool        verbose)
 {
   // Create a server socket
   int server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -54,7 +55,8 @@ SSHTunnel::run(const char *remote_host,
   ssh_set_log_level(SSH_LOG_WARN);
 
   // Create a new session
-  std::cout << "Creating tunnel to " << remote_host << std::endl;
+  if(verbose)
+    std::cout << "Creating tunnel to " << remote_host << std::endl;
   ssh_session session = ssh_new();
 
   // Define an easy to call error function
@@ -76,17 +78,19 @@ SSHTunnel::run(const char *remote_host,
     return fail(RC_SSH_ERROR, "Error creating SSH session");
 
   // Create a session object that will perform cleanup on exit
-  SessionGuard sguard(session);
+  SessionGuard sguard(session, verbose);
 
   // Set the host option
-  std::cout << "Setting hostname to " << remote_host << std::endl;
+  if(verbose)
+    std::cout << "Setting hostname to " << remote_host << std::endl;
   if (ssh_options_set(session, SSH_OPTIONS_HOST, remote_host) != SSH_OK)
     return fail(RC_SSH_ERROR, "Error setting ssh hostname to %s: %s", remote_host, ssh_get_error(session));
 
   // Set the username option
   if (username && strlen(username) > 0)
   {
-    std::cout << "Setting username to " << username << std::endl;
+    if(verbose)
+      std::cout << "Setting username to " << username << std::endl;
     if (ssh_options_set(session, SSH_OPTIONS_USER, username) != SSH_OK)
       return fail(RC_SSH_ERROR, "Error setting ssh usename to %s: %s", username, ssh_get_error(session));
   }
@@ -100,7 +104,8 @@ SSHTunnel::run(const char *remote_host,
   std::string err_pubkey, err_password;
   if (ssh_userauth_publickey_auto(session, NULL, NULL) == SSH_AUTH_SUCCESS)
   {
-    std::cout << "Successfully authenticated using auto-detected key" << std::endl;
+    if(verbose)
+      std::cout << "Successfully authenticated using auto-detected key" << std::endl;
     auth = true;
   }
   else
@@ -128,7 +133,8 @@ SSHTunnel::run(const char *remote_host,
       // Authorize using the password.
       if(ssh_userauth_password(session, nullptr, rc.second.c_str()) == SSH_AUTH_SUCCESS)
       {
-        std::cout << "Successfully authenticated using password" << std::endl;
+        if(verbose)
+          std::cout << "Successfully authenticated using password" << std::endl;
         auth = true;
         break;
       }
@@ -184,7 +190,8 @@ SSHTunnel::run(const char *remote_host,
     // Handle new connection
     if (FD_ISSET(server_socket, &fs))
     {
-      std::cout << "... Activity on server socket" << std::endl;
+      if(verbose)
+        std::cout << "... Activity on server socket" << std::endl;
 
       // Accept returns the client socket fd
       int client_socket = accept(server_socket, nullptr, nullptr);
@@ -221,12 +228,14 @@ SSHTunnel::run(const char *remote_host,
       // Check if a socket needs to be read
       if (FD_ISSET(it.first, &fs))
       {
-        std::cout << "... Activity on socket " << it.first << std::endl;
+        if(verbose)
+          std::cout << "... Activity on socket " << it.first << std::endl;
 
         int n_read = recv(it.first, buffer.data(), buffer_size, 0);
         if (n_read > 0)
         {
-          std::cout << "Read " << n_read << " bytes from socket " << it.first << std::endl;
+          if(verbose)
+            std::cout << "Read " << n_read << " bytes from socket " << it.first << std::endl;
           int n_written = ssh_channel_write(it.second, buffer.data(), n_read);
           if (n_written != n_read)
             fail(RC_SSH_ERROR,
@@ -234,11 +243,13 @@ SSHTunnel::run(const char *remote_host,
                  n_written,
                  n_read,
                  ssh_get_error(session));
-          std::cout << "Wrote " << n_written << " bytes to channel" << std::endl;
+          if(verbose)
+            std::cout << "Wrote " << n_written << " bytes to channel" << std::endl;
         }
         else if (n_read == 0)
         {
-          std::cout << "Socket is closed" << std::endl;
+          if(verbose)
+            std::cout << "Socket is closed" << std::endl;
           to_delete.insert(it.first);
         }
         else if (n_read < 0)
@@ -249,7 +260,8 @@ SSHTunnel::run(const char *remote_host,
       // Check if a channel needs to be read
       if (std::find(ch_out.begin(), ch_out.end(), it.second) != ch_out.end())
       {
-        std::cout <<  "... Activity on channel for socket " << it.first << std::endl;
+        if(verbose)
+          std::cout << "... Activity on channel for socket " << it.first << std::endl;
 
         // Yes, channel indicated that it needs to be read
         if (ssh_channel_poll(it.second, 1) > 0)
@@ -261,11 +273,13 @@ SSHTunnel::run(const char *remote_host,
         }
 
         int n_avail = ssh_channel_poll(it.second, 0);
-        std::cout << "ssh_channel_poll returned " << n_avail << std::endl;
+        if(verbose)
+          std::cout << "ssh_channel_poll returned " << n_avail << std::endl;
         if (n_avail == SSH_EOF)
         {
           // End of file from the remote socket - terminate the connection
-          std::cout <<  "EOF from channel on socket " << it.first << std::endl;
+          if(verbose)
+            std::cout << "EOF from channel on socket " << it.first << std::endl;
           to_delete.insert(it.first);
         }
         else if (n_avail > 0)
@@ -279,7 +293,9 @@ SSHTunnel::run(const char *remote_host,
                         n_avail,
                         ssh_get_error(session));
 
-          std::cout << "Read " << n_read << " bytes from channel for socket " << it.first << std::endl;
+          if(verbose)
+            std::cout << "Read " << n_read << " bytes from channel for socket " << it.first
+                      << std::endl;
           int n_written = send(it.first, buffer.data(), n_read, 0);
           if (n_written != n_read)
             return fail(
@@ -290,7 +306,8 @@ SSHTunnel::run(const char *remote_host,
 
         if (ssh_channel_is_eof(it.second))
         {
-          std::cout << "EOF from channel on socket " << it.first << std::endl;
+          if(verbose)
+            std::cout << "EOF from channel on socket " << it.first << std::endl;
           to_delete.insert(it.first);
         }
       }
@@ -348,5 +365,6 @@ SSHTunnel::SessionGuard::CleanupTunnel(int socket_fd, ssh_channel channel)
   shutdown(socket_fd, SD_BOTH);
   closesocket(socket_fd);
 #endif
-  std::cout << "Disconnected from socket " << socket_fd << std::endl;
+  if(verbose)
+    std::cout << "Disconnected from socket " << socket_fd << std::endl;
 }

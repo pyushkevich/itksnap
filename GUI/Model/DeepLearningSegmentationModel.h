@@ -27,6 +27,8 @@ enum ConnectionStatusEnum {
   CONN_NO_SERVER,
   CONN_TUNNEL_ESTABLISHING,
   CONN_TUNNEL_FAILED,
+  CONN_LOCAL_SERVER_STARTING,
+  CONN_LOCAL_SERVER_FAILED,
   CONN_CHECKING,
   CONN_NOT_CONNECTED,
   CONN_CONNECTED
@@ -116,6 +118,9 @@ class AbstractLocalDeepLearningServerDelegate
 public:
   /**
    * Start the local server, returning the port address on which the server will be running.
+   * Returns port number, 0 or -1:
+   *    0: server already running for this set of properties
+   *   -1: failed to start server
    */
   virtual int StartServerIfNeeded(DeepLearningServerPropertiesModel *properties) = 0;
 };
@@ -244,8 +249,12 @@ protected:
   SmartPtr<ConcreteSimpleStringProperty> m_ProxyURLModel;
 
   // Server status
-  typedef ConcretePropertyModel<dls_model::ConnectionStatus, TrivialDomain> ServerStatusModelType;
+  typedef AbstractPropertyModel<dls_model::ConnectionStatus, TrivialDomain> ServerStatusModelType;
   SmartPtr<ServerStatusModelType> m_ServerStatusModel;
+
+  bool GetServerStatusValue(dls_model::ConnectionStatus &value);
+  void SetServerStatusValue(dls_model::ConnectionStatus value);
+  dls_model::ConnectionStatus m_ServerStatus;
 
   // Current progress
   SmartPtr<ConcreteRangedDoubleProperty> m_ServerProgressModel;

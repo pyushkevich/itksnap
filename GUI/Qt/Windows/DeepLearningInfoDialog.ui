@@ -150,7 +150,7 @@
    <item row="3" column="0">
     <widget class="QLabel" name="label_4">
      <property name="text">
-      <string>These features require running a separate Python-based server &lt;code&gt;itksnap-dls&lt;/code&gt; on a machine with a GPU. </string>
+      <string>These features require an NVidia GPU, either on this computer or a remote server.</string>
      </property>
      <property name="wordWrap">
       <bool>true</bool>
