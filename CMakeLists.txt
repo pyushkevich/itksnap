@@ -209,7 +209,8 @@ SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
 set(Python3_FIND_FRAMEWORK NEVER)
 set(PYBIND11_FINDPYTHON ON)
 add_subdirectory(Submodules/pybind11)
-message(STATUS "Python dir: ${ITKSNAP_PYTHON_DIR}")
+message(STATUS "Python executable: ${Python_EXECUTABLE}")
+message(STATUS "Python library: ${Python_LIBRARY}")
 
 #--------------------------------------------------------------------------------
 # SOURCE FILE SPECIFICATION                 
