@@ -270,7 +270,7 @@ DeepLearningSegmentationModel::DeepLearningSegmentationModel()
   this->Rebroadcast(m_ServerModel, DomainChangedEvent(), ServerChangeEvent());
 
   // Initialize the cookie jar
-  m_RESTSharedData = new RESTSharedData();
+  m_RESTSharedData = new RESTSharedDataType();
 }
 
 DeepLearningSegmentationModel::~DeepLearningSegmentationModel()
@@ -480,7 +480,7 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
   {
     try
     {
-      RESTClient cli(m_RESTSharedData);
+      RESTClientType cli(m_RESTSharedData);
       cli.SetServerURL(GetActualServerURL().c_str());
       bool status = cli.Get("status");
       if (!status)
@@ -524,7 +524,7 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
 {
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
-  RESTClient cli(m_RESTSharedData);
+  RESTClientType cli(m_RESTSharedData);
   cli.SetServerURL(GetActualServerURL().c_str());
 
   // Check if we have an open session with the server, if not establish it
@@ -623,7 +623,7 @@ DeepLearningSegmentationModel::ResetInteractions()
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
   // Perform the drawing command
-  RESTClient cli(m_RESTSharedData);
+  RESTClientType cli(m_RESTSharedData);
   cli.SetServerURL(GetActualServerURL().c_str());
 
   if (!cli.Get("reset_interactions/%s", m_ActiveSession.c_str()))
@@ -763,7 +763,7 @@ DeepLearningSegmentationModel::PerformPointInteraction(ImageWrapperBase *layer, 
          // Perform the drawing command
   Clock::time_point t0, t1, t2, t3;
   t0 = Clock::now();
-  RESTClient cli(m_RESTSharedData);
+  RESTClientType cli(m_RESTSharedData);
   cli.SetServerURL(GetActualServerURL().c_str());
   if(!cli.Get("process_point_interaction/%s?x=%d&y=%d&z=%d&foreground=%s",
                m_ActiveSession.c_str(),
@@ -810,7 +810,7 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
 
   // Perform the drawing command
   auto       t2 = Clock::now();
-  RESTClient cli(m_RESTSharedData);
+  RESTClientType cli(m_RESTSharedData);
   cli.SetServerURL(GetActualServerURL().c_str());
   if (!cli.PostMultipart(
         "%s/%s?foreground=%s", &mpd, target_url, m_ActiveSession.c_str(), reverse ? "false" : "true"))
