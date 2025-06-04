@@ -1,4 +1,5 @@
 #include "QtLocalDeepLearningServerDelegate.h"
+#include "QProcessOutputTextWidget.h"
 #include <QTimer>
 #include <QDir>
 #include <QPlainTextEdit>
@@ -22,8 +23,8 @@ findAvailablePort()
 }
 
 
-QtLocalDeepLearningServerDelegate::QtLocalDeepLearningServerDelegate(QObject        *parent,
-                                                                     QPlainTextEdit *output_widget)
+QtLocalDeepLearningServerDelegate::QtLocalDeepLearningServerDelegate(QObject *parent,
+                                                                     QProcessOutputTextWidget *output_widget)
   : QObject(parent)
 {
   this->m_OutputWidget = output_widget;
@@ -46,15 +47,20 @@ QtLocalDeepLearningServerDelegate::StartServerIfNeeded(DeepLearningServerPropert
       terminateProcess(m_Process);
     m_Process = new QProcess(this);
 
+    // Set environment for the process
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("FORCE_COLOR", "1");
+    m_Process->setProcessEnvironment(env);
+
     // Listen to process events
     connect(m_Process,
             &QProcess::readyReadStandardOutput,
-            this,
-            &QtLocalDeepLearningServerDelegate::onReadyReadStandardOutput);
+            m_OutputWidget,
+            &QProcessOutputTextWidget::appendStdout);
     connect(m_Process,
-            &QProcess::readyReadStandardError,
-            this,
-            &QtLocalDeepLearningServerDelegate::onReadyReadStandardError);
+            &QProcess::readyReadStandardOutput,
+            m_OutputWidget,
+            &QProcessOutputTextWidget::appendStderr);
     connect(m_Process,
             QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
             this,
@@ -76,8 +82,12 @@ QtLocalDeepLearningServerDelegate::StartServerIfNeeded(DeepLearningServerPropert
     // Configure the arguments to run
     auto port = findAvailablePort();
     QStringList args;
-    args << "-m" << "itksnap_dls" << "--port" << QString("%1").arg(port);
+    args << "-m" << "itksnap_dls" << "--port" << QString("%1").arg(port) << "--use-colors";
     m_Process->start(venvPython, args);
+
+    // Show the text output
+    m_OutputWidget->clear();
+    m_OutputWidget->show();
 
     // Return the port number on which we started the process
     return port;
@@ -92,32 +102,9 @@ QtLocalDeepLearningServerDelegate::StartServerIfNeeded(DeepLearningServerPropert
     }
 
     // Hide the text output
-    m_OutputWidget->clear();
-    m_OutputWidget->show();
+    m_OutputWidget->hide();
 
     return -1;
-  }
-}
-
-void
-QtLocalDeepLearningServerDelegate::onReadyReadStandardOutput()
-{
-  auto *process = dynamic_cast<QProcess *>(sender());
-  if(process)
-  {
-    QByteArray data = process->readAllStandardOutput();
-    m_OutputWidget->appendPlainText(QString::fromLocal8Bit(data));
-  }
-}
-
-void
-QtLocalDeepLearningServerDelegate::onReadyReadStandardError()
-{
-  auto *process = dynamic_cast<QProcess *>(sender());
-  if(process)
-  {
-    QByteArray data = process->readAllStandardError();
-    m_OutputWidget->appendPlainText(QString::fromLocal8Bit(data));
   }
 }
 
@@ -129,10 +116,10 @@ QtLocalDeepLearningServerDelegate::onStarted()
   {
     m_OutputWidget->clear();
     m_OutputWidget->show();
-    m_OutputWidget->appendPlainText("---------------------------------------");
+    m_OutputWidget->appendPlainText("---------------------------------------\n");
     m_OutputWidget->appendPlainText(
-      QString("Running %1 %2").arg(process->program(), process->arguments().join(" ")));
-    m_OutputWidget->appendPlainText("---------------------------------------");
+      QString("Running %1 %2\n").arg(process->program(), process->arguments().join(" ")));
+    m_OutputWidget->appendPlainText("---------------------------------------\n");
   }
 }
 
@@ -142,7 +129,7 @@ QtLocalDeepLearningServerDelegate::onFinished(int exitCode, QProcess::ExitStatus
   auto *process = dynamic_cast<QProcess *>(sender());
   if(process)
   {
-    m_OutputWidget->appendPlainText(QString("Process finished with code %1").arg(exitCode));
+    m_OutputWidget->appendPlainText(QString("Process finished with code %1\n").arg(exitCode));
   }
 }
 

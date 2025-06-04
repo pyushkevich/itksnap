@@ -312,6 +312,12 @@
       </item>
       <item row="1" column="3">
        <widget class="QToolButton" name="btnFindVEnvFolder">
+        <property name="maximumSize">
+         <size>
+          <width>21</width>
+          <height>21</height>
+         </size>
+        </property>
         <property name="toolTip">
          <string>Select path for the Python virtual environment</string>
         </property>
@@ -332,6 +338,12 @@
       </item>
       <item row="1" column="4">
        <widget class="QToolButton" name="btnResetVEnvFolderToDefault">
+        <property name="maximumSize">
+         <size>
+          <width>21</width>
+          <height>21</height>
+         </size>
+        </property>
         <property name="toolTip">
          <string>Use the default Python virtual environment location for ITK-SNAP</string>
         </property>
@@ -380,6 +392,25 @@ color: rgb(64, 64, 64);</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="3">
+       <widget class="QToolButton" name="btnFindPythonExe">
+        <property name="maximumSize">
+         <size>
+          <width>21</width>
+          <height>21</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Select path for the Python virtual environment</string>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::DocumentOpen"/>
         </property>
        </widget>
       </item>

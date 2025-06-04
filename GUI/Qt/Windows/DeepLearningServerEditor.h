@@ -64,13 +64,16 @@ private slots:
   void on_VEnvInstallFinished(int exitCode, QProcess::ExitStatus status);
   void on_PipUpgradePipFinished(int exitCode, QProcess::ExitStatus status);
   void on_PipInstallDLSFinished(int exitCode, QProcess::ExitStatus status);
-  void on_ActionBrowsePython();
+  void on_SetupDLSFinished(int exitCode, QProcess::ExitStatus status);
+
+  void on_btnFindVEnvFolder_clicked();
+  void on_btnResetVEnvFolderToDefault_clicked();
+  void on_btnFindPythonExe_clicked();
 
 private:
   Ui::DeepLearningServerEditor *ui;
   DeepLearningServerPropertiesModel *m_Model;
   QStringList m_KnownPythonExes;
-  QAction *m_ActionBrowsePython;
 };
 
 #endif // DEEPLEARNINGSERVEREDITOR_H

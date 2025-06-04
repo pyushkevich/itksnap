@@ -82,7 +82,7 @@ public:
 
   static QIcon GetIcon(int row, const Value &m)
   {
-    return QIcon::fromTheme(m->GetRemoteConnection() ? QIcon::ThemeIcon::NetworkWireless : QIcon::ThemeIcon::FolderOpen);
+    return QIcon::fromTheme(m->GetRemoteConnection() ? QIcon::ThemeIcon::NetworkWireless : QIcon::ThemeIcon::DocumentOpen);
   }
 
   static QVariant GetIconSignature(int, const Value &)
@@ -356,6 +356,7 @@ DeepLearningServerPanel::ShowEditorDialog()
 {
   // Create a new dialog
   m_EditorDialog = new QDialog(this);
+  m_EditorDialog->setWindowTitle("Deep Learning Extension Server Configuration");
   m_Editor = new DeepLearningServerEditor(m_EditorDialog);
   connect(m_EditorDialog,
           &QDialog::finished,

@@ -1,5 +1,7 @@
 #include "pybind11/embed.h"
 #include "Python.h"
+#include <QtGui/qdesktopservices.h>
+#include <QtWidgets/qfiledialog.h>
 namespace py = pybind11;
 
 #include "DeepLearningServerEditor.h"
@@ -156,11 +158,6 @@ DeepLearningServerEditor::DeepLearningServerEditor(QWidget *parent)
   // Hide the text edit
   ui->txtInstallLog->hide();
 
-  // Set up the add Python action
-  m_ActionBrowsePython = new QAction(this);
-  m_ActionBrowsePython->setText("Browse ...");
-  connect(m_ActionBrowsePython, &QAction::triggered, this, &DeepLearningServerEditor::on_ActionBrowsePython);
-
   // Build the list of known Python environments
   auto *worker = new PythonFinderWorker();
   auto *thread = new QThread();
@@ -170,7 +167,10 @@ DeepLearningServerEditor::DeepLearningServerEditor(QWidget *parent)
   connect(thread, &QThread::started, worker, &PythonFinderWorker::findPythonInterpreters);
   connect(worker, &PythonFinderWorker::interpretersFound, this, [this, thread, worker](const QStringList &interpreters) {
     this->m_KnownPythonExes = interpreters;
-    this->ui->inPythonExe->addItems(m_KnownPythonExes);
+    for(auto &exe : this->m_KnownPythonExes)
+    {
+      this->ui->inPythonExe->addItem(exe, exe);
+    }
     thread->quit();
     thread->wait();
     worker->deleteLater();
@@ -342,7 +342,7 @@ DeepLearningServerEditor::on_PipUpgradePipFinished(int exitCode, QProcess::ExitS
 
     // This is where you would do the pip install
     QStringList args;
-    args << "-m" << "pip" << "install" << "itksnap-dls";
+    args << "-m" << "pip" << "install" << "itksnap-dls>=0.0.5";
     auto *pip = new PythonProcess(venvPython, args, ui->txtInstallLog, this);
     connect(pip, &PythonProcess::finished, this, &DeepLearningServerEditor::on_PipInstallDLSFinished);
     pip->start();
@@ -365,7 +365,7 @@ DeepLearningServerEditor::on_PipInstallDLSFinished(int exitCode, QProcess::ExitS
     // This is where you would do the pip install
     // TODO: need special mode to test the server without downloading
     QStringList args;
-    args << "-m" << "itksnap_dls";
+    args << "-m" << "itksnap_dls" << "--setup-only";
     auto *pip = new PythonProcess(venvPython, args, ui->txtInstallLog, this);
     connect(pip, &PythonProcess::finished, this, &DeepLearningServerEditor::on_PipInstallDLSFinished);
     pip->start();
@@ -373,7 +373,50 @@ DeepLearningServerEditor::on_PipInstallDLSFinished(int exitCode, QProcess::ExitS
 }
 
 void
-DeepLearningServerEditor::on_ActionBrowsePython()
+DeepLearningServerEditor::on_SetupDLSFinished(int exitCode, QProcess::ExitStatus status)
 {
+  if(exitCode == 0 && status == QProcess::NormalExit)
+  {
+    ui->txtInstallLog->appendPlainText("SUCCESSFULLY CONFIGURED ITK-SNAP Deep Learning Extension!");
+  }
+}
 
+
+
+void
+DeepLearningServerEditor::on_btnResetVEnvFolderToDefault_clicked()
+{
+  auto default_path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/dls_venv";
+  m_Model->SetLocalPythonVEnvPath(default_path.toStdString());
+}
+
+void
+DeepLearningServerEditor::on_btnFindPythonExe_clicked()
+{
+#ifdef Q_OS_WIN
+  QString defaultName = "python.exe";
+  QString defaultDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "\\AppData\\Local\\Programs\\Python";
+#else
+  QString defaultName = "python3";
+  QString defaultDir = "/usr/bin";
+#endif
+
+  QString filter = QString("Python Interpreter (%1)").arg(defaultName);
+  QString file = QFileDialog::getOpenFileName(this, "Select Python Interpreter", defaultDir, filter);
+  if(!file.isNull())
+    ui->inPythonExe->addItem(file);
+}
+
+void
+DeepLearningServerEditor::on_btnFindVEnvFolder_clicked()
+{
+  QString dir =
+    QFileDialog::getExistingDirectory(this,
+                                      "Select Python Virtual Environment Directory",
+                                      QString::fromStdString(m_Model->GetLocalPythonExePath()));
+
+  if(!dir.isNull())
+  {
+    m_Model->SetLocalPythonVEnvPath(dir.toStdString());
+  }
 }

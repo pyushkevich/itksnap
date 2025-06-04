@@ -133,11 +133,7 @@ Please follow &lt;a href=&quot;https://itksnap-dls.readthedocs.io/en/latest&quot
            </widget>
           </item>
           <item row="3" column="0" colspan="5">
-           <widget class="QPlainTextEdit" name="txtEditServerLog">
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
+           <widget class="QProcessOutputTextWidget" name="txtEditServerLog"/>
           </item>
          </layout>
         </widget>
@@ -161,6 +157,13 @@ Please follow &lt;a href=&quot;https://itksnap-dls.readthedocs.io/en/latest&quot
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QProcessOutputTextWidget</class>
+   <extends>QTextEdit</extends>
+   <header>QProcessOutputTextWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>tabWidgetDL</tabstop>
   <tabstop>inActiveServer</tabstop>

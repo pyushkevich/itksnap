@@ -206,6 +206,7 @@ SET(CPACK_RESOURCE_FILE_LICENSE "${SNAP_SOURCE_DIR}/COPYING")
 # Python embedding and binding
 #--------------------------------------------------------------------------------
 
+set(Python3_FIND_FRAMEWORK NEVER)
 set(PYBIND11_FINDPYTHON ON)
 add_subdirectory(Submodules/pybind11)
 message(STATUS "Python dir: ${ITKSNAP_PYTHON_DIR}")
@@ -703,6 +704,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QtIPCManager.cxx
   GUI/Qt/Components/QtRendererPlatformSupport.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
+  GUI/Qt/Components/QProcessOutputTextWidget.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
   GUI/Qt/Components/RecentHistoryItemsView.cxx
@@ -806,6 +808,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtHideOnDeactivateContainer.h
   GUI/Qt/Components/QtIPCManager.h
   GUI/Qt/Components/QtLocalDeepLearningServerDelegate.h
+  GUI/Qt/Components/QProcessOutputTextWidget.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/RecentHistoryItemsView.h
