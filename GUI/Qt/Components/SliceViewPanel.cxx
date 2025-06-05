@@ -3,10 +3,8 @@
 
 #include "GlobalUIModel.h"
 #include "SNAPEvents.h"
-#include "IRISException.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
-#include "itkCommand.h"
 #include "CrosshairsRenderer.h"
 #include "PolygonDrawingRenderer.h"
 #include "DeformationGridRenderer.h"
@@ -15,6 +13,7 @@
 #include "SnakeROIModel.h"
 #include "SliceWindowCoordinator.h"
 #include "PolygonDrawingModel.h"
+#include "PolygonDrawingRenderer.h"
 #include "AnnotationModel.h"
 #include "InteractiveRegistrationModel.h"
 #include "AnnotationRenderer.h"
@@ -37,6 +36,7 @@
 #include "AnnotationEditDialog.h"
 #include <vtkRenderWindow.h>
 
+
 #include "CrosshairsInteractionMode.h"
 #include "ThumbnailInteractionMode.h"
 #include "PolygonDrawingInteractionMode.h"
@@ -45,8 +45,174 @@
 #include "AnnotationInteractionMode.h"
 #include "RegistrationInteractionMode.h"
 
+#include "GenericSliceRenderer.h"
+#include "QtReporterDelegates.h"
 #include <QStackedLayout>
 #include <QMenu>
+
+#include "QtFrameBufferOpenGLWidget.h"
+
+
+/**
+ * Chain of interaction mode delegates and render delegates for the slice view.
+ * They are in their own class to keep the code a bit more tidy.
+ */
+class SliceViewDelegateChain
+{
+  friend class SliceViewPanel;
+
+public:
+  SliceViewDelegateChain(QWidget *sliceView, QWidget *canvasWidget, GenericSliceRenderer *mainRenderer)
+    : m_SliceView(sliceView)
+    , m_CanvasWidget(canvasWidget)
+    , m_MainRenderer(mainRenderer)
+  {
+    // Create the interaction modes
+    m_CrosshairsMode = new CrosshairsInteractionMode(sliceView, canvasWidget);
+    m_ZoomPanMode = new CrosshairsInteractionMode(sliceView, canvasWidget);
+    m_ThumbnailMode = new ThumbnailInteractionMode(sliceView, canvasWidget);
+    m_PolygonMode = new PolygonDrawingInteractionMode(sliceView, canvasWidget);
+    m_SnakeROIMode = new SnakeROIInteractionMode(sliceView, canvasWidget);
+    m_PaintbrushMode = new PaintbrushInteractionMode(sliceView, canvasWidget);
+    m_AnnotationMode = new AnnotationInteractionMode(sliceView, canvasWidget);
+    m_RegistrationMode = new RegistrationInteractionMode(sliceView, canvasWidget);
+
+    // Create the renderers
+    m_CrosshairsRenderer = CrosshairsRenderer::New();
+    m_DecorationRenderer = SliceWindowDecorationRenderer::New();
+    m_PolygonDrawingRenderer = PolygonDrawingRenderer::New();
+    m_PaintbrushRenderer = PaintbrushRenderer::New();
+    m_AnnotationRenderer = AnnotationRenderer::New();
+    m_DeformationGridRenderer = DeformationGridRenderer::New();
+    m_SnakeModeRenderer = SnakeModeRenderer::New();
+    m_SnakeROIRenderer = SnakeROIRenderer::New();
+    m_RegistrationRenderer = RegistrationRenderer::New();
+
+    // Configure mode map
+    m_ToolbarModeMap[POLYGON_DRAWING_MODE] = std::make_pair(m_PolygonMode, nullptr);
+    m_ToolbarModeMap[PAINTBRUSH_MODE] = std::make_pair(m_PaintbrushMode, m_PaintbrushRenderer);
+    m_ToolbarModeMap[ANNOTATION_MODE] = std::make_pair(m_AnnotationMode, m_AnnotationRenderer);
+    m_ToolbarModeMap[REGISTRATION_MODE] = std::make_pair(m_RegistrationMode, m_RegistrationRenderer);
+    m_ToolbarModeMap[ROI_MODE] = std::make_pair(m_SnakeROIMode, m_SnakeROIRenderer);
+    m_ToolbarModeMap[CROSSHAIRS_MODE] = std::make_pair(m_CrosshairsMode, nullptr);
+    m_ToolbarModeMap[NAVIGATION_MODE] = std::make_pair(m_ZoomPanMode, nullptr);
+
+    // Create list of all modes
+    m_AllModes.push_back(m_ThumbnailMode);
+    for (auto it : m_ToolbarModeMap)
+      m_AllModes.push_back(it.second.first);
+
+    // Add the interaction modes to the main slice view's layout
+    for (auto *widget : m_AllModes)
+      m_SliceView->layout()->addWidget(widget);
+
+    // Configure default chain
+    ConfigureEventChain(CROSSHAIRS_MODE);
+  }
+
+  virtual ~SliceViewDelegateChain() {}
+
+  void ConfigureEventChain(ToolbarModeType mode)
+  {
+    auto &active_ir = m_ToolbarModeMap[mode];
+
+    // Remove all event filters from the slice view
+    for (auto *widget : m_AllModes)
+      m_CanvasWidget->removeEventFilter(widget);
+
+    // Now add the event filters in the order in which we want them to react
+    // to events. The last event filter is first to receive events, and should
+    // thus be the thumbnail interaction mode. The first event filter is always
+    // the crosshairs interaction mode, which is the fallback for all others.
+    m_CanvasWidget->installEventFilter(this->m_CrosshairsMode);
+
+    // If the current mode is not crosshairs mode, add it as the filter
+    if (active_ir.first != this->m_CrosshairsMode)
+      m_CanvasWidget->installEventFilter(active_ir.first);
+
+    // The last guy in the chain is the thumbnail interactor
+    m_CanvasWidget->installEventFilter(this->m_ThumbnailMode);
+
+    // Configure the renderers in desired order
+    GenericSliceRenderer::RendererDelegateList renderer_delegates;
+
+    // These renderers render below everything else
+    renderer_delegates.push_back(m_SnakeModeRenderer);
+    renderer_delegates.push_back(m_DeformationGridRenderer);
+    renderer_delegates.push_back(m_CrosshairsRenderer);
+    renderer_delegates.push_back(m_PolygonDrawingRenderer);
+
+    // This is the mode-specific renderer
+    if(active_ir.second)
+      renderer_delegates.push_back(active_ir.second);
+
+    // These renderers render on top of everything else
+    renderer_delegates.push_back(m_DecorationRenderer);
+
+    // Send the delegates
+    m_MainRenderer->SetDelegates(renderer_delegates);
+  }
+
+  void SetModel(GlobalUIModel *model, unsigned int index)
+  {
+    // Initialize the interaction modes
+    m_CrosshairsMode->SetModel(model->GetCursorNavigationModel(index));
+    m_ZoomPanMode->SetModel(model->GetCursorNavigationModel(index));
+    m_ZoomPanMode->SetMouseButtonBehaviorToZoomPanMode();
+    m_ThumbnailMode->SetModel(model->GetCursorNavigationModel(index));
+    m_PolygonMode->SetModel(model->GetPolygonDrawingModel(index));
+    m_SnakeROIMode->SetModel(model->GetSnakeROIModel(index));
+    m_PaintbrushMode->SetModel(model->GetPaintbrushModel(index));
+    m_AnnotationMode->SetModel(model->GetAnnotationModel(index));
+    m_RegistrationMode->SetModel(model->GetInteractiveRegistrationModel(index));
+
+    // Initialize the renderers
+    m_CrosshairsRenderer->SetModel(model->GetSliceModel(index));
+    m_DecorationRenderer->SetModel(model->GetSliceModel(index));
+    m_PaintbrushRenderer->SetModel(model->GetPaintbrushModel(index));
+    m_PolygonDrawingRenderer->SetModel(model->GetPolygonDrawingModel(index));
+    m_AnnotationRenderer->SetModel(model->GetAnnotationModel(index));
+    m_DeformationGridRenderer->SetModel(model->GetSliceModel(index)->GetDeformationGridModel());
+    m_SnakeModeRenderer->SetModel(model->GetSliceModel(index));
+    m_SnakeROIRenderer->SetModel(model->GetSnakeROIModel(index));
+    m_RegistrationRenderer->SetModel(model->GetInteractiveRegistrationModel(index));
+  }
+
+private:
+  // Client widget, widget that actually is rendered on
+  QWidget *m_SliceView, *m_CanvasWidget;
+
+  // Renderer that does the main rendering and accepts delegates
+  GenericSliceRenderer *m_MainRenderer;
+
+  // Interaction modes
+  CrosshairsInteractionMode     *m_CrosshairsMode, *m_ZoomPanMode;
+  ThumbnailInteractionMode      *m_ThumbnailMode;
+  PolygonDrawingInteractionMode *m_PolygonMode;
+  SnakeROIInteractionMode       *m_SnakeROIMode;
+  PaintbrushInteractionMode     *m_PaintbrushMode;
+  AnnotationInteractionMode     *m_AnnotationMode;
+  RegistrationInteractionMode   *m_RegistrationMode;
+
+  // Renderers
+  SmartPtr<CrosshairsRenderer>            m_CrosshairsRenderer;
+  SmartPtr<PolygonDrawingRenderer>        m_PolygonDrawingRenderer;
+  SmartPtr<PaintbrushRenderer>            m_PaintbrushRenderer;
+  SmartPtr<AnnotationRenderer>            m_AnnotationRenderer;
+  SmartPtr<DeformationGridRenderer>       m_DeformationGridRenderer;
+  SmartPtr<SnakeModeRenderer>             m_SnakeModeRenderer;
+  SmartPtr<SnakeROIRenderer>              m_SnakeROIRenderer;
+  SmartPtr<RegistrationRenderer>          m_RegistrationRenderer;
+  SmartPtr<SliceWindowDecorationRenderer> m_DecorationRenderer;
+
+  // Map from toolbar mode to interaction mode
+  using IRPair = std::pair<QWidget *, SliceRendererDelegate *>;
+  std::map<ToolbarModeType, IRPair> m_ToolbarModeMap;
+
+  // All modes including those that don't correspond to a toolbar mode
+  std::list<QWidget *> m_AllModes;
+};
+
 
 SliceViewPanel::SliceViewPanel(QWidget *parent) :
     SNAPComponent(parent),
@@ -58,46 +224,90 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   m_GlobalUI = NULL;
   m_SliceModel = NULL;
 
-  // Create my own renderers
-  m_SnakeModeRenderer = SnakeModeRenderer::New();
-  m_DecorationRenderer = SliceWindowDecorationRenderer::New();
-  m_DeformationGridRenderer = DeformationGridRenderer::New();
+  // Also lay out the pages
+  QStackedLayout *loPages = new QStackedLayout();
+  loPages->addWidget(ui->pageDefault);
+  loPages->addWidget(ui->pagePolygonDraw);
+  loPages->addWidget(ui->pagePolygonEdit);
+  loPages->addWidget(ui->pagePolygonInactive);
+  loPages->addWidget(ui->pageAnnotateLineActive);
+  loPages->addWidget(ui->pageAnnotateSelect);
+  delete ui->toolbar->layout();
+  ui->toolbar->setLayout(loPages);
+
+  // Set page size on the slice position widget
+  ui->inSlicePosition->setPageStep(5);
+
+  // Set up the drawing cursor
+  QBitmap bmBitmap(":/root/crosshair_cursor_bitmap.png");
+  QBitmap bmMask(":/root/crosshair_cursor_mask.png");
+  m_DrawingCrosshairCursor = new QCursor(bmBitmap, bmMask, 7, 7);
+
+  // New stuff - set up the target panel for QPainter
+  QHBoxLayout *lo = new QHBoxLayout(ui->sliceViewNew);
+  lo->setContentsMargins(0,0,0,0);
+  lo->setSpacing(0);
+  ui->sliceViewNew->setLayout(lo);
+  auto *canvas = new QtFrameBufferOpenGLWidget(ui->sliceViewNew); //  FrameBufferOpenGLWidget(ui->sliceViewNew);
+  canvas->grabGesture(Qt::PinchGesture);
+  lo->addWidget(canvas);
+
+  // Create a renderer
+  m_Renderer = GenericSliceRenderer::New();
+  canvas->SetRenderer(m_Renderer.GetPointer());
+  m_RendererCanvas = canvas;
+  m_RendererCanvas->setObjectName("sliceViewCanvas");
+
+  // Create a viewport reporter and associate it with the main stack
+  // TODO: eventually this should just be m_RendererCanvas
+  m_ViewportReporter = QtViewportReporter::New();
+  m_ViewportReporter->SetClientWidget(m_RendererCanvas);
 
   // Create the interaction modes
-  m_CrosshairsMode = new CrosshairsInteractionMode(ui->sliceView);
-  m_ZoomPanMode = new CrosshairsInteractionMode(ui->sliceView);
-  m_ThumbnailMode = new ThumbnailInteractionMode(ui->sliceView);
-  m_PolygonMode = new PolygonDrawingInteractionMode(ui->sliceView);
-  m_SnakeROIMode = new SnakeROIInteractionMode(ui->sliceView);
-  m_PaintbrushMode = new PaintbrushInteractionMode(ui->sliceView);
-  m_AnnotationMode = new AnnotationInteractionMode(ui->sliceView);
-  m_RegistrationMode = new RegistrationInteractionMode(ui->sliceView);
+  m_DelegateChain = new SliceViewDelegateChain(ui->sliceViewNew, m_RendererCanvas, m_Renderer);
 
-  // Add the interaction modes to the main slice view's layout
-  ui->sliceView->layout()->addWidget(m_CrosshairsMode);
-  ui->sliceView->layout()->addWidget(m_ZoomPanMode);
-  ui->sliceView->layout()->addWidget(m_ThumbnailMode);
-  ui->sliceView->layout()->addWidget(m_PolygonMode);
-  ui->sliceView->layout()->addWidget(m_SnakeROIMode);
-  ui->sliceView->layout()->addWidget(m_PaintbrushMode);
-  ui->sliceView->layout()->addWidget(m_AnnotationMode);
-  ui->sliceView->layout()->addWidget(m_RegistrationMode);
+  // Configure wheel event target on crosshairs mode
+  m_DelegateChain->m_CrosshairsMode->SetWheelEventTargetWidget(ui->inSlicePosition);
 
-  QString menuStyle = "font-size: 12px;";
+  // Connect the context menu signal from polygon mode to this widget
+  connect(m_DelegateChain->m_PolygonMode, SIGNAL(contextMenuRequested()), SLOT(onContextMenu()));
+
+  // Configure the context tool button
+  m_ContextToolButton = new QToolButton(m_RendererCanvas);
+  m_ContextToolButton->setIcon(QIcon(":/root/context_gray_10.png"));
+  m_ContextToolButton->setVisible(false);
+  m_ContextToolButton->setAutoRaise(true);
+  m_ContextToolButton->setIconSize(QSize(10,10));
+  m_ContextToolButton->setMinimumSize(QSize(16,16));
+  m_ContextToolButton->setMaximumSize(QSize(16,16));
+  m_ContextToolButton->setPopupMode(QToolButton::InstantPopup);
+  m_ContextToolButton->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+
+  // And also connect toolbar buttons to the corresponding slots in polygon mode
+  auto *polygon_mode = m_DelegateChain->m_PolygonMode;
+  connect(ui->actionAccept, &QAction::triggered, polygon_mode, &PolygonDrawingInteractionMode::onAcceptPolygon);
+  connect(ui->actionPaste, &QAction::triggered, polygon_mode, &PolygonDrawingInteractionMode::onPastePolygon);
+  connect(ui->actionClearDrawing, &QAction::triggered, polygon_mode, &PolygonDrawingInteractionMode::onCancelDrawing);
+  connect(ui->actionComplete, &QAction::triggered, polygon_mode, &PolygonDrawingInteractionMode::onCloseLoopAndEdit);
+  connect(ui->actionDeleteSelected, &QAction::triggered, polygon_mode, &PolygonDrawingInteractionMode::onDeleteSelected);
+  connect(ui->actionClearPolygon, &QAction::triggered, polygon_mode, &PolygonDrawingInteractionMode::onClearPolygon);
+  connect(ui->actionSplitSelected, &QAction::triggered, polygon_mode, &PolygonDrawingInteractionMode::onSplitSelected);
+  connect(ui->actionUndo, &QAction::triggered, polygon_mode, &PolygonDrawingInteractionMode::onUndoLastPoint);
 
   // Create the popup menus for the polygon mode
-  m_MenuPolyInactive = new QMenu(this->m_PolygonMode);
+  QString menuStyle = "font-size: 12px;";
+  m_MenuPolyInactive = new QMenu(polygon_mode);
   m_MenuPolyInactive->setStyleSheet(menuStyle);
   m_MenuPolyInactive->addAction(ui->actionPaste);
 
-  m_MenuPolyDrawing = new QMenu(this->m_PolygonMode);
+  m_MenuPolyDrawing = new QMenu(polygon_mode);
   m_MenuPolyDrawing->setStyleSheet(menuStyle);
   m_MenuPolyDrawing->addAction(ui->actionComplete);
   m_MenuPolyDrawing->addAction(ui->actionCompleteAndAccept);
   m_MenuPolyDrawing->addAction(ui->actionUndo);
   m_MenuPolyDrawing->addAction(ui->actionClearDrawing);
 
-  m_MenuPolyEditing = new QMenu(this->m_PolygonMode);
+  m_MenuPolyEditing = new QMenu(polygon_mode);
   m_MenuPolyEditing->setStyleSheet(menuStyle);
   m_MenuPolyEditing->addAction(ui->actionAccept);
   m_MenuPolyEditing->addAction(ui->actionDeleteSelected);
@@ -114,17 +324,6 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   ui->btnSplitNodes->setDefaultAction(ui->actionSplitSelected);
   ui->btnUndoLast->setDefaultAction(ui->actionUndo);
 
-  // And also connect to the corresponding slots
-  connect(ui->actionAccept, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onAcceptPolygon);
-  connect(ui->actionPaste, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onPastePolygon);
-  connect(ui->actionClearDrawing, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onCancelDrawing);
-  connect(ui->actionComplete, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onCloseLoopAndEdit);
-  connect(ui->actionDeleteSelected, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onDeleteSelected);
-  connect(ui->actionClearPolygon, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onClearPolygon);
-  connect(ui->actionSplitSelected, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onSplitSelected);
-  connect(ui->actionUndo, &QAction::triggered, m_PolygonMode, &PolygonDrawingInteractionMode::onUndoLastPoint);
-
-
   ui->btnAnnotationAcceptLine->setDefaultAction(ui->actionAnnotationAcceptLine);
   ui->btnAnnotationClearLine->setDefaultAction(ui->actionAnnotationClearLine);
   ui->btnAnnotationSelectAll->setDefaultAction(ui->actionAnnotationSelectAll);
@@ -135,83 +334,13 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
 
   this->addAction(ui->actionZoom_In);
   this->addAction(ui->actionZoom_Out);
-
-  // Connect the context menu signal from polygon mode to this widget
-  connect(this->m_PolygonMode, SIGNAL(contextMenuRequested()), SLOT(onContextMenu()));
-
-  // Arrange the interaction modes into a tree structure. The first child of
-  // every interaction mode is an empty QWidget. The tree is used to allow
-  // events to fall through from one interaction mode to another
-
-  // TODO: can we think of a more dynamic system for doing this? Essentially,
-  // there is a pipeline through which events pass through, which is
-  // reconfigured when the mode changes.
-
-
-  // Add all the individual interactors to the main panel using a stacked
-  // layout. This assures that all of the interactors have the same size as
-  // the sliceView. The actual propagation of events is handled by the
-  // event filter logic.
-  /*
-  QStackedLayout *loMain = new QStackedLayout();
-  loMain->setContentsMargins(0,0,0,0);
-  loMain->addWidget(this->m_CrosshairsMode);
-  loMain->addWidget(this->m_ZoomPanMode);
-  loMain->addWidget(this->m_ThumbnailMode);
-  loMain->addWidget(this->m_PolygonMode);
-  loMain->addWidget(this->m_SnakeROIMode);
-  loMain->addWidget(this->m_PaintbrushMode);
-  delete ui->sliceView->layout();
-  ui->sliceView->setLayout(loMain);
-  */
-
-  // Configure the initial event chain
-  m_CurrentEventFilter = NULL;
-  ConfigureEventChain(this->m_CrosshairsMode);
-
-  // Also lay out the pages
-  QStackedLayout *loPages = new QStackedLayout();
-  loPages->addWidget(ui->pageDefault);
-  loPages->addWidget(ui->pagePolygonDraw);
-  loPages->addWidget(ui->pagePolygonEdit);
-  loPages->addWidget(ui->pagePolygonInactive);
-  loPages->addWidget(ui->pageAnnotateLineActive);
-  loPages->addWidget(ui->pageAnnotateSelect);
-  delete ui->toolbar->layout();
-  ui->toolbar->setLayout(loPages);
-
-  // Send wheel events from Crosshairs mode to the slider
-  this->m_CrosshairsMode->SetWheelEventTargetWidget(ui->inSlicePosition);
-
-  // Set page size on the slice position widget
-  ui->inSlicePosition->setPageStep(5);
-
-  // Set up the drawing cursor
-  QBitmap bmBitmap(":/root/crosshair_cursor_bitmap.png");
-  QBitmap bmMask(":/root/crosshair_cursor_mask.png");
-  m_DrawingCrosshairCursor = new QCursor(bmBitmap, bmMask, 7, 7);
-
-  // Configure the context tool button
-  m_ContextToolButton = new QToolButton(ui->sliceView->GetInternalWidget());
-  m_ContextToolButton->setIcon(QIcon(":/root/context_gray_10.png"));
-  m_ContextToolButton->setVisible(false);
-  m_ContextToolButton->setAutoRaise(true);
-  m_ContextToolButton->setIconSize(QSize(10,10));
-  m_ContextToolButton->setMinimumSize(QSize(16,16));
-  m_ContextToolButton->setMaximumSize(QSize(16,16));
-  m_ContextToolButton->setPopupMode(QToolButton::InstantPopup);
-  m_ContextToolButton->setStyleSheet("QToolButton::menu-indicator { image: none; }");
 }
 
 SliceViewPanel::~SliceViewPanel()
 {
   delete ui;
   delete m_DrawingCrosshairCursor;
-}
-
-GenericSliceView * SliceViewPanel::GetSliceView()
-{
-  return ui->sliceView;
+  delete m_DelegateChain;
 }
 
 void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
@@ -223,32 +352,11 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
   // Get the slice model
   m_SliceModel = m_GlobalUI->GetSliceModel(index);
 
-  // Initialize the slice view
-  ui->sliceView->SetModel(m_SliceModel);
+  // Assign the viewport reporter to the model
+  m_SliceModel->SetSizeReporter(m_ViewportReporter.GetPointer());
 
   // Initialize the interaction modes
-  this->m_CrosshairsMode->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
-  this->m_ZoomPanMode->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
-  this->m_ZoomPanMode->SetMouseButtonBehaviorToZoomPanMode();
-  this->m_ThumbnailMode->SetModel(m_GlobalUI->GetCursorNavigationModel(index));
-  this->m_PolygonMode->SetModel(m_GlobalUI->GetPolygonDrawingModel(index));
-  this->m_SnakeROIMode->SetModel(m_GlobalUI->GetSnakeROIModel(index));
-  this->m_PaintbrushMode->SetModel(m_GlobalUI->GetPaintbrushModel(index));
-  this->m_AnnotationMode->SetModel(m_GlobalUI->GetAnnotationModel(index));
-  this->m_RegistrationMode->SetModel(m_GlobalUI->GetInteractiveRegistrationModel(index));
-
-  // ui->labelQuickList->SetModel(m_GlobalUI);
-
-  // Initialize the 'orphan' renderers (without a custom widget)
-  GenericSliceRenderer *parentRenderer =
-      static_cast<GenericSliceRenderer *>(ui->sliceView->GetRenderer());
-
-  m_DecorationRenderer->SetParentRenderer(parentRenderer);
-  m_DecorationRenderer->SetModel(m_SliceModel);
-  m_SnakeModeRenderer->SetParentRenderer(parentRenderer);
-  m_SnakeModeRenderer->SetModel(m_GlobalUI->GetSnakeWizardModel());
-  m_DeformationGridRenderer->SetParentRenderer(parentRenderer);
-  m_DeformationGridRenderer->SetModel(m_SliceModel->GetDeformationGridModel());
+  m_DelegateChain->SetModel(model, index);
 
   // Listen to cursor change events, which require a repaint of the slice view
   connectITK(m_GlobalUI->GetDriver(), CursorUpdateEvent());
@@ -333,72 +441,29 @@ void SliceViewPanel::Initialize(GlobalUIModel *model, unsigned int index)
 
   connectITK(m_SliceModel->GetHoveredImageIsThumbnailModel(), ValueChangedEvent(),
              SLOT(OnHoveredLayerChange(const EventBucket &)));
+
+  // Connect renderer to model
+  m_Renderer->SetModel(m_SliceModel);
+  connectITK(m_Renderer, IRISEvent());
+
+  // Correct all the subrenderers to their models
 }
 
-void SliceViewPanel::onModelUpdate(const EventBucket &eb)
+void
+SliceViewPanel::onModelUpdate(const EventBucket &eb)
 {
-  if(eb.HasEvent(ToolbarModeChangeEvent()) ||
-     eb.HasEvent(StateMachineChangeEvent()))
-    {
+  if (eb.HasEvent(ToolbarModeChangeEvent()) || eb.HasEvent(StateMachineChangeEvent()))
+  {
     OnToolbarModeChange();
-    }
-  if(eb.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()) ||
-     eb.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()))
-    {
+  }
+  if (eb.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()) ||
+      eb.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()))
+  {
     UpdateExpandViewButton();
-    }
+  }
 
   // this is causing crash on Linux
-  // ui->sliceView->GetRenderWindow()->Render();
-  ui->sliceView->update();
-}
-
-void SliceViewPanel::ConfigureEventChain(QWidget *w)
-{
-  // Get the internal widget that gets the actual events
-  QWidget *sviw = ui->sliceView->GetInternalWidget();
-
-  // Remove all event filters from the slice view
-  QObjectList kids = ui->sliceView->children();
-  for(QObjectList::Iterator it = kids.begin(); it!=kids.end(); ++it)
-    if(*it != sviw)
-      sviw->removeEventFilter(*it);
-
-  // Now add the event filters in the order in which we want them to react
-  // to events. The last event filter is first to receive events, and should
-  // thus be the thumbnail interaction mode. The first event filter is always
-  // the crosshairs interaction mode, which is the fallback for all others.
-  sviw->installEventFilter(this->m_CrosshairsMode);
-
-  // If the current mode is not crosshairs mode, add it as the filter
-  if(w != this->m_CrosshairsMode)
-    {
-    sviw->installEventFilter(w);
-    }
-
-  // The last guy in the chain is the thumbnail interactor
-  sviw->installEventFilter(this->m_ThumbnailMode);
-}
-
-// TODO: implement semi-transparent rendering on widgets on top of the
-// OpenGL scene using code from
-// http://www.qtcentre.org/wiki/index.php?title=Accelerate_your_Widgets_with_OpenGL
-void SliceViewPanel::enterEvent(QEvent *)
-{
-  /*
-  ui->mainToolbar->show();
-  ui->sidebar->show();
-  */
-}
-
-void SliceViewPanel::leaveEvent(QEvent *)
-{
-  /*
-  ui->mainToolbar->hide();
-  ui->sidebar->hide();
-  */
-
-
+  m_RendererCanvas->update();
 }
 
 void SliceViewPanel::SetActiveMode(QWidget *mode, bool clearChildren)
@@ -427,58 +492,24 @@ void SliceViewPanel::SetActiveMode(QWidget *mode, bool clearChildren)
     }
 }
 
+void
+SliceViewPanel::SaveScreenshot(const std::string &filename)
+{
+  auto *w = dynamic_cast<QtFrameBufferOpenGLWidget *>(m_RendererCanvas);
+  if (w)
+  {
+    w->setScreenshotRequest(filename);
+    w->update();
+  }
+}
+
 void SliceViewPanel::OnToolbarModeChange()
 {
-  // Get the renderer and configure its overlays
-  GenericSliceRenderer *ren = (GenericSliceRenderer *) ui->sliceView->GetRenderer();
+  auto tb_mode = m_GlobalUI->GetGlobalState()->GetToolbarMode();
 
-  // Configure the renderers
-  GenericSliceRenderer::RendererDelegateList delegates;
-
-  // Append the overlays in the right order
-  delegates.clear();
-  delegates.push_back(m_SnakeModeRenderer);
-  delegates.push_back(this->m_CrosshairsMode->GetRenderer());
-  delegates.push_back(this->m_AnnotationMode->GetRenderer());
-  delegates.push_back(this->m_PolygonMode->GetRenderer());
-
-  // ovGlobal.clear();
-
-  switch(m_GlobalUI->GetGlobalState()->GetToolbarMode())
-    {
-    case POLYGON_DRAWING_MODE:
-      ConfigureEventChain(this->m_PolygonMode);
-      break;
-    case PAINTBRUSH_MODE:
-      ConfigureEventChain(this->m_PaintbrushMode);
-      delegates.push_back(this->m_PaintbrushMode->GetRenderer());
-      break;
-    case ANNOTATION_MODE:
-      ConfigureEventChain(this->m_AnnotationMode);
-      delegates.push_back(this->m_AnnotationMode->GetRenderer());
-      break;
-    case REGISTRATION_MODE:
-      ConfigureEventChain(this->m_RegistrationMode);
-      delegates.push_back(this->m_RegistrationMode->GetRenderer());
-      break;
-    case ROI_MODE:
-      ConfigureEventChain(this->m_SnakeROIMode);
-      delegates.push_back(this->m_SnakeROIMode->GetRenderer());
-      break;
-    case CROSSHAIRS_MODE:
-      ConfigureEventChain(this->m_CrosshairsMode);
-      break;
-    case NAVIGATION_MODE:
-      ConfigureEventChain(this->m_ZoomPanMode);
-      break;
-    }
-
-  delegates.push_back(m_DecorationRenderer);
-  delegates.push_back(m_DeformationGridRenderer);
-
-  // Set the overlays
-  ren->SetDelegates(delegates);
-  // ren->SetGlobalOverlays(ovTiled);
+  // Configure the interaction mode widgets' event chain and the renderer
+  // order
+  m_DelegateChain->ConfigureEventChain(tb_mode);
 
   // Need to change to the appropriate page
   QStackedLayout *loPages =
@@ -514,7 +545,6 @@ void SliceViewPanel::OnToolbarModeChange()
 void SliceViewPanel::on_btnZoomToFit_clicked()
 {
   m_GlobalUI->GetSliceCoordinator()->ResetViewToFitInOneWindow(m_Index);
-
 }
 
 void SliceViewPanel::onContextMenu()
@@ -537,18 +567,6 @@ void SliceViewPanel::onContextMenu()
       menu->popup(QCursor::pos());
       }
     }
-}
-
-void SliceViewPanel::SetMouseMotionTracking(bool enable)
-{
-  ui->sliceView->setMouseTracking(enable);
-  // TODO: in the future, consider using a better cursor for polygon drawing operations
-  /*
-  if(enable)
-    this->setCursor(*m_DrawingCrosshairCursor);
-  else
-    this->setCursor(QCursor(Qt::ArrowCursor));
-    */
 }
 
 void SliceViewPanel::on_btnExpand_clicked()
@@ -631,7 +649,7 @@ void SliceViewPanel::OnHoveredLayerChange(const EventBucket &eb)
     // Set up the location of the button
     int vppr = m_SliceModel->GetSizeReporter()->GetViewportPixelRatio();
     int x = (vp->pos[0] + vp->size[0]) / vppr - m_ContextToolButton->width();
-    int y = (ui->sliceView->height() - 1) - (vp->pos[1] + vp->size[1]) / vppr;
+    int y = (m_RendererCanvas->height() - 1) - (vp->pos[1] + vp->size[1]) / vppr;
     m_ContextToolButton->setVisible(true);
     m_ContextToolButton->move(x, y);
 
@@ -701,3 +719,4 @@ void SliceViewPanel::on_actionAnnotationEdit_triggered()
   dialog->activateWindow();
   dialog->raise();
 }
+

@@ -74,6 +74,7 @@
 #include "RegistrationModel.h"
 #include "InteractiveRegistrationModel.h"
 #include "DistributedSegmentationModel.h"
+#include "DeepLearningSegmentationModel.h"
 #include "ImageMeshLayers.h"
 
 #include <itksys/SystemTools.hxx>
@@ -112,6 +113,10 @@ GlobalUIModel::GlobalUIModel()
   // Distributed segmentation model
   m_DistributedSegmentationModel = DistributedSegmentationModel::New();
   m_DistributedSegmentationModel->SetParentModel(this);
+
+  // Distributed segmentation model
+  m_DeepLearningSegmentationModel = DeepLearningSegmentationModel::New();
+  m_DeepLearningSegmentationModel->SetParentModel(this);
 
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)
@@ -608,6 +613,10 @@ void GlobalUIModel::LoadUserPreferences()
   // Read the DSS-related preferences
   m_DistributedSegmentationModel->LoadPreferences(
         si->Folder("DistributedSegmentationSystem"));
+
+  // Read the DSS-related preferences
+  m_DeepLearningSegmentationModel->LoadPreferences(
+    si->Folder("DeepLearningSegmentationServer"));
 }
 
 void GlobalUIModel::SaveUserPreferences()
@@ -637,6 +646,10 @@ void GlobalUIModel::SaveUserPreferences()
   // Write the DSS-related preferences
   m_DistributedSegmentationModel->SavePreferences(
         si->Folder("DistributedSegmentationSystem"));
+
+  // Read the DSS-related preferences
+  m_DeepLearningSegmentationModel->SavePreferences(
+    si->Folder("DeepLearningSegmentationServer"));
 
   // Save the preferences
   si->SaveUserPreferences();
@@ -1000,22 +1013,23 @@ void GlobalUIModel::IncrementDrawingColorLabel(int delta)
 void GlobalUIModel::SwitchForegroundBackgroundLabels()
 {
   DrawOverFilter dof = m_Driver->GetGlobalState()->GetDrawOverFilter();
-  if(dof.CoverageMode == PAINT_OVER_ONE)
-    {
-    ColorLabelTable *clt = m_Driver->GetColorLabelTable();
-    ColorLabelTable::ValidLabelConstIterator oldBackground =
-        clt->GetValidLabels().find(dof.DrawOverLabel);
-    ColorLabelTable::ValidLabelConstIterator oldForeground =
-        clt->GetValidLabels().find(m_Driver->GetGlobalState()->GetDrawingColorLabel());
 
-    if (oldBackground != clt->GetValidLabels().end()
-        && oldForeground != clt->GetValidLabels().end())
-      {
-      dof.DrawOverLabel = oldForeground->first;
-      m_Driver->GetGlobalState()->SetDrawOverFilter(dof);
-      m_Driver->GetGlobalState()->SetDrawingColorLabel(oldBackground->first);
-      }
-    }
+  auto target_foreground = dof.CoverageMode == PAINT_OVER_ONE ? dof.DrawOverLabel : 0;
+  auto target_coverage = dof.CoverageMode == PAINT_OVER_ONE;
+
+  ColorLabelTable                         *clt = m_Driver->GetColorLabelTable();
+  ColorLabelTable::ValidLabelConstIterator oldBackground =
+    clt->GetValidLabels().find(target_foreground);
+  ColorLabelTable::ValidLabelConstIterator oldForeground =
+    clt->GetValidLabels().find(m_Driver->GetGlobalState()->GetDrawingColorLabel());
+
+  if (oldBackground != clt->GetValidLabels().end() && oldForeground != clt->GetValidLabels().end())
+  {
+    dof.DrawOverLabel = oldForeground->first;
+    dof.CoverageMode = PAINT_OVER_ONE;
+    m_Driver->GetGlobalState()->SetDrawOverFilter(dof);
+    m_Driver->GetGlobalState()->SetDrawingColorLabel(oldBackground->first);
+  }
 }
 
 void GlobalUIModel::IncrementDrawOverColorLabel(int delta)

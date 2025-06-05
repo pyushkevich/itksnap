@@ -25,7 +25,6 @@
 =========================================================================*/
 
 #include "CrosshairsInteractionMode.h"
-#include "GenericSliceView.h"
 #include "OrthogonalSliceCursorNavigationModel.h"
 #include "CrosshairsRenderer.h"
 #include "GenericImageData.h"
@@ -34,22 +33,17 @@
 #include <QPanGesture>
 #include <QSwipeGesture>
 #include <QApplication>
+#include <QMessageBox>
 
-CrosshairsInteractionMode::CrosshairsInteractionMode(GenericSliceView *parent) :
-    SliceWindowInteractionDelegateWidget(parent)
+CrosshairsInteractionMode::CrosshairsInteractionMode(QWidget *parent, QWidget *canvasWidget)
+  : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
   // Create the renderer
-  m_Renderer = CrosshairsRenderer::New();
-  m_Renderer->SetParentRenderer(
-          static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
-
-
   m_WheelEventTarget = NULL;
   m_Model = NULL;
 
   SetMouseButtonBehaviorToCrosshairsMode();
   setAttribute(Qt::WA_AcceptTouchEvents, true);
-
 }
 
 CrosshairsInteractionMode::~CrosshairsInteractionMode()
@@ -94,7 +88,6 @@ void CrosshairsInteractionMode
 ::SetModel(OrthogonalSliceCursorNavigationModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   SetParentModel(model->GetParent());
 }
 
@@ -213,39 +206,73 @@ bool CrosshairsInteractionMode::gestureEvent(QGestureEvent *ev)
   else return false;
 }
 
-void CrosshairsInteractionMode::keyPressEvent(QKeyEvent *ev)
+void
+CrosshairsInteractionMode::keyPressEvent(QKeyEvent *ev)
 {
-  Vector3i dx(0,0,0);
-  switch(ev->key())
-    {
-    case Qt::Key_Up:       dx = Vector3i( 0, 1, 0); break;
-    case Qt::Key_Down:     dx = Vector3i( 0,-1, 0); break;
-    case Qt::Key_Left:     dx = Vector3i(-1, 0, 0); break;
-    case Qt::Key_Right:    dx = Vector3i( 1, 0, 0); break;
-    case Qt::Key_PageUp:   dx = Vector3i( 0, 0, 1); break;
-    case Qt::Key_PageDown: dx = Vector3i( 0, 0,-1); break;
+  Vector3i dx(0, 0, 0);
+  switch (ev->key())
+  {
+    case Qt::Key_Up:
+      dx = Vector3i(0, 1, 0);
+      break;
+    case Qt::Key_Down:
+      dx = Vector3i(0, -1, 0);
+      break;
+    case Qt::Key_Left:
+      dx = Vector3i(-1, 0, 0);
+      break;
+    case Qt::Key_Right:
+      dx = Vector3i(1, 0, 0);
+      break;
+    case Qt::Key_PageUp:
+      dx = Vector3i(0, 0, 1);
+      break;
+    case Qt::Key_PageDown:
+      dx = Vector3i(0, 0, -1);
+      break;
+    case Qt::Key_G:
+      if ((ev->modifiers() & Qt::AltModifier) && (ev->modifiers() & Qt::ShiftModifier))
+      {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+          this,
+          "Crash simulation",
+          "This key combination simulates a crash in ITK-SNAP. Do you want ITK-SNAP to crash now?",
+          QMessageBox::Yes | QMessageBox::No);
+        if (reply == QMessageBox::Yes)
+        {
+          throw std::runtime_error("Simulated uncaught exception");
+        }
+      }
+
+      break;
     default:
       SliceWindowInteractionDelegateWidget::keyPressEvent(ev);
       return;
-    }
+  }
 
-  if(ev->modifiers() & Qt::ShiftModifier)
+  if (ev->modifiers() & Qt::ShiftModifier)
     dx *= 5;
 
   m_Model->ProcessKeyNavigation(dx);
   ev->accept();
 }
 
-void CrosshairsInteractionMode::enterEvent(QEvent *)
+void
+CrosshairsInteractionMode::enterEvent(QEnterEvent *)
 {
   // Respond to standard gestures
-  this->m_ParentView->grabGesture(Qt::PinchGesture);
+  grabGesture(Qt::PinchGesture);
+
+  // Grab keyboard focus
+  this->m_CanvasWidget->setFocus();
+
   // this->m_ParentView->grabGesture(Qt::PanGesture);
   // this->m_ParentView->grabGesture(Qt::SwipeGesture);
 }
 
 void CrosshairsInteractionMode::leaveEvent(QEvent *)
 {
+  this->m_CanvasWidget->clearFocus();
   // Stop responding to gestures
   // this->ungrabGesture(Qt::PinchGesture);
 }

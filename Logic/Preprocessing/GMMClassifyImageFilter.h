@@ -52,16 +52,16 @@ public:
   void SetMixtureModel(GaussianMixtureModel *model);
 
   /** We need to override this method because of multiple input types */
-  void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
 protected:
 
   GMMClassifyImageFilter();
   virtual ~GMMClassifyImageFilter();
 
-  void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream& os, itk::Indent indent) const override;
 
-  void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const OutputImageRegionType &outputRegionForThread) override;
 
   GaussianMixtureModel *m_MixtureModel;
 };

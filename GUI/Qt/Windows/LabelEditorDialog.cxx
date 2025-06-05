@@ -40,7 +40,6 @@ LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   menu->addAction(ui->actionResetLabels);
   menu->addSeparator();
 
-
   QMenu *menu_vis = new QMenu("Visibility", this);
   menu->addMenu(menu_vis);
   menu_vis->addAction(ui->actionHide_all_labels);
@@ -51,6 +50,10 @@ LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
 
   QStandardItemModel *simodel = new QStandardItemModel(this);
   simodel->setColumnCount(2);
+
+  // Connect the buttons to public slots
+  QObject::connect(ui->btnNew, &QAbstractButton::clicked, this, &LabelEditorDialog::createNewLabel);
+  QObject::connect(ui->btnDuplicate, &QAbstractButton::clicked, this, &LabelEditorDialog::duplicateLabel);
 
   // Set up a filter model for the label list view
   m_LabelListFilterModel = new QSortFilterProxyModel(this);
@@ -137,7 +140,7 @@ void LabelEditorDialog::on_btnClose_clicked()
 
 #include <QMessageBox>
 
-void LabelEditorDialog::on_btnNew_clicked()
+void LabelEditorDialog::createNewLabel()
 {
   // Create a new label in the first slot after the currently selected
   if(!m_Model->MakeNewLabel(false))
@@ -149,7 +152,7 @@ void LabelEditorDialog::on_btnNew_clicked()
     }
 }
 
-void LabelEditorDialog::on_btnDuplicate_clicked()
+void LabelEditorDialog::duplicateLabel()
 {
   // Create a new label in the first slot after the currently selected
   if(!m_Model->MakeNewLabel(true))

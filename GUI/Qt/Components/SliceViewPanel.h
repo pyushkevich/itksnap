@@ -4,7 +4,6 @@
 #include <SNAPComponent.h>
 #include <GlobalState.h>
 
-class GenericSliceView;
 class QMenu;
 class QtInteractionDelegateWidget;
 class SnakeModeRenderer;
@@ -14,6 +13,8 @@ class GenericSliceModel;
 class QCursor;
 class QToolButton;
 
+class SliceWindowDecorationRenderer;
+
 class CrosshairsInteractionMode;
 class ThumbnailInteractionMode;
 class PolygonDrawingInteractionMode;
@@ -22,11 +23,22 @@ class PaintbrushInteractionMode;
 class AnnotationInteractionMode;
 class RegistrationInteractionMode;
 
+class SliceRendererDelegate;
+class GenericSliceRenderer;
+class CrosshairsRenderer;
+class PolygonDrawingRenderer;
+class PaintbrushRenderer;
+class AnnotationRenderer;
+class DeformationGridRenderer;
+class SnakeModeRenderer;
+class SnakeROIRenderer;
+class RegistrationRenderer;
+class QtViewportReporter;
+class SliceViewDelegateChain;
+
 namespace Ui {
     class SliceViewPanel;
 }
-
-
 
 class SliceViewPanel : public SNAPComponent
 {
@@ -42,10 +54,8 @@ public:
   // Get the index of this panel
   irisGetMacro(Index, unsigned int)
 
-  GenericSliceView *GetSliceView();
-
-  // Callback for when the toolbar changes
-  void SetMouseMotionTracking(bool enable);
+  // Save screenshot to file
+  void SaveScreenshot(const std::string &filename);
 
 
 private slots:
@@ -90,9 +100,6 @@ private:
   // Popup menus used for polygon operations
   QMenu *m_MenuPolyInactive, *m_MenuPolyEditing, *m_MenuPolyDrawing;
 
-  // Current event filter on the crosshair widget
-  QWidget *m_CurrentEventFilter;
-
   // Global UI pointer
   GlobalUIModel *m_GlobalUI;
 
@@ -105,39 +112,21 @@ private:
   // Context menu tool button
   QToolButton *m_ContextToolButton;
 
-  // Interaction modes
-  CrosshairsInteractionMode *m_CrosshairsMode, *m_ZoomPanMode;
-  ThumbnailInteractionMode *m_ThumbnailMode;
-  PolygonDrawingInteractionMode *m_PolygonMode;
-  SnakeROIInteractionMode *m_SnakeROIMode;
-  PaintbrushInteractionMode *m_PaintbrushMode;
-  AnnotationInteractionMode *m_AnnotationMode;
-  RegistrationInteractionMode *m_RegistrationMode;
+  // Main renderer - owns this
+  SmartPtr<GenericSliceRenderer> m_Renderer;
 
-  // Some renderers don't require a separate widget (no user interaction)
-  // and so they are owned by this panel.
-  SmartPtr<SnakeModeRenderer> m_SnakeModeRenderer;
-  SmartPtr<SliceWindowDecorationRenderer> m_DecorationRenderer;
-  SmartPtr<DeformationGridRenderer> m_DeformationGridRenderer;
+  // Canvas on which we are rendering
+  QWidget *m_RendererCanvas;
+
+  // Collection of interaction modes
+  SliceViewDelegateChain *m_DelegateChain;
+
+  // A size reporter for the area being painted by the renderers
+  SmartPtr<QtViewportReporter> m_ViewportReporter;
 
   // Index of the panel
   unsigned int m_Index;
-
   void SetActiveMode(QWidget *mode, bool clearChildren = true);
-
-  /**
-  The common setup is to have an event filter chain
-    widget -- crosshair -- active_mode -- thumbnail
-  In other words, all events first go to the thumbnail,
-  then to the active mode, then to the crosshair mode
-  */
-  void ConfigureEventChain(QWidget *w);
-
-  /**
-   * Listen to mouse enter/exit events in order to show and hide toolbars
-   */
-  void enterEvent(QEvent *);
-  void leaveEvent(QEvent *);
 
   /** Update the expand view / contract view button based on the state */
   void UpdateExpandViewButton();

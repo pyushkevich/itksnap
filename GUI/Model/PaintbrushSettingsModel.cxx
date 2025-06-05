@@ -4,7 +4,7 @@
 #include "GlobalPreferencesModel.h"
 #include "DefaultBehaviorSettings.h"
 #include "IRISApplication.h"
-
+#include "DeepLearningSegmentationModel.h"
 
 PaintbrushSettingsModel::PaintbrushSettingsModel()
 {
@@ -14,9 +14,14 @@ PaintbrushSettingsModel::PaintbrushSettingsModel()
                                      &Self::SetPaintbrushSettings);
 
   // Create models for the fields of PaintbrushSettings
-  m_PaintbrushModeModel =
-      wrapStructMemberAsSimpleProperty<PaintbrushSettings, PaintbrushMode>(
-        m_PaintbrushSettingsModel, offsetof(PaintbrushSettings, mode));
+  m_PaintbrushShapeModel =
+      wrapStructMemberAsSimpleProperty<PaintbrushSettings, PaintbrushShape>(
+        m_PaintbrushSettingsModel, offsetof(PaintbrushSettings, shape));
+
+  m_PaintbrushSmartModeModel =
+    wrapGetterSetterPairAsProperty(this,
+                                   &Self::GetPaintbrushSmartModeValue,
+                                   &Self::SetPaintbrushSmartModeValue);
 
   m_VolumetricBrushModel =
       wrapStructMemberAsSimpleProperty<PaintbrushSettings, bool>(
@@ -39,6 +44,9 @@ PaintbrushSettingsModel::PaintbrushSettingsModel()
 
   m_AdaptiveModeModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetAdaptiveModeValue);
+
+  m_DeepLearningModeModel = wrapGetterSetterPairAsProperty(
+    this, &Self::GetDeepLearningModeValue);
 
   m_ThresholdLevelModel = wrapGetterSetterPairAsProperty(
         this,
@@ -116,6 +124,25 @@ void PaintbrushSettingsModel::SetPaintbrushSettings(PaintbrushSettings ps)
   InvokeEvent(ModelUpdateEvent());
 }
 
+bool
+PaintbrushSettingsModel::GetPaintbrushSmartModeValue(PaintbrushSmartMode &value)
+{
+  value = GetPaintbrushSettings().smart_mode;
+  return true;
+}
+
+void
+PaintbrushSettingsModel::SetPaintbrushSmartModeValue(PaintbrushSmartMode value)
+{
+  auto pbs = GetPaintbrushSettings();
+  pbs.smart_mode = value;
+  SetPaintbrushSettings(pbs);
+
+  // We need to active the smart paintbrush model
+  if(value == PAINTBRUSH_DLS)
+    m_ParentModel->GetDeepLearningSegmentationModel()->SetIsActive(true);
+}
+
 
 bool PaintbrushSettingsModel
 ::GetBrushSizeValueAndRange(int &value, NumericValueRange<int> *domain)
@@ -145,8 +172,15 @@ void PaintbrushSettingsModel::SetBrushSizeValue(int value)
 bool PaintbrushSettingsModel::GetAdaptiveModeValue(bool &value)
 {
   PaintbrushSettings pbs = GetPaintbrushSettings();
+  value = (pbs.smart_mode == PAINTBRUSH_WATERSHED);
+  return true;
+}
 
-  value = (pbs.mode == PAINTBRUSH_WATERSHED);
+bool
+PaintbrushSettingsModel::GetDeepLearningModeValue(bool &value)
+{
+  PaintbrushSettings pbs = GetPaintbrushSettings();
+  value = (pbs.smart_mode == PAINTBRUSH_DLS);
   return true;
 }
 

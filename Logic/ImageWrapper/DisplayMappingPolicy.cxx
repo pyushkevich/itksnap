@@ -18,6 +18,9 @@
 #include "TDigestImageFilter.h"
 #include "ColorLookupTable.h"
 
+
+
+
 /* ===============================================================
     ColorLabelTableDisplayMappingPolicy implementation
    =============================================================== */
@@ -46,11 +49,11 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
   m_Wrapper = wrapper;
 
   // Initialize the filters
-  for(unsigned int i=0; i<3; i++)
+  for (auto index : DisplaySliceIndices)
     {
-    m_RGBAFilter[i] = RGBAFilterType::New();
-    m_RGBAFilter[i]->SetInput(wrapper->GetSlice(i));
-    m_RGBAFilter[i]->SetColorTable(NULL);
+    m_RGBAFilter[index] = RGBAFilterType::New();
+    m_RGBAFilter[index]->SetInput(wrapper->GetSlice(index));
+    m_RGBAFilter[index]->SetColorTable(NULL);
     }
 
 }
@@ -66,9 +69,9 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 template<class TWrapperTraits>
 typename ColorLabelTableDisplayMappingPolicy<TWrapperTraits>::DisplaySlicePointer
 ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
-::GetDisplaySlice(unsigned int slice)
+::GetDisplaySlice(DisplaySliceIndex index)
 {
-  return m_RGBAFilter[slice]->GetOutput();
+  return m_RGBAFilter[index]->GetOutput();
 }
 
 template<class TWrapperTraits>
@@ -77,7 +80,7 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 ::MapPixel(const InputComponentType *val)
 {
   DisplayPixelType pix;
-  ColorLabelTable *table = this->m_RGBAFilter[0]->GetColorTable();
+  ColorLabelTable *table = this->m_RGBAFilter.front()->GetColorTable();
   table->GetColorLabel(*val).GetRGBAVector(pix.GetDataPointer());
   return pix;
 }
@@ -88,8 +91,8 @@ ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 ::SetLabelColorTable(ColorLabelTable *labels)
 {
   // Set the new table
-  for(unsigned int i=0;i<3;i++)
-    m_RGBAFilter[i]->SetColorTable(labels);
+  for (auto index : DisplaySliceIndices)
+    m_RGBAFilter[index]->SetColorTable(labels);
 
   // Propagate the events from to color label table to the wrapper
   Rebroadcaster::Rebroadcast(labels, SegmentationLabelChangeEvent(),
@@ -104,7 +107,7 @@ ColorLabelTable *
 ColorLabelTableDisplayMappingPolicy<TWrapperTraits>
 ::GetLabelColorTable() const
 {
-  return m_RGBAFilter[0]->GetColorTable();
+  return m_RGBAFilter.front()->GetColorTable();
 }
 
 
@@ -150,10 +153,10 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   this->SetIntensityCurve(m_IntensityCurveVTK);
 
   // Initialize the filters that apply the LUT
-  for(unsigned int i=0; i<3; i++)
+  for (auto index : DisplaySliceIndices)
     {
-    m_IntensityFilter[i] = IntensityFilterType::New();
-    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetLookupTable());
+    m_IntensityFilter[index] = IntensityFilterType::New();
+    m_IntensityFilter[index]->SetLookupTable(m_LookupTableFilter->GetLookupTable());
     }
 }
 
@@ -169,8 +172,8 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_LookupTableFilter->SetImageMinInput(m_Wrapper->GetImageMinObject());
   m_LookupTableFilter->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
 
-  for(unsigned int i=0; i<3; i++)
-    m_IntensityFilter[i]->SetInput(m_Wrapper->GetSlice(i));
+  for (auto index : DisplaySliceIndices)
+    m_IntensityFilter[index]->SetInput(m_Wrapper->GetSlice(index));
 }
 
 template<class TWrapperTraits>
@@ -183,8 +186,8 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
   m_LookupTableFilter = reference->m_LookupTableFilter;
 
   // Configure the per-slice filters
-  for(unsigned int i=0; i<3; i++)
-    m_IntensityFilter[i]->SetLookupTable(m_LookupTableFilter->GetLookupTable());
+  for (auto index : DisplaySliceIndices)
+    m_IntensityFilter[index]->SetLookupTable(m_LookupTableFilter->GetLookupTable());
 
   // Copy the color map and the intensity curve
   this->SetColorMap(reference->m_ColorMap);
@@ -244,9 +247,9 @@ CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 template<class TWrapperTraits>
 typename CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::DisplaySlicePointer
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
-::GetDisplaySlice(unsigned int dim)
+::GetDisplaySlice(DisplaySliceIndex index)
 {
-  return m_IntensityFilter[dim]->GetOutput();
+  return m_IntensityFilter[index]->GetOutput();
 }
 
 template<class TWrapperTraits>
@@ -321,7 +324,7 @@ typename CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>::DisplayPix
 CachingCurveAndColorMapDisplayMappingPolicy<TWrapperTraits>
 ::MapPixel(const InputComponentType *val)
 {
-  DisplayPixelType pix = m_IntensityFilter[0]->MapPixel(*val);
+  DisplayPixelType pix = m_IntensityFilter.front()->MapPixel(*val);
   return pix;
 }
 
@@ -413,14 +416,14 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
   m_Functor.m_Scale = 1.0 / (imax - imin);
   m_Functor.m_ColorMap = m_ColorMap;
 
-  for(int i = 0; i < 3; i++)
+  for (auto index : DisplaySliceIndices)
     {
-    m_Filter[i] = IntensityFilterType::New();
-    m_Filter[i]->SetFunctor(m_Functor);
+    m_Filter[index] = IntensityFilterType::New();
+    m_Filter[index]->SetFunctor(m_Functor);
 
     // The color map is added as a 'named' input of the filter. This ensures
     // that as the colormap is modified, the filter will be updated
-    m_Filter[i]->SetInput("colormap", m_ColorMap);
+    m_Filter[index]->SetInput("colormap", m_ColorMap);
     }
 
 }
@@ -440,9 +443,9 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
 {
   m_Wrapper = wrapper;
 
-  for(int i = 0; i < 3; i++)
+  for (auto index : DisplaySliceIndices)
     {
-    m_Filter[i]->SetInput(wrapper->GetSlice(i));
+    m_Filter[index]->SetInput(wrapper->GetSlice(index));
     }
 
   Rebroadcaster::Rebroadcast(m_ColorMap, itk::ModifiedEvent(),
@@ -461,9 +464,9 @@ LinearColorMapDisplayMappingPolicy<TWrapperTraits>
 template <class TWrapperTraits>
 typename LinearColorMapDisplayMappingPolicy<TWrapperTraits>::DisplaySlicePointer
 LinearColorMapDisplayMappingPolicy<TWrapperTraits>
-::GetDisplaySlice(unsigned int slice)
+::GetDisplaySlice(DisplaySliceIndex index)
 {
-  return m_Filter[slice]->GetOutput();
+  return m_Filter[index]->GetOutput();
 }
 
 
@@ -555,6 +558,12 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   // Save the wrapper pointer
   m_Wrapper = wrapper;
 
+  for(auto index : DisplaySliceIndices)
+  {
+    m_RGBMapper[index] = nullptr;
+    m_DisplaySliceSelector[index] = DisplaySliceSelector::New();
+  }
+
   // Modified events from the display policy fire as modification events
   // for the wrapper
   Rebroadcaster::Rebroadcast(this, itk::ModifiedEvent(),
@@ -565,110 +574,97 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 
 template <class TWrapperTraits>
 void
-MultiChannelDisplayMappingPolicy<TWrapperTraits>
-::UpdateImagePointer(ImageType *image)
+MultiChannelDisplayMappingPolicy<TWrapperTraits>::UpdateImagePointer(ImageType *image)
 {
   // Component wrappers
   typedef typename WrapperType::ComponentWrapperType ComponentWrapperType;
 
-  // Initialize the display slice selectors
-  for(unsigned int i=0; i<3; i++)
-    m_DisplaySliceSelector[i] = DisplaySliceSelector::New();
-
   // If the number of components is 3, set up the RGB pipeline
-  int nc = m_Wrapper->GetNumberOfComponents();
+  int  nc = m_Wrapper->GetNumberOfComponents();
   bool is_2d = m_Wrapper->GetImage()->GetLargestPossibleRegion().GetSize()[2] == 1;
-  if(nc == 2 || nc == 3)
-    {
+  if (nc == 2 || nc == 3)
+  {
     m_LUTGenerator = GenerateLUTFilter::New();
     m_LUTGenerator->SetInput(m_Wrapper->GetImage());
     m_LUTGenerator->SetImageMinInput(m_Wrapper->GetImageMinObject());
     m_LUTGenerator->SetImageMaxInput(m_Wrapper->GetImageMaxObject());
-    m_LUTGenerator->SetIntensityCurve(
-          m_Wrapper->GetComponentWrapper(0)->GetIntensityCurve());
+    m_LUTGenerator->SetIntensityCurve(m_Wrapper->GetComponentWrapper(0)->GetIntensityCurve());
     m_LUTGenerator->SetIgnoreAlpha(!m_Wrapper->IsSticky());
 
     // Initialize the filters that apply the LUT
-    for(unsigned int i=0; i<3; i++)
-      {
-      m_RGBMapper[i] = ApplyLUTFilter::New();
-      m_RGBMapper[i]->SetLookupTable(m_LUTGenerator->GetLookupTable());
+    for (auto index : DisplaySliceIndices)
+    {
+      m_RGBMapper[index] = ApplyLUTFilter::New();
+      m_RGBMapper[index]->SetLookupTable(m_LUTGenerator->GetLookupTable());
 
       // For two components, use the hue/value mapper (experimental)
-      if(nc == 2)
-          m_RGBMapper[i]->SetMappingModeToTwoChannelHueValue();
-      for(unsigned int j=0; j<nc; j++)
-          m_RGBMapper[i]->SetInput(j, m_Wrapper->GetComponentWrapper(j)->GetSlice(i));
+      if (nc == 2)
+        m_RGBMapper[index]->SetMappingModeToTwoChannelHueValue();
+      for (unsigned int j = 0; j < nc; j++)
+        m_RGBMapper[index]->SetInput(j, m_Wrapper->GetComponentWrapper(j)->GetSlice(index));
 
       // Add this filter as the input to the selector
-      m_DisplaySliceSelector[i]->AddSelectableInput(
-            MultiChannelDisplayMode(true, false, SCALAR_REP_COMPONENT),
-            m_RGBMapper[i]->GetOutput());
+      m_DisplaySliceSelector[index]->AddSelectableInput(
+        MultiChannelDisplayMode(true, false, SCALAR_REP_COMPONENT), m_RGBMapper[index]->GetOutput());
 
-      if(nc == 3 || (nc == 2 && is_2d))
-          m_DisplaySliceSelector[i]->AddSelectableInput(
-                MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT),
-                m_RGBMapper[i]->GetOutput());
-      }
+      if (nc == 3 || (nc == 2 && is_2d))
+        m_DisplaySliceSelector[index]->AddSelectableInput(
+          MultiChannelDisplayMode(false, true, SCALAR_REP_COMPONENT), m_RGBMapper[index]->GetOutput());
     }
+  }
   else
-    {
-    m_LUTGenerator = NULL;
-    for(unsigned int j=0; j<3; j++)
-      m_RGBMapper[j] = NULL;
-    }
+  {
+    m_LUTGenerator = nullptr;
+    for (auto index : DisplaySliceIndices)
+      m_RGBMapper[index] = nullptr;
+  }
 
   // Get the reference component wrapper whose properties will be shared
   // with the other components
   typedef typename WrapperType::ComponentWrapperType ComponentWrapper;
-  ComponentWrapper *first_comp = static_cast<ComponentWrapper *>(
-        m_Wrapper->GetComponentWrapper(0));
+  ComponentWrapper *first_comp = static_cast<ComponentWrapper *>(m_Wrapper->GetComponentWrapper(0));
 
   // The min/max for this LUT should be the global min/max, overriding
   // the default, which is component-wise min/max.
-  first_comp->GetDisplayMapping()->SetReferenceIntensityRange(
-        m_Wrapper->GetImageMinObject(), m_Wrapper->GetImageMaxObject());
+  first_comp->GetDisplayMapping()->SetReferenceIntensityRange(m_Wrapper->GetImageMinObject(),
+                                                              m_Wrapper->GetImageMaxObject());
 
   // Configure all the component wrappers display mappings
-  for(int j = 0; j < NUMBER_OF_SCALAR_REPS; j++)
-    {
-    ScalarRepresentation rep =
-        static_cast<ScalarRepresentation>(
-          SCALAR_REP_COMPONENT + j);
+  for (int j = 0; j < NUMBER_OF_SCALAR_REPS; j++)
+  {
+    ScalarRepresentation rep = static_cast<ScalarRepresentation>(SCALAR_REP_COMPONENT + j);
 
     int nc = (j == 0) ? m_Wrapper->GetNumberOfComponents() : 1;
-    for(int k = 0; k < nc; k++)
-      {
+    for (int k = 0; k < nc; k++)
+    {
       // Get the component/derived wrapper
       ScalarImageWrapperBase *sw = m_Wrapper->GetScalarRepresentation(rep, k);
 
       // Try casting to the component type
       ComponentWrapper *cw = dynamic_cast<ComponentWrapper *>(sw);
-      if(cw && cw != first_comp)
-        {
+      if (cw && cw != first_comp)
+      {
         // Copy the LUT from the first comp to the current component.
         cw->GetDisplayMapping()->CopyDisplayPipeline(first_comp->GetDisplayMapping());
-        }
+      }
 
-      else if(cw != first_comp)
-        {
+      else if (cw != first_comp)
+      {
         AbstractContinuousImageDisplayMappingPolicy *dp =
-            static_cast<AbstractContinuousImageDisplayMappingPolicy *>(
-              sw->GetDisplayMapping());
+          static_cast<AbstractContinuousImageDisplayMappingPolicy *>(sw->GetDisplayMapping());
 
         // Copy the LUT from the first comp to the current component.
         dp->SetColorMap(first_comp->GetColorMap());
-        }
+      }
 
       // Pass inputs to the slice selector
-      for(int i = 0; i < 3; i++)
-        {
-        m_DisplaySliceSelector[i]->AddSelectableInput(
-              MultiChannelDisplayMode(false, false, rep, k),
-              sw->GetDisplaySlice(i));
-        }
+      for (auto index : DisplaySliceIndices)
+      {
+        m_DisplaySliceSelector[index]->AddSelectableInput(
+          MultiChannelDisplayMode(false, false, rep, k), sw->GetDisplaySlice(index));
       }
     }
+  }
 
   // Set display mode to default
   SetDisplayMode(MultiChannelDisplayMode());
@@ -683,8 +679,8 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
   m_DisplayMode = mode;
 
   // Select the proper output in the selection filters
-  for(int i = 0; i < 3; i++)
-    m_DisplaySliceSelector[i]->SetSelectedInput(mode);
+  for (auto index : DisplaySliceIndices)
+    m_DisplaySliceSelector[index]->SetSelectedInput(mode);
 
   // Point to the selected scalar representation
   int nc = m_Wrapper->GetNumberOfComponents();
@@ -715,9 +711,9 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 template <class TWrapperTraits>
 typename MultiChannelDisplayMappingPolicy<TWrapperTraits>::DisplaySlicePointer
 MultiChannelDisplayMappingPolicy<TWrapperTraits>
-::GetDisplaySlice(unsigned int slice)
+::GetDisplaySlice(DisplaySliceIndex index)
 {
-  return m_DisplaySliceSelector[slice]->GetOutput();
+  return m_DisplaySliceSelector[index]->GetOutput();
 }
 
 template <class TWrapperTraits>
@@ -759,9 +755,9 @@ MultiChannelDisplayMappingPolicy<TWrapperTraits>
 
   // Use the LUT
   if(m_Wrapper->GetNumberOfComponents() == 3)
-    return m_RGBMapper[0]->MapPixel(val[0], val[1], val[2]);
+    return m_RGBMapper.front()->MapPixel(val[0], val[1], val[2]);
   else
-    return m_RGBMapper[0]->MapPixel(val[0], val[1], val[1]);
+    return m_RGBMapper.front()->MapPixel(val[0], val[1], val[1]);
   }
 
 template<class TWrapperTraits>

@@ -12,8 +12,8 @@ class PaintbrushSettingsModel : public AbstractModel
 public:
   irisITKObjectMacro(PaintbrushSettingsModel, AbstractModel)
 
-  typedef AbstractPropertyModel<PaintbrushMode> AbstractPaintbrushModeModel;
-  typedef ConcretePropertyModel<PaintbrushMode> ConcretePaintbrushModeModel;
+  typedef AbstractPropertyModel<PaintbrushShape> AbstractPaintbrushShapeModel;
+  typedef AbstractPropertyModel<PaintbrushSmartMode> AbstractPaintbrushSmartModeModel;
 
   enum UIState {
     UIF_VOLUMETRIC_OK,
@@ -23,11 +23,12 @@ public:
   irisGetMacro(ParentModel, GlobalUIModel *)
   void SetParentModel(GlobalUIModel *parent);
 
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   bool CheckState(PaintbrushSettingsModel::UIState state);
 
-  irisGetMacro(PaintbrushModeModel, AbstractPaintbrushModeModel *)
+  irisGetMacro(PaintbrushShapeModel, AbstractPaintbrushShapeModel *)
+  irisGetMacro(PaintbrushSmartModeModel, AbstractPaintbrushSmartModeModel *)
 
   irisGetMacro(BrushSizeModel, AbstractRangedIntProperty *)
   irisGetMacro(VolumetricBrushModel, AbstractSimpleBooleanProperty *)
@@ -37,6 +38,8 @@ public:
   irisGetMacro(AdaptiveModeModel, AbstractSimpleBooleanProperty *)
   irisGetMacro(ThresholdLevelModel, AbstractRangedDoubleProperty *)
   irisGetMacro(SmoothingIterationsModel, AbstractRangedIntProperty *)
+
+  irisGetMacro(DeepLearningModeModel, AbstractSimpleBooleanProperty *)
 
 protected:
 
@@ -51,10 +54,14 @@ protected:
   PaintbrushSettings GetPaintbrushSettings();
   void SetPaintbrushSettings(PaintbrushSettings ps);
 
-  SmartPtr<AbstractPaintbrushModeModel> m_PaintbrushModeModel;
+  SmartPtr<AbstractPaintbrushShapeModel> m_PaintbrushShapeModel;  
   SmartPtr<AbstractSimpleBooleanProperty> m_VolumetricBrushModel;
   SmartPtr<AbstractSimpleBooleanProperty> m_IsotropicBrushModel;
   SmartPtr<AbstractSimpleBooleanProperty> m_ChaseCursorModel;
+
+  SmartPtr<AbstractPaintbrushSmartModeModel> m_PaintbrushSmartModeModel;
+  bool GetPaintbrushSmartModeValue(PaintbrushSmartMode &value);
+  void SetPaintbrushSmartModeValue(PaintbrushSmartMode value);
 
   SmartPtr<AbstractRangedIntProperty> m_BrushSizeModel;
   bool GetBrushSizeValueAndRange(int &value, NumericValueRange<int> *domain);
@@ -62,6 +69,9 @@ protected:
 
   SmartPtr<AbstractSimpleBooleanProperty> m_AdaptiveModeModel;
   bool GetAdaptiveModeValue(bool &value);
+
+  SmartPtr<AbstractSimpleBooleanProperty> m_DeepLearningModeModel;
+  bool GetDeepLearningModeValue(bool &value);
 
   SmartPtr<AbstractRangedDoubleProperty> m_ThresholdLevelModel;
   bool GetThresholdLevelValueAndRange(double &value, NumericValueRange<double> *domain);

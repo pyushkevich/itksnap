@@ -29,7 +29,7 @@ public:
   itkGetMacro(PyramidZoom, int)
   itkSetMacro(PyramidZoom, int)
 
-  void OnUpdate() ITK_OVERRIDE;
+  void OnUpdate() override;
 
   void UpdatePlotValues();
 

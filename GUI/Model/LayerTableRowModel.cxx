@@ -13,6 +13,7 @@
 #include "IncreaseDimensionImageFilter.h"
 #include "SNAPImageData.h"
 #include "ImageMeshLayers.h"
+#include "StandaloneMeshWrapper.h"
 #include "MomentTextures.h"
 #include "SegmentationMeshWrapper.h"
 #include "GuidedNativeImageIO.h"
@@ -653,7 +654,7 @@ ImageLayerTableRowModel
 MeshLayerTableRowModel
 ::MeshLayerTableRowModel()
 {
-
+  m_ActivePropertyModel = wrapGetterSetterPairAsProperty(this, &Self::GetActivePropertyValue);
 }
 
 void
@@ -669,11 +670,11 @@ MeshLayerTableRowModel::Initialize(GlobalUIModel *parentModel, WrapperBase *laye
 bool
 MeshLayerTableRowModel::CheckState(UIState state)
 {
-  bool hasGenericDMP = (dynamic_cast<GenericMeshDisplayMappingPolicy*>(
-                          m_MeshLayer->GetDisplayMapping()) != NULL);
+  bool hasGenericDMP =
+    (dynamic_cast<GenericMeshDisplayMappingPolicy *>(m_MeshLayer->GetDisplayMapping()) != NULL);
 
   switch (state)
-    {
+  {
     // This is a mesh
     case AbstractLayerTableRowModel::UIF_MESH:
       return true;
@@ -694,26 +695,32 @@ MeshLayerTableRowModel::CheckState(UIState state)
       return false;
 
     case AbstractLayerTableRowModel::UIF_MULTICOMPONENT:
-			{
-			auto prop = m_MeshLayer->GetActiveDataArrayProperty();
-			if (prop)
-				return prop->IsMultiComponent();
-			}
+    {
+      auto prop = m_MeshLayer->GetActiveDataArrayProperty();
+      return prop && prop->IsMultiComponent();
+    }
+
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
       return hasGenericDMP;
 
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
       return hasGenericDMP;
 
-		case AbstractLayerTableRowModel::UIF_MESH_HAS_DATA:
-			return hasGenericDMP;
+    case AbstractLayerTableRowModel::UIF_MESH_HAS_DATA:
+      return hasGenericDMP;
+
+    case AbstractLayerTableRowModel::UIF_MESH_SOLID_COLOR:
+    {
+      auto prop = m_MeshLayer->GetActiveDataArrayProperty();
+      return prop.IsNull();
+    }
 
     case AbstractLayerTableRowModel::UIF_SAVABLE:
       return !hasGenericDMP; // Mesh layer is currently read only
 
     default:
       return Superclass::CheckState(state); // Children override parents
-    }
+  }
 
   return false;
 }
@@ -798,6 +805,21 @@ MeshLayerTableRowModel::SetColorMapPresetValue(std::string value)
   cmm->SetLayer(m_MeshLayer);
   cmm->SelectPreset(value);
   cmm->SetLayer(currentLayer);
+}
+
+bool
+MeshLayerTableRowModel::GetActivePropertyValue(std::string &value)
+{
+  if(!m_MeshLayer)
+    return false;
+
+  auto *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer.GetPointer());
+  if(!mesh)
+    return false;
+
+  auto prop = m_MeshLayer->GetActiveDataArrayProperty();
+  value = prop ? prop->GetName() : "Solid Color";
+  return true;
 }
 
 void

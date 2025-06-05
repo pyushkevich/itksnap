@@ -83,6 +83,11 @@ public:
   // indexed by the enum UIElementFeatures
   void SetValid(const int validity[]);
 
+  /**
+   * Copy settings from another appearance element
+   */
+  void Copy(const OpenGLAppearanceElement *other);
+
 protected:
 
   typedef ConcretePropertyModel<int, LineTypeDomain> ConcreteLineTypeModel;
@@ -121,6 +126,7 @@ public:
   irisSimplePropertyAccessMacro(FlagLayoutPatientAnteriorShownLeft, bool)
   irisSimplePropertyAccessMacro(FlagLayoutPatientRightShownLeft, bool)
   irisSimplePropertyAccessMacro(FlagRemindLayoutSettings, bool)
+  irisSimplePropertyAccessMacro(FlagRemindDeepLearningExtensions, bool)
   irisSimplePropertyAccessMacro(SliceLayout, UISliceLayout)
   irisSimplePropertyAccessMacro(LayerLayout, LayerLayout)
 
@@ -142,6 +148,7 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientAnteriorShownLeftModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagLayoutPatientRightShownLeftModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_FlagRemindLayoutSettingsModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_FlagRemindDeepLearningExtensionsModel;
 
   typedef ConcretePropertyModel<UIGreyInterpolation, TrivialDomain> ConcreteInterpolationModel;
   SmartPtr<ConcreteInterpolationModel> m_GreyInterpolationModeModel;
@@ -175,10 +182,11 @@ public:
     CROSSHAIRS = 0, MARKERS, ROI_BOX, ROI_BOX_ACTIVE,
     BACKGROUND_2D, BACKGROUND_3D,
     ZOOM_THUMBNAIL, ZOOM_VIEWPORT, CROSSHAIRS_3D, CROSSHAIRS_THUMB,
+    LAYER_THUMBNAIL_SELECTED, LAYER_THUMBNAIL_HOVER, LAYER_THUMBNAIL_SELECTED_AND_HOVER,
     IMAGE_BOX_3D, ROI_BOX_3D, PAINTBRUSH_OUTLINE, RULER, 
     POLY_DRAW_MAIN, POLY_DRAW_CLOSE, POLY_EDIT, POLY_EDIT_SELECT,
     REGISTRATION_WIDGETS, REGISTRATION_WIDGETS_ACTIVE, REGISTRATION_GRID, GRID_LINES,
-    ELEMENT_COUNT
+    MESH_OUTLINE, ELEMENT_COUNT
     };
 
   void LoadFromRegistry(Registry &registry);

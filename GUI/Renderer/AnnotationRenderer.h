@@ -11,22 +11,28 @@ class AnnotationContextItem;
 class AnnotationRenderer : public SliceRendererDelegate
 {
 public:
-
   irisITKObjectMacro(AnnotationRenderer, SliceRendererDelegate)
 
-  irisGetMacro(Model, AnnotationModel *)
-  void SetModel(AnnotationModel *model);
+  void RenderOverTiledLayer(AbstractRenderContext *context,
+                            ImageWrapperBase         *base_layer,
+                            const SubViewport        &vp) override;
 
-  virtual void AddContextItemsToTiledOverlay(
-      vtkAbstractContextItem *parent, ImageWrapperBase *base_layer) override;
+  irisGetSetMacro(Model, AnnotationModel *)
 
 protected:
-
-  AnnotationRenderer();
+  AnnotationRenderer() {}
   virtual ~AnnotationRenderer() {}
 
-  AnnotationModel *m_Model;
+  void             DrawLineLength(AbstractRenderContext *context,
+                                  const Vector3d           &xSlice1,
+                                  const Vector3d           &xSlice2,
+                                  const Vector3d           &color,
+                                  double                    alpha);
 
+  void             DrawSelectionHandle(AbstractRenderContext *context, const Vector3d &xSlice);
+
+  AnnotationModel *m_Model;
 };
+
 
 #endif // ANNOTATIONRENDERER_H

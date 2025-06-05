@@ -16,6 +16,26 @@ class AbstractMeshIODelegate;
 class MeshDisplayMappingPolicy;
 class MeshAssembly;
 class vtkDataSetAttributes;
+class vtkPlaneCutter;
+class vtkPlane;
+class vtkStripper;
+class vtkCleanPolyData;
+namespace itk {
+template <unsigned int VDim> class ImageBase;
+}
+
+class PlaneCutterAssembly : public itk::Object
+{
+public:
+  irisITKObjectMacro(PlaneCutterAssembly, itk::Object);
+  friend class PolyDataWrapper;
+protected:
+
+  vtkSmartPointer<vtkPlaneCutter> m_Cutter;
+  vtkSmartPointer<vtkPlane> m_Plane;
+  vtkSmartPointer<vtkStripper> m_Stripper;
+  vtkSmartPointer<vtkCleanPolyData> m_Cleaner;
+};
 
 /**
  * @brief The PolyDataWrapper class
@@ -26,6 +46,7 @@ public:
   irisITKObjectMacro(PolyDataWrapper, itk::Object);
 
   typedef GuidedMeshIO::FileFormat FileFormat;
+  typedef itk::ImageBase<3> DisplayViewportGeometryType;
 
   // comparisonn functor for map with char* key
   struct strcmp
@@ -64,6 +85,12 @@ public:
   void SetFileFormat(FileFormat fmt)
   { m_FileFormat = fmt; }
 
+  /**
+   * Compute intersection between this mesh layer and one of the slicing planes
+   */
+  vtkPolyData *GetIntersectionWithSlicePlane(DisplaySliceIndex                  index,
+                                             const DisplayViewportGeometryType *geometry);
+
   friend class MeshDataArrayProperty;
 protected:
   PolyDataWrapper() {}
@@ -85,6 +112,9 @@ protected:
 
   // Cell Data Properties
   MeshDataArrayPropertyMap m_CellDataProperties;
+
+  // Cutters used to display 2D intersections of the mesh with display slices
+  DisplaySlicePipelineArray<PlaneCutterAssembly> m_PlaneCut;
 
   // Filename (default to empty string)
   // Polydata generated from segmentation don't have a file name
@@ -192,6 +222,8 @@ public:
 
   typedef GuidedMeshIO::FileFormat FileFormat;
 
+  typedef itk::ImageBase<3> DisplayViewportGeometryType;
+
   //----------------------------------------------
   // Begin virtual methods definition
 
@@ -283,12 +315,27 @@ public:
   int GetActiveMeshLayerDataPropertyId()
   { return m_ActiveDataPropertyId; }
 
+  /** Set the solid color to use for this mesh when no property is selected */
+  void SetSolidColor(Vector3d color);
+
+  /** Get the solid color to use for this mesh when no property is selected */
+  Vector3d GetSolidColor() const;
+
+  /** Set the solid color to use for this mesh when no property is selected */
+  void SetSliceViewOpacity(double alpha);
+
+  /** Get the solid color to use for this mesh when no property is selected */
+  double GetSliceViewOpacity() const;
+
   /** Get mesh layer data property map */
   MeshLayerCombinedPropertyMap &GetCombinedDataProperty()
   { return m_CombinedDataPropertyMap; }
 
   /** Get mesh for a timepoint and id */
   PolyDataWrapper *GetMesh(unsigned int timepoint, LabelType id);
+
+  /** Compute intersection between a mesh and a slice plane */
+  vtkPolyData *GetIntersectionWithSlicePlane(unsigned int timepoint, LabelType id, DisplaySliceIndex index);
 
   /**
     Helper method to merge two data property map
@@ -310,6 +357,23 @@ public:
 
   /** Return the number of polydata currently exist in a timepoint */
   size_t GetNumberOfMeshes(unsigned int timepoint);
+
+  /**
+   * Get the display viewport geometries for this mesh layer
+   */
+  virtual const DisplayViewportGeometryType *GetDisplayViewportGeometry(DisplaySliceIndex index) const
+  {
+    return m_DisplayViewportGeometry[index];
+  }
+
+  /**
+   * Set the display viewport geometries for this mesh layer
+   */
+  virtual void SetDisplayViewportGeometry(DisplaySliceIndex                  index,
+                                          const DisplayViewportGeometryType *viewport_image)
+  {
+    m_DisplayViewportGeometry[index] = viewport_image;
+  }
 
   // Give display mapping policy access to protected members for flexible
   // configuration and data retrieval
@@ -353,6 +417,12 @@ protected:
   // Transparency
   double m_Alpha;
 
+  // Solid color
+  Vector3d m_SolidColor;
+
+  // Opacity for display on slice views
+  double m_SliceViewOpacity = 1.0;
+
   // Data Array Property Id
   int m_CombinedPropID = 0;
 
@@ -361,6 +431,9 @@ protected:
 
 	// Data property observer tag
 	unsigned long m_ActiveMeshDataPropertyObserverTag;
+
+  // Display geometry for slicing
+  DisplaySlicePipelineArray<DisplayViewportGeometryType, const DisplayViewportGeometryType *> m_DisplayViewportGeometry;
 };
 
 #endif // MESHWRAPPERBASE_H

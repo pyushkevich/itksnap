@@ -310,7 +310,7 @@ public:
     m_ActionValues.push_back(value);
   }
 
-  virtual void SetDomain(QComboBox *w, const TDomain &domain) ITK_OVERRIDE
+  virtual void SetDomain(QComboBox *w, const TDomain &domain) override
   {
     // Fill out the domain as is
     Superclass::SetDomain(w, domain);

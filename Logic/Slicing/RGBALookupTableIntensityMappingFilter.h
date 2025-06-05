@@ -54,7 +54,7 @@ public:
   void SetMappingModeToThreeChannelRGB();
 
   /** The actual work */
-  void DynamicThreadedGenerateData(const OutputImageRegionType &region) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const OutputImageRegionType &region) override;
 
   /** Process a single pixel */
   OutputPixelType MapPixel(const InputPixelType &xin0, const InputPixelType &xin1, const InputPixelType &xin2);

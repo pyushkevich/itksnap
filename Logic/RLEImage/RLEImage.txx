@@ -221,7 +221,7 @@ GetPixel(const IndexType & index) const
     typename BufferType::IndexType bi = truncateIndex(index);
     RLLine & line = myBuffer->GetPixel(bi);
     IndexValueType t = 0;
-    for (IndexValueType x = 0; x < line.size(); x++)
+    for (unsigned int x = 0; x < line.size(); x++)
     {
         t += line[x].first;
         if (t > index[0] - bri0)

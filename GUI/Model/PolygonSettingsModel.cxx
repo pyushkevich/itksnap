@@ -14,12 +14,14 @@ void PolygonSettingsModel::SetParentModel(GlobalUIModel *model)
   m_FreehandIsPiecewiseModel->RebroadcastFromSourceProperty(
         m_ParentModel->GetPolygonDrawingModel(0)->GetFreehandFittingRateModel());
 
+  m_DeepLearningModeModel = NewSimpleConcreteProperty(false);
 }
 
 void PolygonSettingsModel::LoadFromRegistry(Registry &folder)
 {
   this->SetFreehandSegmentLength(folder["SegmentLength"][8]);
   this->SetFreehandIsPiecewise(folder["IsPiecewise"][true]);
+
 }
 
 void PolygonSettingsModel::SaveToRegistry(Registry &folder)

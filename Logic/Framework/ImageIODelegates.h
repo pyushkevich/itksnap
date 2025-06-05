@@ -82,7 +82,7 @@ public:
 
   irisITKAbstractObjectMacro(LoadAnatomicImageDelegate, AbstractOpenImageDelegate)
 
-  virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
+  virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) override;
 
 protected:
   LoadAnatomicImageDelegate() {}
@@ -95,10 +95,10 @@ public:
 
   irisITKObjectMacro(LoadMainImageDelegate, LoadAnatomicImageDelegate)
 
-  void UnloadCurrentImage() ITK_OVERRIDE;
-  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) ITK_OVERRIDE;
+  void UnloadCurrentImage() override;
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) override;
 
-  void ConfigureImageIO(GuidedNativeImageIO *io) ITK_OVERRIDE;
+  void ConfigureImageIO(GuidedNativeImageIO *io) override;
 
   /** When called, set this delegate to read a 4d image as multi-component image */
   void SetLoad4DAsMultiComponent(bool value)
@@ -130,10 +130,10 @@ public:
 
   irisITKObjectMacro(LoadOverlayImageDelegate, LoadAnatomicImageDelegate)
 
-  void UnloadCurrentImage() ITK_OVERRIDE;
-  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) ITK_OVERRIDE;
-  void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
-  virtual bool IsOverlay() const ITK_OVERRIDE { return true; }
+  void UnloadCurrentImage() override;
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) override;
+  void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) override;
+  virtual bool IsOverlay() const override { return true; }
 
 protected:
   LoadOverlayImageDelegate();
@@ -149,10 +149,10 @@ public:
 
   irisGetSetMacro(AdditiveMode, bool)
 
-  virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
-  virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) ITK_OVERRIDE;
-  void UnloadCurrentImage() ITK_OVERRIDE;
-  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) ITK_OVERRIDE;
+  virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) override;
+  virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) override;
+  void UnloadCurrentImage() override;
+  ImageWrapperBase * UpdateApplicationWithImage(GuidedNativeImageIO *io) override;
 
   /* check if the load could overwrite unsaved changes */
   bool CanLoadOverwriteUnsavedChanges(GuidedNativeImageIO *io, std::string filename);
@@ -225,19 +225,19 @@ public:
   // for multiple history names to be updated
   void AddHistoryName(const std::string &histname);
 
-  virtual const char *GetHistoryName() ITK_OVERRIDE;
+  virtual const char *GetHistoryName() override;
 
   virtual void ValidateBeforeSaving(const std::string &fname,
                                     GuidedNativeImageIO *io,
-                                    IRISWarningList &wl) ITK_OVERRIDE;
+                                    IRISWarningList &wl) override;
 
   virtual void SaveImage(
       const std::string &fname,
       GuidedNativeImageIO *io,
       Registry &reg,
-      IRISWarningList &wl) ITK_OVERRIDE;
+      IRISWarningList &wl) override;
 
-  virtual const char *GetCurrentFilename() ITK_OVERRIDE;
+  virtual const char *GetCurrentFilename() override;
 
 protected:
 
@@ -288,7 +288,7 @@ public:
 
   irisITKObjectMacro(ReloadAnatomicWrapperDelegate, AbstractReloadWrapperDelegate)
 
-  void UpdateWrapper() ITK_OVERRIDE; // reload and update wrapper
+  void UpdateWrapper() override; // reload and update wrapper
 
 protected:
   ReloadAnatomicWrapperDelegate() {}
@@ -307,7 +307,7 @@ public:
 
   irisITKObjectMacro(ReloadSegmentationWrapperDelegate, AbstractReloadWrapperDelegate)
 
-  void UpdateWrapper() ITK_OVERRIDE; // reload and update wrapper
+  void UpdateWrapper() override; // reload and update wrapper
 
 protected:
   ReloadSegmentationWrapperDelegate() {}

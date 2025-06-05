@@ -129,7 +129,7 @@ protected:
   bool GetNewDirectionMatrixValue(WorldMatrix &value);
 
   // Respond to events received by the model
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   // The parent model
   GlobalUIModel *m_Parent;

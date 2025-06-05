@@ -87,7 +87,7 @@ LevelSetMeshPipeline
   m_Mesh = vtkSmartPointer<vtkPolyData>::New();
 
   // Run the pipeline
-  m_VTKPipeline->ComputeMesh(m_Mesh, mutex);
+  m_VTKPipeline->ComputeMesh(m_Mesh, 0, mutex);
 
   // Set the modified flag so that we can use the MTime() of this object for dirty checks
   this->Modified();

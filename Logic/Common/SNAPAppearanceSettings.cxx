@@ -25,8 +25,7 @@
 
 using namespace std;
 
-// Columns: NORMAL_COLOR, LINE_THICKNESS, DASH_SPACING,
-//          FONT_SIZE,    VISIBLE,      ALPHA_BLEND,    FEATURE_COUNT
+// Columns: COLOR, LINE_THICKNESS, LINE_TYPE, FONT_SIZE, VISIBLE, FEATURE_COUNT
 const int 
 SNAPAppearanceSettings
 ::m_Applicable[SNAPAppearanceSettings::ELEMENT_COUNT][OpenGLAppearanceElement::FEATURE_COUNT] = {
@@ -38,6 +37,9 @@ SNAPAppearanceSettings
     { 1, 0, 0, 0, 0 },    // 3D Background
     { 1, 1, 1, 0, 1 },    // Zoom thumbnail
     { 1, 1, 1, 0, 1 },    // Zoom viewport
+    { 1, 1, 1, 0, 1 },    // Layer thumbnail (selected)
+    { 1, 1, 1, 0, 1 },    // Layer thumbnail (hovered)
+    { 1, 1, 1, 0, 1 },    // Layer thumbnail (selected and hovered)
     { 1, 1, 1, 0, 1 },    // 3D Crosshairs
     { 1, 1, 1, 0, 1 },    // Thumbnail Crosshairs
     { 1, 1, 1, 0, 1 },    // 3D Image Box
@@ -51,7 +53,8 @@ SNAPAppearanceSettings
     { 1, 1, 1, 0, 0 },    // REGISTRATION_WIDGETS
     { 1, 1, 1, 0, 0 },    // REGISTRATION_WIDGETS_ACTIVE
     { 1, 1, 1, 0, 0 },    // REGISTRATION_GRID
-    { 1, 1, 0, 0, 0 }     // GRID_LINES
+    { 1, 1, 1, 0, 1 },    // GRID_LINES
+    { 1, 1, 0, 0, 1 }     // MESH OUTLINE
     };
 
 void 
@@ -121,6 +124,30 @@ SNAPAppearanceSettings
   elt = m_DefaultElementSettings[ZOOM_VIEWPORT];
   elt->SetColor(Vector3d(1.0, 1.0, 1.0));
   elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
+  elt->SetVisibilityFlag(true);
+
+  // Layer thumbnail (selected)
+  elt = m_DefaultElementSettings[LAYER_THUMBNAIL_SELECTED];
+  elt->SetColor(Vector3d(1.0, 0.9, 0.1));
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
+  elt->SetVisibilityFlag(true);
+
+  // Layer thumbnail (selected)
+  elt = m_DefaultElementSettings[LAYER_THUMBNAIL_HOVER];
+  elt->SetColor(Vector3d(1.0, 0.9, 0.1));
+  elt->SetAlpha(0.5);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::SOLID_LINE);
+  elt->SetVisibilityFlag(true);
+
+  // Layer thumbnail (selected)
+  elt = m_DefaultElementSettings[LAYER_THUMBNAIL_SELECTED_AND_HOVER];
+  elt->SetColor(Vector3d(1.0, 0.9, 0.1));
+  elt->SetAlpha(1.0);
   elt->SetLineThickness(1.5);
   elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisibilityFlag(true);
@@ -233,16 +260,44 @@ SNAPAppearanceSettings
   elt->SetLineThickness(1.5);
   elt->SetLineType(vtkPen::SOLID_LINE);
   elt->SetVisibilityFlag(true);
+
+  // Mesh outline
+  elt = m_DefaultElementSettings[MESH_OUTLINE];
+  elt->SetColor(Vector3d(1.0, 1.0, 1.0));
+  elt->SetAlpha(0.75);
+  elt->SetLineThickness(2.0);
+  elt->SetLineType(vtkPen::SOLID_LINE);
+  elt->SetVisibilityFlag(true);
 }
 
-const char *
-SNAPAppearanceSettings
-::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = 
-  { "CROSSHAIRS", "MARKERS", "ROI_BOX", "ROI_BOX_ACTIVE", "BACKGROUND_2D", "BACKGROUND_3D",
-    "ZOOM_THUMBNAIL", "ZOOM_VIEWPORT", "CROSSHAIRS_3D", "CROSSHAIRS_THUMB", "IMAGE_BOX_3D",
-    "ROI_BOX_3D", "RULER", "PAINTBRUSH_OUTLINE", 
-    "POLY_DRAW_MAIN", "POLY_DRAW_CLOSE", "POLY_EDIT", "POLY_EDIT_SELECT",
-    "REGISTRATION_WIDGETS", "REGISTRATION_WIDGETS_ACTIVE", "REGISTRATION_GRID", "GRID_LINES"};
+const char *SNAPAppearanceSettings ::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = {
+  "CROSSHAIRS",
+  "MARKERS",
+  "ROI_BOX",
+  "ROI_BOX_ACTIVE",
+  "BACKGROUND_2D",
+  "BACKGROUND_3D",
+  "ZOOM_THUMBNAIL",
+  "ZOOM_VIEWPORT",
+  "LAYER_THUMBNAIL_SELECTED",
+  "LAYER_THUMBNAIL_HOVER",
+  "LAYER_THUMBNAIL_SELECTED_AND_HOVER",
+  "CROSSHAIRS_3D",
+  "CROSSHAIRS_THUMB",
+  "IMAGE_BOX_3D",
+  "ROI_BOX_3D",
+  "RULER",
+  "PAINTBRUSH_OUTLINE",
+  "POLY_DRAW_MAIN",
+  "POLY_DRAW_CLOSE",
+  "POLY_EDIT",
+  "POLY_EDIT_SELECT",
+  "REGISTRATION_WIDGETS",
+  "REGISTRATION_WIDGETS_ACTIVE",
+  "REGISTRATION_GRID",
+  "MESH_OUTLINE",
+  "GRID_LINES"
+};
 
 SNAPAppearanceSettings
 ::SNAPAppearanceSettings()
@@ -346,6 +401,9 @@ GlobalDisplaySettings::GlobalDisplaySettings()
   m_FlagRemindLayoutSettingsModel =
       NewSimpleProperty("FlagRemindLayoutSettings", true);
 
+  m_FlagRemindDeepLearningExtensionsModel =
+    NewSimpleProperty("FlagRemindDeepLearningExtensions", true);
+
   m_LayerLayoutModel =
       NewSimpleEnumProperty("LayerLayout", LAYOUT_STACKED, emap_layer_layout);
 }
@@ -394,6 +452,28 @@ void OpenGLAppearanceElement::SetValid(const int validity[])
   m_LineTypeModel->SetIsValid(validity[LINE_TYPE]);
   m_FontSizeModel->SetIsValid(validity[FONT_SIZE]);
   m_VisibilityFlagModel->SetIsValid(validity[VISIBLE]);
+}
+
+void
+OpenGLAppearanceElement::Copy(const OpenGLAppearanceElement *other)
+{
+  // Set model validity
+  m_ColorModel->SetIsValid(other->m_ColorModel->isValid());
+  m_AlphaModel->SetIsValid(other->m_AlphaModel->isValid());
+  m_LineThicknessModel->SetIsValid(other->m_LineThicknessModel->isValid());
+  m_LineTypeModel->SetIsValid(other->m_LineTypeModel->isValid());
+  m_FontSizeModel->SetIsValid(other->m_FontSizeModel->isValid());
+  m_VisibilityFlagModel->SetIsValid(other->m_VisibilityFlagModel->isValid());
+  m_SmoothModel->SetIsValid(other->m_SmoothModel->isValid());
+
+  // Set values
+  m_ColorModel->SetValue(other->m_ColorModel->GetValue());
+  m_AlphaModel->SetValue(other->m_AlphaModel->GetValue());
+  m_LineThicknessModel->SetValue(other->m_LineThicknessModel->GetValue());
+  m_LineTypeModel->SetValue(other->m_LineTypeModel->GetValue());
+  m_FontSizeModel->SetValue(other->m_FontSizeModel->GetValue());
+  m_VisibilityFlagModel->SetValue(other->m_VisibilityFlagModel->GetValue());
+  m_SmoothModel->SetIsValid(other->m_SmoothModel->isValid());
 }
 
 

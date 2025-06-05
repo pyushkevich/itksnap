@@ -104,28 +104,24 @@ SlicePreviewFilterWrapper<TFilterConfigTraits>
 
 template <class TFilterConfigTraits>
 void
-SlicePreviewFilterWrapper<TFilterConfigTraits>
-::DetachInputsAndOutputs(InputDataType *sid)
+SlicePreviewFilterWrapper<TFilterConfigTraits>::DetachInputsAndOutputs(InputDataType *sid)
 {
-  if(m_OutputWrapper)
-    {
-    for(unsigned int i = 0; i < 3; i++)
-      {
-      // Disconnect wrapper from this pipeline
-      m_OutputWrapper->GetSlicer(i)->SetPreviewImage(NULL);
-      }
+  if (m_OutputWrapper)
+  {
+    // Detach pipeline
+    m_OutputWrapper->DetachPreviewPipeline();
 
     // Undo the graft
     m_VolumeStreamer->GraftOutput(m_VolumeStreamer->GetOutput());
-    }
+  }
 
   m_OutputWrapper = NULL;
 
-  for(unsigned int i = 0; i < 4; i++)
-    {
+  for (unsigned int i = 0; i < 4; i++)
+  {
     // Disconnect wrapper from this pipeline
     Traits::DetachInputs(sid, this->GetNthFilter(i));
-    }
+  }
 
   m_ActiveScalarLayer = NULL;
 }

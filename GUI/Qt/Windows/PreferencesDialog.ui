@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>698</width>
-    <height>608</height>
+    <height>588</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1758,6 +1758,22 @@ color:white;</string>
        </item>
       </layout>
      </widget>
+     <widget class="DeepLearningServerPanel" name="pageDL">
+      <layout class="QVBoxLayout" name="verticalLayout_16">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+      </layout>
+     </widget>
     </widget>
    </item>
    <item row="0" column="0" rowspan="2">
@@ -1802,6 +1818,11 @@ color:white;</string>
        <string>Tools</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>AI Extensions</string>
+      </property>
+     </item>
     </widget>
    </item>
    <item row="0" column="1">
@@ -1832,6 +1853,12 @@ font-weight:bold;</string>
    <class>QColorButtonWidget</class>
    <extends>QWidget</extends>
    <header location="global">QColorButtonWidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DeepLearningServerPanel</class>
+   <extends>QWidget</extends>
+   <header>DeepLearningServerPanel.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

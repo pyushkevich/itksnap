@@ -217,28 +217,6 @@ public:
   }
 };
 
-/*
-
-template <>
-class DefaultWidgetDomainTraits<DistributedSegmentationModel::ServerStatusDomain, QLabel>
-     : public WidgetDomainTraitsBase<DistributedSegmentationModel::ServerStatusDomain, QLabel *>
-{
-public:
-  typedef DistributedSegmentationModel::ServerStatusDomain TDomain;
-
-  virtual void SetDomain(QLabel *w, const TDomain &domain) ITK_OVERRIDE {}
-  virtual TDomain GetDomain(QLabel * w) ITK_OVERRIDE { return TDomain(); }
-};
-
-*/
-
-
-
-
-
-
-
-
 DistributedSegmentationDialog::DistributedSegmentationDialog(QWidget *parent) :
   QDialog(parent),
   ui(new Ui::DistributedSegmentationDialog)

@@ -145,7 +145,7 @@ public:
   /**
     Update if necessary
     */
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   /**
    * Initialize the slice view with image data
@@ -419,16 +419,16 @@ protected:
   ~GenericSliceModel();
 
   // Parent (where the global UI state is stored)
-  GlobalUIModel *m_ParentUI;
+  GlobalUIModel *m_ParentUI = nullptr;
 
   // Top-level logic object
-  IRISApplication *m_Driver;
+  IRISApplication *m_Driver = nullptr;
 
   // Pointer to the image data
-  GenericImageData *m_ImageData;
+  GenericImageData *m_ImageData = nullptr;
 
   // Viewport size reporter (communicates with the UI about viewport size)
-  ViewportSizeReporter *m_SizeReporter;
+  ViewportSizeReporter *m_SizeReporter = nullptr;
 
   // Description of how the main viewport is divided into parts
   SliceViewportLayout m_ViewportLayout;
@@ -511,6 +511,7 @@ protected:
   /** Update the state of the viewport based on current layout settings */
   void UpdateViewportLayout();
   void UpdateUpstreamViewportGeometry();
+  void UpdateUpstreamThumbnailViewportGeometry();
 };
 
 #endif // GENERICSLICEMODEL_H

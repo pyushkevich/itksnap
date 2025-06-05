@@ -34,7 +34,7 @@ public:
    * Mesh wrapper does not generate display slices
    * Always returns nullptr
    */
-  virtual DisplaySlicePointer GetDisplaySlice(unsigned int slice) override;
+  virtual DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) override;
 
   virtual void Save(Registry &folder) override;
 

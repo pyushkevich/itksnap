@@ -110,16 +110,30 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   LatentITKEventNotifier::connect(
         m_Model, ActiveLayerChangeEvent(), this, SLOT(meshData_domainChanged()));
 
-	QObject::connect(ui->boxMeshDataName, SIGNAL(currentIndexChanged(int)),
+  QObject::connect(ui->boxMeshDataName, SIGNAL(activated(int)),
 									 this, SLOT(meshData_selectionChanged(int)));
 
 	// Mesh vector data connection
-	activateOnFlag(ui->grpMeshVectorMode, m_Model,
+  activateOnFlag(ui->lblMeshVectorMode, m_Model,
 								 LayerGeneralPropertiesModel::UIF_IS_MESHDATA_MULTICOMPONENT,
 								 QtWidgetActivator::HideInactive);
+  activateOnFlag(ui->boxMeshVectorMode, m_Model,
+                 LayerGeneralPropertiesModel::UIF_IS_MESHDATA_MULTICOMPONENT,
+                 QtWidgetActivator::HideInactive);
 
-	makeCoupling(ui->boxMeshVectorMode, m_Model->GetMeshVectorModeModel());
+  // Solid color button: always on because it controls the slice views too
+  /*
+  activateOnFlag(ui->lblMeshSolidColor, m_Model,
+                 LayerGeneralPropertiesModel::UIF_IS_MESHDATA_SOLID_COLOR,
+                 QtWidgetActivator::HideInactive);
+  activateOnFlag(ui->boxMeshSolidColor, m_Model,
+                 LayerGeneralPropertiesModel::UIF_IS_MESHDATA_SOLID_COLOR,
+                 QtWidgetActivator::HideInactive);
+  */
 
+  makeCoupling(ui->boxMeshVectorMode, m_Model->GetMeshVectorModeModel());
+  makeCoupling(ui->btnMeshSolidColor, m_Model->GetMeshSolidColorModel());
+  makeCoupling(ui->inMeshSliceOpacity, m_Model->GetMeshSliceViewOpacityModel());
 
 }
 
@@ -142,37 +156,39 @@ void GeneralLayerInspector::on_spinBoxTP_valueChanged(int value)
 }
 
 void
-GeneralLayerInspector
-::meshData_domainChanged()
+GeneralLayerInspector ::meshData_domainChanged()
 {
-	auto mesh = dynamic_cast<StandaloneMeshWrapper*>(m_Model->GetLayer());
+  auto mesh = dynamic_cast<StandaloneMeshWrapper *>(m_Model->GetLayer());
 
   if (mesh && mesh->GetUniqueId() != this->m_CurrentlyActiveMeshLayerId)
-		{
+  {
     this->m_CurrentlyActiveMeshLayerId = mesh->GetUniqueId();
 
-		auto boxMetaName = ui->boxMeshDataName;
-		boxMetaName->clear();
+    auto boxMetaName = ui->boxMeshDataName;
+    boxMetaName->clear();
+    boxMetaName->addItem("Solid Color", -1);
 
-    //auto &propMap = mesh->GetCombinedDataProperty();
+    // auto &propMap = mesh->GetCombinedDataProperty();
     LayerGeneralPropertiesModel::MeshLayerDataPropertiesMap propMap;
     if (m_Model->GetMeshDataArrayPropertiesMap(propMap))
-      {
+    {
       for (auto &kv : propMap)
-        {
-        boxMetaName->addItem(QIcon(m_MeshDataTypeToIcon[kv.second->GetType()]),
-            kv.second->GetName(), kv.first);
-        }
-      ui->boxMeshDataName->setCurrentIndex(mesh->GetActiveMeshLayerDataPropertyId());
+      {
+        boxMetaName->addItem(
+          QIcon(m_MeshDataTypeToIcon[kv.second->GetType()]), kv.second->GetName(), kv.first);
       }
-		}
+    }
+    int index = ui->boxMeshDataName->findData(mesh->GetActiveMeshLayerDataPropertyId());
+    boxMetaName->setCurrentIndex(index);
+  }
 }
 
 void
 GeneralLayerInspector
-::meshData_selectionChanged(int value)
+::meshData_selectionChanged(int index)
 {
-  m_Model->SetActiveMeshLayerDataPropertyId(value);
+  int id = ui->boxMeshDataName->itemData(index).toInt();
+  m_Model->SetActiveMeshLayerDataPropertyId(id);
 }
 
 void GeneralLayerInspector::onModelUpdate(const EventBucket &)

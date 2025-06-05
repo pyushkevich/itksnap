@@ -18,28 +18,29 @@ public:
   void LoadFromRegistry(Registry &folder);
   void SaveToRegistry(Registry &folder);
 
+  irisSimplePropertyAccessMacro(DeepLearningMode, bool)
   irisSimplePropertyAccessMacro(FreehandIsPiecewise, bool)
   irisRangedPropertyAccessMacro(FreehandSegmentLength, int)
 
-protected:
-
-  PolygonSettingsModel();
+  protected : PolygonSettingsModel();
   virtual ~PolygonSettingsModel() {}
 
   GlobalUIModel *m_ParentModel;
 
   SmartPtr<AbstractSimpleBooleanProperty> m_FreehandIsPiecewiseModel;
-  bool GetFreehandIsPiecewiseValue(bool &value);
-  void SetFreehandIsPiecewiseValue(bool value);
+  bool                                    GetFreehandIsPiecewiseValue(bool &value);
+  void                                    SetFreehandIsPiecewiseValue(bool value);
 
   SmartPtr<AbstractRangedIntProperty> m_FreehandSegmentLengthModel;
   bool GetFreehandSegmentLengthValueAndRange(int &value, NumericValueRange<int> *range);
   void SetFreehandSegmentLengthValue(int value);
 
+  // Deep learning mode
+  SmartPtr<ConcreteSimpleBooleanProperty> m_DeepLearningModeModel;
+
+
 private:
-
   int m_LastFreehandRate;
-
 };
 
 #endif // POLYGONSETTINGSMODEL_H

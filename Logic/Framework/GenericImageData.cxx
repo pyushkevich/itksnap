@@ -76,16 +76,15 @@ GenericImageData
   // Create empty annotations
   m_Annotations = ImageAnnotationData::New();
 
+  // Create the viewport geometries
+  for (auto index : DisplaySliceIndices)
+    m_DisplayViewportGeometry[index] = ImageBaseType::New();
+
   // Create TimePointProperties
   m_TimePointProperties = TimePointProperties::New();
   m_TimePointProperties->SetParent(this);
 	Rebroadcaster::Rebroadcast(m_TimePointProperties, WrapperGlobalMetadataChangeEvent(),
 														 this, WrapperGlobalMetadataChangeEvent());
-
-  // Initialize the display viewport geometry objects
-  m_DisplayViewportGeometry[0] = ImageBaseType::New();
-  m_DisplayViewportGeometry[1] = ImageBaseType::New();
-  m_DisplayViewportGeometry[2] = ImageBaseType::New();
 }
 
 GenericImageData
@@ -222,19 +221,30 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformTyp
   GenericImageDataWrapperCreator c(io, refSpace, transform, &m_DisplayGeometry);
 
   // Create the wrapper to match native type
-  switch(io->GetComponentTypeInNativeImage())
-    {
-    case itk::IOComponentEnum::UCHAR:  out_wrapper = c.Create<unsigned char, false>();   break;
-    case itk::IOComponentEnum::CHAR:   out_wrapper = c.Create<char, false>();            break;
-    case itk::IOComponentEnum::USHORT: out_wrapper = c.Create<unsigned short, false>();  break;
-    case itk::IOComponentEnum::SHORT:  out_wrapper = c.Create<short, false>();           break;
-    case itk::IOComponentEnum::DOUBLE:  out_wrapper = c.Create<double, false>();         break;
-    default: out_wrapper = c.Create<float, false>();                                     break;
-    }
+  switch (io->GetComponentTypeInNativeImage())
+  {
+    case itk::IOComponentEnum::UCHAR:
+      out_wrapper = c.Create<unsigned char, false>();
+      break;
+    case itk::IOComponentEnum::CHAR:
+      out_wrapper = c.Create<char, false>();
+      break;
+    case itk::IOComponentEnum::USHORT:
+      out_wrapper = c.Create<unsigned short, false>();
+      break;
+    case itk::IOComponentEnum::SHORT:
+      out_wrapper = c.Create<short, false>();
+      break;
+    case itk::IOComponentEnum::DOUBLE:
+      out_wrapper = c.Create<double, false>();
+      break;
+    default:
+      out_wrapper = c.Create<float, false>();
+      break;
+  }
 
   // Additional configuration for the wrapper
-  for(int i = 0; i < 3; i++)
-    out_wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
+  this->AssignDisplayViewportGeometriesToLayer(out_wrapper);
 
   // Create an image coordinate geometry object
   return out_wrapper;
@@ -306,9 +316,7 @@ GenericImageData
 void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
 {
   // Additional configuration for the wrapper (normally called in CreateAnatomicImageWrapper)
-  for(int i = 0; i < 3; i++)
-    new_layer->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
-
+  this->AssignDisplayViewportGeometriesToLayer(new_layer);
   this->AddOverlayInternal(new_layer, true);
 }
 
@@ -420,8 +428,14 @@ GenericImageData
 }
 
 void
-GenericImageData
-::ConfigureSegmentationFromMainImage(LabelImageWrapper *wrapper)
+GenericImageData::AssignDisplayViewportGeometriesToLayer(ImageWrapperBase *layer)
+{
+  for (auto index : DisplaySliceIndices)
+    layer->SetDisplayViewportGeometry(index, GetDisplayViewportGeometry(index));
+}
+
+void
+GenericImageData ::ConfigureSegmentationFromMainImage(LabelImageWrapper *wrapper)
 {
   // Main Image should exist
   assert(m_MainImageWrapper->IsInitialized());
@@ -439,8 +453,7 @@ GenericImageData
   wrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
 
   // Additional configuration for the wrapper
-  for(int i = 0; i < 3; i++)
-    wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
+  this->AssignDisplayViewportGeometriesToLayer(wrapper);
 }
 
 LabelImageWrapper *
@@ -605,7 +618,8 @@ void GenericImageData::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
       }
 }
 
-GenericImageData::ImageBaseType *GenericImageData::GetDisplayViewportGeometry(int index)
+GenericImageData::ImageBaseType *
+GenericImageData::GetDisplayViewportGeometry(DisplaySliceIndex index)
 {
   return m_DisplayViewportGeometry[index];
 }
@@ -742,8 +756,7 @@ void GenericImageData::PushBackImageWrapper(LayerRole role,
 {
   // TODO: this is being called in too many places, but for now this is a band-aid bug
   // fix to avoid crash when the viewport geometry is not set in a wrapper
-  for(int i = 0; i < 3; i++)
-    wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
+  this->AssignDisplayViewportGeometriesToLayer(wrapper);
 
   // Append the wrapper
   m_Wrappers[role].push_back(wrapper);
@@ -811,8 +824,7 @@ void GenericImageData::SetSingleImageWrapper(LayerRole role,
 
   // TODO: this is being called in too many places, but for now this is a band-aid bug
   // fix to avoid crash when the viewport geometry is not set in a wrapper
-  for(int i = 0; i < 3; i++)
-    wrapper->SetDisplayViewportGeometry(i, m_DisplayViewportGeometry[i]);
+  this->AssignDisplayViewportGeometriesToLayer(wrapper);
 
   // Assign the first wrapper in role
   m_Wrappers[role].front() = wrapper;

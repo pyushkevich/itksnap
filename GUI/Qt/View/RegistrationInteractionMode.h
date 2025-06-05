@@ -31,20 +31,16 @@
 
 class GenericSliceModel;
 class InteractiveRegistrationModel;
-class GenericSliceView;
-class RegistrationRenderer;
 
 class RegistrationInteractionMode : public SliceWindowInteractionDelegateWidget
 {
   Q_OBJECT
 
 public:
-  explicit RegistrationInteractionMode(GenericSliceView *parent = NULL);
+  explicit RegistrationInteractionMode(QWidget *parent, QWidget *canvasWidget);
   ~RegistrationInteractionMode();
 
   void SetModel(InteractiveRegistrationModel *model);
-
-  irisGetMacro(Renderer, RegistrationRenderer *)
 
   void mousePressEvent(QMouseEvent *ev);
   void mouseMoveEvent(QMouseEvent *);
@@ -59,7 +55,6 @@ public slots:
 protected:
 
   InteractiveRegistrationModel *m_Model;
-  SmartPtr<RegistrationRenderer> m_Renderer;
 };
 
 #endif // REGISTRATIONINTERACTIONMODE_H

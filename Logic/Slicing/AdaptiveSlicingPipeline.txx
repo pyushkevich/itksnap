@@ -46,9 +46,8 @@
 #include "AdaptiveSlicingPipeline.h"
 #include "IRISVectorTypesToITKConversion.h"
 
-template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
-::AdaptiveSlicingPipeline()
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::AdaptiveSlicingPipeline()
 {
   // Create the two slicer types
   m_OrthogonalSlicer = OrthogonalSlicerType::New();
@@ -58,93 +57,82 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
   m_UseOrthogonalSlicing = true;
 }
 
-template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
-::~AdaptiveSlicingPipeline()
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::~AdaptiveSlicingPipeline()
 {
   // Prevent crash from grafting child filter outputs
-  if(this->GetOutput())
+  if (this->GetOutput())
     this->GetOutput()->SetPixelContainer(NULL);
 }
 
-template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
 bool
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
-::GetUseNearestNeighbor() const
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::GetUseNearestNeighbor() const
 {
-    return m_ObliqueSlicer->GetUseNearestNeighbor();
+  return m_ObliqueSlicer->GetUseNearestNeighbor();
 }
 
-template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
 void
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
-::SetUseNearestNeighbor(bool flag)
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::SetUseNearestNeighbor(bool flag)
 {
-    return m_ObliqueSlicer->SetUseNearestNeighbor(flag);
+  return m_ObliqueSlicer->SetUseNearestNeighbor(flag);
 }
 
-template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
 void
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
-::MapInputsToSlicers()
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::MapInputsToSlicers()
 {
-  if(m_UseOrthogonalSlicing)
-    {
+  if (m_UseOrthogonalSlicing)
+  {
     m_OrthogonalSlicer->SetInput(this->GetInput());
-    m_OrthogonalSlicer->SetPreviewInput(
-          const_cast<PreviewImageType *>(this->GetPreviewImage()));
+    m_OrthogonalSlicer->SetPreviewInput(const_cast<PreviewImageType *>(this->GetPreviewImage()));
 
     // Inverse transform
     ImageCoordinateTransform::Pointer tinv = ImageCoordinateTransform::New();
     this->GetOrthogonalTransform()->ComputeInverse(tinv);
 
     // Tell slicer in which directions to slice
-    m_OrthogonalSlicer->SetSliceDirectionImageAxis(
-          tinv->GetCoordinateIndexZeroBased(2));
+    m_OrthogonalSlicer->SetSliceDirectionImageAxis(tinv->GetCoordinateIndexZeroBased(2));
 
-    m_OrthogonalSlicer->SetLineDirectionImageAxis(
-          tinv->GetCoordinateIndexZeroBased(1));
+    m_OrthogonalSlicer->SetLineDirectionImageAxis(tinv->GetCoordinateIndexZeroBased(1));
 
-    m_OrthogonalSlicer->SetPixelDirectionImageAxis(
-          tinv->GetCoordinateIndexZeroBased(0));
+    m_OrthogonalSlicer->SetPixelDirectionImageAxis(tinv->GetCoordinateIndexZeroBased(0));
 
-    m_OrthogonalSlicer->SetPixelTraverseForward(
-          tinv->GetCoordinateOrientation(0) > 0);
+    m_OrthogonalSlicer->SetPixelTraverseForward(tinv->GetCoordinateOrientation(0) > 0);
 
-    m_OrthogonalSlicer->SetLineTraverseForward(
-          tinv->GetCoordinateOrientation(1) > 0);
+    m_OrthogonalSlicer->SetLineTraverseForward(tinv->GetCoordinateOrientation(1) > 0);
 
     // Set the slice index
-    m_OrthogonalSlicer->SetSliceIndex(
-          m_SliceIndex[m_OrthogonalSlicer->GetSliceDirectionImageAxis()]);
-    }
+    m_OrthogonalSlicer->SetSliceIndex(m_SliceIndex[m_OrthogonalSlicer->GetSliceDirectionImageAxis()]);
+  }
   else
-    {
+  {
     m_ObliqueSlicer->SetInput(this->GetInput());
     m_ObliqueSlicer->SetTransform(this->GetObliqueTransform());
-    m_ObliqueSlicer->SetReferenceImage(this->GetObliqueReferenceImage());
-    }
+    m_ObliqueSlicer->SetReferenceImage(m_ObliqueReferenceImage);
+  }
 }
 
 template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
 void
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::SetSliceIndex(
-  const IndexType &index)
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::SetSliceIndex(const IndexType &index)
 {
   // Handle modified carefully, since slice index only affects us if slicing is
   // orthogonal and if the direction of slicing is changed
-  if(m_UseOrthogonalSlicing)
+  if (m_UseOrthogonalSlicing)
   {
     auto axis = m_OrthogonalSlicer->GetSliceDirectionImageAxis();
-    if(index[axis] != m_SliceIndex[axis])
+    if (index[axis] != m_SliceIndex[axis])
       this->Modified();
   }
   m_SliceIndex = index;
 }
 
 
-  template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
-  void AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::GenerateOutputInformation()
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+void
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::GenerateOutputInformation()
 {
   // Make sure the inputs are assigned to the corresponding slicers
   this->MapInputsToSlicers();
@@ -153,69 +141,112 @@ AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::SetSliceIndex
   OutputImageType *output = this->GetOutput();
 
   // Use appropriate sub-pipeline
-  if(m_UseOrthogonalSlicing)
-    {
+  if (m_UseOrthogonalSlicing)
+  {
     m_OrthogonalSlicer->UpdateOutputInformation();
     m_OrthogonalSlicer->GetOutput()->SetRequestedRegionToLargestPossibleRegion();
     output->CopyInformation(m_OrthogonalSlicer->GetOutput());
-    }
+  }
   else
-    {
+  {
     m_ObliqueSlicer->UpdateOutputInformation();
     m_ObliqueSlicer->GetOutput()->SetRequestedRegionToLargestPossibleRegion();
     output->CopyInformation(m_ObliqueSlicer->GetOutput());
-    }
+  }
 
   // Copy information does not update the requested region, so we must update
   // it by hand here
   output->SetRequestedRegionToLargestPossibleRegion();
 }
 
-template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
 void
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
-::PropagateRequestedRegion(itk::DataObject *output)
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::PropagateRequestedRegion(
+  itk::DataObject *output)
 {
   // Use appropriate sub-pipeline
-  if(m_UseOrthogonalSlicing)
-    {
+  if (m_UseOrthogonalSlicing)
+  {
     m_OrthogonalSlicer->PropagateRequestedRegion(output);
-    }
+  }
   else
-    {
+  {
     m_ObliqueSlicer->PropagateRequestedRegion(output);
-    }
+  }
 }
 
-template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
 void
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
-::CallCopyOutputRegionToInputRegion(
-    InputImageRegionType &destRegion, const OutputImageRegionType &srcRegion)
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::CallCopyOutputRegionToInputRegion(
+  InputImageRegionType        &destRegion,
+  const OutputImageRegionType &srcRegion)
 {
   Superclass::CallCopyOutputRegionToInputRegion(destRegion, srcRegion);
 }
 
 
-template<typename TInputImage, typename TOutputImage, typename TPreviewImage>
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
 void
-AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>
-::GenerateData()
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::GenerateData()
 {
   // Get the outer filter's output
   OutputImageType *output = this->GetOutput();
 
   // Use appropriate sub-pipeline
-  if(m_UseOrthogonalSlicing)
-    {
+  if (m_UseOrthogonalSlicing)
+  {
     m_OrthogonalSlicer->Update();
     output->Graft(m_OrthogonalSlicer->GetOutput());
-    }
+  }
   else
-    {
+  {
     m_ObliqueSlicer->Update();
     output->Graft(m_ObliqueSlicer->GetOutput());
-    }
+  }
 }
+
+
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+void
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::SetUseOrthogonalSlicing(bool value)
+{
+  if (m_UseOrthogonalSlicing != value)
+  {
+    m_UseOrthogonalSlicing = value;
+    if (m_UseOrthogonalSlicing)
+    {
+      this->RemoveInput("ObliqueReferenceImage");
+    }
+    else
+    {
+      this->SetInput(
+        "ObliqueReferenceImage",
+        const_cast<NonOrthogonalSliceReferenceSpace *>(m_ObliqueReferenceImage.GetPointer()));
+    }
+    this->Modified();
+  }
+}
+
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+const typename AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::NonOrthogonalSliceReferenceSpace *
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::GetObliqueReferenceImage() const
+{
+  return m_ObliqueReferenceImage;
+}
+
+template <typename TInputImage, typename TOutputImage, typename TPreviewImage>
+void
+AdaptiveSlicingPipeline<TInputImage, TOutputImage, TPreviewImage>::SetObliqueReferenceImage(
+  const NonOrthogonalSliceReferenceSpace *input)
+{
+  m_ObliqueReferenceImage = input;
+  if (!m_UseOrthogonalSlicing)
+  {
+    this->SetInput(
+      "ObliqueReferenceImage",
+      const_cast<NonOrthogonalSliceReferenceSpace *>(m_ObliqueReferenceImage.GetPointer()));
+  }
+}
+
 
 #endif // ADAPTIVESLICINGPIPELINE_TXX

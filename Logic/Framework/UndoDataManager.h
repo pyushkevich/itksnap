@@ -92,6 +92,30 @@ protected:
   static unsigned long m_UniqueIDCounter;
 };
 
+/**
+ * A "commit" to the undo system consists of one or more deltas. For example
+ * in paintbrush drawing, as you drag the paintbrush, deltas are generated, but
+ * these deltas are associated with a single commit. The commit owns the deltas
+ * and deletes them when it is itself deleted.
+ */
+template<typename TPixel> class UndoDataManagerCommit
+{
+public:
+  typedef UndoDelta<TPixel> Delta;
+  typedef std::list<Delta *> DList;
+  typedef typename DList::iterator DIterator;
+  typedef typename DList::const_iterator DConstIterator;
+
+  UndoDataManagerCommit(const DList &list, const char *name);
+  void DeleteDeltas();
+  size_t GetNumberOfRLEs() const;
+  const DList &GetDeltas() const { return m_Deltas; }
+
+protected:
+  DList m_Deltas;
+  std::string m_Name;
+};
+
 
 /**
  * \class UndoDataManager
@@ -111,23 +135,7 @@ public:
   typedef typename DList::iterator DIterator;
   typedef typename DList::const_iterator DConstIterator;
 
-  /**
-   * A "commit" to the undo system consists of one or more deltas. For example
-   * in paintbrush drawing, as you drag the paintbrush, deltas are generated, but
-   * these deltas are associated with a single commit. The commit owns the deltas
-   * and deletes them when it is itself deleted.
-   */
-  class Commit
-  {
-  public:
-    Commit(const DList &list, const char *name);
-    void DeleteDeltas();
-    size_t GetNumberOfRLEs() const;
-    const DList &GetDeltas() const { return m_Deltas; }
-  protected:
-    DList m_Deltas;
-    std::string m_Name;
-  };
+  using Commit = UndoDataManagerCommit<TPixel>;
 
   UndoDataManager(size_t nMinCommits, size_t nMaxTotalSize);
 
@@ -142,11 +150,12 @@ public:
 
   bool IsUndoPossible();
   const Commit &GetCommitForUndo();
+  const Commit &PeekCommit(unsigned int commit) const;
 
   bool IsRedoPossible();
   const Commit &GetCommitForRedo();
 
-  size_t GetNumberOfCommits()
+  size_t GetNumberOfCommits() const
     { return m_CommitList.size(); }
 
 private:
@@ -164,5 +173,7 @@ private:
   CIterator m_Position;
   size_t m_TotalSize, m_MinCommits, m_MaxTotalSize;
 };
+
+
 
 #endif // __UndoDataManager_h_

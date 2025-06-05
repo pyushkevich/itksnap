@@ -23,8 +23,11 @@ public:
   irisSimplePropertyAccessMacro(AutoContrast, bool)
 
   // Permissions
-  enum UpdateCheckingPermission {
-    UPDATE_YES, UPDATE_NO, UPDATE_UNKNOWN
+  enum UpdateCheckingPermission
+  {
+    UPDATE_YES,
+    UPDATE_NO,
+    UPDATE_UNKNOWN
   };
 
   /** Whether we are allowed to check for updates automatically */
@@ -43,8 +46,10 @@ public:
   irisRangedPropertyAccessMacro(PaintbrushDefaultInitialSize, int)
   irisRangedPropertyAccessMacro(PaintbrushDefaultMaximumSize, int)
 
-protected:
+  // URL for the remote server (TODO: this needs history, etc)
+  irisSimplePropertyAccessMacro(DeepLearningServerURL, std::string)
 
+protected:
   // Default behaviors
   SmartPtr<ConcreteSimpleBooleanProperty> m_LinkedZoomModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_ContinuousMeshUpdateModel;
@@ -55,17 +60,20 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_AutoContrastModel;
 
   // Permissions
-  SmartPtr<ConcretePropertyModel<UpdateCheckingPermission> > m_CheckForUpdatesModel;
+  SmartPtr<ConcretePropertyModel<UpdateCheckingPermission>> m_CheckForUpdatesModel;
 
   // Overlay behaviors
   SmartPtr<ConcreteSimpleStringProperty> m_OverlayColorMapPresetModel;
 
   typedef ConcretePropertyModel<LayerLayout, TrivialDomain> ConcreteLayerLayoutModel;
-  SmartPtr<ConcreteLayerLayoutModel> m_OverlayLayoutModel;
+  SmartPtr<ConcreteLayerLayoutModel>                        m_OverlayLayoutModel;
 
   // Defaults for the paintbrush tool
   SmartPtr<ConcreteRangedIntProperty> m_PaintbrushDefaultInitialSizeModel;
   SmartPtr<ConcreteRangedIntProperty> m_PaintbrushDefaultMaximumSizeModel;
+
+  // Deep learning service
+  SmartPtr<ConcreteSimpleStringProperty> m_DeepLearningServerURLModel;
 
   // Constructor
   DefaultBehaviorSettings();

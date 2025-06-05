@@ -207,7 +207,7 @@ UndoDataManager<TPixel>
 }
 
 template<typename TPixel>
-const typename UndoDataManager<TPixel>::Commit &
+const UndoDataManagerCommit<TPixel> &
 UndoDataManager<TPixel>
 ::GetCommitForRedo()
 {
@@ -224,10 +224,18 @@ UndoDataManager<TPixel>
   return commit;
 }
 
-
+template<typename TPixel>
+const UndoDataManagerCommit<TPixel> &
+UndoDataManager<TPixel>::PeekCommit(unsigned int commit) const
+{
+  CConstIterator pos = m_CommitList.begin();
+  for(unsigned int i = 0; i < commit; i++)
+    pos++;
+  return *pos;
+}
 
 template<typename TPixel>
-UndoDataManager<TPixel>::Commit::Commit(const DList &list, const char *name)
+UndoDataManagerCommit<TPixel>::UndoDataManagerCommit(const DList &list, const char *name)
 {
   m_Deltas = list;
   m_Name = name;
@@ -235,7 +243,7 @@ UndoDataManager<TPixel>::Commit::Commit(const DList &list, const char *name)
 
 template<typename TPixel>
 void
-UndoDataManager<TPixel>::Commit::DeleteDeltas()
+UndoDataManagerCommit<TPixel>::DeleteDeltas()
 {
   // Delete all the deltas
   for(DIterator dit = m_Deltas.begin(); dit != m_Deltas.end(); ++dit)
@@ -253,7 +261,7 @@ UndoDataManager<TPixel>::Commit::DeleteDeltas()
 
 template<typename TPixel>
 size_t
-UndoDataManager<TPixel>::Commit::GetNumberOfRLEs() const
+UndoDataManagerCommit<TPixel>::GetNumberOfRLEs() const
 {
   size_t n = 0;
   for(DConstIterator dit = m_Deltas.begin(); dit != m_Deltas.end(); ++dit)

@@ -138,7 +138,7 @@ public:
   irisIsMacroWithOverride(PreviewMode)
 
   /** Enter preview mode */
-  void SetPreviewMode(bool mode) ITK_OVERRIDE;
+  void SetPreviewMode(bool mode) override;
 
   /** Set the input image, etc */
   void AttachInputs(InputDataType *sid);
@@ -147,7 +147,7 @@ public:
   void AttachOutputWrapper(OutputWrapperType *wrapper);
 
   /** Select the active scalar layer (for filters that operate on only one) */
-  void SetActiveScalarLayer(ScalarImageWrapperBase *layer) ITK_OVERRIDE;
+  void SetActiveScalarLayer(ScalarImageWrapperBase *layer) override;
 
   /** Get the active scalar layer (for filters that operate on only one). */
   irisGetMacroWithOverride(ActiveScalarLayer, ScalarImageWrapperBase *)
@@ -159,7 +159,7 @@ public:
   void DetachInputsAndOutputs(InputDataType *sid);
 
   /** Compute the output volume (corresponds to the 'Apply' operation) */
-  void ComputeOutputVolume(itk::Command *progress) ITK_OVERRIDE;
+  void ComputeOutputVolume(itk::Command *progress) override;
 
 protected:
 

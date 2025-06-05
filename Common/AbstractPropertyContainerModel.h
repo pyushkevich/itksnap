@@ -84,21 +84,21 @@ public:
   // Held property type
   typedef ConcretePropertyModel<TAtomic, TDomain> PropertyType;
 
-  virtual void DeepCopy(const ConcretePropertyHolderBase *source) ITK_OVERRIDE
+  virtual void DeepCopy(const ConcretePropertyHolderBase *source) override
   {
     const Self *source_cast = static_cast<const Self *>(source);
     PropertyType *source_prop = source_cast->m_Property;
     m_Property->DeepCopy(source_prop);
   }
 
-  virtual bool Equals(const ConcretePropertyHolderBase *other) ITK_OVERRIDE
+  virtual bool Equals(const ConcretePropertyHolderBase *other) override
   {
     const Self *source_cast = static_cast<const Self *>(other);
     PropertyType *source_prop = source_cast->m_Property;
     return m_Property->Equals(source_prop);
   }
 
-  virtual void Serialize(Registry &folder) const ITK_OVERRIDE
+  virtual void Serialize(Registry &folder) const override
   {
     TAtomic value;
     if(m_Property->GetValueAndDomain(value, NULL))
@@ -107,7 +107,7 @@ public:
       }
   }
 
-  virtual void Deserialize(Registry &folder) ITK_OVERRIDE
+  virtual void Deserialize(Registry &folder) override
   {
     RegistryValue &rv = folder.Entry(m_RegistryKey);
     if(!rv.IsNull())
@@ -118,7 +118,7 @@ public:
       }
   }
 
-  virtual const itk::TimeStamp &GetPropertyTimeStamp() const ITK_OVERRIDE
+  virtual const itk::TimeStamp &GetPropertyTimeStamp() const override
   {
     return m_Property->GetTimeStamp();
   }
@@ -225,9 +225,9 @@ public:
 
   /** Return this objects modified time. This will return the latest of our
    * own modified time and the modified times of all the children */
-  virtual itk::ModifiedTimeType GetMTime() const ITK_OVERRIDE;
+  virtual itk::ModifiedTimeType GetMTime() const override;
 
-  virtual const itk::TimeStamp &GetTimeStamp() const ITK_OVERRIDE;
+  virtual const itk::TimeStamp &GetTimeStamp() const override;
 
   void WriteToRegistry(Registry &folder) const;
 

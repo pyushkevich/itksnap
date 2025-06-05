@@ -24,7 +24,7 @@ public:
 
   void SetRenderWindow(vtkRenderWindow *rwin) override;
 
-  void OnUpdate() ITK_OVERRIDE;
+  void OnUpdate() override;
 
   void UpdatePlotValues();
 
@@ -44,7 +44,7 @@ protected:
 
   static unsigned int NUM_POINTS;
 
-  void OnDevicePixelRatioChange(int old_ratio, int new_ratio) ITK_OVERRIDE;
+  void OnDevicePixelRatioChange(int old_ratio, int new_ratio) override;
 };
 
 #endif // GMMRENDERER_H

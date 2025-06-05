@@ -52,20 +52,10 @@ void SNAPQApplication::setMainWindow(MainImageWindow *mainwin)
   m_StartupTime = QTime::currentTime();
 }
 
-bool SNAPQApplication::notify(QObject *object, QEvent *event)
+bool
+SNAPQApplication::notify(QObject *object, QEvent *event)
 {
-  try { return QApplication::notify(object, event); }
-  catch(std::exception &exc)
-  {
-    // Crash!
-    ReportNonLethalException(NULL, exc, "Unexpected Error",
-                             "ITK-SNAP has crashed due to an unexpected error");
-
-    // Exit the application
-    QApplication::exit(-1);
-
-    return false;
-  }
+  return QApplication::notify(object, event);
 }
 
 bool SNAPQApplication::event(QEvent *event)

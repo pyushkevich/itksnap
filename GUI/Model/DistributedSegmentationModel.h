@@ -59,7 +59,7 @@ struct AuthResponse
   AuthResponse() : status(AUTH_NOT_CONNECTED) {}
 
   bool operator != (const AuthResponse &o) const
-    { return status != o.status && user_email != o.user_email; }
+    { return status != o.status || user_email != o.user_email; }
 };
 
 /** Structure describing a single service summary */
@@ -264,7 +264,7 @@ public:
   bool CheckState(UIState state);
 
   /** Respond to events from up-stream models */
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   /** Server URL property model */
   typedef STLVectorWrapperItemSetDomain<int, std::string> ServerURLDomain;

@@ -147,6 +147,31 @@ QtProgressReporterDelegate::QtProgressReporterDelegate()
   m_Dialog = NULL;
 }
 
+void
+QtProgressReporterDelegate::Show(const char *title)
+{
+  if(m_Dialog)
+  {
+    m_Dialog->setMinimumDuration(0);
+    if(title)
+      m_Dialog->setLabelText(QString::fromUtf8(title));
+    m_Dialog->show();
+    m_Dialog->activateWindow();
+    m_Dialog->raise();
+    QCoreApplication::processEvents();
+  }
+}
+
+void
+QtProgressReporterDelegate::Hide()
+{
+  if(m_Dialog)
+  {
+    m_Dialog->hide();
+    QCoreApplication::processEvents();
+  }
+}
+
 void QtProgressReporterDelegate::SetProgressDialog(QProgressDialog *dialog)
 {
   m_Dialog = dialog;
@@ -230,4 +255,77 @@ void QtSystemInfoDelegate::WriteRGBAImage2D(std::string file, RGBAImageType *ima
     iq.setPixel(it.GetIndex()[0], it.GetIndex()[1], qRgba(px[0], px[1], px[2], px[3]));
     }
   iq.save(from_utf8(file));
+}
+
+#include <QSharedMemory>
+QtSharedMemorySystemInterface::QtSharedMemorySystemInterface()
+{
+  m_SharedMem = new QSharedMemory();
+}
+
+QtSharedMemorySystemInterface::~QtSharedMemorySystemInterface()
+{
+  if (m_SharedMem->isAttached())
+    m_SharedMem->detach();
+  delete m_SharedMem;
+}
+
+void
+QtSharedMemorySystemInterface::SetKey(const std::string &key)
+{
+  m_SharedMem->setKey(QString::fromUtf8(key));
+}
+
+bool
+QtSharedMemorySystemInterface::Attach()
+{
+  return m_SharedMem->attach();
+}
+
+bool
+QtSharedMemorySystemInterface::Detach()
+{
+  return m_SharedMem->detach();
+}
+
+bool
+QtSharedMemorySystemInterface::Create(unsigned int size)
+{
+  return m_SharedMem->create(size);
+}
+
+bool
+QtSharedMemorySystemInterface::IsAttached()
+{
+  return m_SharedMem->isAttached();
+}
+
+std::string
+QtSharedMemorySystemInterface::GetErrorMessage()
+{
+  return m_SharedMem->errorString().toStdString();
+}
+
+void *
+QtSharedMemorySystemInterface::Data()
+{
+  return m_SharedMem->data();
+}
+
+bool
+QtSharedMemorySystemInterface::Lock()
+{
+  return m_SharedMem->lock();
+}
+
+bool
+QtSharedMemorySystemInterface::Unlock()
+{
+  return m_SharedMem->unlock();
+}
+
+int
+QtSharedMemorySystemInterface::GetProcessID()
+{
+  return (int) QCoreApplication::applicationPid();
 }

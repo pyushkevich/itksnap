@@ -3,6 +3,7 @@
 #include "GlobalPreferencesModel.h"
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
+#include "DeepLearningSegmentationModel.h"
 
 #include "QtCheckBoxCoupling.h"
 #include "QtComboBoxCoupling.h"
@@ -20,28 +21,33 @@
 #include <QTreeView>
 #include <QPushButton>
 #include <QtAbstractItemViewCoupling.h>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QtConcurrent>
 
 Q_DECLARE_METATYPE(GlobalDisplaySettings::UIGreyInterpolation)
 Q_DECLARE_METATYPE(SNAPAppearanceSettings::UIElements)
 Q_DECLARE_METATYPE(LayerLayout)
 
-PreferencesDialog::PreferencesDialog(QWidget *parent) :
-  QDialog(parent),
-  ui(new Ui::PreferencesDialog)
+
+PreferencesDialog::PreferencesDialog(QWidget *parent)
+  : QDialog(parent)
+  , ui(new Ui::PreferencesDialog)
 {
   ui->setupUi(this);
 
   // Set up list of interpolation modes
   ui->inInterpolationMode->clear();
-  ui->inInterpolationMode->addItem("Nearest Neighbor", QVariant::fromValue(GlobalDisplaySettings::NEAREST));
+  ui->inInterpolationMode->addItem("Nearest Neighbor",
+                                   QVariant::fromValue(GlobalDisplaySettings::NEAREST));
   ui->inInterpolationMode->addItem("Linear", QVariant::fromValue(GlobalDisplaySettings::LINEAR));
 
   // Set up layoyt options
   ui->inOverlayLayout->clear();
-  ui->inOverlayLayout->addItem(QIcon(":/root/layout_thumb_16.png"),
-                               "Stack", QVariant::fromValue(LAYOUT_STACKED));
-  ui->inOverlayLayout->addItem(QIcon(":/root/layout_tile_16.png"),
-                               "Tile", QVariant::fromValue(LAYOUT_TILED));
+  ui->inOverlayLayout->addItem(
+    QIcon(":/root/layout_thumb_16.png"), "Stack", QVariant::fromValue(LAYOUT_STACKED));
+  ui->inOverlayLayout->addItem(
+    QIcon(":/root/layout_tile_16.png"), "Tile", QVariant::fromValue(LAYOUT_TILED));
 
   // Set up tree of appearance elements
   QStandardItemModel *model = new QStandardItemModel();
@@ -52,13 +58,15 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::RULER, "Rulers");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::MARKERS, "Anatomic Markers");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::ROI_BOX, "ROI Edges");
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::ROI_BOX_ACTIVE, "ROI Edges (selected)");
+  append_appearance_item(
+    itemSliceViews, SNAPAppearanceSettings::ROI_BOX_ACTIVE, "ROI Edges (selected)");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::PAINTBRUSH_OUTLINE, "Paintbrush");
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::GRID_LINES, "Deformation Grid");
 
   QStandardItem *item3DView = append_category_item(model->invisibleRootItem(), "3D View");
   append_appearance_item(item3DView, SNAPAppearanceSettings::BACKGROUND_3D, "Background");
   append_appearance_item(item3DView, SNAPAppearanceSettings::CROSSHAIRS_3D, "Crosshair");
+  append_appearance_item(item3DView, SNAPAppearanceSettings::MESH_OUTLINE, "Mesh Outline");
 
   QStandardItem *itemThumb = append_category_item(model->invisibleRootItem(), "Zoom Thumbnail");
   append_appearance_item(itemThumb, SNAPAppearanceSettings::ZOOM_THUMBNAIL, "Thumbnail");
@@ -69,11 +77,13 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_DRAW_MAIN, "Outline (drawing)");
   append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_DRAW_CLOSE, "Completion line");
   append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_EDIT, "Outline (editing)");
-  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_EDIT_SELECT, "Outline (editing, selected)");
+  append_appearance_item(
+    itemPoly, SNAPAppearanceSettings::POLY_EDIT_SELECT, "Outline (editing, selected)");
 
   QStandardItem *itemReg = append_category_item(model->invisibleRootItem(), "Registration Tool");
   append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS, "Registration Widgets");
-  append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS_ACTIVE, "Registration Widgets (active)");
+  append_appearance_item(
+    itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS_ACTIVE, "Registration Widgets (active)");
   append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_GRID, "Registration Grid Lines");
 
   ui->treeVisualElements->setModel(model);
@@ -87,12 +97,10 @@ PreferencesDialog::PreferencesDialog(QWidget *parent) :
   ui->stack->setCurrentIndex(0);
 }
 
-PreferencesDialog::~PreferencesDialog()
-{
-  delete ui;
-}
+PreferencesDialog::~PreferencesDialog() { delete ui; }
 
-void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
+void
+PreferencesDialog::SetModel(GlobalPreferencesModel *model)
 {
   // Copy the model
   m_Model = model;
@@ -110,8 +118,10 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
 
   // Hook up the display layout properties
   GlobalDisplaySettings *gds = m_Model->GetGlobalDisplaySettings();
-  makeRadioGroupCoupling(ui->radio_sagittal_ap, ui->radio_sagittal_pa, gds->GetFlagLayoutPatientAnteriorShownLeftModel());
-  makeRadioGroupCoupling(ui->radio_axial_rl, ui->radio_axial_lr,gds->GetFlagLayoutPatientRightShownLeftModel());
+  makeRadioGroupCoupling(
+    ui->radio_sagittal_ap, ui->radio_sagittal_pa, gds->GetFlagLayoutPatientAnteriorShownLeftModel());
+  makeRadioGroupCoupling(
+    ui->radio_axial_rl, ui->radio_axial_lr, gds->GetFlagLayoutPatientRightShownLeftModel());
   makeCoupling(ui->chkRemindLayout, gds->GetFlagRemindLayoutSettingsModel());
 
   // Initialize Dialog States
@@ -131,12 +141,12 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   // The outview pixmaps for different layouts
   CutPlane cps[3];
   for (int i = 0; i < 3; ++i)
-    {
-      // get the lower-cased string of cutplanes for each outview
-      std::string str = m_Model->GetLayoutLabelModel(i)->GetValue();
-      std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-      cps[i] = m_StringToCutPlaneMap[str];
-    }
+  {
+    // get the lower-cased string of cutplanes for each outview
+    std::string str = m_Model->GetLayoutLabelModel(i)->GetValue();
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    cps[i] = m_StringToCutPlaneMap[str];
+  }
   setOutViewCutPlane(cps[0], cps[1], cps[2]);
 
   makeCoupling(ui->chkShowThumbnail, gds->GetFlagDisplayZoomThumbnailModel());
@@ -157,14 +167,15 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   // occur, we have to modify the list of presets.
   LatentITKEventNotifier::connect(m_Model->GetParentModel()->GetColorMapModel(),
                                   ColorMapModel::PresetUpdateEvent(),
-                                  this, SLOT(onModelUpdate(EventBucket)));
+                                  this,
+                                  SLOT(onModelUpdate(EventBucket)));
 
   // Couple the list of apperance elements. First we m
-  makeCoupling((QAbstractItemView *) ui->treeVisualElements, m_Model->GetActiveUIElementModel());
+  makeCoupling((QAbstractItemView *)ui->treeVisualElements, m_Model->GetActiveUIElementModel());
 
   // Hook up the appearance widgets
   OpenGLAppearanceElement *elt = m_Model->GetActiveUIElementAppearance();
-  QtCouplingOptions opts_elt(QtCouplingOptions::DEACTIVATE_WHEN_INVALID);
+  QtCouplingOptions        opts_elt(QtCouplingOptions::DEACTIVATE_WHEN_INVALID);
   makeCoupling(ui->chkElementVisible, elt->GetVisibilityFlagModel(), opts_elt);
   makeCoupling(ui->btnElementColor, elt->GetColorModel(), opts_elt);
   makeCoupling(ui->inElementOpacity, elt->GetAlphaModel(), opts_elt);
@@ -206,149 +217,183 @@ void PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   // Tool page
   makeCoupling(ui->inPaintBrushMaxSize, dbs->GetPaintbrushDefaultMaximumSizeModel());
   makeCoupling(ui->inPaintBrushInitSize, dbs->GetPaintbrushDefaultInitialSizeModel());
+
+  // Deep learning service
+  auto *dlm = m_Model->GetParentModel()->GetDeepLearningSegmentationModel();
+  ui->pageDL->SetModel(dlm);
 }
 
-void PreferencesDialog::ShowDialog()
+void
+PreferencesDialog::ShowDialog()
 {
-  if(!this->isVisible())
-    {
+  if (!this->isVisible())
+  {
     m_Model->InitializePreferences();
     ui->listWidget->setCurrentRow(0);
     this->show();
-    }
+  }
 
   this->activateWindow();
   this->raise();
 }
 
-void PreferencesDialog::GoToPage(enum PreferencesDialogPage page)
+void
+PreferencesDialog::GoToPage(enum PreferencesDialogPage page)
 {
   ui->listWidget->setCurrentRow(page);
 }
 
-void PreferencesDialog::set_page_to_general_default_behavior()
+void
+PreferencesDialog::set_page_to_general_default_behavior()
 {
-    this->GoToPage(General);
-    ui->tabWidgetGeneral->setCurrentWidget(ui->tabGeneralDefault);
+  this->GoToPage(General);
+  ui->tabWidgetGeneral->setCurrentWidget(ui->tabGeneralDefault);
 }
 
-void PreferencesDialog::set_page_to_general_default_permissions()
+void
+PreferencesDialog::set_page_to_general_default_permissions()
 {
-    this->GoToPage(General);
-    ui->tabWidgetGeneral->setCurrentWidget(ui->tabGeneralPermissions);
+  this->GoToPage(General);
+  ui->tabWidgetGeneral->setCurrentWidget(ui->tabGeneralPermissions);
 }
 
-void PreferencesDialog::set_page_to_slice_views_display()
+void
+PreferencesDialog::set_page_to_slice_views_display()
 {
-    this->GoToPage(SliceView);
-    ui->tabWidgetSliceViews->setCurrentWidget(ui->tabSliceViewsDisplay);
+  this->GoToPage(SliceView);
+  ui->tabWidgetSliceViews->setCurrentWidget(ui->tabSliceViewsDisplay);
 }
 
-void PreferencesDialog::set_page_to_slice_views_layout()
+void
+PreferencesDialog::set_page_to_slice_views_layout()
 {
-    this->GoToPage(SliceView);
-    ui->tabWidgetSliceViews->setCurrentWidget(ui->tabSliceViewsLayout);
+  this->GoToPage(SliceView);
+  ui->tabWidgetSliceViews->setCurrentWidget(ui->tabSliceViewsLayout);
 }
 
-void PreferencesDialog::set_page_to_appearance()
+void
+PreferencesDialog::set_page_to_appearance()
 {
-    this->GoToPage(Appearance);
+  this->GoToPage(Appearance);
 }
 
-void PreferencesDialog::set_page_to_3d_smoothing()
+void
+PreferencesDialog::set_page_to_3d_smoothing()
 {
-    this->GoToPage(Rendering3D);
-    ui->tabWidgetRendering->setCurrentWidget(ui->tabRenderingSmoothing);
+  this->GoToPage(Rendering3D);
+  ui->tabWidgetRendering->setCurrentWidget(ui->tabRenderingSmoothing);
 }
 
-void PreferencesDialog::set_page_to_3d_decimation()
+void
+PreferencesDialog::set_page_to_3d_decimation()
 {
-    this->GoToPage(Rendering3D);
-    ui->tabWidgetRendering->setCurrentWidget(ui->tabRenderingDecimation);
+  this->GoToPage(Rendering3D);
+  ui->tabWidgetRendering->setCurrentWidget(ui->tabRenderingDecimation);
 }
 
-void PreferencesDialog::set_page_to_tools()
+void
+PreferencesDialog::set_page_to_tools()
 {
-    this->GoToPage(Tools);
+  this->GoToPage(Tools);
 }
 
-void PreferencesDialog::on_listWidget_itemSelectionChanged()
+void
+PreferencesDialog::set_page_to_dls()
+{
+  this->GoToPage(DeepLearningServer);
+}
+
+void
+PreferencesDialog::on_listWidget_itemSelectionChanged()
 {
   // Select the right page in the right pane
   QItemSelectionModel *selm = ui->listWidget->selectionModel();
-  int row = selm->currentIndex().row();
+  int                  row = selm->currentIndex().row();
   ui->stack->setCurrentIndex(row);
   ui->outPage->setText(ui->listWidget->item(row)->text());
 }
 
-void PreferencesDialog::on_buttonBox_clicked(QAbstractButton *button)
+void
+PreferencesDialog::on_buttonBox_clicked(QAbstractButton *button)
 {
   if (button == ui->buttonBox->button(QDialogButtonBox::Apply))
-    {
+  {
     m_Model->ApplyPreferences();
-    }
+  }
   else if (button == ui->buttonBox->button(QDialogButtonBox::Ok))
-    {
+  {
     this->accept();
-    }
+  }
 }
 
-void PreferencesDialog::on_btnElementReset_clicked()
+void
+PreferencesDialog::on_btnElementReset_clicked()
 {
   m_Model->ResetCurrentElement();
 }
 
-void PreferencesDialog::on_btnElementResetAll_clicked()
+void
+PreferencesDialog::on_btnElementResetAll_clicked()
 {
   m_Model->ResetAllElements();
 }
 
 // Methods
-void PreferencesDialog::on_btnASC_toggled(bool check)
+void
+PreferencesDialog::on_btnASC_toggled(bool check)
 {
   if (check)
-     setOutViewCutPlane(Axial, Sagittal, Coronal);
+    setOutViewCutPlane(Axial, Sagittal, Coronal);
 }
-void PreferencesDialog::on_btnACS_toggled(bool check)
+void
+PreferencesDialog::on_btnACS_toggled(bool check)
 {
   if (check)
     setOutViewCutPlane(Axial, Coronal, Sagittal);
 }
-void PreferencesDialog::on_btnCAS_toggled(bool check)
+void
+PreferencesDialog::on_btnCAS_toggled(bool check)
 {
   if (check)
     setOutViewCutPlane(Coronal, Axial, Sagittal);
 }
-void PreferencesDialog::on_btnCSA_toggled(bool check)
+void
+PreferencesDialog::on_btnCSA_toggled(bool check)
 {
   if (check)
     setOutViewCutPlane(Coronal, Sagittal, Axial);
 }
-void PreferencesDialog::on_btnSAC_toggled(bool check)
+void
+PreferencesDialog::on_btnSAC_toggled(bool check)
 {
   if (check)
     setOutViewCutPlane(Sagittal, Axial, Coronal);
 }
-void PreferencesDialog::on_btnSCA_toggled(bool check)
+void
+PreferencesDialog::on_btnSCA_toggled(bool check)
 {
   if (check)
     setOutViewCutPlane(Sagittal, Coronal, Axial);
 }
 
-void PreferencesDialog::on_radio_axial_lr_toggled(bool check)
+void
+PreferencesDialog::on_radio_axial_lr_toggled(bool check)
 {
   m_IsPatientsRightShownLeft = check ? false : true;
   UpdateOutViewPixmaps();
 }
 
-void PreferencesDialog::on_radio_sagittal_ap_toggled(bool check)
+void
+PreferencesDialog::on_radio_sagittal_ap_toggled(bool check)
 {
   m_IsAnteriorShownLeft = check ? true : false;
   UpdateOutViewPixmaps();
 }
 
 void
-PreferencesDialog::setOutViewCutPlane(enum CutPlane topleft, enum CutPlane topright, enum CutPlane bottomright)
+PreferencesDialog::setOutViewCutPlane(enum CutPlane topleft,
+                                      enum CutPlane topright,
+                                      enum CutPlane bottomright)
 {
   m_SliceLayoutPixmapPaths[0].m_cp = topleft;
   m_SliceLayoutPixmapPaths[1].m_cp = topright;
@@ -365,27 +410,32 @@ PreferencesDialog::UpdateOutViewPixmaps()
   ui->outViewBottomRight->setPixmap(m_SliceLayoutPixmapPaths[2].GetPath());
 }
 
-void PreferencesDialog::onModelUpdate(const EventBucket &bucket)
+void
+PreferencesDialog::onModelUpdate(const EventBucket &bucket)
 {
-  if(bucket.HasEvent(ColorMapModel::PresetUpdateEvent()))
-    {
+  if (bucket.HasEvent(ColorMapModel::PresetUpdateEvent()))
+  {
     // Update the presets
     UpdateColorMapPresets();
 
     // TODO: what to do if the preset was deleted?
-    }
+  }
+
+
 }
 
-void PreferencesDialog::UpdateColorMapPresets()
+
+void
+PreferencesDialog::UpdateColorMapPresets()
 {
   ColorMapModel *cmm = m_Model->GetParentModel()->GetColorMapModel();
   PopulateColorMapPresetCombo(ui->inDefaultColorMap, cmm);
 }
 
-QStandardItem *PreferencesDialog::append_appearance_item(
-    QStandardItem *parent,
-    SNAPAppearanceSettings::UIElements elt,
-    const QString &text)
+QStandardItem *
+PreferencesDialog::append_appearance_item(QStandardItem                     *parent,
+                                          SNAPAppearanceSettings::UIElements elt,
+                                          const QString                     &text)
 {
   QStandardItem *item = new QStandardItem(text);
   item->setData(QVariant::fromValue(elt), Qt::UserRole);
@@ -393,9 +443,8 @@ QStandardItem *PreferencesDialog::append_appearance_item(
   return item;
 }
 
-QStandardItem *PreferencesDialog::append_category_item(
-    QStandardItem *parent,
-    const QString &text)
+QStandardItem *
+PreferencesDialog::append_category_item(QStandardItem *parent, const QString &text)
 {
   QStandardItem *item = new QStandardItem(text);
   item->setData(QVariant::fromValue(SNAPAppearanceSettings::ELEMENT_COUNT), Qt::UserRole);
@@ -405,8 +454,8 @@ QStandardItem *PreferencesDialog::append_category_item(
 }
 
 
-void PreferencesDialog::on_PreferencesDialog_accepted()
+void
+PreferencesDialog::on_PreferencesDialog_accepted()
 {
-    m_Model->ApplyPreferences();
+  m_Model->ApplyPreferences();
 }
-

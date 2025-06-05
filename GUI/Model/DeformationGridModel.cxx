@@ -26,7 +26,7 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
     // want to create this pipeline when deformation grid visualization is enabled
     // and delete it when it is disabled
     SliceType *slice = layer->CreateCastToFloatVectorSlicePipeline(
-          "DeformationGridModelCastToFloat",m_Parent->GetId());
+      "DeformationGridModelCastToFloat", DisplaySliceIndex(m_Parent->GetId(), DISPLAY_SLICE_MAIN));
 
     // Get the slice
     slice->GetSource()->UpdateLargestPossibleRegion();

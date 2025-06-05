@@ -946,9 +946,9 @@ ImageWrapper<TTraits>
   // Create empty IO hints
   m_IOHints = new Registry();
 
-  // Create the slicers
-  for(unsigned int i = 0; i < 3; i++)
-    m_Slicers[i] = SlicerType::New();
+  // Create the slicing pipelines
+  for(auto index : DisplaySliceIndices)
+    m_Slicers[index] = SlicerType::New();
 
   // Initialize the display mapping
   m_DisplayMapping = DisplayMapping::New();
@@ -1417,10 +1417,10 @@ ImageWrapper<TTraits>
   m_ImageBase = m_Image;
 
   // Set up the slicers
-  for(unsigned int i = 0; i < 3; i++)
+  for(auto index : DisplaySliceIndices)
     {
-    m_Slicers[i]->SetInput(m_Image);
-    m_Slicers[i]->SetPreviewImage(nullptr);
+    m_Slicers[index]->SetInput(m_Image);
+    m_Slicers[index]->SetPreviewImage(nullptr);
     }
 
   // Mark the image as Modified to enforce correct sequence of
@@ -1501,7 +1501,7 @@ bool
 ImageWrapper<TTraits>
 ::IsSlicingOrthogonal() const
 {
-  return m_Slicers[0]->GetUseOrthogonalSlicing();
+  return m_Slicers.front()->GetUseOrthogonalSlicing();
 }
 
 template<class TTraits>
@@ -1637,12 +1637,12 @@ ImageWrapper<TTraits>
       CanOrthogonalSlicingBeUsed(m_Image, m_ReferenceSpace, m_AffineTransform);
 
   // Update the transform
-  for(int i = 0; i < 3; i++)
-    {
-    m_Slicers[i]->SetObliqueTransform(m_AffineTransform);
-    m_Slicers[i]->SetUseOrthogonalSlicing(m_ImageSpaceMatchesReferenceSpace);
-    m_Slicers[i]->SetOrthogonalTransform(m_ImageGeometry->GetImageToDisplayTransform(i));
-    }
+  for (auto index : DisplaySliceIndices)
+  {
+    m_Slicers[index]->SetObliqueTransform(m_AffineTransform);
+    m_Slicers[index]->SetUseOrthogonalSlicing(m_ImageSpaceMatchesReferenceSpace);
+    m_Slicers[index]->SetOrthogonalTransform(m_ImageGeometry->GetImageToDisplayTransform(index.slice));
+  }
 
   // Fire an update event
   this->InvokeEvent(WrapperDisplayMappingChangeEvent());
@@ -1661,7 +1661,7 @@ const typename ImageWrapper<TTraits>::ITKTransformType *
 ImageWrapper<TTraits>
 ::GetITKTransform() const
 {
-  return m_Slicers[0]->GetObliqueTransform();
+  return m_Slicers.front()->GetObliqueTransform();
 }
 
 template<class TTraits>
@@ -1759,8 +1759,8 @@ void
 ImageWrapper<TTraits>
 ::SetSlicingInterpolationMode(InterpolationMode mode)
 {
-    for(unsigned int i = 0; i < 3; i++)
-        m_Slicers[i]->SetUseNearestNeighbor(mode == Superclass::NEAREST);
+  for(auto slicer : m_Slicers)
+    slicer->SetUseNearestNeighbor(mode == Superclass::NEAREST);
 }
 
 template<class TTraits>
@@ -1768,7 +1768,7 @@ typename ImageWrapper<TTraits>::InterpolationMode
 ImageWrapper<TTraits>
 ::GetSlicingInterpolationMode() const
 {
-    return m_Slicers[0]->GetUseNearestNeighbor() ? Superclass::NEAREST : Superclass::LINEAR;
+    return m_Slicers.front()->GetUseNearestNeighbor() ? Superclass::NEAREST : Superclass::LINEAR;
 }
 
 template<class TTraits>
@@ -1830,18 +1830,18 @@ ImageWrapper<TTraits>
   if(m_ImageSpaceMatchesReferenceSpace)
     {
     // If the preview pipeline is being used, we need to sample from it
-    if(m_Slicers[0]->GetPreviewImage())
+    if(m_Slicers.front()->GetPreviewImage())
       {
       // The index has to be the same as in the slicers, otherwise the preview image lookup
       // will not be valid
-      itkAssertOrThrowMacro(m_Slicers[0]->GetSliceIndex() == index,
+      itkAssertOrThrowMacro(m_Slicers.front()->GetSliceIndex() == index,
           "SampleIntensityAtReferenceIndexInternal called with an index that does not match Slicer index")
 
       // The slicer needs to be updated, so that the preview image is updated in the requested region
-      m_Slicers[0]->Update();
+      m_Slicers.front()->Update();
 
       // Lookup the pixel from the preview image
-      PixelType p = m_Slicers[0]->GetPreviewImage()->GetPixel(index);
+      PixelType p = m_Slicers.front()->GetPreviewImage()->GetPixel(index);
       Specialization::ExportToComponentArray(p, nc, arr);
       }
     else
@@ -1887,9 +1887,9 @@ ImageWrapper<TTraits>
 
 template<class TTraits>
 typename ImageWrapper<TTraits>::SlicerType *
-ImageWrapper<TTraits>::GetSlicer(unsigned int iDirection) const
+ImageWrapper<TTraits>::GetSlicer(DisplaySliceIndex index) const
 {
-  return m_Slicers[iDirection];
+  return m_Slicers[index];
 }
 
 template<class TTraits>
@@ -1921,8 +1921,8 @@ ImageWrapper<TTraits>
   m_SliceIndex = cursor;
 
   // Select the appropriate slice for each slicer
-  for(unsigned int i = 0; i < 3; i++)
-    m_Slicers[i]->SetSliceIndex(cursor);
+  for(auto slicer : m_Slicers)
+    slicer->SetSliceIndex(cursor);
 }
 
 template<class TTraits>
@@ -1956,11 +1956,10 @@ ImageWrapper<TTraits>::GetImageByTimePoint(unsigned int timepoint) const
   return m_ImageTimePoints[timepoint];
 }
 
-template<class TTraits>
+template <class TTraits>
 void
-ImageWrapper<TTraits>
-::SetDisplayViewportGeometry(unsigned int index,
-    const ImageBaseType *viewport_image)
+ImageWrapper<TTraits>::SetDisplayViewportGeometry(DisplaySliceIndex index,
+                                                  const ImageBaseType *viewport_image)
 {
   m_Slicers[index]->SetObliqueReferenceImage(viewport_image);
 }
@@ -1991,7 +1990,7 @@ ImageWrapper<TTraits>::GetImageMaxObject()
 template<class TTraits>
 const typename ImageWrapper<TTraits>::ImageBaseType*
 ImageWrapper<TTraits>
-::GetDisplayViewportGeometry(unsigned int index) const
+::GetDisplayViewportGeometry(DisplaySliceIndex index) const
 {
   return m_Slicers[index]->GetObliqueReferenceImage();
 }
@@ -2024,17 +2023,18 @@ ImageWrapper<TTraits>
           m_ReferenceSpace->GetLargestPossibleRegion().GetSize());
 
     // Update the geometry for each slice
-    for(unsigned int iSlice = 0;iSlice < 3;iSlice ++)
-      {
+    for (auto index : DisplaySliceIndices)
+    {
       // Assign the new geometry to the slicers
-      m_Slicers[iSlice]->SetOrthogonalTransform(m_ImageGeometry->GetImageToDisplayTransform(iSlice));
+      m_Slicers[index]->SetOrthogonalTransform(
+        m_ImageGeometry->GetImageToDisplayTransform(index.slice));
 
       // TODO: is this necessary and the right place to do ut?
       // Invalidate the requested region in the display slice. This will
       // cause the RR to reset to largest possible region on next Update
       typename DisplaySliceType::RegionType invalidRegion;
-      this->GetDisplaySlice(iSlice)->SetRequestedRegion(invalidRegion);
-      }
+      this->GetDisplaySlice(index)->SetRequestedRegion(invalidRegion);
+    }
 
     // Cause the axis indices in the slicers to be updated due to reorientation
     this->SetSliceIndex(this->GetSliceIndex());
@@ -2045,20 +2045,19 @@ ImageWrapper<TTraits>
     }
 }
 
-template<class TTraits>
+template <class TTraits>
 void
-ImageWrapper<TTraits>
-::UpdateNiftiTransforms()
+ImageWrapper<TTraits>::UpdateNiftiTransforms()
 {
   itkAssertOrThrowMacro(
-        m_ReferenceSpace,
-        "Calling ImageWrapper::UpdateNiftiTransforms on image wrapper with no reference image");
+    m_ReferenceSpace,
+    "Calling ImageWrapper::UpdateNiftiTransforms on image wrapper with no reference image");
 
   // Update the NIFTI/RAS transform
-  m_NiftiSform = ImageWrapperBase::ConstructNiftiSform(
-    m_ReferenceSpace->GetDirection().GetVnlMatrix().as_matrix(),
-    m_ReferenceSpace->GetOrigin().GetVnlVector(),
-    m_ReferenceSpace->GetSpacing().GetVnlVector());
+  m_NiftiSform =
+    ImageWrapperBase::ConstructNiftiSform(m_ReferenceSpace->GetDirection().GetVnlMatrix().as_matrix(),
+                                          m_ReferenceSpace->GetOrigin().GetVnlVector(),
+                                          m_ReferenceSpace->GetSpacing().GetVnlVector());
 
   // Compute the inverse transform
   m_NiftiInvSform = vnl_inverse(m_NiftiSform);
@@ -2138,7 +2137,8 @@ ImageWrapper<TTraits>
 ::GetDisplaySliceImageAxis(unsigned int iSlice)
 {
   // TODO: this is wasteful computing inverse for something that should be cached
-  const ImageCoordinateTransform *tran = m_Slicers[iSlice]->GetOrthogonalTransform();
+  DisplaySliceIndex                 index(iSlice, DISPLAY_SLICE_MAIN);
+  const ImageCoordinateTransform   *tran = m_Slicers[index]->GetOrthogonalTransform();
   ImageCoordinateTransform::Pointer traninv = ImageCoordinateTransform::New();
   tran->ComputeInverse(traninv);
   return traninv->GetCoordinateIndexZeroBased(2);
@@ -2147,9 +2147,9 @@ ImageWrapper<TTraits>
 template<class TTraits>
 typename ImageWrapper<TTraits>::SliceType*
 ImageWrapper<TTraits>
-::GetSlice(unsigned int dimension)
+::GetSlice(DisplaySliceIndex index)
 {
-  return m_Slicers[dimension]->GetOutput();
+  return m_Slicers[index]->GetOutput();
 }
 
 // TODO: this should take advantage of an in-place filter!
@@ -2211,9 +2211,9 @@ ImageWrapper<TTraits>
 
 template<class TTraits>
 typename ImageWrapper<TTraits>::DisplaySlicePointer
-ImageWrapper<TTraits>::GetDisplaySlice(unsigned int dim)
+ImageWrapper<TTraits>::GetDisplaySlice(DisplaySliceIndex index)
 {
-  return m_DisplayMapping->GetDisplaySlice(dim);
+  return m_DisplayMapping->GetDisplaySlice(index);
 }
 
 template<class TTraits>
@@ -2336,16 +2336,16 @@ ImageWrapper<TTraits>
         m_ImageTimePoints.size() == 1,
         "Only single time point images support ImageWrapper::AttachPreviewPipeline")
 
-  std::array<PreviewFilterType *, 3> filter = {{f0, f1, f2}};
-  for(int i = 0; i < 3; i++)
-    {
-    // Update the preview inputs to the slicers
-    m_Slicers[i]->SetPreviewImage(filter[i]->GetOutput());
+  std::array<PreviewFilterType *, 3> filter = { { f0, f1, f2 } };
 
-    // Mark the preview filters as modified to ensure that the slicer
-    // is going to use it. TODO: is this really needed?
-    filter[i]->Modified();
-    }
+  // Update the preview inputs to the slicers
+  for (auto index : DisplaySliceIndices)
+    m_Slicers[index]->SetPreviewImage(filter[index.slice]->GetOutput());
+
+  // Mark the preview filters as modified to ensure that the slicer
+  // is going to use it. TODO: is this really needed?
+  for(auto *f : filter)
+    f->Modified();
 
   // This is so that IsDrawable() behaves correctly
   m_ImageAssignTime = m_Image->GetTimeStamp();
@@ -2358,13 +2358,10 @@ ImageWrapper<TTraits>
 {
   // Preview pipelines are not supported for image wrappers containing 4D images
   itkAssertOrThrowMacro(
-        m_ImageTimePoints.size() == 1,
-        "Only single time point images support ImageWrapper::DetachPreviewPipeline")
+    m_ImageTimePoints.size() == 1, "Only single time point images support ImageWrapper::DetachPreviewPipeline")
 
-  for(int i = 0; i < 3; i++)
-    {
-    m_Slicers[i]->SetPreviewImage(NULL);
-    }
+  for (auto index : DisplaySliceIndices)
+    m_Slicers[index]->SetPreviewImage(nullptr);
 }
 
 template<class TTraits>
@@ -2377,7 +2374,7 @@ ImageWrapper<TTraits>
         m_ImageTimePoints.size() == 1,
         "Only single time point images support ImageWrapper::IsPreviewPipelineAttached")
 
-  return m_Slicers[0]->GetPreviewImage() != NULL;
+  return m_Slicers.front()->GetPreviewImage() != NULL;
 }
 
 struct RemoveTransparencyFunctor
@@ -3134,26 +3131,29 @@ ImageWrapper<TTraits>
   return p.second;
 }
 
-template<class TTraits>
+template <class TTraits>
 typename ImageWrapper<TTraits>::FloatSliceType *
-ImageWrapper<TTraits>::CreateCastToFloatSlicePipeline(const char *key, unsigned int slice)
+ImageWrapper<TTraits>::CreateCastToFloatSlicePipeline(const char  *key,
+                                                      DisplaySliceIndex index)
 {
   typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
 
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
       SliceType, FloatSliceType, NativeIntensityMapping, IsLinear::value, !IsVector::value> Specialization;
 
-  auto p = Specialization::CreatePipeline(this->GetSlice(slice), this->m_NativeMapping);
+  auto *slice_ptr = this->GetSlice(index);
+  auto p = Specialization::CreatePipeline(slice_ptr, this->m_NativeMapping);
 
   if(p.second)
-    this->AddInternalPipeline(p.first, key, slice);
+    this->AddInternalPipeline(p.first, key, index);
 
   return p.second;
 }
 
-template<class TTraits>
+template <class TTraits>
 typename ImageWrapper<TTraits>::FloatVectorSliceType *
-ImageWrapper<TTraits>::CreateCastToFloatVectorSlicePipeline(const char *key, unsigned int slice)
+ImageWrapper<TTraits>::CreateCastToFloatVectorSlicePipeline(const char  *key,
+                                                            DisplaySliceIndex index)
 {
   typedef typename std::is_base_of<LinearInternalToNativeIntensityMapping, NativeIntensityMapping> IsLinear;
   typedef typename std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
@@ -3161,10 +3161,11 @@ ImageWrapper<TTraits>::CreateCastToFloatVectorSlicePipeline(const char *key, uns
   typedef CreateCastToTargetTypePipelinePartialSpecializationTraits<
       SliceType, FloatVectorSliceType, NativeIntensityMapping, IsLinear::value, IsVector::value> Specialization;
 
-  auto p = Specialization::CreatePipeline(this->GetSlice(slice), this->m_NativeMapping);
+  auto *slice_ptr = this->GetSlice(index);
+  auto p = Specialization::CreatePipeline(slice_ptr, this->m_NativeMapping);
 
   if(p.second)
-    this->AddInternalPipeline(p.first, key, slice);
+    this->AddInternalPipeline(p.first, key, index);
 
   return p.second;
   }
@@ -3177,20 +3178,37 @@ void ImageWrapper<TTraits>::AddInternalPipeline(const MiniPipeline &mp, const ch
 }
 
 template<class TTraits>
-void ImageWrapper<TTraits>::ReleaseInternalPipeline(const char *key, int index)
+void ImageWrapper<TTraits>::AddInternalPipeline(const MiniPipeline &mp, const char *key, DisplaySliceIndex index)
+{
+  m_ManagedPipelines[std::string(key)][index.numeric_index()] = mp;
+}
+
+template <class TTraits>
+void
+ImageWrapper<TTraits>::ReleaseInternalPipeline(const char *key, int index)
 {
   std::string k(key);
-  if(index < 0)
-    {
+  if (index < 0)
+  {
     m_ManagedPipelines.erase(k);
-    }
-  else
-    {
-    m_ManagedPipelines[k].erase(index);
-    if(m_ManagedPipelines[k].size() == 0)
-      m_ManagedPipelines.erase(k);
-    }
   }
+  else
+  {
+    m_ManagedPipelines[k].erase(index);
+    if (m_ManagedPipelines[k].size() == 0)
+      m_ManagedPipelines.erase(k);
+  }
+}
+
+template <class TTraits>
+void
+ImageWrapper<TTraits>::ReleaseInternalPipeline(const char *key, DisplaySliceIndex index)
+{
+  std::string k(key);
+  m_ManagedPipelines[k].erase(index.numeric_index());
+  if (m_ManagedPipelines[k].size() == 0)
+    m_ManagedPipelines.erase(k);
+}
 
 
 template<class TTraits>

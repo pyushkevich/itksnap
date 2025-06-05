@@ -139,7 +139,7 @@ public:
 protected:
 
   // Respond to updates
-  void OnUpdate() ITK_OVERRIDE;
+  void OnUpdate() override;
 
   // Do this when main image geometry has changed
   void OnImageGeometryUpdate();

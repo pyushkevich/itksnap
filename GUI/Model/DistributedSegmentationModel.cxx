@@ -49,6 +49,7 @@
 #include "ImageAnnotationData.h"
 #include "TimePointProperties.h"
 
+using DSSRESTClient = RESTClient<DSSServerTraits>;
 
 namespace dss_model {
 
@@ -562,7 +563,7 @@ void DistributedSegmentationModel::DeleteSelectedTicket()
     return;
 
   // Delete the ticket
-  RESTClient rc;
+  DSSRESTClient rc;
   if(!rc.Get("api/tickets/%d/delete", selected_ticket_id))
     throw IRISException("Error deleting ticket %d: %s", selected_ticket_id, rc.GetResponseText());
 
@@ -617,7 +618,7 @@ DistributedSegmentationModel::AsyncGetServiceListing(
   try
   {
   // Second, try to get service listing
-  RESTClient rc;
+  DSSRESTClient rc;
 
   if(rc.Get("api/services?format=json"))
     {
@@ -654,7 +655,7 @@ DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string toke
   try
     {
     // Set the server URL to the new location
-    RESTClient rc;
+    DSSRESTClient rc;
     rc.SetServerURL(url.c_str());
 
     // If there is a token, post it
@@ -733,7 +734,7 @@ DistributedSegmentationModel::AsyncGetServiceDetails(std::string githash)
   type_map.AddPair(TAG_UNKNOWN, "Unknown");
 
   try {
-    RESTClient rc;
+    DSSRESTClient rc;
     if(rc.Get("api/services/%s/detail", githash.c_str()))
       {
       Json::Reader json_reader;
@@ -938,7 +939,7 @@ TicketListingResponse DistributedSegmentationModel::AsyncGetTicketListing()
   TicketListingResponse result;
 
   try {
-    RESTClient rc;
+    DSSRESTClient rc;
     if(rc.Get("api/tickets?format=json"))
       {
       Json::Reader json_reader;
@@ -1029,7 +1030,7 @@ TicketDetailResponse DistributedSegmentationModel::AsyncGetTicketDetails(IdType 
   try {
 
     // Get a full update on this ticket
-    RESTClient rc;
+    DSSRESTClient rc;
     if(rc.Get("api/tickets/%ld/detail?since=%ld", ticket_id, last_log))
       {
       Json::Reader json_reader;

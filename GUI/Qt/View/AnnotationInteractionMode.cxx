@@ -1,18 +1,13 @@
 #include "AnnotationInteractionMode.h"
 #include "AnnotationRenderer.h"
 #include "AnnotationModel.h"
-#include "GenericSliceView.h"
 #include "SliceViewPanel.h"
+#include <QTimer>
 
-AnnotationInteractionMode::AnnotationInteractionMode(GenericSliceView *parent)
-  : SliceWindowInteractionDelegateWidget(parent)
+AnnotationInteractionMode::AnnotationInteractionMode(QWidget *parent, QWidget *canvasWidget)
+  : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
-  m_Renderer = AnnotationRenderer::New();
-  m_Renderer->SetParentRenderer(
-        static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
   m_Model = NULL;
-
-  m_ParentPanel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
 }
 
 AnnotationInteractionMode::~AnnotationInteractionMode()
@@ -23,7 +18,6 @@ AnnotationInteractionMode::~AnnotationInteractionMode()
 void AnnotationInteractionMode::SetModel(AnnotationModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   SetParentModel(model->GetParent());
 
   connectITK(m_Model, StateMachineChangeEvent());
@@ -42,7 +36,7 @@ void AnnotationInteractionMode::mousePressEvent(QMouseEvent *ev)
       ev->accept();
 
     if(m_Model->IsMovingSelection())
-      m_ParentPanel->setCursor(Qt::ClosedHandCursor);
+      setCursor(Qt::ClosedHandCursor);
     }
 }
 
@@ -58,11 +52,11 @@ void AnnotationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
 
     if(m_Model->GetAnnotationMode() == ANNOTATION_SELECT && m_Model->IsHoveringOverAnnotation(m_XSlice))
       {
-      m_ParentPanel->setCursor(Qt::OpenHandCursor);
+      setCursor(Qt::OpenHandCursor);
       }
     else
       {
-      m_ParentPanel->setCursor(Qt::ArrowCursor);
+      setCursor(Qt::ArrowCursor);
       }
     }
 
@@ -74,11 +68,9 @@ void AnnotationInteractionMode::mouseMoveEvent(QMouseEvent *ev)
     }
 }
 
-#include <QTimer>
 
 void AnnotationInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
 {
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
   ev->ignore();
 
   if(ev->button() == Qt::LeftButton)
@@ -100,11 +92,11 @@ void AnnotationInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
       {
       if(m_Model->IsHoveringOverAnnotation(m_XSlice))
         {
-        panel->setCursor(Qt::OpenHandCursor);
+        setCursor(Qt::OpenHandCursor);
         }
       else
         {
-        panel->setCursor(Qt::ArrowCursor);
+        setCursor(Qt::ArrowCursor);
         }
       }
     }

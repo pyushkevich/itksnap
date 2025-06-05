@@ -58,7 +58,7 @@ public:
   void SetParentModel(GlobalUIModel *model);
   irisGetMacro(Parent, GlobalUIModel *)
 
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   typedef SimpleItemSetDomain<unsigned long, std::string> LayerSelectionDomain;
   typedef AbstractPropertyModel<unsigned long, LayerSelectionDomain> AbstractLayerSelectionModel;

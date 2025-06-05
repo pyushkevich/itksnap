@@ -35,12 +35,10 @@
 #include <GenericImageData.h>
 #include <QMenu>
 #include <SNAPQtCommon.h>
-#include "GenericSliceView.h"
-#include "SliceViewPanel.h"
 
 
-ThumbnailInteractionMode::ThumbnailInteractionMode(GenericSliceView *parent) :
-    SliceWindowInteractionDelegateWidget(parent)
+ThumbnailInteractionMode::ThumbnailInteractionMode(QWidget *parent, QWidget *canvasWidget)
+  : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
   connect(this, SIGNAL(customContextMenuRequested(QPoint)),
           this, SLOT(onContextMenuRequested(QPoint)));
@@ -159,17 +157,15 @@ void ThumbnailInteractionMode::onModelUpdate(const EventBucket &bucket)
     }
 }
 
-void ThumbnailInteractionMode::enterEvent(QEvent *)
+void
+ThumbnailInteractionMode::enterEvent(QEnterEvent *)
 {
-  // TODO: this is hideous!
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
-  panel->SetMouseMotionTracking(true);
+  this->setMouseMotionTracking(true);
 }
 
 void ThumbnailInteractionMode::leaveEvent(QEvent *)
 {
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
-  panel->SetMouseMotionTracking(false);
+  this->setMouseMotionTracking(false);
 
   m_Model->GetParent()->SetHoveredImageLayerId(-1ul);
   m_Model->GetParent()->SetHoveredImageIsThumbnail(false);

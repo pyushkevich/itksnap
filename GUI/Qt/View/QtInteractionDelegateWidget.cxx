@@ -30,8 +30,9 @@
 #include <QGestureEvent>
 #include "GenericSliceModel.h"
 
-QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent) :
-  SNAPComponent(parent)
+QtInteractionDelegateWidget::QtInteractionDelegateWidget(QWidget *parent, QWidget *canvasWidget)
+  : SNAPComponent(parent)
+  , m_CanvasWidget(canvasWidget)
 {
   m_LeftStatus = NOT_PRESSED;
   m_RightStatus = NOT_PRESSED;
@@ -65,19 +66,6 @@ bool QtInteractionDelegateWidget::event(QEvent *ev)
   postprocessEvent(ev);
 
   return result;
-}
-
-QtVTKRenderWindowBox * QtInteractionDelegateWidget::GetParentGLWidget() const
-{
-  // Search up until a parent widget is found
-  for(QObject *p = parent(); p != NULL; p = p->parent())
-    {
-    QtVTKRenderWindowBox *pgl = dynamic_cast<QtVTKRenderWindowBox *>(p);
-    if(pgl)
-      return pgl;
-    }
-
-  return NULL;
 }
 
 bool QtInteractionDelegateWidget::eventFilter(QObject *obj, QEvent *ev)

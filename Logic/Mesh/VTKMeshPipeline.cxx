@@ -38,8 +38,97 @@
 #include "MeshOptions.h"
 #include "SNAPExportITKToVTK.h"
 #include <map>
+#include <chrono>
+#include <vtkCellArrayIterator.h>
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkCellData.h"
 
 using namespace std;
+
+/**
+ * Simple and fast VTK filter to swap the orientation of faces in a VTK polydata,
+ * used when applying a spatial transform that introduces a flip.
+ */
+class vtkFlipPolyFaces : public vtkPolyDataAlgorithm
+{
+public:
+  vtkTypeMacro(vtkFlipPolyFaces, vtkPolyDataAlgorithm);
+  void PrintSelf(ostream& os, vtkIndent indent) override
+  {
+    os << indent << "Flip Faces: " << (this->FlipFaces ? "On\n" : "Off\n");
+  }
+
+  static vtkFlipPolyFaces *New();
+
+  vtkSetMacro(FlipFaces, vtkTypeBool);
+  vtkGetMacro(FlipFaces, vtkTypeBool);
+  vtkBooleanMacro(FlipFaces, vtkTypeBool);
+
+protected:
+  vtkFlipPolyFaces() { this->FlipFaces = 0; }
+  ~vtkFlipPolyFaces() override = default;
+
+  vtkTypeBool FlipFaces;
+
+  int RequestData(vtkInformation        *vtkNotUsed(request),
+                  vtkInformationVector **inputVector,
+                  vtkInformationVector  *outputVector) override
+  {
+    // get the info objects
+    vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
+    vtkInformation* outInfo = outputVector->GetInformationObject(0);
+
+    // get the input and output
+    vtkPolyData* input = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+    vtkPolyData* output = vtkPolyData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+    // Copy the points and the structure
+    output->CopyStructure(input);
+    output->GetPointData()->PassData(input->GetPointData());
+
+    // iterate over the polys
+    if(FlipFaces)
+    {
+      // Change the orientation of all the polys
+      vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
+      vtkSmartPointer<vtkCellArray> trg = vtkCellArray::New();
+      vtkCellArray *src = input->GetPolys();
+      trg->AllocateEstimate(src->GetNumberOfCells(), src->GetMaxCellSize());
+      for (vtkSmartPointer<vtkCellArrayIterator> it = src->NewIterator(); !it->IsDoneWithTraversal();
+           it->GoToNextCell())
+      {
+        it->GetCurrentCell(idList);
+        vtkIdType numPoints = idList->GetNumberOfIds();
+        if (numPoints >= 3)
+        {
+          for (vtkIdType i = 0; i < numPoints / 2; ++i)
+          {
+            vtkIdType temp = idList->GetId(i);
+            idList->SetId(i, idList->GetId(numPoints - i - 1));
+            idList->SetId(numPoints - i - 1, temp);
+          }
+        }
+        trg->InsertNextCell(idList);
+      }
+      output->SetPolys(trg);
+
+      return 1;
+    }
+    else
+    {
+      output->GetCellData()->PassData(input->GetCellData());
+      return 1;
+    }
+  }
+
+private:
+  vtkFlipPolyFaces(const vtkFlipPolyFaces&) = delete;
+  void operator=(const vtkFlipPolyFaces&) = delete;
+};
+
+vtkStandardNewMacro(vtkFlipPolyFaces);
+
 
 
 VTKMeshPipeline
@@ -87,6 +176,9 @@ VTKMeshPipeline
   m_MarchingCubesFilter->SetNumberOfContours(1);
   m_MarchingCubesFilter->SetValue(0,0.0f);
 
+  // Face flip filter - much faster than vtkPolyDataNormals
+  m_FlipPolyFaces = vtkFlipPolyFaces::New();
+
   // Create the transform filter
   m_TransformFilter = vtkTransformPolyDataFilter::New();
   m_TransformFilter->ReleaseDataFlagOn();
@@ -102,16 +194,6 @@ VTKMeshPipeline
 VTKMeshPipeline
 ::~VTKMeshPipeline()
 {
-  // Destroy the filters
-  m_VTKImporter->Delete();
-  m_VTKGaussianFilter->Delete();
-  m_PolygonSmoothingFilter->Delete();
-  m_StripperFilter->Delete();
-
-  m_MarchingCubesFilter->Delete();
-  m_TransformFilter->Delete();
-  m_Transform->Delete();
-  m_DecimateFilter->Delete();
 }
 
 void
@@ -125,8 +207,8 @@ VTKMeshPipeline
   m_Progress->UnregisterAllSources();
 
   // Define the current pipeline end-point
-  vtkAlgorithmOutput *pipeImageTail = m_VTKImporter->GetOutputPort();
-  vtkAlgorithmOutput *pipePolyTail = NULL;
+  m_Pipeline.clear();
+  m_Pipeline.push_back(m_VTKImporter);
 
   // Route the pipeline according to the settings
   // 1. Check if Gaussian smoothing will be used
@@ -134,9 +216,9 @@ VTKMeshPipeline
   if(options->GetUseGaussianSmoothing())
     {    
     // The Gaussian filter is enabled
-    m_VTKGaussianFilter->SetInputConnection(pipeImageTail);
+    m_VTKGaussianFilter->SetInputConnection(m_Pipeline.back()->GetOutputPort());
     m_Progress->RegisterSource(m_VTKGaussianFilter, 10.0f);
-    pipeImageTail = m_VTKGaussianFilter->GetOutputPort();
+    m_Pipeline.push_back(m_VTKGaussianFilter);
 
     // Apply parameters to the Gaussian filter
     float sigma = options->GetGaussianStandardDeviation();
@@ -151,23 +233,28 @@ VTKMeshPipeline
   // 2. Set input to the appropriate contour filter
 
   // Marching cubes gets the tail
-  m_MarchingCubesFilter->SetInputConnection(pipeImageTail);
+  m_MarchingCubesFilter->SetInputConnection(m_Pipeline.back()->GetOutputPort());
   m_Progress->RegisterSource(m_MarchingCubesFilter, 10.0f);
-  pipePolyTail = m_MarchingCubesFilter->GetOutputPort();
+  m_Pipeline.push_back(m_MarchingCubesFilter);
 
   // 2.5 Pipe marching cubes output to the transform
-  m_TransformFilter->SetInputConnection(pipePolyTail);
+  m_TransformFilter->SetInputConnection(m_Pipeline.back()->GetOutputPort());
   m_Progress->RegisterSource(m_TransformFilter, 1.0f);
-  pipePolyTail = m_TransformFilter->GetOutputPort();
+  m_Pipeline.push_back(m_TransformFilter);
+
+  // 2.8 Normals
+  m_FlipPolyFaces->SetInputConnection(m_Pipeline.back()->GetOutputPort());
+  m_Progress->RegisterSource(m_FlipPolyFaces, 1.0f);
+  m_Pipeline.push_back(m_FlipPolyFaces);
 
   // 3. Check if decimation is required
   if(options->GetUseDecimation())
     {
 
     // Decimate filter gets the pipe tail
-    m_DecimateFilter->SetInputConnection(pipePolyTail);
+    m_DecimateFilter->SetInputConnection(m_Pipeline.back()->GetOutputPort());
     m_Progress->RegisterSource(m_DecimateFilter, 5.0);
-    pipePolyTail = m_DecimateFilter->GetOutputPort();
+    m_Pipeline.push_back(m_DecimateFilter);
 
     // Apply parameters to the decimation filter
     m_DecimateFilter->SetTargetReduction(
@@ -190,9 +277,9 @@ VTKMeshPipeline
   if(options->GetUseMeshSmoothing())
     {
     // Pipe smoothed output into the pipeline
-    m_PolygonSmoothingFilter->SetInputConnection(pipePolyTail);
+    m_PolygonSmoothingFilter->SetInputConnection(m_Pipeline.back()->GetOutputPort());
     m_Progress->RegisterSource(m_PolygonSmoothingFilter, 3.0);
-    pipePolyTail = m_PolygonSmoothingFilter->GetOutputPort();
+    m_Pipeline.push_back(m_PolygonSmoothingFilter);
 
     // Apply parameters to the mesh smoothing filter
     m_PolygonSmoothingFilter->SetNumberOfIterations(
@@ -215,68 +302,72 @@ VTKMeshPipeline
     }
 
   // 6. Pipe in the final output into the stripper
-  m_StripperFilter->SetInputConnection(pipePolyTail);
+  m_StripperFilter->SetInputConnection(m_Pipeline.back()->GetOutputPort());
   m_Progress->RegisterSource(m_StripperFilter, 2.0);
+  m_Pipeline.push_back(m_StripperFilter);
 }
 
 #include <ctime>
-#include "itkImageFileWriter.h"
 
 void
-VTKMeshPipeline
-::ComputeMesh(vtkPolyData *outMesh, std::mutex *mutex)
+VTKMeshPipeline ::ComputeMesh(vtkPolyData *outMesh, long mesh_id, std::mutex *mutex)
 {
   // Reset the progress meter
   m_Progress->ResetProgress();
 
   // Graft the polydata to the last filter in the pipeline
   m_StripperFilter->SetOutput(outMesh);
-  
+
   // Connect importer and exporter
-  m_VTKImporter->SetCallbackUserData(
-    m_VTKExporter->GetCallbackUserData());
+  m_VTKImporter->SetCallbackUserData(m_VTKExporter->GetCallbackUserData());
 
   // Update the ITK portion of the pipeline
   m_VTKExporter->SetInput(m_InputImage);
   m_VTKImporter->Modified();
 
-  // Update the importer
-  if(mutex) mutex->lock();
-  m_VTKImporter->Update();
-  if(mutex) mutex->unlock();
+  // Check if the face flipping should be done
+  m_FlipPolyFaces->SetFlipFaces(m_Transform->GetMatrix()->Determinant() < 0);
 
-  // Update the pipeline
-  m_StripperFilter->Update();
+  // Run and time each portion of the pipeline
+  // std::cout << "VTKMeshPipeline::ComputeMesh "
+  //           << " label " << mesh_id << " timings: " << std::endl;
+  for (auto *algorithm : m_Pipeline)
+  {
+    if (algorithm == m_VTKImporter && mutex)
+      mutex->lock();
+
+    auto t0 = std::chrono::system_clock::now();
+    algorithm->Update();
+    auto t1 = std::chrono::system_clock::now();
+
+    if (algorithm == m_VTKImporter && mutex)
+      mutex->unlock();
+
+    // TODO: collect this timing information somewhere we can show to the user
+    // const std::chrono::duration<double, std::milli> fp_ms_t = t1 - t0;
+    // std::cout << "  " << std::setw(40) << algorithm->GetClassName() << ": " << fp_ms_t.count()
+    //          << " ms." << std::endl;
+  }
 
   // In the case that the jacobian of the transform is negative,
   // flip the normals around
-  if(m_Transform->GetMatrix()->Determinant() < 0)
-    {
-    vtkPointData *pd = m_StripperFilter->GetOutput()->GetPointData();
-    vtkDataArray *nrm = pd->GetNormals();
-    for(size_t i = 0; i < (size_t)nrm->GetNumberOfTuples(); i++)
-      for(size_t j = 0; j < (size_t)nrm->GetNumberOfComponents(); j++)
-        nrm->SetComponent(i,j,-nrm->GetComponent(i,j));
-    nrm->Modified();
-    }
+  auto *last_filter = static_cast<vtkPolyDataAlgorithm *>(m_Pipeline.back());
 
   // Disconnect pipeline
-  m_StripperFilter->SetOutput(NULL);
+  last_filter->SetOutput(nullptr);
 }
 
 void
-VTKMeshPipeline
-::SetImage(const ImageType *image)
+VTKMeshPipeline ::SetImage(const ImageType *image)
 {
-  // Store the image 
+  // Store the image
   m_InputImage = image;
 
   // Compute the transform from VTK coordinates to NIFTI/RAS coordinates
-  vnl_matrix_fixed<double, 4, 4> vtk2nii = 
-    ImageWrapperBase::ConstructVTKtoNiftiTransform(
-      image->GetDirection().GetVnlMatrix().as_ref(),
-      image->GetOrigin().GetVnlVector(),
-      image->GetSpacing().GetVnlVector());
+  vnl_matrix_fixed<double, 4, 4> vtk2nii =
+    ImageWrapperBase::ConstructVTKtoNiftiTransform(image->GetDirection().GetVnlMatrix().as_ref(),
+                                                   image->GetOrigin().GetVnlVector(),
+                                                   image->GetSpacing().GetVnlVector());
 
   // Update the VTK transform to match
   m_Transform->SetMatrix(vtk2nii.data_block());
@@ -284,5 +375,3 @@ VTKMeshPipeline
   // Pass the transform to the transform filter
   m_TransformFilter->SetTransform(m_Transform);
 }
-
-

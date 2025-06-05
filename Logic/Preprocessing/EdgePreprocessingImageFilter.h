@@ -167,16 +167,16 @@ protected:
 
   EdgePreprocessingImageFilter();
   virtual ~EdgePreprocessingImageFilter() {}
-  void PrintSelf(std::ostream& os, itk::Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream& os, itk::Indent indent) const override;
   
   /** Generate Data */
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
   /** 
    * This method maps an input region to an output region.  It's necessary to
    * reflect the way this filter pads the requested region
    */
-  void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  void GenerateInputRequestedRegion() override;
 
 private:
 

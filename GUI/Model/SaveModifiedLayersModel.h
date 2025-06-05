@@ -86,14 +86,14 @@ public:
 
   void Initialize(SaveModifiedLayersModel *model, ImageWrapperBase *wrapper, LayerRole role);
 
-  virtual std::string GetDescription() const ITK_OVERRIDE;
-  virtual std::string GetFilename() const ITK_OVERRIDE;
+  virtual std::string GetDescription() const override;
+  virtual std::string GetFilename() const override;
 
-  virtual bool IsSaved() ITK_OVERRIDE;
-  virtual bool Save(AbstractSaveModifiedLayersInteractionDelegate *cb_delegate) ITK_OVERRIDE;
+  virtual bool IsSaved() override;
+  virtual bool Save(AbstractSaveModifiedLayersInteractionDelegate *cb_delegate) override;
 
   /** Whether this item requires interaction to be saved */
-  virtual bool RequiresInteraction() ITK_OVERRIDE;
+  virtual bool RequiresInteraction() override;
 
 protected:
 
@@ -114,14 +114,14 @@ public:
 
   void Initialize(SaveModifiedLayersModel *model);
 
-  virtual std::string GetDescription() const ITK_OVERRIDE;
-  virtual std::string GetFilename() const ITK_OVERRIDE;
+  virtual std::string GetDescription() const override;
+  virtual std::string GetFilename() const override;
 
-  virtual bool IsSaved() ITK_OVERRIDE;
-  virtual bool Save(AbstractSaveModifiedLayersInteractionDelegate *cb_delegate) ITK_OVERRIDE;
+  virtual bool IsSaved() override;
+  virtual bool Save(AbstractSaveModifiedLayersInteractionDelegate *cb_delegate) override;
 
   /** Whether this item requires interaction to be saved */
-  virtual bool RequiresInteraction() ITK_OVERRIDE;
+  virtual bool RequiresInteraction() override;
 
 protected:
 

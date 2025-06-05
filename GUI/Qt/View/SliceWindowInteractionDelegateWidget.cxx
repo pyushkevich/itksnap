@@ -1,15 +1,15 @@
 #include "SliceWindowInteractionDelegateWidget.h"
 #include "GenericSliceModel.h"
-#include "GenericSliceView.h"
 #include "GlobalUIModel.h"
 #include "DisplayLayoutModel.h"
+#include "SliceViewPanel.h"
+#include "SNAPQtCommon.h"
 
-SliceWindowInteractionDelegateWidget
-::SliceWindowInteractionDelegateWidget(GenericSliceView *parent)
-  : QtInteractionDelegateWidget(parent)
+SliceWindowInteractionDelegateWidget ::SliceWindowInteractionDelegateWidget(QWidget *parent,
+                                                                            QWidget *canvasWidget)
+  : QtInteractionDelegateWidget(parent, canvasWidget)
 {
   m_ParentModel = NULL;
-  m_ParentView = parent;
   m_LastPressLayoutCell.fill(0);
 }
 
@@ -78,13 +78,10 @@ Vector3d
 SliceWindowInteractionDelegateWidget
 ::GetEventWorldCoordinates(QMouseEvent *ev, bool flipY)
 {
-  // Make the parent window the current context
-  QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
-
   // Get the x,y coordinates of the event in actual pixels (retina)
   int xpix = (int) ev->position().x() * this->devicePixelRatio();
   int ypix = (int) ev->position().y() * this->devicePixelRatio();
-  int hpix = (int) parent->height() * this->devicePixelRatio();
+  int hpix = (int) m_CanvasWidget->height() * this->devicePixelRatio();
   int x = xpix;
   int y = (flipY) ? hpix - 1 - ypix : ypix;
 
@@ -128,4 +125,40 @@ SliceWindowInteractionDelegateWidget
                     ? ((nrows - 1) - irow) * m_ParentModel->GetSize()[1]
                     : irow * m_ParentModel->GetSize()[1];
   return xProjection;
+}
+
+QWidget *
+SliceWindowInteractionDelegateWidget::GetClientWidget() const
+{
+  return this->parentWidget();
+}
+
+void
+SliceWindowInteractionDelegateWidget::setCursor(const QCursor &cursor)
+{
+  findParentWidget<SliceViewPanel>(this)->setCursor(cursor);
+}
+
+void
+SliceWindowInteractionDelegateWidget::grabGesture(const Qt::GestureType &gesture)
+{
+  findParentWidget<SliceViewPanel>(this)->grabGesture(gesture);
+}
+
+void
+SliceWindowInteractionDelegateWidget::setMouseMotionTracking(bool on)
+{
+  m_CanvasWidget->setMouseTracking(on);
+}
+
+bool
+SliceWindowInteractionDelegateWidget::isClientVisible()
+{
+  return findParentWidget<SliceViewPanel>(this)->isVisible();
+}
+
+void
+SliceWindowInteractionDelegateWidget::updateClient()
+{
+  m_CanvasWidget->update();
 }

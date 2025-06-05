@@ -71,11 +71,11 @@ public:
 protected:
   RegionOfInterestImageFilter() {}
   ~RegionOfInterestImageFilter() {}
-  void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+  void PrintSelf(std::ostream & os, Indent indent) const override;
 
-  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  virtual void GenerateInputRequestedRegion() override;
 
-  virtual void EnlargeOutputRequestedRegion(DataObject *output) ITK_OVERRIDE;
+  virtual void EnlargeOutputRequestedRegion(DataObject *output) override;
 
   /** RegionOfInterestImageFilter can produce an image which is a different
    * size than its input image.  As such, RegionOfInterestImageFilter
@@ -85,10 +85,10 @@ protected:
    * below.
    *
    * \sa ProcessObject::GenerateOutputInformaton()  */
-  virtual void GenerateOutputInformation() ITK_OVERRIDE;
+  virtual void GenerateOutputInformation() override;
 
   /** RegionOfInterestImageFilter can be implemented as a multithreaded filter.  */
-  void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) override;
 
 private:
   RegionOfInterestImageFilter(const Self &); //purposely not implemented
@@ -146,11 +146,11 @@ public:
 protected:
     RegionOfInterestImageFilter() {}
     ~RegionOfInterestImageFilter() {}
-    void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+    void PrintSelf(std::ostream & os, Indent indent) const override;
 
-    virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
+    virtual void GenerateInputRequestedRegion() override;
 
-    virtual void EnlargeOutputRequestedRegion(DataObject *output) ITK_OVERRIDE;
+    virtual void EnlargeOutputRequestedRegion(DataObject *output) override;
 
     /** RegionOfInterestImageFilter can produce an image which is a different
     * size than its input image.  As such, RegionOfInterestImageFilter
@@ -160,10 +160,10 @@ protected:
     * below.
     *
     * \sa ProcessObject::GenerateOutputInformaton()  */
-    virtual void GenerateOutputInformation() ITK_OVERRIDE;
+    virtual void GenerateOutputInformation() override;
 
     /** RegionOfInterestImageFilter can be implemented as a multithreaded filter. */
-    void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) override;
 
 private:
     RegionOfInterestImageFilter(const Self &); //purposely not implemented
@@ -221,11 +221,11 @@ public:
 protected:
     RegionOfInterestImageFilter() {}
     ~RegionOfInterestImageFilter() {}
-    void PrintSelf(std::ostream & os, Indent indent) const ITK_OVERRIDE;
+    void PrintSelf(std::ostream & os, Indent indent) const override;
 
-    virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
+    virtual void GenerateInputRequestedRegion() override;
 
-    virtual void EnlargeOutputRequestedRegion(DataObject *output) ITK_OVERRIDE;
+    virtual void EnlargeOutputRequestedRegion(DataObject *output) override;
 
     /** RegionOfInterestImageFilter can produce an image which is a different
     * size than its input image.  As such, RegionOfInterestImageFilter
@@ -235,10 +235,10 @@ protected:
     * below.
     *
     * \sa ProcessObject::GenerateOutputInformaton()  */
-    virtual void GenerateOutputInformation() ITK_OVERRIDE;
+    virtual void GenerateOutputInformation() override;
 
     /** RegionOfInterestImageFilter can be implemented as a multithreaded filter. */
-    void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) ITK_OVERRIDE;
+    void DynamicThreadedGenerateData(const RegionType & outputRegionForThread) override;
 
 private:
     RegionOfInterestImageFilter(const Self &); //purposely not implemented

@@ -26,7 +26,7 @@ MARK_AS_ADVANCED(BUILD_SHARED_LIBS)
 
 #--------------------------------------------------------------------------------
 # MACROS
-#--------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------C
 # Get today's date (see http://cmake.3232098.n2.nabble.com/How-to-get-the-current-date-td5776870.html)
 MACRO (TODAY RESULT)
     IF (WIN32)
@@ -94,13 +94,13 @@ ENDIF()
 
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 4)
-SET(SNAP_VERSION_MINOR 2)
-SET(SNAP_VERSION_PATCH 2)
-SET(SNAP_VERSION_QUALIFIER "")
+SET(SNAP_VERSION_MINOR 4)
+SET(SNAP_VERSION_PATCH 0)
+SET(SNAP_VERSION_QUALIFIER "-alpha2")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20241202")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "December 02, 2024")
+SET(SNAP_VERSION_RELEASE_DATE "20250605")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "June 5, 2025")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -310,6 +310,7 @@ SET(LOGIC_CXX
   Logic/WorkspaceAPI/CSVParser.cxx
   Logic/WorkspaceAPI/FormattedTable.cxx
   Logic/WorkspaceAPI/RESTClient.cxx
+  Logic/WorkspaceAPI/SSHTunnel.cxx
   Logic/WorkspaceAPI/WorkspaceAPI.cxx
 )
 
@@ -479,6 +480,7 @@ SET(LOGIC_HEADERS
   Logic/WorkspaceAPI/CSVParser.h
   Logic/WorkspaceAPI/FormattedTable.h
   Logic/WorkspaceAPI/RESTClient.h
+  Logic/WorkspaceAPI/SSHTunnel.h
   Logic/WorkspaceAPI/WorkspaceAPI.h
   Common/ITKBinaryWeightedAverage/itkBWAfilter.h
   Common/ITKBinaryWeightedAverage/itkBWAfilter.hxx
@@ -498,6 +500,7 @@ SET(UI_GENERIC_CXX
   GUI/Model/ColorLabelQuickListModel.cxx
   GUI/Model/ColorMapModel.cxx
   GUI/Model/CursorInspectionModel.cxx
+  GUI/Model/DeepLearningSegmentationModel.cxx
   GUI/Model/DeformationGridModel.cxx
   GUI/Model/DisplayLayoutModel.cxx
   GUI/Model/DistributedSegmentationModel.cxx
@@ -543,7 +546,6 @@ SET(UI_GENERIC_CXX
   GUI/Renderer/CrosshairsRenderer.cxx
   GUI/Renderer/DeformationGridRenderer.cxx
   GUI/Renderer/EdgePreprocessingSettingsRenderer.cxx
-  GUI/Renderer/GenericSliceContextItem.cxx
   GUI/Renderer/GenericSliceRenderer.cxx
   GUI/Renderer/Generic3DRenderer.cxx
   GUI/Renderer/GMMRenderer.cxx
@@ -579,6 +581,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/ColorMapModel.h
   GUI/Model/ColorLabelQuickListModel.h
   GUI/Model/CursorInspectionModel.h
+  GUI/Model/DeepLearningSegmentationModel.h
   GUI/Model/DeformationGridModel.h
   GUI/Model/DisplayLayoutModel.h
   GUI/Model/DistributedSegmentationModel.h
@@ -620,6 +623,7 @@ SET(UI_GENERIC_HEADERS
   GUI/Model/UIState.h
   GUI/Model/VoxelChangeReportModel.h
   GUI/Renderer/AbstractRenderer.h
+  GUI/Renderer/AbstractContextBasedRenderer.h
   GUI/Renderer/AbstractVTKRenderer.h
   GUI/Renderer/AbstractVTKSceneRenderer.h
   GUI/Renderer/AnnotationRenderer.h
@@ -628,7 +632,6 @@ SET(UI_GENERIC_HEADERS
   GUI/Renderer/DeformationGridRenderer.h
   GUI/Renderer/EdgePreprocessingSettingsRenderer.h
   GUI/Renderer/Generic3DRenderer.h
-  GUI/Renderer/GenericSliceContextItem.h
   GUI/Renderer/GenericSliceRenderer.h
   GUI/Renderer/GMMRenderer.h
   GUI/Renderer/IntensityCurveVTKRenderer.h
@@ -683,11 +686,15 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QColorButtonWidget.cxx
   GUI/Qt/Components/QDoubleSlider.cxx
   GUI/Qt/Components/QDoubleSliderWithEditor.cxx  
+  GUI/Qt/Components/QPainterRenderContext.cxx
+  GUI/Qt/Components/QtLocalDeepLearningServerDelegate.cxx
   GUI/Qt/Components/QtFlowLayout.cxx
+  GUI/Qt/Components/QtFrameBufferOpenGLWidget.cxx
   GUI/Qt/Components/QtHideOnDeactivateContainer.cxx
   GUI/Qt/Components/QtIPCManager.cxx
   GUI/Qt/Components/QtRendererPlatformSupport.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
+  GUI/Qt/Components/QProcessOutputTextWidget.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
   GUI/Qt/Components/RecentHistoryItemsView.cxx
@@ -698,6 +705,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SNAPQApplication.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
+  GUI/Qt/Components/SSHTunnelWorkerThread.cxx
   GUI/Qt/Components/SynchronizationInspector.cxx
   GUI/Qt/Components/TagListWidget.cxx
   GUI/Qt/Components/ViewPanel3D.cxx
@@ -708,7 +716,6 @@ SET(UI_QT_CXX
   GUI/Qt/View/AnnotationInteractionMode.cxx
   GUI/Qt/View/ColorMapInteractionDelegate.cxx
   GUI/Qt/View/CrosshairsInteractionMode.cxx
-  GUI/Qt/View/GenericSliceView.cxx
   GUI/Qt/View/GenericView3D.cxx
   GUI/Qt/View/InteractionModeClient.cxx
   GUI/Qt/View/QtInteractionDelegateWidget.cxx
@@ -722,6 +729,9 @@ SET(UI_QT_CXX
   GUI/Qt/View/ThumbnailInteractionMode.cxx
   GUI/Qt/Windows/AboutDialog.cxx
   GUI/Qt/Windows/AnnotationEditDialog.cxx
+  GUI/Qt/Windows/DeepLearningInfoDialog.cxx
+  GUI/Qt/Windows/DeepLearningServerEditor.cxx
+  GUI/Qt/Windows/DeepLearningServerPanel.cxx
   GUI/Qt/Windows/DropActionDialog.cxx
   GUI/Qt/Windows/ImageIODialog.cxx
   GUI/Qt/Windows/ImageIOWizard.cxx
@@ -787,6 +797,8 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/QtFlowLayout.h
   GUI/Qt/Components/QtHideOnDeactivateContainer.h
   GUI/Qt/Components/QtIPCManager.h
+  GUI/Qt/Components/QtLocalDeepLearningServerDelegate.h
+  GUI/Qt/Components/QProcessOutputTextWidget.h
   GUI/Qt/Components/QtWarningDialog.h
   GUI/Qt/Components/QtWidgetActivator.h
   GUI/Qt/Components/RecentHistoryItemsView.h
@@ -796,6 +808,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SNAPToolbar.h
   GUI/Qt/Components/SNAPQApplication.h
   GUI/Qt/Components/SliceViewPanel.h
+  GUI/Qt/Components/SSHTunnelWorkerThread.h
   GUI/Qt/Components/SynchronizationInspector.h
   GUI/Qt/Components/TagListWidget.h
   GUI/Qt/Components/ViewPanel3D.h
@@ -807,7 +820,6 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/AnnotationInteractionMode.h
   GUI/Qt/View/ColorMapInteractionDelegate.h
   GUI/Qt/View/CrosshairsInteractionMode.h
-  GUI/Qt/View/GenericSliceView.h
   GUI/Qt/View/GenericView3D.h
   GUI/Qt/View/QtInteractionDelegateWidget.h
   GUI/Qt/View/QtVTKInteractionDelegateWidget.h
@@ -820,6 +832,9 @@ SET(UI_MOC_HEADERS
   GUI/Qt/View/ThumbnailInteractionMode.h
   GUI/Qt/Windows/AboutDialog.h
   GUI/Qt/Windows/AnnotationEditDialog.h
+  GUI/Qt/Windows/DeepLearningInfoDialog.h
+  GUI/Qt/Windows/DeepLearningServerEditor.h
+  GUI/Qt/Windows/DeepLearningServerPanel.h
   GUI/Qt/Windows/DropActionDialog.h
   GUI/Qt/Windows/ImageIODialog.h
   GUI/Qt/Windows/ImageIOWizard.h
@@ -856,8 +871,11 @@ SET(UI_MOC_HEADERS
 
 # These UI headers don't need to be MOC'd
 SET(UI_NONMOC_HEADERS
+  GUI/Qt/Components/DeepLearningConnectionStatusCouplingTraits.h
   GUI/Qt/Components/ProcessEventsITKCommand.h
+  GUI/Qt/Components/QPainterRenderContext.h
   GUI/Qt/Components/QtCursorOverride.h
+  GUI/Qt/Components/QtFrameBufferOpenGLWidget.h
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
   GUI/Qt/Components/SNAPQtCommon.h
@@ -910,6 +928,9 @@ SET(UI_FORMS
   GUI/Qt/Components/ZoomInspector.ui
   GUI/Qt/Windows/AboutDialog.ui
   GUI/Qt/Windows/AnnotationEditDialog.ui
+  GUI/Qt/Windows/DeepLearningInfoDialog.ui
+  GUI/Qt/Windows/DeepLearningServerEditor.ui
+  GUI/Qt/Windows/DeepLearningServerPanel.ui
   GUI/Qt/Windows/DropActionDialog.ui
   GUI/Qt/Windows/ImageIODialog.ui
   GUI/Qt/Windows/ImageIOWizard/OverlayRolePage.ui
@@ -1049,6 +1070,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/GUI/Qt/Windows/Registration
     ${SNAP_SOURCE_DIR}/Testing/Logic
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/SSHTunnelTest
     ${SNAP_SYSTEM_INCLUDE_DIRS}
   )
 
@@ -1099,9 +1121,9 @@ SET(SNAP_VTK_NONQT_LIBS
   VTK::InteractionStyle
   VTK::InteractionWidgets
   VTK::RenderingAnnotation
-  VTK::RenderingContext2D
   VTK::RenderingContextOpenGL2
   VTK::RenderingCore
+  VTK::RenderingExternal
   VTK::RenderingLOD
   VTK::RenderingOpenGL2
   VTK::RenderingUI
@@ -1124,6 +1146,7 @@ SET(SNAP_SUBMODULE_LIBS
 # System libraries
 SET(SNAP_SYSTEM_LIBS
   ${CURL_LIBRARIES}
+  ssh
   ${SYSTEM_LIBS}
 )
 
@@ -1235,11 +1258,11 @@ ENDIF(WIN32)
 SET(SNAP_BUNDLE_NAME ITK-SNAP)
 
 # Configure the executable's sources and libraries
-ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC}
-  .clang-format
-  GUI/Qt/Coupling/QtMenuCoupling.h)
+ADD_EXECUTABLE(${SNAP_BUNDLE_NAME} WIN32 ${SNAP_MAIN_SRC})
 TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_LIBS})
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
+set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
 
 #--------------------------------------------------------------------------------
 # Testing-related executables
@@ -1258,7 +1281,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
 SET(GUI_TESTS
   Workspace
   NaNs
-  4DContinuousRendering
+  4DContinuousRenderingD
   DiffSpace
   EdgeAttraction
   EchoCartesianDicomLoading
@@ -1406,6 +1429,23 @@ TARGET_LINK_LIBRARIES(Test_OrientationWidget
 )
 
 TARGET_INCLUDE_DIRECTORIES(Test_OrientationWidget PUBLIC ${SNAP_INCLUDE_DIRS})
+
+# SSH tunnel test
+SET(SSH_TUNNEL_TEST_CXX
+  Testing/GUI/Qt/SSHTunnelTest/main.cxx
+)
+
+ADD_EXECUTABLE(ssh_tunnel_test
+  ${SSH_TUNNEL_TEST_CXX} ${MOC_SSH_TUNNEL_TEST_SRCS}
+)
+
+TARGET_LINK_LIBRARIES(ssh_tunnel_test
+  ${SNAP_INTERNAL_LIBS}
+  ${SNAP_EXTERNAL_LIBS}
+)
+
+TARGET_INCLUDE_DIRECTORIES(ssh_tunnel_test PUBLIC ${SNAP_INCLUDE_DIRS})
+
 
 INCLUDE(CTest)
 
@@ -1730,7 +1770,7 @@ CONFIGURE_FILE(
 FIND_PROGRAM(SCP_PROGRAM NAMES scp DOC "Location of the scp program (optional)")
 MARK_AS_ADVANCED(SCP_PROGRAM)
 
-SET(SCP_ARGUMENTS "-v -o BatchMode=yes" CACHE STRING "Optional arguments to the scp command for uploads to SourceForge")
+SET(SCP_ARGUMENTS "-v" CACHE STRING "Optional arguments to the scp command for uploads to SourceForge")
 MARK_AS_ADVANCED(SCP_ARGUMENTS)
 
 SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")
@@ -1746,21 +1786,21 @@ SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/itk-snap/itk-snap")
 # Create targets
 
 ADD_CUSTOM_TARGET(itksnap_upload_nightly
-  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS}
+  VERBATIM COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
   ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Nightly/${NIGHTLY_TARGET}
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
   COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${NIGHTLY_TARGET}")
 
 ADD_CUSTOM_TARGET(itksnap_upload_experimental
-  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} 
+  VERBATIM COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
     ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental/${EXPERIMENTAL_TARGET}
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}
   COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${EXPERIMENTAL_TARGET}")
 
 ADD_CUSTOM_TARGET(itksnap_upload_release
-  VERBATIM COMMAND "${SCP_PROGRAM}" ${SCP_ARGUMENTS} 
+  VERBATIM COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
     ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/${SNAP_VERSION_FULL}/${RELEASE_TARGET}
   DEPENDS ${CPACK_TARGET}
   WORKING_DIRECTORY ${SNAP_BINARY_DIR}

@@ -8,6 +8,11 @@ on:
         description: 'Enable tmate debugging'
         required: false
         default: false
+      debug_preqt_enabled:
+        type: boolean
+        description: 'Enable tmate debugging before Qt install'
+        required: false
+        default: false
       use_cached_itksnap_build:
         type: boolean
         description: 'Use cached ITK-SNAP build'
@@ -38,11 +43,11 @@ jobs:
         os: [ubuntu-latest,macos-13,macos-14,windows-2022]
         itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.3.1' ]
-        qt_ver: [ '6.6.3' ]
+        qt_ver: [ '6.8.1' ]
         include:
           - os: ubuntu-latest
             qt_host: linux
-            qt_arch: gcc_64
+            qt_arch: linux_gcc_64
             ctest_cmd: xvfb-run -a ctest
           - os: macos-13
             qt_host: mac
@@ -54,7 +59,7 @@ jobs:
             ctest_cmd: ctest
           - os: windows-2022
             qt_host: windows
-            qt_arch: win64_msvc2019_64
+            qt_arch: win64_msvc2022_64
             ctest_cmd: ctest
 
     steps:
@@ -72,21 +77,25 @@ jobs:
       - name: Install System Packages
         uses: ConorMacBride/install-package@v1
         with:
-          # brew: 
-          apt: libcurl4-openssl-dev
+          brew: libssh
+          apt: libcurl4-openssl-dev libssh-dev
           choco: nsis
 
-      # Install curl on Windows
+      # Install curl and libssh on Windows
       - name: Install libcurl on Windows
         uses: johnwason/vcpkg-action@v6
         id: vcpkg
         if: ${{ runner.os == 'Windows' }}
         with:
-          pkgs: curl
+          pkgs: curl libssh zlib 
           triplet: x64-windows-release
           token: ${{ github.token }}
           github-binarycache: false
     
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_preqt_enabled }}
+
       # Install Qt
       - name: Install Qt on Ubuntu
         uses: jurplel/install-qt-action@v4
@@ -96,6 +105,7 @@ jobs:
           host: ${{ matrix.qt_host }}
           arch: ${{ matrix.qt_arch }}
           cache: true
+          extra: '--timeout 60'
 
       # Use cached VTK build if available
       - name: Restore VTK Cache
@@ -132,6 +142,7 @@ jobs:
             VTK_GROUP_ENABLE_Qt:STRING=YES
             VTK_MODULE_ENABLE_VTK_GUISupportQtQuick:STRING=NO
             VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
+            VTK_MODULE_ENABLE_VTK_RenderingExternal:STRING=WANT
             CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
             ${{ runner.os == 'Windows' && 'VTK_SMP_ENABLE_STDTHREAD=OFF' || '' }}
@@ -356,7 +367,7 @@ jobs:
           echo "StrictHostKeyChecking=no" >> $HOME/.ssh/config
           echo "BatchMode=yes" >> $HOME/.ssh/config
           echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
-          cmake -DSCP_ARGUMENTS=-v -DSCP_USERNAME=$USER .
+          cmake -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
 
       - name: Upload named release to sourceforge

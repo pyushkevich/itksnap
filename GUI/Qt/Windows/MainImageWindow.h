@@ -31,7 +31,6 @@
 #include "GlobalState.h"
 #include "SNAPCommon.h"
 
-class GenericSliceView;
 class SliceViewPanel;
 class GlobalUIModel;
 class QDockWidget;
@@ -119,6 +118,9 @@ public:
 
   // Get the layer inspector
   LayerInspectorDialog *GetLayerInspector();
+
+  // Get the preferences dialog
+  PreferencesDialog *GetPreferencesDialog() const;
 
   /** Check for updates (automatically at regular periods) */
   void UpdateAutoCheck();
@@ -378,6 +380,7 @@ private:
   void UpdateLayerLayoutActions();
   void UpdateSelectedLayerActions();
   void UpdateDICOMContentsMenu();
+  void UpdateViewPanelVisibility();
 
   // Raise a dialog (equivalent to calling show, raise, activateWindow)
   void RaiseDialog(QDialog *dialog);

@@ -86,7 +86,7 @@ public:
   itkTypeMacro(ParallelSparseFieldLevelSetImageFilterBugFix,
                itk::ParallelSparseFieldLevelSetImageFilter)
 
-  virtual TimeStepType ThreadedCalculateChange(itk::ThreadIdType ThreadId) ITK_OVERRIDE
+  virtual TimeStepType ThreadedCalculateChange(itk::ThreadIdType ThreadId) override
   {
     TimeStepType ts = Superclass::ThreadedCalculateChange(ThreadId);
     if(ThreadId > 0 && this->m_Data[ThreadId].m_Count == 0)

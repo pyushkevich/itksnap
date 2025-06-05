@@ -13,7 +13,7 @@ class ColorMapInteractionDelegate : public QtInteractionDelegateWidget
   Q_OBJECT
 
 public:
-  explicit ColorMapInteractionDelegate(QWidget *parent = 0);
+  explicit ColorMapInteractionDelegate(QWidget *parent, QWidget *canvasWidget);
 
   void mousePressEvent(QMouseEvent *);
   void mouseReleaseEvent(QMouseEvent *);

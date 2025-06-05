@@ -51,7 +51,7 @@ public:
   itkGetInputMacro(LookupTable, LookupTableType)
 
   /** The actual work */
-  void DynamicThreadedGenerateData(const OutputRegionType &region) ITK_OVERRIDE;
+  void DynamicThreadedGenerateData(const OutputRegionType &region) override;
 
   /** Process a single pixel */
   OutputPixelType MapPixel(const InputPixelType &pixel);

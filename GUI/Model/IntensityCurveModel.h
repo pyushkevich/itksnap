@@ -122,8 +122,8 @@ public:
   void SetViewportReporter(ViewportSizeReporter *vr);
 
   // Implementation of virtual functions from parent class
-  void RegisterWithLayer(WrapperBase *layer) ITK_OVERRIDE;
-  void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) ITK_OVERRIDE;
+  void RegisterWithLayer(WrapperBase *layer) override;
+  void UnRegisterFromLayer(WrapperBase *layer, bool being_deleted) override;
 
   /**
     States in which the model can be, which allow the activation and
@@ -187,7 +187,7 @@ public:
 
 
   /** Update the model in response to upstream events */
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   // Access the models
   irisGetMacro(MovingControlXYModel, AbstractRangedDoubleVec2Property *)

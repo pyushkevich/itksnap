@@ -1,4 +1,7 @@
 #include "PolygonDrawingModel.h"
+#include "DeepLearningSegmentationModel.h"
+#include "GenericImageData.h"
+#include "GlobalUIModel.h"
 #include "PolygonScanConvert.h"
 #include <iostream>
 #include <cstdlib>
@@ -7,6 +10,7 @@
 #include <vnl/vnl_random.h>
 
 #include "GenericSliceModel.h"
+#include "PolygonSettingsModel.h"
 #include "itkImage.h"
 #include "itkPointSet.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
@@ -35,7 +39,6 @@ PolygonDrawingModel
   m_HoverOverFirstVertex = false;
 
   m_FreehandFittingRateModel = NewRangedConcreteProperty(DefaultFreehandFittingRate, 0.0, 100.0, 1.0);
-
 }
 
 PolygonDrawingModel
@@ -628,15 +631,14 @@ bool PolygonVertexTest(const PolygonVertex &v1, const PolygonVertex &v2)
  * m_State == INACTIVE_STATE
  */
 void
-PolygonDrawingModel
-::AcceptPolygon(std::vector<IRISWarning> &warnings)
+PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
 {
   assert(m_State == EDITING_STATE);
 
   // Allocate the polygon to match current image size. This will only
   // allocate new memory if the slice size changed
-  itk::Size<2> sz = {{ (itk::SizeValueType) m_Parent->GetSliceSize()[0],
-                       (itk::SizeValueType) m_Parent->GetSliceSize()[1] }};
+  itk::Size<2> sz = { { (itk::SizeValueType)m_Parent->GetSliceSize()[0],
+                        (itk::SizeValueType)m_Parent->GetSliceSize()[1] } };
   m_PolygonSlice->SetRegions(sz);
   m_PolygonSlice->Allocate();
 
@@ -647,48 +649,86 @@ PolygonDrawingModel
   // Are we rendering into a 2D slice or into a rotated 3D volume?
   LabelImageWrapper *seg = this->m_Parent->GetDriver()->GetSelectedSegmentationLayer();
 
-  if(!seg->ImageSpaceMatchesReferenceSpace())
-    {
+  if (!seg->ImageSpaceMatchesReferenceSpace())
+  {
     std::vector<Vector2d> vts2d;
     for (auto &v : m_Vertices)
       vts2d.push_back(Vector2d(v.x, v.y));
 
     bool invert = m_Parent->GetDriver()->GetGlobalState()->GetPolygonInvert();
     m_Parent->Voxelize2DPolygonToSegmentationSlice(vts2d, "Oblique Polygon Drawing", invert, false);
-    }
+  }
   else
-    {
+  {
     // There may still be duplicates in the array, in which case we should
     // add a tiny offset to them. Thanks to Jeff Tsao for this bug fix!
-    std::set< std::pair<double, double> > xVertexSet;
-    vnl_random rnd;
-    for(VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
+    std::set<std::pair<double, double>> xVertexSet;
+    vnl_random                          rnd;
+    for (VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
+    {
+      while (xVertexSet.find(make_pair(it->x, it->y)) != xVertexSet.end())
       {
-      while(xVertexSet.find(make_pair(it->x, it->y)) != xVertexSet.end())
-        {
         it->x += 0.0001 * rnd.drand32(-1.0, 1.0);
         it->y += 0.0001 * rnd.drand32(-1.0, 1.0);
-        }
-      xVertexSet.insert(make_pair(it->x, it->y));
       }
+      xVertexSet.insert(make_pair(it->x, it->y));
+    }
 
     // Scan convert the points into the slice
     typedef PolygonScanConvert<PolygonSliceType, float, VertexIterator> ScanConvertType;
 
-    ScanConvertType::RasterizeFilled(
-      m_Vertices.begin(), m_Vertices.size(), m_PolygonSlice);
+    ScanConvertType::RasterizeFilled(m_Vertices.begin(), m_Vertices.size(), m_PolygonSlice);
 
     // Apply the segmentation to the main segmentation
     int nUpdates = m_Parent->MergeSliceSegmentation(m_PolygonSlice);
-    if(nUpdates == 0)
+    if (nUpdates == 0)
+    {
+      warnings.push_back(IRISWarning("Warning: No voxels updated."
+                                     "No voxels in the segmentation image were changed as the "
+                                     "result of accepting this polygon. Check that the foreground "
+                                     "and background labels are set correctly."));
+    }
+
+    auto *ps = this->m_Parent->GetParentUI()->GetPolygonSettingsModel();
+    if (ps->GetDeepLearningMode())
+    {
+      IRISApplication   *driver = m_Parent->GetDriver();
+      GlobalState       *gs = driver->GetGlobalState();
+      LabelImageWrapper *seg = driver->GetSelectedSegmentationLayer();
+
+      // Undo the drawing we just did
+      seg->StoreUndoPoint("Temporary undo point");
+      seg->Undo();
+      auto &commit =
+        seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
+
+      // Compute the delta from the last commit
+      SmartPtr<LabelImageWrapper> w_delta = LabelImageWrapper::New();
+      w_delta->InitializeToWrapper(seg, (LabelType)0);
+      auto *img_delta = const_cast<LabelImageWrapper::ImageType *>(w_delta->GetImage());
+      auto  counts = seg->GenerateImageForRedo(commit, img_delta, gs->GetDrawingColorLabel());
+      w_delta->PixelsModified();
+
+      // Perform the lasso interaction
+      auto *dlm = this->GetParent()->GetParentUI()->GetDeepLearningSegmentationModel();
+      auto *img = driver->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
+
+      // Catch exceptions from the deep learning model
+      try
       {
-      warnings.push_back(
-            IRISWarning("Warning: No voxels updated."
-                        "No voxels in the segmentation image were changed as the "
-                        "result of accepting this polygon. Check that the foreground "
-                        "and background labels are set correctly."));
+        dlm->PerformLassoInteraction(img, w_delta, counts.n_background > counts.n_foreground);
+
+        // Store the correct undo point
+        driver->GetSelectedSegmentationLayer()->StoreUndoPoint("nnInteractive Lasso operation");
+        driver->RecordCurrentLabelUse();
+        driver->InvokeEvent(SegmentationChangeEvent());
+      }
+      catch(IRISException &exc)
+      {
+        warnings.push_back((IRISWarning(exc.what())));
       }
     }
+  }
 
   // Copy polygon into polygon m_Cache
   m_CachedPolygon = true;
@@ -703,52 +743,49 @@ PolygonDrawingModel
   InvokeEvent(StateMachineChangeEvent());
 }
 
-/**
- * PastePolygon()
- *
- * purpose:
- * copy the m_Cached polygon to the edited polygon
- *
- * pre:
- * m_CachedPolygon == 1
- * m_State == INACTIVE_STATE
- *
- * post:
- * m_State == EDITING_STATE
- */
-void
-PolygonDrawingModel
-::PastePolygon(void)
-{
-  // Copy the cache into the vertices
-  m_Vertices = m_Cache;
+  /**
+   * PastePolygon()
+   *
+   * purpose:
+   * copy the m_Cached polygon to the edited polygon
+   *
+   * pre:
+   * m_CachedPolygon == 1
+   * m_State == INACTIVE_STATE
+   *
+   * post:
+   * m_State == EDITING_STATE
+   */
+  void PolygonDrawingModel ::PastePolygon(void)
+  {
+    // Copy the cache into the vertices
+    m_Vertices = m_Cache;
 
-  // Select everything
-  for(VertexIterator it = m_Vertices.begin(); it!=m_Vertices.end();++it)
-    it->selected = false;
+    // Select everything
+    for (VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
+      it->selected = false;
 
-  // Set the state
-  m_SelectedVertices = false;
-  SetState(EDITING_STATE);
+    // Set the state
+    m_SelectedVertices = false;
+    SetState(EDITING_STATE);
 
-  // Compute the edit box
-  ComputeEditBox();
-  InvokeEvent(StateMachineChangeEvent());
-}
+    // Compute the edit box
+    ComputeEditBox();
+    InvokeEvent(StateMachineChangeEvent());
+  }
 
 
-/**
- * Check if a click is within k pixels of a vertex, if so select the vertices
- * of that line segment
- */
-bool
-PolygonDrawingModel
-::CheckClickOnVertex(double x, double y, double pixel_x, double pixel_y, int k)
-{
-  // check if clicked within 4 pixels of a node (use closest node)
-  VertexIterator itmin = m_Vertices.end();
-  double distmin = k;
-  for(VertexIterator it = m_Vertices.begin(); it!=m_Vertices.end(); ++it)
+  /**
+   * Check if a click is within k pixels of a vertex, if so select the vertices
+   * of that line segment
+   */
+  bool PolygonDrawingModel ::CheckClickOnVertex(
+    double x, double y, double pixel_x, double pixel_y, int k)
+  {
+    // check if clicked within 4 pixels of a node (use closest node)
+    VertexIterator itmin = m_Vertices.end();
+    double         distmin = k;
+    for (VertexIterator it = m_Vertices.begin(); it != m_Vertices.end(); ++it)
     {
     Vector2d A(it->x / pixel_x, it->y / pixel_y);
     Vector2d C(x / pixel_x, y / pixel_y);

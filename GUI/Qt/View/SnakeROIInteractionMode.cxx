@@ -1,15 +1,10 @@
 #include "SnakeROIInteractionMode.h"
-#include "GenericSliceView.h"
 #include "SnakeROIModel.h"
 #include "SnakeROIRenderer.h"
 
-SnakeROIInteractionMode::SnakeROIInteractionMode(GenericSliceView *parent)
-  : SliceWindowInteractionDelegateWidget(parent)
+SnakeROIInteractionMode::SnakeROIInteractionMode(QWidget *parent, QWidget *canvasWidget)
+  : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
-  // Create the renderer
-  m_Renderer = SnakeROIRenderer::New();
-  m_Renderer->SetParentRenderer(
-        static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
 }
 
 SnakeROIInteractionMode::~SnakeROIInteractionMode()
@@ -20,7 +15,6 @@ SnakeROIInteractionMode::~SnakeROIInteractionMode()
 void SnakeROIInteractionMode::SetModel(SnakeROIModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   SetParentModel(model->GetParent());
 }
 
@@ -65,15 +59,11 @@ void SnakeROIInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
     }
 }
 
-#include <SliceViewPanel.h>
-
-void SnakeROIInteractionMode::enterEvent(QEvent *)
+void
+SnakeROIInteractionMode::enterEvent(QEnterEvent *)
 {
   m_Model->ProcessEnterEvent();
-
-  // TODO: this is hideous!
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
-  panel->SetMouseMotionTracking(true);
+  this->setMouseMotionTracking(true);
 }
 
 void SnakeROIInteractionMode::leaveEvent(QEvent *)
@@ -81,8 +71,7 @@ void SnakeROIInteractionMode::leaveEvent(QEvent *)
   if(!this->isDragging())
     m_Model->ProcessLeaveEvent();
 
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
-  panel->SetMouseMotionTracking(false);
+  this->setMouseMotionTracking(false);
 }
 
 

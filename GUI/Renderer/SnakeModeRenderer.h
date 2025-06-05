@@ -6,26 +6,24 @@
 
 class SnakeWizardModel;
 
-/**
-  This renderer draws SNAP-specific overlays
-  */
 class SnakeModeRenderer : public SliceRendererDelegate
 {
 public:
-
   irisITKObjectMacro(SnakeModeRenderer, SliceRendererDelegate)
-  irisGetSetMacro(Model, SnakeWizardModel *)
 
-  virtual void AddContextItemsToTiledOverlay(
-      vtkAbstractContextItem *parent, ImageWrapperBase *) override;
+  void RenderOverTiledLayer(AbstractRenderContext *context,
+                            ImageWrapperBase         *base_layer,
+                            const SubViewport        &vp) override;
+
+  irisGetSetMacro(Model, GenericSliceModel *)
 
 protected:
-
-  SnakeModeRenderer();
+  SnakeModeRenderer() {}
   virtual ~SnakeModeRenderer() {}
 
-  SnakeWizardModel *m_Model;
+  void DrawBubbles(AbstractRenderContext *context);
 
+  GenericSliceModel *m_Model;
 };
 
 #endif // SNAKEMODERENDERER_H

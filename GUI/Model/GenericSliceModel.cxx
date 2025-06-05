@@ -146,28 +146,29 @@ void GenericSliceModel
 }
 
 
-void GenericSliceModel::OnUpdate()
+void
+GenericSliceModel::OnUpdate()
 {
   // Has there been a change in the image dimensions?
-  if(m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
-    {
+  if (m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
+  {
     // Do a complete initialization
     this->InitializeSlice(m_Driver->GetCurrentImageData());
-    }
+  }
 
   // TODO: what is the ValueChangeEvent here???
-  else if(m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent())
-          || m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent())
-          || m_EventBucket->HasEvent(ValueChangedEvent()))
-    {
+  else if (m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent()) ||
+           m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()) ||
+           m_EventBucket->HasEvent(ValueChangedEvent()))
+  {
     // Recompute the viewport layout and dimensions
     this->UpdateViewportLayout();
 
     // We only react to the viewport resize if the zoom is not managed by the
     // coordinator. When zoom is managed, the coordinator will take care of
     // computing the optimal zoom and resetting the view
-    if(this->IsSliceInitialized() && !m_ManagedZoom)
-      {
+    if (this->IsSliceInitialized() && !m_ManagedZoom)
+    {
       // Check if the zoom should be changed in response to this operation. This
       // is so if the zoom is currently equal to the optimal zoom, and there is
       // no linked zoom
@@ -177,22 +178,24 @@ void GenericSliceModel::OnUpdate()
       this->ComputeOptimalZoom();
 
       // Keep zoom optimal if before it was optimal
-      if(rezoom)
+      if (rezoom)
         this->SetViewZoom(m_OptimalZoom);
-      }
     }
+  }
 
-  if(m_EventBucket->HasEvent(MainImageDimensionsChangeEvent())
-     || m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent())
-     || m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent())
-     || m_EventBucket->HasEvent(ValueChangedEvent())
-     || m_EventBucket->HasEvent(CursorUpdateEvent())
-     || m_EventBucket->HasEvent(SliceModelGeometryChangeEvent()))
-    {
+  if (m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()) ||
+      m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent()) ||
+      m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()) ||
+      m_EventBucket->HasEvent(ValueChangedEvent()) || m_EventBucket->HasEvent(CursorUpdateEvent()) ||
+      m_EventBucket->HasEvent(SliceModelGeometryChangeEvent()))
+  {
     // Viewport geometry pretty much   depends on everything!
-    if(m_SliceInitialized && m_ViewZoom > 1.e-7)
+    if (m_SliceInitialized && m_ViewZoom > 1.e-7)
+    {
       this->UpdateUpstreamViewportGeometry();
+      this->UpdateUpstreamThumbnailViewportGeometry();
     }
+  }
 }
 
 void GenericSliceModel::ComputeOptimalZoom()
@@ -601,9 +604,9 @@ void GenericSliceModel::ComputeThumbnailProperties()
   m_ThumbnailZoom = xNewFraction * m_OptimalZoom;
   m_ZoomThumbnailPosition.fill(5);
   m_ZoomThumbnailSize[0] =
-      (int)(m_SliceSize[0] * m_SliceSpacing[0] * m_ThumbnailZoom);
+      std::max(1, (int)(m_SliceSize[0] * m_SliceSpacing[0] * m_ThumbnailZoom));
   m_ZoomThumbnailSize[1] =
-      (int)(m_SliceSize[1] * m_SliceSpacing[1] * m_ThumbnailZoom);
+      std::max(1, (int)(m_SliceSize[1] * m_SliceSpacing[1] * m_ThumbnailZoom));
 }
 
 unsigned int GenericSliceModel::GetNumberOfSlices() const
@@ -972,7 +975,8 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
   GenericImageData *gid = this->GetImageData();
 
   // Get the display image spec corresponding to the current viewport
-  GenericImageData::ImageBaseType *dispimg = gid->GetDisplayViewportGeometry(this->GetId());
+  GenericImageData::ImageBaseType *dispimg =
+    gid->GetDisplayViewportGeometry(DisplaySliceIndex(this->GetId(), DISPLAY_SLICE_MAIN));
 
   // Get the primary viewport - this is what affects everything else
   SliceViewportLayout::SubViewport &vp = m_ViewportLayout.vpList.front();
@@ -1034,6 +1038,85 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
     for(int row = 0; row < 3; row++)
       dir(row, col) = dirvec[row];
     }
+
+  // Set all of the parameters for the reference image
+  dispimg->SetSpacing(spacing);
+  dispimg->SetOrigin(to_itkPoint(origin));
+  dispimg->SetDirection(dir);
+  dispimg->SetRegions(region);
+}
+
+void
+GenericSliceModel::UpdateUpstreamThumbnailViewportGeometry()
+{
+  // In this function, we have to figure out where the active viewport
+  // is located in the physical image space of ITK-SNAP.
+  GenericImageData *gid = this->GetImageData();
+
+  // Get the display image spec corresponding to the current viewport
+  GenericImageData::ImageBaseType *dispimg =
+    gid->GetDisplayViewportGeometry(DisplaySliceIndex(this->GetId(), DISPLAY_SLICE_THUMBNAIL));
+
+  // Get the viewport for the zoom thumbnail
+  this->ComputeThumbnailProperties();
+
+  // The size of the viewport matches the size of the zoom thumbnail
+  GenericImageData::RegionType region;
+  region.SetSize(0, m_ZoomThumbnailSize[0]);
+  region.SetSize(1, m_ZoomThumbnailSize[1]);
+  region.SetSize(2, 1);
+
+  // Define the corners of the zoom thumbnail
+
+  // The spacing of the viewport in physical units. This refers to the size of each
+  // pixel. The easiest way to determine this is to map the edges of the viewport to
+  // physical image coordinates
+  Vector3d s[4];
+  Vector3d x[4];
+
+  // Map into slice coordinates, adding the third dimension
+  double z0 = this->GetCursorPositionInSliceCoordinates()[2];
+  double z1 = z0 + m_DisplayToImageTransform->GetCoordinateOrientation(2);
+  s[0] = Vector3d(0, 0, z0);
+  s[1] = Vector3d(this->GetSliceSize()[0], 0, z0);
+  s[2] = Vector3d(0, this->GetSliceSize()[1], z0);
+  s[3] = Vector3d(0, 0, z1);
+
+  // Map these four points into the physical image space
+  for (int i = 0; i < 4; i++)
+  {
+    // Shift by half-voxel in the in-plane dimensions
+    s[i][0] -= this->GetDisplayToImageTransform()->GetCoordinateOrientation(0) * 0.5;
+    s[i][1] -= this->GetDisplayToImageTransform()->GetCoordinateOrientation(1) * 0.5;
+
+    itk::ContinuousIndex<double, 3> j = to_itkContinuousIndex(this->MapSliceToImage(s[i]));
+    itk::Point<double, 3>           px;
+    gid->GetMain()->GetImageBase()->TransformContinuousIndexToPhysicalPoint(j, px);
+    x[i] = Vector3d(px);
+  }
+
+  // Spacing - divide the length of each edge by the size in voxels
+  GenericImageData::ImageBaseType::SpacingType spacing;
+  spacing[0] = (x[1] - x[0]).magnitude() / m_ZoomThumbnailSize[0];
+  spacing[1] = (x[2] - x[0]).magnitude() / m_ZoomThumbnailSize[1];
+  spacing[2] = (x[3] - x[0]).magnitude();
+
+  // Origin - the coordinates of the first point, plus a half-voxel
+  Vector3d origin = x[0];
+
+  // TODO: check this calculation
+  origin += (x[1] - x[0]) / (2.0 * m_ZoomThumbnailSize[0]);
+  origin += (x[2] - x[0]) / (2.0 * m_ZoomThumbnailSize[1]);
+  origin -= (x[3] - x[0]) / 2.0;
+
+  // Direction cosines - these are the normalized directions
+  GenericImageData::ImageBaseType::DirectionType dir;
+  for (int col = 0; col < 3; col++)
+  {
+    Vector3d dirvec = (x[col + 1] - x[0]).normalize();
+    for (int row = 0; row < 3; row++)
+      dir(row, col) = dirvec[row];
+  }
 
   // Set all of the parameters for the reference image
   dispimg->SetSpacing(spacing);
@@ -1125,7 +1208,7 @@ Vector3d GenericSliceModel::ComputeGridPosition(
     // Otherwise, the slice coordinates are relative to the rendered slice
     GenericImageData *gid = this->GetImageData();
     GenericImageData::ImageBaseType *dispimg =
-        gid->GetDisplayViewportGeometry(this->GetId());
+      gid->GetDisplayViewportGeometry(DisplaySliceIndex(this->GetId(), DISPLAY_SLICE_MAIN));
 
     // Use that image to transform coordinates
     itk::Point<double, 3> pPhys;

@@ -36,9 +36,9 @@ protected:
   /**
    * Generate the data - by selecting an input and presenting it as output
    */
-  void GenerateData() ITK_OVERRIDE;
+  void GenerateData() override;
 
-  void GenerateOutputInformation() ITK_OVERRIDE;
+  void GenerateOutputInformation() override;
 
 
 };

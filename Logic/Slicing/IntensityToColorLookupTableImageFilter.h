@@ -173,9 +173,9 @@ public:
   void SetReferenceIntensityRange(double min, double max);
   void RemoveReferenceIntensityRange();
 
-  virtual void AllocateOutputs() ITK_OVERRIDE;
+  virtual void AllocateOutputs() override;
 
-  virtual void GenerateInputRequestedRegion() ITK_OVERRIDE;
+  virtual void GenerateInputRequestedRegion() override;
 
   virtual void GenerateData() override;
 

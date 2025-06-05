@@ -326,7 +326,7 @@ public:
    * object. When the display viewport changes, this should be updated so
    * that the slices can be correctly generated in the ImageWrappers
    */
-  virtual ImageBaseType *GetDisplayViewportGeometry(int index);
+  virtual ImageBaseType *GetDisplayViewportGeometry(DisplaySliceIndex index);
 
   /**
    * Set the direction matrix of all the images
@@ -377,7 +377,10 @@ protected:
 
   // The complete specification of each display viewport as a 3D image in the same anatomical
   // space as the 3D images. This specification is used to sample images onto the viewport.
-  ImageBasePointer m_DisplayViewportGeometry[3];
+  DisplaySlicePipelineArray<ImageBaseType> m_DisplayViewportGeometry;
+
+  // Helper function to pass display viewport geometry to a wrapper
+  void AssignDisplayViewportGeometriesToLayer(ImageWrapperBase *layer);
 
   // Image annotations - these are distinct from segmentations
   SmartPtr<ImageAnnotationData> m_Annotations;

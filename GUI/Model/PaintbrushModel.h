@@ -12,20 +12,21 @@ class BrushWatershedPipeline;
 class PaintbrushModel : public AbstractModel
 {
 public:
-
   irisITKObjectMacro(PaintbrushModel, AbstractModel)
 
   itkEventMacro(PaintbrushMovedEvent, IRISEvent)
 
-  irisGetSetMacro(Parent, GenericSliceModel *)
+    irisGetSetMacro(Parent, GenericSliceModel *)
 
   irisIsMacro(MouseInside)
 
   FIRES(PaintbrushMovedEvent)
 
   bool ProcessPushEvent(const Vector3d &xSlice, const Vector2ui &gridCell, bool reverse_mode);
-  bool ProcessDragEvent(const Vector3d &xSlice, const Vector3d &xSliceLast,
-                        double pixelsMoved, bool release);
+  bool ProcessDragEvent(const Vector3d &xSlice,
+                        const Vector3d &xSliceLast,
+                        double          pixelsMoved,
+                        bool            release);
 
   bool ProcessMouseMoveEvent(const Vector3d &xSlice);
   bool ProcessMouseLeaveEvent();
@@ -43,16 +44,15 @@ public:
   bool TestInside(const Vector3d &x, const PaintbrushSettings &ps);
 
   // Getter and Setter for brush points
-  irisGetSetMacro(BrushPoints, vtkSmartPointer<vtkPoints2D>)
+  irisGetSetMacro(BrushPoints, std::vector<Vector2d>)
 
 protected:
-
   // Whether we are inverting the paintbrush when drawing
   bool m_ReverseMode;
 
   // Mouse position in voxel coordinates
   Vector3ui m_MousePosition;
-  bool m_MouseInside;
+  bool      m_MouseInside;
 
   // Mouse position in slice coordinates from which we need to draw the
   // next segment
@@ -68,15 +68,18 @@ protected:
   virtual ~PaintbrushModel();
 
   Vector3d ComputeOffset();
-  void ComputeMousePosition(const Vector3d &xSlice);
+  void     ComputeMousePosition(const Vector3d &xSlice);
 
-  bool ApplyBrush(bool reverse_mode, bool dragging);
+  bool ApplyBrush(bool reverse_mode, bool dragging, bool release);
+  void CommitDrawing();
 
-  GenericSliceModel *m_Parent;
+  bool ApplyBrushDeepLearning(bool reverse_mode);
+
+  GenericSliceModel      *m_Parent;
   BrushWatershedPipeline *m_Watershed;
 
   // Stores the brush points built by the renderer
-  vtkSmartPointer<vtkPoints2D> m_BrushPoints;
+  std::vector<Vector2d> m_BrushPoints;
 
   // Apply brush logic if main is transformed
   // Returns true if changes were made

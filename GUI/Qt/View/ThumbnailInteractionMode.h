@@ -36,21 +36,21 @@ class ThumbnailInteractionMode : public SliceWindowInteractionDelegateWidget
   Q_OBJECT
 
 public:
-  explicit ThumbnailInteractionMode(GenericSliceView *parent = 0);
+  explicit ThumbnailInteractionMode(QWidget *parent, QWidget *canvasWidget);
 
   void SetModel(OrthogonalSliceCursorNavigationModel *model);
 
-  void mousePressEvent(QMouseEvent *ev);
-  void mouseMoveEvent(QMouseEvent *);
-  void mouseReleaseEvent(QMouseEvent *);
-  void contextMenuEvent(QContextMenuEvent *ev);
-  void enterEvent(QEvent *);
-  void leaveEvent(QEvent *);
+  virtual void mousePressEvent(QMouseEvent *ev) override;
+  virtual void mouseMoveEvent(QMouseEvent *) override;
+  virtual void mouseReleaseEvent(QMouseEvent *) override;
+  virtual void contextMenuEvent(QContextMenuEvent *ev) override;
+  virtual void enterEvent(QEnterEvent *) override;
+  virtual void leaveEvent(QEvent *) override;
 
 public slots:
 
   void onContextMenuRequested(const QPoint &pt);
-  virtual void onModelUpdate(const EventBucket &bucket);
+  virtual void onModelUpdate(const EventBucket &bucket) override;
 
 private:
 

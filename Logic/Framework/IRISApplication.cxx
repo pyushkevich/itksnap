@@ -38,6 +38,9 @@
 #include "SNAPBorlandDummyTypes.h"
 #endif
 
+#include "itkLabelMap.h"
+#include "itkStatisticsLabelObject.h"
+#include "itkLabelImageToStatisticsLabelMapFilter.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "GlobalState.h"
@@ -59,6 +62,7 @@
 #include "itkImageFileWriter.h"
 #include "itkFlipImageFilter.h"
 #include "itkConstantBoundaryCondition.h"
+
 #include <itksys/SystemTools.hxx>
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"
@@ -877,6 +881,51 @@ IRISApplication
         m_GlobalState->GetDrawOverFilter());
 }
 
+
+bool
+IRISApplication::LocateLabelCenterOfMass(LabelType label)
+{
+  // Start the label image iteration
+  auto *seg = this->GetSelectedSegmentationLayer();
+  LabelImageWrapper::ConstIterator itLabel = seg->GetImageConstIterator();
+  itk::ImageRegion<3> region = itLabel.GetRegion();
+
+  // Cache the entry to avoid many calls to std::map
+  LabelType runLabel = 0;
+  long runLength = 0;
+
+  // Compute the center of mass
+  Vector3d x(0.0);
+  int n = 0;
+  for( ; !itLabel.IsAtEnd(); ++itLabel, ++runLength)
+  {
+    // Get the label and the corresponding entry (use cache to reduce time wasted in std::map)
+    if(label == itLabel.Value())
+    {
+      auto idx = itLabel.GetIndex();
+      for(unsigned int i = 0; i < 3; i++)
+        x[i] += idx[i];
+      n++;
+    }
+  }
+
+  if(n > 0)
+  {
+    Vector3ui cursor;
+    for (unsigned int i = 0; i < 3; ++i)
+      cursor[i] = static_cast<unsigned int>(std::round(x[i] / n));
+
+    this->SetCursorPosition(cursor, false);
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+
+  return true;
+}
+
 void
 IRISApplication
 ::ClearUndoPoints()
@@ -1034,41 +1083,42 @@ IRISApplication::GetAnatomicalDirectionForDisplayWindow(int iWin) const
 }
 
 void
-IRISApplication
-::ExportSlice(AnatomicalDirection iSliceAnat, const char *file)
+IRISApplication ::ExportSlice(AnatomicalDirection iSliceAnat, const char *file)
 {
   // Get the slice index in image coordinates
-  size_t iSliceImg = 
-    GetImageDirectionForAnatomicalDirection(iSliceAnat);
+  size_t iSliceImg = GetImageDirectionForAnatomicalDirection(iSliceAnat);
 
   // TODO: should this not export using the default scalar representation,
   // rather than RGB? Not sure...
 
   // Find the slicer that slices along that direction
   typedef ImageWrapperBase::DisplaySliceType SliceType;
-  SmartPtr<SliceType> imgGrey = NULL;
-  for(size_t i = 0; i < 3; i++)
+  SmartPtr<SliceType>                        imgGrey = NULL;
+  for (size_t i = 0; i < 3; i++)
+  {
+    if (iSliceImg == m_CurrentImageData->GetMain()->GetDisplaySliceImageAxis(i))
     {
-    if(iSliceImg == m_CurrentImageData->GetMain()->GetDisplaySliceImageAxis(i))
-      {
-      imgGrey = m_CurrentImageData->GetMain()->GetDisplaySlice(i);
+      imgGrey =
+        m_CurrentImageData->GetMain()->GetDisplaySlice(DisplaySliceIndex(i, DISPLAY_SLICE_MAIN));
       break;
-      }
     }
-  assert(imgGrey);
+  }
+
+  itkAssertOrThrowMacro(imgGrey, "Failed to generate slice for export");
 
   // Flip the image in the Y direction
   typedef itk::FlipImageFilter<SliceType> FlipFilter;
-  FlipFilter::Pointer fltFlip = FlipFilter::New();
+  FlipFilter::Pointer                     fltFlip = FlipFilter::New();
   fltFlip->SetInput(imgGrey);
-  
+
   FlipFilter::FlipAxesArrayType arrFlips;
-  arrFlips[0] = false; arrFlips[1] = true;
+  arrFlips[0] = false;
+  arrFlips[1] = true;
   fltFlip->SetFlipAxes(arrFlips);
 
   // Create a writer for saving the image
   typedef itk::ImageFileWriter<SliceType> WriterType;
-  WriterType::Pointer writer = WriterType::New();
+  WriterType::Pointer                     writer = WriterType::New();
   writer->SetInput(fltFlip->GetOutput());
   writer->SetFileName(file);
   writer->Update();
@@ -1658,9 +1708,6 @@ IRISApplication
   if(layer->IsSticky())
     layer->SetSticky(false);
 
-  // Fire the dimensions change event
-  InvokeEvent(MainImageDimensionsChangeEvent());
-
   // Update the crosshairs position to the center of the image
   this->SetCursorPosition(layer->GetSize() / 2u);
 
@@ -1691,6 +1738,9 @@ IRISApplication
 
   // Reset timepoint properties
   m_IRISImageData->GetTimePointProperties()->CreateNewData();
+
+  // Fire the dimensions change event
+  InvokeEvent(MainImageDimensionsChangeEvent());
 }
 
 void IRISApplication::LoadMetaDataAssociatedWithLayer(

@@ -1,12 +1,9 @@
 #include "PolygonDrawingInteractionMode.h"
-#include "PolygonDrawingRenderer.h"
 #include "PolygonDrawingModel.h"
 #include "QtWarningDialog.h"
 #include "QtWidgetActivator.h"
+#include "GenericSliceModel.h"
 #include "IRISApplication.h"
-#include "GlobalState.h"
-#include "GenericSliceView.h"
-
 #include <QMenu>
 
 QAction *setupAction(PolygonDrawingInteractionMode *w, QMenu *menu,
@@ -31,13 +28,9 @@ QAction *setupAction(PolygonDrawingInteractionMode *w, QMenu *menu,
 }
 
 
-PolygonDrawingInteractionMode
-::PolygonDrawingInteractionMode(GenericSliceView *parent) :
-    SliceWindowInteractionDelegateWidget(parent)
+PolygonDrawingInteractionMode ::PolygonDrawingInteractionMode(QWidget *parent, QWidget *canvasWidget)
+  : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
 {
-  m_Renderer = PolygonDrawingRenderer::New();
-  m_Renderer->SetParentRenderer(
-        static_cast<GenericSliceRenderer *>(parent->GetRenderer()));
   m_Model = NULL;
 }
 
@@ -52,7 +45,6 @@ PolygonDrawingInteractionMode
 ::SetModel(PolygonDrawingModel *model)
 {
   m_Model = model;
-  m_Renderer->SetModel(model);
   SetParentModel(model->GetParent());
 
   // Listen to events in the model (update buttons)
@@ -92,9 +84,7 @@ void PolygonDrawingInteractionMode::mouseMoveEvent(QMouseEvent *ev)
     if(m_Model->ProcessMouseMoveEvent(m_XSlice(0), m_XSlice(1)))
       {
       ev->accept();
-      // TODO: commenting out for now because calling Render outside of GL context causes problems
-      // m_ParentView->GetRenderWindow()->Render();
-      m_ParentView->update();
+      this->updateClient();
       }
     }
 }
@@ -135,9 +125,6 @@ void PolygonDrawingInteractionMode::onPastePolygon()
 
 void PolygonDrawingInteractionMode::onAcceptPolygon()
 {
-  // Make current GL context current before running any GL operations
-  QtVTKRenderWindowBox *parent = this->GetParentGLWidget();
-
   // Create a warning list
   std::vector<IRISWarning> warnings;
 
@@ -194,19 +181,15 @@ void PolygonDrawingInteractionMode::onCancelDrawing()
   m_Model->Reset();
 }
 
-#include <SliceViewPanel.h>
-
-void PolygonDrawingInteractionMode::enterEvent(QEvent *)
+void
+PolygonDrawingInteractionMode::enterEvent(QEnterEvent *)
 {
-  // TODO: this is hideous!
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
-  panel->SetMouseMotionTracking(true);
+  this->setMouseMotionTracking(true);
 }
 
 void PolygonDrawingInteractionMode::leaveEvent(QEvent *)
 {
-  SliceViewPanel *panel = dynamic_cast<SliceViewPanel *>(m_ParentView->parent());
-  panel->SetMouseMotionTracking(false);
+  this->setMouseMotionTracking(false);
 }
 
 

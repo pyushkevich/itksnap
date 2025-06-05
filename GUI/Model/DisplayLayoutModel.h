@@ -140,7 +140,7 @@ protected:
   // Thumbnail size
   SmartPtr<ConcreteRangedDoubleProperty> m_ThumbnailRelativeSizeModel;
 
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   DisplayLayoutModel();
   virtual ~DisplayLayoutModel() {}

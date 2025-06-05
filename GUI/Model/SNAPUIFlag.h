@@ -32,7 +32,7 @@ public:
     return p;
   }
 
-  bool operator() () const ITK_OVERRIDE
+  bool operator() () const override
   {
     if(m_Model)
       return m_Model->CheckState(m_State);

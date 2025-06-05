@@ -2,10 +2,12 @@
 #define SYNCHRONIZATIONMODEL_H
 
 #include "PropertyModel.h"
+#include <itkCommand.h>
 
 class GlobalUIModel;
 class SystemInterface;
 class IPCHandler;
+class AbstractSharedMemorySystemInterface;
 
 /**
  * @brief Model that interfaces with the GUI controls that handle
@@ -17,6 +19,12 @@ public:
   irisITKObjectMacro(SynchronizationModel, AbstractModel)
 
   void SetParentModel(GlobalUIModel *parent);
+
+  /** Pass a system object that is used to make IPC calls */
+  void SetSystemInterface(AbstractSharedMemorySystemInterface *si);
+
+  /** Force detach - do this in a crash */
+  void ForceDetach();
 
   /** Models controlling sync state */
   irisSimplePropertyAccessMacro(SyncEnabled, bool)
@@ -37,15 +45,18 @@ public:
    * flag depending on whether the window is active or not */
   irisGetSetMacro(CanBroadcast, bool)
 
+  /** Enable sync debugging */
+  irisGetSetMacro(DebugSync, bool)
+
   /** This method should be called by UI at regular intervals to read IPC state */
-  void ReadIPCState();
+  void ReadIPCState(bool only_read_new=true);
 
 protected:
 
   SynchronizationModel();
   virtual ~SynchronizationModel();
 
-  virtual void OnUpdate() ITK_OVERRIDE;
+  virtual void OnUpdate() override;
 
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncEnabledModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncCursorModel;
@@ -62,9 +73,10 @@ protected:
   GlobalUIModel *m_Parent;
   SystemInterface *m_SystemInterface;
   unsigned long m_WarpLayerId;
-  IPCHandler *m_IPCHandler;
+  IPCHandler *m_IPCHandler = nullptr;
 
   bool m_CanBroadcast;
+  bool m_DebugSync = false;
 };
 
 #endif // SYNCHRONIZATIONMODEL_H
