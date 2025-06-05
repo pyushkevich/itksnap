@@ -22,9 +22,30 @@ class CURLSHCookieJar;
 
 namespace dls_model {
 
+enum NetworkStatusEnum
+{
+  NETWORK_NOT_CONNECTED = 0,
+  NETWORK_CHECKING,
+  NETWORK_CONNECTED
+};
+
+enum TunnelStatusEnum
+{
+  TUNNEL_ESTABLISHING = 0,
+  TUNNEL_FAILED,
+  TUNNEL_CREATED
+};
+
+enum LocalServerStatusEnum
+{
+  LOCAL_SERVER_STARTING = 0,
+  LOCAL_SERVER_FAILED,
+  LOCAL_SERVER_ESTABLISHED
+};
+
 /** Status of the authorization */
 enum ConnectionStatusEnum {
-  CONN_NO_SERVER,
+  CONN_NO_SERVER = 0,
   CONN_TUNNEL_ESTABLISHING,
   CONN_TUNNEL_FAILED,
   CONN_LOCAL_SERVER_STARTING,
@@ -34,19 +55,29 @@ enum ConnectionStatusEnum {
   CONN_CONNECTED
 };
 
-/** Structure describing the connection status */
-struct ConnectionStatus
+/** Structure combining status with error/success states */
+template <class TEnum>
+struct Status
 {
-  ConnectionStatusEnum status = CONN_NOT_CONNECTED;
-  std::string server_version, error_message;
+  TEnum       status;
+  std::string message;
 
-  bool operator != (const ConnectionStatus &o) const
-   { return status != o.status
-            || error_message != o.error_message
-            || server_version != o.server_version; }
+  bool operator!=(const Status<TEnum> &o) const
+  {
+    return status != o.status || message != o.message;
+  }
 
-   ConnectionStatus(ConnectionStatusEnum s = CONN_NOT_CONNECTED) : status(s) {}
+  Status(TEnum       s = static_cast<TEnum>(0),
+         std::string m = std::string())
+    : status(s)
+    , message(m)
+  {}
 };
+
+using ConnectionStatus = Status<ConnectionStatusEnum>;
+using NetworkStatus = Status<NetworkStatusEnum>;
+using TunnelStatus = Status<TunnelStatusEnum>;
+using LocalServerStatus = Status<LocalServerStatusEnum>;
 
 }
 
@@ -156,7 +187,16 @@ public:
   /** Is there a current server */
   irisSimplePropertyAccessMacro(IsServerConfigured, bool)
 
-  /** Server status */
+  /** Status of the network connection */
+  irisSimplePropertyAccessMacro(NetworkStatus, dls_model::NetworkStatus)
+
+  /** Status of the network connection */
+  irisSimplePropertyAccessMacro(TunnelStatus, dls_model::TunnelStatus)
+
+  /** Status of the network connection */
+  irisSimplePropertyAccessMacro(LocalServerStatus, dls_model::LocalServerStatus)
+
+  /** Overall status of the server connection (derived from specific statuses) */
   irisSimplePropertyAccessMacro(ServerStatus, dls_model::ConnectionStatus)
 
   /** The actual hostname and port of the server - may be localhost if tunneling */
@@ -181,7 +221,7 @@ public:
   void DeleteCurrentServer();
 
   /** Status check: includes a hash of the server for which the check was issued and status */
-  using StatusCheck = std::pair<std::string, dls_model::ConnectionStatus>;
+  using StatusCheck = std::pair<std::string, dls_model::NetworkStatus>;
 
   /**
    * Start local server, if applicable. If the selected server is local, this will start
@@ -219,6 +259,9 @@ public:
     return this->PerformScribbleOrLassoInteraction("process_lasso_interaction", layer, seg, reverse);
   }
 
+  /** Reset all statuses and proxy URL to inital state */
+  void ResetConnection();
+
 protected:
   DeepLearningSegmentationModel();
   virtual ~DeepLearningSegmentationModel();
@@ -248,13 +291,18 @@ protected:
   // Proxy URL - used when tunneling is enabled
   SmartPtr<ConcreteSimpleStringProperty> m_ProxyURLModel;
 
+  // Status is broken into several parts and used to generate the overall status
+
+
   // Server status
+  SmartPtr<ConcretePropertyModel<dls_model::NetworkStatus, TrivialDomain>> m_NetworkStatusModel;
+  SmartPtr<ConcretePropertyModel<dls_model::TunnelStatus, TrivialDomain>> m_TunnelStatusModel;
+  SmartPtr<ConcretePropertyModel<dls_model::LocalServerStatus, TrivialDomain>> m_LocalServerStatusModel;
+
   typedef AbstractPropertyModel<dls_model::ConnectionStatus, TrivialDomain> ServerStatusModelType;
   SmartPtr<ServerStatusModelType> m_ServerStatusModel;
 
   bool GetServerStatusValue(dls_model::ConnectionStatus &value);
-  void SetServerStatusValue(dls_model::ConnectionStatus value);
-  dls_model::ConnectionStatus m_ServerStatus;
 
   // Current progress
   SmartPtr<ConcreteRangedDoubleProperty> m_ServerProgressModel;
@@ -301,6 +349,8 @@ protected:
 
   // Local server delegate
   AbstractLocalDeepLearningServerDelegate *m_LocalServerDelegate = nullptr;
+
+  dls_model::ConnectionStatus MergeStatuses();
 };
 
 

@@ -3,6 +3,7 @@
 
 #include "DeepLearningServerEditor.h"
 #include "QProcessOutputTextWidget.h"
+#include "QtPagedWidgetCoupling.h"
 #include "QtRadioButtonCoupling.h"
 #include "ui_DeepLearningServerEditor.h"
 
@@ -79,16 +80,44 @@ PythonFinderWorker::findPythonInterpreters()
   emit interpretersFound(interpreters);
 }
 
-bool
-isVEFolderInitialized(const QString &path)
+std::pair<bool, QString> checkVEnvFolderStatus(const QString &path)
 {
+  // Check if the path exists
   QDir dir(path);
   if (!dir.exists())
-    return false;
+    return std::make_pair(false, "Package directory has not been created");
 
-  // Filters out "." and ".." and only checks for real entries
-  QFileInfoList entries = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries);
-  return !entries.isEmpty();
+  // Check if the Venv has been created
+  QFile cfgFile(QDir(path).filePath("pyvenv.cfg"));
+  if (!cfgFile.exists())
+  {
+    return std::make_pair(false, "Package directory has not been initialized");
+  }
+
+  if (!cfgFile.open(QIODevice::ReadOnly | QIODevice::Text))
+  {
+    qWarning() << "Unable to open pyvenv.cfg in" << path;
+    return std::make_pair(false, "Package directory does not contain a valid virtual environment");
+  }
+
+  // Get the Python version
+  QString version;
+  QTextStream in(&cfgFile);
+  while (!in.atEnd()) {
+    QString line = in.readLine().trimmed();
+    if (line.startsWith("version")) {
+      auto parts = line.split('=', Qt::SkipEmptyParts);
+      if (parts.size() == 2) {
+        version = parts[1].trimmed();
+      }
+    }
+  }
+
+  if(!version.size())
+    return std::make_pair(false, "Package directory does not contain a valid virtual environment");
+
+  return std::make_pair(true, QString("Package directory contains a valid Python %1 virtual environment").arg(version));
+
 }
 
 
@@ -141,12 +170,9 @@ DeepLearningServerEditor::DeepLearningServerEditor(QWidget *parent)
   , ui(new Ui::DeepLearningServerEditor)
 {
   ui->setupUi(this);
-  // this->setModal(true);
 
   // Hide the text edit
   ui->txtInstallLog->hide();
-
-
 }
 
 DeepLearningServerEditor::~DeepLearningServerEditor() { delete ui; }
@@ -211,9 +237,10 @@ DeepLearningServerEditor::SetModel(DeepLearningServerPropertiesModel *model)
   makeCoupling(ui->inPythonExe, m_Model->GetLocalPythonExePathModel());
   makeCoupling(ui->chkNoSSLVerify, m_Model->GetNoSSLVerifyModel());
 
-  makeWidgetVisibilityCoupling(ui->grpRemote, m_Model->GetRemoteConnectionModel(), false);
-  makeWidgetVisibilityCoupling(ui->grpLocal, m_Model->GetRemoteConnectionModel(), true);
   makeWidgetVisibilityCoupling(ui->grpSSH, m_Model->GetUseSSHTunnelModel(), false);
+  makePagedWidgetCoupling(ui->stackMode,
+                          m_Model->GetRemoteConnectionModel(),
+                          std::map<bool, QWidget *>({ { true, ui->pageRemote }, { false , ui->pageLocal }}));
 
   // Listen to events on the model
   this->connectITK(m_Model->GetLocalPythonVEnvPathModel(), ValueChangedEvent());
@@ -245,13 +272,7 @@ DeepLearningServerEditor::onModelUpdate(const EventBucket &bucket)
     // If not in remote mode, we need to check the path for whether it contains a valid virtual environment
     if(!m_Model->GetRemoteConnection())
     {
-      // TODO: check if the VEnv exists
-      QString venv_path = QString::fromStdString(m_Model->GetLocalPythonVEnvPath());
-      if(isVEFolderInitialized(venv_path))
-        ui->lblPythonVEnvStatus->setText("Virtual Environment is initialized");
-      else
-        ui->lblPythonVEnvStatus->setText("Virtual Environment is not initialized");
-
+      updateVEnvStatusDisplay();
     }
   }
 }
@@ -276,8 +297,19 @@ DeepLearningServerEditor::on_btnConfigurePackages_clicked()
 }
 
 void
+DeepLearningServerEditor::updateVEnvStatusDisplay()
+{
+  QString venv_path = QString::fromStdString(m_Model->GetLocalPythonVEnvPath());
+  QString venv_status_str;
+  bool venv_status;
+  std::tie(venv_status, venv_status_str) = checkVEnvFolderStatus(venv_path);
+  ui->lblPythonVEnvStatus->setText(venv_status_str);
+}
+
+void
 DeepLearningServerEditor::on_VEnvInstallFinished(int exitCode, QProcess::ExitStatus status)
 {
+  updateVEnvStatusDisplay();
   if(exitCode == 0 && status == QProcess::NormalExit)
   {
     // Find the python
@@ -323,6 +355,7 @@ DeepLearningServerEditor::on_PipUpgradePipFinished(int exitCode, QProcess::ExitS
 void
 DeepLearningServerEditor::on_PipInstallDLSFinished(int exitCode, QProcess::ExitStatus status)
 {
+  updateVEnvStatusDisplay();
   if(exitCode == 0 && status == QProcess::NormalExit)
   {
     // Find the python

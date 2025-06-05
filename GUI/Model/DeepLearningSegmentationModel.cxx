@@ -11,6 +11,7 @@
 #include "AllPurposeProgressAccumulator.h"
 #include "base64.h"
 #include <chrono>
+#include <regex>
 #include "itksys/MD5.h"
 
 typedef std::chrono::high_resolution_clock Clock;
@@ -258,9 +259,23 @@ DeepLearningSegmentationModel::DeepLearningSegmentationModel()
 
   m_ProxyURLModel = NewSimpleConcreteProperty(std::string());
 
+  // Substatuses
+  m_NetworkStatusModel =
+    NewSimpleConcreteProperty(dls_model::NetworkStatus(dls_model::NETWORK_NOT_CONNECTED));
+  m_TunnelStatusModel =
+    NewSimpleConcreteProperty(dls_model::TunnelStatus(dls_model::TUNNEL_ESTABLISHING));
+  m_LocalServerStatusModel =
+    NewSimpleConcreteProperty(dls_model::LocalServerStatus(dls_model::LOCAL_SERVER_STARTING));
+
   // Server status model
   m_ServerStatusModel =
-    wrapGetterSetterPairAsProperty(this, &Self::GetServerStatusValue, &Self::SetServerStatusValue);
+    wrapGetterSetterPairAsProperty(this, &Self::GetServerStatusValue);
+  m_ServerStatusModel->RebroadcastFromSourceProperty(m_NetworkStatusModel);
+  m_ServerStatusModel->RebroadcastFromSourceProperty(m_TunnelStatusModel);
+  m_ServerStatusModel->RebroadcastFromSourceProperty(m_LocalServerStatusModel);
+  m_ServerStatusModel->Rebroadcast(m_ServerModel, ValueChangedEvent(), ValueChangedEvent());
+  m_ServerStatusModel->Rebroadcast(m_ServerModel, DomainChangedEvent(), ValueChangedEvent());
+
   m_ServerProgressModel = NewRangedConcreteProperty(0., 0., 0., 0.);
 
   // Set up the progress command
@@ -279,23 +294,89 @@ DeepLearningSegmentationModel::~DeepLearningSegmentationModel()
   delete m_RESTSharedData;
 }
 
+dls_model::ConnectionStatus
+DeepLearningSegmentationModel::MergeStatuses()
+{
+  auto *sp = GetServerProperties();
+  auto status_net = this->GetNetworkStatus();
+  auto status_tun = this->GetTunnelStatus();
+  auto status_loc = this->GetLocalServerStatus();
+
+  if(sp && sp->GetRemoteConnection())
+  {
+    if(sp->GetUseSSHTunnel())
+    {
+      switch(status_net.status)
+      {
+        case dls_model::NETWORK_NOT_CONNECTED:
+        case dls_model::NETWORK_CHECKING:
+          switch(status_tun.status)
+          {
+            case dls_model::TUNNEL_ESTABLISHING:
+              return dls_model::ConnectionStatus(dls_model::CONN_TUNNEL_ESTABLISHING);
+            case dls_model::TUNNEL_FAILED:
+              return dls_model::ConnectionStatus(dls_model::CONN_TUNNEL_FAILED, status_tun.message);
+            case dls_model::TUNNEL_CREATED:
+              if(status_net.status == dls_model::NETWORK_CHECKING)
+                return dls_model::ConnectionStatus(dls_model::CONN_CHECKING);
+              else
+                return dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED, status_net.message);
+          }
+        case dls_model::NETWORK_CONNECTED:
+          return dls_model::ConnectionStatus(dls_model::CONN_CONNECTED, status_net.message);
+      }
+    }
+    else
+    {
+      switch(status_net.status)
+      {
+        case dls_model::NETWORK_NOT_CONNECTED:
+          return dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED, status_net.message);
+        case dls_model::NETWORK_CHECKING:
+          return  dls_model::ConnectionStatus(dls_model::CONN_CHECKING);
+        case dls_model::NETWORK_CONNECTED:
+          return  dls_model::ConnectionStatus(dls_model::CONN_CONNECTED, status_net.message);
+      }
+    }
+  }
+  else if(sp)
+  {
+    switch(status_loc.status)
+    {
+      case dls_model::LOCAL_SERVER_FAILED:
+        return dls_model::ConnectionStatus(dls_model::CONN_LOCAL_SERVER_FAILED, status_net.message);
+      case dls_model::LOCAL_SERVER_STARTING:
+        switch(status_net.status)
+        {
+          case dls_model::NETWORK_NOT_CONNECTED:
+          case dls_model::NETWORK_CHECKING:
+            return dls_model::ConnectionStatus(dls_model::CONN_LOCAL_SERVER_STARTING);
+          case dls_model::NETWORK_CONNECTED:
+            return dls_model::ConnectionStatus(dls_model::CONN_CONNECTED, status_net.message);
+        }
+      case dls_model::LOCAL_SERVER_ESTABLISHED:
+        switch(status_net.status)
+        {
+          case dls_model::NETWORK_NOT_CONNECTED:
+            return dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED, status_net.message);
+          case dls_model::NETWORK_CHECKING:
+            return dls_model::ConnectionStatus(dls_model::CONN_LOCAL_SERVER_STARTING);
+          case dls_model::NETWORK_CONNECTED:
+            return dls_model::ConnectionStatus(dls_model::CONN_CONNECTED, status_net.message);
+        }
+    }
+  }
+  else
+  {
+    return dls_model::ConnectionStatus(dls_model::CONN_NO_SERVER);
+  }
+}
+
 bool
 DeepLearningSegmentationModel::GetServerStatusValue(dls_model::ConnectionStatus &value)
 {
-  value = m_ServerStatus;
+  value = MergeStatuses();
   return true;
-}
-
-void
-DeepLearningSegmentationModel::SetServerStatusValue(dls_model::ConnectionStatus value)
-{
-  m_ServerStatus = value;
-  std::vector<std::string> names = { "CONN_NO_SERVER",           "CONN_TUNNEL_ESTABLISHING",
-                                     "CONN_TUNNEL_FAILED",       "CONN_LOCAL_SERVER_STARTING",
-                                     "CONN_LOCAL_SERVER_FAILED", "CONN_CHECKING",
-                                     "CONN_NOT_CONNECTED",       "CONN_CONNECTED" };
-  // std::cout << "Server Status changed to " << names[value.status] << " message " << value.error_message << std::endl;
-  m_ServerStatusModel->InvokeEvent(ValueChangedEvent());
 }
 
 bool
@@ -337,6 +418,18 @@ DeepLearningSegmentationModel::GetServerValueAndRange(int &value, ServerDomain *
 }
 
 void
+DeepLearningSegmentationModel::ResetConnection()
+{
+  // Reset the proxy URL
+  SetProxyURL(std::string());
+
+  // Reset the statuses to default state
+  SetNetworkStatus(dls_model::NetworkStatus());
+  SetTunnelStatus(dls_model::TunnelStatus());
+  SetLocalServerStatus(dls_model::LocalServerStatus());
+}
+
+void
 DeepLearningSegmentationModel::SetServerValue(int value)
 {
   // Check if the value is in range
@@ -350,12 +443,8 @@ DeepLearningSegmentationModel::SetServerValue(int value)
   m_ActiveSession = std::string();
   m_ActiveLayer = std::make_tuple(0u, 0u);
 
-  // Reset the proxy URL
-  SetProxyURL(std::string());
-
-  // Reset the connection status to not connected state
-  SetServerStatus(value >= 0 ? dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED)
-                             : dls_model::ConnectionStatus(dls_model::CONN_NO_SERVER));
+  // Reset the connection
+  ResetConnection();
 
   // Fire some events
   m_ServerModel->InvokeEvent(ValueChangedEvent());
@@ -476,12 +565,12 @@ DeepLearningSegmentationModel::StartLocalServerIfNeeded()
   if(port > 0)
   {
     m_LocalPortNumber = port;
-    this->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_LOCAL_SERVER_STARTING));
+    this->SetLocalServerStatus(dls_model::LocalServerStatus(dls_model::LOCAL_SERVER_STARTING));
   }
   else if(port < 0)
   {
     m_LocalPortNumber = -1;
-    this->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_LOCAL_SERVER_FAILED));
+    this->SetLocalServerStatus(dls_model::LocalServerStatus(dls_model::LOCAL_SERVER_FAILED));
   }
 }
 
@@ -490,33 +579,43 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
 {
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
-  dls_model::ConnectionStatus response;
+  dls_model::NetworkStatus response;
+  auto *sp = this->GetServerProperties();
 
   // Check if URL has been set
-  if (m_ServerIndex < 0)
+  if (!sp)
   {
-    response.status = dls_model::CONN_NO_SERVER;
     return std::make_pair(std::string(), response);
   }
 
   // Check if the proxy has been set up for an SSH connection
-  auto sp = m_ServerProperties[m_ServerIndex];
   if (sp->GetUseSSHTunnel() && GetProxyURL().size() == 0)
   {
-    response.status = dls_model::CONN_NOT_CONNECTED;
-    response.error_message = "SSH tunnel has not been configured";
+    response.status = dls_model::NETWORK_NOT_CONNECTED;
+    response.message = "SSH tunnel has not been configured";
   }
   else
   {
     try
     {
       RESTClientType cli(m_RESTSharedData);
-      cli.SetServerURL(GetActualServerURL().c_str());
+      std::string url = GetActualServerURL();
+      cli.SetServerURL(url.c_str());
       bool status = cli.Get("status");
       if (!status)
       {
-        response.status = dls_model::CONN_NOT_CONNECTED;
-        response.error_message = cli.GetErrorString();
+        response.status = dls_model::NETWORK_NOT_CONNECTED;
+        response.message = cli.GetErrorString();
+
+        // Special handling for ngrok server responses
+        std::regex re_ngrok(R"(ngrok.*app)", std::regex::icase);
+        if(std::regex_search(url, re_ngrok))
+        {
+          std::regex noscriptRegex(R"(<noscript>(.*?)</noscript>)", std::regex::icase);
+          std::smatch match;
+          if (std::regex_search(response.message, match, noscriptRegex) && match.size() > 1)
+            response.message = match[1].str();
+        }
       }
       else
       {
@@ -524,8 +623,8 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
         Json::Value  root;
         if (json_reader.parse(cli.GetOutput(), root, false))
         {
-          response.status = dls_model::CONN_CONNECTED;
-          response.server_version = root["version"].asString();
+          response.status = dls_model::NETWORK_CONNECTED;
+          response.message = root["version"].asString();
         }
         else
           throw IRISException("Server did not provide version number");
@@ -534,16 +633,8 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
     catch (IRISException &exc)
     {
       // TODO: this is a bad workaround the fact that we don't know when the local
-      // startup is over.
-      if(m_ServerStatusModel->GetValue() != dls_model::CONN_LOCAL_SERVER_STARTING)
-      {
-        response.status = dls_model::CONN_NOT_CONNECTED;
-        response.error_message = exc.what();
-      }
-      else
-      {
-        response.status = dls_model::CONN_LOCAL_SERVER_STARTING;
-      }
+      response.status = dls_model::NETWORK_NOT_CONNECTED;
+      response.message = exc.what();
     }
   }
 
@@ -555,7 +646,7 @@ DeepLearningSegmentationModel::ApplyStatusCheckResponse(const StatusCheck &resul
 {
   std::string hash = m_ServerIndex < 0 ? std::string() : m_ServerProperties[m_ServerIndex]->GetHash();
   if(hash == result.first)
-    this->SetServerStatus(result.second);
+    this->SetNetworkStatus(result.second);
 
 }
 
@@ -885,8 +976,9 @@ DeepLearningServerPropertiesModel::GetFullURLValue(std::string &value)
 {
   if(GetHostname().size() > 0 && GetPort() > 0)
   {
+    std::string method = GetPort() == 443 ? "https" : "http";
     char buffer[256];
-    snprintf(buffer, 256, "http://%s:%d", GetHostname().c_str(), GetPort());
+    snprintf(buffer, 256, "%s://%s:%d", method.c_str(), GetHostname().c_str(), GetPort());
     value = buffer;
     return true;
   }

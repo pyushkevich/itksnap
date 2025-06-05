@@ -70,6 +70,7 @@ private slots:
   void on_btnFindPythonExe_clicked();
 
   void on_btnConfigurePackages_clicked();
+  void updateVEnvStatusDisplay();
 
 private:
   Ui::DeepLearningServerEditor *ui;

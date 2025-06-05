@@ -20,13 +20,13 @@ inline std::pair<QString, QString> GetDLSConnectionStatusColorAndText(dls_model:
       return { "black", "Opening tunnel to SSH server ..." };
 
     case dls_model::CONN_TUNNEL_FAILED:
-      return { "darkred", QString("SSH tunnel failure: %1").arg(QString::fromStdString(value.error_message)) };
+      return { "darkred", QString("SSH tunnel failure: %1").arg(QString::fromStdString(value.message)) };
 
     case dls_model::CONN_CHECKING:
       return { "black", "Establishing connection ..." };
 
     case dls_model::CONN_NOT_CONNECTED:
-      return { "darkred", QString("Not connected: %1").arg(QString::fromStdString(value.error_message)) };
+      return { "darkred", QString("Not connected: %1").arg(QString::fromStdString(value.message)) };
 
     case dls_model::CONN_LOCAL_SERVER_STARTING:
       return { "goldenrod", "Starting local server ..." };
@@ -35,7 +35,7 @@ inline std::pair<QString, QString> GetDLSConnectionStatusColorAndText(dls_model:
       return { "darkred", "Failed to start local server." };
 
     case dls_model::CONN_CONNECTED:
-      return { "darkgreen", QString("Connected, server version: %1").arg(QString::fromStdString(value.server_version)) };
+      return { "darkgreen", QString("Connected, server version: %1").arg(QString::fromStdString(value.message)) };
 
     default:
       return { "gray", "Unknown status" };

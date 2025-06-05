@@ -60,7 +60,7 @@ public:
 
   static QIcon GetIcon(int row, const Value &m)
   {
-    return QIcon::fromTheme(m->GetRemoteConnection() ? QIcon::ThemeIcon::NetworkWireless : QIcon::ThemeIcon::DocumentOpen);
+    return QIcon::fromTheme(m->GetRemoteConnection() ? ":/root/icons8_cloud_connection_16.png" : ":/root/icons8_local_computer_16.png");
   }
 
   static QVariant GetIconSignature(int, const Value &)
@@ -175,7 +175,7 @@ DeepLearningServerPanel::setupSSHTunnel()
   connect(this, &DeepLearningServerPanel::sshPasswordEntered, m_SSHTunnelWorkerThread, &SSHTunnelWorkerThread::passwordResponse);
 
   // The status is now "establishing tunnel"
-  m_Model->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_TUNNEL_ESTABLISHING));
+  m_Model->SetTunnelStatus(dls_model::TunnelStatus(dls_model::TUNNEL_ESTABLISHING));
 
   // Start the thread - this means that the server will start connecting
   qDebug() << "Starting SSH tunnel thread for " << p->GetHostname() << " port " << p->GetPort();
@@ -190,7 +190,7 @@ void DeepLearningServerPanel::onSSHTunnelCreated(int localPort)
   m_Model->SetProxyURL(oss.str());
 
   // Status is now connecting
-  m_Model->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_CHECKING));
+  m_Model->SetTunnelStatus(dls_model::TunnelStatus(dls_model::TUNNEL_CREATED));
   this->checkServerStatus();
 }
 
@@ -204,10 +204,7 @@ void DeepLearningServerPanel::onSSHTunnelCreationFailed(const QString &error)
   m_Model->SetProxyURL(std::string());
 
   // Pass the error to the panel
-  dls_model::ConnectionStatus status(dls_model::CONN_TUNNEL_FAILED);
-  status.error_message = error.toStdString();
-  m_Model->SetServerStatus(status);
-
+  m_Model->SetTunnelStatus(dls_model::TunnelStatus(dls_model::TUNNEL_FAILED, error.toStdString()));
 }
 
 void
@@ -257,11 +254,9 @@ DeepLearningServerPanel::resetConnection()
     return;
 
   // Reset the server status
-  m_Model->SetServerStatus(dls_model::ConnectionStatus(dls_model::CONN_CHECKING));
-  m_Model->SetProxyURL(std::string());
+  m_Model->ResetConnection();
 
-  // Start the local server if needed. This may override the status to
-  // CONN_LOCAL_SERVER_STARTING or CONN_LOCAL_SERVER_FAILED
+  // Start the local server if needed.
   m_Model->StartLocalServerIfNeeded();
 
   if(m_Model->GetIsServerConfigured() && m_Model->GetServerProperties()->GetUseSSHTunnel())
