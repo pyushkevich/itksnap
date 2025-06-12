@@ -127,10 +127,12 @@ RESTClient<ServerTraits>::SetOutputFile(FILE *outfile)
 
 template <typename ServerTraits>
 void
-RESTClient<ServerTraits>::SetupCookies(bool read_only)
+RESTClient<ServerTraits>::SetupCookies(bool receive_cookie_mode)
 {
-  m_Traits.SetupCookies(
-    m_SharedData ? m_SharedData->GetShare() : nullptr, m_Curl, GetServerURL().c_str(), read_only);
+  m_Traits.SetupCookies(m_SharedData ? m_SharedData->GetShare() : nullptr,
+                        m_Curl,
+                        GetServerURL().c_str(),
+                        receive_cookie_mode);
 }
 
 template <typename ServerTraits>
@@ -148,7 +150,7 @@ RESTClient<ServerTraits>::Authenticate(const char *token)
   curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_buffer);
 
   // Set up the cookie jar to receive cookies
-  SetupCookies(false);
+  SetupCookies(true);
 
   // Capture output
   m_Output.clear();
@@ -300,6 +302,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   }
 
   // Make request
+  // std::cout << "curl request to: " << url << " with data " << post_filled << std::endl;
   CURLcode res = curl_easy_perform(m_Curl);
 
   if (res != CURLE_OK)
@@ -718,7 +721,7 @@ DSSServerTraits::SetServerURL(const char *baseurl)
 }
 
 void
-DSSServerTraits::SetupCookies(void *share, void *handle, const char *url, bool read_only)
+DSSServerTraits::SetupCookies(void *share, void *handle, const char *url, bool receive_cookie_mode)
 {
   // MD5 encode the server
   char hex_code[33];
@@ -730,10 +733,16 @@ DSSServerTraits::SetupCookies(void *share, void *handle, const char *url, bool r
   itksysMD5_Delete(md5);
 
   string cookie_jar = GetDataDirectory() + "/cookie_" + hex_code + ".jar";
-  if(read_only)
-    curl_easy_setopt(handle, CURLOPT_COOKIEFILE, cookie_jar.c_str());
-  else
+  if(receive_cookie_mode)
+  {
+    curl_easy_setopt(handle, CURLOPT_COOKIEFILE, nullptr);
     curl_easy_setopt(handle, CURLOPT_COOKIEJAR, cookie_jar.c_str());
+  }
+  else
+  {
+    curl_easy_setopt(handle, CURLOPT_COOKIEJAR, nullptr);
+    curl_easy_setopt(handle, CURLOPT_COOKIEFILE, cookie_jar.c_str());
+  }
 }
 
 string
@@ -787,11 +796,11 @@ DLSServerTraits::SetServerURL(const char *baseurl)
 }
 
 void
-DLSServerTraits::SetupCookies(void *share, void *handle, const char *url, bool read_only)
+DLSServerTraits::SetupCookies(void *share, void *handle, const char *url, bool receive_cookie_mode)
 {
   if (share)
   {
-    if(read_only)
+    if (receive_cookie_mode)
       curl_easy_setopt(handle, CURLOPT_COOKIEFILE, "");
     else
       curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "");

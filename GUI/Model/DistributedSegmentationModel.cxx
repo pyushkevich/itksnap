@@ -662,7 +662,7 @@ DistributedSegmentationModel::AsyncCheckStatus(std::string url, std::string toke
     bool status_login;
     if(token.size() > 0)
       {
-      rc.SetReceiveCookieMode(true);
+    rc.SetReceiveCookieMode(true);
       status_login = rc.Post("api/login?format=json", "token=%s", token.c_str());
       }
     else

@@ -56,7 +56,7 @@ public:
 
   void SetServerURL(const char *baseurl);
   std::string GetServerURL();
-  void SetupCookies(void* share, void *handle, const char *url, bool read_only);
+  void        SetupCookies(void *share, void *handle, const char *url, bool receive_cookie_mode);
 
 protected:
   static std::string GetDataDirectory();
@@ -78,7 +78,7 @@ public:
 
   std::string GetServerURL();
 
-  void SetupCookies(void* share, void *handle, const char *url, bool read_only);
+  void SetupCookies(void* share, void *handle, const char *url, bool receive_cookie_mode);
 
 protected:
   std::string m_ServerURL;
@@ -265,7 +265,7 @@ protected:
 
   static size_t WriteToFileCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
-  void SetupCookies(bool read_only);
+  void SetupCookies(bool receive_cookie_mode);
 };
 
 
