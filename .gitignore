@@ -15,3 +15,5 @@ CTestConfig.cmake.user*
 *.autosave
 .clangd
 .vscode
+
+build/
