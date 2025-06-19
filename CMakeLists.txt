@@ -1163,8 +1163,8 @@ SET(SNAP_EXTERNAL_LIBS_LITE
   ${SNAP_SUBMODULE_LIBS}
   ${SNAP_ITK_LIBS}
   ${SNAP_VTK_NONQT_LIBS}
-  ${CURL_LIBRARIES}
-  ${SYSTEM_LIBS})
+  ${SNAP_SYSTEM_LIBS}
+)
 
 #--------------------------------------------------------------------------------
 # Include C3D Library as submodule
