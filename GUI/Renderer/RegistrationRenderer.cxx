@@ -52,6 +52,7 @@ void RegistrationRenderer::DrawRotationWidget(AbstractRenderContext *context, do
       spoke[1] = Vector2d(1.05 * x, 1.05 * y);
       context->AddPolygonSegmentToPath(m_RotatorPath, spoke, false);
     }
+    context->BuildPath(m_RotatorPath);
   }
 
   // Set transform for the wheel
