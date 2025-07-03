@@ -10,6 +10,7 @@
 #include "SegmentationUpdateIterator.h"
 #include "AllPurposeProgressAccumulator.h"
 #include "base64.h"
+#include "QtCursorOverride.h"
 #include <chrono>
 #include <regex>
 #include "itksys/MD5.h"
@@ -655,6 +656,9 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
 {
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
+  // Set waiting cursor for DLS operation
+  QtCursorOverride c(Qt::WaitCursor);
+  
   RESTClientType cli(m_RESTSharedData);
   cli.SetServerURL(GetActualServerURL().c_str());
 
@@ -891,7 +895,10 @@ DeepLearningSegmentationModel::PerformPointInteraction(ImageWrapperBase *layer, 
 
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
-         // Perform the drawing command
+  // Set waiting cursor for DLS operation
+  QtCursorOverride c(Qt::WaitCursor);
+  
+  // Perform the drawing command
   Clock::time_point t0, t1, t2, t3;
   t0 = Clock::now();
   RESTClientType cli(m_RESTSharedData);
@@ -925,6 +932,9 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
   this->ResetInteractionsIfNeeded();
 
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
+
+  // Set waiting cursor for DLS operation
+  QtCursorOverride c(Qt::WaitCursor);
 
   // Create a multipart dataset with the segmentation
   RESTMultipartData mpd;
