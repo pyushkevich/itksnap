@@ -237,8 +237,14 @@ PaintbrushModel::CommitDrawing()
     auto *img =
       m_Parent->GetDriver()->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
 
-    // Undo the drawing we just did
+    // Undo the drawing we just did. But there is a chance that the drawing produced nothing in
+    // which case for now we just ignore it
     seg->StoreUndoPoint("Temporary undo point");
+    if(!seg->IsUndoPossible())
+    {
+      return;
+    }
+
     seg->Undo();
     auto &commit = seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
 
