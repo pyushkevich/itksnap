@@ -22,6 +22,7 @@
 #include "itkObject.h"
 #include "vtkObject.h"
 
+#include <QtCore/qtranslator.h>
 #include <iostream>
 #include <clocale>
 #include <cstdlib>
@@ -1007,6 +1008,21 @@ main(int argc, char *argv[])
 
     // Load the user preferences
     gui->LoadUserPreferences();
+
+    // Print locale information
+    QLocale::setDefault(QLocale("es"));
+    qDebug() << "System locale:" << QLocale::system().name();
+    qDebug() << "Default locale:" << QLocale().name();
+    QTranslator translator;
+    if(translator.load(QLocale(), "SNAP", "_", ":/i18n"))
+    {
+      qDebug() << "Loaded translator for locale" << QLocale().name();
+      QCoreApplication::installTranslator(&translator);
+    }
+    else
+    {
+      qDebug() << "Failed to load translator for locale" << QLocale().name();
+    }
 
     // Create the main window
     MainImageWindow *mainwin = new MainImageWindow();

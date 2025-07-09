@@ -1262,6 +1262,16 @@ TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} ${SNAP_INTERNAL_LIBS} ${SNAP_EXTERNAL_
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+#--------------------------------------------------------------------------------
+# QT Internationalization
+#--------------------------------------------------------------------------------
+set(QT_I18N_TRANSLATED_LANGUAGES es ru)
+qt_add_translations(
+  TARGETS ${SNAP_BUNDLE_NAME}
+  SOURCE_TARGETS itksnapui_qt
+  TS_FILE_DIR GUI/Qt/Translations
+  TS_FILE_BASE itksnap
+)
 
 #--------------------------------------------------------------------------------
 # Testing-related executables
