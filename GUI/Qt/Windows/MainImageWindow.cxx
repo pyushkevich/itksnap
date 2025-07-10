@@ -919,13 +919,13 @@ void MainImageWindow::UpdateSelectedLayerActions()
     ui->actionUnload_Last_Overlay->setVisible(true);
     ui->actionUnload_Last_Overlay->setEnabled(true);
     ui->actionUnload_Last_Overlay->setText(
-          QString("Close image \"%1\"").arg(from_utf8(layer->GetNickname())));
+          tr("Close image \"%1\"").arg(from_utf8(layer->GetNickname())));
     }
   else
     {
     ui->actionUnload_Last_Overlay->setVisible(false);
     ui->actionUnload_Last_Overlay->setEnabled(false);
-    ui->actionUnload_Last_Overlay->setText("Close selected image");
+    ui->actionUnload_Last_Overlay->setText(tr("Close selected image"));
     }
 }
 
@@ -1087,15 +1087,15 @@ void MainImageWindow::UpdateWindowTitle()
   if(projfile.length())
     {
     // If a project has multiple layers, we should indicate which segmentation image is being viewed
-    this->setWindowTitle(QString("%1 - ITK-SNAP").arg(projfile));
+    this->setWindowTitle(tr("%1 - ITK-SNAP").arg(projfile));
     }
   else if(mainfile.length() && segfile.length())
     {
-    this->setWindowTitle(QString("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
+    this->setWindowTitle(tr("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
     }
   else if(mainfile.length())
     {
-    this->setWindowTitle(QString("%1 - New Segmentation - ITK-SNAP").arg(mainfile));
+    this->setWindowTitle(tr("%1 - New Segmentation - ITK-SNAP").arg(mainfile));
     }
   else
     {
@@ -1105,39 +1105,39 @@ void MainImageWindow::UpdateWindowTitle()
   // Set up the save segmentation menu items
   if(segfile.length())
     {
-    ui->actionSaveSegmentation->setText(QString("Save \"%1\"").arg(segfile));
-    ui->actionSaveSegmentationAs->setText(QString("Save \"%1\" as...").arg(segfile));
+    ui->actionSaveSegmentation->setText(tr("Save \"%1\"").arg(segfile));
+    ui->actionSaveSegmentationAs->setText(tr("Save \"%1\" as...").arg(segfile));
     ui->actionSaveSegmentationAs->setVisible(true);
-    ui->actionReloadSegmentation->setText(QString("Reload \"%1\" from File").arg(segfile));
+    ui->actionReloadSegmentation->setText(tr("Reload \"%1\" from File").arg(segfile));
     ui->actionReloadSegmentation->setVisible(true);
     }
   else if(mainfile.length())
     {
-    QString infix4D(is4D ? "4D " : "");
-    ui->actionSaveSegmentation->setText(QString("Save %1Segmentation Image ...").arg(infix4D));
+    QString label = is4D ? tr("Save 4D Segmentation Image ...") : tr("Save Segmentation Image ...");
+    ui->actionSaveSegmentation->setText(QString(label));
     ui->actionSaveSegmentationAs->setVisible(false);
     ui->actionReloadSegmentation->setVisible(false);
     }
   else
     {
-    ui->actionSaveSegmentation->setText(QString("Save"));
-    ui->actionSaveSegmentationAs->setText(QString("Save as..."));
+    ui->actionSaveSegmentation->setText(tr("Save"));
+    ui->actionSaveSegmentationAs->setText(tr("Save as..."));
     ui->actionReloadSegmentation->setVisible(false);
     }
 
   // Set up the segmentation items
   if(gid->GetNumberOfLayers(LABEL_ROLE) > 1)
     {
-    ui->actionClear->setText(QString("Unload All Segmentations"));
+    ui->actionClear->setText(tr("Unload All Segmentations"));
     ui->actionClearActive->setVisible(true);
     if(segfile.length())
-      ui->actionClearActive->setText(QString("Unload \"%1\"").arg(segfile));
+      ui->actionClearActive->setText(tr("Unload \"%1\"").arg(segfile));
     else
-      ui->actionClearActive->setText(QString("Unload Active Segmentation"));
+      ui->actionClearActive->setText(tr("Unload Active Segmentation"));
     }
   else
     {
-    ui->actionClear->setText(QString("Unload Segmentation"));
+    ui->actionClear->setText(tr("Unload Segmentation"));
     ui->actionClearActive->setVisible(false);
     }
 }
@@ -1150,11 +1150,11 @@ void MainImageWindow::UpdateProjectMenuItems()
     {
     // Get the filename without path
     ui->actionSaveWorkspace->setText(
-          QString("Save Workspace \"%1\"").arg(QFileInfo(project).fileName()));
+          tr("Save Workspace \"%1\"").arg(QFileInfo(project).fileName()));
     }
   else
     {
-    ui->actionSaveWorkspace->setText(QString("Save Workspace ..."));
+    ui->actionSaveWorkspace->setText(tr("Save Workspace ..."));
     }
 }
 
@@ -1352,8 +1352,8 @@ void MainImageWindow::LoadDroppedFile(QString file)
     }
   catch (exception &exc) // for minor exceptions, no need to crash the entire program
     {
-    ReportNonLethalException(this, exc, "File Dropping Error",
-                             QString("Failed to load file %1").arg(file));
+    ReportNonLethalException(this, exc, tr("File Dropping Error"),
+                             tr("Failed to load file %1").arg(file));
     }
 
 }
@@ -1485,8 +1485,8 @@ void MainImageWindow::LoadMainImage(const QString &file)
   catch(exception &exc)
     {
     progress->close();
-    ReportNonLethalException(this, exc, "Image IO Error",
-                             QString("Failed to load image %1").arg(file));
+    ReportNonLethalException(this, exc, tr("Image IO Error"),
+                             tr("Failed to load image %1").arg(file));
 
     }
 }
@@ -1528,8 +1528,8 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
   catch(exception &exc)
     {
     progress->close();
-    ReportNonLethalException(this, exc, "Image IO Error",
-                             QString("Failed to load overlay image %1").arg(file));
+    ReportNonLethalException(this, exc, tr("Image IO Error"),
+                             tr("Failed to load overlay image %1").arg(file));
     }
 }
 
@@ -1563,8 +1563,8 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
   catch(exception &exc)
     {
     progress->close();
-    ReportNonLethalException(this, exc, "Image IO Error",
-                             QString("Failed to load segmentation image %1").arg(file));
+    ReportNonLethalException(this, exc, tr("Image IO Error"),
+                             tr("Failed to load segmentation image %1").arg(file));
     }
 }
 
@@ -1594,8 +1594,8 @@ void MainImageWindow::LoadLabelDefinitions(QString file)
     }
   catch(std::exception &exc)
     {
-    ReportNonLethalException(this, exc, "Label Definitions IO Error",
-                             QString("Failed to load label definitions from file"));
+    ReportNonLethalException(this, exc, tr("Label Definitions IO Error"),
+                             tr("Failed to load label definitions from file"));
     }
 }
 
@@ -1629,8 +1629,8 @@ void MainImageWindow::LoadAnotherDicomActionTriggered()
     }
   catch(exception &exc)
     {
-    ReportNonLethalException(this, exc, "Image IO Error",
-                             QString("Failed to load overlay image %1").arg(action->text()));
+    ReportNonLethalException(this, exc, tr("Image IO Error"),
+                             tr("Failed to load overlay image %1").arg(action->text()));
     }
 
 }
@@ -1651,8 +1651,8 @@ void MainImageWindow::LoadProject(const QString &file)
     }
   catch(exception &exc)
     {
-    ReportNonLethalException(this, exc, "Error Opening Project",
-                             QString("Failed to open project %1").arg(file));
+    ReportNonLethalException(this, exc, tr("Error Opening Project"),
+                             tr("Failed to open project %1").arg(file));
   }
 }
 
@@ -1975,8 +1975,8 @@ void MainImageWindow::on_actionLoadLabels_triggered()
   // Ask for a filename
   QString selection = ShowSimpleOpenDialogWithHistory(
         this, m_Model, "LabelDescriptions",
-        "Open Label Descriptions - ITK-SNAP",
-        "Label Description File",
+        tr("Open Label Descriptions - ITK-SNAP"),
+        tr("Label Description File"),
         "Text Files (*.txt);; Label Files (*.label)");
 
   // Open the labels from the selection
@@ -1989,8 +1989,8 @@ void MainImageWindow::on_actionSaveLabels_triggered()
   // Ask for a filename
   QString selection = ShowSimpleSaveDialogWithHistory(
         this, m_Model, "LabelDescriptions",
-        "Save Label Descriptions - ITK-SNAP",
-        "Label Description File",
+        tr("Save Label Descriptions - ITK-SNAP"),
+        tr("Label Description File"),
         "Text Files (*.txt);; Label Files (*.label)",
         true);
 
@@ -2004,8 +2004,8 @@ void MainImageWindow::on_actionSaveLabels_triggered()
       }
     catch(std::exception &exc)
       {
-      ReportNonLethalException(this, exc, "Label Description IO Error",
-                               QString("Failed to save label descriptions"));
+      ReportNonLethalException(this, exc, tr("Label Description IO Error"),
+                               tr("Failed to save label descriptions"));
       }
     }
 }
@@ -2181,8 +2181,8 @@ void MainImageWindow::on_actionOpenWorkspace_triggered()
 
   // Use the dialog with history - to be consistent with other parts of SNAP
   QString file = ShowSimpleOpenDialogWithHistory(
-        this, m_Model, "Project", "Open Workspace",
-        "Workspace File", "ITK-SNAP Workspace Files (*.itksnap)");
+        this, m_Model, "Project", tr("Open Workspace"),
+        tr("Workspace File"), tr("ITK-SNAP Workspace Files (*.itksnap)"));
 
   // If user hits cancel, move on
   if(file.isNull())
@@ -2203,8 +2203,8 @@ void MainImageWindow::on_actionOpenWorkspace_triggered()
     }
   catch(exception &exc)
     {
-    ReportNonLethalException(this, exc, "Error Opening Project",
-                             QString("Failed to open project %1").arg(file_abs));
+    ReportNonLethalException(this, exc, tr("Error Opening Project"),
+                             tr("Failed to open project %1").arg(file_abs));
     }
 }
 
@@ -2252,9 +2252,9 @@ void MainImageWindow::ExportSlice(AnatomicalDirection direction)
   // Open a file browser and have the user select something
   std::string fuser = to_utf8(ShowSimpleSaveDialogWithHistory(
         this, m_Model, "Slices",
-        "Save Slice - ITK-SNAP",
-        "Slice Image File",
-        "PNG Image (*.png);;TIFF Image (*.tiff *.tif);;JPEG Image (*.jpg *.jpeg)",true));
+        tr("Save Slice - ITK-SNAP"),
+        tr("Slice Image File"),
+        tr("PNG Image (*.png);;TIFF Image (*.tiff *.tif);;JPEG Image (*.jpg *.jpeg)"),true));
 
   if(fuser.length())
     m_Model->GetDriver()->ExportSlice(direction, fuser.c_str());
@@ -2361,9 +2361,9 @@ void MainImageWindow::DoUpdateCheck(bool quiet)
     QPushButton *downloadButton = mbox.addButton("Open Download Page", QMessageBox::ActionRole);
     mbox.addButton("Not Now", QMessageBox::RejectRole);
     mbox.setIcon(QMessageBox::Question);
-    mbox.setText(QString("A newer ITK-SNAP version (%1) is available.").arg(nver.c_str()));
-    mbox.setInformativeText("Do you want to download the latest version?");
-    mbox.setWindowTitle("ITK-SNAP Update Check");
+    mbox.setText(tr("A newer ITK-SNAP version (%1) is available.").arg(nver.c_str()));
+    mbox.setInformativeText(tr("Do you want to download the latest version?"));
+    mbox.setWindowTitle(tr("ITK-SNAP Update Check"));
     mbox.exec();
 
     if (mbox.clickedButton() == downloadButton)
@@ -2373,16 +2373,16 @@ void MainImageWindow::DoUpdateCheck(bool quiet)
     }
   else if(us == SystemInterface::US_UP_TO_DATE && !quiet)
     {
-    QMessageBox::information(this, "ITK-SNAP Update Check",
-                             "Your version of ITK-SNAP is up to date!",
+    QMessageBox::information(this, tr("ITK-SNAP Update Check"),
+                             tr("Your version of ITK-SNAP is up to date!"),
                              QMessageBox::Ok);
     }
   else if(us == SystemInterface::US_CONNECTION_FAILED && !quiet)
     {
     QMessageBox::warning(this,
-                         "ITK-SNAP Update Check Failed",
-                         "Could not connect to server. Go to itksnap.org to check if a new"
-                         " version is available.");
+                         tr("ITK-SNAP Update Check Failed"),
+                         tr("Could not connect to server. Go to itksnap.org to check if a new"
+                         " version is available."));
     }
 }
 
@@ -2396,9 +2396,9 @@ void MainImageWindow::UpdateAutoCheck()
   if(permission == DefaultBehaviorSettings::UPDATE_UNKNOWN)
     {
     if(QMessageBox::Yes == QMessageBox::question(
-         this, "Allow Automatic Update Checks?",
-         "ITK-SNAP can check for software updates automatically.\n"
-         "Do you want to enable this feature?",
+         this, tr("Allow Automatic Update Checks?"),
+         tr("ITK-SNAP can check for software updates automatically.\n"
+         "Do you want to enable this feature?"),
          QMessageBox::Yes, QMessageBox::No))
       {
       permission = DefaultBehaviorSettings::UPDATE_YES;
@@ -2630,7 +2630,7 @@ void MainImageWindow::on_actionInstallCLI_triggered()
   QFileInfo fi(QCoreApplication::applicationDirPath(), "../bin/install_cmdl.sh");
   if(fi.exists() && fi.isExecutable())
     {
-    QString html = QString(
+    QString html = tr(
         "<p>ITK-SNAP is packaged with several useful command-line programs. "
         "Visit <a href='http://itksnap.org/cmdl'>http://itksnap.org/cmdl</a> "
         "for a listing of these tools. </p>"
@@ -2645,9 +2645,9 @@ void MainImageWindow::on_actionInstallCLI_triggered()
         arg(fi.absoluteFilePath(), fi.absoluteDir().absolutePath());
 
     QMessageBox msg;
-    msg.setText("How to Install ITK-SNAP Command Line Tools");
+    msg.setText(tr("How to Install ITK-SNAP Command Line Tools"));
     msg.setInformativeText(html);
-    msg.setWindowTitle("Install Command Line Tools -- ITK-SNAP");
+    msg.setWindowTitle(tr("Install Command Line Tools -- ITK-SNAP"));
     msg.setStyleSheet("QLabel{min-width: 700px;}");
     msg.exec();
     }

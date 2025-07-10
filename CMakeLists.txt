@@ -1265,7 +1265,7 @@ set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH
 #--------------------------------------------------------------------------------
 # QT Internationalization
 #--------------------------------------------------------------------------------
-set(QT_I18N_TRANSLATED_LANGUAGES es ru)
+set(QT_I18N_TRANSLATED_LANGUAGES es zh_CN)
 qt_add_translations(
   TARGETS ${SNAP_BUNDLE_NAME}
   SOURCE_TARGETS itksnapui_qt

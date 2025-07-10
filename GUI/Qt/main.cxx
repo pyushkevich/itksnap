@@ -314,6 +314,7 @@ usage(const char *progname)
   cout << "   --threads N          : Limit maximum number of CPU cores used to N." << endl;
   cout << "   --scale N            : Scale all GUI elements by factor of N (e.g., 2)." << endl;
   cout << "   --geometry WxH+X+Y   : Initial geometry of the main window." << endl;
+  cout << "   --lang <code>        : Set the language for the GUI to ISO 639-1 language code like 'es' or 'cn'" << endl;
   cout << "Debugging/Testing Options:" << endl;
 #ifdef SNAP_DEBUG_EVENTS
   cout << "   --debug-events       : Dump information regarding UI events" << endl;
@@ -388,6 +389,10 @@ public:
 
   // Screen geometry
   int geometry[4] = {-1, -1, -1, -1};
+
+  // language code or tag
+  std::string gui_language;
+
 };
 
 
@@ -520,6 +525,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   // Standard Qt options
   parser.AddOption("--geometry", 1);
   parser.AddSynonim("--geometry", "-geometry");
+
+  // Translation
+  parser.AddOption("--lang", 1);
 
   // Obtain the result
   CommandLineArgumentParseResult parseResult;
@@ -737,6 +745,12 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
       argdata.geometry[2] = x;
       argdata.geometry[3] = y;
     }
+  }
+
+  // Locale
+  if(parseResult.IsOptionPresent("--lang"))
+  {
+    argdata.gui_language = parseResult.GetOptionParameter("--lang");
   }
 
   return 0;
@@ -1010,11 +1024,13 @@ main(int argc, char *argv[])
     gui->LoadUserPreferences();
 
     // Print locale information
-    QLocale::setDefault(QLocale("es"));
-    qDebug() << "System locale:" << QLocale::system().name();
-    qDebug() << "Default locale:" << QLocale().name();
+    if (argdata.gui_language.size())
+    {
+      QLocale::setDefault(QLocale(argdata.gui_language.c_str()));
+      qDebug() << "ITK-SNAP using locale:" << QLocale().name();
+    }
     QTranslator translator;
-    if(translator.load(QLocale(), "SNAP", "_", ":/i18n"))
+    if(translator.load(QLocale(), "itksnap", "_", ":/i18n"))
     {
       qDebug() << "Loaded translator for locale" << QLocale().name();
       QCoreApplication::installTranslator(&translator);
