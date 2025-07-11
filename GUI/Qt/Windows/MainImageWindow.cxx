@@ -232,7 +232,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_DockLeft->setFeatures(
         QDockWidget::DockWidgetFloatable |
         QDockWidget::DockWidgetMovable);
-  m_DockLeft->setWindowTitle("ITK-SNAP Toolbox");
+  m_DockLeft->setWindowTitle(tr("ITK-SNAP Toolbox"));
   // m_DockLeft->setTitleBarWidget(new QWidget());
   this->addDockWidget(Qt::LeftDockWidgetArea, m_DockLeft);
 
@@ -325,7 +325,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_Progress->reset();
 
   // Set title
-  this->setWindowTitle("ITK-SNAP");
+  this->setWindowTitle(tr("ITK-SNAP"));
 
   // We accept drop events
   setAcceptDrops(true);
@@ -898,12 +898,12 @@ void MainImageWindow::UpdateLayerLayoutActions()
   if(ll == LAYOUT_TILED)
     {
     ui->actionToggleLayerLayout->setIcon(QIcon(":/root/layout_thumb_16.png"));
-    ui->actionToggleLayerLayout->setText("Enter Thumbnail Layout");
+    ui->actionToggleLayerLayout->setText(tr("Enter Thumbnail Layout"));
     }
   else if(ll == LAYOUT_STACKED)
     {
     ui->actionToggleLayerLayout->setIcon(QIcon(":/root/layout_tile_16.png"));
-    ui->actionToggleLayerLayout->setText("Enter Tiled Layout");
+    ui->actionToggleLayerLayout->setText(tr("Enter Tiled Layout"));
     }
 }
 
@@ -1099,7 +1099,7 @@ void MainImageWindow::UpdateWindowTitle()
     }
   else
     {
-    this->setWindowTitle("ITK-SNAP");
+    this->setWindowTitle(tr("ITK-SNAP"));
     }
 
   // Set up the save segmentation menu items
@@ -1259,7 +1259,7 @@ void MainImageWindow::OpenSnakeWizard()
   m_SizeWithoutRightDock = this->size();
 
   // Make the dock containing the wizard visible
-  m_DockRight->setWindowTitle("Segment 3D");
+  m_DockRight->setWindowTitle(tr("Segment 3D"));
   m_RightDockStack->setCurrentWidget(m_SnakeWizard);
   m_DockRight->setVisible(true);
 }
@@ -2358,8 +2358,8 @@ void MainImageWindow::DoUpdateCheck(bool quiet)
   if(us == SystemInterface::US_OUT_OF_DATE)
     {
     QMessageBox mbox(this);
-    QPushButton *downloadButton = mbox.addButton("Open Download Page", QMessageBox::ActionRole);
-    mbox.addButton("Not Now", QMessageBox::RejectRole);
+    QPushButton *downloadButton = mbox.addButton(tr("Open Download Page"), QMessageBox::ActionRole);
+    mbox.addButton(tr("Not Now"), QMessageBox::RejectRole);
     mbox.setIcon(QMessageBox::Question);
     mbox.setText(tr("A newer ITK-SNAP version (%1) is available.").arg(nver.c_str()));
     mbox.setInformativeText(tr("Do you want to download the latest version?"));
@@ -2552,7 +2552,7 @@ void MainImageWindow::on_actionRegistration_triggered()
 {
   // Remember the size of the window before the right dock was shown
   m_SizeWithoutRightDock = this->size();
-  m_DockRight->setWindowTitle("Registration");
+  m_DockRight->setWindowTitle(tr("Registration"));
   m_Model->GetRegistrationModel()->SetFreeRotationMode(false);
   m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
   m_DockRight->setVisible(true);
@@ -2563,7 +2563,7 @@ void MainImageWindow::on_actionFree_Rotation_Mode_triggered()
 {
   // Remember the size of the window before the right dock was shown
   m_SizeWithoutRightDock = this->size();
-  m_DockRight->setWindowTitle("Free Rotation");
+  m_DockRight->setWindowTitle(tr("Free Rotation"));
   m_Model->GetRegistrationModel()->SetFreeRotationMode(true);
   m_RightDockStack->setCurrentWidget(m_RegistrationDialog);
   m_DockRight->setVisible(true);

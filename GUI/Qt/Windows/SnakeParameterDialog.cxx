@@ -128,7 +128,7 @@ void SnakeParameterDialog::onModelUpdate(const EventBucket &bucket)
         {
         ui->stackEqn->setCurrentWidget(ui->pageEqnZhu);
         }
-      ui->lblForceAlpha->setText("Region Competition");
+      ui->lblForceAlpha->setText(tr("Region Competition"));
       }
     else
       {
@@ -137,7 +137,7 @@ void SnakeParameterDialog::onModelUpdate(const EventBucket &bucket)
         {
         ui->stackEqn->setCurrentWidget(ui->pageEqnCaselles);
         }
-      ui->lblForceAlpha->setText("Balloon Force");
+      ui->lblForceAlpha->setText(tr("Balloon Force"));
       }
 
     // Update the formula

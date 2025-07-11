@@ -400,7 +400,7 @@ void SummaryPage::AddItem(
 void SummaryPage::initializePage()
 {
   // Set the title
-  this->setTitle("Image Summary");
+  this->setTitle(tr("Image Summary"));
 
   // Fill the tree widget
   m_Tree->clear();
@@ -462,7 +462,7 @@ DICOMPage::DICOMPage(QWidget *parent)
 void DICOMPage::initializePage()
 {
   // Set the title, subtitle
-  setTitle("Select DICOM series to open");
+  setTitle(tr("Select DICOM series to open"));
 
   // Process the DICOM directory on a timer - so that the GUI shows first
   QTimer::singleShot(0, this, SLOT(processDicomDirectory()));
