@@ -317,7 +317,7 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
     {
     // Create a mesh group box
     auto meshGrpBox = new CollapsableGroupBox();
-    meshGrpBox->setTitle("Mesh Layers");
+    meshGrpBox->setTitle(tr("Mesh Layers"));
     lo->addWidget(meshGrpBox);
 
     // Iterate through mesh layers building widgets

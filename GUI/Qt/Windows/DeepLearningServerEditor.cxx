@@ -408,7 +408,7 @@ DeepLearningServerEditor::on_btnFindPythonExe_clicked()
 #endif
 
   QString filter = QString("Python Interpreter (%1)").arg(defaultName);
-  QString file = QFileDialog::getOpenFileName(this, "Select Python Interpreter", defaultDir, filter);
+  QString file = QFileDialog::getOpenFileName(this, tr("Select Python Interpreter"), defaultDir, filter);
   if(!file.isNull())
     m_Model->SetLocalPythonExePath(file.toStdString());
 }

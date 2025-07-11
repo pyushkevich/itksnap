@@ -45,9 +45,9 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
   makeCoupling(ui->chkMorphologyInterpolateOneAxis, m_Model->GetMorphologyInterpolateOneAxisModel());
 
   ui->morphologyInterpolationAxis->clear();
-  ui->morphologyInterpolationAxis->addItem("Axial",QVariant::fromValue(ANATOMY_AXIAL));
-  ui->morphologyInterpolationAxis->addItem("Sagittal",QVariant::fromValue(ANATOMY_SAGITTAL));
-  ui->morphologyInterpolationAxis->addItem("Coronal",QVariant::fromValue(ANATOMY_CORONAL));
+  ui->morphologyInterpolationAxis->addItem(tr("Axial"),QVariant::fromValue(ANATOMY_AXIAL));
+  ui->morphologyInterpolationAxis->addItem(tr("Sagittal"),QVariant::fromValue(ANATOMY_SAGITTAL));
+  ui->morphologyInterpolationAxis->addItem(tr("Coronal"),QVariant::fromValue(ANATOMY_CORONAL));
   makeCoupling(ui->morphologyInterpolationAxis, m_Model->GetMorphologyInterpolationAxisModel());
 
   //Added by SR- Settings for binary weighted averge method
@@ -63,9 +63,9 @@ void InterpolateLabelsDialog::SetModel(InterpolateLabelModel *model)
   makeCoupling(ui->chkSliceDirection, m_Model->GetSliceDirectionModel());
 
   ui->SliceDirectionAxis->clear();
-  ui->SliceDirectionAxis->addItem("Axial",QVariant::fromValue(ANATOMY_AXIAL));
-  ui->SliceDirectionAxis->addItem("Sagittal",QVariant::fromValue(ANATOMY_SAGITTAL));
-  ui->SliceDirectionAxis->addItem("Coronal",QVariant::fromValue(ANATOMY_CORONAL));
+  ui->SliceDirectionAxis->addItem(tr("Axial"),QVariant::fromValue(ANATOMY_AXIAL));
+  ui->SliceDirectionAxis->addItem(tr("Sagittal"),QVariant::fromValue(ANATOMY_SAGITTAL));
+  ui->SliceDirectionAxis->addItem(tr("Coronal"),QVariant::fromValue(ANATOMY_CORONAL));
   makeCoupling(ui->SliceDirectionAxis, m_Model->GetSliceDirectionAxisModel());
 
 

@@ -38,9 +38,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
 
   // Set up list of interpolation modes
   ui->inInterpolationMode->clear();
-  ui->inInterpolationMode->addItem("Nearest Neighbor",
+  ui->inInterpolationMode->addItem(tr("Nearest Neighbor"),
                                    QVariant::fromValue(GlobalDisplaySettings::NEAREST));
-  ui->inInterpolationMode->addItem("Linear", QVariant::fromValue(GlobalDisplaySettings::LINEAR));
+  ui->inInterpolationMode->addItem(tr("Linear"), QVariant::fromValue(GlobalDisplaySettings::LINEAR));
 
   // Set up layoyt options
   ui->inOverlayLayout->clear();
