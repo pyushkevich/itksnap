@@ -22,6 +22,7 @@
 #include "itkObject.h"
 #include "vtkObject.h"
 
+#include <QtCore/qlibraryinfo.h>
 #include <QtCore/qtranslator.h>
 #include <iostream>
 #include <clocale>
@@ -1038,6 +1039,17 @@ main(int argc, char *argv[])
     else
     {
       qDebug() << "Failed to load translator for locale" << QLocale().name();
+    }
+
+    QTranslator translator_sys;
+    if (translator_sys.load(QLocale(), "qtbase", "_", QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+    {
+      qDebug() << "Loaded qtbase translator for locale" << QLocale().name();
+      QCoreApplication::installTranslator(&translator_sys);
+    }
+    else
+    {
+      qDebug() << "Failed to load qtbase translator for locale" << QLocale().name();
     }
 
     // Create the main window

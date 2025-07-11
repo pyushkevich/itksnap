@@ -78,7 +78,7 @@ CursorInspector::CursorInspector(QWidget *parent) :
 
   // Set the header labels
   QStringList header;
-  header << "Layer" << "Intensity";
+  header << tr("Layer") << tr("Intensity");
   m_CurrentVoxelItemModel->setHorizontalHeaderLabels(header);
 
   ui->tableVoxelUnderCursor->setModel(m_CurrentVoxelItemModel);

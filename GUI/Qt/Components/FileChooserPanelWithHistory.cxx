@@ -707,7 +707,7 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
     if(fi.isRelative() && !fi.isDir())
       {
       QString saveDir = fiwd.isDir() ? fiwd.absoluteFilePath() : fiwd.absolutePath();
-      ui->outSavePath->setText(QString("Path: %1").arg(saveDir));
+      ui->outSavePath->setText(tr("Path: %1").arg(saveDir));
       }
     }
   else
@@ -726,7 +726,7 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
       if(fi.isRelative())
         {
         QString saveDir = fiwd.isDir() ? fiwd.absoluteFilePath() : fiwd.absolutePath();
-        ui->outSavePath->setText(QString("Path: %1").arg(saveDir));
+        ui->outSavePath->setText(tr("Path: %1").arg(saveDir));
         }
 
       // Does the file exist?

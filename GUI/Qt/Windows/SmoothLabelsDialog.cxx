@@ -17,6 +17,7 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QDialogButtonBox>
+#include <QObject>
 
 SmoothLabelsDialog::SmoothLabelsDialog(QWidget *parent) :
   QDialog(parent),
@@ -64,7 +65,7 @@ public:
           items[0]->setCheckState(Qt::CheckState::Checked);
           items[0]->setCheckable(false);
           items[0]->setEnabled(false);
-          items[0]->setToolTip(tr("Current smoothing algorithm always involves background label"));
+          items[0]->setToolTip(QObject::tr("Current smoothing algorithm always involves background label"));
         }
   }
 };

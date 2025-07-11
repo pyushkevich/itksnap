@@ -94,9 +94,9 @@ void MeshImportFileSelectionPage::initializePage()
     }
 }
 
-QString GetErrorText(std::string input)
+QString GetErrorText(QString input)
 {
-  return QString("<span style=\" color:#7f0000;\">%1</span>").arg(input.c_str());
+  return QString("<span style=\" color:#7f0000;\">%1</span>").arg(input);
 }
 
 
@@ -127,12 +127,13 @@ bool MeshImportFileSelectionPage::validatePage()
   auto nt = m_Model->GetParentModel()->GetDriver()->GetNumberOfTimePoints();
   if (nt < filenames.length())
     {
-    std::ostringstream oss;
-    oss << "Number of selected files (" << filenames.length()
-        << ") cannot exceed the number of time points (" << nt << ")!";
-    ui->lblMessage->setText(GetErrorText(oss.str()));
-    ui->lblMessage->setWordWrap(true);
-    return false;
+      QString error_str =
+        tr("Number of selected files (%1) cannot exceed the number of time points (%2)!")
+          .arg(filenames.length())
+          .arg(nt);
+      ui->lblMessage->setText(GetErrorText(error_str));
+      ui->lblMessage->setWordWrap(true);
+      return false;
     }
 
   // Start loading

@@ -370,61 +370,72 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   const QString mod_shift(QChar(0x21e7));
 
   // Generate tooltips for the complex actions
-  ModeTooltipBuilder ttCrosshair("Crosshair Mode (1)",
-                                 "Used to position the 3D cursor in the three orthogonal image slices.");
-  ttCrosshair.addMouseAction(ModeTooltipBuilder::LMB, "<b>Place and move the 3D cursor</b>");
-  ttCrosshair.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
-  ttCrosshair.addMouseAction(ModeTooltipBuilder::LMB, "Pan (hold & drag)",mod_option);
-  ttCrosshair.addMouseAction(ModeTooltipBuilder::SCROLL, "Go to next/previous image slice");
-  ttCrosshair.addMouseAction(ModeTooltipBuilder::SCROLL, "Go to next/previous image component",mod_shift);
+  ModeTooltipBuilder ttCrosshair(
+    tr("Crosshair Mode (1)"),
+    tr("Used to position the 3D cursor in the three orthogonal image slices."));
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::LMB, tr("<b>Place and move the 3D cursor</b>"));
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::RMB, tr("Zoom in and out (hold & drag)"));
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::LMB, tr("Pan (hold & drag)"), mod_option);
+  ttCrosshair.addMouseAction(ModeTooltipBuilder::SCROLL, tr("Go to next/previous image slice"));
+  ttCrosshair.addMouseAction(
+    ModeTooltipBuilder::SCROLL, tr("Go to next/previous image component"), mod_shift);
   ui->actionCrosshair->setToolTip(ttCrosshair.makeTooltip());
 
-  ModeTooltipBuilder ttZoom("Zoom/Pan Mode (2)",
-                            "Used to zoom into the image and to pan around when zoomed in.");
-  ttZoom.addMouseAction(ModeTooltipBuilder::LMB, "<b>Pan (hold & drag)</b>");
-  ttZoom.addMouseAction(ModeTooltipBuilder::RMB, "<b>Zoom in and out (hold & drag)</b>");
-  ttZoom.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor", mod_option);
-  ttZoom.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttZoom.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
+  ModeTooltipBuilder ttZoom(tr("Zoom/Pan Mode (2)"),
+                            tr("Used to zoom into the image and to pan around when zoomed in."));
+  ttZoom.addMouseAction(ModeTooltipBuilder::LMB, tr("<b>Pan (hold & drag)</b>"));
+  ttZoom.addMouseAction(ModeTooltipBuilder::RMB, tr("<b>Zoom in and out (hold & drag)</b>"));
+  ttZoom.addMouseAction(ModeTooltipBuilder::LMB, tr("Place and move the 3D cursor"), mod_option);
+  ttZoom.addMouseAction(ModeTooltipBuilder::SCROLL, tr("Scroll through image slices"));
+  ttZoom.addMouseAction(ModeTooltipBuilder::SCROLL, tr("Scroll through image components"), mod_shift);
   ui->actionZoomPan->setToolTip(ttZoom.makeTooltip());
 
-  ModeTooltipBuilder ttPolygon("Polygon Mode (3)",
-                               "Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices.");
-  ttPolygon.addMouseAction(ModeTooltipBuilder::LMB, "<b>Add points to the polygon and edit the completed polygon</b>");
-  ttPolygon.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
-  ttPolygon.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor",mod_option);
-  ttPolygon.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttPolygon.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
+  ModeTooltipBuilder ttPolygon(
+    tr("Polygon Mode (3)"), tr("Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices."));
+  ttPolygon.addMouseAction(ModeTooltipBuilder::LMB,
+                           tr("<b>Add points to the polygon and edit the completed polygon</b>"));
+  ttPolygon.addMouseAction(ModeTooltipBuilder::RMB, tr("Zoom in and out (hold & drag)"));
+  ttPolygon.addMouseAction(ModeTooltipBuilder::LMB, tr("Place and move the 3D cursor"), mod_option);
+  ttPolygon.addMouseAction(ModeTooltipBuilder::SCROLL, tr("Scroll through image slices"));
+  ttPolygon.addMouseAction(
+    ModeTooltipBuilder::SCROLL, tr("Scroll through image components"), mod_shift);
   ui->actionPolygon->setToolTip(ttPolygon.makeTooltip());
 
-  ModeTooltipBuilder ttPaintbrush("Paintbrush Mode (4)",
-                               "Used to perform manual segmentation by drawing with a paintbrush-like tool. "
-                               "Different brush shapes are available, including an adaptive brush that adjusts itself to the image data.");
-  ttPaintbrush.addMouseAction(ModeTooltipBuilder::LMB, "<b>Paint with the active label</b>");
-  ttPaintbrush.addMouseAction(ModeTooltipBuilder::RMB, "<b>Erase voxels painted with the active label</b>");
-  ttPaintbrush.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor",mod_option);
-  ttPaintbrush.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttPaintbrush.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
+  ModeTooltipBuilder ttPaintbrush(
+    tr("Paintbrush Mode (4)"),
+    tr("Used to perform manual segmentation by drawing with a paintbrush-like tool. "
+       "Different brush shapes are available, including an adaptive brush that adjusts itself to "
+       "the image data."));
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::LMB, tr("<b>Paint with the active label</b>"));
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::RMB,
+                              tr("<b>Erase voxels painted with the active label</b>"));
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::LMB, tr("Place and move the 3D cursor"), mod_option);
+  ttPaintbrush.addMouseAction(ModeTooltipBuilder::SCROLL, tr("Scroll through image slices"));
+  ttPaintbrush.addMouseAction(
+    ModeTooltipBuilder::SCROLL, tr("Scroll through image components"), mod_shift);
   ui->actionPaintbrush->setToolTip(ttPaintbrush.makeTooltip());
 
-  ModeTooltipBuilder ttSnake("Active Contour (aka \"Snake\") Segmentation Mode (5)",
-                             "Used to select the region of interest for semi-automatic active contour "
-                             "segmentation and start the semi-automatic segmentation wizard.");
-  ttSnake.addMouseAction(ModeTooltipBuilder::LMB, "<b>Adjust the boundaries of the region of interest</b>");
-  ttSnake.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
-  ttSnake.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor",mod_option);
-  ttSnake.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttSnake.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
+  ModeTooltipBuilder ttSnake(
+    tr("Active Contour (aka \"Snake\") Segmentation Mode (5)"),
+    tr("Used to select the region of interest for semi-automatic active contour "
+       "segmentation and start the semi-automatic segmentation wizard."));
+  ttSnake.addMouseAction(ModeTooltipBuilder::LMB,
+                         tr("<b>Adjust the boundaries of the region of interest</b>"));
+  ttSnake.addMouseAction(ModeTooltipBuilder::RMB, tr("Zoom in and out (hold & drag)"));
+  ttSnake.addMouseAction(ModeTooltipBuilder::LMB, tr("Place and move the 3D cursor"), mod_option);
+  ttSnake.addMouseAction(ModeTooltipBuilder::SCROLL, tr("Scroll through image slices"));
+  ttSnake.addMouseAction(ModeTooltipBuilder::SCROLL, tr("Scroll through image components"), mod_shift);
   ui->actionSnake->setToolTip(ttSnake.makeTooltip());
 
-  ModeTooltipBuilder ttRuler("Image Annotation Mode (6)",
-                             "Used to draw annotations (lines, text) on image slices and to measure "
-                             "distances and angles between points in a slice.");
-  ttRuler.addMouseAction(ModeTooltipBuilder::LMB, "<b>Draw and edit annotations</b>");
-  ttRuler.addMouseAction(ModeTooltipBuilder::RMB, "Zoom in and out (hold & drag)");
-  ttRuler.addMouseAction(ModeTooltipBuilder::LMB, "Place and move the 3D cursor",mod_option);
-  ttRuler.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image slices");
-  ttRuler.addMouseAction(ModeTooltipBuilder::SCROLL, "Scroll through image components",mod_shift);
+  ModeTooltipBuilder ttRuler(
+    tr("Image Annotation Mode (6)"),
+    tr("Used to draw annotations (lines, text) on image slices and to measure "
+       "distances and angles between points in a slice."));
+  ttRuler.addMouseAction(ModeTooltipBuilder::LMB, tr("<b>Draw and edit annotations</b>"));
+  ttRuler.addMouseAction(ModeTooltipBuilder::RMB, tr("Zoom in and out (hold & drag)"));
+  ttRuler.addMouseAction(ModeTooltipBuilder::LMB, tr("Place and move the 3D cursor"), mod_option);
+  ttRuler.addMouseAction(ModeTooltipBuilder::SCROLL, tr("Scroll through image slices"));
+  ttRuler.addMouseAction(ModeTooltipBuilder::SCROLL, tr("Scroll through image components"), mod_shift);
   ui->actionAnnotation->setToolTip(ttRuler.makeTooltip());
 
   // Translate the tooltips in all the widgets. This changes the apple symbols that are currently
@@ -2368,7 +2379,7 @@ void MainImageWindow::DoUpdateCheck(bool quiet)
 
     if (mbox.clickedButton() == downloadButton)
       {
-      QDesktopServices::openUrl(QUrl("http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.SNAP3"));
+      QDesktopServices::openUrl(QUrl("http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.SNAP4"));
       }
     }
   else if(us == SystemInterface::US_UP_TO_DATE && !quiet)
@@ -2449,7 +2460,7 @@ void MainImageWindow::on_actionCheck_for_Updates_triggered()
 
 void MainImageWindow::on_actionDocumentation_Home_triggered()
 {
-  QDesktopServices::openUrl(QUrl("http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP3"));
+  QDesktopServices::openUrl(QUrl("http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP4"));
 }
 
 void MainImageWindow::on_actionNew_ITK_SNAP_Window_triggered()

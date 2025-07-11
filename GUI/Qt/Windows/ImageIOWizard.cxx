@@ -273,7 +273,7 @@ void SelectFilePage::initializePage()
     {
     m_FilePanel->initializeForOpenFile(
           m_Model->GetParent(),
-          "Image Filename:",
+          tr("Image Filename:"),
           from_utf8(m_Model->GetHistoryName()),
           from_utf8(filter),
           from_utf8(m_Model->GetSuggestedFilename()),
@@ -283,7 +283,7 @@ void SelectFilePage::initializePage()
     {
     m_FilePanel->initializeForSaveFile(
           m_Model->GetParent(),
-          "Image Filename:",
+          tr("Image Filename:"),
           from_utf8(m_Model->GetHistoryName()),
           from_utf8(filter),
           false,
@@ -870,9 +870,9 @@ void ImageIOWizard::SetModel(ImageIOWizardModel *model)
 
   // Set the title
   if(model->IsLoadMode())
-    this->setWindowTitle("Open Image - ITK-SNAP");
+    this->setWindowTitle(tr("Open Image - ITK-SNAP"));
   else
-    this->setWindowTitle("Save Image - ITK-SNAP");
+    this->setWindowTitle(tr("Save Image - ITK-SNAP"));
 }
 
 void ImageIOWizard::SetFilename(const std::string &filename,
