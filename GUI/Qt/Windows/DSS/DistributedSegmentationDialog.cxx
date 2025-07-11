@@ -184,11 +184,11 @@ public:
     switch(value.status)
       {
       case dss_model::AUTH_NOT_CONNECTED:
-        w->setText("Not Connected");
+        w->setText(tr("Not Connected"));
         w->setStyleSheet("color: darkred; font-weight: bold;");
         break;
       case dss_model::AUTH_CONNECTED_NOT_AUTHENTICATED:
-        w->setText("Connected but Not Logged In");
+        w->setText(tr("Connected but Not Logged In"));
         w->setStyleSheet("color: darkred; font-weight: bold;");
         break;
       case dss_model::AUTH_AUTHENTICATED:
@@ -213,7 +213,7 @@ public:
     if(value > 0)
       w->setText(QString("Ticket %1").arg(value));
     else
-      w->setText("Selected Ticket");
+      w->setText(tr("Selected Ticket"));
   }
 };
 
@@ -825,7 +825,7 @@ void DistributedSegmentationDialog::on_btnManageServers_clicked()
     QUrl url(url_string);
     if(!url.isValid() || url.isRelative() || url.isLocalFile() || url.isEmpty())
       {
-      QMessageBox::warning(this, "Invalid server URL",
+      QMessageBox::warning(this, tr("Invalid server URL"),
                            QString("%1 is not a valid URL.").arg(url_string));
       }
     else

@@ -269,12 +269,12 @@ void RegistrationDialog::on_btnReslice_clicked()
   QDialog *dialog = new QDialog(this);
   QFormLayout *lo = new QFormLayout();
 
-  dialog->setWindowTitle("Reslicing Options - ITK-SNAP");
+  dialog->setWindowTitle(tr("Reslicing Options - ITK-SNAP"));
 
   // Set up interpolation options
   QComboBox *cbInterp = new QComboBox(dialog);
-  cbInterp->addItem("Nearest Neighbor", QVariant(NEAREST_NEIGHBOR));
-  cbInterp->addItem("Linear", QVariant(TRILINEAR));
+  cbInterp->addItem(tr("Nearest Neighbor"), QVariant(NEAREST_NEIGHBOR));
+  cbInterp->addItem(tr("Linear"), QVariant(TRILINEAR));
   cbInterp->setCurrentIndex(1);
   lo->addRow("&Interpolation:", cbInterp);
 
@@ -289,9 +289,9 @@ void RegistrationDialog::on_btnReslice_clicked()
   */
 
   QLabel *label = new QLabel;
-  label->setText("The resliced image will be created as an addtional\n"
+  label->setText(tr("The resliced image will be created as an addtional\n"
                  "image layer. You can save the resliced image using\n"
-                 "the context menu.");
+                 "the context menu."));
   lo->addRow(label);
 
   QDialogButtonBox *bbox =
