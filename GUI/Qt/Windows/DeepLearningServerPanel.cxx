@@ -328,7 +328,7 @@ DeepLearningServerPanel::ShowEditorDialog()
 {
   // Create a new dialog
   m_EditorDialog = new QDialog(this->window());
-  m_EditorDialog->setWindowTitle("Deep Learning Extension Server Configuration");
+  m_EditorDialog->setWindowTitle(tr("Deep Learning Extension Server Configuration"));
   m_Editor = new DeepLearningServerEditor(m_EditorDialog);
   connect(m_EditorDialog,
           &QDialog::finished,

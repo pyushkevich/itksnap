@@ -40,7 +40,7 @@ LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   menu->addAction(ui->actionResetLabels);
   menu->addSeparator();
 
-  QMenu *menu_vis = new QMenu("Visibility", this);
+  QMenu *menu_vis = new QMenu(tr("Visibility"), this);
   menu->addMenu(menu_vis);
   menu_vis->addAction(ui->actionHide_all_labels);
   menu_vis->addAction(ui->actionHide_all_labels_in_3D_window);
@@ -176,7 +176,7 @@ void LabelEditorDialog::on_btnDelete_clicked()
           "assigned the clear label (label 0). Are you sure you want to "
           "delete label %1?").arg(m_Model->GetCurrentLabelModel()->GetValue());
     mb.setText(text);
-    mb.addButton("Delete Label", QMessageBox::ActionRole);
+    mb.addButton(tr("Delete Label"), QMessageBox::ActionRole);
     QPushButton *bCancel = mb.addButton(QMessageBox::Cancel);
     mb.exec();
 

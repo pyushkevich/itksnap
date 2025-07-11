@@ -235,8 +235,8 @@ CrosshairsInteractionMode::keyPressEvent(QKeyEvent *ev)
       {
         QMessageBox::StandardButton reply = QMessageBox::question(
           this,
-          "Crash simulation",
-          "This key combination simulates a crash in ITK-SNAP. Do you want ITK-SNAP to crash now?",
+          tr("Crash simulation"),
+          tr("This key combination simulates a crash in ITK-SNAP. Do you want ITK-SNAP to crash now?"),
           QMessageBox::Yes | QMessageBox::No);
         if (reply == QMessageBox::Yes)
         {

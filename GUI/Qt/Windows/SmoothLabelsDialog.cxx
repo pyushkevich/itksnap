@@ -64,7 +64,7 @@ public:
           items[0]->setCheckState(Qt::CheckState::Checked);
           items[0]->setCheckable(false);
           items[0]->setEnabled(false);
-          items[0]->setToolTip("Current smoothing algorithm always involves background label");
+          items[0]->setToolTip(tr("Current smoothing algorithm always involves background label"));
         }
   }
 };
@@ -177,8 +177,8 @@ void SmoothLabelsDialog::on_btnApply_clicked()
   if (checked.count() <= 1)
     {
       QMessageBox box;
-      box.setWindowTitle("No Labels for smoothing");
-      box.setText("No labels are selected for smoothing!");
+      box.setWindowTitle(tr("No Labels for smoothing"));
+      box.setText(tr("No labels are selected for smoothing!"));
       box.exec();
       return;
     }
@@ -266,7 +266,7 @@ int SmoothLabelsDialog::validateInput()
 {
   QString msg;
   QMessageBox box;
-  box.setWindowTitle("Invalid Input");
+  box.setWindowTitle(tr("Invalid Input"));
 
   // sigma should be greater than zero
   if (ui->sigmaX->text().toDouble() <= 0

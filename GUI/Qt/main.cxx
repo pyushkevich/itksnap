@@ -224,13 +224,13 @@ test_terminate_handler()
       msgBox.setText(QString("ITK-SNAP crashed due to an unexpected error. Your unsaved "
                              "segmentations have been saved to folder '%1'")
                        .arg(backup_dir));
-      msgBox.setWindowTitle("Crash Recovery");
+      msgBox.setWindowTitle(QObject::tr("Crash Recovery"));
 
       // Add the "Open Folder" button
-      QPushButton *openFolderButton = msgBox.addButton("Open Folder", QMessageBox::AcceptRole);
+      QPushButton *openFolderButton = msgBox.addButton(QObject::tr("Open Folder"), QMessageBox::AcceptRole);
 
       // Add the "Close" button
-      msgBox.addButton("Close", QMessageBox::RejectRole);
+      msgBox.addButton(QObject::tr("Close"), QMessageBox::RejectRole);
 
       // Execute the message box and handle the button press
       msgBox.exec();
@@ -242,7 +242,7 @@ test_terminate_handler()
         QUrl folderUrl = QUrl::fromLocalFile(backup_dir);
         if (!QDesktopServices::openUrl(folderUrl))
         {
-          QMessageBox::warning(nullptr, "Error", "Failed to open the folder: " + backup_dir);
+          QMessageBox::warning(nullptr, QObject::tr("Error"), QObject::tr("Failed to open the folder: ") + backup_dir);
         }
       }
     }

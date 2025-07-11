@@ -236,7 +236,7 @@ void MainControlPanel::on_btnCursorInspector_clicked(bool checked)
   if(checked)
     {
     ui->stack->setCurrentWidget(ui->pageCursorInspector);
-    ui->grpInspector->setTitle("Cursor Inspector");
+    ui->grpInspector->setTitle(tr("Cursor Inspector"));
     }
 
 }
@@ -246,7 +246,7 @@ void MainControlPanel::on_btnZoomInspector_clicked(bool checked)
   if(checked)
     {
     ui->stack->setCurrentWidget(ui->pageZoomInspector);
-    ui->grpInspector->setTitle("Zoom Inspector");
+    ui->grpInspector->setTitle(tr("Zoom Inspector"));
     }
 }
 
@@ -255,7 +255,7 @@ void MainControlPanel::on_btnDisplayInspector_clicked(bool checked)
   if(checked)
     {
     ui->stack->setCurrentWidget(ui->pageDisplayInspector);
-    ui->grpInspector->setTitle("Display Layout Inspector");
+    ui->grpInspector->setTitle(tr("Display Layout Inspector"));
     }
 }
 
@@ -264,7 +264,7 @@ void MainControlPanel::on_btnSyncInspector_clicked(bool checked)
   if(checked)
     {
     ui->stack->setCurrentWidget(ui->pageSyncInspector);
-    ui->grpInspector->setTitle("Synchronization Inspector");
+    ui->grpInspector->setTitle(tr("Synchronization Inspector"));
     }
 }
 
@@ -276,7 +276,7 @@ void MainControlPanel::on_btnPolygonInspector_clicked(bool checked)
   if(checked)
     {
     ui->stack->setCurrentWidget(ui->pagePolygonTool);
-    ui->grpInspector->setTitle("Polygon Inspector");
+    ui->grpInspector->setTitle(tr("Polygon Inspector"));
     }
 
 }
@@ -286,7 +286,7 @@ void MainControlPanel::on_btnPaintbrushInspector_clicked(bool checked)
   if(checked)
     {
     ui->stack->setCurrentWidget(ui->pagePaintbrushTool);
-    ui->grpInspector->setTitle("Paintbrush Inspector");
+    ui->grpInspector->setTitle(tr("Paintbrush Inspector"));
     }
 
 }
@@ -296,7 +296,7 @@ void MainControlPanel::on_btnSnakeInspector_clicked(bool checked)
   if(checked)
     {
     ui->stack->setCurrentWidget(ui->pageSnakeTool);
-    ui->grpInspector->setTitle("Snake Inspector");
+    ui->grpInspector->setTitle(tr("Snake Inspector"));
     }
 
 }
@@ -307,6 +307,6 @@ void MainControlPanel::on_btnAnnotateInspector_clicked(bool checked)
   if(checked)
     {
     ui->stack->setCurrentWidget(ui->pageAnnotationTool);
-    ui->grpInspector->setTitle("Annotation Inspector");
+    ui->grpInspector->setTitle(tr("Annotation Inspector"));
     }
 }

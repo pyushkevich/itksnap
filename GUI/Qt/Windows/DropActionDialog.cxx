@@ -261,7 +261,7 @@ void DropActionDialog::on_btnLoadNew_clicked()
   catch(exception &exc)
     {
     QMessageBox b(this);
-    b.setText(QString("Failed to launch new ITK-SNAP instance"));
+    b.setText(tr("Failed to launch new ITK-SNAP instance"));
     b.setDetailedText(exc.what());
     b.setIcon(QMessageBox::Critical);
     b.exec();
@@ -341,7 +341,7 @@ void DropActionDialog::LoadCommon(AbstractOpenImageDelegate *delegate)
       {
       progress->close();
       QMessageBox b(this);
-      b.setText(QString("Failed to load image %1").arg(ui->outFilename->text()));
+      b.setText(tr("Failed to load image %1").arg(ui->outFilename->text()));
       b.setDetailedText(exc.what());
       b.setIcon(QMessageBox::Critical);
       b.exec();

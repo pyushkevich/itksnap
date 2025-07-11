@@ -38,7 +38,7 @@ MeshImportWizard
 ::CreateLoadToNewLayerMessageBox(QWidget *parent, unsigned int displayTP)
 {
   QMessageBox *msgBox = new QMessageBox(parent);
-  msgBox->setText("Load file into a new mesh layer?");
+  msgBox->setText(tr("Load file into a new mesh layer?"));
   std::ostringstream oss;
   oss << "The mesh will be loaded to the current time point ("
       << displayTP

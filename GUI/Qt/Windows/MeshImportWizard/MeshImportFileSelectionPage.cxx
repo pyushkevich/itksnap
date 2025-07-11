@@ -118,7 +118,7 @@ bool MeshImportFileSelectionPage::validatePage()
       filenames.push_back(ui->filePanel->absoluteFilename());
     else
       {
-      ui->lblMessage->setText(GetErrorText("File does not exist!"));
+      ui->lblMessage->setText(GetErrorText(tr("File does not exist!")));
       return false;
       }
     }
@@ -186,7 +186,7 @@ bool MeshImportFileSelectionPage::validatePage()
 
   if (fn_list.size() > 1)
     {
-    msgBox->setText("How do you want the mesh series to be loaded?");
+    msgBox->setText(tr("How do you want the mesh series to be loaded?"));
     std::ostringstream oss;
     oss << "From Current Time Point (" << displayTP << ")";
     btnSeriesFromTP = msgBox->addButton(tr(oss.str().c_str()), QMessageBox::ActionRole);
@@ -194,7 +194,7 @@ bool MeshImportFileSelectionPage::validatePage()
     }
   else
     {
-    msgBox->setText("How do you want the mesh to be loaded?");
+    msgBox->setText(tr("How do you want the mesh to be loaded?"));
     std::ostringstream oss;
     oss << "To Current Time Point (" << displayTP << ")";
     btnLoadTP = msgBox->addButton(tr(oss.str().c_str()), QMessageBox::ActionRole);
