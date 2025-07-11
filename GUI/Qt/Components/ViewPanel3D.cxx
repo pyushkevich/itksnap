@@ -131,7 +131,7 @@ void ViewPanel3D::on_btnUpdateMesh_clicked()
     }
   catch(IRISException & IRISexc)
     {
-    QMessageBox::warning(this, "Problem generating mesh", IRISexc.what());
+    QMessageBox::warning(this, tr("Problem generating mesh"), IRISexc.what());
     }
 
   // TODO: Delete this later - should be automatic!
@@ -185,12 +185,12 @@ void ViewPanel3D::UpdateExpandViewButton()
   if(layout == DisplayLayoutModel::VIEW_ALL)
     {
     ui->btnExpand->setIcon(QIcon(":/root/dl_fourviews.png"));
-    ui->btnExpand->setToolTip("Restore the four-panel display configuration");
+    ui->btnExpand->setToolTip(tr("Restore the four-panel display configuration"));
     }
   else
     {
     ui->btnExpand->setIcon(QIcon(":/root/dl_3d.png"));
-    ui->btnExpand->setToolTip("Expand the 3D view to occupy the entire window");
+    ui->btnExpand->setToolTip(tr("Expand the 3D view to occupy the entire window"));
     }
 }
 

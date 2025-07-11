@@ -24,7 +24,7 @@ FileChooserPanelWithHistory::FileChooserPanelWithHistory(QWidget *parent) :
   m_oracleTarget = NULL;
 
   // History menu
-  QMenu *history = new QMenu("History", ui->btnHistory);
+  QMenu *history = new QMenu(tr("History"), ui->btnHistory);
   ui->btnHistory->setMenu(history);
 
   // Set up an event filter
@@ -693,13 +693,13 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
     {
     // Does the file exist?
     if(intext.length() && !fiwd.exists())
-      ui->outError->setText("The file does not exist");
+      ui->outError->setText(tr("The file does not exist"));
     else if(intext.length() && !fiwd.isReadable())
-      ui->outError->setText("The file is not readable");
+      ui->outError->setText(tr("The file is not readable"));
     else if(ui->inFormat->currentIndex() == -1 && ui->inFilename->text().length())
-      ui->outError->setText("Unable to recognize file format");
+      ui->outError->setText(tr("Unable to recognize file format"));
     else if(isFilenameNonAscii(fiwd.absoluteFilePath()))
-      ui->outError->setText("The filename contains unsupported characters");
+      ui->outError->setText(tr("The filename contains unsupported characters"));
     else
       ui->outError->setText("");
 
@@ -731,9 +731,9 @@ void FileChooserPanelWithHistory::on_inFilename_textChanged(const QString &text)
 
       // Does the file exist?
 	  if (isFilenameNonAscii(fiwd.absoluteFilePath()))
-		ui->outError->setText("The filename contains unsupported characters");
+		ui->outError->setText(tr("The filename contains unsupported characters"));
       else if(fiwd.exists())
-        ui->outError->setText("Existing file will be overwritten!");
+        ui->outError->setText(tr("Existing file will be overwritten!"));
       }
     }
 

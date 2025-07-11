@@ -116,7 +116,7 @@ void AnnotationInteractionMode::onTextInputRequested()
 {
   // Special handling in text annotation mode
   bool ok;
-  QString text = QInputDialog::getText(this, "Text Annotation", "Enter annotation text:", QLineEdit::Normal,
+  QString text = QInputDialog::getText(this, tr("Text Annotation"), tr("Enter annotation text:"), QLineEdit::Normal,
                                        QString(), &ok);
   if(ok && text.length())
     {

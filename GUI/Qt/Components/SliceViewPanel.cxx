@@ -597,11 +597,11 @@ void SliceViewPanel::UpdateExpandViewButton()
   // Set the tooltip
   if(layout == DisplayLayoutModel::VIEW_ALL)
     {
-    ui->btnExpand->setToolTip("Restore the four-panel display configuration");
+    ui->btnExpand->setToolTip(tr("Restore the four-panel display configuration"));
     }
   else
     {
-    ui->btnExpand->setToolTip("Expand this view to occupy the entire window");
+    ui->btnExpand->setToolTip(tr("Expand this view to occupy the entire window"));
     }
 
   // Also expand the tile/cascade button

@@ -7,7 +7,7 @@
 QColorButtonWidget::QColorButtonWidget(QWidget *parent) : QWidget(parent)
 {
   m_Button = new QToolButton(this);
-  m_Button->setText("Choose ...");
+  m_Button->setText(tr("Choose ..."));
   m_Button->setIcon(CreateColorBoxIcon(16,16,m_value));
   m_Button->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
   m_Button->setIconSize(QSize(16,16));
