@@ -560,9 +560,9 @@ void LayerInspectorRowDelegate::OnNicknameUpdate()
 
   // Update things that depend on the nickname
   QString name = from_utf8(m_Model->GetNickname());
-  ui->actionSave->setText(QString("Save %1 \"%2\" ...").arg(layer_type).arg(name));
+  ui->actionSave->setText(tr("Save %1 \"%2\" ...").arg(layer_type).arg(name));
   ui->actionSave->setToolTip(ui->actionSave->text());
-  ui->actionClose->setText(QString("Close %1 \"%2\"").arg(layer_type).arg(name));
+  ui->actionClose->setText(tr("Close %1 \"%2\"").arg(layer_type).arg(name));
   ui->actionClose->setToolTip(ui->actionClose->text());
   ui->outLayerNickname->setToolTip(name);
 

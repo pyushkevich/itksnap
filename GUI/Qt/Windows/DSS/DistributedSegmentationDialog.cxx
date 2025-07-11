@@ -192,7 +192,7 @@ public:
         w->setStyleSheet("color: darkred; font-weight: bold;");
         break;
       case dss_model::AUTH_AUTHENTICATED:
-        w->setText(QString("Logged in as %1").arg(from_utf8(value.user_email)));
+        w->setText(tr("Logged in as %1").arg(from_utf8(value.user_email)));
         w->setStyleSheet("color: darkgreen; font-weight: bold;");
         break;
       }

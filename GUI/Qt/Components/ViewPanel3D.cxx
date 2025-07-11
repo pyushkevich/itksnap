@@ -223,10 +223,10 @@ void ViewPanel3D::on_btnAccept_clicked()
 {
   if(!m_Model->AcceptAction())
     {
-    QMessageBox::information(this, "No voxels were updated",
-                             "The 3D operation did not update any voxels in "
+    QMessageBox::information(this, tr("No voxels were updated"),
+                             tr("The 3D operation did not update any voxels in "
                              "the segmentation. Check that the foreground and "
-                             "background labels are selected correctly.");
+                             "background labels are selected correctly."));
     }
 }
 

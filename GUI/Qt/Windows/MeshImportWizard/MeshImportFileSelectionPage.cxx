@@ -118,7 +118,7 @@ bool MeshImportFileSelectionPage::validatePage()
       filenames.push_back(ui->filePanel->absoluteFilename());
     else
       {
-      ui->lblMessage->setText(GetErrorText("File does not exist!"));
+      ui->lblMessage->setText(GetErrorText(tr("File does not exist!")));
       return false;
       }
     }
