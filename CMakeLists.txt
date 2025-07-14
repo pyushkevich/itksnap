@@ -1265,6 +1265,7 @@ set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH
 #--------------------------------------------------------------------------------
 # QT Internationalization
 #--------------------------------------------------------------------------------
+
 set(QT_I18N_TRANSLATED_LANGUAGES es zh_CN)
 qt_add_translations(
   TARGETS ${SNAP_BUNDLE_NAME}
@@ -1582,13 +1583,33 @@ IF(APPLE)
   include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
 
   # Include plugins
-  get_filename_component(QT_COCOA_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/libqcocoa.dylib" ABSOLUTE)
-  get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/libqgif.dylib" ABSOLUTE)
-  message(STATUS "QT_COCOA_PLUGIN=${QT_COCOA_PLUGIN}")
-  message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
+  # get_filename_component(QT_COCOA_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/libqcocoa.dylib" ABSOLUTE)
+  # get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/libqgif.dylib" ABSOLUTE)
+  # message(STATUS "QT_COCOA_PLUGIN=${QT_COCOA_PLUGIN}")
+  # message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
 
   # Install with the plugin
-  install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN};${QT_COCOA_PLUGIN}")
+  # install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN};${QT_COCOA_PLUGIN}")
+  set(executable_path "../../../${SNAP_BUNDLE_NAME}.app")
+
+  qt_generate_deploy_script(
+      TARGET ${SNAP_BUNDLE_NAME}
+      OUTPUT_SCRIPT deploy_script
+      CONTENT "
+  qt_deploy_runtime_dependencies(
+      EXECUTABLE \"${executable_path}\"
+      GENERATE_QT_CONF
+      VERBOSE
+  )
+  qt_deploy_qt_conf(
+    \"${QT_DEPLOY_PREFIX}/Resources/qt.conf\"
+    TRANSLATIONS_DIR Resources/translations
+  )
+  qt_deploy_translations(
+      LOCALES en es zh_CN
+      VERBOSE
+  )")
+  install(SCRIPT ${deploy_script})
 
 ELSEIF(WIN32)
 
