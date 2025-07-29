@@ -184,15 +184,15 @@ public:
     switch(value.status)
       {
       case dss_model::AUTH_NOT_CONNECTED:
-        w->setText(QObject::tr("Not Connected"));
+        w->setText(QCoreApplication::translate("DistributedSegmentationDialog", "Not Connected"));
         w->setStyleSheet("color: darkred; font-weight: bold;");
         break;
       case dss_model::AUTH_CONNECTED_NOT_AUTHENTICATED:
-        w->setText(QObject::tr("Connected but Not Logged In"));
+        w->setText(QCoreApplication::translate("DistributedSegmentationDialog", "Connected but Not Logged In"));
         w->setStyleSheet("color: darkred; font-weight: bold;");
         break;
       case dss_model::AUTH_AUTHENTICATED:
-        w->setText(QObject::tr("Logged in as %1").arg(from_utf8(value.user_email)));
+        w->setText(QCoreApplication::translate("DistributedSegmentationDialog", "Logged in as %1").arg(from_utf8(value.user_email)));
         w->setStyleSheet("color: darkgreen; font-weight: bold;");
         break;
       }
@@ -211,9 +211,9 @@ public:
   virtual void SetValue(QLabel *w, const dss_model::IdType &value)
   {
     if(value > 0)
-      w->setText(QString("Ticket %1").arg(value));
+      w->setText(QCoreApplication::translate("DistributedSegmentationDialog", "Ticket %1").arg(value));
     else
-      w->setText(QObject::tr("Selected Ticket"));
+      w->setText(QCoreApplication::translate("DistributedSegmentationDialog", "Selected Ticket"));
   }
 };
 

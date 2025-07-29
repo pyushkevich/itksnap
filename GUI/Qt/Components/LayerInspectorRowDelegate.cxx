@@ -86,11 +86,11 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addSeparator();
 
   // Add the color map menu
-  m_ColorMapMenu = m_PopupMenu->addMenu("Color Map");
+  m_ColorMapMenu = m_PopupMenu->addMenu(tr("Color Map"));
   m_SystemPresetActionGroup = NULL;
 
   // Add the component selection menu
-  m_DisplayModeMenu = m_PopupMenu->addMenu("Multi-Component Display");
+  m_DisplayModeMenu = m_PopupMenu->addMenu(tr("Multi-Component Display"));
   m_DisplayModeMenu->setObjectName("menuMCDisplay"); // set object name for testing
   m_DisplayModeActionGroup = NULL;
 
@@ -107,10 +107,10 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addAction(m_OverlayOpacitySliderAction);
 
   // Create a menu listing the loaded overlays
-  m_OverlaysMenu = m_PopupMenu->addMenu("Overlays");
+  m_OverlaysMenu = m_PopupMenu->addMenu(tr("Overlays"));
 
   // Create a volume rendering menu
-  m_VolumeRenderingMenu = m_PopupMenu->addMenu("Volume Rendering");
+  m_VolumeRenderingMenu = m_PopupMenu->addMenu(tr("Volume Rendering"));
   m_VolumeRenderingMenu->setObjectName("menuVolRen");
   m_VolumeRenderingMenu->addAction(ui->actionVolumeEnable);
   ui->actionVolumeEnable->setObjectName("actionVolumeEnable");
@@ -118,7 +118,7 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
 
   // Placeholder for image processing commands
   m_PopupMenu->addSeparator();
-  QMenu *processMenu = m_PopupMenu->addMenu("Image Processing");
+  QMenu *processMenu = m_PopupMenu->addMenu(tr("Image Processing"));
   processMenu->setObjectName("menuProcess");
   processMenu->addAction(ui->actionTextureFeatures);
 
@@ -428,7 +428,8 @@ void LayerInspectorRowDelegate::UpdateColorMapMenu()
   for(unsigned int i = 0; i < pSystem.size(); i++)
     {
     QIcon icon = CreateColorMapIcon(16, 16, pm->GetPreset(pSystem[i]));
-    QAction *action = m_SystemPresetActionGroup->addAction(icon, from_utf8(pSystem[i]));
+    QString name = QtColorMapPresetHelper::GetTranslatedPresetName(pSystem[i]);
+    QAction *action = m_SystemPresetActionGroup->addAction(icon, name);
     action->setCheckable(true);
     actionMap[pSystem[i]] = action;
     }

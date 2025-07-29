@@ -5,68 +5,54 @@
 #include "GlobalPreferencesModel.h"
 #include "PreferencesDialog.h"
 
-LayoutReminderDialog::LayoutReminderDialog(QWidget *parent) :
-  QDialog(parent),
-  ui(new Ui::LayoutReminderDialog)
+LayoutReminderDialog::LayoutReminderDialog(QWidget *parent)
+  : QDialog(parent)
+  , ui(new Ui::LayoutReminderDialog)
 {
   ui->setupUi(this);
 }
 
-LayoutReminderDialog::~LayoutReminderDialog()
-{
-  delete ui;
-}
+LayoutReminderDialog::~LayoutReminderDialog() { delete ui; }
 
-void LayoutReminderDialog::Initialize(GlobalUIModel *model)
+void
+LayoutReminderDialog::Initialize(GlobalUIModel *model)
 {
   this->m_GlobalUIModel = model;
 }
 
-void LayoutReminderDialog::ConditionalExec(enum ExecScenarios sce)
+void
+LayoutReminderDialog::ConditionalExec(enum ExecScenarios sce)
 {
-  const GlobalDisplaySettings* dsp = this->m_GlobalUIModel->GetGlobalDisplaySettings();
+  const GlobalDisplaySettings *dsp = this->m_GlobalUIModel->GetGlobalDisplaySettings();
 
   if (sce == ExecScenarios::Default)
-    {
-      // we don't show the dialog if "never remind" flag was checked
-      if (!dsp->GetFlagRemindLayoutSettings())
-        return;
-    }
+  {
+    // we don't show the dialog if "never remind" flag was checked
+    if (!dsp->GetFlagRemindLayoutSettings())
+      return;
+  }
   else if (sce == ExecScenarios::Echo_Cartesian_Dicom_Loading)
-    {
-      // we don't show the dialog if radiological convention is selected
-      if (!dsp->GetFlagLayoutPatientRightShownLeft())
-        return;
+  {
+    // we don't show the dialog if radiological convention is selected
+    if (!dsp->GetFlagLayoutPatientRightShownLeft())
+      return;
 
-      ui->chkNoRemindAgain->setDisabled(true);
-    }
+    ui->chkNoRemindAgain->setDisabled(true);
+  }
 
-  QString msg_axial = "<html>On the Axial and Coronal views,&nbsp;ITK-SNAP is currently following ";
+  QString convention =
+    dsp->GetFlagLayoutPatientRightShownLeft() ? tr("radiological") : tr("neurological");
+  QString side = dsp->GetFlagLayoutPatientRightShownLeft() ? tr("right") : tr("left");
+
+  QString msg_axial = tr("<html>On the Axial and Coronal views,&nbsp;"
+                         "ITK-SNAP is currently following <b>%1 convention</b>:&nbsp;"
+                         "the patient’s left side is shown on the %2 of the screen.&nbsp;</html>")
+                        .arg(convention, side);
 
 
-  if (dsp->GetFlagLayoutPatientRightShownLeft())
-    {
-      msg_axial.append("<b>radiological convention</b>");
-      msg_axial.append(":&nbsp;the patient’s left side is shown on the right of the screen.&nbsp;");
-    }
-  else
-    {
-      msg_axial.append("<b>neurological convention</b>");
-      msg_axial.append(":&nbsp;the patient’s left side is shown on the left of the screen.&nbsp;");
-    }
-  msg_axial.append("</html>");
-
-  QString msg_sagittal = "<html>On the Sagittal view,&nbsp;";
-
-  if (dsp->GetFlagLayoutPatientAnteriorShownLeft())
-    {
-      msg_sagittal.append("the patient's anterior is shown on the left of the screen.");
-    }
-  else
-    {
-      msg_sagittal.append("the patient's anterior is shown on the right of the screen.");
-    }
-  msg_sagittal.append("</html>");
+  QString msg_sagittal = tr("<html>On the Sagittal view,&nbsp;"
+                            "the patient's anterior is shown on the %1 of the screen.</html>")
+                           .arg(dsp->GetFlagLayoutPatientAnteriorShownLeft() ? tr("left") : tr("right"));
 
   ui->reminderTextAxial->setText(msg_axial);
   ui->reminderTextSagittal->setText(msg_sagittal);
@@ -74,19 +60,20 @@ void LayoutReminderDialog::ConditionalExec(enum ExecScenarios sce)
   this->exec();
 }
 
-void LayoutReminderDialog::SetReminderFlag()
+void
+LayoutReminderDialog::SetReminderFlag()
 {
   if (ui->chkNoRemindAgain->isChecked())
-    {
-      GlobalPreferencesModel *pm = this->m_GlobalUIModel->GetGlobalPreferencesModel();
-      pm->InitializePreferences();
-      pm->GetGlobalDisplaySettings()->SetFlagRemindLayoutSettings(false);
-      pm->ApplyPreferences();
-    }
-
+  {
+    GlobalPreferencesModel *pm = this->m_GlobalUIModel->GetGlobalPreferencesModel();
+    pm->InitializePreferences();
+    pm->GetGlobalDisplaySettings()->SetFlagRemindLayoutSettings(false);
+    pm->ApplyPreferences();
+  }
 }
 
-void LayoutReminderDialog::on_btnYes_clicked()
+void
+LayoutReminderDialog::on_btnYes_clicked()
 {
   // before opening the preference, set the reminder-showing flag
   this->SetReminderFlag();
@@ -102,7 +89,8 @@ void LayoutReminderDialog::on_btnYes_clicked()
 }
 
 
-void LayoutReminderDialog::on_btnNo_clicked()
+void
+LayoutReminderDialog::on_btnNo_clicked()
 {
   // before closing, set the reminder-showing flag
   this->SetReminderFlag();

@@ -23,6 +23,8 @@ class QComboBox;
 class ColorMapModel;
 class ImageWrapperBase;
 class QDateTime;
+class AbstractColorMapPresetNameSource;
+class QStandardItem;
 
 // Q_DECL_OVERRIDE is only defined in Qt5 but is needed by C++11
 #ifndef Q_DECL_OVERRIDE
@@ -40,13 +42,27 @@ QIcon CreateInvisibleIcon(int w, int h);
 // modified since the last time the icon was generated.
 QIcon CreateColorMapIcon(int w, int h, ColorMap *cmap);
 
-/**
- * Generate a combo box with color map presets. Ideally, this would be handled
- * through the coupling mechanism, but the mechanism does not currently support
- * separators. Such a combo box is required in a few places, so it made sense to
- * put the code here
- */
-void PopulateColorMapPresetCombo(QComboBox *combo, ColorMapModel *model);
+// This class helps with the generation of color map presets, including
+// their color icons and translated system preset names
+class QtColorMapPresetHelper
+{
+public:
+  static AbstractColorMapPresetNameSource* GetColorMapPresetNameSource();
+
+  /**
+   * Generate a combo box with color map presets. Ideally, this would be handled
+   * through the coupling mechanism, but the mechanism does not currently support
+   * separators. Such a combo box is required in a few places, so it made sense to
+   * put the code here
+   */
+  static void PopulateColorMapPresetCombo(QComboBox *combo, ColorMapModel *model);
+
+  static QStandardItem *CreateColorMapPresetItem(ColorMapModel *cmm, const std::string &preset);
+  static QString GetTranslatedPresetName(const std::string &preset);
+
+private:
+  static std::map<std::string, std::string> &GetColorMapTranslations();
+};
 
 // Generate a brush corresponding to a color label
 QBrush GetBrushForColorLabel(const ColorLabel &cl);

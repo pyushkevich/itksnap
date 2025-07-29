@@ -118,7 +118,7 @@ void ColorMapInspector::onModelUpdate(const EventBucket &b)
     {
     m_PresetsUpdating = true;
     std::string sel = m_Model->GetSelectedPreset();
-    int index = ui->inPreset->findText(sel.c_str());
+    int index = ui->inPreset->findData(QVariant::fromValue(sel));
     ui->inPreset->setCurrentIndex(index);
     m_PresetsUpdating = false;
     }
@@ -144,7 +144,7 @@ void ColorMapInspector::PopulatePresets()
   m_PresetsUpdating = true;
 
   // Populte the combo box (for now, we don't have a coupling for this)
-  PopulateColorMapPresetCombo(ui->inPreset, m_Model);
+  QtColorMapPresetHelper::PopulateColorMapPresetCombo(ui->inPreset, m_Model);
 
   // Done updating
   m_PresetsUpdating = false;
@@ -154,7 +154,10 @@ void ColorMapInspector::on_inPreset_currentIndexChanged(int index)
 {
   // Set the preset
   if(!m_PresetsUpdating)
-    m_Model->SelectPreset(to_utf8(ui->inPreset->itemText(index)));
+  {
+    std::string preset_text = ui->inPreset->itemData(index).value<std::string>();
+    m_Model->SelectPreset(preset_text);
+  }
 }
 
 void ColorMapInspector::on_btnAddPreset_clicked()
@@ -175,8 +178,8 @@ void ColorMapInspector::on_btnAddPreset_clicked()
 void ColorMapInspector::on_btnDelPreset_clicked()
 {
   int sel = ui->inPreset->currentIndex();
-  QString seltext = ui->inPreset->itemText(sel);
-  m_Model->DeletePreset(to_utf8(seltext));
+  std::string preset_text = ui->inPreset->itemData(sel).value<std::string>();
+  m_Model->DeletePreset(preset_text);
 }
 
 

@@ -75,13 +75,13 @@ void DropActionDialog::SetDroppedFilename(QString name)
     Registry dummyReg;
     io->ReadNativeImageHeader(name.toStdString().c_str(), dummyReg);
     auto header = io->GetIOBase();
-    QString btnLoadSegText("Load as Segmentation");
-    QString btnLoadSegToolTip("This will replace the current segmentation image with the dropped image.");
+    QString btnLoadSegText(tr("Load as Segmentation"));
+    QString btnLoadSegToolTip(tr("This will replace the current segmentation image with the dropped image."));
 
     if (header->GetNumberOfDimensions() < 4 && isWorkspace4D)
       {
-      btnLoadSegText = QString("Load as Segmentation in Time Point");
-      btnLoadSegToolTip = QString("This will replace the segmentation in current time point");
+      btnLoadSegText = QString(tr("Load as Segmentation in Time Point"));
+      btnLoadSegToolTip = QString(tr("This will replace the segmentation in current time point"));
       }
 
     ui->btnLoadSegmentation->setText(btnLoadSegText);

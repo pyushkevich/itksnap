@@ -219,10 +219,10 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
   static QMap<int, QString> mapRoleNames;
   if(mapRoleNames.size() == 0)
     {
-    mapRoleNames[MAIN_ROLE] = QObject::tr("Main Image");
-    mapRoleNames[OVERLAY_ROLE] = QObject::tr("Additional Images");
-    mapRoleNames[SNAP_ROLE] = QObject::tr("Snake Mode Layers");
-    mapRoleNames[LABEL_ROLE] = QObject::tr("Segmentation Layers");
+    mapRoleNames[MAIN_ROLE] = tr("Main Image");
+    mapRoleNames[OVERLAY_ROLE] = tr("Additional Images");
+    mapRoleNames[SNAP_ROLE] = tr("Snake Mode Layers");
+    mapRoleNames[LABEL_ROLE] = tr("Segmentation Layers");
     }
 
   // Get the top-level layout in the pane

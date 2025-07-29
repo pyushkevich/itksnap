@@ -1599,15 +1599,10 @@ IF(APPLE)
   qt_deploy_runtime_dependencies(
       EXECUTABLE \"${executable_path}\"
       GENERATE_QT_CONF
-      VERBOSE
-  )
-  qt_deploy_qt_conf(
-    \"${QT_DEPLOY_PREFIX}/Resources/qt.conf\"
-    TRANSLATIONS_DIR Resources/translations
   )
   qt_deploy_translations(
+      CATALOGS qtbase
       LOCALES en es zh_CN
-      VERBOSE
   )")
   install(SCRIPT ${deploy_script})
 
@@ -1640,7 +1635,21 @@ ELSEIF(WIN32)
   # get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
 
   # Install with the plugin
-  install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
+  qt_generate_deploy_script(
+      TARGET ${SNAP_BUNDLE_NAME}
+      OUTPUT_SCRIPT deploy_script
+      CONTENT "
+  qt_deploy_runtime_dependencies(
+      EXECUTABLE \"${executable_path}\"
+      GENERATE_QT_CONF
+  )
+  qt_deploy_translations(
+      CATALOGS qtbase
+      LOCALES en es zh_CN
+  )")
+  install(SCRIPT ${deploy_script})
+
+  ### install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
 
   # On windows, we have to configure NSIS
   SET(CPACK_NSIS_MUI_ICON "${SNAP_SOURCE_DIR}/Utilities/Win32/snaplogo.ico")

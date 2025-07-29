@@ -33,8 +33,8 @@ void OverlayRolePage::initializePage()
   makeRadioGroupCoupling(ui->wgtMain, radioMap, this->m_Model->GetStickyOverlayModel());
 
   // Couple the color map selector
-  PopulateColorMapPresetCombo(ui->inOverlayColorMap,
-                              this->m_Model->GetParent()->GetColorMapModel());
+  QtColorMapPresetHelper::PopulateColorMapPresetCombo(
+    ui->inOverlayColorMap, this->m_Model->GetParent()->GetColorMapModel());
 
   makeCoupling(ui->inOverlayColorMap, this->m_Model->GetStickyOverlayColorMapModel());
 

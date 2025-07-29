@@ -45,9 +45,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
   // Set up layoyt options
   ui->inOverlayLayout->clear();
   ui->inOverlayLayout->addItem(
-    QIcon(":/root/layout_thumb_16.png"), "Stack", QVariant::fromValue(LAYOUT_STACKED));
+    QIcon(":/root/layout_thumb_16.png"), tr("Stack"), QVariant::fromValue(LAYOUT_STACKED));
   ui->inOverlayLayout->addItem(
-    QIcon(":/root/layout_tile_16.png"), "Tile", QVariant::fromValue(LAYOUT_TILED));
+    QIcon(":/root/layout_tile_16.png"), tr("Tile"), QVariant::fromValue(LAYOUT_TILED));
 
   // Set up tree of appearance elements
   QStandardItemModel *model = new QStandardItemModel();
@@ -429,7 +429,7 @@ void
 PreferencesDialog::UpdateColorMapPresets()
 {
   ColorMapModel *cmm = m_Model->GetParentModel()->GetColorMapModel();
-  PopulateColorMapPresetCombo(ui->inDefaultColorMap, cmm);
+  QtColorMapPresetHelper::PopulateColorMapPresetCombo(ui->inDefaultColorMap, cmm);
 }
 
 QStandardItem *

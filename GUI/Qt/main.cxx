@@ -225,13 +225,13 @@ test_terminate_handler()
       msgBox.setText(QString("ITK-SNAP crashed due to an unexpected error. Your unsaved "
                              "segmentations have been saved to folder '%1'")
                        .arg(backup_dir));
-      msgBox.setWindowTitle(QObject::tr("Crash Recovery"));
+      msgBox.setWindowTitle(QCoreApplication::translate("main", "Crash Recovery"));
 
       // Add the "Open Folder" button
-      QPushButton *openFolderButton = msgBox.addButton(QObject::tr("Open Folder"), QMessageBox::AcceptRole);
+      QPushButton *openFolderButton = msgBox.addButton(QCoreApplication::translate("main", "Open Folder"), QMessageBox::AcceptRole);
 
       // Add the "Close" button
-      msgBox.addButton(QObject::tr("Close"), QMessageBox::RejectRole);
+      msgBox.addButton(QCoreApplication::translate("main", "Close"), QMessageBox::RejectRole);
 
       // Execute the message box and handle the button press
       msgBox.exec();
@@ -243,7 +243,7 @@ test_terminate_handler()
         QUrl folderUrl = QUrl::fromLocalFile(backup_dir);
         if (!QDesktopServices::openUrl(folderUrl))
         {
-          QMessageBox::warning(nullptr, QObject::tr("Error"), QObject::tr("Failed to open the folder: ") + backup_dir);
+          QMessageBox::warning(nullptr, QCoreApplication::translate("main", "Error"), QCoreApplication::translate("main", "Failed to open the folder: %1").arg(backup_dir));
         }
       }
     }
@@ -985,6 +985,11 @@ main(int argc, char *argv[])
   // Create the global UI
   try
   {
+    // Provide string translation sources to non-GUI code that needs them
+    // This has to happen before creating GlobalUIModel
+    ColorMap::SetColorMapPresetNameSource(QtColorMapPresetHelper::GetColorMapPresetNameSource());
+
+    // Create a new UI model
     SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
     IRISApplication        *driver = gui->GetDriver();
 
@@ -1042,7 +1047,15 @@ main(int argc, char *argv[])
     }
 
     QTranslator translator_sys;
-    if (translator_sys.load(QLocale(), "qtbase", "_", QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
+    QString translator_sys_path = QLibraryInfo::path(QLibraryInfo::TranslationsPath);
+#ifdef Q_OS_MACOS
+    // Handle problem where Qt looks for the translations in the wrong place
+    if(translator_sys_path.endsWith("Contents/translations"))
+    {
+      translator_sys_path = translator_sys_path.replace("Contents/translations","Contents/Resources/translations");
+    }
+#endif
+    if (translator_sys.load(QLocale(), "qt", "_", translator_sys_path))
     {
       qDebug() << "Loaded qtbase translator for locale" << QLocale().name();
       QCoreApplication::installTranslator(&translator_sys);
@@ -1050,6 +1063,7 @@ main(int argc, char *argv[])
     else
     {
       qDebug() << "Failed to load qtbase translator for locale" << QLocale().name();
+      qDebug() << "  Search paths considered: " << translator_sys_path;
     }
 
     // Create the main window

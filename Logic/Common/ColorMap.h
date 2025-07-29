@@ -43,6 +43,8 @@
 #include "itkObjectFactory.h"
 #include "SNAPEvents.h"
 
+class AbstractColorMapPresetNameSource;
+
 /**
  * \class ColorMap
  * \brief This class provides a representation of color maps.
@@ -149,8 +151,11 @@ public:
   SystemPreset GetSystemPreset() const
   { return m_CMPreset; }
 
+  /** Get the source of preset names */
+  static void SetColorMapPresetNameSource(AbstractColorMapPresetNameSource *source);
+
   /** Get the name of the system preset */
-  static const char *GetPresetName(SystemPreset preset);
+  static std::string GetPresetName(SystemPreset preset);
 
   void PrintSelf(std::ostream & os, itk::Indent indent) const override;
 
@@ -204,9 +209,22 @@ private:
   typedef std::vector<InterpolantData> InterpolantVector;
   InterpolantVector m_Interpolants;
 
+  // Source of preset names
+  static AbstractColorMapPresetNameSource *m_ColorMapPresetNameSource;
+
   // Enum for saving presets
   static RegistryEnumMap<SystemPreset> m_ColorMapPresetEnumMap;
 };
+
+/**
+ * This class assists in translation of color map presets
+ */
+class AbstractColorMapPresetNameSource
+{
+public:
+  virtual std::string GetPresetName(ColorMap::SystemPreset preset, bool translated) = 0;
+};
+
 
 
 #endif 
