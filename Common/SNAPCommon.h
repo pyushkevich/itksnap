@@ -118,6 +118,20 @@ enum LayerRole
   ALL_ROLES = 0xffffffff
 };
 
+// Enum for strings presented to the user to describe what type of image
+// is being saved or loaded
+enum class ImageIODisplayName
+{
+  MAIN,
+  SEGMENTATION,
+  OVERLAY,
+  ANATOMICAL,       // Generic "Image" either main or overlay
+  SPEED,
+  LEVELSET,
+  CLASSIFIER_SAMPLES
+};
+
+
 // Cardinal directions in the anatomical space
 enum AnatomicalDirection
 {

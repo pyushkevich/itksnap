@@ -42,7 +42,7 @@ public:
 
   irisGetSetMacro(HistoryName, const std::string &)
 
-  irisGetSetMacro(DisplayName, const std::string &)
+  irisGetSetMacro(DisplayName, ImageIODisplayName)
 
   virtual void ValidateHeader(GuidedNativeImageIO *io, IRISWarningList &wl) {}
   virtual void ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl) {}
@@ -70,7 +70,7 @@ protected:
   std::string m_HistoryName;
 
   // Display name associated with this delegate
-  std::string m_DisplayName;
+  ImageIODisplayName m_DisplayName;
 
 private:
   Registry *m_MetaDataRegistry;
@@ -200,7 +200,7 @@ public:
   /**
    * A user-readable category
    */
-  irisGetSetMacro(Category, std::string)
+  irisGetSetMacro(DisplayName, ImageIODisplayName)
 
 protected:
   AbstractSaveImageDelegate() {}
@@ -208,7 +208,7 @@ protected:
 
   IRISApplication *m_Driver;
   bool m_SaveSuccessful;
-  std::string m_Category;
+  ImageIODisplayName m_DisplayName;
 };
 
 class DefaultSaveImageDelegate : public AbstractSaveImageDelegate

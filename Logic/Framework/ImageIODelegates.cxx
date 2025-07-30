@@ -59,7 +59,7 @@ ImageWrapperBase *LoadMainImageDelegate::UpdateApplicationWithImage(GuidedNative
 LoadMainImageDelegate::LoadMainImageDelegate()
 {
   this->m_HistoryName = "AnatomicImage";
-  this->m_DisplayName = "Main Image";
+  this->m_DisplayName = ImageIODisplayName::MAIN;
 }
 
 void
@@ -126,7 +126,7 @@ LoadOverlayImageDelegate
 LoadOverlayImageDelegate::LoadOverlayImageDelegate()
 {
   this->m_HistoryName = "AnatomicImage";
-  this->m_DisplayName = "Additional Image";
+  this->m_DisplayName = ImageIODisplayName::OVERLAY;
 }
 
 /* =============================
@@ -264,7 +264,7 @@ ImageWrapperBase *LoadSegmentationImageDelegate::UpdateApplicationWithImage(Guid
 LoadSegmentationImageDelegate::LoadSegmentationImageDelegate()
 {
   this->m_HistoryName = "LabelImage";
-  this->m_DisplayName = "Segmentation Image";
+  this->m_DisplayName = ImageIODisplayName::SEGMENTATION;
   this->m_AdditiveMode = false;
 }
 

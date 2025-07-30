@@ -113,7 +113,7 @@ public:
 private:
   // Helper for building the tree
   void AddItem(QTreeWidgetItem *parent, const char *key, ImageIOWizardModel::SummaryItem si);
-  void AddItem(QTreeWidget *parent, const char *key, ImageIOWizardModel::SummaryItem si);
+  void AddItem(QTreeWidget *parent, QString key, ImageIOWizardModel::SummaryItem si);
 
   QTreeWidget *m_Tree;
   QLabel *m_Warnings;

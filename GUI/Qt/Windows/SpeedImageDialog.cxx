@@ -184,7 +184,7 @@ void SpeedImageDialog::on_btnClassifyLoad_clicked()
   SmartPtr<LoadSegmentationImageDelegate> delegate = LoadSegmentationImageDelegate::New();
   delegate->Initialize(m_Model->GetParent()->GetDriver());
   delegate->SetHistoryName("ClassifierSamples");
-  delegate->SetDisplayName("Classifier Samples Image");
+  delegate->SetDisplayName(ImageIODisplayName::CLASSIFIER_SAMPLES);
 
   SmartPtr<ImageIOWizardModel> model = ImageIOWizardModel::New();
   model->InitializeForLoad(m_Model->GetParent(), delegate);

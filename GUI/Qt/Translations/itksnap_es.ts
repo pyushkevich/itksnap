@@ -228,97 +228,97 @@
 <context>
     <name>ColorMap</name>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="640" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="641" />
         <source>Grayscale</source>
         <translation>Escala de grises</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="641" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="642" />
         <source>Jet</source>
         <translation>Jet</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="642" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="643" />
         <source>Hot</source>
         <translation>Calor</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="643" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="644" />
         <source>Cool</source>
         <translation>Frío</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="644" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="645" />
         <source>Black to red</source>
         <translation>De negro a rojo</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="645" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="646" />
         <source>Black to green</source>
         <translation>De negro a verde</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="646" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="647" />
         <source>Black to blue</source>
         <translation>De negro a azul</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="647" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="648" />
         <source>Spring</source>
         <translation>Primavera</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="648" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="649" />
         <source>Summer</source>
         <translation>Verano</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="649" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="650" />
         <source>Autumn</source>
         <translation>Otoño</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="650" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="651" />
         <source>Winter</source>
         <translation>Invierno</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="651" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="652" />
         <source>Copper</source>
         <translation>Cobre</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="652" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="653" />
         <source>HSV</source>
         <translation>HSV</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="653" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="654" />
         <source>Blue to white to red</source>
         <translation>De azul a blanco a rojo</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="654" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="655" />
         <source>Red to white to blue</source>
         <translation>De rojo a blanco a azul</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="655" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="656" />
         <source>Speed image (blue to black to white)</source>
         <translation>Imagen de velocidad (azul a negro a blanco)</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="656" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="657" />
         <source>Speed image (semi-transparent overlay)</source>
         <translation>Imagen de velocidad (superposición semitransparente)</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="657" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="658" />
         <source>Level set image</source>
         <translation>Imagen del conjunto de nivel</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="658" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="659" />
         <source>Custom</source>
         <translation>Personalizado</translation>
     </message>
@@ -1901,14 +1901,45 @@ Por favor, sigue &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;la
     </message>
 </context>
 <context>
+    <name>ImageIODisplayName</name>
+    <message>
+        <source>Main Image</source>
+        <translation type="vanished">Imagen Principal</translation>
+    </message>
+    <message>
+        <source>Segmentation Image</source>
+        <translation type="vanished">Imagen de Segmentación</translation>
+    </message>
+    <message>
+        <source>Additional Image</source>
+        <translation type="vanished">Imagen Adicional</translation>
+    </message>
+    <message>
+        <source>Image</source>
+        <translation type="vanished">Imagen</translation>
+    </message>
+    <message>
+        <source>Speed Image</source>
+        <translation type="vanished">Imagen de Velocidad</translation>
+    </message>
+    <message>
+        <source>Level Set Image</source>
+        <translation type="vanished">Imagen de Conjuntos Nivel</translation>
+    </message>
+    <message>
+        <source>Classifier Samples Image</source>
+        <translation type="vanished">Imagen de Muestras del Clasificador</translation>
+    </message>
+</context>
+<context>
     <name>ImageIOWizard</name>
     <message>
-        <location filename="../Windows/ImageIOWizard.cxx" line="873" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="874" />
         <source>Open Image - ITK-SNAP</source>
         <translation>Abrir imagen - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/ImageIOWizard.cxx" line="875" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="876" />
         <source>Save Image - ITK-SNAP</source>
         <translation>Guardar imagen - ITK-SNAP</translation>
     </message>
@@ -7091,19 +7122,57 @@ rebanada usando el menú contextual.</translation>
 <context>
     <name>SNAPQtCommon</name>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="228" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="229" />
         <source>All visible labels</source>
         <translation>Todas las etiquetas visibles</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="232" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="233" />
         <source>All labels</source>
         <translation>Todas las etiquetas</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="287" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="288" />
         <source>&lt;html&gt;&lt;body&gt;Set active label to &lt;span style=" font-weight:600;"&gt;%1&lt;/span&gt;  and the paint over mask to &lt;span style=" font-weight:600;"&gt;%2&lt;/span&gt;.</source>
         <translation>&lt;html&gt;&lt;body&gt;Establecer etiqueta activa a &lt;span style=" font-weight:600;"&gt;%1&lt;/span&gt;  y la máscara de pintura a &lt;span style=" font-weight:600;"&gt;%2&lt;/span&gt;.</translation>
+    </message>
+</context>
+<context>
+    <name>SNAPQtCommonTranslations</name>
+    <message>
+        <location filename="../Components/SNAPQtCommonTranslations.cxx" line="9" />
+        <source>Main Image</source>
+        <translation>Imagen Principal</translation>
+    </message>
+    <message>
+        <location filename="../Components/SNAPQtCommonTranslations.cxx" line="11" />
+        <source>Segmentation Image</source>
+        <translation>Imagen de Segmentación</translation>
+    </message>
+    <message>
+        <location filename="../Components/SNAPQtCommonTranslations.cxx" line="13" />
+        <source>Additional Image</source>
+        <translation>Imagen Adicional</translation>
+    </message>
+    <message>
+        <location filename="../Components/SNAPQtCommonTranslations.cxx" line="15" />
+        <source>Image</source>
+        <translation>Imagen</translation>
+    </message>
+    <message>
+        <location filename="../Components/SNAPQtCommonTranslations.cxx" line="17" />
+        <source>Speed Image</source>
+        <translation>Imagen de Velocidad</translation>
+    </message>
+    <message>
+        <location filename="../Components/SNAPQtCommonTranslations.cxx" line="19" />
+        <source>Level Set Image</source>
+        <translation>Imagen de Conjunto de Nivel</translation>
+    </message>
+    <message>
+        <location filename="../Components/SNAPQtCommonTranslations.cxx" line="21" />
+        <source>Classifier Samples Image</source>
+        <translation>Imagen de Muestras del Clasificador</translation>
     </message>
 </context>
 <context>
@@ -9313,16 +9382,147 @@ de ITK-SNAP</translation>
 <context>
     <name>imageiowiz::DICOMPage</name>
     <message>
-        <location filename="../Windows/ImageIOWizard.cxx" line="465" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="466" />
         <source>Select DICOM series to open</source>
         <translation>Seleccionar serie DICOM para abrir</translation>
     </message>
 </context>
 <context>
+    <name>imageiowiz::ImageIOProgressDialog</name>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="813" />
+        <source>Saving Image...</source>
+        <translation>Guardando imagen...</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="815" />
+        <source>Reading Image...</source>
+        <translation>Leyendo imagen...</translation>
+    </message>
+</context>
+<context>
+    <name>imageiowiz::RawPage</name>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="579" />
+        <source>Header size:</source>
+        <translation>Tamaño del encabezado:</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="581" />
+        <source>bytes</source>
+        <translation>bytes</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="583" />
+        <source>Specify the number of bytes at the beginning of the image that should be skipped before reading the image data.</source>
+        <translation>Especifique el número de bytes al inicio de la imagen que deben omitirse antes de leer los datos de la imagen.</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="599" />
+        <source>Image dimensions:</source>
+        <translation>Dimensiones de la imagen:</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="615" />
+        <source>8 bit unsigned integer (uchar)</source>
+        <translation>Entero sin signo de 8 bits (uchar)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="616" />
+        <source>8 bit signed integer (char)</source>
+        <translation>Entero con signo de 8 bits (char)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="617" />
+        <source>16 bit unsigned integer (ushort)</source>
+        <translation>Entero sin signo de 16 bits (ushort)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="618" />
+        <source>16 bit signed integer (short)</source>
+        <translation>Entero con signo de 16 bits (short)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="619" />
+        <source>32 bit unsigned integer (uint)</source>
+        <translation>Entero sin signo de 32 bits (uint)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="620" />
+        <source>32 bit signed integer (int)</source>
+        <translation>Entero con signo de 32 bits (int)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="621" />
+        <source>32 bit floating point (float)</source>
+        <translation>Punto flotante de 32 bits (float)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="622" />
+        <source>64 bit floating point (double)</source>
+        <translation>Punto flotante de 64 bits (double)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="626" />
+        <source>Voxel type:</source>
+        <translation>Tipo de vóxel:</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="631" />
+        <source>Big Endian (PowerPC, SPARC)</source>
+        <translation>Big Endian (PowerPC, SPARC)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="632" />
+        <source>Little Endian (x86, x86_64)</source>
+        <translation>Little Endian (x86, x86_64)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="634" />
+        <source>Byte alignment:</source>
+        <translation>Alineación de bytes:</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="645" />
+        <source>Implied file size:</source>
+        <translation>Tamaño de archivo implícito:</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="652" />
+        <source>Actual file size:</source>
+        <translation>Tamaño real del archivo:</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="658" />
+        <source>should be equal</source>
+        <translation>deben ser iguales</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="663" />
+        <source>Voxel Spacing:</source>
+        <translation>Espaciado del vóxel:</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="707" />
+        <source>Image Header Specification:</source>
+        <translation>Especificación del encabezado de imagen:</translation>
+    </message>
+</context>
+<context>
     <name>imageiowiz::SelectFilePage</name>
     <message>
-        <location filename="../Windows/ImageIOWizard.cxx" line="276" />
-        <location filename="../Windows/ImageIOWizard.cxx" line="286" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="250" />
+        <source>Open %1</source>
+        <translation>Abrir %1</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="252" />
+        <source>Save %1</source>
+        <translation>Guardar %1</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="277" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="287" />
         <source>Image Filename:</source>
         <translation>Nombre de archivo de imagen:</translation>
     </message>
@@ -9330,9 +9530,74 @@ de ITK-SNAP</translation>
 <context>
     <name>imageiowiz::SummaryPage</name>
     <message>
-        <location filename="../Windows/ImageIOWizard.cxx" line="403" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="364" />
+        <source>Property</source>
+        <translation>Propiedad</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="364" />
+        <source>Value</source>
+        <translation>Valor</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="404" />
         <source>Image Summary</source>
         <translation>Resumen de la imagen</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="410" />
+        <source>File name</source>
+        <translation>Nombre del archivo</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="411" />
+        <source>Dimensions</source>
+        <translation>Dimensiones</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="412" />
+        <source>Time Points</source>
+        <translation>Puntos en el tiempo</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="413" />
+        <source>Components/Voxel</source>
+        <translation>Componentes/voxel</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="414" />
+        <source>Voxel spacing</source>
+        <translation>Espaciado de voxel</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="415" />
+        <source>Origin</source>
+        <translation>Origen</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="416" />
+        <source>Orientation</source>
+        <translation>Orientación</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="417" />
+        <source>Byte order</source>
+        <translation>Orden de bytes</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="418" />
+        <source>Data type</source>
+        <translation>Tipo de dato</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="419" />
+        <source>File size</source>
+        <translation>Tamaño del archivo</translation>
+    </message>
+    <message>
+        <location filename="../Windows/ImageIOWizard.cxx" line="423" />
+        <source>Metadata</source>
+        <translation>Metadatos</translation>
     </message>
 </context>
 </TS>
