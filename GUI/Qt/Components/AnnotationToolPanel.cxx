@@ -37,47 +37,59 @@ void AnnotationToolPanel::SetModel(GlobalUIModel *model)
   makeCoupling((QAbstractButton *) ui->btnVisible, m_Model->GetGlobalState()->GetAnnotationVisibilityModel());
 }
 
-void AnnotationToolPanel::on_btnOpen_clicked()
+void
+AnnotationToolPanel::on_btnOpen_clicked()
 {
   // Load annotations
-  QString file = ShowSimpleOpenDialogWithHistory(
-                   this, m_Model, "Annotations", "Open Annotation File",
-                   "Annotation File", "ITK-SNAP Annotation Files (*.annot)");
+  QString file = ShowSimpleOpenDialogWithHistory(this,
+                                                 m_Model,
+                                                 "Annotations",
+                                                 tr("Open Annotation File"),
+                                                 tr("Annotation File"),
+                                                 tr("ITK-SNAP Annotation Files (%1)").arg("*.annot"));
 
-  if(!file.isNull())
-    {
+  if (!file.isNull())
+  {
     QString file_abs = QFileInfo(file).absoluteFilePath();
     try
-      {
+    {
       m_Model->GetDriver()->LoadAnnotations(to_utf8(file_abs).c_str());
-      }
-    catch(std::exception &exc)
-      {
-      ReportNonLethalException(this, exc, "Error Opening Annotation File",
-                               QString("Failed to open annotation file %1").arg(file_abs));
-      }
     }
+    catch (std::exception &exc)
+    {
+      ReportNonLethalException(this,
+                               exc,
+                               tr("Error Opening Annotation File"),
+                               tr("Failed to open annotation file %1").arg(file_abs));
+    }
+  }
 }
 
-void AnnotationToolPanel::on_btnSave_clicked()
+void
+AnnotationToolPanel::on_btnSave_clicked()
 {
   // Save annotations
-  QString file = ShowSimpleSaveDialogWithHistory(
-                   this, m_Model, "Annotations", "Open Annotation File",
-                   "Annotation File", "ITK-SNAP Annotation Files (*.annot)", false);
+  QString file = ShowSimpleSaveDialogWithHistory(this,
+                                                 m_Model,
+                                                 "Annotations",
+                                                 tr("Open Annotation File"),
+                                                 tr("Annotation File"),
+                                                 tr("ITK-SNAP Annotation Files (%1)").arg("*.annot"),
+                                                 false);
 
-  if(!file.isNull())
-    {
+  if (!file.isNull())
+  {
     QString file_abs = QFileInfo(file).absoluteFilePath();
     try
-      {
+    {
       m_Model->GetDriver()->SaveAnnotations(to_utf8(file_abs).c_str());
-      }
-    catch(std::exception &exc)
-      {
-      ReportNonLethalException(this, exc, "Error Saving Annotation File",
-                               QString("Failed to save annotation file %1").arg(file_abs));
-      }
     }
-
+    catch (std::exception &exc)
+    {
+      ReportNonLethalException(this,
+                               exc,
+                               tr("Error Saving Annotation File"),
+                               tr("Failed to save annotation file %1").arg(file_abs));
+    }
+  }
 }

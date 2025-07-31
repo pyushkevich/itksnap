@@ -87,7 +87,13 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
                     m_Model->GetLogScalingModel());
 
   // Automatic page couplings
+  ui->inTransformation->addItem(tr("Rigid"), QVariant(RegistrationModel::RIGID));
+  ui->inTransformation->addItem(tr("Affine"), QVariant(RegistrationModel::AFFINE));
   makeCoupling(ui->inTransformation, m_Model->GetTransformationModel());
+
+  ui->inSimilarityMetric->addItem(tr("Mutual information"), QVariant(RegistrationModel::NMI));
+  ui->inSimilarityMetric->addItem(tr("Cross-correlation"), QVariant(RegistrationModel::NCC));
+  ui->inSimilarityMetric->addItem(tr("Intensity difference"), QVariant(RegistrationModel::SSD));
   makeCoupling(ui->inSimilarityMetric, m_Model->GetSimilarityMetricModel());
   makeCoupling(ui->inUseMask, m_Model->GetUseSegmentationAsMaskModel());
 
@@ -206,8 +212,8 @@ void RegistrationDialog::on_btnLoad_clicked()
       }
     catch(std::exception &exc)
       {
-      ReportNonLethalException(this, exc, "Transform IO Error",
-                               QString("Failed to load transform file"));
+        ReportNonLethalException(
+          this, exc, tr("Transform IO Error"), tr("Failed to load transform file"));
       }
     }
 }
@@ -215,12 +221,14 @@ void RegistrationDialog::on_btnLoad_clicked()
 void RegistrationDialog::on_btnSave_clicked()
 {
   // Ask for a filename
-  SimpleFileDialogWithHistory::QueryResult result =
-      SimpleFileDialogWithHistory::showSaveDialog(
-        this, m_Model->GetParent(),
-        "Save Transform - ITK-SNAP", "Transform File",
-        "AffineTransform",
-        "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)", true);
+  SimpleFileDialogWithHistory::QueryResult result = SimpleFileDialogWithHistory::showSaveDialog(
+    this,
+    m_Model->GetParent(),
+    tr("Save Transform - ITK-SNAP"),
+    tr("Transform File"),
+    "AffineTransform",
+    tr("ITK Transform Files (%1);; Convert3D Transform Files (%2)").arg("*.txt", "*.mat"),
+    true);
 
   RegistrationModel::TransformFormat format =
       (RegistrationModel::TransformFormat) this->GetTransformFormat(result.activeFormat);
@@ -235,8 +243,8 @@ void RegistrationDialog::on_btnSave_clicked()
       }
     catch(std::exception &exc)
       {
-      ReportNonLethalException(this, exc, "Transform IO Error",
-                               QString("Failed to save transform file"));
+        ReportNonLethalException(
+          this, exc, tr("Transform IO Error"), tr("Failed to save transform file"));
       }
     }
 }
@@ -276,7 +284,7 @@ void RegistrationDialog::on_btnReslice_clicked()
   cbInterp->addItem(tr("Nearest Neighbor"), QVariant(NEAREST_NEIGHBOR));
   cbInterp->addItem(tr("Linear"), QVariant(TRILINEAR));
   cbInterp->setCurrentIndex(1);
-  lo->addRow("&Interpolation:", cbInterp);
+  lo->addRow(tr("&Interpolation:"), cbInterp);
 
   // Set up background value (currently unimplemented)
   /*
@@ -306,7 +314,7 @@ void RegistrationDialog::on_btnReslice_clicked()
   // Get the selected values
   if(dialog->exec() == QDialog::Accepted)
     {
-    bool is_linear = (cbInterp->currentText() == "Linear");
+    bool is_linear = (cbInterp->currentData() == TRILINEAR);
     m_Model->ResliceMovingImage(is_linear ? TRILINEAR : NEAREST_NEIGHBOR);
     }
 

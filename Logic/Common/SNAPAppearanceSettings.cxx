@@ -490,7 +490,7 @@ OpenGLAppearanceElement::OpenGLAppearanceElement()
       NewRangedProperty("LineThickness", 0.0, 0.0, 5.0, 0.1);
 
   // Set up the domain for the line type property
-  LineTypeDomain ltd;
+  std::map<int, std::string> ltd;
   ltd[vtkPen::NO_PEN] = "None";
   ltd[vtkPen::SOLID_LINE] = "Solid";
   ltd[vtkPen::DASH_LINE] = "Dashed";
@@ -499,8 +499,8 @@ OpenGLAppearanceElement::OpenGLAppearanceElement()
   ltd[vtkPen::DASH_DOT_DOT_LINE] = "Dash,Dot,Dot";
 
   // Create and register the line type property
-  m_LineTypeModel = NewConcreteProperty((int) vtkPen::NO_PEN, ltd);
-  this->RegisterEnumProperty("LineType", m_LineTypeModel, ltd.GetMap());
+  m_LineTypeModel = NewSimpleConcreteProperty((int) vtkPen::NO_PEN);
+  this->RegisterEnumProperty("LineType", m_LineTypeModel, ltd);
 
   m_FontSizeModel =
       NewRangedProperty("FontSize", 0, 0, 36, 1);

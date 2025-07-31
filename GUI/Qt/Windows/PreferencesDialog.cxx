@@ -52,39 +52,39 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
   // Set up tree of appearance elements
   QStandardItemModel *model = new QStandardItemModel();
 
-  QStandardItem *itemSliceViews = append_category_item(model->invisibleRootItem(), "Slice Views");
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::BACKGROUND_2D, "Background");
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::CROSSHAIRS, "Crosshair");
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::RULER, "Rulers");
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::MARKERS, "Anatomic Markers");
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::ROI_BOX, "ROI Edges");
+  QStandardItem *itemSliceViews = append_category_item(model->invisibleRootItem(), tr("Slice Views"));
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::BACKGROUND_2D, tr("Background"));
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::CROSSHAIRS, tr("Crosshair"));
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::RULER, tr("Rulers"));
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::MARKERS, tr("Anatomic Markers"));
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::ROI_BOX, tr("ROI Edges"));
   append_appearance_item(
-    itemSliceViews, SNAPAppearanceSettings::ROI_BOX_ACTIVE, "ROI Edges (selected)");
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::PAINTBRUSH_OUTLINE, "Paintbrush");
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::GRID_LINES, "Deformation Grid");
+    itemSliceViews, SNAPAppearanceSettings::ROI_BOX_ACTIVE, tr("ROI Edges (selected)"));
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::PAINTBRUSH_OUTLINE, tr("Paintbrush"));
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::GRID_LINES, tr("Deformation Grid"));
 
-  QStandardItem *item3DView = append_category_item(model->invisibleRootItem(), "3D View");
-  append_appearance_item(item3DView, SNAPAppearanceSettings::BACKGROUND_3D, "Background");
-  append_appearance_item(item3DView, SNAPAppearanceSettings::CROSSHAIRS_3D, "Crosshair");
-  append_appearance_item(item3DView, SNAPAppearanceSettings::MESH_OUTLINE, "Mesh Outline");
+  QStandardItem *item3DView = append_category_item(model->invisibleRootItem(), tr("3D View"));
+  append_appearance_item(item3DView, SNAPAppearanceSettings::BACKGROUND_3D, tr("Background"));
+  append_appearance_item(item3DView, SNAPAppearanceSettings::CROSSHAIRS_3D, tr("Crosshair"));
+  append_appearance_item(item3DView, SNAPAppearanceSettings::MESH_OUTLINE, tr("Mesh Outline"));
 
-  QStandardItem *itemThumb = append_category_item(model->invisibleRootItem(), "Zoom Thumbnail");
-  append_appearance_item(itemThumb, SNAPAppearanceSettings::ZOOM_THUMBNAIL, "Thumbnail");
-  append_appearance_item(itemThumb, SNAPAppearanceSettings::ZOOM_VIEWPORT, "Current Viewport Outline");
-  append_appearance_item(itemThumb, SNAPAppearanceSettings::CROSSHAIRS_THUMB, "Crosshair");
+  QStandardItem *itemThumb = append_category_item(model->invisibleRootItem(), tr("Zoom Thumbnail"));
+  append_appearance_item(itemThumb, SNAPAppearanceSettings::ZOOM_THUMBNAIL, tr("Thumbnail"));
+  append_appearance_item(itemThumb, SNAPAppearanceSettings::ZOOM_VIEWPORT, tr("Current Viewport Outline"));
+  append_appearance_item(itemThumb, SNAPAppearanceSettings::CROSSHAIRS_THUMB, tr("Crosshair"));
 
-  QStandardItem *itemPoly = append_category_item(model->invisibleRootItem(), "Polygon Tool");
-  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_DRAW_MAIN, "Outline (drawing)");
-  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_DRAW_CLOSE, "Completion line");
-  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_EDIT, "Outline (editing)");
+  QStandardItem *itemPoly = append_category_item(model->invisibleRootItem(), tr("Polygon Tool"));
+  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_DRAW_MAIN, tr("Outline (drawing)"));
+  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_DRAW_CLOSE, tr("Completion line"));
+  append_appearance_item(itemPoly, SNAPAppearanceSettings::POLY_EDIT, tr("Outline (editing)"));
   append_appearance_item(
-    itemPoly, SNAPAppearanceSettings::POLY_EDIT_SELECT, "Outline (editing, selected)");
+    itemPoly, SNAPAppearanceSettings::POLY_EDIT_SELECT, tr("Outline (editing, selected)"));
 
-  QStandardItem *itemReg = append_category_item(model->invisibleRootItem(), "Registration Tool");
-  append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS, "Registration Widgets");
+  QStandardItem *itemReg = append_category_item(model->invisibleRootItem(), tr("Registration Tool"));
+  append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS, tr("Registration Widgets"));
   append_appearance_item(
-    itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS_ACTIVE, "Registration Widgets (active)");
-  append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_GRID, "Registration Grid Lines");
+    itemReg, SNAPAppearanceSettings::REGISTRATION_WIDGETS_ACTIVE, tr("Registration Widgets (active)"));
+  append_appearance_item(itemReg, SNAPAppearanceSettings::REGISTRATION_GRID, tr("Registration Grid Lines"));
 
   ui->treeVisualElements->setModel(model);
   ui->treeVisualElements->expandAll();
@@ -182,6 +182,15 @@ PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->inElementThickness, elt->GetLineThicknessModel(), opts_elt);
   makeCoupling(ui->inElementLineType, elt->GetLineTypeModel(), opts_elt);
   makeCoupling(ui->inElementFontSize, elt->GetFontSizeModel(), opts_elt);
+
+  // For the line type, we need to add all of the line types to the combo box manually
+  // which allows for translation
+  ui->inElementLineType->addItem(tr("No Line"), QVariant(vtkPen::NO_PEN));
+  ui->inElementLineType->addItem(tr("Solid Line"), QVariant(vtkPen::SOLID_LINE));
+  ui->inElementLineType->addItem(tr("Dashed Line"), QVariant(vtkPen::DASH_LINE));
+  ui->inElementLineType->addItem(tr("Dotted Line"), QVariant(vtkPen::DOT_LINE));
+  ui->inElementLineType->addItem(tr("Dash-Dot Line"), QVariant(vtkPen::DASH_DOT_LINE));
+  ui->inElementLineType->addItem(tr("Dash-Dot-Dot Line"), QVariant(vtkPen::DASH_DOT_DOT_LINE));
 
   // Make sure the labels are activated along with the widgets
   activateOnFlag(ui->labelElementColor, elt->GetColorModel(), UIF_PROPERTY_IS_VALID);

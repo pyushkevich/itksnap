@@ -227,7 +227,7 @@ DistributedSegmentationDialog::DistributedSegmentationDialog(QWidget *parent) :
   // Create the model for the tag listing
   QStandardItemModel *tags_model = new QStandardItemModel();
   tags_model->setHorizontalHeaderLabels(
-        QStringList() << "Tag" << "Type" << "Required" << "Target Object");
+        QStringList() << tr("Tag") << tr("Type") << tr("Required") << tr("Target Object"));
   ui->tblTags->setModel(tags_model);
 
   // Set the sizing of the columns
@@ -245,7 +245,7 @@ DistributedSegmentationDialog::DistributedSegmentationDialog(QWidget *parent) :
 
   // Create the model for the table view
   QStandardItemModel *ticket_list_model = new QStandardItemModel();
-  ticket_list_model->setHorizontalHeaderLabels(QStringList() << "Ticket" << "Service" << "Status");
+  ticket_list_model->setHorizontalHeaderLabels(QStringList() << tr("Ticket") << tr("Service") << tr("Status"));
   ui->tblTickets->setModel(ticket_list_model);
 
   QItemSelectionModel *sel = new QItemSelectionModel(ticket_list_model);
@@ -263,7 +263,7 @@ DistributedSegmentationDialog::DistributedSegmentationDialog(QWidget *parent) :
 
   // Create model for the logs
   QStandardItemModel *log_entry_list_model = new QStandardItemModel();
-  log_entry_list_model->setHorizontalHeaderLabels(QStringList() << "Time" << "Message" << "Att");
+  log_entry_list_model->setHorizontalHeaderLabels(QStringList() << tr("Time") << tr("Message") << tr("Att"));
   ui->tblLog->setModel(log_entry_list_model);
 
 #if QT_VERSION >= 0x050000
@@ -536,7 +536,7 @@ void DistributedSegmentationDialog::on_btnSubmit_clicked()
   QtProgressDialogScopedPointer progress(new QProgressDialog(this));
   QtProgressReporterDelegate progress_delegate;
   progress_delegate.SetProgressDialog(progress.data());
-  progress->setLabelText("Uploading workspace...");
+  progress->setLabelText(tr("Uploading workspace..."));
   progress->setMinimumDuration(0);
   progress->show();
   progress->activateWindow();
@@ -559,7 +559,7 @@ void DistributedSegmentationDialog::on_btnSubmit_clicked()
     }
   catch(std::exception &exc)
     {
-    ReportNonLethalException(this, exc, "Failed to submit workspace");
+    ReportNonLethalException(this, exc, tr("Failed to submit workspace"));
     }
 }
 
@@ -576,7 +576,7 @@ void DistributedSegmentationDialog::on_btnDownload_clicked()
   QtProgressDialogScopedPointer progress(new QProgressDialog(this));
   QtProgressReporterDelegate progress_delegate;
   progress_delegate.SetProgressDialog(progress.data());
-  progress->setLabelText("Downloading workspace...");
+  progress->setLabelText(tr("Downloading workspace..."));
   progress->setMinimumDuration(0);
   progress->show();
   progress->activateWindow();
@@ -612,7 +612,7 @@ void DistributedSegmentationDialog::on_btnDownload_clicked()
   }
   catch(IRISException &exc)
   {
-    ReportNonLethalException(this, exc, "Failed to download workspace");
+    ReportNonLethalException(this, exc, tr("Failed to download workspace"));
   }
 }
 
@@ -765,7 +765,7 @@ void DistributedSegmentationDialog::on_btnDelete_clicked()
   }
   catch(IRISException &exc)
   {
-    ReportNonLethalException(this, exc, "Failed to delete selected ticket");
+    ReportNonLethalException(this, exc, tr("Failed to delete selected ticket"));
   }
 
 
@@ -787,8 +787,8 @@ void DistributedSegmentationDialog::on_btnManageServers_clicked()
   // Create a dialog box with a list of servers
   bool ok = false;
   QString servers = QInputDialog::getMultiLineText(
-                      this, "Edit Server List",
-                      "Enter additional server URLs on separate lines below:", input, &ok);
+                      this, tr("Edit Server List"),
+                      tr("Enter additional server URLs on separate lines below:"), input, &ok);
 
 
   if(!ok)
@@ -826,7 +826,7 @@ void DistributedSegmentationDialog::on_btnManageServers_clicked()
     if(!url.isValid() || url.isRelative() || url.isLocalFile() || url.isEmpty())
       {
       QMessageBox::warning(this, tr("Invalid server URL"),
-                           QString("%1 is not a valid URL.").arg(url_string));
+                           tr("%1 is not a valid URL.").arg(url_string));
       }
     else
       {

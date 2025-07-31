@@ -131,11 +131,11 @@ public:
     switch(action)
       {
       case ModeTooltipBuilder::LMB:
-        atext = "left_click"; break;
+        atext = QCoreApplication::translate("MainImageWindow", "left_click"); break;
       case ModeTooltipBuilder::RMB:
-        atext = "right_click"; break;
+        atext = QCoreApplication::translate("MainImageWindow", "right_click"); break;
       case ModeTooltipBuilder::SCROLL:
-        atext = "scrolling"; break;
+        atext = QCoreApplication::translate("MainImageWindow", "scrolling"); break;
       }
 
     QString fullrow = row.arg(atext).arg(descr).arg(modifier);
@@ -244,7 +244,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
           ui->actionMainControlPanel, SLOT(setChecked(bool)));
 
   // Set up the right hand side dock widget
-  m_DockRight = new QDockWidget("Segment 3D", this);
+  m_DockRight = new QDockWidget(tr("Segment 3D"), this);
 
   m_DockRight->setAllowedAreas(Qt::RightDockWidgetArea);
   m_DockRight->setFeatures(
@@ -1363,8 +1363,8 @@ void MainImageWindow::LoadDroppedFile(QString file)
     }
   catch (exception &exc) // for minor exceptions, no need to crash the entire program
     {
-    ReportNonLethalException(this, exc, tr("File Dropping Error"),
-                             tr("Failed to load file %1").arg(file));
+      ReportNonLethalException(
+        this, exc, tr("File Dropping Error"), tr("Failed to load file %1").arg(file));
     }
 
 }
@@ -1678,7 +1678,7 @@ void MainImageWindow::LoadProjectInNewInstance(const QString &file)
   }
   catch(IRISException &exc)
   {
-    ReportNonLethalException(this, exc, "Failed to open workspace in new ITK-SNAP window");
+    ReportNonLethalException(this, exc, tr("Failed to open workspace in new ITK-SNAP window"));
   }
 }
 
@@ -2742,7 +2742,7 @@ void MainImageWindow::on_actionReloadSegmentation_triggered()
       }
     catch (IRISException &ex)
       {
-      ReportNonLethalException(this, ex, "Error reloading image from file");
+      ReportNonLethalException(this, ex, tr("Error reloading image from file"));
       }
     }
 }

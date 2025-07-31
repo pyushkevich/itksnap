@@ -173,28 +173,31 @@ void SnakeParameterDialog::on_btnRestore_clicked()
   m_Model->RestoreDefaults();
 }
 
-void SnakeParameterDialog::on_btnOpen_clicked()
+void
+SnakeParameterDialog::on_btnOpen_clicked()
 {
   // Ask for a filename
-  QString selection = ShowSimpleOpenDialogWithHistory(
-        this, m_Model->GetParentModel(), "SnakeParameters",
-        "Open Active Contour Evolution Parameters - ITK-SNAP",
-        "Parameter File",
-        "Text Files (*.txt)");
+  QString selection =
+    ShowSimpleOpenDialogWithHistory(this,
+                                    m_Model->GetParentModel(),
+                                    "SnakeParameters",
+                                    tr("Open Active Contour Evolution Parameters - ITK-SNAP"),
+                                    tr("Parameter File"),
+                                    tr("Text Files (%1)").arg("*.txt"));
 
   // Open the labels from the selection
-  if(selection.length())
-    {
+  if (selection.length())
+  {
     try
-      {
+    {
       m_Model->LoadParameters(to_utf8(selection));
-      }
-    catch(std::exception &exc)
-      {
-      ReportNonLethalException(this, exc, "Parameter File IO Error",
-                               QString("Failed to load parameters"));
-      }
     }
+    catch (std::exception &exc)
+    {
+      ReportNonLethalException(
+        this, exc, tr("Parameter File IO Error"), tr("Failed to load parameters"));
+    }
+  }
 }
 
 void SnakeParameterDialog::on_btnSave_clicked()
@@ -202,9 +205,9 @@ void SnakeParameterDialog::on_btnSave_clicked()
   // Ask for a filename
   QString selection = ShowSimpleSaveDialogWithHistory(
         this, m_Model->GetParentModel(), "SnakeParameters",
-        "Save Active Contour Evolution Parameters - ITK-SNAP",
-        "Parameter File",
-        "Text Files (*.txt)",
+        tr("Save Active Contour Evolution Parameters - ITK-SNAP"),
+        tr("Parameter File"),
+        tr("Text Files (%1)").arg("*.txt"),
         true);
 
   // Open the labels from the selection
@@ -216,8 +219,8 @@ void SnakeParameterDialog::on_btnSave_clicked()
       }
     catch(std::exception &exc)
       {
-      ReportNonLethalException(this, exc, "Parameter File IO Error",
-                               QString("Failed to save parameters"));
+        ReportNonLethalException(
+          this, exc, tr("Parameter File IO Error"), tr("Failed to save parameters"));
       }
     }
 }

@@ -381,7 +381,6 @@ void ReportNonLethalException(QWidget *parent,
                               QString mainErrorText)
 {
   QMessageBox b(parent);
-
   b.setWindowTitle(QString("%1 - ITK-SNAP").arg(windowTitleText));
   if(mainErrorText.isNull())
     {

@@ -88,11 +88,11 @@ void
 LabelInspector::on_actionLocate_Center_of_Mass_triggered()
 {
   auto label = m_Model->GetGlobalState()->GetDrawingColorLabel();
-  if(!m_Model->GetDriver()->LocateLabelCenterOfMass(label))
-    ReportNonLethalException(
-      this,
-      IRISException("There are no voxels with label %d in the segmentation", label),
-      "Operation Failed");
+  if (!m_Model->GetDriver()->LocateLabelCenterOfMass(label))
+    ReportNonLethalException(this,
+                             IRISException(),
+                             tr("Failed to Locate Center of Mass"),
+                             tr("There are no voxels with label %1 in the segmentation").arg(label));
 }
 
 void

@@ -38,6 +38,7 @@
 #include "SNAPCommon.h"
 #include <exception>
 #include <vector>
+#include <variant>
 
 using std::string;
 using std::exception;
@@ -61,6 +62,35 @@ public:
   operator const char *();
 };
 
+enum class IRISErrorCode
+{
+  // Matrix-related
+  MATRIX_ITK_TFORM_IO_ERROR,
+  MATRIX_GREEDY_TFORM_IO_ERROR
+};
+
+class IRISTranslatableException : public exception
+{
+public:
+  using Argument = std::variant<std::string, int, float, double>;
+  IRISTranslatableException(IRISErrorCode error_code, std::vector<Argument> args)
+    : m_ErrorCode(error_code)
+    , m_Arguments(std::move(args))
+  {
+  }
+
+  const char* what() const noexcept override
+  {
+    return "Untranslated IRISException";
+  }
+
+  IRISErrorCode code() const { return m_ErrorCode; }
+  const std::vector<Argument>& args() const { return m_Arguments; }
+
+protected:
+  IRISErrorCode m_ErrorCode;
+  std::vector<Argument> m_Arguments;
+};
 
 /**
   Actions can generate warnings. These warnings are simply instances of

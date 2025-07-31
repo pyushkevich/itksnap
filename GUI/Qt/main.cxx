@@ -222,9 +222,11 @@ test_terminate_handler()
       // Create the critical message box
       QMessageBox msgBox;
       msgBox.setIcon(QMessageBox::Critical);
-      msgBox.setText(QString("ITK-SNAP crashed due to an unexpected error. Your unsaved "
-                             "segmentations have been saved to folder '%1'")
-                       .arg(backup_dir));
+      msgBox.setText(
+        QCoreApplication::translate("main",
+                                    "ITK-SNAP crashed due to an unexpected error. Your unsaved "
+                                    "segmentations have been saved to folder '%1'")
+          .arg(backup_dir));
       msgBox.setWindowTitle(QCoreApplication::translate("main", "Crash Recovery"));
 
       // Add the "Open Folder" button
@@ -1109,8 +1111,8 @@ main(int argc, char *argv[])
         ReportNonLethalException(
           mainwin,
           exc,
-          "Workspace Error",
-          QString("Failed to load workspace %1").arg(from_utf8(argdata.fnWorkspace)));
+          QCoreApplication::translate("main", "Workspace Error"),
+          QCoreApplication::translate("main", "Failed to load workspace %1").arg(from_utf8(argdata.fnWorkspace)));
       }
     }
     else
@@ -1144,8 +1146,8 @@ main(int argc, char *argv[])
               ReportNonLethalException(
                 mainwin,
                 exc,
-                "Image IO Error",
-                QString("Failed to load segmentation %1").arg(from_utf8(current_seg)));
+                QCoreApplication::translate("main", "Image IO Error"),
+                QCoreApplication::translate("main", "Failed to load segmentation %1").arg(from_utf8(current_seg)));
             }
           }
 
@@ -1166,8 +1168,8 @@ main(int argc, char *argv[])
               ReportNonLethalException(
                 mainwin,
                 exc,
-                "Overlay IO Error",
-                QString("Failed to load overlay %1").arg(from_utf8(current_overlay)));
+                QCoreApplication::translate("main", "Overlay IO Error"),
+                QCoreApplication::translate("main", "Failed to load overlay %1").arg(from_utf8(current_overlay)));
             }
           }
 
@@ -1196,8 +1198,8 @@ main(int argc, char *argv[])
               ReportNonLethalException(
                 mainwin,
                 exc,
-                "Mesh IO Error",
-                QString("Failed to load mesh %1").arg(from_utf8(current_mesh)));
+                QCoreApplication::translate("main", "Mesh IO Error"),
+                QCoreApplication::translate("main", "Failed to load mesh %1").arg(from_utf8(current_mesh)));
             }
           }
         }
@@ -1205,8 +1207,8 @@ main(int argc, char *argv[])
         {
           ReportNonLethalException(mainwin,
                                    exc,
-                                   "Image IO Error",
-                                   QString("Failed to load image %1").arg(from_utf8(argdata.fnMain)));
+                                   QCoreApplication::translate("main", "Image IO Error"),
+                                   QCoreApplication::translate("main", "Failed to load image %1").arg(from_utf8(argdata.fnMain)));
         }
       } // if main image filename supplied
 
@@ -1222,8 +1224,8 @@ main(int argc, char *argv[])
           ReportNonLethalException(
             mainwin,
             exc,
-            "Label Description IO Error",
-            QString("Failed to load labels from %1").arg(from_utf8(argdata.fnLabelDesc)));
+            QCoreApplication::translate("main", "Label Description IO Error"),
+            QCoreApplication::translate("main", "Failed to load labels from %1").arg(from_utf8(argdata.fnLabelDesc)));
         }
       }
     } // Not loading workspace
@@ -1366,7 +1368,7 @@ main(int argc, char *argv[])
   catch (std::exception &exc)
   {
     ReportNonLethalException(
-      NULL, exc, "ITK-SNAP failed to start", "Exception occurred during ITK-SNAP startup");
+      NULL, exc, QCoreApplication::translate("main", "ITK-SNAP failed to start"), QCoreApplication::translate("main", "Exception occurred during ITK-SNAP startup"));
     exit(-1);
   }
 }

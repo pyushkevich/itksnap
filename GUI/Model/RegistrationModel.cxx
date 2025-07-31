@@ -62,17 +62,10 @@ RegistrationModel::RegistrationModel()
 
   // Registration mode
   // TODO: add the other modes
-  TransformationDomain transform_domain;
-  transform_domain[RIGID] = "Rigid";
-  transform_domain[AFFINE] = "Affine";
-  m_TransformationModel = NewConcreteProperty(RIGID, transform_domain);
+  m_TransformationModel = NewSimpleConcreteProperty(RIGID);
 
   // Registration metric
-  SimilarityMetricDomain metric_domain;
-  metric_domain[NMI] = "Mutual information";
-  metric_domain[NCC] = "Cross-correlation";
-  metric_domain[SSD] = "Intensity difference";
-  m_SimilarityMetricModel = NewConcreteProperty(NMI, metric_domain);
+  m_SimilarityMetricModel = NewSimpleConcreteProperty(NMI);
 
   // Mask model
   m_UseSegmentationAsMaskModel = NewSimpleConcreteProperty(false);

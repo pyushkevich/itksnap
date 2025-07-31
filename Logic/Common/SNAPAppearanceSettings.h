@@ -55,14 +55,13 @@ class OpenGLAppearanceElement : public AbstractPropertyContainerModel
 public:
   irisITKObjectMacro(OpenGLAppearanceElement, AbstractPropertyContainerModel)
 
-  typedef SimpleItemSetDomain<int, std::string> LineTypeDomain;
-  typedef AbstractPropertyModel<int, LineTypeDomain> AbstractLineTypeModel;
+  typedef AbstractPropertyModel<int> AbstractLineTypeModel;
 
   irisRangedPropertyAccessMacro(Color, Vector3d)
   irisRangedPropertyAccessMacro(Alpha, double)
 
   irisRangedPropertyAccessMacro(LineThickness, double)
-  irisGenericPropertyAccessMacro(LineType, int, LineTypeDomain)
+  irisSimplePropertyAccessMacro(LineType, int)
   irisRangedPropertyAccessMacro(FontSize, int)
   irisSimplePropertyAccessMacro(VisibilityFlag, bool)
 
@@ -90,11 +89,9 @@ public:
 
 protected:
 
-  typedef ConcretePropertyModel<int, LineTypeDomain> ConcreteLineTypeModel;
-
   SmartPtr<ConcreteRangedDoubleVec3Property> m_ColorModel;
   SmartPtr<ConcreteRangedDoubleProperty> m_AlphaModel, m_LineThicknessModel;
-  SmartPtr<ConcreteLineTypeModel> m_LineTypeModel;
+  SmartPtr<ConcreteSimpleIntProperty> m_LineTypeModel;
   SmartPtr<ConcreteRangedIntProperty> m_FontSizeModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_VisibilityFlagModel, m_SmoothModel;
 

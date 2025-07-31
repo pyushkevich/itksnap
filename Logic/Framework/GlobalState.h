@@ -81,6 +81,12 @@ enum PreprocessingMode
   PREPROCESS_EDGE
 };
 
+constexpr std::array<PreprocessingMode, 5> PreprocessingModes = { PREPROCESS_NONE,
+                                                                  PREPROCESS_THRESHOLD,
+                                                                  PREPROCESS_RF,
+                                                                  PREPROCESS_GMM,
+                                                                  PREPROCESS_EDGE };
+
 enum ConstraintsType 
 {
   SAPIRO,
