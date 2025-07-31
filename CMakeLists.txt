@@ -1547,7 +1547,7 @@ IF(APPLE)
 
     # TODO: there has to be some way to determine all the executables that are included in
     # the package but I spent an hour trying and I give up. So here it is, hard-coded.
-    SET(SNAP_MACOSX_CLI_EXES "c3d;c2d;c4d;c3d_affine_tool;greedy;greedy_template_average;itksnap-wt;itksnap;multi_chunk_greedy")
+    SET(SNAP_MACOSX_CLI_EXES "c3d;c2d;c4d;c3d_affine_tool;greedy;greedy_template_average;itksnap-wt;itksnap;multi_chunk_greedy;greedy_propagation")
     FOREACH(exe ${SNAP_MACOSX_CLI_EXES})
       LIST(APPEND CPACK_BUNDLE_APPLE_CODESIGN_FILES "/Contents/bin/${exe}")
     ENDFOREACH()
