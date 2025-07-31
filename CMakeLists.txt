@@ -38,8 +38,8 @@ MACRO (TODAY RESULT)
         MESSAGE(SEND_ERROR "date not implemented")
         SET(${RESULT} 000000)
     ENDIF (WIN32)
-	string(REPLACE "\n" "" ${RESULT} ${${RESULT}})
-	string(REPLACE " " "" ${RESULT} ${${RESULT}})
+    string(REPLACE "\n" "" ${RESULT} ${${RESULT}})
+    string(REPLACE " " "" ${RESULT} ${${RESULT}})
 ENDMACRO (TODAY)
 
 # This macro is used to install binary targets.
@@ -145,10 +145,10 @@ endif()
 
 IF(DEFINED InsightApplications_SOURCE_DIR)
   SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS FALSE CACHE BOOL 
-	"Is SNAP being built separate from InsightApplications?")
+    "Is SNAP being built separate from InsightApplications?")
 ELSE(DEFINED InsightApplications_SOURCE_DIR)
   SET(BUILD_OUTSIDE_INSIGHT_APPLICATIONS TRUE CACHE BOOL 
-	"Is SNAP being built separate from InsightApplications?")
+    "Is SNAP being built separate from InsightApplications?")
 ENDIF(DEFINED InsightApplications_SOURCE_DIR)			
 
 IF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
@@ -1631,8 +1631,28 @@ ELSEIF(WIN32)
   message(STATUS "QT_WIN_PLUGIN=${QT_WIN_PLUGIN}")
   message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
 
-  # get_property(QT_WIN_PLUGIN TARGET Qt6::QWindowsIntegrationPlugin PROPERTY LOCATION_RELEASE)
-  # get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
+  # On Windows, the libssh library does not seem to install automatically unless we manually
+  # install it and its dependencies. This code finds the ssh.dll and libcrypto-3-x64.dll and
+  # installs them in the bin directory
+  get_target_property(SSH_IMPORTED_LOCATION ssh LOCATION)
+  get_filename_component(SSH_DLL_PATH "${SSH_IMPORTED_LOCATION}" DIRECTORY)
+  MESSAGE(STATUS "SSH_DLL_PATH is ${SSH_DLL_PATH}")
+  find_file(SSH_DLL_FILE
+    NAMES ssh.dll
+    PATHS "${SSH_DLL_PATH}"
+    NO_DEFAULT_PATH
+  )
+  find_file(SSH_LIBCRYPTO_FILE
+    NAMES libcrypto-3-x64.dll
+    PATHS "${SSH_DLL_PATH}"
+    NO_DEFAULT_PATH
+  )
+  if(SSH_DLL_FILE AND SSH_LIBCRYPTO_FILE)
+    message(STATUS "Installing LIBSSH DLL files: ${SSH_DLL_FILE} and ${SSH_LIBCRYPTO_FILE}")
+    install(FILES "${SSH_DLL_FILE}" "${SSH_LIBCRYPTO_FILE}" DESTINATION bin)
+  else()
+    message(WARNING "ssh.dll and/or libcrypto-3-x64.dll not found in ${SSH_DLL_PATH}")
+  endif()
 
   # Install with the plugin
   qt_generate_deploy_script(
@@ -1640,16 +1660,15 @@ ELSEIF(WIN32)
       OUTPUT_SCRIPT deploy_script
       CONTENT "
   qt_deploy_runtime_dependencies(
-      EXECUTABLE \"${executable_path}\"
+      EXECUTABLE \"bin/${SNAP_BUNDLE_NAME}.exe\"
       GENERATE_QT_CONF
+      VERBOSE
   )
   qt_deploy_translations(
       CATALOGS qtbase
       LOCALES en es zh_CN
   )")
   install(SCRIPT ${deploy_script})
-
-  ### install_qt5_executable(bin/${SNAP_BUNDLE_NAME}.exe "${QT_GIF_PLUGIN};${QT_WIN_PLUGIN}"  "" "${VTK_RUNTIME_LIBRARY_DIRS}")
 
   # On windows, we have to configure NSIS
   SET(CPACK_NSIS_MUI_ICON "${SNAP_SOURCE_DIR}/Utilities/Win32/snaplogo.ico")
