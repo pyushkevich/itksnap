@@ -34,6 +34,7 @@
 #include "IRISApplication.h"
 #include "MetaDataAccess.h"
 #include "SNAPQtCommon.h"
+#include "SNAPQtCommonTranslations.h"
 #include "FileChooserPanelWithHistory.h"
 
 #include "ImageIOWizard/OverlayRolePage.h"
@@ -236,7 +237,6 @@ protected:
 };
 */
 
-
 void SelectFilePage::initializePage()
 {
   assert(m_Model);
@@ -245,10 +245,11 @@ void SelectFilePage::initializePage()
   m_Model->Reset();
 
   // Set title
+  QString display_name = SNAPQtCommonTranslations::translate(m_Model->GetDisplayName());
   if(m_Model->IsLoadMode())
-    setTitle(QString("Open %1").arg(m_Model->GetDisplayName().c_str()));
+    setTitle(tr("Open %1").arg(display_name));
   else
-    setTitle(QString("Save %1").arg(m_Model->GetDisplayName().c_str()));
+    setTitle(tr("Save %1").arg(display_name));
 
   // Create a filter for the filename panel
   std::string filter = m_Model->GetFilter("%s (%s)", "*.%s", " ", ";;");
@@ -360,7 +361,7 @@ SummaryPage::SummaryPage(QWidget *parent) :
   m_Tree->setColumnCount(2);
 
   QStringList header;
-  header << "Property" << "Value";
+  header << tr("Property") << tr("Value");
   m_Tree->setHeaderLabels(header);
 
   m_Tree->setAlternatingRowColors(true);
@@ -386,7 +387,7 @@ void SummaryPage::AddItem(
 
 void SummaryPage::AddItem(
     QTreeWidget *parent,
-    const char *key,
+    QString key,
     ImageIOWizardModel::SummaryItem si)
 {
   QTreeWidgetItem *item = new QTreeWidgetItem(parent);
@@ -406,20 +407,20 @@ void SummaryPage::initializePage()
   m_Tree->clear();
 
   // Add all the top level items
-  AddItem(m_Tree, "File name", ImageIOWizardModel::SI_FILENAME);
-  AddItem(m_Tree, "Dimensions", ImageIOWizardModel::SI_DIMS);
-  AddItem(m_Tree, "Time Points", ImageIOWizardModel::SI_TIMEPOINTS);
-  AddItem(m_Tree, "Components/Voxel", ImageIOWizardModel::SI_COMPONENTS);
-  AddItem(m_Tree, "Voxel spacing", ImageIOWizardModel::SI_SPACING);
-  AddItem(m_Tree, "Origin", ImageIOWizardModel::SI_ORIGIN);
-  AddItem(m_Tree, "Orientation", ImageIOWizardModel::SI_ORIENT);
-  AddItem(m_Tree, "Byte order", ImageIOWizardModel::SI_ENDIAN);
-  AddItem(m_Tree, "Data type", ImageIOWizardModel::SI_DATATYPE);
-  AddItem(m_Tree, "File size", ImageIOWizardModel::SI_FILESIZE);
+  AddItem(m_Tree, tr("File name"), ImageIOWizardModel::SI_FILENAME);
+  AddItem(m_Tree, tr("Dimensions"), ImageIOWizardModel::SI_DIMS);
+  AddItem(m_Tree, tr("Time Points"), ImageIOWizardModel::SI_TIMEPOINTS);
+  AddItem(m_Tree, tr("Components/Voxel"), ImageIOWizardModel::SI_COMPONENTS);
+  AddItem(m_Tree, tr("Voxel spacing"), ImageIOWizardModel::SI_SPACING);
+  AddItem(m_Tree, tr("Origin"), ImageIOWizardModel::SI_ORIGIN);
+  AddItem(m_Tree, tr("Orientation"), ImageIOWizardModel::SI_ORIENT);
+  AddItem(m_Tree, tr("Byte order"), ImageIOWizardModel::SI_ENDIAN);
+  AddItem(m_Tree, tr("Data type"), ImageIOWizardModel::SI_DATATYPE);
+  AddItem(m_Tree, tr("File size"), ImageIOWizardModel::SI_FILESIZE);
 
   // Create metadata item
   QTreeWidgetItem *meta = new QTreeWidgetItem(m_Tree);
-  meta->setText(0, "Metadata");
+  meta->setText(0, tr("Metadata"));
 
   // Add all metadata items
   MetaDataAccess<4> mda(m_Model->GetGuidedIO()->GetNativeImage());
@@ -575,13 +576,13 @@ RawPage::RawPage(QWidget *parent)
 
   // Create the header input
   m_HeaderSize = new QSpinBox();
-  lo->addWidget(new QLabel("Header size:"), 0, 0, 1, 2);
+  lo->addWidget(new QLabel(tr("Header size:")), 0, 0, 1, 2);
   lo->addWidget(m_HeaderSize, 0, 2, 1, 1);
-  lo->addWidget(new QLabel("bytes"), 0, 3, 1, 4);
+  lo->addWidget(new QLabel(tr("bytes")), 0, 3, 1, 4);
 
-  m_HeaderSize->setToolTip(
+  m_HeaderSize->setToolTip(tr(
         "Specify the number of bytes at the beginning of the image that "
-        "should be skipped before reading the image data.");
+        "should be skipped before reading the image data."));
 
   connect(m_HeaderSize, SIGNAL(valueChanged(int)), SLOT(onHeaderSizeChange()));
 
@@ -595,7 +596,7 @@ RawPage::RawPage(QWidget *parent)
     m_Spacing[i]->setValue(1.0);
     }
 
-  lo->addWidget(new QLabel("Image dimensions:"), 1, 0, 1, 1);
+  lo->addWidget(new QLabel(tr("Image dimensions:")), 1, 0, 1, 1);
   lo->addWidget(new QLabel("x:"), 1, 1, 1, 1);
   lo->addWidget(m_Dims[0], 1, 2, 1, 1);
   lo->addWidget(new QLabel("y:"), 1, 3, 1, 1);
@@ -611,26 +612,26 @@ RawPage::RawPage(QWidget *parent)
   */
 
   m_InFormat = new QComboBox();
-  m_InFormat->addItem("8 bit unsigned integer (uchar)");
-  m_InFormat->addItem("8 bit signed integer (char)");
-  m_InFormat->addItem("16 bit unsigned integer (ushort)");
-  m_InFormat->addItem("16 bit signed integer (short)");
-  m_InFormat->addItem("32 bit unsigned integer (uint)");
-  m_InFormat->addItem("32 bit signed integer (int)");
-  m_InFormat->addItem("32 bit floating point (float)");
-  m_InFormat->addItem("64 bit floating point (double)");
+  m_InFormat->addItem(tr("8 bit unsigned integer (uchar)"));
+  m_InFormat->addItem(tr("8 bit signed integer (char)"));
+  m_InFormat->addItem(tr("16 bit unsigned integer (ushort)"));
+  m_InFormat->addItem(tr("16 bit signed integer (short)"));
+  m_InFormat->addItem(tr("32 bit unsigned integer (uint)"));
+  m_InFormat->addItem(tr("32 bit signed integer (int)"));
+  m_InFormat->addItem(tr("32 bit floating point (float)"));
+  m_InFormat->addItem(tr("64 bit floating point (double)"));
 
   connect(m_InFormat, SIGNAL(currentIndexChanged(int)), SLOT(onHeaderSizeChange()));
 
-  lo->addWidget(new QLabel("Voxel type:"), 2, 0, 1, 2);
+  lo->addWidget(new QLabel(tr("Voxel type:")), 2, 0, 1, 2);
   lo->addWidget(m_InFormat, 2, 2, 1, 5);
 
   // Endianness
   m_InEndian = new QComboBox();
-  m_InEndian->addItem("Big Endian (PowerPC, SPARC)");
-  m_InEndian->addItem("Little Endian (x86, x86_64)");
+  m_InEndian->addItem(tr("Big Endian (PowerPC, SPARC)"));
+  m_InEndian->addItem(tr("Little Endian (x86, x86_64)"));
 
-  lo->addWidget(new QLabel("Byte alignment:"), 3, 0, 1, 2);
+  lo->addWidget(new QLabel(tr("Byte alignment:")), 3, 0, 1, 2);
   lo->addWidget(m_InEndian, 3, 2, 1, 5);
 
   // Add some space
@@ -641,25 +642,25 @@ RawPage::RawPage(QWidget *parent)
   m_OutImpliedSize->setReadOnly(true);
   m_OutImpliedSize->setButtonSymbols(QAbstractSpinBox::NoButtons);
   m_OutImpliedSize->setRange(0, 0x7fffffff);
-  lo->addWidget(new QLabel("Implied file size:"), 5, 0, 1, 2);
+  lo->addWidget(new QLabel(tr("Implied file size:")), 5, 0, 1, 2);
   lo->addWidget(m_OutImpliedSize, 5, 2, 1, 1);
 
   m_OutActualSize = new QSpinBox();
   m_OutActualSize->setReadOnly(true);
   m_OutActualSize->setButtonSymbols(QAbstractSpinBox::NoButtons);
   m_OutActualSize->setRange(0, 0x7fffffff);
-  lo->addWidget(new QLabel("Actual file size:"), 6, 0, 1, 2);
+  lo->addWidget(new QLabel(tr("Actual file size:")), 6, 0, 1, 2);
   lo->addWidget(m_OutActualSize, 6, 2, 1, 1);
 
   QLabel *lbrace = new QLabel("}");
   lbrace->setStyleSheet("font-size: 30px");
   lo->addWidget(lbrace, 5, 3, 2, 1);
-  lo->addWidget(new QLabel("should be equal"), 5, 4, 2, 2);
+  lo->addWidget(new QLabel(tr("should be equal")), 5, 4, 2, 2);
 
   // Add some space
   lo->setRowMinimumHeight(6,16);
 
-  lo->addWidget(new QLabel("Voxel Spacing:"), 7, 0, 1, 1);
+  lo->addWidget(new QLabel(tr("Voxel Spacing:")), 7, 0, 1, 1);
   lo->addWidget(new QLabel("x:"), 7, 1, 1, 1);
   lo->addWidget(m_Spacing[0], 7, 2, 1, 1);
   lo->addWidget(new QLabel("y:"), 7, 3, 1, 1);
@@ -703,7 +704,7 @@ bool RawPage::isComplete() const
 
 void RawPage::initializePage()
 {
-  setTitle("Image Header Specification:");
+  setTitle(tr("Image Header Specification:"));
 
   // Get the hints (from previous experience with this file)
   Registry hint = m_Model->GetHints();
@@ -809,9 +810,9 @@ ImageIOProgressDialog
 	m_Delegate.SetProgressDialog(this);
 
 	if (m_SaveMode)
-		this->setLabelText("Saving Image...");
+    this->setLabelText(tr("Saving Image..."));
 	else
-		this->setLabelText("Reading Image...");
+    this->setLabelText(tr("Reading Image..."));
 
 	this->setCancelButton(nullptr); // hide the cancel button
   this->setMinimumDuration(1000); // display after 1000ms

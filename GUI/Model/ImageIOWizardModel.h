@@ -47,7 +47,7 @@ public:
 
   void InitializeForSave(GlobalUIModel *parent,
                          AbstractSaveImageDelegate *delegate,
-                         const char *dispName, bool saveCrntTP = false);
+                         ImageIODisplayName dispName, bool saveCrntTP = false);
 
   irisGetMacro(Parent, GlobalUIModel *)
   irisGetMacro(GuidedIO, GuidedNativeImageIO *)
@@ -122,7 +122,7 @@ public:
   /**
     Get the display name to show in the dialog
     */
-  std::string GetDisplayName() const;
+  ImageIODisplayName GetDisplayName() const;
 
   /**
     * Reset the state of the model
@@ -244,7 +244,10 @@ protected:
   SmartPtr<AbstractSaveImageDelegate> m_SaveDelegate;
 
   // The history list associated with the model
-  std::string m_HistoryName, m_DisplayName;
+  std::string m_HistoryName;
+
+  // Display name
+  ImageIODisplayName m_DisplayName;
 
   // Parent model
   GlobalUIModel *m_Parent;

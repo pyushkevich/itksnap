@@ -16,7 +16,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsDropShadowEffect>
 #include <QDateTime>
-
+#include "SNAPQtCommonTranslations.h"
 
 #include "QtCursorOverride.h"
 #include "GlobalUIModel.h"
@@ -28,6 +28,7 @@
 #include "ColorMap.h"
 #include "ColorMapModel.h"
 #include "ImageIOWizard.h"
+
 
 
 QIcon CreateColorBoxIcon(int w, int h, const QBrush &brush)

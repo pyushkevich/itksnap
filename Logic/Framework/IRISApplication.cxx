@@ -2117,29 +2117,30 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
   // have. The safest thing is to have the history information be stored
   // as a kind of user data in each wrapper. However, for now, we will just
   // infer it from the role and type
-  std::string history, category;
+  std::string history;
+  ImageIODisplayName display_name;
   if(role == MAIN_ROLE)
     {
     history = "AnatomicImage";
-    category = "Image";
+    display_name = ImageIODisplayName::ANATOMICAL;
     }
 
   else if(role == LABEL_ROLE)
     {
     history = "LabelImage";
-    category = "Segmentation Image";
+    display_name = ImageIODisplayName::SEGMENTATION;
 
     if(this->IsSnakeModeActive() && this->GetPreprocessingMode() == PREPROCESS_RF)
       {
       history = "ClassifierSamples";
-      category = "Classifier Samples Image";
+      display_name = ImageIODisplayName::CLASSIFIER_SAMPLES;
       }
     }
 
   else if(role == OVERLAY_ROLE)
     {
     history = "AnatomicImage";
-    category = "Image";
+    display_name = ImageIODisplayName::ANATOMICAL;
     }
 
   else if(role == SNAP_ROLE)
@@ -2147,20 +2148,20 @@ IRISApplication::CreateSaveDelegateForLayer(ImageWrapperBase *layer, LayerRole r
     if(dynamic_cast<SpeedImageWrapper *>(layer))
       {
       history = "SpeedImage";
-      category = "Speed Image";
+      display_name = ImageIODisplayName::SPEED;
       }
 
     else if(dynamic_cast<LevelSetImageWrapper *>(layer))
       {
       history = "LevelSetImage";
-      category = "Level Set Image";
+      display_name = ImageIODisplayName::LEVELSET;
       }
     }
 
   // Create delegate
   SmartPtr<DefaultSaveImageDelegate> delegate = DefaultSaveImageDelegate::New();
   delegate->Initialize(this, layer, history);
-  delegate->SetCategory(category);
+  delegate->SetDisplayName(display_name);
 
   // Return the delegate
   return delegate.GetPointer();

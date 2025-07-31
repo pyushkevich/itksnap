@@ -962,7 +962,7 @@ GlobalUIModel::CreateIOWizardModelForSave(ImageWrapperBase *layer, LayerRole rol
 
   // Create a model for IO
   SmartPtr<ImageIOWizardModel> modelIO = ImageIOWizardModel::New();
-  modelIO->InitializeForSave(this, delegate, delegate->GetCategory().c_str(), crntTPOnly);
+  modelIO->InitializeForSave(this, delegate, delegate->GetDisplayName(), crntTPOnly);
 
   return modelIO;
 }
