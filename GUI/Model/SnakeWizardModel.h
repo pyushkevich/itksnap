@@ -77,8 +77,7 @@ public:
     AbstractSnakeTypeModel;
 
   // Model describing the current preprocessing mode
-  typedef SimpleItemSetDomain<PreprocessingMode, std::string> PreprocessingModeDomain;
-  typedef AbstractPropertyModel<PreprocessingMode, PreprocessingModeDomain> AbstractPreprocessingModeModel;
+  typedef AbstractPropertyModel<PreprocessingMode> AbstractPreprocessingModeModel;
 
   // Model for layer selection
   typedef SimpleItemSetDomain<unsigned long, std::string> LayerSelectionDomain;
@@ -356,7 +355,7 @@ protected:
   void SetSnakeTypeValue(SnakeType value);
 
   SmartPtr<AbstractPreprocessingModeModel> m_PreprocessingModeModel;
-  bool GetPreprocessingModeValueAndRange(PreprocessingMode &value, PreprocessingModeDomain *range);
+  bool GetPreprocessingModeValue(PreprocessingMode &value);
   void SetPreprocessingModeValue(PreprocessingMode value);
 
   SmartPtr<AbstractSimpleIntProperty> m_ActiveBubbleModel;

@@ -774,7 +774,7 @@ LayerInspectorRowDelegate
     }
   catch (IRISException &ex)
     {
-    ReportNonLethalException(this, ex, "Error reloading image from file");
+    ReportNonLethalException(this, ex, tr("Error reloading image from file"));
     }
 
 }

@@ -1268,10 +1268,11 @@ set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH
 # QT Internationalization
 #--------------------------------------------------------------------------------
 
-set(QT_I18N_TRANSLATED_LANGUAGES es zh_CN)
+set(QT_I18N_TRANSLATED_LANGUAGES de es zh_CN)
+string(JOIN " " QT_I18N_TRANSLATED_LANGUAGES_STRING ${QT_I18N_TRANSLATED_LANGUAGES})
 qt_add_translations(
   TARGETS ${SNAP_BUNDLE_NAME}
-  SOURCE_TARGETS itksnapui_qt
+  SOURCE_TARGETS itksnapui_qt ${SNAP_BUNDLE_NAME}
   TS_FILE_DIR GUI/Qt/Translations
   TS_FILE_BASE itksnap
 )
@@ -1604,7 +1605,7 @@ IF(APPLE)
   )
   qt_deploy_translations(
       CATALOGS qtbase
-      LOCALES en es zh_CN
+      LOCALES ${QT_I18N_TRANSLATED_LANGUAGES_STRING}
   )")
   install(SCRIPT ${deploy_script})
 
@@ -1668,7 +1669,7 @@ ELSEIF(WIN32)
   )
   qt_deploy_translations(
       CATALOGS qtbase
-      LOCALES en es zh_CN
+      LOCALES ${QT_I18N_TRANSLATED_LANGUAGES_STRING}
   )")
   install(SCRIPT ${deploy_script})
 

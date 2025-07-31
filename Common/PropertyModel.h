@@ -317,10 +317,6 @@ public:
   virtual bool isAtomic() { return true; }
 };
 
-
-
-
-
 /**
   This is an implementation of the domain that wraps around an stl::vector
   of descriptors. TVal should be an integer type that can be used as an index

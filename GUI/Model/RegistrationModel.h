@@ -109,13 +109,11 @@ public:
   irisGetMacro(RotationCenter, Vector3ui)
 
   // Automatic registration parameter domains
-  typedef SimpleItemSetDomain<Transformation, std::string> TransformationDomain;
-  typedef SimpleItemSetDomain<SimilarityMetric, std::string> SimilarityMetricDomain;
   typedef SimpleItemSetDomain<int, std::string> ResolutionLevelDomain;
 
   // Access to registration models
-  irisGenericPropertyAccessMacro(Transformation, Transformation, TransformationDomain)
-  irisGenericPropertyAccessMacro(SimilarityMetric, SimilarityMetric, SimilarityMetricDomain)
+  irisSimplePropertyAccessMacro(Transformation, Transformation)
+  irisSimplePropertyAccessMacro(SimilarityMetric, SimilarityMetric)
   irisSimplePropertyAccessMacro(UseSegmentationAsMask, bool)
   irisGenericPropertyAccessMacro(CoarsestResolutionLevel, int, ResolutionLevelDomain)
   irisGenericPropertyAccessMacro(FinestResolutionLevel, int, ResolutionLevelDomain)
@@ -222,10 +220,10 @@ protected:
   bool GetLogScalingValueAndRange(Vector3d &value, NumericValueRange<Vector3d> *range);
   void SetLogScalingValue(Vector3d value);
 
-  typedef ConcretePropertyModel<Transformation, TransformationDomain> TransformationModel;
+  typedef ConcretePropertyModel<Transformation, TrivialDomain> TransformationModel;
   SmartPtr<TransformationModel> m_TransformationModel;
 
-  typedef ConcretePropertyModel<SimilarityMetric, SimilarityMetricDomain> SimilarityMetricModel;
+  typedef ConcretePropertyModel<SimilarityMetric, TrivialDomain> SimilarityMetricModel;
   SmartPtr<SimilarityMetricModel> m_SimilarityMetricModel;
 
   SmartPtr<ConcreteSimpleBooleanProperty> m_UseSegmentationAsMaskModel;

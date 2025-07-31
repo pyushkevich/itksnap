@@ -21,3 +21,21 @@ SNAPQtCommonTranslations::translate(ImageIODisplayName name)
       return tr("Classifier Samples Image");
   }
 }
+
+QString
+SNAPQtCommonTranslations::translate(PreprocessingMode mode)
+{
+  switch (mode)
+  {
+    case PREPROCESS_NONE:
+      return tr("None");
+    case PREPROCESS_THRESHOLD:
+      return tr("Thresholding");
+    case PREPROCESS_RF:
+      return tr("Classification");
+    case PREPROCESS_GMM:
+      return tr("Clustering");
+    case PREPROCESS_EDGE:
+      return tr("Edge Attraction");
+  }
+}

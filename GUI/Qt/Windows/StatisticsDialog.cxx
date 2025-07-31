@@ -55,18 +55,18 @@ void StatisticsDialog::FillTable()
 
   // Set the column names
   QStringList header;
-  header << "Label Name" << "Voxel Count" << "Volume (mm3)";
+  header << tr("Label Name") << tr("Voxel Count") << tr("Volume (mm3)");
   m_ItemModel->setHorizontalHeaderLabels(header);
 
   const std::vector<std::string> &cols = m_Stats->GetImageStatisticsColumns();
   for(int j = 0; j < cols.size(); j++)
     {
-    QString label = QString("Intensity Mean %1 SD\n(%2)").arg(QChar(0x00B1)).arg(from_utf8(cols[j]));
+    QString label = tr("Intensity Mean %1 SD\n(%2)").arg(QChar(0x00B1)).arg(from_utf8(cols[j]));
 
     QStandardItem *item = new QStandardItem();
     item->setText(label);
     item->setToolTip(
-          QString("Mean intensity and standard deviation for layer %1").arg(from_utf8(cols[j])));
+          tr("Mean intensity and standard deviation for layer %1").arg(from_utf8(cols[j])));
 
     m_ItemModel->setHorizontalHeaderItem(j+3, item);
     }
@@ -131,11 +131,13 @@ void StatisticsDialog::on_btnExport_clicked()
 {
   // Ask for a filename
   QString selection = ShowSimpleSaveDialogWithHistory(
-        this, m_Model, "Statistics",
-        "Export Volumes and Statistics - ITK-SNAP",
-        "Volumes and Statistics File",
-        "Text Files (*.txt);; Comma Separated Value Files (*.csv)",
-        true);
+    this,
+    m_Model,
+    "Statistics",
+    tr("Export Volumes and Statistics - ITK-SNAP"),
+    tr("Volumes and Statistics File"),
+    tr("Text Files (%1);; Comma Separated Value Files (%2)").arg("*.txt", "*.csv"),
+    true);
 
   // Open the labels from the selection
   if(selection.length())
@@ -156,8 +158,10 @@ void StatisticsDialog::on_btnExport_clicked()
       }
     catch(std::exception &exc)
       {
-      ReportNonLethalException(this, exc, "Volume and Statistics IO Error",
-                               QString("Failed to export volumes and statistics"));
+        ReportNonLethalException(this,
+                                 exc,
+                                 tr("Volume and Statistics IO Error"),
+                                 tr("Failed to export volumes and statistics"));
       }
     }
 }
