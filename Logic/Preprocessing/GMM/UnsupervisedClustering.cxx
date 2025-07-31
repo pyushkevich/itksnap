@@ -13,7 +13,6 @@ UnsupervisedClustering::UnsupervisedClustering()
 {
   m_ClusteringEM = NULL;
   m_NumberOfClusters = 3;
-  m_DataArray = NULL;
   m_NumberOfSamples = 0;
 }
 
@@ -24,16 +23,6 @@ UnsupervisedClustering::~UnsupervisedClustering()
     delete m_ClusteringEM;
     delete m_ClusteringInitializer;
     }
-
-  if(m_DataArray)
-    {
-    // Delete the main data buffer
-    delete m_DataArray[0];
-
-    // Delete the pointers into the buffer
-    delete m_DataArray;
-    }
-
 
 }
 
@@ -58,14 +47,7 @@ void UnsupervisedClustering::SetMixtureModel(GaussianMixtureModel *model)
 
 void UnsupervisedClustering::SampleDataSource()
 {
-  if(m_DataArray)
-    {
-    // Delete the main data buffer
-    delete m_DataArray[0];
-
-    // Delete the pointers into the buffer
-    delete m_DataArray;
-    }
+  assert(m_DataSource->IsSpeedLoaded());
 
   // Figure out the number of data components
   unsigned int nComp = 0;
@@ -81,21 +63,18 @@ void UnsupervisedClustering::SampleDataSource()
   int nsam = (m_NumberOfSamples == 0) ? nvox : m_NumberOfSamples;
 
   // Create data structure for the EM code
-  m_DataArray = new double *[nsam];
-  double *buffer = new double[nsam * nComp];
-  for(int i = 0; i < nsam; i++, buffer+=nComp)
-    m_DataArray[i] = buffer;
+  m_Samples.set_size(nsam, nComp);
 
   // Create a random walk through the speed image, which should be initialized
   // at this point. We iterate over the speed image because we can easily access
   // its internal image (it's always a scalar image)
-  assert(m_DataSource->IsSpeedLoaded());
   typedef SpeedImageWrapper::ImageType SpeedImage;
-
   const SpeedImage *speed = m_DataSource->GetSpeed()->GetImage();
   typedef itk::ImageRandomConstIteratorWithIndex<SpeedImage> RandomIter;
   RandomIter itRand(speed, speed->GetBufferedRegion());
-  itRand.SetNumberOfSamples(nsam);
+
+  // The number of samples is set to a larger number to account for NaNs
+  itRand.SetNumberOfSamples(speed->GetBufferedRegion().GetNumberOfPixels());
 
   // Initialize the 'central' samples list
   m_CenterSamples.clear();
@@ -107,33 +86,47 @@ void UnsupervisedClustering::SampleDataSource()
 
   // Do the random walk
   int pVoxel = 0;
-  for(; !itRand.IsAtEnd(); ++itRand)
-    {
+  for (; !itRand.IsAtEnd() && pVoxel < nsam; ++itRand)
+  {
     // Go to the next sample location
     itk::Index<3> idx = itRand.GetIndex();
 
     // TODO: this is a really slow way to collect samples!
     int iOffset = 0;
-    for(LayerIterator lit = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE);
-        !lit.IsAtEnd(); ++lit)
-      {
-      ImageWrapperBase *iw = lit.GetLayer();
-      vnl_vector<double> svec(m_DataArray[pVoxel] + iOffset, iw->GetNumberOfComponents());
+    bool is_finite = true;
+    for (LayerIterator lit = m_DataSource->GetLayers(MAIN_ROLE | OVERLAY_ROLE); !lit.IsAtEnd(); ++lit)
+    {
+      ImageWrapperBase  *iw = lit.GetLayer();
+      vnl_vector<double> svec(iw->GetNumberOfComponents());
       iw->SampleIntensityAtReferenceIndex(idx, iw->GetTimePointIndex(), false, svec);
-      iOffset += iw->GetNumberOfComponents();
-      }
-
-    // Store as a 'central' sample if in the central 60% of the image
-    if(m_CenterSamples.size() < 400 && rcenter.IsInside(idx))
+      for (unsigned int k = 0; k < iw->GetNumberOfComponents(); k++)
       {
-      m_CenterSamples.push_back(pVoxel);
+        if(!std::isfinite(svec[k]))
+        {
+          std::cout << "Skipping non-finite sample at row " << pVoxel << std::endl;
+          is_finite = false;
+        }
+        m_Samples(pVoxel, iOffset++) = svec[k];
       }
-
-    pVoxel++;
     }
 
-  m_NumberOfVoxels = nsam;
+    // Did we get a successful sample?
+    if(is_finite)
+    {
+      // Store as a 'central' sample if in the central 60% of the image
+      if (m_CenterSamples.size() < 400 && rcenter.IsInside(idx))
+        m_CenterSamples.push_back(pVoxel);
 
+      // Go to the next row
+      pVoxel++;
+    }
+  }
+
+  // Trim the matrix if needed
+  if(pVoxel < nsam)
+    m_Samples = m_Samples.extract(pVoxel, nComp);
+
+  m_NumberOfVoxels = pVoxel;
   m_NumberOfComponents = nComp;
   m_SamplesDirty = false;
 }
@@ -166,7 +159,7 @@ void UnsupervisedClustering::InitializeEM()
   assert(m_DataSource);
 
   // Make sure samples exist
-  if(m_SamplesDirty || m_DataArray == NULL)
+  if(m_SamplesDirty || m_Samples.empty())
     this->SampleDataSource();
 
   if(m_ClusteringEM)
@@ -176,27 +169,22 @@ void UnsupervisedClustering::InitializeEM()
     }
 
   // Allocate the EM algorithm
-  m_ClusteringEM = new EMGaussianMixtures(
-        m_DataArray, m_NumberOfVoxels,
-        m_NumberOfComponents, m_NumberOfClusters);
+    m_ClusteringEM = new EMGaussianMixtures(m_Samples, m_NumberOfClusters);
 
-  // Allocate the K means ++
-  m_ClusteringInitializer = new KMeansPlusPlus(
-        m_DataArray, m_NumberOfVoxels,
-        m_NumberOfComponents, m_NumberOfClusters);
+    // Allocate the K means ++
+    m_ClusteringInitializer = new KMeansPlusPlus(m_Samples, m_NumberOfClusters);
 
-  m_ClusteringInitializer->Initialize();
+    m_ClusteringInitializer->Initialize();
 
-  m_ClusteringEM->SetGaussianMixtureModel(
-        m_ClusteringInitializer->GetGaussianMixtureModel());
+    m_ClusteringEM->SetGaussianMixtureModel(m_ClusteringInitializer->GetGaussianMixtureModel());
 
-  m_ClusteringEM->SetMaxIteration(10);
+    m_ClusteringEM->SetMaxIteration(10);
 
-  // Get the GMM
-  m_MixtureModel = m_ClusteringEM->GetGaussianMixtureModel();
+    // Get the GMM
+    m_MixtureModel = m_ClusteringEM->GetGaussianMixtureModel();
 
-  // Sort the clusters based on center samples
-  SortClustersByRelevance();
+    // Sort the clusters based on center samples
+    SortClustersByRelevance();
 }
 
 void UnsupervisedClustering::SortClustersByRelevance()
@@ -221,7 +209,7 @@ void UnsupervisedClustering::SortClustersByRelevance()
     int s = m_CenterSamples[i];
     for(int k = 0; k < ng; k++)
       {
-      log_pdf[k] = m_MixtureModel->EvaluateLogPDF(k, m_DataArray[s]);
+      log_pdf[k] = m_MixtureModel->EvaluateLogPDF(k, m_Samples[s]);
       }
 
     for(int k = 0; k < ng; k++)

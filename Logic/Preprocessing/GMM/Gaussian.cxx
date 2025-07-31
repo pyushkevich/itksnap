@@ -105,7 +105,7 @@ double Gaussian::EvaluatePDF(double *x)
 }
 
 // TODO: better to pass in VectorType here
-double Gaussian::EvaluateLogPDF(double *x)
+double Gaussian::EvaluateLogPDF(const double *x)
 {
   VectorType xvec(x, m_dimension);
   return this->EvaluateLogPDF(xvec, m_x_vector);

@@ -3,22 +3,24 @@
 
 #include "GaussianMixtureModel.h"
 #include "SNAPCommon.h"
+#include <vector>
 
 class KMeansPlusPlus
 {
 public:
-  KMeansPlusPlus(double **x, int dataSize, int dataDim, int numOfClusters);
+  KMeansPlusPlus(const vnl_matrix<double> &x, int numOfClusters);
   ~KMeansPlusPlus();
 
-  double Distance(const double *x, const double *y);
+  double DistanceSq(const double *x, const double *y);
   void Initialize(void);
   GaussianMixtureModel * GetGaussianMixtureModel(void);
 private:
-  double **m_x;
-  int *m_xCenter;
-  int *m_centers;
-  int *m_xCounter;
-  double *m_distance;
+  std::vector<int> m_Centroids;
+  std::vector<double> m_DistanceSqToNearestCentroid;
+  std::vector<int> m_ClusterMembership;
+  std::vector<int> m_ClusterSize;
+
+  const vnl_matrix<double> &m_x;
   int m_dataSize;
   int m_dataDim;
   int m_numOfClusters;

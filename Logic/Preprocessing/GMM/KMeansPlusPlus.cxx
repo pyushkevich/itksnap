@@ -1,177 +1,122 @@
 #include "KMeansPlusPlus.h"
 #include "math.h"
-#include "time.h"
 #include "stdlib.h"
+#include <random>
 
-KMeansPlusPlus::KMeansPlusPlus(double **x, int dataSize, int dataDim, int numOfClusters)
-  :m_dataSize(dataSize), m_dataDim(dataDim), m_numOfClusters(numOfClusters)
+KMeansPlusPlus::KMeansPlusPlus(const vnl_matrix<double> &x, int numOfClusters)
+  : m_x(x), m_dataSize(x.rows()), m_dataDim(x.cols()), m_numOfClusters(numOfClusters)
 {
-  m_x = x;
-  m_xCenter = new int[dataSize];
-  m_centers = new int[numOfClusters];
-  m_xCounter = new int[numOfClusters];
-  m_distance = new double[dataSize];
-
   m_gmm = GaussianMixtureModel::New();
-  m_gmm->Initialize(dataDim, numOfClusters);
+  m_gmm->Initialize(m_dataDim, numOfClusters);
 }
 
 KMeansPlusPlus::~KMeansPlusPlus()
 {
-  delete m_centers;
-  delete m_xCenter;
-  delete m_xCounter;
-  delete m_distance;
 }
 
-double KMeansPlusPlus::Distance(const double *x, const double *y)
+double KMeansPlusPlus::DistanceSq(const double *x, const double *y)
 {
-  double tmp = 0;
+  double sum_sq = 0;
   for (int i = 0; i < m_dataDim; i++)
   {
-    tmp += (x[i] - y[i]) * (x[i] - y[i]);
+    sum_sq += (x[i] - y[i]) * (x[i] - y[i]);
   }
-  return sqrt(tmp);
+  return sum_sq;
 }
 
 void KMeansPlusPlus::Initialize(void)
 {
-  // for (int i = 0; i < numOfClusters; i++)
-  // {
-  //   m_xCounter[i] = 0;
-  // }
+  // Create a distribution in range [0, m_dataSize - 1]
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<int> distr_ds(0, m_dataSize - 1);
+  std::uniform_real_distribution<double> distr_01(0.0, 1.0);
 
-  srand(time(0));
+  // Clear the centroids
+  m_Centroids.clear();
+  m_DistanceSqToNearestCentroid.resize(m_dataSize, 0.);
+  m_ClusterMembership.resize(m_dataSize, 0);
+  m_ClusterSize.resize(m_numOfClusters, 0);
 
-  m_centers[0] = (int)(((double) rand() / (double) RAND_MAX) * m_dataSize);
-  double distSum = 0;
-  for (int i = 0; i < m_dataSize; i++)
+  // Randomly pick the first centroid
+  m_Centroids.push_back(distr_ds(gen));
+
+  // Pick the rest of the centroids
+  while(m_Centroids.size() <= m_numOfClusters)
+  {
+    // Compute distance to closest centroid from each data point
+    double sum_dist_sq = 0;
+    std::fill(m_ClusterSize.begin(), m_ClusterSize.end(), 0);
+    for(unsigned int i = 0; i < m_dataSize; i++)
     {
-    m_xCenter[i] = m_centers[0];
-    m_distance[i] = Distance(m_x[i], m_x[m_centers[0]]);
-    distSum += m_distance[i];
-    }
-  m_xCounter[0] = m_dataSize;
-
-  double probDist = 0;
-  double currentSum = 0;
-  int idx = 0;
-  for (int i = 1; i < m_numOfClusters; i++)
-    {
-    m_xCounter[i] = 0;
-    probDist = ((double) rand() / (double) RAND_MAX) * distSum;
-    currentSum = 0;
-    for (idx = 0; idx < m_dataSize; idx++)
+      int nearest_center = 0;
+      double min_dist_sq = DistanceSq(m_x[i], m_x[m_Centroids[0]]);
+      for(unsigned int j = 1; j < m_Centroids.size(); j++)
       {
-      currentSum += m_distance[idx];
-      if (currentSum >= probDist)
+        double d_ij = DistanceSq(m_x[i], m_x[m_Centroids[j]]);
+        if(d_ij < min_dist_sq)
         {
+          min_dist_sq = d_ij;
+          nearest_center = j;
+        }
+      }
+
+      sum_dist_sq += min_dist_sq;
+      m_DistanceSqToNearestCentroid[i] = min_dist_sq;
+      m_ClusterMembership[i] = nearest_center;
+      m_ClusterSize[nearest_center]++;
+    }
+
+    // Break if all the centroids are found
+    if(m_Centroids.size() == m_numOfClusters)
+      break;
+
+    // Choose next centroid with probability proportional to D(x)^2
+    double thresh = distr_01(gen) * sum_dist_sq;
+    double cumulative = 0;
+    for(unsigned int i = 0; i < m_dataSize; i++)
+    {
+      cumulative += m_DistanceSqToNearestCentroid[i] * m_DistanceSqToNearestCentroid[i];
+      if(cumulative >= thresh)
+      {
+        m_Centroids.push_back(i);
         break;
-        }
-      }
-
-    m_centers[i] = idx;
-
-    distSum = 0;
-    for (int j = 0; j < m_dataSize; j++)
-      {
-      if (m_distance[j] > Distance(m_x[j], m_x[m_centers[i]]))
-        {
-        ++m_xCounter[i];
-        for (int k = 0; k < i; k++)
-          {
-          if (m_centers[k] == m_xCenter[j])
-            {
-            --m_xCounter[k];
-            break;
-            }
-          }
-        m_distance[j] = Distance(m_x[j], m_x[m_centers[i]]);
-        m_xCenter[j] = m_centers[i];
-        }
-      distSum += m_distance[j];
       }
     }
+  }
 
-  Gaussian::VectorType tmpMean(m_dataDim, 0.0);
-  for (int i = 0; i < m_numOfClusters; i++)
-    {
-    m_gmm->SetMean(i, tmpMean);
-    }
+  // Compute the initial means and variances of the clusters
+  std::vector<Gaussian::VectorType> sum_x(m_numOfClusters, Gaussian::VectorType(m_dataDim, 0.0));
+  std::vector<Gaussian::MatrixType> sum_xy(m_numOfClusters, Gaussian::MatrixType(m_dataDim, m_dataDim, 0.0));
 
   for (int i = 0; i < m_dataSize; i++)
+  {
+    int j = m_ClusterMembership[i];
+    for (int k = 0; k < m_dataDim; k++)
     {
-    for (int j = 0; j < m_numOfClusters; j++)
+      sum_x[j][k] += m_x[i][k];
+      for (int m = 0; m < m_dataDim; m++)
       {
-      if (m_xCenter[i] == m_centers[j])
-        {
-        tmpMean = m_gmm->GetMean(j);
-        for (int k = 0; k < m_dataDim; k++)
-          {
-          tmpMean[k] = tmpMean[k] + m_x[i][k];
-          }
-        m_gmm->SetMean(j, tmpMean);
-        break;
-        }
+        sum_xy[j](k, m) += m_x[i][k] * m_x[i][m];
       }
     }
-  // m_gmm->PrintParameters();
-  // getchar();
-  for (int i = 0; i < m_numOfClusters; i++)
-    {
-    tmpMean = m_gmm->GetMean(i);
+  }
 
-    if(m_xCounter[i] > 0)
-      {
-      // If this class is not empty, we set its mean
-      tmpMean /= m_xCounter[i];
-      }
-    else
-      {
-      // If it is empty, we set the mean to -infinity (rather than nan)
-      tmpMean.fill(-std::numeric_limits<double>::infinity());
-      }
-
-    m_gmm->SetMean(i, tmpMean);
-    }
-
-  double *radius = new double[m_numOfClusters];
-  for (int i = 0; i < m_numOfClusters; i++)
-    {
-    radius[i] = 0;
-    }
-  for (int i = 0; i < m_dataSize; i++)
-    {
-    for (int j = 0; j < m_numOfClusters; j++)
-      {
-      if (m_xCenter[i] == m_centers[j])
-        {
-        double dist = Distance(m_x[i], m_gmm->GetMean(j).data_block());
-        if (radius[j] < dist)
-          {
-          radius[j] = dist;
-          }
-        break;
-        }
-      }
-    }
-
-  Gaussian::MatrixType tmpcovar(m_dataDim, m_dataDim, 0);
-  for (int i = 0; i < m_numOfClusters; i++)
-    {
-    for (int j = 0; j < m_dataDim; j++)
-      {
-      tmpcovar(j,j) = radius[i];
-      }
-    m_gmm->SetCovariance(i, tmpcovar);
-    }
-
-  delete[] radius;
-
-  for (int i = 0; i < m_numOfClusters; i++)
-    {
-    m_gmm->SetWeight(i, 1.0/(double) m_numOfClusters);
-    }
+  for(int j = 0; j < m_numOfClusters; j++)
+  {
+    double n = m_ClusterSize[j];
+    m_gmm->SetMean(j, sum_x[j] / n);
+    m_gmm->SetCovariance(j, (sum_xy[j] - outer_product(sum_x[j], sum_x[j]) / n) / (n - 1));
+    m_gmm->SetWeight(j, n / m_dataSize);
+    /*
+    std::cout << "KM++ Cluster: " << j << std::endl;
+    std::cout << "  Centroid: " << m_Centroids[j] << std::endl;
+    std::cout << "  Size: " << m_ClusterSize[j] << std::endl;
+    std::cout << "  Mean: " << m_gmm->GetMean(j) << std::endl;
+    std::cout << "  Cov: " << m_gmm->GetCovariance(j) << std::endl;
+    std::cout << "  Weight: " << m_gmm->GetWeight(j) << std::endl;
+    */
+  }
 }
 
 GaussianMixtureModel * KMeansPlusPlus::GetGaussianMixtureModel(void)

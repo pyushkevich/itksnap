@@ -4,6 +4,7 @@
 #include <itkObject.h>
 #include <itkObjectFactory.h>
 #include <SNAPCommon.h>
+#include <vnl/vnl_matrix.h>
 
 class KMeansPlusPlus;
 class EMGaussianMixtures;
@@ -55,7 +56,7 @@ protected:
   bool m_SamplesDirty;
 
   // TODO: probably double is larger than we need
-  double **m_DataArray;
+  vnl_matrix<double> m_Samples;
 
   // A set of samples located near the center of the image, used to sort
   // initial clusters in terms of relevance to the user

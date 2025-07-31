@@ -21,7 +21,7 @@ public:
   void SetCovariance(const MatrixType &cov);
 
   double EvaluatePDF(double *x);
-  double EvaluateLogPDF(double *x);
+  double EvaluateLogPDF(const double *x);
 
   // Evaluate log PDF with user-provided scratch buffer
   double EvaluateLogPDF(VectorType &x, VectorType &xscratch);

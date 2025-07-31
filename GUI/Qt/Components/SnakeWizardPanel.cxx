@@ -151,6 +151,11 @@ SnakeWizardPanel::SnakeWizardPanel(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  // Set up translated combo box items
+  ui->inPreprocessMode->clear();
+  for (auto mode : { PREPROCESS_THRESHOLD, PREPROCESS_RF, PREPROCESS_GMM, PREPROCESS_EDGE })
+    ui->inPreprocessMode->addItem(SNAPQtCommonTranslations::translate(mode), QVariant(mode));
+
   m_SpeedDialog = new SpeedImageDialog(this);
   m_ParameterDialog = new SnakeParameterDialog(this);
 
@@ -298,8 +303,6 @@ SnakeWizardPanel::SetModel(GlobalUIModel *model)
 
   // Couple the preprocessing mode combo box
   makeCoupling(ui->inPreprocessMode, m_Model->GetPreprocessingModeModel());
-  for (auto mode : { PREPROCESS_THRESHOLD, PREPROCESS_RF, PREPROCESS_GMM, PREPROCESS_EDGE })
-    ui->inPreprocessMode->addItem(SNAPQtCommonTranslations::translate(mode), QVariant(mode));
 
   // Couple the preprocessing mode stack
   std::map<PreprocessingMode, QWidget *> preproc_page_map;

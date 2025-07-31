@@ -7,7 +7,7 @@
 class EMGaussianMixtures
 {
 public:
-  EMGaussianMixtures(double **x, int dataSize, int dataDim, int numOfClass);
+  EMGaussianMixtures(const vnl_matrix<double> &x, int numOfClass);
   ~EMGaussianMixtures();
 
   typedef Gaussian::MatrixType MatrixType;
@@ -42,11 +42,12 @@ private:
   void UpdateMean(void);
   void UpdateCovariance(void);
   void UpdateWeight(void);
-  
+
+  const vnl_matrix<double> &m_x;
+
   double **m_latent;
   double **m_log_pdf;
   double **m_prior;
-  double **m_x;
   double *m_probs;
   double *m_probs2;
   double *m_tmp1;
