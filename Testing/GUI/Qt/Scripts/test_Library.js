@@ -133,6 +133,6 @@ function resetLabels()
     engine.trigger("actionLabel_Editor");
     engine.sleep(1000);
 
-    var dialog = engine.findChild(mainwin, "dlgLabelEditor");
+    var dialog = engine.findChild(mainwin, "LabelEditorDialog");
     engine.trigger("actionResetLabels", dialog);
 }

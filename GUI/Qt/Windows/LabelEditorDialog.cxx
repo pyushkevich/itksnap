@@ -28,7 +28,7 @@ LabelEditorDialog::LabelEditorDialog(QWidget *parent) :
   ui(new Ui::LabelEditorDialog)
 {
   ui->setupUi(this);
-  this->setObjectName("dlgLabelEditor");
+  this->setObjectName("LabelEditorDialog");
 
   ui->inColorWheel->setWheelWidth(15);
 
