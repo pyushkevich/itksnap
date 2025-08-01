@@ -320,6 +320,9 @@ public:
    */
   virtual void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
 
+  /** Update the interpolation mode for all non-segmentation wrappers */
+  virtual void SetInterpolationMode(ImageWrapperBase::InterpolationMode interpMode);
+
   /**
    * Get a pointer to the display viewport geometry object corresponding
    * to viewports 0, 1 or 2. Viewport geometry is represented by an ImageBase
@@ -374,6 +377,9 @@ protected:
 
   // The display to anatomy transformation, which is stored by this object
   IRISDisplayGeometry m_DisplayGeometry;
+
+  // The current interpolation mode
+  ImageWrapperBase::InterpolationMode m_InterpolationMode;
 
   // The complete specification of each display viewport as a 3D image in the same anatomical
   // space as the 3D images. This specification is used to sample images onto the viewport.

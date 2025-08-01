@@ -135,9 +135,10 @@ protected:
 
   // Internal function to get a texture from layer using local cache if possible
   TextureInfo GetTexture(AbstractRenderContext *context,
-                         TextureCache             &texture_cache,
-                         ImageWrapperBase         *layer,
-                         DisplaySliceIntent       intent);
+                         TextureCache          &texture_cache,
+                         ImageWrapperBase      *layer,
+                         DisplaySliceIntent     intent,
+                         bool                   linear_interp);
 
   // Internal function to render the texture for a layer
   void RenderLayer(AbstractRenderContext *context,

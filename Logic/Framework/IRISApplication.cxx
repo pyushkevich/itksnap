@@ -273,6 +273,18 @@ IRISApplication
   InvokeEvent(DisplayToAnatomyCoordinateMappingChangeEvent());
 }
 
+void
+IRISApplication::SetInterpolationMode(ImageWrapperBase::InterpolationMode interpMode)
+{
+  // Set the interpolation mode in the IRIS image data
+  m_IRISImageData->SetInterpolationMode(interpMode);
+
+  // Set the interpolation mode in the SNAP image data
+  m_SNAPImageData->SetInterpolationMode(interpMode);
+
+  // Invoke the corresponding event
+  InvokeEvent(WrapperDisplayMappingChangeEvent());
+}
 
 void 
 IRISApplication

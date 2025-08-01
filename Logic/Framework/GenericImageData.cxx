@@ -246,6 +246,9 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformTyp
   // Additional configuration for the wrapper
   this->AssignDisplayViewportGeometriesToLayer(out_wrapper);
 
+  // Set the interpolation mode
+  out_wrapper->SetSlicingInterpolationMode(m_InterpolationMode);
+
   // Create an image coordinate geometry object
   return out_wrapper;
 }
@@ -616,6 +619,18 @@ void GenericImageData::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
       // Set the direction matrix in the image
       lit.GetLayer()->SetDisplayGeometry(m_DisplayGeometry);
       }
+}
+
+void
+GenericImageData::SetInterpolationMode(ImageWrapperBase::InterpolationMode interpMode)
+{
+  m_InterpolationMode = interpMode;
+  for (LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
+    if (lit.GetLayer() && lit.GetRole() != LABEL_ROLE)
+    {
+      // Set the interpolation mode in the image
+      lit.GetLayer()->SetSlicingInterpolationMode(interpMode);
+    }
 }
 
 GenericImageData::ImageBaseType *

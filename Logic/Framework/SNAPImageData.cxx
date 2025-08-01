@@ -111,6 +111,7 @@ SNAPImageData
 
   m_SpeedWrapper->InitializeToWrapper(m_MainImageWrapper, (SpeedImageWrapper::PixelType) 0);
   m_SpeedWrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
+  m_SpeedWrapper->SetSlicingInterpolationMode(m_InterpolationMode);
   InvokeEvent(LayerChangeEvent());
 
   // Here or after it's computed?
@@ -172,6 +173,7 @@ SNAPImageData
     m_SnakeWrapper = LevelSetImageWrapper::New();
     m_SnakeWrapper->SetDefaultNickname("Evolving Contour");
     m_SnakeWrapper->SetAlpha(0.5);
+    m_SnakeWrapper->SetSlicingInterpolationMode(m_InterpolationMode);
     PushBackImageWrapper(SNAP_ROLE, m_SnakeWrapper.GetPointer());
     }
 

@@ -187,7 +187,8 @@ GenericSliceRenderer::TextureInfo
 GenericSliceRenderer::GetTexture(AbstractRenderContext *context,
                                  TextureCache          &texture_cache,
                                  ImageWrapperBase      *layer,
-                                 DisplaySliceIntent     intent)
+                                 DisplaySliceIntent     intent,
+                                 bool                   linear_interp)
 {
   // Key for the local cache storing textures
   auto cache_key = std::make_pair(layer->GetUniqueId(), intent);
@@ -206,6 +207,12 @@ GenericSliceRenderer::GetTexture(AbstractRenderContext *context,
     {
       // The texture should be obtained from the ITK-SNAP slicing and display mapping
       // pipeline (main window and zoom thumbnail when in non-orthogonal slicing mode)
+
+      // Set the interpolation mode
+      /*
+      layer->SetSlicingInterpolationMode(linear_interp ? ImageWrapperBase::LINEAR
+                                                       : ImageWrapperBase::NEAREST);
+      */
 
       // Get the display slice that we will render as the base layer
       auto rgba = layer->GetDisplaySlice(DisplaySliceIndex(m_Model->GetId(), intent));
@@ -262,7 +269,7 @@ GenericSliceRenderer::GetTexture(AbstractRenderContext *context,
       Texture::Pointer texptr = dynamic_cast<Texture *>(layer->GetUserData(layer_key));
 
       // Get the main texture
-      TextureInfo main_tex = GetTexture(context, texture_cache, layer, DISPLAY_SLICE_MAIN);
+      TextureInfo main_tex = GetTexture(context, texture_cache, layer, DISPLAY_SLICE_MAIN, linear_interp);
 
       // Check if the texture needs to be updated
       if (!texptr || texptr->GetMTime() < main_tex.texture->GetMTime())
@@ -295,7 +302,7 @@ GenericSliceRenderer::RenderLayer(AbstractRenderContext *context,
                                   DisplaySliceIntent     intent)
 {
   // Get the texture for this layer
-  TextureInfo tex = GetTexture(context, texture_cache, layer, intent);
+  TextureInfo tex = GetTexture(context, texture_cache, layer, intent, bilinear);
 
   // Get the texture pointer and texture size from the cache entry
   if (layer->IsSlicingOrthogonal())
@@ -630,7 +637,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
         context->Scale(spacing[0], spacing[1]);
 
         // Render the main layer as a thumbnail
-        TextureInfo tex = GetTexture(context, tcache, id->GetMain(), DISPLAY_SLICE_THUMBNAIL);
+        TextureInfo tex = GetTexture(context, tcache, id->GetMain(), DISPLAY_SLICE_THUMBNAIL, global_linear_mode);
 
         // Get the texture pointer and texture size from the cache entry
         if (id->GetMain()->IsSlicingOrthogonal())

@@ -4,6 +4,9 @@ include("Library");
 // Open the test image
 openMainImage("MRIcrop-orig.gipl.gz");
 
+// Reset the labels
+resetLabels();
+
 // Make sure labels are ok
 setForegroundLabel("Label 1");
 setBackgroundLabel("All labels");

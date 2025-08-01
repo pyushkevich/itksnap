@@ -531,6 +531,12 @@ void GlobalUIModel::SetGlobalDisplaySettings(
   // Update the RAI codes in all slice views
   m_Driver->SetDisplayGeometry(IRISDisplayGeometry(raiNew[0], raiNew[1], raiNew[2]));
 
+  // Update the interpolation in all wrappers
+  m_Driver->SetInterpolationMode(m_GlobalDisplaySettings->GetGreyInterpolationMode() ==
+                                     GlobalDisplaySettings::LINEAR
+                                   ? ImageWrapperBase::LINEAR
+                                   : ImageWrapperBase::NEAREST);
+
   // React to the change in RAI codes
   if(raiOld[0] != raiNew[0] || raiOld[1] != raiNew[1] || raiOld[2] != raiNew[2])
     {

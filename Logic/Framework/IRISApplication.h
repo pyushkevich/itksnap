@@ -435,6 +435,9 @@ public:
   /** Update the display-anatomy mapping as an RAI code */
   void SetDisplayGeometry(const IRISDisplayGeometry &dispGeom);
 
+  /** Update the interpolation mode for all non-segmentation wrappers */
+  void SetInterpolationMode(ImageWrapperBase::InterpolationMode interpMode);
+
   /** Get the current display-anatomy mapping */
   irisGetMacro(DisplayGeometry, const IRISDisplayGeometry &)
 

@@ -27,16 +27,23 @@ var boxDataArray = engine.findChild(layerdialog, "boxMeshDataName");
 engine.invoke(layerdialog, "close");
 
 //=== Validate data array settings
-for (let i = 0; i < 17; ++i){
-    boxDataArray.setCurrentIndex(i);
-    let cmpcolormap = engine.findChild(layerdialog, "cmpColorMap");
-    engine.findChild(layerdialog, "tabWidget").setCurrentWidget(cmpcolormap);
+let cmpcolormap = engine.findChild(layerdialog, "cmpColorMap");
+let cmpgeneral = engine.findChild(layerdialog, "cmpComponent");
+let tabwidget = engine.findChild(layerdialog, "tabWidget");
+let inpreset = engine.findChild(cmpcolormap, "inPreset");
 
-    let inpreset = engine.findChild(cmpcolormap, "inPreset");
+for (let i = 0; i < 17; ++i) {
+
+    tabwidget.setCurrentWidget(cmpgeneral);
+    boxDataArray.setCurrentIndex(i+1);
+
+    tabwidget.setCurrentWidget(cmpcolormap);
     engine.validateValue(inpreset.currentIndex, i);
+
+    engine.sleep(100);
 }
 
-boxDataArray.setCurrentIndex(3);
+boxDataArray.setCurrentIndex(4);
 let cmpContrast = engine.findChild(layerdialog, "cmpContrast");
 let inControlId = engine.findChild(cmpContrast, "inControlId");
 

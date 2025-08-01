@@ -110,7 +110,7 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   LatentITKEventNotifier::connect(
         m_Model, ActiveLayerChangeEvent(), this, SLOT(meshData_domainChanged()));
 
-  QObject::connect(ui->boxMeshDataName, SIGNAL(activated(int)),
+  QObject::connect(ui->boxMeshDataName, SIGNAL(currentIndexChanged(int)),
 									 this, SLOT(meshData_selectionChanged(int)));
 
 	// Mesh vector data connection

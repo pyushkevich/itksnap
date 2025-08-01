@@ -127,3 +127,12 @@ function setBackgroundLabel(label_text)
     engine.print("Setting background label to " + label_text + " at pos " + index)
     combo.setCurrentIndex(index);
 }
+function resetLabels()
+{
+    //=== Open Label Editor dialog
+    engine.trigger("actionLabel_Editor");
+    engine.sleep(1000);
+
+    var dialog = engine.findChild(mainwin, "dlgLabelEditor");
+    engine.trigger("actionResetLabels", dialog);
+}
