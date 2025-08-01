@@ -677,7 +677,7 @@ void RegistrationModel::RunAutoRegistration()
   if(moving_cast->GetSource()) moving_cast->GetSource()->Update();
 
   // Caster for the mask image - declared here so that SmartPtr does not go out of scope
-  ImageWrapperBase::FloatImageType *mask_cast;
+  ImageWrapperBase::FloatImageType *mask_cast = nullptr;
 
   // Set up the parameters for greedy registration
   GreedyParameters param;
