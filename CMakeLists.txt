@@ -1283,8 +1283,6 @@ qt_add_translations(
 
 ENABLE_TESTING()
 
-include(BundleUtilities)
-
 # Acceleration factor for GUI tests
 SET(SNAP_GUI_TEST_ACCEL "1.0" CACHE STRING 
     "Acceleration factor for GUI tests, use <1 on VMS and slow machines")
@@ -1582,17 +1580,7 @@ IF(APPLE)
     PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
     GROUP_EXECUTE GROUP_READ)
 
-  # Include the qt4 dependent libraries
-  include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
-
-  # Include plugins
-  # get_filename_component(QT_COCOA_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/libqcocoa.dylib" ABSOLUTE)
-  # get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/libqgif.dylib" ABSOLUTE)
-  # message(STATUS "QT_COCOA_PLUGIN=${QT_COCOA_PLUGIN}")
-  # message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
-
-  # Install with the plugin
-  # install_qt5_executable(../../../${SNAP_BUNDLE_NAME}.app "${QT_GIF_PLUGIN};${QT_COCOA_PLUGIN}")
+  # Use Qt deployment script to take care of plugins
   set(executable_path "../../../${SNAP_BUNDLE_NAME}.app")
 
   qt_generate_deploy_script(
@@ -1612,50 +1600,46 @@ IF(APPLE)
 ELSEIF(WIN32)
 
   # Install to the bin directory
-  INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION bin)
+  INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME_DEPENDENCY_SET deps RUNTIME DESTINATION bin)
 
-  # Include the qt4 dependent libraries
-  include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
+  # This code installs the .dll dependencies of ITK-SNAP that are not picked up by Qt
+  # Thank you: https://discourse.cmake.org/t/install-runtime-dependency-set-appdeps-does-nothing-install/9741/17
+  install(RUNTIME_DEPENDENCY_SET deps 
+    PRE_EXCLUDE_REGEXES
+      [=[api-ms-]=]
+      [=[ext-ms-]=]
+      [[kernel32\.dll]]
+      [[libc\.so\..*]] [[libgcc_s\.so\..*]] [[libm\.so\..*]] [[libstdc\+\+\.so\..*]]
+    POST_EXCLUDE_REGEXES
+      [=[.*system32\/.*\.dll]=]
+      [=[^\/(lib|usr\/lib|usr\/local\/lib\/lib64)]=]
+  )
 
   # Prepare a case-insensitive configuration check
   string(TOLOWER "${CMAKE_BUILD_TYPE}" config_lower)
 
-  # Make sure the GIF plugin is included
-  if(config_lower STREQUAL "debug")
-    MESSAGE(STATUS "Using Debug Mode Qt Plugins")
-    get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindowsd.dll" ABSOLUTE)
-    get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgifd.dll" ABSOLUTE)
-  else(config_lower STREQUAL "release")
-    MESSAGE(STATUS "Using Release Mode Qt Plugins")
-    get_filename_component(QT_WIN_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/qwindows.dll" ABSOLUTE)
-    get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/qgif.dll" ABSOLUTE)
-  endif(config_lower STREQUAL "debug")
-
-  message(STATUS "QT_WIN_PLUGIN=${QT_WIN_PLUGIN}")
-  message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
-
   # On Windows, the libssh library does not seem to install automatically unless we manually
   # install it and its dependencies. This code finds the ssh.dll and libcrypto-3-x64.dll and
   # installs them in the bin directory
-  get_target_property(SSH_IMPORTED_LOCATION ssh LOCATION)
-  get_filename_component(SSH_DLL_PATH "${SSH_IMPORTED_LOCATION}" DIRECTORY)
-  MESSAGE(STATUS "SSH_DLL_PATH is ${SSH_DLL_PATH}")
-  find_file(SSH_DLL_FILE
-    NAMES ssh.dll
-    PATHS "${SSH_DLL_PATH}"
-    NO_DEFAULT_PATH
-  )
-  find_file(SSH_LIBCRYPTO_FILE
-    NAMES libcrypto-3-x64.dll
-    PATHS "${SSH_DLL_PATH}"
-    NO_DEFAULT_PATH
-  )
-  if(SSH_DLL_FILE AND SSH_LIBCRYPTO_FILE)
-    message(STATUS "Installing LIBSSH DLL files: ${SSH_DLL_FILE} and ${SSH_LIBCRYPTO_FILE}")
-    install(FILES "${SSH_DLL_FILE}" "${SSH_LIBCRYPTO_FILE}" DESTINATION bin)
-  else()
-    message(WARNING "ssh.dll and/or libcrypto-3-x64.dll not found in ${SSH_DLL_PATH}")
-  endif()
+  #get_target_property(SSH_IMPORTED_LOCATION ssh LOCATION)
+  #get_filename_component(SSH_DLL_PATH "${SSH_IMPORTED_LOCATION}" DIRECTORY)
+  #MESSAGE(STATUS "SSH_DLL_PATH is ${SSH_DLL_PATH}")
+  #find_file(SSH_DLL_FILE
+  #  NAMES ssh.dll
+  #  PATHS "${SSH_DLL_PATH}"
+  #  NO_DEFAULT_PATH
+  #)
+  #find_file(SSH_LIBCRYPTO_FILE
+  #  NAMES libcrypto-3-x64.dll
+  #  PATHS "${SSH_DLL_PATH}"
+  #  NO_DEFAULT_PATH
+  #)
+  #if(SSH_DLL_FILE AND SSH_LIBCRYPTO_FILE)
+  #  message(STATUS "Installing LIBSSH DLL files: ${SSH_DLL_FILE} and ${SSH_LIBCRYPTO_FILE}")
+  #  install(FILES "${SSH_DLL_FILE}" "${SSH_LIBCRYPTO_FILE}" DESTINATION bin)
+  #else()
+  #  message(WARNING "ssh.dll and/or libcrypto-3-x64.dll not found in ${SSH_DLL_PATH}")
+  #endif()
 
   # Install with the plugin
   qt_generate_deploy_script(
@@ -1665,7 +1649,6 @@ ELSEIF(WIN32)
   qt_deploy_runtime_dependencies(
       EXECUTABLE \"bin/${SNAP_BUNDLE_NAME}.exe\"
       GENERATE_QT_CONF
-      VERBOSE
   )
   qt_deploy_translations(
       CATALOGS qtbase
@@ -1731,9 +1714,6 @@ ELSE()
   SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
 
-  # Include the qt4 dependent libraries
-  include(${SNAP_SOURCE_DIR}/CMake/DeployQt5.cmake)
-
   # Add an option to not package QT plugins. This is needed for some special builds,
   # for example on Debian
   OPTION(SNAP_PACKAGE_QT_PLUGINS "Try to package Qt5 plugins with the executable" ON)
@@ -1755,17 +1735,29 @@ ELSE()
     # get_property(QT_XCB_GLX_PLUGIN TARGET Qt6::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
     # get_property(QT_XCB_GLX_PLUGIN TARGET Qt::QGifPlugin PROPERTY LOCATION_RELEASE)
     # get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
-
-    # Install the plugin
-    install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE}
-      "${QT_XCB_PLUGIN};${QT_GIF_PLUGIN};${QT_XCB_GLX_PLUGIN};${QT_XCB_EGL_PLUGIN}")
-
   ELSE(SNAP_PACKAGE_QT_PLUGINS)
 
     # Install the exe without plugins
     install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE})
 
   ENDIF(SNAP_PACKAGE_QT_PLUGINS)
+
+  # Use Qt deployment script to take care of plugins
+  set(executable_path "../../../${SNAP_BUNDLE_NAME}")
+
+  qt_generate_deploy_script(
+      TARGET ${SNAP_BUNDLE_NAME}
+      OUTPUT_SCRIPT deploy_script
+      CONTENT "
+  qt_deploy_runtime_dependencies(
+      EXECUTABLE \"${executable_path}\"
+      GENERATE_QT_CONF
+  )
+  qt_deploy_translations(
+      CATALOGS qtbase
+      LOCALES ${QT_I18N_TRANSLATED_LANGUAGES_STRING}
+  )")
+  install(SCRIPT ${deploy_script})
 
 ENDIF()
 
