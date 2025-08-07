@@ -2,6 +2,7 @@
 #include "ui_ViewPanel3D.h"
 #include "GlobalUIModel.h"
 #include "Generic3DModel.h"
+#include "Generic3DRenderer.h"
 #include "itkCommand.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
@@ -49,6 +50,9 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   m_DropMenu->addAction(ui->actionReset_Viewpoint);
   m_DropMenu->addAction(ui->actionSave_Viewpoint);
   m_DropMenu->addAction(ui->actionRestore_Viewpoint);
+  m_DropMenu->addSeparator();
+  m_DropMenu->addAction(ui->actionImport_Viewpoint);
+  m_DropMenu->addAction(ui->actionExport_Viewpoint);
   m_DropMenu->addSeparator();
   m_DropMenu->addAction(ui->actionContinuous_Update);
   ui->actionContinuous_Update->setObjectName("actionContinuousUpdate");
@@ -299,6 +303,194 @@ void ViewPanel3D::on_actionSave_Viewpoint_triggered()
 void ViewPanel3D::on_actionRestore_Viewpoint_triggered()
 {
   m_Model->RestoreCameraState();
+}
+
+void ViewPanel3D::LoadCameraViewpoint(QString file)
+{
+  QFile loadFile(file);
+  if (!loadFile.open(QIODevice::ReadOnly))
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("I/O error: ") + loadFile.errorString());
+
+  QByteArray loadData = loadFile.readAll();
+  QJsonParseError jsonError;
+  QJsonDocument loadDoc(QJsonDocument::fromJson(loadData, &jsonError));
+
+  if (loadDoc.isNull())
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: ") + jsonError.errorString());
+
+  QJsonObject json = loadDoc.object();
+
+  // QJsonArray to Vector3d
+  if (!json["position"].isArray()
+      || json["position"].toArray().count() != 3
+      || !json["position"][0].isDouble()
+      || !json["position"][1].isDouble()
+      || !json["position"][2].isDouble())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: position: expected an array of 3 numbers"));
+    return;
+  }
+  Vector3d camPosition(
+      json["position"][0].toDouble(),
+      json["position"][1].toDouble(),
+      json["position"][2].toDouble());
+
+  // QJsonArray to Vector3d
+  if (!json["focal_point"].isArray()
+      || json["focal_point"].toArray().count() != 3
+      || !json["focal_point"][0].isDouble()
+      || !json["focal_point"][1].isDouble()
+      || !json["focal_point"][2].isDouble())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: focal_point: expected an array of 3 numbers"));
+    return;
+  }
+  Vector3d camFocalPoint(
+      json["focal_point"][0].toDouble(),
+      json["focal_point"][1].toDouble(),
+      json["focal_point"][2].toDouble());
+
+  // QJsonArray to Vector3d
+  if (!json["view_up"].isArray()
+      || json["view_up"].toArray().count() != 3
+      || !json["view_up"][0].isDouble()
+      || !json["view_up"][1].isDouble()
+      || !json["view_up"][2].isDouble())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: view_up: expected an array of 3 numbers"));
+    return;
+  }
+  Vector3d camViewUp(
+      json["view_up"][0].toDouble(),
+      json["view_up"][1].toDouble(),
+      json["view_up"][2].toDouble());
+
+  // QJsonArray to Vector2d
+  if (!json["clipping_range"].isArray()
+      || json["clipping_range"].toArray().count() != 2
+      || !json["clipping_range"][0].isDouble()
+      || !json["clipping_range"][1].isDouble())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: clipping_range: expected an array of 2 numbers"));
+    return;
+  }
+  Vector2d camClippingRange(
+      json["clipping_range"][0].toDouble(),
+      json["clipping_range"][1].toDouble());
+
+  // QJsonValue to double
+  if (!json["view_angle"].isDouble())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: view_angle: expected a number"));
+    return;
+  }
+  double camViewAngle = json["view_angle"].toDouble();
+
+  // QJsonValue to double
+  if (!json["parallel_scale"].isDouble())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: parallel_scale: expected a number"));
+    return;
+  }
+  double camParallelScale = json["parallel_scale"].toDouble();
+
+  // QJsonValue to int (boolean)
+  if (!json["parallel_projection"].isBool())
+  {
+    QMessageBox::warning(this, "Import camera viewpoint error",
+        QString("JSON error: parallel_projection: expected a boolean"));
+    return;
+  }
+  int camParallelProjection = json["parallel_projection"].toBool();
+
+  CameraState cam = {
+    .position = camPosition,
+    .focal_point = camFocalPoint,
+    .view_up = camViewUp,
+    .clipping_range = camClippingRange,
+    .view_angle = camViewAngle,
+    .parallel_scale = camParallelScale,
+    .parallel_projection = camParallelProjection
+  };
+  m_Model->GetRenderer()->SetCameraState(cam);
+}
+
+void ViewPanel3D::SaveCameraViewpoint(QString file)
+{
+  CameraState cam = m_Model->GetRenderer()->GetCameraState();
+  QJsonObject json;
+
+  // Vector3d to QJsonArray
+  QJsonArray camPosition;
+  for (const double& x : cam.position)
+    camPosition += x;
+
+  // Vector3d to QJsonArray
+  QJsonArray camFocalPoint;
+  for (const double& x : cam.focal_point)
+    camFocalPoint += x;
+
+  // Vector3d to QJsonArray
+  QJsonArray camViewUp;
+  for (const double& x : cam.view_up)
+    camViewUp += x;
+
+  // Vector2d to QJsonArray
+  QJsonArray camClippingRange;
+  for (const double& x : cam.clipping_range)
+    camClippingRange += x;
+
+  // Fields from vtkCamera
+  json["position"] = camPosition;
+  json["focal_point"] = camFocalPoint;
+  json["view_up"] = camViewUp;
+  json["clipping_range"] = camClippingRange;
+  json["view_angle"] = QJsonValue(cam.view_angle);
+  json["parallel_scale"] = QJsonValue(cam.parallel_scale);
+  json["parallel_projection"] = QJsonValue(cam.parallel_projection).toBool();
+
+  QFile saveFile(file);
+  if (!saveFile.open(QIODevice::WriteOnly)
+      || saveFile.write(QJsonDocument(json).toJson()) == -1)
+    QMessageBox::warning(this, "Export camera viewpoint error",
+        QString("I/O error: ") + saveFile.errorString());
+}
+
+void ViewPanel3D::on_actionImport_Viewpoint_triggered()
+{
+  // Ask for a filename
+  QString selection = ShowSimpleOpenDialogWithHistory(
+        this, m_Model->GetParentUI(), "CameraViewpoint",
+        "Load Camera Viewpoint - ITK-SNAP",
+        "Camera Viewpoint JSON File",
+        "Camera Files (*.json)");
+
+  // Open the labels from the selection
+  if(selection.length())
+    LoadCameraViewpoint(selection);
+}
+
+void ViewPanel3D::on_actionExport_Viewpoint_triggered()
+{
+  // Ask for a filename
+  QString selection = ShowSimpleSaveDialogWithHistory(
+        this, m_Model->GetParentUI(), "CameraViewpoint",
+        "Save Camera Viewpoint - ITK-SNAP",
+        "Camera Viewpoint JSON File",
+        "Camera Files (*.json)",
+        true);
+
+  // Open the labels from the selection
+  if(selection.length())
+    SaveCameraViewpoint(selection);
 }
 
 void ViewPanel3D::on_actionContinuous_Update_triggered()
