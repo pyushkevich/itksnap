@@ -1622,10 +1622,9 @@ ELSEIF(WIN32)
       [=[ext-ms-]=]
       [[kernel32\.dll]]
       [[libc\.so\..*]] [[libgcc_s\.so\..*]] [[libm\.so\..*]] [[libstdc\+\+\.so\..*]]
-      [=[Qt.*dll]=]
+      [=[qt6]=]
     POST_EXCLUDE_REGEXES
       [=[.*system32\/.*\.dll]=]
-      [=[Qt.*dll]=]
       [=[^\/(lib|usr\/lib|usr\/local\/lib\/lib64)]=]
   )
 
