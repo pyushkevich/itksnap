@@ -253,10 +253,6 @@ jobs:
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'MacOS' && 'CMAKE_OSX_DEPLOYMENT_TARGET=12.6' || '' }}
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-
       # Build ITK-SNAP using CDash
       - name: ITK-SNAP Dashboard -- Configure and Build
         id: ctest-config
@@ -329,6 +325,10 @@ jobs:
           xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER --keychain /Users/runner/Library/Keychains/build.keychain-db itksnap_notarize
           rm -rf notarize_key
           cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize -DSNAP_MACOS_KEYCHAIN=/Users/runner/Library/Keychains/build.keychain-db -DSNAP_MACOSX_CODESIGN_CERT=$CODESIGN_CERT .
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Package ITK-SNAP
       - name: Package ITK-SNAP
