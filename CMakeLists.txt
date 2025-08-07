@@ -1715,36 +1715,8 @@ ELSE()
   SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
 
-  # Add an option to not package QT plugins. This is needed for some special builds,
-  # for example on Debian
-  OPTION(SNAP_PACKAGE_QT_PLUGINS "Try to package Qt5 plugins with the executable" ON)
-  MARK_AS_ADVANCED(SNAP_PACKAGE_QT_PLUGINS)
-
-  # Get the necessary plugins
-  IF(SNAP_PACKAGE_QT_PLUGINS)
-
-    get_filename_component(QT_XCB_GLX_PLUGIN "${QT_BINARY_DIR}/../plugins/xcbglintegrations/libqxcb-glx-integration.so" ABSOLUTE)
-    get_filename_component(QT_XCB_EGL_PLUGIN "${QT_BINARY_DIR}/../plugins/xcbglintegrations/libqxcb-egl-integration.so" ABSOLUTE)
-    get_filename_component(QT_XCB_PLUGIN "${QT_BINARY_DIR}/../plugins/platforms/libqxcb.so" ABSOLUTE)
-    get_filename_component(QT_GIF_PLUGIN "${QT_BINARY_DIR}/../plugins/imageformats/libqgif.so" ABSOLUTE)
-    message(STATUS "QT_XCB_GLX_PLUGIN=${QT_XCB_GLX_PLUGIN}")
-    message(STATUS "QT_XCB_EGL_PLUGIN=${QT_XCB_EGL_PLUGIN}")
-    message(STATUS "QT_XCB_PLUGIN=${QT_XCB_PLUGIN}")
-    message(STATUS "QT_GIF_PLUGIN=${QT_GIF_PLUGIN}")
-
-    # get_property(QT_XCB_PLUGIN TARGET Qt6::QXcbIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    # get_property(QT_XCB_GLX_PLUGIN TARGET Qt6::QXcbEglIntegrationPlugin PROPERTY LOCATION_RELEASE)
-    # get_property(QT_XCB_GLX_PLUGIN TARGET Qt::QGifPlugin PROPERTY LOCATION_RELEASE)
-    # get_property(QT_GIF_PLUGIN TARGET Qt6::QGifPlugin PROPERTY LOCATION_RELEASE)
-  ELSE(SNAP_PACKAGE_QT_PLUGINS)
-
-    # Install the exe without plugins
-    install_qt5_executable(${SNAP_MAIN_INSTALL_DIR}/${SNAP_EXE})
-
-  ENDIF(SNAP_PACKAGE_QT_PLUGINS)
-
   # Use Qt deployment script to take care of plugins
-  set(executable_path "../../../${SNAP_BUNDLE_NAME}")
+  set(executable_path "${SNAP_MAIN_INSTALL_DIR}/${SNAP_BUNDLE_NAME}")
 
   qt_generate_deploy_script(
       TARGET ${SNAP_BUNDLE_NAME}
@@ -1753,6 +1725,9 @@ ELSE()
   qt_deploy_runtime_dependencies(
       EXECUTABLE \"${executable_path}\"
       GENERATE_QT_CONF
+      LIB_DIR \"${SNAP_MAIN_INSTALL_DIR}\"
+      PLUGINS_DIR \"${SNAP_MAIN_INSTALL_DIR}\"
+      VERBOSE
   )
   qt_deploy_translations(
       CATALOGS qtbase
