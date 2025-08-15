@@ -162,11 +162,15 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
   std::string ext = fn.substr(fn.find_last_of("."));
   std::vector<std::string> fn_list { fn };
 
-  // Create a message box reminding user
+  // Create a message box reminding user, but only if there is more than one timepoint
+  int ret = QMessageBox::Ok;
   unsigned int displayTP = m_Model->GetDriver()->GetCursorTimePoint() + 1; // always display 1-based time point
-  QMessageBox *msgBox = MeshImportWizard::CreateLoadToNewLayerMessageBox(this, displayTP);
-  int ret = msgBox->exec();
-  delete msgBox;
+  if(m_Model->GetDriver()->GetNumberOfTimePoints() > 1)
+  {
+    QMessageBox *msgBox = MeshImportWizard::CreateLoadToNewLayerMessageBox(this, displayTP);
+    ret = msgBox->exec();
+    delete msgBox;
+  }
 
   switch (ret)
     {

@@ -165,8 +165,23 @@ bool LayerInspectorDialog::eventFilter(QObject *source, QEvent *event)
   return false;
 }
 
+void
+LayerInspectorDialog::UpdateLayers()
+{
+  // Make sure each layer is associated with a model
+  // TODO: it would be more attractive to map models to layers somewhere in
+  // the 'model layer' rather than in the Qt code. Think about it...
+  this->GenerateModelsForLayers();
 
+  // Build the left pane
+  this->BuildLayerWidgetHierarchy();
 
+  // TODO: this is the wrong place for this!!!
+  m_Model->GetImageInfoModel()->Update();
+  m_Model->GetColorMapModel()->Update();
+  m_Model->GetIntensityCurveModel()->Update();
+  m_Model->GetLayerGeneralPropertiesModel()->Update();
+}
 
 
 void LayerInspectorDialog::GenerateModelsForLayers()
@@ -359,19 +374,7 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
 {
   if(bucket.HasEvent(LayerChangeEvent()))
     {
-    // Make sure each layer is associated with a model
-    // TODO: it would be more attractive to map models to layers somewhere in
-    // the 'model layer' rather than in the Qt code. Think about it...
-    this->GenerateModelsForLayers();
-
-    // Build the left pane
-    this->BuildLayerWidgetHierarchy();
-
-    // TODO: this is the wrong place for this!!!
-    m_Model->GetImageInfoModel()->Update();
-    m_Model->GetColorMapModel()->Update();
-    m_Model->GetIntensityCurveModel()->Update();
-    m_Model->GetLayerGeneralPropertiesModel()->Update();
+    UpdateLayers();
     }
 
   if(bucket.HasEvent(ValueChangedEvent(),

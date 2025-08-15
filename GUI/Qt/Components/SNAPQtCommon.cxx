@@ -16,6 +16,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsDropShadowEffect>
 #include <QDateTime>
+#include <QToolButton>
 #include "SNAPQtCommonTranslations.h"
 
 #include "QtCursorOverride.h"
@@ -670,4 +671,19 @@ QtColorMapPresetHelper::GetColorMapPresetNameSource()
 {
   static QtColorMapPresetNameSource source;
   return &source;
+}
+
+QToolButton *
+CreateContextToolButton(QWidget *parent)
+{
+  auto *button = new QToolButton(parent);
+  button->setIcon(QIcon(":/root/context_gray_10.png"));
+  button->setVisible(false);
+  button->setAutoRaise(true);
+  button->setIconSize(QSize(10,10));
+  button->setMinimumSize(QSize(16,16));
+  button->setMaximumSize(QSize(16,16));
+  button->setPopupMode(QToolButton::InstantPopup);
+  button->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+  return button;
 }

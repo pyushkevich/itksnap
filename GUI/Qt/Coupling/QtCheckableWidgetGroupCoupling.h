@@ -53,15 +53,15 @@ protected:
 };
 
 
-template <class TAtomic, class TParentWidget, class TCheckableWidgetBase>
+template <class TAtomic, class TDomain, class TParentWidget, class TCheckableWidgetBase>
 void makeCheckableWidgetGroupCoupling(
     TParentWidget *parentWidget,
     std::map<TAtomic, TCheckableWidgetBase *> buttonMap,
-    AbstractPropertyModel<TAtomic> *model)
+    AbstractPropertyModel<TAtomic, TDomain> *model)
 {
-  typedef AbstractPropertyModel<TAtomic> ModelType;
+  typedef AbstractPropertyModel<TAtomic, TDomain> ModelType;
   typedef RadioButtonGroupTraits<TAtomic, TParentWidget, TCheckableWidgetBase> WidgetValueTraits;
-  typedef DefaultWidgetDomainTraits<TrivialDomain, TParentWidget> WidgetDomainTraits;
+  typedef DefaultWidgetDomainTraits<TDomain, TParentWidget> WidgetDomainTraits;
 
   typedef PropertyModelToWidgetDataMapping<
       ModelType, TParentWidget *,

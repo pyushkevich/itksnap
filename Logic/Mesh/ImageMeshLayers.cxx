@@ -26,10 +26,11 @@ ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector)
   unsigned long id = meshLayer->GetUniqueId();
   m_Layers[id] = meshLayer;
 
-  Rebroadcaster::Rebroadcast(meshLayer, ValueChangedEvent(),
-                             this, ActiveLayerChangeEvent());
-  Rebroadcaster::Rebroadcast(meshLayer, WrapperDisplayMappingChangeEvent(),
-                             this, WrapperDisplayMappingChangeEvent());
+  Rebroadcaster::Rebroadcast(meshLayer, ValueChangedEvent(), this, ActiveLayerChangeEvent());
+  Rebroadcaster::Rebroadcast(
+    meshLayer, WrapperDisplayMappingChangeEvent(), this, WrapperDisplayMappingChangeEvent());
+  Rebroadcaster::Rebroadcast(
+    meshLayer, WrapperMetadataChangeEvent(), this, WrapperMetadataChangeEvent());
 
   // Invoke to trigger initial rendering of the mesh
   SetActiveLayerId(id);

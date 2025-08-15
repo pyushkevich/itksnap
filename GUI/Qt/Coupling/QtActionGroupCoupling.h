@@ -10,11 +10,11 @@
  * QActionGroup containing a set of actions. The mapping from enum values to
  * actions is provided by the actionMap parameter
  */
-template <class TAtomic>
+template <class TAtomic, class TDomain>
 void makeActionGroupCoupling(
     QActionGroup *actionGroup,
     std::map<TAtomic, QAction *> actionMap,
-    AbstractPropertyModel<TAtomic> *model)
+    AbstractPropertyModel<TAtomic, TDomain> *model)
 {
   makeCheckableWidgetGroupCoupling(actionGroup, actionMap, model);
 }

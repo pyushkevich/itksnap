@@ -24,11 +24,20 @@ public:
 
 signals:
 
+  void mouseEntered();
+  void mouseLeft();
+  void resized();
+
 public slots:
 
   void onToolbarModeChange();
 
 protected:
+
+  // Enter and leave events
+  virtual void enterEvent(QEnterEvent *ev) override;
+  virtual void leaveEvent(QEvent *ev) override;
+  virtual void resizeEvent(QResizeEvent *evt) override;
 
   // The model in charge
   Generic3DModel *m_Model;

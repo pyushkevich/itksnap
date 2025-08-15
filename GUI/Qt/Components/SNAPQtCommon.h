@@ -25,6 +25,7 @@ class ImageWrapperBase;
 class QDateTime;
 class AbstractColorMapPresetNameSource;
 class QStandardItem;
+class QToolButton;
 
 // Q_DECL_OVERRIDE is only defined in Qt5 but is needed by C++11
 #ifndef Q_DECL_OVERRIDE
@@ -195,5 +196,8 @@ void toggle_flags_on(TObject *object, TFlag flag)
 /** Generate a user-friendly date string */
 QString get_user_friendly_date_string(const QDateTime &dt);
 
+
+/** Set up a context tool button in slice or 3D views */
+QToolButton *CreateContextToolButton(QWidget *parent);
 
 #endif // SNAPQTCOMMON_H

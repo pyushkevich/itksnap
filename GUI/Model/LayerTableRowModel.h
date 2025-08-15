@@ -2,6 +2,7 @@
 #define LAYERTABLEROWMODEL_H
 
 #include "PropertyModel.h"
+#include "MeshDataArrayProperty.h"
 
 class ImageWrapperBase;
 class MeshWrapperBase;
@@ -49,9 +50,10 @@ public:
     UIF_VOLUME_RENDERABLE,
     UIF_IMAGE,
     UIF_MESH,
-    UIF_MESH_HAS_DATA, // mesh has data for color rendering
-    UIF_MESH_SOLID_COLOR, // mesh displayed in solid color
-    UIF_FILE_RELOADABLE // has a corresponding file for reloading
+    UIF_MESH_HAS_DATA,       // mesh has data for color rendering
+    UIF_MESH_SOLID_COLOR,    // mesh displayed in solid color
+    UIF_MESH_MULTICOMPONENT, // mesh has multiple components
+    UIF_FILE_RELOADABLE      // has a corresponding file for reloading
     };
 
   // ----------------------------------------------
@@ -363,8 +365,35 @@ public:
    */
   void ReloadWrapperFromFile(IRISWarningList &wl) override;
 
+  struct MeshDataArrayDescriptor
+  {
+    bool SolidColor;
+    std::string ArrayName;
+    AbstractMeshDataArrayProperty::MeshDataType MeshDataType;
+    bool operator != (const MeshDataArrayDescriptor &other) const;
+    bool operator == (const MeshDataArrayDescriptor &other) const;
+  };
+  using MeshDataArrayDomain = SimpleItemSetDomain<int, MeshDataArrayDescriptor>;
+
+  struct MeshVectorModeDescriptor
+  {
+    MeshLayerDataArrayProperty::VectorMode Mode;
+    int Component;
+    bool operator != (const MeshVectorModeDescriptor &other) const;
+    bool operator == (const MeshVectorModeDescriptor &other) const;
+  };
+  using MeshVectorModeDomain = SimpleItemSetDomain<vtkIdType, MeshVectorModeDescriptor>;
+
+  using AbstractMeshVectorModeModel = AbstractPropertyModel<vtkIdType, MeshVectorModeDomain>;
+
+  /** Model for the active data property (-1 is solid color) */
+  irisGenericPropertyAccessMacro(ActiveMeshLayerDataPropertyId, int, MeshDataArrayDomain)
+
   /** A model for the component name */
   irisSimplePropertyAccessMacro(ActiveProperty, std::string)
+
+  /** A model for mesh multi-component (vector) display mode */
+  irisGenericPropertyAccessMacro(MeshVectorMode, vtkIdType, MeshVectorModeDomain)
 
   // End of virtual methods implementation
   // ----------------------------------------------
@@ -391,6 +420,17 @@ protected:
   SmartPtr<AbstractSimpleStringProperty> m_ActivePropertyModel;
   bool GetActivePropertyValue(std::string &value);
 
+  // Mesh active data property
+  using MeshLayerDataPropertyIdModel = AbstractPropertyModel<int, MeshDataArrayDomain>;
+  SmartPtr<MeshLayerDataPropertyIdModel> m_ActiveMeshLayerDataPropertyIdModel;
+  bool GetActiveMeshLayerDataPropertyIdValueAndRange(int &value, MeshDataArrayDomain *domain);
+  void SetActiveMeshLayerDataPropertyIdValue(int value);
+
+  // Mesh active component property
+  using MeshVectorModeModel = AbstractPropertyModel<vtkIdType, MeshVectorModeDomain>;
+  SmartPtr<MeshVectorModeModel> m_MeshVectorModeModel;
+  bool GetMeshVectorModeValueAndRange(vtkIdType &value, MeshVectorModeDomain *domain);
+  void SetMeshVectorModeValue(vtkIdType value);
 
   //  End of virtual methods implementation
   // ------------------------------------------

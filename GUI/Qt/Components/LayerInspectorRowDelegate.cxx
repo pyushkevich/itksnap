@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QGuiApplication>
 #include <QMenu>
+#include <QtMenuCoupling.h>
 #include <QContextMenuEvent>
 #include <QWidgetAction>
 #include "QtWidgetActivator.h"
@@ -27,6 +28,7 @@
 #include "MeshExportWizard.h"
 #include "SaveModifiedLayersDialog.h"
 #include "LayerGeneralPropertiesModel.h"
+#include "GeneralLayerInspector.h"
 
 #include "DisplayMappingPolicy.h"
 #include "ColorMap.h"
@@ -85,14 +87,18 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_PopupMenu->addAction(ui->actionContrast_Inspector);
   m_PopupMenu->addSeparator();
 
+  // Create a menu for selecting what array to load in a mesh
+  m_MeshArrayMenu = m_PopupMenu->addMenu(tr("Active Data Array"));
+  m_MeshArrayComponentMenu = m_PopupMenu->addMenu(tr("Active Data Array Component"));
+
   // Add the color map menu
   m_ColorMapMenu = m_PopupMenu->addMenu(tr("Color Map"));
-  m_SystemPresetActionGroup = NULL;
+  m_SystemPresetActionGroup = nullptr;
 
   // Add the component selection menu
   m_DisplayModeMenu = m_PopupMenu->addMenu(tr("Multi-Component Display"));
   m_DisplayModeMenu->setObjectName("menuMCDisplay"); // set object name for testing
-  m_DisplayModeActionGroup = NULL;
+  m_DisplayModeActionGroup = nullptr;
 
   m_PopupMenu->addSeparator();
   m_PopupMenu->addAction(ui->actionPin_layer);
@@ -115,12 +121,6 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_VolumeRenderingMenu->addAction(ui->actionVolumeEnable);
   ui->actionVolumeEnable->setObjectName("actionVolumeEnable");
   m_PopupMenu->addSeparator();
-
-  // Placeholder for image processing commands
-  m_PopupMenu->addSeparator();
-  QMenu *processMenu = m_PopupMenu->addMenu(tr("Image Processing"));
-  processMenu->setObjectName("menuProcess");
-  processMenu->addAction(ui->actionTextureFeatures);
 
   // set up an event filter
   ui->inLayerOpacity->installEventFilter(this);
@@ -148,6 +148,21 @@ LayerInspectorRowDelegate::~LayerInspectorRowDelegate()
   delete ui;
 }
 
+
+
+// Needed for coupling active mesh array model with QMenu
+template <>
+class DefaultQMenuRowTraits<int, MeshDataArrayDescriptionTraits::Value>
+  : public TextAndIconMenuRowTraits<int, MeshDataArrayDescriptionTraits::Value, MeshDataArrayDescriptionTraits>
+{};
+
+// Needed for coupling active mesh vector mode with QMenu
+template <>
+class DefaultQMenuRowTraits<vtkIdType, MeshVectorComponentDescriptionTraits::Value>
+  : public TextAndIconMenuRowTraits<vtkIdType, MeshVectorComponentDescriptionTraits::Value, MeshVectorComponentDescriptionTraits>
+{};
+
+
 void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
 {
   const QtWidgetActivator::Options opt_hide = QtWidgetActivator::HideInactive;
@@ -170,9 +185,11 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
       makeCoupling(ui->actionVolumeEnable, image_model->GetVolumeRenderingEnabledModel());
       activateOnFlag(ui->outComponent, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
     }
-    else if(mesh_model)
+  else if(mesh_model)
     {
       makeCoupling(ui->outComponent, mesh_model->GetActivePropertyModel());
+      makeCoupling(m_MeshArrayMenu, mesh_model->GetActiveMeshLayerDataPropertyIdModel());
+      makeCoupling(m_MeshArrayComponentMenu, mesh_model->GetMeshVectorModeModel());
     }
 
   activateOnFlag(ui->actionUnpin_layer, model, AbstractLayerTableRowModel::UIF_UNPINNABLE, opt_hide);
@@ -196,12 +213,14 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   activateOnFlag(ui->actionReloadFromFile, model, AbstractLayerTableRowModel::UIF_FILE_RELOADABLE);
   activateOnFlag(ui->actionReveal, model, AbstractLayerTableRowModel::UIF_FILE_RELOADABLE);
   activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
+  activateOnFlag(ui->actionContrast_Inspector, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
   activateOnFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE, opt_hide);
-  activateOnFlag(m_PopupMenu->findChild<QMenu*>("menuProcess"), model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
   activateOnFlag(m_OverlaysMenu, model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
   activateOnFlag(ui->actionTextureFeatures, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE);
   activateOnFlag(ui->actionReloadAs4D, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
   activateOnFlag(ui->actionReloadAsMultiComponent, model, AbstractLayerTableRowModel::UIF_IS_4D, opt_hide);
+  activateOnFlag(m_MeshArrayMenu, model, AbstractLayerTableRowModel::UIF_MESH_HAS_DATA, opt_hide);
+  activateOnFlag(m_MeshArrayComponentMenu, model, AbstractLayerTableRowModel::UIF_MESH_MULTICOMPONENT, opt_hide);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
@@ -224,6 +243,9 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   // Listen to changes in the currently selected layer in GlobalState
   connectITK(m_Model->GetParentModel()->GetGlobalState()->GetSelectedSegmentationLayerIdModel(),
               ValueChangedEvent());
+
+  // The two calls above do not pick up on changes in active mesh layer, so we add this too
+  connectITK(m_Model->GetParentModel()->GetDriver(), ActiveLayerChangeEvent());
 
   // Update the color map menu
   UpdateColorMapMenu();
@@ -507,6 +529,7 @@ void LayerInspectorRowDelegate::UpdateComponentMenu()
                           image_model->GetDisplayModeModel());
 }
 
+
 #include "GenericImageData.h"
 #include "LayerInspectorDialog.h"
 
@@ -553,57 +576,64 @@ void LayerInspectorRowDelegate::UpdateOverlaysMenu()
   m_OverlaysMenu->menuAction()->setVisible(k > 0);
 }
 
-
 void LayerInspectorRowDelegate::OnNicknameUpdate()
 {
-  const char *layer_type =
-      (dynamic_cast<MeshLayerTableRowModel*>(m_Model.GetPointer())) ? "mesh" : "image";
+  QString layer_type =
+      (dynamic_cast<MeshLayerTableRowModel*>(m_Model.GetPointer())) ? tr("mesh") : tr("image");
 
   // Update things that depend on the nickname
   QString name = from_utf8(m_Model->GetNickname());
-  ui->actionSave->setText(tr("Save %1 \"%2\" ...").arg(layer_type).arg(name));
+  ui->actionSave->setText(tr("Save %1 \"%2\" ...").arg(layer_type, name));
   ui->actionSave->setToolTip(ui->actionSave->text());
-  ui->actionClose->setText(tr("Close %1 \"%2\"").arg(layer_type).arg(name));
+  ui->actionClose->setText(tr("Close %1 \"%2\"").arg(layer_type, name));
   ui->actionClose->setToolTip(ui->actionClose->text());
   ui->outLayerNickname->setToolTip(name);
 
   m_PopupMenu->setTitle(name);
 }
 
-void LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
+void
+LayerInspectorRowDelegate::onModelUpdate(const EventBucket &bucket)
 {
   IRISApplication *app = m_Model->GetParentModel()->GetDriver();
-  GlobalState *gs = app->GetGlobalState();
-  if(bucket.HasEvent(WrapperDisplayMappingChangeEvent()))
-    {
+  GlobalState     *gs = app->GetGlobalState();
+  if (bucket.HasEvent(WrapperDisplayMappingChangeEvent()))
+  {
     this->ApplyColorMap();
-    }
-  if(bucket.HasEvent(WrapperMetadataChangeEvent(), m_Model->GetLayer()))
-    {
+  }
+  if (bucket.HasEvent(WrapperMetadataChangeEvent(), m_Model->GetLayer()))
+  {
     this->OnNicknameUpdate();
-    }
-  if(bucket.HasEvent(ColorMapModel::PresetUpdateEvent()))
-    {
+  }
+  if (bucket.HasEvent(ColorMapModel::PresetUpdateEvent()))
+  {
     this->UpdateColorMapMenu();
-    }
-  if(bucket.HasEvent(LayerChangeEvent()) || bucket.HasEvent(WrapperChangeEvent()))
-    {
+  }
+  if (bucket.HasEvent(LayerChangeEvent()) || bucket.HasEvent(WrapperChangeEvent()))
+  {
     this->UpdateOverlaysMenu();
     this->UpdateTextFont();
-    }
-  if(bucket.HasEvent(ValueChangedEvent(), gs->GetSelectedLayerIdModel()))
-    {
+  }
+  if (bucket.HasEvent(ValueChangedEvent(), gs->GetSelectedLayerIdModel()))
+  {
     unsigned long sid = gs->GetSelectedLayerId();
     this->setSelected(m_Model->GetLayer() && sid == m_Model->GetLayer()->GetUniqueId());
     this->UpdateTextFont();
-    }
-  if(bucket.HasEvent(ValueChangedEvent(), m_Model->GetParentModel()->GetGlobalState()->GetSelectedSegmentationLayerIdModel()))
-    {
+  }
+  if (bucket.HasEvent(
+        ValueChangedEvent(),
+        m_Model->GetParentModel()->GetGlobalState()->GetSelectedSegmentationLayerIdModel()))
+  {
     unsigned long sid = gs->GetSelectedSegmentationLayerId();
     this->setSelected(m_Model->GetLayer() && sid == m_Model->GetLayer()->GetUniqueId());
     this->UpdateTextFont();
-    }
-
+  }
+  if (bucket.HasEvent(ActiveLayerChangeEvent(), app))
+  {
+    unsigned long sid = app->GetIRISImageData()->GetMeshLayers()->GetActiveLayerId();
+    this->setSelected(m_Model->GetLayer() && sid == m_Model->GetLayer()->GetUniqueId());
+    this->UpdateTextFont();
+  }
 }
 
 void LayerInspectorRowDelegate::mouseMoveEvent(QMouseEvent *)
@@ -945,4 +975,65 @@ LayerInspectorRowDelegate::on_actionReveal_triggered()
 {
   std::string fn = m_Model->GetParentModel()->GetLayerGeneralPropertiesModel()->GetFilename();
   showInGraphicalShell(this, QString::fromStdString(fn));
+}
+
+void
+LayerInspectorRowDelegate::onMeshDataArraySelected()
+{
+  auto *src = dynamic_cast<QAction *>(QObject::sender());
+  if(src)
+  {
+    int array_index = src->data().toInt();
+    StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Model->GetLayer());
+    if(mesh_layer)
+      mesh_layer->SetActiveMeshLayerDataPropertyId(array_index);
+  }
+}
+
+QString
+MeshDataArrayDescriptionTraits::GetText(int row, const Value &desc)
+{
+  return desc.SolidColor ? QCoreApplication::translate("GeneralLayerInspector", "Solid Color")
+                         : QString::fromStdString(desc.ArrayName);
+}
+
+QIcon
+MeshDataArrayDescriptionTraits::GetIcon(int row, const Value &desc)
+{
+  if (desc.SolidColor)
+    return QIcon();
+  else
+    return QIcon(GeneralLayerInspector::MeshDataTypeToIcon[desc.MeshDataType]);
+}
+
+QVariant
+MeshDataArrayDescriptionTraits::GetIconSignature(int row, const Value &desc)
+{
+  if (desc.SolidColor)
+    return QVariant(0);
+  else
+    return QVariant((int)desc.MeshDataType);
+}
+
+QString
+MeshVectorComponentDescriptionTraits::GetText(int row, const Value &desc)
+{
+  if (desc.Mode == MeshLayerDataArrayProperty::MAGNITUDE)
+    return QCoreApplication::translate("GeneralLayerInspector", "Magnitude");
+  else if (desc.Mode == MeshLayerDataArrayProperty::VectorMode::COMPONENT)
+    return QCoreApplication::translate("GeneralLayerInspector", "Component %1").arg(desc.Component + 1);
+
+  return QString();
+}
+
+QIcon
+MeshVectorComponentDescriptionTraits::GetIcon(int row, const Value &desc)
+{
+  return QIcon();
+}
+
+QVariant
+MeshVectorComponentDescriptionTraits::GetIconSignature(int row, const Value &desc)
+{
+  return QVariant(desc.Mode);
 }

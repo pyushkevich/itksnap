@@ -465,6 +465,30 @@ public:
 };
 
 /**
+ * Simple row description traits for models with domains that map an atomic value
+ * to a string.
+ */
+template<class TAtomic>
+class StringRowDescriptionTraits
+{
+public:
+  static QString GetText(TAtomic label, const std::string &text)
+  {
+    return QString(text.c_str());
+  }
+
+  static QIcon GetIcon(TAtomic label, const std::string &text)
+  {
+    return QIcon();
+  }
+
+  static QVariant GetIconSignature(TAtomic label, const std::string &text)
+  {
+    return QVariant(0);
+  }
+};
+
+/**
  * This Qt object is used to maintain the coupling between a model and a widget. It is 
  * memory managed by Qt and attached to the Qt widget that is involved in the coupling.
  */

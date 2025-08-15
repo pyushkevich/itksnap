@@ -83,6 +83,7 @@ private:
   Ui::LayerInspectorDialog *ui;
   GlobalUIModel *m_Model;
 
+  void UpdateLayers();
   void GenerateModelsForLayers();
   void BuildLayerWidgetHierarchy();
   void SetActiveLayer(WrapperBase *layer);

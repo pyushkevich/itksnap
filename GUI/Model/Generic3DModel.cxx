@@ -17,6 +17,7 @@
 #include "ImageWrapperTraits.h"
 #include "SegmentationUpdateIterator.h"
 #include "ImageMeshLayers.h"
+#include "itkImage.h"
 
 // All the VTK stuff
 #include "vtkPolyData.h"
@@ -42,6 +43,10 @@ Generic3DModel::Generic3DModel()
   // Display Color Bar model
   m_DisplayColorBarModel = NewSimpleConcreteProperty(false);
 
+  // Selected layer Id model
+  m_SelectedMeshLayerModel = wrapGetterSetterPairAsProperty(
+    this, &Self::GetSelectedMeshLayerValueAndRange, &Self::SetSelectedMeshLayerValue);
+
   // Scalpel
   m_ScalpelStatus = SCALPEL_LINE_NULL;
 
@@ -49,7 +54,6 @@ Generic3DModel::Generic3DModel()
   m_ClearTime = 0;
 }
 
-#include "itkImage.h"
 
 void Generic3DModel::Initialize(GlobalUIModel *parent)
 {
@@ -69,6 +73,12 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   // Listen to segmentation change events
   Rebroadcast(m_Driver, SegmentationChangeEvent(), StateMachineChangeEvent());
   Rebroadcast(m_Driver, LevelSetImageChangeEvent(), StateMachineChangeEvent());
+
+  // Listen to layer change events that may indicate new mesh has been loaded
+  m_SelectedMeshLayerModel->Rebroadcast(GetMeshLayers(), ActiveLayerChangeEvent(), ValueChangedEvent());
+  m_SelectedMeshLayerModel->Rebroadcast(GetMeshLayers(), LayerChangeEvent(), ValueChangedEvent());
+  m_SelectedMeshLayerModel->Rebroadcast(GetMeshLayers(), LayerChangeEvent(), DomainChangedEvent());
+  m_SelectedMeshLayerModel->Rebroadcast(GetMeshLayers(), WrapperMetadataChangeEvent(), DomainDescriptionChangedEvent());
 
   // Rebroadcast model change events as state changes
   Rebroadcast(this, ModelUpdateEvent(), StateMachineChangeEvent());
@@ -480,6 +490,32 @@ bool Generic3DModel::IntersectSegmentation(int vx, int vy, double v_radius, int 
 
 }
 
+bool
+Generic3DModel::GetSelectedMeshLayerValueAndRange(unsigned long &value, SelectedLayerDomain *domain)
+{
+  value = GetMeshLayers()->GetActiveLayerId();
+  auto layer = GetMeshLayers()->GetLayer(value);
+  if(!layer)
+    return false;
+
+  if(domain)
+  {
+    for(auto id : GetMeshLayers()->GetLayerIds())
+    {
+      layer = GetMeshLayers()->GetLayer(id);
+      (*domain)[id] = { layer->IsExternalLoadable(), layer->GetNickname() };
+    }
+  }
+
+  return true;
+}
+
+void
+Generic3DModel::SetSelectedMeshLayerValue(unsigned long value)
+{
+  GetMeshLayers()->SetActiveLayerId(value);
+}
+
 
 bool Generic3DModel::PickSegmentationVoxelUnderMouse(int px, int py)
 {
@@ -537,3 +573,14 @@ void Generic3DModel::SetScalpelEndPoint(int px, int py, bool complete)
 }
 
 
+bool
+Generic3DModel::SelectedLayerDescriptor::operator==(const SelectedLayerDescriptor &other) const
+{
+  return (External == other.External) && (Name == other.Name);
+}
+
+bool
+Generic3DModel::SelectedLayerDescriptor::operator!=(const SelectedLayerDescriptor &other) const
+{
+  return !(*this == other);
+}

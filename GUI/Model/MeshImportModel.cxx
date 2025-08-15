@@ -1,5 +1,6 @@
 #include "MeshImportModel.h"
 #include "GlobalUIModel.h"
+#include "HistoryManager.h"
 #include "MeshWrapperBase.h"
 #include "StandaloneMeshWrapper.h"
 #include "IRISApplication.h"
@@ -113,6 +114,10 @@ MeshImportModel::LoadToTP(const char *filename, FileFormat format)
 
   // Execute loading
   layers->LoadFileToLayer(filename, format, active_layer_id, tp, mesh_count);
+
+  // Update the history
+  this->GetParentModel()->GetSystemInterface()->GetHistoryManager()->
+    UpdateHistory(this->GetHistoryName(), filename, true);
 }
 
 bool

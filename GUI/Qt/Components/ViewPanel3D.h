@@ -22,6 +22,7 @@ namespace itk {
 class Generic3DModel;
 class GenericView3D;
 class QMenu;
+class QToolButton;
 
 
 class ViewPanel3D : public SNAPComponent
@@ -40,9 +41,14 @@ public:
 signals:
 
   void renderProgress(int progress);
+  void updateContextMenu();
 
 private slots:
   virtual void onModelUpdate(const EventBucket &bucket);
+
+  void onView3dResize();
+
+  void onContextMenuUpdateRequested();
 
   void on_btnUpdateMesh_clicked();
 
@@ -81,6 +87,7 @@ private:
   Generic3DModel *m_Model;
 
   QMenu *m_DropMenu;
+  QMenu *m_MeshLayerMenu;
 
   QTimer *m_RenderTimer;
 
@@ -96,6 +103,9 @@ private:
   // Elapsed time since begin of render operation
   int m_RenderElapsedTicks;
 
+  // Context menu tool button
+  QToolButton *m_ContextToolButton;
+
   typedef itk::MemberCommand<ViewPanel3D> CommandType;
   SmartPtr<CommandType> m_RenderProgressCommand;
 
@@ -105,12 +115,15 @@ private:
 
   void UpdateActionButtons();
 
+  void UpdateMeshLayerMenu();
+
   // Apply color bar visibility based on the active mesh layer type
   void ApplyDefaultColorBarVisibility();
 
   void ProgressCallback(itk::Object *source, const itk::EventObject &event);
 
   bool m_ColorBarUserInputOverride = false;
+  void UpdateContextButtonLocation();
 };
 
 #endif // VIEWPANEL3D_H

@@ -53,6 +53,19 @@ public:
     SCALPEL_LINE_COMPLETED
   };
 
+  // Descriptor information for the selected mesh layer model
+  struct SelectedLayerDescriptor
+  {
+    bool External;
+    std::string Name;
+    bool operator == (const SelectedLayerDescriptor &other) const;
+    bool operator != (const SelectedLayerDescriptor &other) const;
+  };
+  using SelectedLayerDomain = SimpleItemSetDomain<unsigned long, SelectedLayerDescriptor>;
+
+  // Model for accessing the selected mesh layer
+  irisGenericPropertyAccessMacro(SelectedMeshLayer, unsigned long, SelectedLayerDomain);
+
   // Set the parent model
   void Initialize(GlobalUIModel *parent);
 
@@ -112,9 +125,6 @@ public:
   // Get mesh layers
   ImageMeshLayers *GetMeshLayers();
 
-  /** Set/Get selected mesh layer id */
-  irisSimplePropertyAccessMacro(SelectedMeshLayerId, unsigned long)
-
   // Get the transform from image space to world coordinates
   Mat4d &GetWorldMatrix();
 
@@ -172,6 +182,12 @@ protected:
   // State of the scalpel drawing
   ScalpelStatus m_ScalpelStatus;
 
+  // Selected layer model
+  using SelectedLayerModel = AbstractPropertyModel<unsigned long, SelectedLayerDomain>;
+  SmartPtr<SelectedLayerModel> m_SelectedMeshLayerModel;
+  bool GetSelectedMeshLayerValueAndRange(unsigned long &value, SelectedLayerDomain *domain);
+  void SetSelectedMeshLayerValue(unsigned long value);
+
   // Continuous update model
   SmartPtr<ConcreteSimpleBooleanProperty> m_ContinuousUpdateModel;
 
@@ -180,9 +196,6 @@ protected:
 
   // Is the mesh updating
   bool m_MeshUpdating;
-
-  // Selected Mesh Layer ID
-  SmartPtr<ConcreteSimpleULongProperty> m_SelectedMeshLayerIdModel;
 
   // Time of the last mesh clear operation
   unsigned long m_ClearTime;

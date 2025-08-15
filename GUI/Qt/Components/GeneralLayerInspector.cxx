@@ -2,6 +2,7 @@
 #include "ui_GeneralLayerInspector.h"
 
 #include "LayerGeneralPropertiesModel.h"
+#include "LayerInspectorRowDelegate.h"
 
 #include "QtCheckBoxCoupling.h"
 #include "QtComboBoxCoupling.h"
@@ -22,8 +23,23 @@ Q_DECLARE_METATYPE(LayerGeneralPropertiesModel::DisplayMode)
 
 using MeshDataType = LayerGeneralPropertiesModel::MeshDataType;
 
+
+// Needed for coupling active mesh array model with ComboBox
+template <>
+class DefaultComboBoxRowTraits<int, MeshDataArrayDescriptionTraits::Value>
+  : public TextAndIconComboBoxRowTraits<int, MeshDataArrayDescriptionTraits::Value, MeshDataArrayDescriptionTraits>
+{};
+
+
+// Needed for coupling active mesh array model with ComboBox
+template <>
+class DefaultComboBoxRowTraits<vtkIdType, MeshVectorComponentDescriptionTraits::Value>
+  : public TextAndIconComboBoxRowTraits<vtkIdType, MeshVectorComponentDescriptionTraits::Value, MeshVectorComponentDescriptionTraits>
+{};
+
+
 std::map<int, const char*>
-GeneralLayerInspector::m_MeshDataTypeToIcon =
+GeneralLayerInspector::MeshDataTypeToIcon =
 {
 	{ MeshDataType::POINT_DATA, ":/root/mesh_point_data.png" },
 	{ MeshDataType::CELL_DATA, ":/root/mesh_cell_data.png" }
@@ -106,13 +122,6 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
 								 LayerGeneralPropertiesModel::UIF_MESH_HAS_DATA,
                  QtWidgetActivator::HideInactive);
 
-	// Mesh data array display connection
-  LatentITKEventNotifier::connect(
-        m_Model, ActiveLayerChangeEvent(), this, SLOT(meshData_domainChanged()));
-
-  QObject::connect(ui->boxMeshDataName, SIGNAL(currentIndexChanged(int)),
-									 this, SLOT(meshData_selectionChanged(int)));
-
 	// Mesh vector data connection
   activateOnFlag(ui->lblMeshVectorMode, m_Model,
 								 LayerGeneralPropertiesModel::UIF_IS_MESHDATA_MULTICOMPONENT,
@@ -131,10 +140,10 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
                  QtWidgetActivator::HideInactive);
   */
 
+  makeCoupling(ui->boxMeshDataName, m_Model->GetActiveMeshLayerDataPropertyIdModel());
   makeCoupling(ui->boxMeshVectorMode, m_Model->GetMeshVectorModeModel());
   makeCoupling(ui->btnMeshSolidColor, m_Model->GetMeshSolidColorModel());
   makeCoupling(ui->inMeshSliceOpacity, m_Model->GetMeshSliceViewOpacityModel());
-
 }
 
 void GeneralLayerInspector::on_btnUp_clicked()
@@ -153,42 +162,6 @@ void GeneralLayerInspector::on_spinBoxTP_valueChanged(int value)
   txt.append(std::to_string(value).c_str());
   txt.append(":");
   ui->grpTPProperties->setTitle(txt);
-}
-
-void
-GeneralLayerInspector ::meshData_domainChanged()
-{
-  auto mesh = dynamic_cast<StandaloneMeshWrapper *>(m_Model->GetLayer());
-
-  if (mesh && mesh->GetUniqueId() != this->m_CurrentlyActiveMeshLayerId)
-  {
-    this->m_CurrentlyActiveMeshLayerId = mesh->GetUniqueId();
-
-    auto boxMetaName = ui->boxMeshDataName;
-    boxMetaName->clear();
-    boxMetaName->addItem("Solid Color", -1);
-
-    // auto &propMap = mesh->GetCombinedDataProperty();
-    LayerGeneralPropertiesModel::MeshLayerDataPropertiesMap propMap;
-    if (m_Model->GetMeshDataArrayPropertiesMap(propMap))
-    {
-      for (auto &kv : propMap)
-      {
-        boxMetaName->addItem(
-          QIcon(m_MeshDataTypeToIcon[kv.second->GetType()]), kv.second->GetName(), kv.first);
-      }
-    }
-    int index = ui->boxMeshDataName->findData(mesh->GetActiveMeshLayerDataPropertyId());
-    boxMetaName->setCurrentIndex(index);
-  }
-}
-
-void
-GeneralLayerInspector
-::meshData_selectionChanged(int index)
-{
-  int id = ui->boxMeshDataName->itemData(index).toInt();
-  m_Model->SetActiveMeshLayerDataPropertyId(id);
 }
 
 void GeneralLayerInspector::onModelUpdate(const EventBucket &)

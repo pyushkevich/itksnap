@@ -1,4 +1,5 @@
 #include "ViewPanel3D.h"
+#include "LayerInspectorDialog.h"
 #include "ui_ViewPanel3D.h"
 #include "GlobalUIModel.h"
 #include "Generic3DModel.h"
@@ -13,15 +14,13 @@
 #include "SNAPQtCommon.h"
 #include "QtWidgetActivator.h"
 #include "DisplayLayoutModel.h"
-#include <QtCore>
-#include <qtconcurrentrun.h>
+#include <QtConcurrent>
 #include "itkProcessObject.h"
 #include <QMenu>
 #include "QtWidgetCoupling.h"
 #include "QtActionCoupling.h"
-
-
-
+#include "QtMenuCoupling.h"
+#include "MeshManager.h"
 
 ViewPanel3D::ViewPanel3D(QWidget *parent) :
   SNAPComponent(parent),
@@ -40,10 +39,21 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
 
   // Connect the progress event
   ui->progressBar->setRange(0, 1000);
-  QObject::connect(this, SIGNAL(renderProgress(int)), ui->progressBar, SLOT(setValue(int)),
-                   Qt::DirectConnection);
+  QObject::connect(
+    this, SIGNAL(renderProgress(int)), ui->progressBar, SLOT(setValue(int)), Qt::DirectConnection);
 
-  // Set up the context menu
+  QObject::connect(
+    this, SIGNAL(updateContextMenu()), this, SLOT(onContextMenuUpdateRequested()), Qt::QueuedConnection);
+
+  // Set up the context menu in the top right corner
+  m_ContextToolButton = CreateContextToolButton(ui->view3d);
+
+  // Listen for leave/enter events to active context button
+  connect(ui->view3d, SIGNAL(mouseEntered()), m_ContextToolButton, SLOT(show()));
+  connect(ui->view3d, SIGNAL(mouseLeft()), m_ContextToolButton, SLOT(hide()));
+  connect(ui->view3d, SIGNAL(resized()), this, SLOT(onView3dResize()));
+
+  // Set up the camera context menu
   m_DropMenu = new QMenu(this);
   m_DropMenu->setStyleSheet("font-size:11px;");
   m_DropMenu->addAction(ui->actionReset_Viewpoint);
@@ -54,6 +64,12 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   ui->actionContinuous_Update->setObjectName("actionContinuousUpdate");
   m_DropMenu->addSeparator();
   m_DropMenu->addAction(ui->actionClear_Rendering);
+  m_DropMenu->addSeparator();
+
+  // Menu for listing layers
+  m_MeshLayerMenu = new QMenu(tr("Active Mesh Layer"), this);
+  m_DropMenu->addMenu(m_MeshLayerMenu);
+  m_DropMenu->setVisible(false);
 
   // Make the actions globally accessible
   this->addActions(m_DropMenu->actions());
@@ -69,24 +85,64 @@ GenericView3D *ViewPanel3D::Get3DView()
   return ui->view3d;
 }
 
-void ViewPanel3D::onModelUpdate(const EventBucket &bucket)
+void
+ViewPanel3D::onModelUpdate(const EventBucket &bucket)
 {
   GlobalState *gs = m_Model->GetParentUI()->GetGlobalState();
-  if(bucket.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()))
-    {
+  if (bucket.HasEvent(DisplayLayoutModel::ViewPanelLayoutChangeEvent()))
+  {
     UpdateExpandViewButton();
-    }
+  }
 
-  if(bucket.HasEvent(ValueChangedEvent(), gs->GetToolbarMode3DModel()))
-    {
+  if (bucket.HasEvent(ValueChangedEvent(), gs->GetToolbarMode3DModel()))
+  {
     UpdateActionButtons();
-    }
+  }
 
-  if(bucket.HasEvent(ActiveLayerChangeEvent()),
-     m_Model->GetParentUI()->GetDriver()->GetIRISImageData()->GetMeshLayers())
-    {
+  if (bucket.HasEvent(ActiveLayerChangeEvent()))
+  {
     ApplyDefaultColorBarVisibility();
-    }
+    UpdateMeshLayerMenu();
+  }
+
+  if (bucket.HasEvent(LayerChangeEvent()))
+  {
+    UpdateMeshLayerMenu();
+  }
+}
+
+void
+ViewPanel3D::onView3dResize()
+{
+  UpdateContextButtonLocation();
+}
+
+void
+ViewPanel3D::onContextMenuUpdateRequested()
+{
+  // Set up the context menu on the button
+  MainImageWindow *winmain = findParentWidget<MainImageWindow>(this);
+  LayerInspectorDialog *inspector = winmain->GetLayerInspector();
+
+  // Get the corresponding context menu
+  auto *ml = m_Model->GetMeshLayers();
+  auto *menu = inspector->GetLayerContextMenu(ml->GetLayer(ml->GetActiveLayerId()));
+  m_ContextToolButton->setMenu(menu);
+}
+
+void
+ViewPanel3D::UpdateContextButtonLocation()
+{
+  int x = ui->view3d->x() + ui->view3d->width() - m_ContextToolButton->width();
+  int y = ui->view3d->y();
+  m_ContextToolButton->move(x,y);
+}
+
+void
+ViewPanel3D::UpdateMeshLayerMenu()
+{
+  // Fire the signal saying that the context menu needs updating
+  emit updateContextMenu();
 }
 
 void ViewPanel3D::ApplyDefaultColorBarVisibility()
@@ -138,6 +194,33 @@ void ViewPanel3D::on_btnUpdateMesh_clicked()
   ui->view3d->repaint();
 }
 
+// For coupling mesh layer model with menu
+class SelectedMeshLayerDescriptionTraits
+{
+public:
+  using Value = Generic3DModel::SelectedLayerDescriptor;
+
+  static QString GetText(int row, const Value &desc)
+  {
+    return from_utf8(desc.Name);
+  }
+  static QIcon GetIcon(int row, const Value &desc)
+  {
+    return QIcon();
+  }
+  static QVariant GetIconSignature(int row, const Value &desc)
+  {
+    return QVariant(0);
+  }
+};
+
+template <>
+class DefaultQMenuRowTraits<unsigned long, SelectedMeshLayerDescriptionTraits::Value>
+  : public TextAndIconMenuRowTraits<unsigned long, SelectedMeshLayerDescriptionTraits::Value, SelectedMeshLayerDescriptionTraits>
+{};
+
+
+
 void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
 {
   // Save the model
@@ -161,10 +244,11 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
              ValueChangedEvent());
 
   // Listen to changes in layer change for 3d view
-  connectITK(globalUI->GetDriver()->GetIRISImageData()->GetMeshLayers(),
-             ActiveLayerChangeEvent());
+  makeCoupling(this->m_MeshLayerMenu, m_Model->GetSelectedMeshLayerModel());
 
-
+  connectITK(globalUI->GetDriver(), ActiveLayerChangeEvent());
+  connectITK(globalUI->GetDriver(), LayerChangeEvent());
+  connectITK(globalUI->GetDriver(), WrapperChangeEvent());
   makeCoupling(ui->actionContinuous_Update, m_Model->GetContinuousUpdateModel());
 
   // Set up the buttons

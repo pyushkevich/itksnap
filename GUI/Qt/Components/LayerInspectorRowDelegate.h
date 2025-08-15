@@ -5,8 +5,8 @@
 #include <SNAPComponent.h>
 #include "SNAPCommon.h"
 #include <QWidgetAction>
+#include "LayerTableRowModel.h"
 
-class AbstractLayerTableRowModel;
 class ImageWrapperBase;
 class WrapperBase;
 class QMenu;
@@ -51,6 +51,27 @@ protected:
 namespace Ui {
 class LayerInspectorRowDelegate;
 }
+
+class MeshDataArrayDescriptionTraits
+{
+public:
+  using Value = MeshLayerTableRowModel::MeshDataArrayDescriptor;
+
+  static QString GetText(int row, const Value &desc);
+  static QIcon GetIcon(int row, const Value &desc);
+  static QVariant GetIconSignature(int row, const Value &desc);
+};
+
+class MeshVectorComponentDescriptionTraits
+{
+public:
+  using Value = MeshLayerTableRowModel::MeshVectorModeDescriptor;
+
+  static QString GetText(int row, const Value &desc);
+  static QIcon GetIcon(int row, const Value &desc);
+  static QVariant GetIconSignature(int row, const Value &desc);
+};
+
 
 /**
  * @brief The LayerInspectorRowDelegate class
@@ -136,6 +157,8 @@ private slots:
 
   void on_actionReveal_triggered();
 
+  void onMeshDataArraySelected();
+
 private:
   Ui::LayerInspectorRowDelegate *ui;
 
@@ -153,7 +176,7 @@ private:
   QMenu *m_PopupMenu;
 
   // A submenu for the color maps
-  QMenu *m_ColorMapMenu, *m_DisplayModeMenu, *m_OverlaysMenu, *m_VolumeRenderingMenu;
+  QMenu *m_ColorMapMenu, *m_DisplayModeMenu, *m_OverlaysMenu, *m_VolumeRenderingMenu, *m_MeshArrayMenu, *m_MeshArrayComponentMenu;
 
   // Slider for opacity that lives in the menu
   QSlider *m_OverlayOpacitySlider;
