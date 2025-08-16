@@ -47,6 +47,13 @@ Generic3DModel::Generic3DModel()
   m_SelectedMeshLayerModel = wrapGetterSetterPairAsProperty(
     this, &Self::GetSelectedMeshLayerValueAndRange, &Self::SetSelectedMeshLayerValue);
 
+  // Focal point model
+  FocalPointTargetDomain focal_point_domain;
+  focal_point_domain[FOCAL_POINT_CURSOR] = FOCAL_POINT_CURSOR;
+  focal_point_domain[FOCAL_POINT_MAIN_IMAGE_CENTER] = FOCAL_POINT_MAIN_IMAGE_CENTER;
+  focal_point_domain[FOCAL_POINT_ACTIVE_MESH_LAYER_CENTER] = FOCAL_POINT_ACTIVE_MESH_LAYER_CENTER;
+  m_FocalPointTargetModel = NewConcreteProperty(FOCAL_POINT_CURSOR, focal_point_domain);
+
   // Scalpel
   m_ScalpelStatus = SCALPEL_LINE_NULL;
 
@@ -92,20 +99,21 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   Rebroadcast(m_Driver->GetIRISImageData()->GetMeshLayers(), LayerChangeEvent(), StateMachineChangeEvent());
 }
 
-bool Generic3DModel::CheckState(Generic3DModel::UIState state)
+bool
+Generic3DModel::CheckState(Generic3DModel::UIState state)
 {
-  if(!m_ParentUI->GetDriver()->IsMainImageLoaded())
+  if (!m_ParentUI->GetDriver()->IsMainImageLoaded())
     return false;
 
   ToolbarMode3DType mode = m_ParentUI->GetGlobalState()->GetToolbarMode3D();
-  ImageMeshLayers *layer = m_Driver->IsSnakeModeActive() ?
-        m_Driver->GetSNAPImageData()->GetMeshLayers():
-        m_Driver->GetIRISImageData()->GetMeshLayers();
+  ImageMeshLayers  *layer = m_Driver->IsSnakeModeActive()
+                              ? m_Driver->GetSNAPImageData()->GetMeshLayers()
+                              : m_Driver->GetIRISImageData()->GetMeshLayers();
 
-  switch(state)
-    {
+  switch (state)
+  {
     case UIF_MESH_DIRTY:
-      {
+    {
       bool ret = layer->IsActiveMeshLayerDirty();
 
       // clearing time
@@ -113,29 +121,35 @@ bool Generic3DModel::CheckState(Generic3DModel::UIState state)
         ret = true;
 
       return ret;
-      }
+    }
 
     case UIF_MESH_ACTION_PENDING:
-      {
-      if(mode == SPRAYPAINT_MODE)
+    {
+      if (mode == SPRAYPAINT_MODE)
         return m_SprayPoints->GetNumberOfPoints() > 0;
 
       else if (mode == SCALPEL_MODE)
         return m_ScalpelStatus == SCALPEL_LINE_COMPLETED;
 
-      else return false;
-      }
+      else
+        return false;
+    }
 
     case UIF_CAMERA_STATE_SAVED:
-      {
+    {
       return m_Renderer->IsSavedCameraStateAvailable();
-      }
+    }
 
     case UIF_FLIP_ENABLED:
-      {
+    {
       return mode == SCALPEL_MODE && m_ScalpelStatus == SCALPEL_LINE_COMPLETED;
-      }
     }
+
+    case UIF_MULTIPLE_MESHES:
+    {
+      return m_Driver->GetCurrentImageData()->GetMeshLayers()->GetLayerIds().size() > 1;
+    }
+  }
 
   return false;
 }

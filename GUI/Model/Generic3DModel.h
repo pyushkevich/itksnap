@@ -43,6 +43,7 @@ public:
     UIF_MESH_DIRTY = 0,
     UIF_MESH_ACTION_PENDING,
     UIF_CAMERA_STATE_SAVED,
+    UIF_MULTIPLE_MESHES,
     UIF_FLIP_ENABLED
   };
 
@@ -63,8 +64,19 @@ public:
   };
   using SelectedLayerDomain = SimpleItemSetDomain<unsigned long, SelectedLayerDescriptor>;
 
+  // Enum for what the camera focuses on
+  enum FocalPointTarget
+  {
+    FOCAL_POINT_CURSOR = 0, FOCAL_POINT_MAIN_IMAGE_CENTER, FOCAL_POINT_ACTIVE_MESH_LAYER_CENTER
+  };
+
+  using FocalPointTargetDomain = SimpleItemSetDomain<FocalPointTarget, FocalPointTarget>;
+
   // Model for accessing the selected mesh layer
   irisGenericPropertyAccessMacro(SelectedMeshLayer, unsigned long, SelectedLayerDomain);
+
+  // Model for focal point target selection
+  irisGenericPropertyAccessMacro(FocalPointTarget, FocalPointTarget, FocalPointTargetDomain);
 
   // Set the parent model
   void Initialize(GlobalUIModel *parent);
@@ -187,6 +199,10 @@ protected:
   SmartPtr<SelectedLayerModel> m_SelectedMeshLayerModel;
   bool GetSelectedMeshLayerValueAndRange(unsigned long &value, SelectedLayerDomain *domain);
   void SetSelectedMeshLayerValue(unsigned long value);
+
+  // Focal point target model
+  using FocalPointTargetModel = ConcretePropertyModel<FocalPointTarget, FocalPointTargetDomain>;
+  SmartPtr<FocalPointTargetModel> m_FocalPointTargetModel;
 
   // Continuous update model
   SmartPtr<ConcreteSimpleBooleanProperty> m_ContinuousUpdateModel;

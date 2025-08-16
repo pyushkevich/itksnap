@@ -36,22 +36,14 @@
 #define __SNAPImageData_h_
 
 #include "SNAPCommon.h"
-#include "IRISException.h"
-
 #include "GlobalState.h"
 #include "ColorLabel.h"
-#include "ImageCoordinateGeometry.h"
-
 #include "IRISImageData.h"
 #include "SnakeParameters.h"
-
+#include "UndoDataManager.h"
 #include "SNAPLevelSetDriver.h"
 
 #include <vector>
-
-#include "SNAPLevelSetFunction.h"
-#include "itkImageAdaptor.h"
-#include "UndoDataManager.h"
 
 namespace itk {
   class Command;

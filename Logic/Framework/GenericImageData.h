@@ -223,7 +223,7 @@ public:
   virtual void SetMainImage(GuidedNativeImageIO *io);
 
   /** Unload the main image (and everything else) */
-  virtual void UnloadMainImage();
+  void UnloadMainImage();
 
   /** Update the reference space after the reload of the main image */
   virtual void UpdateReferenceImageInAllLayers();
@@ -260,24 +260,23 @@ public:
   LabelImageWrapper *AddBlankSegmentation();
 
   /**
-   * Reset the segmentations to a single empty image of the same size as the
-   * main image. The existing segmentations are discarded
-   */
-  virtual void ResetSegmentations();
-
-  /**
    * Unload a specific segmentation image. If no segmentation images are left and
    * the main image is present, a new empty segmentation will be created (same as
    * calling ResetSegmentations)
    */
   void UnloadSegmentation(ImageWrapperBase *seg);
 
+  /**
+   * Unload all segmentations, creating a new blank segmentation
+   */
+  void UnloadAllSegmentations();
+
   /** Handle overlays */
-  virtual void AddOverlay(GuidedNativeImageIO *io);
-  virtual void AddOverlay(ImageWrapperBase *new_layer);
-  virtual void UnloadOverlays();
-  virtual void UnloadOverlayLast();
-  virtual void UnloadOverlay(ImageWrapperBase *overlay);
+  void AddOverlay(GuidedNativeImageIO *io);
+  void AddOverlay(ImageWrapperBase *new_layer);
+  void UnloadOverlays();
+  void UnloadOverlayLast();
+  void UnloadOverlay(ImageWrapperBase *overlay);
 
   /**
    * Unload a specific mesh layer
@@ -423,6 +422,9 @@ protected:
 
   // Remove all wrappers for a role
   void RemoveAllWrappers(LayerRole role);
+
+  // Method called before removing an image wrapper
+  virtual void BeforeRemoveImageWrapper(ImageWrapperBase *wrapper);
 
   // Generate an appropriate default nickname for a particular role
   std::string GenerateNickname(LayerRole role);

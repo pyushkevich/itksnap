@@ -14,7 +14,7 @@
 #include "SNAPQtCommon.h"
 #include "QtWidgetActivator.h"
 #include "DisplayLayoutModel.h"
-#include <QtConcurrent>
+#include <QtConcurrent/QtConcurrent>
 #include "itkProcessObject.h"
 #include <QMenu>
 #include "QtWidgetCoupling.h"
@@ -53,10 +53,15 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   connect(ui->view3d, SIGNAL(mouseLeft()), m_ContextToolButton, SLOT(hide()));
   connect(ui->view3d, SIGNAL(resized()), this, SLOT(onView3dResize()));
 
+  // Create the focal point target submenu
+  m_FocalPointTargetMenu = new QMenu(tr("Focus Camera on "), this);
+
   // Set up the camera context menu
   m_DropMenu = new QMenu(this);
   m_DropMenu->setStyleSheet("font-size:11px;");
   m_DropMenu->addAction(ui->actionReset_Viewpoint);
+  m_DropMenu->addMenu(m_FocalPointTargetMenu);
+  m_DropMenu->addSeparator();
   m_DropMenu->addAction(ui->actionSave_Viewpoint);
   m_DropMenu->addAction(ui->actionRestore_Viewpoint);
   m_DropMenu->addSeparator();
@@ -67,7 +72,7 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   m_DropMenu->addSeparator();
 
   // Menu for listing layers
-  m_MeshLayerMenu = new QMenu(tr("Active Mesh Layer"), this);
+  m_MeshLayerMenu = new QMenu(tr("Active Mesh"), this);
   m_DropMenu->addMenu(m_MeshLayerMenu);
   m_DropMenu->setVisible(false);
 
@@ -220,6 +225,40 @@ class DefaultQMenuRowTraits<unsigned long, SelectedMeshLayerDescriptionTraits::V
 {};
 
 
+// For coupling mesh layer model with menu
+class FocalPointTargetDescriptionTraits
+{
+public:
+  using Value = Generic3DModel::FocalPointTarget;
+
+  static QString GetText(int row, const Value &desc)
+  {
+    switch(desc)
+    {
+      case Generic3DModel::FOCAL_POINT_CURSOR:
+        return QCoreApplication::translate("ViewPanel3D", "Cursor position");
+      case Generic3DModel::FOCAL_POINT_MAIN_IMAGE_CENTER:
+        return QCoreApplication::translate("ViewPanel3D", "Main image center");
+      case Generic3DModel::FOCAL_POINT_ACTIVE_MESH_LAYER_CENTER:
+        return QCoreApplication::translate("ViewPanel3D", "Active mesh");
+        break;
+    }
+  }
+  static QIcon GetIcon(int row, const Value &desc)
+  {
+    return QIcon();
+  }
+  static QVariant GetIconSignature(int row, const Value &desc)
+  {
+    return QVariant(0);
+  }
+};
+
+template <>
+class DefaultQMenuRowTraits<Generic3DModel::FocalPointTarget, FocalPointTargetDescriptionTraits::Value>
+  : public TextAndIconMenuRowTraits<Generic3DModel::FocalPointTarget, FocalPointTargetDescriptionTraits::Value, FocalPointTargetDescriptionTraits>
+{};
+
 
 void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
 {
@@ -234,6 +273,7 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   activateOnFlag(ui->btnFlip, m_Model, Generic3DModel::UIF_FLIP_ENABLED);
   activateOnFlag(ui->btnUpdateMesh, m_Model, Generic3DModel::UIF_MESH_DIRTY);
   activateOnFlag(ui->actionRestore_Viewpoint, m_Model, Generic3DModel::UIF_CAMERA_STATE_SAVED);
+  activateOnFlag(m_MeshLayerMenu, m_Model, Generic3DModel::UIF_MULTIPLE_MESHES, QtWidgetActivator::HideInactive);
 
   // Listen to layout events
   connectITK(m_Model->GetParentUI()->GetDisplayLayoutModel(),
@@ -245,7 +285,9 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
 
   // Listen to changes in layer change for 3d view
   makeCoupling(this->m_MeshLayerMenu, m_Model->GetSelectedMeshLayerModel());
+  makeCoupling(this->m_FocalPointTargetMenu, m_Model->GetFocalPointTargetModel());
 
+  connectITK(globalUI->GetDriver(), MeshContentChangeEvent());
   connectITK(globalUI->GetDriver(), ActiveLayerChangeEvent());
   connectITK(globalUI->GetDriver(), LayerChangeEvent());
   connectITK(globalUI->GetDriver(), WrapperChangeEvent());

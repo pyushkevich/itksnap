@@ -34,21 +34,12 @@
 =========================================================================*/
 // ITK Includes
 #include "itkImage.h"
-#include "itkImageIterator.h"
-#include "RLEImageRegionIterator.h"
-#include "itkImageRegionConstIterator.h"
-#include "itkImageRegionIteratorWithIndex.h"
-#include "itkMinimumMaximumImageCalculator.h"
-#include "itkUnaryFunctorImageFilter.h"
-#include "itkRGBAPixel.h"
-#include "IRISSlicer.h"
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include <algorithm>
 #include <list>
 #include <map>
 #include <iostream>
-#include "SNAPEventListenerCallbacks.h"
 #include "GenericImageData.h"
 #include "Rebroadcaster.h"
 #include "LayerIterator.h"
@@ -59,9 +50,7 @@
 #include "ImageMeshLayers.h"
 
 // System includes
-#include <fstream>
 #include <iostream>
-#include <iomanip>
 
 
 GenericImageData
@@ -123,14 +112,13 @@ GenericImageData
   m_MainImageWrapper = wrapper;
 
   // Reset the segmentation state to a single empty image
-  this->ResetSegmentations();
+  this->UnloadAllSegmentations();
 
   // Set opaque
   m_MainImageWrapper->SetAlpha(255);
 
 }
 
-#include "itkIdentityTransform.h"
 
 class GenericImageDataWrapperCreator
 {
@@ -547,21 +535,14 @@ void GenericImageData
   // Erase the segmentation image
   this->RemoveImageWrapper(LABEL_ROLE, seg);
 
-  // If it has mesh, also remove it
-  if (m_MeshLayers->HasMeshForImage(id))
-    {
-    m_MeshLayers->RemoveLayer(m_MeshLayers->GetMeshForImage(id)->GetUniqueId());
-    }
-
   // If main is loaded and this is the only segmentation, reset so that
   // there is a blank segmentation left
   if(this->IsMainLoaded() && this->GetNumberOfLayers(LABEL_ROLE) == 0)
-    ResetSegmentations();
+    this->AddBlankSegmentation();
 }
 
 void
-GenericImageData
-::ResetSegmentations()
+GenericImageData::UnloadAllSegmentations()
 {
   // The main image must be loaded
   assert(this->IsMainLoaded());
@@ -571,6 +552,7 @@ GenericImageData
 
   // Add a new blank segmentation
   this->AddBlankSegmentation();
+
 }
 
 bool
@@ -785,6 +767,9 @@ void GenericImageData::PushBackImageWrapper(LayerRole role,
 
 void GenericImageData::PopBackImageWrapper(LayerRole role)
 {
+  assert(m_Wrappers[role].size() > 0);
+  if(m_Wrappers[role].back())
+    BeforeRemoveImageWrapper(m_Wrappers[role].back());
   m_Wrappers[role].pop_back();
 
   // Fire the layer change event
@@ -821,10 +806,7 @@ void GenericImageData::RemoveImageWrapper(LayerRole role,
       std::find(wrappers.begin(), wrappers.end(), wrapper);
   if(it != wrappers.end())
     {
-    auto *volume = it->GetPointer()->GetUserData("volume");
-    if (volume)
-      it->GetPointer()->RemoveUserData("volume");
-
+    BeforeRemoveImageWrapper(it->GetPointer());
     wrappers.erase(it);
     }
 
@@ -854,7 +836,10 @@ void GenericImageData::SetSingleImageWrapper(LayerRole role,
 void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
 {
   assert(m_Wrappers[role].size() == 1);
-  m_Wrappers[role].front() = NULL;
+  auto *current = m_Wrappers[role].front().GetPointer();
+  if(current)
+    BeforeRemoveImageWrapper(current);
+  m_Wrappers[role].front() = nullptr;
 
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
@@ -863,7 +848,22 @@ void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
 void GenericImageData::RemoveAllWrappers(LayerRole role)
 {
   while(m_Wrappers[role].size() > 0)
+  {
     this->PopBackImageWrapper(role);
+  }
+}
+
+void
+GenericImageData::BeforeRemoveImageWrapper(ImageWrapperBase *wrapper)
+{
+  // If the wrapper has a volume, remove it
+  auto *volume = wrapper->GetUserData("volume");
+  if (volume)
+    wrapper->RemoveUserData("volume");
+
+  // If wrapper is linked to a mesh layer, remove it too
+  if (m_MeshLayers->HasMeshForImage(wrapper->GetUniqueId()))
+    m_MeshLayers->RemoveLayer(m_MeshLayers->GetMeshForImage(wrapper->GetUniqueId())->GetUniqueId());
 }
 
 std::string GenericImageData::GenerateNickname(LayerRole role)

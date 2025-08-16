@@ -134,7 +134,11 @@ IRISApplication
   Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, LayerChangeEvent(), this);
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LayerChangeEvent(), this);
 
+  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, MeshContentChangeEvent(), this);
+  Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, MeshContentChangeEvent(), this);
+
   Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, ActiveLayerChangeEvent(), this);
+  Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, ActiveLayerChangeEvent(), this);
 
   // TODO: should this also be a generic Wrapper Image Data change event?
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LevelSetImageChangeEvent(), this);
@@ -411,7 +415,7 @@ IRISApplication
   assert(!IsSnakeModeActive());
 
   // Reset the segmentation image
-  m_IRISImageData->ResetSegmentations();
+  m_IRISImageData->UnloadAllSegmentations();
 
   // Update the selected segmentation image ID to that of the added blank image
   m_GlobalState->SetSelectedSegmentationLayerId(
@@ -428,7 +432,7 @@ IRISApplication
   assert(m_SNAPImageData);
 
   // Reset the segmentation image
-  m_SNAPImageData->ResetSegmentations();
+  m_SNAPImageData->UnloadAllSegmentations();
   m_GlobalState->SetSelectedSegmentationLayerId(
         m_SNAPImageData->GetFirstSegmentationLayer()->GetUniqueId());
 

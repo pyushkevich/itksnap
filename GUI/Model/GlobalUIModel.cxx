@@ -347,6 +347,7 @@ GlobalUIModel::GlobalUIModel()
 
   // Active Layer Id changed event
   Rebroadcast(m_Driver, ActiveLayerChangeEvent(), ActiveLayerChangeEvent());
+  Rebroadcast(m_Driver, MeshContentChangeEvent(), MeshContentChangeEvent());
 
   // The initial reporter delegate is NULL
   m_ProgressReporterDelegate = NULL;

@@ -26,7 +26,7 @@ ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector)
   unsigned long id = meshLayer->GetUniqueId();
   m_Layers[id] = meshLayer;
 
-  Rebroadcaster::Rebroadcast(meshLayer, ValueChangedEvent(), this, ActiveLayerChangeEvent());
+  Rebroadcaster::Rebroadcast(meshLayer, ValueChangedEvent(), this, MeshContentChangeEvent());
   Rebroadcaster::Rebroadcast(
     meshLayer, WrapperDisplayMappingChangeEvent(), this, WrapperDisplayMappingChangeEvent());
   Rebroadcaster::Rebroadcast(

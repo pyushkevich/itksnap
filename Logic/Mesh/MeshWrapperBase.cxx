@@ -188,24 +188,25 @@ MeshAssembly::Erase(LabelType id)
   m_Meshes.erase(m_Meshes.find(id));
 }
 
-void
+bool
 MeshAssembly::
 GetCombinedBounds(double bounds[6]) const
 {
-  for (int i = 0; i < 6; ++i)
-    bounds[i] = 0.0;
-
+  bool first = true;
   for (auto mesh : m_Meshes)
     {
     double crnt[6];
     mesh.second->GetPolyData()->GetBounds(crnt);
-    bounds[0] = std::min(crnt[0], bounds[0]);
-    bounds[1] = std::max(crnt[1], bounds[1]);
-    bounds[2] = std::min(crnt[2], bounds[2]);
-    bounds[3] = std::max(crnt[3], bounds[3]);
-    bounds[4] = std::min(crnt[4], bounds[4]);
-    bounds[5] = std::max(crnt[5], bounds[5]);
+    bounds[0] = first ? crnt[0] : std::min(crnt[0], bounds[0]);
+    bounds[1] = first ? crnt[1] : std::max(crnt[1], bounds[1]);
+    bounds[2] = first ? crnt[2] : std::min(crnt[2], bounds[2]);
+    bounds[3] = first ? crnt[3] : std::max(crnt[3], bounds[3]);
+    bounds[4] = first ? crnt[4] : std::min(crnt[4], bounds[4]);
+    bounds[5] = first ? crnt[5] : std::max(crnt[5], bounds[5]);
+    first = false;
     }
+
+  return !first; // Return true if at least one mesh is present
 }
 
 std::string

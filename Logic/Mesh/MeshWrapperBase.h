@@ -164,7 +164,7 @@ public:
   { return m_Meshes.size(); }
 
   // Compute combined bounds as double array
-  void GetCombinedBounds(double bounds[6]) const;
+  bool GetCombinedBounds(double bounds[6]) const;
 
   // Compute combined bounds as array string
   std::string GetCombinedBoundsString() const;

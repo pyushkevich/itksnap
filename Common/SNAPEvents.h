@@ -78,6 +78,9 @@ itkEventMacro(LevelSetImageChangeEvent, IRISEvent)
 /** The active layer id has changed */
 itkEventMacro(ActiveLayerChangeEvent, IRISEvent)
 
+/** Mesh contents have changed */
+itkEventMacro(MeshContentChangeEvent, IRISEvent)
+
 /** Change to the speed image */
 itkEventMacro(SpeedImageChangedEvent, LayerChangeEvent)
 

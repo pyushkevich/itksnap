@@ -88,6 +88,7 @@ private:
 
   QMenu *m_DropMenu;
   QMenu *m_MeshLayerMenu;
+  QMenu *m_FocalPointTargetMenu;
 
   QTimer *m_RenderTimer;
 
