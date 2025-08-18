@@ -35,7 +35,7 @@
         <location filename="../Windows/AboutDialog.ui" line="199" />
         <location filename="../../../../xc64rel/ui_AboutDialog.h" line="216" />
         <source>Build</source>
-        <translation>版本</translation>
+        <translation>构建</translation>
     </message>
 </context>
 <context>
@@ -638,7 +638,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/ContrastInspector.ui" line="408" />
         <location filename="../../../../xc64rel/ui_ContrastInspector.h" line="508" />
         <source>The x-coordinate of the selected control point. The x-coordinate represents input image intensity.</source>
-        <translation>所选控制点的 x 坐标。x 坐标表示输入图像强度。</translation>
+        <translation>所选控制点的 x 坐标。x 坐标表示输入图像灰度。</translation>
     </message>
     <message>
         <location filename="../Components/ContrastInspector.ui" line="436" />
@@ -922,7 +922,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/DeepLearningServerEditor.ui" line="282" />
         <location filename="../../../../xc64rel/ui_DeepLearningServerEditor.h" line="415" />
         <source>Connect using secure shell (SSH) tunnel</source>
-        <translation>使用SSH隧道连接</translation>
+        <translation>通过 SSH 隧道连接</translation>
     </message>
     <message>
         <location filename="../Windows/DeepLearningServerEditor.ui" line="298" />
@@ -2219,13 +2219,13 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Components/ImageInfoInspector.ui" line="1339" />
         <location filename="../../../../xc64rel/ui_ImageInfoInspector.h" line="880" />
         <source>Intensity under the cursor:</source>
-        <translation>光标下的灰度：</translation>
+        <translation>光标下的灰度值：</translation>
     </message>
     <message>
         <location filename="../Components/ImageInfoInspector.ui" line="1393" />
         <location filename="../../../../xc64rel/ui_ImageInfoInspector.h" line="881" />
         <source>Intensity Under the Cursor</source>
-        <translation>光标下的灰度</translation>
+        <translation>光标下的灰度值</translation>
     </message>
 </context>
 <context>
@@ -2891,7 +2891,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/LayerInspectorDialog.ui" line="189" />
         <location filename="../../../../xc64rel/ui_LayerInspectorDialog.h" line="205" />
         <source>Color Map</source>
-        <translation>色彩映射</translation>
+        <translation>颜色映射</translation>
     </message>
     <message>
         <location filename="../Windows/LayerInspectorDialog.ui" line="194" />
@@ -3219,7 +3219,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.cxx" line="122" />
         <source>Volume Rendering</source>
-        <translation>体积渲染</translation>
+        <translation>体绘制</translation>
     </message>
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.cxx" line="586" />
@@ -3552,7 +3552,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/MainImageWindow.ui" line="229" />
         <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1582" />
         <source>Getting started with ITK-SNAP Version 4</source>
-        <translation>开始使用 ITK-SNAP 4 版</translation>
+        <translation>开始使用 ITK-SNAP 4</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="265" />
@@ -3580,7 +3580,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="290" />
         <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1597" />
         <source>Recent Images</source>
-        <translation>最近的图像</translation>
+        <translation>最近图像</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="315" />
@@ -3588,7 +3588,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1598" />
         <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1632" />
         <source>Recent Workspaces</source>
-        <translation>最近的工作区</translation>
+        <translation>最近工作区</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="365" />
@@ -3742,7 +3742,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="650" />
         <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1624" />
         <source>Slice Annotations</source>
-        <translation>切片注释</translation>
+        <translation>切片标注</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="659" />
