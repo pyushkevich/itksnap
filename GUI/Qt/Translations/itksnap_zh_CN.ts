@@ -4602,7 +4602,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="1476"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1417"/>
         <source>Annotation Preferences...</source>
-        <translation>注释首选项...</translation>
+        <translation>标注首选项...</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1481"/>
@@ -4710,7 +4710,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="1584"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1454"/>
         <source>Annotation Tool</source>
-        <translation>注释工具</translation>
+        <translation>标注工具</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1587"/>
@@ -4979,7 +4979,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="1791"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1539"/>
         <source>Toggle Volume Rendering</source>
-        <translation>切换体渲染</translation>
+        <translation>切换体绘制</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1794"/>
@@ -5673,7 +5673,7 @@ Do you want to enable this feature?</source>
         <location filename="../Components/MetadataInspector.ui" line="89"/>
         <location filename="../../../../xc64dbg/ui_MetadataInspector.h" line="97"/>
         <source>Filter:</source>
-        <translation>滤镜：</translation>
+        <translation>过滤：</translation>
     </message>
 </context>
 <context>
