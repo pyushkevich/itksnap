@@ -285,11 +285,17 @@ GetTDigest()
 {
   std::vector<double> tmpdata;
   long n = 0;
+  int ncomp = 0;
 
   for (auto cit = m_DataPointerList.cbegin(); cit != m_DataPointerList.cend(); ++cit)
     {
     auto array = *cit;
     n += array->GetNumberOfTuples();
+    if(ncomp == 0)
+      ncomp = array->GetNumberOfComponents();
+    else
+      itkAssertOrThrowMacro(ncomp == array->GetNumberOfTuples(),
+        "All arrays must have the same number of tuples for TDigest computation.");
     }
 
   DataArrayImageType::Pointer img = DataArrayImageType::New();
@@ -310,8 +316,8 @@ GetTDigest()
   DataArrayImageType::IndexType idx;
   idx[0] = 0;
 
-	// get active component
-	vtkIdType activeVecComp = -1;
+  // Default component is 0 for single-component data and -1 (MAGNITUDE) for multi-component
+  vtkIdType activeVecComp = ncomp > 1 ? -1 : 0;
 	if (this->GetActiveVectorMode() == VectorMode::COMPONENT)
 		activeVecComp = this->GetActiveComponentId();
 
@@ -319,17 +325,15 @@ GetTDigest()
     {
     auto array = *cit;
     auto nTuple = array->GetNumberOfTuples();
+    std::vector<double> vec(ncomp);
     for (auto i = 0; i < nTuple; ++i)
       {
 			double v = 0;
 			if (activeVecComp == -1) // use magnitude
 				{
-				size_t nc = array->GetNumberOfComponents();
-				double *vec  = new double[nc];
-				for (size_t c = 0; c < nc; ++c)
+        for (size_t c = 0; c < ncomp; ++c)
 					vec[c] = array->GetComponent(i, c);
-				v = GetMagnitude(vec, nc);
-				delete [] vec;
+        v = GetMagnitude(vec.data(), ncomp);
 				}
 			else
 				v = array->GetComponent(i, activeVecComp);
