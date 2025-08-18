@@ -5023,7 +5023,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="1791" />
         <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1539" />
         <source>Toggle Volume Rendering</source>
-        <translation>切换体渲染</translation>
+        <translation>切换体绘制</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1794" />
@@ -5727,7 +5727,7 @@ Do you want to enable this feature?</source>
         <location filename="../Components/MetadataInspector.ui" line="89" />
         <location filename="../../../../xc64rel/ui_MetadataInspector.h" line="97" />
         <source>Filter:</source>
-        <translation>滤镜：</translation>
+        <translation>过滤：</translation>
     </message>
 </context>
 <context>
