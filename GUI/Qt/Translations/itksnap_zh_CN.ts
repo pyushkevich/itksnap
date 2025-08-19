@@ -4578,7 +4578,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="1460"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1409"/>
         <source>Toggle All Annotations</source>
-        <translation type="unfinished">切换所有标注</translation>
+        <translation>切换所有标注</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1463"/>
