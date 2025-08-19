@@ -200,4 +200,7 @@ QString get_user_friendly_date_string(const QDateTime &dt);
 /** Set up a context tool button in slice or 3D views */
 QToolButton *CreateContextToolButton(QWidget *parent);
 
+/** Recursively copy actions and submenus from an QMenu to a new QMenu */
+void DeepCopyMenuActions(QMenu *src, QMenu *trg);
+
 #endif // SNAPQTCOMMON_H

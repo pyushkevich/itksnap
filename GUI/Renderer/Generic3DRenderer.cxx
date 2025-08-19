@@ -246,7 +246,7 @@ Generic3DRenderer::SetModel(Generic3DModel *model)
   Rebroadcast(m_Model->GetParentUI()->GetDriver(), WrapperVisibilityChangeEvent(), ModelUpdateEvent());
 
   // Visibility of Color Bar
-  Rebroadcast(m_Model->GetDisplayColorBarModel(), ValueChangedEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Model->GetColorBarVisibleModel(), ValueChangedEvent(), ModelUpdateEvent());
 
   // Respond to mesh layer display mapping policy change event
   Rebroadcast(app->GetIRISImageData()->GetMeshLayers(),
@@ -428,7 +428,8 @@ Generic3DRenderer::UpdateAxisRendering()
 void
 Generic3DRenderer::UpdateColorLegendAppearance()
 {
-  m_ScalarBarActor->SetVisibility(m_Model->GetDisplayColorBar());
+  printf("Visibility of color bar changing to %d\n", m_Model->GetColorBarVisible() ? 1 : 0);
+  m_ScalarBarActor->SetVisibility(m_Model->GetColorBarVisible());
 }
 
 void
@@ -1017,7 +1018,7 @@ Generic3DRenderer::OnUpdate()
 
   // Update visibility of the color bar
   bool color_bar_visiblity_changed =
-    m_EventBucket->HasEvent(ValueChangedEvent(), m_Model->GetDisplayColorBarModel());
+    m_EventBucket->HasEvent(ValueChangedEvent(), m_Model->GetColorBarVisibleModel());
 
   // Whether the focal point for camera has changed - this necessitates camera reset
   bool focal_point_target_changed =
@@ -1037,6 +1038,7 @@ Generic3DRenderer::OnUpdate()
     // events in buckets before invoking the callback.
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     UpdateMeshAssembly();
+    UpdateColorLegendAppearance();
     need_render = true;
   }
   else if (labels_props_changed)

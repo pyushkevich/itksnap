@@ -402,6 +402,24 @@ font-size: 11px;
     <string>Ctrl+K, X</string>
    </property>
   </action>
+  <action name="actionColorBar_Visible">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/color_bar.png</normaloff>:/root/color_bar.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Color Bar</string>
+   </property>
+   <property name="toolTip">
+    <string>Show or Hide 3D Color Bar</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

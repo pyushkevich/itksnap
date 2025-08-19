@@ -77,6 +77,9 @@ bool AbstractLayerTableRowModel::CheckState(UIState state)
       return (m_LayerRole != MESH_ROLE &&
           !(strcmp(m_Layer->GetFileName(), "") == 0));
 
+    case AbstractLayerTableRowModel::UIF_FILE_REVEALABLE:
+      return (m_Layer && !(strcmp(m_Layer->GetFileName(), "") == 0));
+
     default:
       break;
     }
@@ -683,6 +686,8 @@ MeshLayerTableRowModel::CheckState(UIState state)
   bool hasGenericDMP =
     (dynamic_cast<GenericMeshDisplayMappingPolicy *>(m_MeshLayer->GetDisplayMapping()) != NULL);
 
+  auto prop = m_MeshLayer->GetActiveDataArrayProperty();
+
   switch (state)
   {
     // This is a mesh
@@ -705,25 +710,19 @@ MeshLayerTableRowModel::CheckState(UIState state)
       return false;
 
     case AbstractLayerTableRowModel::UIF_MESH_MULTICOMPONENT:
-    {
-      auto prop = m_MeshLayer->GetActiveDataArrayProperty();
       return prop && prop->IsMultiComponent();
-    }
 
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
-      return hasGenericDMP;
+      return hasGenericDMP & prop.IsNotNull();
 
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
-      return hasGenericDMP;
+      return hasGenericDMP & prop.IsNotNull();
 
     case AbstractLayerTableRowModel::UIF_MESH_HAS_DATA:
       return hasGenericDMP;
 
     case AbstractLayerTableRowModel::UIF_MESH_SOLID_COLOR:
-    {
-      auto prop = m_MeshLayer->GetActiveDataArrayProperty();
-      return prop.IsNull();
-    }
+      return hasGenericDMP ? prop.IsNull() : false;
 
     case AbstractLayerTableRowModel::UIF_SAVABLE:
       return !hasGenericDMP; // Mesh layer is currently read only

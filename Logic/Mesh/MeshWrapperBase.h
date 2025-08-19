@@ -290,7 +290,7 @@ public:
     earliercode that separately computed the image or mesh min/max and histogram using
     separate filters and required the number of histogram bins to be specified explicitly.
 
-    t-digest code: https://github.com/SpirentOrion/digestible
+    t-digest code: https://github.com/apache/datasketches-cpp
     t-digest paper: https://www.sciencedirect.com/science/article/pii/S2665963820300403
     */
   virtual TDigestDataObject *GetTDigest() override;

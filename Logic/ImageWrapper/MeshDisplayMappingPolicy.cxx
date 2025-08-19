@@ -240,17 +240,16 @@ GenericMeshDisplayMappingPolicy::UpdateAppearance(ActorPool *pool, unsigned int)
 void
 GenericMeshDisplayMappingPolicy::ConfigureLegend(vtkScalarBarActor *legend)
 {
-
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
   if(prop)
   {
     legend->SetLookupTable(m_LookupTable);
-    legend->SetVisibility(true);
     legend->SetTitle(prop->GetName());
   }
   else
   {
-    legend->SetVisibility(false);
+    legend->SetLookupTable(nullptr);
+    legend->SetTitle(nullptr);
   }
 }
 

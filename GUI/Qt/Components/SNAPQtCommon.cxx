@@ -687,3 +687,30 @@ CreateContextToolButton(QWidget *parent)
   button->setStyleSheet("QToolButton::menu-indicator { image: none; }");
   return button;
 }
+
+void
+DeepCopyMenuActions(QMenu *src, QMenu *trg)
+{
+  QList<QAction*> actions = src->actions();
+  for (const auto &it : std::as_const(actions))
+  {
+    QAction *action = it;
+    if(!action)
+      continue;
+    /*if (action->menu())
+    {
+      // Create a new menu and recursively copy its actions
+      QMenu *new_menu = trg->addMenu(action->text());
+      new_menu->setIcon(action->icon());
+      new_menu->setToolTip(action->toolTip());
+      new_menu->setStatusTip(action->statusTip());
+      new_menu->setVisible(action->isVisible())
+      DeepCopyMenuActions(action->menu(), new_menu);
+    }*/
+    else
+    {
+      // Create a new action and copy properties
+      trg->addAction(action);
+    }
+  }
+}

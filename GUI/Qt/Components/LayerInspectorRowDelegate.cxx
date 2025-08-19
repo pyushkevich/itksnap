@@ -90,6 +90,9 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   // Create a menu for selecting what array to load in a mesh
   m_MeshArrayMenu = m_PopupMenu->addMenu(tr("Active Data Array"));
   m_MeshArrayComponentMenu = m_PopupMenu->addMenu(tr("Active Data Array Component"));
+  m_PopupMenu->addAction(ui->actionChoose_Solid_Color);
+  connect(ui->actionChoose_Solid_Color, &QAction::triggered,
+          this, &LayerInspectorRowDelegate::onMeshChooseSolidColorActivated);
 
   // Add the color map menu
   m_ColorMapMenu = m_PopupMenu->addMenu(tr("Color Map"));
@@ -208,19 +211,20 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   activateOnFlag(ui->inLayerOpacity, model, AbstractLayerTableRowModel::UIF_OPACITY_EDITABLE, opt_hide);
   // activateOnFlag(ui->btnMoveUp, model, AbstractLayerTableRowModel::UIF_MOVABLE_UP);
   // activateOnFlag(ui->btnMoveDown, model, AbstractLayerTableRowModel::UIF_MOVABLE_DOWN);
-  activateOnFlag(ui->actionClose, model, AbstractLayerTableRowModel::UIF_CLOSABLE);
-  activateOnFlag(ui->actionSave, model, AbstractLayerTableRowModel::UIF_SAVABLE);
-  activateOnFlag(ui->actionReloadFromFile, model, AbstractLayerTableRowModel::UIF_FILE_RELOADABLE);
-  activateOnFlag(ui->actionReveal, model, AbstractLayerTableRowModel::UIF_FILE_RELOADABLE);
-  activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
-  activateOnFlag(ui->actionContrast_Inspector, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE);
+  activateOnFlag(ui->actionClose, model, AbstractLayerTableRowModel::UIF_CLOSABLE, opt_hide);
+  activateOnFlag(ui->actionSave, model, AbstractLayerTableRowModel::UIF_SAVABLE, opt_hide);
+  activateOnFlag(ui->actionReloadFromFile, model, AbstractLayerTableRowModel::UIF_FILE_RELOADABLE, opt_hide);
+  activateOnFlag(ui->actionReveal, model, AbstractLayerTableRowModel::UIF_FILE_REVEALABLE, opt_hide);
+  activateOnFlag(ui->actionAutoContrast, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE, opt_hide);
+  activateOnFlag(ui->actionContrast_Inspector, model, AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE, opt_hide);
   activateOnFlag(m_VolumeRenderingMenu, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE, opt_hide);
   activateOnFlag(m_OverlaysMenu, model, AbstractLayerTableRowModel::UIF_IMAGE, opt_hide);
-  activateOnFlag(ui->actionTextureFeatures, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE);
+  activateOnFlag(ui->actionTextureFeatures, model, AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE, opt_hide);
   activateOnFlag(ui->actionReloadAs4D, model, AbstractLayerTableRowModel::UIF_MULTICOMPONENT, opt_hide);
   activateOnFlag(ui->actionReloadAsMultiComponent, model, AbstractLayerTableRowModel::UIF_IS_4D, opt_hide);
   activateOnFlag(m_MeshArrayMenu, model, AbstractLayerTableRowModel::UIF_MESH_HAS_DATA, opt_hide);
   activateOnFlag(m_MeshArrayComponentMenu, model, AbstractLayerTableRowModel::UIF_MESH_MULTICOMPONENT, opt_hide);
+  activateOnFlag(ui->actionChoose_Solid_Color, model, AbstractLayerTableRowModel::UIF_MESH_SOLID_COLOR, opt_hide);
 
   // Hook up the colormap and the slider's style sheet
   connectITK(m_Model->GetLayer(), WrapperChangeEvent());
@@ -987,6 +991,23 @@ LayerInspectorRowDelegate::onMeshDataArraySelected()
     StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper*>(m_Model->GetLayer());
     if(mesh_layer)
       mesh_layer->SetActiveMeshLayerDataPropertyId(array_index);
+  }
+}
+
+void
+LayerInspectorRowDelegate::onMeshChooseSolidColorActivated()
+{
+  StandaloneMeshWrapper *mesh_layer = dynamic_cast<StandaloneMeshWrapper *>(m_Model->GetLayer());
+  if (mesh_layer)
+  {
+    auto   color = mesh_layer->GetSolidColor();
+    QColor qcolor = QColor::fromRgbF(color[0], color[1], color[2]);
+    QColor qcolor_new = QColorDialog::getColor(qcolor, this);
+    if (qcolor_new.isValid())
+    {
+      // Convert back to float
+      mesh_layer->SetSolidColor({ qcolor_new.redF(), qcolor_new.greenF(), qcolor_new.blueF() });
+    }
   }
 }
 

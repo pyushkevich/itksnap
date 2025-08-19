@@ -159,6 +159,8 @@ private slots:
 
   void onMeshDataArraySelected();
 
+  void onMeshChooseSolidColorActivated();
+
 private:
   Ui::LayerInspectorRowDelegate *ui;
 

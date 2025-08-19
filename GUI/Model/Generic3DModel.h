@@ -42,9 +42,10 @@ public:
   enum UIState {
     UIF_MESH_DIRTY = 0,
     UIF_MESH_ACTION_PENDING,
+    UIF_MESH_EXTERNAL,
     UIF_CAMERA_STATE_SAVED,
     UIF_MULTIPLE_MESHES,
-    UIF_FLIP_ENABLED
+    UIF_FLIP_ENABLED,
   };
 
   // State of scalpel drawging
@@ -88,8 +89,11 @@ public:
   // TODO: replace this with an update in a background thread
   irisSimplePropertyAccessMacro(ContinuousUpdate, bool)
 
-  // A flag indicating the color bar should be displayed
-  irisSimplePropertyAccessMacro(DisplayColorBar, bool)
+  // A flag indicating whether the user wants the color bar displayed
+  irisSimplePropertyAccessMacro(ColorBarEnabledByUser, bool)
+
+  // A flag indicating whether the color bar is actually displayed
+  irisReadOnlySimplePropertyAccessMacro(ColorBarVisible, bool)
 
   // Tell the model to update the segmentation mesh
   void UpdateSegmentationMesh(itk::Command *progressCmd);
@@ -207,8 +211,12 @@ protected:
   // Continuous update model
   SmartPtr<ConcreteSimpleBooleanProperty> m_ContinuousUpdateModel;
 
-  // Display Color Bar model
-  SmartPtr<ConcreteSimpleBooleanProperty> m_DisplayColorBarModel;
+  // Does user want a color bar?
+  SmartPtr<ConcreteSimpleBooleanProperty> m_ColorBarEnabledByUserModel;
+
+  // Is the color bar shown?
+  SmartPtr<AbstractSimpleBooleanProperty> m_ColorBarVisibleModel;
+  bool GetColorBarVisibleValue(bool &value);
 
   // Is the mesh updating
   bool m_MeshUpdating;

@@ -1028,6 +1028,7 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
   # Include directories
   SET(SNAP_INCLUDE_DIRS
     ${SNAP_SOURCE_DIR}/Common
+    ${SNAP_SOURCE_DIR}/Common/tdigest_apache/
     ${SNAP_SOURCE_DIR}/Common/ITKExtras
     ${SNAP_SOURCE_DIR}/Common/JSon
     ${SNAP_SOURCE_DIR}/Common/ITKBinaryWeightedAverage
@@ -1051,7 +1052,6 @@ ELSE( CMAKE_GENERATOR MATCHES "Visual Studio 6" )
     ${SNAP_SOURCE_DIR}/Submodules/c3d/adapters
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src
     ${SNAP_SOURCE_DIR}/Submodules/greedy/src/ITKFilters/include
-    ${SNAP_SOURCE_DIR}/Submodules/digestible/include
     ${SNAP_SOURCE_DIR}/GUI
     ${SNAP_SOURCE_DIR}/GUI/Model
     ${SNAP_SOURCE_DIR}/GUI/Renderer
@@ -1387,6 +1387,8 @@ add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
         ${TEMP}/Z150.mha
         Z 150 irisRLE
 )
+
+add_test(NAME TDigestTest COMMAND testTDigest ${TESTDATA_DIR}/tdigest_test.nii.gz 0.98)
 
 # This test basically checks whether we can build using the logic library onlu
 ADD_EXECUTABLE(logic_api_test

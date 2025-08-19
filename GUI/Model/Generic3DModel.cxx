@@ -4,20 +4,16 @@
 #include "IRISException.h"
 #include "IRISApplication.h"
 #include "GenericImageData.h"
-#include "IRISImageData.h"
 #include "SNAPImageData.h"
 #include "ImageWrapperBase.h"
 #include "MeshManager.h"
 #include "Window3DPicker.h"
-#include "vtkRenderWindow.h"
-#include "vtkRendererCollection.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkPointData.h"
-#include "MeshOptions.h"
 #include "ImageWrapperTraits.h"
 #include "SegmentationUpdateIterator.h"
 #include "ImageMeshLayers.h"
 #include "itkImage.h"
+#include "MeshOptions.h"
+#include "ImageRayIntersectionFinder.h"
 
 // All the VTK stuff
 #include "vtkPolyData.h"
@@ -40,8 +36,10 @@ Generic3DModel::Generic3DModel()
   // Continuous update model
   m_ContinuousUpdateModel = NewSimpleConcreteProperty(false);
 
-  // Display Color Bar model
-  m_DisplayColorBarModel = NewSimpleConcreteProperty(false);
+  // Display Color Bar models
+  m_ColorBarEnabledByUserModel = NewSimpleConcreteProperty(true);
+  m_ColorBarVisibleModel = wrapGetterSetterPairAsProperty(this, &Self::GetColorBarVisibleValue);
+  m_ColorBarVisibleModel->RebroadcastFromSourceProperty(m_ColorBarEnabledByUserModel);
 
   // Selected layer Id model
   m_SelectedMeshLayerModel = wrapGetterSetterPairAsProperty(
@@ -96,7 +94,8 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   Rebroadcast(m_ParentUI->GetGlobalState()->GetMeshOptions(),
               ChildPropertyChangedEvent(), StateMachineChangeEvent());
 
-  Rebroadcast(m_Driver->GetIRISImageData()->GetMeshLayers(), LayerChangeEvent(), StateMachineChangeEvent());
+  Rebroadcast(m_Driver, LayerChangeEvent(), StateMachineChangeEvent());
+  Rebroadcast(m_Driver, ActiveLayerChangeEvent(), StateMachineChangeEvent());
 }
 
 bool
@@ -106,9 +105,7 @@ Generic3DModel::CheckState(Generic3DModel::UIState state)
     return false;
 
   ToolbarMode3DType mode = m_ParentUI->GetGlobalState()->GetToolbarMode3D();
-  ImageMeshLayers  *layer = m_Driver->IsSnakeModeActive()
-                              ? m_Driver->GetSNAPImageData()->GetMeshLayers()
-                              : m_Driver->GetIRISImageData()->GetMeshLayers();
+  ImageMeshLayers  *layer = m_Driver->GetCurrentImageData()->GetMeshLayers();
 
   switch (state)
   {
@@ -133,6 +130,12 @@ Generic3DModel::CheckState(Generic3DModel::UIState state)
 
       else
         return false;
+    }
+
+    case UIF_MESH_EXTERNAL:
+    {
+      auto mesh = GetMeshLayers()->GetLayer(GetMeshLayers()->GetActiveLayerId());
+      return mesh && mesh->IsExternalLoadable();
     }
 
     case UIF_CAMERA_STATE_SAVED:
@@ -216,9 +219,7 @@ ImageMeshLayers *
 Generic3DModel
 ::GetMeshLayers()
 {
-  return m_Driver->IsSnakeModeActive() ?
-        m_Driver->GetSNAPImageData()->GetMeshLayers() :
-        m_Driver->GetIRISImageData()->GetMeshLayers();
+  return m_Driver->GetCurrentImageData()->GetMeshLayers();
 }
 
 vtkPolyData *Generic3DModel::GetSprayPoints() const
@@ -270,8 +271,7 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *progressCmd)
     m_MeshUpdating = true;
 
     // Check if snake mode is active and get mode specific image data
-    GenericImageData *imgData = m_Driver->IsSnakeModeLevelSetActive() ?
-          (GenericImageData*) m_Driver->GetSNAPImageData() : m_Driver->GetIRISImageData();
+    GenericImageData *imgData = m_Driver->GetCurrentImageData();
 
     // Update Mesh Layer
     imgData->GetMeshLayers()->UpdateActiveMeshLayer(progressCmd);
@@ -414,17 +414,10 @@ void Generic3DModel::FlipAction()
 void Generic3DModel::ClearRenderingAction()
 {
   m_Renderer->ClearRendering();
-
-  ImageMeshLayers *layer = m_Driver->IsSnakeModeActive() ?
-        m_Driver->GetSNAPImageData()->GetMeshLayers():
-        m_Driver->GetIRISImageData()->GetMeshLayers();
-
-  m_ClearTime = layer->GetActiveMeshMTime();
+  m_ClearTime = GetMeshLayers()->GetActiveMeshMTime();
   InvokeEvent(ModelUpdateEvent());
 }
 
-#include "ImageRayIntersectionFinder.h"
-#include "SNAPImageData.h"
 
 /** These classes are used internally for m_Ray intersection testing */
 class LabelImageHitTester
@@ -492,12 +485,14 @@ bool Generic3DModel::IntersectSegmentation(int vx, int vy, double v_radius, int 
   m_Renderer->ComputeRayFromClick(vx, vy, x_world, ray_world, dx_world, dy_world);
 
   // Convert these to image coordinates
+  /*
   Vector3d x_image = affine_transform_point(m_WorldMatrixInverse, x_world);
   Vector3d ray_image = affine_transform_vector(m_WorldMatrixInverse, ray_world);
   Vector3d dx_image = affine_transform_vector(m_WorldMatrixInverse, dx_world);
   Vector3d dy_image = affine_transform_vector(m_WorldMatrixInverse, dy_world);
 
   // TODO figure our sampling code here
+  */
 
   return false;
 
@@ -528,6 +523,20 @@ void
 Generic3DModel::SetSelectedMeshLayerValue(unsigned long value)
 {
   GetMeshLayers()->SetActiveLayerId(value);
+}
+
+bool
+Generic3DModel::GetColorBarVisibleValue(bool &value)
+{
+  bool user_enabled = this->GetColorBarEnabledByUser();
+
+  bool external_mesh = false;
+  auto layer = GetMeshLayers()->GetLayer(GetMeshLayers()->GetActiveLayerId());
+  if(layer && layer->IsExternalLoadable())
+    external_mesh = true;
+
+  value = user_enabled && external_mesh;
+  return true;
 }
 
 

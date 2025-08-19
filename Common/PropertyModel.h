@@ -695,6 +695,26 @@ protected:
   virtual AbstractPropertyModel<type, domaintype> * Get##name##Model () const \
     { return this->m_##name##Model; }
 
+// A macro to generate functions GetXXX(), SetXXX() and GetXXXModel() in a class
+// that contains a ConcretePropertyModel of a certain type named m_XXXModel
+#define irisReadOnlyRangedPropertyAccessMacro(name,type) \
+  virtual type Get##name () const \
+{ return this->m_##name##Model->GetValue(); } \
+  virtual AbstractPropertyModel<type, NumericValueRange<type> > * Get##name##Model () const \
+{ return this->m_##name##Model; }
+
+#define irisReadOnlySimplePropertyAccessMacro(name,type) \
+  virtual type Get##name () const \
+{ return this->m_##name##Model->GetValue(); } \
+  virtual AbstractPropertyModel<type, TrivialDomain > * Get##name##Model () const \
+{ return this->m_##name##Model; }
+
+#define irisReadOnlyGenericPropertyAccessMacro(name,type,domaintype) \
+  virtual type Get##name () const \
+{ return this->m_##name##Model->GetValue(); } \
+  virtual AbstractPropertyModel<type, domaintype> * Get##name##Model () const \
+{ return this->m_##name##Model; }
+
 // A factory function to initialize properties - again, for shorter code
 template <class TVal>
 SmartPtr< ConcretePropertyModel<TVal, NumericValueRange<TVal> > >

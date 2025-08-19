@@ -45,6 +45,9 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   QObject::connect(
     this, SIGNAL(updateContextMenu()), this, SLOT(onContextMenuUpdateRequested()), Qt::QueuedConnection);
 
+  // Color bar toolbutton has an action
+  ui->btnColorBar->setDefaultAction(ui->actionColorBar_Visible);
+
   // Set up the context menu in the top right corner
   m_ContextToolButton = CreateContextToolButton(ui->view3d);
 
@@ -106,7 +109,6 @@ ViewPanel3D::onModelUpdate(const EventBucket &bucket)
 
   if (bucket.HasEvent(ActiveLayerChangeEvent()))
   {
-    ApplyDefaultColorBarVisibility();
     UpdateMeshLayerMenu();
   }
 
@@ -131,8 +133,19 @@ ViewPanel3D::onContextMenuUpdateRequested()
 
   // Get the corresponding context menu
   auto *ml = m_Model->GetMeshLayers();
-  auto *menu = inspector->GetLayerContextMenu(ml->GetLayer(ml->GetActiveLayerId()));
-  m_ContextToolButton->setMenu(menu);
+
+  // Create a new menu for the context tool button
+  QMenu *new_menu = new QMenu(m_ContextToolButton);
+  new_menu->setStyleSheet("font-size:11px;");
+  auto inspector_actions = inspector->GetLayerContextMenu(ml->GetLayer(ml->GetActiveLayerId()))->actions();
+  for (auto *action : std::as_const(inspector_actions))
+    if(action)
+      new_menu->addAction(action);
+  m_ContextToolButton->setMenu(new_menu);
+
+  // Create a menu for activating another layer
+  new_menu->addSeparator();
+  new_menu->addMenu(m_MeshLayerMenu);
 }
 
 void
@@ -150,6 +163,7 @@ ViewPanel3D::UpdateMeshLayerMenu()
   emit updateContextMenu();
 }
 
+/*
 void ViewPanel3D::ApplyDefaultColorBarVisibility()
 {
   if (!m_Model->GetParentUI()->GetDriver()->IsMainImageLoaded())
@@ -182,6 +196,7 @@ void ViewPanel3D::ApplyDefaultColorBarVisibility()
       }
     }
 }
+*/
 
 void ViewPanel3D::on_btnUpdateMesh_clicked()
 {
@@ -274,6 +289,7 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   activateOnFlag(ui->btnUpdateMesh, m_Model, Generic3DModel::UIF_MESH_DIRTY);
   activateOnFlag(ui->actionRestore_Viewpoint, m_Model, Generic3DModel::UIF_CAMERA_STATE_SAVED);
   activateOnFlag(m_MeshLayerMenu, m_Model, Generic3DModel::UIF_MULTIPLE_MESHES, QtWidgetActivator::HideInactive);
+  activateOnFlag(ui->actionColorBar_Visible, m_Model, Generic3DModel::UIF_MESH_EXTERNAL);
 
   // Listen to layout events
   connectITK(m_Model->GetParentUI()->GetDisplayLayoutModel(),
@@ -286,6 +302,9 @@ void ViewPanel3D::Initialize(GlobalUIModel *globalUI)
   // Listen to changes in layer change for 3d view
   makeCoupling(this->m_MeshLayerMenu, m_Model->GetSelectedMeshLayerModel());
   makeCoupling(this->m_FocalPointTargetMenu, m_Model->GetFocalPointTargetModel());
+
+  // Coupling for the color bar enabled state
+  makeCoupling(ui->actionColorBar_Visible, m_Model->GetColorBarEnabledByUserModel());
 
   connectITK(globalUI->GetDriver(), MeshContentChangeEvent());
   connectITK(globalUI->GetDriver(), ActiveLayerChangeEvent());
@@ -370,14 +389,6 @@ void ViewPanel3D::on_btnExpand_clicked()
 
   // Apply this layout
   dlm->GetViewPanelLayoutModel()->SetValue(layout);
-}
-
-void ViewPanel3D::on_btnColorBar_clicked(bool isUser)
-{
-  if (isUser)
-    m_ColorBarUserInputOverride = true;
-
-  m_Model->SetDisplayColorBar(!m_Model->GetDisplayColorBar());
 }
 
 void ViewPanel3D::onTimer()
