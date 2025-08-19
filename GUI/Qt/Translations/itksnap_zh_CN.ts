@@ -7462,7 +7462,7 @@ the context menu.</source>
         <location filename="../Windows/ResampleDialog.ui" line="194" />
         <location filename="../../../../xc64rel/ui_ResampleDialog.h" line="393" />
         <source>Resampled ROI</source>
-        <translation>重采样感兴趣区</translation>
+        <translation>重采样感兴趣区域</translation>
     </message>
     <message>
         <location filename="../Windows/ResampleDialog.ui" line="236" />
@@ -7492,7 +7492,7 @@ the context menu.</source>
         <location filename="../Windows/ResampleDialog.ui" line="435" />
         <location filename="../../../../xc64rel/ui_ResampleDialog.h" line="379" />
         <source>Subsample by 2</source>
-        <translation>子采样 2 倍</translation>
+        <translation>降采样 2 倍</translation>
     </message>
     <message>
         <location filename="../Windows/ResampleDialog.ui" line="440" />
@@ -7504,7 +7504,7 @@ the context menu.</source>
         <location filename="../Windows/ResampleDialog.ui" line="445" />
         <location filename="../../../../xc64rel/ui_ResampleDialog.h" line="381" />
         <source>Subsample to Isotropic</source>
-        <translation>子采样为各向同性</translation>
+        <translation>降采样为各向同性</translation>
     </message>
 </context>
 <context>
@@ -10129,7 +10129,7 @@ ITK-SNAP 窗口共享状态</translation>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="579" />
         <source>Header size:</source>
-        <translation>头部大小：</translation>
+        <translation>文件头大小：</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="581" />
@@ -10194,12 +10194,12 @@ ITK-SNAP 窗口共享状态</translation>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="631" />
         <source>Big Endian (PowerPC, SPARC)</source>
-        <translation>大端序（PowerPC，SPARC）</translation>
+        <translation>大端（PowerPC，SPARC）</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="632" />
         <source>Little Endian (x86, x86_64)</source>
-        <translation>小端序（x86，x86_64）</translation>
+        <translation>小端（x86，x86_64）</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="634" />
