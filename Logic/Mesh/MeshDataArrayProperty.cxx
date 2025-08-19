@@ -294,7 +294,7 @@ GetTDigest()
     if(ncomp == 0)
       ncomp = array->GetNumberOfComponents();
     else
-      itkAssertOrThrowMacro(ncomp == array->GetNumberOfTuples(),
+      itkAssertOrThrowMacro(ncomp == array->GetNumberOfComponents(),
         "All arrays must have the same number of tuples for TDigest computation.");
     }
 

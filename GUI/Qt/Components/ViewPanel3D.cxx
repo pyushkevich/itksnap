@@ -137,7 +137,8 @@ ViewPanel3D::onContextMenuUpdateRequested()
   // Create a new menu for the context tool button
   m_ContextButtonMenu->clear();
   auto layer = ml->GetLayer(ml->GetActiveLayerId());
-  if(layer)
+  auto layer_context_menu = layer ? inspector->GetLayerContextMenu(layer) : nullptr;
+  if(layer_context_menu)
   {
     auto inspector_actions = inspector->GetLayerContextMenu(layer)->actions();
     for (auto *action : std::as_const(inspector_actions))
