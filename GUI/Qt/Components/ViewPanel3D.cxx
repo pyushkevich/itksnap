@@ -50,6 +50,9 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
 
   // Set up the context menu in the top right corner
   m_ContextToolButton = CreateContextToolButton(ui->view3d);
+  m_ContextButtonMenu = new QMenu(m_ContextToolButton);
+  m_ContextButtonMenu->setStyleSheet("font-size:11px;");
+  m_ContextToolButton->setMenu(m_ContextButtonMenu);
 
   // Listen for leave/enter events to active context button
   connect(ui->view3d, SIGNAL(mouseEntered()), m_ContextToolButton, SLOT(show()));
@@ -72,7 +75,9 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
   ui->actionContinuous_Update->setObjectName("actionContinuousUpdate");
   m_DropMenu->addSeparator();
   m_DropMenu->addAction(ui->actionClear_Rendering);
-  m_DropMenu->addSeparator();
+
+  ui->btnMenu->setMenu(m_DropMenu);
+  ui->btnMenu->setPopupMode(QToolButton::InstantPopup);
 
   // Menu for listing layers
   m_MeshLayerMenu = new QMenu(tr("Active Mesh"), this);
@@ -107,12 +112,7 @@ ViewPanel3D::onModelUpdate(const EventBucket &bucket)
     UpdateActionButtons();
   }
 
-  if (bucket.HasEvent(ActiveLayerChangeEvent()))
-  {
-    UpdateMeshLayerMenu();
-  }
-
-  if (bucket.HasEvent(LayerChangeEvent()))
+  if (bucket.HasEvent(ActiveLayerChangeEvent()) || bucket.HasEvent(LayerChangeEvent()) || bucket.HasEvent(MeshContentChangeEvent()))
   {
     UpdateMeshLayerMenu();
   }
@@ -135,17 +135,21 @@ ViewPanel3D::onContextMenuUpdateRequested()
   auto *ml = m_Model->GetMeshLayers();
 
   // Create a new menu for the context tool button
-  QMenu *new_menu = new QMenu(m_ContextToolButton);
-  new_menu->setStyleSheet("font-size:11px;");
-  auto inspector_actions = inspector->GetLayerContextMenu(ml->GetLayer(ml->GetActiveLayerId()))->actions();
-  for (auto *action : std::as_const(inspector_actions))
-    if(action)
-      new_menu->addAction(action);
-  m_ContextToolButton->setMenu(new_menu);
+  m_ContextButtonMenu->clear();
+  auto layer = ml->GetLayer(ml->GetActiveLayerId());
+  if(layer)
+  {
+    auto inspector_actions = inspector->GetLayerContextMenu(layer)->actions();
+    for (auto *action : std::as_const(inspector_actions))
+      if (action)
+      {
+        m_ContextButtonMenu->addAction(action);
+      }
+  }
 
   // Create a menu for activating another layer
-  new_menu->addSeparator();
-  new_menu->addMenu(m_MeshLayerMenu);
+  m_ContextButtonMenu->addSeparator();
+  m_ContextButtonMenu->addMenu(m_MeshLayerMenu);
 }
 
 void
@@ -162,41 +166,6 @@ ViewPanel3D::UpdateMeshLayerMenu()
   // Fire the signal saying that the context menu needs updating
   emit updateContextMenu();
 }
-
-/*
-void ViewPanel3D::ApplyDefaultColorBarVisibility()
-{
-  if (!m_Model->GetParentUI()->GetDriver()->IsMainImageLoaded())
-    return;
-
-  // Do nothing if user has changed color bar visibility
-  if (m_ColorBarUserInputOverride)
-    return;
-
-  ImageMeshLayers *mesh_layers =
-      m_Model->GetParentUI()->GetDriver()->GetIRISImageData()->GetMeshLayers();
-
-  auto active_layer = mesh_layers->GetLayer(mesh_layers->GetActiveLayerId());
-
-  // we only turn on color bar by default for standalone mesh layers
-  if (dynamic_cast<StandaloneMeshWrapper*>(active_layer.GetPointer()))
-    {
-    if (!ui->btnColorBar->isChecked())
-      {
-      ui->btnColorBar->setChecked(true);
-      on_btnColorBar_clicked(false); // click the button programmatically
-      }
-    }
-  else
-    {
-    if (ui->btnColorBar->isChecked())
-      {
-      ui->btnColorBar->setChecked(false);
-      on_btnColorBar_clicked(false); // click the button programmatically
-      }
-    }
-}
-*/
 
 void ViewPanel3D::on_btnUpdateMesh_clicked()
 {
@@ -441,12 +410,6 @@ void ViewPanel3D::on_actionRestore_Viewpoint_triggered()
 void ViewPanel3D::on_actionContinuous_Update_triggered()
 {
   ui->btnUpdateMesh->setVisible(!ui->actionContinuous_Update->isChecked());
-}
-
-void ViewPanel3D::on_btnMenu_pressed()
-{
-  m_DropMenu->popup(QCursor::pos());
-  ui->btnMenu->setDown(false);
 }
 
 void ViewPanel3D::on_btnFlip_clicked()

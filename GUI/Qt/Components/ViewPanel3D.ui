@@ -166,6 +166,9 @@ font-size: 11px;
       <property name="topMargin">
        <number>0</number>
       </property>
+      <property name="rightMargin">
+       <number>24</number>
+      </property>
       <property name="bottomMargin">
        <number>0</number>
       </property>
@@ -319,7 +322,7 @@ font-size: 11px;
          <bool>false</bool>
         </property>
         <property name="autoRaise">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -327,25 +330,38 @@ font-size: 11px;
        <widget class="QToolButton" name="btnMenu">
         <property name="maximumSize">
          <size>
-          <width>20</width>
+          <width>16777215</width>
           <height>20</height>
          </size>
         </property>
         <property name="toolTip">
          <string>Additional 3D view controls</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
         <property name="icon">
-         <iconset resource="../Resources/SNAPResources.qrc">
-          <normaloff>:/root/open_popup_16.png</normaloff>:/root/open_popup_16.png</iconset>
+         <iconset>
+          <normalon>:/root/icons8_video_camera_pad_16.png</normalon>
+         </iconset>
         </property>
         <property name="iconSize">
          <size>
-          <width>12</width>
-          <height>12</height>
+          <width>22</width>
+          <height>16</height>
          </size>
         </property>
+        <property name="popupMode">
+         <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
+        </property>
         <property name="autoRaise">
-         <bool>true</bool>
+         <bool>false</bool>
+        </property>
+        <property name="arrowType">
+         <enum>Qt::ArrowType::NoArrow</enum>
         </property>
        </widget>
       </item>

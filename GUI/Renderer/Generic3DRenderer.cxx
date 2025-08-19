@@ -428,7 +428,6 @@ Generic3DRenderer::UpdateAxisRendering()
 void
 Generic3DRenderer::UpdateColorLegendAppearance()
 {
-  printf("Visibility of color bar changing to %d\n", m_Model->GetColorBarVisible() ? 1 : 0);
   m_ScalarBarActor->SetVisibility(m_Model->GetColorBarVisible());
 }
 

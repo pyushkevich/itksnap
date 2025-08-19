@@ -71,8 +71,6 @@ private slots:
 
   void on_actionContinuous_Update_triggered();
 
-  void on_btnMenu_pressed();
-
   void on_btnFlip_clicked();
 
   void on_actionClear_Rendering_triggered();
@@ -87,6 +85,7 @@ private:
   QMenu *m_DropMenu;
   QMenu *m_MeshLayerMenu;
   QMenu *m_FocalPointTargetMenu;
+  QMenu *m_ContextButtonMenu;
 
   QTimer *m_RenderTimer;
 
