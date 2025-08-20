@@ -37,7 +37,7 @@
         <location filename="../Windows/AboutDialog.ui" line="199"/>
         <location filename="../../../../xc64dbg/ui_AboutDialog.h" line="216"/>
         <source>Build</source>
-        <translation>版本</translation>
+        <translation>构建</translation>
     </message>
 </context>
 <context>
@@ -46,7 +46,7 @@
         <location filename="../Windows/AnnotationEditDialog.ui" line="14"/>
         <location filename="../../../../xc64dbg/ui_AnnotationEditDialog.h" line="132"/>
         <source>Edit Annotation</source>
-        <translation>编辑注释</translation>
+        <translation>编辑标注</translation>
     </message>
     <message>
         <location filename="../Windows/AnnotationEditDialog.ui" line="30"/>
@@ -70,7 +70,7 @@
         <location filename="../Windows/AnnotationEditDialog.ui" line="94"/>
         <location filename="../../../../xc64dbg/ui_AnnotationEditDialog.h" line="137"/>
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;One or more textual tags can be assigned to an annotation. Tags are not used directly by ITK-SNAP but may be used to label objects in the ITK-SNAP workspace for other software. Type in words separated by commas to create tags. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;可以为注释分配一个或多个文本标签。标签不会被ITK-SNAP直接使用，但可用于为ITK-SNAP工作区中的对象标记，以供其他软件使用。请输入用逗号分隔的词语以创建标签。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;可以为标注分配一个或多个文本标签。标签不会被ITK-SNAP直接使用，但可用于为ITK-SNAP工作区中的对象标记，以供其他软件使用。请输入用逗号分隔的词语以创建标签。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
 </context>
 <context>
@@ -78,12 +78,12 @@
     <message>
         <location filename="../View/AnnotationInteractionMode.cxx" line="119"/>
         <source>Text Annotation</source>
-        <translation>文本注释</translation>
+        <translation>文本标注</translation>
     </message>
     <message>
         <location filename="../View/AnnotationInteractionMode.cxx" line="119"/>
         <source>Enter annotation text:</source>
-        <translation>请输入注释文本：</translation>
+        <translation>请输入标注文本：</translation>
     </message>
 </context>
 <context>
@@ -275,17 +275,17 @@
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="641"/>
         <source>Jet</source>
-        <translation>喷射</translation>
+        <translation>Jet</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="642"/>
         <source>Hot</source>
-        <translation>高温</translation>
+        <translation>热力图</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="643"/>
         <source>Cool</source>
-        <translation>冷色</translation>
+        <translation>冷色图</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="644"/>
@@ -325,7 +325,7 @@
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="651"/>
         <source>Copper</source>
-        <translation>铜色</translation>
+        <translation>古铜色</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="652"/>
@@ -345,12 +345,12 @@
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="655"/>
         <source>Speed image (blue to black to white)</source>
-        <translation>速度图像（蓝-黑-白）</translation>
+        <translation>速度图（蓝-黑-白）</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="656"/>
         <source>Speed image (semi-transparent overlay)</source>
-        <translation>速度图像（半透明叠加）</translation>
+        <translation>速度图（半透明叠加）</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="657"/>
@@ -640,7 +640,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/ContrastInspector.ui" line="408"/>
         <location filename="../../../../xc64dbg/ui_ContrastInspector.h" line="508"/>
         <source>The x-coordinate of the selected control point. The x-coordinate represents input image intensity.</source>
-        <translation>所选控制点的 x 坐标。x 坐标表示输入图像强度。</translation>
+        <translation>所选控制点的 x 坐标。x 坐标表示输入图像灰度。</translation>
     </message>
     <message>
         <location filename="../Components/ContrastInspector.ui" line="436"/>
@@ -794,7 +794,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/CursorInspector.ui" line="331"/>
         <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="315"/>
         <source>Intensity under cursor:</source>
-        <translation>光标下的强度:</translation>
+        <translation>光标下的灰度值:</translation>
     </message>
     <message>
         <location filename="../Components/CursorInspector.ui" line="413"/>
@@ -822,7 +822,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Components/CursorInspector.cxx" line="81"/>
         <source>Intensity</source>
-        <translation>强度</translation>
+        <translation>灰度值</translation>
     </message>
 </context>
 <context>
@@ -924,7 +924,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/DeepLearningServerEditor.ui" line="282"/>
         <location filename="../../../../xc64dbg/ui_DeepLearningServerEditor.h" line="415"/>
         <source>Connect using secure shell (SSH) tunnel</source>
-        <translation>使用安全外壳（SSH）隧道连接</translation>
+        <translation>通过 SSH 隧道连接</translation>
     </message>
     <message>
         <location filename="../Windows/DeepLearningServerEditor.ui" line="298"/>
@@ -2128,7 +2128,7 @@ Please follow &lt;a href=&quot;https://itksnap-dls.readthedocs.io/en/latest&quot
         <location filename="../Components/ImageInfoInspector.ui" line="220"/>
         <location filename="../../../../xc64dbg/ui_ImageInfoInspector.h" line="848"/>
         <source>Origin:</source>
-        <translation>起点：</translation>
+        <translation>原点：</translation>
     </message>
     <message>
         <location filename="../Components/ImageInfoInspector.ui" line="227"/>
@@ -2162,7 +2162,7 @@ Please follow &lt;a href=&quot;https://itksnap-dls.readthedocs.io/en/latest&quot
         <location filename="../Components/ImageInfoInspector.ui" line="568"/>
         <location filename="../../../../xc64dbg/ui_ImageInfoInspector.h" line="860"/>
         <source>Intensity Range:</source>
-        <translation>强度范围：</translation>
+        <translation>灰度范围：</translation>
     </message>
     <message>
         <location filename="../Components/ImageInfoInspector.ui" line="600"/>
@@ -2206,13 +2206,13 @@ Please follow &lt;a href=&quot;https://itksnap-dls.readthedocs.io/en/latest&quot
         <location filename="../Components/ImageInfoInspector.ui" line="1339"/>
         <location filename="../../../../xc64dbg/ui_ImageInfoInspector.h" line="880"/>
         <source>Intensity under the cursor:</source>
-        <translation>光标下的强度：</translation>
+        <translation>光标下的灰度值：</translation>
     </message>
     <message>
         <location filename="../Components/ImageInfoInspector.ui" line="1393"/>
         <location filename="../../../../xc64dbg/ui_ImageInfoInspector.h" line="881"/>
         <source>Intensity Under the Cursor</source>
-        <translation>光标下的强度</translation>
+        <translation>光标下的灰度值</translation>
     </message>
 </context>
 <context>
@@ -2484,19 +2484,19 @@ Please follow &lt;a href=&quot;https://itksnap-dls.readthedocs.io/en/latest&quot
         <location filename="../Windows/LabelEditorDialog.ui" line="291"/>
         <location filename="../../../../xc64dbg/ui_LabelEditorDialog.h" line="500"/>
         <source>B:</source>
-        <translation>蓝：</translation>
+        <translation>B：</translation>
     </message>
     <message>
         <location filename="../Windows/LabelEditorDialog.ui" line="298"/>
         <location filename="../../../../xc64dbg/ui_LabelEditorDialog.h" line="501"/>
         <source>R:</source>
-        <translation>红：</translation>
+        <translation>R：</translation>
     </message>
     <message>
         <location filename="../Windows/LabelEditorDialog.ui" line="327"/>
         <location filename="../../../../xc64dbg/ui_LabelEditorDialog.h" line="502"/>
         <source>G:</source>
-        <translation>绿：</translation>
+        <translation>G：</translation>
     </message>
     <message>
         <location filename="../Windows/LabelEditorDialog.ui" line="395"/>
@@ -2878,7 +2878,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/LayerInspectorDialog.ui" line="189"/>
         <location filename="../../../../xc64dbg/ui_LayerInspectorDialog.h" line="205"/>
         <source>Color Map</source>
-        <translation>色彩映射</translation>
+        <translation>颜色映射</translation>
     </message>
     <message>
         <location filename="../Windows/LayerInspectorDialog.ui" line="194"/>
@@ -3184,7 +3184,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.cxx" line="113"/>
         <source>Volume Rendering</source>
-        <translation>体积渲染</translation>
+        <translation>体绘制</translation>
     </message>
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.cxx" line="121"/>
@@ -3508,7 +3508,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/MainImageWindow.ui" line="229"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1582"/>
         <source>Getting started with ITK-SNAP Version 4</source>
-        <translation>开始使用 ITK-SNAP 4 版</translation>
+        <translation>开始使用 ITK-SNAP 4</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="265"/>
@@ -3536,7 +3536,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="290"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1597"/>
         <source>Recent Images</source>
-        <translation>最近的图像</translation>
+        <translation>最近图像</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="315"/>
@@ -3544,7 +3544,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1598"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1632"/>
         <source>Recent Workspaces</source>
-        <translation>最近的工作区</translation>
+        <translation>最近工作区</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="365"/>
@@ -3698,7 +3698,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="650"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1624"/>
         <source>Slice Annotations</source>
-        <translation>切片注释</translation>
+        <translation>切片标注</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="659"/>
@@ -4578,7 +4578,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="1460"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1409"/>
         <source>Toggle All Annotations</source>
-        <translation>切换所有注释</translation>
+        <translation>切换所有标注</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1463"/>
@@ -4602,7 +4602,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="1476"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1417"/>
         <source>Annotation Preferences...</source>
-        <translation>注释首选项...</translation>
+        <translation>标注首选项...</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1481"/>
@@ -4710,7 +4710,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="1584"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1454"/>
         <source>Annotation Tool</source>
-        <translation>注释工具</translation>
+        <translation>标注工具</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1587"/>
@@ -4979,7 +4979,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
         <location filename="../Windows/MainImageWindow.ui" line="1791"/>
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1539"/>
         <source>Toggle Volume Rendering</source>
-        <translation>切换体渲染</translation>
+        <translation>切换体绘制</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1794"/>
@@ -5673,7 +5673,7 @@ Do you want to enable this feature?</source>
         <location filename="../Components/MetadataInspector.ui" line="89"/>
         <location filename="../../../../xc64dbg/ui_MetadataInspector.h" line="97"/>
         <source>Filter:</source>
-        <translation>滤镜：</translation>
+        <translation>过滤：</translation>
     </message>
 </context>
 <context>
@@ -7408,7 +7408,7 @@ the context menu.</source>
         <location filename="../Windows/ResampleDialog.ui" line="194"/>
         <location filename="../../../../xc64dbg/ui_ResampleDialog.h" line="393"/>
         <source>Resampled ROI</source>
-        <translation>重采样感兴趣区</translation>
+        <translation>重采样感兴趣区域</translation>
     </message>
     <message>
         <location filename="../Windows/ResampleDialog.ui" line="236"/>
@@ -7438,7 +7438,7 @@ the context menu.</source>
         <location filename="../Windows/ResampleDialog.ui" line="435"/>
         <location filename="../../../../xc64dbg/ui_ResampleDialog.h" line="379"/>
         <source>Subsample by 2</source>
-        <translation>子采样 2 倍</translation>
+        <translation>降采样 2 倍</translation>
     </message>
     <message>
         <location filename="../Windows/ResampleDialog.ui" line="440"/>
@@ -7450,7 +7450,7 @@ the context menu.</source>
         <location filename="../Windows/ResampleDialog.ui" line="445"/>
         <location filename="../../../../xc64dbg/ui_ResampleDialog.h" line="381"/>
         <source>Subsample to Isotropic</source>
-        <translation>子采样为各向同性</translation>
+        <translation>降采样为各向同性</translation>
     </message>
 </context>
 <context>
@@ -9914,7 +9914,7 @@ ITK-SNAP 窗口共享状态</translation>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="579"/>
         <source>Header size:</source>
-        <translation>头部大小：</translation>
+        <translation>文件头大小：</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="581"/>
@@ -9979,12 +9979,12 @@ ITK-SNAP 窗口共享状态</translation>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="631"/>
         <source>Big Endian (PowerPC, SPARC)</source>
-        <translation>大端序（PowerPC，SPARC）</translation>
+        <translation>大端（PowerPC，SPARC）</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="632"/>
         <source>Little Endian (x86, x86_64)</source>
-        <translation>小端序（x86，x86_64）</translation>
+        <translation>小端（x86，x86_64）</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="634"/>
