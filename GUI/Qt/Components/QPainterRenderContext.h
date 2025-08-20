@@ -13,7 +13,9 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLPaintDevice>
+#include <vtkCellArrayIterator.h>
 #include <vtkPolyData.h>
+#include <vtkScalarsToColors.h>
 
 class QPainterRenderContextTexture : public AbstractRenderContext::Texture
 {
@@ -55,9 +57,11 @@ public:
 protected:
   SmartPtr<AbstractRenderContext::Path2D> m_path;
   QOpenGLBuffer *m_vbo = nullptr;
+  QOpenGLBuffer *m_rgba_vbo = nullptr;
   QOpenGLVertexArrayObject *m_vao = nullptr;
   QOpenGLShaderProgram *m_program = nullptr;
   QList<GLfloat> m_vertex_coords;
+  QList<GLfloat> m_vertex_colors;
   QList<int> m_strip_sizes;
   bool use_gl;
 
@@ -66,6 +70,8 @@ protected:
   {
     if(m_vbo)
       delete m_vbo;
+    if(m_rgba_vbo)
+      delete m_rgba_vbo;
     if(m_vao)
       delete m_vao;
     if(m_program)
@@ -151,10 +157,13 @@ public:
     "#version 150\n"
     "in vec4 vertex;\n"
     "out vec3 vert;\n"
+    "in vec4 vertexColor;\n"
+    "out vec4 vertColor;\n"
     "uniform mat4 projMatrix;\n"
     "uniform mat4 mvMatrix;\n"
     "void main() {\n"
     "   vert = vertex.xyz;\n"
+    "   vertColor = vertexColor;\n"
     "   gl_Position = projMatrix * mvMatrix * vertex;\n"
     "}\n";
 
@@ -163,17 +172,19 @@ public:
     "in vec2 texCoord;\n"
     "in float edgeAlpha;\n"
     "out highp vec4 fragColor;\n"
-    "uniform vec4 solidColor;\n"
+    "in vec4 gColor;\n"
     "void main() {\n"
     "    float dist = abs(texCoord.x);\n"
     "    float alpha = 1.0 - smoothstep(0.8, 1.0, dist);\n"
-    "    fragColor = vec4(solidColor.rgb, solidColor.a * alpha * edgeAlpha);\n"
+    "    fragColor = vec4(gColor.rgb, gColor.a * alpha * edgeAlpha);\n"
     "}\n";
 
   static constexpr char geometryShaderSourceCore[] =
     "#version 150\n"
     "layout(lines) in;\n"
     "layout(triangle_strip, max_vertices = 4) out;\n"
+    "in vec4 vertColor[2]\n;"
+    "out vec4 gColor\n;"
     "uniform float lineWidth; // In pixels\n"
     "uniform vec2 viewport_size;\n"
     "out vec2 texCoord;\n"
@@ -192,13 +203,13 @@ public:
     "    vec4 v2 = vec4(p1 - offset, 0.0, 1.0);\n"
     "    vec4 v3 = vec4(p1 + offset, 0.0, 1.0);\n"
     "    texCoord = vec2(-1.0, 0.0); edgeAlpha = 1.0;\n"
-    "    gl_Position = v0; EmitVertex();\n"
+    "    gl_Position = v0; gColor = vertColor[0]; EmitVertex();\n"
     "    texCoord = vec2(1.0, 0.0); edgeAlpha = 1.0;\n"
-    "    gl_Position = v1; EmitVertex();\n"
+    "    gl_Position = v1; gColor = vertColor[0]; EmitVertex();\n"
     "    texCoord = vec2(-1.0, 1.0); edgeAlpha = 1.0;\n"
-    "    gl_Position = v2; EmitVertex();\n"
+    "    gl_Position = v2; gColor = vertColor[1]; EmitVertex();\n"
     "    texCoord = vec2(1.0, 1.0); edgeAlpha = 1.0;\n"
-    "    gl_Position = v3; EmitVertex();\n"
+    "    gl_Position = v3; gColor = vertColor[1]; EmitVertex();\n"
     "    EndPrimitive();\n"
     "}\n";
 
@@ -284,7 +295,7 @@ public:
   virtual void DrawPath(Path2D *path) override
   {
     auto *wrapper = static_cast<QPainterRenderContextPath2D *>(path);
-    for(auto poly : wrapper->subpath_polygons)
+    for(const auto &poly : std::as_const(wrapper->subpath_polygons))
       painter.drawPolyline(poly);
   }
 
@@ -306,6 +317,7 @@ public:
                glfunc.hasOpenGLFeature(QOpenGLFunctions::Shaders))
         wrapper->use_gl = true;
     }
+    wrapper->use_gl = false; // TEMPORARY - DISABLE OPENGL FOR NOW
 
     // Depending on gl, we create a path or a vertex buffer object
     if(wrapper->use_gl)
@@ -316,7 +328,8 @@ public:
       wrapper->m_program->addShaderFromSourceCode(QOpenGLShader::Geometry, geometryShaderSourceCore);
       wrapper->m_program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSourceCore);
       wrapper->m_program->bindAttributeLocation("vertex", 0);
-      bool success = wrapper->m_program->link();
+      wrapper->m_program->bindAttributeLocation("vertexColor", 1);
+      wrapper->m_program->link();
 
       // Create a vertex array object and a buffer
       wrapper->m_vao = new QOpenGLVertexArrayObject();
@@ -325,10 +338,18 @@ public:
       wrapper->m_vbo = new QOpenGLBuffer();
       wrapper->m_vbo->create();
       wrapper->m_vbo->bind();
-
       glfunc.glEnableVertexAttribArray(0);
       glfunc.glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), nullptr);
       wrapper->m_vbo->release();
+
+      // Add a color buffer
+      wrapper->m_rgba_vbo = new QOpenGLBuffer();
+      wrapper->m_rgba_vbo->create();
+      wrapper->m_rgba_vbo->bind();
+      glfunc.glEnableVertexAttribArray(1);
+      glfunc.glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, nullptr);
+      wrapper->m_rgba_vbo->release();
+
       wrapper->m_program->release();
     }
     else
@@ -340,6 +361,7 @@ public:
     return ContourSet2DPtr(wrapper.GetPointer());
   }
 
+#ifdef OLDCODE
   virtual void AddContoursToSet(ContourSet2D *cset, vtkPolyData *pd) override
   {
     auto *wrapper = dynamic_cast<QPainterRenderContextContourSet2D *>(cset);
@@ -388,6 +410,89 @@ public:
       }
     }
   }
+#endif //OLDCODE
+
+  virtual void AddContoursToSet(ContourSet2D                            *cset,
+                                vtkPolyData                             *pd,
+                                AbstractRenderContext::PolyDataColorMode mode = AbstractRenderContext::SOLID_COLOR,
+                                vtkUnsignedCharArray                    *rgbvec = nullptr) override
+  {
+    auto *wrapper = dynamic_cast<QPainterRenderContextContourSet2D *>(cset);
+    auto solid_color = painter.pen().color();
+    vtkSmartPointer<vtkPoints>    points = pd->GetPoints();
+    vtkSmartPointer<vtkCellArray> lines = pd->GetLines();
+    if (points && lines)
+    {
+      vtkIdType        npts;
+      const vtkIdType *pts;
+      double p[3], rgba[4];
+
+      // Pre-reserve the space in vertex arrays
+      unsigned int n_strips = 0;
+      for(int i = 0; i < lines->GetNumberOfCells(); i++)
+        n_strips += (lines->GetCellSize(i)-1);
+      wrapper->m_vertex_coords.reserve(wrapper->m_vertex_coords.size() + n_strips * 4);
+      wrapper->m_vertex_colors.reserve(wrapper->m_vertex_colors.size() + n_strips * 8);
+      wrapper->m_strip_sizes.reserve(wrapper->m_strip_sizes.size() + lines->GetNumberOfCells());
+
+      // Now iterate and add the strips and colors to the arrays
+      auto iter = vtk::TakeSmartPointer(lines->NewIterator());
+      for (iter->GoToFirstCell(); !iter->IsDoneWithTraversal(); iter->GoToNextCell())
+      {
+        iter->GetCurrentCell(npts, pts);
+        if(wrapper->use_gl)
+        {
+          for (vtkIdType i = 0; i < npts-1; ++i)
+          {
+            // Add the two endpoitns of the line
+            points->GetPoint(pts[i], p);
+            wrapper->m_vertex_coords << (GLfloat)(p[0]) << (GLfloat)(p[1]);
+            points->GetPoint(pts[i+1], p);
+            wrapper->m_vertex_coords << (GLfloat)(p[0]) << (GLfloat)(p[1]);
+
+            // Set the color
+            if(mode == AbstractRenderContext::POINT_DATA && rgbvec)
+            {
+              rgbvec->GetTuple(pts[i], rgba);
+              for(unsigned int j = 0; j < 4; j++)
+                wrapper->m_vertex_colors << (GLfloat)(rgba[j]/255.);
+              rgbvec->GetTuple(pts[i+1], rgba);
+              for(unsigned int j = 0; j < 4; j++)
+                wrapper->m_vertex_colors << (GLfloat)(rgba[j]/255.);
+            }
+            else if(mode == AbstractRenderContext::CELL_DATA && rgbvec)
+            {
+              rgbvec->GetTuple(iter->GetCurrentCellId(), rgba);
+              for(unsigned int j = 0; j < 4; j++)
+                wrapper->m_vertex_colors << (GLfloat)(rgba[j]/255.);
+              for(unsigned int j = 0; j < 4; j++)
+                wrapper->m_vertex_colors << (GLfloat)(rgba[j]/255.);
+            }
+            else
+            {
+              wrapper->m_vertex_colors
+                << (GLfloat)(solid_color.redF()) << (GLfloat)(solid_color.greenF())
+                << (GLfloat)(solid_color.blueF()) << (GLfloat)(solid_color.alphaF());
+              wrapper->m_vertex_colors
+                << (GLfloat)(solid_color.redF()) << (GLfloat)(solid_color.greenF())
+                << (GLfloat)(solid_color.blueF()) << (GLfloat)(solid_color.alphaF());
+            }
+          }
+          wrapper->m_strip_sizes << 2 * (npts-1);
+        }
+        else
+        {
+          AbstractRenderContext::VertexVector edgeVertices;
+          for (vtkIdType i = 0; i < npts; ++i)
+          {
+            points->GetPoint(pts[i], p);
+            edgeVertices.emplace_back(Vector2d(p[0], p[1]));
+          }
+          AddPolygonSegmentToPath(wrapper->m_path, edgeVertices, false);
+        }
+      }
+    }
+  }
 
   virtual void BuildContourSet(ContourSet2D *cset) override
   {
@@ -399,6 +504,12 @@ public:
       wrapper->m_vbo->allocate(wrapper->m_vertex_coords.constData(),
                                wrapper->m_vertex_coords.count() * sizeof(GLfloat));
       wrapper->m_vbo->release();
+
+
+      wrapper->m_rgba_vbo->bind();
+      wrapper->m_rgba_vbo->allocate(wrapper->m_vertex_colors.constData(),
+                                    wrapper->m_vertex_colors.count() * sizeof(GLfloat));
+      wrapper->m_rgba_vbo->release();
     }
     else
     {
@@ -440,19 +551,23 @@ public:
       wrapper->m_program->bind();
       wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("projMatrix"), m_proj);
       wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("mvMatrix"), m_world);
-      wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("solidColor"), painter.pen().color());
       wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("lineWidth"), (GLfloat) std::max(0.5, painter.pen().widthF()));
       wrapper->m_program->setUniformValue(wrapper->m_program->uniformLocation("viewport_size"),
                                           painter.viewport().width(), painter.viewport().height());
 
       // Draw the line strips
       int s0 = 0;
-      for(auto ss : wrapper->m_strip_sizes)
+      int ns = 0;
+      for(const auto &ss : std::as_const(wrapper->m_strip_sizes))
       {
-        // glfunc.glDrawArrays(GL_LINE_STRIP, s0, ss);
-        glfunc.glDrawArrays(GL_LINES, s0, ss);
-        s0 += ss;
+        ns += ss;
       }
+      //for(const auto &ss : std::as_const(wrapper->m_strip_sizes))
+      //{
+      //  glfunc.glDrawArrays(GL_LINES, s0, ss);
+      //  s0 += ss;
+      // }
+      glfunc.glDrawArrays(GL_LINES, 0, ns);
 
       // Restore attribute state
       if(!blend)

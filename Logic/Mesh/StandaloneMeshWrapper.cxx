@@ -39,7 +39,7 @@ StandaloneMeshWrapper::SetMesh(vtkPolyData *mesh, unsigned int timepoint, LabelT
 
   // Set Default active array id
   SetActiveMeshLayerDataPropertyId(propId);
-
+  this->Modified();
   InvokeEvent(ValueChangedEvent());
 }
 
@@ -135,3 +135,9 @@ StandaloneMeshWrapper
     }
 }
 
+itk::ModifiedTimeType
+StandaloneMeshWrapper::GetDeepMTime() const
+{
+  auto mtime = Superclass::GetDeepMTime();
+  return mtime;
+}

@@ -48,6 +48,10 @@ public:
   virtual void LoadFromRegistry(Registry &folder, std::string &orig_dir,
                                 std::string &crnt_dir, unsigned int nT) override;
 
+  /** Get the latest modified time from this object and objects that it holds */
+  virtual itk::ModifiedTimeType GetDeepMTime() const override;
+
+
   // End of virtual methods definition
   //-------------------------------------------------
 

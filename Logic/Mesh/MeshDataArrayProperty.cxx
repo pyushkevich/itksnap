@@ -239,28 +239,27 @@ Merge(MeshDataArrayProperty *other)
 			m_MeshArrayComponentMap[kv.first] = kv.second;
     }
 
-	InvokeEvent(itk::ModifiedEvent());
+    this->Modified();
 }
 
 void
-MeshLayerDataArrayProperty
-::SetActiveVectorMode(int mode, vtkIdType compId)
+MeshLayerDataArrayProperty ::SetActiveVectorMode(int mode, vtkIdType compId)
 {
-  assert (mode >= 0 && mode < VectorMode::COUNT);
+  assert(mode >= 0 && mode < VectorMode::COUNT);
 
-	if ((VectorMode)mode == m_ActiveVectorMode &&
-			(compId < 0 || compId == m_ActiveComponentId))
-		return; // No Change to make
+  if ((VectorMode)mode == m_ActiveVectorMode && (compId < 0 || compId == m_ActiveComponentId))
+    return; // No Change to make
 
-	m_ActiveVectorMode = (VectorMode)mode;
-	m_ActiveComponentId = compId;
+  m_ActiveVectorMode = (VectorMode)mode;
+  m_ActiveComponentId = compId;
 
-	if (mode == VectorMode::MAGNITUDE)
+  if (mode == VectorMode::MAGNITUDE)
     SetActiveIntensityCurve(m_MagnitudeIntensityCurve);
-	else
+  else
     SetActiveIntensityCurve(GetActiveComponent().m_IntensityCurve);
 
-	InvokeEvent(WrapperHistogramChangeEvent());
+  this->Modified();
+  InvokeEvent(WrapperHistogramChangeEvent());
 }
 
 inline double GetMagnitude(double *vector, size_t len)

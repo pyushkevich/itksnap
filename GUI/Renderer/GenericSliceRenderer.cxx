@@ -38,6 +38,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PaintbrushSettingsModel.h"
 #include "StandaloneMeshWrapper.h"
 #include <itkImageLinearConstIteratorWithIndex.h>
+#include <vtkCellData.h>
+#include <vtkLookupTable.h>
+#include <vtkPointData.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 
@@ -350,11 +353,19 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
 
     // Check the update times of all the inputs that affect the rendering of the mesh
     // This is a bit clunky because this is not a proper ITK pipeline
-    auto mtime = layer->GetMTime();
+    auto mtime = layer->GetDeepMTime();
     mtime = std::max(mtime, layer->GetDisplayViewportGeometry(index)->GetMTime());
+    mtime = std::max(mtime, layer->GetMeshDisplayMappingPolicy()->GetDeepMTime());
     for (unsigned int i = 0; i < layer->GetNumberOfMeshes(tp); i++)
       if (layer->GetMesh(tp, i))
+      {
         mtime = std::max(mtime, layer->GetMesh(tp, i)->GetMTime());
+      }
+
+    // Set pen color to the solid color, otherwise it will be ignored
+    context->SetPenAppearance(*eltMesh);
+    context->SetPenColor(layer->GetSolidColor());
+    context->SetPenOpacity(layer->GetSliceViewOpacity() * eltMesh->GetAlpha());
 
     // Update the stored path
     Clock clk;
@@ -364,7 +375,7 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
       for (unsigned int i = 0; i < layer->GetNumberOfMeshes(tp); i++)
       {
         auto         t0 = clk.now();
-        vtkPolyData *pd = layer->GetIntersectionWithSlicePlane(tp, i, index);
+        vtkPolyData *pd = layer->GetIntersectionWithSlicePlane(tp, i, index, true);
         auto         t1 = clk.now();
 
         // Transform the polydata into slice coordinates that we are rendering
@@ -404,49 +415,42 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
           transform_filter->SetInputData(pd);
           transform_filter->UpdateWholeExtent();
 
-          // Add to the contour set
-          context->AddContoursToSet(stored_contour, transform_filter->GetOutput());
-        }
+          // Here is the mesh is not drawn using solid color, I would like to get the
+          // lookup table for the mesh and use it to colorize the mesh
+          auto prop = layer->GetMeshDisplayMappingPolicy()->GetMeshLayer()->GetActiveDataArrayProperty();
+          auto *array =
+            prop.IsNotNull()
+              ? (prop->GetType() == MeshDataArrayProperty::POINT_DATA
+                   ? transform_filter->GetOutput()->GetPointData()->GetArray(prop->GetName())
+                   : transform_filter->GetOutput()->GetCellData()->GetArray(prop->GetName()))
+              : nullptr;
 
-        // Append the polydata
-        unsigned int n_lines = 0, n_strips = 0;
-        if (pd)
-        {
-          // Get the transform for the current slice to map between physical
-          // and screen coordinates
-          vtkSmartPointer<vtkPoints>    points = pd->GetPoints();
-          vtkSmartPointer<vtkCellArray> lines = pd->GetLines();
-          if (points && lines)
+          if(array)
           {
-            vtkIdType        npts;
-            const vtkIdType *pts;
-
-            lines->InitTraversal();
-            while (lines->GetNextCell(npts, pts))
-            {
-              AbstractRenderContext::VertexVector edgeVertices;
-              for (vtkIdType i = 0; i < npts; ++i)
-              {
-                Vector3d p_ras;
-                points->GetPoint(pts[i], p_ras.data_block());
-                Vector3d p_itk = main_image->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
-                p_itk += 0.5;
-                Vector3d p_slice = m_Model->MapImageToSlice(p_itk);
-                // edgeVertices.emplace_back(Vector2d(p_slice[0], p_slice[1]));
-              }
-
-              // Draw the polygon outline
-              // context->AddPolygonSegmentToPath(stored_contour, edgeVertices, false);
-              n_lines += npts;
-              n_strips++;
-            }
+            // Apply the lookup table to the array
+            vtkNew<vtkUnsignedCharArray> rgbvec;
+            rgbvec->SetNumberOfComponents(4);
+            rgbvec->SetNumberOfTuples(array->GetNumberOfTuples());
+            auto *lut = layer->GetMeshDisplayMappingPolicy()->GetLookupTable();
+            lut->MapScalarsThroughTable(array, rgbvec->GetPointer(0), VTK_RGBA);
+            context->AddContoursToSet(stored_contour,
+                                      transform_filter->GetOutput(),
+                                      prop->GetType() == MeshDataArrayProperty::POINT_DATA
+                                        ? AbstractRenderContext::POINT_DATA
+                                        : AbstractRenderContext::CELL_DATA,
+                                      rgbvec);
+          }
+          else
+          {
+            // Solid color drawing
+            context->AddContoursToSet(stored_contour, transform_filter->GetOutput());
           }
         }
 
         auto                                      t2 = clk.now();
         std::chrono::duration<double, std::milli> dt01 = t1 - t0, dt12 = t2 - t1;
-        // std::cout << "Time for VTK filter: " << dt01.count() << std::endl;
-        // std::cout << "Time for path build: " << dt12.count() << std::endl;
+        std::cout << "RenderMeshes -- Time for VTK filter: " << dt01.count() << std::endl;
+        std::cout << "RenderMeshes -- Time for path build: " << dt12.count() << std::endl;
       }
 
       // Build the contour set
@@ -454,15 +458,11 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
       layer->SetUserData(layer_key, stored_contour);
     }
 
-    // Set pen color to the solid color (TODO: render arrays)
-    context->SetPenAppearance(*eltMesh);
-    context->SetPenColor(layer->GetSolidColor());
-    context->SetPenOpacity(layer->GetSliceViewOpacity() * eltMesh->GetAlpha());
     auto t0 = clk.now();
     context->DrawContourSet(stored_contour);
     auto                                      t1 = clk.now();
     std::chrono::duration<double, std::milli> dt01 = t1 - t0;
-    // std::cout << "Time for QPainter drawing: " << dt01.count() << std::endl;
+    std::cout << "RenderMeshes -- Time for QPainter drawing: " << dt01.count() << std::endl;
   }
 }
 
@@ -509,7 +509,6 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
 
   // Iterate over the base layers in the viewport layout
   const SliceViewportLayout &vpl = m_Model->GetViewportLayout();
-  Vector2ui                  szWin = m_Model->GetSizeReporter()->GetViewportSize();
   for (const auto &vp : vpl.vpList)
   {
     // Get the wrapper in this viewport
@@ -735,6 +734,7 @@ GenericSliceRenderer::OnUpdate()
   bool selected_segmentation_changed = m_EventBucket->HasEvent(
     ValueChangedEvent(),
     m_Model->GetDriver()->GetGlobalState()->GetSelectedSegmentationLayerIdModel());
+
   /*
   if(layers_changed)
   {

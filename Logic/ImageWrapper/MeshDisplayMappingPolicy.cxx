@@ -162,6 +162,18 @@ MeshDisplayMappingPolicy::GetMeshLayer()
   return m_Wrapper;
 }
 
+itk::ModifiedTimeType
+MeshDisplayMappingPolicy::GetDeepMTime() const
+{
+  auto mtime = this->GetMTime();
+  if(m_IntensityCurve)
+    mtime = std::max(mtime, m_IntensityCurve->GetMTime());
+  if(m_ColorMap)
+    mtime = std::max(mtime, m_ColorMap->GetMTime());
+
+  return mtime;
+}
+
 // ==================================================
 //  GenericMeshDisplayMappingPolicy Implementation
 // ==================================================

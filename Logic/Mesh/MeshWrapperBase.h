@@ -4,12 +4,9 @@
 #include "SNAPCommon.h"
 #include "GuidedMeshIO.h"
 #include "itkObject.h"
-#include "itkObjectFactory.h"
 #include "vtkSmartPointer.h"
 #include "ImageWrapperBase.h"
 #include "MeshDataArrayProperty.h"
-#include "ColorMap.h"
-#include "ThreadedHistogramImageFilter.h"
 #include "vtkPolyData.h"
 
 class AbstractMeshIODelegate;
@@ -20,6 +17,8 @@ class vtkPlaneCutter;
 class vtkPlane;
 class vtkStripper;
 class vtkCleanPolyData;
+class vtkDataArraySelection;
+class vtkPassSelectedArrays;
 namespace itk {
 template <unsigned int VDim> class ImageBase;
 }
@@ -30,10 +29,9 @@ public:
   irisITKObjectMacro(PlaneCutterAssembly, itk::Object);
   friend class PolyDataWrapper;
 protected:
-
+  vtkSmartPointer<vtkPassSelectedArrays> m_PassSelected;
   vtkSmartPointer<vtkPlaneCutter> m_Cutter;
   vtkSmartPointer<vtkPlane> m_Plane;
-  vtkSmartPointer<vtkStripper> m_Stripper;
   vtkSmartPointer<vtkCleanPolyData> m_Cleaner;
 };
 
@@ -89,7 +87,9 @@ public:
    * Compute intersection between this mesh layer and one of the slicing planes
    */
   vtkPolyData *GetIntersectionWithSlicePlane(DisplaySliceIndex                  index,
-                                             const DisplayViewportGeometryType *geometry);
+                                             const DisplayViewportGeometryType *geometry,
+                                             vtkDataArraySelection *point_data_selection,
+                                             vtkDataArraySelection *cell_data_selection);
 
   friend class MeshDataArrayProperty;
 protected:
@@ -308,7 +308,7 @@ public:
   //------------------------------------------------
 
   /** Get the active data array property */
-  SmartPtr<MeshLayerDataArrayProperty> GetActiveDataArrayProperty();
+  SmartPtr<MeshLayerDataArrayProperty> GetActiveDataArrayProperty() const;
 
   /** Set data array with the id as active mesh data attribute */
   void SetActiveMeshLayerDataPropertyId (int id);
@@ -335,7 +335,10 @@ public:
   PolyDataWrapper *GetMesh(unsigned int timepoint, LabelType id);
 
   /** Compute intersection between a mesh and a slice plane */
-  vtkPolyData *GetIntersectionWithSlicePlane(unsigned int timepoint, LabelType id, DisplaySliceIndex index);
+  vtkPolyData *GetIntersectionWithSlicePlane(unsigned int      timepoint,
+                                             LabelType         id,
+                                             DisplaySliceIndex index,
+                                             bool              only_pass_active_property);
 
   /**
     Helper method to merge two data property map
@@ -374,6 +377,9 @@ public:
   {
     m_DisplayViewportGeometry[index] = viewport_image;
   }
+
+  /** Get the latest modified time from this object and objects that it holds */
+  virtual itk::ModifiedTimeType GetDeepMTime() const;
 
   // Give display mapping policy access to protected members for flexible
   // configuration and data retrieval
