@@ -157,6 +157,14 @@ SetDataPointer(vtkDataArray *array)
 // ============================================
 //  MeshLayerDataArrayProperty Implementation
 // ============================================
+RegistryEnumMap<MeshLayerDataArrayProperty::VectorMode>
+  MeshLayerDataArrayProperty::m_VectorModeEnumMap =
+  {
+    { MeshLayerDataArrayProperty::MAGNITUDE, "Magnitude" },
+    { MeshLayerDataArrayProperty::RGBCOLOR, "RGBColor" },
+    { MeshLayerDataArrayProperty::COMPONENT, "Component" }
+  };
+
 MeshLayerDataArrayProperty::
 MeshLayerDataArrayProperty()
 {

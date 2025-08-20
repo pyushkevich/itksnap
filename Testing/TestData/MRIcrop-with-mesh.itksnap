@@ -221,9 +221,13 @@ the same. Do not modify the SaveLocation entry, or this will not work.
     <folder key="Layer[000]" >
       <entry key="MeshType" value="StandaloneMesh" />
       <entry key="NickName" value="" />
+      <entry key="SliceViewOpacity" value="1" />
+      <entry key="SolidColor" value="1 0.149126 0" />
       <entry key="Tags" value="" />
       <folder key="DataArrayProperties" >
         <folder key="DataArray[000]" >
+          <entry key="ActiveComponent" value="0" />
+          <entry key="ActiveVectorMode" value="Magnitude" />
           <entry key="ArrayName" value="MeanCurvature" />
           <entry key="ArrayType" value="PointData" />
           <folder key="ColorMap" >
@@ -246,6 +250,8 @@ the same. Do not modify the SaveLocation entry, or this will not work.
           </folder>
         </folder>
         <folder key="DataArray[001]" >
+          <entry key="ActiveComponent" value="0" />
+          <entry key="ActiveVectorMode" value="Magnitude" />
           <entry key="ArrayName" value="Thickness" />
           <entry key="ArrayType" value="PointData" />
           <folder key="ColorMap" >
@@ -268,6 +274,8 @@ the same. Do not modify the SaveLocation entry, or this will not work.
           </folder>
         </folder>
         <folder key="DataArray[002]" >
+          <entry key="ActiveComponent" value="0" />
+          <entry key="ActiveVectorMode" value="Component" />
           <entry key="ArrayName" value="GradSpeedImg" />
           <entry key="ArrayType" value="CellData" />
           <folder key="ColorMap" >

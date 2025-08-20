@@ -221,6 +221,8 @@ public:
   /** Deep copy self to the other object */
   void Initialize(MeshDataArrayProperty *other);
 
+  static RegistryEnumMap<VectorMode> &GetVectorModeEnumMap() { return m_VectorModeEnumMap; }
+
 protected:
   MeshLayerDataArrayProperty();
   ~MeshLayerDataArrayProperty();
@@ -243,6 +245,8 @@ protected:
 
 	// Active Component
 	vtkIdType m_ActiveComponentId = 0;
+
+  static RegistryEnumMap<VectorMode> m_VectorModeEnumMap;
 };
 
 #endif // MESHDATAARRAYPROPERTY_H

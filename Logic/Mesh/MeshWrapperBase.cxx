@@ -606,6 +606,10 @@ MeshWrapperBase
   this->SetCustomNickname(folder["NickName"][""]);
   folder["Tags"].GetList(this->m_Tags);
 
+  // Load solid color
+  this->SetSolidColor(folder["SolidColor"][Vector3d(1.0, 1.0, 1.0)]);
+  this->SetSliceViewOpacity(folder["SliceViewOpacity"][1.0]);
+
   // Load mesh timepoint assembly
   auto folder_assembly = folder.Folder("MeshTimePoints");
   bool fnSet = false;

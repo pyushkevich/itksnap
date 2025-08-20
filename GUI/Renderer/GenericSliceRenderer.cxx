@@ -449,8 +449,8 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
 
         auto                                      t2 = clk.now();
         std::chrono::duration<double, std::milli> dt01 = t1 - t0, dt12 = t2 - t1;
-        std::cout << "RenderMeshes -- Time for VTK filter: " << dt01.count() << std::endl;
-        std::cout << "RenderMeshes -- Time for path build: " << dt12.count() << std::endl;
+        // std::cout << "RenderMeshes -- Time for VTK filter: " << dt01.count() << std::endl;
+        // std::cout << "RenderMeshes -- Time for path build: " << dt12.count() << std::endl;
       }
 
       // Build the contour set
@@ -462,7 +462,7 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
     context->DrawContourSet(stored_contour);
     auto                                      t1 = clk.now();
     std::chrono::duration<double, std::milli> dt01 = t1 - t0;
-    std::cout << "RenderMeshes -- Time for QPainter drawing: " << dt01.count() << std::endl;
+    // std::cout << "RenderMeshes -- Time for QPainter drawing: " << dt01.count() << std::endl;
   }
 }
 
