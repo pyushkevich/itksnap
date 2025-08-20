@@ -22,7 +22,8 @@
 	<array>
 	    <string>en</string>
 			<string>es</string>
-			<string>zh_CN</string>
+			<string>zh-Hans</string>
+			<string>de</string>
 	</array>
 	<key>CFBundleSignature</key>
 	<string>itksnap</string>

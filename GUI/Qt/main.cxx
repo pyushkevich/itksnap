@@ -1031,21 +1031,31 @@ main(int argc, char *argv[])
     // Load the user preferences
     gui->LoadUserPreferences();
 
-    // Print locale information
+    // Set the locale from the command line argument
     if (argdata.gui_language.size())
     {
       QLocale::setDefault(QLocale(argdata.gui_language.c_str()));
       qDebug() << "ITK-SNAP using locale:" << QLocale().name();
     }
-    QTranslator translator;
-    if(translator.load(QLocale(), "itksnap", "_", ":/i18n"))
+
+    // Adjust the locale for discrepancy between zh_CN and zh-Hans_US codes that
+    // are used on MacOS
+    QLocale locale;
+    if(locale.language() == QLocale::Chinese && locale.script() == QLocale::SimplifiedChineseScript)
     {
-      qDebug() << "Loaded translator for locale" << QLocale().name();
+      QLocale::setDefault(QLocale(QLocale::Chinese, QLocale::China));
+      locale = QLocale();
+    }
+
+    QTranslator translator;
+    if(translator.load(locale, "itksnap", "_", ":/i18n"))
+    {
+      qDebug() << "Loaded translator for locale" << locale.name();
       QCoreApplication::installTranslator(&translator);
     }
     else
     {
-      qDebug() << "Failed to load translator for locale" << QLocale().name();
+      qDebug() << "Failed to load translator for locale" << locale.name();
     }
 
     QTranslator translator_sys;
@@ -1057,14 +1067,14 @@ main(int argc, char *argv[])
       translator_sys_path = translator_sys_path.replace("Contents/translations","Contents/Resources/translations");
     }
 #endif
-    if (translator_sys.load(QLocale(), "qt", "_", translator_sys_path))
+    if (translator_sys.load(locale, "qt", "_", translator_sys_path))
     {
-      qDebug() << "Loaded qtbase translator for locale" << QLocale().name();
+      qDebug() << "Loaded qtbase translator for locale" << locale.name();
       QCoreApplication::installTranslator(&translator_sys);
     }
     else
     {
-      qDebug() << "Failed to load qtbase translator for locale" << QLocale().name();
+      qDebug() << "Failed to load qtbase translator for locale" << locale.name();
       qDebug() << "  Search paths considered: " << translator_sys_path;
     }
 
