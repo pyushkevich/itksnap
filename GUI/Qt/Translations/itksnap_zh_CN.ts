@@ -17,7 +17,7 @@
         <location filename="../Windows/AboutDialog.ui" line="81" />
         <location filename="../../../../xc64dbg/ui_AboutDialog.h" line="213" />
         <source>License</source>
-        <translation>许可</translation>
+        <translation>许可协议</translation>
     </message>
     <message>
         <location filename="../Windows/AboutDialog.ui" line="119" />
@@ -35,7 +35,7 @@
         <location filename="../Windows/AboutDialog.ui" line="199" />
         <location filename="../../../../xc64dbg/ui_AboutDialog.h" line="216" />
         <source>Build</source>
-        <translation>构建</translation>
+        <translation>版本</translation>
     </message>
 </context>
 <context>
@@ -108,7 +108,7 @@
         <location filename="../Components/AnnotationToolPanel.ui" line="76" />
         <location filename="../../../../xc64dbg/ui_AnnotationToolPanel.h" line="249" />
         <source>Line and Ruler Mode</source>
-        <translation>线条和标尺模式</translation>
+        <translation>直线和标尺模式</translation>
     </message>
     <message>
         <location filename="../Components/AnnotationToolPanel.ui" line="105" />
@@ -178,7 +178,7 @@
         <location filename="../Components/AnnotationToolPanel.ui" line="380" />
         <location filename="../../../../xc64dbg/ui_AnnotationToolPanel.h" line="269" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load annotations from file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;从文件加载标注&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;从文件中导入标注&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/AnnotationToolPanel.ui" line="394" />
@@ -421,7 +421,7 @@
         <location filename="../Components/ColorMapInspector.ui" line="265" />
         <location filename="../../../../xc64dbg/ui_ColorMapInspector.h" line="426" />
         <source>Side:</source>
-        <translation>侧边:</translation>
+        <translation>左侧 / 右侧：</translation>
     </message>
     <message>
         <location filename="../Components/ColorMapInspector.ui" line="311" />
@@ -535,7 +535,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/ColorMapInspector.ui" line="610" />
         <location filename="../../../../xc64dbg/ui_ColorMapInspector.h" line="463" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The intensity value corresponding to the control point. This intensity value will be mapped to the color you specify.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;对应控制点的强度值。该强度值将映射到您指定的颜色。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;对应控制点的灰度值。该灰度值将映射到您指定的颜色。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/ColorMapInspector.ui" line="648" />
@@ -638,7 +638,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/ContrastInspector.ui" line="408" />
         <location filename="../../../../xc64dbg/ui_ContrastInspector.h" line="508" />
         <source>The x-coordinate of the selected control point. The x-coordinate represents input image intensity.</source>
-        <translation>所选控制点的 x 坐标。x 坐标表示输入图像灰度。</translation>
+        <translation>所选控制点的 x 坐标。x 坐标表示输入图像强度。</translation>
     </message>
     <message>
         <location filename="../Components/ContrastInspector.ui" line="436" />
@@ -692,7 +692,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/ContrastInspector.ui" line="610" />
         <location filename="../../../../xc64dbg/ui_ContrastInspector.h" line="526" />
         <source>Bin size:</source>
-        <translation>分箱大小：</translation>
+        <translation>区间宽度：</translation>
     </message>
     <message>
         <location filename="../Components/ContrastInspector.ui" line="637" />
@@ -910,7 +910,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/DeepLearningServerEditor.ui" line="231" />
         <location filename="../../../../xc64dbg/ui_DeepLearningServerEditor.h" line="413" />
         <source>URL</source>
-        <translation>网址</translation>
+        <translation>地址</translation>
     </message>
     <message>
         <location filename="../Windows/DeepLearningServerEditor.ui" line="272" />
@@ -922,7 +922,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/DeepLearningServerEditor.ui" line="282" />
         <location filename="../../../../xc64dbg/ui_DeepLearningServerEditor.h" line="415" />
         <source>Connect using secure shell (SSH) tunnel</source>
-        <translation>通过 SSH 隧道连接</translation>
+        <translation>使用SSH隧道连接</translation>
     </message>
     <message>
         <location filename="../Windows/DeepLearningServerEditor.ui" line="298" />
@@ -1172,7 +1172,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Components/DisplayLayoutInspector.ui" line="236" />
         <location filename="../../../../xc64dbg/ui_DisplayLayoutInspector.h" line="247" />
         <source>Multiple Image Layers:</source>
-        <translation>多图像层：</translation>
+        <translation>多图层：</translation>
     </message>
     <message>
         <location filename="../Components/DisplayLayoutInspector.ui" line="278" />
@@ -1427,12 +1427,12 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="214" />
         <source>Ticket %1</source>
-        <translation>票证 %1</translation>
+        <translation>票据 %1</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="216" />
         <source>Selected Ticket</source>
-        <translation>选定的票证</translation>
+        <translation>选定的票据</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="230" />
@@ -1774,7 +1774,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Components/GeneralLayerInspector.ui" line="77" />
         <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="634" />
         <source>General Image Layer Properties:</source>
-        <translation>图像层一般属性:</translation>
+        <translation>通用图层属性:</translation>
     </message>
     <message>
         <location filename="../Components/GeneralLayerInspector.ui" line="101" />
@@ -1820,7 +1820,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Components/GeneralLayerInspector.ui" line="160" />
         <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="647" />
         <source>How to Display this Image Layer:</source>
-        <translation>如何显示此图像层:</translation>
+        <translation>如何显示此图层:</translation>
     </message>
     <message>
         <location filename="../Components/GeneralLayerInspector.ui" line="211" />
@@ -1922,7 +1922,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Components/GeneralLayerInspector.ui" line="508" />
         <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="678" />
         <source>How to Visualize Multiple Image Components:</source>
-        <translation>多图像分量的显示方式:</translation>
+        <translation>如何显示多个图像分支（通道）:</translation>
     </message>
     <message>
         <location filename="../Components/GeneralLayerInspector.ui" line="532" />
@@ -1934,7 +1934,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Components/GeneralLayerInspector.ui" line="539" />
         <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="681" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Multi-component images have more than one value for each voxel. These values may represent measurements taken at different time points, different chromatic components, etc. ITK-SNAP offers multiple ways to visualize this multi-dimensional information. You can choose to visualize just one component, or a summary function of the components, such as magnitude, average, or maximum. In the special case of three-component images, the components can be rendered as red, green and blue channels (RGB).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;多分量图像中每个体素包含多个数值，可能表示不同时间点、不同色彩成分等测量。ITK-SNAP提供多种方式展示此多维信息。您可选择显示单一分量，或分量的汇总函数，如幅值、平均或最大值。三分量图像可渲染为红绿蓝通道（RGB）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;多通道图像中每个体素包含多个数值，可能表示不同时间点、不同色彩成分等度量。ITK-SNAP提供多种方式展示此多维信息。您可选择显示单一通道，或通道的汇总函数，如幅值、平均或最大值。三通道图像可渲染为红绿蓝通道（RGB）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/GeneralLayerInspector.ui" line="579" />
@@ -1950,13 +1950,13 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="690" />
         <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="697" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle animation mode.&lt;/p&gt;&lt;p&gt;When enabled, the display will automatically loop over the image components at one-second intervals.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;切换动画模式。&lt;/p&gt;&lt;p&gt;启用时，显示将自动以每秒一帧循环切换图像分量。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;切换动画模式。&lt;/p&gt;&lt;p&gt;启用时，显示将自动以每秒一帧循环切换图像通道。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/GeneralLayerInspector.ui" line="634" />
         <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="693" />
         <source>Component:</source>
-        <translation>分量:</translation>
+        <translation>分支（通道）:</translation>
     </message>
     <message>
         <location filename="../Components/GeneralLayerInspector.ui" line="644" />
@@ -2181,13 +2181,13 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Components/ImageInfoInspector.ui" line="600" />
         <location filename="../../../../xc64dbg/ui_ImageInfoInspector.h" line="861" />
         <source>min:</source>
-        <translation>最小：</translation>
+        <translation>最小值：</translation>
     </message>
     <message>
         <location filename="../Components/ImageInfoInspector.ui" line="663" />
         <location filename="../../../../xc64dbg/ui_ImageInfoInspector.h" line="862" />
         <source>max:</source>
-        <translation>最大：</translation>
+        <translation>最大值：</translation>
     </message>
     <message>
         <location filename="../Components/ImageInfoInspector.ui" line="725" />
@@ -2219,13 +2219,13 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Components/ImageInfoInspector.ui" line="1339" />
         <location filename="../../../../xc64dbg/ui_ImageInfoInspector.h" line="880" />
         <source>Intensity under the cursor:</source>
-        <translation>光标下的灰度值：</translation>
+        <translation>光标下的灰度：</translation>
     </message>
     <message>
         <location filename="../Components/ImageInfoInspector.ui" line="1393" />
         <location filename="../../../../xc64dbg/ui_ImageInfoInspector.h" line="881" />
         <source>Intensity Under the Cursor</source>
-        <translation>光标下的灰度值</translation>
+        <translation>光标下的灰度</translation>
     </message>
 </context>
 <context>
@@ -2587,7 +2587,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Windows/LabelEditorDialog.ui" line="696" />
         <location filename="../../../../xc64dbg/ui_LabelEditorDialog.h" line="523" />
         <source>F</source>
-        <translation>F</translation>
+        <translation>前景</translation>
     </message>
     <message>
         <location filename="../Windows/LabelEditorDialog.ui" line="706" />
@@ -2599,7 +2599,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Windows/LabelEditorDialog.ui" line="709" />
         <location filename="../../../../xc64dbg/ui_LabelEditorDialog.h" line="527" />
         <source>B</source>
-        <translation>B</translation>
+        <translation>背景</translation>
     </message>
     <message>
         <location filename="../Windows/LabelEditorDialog.ui" line="725" />
@@ -2736,7 +2736,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <location filename="../Components/LabelInspector.ui" line="319" />
         <location filename="../../../../xc64dbg/ui_LabelInspector.h" line="206" />
         <source>New Label</source>
-        <translation>新标签</translation>
+        <translation>新建标签</translation>
     </message>
     <message>
         <location filename="../Components/LabelInspector.ui" line="322" />
@@ -2867,7 +2867,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/LayerInspectorDialog.ui" line="14" />
         <location filename="../../../../xc64dbg/ui_LayerInspectorDialog.h" line="187" />
         <source>Image Layer Inspector - ITK-SNAP</source>
-        <translation>图像层检查器 - ITK-SNAP</translation>
+        <translation>图层检查器 - ITK-SNAP</translation>
     </message>
     <message>
         <location filename="../Windows/LayerInspectorDialog.ui" line="164" />
@@ -2891,7 +2891,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/LayerInspectorDialog.ui" line="189" />
         <location filename="../../../../xc64dbg/ui_LayerInspectorDialog.h" line="205" />
         <source>Color Map</source>
-        <translation>颜色映射</translation>
+        <translation>色彩映射</translation>
     </message>
     <message>
         <location filename="../Windows/LayerInspectorDialog.ui" line="194" />
@@ -2933,7 +2933,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/LayerInspectorDialog.ui" line="235" />
         <location filename="../../../../xc64dbg/ui_LayerInspectorDialog.h" line="195" />
         <source>Open an additional image layer</source>
-        <translation>打开另外一个图像层</translation>
+        <translation>打开另外一个图层</translation>
     </message>
     <message>
         <location filename="../Windows/LayerInspectorDialog.ui" line="238" />
@@ -3003,25 +3003,25 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/LayerInspectorRowDelegate.ui" line="224" />
         <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="396" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&amp;quot;Pin&amp;quot; or &amp;quot;unpin&amp;quot; the image layer. When an image layer is pinned, it is rendered as an overlay on top of other images. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;“固定”或“取消固定”图像层。固定的图像层将作为覆盖层显示在其他图像之上。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;“固定”或“取消固定”图层。固定的图层将作为覆盖层显示在其他图像之上。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.ui" line="279" />
         <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="400" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle between making the image layer visible or invisible.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;切换图像层的可见性。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;切换图层的可见性。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.ui" line="327" />
         <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="404" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Change the opacity of the image layer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;调整图像层的不透明度。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;调整图层的不透明度。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.ui" line="429" />
         <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="407" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indicates what aspect of a multi-component image layer is displayed (e.g., a particular component, magnitude of components, etc.).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;指示多组件图像层显示的内容（例如，特定组件、组件的幅值等）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;指示多组件图层显示的内容（例如，特定组件、组件的幅值等）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.ui" line="452" />
@@ -3081,7 +3081,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/LayerInspectorRowDelegate.ui" line="500" />
         <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="352" />
         <source>Display the layer as a semi-transparent overlay on top of other image layers</source>
-        <translation>以半透明覆盖层显示在其他图像层之上</translation>
+        <translation>以半透明覆盖层显示在其他图层之上</translation>
     </message>
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.ui" line="509" />
@@ -3219,15 +3219,15 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.cxx" line="122" />
         <source>Volume Rendering</source>
-        <translation>体绘制</translation>
+        <translation>体积渲染</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.cxx" line="586" />
+        <location filename="../Components/LayerInspectorRowDelegate.cxx" line="586"/>
         <source>mesh</source>
         <translation>网格</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.cxx" line="586" />
+        <location filename="../Components/LayerInspectorRowDelegate.cxx" line="586"/>
         <source>image</source>
         <translation>图像</translation>
     </message>
@@ -3552,7 +3552,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/MainImageWindow.ui" line="229" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1582" />
         <source>Getting started with ITK-SNAP Version 4</source>
-        <translation>开始使用 ITK-SNAP 4</translation>
+        <translation>开始使用 ITK-SNAP 4 版</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="265" />
@@ -3580,7 +3580,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="290" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1597" />
         <source>Recent Images</source>
-        <translation>最近图像</translation>
+        <translation>最近的图像</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="315" />
@@ -3588,7 +3588,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1598" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1632" />
         <source>Recent Workspaces</source>
-        <translation>最近工作区</translation>
+        <translation>最近的工作区</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="365" />
@@ -3742,7 +3742,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="650" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1624" />
         <source>Slice Annotations</source>
-        <translation>切片标注</translation>
+        <translation>切片注释</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="659" />
@@ -3870,7 +3870,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="810" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1137" />
         <source>Save level set image in active snake mode</source>
-        <translation>在活动蛇模式下保存水平集图像</translation>
+        <translation>在活动轮廓（Snake）模式下保存水平集图像</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="815" />
@@ -4266,7 +4266,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="1100" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1264" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unload the last image layer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;卸载最后一个图像层&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;卸载最后一个图层&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1103" />
@@ -4280,7 +4280,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="1108" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1269" />
         <source>Unload all additional image layers</source>
-        <translation>卸载所有额外图像层</translation>
+        <translation>卸载所有附加图层</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1111" />
@@ -4682,7 +4682,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="1500" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1429" />
         <source>Ha</source>
-        <translation>哈</translation>
+        <translation>Ha</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1505" />
@@ -4736,7 +4736,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="1539" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1444" />
         <source>New ITK-SNAP Window</source>
-        <translation>新 ITK-SNAP 窗口</translation>
+        <translation>新建 ITK-SNAP 窗口</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1544" />
@@ -5023,7 +5023,7 @@ li.checked::marker { content: "\2612"; }
         <location filename="../Windows/MainImageWindow.ui" line="1791" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1539" />
         <source>Toggle Volume Rendering</source>
-        <translation>切换体绘制</translation>
+        <translation>切换体渲染</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="1794" />
@@ -5727,7 +5727,7 @@ Do you want to enable this feature?</source>
         <location filename="../Components/MetadataInspector.ui" line="89" />
         <location filename="../../../../xc64dbg/ui_MetadataInspector.h" line="97" />
         <source>Filter:</source>
-        <translation>过滤：</translation>
+        <translation>滤镜：</translation>
     </message>
 </context>
 <context>
@@ -5851,7 +5851,7 @@ Do you want to enable this feature?</source>
         <location filename="../Components/PaintbrushToolPanel.ui" line="249" />
         <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="499" />
         <source>AI</source>
-        <translation>智能</translation>
+        <translation>AI</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="297" />
@@ -6865,7 +6865,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/QtWarningDialog.ui" line="47" />
         <location filename="../../../../xc64dbg/ui_QtWarningDialog.h" line="94" />
         <source>Warning: blah blah blah blah!</source>
-        <translation>警告：嘟嘟嘟嘟！</translation>
+        <translation>警告：嘟——嘟——嘟——</translation>
     </message>
     <message>
         <location filename="../Components/QtWarningDialog.ui" line="60" />
@@ -6937,13 +6937,13 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="234" />
         <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="723" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this is checked, the current segmentation in ITK-SNAP will be used as a mask  for the registration. This means that the similarity between the main image and the moving image layer will only be computed at the voxels assigned a segmentation label.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;勾选后，当前ITK-SNAP分割结果将作为配准掩码。相似度只在被赋予分割标签的体素计算。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;勾选后，当前ITK-SNAP分割结果将作为配准掩膜。相似度只在被赋予分割标签的体素计算。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="240" />
         <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="725" />
         <source>Use segmentation as mask</source>
-        <translation>使用分割作为掩码</translation>
+        <translation>使用分割作为掩膜</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="272" />
@@ -7174,13 +7174,13 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.cxx" line="96" />
         <source>Intensity difference</source>
-        <translation>强度差异</translation>
+        <translation>灰度差异</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.cxx" line="216" />
         <location filename="../Windows/Registration/RegistrationDialog.cxx" line="247" />
         <source>Transform IO Error</source>
-        <translation>变换输入输出错误</translation>
+        <translation>变换IO错误</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.cxx" line="216" />
@@ -7215,12 +7215,12 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.cxx" line="284" />
         <source>Nearest Neighbor</source>
-        <translation>最近邻插值</translation>
+        <translation>最近邻</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.cxx" line="285" />
         <source>Linear</source>
-        <translation>线性插值</translation>
+        <translation>线性</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.cxx" line="287" />
@@ -7462,7 +7462,7 @@ the context menu.</source>
         <location filename="../Windows/ResampleDialog.ui" line="194" />
         <location filename="../../../../xc64dbg/ui_ResampleDialog.h" line="393" />
         <source>Resampled ROI</source>
-        <translation>重采样感兴趣区域</translation>
+        <translation>重采样感兴趣区</translation>
     </message>
     <message>
         <location filename="../Windows/ResampleDialog.ui" line="236" />
@@ -7492,7 +7492,7 @@ the context menu.</source>
         <location filename="../Windows/ResampleDialog.ui" line="435" />
         <location filename="../../../../xc64dbg/ui_ResampleDialog.h" line="379" />
         <source>Subsample by 2</source>
-        <translation>降采样 2 倍</translation>
+        <translation>子采样 2 倍</translation>
     </message>
     <message>
         <location filename="../Windows/ResampleDialog.ui" line="440" />
@@ -7504,7 +7504,7 @@ the context menu.</source>
         <location filename="../Windows/ResampleDialog.ui" line="445" />
         <location filename="../../../../xc64dbg/ui_ResampleDialog.h" line="381" />
         <source>Subsample to Isotropic</source>
-        <translation>降采样为各向同性</translation>
+        <translation>子采样为各向同性</translation>
     </message>
 </context>
 <context>
@@ -7754,7 +7754,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="568" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="687" />
         <source>split</source>
-        <translation>分割</translation>
+        <translation>拆分</translation>
     </message>
     <message>
         <source>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
@@ -8004,7 +8004,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/SliceViewPanel.ui" line="983" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="567" />
         <source>Split Selected Edges</source>
-        <translation>分割选定边</translation>
+        <translation>拆分选定边</translation>
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="474" />
@@ -8012,7 +8012,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="570" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="685" />
         <source>Splits each selected edge in the polygon by inserting a new vertex in the middle</source>
-        <translation>将多边形中每条选定边分割，在中间插入新顶点</translation>
+        <translation>将多边形中每条选定边拆分，在中间插入新顶点</translation>
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="992" />
@@ -8237,7 +8237,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/SmoothLabelsDialog.ui" line="186" />
         <location filename="../../../../xc64dbg/ui_SmoothLabelsDialog.h" line="181" />
         <source>Clear All</source>
-        <translation>全清</translation>
+        <translation>全部清除</translation>
     </message>
     <message>
         <location filename="../Windows/SmoothLabelsDialog.ui" line="250" />
@@ -8297,7 +8297,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/SnakeParameterDialog.ui" line="41" />
         <location filename="../../../../xc64dbg/ui_SnakeParameterDialog.h" line="730" />
         <source>Conceptual Illustration of Forces in 2D</source>
-        <translation>二维力的概念示意图</translation>
+        <translation>二维力场概念示意图</translation>
     </message>
     <message>
         <location filename="../Windows/SnakeParameterDialog.ui" line="62" />
@@ -8499,7 +8499,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Windows/SnakeParameterDialog.cxx" line="140" />
         <source>Balloon Force</source>
-        <translation>气囊力</translation>
+        <translation>气球膨胀力</translation>
     </message>
     <message>
         <location filename="../Windows/SnakeParameterDialog.cxx" line="184" />
@@ -8552,7 +8552,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/SnakeToolROIPanel.ui" line="50" />
         <location filename="../../../../xc64dbg/ui_SnakeToolROIPanel.h" line="245" />
         <source>ROI for auto-segmentation:</source>
-        <translation>自动分割的感兴趣区域：</translation>
+        <translation>用于自动分割的ROI：</translation>
     </message>
     <message>
         <location filename="../Components/SnakeToolROIPanel.ui" line="84" />
@@ -8818,7 +8818,7 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/SnakeWizardPanel.ui" line="814" />
         <location filename="../../../../xc64dbg/ui_SnakeWizardPanel.h" line="1281" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reinitialize the clusters&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;重新初始化簇&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;重新初始化聚类&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/SnakeWizardPanel.ui" line="840" />
@@ -9129,7 +9129,7 @@ competition</source>
         <location filename="../Windows/SpeedImageDialog.ui" line="62" />
         <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1038" />
         <source>Thresholding</source>
-        <translation>阈值处理</translation>
+        <translation>阈值</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="104" />
@@ -9141,7 +9141,7 @@ competition</source>
         <location filename="../Windows/SpeedImageDialog.ui" line="135" />
         <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1029" />
         <source>Two-sided</source>
-        <translation>双侧</translation>
+        <translation>双阈值</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="152" />
@@ -9183,7 +9183,7 @@ competition</source>
         <location filename="../Windows/SpeedImageDialog.ui" line="377" />
         <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1036" />
         <source>Component:</source>
-        <translation>分量：</translation>
+        <translation>分量（通道）：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="433" />
@@ -9235,7 +9235,7 @@ competition</source>
         <location filename="../Windows/SpeedImageDialog.ui" line="601" />
         <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1046" />
         <source>Neighboring intensity values around each voxel are included as additional features. Can help you segment images with rich texture or complex patterns, but classification will be slower</source>
-        <translation>包含每个体素周围邻域的强度值作为附加特征，有助于分割丰富纹理或复杂模式的图像，但分类速度较慢</translation>
+        <translation>包含每个体素周围邻域的灰度值作为附加特征，有助于分割丰富纹理或复杂模式的图像，但分类速度较慢</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="643" />
@@ -9379,7 +9379,7 @@ competition</source>
         <location filename="../Windows/SpeedImageDialog.ui" line="1420" />
         <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1079" />
         <source>Scale of Gaussian blurring:</source>
-        <translation>高斯模糊尺度：</translation>
+        <translation>高斯模糊的尺度：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1456" />
@@ -9529,13 +9529,13 @@ US National Insitutes of Health
         <location filename="../Windows/StatisticsDialog.cxx" line="64" />
         <source>Intensity Mean %1 SD
 (%2)</source>
-        <translation>强度均值 %1 标准差
+        <translation>灰度均值 %1 标准差
 (%2)</translation>
     </message>
     <message>
         <location filename="../Windows/StatisticsDialog.cxx" line="69" />
         <source>Mean intensity and standard deviation for layer %1</source>
-        <translation>第 %1 层的平均强度和标准差</translation>
+        <translation>第 %1 层的平均灰度和标准差</translation>
     </message>
     <message>
         <location filename="../Windows/StatisticsDialog.cxx" line="137" />
@@ -9569,7 +9569,7 @@ US National Insitutes of Health
         <location filename="../Components/SynchronizationInspector.ui" line="14" />
         <location filename="../../../../xc64dbg/ui_SynchronizationInspector.h" line="163" />
         <source>Form</source>
-        <translation>窗体</translation>
+        <translation>表单</translation>
     </message>
     <message>
         <location filename="../Components/SynchronizationInspector.ui" line="43" />
@@ -9924,7 +9924,7 @@ ITK-SNAP 窗口共享状态</translation>
         <location filename="../Components/ZoomInspector.ui" line="195" />
         <location filename="../../../../xc64dbg/ui_ZoomInspector.h" line="230" />
         <source>1x</source>
-        <translation>1倍</translation>
+        <translation>1x</translation>
     </message>
     <message>
         <location filename="../Components/ZoomInspector.ui" line="226" />
@@ -9936,7 +9936,7 @@ ITK-SNAP 窗口共享状态</translation>
         <location filename="../Components/ZoomInspector.ui" line="229" />
         <location filename="../../../../xc64dbg/ui_ZoomInspector.h" line="234" />
         <source>2x</source>
-        <translation>2倍</translation>
+        <translation>2x</translation>
     </message>
     <message>
         <location filename="../Components/ZoomInspector.ui" line="248" />
@@ -9948,7 +9948,7 @@ ITK-SNAP 窗口共享状态</translation>
         <location filename="../Components/ZoomInspector.ui" line="251" />
         <location filename="../../../../xc64dbg/ui_ZoomInspector.h" line="238" />
         <source>4x</source>
-        <translation>4倍</translation>
+        <translation>4x</translation>
     </message>
     <message>
         <location filename="../Components/ZoomInspector.ui" line="339" />
@@ -9972,7 +9972,7 @@ ITK-SNAP 窗口共享状态</translation>
         <location filename="../Components/ZoomInspector.ui" line="363" />
         <location filename="../../../../xc64dbg/ui_ZoomInspector.h" line="246" />
         <source>Center on cursor</source>
-        <translation>定位光标</translation>
+        <translation>将视图居中于光标</translation>
     </message>
 </context>
 <context>
@@ -10001,7 +10001,7 @@ ITK-SNAP 窗口共享状态</translation>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="579" />
         <source>Header size:</source>
-        <translation>文件头大小：</translation>
+        <translation>头部大小：</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="581" />
@@ -10066,12 +10066,12 @@ ITK-SNAP 窗口共享状态</translation>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="631" />
         <source>Big Endian (PowerPC, SPARC)</source>
-        <translation>大端（PowerPC，SPARC）</translation>
+        <translation>大端序（PowerPC，SPARC）</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="632" />
         <source>Little Endian (x86, x86_64)</source>
-        <translation>小端（x86，x86_64）</translation>
+        <translation>小端序（x86，x86_64）</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="634" />
@@ -10138,7 +10138,7 @@ ITK-SNAP 窗口共享状态</translation>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="404" />
         <source>Image Summary</source>
-        <translation>图像摘要</translation>
+        <translation>图像概要</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="410" />
@@ -10158,7 +10158,7 @@ ITK-SNAP 窗口共享状态</translation>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="413" />
         <source>Components/Voxel</source>
-        <translation>每体素分量数</translation>
+        <translation>分量/体素</translation>
     </message>
     <message>
         <location filename="../Windows/ImageIOWizard.cxx" line="414" />
