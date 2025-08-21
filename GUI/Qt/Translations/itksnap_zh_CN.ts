@@ -280,52 +280,52 @@
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="643"/>
         <source>Hot</source>
-        <translation>热力图</translation>
+        <translation>Hot</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="644"/>
         <source>Cool</source>
-        <translation>冷色图</translation>
+        <translation>Cool</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="645"/>
         <source>Black to red</source>
-        <translation>黑到红</translation>
+        <translation>黑到红渐变</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="646"/>
         <source>Black to green</source>
-        <translation>黑到绿</translation>
+        <translation>黑到绿渐变</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="647"/>
         <source>Black to blue</source>
-        <translation>黑到蓝</translation>
+        <translation>黑到蓝渐变</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="648"/>
         <source>Spring</source>
-        <translation>春季</translation>
+        <translation>Spring</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="649"/>
         <source>Summer</source>
-        <translation>夏季</translation>
+        <translation>Summer</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="650"/>
         <source>Autumn</source>
-        <translation>秋季</translation>
+        <translation>Autumn</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="651"/>
         <source>Winter</source>
-        <translation>冬季</translation>
+        <translation>Winter</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="652"/>
         <source>Copper</source>
-        <translation>古铜色</translation>
+        <translation>Copper</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="653"/>
@@ -335,12 +335,12 @@
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="654"/>
         <source>Blue to white to red</source>
-        <translation>蓝到白到红</translation>
+        <translation>蓝–白–红渐变</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="655"/>
         <source>Red to white to blue</source>
-        <translation>红到白到蓝</translation>
+        <translation>红–白–蓝渐变</translation>
     </message>
     <message>
         <location filename="../Components/SNAPQtCommon.cxx" line="656"/>
