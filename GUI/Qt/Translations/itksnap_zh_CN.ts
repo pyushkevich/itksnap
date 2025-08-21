@@ -3232,16 +3232,6 @@ p, li { white-space: pre-wrap; }
         <translation>图像</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.cxx" line="586" />
-        <source>mesh</source>
-        <translation>网格</translation>
-    </message>
-    <message>
-        <location filename="../Components/LayerInspectorRowDelegate.cxx" line="586" />
-        <source>image</source>
-        <translation>图像</translation>
-    </message>
-    <message>
         <source>Image Processing</source>
         <translation type="vanished">图像处理</translation>
     </message>
