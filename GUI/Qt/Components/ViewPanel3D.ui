@@ -379,10 +379,13 @@ font-size: 11px;
   </action>
   <action name="actionSave_Viewpoint">
    <property name="text">
-    <string>Save Viewpoint</string>
+    <string>Bookmark Viewpoint</string>
+   </property>
+   <property name="toolTip">
+    <string>Creates a bookmark for the current camera viewpoint</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+K, S</string>
+    <string>Ctrl+K, B</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ShortcutContext::WindowShortcut</enum>
@@ -392,8 +395,33 @@ font-size: 11px;
    <property name="text">
     <string>Restore Viewpoint</string>
    </property>
+   <property name="toolTip">
+    <string>Restores the current camera viewpoint from the bookmark</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+K, R</string>
+   </property>
+  </action>
+  <action name="actionImport_Viewpoint">
+   <property name="text">
+    <string>Import Viewpoint ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Import camera viewpoint from a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K, I</string>
+   </property>
+  </action>
+  <action name="actionExport_Viewpoint">
+   <property name="text">
+    <string>Export Viewpoint ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Export camera viewpoint to a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K, E</string>
    </property>
   </action>
   <action name="actionContinuous_Update">
