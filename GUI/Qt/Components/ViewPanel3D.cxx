@@ -63,6 +63,7 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
 
   // Create the focal point target submenu
   m_FocalPointTargetMenu = new QMenu(tr("Focus Camera on "), this);
+  m_FocalPointTargetMenu->setStyleSheet("font-size:11px;");
 
   // Set up the camera context menu
   m_DropMenu = new QMenu(this);
@@ -86,6 +87,7 @@ ViewPanel3D::ViewPanel3D(QWidget *parent) :
 
   // Menu for listing layers
   m_MeshLayerMenu = new QMenu(tr("Active Mesh"), this);
+  m_MeshLayerMenu->setStyleSheet("font-size:11px;");
   m_DropMenu->addMenu(m_MeshLayerMenu);
   m_DropMenu->setVisible(false);
 
