@@ -491,22 +491,14 @@ void ViewPanel3D::LoadCameraViewpoint(QString file)
     // Read the camera properties
     QJsonObject json_camera = json_main["camera"].toObject();
 
-    // QJsonArray to Vector3d
-    Vector3d camPosition = read_json_array<3>(json_camera, "position");
-    Vector3d camFocalPoint = read_json_array<3>(json_camera, "focal_point");
-    Vector3d camViewUp = read_json_array<3>(json_camera, "view_up");
-    Vector2d camClippingRange = read_json_array<2>(json_camera, "clipping_range");
-    double camViewAngle = read_json_double(json_camera, "view_angle");
-    double camParallelScale = read_json_double(json_camera, "parallel_scale");
-    int camParallelProjection = read_json_bool(json_camera, "parallel_projection");
-
-    CameraState cam = { .position = camPosition,
-                        .focal_point = camFocalPoint,
-                        .view_up = camViewUp,
-                        .clipping_range = camClippingRange,
-                        .view_angle = camViewAngle,
-                        .parallel_scale = camParallelScale,
-                        .parallel_projection = camParallelProjection };
+    CameraState cam;
+    cam.position = read_json_array<3>(json_camera, "position");
+    cam.focal_point = read_json_array<3>(json_camera, "focal_point");
+    cam.view_up = read_json_array<3>(json_camera, "view_up");
+    cam.clipping_range = read_json_array<2>(json_camera, "clipping_range");
+    cam.view_angle = read_json_double(json_camera, "view_angle");
+    cam.parallel_scale = read_json_double(json_camera, "parallel_scale");
+    cam.parallel_projection = read_json_bool(json_camera, "parallel_projection");
 
     m_Model->GetRenderer()->SetCameraState(cam);
 
