@@ -1,5 +1,38 @@
 # ITK-SNAP Release Notes - Version 4.2
 
+## Version 4.4.0
+
+### New Features
+
+- Integration with nnInteractive ([Isensee et al., 2025](https://arxiv.org/abs/2503.08373)) provides AI-assisted segmentation.
+  - See [web-based documentation](https://itksnap-dls.readthedocs.io/) and [demo video](https://www.youtube.com/watch?v=gpQ19OPUm34) of this new feature
+  - Supports point, scribble (paintbrush) and lasso (polygon) modes
+  - Uses network communication to execute deep learning components on a remote or cloud-based GPU
+- Improved support for externally-loaded 3D/4D meshes:
+  - External meshes are visualized in 2D slice views
+  - New context menu in the 3D view provides quick access to many mesh visualization options
+  - Camera controls in 3D view extended with import/export, focusing on mesh vs. image
+- New high-performance 2D slice rendering code replaces the slower VTK-based introduced in 4.0:
+  - Direct OpenGL2 hardware rendering on devices that support it (most modern hardware)
+  - Fallback to software-based rendering for other devices
+  - Much faster performance for large images
+ 
+### Bug Fixes
+- Discovered inaccuracies with previous tdigest implementation (fast quantile/histogram estimation) and replaced with code from the Apache project.
+- Fixed incorrect histogram computation for mesh data arrays
+- Various bug fixes (see GitHub)
+
+### Programmatic Improvements
+
+- New [Deep Learning Segmentation (DLS)](https://itksnap-dls.readthedocs.io/) framework :
+  - Extends ITK-SNAP with Python-based deep learning capabilities 
+  - DLS communication layers supports network-based connections and SSH tunneling
+  - Lays the foundation for more scalable integration of additional deep learning inference backends
+- Software build automation via GitHub Actions
+- Changes to CMake build to use Qt-provided bundling utilities instead of fixup_bundle
+- Extensive refactoring to wrap most user-presented strings in `tr()` calls for internationalization
+- Translation code uses OpenAI API for automated initial translations
+
 ## Version 4.2.2
 
 ### Programmatic Improvements
