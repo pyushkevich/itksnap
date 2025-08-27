@@ -1,4 +1,4 @@
-# ITK-SNAP Release Notes - Version 4.2
+# ITK-SNAP Release Notes - Version 4.4
 
 ## Version 4.4.0
 
