@@ -23,7 +23,7 @@ Vector3d
 PaintbrushModel::ComputeOffset()
 {
   // Get the paintbrush properties
-  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+  PaintbrushSettings pbs = GetEffectivePaintbrushSettings();
 
   Vector3d offset(0.0);
   if (fmod(pbs.radius, 1.0) == 0)
@@ -149,7 +149,7 @@ PaintbrushModel ::ProcessDragEvent(const Vector3d &xSlice,
                                    bool            release)
 {
   IRISApplication   *driver = m_Parent->GetDriver();
-  PaintbrushSettings pbs = driver->GetGlobalState()->GetPaintbrushSettings();
+  PaintbrushSettings pbs = GetEffectivePaintbrushSettings();
 
   if (m_IsEngaged)
   {
@@ -306,7 +306,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
   DrawOverFilter drawover = gs->GetDrawOverFilter();
 
   // Get the paintbrush properties
-  PaintbrushSettings pbs = gs->GetPaintbrushSettings();
+  PaintbrushSettings pbs = GetEffectivePaintbrushSettings();
 
   // Whether watershed filter is used (adaptive brush)
   bool flagWatershed = (pbs.smart_mode == PAINTBRUSH_WATERSHED && (!reverse_mode) && (!dragging));
@@ -422,11 +422,23 @@ PaintbrushModel::ApplyBrushDeepLearning(bool reverse_mode)
   return false;
 }
 
+PaintbrushSettings
+PaintbrushModel::GetEffectivePaintbrushSettings()
+{
+  // Get the settings from global state
+  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+
+  // Override the brush width when using deep learning mode
+  pbs.radius = (pbs.smart_mode == PAINTBRUSH_DLS) ? 0.5 : pbs.radius;
+
+  return pbs;
+}
+
 
 Vector3d
 PaintbrushModel::GetCenterOfPaintbrushInSliceSpace()
 {
-  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+  PaintbrushSettings pbs = GetEffectivePaintbrushSettings();
 
   if (fmod(pbs.radius, 1.0) == 0)
     return m_Parent->MapImageToSlice(to_double(m_MousePosition));

@@ -27,19 +27,18 @@ public:
 
   bool CheckState(PaintbrushSettingsModel::UIState state);
 
-  irisGetMacro(PaintbrushShapeModel, AbstractPaintbrushShapeModel *)
-  irisGetMacro(PaintbrushSmartModeModel, AbstractPaintbrushSmartModeModel *)
+  irisGenericPropertyAccessMacro(PaintbrushShape, PaintbrushShape, TrivialDomain)
+  irisGenericPropertyAccessMacro(PaintbrushSmartMode, PaintbrushSmartMode, TrivialDomain)
 
-  irisGetMacro(BrushSizeModel, AbstractRangedIntProperty *)
-  irisGetMacro(VolumetricBrushModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(IsotropicBrushModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(ChaseCursorModel, AbstractSimpleBooleanProperty *)
+  irisRangedPropertyAccessMacro(BrushSize, int)
+  irisSimplePropertyAccessMacro(VolumetricBrush, bool)
+  irisSimplePropertyAccessMacro(IsotropicBrush, bool)
+  irisSimplePropertyAccessMacro(ChaseCursor, bool)
 
-  irisGetMacro(AdaptiveModeModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(ThresholdLevelModel, AbstractRangedDoubleProperty *)
-  irisGetMacro(SmoothingIterationsModel, AbstractRangedIntProperty *)
-
-  irisGetMacro(DeepLearningModeModel, AbstractSimpleBooleanProperty *)
+  irisReadOnlySimplePropertyAccessMacro(AdaptiveMode, bool)
+  irisReadOnlySimplePropertyAccessMacro(DeepLearningMode, bool)
+  irisRangedPropertyAccessMacro(ThresholdLevel, double)
+  irisRangedPropertyAccessMacro(SmoothingIterations, int)
 
 protected:
 

@@ -70,8 +70,7 @@ void
 PaintbrushRenderer::BuildBrush(AbstractRenderContext *context)
 {
   // Get the current properties
-  GlobalState *gs = m_Model->GetParent()->GetDriver()->GetGlobalState();
-  PaintbrushSettings ps = gs->GetPaintbrushSettings();
+  PaintbrushSettings ps = m_Model->GetEffectivePaintbrushSettings();
 
   // Check if the cached settings can be used
   if (m_BrushOutline.size() && ps.radius == m_CachedBrushSettings.radius &&

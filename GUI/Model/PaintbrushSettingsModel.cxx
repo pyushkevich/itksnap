@@ -74,6 +74,10 @@ void PaintbrushSettingsModel::SetParentModel(GlobalUIModel *parent)
 
   // For the maximum size, we just need the size model to be updated, no custom code
   m_BrushSizeModel->RebroadcastFromSourceProperty(dbs->GetPaintbrushDefaultMaximumSizeModel());
+
+  // The brush size model also depends on the deep learning mode
+  m_BrushSizeModel->Rebroadcast(m_DeepLearningModeModel, ValueChangedEvent(), ValueChangedEvent());
+  m_BrushSizeModel->Rebroadcast(m_DeepLearningModeModel, ValueChangedEvent(), DomainChangedEvent());
 }
 
 void PaintbrushSettingsModel::OnUpdate()
@@ -144,20 +148,31 @@ PaintbrushSettingsModel::SetPaintbrushSmartModeValue(PaintbrushSmartMode value)
 }
 
 
-bool PaintbrushSettingsModel
-::GetBrushSizeValueAndRange(int &value, NumericValueRange<int> *domain)
+bool
+PaintbrushSettingsModel ::GetBrushSizeValueAndRange(int &value, NumericValueRange<int> *domain)
 {
   PaintbrushSettings pbs = GetPaintbrushSettings();
 
-  // Round just in case
-  value = (int) (pbs.radius * 2 + 0.5);
-  if(domain)
+  // In AI mode, the paintbrush should be one pixel thick
+  if (pbs.smart_mode == PAINTBRUSH_DLS)
+  {
+    value = 1;
+    if (domain)
+      domain->Set(1, 1, 1);
+  }
+  else
+  {
+    // Round just in case
+    value = (int)(pbs.radius * 2 + 0.5);
+    if (domain)
     {
-    int max_size = m_ParentModel->GetGlobalPreferencesModel()
-                   ->GetDefaultBehaviorSettings()->GetPaintbrushDefaultMaximumSize();
+      int max_size = m_ParentModel->GetGlobalPreferencesModel()
+                       ->GetDefaultBehaviorSettings()
+                       ->GetPaintbrushDefaultMaximumSize();
 
-    domain->Set(1, max_size, 1);
+      domain->Set(1, max_size, 1);
     }
+  }
   return true;
 }
 
@@ -165,8 +180,11 @@ void PaintbrushSettingsModel::SetBrushSizeValue(int value)
 {
   PaintbrushSettings pbs = GetPaintbrushSettings();
 
-  pbs.radius = 0.5 * value;
-  SetPaintbrushSettings(pbs);
+  if (pbs.smart_mode != PAINTBRUSH_DLS)
+  {
+    pbs.radius = 0.5 * value;
+    SetPaintbrushSettings(pbs);
+  }
 }
 
 bool PaintbrushSettingsModel::GetAdaptiveModeValue(bool &value)
