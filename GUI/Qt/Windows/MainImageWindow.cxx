@@ -746,7 +746,7 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
   if(proj_file_changed)
     this->UpdateProjectMenuItems();
 
-  if(view_panel_layout_changed)
+  if(view_panel_layout_changed || main_changed)
     this->UpdateViewPanelVisibility();
 
   if(display_layout_changed)
@@ -810,6 +810,13 @@ MainImageWindow::UpdateMainLayout()
 
     // If the image is 2D, update the display layout to only show the 2D view
     auto *dlm = m_Model->GetDisplayLayoutModel();
+
+    // Start by setting the view panel layout to VIEW_ALL. This also has the benefit of
+    // making subsequet calls to dlm->GetViewPanelExpandButtonActionModel return actual
+    // layouts, not VIEW_ALL
+    dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
+
+    // Is this a 2D image?
     if (main->GetSize()[2] == 1)
     {
       for (int i = 0; i < 3; i++)
@@ -822,10 +829,6 @@ MainImageWindow::UpdateMainLayout()
           break;
         }
       }
-    }
-    else
-    {
-      dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
     }
   }
   else
