@@ -88,6 +88,9 @@ QAction* FindUpstreamAction(QWidget *w, const QString &targetActionName);
 // Find an upstream action for a widget
 QDialog* FindUpstreamDialog(QWidget *w, const QString &targetDialogName);
 
+// Search upstream to find a window handle
+QWindow* FindUpstreamWindowHandle(QWidget *w);
+
 // Connect a widget to the trigger slot in an upstream action
 void ConnectWidgetToTopLevelAction(QWidget *w, const char *signal, QString actionName);
 

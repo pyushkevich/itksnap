@@ -42,7 +42,11 @@ protected:
   {
   public:
     bool eventFilter(QObject *object, QEvent *event);
+    void connectCurrentScreen();
     QtViewportReporter *m_Owner;
+
+    QMetaObject::Connection m_ScreenChangedConnection;
+    QList<QMetaObject::Connection> m_ScreenConnections;
   };
 
   EventFilter *m_Filter;

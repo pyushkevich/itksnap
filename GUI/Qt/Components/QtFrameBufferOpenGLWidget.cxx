@@ -1,10 +1,16 @@
 #include "QtFrameBufferOpenGLWidget.h"
 #include "AbstractContextBasedRenderer.h"
+#include "SNAPQtCommon.h"
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
 #include "QPainterRenderContext.h"
+#include <QScreen>
 #include <chrono>
 #include <cstdio>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLShaderProgram>
+#include <QWindow>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderer.h>
@@ -14,12 +20,16 @@
 
 QtFrameBufferOpenGLWidget::QtFrameBufferOpenGLWidget(QWidget *parent)
   : QOpenGLWidget(parent)
-{}
+{
+
+}
 
 QtFrameBufferOpenGLWidget::~QtFrameBufferOpenGLWidget()
 {
   if (m_FrameBufferObject)
     delete m_FrameBufferObject;
+
+
 }
 
 void
@@ -46,10 +56,6 @@ QtFrameBufferOpenGLWidget::updateFBO()
   format.setSamples(4); // Enable multisampling for antialiasing
   m_FrameBufferObject = new QOpenGLFramebufferObject(fboWidth, fboHeight, format);
 }
-
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLBuffer>
-#include <QOpenGLShaderProgram>
 
 static const char *vertexShaderSourceCore =
   "#version 150\n"
@@ -346,6 +352,61 @@ QtFrameBufferOpenGLWidget::setScreenshotRequest(const std::string &filename)
 {
   m_ScreenshotRequest = filename;
 }
+
+void
+QtFrameBufferOpenGLWidget::connectCurrentScreen(bool force)
+{
+  // Handle existing connection
+  if(m_CurrentScreenGeometryChangedConnection)
+  {
+    if(force)
+      disconnect(m_CurrentScreenGeometryChangedConnection);
+    else
+      return;
+  }
+
+  QScreen *screen = this->screen();
+  if(screen)
+  {
+    m_CurrentScreenGeometryChangedConnection = connect(screen, &QScreen::geometryChanged,
+            this, &QtFrameBufferOpenGLWidget::onScreenGeometryChanged);
+  }
+}
+
+void
+QtFrameBufferOpenGLWidget::showEvent(QShowEvent *event)
+{
+  QOpenGLWidget::showEvent(event);
+
+  // Listen for when the current screen changes
+  QWindow *window = FindUpstreamWindowHandle(this);
+  if (window && !m_CurrentScreenChangedConnection)
+  {
+    m_CurrentScreenChangedConnection =
+      connect(window, &QWindow::screenChanged, this, &QtFrameBufferOpenGLWidget::onScreenChanged);
+  }
+
+  // Connect the current screen
+  connectCurrentScreen(false);
+}
+
+void
+QtFrameBufferOpenGLWidget::onScreenGeometryChanged()
+{
+  this->makeCurrent();
+  this->resizeGL((int)(this->width() * this->devicePixelRatioF()),
+                 (int)(this->height() * this->devicePixelRatioF()));
+  this->doneCurrent();
+  this->update();
+}
+
+void
+QtFrameBufferOpenGLWidget::onScreenChanged()
+{
+  onScreenGeometryChanged();
+  connectCurrentScreen(true);
+}
+
 
 QtDirectRenderOpenGLWidget::QtDirectRenderOpenGLWidget(QWidget *parent)
   : QOpenGLWidget(parent)
