@@ -822,6 +822,7 @@ MainImageWindow::UpdateMainLayout()
       for (int i = 0; i < 3; i++)
       {
         auto *slice_model = m_Model->GetSliceModel(i);
+        slice_model->Update();
         if (slice_model->GetSliceDirectionInImageSpace() == 2)
         {
           auto layout = dlm->GetViewPanelExpandButtonActionModel(i)->GetValue();
