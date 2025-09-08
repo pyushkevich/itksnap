@@ -357,7 +357,7 @@ DefaultNonOrthogonalSlicerWorkerTraits<
       ? m_Interpolator.InterpolateNearestNeighbor(cix, &m_BufferValue)
       : m_Interpolator.Interpolate(cix, &m_BufferValue);
 
-  if(status == Interpolator::INSIDE)
+  if(status == Interpolator::INSIDE || status == Interpolator::BORDER)
     *(*out_ptr)++ = static_cast<OutputComponentType>(m_BufferValue);
   else
     *(*out_ptr)++ = 0;
@@ -415,7 +415,7 @@ DefaultNonOrthogonalSlicerWorkerTraits<
 
   const typename InternalImageType::PixelType &vpref = m_VectorPixel;
 
-  if(status == Interpolator::INSIDE)
+  if(status == Interpolator::INSIDE || status == Interpolator::BORDER)
     {
     // Cast to the vector pixel type
     for(int i = 0; i < m_NumComponents; i++)
