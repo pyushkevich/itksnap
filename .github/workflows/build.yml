@@ -45,7 +45,7 @@ jobs:
         vtk_ver: [ '9.3.1' ]
         qt_ver: [ '6.8.1' ]
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             qt_host: linux
             qt_arch: linux_gcc_64
             ctest_cmd: xvfb-run -a ctest
