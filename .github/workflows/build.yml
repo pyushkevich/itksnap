@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest,macos-13,macos-14,windows-2022]
+        os: [ubuntu-22.04,macos-13,macos-14,windows-2022]
         itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.3.1' ]
         qt_ver: [ '6.8.1' ]
