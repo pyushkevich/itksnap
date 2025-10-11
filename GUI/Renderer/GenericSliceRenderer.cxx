@@ -605,7 +605,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
   if (as->GetOverallVisibility())
   {
     // Should we render the zoom thumbnail?
-    if (id->IsMainLoaded() && m_Model->IsThumbnailOn())
+    if (id->IsMainLoaded() && m_Model->IsThumbnailOn() && m_Model->GetViewportLayout().vpList.size() > 0)
     {
       // Draw the zoom thumbnail
       auto *eltThumb = as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL);
