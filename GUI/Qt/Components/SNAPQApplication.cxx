@@ -60,33 +60,61 @@ SNAPQApplication::notify(QObject *object, QEvent *event)
 
 bool SNAPQApplication::event(QEvent *event)
 {
-  // Handle file drops
+  // Handle file drops and URL scheme events
   if (event->type() == QEvent::FileOpen && m_MainWindow)
     {
     QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
-    QString file = openEvent->url().path();
+    QUrl url = openEvent->url();
+    QString urlString = url.toString();
 
-    // MacOS bug - we get these open document events automatically generated
-    // from command-line parameters, and I have no idea why. To avoid this,
-    // if the event occurs at startup (within a second), we will check if
-    // the passed in URL matches the command-line arguments, and ignore it
-    // if it does
-    if(m_StartupTime.secsTo(QTime::currentTime()) < 1)
+    // Check if this is an itksnap:// URL scheme
+    if (url.scheme() == "itksnap")
       {
-      foreach(const QString &arg, m_Args)
+      // MacOS bug workaround for startup events
+      if(m_StartupTime.secsTo(QTime::currentTime()) < 1)
         {
-        if(arg == file)
-          return true;
+        foreach(const QString &arg, m_Args)
+          {
+          if(arg == urlString)
+            return true;
+          }
         }
+
+      // Accept the event
+      event->accept();
+
+      // Parse the URL and handle it
+      m_MainWindow->raise();
+      m_MainWindow->HandleURLScheme(url);
+      return true;
       }
+    // Handle regular file open events
+    else
+      {
+      QString file = url.path();
 
-    // Accept the event
-    event->accept();
+      // MacOS bug - we get these open document events automatically generated
+      // from command-line parameters, and I have no idea why. To avoid this,
+      // if the event occurs at startup (within a second), we will check if
+      // the passed in URL matches the command-line arguments, and ignore it
+      // if it does
+      if(m_StartupTime.secsTo(QTime::currentTime()) < 1)
+        {
+        foreach(const QString &arg, m_Args)
+          {
+          if(arg == file)
+            return true;
+          }
+        }
 
-    // Ok, we passed the check, now it's safe to actually open the file
-    m_MainWindow->raise();
-    m_MainWindow->LoadDroppedFile(file);
-    return true;
+      // Accept the event
+      event->accept();
+
+      // Ok, we passed the check, now it's safe to actually open the file
+      m_MainWindow->raise();
+      m_MainWindow->LoadDroppedFile(file);
+      return true;
+      }
     }
 
   else return QApplication::event(event);

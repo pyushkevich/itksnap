@@ -1,0 +1,15 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ITK-SNAP
+GenericName=Medical Image Segmentation Tool
+Comment=3D medical image segmentation tool with semi-automatic segmentation using active contour methods
+Exec=@SNAP_BUNDLE_NAME@ %U
+Icon=itksnap
+Terminal=false
+Categories=Science;MedicalSoftware;Education;
+MimeType=application/x-itksnap-workspace;application/x-nifti;application/dicom;
+Keywords=medical;imaging;segmentation;nifti;dicom;mri;ct;
+StartupNotify=true
+X-KDE-Protocols=itksnap
+X-GNOME-Protocols=itksnap

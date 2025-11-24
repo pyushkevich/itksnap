@@ -1668,6 +1668,19 @@ ELSEIF(WIN32)
   SET(CPACK_NSIS_MODIFY_PATH ON)
   SET(CPACK_NSIS_MENU_LINKS "http://itksnap.org" "ITK-SNAP Web Site")
 
+  # Register URL scheme for itksnap://
+  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}
+    WriteRegStr HKCR 'itksnap' '' 'URL:ITK-SNAP Protocol'
+    WriteRegStr HKCR 'itksnap' 'URL Protocol' ''
+    WriteRegStr HKCR 'itksnap\\\\DefaultIcon' '' '$INSTDIR\\\\bin\\\\ITK-SNAP.exe,0'
+    WriteRegStr HKCR 'itksnap\\\\shell\\\\open\\\\command' '' '\\\"$INSTDIR\\\\bin\\\\ITK-SNAP.exe\\\" \\\"%1\\\"'
+  ")
+
+  # Unregister URL scheme on uninstall
+  SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "${CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS}
+    DeleteRegKey HKCR 'itksnap'
+  ")
+
   # CMake does not yet know to install into (x64) program files or not
   IF(CMAKE_CL_64)
     SET(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
@@ -1716,6 +1729,17 @@ ELSE()
   SET(SNAP_DATA_INSTALL_DIR ${SNAP_MAIN_INSTALL_DIR})
   SET(CPACK_PACKAGE_EXECUTABLES "itksnap" "ITK-SNAP")
   INSTALL(TARGETS ${SNAP_BUNDLE_NAME} RUNTIME DESTINATION ${SNAP_MAIN_INSTALL_DIR})
+
+  # Configure and install .desktop file for URL scheme support
+  CONFIGURE_FILE(
+    ${SNAP_SOURCE_DIR}/Utilities/Linux/itksnap.desktop.in
+    ${SNAP_BINARY_DIR}/itksnap.desktop
+    @ONLY
+  )
+  INSTALL(FILES ${SNAP_BINARY_DIR}/itksnap.desktop
+    DESTINATION share/applications
+    COMPONENT Runtime
+  )
 
   # Use Qt deployment script to take care of plugins
   set(executable_path "${SNAP_MAIN_INSTALL_DIR}/${SNAP_BUNDLE_NAME}")

@@ -92,6 +92,9 @@ public:
   // Load a drag-n-dropped file
   void LoadDroppedFile(QString file);
 
+  // Handle URL scheme (itksnap://)
+  void HandleURLScheme(const QUrl &url);
+
   // Export a screenshot from one of the panels
   void ExportScreenshot(int panelIndex);
 

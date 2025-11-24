@@ -94,6 +94,9 @@
 #include <QShortcut>
 #include <QScreen>
 #include <QTextStream>
+#if QT_VERSION >= 0x050000
+#include <QUrlQuery>
+#endif
 
 QString read_tooltip_qt(const QString &filename)
 {
@@ -1371,6 +1374,68 @@ void MainImageWindow::LoadDroppedFile(QString file)
         this, exc, tr("File Dropping Error"), tr("Failed to load file %1").arg(file));
     }
 
+}
+
+void MainImageWindow::HandleURLScheme(const QUrl &url)
+{
+  try
+    {
+    // Parse the itksnap:// URL
+    // Expected formats:
+    //   itksnap://open?file=/path/to/image.nii
+    //   itksnap://workspace?file=/path/to/workspace.itksnap
+
+    QString action = url.host();
+
+    if (action == "open" || action == "workspace")
+      {
+      // Parse query parameters
+      QString filePath;
+
+#if QT_VERSION >= 0x050000
+      QUrlQuery query(url);
+      filePath = query.queryItemValue("file", QUrl::FullyDecoded);
+#else
+      filePath = url.queryItemValue("file");
+#endif
+
+      if (filePath.isEmpty())
+        {
+        // Try to get the path from the URL path component
+        filePath = url.path();
+        // Remove leading slash if present
+        if (filePath.startsWith("/"))
+          filePath = filePath.mid(1);
+        }
+
+      if (!filePath.isEmpty())
+        {
+        // Handle file:// prefix if present in the file parameter
+        if (filePath.startsWith("file://"))
+          filePath = QUrl(filePath).toLocalFile();
+
+        // Load the file
+        LoadDroppedFile(filePath);
+        }
+      else
+        {
+        QMessageBox::warning(this, tr("URL Scheme Error"),
+                            tr("No file specified in URL: %1").arg(url.toString()));
+        }
+      }
+    else
+      {
+      QMessageBox::warning(this, tr("URL Scheme Error"),
+                          tr("Unknown action in URL: %1\n\n"
+                             "Supported actions: open, workspace").arg(action));
+      }
+    }
+  catch (exception &exc)
+    {
+    ReportNonLethalException(
+      this, exc, tr("URL Scheme Error"),
+      tr("Failed to handle URL: %1").arg(url.toString()));
+    }
 }
 
 #ifdef __APPLE__
