@@ -171,6 +171,10 @@ PaintbrushModel ::ProcessDragEvent(const Vector3d &xSlice,
           ComputeMousePosition(X);
           ApplyBrush(m_ReverseMode, true, i == nSteps-1 ? release : false);
         }
+        // After interpolation loop, cursor is left at m_LastApplyX (old position).
+        // Reset cursor to the actual current mouse position so it doesn't visually
+        // lag behind the drawn stroke.
+        ComputeMousePosition(xSlice);
       }
       else
       {
