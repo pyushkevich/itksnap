@@ -1696,6 +1696,12 @@ void MainImageWindow::on4DReplayTimeout()
 {
   if(m_Model && m_Model->GetDriver()->GetNumberOfTimePoints() > 1)
     {
+    // Skip this frame if a background mesh computation is running. Advancing
+    // the time point calls SetTimePointIndex which mutates the ITK pipeline,
+    // causing a data race with the thread reading image buffers for meshing.
+    if(m_Model->GetModel3D()->IsMeshUpdating())
+      return;
+
     int crntTP = m_Model->GetDriver()->GetCursorTimePoint();
     int nextTP = (crntTP + 1) % (m_Model->GetDriver()->GetNumberOfTimePoints());
     m_Model->GetDriver()->SetCursorTimePoint(nextTP);
