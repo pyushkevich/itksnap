@@ -504,6 +504,8 @@ public:
     setObjectName(QString("CouplingHelper:%1").arg(widget->objectName()));
   }
 
+  }
+
 public slots:
   void onUserModification()
   {
