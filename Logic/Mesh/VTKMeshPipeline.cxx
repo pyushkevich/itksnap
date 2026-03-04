@@ -92,10 +92,10 @@ protected:
     {
       // Change the orientation of all the polys
       vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
-      vtkSmartPointer<vtkCellArray> trg = vtkCellArray::New();
+      vtkSmartPointer<vtkCellArray> trg = vtkSmartPointer<vtkCellArray>::New();
       vtkCellArray *src = input->GetPolys();
       trg->AllocateEstimate(src->GetNumberOfCells(), src->GetMaxCellSize());
-      for (vtkSmartPointer<vtkCellArrayIterator> it = src->NewIterator(); !it->IsDoneWithTraversal();
+      for (auto it = vtk::TakeSmartPointer(src->NewIterator()); !it->IsDoneWithTraversal();
            it->GoToNextCell())
       {
         it->GetCurrentCell(idList);
