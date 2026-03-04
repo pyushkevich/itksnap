@@ -128,7 +128,7 @@ protected:
   // If the mesh layer belongs to a SNAP Image Data
   bool m_IsSNAP = false;
 
-  SmartPtr<GenericImageData> m_ImageData;
+  GenericImageData* m_ImageData = nullptr;
 
   // set of segmentation image id that map to the related layer pointer
   std::map<unsigned long, MeshWrapperBase*> m_ImageToMeshMap;
