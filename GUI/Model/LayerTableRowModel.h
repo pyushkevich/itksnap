@@ -152,8 +152,12 @@ protected:
   // Parent model
   GlobalUIModel *m_ParentModel;
 
-  // Layer Wrapper
-  SmartPtr<WrapperBase> m_Layer;
+  // Layer Wrapper (raw pointer to avoid circular reference with m_UserDataMap)
+  WrapperBase *m_Layer = nullptr;
+
+  // Called when m_Layer fires itk::DeleteEvent; subclasses override to null
+  // their own typed layer pointers.
+  virtual void OnLayerDeleted() {}
 
   // Generic image data object in which this layer lives.
   GenericImageData *m_ImageData;
@@ -200,6 +204,8 @@ public:
    *  Implement in a subclass to do wrapper specific logic
    */
   void Initialize(GlobalUIModel *parentModel, WrapperBase *layer) override;
+
+  void OnLayerDeleted() override { m_ImageLayer = nullptr; }
 
   /** Implement in a subclass to Check the state of the system */
   bool CheckState(UIState state) override;
@@ -318,7 +324,7 @@ protected:
   // Cached list of display modes
   DisplayModeList m_AvailableDisplayModes;
 
-  SmartPtr<ImageWrapperBase> m_ImageLayer;
+  ImageWrapperBase *m_ImageLayer = nullptr;
 };
 
 
@@ -336,6 +342,8 @@ public:
 
   /** Implement in a subclass to do wrapper specific logic */
   void Initialize(GlobalUIModel *parentModel, WrapperBase *layer) override;
+
+  void OnLayerDeleted() override { m_MeshLayer = nullptr; }
 
   /** Implement in a subclass to Check the state of the system */
   bool CheckState(UIState state) override;
@@ -436,7 +444,7 @@ protected:
   //  End of virtual methods implementation
   // ------------------------------------------
 
-  SmartPtr<MeshWrapperBase> m_MeshLayer;
+  MeshWrapperBase *m_MeshLayer = nullptr;
 };
 
 #endif // LAYERTABLEROWMODEL_H
