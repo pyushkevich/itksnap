@@ -332,9 +332,11 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
   auto         index = DisplaySliceIndex(m_Model->GetId(), DISPLAY_SLICE_MAIN);
   auto        *main_image = m_Model->GetDriver()->GetMainImage();
 
-  // Get the key to access the stored path from the layer
+  // Get the key to access the stored path from the layer.
+  // Include the timepoint in the key so each tp gets its own cached contour,
+  // and switching back to a previous tp correctly reuses that tp's cached contour.
   static const char *key_path[] = { "MeshSliceViewPath_0", "MeshSliceViewPath_1", "MeshSliceViewPath_2" };
-  auto layer_key = key_path[m_Model->GetId()];
+  std::string layer_key = std::string(key_path[m_Model->GetId()]) + "_tp" + std::to_string(tp);
 
   SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
   const auto             &eltMesh = as->GetUIElement(SNAPAppearanceSettings::MESH_OUTLINE);
