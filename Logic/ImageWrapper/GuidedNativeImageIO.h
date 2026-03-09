@@ -323,6 +323,10 @@ protected:
   /** Templated function that reads a scalar image in its native datatype */
   template <typename TScalar> void DoSaveNative(const char *fname, Registry &folder);
 
+  /** Write a 4D image as an NRRD volume sequence (.seq.nrrd) */
+  template <typename TImageType>
+  void SaveNrrdSequence(const char *fname, TImageType *image);
+
   /** Templated function that computes an MD5 hash from the stored image */
   template <typename TScalar> std::string DoGetNativeMD5Hash();
 
