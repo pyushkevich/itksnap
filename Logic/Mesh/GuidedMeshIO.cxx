@@ -7,6 +7,7 @@
 #include <itksys/SystemTools.hxx>
 #include <vtkDataReader.h>
 #include <vtkPolyDataWriter.h>
+#include <vtkXMLPolyDataWriter.h>
 #include <vtkSTLWriter.h>
 #include <vtkBYUWriter.h>
 #include <vtkTriangleFilter.h>
@@ -37,7 +38,7 @@ GuidedMeshIO::m_MeshFormatDescriptorMap =
   { FORMAT_STL, { "STL Mesh",   {".stl"},         false,  true } },
   { FORMAT_VRML,{ "VRML Scene", {".vrml"},        false,  true } },
   { FORMAT_VTK, { "VTK Mesh",   {".vtk"},         true,   true } },
-  { FORMAT_VTP, { "VTP Mesh",   {".vtp"},         true,   false } }
+  { FORMAT_VTP, { "VTP Mesh",   {".vtp"},         true,   true  } }
 };
 
 
@@ -149,7 +150,15 @@ GuidedMeshIO
     writer->Delete();
     tri->Delete();
     }
-  else 
+  else if(format == FORMAT_VTP)
+    {
+    vtkXMLPolyDataWriter *writer = vtkXMLPolyDataWriter::New();
+    writer->SetInputData(mesh);
+    writer->SetFileName(FileName);
+    writer->Update();
+    writer->Delete();
+    }
+  else
     throw itk::ExceptionObject("Illegal format specified for saving image");
 }
 

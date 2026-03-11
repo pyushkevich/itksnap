@@ -51,6 +51,7 @@
 #include "itkNiftiImageIO.h"
 #include "itkSiemensVisionImageIO.h"
 #include "itkVTKImageIO.h"
+#include "VTIImageIO.h"
 #include "itkVoxBoCUBImageIO.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -114,6 +115,7 @@ GuidedNativeImageIO
   {"Siemens Vision", "ima",             false, false, true,  true},
   {"VoxBo CUB", "cub,cub.gz",           true,  false, true,  true},
   {"VTK Image", "vtk",                  true,  false, true,  true},
+  {"VTK XML Image", "vti",              true,  false, true,  true},
   {"Generic ITK Image", "",             true,  true,  true,  true},
   {"INVALID FORMAT", "",                false, false, false, false}};
 
@@ -417,6 +419,7 @@ GuidedNativeImageIO
 		case FORMAT_NIFTI:      m_IOBase = itk::NiftiImageIO::New();         break;
 		case FORMAT_SIEMENS:    m_IOBase = itk::SiemensVisionImageIO::New(); break;
 		case FORMAT_VTK:        m_IOBase = itk::VTKImageIO::New();           break;
+		case FORMAT_VTI:        m_IOBase = VTIImageIO::New();                break;
 		case FORMAT_VOXBO_CUB:  m_IOBase = itk::VoxBoCUBImageIO::New();      break;
 		case FORMAT_DICOM_DIR:
 		case FORMAT_DICOM_DIR_4DCTA:
