@@ -19,15 +19,15 @@ namespace RESTClient_internal
 
 template <typename ServerTraits>
 int
-progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
   long bytes_total = dltotal + ultotal;
   long bytes_done = dlnow + ulnow;
   // std::cout << "progress callback " << bytes_done << "," << bytes_total << std::endl;
 
-  // Sometimes this is called with zeros
-  if (bytes_total == 0)
-    return 0;
+  // Sometimes this is called with zeros, which is fine, we should still let the GUI know
+  // so it refreshes at least.
+  double progress = (bytes_total == 0) ? std::nan("nan") : bytes_done * 1.0 / bytes_total;
 
   typedef std::pair<void *, typename RESTClient<ServerTraits>::ProgressCallbackFunction> CallbackInfo;
   CallbackInfo *cbi = static_cast<CallbackInfo *>(clientp);
@@ -80,6 +80,9 @@ RESTSharedData<ServerTraits>::~RESTSharedData()
 template <typename ServerTraits>
 RESTClient<ServerTraits>::RESTClient(SharedData *sd)
 {
+  // Initialize the multi-handle
+  m_CurlMulti = curl_multi_init();
+
   // Initialize CURL
   m_Curl = curl_easy_init();
 
@@ -108,6 +111,7 @@ template <typename ServerTraits>
 RESTClient<ServerTraits>::~RESTClient()
 {
   curl_easy_cleanup(m_Curl);
+  curl_multi_cleanup(m_CurlMulti);
   delete m_ErrorBuffer;
 }
 
@@ -133,6 +137,57 @@ RESTClient<ServerTraits>::SetupCookies(bool receive_cookie_mode)
                         m_Curl,
                         GetServerURL().c_str(),
                         receive_cookie_mode);
+}
+
+template <class ServerTraits>
+void
+RESTClient<ServerTraits>::CurlMultiPerform()
+{
+  // Add the CURL easy handle to the multi-handle
+  curl_multi_add_handle(m_CurlMulti, m_Curl);
+
+  int still_running;
+
+  // Keep track of the last time we called the callback
+  auto callback_time = std::chrono::steady_clock::now();
+  do
+  {
+    CURLMcode mc = curl_multi_perform(m_CurlMulti, &still_running);
+    if (mc)
+      throw IRISException("CURL library error: %s\n%s", curl_multi_strerror(mc), m_ErrorBuffer);
+
+    if (!mc && still_running)
+      /* wait for activity, timeout or "nothing" */
+      mc = curl_multi_poll(m_CurlMulti, NULL, 0, 50, NULL);
+
+    if (mc)
+      throw IRISException("CURL library error: %s\n%s", curl_multi_strerror(mc), m_ErrorBuffer);
+
+    // Make a callback at this time interval for smooth behavior
+    auto now = std::chrono::steady_clock::now();
+    if (m_CallbackInfo.first &&
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - callback_time).count() >= 50)
+    {
+      callback_time = now;
+      m_CallbackInfo.second(m_CallbackInfo.first, std::nan("nan"));
+    }
+
+  } while (still_running); /* if there are still transfers, loop */
+
+  // Read the messages from the CURL handle that completed
+  struct CURLMsg *m;
+  do
+  {
+    int msgq = 0;
+    m = curl_multi_info_read(m_CurlMulti, &msgq);
+    if (m && (m->msg == CURLMSG_DONE))
+    {
+      CURL *e = m->easy_handle;
+      if(m->data.result != CURLE_OK)
+        throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(m->data.result), m_ErrorBuffer);
+      curl_multi_remove_handle(m_CurlMulti, e);
+    }
+  } while (m);
 }
 
 template <typename ServerTraits>
@@ -292,6 +347,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
     curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, m_OutputFile);
 
     // Set the callback functions
+    /*
     if (m_CallbackInfo.first)
     {
       curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
@@ -299,14 +355,31 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
       curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
       curl_easy_setopt(m_Curl, CURLOPT_VERBOSE, 1L);
     }
+    */
   }
+
+  // Set the callback function for progress
+  if (m_CallbackInfo.first)
+  {
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
+    curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
+  }
+
+  // Use the multi-perform interface so we can regularly return to the event loop
+
+
 
   // Make request
   // std::cout << "curl request to: " << url << " with data " << post_filled << std::endl;
+  /*
   CURLcode res = curl_easy_perform(m_Curl);
-
   if (res != CURLE_OK)
     throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
+  */
+
+  // Perform the operation - this will throw exception on error
+  CurlMultiPerform();
 
   // Capture the response code
   m_HTTPCode = 0L;
@@ -321,6 +394,13 @@ void
 RESTClient<ServerTraits>::SetProgressCallback(void *cb_data, ProgressCallbackFunction fn)
 {
   m_CallbackInfo = make_pair(cb_data, fn);
+}
+
+template <class ServerTraits>
+void
+RESTClient<ServerTraits>::RemoveProgressCallback()
+{
+  m_CallbackInfo = make_pair(nullptr, nullptr);
 }
 
 template <class ServerTraits>
@@ -373,16 +453,19 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   // Set the callback functions
   if (m_CallbackInfo.first)
   {
-    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
-    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSDATA, &m_CallbackInfo);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
     curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
   }
 
   // Make request
+  /*
   CURLcode res = curl_easy_perform(m_Curl);
 
   if (res != CURLE_OK)
     throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
+  */
+  CurlMultiPerform();
 
   // Get the upload statistics
   double upload_size, upload_time;
@@ -486,10 +569,13 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   }
 
   // Make request
+  /*
   CURLcode res = curl_easy_perform(m_Curl);
 
   if (res != CURLE_OK)
     throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
+  */
+  CurlMultiPerform();
 
   // Get the upload statistics
   double upload_size, upload_time;

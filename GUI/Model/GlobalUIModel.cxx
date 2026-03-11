@@ -98,6 +98,14 @@ GlobalUIModel::GlobalUIModel()
   // Create the IRIS application login
   m_Driver = IRISApplication::New();
 
+  // Distributed segmentation model
+  m_DistributedSegmentationModel = DistributedSegmentationModel::New();
+  m_DistributedSegmentationModel->SetParentModel(this);
+
+  // Distributed segmentation model
+  m_DeepLearningSegmentationModel = DeepLearningSegmentationModel::New();
+  m_DeepLearningSegmentationModel->SetParentModel(this);
+
   // Display layout model
   m_DisplayLayoutModel = DisplayLayoutModel::New();
   m_DisplayLayoutModel->SetParentModel(this);
@@ -109,14 +117,6 @@ GlobalUIModel::GlobalUIModel()
   // Registration model
   m_RegistrationModel = RegistrationModel::New();
   m_RegistrationModel->SetParentModel(this);
-
-  // Distributed segmentation model
-  m_DistributedSegmentationModel = DistributedSegmentationModel::New();
-  m_DistributedSegmentationModel->SetParentModel(this);
-
-  // Distributed segmentation model
-  m_DeepLearningSegmentationModel = DeepLearningSegmentationModel::New();
-  m_DeepLearningSegmentationModel->SetParentModel(this);
 
   // Create the slice models
   for (unsigned int i = 0; i < 3; i++)

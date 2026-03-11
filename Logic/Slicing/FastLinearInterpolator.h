@@ -559,7 +559,7 @@ public:
 
 protected:
 
-  inline const InputComponentType *border_check(int X, int Y, int Z, RealType &mask)
+  inline const InputComponentType *border_check(long X, long Y, long Z, RealType &mask)
   {
     if(X >= 0 && X < xsize && Y >= 0 && Y < ysize && Z >= 0 && Z < zsize)
       {
@@ -573,20 +573,20 @@ protected:
       }
    }
 
-  inline const InputComponentType *dens(int X, int Y, int Z)
+  inline const InputComponentType *dens(long X, long Y, long Z)
   {
     return this->buffer + this->nComp * (X+xsize*(Y+ysize*Z));
   }
 
   // Image size
-  int xsize, ysize, zsize;
+  long xsize, ysize, zsize;
 
   // State of current interpolation
   const InputComponentType *d000, *d001, *d010, *d011, *d100, *d101, *d110, *d111;
   RealType m000, m001, m010, m011, m100, m101, m110, m111;
 
   RealType fx, fy, fz;
-  int	 x0, y0, z0, x1, y1, z1;
+  long	 x0, y0, z0, x1, y1, z1;
 
 };
 
@@ -615,7 +615,7 @@ public:
   }
 
   FastLinearInterpolator(ImageBaseType *image, InputComponentType *buffer_ptr,
-                         int n_components, int n_sampled = 0)
+                         long n_components, long n_sampled = 0)
     : Superclass(buffer_ptr, n_components, n_sampled)
   {
     xsize = image->GetLargestPossibleRegion().GetSize()[0];
@@ -629,8 +629,8 @@ public:
   {
     const InputComponentType *dp;
 
-    x0 = (int) floor(cix[0]); fx = cix[0] - x0;
-    y0 = (int) floor(cix[1]); fy = cix[1] - y0;
+    x0 = (long) floor(cix[0]); fx = cix[0] - x0;
+    y0 = (long) floor(cix[1]); fy = cix[1] - y0;
 
     x1 = x0 + 1;
     y1 = y0 + 1;
@@ -684,7 +684,7 @@ public:
     if(this->status != Superclass::OUTSIDE)
       {
       // Loop over the components
-      for(int iComp = 0; iComp < this->nSampled; iComp++, grad++,
+      for(long iComp = 0; iComp < this->nSampled; iComp++, grad++,
           d00++, d01++, d10++, d11++)
         {
         // Interpolate the image intensity
@@ -713,7 +713,7 @@ public:
     if(this->status != Superclass::OUTSIDE)
       {
       // Loop over the components
-      for(int iComp = 0; iComp < this->nSampled; iComp++,
+      for(long iComp = 0; iComp < this->nSampled; iComp++,
           d00++, d01++, d10++, d11++)
         {
         // Interpolate the image intensity
@@ -728,13 +728,13 @@ public:
 
   InOut InterpolateNearestNeighbor(RealType *cix, OutputComponentType *out)
   {
-    x0 = (int) floor(cix[0] + 0.5);
-    y0 = (int) floor(cix[1] + 0.5);
+    x0 = (long) floor(cix[0] + 0.5);
+    y0 = (long) floor(cix[1] + 0.5);
 
     if (x0 >= 0 && x0 < xsize && y0 >= 0 && y0 < ysize)
       {
       const InputComponentType *dp = dens(x0, y0);
-      for(int iComp = 0; iComp < this->nSampled; iComp++)
+      for(long iComp = 0; iComp < this->nSampled; iComp++)
         {
         out[iComp] = dp[iComp];
         }
@@ -761,7 +761,7 @@ public:
       RealType w00 = 1.0 - fx - fy + fxy;
 
       // Loop over the components
-      for(int iComp = 0; iComp < this->nSampled; iComp++,
+      for(long iComp = 0; iComp < this->nSampled; iComp++,
           d00++, d01++, d10++, d11++, fixptr++)
         {
         // Just this line in the histogram
@@ -776,7 +776,7 @@ public:
       }
     else
       {
-      for(int iComp = 0; iComp < this->nSampled; iComp++, fixptr++)
+      for(long iComp = 0; iComp < this->nSampled; iComp++, fixptr++)
         {
         // Just this line in the histogram
         RealType *hist_line = hist[iComp][*fixptr];
@@ -805,7 +805,7 @@ public:
       out_grad[1] = 0.0;
 
       // Loop over the components
-      for(int iComp = 0; iComp < this->nSampled; iComp++,
+      for(long iComp = 0; iComp < this->nSampled; iComp++,
           d00++, d01++, d10++, d11++, fixptr++)
         {
         // Just this line in the histogram
@@ -852,7 +852,7 @@ public:
 
 protected:
 
-  inline const InputComponentType *border_check(int X, int Y, RealType &mask)
+  inline const InputComponentType *border_check(long X, long Y, RealType &mask)
   {
     if(X >= 0 && X < xsize && Y >= 0 && Y < ysize)
       {
@@ -866,20 +866,20 @@ protected:
       }
    }
 
-  inline const InputComponentType *dens(int X, int Y)
+  inline const InputComponentType *dens(long X, long Y)
   {
     return this->buffer + this->nComp * (X+xsize*Y);
   }
 
   // Image size
-  int xsize, ysize;
+  long xsize, ysize;
 
   // State of current interpolation
   const InputComponentType *d00, *d01, *d10, *d11;
   RealType m00, m01, m10, m11;
 
   RealType fx, fy;
-  int	 x0, y0, x1, y1;
+  long	 x0, y0, x1, y1;
 };
 
 

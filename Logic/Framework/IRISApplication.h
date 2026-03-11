@@ -597,11 +597,16 @@ public:
   /**
     Apply a binary drawing performed on an orthogonal slice to the
     main segmentation.
+
+    The flag additive, if true, means that only positive pixels in the drawing
+    are considered, and are added to the 3D segmentation. If false, negative pixels
+    in the drawing will be used to clear pixels in the segmentation if they have the
+    current draw-over label.
     */
   unsigned int UpdateSegmentationWithSliceDrawing(
       SliceBinaryImageType *drawing,
       const ImageCoordinateTransform *xfmSliceToImage,
-      double zSlice,
+      double zSlice, bool additive,
       const std::string &undoTitle);
 
   /**

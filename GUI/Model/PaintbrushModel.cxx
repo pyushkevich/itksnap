@@ -148,11 +148,14 @@ PaintbrushModel ::ProcessDragEvent(const Vector3d &xSlice,
                                    double          pixelsMoved,
                                    bool            release)
 {
-  IRISApplication   *driver = m_Parent->GetDriver();
   PaintbrushSettings pbs = GetEffectivePaintbrushSettings();
 
   if (m_IsEngaged)
   {
+    // To avoid reentry on mouse movement, clear m_IsEngaged before calling processing task
+    if(release)
+      m_IsEngaged = false;
+
     // The behavior is different for 'fast' regular brushes and adaptive brush. For the
     // adaptive brush, dragging is disabled.
     if (pbs.smart_mode != PAINTBRUSH_WATERSHED || m_ReverseMode)
@@ -190,8 +193,6 @@ PaintbrushModel ::ProcessDragEvent(const Vector3d &xSlice,
     {
       // Commit the drawing
       CommitDrawing();
-
-      m_IsEngaged = false;
       m_ContextLayerId = (unsigned long)-1;
     }
 
@@ -234,8 +235,7 @@ PaintbrushModel::CommitDrawing()
   {
     // Get the model
     auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
-    auto *img =
-      m_Parent->GetDriver()->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
+    auto *img = m_Parent->GetDriver()->GetCurrentImageData()->GetMain();
 
     // Undo the drawing we just did. But there is a chance that the drawing produced nothing in
     // which case for now we just ignore it
@@ -248,11 +248,16 @@ PaintbrushModel::CommitDrawing()
     seg->Undo();
     auto &commit = seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
 
-    // If only one delta, then treat it as a point interaction
+    // Get the remote model properties
+    auto dl_model_props = model->GetRemotePipelines()[pbs.dl_pipeline_id];
+
+    // If only one delta, then treat it as a point interaction; also treat as point interaction if the model
+    // does not support scribble interactions, although in this case, we might want to consider sending a
+    // multi-point interaction
     bool rc = false;
-    if(commit.GetDeltas().size() == 1 && m_MouseInside)
+    if((commit.GetDeltas().size() == 1 && m_MouseInside) || !dl_model_props.supports_scribble)
     {
-      rc = model->PerformPointInteraction(img, m_MousePosition, m_ReverseMode);
+      rc = model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, m_ReverseMode);
     }
     else if(commit.GetDeltas().size() > 1)
     {
@@ -262,7 +267,8 @@ PaintbrushModel::CommitDrawing()
       auto *img_delta = const_cast<LabelImageWrapper::ImageType *>(w_delta->GetImage());
       auto counts = seg->GenerateImageForRedo(commit, img_delta, gs->GetDrawingColorLabel());
       w_delta->PixelsModified();
-      model->PerformScribbleInteraction(img, w_delta, counts.n_background > counts.n_foreground);
+
+      model->PerformScribbleInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
     }
 
   }
@@ -410,13 +416,14 @@ PaintbrushModel::ApplyBrushDeepLearning(bool reverse_mode)
 {
   // Get the model
   auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
+  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
   auto *img =
     m_Parent->GetDriver()->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
 
   // Handle the point interaction
   if (m_MouseInside)
   {
-    return model->PerformPointInteraction(img, m_MousePosition, reverse_mode);
+    return model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, reverse_mode);
   }
 
   return false;

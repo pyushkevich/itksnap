@@ -321,6 +321,8 @@ StatementMacros:
   - irisITKObjectMacro
   - irisSimplePropertyAccessMacro
   - irisGenericPropertyAccessMacro
+  - irisReadOnlySimplePropertyAccessMacro
+  - irisRangedPropertyAccessMacro
   - irisVirtualGetMacro
 TableGenBreakInsideDAGArg: DontBreak
 TabWidth:        2

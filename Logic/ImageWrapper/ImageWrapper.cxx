@@ -2145,6 +2145,16 @@ ImageWrapper<TTraits>
 }
 
 template<class TTraits>
+Vector3d
+ImageWrapper<TTraits>
+  ::MapImageCIndexToSliceCIndex(unsigned int iSlice, Vector3d image_cindex) const
+{
+  const auto &tran = this->m_ImageGeometry->GetImageToDisplayTransform(iSlice);
+  return tran->TransformPoint(image_cindex);
+}
+
+
+template<class TTraits>
 typename ImageWrapper<TTraits>::SliceType*
 ImageWrapper<TTraits>
 ::GetSlice(DisplaySliceIndex index)

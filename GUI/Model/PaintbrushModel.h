@@ -16,7 +16,7 @@ public:
 
   itkEventMacro(PaintbrushMovedEvent, IRISEvent)
 
-    irisGetSetMacro(Parent, GenericSliceModel *)
+  irisGetSetMacro(Parent, GenericSliceModel *)
 
   irisIsMacro(MouseInside)
 

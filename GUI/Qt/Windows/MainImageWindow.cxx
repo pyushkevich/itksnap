@@ -26,6 +26,7 @@
 #include "MeshOptions.h"
 
 #include "MainImageWindow.h"
+#include "ProgressReportWidget.h"
 #include "ui_MainImageWindow.h"
 
 #include "MainControlPanel.h"
@@ -318,6 +319,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Set up the progress dialog
   m_Progress = new QProgressDialog(this);
+
+  // Set up the advanced progress reporter
+  m_ProgressFader = new ProgressReportWidget(this);
 
   // Create the delegate to pass in to the model
   m_ProgressReporterDelegate = new QtProgressReporterDelegate();

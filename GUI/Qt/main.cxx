@@ -1,5 +1,6 @@
 #include "IRISApplication.h"
 #include "MeshImportModel.h"
+#include "ProgressReportWidget.h"
 #include "QtLocalDeepLearningServerDelegate.h"
 #include "RESTClient.h"
 #include "SNAPQApplication.h"
@@ -383,6 +384,8 @@ public:
   // OpenGL version preferred
   int  opengl_major = 1, opengl_minor = 3;
   bool flagTestOpenGL = false;
+  bool flagTestProgressWidget = false;
+
 
   // Number of threads
   int nThreads = 0;
@@ -524,6 +527,8 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--opengl", 2);
 
   parser.AddOption("--testgl", 0);
+
+  parser.AddOption("--test-progress-widget", 0);
 
   // Standard Qt options
   parser.AddOption("--geometry", 1);
@@ -705,6 +710,12 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
       argdata.xTestAccel = atof(parseResult.GetOptionParameter("--testacc"));
     else
       argdata.xTestAccel = 1.0;
+  }
+
+  // TODO: this can be removed in the future
+  if (parseResult.IsOptionPresent("--test-progress-widget"))
+  {
+    argdata.flagTestProgressWidget = true;
   }
 
   // GUI stuff
@@ -1340,6 +1351,27 @@ main(int argc, char *argv[])
     for(unsigned int i = 0; i < 21; i++)
       qDebug() << role_names[i] << ":" << p.color((QPalette::ColorRole)roles[i]);
     */
+
+    if(argdata.flagTestProgressWidget)
+    {
+      ProgressReportWidget *p = new ProgressReportWidget(mainwin);
+      QTimer::singleShot(5000, mainwin, [=]() {
+        while(true)
+          {
+            unsigned int n_steps = rand() % 100 + 1;
+            bool progress = rand() % 2 == 0;
+            QString task_id = QString("task with %1 steps").arg(n_steps);
+            p->startTask(task_id, task_id, progress);
+            for(unsigned int i = 0; i <= n_steps; i++)
+            {
+              std::this_thread::sleep_for(std::chrono::milliseconds(50));
+              p->updateTaskProgress(task_id, (int) ((i * 100) / n_steps));
+            }
+            p->finishTask(task_id);
+          }
+        qDebug() << "Executed after 5 seconds!";
+      });
+    }
 
     // Run application
     int rc;

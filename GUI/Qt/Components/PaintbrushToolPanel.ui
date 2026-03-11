@@ -604,40 +604,27 @@ font-size:11px;
          <property name="verticalSpacing">
           <number>2</number>
          </property>
-         <item row="2" column="0" colspan="2">
-          <widget class="QWidget" name="widget_9" native="true">
-           <layout class="QGridLayout" name="gridLayout_4">
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <property name="horizontalSpacing">
-             <number>0</number>
-            </property>
-            <property name="verticalSpacing">
-             <number>2</number>
-            </property>
-           </layout>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>Model:</string>
+           </property>
           </widget>
          </item>
-         <item row="1" column="0">
-          <widget class="QComboBox" name="inDLModel">
+         <item row="0" column="1">
+          <widget class="QLabel" name="outDLStatus">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Status of the deep learning extensions server.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;●: Checking status&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#941100;&quot;&gt;●&lt;/span&gt;: Connection Error&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#008f00;&quot;&gt;●&lt;/span&gt;: Connected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
-           <item>
-            <property name="text">
-             <string>nnInteractive</string>
-            </property>
-           </item>
+           <property name="text">
+            <string>●</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignCenter</set>
+           </property>
           </widget>
          </item>
          <item row="1" column="1">
@@ -661,26 +648,69 @@ font-size:11px;
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>Model:</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QLabel" name="outDLStatus">
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:700;&quot;&gt;Status of the deep learning extensions server.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;●: Checking status&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#941100;&quot;&gt;●&lt;/span&gt;: Connection Error&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; color:#008f00;&quot;&gt;●&lt;/span&gt;: Connected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
+         <item row="1" column="0">
+          <widget class="QComboBox" name="inDLPipeline">
            <property name="styleSheet">
             <string notr="true"/>
            </property>
-           <property name="text">
-            <string>●</string>
+           <item>
+            <property name="text">
+             <string>nnInteractive</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item row="3" column="0" colspan="2">
+          <widget class="QWidget" name="widget_9" native="true">
+           <layout class="QGridLayout" name="gridLayout_4">
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <property name="horizontalSpacing">
+             <number>0</number>
+            </property>
+            <property name="verticalSpacing">
+             <number>2</number>
+            </property>
+           </layout>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="2">
+          <widget class="QProcessOutputTextWidget" name="outDLProgress">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>40</height>
+            </size>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignCenter</set>
+           <property name="styleSheet">
+            <string notr="true">font:9pt;
+</string>
+           </property>
+           <property name="verticalScrollBarPolicy">
+            <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+           </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+           </property>
+           <property name="html">
+            <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.AppleSystemUIFont'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
          </item>
@@ -755,6 +785,13 @@ font-size:11px;
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QProcessOutputTextWidget</class>
+   <extends>QTextEdit</extends>
+   <header>QProcessOutputTextWidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../Resources/SNAPResources.qrc"/>
  </resources>

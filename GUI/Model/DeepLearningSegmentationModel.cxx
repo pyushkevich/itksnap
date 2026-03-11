@@ -13,7 +13,11 @@
 #include "QtCursorOverride.h"
 #include <chrono>
 #include <regex>
+#include <functional>
 #include "itksys/MD5.h"
+
+// Minimum server version
+const char *DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION = "0.1.0";
 
 typedef std::chrono::high_resolution_clock Clock;
 
@@ -217,6 +221,7 @@ template <class TImage>
 void EncodeImage(RESTMultipartData &mpd, TImage *image, std::string &buffer_storage, double reserve_ratio = 1.0)
 {
   // Encode the raw data
+  image->Update();
   size_t n_bytes_raw = image->GetPixelContainer()->Size() * sizeof(typename TImage::InternalPixelType);
   buffer_storage.reserve((size_t) (n_bytes_raw * reserve_ratio));
   gzipDeflate((char*)image->GetBufferPointer(), n_bytes_raw, buffer_storage);
@@ -323,8 +328,10 @@ DeepLearningSegmentationModel::MergeStatuses()
               else
                 return dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED, status_net.message);
           }
-        case dls_model::NETWORK_CONNECTED:
+        case dls_model::NETWORK_CONNECTED_COMPATIBLE:
           return dls_model::ConnectionStatus(dls_model::CONN_CONNECTED, status_net.message);
+        case dls_model::NETWORK_CONNECTED_INCOMPATIBLE:
+          return dls_model::ConnectionStatus(dls_model::CONN_INCOMPATIBLE, status_net.message);
       }
     }
     else
@@ -335,8 +342,10 @@ DeepLearningSegmentationModel::MergeStatuses()
           return dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED, status_net.message);
         case dls_model::NETWORK_CHECKING:
           return  dls_model::ConnectionStatus(dls_model::CONN_CHECKING);
-        case dls_model::NETWORK_CONNECTED:
+        case dls_model::NETWORK_CONNECTED_COMPATIBLE:
           return  dls_model::ConnectionStatus(dls_model::CONN_CONNECTED, status_net.message);
+        case dls_model::NETWORK_CONNECTED_INCOMPATIBLE:
+          return  dls_model::ConnectionStatus(dls_model::CONN_INCOMPATIBLE, status_net.message);
       }
     }
   }
@@ -352,8 +361,10 @@ DeepLearningSegmentationModel::MergeStatuses()
           case dls_model::NETWORK_NOT_CONNECTED:
           case dls_model::NETWORK_CHECKING:
             return dls_model::ConnectionStatus(dls_model::CONN_LOCAL_SERVER_STARTING);
-          case dls_model::NETWORK_CONNECTED:
+          case dls_model::NETWORK_CONNECTED_COMPATIBLE:
             return dls_model::ConnectionStatus(dls_model::CONN_CONNECTED, status_net.message);
+          case dls_model::NETWORK_CONNECTED_INCOMPATIBLE:
+            return dls_model::ConnectionStatus(dls_model::CONN_INCOMPATIBLE, status_net.message);
         }
       case dls_model::LOCAL_SERVER_ESTABLISHED:
         switch(status_net.status)
@@ -362,8 +373,10 @@ DeepLearningSegmentationModel::MergeStatuses()
             return dls_model::ConnectionStatus(dls_model::CONN_NOT_CONNECTED, status_net.message);
           case dls_model::NETWORK_CHECKING:
             return dls_model::ConnectionStatus(dls_model::CONN_LOCAL_SERVER_STARTING);
-          case dls_model::NETWORK_CONNECTED:
+          case dls_model::NETWORK_CONNECTED_COMPATIBLE:
             return dls_model::ConnectionStatus(dls_model::CONN_CONNECTED, status_net.message);
+          case dls_model::NETWORK_CONNECTED_INCOMPATIBLE:
+            return dls_model::ConnectionStatus(dls_model::CONN_INCOMPATIBLE, status_net.message);
         }
     }
   }
@@ -442,7 +455,7 @@ DeepLearningSegmentationModel::SetServerValue(int value)
 
   // Reset the session variables - we are starting over
   m_ActiveSession = std::string();
-  m_ActiveLayer = std::make_tuple(0u, 0u);
+  m_ActiveSessionModel = std::string();
 
   // Reset the connection
   ResetConnection();
@@ -575,6 +588,47 @@ DeepLearningSegmentationModel::StartLocalServerIfNeeded()
   }
 }
 
+static std::vector<int>
+parse_version(const std::string &v)
+{
+  std::vector<int>  parts;
+  std::stringstream ss(v);
+  std::string       item;
+  while (std::getline(ss, item, '.'))
+  {
+    parts.push_back(std::stoi(item));
+  }
+  return parts;
+}
+
+static int
+compare_versions(const std::string &a, const std::string &b)
+{
+  std::vector<int> A = parse_version(a);
+  std::vector<int> B = parse_version(b);
+
+  size_t n = std::max(A.size(), B.size());
+  A.resize(n, 0);
+  B.resize(n, 0);
+
+  for (size_t i = 0; i < n; ++i)
+  {
+    if (A[i] < B[i])
+      return -1;
+    if (A[i] > B[i])
+      return 1;
+  }
+  return 0;
+}
+
+// Returns true if version >= min_required.
+bool
+version_meets_min(const std::string &version, const std::string &min_required)
+{
+  return compare_versions(version, min_required) >= 0;
+}
+
+
 DeepLearningSegmentationModel::StatusCheck
 DeepLearningSegmentationModel::AsyncCheckStatus()
 {
@@ -624,8 +678,18 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
         Json::Value  root;
         if (json_reader.parse(cli.GetOutput(), root, false))
         {
-          response.status = dls_model::NETWORK_CONNECTED;
-          response.message = root["version"].asString();
+          // Check the version against minimum version
+          auto version = root["version"].asString();
+          if(version_meets_min(version, MINIMUM_SERVER_VERSION))
+          {
+            response.status = dls_model::NETWORK_CONNECTED_COMPATIBLE;
+            response.message = version;
+          }
+          else
+          {
+            response.status = dls_model::NETWORK_CONNECTED_INCOMPATIBLE;
+            response.message = version;
+          }
         }
         else
           throw IRISException("Server did not provide version number");
@@ -651,8 +715,76 @@ DeepLearningSegmentationModel::ApplyStatusCheckResponse(const StatusCheck &resul
 
 }
 
+std::map<std::string, dls_model::RemoteModelMetadata>
+DeepLearningSegmentationModel::GetRemotePipelines()
+{
+  std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
+  if(this->GetServerStatus().status != dls_model::CONN_CONNECTED)
+  {
+    m_RemoteModelMetadata.clear();
+    return m_RemoteModelMetadata;
+  }
+
+  if(m_RemoteModelMetadata.empty())
+  {
+    try
+    {
+      RESTClientType cli(m_RESTSharedData);
+      cli.SetServerURL(GetActualServerURL().c_str());
+      if(!cli.Get("v2/models"))
+        throw IRISException("Error requesting list of models from DLS server: %s", cli.GetErrorString());
+
+      Json::Reader json_reader;
+      Json::Value root;
+      if(json_reader.parse(cli.GetOutput(), root, false))
+      {
+        const Json::Value models_list = root["models"];
+        for(auto m : models_list)
+        {
+          dls_model::RemoteModelMetadata md;
+
+          // Read model id
+          auto model_id = m["id"].asString();
+
+          // Read model dimensionality
+          md.dimensions = m["dimensions"].asInt();
+
+          // Read number of channels supported
+          for(auto chan : m["channels"])
+          {
+            int nchan = chan.asInt();
+            md.channels.insert(nchan);
+          }
+
+          for(auto inter : m["interactions"])
+          {
+            auto itype = inter.asString();
+            if(itype == "point")
+              md.supports_point = true;
+            if(itype == "box")
+              md.supports_box = true;
+            if(itype == "lasso")
+              md.supports_lasso = true;
+            if(itype == "scribble")
+              md.supports_scribble = true;
+          }
+          m_RemoteModelMetadata[model_id] = md;
+        }
+      }
+      else
+        throw IRISException("Error requesting list of models from DLS server; unexpected return value: '%s'", cli.GetOutput());
+    }
+    catch(std::exception &exc)
+    {
+      m_RemoteModelMetadata.clear();
+      throw IRISException("Error requesting list of models from DLS server: %s", exc.what());
+    }
+  }
+  return m_RemoteModelMetadata;
+}
+
 void
-DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
+DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, ImageWrapperBase *layer, unsigned int axis)
 {
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
@@ -662,13 +794,29 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
   RESTClientType cli(m_RESTSharedData);
   cli.SetServerURL(GetActualServerURL().c_str());
 
+  // The model has to exist
+  auto &model_metadata = GetRemoteModelMetadata(model_id);
+
+  // If there is an active session and the user wants to use a new model, release active session
+  if(m_ActiveSession.size() && m_ActiveSessionModel != model_id)
+  {
+    ProgressTaskGuard task_tracker(m_ProgressDelegate, "Ending prior session");
+    cli.Get("v2/end_session/%s", m_ActiveSession.c_str());
+    m_ActiveSession.clear();
+    m_ActiveSessionModel.clear();
+    m_RemoteImageViewHash = 0;
+  }
+
   // Check if we have an open session with the server, if not establish it
   if(m_ActiveSession.size() == 0)
   {
+    ProgressTaskGuard task_tracker(m_ProgressDelegate, "Creating DLS session");
+    cli.SetProgressCallback(&task_tracker, &ProgressTaskGuard::ProgressCallback);
     Clock::time_point t0, t1;
     t0 = Clock::now();
-    if(!cli.Get("start_session"))
+    if(!cli.Get("v2/start_session/%s", model_id.c_str()))
       throw IRISException("Error creating session on DLS server: %s", cli.GetErrorString());
+    cli.RemoveProgressCallback();
     t1 = Clock::now();
 
     Json::Reader json_reader;
@@ -677,6 +825,7 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
     {
       const Json::Value result = root["session_id"];
       m_ActiveSession = result.asString();
+      m_ActiveSessionModel = model_id;
     }
     else
       throw IRISException("Error creating session on DSL server: unexpected return value '%s'", cli.GetOutput());
@@ -689,26 +838,86 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
   // Send the current image to the server
   auto *driver = m_ParentModel->GetDriver();
   unsigned int tp = driver->GetCursorTimePoint();
-  LayerSelection sel = std::make_tuple(layer->GetUniqueId(), tp);
-  if(m_ActiveLayer != sel)
+
+  // The layer we apply segmentation to should be chosen depending on what number of
+  // channels the model supports, and the current display mode of the layer.
+  auto *policy = dynamic_cast<AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
+  ImageWrapperBase *actual_layer = layer;
+  if(!layer->IsScalar())
   {
+    if(policy->GetDisplayMode().UseRGB && model_metadata.supports_channels(3))
+      actual_layer = layer;
+    else
+      actual_layer = layer->GetDefaultScalarRepresentation();
+  }
+
+  // Generate a hash that describes the parameters of the image or image region that we
+  // would be sending to the server, without actually generating the image (not to waste
+  // time).
+  size_t rview_hash = std::hash<unsigned long>{}(actual_layer->GetUniqueId());
+  rview_hash ^= std::hash<unsigned int>{}(actual_layer->GetTimePointIndex());
+  if(model_metadata.dimensions == 2)
+  {
+    auto zpos = layer->MapImageCIndexToSliceCIndex(axis, to_double(driver->GetCursorPosition()))[2];
+    rview_hash ^= std::hash<unsigned int>{}(axis);
+    rview_hash ^= std::hash<double>{}(zpos);
+  }
+
+  // If the parameters changed, we need to send the image to the server
+  if(rview_hash != m_RemoteImageViewHash)
+  {
+    ProgressTaskGuard task_tracker(m_ProgressDelegate, "Uploading image to DLS", true);
+
+    // Keep track of elapsed time
     Clock::time_point t0, t1, t2, t3, t4, t5;
-
-    // Export the current image to a file that can be uploaded
     t0 = Clock::now();
-    auto *id = driver->GetCurrentImageData();
-    using FloatImageType = typename ImageWrapperBase::FloatImageType;
-    FloatImageType *src = layer->GetDefaultScalarRepresentation()->CreateCastToFloatPipeline("DLSExport");
-    src->Update();
-    t1 = Clock::now();
 
-    // Create a Mime packet
+    // Create a Mime packet to send to the server
     RESTMultipartData mpd;
     std::string gzip_buffer;
-    t2 = Clock::now();
-    EncodeImage(mpd, src, gzip_buffer);
-    t3 = Clock::now();
 
+    // What we send to the server depends on image dimensionality
+    if(model_metadata.dimensions == 3)
+    {
+      // Send complete image content. Check if the model accepts multi-dimensional content
+      if(actual_layer->IsScalar())
+      {
+        auto *fsrc = actual_layer->CreateCastToFloatVectorPipeline("DLSExport");
+        t1 = Clock::now();
+        EncodeImage(mpd, fsrc, gzip_buffer);
+        t2 = Clock::now();
+      }
+      else
+      {
+        auto *fsrc = actual_layer->CreateCastToFloatPipeline("DLSExport");
+        t1 = Clock::now();
+        EncodeImage(mpd, fsrc, gzip_buffer);
+        t2 = Clock::now();
+      }
+      actual_layer->ReleaseInternalPipeline("DLSExport");
+    }
+    else if(model_metadata.dimensions == 2)
+    {
+      // We need to extract a slice along the current dimension
+      auto di = DisplaySliceIndex(axis, DISPLAY_SLICE_MAIN);
+      if(actual_layer->IsScalar())
+      {
+        auto *fsrc = actual_layer->CreateCastToFloatSlicePipeline("DLSExport", di);
+        t1 = Clock::now();
+        EncodeImage(mpd, fsrc, gzip_buffer);
+        t2 = Clock::now();
+      }
+      else
+      {
+        auto *fsrc = actual_layer->CreateCastToFloatVectorSlicePipeline("DLSExport", di);
+        t1 = Clock::now();
+        EncodeImage(mpd, fsrc, gzip_buffer);
+        t2 = Clock::now();
+      }
+      actual_layer->ReleaseInternalPipeline("DLSExport", di);
+    }
+
+    /*
     // Create a command for progress reporting
     auto *pdel = m_ParentModel->GetProgressReporterDelegate();
     pdel->Show("Uploading image to server...");
@@ -719,20 +928,21 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
 
     // Write the image in NIFTI format to a temporary location
     cli.SetProgressCallback(transfer_progress_src, AllPurposeProgressAccumulator::GenericProgressCallback);
+    */
+    cli.SetProgressCallback(&task_tracker, &ProgressTaskGuard::ProgressCallback);
 
-    t4 = Clock::now();
+    t3 = Clock::now();
     if(!cli.PostMultipart("upload_raw/%s?filename=upload.nii.gz", &mpd, m_ActiveSession.c_str()))
     {
       throw IRISException("Error uploading image to DSL server: %s", cli.GetErrorString());
     }
-    t5 = Clock::now();
+    t4 = Clock::now();
 
     // Hide the progress reporter
-    pdel->Hide();
+    // pdel->Hide();
 
     // Free wasted memory
-    layer->ReleaseInternalPipeline("DLSExport");
-    accum->UnregisterAllSources();
+    // accum->UnregisterAllSources();
 
     std::cout << "Pipeline time: "
               << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << " ms "
@@ -743,12 +953,11 @@ DeepLearningSegmentationModel::SetSourceImage(ImageWrapperBase *layer)
               << std::endl;
 
     std::cout << "Server time: "
-              << std::chrono::duration_cast<std::chrono::milliseconds>(t5 - t4).count() << " ms "
+              << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << " ms "
               << std::endl;
 
-    m_ActiveLayer = sel;
+    m_RemoteImageViewHash = rview_hash;
     m_LabelState = -1;
-    // pdel->Hide();
   }
 }
 
@@ -784,7 +993,10 @@ DeepLearningSegmentationModel::ResetInteractionsIfNeeded()
 }
 
 bool
-DeepLearningSegmentationModel::UpdateSegmentation(const char *json, const char *commit_name)
+DeepLearningSegmentationModel::UpdateSegmentation(const std::string &model_id,
+                                                  int                axis,
+                                                  const char        *json,
+                                                  const char        *commit_name)
 {
   auto *gs = m_ParentModel->GetGlobalState();
 
@@ -798,6 +1010,7 @@ DeepLearningSegmentationModel::UpdateSegmentation(const char *json, const char *
     auto *seg = m_ParentModel->GetDriver()->GetSelectedSegmentationLayer();
 
     // Expected number of characters to receive
+    // TODO: this is wrong for 2D
     size_t expected_size = seg->GetImageBase()->GetBufferedRegion().GetNumberOfPixels();
 
     // Decode the result
@@ -822,35 +1035,70 @@ DeepLearningSegmentationModel::UpdateSegmentation(const char *json, const char *
     std::cout << "After gzip decoding: " << result_raw.size() << std::endl;
     std::cout << "Expected: " << expected_size << std::endl;
 
-    // Create an ITK image of the segmentation for this label
-    using ImageType = itk::Image<char, 3>;
-    ImageType::Pointer result_img = ImageType::New();
-    result_img->CopyInformation(seg->GetImageBase());
-    result_img->SetRegions(seg->GetImageBase()->GetBufferedRegion());
-    result_img->GetPixelContainer()->SetImportPointer(result_raw.data(), result_raw.size(), false);
-
-    // Merge this result with the segmentation
+    // Save the current label state
     m_LabelState = gs->GetDrawingColorLabel();
 
-    // The result is floating point values converted to a string
-    SegmentationUpdateIterator itVol(seg,
-                                     seg->GetImageBase()->GetBufferedRegion(),
-                                     gs->GetDrawingColorLabel(),
-                                     gs->GetDrawOverFilter());
-    itk::ImageRegionIterator<ImageType> itSrc(result_img, seg->GetImageBase()->GetBufferedRegion());
+    auto &model_metadata = GetRemoteModelMetadata(model_id);
+    if(model_metadata.dimensions == 3)
+    {
+      // Create an ITK image of the segmentation for this label
+      using ImageType = itk::Image<char, 3>;
+      ImageType::Pointer result_img = ImageType::New();
+      result_img->CopyInformation(seg->GetImageBase());
+      result_img->SetRegions(seg->GetImageBase()->GetBufferedRegion());
+      result_img->GetPixelContainer()->SetImportPointer(result_raw.data(), result_raw.size(), false);
 
-    for (; !itVol.IsAtEnd(); ++itVol, ++itSrc)
-    {
-      if (itSrc.Get() > 0.0)
-        itVol.PaintAsForeground();
-      else
-        itVol.PaintAsBackground();
+      // The result is floating point values converted to a string
+      SegmentationUpdateIterator itVol(seg,
+                                       seg->GetImageBase()->GetBufferedRegion(),
+                                       gs->GetDrawingColorLabel(),
+                                       gs->GetDrawOverFilter());
+      itk::ImageRegionIterator<ImageType> itSrc(result_img, seg->GetImageBase()->GetBufferedRegion());
+
+      for (; !itVol.IsAtEnd(); ++itVol, ++itSrc)
+      {
+        if (itSrc.Get() > 0.0)
+          itVol.PaintAsForeground();
+        else
+          itVol.PaintAsBackground();
+      }
+      if (itVol.Finalize(commit_name))
+      {
+        m_ParentModel->GetDriver()->RecordCurrentLabelUse();
+        m_ParentModel->GetDriver()->InvokeEvent(SegmentationChangeEvent());
+        return true;
+      }
     }
-    if (itVol.Finalize(commit_name))
+    else
     {
-      m_ParentModel->GetDriver()->RecordCurrentLabelUse();
-      m_ParentModel->GetDriver()->InvokeEvent(SegmentationChangeEvent());
-      return true;
+      // Determine the size of the region
+      auto di = DisplaySliceIndex(axis, DISPLAY_SLICE_MAIN);
+      auto *seg_slice = seg->GetSlice(di);
+
+      // TODO: seems wasteful just to get region information
+      seg_slice->Update();
+
+      // Create an ITK image of the segmentation for this label
+      using ImageType = itk::Image<unsigned char, 2>;
+      ImageType::Pointer result_img = ImageType::New();
+      result_img->CopyInformation(seg_slice);
+      result_img->SetRegions(seg_slice->GetBufferedRegion());
+
+      // Check that the size of raw data matches the buffer size
+      if(result_img->GetBufferedRegion().GetNumberOfPixels() != result_raw.size())
+        throw IRISException("DLS server returned segmentation that does not match the size of the image");
+      result_img->GetPixelContainer()->SetImportPointer((unsigned char *) result_raw.data(), result_raw.size(), false);
+
+      // Get the position of the current slice
+      auto xSlice = seg->MapImageCIndexToSliceCIndex(
+        axis, to_double(m_ParentModel->GetDriver()->GetCursorPosition()));
+
+      // Update the global segmentation
+      m_ParentModel->GetDriver()->UpdateSegmentationWithSliceDrawing(
+        result_img,
+        seg->GetImageGeometry()->GetDisplayToImageTransform(axis),
+        xSlice[2], false,
+        "DLS result");
     }
   }
   return false;
@@ -885,10 +1133,14 @@ DeepLearningSegmentationModel::GetActualServerURL()
 
 
 bool
-DeepLearningSegmentationModel::PerformPointInteraction(ImageWrapperBase *layer, Vector3ui pos, bool reverse)
+DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_id,
+                                                       ImageWrapperBase *layer,
+                                                       int               axis,
+                                                       Vector3ui         pos,
+                                                       bool              reverse)
 {
   // Update the source image
-  this->SetSourceImage(layer);
+  this->SetSourceImage(model_id, layer, axis);
 
   // Reset interactions if needed
   this->ResetInteractionsIfNeeded();
@@ -903,10 +1155,37 @@ DeepLearningSegmentationModel::PerformPointInteraction(ImageWrapperBase *layer, 
   t0 = Clock::now();
   RESTClientType cli(m_RESTSharedData);
   cli.SetServerURL(GetActualServerURL().c_str());
-  if(!cli.Get("process_point_interaction/%s?x=%d&y=%d&z=%d&foreground=%s",
-               m_ActiveSession.c_str(),
-               pos[0], pos[1], pos[2],
-               reverse ? "false" : "true"))
+
+  // Start a task tracker
+  ProgressTaskGuard task_tracker(m_ProgressDelegate, "Performing point interaction");
+  cli.SetProgressCallback(&task_tracker, &ProgressTaskGuard::ProgressCallback);
+
+  // What's the dimensionality of our model?
+  auto &model_metadata = GetRemoteModelMetadata(model_id);
+  bool rc;
+  if(model_metadata.dimensions == 3)
+  {
+    rc = cli.Get("v2/process_point_interaction/%s?point=%d&point=%d&point=%d&foreground=%s",
+                 m_ActiveSession.c_str(),
+                 pos[0],
+                 pos[1],
+                 pos[2],
+                 reverse ? "false" : "true");
+  }
+  else
+  {
+    // TODO: this is the wrong calculation!
+    Vector3i spos = to_int(layer->MapImageCIndexToSliceCIndex(axis, to_double(pos) + Vector3d(0.5)));
+    rc = cli.Get("v2/process_point_interaction/%s?point=%d&point=%d&foreground=%s",
+                 m_ActiveSession.c_str(),
+                 spos[0],
+                 spos[1],
+                 reverse ? "false" : "true");
+  }
+  cli.RemoveProgressCallback();
+  std::cout << "*** COMPLETED POINT INTERACTION ***" << std::endl;
+
+  if(!rc)
   {
     std::cerr << "RESP:" << cli.GetOutput() << std::endl;
     throw IRISException("Failed to send current coordinate to the server");
@@ -916,17 +1195,19 @@ DeepLearningSegmentationModel::PerformPointInteraction(ImageWrapperBase *layer, 
             << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << " ms "
             << std::endl;
 
-  return this->UpdateSegmentation(cli.GetOutput(), "nnInteractive point interaction");
+  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), "nnInteractive point interaction");
 }
 
 bool
 DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char        *target_url,
+                                                                 std::string        model_id,
                                                                  ImageWrapperBase  *layer,
+                                                                 int                axis,
                                                                  LabelImageWrapper *seg,
                                                                  bool               reverse)
 {
   // Update the source image
-  this->SetSourceImage(layer);
+  this->SetSourceImage(model_id, layer, axis);
 
   // Reset interactions if needed
   this->ResetInteractionsIfNeeded();
@@ -967,7 +1248,16 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
             << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << " ms "
             << std::endl;
 
-  return this->UpdateSegmentation(cli.GetOutput(), "nnInteractive scribble interaction");
+  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), "nnInteractive scribble interaction");
+}
+
+const dls_model::RemoteModelMetadata &
+DeepLearningSegmentationModel::GetRemoteModelMetadata(const std::string &model_id)
+{
+  auto it_mm = m_RemoteModelMetadata.find(model_id);
+  if(it_mm == m_RemoteModelMetadata.end())
+    throw IRISException("Requested model %s is not present on the server", model_id.c_str());
+  return it_mm->second;
 }
 
 void

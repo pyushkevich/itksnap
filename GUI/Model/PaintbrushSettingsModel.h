@@ -17,7 +17,8 @@ public:
 
   enum UIState {
     UIF_VOLUMETRIC_OK,
-    UIF_ADAPTIVE_OK
+    UIF_ADAPTIVE_OK,
+    UIF_DEEPLEARNING_OK
   };
 
   irisGetMacro(ParentModel, GlobalUIModel *)
@@ -39,6 +40,9 @@ public:
   irisReadOnlySimplePropertyAccessMacro(DeepLearningMode, bool)
   irisRangedPropertyAccessMacro(ThresholdLevel, double)
   irisRangedPropertyAccessMacro(SmoothingIterations, int)
+
+  using DeepLearningPipelineDomain = SimpleItemSetDomain<std::string, std::string>;
+  irisGenericPropertyAccessMacro(DeepLearningPipeline, std::string, DeepLearningPipelineDomain);
 
 protected:
 
@@ -71,6 +75,10 @@ protected:
 
   SmartPtr<AbstractSimpleBooleanProperty> m_DeepLearningModeModel;
   bool GetDeepLearningModeValue(bool &value);
+
+  SmartPtr<AbstractPropertyModel<std::string, DeepLearningPipelineDomain>> m_DeepLearningPipelineModel;
+  bool GetDeepLearningPipelineValueAndRange(std::string &value, DeepLearningPipelineDomain *range);
+  void SetDeepLearningPipelineValue(std::string value);
 
   SmartPtr<AbstractRangedDoubleProperty> m_ThresholdLevelModel;
   bool GetThresholdLevelValueAndRange(double &value, NumericValueRange<double> *domain);

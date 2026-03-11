@@ -593,6 +593,12 @@ public:
   /** For each slicer, find out which image dimension does is slice along */
   unsigned int GetDisplaySliceImageAxis(unsigned int slice) override;
 
+  /**
+   * Map a position in image coordinates to the corresponding position
+   * in one of the slices
+   */
+  Vector3d MapImageCIndexToSliceCIndex(unsigned int iSlice, Vector3d image_cindex) const override ;
+
   /** 
    * Replace all voxels with intensity values iOld with values iNew. 
    * \return number of voxels that had been modified

@@ -195,6 +195,11 @@ public:
    */
   void SetProgressCallback(void *cb_data, ProgressCallbackFunction fn);
 
+  /**
+   * Unset the callback command
+   */
+  void RemoveProgressCallback();
+
   bool UploadFile(const char *rel_url, const char *filename,
     std::map<std::string,std::string> extra_fields, ...);
 
@@ -228,6 +233,9 @@ protected:
 
   /** The CURL handle */
   void *m_Curl;
+
+  /** The CURL multi-handle */
+  void *m_CurlMulti;
 
   /** The shared data */
   SharedData *m_SharedData = nullptr;
@@ -266,6 +274,12 @@ protected:
   static size_t WriteToFileCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
   void SetupCookies(bool receive_cookie_mode);
+
+  /**
+   * This function performs the multi-perform loop, calling the registered callback at
+   * regular intervals, to allow the GUI to refresh regularly
+   */
+  void CurlMultiPerform();
 };
 
 

@@ -2,6 +2,7 @@
 #define DEEPLEARNINGSEGMENTATIONCLIENT_H
 
 #include "AbstractPropertyContainerModel.h"
+#include "MultiChannelDisplayMode.h"
 #include "PropertyModel.h"
 #include <tuple>
 #include "Registry.h"
@@ -13,6 +14,7 @@ class ImageWrapperBase;
 class LabelImageWrapper;
 namespace itk {
 template <unsigned int VDim> class ImageBase;
+template <unsigned int VDim> class ImageRegion;
 }
 
 template <class ServerTraits> class RESTClient;
@@ -26,7 +28,8 @@ enum NetworkStatusEnum
 {
   NETWORK_NOT_CONNECTED = 0,
   NETWORK_CHECKING,
-  NETWORK_CONNECTED
+  NETWORK_CONNECTED_COMPATIBLE,
+  NETWORK_CONNECTED_INCOMPATIBLE
 };
 
 enum TunnelStatusEnum
@@ -52,6 +55,7 @@ enum ConnectionStatusEnum {
   CONN_LOCAL_SERVER_FAILED,
   CONN_CHECKING,
   CONN_NOT_CONNECTED,
+  CONN_INCOMPATIBLE,
   CONN_CONNECTED
 };
 
@@ -79,7 +83,47 @@ using NetworkStatus = Status<NetworkStatusEnum>;
 using TunnelStatus = Status<TunnelStatusEnum>;
 using LocalServerStatus = Status<LocalServerStatusEnum>;
 
-}
+/** Structure describing a remote model */
+struct RemoteModelMetadata
+{
+  int dimensions = 0;
+  std::set<unsigned int> channels;
+  bool supports_point = false, supports_box = false, supports_lasso = false, supports_scribble = false;
+
+  // Check if the given number of channels is supported by the model
+  bool supports_channels(unsigned int k) const
+  {
+    return channels.empty() || channels.find(k) != channels.end();
+  }
+};
+
+/** Structure representing image data that has been sent to the remote server */
+/*
+struct RemoteImageView
+{
+  // ITK-SNAP unique layer ID
+  unsigned long layer_id = 0u;
+
+  // Timepoint
+  unsigned int tp = 0u;
+
+  // Slice axis and position (for 2D images)
+
+
+
+  bool operator == (const RemoteImageView &o)
+  {
+    return std::tie(layer_id, tp, region) == std::tie(o.layer_id, o.tp, o.region);
+  }
+
+  bool operator != (const RemoteImageView &o)
+  {
+    return !(*this == o);
+  }
+};
+*/
+
+} // Namespace dls_model
 
 /**
  * Properties of a deep learning extension server
@@ -157,12 +201,78 @@ public:
 };
 
 
+class DeepLearningSegmentationProgressDelegate
+{
+public:
+  virtual std::string StartTask(const char *title, bool trackProgress) = 0;
+  virtual void UpdateProgress(const std::string &task_id, double percent) = 0;
+  virtual void CompleteTask(const std::string &task_id) = 0;
+};
+
+class ProgressTaskGuard
+{
+public:
+  ProgressTaskGuard(DeepLearningSegmentationProgressDelegate *delegate, const char *title, bool trackProgress=false)
+  {
+    if(delegate)
+      task_id = delegate->StartTask(title, trackProgress);
+    source = delegate;
+  }
+
+  ~ProgressTaskGuard()
+  {
+    Complete();
+  }
+
+  static void ProgressCallback(void *source, double progress)
+  {
+    ProgressTaskGuard *task = static_cast<ProgressTaskGuard *>(source);
+    if(task && task->source)
+    {
+      // Print exact time
+      auto timenow = std::chrono::system_clock::now();
+      auto time_t_now = std::chrono::system_clock::to_time_t(timenow);
+      auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(timenow.time_since_epoch()) % 1000;
+
+      /*
+      std::cout << std::put_time(std::localtime(&time_t_now), "%F %T.") << ms.count()
+                << " -- progress from task " << task->task_id << std::endl;
+      */
+      task->source->UpdateProgress(task->task_id, progress);
+    }
+  }
+
+  void UpdateProgress(double percent)
+  {
+    if(source)
+      source->UpdateProgress(task_id, percent);
+  }
+
+  void Complete()
+  {
+    if(source)
+      source->CompleteTask(task_id);
+    source = nullptr;
+  }
+
+  // non-copyable
+  ProgressTaskGuard(const ProgressTaskGuard&) = delete;
+  ProgressTaskGuard& operator=(const ProgressTaskGuard&) = delete;
+
+private:
+  std::string task_id;
+  DeepLearningSegmentationProgressDelegate *source = nullptr;
+};
+
 
 
 class DeepLearningSegmentationModel : public AbstractModel
 {
 public:
+  static const char *MINIMUM_SERVER_VERSION;
+
   using ServerDomain = STLVectorWrapperItemSetDomain<int, SmartPtr<DeepLearningServerPropertiesModel>>;
+  using RegionType = itk::ImageRegion<3>;
 
   irisITKObjectMacro(DeepLearningSegmentationModel, AbstractModel)
 
@@ -238,35 +348,41 @@ public:
   /** Progress for server interactions */
   irisRangedPropertyAccessMacro(ServerProgress, double)
 
-  /** Select the segmentation layer for AI operations */
-  void SetSourceImage(ImageWrapperBase *layer);
+  /** Get available models on the server */
+  std::map<std::string, dls_model::RemoteModelMetadata> GetRemotePipelines();
+
+  /** Select the segmentation layer for AI operations, specifying which model to use */
+  void SetSourceImage(const std::string &model_id, ImageWrapperBase *layer, unsigned int axis);
 
   /** Reset interactions on the current layer */
   void ResetInteractions();
 
   /** Perform a point interaction */
-  bool PerformPointInteraction(ImageWrapperBase *layer, Vector3ui pos, bool reverse);
+  bool PerformPointInteraction(std::string model_id, ImageWrapperBase *layer, int axis, Vector3ui pos, bool reverse);
 
   /** Perform a scribble interaction */
-  bool PerformScribbleInteraction(ImageWrapperBase *layer, LabelImageWrapper *seg, bool reverse)
+  bool PerformScribbleInteraction(std::string model_id, ImageWrapperBase *layer, int axis, LabelImageWrapper *seg, bool reverse)
   {
-    return this->PerformScribbleOrLassoInteraction("process_scribble_interaction", layer, seg, reverse);
+    return this->PerformScribbleOrLassoInteraction("process_scribble_interaction", model_id, layer, axis, seg, reverse);
   }
 
   /** Perform a lasso interaction */
-  bool PerformLassoInteraction(ImageWrapperBase *layer, LabelImageWrapper *seg, bool reverse)
+  bool PerformLassoInteraction(std::string model_id, ImageWrapperBase *layer, int axis, LabelImageWrapper *seg, bool reverse)
   {
-    return this->PerformScribbleOrLassoInteraction("process_lasso_interaction", layer, seg, reverse);
+    return this->PerformScribbleOrLassoInteraction("process_lasso_interaction", model_id, layer, axis, seg, reverse);
   }
 
   /** Reset all statuses and proxy URL to inital state */
   void ResetConnection();
 
+  /** Set a delegate for dumping progress */
+  irisGetSetMacro(ProgressDelegate, DeepLearningSegmentationProgressDelegate *)
+
 protected:
   DeepLearningSegmentationModel();
   virtual ~DeepLearningSegmentationModel();
 
-  std::string m_ActiveSession;
+  std::string m_ActiveSession, m_ActiveSessionModel;
 
 
   GlobalUIModel *m_ParentModel;  
@@ -304,6 +420,9 @@ protected:
 
   bool GetServerStatusValue(dls_model::ConnectionStatus &value);
 
+  // List of models supported by the current server
+  std::map<std::string, dls_model::RemoteModelMetadata> m_RemoteModelMetadata;
+
   // Current progress
   SmartPtr<ConcreteRangedDoubleProperty> m_ServerProgressModel;
 
@@ -322,8 +441,8 @@ protected:
   // Data shared between REST sessions, includes cookies, etc.
   RESTSharedDataType *m_RESTSharedData;
 
-  using LayerSelection = std::tuple<unsigned int, unsigned int>;
-  LayerSelection m_ActiveLayer = std::make_tuple(0u,0u);
+  // The current view of the image that is available to the DLS server
+  size_t m_RemoteImageViewHash = 0;
 
   using LabelSelection = int;
   LabelSelection m_LabelState = -1;
@@ -334,12 +453,18 @@ protected:
   bool GetServerDisplayURLValue(std::string &value);
 
   bool ResetInteractionsIfNeeded();
-  bool UpdateSegmentation(const char *json, const char *commit_name);
+  bool UpdateSegmentation(const std::string &model_id, int axis, const char *json, const char *commit_name);
 
   bool PerformScribbleOrLassoInteraction(const char        *target_url,
+                                         std::string        model_id,
                                          ImageWrapperBase  *layer,
+                                         int                axis,
                                          LabelImageWrapper *seg,
                                          bool               reverse);
+
+  // Get the server metadata for a model with a given ID or throw exception if model
+  // is not in the metadata list
+  const dls_model::RemoteModelMetadata &GetRemoteModelMetadata(const std::string &id);
 
   std::string GetActualServerURL();
 
@@ -350,7 +475,11 @@ protected:
   // Local server delegate
   AbstractLocalDeepLearningServerDelegate *m_LocalServerDelegate = nullptr;
 
+  // Delegate for reporting progress
+  DeepLearningSegmentationProgressDelegate *m_ProgressDelegate = nullptr;
+
   dls_model::ConnectionStatus MergeStatuses();
+
 };
 
 

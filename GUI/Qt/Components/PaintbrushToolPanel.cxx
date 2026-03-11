@@ -8,6 +8,7 @@
 #include "PreferencesDialog.h"
 #include "QtRadioButtonCoupling.h"
 #include "QtCheckBoxCoupling.h"
+#include "QtComboBoxCoupling.h"
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
 #include "QtSliderCoupling.h"
@@ -15,6 +16,51 @@
 #include "DeepLearningSegmentationModel.h"
 #include "GlobalUIModel.h"
 #include "DeepLearningConnectionStatusCouplingTraits.h"
+
+#include "ProgressReportWidget.h"
+
+class QtDeepLearningSegmentationProgressDelegate
+  : public QObject
+  , public DeepLearningSegmentationProgressDelegate
+{
+public:
+  QtDeepLearningSegmentationProgressDelegate(ProgressReportWidget *widget)
+    : QObject(widget)
+  {
+    m_Widget = widget;
+  }
+
+  virtual std::string StartTask(const char *title, bool trackProgress) override
+  {
+    static int counter = 0;
+
+    counter++;
+    size_t hash = std::hash<const char *>{}(title) ^ std::hash<int>{}(counter);
+    std::string id = std::string("task") + std::to_string(hash);
+    m_Widget->startTask(QString::fromStdString(id), QString::fromUtf8(title), trackProgress);
+    return id;
+  }
+
+  virtual void UpdateProgress(const std::string &task_id, double percent) override
+  {
+    if(std::isnan(percent))
+    {
+      m_Widget->updateTaskWithoutProgress(QString::fromStdString(task_id));
+    }
+    else
+    {
+      m_Widget->updateTaskProgress(QString::fromStdString(task_id), static_cast<int>(percent * 100));
+    }
+  }
+
+  virtual void CompleteTask(const std::string &task_id) override
+  {
+    m_Widget->finishTask(QString::fromStdString(task_id));
+  }
+
+private:
+  ProgressReportWidget *m_Widget;
+};
 
 PaintbrushToolPanel::PaintbrushToolPanel(QWidget *parent) :
   SNAPComponent(parent),
@@ -105,6 +151,16 @@ void PaintbrushToolPanel::SetModel(PaintbrushSettingsModel *model)
   // Connect with the deep learning model
   auto *dls = m_Model->GetParentModel()->GetDeepLearningSegmentationModel();
   makeCoupling(ui->outDLStatus, dls->GetServerStatusModel(), MiniConnectionStatusQLabelValueTraits());
+
+  // The listing of DL models should be deactivated when there are no available models
+  QtCouplingOptions opts_dl(QtCouplingOptions::DEACTIVATE_WHEN_INVALID);
+  makeCoupling(ui->inDLPipeline, model->GetDeepLearningPipelineModel(), opts_dl);
+
+  MainImageWindow *winmain = findParentWidget<MainImageWindow>(this);
+
+  QtDeepLearningSegmentationProgressDelegate *del =
+    new QtDeepLearningSegmentationProgressDelegate(winmain->GetProgressWidget());
+  dls->SetProgressDelegate(del);
 }
 
 void
