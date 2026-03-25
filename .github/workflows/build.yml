@@ -251,7 +251,7 @@ jobs:
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
-            ${{ runner.os == 'MacOS' && 'CMAKE_OSX_DEPLOYMENT_TARGET=12.6' || '' }}
+            ${{ runner.os == 'MacOS' && 'CMAKE_OSX_DEPLOYMENT_TARGET=14.0' || '' }}
 
       # Build ITK-SNAP using CDash
       - name: ITK-SNAP Dashboard -- Configure and Build
