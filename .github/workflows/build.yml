@@ -42,7 +42,7 @@ jobs:
       matrix:
         os: [ubuntu-22.04,macos-15-intel,macos-15,windows-2022]
         itk_ver: [ 'v5.4.0' ]
-        vtk_ver: [ '9.3.1' ]
+        vtk_ver: [ '9.5.2' ]
         qt_ver: [ '6.8.1' ]
         include:
           - os: ubuntu-22.04
@@ -243,7 +243,7 @@ jobs:
           args: ${{ runner.os == 'Windows' && steps.vcpkg.outputs.vcpkg-cmake-config || '' }} 
           options: |
             ITK_DIR=${{github.workspace}}/itk/build
-            VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
+            VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.5
             CMAKE_BUILD_TYPE=Release
             DO_UPLOAD=ON
             SITE=github-runner-${{ matrix.os }}
