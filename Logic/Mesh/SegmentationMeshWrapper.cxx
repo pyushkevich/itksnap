@@ -104,7 +104,10 @@ SegmentationMeshWrapper
 bool
 SegmentationMeshWrapper::IsMeshDirty(unsigned int timepoint)
 {
-  auto imgMTime = m_ImagePointer->GetImage()->GetMTime();
+  // Use GetImageByTimePoint() rather than GetImage() to avoid running the
+  // time-point-select filter, which bumps the output MTime on every navigation
+  // and would make every cached mesh appear dirty after a time point change.
+  auto imgMTime = m_ImagePointer->GetImageByTimePoint(timepoint)->GetMTime();
 
   auto assembly = dynamic_cast<SegmentationMeshAssembly*>(GetMeshAssembly(timepoint));
   if (assembly)
@@ -112,7 +115,9 @@ SegmentationMeshWrapper::IsMeshDirty(unsigned int timepoint)
     auto pipeMTime = assembly->GetMTime();
     auto optionMTime = m_MeshOptions->GetMTime();
 
-    if (imgMTime > pipeMTime || optionMTime >= pipeMTime)
+    // Use strict > for options so that equal MTimes (e.g. at initialisation)
+    // do not falsely flag the mesh as dirty.
+    if (imgMTime > pipeMTime || optionMTime > pipeMTime)
       return true;
     }
   else

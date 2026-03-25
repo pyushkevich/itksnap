@@ -1307,6 +1307,7 @@ SET(GUI_TESTS
   MeshImport
   MeshWorkspace
   SegmentationMesh
+  4DReplayWithMeshUpdate
   VolumeRendering
   Reloading
   4DToMC

@@ -57,6 +57,9 @@ Generic3DModel::Generic3DModel()
 
   // Reset clear time
   m_ClearTime = 0;
+
+  // Initialize mesh-update flag
+  m_MeshUpdating = false;
 }
 
 

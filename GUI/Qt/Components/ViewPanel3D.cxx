@@ -324,6 +324,13 @@ void ViewPanel3D::UpdateMeshesInBackground()
     {
     m_Model->UpdateSegmentationMesh(m_RenderProgressCommand);
     }
+  else
+    {
+    // CheckState returned false (or no model); clear the flag we set in onTimer
+    // so that on4DReplayTimeout is no longer blocked.
+    if(m_Model)
+      m_Model->SetMeshUpdating(false);
+    }
 }
 
 void ViewPanel3D::ProgressCallback(itk::Object *source, const itk::EventObject &)
@@ -379,6 +386,9 @@ void ViewPanel3D::onTimer()
       // Launch the worker thread
       m_RenderProgressValue = 0;
       m_RenderElapsedTicks = 0;
+      // Mark mesh-updating before launching so on4DReplayTimeout sees it
+      // immediately and does not race with the background thread touching ITK.
+      m_Model->SetMeshUpdating(true);
       m_RenderFuture = QtConcurrent::run(&ViewPanel3D::UpdateMeshesInBackground, this);
       }
     else
