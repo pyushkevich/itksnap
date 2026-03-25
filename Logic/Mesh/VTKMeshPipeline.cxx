@@ -92,10 +92,10 @@ protected:
     {
       // Change the orientation of all the polys
       vtkSmartPointer<vtkIdList> idList = vtkSmartPointer<vtkIdList>::New();
-      vtkSmartPointer<vtkCellArray> trg = vtkCellArray::New();
+      vtkSmartPointer<vtkCellArray> trg = vtkSmartPointer<vtkCellArray>::New();
       vtkCellArray *src = input->GetPolys();
       trg->AllocateEstimate(src->GetNumberOfCells(), src->GetMaxCellSize());
-      for (vtkSmartPointer<vtkCellArrayIterator> it = src->NewIterator(); !it->IsDoneWithTraversal();
+      for (auto it = vtk::TakeSmartPointer(src->NewIterator()); !it->IsDoneWithTraversal();
            it->GoToNextCell())
       {
         it->GetCurrentCell(idList);
@@ -142,34 +142,36 @@ VTKMeshPipeline
 
   // Initialize all the filters involved in the transaction, but do not
   // pipe the inputs and outputs between these filters. The piping is quite
-  // complicated and depends on the set of options that the user wishes to 
+  // complicated and depends on the set of options that the user wishes to
   // apply
-  
+
   // Initialize the VTK Exporter
   m_VTKExporter = VTKExportType::New();
   m_VTKExporter->ReleaseDataFlagOn();
-  
+
   // Initialize the VTK Importer
-  m_VTKImporter = vtkImageImport::New();
+  // Use vtkSmartPointer<T>::New() to keep ref count at 1 (avoids double-ref-count
+  // that occurs when assigning T::New() directly to a vtkSmartPointer member).
+  m_VTKImporter = vtkSmartPointer<vtkImageImport>::New();
   m_VTKImporter->ReleaseDataFlagOn();
 
   // Pipe the importer into the exporter (that's a lot of code)
   ConnectITKExporterToVTKImporter(m_VTKExporter.GetPointer(), m_VTKImporter);
 
   // Initialize the Gaussian filter
-  m_VTKGaussianFilter = vtkImageGaussianSmooth::New();
+  m_VTKGaussianFilter = vtkSmartPointer<vtkImageGaussianSmooth>::New();
   m_VTKGaussianFilter->ReleaseDataFlagOn();
-  
+
   // Create and configure a filter for polygon smoothing
-  m_PolygonSmoothingFilter = vtkSmoothPolyDataFilter::New();
+  m_PolygonSmoothingFilter = vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
   m_PolygonSmoothingFilter->ReleaseDataFlagOn();
 
   // Create and configure a filter for triangle strip generation
-  m_StripperFilter = vtkStripper::New();
+  m_StripperFilter = vtkSmartPointer<vtkStripper>::New();
   m_StripperFilter->ReleaseDataFlagOn();
 
   // Create and configure the marching cubes filter
-  m_MarchingCubesFilter = vtkMarchingCubes::New();
+  m_MarchingCubesFilter = vtkSmartPointer<vtkMarchingCubes>::New();
   m_MarchingCubesFilter->ReleaseDataFlagOn();
   m_MarchingCubesFilter->ComputeScalarsOff();
   m_MarchingCubesFilter->ComputeGradientsOff();
@@ -177,18 +179,18 @@ VTKMeshPipeline
   m_MarchingCubesFilter->SetValue(0,0.0f);
 
   // Face flip filter - much faster than vtkPolyDataNormals
-  m_FlipPolyFaces = vtkFlipPolyFaces::New();
+  m_FlipPolyFaces = vtkSmartPointer<vtkFlipPolyFaces>::New();
 
   // Create the transform filter
-  m_TransformFilter = vtkTransformPolyDataFilter::New();
+  m_TransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   m_TransformFilter->ReleaseDataFlagOn();
 
   // Create the transform
-  m_Transform = vtkTransform::New();
+  m_Transform = vtkSmartPointer<vtkTransform>::New();
 
   // Create and configure a filter for triangle decimation
-  m_DecimateFilter = vtkDecimatePro::New();
-  m_DecimateFilter->ReleaseDataFlagOn();  
+  m_DecimateFilter = vtkSmartPointer<vtkDecimatePro>::New();
+  m_DecimateFilter->ReleaseDataFlagOn();
 }
 
 VTKMeshPipeline
