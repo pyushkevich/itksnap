@@ -1401,6 +1401,14 @@ TARGET_INCLUDE_DIRECTORIES(logic_api_test PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME IRISApplicationTest COMMAND logic_api_test)
 
+# Test: large-image size guard throws IRISException instead of crashing with SIGBUS
+ADD_EXECUTABLE(TestLargeImageCheck
+    Testing/Logic/TestLargeImageCheck.cxx)
+TARGET_LINK_LIBRARIES(TestLargeImageCheck ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestLargeImageCheck PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestLargeImageCheck COMMAND TestLargeImageCheck ${TEMP})
+
 # Set up a test for each GUI test
 FOREACH(GUI_TEST ${GUI_TESTS})
 

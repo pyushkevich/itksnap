@@ -86,6 +86,16 @@
 #include <type_traits>
 #include <vector>
 
+// Platform-specific headers for available memory query (used in image size check)
+#if defined(__APPLE__)
+#  include <mach/mach.h>
+#elif defined(__linux__)
+#  include <fstream>
+#  include <string>
+#elif defined(_WIN32)
+#  include <windows.h>
+#endif
+
 
 using namespace std;
 
@@ -1387,6 +1397,64 @@ GuidedNativeImageIO
     typename NativeImageType::Pointer image = NativeImageType::New();
 
     UpdateImageHeader<NativeImageType>(image);
+
+    // Guard against SIGBUS / OOM: check that the image fits within currently available
+    // memory before calling Allocate(), which would otherwise crash without any error.
+    {
+    // Compute image size in bytes directly from IO dimensions (more reliable than
+    // GetImageSizeInBytes() which may return 0 before data is read).
+    size_t imageBytes = m_IOBase->GetComponentSize();
+    for(unsigned int i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
+      imageBytes *= m_IOBase->GetDimensions(i);
+    imageBytes *= m_IOBase->GetNumberOfComponents();
+
+    // Query currently available (free + reclaimable) memory from the OS.
+    size_t availableRAM = 0;
+#if defined(__APPLE__)
+    {
+    mach_port_t host = mach_host_self();
+    vm_size_t pageSize = 0;
+    host_page_size(host, &pageSize);
+    vm_statistics64_data_t vmStats;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    if(host_statistics64(host, HOST_VM_INFO64,
+                         reinterpret_cast<host_info64_t>(&vmStats),
+                         &count) == KERN_SUCCESS)
+      availableRAM = static_cast<size_t>(vmStats.free_count +
+                                         vmStats.inactive_count) * pageSize;
+    }
+#elif defined(__linux__)
+    {
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key; size_t val;
+    while(meminfo >> key >> val)
+      if(key == "MemAvailable:") { availableRAM = val * 1024; break; }
+    }
+#elif defined(_WIN32)
+    {
+    MEMORYSTATUSEX ms; ms.dwLength = sizeof(ms);
+    if(GlobalMemoryStatusEx(&ms))
+      availableRAM = static_cast<size_t>(ms.ullAvailPhys);
+    }
+#endif
+    // Use 90% of available RAM as the safe limit so the OS and other processes
+    // still have breathing room. Fall back to 4 GB if query fails.
+    size_t safeLimit = availableRAM
+      ? static_cast<size_t>(0.90 * static_cast<double>(availableRAM))
+      : (4ULL << 30);
+    if(imageBytes > safeLimit)
+      {
+      double imageSizeGB  = imageBytes   / (1024.0 * 1024.0 * 1024.0);
+      double availableGB  = availableRAM / (1024.0 * 1024.0 * 1024.0);
+      throw IRISException(
+        "Image is too large to load into memory. "
+        "The image requires %.1f GB of RAM, but only %.1f GB is currently "
+        "available on this machine. Close other applications or use a "
+        "machine with more memory.",
+        imageSizeGB, availableGB);
+      }
+    }
+
     image->Allocate();
 
     regularImageReadingProgSrc->AddProgress(0.1);
