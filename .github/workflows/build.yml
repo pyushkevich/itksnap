@@ -40,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04,macos-15-intel,macos-14,windows-2022]
+        os: [ubuntu-22.04,macos-15-intel,macos-15,windows-2022]
         itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.5.2' ]
         qt_ver: [ '6.8.1' ]
@@ -230,13 +230,6 @@ jobs:
         continue-on-error: true
         run: git fetch
 
-      # Fix timestamp issues that are causing ninja to fail on MacOS
-      - name: Fix file timestamps
-        working-directory: ${{github.workspace}}/itksnap
-        shell: bash
-        continue-on-error: true
-        run: find . -type f -exec touch {} +
-
       # Configure ITK-SNAP
       # Note: /FORCE:MULTIPLE is a temporary fix for ITK issues in 5.4.0
       - name: Configure ITK-SNAP
@@ -245,7 +238,7 @@ jobs:
         with:
           source-dir: ${{github.workspace}}/itksnap
           build-dir: ${{github.workspace}}/itksnap/build
-          generator: Ninja
+          generator: ${{ runner.os == 'MacOS' && 'Unix Makefiles' || 'Ninja' }}
           run-build: false
           args: ${{ runner.os == 'Windows' && steps.vcpkg.outputs.vcpkg-cmake-config || '' }} 
           options: |
