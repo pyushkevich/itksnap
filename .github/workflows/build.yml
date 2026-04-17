@@ -34,8 +34,8 @@ on:
   #   - published
 
 jobs:
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+  build_itksnap:
+    name: Build and Package ITK-SNAP on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -229,6 +229,13 @@ jobs:
         shell: bash
         continue-on-error: true
         run: git fetch
+
+      # Fix timestamp issues that are causing ninja to fail on MacOS
+      - name: Fix file timestamps
+        working-directory: ${{github.workspace}}/itksnap
+        shell: bash
+        continue-on-error: true
+        run: find . -type f -exec touch {} +
 
       # Configure ITK-SNAP
       # Note: /FORCE:MULTIPLE is a temporary fix for ITK issues in 5.4.0
