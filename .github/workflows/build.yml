@@ -264,10 +264,10 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
-          ${{ matrix.ctest_cmd }} -D ExperimentalStart
-          ${{ matrix.ctest_cmd }} -D ExperimentalUpdate
-          ${{ matrix.ctest_cmd }} -D ExperimentalConfigure
-          ${{ matrix.ctest_cmd }} -D ExperimentalBuild
+          ${{ matrix.ctest_cmd }} -V -D ExperimentalStart
+          ${{ matrix.ctest_cmd }} -V -D ExperimentalUpdate
+          ${{ matrix.ctest_cmd }} -V -D ExperimentalConfigure
+          ${{ matrix.ctest_cmd }} -V -D ExperimentalBuild
 
       - name: ITK-SNAP Dashboard -- Test
         id: ctest-test
