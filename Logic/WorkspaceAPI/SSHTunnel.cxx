@@ -27,8 +27,33 @@ SSHTunnel::run(const char *remote_host,
                void       *callback_data,
                bool        verbose)
 {
+  // Define error reporting helper up front so it can be used from the first socket call
+  auto fail = [callback, callback_data](int rc, const char *message, ...) {
+    char buf[1024];
+    va_list args;
+    va_start(args, message);
+    vsnprintf(buf, 1024, message, args);
+    va_end(args);
+    callback(CB_ERROR, ErrorInfo({buf}), callback_data);
+    return rc;
+  };
+
   // Create a server socket
   int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+  if (server_socket < 0)
+    return fail(RC_SOCKET_ERROR, "Error creating server socket: %s", strerror(errno));
+
+  // RAII guard to ensure server socket is closed on all return paths
+  struct ServerSocketGuard {
+    int fd;
+    ~ServerSocketGuard() {
+#ifndef _WIN32
+      ::close(fd);
+#else
+      ::closesocket(fd);
+#endif
+    }
+  } server_socket_guard{server_socket};
 
   // Bind server_socket to address
   struct sockaddr_in address, bound_address;
@@ -36,14 +61,14 @@ SSHTunnel::run(const char *remote_host,
   address.sin_family = AF_INET;
   address.sin_port = htons(0);
   address.sin_addr.s_addr = INADDR_ANY;
-  bind(server_socket, (struct sockaddr *) &address, address_size);
+  if (bind(server_socket, (struct sockaddr *) &address, address_size) < 0)
+    return fail(RC_SOCKET_ERROR, "Error binding server socket: %s", strerror(errno));
 
   // Get the port to which the socket is bound
   memset(&bound_address, '\0', sizeof(bound_address));
   socklen_t bound_address_size = sizeof(bound_address);
-  getsockname(server_socket, (struct sockaddr *) &bound_address, &bound_address_size);
-  char bound_ip[16];
-  inet_ntop(AF_INET, &bound_address.sin_addr, bound_ip, sizeof(bound_ip));
+  if (getsockname(server_socket, (struct sockaddr *) &bound_address, &bound_address_size) < 0)
+    return fail(RC_SOCKET_ERROR, "Error getting server socket address: %s", strerror(errno));
   int bound_port = ntohs(bound_address.sin_port);
 
   // Buffer for IO
@@ -58,21 +83,6 @@ SSHTunnel::run(const char *remote_host,
   if(verbose)
     std::cout << "Creating tunnel to " << remote_host << std::endl;
   ssh_session session = ssh_new();
-
-  // Define an easy to call error function
-  auto fail = [callback, callback_data](int rc, const char *message, ...) {
-
-    // Format the message
-    char buffer[1024];
-    va_list args;
-    va_start(args, message);
-    vsnprintf(buffer, 1024, message, args);
-    va_end (args);
-
-    // Call the error callback
-    callback(CB_ERROR, ErrorInfo({buffer}), callback_data);
-    return rc;
-  };
 
   if (!session)
     return fail(RC_SSH_ERROR, "Error creating SSH session");
@@ -93,6 +103,15 @@ SSHTunnel::run(const char *remote_host,
       std::cout << "Setting username to " << username << std::endl;
     if (ssh_options_set(session, SSH_OPTIONS_USER, username) != SSH_OK)
       return fail(RC_SSH_ERROR, "Error setting ssh usename to %s: %s", username, ssh_get_error(session));
+  }
+
+  // Register the identity file so ssh_userauth_publickey_auto will try it
+  if (keyfile && strlen(keyfile) > 0)
+  {
+    if(verbose)
+      std::cout << "Setting identity file to " << keyfile << std::endl;
+    if (ssh_options_set(session, SSH_OPTIONS_ADD_IDENTITY, keyfile) != SSH_OK)
+      return fail(RC_SSH_ERROR, "Error setting SSH identity file to %s: %s", keyfile, ssh_get_error(session));
   }
 
   // Connect to remote
@@ -146,10 +165,11 @@ SSHTunnel::run(const char *remote_host,
   }
 
   // Put the socket into listen mode
-  listen(server_socket, 4);
+  if (listen(server_socket, 4) < 0)
+    return fail(RC_SOCKET_ERROR, "Error listening on server socket: %s", strerror(errno));
 
-  // At this point, we are ready to serve tunnel corrections
-  if(callback(CB_READY, ReadyInfo({bound_ip, bound_port}), callback_data).first)
+  // At this point, we are ready to serve tunnel connections
+  if(callback(CB_READY, ReadyInfo({"localhost", bound_port}), callback_data).first)
     return RC_USER_ABORT;
 
   // Data for ssh_select
@@ -164,10 +184,13 @@ SSHTunnel::run(const char *remote_host,
     FD_ZERO(&fs);
     FD_SET(server_socket, &fs);
 
-    // Create a list of channels to be passed to ssh_select
+    // Create a list of channels to be passed to ssh_select. ch_out must be fully
+    // cleared each iteration: ssh_select writes only ready channels into ch_out
+    // (null-terminated list), leaving any remaining slots untouched. Stale non-null
+    // entries from a prior iteration would cause false positives in the find below.
     ch_in.reserve(sguard.GetTunnels().size() + 1);
     ch_in.clear();
-    ch_out.resize(sguard.GetTunnels().size() + 1, nullptr);
+    ch_out.assign(sguard.GetTunnels().size() + 1, nullptr);
     for (auto it : sguard.GetTunnels())
     {
       FD_SET(it.first, &fs);
@@ -238,11 +261,11 @@ SSHTunnel::run(const char *remote_host,
             std::cout << "Read " << n_read << " bytes from socket " << it.first << std::endl;
           int n_written = ssh_channel_write(it.second, buffer.data(), n_read);
           if (n_written != n_read)
-            fail(RC_SSH_ERROR,
-                 "Error writing to SSH tunnel, only %d of %d bytes written: %s",
-                 n_written,
-                 n_read,
-                 ssh_get_error(session));
+            return fail(RC_SSH_ERROR,
+                        "Error writing to SSH tunnel, only %d of %d bytes written: %s",
+                        n_written,
+                        n_read,
+                        ssh_get_error(session));
           if(verbose)
             std::cout << "Wrote " << n_written << " bytes to channel" << std::endl;
         }
@@ -302,7 +325,7 @@ SSHTunnel::run(const char *remote_host,
               RC_SOCKET_ERROR, "Error writing to client socket %d, %s", it.first, strerror(errno));
         }
         else if (n_avail < 0)
-          return fail(RC_SSH_ERROR, "Error polling SSH channel: %s", strerror(errno));
+          return fail(RC_SSH_ERROR, "Error polling SSH channel: %s", ssh_get_error(session));
 
         if (ssh_channel_is_eof(it.second))
         {

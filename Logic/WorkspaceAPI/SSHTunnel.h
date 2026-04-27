@@ -86,7 +86,7 @@ protected:
 
     void AddTunnel(int socket_id, ssh_channel channel);
     void RemoveTunnel(int socket_id);
-    const ChannelMap GetTunnels() { return channel_map; }
+    const ChannelMap &GetTunnels() { return channel_map; }
 
   protected:
     void CleanupTunnel(int socket_fd, ssh_channel channel);

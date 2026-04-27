@@ -57,7 +57,7 @@ startSshTunnel(const std::string &remoteHost,
     std::cout << "Successfully authenticated using auto-detected key" << std::endl;
     auth = true;
   }
-  else if (ssh_userauth_password(session, nullptr, password.c_str()) != SSH_AUTH_SUCCESS)
+  else if (ssh_userauth_password(session, nullptr, password.c_str()) == SSH_AUTH_SUCCESS)
   {
     std::cout << "Successfully authenticated using password" << std::endl;
     auth = true;
