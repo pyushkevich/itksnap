@@ -74,6 +74,7 @@ public:
   virtual std::string GetApplicationFile() override;
   virtual std::string GetApplicationPermanentDataLocation() override;
   virtual std::string GetUserDocumentsLocation() override;
+  virtual std::string GetTempDirectory() override;
   virtual std::string EncodeServerURL(const std::string &url) override;
 
 

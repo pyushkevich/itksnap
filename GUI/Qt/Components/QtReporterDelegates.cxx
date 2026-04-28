@@ -90,6 +90,12 @@ QtSystemInfoDelegate::GetUserDocumentsLocation()
 }
 
 std::string
+QtSystemInfoDelegate::GetTempDirectory()
+{
+  return to_utf8(QStandardPaths::writableLocation(QStandardPaths::TempLocation));
+}
+
+std::string
 QtSystemInfoDelegate::EncodeServerURL(const std::string &url_string)
 {
   QUrl url(from_utf8(url_string));
@@ -125,6 +131,12 @@ std::string
 QtSystemInfoDelegate::GetUserDocumentsLocation()
 {
   return to_utf8(QDesktopServices::storageLocation(QDesktopServices::DocumentsLocation));
+}
+
+std::string
+QtSystemInfoDelegate::GetTempDirectory()
+{
+  return to_utf8(QDesktopServices::storageLocation(QDesktopServices::TempLocation));
 }
 
 std::string

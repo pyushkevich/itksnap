@@ -62,6 +62,20 @@ public:
   using Callback = CallbackResponse (*) (CallbackType, CallbackInfo, void *);
 
   /**
+   * Open and authenticate an SSH session to @p remote_host.  Tries public-key
+   * auth first (auto-detecting keys from ~/.ssh); falls back to password via
+   * CB_PROMPT_PASSWORD callback.  Returns the authenticated ssh_session on
+   * success.  On failure, fires CB_ERROR and returns nullptr.  The caller
+   * owns the returned session and must disconnect and free it when done.
+   */
+  static ssh_session OpenSession(const char *remote_host,
+                                 const char *username,
+                                 const char *keyfile,
+                                 Callback    callback,
+                                 void       *callback_data,
+                                 bool        verbose = false);
+
+  /**
    * Initialize and run SSH tunnel. Establishes the connection and runs it in a loop.
    * Communication with caller is established through callbacks.
    */

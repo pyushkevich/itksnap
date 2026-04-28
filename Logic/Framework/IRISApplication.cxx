@@ -64,6 +64,7 @@
 #include "itkConstantBoundaryCondition.h"
 
 #include <itksys/SystemTools.hxx>
+#include "ImageIORemote.h"
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"
 #include "vtkPointData.h"
@@ -1931,6 +1932,19 @@ IRISApplication
   miscProgSrc->AddObserverToProgressEvents(miscProgCmd);
   miscProgSrc->StartProgress();
 
+  // If fname is a remote URL, download it to a temp file first and work with
+  // the local copy from here on.  The original URL is stamped onto the layer
+  // at the end so the rest of the application can see where the image came from.
+  std::string remote_url;
+  std::string local_fname = fname;
+  if (IsRemoteImageURL(fname))
+    {
+    remote_url = fname;
+    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(fname);
+    local_fname = src->Download(fname);
+    fname = local_fname.c_str();
+    }
+
   // When hints are not provided, we load them using the association system
   if(!ioHints)
     {
@@ -1970,6 +1984,15 @@ IRISApplication
   // Store the IO hints inside of the image - in case it ever gets added
   // to a project
   layer->SetIOHints(*ioHints);
+
+  // For remote images, store the original URL and override the filename
+  // (which otherwise points at the temp download path) with the URL so
+  // that the rest of the UI shows a meaningful source location.
+  if (!remote_url.empty())
+    {
+    layer->SetRemoteURL(remote_url);
+    layer->SetFileName(remote_url);
+    }
 
   return layer;
 }
