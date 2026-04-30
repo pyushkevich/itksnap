@@ -1941,6 +1941,7 @@ IRISApplication
     {
     remote_url = fname;
     SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(fname);
+    src->SetProgressCallback(MakeStdoutProgressCallback());
     local_fname = src->Download(fname);
     fname = local_fname.c_str();
     }
@@ -2334,10 +2335,22 @@ IRISApplication
                       project_dir_orig.c_str(), original_file_path.c_str());
     }
 
-  std::string moved_file_full = itksys::SystemTools::CollapseFullPath(
-        relative_path.c_str(), project_dir_crnt.c_str());
+  // Build the rebased path.  CollapseFullPath is a filesystem tool that
+  // collapses "//" to "/", which would corrupt "sftp://host/..." into
+  // "sftp:/host/...".  Use plain string concatenation when the target
+  // directory is a remote URL so the scheme is preserved.
+  std::string moved_file_full;
+  if (IsRemoteImageURL(project_dir_crnt))
+    moved_file_full = project_dir_crnt + "/" + relative_path;
+  else
+    moved_file_full = itksys::SystemTools::CollapseFullPath(
+          relative_path.c_str(), project_dir_crnt.c_str());
 
-  if(itksys::SystemTools::FileExists(moved_file_full.c_str(), true))
+  // Accept the rebased path if it exists locally, or if it resolved to a
+  // remote URL (e.g. scp://host/path) — remote paths cannot be checked with
+  // FileExists but are valid inputs for the remote download machinery.
+  if(IsRemoteImageURL(moved_file_full) ||
+     itksys::SystemTools::FileExists(moved_file_full.c_str(), true))
     ret = moved_file_full;
 
 
@@ -2347,15 +2360,42 @@ IRISApplication
 void IRISApplication::OpenProject(
     const std::string &proj_file, IRISWarningList &warn)
 {
+  // For remote workspaces (scp://, sftp://) download the .itksnap XML to a
+  // temp file and parse it from there.  project_dir is derived from the
+  // original remote URL so that GetMovedFilePath() naturally produces remote
+  // URLs (scp://host/path/img.nii.gz) for every AbsolutePath entry —
+  // those URLs then flow into OpenImage() which already handles remote
+  // downloads and sets m_RemoteURL on the resulting layer.
+  std::string local_proj_file = proj_file;
+  if (IsRemoteImageURL(proj_file))
+    {
+    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(proj_file);
+    local_proj_file = src->Download(proj_file);
+    }
+
   // Load the registry file
   Registry preg;
-  preg.ReadFromXMLFile(proj_file.c_str());
+  preg.ReadFromXMLFile(local_proj_file.c_str());
 
-  // Get the full name of the project file
-  std::string proj_file_full = itksys::SystemTools::CollapseFullPath(proj_file.c_str());
-
-  // Get the directory in which the project will be saved
-  std::string project_dir = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
+  // project_dir: for a remote workspace use the parent directory of the
+  // original URL (e.g. "scp://user@host/data") so the moved-path rebase
+  // produces remote URLs; for a local workspace use the normal filesystem dir.
+  std::string proj_file_full;
+  std::string project_dir;
+  if (IsRemoteImageURL(proj_file))
+    {
+    proj_file_full = proj_file;
+    // Cannot use itksys::GetParentDirectory on a URL — it collapses "://" to
+    // ":/" which breaks IsRemoteImageURL checks downstream.  Use rfind instead.
+    auto last_slash = proj_file.rfind('/');
+    project_dir = (last_slash != std::string::npos)
+                    ? proj_file.substr(0, last_slash) : proj_file;
+    }
+  else
+    {
+    proj_file_full = itksys::SystemTools::CollapseFullPath(proj_file.c_str());
+    project_dir    = itksys::SystemTools::GetParentDirectory(proj_file_full.c_str());
+    }
 
   // Read the location where the file was saved initially
   std::string project_save_dir = preg["SaveLocation"][""];
@@ -2399,7 +2439,8 @@ void IRISApplication::OpenProject(
       layer_file_full = GetMovedFilePath(project_save_dir, project_dir, layer_file_full);
       }
 
-    if (!itksys::SystemTools::FileExists(layer_file_full.c_str()))
+    if (!IsRemoteImageURL(layer_file_full) &&
+        !itksys::SystemTools::FileExists(layer_file_full.c_str()))
       throw IRISException("The image file in Layer %d: \"%s\" does not exist",i ,layer_file_full.c_str());
 
     // Load the IO hints for the image from the project - but only if this
@@ -2440,7 +2481,8 @@ void IRISApplication::OpenProject(
   m_GlobalState->SetSelectedSegmentationLayerId(
         m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId());
 
-  // Save the project filename
+  // Save the project filename (proj_file_full is the remote URL for remote
+  // workspaces, or the collapsed local path for local ones)
   m_GlobalState->SetProjectFilename(proj_file_full.c_str());
 
   // Update the history

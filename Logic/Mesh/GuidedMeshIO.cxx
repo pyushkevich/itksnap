@@ -2,6 +2,7 @@
 #include "MeshIODelegates.h"
 #include "MeshWrapperBase.h"
 #include "StandaloneMeshWrapper.h"
+#include "ImageIORemote.h"
 
 #include <itkMacro.h>
 #include <itksys/SystemTools.hxx>
@@ -166,13 +167,24 @@ void
 GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
                        SmartPtr<MeshWrapperBase> wrapper, unsigned int tp, LabelType id)
 {
+  // For remote URLs (scp://, sftp://) download the mesh file to a local temp
+  // directory first, then load from the local copy.  The caller (MeshWrapperBase)
+  // already stores the remote URL as the wrapper's filename, so remote awareness
+  // is preserved without any additional bookkeeping here.
+  std::string local_filename = FileName;
+  if (IsRemoteImageURL(FileName))
+    {
+    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(FileName);
+    local_filename = src->Download(FileName);
+    }
+
   // Using the factory method to get a delegate
   AbstractMeshIODelegate *ioDelegate = AbstractMeshIODelegate::GetDelegate(format);
 
   if (ioDelegate)
     {
       // Apply IO logic of the delegate
-      vtkSmartPointer<vtkPolyData> polyData = ioDelegate->ReadPolyData(FileName);
+      vtkSmartPointer<vtkPolyData> polyData = ioDelegate->ReadPolyData(local_filename.c_str());
 
       /*
       // Clean the mesh - some external meshes have problems that slow rendering
