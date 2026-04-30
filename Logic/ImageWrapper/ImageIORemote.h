@@ -8,6 +8,9 @@
 #include <functional>
 #include <cstddef>
 
+// Forward declaration — full type only needed in .cxx files that use the pool.
+class SSHConnectionPool;
+
 /**
  * Progress callback type used by RemoteImageSource::Download.
  *
@@ -57,6 +60,16 @@ public:
   void SetProgressCallback(DownloadProgressCallback cb)
     { m_ProgressCallback = std::move(cb); }
 
+  /**
+   * Attach an SSH connection pool so that repeated calls to Download() for
+   * the same host reuse an already-authenticated session instead of performing
+   * a new SSH handshake each time.  Pass nullptr to disable pooling.
+   *
+   * The pool's lifetime must exceed that of this object; it is not owned here.
+   */
+  void SetConnectionPool(SSHConnectionPool *pool)
+    { m_ConnectionPool = pool; }
+
 protected:
   RemoteImageSource() {}
   virtual ~RemoteImageSource() {}
@@ -67,6 +80,7 @@ protected:
     { if (m_ProgressCallback) m_ProgressCallback(url, bytes_done, bytes_total); }
 
   DownloadProgressCallback m_ProgressCallback;
+  SSHConnectionPool       *m_ConnectionPool = nullptr;
 };
 
 

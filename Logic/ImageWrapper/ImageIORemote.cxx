@@ -1,4 +1,5 @@
 #include "ImageIORemote.h"
+#include "SSHConnectionPool.h"
 #include "SSHTunnel.h"
 #include "SystemInterface.h"
 #include "UIReporterDelegates.h"
@@ -113,8 +114,8 @@ SCPRemoteImageSource::Download(const std::string &url)
   if (basename.empty())
     throw IRISException("SCPRemoteImageSource: URL path ends in a directory, not a file: %s", url.c_str());
 
-  // Callback for OpenSession: capture error messages; abort on interactive prompts
-  // since there is no UI available in the logic layer.
+  // Callback for OpenSession: capture error messages; abort on interactive
+  // prompts since there is no UI available in the logic layer.
   std::string auth_error;
   auto session_cb = [](SSHTunnel::CallbackType type,
                        SSHTunnel::CallbackInfo  info,
@@ -137,28 +138,56 @@ SCPRemoteImageSource::Download(const std::string &url)
     return {0, ""};
   };
 
-  // Open a short-lived authenticated SSH session via libssh
-  ssh_session session = SSHTunnel::OpenSession(host.c_str(),
-                                               username.empty() ? nullptr : username.c_str(),
-                                               nullptr,
-                                               session_cb, &auth_error);
-  if (!session)
-    throw IRISException("SCPRemoteImageSource: SSH connection to %s failed: %s",
-                        host.c_str(), auth_error.c_str());
+  // Acquire an authenticated SSH + SFTP session.  Two paths:
+  //
+  //   Pool set  — ask the pool for a cached session.  The pool owns it; no
+  //               RAII guards are needed here.  On first use for this host the
+  //               pool opens the connection and caches it; subsequent calls
+  //               within the same batch return the cached pair immediately,
+  //               skipping the SSH handshake entirely.
+  //
+  //   No pool   — open a fresh session for this single download and clean up
+  //               via RAII guards when the function returns.
+  ssh_session  session;
+  sftp_session sftp;
 
-  SessionGuard session_guard{session};
+  // These optional guards are only armed when we own the sessions (no pool).
+  // Declaring them here so they stay in scope for the entire download.
+  std::unique_ptr<SessionGuard> owned_session;
+  std::unique_ptr<SFTPGuard>    owned_sftp;
 
-  // Initialize SFTP subsystem on top of the authenticated session
-  sftp_session sftp = sftp_new(session);
-  if (!sftp)
-    throw IRISException("SCPRemoteImageSource: Cannot allocate SFTP session: %s",
-                        ssh_get_error(session));
+  if (m_ConnectionPool)
+    {
+    // Pool path — sessions are owned by the pool; no guards needed here.
+    SSHConnectionPool::SessionPair pair =
+        m_ConnectionPool->GetOrCreate(host, username, session_cb, &auth_error);
+    session = pair.ssh;
+    sftp    = pair.sftp;
+    }
+  else
+    {
+    // Non-pool path — create a fresh session owned by this function.
+    session = SSHTunnel::OpenSession(host.c_str(),
+                                     username.empty() ? nullptr : username.c_str(),
+                                     nullptr,
+                                     session_cb, &auth_error);
+    if (!session)
+      throw IRISException("SCPRemoteImageSource: SSH connection to %s failed: %s",
+                          host.c_str(), auth_error.c_str());
 
-  SFTPGuard sftp_guard{sftp};
+    owned_session = std::make_unique<SessionGuard>(SessionGuard{session});
 
-  if (sftp_init(sftp) != SSH_OK)
-    throw IRISException("SCPRemoteImageSource: SFTP initialization failed (code %d)",
-                        sftp_get_error(sftp));
+    sftp = sftp_new(session);
+    if (!sftp)
+      throw IRISException("SCPRemoteImageSource: Cannot allocate SFTP session: %s",
+                          ssh_get_error(session));
+
+    owned_sftp = std::make_unique<SFTPGuard>(SFTPGuard{sftp});
+
+    if (sftp_init(sftp) != SSH_OK)
+      throw IRISException("SCPRemoteImageSource: SFTP initialization failed (code %d)",
+                          sftp_get_error(sftp));
+    }
 
   // Query remote file size for progress display (best-effort; 0 = unknown)
   std::size_t file_size = 0;

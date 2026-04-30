@@ -269,6 +269,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/ImageIORemote.cxx
+  Logic/ImageWrapper/SSHConnectionPool.cxx
   Logic/ImageWrapper/VTIImageIO.cxx
   Logic/ImageWrapper/MultiChannelDisplayMode.cxx
   Logic/ImageWrapper/MeshDisplayMappingPolicy.cxx
@@ -401,6 +402,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/MeshDisplayMappingPolicy.h
   Logic/ImageWrapper/VectorToScalarImageAccessor.h
   Logic/ImageWrapper/WrapperBase.h
+  Logic/ImageWrapper/SSHConnectionPool.h
   Logic/RLEImage/RLEImage.h
   Logic/RLEImage/RLEImage.txx
   Logic/RLEImage/RLEImageConstIterator.h

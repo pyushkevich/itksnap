@@ -65,6 +65,7 @@
 
 #include <itksys/SystemTools.hxx>
 #include "ImageIORemote.h"
+#include "SSHConnectionPool.h"
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"
 #include "vtkPointData.h"
@@ -1942,6 +1943,10 @@ IRISApplication
     remote_url = fname;
     SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(fname);
     src->SetProgressCallback(MakeStdoutProgressCallback());
+    // Propagate the active connection pool (non-null during a remote workspace
+    // load) so repeated downloads to the same host reuse the SSH session.
+    if (m_ActiveConnectionPool)
+      src->SetConnectionPool(m_ActiveConnectionPool.GetPointer());
     local_fname = src->Download(fname);
     fname = local_fname.c_str();
     }
@@ -2366,10 +2371,27 @@ void IRISApplication::OpenProject(
   // URLs (scp://host/path/img.nii.gz) for every AbsolutePath entry —
   // those URLs then flow into OpenImage() which already handles remote
   // downloads and sets m_RemoteURL on the resulting layer.
+  // For remote workspaces, create a connection pool that lives for the
+  // duration of the load so that all image downloads within this batch reuse
+  // the same authenticated SSH session instead of re-handshaking each time.
+  // The pool is cleared (sessions closed) at the end of this function.
+  if (IsRemoteImageURL(proj_file))
+    m_ActiveConnectionPool = SSHConnectionPool::New();
+
+  // RAII: ensure the pool is always cleared when OpenProject returns, even if
+  // an exception is thrown mid-load.  We use a simple scope-exit lambda.
+  struct PoolCleaner {
+    SmartPtr<SSHConnectionPool> &pool;
+    ~PoolCleaner() { pool = nullptr; }
+  } pool_cleaner{m_ActiveConnectionPool};
+
   std::string local_proj_file = proj_file;
   if (IsRemoteImageURL(proj_file))
     {
+    // Download the workspace XML using the pool so the SSH session is
+    // established and cached before the per-layer downloads begin.
     SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(proj_file);
+    src->SetConnectionPool(m_ActiveConnectionPool.GetPointer());
     local_proj_file = src->Download(proj_file);
     }
 
