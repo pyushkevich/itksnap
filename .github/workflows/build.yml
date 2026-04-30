@@ -34,26 +34,26 @@ on:
   #   - published
 
 jobs:
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+  build_itksnap:
+    name: Build and Package ITK-SNAP on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest,macos-13,macos-14,windows-2022]
+        os: [ubuntu-22.04,macos-15-intel,macos-15,windows-2022]
         itk_ver: [ 'v5.4.0' ]
-        vtk_ver: [ '9.3.1' ]
+        vtk_ver: [ '9.5.2' ]
         qt_ver: [ '6.8.1' ]
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             qt_host: linux
             qt_arch: linux_gcc_64
             ctest_cmd: xvfb-run -a ctest
-          - os: macos-13
+          - os: macos-15-intel
             qt_host: mac
             qt_arch: clang_64
             ctest_cmd: ctest
-          - os: macos-14
+          - os: macos-15
             qt_host: mac
             qt_arch: clang_64
             ctest_cmd: ctest
@@ -238,12 +238,12 @@ jobs:
         with:
           source-dir: ${{github.workspace}}/itksnap
           build-dir: ${{github.workspace}}/itksnap/build
-          generator: Ninja
+          generator: ${{ runner.os == 'MacOS' && 'Unix Makefiles' || 'Ninja' }}
           run-build: false
           args: ${{ runner.os == 'Windows' && steps.vcpkg.outputs.vcpkg-cmake-config || '' }} 
           options: |
             ITK_DIR=${{github.workspace}}/itk/build
-            VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.3
+            VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.5
             CMAKE_BUILD_TYPE=Release
             DO_UPLOAD=ON
             SITE=github-runner-${{ matrix.os }}
@@ -251,7 +251,11 @@ jobs:
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
-            ${{ runner.os == 'MacOS' && 'CMAKE_OSX_DEPLOYMENT_TARGET=12.6' || '' }}
+            ${{ runner.os == 'MacOS' && 'CMAKE_OSX_DEPLOYMENT_TARGET=14.0' || '' }}
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Build ITK-SNAP using CDash
       - name: ITK-SNAP Dashboard -- Configure and Build
@@ -260,10 +264,10 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
-          ${{ matrix.ctest_cmd }} -D ExperimentalStart
-          ${{ matrix.ctest_cmd }} -D ExperimentalUpdate
-          ${{ matrix.ctest_cmd }} -D ExperimentalConfigure
-          ${{ matrix.ctest_cmd }} -D ExperimentalBuild
+          ${{ matrix.ctest_cmd }} -VV -D ExperimentalStart
+          ${{ matrix.ctest_cmd }} -V -D ExperimentalUpdate
+          ${{ matrix.ctest_cmd }} -V -D ExperimentalConfigure
+          ${{ matrix.ctest_cmd }} -V -D ExperimentalBuild
 
       - name: ITK-SNAP Dashboard -- Test
         id: ctest-test
@@ -325,10 +329,6 @@ jobs:
           xcrun notarytool store-credentials -k notarize_key -d $NOTARIZE_KEY_ID -i $NOTARIZE_ISSUER --keychain /Users/runner/Library/Keychains/build.keychain-db itksnap_notarize
           rm -rf notarize_key
           cmake -DSNAP_MACOS_NOTARYTOOL_PROFILE=itksnap_notarize -DSNAP_MACOS_KEYCHAIN=/Users/runner/Library/Keychains/build.keychain-db -DSNAP_MACOSX_CODESIGN_CERT=$CODESIGN_CERT .
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
 
       # Package ITK-SNAP
       - name: Package ITK-SNAP

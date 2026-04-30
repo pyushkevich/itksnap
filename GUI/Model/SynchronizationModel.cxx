@@ -11,6 +11,10 @@
 #include "IPCHandler.h"
 #include <chrono>
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 /** Structure passed on to IPC */
 struct IPCMessage
 {

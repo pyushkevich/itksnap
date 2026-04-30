@@ -1,0 +1,126 @@
+#ifndef IMAGEIOREMOTE_H
+#define IMAGEIOREMOTE_H
+
+#include "SNAPCommon.h"
+#include "IRISException.h"
+#include "itkObject.h"
+#include "itkObjectFactory.h"
+#include <functional>
+#include <cstddef>
+
+// Forward declaration — full type only needed in .cxx files that use the pool.
+class SSHConnectionPool;
+
+/**
+ * Progress callback type used by RemoteImageSource::Download.
+ *
+ *   url         — the remote URL being downloaded
+ *   bytes_done  — cumulative bytes received so far
+ *   bytes_total — total file size in bytes, or 0 if not known in advance
+ *
+ * The callback is guaranteed to be invoked once with bytes_done == 0 at
+ * the start of the transfer, and once at the end with
+ * bytes_done == bytes_total > 0 so the caller can finalise any display.
+ *
+ * Intended to be replaced later by a proper ITK-SNAP progress-subsystem
+ * hook; for now MakeStdoutProgressCallback() provides a tqdm-style
+ * placeholder.
+ */
+using DownloadProgressCallback =
+    std::function<void(const std::string &url,
+                       std::size_t bytes_done,
+                       std::size_t bytes_total)>;
+
+
+/**
+ * Abstract base class for remote image source handlers. Each subclass
+ * implements downloading for one URL scheme (scp://, https://, fw://, …).
+ *
+ * Extend this hierarchy to support new schemes; register them in
+ * CreateRemoteImageSource() below.
+ */
+class RemoteImageSource : public itk::Object
+{
+public:
+  irisITKAbstractObjectMacro(RemoteImageSource, itk::Object)
+
+  /**
+   * Download the image at @p url into a newly created OS temp directory
+   * and return the full local path of the downloaded file.  The filename
+   * inside the temp directory preserves the original remote basename so
+   * that ITK format-detection by extension continues to work.
+   *
+   * Cleanup of the temp directory is left to the OS for now.
+   * Throws IRISException on failure.
+   */
+  virtual std::string Download(const std::string &url) = 0;
+
+  /** Attach an optional progress callback invoked during Download().
+   *  Pass an empty std::function to clear an existing callback. */
+  void SetProgressCallback(DownloadProgressCallback cb)
+    { m_ProgressCallback = std::move(cb); }
+
+  /**
+   * Attach an SSH connection pool so that repeated calls to Download() for
+   * the same host reuse an already-authenticated session instead of performing
+   * a new SSH handshake each time.  Pass nullptr to disable pooling.
+   *
+   * The pool's lifetime must exceed that of this object; it is not owned here.
+   */
+  void SetConnectionPool(SSHConnectionPool *pool)
+    { m_ConnectionPool = pool; }
+
+protected:
+  RemoteImageSource() {}
+  virtual ~RemoteImageSource() {}
+
+  void ReportProgress(const std::string &url,
+                      std::size_t bytes_done,
+                      std::size_t bytes_total)
+    { if (m_ProgressCallback) m_ProgressCallback(url, bytes_done, bytes_total); }
+
+  DownloadProgressCallback m_ProgressCallback;
+  SSHConnectionPool       *m_ConnectionPool = nullptr;
+};
+
+
+/**
+ * SCP-based remote image source.  Handles URLs of the form
+ *   scp://[user@]host/absolute/path/to/image.nii.gz
+ * by invoking the system scp(1) client (requires key-based auth; no
+ * interactive password prompts are supported).
+ */
+class SCPRemoteImageSource : public RemoteImageSource
+{
+public:
+  irisITKObjectMacro(SCPRemoteImageSource, RemoteImageSource)
+
+  std::string Download(const std::string &url) override;
+
+protected:
+  SCPRemoteImageSource() {}
+  virtual ~SCPRemoteImageSource() {}
+};
+
+
+/** Returns true when @p path contains "://" and is therefore a remote URL. */
+bool IsRemoteImageURL(const std::string &path);
+
+/**
+ * Factory: create the RemoteImageSource appropriate for the scheme in @p url.
+ * Throws IRISException for unrecognised schemes.
+ */
+SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url);
+
+/**
+ * Returns a DownloadProgressCallback that renders a tqdm-style progress bar
+ * to stdout, overwriting the current line with each update.
+ *
+ * This is a placeholder implementation.  When the GUI progress subsystem is
+ * wired up, callers should supply a callback that posts to that subsystem
+ * instead.
+ */
+DownloadProgressCallback MakeStdoutProgressCallback();
+
+
+#endif // IMAGEIOREMOTE_H

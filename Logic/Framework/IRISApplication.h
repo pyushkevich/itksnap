@@ -51,6 +51,7 @@
 // #include "itkImage.h"
 
 // Forward reference to the classes pointed at
+class SSHConnectionPool;
 class GenericImageData;
 class IRISException;
 class IRISImageData;
@@ -804,6 +805,11 @@ protected:
 
   // Color map preset manager
   SmartPtr<ColorMapPresetManager> m_ColorMapPresetManager;
+
+  // Active SSH connection pool, set during a remote workspace load so that
+  // all image downloads within the same batch share already-authenticated
+  // sessions, avoiding repeated SSH handshakes.  Null at all other times.
+  SmartPtr<SSHConnectionPool> m_ActiveConnectionPool;
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;

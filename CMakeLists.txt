@@ -268,6 +268,9 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/ImageWrapper.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
+  Logic/ImageWrapper/ImageIORemote.cxx
+  Logic/ImageWrapper/SSHConnectionPool.cxx
+  Logic/ImageWrapper/VTIImageIO.cxx
   Logic/ImageWrapper/MultiChannelDisplayMode.cxx
   Logic/ImageWrapper/MeshDisplayMappingPolicy.cxx
   Logic/ImageWrapper/ScalarImageHistogram.cxx
@@ -387,6 +390,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/DisplayMappingPolicy.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
+  Logic/ImageWrapper/VTIImageIO.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
   Logic/ImageWrapper/ImageWrapperTraits.h
@@ -398,6 +402,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/MeshDisplayMappingPolicy.h
   Logic/ImageWrapper/VectorToScalarImageAccessor.h
   Logic/ImageWrapper/WrapperBase.h
+  Logic/ImageWrapper/SSHConnectionPool.h
   Logic/RLEImage/RLEImage.h
   Logic/RLEImage/RLEImage.txx
   Logic/RLEImage/RLEImageConstIterator.h
@@ -1307,6 +1312,7 @@ SET(GUI_TESTS
   MeshImport
   MeshWorkspace
   SegmentationMesh
+  4DReplayWithMeshUpdate
   VolumeRendering
   Reloading
   4DToMC
@@ -1399,6 +1405,19 @@ TARGET_LINK_LIBRARIES(logic_api_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(logic_api_test PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME IRISApplicationTest COMMAND logic_api_test)
+
+ADD_EXECUTABLE(remote_image_load_test
+    Testing/Logic/RemoteImageLoadTest.cxx)
+TARGET_LINK_LIBRARIES(remote_image_load_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(remote_image_load_test PUBLIC ${SNAP_INCLUDE_DIRS})
+
+# Test: large-image size guard throws IRISException instead of crashing with SIGBUS
+ADD_EXECUTABLE(TestLargeImageCheck
+    Testing/Logic/TestLargeImageCheck.cxx)
+TARGET_LINK_LIBRARIES(TestLargeImageCheck ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestLargeImageCheck PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestLargeImageCheck COMMAND TestLargeImageCheck ${TEMP})
 
 # Set up a test for each GUI test
 FOREACH(GUI_TEST ${GUI_TESTS})

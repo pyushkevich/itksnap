@@ -131,7 +131,7 @@ ImageMeshLayers
 
   if (m_IsSNAP)
     {
-    auto snap = dynamic_cast<SNAPImageData*>(m_ImageData.GetPointer());
+    auto snap = dynamic_cast<SNAPImageData*>(m_ImageData);
 
     // if failed, check constructor why m_isSNAP is true
     assert(snap);
@@ -319,7 +319,7 @@ ImageMeshLayers::IsActiveMeshLayerDirty()
   if (m_IsSNAP)
     {
     // Dirty check for LevelSet Image
-    auto snap = static_cast<SNAPImageData*>(m_ImageData.GetPointer());
+    auto snap = static_cast<SNAPImageData*>(m_ImageData);
 
     assert(snap);
 

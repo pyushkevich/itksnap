@@ -157,7 +157,7 @@ Generic3DRenderer::Generic3DRenderer()
 
   this->m_Renderer->AddActor(m_ScalpelLineActor);
 
-  m_ScalarBarActor = vtkScalarBarActor::New();
+  m_ScalarBarActor = vtkSmartPointer<vtkScalarBarActor>::New();
   m_ScalarBarActor->SetBarRatio(m_ScalarBarActor->GetBarRatio() * 0.5);
   m_ScalarBarActor->UnconstrainedFontSizeOn();
   m_ScalarBarActor->GetLabelTextProperty()->SetFontSize(10);

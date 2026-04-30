@@ -122,6 +122,13 @@ protected:
 
   unsigned long m_UniqueId;
 
+  // Original remote URL when the image was loaded from a remote source
+  // (e.g. "scp://host/path/image.nii.gz").  Empty for local files.
+  std::string m_RemoteURL;
+
+public:
+  const std::string &GetRemoteURL() const { return m_RemoteURL; }
+  void SetRemoteURL(const std::string &url) { m_RemoteURL = url; }
 };
 
 #endif // WRAPPERBASE_H

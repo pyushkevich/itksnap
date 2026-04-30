@@ -146,6 +146,7 @@ void AbstractLayerTableRowModel::OnUpdate()
   if(this->m_EventBucket->HasEvent(itk::DeleteEvent(), m_Layer))
     {
     m_Layer = NULL;
+    OnLayerDeleted();
     m_LayerRole = NO_ROLE;
     m_LayerPositionInRole = -1;
     m_LayerNumberOfLayersInRole = -1;
@@ -435,7 +436,7 @@ void
 ImageLayerTableRowModel::UpdateRoleInfo()
 {
   LayerIterator it(m_ImageData);
-  it.Find(static_cast<ImageWrapperBase*>(m_Layer.GetPointer()));
+  it.Find(static_cast<ImageWrapperBase*>(m_Layer));
   if(!it.IsAtEnd())
     {
     m_LayerRole = it.GetRole();
@@ -516,7 +517,7 @@ ImageLayerTableRowModel::AutoAdjustContrast()
 void
 ImageLayerTableRowModel::GenerateTextureFeatures()
 {
-  ImageWrapperBase *iw = dynamic_cast<ImageWrapperBase *>(m_Layer.GetPointer());
+  ImageWrapperBase *iw = dynamic_cast<ImageWrapperBase *>(m_Layer);
   if(iw && iw->GetNumberOfComponents() == 1)
     {
     // Cast the image to floating point
@@ -612,7 +613,7 @@ void ImageLayerTableRowModel::ReloadAs4D()
 
 bool ImageLayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
 {
-  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer);
   if(imageLayer)
     {
     value = imageLayer->GetDefaultScalarRepresentation()->IsVolumeRenderingEnabled();
@@ -623,7 +624,7 @@ bool ImageLayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
 
 void ImageLayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
 {
-  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer);
   if(imageLayer)
     imageLayer->GetDefaultScalarRepresentation()->SetVolumeRenderingEnabled(value);
 }
@@ -639,7 +640,7 @@ ImageLayerTableRowModel
   else
     delegate = ReloadAnatomicWrapperDelegate::New().GetPointer();
 
-  ImageWrapperBase *imgWrapper = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+  ImageWrapperBase *imgWrapper = dynamic_cast<ImageWrapperBase*>(m_Layer);
 
   if (!imgWrapper)
     return;
@@ -822,7 +823,7 @@ MeshLayerTableRowModel::GetActivePropertyValue(std::string &value)
   if(!m_MeshLayer)
     return false;
 
-  auto *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer.GetPointer());
+  auto *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer);
   if(!mesh)
     return false;
 
@@ -837,7 +838,7 @@ MeshLayerTableRowModel::GetActiveMeshLayerDataPropertyIdValueAndRange(int       
                                                                       MeshDataArrayDomain *domain)
 {
   // The current layer has to be a mesh layer
-  auto *mesh_layer = dynamic_cast<StandaloneMeshWrapper *>(m_Layer.GetPointer());
+  auto *mesh_layer = dynamic_cast<StandaloneMeshWrapper *>(m_Layer);
   if (!mesh_layer)
     return false;
 
@@ -871,7 +872,7 @@ void
 MeshLayerTableRowModel::SetActiveMeshLayerDataPropertyIdValue(int value)
 {
   // The current layer has to be a mesh layer
-  auto *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer.GetPointer());
+  auto *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer);
   if (mesh)
   {
     mesh->SetActiveMeshLayerDataPropertyId(value);
@@ -884,7 +885,7 @@ bool
 MeshLayerTableRowModel::GetMeshVectorModeValueAndRange(vtkIdType &value, MeshVectorModeDomain *domain)
 {
   // The current layer has to be a mesh layer
-  StandaloneMeshWrapper *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer.GetPointer());
+  StandaloneMeshWrapper *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer);
   if (!mesh)
     return false;
 
@@ -926,7 +927,7 @@ void
 MeshLayerTableRowModel::SetMeshVectorModeValue(vtkIdType value)
 {
   // The current layer has to be a mesh layer
-  StandaloneMeshWrapper *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer.GetPointer());
+  StandaloneMeshWrapper *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer);
   if (!mesh)
     return;
 

@@ -2,11 +2,13 @@
 #include "MeshIODelegates.h"
 #include "MeshWrapperBase.h"
 #include "StandaloneMeshWrapper.h"
+#include "ImageIORemote.h"
 
 #include <itkMacro.h>
 #include <itksys/SystemTools.hxx>
 #include <vtkDataReader.h>
 #include <vtkPolyDataWriter.h>
+#include <vtkXMLPolyDataWriter.h>
 #include <vtkSTLWriter.h>
 #include <vtkBYUWriter.h>
 #include <vtkTriangleFilter.h>
@@ -37,7 +39,7 @@ GuidedMeshIO::m_MeshFormatDescriptorMap =
   { FORMAT_STL, { "STL Mesh",   {".stl"},         false,  true } },
   { FORMAT_VRML,{ "VRML Scene", {".vrml"},        false,  true } },
   { FORMAT_VTK, { "VTK Mesh",   {".vtk"},         true,   true } },
-  { FORMAT_VTP, { "VTP Mesh",   {".vtp"},         true,   false } }
+  { FORMAT_VTP, { "VTP Mesh",   {".vtp"},         true,   true  } }
 };
 
 
@@ -149,7 +151,15 @@ GuidedMeshIO
     writer->Delete();
     tri->Delete();
     }
-  else 
+  else if(format == FORMAT_VTP)
+    {
+    vtkXMLPolyDataWriter *writer = vtkXMLPolyDataWriter::New();
+    writer->SetInputData(mesh);
+    writer->SetFileName(FileName);
+    writer->Update();
+    writer->Delete();
+    }
+  else
     throw itk::ExceptionObject("Illegal format specified for saving image");
 }
 
@@ -157,13 +167,24 @@ void
 GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
                        SmartPtr<MeshWrapperBase> wrapper, unsigned int tp, LabelType id)
 {
+  // For remote URLs (scp://, sftp://) download the mesh file to a local temp
+  // directory first, then load from the local copy.  The caller (MeshWrapperBase)
+  // already stores the remote URL as the wrapper's filename, so remote awareness
+  // is preserved without any additional bookkeeping here.
+  std::string local_filename = FileName;
+  if (IsRemoteImageURL(FileName))
+    {
+    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(FileName);
+    local_filename = src->Download(FileName);
+    }
+
   // Using the factory method to get a delegate
   AbstractMeshIODelegate *ioDelegate = AbstractMeshIODelegate::GetDelegate(format);
 
   if (ioDelegate)
     {
       // Apply IO logic of the delegate
-      vtkSmartPointer<vtkPolyData> polyData = ioDelegate->ReadPolyData(FileName);
+      vtkSmartPointer<vtkPolyData> polyData = ioDelegate->ReadPolyData(local_filename.c_str());
 
       /*
       // Clean the mesh - some external meshes have problems that slow rendering

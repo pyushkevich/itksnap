@@ -79,6 +79,7 @@ public:
   virtual std::string GetApplicationFile() = 0;
   virtual std::string GetApplicationPermanentDataLocation() = 0;
   virtual std::string GetUserDocumentsLocation() = 0;
+  virtual std::string GetTempDirectory() = 0;
 
   virtual std::string EncodeServerURL(const std::string &url) = 0;
 

@@ -65,7 +65,7 @@ LevelSetMeshAssembly
 {
   bool ret = this->GetMTime() < m_Image->GetMTime();
 
-  if (m_MeshOptions && m_MeshOptions->GetMTime() >= this->GetMTime())
+  if (m_MeshOptions && m_MeshOptions->GetMTime() > this->GetMTime())
     ret = true;
 
   return ret;
