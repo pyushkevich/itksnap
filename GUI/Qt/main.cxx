@@ -770,6 +770,137 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   return 0;
 }
 
+void
+LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
+                      const CommandLineRequest &argdata)
+{
+  IRISApplication *driver = gui->GetDriver();
+  IRISWarningList warnings;
+
+  if (argdata.fnWorkspace.size())
+  {
+    QtCursorOverride curse(Qt::WaitCursor);
+    try
+    {
+      driver->OpenProject(argdata.fnWorkspace, warnings);
+    }
+    catch (std::exception &exc)
+    {
+      ReportNonLethalException(
+        mainwin, exc,
+        QCoreApplication::translate("main", "Workspace Error"),
+        QCoreApplication::translate("main", "Failed to load workspace %1").arg(from_utf8(argdata.fnWorkspace)));
+    }
+  }
+  else
+  {
+    if (argdata.fnMain.size())
+    {
+      QtCursorOverride curse(Qt::WaitCursor);
+      try
+      {
+        driver->OpenImage(argdata.fnMain.c_str(), MAIN_ROLE, warnings);
+
+        if (argdata.fnSegmentation.size())
+        {
+          std::string current_seg;
+          try
+          {
+            for (int i = 0; i < (int) argdata.fnSegmentation.size(); ++i)
+            {
+              current_seg = argdata.fnSegmentation[i];
+              driver->OpenImage(current_seg.c_str(), LABEL_ROLE, warnings, nullptr, nullptr, i > 0);
+            }
+          }
+          catch (std::exception &exc)
+          {
+            ReportNonLethalException(
+              mainwin, exc,
+              QCoreApplication::translate("main", "Image IO Error"),
+              QCoreApplication::translate("main", "Failed to load segmentation %1").arg(from_utf8(current_seg)));
+          }
+        }
+
+        if (argdata.fnOverlay.size())
+        {
+          std::string current_overlay;
+          try
+          {
+            for (int i = 0; i < (int) argdata.fnOverlay.size(); i++)
+            {
+              current_overlay = argdata.fnOverlay[i];
+              driver->OpenImage(current_overlay.c_str(), OVERLAY_ROLE, warnings);
+            }
+          }
+          catch (std::exception &exc)
+          {
+            ReportNonLethalException(
+              mainwin, exc,
+              QCoreApplication::translate("main", "Overlay IO Error"),
+              QCoreApplication::translate("main", "Failed to load overlay %1").arg(from_utf8(current_overlay)));
+          }
+        }
+
+        if (argdata.fnMesh.size())
+        {
+          std::string current_mesh;
+          try
+          {
+            auto *model = gui->GetMeshImportModel();
+            for (int i = 0; i < (int) argdata.fnMesh.size(); i++)
+            {
+              current_mesh = argdata.fnMesh[i];
+              std::string ext = current_mesh.substr(current_mesh.find_last_of("."));
+              auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
+              std::vector<std::string> fn_list { current_mesh };
+              if (fmt != GuidedMeshIO::FORMAT_COUNT)
+              {
+                std::cout << "Loading mesh " << current_mesh << std::endl;
+                model->Load(fn_list, fmt, 1);
+              }
+            }
+          }
+          catch (std::exception &exc)
+          {
+            ReportNonLethalException(
+              mainwin, exc,
+              QCoreApplication::translate("main", "Mesh IO Error"),
+              QCoreApplication::translate("main", "Failed to load mesh %1").arg(from_utf8(current_mesh)));
+          }
+        }
+      }
+      catch (std::exception &exc)
+      {
+        ReportNonLethalException(
+          mainwin, exc,
+          QCoreApplication::translate("main", "Image IO Error"),
+          QCoreApplication::translate("main", "Failed to load image %1").arg(from_utf8(argdata.fnMain)));
+      }
+    }
+
+    if (argdata.fnLabelDesc.size())
+    {
+      try
+      {
+        driver->LoadLabelDescriptions(argdata.fnLabelDesc.c_str());
+      }
+      catch (std::exception &exc)
+      {
+        ReportNonLethalException(
+          mainwin, exc,
+          QCoreApplication::translate("main", "Label Description IO Error"),
+          QCoreApplication::translate("main", "Failed to load labels from %1").arg(from_utf8(argdata.fnLabelDesc)));
+      }
+    }
+  }
+
+  if (argdata.xZoomFactor > 0)
+  {
+    gui->GetSliceCoordinator()->SetLinkedZoom(true);
+    gui->GetSliceCoordinator()->SetZoomLevelAllWindows(argdata.xZoomFactor);
+  }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -1112,177 +1243,6 @@ main(int argc, char *argv[])
 #  endif
 #endif
 
-    // Start parsing options
-    IRISWarningList warnings;
-
-
-    // Check if a workspace is being loaded
-    if (argdata.fnWorkspace.size())
-    {
-      // Put a waiting cursor
-      QtCursorOverride curse(Qt::WaitCursor);
-
-      // Load the workspace
-      try
-      {
-        driver->OpenProject(argdata.fnWorkspace, warnings);
-      }
-      catch (std::exception &exc)
-      {
-        ReportNonLethalException(
-          mainwin,
-          exc,
-          QCoreApplication::translate("main", "Workspace Error"),
-          QCoreApplication::translate("main", "Failed to load workspace %1").arg(from_utf8(argdata.fnWorkspace)));
-      }
-    }
-    else
-    {
-      // Load main image file
-      if (argdata.fnMain.size())
-      {
-        // Put a waiting cursor
-        QtCursorOverride curse(Qt::WaitCursor);
-
-        // Try loading the image
-        try
-        {
-          // Load the main image. If that fails, all else should fail too
-          driver->OpenImage(argdata.fnMain.c_str(), MAIN_ROLE, warnings);
-
-          // Load the segmentation
-          if (argdata.fnSegmentation.size())
-          {
-            std::string current_seg;
-            try
-            {
-              for (int i = 0; i < argdata.fnSegmentation.size(); ++i)
-              {
-                current_seg = argdata.fnSegmentation[i];
-                driver->OpenImage(current_seg.c_str(), LABEL_ROLE, warnings, nullptr, nullptr, i > 0);
-              }
-            }
-            catch (std::exception &exc)
-            {
-              ReportNonLethalException(
-                mainwin,
-                exc,
-                QCoreApplication::translate("main", "Image IO Error"),
-                QCoreApplication::translate("main", "Failed to load segmentation %1").arg(from_utf8(current_seg)));
-            }
-          }
-
-          // Load the overlays
-          if (argdata.fnOverlay.size())
-          {
-            std::string current_overlay;
-            try
-            {
-              for (int i = 0; i < argdata.fnOverlay.size(); i++)
-              {
-                current_overlay = argdata.fnOverlay[i];
-                driver->OpenImage(current_overlay.c_str(), OVERLAY_ROLE, warnings);
-              }
-            }
-            catch (std::exception &exc)
-            {
-              ReportNonLethalException(
-                mainwin,
-                exc,
-                QCoreApplication::translate("main", "Overlay IO Error"),
-                QCoreApplication::translate("main", "Failed to load overlay %1").arg(from_utf8(current_overlay)));
-            }
-          }
-
-          // Load the meshes
-          if (argdata.fnMesh.size())
-          {
-            std::string current_mesh;
-            try
-            {
-              auto *model = gui->GetMeshImportModel();
-              for (int i = 0; i < argdata.fnMesh.size(); i++)
-              {
-                current_mesh = argdata.fnMesh[i];
-                std::string ext = current_mesh.substr(current_mesh.find_last_of("."));
-                auto fmt = GuidedMeshIO::GetFormatByExtension(ext);
-                std::vector<std::string> fn_list { current_mesh };
-                if (fmt != GuidedMeshIO::FORMAT_COUNT)
-                {
-                  std::cout << "Loading mesh " << current_mesh << std::endl;
-                  model->Load(fn_list, fmt, 1);
-                }
-              }
-            }
-            catch (std::exception &exc)
-            {
-              ReportNonLethalException(
-                mainwin,
-                exc,
-                QCoreApplication::translate("main", "Mesh IO Error"),
-                QCoreApplication::translate("main", "Failed to load mesh %1").arg(from_utf8(current_mesh)));
-            }
-          }
-        }
-        catch (std::exception &exc)
-        {
-          ReportNonLethalException(mainwin,
-                                   exc,
-                                   QCoreApplication::translate("main", "Image IO Error"),
-                                   QCoreApplication::translate("main", "Failed to load image %1").arg(from_utf8(argdata.fnMain)));
-        }
-      } // if main image filename supplied
-
-      if (argdata.fnLabelDesc.size())
-      {
-        try
-        {
-          // Load the label file
-          driver->LoadLabelDescriptions(argdata.fnLabelDesc.c_str());
-        }
-        catch (std::exception &exc)
-        {
-          ReportNonLethalException(
-            mainwin,
-            exc,
-            QCoreApplication::translate("main", "Label Description IO Error"),
-            QCoreApplication::translate("main", "Failed to load labels from %1").arg(from_utf8(argdata.fnLabelDesc)));
-        }
-      }
-    } // Not loading workspace
-
-    // Zoom level
-    if (argdata.xZoomFactor > 0)
-    {
-      gui->GetSliceCoordinator()->SetLinkedZoom(true);
-      gui->GetSliceCoordinator()->SetZoomLevelAllWindows(argdata.xZoomFactor);
-    }
-
-
-
-    /*
-     * ADD THIS LATER!
-
-    if(parseResult.IsOptionPresent("--compact"))
-      {
-      string slice = parseResult.GetOptionParameter("--compact");
-      if(slice.length() == 0 || !(slice[0] == 'a' || slice[0] == 'c' || slice[0] == 's'))
-        cerr << "Wrong parameter passed for '--compact', ignoring" << endl;
-      else
-        {
-        DisplayLayout dl = ui->GetDisplayLayout();
-        dl.show_main_ui = false;
-        ui->SetDisplayLayout(dl);
-        dl.show_panel_ui = false;
-        ui->SetDisplayLayout(dl);
-        dl.size = HALF_SIZE;
-        ui->SetDisplayLayout(dl);
-        dl.slice_config = slice[0] == 'a' ? AXIAL : (slice[0] == 'c' ? CORONAL : SAGITTAL);
-        ui->SetDisplayLayout(dl);
-        }
-      }
-      */
-
     // Configure the IPC communications (as a hidden widget)
     QtIPCManager *ipcman = new QtIPCManager(mainwin);
     ipcman->hide();
@@ -1328,6 +1288,13 @@ main(int argc, char *argv[])
       testingEngine = new SNAPTestQt(mainwin, argdata.fnTestDir, argdata.xTestAccel);
       testingEngine->LaunchTest(argdata.xTestId);
     }
+
+    // Defer command-line image/workspace loading until after the event loop
+    // starts so the main window is fully painted and responsive before any
+    // (potentially slow) remote downloads begin.
+    QTimer::singleShot(0, mainwin, [mainwin, gui, argdata]() {
+      LoadCommandLineImages(mainwin, gui, argdata);
+    });
 
     // TODO: remove this
     /*
