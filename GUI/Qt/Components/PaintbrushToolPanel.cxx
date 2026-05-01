@@ -17,50 +17,7 @@
 #include "GlobalUIModel.h"
 #include "DeepLearningConnectionStatusCouplingTraits.h"
 
-#include "ProgressReportWidget.h"
-
-class QtDeepLearningSegmentationProgressDelegate
-  : public QObject
-  , public DeepLearningSegmentationProgressDelegate
-{
-public:
-  QtDeepLearningSegmentationProgressDelegate(ProgressReportWidget *widget)
-    : QObject(widget)
-  {
-    m_Widget = widget;
-  }
-
-  virtual std::string StartTask(const char *title, bool trackProgress) override
-  {
-    static int counter = 0;
-
-    counter++;
-    size_t hash = std::hash<const char *>{}(title) ^ std::hash<int>{}(counter);
-    std::string id = std::string("task") + std::to_string(hash);
-    m_Widget->startTask(QString::fromStdString(id), QString::fromUtf8(title), trackProgress);
-    return id;
-  }
-
-  virtual void UpdateProgress(const std::string &task_id, double percent) override
-  {
-    if(std::isnan(percent))
-    {
-      m_Widget->updateTaskWithoutProgress(QString::fromStdString(task_id));
-    }
-    else
-    {
-      m_Widget->updateTaskProgress(QString::fromStdString(task_id), static_cast<int>(percent * 100));
-    }
-  }
-
-  virtual void CompleteTask(const std::string &task_id) override
-  {
-    m_Widget->finishTask(QString::fromStdString(task_id));
-  }
-
-private:
-  ProgressReportWidget *m_Widget;
-};
+#include "QtProgressDelegate.h"
 
 PaintbrushToolPanel::PaintbrushToolPanel(QWidget *parent) :
   SNAPComponent(parent),
@@ -158,8 +115,7 @@ void PaintbrushToolPanel::SetModel(PaintbrushSettingsModel *model)
 
   MainImageWindow *winmain = findParentWidget<MainImageWindow>(this);
 
-  QtDeepLearningSegmentationProgressDelegate *del =
-    new QtDeepLearningSegmentationProgressDelegate(winmain->GetProgressWidget());
+  auto *del = new QtProgressDelegate(winmain->GetProgressWidget(), winmain);
   dls->SetProgressDelegate(del);
 }
 

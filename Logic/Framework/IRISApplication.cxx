@@ -66,6 +66,7 @@
 #include <itksys/SystemTools.hxx>
 #include "ImageIORemote.h"
 #include "SSHConnectionPool.h"
+#include "AbstractProgressDelegate.h"
 #include "vtkAppendPolyData.h"
 #include "vtkUnsignedShortArray.h"
 #include "vtkPointData.h"
@@ -1900,12 +1901,35 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
     {
     remote_url = fname;
     SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(fname);
-    src->SetProgressCallback(MakeStdoutProgressCallback());
+
     // Propagate the active connection pool (non-null during a remote workspace
     // load) so repeated downloads to the same host reuse the SSH session.
     if (m_ActiveConnectionPool)
       src->SetConnectionPool(m_ActiveConnectionPool.GetPointer());
-    local_fname = src->Download(fname);
+
+    if (m_ProgressDelegate)
+      {
+      // Show a named progress task in the UI overlay for the duration of
+      // the download. The guard destructs (completing the task) as soon as
+      // the Download() call returns.
+      auto guard = std::make_shared<ProgressTaskGuard>(
+            m_ProgressDelegate,
+            itksys::SystemTools::GetFilenameName(fname).c_str(), true);
+      src->SetProgressCallback(
+            [guard](const std::string &, std::size_t done, std::size_t total) {
+              double pct = (total > 0)
+                ? static_cast<double>(done) / total
+                : std::numeric_limits<double>::quiet_NaN();
+              guard->UpdateProgress(pct);
+            });
+      local_fname = src->Download(fname);
+      }
+    else
+      {
+      src->SetProgressCallback(MakeStdoutProgressCallback());
+      local_fname = src->Download(fname);
+      }
+
     fname = local_fname.c_str();
     }
 
@@ -2353,7 +2377,15 @@ IRISApplication::OpenProject(const std::string &proj_file, IRISWarningList &warn
     // established and cached before the per-layer downloads begin.
     SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(proj_file);
     src->SetConnectionPool(m_ActiveConnectionPool.GetPointer());
-    local_proj_file = src->Download(proj_file);
+    if (m_ProgressDelegate)
+      {
+      ProgressTaskGuard guard(m_ProgressDelegate,
+                              itksys::SystemTools::GetFilenameName(proj_file).c_str(),
+                              false);
+      local_proj_file = src->Download(proj_file);
+      }
+    else
+      local_proj_file = src->Download(proj_file);
     }
 
   // Load the registry file

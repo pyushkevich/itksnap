@@ -51,6 +51,7 @@
 // #include "itkImage.h"
 
 // Forward reference to the classes pointed at
+class AbstractProgressDelegate;
 class SSHConnectionPool;
 class GenericImageData;
 class IRISException;
@@ -663,6 +664,12 @@ public:
   void OpenProject(const std::string &proj_file, IRISWarningList &warn);
 
   /**
+   * Set a delegate that receives progress notifications during remote image
+   * downloads (scp://, sftp:// URLs). Pass nullptr to disable GUI reporting.
+   */
+  irisGetSetMacro(ProgressDelegate, AbstractProgressDelegate *)
+
+  /**
    * Get Moved File Path from the absolute file path in the original project file
    */
   static std::string GetMovedFilePath(std::string &project_dir_orig, std::string &project_dir_crnt,
@@ -810,6 +817,10 @@ protected:
   // all image downloads within the same batch share already-authenticated
   // sessions, avoiding repeated SSH handshakes.  Null at all other times.
   SmartPtr<SSHConnectionPool> m_ActiveConnectionPool;
+
+  // Optional delegate for reporting download progress to the UI. When set,
+  // remote image loads show a named task in the progress overlay widget.
+  AbstractProgressDelegate *m_ProgressDelegate = nullptr;
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;

@@ -8,6 +8,7 @@
 #include "Registry.h"
 #include "itkCommand.h"
 #include <mutex>
+#include "AbstractProgressDelegate.h"
 
 class GlobalUIModel;
 class ImageWrapperBase;
@@ -201,68 +202,8 @@ public:
 };
 
 
-class DeepLearningSegmentationProgressDelegate
-{
-public:
-  virtual std::string StartTask(const char *title, bool trackProgress) = 0;
-  virtual void UpdateProgress(const std::string &task_id, double percent) = 0;
-  virtual void CompleteTask(const std::string &task_id) = 0;
-};
-
-class ProgressTaskGuard
-{
-public:
-  ProgressTaskGuard(DeepLearningSegmentationProgressDelegate *delegate, const char *title, bool trackProgress=false)
-  {
-    if(delegate)
-      task_id = delegate->StartTask(title, trackProgress);
-    source = delegate;
-  }
-
-  ~ProgressTaskGuard()
-  {
-    Complete();
-  }
-
-  static void ProgressCallback(void *source, double progress)
-  {
-    ProgressTaskGuard *task = static_cast<ProgressTaskGuard *>(source);
-    if(task && task->source)
-    {
-      // Print exact time
-      auto timenow = std::chrono::system_clock::now();
-      auto time_t_now = std::chrono::system_clock::to_time_t(timenow);
-      auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(timenow.time_since_epoch()) % 1000;
-
-      /*
-      std::cout << std::put_time(std::localtime(&time_t_now), "%F %T.") << ms.count()
-                << " -- progress from task " << task->task_id << std::endl;
-      */
-      task->source->UpdateProgress(task->task_id, progress);
-    }
-  }
-
-  void UpdateProgress(double percent)
-  {
-    if(source)
-      source->UpdateProgress(task_id, percent);
-  }
-
-  void Complete()
-  {
-    if(source)
-      source->CompleteTask(task_id);
-    source = nullptr;
-  }
-
-  // non-copyable
-  ProgressTaskGuard(const ProgressTaskGuard&) = delete;
-  ProgressTaskGuard& operator=(const ProgressTaskGuard&) = delete;
-
-private:
-  std::string task_id;
-  DeepLearningSegmentationProgressDelegate *source = nullptr;
-};
+// Kept as a typedef for backwards compatibility with any out-of-tree code.
+using DeepLearningSegmentationProgressDelegate = AbstractProgressDelegate;
 
 
 
@@ -375,8 +316,8 @@ public:
   /** Reset all statuses and proxy URL to inital state */
   void ResetConnection();
 
-  /** Set a delegate for dumping progress */
-  irisGetSetMacro(ProgressDelegate, DeepLearningSegmentationProgressDelegate *)
+  /** Set a delegate for reporting progress */
+  irisGetSetMacro(ProgressDelegate, AbstractProgressDelegate *)
 
 protected:
   DeepLearningSegmentationModel();
@@ -476,7 +417,7 @@ protected:
   AbstractLocalDeepLearningServerDelegate *m_LocalServerDelegate = nullptr;
 
   // Delegate for reporting progress
-  DeepLearningSegmentationProgressDelegate *m_ProgressDelegate = nullptr;
+  AbstractProgressDelegate *m_ProgressDelegate = nullptr;
 
   dls_model::ConnectionStatus MergeStatuses();
 

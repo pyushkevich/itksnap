@@ -27,6 +27,7 @@
 
 #include "MainImageWindow.h"
 #include "ProgressReportWidget.h"
+#include "QtProgressDelegate.h"
 #include "ui_MainImageWindow.h"
 
 #include "MainControlPanel.h"
@@ -514,6 +515,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Attach the progress reporter delegate to the model
   m_Model->SetProgressReporterDelegate(m_ProgressReporterDelegate);
+
+  // Attach a progress delegate to IRISApplication so remote image downloads
+  // (scp://, sftp:// URLs) show in the same overlay widget as DLS tasks.
+  auto *remoteProgressDelegate = new QtProgressDelegate(m_ProgressFader, this);
+  m_Model->GetDriver()->SetProgressDelegate(remoteProgressDelegate);
 
   // Listen for changes to the main image, updating the recent image file
   // menu. TODO: a more direct way would be to listen to changes to the
