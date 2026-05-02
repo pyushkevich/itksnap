@@ -31,6 +31,25 @@
         <string>NSApplication</string>
         <key>NSHighResolutionCapable</key>
         <string>True</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ITK-SNAP SFTP URL</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>itksnap-sftp</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ITK-SNAP SCP URL</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>itksnap-scp</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
                 <dict>

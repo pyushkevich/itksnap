@@ -17,12 +17,15 @@
 
 // === ProgressReportWidget =====================================
 
-ProgressReportWidget::ProgressReportWidget(QWidget *parent)
-  : QWidget(parent)
+ProgressReportWidget::ProgressReportWidget(QWidget *parent, bool floating)
+  : QWidget(parent), m_floating(floating)
 {
-  setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
-  // setAttribute(Qt::WA_TranslucentBackground);
-  setAttribute(Qt::WA_TransparentForMouseEvents, false);
+  if (m_floating)
+  {
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+    setAttribute(Qt::WA_TransparentForMouseEvents, false);
+    parent->installEventFilter(this);
+  }
 
   setStyleSheet(R"(
     ProgressReportWidget {
@@ -36,36 +39,34 @@ ProgressReportWidget::ProgressReportWidget(QWidget *parent)
 
 )");
 
-  // Set background color and minimum size
-  parent->installEventFilter(this);
-
   m_layout = new QVBoxLayout(this);
   m_layout->setContentsMargins(6, 6, 6, 6);
   m_layout->setSpacing(6);
   m_layout->setSizeConstraint(QLayout::SetMinAndMaxSize);
 
-  setVisible(false);
+  if (m_floating)
+  {
+    setVisible(false);
 
-  auto *eff = new QGraphicsOpacityEffect(this);
-  eff->setEnabled(false);
-  setGraphicsEffect(eff);
+    auto *eff = new QGraphicsOpacityEffect(this);
+    eff->setEnabled(false);
+    setGraphicsEffect(eff);
 
-  // Create the fade-ine and fade-out animations
-  m_fadeInAnimation = new QPropertyAnimation(eff, "opacity");
-  m_fadeInAnimation->setDuration(250);
-  m_fadeInAnimation->setStartValue(0.0);
-  m_fadeInAnimation->setEndValue(1.0);
+    m_fadeInAnimation = new QPropertyAnimation(eff, "opacity");
+    m_fadeInAnimation->setDuration(250);
+    m_fadeInAnimation->setStartValue(0.0);
+    m_fadeInAnimation->setEndValue(1.0);
 
-  m_fadeOutAnimation = new QPropertyAnimation(eff, "opacity");
-  m_fadeOutAnimation->setDuration(250);
-  m_fadeOutAnimation->setStartValue(1.0);
-  m_fadeOutAnimation->setEndValue(0.0);
+    m_fadeOutAnimation = new QPropertyAnimation(eff, "opacity");
+    m_fadeOutAnimation->setDuration(250);
+    m_fadeOutAnimation->setStartValue(1.0);
+    m_fadeOutAnimation->setEndValue(0.0);
 
-  // When the fadeout finishes, the widget should be hidden
-
-  // When fading in, the opacity effect should be disabled
-  connect(m_fadeInAnimation, &QPropertyAnimation::finished, this, [=](){ this->graphicsEffect()->setEnabled(false); });
-  connect(m_fadeOutAnimation, &QPropertyAnimation::finished, this, [this] { setVisible(false); });
+    connect(m_fadeInAnimation, &QPropertyAnimation::finished, this,
+            [=](){ this->graphicsEffect()->setEnabled(false); });
+    connect(m_fadeOutAnimation, &QPropertyAnimation::finished, this,
+            [this] { setVisible(false); });
+  }
 }
 
 void
@@ -95,23 +96,15 @@ ProgressReportWidget::setSpinnerDelayMs(int ms)
 bool
 ProgressReportWidget::event(QEvent *event)
 {
-  // Let parent handle the event
-  bool rc = QWidget::event(event);
-
-  // After resize, adjust own position relative to parent
-  if (event->type() == QEvent::Resize)
-  {
-    this->repositionToParent();
-    // auto *re = dynamic_cast<QResizeEvent *>(event);
-    // qDebug() << "Resize event from: " << re->oldSize() << " to " << re->size();
-  }
+  if (m_floating && event->type() == QEvent::Resize)
+    repositionToParent();
   return QWidget::event(event);
 }
 
 bool
 ProgressReportWidget::eventFilter(QObject *obj, QEvent *event)
 {
-  if (obj == parentWidget())
+  if (m_floating && obj == parentWidget())
   {
     if (event->type() == QEvent::Close || event->type() == QEvent::Hide ||
         event->type() == QEvent::Destroy)
@@ -129,18 +122,19 @@ ProgressReportWidget::eventFilter(QObject *obj, QEvent *event)
 void
 ProgressReportWidget::fadeIn()
 {
-  // The effect that we are animating
-  auto *eff = static_cast<QGraphicsOpacityEffect *>(graphicsEffect());
+  if (!m_floating)
+  {
+    setVisible(true);
+    return;
+  }
 
-  // First of all, we need to stop the fade-out animation if it is running
+  auto *eff = static_cast<QGraphicsOpacityEffect *>(graphicsEffect());
   m_fadeOutAnimation->stop();
 
-  // If the widget is at full opacity, or if we are already fading it in, do nothing
   if (isVisible() &&
       (eff->opacity() == 1.0 || m_fadeInAnimation->state() == QAbstractAnimation::Running))
     return;
 
-  // Set up the fade in animation to bring us back to full visibility
   setVisible(true);
   double op = eff->opacity();
   eff->setEnabled(true);
@@ -155,9 +149,12 @@ ProgressReportWidget::fadeOutIfEmpty()
   if (!m_tasks.isEmpty())
     return;
 
-  qDebug() << "ProgressReportWidget empty, fading out";
+  emit tasksEmpty();
 
-  // The effect that we are animating
+  if (!m_floating)
+    return;
+
+  qDebug() << "ProgressReportWidget empty, fading out";
   auto *eff = static_cast<QGraphicsOpacityEffect *>(graphicsEffect());
   eff->setEnabled(true);
   m_fadeOutAnimation->start();
@@ -299,13 +296,16 @@ ProgressReportWidget::finishTask(const QString &id)
   }
 
   // If at this point we are still fading in, then disable that effect,
-  // so we don't have stacking effects
-  auto *effExisting = static_cast<QGraphicsOpacityEffect *>(graphicsEffect());
-  if(effExisting->isEnabled())
+  // so we don't have stacking effects (floating mode only)
+  if (m_floating)
   {
-    effExisting->setOpacity(1.0);
-    effExisting->setEnabled(false);
-    m_fadeInAnimation->stop();
+    auto *effExisting = static_cast<QGraphicsOpacityEffect *>(graphicsEffect());
+    if(effExisting->isEnabled())
+    {
+      effExisting->setOpacity(1.0);
+      effExisting->setEnabled(false);
+      m_fadeInAnimation->stop();
+    }
   }
 
   // Start a timer to fade the task out and remove it

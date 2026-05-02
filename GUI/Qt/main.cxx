@@ -1,6 +1,7 @@
 #include "IRISApplication.h"
 #include "MeshImportModel.h"
 #include "ProgressReportWidget.h"
+#include "ProgressReportDialog.h"
 #include "QtLocalDeepLearningServerDelegate.h"
 #include "RESTClient.h"
 #include "SNAPQApplication.h"
@@ -326,12 +327,11 @@ usage(const char *progname)
   cout << "   --test list          : List available tests. " << endl;
   cout << "   --test TESTID        : Execute a test. " << endl;
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
-  cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., "
-          "0.5). "
-       << endl;
+  cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., 0.5). " << endl;
   cout << "   --css file           : Read stylesheet from file." << endl;
   cout << "   --opengl MAJOR MINOR : Set the OpenGL major and minor version. Experimental." << endl;
   cout << "   --testgl             : Diagnose OpenGL/VTK issues." << endl;
+  cout << "   --test-url URL       : Test opening image via URL." << endl;
   cout << "Platform-Specific Options:" << endl;
 #if QT_VERSION < 0x050000
 #  ifdef Q_WS_X11
@@ -386,6 +386,8 @@ public:
   bool flagTestOpenGL = false;
   bool flagTestProgressWidget = false;
 
+  // URL to test opening
+  std::string testUrl;
 
   // Number of threads
   int nThreads = 0;
@@ -527,6 +529,8 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--opengl", 2);
 
   parser.AddOption("--testgl", 0);
+
+  parser.AddOption("--test-url", 1);
 
   parser.AddOption("--test-progress-widget", 0);
 
@@ -734,6 +738,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   if (parseResult.IsOptionPresent("--testgl"))
     argdata.flagTestOpenGL = true;
 
+  if (parseResult.IsOptionPresent("--test-url"))
+    argdata.testUrl = parseResult.GetOptionParameter("--test-url");
+
 
   // Enable double buffering on X11
   if (parseResult.IsOptionPresent("--x11-db"))
@@ -776,6 +783,41 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
 {
   IRISApplication *driver = gui->GetDriver();
   IRISWarningList warnings;
+
+  // Handle special case of test URL
+  if(argdata.testUrl.size())
+  {
+    try
+    {
+      // Resolve itksnap-* URLs to their underlying protocol before loading
+      QString resolved = SNAPQApplication::resolveUrl(QString::fromStdString(argdata.testUrl));
+      mainwin->LoadDroppedFile(resolved);
+    }
+    catch (std::exception &exc)
+    {
+      ReportNonLethalException(
+        mainwin, exc,
+        QCoreApplication::translate("main", "Image IO Error"),
+        QCoreApplication::translate("main", "Failed to load image from URL %1").arg(from_utf8(argdata.testUrl)));
+    }
+
+    return;
+  }
+
+  // If any files are being loaded, show a modal progress dialog so the user
+  // can see download/IO progress and cannot interact with the uninitialized UI.
+  bool hasFiles = argdata.fnWorkspace.size() || argdata.fnMain.size();
+  AbstractProgressDelegate *savedDelegate = driver->GetProgressDelegate();
+  ProgressReportDialog *progressDlg = nullptr;
+  if (hasFiles)
+  {
+    QString title = argdata.fnWorkspace.size()
+      ? QCoreApplication::translate("main", "Opening workspace...")
+      : QCoreApplication::translate("main", "Loading images...");
+    progressDlg = new ProgressReportDialog(title, mainwin);
+    driver->SetProgressDelegate(progressDlg->GetDelegate());
+    progressDlg->open();
+  }
 
   if (argdata.fnWorkspace.size())
   {
@@ -898,6 +940,15 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
   {
     gui->GetSliceCoordinator()->SetLinkedZoom(true);
     gui->GetSliceCoordinator()->SetZoomLevelAllWindows(argdata.xZoomFactor);
+  }
+
+  // Restore the original delegate and close the dialog (if it hasn't already
+  // closed itself via tasksEmpty()).
+  if (progressDlg)
+  {
+    driver->SetProgressDelegate(savedDelegate);
+    if (progressDlg->isVisible())
+      progressDlg->done(0);
   }
 }
 

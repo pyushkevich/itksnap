@@ -1338,8 +1338,12 @@ void MainImageWindow::LoadDroppedFile(QString file)
   try
     {
     std::string filename = to_utf8(file);
-    // Check if the dropped file is a project
-    if(m_Model->GetDriver()->IsProjectFile(filename.c_str()))
+    // Check if the dropped file is a project. For remote URLs (scp://, sftp://)
+    // IsProjectFile cannot read the file content, so we fall back to checking
+    // the .itksnap extension.
+    bool isProject = m_Model->GetDriver()->IsProjectFile(filename.c_str())
+                     || file.endsWith(".itksnap", Qt::CaseInsensitive);
+    if(isProject)
       {
       // For the time being, the feature of opening the workspace in a new
       // window is not implemented. Instead, we just prompt the user for

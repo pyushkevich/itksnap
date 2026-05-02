@@ -686,6 +686,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/GeneralLayerInspector.cxx
   GUI/Qt/Components/PaintbrushToolPanel.cxx
   GUI/Qt/Components/PolygonToolPanel.cxx
+  GUI/Qt/Components/ProgressReportDialog.cxx
   GUI/Qt/Components/ProgressReportWidget.cxx
   GUI/Qt/Components/QActionButton.cxx
   GUI/Qt/Components/QColorButtonWidget.cxx
@@ -796,6 +797,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/GeneralLayerInspector.h
   GUI/Qt/Components/PaintbrushToolPanel.h
   GUI/Qt/Components/PolygonToolPanel.h
+  GUI/Qt/Components/ProgressReportDialog.h
   GUI/Qt/Components/ProgressReportWidget.h
   GUI/Qt/Components/QActionButton.h
   GUI/Qt/Components/QColorButtonWidget.h

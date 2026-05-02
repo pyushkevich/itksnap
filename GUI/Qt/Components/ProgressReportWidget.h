@@ -72,7 +72,10 @@ class ProgressReportWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit ProgressReportWidget(QWidget *parent = nullptr);
+  /** floating=true: frameless overlay positioned relative to parent window.
+   *  floating=false: plain embedded widget suitable for use inside a layout
+   *  or dialog; no repositioning, no fade animations. */
+  explicit ProgressReportWidget(QWidget *parent = nullptr, bool floating = true);
 
   void startTask(const QString &taskId, const QString &label, bool reportsProgress = false);
   void updateTaskLabel(const QString &taskId, const QString &label);
@@ -83,8 +86,14 @@ public:
   void setAutoRemoveSecs(int secs);
   void setSpinnerDelayMs(int ms);
 
+  bool hasTasks() const { return !m_tasks.isEmpty(); }
+
   virtual bool event(QEvent *event) override;
   virtual bool eventFilter(QObject *obj, QEvent *event) override;
+
+signals:
+  /** Emitted when the last active task is removed. */
+  void tasksEmpty();
 
 private:
   void createTaskUI(ProgressTask &task);
@@ -92,6 +101,7 @@ private:
   void removeTask(const QString &taskId);
   void repositionToParent();
 
+  bool                          m_floating = true;
   QVBoxLayout                  *m_layout;
   QMap<QString, ProgressTask *> m_tasks;
 
