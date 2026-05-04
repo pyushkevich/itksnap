@@ -1910,25 +1910,14 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
 
     src->SetAuthDelegate(m_SSHAuthDelegate);
 
-    if (m_ProgressDelegate)
     {
-      // Show a named progress task in the UI overlay for the duration of
-      // the download. The guard destructs (completing the task) as soon as
-      // the Download() call returns.
-      auto guard = std::make_shared<ProgressTaskGuard>(
+      ProgressTaskGuard guard(
         m_ProgressDelegate, itksys::SystemTools::GetFilenameName(fname).c_str(), true);
-      src->SetProgressCallback([guard](const std::string &, std::size_t done, std::size_t total) {
-        double pct = (total > 0) ? static_cast<double>(done) / total
-                                 : std::numeric_limits<double>::quiet_NaN();
-        guard->UpdateProgress(pct);
+      src->SetProgressCallback([&guard](const std::string &, std::size_t done, std::size_t total) {
+        guard.UpdateProgress(done, total);
       });
       local_fname = src->Download(fname);
-    }
-    else
-    {
-      src->SetProgressCallback(MakeStdoutProgressCallback());
-      local_fname = src->Download(fname);
-    }
+    }  // guard destructs here, marking the task complete immediately after download
 
     fname = local_fname.c_str();
     }
@@ -2378,15 +2367,12 @@ IRISApplication::OpenProject(const std::string &proj_file, IRISWarningList &warn
     SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(proj_file);
     src->SetConnectionPool(m_ActiveConnectionPool.GetPointer());
     src->SetAuthDelegate(m_SSHAuthDelegate);
-    if (m_ProgressDelegate)
-      {
-      ProgressTaskGuard guard(m_ProgressDelegate,
-                              itksys::SystemTools::GetFilenameName(proj_file).c_str(),
-                              false);
-      local_proj_file = src->Download(proj_file);
-      }
-    else
-      local_proj_file = src->Download(proj_file);
+    {
+    ProgressTaskGuard guard(m_ProgressDelegate,
+                            itksys::SystemTools::GetFilenameName(proj_file).c_str(),
+                            false);
+    local_proj_file = src->Download(proj_file);
+    }
     }
 
   // Load the registry file

@@ -47,11 +47,11 @@
 #include "SystemInterface.h"
 #include "UndoDataManager.h"
 #include "SNAPEvents.h"
+#include "StdoutProgressDelegate.h"
 
 // #include "itkImage.h"
 
 // Forward reference to the classes pointed at
-class AbstractProgressDelegate;
 class AbstractSSHAuthDelegate;
 class SSHConnectionPool;
 class GenericImageData;
@@ -826,9 +826,12 @@ protected:
   // sessions, avoiding repeated SSH handshakes.  Null at all other times.
   SmartPtr<SSHConnectionPool> m_ActiveConnectionPool;
 
-  // Optional delegate for reporting download progress to the UI. When set,
-  // remote image loads show a named task in the progress overlay widget.
-  AbstractProgressDelegate *m_ProgressDelegate = nullptr;
+  // Default progress delegate: renders tasks to stdout.  GUI layers replace
+  // this with a Qt delegate and restore it afterwards via SetProgressDelegate.
+  // m_DefaultProgressDelegate must be declared before m_ProgressDelegate so
+  // the in-class initialiser below is valid.
+  StdoutProgressDelegate    m_DefaultProgressDelegate;
+  AbstractProgressDelegate *m_ProgressDelegate = &m_DefaultProgressDelegate;
 
   // Optional delegate for SSH credential prompts. When set, password and
   // passphrase dialogs are shown when public-key auth fails.
