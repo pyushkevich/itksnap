@@ -1518,6 +1518,7 @@ void MainImageWindow::LoadMainImage(const QString &file)
 		m_Model->GetDriver()->OpenImageViaDelegate(file.toUtf8().constData(), del, warnings,
 																							 NULL, irProgAccum.GetPointer());
     }
+  catch(IRISUserCancelException &) {}
   catch(exception &exc)
     {
     progress->close();
@@ -1561,6 +1562,7 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
 		m_Model->GetDriver()->OpenImageViaDelegate(file.toUtf8().constData(), del, warnings,
 																							 NULL, irProgAccum);
     }
+  catch(IRISUserCancelException &) {}
   catch(exception &exc)
     {
     progress->close();
@@ -1596,6 +1598,7 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
 		m_Model->GetDriver()->OpenImageViaDelegate(file.toUtf8().constData(), del, warnings,
 																							 NULL, irProgAccum);
     }
+  catch(IRISUserCancelException &) {}
   catch(exception &exc)
     {
     progress->close();

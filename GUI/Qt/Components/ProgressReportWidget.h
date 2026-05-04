@@ -10,6 +10,7 @@
 
 class QLabel;
 class QProgressBar;
+class QPushButton;
 class QVBoxLayout;
 class QPropertyAnimation;
 class QGraphicsOpacityEffect;
@@ -45,14 +46,19 @@ public:
   void showProgress(int pct);
   void showSpinner();
   void markSpinnerComplete();
+  void hideCancelButton();
 
   void fadeOutAndDelete();
   virtual QSize minimumSizeHint() const override;
+
+signals:
+  void cancelRequested();
 
 private:
   QLabel       *textLabel;
   QProgressBar *progressBar;
   Spinner      *spinner;
+  QPushButton  *cancelButton;
 };
 
 // Data object describing task state
@@ -62,6 +68,7 @@ struct ProgressTask
   QString             label;
   bool                reportsProgress = false;
   bool                useTimeout      = true;
+  bool                cancelled       = false;
   int                 progress = -1; // -1 => unknown
   QTimer              spinnerDelayTimer;
   QTimer              autoRemoveTimer;
@@ -81,8 +88,8 @@ public:
   void startTask(const QString &taskId, const QString &label,
                  bool reportsProgress = false, bool useTimeout = true);
   void updateTaskLabel(const QString &taskId, const QString &label);
-  void updateTaskWithoutProgress(const QString &taskId);
-  void updateTaskProgress(const QString &taskId, int percent);
+  bool updateTaskWithoutProgress(const QString &taskId);
+  bool updateTaskProgress(const QString &taskId, int percent);
   void finishTask(const QString &taskId);
 
   void setAutoRemoveSecs(int secs);

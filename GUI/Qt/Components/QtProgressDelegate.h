@@ -27,13 +27,13 @@ public:
     return id;
   }
 
-  void UpdateProgress(const std::string &task_id, double percent) override
+  bool UpdateProgress(const std::string &task_id, double percent) override
   {
     if (std::isnan(percent))
-      m_Widget->updateTaskWithoutProgress(QString::fromStdString(task_id));
+      return m_Widget->updateTaskWithoutProgress(QString::fromStdString(task_id));
     else
-      m_Widget->updateTaskProgress(QString::fromStdString(task_id),
-                                   static_cast<int>(percent * 100));
+      return m_Widget->updateTaskProgress(QString::fromStdString(task_id),
+                                          static_cast<int>(percent * 100));
   }
 
   void CompleteTask(const std::string &task_id) override

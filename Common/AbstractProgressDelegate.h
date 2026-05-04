@@ -33,8 +33,9 @@ public:
 
   /**
    * Update task progress. percent is in [0, 1]; NaN means indeterminate.
+   * Returns false if the user has requested cancellation of this task.
    */
-  virtual void UpdateProgress(const std::string &task_id, double percent) = 0;
+  virtual bool UpdateProgress(const std::string &task_id, double percent) = 0;
 
   /**
    * Mark the task complete and dismiss it from the UI.
@@ -68,20 +69,23 @@ public:
   {
     auto *guard = static_cast<ProgressTaskGuard *>(source);
     if (guard && guard->m_Delegate)
-      guard->m_Delegate->UpdateProgress(guard->m_TaskId, progress);
+      guard->m_Cancelled |= !guard->m_Delegate->UpdateProgress(guard->m_TaskId, progress);
   }
 
-  void UpdateProgress(double percent)
+  bool UpdateProgress(double percent)
   {
     if (m_Delegate)
-      m_Delegate->UpdateProgress(m_TaskId, percent);
+      m_Cancelled |= !m_Delegate->UpdateProgress(m_TaskId, percent);
+    return !m_Cancelled;
   }
 
-  void UpdateProgress(std::size_t done, std::size_t total)
+  bool UpdateProgress(std::size_t done, std::size_t total)
   {
-    UpdateProgress(total > 0 ? static_cast<double>(done) / total
-                             : std::numeric_limits<double>::quiet_NaN());
+    return UpdateProgress(total > 0 ? static_cast<double>(done) / total
+                                    : std::numeric_limits<double>::quiet_NaN());
   }
+
+  bool IsCancelled() const { return m_Cancelled; }
 
   void Complete()
   {
@@ -97,5 +101,6 @@ public:
 
 private:
   std::string m_TaskId;
-  AbstractProgressDelegate *m_Delegate = nullptr;
+  AbstractProgressDelegate *m_Delegate  = nullptr;
+  bool                      m_Cancelled = false;
 };

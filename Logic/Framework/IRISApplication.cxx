@@ -1914,7 +1914,7 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
       ProgressTaskGuard guard(
         m_ProgressDelegate, itksys::SystemTools::GetFilenameName(fname).c_str(), true);
       src->SetProgressCallback([&guard](std::size_t done, std::size_t total) {
-        guard.UpdateProgress(done, total);
+        return guard.UpdateProgress(done, total);
       });
       local_fname = src->Download(fname);
     }  // guard destructs here, marking the task complete immediately after download

@@ -83,20 +83,21 @@ void StdoutProgressDelegate::renderCurrentTask()
   m_HasPartialLine = true;
 }
 
-void StdoutProgressDelegate::UpdateProgress(const std::string &task_id, double percent)
+bool StdoutProgressDelegate::UpdateProgress(const std::string &task_id, double percent)
 {
   Task *t = findTask(task_id);
   if (!t)
-    return;
+    return true;
 
   t->progress = percent;
   ++t->spinnerFrame;
 
   if (!m_IsTTY)
-    return;
+    return true;
 
   if (!m_Tasks.empty() && m_Tasks.back().first == task_id)
     renderCurrentTask();
+  return true;
 }
 
 void StdoutProgressDelegate::CompleteTask(const std::string &task_id)

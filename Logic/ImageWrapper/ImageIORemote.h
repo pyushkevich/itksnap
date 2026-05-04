@@ -15,16 +15,13 @@ class AbstractSSHAuthDelegate;
 /**
  * Progress callback type used by RemoteImageSource::Download.
  *
- *   url         — the remote URL being downloaded
  *   bytes_done  — cumulative bytes received so far
  *   bytes_total — total file size in bytes, or 0 if not known in advance
  *
- * The callback is invoked once with bytes_done == 0 at the start of the
- * transfer, and once at the end with bytes_done == bytes_total > 0 so the
- * caller can finalise any display.
+ * Returns false to request cancellation of the download.
  */
 using DownloadProgressCallback =
-    std::function<void(std::size_t bytes_done,
+    std::function<bool(std::size_t bytes_done,
                        std::size_t bytes_total)>;
 
 
@@ -79,7 +76,10 @@ protected:
   virtual ~RemoteImageSource() {}
 
   void ReportProgress(std::size_t bytes_done, std::size_t bytes_total)
-    { if (m_ProgressCallback) m_ProgressCallback(bytes_done, bytes_total); }
+  {
+    if (m_ProgressCallback && !m_ProgressCallback(bytes_done, bytes_total))
+      throw IRISUserCancelException("Download cancelled by user");
+  }
 
   DownloadProgressCallback  m_ProgressCallback;
   SSHConnectionPool        *m_ConnectionPool = nullptr;

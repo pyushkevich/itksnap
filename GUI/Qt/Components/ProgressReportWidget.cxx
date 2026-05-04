@@ -5,6 +5,7 @@
 #include <QPropertyAnimation>
 #include <QGraphicsOpacityEffect>
 #include <QProgressBar>
+#include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QPainter>
@@ -235,6 +236,9 @@ void
 ProgressReportWidget::createTaskUI(ProgressTask &task)
 {
   task.widget = new ProgressTaskWidget(task.label, task.reportsProgress, this);
+  connect(task.widget, &ProgressTaskWidget::cancelRequested, this, [&task] {
+    task.cancelled = true;
+  });
   m_layout->addWidget(task.widget);
   recomputeSizeAndReposition();
 }
@@ -248,14 +252,11 @@ ProgressReportWidget::updateTaskLabel(const QString &id, const QString &label)
   m_tasks[id]->widget->setLabel(label);
 }
 
-void
+bool
 ProgressReportWidget::updateTaskWithoutProgress(const QString &taskId)
 {
   if (!m_tasks.contains(taskId))
-    return;
-
-  // There is nothing to update for the task, but we should still process events
-  // and in the future, offer a way to abort the running computation
+    return true;
 
   auto *task = m_tasks[taskId];
   if (task->useTimeout)
@@ -263,21 +264,19 @@ ProgressReportWidget::updateTaskWithoutProgress(const QString &taskId)
 
   // Process events before we go back to the blocking computation
   QCoreApplication::processEvents();
+  return !task->cancelled;
 }
 
-void
+bool
 ProgressReportWidget::updateTaskProgress(const QString &id, int pct)
 {
   if (!m_tasks.contains(id))
-    return;
+    return true;
   auto *task = m_tasks[id];
 
   // If the task doesn't report progress, then just treat this as a regular update
   if (!task->reportsProgress)
-  {
-    updateTaskWithoutProgress(id);
-    return;
-  }
+    return updateTaskWithoutProgress(id);
 
   // Report the actual progress
   task->progress = pct;
@@ -288,6 +287,7 @@ ProgressReportWidget::updateTaskProgress(const QString &id, int pct)
 
   // Process events before we go back to the blocking computation
   QCoreApplication::processEvents();
+  return !task->cancelled;
 }
 
 void
@@ -298,6 +298,7 @@ ProgressReportWidget::finishTask(const QString &id)
   auto *task = m_tasks[id];
 
   // Mark task as finished
+  task->widget->hideCancelButton();
   if(task->reportsProgress)
   {
     task->progress = 100;
@@ -390,9 +391,16 @@ ProgressTaskWidget::ProgressTaskWidget(const QString &label, bool reportsProgres
   spinner = new Spinner(this);
   spinner->setVisible(false);
 
+  cancelButton = new QPushButton(QStringLiteral("✕"), this);
+  cancelButton->setFixedSize(16, 16);
+  cancelButton->setFlat(true);
+  cancelButton->setStyleSheet("QPushButton { color: rgba(255,255,255,180); font-size: 10px; padding: 0; }");
+  connect(cancelButton, &QPushButton::clicked, this, &ProgressTaskWidget::cancelRequested);
+
   layout->addWidget(textLabel);
   layout->addWidget(progressBar);
   layout->addWidget(spinner);
+  layout->addWidget(cancelButton);
 
   // Fade in
   /*
@@ -431,6 +439,12 @@ void
 ProgressTaskWidget::markSpinnerComplete()
 {
   spinner->setComplete();
+}
+
+void
+ProgressTaskWidget::hideCancelButton()
+{
+  cancelButton->setVisible(false);
 }
 
 void
