@@ -98,6 +98,10 @@
 #include <QShortcut>
 #include <QScreen>
 #include <QTextStream>
+#include <QProcess>
+#ifdef Q_OS_WIN
+#  include <windows.h>
+#endif
 
 QString read_tooltip_qt(const QString &filename)
 {
@@ -690,6 +694,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Set the synchronization state
   m_Model->GetSynchronizationModel()->SetCanBroadcast(this->isActiveWindow());
+
+  // Wire up the Window menu. On macOS the native menu bar only emits
+  // aboutToShow for non-empty menus, so seed one placeholder item.
+  ui->menuWindow->addAction(tr("(no windows)"));
+  connect(ui->menuWindow, &QMenu::aboutToShow, this, &MainImageWindow::onWindowMenuAboutToShow);
 }
 
 void MainImageWindow::ShowFirstTime()
@@ -1133,6 +1142,10 @@ void MainImageWindow::UpdateWindowTitle()
     {
     this->setWindowTitle(tr("ITK-SNAP"));
     }
+
+  // Update the IPC instance directory slot with the new title
+  m_Model->GetSynchronizationModel()->UpdateWindowTitle(
+    this->windowTitle().toStdString());
 
   // Set up the save segmentation menu items
   if(segfile.length())
@@ -2509,6 +2522,82 @@ void MainImageWindow::on_actionNew_ITK_SNAP_Window_triggered()
   args.push_back("--cwd");
   args.push_back(to_utf8(GetFileDialogPath(m_Model, "MainImage")));
   m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
+}
+
+static void RaiseWindowByPid(long pid)
+{
+#if defined(Q_OS_MACOS)
+  // Use AppleScript to bring the process to the front
+  QString script = QString(
+    "tell application \"System Events\" to set frontmost of "
+    "first process whose unix id is %1 to true").arg(pid);
+  QProcess::startDetached("osascript", {"-e", script});
+
+#elif defined(Q_OS_WIN)
+  // Walk all top-level windows and raise the first visible one owned by pid
+  struct FindData { DWORD pid; HWND hwnd; };
+  FindData fd{ static_cast<DWORD>(pid), nullptr };
+  EnumWindows([](HWND hwnd, LPARAM lp) -> BOOL {
+    auto *d = reinterpret_cast<FindData *>(lp);
+    DWORD wpid = 0;
+    GetWindowThreadProcessId(hwnd, &wpid);
+    if (wpid == d->pid && IsWindowVisible(hwnd)) {
+      d->hwnd = hwnd;
+      return FALSE;
+    }
+    return TRUE;
+  }, reinterpret_cast<LPARAM>(&fd));
+  if (fd.hwnd) {
+    ShowWindow(fd.hwnd, SW_RESTORE);
+    SetForegroundWindow(fd.hwnd);
+  }
+
+#elif defined(Q_OS_LINUX)
+  // Requires wmctrl; silently does nothing if not installed
+  QString pidStr = QString::number(pid);
+  QProcess proc;
+  proc.start("wmctrl", {"-lp"});
+  proc.waitForFinished(2000);
+  for (const QByteArray &line : proc.readAllStandardOutput().split('\n'))
+  {
+    QList<QByteArray> cols = line.simplified().split(' ');
+    if (cols.size() >= 3 && cols[2] == pidStr.toLatin1())
+    {
+      QProcess::startDetached("wmctrl", {"-ia", QString::fromLatin1(cols[0])});
+      break;
+    }
+  }
+#endif
+}
+
+void MainImageWindow::onWindowMenuAboutToShow()
+{
+  ui->menuWindow->clear();
+
+  long myPid = QCoreApplication::applicationPid();
+  auto instances = m_Model->GetSynchronizationModel()->GetRunningInstances();
+
+  if (instances.empty())
+  {
+    QAction *a = ui->menuWindow->addAction(tr("No other windows open"));
+    a->setEnabled(false);
+    return;
+  }
+
+  for (auto &[pid, title] : instances)
+  {
+    QString label = title.empty() ? tr("ITK-SNAP") : QString::fromStdString(title);
+    QAction *a = ui->menuWindow->addAction(label);
+    if (pid == myPid)
+    {
+      a->setCheckable(true);
+      a->setChecked(true);
+    }
+    else
+    {
+      connect(a, &QAction::triggered, this, [pid]() { RaiseWindowByPid(pid); });
+    }
+  }
 }
 
 void MainImageWindow::on_actionUnload_All_Overlays_triggered()

@@ -3,6 +3,9 @@
 
 #include "PropertyModel.h"
 #include <itkCommand.h>
+#include <string>
+#include <vector>
+#include <utility>
 
 class GlobalUIModel;
 class SystemInterface;
@@ -25,6 +28,15 @@ public:
 
   /** Force detach - do this in a crash */
   void ForceDetach();
+
+  /** Update the window title stored in the IPC instance directory slot. */
+  void UpdateWindowTitle(const std::string &title);
+
+  /**
+   * Return {pid, title} for all live ITK-SNAP instances visible in the
+   * instance directory (including this process).
+   */
+  std::vector<std::pair<long, std::string>> GetRunningInstances();
 
   /** Models controlling sync state */
   irisSimplePropertyAccessMacro(SyncEnabled, bool)

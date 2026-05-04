@@ -749,11 +749,17 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionSaveWorkspace"/>
     <addaction name="actionSaveWorkspaceAs"/>
    </widget>
+   <widget class="QMenu" name="menuWindow">
+    <property name="title">
+     <string>Window</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
    <addaction name="menuSegmentation"/>
    <addaction name="menuProject"/>
    <addaction name="menuTools"/>
+   <addaction name="menuWindow"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionOpenMain">

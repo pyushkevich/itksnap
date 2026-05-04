@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <set>
 #include <string>
+#include <vector>
+#include <utility>
 
 class AbstractSharedMemorySystemInterface
 {
@@ -19,7 +21,23 @@ public:
   virtual bool Lock() = 0;
   virtual bool Unlock() = 0;
   virtual int GetProcessID() = 0;
+  virtual size_t GetSize() = 0;
 };
+
+/** One slot in the instance directory — one entry per running ITK-SNAP window. */
+struct IPCDirectoryEntry
+{
+  long pid;         // 0 = empty slot
+  char title[256];  // human-readable window title (main image filename)
+};
+
+static const int IPC_MAX_INSTANCES = 16;
+
+struct IPCDirectory
+{
+  IPCDirectoryEntry entries[IPC_MAX_INSTANCES];
+};
+
 
 /**
  * Base class for IPCHandler. This class contains the definitions of the
@@ -67,6 +85,18 @@ public:
   /** Get the PID of last sender */
   long GetLastMessageSenderProcessID() { return m_LastSender; }
 
+  /** Claim a slot in the instance directory, writing our PID and title. */
+  void ClaimSlot(const char *title);
+
+  /** Update the title in our already-claimed slot. */
+  void UpdateSlotTitle(const char *title);
+
+  /** Release our slot (called from Detach, including crash path). */
+  void ReleaseSlot();
+
+  /** Return {pid, title} for all live instances (excluding ourselves). */
+  std::vector<std::pair<long, std::string>> ReadDirectory();
+
 protected:
 
   struct Header
@@ -101,6 +131,12 @@ protected:
 
   // List of known process ids, with status (0 = alive, -1 = dead)
   std::set<long> m_KnownDeadPIDs;
+
+  // Pointer into shared memory where the directory lives (after Header+message)
+  IPCDirectory *m_Directory = nullptr;
+  bool          m_DirectoryAvailable = false;
+
+  IPCDirectory *GetDirectory();
 };
 
 

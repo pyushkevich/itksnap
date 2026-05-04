@@ -313,6 +313,8 @@ private slots:
 
   void on_actionNew_ITK_SNAP_Window_triggered();
 
+  void onWindowMenuAboutToShow();
+
   void on_actionUnload_All_Overlays_triggered();
 
   void on_actionToggleLayerLayout_triggered();
