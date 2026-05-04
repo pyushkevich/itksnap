@@ -320,7 +320,9 @@ SET(LOGIC_CXX
 SET(LOGIC_HEADERS
   ${SNAP_BINARY_DIR}/GPUSettings.h
   Common/AbstractModel.h
+  Common/AbstractProgressDelegate.h
   Common/AbstractPropertyContainerModel.h
+  Common/AbstractSSHAuthDelegate.h
   Common/AffineTransformHelper.h
   Common/ColorLabelPropertyModel.h
   Common/CommandLineArgumentParser.h
@@ -390,6 +392,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/DisplayMappingPolicy.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
+  Logic/ImageWrapper/ImageIORemote.h
   Logic/ImageWrapper/VTIImageIO.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
@@ -887,6 +890,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/ProcessEventsITKCommand.h
   GUI/Qt/Components/QPainterRenderContext.h
   GUI/Qt/Components/QtCursorOverride.h
+  GUI/Qt/Components/QtProgressDelegate.h
   GUI/Qt/Components/QtFrameBufferOpenGLWidget.h
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h

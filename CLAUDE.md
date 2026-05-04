@@ -110,6 +110,16 @@ Typical usage is a one-liner: `makeCoupling(ui->mySpinBox, myModel)`.
 
 CLI flags for the GUI: `-g` (main image), `-s` (segmentation), `-o` (overlays), `-w` (workspace), `--test TESTID` (automated test), `--lang`, `--threads`, `--scale`.
 
+## CMakeLists.txt: Registering New Headers
+
+Whenever a new header file is added to the source tree it must also be added to `CMakeLists.txt` so that QtCreator's file browser and search index include it. There are three lists:
+
+- **`LOGIC_HEADERS`** (around line 320) — headers under `Common/`, `Logic/`, and any toolkit-independent code.
+- **`UI_MOC_HEADERS`** (around line 800) — Qt widget/model headers that contain `Q_OBJECT` or `Q_GADGET` and must be processed by `moc`.
+- **`UI_NONMOC_HEADERS`** (around line 885) — Qt-related headers that do *not* need `moc` (pure interfaces, coupling helpers, delegates without signals).
+
+Within each list, entries are sorted alphabetically by path. The `.cxx` source files are registered in separate `SET(...)` blocks (`SNAP_CXX`, `UI_QT_CXX`, etc.) that are already nearby in the file.
+
 ## Common Patterns
 
 - Use `SmartPtr<T>` (= `itk::SmartPointer<T>`) and `irisNew<T>(...)` for logic objects; raw `new` only for Qt-owned widgets.
