@@ -18,7 +18,8 @@ class StdoutProgressDelegate : public AbstractProgressDelegate
 public:
   StdoutProgressDelegate();
 
-  std::string StartTask(const char *title, bool trackProgress) override;
+  std::string StartTask(const char *title, bool trackProgress,
+                        bool useTimeout = false) override;
   void UpdateProgress(const std::string &task_id, double percent) override;
   void CompleteTask(const std::string &task_id) override;
 

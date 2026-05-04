@@ -172,9 +172,9 @@ ProgressReportWidget::fadeOutIfEmpty()
 }
 
 void
-ProgressReportWidget::startTask(const QString &id, const QString &label, bool reportsProgress)
+ProgressReportWidget::startTask(const QString &id, const QString &label,
+                                 bool reportsProgress, bool useTimeout)
 {
-  qDebug() << "Starting task " << id << " labeled " << label;
   fadeIn();
 
   ProgressTask *task;
@@ -190,15 +190,18 @@ ProgressReportWidget::startTask(const QString &id, const QString &label, bool re
     task = m_tasks[id];
   }
 
-  task->label = label;
+  task->label          = label;
   task->reportsProgress = reportsProgress;
+  task->useTimeout     = useTimeout;
   task->widget->setLabel(label);
 
-  // Restart auto-removal
-  task->autoRemoveTimer.stop();
-  task->autoRemoveTimer.setSingleShot(true);
-  task->autoRemoveTimer.start(m_autoRemoveSecs * 1000);
-  connect(&task->autoRemoveTimer, &QTimer::timeout, this, [=] { removeTask(id); });
+  if (useTimeout)
+  {
+    task->autoRemoveTimer.stop();
+    task->autoRemoveTimer.setSingleShot(true);
+    task->autoRemoveTimer.start(m_autoRemoveSecs * 1000);
+    connect(&task->autoRemoveTimer, &QTimer::timeout, this, [=] { removeTask(id); });
+  }
 
   // Spinner delay if no progress
   if (!reportsProgress)
@@ -254,9 +257,9 @@ ProgressReportWidget::updateTaskWithoutProgress(const QString &taskId)
   // There is nothing to update for the task, but we should still process events
   // and in the future, offer a way to abort the running computation
 
-  // Restart removal timer
   auto *task = m_tasks[taskId];
-  task->autoRemoveTimer.start(m_autoRemoveSecs * 1000);
+  if (task->useTimeout)
+    task->autoRemoveTimer.start(m_autoRemoveSecs * 1000);
 
   // Process events before we go back to the blocking computation
   QCoreApplication::processEvents();
@@ -276,12 +279,12 @@ ProgressReportWidget::updateTaskProgress(const QString &id, int pct)
     return;
   }
 
-  // Report the actuall progress
+  // Report the actual progress
   task->progress = pct;
   task->widget->showProgress(pct);
 
-  // Restart removal timer
-  task->autoRemoveTimer.start(m_autoRemoveSecs * 1000);
+  if (task->useTimeout)
+    task->autoRemoveTimer.start(m_autoRemoveSecs * 1000);
 
   // Process events before we go back to the blocking computation
   QCoreApplication::processEvents();

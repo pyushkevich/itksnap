@@ -22,7 +22,8 @@ StdoutProgressDelegate::StdoutProgressDelegate()
 {
 }
 
-std::string StdoutProgressDelegate::StartTask(const char *title, bool trackProgress)
+std::string StdoutProgressDelegate::StartTask(const char *title, bool trackProgress,
+                                               bool /*useTimeout*/)
 {
   std::string id = std::to_string(m_NextId++);
 

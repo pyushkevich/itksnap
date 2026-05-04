@@ -15,13 +15,15 @@ public:
   explicit QtProgressDelegate(ProgressReportWidget *widget, QObject *parent = nullptr)
     : QObject(parent), m_Widget(widget) {}
 
-  std::string StartTask(const char *title, bool trackProgress) override
+  std::string StartTask(const char *title, bool trackProgress,
+                        bool useTimeout = false) override
   {
     static int counter = 0;
     counter++;
     size_t hash = std::hash<const char *>{}(title) ^ std::hash<int>{}(counter);
     std::string id = std::string("task") + std::to_string(hash);
-    m_Widget->startTask(QString::fromStdString(id), QString::fromUtf8(title), trackProgress);
+    m_Widget->startTask(QString::fromStdString(id), QString::fromUtf8(title),
+                        trackProgress, useTimeout);
     return id;
   }
 

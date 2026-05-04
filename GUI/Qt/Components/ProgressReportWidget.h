@@ -61,6 +61,7 @@ struct ProgressTask
   QString             id;
   QString             label;
   bool                reportsProgress = false;
+  bool                useTimeout      = true;
   int                 progress = -1; // -1 => unknown
   QTimer              spinnerDelayTimer;
   QTimer              autoRemoveTimer;
@@ -77,7 +78,8 @@ public:
    *  or dialog; no repositioning, no fade animations. */
   explicit ProgressReportWidget(QWidget *parent = nullptr, bool floating = true);
 
-  void startTask(const QString &taskId, const QString &label, bool reportsProgress = false);
+  void startTask(const QString &taskId, const QString &label,
+                 bool reportsProgress = false, bool useTimeout = true);
   void updateTaskLabel(const QString &taskId, const QString &label);
   void updateTaskWithoutProgress(const QString &taskId);
   void updateTaskProgress(const QString &taskId, int percent);
