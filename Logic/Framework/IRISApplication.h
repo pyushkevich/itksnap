@@ -52,6 +52,7 @@
 
 // Forward reference to the classes pointed at
 class AbstractProgressDelegate;
+class AbstractSSHAuthDelegate;
 class SSHConnectionPool;
 class GenericImageData;
 class IRISException;
@@ -670,6 +671,13 @@ public:
   irisGetSetMacro(ProgressDelegate, AbstractProgressDelegate *)
 
   /**
+   * Set a delegate that handles SSH authentication prompts (password /
+   * passphrase dialogs) when public-key auth fails for remote URLs.
+   * Pass nullptr to disable interactive prompting.
+   */
+  irisGetSetMacro(SSHAuthDelegate, AbstractSSHAuthDelegate *)
+
+  /**
    * Get Moved File Path from the absolute file path in the original project file
    */
   static std::string GetMovedFilePath(std::string &project_dir_orig, std::string &project_dir_crnt,
@@ -821,6 +829,10 @@ protected:
   // Optional delegate for reporting download progress to the UI. When set,
   // remote image loads show a named task in the progress overlay widget.
   AbstractProgressDelegate *m_ProgressDelegate = nullptr;
+
+  // Optional delegate for SSH credential prompts. When set, password and
+  // passphrase dialogs are shown when public-key auth fails.
+  AbstractSSHAuthDelegate *m_SSHAuthDelegate = nullptr;
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;

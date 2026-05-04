@@ -12,8 +12,8 @@
 #include <QEvent>
 #include <QResizeEvent>
 #include <QVBoxLayout>
-#include <QCoreApplication>
-
+#include <QApplication>
+#include <QDateTime>
 
 // === ProgressReportWidget =====================================
 
@@ -22,7 +22,7 @@ ProgressReportWidget::ProgressReportWidget(QWidget *parent, bool floating)
 {
   if (m_floating)
   {
-    setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::Tool);
     setAttribute(Qt::WA_TransparentForMouseEvents, false);
     parent->installEventFilter(this);
   }
@@ -53,7 +53,8 @@ ProgressReportWidget::ProgressReportWidget(QWidget *parent, bool floating)
     setGraphicsEffect(eff);
 
     m_fadeInAnimation = new QPropertyAnimation(eff, "opacity");
-    m_fadeInAnimation->setDuration(250);
+    // m_fadeInAnimation->setDuration(250);
+    m_fadeInAnimation->setDuration(0);
     m_fadeInAnimation->setStartValue(0.0);
     m_fadeInAnimation->setEndValue(1.0);
 
@@ -135,11 +136,22 @@ ProgressReportWidget::fadeIn()
       (eff->opacity() == 1.0 || m_fadeInAnimation->state() == QAbstractAnimation::Running))
     return;
 
+  // Delay showing this widget as a modal dialog if there is another modal window that we
+  // might inadvertently block (e.g. SSH password prompt during loading)
+  QWidget *other = QApplication::activeModalWidget();
+  if(other && other != this)
+  {
+    QTimer::singleShot(100, this, &ProgressReportWidget::fadeIn);
+    return;
+  }
+
+  qDebug() << QDateTime::currentDateTime() << ": showing progress report widget";
   setVisible(true);
   double op = eff->opacity();
   eff->setEnabled(true);
   m_fadeInAnimation->setStartValue(op);
-  m_fadeInAnimation->setDuration(static_cast<int>(250 * (1 - op)));
+  // m_fadeInAnimation->setDuration(static_cast<int>(250 * (1 - op)));
+  m_fadeInAnimation->setDuration(0);
   m_fadeInAnimation->start();
 }
 
@@ -154,7 +166,6 @@ ProgressReportWidget::fadeOutIfEmpty()
   if (!m_floating)
     return;
 
-  qDebug() << "ProgressReportWidget empty, fading out";
   auto *eff = static_cast<QGraphicsOpacityEffect *>(graphicsEffect());
   eff->setEnabled(true);
   m_fadeOutAnimation->start();
@@ -163,8 +174,7 @@ ProgressReportWidget::fadeOutIfEmpty()
 void
 ProgressReportWidget::startTask(const QString &id, const QString &label, bool reportsProgress)
 {
-  qDebug() << "Starting new task " << id << " label " << label
-           << " progress-reporting: " << reportsProgress;
+  qDebug() << "Starting task " << id << " labeled " << label;
   fadeIn();
 
   ProgressTask *task;
@@ -323,7 +333,6 @@ ProgressReportWidget::finishTask(const QString &id)
     {
       eff->setOpacity(opacity);
       task->widget->repaint();
-      qDebug() << "Fading out task " << id << " to opacity " << opacity;
       task->fadeAndRemoveTimer.start(50);
     }
     else
@@ -355,8 +364,6 @@ ProgressReportWidget::removeTask(const QString &id)
 void
 ProgressReportWidget::removeTaskUI(ProgressTask &task)
 {
-  qDebug() << "Removing task UI " << task.id;
-
   // task.widget->fadeOutAndDelete();
   m_layout->removeWidget(task.widget);
   task.widget->deleteLater();

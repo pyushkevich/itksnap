@@ -27,7 +27,9 @@
 
 #include "MainImageWindow.h"
 #include "ProgressReportWidget.h"
+#include "ProgressReportDialog.h"
 #include "QtProgressDelegate.h"
+#include "QtSSHAuthDelegate.h"
 #include "ui_MainImageWindow.h"
 
 #include "MainControlPanel.h"
@@ -520,6 +522,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
   // (scp://, sftp:// URLs) show in the same overlay widget as DLS tasks.
   auto *remoteProgressDelegate = new QtProgressDelegate(m_ProgressFader, this);
   m_Model->GetDriver()->SetProgressDelegate(remoteProgressDelegate);
+
+  // Attach an SSH auth delegate so password/passphrase prompts are shown
+  // when public-key authentication fails for remote URLs.
+  auto *sshAuthDelegate = new QtSSHAuthDelegate(this);
+  m_Model->GetDriver()->SetSSHAuthDelegate(sshAuthDelegate);
 
   // Listen for changes to the main image, updating the recent image file
   // menu. TODO: a more direct way would be to listen to changes to the
@@ -1668,21 +1675,26 @@ void MainImageWindow::LoadAnotherDicomActionTriggered()
 
 void MainImageWindow::LoadProject(const QString &file)
 {
-  // Try loading the image
+  auto *driver = m_Model->GetDriver();
+  AbstractProgressDelegate *savedDelegate = driver->GetProgressDelegate();
+
+  ProgressReportDialog *progressDlg = new ProgressReportDialog(tr("Opening workspace..."), this);
+  driver->SetProgressDelegate(progressDlg->GetDelegate());
+  progressDlg->open();
+
   try
     {
-    // Change cursor for this operation
     QtCursorOverride c(Qt::WaitCursor);
     IRISWarningList warnings;
-
-    // Load the project
-    m_Model->GetDriver()->OpenProject(to_utf8(file), warnings);
+    driver->OpenProject(to_utf8(file), warnings);
     }
   catch(exception &exc)
     {
     ReportNonLethalException(this, exc, tr("Error Opening Project"),
                              tr("Failed to open project %1").arg(file));
-  }
+    }
+
+  driver->SetProgressDelegate(savedDelegate);
 }
 
 void MainImageWindow::LoadProjectInNewInstance(const QString &file)

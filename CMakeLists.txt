@@ -688,6 +688,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/PolygonToolPanel.cxx
   GUI/Qt/Components/ProgressReportDialog.cxx
   GUI/Qt/Components/ProgressReportWidget.cxx
+  GUI/Qt/Components/QtSSHAuthDelegate.cxx
   GUI/Qt/Components/QActionButton.cxx
   GUI/Qt/Components/QColorButtonWidget.cxx
   GUI/Qt/Components/QDoubleSlider.cxx
@@ -799,6 +800,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/PolygonToolPanel.h
   GUI/Qt/Components/ProgressReportDialog.h
   GUI/Qt/Components/ProgressReportWidget.h
+  GUI/Qt/Components/QtSSHAuthDelegate.h
   GUI/Qt/Components/QActionButton.h
   GUI/Qt/Components/QColorButtonWidget.h
   GUI/Qt/Components/QDoubleSlider.h

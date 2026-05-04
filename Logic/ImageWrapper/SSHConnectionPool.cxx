@@ -3,6 +3,45 @@
 #include <libssh/sftp.h>
 
 
+sftp_session
+SSHConnectionPool::MakeSFTPSession(ssh_session session)
+{
+  // Build the SFTP session step-by-step using sftp_new_channel() so each
+  // failure produces a specific error instead of sftp_new()'s misleading
+  // "out of memory" (libssh 0.11.x bug).
+  //
+  // Ownership rule: ssh_channel_new() registers the channel in the session's
+  // internal channel list.  DO NOT call ssh_channel_free() in error paths
+  // before sftp_new_channel() — that causes a double-free / use-after-free
+  // because the session's disconnect path also walks the channel list.
+  // Instead, let SessionGuard's ssh_disconnect() + ssh_free() clean up any
+  // orphaned channel automatically.  Once sftp_new_channel() succeeds the
+  // sftp session owns the channel; sftp_free() releases both.
+  ssh_channel ch = ssh_channel_new(session);
+  if (!ch)
+    throw IRISException("Cannot create SSH channel: %s", ssh_get_error(session));
+
+  if (ssh_channel_open_session(ch) != SSH_OK)
+    throw IRISException("Cannot open SSH channel: %s", ssh_get_error(session));
+
+  if (ssh_channel_request_subsystem(ch, "sftp") != SSH_OK)
+    throw IRISException("Cannot start SFTP subsystem: %s", ssh_get_error(session));
+
+  sftp_session sftp = sftp_new_channel(session, ch);
+  if (!sftp)
+    throw IRISException("Cannot create SFTP session: %s", ssh_get_error(session));
+
+  if (sftp_init(sftp) != SSH_OK)
+    {
+    int code = sftp_get_error(sftp);
+    sftp_free(sftp);   // closes and frees ch as well
+    throw IRISException("SFTP initialization failed (code %d)", code);
+    }
+
+  return sftp;
+}
+
+
 SSHConnectionPool::SessionPair
 SSHConnectionPool::GetOrCreate(const std::string   &host,
                                const std::string   &username,
@@ -37,26 +76,20 @@ SSHConnectionPool::GetOrCreate(const std::string   &host,
   if (!ssh)
     throw IRISException("SSHConnectionPool: cannot connect to %s", host.c_str());
 
-  // Initialise the SFTP subsystem on top of the authenticated session
-  sftp_session sftp = sftp_new(ssh);
-  if (!sftp)
+  // Initialise the SFTP subsystem on top of the authenticated session.
+  // MakeSFTPSession uses sftp_new_channel() with explicit channel steps for
+  // clearer error messages (sftp_new() can misleadingly report "out of memory"
+  // when the real failure is a channel-open or subsystem-request rejection).
+  sftp_session sftp;
+  try
     {
-    // ssh_get_error() is valid until we call ssh_free(), so capture it first
-    std::string err = ssh_get_error(ssh);
-    ssh_disconnect(ssh);
-    ssh_free(ssh);
-    throw IRISException("SSHConnectionPool: cannot allocate SFTP session for %s: %s",
-                        host.c_str(), err.c_str());
+    sftp = MakeSFTPSession(ssh);
     }
-
-  if (sftp_init(sftp) != SSH_OK)
+  catch (IRISException &exc)
     {
-    int code = sftp_get_error(sftp);
-    sftp_free(sftp);
     ssh_disconnect(ssh);
     ssh_free(ssh);
-    throw IRISException("SSHConnectionPool: SFTP initialisation failed for %s (code %d)",
-                        host.c_str(), code);
+    throw IRISException("SSHConnectionPool: %s for %s", exc.what(), host.c_str());
     }
 
   SessionPair pair{ssh, sftp};

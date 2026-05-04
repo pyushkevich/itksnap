@@ -1,4 +1,5 @@
 #include "ImageIORemote.h"
+#include "AbstractSSHAuthDelegate.h"
 #include "SSHConnectionPool.h"
 #include "SSHTunnel.h"
 #include "SystemInterface.h"
@@ -52,18 +53,6 @@ std::string MakeTempDir()
 #endif
 }
 
-/** RAII wrapper: disconnects and frees an ssh_session on scope exit. */
-struct SessionGuard {
-  ssh_session s;
-  ~SessionGuard() { if (ssh_is_connected(s)) ssh_disconnect(s); ssh_free(s); }
-};
-
-/** RAII wrapper: frees an sftp_session on scope exit. */
-struct SFTPGuard {
-  sftp_session s;
-  ~SFTPGuard() { sftp_free(s); }
-};
-
 /** RAII wrapper: closes an sftp_file on scope exit. */
 struct SFTPFileGuard {
   sftp_file f;
@@ -114,24 +103,73 @@ SCPRemoteImageSource::Download(const std::string &url)
   if (basename.empty())
     throw IRISException("SCPRemoteImageSource: URL path ends in a directory, not a file: %s", url.c_str());
 
-  // Callback for OpenSession: capture error messages; abort on interactive
-  // prompts since there is no UI available in the logic layer.
-  std::string auth_error;
+  // Callback data bundles the last error string and the optional auth delegate.
+  struct SessionCBData
+  {
+    std::string              error;
+    AbstractSSHAuthDelegate *authDelegate = nullptr;
+    // Mutable username: may be filled in by PromptForUsernameAndPassword when
+    // no username is present in the URL.
+    std::string             &username;
+  };
+  SessionCBData cbdata{std::string{}, m_AuthDelegate, username};
+
   auto session_cb = [](SSHTunnel::CallbackType type,
                        SSHTunnel::CallbackInfo  info,
                        void                    *data) -> SSHTunnel::CallbackResponse
   {
-    std::string &err = *static_cast<std::string *>(data);
+    auto &d = *static_cast<SessionCBData *>(data);
     switch (type)
     {
       case SSHTunnel::CB_ERROR:
-        err = std::get<SSHTunnel::ErrorInfo>(info).error_message;
+        d.error = std::get<SSHTunnel::ErrorInfo>(info).error_message;
         break;
+
       case SSHTunnel::CB_PROMPT_PASSWORD:
+      {
+        auto &pi = std::get<SSHTunnel::PromptPasswordInfo>(info);
+        if (!d.authDelegate)
+          {
+          d.error = "SSH password authentication required but no UI is available. "
+                    "Configure key-based authentication or supply credentials in the URL.";
+          return {1, ""};
+          }
+        std::string pw;
+        if (pi.username.empty())
+          {
+          // No username from URL or SSH config — ask for both
+          std::string user;
+          if (!d.authDelegate->PromptForUsernameAndPassword(pi.server, pi.error_message, user, pw))
+            return {1, ""}; // cancelled
+          // Write the username back so libssh can use it on the next attempt
+          d.username = user;
+          // Re-attempt with the provided username by returning it alongside the password.
+          // SSHTunnel will call ssh_userauth_password(session, nullptr, pw) — the username
+          // was already set on the session via ssh_options_set before the first prompt.
+          // We update it here for display purposes; libssh uses whatever is on the session.
+          }
+        else
+          {
+          if (!d.authDelegate->PromptForPassword(pi.server, pi.username, pi.error_message, pw))
+            return {1, ""}; // cancelled
+          }
+        return {0, pw};
+      }
+
       case SSHTunnel::CB_PROMPT_PASSKEY:
-        err = "Password/passphrase authentication is not supported for scp:// downloads; "
-              "configure key-based SSH authentication";
-        return {1, ""}; // abort
+      {
+        auto &pi = std::get<SSHTunnel::PromptPasskeyInfo>(info);
+        if (!d.authDelegate)
+          {
+          d.error = "SSH passphrase required but no UI is available.";
+          return {1, ""};
+          }
+        std::string pp;
+        if (!d.authDelegate->PromptForPassphrase(pi.keyfile, pi.error_message, pp))
+          return {1, ""}; // cancelled
+        return {0, pp};
+      }
+
       default:
         break;
     }
@@ -139,55 +177,33 @@ SCPRemoteImageSource::Download(const std::string &url)
   };
 
   // Acquire an authenticated SSH + SFTP session.  Two paths:
-  //
-  //   Pool set  — ask the pool for a cached session.  The pool owns it; no
-  //               RAII guards are needed here.  On first use for this host the
-  //               pool opens the connection and caches it; subsequent calls
-  //               within the same batch return the cached pair immediately,
-  //               skipping the SSH handshake entirely.
-  //
-  //   No pool   — open a fresh session for this single download and clean up
-  //               via RAII guards when the function returns.
-  ssh_session  session;
-  sftp_session sftp;
+  // Acquire an authenticated SSH + SFTP session via the connection pool.
+  // When no external pool was provided (single-file download) we create a
+  // temporary one that lives for the duration of this call; its destructor
+  // calls CloseAll(), disconnecting and freeing the session automatically.
+  SmartPtr<SSHConnectionPool> tmp_pool;
+  if (!m_ConnectionPool)
+    tmp_pool = SSHConnectionPool::New();
 
-  // These optional guards are only armed when we own the sessions (no pool).
-  // Declaring them here so they stay in scope for the entire download.
-  std::unique_ptr<SessionGuard> owned_session;
-  std::unique_ptr<SFTPGuard>    owned_sftp;
+  SSHConnectionPool *pool = m_ConnectionPool ? m_ConnectionPool : tmp_pool.GetPointer();
 
-  if (m_ConnectionPool)
+  SSHConnectionPool::SessionPair pair;
+  try
     {
-    // Pool path — sessions are owned by the pool; no guards needed here.
-    SSHConnectionPool::SessionPair pair =
-        m_ConnectionPool->GetOrCreate(host, username, session_cb, &auth_error);
-    session = pair.ssh;
-    sftp    = pair.sftp;
+    pair = pool->GetOrCreate(host, username, session_cb, &cbdata);
     }
-  else
+  catch (IRISException &)
     {
-    // Non-pool path — create a fresh session owned by this function.
-    session = SSHTunnel::OpenSession(host.c_str(),
-                                     username.empty() ? nullptr : username.c_str(),
-                                     nullptr,
-                                     session_cb, &auth_error);
-    if (!session)
-      throw IRISException("SCPRemoteImageSource: SSH connection to %s failed: %s",
-                          host.c_str(), auth_error.c_str());
-
-    owned_session = std::make_unique<SessionGuard>(SessionGuard{session});
-
-    sftp = sftp_new(session);
-    if (!sftp)
-      throw IRISException("SCPRemoteImageSource: Cannot allocate SFTP session: %s",
-                          ssh_get_error(session));
-
-    owned_sftp = std::make_unique<SFTPGuard>(SFTPGuard{sftp});
-
-    if (sftp_init(sftp) != SSH_OK)
-      throw IRISException("SCPRemoteImageSource: SFTP initialization failed (code %d)",
-                          sftp_get_error(sftp));
+    // Re-throw with the specific SSH error captured by the callback, which is
+    // more informative than the generic pool-level message.
+    if (!cbdata.error.empty())
+      throw IRISException("SSH connection to %s failed: %s",
+                          host.c_str(), cbdata.error.c_str());
+    throw;
     }
+
+  ssh_session  session = pair.ssh;
+  sftp_session sftp    = pair.sftp;
 
   // Query remote file size for progress display (best-effort; 0 = unknown)
   std::size_t file_size = 0;

@@ -99,22 +99,26 @@ SSHTunnel::OpenSession(const char *remote_host,
     return guard.release();
   }
 
-  // Fall back to interactive password via callback
-  if (!username || !strlen(username))
-    return fail("SSH public-key authentication failed for '%s'. "
-                "Specify a username in the URL (e.g. scp://user@%s/path) "
-                "or use an SSH config alias (e.g. scp://myhostalias/path). "
-                "Server message: %s",
-                remote_host, remote_host, ssh_get_error(session));
-
+  // Fall back to interactive password via callback.
+  // username may be empty when none appears in the URL — pass an empty string
+  // to CB_PROMPT_PASSWORD so the callback knows to ask for both username and
+  // password (PromptForUsernameAndPassword path).
+  std::string prompt_username = (username && strlen(username)) ? username : "";
   std::string error_msg;
   while (true)
   {
     auto rc = callback(
-      CB_PROMPT_PASSWORD, PromptPasswordInfo({remote_host, username, error_msg}), callback_data);
+      CB_PROMPT_PASSWORD,
+      PromptPasswordInfo({remote_host, prompt_username, error_msg}),
+      callback_data);
 
     if (rc.first)
       return nullptr; // user aborted; guard cleans up
+
+    // The callback may have updated prompt_username (username+password dialog).
+    // Apply it to the session before attempting authentication.
+    if (!prompt_username.empty())
+      ssh_options_set(session, SSH_OPTIONS_USER, prompt_username.c_str());
 
     if (ssh_userauth_password(session, nullptr, rc.second.c_str()) == SSH_AUTH_SUCCESS)
     {

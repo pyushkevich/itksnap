@@ -5,6 +5,7 @@
 
 class ProgressReportWidget;
 class QtProgressDelegate;
+class QTimer;
 
 /**
  * A window-modal dialog hosting an embedded ProgressReportWidget.  Intended
@@ -33,7 +34,14 @@ public:
   /** Delegate to pass to IRISApplication::SetProgressDelegate(). */
   AbstractProgressDelegate *GetDelegate() const;
 
+protected:
+  void showEvent(QShowEvent *event) override;
+
+private slots:
+  void checkAndShow();
+
 private:
   ProgressReportWidget *m_widget;
   QtProgressDelegate   *m_delegate;
+  QTimer               *m_deferTimer;
 };

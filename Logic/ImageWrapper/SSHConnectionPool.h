@@ -57,6 +57,17 @@ public:
   /** Disconnect and free every cached session.  Called by the destructor. */
   void CloseAll();
 
+  /**
+   * Create and initialise an SFTP session on top of an already-authenticated
+   * ssh_session.  Uses sftp_new_channel() with explicit channel steps so each
+   * failure produces a specific, actionable error message instead of the
+   * misleading "out of memory" that sftp_new() can emit in libssh 0.11.x when
+   * the channel-open or subsystem-request fails.
+   *
+   * @throws IRISException with a precise message describing which step failed.
+   */
+  static sftp_session MakeSFTPSession(ssh_session session);
+
 protected:
   SSHConnectionPool()  {}
   ~SSHConnectionPool() { CloseAll(); }

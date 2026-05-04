@@ -8,8 +8,9 @@
 #include <functional>
 #include <cstddef>
 
-// Forward declaration — full type only needed in .cxx files that use the pool.
+// Forward declarations — full types only needed in .cxx files that use them.
 class SSHConnectionPool;
+class AbstractSSHAuthDelegate;
 
 /**
  * Progress callback type used by RemoteImageSource::Download.
@@ -70,6 +71,14 @@ public:
   void SetConnectionPool(SSHConnectionPool *pool)
     { m_ConnectionPool = pool; }
 
+  /**
+   * Attach an SSH auth delegate so that password/passphrase prompts are
+   * displayed to the user when public-key auth fails.  Pass nullptr to
+   * disable interactive prompting (connection fails on key-auth failure).
+   */
+  void SetAuthDelegate(AbstractSSHAuthDelegate *delegate)
+    { m_AuthDelegate = delegate; }
+
 protected:
   RemoteImageSource() {}
   virtual ~RemoteImageSource() {}
@@ -79,8 +88,9 @@ protected:
                       std::size_t bytes_total)
     { if (m_ProgressCallback) m_ProgressCallback(url, bytes_done, bytes_total); }
 
-  DownloadProgressCallback m_ProgressCallback;
-  SSHConnectionPool       *m_ConnectionPool = nullptr;
+  DownloadProgressCallback  m_ProgressCallback;
+  SSHConnectionPool        *m_ConnectionPool = nullptr;
+  AbstractSSHAuthDelegate  *m_AuthDelegate   = nullptr;
 };
 
 
