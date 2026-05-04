@@ -19,17 +19,12 @@ class AbstractSSHAuthDelegate;
  *   bytes_done  — cumulative bytes received so far
  *   bytes_total — total file size in bytes, or 0 if not known in advance
  *
- * The callback is guaranteed to be invoked once with bytes_done == 0 at
- * the start of the transfer, and once at the end with
- * bytes_done == bytes_total > 0 so the caller can finalise any display.
- *
- * Intended to be replaced later by a proper ITK-SNAP progress-subsystem
- * hook; for now MakeStdoutProgressCallback() provides a tqdm-style
- * placeholder.
+ * The callback is invoked once with bytes_done == 0 at the start of the
+ * transfer, and once at the end with bytes_done == bytes_total > 0 so the
+ * caller can finalise any display.
  */
 using DownloadProgressCallback =
-    std::function<void(const std::string &url,
-                       std::size_t bytes_done,
+    std::function<void(std::size_t bytes_done,
                        std::size_t bytes_total)>;
 
 
@@ -83,10 +78,8 @@ protected:
   RemoteImageSource() {}
   virtual ~RemoteImageSource() {}
 
-  void ReportProgress(const std::string &url,
-                      std::size_t bytes_done,
-                      std::size_t bytes_total)
-    { if (m_ProgressCallback) m_ProgressCallback(url, bytes_done, bytes_total); }
+  void ReportProgress(std::size_t bytes_done, std::size_t bytes_total)
+    { if (m_ProgressCallback) m_ProgressCallback(bytes_done, bytes_total); }
 
   DownloadProgressCallback  m_ProgressCallback;
   SSHConnectionPool        *m_ConnectionPool = nullptr;
@@ -122,15 +115,7 @@ bool IsRemoteImageURL(const std::string &path);
  */
 SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url);
 
-/**
- * Returns a DownloadProgressCallback that renders a tqdm-style progress bar
- * to stdout, overwriting the current line with each update.
- *
- * This is a placeholder implementation.  When the GUI progress subsystem is
- * wired up, callers should supply a callback that posts to that subsystem
- * instead.
- */
-DownloadProgressCallback MakeStdoutProgressCallback();
+
 
 
 #endif // IMAGEIOREMOTE_H

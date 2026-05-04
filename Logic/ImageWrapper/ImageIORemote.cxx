@@ -8,8 +8,6 @@
 #include <libssh/sftp.h>
 #include <fcntl.h>
 #include <fstream>
-#include <iomanip>
-#include <iostream>
 #include <vector>
 #include <cstring>
 
@@ -234,7 +232,7 @@ SCPRemoteImageSource::Download(const std::string &url)
   std::vector<char>     buf(chunk);
   std::size_t           bytes_read = 0;
 
-  ReportProgress(url, 0, file_size);
+  ReportProgress(0, file_size);
 
   while (true)
   {
@@ -248,68 +246,16 @@ SCPRemoteImageSource::Download(const std::string &url)
     if (!outfile)
       throw IRISException("SCPRemoteImageSource: Write error to '%s'", dest.c_str());
     bytes_read += static_cast<std::size_t>(n);
-    ReportProgress(url, bytes_read, file_size);
+    ReportProgress(bytes_read, file_size);
   }
 
   // If file size was unknown the loop never posted a 100% signal; do it now
   // so the callback can finalise its display unconditionally.
   if (file_size == 0)
-    ReportProgress(url, bytes_read, bytes_read);
+    ReportProgress(bytes_read, bytes_read);
 
   outfile.close();
   return dest;
-}
-
-
-// -----------------------------------------------------------------------
-//  Free functions
-// -----------------------------------------------------------------------
-
-DownloadProgressCallback MakeStdoutProgressCallback()
-{
-  return [](const std::string &url,
-            std::size_t        bytes_done,
-            std::size_t        bytes_total)
-  {
-    // Use the basename of the URL as the display name
-    std::string name = itksys::SystemTools::GetFilenameName(url);
-    if (name.empty())
-      name = url;
-
-    constexpr int   bar_width = 30;
-    const double    mb_done   = bytes_done  / (1024.0 * 1024.0);
-
-    if (bytes_total > 0)
-      {
-      const double mb_total = bytes_total / (1024.0 * 1024.0);
-      const int    pct      = static_cast<int>(bytes_done * 100 / bytes_total);
-      const int    filled   = pct * bar_width / 100;
-
-      std::cout << "\r  " << name << ": "
-                << std::setw(3) << pct << "% ["
-                << std::string(filled,             '#')
-                << std::string(bar_width - filled, ' ')
-                << "] "
-                << std::fixed << std::setprecision(1)
-                << mb_done << "/" << mb_total << " MB"
-                << std::flush;
-
-      if (bytes_done >= bytes_total)
-        std::cout << std::endl;
-      }
-    else
-      {
-      // File size unknown — show bytes downloaded without a percentage
-      std::cout << "\r  " << name << ": "
-                << std::fixed << std::setprecision(1)
-                << mb_done << " MB"
-                << std::flush;
-
-      // Completion is signalled by bytes_done == bytes_total > 0
-      if (bytes_done > 0 && bytes_done == bytes_total)
-        std::cout << std::endl;
-      }
-  };
 }
 
 
