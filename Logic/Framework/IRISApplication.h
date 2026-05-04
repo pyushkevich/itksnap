@@ -48,11 +48,11 @@
 #include "UndoDataManager.h"
 #include "SNAPEvents.h"
 #include "StdoutProgressDelegate.h"
+#include "StdoutSSHAuthDelegate.h"
 
 // #include "itkImage.h"
 
 // Forward reference to the classes pointed at
-class AbstractSSHAuthDelegate;
 class SSHConnectionPool;
 class GenericImageData;
 class IRISException;
@@ -835,7 +835,10 @@ protected:
 
   // Optional delegate for SSH credential prompts. When set, password and
   // passphrase dialogs are shown when public-key auth fails.
-  AbstractSSHAuthDelegate *m_SSHAuthDelegate = nullptr;
+  // Default SSH auth delegate: reads credentials from the terminal.
+  // Must be declared before m_SSHAuthDelegate for the initialiser below.
+  StdoutSSHAuthDelegate    m_DefaultSSHAuthDelegate;
+  AbstractSSHAuthDelegate *m_SSHAuthDelegate = &m_DefaultSSHAuthDelegate;
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;

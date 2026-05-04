@@ -126,12 +126,6 @@ SCPRemoteImageSource::Download(const std::string &url)
       case SSHTunnel::CB_PROMPT_PASSWORD:
       {
         auto &pi = std::get<SSHTunnel::PromptPasswordInfo>(info);
-        if (!d.authDelegate)
-          {
-          d.error = "SSH password authentication required but no UI is available. "
-                    "Configure key-based authentication or supply credentials in the URL.";
-          return {1, ""};
-          }
         std::string pw;
         if (pi.username.empty())
           {
@@ -139,12 +133,7 @@ SCPRemoteImageSource::Download(const std::string &url)
           std::string user;
           if (!d.authDelegate->PromptForUsernameAndPassword(pi.server, pi.error_message, user, pw))
             return {1, ""}; // cancelled
-          // Write the username back so libssh can use it on the next attempt
           d.username = user;
-          // Re-attempt with the provided username by returning it alongside the password.
-          // SSHTunnel will call ssh_userauth_password(session, nullptr, pw) — the username
-          // was already set on the session via ssh_options_set before the first prompt.
-          // We update it here for display purposes; libssh uses whatever is on the session.
           }
         else
           {
@@ -157,11 +146,6 @@ SCPRemoteImageSource::Download(const std::string &url)
       case SSHTunnel::CB_PROMPT_PASSKEY:
       {
         auto &pi = std::get<SSHTunnel::PromptPasskeyInfo>(info);
-        if (!d.authDelegate)
-          {
-          d.error = "SSH passphrase required but no UI is available.";
-          return {1, ""};
-          }
         std::string pp;
         if (!d.authDelegate->PromptForPassphrase(pi.keyfile, pi.error_message, pp))
           return {1, ""}; // cancelled

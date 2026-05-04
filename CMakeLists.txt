@@ -223,6 +223,7 @@ SET(LOGIC_CXX
   ${SNAP_BINARY_DIR}/SNAPCommon.cxx
   Common/AbstractModel.cxx
   Common/StdoutProgressDelegate.cxx
+  Common/StdoutSSHAuthDelegate.cxx
   Common/AbstractPropertyContainerModel.cxx
   Common/AffineTransformHelper.cxx
   Common/ColorLabelPropertyModel.cxx
@@ -323,7 +324,9 @@ SET(LOGIC_HEADERS
   Common/AbstractModel.h
   Common/AbstractProgressDelegate.h
   Common/AbstractPropertyContainerModel.h
+  Common/AbstractSSHAuthDelegate.h
   Common/StdoutProgressDelegate.h
+  Common/StdoutSSHAuthDelegate.h
   Common/AbstractSSHAuthDelegate.h
   Common/AffineTransformHelper.h
   Common/ColorLabelPropertyModel.h
