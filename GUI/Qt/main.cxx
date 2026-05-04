@@ -611,7 +611,14 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
     }
     else if (iTrailing < argc)
     {
-      argdata.fnMain = DecodeFilename(argv[iTrailing]);
+      // On Windows, URL scheme handlers pass the URL as a plain positional
+      // argument (e.g. ITK-SNAP.exe "itksnap-sftp://host/path"). Detect and
+      // resolve these the same way --test-url does.
+      QString arg = QString::fromUtf8(argv[iTrailing]);
+      if (arg.startsWith("itksnap-"))
+        argdata.fnMain = SNAPQApplication::resolveUrl(arg).toStdString();
+      else
+        argdata.fnMain = DecodeFilename(argv[iTrailing]);
       have_main = true;
     }
 

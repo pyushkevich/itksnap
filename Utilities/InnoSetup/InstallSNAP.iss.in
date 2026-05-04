@@ -45,6 +45,19 @@ Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\InsightSNAP"; File
 [Run]
 Filename: "{app}\InsightSNAP.exe"; Description: "Launch InsightSNAP"; Flags: nowait postinstall skipifsilent
 
+[Registry]
+; Register itksnap-sftp:// and itksnap-scp:// as URL scheme handlers so that
+; VS Code (and any browser) can open remote files directly in ITK-SNAP.
+Root: HKCR; Subkey: "itksnap-sftp";                     ValueType: string; ValueData: "ITK-SNAP sftp URL"; Flags: uninsdeletekey
+Root: HKCR; Subkey: "itksnap-sftp";                     ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKCR; Subkey: "itksnap-sftp\DefaultIcon";         ValueType: string; ValueData: "{app}\ITK-SNAP.exe,0"
+Root: HKCR; Subkey: "itksnap-sftp\shell\open\command";  ValueType: string; ValueData: """{app}\ITK-SNAP.exe"" ""%1"""
+
+Root: HKCR; Subkey: "itksnap-scp";                     ValueType: string; ValueData: "ITK-SNAP scp URL"; Flags: uninsdeletekey
+Root: HKCR; Subkey: "itksnap-scp";                     ValueType: string; ValueName: "URL Protocol"; ValueData: ""
+Root: HKCR; Subkey: "itksnap-scp\DefaultIcon";         ValueType: string; ValueData: "{app}\ITK-SNAP.exe,0"
+Root: HKCR; Subkey: "itksnap-scp\shell\open\command";  ValueType: string; ValueData: """{app}\ITK-SNAP.exe"" ""%1"""
+
 [UninstallDelete]
 Type: files; Name: "{app}\SNAP.url"
 
