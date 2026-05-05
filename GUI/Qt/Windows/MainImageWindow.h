@@ -365,6 +365,8 @@ private slots:
 
   void on_actionFree_Rotation_Mode_triggered();
 
+  void onIPCDrop();
+
 protected:
 
   // bool eventFilter(QObject *obj, QEvent *event);

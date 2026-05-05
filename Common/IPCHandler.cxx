@@ -323,12 +323,64 @@ IPCHandler::IPCHandler(AbstractSharedMemorySystemInterface *interface)
   m_LastReceivedMessageID = -1;
   m_LastSender = -1;
   m_MessageID = 0;
+  m_LastDropId = -1;
 
   // Reset the shared memory
   m_SharedData = NULL;
 
   // Get the process ID
   m_ProcessID = m_Interface->GetProcessID();
+}
+
+void
+IPCHandler::WriteDropRequest(long target_pid, const char *filename)
+{
+  IPCDirectory *dir = GetDirectory();
+  if (!dir) return;
+
+  m_Interface->Lock();
+  for (int i = 0; i < IPC_MAX_INSTANCES; i++)
+  {
+    if (dir->entries[i].pid == target_pid)
+    {
+      std::strncpy(dir->entries[i].pending_drop, filename ? filename : "", 2047);
+      dir->entries[i].pending_drop[2047] = '\0';
+      dir->entries[i].pending_drop_id++;
+      break;
+    }
+  }
+  m_Interface->Unlock();
+}
+
+bool
+IPCHandler::ReadDropRequest(std::string &out)
+{
+  IPCDirectory *dir = GetDirectory();
+  if (!dir) return false;
+
+  m_Interface->Lock();
+  bool found = false;
+  for (int i = 0; i < IPC_MAX_INSTANCES; i++)
+  {
+    if (dir->entries[i].pid == m_ProcessID)
+    {
+      if (dir->entries[i].pending_drop_id != m_LastDropId &&
+          dir->entries[i].pending_drop[0] != '\0')
+      {
+        std::cout << "PID=" << m_ProcessID
+                  << " pending_drop_id=" << dir->entries[i].pending_drop_id
+                  << " pending_drop=\"" << dir->entries[i].pending_drop << "\""
+                  << std::endl;
+        out = std::string(dir->entries[i].pending_drop);
+        m_LastDropId = dir->entries[i].pending_drop_id;
+        dir->entries[i].pending_drop[0] = '\0';
+        found = true;
+      }
+      break;
+    }
+  }
+  m_Interface->Unlock();
+  return found;
 }
 
 IPCHandler::~IPCHandler()

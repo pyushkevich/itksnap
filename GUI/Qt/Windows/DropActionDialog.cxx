@@ -2,6 +2,10 @@
 #include "ui_DropActionDialog.h"
 #include "QtStyles.h"
 #include "GlobalUIModel.h"
+#include "SynchronizationModel.h"
+#include <QMenu>
+#include <QToolButton>
+#include <QCoreApplication>
 #include "ImageIODelegates.h"
 #include "SystemInterface.h"
 #include "QtWarningDialog.h"
@@ -75,7 +79,10 @@ void DropActionDialog::SetDroppedFilename(QString name)
     // Remote URLs cannot be probed locally — skip the header read and use
     // sensible defaults (the actual load happens via RemoteImageSource).
     if(IsRemoteImageURL(to_utf8(name)))
+      {
+      UpdateSendToWindowMenu();
       return;
+      }
 
     // Run segmentation 3d & 4d check
     auto io = GuidedNativeImageIO::New();
@@ -94,6 +101,44 @@ void DropActionDialog::SetDroppedFilename(QString name)
     ui->btnLoadSegmentation->setText(btnLoadSegText);
     ui->btnLoadSegmentation->setToolTip(btnLoadSegToolTip);
     }
+
+  UpdateSendToWindowMenu();
+}
+
+void DropActionDialog::UpdateSendToWindowMenu()
+{
+  auto *syncModel = m_Model->GetSynchronizationModel();
+  auto instances = syncModel->GetRunningInstances();
+  long myPid = (long)QCoreApplication::applicationPid();
+
+  // Filter out self
+  std::vector<std::pair<long, std::string>> peers;
+  for (auto &p : instances)
+    if (p.first != myPid)
+      peers.push_back(p);
+
+  if (peers.empty())
+  {
+    ui->btnSendToWindow->hide();
+    return;
+  }
+
+  ui->btnSendToWindow->show();
+  QMenu *menu = new QMenu(ui->btnSendToWindow);
+  std::string filename = ui->outFilename->text().toStdString();
+
+  for (auto &p : peers)
+  {
+    long pid = p.first;
+    QString label = QString::fromStdString(p.second);
+    QAction *action = menu->addAction(label);
+    connect(action, &QAction::triggered, this, [this, syncModel, pid, filename]() {
+      syncModel->SendDropToInstance(pid, filename);
+      this->accept();
+    });
+  }
+
+  ui->btnSendToWindow->setMenu(menu);
 }
 
 void DropActionDialog::SetModel(GlobalUIModel *model)

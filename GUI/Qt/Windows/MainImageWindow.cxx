@@ -582,6 +582,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
         ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
 
 
+  // Listen to file/URL drop requests from other ITK-SNAP instances via IPC
+  LatentITKEventNotifier::connect(
+        model->GetSynchronizationModel(), IPCDropEvent(),
+        this, SLOT(onModelUpdate(EventBucket)));
+
   // Listen to 4D Image Time Point Replay event
   LatentITKEventNotifier::connect(
         model->GetDriver()->GetGlobalState()->Get4DReplayModel(),
@@ -742,6 +747,7 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
   bool layer_layout_changed = b.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
   bool replay_4d_changed = b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->Get4DReplayModel());
   bool replay_4d_interval_changed = b.HasEvent(ValueChangedEvent(),  m_Model->GetGlobalState()->Get4DReplayIntervalModel());
+  bool ipc_uri_drop = b.HasEvent(IPCDropEvent(), m_Model->GetSynchronizationModel());
 
   if(main_changed)
     {
@@ -795,7 +801,9 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
   // call it's update method to make sure that those events are attended to
   this->GetModel()->GetSliceCoordinator()->Update();
 
-
+  // If a drop has occurred fire slot to open the drop dialog
+  if(ipc_uri_drop)
+    onIPCDrop();
 }
 
 void MainImageWindow::externalStyleSheetFileChanged(const QString &file)
@@ -2598,6 +2606,19 @@ void MainImageWindow::onWindowMenuAboutToShow()
       connect(a, &QAction::triggered, this, [pid]() { RaiseWindowByPid(pid); });
     }
   }
+}
+
+void MainImageWindow::onIPCDrop()
+{
+  std::string fn = m_Model->GetSynchronizationModel()->GetPendingDropFilename();
+  if (fn.empty())
+    return;
+
+  // Bring this window to the front before showing the drop dialog
+  raise();
+  activateWindow();
+
+  LoadDroppedFile(QString::fromStdString(fn));
 }
 
 void MainImageWindow::on_actionUnload_All_Overlays_triggered()

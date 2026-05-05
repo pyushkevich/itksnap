@@ -127,3 +127,4 @@ Within each list, entries are sorted alphabetically by path. The `.cxx` source f
 - `Registry` (`Common/Registry.h`) is used for all INI-style settings files (`.itksnap` workspace format).
 - The `PropertyModel` pattern is the correct way to expose any settable value from a UI model to a widget — do not bypass it with direct getter/setter calls into logic.
 - Vector math uses `vnl_vector_fixed`-based types defined in `Common/IRISVectorTypes.h` (`Vector3d`, `Vector3ui`, etc.).
+- **ITK→Qt event routing**: always connect ITK events to `onModelUpdate(EventBucket)` (via `LatentITKEventNotifier::connect`), then dispatch inside `onModelUpdate` using `b.HasEvent(SomeEvent(), source)`. Never connect to a dedicated slot that ignores the bucket — the bucket coalesces batched events and prevents duplicate handling.

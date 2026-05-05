@@ -27,8 +27,10 @@ public:
 /** One slot in the instance directory — one entry per running ITK-SNAP window. */
 struct IPCDirectoryEntry
 {
-  long pid;         // 0 = empty slot
-  char title[256];  // human-readable window title (main image filename)
+  long pid;              // 0 = empty slot
+  char title[256];       // human-readable window title (main image filename)
+  long pending_drop_id;  // incremented by sender on each write; 0 = never written
+  char pending_drop[2048]; // filename or URL to open, UTF-8, null-terminated
 };
 
 static const int IPC_MAX_INSTANCES = 16;
@@ -97,6 +99,12 @@ public:
   /** Return {pid, title} for all live instances (excluding ourselves). */
   std::vector<std::pair<long, std::string>> ReadDirectory();
 
+  /** Write a file/URL into target's pending_drop field. */
+  void WriteDropRequest(long target_pid, const char *filename);
+
+  /** Read and clear our own pending_drop field. Returns true if a new request was found. */
+  bool ReadDropRequest(std::string &out);
+
 protected:
 
   struct Header
@@ -125,7 +133,7 @@ protected:
   static const short IPC_VERSION;
 
   // Process ID and other values used by IPC
-  long m_ProcessID, m_MessageID, m_LastSender, m_LastReceivedMessageID;
+  long m_ProcessID, m_MessageID, m_LastSender, m_LastReceivedMessageID, m_LastDropId;
 
   bool IsProcessRunning(int pid);
 

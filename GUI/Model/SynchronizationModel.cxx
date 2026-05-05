@@ -1,4 +1,5 @@
 #include "SynchronizationModel.h"
+#include "SNAPEvents.h"
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
 #include "SystemInterface.h"
@@ -33,7 +34,7 @@ struct IPCMessage
   CameraState camera;
 
   // Version of the data structure
-  enum VersionEnum { VERSION = 0x1005 };
+  enum VersionEnum { VERSION = 0x1006 };
 };
 
 
@@ -364,10 +365,30 @@ SynchronizationModel::GetRunningInstances()
   return {};
 }
 
+void
+SynchronizationModel::SendDropToInstance(long pid, const std::string &filename)
+{
+  if (m_IPCHandler && m_IPCHandler->IsAttached())
+    m_IPCHandler->WriteDropRequest(pid, filename.c_str());
+}
+
 
 void
 SynchronizationModel::ReadIPCState(bool only_read_new)
 {
+  // Check for an incoming drop request unconditionally — it must be cleared
+  // from shared memory regardless of whether an image is loaded or sync is on,
+  // or it will be re-triggered the next time the early-return condition changes.
+  if (m_IPCHandler && m_IPCHandler->IsAttached())
+  {
+    std::string drop;
+    if (m_IPCHandler->ReadDropRequest(drop))
+    {
+      m_PendingDropFilename = drop;
+      InvokeEvent(IPCDropEvent());
+    }
+  }
+
   IRISApplication *app = m_Parent->GetDriver();
   if (!app->IsMainImageLoaded() || !m_SyncEnabledModel->GetValue())
     return;

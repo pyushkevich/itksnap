@@ -38,6 +38,12 @@ public:
    */
   std::vector<std::pair<long, std::string>> GetRunningInstances();
 
+  /** Send a file/URL drop request to another running ITK-SNAP instance. */
+  void SendDropToInstance(long pid, const std::string &filename);
+
+  /** Filename/URL from the most recently received IPC drop request. */
+  irisGetMacro(PendingDropFilename, std::string)
+
   /** Models controlling sync state */
   irisSimplePropertyAccessMacro(SyncEnabled, bool)
   irisRangedPropertyAccessMacro(SyncChannel, int)
@@ -89,6 +95,8 @@ protected:
 
   bool m_CanBroadcast;
   bool m_DebugSync = false;
+
+  std::string m_PendingDropFilename;
 };
 
 #endif // SYNCHRONIZATIONMODEL_H
