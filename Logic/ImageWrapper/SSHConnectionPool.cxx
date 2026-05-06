@@ -46,10 +46,14 @@ SSHConnectionPool::SessionPair
 SSHConnectionPool::GetOrCreate(const std::string   &host,
                                const std::string   &username,
                                SSHTunnel::Callback  callback,
-                               void                *callback_data)
+                               void                *callback_data,
+                               int                  port)
 {
-  // Build cache key: "user@host" when a username is present, else just "host"
+  // Build cache key: include port when non-default so that connections to the
+  // same host on different ports are cached separately.
   std::string key = username.empty() ? host : username + "@" + host;
+  if (port > 0)
+    key += ":" + std::to_string(port);
 
   // Cache hit: return the existing pair if the SSH session is still alive
   auto it = m_Sessions.find(key);
@@ -71,7 +75,9 @@ SSHConnectionPool::GetOrCreate(const std::string   &host,
       username.empty() ? nullptr : username.c_str(),
       nullptr,        // keyfile: auto-detect from ~/.ssh
       callback,
-      callback_data);
+      callback_data,
+      false,          // verbose
+      port);
 
   if (!ssh)
     throw IRISException("SSHConnectionPool: cannot connect to %s", host.c_str());

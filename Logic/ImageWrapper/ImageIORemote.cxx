@@ -1,5 +1,6 @@
 #include "ImageIORemote.h"
 #include "AbstractSSHAuthDelegate.h"
+#include "RemoteFileCache.h"
 #include "SSHConnectionPool.h"
 #include "SSHTunnel.h"
 #include "SystemInterface.h"
@@ -96,6 +97,15 @@ SCPRemoteImageSource::Download(const std::string &url)
     host = hostpart;
   }
 
+  // Split optional :port from host (e.g. "localhost:2222")
+  int port = 0;
+  auto colon = host.find(':');
+  if (colon != std::string::npos)
+  {
+    try { port = std::stoi(host.substr(colon + 1)); } catch (...) {}
+    host = host.substr(0, colon);
+  }
+
   // Preserve the original basename so ITK extension detection works.
   std::string basename = itksys::SystemTools::GetFilenameName(remotepath);
   if (basename.empty())
@@ -172,7 +182,7 @@ SCPRemoteImageSource::Download(const std::string &url)
   SSHConnectionPool::SessionPair pair;
   try
     {
-    pair = pool->GetOrCreate(host, username, session_cb, &cbdata);
+    pair = pool->GetOrCreate(host, username, session_cb, &cbdata, port);
     }
   catch (IRISException &)
     {
@@ -187,12 +197,27 @@ SCPRemoteImageSource::Download(const std::string &url)
   ssh_session  session = pair.ssh;
   sftp_session sftp    = pair.sftp;
 
-  // Query remote file size for progress display (best-effort; 0 = unknown)
-  std::size_t file_size = 0;
+  // Query remote file attributes: size for progress display, mtime for cache validation.
+  std::size_t file_size   = 0;
+  uint64_t    attr_size   = 0;
+  uint32_t    attr_mtime  = 0;
   if (sftp_attributes attrs = sftp_stat(sftp, remotepath.c_str()))
     {
-    file_size = static_cast<std::size_t>(attrs->size);
+    attr_size  = attrs->size;
+    attr_mtime = attrs->mtime;
+    file_size  = static_cast<std::size_t>(attr_size);
     sftp_attributes_free(attrs);
+    }
+
+  // Cache lookup: if we have a valid cached copy, return it immediately.
+  if (m_FileCache)
+    {
+    std::string cached = m_FileCache->Lookup(url, attr_size, attr_mtime);
+    if (!cached.empty())
+      {
+      ReportProgress(file_size, file_size);
+      return cached;
+      }
     }
 
   // Open the remote file for reading
@@ -239,6 +264,11 @@ SCPRemoteImageSource::Download(const std::string &url)
     ReportProgress(bytes_read, bytes_read);
 
   outfile.close();
+
+  // Store in cache (may copy file to cache dir; returns final path to use).
+  if (m_FileCache)
+    return m_FileCache->Store(url, dest, attr_size, attr_mtime);
+
   return dest;
 }
 

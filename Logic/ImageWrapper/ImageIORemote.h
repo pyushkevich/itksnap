@@ -11,6 +11,7 @@
 // Forward declarations — full types only needed in .cxx files that use them.
 class SSHConnectionPool;
 class AbstractSSHAuthDelegate;
+class RemoteFileCache;
 
 /**
  * Progress callback type used by RemoteImageSource::Download.
@@ -71,6 +72,14 @@ public:
   void SetAuthDelegate(AbstractSSHAuthDelegate *delegate)
     { m_AuthDelegate = delegate; }
 
+  /**
+   * Attach a persistent file cache.  When set, Download() checks the cache
+   * before fetching and stores the result after a successful fetch.
+   * Pass nullptr to disable caching.  The cache's lifetime must exceed this object.
+   */
+  void SetFileCache(RemoteFileCache *cache)
+    { m_FileCache = cache; }
+
 protected:
   RemoteImageSource() {}
   virtual ~RemoteImageSource() {}
@@ -84,6 +93,7 @@ protected:
   DownloadProgressCallback  m_ProgressCallback;
   SSHConnectionPool        *m_ConnectionPool = nullptr;
   AbstractSSHAuthDelegate  *m_AuthDelegate   = nullptr;
+  RemoteFileCache          *m_FileCache      = nullptr;
 };
 
 

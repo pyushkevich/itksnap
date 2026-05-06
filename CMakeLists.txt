@@ -271,6 +271,8 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/ImageIORemote.cxx
+  Logic/ImageWrapper/RemoteFileCache.cxx
+  Logic/ImageWrapper/RemoteResourceSettings.cxx
   Logic/ImageWrapper/SSHConnectionPool.cxx
   Logic/ImageWrapper/VTIImageIO.cxx
   Logic/ImageWrapper/MultiChannelDisplayMode.cxx
@@ -398,6 +400,8 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/DisplayMappingPolicy.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
   Logic/ImageWrapper/ImageIORemote.h
+  Logic/ImageWrapper/RemoteFileCache.h
+  Logic/ImageWrapper/RemoteResourceSettings.h
   Logic/ImageWrapper/VTIImageIO.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
@@ -1734,6 +1738,21 @@ ELSEIF(WIN32)
         "ExecWait '\\\"$INSTDIR\\\\bin\\\\${VCREDIST_NAME}\\\" /passive'")
     ENDIF(VCREDIST_EXE)
   ENDIF(MSVC_VERSION GREATER 1399)
+
+  # Register itksnap-sftp:// and itksnap-scp:// as URL scheme handlers so that
+  # tools like VS Code can open remote files directly in ITK-SNAP.
+  STRING(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS
+    "\n  WriteRegStr HKCR \"itksnap-sftp\" \"\" \"URL:ITK-SNAP sftp\""
+    "\n  WriteRegStr HKCR \"itksnap-sftp\" \"URL Protocol\" \"\""
+    "\n  WriteRegStr HKCR \"itksnap-sftp\\DefaultIcon\" \"\" \"$INSTDIR\\bin\\ITK-SNAP.exe,0\""
+    "\n  WriteRegStr HKCR \"itksnap-sftp\\shell\\open\\command\" \"\" \"$\\\"$INSTDIR\\bin\\ITK-SNAP.exe$\\\" $\\\"%1$\\\"\""
+    "\n  WriteRegStr HKCR \"itksnap-scp\" \"\" \"URL:ITK-SNAP scp\""
+    "\n  WriteRegStr HKCR \"itksnap-scp\" \"URL Protocol\" \"\""
+    "\n  WriteRegStr HKCR \"itksnap-scp\\DefaultIcon\" \"\" \"$INSTDIR\\bin\\ITK-SNAP.exe,0\""
+    "\n  WriteRegStr HKCR \"itksnap-scp\\shell\\open\\command\" \"\" \"$\\\"$INSTDIR\\bin\\ITK-SNAP.exe$\\\" $\\\"%1$\\\"\"")
+  STRING(APPEND CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS
+    "DeleteRegKey HKCR \"itksnap-sftp\""
+    "\nDeleteRegKey HKCR \"itksnap-scp\"")
 
   # Try setting the MSVC environment so we can debug from MSVC
   set_target_properties(ITK-SNAP PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:ITK-SNAP>"

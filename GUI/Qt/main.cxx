@@ -590,8 +590,16 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
       return -1;
     }
 
-    // Get the workspace filename
-    argdata.fnWorkspace = DecodeFilename(parseResult.GetOptionParameter("--workspace"));
+    // Get the workspace filename, resolving itksnap-sftp:// etc. the same way
+    // positional URL arguments are handled.
+    {
+      const char *wsarg = parseResult.GetOptionParameter("--workspace");
+      QString arg = QString::fromUtf8(wsarg);
+      if (arg.startsWith("itksnap-") || arg.startsWith("sftp://") || arg.startsWith("scp://"))
+        argdata.fnWorkspace = SNAPQApplication::resolveUrl(arg).toStdString();
+      else
+        argdata.fnWorkspace = DecodeFilename(wsarg);
+    }
   }
 
   // No workspace, just images
@@ -796,7 +804,7 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
     {
       // Resolve itksnap-* URLs to their underlying protocol before loading
       QString resolved = SNAPQApplication::resolveUrl(QString::fromStdString(argdata.testUrl));
-      mainwin->LoadDroppedFile(resolved);
+      mainwin->LoadDroppedFile(resolved, true);
     }
     catch (std::exception &exc)
     {

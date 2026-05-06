@@ -110,7 +110,7 @@ bool SNAPQApplication::event(QEvent *event)
 
     // Ok, we passed the check, now it's safe to actually open the file
     m_MainWindow->raise();
-    m_MainWindow->LoadDroppedFile(file);
+    m_MainWindow->LoadDroppedFile(file, false);
     return true;
     }
 

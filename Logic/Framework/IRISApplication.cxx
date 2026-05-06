@@ -65,6 +65,8 @@
 
 #include <itksys/SystemTools.hxx>
 #include "ImageIORemote.h"
+#include "RemoteFileCache.h"
+#include "RemoteResourceSettings.h"
 #include "SSHConnectionPool.h"
 #include "AbstractProgressDelegate.h"
 #include "AbstractSSHAuthDelegate.h"
@@ -1909,6 +1911,12 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
       src->SetConnectionPool(m_ActiveConnectionPool.GetPointer());
 
     src->SetAuthDelegate(m_SSHAuthDelegate);
+
+    // Attach the persistent download cache.
+    RemoteFileCache file_cache;
+    file_cache.Initialize(m_SystemInterface->GetApplicationDataDirectory(),
+                          m_GlobalState->GetRemoteResourceSettings());
+    src->SetFileCache(&file_cache);
 
     {
       ProgressTaskGuard guard(

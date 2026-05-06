@@ -46,6 +46,7 @@
 class IRISApplication;
 class MeshOptions;
 class DefaultBehaviorSettings;
+class RemoteResourceSettings;
 
 #include <vector>
 #include "SNAPCommon.h"
@@ -293,6 +294,9 @@ public:
   /** Get the default behavior settings */
   irisGetMacro(DefaultBehaviorSettings, DefaultBehaviorSettings *)
 
+  /** Get the remote resource (download cache) settings */
+  irisGetMacro(RemoteResourceSettings, RemoteResourceSettings *)
+
   /** Settings associated with the segmentation ROI */
   irisSimplePropertyAccessMacro(SegmentationROISettings, SNAPSegmentationROISettings)
 
@@ -535,6 +539,9 @@ private:
 
   // Default behavior settings
   SmartPtr<DefaultBehaviorSettings> m_DefaultBehaviorSettings;
+
+  // Remote resource (download cache) settings
+  SmartPtr<RemoteResourceSettings> m_RemoteResourceSettings;
 
   // Current settings for the snake algorithm
   typedef ConcretePropertyModel<SnakeParameters, TrivialDomain> ConcreteSnakeParametersModel;
