@@ -271,6 +271,8 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/LabelImageWrapper.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/ImageIORemote.cxx
+  Logic/ImageWrapper/RemoteFileCache.cxx
+  Logic/ImageWrapper/RemoteResourceSettings.cxx
   Logic/ImageWrapper/SSHConnectionPool.cxx
   Logic/ImageWrapper/VTIImageIO.cxx
   Logic/ImageWrapper/MultiChannelDisplayMode.cxx
@@ -398,6 +400,8 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/DisplayMappingPolicy.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
   Logic/ImageWrapper/ImageIORemote.h
+  Logic/ImageWrapper/RemoteFileCache.h
+  Logic/ImageWrapper/RemoteResourceSettings.h
   Logic/ImageWrapper/VTIImageIO.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h

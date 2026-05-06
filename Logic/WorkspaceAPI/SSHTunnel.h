@@ -73,7 +73,8 @@ public:
                                  const char *keyfile,
                                  Callback    callback,
                                  void       *callback_data,
-                                 bool        verbose = false);
+                                 bool        verbose = false,
+                                 int         port    = 0);
 
   /**
    * Initialize and run SSH tunnel. Establishes the connection and runs it in a loop.

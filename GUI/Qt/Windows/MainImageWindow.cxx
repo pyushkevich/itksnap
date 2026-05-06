@@ -82,6 +82,7 @@
 #include <SmoothLabelsDialog.h>
 #include "RegistrationDialog.h"
 #include "DistributedSegmentationDialog.h"
+#include "ImageIORemote.h"
 
 #include <QAbstractListModel>
 #include <QItemDelegate>
@@ -1361,58 +1362,74 @@ void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
     }
 }
 
-void MainImageWindow::LoadDroppedFile(QString file)
+void
+MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
 {
+  auto *d = m_Model->GetDriver();
   try
-    {
+  {
     std::string filename = to_utf8(file);
     // Check if the dropped file is a project. For remote URLs (scp://, sftp://)
     // IsProjectFile cannot read the file content, so we fall back to checking
-    // the .itksnap extension.
-    bool isProject = m_Model->GetDriver()->IsProjectFile(filename.c_str())
-                     || file.endsWith(".itksnap", Qt::CaseInsensitive);
-    if(isProject)
-      {
-      // For the time being, the feature of opening the workspace in a new
-      // window is not implemented. Instead, we just prompt the user for
-      // unsaved changes.
-      if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
-        return;
+    // the .itksnap extension
+    bool isRemote = IsRemoteImageURL(filename);
+    bool isProject = (isRemote && file.endsWith(".itksnap", Qt::CaseInsensitive)) ||
+                     (!isRemote && d->IsProjectFile(filename.c_str()));
 
-      // Load the project
-      LoadProject(file);
+    if (isProject)
+    {
+      if (dragged_to_window || !d->IsMainImageLoaded())
+      {
+        // Since the user dragged the workspace to this window, they intend to have it
+        // opened in this window. So we prompt for unsaved changes and then open the
+        // workspace in this window
+        if (!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
+          return;
+
+        // Load the project
+        LoadProject(file);
       }
+      else
+      {
+        // There is already something in this window and the user didn't direct the
+        // workspace to this window, so we should just open in a new ITK-SNAP
+        std::list<std::string> args;
+        args.push_back("-w");
+        args.push_back(filename);
+        m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
+      }
+    }
+
 
     else
+    {
+      if (d->IsMainImageLoaded())
       {
-      if(m_Model->GetDriver()->IsMainImageLoaded())
+        // check if it's a label description file (this only works locally)
+        if (!isRemote && d->GetColorLabelTable()->ValidateFile(filename.c_str()))
         {
-        // check if it's a label description file
-        if (m_Model->GetDriver()->GetColorLabelTable()->ValidateFile(filename.c_str()))
-          {
-          m_Model->GetDriver()->LoadLabelDescriptions(filename.c_str());
+          d->LoadLabelDescriptions(filename.c_str());
           return;
-          }
+        }
 
         // If an image is already loaded, we show the dialog
         m_DropDialog->SetDroppedFilename(file);
         m_DropDialog->setModal(true);
 
         RaiseDialog(m_DropDialog);
-        }
+      }
       else
-        {
+      {
         // Otherwise, load the main image directly
         m_DropDialog->InitialLoad(file);
-        }
       }
     }
+  }
   catch (exception &exc) // for minor exceptions, no need to crash the entire program
-    {
-      ReportNonLethalException(
-        this, exc, tr("File Dropping Error"), tr("Failed to load file %1").arg(file));
-    }
-
+  {
+    ReportNonLethalException(
+      this, exc, tr("File Dropping Error"), tr("Failed to load file %1").arg(file));
+  }
 }
 
 #ifdef __APPLE__
@@ -1423,6 +1440,7 @@ void MainImageWindow::LoadDroppedFile(QString file)
 void MainImageWindow::dropEvent(QDropEvent *event)
 {
   QUrl url = event->mimeData()->urls().first();
+  qDebug() << "DROP EVENT: " << url;
 
 #if defined(__APPLE__) && QT_VERSION >= 0x050000
   // TODO: this is a Yosemite bug fix - bug https://bugreports.qt.io/browse/QTBUG-40449
@@ -1489,7 +1507,7 @@ void MainImageWindow::dropEvent(QDropEvent *event)
 
   QString file = url.toLocalFile();
   event->acceptProposedAction();
-  LoadDroppedFile(file);
+  LoadDroppedFile(file, true);
 }
 
 QActionGroup *MainImageWindow::GetMainToolActionGroup()
@@ -2618,7 +2636,7 @@ void MainImageWindow::onIPCDrop()
   raise();
   activateWindow();
 
-  LoadDroppedFile(QString::fromStdString(fn));
+  LoadDroppedFile(QString::fromStdString(fn), true);
 }
 
 void MainImageWindow::on_actionUnload_All_Overlays_triggered()

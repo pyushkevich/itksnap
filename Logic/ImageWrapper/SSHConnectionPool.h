@@ -52,7 +52,8 @@ public:
   SessionPair GetOrCreate(const std::string   &host,
                           const std::string   &username,
                           SSHTunnel::Callback  callback,
-                          void                *callback_data);
+                          void                *callback_data,
+                          int                  port = 0);
 
   /** Disconnect and free every cached session.  Called by the destructor. */
   void CloseAll();

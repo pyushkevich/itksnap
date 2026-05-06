@@ -178,6 +178,9 @@ public:
   /** Simplified, non-static version of the above */
   void LaunchChildSNAPSimple(std::list<std::string> args);
 
+  /** Get the directory where per-user application data (preferences, cache, etc.) are stored. */
+  std::string GetApplicationDataDirectory();
+
 private:
   std::string m_UserPreferenceFile;
   std::string m_DocumentationDirectory;
@@ -197,8 +200,6 @@ private:
   // Associate a file with a unique code
   std::string FindUniqueCodeForFile(const char *file, bool generate_if_not_found);
 
-  // Get the directory where application data (pref files, etc) should go
-  std::string GetApplicationDataDirectory();
 };
 
 

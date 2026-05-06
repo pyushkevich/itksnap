@@ -91,8 +91,12 @@ public:
   // Initiate active contour segmentation
   void OpenSnakeWizard();
 
-  // Load a drag-n-dropped file
-  void LoadDroppedFile(QString file);
+  /*
+   * Load a drag-n-dropped file or file opened through the OS URL mechanism.
+   * @p dragged_to_window specifies whether the file was actually dragged to
+   * this window or opened via MacOS open command or Windows URL
+   */
+  void LoadDroppedFile(QString file, bool dragged_to_window);
 
   // Export a screenshot from one of the panels
   void ExportScreenshot(int panelIndex);

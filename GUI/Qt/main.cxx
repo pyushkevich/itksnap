@@ -796,7 +796,7 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
     {
       // Resolve itksnap-* URLs to their underlying protocol before loading
       QString resolved = SNAPQApplication::resolveUrl(QString::fromStdString(argdata.testUrl));
-      mainwin->LoadDroppedFile(resolved);
+      mainwin->LoadDroppedFile(resolved, true);
     }
     catch (std::exception &exc)
     {
