@@ -5,6 +5,7 @@
 #include "PropertyModel.h"
 #include "vtkSmartPointer.h"
 #include "SNAPEvents.h"
+#include <atomic>
 #include <mutex>
 
 class GlobalUIModel;
@@ -42,8 +43,10 @@ public:
   enum UIState {
     UIF_MESH_DIRTY = 0,
     UIF_MESH_ACTION_PENDING,
+    UIF_MESH_EXTERNAL,
     UIF_CAMERA_STATE_SAVED,
-    UIF_FLIP_ENABLED
+    UIF_MULTIPLE_MESHES,
+    UIF_FLIP_ENABLED,
   };
 
   // State of scalpel drawging
@@ -52,6 +55,30 @@ public:
     SCALPEL_LINE_STARTED,
     SCALPEL_LINE_COMPLETED
   };
+
+  // Descriptor information for the selected mesh layer model
+  struct SelectedLayerDescriptor
+  {
+    bool External;
+    std::string Name;
+    bool operator == (const SelectedLayerDescriptor &other) const;
+    bool operator != (const SelectedLayerDescriptor &other) const;
+  };
+  using SelectedLayerDomain = SimpleItemSetDomain<unsigned long, SelectedLayerDescriptor>;
+
+  // Enum for what the camera focuses on
+  enum FocalPointTarget
+  {
+    FOCAL_POINT_CURSOR = 0, FOCAL_POINT_MAIN_IMAGE_CENTER, FOCAL_POINT_ACTIVE_MESH_LAYER_CENTER
+  };
+
+  using FocalPointTargetDomain = SimpleItemSetDomain<FocalPointTarget, FocalPointTarget>;
+
+  // Model for accessing the selected mesh layer
+  irisGenericPropertyAccessMacro(SelectedMeshLayer, unsigned long, SelectedLayerDomain);
+
+  // Model for focal point target selection
+  irisGenericPropertyAccessMacro(FocalPointTarget, FocalPointTarget, FocalPointTargetDomain);
 
   // Set the parent model
   void Initialize(GlobalUIModel *parent);
@@ -63,14 +90,20 @@ public:
   // TODO: replace this with an update in a background thread
   irisSimplePropertyAccessMacro(ContinuousUpdate, bool)
 
-  // A flag indicating the color bar should be displayed
-  irisSimplePropertyAccessMacro(DisplayColorBar, bool)
+  // A flag indicating whether the user wants the color bar displayed
+  irisSimplePropertyAccessMacro(ColorBarEnabledByUser, bool)
+
+  // A flag indicating whether the color bar is actually displayed
+  irisReadOnlySimplePropertyAccessMacro(ColorBarVisible, bool)
 
   // Tell the model to update the segmentation mesh
   void UpdateSegmentationMesh(itk::Command *progressCmd);
 
   // Reentrant function to check if mesh is being constructed in another thread
   bool IsMeshUpdating();
+
+  // Set the mesh-updating flag (call from main thread before launching background task)
+  void SetMeshUpdating(bool v) { m_MeshUpdating = v; }
 
   // Accept the current drawing operation
   bool AcceptAction();
@@ -111,9 +144,6 @@ public:
 
   // Get mesh layers
   ImageMeshLayers *GetMeshLayers();
-
-  /** Set/Get selected mesh layer id */
-  irisSimplePropertyAccessMacro(SelectedMeshLayerId, unsigned long)
 
   // Get the transform from image space to world coordinates
   Mat4d &GetWorldMatrix();
@@ -172,17 +202,29 @@ protected:
   // State of the scalpel drawing
   ScalpelStatus m_ScalpelStatus;
 
+  // Selected layer model
+  using SelectedLayerModel = AbstractPropertyModel<unsigned long, SelectedLayerDomain>;
+  SmartPtr<SelectedLayerModel> m_SelectedMeshLayerModel;
+  bool GetSelectedMeshLayerValueAndRange(unsigned long &value, SelectedLayerDomain *domain);
+  void SetSelectedMeshLayerValue(unsigned long value);
+
+  // Focal point target model
+  using FocalPointTargetModel = ConcretePropertyModel<FocalPointTarget, FocalPointTargetDomain>;
+  SmartPtr<FocalPointTargetModel> m_FocalPointTargetModel;
+
   // Continuous update model
   SmartPtr<ConcreteSimpleBooleanProperty> m_ContinuousUpdateModel;
 
-  // Display Color Bar model
-  SmartPtr<ConcreteSimpleBooleanProperty> m_DisplayColorBarModel;
+  // Does user want a color bar?
+  SmartPtr<ConcreteSimpleBooleanProperty> m_ColorBarEnabledByUserModel;
 
-  // Is the mesh updating
-  bool m_MeshUpdating;
+  // Is the color bar shown?
+  SmartPtr<AbstractSimpleBooleanProperty> m_ColorBarVisibleModel;
+  bool GetColorBarVisibleValue(bool &value);
 
-  // Selected Mesh Layer ID
-  SmartPtr<ConcreteSimpleULongProperty> m_SelectedMeshLayerIdModel;
+  // Is the mesh updating (atomic so it can be safely read from the main thread
+  // while the mesh-compute background thread holds m_Mutex)
+  std::atomic<bool> m_MeshUpdating;
 
   // Time of the last mesh clear operation
   unsigned long m_ClearTime;

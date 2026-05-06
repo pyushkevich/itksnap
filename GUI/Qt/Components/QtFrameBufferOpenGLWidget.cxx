@@ -1,10 +1,16 @@
 #include "QtFrameBufferOpenGLWidget.h"
 #include "AbstractContextBasedRenderer.h"
+#include "SNAPQtCommon.h"
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
 #include "QPainterRenderContext.h"
+#include <QScreen>
 #include <chrono>
 #include <cstdio>
+#include <QOpenGLVertexArrayObject>
+#include <QOpenGLBuffer>
+#include <QOpenGLShaderProgram>
+#include <QWindow>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkRenderer.h>
@@ -14,12 +20,16 @@
 
 QtFrameBufferOpenGLWidget::QtFrameBufferOpenGLWidget(QWidget *parent)
   : QOpenGLWidget(parent)
-{}
+{
+
+}
 
 QtFrameBufferOpenGLWidget::~QtFrameBufferOpenGLWidget()
 {
   if (m_FrameBufferObject)
     delete m_FrameBufferObject;
+
+
 }
 
 void
@@ -34,17 +44,18 @@ QtFrameBufferOpenGLWidget::updateFBO()
   if (m_FrameBufferObject)
     delete m_FrameBufferObject;
 
-  int vppr = this->devicePixelRatio();
+  // Get the device pixel ratio for high DPI displays
+  qreal vppr = this->devicePixelRatio();
+  
+  // Calculate the actual framebuffer size in physical pixels
+  int fboWidth = static_cast<int>(width() * vppr);
+  int fboHeight = static_cast<int>(height() * vppr);
 
   QOpenGLFramebufferObjectFormat format;
   format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
   format.setSamples(4); // Enable multisampling for antialiasing
-  m_FrameBufferObject = new QOpenGLFramebufferObject(width() * vppr, height() * vppr, format);
+  m_FrameBufferObject = new QOpenGLFramebufferObject(fboWidth, fboHeight, format);
 }
-
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLBuffer>
-#include <QOpenGLShaderProgram>
 
 static const char *vertexShaderSourceCore =
   "#version 150\n"
@@ -276,7 +287,7 @@ QtFrameBufferOpenGLWidget::paintGL()
   auto u0 = std::chrono::system_clock::now();
 
   m_FrameBufferObject->bind();
-  int                vppr = this->devicePixelRatio();
+  qreal vppr = this->devicePixelRatio();
   QOpenGLPaintDevice device;
   device.setDevicePixelRatio(vppr);
   device.setSize(QSize(m_FrameBufferObject->width(), m_FrameBufferObject->height()));
@@ -304,9 +315,13 @@ QtFrameBufferOpenGLWidget::paintGL()
     m_ScreenshotRequest.clear();
   }
 
+  // Calculate target rectangle size considering device pixel ratio
+  int targetWidth = static_cast<int>(width() * vppr);
+  int targetHeight = static_cast<int>(height() * vppr);
+
   QOpenGLFramebufferObject::blitFramebuffer(
     nullptr,                                      // Target is the default framebuffer (the screen)
-    QRect(0, 0, vppr * width(), vppr * height()), // Target rectangle
+    QRect(0, 0, targetWidth, targetHeight),       // Target rectangle
     m_FrameBufferObject,                          // Source framebuffer
     QRect(0, 0, m_FrameBufferObject->width(), m_FrameBufferObject->height()), // Source rectangle
     GL_COLOR_BUFFER_BIT, // Copy only the color buffer
@@ -337,6 +352,61 @@ QtFrameBufferOpenGLWidget::setScreenshotRequest(const std::string &filename)
 {
   m_ScreenshotRequest = filename;
 }
+
+void
+QtFrameBufferOpenGLWidget::connectCurrentScreen(bool force)
+{
+  // Handle existing connection
+  if(m_CurrentScreenGeometryChangedConnection)
+  {
+    if(force)
+      disconnect(m_CurrentScreenGeometryChangedConnection);
+    else
+      return;
+  }
+
+  QScreen *screen = this->screen();
+  if(screen)
+  {
+    m_CurrentScreenGeometryChangedConnection = connect(screen, &QScreen::geometryChanged,
+            this, &QtFrameBufferOpenGLWidget::onScreenGeometryChanged);
+  }
+}
+
+void
+QtFrameBufferOpenGLWidget::showEvent(QShowEvent *event)
+{
+  QOpenGLWidget::showEvent(event);
+
+  // Listen for when the current screen changes
+  QWindow *window = FindUpstreamWindowHandle(this);
+  if (window && !m_CurrentScreenChangedConnection)
+  {
+    m_CurrentScreenChangedConnection =
+      connect(window, &QWindow::screenChanged, this, &QtFrameBufferOpenGLWidget::onScreenChanged);
+  }
+
+  // Connect the current screen
+  connectCurrentScreen(false);
+}
+
+void
+QtFrameBufferOpenGLWidget::onScreenGeometryChanged()
+{
+  this->makeCurrent();
+  this->resizeGL((int)(this->width() * this->devicePixelRatioF()),
+                 (int)(this->height() * this->devicePixelRatioF()));
+  this->doneCurrent();
+  this->update();
+}
+
+void
+QtFrameBufferOpenGLWidget::onScreenChanged()
+{
+  onScreenGeometryChanged();
+  connectCurrentScreen(true);
+}
+
 
 QtDirectRenderOpenGLWidget::QtDirectRenderOpenGLWidget(QWidget *parent)
   : QOpenGLWidget(parent)

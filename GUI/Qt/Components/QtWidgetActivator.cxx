@@ -28,6 +28,7 @@
 #include "LatentITKEventNotifier.h"
 #include <QWidget>
 #include <QAction>
+#include <QMenu>
 #include <StateManagement.h>
 #include "GlobalUIModel.h"
 #include "SNAPUIFlag.h"
@@ -39,10 +40,15 @@ QtWidgetActivator
   // Map the inputs to widgets and actions
   for(auto *obj : widgets)
     {
-    if(dynamic_cast<QWidget *>(obj))
-      m_TargetWidgets.push_back(dynamic_cast<QWidget *>(obj));
-    else if(dynamic_cast<QAction *>(obj))
-      m_TargetActions.push_back(dynamic_cast<QAction *>(obj));
+      auto *menu = dynamic_cast<QMenu *>(obj);
+      auto *widget = dynamic_cast<QWidget *>(obj);
+      auto *action = dynamic_cast<QAction *>(obj);
+      if (action)
+        m_TargetActions.push_back(action);
+      else if (menu)
+        m_TargetActions.push_back(menu->menuAction());
+      else if(widget)
+        m_TargetWidgets.push_back(widget);
     }
 
   // Store condition and options
@@ -54,7 +60,7 @@ QtWidgetActivator
 
   // React to events after control returns to the main UI loop
   LatentITKEventNotifier::connect(
-        cond, StateMachineChangeEvent(), this, SLOT(OnStateChange(const EventBucket &)));
+        cond, StateMachineChangeEvent(), this, SLOT(OnStateChange(EventBucket)));
 
   // Update the state of the widget
   EventBucket dummy;
@@ -70,7 +76,7 @@ void QtWidgetActivator::OnStateChange(const EventBucket &)
 {
   // Update the state of the widget based on the condition
   bool active = (*m_Condition)();
-  for(auto *widget : m_TargetWidgets)
+  for(auto *widget : std::as_const(m_TargetWidgets))
     {
     bool status = widget->isEnabledTo(widget->parentWidget());
     if(status != active)
@@ -80,7 +86,7 @@ void QtWidgetActivator::OnStateChange(const EventBucket &)
         widget->setVisible(active);
       }
     }
-  for(auto *action : m_TargetActions)
+    for(auto *action : std::as_const(m_TargetActions))
     {
     bool status = action->isEnabled();
     if(status != active)

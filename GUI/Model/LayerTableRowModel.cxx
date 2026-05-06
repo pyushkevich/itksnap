@@ -17,7 +17,7 @@
 #include "MomentTextures.h"
 #include "SegmentationMeshWrapper.h"
 #include "GuidedNativeImageIO.h"
-
+#include "MeshWrapperBase.h"
 
 AbstractLayerTableRowModel::AbstractLayerTableRowModel()
 {
@@ -76,6 +76,9 @@ bool AbstractLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_FILE_RELOADABLE:
       return (m_LayerRole != MESH_ROLE &&
           !(strcmp(m_Layer->GetFileName(), "") == 0));
+
+    case AbstractLayerTableRowModel::UIF_FILE_REVEALABLE:
+      return (m_Layer && !(strcmp(m_Layer->GetFileName(), "") == 0));
 
     default:
       break;
@@ -143,6 +146,7 @@ void AbstractLayerTableRowModel::OnUpdate()
   if(this->m_EventBucket->HasEvent(itk::DeleteEvent(), m_Layer))
     {
     m_Layer = NULL;
+    OnLayerDeleted();
     m_LayerRole = NO_ROLE;
     m_LayerPositionInRole = -1;
     m_LayerNumberOfLayersInRole = -1;
@@ -432,7 +436,7 @@ void
 ImageLayerTableRowModel::UpdateRoleInfo()
 {
   LayerIterator it(m_ImageData);
-  it.Find(static_cast<ImageWrapperBase*>(m_Layer.GetPointer()));
+  it.Find(static_cast<ImageWrapperBase*>(m_Layer));
   if(!it.IsAtEnd())
     {
     m_LayerRole = it.GetRole();
@@ -513,7 +517,7 @@ ImageLayerTableRowModel::AutoAdjustContrast()
 void
 ImageLayerTableRowModel::GenerateTextureFeatures()
 {
-  ImageWrapperBase *iw = dynamic_cast<ImageWrapperBase *>(m_Layer.GetPointer());
+  ImageWrapperBase *iw = dynamic_cast<ImageWrapperBase *>(m_Layer);
   if(iw && iw->GetNumberOfComponents() == 1)
     {
     // Cast the image to floating point
@@ -609,7 +613,7 @@ void ImageLayerTableRowModel::ReloadAs4D()
 
 bool ImageLayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
 {
-  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer);
   if(imageLayer)
     {
     value = imageLayer->GetDefaultScalarRepresentation()->IsVolumeRenderingEnabled();
@@ -620,7 +624,7 @@ bool ImageLayerTableRowModel::GetVolumeRenderingEnabledValue(bool &value)
 
 void ImageLayerTableRowModel::SetVolumeRenderingEnabledValue(bool value)
 {
-  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+  auto imageLayer = dynamic_cast<ImageWrapperBase*>(m_Layer);
   if(imageLayer)
     imageLayer->GetDefaultScalarRepresentation()->SetVolumeRenderingEnabled(value);
 }
@@ -636,7 +640,7 @@ ImageLayerTableRowModel
   else
     delegate = ReloadAnatomicWrapperDelegate::New().GetPointer();
 
-  ImageWrapperBase *imgWrapper = dynamic_cast<ImageWrapperBase*>(m_Layer.GetPointer());
+  ImageWrapperBase *imgWrapper = dynamic_cast<ImageWrapperBase*>(m_Layer);
 
   if (!imgWrapper)
     return;
@@ -655,6 +659,16 @@ MeshLayerTableRowModel
 ::MeshLayerTableRowModel()
 {
   m_ActivePropertyModel = wrapGetterSetterPairAsProperty(this, &Self::GetActivePropertyValue);
+
+  m_ActiveMeshLayerDataPropertyIdModel = wrapGetterSetterPairAsProperty(
+        this,
+        &Self::GetActiveMeshLayerDataPropertyIdValueAndRange,
+        &Self::SetActiveMeshLayerDataPropertyIdValue);
+
+  m_MeshVectorModeModel = wrapGetterSetterPairAsProperty(
+    this,
+    &Self::GetMeshVectorModeValueAndRange,
+    &Self::SetMeshVectorModeValue);
 }
 
 void
@@ -672,6 +686,8 @@ MeshLayerTableRowModel::CheckState(UIState state)
 {
   bool hasGenericDMP =
     (dynamic_cast<GenericMeshDisplayMappingPolicy *>(m_MeshLayer->GetDisplayMapping()) != NULL);
+
+  auto prop = m_MeshLayer->GetActiveDataArrayProperty();
 
   switch (state)
   {
@@ -694,26 +710,20 @@ MeshLayerTableRowModel::CheckState(UIState state)
     case AbstractLayerTableRowModel::UIF_VOLUME_RENDERABLE:
       return false;
 
-    case AbstractLayerTableRowModel::UIF_MULTICOMPONENT:
-    {
-      auto prop = m_MeshLayer->GetActiveDataArrayProperty();
+    case AbstractLayerTableRowModel::UIF_MESH_MULTICOMPONENT:
       return prop && prop->IsMultiComponent();
-    }
 
     case AbstractLayerTableRowModel::UIF_CONTRAST_ADJUSTABLE:
-      return hasGenericDMP;
+      return hasGenericDMP & prop.IsNotNull();
 
     case AbstractLayerTableRowModel::UIF_COLORMAP_ADJUSTABLE:
-      return hasGenericDMP;
+      return hasGenericDMP & prop.IsNotNull();
 
     case AbstractLayerTableRowModel::UIF_MESH_HAS_DATA:
       return hasGenericDMP;
 
     case AbstractLayerTableRowModel::UIF_MESH_SOLID_COLOR:
-    {
-      auto prop = m_MeshLayer->GetActiveDataArrayProperty();
-      return prop.IsNull();
-    }
+      return hasGenericDMP ? prop.IsNull() : false;
 
     case AbstractLayerTableRowModel::UIF_SAVABLE:
       return !hasGenericDMP; // Mesh layer is currently read only
@@ -813,13 +823,129 @@ MeshLayerTableRowModel::GetActivePropertyValue(std::string &value)
   if(!m_MeshLayer)
     return false;
 
-  auto *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer.GetPointer());
+  auto *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer);
   if(!mesh)
     return false;
 
   auto prop = m_MeshLayer->GetActiveDataArrayProperty();
   value = prop ? prop->GetName() : "Solid Color";
   return true;
+}
+
+
+bool
+MeshLayerTableRowModel::GetActiveMeshLayerDataPropertyIdValueAndRange(int                 &value,
+                                                                      MeshDataArrayDomain *domain)
+{
+  // The current layer has to be a mesh layer
+  auto *mesh_layer = dynamic_cast<StandaloneMeshWrapper *>(m_Layer);
+  if (!mesh_layer)
+    return false;
+
+  // Get the value
+  value = mesh_layer->GetActiveMeshLayerDataPropertyId();
+
+  // Populate the domain. In the future, we should wrap the domain around a container stored
+  // in the model instead of creating a new domain every time
+  if (domain)
+  {
+    domain->clear();
+
+           // Add solid color
+    MeshDataArrayDescriptor solid_color = {
+      true, std::string(), AbstractMeshDataArrayProperty::COUNT
+    };
+    (*domain)[-1] = solid_color;
+
+    // Add all of the other arrays
+    for (auto &kv : mesh_layer->GetCombinedDataProperty())
+    {
+      MeshDataArrayDescriptor prop = { false, kv.second->GetName(), kv.second->GetType() };
+      (*domain)[kv.first] = prop;
+    }
+  }
+
+  return true;
+}
+
+void
+MeshLayerTableRowModel::SetActiveMeshLayerDataPropertyIdValue(int value)
+{
+  // The current layer has to be a mesh layer
+  auto *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer);
+  if (mesh)
+  {
+    mesh->SetActiveMeshLayerDataPropertyId(value);
+    this->InvokeEvent(StateMachineChangeEvent());
+    // this->GetMeshVectorModeModel()->InvokeEvent(DomainChangedEvent());
+  }
+}
+
+bool
+MeshLayerTableRowModel::GetMeshVectorModeValueAndRange(vtkIdType &value, MeshVectorModeDomain *domain)
+{
+  // The current layer has to be a mesh layer
+  StandaloneMeshWrapper *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer);
+  if (!mesh)
+    return false;
+
+  using VectorMode = MeshLayerDataArrayProperty::VectorMode;
+
+  auto layer_prop = mesh->GetActiveDataArrayProperty();
+  if (!layer_prop)
+    return false;
+
+  size_t nc = layer_prop->GetNumberOfComponents();
+
+  // Start populating the domain
+  size_t domain_ind = 0;
+
+  if (domain)
+  {
+    (*domain)[domain_ind++] = { MeshLayerDataArrayProperty::MAGNITUDE, -1 };
+    for (size_t i = 0; i < nc; ++i)
+      (*domain)[domain_ind++] = { MeshLayerDataArrayProperty::COMPONENT, (int) i };
+  }
+
+  // Process current value
+  switch (layer_prop->GetActiveVectorMode())
+  {
+    case VectorMode::MAGNITUDE:
+      value = 0;
+      break;
+    default: // COMPONENT Mode
+    {
+      int shift = 1; // skip magnitude 0
+      value = layer_prop->GetActiveComponentId() + shift;
+    }
+  }
+
+  return true;
+}
+
+void
+MeshLayerTableRowModel::SetMeshVectorModeValue(vtkIdType value)
+{
+  // The current layer has to be a mesh layer
+  StandaloneMeshWrapper *mesh = dynamic_cast<StandaloneMeshWrapper *>(m_MeshLayer);
+  if (!mesh)
+    return;
+
+  assert(value >= 0);
+
+  auto layer_prop = mesh->GetActiveDataArrayProperty();
+  using VectorMode = MeshLayerDataArrayProperty::VectorMode;
+
+  if (value == 0) // magnitude
+    layer_prop->SetActiveVectorMode(VectorMode::MAGNITUDE);
+  else
+  {
+    const int shift = 1; // skip magnitude 0
+    // process individual components
+    layer_prop->SetActiveVectorMode(VectorMode::COMPONENT, value - shift);
+  }
+
+  mesh->InvokeEvent(WrapperDisplayMappingChangeEvent());
 }
 
 void
@@ -832,4 +958,30 @@ MeshLayerTableRowModel
   all of the data arrays and properties could chnage
   should recreate the wrapper entirely instead
   */
+}
+
+bool
+MeshLayerTableRowModel::MeshDataArrayDescriptor::operator!=(const MeshDataArrayDescriptor &other) const
+{
+  return SolidColor != other.SolidColor || ArrayName != other.ArrayName ||
+         MeshDataType != other.MeshDataType;
+}
+
+bool
+MeshLayerTableRowModel::MeshDataArrayDescriptor::operator==(const MeshDataArrayDescriptor &other) const
+{
+  return !(*this != other);
+}
+
+
+bool
+MeshLayerTableRowModel::MeshVectorModeDescriptor::operator!=(const MeshVectorModeDescriptor &other) const
+{
+  return Mode != other.Mode || Component != other.Component;
+}
+
+bool
+MeshLayerTableRowModel::MeshVectorModeDescriptor::operator==(const MeshVectorModeDescriptor &other) const
+{
+  return !(*this != other);
 }

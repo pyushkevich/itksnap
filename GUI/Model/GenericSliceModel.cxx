@@ -683,7 +683,7 @@ GenericSliceModel
   // Z position of slice
   double zpos = this->GetCursorPositionInSliceCoordinates()[2];
   return m_Driver->UpdateSegmentationWithSliceDrawing(
-        drawing, m_DisplayToImageTransform, zpos, "Polygon Drawing");
+        drawing, m_DisplayToImageTransform, zpos, true,"Polygon Drawing");
 }
 
 Vector2ui GenericSliceModel::GetSize()

@@ -297,16 +297,7 @@ public:
   template <class TSavedImage> static void Write(TSavedImage *image, const char *fname, Registry &hints)
   {
     SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
-    io->CreateImageIO(fname, hints, false);
-    itk::ImageIOBase *base = io->GetIOBase();
-
-    typedef itk::ImageFileWriter<TSavedImage> WriterType;
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetFileName(fname);
-    if(base)
-      writer->SetImageIO(base);
-    writer->SetInput(image);
-    writer->Update();
+    io->SaveImage(fname, hints, image);
   }
 
   template <class TInterpolateFunction>
@@ -2143,6 +2134,16 @@ ImageWrapper<TTraits>
   tran->ComputeInverse(traninv);
   return traninv->GetCoordinateIndexZeroBased(2);
 }
+
+template<class TTraits>
+Vector3d
+ImageWrapper<TTraits>
+  ::MapImageCIndexToSliceCIndex(unsigned int iSlice, Vector3d image_cindex) const
+{
+  const auto &tran = this->m_ImageGeometry->GetImageToDisplayTransform(iSlice);
+  return tran->TransformPoint(image_cindex);
+}
+
 
 template<class TTraits>
 typename ImageWrapper<TTraits>::SliceType*

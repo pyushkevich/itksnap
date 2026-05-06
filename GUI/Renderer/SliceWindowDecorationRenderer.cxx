@@ -12,7 +12,10 @@
 
 void
 SliceWindowDecorationRenderer::RenderOverMainViewport(AbstractRenderContext *context)
-{
+{   
+  if (!m_Model || !m_Model->IsSliceInitialized()) 
+    return;
+   
   // Push an identity transform in logical pixel units
   double vppr = m_Model->GetSizeReporter()->GetViewportPixelRatio();
   context->PushMatrix();

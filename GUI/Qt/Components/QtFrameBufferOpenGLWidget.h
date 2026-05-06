@@ -11,6 +11,7 @@ class QPainter;
 class ShaderTest;
 class QPainterRenderContext;
 class VTKTest;
+class QScreen;
 
 /**
  * A simple OpenGL widget with a framebuffer to use with AbstractRenderer,
@@ -25,7 +26,6 @@ public:
 
   void SetRenderer(AbstractContextBasedRenderer *r);
 
-  void updateFBO();
 
   void initializeGL() override;
 
@@ -35,6 +35,16 @@ public:
 
   void setScreenshotRequest(const std::string &filename);
 
+  virtual void showEvent(QShowEvent *event) override;
+
+protected:
+  void updateFBO();
+  void connectCurrentScreen(bool force);
+
+private slots:
+  void onScreenChanged();
+  void onScreenGeometryChanged();
+
 private:
   AbstractContextBasedRenderer *m_Renderer;
   std::string m_ScreenshotRequest;
@@ -42,6 +52,8 @@ private:
   QOpenGLFramebufferObject* m_FrameBufferObject = nullptr;
   ShaderTest *shader_test = nullptr;
   VTKTest *vtk_test = nullptr;
+
+  QMetaObject::Connection m_CurrentScreenChangedConnection, m_CurrentScreenGeometryChangedConnection;
 };
 
 

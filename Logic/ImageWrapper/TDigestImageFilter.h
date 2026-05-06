@@ -5,10 +5,10 @@
 #include <itkNumericTraits.h>
 #include "SNAPCommon.h"
 #include <itkSimpleDataObjectDecorator.h>
-#include <digestible/digestible.h>
 #include <itkVectorImage.h>
 #include <itkImageToImageFilter.h>
 #include <itkImageSink.h>
+#include "tdigest_apache/tdigest.hpp"
 
 /**
  * A wrapper around the t-digest data structure that can be used in ITK
@@ -19,11 +19,11 @@ class TDigestDataObject : public itk::DataObject
 public:
   irisITKObjectMacro(TDigestDataObject, itk::DataObject)
 
-  float GetImageMaximum() const { return m_Digest.max(); }
-  float GetImageMinimum() const { return m_Digest.min(); }
-  float GetImageQuantile(double q) const { return m_Digest.quantile(100.0 * q); }
-  float GetCDF(float value) const { return m_Digest.cumulative_distribution(value); }
-  unsigned GetTotalWeight() const { return m_Digest.size(); }
+  float GetImageMaximum() const { return m_Digest.get_max_value(); }
+  float GetImageMinimum() const { return m_Digest.get_min_value(); }
+  float GetImageQuantile(double q) const { return m_Digest.get_quantile(q); }
+  float GetCDF(float value) const { return m_Digest.get_rank(value); }
+  unsigned GetTotalWeight() const { return m_Digest.get_total_weight(); }
 
   template <class TInputImage> friend class TDigestImageFilter;
 
@@ -34,7 +34,7 @@ protected:
   virtual ~TDigestDataObject() {}
 
   // The t-digest - the compression parameter determines accuracy and memory use
-  typedef digestible::tdigest<float, unsigned> TDigest;
+  typedef datasketches::tdigest<float> TDigest;
   TDigest m_Digest;
 
   // The number of NaN pixels

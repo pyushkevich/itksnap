@@ -26,6 +26,10 @@
 #include "MeshOptions.h"
 
 #include "MainImageWindow.h"
+#include "ProgressReportWidget.h"
+#include "ProgressReportDialog.h"
+#include "QtProgressDelegate.h"
+#include "QtSSHAuthDelegate.h"
 #include "ui_MainImageWindow.h"
 
 #include "MainControlPanel.h"
@@ -319,6 +323,9 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   // Set up the progress dialog
   m_Progress = new QProgressDialog(this);
 
+  // Set up the advanced progress reporter
+  m_ProgressFader = new ProgressReportWidget(this);
+
   // Create the delegate to pass in to the model
   m_ProgressReporterDelegate = new QtProgressReporterDelegate();
   m_ProgressReporterDelegate->SetProgressDialog(m_Progress);
@@ -510,6 +517,16 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Attach the progress reporter delegate to the model
   m_Model->SetProgressReporterDelegate(m_ProgressReporterDelegate);
+
+  // Attach a progress delegate to IRISApplication so remote image downloads
+  // (scp://, sftp:// URLs) show in the same overlay widget as DLS tasks.
+  auto *remoteProgressDelegate = new QtProgressDelegate(m_ProgressFader, this);
+  m_Model->GetDriver()->SetProgressDelegate(remoteProgressDelegate);
+
+  // Attach an SSH auth delegate so password/passphrase prompts are shown
+  // when public-key authentication fails for remote URLs.
+  auto *sshAuthDelegate = new QtSSHAuthDelegate(this);
+  m_Model->GetDriver()->SetSSHAuthDelegate(sshAuthDelegate);
 
   // Listen for changes to the main image, updating the recent image file
   // menu. TODO: a more direct way would be to listen to changes to the
@@ -746,7 +763,7 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
   if(proj_file_changed)
     this->UpdateProjectMenuItems();
 
-  if(view_panel_layout_changed)
+  if(view_panel_layout_changed || main_changed)
     this->UpdateViewPanelVisibility();
 
   if(display_layout_changed)
@@ -810,11 +827,19 @@ MainImageWindow::UpdateMainLayout()
 
     // If the image is 2D, update the display layout to only show the 2D view
     auto *dlm = m_Model->GetDisplayLayoutModel();
+
+    // Start by setting the view panel layout to VIEW_ALL. This also has the benefit of
+    // making subsequet calls to dlm->GetViewPanelExpandButtonActionModel return actual
+    // layouts, not VIEW_ALL
+    dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
+
+    // Is this a 2D image?
     if (main->GetSize()[2] == 1)
     {
       for (int i = 0; i < 3; i++)
       {
         auto *slice_model = m_Model->GetSliceModel(i);
+        slice_model->Update();
         if (slice_model->GetSliceDirectionInImageSpace() == 2)
         {
           auto layout = dlm->GetViewPanelExpandButtonActionModel(i)->GetValue();
@@ -822,10 +847,6 @@ MainImageWindow::UpdateMainLayout()
           break;
         }
       }
-    }
-    else
-    {
-      dlm->GetViewPanelLayoutModel()->SetValue(DisplayLayoutModel::VIEW_ALL);
     }
   }
   else
@@ -1324,8 +1345,12 @@ void MainImageWindow::LoadDroppedFile(QString file)
   try
     {
     std::string filename = to_utf8(file);
-    // Check if the dropped file is a project
-    if(m_Model->GetDriver()->IsProjectFile(filename.c_str()))
+    // Check if the dropped file is a project. For remote URLs (scp://, sftp://)
+    // IsProjectFile cannot read the file content, so we fall back to checking
+    // the .itksnap extension.
+    bool isProject = m_Model->GetDriver()->IsProjectFile(filename.c_str())
+                     || file.endsWith(".itksnap", Qt::CaseInsensitive);
+    if(isProject)
       {
       // For the time being, the feature of opening the workspace in a new
       // window is not implemented. Instead, we just prompt the user for
@@ -1493,6 +1518,7 @@ void MainImageWindow::LoadMainImage(const QString &file)
 		m_Model->GetDriver()->OpenImageViaDelegate(file.toUtf8().constData(), del, warnings,
 																							 NULL, irProgAccum.GetPointer());
     }
+  catch(IRISUserCancelException &) {}
   catch(exception &exc)
     {
     progress->close();
@@ -1536,6 +1562,7 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
 		m_Model->GetDriver()->OpenImageViaDelegate(file.toUtf8().constData(), del, warnings,
 																							 NULL, irProgAccum);
     }
+  catch(IRISUserCancelException &) {}
   catch(exception &exc)
     {
     progress->close();
@@ -1571,6 +1598,7 @@ void MainImageWindow::LoadRecentSegmentation(QString file, bool additive)
 		m_Model->GetDriver()->OpenImageViaDelegate(file.toUtf8().constData(), del, warnings,
 																							 NULL, irProgAccum);
     }
+  catch(IRISUserCancelException &) {}
   catch(exception &exc)
     {
     progress->close();
@@ -1650,21 +1678,26 @@ void MainImageWindow::LoadAnotherDicomActionTriggered()
 
 void MainImageWindow::LoadProject(const QString &file)
 {
-  // Try loading the image
+  auto *driver = m_Model->GetDriver();
+  AbstractProgressDelegate *savedDelegate = driver->GetProgressDelegate();
+
+  ProgressReportDialog *progressDlg = new ProgressReportDialog(tr("Opening workspace..."), this);
+  driver->SetProgressDelegate(progressDlg->GetDelegate());
+  progressDlg->open();
+
   try
     {
-    // Change cursor for this operation
     QtCursorOverride c(Qt::WaitCursor);
     IRISWarningList warnings;
-
-    // Load the project
-    m_Model->GetDriver()->OpenProject(to_utf8(file), warnings);
+    driver->OpenProject(to_utf8(file), warnings);
     }
   catch(exception &exc)
     {
     ReportNonLethalException(this, exc, tr("Error Opening Project"),
                              tr("Failed to open project %1").arg(file));
-  }
+    }
+
+  driver->SetProgressDelegate(savedDelegate);
 }
 
 void MainImageWindow::LoadProjectInNewInstance(const QString &file)
@@ -1692,6 +1725,12 @@ void MainImageWindow::on4DReplayTimeout()
 {
   if(m_Model && m_Model->GetDriver()->GetNumberOfTimePoints() > 1)
     {
+    // Skip this frame if a background mesh computation is running. Advancing
+    // the time point calls SetTimePointIndex which mutates the ITK pipeline,
+    // causing a data race with the thread reading image buffers for meshing.
+    if(m_Model->GetModel3D()->IsMeshUpdating())
+      return;
+
     int crntTP = m_Model->GetDriver()->GetCursorTimePoint();
     int nextTP = (crntTP + 1) % (m_Model->GetDriver()->GetNumberOfTimePoints());
     m_Model->GetDriver()->SetCursorTimePoint(nextTP);

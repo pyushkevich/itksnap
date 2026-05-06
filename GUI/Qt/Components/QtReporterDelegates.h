@@ -42,7 +42,11 @@ protected:
   {
   public:
     bool eventFilter(QObject *object, QEvent *event);
+    void connectCurrentScreen();
     QtViewportReporter *m_Owner;
+
+    QMetaObject::Connection m_ScreenChangedConnection;
+    QList<QMetaObject::Connection> m_ScreenConnections;
   };
 
   EventFilter *m_Filter;
@@ -70,6 +74,7 @@ public:
   virtual std::string GetApplicationFile() override;
   virtual std::string GetApplicationPermanentDataLocation() override;
   virtual std::string GetUserDocumentsLocation() override;
+  virtual std::string GetTempDirectory() override;
   virtual std::string EncodeServerURL(const std::string &url) override;
 
 

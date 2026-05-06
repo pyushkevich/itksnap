@@ -273,15 +273,7 @@ SliceViewPanel::SliceViewPanel(QWidget *parent) :
   connect(m_DelegateChain->m_PolygonMode, SIGNAL(contextMenuRequested()), SLOT(onContextMenu()));
 
   // Configure the context tool button
-  m_ContextToolButton = new QToolButton(m_RendererCanvas);
-  m_ContextToolButton->setIcon(QIcon(":/root/context_gray_10.png"));
-  m_ContextToolButton->setVisible(false);
-  m_ContextToolButton->setAutoRaise(true);
-  m_ContextToolButton->setIconSize(QSize(10,10));
-  m_ContextToolButton->setMinimumSize(QSize(16,16));
-  m_ContextToolButton->setMaximumSize(QSize(16,16));
-  m_ContextToolButton->setPopupMode(QToolButton::InstantPopup);
-  m_ContextToolButton->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+  m_ContextToolButton = CreateContextToolButton(m_RendererCanvas);
 
   // And also connect toolbar buttons to the corresponding slots in polygon mode
   auto *polygon_mode = m_DelegateChain->m_PolygonMode;

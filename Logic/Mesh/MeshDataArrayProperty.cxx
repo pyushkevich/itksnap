@@ -157,6 +157,14 @@ SetDataPointer(vtkDataArray *array)
 // ============================================
 //  MeshLayerDataArrayProperty Implementation
 // ============================================
+RegistryEnumMap<MeshLayerDataArrayProperty::VectorMode>
+  MeshLayerDataArrayProperty::m_VectorModeEnumMap =
+  {
+    { MeshLayerDataArrayProperty::MAGNITUDE, "Magnitude" },
+    { MeshLayerDataArrayProperty::RGBCOLOR, "RGBColor" },
+    { MeshLayerDataArrayProperty::COMPONENT, "Component" }
+  };
+
 MeshLayerDataArrayProperty::
 MeshLayerDataArrayProperty()
 {
@@ -239,28 +247,27 @@ Merge(MeshDataArrayProperty *other)
 			m_MeshArrayComponentMap[kv.first] = kv.second;
     }
 
-	InvokeEvent(itk::ModifiedEvent());
+    this->Modified();
 }
 
 void
-MeshLayerDataArrayProperty
-::SetActiveVectorMode(int mode, vtkIdType compId)
+MeshLayerDataArrayProperty ::SetActiveVectorMode(int mode, vtkIdType compId)
 {
-  assert (mode >= 0 && mode < VectorMode::COUNT);
+  assert(mode >= 0 && mode < VectorMode::COUNT);
 
-	if ((VectorMode)mode == m_ActiveVectorMode &&
-			(compId < 0 || compId == m_ActiveComponentId))
-		return; // No Change to make
+  if ((VectorMode)mode == m_ActiveVectorMode && (compId < 0 || compId == m_ActiveComponentId))
+    return; // No Change to make
 
-	m_ActiveVectorMode = (VectorMode)mode;
-	m_ActiveComponentId = compId;
+  m_ActiveVectorMode = (VectorMode)mode;
+  m_ActiveComponentId = compId;
 
-	if (mode == VectorMode::MAGNITUDE)
+  if (mode == VectorMode::MAGNITUDE)
     SetActiveIntensityCurve(m_MagnitudeIntensityCurve);
-	else
+  else
     SetActiveIntensityCurve(GetActiveComponent().m_IntensityCurve);
 
-	InvokeEvent(WrapperHistogramChangeEvent());
+  this->Modified();
+  InvokeEvent(WrapperHistogramChangeEvent());
 }
 
 inline double GetMagnitude(double *vector, size_t len)
@@ -285,11 +292,17 @@ GetTDigest()
 {
   std::vector<double> tmpdata;
   long n = 0;
+  int ncomp = 0;
 
   for (auto cit = m_DataPointerList.cbegin(); cit != m_DataPointerList.cend(); ++cit)
     {
     auto array = *cit;
     n += array->GetNumberOfTuples();
+    if(ncomp == 0)
+      ncomp = array->GetNumberOfComponents();
+    else
+      itkAssertOrThrowMacro(ncomp == array->GetNumberOfComponents(),
+        "All arrays must have the same number of tuples for TDigest computation.");
     }
 
   DataArrayImageType::Pointer img = DataArrayImageType::New();
@@ -310,8 +323,8 @@ GetTDigest()
   DataArrayImageType::IndexType idx;
   idx[0] = 0;
 
-	// get active component
-	vtkIdType activeVecComp = -1;
+  // Default component is 0 for single-component data and -1 (MAGNITUDE) for multi-component
+  vtkIdType activeVecComp = ncomp > 1 ? -1 : 0;
 	if (this->GetActiveVectorMode() == VectorMode::COMPONENT)
 		activeVecComp = this->GetActiveComponentId();
 
@@ -319,17 +332,15 @@ GetTDigest()
     {
     auto array = *cit;
     auto nTuple = array->GetNumberOfTuples();
+    std::vector<double> vec(ncomp);
     for (auto i = 0; i < nTuple; ++i)
       {
 			double v = 0;
 			if (activeVecComp == -1) // use magnitude
 				{
-				size_t nc = array->GetNumberOfComponents();
-				double *vec  = new double[nc];
-				for (size_t c = 0; c < nc; ++c)
+        for (size_t c = 0; c < ncomp; ++c)
 					vec[c] = array->GetComponent(i, c);
-				v = GetMagnitude(vec, nc);
-				delete [] vec;
+        v = GetMagnitude(vec.data(), ncomp);
 				}
 			else
 				v = array->GetComponent(i, activeVecComp);

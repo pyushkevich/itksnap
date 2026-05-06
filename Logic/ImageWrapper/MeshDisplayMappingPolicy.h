@@ -80,6 +80,9 @@ public:
 
   MeshWrapperBase *GetMeshLayer();
 
+  /** Get the latest modification time between this object and its color map and intensity curve */
+  virtual itk::ModifiedTimeType GetDeepMTime() const;
+
 protected:
   MeshDisplayMappingPolicy();
   virtual ~MeshDisplayMappingPolicy() = default;

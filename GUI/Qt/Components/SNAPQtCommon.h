@@ -25,6 +25,7 @@ class ImageWrapperBase;
 class QDateTime;
 class AbstractColorMapPresetNameSource;
 class QStandardItem;
+class QToolButton;
 
 // Q_DECL_OVERRIDE is only defined in Qt5 but is needed by C++11
 #ifndef Q_DECL_OVERRIDE
@@ -86,6 +87,9 @@ QAction* FindUpstreamAction(QWidget *w, const QString &targetActionName);
 
 // Find an upstream action for a widget
 QDialog* FindUpstreamDialog(QWidget *w, const QString &targetDialogName);
+
+// Search upstream to find a window handle
+QWindow* FindUpstreamWindowHandle(QWidget *w);
 
 // Connect a widget to the trigger slot in an upstream action
 void ConnectWidgetToTopLevelAction(QWidget *w, const char *signal, QString actionName);
@@ -195,5 +199,11 @@ void toggle_flags_on(TObject *object, TFlag flag)
 /** Generate a user-friendly date string */
 QString get_user_friendly_date_string(const QDateTime &dt);
 
+
+/** Set up a context tool button in slice or 3D views */
+QToolButton *CreateContextToolButton(QWidget *parent);
+
+/** Recursively copy actions and submenus from an QMenu to a new QMenu */
+void DeepCopyMenuActions(QMenu *src, QMenu *trg);
 
 #endif // SNAPQTCOMMON_H

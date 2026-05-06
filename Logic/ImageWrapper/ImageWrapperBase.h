@@ -367,6 +367,12 @@ public:
   /** For each slicer, find out which image dimension does is slice along */
   virtual unsigned int GetDisplaySliceImageAxis(unsigned int slice) = 0;
 
+  /**
+   * Map a position in image coordinates to the corresponding position
+   * in one of the slices
+   */
+  virtual Vector3d MapImageCIndexToSliceCIndex(unsigned int iSlice, Vector3d image_cindex) const = 0;
+
   /** Get the number of voxels */
   virtual size_t GetNumberOfVoxels() const = 0;
 

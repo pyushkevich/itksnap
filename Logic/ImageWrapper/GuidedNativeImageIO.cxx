@@ -51,6 +51,7 @@
 #include "itkNiftiImageIO.h"
 #include "itkSiemensVisionImageIO.h"
 #include "itkVTKImageIO.h"
+#include "VTIImageIO.h"
 #include "itkVoxBoCUBImageIO.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -79,6 +80,21 @@
 #include "itkImportImageFilter.h"
 #include <algorithm>
 #include "itksys/Base64.h"
+#include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <type_traits>
+#include <vector>
+
+// Platform-specific headers for available memory query (used in image size check)
+#if defined(__APPLE__)
+#  include <mach/mach.h>
+#elif defined(__linux__)
+#  include <fstream>
+#  include <string>
+#elif defined(_WIN32)
+#  include <windows.h>
+#endif
 
 
 using namespace std;
@@ -103,12 +119,13 @@ GuidedNativeImageIO
   {"MetaImage", "mha,mhd",              true,  true,  true,  true},
   {"MINC", "mnc",                       true,  true,  true,  true},
   {"NiFTI", "nii.gz,nii,nia,nia.gz",    true,  true,  true,  true},
-  {"NRRD Volume Sequence", "seq.nrrd",  false, true,  true,  true},
+  {"NRRD Volume Sequence", "seq.nrrd",  true,  true,  true,  true},
   {"NRRD", "nrrd,nhdr",                 true,  true,  true,  true},
   {"Raw Binary", "raw",                 false, false, true,  true},
   {"Siemens Vision", "ima",             false, false, true,  true},
   {"VoxBo CUB", "cub,cub.gz",           true,  false, true,  true},
   {"VTK Image", "vtk",                  true,  false, true,  true},
+  {"VTK XML Image", "vti",              true,  false, true,  true},
   {"Generic ITK Image", "",             true,  true,  true,  true},
   {"INVALID FORMAT", "",                false, false, false, false}};
 
@@ -412,6 +429,7 @@ GuidedNativeImageIO
 		case FORMAT_NIFTI:      m_IOBase = itk::NiftiImageIO::New();         break;
 		case FORMAT_SIEMENS:    m_IOBase = itk::SiemensVisionImageIO::New(); break;
 		case FORMAT_VTK:        m_IOBase = itk::VTKImageIO::New();           break;
+		case FORMAT_VTI:        m_IOBase = VTIImageIO::New();                break;
 		case FORMAT_VOXBO_CUB:  m_IOBase = itk::VoxBoCUBImageIO::New();      break;
 		case FORMAT_DICOM_DIR:
 		case FORMAT_DICOM_DIR_4DCTA:
@@ -1379,6 +1397,64 @@ GuidedNativeImageIO
     typename NativeImageType::Pointer image = NativeImageType::New();
 
     UpdateImageHeader<NativeImageType>(image);
+
+    // Guard against SIGBUS / OOM: check that the image fits within currently available
+    // memory before calling Allocate(), which would otherwise crash without any error.
+    {
+    // Compute image size in bytes directly from IO dimensions (more reliable than
+    // GetImageSizeInBytes() which may return 0 before data is read).
+    size_t imageBytes = m_IOBase->GetComponentSize();
+    for(unsigned int i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
+      imageBytes *= m_IOBase->GetDimensions(i);
+    imageBytes *= m_IOBase->GetNumberOfComponents();
+
+    // Query currently available (free + reclaimable) memory from the OS.
+    size_t availableRAM = 0;
+#if defined(__APPLE__)
+    {
+    mach_port_t host = mach_host_self();
+    vm_size_t pageSize = 0;
+    host_page_size(host, &pageSize);
+    vm_statistics64_data_t vmStats;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    if(host_statistics64(host, HOST_VM_INFO64,
+                         reinterpret_cast<host_info64_t>(&vmStats),
+                         &count) == KERN_SUCCESS)
+      availableRAM = static_cast<size_t>(vmStats.free_count +
+                                         vmStats.inactive_count) * pageSize;
+    }
+#elif defined(__linux__)
+    {
+    std::ifstream meminfo("/proc/meminfo");
+    std::string key; size_t val;
+    while(meminfo >> key >> val)
+      if(key == "MemAvailable:") { availableRAM = val * 1024; break; }
+    }
+#elif defined(_WIN32)
+    {
+    MEMORYSTATUSEX ms; ms.dwLength = sizeof(ms);
+    if(GlobalMemoryStatusEx(&ms))
+      availableRAM = static_cast<size_t>(ms.ullAvailPhys);
+    }
+#endif
+    // Use 90% of available RAM as the safe limit so the OS and other processes
+    // still have breathing room. Fall back to 4 GB if query fails.
+    size_t safeLimit = availableRAM
+      ? static_cast<size_t>(0.90 * static_cast<double>(availableRAM))
+      : (4ULL << 30);
+    if(imageBytes > safeLimit)
+      {
+      double imageSizeGB  = imageBytes   / (1024.0 * 1024.0 * 1024.0);
+      double availableGB  = availableRAM / (1024.0 * 1024.0 * 1024.0);
+      throw IRISException(
+        "Image is too large to load into memory. "
+        "The image requires %.1f GB of RAM, but only %.1f GB is currently "
+        "available on this machine. Close other applications or use a "
+        "machine with more memory.",
+        imageSizeGB, availableGB);
+      }
+    }
+
     image->Allocate();
 
     regularImageReadingProgSrc->AddProgress(0.1);
@@ -1471,6 +1547,100 @@ GuidedNativeImageIO
     }
 }
 
+template<typename TImageType>
+void
+GuidedNativeImageIO
+::SaveNrrdSequence(const char *FileName, TImageType *image)
+{
+  using TNative = typename TImageType::InternalPixelType;
+
+  // Get image geometry
+  auto size      = image->GetLargestPossibleRegion().GetSize();
+  auto spacing   = image->GetSpacing();
+  auto direction = image->GetDirection();
+  auto origin    = image->GetOrigin();
+
+  long X = (long)size[0], Y = (long)size[1], Z = (long)size[2], T = (long)size[3];
+  long nSpatial = X * Y * Z;
+  long nTotal   = nSpatial * T;
+
+  // Reorder the pixel buffer from ITK 4D layout (X fastest, T slowest):
+  //   itk_buf[x + X*(y + Y*(z + Z*t))]  =  itk_buf[j + nSpatial*t]
+  // to NRRD seq layout (T fastest, Z slowest):
+  //   nrrd_buf[t + T*(x + X*(y + Y*z))]  =  nrrd_buf[t + T*j]
+  const TNative *buf4D = image->GetBufferPointer();
+  std::vector<TNative> bufNRRD((size_t)nTotal);
+  for (long t = 0; t < T; ++t)
+    for (long j = 0; j < nSpatial; ++j)
+      bufNRRD[(size_t)(j * T + t)] = buf4D[t * nSpatial + j];
+
+  // Map C++ type to NRRD type keyword
+  const char *nrrdType = "int16";
+  if      (std::is_same<TNative, signed char>::value)    nrrdType = "int8";
+  else if (std::is_same<TNative, unsigned char>::value)  nrrdType = "uint8";
+  else if (std::is_same<TNative, short>::value)          nrrdType = "int16";
+  else if (std::is_same<TNative, unsigned short>::value) nrrdType = "uint16";
+  else if (std::is_same<TNative, int>::value)            nrrdType = "int32";
+  else if (std::is_same<TNative, unsigned int>::value)   nrrdType = "uint32";
+  else if (std::is_same<TNative, float>::value)          nrrdType = "float";
+  else if (std::is_same<TNative, double>::value)         nrrdType = "double";
+
+  // Detect system endianness
+  union { uint16_t i; uint8_t c[2]; } bint = {0x0102};
+  const char *endian = (bint.c[0] == 0x01) ? "big" : "little";
+
+  // Build axis-0 index values: 0 1 2 ... T-1
+  std::ostringstream axisIdxValues;
+  for (long t = 0; t < T; ++t)
+    {
+    if (t > 0) axisIdxValues << ' ';
+    axisIdxValues << t;
+    }
+
+  // Open file for binary writing
+  std::ofstream f(FileName, std::ios::binary);
+  if (!f.is_open())
+    throw IRISException("Error: cannot open '%s' for writing.", FileName);
+
+  // Helper: format three doubles as a NRRD vector "(a,b,c)"
+  auto fmt3 = [](double a, double b, double c) -> std::string
+    {
+    std::ostringstream ss;
+    ss << std::setprecision(10) << "(" << a << "," << b << "," << c << ")";
+    return ss.str();
+    };
+
+  // Write NRRD header
+  // Space is LPS to match ITK/SNAP convention.
+  // Notes on seq.nrrd format compatibility:
+  //   - The list axis space direction must be "none" (not "(nan,nan,nan)")
+  //   - axis 0 index type/values must use ":=" (NRRD key-value pair syntax)
+  f << "NRRD0005\n";
+  f << "type: " << nrrdType << "\n";
+  f << "dimension: 4\n";
+  f << "space: left-posterior-superior\n";
+  f << "sizes: " << T << " " << X << " " << Y << " " << Z << "\n";
+  f << "space directions: none "
+    << fmt3(spacing[0]*direction[0][0], spacing[0]*direction[0][1], spacing[0]*direction[0][2]) << " "
+    << fmt3(spacing[1]*direction[1][0], spacing[1]*direction[1][1], spacing[1]*direction[1][2]) << " "
+    << fmt3(spacing[2]*direction[2][0], spacing[2]*direction[2][1], spacing[2]*direction[2][2]) << "\n";
+  f << "kinds: list domain domain domain\n";
+  f << "endian: " << endian << "\n";
+  f << "encoding: raw\n";
+  f << "labels: \"frame\" \"\" \"\" \"\"\n";
+  f << "space origin: " << fmt3(origin[0], origin[1], origin[2]) << "\n";
+  f << "measurement frame: (1,0,0) (0,1,0) (0,0,1)\n";
+  f << "axis 0 index type:=numeric\n";
+  f << "axis 0 index values:=" << axisIdxValues.str() << "\n";
+  f << "\n"; // blank line ends NRRD header
+
+  // Write raw pixel data
+  f.write(reinterpret_cast<const char *>(bufNRRD.data()),
+          static_cast<std::streamsize>(nTotal * sizeof(TNative)));
+  if (!f.good())
+    throw IRISException("Error: failed writing pixel data to '%s'.", FileName);
+}
+
 void
 GuidedNativeImageIO
 ::SaveNativeImage(const char *FileName, Registry &folder)
@@ -1491,9 +1661,20 @@ GuidedNativeImageIO
 
   // Get the native image
   typedef itk::VectorImage<TNative, 4> InputImageType;
-  typename InputImageType::Pointer input = 
+  typename InputImageType::Pointer input =
     reinterpret_cast<InputImageType *>(native);
   assert(input);
+
+  // For seq.nrrd, ITK's generic writer cannot produce the required header
+  // (kind: list, axis 0 index type/values, etc.), so we write it manually.
+  FileFormat fmt = GetFileFormat(folder);
+  if (fmt == FORMAT_COUNT || fmt == FORMAT_DICOM_FILE)
+    fmt = GuessFormatForFileName(FileName, false);
+  if (fmt == FORMAT_NRRD_SEQ)
+    {
+    this->SaveNrrdSequence<InputImageType>(FileName, input);
+    return;
+    }
 
   // Use the Save method
   this->SaveImage<InputImageType>(FileName, folder, input);
@@ -1507,10 +1688,22 @@ GuidedNativeImageIO
   // Create an Image IO based on the folder
   CreateImageIO(FileName, folder, false);
 
+  // For seq.nrrd, the generic ITK writer cannot produce the required header
+  // (kind: list, axis 0 index type/values, none space direction, etc.).
+  // We intercept here so all save paths (DoSaveNative, WriteToFile) are covered.
+  if (m_FileFormat == FORMAT_NRRD_SEQ)
+    {
+    if constexpr (TImageType::ImageDimension == 4)
+      {
+      this->SaveNrrdSequence<TImageType>(FileName, image);
+      return;
+      }
+    }
+
   // Save the image
   typedef itk::ImageFileWriter<TImageType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
-  
+
   writer->SetFileName(FileName);
   if(m_IOBase)
     writer->SetImageIO(m_IOBase);
@@ -2389,7 +2582,12 @@ CastNativeImageToScalar<TPixel>
   template class RescaleNativeImageToIntegralType< itk::Image<type, 4> >; \
   template class RescaleNativeImageToIntegralType< itk::VectorImage<type, 4> >; \
   template class CastNativeImage<itk::Image<type, 4> >; \
-  template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<type, 3> *);
+  template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<type, 3> *); \
+  template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::Image<type, 4> *); \
+  template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::VectorImage<type, 3> *); \
+  template void GuidedNativeImageIO::SaveImage(const char *, Registry &, itk::VectorImage<type, 4> *); \
+  template void GuidedNativeImageIO::SaveNrrdSequence(const char *, itk::Image<type, 4> *); \
+  template void GuidedNativeImageIO::SaveNrrdSequence(const char *, itk::VectorImage<type, 4> *);
 
 GuidedNativeImageIOInstantiateMacro(unsigned char)
 GuidedNativeImageIOInstantiateMacro(char)

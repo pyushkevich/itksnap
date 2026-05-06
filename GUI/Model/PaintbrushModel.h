@@ -16,7 +16,7 @@ public:
 
   itkEventMacro(PaintbrushMovedEvent, IRISEvent)
 
-    irisGetSetMacro(Parent, GenericSliceModel *)
+  irisGetSetMacro(Parent, GenericSliceModel *)
 
   irisIsMacro(MouseInside)
 
@@ -74,6 +74,10 @@ protected:
   void CommitDrawing();
 
   bool ApplyBrushDeepLearning(bool reverse_mode);
+
+  // Get the effective paintbrush settings, which may differ from the global ones
+  // depending on deep learning mode
+  PaintbrushSettings GetEffectivePaintbrushSettings();
 
   GenericSliceModel      *m_Parent;
   BrushWatershedPipeline *m_Watershed;

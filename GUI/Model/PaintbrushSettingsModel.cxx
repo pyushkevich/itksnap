@@ -48,15 +48,14 @@ PaintbrushSettingsModel::PaintbrushSettingsModel()
   m_DeepLearningModeModel = wrapGetterSetterPairAsProperty(
     this, &Self::GetDeepLearningModeValue);
 
+  m_DeepLearningPipelineModel = wrapGetterSetterPairAsProperty(
+    this, &Self::GetDeepLearningPipelineValueAndRange, &Self::SetDeepLearningPipelineValue);
+
   m_ThresholdLevelModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetThresholdLevelValueAndRange,
-        &Self::SetThresholdLevelValue);
+    this, &Self::GetThresholdLevelValueAndRange, &Self::SetThresholdLevelValue);
 
   m_SmoothingIterationsModel = wrapGetterSetterPairAsProperty(
-        this,
-        &Self::GetSmoothingIterationValueAndRange,
-        &Self::SetSmoothingIterationValue);
+    this, &Self::GetSmoothingIterationValueAndRange, &Self::SetSmoothingIterationValue);
 }
 
 void PaintbrushSettingsModel::SetParentModel(GlobalUIModel *parent)
@@ -74,6 +73,21 @@ void PaintbrushSettingsModel::SetParentModel(GlobalUIModel *parent)
 
   // For the maximum size, we just need the size model to be updated, no custom code
   m_BrushSizeModel->RebroadcastFromSourceProperty(dbs->GetPaintbrushDefaultMaximumSizeModel());
+
+  // The brush size model also depends on the deep learning mode
+  m_BrushSizeModel->Rebroadcast(m_DeepLearningModeModel, ValueChangedEvent(), ValueChangedEvent());
+  m_BrushSizeModel->Rebroadcast(m_DeepLearningModeModel, ValueChangedEvent(), DomainChangedEvent());
+
+  // The deep learning pipeline model needs to be refreshed when the deep learning extension model
+  // connects to a new server, etc.
+  m_DeepLearningPipelineModel->Rebroadcast(
+    m_ParentModel->GetDeepLearningSegmentationModel()->GetServerStatusModel(),
+    ValueChangedEvent(),
+    ValueChangedEvent());
+  m_DeepLearningPipelineModel->Rebroadcast(
+    m_ParentModel->GetDeepLearningSegmentationModel()->GetServerStatusModel(),
+    ValueChangedEvent(),
+    DomainChangedEvent());
 }
 
 void PaintbrushSettingsModel::OnUpdate()
@@ -102,6 +116,8 @@ PaintbrushSettingsModel
     case UIF_VOLUMETRIC_OK:
       return !mainTransformed;
     case UIF_ADAPTIVE_OK:
+      return !mainTransformed;
+    case UIF_DEEPLEARNING_OK:
       return !mainTransformed;
     default:
       return false;
@@ -144,20 +160,31 @@ PaintbrushSettingsModel::SetPaintbrushSmartModeValue(PaintbrushSmartMode value)
 }
 
 
-bool PaintbrushSettingsModel
-::GetBrushSizeValueAndRange(int &value, NumericValueRange<int> *domain)
+bool
+PaintbrushSettingsModel ::GetBrushSizeValueAndRange(int &value, NumericValueRange<int> *domain)
 {
   PaintbrushSettings pbs = GetPaintbrushSettings();
 
-  // Round just in case
-  value = (int) (pbs.radius * 2 + 0.5);
-  if(domain)
+  // In AI mode, the paintbrush should be one pixel thick
+  if (pbs.smart_mode == PAINTBRUSH_DLS)
+  {
+    value = 1;
+    if (domain)
+      domain->Set(1, 1, 1);
+  }
+  else
+  {
+    // Round just in case
+    value = (int)(pbs.radius * 2 + 0.5);
+    if (domain)
     {
-    int max_size = m_ParentModel->GetGlobalPreferencesModel()
-                   ->GetDefaultBehaviorSettings()->GetPaintbrushDefaultMaximumSize();
+      int max_size = m_ParentModel->GetGlobalPreferencesModel()
+                       ->GetDefaultBehaviorSettings()
+                       ->GetPaintbrushDefaultMaximumSize();
 
-    domain->Set(1, max_size, 1);
+      domain->Set(1, max_size, 1);
     }
+  }
   return true;
 }
 
@@ -165,8 +192,11 @@ void PaintbrushSettingsModel::SetBrushSizeValue(int value)
 {
   PaintbrushSettings pbs = GetPaintbrushSettings();
 
-  pbs.radius = 0.5 * value;
-  SetPaintbrushSettings(pbs);
+  if (pbs.smart_mode != PAINTBRUSH_DLS)
+  {
+    pbs.radius = 0.5 * value;
+    SetPaintbrushSettings(pbs);
+  }
 }
 
 bool PaintbrushSettingsModel::GetAdaptiveModeValue(bool &value)
@@ -182,6 +212,54 @@ PaintbrushSettingsModel::GetDeepLearningModeValue(bool &value)
   PaintbrushSettings pbs = GetPaintbrushSettings();
   value = (pbs.smart_mode == PAINTBRUSH_DLS);
   return true;
+}
+
+bool
+PaintbrushSettingsModel::GetDeepLearningPipelineValueAndRange(std::string                &value,
+                                                              DeepLearningPipelineDomain *range)
+{
+  // The deep learning model must be active
+  auto *dlm = m_ParentModel->GetDeepLearningSegmentationModel();
+  if(!dlm->GetIsActive())
+    return false;
+
+  // Get the list of available deep learning models that we can use
+  DeepLearningPipelineDomain usable_pipelines;
+  auto pipelines = dlm->GetRemotePipelines();
+  for(auto it : pipelines)
+  {
+    if(it.second.supports_point || it.second.supports_scribble)
+    {
+      usable_pipelines[it.first] = it.first;
+    }
+  }
+
+  // If none found, bail
+  if(usable_pipelines.size() == 0)
+    return false;
+
+  // Check if the currently set pipeline is in the list
+  PaintbrushSettings pbs = GetPaintbrushSettings();
+  if(usable_pipelines.find(pbs.dl_pipeline_id) == usable_pipelines.end())
+  {
+    pbs.dl_pipeline_id = usable_pipelines.begin()->first;
+    SetPaintbrushSettings(pbs);
+  }
+
+  // Return the pipeline and its domain
+  value = pbs.dl_pipeline_id;
+  if(range)
+    *range = usable_pipelines;
+
+  return true;
+}
+
+void
+PaintbrushSettingsModel::SetDeepLearningPipelineValue(std::string value)
+{
+  PaintbrushSettings pbs = GetPaintbrushSettings();
+  pbs.dl_pipeline_id = value;
+  SetPaintbrushSettings(pbs);
 }
 
 bool PaintbrushSettingsModel::GetThresholdLevelValueAndRange(double &value, NumericValueRange<double> *domain)

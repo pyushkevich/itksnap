@@ -31,7 +31,7 @@ public:
 protected:
 
   GMMRenderer();
-  virtual ~GMMRenderer() {}
+  virtual ~GMMRenderer();
 
 
   SnakeWizardModel *m_Model;

@@ -134,7 +134,7 @@ MeshDisplayMappingPolicy::SetMesh(MeshWrapperBase *mesh_wrapper)
   m_Wrapper = mesh_wrapper;
 
   // Lookup Table
-  m_LookupTable = vtkLookupTable::New();
+  m_LookupTable = vtkSmartPointer<vtkLookupTable>::New();
 
   // Color Map
   auto cMap = ColorMap::New();
@@ -160,6 +160,18 @@ MeshWrapperBase *
 MeshDisplayMappingPolicy::GetMeshLayer()
 {
   return m_Wrapper;
+}
+
+itk::ModifiedTimeType
+MeshDisplayMappingPolicy::GetDeepMTime() const
+{
+  auto mtime = this->GetMTime();
+  if(m_IntensityCurve)
+    mtime = std::max(mtime, m_IntensityCurve->GetMTime());
+  if(m_ColorMap)
+    mtime = std::max(mtime, m_ColorMap->GetMTime());
+
+  return mtime;
 }
 
 // ==================================================
@@ -240,17 +252,16 @@ GenericMeshDisplayMappingPolicy::UpdateAppearance(ActorPool *pool, unsigned int)
 void
 GenericMeshDisplayMappingPolicy::ConfigureLegend(vtkScalarBarActor *legend)
 {
-
   auto prop = m_Wrapper->GetActiveDataArrayProperty();
   if(prop)
   {
     legend->SetLookupTable(m_LookupTable);
-    legend->SetVisibility(true);
     legend->SetTitle(prop->GetName());
   }
   else
   {
-    legend->SetVisibility(false);
+    legend->SetLookupTable(nullptr);
+    legend->SetTitle(nullptr);
   }
 }
 

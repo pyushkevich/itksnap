@@ -166,6 +166,9 @@ font-size: 11px;
       <property name="topMargin">
        <number>0</number>
       </property>
+      <property name="rightMargin">
+       <number>24</number>
+      </property>
       <property name="bottomMargin">
        <number>0</number>
       </property>
@@ -319,7 +322,7 @@ font-size: 11px;
          <bool>false</bool>
         </property>
         <property name="autoRaise">
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -327,25 +330,38 @@ font-size: 11px;
        <widget class="QToolButton" name="btnMenu">
         <property name="maximumSize">
          <size>
-          <width>20</width>
+          <width>16777215</width>
           <height>20</height>
          </size>
         </property>
         <property name="toolTip">
          <string>Additional 3D view controls</string>
         </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
         <property name="icon">
-         <iconset resource="../Resources/SNAPResources.qrc">
-          <normaloff>:/root/open_popup_16.png</normaloff>:/root/open_popup_16.png</iconset>
+         <iconset>
+          <normalon>:/root/icons8_video_camera_pad_16.png</normalon>
+         </iconset>
         </property>
         <property name="iconSize">
          <size>
-          <width>12</width>
-          <height>12</height>
+          <width>22</width>
+          <height>16</height>
          </size>
         </property>
+        <property name="popupMode">
+         <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+        </property>
+        <property name="toolButtonStyle">
+         <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
+        </property>
         <property name="autoRaise">
-         <bool>true</bool>
+         <bool>false</bool>
+        </property>
+        <property name="arrowType">
+         <enum>Qt::ArrowType::NoArrow</enum>
         </property>
        </widget>
       </item>
@@ -363,10 +379,13 @@ font-size: 11px;
   </action>
   <action name="actionSave_Viewpoint">
    <property name="text">
-    <string>Save Viewpoint</string>
+    <string>Bookmark Viewpoint</string>
+   </property>
+   <property name="toolTip">
+    <string>Creates a bookmark for the current camera viewpoint</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+K, S</string>
+    <string>Ctrl+K, B</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ShortcutContext::WindowShortcut</enum>
@@ -376,8 +395,33 @@ font-size: 11px;
    <property name="text">
     <string>Restore Viewpoint</string>
    </property>
+   <property name="toolTip">
+    <string>Restores the current camera viewpoint from the bookmark</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+K, R</string>
+   </property>
+  </action>
+  <action name="actionImport_Viewpoint">
+   <property name="text">
+    <string>Import Viewpoint ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Import camera viewpoint from a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K, I</string>
+   </property>
+  </action>
+  <action name="actionExport_Viewpoint">
+   <property name="text">
+    <string>Export Viewpoint ...</string>
+   </property>
+   <property name="toolTip">
+    <string>Export camera viewpoint to a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K, E</string>
    </property>
   </action>
   <action name="actionContinuous_Update">
@@ -400,6 +444,24 @@ font-size: 11px;
    </property>
    <property name="shortcut">
     <string>Ctrl+K, X</string>
+   </property>
+  </action>
+  <action name="actionColorBar_Visible">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Resources/SNAPResources.qrc">
+     <normaloff>:/root/color_bar.png</normaloff>:/root/color_bar.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Color Bar</string>
+   </property>
+   <property name="toolTip">
+    <string>Show or Hide 3D Color Bar</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::TextHeuristicRole</enum>
    </property>
   </action>
  </widget>

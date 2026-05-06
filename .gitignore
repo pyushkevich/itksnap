@@ -19,4 +19,11 @@ CTestConfig.cmake.user*
 # Notebook stuff
 Utilities/Translation/.ipynb_checkpoints
 
+# Build directories
 build/
+
+# Local Claude Code instructions (not for sharing)
+CLAUDE.local.md
+
+# clangd cache
+.cache/

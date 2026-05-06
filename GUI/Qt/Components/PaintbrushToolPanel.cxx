@@ -8,6 +8,7 @@
 #include "PreferencesDialog.h"
 #include "QtRadioButtonCoupling.h"
 #include "QtCheckBoxCoupling.h"
+#include "QtComboBoxCoupling.h"
 #include "QtDoubleSpinBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
 #include "QtSliderCoupling.h"
@@ -15,6 +16,8 @@
 #include "DeepLearningSegmentationModel.h"
 #include "GlobalUIModel.h"
 #include "DeepLearningConnectionStatusCouplingTraits.h"
+
+#include "QtProgressDelegate.h"
 
 PaintbrushToolPanel::PaintbrushToolPanel(QWidget *parent) :
   SNAPComponent(parent),
@@ -105,6 +108,15 @@ void PaintbrushToolPanel::SetModel(PaintbrushSettingsModel *model)
   // Connect with the deep learning model
   auto *dls = m_Model->GetParentModel()->GetDeepLearningSegmentationModel();
   makeCoupling(ui->outDLStatus, dls->GetServerStatusModel(), MiniConnectionStatusQLabelValueTraits());
+
+  // The listing of DL models should be deactivated when there are no available models
+  QtCouplingOptions opts_dl(QtCouplingOptions::DEACTIVATE_WHEN_INVALID);
+  makeCoupling(ui->inDLPipeline, model->GetDeepLearningPipelineModel(), opts_dl);
+
+  MainImageWindow *winmain = findParentWidget<MainImageWindow>(this);
+
+  auto *del = new QtProgressDelegate(winmain->GetProgressWidget(), winmain);
+  dls->SetProgressDelegate(del);
 }
 
 void

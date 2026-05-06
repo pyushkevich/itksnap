@@ -253,3 +253,23 @@ void GenericView3D::onToolbarModeChange()
   setMouseTracking(mode == SCALPEL_MODE);
 }
 
+void
+GenericView3D::enterEvent(QEnterEvent *ev)
+{
+  emit mouseEntered();
+  QtVTKRenderWindowBox::enterEvent(ev);
+}
+
+void
+GenericView3D::leaveEvent(QEvent *ev)
+{
+  emit mouseLeft();
+  QtVTKRenderWindowBox::leaveEvent(ev);
+}
+
+void
+GenericView3D::resizeEvent(QResizeEvent *evt)
+{
+  emit resized();
+  QtVTKRenderWindowBox::resizeEvent(evt);
+}

@@ -22,6 +22,7 @@
 #include "ImageIOWizardModel.h"
 #include "ImageIOWizard.h"
 #include "GuidedMeshIO.h"
+#include "ImageIORemote.h"
 #include <itkImageIOBase.h>
 #include <QFileInfo>
 
@@ -70,6 +71,12 @@ void DropActionDialog::SetDroppedFilename(QString name)
   else
     {
     this->SetIncludeMeshOptions(false);
+
+    // Remote URLs cannot be probed locally — skip the header read and use
+    // sensible defaults (the actual load happens via RemoteImageSource).
+    if(IsRemoteImageURL(to_utf8(name)))
+      return;
+
     // Run segmentation 3d & 4d check
     auto io = GuidedNativeImageIO::New();
     Registry dummyReg;
@@ -162,11 +169,15 @@ void DropActionDialog::on_btnLoadMeshAsLayer_clicked()
   std::string ext = fn.substr(fn.find_last_of("."));
   std::vector<std::string> fn_list { fn };
 
-  // Create a message box reminding user
+  // Create a message box reminding user, but only if there is more than one timepoint
+  int ret = QMessageBox::Ok;
   unsigned int displayTP = m_Model->GetDriver()->GetCursorTimePoint() + 1; // always display 1-based time point
-  QMessageBox *msgBox = MeshImportWizard::CreateLoadToNewLayerMessageBox(this, displayTP);
-  int ret = msgBox->exec();
-  delete msgBox;
+  if(m_Model->GetDriver()->GetNumberOfTimePoints() > 1)
+  {
+    QMessageBox *msgBox = MeshImportWizard::CreateLoadToNewLayerMessageBox(this, displayTP);
+    ret = msgBox->exec();
+    delete msgBox;
+  }
 
   switch (ret)
     {
@@ -321,15 +332,18 @@ void DropActionDialog::LoadCommon(AbstractOpenImageDelegate *delegate)
     QtCursorOverride c(Qt::WaitCursor);
 
 		// Show a progress dialog
+    /*
 		auto parentWidget = static_cast<QWidget*>(this->parent());
 		using namespace imageiowiz;
 		ImageIOProgressDialog::ScopedPointer progress(new ImageIOProgressDialog(parentWidget));
 		this->hide();
 		progress->display();
-
+    */
 		SmartPtr<ImageReadingProgressAccumulator> irProgAccum =
 				ImageReadingProgressAccumulator::New();
+    /*
 		irProgAccum->AddObserver(itk::ProgressEvent(), progress->createCommand());
+    */
 
     try
       {
@@ -339,7 +353,7 @@ void DropActionDialog::LoadCommon(AbstractOpenImageDelegate *delegate)
       }
     catch(exception &exc)
       {
-      progress->close();
+      // progress->close();
       QMessageBox b(this);
       b.setText(tr("Failed to load image %1").arg(ui->outFilename->text()));
       b.setDetailedText(exc.what());

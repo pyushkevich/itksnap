@@ -57,6 +57,8 @@ class ImageIOWizard;
 class ImageIOWizardModel;
 class DistributedSegmentationDialog;
 
+class ProgressReportWidget;
+
 class QTimer;
 
 class SplashPanel;
@@ -134,6 +136,9 @@ public:
 
   /** Save the project (interactively or not) */
   bool SaveWorkspace(bool interactive);
+
+  // TODO: remove this, meant to be temporary for testing
+  ProgressReportWidget *GetProgressWidget() const { return m_ProgressFader; }
 
 public slots:
 
@@ -415,6 +420,9 @@ private:
 
   // Progress dialog
   QProgressDialog *m_Progress;
+
+  // New progress reporter widget
+  ProgressReportWidget *m_ProgressFader;
 
   // IRIS main toolbox (in left dock)
   MainControlPanel *m_ControlPanel;

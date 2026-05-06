@@ -77,7 +77,7 @@ void MeshImportFileSelectionPage::initializePage()
     // Create the file panel
     ui->filePanel->initializeForOpenFile(
           m_Model->GetParentModel(),
-          "Mesh file name: ",
+          tr("Mesh file name: "),
           from_utf8(m_Model->GetHistoryName()),
           filter,
           QString(), from_utf8(domain[GuidedMeshIO::FORMAT_VTK]));
@@ -87,7 +87,7 @@ void MeshImportFileSelectionPage::initializePage()
     // Create directory file panel
     ui->filePanel->initializeForOpenFiles(
           m_Model->GetParentModel(),
-          "Mesh series files: ",
+          tr("Mesh series files: "),
           from_utf8(m_Model->GetHistoryName()),
           filter,
           QString(), from_utf8(domain[GuidedMeshIO::FORMAT_VTK]));

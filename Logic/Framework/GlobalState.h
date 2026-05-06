@@ -169,6 +169,7 @@ struct PaintbrushSettings
   bool chase;
 
   PaintbrushWatershedSettings watershed;
+  std::string dl_pipeline_id;
 };
 
 /** Annotation settings */

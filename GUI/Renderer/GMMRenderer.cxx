@@ -22,6 +22,11 @@
 
 unsigned int GMMRenderer::NUM_POINTS = 200;
 
+GMMRenderer::~GMMRenderer()
+{
+  delete m_HistogramAssembly;
+}
+
 GMMRenderer::GMMRenderer()
 {
   m_Model = NULL;

@@ -716,7 +716,8 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
       // Catch exceptions from the deep learning model
       try
       {
-        dlm->PerformLassoInteraction(img, w_delta, counts.n_background > counts.n_foreground);
+        // TODO: set up the model dropdown!
+        dlm->PerformLassoInteraction("nnInteractive", img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
 
         // Store the correct undo point
         driver->GetSelectedSegmentationLayer()->StoreUndoPoint("nnInteractive Lasso operation");

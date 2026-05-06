@@ -26,10 +26,11 @@ ImageMeshLayers::AddLayer(MeshWrapperBase *meshLayer, bool notifyInspector)
   unsigned long id = meshLayer->GetUniqueId();
   m_Layers[id] = meshLayer;
 
-  Rebroadcaster::Rebroadcast(meshLayer, ValueChangedEvent(),
-                             this, ActiveLayerChangeEvent());
-  Rebroadcaster::Rebroadcast(meshLayer, WrapperDisplayMappingChangeEvent(),
-                             this, WrapperDisplayMappingChangeEvent());
+  Rebroadcaster::Rebroadcast(meshLayer, ValueChangedEvent(), this, MeshContentChangeEvent());
+  Rebroadcaster::Rebroadcast(
+    meshLayer, WrapperDisplayMappingChangeEvent(), this, WrapperDisplayMappingChangeEvent());
+  Rebroadcaster::Rebroadcast(
+    meshLayer, WrapperMetadataChangeEvent(), this, WrapperMetadataChangeEvent());
 
   // Invoke to trigger initial rendering of the mesh
   SetActiveLayerId(id);
@@ -130,7 +131,7 @@ ImageMeshLayers
 
   if (m_IsSNAP)
     {
-    auto snap = dynamic_cast<SNAPImageData*>(m_ImageData.GetPointer());
+    auto snap = dynamic_cast<SNAPImageData*>(m_ImageData);
 
     // if failed, check constructor why m_isSNAP is true
     assert(snap);
@@ -318,7 +319,7 @@ ImageMeshLayers::IsActiveMeshLayerDirty()
   if (m_IsSNAP)
     {
     // Dirty check for LevelSet Image
-    auto snap = static_cast<SNAPImageData*>(m_ImageData.GetPointer());
+    auto snap = static_cast<SNAPImageData*>(m_ImageData);
 
     assert(snap);
 

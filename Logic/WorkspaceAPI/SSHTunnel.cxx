@@ -18,6 +18,119 @@
 #include <cstdarg>
 #include <algorithm>
 
+ssh_session
+SSHTunnel::OpenSession(const char *remote_host,
+                       const char *username,
+                       const char *keyfile,
+                       Callback    callback,
+                       void       *callback_data,
+                       bool        verbose)
+{
+  ssh_init();
+  ssh_set_log_level(SSH_LOG_WARN);
+
+  if (verbose)
+    std::cout << "Creating SSH session to " << remote_host << std::endl;
+
+  ssh_session session = ssh_new();
+  if (!session)
+  {
+    callback(CB_ERROR, ErrorInfo({"Error creating SSH session"}), callback_data);
+    return nullptr;
+  }
+
+  // RAII guard: frees the session on all error paths; caller must call release() on success
+  struct Guard
+  {
+    ssh_session s;
+    bool        released = false;
+    ~Guard()
+    {
+      if (!released)
+      {
+        if (ssh_is_connected(s))
+          ssh_disconnect(s);
+        ssh_free(s);
+      }
+    }
+    ssh_session release() { released = true; return s; }
+  } guard{session};
+
+  auto fail = [&](const char *fmt, ...) -> ssh_session {
+    char    buf[1024];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, 1024, fmt, args);
+    va_end(args);
+    callback(CB_ERROR, ErrorInfo({buf}), callback_data);
+    return nullptr;
+  };
+
+  if (ssh_options_set(session, SSH_OPTIONS_HOST, remote_host) != SSH_OK)
+    return fail("Error setting SSH hostname to %s: %s", remote_host, ssh_get_error(session));
+
+  if (username && strlen(username) > 0)
+  {
+    if (verbose)
+      std::cout << "Setting username to " << username << std::endl;
+    if (ssh_options_set(session, SSH_OPTIONS_USER, username) != SSH_OK)
+      return fail("Error setting SSH username to %s: %s", username, ssh_get_error(session));
+  }
+
+  if (keyfile && strlen(keyfile) > 0)
+  {
+    if (verbose)
+      std::cout << "Setting identity file to " << keyfile << std::endl;
+    if (ssh_options_set(session, SSH_OPTIONS_ADD_IDENTITY, keyfile) != SSH_OK)
+      return fail("Error setting SSH identity file to %s: %s", keyfile, ssh_get_error(session));
+  }
+
+  // Apply ~/.ssh/config (fills in User, IdentityFile, etc. not already set explicitly)
+  ssh_options_parse_config(session, NULL);
+
+  if (ssh_connect(session) != SSH_OK)
+    return fail("SSH connection to %s failed: %s", remote_host, ssh_get_error(session));
+
+  // Try public-key auth first (auto-detects keys in ~/.ssh)
+  if (ssh_userauth_publickey_auto(session, NULL, NULL) == SSH_AUTH_SUCCESS)
+  {
+    if (verbose)
+      std::cout << "Authenticated using auto-detected key" << std::endl;
+    return guard.release();
+  }
+
+  // Fall back to interactive password via callback.
+  // username may be empty when none appears in the URL — pass an empty string
+  // to CB_PROMPT_PASSWORD so the callback knows to ask for both username and
+  // password (PromptForUsernameAndPassword path).
+  std::string prompt_username = (username && strlen(username)) ? username : "";
+  std::string error_msg;
+  while (true)
+  {
+    auto rc = callback(
+      CB_PROMPT_PASSWORD,
+      PromptPasswordInfo({remote_host, prompt_username, error_msg}),
+      callback_data);
+
+    if (rc.first)
+      return nullptr; // user aborted; guard cleans up
+
+    // The callback may have updated prompt_username (username+password dialog).
+    // Apply it to the session before attempting authentication.
+    if (!prompt_username.empty())
+      ssh_options_set(session, SSH_OPTIONS_USER, prompt_username.c_str());
+
+    if (ssh_userauth_password(session, nullptr, rc.second.c_str()) == SSH_AUTH_SUCCESS)
+    {
+      if (verbose)
+        std::cout << "Authenticated using password" << std::endl;
+      return guard.release();
+    }
+    error_msg = ssh_get_error(session);
+  }
+}
+
+
 int
 SSHTunnel::run(const char *remote_host,
                int         remote_port,
@@ -27,8 +140,32 @@ SSHTunnel::run(const char *remote_host,
                void       *callback_data,
                bool        verbose)
 {
+  auto fail = [callback, callback_data](int rc, const char *message, ...) {
+    char buf[1024];
+    va_list args;
+    va_start(args, message);
+    vsnprintf(buf, 1024, message, args);
+    va_end(args);
+    callback(CB_ERROR, ErrorInfo({buf}), callback_data);
+    return rc;
+  };
+
   // Create a server socket
   int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+  if (server_socket < 0)
+    return fail(RC_SOCKET_ERROR, "Error creating server socket: %s", strerror(errno));
+
+  // RAII guard to ensure server socket is closed on all return paths
+  struct ServerSocketGuard {
+    int fd;
+    ~ServerSocketGuard() {
+#ifndef _WIN32
+      ::close(fd);
+#else
+      ::closesocket(fd);
+#endif
+    }
+  } server_socket_guard{server_socket};
 
   // Bind server_socket to address
   struct sockaddr_in address, bound_address;
@@ -36,120 +173,33 @@ SSHTunnel::run(const char *remote_host,
   address.sin_family = AF_INET;
   address.sin_port = htons(0);
   address.sin_addr.s_addr = INADDR_ANY;
-  bind(server_socket, (struct sockaddr *) &address, address_size);
+  if (bind(server_socket, (struct sockaddr *) &address, address_size) < 0)
+    return fail(RC_SOCKET_ERROR, "Error binding server socket: %s", strerror(errno));
 
   // Get the port to which the socket is bound
   memset(&bound_address, '\0', sizeof(bound_address));
   socklen_t bound_address_size = sizeof(bound_address);
-  getsockname(server_socket, (struct sockaddr *) &bound_address, &bound_address_size);
-  char bound_ip[16];
-  inet_ntop(AF_INET, &bound_address.sin_addr, bound_ip, sizeof(bound_ip));
+  if (getsockname(server_socket, (struct sockaddr *) &bound_address, &bound_address_size) < 0)
+    return fail(RC_SOCKET_ERROR, "Error getting server socket address: %s", strerror(errno));
   int bound_port = ntohs(bound_address.sin_port);
 
   // Buffer for IO
   constexpr int buffer_size = 1024 * 1024;
   std::vector<char> buffer(buffer_size, 0);
 
-  // TODO: this is in the wrong place
-  ssh_init();
-  ssh_set_log_level(SSH_LOG_WARN);
-
-  // Create a new session
-  if(verbose)
-    std::cout << "Creating tunnel to " << remote_host << std::endl;
-  ssh_session session = ssh_new();
-
-  // Define an easy to call error function
-  auto fail = [callback, callback_data](int rc, const char *message, ...) {
-
-    // Format the message
-    char buffer[1024];
-    va_list args;
-    va_start(args, message);
-    vsnprintf(buffer, 1024, message, args);
-    va_end (args);
-
-    // Call the error callback
-    callback(CB_ERROR, ErrorInfo({buffer}), callback_data);
-    return rc;
-  };
-
+  // Open an authenticated SSH session
+  ssh_session session = OpenSession(remote_host, username, keyfile, callback, callback_data, verbose);
   if (!session)
-    return fail(RC_SSH_ERROR, "Error creating SSH session");
+    return RC_SSH_ERROR;
 
-  // Create a session object that will perform cleanup on exit
   SessionGuard sguard(session, verbose);
 
-  // Set the host option
-  if(verbose)
-    std::cout << "Setting hostname to " << remote_host << std::endl;
-  if (ssh_options_set(session, SSH_OPTIONS_HOST, remote_host) != SSH_OK)
-    return fail(RC_SSH_ERROR, "Error setting ssh hostname to %s: %s", remote_host, ssh_get_error(session));
-
-  // Set the username option
-  if (username && strlen(username) > 0)
-  {
-    if(verbose)
-      std::cout << "Setting username to " << username << std::endl;
-    if (ssh_options_set(session, SSH_OPTIONS_USER, username) != SSH_OK)
-      return fail(RC_SSH_ERROR, "Error setting ssh usename to %s: %s", username, ssh_get_error(session));
-  }
-
-  // Connect to remote
-  if (ssh_connect(session) != SSH_OK)
-    return fail(RC_SSH_ERROR, "SSH connection failed: %s", ssh_get_error(session));
-
-  // Authenticate using the private key
-  bool        auth = false;
-  std::string err_pubkey, err_password;
-  if (ssh_userauth_publickey_auto(session, NULL, NULL) == SSH_AUTH_SUCCESS)
-  {
-    if(verbose)
-      std::cout << "Successfully authenticated using auto-detected key" << std::endl;
-    auth = true;
-  }
-  else
-  {
-    err_pubkey = ssh_get_error(session);
-  }
-
-  // Prompt for the password via callback
-  if(!auth)
-  {
-    // If there is no username, we cannot continue
-    if(!username || !strlen(username))
-      return fail(RC_SSH_ERROR, "No username provided for SSH authentication");
-    std::string error_msg;
-    while(true)
-    {
-      // Do the callback
-      auto rc = callback(
-        CB_PROMPT_PASSWORD, PromptPasswordInfo({ remote_host, username, error_msg }), callback_data);
-
-      // Interrupted by the user - did not provide password
-      if(rc.first)
-        return RC_USER_ABORT;
-
-      // Authorize using the password.
-      if(ssh_userauth_password(session, nullptr, rc.second.c_str()) == SSH_AUTH_SUCCESS)
-      {
-        if(verbose)
-          std::cout << "Successfully authenticated using password" << std::endl;
-        auth = true;
-        break;
-      }
-      else
-      {
-        error_msg = ssh_get_error(session);
-      }
-    }
-  }
-
   // Put the socket into listen mode
-  listen(server_socket, 4);
+  if (listen(server_socket, 4) < 0)
+    return fail(RC_SOCKET_ERROR, "Error listening on server socket: %s", strerror(errno));
 
-  // At this point, we are ready to serve tunnel corrections
-  if(callback(CB_READY, ReadyInfo({bound_ip, bound_port}), callback_data).first)
+  // At this point, we are ready to serve tunnel connections
+  if(callback(CB_READY, ReadyInfo({"localhost", bound_port}), callback_data).first)
     return RC_USER_ABORT;
 
   // Data for ssh_select
@@ -164,10 +214,13 @@ SSHTunnel::run(const char *remote_host,
     FD_ZERO(&fs);
     FD_SET(server_socket, &fs);
 
-    // Create a list of channels to be passed to ssh_select
+    // Create a list of channels to be passed to ssh_select. ch_out must be fully
+    // cleared each iteration: ssh_select writes only ready channels into ch_out
+    // (null-terminated list), leaving any remaining slots untouched. Stale non-null
+    // entries from a prior iteration would cause false positives in the find below.
     ch_in.reserve(sguard.GetTunnels().size() + 1);
     ch_in.clear();
-    ch_out.resize(sguard.GetTunnels().size() + 1, nullptr);
+    ch_out.assign(sguard.GetTunnels().size() + 1, nullptr);
     for (auto it : sguard.GetTunnels())
     {
       FD_SET(it.first, &fs);
@@ -238,11 +291,11 @@ SSHTunnel::run(const char *remote_host,
             std::cout << "Read " << n_read << " bytes from socket " << it.first << std::endl;
           int n_written = ssh_channel_write(it.second, buffer.data(), n_read);
           if (n_written != n_read)
-            fail(RC_SSH_ERROR,
-                 "Error writing to SSH tunnel, only %d of %d bytes written: %s",
-                 n_written,
-                 n_read,
-                 ssh_get_error(session));
+            return fail(RC_SSH_ERROR,
+                        "Error writing to SSH tunnel, only %d of %d bytes written: %s",
+                        n_written,
+                        n_read,
+                        ssh_get_error(session));
           if(verbose)
             std::cout << "Wrote " << n_written << " bytes to channel" << std::endl;
         }
@@ -302,7 +355,7 @@ SSHTunnel::run(const char *remote_host,
               RC_SOCKET_ERROR, "Error writing to client socket %d, %s", it.first, strerror(errno));
         }
         else if (n_avail < 0)
-          return fail(RC_SSH_ERROR, "Error polling SSH channel: %s", strerror(errno));
+          return fail(RC_SSH_ERROR, "Error polling SSH channel: %s", ssh_get_error(session));
 
         if (ssh_channel_is_eof(it.second))
         {

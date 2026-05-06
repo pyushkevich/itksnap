@@ -124,5 +124,6 @@ public: \
 };
 
 irisExceptionMacro(IRISExceptionIO,IRISException)
+irisExceptionMacro(IRISUserCancelException,IRISException)
 
 #endif

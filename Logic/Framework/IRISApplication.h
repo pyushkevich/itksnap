@@ -47,10 +47,13 @@
 #include "SystemInterface.h"
 #include "UndoDataManager.h"
 #include "SNAPEvents.h"
+#include "StdoutProgressDelegate.h"
+#include "StdoutSSHAuthDelegate.h"
 
 // #include "itkImage.h"
 
 // Forward reference to the classes pointed at
+class SSHConnectionPool;
 class GenericImageData;
 class IRISException;
 class IRISImageData;
@@ -597,11 +600,16 @@ public:
   /**
     Apply a binary drawing performed on an orthogonal slice to the
     main segmentation.
+
+    The flag additive, if true, means that only positive pixels in the drawing
+    are considered, and are added to the 3D segmentation. If false, negative pixels
+    in the drawing will be used to clear pixels in the segmentation if they have the
+    current draw-over label.
     */
   unsigned int UpdateSegmentationWithSliceDrawing(
       SliceBinaryImageType *drawing,
       const ImageCoordinateTransform *xfmSliceToImage,
-      double zSlice,
+      double zSlice, bool additive,
       const std::string &undoTitle);
 
   /**
@@ -655,6 +663,19 @@ public:
    * Open an existing project.
    */
   void OpenProject(const std::string &proj_file, IRISWarningList &warn);
+
+  /**
+   * Set a delegate that receives progress notifications during remote image
+   * downloads (scp://, sftp:// URLs). Pass nullptr to disable GUI reporting.
+   */
+  irisGetSetMacro(ProgressDelegate, AbstractProgressDelegate *)
+
+  /**
+   * Set a delegate that handles SSH authentication prompts (password /
+   * passphrase dialogs) when public-key auth fails for remote URLs.
+   * Pass nullptr to disable interactive prompting.
+   */
+  irisGetSetMacro(SSHAuthDelegate, AbstractSSHAuthDelegate *)
 
   /**
    * Get Moved File Path from the absolute file path in the original project file
@@ -799,6 +820,25 @@ protected:
 
   // Color map preset manager
   SmartPtr<ColorMapPresetManager> m_ColorMapPresetManager;
+
+  // Active SSH connection pool, set during a remote workspace load so that
+  // all image downloads within the same batch share already-authenticated
+  // sessions, avoiding repeated SSH handshakes.  Null at all other times.
+  SmartPtr<SSHConnectionPool> m_ActiveConnectionPool;
+
+  // Default progress delegate: renders tasks to stdout.  GUI layers replace
+  // this with a Qt delegate and restore it afterwards via SetProgressDelegate.
+  // m_DefaultProgressDelegate must be declared before m_ProgressDelegate so
+  // the in-class initialiser below is valid.
+  StdoutProgressDelegate    m_DefaultProgressDelegate;
+  AbstractProgressDelegate *m_ProgressDelegate = &m_DefaultProgressDelegate;
+
+  // Optional delegate for SSH credential prompts. When set, password and
+  // passphrase dialogs are shown when public-key auth fails.
+  // Default SSH auth delegate: reads credentials from the terminal.
+  // Must be declared before m_SSHAuthDelegate for the initialiser below.
+  StdoutSSHAuthDelegate    m_DefaultSSHAuthDelegate;
+  AbstractSSHAuthDelegate *m_SSHAuthDelegate = &m_DefaultSSHAuthDelegate;
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;

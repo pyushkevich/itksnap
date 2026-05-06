@@ -10,6 +10,7 @@
 #include "SNAPAppearanceSettings.h"
 
 class vtkPolyData;
+class vtkUnsignedCharArray;
 
 /**
  * A dataset (texture or path) optimized for rendering. It inherits from AbstractModel
@@ -48,6 +49,11 @@ public:
   // Composition modes
   enum CompositionMode {
     SOURCE_OVER, DESTINATION_OVER, MULTIPLY, UNKNOWN
+  };
+
+  // How color is applied
+  enum PolyDataColorMode {
+    SOLID_COLOR, POINT_DATA, CELL_DATA
   };
 
   /** Create a texture from RGBA image. The image should be 32 bit aligned. */
@@ -110,7 +116,7 @@ public:
 
   // Contour rendering using VTK
   virtual ContourSet2DPtr CreateContourSet() = 0;
-  virtual void AddContoursToSet(ContourSet2D *cset, vtkPolyData *pd) = 0;
+  virtual void AddContoursToSet(ContourSet2D *cset, vtkPolyData *pd, PolyDataColorMode mode = SOLID_COLOR, vtkUnsignedCharArray *rgbvec = nullptr) = 0;
   virtual void BuildContourSet(ContourSet2D *cset) = 0;
   virtual void DrawContourSet(ContourSet2D *cset) = 0;
 

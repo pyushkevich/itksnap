@@ -6,9 +6,9 @@
 #include "TagList.h"
 #include "MeshWrapperBase.h"
 #include "MeshDataArrayProperty.h"
+#include "LayerTableRowModel.h"
 
 class AbstractMultiChannelDisplayMappingPolicy;
-class AbstractLayerTableRowModel;
 class TimePointProperties;
 
 /**
@@ -18,10 +18,11 @@ class GeneralLayerProperties
 {
 public:
   irisGetSetMacro(ObserverTag, unsigned long)
+  irisGetSetMacro(HistogramChangeObserverTag, unsigned long)
   irisGetSetMacro(VisibilityToggleModel, AbstractSimpleBooleanProperty *)
 
   GeneralLayerProperties()
-    : m_VisibilityToggleModel(NULL), m_ObserverTag(0) {}
+    : m_VisibilityToggleModel(NULL), m_ObserverTag(0), m_HistogramChangeObserverTag(0) {}
 
   virtual ~GeneralLayerProperties() {}
 
@@ -33,7 +34,7 @@ protected:
   SmartPtr<AbstractSimpleBooleanProperty> m_VisibilityToggleModel;
 
   // Whether or not we are already listening to events from this layer
-  unsigned long m_ObserverTag;
+  unsigned long m_ObserverTag, m_HistogramChangeObserverTag;
 };
 
 typedef AbstractLayerAssociatedModel<
@@ -89,10 +90,6 @@ public:
   typedef SimpleItemSetDomain<DisplayMode, std::string> DisplayModeDomain;
   typedef AbstractPropertyModel<DisplayMode, DisplayModeDomain> AbstractDisplayModeModel;
 
-  // Typedefs for mesh data multi-component display mode
-	typedef SimpleItemSetDomain<vtkIdType, std::string> MeshVectorModeDomain;
-	typedef AbstractPropertyModel<vtkIdType, MeshVectorModeDomain> AbstractMeshVectorModeModel;
-
   typedef MeshWrapperBase::MeshLayerCombinedPropertyMap MeshLayerDataPropertiesMap;
 
   // Models
@@ -124,14 +121,14 @@ public:
   /** A model for the current timepoint taglist */
   irisSimplePropertyAccessMacro(CrntTimePointTagList, TagList)
 
-  /** A model for mesh multi-component (vector) display mode */
-  irisGetMacro(MeshVectorModeModel, AbstractMeshVectorModeModel *)
-
   /** Getter for Mesh Layer Data Array Properties */
   bool GetMeshDataArrayPropertiesMap(MeshLayerDataPropertiesMap &outmap);
 
-  /** Setter for Active Layer Data Array Property Id */
-  void SetActiveMeshLayerDataPropertyId(int id);
+  /** Model for the active data property (-1 is solid color) */
+  irisGenericPropertyAccessMacro(ActiveMeshLayerDataPropertyId, int, MeshLayerTableRowModel::MeshDataArrayDomain)
+
+  /** A model for mesh multi-component (vector) display mode */
+  irisGenericPropertyAccessMacro(MeshVectorMode, vtkIdType, MeshLayerTableRowModel::MeshVectorModeDomain)
 
   /** Model for the current mesh solid color */
   irisSimplePropertyAccessMacro(MeshSolidColor, Vector3d)
@@ -151,10 +148,6 @@ protected:
   SmartPtr<AbstractDisplayModeModel> m_DisplayModeModel;
   bool GetDisplayModeValueAndRange(DisplayMode &value, DisplayModeDomain *domain);
   void SetDisplayModeValue(DisplayMode value);
-
-  SmartPtr<AbstractMeshVectorModeModel> m_MeshVectorModeModel;
-	bool GetMeshVectorModeValueAndRange(vtkIdType &value, MeshVectorModeDomain *domain);
-	void SetMeshVectorModeValue(vtkIdType value);
 
   SmartPtr<AbstractRangedIntProperty> m_SelectedComponentModel;
   bool GetSelectedComponentValueAndRange(int &value, NumericValueRange<int> *domain);
@@ -205,6 +198,8 @@ protected:
   // exposes are already exposed in LayerTableRowModel, so we delegate to
   // them.
   AbstractLayerTableRowModel *GetSelectedLayerTableRowModel();
+  MeshLayerTableRowModel *GetSelectedMeshLayerTableRowModel();
+  ImageLayerTableRowModel *GetSelectedImageLayerTableRowModel();
 
   // TimePoint Properties
   TimePointProperties *m_TimePointProperties;
@@ -218,6 +213,17 @@ protected:
   SmartPtr<AbstractSimpleTagListProperty> m_CrntTimePointTagListModel;
   bool GetCrntTimePointTagListValue(TagList &value);
   void SetCrntTimePointTagListValue(TagList value);
+
+  // Mesh active data property
+  using MeshLayerDataPropertyIdModel = AbstractPropertyModel<int, MeshLayerTableRowModel::MeshDataArrayDomain>;
+  SmartPtr<MeshLayerDataPropertyIdModel> m_ActiveMeshLayerDataPropertyIdModel;
+  bool GetActiveMeshLayerDataPropertyIdValueAndRange(int &value, MeshLayerTableRowModel::MeshDataArrayDomain *domain);
+  void SetActiveMeshLayerDataPropertyIdValue(int value);
+
+  using MeshVectorModeModel = AbstractPropertyModel<vtkIdType, MeshLayerTableRowModel::MeshVectorModeDomain>;
+  SmartPtr<MeshVectorModeModel> m_MeshVectorModeModel;
+  bool GetMeshVectorModeValueAndRange(vtkIdType &value, MeshLayerTableRowModel::MeshVectorModeDomain *domain);
+  void SetMeshVectorModeValue(vtkIdType value);
 
   // Mesh solid color
   SmartPtr<AbstractSimpleDoubleVec3Property> m_MeshSolidColorModel;

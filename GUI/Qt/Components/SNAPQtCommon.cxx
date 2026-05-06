@@ -16,6 +16,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsDropShadowEffect>
 #include <QDateTime>
+#include <QToolButton>
 #include "SNAPQtCommonTranslations.h"
 
 #include "QtCursorOverride.h"
@@ -340,6 +341,15 @@ QAction *FindUpstreamAction(QWidget *widget, const QString &targetActionName)
 QDialog *FindUpstreamDialog(QWidget *widget, const QString &targetActionName)
 {
   return FindUpstreamWidget<QDialog>(widget, targetActionName);
+}
+
+QWindow* FindUpstreamWindowHandle(QWidget *widget)
+{
+  // Find an upstream window that has a window handle
+  for(QWidget *w = widget; w != nullptr; w = w->parentWidget())
+    if(w->windowHandle())
+      return w->windowHandle();
+  return nullptr;
 }
 
 
@@ -670,4 +680,46 @@ QtColorMapPresetHelper::GetColorMapPresetNameSource()
 {
   static QtColorMapPresetNameSource source;
   return &source;
+}
+
+QToolButton *
+CreateContextToolButton(QWidget *parent)
+{
+  auto *button = new QToolButton(parent);
+  button->setIcon(QIcon(":/root/context_gray_10.png"));
+  button->setVisible(false);
+  button->setAutoRaise(true);
+  button->setIconSize(QSize(10,10));
+  button->setMinimumSize(QSize(16,16));
+  button->setMaximumSize(QSize(16,16));
+  button->setPopupMode(QToolButton::InstantPopup);
+  button->setStyleSheet("QToolButton::menu-indicator { image: none; }");
+  return button;
+}
+
+void
+DeepCopyMenuActions(QMenu *src, QMenu *trg)
+{
+  QList<QAction*> actions = src->actions();
+  for (const auto &it : std::as_const(actions))
+  {
+    QAction *action = it;
+    if(!action)
+      continue;
+    /*if (action->menu())
+    {
+      // Create a new menu and recursively copy its actions
+      QMenu *new_menu = trg->addMenu(action->text());
+      new_menu->setIcon(action->icon());
+      new_menu->setToolTip(action->toolTip());
+      new_menu->setStatusTip(action->statusTip());
+      new_menu->setVisible(action->isVisible())
+      DeepCopyMenuActions(action->menu(), new_menu);
+    }*/
+    else
+    {
+      // Create a new action and copy properties
+      trg->addAction(action);
+    }
+  }
 }

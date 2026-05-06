@@ -209,6 +209,10 @@
         <file>icons8_reset_16.png</file>
         <file>icons8_reset_16@2x.png</file>
         <file>html/external_citations.md</file>
+        <file>icons8_video_camera_16.png</file>
+        <file>icons8_video_camera_16@2x.png</file>
+        <file>icons8_video_camera_pad_16.png</file>
+        <file>icons8_video_camera_pad_16@2x.png</file>
     </qresource>
     <qresource prefix="/snapres">
         <file>snapres/EdgeForcesExample.png</file>
