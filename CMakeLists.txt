@@ -1735,6 +1735,21 @@ ELSEIF(WIN32)
     ENDIF(VCREDIST_EXE)
   ENDIF(MSVC_VERSION GREATER 1399)
 
+  # Register itksnap-sftp:// and itksnap-scp:// as URL scheme handlers so that
+  # tools like VS Code can open remote files directly in ITK-SNAP.
+  STRING(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS
+    "\n  WriteRegStr HKCR \"itksnap-sftp\" \"\" \"URL:ITK-SNAP sftp\""
+    "\n  WriteRegStr HKCR \"itksnap-sftp\" \"URL Protocol\" \"\""
+    "\n  WriteRegStr HKCR \"itksnap-sftp\\DefaultIcon\" \"\" \"$INSTDIR\\bin\\ITK-SNAP.exe,0\""
+    "\n  WriteRegStr HKCR \"itksnap-sftp\\shell\\open\\command\" \"\" \"$\\\"$INSTDIR\\bin\\ITK-SNAP.exe$\\\" $\\\"%1$\\\"\""
+    "\n  WriteRegStr HKCR \"itksnap-scp\" \"\" \"URL:ITK-SNAP scp\""
+    "\n  WriteRegStr HKCR \"itksnap-scp\" \"URL Protocol\" \"\""
+    "\n  WriteRegStr HKCR \"itksnap-scp\\DefaultIcon\" \"\" \"$INSTDIR\\bin\\ITK-SNAP.exe,0\""
+    "\n  WriteRegStr HKCR \"itksnap-scp\\shell\\open\\command\" \"\" \"$\\\"$INSTDIR\\bin\\ITK-SNAP.exe$\\\" $\\\"%1$\\\"\"")
+  STRING(APPEND CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS
+    "DeleteRegKey HKCR \"itksnap-sftp\""
+    "\nDeleteRegKey HKCR \"itksnap-scp\"")
+
   # Try setting the MSVC environment so we can debug from MSVC
   set_target_properties(ITK-SNAP PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:ITK-SNAP>"
                                             VS_DEBUGGER_COMMAND           "$<TARGET_FILE:ITK-SNAP>"
