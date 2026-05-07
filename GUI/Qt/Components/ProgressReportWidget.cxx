@@ -396,6 +396,9 @@ ProgressTaskWidget::ProgressTaskWidget(const QString &label, bool reportsProgres
   cancelButton->setFlat(true);
   cancelButton->setStyleSheet("QPushButton { color: rgba(255,255,255,180); font-size: 10px; padding: 0; }");
   connect(cancelButton, &QPushButton::clicked, this, &ProgressTaskWidget::cancelRequested);
+  QSizePolicy sp = cancelButton->sizePolicy();
+  sp.setRetainSizeWhenHidden(true);
+  cancelButton->setSizePolicy(sp);
 
   layout->addWidget(textLabel);
   layout->addWidget(progressBar);
