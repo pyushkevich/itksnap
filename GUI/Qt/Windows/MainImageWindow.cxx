@@ -82,6 +82,7 @@
 #include <SmoothLabelsDialog.h>
 #include "RegistrationDialog.h"
 #include "DistributedSegmentationDialog.h"
+#include "ImageIORemote.h"
 
 #include <QAbstractListModel>
 #include <QItemDelegate>
@@ -98,6 +99,10 @@
 #include <QShortcut>
 #include <QScreen>
 #include <QTextStream>
+#include <QProcess>
+#ifdef Q_OS_WIN
+#  include <windows.h>
+#endif
 
 QString read_tooltip_qt(const QString &filename)
 {
@@ -578,6 +583,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
         ValueChangedEvent(), this, SLOT(onModelUpdate(EventBucket)));
 
 
+  // Listen to file/URL drop requests from other ITK-SNAP instances via IPC
+  LatentITKEventNotifier::connect(
+        model->GetSynchronizationModel(), IPCDropEvent(),
+        this, SLOT(onModelUpdate(EventBucket)));
+
   // Listen to 4D Image Time Point Replay event
   LatentITKEventNotifier::connect(
         model->GetDriver()->GetGlobalState()->Get4DReplayModel(),
@@ -690,6 +700,11 @@ void MainImageWindow::Initialize(GlobalUIModel *model)
 
   // Set the synchronization state
   m_Model->GetSynchronizationModel()->SetCanBroadcast(this->isActiveWindow());
+
+  // Wire up the Window menu. On macOS the native menu bar only emits
+  // aboutToShow for non-empty menus, so seed one placeholder item.
+  ui->menuWindow->addAction(tr("(no windows)"));
+  connect(ui->menuWindow, &QMenu::aboutToShow, this, &MainImageWindow::onWindowMenuAboutToShow);
 }
 
 void MainImageWindow::ShowFirstTime()
@@ -733,6 +748,7 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
   bool layer_layout_changed = b.HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent());
   bool replay_4d_changed = b.HasEvent(ValueChangedEvent(), m_Model->GetGlobalState()->Get4DReplayModel());
   bool replay_4d_interval_changed = b.HasEvent(ValueChangedEvent(),  m_Model->GetGlobalState()->Get4DReplayIntervalModel());
+  bool ipc_uri_drop = b.HasEvent(IPCDropEvent(), m_Model->GetSynchronizationModel());
 
   if(main_changed)
     {
@@ -786,7 +802,9 @@ void MainImageWindow::onModelUpdate(const EventBucket &b)
   // call it's update method to make sure that those events are attended to
   this->GetModel()->GetSliceCoordinator()->Update();
 
-
+  // If a drop has occurred fire slot to open the drop dialog
+  if(ipc_uri_drop)
+    onIPCDrop();
 }
 
 void MainImageWindow::externalStyleSheetFileChanged(const QString &file)
@@ -1134,6 +1152,10 @@ void MainImageWindow::UpdateWindowTitle()
     this->setWindowTitle(tr("ITK-SNAP"));
     }
 
+  // Update the IPC instance directory slot with the new title
+  m_Model->GetSynchronizationModel()->UpdateWindowTitle(
+    this->windowTitle().toStdString());
+
   // Set up the save segmentation menu items
   if(segfile.length())
     {
@@ -1340,58 +1362,74 @@ void MainImageWindow::dragEnterEvent(QDragEnterEvent *event)
     }
 }
 
-void MainImageWindow::LoadDroppedFile(QString file)
+void
+MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
 {
+  auto *d = m_Model->GetDriver();
   try
-    {
+  {
     std::string filename = to_utf8(file);
     // Check if the dropped file is a project. For remote URLs (scp://, sftp://)
     // IsProjectFile cannot read the file content, so we fall back to checking
-    // the .itksnap extension.
-    bool isProject = m_Model->GetDriver()->IsProjectFile(filename.c_str())
-                     || file.endsWith(".itksnap", Qt::CaseInsensitive);
-    if(isProject)
-      {
-      // For the time being, the feature of opening the workspace in a new
-      // window is not implemented. Instead, we just prompt the user for
-      // unsaved changes.
-      if(!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
-        return;
+    // the .itksnap extension
+    bool isRemote = IsRemoteImageURL(filename);
+    bool isProject = (isRemote && file.endsWith(".itksnap", Qt::CaseInsensitive)) ||
+                     (!isRemote && d->IsProjectFile(filename.c_str()));
 
-      // Load the project
-      LoadProject(file);
+    if (isProject)
+    {
+      if (dragged_to_window || !d->IsMainImageLoaded())
+      {
+        // Since the user dragged the workspace to this window, they intend to have it
+        // opened in this window. So we prompt for unsaved changes and then open the
+        // workspace in this window
+        if (!SaveModifiedLayersDialog::PromptForUnsavedChanges(m_Model))
+          return;
+
+        // Load the project
+        LoadProject(file);
       }
+      else
+      {
+        // There is already something in this window and the user didn't direct the
+        // workspace to this window, so we should just open in a new ITK-SNAP
+        std::list<std::string> args;
+        args.push_back("-w");
+        args.push_back(filename);
+        m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
+      }
+    }
+
 
     else
+    {
+      if (d->IsMainImageLoaded())
       {
-      if(m_Model->GetDriver()->IsMainImageLoaded())
+        // check if it's a label description file (this only works locally)
+        if (!isRemote && d->GetColorLabelTable()->ValidateFile(filename.c_str()))
         {
-        // check if it's a label description file
-        if (m_Model->GetDriver()->GetColorLabelTable()->ValidateFile(filename.c_str()))
-          {
-          m_Model->GetDriver()->LoadLabelDescriptions(filename.c_str());
+          d->LoadLabelDescriptions(filename.c_str());
           return;
-          }
+        }
 
         // If an image is already loaded, we show the dialog
         m_DropDialog->SetDroppedFilename(file);
         m_DropDialog->setModal(true);
 
         RaiseDialog(m_DropDialog);
-        }
+      }
       else
-        {
+      {
         // Otherwise, load the main image directly
         m_DropDialog->InitialLoad(file);
-        }
       }
     }
+  }
   catch (exception &exc) // for minor exceptions, no need to crash the entire program
-    {
-      ReportNonLethalException(
-        this, exc, tr("File Dropping Error"), tr("Failed to load file %1").arg(file));
-    }
-
+  {
+    ReportNonLethalException(
+      this, exc, tr("File Dropping Error"), tr("Failed to load file %1").arg(file));
+  }
 }
 
 #ifdef __APPLE__
@@ -1402,6 +1440,7 @@ void MainImageWindow::LoadDroppedFile(QString file)
 void MainImageWindow::dropEvent(QDropEvent *event)
 {
   QUrl url = event->mimeData()->urls().first();
+  qDebug() << "DROP EVENT: " << url;
 
 #if defined(__APPLE__) && QT_VERSION >= 0x050000
   // TODO: this is a Yosemite bug fix - bug https://bugreports.qt.io/browse/QTBUG-40449
@@ -1468,7 +1507,7 @@ void MainImageWindow::dropEvent(QDropEvent *event)
 
   QString file = url.toLocalFile();
   event->acceptProposedAction();
-  LoadDroppedFile(file);
+  LoadDroppedFile(file, true);
 }
 
 QActionGroup *MainImageWindow::GetMainToolActionGroup()
@@ -2509,6 +2548,95 @@ void MainImageWindow::on_actionNew_ITK_SNAP_Window_triggered()
   args.push_back("--cwd");
   args.push_back(to_utf8(GetFileDialogPath(m_Model, "MainImage")));
   m_Model->GetSystemInterface()->LaunchChildSNAPSimple(args);
+}
+
+static void RaiseWindowByPid(long pid)
+{
+#if defined(Q_OS_MACOS)
+  // Use AppleScript to bring the process to the front
+  QString script = QString(
+    "tell application \"System Events\" to set frontmost of "
+    "first process whose unix id is %1 to true").arg(pid);
+  QProcess::startDetached("osascript", {"-e", script});
+
+#elif defined(Q_OS_WIN)
+  // Walk all top-level windows and raise the first visible one owned by pid
+  struct FindData { DWORD pid; HWND hwnd; };
+  FindData fd{ static_cast<DWORD>(pid), nullptr };
+  EnumWindows([](HWND hwnd, LPARAM lp) -> BOOL {
+    auto *d = reinterpret_cast<FindData *>(lp);
+    DWORD wpid = 0;
+    GetWindowThreadProcessId(hwnd, &wpid);
+    if (wpid == d->pid && IsWindowVisible(hwnd)) {
+      d->hwnd = hwnd;
+      return FALSE;
+    }
+    return TRUE;
+  }, reinterpret_cast<LPARAM>(&fd));
+  if (fd.hwnd) {
+    ShowWindow(fd.hwnd, SW_RESTORE);
+    SetForegroundWindow(fd.hwnd);
+  }
+
+#elif defined(Q_OS_LINUX)
+  // Requires wmctrl; silently does nothing if not installed
+  QString pidStr = QString::number(pid);
+  QProcess proc;
+  proc.start("wmctrl", {"-lp"});
+  proc.waitForFinished(2000);
+  for (const QByteArray &line : proc.readAllStandardOutput().split('\n'))
+  {
+    QList<QByteArray> cols = line.simplified().split(' ');
+    if (cols.size() >= 3 && cols[2] == pidStr.toLatin1())
+    {
+      QProcess::startDetached("wmctrl", {"-ia", QString::fromLatin1(cols[0])});
+      break;
+    }
+  }
+#endif
+}
+
+void MainImageWindow::onWindowMenuAboutToShow()
+{
+  ui->menuWindow->clear();
+
+  long myPid = QCoreApplication::applicationPid();
+  auto instances = m_Model->GetSynchronizationModel()->GetRunningInstances();
+
+  if (instances.empty())
+  {
+    QAction *a = ui->menuWindow->addAction(tr("No other windows open"));
+    a->setEnabled(false);
+    return;
+  }
+
+  for (auto &[pid, title] : instances)
+  {
+    QString label = title.empty() ? tr("ITK-SNAP") : QString::fromStdString(title);
+    QAction *a = ui->menuWindow->addAction(label);
+    if (pid == myPid)
+    {
+      a->setCheckable(true);
+      a->setChecked(true);
+    }
+    else
+    {
+      connect(a, &QAction::triggered, this, [pid]() { RaiseWindowByPid(pid); });
+    }
+  }
+}
+
+void MainImageWindow::onIPCDrop()
+{
+  std::string fn = m_Model->GetSynchronizationModel()->GetPendingDropFilename();
+  if (fn.empty())
+    return;
+
+  // Bring this window to the front before showing the drop dialog
+  raise();
+  activateWindow();
+
+  LoadDroppedFile(QString::fromStdString(fn), true);
 }
 
 void MainImageWindow::on_actionUnload_All_Overlays_triggered()

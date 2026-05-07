@@ -24,7 +24,8 @@ SSHTunnel::OpenSession(const char *remote_host,
                        const char *keyfile,
                        Callback    callback,
                        void       *callback_data,
-                       bool        verbose)
+                       bool        verbose,
+                       int         port)
 {
   ssh_init();
   ssh_set_log_level(SSH_LOG_WARN);
@@ -85,8 +86,16 @@ SSHTunnel::OpenSession(const char *remote_host,
       return fail("Error setting SSH identity file to %s: %s", keyfile, ssh_get_error(session));
   }
 
-  // Apply ~/.ssh/config (fills in User, IdentityFile, etc. not already set explicitly)
+  // Apply ~/.ssh/config (fills in User, IdentityFile, Port, etc. not already set explicitly)
   ssh_options_parse_config(session, NULL);
+
+  // An explicit port in the URL overrides whatever ~/.ssh/config may have set
+  if (port > 0)
+  {
+    unsigned int uport = static_cast<unsigned int>(port);
+    if (ssh_options_set(session, SSH_OPTIONS_PORT, &uport) != SSH_OK)
+      return fail("Error setting SSH port to %d: %s", port, ssh_get_error(session));
+  }
 
   if (ssh_connect(session) != SSH_OK)
     return fail("SSH connection to %s failed: %s", remote_host, ssh_get_error(session));

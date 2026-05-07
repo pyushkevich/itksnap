@@ -391,3 +391,9 @@ QtSharedMemorySystemInterface::GetProcessID()
 {
   return (int)QCoreApplication::applicationPid();
 }
+
+size_t
+QtSharedMemorySystemInterface::GetSize()
+{
+  return static_cast<size_t>(m_SharedMem->size());
+}

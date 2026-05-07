@@ -1,4 +1,5 @@
 #include "IRISApplication.h"
+#include "ImageIORemote.h"
 #include "MeshImportModel.h"
 #include "ProgressReportWidget.h"
 #include "ProgressReportDialog.h"
@@ -449,6 +450,21 @@ DecodeFilename(const std::string &in_string)
 #endif
 }
 
+/**
+ Resolve a command-line argument that may be a local path or a remote URL.
+ itksnap-* schemes are stripped to their underlying protocol (sftp://, scp://).
+ Remote URLs are returned as-is; local paths are passed through DecodeFilename
+ so that Windows short/long path expansion is applied.
+*/
+std::string
+DecodeFileOrUrl(const std::string &in_string)
+{
+  std::string resolved = ResolveITKSnapURL(in_string);
+  if (IsRemoteImageURL(resolved))
+    return resolved;
+  return DecodeFilename(resolved);
+}
+
 
 /**
  * This function takes the command-line arguments and parses them into the
@@ -591,7 +607,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
     }
 
     // Get the workspace filename
-    argdata.fnWorkspace = DecodeFilename(parseResult.GetOptionParameter("--workspace"));
+    argdata.fnWorkspace = DecodeFileOrUrl(parseResult.GetOptionParameter("--workspace"));
   }
 
   // No workspace, just images
@@ -606,19 +622,16 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
     bool have_main = false;
     if (parseResult.IsOptionPresent("--grey"))
     {
-      argdata.fnMain = DecodeFilename(parseResult.GetOptionParameter("--grey"));
+      argdata.fnMain = DecodeFileOrUrl(parseResult.GetOptionParameter("--grey"));
       have_main = true;
     }
     else if (iTrailing < argc)
     {
       // On Windows, URL scheme handlers pass the URL as a plain positional
-      // argument (e.g. ITK-SNAP.exe "itksnap-sftp://host/path"). Detect and
-      // resolve these the same way --test-url does.
-      QString arg = QString::fromUtf8(argv[iTrailing]);
-      if (arg.startsWith("itksnap-"))
-        argdata.fnMain = SNAPQApplication::resolveUrl(arg).toStdString();
-      else
-        argdata.fnMain = DecodeFilename(argv[iTrailing]);
+      // argument (e.g. ITK-SNAP.exe "itksnap-sftp://host/path").
+      // DecodeFileOrUrl handles itksnap-* resolution, remote URL passthrough,
+      // and Windows long-path decoding for local paths.
+      argdata.fnMain = DecodeFileOrUrl(argv[iTrailing]);
       have_main = true;
     }
 
@@ -651,7 +664,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
         for (int i = 0; i < parseResult.GetNumberOfOptionParameters("--segmentation"); i++)
         {
           argdata.fnSegmentation.push_back(
-            DecodeFilename(parseResult.GetOptionParameter("--segmentation", i)));
+            DecodeFileOrUrl(parseResult.GetOptionParameter("--segmentation", i)));
         }
       }
 
@@ -661,7 +674,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
         for (int i = 0; i < parseResult.GetNumberOfOptionParameters("--overlay"); i++)
         {
           // Get the filename
-          argdata.fnOverlay.push_back(DecodeFilename(parseResult.GetOptionParameter("--overlay", i)));
+          argdata.fnOverlay.push_back(DecodeFileOrUrl(parseResult.GetOptionParameter("--overlay", i)));
         }
       }
 
@@ -671,7 +684,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
         for (int i = 0; i < parseResult.GetNumberOfOptionParameters("--mesh"); i++)
         {
           // Get the filename
-          argdata.fnMesh.push_back(DecodeFilename(parseResult.GetOptionParameter("--mesh", i)));
+          argdata.fnMesh.push_back(DecodeFileOrUrl(parseResult.GetOptionParameter("--mesh", i)));
         }
       }
     } // if main image filename supplied
@@ -680,7 +693,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
     if (parseResult.IsOptionPresent("--labels"))
     {
       // Get the filename
-      argdata.fnLabelDesc = DecodeFilename(parseResult.GetOptionParameter("--labels"));
+      argdata.fnLabelDesc = DecodeFileOrUrl(parseResult.GetOptionParameter("--labels"));
     }
   } // Not loading workspace
 
@@ -796,7 +809,7 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
     {
       // Resolve itksnap-* URLs to their underlying protocol before loading
       QString resolved = SNAPQApplication::resolveUrl(QString::fromStdString(argdata.testUrl));
-      mainwin->LoadDroppedFile(resolved);
+      mainwin->LoadDroppedFile(resolved, true);
     }
     catch (std::exception &exc)
     {

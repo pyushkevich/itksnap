@@ -64,6 +64,7 @@
 #include "GlobalPreferencesModel.h"
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
+#include "RemoteResourceSettings.h"
 #include "SNAPAppearanceSettings.h"
 #include "ImageIOWizardModel.h"
 #include "IntensityCurveInterface.h"
@@ -624,6 +625,10 @@ void GlobalUIModel::LoadUserPreferences()
   // Read the DSS-related preferences
   m_DeepLearningSegmentationModel->LoadPreferences(
     si->Folder("DeepLearningSegmentationServer"));
+
+  // Read remote resource settings
+  m_Driver->GetGlobalState()->GetRemoteResourceSettings()->ReadFromRegistry(
+        si->Folder("RemoteResources"));
 }
 
 void GlobalUIModel::SaveUserPreferences()
@@ -657,6 +662,10 @@ void GlobalUIModel::SaveUserPreferences()
   // Read the DSS-related preferences
   m_DeepLearningSegmentationModel->SavePreferences(
     si->Folder("DeepLearningSegmentationServer"));
+
+  // Write remote resource settings
+  m_Driver->GetGlobalState()->GetRemoteResourceSettings()->WriteToRegistry(
+        si->Folder("RemoteResources"));
 
   // Save the preferences
   si->SaveUserPreferences();

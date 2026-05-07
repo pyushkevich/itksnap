@@ -11,6 +11,7 @@
 // Forward declarations — full types only needed in .cxx files that use them.
 class SSHConnectionPool;
 class AbstractSSHAuthDelegate;
+class RemoteFileCache;
 
 /**
  * Progress callback type used by RemoteImageSource::Download.
@@ -71,6 +72,14 @@ public:
   void SetAuthDelegate(AbstractSSHAuthDelegate *delegate)
     { m_AuthDelegate = delegate; }
 
+  /**
+   * Attach a persistent file cache.  When set, Download() checks the cache
+   * before fetching and stores the result after a successful fetch.
+   * Pass nullptr to disable caching.  The cache's lifetime must exceed this object.
+   */
+  void SetFileCache(RemoteFileCache *cache)
+    { m_FileCache = cache; }
+
 protected:
   RemoteImageSource() {}
   virtual ~RemoteImageSource() {}
@@ -84,6 +93,7 @@ protected:
   DownloadProgressCallback  m_ProgressCallback;
   SSHConnectionPool        *m_ConnectionPool = nullptr;
   AbstractSSHAuthDelegate  *m_AuthDelegate   = nullptr;
+  RemoteFileCache          *m_FileCache      = nullptr;
 };
 
 
@@ -108,6 +118,17 @@ protected:
 
 /** Returns true when @p path contains "://" and is therefore a remote URL. */
 bool IsRemoteImageURL(const std::string &path);
+
+/**
+ * Strip the "itksnap-" wrapper prefix from a URL if present, returning the
+ * underlying protocol URL.  Local paths and already-bare remote URLs are
+ * returned unchanged.
+ *   itksnap-sftp://host/path  →  sftp://host/path
+ *   itksnap-scp://host/path   →  scp://host/path
+ *   sftp://host/path          →  sftp://host/path   (unchanged)
+ *   /local/path               →  /local/path        (unchanged)
+ */
+std::string ResolveITKSnapURL(const std::string &url);
 
 /**
  * Factory: create the RemoteImageSource appropriate for the scheme in @p url.

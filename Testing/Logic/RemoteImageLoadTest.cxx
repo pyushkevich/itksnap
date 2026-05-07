@@ -1,5 +1,6 @@
 #include "IRISApplication.h"
 #include "ImageIODelegates.h"
+#include "ImageIORemote.h"
 #include "UIReporterDelegates.h"
 #include "LayerIterator.h"
 #include "TDigestImageFilter.h"
@@ -22,7 +23,14 @@ public:
   std::string GetTempDirectory() override
     {
     const char *t = getenv("TMPDIR");
-    return t ? std::string(t) : std::string("/tmp");
+    if (t) return std::string(t);
+#ifdef _WIN32
+    const char *tmp = getenv("TEMP");
+    if (!tmp) tmp = getenv("TMP");
+    return tmp ? std::string(tmp) : std::string("C:\\Temp");
+#else
+    return std::string("/tmp");
+#endif
     }
   std::string EncodeServerURL(const std::string &url) override { return url; }
 
@@ -107,7 +115,7 @@ int main(int argc, char *argv[])
     }
 
   std::string flag = argv[1];
-  std::string path = argv[2];
+  std::string path = ResolveITKSnapURL(argv[2]);
 
   if (flag != "-g" && flag != "-w")
     {

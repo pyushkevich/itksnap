@@ -38,6 +38,7 @@
 #include "MeshOptions.h"
 #include "DefaultBehaviorSettings.h"
 #include "NumericPropertyToggleAdaptor.h"
+#include "RemoteResourceSettings.h"
 
 GlobalState
 ::GlobalState()
@@ -115,6 +116,9 @@ GlobalState
 
   // Default behaviors
   m_DefaultBehaviorSettings = DefaultBehaviorSettings::New();
+
+  // Remote resource settings
+  m_RemoteResourceSettings = RemoteResourceSettings::New();
 
   // Project stuff
   m_ProjectFilenameModel = NewSimpleConcreteProperty(std::string());
