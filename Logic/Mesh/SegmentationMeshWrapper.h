@@ -55,7 +55,8 @@ public:
 
   /** Build the layer from registry */
   virtual void LoadFromRegistry(Registry &folder, std::string &orig_dir,
-                                std::string &crnt_dir, unsigned int nT) override;
+                                std::string &crnt_dir, unsigned int nT,
+                                const RemoteIOContext &ctx = RemoteIOContext()) override;
 
   //  End of virtual methods implementation
   //-----------------------------------------------------

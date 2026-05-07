@@ -192,6 +192,7 @@ ImageMeshLayers
   SmartPtr<MeshWrapperBase> baseWrapper = wrapper.GetPointer();
 
   auto app = m_ImageData->GetParent();
+  IO.SetContext(app->GetRemoteIOContext());
 
   size_t tp = startFromTP - 1; // tp storage is 0-based
   size_t nt = nt = app->GetNumberOfTimePoints();
@@ -231,7 +232,8 @@ ImageMeshLayers
     auto folder_crnt_layer = folder_layers.Folder(layer_key);
     auto mesh_wrapper = StandaloneMeshWrapper::New();
     mesh_wrapper->LoadFromRegistry(folder_crnt_layer, project_dir_orig,
-                                   project_dir_crnt, m_ImageData->GetNumberOfTimePoints());
+                                   project_dir_crnt, m_ImageData->GetNumberOfTimePoints(),
+                                   m_ImageData->GetParent()->GetRemoteIOContext());
     AddLayer(mesh_wrapper, true);
 
     ++layer_id;
@@ -408,6 +410,7 @@ ImageMeshLayers
 {
   // Create a new IO for loading
   GuidedMeshIO IO;
+  IO.SetContext(m_ImageData->GetParent()->GetRemoteIOContext());
 
   // Get Mesh Layer
   auto layer = GetLayer(layer_id);

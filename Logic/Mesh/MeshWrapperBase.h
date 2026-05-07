@@ -302,7 +302,8 @@ public:
    *  Build the layer from registry
    */
   virtual void LoadFromRegistry(Registry &folder, std::string &orig_dir,
-                                std::string &crnt_dir, unsigned int nT);
+                                std::string &crnt_dir, unsigned int nT,
+                                const RemoteIOContext &ctx = RemoteIOContext());
 
   // End of virtual methods definition
   //------------------------------------------------

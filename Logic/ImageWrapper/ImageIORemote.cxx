@@ -1,4 +1,5 @@
 #include "ImageIORemote.h"
+#include "AbstractProgressDelegate.h"
 #include "AbstractSSHAuthDelegate.h"
 #include "RemoteFileCache.h"
 #include "RESTClient.h"
@@ -345,4 +346,35 @@ SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url)
     return HTTPRemoteImageSource::New().GetPointer();
 
   throw IRISException("No remote image handler for URL: %s", url.c_str());
+}
+
+std::string
+DownloadRemoteFile(const std::string &url,
+                   const RemoteIOContext &ctx,
+                   const char *title)
+{
+  SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(url);
+
+  if (ctx.connectionPool)
+    src->SetConnectionPool(ctx.connectionPool);
+  if (ctx.authDelegate)
+    src->SetAuthDelegate(ctx.authDelegate);
+
+  RemoteFileCache file_cache;
+  if (!ctx.appDataDir.empty() && ctx.remoteSettings)
+    {
+    file_cache.Initialize(ctx.appDataDir, ctx.remoteSettings);
+    src->SetFileCache(&file_cache);
+    }
+
+  std::string label = title
+    ? std::string(title)
+    : itksys::SystemTools::GetFilenameName(url);
+
+  ProgressTaskGuard guard(ctx.progressDelegate, label.c_str(), true);
+  src->SetProgressCallback([&guard](std::size_t done, std::size_t total) {
+    return guard.UpdateProgress(done, total);
+  });
+
+  return src->Download(url);
 }

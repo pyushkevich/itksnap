@@ -11,7 +11,26 @@
 // Forward declarations — full types only needed in .cxx files that use them.
 class SSHConnectionPool;
 class AbstractSSHAuthDelegate;
+class AbstractProgressDelegate;
 class RemoteFileCache;
+class RemoteResourceSettings;
+
+/**
+ * A bundle of all the objects needed to perform authenticated, cached, and
+ * progress-reporting remote downloads.  Build one from IRISApplication via
+ * GetRemoteIOContext() and pass it down to GuidedMeshIO, MeshWrapperBase, or
+ * any other subsystem that calls CreateRemoteImageSource() internally.
+ *
+ * All pointers are non-owning; the objects must outlive this struct.
+ */
+struct RemoteIOContext
+{
+  AbstractProgressDelegate  *progressDelegate   = nullptr;
+  SSHConnectionPool         *connectionPool     = nullptr;
+  AbstractSSHAuthDelegate   *authDelegate       = nullptr;
+  std::string                appDataDir;
+  RemoteResourceSettings    *remoteSettings     = nullptr;
+};
 
 /**
  * Progress callback type used by RemoteImageSource::Download.
@@ -154,6 +173,18 @@ std::string ResolveITKSnapURL(const std::string &url);
  * Throws IRISException for unrecognised schemes.
  */
 SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url);
+
+/**
+ * Download a remote file to a local temp directory and return the local path.
+ * This is the one-stop helper: it creates the appropriate RemoteImageSource,
+ * applies all fields from @p ctx (connection pool, auth delegate, file cache,
+ * and a ProgressTaskGuard wrapping ctx.progressDelegate), and calls Download().
+ *
+ * @p title  Label shown in the progress bar; defaults to the URL basename.
+ */
+std::string DownloadRemoteFile(const std::string &url,
+                               const RemoteIOContext &ctx,
+                               const char *title = nullptr);
 
 
 

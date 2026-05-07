@@ -49,6 +49,7 @@
 #include "SNAPEvents.h"
 #include "StdoutProgressDelegate.h"
 #include "StdoutSSHAuthDelegate.h"
+#include "ImageIORemote.h"
 
 // #include "itkImage.h"
 
@@ -676,6 +677,14 @@ public:
    * Pass nullptr to disable interactive prompting.
    */
   irisGetSetMacro(SSHAuthDelegate, AbstractSSHAuthDelegate *)
+
+  /**
+   * Return a RemoteIOContext populated from this application's current progress
+   * delegate, SSH connection pool, SSH auth delegate, and remote cache settings.
+   * Pass the result to GuidedMeshIO::SetContext() or MeshWrapperBase::LoadFromRegistry()
+   * so that remote downloads in those subsystems get progress reporting and caching.
+   */
+  RemoteIOContext GetRemoteIOContext() const;
 
   /**
    * Get Moved File Path from the absolute file path in the original project file

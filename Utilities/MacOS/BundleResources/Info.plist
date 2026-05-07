@@ -49,6 +49,22 @@
 				<string>itksnap-scp</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ITK-SNAP HTTPS URL</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>itksnap-https</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ITK-SNAP HTTP URL</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>itksnap-http</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleDocumentTypes</key>
 	<array>

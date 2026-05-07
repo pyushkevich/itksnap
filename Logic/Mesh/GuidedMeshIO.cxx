@@ -173,10 +173,7 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
   // is preserved without any additional bookkeeping here.
   std::string local_filename = FileName;
   if (IsRemoteImageURL(FileName))
-    {
-    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(FileName);
-    local_filename = src->Download(FileName);
-    }
+    local_filename = DownloadRemoteFile(FileName, m_Context);
 
   // Using the factory method to get a delegate
   AbstractMeshIODelegate *ioDelegate = AbstractMeshIODelegate::GetDelegate(format);
