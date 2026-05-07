@@ -13,7 +13,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_policy(SET CMP0026 NEW)
 cmake_policy(SET CMP0077 NEW)
-cmake_policy(SET CMP0080 OLD)
 
 #--------------------------------------------------------------------------------
 # PROJECT DEFINITION
