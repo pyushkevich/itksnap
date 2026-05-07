@@ -1427,6 +1427,42 @@ ADD_EXECUTABLE(remote_image_load_test
 TARGET_LINK_LIBRARIES(remote_image_load_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(remote_image_load_test PUBLIC ${SNAP_INCLUDE_DIRS})
 
+# Base URL for GitHub raw content used by the remote tests below.
+set(GITHUB_TESTDATA_URL
+  "itksnap-https://raw.githubusercontent.com/pyushkevich/itksnap/refs/heads/master/Testing/TestData")
+
+# Test: load a single image over HTTPS and compare against the local copy.
+add_test(NAME RemoteImageLoadTest_SingleImage
+  COMMAND remote_image_load_test
+    --regression-test -g
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
+    "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
+
+# Test: load a workspace that includes a standalone mesh layer over HTTPS
+# and verify both the image layers and the mesh layer count match local.
+add_test(NAME RemoteImageLoadTest_WorkspaceWithMesh
+  COMMAND remote_image_load_test
+    --regression-test -w
+    "${GITHUB_TESTDATA_URL}/MRIcrop-with-mesh.itksnap"
+    "${TESTDATA_DIR}/MRIcrop-with-mesh.itksnap")
+
+# Test: cache behaviour — clear the cache, download a file, verify the cache
+# is populated with ETag/Last-Modified tokens, download again, and confirm
+# the file was not re-written (304 conditional-GET hit).
+add_test(NAME RemoteImageLoadTest_Cache
+  COMMAND remote_image_load_test
+    --test-cache
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
+
+# Remote tests require network access; tag them so CI can skip them easily.
+set_tests_properties(
+  RemoteImageLoadTest_SingleImage
+  RemoteImageLoadTest_WorkspaceWithMesh
+  RemoteImageLoadTest_Cache
+  PROPERTIES
+    LABELS "Remote"
+    TIMEOUT 120)
+
 # Test: large-image size guard throws IRISException instead of crashing with SIGBUS
 ADD_EXECUTABLE(TestLargeImageCheck
     Testing/Logic/TestLargeImageCheck.cxx)
