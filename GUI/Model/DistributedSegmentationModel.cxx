@@ -49,8 +49,6 @@
 #include "ImageAnnotationData.h"
 #include "TimePointProperties.h"
 
-using DSSRESTClient = RESTClient<DSSServerTraits>;
-
 namespace dss_model {
 
 /** TODO: make this sort versions properly */

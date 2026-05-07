@@ -173,13 +173,6 @@ public:
   void SetServerURL(const char *baseurl);
 
   /**
-   * Send the authentication data to the server and capture the cookie with the
-   * session ID. The cookie and the server URL will be stored in a .alfabis directory
-   * in user's home, so that subsequent calls do not require authentication
-   */
-  bool Authenticate(const char *token);
-
-  /**
    * Call this function prior to post if you want to open up the cookie jar to receive
    * cookies from the server. This is done automatically by the Authenticate function
    */
@@ -285,6 +278,14 @@ protected:
 
   std::string GetServerURL();
 
+  /**
+   * Build the full URL for a request. When a server base URL is set (DSS, DLS traits),
+   * the rel_url is appended as a relative path: "<base>/<rel_url>". When no base URL
+   * is set (GenericServerTraits), rel_url is used as-is, allowing callers to pass a
+   * complete URL such as "https://example.org/data/brain.nii.gz".
+   */
+  std::string MakeFullURL(const std::string &rel_url);
+
   static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp);
 
   static size_t WriteToFileCallback(void *contents, size_t size, size_t nmemb, void *userp);
@@ -296,6 +297,21 @@ protected:
    * regular intervals, to allow the GUI to refresh regularly
    */
   void CurlMultiPerform();
+};
+
+class DSSRESTClient : public RESTClient<DSSServerTraits>
+{
+public:
+  using Superclass = RESTClient<DSSServerTraits>;
+  DSSRESTClient(SharedData *sd = nullptr) : Superclass(sd) {}
+  ~DSSRESTClient() = default;
+
+  /**
+   * Send the authentication data to the server and capture the cookie with the
+   * session ID. The cookie and the server URL will be stored in a .alfabis directory
+   * in user's home, so that subsequent calls do not require authentication
+   */
+  bool Authenticate(const char *token);
 };
 
 

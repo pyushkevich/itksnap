@@ -191,39 +191,6 @@ RESTClient<ServerTraits>::CurlMultiPerform()
 }
 
 template <typename ServerTraits>
-bool
-RESTClient<ServerTraits>::Authenticate(const char *token)
-{
-  // Create and perform the request
-  ostringstream o_url;
-  o_url << GetServerURL() << "/api/login";
-  curl_easy_setopt(m_Curl, CURLOPT_URL, o_url.str().c_str());
-
-  // Data to post
-  char post_buffer[1024];
-  snprintf(post_buffer, sizeof(post_buffer), "token=%s", token);
-  curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_buffer);
-
-  // Set up the cookie jar to receive cookies
-  SetupCookies(true);
-
-  // Capture output
-  m_Output.clear();
-  curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
-  curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
-
-  // Make request
-  CURLcode res = curl_easy_perform(m_Curl);
-
-  if (res != CURLE_OK)
-    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
-
-  // Return success or failure
-  string success_pattern = "logged in as ";
-  return m_Output.compare(0, success_pattern.length(), success_pattern) == 0;
-}
-
-template <typename ServerTraits>
 void
 RESTClient<ServerTraits>::SetServerURL(const char *baseurl)
 {
@@ -322,7 +289,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
     url_filled = std::string(url_buffer);
 
   // The URL to post to
-  string url = this->GetServerURL() + "/" + url_filled;
+  string url = this->MakeFullURL(url_filled);
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
@@ -415,7 +382,7 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   va_end(args);
 
   // The URL to post to
-  string url = this->GetServerURL() + "/" + url_buffer;
+  string url = this->MakeFullURL(url_buffer);
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
@@ -502,7 +469,7 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   vsnprintf(url_buffer, 4096, rel_url, args);
 
   // The URL to post to
-  string url = this->GetServerURL() + "/" + url_buffer;
+  string url = this->MakeFullURL(url_buffer);
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
@@ -658,6 +625,14 @@ string
 RESTClient<ServerTraits>::GetServerURL()
 {
   return m_Traits.GetServerURL();
+}
+
+template <typename ServerTraits>
+string
+RESTClient<ServerTraits>::MakeFullURL(const std::string &rel_url)
+{
+  string base = m_Traits.GetServerURL();
+  return base.empty() ? rel_url : base + "/" + rel_url;
 }
 
 template <typename ServerTraits>
@@ -900,3 +875,36 @@ DLSServerTraits::GetServerURL()
 {
   return m_ServerURL;
 }
+
+bool
+DSSRESTClient::Authenticate(const char *token)
+{
+  // Create and perform the request
+  ostringstream o_url;
+  o_url << MakeFullURL("api/login");
+  curl_easy_setopt(m_Curl, CURLOPT_URL, o_url.str().c_str());
+
+         // Data to post
+  char post_buffer[1024];
+  snprintf(post_buffer, sizeof(post_buffer), "token=%s", token);
+  curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_buffer);
+
+         // Set up the cookie jar to receive cookies
+  SetupCookies(true);
+
+         // Capture output
+  m_Output.clear();
+  curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
+  curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
+
+         // Make request
+  CURLcode res = curl_easy_perform(m_Curl);
+
+  if (res != CURLE_OK)
+    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
+
+         // Return success or failure
+  string success_pattern = "logged in as ";
+  return m_Output.compare(0, success_pattern.length(), success_pattern) == 0;
+}
+
