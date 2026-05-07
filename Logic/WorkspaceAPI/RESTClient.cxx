@@ -2,6 +2,8 @@
 #include <sstream>
 #include <fstream>
 #include <cstdarg>
+#include <algorithm>
+#include <cctype>
 #include "IRISException.h"
 #include "itksys/SystemTools.hxx"
 #include "itksys/MD5.h"
@@ -302,7 +304,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   // Capture output
   m_Output.clear();
 
-  // If there is no output file, use the default callbacl
+  // If there is no output file, use the default callback
   if (!m_OutputFile)
   {
     curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
@@ -312,17 +314,6 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   {
     curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteToFileCallback);
     curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, m_OutputFile);
-
-    // Set the callback functions
-    /*
-    if (m_CallbackInfo.first)
-    {
-      curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
-      curl_easy_setopt(m_Curl, CURLOPT_PROGRESSDATA, &m_CallbackInfo);
-      curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
-      curl_easy_setopt(m_Curl, CURLOPT_VERBOSE, 1L);
-    }
-    */
   }
 
   // Set the callback function for progress
@@ -333,20 +324,29 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
     curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
   }
 
-  // Use the multi-perform interface so we can regularly return to the event loop
+  // Capture response headers
+  m_ResponseHeaders.clear();
+  curl_easy_setopt(m_Curl, CURLOPT_HEADERFUNCTION, RESTClient::HeaderCallback);
+  curl_easy_setopt(m_Curl, CURLOPT_HEADERDATA, &m_ResponseHeaders);
 
-
-
-  // Make request
-  // std::cout << "curl request to: " << url << " with data " << post_filled << std::endl;
-  /*
-  CURLcode res = curl_easy_perform(m_Curl);
-  if (res != CURLE_OK)
-    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
-  */
+  // Apply any extra request headers (e.g. If-None-Match for conditional GET)
+  curl_slist *extra_slist = nullptr;
+  for (auto &kv : m_ExtraRequestHeaders)
+    {
+    std::string h = kv.first + ": " + kv.second;
+    extra_slist = curl_slist_append(extra_slist, h.c_str());
+    }
+  if (extra_slist)
+    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, extra_slist);
 
   // Perform the operation - this will throw exception on error
   CurlMultiPerform();
+
+  if (extra_slist)
+    {
+    curl_slist_free_all(extra_slist);
+    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, nullptr);
+    }
 
   // Capture the response code
   m_HTTPCode = 0L;
@@ -633,6 +633,59 @@ RESTClient<ServerTraits>::MakeFullURL(const std::string &rel_url)
 {
   string base = m_Traits.GetServerURL();
   return base.empty() ? rel_url : base + "/" + rel_url;
+}
+
+template <typename ServerTraits>
+void
+RESTClient<ServerTraits>::SetRequestHeader(const char *name, const char *value)
+{
+  m_ExtraRequestHeaders[name] = value;
+}
+
+template <typename ServerTraits>
+void
+RESTClient<ServerTraits>::ClearRequestHeaders()
+{
+  m_ExtraRequestHeaders.clear();
+}
+
+template <typename ServerTraits>
+std::string
+RESTClient<ServerTraits>::GetResponseHeader(const char *name) const
+{
+  std::string key(name);
+  std::transform(key.begin(), key.end(), key.begin(),
+                 [](unsigned char c){ return std::tolower(c); });
+  auto it = m_ResponseHeaders.find(key);
+  return it != m_ResponseHeaders.end() ? it->second : "";
+}
+
+template <typename ServerTraits>
+size_t
+RESTClient<ServerTraits>::HeaderCallback(char *buffer, size_t size, size_t nitems, void *userdata)
+{
+  auto *headers = static_cast<std::map<std::string, std::string> *>(userdata);
+  std::string line(buffer, size * nitems);
+
+  auto colon = line.find(':');
+  if (colon != std::string::npos)
+    {
+    std::string name  = line.substr(0, colon);
+    std::string value = line.substr(colon + 1);
+
+    auto trim = [](std::string &s) {
+      auto f = s.find_first_not_of(" \t\r\n");
+      auto l = s.find_last_not_of(" \t\r\n");
+      s = (f == std::string::npos) ? "" : s.substr(f, l - f + 1);
+    };
+    trim(name);
+    trim(value);
+    std::transform(name.begin(), name.end(), name.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+    (*headers)[name] = value;
+    }
+
+  return size * nitems;
 }
 
 template <typename ServerTraits>

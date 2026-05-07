@@ -290,6 +290,12 @@ HTTPRemoteImageSource::Download(const std::string &url)
   if (basename.empty())
     throw IRISException("HTTPRemoteImageSource: cannot determine filename from URL: %s", url.c_str());
 
+  // Cache lookup: if we have a cached copy with validation tokens, we can do
+  // a conditional GET to avoid a full re-download.
+  RemoteFileCache::HTTPCacheEntry cached;
+  if (m_FileCache)
+    cached = m_FileCache->LookupHTTP(url);
+
   std::string tmpdir = MakeTempDir();
   std::string dest   = tmpdir + "/" + basename;
 
@@ -300,9 +306,6 @@ HTTPRemoteImageSource::Download(const std::string &url)
   RESTClient<> client;
   client.SetOutputFile(outfile);
 
-  // Adapt DownloadProgressCallback (std::function<bool(size_t,size_t)>) to
-  // RESTClient's void(*)(void*, size_t, size_t).  Cancellation is not
-  // propagated through RESTClient; the callback is used for progress display only.
   if (m_ProgressCallback)
     {
     client.SetProgressCallback(
@@ -314,12 +317,35 @@ HTTPRemoteImageSource::Download(const std::string &url)
       });
     }
 
-  bool ok = client.Get(url.c_str());
+  // If we have cached tokens, attempt a conditional GET.
+  if (!cached.local_path.empty())
+    {
+    if (!cached.etag.empty())
+      client.SetRequestHeader("If-None-Match", cached.etag.c_str());
+    if (!cached.last_modified.empty())
+      client.SetRequestHeader("If-Modified-Since", cached.last_modified.c_str());
+    }
+
+  client.Get(url.c_str());
   fclose(outfile);
 
-  if (!ok)
-    throw IRISException("HTTPRemoteImageSource: HTTP %ld downloading %s",
-                        client.GetHTTPCode(), url.c_str());
+  long code = client.GetHTTPCode();
+
+  if (code == 304)
+    {
+    // Cached copy is still valid — discard the empty temp file and use cache.
+    itksys::SystemTools::RemoveADirectory(tmpdir);
+    return cached.local_path;
+    }
+
+  if (code != 200)
+    throw IRISException("HTTPRemoteImageSource: HTTP %ld downloading %s", code, url.c_str());
+
+  // Store the downloaded file in cache along with any HTTP validation tokens.
+  if (m_FileCache)
+    return m_FileCache->StoreHTTP(url, dest,
+                                  client.GetResponseHeader("etag"),
+                                  client.GetResponseHeader("last-modified"));
 
   return dest;
 }

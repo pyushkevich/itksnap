@@ -62,6 +62,32 @@ public:
                     uint64_t remote_size,
                     uint32_t remote_mtime);
 
+  /** Result of an HTTP cache lookup, carrying HTTP validation tokens. */
+  struct HTTPCacheEntry {
+    std::string local_path;    // empty → cache miss
+    std::string etag;
+    std::string last_modified;
+  };
+
+  /**
+   * HTTP-specific lookup.  Returns a hit only when the entry has at least one
+   * HTTP validation token (ETag or Last-Modified), so the caller can send a
+   * conditional GET and avoid an unconditional re-download.  Updates the
+   * last-access timestamp on a hit.
+   */
+  HTTPCacheEntry LookupHTTP(const std::string &url);
+
+  /**
+   * HTTP-specific store.  Works like Store() but records ETag and
+   * Last-Modified instead of size/mtime.  If @p temp_path already equals the
+   * cached destination (e.g. after a 304 re-validation), the copy is skipped
+   * and only the metadata is updated.
+   */
+  std::string StoreHTTP(const std::string &url,
+                        const std::string &temp_path,
+                        const std::string &etag,
+                        const std::string &last_modified);
+
 private:
   struct Entry
   {
@@ -69,6 +95,8 @@ private:
     std::string local_path;
     uint64_t    remote_size  = 0;
     uint32_t    remote_mtime = 0;
+    std::string etag;
+    std::string last_modified;
     int64_t     last_access  = 0;  // seconds since epoch
   };
 

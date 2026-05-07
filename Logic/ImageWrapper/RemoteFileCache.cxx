@@ -115,6 +115,8 @@ void RemoteFileCache::LoadMetadata()
     e.local_path   = f.Entry("LocalPath")[""];
     e.remote_size  = static_cast<uint64_t>(f.Entry("RemoteSize")[0]);
     e.remote_mtime = static_cast<uint32_t>(f.Entry("RemoteMtime")[0]);
+    e.etag         = f.Entry("ETag")[""];
+    e.last_modified= f.Entry("LastModified")[""];
     e.last_access  = static_cast<int64_t>(f.Entry("LastAccess")[0]);
     if (!e.url.empty() && !e.local_path.empty())
       m_Entries[key] = e;
@@ -131,6 +133,8 @@ void RemoteFileCache::SaveMetadata()
     f.Entry("LocalPath")    << kv.second.local_path;
     f.Entry("RemoteSize")   << static_cast<int>(kv.second.remote_size);
     f.Entry("RemoteMtime")  << static_cast<int>(kv.second.remote_mtime);
+    f.Entry("ETag")         << kv.second.etag;
+    f.Entry("LastModified") << kv.second.last_modified;
     f.Entry("LastAccess")   << static_cast<int>(kv.second.last_access);
     }
   try { reg.WriteToXMLFile(m_MetadataPath.c_str()); }
@@ -238,6 +242,73 @@ std::string RemoteFileCache::Store(const std::string &url,
   e.remote_mtime = remote_mtime;
   e.last_access  = NowSeconds();
   m_Entries[key] = e;
+
+  Evict();
+  SaveMetadata();
+  return dest;
+}
+
+RemoteFileCache::HTTPCacheEntry
+RemoteFileCache::LookupHTTP(const std::string &url)
+{
+  EnsureLoaded();
+
+  std::string key = MakeKey(url);
+  auto it = m_Entries.find(key);
+  if (it == m_Entries.end() || it->second.url != url)
+    return {};
+
+  Entry &e = it->second;
+
+  // Without at least one token we cannot issue a conditional GET.
+  if (e.etag.empty() && e.last_modified.empty())
+    return {};
+
+  if (!itksys::SystemTools::FileExists(e.local_path))
+    {
+    m_Entries.erase(it);
+    SaveMetadata();
+    return {};
+    }
+
+  e.last_access = NowSeconds();
+  SaveMetadata();
+  return {e.local_path, e.etag, e.last_modified};
+}
+
+std::string
+RemoteFileCache::StoreHTTP(const std::string &url,
+                           const std::string &temp_path,
+                           const std::string &etag,
+                           const std::string &last_modified)
+{
+  if (m_Settings && m_Settings->GetDeleteAfterDownload())
+    return temp_path;
+
+  EnsureLoaded();
+
+  std::string key       = MakeKey(url);
+  std::string entry_dir = m_CacheDir + "/" + key;
+  itksys::SystemTools::MakeDirectory(entry_dir);
+
+  std::string basename = itksys::SystemTools::GetFilenameName(temp_path);
+  std::string dest     = entry_dir + "/" + basename;
+
+  // Skip the copy when temp_path is already the cache destination (e.g. a
+  // 304 re-validation where we just want to refresh the metadata).
+  if (temp_path != dest)
+    {
+    if (!CopyFile(temp_path, dest))
+      return temp_path;
+    }
+
+  Entry e;
+  e.url           = url;
+  e.local_path    = dest;
+  e.etag          = etag;
+  e.last_modified = last_modified;
+  e.last_access   = NowSeconds();
+  m_Entries[key]  = e;
 
   Evict();
   SaveMetadata();

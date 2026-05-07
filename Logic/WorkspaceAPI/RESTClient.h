@@ -237,6 +237,23 @@ public:
    */
   static std::string ReadServerURLFromFile();
 
+  /**
+   * Set an extra HTTP request header that will be sent with the next Get/Post
+   * call.  Setting the same name twice replaces the previous value.  Headers
+   * are NOT cleared automatically between calls; call ClearRequestHeaders()
+   * when they should no longer be sent.
+   */
+  void SetRequestHeader(const char *name, const char *value);
+
+  /** Remove all previously set extra request headers. */
+  void ClearRequestHeaders();
+
+  /**
+   * Retrieve a response header received during the last Get/Post call.
+   * @p name is matched case-insensitively (HTTP headers are case-insensitive).
+   * Returns "" when the header was not present.
+   */
+  std::string GetResponseHeader(const char *name) const;
 
 protected:
   /** The traits object - implementation specific data */
@@ -277,6 +294,14 @@ protected:
   static std::string GetCookieFile(const char *server_url);
 
   std::string GetServerURL();
+
+  /** Extra headers added by SetRequestHeader(), sent with every request. */
+  std::map<std::string, std::string> m_ExtraRequestHeaders;
+
+  /** Response headers captured from the last request (lowercase names). */
+  std::map<std::string, std::string> m_ResponseHeaders;
+
+  static size_t HeaderCallback(char *buffer, size_t size, size_t nitems, void *userdata);
 
   /**
    * Build the full URL for a request. When a server base URL is set (DSS, DLS traits),
