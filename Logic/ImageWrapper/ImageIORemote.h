@@ -98,10 +98,9 @@ protected:
 
 
 /**
- * SCP-based remote image source.  Handles URLs of the form
- *   scp://[user@]host/absolute/path/to/image.nii.gz
- * by invoking the system scp(1) client (requires key-based auth; no
- * interactive password prompts are supported).
+ * SCP/SFTP-based remote image source.  Handles URLs of the form
+ *   scp://[user@]host[:port]/absolute/path/to/image.nii.gz
+ *   sftp://[user@]host[:port]/absolute/path/to/image.nii.gz
  */
 class SCPRemoteImageSource : public RemoteImageSource
 {
@@ -113,6 +112,26 @@ public:
 protected:
   SCPRemoteImageSource() {}
   virtual ~SCPRemoteImageSource() {}
+};
+
+
+/**
+ * HTTP/HTTPS remote image source.  Handles public URLs of the form
+ *   http://host/path/to/image.nii.gz
+ *   https://host/path/to/image.nii.gz
+ * No authentication is performed; intended for publicly accessible datasets.
+ * Uses RESTClient<GenericServerTraits> (libcurl) for the transfer.
+ */
+class HTTPRemoteImageSource : public RemoteImageSource
+{
+public:
+  irisITKObjectMacro(HTTPRemoteImageSource, RemoteImageSource)
+
+  std::string Download(const std::string &url) override;
+
+protected:
+  HTTPRemoteImageSource() {}
+  virtual ~HTTPRemoteImageSource() {}
 };
 
 

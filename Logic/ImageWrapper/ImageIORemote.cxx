@@ -1,6 +1,7 @@
 #include "ImageIORemote.h"
 #include "AbstractSSHAuthDelegate.h"
 #include "RemoteFileCache.h"
+#include "RESTClient.h"
 #include "SSHConnectionPool.h"
 #include "SSHTunnel.h"
 #include "SystemInterface.h"
@@ -273,6 +274,56 @@ SCPRemoteImageSource::Download(const std::string &url)
 }
 
 
+// -----------------------------------------------------------------------
+//  HTTPRemoteImageSource
+// -----------------------------------------------------------------------
+
+std::string
+HTTPRemoteImageSource::Download(const std::string &url)
+{
+  std::string basename = itksys::SystemTools::GetFilenameName(url);
+  // Strip any query string from the basename so extension detection works.
+  auto qmark = basename.find('?');
+  if (qmark != std::string::npos)
+    basename = basename.substr(0, qmark);
+  if (basename.empty())
+    throw IRISException("HTTPRemoteImageSource: cannot determine filename from URL: %s", url.c_str());
+
+  std::string tmpdir = MakeTempDir();
+  std::string dest   = tmpdir + "/" + basename;
+
+  FILE *outfile = fopen(dest.c_str(), "wb");
+  if (!outfile)
+    throw IRISException("HTTPRemoteImageSource: cannot create local file '%s'", dest.c_str());
+
+  RESTClient<> client;
+  client.SetOutputFile(outfile);
+
+  // Adapt DownloadProgressCallback (std::function<bool(size_t,size_t)>) to
+  // RESTClient's void(*)(void*, size_t, size_t).  Cancellation is not
+  // propagated through RESTClient; the callback is used for progress display only.
+  if (m_ProgressCallback)
+    {
+    client.SetProgressCallback(
+      &m_ProgressCallback,
+      [](void *data, size_t done, size_t total)
+      {
+        auto *cb = static_cast<DownloadProgressCallback *>(data);
+        (*cb)(done, total);
+      });
+    }
+
+  bool ok = client.Get(url.c_str());
+  fclose(outfile);
+
+  if (!ok)
+    throw IRISException("HTTPRemoteImageSource: HTTP %ld downloading %s",
+                        client.GetHTTPCode(), url.c_str());
+
+  return dest;
+}
+
+
 bool IsRemoteImageURL(const std::string &path)
 {
   return path.find("://") != std::string::npos;
@@ -289,6 +340,9 @@ SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url)
 {
   if (url.substr(0, 6) == "scp://" || url.substr(0, 7) == "sftp://")
     return SCPRemoteImageSource::New().GetPointer();
+
+  if (url.substr(0, 7) == "http://" || url.substr(0, 8) == "https://")
+    return HTTPRemoteImageSource::New().GetPointer();
 
   throw IRISException("No remote image handler for URL: %s", url.c_str());
 }
