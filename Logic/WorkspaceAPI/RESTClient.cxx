@@ -31,7 +31,7 @@ progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_
 
   typedef std::pair<void *, typename RESTClient<ServerTraits>::ProgressCallbackFunction> CallbackInfo;
   CallbackInfo *cbi = static_cast<CallbackInfo *>(clientp);
-  cbi->second(cbi->first, bytes_done * 1.0 / bytes_total);
+  cbi->second(cbi->first, bytes_done, bytes_total);
   return 0;
 }
 
@@ -169,7 +169,7 @@ RESTClient<ServerTraits>::CurlMultiPerform()
         std::chrono::duration_cast<std::chrono::milliseconds>(now - callback_time).count() >= 50)
     {
       callback_time = now;
-      m_CallbackInfo.second(m_CallbackInfo.first, std::nan("nan"));
+      m_CallbackInfo.second(m_CallbackInfo.first, 0, 0);
     }
 
   } while (still_running); /* if there are still transfers, loop */
@@ -655,18 +655,6 @@ RESTClient<ServerTraits>::GetUploadStatistics()
 
 template <typename ServerTraits>
 string
-RESTClient<ServerTraits>::GetDataDirectory()
-{
-  // Compute the platform-independent home directory
-  vector<string> split_path;
-  SystemTools::SplitPath(ServerTraits::DirectoryPrefix, split_path, true);
-  string ddir = SystemTools::JoinPath(split_path);
-  SystemTools::MakeDirectory(ddir.c_str());
-  return ddir;
-}
-
-template <typename ServerTraits>
-string
 RESTClient<ServerTraits>::GetServerURL()
 {
   return m_Traits.GetServerURL();
@@ -791,11 +779,25 @@ REST_DebugCallback(void *handle, curl_infotype type, char *data, size_t size, vo
   return 0;
 }
 
+template class RESTClient<GenericServerTraits>;
 template class RESTClient<DSSServerTraits>;
 template class RESTClient<DLSServerTraits>;
 
+template class RESTSharedData<GenericServerTraits>;
 template class RESTSharedData<DSSServerTraits>;
 template class RESTSharedData<DLSServerTraits>;
+
+void
+GenericServerTraits::SetupCookies(void *share, void *handle, const char *url, bool receive_cookie_mode)
+{
+  if (share)
+  {
+    if (receive_cookie_mode)
+      curl_easy_setopt(handle, CURLOPT_COOKIEFILE, "");
+    else
+      curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "");
+  }
+}
 
 void
 DSSServerTraits::SetServerURL(const char *baseurl)

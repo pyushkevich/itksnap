@@ -44,6 +44,19 @@ protected:
 };
 */
 
+/** Default traits that can be used to connect to any HTTP/HTTPS server */
+class GenericServerTraits
+{
+public:
+  constexpr static bool IncludeCookiesInCurlShare = false;
+  constexpr static bool IncludeSSLSessionInCurlShare = true;
+
+  void        SetServerURL(const char *baseurl) {}
+  std::string GetServerURL() { return std::string(); }
+  void        SetupCookies(void *share, void *handle, const char *url, bool receive_cookie_mode);
+};
+
+
 /** Distributed segmentation service */
 class DSSServerTraits
 {
@@ -126,10 +139,15 @@ protected:
 
 
 /**
- * This class encapsulates the client side of the ALFABIS RESTful API.
- * It uses HTTP and CURL to communicate with the server
+ * This class provides general functionality for communication with REST APIs
+ * and HTTP/HTTPS servers. It uses HTTP and CURL to communicate with the server.
+ *
+ * The ServerTraits template parameter allows to customize the behaviour of the client
+ * for specific servers, for example by providing a custom way to store cookies or the server URL.
+ *
+ *
  */
-template <class ServerTraits>
+template <class ServerTraits = GenericServerTraits>
 class RESTClient
 {
 public:
@@ -188,7 +206,7 @@ public:
   bool PostVA(const char *rel_url, const char *post_string, std::va_list args);
 
   // Progress callback signature
-  typedef  void ( *ProgressCallbackFunction )(void *, double);
+  typedef  void ( *ProgressCallbackFunction )(void *, size_t, size_t);
 
   /**
    * Set the callback command for uploads and downloads
@@ -262,8 +280,6 @@ protected:
 
   /** Callback stuff */
   std::pair<void *, ProgressCallbackFunction> m_CallbackInfo;
-
-  static std::string GetDataDirectory();
 
   static std::string GetCookieFile(const char *server_url);
 
