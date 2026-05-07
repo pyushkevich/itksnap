@@ -1745,7 +1745,7 @@ ELSEIF(WIN32)
     WriteRegStr HKCR 'itksnap-sftp' '' 'URL: ITK-SNAP sftp'
     WriteRegStr HKCR 'itksnap-sftp' 'URL Protocol' ''
     WriteRegStr HKCR 'itksnap-sftp\\\\DefaultIcon' '' '$INSTDIR\\\\bin\\\\ITK-SNAP.exe,0'
-    WriteRegStr HKCR 'itksnap-sftp\\\\shell\\\\open\\\\command' '' '$INSTDIR\\\\bin\\\\ITK-SNAP.exe \"%1\"'
+    WriteRegStr HKCR 'itksnap-sftp\\\\shell\\\\open\\\\command' '' '$INSTDIR\\\\bin\\\\ITK-SNAP.exe \\\"%1\\\"'
     ")
   STRING(APPEND CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
     DeleteRegKey HKCR 'itksnap-sftp'
