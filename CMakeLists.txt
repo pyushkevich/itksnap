@@ -1746,7 +1746,7 @@ ELSEIF(WIN32)
       WriteRegStr HKCR '${_scheme}' '' 'URL: ITK-SNAP ${_scheme}'
       WriteRegStr HKCR '${_scheme}' 'URL Protocol' ''
       WriteRegStr HKCR '${_scheme}\\\\DefaultIcon' '' '$INSTDIR\\\\bin\\\\ITK-SNAP.exe,0'
-      WriteRegStr HKCR '${_scheme}\\\\shell\\\\open\\\\command' '' '$INSTDIR\\\\bin\\\\ITK-SNAP.exe \\\"%1\\\"'
+      WriteRegStr HKCR '${_scheme}\\\\shell\\\\open\\\\command' '' '$INSTDIR\\\\bin\\\\ITK-SNAP.exe --url \\\"%1\\\"'
       ")
     STRING(APPEND CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
       DeleteRegKey HKCR '${_scheme}'
