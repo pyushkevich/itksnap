@@ -208,7 +208,7 @@ void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
     // TODO: temporarily commented, needs to be fixed!
     vtkSmartPointer<vtkVRMLExporter> exporter = vtkSmartPointer<vtkVRMLExporter>::New();
     exporter->SetFileName(settings.GetMeshFileName().c_str());
-    exporter->SetInput(m_Renderer->GetRenderWindow());
+    exporter->SetRenderWindow(m_Renderer->GetRenderWindow());
     exporter->Update();
     return;
     }

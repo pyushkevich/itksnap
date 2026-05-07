@@ -23,8 +23,6 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 =========================================================================*/
-#include "MeshOptions.h"
-
 #include "MainImageWindow.h"
 #include "ProgressReportWidget.h"
 #include "ProgressReportDialog.h"
@@ -50,7 +48,6 @@
 #include "HistoryQListModel.h"
 #include "GenericView3D.h"
 #include "SplashPanel.h"
-#include "QtWidgetCoupling.h"
 #include "SimpleFileDialogWithHistory.h"
 #include "StatisticsDialog.h"
 #include "MeshExportWizard.h"
@@ -2621,7 +2618,7 @@ void MainImageWindow::onWindowMenuAboutToShow()
     }
     else
     {
-      connect(a, &QAction::triggered, this, [pid]() { RaiseWindowByPid(pid); });
+      connect(a, &QAction::triggered, this, [pid_var = pid]() { RaiseWindowByPid(pid_var); });
     }
   }
 }

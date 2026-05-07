@@ -72,6 +72,15 @@ public:
       guard->m_Cancelled |= !guard->m_Delegate->UpdateProgress(guard->m_TaskId, progress);
   }
 
+  static void ProgressCallback(void *source, std::size_t done, std::size_t total)
+  {
+    auto *guard = static_cast<ProgressTaskGuard *>(source);
+    if (guard && guard->m_Delegate)
+      guard->m_Cancelled |= !guard->m_Delegate->UpdateProgress(
+        guard->m_TaskId,
+        total > 0 ? static_cast<double>(done) / total : std::numeric_limits<double>::quiet_NaN());
+  }
+
   bool UpdateProgress(double percent)
   {
     if (m_Delegate)

@@ -164,7 +164,8 @@ SegmentationMeshWrapper
 
 void
 SegmentationMeshWrapper
-::LoadFromRegistry(Registry &, std::string &, std::string &, unsigned int)
+::LoadFromRegistry(Registry &, std::string &, std::string &, unsigned int,
+                   const RemoteIOContext &)
 {
 
 }

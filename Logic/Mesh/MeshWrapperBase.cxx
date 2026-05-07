@@ -597,9 +597,10 @@ MeshWrapperBase::GetDeepMTime() const
 void
 MeshWrapperBase
 ::LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir,
-                   unsigned int nT)
+                   unsigned int nT, const RemoteIOContext &ctx)
 {
   GuidedMeshIO io;
+  io.SetContext(ctx);
   bool moved = (orig_dir.compare(crnt_dir) != 0);
 
   // Load nicknames and tags

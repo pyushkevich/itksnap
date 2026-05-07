@@ -1903,30 +1903,7 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
   if (IsRemoteImageURL(fname))
     {
     remote_url = fname;
-    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(fname);
-
-    // Propagate the active connection pool (non-null during a remote workspace
-    // load) so repeated downloads to the same host reuse the SSH session.
-    if (m_ActiveConnectionPool)
-      src->SetConnectionPool(m_ActiveConnectionPool.GetPointer());
-
-    src->SetAuthDelegate(m_SSHAuthDelegate);
-
-    // Attach the persistent download cache.
-    RemoteFileCache file_cache;
-    file_cache.Initialize(m_SystemInterface->GetApplicationDataDirectory(),
-                          m_GlobalState->GetRemoteResourceSettings());
-    src->SetFileCache(&file_cache);
-
-    {
-      ProgressTaskGuard guard(
-        m_ProgressDelegate, itksys::SystemTools::GetFilenameName(fname).c_str(), true);
-      src->SetProgressCallback([&guard](std::size_t done, std::size_t total) {
-        return guard.UpdateProgress(done, total);
-      });
-      local_fname = src->Download(fname);
-    }  // guard destructs here, marking the task complete immediately after download
-
+    local_fname = DownloadRemoteFile(fname, GetRemoteIOContext());
     fname = local_fname.c_str();
     }
 
@@ -2296,6 +2273,18 @@ IRISApplication::SaveProject(const std::string &proj_file)
   m_LastSavedProjectState = preg;
 }
 
+RemoteIOContext
+IRISApplication::GetRemoteIOContext() const
+{
+  RemoteIOContext ctx;
+  ctx.progressDelegate = m_ProgressDelegate;
+  ctx.connectionPool   = m_ActiveConnectionPool.GetPointer();
+  ctx.authDelegate     = m_SSHAuthDelegate;
+  ctx.appDataDir       = m_SystemInterface->GetApplicationDataDirectory();
+  ctx.remoteSettings   = m_GlobalState->GetRemoteResourceSettings();
+  return ctx;
+}
+
 std::string
 IRISApplication ::GetMovedFilePath(std::string &project_dir_orig,
                                    std::string &project_dir_crnt,
@@ -2369,19 +2358,7 @@ IRISApplication::OpenProject(const std::string &proj_file, IRISWarningList &warn
 
   std::string local_proj_file = proj_file;
   if (IsRemoteImageURL(proj_file))
-    {
-    // Download the workspace XML using the pool so the SSH session is
-    // established and cached before the per-layer downloads begin.
-    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(proj_file);
-    src->SetConnectionPool(m_ActiveConnectionPool.GetPointer());
-    src->SetAuthDelegate(m_SSHAuthDelegate);
-    {
-    ProgressTaskGuard guard(m_ProgressDelegate,
-                            itksys::SystemTools::GetFilenameName(proj_file).c_str(),
-                            false);
-    local_proj_file = src->Download(proj_file);
-    }
-    }
+    local_proj_file = DownloadRemoteFile(proj_file, GetRemoteIOContext());
 
   // Load the registry file
   Registry preg;

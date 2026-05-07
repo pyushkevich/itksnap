@@ -164,7 +164,7 @@ Generic3DRenderer::Generic3DRenderer()
   auto textProp = m_ScalarBarActor->GetTitleTextProperty();
   textProp->SetFontSize(9);
   textProp->SetJustificationToLeft();
-  this->m_Renderer->AddActor2D(m_ScalarBarActor);
+  this->m_Renderer->AddViewProp(m_ScalarBarActor);
 
   m_ImageCubeSource = vtkSmartPointer<vtkCubeSource>::New();
   m_ImageCubeTransform = vtkSmartPointer<vtkTransformPolyDataFilter>::New();

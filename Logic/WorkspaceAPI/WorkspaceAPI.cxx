@@ -17,8 +17,6 @@ using itksys::SystemTools;
 using itksys::RegularExpression;
 using itksys::Directory;
 
-using DSSRESTClient = RESTClient<DSSServerTraits>;
-
 
 void WorkspaceAPI::ReadFromXMLFile(const char *proj_file)
 {
