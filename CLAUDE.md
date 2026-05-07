@@ -4,34 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Layout
 
-The workspace at `/Users/pauly/tk/itksnap/` has three directories:
-- `itksnap/` — source tree (this file lives here)
-- `xc64dbg/` — configured debug build (arm64 macOS)
-- `xc64rel/` — configured release build
-
-All source lives under `itksnap/`. Builds are always out-of-source.
+One or more build directories sit **next to** `itksnap/` (not inside it). Their names reflect the platform/config, e.g. `xc64dbg`, `xc64rel`, `vc22`, `vce64dbg`. All source lives under `itksnap/`. Builds are always out-of-source.
 
 ## Build Commands
 
-Build from an existing configured build directory:
+Build from an existing configured build directory (replace `<build>` with the actual directory):
 
 ```sh
-# Debug build
-cd /Users/pauly/tk/itksnap/xc64dbg
-cmake --build . --parallel
+# Single-config generators (Ninja, Unix Makefiles)
+cmake --build <build> --parallel
 
-# Release build
-cd /Users/pauly/tk/itksnap/xc64rel
-cmake --build . --parallel
+# Multi-config generators (Visual Studio) — specify --config
+cmake --build <build> --config Debug --parallel
+cmake --build <build> --config Release --parallel
 
 # Build a specific target
-cmake --build . --target ITK-SNAP --parallel
-cmake --build . --target itksnap-wt --parallel
+cmake --build <build> --target ITK-SNAP --parallel
+cmake --build <build> --target itksnap-wt --parallel
 ```
 
 Configure a new build from scratch (requires ITK ≥ 5.4, VTK ≥ 9.3.1, Qt6):
 ```sh
-cmake -G Ninja /Users/pauly/tk/itksnap/itksnap \
+cmake -G <generator> <path-to-itksnap-source> \
   -DITK_DIR=<itk-build> -DVTK_DIR=<vtk-build> \
   -DQt6_DIR=<qt6-prefix>/lib/cmake/Qt6
 ```
@@ -46,8 +40,9 @@ git submodule init && git submodule update
 Tests use CTest (CDash dashboard: `my.cdash.org`, project `ITK-SNAP`):
 
 ```sh
-cd /Users/pauly/tk/itksnap/xc64dbg
-ctest                          # run all tests
+cd <build>
+ctest                          # run all tests (single-config)
+ctest -C Debug                 # run all tests (multi-config)
 ctest -R IRISApplicationTest   # run a specific test by name
 ctest -R testRLE               # run a specific test
 ctest --output-on-failure      # show output for failing tests
