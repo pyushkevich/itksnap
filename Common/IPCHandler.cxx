@@ -314,10 +314,10 @@ IPCHandler::IsAttached()
   return m_Interface->IsAttached();
 }
 
-IPCHandler::IPCHandler(AbstractSharedMemorySystemInterface *interface)
+IPCHandler::IPCHandler(AbstractSharedMemorySystemInterface *shm_interface)
 {
   // Save the pointer to the interface
-  m_Interface = interface;
+  m_Interface = shm_interface;
 
   // Set the message ID and last sender/message id values
   m_LastReceivedMessageID = -1;

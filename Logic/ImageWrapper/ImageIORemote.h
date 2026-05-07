@@ -120,6 +120,17 @@ protected:
 bool IsRemoteImageURL(const std::string &path);
 
 /**
+ * Strip the "itksnap-" wrapper prefix from a URL if present, returning the
+ * underlying protocol URL.  Local paths and already-bare remote URLs are
+ * returned unchanged.
+ *   itksnap-sftp://host/path  →  sftp://host/path
+ *   itksnap-scp://host/path   →  scp://host/path
+ *   sftp://host/path          →  sftp://host/path   (unchanged)
+ *   /local/path               →  /local/path        (unchanged)
+ */
+std::string ResolveITKSnapURL(const std::string &url);
+
+/**
  * Factory: create the RemoteImageSource appropriate for the scheme in @p url.
  * Throws IRISException for unrecognised schemes.
  */

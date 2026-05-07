@@ -278,6 +278,13 @@ bool IsRemoteImageURL(const std::string &path)
   return path.find("://") != std::string::npos;
 }
 
+std::string ResolveITKSnapURL(const std::string &url)
+{
+  if (url.substr(0, 8) == "itksnap-")
+    return url.substr(8);
+  return url;
+}
+
 SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url)
 {
   if (url.substr(0, 6) == "scp://" || url.substr(0, 7) == "sftp://")
