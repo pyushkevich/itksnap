@@ -105,6 +105,8 @@ Typical usage is a one-liner: `makeCoupling(ui->mySpinBox, myModel)`.
 
 CLI flags for the GUI: `-g` (main image), `-s` (segmentation), `-o` (overlays), `-w` (workspace), `--test TESTID` (automated test), `--lang`, `--threads`, `--scale`.
 
+`--url URL` is the flag used by the Windows URL-scheme registry handler (`shell/open/command`). It triggers single-instance forwarding: image URLs are sent to the first already-running ITK-SNAP instance via IPC and the new process exits immediately; workspace URLs (`.itksnap`) always open a new window. The NSIS installer registers all `itksnap-*` schemes with `ITK-SNAP.exe --url "%1"`.
+
 ## CMakeLists.txt: Registering New Headers
 
 Whenever a new header file is added to the source tree it must also be added to `CMakeLists.txt` so that QtCreator's file browser and search index include it. There are three lists:
