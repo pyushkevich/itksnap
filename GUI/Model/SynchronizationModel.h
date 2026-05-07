@@ -26,6 +26,10 @@ public:
   /** Pass a system object that is used to make IPC calls */
   void SetSystemInterface(AbstractSharedMemorySystemInterface *si);
 
+  /** Size and version of the IPC message payload, for use before the model is created. */
+  static size_t GetIPCMessageSize();
+  static short  GetIPCMessageVersion();
+
   /** Force detach - do this in a crash */
   void ForceDetach();
 

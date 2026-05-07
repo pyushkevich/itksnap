@@ -57,7 +57,9 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 #include <QDesktopServices>
+#include <QFileInfo>
 #include "IRISImageData.h"
+#include "IPCHandler.h"
 
 
 using namespace std;
@@ -331,6 +333,8 @@ usage(const char *progname)
   cout << "   --opengl MAJOR MINOR : Set the OpenGL major and minor version. Experimental." << endl;
   cout << "   --testgl             : Diagnose OpenGL/VTK issues." << endl;
   cout << "   --test-url URL       : Test opening image via URL." << endl;
+  cout << "   --url URL            : Open URL/file (from OS URL-scheme handler); forwards to a" << endl;
+  cout << "                        :   running ITK-SNAP window if one exists (images only)." << endl;
   cout << "Platform-Specific Options:" << endl;
 #if QT_VERSION < 0x050000
 #  ifdef Q_WS_X11
@@ -387,6 +391,9 @@ public:
 
   // URL to test opening
   std::string testUrl;
+
+  // URL/file from OS URL-scheme handler (--url); triggers single-instance forwarding
+  std::string fnUrl;
 
   // Number of threads
   int nThreads = 0;
@@ -545,6 +552,8 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--testgl", 0);
 
   parser.AddOption("--test-url", 1);
+
+  parser.AddOption("--url", 1);
 
   parser.AddOption("--test-progress-widget", 0);
 
@@ -759,6 +768,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   if (parseResult.IsOptionPresent("--test-url"))
     argdata.testUrl = parseResult.GetOptionParameter("--test-url");
 
+  if (parseResult.IsOptionPresent("--url"))
+    argdata.fnUrl = DecodeFileOrUrl(parseResult.GetOptionParameter("--url"));
+
 
   // Enable double buffering on X11
   if (parseResult.IsOptionPresent("--x11-db"))
@@ -795,12 +807,82 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   return 0;
 }
 
+/**
+ * Try to forward a URL/file to the first available running ITK-SNAP instance
+ * via shared-memory IPC.  Returns true if the URL was forwarded (caller
+ * should exit); returns false if no live peer was found or the URL is a
+ * workspace (in which case the caller should open a new window normally).
+ *
+ * Must be called after QApplication is constructed (QSharedMemory needs it)
+ * but before GlobalUIModel is created.
+ */
+bool
+TryForwardURLToExistingInstance(const std::string &url)
+{
+  // Workspaces should always open in a new window — detect by extension.
+  // For local files we could call IsProjectFile() but extension check
+  // covers all practical cases and avoids the need for a full IRISApplication.
+  QString qurl = QString::fromStdString(url);
+  bool isWorkspace = qurl.endsWith(".itksnap", Qt::CaseInsensitive);
+  if (isWorkspace)
+    return false;
+
+  // Attach to the shared-memory segment (key is hardcoded inside IPCHandler).
+  QtSharedMemorySystemInterface tmpShm;
+  IPCHandler tmpHandler(&tmpShm);
+  IPCHandler::AttachStatus status =
+    tmpHandler.Attach(nullptr,
+                      SynchronizationModel::GetIPCMessageVersion(),
+                      SynchronizationModel::GetIPCMessageSize());
+
+  if (status == IPCHandler::IPC_ERROR)
+    return false;
+
+  // Read the directory of live instances.
+  auto peers = tmpHandler.ReadDirectory();
+  if (peers.empty())
+  {
+    tmpHandler.Detach();
+    return false;
+  }
+
+  // Forward the URL to the first live peer and exit.
+  tmpHandler.WriteDropRequest(peers[0].first, url.c_str());
+  tmpHandler.Detach();
+  return true;
+}
+
 void
 LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
                       const CommandLineRequest &argdata)
 {
   IRISApplication *driver = gui->GetDriver();
   IRISWarningList warnings;
+
+  // Handle --url: forwarding to an existing instance was already attempted in
+  // main(); if we get here, this IS the first/only instance, so open it now.
+  // Workspaces go through OpenProject; images go through LoadDroppedFile (same
+  // path as the Mac FileOpenEvent handler) so the drop dialog appears if needed.
+  if (argdata.fnUrl.size())
+  {
+    QString qurl = QString::fromStdString(argdata.fnUrl);
+    bool isWorkspace = qurl.endsWith(".itksnap", Qt::CaseInsensitive);
+    try
+    {
+      if (isWorkspace)
+        driver->OpenProject(argdata.fnUrl, warnings);
+      else
+        mainwin->LoadDroppedFile(qurl, false);
+    }
+    catch (std::exception &exc)
+    {
+      ReportNonLethalException(
+        mainwin, exc,
+        QCoreApplication::translate("main", "Image IO Error"),
+        QCoreApplication::translate("main", "Failed to open %1").arg(qurl));
+    }
+    return;
+  }
 
   // Handle special case of test URL
   if(argdata.testUrl.size())
@@ -1194,6 +1276,12 @@ main(int argc, char *argv[])
   // We also need to create the Qt-based object that handles shared memory communication
   // and pass it to the appropriate model
   QtSharedMemorySystemInterface siSharedMem;
+
+  // If launched via --url (e.g. from a Windows URL-scheme registry handler),
+  // try to forward image URLs to an already-running instance and exit early.
+  // Workspace URLs (.itksnap) always open a new window, so they fall through.
+  if (argdata.fnUrl.size() && TryForwardURLToExistingInstance(argdata.fnUrl))
+    return 0;
 
   // Create the global UI
   try

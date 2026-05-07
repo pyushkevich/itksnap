@@ -38,6 +38,9 @@ struct IPCMessage
 };
 
 
+size_t SynchronizationModel::GetIPCMessageSize()    { return sizeof(IPCMessage); }
+short  SynchronizationModel::GetIPCMessageVersion() { return (short)IPCMessage::VERSION; }
+
 SynchronizationModel::SynchronizationModel()
 {
   // Create the models
