@@ -17,7 +17,7 @@
 #include "itksys/MD5.h"
 
 // Minimum server version
-const char *DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION = "0.1.0";
+const char *DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION = "0.1.2";
 
 typedef std::chrono::high_resolution_clock Clock;
 

@@ -345,7 +345,8 @@ DeepLearningServerEditor::on_PipUpgradePipFinished(int exitCode, QProcess::ExitS
     // TODO: the desired version of itksnap-dls should not go here!
     // This is where you would do the pip install
     QStringList args;
-    args << "-m" << "pip" << "install" << "itksnap-dls>=0.0.6";
+    QString package_spec = QString("itksnap-dls>=%1").arg(DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION);
+    args << "-m" << "pip" << "install" << package_spec;
     auto *pip = new PythonProcess(venvPython, args, ui->txtInstallLog, this);
     connect(pip, &PythonProcess::finished, this, &DeepLearningServerEditor::on_PipInstallDLSFinished);
     pip->start();
