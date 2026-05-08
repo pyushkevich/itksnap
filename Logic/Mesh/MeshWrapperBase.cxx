@@ -2,6 +2,7 @@
 #include "MeshDisplayMappingPolicy.h"
 #include "Rebroadcaster.h"
 #include "IRISApplication.h"
+#include "ImageIORemote.h"
 #include "IRISException.h"
 #include <vtkCleanPolyData.h>
 #include <vtkPointData.h>
@@ -597,6 +598,8 @@ MeshWrapperBase
       if (!fnSet)
         {
         this->SetFileName(poly_file_full);
+        if (IsRemoteImageURL(poly_file_full))
+          this->SetRemoteURL(poly_file_full);
         fnSet = true;
         }
 

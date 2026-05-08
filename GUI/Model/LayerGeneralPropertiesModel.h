@@ -67,7 +67,8 @@ public:
     UIF_IS_MESH,
     UIF_IS_MESHDATA_SOLID_COLOR,
     UIF_IS_MESHDATA_MULTICOMPONENT,
-		UIF_MESH_HAS_DATA
+		UIF_MESH_HAS_DATA,
+    UIF_HAS_REMOTE_URL
   };
 
 	/** For UI layer to map mesh data type to resources */
@@ -108,6 +109,9 @@ public:
 
   /** A model for the filename */
   irisSimplePropertyAccessMacro(Filename, std::string)
+
+  /** A model for the remote URL (empty for local files) */
+  irisSimplePropertyAccessMacro(RemoteURL, std::string)
 
   /** A model for the nickname */
   irisSimplePropertyAccessMacro(Nickname, std::string)
@@ -171,12 +175,14 @@ protected:
 
   // Filename and nickname
   SmartPtr<AbstractSimpleStringProperty> m_FilenameModel;
+  SmartPtr<AbstractSimpleStringProperty> m_RemoteURLModel;
   SmartPtr<AbstractSimpleStringProperty> m_NicknameModel;
 
   // Tags
   SmartPtr<AbstractSimpleTagListProperty> m_TagsModel;
 
   bool GetFilenameValue(std::string &value);
+  bool GetRemoteURLValue(std::string &value);
 
   bool GetNicknameValue(std::string &value);
   void SetNicknameValue(std::string value);

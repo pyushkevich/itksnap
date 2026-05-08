@@ -1,5 +1,6 @@
 #include "LayerGeneralPropertiesModel.h"
 #include "DisplayMappingPolicy.h"
+#include "itksys/SystemTools.hxx"
 #include "MeshDisplayMappingPolicy.h"
 #include "LayerAssociation.h"
 #include "NumericPropertyToggleAdaptor.h"
@@ -42,6 +43,9 @@ LayerGeneralPropertiesModel::LayerGeneralPropertiesModel()
 
   m_FilenameModel = wrapGetterSetterPairAsProperty(
         this, &Self::GetFilenameValue);
+
+  m_RemoteURLModel = wrapGetterSetterPairAsProperty(
+        this, &Self::GetRemoteURLValue);
 
   m_NicknameModel = wrapGetterSetterPairAsProperty(
         this,
@@ -225,6 +229,9 @@ bool LayerGeneralPropertiesModel::CheckState(LayerGeneralPropertiesModel::UIStat
 		case UIF_MESH_HAS_DATA:
 			return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH)
 					&& row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH_HAS_DATA);
+
+    case UIF_HAS_REMOTE_URL:
+      return !m_Layer->GetRemoteURL().empty();
 
     case UIF_IS_MESHDATA_SOLID_COLOR:
       return row_model->CheckState(AbstractLayerTableRowModel::UIF_MESH) &&
@@ -454,7 +461,21 @@ bool LayerGeneralPropertiesModel::GetFilenameValue(std::string &value)
   auto layer = this->GetLayer();
   if(layer)
     {
-    value = layer->GetFileName();
+    if(!layer->GetRemoteURL().empty())
+      value = itksys::SystemTools::GetFilenameName(layer->GetFileName());
+    else
+      value = layer->GetFileName();
+    return true;
+    }
+  return false;
+}
+
+bool LayerGeneralPropertiesModel::GetRemoteURLValue(std::string &value)
+{
+  auto layer = this->GetLayer();
+  if(layer)
+    {
+    value = layer->GetRemoteURL();
     return true;
     }
   return false;

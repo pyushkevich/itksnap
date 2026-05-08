@@ -1,4 +1,5 @@
 #include "ImageMeshLayers.h"
+#include "ImageIORemote.h"
 #include "Rebroadcaster.h"
 #include "SNAPEvents.h"
 #include "SNAPImageData.h"
@@ -198,7 +199,10 @@ ImageMeshLayers
   size_t nt = nt = app->GetNumberOfTimePoints();
 
   // We pick the first filename as placeholder of the wrapper filename
-  wrapper->SetFileName(*fn_list.begin());
+  std::string first_fn = *fn_list.begin();
+  wrapper->SetFileName(first_fn);
+  if (IsRemoteImageURL(first_fn))
+    wrapper->SetRemoteURL(first_fn);
 
   // Load one file per time point until final time point is reached
   for (auto &fn : fn_list)
