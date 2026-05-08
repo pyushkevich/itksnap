@@ -263,20 +263,9 @@ public:
   irisGetMacroWithOverride(TimePointIndex, unsigned int)
 
   /**
-   * Is the image initialized?
-   */
-  irisIsMacroWithOverride(Initialized)
-
-  /**
    * Get the size of the image
    */
   Vector3ui GetSize() const override;
-
-  /** Get layer transparency */
-  irisSetWithEventMacroWithOverride(Alpha, double, WrapperDisplayMappingChangeEvent)
-
-  /** Set layer transparency */
-  irisGetMacroWithOverride(Alpha, double)
 
   /**
    * Get layer stickiness. A sticky layer always is shown 'on top' of other
@@ -648,44 +637,6 @@ public:
   irisSetMacroWithOverride(PipelineReady, bool)
 
   /**
-   * Set the filename of the image wrapper. If the wrapper does not have a
-   * nickname, the nickname will be changed to the file part of the filename.
-   */
-  void SetFileName(const std::string &name) override;
-
-
-  // Access the filename
-  irisGetStringMacroWithOverride(FileName)
-
-  /**
-   * Fallback nickname - shown if no filename and no custom nickname set.
-   */
-  irisGetSetMacroWithOverride(DefaultNickname, const std::string &)
-
-  /**
-   * Get the nickname of the image. A nickname is a shorter description of the
-   * image that is displayed to the user. If a custom nickname is not set, it
-   * defaults to the filename (without path). If there is no filename (i.e.,
-   * the layer is internal), the default nickname is used.
-   */
-  const std::string &GetNickname() const override;
-
-  /**
-   * Set the custom nickname for the wrapper.
-   */
-  virtual void SetCustomNickname(const std::string &nickname) override;
-  irisGetMacroWithOverride(CustomNickname, const std::string &);
-
-
-  /**
-   * Access the tags for this image layer. Tags are just strings assigned to the
-   * layer that may be useful to other software
-   */
-  irisGetMacroWithOverride(Tags, const TagList &)
-  irisSetMacroWithOverride(Tags, const TagList &)
-
-
-  /**
    * Access the "IO hints" registry associated with this wrapper. The IO hints
    * are used to help read the image when the filename alone is not sufficient.
    * For example, it may contain the DICOM series ID of the image, or for a raw
@@ -817,9 +768,6 @@ protected:
   /** Destructor */
   virtual ~ImageWrapper();
 
-  /** A unique Id of this wrapper. Used for the LayerAssociation code */
-  unsigned long m_UniqueId;
-
   /**
    * A time-varying image is represented as a 4D image, although we also keep
    * an array of pointers to the individual 3D timepoints. This allows us to
@@ -881,17 +829,8 @@ protected:
    */
   DisplaySlicePipelineArray<SlicerType> m_Slicers;
 
-  /**
-   * Is the image wrapper initialized? That is a prerequisite for all
-   * operations.
-   */
-  bool m_Initialized;
-
   /** Pipeline readiness */
   bool m_PipelineReady;
-
-  /** Transparency */
-  double m_Alpha;
 
   /** Stickiness (whether the layer can be tiled or not) */
   bool m_Sticky;
@@ -941,20 +880,6 @@ protected:
    * This is derived from the origin, spacing, and direction cosine matrix in the image header.
    */
   TransformType m_NiftiSform, m_NiftiInvSform;
-
-  // Each layer has a filename, from which it is belived to have come
-  std::string m_FileName, m_FileNameShort;
-
-  // Each layer has a nickname. But this gets complicated, because the nickname
-  // can be set by the user, or it can be default for the wrapper, or it can be
-  // derived from the filename. The nicknames are used in the following order.
-  // - if there is a custom nickname, it is shown
-  // - if there is a filename, nickname is set to the shortened filename
-  // - if there is no filename, nickname is set to the default nickname
-  std::string m_DefaultNickname, m_CustomNickname;
-
-  // Tags for this image layer
-  TagList m_Tags;
 
   // IO Hints registry
   Registry *m_IOHints;

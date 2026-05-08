@@ -30,35 +30,33 @@ public:
   virtual const AbstractDisplayMappingPolicy *GetDisplayMapping() const = 0;
 
   /** Access the filename */
-  irisVirtualGetStringMacro(FileName)
-  irisVirtualSetStringMacro(FileName)
+  virtual const char *GetFileName() const { return m_FileName.c_str(); }
+  virtual void SetFileName(const std::string &name);
 
   /**
    * Access the nickname - which may be a custom nickname or derived from the
    * filename if there is no custom nickname
    */
-  irisVirtualGetMacro(Nickname, const std::string &)
+  virtual const std::string &GetNickname() const;
 
   // Set the custom nickname - precedence over the filename
-  irisVirtualGetMacro(CustomNickname, const std::string &)
-  irisVirtualSetMacro(CustomNickname, const std::string &)
+  virtual const std::string &GetCustomNickname() const { return m_CustomNickname; }
+  virtual void SetCustomNickname(const std::string &nickname);
 
   /** Fallback nickname - shown if no filename and no custom nickname set. */
-  irisVirtualGetMacro(DefaultNickname, const std::string &)
-  irisVirtualSetMacro(DefaultNickname, const std::string &)
+  irisGetSetMacro(DefaultNickname, const std::string &)
 
   /** List of tags assigned to the image layer */
-  irisVirtualGetMacro(Tags, const TagList &)
-  irisVirtualSetMacro(Tags, const TagList &)
+  irisGetSetMacro(Tags, const TagList &)
 
   /** Layer transparency */
-  irisVirtualSetMacro(Alpha, double)
-  irisVirtualGetMacro(Alpha, double)
+  irisSetWithEventMacro(Alpha, double, WrapperDisplayMappingChangeEvent)
+  irisGetMacro(Alpha, double)
 
   /**
    * Is the image initialized?
    */
-  irisVirtualIsMacro(Initialized)
+  irisIsMacro(Initialized)
 
   /**
    * The wrappers has a generic mechanism for associating data with it.
@@ -121,6 +119,12 @@ protected:
   UserDataMapType m_UserDataMap;
 
   unsigned long m_UniqueId;
+
+  std::string m_FileName, m_FileNameShort;
+  std::string m_DefaultNickname, m_CustomNickname;
+  TagList m_Tags;
+  bool m_Initialized;
+  double m_Alpha;
 
   // Original remote URL when the image was loaded from a remote source
   // (e.g. "scp://host/path/image.nii.gz").  Empty for local files.

@@ -227,38 +227,9 @@ public:
   //----------------------------------------------
   // Begin virtual methods definition
 
-  /** Access the filename */
-  irisGetStringMacroWithOverride(FileName)
-  virtual void SetFileName(const std::string &name) override;
+  /** Expose the single-arg overload from WrapperBase alongside the mesh-specific one */
+  using WrapperBase::SetFileName;
   virtual void SetFileName(const char *filename, unsigned int tp, LabelType id);
-
-  /**
-   * Access the nickname - which may be a custom nickname or derived from the
-   * filename if there is no custom nickname
-   */
-  virtual const std::string &GetNickname() const override;
-
-  // Set the custom nickname - precedence over the filename
-  virtual void SetCustomNickname(const std::string &nickname) override;
-  irisGetMacroWithOverride(CustomNickname, const std::string &);
-
-  /** Fallback nickname - shown if no filename and no custom nickname set. */
-  irisGetSetMacroWithOverride(DefaultNickname, const std::string &)
-
-  /** List of tags assigned to the image layer */
-  const TagList &GetTags() const override
-  { return m_Tags; }
-  void SetTags (const TagList &tags) override
-  { m_Tags = tags; }
-
-  /** Layer transparency */
-  irisSetWithEventMacroWithOverride(Alpha, double, WrapperDisplayMappingChangeEvent)
-  irisGetMacroWithOverride(Alpha, double)
-
-  /**
-   * Is the image initialized?
-   */
-  irisIsMacroWithOverride(Initialized)
 
   /** Get the MeshAssembly associated with the time point */
   virtual MeshAssembly *GetMeshAssembly(unsigned int timepoint);
@@ -402,27 +373,6 @@ protected:
 
   // Indicate which data property is active
   int m_ActiveDataPropertyId = -1;
-
-  UserDataMapType m_UserDataMap;
-
-  // Each layer has a filename, from which it is belived to have come
-  std::string m_FileName, m_FileNameShort;
-
-  // Each layer has a nickname. But this gets complicated, because the nickname
-  // can be set by the user, or it can be default for the wrapper, or it can be
-  // derived from the filename. The nicknames are used in the following order.
-  // - if there is a custom nickname, it is shown
-  // - if there is a filename, nickname is set to the shortened filename
-  // - if there is no filename, nickname is set to the default nickname
-  std::string m_DefaultNickname, m_CustomNickname;
-
-  // Tags for this image layer
-  TagList m_Tags;
-
-  bool m_Initialized = false;
-
-  // Transparency
-  double m_Alpha;
 
   // Solid color
   Vector3d m_SolidColor;

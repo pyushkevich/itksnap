@@ -930,7 +930,6 @@ ImageWrapper<TTraits>
 ::ImageWrapper()
 {
   // Set initial state
-  m_Initialized = false;
   m_PipelineReady = false;
   m_ReferenceSpace = nullptr;
 
@@ -1443,7 +1442,7 @@ ImageWrapper<TTraits>
   m_ImageAssignTime = m_ImageSaveTime = m_Image4D->GetTimeStamp();
 
   // We have been initialized
-  m_Initialized = true;
+  this->m_Initialized = true;
 
   // Update MTime so downstream users can update accordingly
   this->Modified();
@@ -1668,7 +1667,7 @@ void
 ImageWrapper<TTraits>
 ::Reset()
 {
-  if (m_Initialized)
+  if (this->m_Initialized)
     {
     for(ImagePointer img : m_ImageTimePoints)
       img->ReleaseData();
@@ -1679,9 +1678,9 @@ ImageWrapper<TTraits>
     m_ImageBase = nullptr;
     m_Image = nullptr;
     }
-  m_Initialized = false;
+  this->m_Initialized = false;
 
-  m_Alpha = 0.5;
+  this->m_Alpha = 0.5;
 }
 
 
@@ -2218,45 +2217,6 @@ ImageWrapper<TTraits>::GetDisplaySlice(DisplaySliceIndex index)
 }
 
 template<class TTraits>
-void
-ImageWrapper<TTraits>
-::SetFileName(const std::string &name)
-{
-  m_FileName = name;
-  m_FileNameShort = itksys::SystemTools::GetFilenameWithoutExtension(
-        itksys::SystemTools::GetFilenameName(name));
-  this->InvokeEvent(WrapperMetadataChangeEvent());
-}
-
-template<class TTraits>
-const std::string &
-ImageWrapper<TTraits>
-::GetNickname() const
-{
-  if(m_CustomNickname.length())
-    return m_CustomNickname;
-
-  else if(m_FileName.length())
-    return m_FileNameShort;
-
-  else return m_DefaultNickname;
-}
-
-template<class TTraits>
-void
-ImageWrapper<TTraits>
-::SetCustomNickname(const std::string &nickname)
-{
-  // Make sure the nickname is real
-  if(nickname == m_FileNameShort)
-    m_CustomNickname.clear();
-  else
-    m_CustomNickname = nickname;
-
-  this->InvokeEvent(WrapperMetadataChangeEvent());
-}
-
-template<class TTraits>
 const Registry &
 ImageWrapper<TTraits>
 ::GetIOHints() const
@@ -2304,7 +2264,7 @@ ImageWrapper<TTraits>
     }
 
   // Store the filename
-  m_FileName = itksys::SystemTools::GetFilenamePath(filename);
+  this->m_FileName = itksys::SystemTools::GetFilenamePath(filename);
 
   // Store the timestamp when the filename was written
   for(ImagePointer img : m_ImageTimePoints)
@@ -2645,10 +2605,10 @@ ImageWrapper<TTraits>
   m_DisplayMapping->Save(reg.Folder("DisplayMapping"));
 
   // Save the alpha and the stickiness
-  reg["Alpha"] << m_Alpha;
+  reg["Alpha"] << this->m_Alpha;
   reg["Sticky"] << m_Sticky;
-  reg["CustomNickName"] << m_CustomNickname;
-  reg["Tags"].PutList(m_Tags);
+  reg["CustomNickName"] << this->m_CustomNickname;
+  reg["Tags"].PutList(this->m_Tags);
 }
 
 template<class TTraits>
@@ -2660,10 +2620,10 @@ ImageWrapper<TTraits>
   m_DisplayMapping->Restore(reg.Folder("DisplayMapping"));
 
   // Load the alpha and the stickiness
-  this->SetAlpha(reg["Alpha"][m_Alpha]);
+  this->SetAlpha(reg["Alpha"][this->m_Alpha]);
   this->SetSticky(reg["Sticky"][m_Sticky]);
-  this->SetCustomNickname(reg["CustomNickName"][m_CustomNickname]);
-  reg["Tags"].GetList(m_Tags);
+  this->SetCustomNickname(reg["CustomNickName"][this->m_CustomNickname]);
+  reg["Tags"].GetList(this->m_Tags);
 }
 
 template<class TTraits>
