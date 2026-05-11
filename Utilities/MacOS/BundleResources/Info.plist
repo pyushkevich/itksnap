@@ -65,6 +65,14 @@
 				<string>itksnap-http</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ITK-SNAP Flywheel URL</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>itksnap-fw</string>
+			</array>
+		</dict>
 	</array>
 	<key>CFBundleDocumentTypes</key>
 	<array>

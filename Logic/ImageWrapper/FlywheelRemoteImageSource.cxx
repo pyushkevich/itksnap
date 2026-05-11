@@ -7,6 +7,7 @@
 #include "UIReporterDelegates.h"
 #include "json/json.h"
 #include <itksys/SystemTools.hxx>
+#include <fstream>
 #include <sstream>
 #include <map>
 #include <mutex>
@@ -88,6 +89,86 @@ std::string MakeBearerHeader(const std::string &api_key)
     ? api_key.substr(colon + 1)
     : api_key;
   return "Bearer " + secret;
+}
+
+// Read the Flywheel API key for @p server from ~/.fw/config.yml.
+// Lookup order:
+//   1. First profile whose api_key starts with "server:" (multi-instance match).
+//   2. Profile named by default_profile (single-instance fallback).
+// Returns "" when the file is absent or no matching key is found.
+std::string LoadAPIKeyFromFWConfig(const std::string &server)
+{
+  const char *home = getenv("HOME");
+#ifdef _WIN32
+  if (!home) home = getenv("USERPROFILE");
+#endif
+  if (!home) return "";
+
+  std::string path = std::string(home) + "/.fw/config.yml";
+  std::ifstream f(path);
+  if (!f.is_open()) return "";
+
+  auto trim = [](const std::string &s) -> std::string {
+    size_t a = s.find_first_not_of(" \t");
+    return (a == std::string::npos) ? std::string() : s.substr(a);
+  };
+
+  auto value_of = [&](const std::string &t, const char *prefix) -> std::string {
+    size_t plen = strlen(prefix);
+    if (t.size() < plen || t.substr(0, plen) != prefix) return "";
+    std::string v = trim(t.substr(plen));
+    auto hash = v.find('#');
+    if (hash != std::string::npos) v = v.substr(0, hash);
+    auto end = v.find_last_not_of(" \t");
+    return (end == std::string::npos) ? std::string() : v.substr(0, end + 1);
+  };
+
+  std::string default_profile;
+  std::string current_name, current_key;
+  std::string server_match_key;
+  std::vector<std::pair<std::string, std::string>> profiles;
+  std::string prefix = server + ":";
+
+  auto commit = [&]() {
+    if (server_match_key.empty() && !current_key.empty()
+        && current_key.size() >= prefix.size()
+        && current_key.substr(0, prefix.size()) == prefix)
+      server_match_key = current_key;
+    if (!current_name.empty() && !current_key.empty())
+      profiles.push_back({current_name, current_key});
+    current_name.clear();
+    current_key.clear();
+  };
+
+  std::string line;
+  while (std::getline(f, line))
+    {
+    std::string t = trim(line);
+    std::string v;
+
+    if ((v = value_of(t, "default_profile:")) != "")
+      { default_profile = v; continue; }
+
+    if (t.size() >= 2 && t.substr(0, 2) == "- ")
+      {
+      commit();
+      t = trim(t.substr(2));
+      }
+
+    if ((v = value_of(t, "name:")) != "")    current_name = v;
+    if ((v = value_of(t, "api_key:")) != "") current_key  = v;
+    }
+  commit();
+
+  if (!server_match_key.empty())
+    return server_match_key;
+
+  if (!default_profile.empty())
+    for (auto &p : profiles)
+      if (p.first == default_profile)
+        return p.second;
+
+  return "";
 }
 
 // Execute a GET against the Flywheel REST API with the given API key.
@@ -353,9 +434,13 @@ FlywheelRemoteImageSource::Download(const std::string &url)
   std::string api_key = GetCachedAPIKey(server);
   if (api_key.empty())
     {
-    if (!m_AuthDelegate ||
-        !m_AuthDelegate->PromptForAPIKey(server, "", api_key))
-      throw IRISUserCancelException("Flywheel authentication cancelled");
+    api_key = LoadAPIKeyFromFWConfig(server);
+    if (api_key.empty())
+      {
+      if (!m_AuthDelegate ||
+          !m_AuthDelegate->PromptForAPIKey(server, "", api_key))
+        throw IRISUserCancelException("Flywheel authentication cancelled");
+      }
     SetCachedAPIKey(server, api_key);
     }
 

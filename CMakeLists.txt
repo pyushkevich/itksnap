@@ -1776,10 +1776,10 @@ ELSEIF(WIN32)
     ENDIF(VCREDIST_EXE)
   ENDIF(MSVC_VERSION GREATER 1399)
 
-  # Register itksnap-sftp://, itksnap-scp://, itksnap-https://, and itksnap-http://
+  # Register itksnap-sftp://, itksnap-scp://, itksnap-https://, itksnap-http://, and itksnap-fw://
   # as URL scheme handlers so that tools and web pages can open remote files
   # directly in ITK-SNAP.
-  foreach(_scheme itksnap-sftp itksnap-scp itksnap-https itksnap-http)
+  foreach(_scheme itksnap-sftp itksnap-scp itksnap-https itksnap-http itksnap-fw)
     STRING(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
       WriteRegStr HKCR '${_scheme}' '' 'URL: ITK-SNAP ${_scheme}'
       WriteRegStr HKCR '${_scheme}' 'URL Protocol' ''
