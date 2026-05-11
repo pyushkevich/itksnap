@@ -27,6 +27,10 @@ public:
                                     std::string       &username,
                                     std::string       &password) override;
 
+  bool PromptForAPIKey(const std::string &server,
+                       const std::string &prompt,
+                       std::string       &api_key) override;
+
 private:
   QWidget *m_Parent;
 };

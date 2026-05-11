@@ -56,4 +56,21 @@ public:
                                             const std::string &prompt,
                                             std::string       &username,
                                             std::string       &password) = 0;
+
+  /**
+   * Prompt for a Flywheel (or other REST) API key.
+   * @param server   Hostname of the remote server
+   * @param prompt   Error message from the previous failed attempt, or empty
+   * @param api_key  [out] Key entered by the user
+   * @return true if the user supplied a key, false if they cancelled
+   *
+   * The default implementation delegates to PromptForPassword so that
+   * subclasses that only implement the SSH interface still work.
+   */
+  virtual bool PromptForAPIKey(const std::string &server,
+                               const std::string &prompt,
+                               std::string       &api_key)
+  {
+    return PromptForPassword(server, "api-key", prompt, api_key);
+  }
 };

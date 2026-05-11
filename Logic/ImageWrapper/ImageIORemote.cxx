@@ -1,6 +1,7 @@
 #include "ImageIORemote.h"
 #include "AbstractProgressDelegate.h"
 #include "AbstractSSHAuthDelegate.h"
+#include "FlywheelRemoteImageSource.h"
 #include "RemoteFileCache.h"
 #include "RESTClient.h"
 #include "SSHConnectionPool.h"
@@ -370,6 +371,9 @@ SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url)
 
   if (url.substr(0, 7) == "http://" || url.substr(0, 8) == "https://")
     return HTTPRemoteImageSource::New().GetPointer();
+
+  if (url.substr(0, 5) == "fw://")
+    return FlywheelRemoteImageSource::New().GetPointer();
 
   throw IRISException("No remote image handler for URL: %s", url.c_str());
 }

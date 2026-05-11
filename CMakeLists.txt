@@ -268,6 +268,7 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
+  Logic/ImageWrapper/FlywheelRemoteImageSource.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
   Logic/ImageWrapper/ImageIORemote.cxx
   Logic/ImageWrapper/RemoteFileCache.cxx
@@ -397,6 +398,7 @@ SET(LOGIC_HEADERS
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/DisplayMappingPolicy.h
+  Logic/ImageWrapper/FlywheelRemoteImageSource.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
   Logic/ImageWrapper/ImageIORemote.h
   Logic/ImageWrapper/RemoteFileCache.h

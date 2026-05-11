@@ -126,6 +126,14 @@ RESTClient<ServerTraits>::SetVerbose(bool verbose)
 
 template <typename ServerTraits>
 void
+RESTClient<ServerTraits>::SetFollowRedirects(bool follow)
+{
+  m_FollowRedirects = follow;
+  curl_easy_setopt(m_Curl, CURLOPT_FOLLOWLOCATION, follow ? 1L : 0L);
+}
+
+template <typename ServerTraits>
+void
 RESTClient<ServerTraits>::SetOutputFile(FILE *outfile)
 {
   m_OutputFile = outfile;

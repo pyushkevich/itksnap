@@ -249,6 +249,15 @@ public:
   void ClearRequestHeaders();
 
   /**
+   * When set to true, libcurl automatically follows HTTP 3xx redirects.
+   * The Authorization header is NOT forwarded to the redirect target
+   * (libcurl's default safe behaviour), so this is safe for ticket-based
+   * Flywheel downloads that redirect to pre-signed S3 URLs.
+   */
+  void SetFollowRedirects(bool follow);
+
+
+  /**
    * Retrieve a response header received during the last Get/Post call.
    * @p name is matched case-insensitively (HTTP headers are case-insensitive).
    * Returns "" when the header was not present.
@@ -287,6 +296,7 @@ protected:
   char *m_ErrorBuffer;
 
   bool m_ReceiveCookieMode;
+  bool m_FollowRedirects = false;
 
   /** Callback stuff */
   std::pair<void *, ProgressCallbackFunction> m_CallbackInfo;

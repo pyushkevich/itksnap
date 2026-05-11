@@ -96,3 +96,25 @@ QtSSHAuthDelegate::PromptForUsernameAndPassword(const std::string &host,
   password = passEdit->text().toStdString();
   return true;
 }
+
+bool
+QtSSHAuthDelegate::PromptForAPIKey(const std::string &server,
+                                   const std::string &prompt,
+                                   std::string       &api_key)
+{
+  QString labelText =
+    tr("API key for <b>%1</b>:").arg(QString::fromStdString(server));
+
+  if (!prompt.empty())
+    labelText += tr("<br><small style='color:red'>%1</small>").arg(
+      QString::fromStdString(prompt));
+
+  bool    ok  = false;
+  QString key = QInputDialog::getText(
+    m_Parent, tr("Flywheel Authentication"), labelText,
+    QLineEdit::Password, QString(), &ok);
+
+  if (ok)
+    api_key = key.toStdString();
+  return ok;
+}
