@@ -306,7 +306,7 @@ std::string DownloadDirect(const std::string         &server,
 
   // Stream to a local temp file, following the S3 redirect transparently.
   std::string tmpdir = MakeFWTempDir();
-  std::string dest   = tmpdir + "/" + filename;
+  std::string dest   = tmpdir + "/" + UrlDecode(filename);
 
   FILE *outfile = fopen(dest.c_str(), "wb");
   if (!outfile)
@@ -367,13 +367,13 @@ std::string DownloadByFind(const std::string               &server,
                            DownloadProgressCallback        *progress_cb)
 {
   std::string base             = "https://" + server;
-  const std::string &group     = parts[1];
-  const std::string &project   = parts[2];
-  const std::string &subject   = parts[3];
-  const std::string &session   = parts[4];
-  const std::string &ctype     = parts[5]; // "acquisitions" or "analyses"
-  const std::string &label     = parts[6];
-  const std::string &filename  = parts[8];
+  std::string group            = UrlDecode(parts[1]);
+  std::string project          = UrlDecode(parts[2]);
+  std::string subject          = UrlDecode(parts[3]);
+  std::string session          = UrlDecode(parts[4]);
+  const std::string &ctype     = parts[5]; // "acquisitions" or "analyses" — no encoding
+  std::string label            = UrlDecode(parts[6]);
+  const std::string &filename  = parts[8]; // kept encoded for the API URL; DownloadDirect decodes for local path
 
   // Singular form for error messages ("acquisition", "analysis")
   std::string ctype_singular = (ctype == "analyses") ? "analysis" : "acquisition";

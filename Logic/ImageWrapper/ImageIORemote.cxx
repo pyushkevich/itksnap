@@ -85,14 +85,14 @@ SCPRemoteImageSource::Download(const std::string &url)
     throw IRISException("SCPRemoteImageSource: malformed URL (no path after host): %s", url.c_str());
 
   std::string hostpart   = rest.substr(0, slash);   // "user@host" or "host"
-  std::string remotepath = rest.substr(slash);       // "/absolute/path/to/file.ext"
+  std::string remotepath = UrlDecode(rest.substr(slash)); // "/absolute/path/to/file.ext"
 
   // Split optional user@ from host
   std::string host, username;
   auto at = hostpart.rfind('@');
   if (at != std::string::npos)
   {
-    username = hostpart.substr(0, at);
+    username = UrlDecode(hostpart.substr(0, at));
     host     = hostpart.substr(at + 1);
   }
   else

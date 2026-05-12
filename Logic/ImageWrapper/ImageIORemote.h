@@ -7,6 +7,30 @@
 #include "itkObjectFactory.h"
 #include <functional>
 #include <cstddef>
+#include <string>
+#include <cctype>
+
+/** Decode percent-encoded characters in a URL component.
+ *  Only %XX sequences are decoded; '+' is left as-is (it is literal in paths). */
+inline std::string UrlDecode(const std::string &s)
+{
+  std::string out;
+  out.reserve(s.size());
+  for (std::size_t i = 0; i < s.size(); ++i)
+    {
+    if (s[i] == '%' && i + 2 < s.size()
+        && std::isxdigit((unsigned char)s[i+1])
+        && std::isxdigit((unsigned char)s[i+2]))
+      {
+      char hex[3] = { s[i+1], s[i+2], '\0' };
+      out += static_cast<char>(std::strtol(hex, nullptr, 16));
+      i += 2;
+      }
+    else
+      out += s[i];
+    }
+  return out;
+}
 
 // Forward declarations — full types only needed in .cxx files that use them.
 class SSHConnectionPool;
