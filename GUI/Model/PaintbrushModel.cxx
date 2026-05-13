@@ -358,9 +358,11 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
     if (!img_source)
       return false;
 
-    // Crop the test region against the grey image buffer as well — necessary when
-    // context_layer has a different extent than the segmentation image (e.g. an overlay).
-    xTestRegion.Crop(img_source->GetBufferedRegion());
+    // Adaptive brush requires context_layer to share the same voxel grid as the
+    // segmentation image; if not, bail out rather than running watershed over a
+    // spatially-mismatched region.
+    if (img_source->GetBufferedRegion() != imgLabel->GetImage()->GetBufferedRegion())
+      return false;
 
     // Precompute and recompute watersheds; ensure the pipeline is released even if
     // the ITK filters throw (itk::ExceptionObject is not an IRISException).
