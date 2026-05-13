@@ -27,16 +27,27 @@ on:
         type: boolean
         description: 'Upload a named release to SourceForge'
         required: false
-        default: false       
+        default: false
+      skip_packaging:
+        type: boolean
+        description: 'Skip packaging and SourceForge upload'
+        required: false
+        default: false
   push:
+  pull_request:
   # release:
   # types:
   #   - published
+
+env:
+  MACOS_DEPLOYMENT_TARGET: '14.0'
 
 jobs:
   build_itksnap:
     name: Build and Package ITK-SNAP on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      SKIP_PACKAGING: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/claude/')) || (github.event_name == 'workflow_dispatch' && inputs.skip_packaging == 'true') }}
     strategy:
       fail-fast: false
       matrix:
@@ -113,7 +124,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/vtk/install
-          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}
+          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
 
       # Check out VTK
       - name: Checkout VTK
@@ -146,6 +157,7 @@ jobs:
             CMAKE_BUILD_TYPE=Release
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
             ${{ runner.os == 'Windows' && 'VTK_SMP_ENABLE_STDTHREAD=OFF' || '' }}
+            ${{ runner.os == 'MacOS' && format('CMAKE_OSX_DEPLOYMENT_TARGET={0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
      
       # Cache the VTK build
       - name: Cache VTK
@@ -153,7 +165,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/vtk/install
-          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}
+          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
 
       # Use cached ITK build if available. Unfortunately ITK make install fails to 
       # install one file, vnl_vector_ref.hxx so instead of caching the install dir
@@ -163,7 +175,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/itk
-          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build
+          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
 
       # Check out ITK
       - name: Checkout ITK
@@ -194,14 +206,14 @@ jobs:
             CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
-            
+            ${{ runner.os == 'MacOS' && format('CMAKE_OSX_DEPLOYMENT_TARGET={0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
 
       - name: Cache ITK
         if: steps.cache-itk.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/itk
-          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build
+          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
      
       # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
       # because only the updated files should require rebuilding
@@ -251,7 +263,7 @@ jobs:
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
-            ${{ runner.os == 'MacOS' && 'CMAKE_OSX_DEPLOYMENT_TARGET=14.0' || '' }}
+            ${{ runner.os == 'MacOS' && format('CMAKE_OSX_DEPLOYMENT_TARGET={0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -308,7 +320,7 @@ jobs:
       # On MacOS, setup keychain for application signing
       # The notarization keys are from https://appstoreconnect.apple.com/access/integrations/api
       - name: Setup codesign keychain
-        if: ${{ runner.os == 'MacOS' }}
+        if: ${{ runner.os == 'MacOS' && env.SKIP_PACKAGING != 'true' }}
         working-directory: ${{github.workspace}}/itksnap/build
         env:
           # Private key from the .p12 file (export certificate & key to .p12)
@@ -332,6 +344,7 @@ jobs:
 
       # Package ITK-SNAP
       - name: Package ITK-SNAP
+        if: ${{ env.SKIP_PACKAGING != 'true' }}
         continue-on-error: false
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
@@ -341,18 +354,21 @@ jobs:
       # Extract the filename of ITK-SNAP package
       - name: Read package name
         id: package_itksnap
+        if: ${{ env.SKIP_PACKAGING != 'true' }}
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         run: |
           echo "package_file=$(jq -r '.filename' package_info.json)" >> $GITHUB_OUTPUT
 
       - name: Upload artifact
+        if: ${{ env.SKIP_PACKAGING != 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{steps.package_itksnap.outputs.package_file}}
           path: ${{github.workspace}}/itksnap/build/${{steps.package_itksnap.outputs.package_file}}
 
       - name: Upload to sourceforge
+        if: ${{ env.SKIP_PACKAGING != 'true' }}
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         env:
@@ -371,7 +387,7 @@ jobs:
           cmake --build . --target itksnap_upload_experimental
 
       - name: Upload named release to sourceforge
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_release }}
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_release && !inputs.skip_packaging }}
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         run: |
