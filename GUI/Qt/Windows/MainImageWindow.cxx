@@ -1734,6 +1734,8 @@ void MainImageWindow::LoadProject(const QString &file)
     }
 
   driver->SetProgressDelegate(savedDelegate);
+  if (progressDlg->isVisible())
+    progressDlg->done(0);
 }
 
 void MainImageWindow::LoadProjectInNewInstance(const QString &file)

@@ -17,7 +17,7 @@ CTestConfig.cmake.user*
 .vscode
 
 # Notebook stuff
-Utilities/Translation/.ipynb_checkpoints
+.ipynb_checkpoints
 
 # Build directories
 build/
