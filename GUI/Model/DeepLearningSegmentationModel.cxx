@@ -718,7 +718,11 @@ DeepLearningSegmentationModel::ApplyStatusCheckResponse(const StatusCheck &resul
 std::map<std::string, dls_model::RemoteModelMetadata>
 DeepLearningSegmentationModel::GetRemotePipelines()
 {
-  std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
+  // This lock code prevents a race condition
+  std::unique_lock<std::mutex> guard(m_Mutex, std::try_to_lock);
+  if(!guard.owns_lock())
+    return m_RemoteModelMetadata;
+
   if(this->GetServerStatus().status != dls_model::CONN_CONNECTED)
   {
     m_RemoteModelMetadata.clear();

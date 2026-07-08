@@ -100,6 +100,10 @@ RESTClient<ServerTraits>::RESTClient(SharedData *sd)
   m_ErrorBuffer[0] = 0;
   curl_easy_setopt(m_Curl, CURLOPT_ERRORBUFFER, m_ErrorBuffer);
 
+  // Bound the TCP handshake so background threads that hold m_Mutex never block
+  // the main thread indefinitely when a server is unreachable.
+  curl_easy_setopt(m_Curl, CURLOPT_CONNECTTIMEOUT, 10L);
+
   m_UploadMessageBuffer[0] = 0;
   m_MessageBuffer[0] = 0;
   m_OutputFile = NULL;

@@ -97,6 +97,9 @@ SSHTunnel::OpenSession(const char *remote_host,
       return fail("Error setting SSH port to %d: %s", port, ssh_get_error(session));
   }
 
+  long ssh_connect_timeout = 10;
+  ssh_options_set(session, SSH_OPTIONS_TIMEOUT, &ssh_connect_timeout);
+
   if (ssh_connect(session) != SSH_OK)
     return fail("SSH connection to %s failed: %s", remote_host, ssh_get_error(session));
 
