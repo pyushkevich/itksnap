@@ -80,14 +80,32 @@ int main()
   saa(2, 0) = -0.787153390; saa(2, 1) = -0.437837730; saa(2, 2) =  0.434381920;
   success = ExpectCode("oblique SAA regression", saa, "SRA") && success;
 
-  // Direction matrix reported in GitHub issue #69 for a clinical shoulder
-  // MRI. Independent column selection maps two columns to the left-right axis;
-  // the global assignment produces the valid closest code LSP.
-  DirectionMatrix issue_69(3, 3);
-  issue_69(0, 0) = -0.71844119; issue_69(0, 1) =  0.06575722; issue_69(0, 2) = -0.69247257;
-  issue_69(1, 0) =  0.67544218; issue_69(1, 1) =  0.30380508; issue_69(1, 2) = -0.67192283;
-  issue_69(2, 0) =  0.16619304; issue_69(2, 1) = -0.95046224; issue_69(2, 2) = -0.26268128;
-  success = ExpectCode("issue 69 oblique regression", issue_69, "LSP") && success;
+  // The original NIfTI affine from GitHub issue #69 is expressed in RAS
+  // coordinates. ITK converts NIfTI geometry to LPS by negating the first two
+  // rows before this function sees the direction matrix. The previous
+  // per-column argmax produced IRI; the global assignment recovers RAI.
+  DirectionMatrix issue_69_ras(3, 3);
+  issue_69_ras(0, 0) = -0.656692; issue_69_ras(0, 1) = -0.676962; issue_69_ras(0, 2) =  0.332383;
+  issue_69_ras(1, 0) =  0.360389; issue_69_ras(1, 1) = -0.668844; issue_69_ras(1, 2) = -0.650205;
+  issue_69_ras(2, 0) =  0.662477; issue_69_ras(2, 1) = -0.307197; issue_69_ras(2, 2) =  0.683194;
+
+  DirectionMatrix issue_69_lps = issue_69_ras;
+  for(size_t column = 0; column < 3; ++column)
+    {
+    issue_69_lps(0, column) *= -1.0;
+    issue_69_lps(1, column) *= -1.0;
+    }
+  success = ExpectCode("issue 69 IRI regression", issue_69_lps, "RAI") && success;
+
+  // A clinical shoulder MRI direction matrix posted in a later comment on
+  // issue #69. Independent column selection maps two columns to the left-right
+  // axis; the global assignment produces the valid closest code LSP.
+  DirectionMatrix shoulder(3, 3);
+  shoulder(0, 0) = -0.71844119; shoulder(0, 1) =  0.06575722; shoulder(0, 2) = -0.69247257;
+  shoulder(1, 0) =  0.67544218; shoulder(1, 1) =  0.30380508; shoulder(1, 2) = -0.67192283;
+  shoulder(2, 0) =  0.16619304; shoulder(2, 1) = -0.95046224; shoulder(2, 2) = -0.26268128;
+  success = ExpectCode("issue 69 shoulder MRI regression",
+                       shoulder, "LSP") && success;
 
   return success ? 0 : 1;
 }
