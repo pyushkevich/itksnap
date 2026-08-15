@@ -65,3 +65,11 @@ the stability and quality of this program:
 *   By reporting bugs and suggesting enhancements using the [Bug Tracker](http://www.itksnap.org/pmwiki/pmwiki.php?n=Main.BugTracker).
 *   By joining the ITK-SNAP Development Team on [SourceForge.net](http://sourceforge.net/projects/itk-snap) and contributing source code.
 
+### For Developers
+
+*   [Contributing Guidelines](CONTRIBUTING.md) — how to report bugs and submit pull requests.
+*   [Developer Guide](Documentation/Developer/DeveloperGuide.md) — building from source, running
+    the tests, and a tour of the architecture.
+*   [Governance](GOVERNANCE.md) — how the project is run and who maintains it.
+*   [Code of Conduct](CODE_OF_CONDUCT.md) — expectations for participation in the community.
+
