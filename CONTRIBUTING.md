@@ -60,9 +60,10 @@ ITK-SNAP uses a fork-and-pull-request model.
 3. **Make your changes**, keeping the branch focused on one thing. Unrelated cleanups
    in the same branch make review harder and are usually asked to be split out.
 
-4. **Build and test locally** before pushing (see the Developer Guide). At a minimum,
-   the project should build without new warnings on your platform and `ctest` should
-   show no new failures.
+4. **Build and test locally** before pushing, if you can (see the Developer Guide).
+   Checking that the project still builds on your platform and that `ctest` shows no new
+   failures will usually save a review round-trip — but CI checks this too, so a pull
+   request you could not fully test locally is still worth opening.
 
 5. **Push** to your fork and **open a pull request** against `master`.
 
@@ -71,8 +72,14 @@ ITK-SNAP uses a fork-and-pull-request model.
 
 ## Commit messages
 
-ITK-SNAP follows the commit-message convention used across the ITK/VTK/3D Slicer
-ecosystem. Prefix the subject line with the kind of change:
+**These are recommendations, not requirements.** The maintainers are adopting this
+convention themselves first, and will consider asking for it more firmly only once it has
+proven worth the friction in day-to-day use. A clear, honest commit message that follows
+none of the advice below is worth more than a well-formatted one that does not explain the
+change — please do not let formatting rules stop you from contributing.
+
+That said, the convention we are moving toward is the one used across the ITK/VTK/3D Slicer
+ecosystem: prefix the subject line with the kind of change.
 
 | Prefix   | Meaning                                                     |
 | -------- | ----------------------------------------------------------- |
@@ -84,7 +91,7 @@ ecosystem. Prefix the subject line with the kind of change:
 | `STYLE:` | Formatting or cosmetic change, no functional effect          |
 | `WIP:`   | Work in progress, not ready to merge                         |
 
-Guidelines:
+Suggestions that tend to help:
 
 - Keep the subject line under 72 characters and write it in the imperative mood
   ("Fix crash when closing a workspace", not "Fixed" or "Fixes").
@@ -104,19 +111,28 @@ Wait for the mesh worker to finish before tearing down the model.
 Fixes #456
 ```
 
-## What a pull request should contain
+## What makes a pull request easy to review
 
-- **A clear description** of the problem and the approach taken.
-- **Tests** for new functionality or for a bug fix, where the change is testable.
-  Test data lives in `Testing/TestData/`; GUI tests are driven by scripts under
-  `GUI/Qt/Resources/Scripts/`.
-- **No unrelated changes** — no reformatting of files you did not otherwise touch.
-- **Consistent formatting.** The repository has a `.clang-format` at its root; format
-  the lines you add or change. Please do not reformat whole existing files, as this
-  obscures history.
-- **Backward compatibility.** ITK-SNAP reads workspaces and images written by older
-  versions; changes to file formats, the workspace schema, or the command-line
-  interface need explicit discussion.
+These are recommendations rather than a checklist you must satisfy. They describe what
+tends to make a change quick to review and merge; none of them is a precondition for
+opening a pull request, and a maintainer can help with any of them during review.
+
+- **A clear description** of the problem and the approach taken. This is the one that
+  helps most, and it costs the least.
+- **Tests** for new functionality or for a bug fix, where the change is testable. Test data
+  lives in `Testing/TestData/`; GUI test scripts live in `Testing/GUI/Qt/Scripts/`. If you
+  are not sure how to test something, open the pull request anyway and ask.
+- **No unrelated changes** — keeping reformatting out of a functional change makes the
+  functional part visible.
+- **Consistent formatting.** The repository has a `.clang-format` at its root; formatting
+  the lines you add or change is helpful. Please avoid reformatting whole existing files,
+  which obscures history and makes the real change hard to find.
+- **Backward compatibility.** This is the one place we would genuinely rather hear from you
+  first. ITK-SNAP opens workspaces and images written by much older versions, and users
+  depend on that. If your change touches a file format, the workspace schema, or the
+  command-line interface, please raise it in an issue before investing much time — not
+  because the change is unwelcome, but because getting the compatibility story right early
+  is much easier than reworking it later.
 
 ## Continuous integration
 
