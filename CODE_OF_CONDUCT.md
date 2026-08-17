@@ -73,15 +73,15 @@ Conduct reinforces encouraged behaviors and norms that can help avoid conflicts 
 harm.
 
 When an incident does occur, it is important to report it promptly. To report a possible
-violation, email
-<!-- TODO(review): replace with the address that should receive Code of Conduct reports.
-     Options discussed: the lead maintainer's institutional address, or a shared alias such
-     as conduct@itksnap.org. This must be a monitored address before the file is merged.
-     Contributor Covenant 3.0 leaves this as a required placeholder. -->
-**CONDUCT-CONTACT-TBD**. Reports are received by the ITK-SNAP maintainers.
+violation, email either of the ITK-SNAP maintainers directly:
 
-If a report concerns a maintainer, you may address it to any other maintainer individually;
-that maintainer will not take part in deciding the response to a report about themselves.
+- Paul A. Yushkevich — <pauly2@pennmedicine.upenn.edu>
+- Jilei Hao — <jilei.hao@pennmedicine.upenn.edu>
+
+You may write to either one, and you do not need to explain your choice. Both addresses are
+listed separately, rather than as a single shared address, so that a report concerning one
+maintainer can be sent to the other: **a maintainer takes no part in investigating or
+deciding the response to a report about themselves.**
 
 Community Moderators take reports of violations seriously and will make every effort to
 respond in a timely manner. They will investigate all reports of code of conduct violations,
