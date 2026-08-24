@@ -277,23 +277,30 @@ LoadSegmentationImageDelegate
 }
 
 bool
-LoadSegmentationImageDelegate
-::CanLoadOverwriteUnsavedChanges(GuidedNativeImageIO *io, std::string filename)
+LoadSegmentationImageDelegate ::CanLoadOverwriteUnsavedChanges(GuidedNativeImageIO *io,
+                                                               std::string          filename)
 {
-  auto header = io->PeekHeader(filename);
-  auto nDimIncoming = header->GetNumberOfDimensions();
   auto nt = m_Driver->GetNumberOfTimePoints();
 
   // for 4d workspace
   if (nt > 1)
-    {
+  {
+    // TODO: this causes a crash with remote workspaces. I am not sure why this
+    // check is performed here for 4D images but not for 3D. For now, I am adding
+    // code to download the segmentation image before calling peekheader
+    if (IsRemoteImageURL(filename))
+      filename = DownloadRemoteFile(filename, this->m_Driver->GetRemoteIOContext());
+
+    auto header = io->PeekHeader(filename);
+    auto nDimIncoming = header->GetNumberOfDimensions();
+
     auto layer = m_Driver->GetSelectedSegmentationLayer();
     auto crntTP = m_Driver->GetCursorTimePoint();
     // true case 1: incoming image is 4d
     // true case 2: incoming 3d but unsaved changes are in the current time point
     if (nDimIncoming > 3 || layer->HasUnsavedChanges(crntTP))
       return true;
-    }
+  }
 
   return false;
 }

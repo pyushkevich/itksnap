@@ -107,11 +107,11 @@ FIND_PACKAGE(VTK 9.3.1 REQUIRED COMPONENTS
 #############################################
 # REQUIRE QT6                               #
 #############################################
-FIND_PACKAGE(Qt6Widgets)
-FIND_PACKAGE(Qt6OpenGL)
-FIND_PACKAGE(Qt6Concurrent)
-FIND_PACKAGE(Qt6Qml)
-FIND_PACKAGE(Qt6LinguistTools)
+FIND_PACKAGE(Qt6Widgets 6.9.3 REQUIRED)
+FIND_PACKAGE(Qt6OpenGL 6.9.3 REQUIRED)
+FIND_PACKAGE(Qt6Concurrent 6.9.3 REQUIRED)
+FIND_PACKAGE(Qt6Qml 6.9.3 REQUIRED)
+FIND_PACKAGE(Qt6LinguistTools 6.9.3 REQUIRED)
 
 SET(SNAP_QT_INCLUDE_DIRS
   ${Qt6Widgets_INCLUDE_DIRS}
