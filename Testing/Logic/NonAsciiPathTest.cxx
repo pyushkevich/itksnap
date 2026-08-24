@@ -31,12 +31,12 @@ bool
 ExistsAccordingToNativeAPI(const std::string &utf8_path)
 {
 #ifdef WIN32
-  int n_wchars = MultiByteToWideChar(CP_UTF8, 0, utf8_path.c_str(), (int) utf8_path.length(), NULL, 0);
+  int n_wchars = MultiByteToWideChar(CP_UTF8, 0, utf8_path.c_str(), (int)utf8_path.length(), NULL, 0);
   if (n_wchars <= 0)
     return false;
 
   std::wstring wide_path(n_wchars, 0);
-  MultiByteToWideChar(CP_UTF8, 0, utf8_path.c_str(), (int) utf8_path.length(), &wide_path[0], n_wchars);
+  MultiByteToWideChar(CP_UTF8, 0, utf8_path.c_str(), (int)utf8_path.length(), &wide_path[0], n_wchars);
 
   return GetFileAttributesW(wide_path.c_str()) != INVALID_FILE_ATTRIBUTES;
 #else

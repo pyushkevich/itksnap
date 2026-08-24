@@ -102,16 +102,16 @@ SystemInterface::GetApplicationDataDirectory()
   // On failure due to a small buffer, the return value is the required size, not the
   // number of characters copied, and path_w has not been filled in.
   if (n_chars >= path_w_size)
-    throw IRISException("The APPDATA path on WIN32 is too long (%d characters).", (int) n_chars);
+    throw IRISException("The APPDATA path on WIN32 is too long (%d characters).", (int)n_chars);
 
   // Convert to UTF-8. Passing the length explicitly keeps the terminating null out of
   // the resulting std::string.
-  int size_needed = WideCharToMultiByte(CP_UTF8, 0, path_w, (int) n_chars, NULL, 0, NULL, NULL);
+  int size_needed = WideCharToMultiByte(CP_UTF8, 0, path_w, (int)n_chars, NULL, 0, NULL, NULL);
   if (size_needed <= 0)
     throw IRISException("Can not convert the APPDATA path to a UTF-8 string");
 
   std::string utf8_path(size_needed, 0);
-  WideCharToMultiByte(CP_UTF8, 0, path_w, (int) n_chars, &utf8_path[0], size_needed, NULL, NULL);
+  WideCharToMultiByte(CP_UTF8, 0, path_w, (int)n_chars, &utf8_path[0], size_needed, NULL, NULL);
 
   // Append the full information
   std::string strPath = utf8_path + "/itksnap.org/ITK-SNAP";
