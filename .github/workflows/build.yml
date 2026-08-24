@@ -54,7 +54,7 @@ jobs:
         os: [ubuntu-22.04,macos-15-intel,macos-15,windows-2022]
         itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.5.2' ]
-        qt_ver: [ '6.8.1' ]
+        qt_ver: [ '6.9.3' ]
         include:
           - os: ubuntu-22.04
             qt_host: linux
