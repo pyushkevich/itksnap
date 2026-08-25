@@ -355,14 +355,32 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
     auto *img_source =
       context_layer->CreateCastToFloatPipeline("WatershedBrush", this->m_Parent->GetId());
 
-    // Precompute the watersheds
-    m_Watershed->PrecomputeWatersheds(img_source,
-                                      driver->GetSelectedSegmentationLayer()->GetImage(),
-                                      xTestRegion,
-                                      to_itkIndex(m_MousePosition),
-                                      pbs.watershed.smooth_iterations);
+    if (!img_source)
+      return false;
 
-    m_Watershed->RecomputeWatersheds(pbs.watershed.level);
+    // Adaptive brush requires context_layer to share the same voxel grid as the
+    // segmentation image; if not, bail out rather than running watershed over a
+    // spatially-mismatched region.
+    if (img_source->GetBufferedRegion() != imgLabel->GetImage()->GetBufferedRegion())
+      return false;
+
+    // Precompute and recompute watersheds; ensure the pipeline is released even if
+    // the ITK filters throw (itk::ExceptionObject is not an IRISException).
+    try
+    {
+      m_Watershed->PrecomputeWatersheds(img_source,
+                                        driver->GetSelectedSegmentationLayer()->GetImage(),
+                                        xTestRegion,
+                                        to_itkIndex(m_MousePosition),
+                                        pbs.watershed.smooth_iterations);
+
+      m_Watershed->RecomputeWatersheds(pbs.watershed.level);
+    }
+    catch (...)
+    {
+      context_layer->ReleaseInternalPipeline("WatershedBrush", this->m_Parent->GetId());
+      throw;
+    }
 
     // Release the casting pipeline
     context_layer->ReleaseInternalPipeline("WatershedBrush", this->m_Parent->GetId());
