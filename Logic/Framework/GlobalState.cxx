@@ -44,9 +44,6 @@ GlobalState
 ::GlobalState()
 {
   m_GreyFileExtension = NULL;
-  m_CrosshairsPosition[0] = 0;
-  m_CrosshairsPosition[1] = 0;
-  m_CrosshairsPosition[2] = 0;
   m_UpdateSliceFlag = 1;
   m_InterpolateGrey = false;
   m_InterpolateSegmentation = false;

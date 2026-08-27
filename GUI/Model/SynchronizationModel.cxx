@@ -253,7 +253,7 @@ SynchronizationModel::OnUpdate()
   if (bc_cursor)
   {
     // Map the cursor to NIFTI coordinates
-    ImageWrapperBase *iw = app->GetCurrentImageData()->GetMain();
+    ImageWrapperBase *iw = app->GetCurrentImageData()->GetReferenceSpaceWrapper();
 
     // Get the NIFTI coordinate of the current cursor position
     auto cp = app->GetCursorPosition();
@@ -421,7 +421,7 @@ SynchronizationModel::ReadIPCState(bool only_read_new)
     {
       // Map the cursor position to the image coordinates
       GenericImageData *id = app->GetCurrentImageData();
-      Vector3d vox = id->GetMain()->TransformNIFTICoordinatesToVoxelCIndex(message.cursor);
+      Vector3d vox = id->GetReferenceSpaceWrapper()->TransformNIFTICoordinatesToVoxelCIndex(message.cursor);
 
       // Round the cursor to integer value
       itk::Index<3> pos;

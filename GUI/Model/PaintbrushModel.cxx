@@ -68,7 +68,7 @@ PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
 bool
 PaintbrushModel::HasMainImageTransformed()
 {
-  return !m_Parent->GetDriver()->GetMainImage()->ImageSpaceMatchesReferenceSpace();
+  return m_Parent->GetDriver()->GetCurrentImageData()->IsFreeRotation();
 }
 
 bool

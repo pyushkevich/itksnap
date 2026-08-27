@@ -252,9 +252,9 @@ void Generic3DModel::OnImageGeometryUpdate()
   // Update the world matrix and other stored variables
   if(m_Driver->IsMainImageLoaded())
     {
-    ImageWrapperBase *main = m_Driver->GetCurrentImageData()->GetMain();
-    m_WorldMatrix = main->GetNiftiSform();
-    m_WorldMatrixInverse = main->GetNiftiInvSform();
+    ImageWrapperBase *ref = m_Driver->GetCurrentImageData()->GetReferenceSpaceWrapper();
+    m_WorldMatrix = ref->GetNiftiSform();
+    m_WorldMatrixInverse = ref->GetNiftiInvSform();
     }
   else
     {

@@ -100,6 +100,15 @@ public:
   /** This class rebroadcasts WrapperChangeEvent from the contained layers */
   FIRES(WrapperChangeEvent)
 
+  /** This class fires Cursor update events */
+  FIRES(CursorUpdateEvent)
+
+  /** This class fires Cursor time point update events */
+  FIRES(CursorTimePointUpdateEvent)
+
+  /** This class fires segmentation update events */
+  FIRES(SegmentationChangeEvent)
+
   /**
    * Set the parent driver
    */
@@ -183,6 +192,11 @@ public:
    */
   unsigned int GetNumberOfTimePoints() const;
 
+  /**
+   * Get point spacing (delta between timeframes)
+   */
+  double GetTimeSpacing() const;
+
   ImageWrapperBase *GetLastOverlay();
 
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;
@@ -225,8 +239,14 @@ public:
   /** Unload the main image (and everything else) */
   void UnloadMainImage();
 
-  /** Update the reference space after the reload of the main image */
-  virtual void UpdateReferenceImageInAllLayers();
+  /** Get the reference space. The reference space is anchored to the current segmentation */
+  virtual ImageBaseType *GetReferenceSpace() const;
+
+  /** Get the wrapper around the image that serves as the reference space (current segmentation) */
+  virtual ImageWrapperBase *GetReferenceSpaceWrapper() const;
+
+  /** Check whether the image assembly is in free rotation state */
+  bool IsFreeRotation() const;
 
   /**
    * Get the first segmentation image.
@@ -234,9 +254,20 @@ public:
   LabelImageWrapper* GetFirstSegmentationLayer();
 
   /**
+   * Get the active segmentation image
+   */
+  LabelImageWrapper *GetActiveSegmentationLayer();
+
+  /**
+   * Set which segmentation layer is active. The layer should already
+   * have been added to the list of segmentation layers.
+   */
+  void SetActiveSegmentationLayer(LabelImageWrapper *layer);
+
+  /**
    * Add a secondary segmentation image without overriding the main one
    */
-  LabelImageWrapper* SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing);
+  LabelImageWrapper* SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing, bool make_active);
 
   /**
    * Configure a new segmentation image wrapper from the main image
@@ -247,7 +278,7 @@ public:
    * It should be called after creating a new segmentation wrapper
    *
    */
-  void ConfigureSegmentationFromMainImage(LabelImageWrapper *wrapper);
+  void ConfigureSegmentationInternal(LabelImageWrapper *wrapper);
 
   /**
    * Update a time point in a segmentation using image from disk
@@ -257,7 +288,7 @@ public:
   /**
    * Add a blank segmentation image
    */
-  LabelImageWrapper *AddBlankSegmentation();
+  LabelImageWrapper *AddBlankSegmentation(bool make_active);
 
   /**
    * Unload a specific segmentation image. If no segmentation images are left and
@@ -272,11 +303,13 @@ public:
   void UnloadAllSegmentations();
 
   /** Handle overlays */
-  void AddOverlay(GuidedNativeImageIO *io);
   void AddOverlay(ImageWrapperBase *new_layer);
   void UnloadOverlays();
   void UnloadOverlayLast();
   void UnloadOverlay(ImageWrapperBase *overlay);
+
+  /** React when an image is reloaded from disk */
+  void OnActiveSegmentationReload();
 
   /**
    * Unload a specific mesh layer
@@ -304,14 +337,39 @@ public:
   bool AreOverlaysLoaded();
 
   /**
-   * Set the cursor (crosshairs) position, in pixel coordinates
+   * Get the cursor (crosshairs) position, in pixel coordinates relative to the
+   * active segmentation layer.
    */
-  virtual void SetCrosshairs(const Vector3ui &crosshairs);
+  virtual Vector3ui GetCursorPosition() const;
+
+  /**
+   * Get the cursor position in physical NIFTI (RAS) coordinates
+   */
+  virtual Vector3d GetCursorPositionRAS() const;
+
+  /**
+   * Set the cursor position in physical NIFTI (RAS) coordinates. The position will
+   * be mapped to the voxel coordinate in the active segmentation layer. If the new
+   * coordinate is out of bounds of the active segmentation layer, it will be set to
+   * the center of the active segmentation layer
+   */
+  virtual void SetCursorPositionRAS(const Vector3d &crosshairs_ras);
+
+  /**
+   * Set the cursor (crosshairs) position, in pixel coordinates relative to the
+   * active segmentation layer.
+   */
+  virtual void SetCursorPosition(const Vector3ui &crosshairs);
+
+  /**
+   * Get the time point selected
+   */
+  virtual unsigned int GetCursorTimePoint() const;
 
   /**
    * Set the time point selected
    */
-  virtual void SetTimePoint(unsigned int time_point);
+  virtual void SetCursorTimePoint(unsigned int time_point);
 
   /**
    * Set the display to anatomy coordinate mapping, and propagate it to
@@ -352,8 +410,8 @@ public:
 
   // Helper method used to compress a loaded segmentation into an RLE 4D image
   SmartPtr<LabelImage4DType> CompressSegmentation(GuidedNativeImageIO *io);
-protected:
 
+protected:
   GenericImageData();
   virtual ~GenericImageData();
 
@@ -366,10 +424,13 @@ protected:
   // aslo add their own wrappers to this list of wrappers.
   WrapperStorage m_Wrappers;
 
-  // A pointer to the 'main' image, i.e., the image that is treated as the
-  // reference for all other images.
-  // Equal to m_Wrappers[MAIN].first()
+  // A pointer to the 'main' image, i.e, the first image in the workspace. New
+  // segmentations are created referencing the main image.
   ImageWrapperBase *m_MainImageWrapper;
+
+  // A pointer to the active segmentation layer, which defines the reference
+  // space for all other layes
+  LabelImageWrapper *m_ActiveSegmentationWrapper;
 
   // Parent object
   IRISApplication *m_Parent;
@@ -421,7 +482,13 @@ protected:
   void RemoveSingleImageWrapper(LayerRole);
 
   // Remove all wrappers for a role
-  void RemoveAllWrappers(LayerRole role);
+  void RemoveAllWrappers(LayerRole role, ImageWrapperBase *except = nullptr);
+
+  // Update the reference space after the reload of the main image
+  virtual void UpdateReferenceImageInAllLayers();
+
+  // Function called when updating the active segmentation wrapper
+  virtual void UpdateActiveSegmentation(LabelImageWrapper *wrapper);
 
   // Method called before removing an image wrapper
   virtual void BeforeRemoveImageWrapper(ImageWrapperBase *wrapper);

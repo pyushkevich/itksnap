@@ -477,10 +477,8 @@ public:
   irisGetMacro(HistoryManager, HistoryManager *)
 
   /**
-   * Set the current cursor position.  This will cause all the active image
-   * wrappers to update their current slice numbers. By default, the method
-   * does nothing if the passed in cursor position is the same as the current
-   * cursor position. When force is true, the cursor position is set regardless.
+   * Set the current cursor position in the voxel grid of the active segmentation
+   * layer. The cursor position is propagated to all layers.
    */
   void SetCursorPosition(const Vector3ui cursor, bool force = false);
 
@@ -745,9 +743,6 @@ protected:
 
   IRISApplication();
   virtual ~IRISApplication();
-
-  // Map cursor from one image data to another
-  void TransferCursor(GenericImageData *source, GenericImageData *target);
 
   // Image data objects
   GenericImageData *m_CurrentImageData;

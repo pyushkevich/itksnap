@@ -123,27 +123,27 @@ IRISApplication ::IRISApplication()
 
   // Contruct the IRIS and SNAP data objects
   m_IRISImageData = IRISImageData::New();
-  m_IRISImageData->SetParent(this);
-
   m_SNAPImageData = SNAPImageData::New();
-  m_SNAPImageData->SetParent(this);
+
+  // Configure them
+  for(auto *id: std::initializer_list<GenericImageData*>{m_IRISImageData, m_SNAPImageData})
+  {
+    // Set pointer to myself
+    id->SetParent(this);
+
+    // Listen to events from wrappers and image data objects and refire them
+    // as our own events.
+    Rebroadcaster::RebroadcastAsSourceEvent(id, WrapperChangeEvent(), this);
+    Rebroadcaster::RebroadcastAsSourceEvent(id, LayerChangeEvent(), this);
+    Rebroadcaster::RebroadcastAsSourceEvent(id, MeshContentChangeEvent(), this);
+    Rebroadcaster::RebroadcastAsSourceEvent(id, ActiveLayerChangeEvent(), this);
+    Rebroadcaster::RebroadcastAsSourceEvent(id, CursorUpdateEvent(), this);
+    Rebroadcaster::RebroadcastAsSourceEvent(id, CursorTimePointUpdateEvent(), this);
+    Rebroadcaster::RebroadcastAsSourceEvent(id, SegmentationChangeEvent(), this);
+  }
 
   // Set the current IRIS pointer
   m_CurrentImageData = m_IRISImageData.GetPointer();
-
-  // Listen to events from wrappers and image data objects and refire them
-  // as our own events.
-  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, WrapperChangeEvent(), this);
-  Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, WrapperChangeEvent(), this);
-
-  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, LayerChangeEvent(), this);
-  Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LayerChangeEvent(), this);
-
-  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, MeshContentChangeEvent(), this);
-  Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, MeshContentChangeEvent(), this);
-
-  Rebroadcaster::RebroadcastAsSourceEvent(m_IRISImageData, ActiveLayerChangeEvent(), this);
-  Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, ActiveLayerChangeEvent(), this);
 
   // TODO: should this also be a generic Wrapper Image Data change event?
   Rebroadcaster::RebroadcastAsSourceEvent(m_SNAPImageData, LevelSetImageChangeEvent(), this);
@@ -351,7 +351,7 @@ IRISApplication::AddBlankSegmentation()
   assert(!IsSnakeModeActive());
 
   // Add the blank layer and set it as selected
-  LabelImageWrapper *new_seg = m_IRISImageData->AddBlankSegmentation();
+  LabelImageWrapper *new_seg = m_IRISImageData->AddBlankSegmentation(true);
   m_GlobalState->SetSelectedSegmentationLayerId(new_seg->GetUniqueId());
 
   // Fire the appropriate event
@@ -368,10 +368,6 @@ IRISApplication::UnloadOverlay(ImageWrapperBase *ovl)
   unsigned long ovl_id = ovl->GetUniqueId();
   m_IRISImageData->UnloadOverlay(ovl);
 
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
-
   // Check if the selected layer needs to be updated (default to main)
   if (m_GlobalState->GetSelectedLayerId() == ovl_id)
     m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
@@ -385,10 +381,6 @@ IRISApplication::UnloadAllOverlays()
     SaveMetaDataAssociatedWithLayer(it.GetLayer(), OVERLAY_ROLE);
 
   m_IRISImageData->UnloadOverlays();
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
 
   // The selected layer should revert to main
   m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
@@ -473,7 +465,7 @@ IRISApplication::UpdateSNAPSegmentationImage(GuidedNativeImageIO *io)
   assert(IsSnakeModeActive());
 
   // Update the SNAP data (segmentation is always replaced, not added)
-  LabelImageWrapper *snap_seg = m_CurrentImageData->SetSegmentationImage(io, false);
+  LabelImageWrapper *snap_seg = m_CurrentImageData->SetSegmentationImage(io, false, true);
 
   // Update filenames
   snap_seg->SetFileName(io->GetFileNameOfNativeImage());
@@ -501,7 +493,7 @@ IRISApplication ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io,
                         "IRISApplication::UpdateIRISSegmentationImage called in snake mode");
 
   // Check timepoint agreement
-  unsigned int ntMain = m_IRISImageData->GetMain()->GetNumberOfTimePoints();
+  unsigned int ntMain = m_IRISImageData->GetNumberOfTimePoints();
   unsigned int ntSeg = io->GetDimensionsOfNativeImage()[3];
   itkAssertOrThrowMacro(ntMain == ntSeg || ntSeg == 1,
                         "Time point mismatch in IRISApplication::UpdateIRISSegmentationImage");
@@ -511,7 +503,7 @@ IRISApplication ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io,
   if (ntMain == ntSeg)
   {
     // Replace existing segmentation image with new image
-    seg_wrapper = m_IRISImageData->SetSegmentationImage(io, add_to_existing);
+    seg_wrapper = m_IRISImageData->SetSegmentationImage(io, add_to_existing, true);
 
     // Load the metadata for this layer
     LoadMetaDataAssociatedWithLayer(seg_wrapper, LABEL_ROLE, metadata);
@@ -832,52 +824,32 @@ IRISApplication ::UpdateIRISWithSnapImageData(CommandType *progressCommand)
 void
 IRISApplication ::SetCursorPosition(const Vector3ui cursor, bool force)
 {
-  if (cursor != this->GetCursorPosition() || force)
-  {
-    m_GlobalState->SetCrosshairsPosition(cursor);
-    this->GetCurrentImageData()->SetCrosshairs(cursor);
-
-    // Fire the appropriate event
-    InvokeEvent(CursorUpdateEvent());
-  }
+  // Cursor position is handled through ImageData
+  this->GetCurrentImageData()->SetCursorPosition(cursor);
 }
 
 Vector3ui
 IRISApplication ::GetCursorPosition() const
 {
-  return m_GlobalState->GetCrosshairsPosition();
+  return this->GetCurrentImageData()->GetCursorPosition();
 }
 
 void
 IRISApplication ::SetCursorTimePoint(unsigned int time_point, bool force)
 {
-  if (time_point != this->GetCursorTimePoint() || force)
-  {
-    this->GetCurrentImageData()->SetTimePoint(time_point);
-
-    // Fire the appropriate event
-    InvokeEvent(CursorUpdateEvent());
-    InvokeEvent(CursorTimePointUpdateEvent());
-    InvokeEvent(SegmentationChangeEvent());
-  }
+  this->GetCurrentImageData()->SetCursorTimePoint(time_point);
 }
 
 unsigned int
 IRISApplication ::GetCursorTimePoint() const
 {
-  if (!this->GetCurrentImageData()->IsMainLoaded())
-    return 0;
-
-  return this->GetCurrentImageData()->GetMain()->GetTimePointIndex();
+  return this->GetCurrentImageData()->GetCursorTimePoint();
 }
 
 unsigned int
 IRISApplication ::GetNumberOfTimePoints() const
 {
-  if (!this->GetCurrentImageData()->IsMainLoaded())
-    return 0;
-
-  return this->GetCurrentImageData()->GetMain()->GetNumberOfTimePoints();
+  return this->GetCurrentImageData()->GetNumberOfTimePoints();
 }
 
 
@@ -978,35 +950,13 @@ IRISApplication ::ReleaseSNAPImageData()
 }
 
 void
-IRISApplication ::TransferCursor(GenericImageData *source, GenericImageData *target)
-{
-  Vector3d cursorSource = to_double(this->GetCursorPosition());
-
-  Vector3d xyzSource = source->GetMain()->TransformVoxelCIndexToNIFTICoordinates(cursorSource);
-
-  itk::Index<3> indexTarget =
-    to_itkIndex(target->GetMain()->TransformNIFTICoordinatesToVoxelCIndex(xyzSource));
-
-  Vector3ui newCursor = target->GetMain()->GetBufferedRegion().IsInside(indexTarget)
-                          ? Vector3ui(indexTarget)
-                          : target->GetMain()->GetSize() / 2u;
-
-  // Store the cursor position in the global state and the target image data
-  m_GlobalState->SetCrosshairsPosition(newCursor);
-  target->SetCrosshairs(newCursor);
-
-  // Fire the appropriate event
-  InvokeEvent(CursorUpdateEvent());
-}
-
-void
 IRISApplication ::SetCurrentImageDataToIRIS()
 {
   assert(m_IRISImageData);
   if (m_CurrentImageData != m_IRISImageData)
   {
     m_CurrentImageData = m_IRISImageData;
-    TransferCursor(m_SNAPImageData, m_IRISImageData);
+    m_CurrentImageData->SetCursorPositionRAS(m_IRISImageData->GetCursorPositionRAS());
     InvokeEvent(MainImageDimensionsChangeEvent());
 
     // Set the selected layer ID to the main image
@@ -1024,12 +974,12 @@ IRISApplication ::SetCurrentImageDataToSNAP()
   assert(m_SNAPImageData->IsMainLoaded());
   if (m_CurrentImageData != m_SNAPImageData)
   {
-    // The cursor needs to be modified to point to the same location
-    // as before, or to the center of the image
-    TransferCursor(m_IRISImageData, m_SNAPImageData);
-
     // Set the image data
     m_CurrentImageData = m_SNAPImageData;
+
+    // The cursor needs to be modified to point to the same location
+    // as before, or to the center of the image
+    m_CurrentImageData->SetCursorPositionRAS(m_IRISImageData->GetCursorPositionRAS());
 
     // Fire the event
     InvokeEvent(MainImageDimensionsChangeEvent());
@@ -1504,35 +1454,10 @@ IRISApplication ::AddIRISOverlayImage(GuidedNativeImageIO *io, Registry *metadat
   assert(m_IRISImageData->IsMainLoaded());
   assert(io->IsNativeImageLoaded());
 
-  // Test if the image is in the same size as the main image
-  ImageWrapperBase *main = this->m_IRISImageData->GetMain();
-
-  // Check for compatibility of overlay image and main image
-  bool same_size = true, same_space = true;
-
   // Read the transform from the registry. This method will return an identity transform
   // even if no registry was provided
   SmartPtr<AffineTransformHelper::ITKTransformBase> transform =
     AffineTransformHelper::ReadFromRegistry(metadata);
-
-  // We use a tolerance for header comparisons here
-  double tol = 1e-5;
-
-  for (int i = 0; i < 3; i++)
-  {
-    if (main->GetSize()[i] != io->GetDimensionsOfNativeImage()[i])
-      same_size = false;
-    if (fabs(io->GetNativeImage()->GetOrigin()[i] - main->GetImageBase()->GetOrigin()[i]) > tol)
-      same_space = false;
-    if (fabs(io->GetNativeImage()->GetSpacing()[i] - main->GetImageBase()->GetSpacing()[i]) > tol)
-      same_space = false;
-    for (int j = 0; j < 3; j++)
-    {
-      if (fabs(io->GetNativeImage()->GetDirection()[i][j] -
-               main->GetImageBase()->GetDirection()[i][j]) > tol)
-        same_space = false;
-    }
-  }
 
   // TODO: in situations where the size is the same and space is different, we may want
   // to ask the user how to handle it, or at least display a warning? For now, we just use
@@ -1548,10 +1473,6 @@ IRISApplication ::AddIRISOverlayImage(GuidedNativeImageIO *io, Registry *metadat
 
   // Add the overlay to the history
   m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), true);
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_IRISImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
 
   // Apply the default color map for overlays
   std::string deflt_preset = m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
@@ -1583,10 +1504,6 @@ IRISApplication ::AddDerivedOverlayImage(const ImageWrapperBase *sourceLayer,
 
   // Add the image as the current grayscale overlay
   m_CurrentImageData->AddOverlay(overlay);
-
-  // for overlay, we don't want to change the cursor location
-  // just force the IRISSlicer to update
-  m_CurrentImageData->SetCrosshairs(m_GlobalState->GetCrosshairsPosition());
 
   // Apply the default color map for overlays
   if (inherit_colormap)
@@ -1680,7 +1597,7 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), false);
 
   // Reset the segmentation ROI
-  m_GlobalState->SetSegmentationROI(m_IRISImageData->GetMain()->GetBufferedRegion());
+  m_GlobalState->SetSegmentationROI(m_IRISImageData->GetReferenceSpace()->GetBufferedRegion());
 
   // Read and apply the project-level settings associated with the main image
   LoadMetaDataAssociatedWithLayer(layer, MAIN_ROLE, metadata);
@@ -1692,10 +1609,6 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
 
   // Update the crosshairs position to the center of the image
   this->SetCursorPosition(layer->GetSize() / 2u);
-
-  // This line forces the cursor to be propagated to the image even if the
-  // crosshairs positions did not change from their previous values
-  this->GetIRISImageData()->SetCrosshairs(layer->GetSize() / 2u);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image

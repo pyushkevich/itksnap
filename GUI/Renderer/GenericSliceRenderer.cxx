@@ -330,7 +330,7 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
   auto        *ml = m_Model->GetImageData()->GetMeshLayers();
   unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
   auto         index = DisplaySliceIndex(m_Model->GetId(), DISPLAY_SLICE_MAIN);
-  auto        *main_image = m_Model->GetDriver()->GetMainImage();
+  auto        *ref_space = m_Model->GetImageData()->GetReferenceSpaceWrapper();
 
   // Get the key to access the stored path from the layer.
   // Include the timepoint in the key so each tp gets its own cached contour,
@@ -388,7 +388,7 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
           for(int i = 3; i >= 0; i--)
           {
             Vector3d p_ras = Id.get_column(i).extract(3);
-            Vector3d p_itk = main_image->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
+            Vector3d p_itk = ref_space->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
             p_itk += 0.5;
             Vector3d p_slice = m_Model->MapImageToSlice(p_itk);
             auto Qi = Id.get_column(i);
@@ -396,7 +396,7 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
             Q.set_column(i, Qi);
           }
 
-          vnl_matrix_fixed<double, 4, 4> inv_sform = main_image->GetNiftiInvSform();
+          vnl_matrix_fixed<double, 4, 4> inv_sform = ref_space->GetNiftiInvSform();
           vnl_matrix_fixed<double, 4, 4> vox_offset;
           vox_offset.set_identity();
           for (unsigned int i = 0; i < 3; i++)

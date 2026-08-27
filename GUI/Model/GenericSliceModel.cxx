@@ -323,8 +323,8 @@ Vector3d GenericSliceModel::MapSliceToImage(const Vector3d &xSlice)
 Vector3d GenericSliceModel::MapSliceToImagePhysical(const Vector3d &xSlice)
 {
   Vector3d xImage = this->MapSliceToImage(xSlice);
-  ImageWrapperBase *main = this->GetDriver()->GetCurrentImageData()->GetMain();
-  return main->TransformVoxelCIndexToLPSCoordinates(xImage);
+  auto *ref = this->GetDriver()->GetCurrentImageData()->GetReferenceSpaceWrapper();
+  return ref->TransformVoxelCIndexToLPSCoordinates(xImage);
 }
 
 /**
@@ -1014,7 +1014,7 @@ void GenericSliceModel::UpdateUpstreamViewportGeometry()
 
     itk::ContinuousIndex<double, 3> j = to_itkContinuousIndex(this->MapSliceToImage(s[i]));
     itk::Point<double, 3> px;
-    gid->GetMain()->GetImageBase()->TransformContinuousIndexToPhysicalPoint(j, px);
+    gid->GetReferenceSpace()->TransformContinuousIndexToPhysicalPoint(j, px);
     x[i] = Vector3d(px);
     }
 
@@ -1091,7 +1091,7 @@ GenericSliceModel::UpdateUpstreamThumbnailViewportGeometry()
 
     itk::ContinuousIndex<double, 3> j = to_itkContinuousIndex(this->MapSliceToImage(s[i]));
     itk::Point<double, 3>           px;
-    gid->GetMain()->GetImageBase()->TransformContinuousIndexToPhysicalPoint(j, px);
+    gid->GetReferenceSpace()->TransformContinuousIndexToPhysicalPoint(j, px);
     x[i] = Vector3d(px);
   }
 
@@ -1195,7 +1195,7 @@ Vector3d GenericSliceModel::ComputeGridPosition(
     itk::ContinuousIndex<double, 3> cix;
     itk::Point<double, 3> pt = to_itkPoint(xPhys + disp);
 
-    this->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
+    this->GetDriver()->GetCurrentImageData()->GetReferenceSpace()
         ->TransformPhysicalPointToContinuousIndex(pt, cix);
 
     // The displaced location in slice coordinates
@@ -1220,7 +1220,7 @@ Vector3d GenericSliceModel::ComputeGridPosition(
     // Map this physical position to slice coordinate system
     itk::Point<double, 3> pt = to_itkPoint(xPhys + disp);
     itk::ContinuousIndex<double, 3> cix;
-    this->GetDriver()->GetCurrentImageData()->GetMain()->GetImageBase()
+    this->GetDriver()->GetCurrentImageData()->GetReferenceSpace()
         ->TransformPhysicalPointToContinuousIndex(pt, cix);
     return this->MapImageToSlice(Vector3d(cix));
 
