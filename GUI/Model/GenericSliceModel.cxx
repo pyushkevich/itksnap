@@ -150,7 +150,7 @@ void
 GenericSliceModel::OnUpdate()
 {
   // Has there been a change in the image dimensions?
-  if (m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
+  if (m_EventBucket->HasEvent(ReferenceSpaceGeometryChangeEvent()))
   {
     // Do a complete initialization
     this->InitializeSlice(m_Driver->GetCurrentImageData());
@@ -183,7 +183,7 @@ GenericSliceModel::OnUpdate()
     }
   }
 
-  if (m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()) ||
+  if (m_EventBucket->HasEvent(ReferenceSpaceGeometryChangeEvent()) ||
       m_EventBucket->HasEvent(ViewportSizeReporter::ViewportResizeEvent()) ||
       m_EventBucket->HasEvent(DisplayLayoutModel::LayerLayoutChangeEvent()) ||
       m_EventBucket->HasEvent(ValueChangedEvent()) || m_EventBucket->HasEvent(CursorUpdateEvent()) ||

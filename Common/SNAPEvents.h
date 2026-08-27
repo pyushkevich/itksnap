@@ -67,7 +67,10 @@ itkEventMacro(LayerChangeEvent, IRISEvent)
 itkEventMacro(MainImageDimensionsChangeEvent, LayerChangeEvent)
 
 /** The pose (orientation, spacing, origin) of the main image has changed */
-itkEventMacro(MainImagePoseChangeEvent, LayerChangeEvent)
+// itkEventMacro(MainImagePoseChangeEvent, LayerChangeEvent)
+
+/** The reference space (active segmentation) has changed */
+itkEventMacro(ReferenceSpaceGeometryChangeEvent, LayerChangeEvent)
 
 /** The segmentation has changed */
 itkEventMacro(SegmentationChangeEvent, IRISEvent)

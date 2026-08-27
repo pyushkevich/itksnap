@@ -161,7 +161,7 @@ public:
   FIRES(CursorUpdateEvent)
   FIRES(CursorTimePointUpdateEvent)
   FIRES(MainImageDimensionsChangeEvent)
-  FIRES(MainImagePoseChangeEvent)
+  FIRES(ReferenceGeometryChangeEvent)
   FIRES(LayerChangeEvent)
   FIRES(SegmentationChangeEvent)
   FIRES(SpeedImageChangedEvent)

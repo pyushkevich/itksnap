@@ -286,20 +286,36 @@ void GenericImageData::UpdateReferenceImageInAllLayers()
   }
 }
 
+bool GenericImageData::IsSameGeometry(ImageWrapperBase *wrapper1, ImageWrapperBase *wrapper2)
+{
+  if (!wrapper1 || !wrapper2)
+    return false;
+
+  return ImageWrapperBase::IsSameGeometry(wrapper1->GetImageBase(), wrapper2->GetImageBase());
+}
+
 void
 GenericImageData::UpdateActiveSegmentation(LabelImageWrapper *wrapper)
 {
+  // If both null or the same, nothing to do here
+  if(wrapper == m_ActiveSegmentationWrapper)
+    return;
+
   // Get the current cursor position in RAS space
   bool have_cursor = false;
   Vector3d cusror_ras;
-  if(this->m_ActiveSegmentationWrapper && this->m_ActiveSegmentationWrapper->IsInitialized())
+  if(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized())
   {
+    // Store the previous cursor position so we can transfer it to the new segmentation
     cusror_ras = this->GetCursorPositionRAS();
     have_cursor = true;
   }
 
+  // Check if geometry is different
+  bool geom_change = !GenericImageData::IsSameGeometry(wrapper, m_ActiveSegmentationWrapper);
+
   // Set the active segmentation wrapper
-  this->m_ActiveSegmentationWrapper = wrapper;
+  m_ActiveSegmentationWrapper = wrapper;
 
   // Update the reference space in all layers
   this->UpdateReferenceImageInAllLayers();
@@ -307,6 +323,10 @@ GenericImageData::UpdateActiveSegmentation(LabelImageWrapper *wrapper)
   // Set the cursor position in all layers
   if(wrapper && have_cursor)
     this->SetCursorPositionRAS(cusror_ras);
+
+  // Fire update event
+  if(geom_change)
+    InvokeEvent(ReferenceSpaceGeometryChangeEvent());
 }
 
 GenericImageData::ImageBaseType *
@@ -763,12 +783,16 @@ GenericImageData::GetDisplayViewportGeometry(DisplaySliceIndex index)
 
 void GenericImageData::SetDirectionMatrix(const vnl_matrix<double> &direction)
 {
+  // TODO: this is horrendous, why are we reorienting the overlays too? The logic should
+  // be by image layer, and segmentation should be reoriented if it matches the main image.
   for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
     if(lit.GetLayer())
       {
       // Set the direction matrix in the image
       lit.GetLayer()->SetDirectionMatrix(direction);
       }
+
+  InvokeEvent(ReferenceSpaceGeometryChangeEvent());
 }
 
 const ImageCoordinateGeometry *GenericImageData::GetImageGeometry() const
@@ -892,6 +916,12 @@ GenericImageData::GetTimeSpacing() const
 ImageWrapperBase *GenericImageData::GetLastOverlay()
 {
   return m_Wrappers[OVERLAY_ROLE].back();
+}
+
+Vector3ui
+GenericImageData::GetVolumeExtents() const
+{
+  return this->GetReferenceSpaceWrapper()->GetSize();
 }
 
 LabelImageWrapper *GenericImageData::GetFirstSegmentationLayer()

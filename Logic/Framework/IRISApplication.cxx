@@ -958,6 +958,7 @@ IRISApplication ::SetCurrentImageDataToIRIS()
     m_CurrentImageData = m_IRISImageData;
     m_CurrentImageData->SetCursorPositionRAS(m_IRISImageData->GetCursorPositionRAS());
     InvokeEvent(MainImageDimensionsChangeEvent());
+    InvokeEvent(ReferenceSpaceGeometryChangeEvent());
 
     // Set the selected layer ID to the main image
     m_GlobalState->SetSelectedLayerId(m_IRISImageData->GetMain()->GetUniqueId());
@@ -983,6 +984,7 @@ IRISApplication ::SetCurrentImageDataToSNAP()
 
     // Fire the event
     InvokeEvent(MainImageDimensionsChangeEvent());
+    InvokeEvent(ReferenceSpaceGeometryChangeEvent());
 
     // Upon entering this mode, we need reset the active tools
     m_GlobalState->SetToolbarMode(CROSSHAIRS_MODE);
@@ -1636,6 +1638,7 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
 
   // Fire the dimensions change event
   InvokeEvent(MainImageDimensionsChangeEvent());
+  InvokeEvent(ReferenceSpaceGeometryChangeEvent());
 }
 
 void
@@ -1782,6 +1785,7 @@ IRISApplication ::UnloadMainImage()
 
   // Let everyone know that the main image is gone!
   InvokeEvent(MainImageDimensionsChangeEvent());
+  InvokeEvent(ReferenceSpaceGeometryChangeEvent());
 }
 
 ImageWrapperBase *
@@ -2551,9 +2555,6 @@ IRISApplication ::ReorientImage(vnl_matrix_fixed<double, 3, 3> inDirection)
   // Send this coordinate transform to the image data
   m_CurrentImageData->SetImageGeometry(icg);
   */
-
-  // Fire the pose change event
-  InvokeEvent(MainImagePoseChangeEvent());
 }
 
 void

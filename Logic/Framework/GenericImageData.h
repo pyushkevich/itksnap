@@ -94,20 +94,13 @@ public:
   // Transforms
   typedef ImageWrapperBase::ITKTransformType ITKTransformType;
 
-  /** This class fires a LayerChangeEvent when layers are added or removed */
+  // Events fired by this class
   FIRES(LayerChangeEvent)
-  
-  /** This class rebroadcasts WrapperChangeEvent from the contained layers */
   FIRES(WrapperChangeEvent)
-
-  /** This class fires Cursor update events */
   FIRES(CursorUpdateEvent)
-
-  /** This class fires Cursor time point update events */
   FIRES(CursorTimePointUpdateEvent)
-
-  /** This class fires segmentation update events */
   FIRES(SegmentationChangeEvent)
+  FIRES(ReferenceSpaceChangeEvent)
 
   /**
    * Set the parent driver
@@ -204,11 +197,7 @@ public:
   /** 
    * Get the extents of the image volume
    */
-  Vector3ui GetVolumeExtents() const
-  {
-    assert(m_MainImageWrapper->IsInitialized());
-    return m_MainImageWrapper->GetSize();
-  }
+  Vector3ui GetVolumeExtents() const;
 
   /** 
    * Get the ImageRegion (largest possible region of all the images)
@@ -495,6 +484,9 @@ protected:
 
   // Generate an appropriate default nickname for a particular role
   std::string GenerateNickname(LayerRole role);
+
+  // Compare geometry between two wrappers
+  static bool IsSameGeometry(ImageWrapperBase *wrapper1, ImageWrapperBase *wrapper2);
 
   // Storage of all mesh layers
   SmartPtr<ImageMeshLayers> m_MeshLayers;

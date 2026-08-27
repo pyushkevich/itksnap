@@ -249,7 +249,7 @@ GlobalUIModel::GlobalUIModel()
   m_CursorPositionModel->Rebroadcast(
         this, CursorUpdateEvent(), ValueChangedEvent());
   m_CursorPositionModel->Rebroadcast(
-        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+        m_Driver, ReferenceSpaceGeometryChangeEvent(), DomainChangedEvent());
 
   // Set up the time point model
   m_CursorTimePointModel = wrapGetterSetterPairAsProperty(
@@ -282,7 +282,7 @@ GlobalUIModel::GlobalUIModel()
         ValueChangedEvent(), ValueChangedEvent());
 
   m_SnakeROIIndexModel->Rebroadcast(
-        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+        m_Driver, ReferenceSpaceGeometryChangeEvent(), DomainChangedEvent());
 
   m_SnakeROISizeModel = wrapGetterSetterPairAsProperty(
         this,
@@ -294,7 +294,7 @@ GlobalUIModel::GlobalUIModel()
         ValueChangedEvent(), ValueChangedEvent());
 
   m_SnakeROISizeModel->Rebroadcast(
-        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+        m_Driver, ReferenceSpaceGeometryChangeEvent(), DomainChangedEvent());
 
   m_SnakeROISeedWithCurrentSegmentationModel = wrapGetterSetterPairAsProperty(
         this,

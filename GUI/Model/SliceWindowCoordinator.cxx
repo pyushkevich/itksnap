@@ -91,6 +91,9 @@ SliceWindowCoordinator
   // Listen to image dimension change events
   Rebroadcast(m_ParentModel->GetDriver(), MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 
+  // Listen to changes in reference geometry, as zoom may need to be recalculated
+  Rebroadcast(m_ParentModel->GetDriver(), ReferenceSpaceGeometryChangeEvent(), ModelUpdateEvent());
+
   // Listen to changes in the layout of the slice view into cells. When
   // this change occurs, we have to modify the size of the slice views
   DisplayLayoutModel *dlm = m_ParentModel->GetDisplayLayoutModel();
@@ -105,7 +108,8 @@ void SliceWindowCoordinator::OnUpdate()
     m_SliceModel[i]->Update();
 
   // Has a new main image been loaded
-  if(this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
+  if(this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()) ||
+      this->m_EventBucket->HasEvent(ReferenceSpaceGeometryChangeEvent())) // TODO: temporary!
     {
     // Update each of the slice models, allowing them to respond to the main image
     // dimensions change

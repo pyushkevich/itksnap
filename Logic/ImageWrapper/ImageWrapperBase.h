@@ -361,6 +361,9 @@ public:
   /** Get the inverse NIFTI s-form matrix for this image */
   irisVirtualGetMacro(NiftiInvSform, TransformType)
 
+  /** Static method to compare the geometry of two wrapped images */
+  static bool IsSameGeometry(ImageBaseType *image1, ImageBaseType *image2, double tol=0.0);
+
   /** Get a display slice correpsponding to the current index */
   virtual DisplaySlicePointer GetDisplaySlice(DisplaySliceIndex index) = 0;
 
