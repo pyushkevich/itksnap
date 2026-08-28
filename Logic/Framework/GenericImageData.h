@@ -251,7 +251,7 @@ public:
    * Set which segmentation layer is active. The layer should already
    * have been added to the list of segmentation layers.
    */
-  void SetActiveSegmentationLayer(LabelImageWrapper *layer);
+  void SetActiveSegmentationLayer(unsigned int unique_id);
 
   /**
    * Add a secondary segmentation image without overriding the main one
@@ -460,6 +460,9 @@ protected:
   // Update the main image
   virtual void SetMainImageInternal(ImageWrapperBase *wrapper);
   virtual void AddOverlayInternal(ImageWrapperBase *wrapper, bool checkSpace = true);
+
+  // Set the active segmentation image by pointer
+  void SetActiveSegmentationLayerInternal(LabelImageWrapper *layer);
 
   // Append an image wrapper to a role
   void PushBackImageWrapper(LayerRole role, ImageWrapperBase *wrapper);

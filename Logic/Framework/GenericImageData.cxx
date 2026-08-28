@@ -80,7 +80,9 @@ GenericImageData
 GenericImageData
 ::~GenericImageData()
 {
-  UnloadMainImage();
+  // This was causing virtual method called during destruction errors, seems pointless
+  // as there are no actual pointers to free
+  // UnloadMainImage();
 }
 
 Vector3d 
@@ -334,7 +336,7 @@ GenericImageData::GetReferenceSpace() const
 {
   // Get the current segmentation
   assert(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized());
-  return m_ActiveSegmentationWrapper->GetReferenceSpace();
+  return m_ActiveSegmentationWrapper->GetImageBase();
 }
 
 
@@ -492,9 +494,6 @@ GenericImageData::ConfigureSegmentationInternal(LabelImageWrapper *wrapper)
   // Send the color table to the new wrapper
   wrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
 
-  // Sync up spacing between the main and label image
-  // wrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
-
   // Additional configuration for the wrapper
   this->AssignDisplayViewportGeometriesToLayer(wrapper);
 }
@@ -606,7 +605,7 @@ void GenericImageData
     if(this->GetNumberOfLayers(LABEL_ROLE) == 0)
       this->AddBlankSegmentation(true);
     else if(m_ActiveSegmentationWrapper == nullptr)
-      SetActiveSegmentationLayer(this->GetFirstSegmentationLayer());
+      SetActiveSegmentationLayerInternal(this->GetFirstSegmentationLayer());
   }
 }
 
@@ -617,7 +616,7 @@ GenericImageData::UnloadAllSegmentations()
   assert(this->IsMainLoaded());
 
   // Unload all segmentations
-  SetActiveSegmentationLayer(nullptr);
+  SetActiveSegmentationLayerInternal(nullptr);
   this->RemoveAllWrappers(LABEL_ROLE);
 
   // Add a new blank segmentation
@@ -797,8 +796,8 @@ void GenericImageData::SetDirectionMatrix(const vnl_matrix<double> &direction)
 
 const ImageCoordinateGeometry *GenericImageData::GetImageGeometry() const
 {
-  assert(m_MainImageWrapper->IsInitialized());
-  return m_MainImageWrapper->GetImageGeometry();
+  // Return the geometry from the reference wrapper
+  return this->GetReferenceSpaceWrapper()->GetImageGeometry();
 }
 
 void GenericImageData::ClearUndoPoints()
@@ -815,8 +814,8 @@ GenericImageData::RegionType
 GenericImageData
 ::GetImageRegion() const
 {
-  assert(m_MainImageWrapper->IsInitialized());
-  return m_MainImageWrapper->GetBufferedRegion();
+  // Return the geometry from the reference wrapper
+  return this->GetReferenceSpaceWrapper()->GetBufferedRegion();
 }
 
 
@@ -936,13 +935,19 @@ GenericImageData::GetActiveSegmentationLayer()
   return m_ActiveSegmentationWrapper;
 }
 
-void GenericImageData::SetActiveSegmentationLayer(LabelImageWrapper *layer)
+void
+GenericImageData::SetActiveSegmentationLayer(unsigned int unique_id)
 {
-  if(m_ActiveSegmentationWrapper != layer)
+  for(auto &wrapper : m_Wrappers[LABEL_ROLE])
   {
-    m_ActiveSegmentationWrapper = layer;
-    UpdateReferenceImageInAllLayers();
+    if(wrapper->GetUniqueId() == unique_id)
+      this->SetActiveSegmentationLayerInternal(dynamic_cast<LabelImageWrapper *>(wrapper.GetPointer()));
   }
+}
+
+void GenericImageData::SetActiveSegmentationLayerInternal(LabelImageWrapper *layer)
+{
+  this->UpdateActiveSegmentation(layer);
 }
 
 void GenericImageData::PushBackImageWrapper(LayerRole role,

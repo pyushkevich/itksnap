@@ -39,6 +39,7 @@
 #include "DefaultBehaviorSettings.h"
 #include "NumericPropertyToggleAdaptor.h"
 #include "RemoteResourceSettings.h"
+#include "GenericImageData.h"
 
 GlobalState
 ::GlobalState()
@@ -129,8 +130,11 @@ GlobalState
   m_SliceViewLayerLayoutModel = NewSimpleConcreteProperty(LAYOUT_STACKED);
 
   m_SelectedLayerIdModel = NewSimpleConcreteProperty(0ul);
-  m_SelectedSegmentationLayerIdModel = NewSimpleConcreteProperty(0ul);
   m_SelectedLayerInspectorLayerIdModel = NewSimpleConcreteProperty(0ul);
+  m_SelectedSegmentationLayerIdModel =
+    wrapGetterSetterPairAsProperty(this,
+                                   &GlobalState::GetSelectedSegmentationLayerIdValue,
+                                   &GlobalState::SetSelectedSegmentationLayerIdValue);
 
   // Set annotation defaults
   m_AnnotationSettings.shownOnAllSlices = false;
@@ -267,4 +271,20 @@ void GlobalState::Set4DReplayIntervalValue(int value)
   this->Get4DReplayIntervalModel()->InvokeEvent(ValueChangedEvent());
 }
 
+bool
+GlobalState::GetSelectedSegmentationLayerIdValue(unsigned long &value)
+{
+  auto *wrapper = m_Driver->GetCurrentImageData()->GetActiveSegmentationLayer();
+  if(wrapper)
+    {
+    value = wrapper->GetUniqueId();
+    return true;
+    }
+  return false;
+}
 
+void
+GlobalState::SetSelectedSegmentationLayerIdValue(unsigned long value)
+{
+  m_Driver->GetCurrentImageData()->SetActiveSegmentationLayer(value);
+}

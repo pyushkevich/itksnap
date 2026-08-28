@@ -560,8 +560,11 @@ private:
 
   // ------------------- Selected Image ID ---------------------------------
   SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerIdModel;
-  SmartPtr<ConcreteSimpleULongProperty> m_SelectedSegmentationLayerIdModel;
+  SmartPtr<AbstractSimpleULongProperty> m_SelectedSegmentationLayerIdModel;
   SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerInspectorLayerIdModel;
+
+  bool GetSelectedSegmentationLayerIdValue(unsigned long &value);
+  void SetSelectedSegmentationLayerIdValue(unsigned long value);
 
   // ------------------- Project Related -----------------------------------
   SmartPtr<ConcreteSimpleStringProperty> m_ProjectFilenameModel;
