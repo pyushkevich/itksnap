@@ -149,7 +149,11 @@ MFOrderByIPPStrategy
 		return EXIT_SUCCESS;
 		}
 	else
-		return EXIT_FAILURE;
+		{
+		// Fallback to sorting by SliceLocation
+		std::sort(dflist.begin(), dflist.end(), DicomFile::CompareBySliceLocation);
+		return EXIT_SUCCESS;
+		}
 }
 
 //===================================================
