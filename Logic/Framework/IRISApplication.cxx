@@ -510,6 +510,7 @@ IRISApplication ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io,
 
     // Update the selected segmentation image
     m_GlobalState->SetSelectedSegmentationLayerId(seg_wrapper->GetUniqueId());
+    m_GlobalState->SetSelectedLayerInspectorLayerId(seg_wrapper->GetUniqueId());
   }
   else
   {
@@ -518,7 +519,7 @@ IRISApplication ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io,
       m_GlobalState->GetSelectedSegmentationLayerId(), false, LABEL_ROLE));
 
     m_IRISImageData->UpdateSegmentationTimePoint(seg_wrapper, io);
-  }
+}
 
   // Update the history
   m_SystemInterface->GetHistoryManager()->UpdateHistory(

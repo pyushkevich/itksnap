@@ -99,10 +99,6 @@ public:
 
   virtual void SetTextureColumn(vtkImageData *texture, unsigned int i, double t)
   {
-    std::cout << "SetTextureColumn this: " << this
-              << " model: " << m_Model
-              << " color map: " << m_Model->GetColorMap() << std::endl;
-
     ColorMap::RGBAType rgba = m_Model->GetColorMap()->MapIndexToRGBA(t);
     for(unsigned int j = 0; j <= 16; j++)
       {
@@ -117,10 +113,6 @@ public:
   {
     if(m_Model->GetColorMap())
       {
-      std::cout << "UpdateColorMapTexture this: " << this
-                  << " model: " << m_Model
-                  << " color map: " << m_Model->GetColorMap() << std::endl;
-
       for(unsigned int i = 0; i <= 16; i++)
         SetTextureColumn(m_ColorMapLeftTexture, i, 0.0);
       for(unsigned int i = 0; i <= 16; i++)

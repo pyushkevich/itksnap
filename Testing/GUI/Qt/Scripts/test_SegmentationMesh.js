@@ -39,39 +39,39 @@ engine.trigger("actionLayerInspector");
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
 
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0001");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 engine.sleep(500);
 
 scrollThroughTimePoints();
 
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0002");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 engine.sleep(500);
 
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0003");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 engine.sleep(500);
 
 scrollThroughTimePoints();
 
 //=== Mesh layers should be generated
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0004");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 engine.sleep(500);
 
 scrollThroughTimePoints();
 
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0005");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 engine.sleep(500);
 
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0006");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 engine.sleep(500);
 
 
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0000");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 engine.sleep(500);
 
 
@@ -79,23 +79,22 @@ engine.sleep(500);
 // Open and select the layer inspector dialog
 // Select the 4D Property Group
 var grp4D = engine.findChild(layerdialog, "grp4DProperties");
-if(!grp4D.visible)
+if(!engine.getProperty(grp4D, "visible"))
     engine.testFailed("4D Property Group was not shown");
 
 var btnReplay = engine.findChild(grp4D, "btn4DReplay");
-btnReplay.click();
+engine.click(btnReplay);
 engine.sleep(2000);
-btnReplay.click();
+engine.click(btnReplay);
 
-engine.findChild(grp4D, "in4DReplayInterval").text = "200"
-btnReplay.click();
+engine.setChildProperty(grp4D, "in4DReplayInterval", "text", "200");
+engine.click(btnReplay);
 engine.sleep(3000);
-btnReplay.click();
+engine.click(btnReplay);
 
-engine.findChild(grp4D, "in4DReplayInterval").text = "20"
-btnReplay.click();
+engine.setChildProperty(grp4D, "in4DReplayInterval", "text", "20");
+engine.click(btnReplay);
 engine.sleep(2000);
-btnReplay.click();
-
+engine.click(btnReplay);
 
 

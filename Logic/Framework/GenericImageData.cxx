@@ -99,6 +99,79 @@ GenericImageData
   return this->GetReferenceSpace()->GetSpacing().GetVnlVector();
 }
 
+GenericImageData::RegionType
+GenericImageData::GetFullExtentImageRegion()
+{
+  // Start with the reference image itself
+  auto *ref = this->GetReferenceSpaceWrapper();
+  auto  region = ref->GetBufferedRegion();
+
+  // Compute the extents of the box
+  Vector3d ext[] = {
+    to_double(ref->GetBufferedRegion().GetIndex()) - 0.5,
+    to_double(ref->GetBufferedRegion().GetUpperIndex()) + 0.5
+  };
+
+  // Iterate over layers
+  for (LayerIterator it = this->GetLayers(ALL_ROLES); !it.IsAtEnd(); ++it)
+  {
+    auto *layer = it.GetLayer();
+
+    // Extents of the region box
+    Vector3d ext_layer[] = {
+      to_double(layer->GetBufferedRegion().GetIndex()) - 0.5,
+      to_double(layer->GetBufferedRegion().GetUpperIndex()) + 0.5
+    };
+
+    // Map the eight corners of the region box into reference space
+    itk::ImageRegion<3> rgn_layer_ref_space;
+    for(unsigned int corner = 0; corner < 8; ++corner)
+    {
+      Vector3d corner_point = { ext_layer[(corner & 1) ? 1 : 0][0],
+                                ext_layer[(corner & 2) ? 1 : 0][1],
+                                ext_layer[(corner & 4) ? 1 : 0][2] };
+
+      // Transform the corner point to reference space
+      Vector3d corner_ras = layer->TransformVoxelCIndexToNIFTICoordinates(corner_point);
+      Vector3d corner_ref = ref->TransformNIFTICoordinatesToVoxelCIndex(corner_ras);
+
+      // Update the extents of the layer in reference space
+      auto corner_idx = to_itkIndex(corner_ref - 0.5);
+      if(corner == 0)
+      {
+        rgn_layer_ref_space.SetIndex(corner_idx);
+        rgn_layer_ref_space.SetUpperIndex(corner_idx);
+      }
+      else
+      {
+        rgn_layer_ref_space.SetIndex(std::min(rgn_layer_ref_space.GetIndex(), corner_idx));
+        rgn_layer_ref_space.SetUpperIndex(std::max(rgn_layer_ref_space.GetUpperIndex(), corner_idx));
+      }
+    }
+
+    // Check if the extents overlap
+    bool overlap = true;
+    for (unsigned int i = 0; i < 3; i++)
+    {
+      if (rgn_layer_ref_space.GetUpperIndex()[i] < region.GetIndex()[i] ||
+          rgn_layer_ref_space.GetIndex()[i] > region.GetUpperIndex()[i])
+      {
+        overlap = false;
+        break;
+      }
+    }
+
+    // If overlapping, extent the region by the layer's extents
+    if(overlap)
+    {
+      region.SetIndex(std::min(rgn_layer_ref_space.GetIndex(), region.GetIndex()));
+      region.SetUpperIndex(std::max(rgn_layer_ref_space.GetUpperIndex(), region.GetUpperIndex()));
+    }
+  }
+
+  return region;
+}
+
 
 void
 GenericImageData
@@ -941,12 +1014,21 @@ GenericImageData::SetActiveSegmentationLayer(unsigned int unique_id)
   for(auto &wrapper : m_Wrappers[LABEL_ROLE])
   {
     if(wrapper->GetUniqueId() == unique_id)
+    {
       this->SetActiveSegmentationLayerInternal(dynamic_cast<LabelImageWrapper *>(wrapper.GetPointer()));
+      return;
+    }
   }
+
+  this->SetActiveSegmentationLayerInternal(nullptr);
 }
 
 void GenericImageData::SetActiveSegmentationLayerInternal(LabelImageWrapper *layer)
 {
+  if(layer)
+    std::cout << "Setting active segmentation layer to: " << layer->GetFileName() << std::endl;
+  else
+    std::cout << "Setting active segmentation layer to: NULL" << std::endl;
   this->UpdateActiveSegmentation(layer);
 }
 

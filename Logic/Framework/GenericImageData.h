@@ -194,8 +194,8 @@ public:
 
   // virtual ImageWrapperBase* GetLayer(unsigned int layer) const;
 
-  /** 
-   * Get the extents of the image volume
+  /**
+   * Get the size of the image volume serving as reference space
    */
   Vector3ui GetReferenceSpaceSize() const;
 
@@ -213,6 +213,18 @@ public:
    * Get the origin of the gray scale image (and all the associated images) 
    */
   Vector3d GetReferenceSpaceOrigin();
+
+  /**
+   * Get the extents of the volume that contains all currently loaded layers.
+   * This is computed by transforming the extents of each layer into the reference space
+   * and if there is overlap between the layer and the reference space, extending to
+   * include the extent of the layer. However, layers that totally do not overlap the
+   * reference space are ignored to avoid weird display issues when loading a very
+   * badly miregistered overlay. The extents are returned in voxel units of the
+   * reference space. This method is intended to allow the user to zoom to see all
+   * loaded images and segmentations.
+   */
+  RegionType GetFullExtentImageRegion();
 
   /**
    * Set the main image. The main image is the anatomical image that defines

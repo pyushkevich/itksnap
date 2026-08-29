@@ -890,6 +890,7 @@ void GlobalUIModel::CycleSelectedSegmentationLayer(int direction)
     if(index < 0)
       index += id_vec.size();
     m_Driver->GetGlobalState()->SetSelectedSegmentationLayerId(id_vec[index]);
+    m_Driver->GetGlobalState()->SetSelectedLayerInspectorLayerId(id_vec[index]);
     }
 }
 

@@ -354,9 +354,15 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
       meshRow->SetModel(model);
 
       // Listen to select signals from widget
-      connect(meshRow, SIGNAL(selectionChanged(bool)), this, SLOT(layerSelected(bool)));
-      connect(meshRow, SIGNAL(contrastInspectorRequested()), this, SLOT(onContrastInspectorRequested()));
-      connect(meshRow, SIGNAL(colorMapInspectorRequested()), this, SLOT(onColorMapInspectorRequested()));
+      connect(meshRow, &LayerInspectorRowDelegate::selectionChanged, this, [this, meshRow](bool flag) {
+        this->layerSelected(flag, meshRow);
+      });
+      connect(meshRow, &LayerInspectorRowDelegate::contrastInspectorRequested, this, [this, meshRow]() {
+        this->onContrastInspectorRequested(meshRow);
+      });
+      connect(meshRow, &LayerInspectorRowDelegate::colorMapInspectorRequested, this, [this, meshRow]() {
+        this->onColorMapInspectorRequested(meshRow);
+      });
 
       // Add row to the group box
       meshGrpBox->addWidget(meshRow);

@@ -10,7 +10,7 @@ engine.trigger("actionLayerInspector");
 //=== Select a specific overlay
 let layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
 let rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0000");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 
 //=== Trigger reload
 engine.trigger("actionReloadAs4D", rowdelegate);
