@@ -2,10 +2,7 @@
 #include "ui_LayerInspectorDialog.h"
 #include "ContrastInspector.h"
 #include "GlobalUIModel.h"
-#include "IRISException.h"
 #include "IRISApplication.h"
-#include "IRISImageData.h"
-#include "ImageWrapper.h"
 #include "LayerSelectionModel.h"
 #include "GenericImageData.h"
 #include "IntensityCurveModel.h"
@@ -96,21 +93,18 @@ void LayerInspectorDialog::SetModel(GlobalUIModel *model)
   ui->cmpComponent->SetModel(model->GetLayerGeneralPropertiesModel());
 
   // We need to listen to layer changes in the model
-  LatentITKEventNotifier::connect(
-        model, LayerChangeEvent(),
-        this, SLOT(onModelUpdate(const EventBucket &)));
+  LatentITKEventNotifier::connect(model, LayerChangeEvent(), this, SLOT(onModelUpdate(EventBucket)));
 
   // We also need to handle changes to metadata
   LatentITKEventNotifier::connect(
-        model->GetDriver(), WrapperMetadataChangeEvent(),
-        this, SLOT(onModelUpdate(const EventBucket &)));
+    model->GetDriver(), WrapperMetadataChangeEvent(), this, SLOT(onModelUpdate(EventBucket)));
 
   // For the tile/stacked button, we currently don't have a coupling mechanism
   // that supports it, so instead, we respond to the event directly
-  LatentITKEventNotifier::connect(
-        model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel(),
-        ValueChangedEvent(),
-        this, SLOT(onModelUpdate(const EventBucket &)));
+  LatentITKEventNotifier::connect(model->GetDisplayLayoutModel()->GetSliceViewLayerLayoutModel(),
+                                  ValueChangedEvent(),
+                                  this,
+                                  SLOT(onModelUpdate(EventBucket)));
 
 
   // Set up the activation on the open layer button
@@ -306,9 +300,15 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
     w->setObjectName(QString().asprintf("wgtRowDelegate_%04d", (int) m_Delegates.size()));
 
     // Listen to select signals from widget
-    connect(w, SIGNAL(selectionChanged(bool)), this, SLOT(layerSelected(bool)));
-    connect(w, SIGNAL(contrastInspectorRequested()), this, SLOT(onContrastInspectorRequested()));
-    connect(w, SIGNAL(colorMapInspectorRequested()), this, SLOT(onColorMapInspectorRequested()));
+    connect(w, &LayerInspectorRowDelegate::selectionChanged, this, [this, w](bool flag) {
+      this->layerSelected(flag, w);
+    });
+    connect(w, &LayerInspectorRowDelegate::contrastInspectorRequested, this, [this, w]() {
+      this->onContrastInspectorRequested(w);
+    });
+    connect(w, &LayerInspectorRowDelegate::colorMapInspectorRequested, this, [this, w]() {
+      this->onColorMapInspectorRequested(w);
+    });
 
     // Select the layer if it was previously selected or nothing was previously
     // selected and the layer is the main layer
@@ -322,7 +322,9 @@ void LayerInspectorDialog::BuildLayerWidgetHierarchy()
       w->setSelected(false);
       }
 
-    currentGroupBox->addWidget(w);
+    if(currentGroupBox)
+        currentGroupBox->addWidget(w);
+
     m_Delegates.push_back(w);
     }
 
@@ -384,7 +386,7 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
     }
 }
 
-void LayerInspectorDialog::layerSelected(bool flag)
+void LayerInspectorDialog::layerSelected(bool flag, LayerInspectorRowDelegate *wsel)
 {
   // Remove all actions from the save button
   foreach(QAction *action, m_SaveSelectedButton->actions())
@@ -396,12 +398,11 @@ void LayerInspectorDialog::layerSelected(bool flag)
     // Toggle everything else off
     foreach(LayerInspectorRowDelegate *w, m_Delegates)
       {
-      if(w != this->sender())
+      if(w != wsel)
         w->setSelected(false);
       }
 
     // Switch the current layer in all the right-pane models
-    LayerInspectorRowDelegate *wsel = (LayerInspectorRowDelegate *) this->sender();
     if(!wsel->selected())
       wsel->setSelected(true);
     this->SetActiveLayer(wsel->GetLayer());
@@ -417,10 +418,10 @@ void LayerInspectorDialog::layerSelected(bool flag)
 
 }
 
-void LayerInspectorDialog::onContrastInspectorRequested()
+void LayerInspectorDialog::onContrastInspectorRequested(LayerInspectorRowDelegate *wsel)
 {
   // Make sure the layer is selected
-  this->layerSelected(true);
+  this->layerSelected(true, wsel);
   ui->tabWidget->setCurrentWidget(ui->cmpContrast);
 
   // Make sure to show the dialog
@@ -429,10 +430,10 @@ void LayerInspectorDialog::onContrastInspectorRequested()
   this->raise();
 }
 
-void LayerInspectorDialog::onColorMapInspectorRequested()
+void LayerInspectorDialog::onColorMapInspectorRequested(LayerInspectorRowDelegate *wsel)
 {
   // Make sure the layer is selected
-  this->layerSelected(true);
+  this->layerSelected(true, wsel);
   ui->tabWidget->setCurrentWidget(ui->cmpColorMap);
 
   // Make sure to show the dialog

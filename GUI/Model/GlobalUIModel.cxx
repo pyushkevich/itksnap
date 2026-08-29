@@ -736,7 +736,7 @@ bool GlobalUIModel::GetSnakeROIIndexValueAndRange(
 
   // Get the image size
   Vector3ui imsize =
-      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+      m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
   // Get the system's region of interest
   GlobalState::RegionType roiSystem =
@@ -761,7 +761,7 @@ void GlobalUIModel::SetSnakeROIIndexValue(Vector3ui value)
 {
   // Get the image size
   Vector3ui imsize =
-      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+      m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
   // Get the system's region of interest
   GlobalState::RegionType roi =
@@ -786,7 +786,7 @@ bool GlobalUIModel::GetSnakeROISizeValueAndRange(
 
   // Get the image size
   Vector3ui imsize =
-      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+      m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
   // Get the system's region of interest
   GlobalState::RegionType roiSystem =
@@ -811,7 +811,7 @@ void GlobalUIModel::SetSnakeROISizeValue(Vector3ui value)
 {
   // Get the image size
   Vector3ui imsize =
-      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+      m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
   // Get the system's region of interest
   GlobalState::RegionType roi =

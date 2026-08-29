@@ -431,7 +431,7 @@ SynchronizationModel::ReadIPCState(bool only_read_new)
       pos[2] = vpos[2] = (unsigned int)(vox[2] + 0.5);
 
       // Check if the voxel position is inside the image region
-      if (vpos != app->GetCursorPosition() && id->GetImageRegion().IsInside(pos))
+      if (vpos != app->GetCursorPosition() && id->GetReferenceSpaceImageRegion().IsInside(pos))
       {
         app->SetCursorPosition(vpos);
         if (m_DebugSync)

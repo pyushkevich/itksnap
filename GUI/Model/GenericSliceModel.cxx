@@ -256,8 +256,8 @@ GenericSliceModel
       ComputeInverse(m_DisplayToAnatomyTransform);
 
   // Get the volume extents & voxel scale factors
-  Vector3ui imageSizeInImageSpace = m_ImageData->GetVolumeExtents();
-  Vector3d imageScalingInImageSpace = to_double(m_ImageData->GetImageSpacing());
+  Vector3ui imageSizeInImageSpace = m_ImageData->GetReferenceSpaceSize();
+  Vector3d imageScalingInImageSpace = to_double(m_ImageData->GetReferenceSpaceSpacing());
 
   // Initialize quantities that depend on the image and its transform
   for(unsigned int i = 0; i < 3; i++)

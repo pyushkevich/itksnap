@@ -281,7 +281,7 @@ SNAPRegistryIO
   // Write file related information
   registry["Files.Grey.Orientation"] << app->GetImageToAnatomyRAI();
   registry["Files.Grey.Dimensions"] << 
-    to_int(app->GetIRISImageData()->GetVolumeExtents());
+    to_int(app->GetIRISImageData()->GetReferenceSpaceSize());
 
   // Write information about the current label state
   registry["IRIS.LabelState.DrawingLabel"] << 
@@ -325,7 +325,7 @@ SNAPRegistryIO
   if(registry.HasEntry("Files.Grey.Dimensions"))
     {
     Vector3i dims = (registry["Files.Grey.Dimensions"])[Vector3i(0)];
-    if(dims != to_int(app->GetIRISImageData()->GetVolumeExtents()))
+    if(dims != to_int(app->GetIRISImageData()->GetReferenceSpaceSize()))
       return false;
     }
 

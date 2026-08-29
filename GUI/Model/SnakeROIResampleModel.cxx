@@ -62,7 +62,7 @@ void SnakeROIResampleModel::ApplyPreset(SnakeROIResampleModel::ResamplePreset pr
 {
   // Get the current spacing
   IRISApplication *app = m_Parent->GetDriver();
-  Vector3d in_spacing = app->GetCurrentImageData()->GetImageSpacing();
+  Vector3d in_spacing = app->GetCurrentImageData()->GetReferenceSpaceSpacing();
   Vector3d out_spacing;
 
   if(preset == SUPER_2)
@@ -94,7 +94,7 @@ void SnakeROIResampleModel::ApplyPreset(SnakeROIResampleModel::ResamplePreset pr
 void SnakeROIResampleModel::ComputeCachedDomains()
 {
   IRISApplication *app = m_Parent->GetDriver();
-  Vector3d spacing = app->GetCurrentImageData()->GetImageSpacing();
+  Vector3d spacing = app->GetCurrentImageData()->GetReferenceSpaceSpacing();
   SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
 
   // The reasonable range for the value is not obvious. The largest possible
@@ -165,7 +165,7 @@ bool SnakeROIResampleModel::GetInputSpacingValueAndRange(int index,
   IRISApplication *app = m_Parent->GetDriver();
   if(app->IsMainImageLoaded())
     {
-    value = app->GetCurrentImageData()->GetImageSpacing()[index];
+    value = app->GetCurrentImageData()->GetReferenceSpaceSpacing()[index];
 
     if(domain)
       *domain = m_SpacingDomain[index];
@@ -196,7 +196,7 @@ bool SnakeROIResampleModel::GetOutputSpacingValueAndRange(
   IRISApplication *app = m_Parent->GetDriver();
   if(app->IsMainImageLoaded())
     {
-    Vector3d inSpacing = app->GetCurrentImageData()->GetImageSpacing();
+    Vector3d inSpacing = app->GetCurrentImageData()->GetReferenceSpaceSpacing();
     SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
     value = roi.GetROI().GetSize()[index] * inSpacing[index] / m_ResampleDimensions[index];
 
@@ -212,7 +212,7 @@ void SnakeROIResampleModel::SetOutputSpacingValue(int index, double value)
 {
   IRISApplication *app = m_Parent->GetDriver();
   SNAPSegmentationROISettings roi = m_ROISettingsModel->GetValue();
-  Vector3d inSpacing = app->GetCurrentImageData()->GetImageSpacing();
+  Vector3d inSpacing = app->GetCurrentImageData()->GetReferenceSpaceSpacing();
 
   // Calculate the dimensions
   m_ResampleDimensions[index] = itk::Math::Round<double>(

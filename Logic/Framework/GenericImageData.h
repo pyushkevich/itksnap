@@ -197,22 +197,22 @@ public:
   /** 
    * Get the extents of the image volume
    */
-  Vector3ui GetVolumeExtents() const;
+  Vector3ui GetReferenceSpaceSize() const;
 
   /** 
    * Get the ImageRegion (largest possible region of all the images)
    */
-  RegionType GetImageRegion() const;
+  RegionType GetReferenceSpaceImageRegion() const;
 
   /**
    * Get the spacing of the gray scale image (and all the associated images) 
    */
-  Vector3d GetImageSpacing();
+  Vector3d GetReferenceSpaceSpacing();
 
   /**
    * Get the origin of the gray scale image (and all the associated images) 
    */
-  Vector3d GetImageOrigin();
+  Vector3d GetReferenceSpaceOrigin();
 
   /**
    * Set the main image. The main image is the anatomical image that defines

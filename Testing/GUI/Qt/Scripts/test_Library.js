@@ -136,3 +136,70 @@ function resetLabels()
     var dialog = engine.findChild(mainwin, "LabelEditorDialog");
     engine.trigger("actionResetLabels", dialog);
 }
+function openAdditionalSegmentation(name)
+{
+    //=== Opening 'Add Segmentation > Open' Dialog
+    engine.trigger("actionAddSegmentation_Open");
+    engine.sleep(2000);
+
+    //=== Entering Filename
+    var dialog = engine.findChild(mainwin, "wizImageIO");
+    engine.findChild(dialog, "inFilename").text = datadir + "/" + name;
+
+    //=== Pressing the 'next' button
+    engine.findChild(dialog, "qt_wizard_commit").click();
+    engine.sleep(1000);
+
+    //=== Pressing the 'finish' button
+    engine.findChild(dialog, "qt_wizard_finish").click();
+    engine.sleep(2500);
+}
+function loadLabelDescriptions(name)
+{
+    //=== Opening 'Import Label Descriptions' dialog
+    engine.trigger("actionLoadLabels");
+    engine.sleep(1000);
+
+    var dialog = engine.findChild(mainwin, "dlgSimpleFile");
+    engine.findChild(dialog, "inFilename").text = datadir + "/" + name;
+
+    //=== Accepting
+    engine.invoke(dialog, "accept");
+    engine.sleep(500);
+}
+function getLayerResolutionInfo(rowObjectName)
+{
+    //=== Open the Layer Inspector and select the given row
+    engine.trigger("actionLayerInspector");
+    engine.sleep(500);
+
+    var dlg = engine.findChild(mainwin, "dlgLayerInspector");
+    var row = engine.findChild(dlg, rowObjectName);
+    row.setSelected(true);
+    engine.sleep(200);
+
+    //=== Switch to the Info tab
+    engine.findChild(dlg, "tabWidget").setCurrentWidget(engine.findChild(dlg, "cmpInfo"));
+    engine.sleep(200);
+
+    var info = {
+        spacingX: parseFloat(engine.findChild(dlg, "outSpacingX").text),
+        spacingY: parseFloat(engine.findChild(dlg, "outSpacingY").text),
+        spacingZ: parseFloat(engine.findChild(dlg, "outSpacingZ").text),
+        dimX: engine.findChild(dlg, "outDimX").text,
+        dimY: engine.findChild(dlg, "outDimY").text,
+        dimZ: engine.findChild(dlg, "outDimZ").text
+    };
+
+    //=== Close the inspector dialog
+    engine.invoke(dlg, "close");
+    return info;
+}
+function updateMeshAndCheck()
+{
+    //=== Click the 3D pane's 'Update' button and confirm the mesh is no longer dirty
+    var btn = engine.findChild(mainwin, "btnUpdateMesh");
+    btn.click();
+    engine.sleep(3000);
+    engine.validateValue(btn.enabled, false);
+}

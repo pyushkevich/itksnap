@@ -87,14 +87,14 @@ GenericImageData
 
 Vector3d 
 GenericImageData
-::GetImageSpacing() 
+::GetReferenceSpaceSpacing()
 {
   return this->GetReferenceSpace()->GetSpacing().GetVnlVector();
 }
 
 Vector3d 
 GenericImageData
-::GetImageOrigin() 
+::GetReferenceSpaceOrigin()
 {
   return this->GetReferenceSpace()->GetSpacing().GetVnlVector();
 }
@@ -812,7 +812,7 @@ void GenericImageData::ClearUndoPoints()
 
 GenericImageData::RegionType
 GenericImageData
-::GetImageRegion() const
+::GetReferenceSpaceImageRegion() const
 {
   // Return the geometry from the reference wrapper
   return this->GetReferenceSpaceWrapper()->GetBufferedRegion();
@@ -918,7 +918,7 @@ ImageWrapperBase *GenericImageData::GetLastOverlay()
 }
 
 Vector3ui
-GenericImageData::GetVolumeExtents() const
+GenericImageData::GetReferenceSpaceSize() const
 {
   return this->GetReferenceSpaceWrapper()->GetSize();
 }

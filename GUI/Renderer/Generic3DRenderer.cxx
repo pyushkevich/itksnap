@@ -374,7 +374,7 @@ Generic3DRenderer::UpdateAxisRendering()
   if (app->IsMainImageLoaded())
   {
     Vector3ui cursor = app->GetCursorPosition();
-    Vector3ui dims = app->GetCurrentImageData()->GetImageRegion().GetSize();
+    Vector3ui dims = app->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
     // Get the axis appearance properties
     OpenGLAppearanceElement *axisapp = as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_3D);
@@ -592,7 +592,7 @@ Generic3DRenderer::UpdateCamera(bool reset)
 
     Vector3ui cursor = app->GetCursorPosition();
     Vector3d  cursor_nifti = ref->TransformVoxelCIndexToNIFTICoordinates(to_double(cursor));
-    Vector3d  spacing = app->GetCurrentImageData()->GetImageSpacing();
+    Vector3d  spacing = app->GetCurrentImageData()->GetReferenceSpaceSpacing();
     Vector3d  image_extent = element_product(to_double(ref->GetSize()), spacing);
     Vector3d  image_center_nifti =
       ref->TransformVoxelCIndexToNIFTICoordinates(to_double(ref->GetSize()) / 2.0);
