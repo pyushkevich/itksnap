@@ -48,6 +48,7 @@
 #include "RLERegionOfInterestImageFilter.h"
 #include "TimePointProperties.h"
 #include "ImageMeshLayers.h"
+#include "itkTransform.h"
 
 // System includes
 #include <iostream>
@@ -57,7 +58,8 @@ GenericImageData
 ::GenericImageData()
 {
   // Make main image wrapper point to grey wrapper initially
-  m_MainImageWrapper = NULL;
+  m_MainImageWrapper = nullptr;
+  m_ActiveSegmentationWrapper = nullptr;
 
   // Add to the relevant lists
   m_Wrappers[MAIN_ROLE].push_back(m_MainImageWrapper);
@@ -79,23 +81,120 @@ GenericImageData
 GenericImageData
 ::~GenericImageData()
 {
-  UnloadMainImage();
+  // This was causing virtual method called during destruction errors, seems pointless
+  // as there are no actual pointers to free
+  // UnloadMainImage();
 }
 
 Vector3d 
 GenericImageData
-::GetImageSpacing() 
+::GetReferenceSpaceSpacing()
 {
-  assert(m_MainImageWrapper->IsInitialized());
-  return m_MainImageWrapper->GetImageBase()->GetSpacing().GetVnlVector();
+  return this->GetReferenceSpace()->GetSpacing().GetVnlVector();
 }
 
 Vector3d 
 GenericImageData
-::GetImageOrigin() 
+::GetReferenceSpaceOrigin()
 {
-  assert(m_MainImageWrapper->IsInitialized());
-  return m_MainImageWrapper->GetImageBase()->GetOrigin().GetVnlVector();
+  return this->GetReferenceSpace()->GetSpacing().GetVnlVector();
+}
+
+template<unsigned int VDim>
+itk::Index<VDim> elementwise_min(const itk::Index<VDim> &a, const itk::Index<VDim> &b)
+{
+  itk::Index<VDim> result;
+  for(unsigned int i = 0; i < VDim; i++)
+    result[i] = std::min(a[i], b[i]);
+  return result;
+}
+
+template<unsigned int VDim>
+itk::Index<VDim> elementwise_max(const itk::Index<VDim> &a, const itk::Index<VDim> &b)
+{
+  itk::Index<VDim> result;
+  for(unsigned int i = 0; i < VDim; i++)
+    result[i] = std::max(a[i], b[i]);
+  return result;
+}
+
+template<unsigned int VDim>
+void expand_region(itk::ImageRegion<VDim> &target, const itk::ImageRegion<VDim> &source)
+{
+  auto upper = target.GetUpperIndex();
+  target.SetIndex(elementwise_min(target.GetIndex(), source.GetIndex()));
+  target.SetUpperIndex(elementwise_max(upper, source.GetUpperIndex()));
+}
+
+GenericImageData::RegionType
+GenericImageData::GetFullExtentImageRegion()
+{
+  // Start with the reference image itself
+  auto *ref = this->GetReferenceSpaceWrapper();
+  auto tran_ref = ref->GetITKTransform();
+  auto  region = ref->GetBufferedRegion();
+
+  // Iterate over layers
+  for (LayerIterator it = this->GetLayers(ALL_ROLES); !it.IsAtEnd(); ++it)
+  {
+    auto *layer = it.GetLayer();
+    auto *tran_layer = layer->GetITKTransform();
+
+    // Extents of the region box
+    Vector3d ext_layer[] = {
+      to_double(layer->GetBufferedRegion().GetIndex()) - 0.5,
+      to_double(layer->GetBufferedRegion().GetUpperIndex()) + 0.5
+    };
+
+    // Map the eight corners of the region box into reference space
+    itk::ImageRegion<3> rgn_layer_ref_space;
+    for(unsigned int corner = 0; corner < 8; ++corner)
+    {
+      Vector3d corner_point = { ext_layer[(corner & 1) ? 1 : 0][0],
+                                ext_layer[(corner & 2) ? 1 : 0][1],
+                                ext_layer[(corner & 4) ? 1 : 0][2] };
+
+      // Transform the corner point to reference space
+      auto idx_layer = to_itkContinuousIndex(corner_point);
+      auto pt_lps = layer->GetImageBase()->TransformContinuousIndexToPhysicalPoint<double>(idx_layer);
+      auto pt_lps_tt = tran_ref->TransformPoint( tran_layer->GetInverseTransform()->TransformPoint(pt_lps) );
+      auto ci_ref = ref->GetImageBase()->TransformPhysicalPointToContinuousIndex<double>(pt_lps_tt);
+
+      itk::ImageRegion<3> corner_region;
+      for(unsigned int i = 0; i < 3; i++)
+      {
+        corner_region.SetIndex(i, (long) std::floor(ci_ref[i] - 0.5));
+        corner_region.SetSize(i, 1);
+      }
+
+      // Update the extents of the layer in reference space
+      // auto corner_idx = to_itkIndex(corner_ref - 0.5);
+      if(corner == 0)
+        rgn_layer_ref_space = corner_region;
+      else
+        expand_region(rgn_layer_ref_space, corner_region);
+    }
+
+    // Check if the extents overlap
+    bool overlap = true;
+    for (unsigned int i = 0; i < 3; i++)
+    {
+      if (rgn_layer_ref_space.GetUpperIndex()[i] < region.GetIndex()[i] ||
+          rgn_layer_ref_space.GetIndex()[i] > region.GetUpperIndex()[i])
+      {
+        overlap = false;
+        break;
+      }
+    }
+
+    // If overlapping, extend the region by the layer's extents
+    if(overlap)
+    {
+      expand_region(region, rgn_layer_ref_space);
+    }
+  }
+
+  return region;
 }
 
 
@@ -116,7 +215,6 @@ GenericImageData
 
   // Set opaque
   m_MainImageWrapper->SetAlpha(255);
-
 }
 
 
@@ -203,7 +301,7 @@ GenericImageData::CreateAnatomicWrapper(GuidedNativeImageIO *io, ITKTransformTyp
   SmartPtr<ImageWrapperBase> out_wrapper;
 
   // If the transform is not NULL, the reference space must be specified
-  ImageBaseType *refSpace = (transform) ? this->GetMain()->GetImageBase() : NULL;
+  ImageBaseType *refSpace = (transform) ? this->GetReferenceSpace() : NULL;
 
   // The object used to create the wrapper of correct type
   GenericImageDataWrapperCreator c(io, refSpace, transform, &m_DisplayGeometry);
@@ -245,7 +343,7 @@ void GenericImageData::SetMainImage(GuidedNativeImageIO *io)
 {
   // Create the wrapper from the Native IO (the wrapper will either be a scalar
   // or a vector-valued image, depending on the number of components)
-  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, NULL);
+  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, nullptr);
 
   // Assign this wrapper to the main image
   this->SetMainImageInternal(wrapper);
@@ -260,10 +358,11 @@ GenericImageData
 
   // Clear the main image wrappers
   RemoveSingleImageWrapper(MAIN_ROLE);
-  m_MainImageWrapper = NULL;
+  m_MainImageWrapper = nullptr;
 
   // Unload all the segmentations
   this->RemoveAllWrappers(LABEL_ROLE);
+  m_ActiveSegmentationWrapper = nullptr;
 
   // Unload all the meshes
   m_MeshLayers->Unload();
@@ -275,33 +374,83 @@ GenericImageData
   m_TimePointProperties->Reset();
 }
 
+
 void GenericImageData::UpdateReferenceImageInAllLayers()
 {
-  for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
+  auto *ref_space = this->GetReferenceSpace();
+  for (LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
   {
     auto *wrapper = lit.GetLayer();
-    if(wrapper && wrapper->IsInitialized())
-      {
-      if(wrapper->GetReferenceSpace() && wrapper->GetReferenceSpace() != wrapper->GetImageBase())
-        {
-        wrapper->SetReferenceSpace(this->GetMain()->GetImageBase());
-        }
-      }
+    if (wrapper && wrapper->IsInitialized() && wrapper->GetReferenceSpace() != ref_space)
+      wrapper->SetReferenceSpace(ref_space);
   }
 }
 
+bool GenericImageData::IsSameGeometry(ImageWrapperBase *wrapper1, ImageWrapperBase *wrapper2)
+{
+  if (!wrapper1 || !wrapper2)
+    return false;
 
+  return ImageWrapperBase::IsSameGeometry(wrapper1->GetImageBase(), wrapper2->GetImageBase());
+}
 
 void
-GenericImageData
-::AddOverlay(GuidedNativeImageIO *io)
+GenericImageData::UpdateActiveSegmentation(LabelImageWrapper *wrapper)
 {
-  // Create the wrapper from the Native IO (the wrapper will either be a scalar
-  // or a vector-valued image, depending on the number of components)
-  SmartPtr<ImageWrapperBase> wrapper = this->CreateAnatomicWrapper(io, NULL);
+  // If both null or the same, nothing to do here
+  if(wrapper == m_ActiveSegmentationWrapper)
+    return;
 
-  // Assign this wrapper to the main image
-  this->AddOverlayInternal(wrapper);
+  // Get the current cursor position in RAS space
+  bool have_cursor = false;
+  Vector3d cusror_ras;
+  if(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized())
+  {
+    // Store the previous cursor position so we can transfer it to the new segmentation
+    cusror_ras = this->GetCursorPositionRAS();
+    have_cursor = true;
+  }
+
+  // Check if geometry is different
+  bool geom_change = !GenericImageData::IsSameGeometry(wrapper, m_ActiveSegmentationWrapper);
+
+  // Set the active segmentation wrapper
+  m_ActiveSegmentationWrapper = wrapper;
+
+  // Update the reference space in all layers
+  this->UpdateReferenceImageInAllLayers();
+
+  // Set the cursor position in all layers
+  if(wrapper && have_cursor)
+    this->SetCursorPositionRAS(cusror_ras);
+
+  // Fire update event
+  if(geom_change)
+    InvokeEvent(ReferenceSpaceGeometryChangeEvent());
+}
+
+GenericImageData::ImageBaseType *
+GenericImageData::GetReferenceSpace() const
+{
+  // Get the current segmentation
+  if(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized())
+    return m_ActiveSegmentationWrapper->GetImageBase();
+  else
+    return nullptr;
+}
+
+
+ImageWrapperBase *
+GenericImageData::GetReferenceSpaceWrapper() const
+{
+  return m_ActiveSegmentationWrapper;
+}
+
+bool
+GenericImageData::IsFreeRotation() const
+{
+  // TODO: I am not sure this is right...
+  return !GetReferenceSpaceWrapper()->ImageSpaceMatchesReferenceSpace();
 }
 
 void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
@@ -310,8 +459,6 @@ void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
   this->AssignDisplayViewportGeometriesToLayer(new_layer);
   this->AddOverlayInternal(new_layer, true);
 }
-
-
 
 void
 GenericImageData
@@ -374,6 +521,12 @@ void GenericImageData
 }
 
 void
+GenericImageData::OnActiveSegmentationReload()
+{
+  this->UpdateReferenceImageInAllLayers();
+}
+
+void
 GenericImageData
 ::UnloadMeshLayer(unsigned long id)
 {
@@ -410,9 +563,10 @@ GenericImageData
   imgLabel->DisconnectPipeline();
 
   // The header of the label image is made to match that of the grey image
-  imgLabel->SetOrigin(this->GetMain()->GetImage4DBase()->GetOrigin());
-  imgLabel->SetSpacing(this->GetMain()->GetImage4DBase()->GetSpacing());
-  imgLabel->SetDirection(this->GetMain()->GetImage4DBase()->GetDirection());
+  // TODO: this old behavior should now be obsolete, but we might want to warn user
+  // imgLabel->SetOrigin(this->GetMain()->GetImage4DBase()->GetOrigin());
+  // imgLabel->SetSpacing(this->GetMain()->GetImage4DBase()->GetSpacing());
+  // imgLabel->SetDirection(this->GetMain()->GetImage4DBase()->GetDirection());
 
   // Return the image
   return imgLabel;
@@ -426,13 +580,13 @@ GenericImageData::AssignDisplayViewportGeometriesToLayer(ImageWrapperBase *layer
 }
 
 void
-GenericImageData ::ConfigureSegmentationFromMainImage(LabelImageWrapper *wrapper)
+GenericImageData::ConfigureSegmentationInternal(LabelImageWrapper *wrapper)
 {
   // Main Image should exist
   assert(m_MainImageWrapper->IsInitialized());
 
-  // Segmentation and Main Image should have same slice index
-  wrapper->SetSliceIndex(m_MainImageWrapper->GetSliceIndex());
+  // The slice index in the segmentation should be set based on current reference
+  // image (TODO)
 
   // Set default nickname
   wrapper->SetDefaultNickname(this->GenerateNickname(LABEL_ROLE));
@@ -440,16 +594,13 @@ GenericImageData ::ConfigureSegmentationFromMainImage(LabelImageWrapper *wrapper
   // Send the color table to the new wrapper
   wrapper->GetDisplayMapping()->SetLabelColorTable(m_Parent->GetColorLabelTable());
 
-  // Sync up spacing between the main and label image
-  wrapper->CopyImageCoordinateTransform(m_MainImageWrapper);
-
   // Additional configuration for the wrapper
   this->AssignDisplayViewportGeometriesToLayer(wrapper);
 }
 
 LabelImageWrapper *
 GenericImageData
-::SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing)
+::SetSegmentationImage(GuidedNativeImageIO *io, bool add_to_existing, bool make_active)
 {
   // Check that the image matches the size of the grey image
   itkAssertOrThrowMacro(
@@ -465,17 +616,21 @@ GenericImageData
   seg_wrapper->SetImage4D(imgLabel);
 
   // Configure the new wrapper
-  this->ConfigureSegmentationFromMainImage(seg_wrapper);
+  this->ConfigureSegmentationInternal(seg_wrapper);
 
   // Update filenames
   seg_wrapper->SetFileName(io->GetFileNameOfNativeImage());
 
+  // Add the segmentation image to the list of segmentation wrappers
+  PushBackImageWrapper(LABEL_ROLE, seg_wrapper);
+
+  // Set the added image as the active segmentation / reference
+  if(make_active)
+    UpdateActiveSegmentation(seg_wrapper);
+
   // Remove loaded segmentation unless adding to existing
   if(!add_to_existing)
-    this->RemoveAllWrappers(LABEL_ROLE);
-
-  // Add the segmentation label to the list of segmentation wrappers
-  PushBackImageWrapper(LABEL_ROLE, seg_wrapper);
+    this->RemoveAllWrappers(LABEL_ROLE, seg_wrapper);
 
   // Intensity changes in the image wrapper are broadcast as segmentation events
   Rebroadcaster::Rebroadcast(seg_wrapper, WrapperImageChangeEvent(),
@@ -506,39 +661,52 @@ void GenericImageData
   wrapper->UpdateTimePoint(temp_wrapper->GetModifiableImage());
 }
 
-LabelImageWrapper *GenericImageData::AddBlankSegmentation()
+LabelImageWrapper *GenericImageData::AddBlankSegmentation(bool make_active)
 {
   assert(m_MainImageWrapper->IsInitialized());
 
   // Initialize the segmentation data to zeros
-  LabelImageWrapper::Pointer seg = LabelImageWrapper::New();
-  seg->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
+  LabelImageWrapper::Pointer seg_wrapper = LabelImageWrapper::New();
+  seg_wrapper->InitializeToWrapper(m_MainImageWrapper, (LabelType) 0);
 
   // Configure the new wrapper
-  this->ConfigureSegmentationFromMainImage(seg);
+  this->ConfigureSegmentationInternal(seg_wrapper);
+  this->PushBackImageWrapper(LABEL_ROLE, seg_wrapper.GetPointer());
 
-  this->PushBackImageWrapper(LABEL_ROLE, seg.GetPointer());
+  // Set the added image as the active segmentation / reference
+  if(make_active)
+    UpdateActiveSegmentation(seg_wrapper);
+
+  // Update the reference space in all images
+  this->UpdateReferenceImageInAllLayers();
 
   // Intensity changes in the image wrapper are broadcast as segmentation events
-  Rebroadcaster::Rebroadcast(seg, WrapperImageChangeEvent(),
+  Rebroadcaster::Rebroadcast(seg_wrapper, WrapperImageChangeEvent(),
                              this, SegmentationChangeEvent());
 
   // Return the added wrapper
-  return seg;
+  return seg_wrapper;
 }
 
 void GenericImageData
 ::UnloadSegmentation(ImageWrapperBase *seg)
 {
-  auto id = seg->GetUniqueId();
-
   // Erase the segmentation image
   this->RemoveImageWrapper(LABEL_ROLE, seg);
 
-  // If main is loaded and this is the only segmentation, reset so that
-  // there is a blank segmentation left
-  if(this->IsMainLoaded() && this->GetNumberOfLayers(LABEL_ROLE) == 0)
-    this->AddBlankSegmentation();
+  // Clear the active segmentation wrapper
+  if(m_ActiveSegmentationWrapper == seg)
+    UpdateActiveSegmentation(nullptr);
+
+  // If we have a main image, we must have at least one segmentation and
+  // at least one active segmentation.
+  if(this->IsMainLoaded())
+  {
+    if(this->GetNumberOfLayers(LABEL_ROLE) == 0)
+      this->AddBlankSegmentation(true);
+    else if(m_ActiveSegmentationWrapper == nullptr)
+      SetActiveSegmentationLayerInternal(this->GetFirstSegmentationLayer());
+  }
 }
 
 void
@@ -548,11 +716,11 @@ GenericImageData::UnloadAllSegmentations()
   assert(this->IsMainLoaded());
 
   // Unload all segmentations
+  SetActiveSegmentationLayerInternal(nullptr);
   this->RemoveAllWrappers(LABEL_ROLE);
 
   // Add a new blank segmentation
-  this->AddBlankSegmentation();
-
+  this->AddBlankSegmentation(true);
 }
 
 bool
@@ -562,34 +730,125 @@ GenericImageData
   return (m_Wrappers[OVERLAY_ROLE].size() > 0);
 }
 
-void
-GenericImageData
-::SetCrosshairs(const Vector3ui &crosshairs)
+Vector3ui
+GenericImageData::GetCursorPosition() const
 {
-  // Set crosshairs in all wrappers
-  for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
-    if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
-      lit.GetLayer()->SetSliceIndex(to_itkIndex(crosshairs));
+  // Check if the crosshairs are already set
+  itkAssertOrThrowMacro(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized(),
+                        "Active segmentation not initialized in GenericImageData::GetCrosshairs");
+
+  // Read crosshairs from the active segmentation wrapper
+  return Vector3ui(m_ActiveSegmentationWrapper->GetSliceIndex());
+}
+
+Vector3d
+GenericImageData::GetCursorPositionRAS() const
+{
+  auto pos_vox = to_double(this->GetCursorPosition());
+  auto pos_ras = m_ActiveSegmentationWrapper->TransformVoxelCIndexToNIFTICoordinates(pos_vox);
+  return pos_ras;
 }
 
 void
-GenericImageData
-::SetTimePoint(unsigned int time_point)
+GenericImageData::SetCursorPositionRAS(const Vector3d &crosshairs_ras)
 {
-  // Set the time point in all wrappers
+  // Check if the crosshairs are already set
+  itkAssertOrThrowMacro(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized(),
+                        "Active segmentation not initialized in GenericImageData::GetCrosshairs");
+
+  // Get the coordinates in continious units
+  auto pos_vox = m_ActiveSegmentationWrapper->TransformNIFTICoordinatesToVoxelCIndex(crosshairs_ras);
+
+  // Round to the nearest integer
+  auto idx = to_itkIndex(Vector3ui(std::round(pos_vox[0]), std::round(pos_vox[1]), std::round(pos_vox[2])));
+
+  // If out of bounds, set to the center of the image
+  auto crosshairs = m_ActiveSegmentationWrapper->GetBufferedRegion().IsInside(idx)
+                      ? Vector3ui(idx)
+                      : m_ActiveSegmentationWrapper->GetSize() / 2u;
+
+  // Set the position
+  this->SetCursorPosition(crosshairs);
+}
+
+
+void
+GenericImageData
+::SetCursorPosition(const Vector3ui &crosshairs)
+{
+  auto idx_ch = to_itkIndex(crosshairs);
+
+  // Check if the crosshairs are already set
+  itkAssertOrThrowMacro(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized(),
+                        "Active segmentation not initialized in GenericImageData::SetCrosshairs");
+
+  if(m_ActiveSegmentationWrapper->GetSliceIndex() == idx_ch)
+    return;
+
+  // The crosshairs have to be in the space of the active layer
+  itkAssertOrThrowMacro(
+    m_ActiveSegmentationWrapper->GetBufferedRegion().IsInside(idx_ch),
+    "Crosshairs outside of active segmentation in GenericImageData::SetCrosshairs");
+
+  // Set crosshairs in all wrappers
   for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
-    {
     if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
-      {
+      lit.GetLayer()->SetSliceIndex(idx_ch);
+
+  // Fire a cursor update event
+  InvokeEvent(CursorUpdateEvent());
+}
+
+unsigned int
+GenericImageData::GetCursorTimePoint() const
+{
+  // TODO: The timepoint is still anchored to the main image. For now I guess this is ok,
+  // but have to really play around with different scenarios to see if this is the right
+  // approach or it should be anchored to the active segmentation
+  if(!this->IsMainLoaded())
+    return 0u;
+
+  return m_MainImageWrapper->GetTimePointIndex();
+}
+
+void
+GenericImageData ::SetCursorTimePoint(unsigned int time_point)
+{
+  // Check if we need to change anything
+  if (this->GetCursorTimePoint() == time_point)
+    return;
+
+  // Check if anything changes in the course of doing this
+  bool modified = false;
+
+  // Set the time point in all wrappers
+  for (LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
+  {
+    if (lit.GetLayer() && lit.GetLayer()->IsInitialized())
+    {
       // Time point is handled a little differently from the cursor. The
       // main image and overlays may have different number of timepoints.
       // The idea is only to allow N-N, N-1 or 1-N combinations, i.e., the
       // main image has N time points, and then overlays have either 1 or N.
       // We can simply use modulo to make this work
       unsigned int tp = time_point % lit.GetLayer()->GetNumberOfTimePoints();
-      lit.GetLayer()->SetTimePointIndex(tp);
+      if (tp != lit.GetLayer()->GetTimePointIndex())
+      {
+        modified = true;
+        lit.GetLayer()->SetTimePointIndex(tp);
       }
     }
+  }
+
+  // Fire events
+  if (modified)
+  {
+    InvokeEvent(CursorTimePointUpdateEvent());
+
+    // TODO: why are these necessary?
+    InvokeEvent(CursorUpdateEvent());
+    InvokeEvent(SegmentationChangeEvent());
+  }
 }
 
 void GenericImageData::SetDisplayGeometry(const IRISDisplayGeometry &dispGeom)
@@ -623,18 +882,22 @@ GenericImageData::GetDisplayViewportGeometry(DisplaySliceIndex index)
 
 void GenericImageData::SetDirectionMatrix(const vnl_matrix<double> &direction)
 {
+  // TODO: this is horrendous, why are we reorienting the overlays too? The logic should
+  // be by image layer, and segmentation should be reoriented if it matches the main image.
   for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
     if(lit.GetLayer())
       {
       // Set the direction matrix in the image
       lit.GetLayer()->SetDirectionMatrix(direction);
       }
+
+  InvokeEvent(ReferenceSpaceGeometryChangeEvent());
 }
 
 const ImageCoordinateGeometry *GenericImageData::GetImageGeometry() const
 {
-  assert(m_MainImageWrapper->IsInitialized());
-  return m_MainImageWrapper->GetImageGeometry();
+  // Return the geometry from the reference wrapper
+  return this->GetReferenceSpaceWrapper()->GetImageGeometry();
 }
 
 void GenericImageData::ClearUndoPoints()
@@ -649,10 +912,10 @@ void GenericImageData::ClearUndoPoints()
 
 GenericImageData::RegionType
 GenericImageData
-::GetImageRegion() const
+::GetReferenceSpaceImageRegion() const
 {
-  assert(m_MainImageWrapper->IsInitialized());
-  return m_MainImageWrapper->GetBufferedRegion();
+  // Return the geometry from the reference wrapper
+  return this->GetReferenceSpaceWrapper()->GetBufferedRegion();
 }
 
 
@@ -734,7 +997,19 @@ unsigned int
 GenericImageData
 ::GetNumberOfTimePoints() const
 {
-  return m_Parent->GetNumberOfTimePoints();
+  if (!this->IsMainLoaded())
+    return 0u;
+  else
+    return m_MainImageWrapper->GetNumberOfTimePoints();
+}
+
+double
+GenericImageData::GetTimeSpacing() const
+{
+  if (!this->IsMainLoaded())
+    return 0.;
+  else
+    return m_MainImageWrapper->GetImage4DBase()->GetSpacing()[3];
 }
 
 ImageWrapperBase *GenericImageData::GetLastOverlay()
@@ -742,10 +1017,42 @@ ImageWrapperBase *GenericImageData::GetLastOverlay()
   return m_Wrappers[OVERLAY_ROLE].back();
 }
 
+Vector3ui
+GenericImageData::GetReferenceSpaceSize() const
+{
+  return this->GetReferenceSpaceWrapper()->GetSize();
+}
+
 LabelImageWrapper *GenericImageData::GetFirstSegmentationLayer()
 {
   assert(m_Wrappers[LABEL_ROLE].size() > 0);
   return dynamic_cast<LabelImageWrapper *>(m_Wrappers[LABEL_ROLE].front().GetPointer());
+}
+
+LabelImageWrapper *
+GenericImageData::GetActiveSegmentationLayer()
+{
+  return m_ActiveSegmentationWrapper;
+}
+
+void
+GenericImageData::SetActiveSegmentationLayer(unsigned int unique_id)
+{
+  for(auto &wrapper : m_Wrappers[LABEL_ROLE])
+  {
+    if(wrapper->GetUniqueId() == unique_id)
+    {
+      this->SetActiveSegmentationLayerInternal(dynamic_cast<LabelImageWrapper *>(wrapper.GetPointer()));
+      return;
+    }
+  }
+
+  this->SetActiveSegmentationLayerInternal(nullptr);
+}
+
+void GenericImageData::SetActiveSegmentationLayerInternal(LabelImageWrapper *layer)
+{
+  this->UpdateActiveSegmentation(layer);
 }
 
 void GenericImageData::PushBackImageWrapper(LayerRole role,
@@ -769,7 +1076,7 @@ void GenericImageData::PopBackImageWrapper(LayerRole role)
 {
   assert(m_Wrappers[role].size() > 0);
   if(m_Wrappers[role].back())
-    BeforeRemoveImageWrapper(m_Wrappers[role].back());
+    this->BeforeRemoveImageWrapper(m_Wrappers[role].back());
   m_Wrappers[role].pop_back();
 
   // Fire the layer change event
@@ -845,12 +1152,14 @@ void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
   this->InvokeEvent(LayerChangeEvent());
 }
 
-void GenericImageData::RemoveAllWrappers(LayerRole role)
+void
+GenericImageData::RemoveAllWrappers(LayerRole role, ImageWrapperBase *except)
 {
+  typename ImageWrapperBase::Pointer ptr_except = except;
   while(m_Wrappers[role].size() > 0)
-  {
     this->PopBackImageWrapper(role);
-  }
+  if(except)
+    this->PushBackImageWrapper(role, except);
 }
 
 void

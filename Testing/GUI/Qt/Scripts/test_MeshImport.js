@@ -12,7 +12,7 @@ engine.sleep(1000);
 var panel3D = engine.findChild(mainwin, "panel3D");
 engine.printChildren(panel3D);
 var btnExpand = engine.findChild(panel3D, "btnExpand");
-btnExpand.click();
+engine.click(btnExpand);
 
 //=== Show the layer inspector
 engine.trigger("actionLayerInspector");
@@ -20,14 +20,14 @@ engine.trigger("actionLayerInspector");
 //=== Select a specific overlay
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0002");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 
 //=== Select the mesh data name box
 var boxDataArray = engine.findChild(layerdialog, "boxMeshDataName");
 
 //=== Select all available array
 for (let i = 0; i <= 16; ++i) {
-  boxDataArray.setCurrentIndex(i);
+  engine.callMethod(boxDataArray, "setCurrentIndex", [i]);
   engine.sleep(200);
 }
 
@@ -35,18 +35,18 @@ for (let i = 0; i <= 16; ++i) {
 var boxVectorMode = engine.findChild(layerdialog, "boxMeshVectorMode");
 
 for (let arrInd = 3; arrInd <= 4; ++arrInd) {
-    boxDataArray.setCurrentIndex(3);
+    engine.callMethod(boxDataArray, "setCurrentIndex", [3]);
 
     for (let i = 0; i <= 3; ++i){
-        boxVectorMode.setCurrentIndex(i);
+        engine.callMethod(boxVectorMode, "setCurrentIndex", [i]);
         engine.sleep(200);
     }
 }
 
 //=== Go to the color map widget
 var cmpcolormap = engine.findChild(layerdialog, "cmpColorMap");
-engine.findChild(layerdialog, "tabWidget").setCurrentWidget(cmpcolormap);
+engine.callChildMethod(layerdialog, "tabWidget", "setCurrentWidget", [cmpcolormap]);
 
 //=== Select the color map preset we want
 var inpreset = engine.findChild(cmpcolormap, "inPreset");
-inpreset.setCurrentIndex(8);
+engine.callMethod(inpreset, "setCurrentIndex", [8]);

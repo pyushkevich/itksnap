@@ -9,13 +9,13 @@ engine.sleep(1000);
 //=== Expand 3D Panel
 var panel3D = engine.findChild(mainwin, "panel3D");
 var btnExpand = engine.findChild(panel3D, "btnExpand");
-btnExpand.click();
+engine.click(btnExpand);
 
 
 //=== Select a specific overlay
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0002");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 
 //=== Show the layer inspector
 engine.trigger("actionLayerInspector");
@@ -34,20 +34,20 @@ let inpreset = engine.findChild(cmpcolormap, "inPreset");
 
 for (let i = 0; i < 17; ++i) {
 
-    tabwidget.setCurrentWidget(cmpgeneral);
-    boxDataArray.setCurrentIndex(i+1);
+    engine.callMethod(tabwidget, "setCurrentWidget", [cmpgeneral]);
+    engine.callMethod(boxDataArray, "setCurrentIndex", [i+1]);
 
-    tabwidget.setCurrentWidget(cmpcolormap);
-    engine.validateValue(inpreset.currentIndex, i);
+    engine.callMethod(tabwidget, "setCurrentWidget", [cmpcolormap]);
+    engine.validateProperty(inpreset, "currentIndex", i);
 
     engine.sleep(100);
 }
 
-boxDataArray.setCurrentIndex(4);
+engine.callMethod(boxDataArray, "setCurrentIndex", [4]);
 let cmpContrast = engine.findChild(layerdialog, "cmpContrast");
 let inControlId = engine.findChild(cmpContrast, "inControlId");
 
-engine.validateValue(inControlId.maximum, 7);
+engine.validateProperty(inControlId, "maximum", 7);
 
 //=== Close a specific mesh layer
 engine.trigger("actionClose", rowdelegate);

@@ -281,7 +281,7 @@ SNAPRegistryIO
   // Write file related information
   registry["Files.Grey.Orientation"] << app->GetImageToAnatomyRAI();
   registry["Files.Grey.Dimensions"] << 
-    to_int(app->GetIRISImageData()->GetVolumeExtents());
+    to_int(app->GetIRISImageData()->GetReferenceSpaceSize());
 
   // Write information about the current label state
   registry["IRIS.LabelState.DrawingLabel"] << 
@@ -319,19 +319,13 @@ SNAPRegistryIO
   // Get a pointer to the global state
   GlobalState *gs = app->GetGlobalState();
 
-  // Get the main image if it's loaded
-  ImageWrapperBase *main =
-      app->IsMainImageLoaded()
-      ? app->GetCurrentImageData()->GetMain()
-      : NULL;
-
   // First of all, make sure that the image referred to in the association file
   // matches the image currently loaded. If the association file does not list
   // image dimensions, then we pass this check
   if(registry.HasEntry("Files.Grey.Dimensions"))
     {
     Vector3i dims = (registry["Files.Grey.Dimensions"])[Vector3i(0)];
-    if(dims != to_int(app->GetIRISImageData()->GetVolumeExtents()))
+    if(dims != to_int(app->GetIRISImageData()->GetReferenceSpaceSize()))
       return false;
     }
 
@@ -361,12 +355,12 @@ SNAPRegistryIO
     
     // Read the thresholding settings (note that since they depend on an image
     // we have to use re-initialized defaults
-    if (main)
-      {
+    // if (main)
+    //  {
       // TODO: do something about reading and writing threshold settings
       // app->GetThresholdSettings()->ReadFromRegistry(
       //      registry, main->GetDefaultScalarRepresentation());
-      }
+    //  }
     }
 
   // Read the display options

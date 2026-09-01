@@ -4,6 +4,7 @@
 #include "GlobalPreferencesModel.h"
 #include "DefaultBehaviorSettings.h"
 #include "IRISApplication.h"
+#include "GenericImageData.h"
 #include "DeepLearningSegmentationModel.h"
 
 PaintbrushSettingsModel::PaintbrushSettingsModel()
@@ -108,17 +109,16 @@ PaintbrushSettingsModel
   if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
     return false;
 
-  bool mainTransformed =
-      !m_ParentModel->GetDriver()->GetMainImage()->ImageSpaceMatchesReferenceSpace();
+  bool free_rotation = m_ParentModel->GetDriver()->GetCurrentImageData()->IsFreeRotation();
 
   switch(state)
     {
     case UIF_VOLUMETRIC_OK:
-      return !mainTransformed;
+      return !free_rotation;
     case UIF_ADAPTIVE_OK:
-      return !mainTransformed;
+      return !free_rotation;
     case UIF_DEEPLEARNING_OK:
-      return !mainTransformed;
+      return !free_rotation;
     default:
       return false;
     }

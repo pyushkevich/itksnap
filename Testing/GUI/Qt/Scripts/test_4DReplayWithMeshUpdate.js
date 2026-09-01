@@ -44,11 +44,11 @@ var layerdialog = engine.findChild(mainwin, "dlgLayerInspector");
 
 // Select the main image row (row 0) so the 4D property group becomes visible
 var row0 = engine.findChild(layerdialog, "wgtRowDelegate_0000");
-row0.setSelected(true);
+engine.setProperty(row0, "selected", true);
 engine.sleep(500);
 
 var grp4D = engine.findChild(layerdialog, "grp4DProperties");
-if (!grp4D.visible)
+if (!engine.getProperty(grp4D, "visible"))
     engine.testFailed("4D Property Group not visible after selecting the main image row");
 
 var btnReplay   = engine.findChild(grp4D, "btn4DReplay");
@@ -63,17 +63,17 @@ var tpWidget    = engine.findChild(mainwin, "inCursorT_4D");
 // ---------------------------------------------------------------------------
 engine.print("Phase A: cold-start replay with continuous mesh update ON");
 
-inInterval.text = "50";
+engine.setProperty(inInterval, "text", "50");
 setCursor4D(15, 23, 12, 0);
 
-var tpBefore = tpWidget.value;
+var tpBefore = engine.getProperty(tpWidget, "value");
 engine.print("Phase A: time point before replay = " + tpBefore);
 
-btnReplay.click();        // START replay
-engine.sleep(8000);       // let it run — crash would abort test here
-btnReplay.click();        // STOP replay
+engine.click(btnReplay);   // START replay
+engine.sleep(8000);                      // let it run — crash would abort test here
+engine.click(btnReplay);   // STOP replay
 
-var tpAfter = tpWidget.value;
+var tpAfter = engine.getProperty(tpWidget, "value");
 engine.print("Phase A: time point after replay  = " + tpAfter);
 
 if (tpAfter === tpBefore)
@@ -106,20 +106,20 @@ engine.sleep(500);
 
 engine.print("Phase B: starting replay over pre-warmed cache at 100 ms interval");
 
-inInterval.text = "100";
+engine.setProperty(inInterval, "text", "100");
 
-tpBefore = tpWidget.value;
+tpBefore = engine.getProperty(tpWidget, "value");
 engine.print("Phase B: time point before replay = " + tpBefore);
 
-btnReplay.click();        // START replay
+engine.click(btnReplay);   // START replay
 engine.sleep(1500);       // 1.5 s: at 100 ms/frame expect ~15 ticks — must have moved
                           // with the regression (~1.5 s/frame) we'd see 0-1 ticks
-var tpMid = tpWidget.value;
+var tpMid = engine.getProperty(tpWidget, "value");
 engine.print("Phase B: time point at 1.5 s = " + tpMid);
 engine.sleep(1500);       // another 1.5 s
-btnReplay.click();        // STOP replay
+engine.click(btnReplay);   // STOP replay
 
-tpAfter = tpWidget.value;
+tpAfter = engine.getProperty(tpWidget, "value");
 engine.print("Phase B: time point after replay  = " + tpAfter);
 
 // Primary check: the mid-point must differ from the start.

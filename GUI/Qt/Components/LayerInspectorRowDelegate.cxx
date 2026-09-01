@@ -647,7 +647,8 @@ void LayerInspectorRowDelegate::mouseMoveEvent(QMouseEvent *)
 
 void LayerInspectorRowDelegate::ApplyColorMap()
 {
-  ColorMap *cm = m_Model->GetLayer()->GetDisplayMapping()->GetColorMap();
+  ColorMap *cm =
+    m_Model->GetLayer() ? m_Model->GetLayer()->GetDisplayMapping()->GetColorMap() : nullptr;
   if(cm)
     {
     QStringList stops;

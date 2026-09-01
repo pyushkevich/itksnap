@@ -53,7 +53,7 @@ PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
 
   // Make sure that the cross-hairs position is within bounds by clamping
   // it to image dimensions
-  Vector3i xSize = to_int(m_Parent->GetDriver()->GetCurrentImageData()->GetVolumeExtents());
+  Vector3i xSize = to_int(m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize());
 
   Vector3ui newpos = to_unsigned_int(xCrossInteger.clamp(Vector3i(0), xSize - Vector3i(1)));
 
@@ -68,7 +68,7 @@ PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
 bool
 PaintbrushModel::HasMainImageTransformed()
 {
-  return !m_Parent->GetDriver()->GetMainImage()->ImageSpaceMatchesReferenceSpace();
+  return m_Parent->GetDriver()->GetCurrentImageData()->IsFreeRotation();
 }
 
 bool
@@ -87,7 +87,7 @@ PaintbrushModel::TestInside(const Vector3d &x, const PaintbrushSettings &ps)
   Vector3d xTest = x;
   if (ps.isotropic)
   {
-    const Vector3d &spacing = m_Parent->GetSliceSpacing();
+    const Vector3d &spacing = m_Parent->GetReferenceSpaceSpacing();
     double          xMinVoxelDim = spacing.min_value();
     xTest(0) *= spacing(0) / xMinVoxelDim;
     xTest(1) *= spacing(1) / xMinVoxelDim;

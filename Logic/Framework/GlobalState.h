@@ -442,12 +442,6 @@ protected:
 
 private:
 
-  /** Get the current crosshairs position */
-  irisSetMacro(CrosshairsPosition,Vector3ui );
-
-  /** Set the current crosshairs position */
-  irisGetMacro(CrosshairsPosition,Vector3ui );
-
   friend class IRISApplication;
 
   /** Color label used to draw polygons */
@@ -464,9 +458,6 @@ private:
 
   /** The transparency of the segmentation overlay */
   SmartPtr<ConcreteRangedDoubleProperty> m_SegmentationAlphaModel;
-
-  /** The current crosshairs position */
-  Vector3ui m_CrosshairsPosition;
 
   /** Whether the slice requires an update or not (TODO: obsolete?) */
   int m_UpdateSliceFlag;
@@ -569,8 +560,11 @@ private:
 
   // ------------------- Selected Image ID ---------------------------------
   SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerIdModel;
-  SmartPtr<ConcreteSimpleULongProperty> m_SelectedSegmentationLayerIdModel;
+  SmartPtr<AbstractSimpleULongProperty> m_SelectedSegmentationLayerIdModel;
   SmartPtr<ConcreteSimpleULongProperty> m_SelectedLayerInspectorLayerIdModel;
+
+  bool GetSelectedSegmentationLayerIdValue(unsigned long &value);
+  void SetSelectedSegmentationLayerIdValue(unsigned long value);
 
   // ------------------- Project Related -----------------------------------
   SmartPtr<ConcreteSimpleStringProperty> m_ProjectFilenameModel;

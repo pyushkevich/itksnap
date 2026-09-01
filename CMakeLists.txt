@@ -1333,6 +1333,7 @@ SET(GUI_TESTS
   4DReplayWithMeshUpdate
   VolumeRendering
   Reloading
+  SegmentationSwitching
   4DToMC
   MCTo4D
   DeformationGrid

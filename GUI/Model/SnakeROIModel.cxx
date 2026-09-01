@@ -216,7 +216,7 @@ void SnakeROIModel
     },
     {
       xCornerImage[0] + Vector3d(1.0,1.0,1.0),
-      to_double(m_Parent->GetDriver()->GetCurrentImageData()->GetVolumeExtents())
+      to_double(m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize())
     }
   };
 
@@ -270,7 +270,7 @@ void SnakeROIModel::ResetROI()
 {
   // Region of interest from the main image
   GlobalState::RegionType roi =
-      m_Parent->GetDriver()->GetCurrentImageData()->GetImageRegion();
+      m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceImageRegion();
 
   // Can't be empty!
   assert(roi.GetNumberOfPixels());

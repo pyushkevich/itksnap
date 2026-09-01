@@ -25,8 +25,8 @@ void RegistrationRenderer::DrawRotationWidget(AbstractRenderContext *context, do
   Vector3d rot_ctr_slice = slice_model->MapImageToSlice(to_double(rot_ctr_image));
 
   // Get the scale parameters
-  double sx = 0.5 * radius / slice_model->GetSliceSpacing()[0];
-  double sy = 0.5 * radius / slice_model->GetSliceSpacing()[1];
+  double sx = 0.5 * radius / slice_model->GetReferenceSpaceSpacing()[0];
+  double sy = 0.5 * radius / slice_model->GetReferenceSpaceSpacing()[1];
 
   // Create a rotation widget first time
   if(!m_RotatorPath)

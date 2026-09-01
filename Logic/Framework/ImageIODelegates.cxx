@@ -101,26 +101,6 @@ LoadOverlayImageDelegate
 {
   // Do the parent's check
   LoadAnatomicImageDelegate::ValidateHeader(io, wl);
-
-  // The check below is commented out because we no longer require the overlays
-  // to be in the same space as the main image
-  /*
-  // Now check for dimensions mismatch
-  GenericImageData *id = m_Driver->GetCurrentImageData();
-
-  // Check the dimensions, throw exception
-  Vector3ui szSeg = io->GetDimensionsOfNativeImage();
-  Vector3ui szMain = id->GetMain()->GetSize();
-  if(szSeg != szMain)
-    {
-    throw IRISException("Error: Mismatched Dimensions. "
-                        "The size of the overlay image (%d x %d x %d) "
-                        "does not match the size of the main image "
-                        "(%d x %d x %d). Images must have the same dimensions.",
-                        szSeg[0], szSeg[1], szSeg[2],
-        szMain[0], szMain[1], szMain[2]);
-    }
-  */
 }
 
 LoadOverlayImageDelegate::LoadOverlayImageDelegate()
@@ -140,26 +120,19 @@ LoadSegmentationImageDelegate
   GenericImageData *id = m_Driver->GetCurrentImageData();
 
   // Get the dimensions of the main image
-  Vector3ui szMain = id->GetMain()->GetSize();
-  unsigned int ntMain =  id->GetMain()->GetNumberOfTimePoints();
+  unsigned int ntMain =  id->GetNumberOfTimePoints();
 
   // Get the dimensions of the segmentation
   Vector4ui szSeg4D = io->GetDimensionsOfNativeImage();
-  Vector3ui szSeg = szSeg4D.extract(3);
   unsigned int ntSeg = szSeg4D[3];
 
-  // The 3D dimensions must match
-  if(szSeg != szMain)
-    {
-    throw IRISException("Error: Mismatched Dimensions. "
-                        "The size of the segmentation image (%d x %d x %d) "
-                        "does not match the size of the main image "
-                        "(%d x %d x %d). Images must have the same dimensions.",
-                        szSeg[0], szSeg[1], szSeg[2],
-                        szMain[0], szMain[1], szMain[2]);
-    }
+  // Begining in version 4.6 (2026), the dimensions of the main image
+  // and segmentation are no longer required to be the same. Loading a
+  // segmentation that is different dimensions or orientation than the
+  // main image will simply result in the segmentation's geometry being
+  // used as reference geometry for all images, including the main
 
-  // Check the number of components
+  // The number of components must also match
   if(io->GetNumberOfComponentsInNativeImage() != 1)
     {
     throw IRISException("Error: Multicomponent Image. "
@@ -168,7 +141,7 @@ LoadSegmentationImageDelegate
                         io->GetNumberOfComponentsInNativeImage());
     }
   
-  // The number of components must also match
+  // The number of timepoints must also match
   if(ntMain != ntSeg)
     {
     if(ntSeg > 1)
@@ -189,15 +162,13 @@ LoadSegmentationImageDelegate
                      "The current time point in the segmentation has been replaced by the image you are loading. ", ntMain));
       }
     }
-
 }
 
 void
-LoadSegmentationImageDelegate
-::ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl)
+LoadSegmentationImageDelegate ::ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl)
 {
   // Get the two images to compare
-  GenericImageData *id = m_Driver->GetCurrentImageData();
+  GenericImageData  *id = m_Driver->GetCurrentImageData();
   itk::ImageBase<4> *main = id->GetMain()->GetImage4DBase();
   itk::ImageBase<4> *native = io->GetNativeImage();
 
@@ -205,52 +176,101 @@ LoadSegmentationImageDelegate
   // Check if there is a discrepancy in the header fields. This will not
   // preclude the user from loading the image, but it will generate a
   // warning, hopefully leading users to adopt more flexible file formats
-  bool match_spacing = true, match_origin = true, match_direction = true;
+  bool match_size = true, match_spacing = true, match_origin = true, match_direction = true;
 
-  for(unsigned int i = 0; i < 3; i++)
-    {
-    if(main->GetSpacing()[i] != native->GetSpacing()[i])
+  for (unsigned int i = 0; i < 3; i++)
+  {
+    if (main->GetLargestPossibleRegion().GetSize()[i] !=
+        native->GetLargestPossibleRegion().GetSize()[i])
+      match_size = false;
+
+    if (main->GetSpacing()[i] != native->GetSpacing()[i])
       match_spacing = false;
 
-    if(main->GetOrigin()[i] != native->GetOrigin()[i])
+    if (main->GetOrigin()[i] != native->GetOrigin()[i])
       match_origin = false;
 
-    for(size_t j = 0; j < 3; j++)
-      {
-      double diff = fabs(main->GetDirection()(i,j) - native->GetDirection()(i,j));
-      if(diff > 1.0e-4)
-        match_direction = false;
-      }
-    }
-
-  if(!match_spacing || !match_origin || !match_direction)
+    for (size_t j = 0; j < 3; j++)
     {
+      double diff = fabs(main->GetDirection()(i, j) - native->GetDirection()(i, j));
+      if (diff > 1.0e-4)
+        match_direction = false;
+    }
+  }
+
+  if (match_size && (!match_spacing || !match_origin || !match_direction))
+  {
     // Come up with a warning message
     std::string object, verb;
-    if(!match_spacing && !match_origin && !match_direction)
-      { object = "spacing, origin and orientation"; }
+    if (!match_spacing && !match_origin && !match_direction)
+    {
+      object = "spacing, origin and orientation";
+    }
     else if (!match_spacing && !match_origin)
-      { object = "spacing and origin"; }
+    {
+      object = "spacing and origin";
+    }
     else if (!match_spacing && !match_direction)
-      { object = "spacing and orientation"; }
+    {
+      object = "spacing and orientation";
+    }
     else if (!match_origin && !match_direction)
-      { object = "origin and orientation";}
+    {
+      object = "origin and orientation";
+    }
     else if (!match_spacing)
-      { object = "spacing"; }
+    {
+      object = "spacing";
+    }
     else if (!match_direction)
-      { object = "orientation";}
+    {
+      object = "orientation";
+    }
     else if (!match_origin)
-      { object = "origin"; }
+    {
+      object = "origin";
+    }
 
     // Create an alert box
-    wl.push_back(IRISWarning(
-                   "Warning: Header Mismatch."
-                   "There is a mismatch between the header of the image that you are "
-                   "loading and the header of the main image currently open in ITK-SNAP. "
-                   "The images have different %s. "
-                   "ITK-SNAP will ignore the header in the image you are loading.",
-                   object.c_str()));
-    }
+    wl.push_back(
+      IRISWarning("Warning: Header Mismatch."
+                  "The segmentation image you loaded has the same dimensions as the main "
+                  "image, but different %s. Earlier ITK-SNAP versions would have modified "
+                  "the segmentation to match the main image. Since version 4.6, the properties "
+                  "of the segmentation image are preserved. If the header of the segmentation "
+                  "image is incorrect, you may see misalignment between the main image and the "
+                  "segmentation. You can correct this outside of ITK-SNAP, for example using "
+                  "the c3d -copy-transform command.",
+                  object.c_str()));
+  }
+
+  // Check the overlap volume of the image and segmentation. If overlap volume is zero
+  // issue a warning. TODO: this requires some geometry code, for now we can do a very
+  // simple check if the center of main is outside of segmentation and center of
+  // segmentation is outside of main, issue a warning
+  typename itk::ContinuousIndex<double, 4> idx_main_ctr, idx_seg_ctr;
+  typename itk::Index<4> idx_seg_in_main, idx_main_in_seg;
+  itk::Point<double, 4> ctr_main, ctr_seg;
+  for (unsigned int i = 0; i < 4; i++)
+  {
+    idx_main_ctr[i] = main->GetLargestPossibleRegion().GetIndex()[i] + main->GetLargestPossibleRegion().GetSize()[i] * 0.5;
+    idx_seg_ctr[i] = native->GetLargestPossibleRegion().GetIndex()[i] + native->GetLargestPossibleRegion().GetSize()[i] * 0.5;
+  }
+  main->TransformContinuousIndexToPhysicalPoint(idx_main_ctr, ctr_main);
+  native->TransformContinuousIndexToPhysicalPoint(idx_seg_ctr, ctr_seg);
+  main->TransformPhysicalPointToIndex(ctr_seg, idx_seg_in_main);
+  native->TransformPhysicalPointToIndex(ctr_main, idx_main_in_seg);
+
+  if (!main->GetLargestPossibleRegion().IsInside(idx_seg_in_main) &&
+      !native->GetLargestPossibleRegion().IsInside(idx_main_in_seg))
+  {
+    wl.push_back(
+      IRISWarning("Warning: Segmentation and main image do not overlap."
+                  "The segmentation image you loaded does not overlap with the main image. "
+                  "You may have loaded the wrong segmentation image, or the header of the "
+                  "segmentation image may be incorrect. You can correct this outside of "
+                  "ITK-SNAP, for example using the c3d -copy-transform command."));
+  }
 }
 
 ImageWrapperBase *LoadSegmentationImageDelegate::UpdateApplicationWithImage(GuidedNativeImageIO *io)
@@ -462,6 +482,9 @@ ReloadAnatomicWrapperDelegate
 
   auto *aw = dynamic_cast<WrapperType*>(m_Wrapper.GetPointer());
 
+  // Get the current cursor position before reload
+  auto cursor = m_Driver->GetCurrentImageData()->GetCursorPositionRAS();
+
   if (!aw)
     {
     std::ostringstream oss;
@@ -479,10 +502,10 @@ ReloadAnatomicWrapperDelegate
                  old_refspace,
                  const_cast<typename WrapperType::ITKTransformType *>(old_tform));
 
-  // This line takes care of stale pointers to reference_space in image wrappers
-  if(m_Wrapper == m_Driver->GetCurrentImageData()->GetMain())
-    m_Driver->GetCurrentImageData()->UpdateReferenceImageInAllLayers();
-
+  // TODO: if the main image changed dimensions, the dimensions of the segmentation image
+  // will not automatically update; the segmentation may end up no longer matched to the
+  // main image. This is technically ok, but should we alert the user? And if the
+  // segmentation was empty, we should definitely make a new empty segmentation
   m_Driver->SetCursorPosition(m_Driver->GetCursorPosition(), true);
   m_Driver->InvokeEvent(LayerChangeEvent()); // important, to trigger renderer rebuild assemblies
 }
@@ -498,6 +521,7 @@ ReloadSegmentationWrapperDelegate
 ::UpdateWrapper()
 {
   m_IO->ReadNativeImageData();
+  auto cursor = m_Driver->GetCurrentImageData()->GetCursorPositionRAS();
 
   auto labelWrapper = dynamic_cast<LabelImageWrapper*>(m_Wrapper.GetPointer());
   if (!labelWrapper)
@@ -508,6 +532,15 @@ ReloadSegmentationWrapperDelegate
 
   auto labelImage = m_Driver->GetIRISImageData()->CompressSegmentation(m_IO);
   labelWrapper->SetImage4D(labelImage);
-  m_Driver->SetCursorPosition(m_Driver->GetCursorPosition(), true);
+
+
+  // This line takes care of stale pointers to reference_space in image wrappers
+  // TODO: all this reload logic should sit inside of GenericImageData
+  if(m_Wrapper == m_Driver->GetCurrentImageData()->GetActiveSegmentationLayer())
+  {
+    m_Driver->GetCurrentImageData()->OnActiveSegmentationReload();
+    m_Driver->GetCurrentImageData()->SetCursorPositionRAS(cursor);
+  }
+
   m_Driver->InvokeEvent(LayerChangeEvent()); // important, to trigger renderer rebuild assemblies
 }

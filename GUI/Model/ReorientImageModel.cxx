@@ -89,7 +89,7 @@ void ReorientImageModel::SetParentModel(GlobalUIModel *parent)
 
   // Listen to changes to the main image
   Rebroadcast(m_Parent->GetDriver(),
-              MainImagePoseChangeEvent(), ModelUpdateEvent());
+              ReferenceSpaceGeometryChangeEvent(), ModelUpdateEvent());
 }
 
 AbstractSimpleStringProperty
@@ -292,7 +292,7 @@ bool ReorientImageModel
 void ReorientImageModel::OnUpdate()
 {
   if(this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent())
-     || this->m_EventBucket->HasEvent(MainImagePoseChangeEvent()))
+     || this->m_EventBucket->HasEvent(ReferenceSpaceGeometryChangeEvent()))
     {    
     // Obtain the current RAI value
     IRISApplication *app = m_Parent->GetDriver();

@@ -18,6 +18,7 @@
 #include <QDir>
 #include <SNAPQApplication.h>
 #include <QDeadlineTimer>
+#include <QMetaMethod>
 
 
 #include "SNAPQtCommon.h"
@@ -159,7 +160,112 @@ void SNAPTestQt::comboBoxSelect(QObject *widget, QString itemText)
                                QString("comboBoxSelect target not a combo box"));
 
   int row = findItemRow(widget, itemText).toInt();
-  QMetaObject::invokeMethod(widget, "setCurrentIndex", Qt::QueuedConnection, Q_ARG(int, row));
+  setProperty(widget, "currentIndex", row);
+}
+
+// Property get/set block until the GUI thread has run them, so the script
+// sees the result (and anything it triggers) immediately after
+QVariant SNAPTestQt::getProperty(QObject *obj, QString name)
+{
+  QVariant result;
+  QByteArray prop = name.toUtf8();
+  QMetaObject::invokeMethod(obj, [obj, prop, &result]() {
+      result = obj->property(prop.constData());
+    }, Qt::BlockingQueuedConnection);
+  return result;
+}
+
+void SNAPTestQt::setProperty(QObject *obj, QString name, QVariant value)
+{
+  QByteArray prop = name.toUtf8();
+  QMetaObject::invokeMethod(obj, [obj, prop, value]() {
+      obj->setProperty(prop.constData(), value);
+    }, Qt::BlockingQueuedConnection);
+}
+
+// Default is non-blocking (a method call could open a nested modal dialog,
+// which would deadlock a blocking connection) -- pass block=true only for
+// calls you know don't do that, to replace a guessed sleep() with a real
+// synchronization point. Resolved via QMetaMethod so any argument type/count
+// the target actually declares works, not just a hardcoded set.
+void SNAPTestQt::callMethod(QObject *obj, QString method, QVariantList args, bool block)
+{
+  Qt::ConnectionType ct = block ? Qt::BlockingQueuedConnection : Qt::QueuedConnection;
+  const QMetaObject *mo = obj->metaObject();
+  QByteArray name = method.toUtf8();
+
+  for(int i = 0; i < mo->methodCount(); i++)
+    {
+    QMetaMethod mm = mo->method(i);
+    if(mm.name() != name || mm.parameterCount() != args.size())
+      continue;
+
+    QVariant converted[5];
+    QGenericArgument ga[5];
+    for(int j = 0; j < args.size(); j++)
+      {
+      converted[j] = args[j];
+      converted[j].convert(QMetaType(mm.parameterType(j)));
+      ga[j] = QGenericArgument(mm.parameterTypeName(j), converted[j].data());
+      }
+
+    mm.invoke(obj, ct, ga[0], ga[1], ga[2], ga[3], ga[4]);
+    return;
+    }
+
+  m_ScriptEngine->throwError(QJSValue::ReferenceError,
+                             QString("No method %1/%2 found").arg(method).arg(args.size()));
+}
+
+QVariant SNAPTestQt::getChildProperty(QObject *parent, QString childName, QString propName)
+{
+  return getProperty(findChild(parent, childName), propName);
+}
+
+void SNAPTestQt::setChildProperty(QObject *parent, QString childName, QString propName, QVariant value)
+{
+  setProperty(findChild(parent, childName), propName, value);
+}
+
+void SNAPTestQt::callChildMethod(QObject *parent, QString childName, QString method, QVariantList args, bool block)
+{
+  callMethod(findChild(parent, childName), method, args, block);
+}
+
+void SNAPTestQt::click(QObject *obj, bool block)
+{
+  callMethod(obj, "click", QVariantList(), block);
+}
+
+void SNAPTestQt::clickChild(QObject *parent, QString childName, bool block)
+{
+  click(findChild(parent, childName), block);
+}
+
+void SNAPTestQt::toggle(QObject *obj, bool block)
+{
+  callMethod(obj, "toggle", QVariantList(), block);
+}
+
+void SNAPTestQt::close(QObject *obj, bool block)
+{
+  callMethod(obj, "close", QVariantList(), block);
+}
+
+void SNAPTestQt::closeChild(QObject *parent, QString childName, bool block)
+{
+  close(findChild(parent, childName), block);
+}
+
+void SNAPTestQt::validateProperty(QObject *obj, QString name, QVariant expected, double precision)
+{
+  validateValue(getProperty(obj, name), expected, precision);
+}
+
+void SNAPTestQt::validateChildProperty(QObject *parent, QString childName, QString propName,
+                                        QVariant expected, double precision)
+{
+  validateValue(getChildProperty(parent, childName, propName), expected, precision);
 }
 
 
@@ -226,26 +332,32 @@ void SNAPTestQt::printChildren(QObject *parent, QString className)
   printChildrenRecursive(parent, "", cn);
 }
 
-void SNAPTestQt::validateValue(QVariant v1, QVariant v2)
+void SNAPTestQt::validateValue(QVariant v1, QVariant v2, double precision)
 {
-  // Validation involves checking if the values are equal. If not,
-  // the program should be halted
-  if(v1 != v2)
+  // precision < 0 means exact comparison; otherwise numeric within tolerance
+  bool failed;
+  QString msg;
+  if(precision >= 0)
     {
-    // Validation failed!
-    QString msg = QString("Validation %1 == %2 failed!").arg(v1.toString(),v2.toString());
-    qWarning() << msg;
-
-    // Exit with code corresponding to test failure
-    m_ScriptEngine->throwError(QJSValue::GenericError, msg);
-    // application_exit(REGRESSION_TEST_FAILURE);
+    failed = fabs(v1.toDouble() - v2.toDouble()) > precision;
+    msg = QString("Validation %1 == %2 (with precision %3) %4!")
+        .arg(v1.toDouble()).arg(v2.toDouble()).arg(precision).arg(failed ? "failed" : "ok");
     }
   else
     {
-    // Validation failed!
-    qDebug() << QString("Validation %1 == %2 ok!").arg(v1.toString(),v2.toString());
+    failed = v1 != v2;
+    msg = QString("Validation %1 == %2 %3!").arg(v1.toString(), v2.toString(), failed ? "failed" : "ok");
     }
 
+  if(failed)
+    {
+    qWarning() << msg;
+    m_ScriptEngine->throwError(QJSValue::GenericError, msg);
+    }
+  else
+    {
+    qDebug() << msg;
+    }
 }
 
 void SNAPTestQt::application_exit(int rc)
@@ -280,28 +392,6 @@ void SNAPTestQt::sleep(int milli_sec)
 
   // Sleep
   TestWorker::sleep_ms(ms_actual);
-}
-
-void SNAPTestQt::validateFloatValue(double v1, double v2, double precision)
-{
-  // Validation involves checking if the values are equal. If not,
-  // the program should be halted
-  if(fabs(v1 - v2) > precision)
-    {
-    // Validation failed!
-    QString msg = QString("Validation %1 == %2 (with precision %3) failed!").arg(v1).arg(v2).arg(precision);
-    qWarning() << msg;
-
-    // Exit with code corresponding to test failure
-    m_ScriptEngine->throwError(QJSValue::GenericError, msg);
-
-    // application_exit(REGRESSION_TEST_FAILURE);
-    }
-  else
-    {
-    // Validation failed!
-    qDebug() << QString("Validation %1 == %2 (with precision %3) ok!").arg(v1).arg(v2).arg(precision);
-    }
 }
 
 void SNAPTestQt::testFailed(QString reason)
