@@ -188,6 +188,29 @@ ImageCoordinateTransform
     (unsigned int)fabs(szSigned(2)));
 }
 
+itk::ImageRegion<3>
+ImageCoordinateTransform::TransformRegion(const itk::ImageRegion<3> &region)
+{
+  // Get the physical bounds of the region
+  Vector3d p0 = to_double(region.GetIndex());
+  Vector3d p1 = to_double(region.GetIndex()) + to_double(region.GetSize());
+
+  // Transform the corners of the region
+  Vector3d q0 = this->TransformPoint(p0), q1 = this->TransformPoint(p1);
+
+  // Compute the new region
+  itk::ImageRegion<3> result;
+  for(unsigned int i = 0; i < 3; i++)
+  {
+    double a = std::min(q0[i], q1[i]);
+    double b = std::max(q0[i], q1[i]);
+    result.SetIndex(i, (long) std::floor(a));
+    result.SetSize(i, (unsigned long) std::round(b - a));
+  }
+
+  return result;
+}
+
 Vector3ui 
 ImageCoordinateTransform
 ::TransformVoxelIndex(const Vector3ui &x) const 

@@ -135,6 +135,10 @@ function resetLabels(leave_open = false)
 
     var dialog = engine.findChild(mainwin, "LabelEditorDialog");
     engine.trigger("actionResetLabels", dialog);
+
+    //=== Close the dialog
+    if (!leave_open)
+      engine.close(dialog);
 }
 function openSegmentation(name)
 {

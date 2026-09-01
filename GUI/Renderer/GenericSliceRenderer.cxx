@@ -496,7 +496,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
 
   // Adjust the view matrix so that we can point in slice coordinates
   auto v_pos = m_Model->GetViewPosition();
-  auto spacing = m_Model->GetSliceSpacing();
+  auto spacing = m_Model->GetReferenceSpaceSpacing();
 
   // Get the dimensions of a non-thumbnail viewport
   Vector2ui vp_pos, vp_size;
@@ -625,7 +625,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
         auto   xy = m_Model->GetZoomThumbnailPosition();
         auto   wh = m_Model->GetZoomThumbnailSize();
         double tZoom = m_Model->GetThumbnailZoom();
-        double w_main = m_Model->GetSliceSize()[0], h_main = m_Model->GetSliceSize()[1];
+        double w_main = m_Model->GetRefernceSpaceSize()[0], h_main = m_Model->GetRefernceSpaceSize()[1];
 
         // Set up the zoom thumbnail viewport
         context->PushMatrix();

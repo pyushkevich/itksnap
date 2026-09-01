@@ -87,7 +87,7 @@ PaintbrushModel::TestInside(const Vector3d &x, const PaintbrushSettings &ps)
   Vector3d xTest = x;
   if (ps.isotropic)
   {
-    const Vector3d &spacing = m_Parent->GetSliceSpacing();
+    const Vector3d &spacing = m_Parent->GetReferenceSpaceSpacing();
     double          xMinVoxelDim = spacing.min_value();
     xTest(0) *= spacing(0) / xMinVoxelDim;
     xTest(1) *= spacing(1) / xMinVoxelDim;

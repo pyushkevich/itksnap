@@ -125,8 +125,8 @@ OrthogonalSliceCursorNavigationModel
 {
   // Compute the start and end point in slice coordinates
   Vector3d zOffset = m_Parent->MapWindowOffsetToSliceOffset(uvOffset);
-  Vector2d xOffset(zOffset[0] * m_Parent->GetSliceSpacing()[0],
-                   zOffset[1] * m_Parent->GetSliceSpacing()[1]);
+  Vector2d xOffset(zOffset[0] * m_Parent->GetReferenceSpaceSpacing()[0],
+                   zOffset[1] * m_Parent->GetReferenceSpaceSpacing()[1]);
 
   // Under the left button, the tool changes the view_pos by the
   // distance traversed

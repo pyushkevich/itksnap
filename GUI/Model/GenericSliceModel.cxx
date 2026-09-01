@@ -98,6 +98,7 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
 
   // Listen to events that require action from this object
   Rebroadcast(m_Driver, LayerChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(m_Driver, WrapperPhysicalExtentsChangeEvent(), ModelUpdateEvent());
 
   // Listen to changes in the layout of the slice view into cells. When
   // this change occurs, we have to modify the size of the slice views
@@ -149,11 +150,17 @@ void GenericSliceModel
 void
 GenericSliceModel::OnUpdate()
 {
-  // Has there been a change in the image dimensions?
-  if (m_EventBucket->HasEvent(ReferenceSpaceGeometryChangeEvent()))
+  // Layer added/removed/replaced: full reinit, including zoom
+  if (m_EventBucket->HasEvent(LayerChangeEvent()))
   {
-    // Do a complete initialization
     this->InitializeSlice(m_Driver->GetCurrentImageData());
+  }
+
+  // A layer's transform moved (e.g. registration drag), dimensions unchanged.
+  // Refresh extents/optimal zoom but don't touch the live view.
+  else if (m_EventBucket->HasEvent(WrapperPhysicalExtentsChangeEvent()))
+  {
+    this->RefreshFullExtentRegion();
   }
 
   // TODO: what is the ValueChangeEvent here???
@@ -172,14 +179,17 @@ GenericSliceModel::OnUpdate()
       // Check if the zoom should be changed in response to this operation. This
       // is so if the zoom is currently equal to the optimal zoom, and there is
       // no linked zoom
-      bool rezoom = (m_ViewZoom == m_OptimalZoom);
+      bool rezoom_ref = (m_ViewZoom == m_OptimalZoom);
+      bool rezoom_full = (m_ViewZoom == m_OptimalZoomFullExtent);
 
       // Just recompute the optimal zoom factor
       this->ComputeOptimalZoom();
 
       // Keep zoom optimal if before it was optimal
-      if (rezoom)
+      if (rezoom_ref)
         this->SetViewZoom(m_OptimalZoom);
+      else if(rezoom_full)
+        this->SetViewZoom(m_OptimalZoomFullExtent);
     }
   }
 
@@ -198,30 +208,36 @@ GenericSliceModel::OnUpdate()
   }
 }
 
-void GenericSliceModel::ComputeOptimalZoom()
+std::tuple<double, Vector2d> GenericSliceModel::ComputeOptimalZoomInternal(const itk::ImageRegion<3> &region)
 {
   // Should be fully initialized
   assert(IsSliceInitialized());
 
   // Compute slice size in spatial coordinates
-  Vector2d worldSize(
-    m_SliceSize[0] * m_SliceSpacing[0],
-    m_SliceSize[1] * m_SliceSpacing[1]);
+  Vector2d worldSize(region.GetSize()[0] * m_RefSpaceSpacing[0],
+                     region.GetSize()[1] * m_RefSpaceSpacing[1]);
 
-  // Set the view position (position of the center of the image?)
-  m_OptimalViewPosition = worldSize * 0.5;
+  // Set the view position (center of the region, scaled by spacing)
+  Vector2d opt_pos =
+    Vector2d((region.GetIndex()[0] + 0.5 * region.GetSize()[0]) * m_RefSpaceSpacing[0],
+             (region.GetIndex()[1] + 0.5 * region.GetSize()[1]) * m_RefSpaceSpacing[1]);
 
   // Reduce the width and height of the slice by the margin
   Vector2ui szCanvas = this->GetCanvasSize();
 
   // Compute the ratios of window size to slice size
-  Vector2d ratios(
-    szCanvas(0) / worldSize(0),
-    szCanvas(1) / worldSize(1));
+  Vector2d ratios(szCanvas(0) / worldSize(0), szCanvas(1) / worldSize(1));
 
   // The zoom factor is the bigger of these ratios, the number of pixels
   // on the screen per millimeter in world space
-  m_OptimalZoom = ratios.min_value();
+  return std::make_tuple(ratios.min_value(), opt_pos);
+}
+
+void GenericSliceModel::ComputeOptimalZoom()
+{
+  std::tie(m_OptimalZoom, m_OptimalViewPosition) = ComputeOptimalZoomInternal(m_RefSpaceRegion);
+  std::tie(m_OptimalZoomFullExtent, m_OptimalViewPositionFullExtent) =
+    ComputeOptimalZoomInternal(m_FullExtentRegion);
 }
 
 
@@ -229,7 +245,6 @@ GenericSliceModel
 ::~GenericSliceModel()
 {
 }
-
 
 
 void
@@ -256,8 +271,9 @@ GenericSliceModel
       ComputeInverse(m_DisplayToAnatomyTransform);
 
   // Get the volume extents & voxel scale factors
-  Vector3ui imageSizeInImageSpace = m_ImageData->GetReferenceSpaceSize();
-  Vector3d imageScalingInImageSpace = to_double(m_ImageData->GetReferenceSpaceSpacing());
+  auto ref_region_orig = m_ImageData->GetReferenceSpaceImageRegion();
+  auto full_region_orig = m_ImageData->GetFullExtentImageRegion();
+  auto ref_spacing_orig = m_ImageData->GetReferenceSpaceSpacing();
 
   // Initialize quantities that depend on the image and its transform
   for(unsigned int i = 0; i < 3; i++)
@@ -266,37 +282,46 @@ GenericSliceModel
     // direction in slice space
     m_ImageAxes[i] = m_DisplayToImageTransform->GetCoordinateIndexZeroBased(i);
 
-    // Record the size and scaling of the slice
-    m_SliceSize[i] = imageSizeInImageSpace[m_ImageAxes[i]];
-    m_SliceSpacing[i] = imageScalingInImageSpace[m_ImageAxes[i]]; // TODO: Reverse sign by orientation?
+    // Store the reference region in slice coordinates and the spacing in slice coordinates
+    // m_RefSpaceRegion.SetIndex(i, ref_region_orig.GetIndex(m_ImageAxes[i]));
+    // m_RefSpaceRegion.SetSize(i, ref_region_orig.GetSize(m_ImageAxes[i]));
+    m_RefSpaceSpacing[i] = ref_spacing_orig[m_ImageAxes[i]];
+
+    // Store full extent region in slice coordinates
+    // m_FullExtentRegion.SetIndex(i, full_region_orig.GetIndex(m_ImageAxes[i]));
+    // m_FullExtentRegion.SetSize(i, full_region_orig.GetSize(m_ImageAxes[i]));
     }
 
-  // We have been initialized
-  m_SliceInitialized = true;
+    // Compute the reference region and the full extent region in slice coordinates
+    m_RefSpaceRegion = m_ImageToDisplayTransform->TransformRegion(ref_region_orig);
+    m_FullExtentRegion = m_ImageToDisplayTransform->TransformRegion(full_region_orig);
 
-  // Update the viewport dimensions
-  UpdateViewportLayout();
+    // We have been initialized
+    m_SliceInitialized = true;
 
-  // Compute the optimal zoom for this slice
-  ComputeOptimalZoom();
+    // Update the viewport dimensions
+    UpdateViewportLayout();
 
-  // Set the zoom to optimal zoom for starters
-  m_ViewZoom = m_OptimalZoom;
+    // Compute the optimal zoom for this slice
+    ComputeOptimalZoom();
 
-  // Fire a modified event, forcing a repaint of the window
-  InvokeEvent(ModelUpdateEvent());
+    // Set the zoom to optimal zoom for starters
+    m_ViewZoom = m_OptimalZoomFullExtent;
+
+    // Fire a modified event, forcing a repaint of the window
+    InvokeEvent(ModelUpdateEvent());
 }
 
-Vector2i
-GenericSliceModel
-::GetOptimalCanvasSize()
+void GenericSliceModel::RefreshFullExtentRegion()
 {
-  // Compute slice size in spatial coordinates
-  Vector2i optSize(
-    (int) ceil(m_SliceSize[0] * m_SliceSpacing[0] * m_ViewZoom + 2 * m_Margin),
-    (int) ceil(m_SliceSize[1] * m_SliceSpacing[1] * m_ViewZoom + 2 * m_Margin));
+  if (!IsSliceInitialized())
+    return;
 
-  return optSize;
+  // Recompute full extent, but leave m_ViewZoom/m_ViewPosition alone -
+  // don't yank the view around during interactive registration
+  auto full_region_orig = m_ImageData->GetFullExtentImageRegion();
+  m_FullExtentRegion = m_ImageToDisplayTransform->TransformRegion(full_region_orig);
+  ComputeOptimalZoom();
 }
 
 void
@@ -308,8 +333,8 @@ GenericSliceModel
 
   // The zoom factor is the bigger of these ratios, the number of pixels
   // on the screen per millimeter in world space
-  SetViewZoom(m_OptimalZoom);
-  SetViewPosition(m_OptimalViewPosition);
+  SetViewZoom(m_OptimalZoomFullExtent);
+  SetViewPosition(m_OptimalViewPositionFullExtent);
 }
 
 Vector3d GenericSliceModel::MapSliceToImage(const Vector3d &xSlice)
@@ -344,7 +369,7 @@ Vector2d GenericSliceModel::MapSliceToWindow(const Vector3d &xSlice)
 
   // Adjust the slice coordinates by the scaling amounts
   Vector2d uvScaled(
-    xSlice(0) * m_SliceSpacing(0), xSlice(1) * m_SliceSpacing(1));
+    xSlice(0) * m_RefSpaceSpacing(0), xSlice(1) * m_RefSpaceSpacing(1));
 
   // Compute the window coordinates
   Vector2ui size = this->GetCanvasSize();
@@ -362,7 +387,8 @@ GenericSliceModel::GetSliceCornersInWindowCoordinates() const
   std::pair<Vector2d, Vector2d> corners;
 
   Vector2d uv0(0, 0);
-  Vector2d uv1(m_SliceSize[0] * m_SliceSpacing[0], m_SliceSize[1] * m_SliceSpacing[1]);
+  Vector2d uv1(m_RefSpaceRegion.GetIndex(0) * m_RefSpaceSpacing[0],
+               m_RefSpaceRegion.GetIndex(1) * m_RefSpaceSpacing[1]);
 
   Vector2ui size = this->GetCanvasSize();
   Vector2d ctr(0.5 * size[0], 0.5 * size[1]);
@@ -383,8 +409,8 @@ Vector3d GenericSliceModel::MapWindowToSlice(const Vector2d &uvWindow)
 
   // The window coordinates are already in the scaled-slice units
   Vector3d uvSlice(
-    uvScaled(0) / m_SliceSpacing(0),
-    uvScaled(1) / m_SliceSpacing(1),
+    uvScaled(0) / m_RefSpaceSpacing(0),
+    uvScaled(1) / m_RefSpaceSpacing(1),
     this->GetCursorPositionInSliceCoordinates()[2]);
 
   // Return this vector
@@ -399,8 +425,8 @@ Vector3d GenericSliceModel::MapWindowOffsetToSliceOffset(const Vector2d &uvWindo
 
   // The window coordinates are already in the scaled-slice units
   Vector3d uvSlice(
-    uvScaled(0) / m_SliceSpacing(0),
-    uvScaled(1) / m_SliceSpacing(1),
+    uvScaled(0) / m_RefSpaceSpacing(0),
+    uvScaled(1) / m_RefSpaceSpacing(1),
     0);
 
   // Return this vector
@@ -413,8 +439,8 @@ Vector2d GenericSliceModel::MapSliceToPhysicalWindow(const Vector3d &xSlice)
 
   // Compute the physical window coordinates
   Vector2d uvPhysical;
-  uvPhysical[0] = xSlice[0] * m_SliceSpacing[0];
-  uvPhysical[1] = xSlice[1] * m_SliceSpacing[1];
+  uvPhysical[0] = xSlice[0] * m_RefSpaceSpacing[0];
+  uvPhysical[1] = xSlice[1] * m_RefSpaceSpacing[1];
 
   return uvPhysical;
 }
@@ -424,27 +450,11 @@ Vector3d GenericSliceModel::MapPhysicalWindowToSlice(const Vector2d &uvPhysical)
   assert(IsSliceInitialized());
 
   Vector3d xSlice;
-  xSlice[0] = uvPhysical[0] / m_SliceSpacing[0];
-  xSlice[1] = uvPhysical[1] / m_SliceSpacing[1];
+  xSlice[0] = uvPhysical[0] / m_RefSpaceSpacing[0];
+  xSlice[1] = uvPhysical[1] / m_RefSpaceSpacing[1];
   xSlice[2] = this->GetCursorPositionInSliceCoordinates()[2];
 
   return xSlice;
-}
-
-void
-GenericSliceModel
-::ResetViewPosition()
-{
-  // Compute slice size in spatial coordinates
-  Vector2d worldSize(
-    m_SliceSize[0] * m_SliceSpacing[0],
-    m_SliceSize[1] * m_SliceSpacing[1]);
-
-  // Set the view position (position of the center of the image?)
-  m_ViewPosition = worldSize * 0.5;
-
-  // Update view
-  InvokeEvent(SliceModelGeometryChangeEvent());
 }
 
 void
@@ -463,8 +473,8 @@ GenericSliceModel
 
   // Subtract from the view position
   Vector2d vp;
-  vp[0] = offset[0] + xCursorSlice[0] * m_SliceSpacing[0];
-  vp[1] = offset[1] + xCursorSlice[1] * m_SliceSpacing[1];
+  vp[0] = offset[0] + xCursorSlice[0] * m_RefSpaceSpacing[0];
+  vp[1] = offset[1] + xCursorSlice[1] * m_RefSpaceSpacing[1];
   SetViewPosition(vp);
 }
 
@@ -482,8 +492,8 @@ Vector2d GenericSliceModel::GetViewPositionRelativeToCursor()
 
   // Subtract from the view position
   Vector2d offset;
-  offset[0] = m_ViewPosition[0] - xCursorSlice[0] * m_SliceSpacing[0];
-  offset[1] = m_ViewPosition[1] - xCursorSlice[1] * m_SliceSpacing[1];
+  offset[0] = m_ViewPosition[0] - xCursorSlice[0] * m_RefSpaceSpacing[0];
+  offset[1] = m_ViewPosition[1] - xCursorSlice[1] * m_RefSpaceSpacing[1];
 
   return offset;
 }
@@ -604,14 +614,14 @@ void GenericSliceModel::ComputeThumbnailProperties()
   m_ThumbnailZoom = xNewFraction * m_OptimalZoom;
   m_ZoomThumbnailPosition.fill(5);
   m_ZoomThumbnailSize[0] =
-      std::max(1, (int)(m_SliceSize[0] * m_SliceSpacing[0] * m_ThumbnailZoom));
+    std::max(1, (int)(m_RefSpaceRegion.GetSize(0) * m_RefSpaceSpacing[0] * m_ThumbnailZoom));
   m_ZoomThumbnailSize[1] =
-      std::max(1, (int)(m_SliceSize[1] * m_SliceSpacing[1] * m_ThumbnailZoom));
+    std::max(1, (int)(m_RefSpaceRegion.GetSize(1) * m_RefSpaceSpacing[1] * m_ThumbnailZoom));
 }
 
 unsigned int GenericSliceModel::GetNumberOfSlices() const
 {
-  return m_SliceSize[2];
+  return m_RefSpaceRegion.GetSize(2);
 }
 
 /*
@@ -621,22 +631,41 @@ void GenericSliceModel::OnSourceDataUpdate()
 }
 */
 
-void GenericSliceModel::SetViewPosition(Vector2d pos)
+void
+GenericSliceModel::SetViewPosition(Vector2d pos)
 {
-  if(m_ViewPosition != pos)
-    {
+  if (m_ViewPosition != pos)
+  {
     m_ViewPosition = pos;
     InvokeEvent(SliceModelGeometryChangeEvent());
-    }
+  }
 }
 
-std::pair<Vector2d, Vector2d> GenericSliceModel::GetSliceCorners() const
+Vector3d
+GenericSliceModel::GetReferenceSpaceSpacing() const
+{
+  return m_RefSpaceSpacing;
+}
+
+Vector3i
+GenericSliceModel::GetRefernceSpaceSize() const
+{
+  return Vector3i(m_RefSpaceRegion.GetSize());
+}
+
+Vector3i
+GenericSliceModel::GetFullExtentSize() const
+{
+  return Vector3i(m_FullExtentRegion.GetSize());
+}
+
+std::pair<Vector2d, Vector2d> GenericSliceModel::GetReferenceSpaceCorners() const
 {
   Vector2d c0(0.0, 0.0);
-  Vector2d c1(m_SliceSize[0] * m_SliceSpacing[0], m_SliceSize[1] * m_SliceSpacing[1]);
+  Vector2d c1(m_RefSpaceRegion.GetSize(0) * m_RefSpaceSpacing[0],
+              m_RefSpaceRegion.GetSize(1) * m_RefSpaceSpacing[1]);
   return std::make_pair(c0, c1);
 }
-
 
 /*
 GenericSliceWindow::EventHandler
@@ -1078,8 +1107,8 @@ GenericSliceModel::UpdateUpstreamThumbnailViewportGeometry()
   double z0 = this->GetCursorPositionInSliceCoordinates()[2];
   double z1 = z0 + m_DisplayToImageTransform->GetCoordinateOrientation(2);
   s[0] = Vector3d(0, 0, z0);
-  s[1] = Vector3d(this->GetSliceSize()[0], 0, z0);
-  s[2] = Vector3d(0, this->GetSliceSize()[1], z0);
+  s[1] = Vector3d(this->GetRefernceSpaceSize()[0], 0, z0);
+  s[2] = Vector3d(0, this->GetRefernceSpaceSize()[1], z0);
   s[3] = Vector3d(0, 0, z1);
 
   // Map these four points into the physical image space

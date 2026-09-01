@@ -42,7 +42,7 @@ engine.sleep(1000);
 
 //=== Add a bubble
 setCursor(25, 9, 24);
-engine.setChildProperty(snakepanel, "inBubbleRadius", "value", 2);
+engine.setChildProperty(snakepanel, "inBubbleRadius", "value", 2.0);
 engine.clickChild(snakepanel, "btnAddBubble");
 
 //=== Go to snake mode

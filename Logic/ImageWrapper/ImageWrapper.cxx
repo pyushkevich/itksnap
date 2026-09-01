@@ -1604,6 +1604,7 @@ ImageWrapper<TTraits>
 
   // Fire an update event
   this->InvokeEvent(WrapperDisplayMappingChangeEvent());
+  this->InvokeEvent(WrapperPhysicalExtentsChangeEvent());
 }
 
 template<class TTraits>

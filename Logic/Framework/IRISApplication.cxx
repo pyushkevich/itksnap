@@ -957,7 +957,7 @@ IRISApplication ::SetCurrentImageDataToIRIS()
   if (m_CurrentImageData != m_IRISImageData)
   {
     m_CurrentImageData = m_IRISImageData;
-    m_CurrentImageData->SetCursorPositionRAS(m_IRISImageData->GetCursorPositionRAS());
+    m_CurrentImageData->SetCursorPositionRAS(m_SNAPImageData->GetCursorPositionRAS());
     InvokeEvent(MainImageDimensionsChangeEvent());
     InvokeEvent(ReferenceSpaceGeometryChangeEvent());
 
@@ -976,6 +976,9 @@ IRISApplication ::SetCurrentImageDataToSNAP()
   assert(m_SNAPImageData->IsMainLoaded());
   if (m_CurrentImageData != m_SNAPImageData)
   {
+    // Remember the layer id that we need to save the segmentation back to
+    m_SavedIRISSelectedSegmentationLayerId = m_GlobalState->GetSelectedSegmentationLayerId();
+
     // Set the image data
     m_CurrentImageData = m_SNAPImageData;
 
@@ -995,7 +998,6 @@ IRISApplication ::SetCurrentImageDataToSNAP()
     m_GlobalState->SetSelectedLayerId(m_SNAPImageData->GetMain()->GetUniqueId());
 
     // Save the currently selected segmentation layer Id so that we can restore it later
-    m_SavedIRISSelectedSegmentationLayerId = m_GlobalState->GetSelectedSegmentationLayerId();
     m_GlobalState->SetSelectedSegmentationLayerId(
       m_SNAPImageData->GetFirstSegmentationLayer()->GetUniqueId());
   }

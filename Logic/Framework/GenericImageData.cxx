@@ -48,6 +48,7 @@
 #include "RLERegionOfInterestImageFilter.h"
 #include "TimePointProperties.h"
 #include "ImageMeshLayers.h"
+#include "itkTransform.h"
 
 // System includes
 #include <iostream>
@@ -99,23 +100,45 @@ GenericImageData
   return this->GetReferenceSpace()->GetSpacing().GetVnlVector();
 }
 
+template<unsigned int VDim>
+itk::Index<VDim> elementwise_min(const itk::Index<VDim> &a, const itk::Index<VDim> &b)
+{
+  itk::Index<VDim> result;
+  for(unsigned int i = 0; i < VDim; i++)
+    result[i] = std::min(a[i], b[i]);
+  return result;
+}
+
+template<unsigned int VDim>
+itk::Index<VDim> elementwise_max(const itk::Index<VDim> &a, const itk::Index<VDim> &b)
+{
+  itk::Index<VDim> result;
+  for(unsigned int i = 0; i < VDim; i++)
+    result[i] = std::max(a[i], b[i]);
+  return result;
+}
+
+template<unsigned int VDim>
+void expand_region(itk::ImageRegion<VDim> &target, const itk::ImageRegion<VDim> &source)
+{
+  auto upper = target.GetUpperIndex();
+  target.SetIndex(elementwise_min(target.GetIndex(), source.GetIndex()));
+  target.SetUpperIndex(elementwise_max(upper, source.GetUpperIndex()));
+}
+
 GenericImageData::RegionType
 GenericImageData::GetFullExtentImageRegion()
 {
   // Start with the reference image itself
   auto *ref = this->GetReferenceSpaceWrapper();
+  auto tran_ref = ref->GetITKTransform();
   auto  region = ref->GetBufferedRegion();
-
-  // Compute the extents of the box
-  Vector3d ext[] = {
-    to_double(ref->GetBufferedRegion().GetIndex()) - 0.5,
-    to_double(ref->GetBufferedRegion().GetUpperIndex()) + 0.5
-  };
 
   // Iterate over layers
   for (LayerIterator it = this->GetLayers(ALL_ROLES); !it.IsAtEnd(); ++it)
   {
     auto *layer = it.GetLayer();
+    auto *tran_layer = layer->GetITKTransform();
 
     // Extents of the region box
     Vector3d ext_layer[] = {
@@ -132,21 +155,24 @@ GenericImageData::GetFullExtentImageRegion()
                                 ext_layer[(corner & 4) ? 1 : 0][2] };
 
       // Transform the corner point to reference space
-      Vector3d corner_ras = layer->TransformVoxelCIndexToNIFTICoordinates(corner_point);
-      Vector3d corner_ref = ref->TransformNIFTICoordinatesToVoxelCIndex(corner_ras);
+      auto idx_layer = to_itkContinuousIndex(corner_point);
+      auto pt_lps = layer->GetImageBase()->TransformContinuousIndexToPhysicalPoint<double>(idx_layer);
+      auto pt_lps_tt = tran_ref->TransformPoint( tran_layer->GetInverseTransform()->TransformPoint(pt_lps) );
+      auto ci_ref = ref->GetImageBase()->TransformPhysicalPointToContinuousIndex<double>(pt_lps_tt);
+
+      itk::ImageRegion<3> corner_region;
+      for(unsigned int i = 0; i < 3; i++)
+      {
+        corner_region.SetIndex(i, (long) std::floor(ci_ref[i] - 0.5));
+        corner_region.SetSize(i, 1);
+      }
 
       // Update the extents of the layer in reference space
-      auto corner_idx = to_itkIndex(corner_ref - 0.5);
+      // auto corner_idx = to_itkIndex(corner_ref - 0.5);
       if(corner == 0)
-      {
-        rgn_layer_ref_space.SetIndex(corner_idx);
-        rgn_layer_ref_space.SetUpperIndex(corner_idx);
-      }
+        rgn_layer_ref_space = corner_region;
       else
-      {
-        rgn_layer_ref_space.SetIndex(std::min(rgn_layer_ref_space.GetIndex(), corner_idx));
-        rgn_layer_ref_space.SetUpperIndex(std::max(rgn_layer_ref_space.GetUpperIndex(), corner_idx));
-      }
+        expand_region(rgn_layer_ref_space, corner_region);
     }
 
     // Check if the extents overlap
@@ -161,11 +187,10 @@ GenericImageData::GetFullExtentImageRegion()
       }
     }
 
-    // If overlapping, extent the region by the layer's extents
+    // If overlapping, extend the region by the layer's extents
     if(overlap)
     {
-      region.SetIndex(std::min(rgn_layer_ref_space.GetIndex(), region.GetIndex()));
-      region.SetUpperIndex(std::max(rgn_layer_ref_space.GetUpperIndex(), region.GetUpperIndex()));
+      expand_region(region, rgn_layer_ref_space);
     }
   }
 
@@ -408,8 +433,10 @@ GenericImageData::ImageBaseType *
 GenericImageData::GetReferenceSpace() const
 {
   // Get the current segmentation
-  assert(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized());
-  return m_ActiveSegmentationWrapper->GetImageBase();
+  if(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized())
+    return m_ActiveSegmentationWrapper->GetImageBase();
+  else
+    return nullptr;
 }
 
 
@@ -1025,10 +1052,6 @@ GenericImageData::SetActiveSegmentationLayer(unsigned int unique_id)
 
 void GenericImageData::SetActiveSegmentationLayerInternal(LabelImageWrapper *layer)
 {
-  if(layer)
-    std::cout << "Setting active segmentation layer to: " << layer->GetFileName() << std::endl;
-  else
-    std::cout << "Setting active segmentation layer to: NULL" << std::endl;
   this->UpdateActiveSegmentation(layer);
 }
 
