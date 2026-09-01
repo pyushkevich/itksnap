@@ -261,6 +261,12 @@ GenericSliceModel
     return;
     }
 
+  // Preserve a custom zoom across reinit (e.g. switching segmentations);
+  // only snap to fit on first load or if already at a fit zoom level
+  bool first_init = !m_SliceInitialized;
+  bool rezoom_ref = m_SliceInitialized && (m_ViewZoom == m_OptimalZoom);
+  bool rezoom_full = m_SliceInitialized && (m_ViewZoom == m_OptimalZoomFullExtent);
+
   // Store the transforms between the display and image spaces
   m_ImageToDisplayTransform->SetTransform(
         imageData->GetImageGeometry()->GetImageToDisplayTransform(m_Id));
@@ -305,8 +311,11 @@ GenericSliceModel
     // Compute the optimal zoom for this slice
     ComputeOptimalZoom();
 
-    // Set the zoom to optimal zoom for starters
-    m_ViewZoom = m_OptimalZoomFullExtent;
+    // Snap to fit only on first load, or if the view wasn't customized
+    if (first_init || rezoom_full)
+      m_ViewZoom = m_OptimalZoomFullExtent;
+    else if (rezoom_ref)
+      m_ViewZoom = m_OptimalZoom;
 
     // Fire a modified event, forcing a repaint of the window
     InvokeEvent(ModelUpdateEvent());

@@ -107,7 +107,7 @@ SliceWindowCoordinator::OnUpdate()
     m_SliceModel[i]->Update();
 
   // Has a new main image been loaded
-  if (this->m_EventBucket->HasEvent(LayerChangeEvent()))
+  if (this->m_EventBucket->HasEvent(MainImageDimensionsChangeEvent()))
   {
     // Reset the view to fit (depending on linked zoom)
     if (m_ParentModel->GetDriver()->IsMainImageLoaded())
