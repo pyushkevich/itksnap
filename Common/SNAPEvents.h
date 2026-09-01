@@ -67,7 +67,10 @@ itkEventMacro(LayerChangeEvent, IRISEvent)
 itkEventMacro(MainImageDimensionsChangeEvent, LayerChangeEvent)
 
 /** The pose (orientation, spacing, origin) of the main image has changed */
-itkEventMacro(MainImagePoseChangeEvent, LayerChangeEvent)
+// itkEventMacro(MainImagePoseChangeEvent, LayerChangeEvent)
+
+/** The reference space (active segmentation) has changed */
+itkEventMacro(ReferenceSpaceGeometryChangeEvent, LayerChangeEvent)
 
 /** The segmentation has changed */
 itkEventMacro(SegmentationChangeEvent, IRISEvent)
@@ -135,6 +138,9 @@ itkEventMacro(WrapperVisibilityChangeEvent, WrapperMetadataChangeEvent)
 
 /** A change to the display mapping of an image wrapper (e.g. color map) */
 itkEventMacro(WrapperDisplayMappingChangeEvent, WrapperChangeEvent)
+
+/** A change to physical extents occupied by an image wrapper */
+itkEventMacro(WrapperPhysicalExtentsChangeEvent, WrapperChangeEvent)
 
 /** A change to the mesh vector mode */
 itkEventMacro(WrapperHistogramChangeEvent, WrapperDisplayMappingChangeEvent)

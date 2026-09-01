@@ -75,8 +75,8 @@ double InteractiveRegistrationModel::GetRotationWidgetRadius()
   for(int i = 0; i < xProbe.size(); i++)
     {
     Vector3d x_probe_slice = smodel->MapWindowToSlice(to_double(xProbe[i]));
-    double dx = (x_probe_slice[0] - rot_ctr_slice[0]) * smodel->GetSliceSpacing()[0];
-    double dy = (x_probe_slice[1] - rot_ctr_slice[1]) * smodel->GetSliceSpacing()[1];
+    double dx = (x_probe_slice[0] - rot_ctr_slice[0]) * smodel->GetReferenceSpaceSpacing()[0];
+    double dy = (x_probe_slice[1] - rot_ctr_slice[1]) * smodel->GetReferenceSpaceSpacing()[1];
     double rtest = sqrt(dx * dx + dy * dy);
     if(rtest > r)
       r = rtest;
@@ -163,10 +163,10 @@ bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, cons
     Vector3d rot_ctr_slice = smodel->MapImageToSlice(to_double(rot_ctr_image));
 
     // Compute the rotation angle
-    double dx0 = (xDragStart[0] - rot_ctr_slice[0]) * smodel->GetSliceSpacing()[0];
-    double dy0 = (xDragStart[1] - rot_ctr_slice[1]) * smodel->GetSliceSpacing()[1];
-    double dx1 = (xSlice[0] - rot_ctr_slice[0]) * smodel->GetSliceSpacing()[0];
-    double dy1 = (xSlice[1] - rot_ctr_slice[1]) * smodel->GetSliceSpacing()[1];
+    double dx0 = (xDragStart[0] - rot_ctr_slice[0]) * smodel->GetReferenceSpaceSpacing()[0];
+    double dy0 = (xDragStart[1] - rot_ctr_slice[1]) * smodel->GetReferenceSpaceSpacing()[1];
+    double dx1 = (xSlice[0] - rot_ctr_slice[0]) * smodel->GetReferenceSpaceSpacing()[0];
+    double dy1 = (xSlice[1] - rot_ctr_slice[1]) * smodel->GetReferenceSpaceSpacing()[1];
 
     double theta = atan2(dy1, dx1) - atan2(dy0, dx0);
 
@@ -236,8 +236,8 @@ InteractiveRegistrationModel
   // Check the distance to the widget
   double radius = this->GetRotationWidgetRadius() / 2.0;
 
-  double dx = (xSlice[0] - rot_ctr_slice[0]) * smodel->GetSliceSpacing()[0];
-  double dy = (xSlice[1] - rot_ctr_slice[1]) * smodel->GetSliceSpacing()[1];
+  double dx = (xSlice[0] - rot_ctr_slice[0]) * smodel->GetReferenceSpaceSpacing()[0];
+  double dy = (xSlice[1] - rot_ctr_slice[1]) * smodel->GetReferenceSpaceSpacing()[1];
   double rtest = sqrt(dx * dx + dy * dy);
 
   bool newHover = fabs(rtest - radius) < 0.1 * radius;

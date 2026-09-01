@@ -1293,39 +1293,7 @@ ImageWrapper<TTraits>
 }
 
 
-template<class TTraits>
-bool
-ImageWrapper<TTraits>
-::CompareGeometry(
-    ImageBaseType *image1,
-    ImageBaseType *image2,
-    double tol)
-{
-  // If one of the images is NULL return false
-  if(!image1 || !image2)
-    return false;
 
-  // Check if the images have same dimensions
-  bool same_size = (image1->GetBufferedRegion() == image2->GetBufferedRegion());
-
-  // Now test the 3D geometry of the image to see if it occupies the same space
-  bool same_space = true;
-
-  for(int i = 0; i < 3; i++)
-    {
-    if(fabs(image1->GetOrigin()[i] - image2->GetOrigin()[i]) > tol)
-      same_space = false;
-    if(fabs(image1->GetSpacing()[i] - image2->GetSpacing()[i]) > tol)
-      same_space = false;
-    for(int j = 0; j < 3; j++)
-      {
-      if(fabs(image1->GetDirection()[i][j] - image2->GetDirection()[i][j]) > tol)
-        same_space = false;
-      }
-    }
-
-  return same_size && same_space;
-}
 
 template<class TTraits>
 bool
@@ -1345,7 +1313,7 @@ ImageWrapper<TTraits>
 
   // Check if the images have same dimensions
   double tol = 1e-5;
-  bool same_geom = CompareGeometry(image, referenceSpace, tol);
+  bool same_geom = ImageWrapperBase::IsSameGeometry(image, referenceSpace, tol);
 
   // Use helper class to check for identity
   bool is_identity = AffineTransformHelper::IsIdentity(transform);
@@ -1601,7 +1569,7 @@ ImageWrapper<TTraits>
   if(m_ReferenceSpace != refSpace)
     {
     // Check if the geometry actually changed, we need to update geometry and reset the index
-    if(!CompareGeometry(m_ReferenceSpace, refSpace))
+    if(!ImageWrapperBase::IsSameGeometry(m_ReferenceSpace, refSpace))
       {
       // Store the reference space
       m_ReferenceSpace = refSpace;
@@ -1636,6 +1604,7 @@ ImageWrapper<TTraits>
 
   // Fire an update event
   this->InvokeEvent(WrapperDisplayMappingChangeEvent());
+  this->InvokeEvent(WrapperPhysicalExtentsChangeEvent());
 }
 
 template<class TTraits>

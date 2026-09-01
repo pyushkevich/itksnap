@@ -63,7 +63,7 @@ CrosshairsRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
 
     // Upper and lober bounds to which the crosshairs are drawn
     Vector2i lower(0);
-    Vector2i upper = m_Model->GetSliceSize().extract(2);
+    Vector2i upper = m_Model->GetRefernceSpaceSize().extract(2);
 
     // Apply the color
     context->SetPenAppearance(*as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS));

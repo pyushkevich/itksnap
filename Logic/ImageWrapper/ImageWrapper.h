@@ -930,10 +930,6 @@ protected:
   // An internal array to store intensity samples for SampleIntensityAtReferenceIndex function
   mutable vnl_vector<ComponentType> m_IntensitySamplingArray;
 
-  // Compare the geometry (size and header) of two images. Returns true if the headers are
-  // within tolerance of each other.
-  static bool CompareGeometry(ImageBaseType *image1, ImageBaseType *image2, double tol = 0.0);
-
   // Check if the orthogonal slicer can be used for the given image, ref space and transform
   static bool CanOrthogonalSlicingBeUsed(
       ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform);

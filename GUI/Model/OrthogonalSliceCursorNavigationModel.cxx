@@ -47,7 +47,7 @@ void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2d x)
   // Make sure that the cross-hairs position is within bounds by clamping
   // it to image dimensions
   Vector3i xSize = to_int(m_Parent->GetDriver()->
-                          GetCurrentImageData()->GetVolumeExtents());
+                          GetCurrentImageData()->GetReferenceSpaceSize());
   Vector3ui xCrossClamped = to_unsigned_int(
     xCrossInteger.clamp(Vector3i(0),xSize - Vector3i(1)));
 
@@ -64,7 +64,7 @@ void OrthogonalSliceCursorNavigationModel::ProcessKeyNavigation(Vector3i dx)
 
   // Update the cursor
   IRISApplication *app = m_Parent->GetDriver();
-  Vector3i xSize = to_int(app->GetCurrentImageData()->GetVolumeExtents());
+  Vector3i xSize = to_int(app->GetCurrentImageData()->GetReferenceSpaceSize());
   Vector3i cursor = to_int(app->GetCursorPosition());
   cursor += dximgi;
   cursor = cursor.clamp(Vector3i(0), xSize - 1);
@@ -125,8 +125,8 @@ OrthogonalSliceCursorNavigationModel
 {
   // Compute the start and end point in slice coordinates
   Vector3d zOffset = m_Parent->MapWindowOffsetToSliceOffset(uvOffset);
-  Vector2d xOffset(zOffset[0] * m_Parent->GetSliceSpacing()[0],
-                   zOffset[1] * m_Parent->GetSliceSpacing()[1]);
+  Vector2d xOffset(zOffset[0] * m_Parent->GetReferenceSpaceSpacing()[0],
+                   zOffset[1] * m_Parent->GetReferenceSpaceSpacing()[1]);
 
   // Under the left button, the tool changes the view_pos by the
   // distance traversed
@@ -151,7 +151,7 @@ void OrthogonalSliceCursorNavigationModel
 
   // Clamp by the image size
   Vector3ui xSize =
-      m_Parent->GetDriver()->GetCurrentImageData()->GetVolumeExtents();
+      m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize();
   Vector3ui xCrossClamped =
       xCrossImage.clamp(Vector3ui(0,0,0), xSize - Vector3ui(1,1,1));
 

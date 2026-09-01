@@ -2001,7 +2001,7 @@ void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
   // back up cursor location
   Vector3ui xCrossImageOld = m_Model->GetDriver()->GetCursorPosition();
   Vector3ui xCrossImage = xCrossImageOld;
-  Vector3ui xSize = m_Model->GetDriver()->GetCurrentImageData()->GetVolumeExtents();
+  Vector3ui xSize = m_Model->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize();
   xCrossImage[iImageDir] = 0;
 
   // Get the panel that's saving

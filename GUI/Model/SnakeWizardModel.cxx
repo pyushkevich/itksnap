@@ -1258,7 +1258,7 @@ void SnakeWizardModel::RemoveBubbleAtCursor()
 
 bool SnakeWizardModel::UpdateBubble(int index, Bubble bubble)
 {
-  if(m_Driver->GetCurrentImageData()->GetImageRegion().IsInside(
+  if(m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion().IsInside(
        to_itkIndex(bubble.center)))
     {
     m_Driver->GetBubbleArray()[index] = bubble;
@@ -1295,8 +1295,8 @@ void SnakeWizardModel::OnSnakeModeEnter()
 void SnakeWizardModel::ComputeBubbleRadiusDefaultAndRange()
 {
   // Set bubble radius range according to volume dimensions (world dimensions)
-  Vector3ui size = m_Driver->GetSNAPImageData()->GetVolumeExtents();
-  Vector3d voxdims = m_Driver->GetSNAPImageData()->GetImageSpacing();
+  Vector3ui size = m_Driver->GetSNAPImageData()->GetReferenceSpaceSize();
+  Vector3d voxdims = m_Driver->GetSNAPImageData()->GetReferenceSpaceSpacing();
   double mindim =
       vector_multiply_mixed<double,unsigned int,3>(voxdims, size).min_value();
 

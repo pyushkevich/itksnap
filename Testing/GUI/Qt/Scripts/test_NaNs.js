@@ -15,10 +15,10 @@ engine.trigger("actionImage_Contrast");
 //=== Auto-adjust contrast
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
 var panel = engine.findChild(layerdialog, "grpWindow");
-engine.findChild(panel, "btnAuto").click();
+engine.clickChild(panel, "btnAuto");
 
 //=== Read values from the contrast panel
-var range_min = engine.findChild(panel, "inMin").value
-var range_max = engine.findChild(panel, "inMax").value
-engine.validateFloatValue(range_min, 0, 20);
-engine.validateFloatValue(range_max, 115, 20);
+var range_min = engine.getChildProperty(panel, "inMin", "value")
+var range_max = engine.getChildProperty(panel, "inMax", "value")
+engine.validateValue(range_min, 0, 20);
+engine.validateValue(range_max, 115, 20);

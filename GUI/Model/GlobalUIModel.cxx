@@ -249,7 +249,7 @@ GlobalUIModel::GlobalUIModel()
   m_CursorPositionModel->Rebroadcast(
         this, CursorUpdateEvent(), ValueChangedEvent());
   m_CursorPositionModel->Rebroadcast(
-        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+        m_Driver, ReferenceSpaceGeometryChangeEvent(), DomainChangedEvent());
 
   // Set up the time point model
   m_CursorTimePointModel = wrapGetterSetterPairAsProperty(
@@ -282,7 +282,7 @@ GlobalUIModel::GlobalUIModel()
         ValueChangedEvent(), ValueChangedEvent());
 
   m_SnakeROIIndexModel->Rebroadcast(
-        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+        m_Driver, ReferenceSpaceGeometryChangeEvent(), DomainChangedEvent());
 
   m_SnakeROISizeModel = wrapGetterSetterPairAsProperty(
         this,
@@ -294,7 +294,7 @@ GlobalUIModel::GlobalUIModel()
         ValueChangedEvent(), ValueChangedEvent());
 
   m_SnakeROISizeModel->Rebroadcast(
-        m_Driver, MainImageDimensionsChangeEvent(), DomainChangedEvent());
+        m_Driver, ReferenceSpaceGeometryChangeEvent(), DomainChangedEvent());
 
   m_SnakeROISeedWithCurrentSegmentationModel = wrapGetterSetterPairAsProperty(
         this,
@@ -680,7 +680,7 @@ bool GlobalUIModel::GetCursorPositionValueAndRange(
     if(range)
       {
       range->Set(Vector3ui(1u),
-                 m_Driver->GetCurrentImageData()->GetMain()->GetSize(),
+                 m_Driver->GetCurrentImageData()->GetReferenceSpaceWrapper()->GetSize(),
                  Vector3ui(1u));
       }
     return true;
@@ -704,7 +704,7 @@ bool GlobalUIModel::GetCursorTimePointValueAndRange(
       {
       // We tie the number of time points allowed to the main image.
       // TODO: in the future we may want to allow more flexibility
-      range->Set(1u, m_Driver->GetCurrentImageData()->GetMain()->GetNumberOfTimePoints(), 1u);
+      range->Set(1u, m_Driver->GetCurrentImageData()->GetNumberOfTimePoints(), 1u);
       }
     return true;
     }
@@ -721,7 +721,7 @@ bool GlobalUIModel::GetWorkspaceIs4DValue(bool &value)
 {
   if(m_Driver->IsMainImageLoaded())
     {
-    value = m_Driver->GetCurrentImageData()->GetMain()->GetNumberOfTimePoints() > 1;
+    value = m_Driver->GetCurrentImageData()->GetNumberOfTimePoints() > 1;
     return true;
     }
   return false;
@@ -736,7 +736,7 @@ bool GlobalUIModel::GetSnakeROIIndexValueAndRange(
 
   // Get the image size
   Vector3ui imsize =
-      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+      m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
   // Get the system's region of interest
   GlobalState::RegionType roiSystem =
@@ -761,7 +761,7 @@ void GlobalUIModel::SetSnakeROIIndexValue(Vector3ui value)
 {
   // Get the image size
   Vector3ui imsize =
-      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+      m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
   // Get the system's region of interest
   GlobalState::RegionType roi =
@@ -786,7 +786,7 @@ bool GlobalUIModel::GetSnakeROISizeValueAndRange(
 
   // Get the image size
   Vector3ui imsize =
-      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+      m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
   // Get the system's region of interest
   GlobalState::RegionType roiSystem =
@@ -811,7 +811,7 @@ void GlobalUIModel::SetSnakeROISizeValue(Vector3ui value)
 {
   // Get the image size
   Vector3ui imsize =
-      m_Driver->GetCurrentImageData()->GetImageRegion().GetSize();
+      m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
   // Get the system's region of interest
   GlobalState::RegionType roi =
@@ -890,6 +890,7 @@ void GlobalUIModel::CycleSelectedSegmentationLayer(int direction)
     if(index < 0)
       index += id_vec.size();
     m_Driver->GetGlobalState()->SetSelectedSegmentationLayerId(id_vec[index]);
+    m_Driver->GetGlobalState()->SetSelectedLayerInspectorLayerId(id_vec[index]);
     }
 }
 
@@ -1103,20 +1104,19 @@ GlobalUIModel
 }
 
 int
-GlobalUIModel
-::GetDefault4DReplayInterval() const
+GlobalUIModel ::GetDefault4DReplayInterval() const
 {
   // Default interval set to 50,
   // because common scanning machine setting is 20Hz
   int ret = 50;
-  if (m_Driver && m_Driver->GetNumberOfTimePoints() > 1)
-    {
-    auto spc = m_Driver->GetMainImage()->GetImage4DBase()->GetSpacing();
+  if (m_Driver && m_Driver->GetCurrentImageData()->GetNumberOfTimePoints() > 1)
+  {
+    double delta_t = m_Driver->GetCurrentImageData()->GetTimeSpacing();
     // No screen can display 500Hz+ frame rate.
     // Use default for any frame time < 2ms
-    if (spc[3] >= 2)
-      ret = floor(spc[3]);
-    }
+    if (delta_t >= 2)
+      ret = floor(delta_t);
+  }
 
   return ret;
 }

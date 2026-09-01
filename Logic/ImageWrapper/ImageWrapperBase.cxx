@@ -3,15 +3,14 @@
 #include "IRISException.h"
 
 vnl_matrix_fixed<double, 4, 4>
-ImageWrapperBase
-::ConstructNiftiSform(vnl_matrix<double> m_dir,
-                      vnl_vector<double> v_origin,
-                      vnl_vector<double> v_spacing)
+ImageWrapperBase ::ConstructNiftiSform(vnl_matrix<double> m_dir,
+                                       vnl_vector<double> v_origin,
+                                       vnl_vector<double> v_spacing)
 {
   // Set the NIFTI/RAS transform
-  vnl_matrix<double> m_ras_matrix;
+  vnl_matrix<double>      m_ras_matrix;
   vnl_diag_matrix<double> m_scale, m_lps_to_ras;
-  vnl_vector<double> v_ras_offset;
+  vnl_vector<double>      v_ras_offset;
 
   // Compute the matrix
   m_scale.set(v_spacing);
@@ -27,7 +26,7 @@ ImageWrapperBase
   vnl_vector<double> vcol(4, 1.0);
   vcol.update(v_ras_offset);
 
-  vnl_matrix_fixed<double,4,4> m_sform;
+  vnl_matrix_fixed<double, 4, 4> m_sform;
   m_sform.set_identity();
   m_sform.update(m_ras_matrix);
   m_sform.set_column(3, vcol);
@@ -35,24 +34,51 @@ ImageWrapperBase
 }
 
 vnl_matrix_fixed<double, 4, 4>
-ImageWrapperBase
-::ConstructVTKtoNiftiTransform(vnl_matrix<double> m_dir,
-                               vnl_vector<double> v_origin,
-                               vnl_vector<double> v_spacing)
+ImageWrapperBase ::ConstructVTKtoNiftiTransform(vnl_matrix<double> m_dir,
+                                                vnl_vector<double> v_origin,
+                                                vnl_vector<double> v_spacing)
 {
-  vnl_matrix_fixed<double,4,4> vox2nii = ConstructNiftiSform(m_dir, v_origin, v_spacing);
-  vnl_matrix_fixed<double,4,4> vtk2vox;
+  vnl_matrix_fixed<double, 4, 4> vox2nii = ConstructNiftiSform(m_dir, v_origin, v_spacing);
+  vnl_matrix_fixed<double, 4, 4> vtk2vox;
   vtk2vox.set_identity();
-  for(size_t i = 0; i < 3; i++)
-    {
-    vtk2vox(i,i) = 1.0 / v_spacing[i];
-    vtk2vox(i,3) = - v_origin[i] / v_spacing[i];
-    }
+  for (size_t i = 0; i < 3; i++)
+  {
+    vtk2vox(i, i) = 1.0 / v_spacing[i];
+    vtk2vox(i, 3) = -v_origin[i] / v_spacing[i];
+  }
   return vox2nii * vtk2vox;
+}
+
+bool
+ImageWrapperBase::IsSameGeometry(ImageBaseType *image1, ImageBaseType *image2, double tol)
+{
+  // If one of the images is NULL return false
+  if (!image1 || !image2)
+    return false;
+
+  // Check if the images have same dimensions
+  bool same_size = (image1->GetBufferedRegion() == image2->GetBufferedRegion());
+
+  // Now test the 3D geometry of the image to see if it occupies the same space
+  bool same_space = true;
+
+  for (int i = 0; i < 3; i++)
+  {
+    if (fabs(image1->GetOrigin()[i] - image2->GetOrigin()[i]) > tol)
+      same_space = false;
+    if (fabs(image1->GetSpacing()[i] - image2->GetSpacing()[i]) > tol)
+      same_space = false;
+    for (int j = 0; j < 3; j++)
+    {
+      if (fabs(image1->GetDirection()[i][j] - image2->GetDirection()[i][j]) > tol)
+        same_space = false;
+    }
   }
 
-ScalarRepresentationIterator
-::ScalarRepresentationIterator(const VectorImageWrapperBase *wrapper)
+  return same_size && same_space;
+}
+
+ScalarRepresentationIterator ::ScalarRepresentationIterator(const VectorImageWrapperBase *wrapper)
   : m_Depth(NUMBER_OF_SCALAR_REPS, 1)
 {
   assert(wrapper->GetNumberOfComponents() > 0);
@@ -62,32 +88,29 @@ ScalarRepresentationIterator
   m_Index = 0;
 }
 
-ScalarRepresentationIterator &ScalarRepresentationIterator::operator ++()
+ScalarRepresentationIterator &
+ScalarRepresentationIterator::operator++()
 {
   // Once at the end stay at the end
-  if(m_Current == NUMBER_OF_SCALAR_REPS)
+  if (m_Current == NUMBER_OF_SCALAR_REPS)
     return *this;
 
   // If there is room to grow in current rep, do it
-  if(m_Index + 1 < m_Depth[(int) m_Current])
-    {
+  if (m_Index + 1 < m_Depth[(int)m_Current])
+  {
     m_Index++;
-    }
+  }
   else
-    {
+  {
     m_Current++;
     m_Index = 0;
-    }
+  }
 
   return *this;
 }
 
-bool ScalarRepresentationIterator::IsAtEnd() const
+bool
+ScalarRepresentationIterator::IsAtEnd() const
 {
   return m_Current == NUMBER_OF_SCALAR_REPS;
 }
-
-
-
-
-

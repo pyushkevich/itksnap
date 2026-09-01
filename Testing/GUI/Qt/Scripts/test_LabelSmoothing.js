@@ -10,23 +10,23 @@ engine.trigger("actionSmooth_Labels");
 // Test label selection
 var sDialog = engine.findChild(mainwin, "SmoothLabelsDialog");
 
-engine.findChild(sDialog, "btnSelectAll").click();
+engine.clickChild(sDialog, "btnSelectAll");
 engine.sleep(500);
 
-engine.findChild(sDialog, "btnClearAll").click();
+engine.clickChild(sDialog, "btnClearAll");
 engine.sleep(500);
 
-engine.findChild(sDialog, "btnSelectAll").click();
+engine.clickChild(sDialog, "btnSelectAll");
 
 // Populate sigma values
-engine.findChild(sDialog, "sigmaX").text = "1.2";
-engine.findChild(sDialog, "sigmaY").text = "0.75";
-engine.findChild(sDialog, "sigmaZ").text = "1.36";
+engine.setChildProperty(sDialog, "sigmaX", "text", "1.2");
+engine.setChildProperty(sDialog, "sigmaY", "text", "0.75");
+engine.setChildProperty(sDialog, "sigmaZ", "text", "1.36");
 
 // engine.sleep(500);
 
 // Apply smoothing
-engine.findChild(sDialog, "btnApply").click();
+engine.clickChild(sDialog, "btnApply");
 
 // engine.sleep(500);
 
@@ -36,7 +36,7 @@ engine.invoke(boxConfirm, "accept");
 engine.sleep(1000); // Pause for applying smoothing
 
 // Test validation pop-up
-engine.findChild(sDialog, "btnClearAll").click();
-engine.findChild(sDialog, "btnApply").click();
+engine.clickChild(sDialog, "btnClearAll");
+engine.clickChild(sDialog, "btnApply");
 
 // engine.sleep(500);

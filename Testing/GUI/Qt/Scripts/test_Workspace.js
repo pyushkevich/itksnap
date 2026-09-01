@@ -10,18 +10,18 @@ engine.trigger("actionLayerInspector");
 //=== Select a specific overlay
 var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
 var rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0003");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 
 //=== Toggle the layout
 engine.trigger("actionLayoutToggle", layerdialog);
 
 //=== Go to the color map widget
 var cmpcolormap = engine.findChild(layerdialog, "cmpColorMap");
-engine.findChild(layerdialog, "tabWidget").setCurrentWidget(cmpcolormap);
+engine.callChildMethod(layerdialog, "tabWidget", "setCurrentWidget", [cmpcolormap]);
 
 //=== Select the color map preset we want
 var inpreset = engine.findChild(cmpcolormap, "inPreset");
-inpreset.setCurrentIndex(8);
+engine.callMethod(inpreset, "setCurrentIndex", [8]);
 
 //=== Close the inspector dialog
 engine.invoke(layerdialog, "close");
@@ -31,7 +31,7 @@ engine.trigger("actionUnload_All");
 
 //=== Check that the unsaved changes dialog is open
 var savedialog = engine.findWidget("dlgSaveModified");
-if(!savedialog.visible)
+if(!engine.getProperty(savedialog, "visible"))
     engine.testFailed("Saved dialog was not shown")
 
 //=== Count the number of entries in the dialog
