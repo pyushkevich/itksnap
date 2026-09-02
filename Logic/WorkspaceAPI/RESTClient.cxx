@@ -542,8 +542,8 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   // Set the callback functions
   if (m_CallbackInfo.first)
   {
-    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
-    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSDATA, &m_CallbackInfo);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
     curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
   }
 

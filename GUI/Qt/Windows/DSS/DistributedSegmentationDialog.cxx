@@ -89,6 +89,7 @@ public:
     // Set data for the items
     items[0]->setData(QVariant((qlonglong) status.id), Qt::DisplayRole | Qt::EditRole);
     items[1]->setText(from_utf8(status.service_name));
+    items[1]->setToolTip(from_utf8(status.service_name));
     items[2]->setText(from_utf8(dss_model::ticket_status_strings[status.status]));
 
     // Set flags on all items
