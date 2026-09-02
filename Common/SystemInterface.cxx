@@ -90,23 +90,28 @@ SystemInfoDelegate *SystemInterface::m_SystemInfoDelegate = NULL;
 std::string
 SystemInterface::GetApplicationDataDirectory()
 {
-  // TODO: when the username is not ASCII, this crashes!
-  wchar_t path_w[4096];
-  DWORD bufferSize = GetEnvironmentVariableW(L"APPDATA", path_w, 4096);
-  if (!bufferSize)
+  // Read APPDATA as UTF-16 and convert it to UTF-8, the encoding ITK-SNAP uses for all
+  // std::string paths. Non-ASCII characters are supported because the application
+  // manifest (Utilities/Win32/itksnap.manifest) sets the process code page to UTF-8.
+  const DWORD path_w_size = 4096;
+  wchar_t     path_w[path_w_size];
+  DWORD       n_chars = GetEnvironmentVariableW(L"APPDATA", path_w, path_w_size);
+  if (n_chars == 0)
     throw IRISException("Can not access APPDATA path on WIN32.");
 
-  // Convert to multi-byte
-  int size_needed = WideCharToMultiByte(CP_UTF8, 0, &path_w[0], wcslen(path_w), NULL, 0, NULL, NULL);
+  // On failure due to a small buffer, the return value is the required size, not the
+  // number of characters copied, and path_w has not been filled in.
+  if (n_chars >= path_w_size)
+    throw IRISException("The APPDATA path on WIN32 is too long (%d characters).", (int)n_chars);
+
+  // Convert to UTF-8. Passing the length explicitly keeps the terminating null out of
+  // the resulting std::string.
+  int size_needed = WideCharToMultiByte(CP_UTF8, 0, path_w, (int)n_chars, NULL, 0, NULL, NULL);
+  if (size_needed <= 0)
+    throw IRISException("Can not convert the APPDATA path to a UTF-8 string");
+
   std::string utf8_path(size_needed, 0);
-  WideCharToMultiByte                  (CP_UTF8, 0, &path_w[0], wcslen(path_w), &utf8_path[0], size_needed, NULL, NULL);
-
-  if(utf8_path.length() == 0)
-    throw IRISException("Can not convert APPDATA path to multi-byte string");
-
-  // Temporary crap-out
-  if(utf8_path.length() != wcslen(path_w))
-    throw IRISException("ITK-SNAP currently does not support non-ASCII characters in user names on Windows (tm) platforms. This will be fixed in the future.");
+  WideCharToMultiByte(CP_UTF8, 0, path_w, (int)n_chars, &utf8_path[0], size_needed, NULL, NULL);
 
   // Append the full information
   std::string strPath = utf8_path + "/itksnap.org/ITK-SNAP";

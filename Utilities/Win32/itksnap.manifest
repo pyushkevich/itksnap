@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <!--
+    Sets the process code page to UTF-8 (Windows 10 1903+), so that itksys and the narrow
+    Win32 API decode ITK-SNAP's UTF-8 paths correctly. Without it, non-ASCII characters in
+    %APPDATA% are misdecoded. Keep this minimal: adding dpiAware or supportedOS entries
+    would override what Qt configures.
+  -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
+    </windowsSettings>
+  </application>
+</assembly>
