@@ -870,7 +870,7 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
     try
     {
       if (isWorkspace)
-        driver->OpenProject(argdata.fnUrl, warnings);
+        driver->OpenWorkspace(argdata.fnUrl, warnings);
       else
         mainwin->LoadDroppedFile(qurl, false);
     }
@@ -924,7 +924,7 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
     QtCursorOverride curse(Qt::WaitCursor);
     try
     {
-      driver->OpenProject(argdata.fnWorkspace, warnings);
+      driver->OpenWorkspace(argdata.fnWorkspace, warnings);
     }
     catch (std::exception &exc)
     {

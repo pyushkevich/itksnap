@@ -238,7 +238,7 @@ static int RegressionTest(const std::string &flag,
     if (flag == "-g")
       remote_app->OpenImage(remote_url.c_str(), MAIN_ROLE, warnings);
     else
-      remote_app->OpenProject(remote_url, warnings);
+      remote_app->OpenWorkspace(remote_url, warnings);
     }
   catch (std::exception &e)
     {
@@ -257,7 +257,7 @@ static int RegressionTest(const std::string &flag,
     if (flag == "-g")
       local_app->OpenImage(local_ref.c_str(), MAIN_ROLE, warnings);
     else
-      local_app->OpenProject(local_ref, warnings);
+      local_app->OpenWorkspace(local_ref, warnings);
     }
   catch (std::exception &e)
     {
@@ -582,7 +582,7 @@ int main(int argc, char *argv[])
   std::cout << "Loading workspace: " << path << std::endl;
   try
     {
-    app->OpenProject(path, warnings);
+    app->OpenWorkspace(path, warnings);
     }
   catch (std::exception &e)
     {
