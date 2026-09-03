@@ -661,7 +661,7 @@ public:
   /**
    * Open an existing project.
    */
-  void OpenProject(const std::string &proj_file, IRISWarningList &warn);
+  void OpenWorkspace(const std::string &proj_file, IRISWarningList &warn);
 
   /**
    * Set a delegate that receives progress notifications during remote image

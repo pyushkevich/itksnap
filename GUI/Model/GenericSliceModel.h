@@ -209,6 +209,11 @@ public:
   Vector3d MapSliceToImagePhysical(const Vector3d &xSlice);
 
   /**
+   * Map a point in image physical coordinates to a point in slice coordinates
+   */
+  Vector3d MapImagePhysicalToSlice(const Vector3d &xSlice);
+
+  /**
    * Map a point in image coordinates to slice coordinates
    */
   Vector3d MapImageToSlice(const Vector3d &xImage);
@@ -468,8 +473,18 @@ protected:
   // width in the slice direction)
   Vector3d m_RefSpaceSpacing;
 
-  // Position of visible window in slice space coordinates
+  // Position of visible window center in slice space coordinates
   Vector2d m_ViewPosition;
+
+  // Position of the visible window center in world coordinates, stored in
+  // order to minimize workspace jerking when the reference space changes
+  Vector3d m_ViewPositionInWorldSpace;
+
+  // Compute the view position in world space
+  void UpdateViewPositionInWorldSpace();
+
+  // Set view position based on currently stored world space position
+  void RestoreViewPositionInWorldSpace();
 
   // The view position where the slice wants to be
   Vector2d m_OptimalViewPosition, m_OptimalViewPositionFullExtent;

@@ -193,7 +193,6 @@ GenericImageData::GetFullExtentImageRegion()
       expand_region(region, rgn_layer_ref_space);
     }
   }
-
   return region;
 }
 

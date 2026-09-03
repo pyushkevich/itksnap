@@ -204,6 +204,7 @@ GenericSliceModel::OnUpdate()
     {
       this->UpdateUpstreamViewportGeometry();
       this->UpdateUpstreamThumbnailViewportGeometry();
+      this->UpdateViewPositionInWorldSpace();
     }
   }
 }
@@ -246,6 +247,24 @@ GenericSliceModel
 {
 }
 
+void
+GenericSliceModel::UpdateViewPositionInWorldSpace()
+{
+  // Position of the current view center in slice coordinates
+  Vector3d xVPSlice(
+    m_ViewPosition[0] / m_RefSpaceSpacing[0], m_ViewPosition[1] / m_RefSpaceSpacing[1], 0);
+
+  // Map to physical coordinates
+  m_ViewPositionInWorldSpace = MapSliceToImagePhysical(xVPSlice);
+}
+
+void
+GenericSliceModel::RestoreViewPositionInWorldSpace()
+{
+  Vector3d xVPSlice = MapImagePhysicalToSlice(m_ViewPositionInWorldSpace);
+  m_ViewPosition[0] = xVPSlice[0] * m_RefSpaceSpacing[0];
+  m_ViewPosition[1] = xVPSlice[1] * m_RefSpaceSpacing[1];
+}
 
 void
 GenericSliceModel
@@ -317,6 +336,10 @@ GenericSliceModel
     else if (rezoom_ref)
       m_ViewZoom = m_OptimalZoom;
 
+    // Restore the view position to match the previous world position
+    if(!first_init)
+      RestoreViewPositionInWorldSpace();
+
     // Fire a modified event, forcing a repaint of the window
     InvokeEvent(ModelUpdateEvent());
 }
@@ -359,6 +382,13 @@ Vector3d GenericSliceModel::MapSliceToImagePhysical(const Vector3d &xSlice)
   Vector3d xImage = this->MapSliceToImage(xSlice);
   auto *ref = this->GetDriver()->GetCurrentImageData()->GetReferenceSpaceWrapper();
   return ref->TransformVoxelCIndexToLPSCoordinates(xImage);
+}
+
+Vector3d GenericSliceModel::MapImagePhysicalToSlice(const Vector3d &xSlice)
+{
+  auto *ref = this->GetDriver()->GetCurrentImageData()->GetReferenceSpaceWrapper();
+  Vector3d xImage = ref->TransformLPSCoordinatesToVoxelCIndex(xSlice);
+  return this->MapImageToSlice(xImage);
 }
 
 /**
@@ -645,7 +675,13 @@ GenericSliceModel::SetViewPosition(Vector2d pos)
 {
   if (m_ViewPosition != pos)
   {
+    // Set view position in slice*spacing coordinates (fragile, depends on ref space)
     m_ViewPosition = pos;
+
+    // Update the view position in world space (more robust)
+    UpdateViewPositionInWorldSpace();
+
+    // Fire event
     InvokeEvent(SliceModelGeometryChangeEvent());
   }
 }

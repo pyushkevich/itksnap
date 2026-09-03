@@ -2254,7 +2254,7 @@ IRISApplication ::GetMovedFilePath(std::string &project_dir_orig,
 }
 
 void
-IRISApplication::OpenProject(const std::string &proj_file, IRISWarningList &warn)
+IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &warn)
 {
   // For remote workspaces (scp://, sftp://) download the .itksnap XML to a
   // temp file and parse it from there.  project_dir is derived from the
@@ -2269,7 +2269,7 @@ IRISApplication::OpenProject(const std::string &proj_file, IRISWarningList &warn
   if (IsRemoteImageURL(proj_file))
     m_ActiveConnectionPool = SSHConnectionPool::New();
 
-  // RAII: ensure the pool is always cleared when OpenProject returns, even if
+  // RAII: ensure the pool is always cleared when OpenWorkspace returns, even if
   // an exception is thrown mid-load.  We use a simple scope-exit lambda.
   struct PoolCleaner {
     SmartPtr<SSHConnectionPool> &pool;
@@ -2380,7 +2380,12 @@ IRISApplication::OpenProject(const std::string &proj_file, IRISWarningList &warn
   // Load Mesh Layers
   GetCurrentImageData()->GetMeshLayers()->LoadFromRegistry(preg, project_save_dir, project_dir);
 
-  // Set the selected segmentation layer to be the first one
+  // Set the selected layer in the GUI to be the main image
+  m_GlobalState->SetSelectedLayerInspectorLayerId(m_CurrentImageData->GetMain()->GetUniqueId());
+
+  // Set the selected segmentation layer to be the first one. Go through
+  // GlobalState (not GenericImageData directly) so the ValueChangedEvent
+  // fires and the GUI picks up the correction.
   m_GlobalState->SetSelectedSegmentationLayerId(
     m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId());
 

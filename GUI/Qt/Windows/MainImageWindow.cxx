@@ -1725,7 +1725,7 @@ void MainImageWindow::LoadProject(const QString &file)
     {
     QtCursorOverride c(Qt::WaitCursor);
     IRISWarningList warnings;
-    driver->OpenProject(to_utf8(file), warnings);
+    driver->OpenWorkspace(to_utf8(file), warnings);
     }
   catch(exception &exc)
     {
@@ -2287,7 +2287,7 @@ void MainImageWindow::on_actionOpenWorkspace_triggered()
     IRISWarningList warnings;
 
     // Load the project
-    m_Model->GetDriver()->OpenProject(to_utf8(file_abs), warnings);
+    m_Model->GetDriver()->OpenWorkspace(to_utf8(file_abs), warnings);
     }
   catch(exception &exc)
     {
