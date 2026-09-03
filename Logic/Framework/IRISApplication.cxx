@@ -2380,8 +2380,13 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
   // Load Mesh Layers
   GetCurrentImageData()->GetMeshLayers()->LoadFromRegistry(preg, project_save_dir, project_dir);
 
-  // Set the selected segmentation layer to be the first one
-  m_CurrentImageData->SetActiveSegmentationLayer(
+  // Set the selected layer in the GUI to be the main image
+  m_GlobalState->SetSelectedLayerInspectorLayerId(m_CurrentImageData->GetMain()->GetUniqueId());
+
+  // Set the selected segmentation layer to be the first one. Go through
+  // GlobalState (not GenericImageData directly) so the ValueChangedEvent
+  // fires and the GUI picks up the correction.
+  m_GlobalState->SetSelectedSegmentationLayerId(
     m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId());
 
   // Save the project filename (proj_file_full is the remote URL for remote
