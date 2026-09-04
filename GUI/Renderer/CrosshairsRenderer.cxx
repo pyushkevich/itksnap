@@ -52,7 +52,7 @@ CrosshairsRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
   {
     // Draw cursor on this image
     // Get the current cursor position
-    Vector3ui xCursorInteger = m_Model->GetDriver()->GetCursorPosition();
+    Vector3i xCursorInteger = m_Model->GetDriver()->GetCursorPosition();
 
     // Shift the cursor position by by 0.5 in order to have it appear
     // between voxels
@@ -61,17 +61,29 @@ CrosshairsRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
     // Get the cursor position on the slice
     Vector3d pos = m_Model->MapImageToSlice(xCursorImage);
 
-    // Upper and lober bounds to which the crosshairs are drawn
-    Vector2i lower(0);
-    Vector2i upper = m_Model->GetRefernceSpaceSize().extract(2);
+    // Upper and lower bounds to which the crosshairs are drawn
+    Vector2i lower_ref(0);
+    Vector2i upper_ref = m_Model->GetReferenceSpaceSize().extract(2);
+
+    Vector2i lower_fe = Vector3i(m_Model->GetFullExtentRegion().GetIndex()).extract(2);
+    Vector2i upper_fe = Vector3i(m_Model->GetFullExtentRegion().GetUpperIndex()).extract(2);
+
+    // Apply the color
+    context->SetPenAppearance(*as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_OOB));
+
+    // Draw the four cross-hair pieces
+    context->DrawLine(pos[0], pos[1], lower_fe[0], pos[1]);
+    context->DrawLine(pos[0], pos[1], upper_fe[0], pos[1]);
+    context->DrawLine(pos[0], pos[1], pos[0], lower_fe[1]);
+    context->DrawLine(pos[0], pos[1], pos[0], upper_fe[1]);
 
     // Apply the color
     context->SetPenAppearance(*as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS));
 
     // Draw the four cross-hair pieces
-    context->DrawLine(pos[0], pos[1], lower[0], pos[1]);
-    context->DrawLine(pos[0], pos[1], upper[0], pos[1]);
-    context->DrawLine(pos[0], pos[1], pos[0], lower[1]);
-    context->DrawLine(pos[0], pos[1], pos[0], upper[1]);
+    context->DrawLine(pos[0], pos[1], lower_ref[0], pos[1]);
+    context->DrawLine(pos[0], pos[1], upper_ref[0], pos[1]);
+    context->DrawLine(pos[0], pos[1], pos[0], lower_ref[1]);
+    context->DrawLine(pos[0], pos[1], pos[0], upper_ref[1]);
   }
 }

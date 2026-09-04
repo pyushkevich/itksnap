@@ -40,7 +40,7 @@ double InteractiveRegistrationModel::GetRotationWidgetRadius()
     return 0;
 
   // Get the center of rotation
-  Vector3ui rot_ctr_image = rmodel->GetRotationCenter();
+  Vector3i rot_ctr_image = rmodel->GetRotationCenter();
 
   // Map the center of rotation into the slice coordinates
   Vector3d rot_ctr_slice = smodel->MapImageToSlice(to_double(rot_ctr_image));
@@ -157,7 +157,7 @@ bool InteractiveRegistrationModel::ProcessDragEvent(const Vector3d &xSlice, cons
     // Treat this as a rotation event
 
     // Get the center of rotation
-    Vector3ui rot_ctr_image = rmodel->GetRotationCenter();
+    Vector3i rot_ctr_image = rmodel->GetRotationCenter();
 
     // Map the center of rotation into the slice coordinates
     Vector3d rot_ctr_slice = smodel->MapImageToSlice(to_double(rot_ctr_image));
@@ -228,7 +228,7 @@ InteractiveRegistrationModel
   m_HoveringOverMovingLayer = true;
 
   // Get the center of rotation
-  Vector3ui rot_ctr_image = rmodel->GetRotationCenter();
+  Vector3i rot_ctr_image = rmodel->GetRotationCenter();
 
   // Map the center of rotation into the slice coordinates
   Vector3d rot_ctr_slice = smodel->MapImageToSlice(to_double(rot_ctr_image));

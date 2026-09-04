@@ -299,7 +299,7 @@ public:
   void ResetInteractions();
 
   /** Perform a point interaction */
-  bool PerformPointInteraction(std::string model_id, ImageWrapperBase *layer, int axis, Vector3ui pos, bool reverse);
+  bool PerformPointInteraction(std::string model_id, ImageWrapperBase *layer, int axis, Vector3i pos, bool reverse);
 
   /** Perform a scribble interaction */
   bool PerformScribbleInteraction(std::string model_id, ImageWrapperBase *layer, int axis, LabelImageWrapper *seg, bool reverse)

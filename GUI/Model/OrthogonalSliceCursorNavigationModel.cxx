@@ -44,12 +44,20 @@ void OrthogonalSliceCursorNavigationModel::UpdateCursor(Vector2d x)
   // Round the cross-hairs position down to integer
   Vector3i xCrossInteger = to_int(xCross);
 
+  // Clamp the crosshairs to the full extent image dimensions
+  auto fe_region = m_Parent->GetDriver()->GetCurrentImageData()->GetFullExtentImageRegion();
+  Vector3i xCrossClamped = xCrossInteger.clamp(fe_region.GetIndex(), fe_region.GetUpperIndex());
+
+  /*
+
   // Make sure that the cross-hairs position is within bounds by clamping
   // it to image dimensions
   Vector3i xSize = to_int(m_Parent->GetDriver()->
                           GetCurrentImageData()->GetReferenceSpaceSize());
   Vector3ui xCrossClamped = to_unsigned_int(
     xCrossInteger.clamp(Vector3i(0),xSize - Vector3i(1)));
+
+  */
 
   // Update the crosshairs position in the global state
   m_Parent->GetDriver()->SetCursorPosition(xCrossClamped);
@@ -64,11 +72,13 @@ void OrthogonalSliceCursorNavigationModel::ProcessKeyNavigation(Vector3i dx)
 
   // Update the cursor
   IRISApplication *app = m_Parent->GetDriver();
-  Vector3i xSize = to_int(app->GetCurrentImageData()->GetReferenceSpaceSize());
-  Vector3i cursor = to_int(app->GetCursorPosition());
+  auto fe_region = app->GetCurrentImageData()->GetFullExtentImageRegion();
+
+  Vector3i cursor = app->GetCursorPosition();
   cursor += dximgi;
-  cursor = cursor.clamp(Vector3i(0), xSize - 1);
-  app->SetCursorPosition(to_unsigned_int(cursor));
+
+  cursor = cursor.clamp(Vector3i(fe_region.GetIndex()), Vector3i(fe_region.GetUpperIndex()));
+  app->SetCursorPosition(cursor);
 }
 
 void OrthogonalSliceCursorNavigationModel::BeginZoom()
@@ -137,7 +147,7 @@ void OrthogonalSliceCursorNavigationModel
 ::ProcessScrollGesture(double scrollAmount)
 {
   // Get the cross-hairs position in image space
-  Vector3ui xCrossImage = m_Parent->GetDriver()->GetCursorPosition();
+  Vector3i xCrossImage = m_Parent->GetDriver()->GetCursorPosition();
 
   // Map it into slice space
   Vector3d xCrossSlice =
@@ -147,13 +157,11 @@ void OrthogonalSliceCursorNavigationModel
   xCrossSlice[2] += scrollAmount;
 
   // Map back into display space
-  xCrossImage = to_unsigned_int(m_Parent->MapSliceToImage(xCrossSlice));
+  xCrossImage = to_int(m_Parent->MapSliceToImage(xCrossSlice));
 
   // Clamp by the image size
-  Vector3ui xSize =
-      m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize();
-  Vector3ui xCrossClamped =
-      xCrossImage.clamp(Vector3ui(0,0,0), xSize - Vector3ui(1,1,1));
+  auto fe_region = m_Parent->GetDriver()->GetCurrentImageData()->GetFullExtentImageRegion();
+  auto xCrossClamped = xCrossImage.clamp(fe_region.GetIndex(), fe_region.GetUpperIndex());
 
   // Update the crosshairs position in the global state
   m_Parent->GetDriver()->SetCursorPosition(xCrossClamped);

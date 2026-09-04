@@ -293,6 +293,22 @@ DistributedSegmentationDialog::~DistributedSegmentationDialog()
   delete ui;
 }
 
+void DistributedSegmentationDialog::showEvent(QShowEvent *event)
+{
+  QDialog::showEvent(event);
+
+  if(m_Model)
+    {
+    bool authenticated = m_Model->CheckState(DistributedSegmentationModel::UIF_AUTHENTICATED);
+    if(!authenticated)
+      ui->tabWidget->setCurrentWidget(ui->tabConfigure);
+    else if(m_FirstShow)
+      ui->tabWidget->setCurrentWidget(ui->tabSubmit);
+    }
+
+  m_FirstShow = false;
+}
+
 
 void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model)
 {
@@ -333,6 +349,7 @@ void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model
 
   // Ticket number
   makeDomainlessCoupling(ui->outTicketId, m_Model->GetTicketListModel());
+  makeCoupling(ui->outServiceName, m_Model->GetSelectedTicketServiceNameModel());
 
   // Local workspace
   makeCoupling(ui->outTicketWorkspace, m_Model->GetSelectedTicketLocalWorkspaceModel());

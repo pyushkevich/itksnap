@@ -729,7 +729,7 @@ GenericImageData
   return (m_Wrappers[OVERLAY_ROLE].size() > 0);
 }
 
-Vector3ui
+Vector3i
 GenericImageData::GetCursorPosition() const
 {
   // Check if the crosshairs are already set
@@ -737,7 +737,7 @@ GenericImageData::GetCursorPosition() const
                         "Active segmentation not initialized in GenericImageData::GetCrosshairs");
 
   // Read crosshairs from the active segmentation wrapper
-  return Vector3ui(m_ActiveSegmentationWrapper->GetSliceIndex());
+  return Vector3i(m_ActiveSegmentationWrapper->GetSliceIndex());
 }
 
 Vector3d
@@ -759,12 +759,19 @@ GenericImageData::SetCursorPositionRAS(const Vector3d &crosshairs_ras)
   auto pos_vox = m_ActiveSegmentationWrapper->TransformNIFTICoordinatesToVoxelCIndex(crosshairs_ras);
 
   // Round to the nearest integer
-  auto idx = to_itkIndex(Vector3ui(std::round(pos_vox[0]), std::round(pos_vox[1]), std::round(pos_vox[2])));
+  auto idx = to_itkIndex(Vector3i(std::round(pos_vox[0]), std::round(pos_vox[1]), std::round(pos_vox[2])));
 
   // If out of bounds, set to the center of the image
+  /*
   auto crosshairs = m_ActiveSegmentationWrapper->GetBufferedRegion().IsInside(idx)
                       ? Vector3ui(idx)
                       : m_ActiveSegmentationWrapper->GetSize() / 2u;
+  */
+
+  auto fe_region = this->GetFullExtentImageRegion();
+  auto crosshairs = fe_region.IsInside(idx)
+                      ? Vector3i(idx)
+                      : Vector3i(fe_region.GetIndex()) + Vector3i(fe_region.GetSize()) / 2;
 
   // Set the position
   this->SetCursorPosition(crosshairs);
@@ -773,7 +780,7 @@ GenericImageData::SetCursorPositionRAS(const Vector3d &crosshairs_ras)
 
 void
 GenericImageData
-::SetCursorPosition(const Vector3ui &crosshairs)
+::SetCursorPosition(const Vector3i &crosshairs)
 {
   auto idx_ch = to_itkIndex(crosshairs);
 
@@ -781,13 +788,9 @@ GenericImageData
   itkAssertOrThrowMacro(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized(),
                         "Active segmentation not initialized in GenericImageData::SetCrosshairs");
 
+  // Ignore if the crosshair is already set
   if(m_ActiveSegmentationWrapper->GetSliceIndex() == idx_ch)
     return;
-
-  // The crosshairs have to be in the space of the active layer
-  itkAssertOrThrowMacro(
-    m_ActiveSegmentationWrapper->GetBufferedRegion().IsInside(idx_ch),
-    "Crosshairs outside of active segmentation in GenericImageData::SetCrosshairs");
 
   // Set crosshairs in all wrappers
   for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)

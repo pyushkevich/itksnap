@@ -127,8 +127,8 @@ bool ImageInfoModel
 
   if(!l) return false;
 
-  Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
-  Vector3d x = l->TransformVoxelIndexToLPSCoordinates(to_int(cursor));
+  Vector3i cursor = m_ParentModel->GetDriver()->GetCursorPosition();
+  Vector3d x = l->TransformVoxelIndexToLPSCoordinates(cursor);
 
   for(unsigned int i = 0; i < 3; i++)
     value[i] = x[i];
@@ -144,7 +144,7 @@ bool ImageInfoModel
 
   if(!l) return false;
 
-  Vector3ui cursor = m_ParentModel->GetDriver()->GetCursorPosition();
+  Vector3i cursor = m_ParentModel->GetDriver()->GetCursorPosition();
   Vector3d x = l->TransformVoxelCIndexToNIFTICoordinates(to_double(cursor));
 
   for(unsigned int i = 0; i < 3; i++)

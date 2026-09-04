@@ -1999,8 +1999,8 @@ void MainImageWindow::ExportScreenshotSeries(AnatomicalDirection direction)
   std::string filename = to_utf8(QDir(duser).filePath(names[direction]));
 
   // back up cursor location
-  Vector3ui xCrossImageOld = m_Model->GetDriver()->GetCursorPosition();
-  Vector3ui xCrossImage = xCrossImageOld;
+  Vector3i xCrossImageOld = m_Model->GetDriver()->GetCursorPosition();
+  Vector3i xCrossImage = xCrossImageOld;
   Vector3ui xSize = m_Model->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize();
   xCrossImage[iImageDir] = 0;
 

@@ -56,7 +56,7 @@ RegistrationModel::RegistrationModel()
         &Self::GetLogScalingValueAndRange,
         &Self::SetLogScalingValue);
 
-  m_RotationCenter = Vector3ui(0, 0, 0);
+  m_RotationCenter = Vector3i(0, 0, 0);
 
   // Set up the automatic registration parameters
 
@@ -114,7 +114,7 @@ void RegistrationModel::ResetOnMainImageChange()
     Vector3ui main_dim = main_img->GetSize();
 
     // Reset the center of rotation
-    Vector3ui center;
+    Vector3i center;
     for(int i = 0; i < 3; i++)
       center[i] = main_dim[i] / 2;
     this->SetRotationCenter(center);
@@ -590,7 +590,7 @@ void RegistrationModel::ApplyTranslation(const Vector3d &tran)
 
 
 
-void RegistrationModel::SetRotationCenter(const Vector3ui &pos)
+void RegistrationModel::SetRotationCenter(const Vector3i &pos)
 {
   m_RotationCenter = pos;
   this->UpdateManualParametersFromWrapper(false, true);

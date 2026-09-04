@@ -341,7 +341,7 @@ public:
    * Get the cursor (crosshairs) position, in pixel coordinates relative to the
    * active segmentation layer.
    */
-  virtual Vector3ui GetCursorPosition() const;
+  virtual Vector3i GetCursorPosition() const;
 
   /**
    * Get the cursor position in physical NIFTI (RAS) coordinates
@@ -360,7 +360,7 @@ public:
    * Set the cursor (crosshairs) position, in pixel coordinates relative to the
    * active segmentation layer.
    */
-  virtual void SetCursorPosition(const Vector3ui &crosshairs);
+  virtual void SetCursorPosition(const Vector3i &crosshairs);
 
   /**
    * Get the time point selected

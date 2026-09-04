@@ -1294,6 +1294,23 @@ void DistributedSegmentationModel
     }
 }
 
+bool
+DistributedSegmentationModel::GetSelectedTicketServiceNameValue(std::string &value)
+{
+  IdType selected_ticket_id;
+  if(m_TicketListModel->GetValueAndDomain(selected_ticket_id, NULL))
+  {
+    TicketListingResponse::const_iterator it = m_TicketListing.find(selected_ticket_id);
+    if(it != m_TicketListing.end())
+    {
+      value = it->second.service_name;
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool DistributedSegmentationModel::GetSelectedTicketStatusValue(TicketStatus &value)
 {
   IdType selected_ticket_id;
@@ -1441,10 +1458,15 @@ DistributedSegmentationModel::DistributedSegmentationModel()
   m_SelectedTicketLogModel = NewConcreteProperty((IdType) -1, LogDomainType(&m_SelectedTicketDetail.log));
   m_SelectedTicketLogModel->SetIsValid(false);
 
-  // Selected ticket status
-  m_SelectedTicketStatusModel = wrapGetterSetterPairAsProperty(
-                                  this,
-                                  &Self::GetSelectedTicketStatusValue);
+  // Selected ticket name status
+  m_SelectedTicketServiceNameModel =
+    wrapGetterSetterPairAsProperty(this, &Self::GetSelectedTicketServiceNameValue);
+  m_SelectedTicketServiceNameModel->Rebroadcast(m_TicketListModel, ValueChangedEvent(), ValueChangedEvent());
+  m_SelectedTicketServiceNameModel->Rebroadcast(m_TicketListModel, DomainChangedEvent(), ValueChangedEvent());
+  m_SelectedTicketServiceNameModel->Rebroadcast(m_TicketListModel, DomainDescriptionChangedEvent(), ValueChangedEvent());
+
+  m_SelectedTicketStatusModel =
+    wrapGetterSetterPairAsProperty(this, &Self::GetSelectedTicketStatusValue);
   m_SelectedTicketStatusModel->Rebroadcast(m_TicketListModel, ValueChangedEvent(), ValueChangedEvent());
   m_SelectedTicketStatusModel->Rebroadcast(m_TicketListModel, DomainChangedEvent(), ValueChangedEvent());
   m_SelectedTicketStatusModel->Rebroadcast(m_TicketListModel, DomainDescriptionChangedEvent(), ValueChangedEvent());

@@ -19,7 +19,7 @@ GetVertices(ImageWrapperBase *layer, DeformationGridVertices &v) const
 
   // Draw the texture for the layer
   int nc = layer->GetNumberOfComponents();
-  if (layer && (nc == 3 || (nc == 2 && m_Parent->GetRefernceSpaceSize()[0] > 1 && m_Parent->GetRefernceSpaceSize()[1] > 1 )))
+  if (layer && (nc == 3 || (nc == 2 && m_Parent->GetReferenceSpaceSize()[0] > 1 && m_Parent->GetReferenceSpaceSize()[1] > 1 )))
     {
     // Create a pipeline that casts the slice to a floating point vector image
     // TODO: this involves new memory allocation in each call, in the future we might

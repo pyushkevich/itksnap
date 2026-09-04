@@ -72,7 +72,7 @@ public:
   irisSimplePropertyAccessMacro(MetadataFilter, std::string)
 
   // The voxel coordinate model just refers to the parent mode
-  AbstractRangedUIntVec3Property *GetReferenceSpaceVoxelCoordinatesModel() const
+  AbstractRangedIntVec3Property *GetReferenceSpaceVoxelCoordinatesModel() const
   {
     return m_ParentModel->GetCursorPositionModel();
   }

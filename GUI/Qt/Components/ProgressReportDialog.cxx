@@ -11,7 +11,6 @@ ProgressReportDialog::ProgressReportDialog(const QString &title, QWidget *parent
   : QDialog(parent,
             Qt::Dialog | Qt::WindowTitleHint | Qt::CustomizeWindowHint)
 {
-  qDebug() << "ProgressReportDialog::ProgressReportDialog";
   setWindowTitle(title);
   setWindowModality(Qt::WindowModal);
 

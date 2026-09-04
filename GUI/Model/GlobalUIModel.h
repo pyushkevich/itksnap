@@ -275,7 +275,7 @@ public:
   bool CheckState(UIState state);
 
   /** Get the model for the cursor coordinates */
-  irisGetMacro(CursorPositionModel, AbstractRangedUIntVec3Property *)
+  irisGetMacro(CursorPositionModel, AbstractRangedIntVec3Property *)
 
   /** Get the model for 4D image time point */
   irisGetMacro(CursorTimePointModel, AbstractRangedUIntProperty *)
@@ -471,10 +471,9 @@ protected:
   SmartPtr<VoxelChangeReportModel> m_VoxelChangeReportModel;
 
   // Current coordinates of the cursor
-  SmartPtr<AbstractRangedUIntVec3Property> m_CursorPositionModel;
-  bool GetCursorPositionValueAndRange(
-      Vector3ui &value, NumericValueRange<Vector3ui> *range);
-  void SetCursorPosition(Vector3ui value);
+  SmartPtr<AbstractRangedIntVec3Property> m_CursorPositionModel;
+  bool GetCursorPositionValueAndRange(Vector3i &value, NumericValueRange<Vector3i> *range);
+  void SetCursorPosition(Vector3i value);
 
   // Current time point of the cursor
   SmartPtr<AbstractRangedUIntProperty> m_CursorTimePointModel;
