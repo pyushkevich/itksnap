@@ -1425,6 +1425,17 @@ TARGET_INCLUDE_DIRECTORIES(logic_api_test PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME IRISApplicationTest COMMAND logic_api_test)
 
+# Regression coverage for global anatomical-axis assignment of oblique images.
+ADD_EXECUTABLE(image_coordinate_geometry_test
+    Testing/Logic/ImageCoordinateGeometryTest.cxx)
+TARGET_LINK_LIBRARIES(image_coordinate_geometry_test
+    ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(image_coordinate_geometry_test PUBLIC
+    ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME ImageCoordinateGeometryTest
+    COMMAND image_coordinate_geometry_test)
+
 ADD_EXECUTABLE(remote_image_load_test
     Testing/Logic/RemoteImageLoadTest.cxx)
 TARGET_LINK_LIBRARIES(remote_image_load_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
