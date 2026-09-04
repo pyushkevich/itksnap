@@ -549,12 +549,10 @@ bool Generic3DModel::PickSegmentationVoxelUnderMouse(int px, int py)
   Vector3i hit;
   if(this->IntersectSegmentation(px, py, hit))
     {
-    Vector3ui cursor = to_unsigned_int(hit);
-
     itk::ImageRegion<3> region = m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion();
-    if(region.IsInside(to_itkIndex(cursor)))
+    if(region.IsInside(to_itkIndex(hit)))
       {
-      m_Driver->SetCursorPosition(cursor);
+      m_Driver->SetCursorPosition(hit);
       return true;
       }
     }

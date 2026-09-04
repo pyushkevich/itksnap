@@ -637,8 +637,8 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
 
   // Allocate the polygon to match current image size. This will only
   // allocate new memory if the slice size changed
-  itk::Size<2> sz = { { (itk::SizeValueType)m_Parent->GetRefernceSpaceSize()[0],
-                        (itk::SizeValueType)m_Parent->GetRefernceSpaceSize()[1] } };
+  itk::Size<2> sz = { { (itk::SizeValueType)m_Parent->GetReferenceSpaceSize()[0],
+                        (itk::SizeValueType)m_Parent->GetReferenceSpaceSize()[1] } };
   m_PolygonSlice->SetRegions(sz);
   m_PolygonSlice->Allocate();
 

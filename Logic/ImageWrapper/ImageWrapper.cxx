@@ -1690,9 +1690,16 @@ ImageWrapper<TTraits>
   if(time_point < 0)
     time_point = m_TimePointIndex;
 
-  // Simply use ITK's GetPixel method
-  return m_ImageTimePoints[time_point]->GetPixel(index);
-  }
+  // Get the image
+  auto img_tp = m_ImageTimePoints[time_point];
+
+  // The cursor may be outside of the segmentation, so we need to perform bounds check
+  if(img_tp->GetBufferedRegion().IsInside(index))
+    return img_tp->GetPixel(index);
+
+  // Return a zero pixel value
+  return GetZeroPixelValue();
+}
 
 template<class TTraits>
 typename ImageWrapper<TTraits>::PatchOffsetTable
@@ -1764,37 +1771,37 @@ ImageWrapper<TTraits>
 }
 
 
-template<class TTraits>
+template <class TTraits>
 void
-ImageWrapper<TTraits>
-::SampleIntensityAtReferenceIndexInternal(
-    const itk::Index<3> &index, unsigned int tp_begin, unsigned int tp_end) const
+ImageWrapper<TTraits>::SampleIntensityAtReferenceIndexInternal(const itk::Index<3> &index,
+                                                               unsigned int         tp_begin,
+                                                               unsigned int         tp_end) const
 {
   // Compute and allocate output dimensions
   unsigned int nc = this->GetNumberOfComponents();
   unsigned int nt = this->GetNumberOfTimePoints();
 
   // Make sure the sampling array has been allocated
-  if(m_IntensitySamplingArray.size() != nc * nt)
+  if (m_IntensitySamplingArray.size() != nc * nt)
     m_IntensitySamplingArray.set_size(nc * nt);
 
   // Create a specialization for actual sampling
-  using Specialization = ImageWrapperPixelPartialSpecializationTraits<PixelType,ComponentType>;
+  using Specialization = ImageWrapperPixelPartialSpecializationTraits<PixelType, ComponentType>;
   using InterpolateWorker = DefaultNonOrthogonalSlicerWorkerTraits<ImageType, SliceType>;
 
   // Get the raw pixels to write to
   ComponentType *arr = m_IntensitySamplingArray.data_block() + tp_begin * nc;
 
   // Do we need interpolation?
-  if(m_ImageSpaceMatchesReferenceSpace)
-    {
+  if (m_ImageSpaceMatchesReferenceSpace)
+  {
     // If the preview pipeline is being used, we need to sample from it
-    if(m_Slicers.front()->GetPreviewImage())
-      {
+    if (m_Slicers.front()->GetPreviewImage())
+    {
       // The index has to be the same as in the slicers, otherwise the preview image lookup
       // will not be valid
-      itkAssertOrThrowMacro(m_Slicers.front()->GetSliceIndex() == index,
-          "SampleIntensityAtReferenceIndexInternal called with an index that does not match Slicer index")
+      itkAssertOrThrowMacro(
+        m_Slicers.front()->GetSliceIndex() == index, "SampleIntensityAtReferenceIndexInternal called with an index that does not match Slicer index")
 
       // The slicer needs to be updated, so that the preview image is updated in the requested region
       m_Slicers.front()->Update();
@@ -1802,36 +1809,38 @@ ImageWrapper<TTraits>
       // Lookup the pixel from the preview image
       PixelType p = m_Slicers.front()->GetPreviewImage()->GetPixel(index);
       Specialization::ExportToComponentArray(p, nc, arr);
-      }
+    }
     else
-      {
+    {
       // The simple case when no interpolation is required
-      for(unsigned int tp = tp_begin; tp < tp_end; tp++, arr+=nc)
-        {
-        PixelType p = m_ImageTimePoints[tp]->GetPixel(index);
+      for (unsigned int tp = tp_begin; tp < tp_end; tp++, arr += nc)
+      {
+        PixelType p = this->GetBufferedRegion().IsInside(index)
+                        ? m_ImageTimePoints[tp]->GetPixel(index)
+                        : GetZeroPixelValue();
         Specialization::ExportToComponentArray(p, nc, arr);
-        }
       }
     }
+  }
   else
-    {
+  {
     // The index at which to sample (will be reused in the loop below)
     itk::ContinuousIndex<double, 3> cidx;
     this->TransformReferenceCIndexToWrappedImageCIndex(index, cidx);
     bool is_nn = this->GetSlicingInterpolationMode() == ImageWrapperBase::NEAREST;
 
     // Sample all time points
-    for(unsigned int tp = tp_begin; tp < tp_end; tp++)
-      {
+    for (unsigned int tp = tp_begin; tp < tp_end; tp++)
+    {
       // Use an interpolator to do the work
       // TODO: too much being initialized here for a single lookup operation!
       InterpolateWorker iw(m_ImageTimePoints[tp]);
 
       // Process the voxel, arr will be updated by the function
       iw.ProcessVoxel(cidx.GetDataPointer(), is_nn, &arr);
-      }
     }
   }
+}
 
 template<class TTraits>
 void
@@ -2215,6 +2224,15 @@ ImageWrapper<TTraits>
     Specialization::Write(m_Image, filename, hints);
 }
 
+template <class TTraits>
+typename ImageWrapper<TTraits>::PixelType
+ImageWrapper<TTraits>::GetZeroPixelValue() const
+{
+  PixelType zero{};
+  itk::NumericTraits<PixelType>::SetLength(zero, this->GetNumberOfComponents());
+  return zero;
+}
+
 template<class TTraits>
 void
 ImageWrapper<TTraits>
@@ -2363,11 +2381,18 @@ ImageWrapper<TTraits>
 
   // Now that we have sorted this out, we need to find the display axis that best matches
   // the selected direction and use the geometry of that display axis to set up the thumbnail
-  // plane. This will make the thumbnail more consistent with what is viewed on the screen
+  // plane. This will make the thumbnail more consistent with what is viewed on the screen.
+  // We build a geometry object here from this wrapper's own image (rather than using
+  // GetImageGeometry(), which is relative to the reference space - normally the active
+  // segmentation, not this image - and so may have a different direction/size than the
+  // image being thumbnailed).
+  SmartPtr<ImageCoordinateGeometry> thumb_geom = ImageCoordinateGeometry::New();
+  thumb_geom->SetGeometry(direction.as_matrix(), this->GetDisplayGeometry(), this->GetSize());
+
   int display_axis = -1;
   for(int i = 0; i < 3; i++)
     {
-    auto *d_to_i = this->GetImageGeometry()->GetDisplayToImageTransform(i);
+    auto *d_to_i = thumb_geom->GetDisplayToImageTransform(i);
     unsigned int z_coord_for_display_axis = d_to_i->GetCoordinateIndexZeroBased(2);
     if(z_coord_for_display_axis == thumb_z_axis)
       {
@@ -2375,7 +2400,7 @@ ImageWrapper<TTraits>
       break;
       }
     }
-  auto d_to_i = this->GetImageGeometry()->GetDisplayToImageTransform(display_axis);
+  auto d_to_i = thumb_geom->GetDisplayToImageTransform(display_axis);
 
   // Now that we have done this, we need to create a reference image that matches the slice
   // direction. We already know the axis in image space of the slicing direction, but now
@@ -2785,7 +2810,6 @@ ImageWrapper<TTraits>
   auto size_3d = roi.GetROI().GetSize();
   auto nC = m_Image4D->GetNumberOfComponentsPerPixel();
   ElementIdType buffer3dSize = size_3d[0] * size_3d[1] * size_3d[2] * nC;
-  ElementIdType buffer3dSizeInBytes = buffer3dSize * sizeof(ElementType);
   ElementIdType buffer4dSize = buffer3dSize * nT;
   ElementType *buffer4d = new ElementType[buffer4dSize];
   ElementType *pCrntTPStart = buffer4d; // starting mem location of the current tp
@@ -2811,8 +2835,11 @@ ImageWrapper<TTraits>
     tpResliced = Specialization::CopyRegion(tpImg, m_ReferenceSpace, this->GetITKTransform(),
                                          roi, force_resampling, TPCommand[t]);
 
+    // Element-wise copy (not memcpy!) - ElementType may be a non-trivially
+    // copyable type (e.g. the RLE run-list type for label images), which
+    // owns heap memory of its own and needs a real copy, not a byte copy
     auto buffer3d = tpResliced->GetPixelContainer()->GetBufferPointer();
-    memcpy(pCrntTPStart, buffer3d, buffer3dSizeInBytes);
+    std::copy(buffer3d, buffer3d + buffer3dSize, pCrntTPStart);
     pCrntTPStart += buffer3dSize; // Increment pointer to next tp start
     }
 

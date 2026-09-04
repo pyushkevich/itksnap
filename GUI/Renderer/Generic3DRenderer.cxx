@@ -373,7 +373,7 @@ Generic3DRenderer::UpdateAxisRendering()
 
   if (app->IsMainImageLoaded())
   {
-    Vector3ui cursor = app->GetCursorPosition();
+    Vector3i cursor = app->GetCursorPosition();
     Vector3ui dims = app->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
     // Get the axis appearance properties
@@ -590,7 +590,7 @@ Generic3DRenderer::UpdateCamera(bool reset)
   {
     ImageWrapperBase *ref = app->GetCurrentImageData()->GetReferenceSpaceWrapper();
 
-    Vector3ui cursor = app->GetCursorPosition();
+    Vector3i  cursor = app->GetCursorPosition();
     Vector3d  cursor_nifti = ref->TransformVoxelCIndexToNIFTICoordinates(to_double(cursor));
     Vector3d  spacing = app->GetCurrentImageData()->GetReferenceSpaceSpacing();
     Vector3d  image_extent = element_product(to_double(ref->GetSize()), spacing);

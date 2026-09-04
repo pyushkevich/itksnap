@@ -424,18 +424,19 @@ SynchronizationModel::ReadIPCState(bool only_read_new)
       Vector3d vox = id->GetReferenceSpaceWrapper()->TransformNIFTICoordinatesToVoxelCIndex(message.cursor);
 
       // Round the cursor to integer value
-      itk::Index<3> pos;
-      Vector3ui     vpos;
-      pos[0] = vpos[0] = (unsigned int)(vox[0] + 0.5);
-      pos[1] = vpos[1] = (unsigned int)(vox[1] + 0.5);
-      pos[2] = vpos[2] = (unsigned int)(vox[2] + 0.5);
+      itk::Index<3> pos = { (int) std::round(vox[0]), (int) std::round(vox[1]), (int) std::round(vox[2]) };
+      Vector3i vpos(pos);
 
       // Check if the voxel position is inside the image region
-      if (vpos != app->GetCursorPosition() && id->GetReferenceSpaceImageRegion().IsInside(pos))
+      if (vpos != app->GetCursorPosition())
       {
-        app->SetCursorPosition(vpos);
-        if (m_DebugSync)
-          cout << "  Setting cursor position to " << vpos << " from IPC" << endl;
+        auto fe_region = id->GetFullExtentImageRegion();
+        if (fe_region.IsInside(pos))
+        {
+          app->SetCursorPosition(vpos);
+          if (m_DebugSync)
+            cout << "  Setting cursor position to " << vpos << " from IPC" << endl;
+        }
       }
     }
 

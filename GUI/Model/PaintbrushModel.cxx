@@ -53,9 +53,13 @@ PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
 
   // Make sure that the cross-hairs position is within bounds by clamping
   // it to image dimensions
-  Vector3i xSize = to_int(m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize());
+  auto seg_region = m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceImageRegion();
+  auto newpos = xCrossInteger.clamp(seg_region.GetIndex(), seg_region.GetUpperIndex());
 
+  /*
+  Vector3i xSize = to_int(m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize());
   Vector3ui newpos = to_unsigned_int(xCrossInteger.clamp(Vector3i(0), xSize - Vector3i(1)));
+  */
 
   if (newpos != m_MousePosition || m_MouseInside == false)
   {

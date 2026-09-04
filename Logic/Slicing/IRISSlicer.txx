@@ -248,6 +248,15 @@ IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
   // Get the image dimensions
   typename InputImageType::SizeType szVol = inputPtr->GetBufferedRegion().GetSize();
 
+  // Bail out if slice index is out of range
+  if (m_SliceIndex < 0 || m_SliceIndex >= szVol[m_SliceDirectionImageAxis])
+  {
+    typename OutputImageType::PixelType zero{};
+    itk::NumericTraits<typename OutputImageType::PixelType>::SetLength(zero, outputPtr->GetNumberOfComponentsPerPixel());
+    outputPtr->FillBuffer(zero);
+    return;
+  }
+
   // Set the strides in image coordinates
   Vector3i stride_image(1, szVol[0], szVol[1] * szVol[0]);
 

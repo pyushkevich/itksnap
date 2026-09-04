@@ -323,6 +323,9 @@ public:
   /** The status of the currently selected ticket */
   irisSimplePropertyAccessMacro(SelectedTicketStatus, dss_model::TicketStatus)
 
+  /** The service name of the currently selected ticket */
+  irisSimplePropertyAccessMacro(SelectedTicketServiceName, std::string)
+
   /** Log messages from the current ticket */
   typedef STLVectorWrapperItemSetDomain<dss_model::IdType, dss_model::TicketLogEntry> LogDomainType;
   irisGenericPropertyAccessMacro(SelectedTicketLog, dss_model::IdType, LogDomainType)
@@ -458,6 +461,10 @@ protected:
   SmartPtr<CurrentTagWorkspaceObjectModel> m_CurrentTagWorkspaceObjectModel;
   bool GetCurrentTagWorkspaceObjectValueAndRange(unsigned long &value, LayerSelectionDomain *range);
   void SetCurrentTagWorkspaceObjectValue(unsigned long value);
+
+  // Stuff about the current ticket
+  SmartPtr<AbstractSimpleStringProperty> m_SelectedTicketServiceNameModel;
+  bool GetSelectedTicketServiceNameValue(std::string &value);
 
   // Stuff about the current ticket
   SmartPtr<ConcreteRangedDoubleProperty> m_SelectedTicketProgressModel;

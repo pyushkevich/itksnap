@@ -625,7 +625,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
         auto   xy = m_Model->GetZoomThumbnailPosition();
         auto   wh = m_Model->GetZoomThumbnailSize();
         double tZoom = m_Model->GetThumbnailZoom();
-        double w_main = m_Model->GetRefernceSpaceSize()[0], h_main = m_Model->GetRefernceSpaceSize()[1];
+        double w_main = m_Model->GetReferenceSpaceSize()[0], h_main = m_Model->GetReferenceSpaceSize()[1];
 
         // Set up the zoom thumbnail viewport
         context->PushMatrix();

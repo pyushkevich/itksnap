@@ -229,6 +229,13 @@ void IRISSlicer<RLEImage<TPixel, 3, CounterType>, TOutputImage, TPreviewImage>
   szSlice[0] = outputPtr->GetBufferedRegion().GetSize(0);
   szSlice[1] = outputPtr->GetBufferedRegion().GetSize(1);
 
+  // Bail out if slice index is out of range
+  if (m_SliceIndex < 0 || m_SliceIndex >= szVol[m_SliceDirectionImageAxis])
+    {
+    outputPtr->FillBuffer(0);
+    return;
+    }
+
   // The sign of the line and pixel traversal directions
   int s_line = (m_LineTraverseForward) ? 1 : -1;
   int s_pixel = (m_PixelTraverseForward) ? 1 : -1;

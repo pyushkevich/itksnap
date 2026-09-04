@@ -106,7 +106,7 @@ public:
   ImageWrapperBase *GetMovingLayerWrapper() const;
 
   /** Get the center of rotation, in voxel units of the main image */
-  irisGetMacro(RotationCenter, Vector3ui)
+  irisGetMacro(RotationCenter, Vector3i)
 
   // Automatic registration parameter domains
   typedef SimpleItemSetDomain<int, std::string> ResolutionLevelDomain;
@@ -184,7 +184,7 @@ protected:
   // parameters including scaling, euler angles, and translation
   void UpdateWrapperFromManualParameters();
 
-  void SetRotationCenter(const Vector3ui &pos);
+  void SetRotationCenter(const Vector3i &pos);
 
   // Get the transform currently stored in the moving layer
   void GetMovingTransform(ITKMatrixType &matrix, ITKVectorType &offset);
@@ -290,7 +290,7 @@ protected:
   TransformManualParameters m_ManualParam;
 
   // Current center of rotation - should be initialized to the center when new image is loaded
-  Vector3ui m_RotationCenter;
+  Vector3i m_RotationCenter;
 
   // Callback for when the transform being computed by auto-registration is modified
   void IterationCallback(const itk::Object *object, const itk::EventObject &event);

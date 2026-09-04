@@ -480,12 +480,12 @@ public:
    * Set the current cursor position in the voxel grid of the active segmentation
    * layer. The cursor position is propagated to all layers.
    */
-  void SetCursorPosition(const Vector3ui cursor, bool force = false);
+  void SetCursorPosition(const Vector3i cursor, bool force = false);
 
   /**
    * Get the cursor position
    */
-  Vector3ui GetCursorPosition() const;
+  Vector3i GetCursorPosition() const;
 
   /**
    * Set the current cursor time point. Like setting the cursor position, but

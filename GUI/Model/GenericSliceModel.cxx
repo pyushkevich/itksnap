@@ -236,7 +236,7 @@ std::tuple<double, Vector2d> GenericSliceModel::ComputeOptimalZoomInternal(const
 
 void GenericSliceModel::ComputeOptimalZoom()
 {
-  std::tie(m_OptimalZoom, m_OptimalViewPosition) = ComputeOptimalZoomInternal(m_RefSpaceRegion);
+  std::tie(m_OptimalZoom, m_OptimalViewPosition) = ComputeOptimalZoomInternal(m_ReferenceSpaceRegion);
   std::tie(m_OptimalZoomFullExtent, m_OptimalViewPositionFullExtent) =
     ComputeOptimalZoomInternal(m_FullExtentRegion);
 }
@@ -318,7 +318,7 @@ GenericSliceModel
     }
 
     // Compute the reference region and the full extent region in slice coordinates
-    m_RefSpaceRegion = m_ImageToDisplayTransform->TransformRegion(ref_region_orig);
+    m_ReferenceSpaceRegion = m_ImageToDisplayTransform->TransformRegion(ref_region_orig);
     m_FullExtentRegion = m_ImageToDisplayTransform->TransformRegion(full_region_orig);
 
     // We have been initialized
@@ -426,8 +426,8 @@ GenericSliceModel::GetSliceCornersInWindowCoordinates() const
   std::pair<Vector2d, Vector2d> corners;
 
   Vector2d uv0(0, 0);
-  Vector2d uv1(m_RefSpaceRegion.GetIndex(0) * m_RefSpaceSpacing[0],
-               m_RefSpaceRegion.GetIndex(1) * m_RefSpaceSpacing[1]);
+  Vector2d uv1(m_ReferenceSpaceRegion.GetIndex(0) * m_RefSpaceSpacing[0],
+               m_ReferenceSpaceRegion.GetIndex(1) * m_RefSpaceSpacing[1]);
 
   Vector2ui size = this->GetCanvasSize();
   Vector2d ctr(0.5 * size[0], 0.5 * size[1]);
@@ -501,7 +501,7 @@ GenericSliceModel
 ::SetViewPositionRelativeToCursor(Vector2d offset)
 {
   // Get the crosshair position
-  Vector3ui xCursorInteger = m_Driver->GetCursorPosition();
+  Vector3i xCursorInteger = m_Driver->GetCursorPosition();
 
   // Shift the cursor position by by 0.5 in order to have it appear
   // between voxels
@@ -520,7 +520,7 @@ GenericSliceModel
 Vector2d GenericSliceModel::GetViewPositionRelativeToCursor()
 {
   // Get the crosshair position
-  Vector3ui xCursorInteger = m_Driver->GetCursorPosition();
+  Vector3i xCursorInteger = m_Driver->GetCursorPosition();
 
   // Shift the cursor position by by 0.5 in order to have it appear
   // between voxels
@@ -609,7 +609,7 @@ const SliceViewportLayout::SubViewport *GenericSliceModel::GetHoveredViewport()
 
 Vector3d GenericSliceModel::GetCursorPositionInSliceCoordinates()
 {
-  Vector3ui cursorImageSpace = m_Driver->GetCursorPosition();
+  Vector3i cursorImageSpace = m_Driver->GetCursorPosition();
   Vector3d cursorDisplaySpace =
     m_ImageToDisplayTransform->TransformPoint(
       to_double(cursorImageSpace) + Vector3d(0.5));
@@ -618,14 +618,14 @@ Vector3d GenericSliceModel::GetCursorPositionInSliceCoordinates()
 
 unsigned int GenericSliceModel::GetSliceIndex()
 {
-  Vector3ui cursorImageSpace = m_Driver->GetCursorPosition();
+  Vector3i cursorImageSpace = m_Driver->GetCursorPosition();
   return cursorImageSpace[m_ImageAxes[2]];
 }
 
 
 void GenericSliceModel::UpdateSliceIndex(unsigned int newIndex)
 {
-  Vector3ui cursorImageSpace = m_Driver->GetCursorPosition();
+  Vector3i cursorImageSpace = m_Driver->GetCursorPosition();
   cursorImageSpace[m_ImageAxes[2]] = newIndex;
   m_Driver->SetCursorPosition(cursorImageSpace);
 }
@@ -653,14 +653,14 @@ void GenericSliceModel::ComputeThumbnailProperties()
   m_ThumbnailZoom = xNewFraction * m_OptimalZoom;
   m_ZoomThumbnailPosition.fill(5);
   m_ZoomThumbnailSize[0] =
-    std::max(1, (int)(m_RefSpaceRegion.GetSize(0) * m_RefSpaceSpacing[0] * m_ThumbnailZoom));
+    std::max(1, (int)(m_ReferenceSpaceRegion.GetSize(0) * m_RefSpaceSpacing[0] * m_ThumbnailZoom));
   m_ZoomThumbnailSize[1] =
-    std::max(1, (int)(m_RefSpaceRegion.GetSize(1) * m_RefSpaceSpacing[1] * m_ThumbnailZoom));
+    std::max(1, (int)(m_ReferenceSpaceRegion.GetSize(1) * m_RefSpaceSpacing[1] * m_ThumbnailZoom));
 }
 
 unsigned int GenericSliceModel::GetNumberOfSlices() const
 {
-  return m_RefSpaceRegion.GetSize(2);
+  return m_ReferenceSpaceRegion.GetSize(2);
 }
 
 /*
@@ -693,22 +693,16 @@ GenericSliceModel::GetReferenceSpaceSpacing() const
 }
 
 Vector3i
-GenericSliceModel::GetRefernceSpaceSize() const
+GenericSliceModel::GetReferenceSpaceSize() const
 {
-  return Vector3i(m_RefSpaceRegion.GetSize());
-}
-
-Vector3i
-GenericSliceModel::GetFullExtentSize() const
-{
-  return Vector3i(m_FullExtentRegion.GetSize());
+  return Vector3i(m_ReferenceSpaceRegion.GetSize());
 }
 
 std::pair<Vector2d, Vector2d> GenericSliceModel::GetReferenceSpaceCorners() const
 {
   Vector2d c0(0.0, 0.0);
-  Vector2d c1(m_RefSpaceRegion.GetSize(0) * m_RefSpaceSpacing[0],
-              m_RefSpaceRegion.GetSize(1) * m_RefSpaceSpacing[1]);
+  Vector2d c1(m_ReferenceSpaceRegion.GetSize(0) * m_RefSpaceSpacing[0],
+              m_ReferenceSpaceRegion.GetSize(1) * m_RefSpaceSpacing[1]);
   return std::make_pair(c0, c1);
 }
 
@@ -850,7 +844,7 @@ bool GenericSliceModel
   value = this->GetSliceIndex();
   if(domain)
     {
-    domain->Set(0, this->GetNumberOfSlices()-1, 1);
+    domain->Set(this->m_FullExtentRegion.GetIndex(2), this->m_FullExtentRegion.GetIndex(2) + this->m_FullExtentRegion.GetSize(2) - 1, 1);
     }
   return true;
 }
@@ -1152,8 +1146,8 @@ GenericSliceModel::UpdateUpstreamThumbnailViewportGeometry()
   double z0 = this->GetCursorPositionInSliceCoordinates()[2];
   double z1 = z0 + m_DisplayToImageTransform->GetCoordinateOrientation(2);
   s[0] = Vector3d(0, 0, z0);
-  s[1] = Vector3d(this->GetRefernceSpaceSize()[0], 0, z0);
-  s[2] = Vector3d(0, this->GetRefernceSpaceSize()[1], z0);
+  s[1] = Vector3d(this->GetReferenceSpaceSize()[0], 0, z0);
+  s[2] = Vector3d(0, this->GetReferenceSpaceSize()[1], z0);
   s[3] = Vector3d(0, 0, z1);
 
   // Map these four points into the physical image space

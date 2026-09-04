@@ -672,16 +672,19 @@ void GlobalUIModel::SaveUserPreferences()
 }
 
 bool GlobalUIModel::GetCursorPositionValueAndRange(
-    Vector3ui &value, NumericValueRange<Vector3ui> *range)
+    Vector3i &value, NumericValueRange<Vector3i> *range)
 {
   if(m_Driver->IsMainImageLoaded())
     {
-    value = m_Driver->GetCursorPosition() + 1u;
+    value = m_Driver->GetCursorPosition() + 1;
     if(range)
       {
-      range->Set(Vector3ui(1u),
-                 m_Driver->GetCurrentImageData()->GetReferenceSpaceWrapper()->GetSize(),
-                 Vector3ui(1u));
+      auto fe_region = m_Driver->GetCurrentImageData()->GetFullExtentImageRegion();
+
+
+      range->Set(Vector3i(fe_region.GetIndex()) + 1,
+                 Vector3i(fe_region.GetUpperIndex()) + 1,
+                 Vector3i(1u));
       }
     return true;
     }
@@ -689,9 +692,9 @@ bool GlobalUIModel::GetCursorPositionValueAndRange(
   return false;
 }
 
-void GlobalUIModel::SetCursorPosition(Vector3ui value)
+void GlobalUIModel::SetCursorPosition(Vector3i value)
 {
-  m_Driver->SetCursorPosition(value - 1u);
+  m_Driver->SetCursorPosition(value - 1);
 }
 
 bool GlobalUIModel::GetCursorTimePointValueAndRange(

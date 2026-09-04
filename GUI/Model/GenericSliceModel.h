@@ -312,11 +312,14 @@ public:
   /** Get the slice spacing in the display space orientation */
   virtual Vector3d GetReferenceSpaceSpacing() const;
 
-  /** Get the slice spacing in the display space orientation */
-  virtual Vector3i GetRefernceSpaceSize() const;
+  /** Get the size of the reference space region */
+  virtual Vector3i GetReferenceSpaceSize() const;
 
-  /** Get the slice spacing in the display space orientation */
-  virtual Vector3i GetFullExtentSize() const;
+  /** Get the reference space region in local coordinate frame */
+  irisGetMacro(FullExtentRegion, itk::ImageRegion<3>);
+
+  /** Get the full extent region in local coordinate frame */
+  irisGetMacro(ReferenceSpaceRegion, itk::ImageRegion<3>);
 
   /** Get the corners of the reference space rectangle in slice coordinates */
   std::pair<Vector2d, Vector2d> GetReferenceSpaceCorners() const;
@@ -464,7 +467,7 @@ protected:
 
   // Reference space region in the display coordinate orientation, i.e.,
   // x is display left/right, y is display down/up, z is display slice direction
-  itk::ImageRegion<3> m_RefSpaceRegion;
+  itk::ImageRegion<3> m_ReferenceSpaceRegion;
 
   // Full scene extent region in the display coordinate orientation
   itk::ImageRegion<3> m_FullExtentRegion;

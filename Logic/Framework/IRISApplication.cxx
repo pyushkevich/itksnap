@@ -823,13 +823,13 @@ IRISApplication ::UpdateIRISWithSnapImageData(CommandType *progressCommand)
 }
 
 void
-IRISApplication ::SetCursorPosition(const Vector3ui cursor, bool force)
+IRISApplication ::SetCursorPosition(const Vector3i cursor, bool force)
 {
   // Cursor position is handled through ImageData
   this->GetCurrentImageData()->SetCursorPosition(cursor);
 }
 
-Vector3ui
+Vector3i
 IRISApplication ::GetCursorPosition() const
 {
   return this->GetCurrentImageData()->GetCursorPosition();
@@ -891,7 +891,7 @@ IRISApplication::LocateLabelCenterOfMass(LabelType label)
 
   if (n > 0)
   {
-    Vector3ui cursor;
+    Vector3i cursor;
     for (unsigned int i = 0; i < 3; ++i)
       cursor[i] = static_cast<unsigned int>(std::round(x[i] / n));
 
@@ -1613,7 +1613,7 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
     layer->SetSticky(false);
 
   // Update the crosshairs position to the center of the image
-  this->SetCursorPosition(layer->GetSize() / 2u);
+  this->SetCursorPosition(to_int(layer->GetSize()) / 2);
 
   // If the default is to auto-contrast, perform the contrast adjustment
   // operation on the image

@@ -944,6 +944,9 @@ protected:
   void SampleIntensityAtReferenceIndexInternal(
       const itk::Index<3> &index, unsigned int tp_begin, unsigned int tp_end) const;
 
+  /** Get the zero value for a pixel (may be a vector) */
+  PixelType GetZeroPixelValue() const;
+
   /** Whether the current wrapper is of vector type or scalar type (for internal use) */
   typedef std::is_base_of<itk::VectorImage<ComponentType, 3>, ImageType> IsVector;
 

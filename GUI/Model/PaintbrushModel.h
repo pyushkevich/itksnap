@@ -51,7 +51,7 @@ protected:
   bool m_ReverseMode;
 
   // Mouse position in voxel coordinates
-  Vector3ui m_MousePosition;
+  Vector3i  m_MousePosition;
   bool      m_MouseInside;
 
   // Mouse position in slice coordinates from which we need to draw the

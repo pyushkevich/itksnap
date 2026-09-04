@@ -1140,7 +1140,7 @@ bool
 DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_id,
                                                        ImageWrapperBase *layer,
                                                        int               axis,
-                                                       Vector3ui         pos,
+                                                       Vector3i          pos,
                                                        bool              reverse)
 {
   // Update the source image

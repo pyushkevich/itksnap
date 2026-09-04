@@ -656,7 +656,7 @@ void AnnotationModel::GoToNextOrPrevAnnotation(int direction)
     selected->SetSelected(true);
 
     // Go to its plane
-    Vector3ui cursor = m_Parent->GetDriver()->GetCursorPosition();
+    Vector3i cursor = m_Parent->GetDriver()->GetCursorPosition();
     cursor[m_Parent->GetSliceDirectionInImageSpace()] = selected->GetSliceIndex(m_Parent->GetSliceDirectionInImageSpace());
     m_Parent->GetDriver()->SetCursorPosition(cursor);
     }
