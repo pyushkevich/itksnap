@@ -82,11 +82,11 @@ SNAPAppearanceSettings
   elt->SetVisibilityFlag(true);
 
   // Crosshairs outside of the segmentation bounds
-  elt = m_DefaultElementSettings[CROSSHAIRS_OOB];
-  elt->SetColor(Vector3d(0.25, 0.25, 1.0));
-  elt->SetAlpha(0.65);
-  elt->SetLineThickness(1.5);
-  elt->SetLineType(vtkPen::DASH_LINE);
+  elt = m_DefaultElementSettings[REFERENCE_SPACE_BOUNDS];
+  elt->SetColor(Vector3d(0.84, 0.51, 1.0));
+  elt->SetAlpha(0.5);
+  elt->SetLineThickness(2);
+  elt->SetLineType(vtkPen::DOT_LINE);
   elt->SetVisibilityFlag(true);
 
   // Markers
@@ -281,7 +281,7 @@ SNAPAppearanceSettings
 
 const char *SNAPAppearanceSettings ::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = {
   "CROSSHAIRS",
-  "CROSSHAIRS_OOB",
+  "REFERENCE_SPACE_BOUNDS",
   "MARKERS",
   "ROI_BOX",
   "ROI_BOX_ACTIVE",

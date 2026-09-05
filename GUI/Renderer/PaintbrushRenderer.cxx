@@ -71,15 +71,18 @@ PaintbrushRenderer::BuildBrush(AbstractRenderContext *context)
 {
   // Get the current properties
   PaintbrushSettings ps = m_Model->GetEffectivePaintbrushSettings();
+  Vector3d           spref =
+    m_Model->GetParent()->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSpacing();
 
   // Check if the cached settings can be used
-  if (m_BrushOutline.size() && ps.radius == m_CachedBrushSettings.radius &&
-      ps.isotropic == m_CachedBrushSettings.isotropic && ps.shape == m_CachedBrushSettings.shape &&
-      ps.volumetric == m_CachedBrushSettings.volumetric)
+  if (m_BrushOutline.size() && spref == m_CachedReferenceSpaceSpacing &&
+      ps.radius == m_CachedBrushSettings.radius && ps.isotropic == m_CachedBrushSettings.isotropic &&
+      ps.shape == m_CachedBrushSettings.shape && ps.volumetric == m_CachedBrushSettings.volumetric)
     return;
 
   // Cache the current settings
   m_CachedBrushSettings = ps;
+  m_CachedReferenceSpaceSpacing = spref;
 
   // Create the new walk
   m_BrushOutline.clear();

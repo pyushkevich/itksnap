@@ -37,8 +37,8 @@
 
 void
 CrosshairsRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
-                                            ImageWrapperBase         *base_layer,
-                                            const SubViewport        &vp)
+                                         ImageWrapperBase      *base_layer,
+                                         const SubViewport     &vp)
 {
   SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
 
@@ -48,7 +48,7 @@ CrosshairsRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
                                    : as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS);
 
   // Exit if the crosshars are not drawn
-  if(elt->GetVisible() && !vp.isThumbnail)
+  if (elt->GetVisible() && !vp.isThumbnail)
   {
     // Draw cursor on this image
     // Get the current cursor position
@@ -62,28 +62,36 @@ CrosshairsRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
     Vector3d pos = m_Model->MapImageToSlice(xCursorImage);
 
     // Upper and lower bounds to which the crosshairs are drawn
-    Vector2i lower_ref(0);
-    Vector2i upper_ref = m_Model->GetReferenceSpaceSize().extract(2);
+    Vector3i lower_ref(0);
+    Vector3i upper_ref = m_Model->GetReferenceSpaceSize();
+    Vector3i lower_fe(m_Model->GetFullExtentRegion().GetIndex());
+    Vector3i upper_fe(m_Model->GetFullExtentRegion().GetUpperIndex());
 
-    Vector2i lower_fe = Vector3i(m_Model->GetFullExtentRegion().GetIndex()).extract(2);
-    Vector2i upper_fe = Vector3i(m_Model->GetFullExtentRegion().GetUpperIndex()).extract(2);
+    // Check if the slice is inside of the segmentation box
+    bool z_in_range = (pos[2] >= lower_ref[2] && pos[2] <= upper_ref[2]);
 
-    // Apply the color
-    context->SetPenAppearance(*as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_OOB));
+    // Reference extent rectangle
+    double rx0 = lower_ref[0], ry0 = lower_ref[1];
+    double rx1 = upper_ref[0], ry1 = upper_ref[1];
+    double rw = rx1 - rx0, rh = ry1 - ry0;
 
-    // Draw the four cross-hair pieces
-    context->DrawLine(pos[0], pos[1], lower_fe[0], pos[1]);
-    context->DrawLine(pos[0], pos[1], upper_fe[0], pos[1]);
-    context->DrawLine(pos[0], pos[1], pos[0], lower_fe[1]);
-    context->DrawLine(pos[0], pos[1], pos[0], upper_fe[1]);
+    // Full extent rectangle
+    double fx0 = lower_fe[0], fy0 = lower_fe[1];
+    double fx1 = upper_fe[0], fy1 = upper_fe[1];
 
-    // Apply the color
+    // Draw the crosshair normally, spanning the full extent
     context->SetPenAppearance(*as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS));
+    context->DrawLine(pos[0], pos[1], fx0, pos[1]);
+    context->DrawLine(pos[0], pos[1], fx1, pos[1]);
+    context->DrawLine(pos[0], pos[1], pos[0], fy0);
+    context->DrawLine(pos[0], pos[1], pos[0], fy1);
 
-    // Draw the four cross-hair pieces
-    context->DrawLine(pos[0], pos[1], lower_ref[0], pos[1]);
-    context->DrawLine(pos[0], pos[1], upper_ref[0], pos[1]);
-    context->DrawLine(pos[0], pos[1], pos[0], lower_ref[1]);
-    context->DrawLine(pos[0], pos[1], pos[0], upper_ref[1]);
+    // If the reference space differs from the full extent, outline it
+    bool ref_differs_from_fe = (rx0 != fx0 || ry0 != fy0 || rx1 != fx1 || ry1 != fy1);
+    if(z_in_range && ref_differs_from_fe)
+    {
+      context->SetPenAppearance(*as->GetUIElement(SNAPAppearanceSettings::REFERENCE_SPACE_BOUNDS));
+      context->DrawRect(rx0, ry0, rw, rh);
+    }
   }
 }

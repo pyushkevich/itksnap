@@ -122,7 +122,7 @@ public:
    * that are smaller than the corresponding elements of lower are set to lower, 
    * and the same is done for upper).
    */
-  Self clamp(const Self &lower, const Self &upper) 
+  Self clamp(const Self &lower, const Self &upper) const
   {
     Self y;
     for(unsigned int i=0;i<VSize;i++)
