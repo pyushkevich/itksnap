@@ -3,6 +3,7 @@
 #include "PaintbrushModel.h"
 #include "QtWarningDialog.h"
 #include "SliceViewPanel.h"
+#include <stdexcept>
 
 PaintbrushInteractionMode::PaintbrushInteractionMode(QWidget *parent, QWidget *canvasWidget)
   : SliceWindowInteractionDelegateWidget(parent, canvasWidget)
@@ -35,7 +36,7 @@ PaintbrushInteractionMode::mousePressEvent(QMouseEvent *ev)
         ev->accept();
     }
   }
-  catch (IRISException &exc)
+  catch (std::exception &exc)
   {
     QtWarningDialog::show({ IRISWarning(exc.what()) });
   }
@@ -60,7 +61,7 @@ PaintbrushInteractionMode::mouseMoveEvent(QMouseEvent *ev)
         ev->accept();
     }
   }
-  catch (IRISException &exc)
+  catch (std::exception &exc)
   {
     QtWarningDialog::show({ IRISWarning(exc.what()) });
   }
@@ -76,7 +77,7 @@ PaintbrushInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
       ev->accept();
     }
   }
-  catch (IRISException &exc)
+  catch (std::exception &exc)
   {
     QtWarningDialog::show({ IRISWarning(exc.what()) });
   }
@@ -105,7 +106,7 @@ PaintbrushInteractionMode::keyPressEvent(QKeyEvent *ev)
     {
       m_Model->AcceptAtCursor();
     }
-    catch (IRISException &exc)
+    catch (std::exception &exc)
     {
       QtWarningDialog::show({ IRISWarning(exc.what()) });
     }
