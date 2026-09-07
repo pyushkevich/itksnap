@@ -134,31 +134,20 @@ void expand_region(itk::ImageRegion<VDim> &target, const itk::ImageRegion<VDim> 
 template<unsigned int VDim>
 void expand_region(itk::ImageRegion<VDim> &target, const itk::ContinuousIndex<double, VDim> &x)
 {
-  if (target.GetNumberOfPixels() == 0)
-  {
-    for(unsigned int i = 0; i < VDim; i++)
-    {
-      int x_lo = (int) std::floor(x[i] + 0.5);
-      int x_hi = (int) std::ceil(x[i] - 0.5);
-      target.SetIndex(i, x_lo);
-      target.SetSize(i, x_hi - x_lo + 1);
-    }
-    return;
-  }
+  bool is_empty = (target.GetNumberOfPixels() == 0);
+  auto i_lo = target.GetIndex(), i_hi = target.GetUpperIndex();
 
-  for(unsigned int i = 0; i < 3; i++)
+  for(unsigned int i = 0; i < VDim; i++)
   {
-    int x_lo = (int) std::floor(x[i] + 0.5);
-    int x_hi = (int) std::ceil(x[i] - 0.5);
-    int target_lo = target.GetIndex()[i];
-    int target_hi = target_lo + target.GetSize(i) - 1;
-    target.SetIndex(i, std::min(x_lo, target_lo));
-    target.SetSize(i, std::max(x_hi, target_hi) - target.GetIndex(i) + 1);
+    // index - 0.5 >= x ==> index >= x + 0.5 ==> index = floor(x + 0.5)
+    // upper_index + 0.5 <= x ==> upper_index <= x - 0.5 ==> upper_index = ceil(x - 0.5)
+    double xi = x[i];
+    long x_lo = (long) std::floor(xi + 0.5), x_hi = (long) std::ceil(xi - 0.5);
+    long t_lo = is_empty ? x_lo : std::min(i_lo[i], x_lo);
+    long t_hi = is_empty ? x_hi : std::max(i_hi[i], x_hi);
+    target.SetIndex(i, t_lo);
+    target.SetSize(i, t_hi - t_lo + 1);
   }
-
-  // auto upper = target.GetUpperIndex();
-  // target.SetIndex(elementwise_min(target.GetIndex(), source.GetIndex()));
-  // target.SetUpperIndex(elementwise_max(upper, source.GetUpperIndex()));
 }
 
 GenericImageData::RegionType
@@ -181,8 +170,8 @@ GenericImageData::GetFullExtentImageRegion()
 
     // Extents of the region box
     Vector3d ext_layer[] = {
-      to_double(layer->GetBufferedRegion().GetIndex()) - 0.5,
-      to_double(layer->GetBufferedRegion().GetUpperIndex()) + 0.5
+      to_double(layer->GetBufferedRegion().GetIndex()) - 0.4999,
+      to_double(layer->GetBufferedRegion().GetUpperIndex()) + 0.4999
     };
 
     // Map the eight corners of the region box into reference space
@@ -457,6 +446,9 @@ GenericImageData::UpdateActiveSegmentation(LabelImageWrapper *wrapper)
   // Fire update event
   if(geom_change)
     InvokeEvent(ReferenceSpaceGeometryChangeEvent());
+
+  // Dirty the full extents
+  m_FullExtentRegionCacheValid = false;
 }
 
 GenericImageData::ImageBaseType *
@@ -925,6 +917,9 @@ void GenericImageData::SetDirectionMatrix(const vnl_matrix<double> &direction)
       }
 
   InvokeEvent(ReferenceSpaceGeometryChangeEvent());
+
+  // Dirty the full extents
+  m_FullExtentRegionCacheValid = false;
 }
 
 const ImageCoordinateGeometry *GenericImageData::GetImageGeometry() const
@@ -1103,6 +1098,9 @@ void GenericImageData::PushBackImageWrapper(LayerRole role,
   
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
+
+  // Dirty the full extents
+  m_FullExtentRegionCacheValid = false;
 }
 
 void GenericImageData::PopBackImageWrapper(LayerRole role)
@@ -1114,6 +1112,9 @@ void GenericImageData::PopBackImageWrapper(LayerRole role)
 
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
+
+  // Dirty the full extents
+  m_FullExtentRegionCacheValid = false;
 }
 
 void GenericImageData::MoveLayer(ImageWrapperBase *layer, int direction)
@@ -1135,6 +1136,9 @@ void GenericImageData::MoveLayer(ImageWrapperBase *layer, int direction)
 
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
+
+  // Dirty the full extents
+  m_FullExtentRegionCacheValid = false;
 }
 
 void GenericImageData::RemoveImageWrapper(LayerRole role,
@@ -1152,6 +1156,9 @@ void GenericImageData::RemoveImageWrapper(LayerRole role,
 
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
+
+  // Dirty the full extents
+  m_FullExtentRegionCacheValid = false;
 }
 
 void GenericImageData::SetSingleImageWrapper(LayerRole role,
@@ -1171,6 +1178,9 @@ void GenericImageData::SetSingleImageWrapper(LayerRole role,
 
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
+
+  // Dirty the full extents
+  m_FullExtentRegionCacheValid = false;
 }
 
 void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
@@ -1183,6 +1193,9 @@ void GenericImageData::RemoveSingleImageWrapper(LayerRole role)
 
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
+
+  // Dirty the full extents
+  m_FullExtentRegionCacheValid = false;
 }
 
 void

@@ -62,8 +62,8 @@ CrosshairsRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
     Vector3d pos = m_Model->MapImageToSlice(xCursorImage);
 
     // Upper and lower bounds to which the crosshairs are drawn
-    Vector3i lower_ref(0);
-    Vector3i upper_ref = m_Model->GetReferenceSpaceSize();
+    Vector3i lower_ref(m_Model->GetReferenceSpaceRegion().GetIndex());
+    Vector3i upper_ref(m_Model->GetReferenceSpaceRegion().GetUpperIndex());
     Vector3i lower_fe(m_Model->GetFullExtentRegion().GetIndex());
     Vector3i upper_fe(m_Model->GetFullExtentRegion().GetUpperIndex());
 
