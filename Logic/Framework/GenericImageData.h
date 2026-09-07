@@ -503,6 +503,16 @@ protected:
   // Compare geometry between two wrappers
   static bool IsSameGeometry(ImageWrapperBase *wrapper1, ImageWrapperBase *wrapper2);
 
+  // Flag used for caching full extent region
+  bool m_FullExtentRegionCacheValid = false;
+
+  // Cached full extent region
+  RegionType m_FullExtentRegionCache;
+
+  // Callback used for flagging full extent geometry as dirty
+  using RebroadcastCallbackType = std::function<void(const itk::Object *, const itk::EventObject &)>;
+  RebroadcastCallbackType m_FullExtentCacheCallback;
+
   // Storage of all mesh layers
   SmartPtr<ImageMeshLayers> m_MeshLayers;
 };

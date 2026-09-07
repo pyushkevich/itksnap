@@ -23,8 +23,10 @@ public:
           return it->first;
       }
 
-    // This is ambiguous...
-    return static_cast<TAtomic>(0);
+      if constexpr (std::is_same_v<TAtomic, std::string>)
+        return TAtomic();
+      else
+        return static_cast<TAtomic>(0);
   }
 
   void SetValue(TParentWidget *w, const TAtomic &value)

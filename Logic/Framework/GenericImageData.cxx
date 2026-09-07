@@ -76,6 +76,11 @@ GenericImageData
   m_TimePointProperties->SetParent(this);
 	Rebroadcaster::Rebroadcast(m_TimePointProperties, WrapperGlobalMetadataChangeEvent(),
 														 this, WrapperGlobalMetadataChangeEvent());
+
+  // Callback for events impacting the full extent region change (for caching)
+  m_FullExtentCacheCallback = [this](const itk::Object *caller, const itk::EventObject &event) {
+    this->m_FullExtentRegionCacheValid = false;
+  };
 }
 
 GenericImageData
@@ -126,9 +131,43 @@ void expand_region(itk::ImageRegion<VDim> &target, const itk::ImageRegion<VDim> 
   target.SetUpperIndex(elementwise_max(upper, source.GetUpperIndex()));
 }
 
+template<unsigned int VDim>
+void expand_region(itk::ImageRegion<VDim> &target, const itk::ContinuousIndex<double, VDim> &x)
+{
+  if (target.GetNumberOfPixels() == 0)
+  {
+    for(unsigned int i = 0; i < VDim; i++)
+    {
+      int x_lo = (int) std::floor(x[i] + 0.5);
+      int x_hi = (int) std::ceil(x[i] - 0.5);
+      target.SetIndex(i, x_lo);
+      target.SetSize(i, x_hi - x_lo + 1);
+    }
+    return;
+  }
+
+  for(unsigned int i = 0; i < 3; i++)
+  {
+    int x_lo = (int) std::floor(x[i] + 0.5);
+    int x_hi = (int) std::ceil(x[i] - 0.5);
+    int target_lo = target.GetIndex()[i];
+    int target_hi = target_lo + target.GetSize(i) - 1;
+    target.SetIndex(i, std::min(x_lo, target_lo));
+    target.SetSize(i, std::max(x_hi, target_hi) - target.GetIndex(i) + 1);
+  }
+
+  // auto upper = target.GetUpperIndex();
+  // target.SetIndex(elementwise_min(target.GetIndex(), source.GetIndex()));
+  // target.SetUpperIndex(elementwise_max(upper, source.GetUpperIndex()));
+}
+
 GenericImageData::RegionType
 GenericImageData::GetFullExtentImageRegion()
 {
+  // Use cache when possible
+  if(m_FullExtentRegionCacheValid)
+    return m_FullExtentRegionCache;
+
   // Start with the reference image itself
   auto *ref = this->GetReferenceSpaceWrapper();
   auto tran_ref = ref->GetITKTransform();
@@ -160,19 +199,8 @@ GenericImageData::GetFullExtentImageRegion()
       auto pt_lps_tt = tran_ref->TransformPoint( tran_layer->GetInverseTransform()->TransformPoint(pt_lps) );
       auto ci_ref = ref->GetImageBase()->TransformPhysicalPointToContinuousIndex<double>(pt_lps_tt);
 
-      itk::ImageRegion<3> corner_region;
-      for(unsigned int i = 0; i < 3; i++)
-      {
-        corner_region.SetIndex(i, (long) std::floor(ci_ref[i] - 0.5));
-        corner_region.SetSize(i, 1);
-      }
-
-      // Update the extents of the layer in reference space
-      // auto corner_idx = to_itkIndex(corner_ref - 0.5);
-      if(corner == 0)
-        rgn_layer_ref_space = corner_region;
-      else
-        expand_region(rgn_layer_ref_space, corner_region);
+      // Expand region to include this point
+      expand_region(rgn_layer_ref_space, ci_ref);
     }
 
     // Check if the extents overlap
@@ -193,6 +221,9 @@ GenericImageData::GetFullExtentImageRegion()
       expand_region(region, rgn_layer_ref_space);
     }
   }
+
+  m_FullExtentRegionCacheValid = true;
+  m_FullExtentRegionCache = region;
   return region;
 }
 
@@ -633,7 +664,7 @@ GenericImageData
 
   // Intensity changes in the image wrapper are broadcast as segmentation events
   Rebroadcaster::Rebroadcast(seg_wrapper, WrapperImageChangeEvent(),
-                             this, SegmentationChangeEvent());
+                             this, SegmentationChangeEvent(), m_FullExtentCacheCallback);
 
   // Return the newly added wrapper
   return seg_wrapper;
@@ -681,7 +712,7 @@ LabelImageWrapper *GenericImageData::AddBlankSegmentation(bool make_active)
 
   // Intensity changes in the image wrapper are broadcast as segmentation events
   Rebroadcaster::Rebroadcast(seg_wrapper, WrapperImageChangeEvent(),
-                             this, SegmentationChangeEvent());
+                             this, SegmentationChangeEvent(), m_FullExtentCacheCallback);
 
   // Return the added wrapper
   return seg_wrapper;
@@ -1068,7 +1099,7 @@ void GenericImageData::PushBackImageWrapper(LayerRole role,
   m_Wrappers[role].push_back(wrapper);
 
   // Rebroadcast the wrapper-related events as our own events
-  Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this);
+  Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this, m_FullExtentCacheCallback);
   
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
@@ -1136,7 +1167,7 @@ void GenericImageData::SetSingleImageWrapper(LayerRole role,
   m_Wrappers[role].front() = wrapper;
 
   // Rebroadcast the wrapper-related events as our own events
-  Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this);
+  Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this, m_FullExtentCacheCallback);
 
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
