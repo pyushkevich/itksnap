@@ -714,6 +714,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/QtIPCManager.cxx
   GUI/Qt/Components/QtRendererPlatformSupport.cxx
   GUI/Qt/Components/QtReporterDelegates.cxx
+  GUI/Qt/Components/QtTranslationLocale.cxx
   GUI/Qt/Components/QProcessOutputTextWidget.cxx
   GUI/Qt/Components/QtWarningDialog.cxx
   GUI/Qt/Components/QtWidgetActivator.cxx
@@ -904,6 +905,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/QtFrameBufferOpenGLWidget.h
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
+  GUI/Qt/Components/QtTranslationLocale.h
   GUI/Qt/Components/SNAPQtCommon.h
   GUI/Qt/Coupling/TagListWidgetCoupling.h
   GUI/Qt/Coupling/QtAbstractButtonCoupling.h
@@ -1473,6 +1475,18 @@ TARGET_LINK_LIBRARIES(TestLargeImageCheck ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(TestLargeImageCheck PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestLargeImageCheck COMMAND TestLargeImageCheck ${TEMP})
+
+# Test: the UI language follows the user's preferred languages, not the region (#210)
+ADD_EXECUTABLE(TestTranslationLocale
+    Testing/GUI/Qt/TestTranslationLocale.cxx
+    GUI/Qt/Components/QtTranslationLocale.cxx)
+TARGET_LINK_LIBRARIES(TestTranslationLocale Qt6::Core)
+IF(APPLE)
+  TARGET_LINK_LIBRARIES(TestTranslationLocale "-framework CoreFoundation")
+ENDIF(APPLE)
+TARGET_INCLUDE_DIRECTORIES(TestTranslationLocale PUBLIC ${SNAP_SOURCE_DIR}/GUI/Qt/Components)
+
+add_test(NAME TestTranslationLocale COMMAND TestTranslationLocale)
 
 # Set up a test for each GUI test
 FOREACH(GUI_TEST ${GUI_TESTS})
