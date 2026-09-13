@@ -188,15 +188,13 @@ bool ImageInfoModel
 bool ImageInfoModel
 ::GetImageOrientation(std::string &value)
 {
-  if(!this->GetLayer()) return false;
+  ImageWrapperBase *l = dynamic_cast<ImageWrapperBase*>(this->GetLayer());
 
-  if(!m_ParentModel->GetDriver()->GetCurrentImageData()->IsMainLoaded())
-    return false;
+  if(!l) return false;
 
-  const ImageCoordinateGeometry *geo =
-      m_ParentModel->GetDriver()->GetCurrentImageData()->GetImageGeometry();
+  // Use the direction of the selected layer, not of the main image
   ImageCoordinateGeometry::DirectionMatrix dmat =
-      geo->GetImageDirectionCosineMatrix();
+      l->GetImageBase()->GetDirection().GetVnlMatrix().as_matrix();
 
   std::string raicode =
     ImageCoordinateGeometry::ConvertDirectionMatrixToClosestRAICode(dmat);
