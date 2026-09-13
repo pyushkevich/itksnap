@@ -86,13 +86,14 @@ void RLEImage<TPixel, VImageDimension, CounterType>::CleanUpLine(RLLine & line) 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
 void RLEImage<TPixel, VImageDimension, CounterType>::CleanUp() const
 {
-    assert(!myBuffer.empty());
     if (this->GetLargestPossibleRegion().GetSize(0) == 0)
         return;
+    // myBuffer is an image of run-length lines, so visit each line in its pixel container
+    RLLine * lines = myBuffer->GetBufferPointer();
+    const itk::SizeValueType nLines = myBuffer->GetPixelContainer()->Size();
 #pragma omp parallel for
-    for (CounterType z = 0; z < myBuffer.size(); z++)
-        for (CounterType y = 0; y < myBuffer[0].size(); y++)
-            CleanUpLine(myBuffer[z][y]);
+    for (itk::SizeValueType i = 0; i < nLines; i++)
+        CleanUpLine(lines[i]);
 }
 
 template< typename TPixel, unsigned int VImageDimension, typename CounterType >
