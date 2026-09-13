@@ -1337,6 +1337,7 @@ SET(GUI_TESTS
   4DToMC
   MCTo4D
   DeformationGrid
+  LayerOrientation
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
