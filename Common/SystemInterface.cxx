@@ -91,8 +91,9 @@ std::string
 SystemInterface::GetApplicationDataDirectory()
 {
   // Read APPDATA as UTF-16 and convert it to UTF-8, the encoding ITK-SNAP uses for all
-  // std::string paths. Non-ASCII characters are supported because the application
-  // manifest (Utilities/Win32/itksnap.manifest) sets the process code page to UTF-8.
+  // std::string paths. Non-ASCII characters need no special handling after that: itksys
+  // (built by ITK with KWSYS_ENCODING_DEFAULT_CODEPAGE=CP_UTF8) and the CRT (after the
+  // setlocale(LC_ALL, ".UTF8") call in main) both decode these strings as UTF-8.
   const DWORD path_w_size = 4096;
   wchar_t     path_w[path_w_size];
   DWORD       n_chars = GetEnvironmentVariableW(L"APPDATA", path_w, path_w_size);

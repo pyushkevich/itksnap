@@ -1277,8 +1277,9 @@ IF(WIN32)
   # Add the .rc file
   SET(SNAP_MAIN_SRC ${SNAP_MAIN_SRC} ${SNAP_SOURCE_DIR}/Utilities/Win32/itksnap.rc)
 
-  # Application manifest, which requests the UTF-8 process code page needed for paths
-  # with non-ASCII characters. MSVC passes .manifest sources to the linker.
+  # Application manifest, which requests the UTF-8 process code page so that non-ASCII paths
+  # in argv and in narrow Win32 API calls are decoded as UTF-8. MSVC passes .manifest sources
+  # to the linker.
   IF(MSVC)
     SET(SNAP_WIN32_MANIFEST ${SNAP_SOURCE_DIR}/Utilities/Win32/itksnap.manifest)
     SET(SNAP_MAIN_SRC ${SNAP_MAIN_SRC} ${SNAP_WIN32_MANIFEST})

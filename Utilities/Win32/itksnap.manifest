@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
   <!--
-    Sets the process code page to UTF-8 (Windows 10 1903+), so that itksys and the narrow
-    Win32 API decode ITK-SNAP's UTF-8 paths correctly. Without it, non-ASCII characters in
-    %APPDATA% are misdecoded. Keep this minimal: adding dpiAware or supportedOS entries
-    would override what Qt configures.
+    Sets the process code page to UTF-8 (Windows 10 1903+). ITK-SNAP keeps paths in UTF-8
+    std::strings, and this makes everything that uses the process code page agree with that:
+    argv (non-ASCII paths on the command line), getenv, and the narrow "A" Win32 API, such as
+    GetLongPathNameA in DecodeFilename(). Keep this minimal: in particular, a dpiAware entry
+    would take precedence over the DPI awareness that Qt sets at run time.
   -->
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
