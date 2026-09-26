@@ -100,10 +100,10 @@ SystemInterface::GetApplicationDataDirectory()
   if (n_chars == 0)
     throw IRISException("Can not access APPDATA path on WIN32.");
 
-  // On failure due to a small buffer, the return value is the required size, not the
-  // number of characters copied, and path_w has not been filled in.
+  // On failure due to a small buffer, the return value is the required size including the
+  // terminating null, not the number of characters copied, and path_w has not been filled in.
   if (n_chars >= path_w_size)
-    throw IRISException("The APPDATA path on WIN32 is too long (%d characters).", (int)n_chars);
+    throw IRISException("The APPDATA path on WIN32 is too long (%d characters).", (int)n_chars - 1);
 
   // Convert to UTF-8. Passing the length explicitly keeps the terminating null out of
   // the resulting std::string.
