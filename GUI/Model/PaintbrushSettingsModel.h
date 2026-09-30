@@ -17,7 +17,8 @@ public:
 
   enum UIState {
     UIF_VOLUMETRIC_OK,
-    UIF_ADAPTIVE_OK
+    UIF_ADAPTIVE_OK,
+    UIF_DEEPLEARNING_OK
   };
 
   irisGetMacro(ParentModel, GlobalUIModel *)
@@ -27,19 +28,21 @@ public:
 
   bool CheckState(PaintbrushSettingsModel::UIState state);
 
-  irisGetMacro(PaintbrushShapeModel, AbstractPaintbrushShapeModel *)
-  irisGetMacro(PaintbrushSmartModeModel, AbstractPaintbrushSmartModeModel *)
+  irisGenericPropertyAccessMacro(PaintbrushShape, PaintbrushShape, TrivialDomain)
+  irisGenericPropertyAccessMacro(PaintbrushSmartMode, PaintbrushSmartMode, TrivialDomain)
 
-  irisGetMacro(BrushSizeModel, AbstractRangedIntProperty *)
-  irisGetMacro(VolumetricBrushModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(IsotropicBrushModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(ChaseCursorModel, AbstractSimpleBooleanProperty *)
+  irisRangedPropertyAccessMacro(BrushSize, int)
+  irisSimplePropertyAccessMacro(VolumetricBrush, bool)
+  irisSimplePropertyAccessMacro(IsotropicBrush, bool)
+  irisSimplePropertyAccessMacro(ChaseCursor, bool)
 
-  irisGetMacro(AdaptiveModeModel, AbstractSimpleBooleanProperty *)
-  irisGetMacro(ThresholdLevelModel, AbstractRangedDoubleProperty *)
-  irisGetMacro(SmoothingIterationsModel, AbstractRangedIntProperty *)
+  irisReadOnlySimplePropertyAccessMacro(AdaptiveMode, bool)
+  irisReadOnlySimplePropertyAccessMacro(DeepLearningMode, bool)
+  irisRangedPropertyAccessMacro(ThresholdLevel, double)
+  irisRangedPropertyAccessMacro(SmoothingIterations, int)
 
-  irisGetMacro(DeepLearningModeModel, AbstractSimpleBooleanProperty *)
+  using DeepLearningPipelineDomain = SimpleItemSetDomain<std::string, std::string>;
+  irisGenericPropertyAccessMacro(DeepLearningPipeline, std::string, DeepLearningPipelineDomain);
 
 protected:
 
@@ -72,6 +75,10 @@ protected:
 
   SmartPtr<AbstractSimpleBooleanProperty> m_DeepLearningModeModel;
   bool GetDeepLearningModeValue(bool &value);
+
+  SmartPtr<AbstractPropertyModel<std::string, DeepLearningPipelineDomain>> m_DeepLearningPipelineModel;
+  bool GetDeepLearningPipelineValueAndRange(std::string &value, DeepLearningPipelineDomain *range);
+  void SetDeepLearningPipelineValue(std::string value);
 
   SmartPtr<AbstractRangedDoubleProperty> m_ThresholdLevelModel;
   bool GetThresholdLevelValueAndRange(double &value, NumericValueRange<double> *domain);

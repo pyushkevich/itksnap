@@ -343,6 +343,15 @@ QDialog *FindUpstreamDialog(QWidget *widget, const QString &targetActionName)
   return FindUpstreamWidget<QDialog>(widget, targetActionName);
 }
 
+QWindow* FindUpstreamWindowHandle(QWidget *widget)
+{
+  // Find an upstream window that has a window handle
+  for(QWidget *w = widget; w != nullptr; w = w->parentWidget())
+    if(w->windowHandle())
+      return w->windowHandle();
+  return nullptr;
+}
+
 
 void ConnectWidgetToTopLevelAction(
     QWidget *w, const char *signal, QString actionName)

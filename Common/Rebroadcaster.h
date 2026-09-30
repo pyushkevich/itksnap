@@ -93,6 +93,9 @@ protected:
     // objects in memory, in case these objects are deleted
     const char *m_SourceObjectName, *m_TargetObjectName;
 
+    // The name of the source event type, used for deduplication
+    const char *m_SourceEventName;
+
     bool m_RefireSource;
   };
 

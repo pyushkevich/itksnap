@@ -157,14 +157,14 @@ Generic3DRenderer::Generic3DRenderer()
 
   this->m_Renderer->AddActor(m_ScalpelLineActor);
 
-  m_ScalarBarActor = vtkScalarBarActor::New();
+  m_ScalarBarActor = vtkSmartPointer<vtkScalarBarActor>::New();
   m_ScalarBarActor->SetBarRatio(m_ScalarBarActor->GetBarRatio() * 0.5);
   m_ScalarBarActor->UnconstrainedFontSizeOn();
   m_ScalarBarActor->GetLabelTextProperty()->SetFontSize(10);
   auto textProp = m_ScalarBarActor->GetTitleTextProperty();
   textProp->SetFontSize(9);
   textProp->SetJustificationToLeft();
-  this->m_Renderer->AddActor2D(m_ScalarBarActor);
+  this->m_Renderer->AddViewProp(m_ScalarBarActor);
 
   m_ImageCubeSource = vtkSmartPointer<vtkCubeSource>::New();
   m_ImageCubeTransform = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
@@ -373,8 +373,8 @@ Generic3DRenderer::UpdateAxisRendering()
 
   if (app->IsMainImageLoaded())
   {
-    Vector3ui cursor = app->GetCursorPosition();
-    Vector3ui dims = app->GetCurrentImageData()->GetImageRegion().GetSize();
+    Vector3i cursor = app->GetCursorPosition();
+    Vector3ui dims = app->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
     // Get the axis appearance properties
     OpenGLAppearanceElement *axisapp = as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_3D);
@@ -567,7 +567,7 @@ Generic3DRenderer::UpdateSprayGlyphAppearanceAndShape()
   IRISApplication *app = m_Model->GetParentUI()->GetDriver();
   if (app->IsMainImageLoaded())
   {
-    ImageWrapperBase *main = app->GetCurrentImageData()->GetMain();
+    ImageWrapperBase *ref = app->GetCurrentImageData()->GetReferenceSpaceWrapper();
 
     // The color of the spray paint is the same as the current label
     LabelType  dl = app->GetGlobalState()->GetDrawingColorLabel();
@@ -575,7 +575,7 @@ Generic3DRenderer::UpdateSprayGlyphAppearanceAndShape()
     m_SprayProperty->SetColor(cdl.GetRGBAsDoubleVector().data_block());
 
     // Set the spray transform
-    vnl_matrix_fixed<double, 4, 4> vox2nii = main->GetNiftiSform();
+    vnl_matrix_fixed<double, 4, 4> vox2nii = ref->GetNiftiSform();
     m_SprayTransform->SetMatrix(vox2nii.data_block());
   }
 }
@@ -588,14 +588,14 @@ Generic3DRenderer::UpdateCamera(bool reset)
 
   if (app->IsMainImageLoaded())
   {
-    ImageWrapperBase *main = app->GetCurrentImageData()->GetMain();
+    ImageWrapperBase *ref = app->GetCurrentImageData()->GetReferenceSpaceWrapper();
 
-    Vector3ui cursor = app->GetCursorPosition();
-    Vector3d  cursor_nifti = main->TransformVoxelCIndexToNIFTICoordinates(to_double(cursor));
-    Vector3d  spacing = app->GetCurrentImageData()->GetImageSpacing();
-    Vector3d  image_extent = element_product(to_double(main->GetSize()), spacing);
+    Vector3i  cursor = app->GetCursorPosition();
+    Vector3d  cursor_nifti = ref->TransformVoxelCIndexToNIFTICoordinates(to_double(cursor));
+    Vector3d  spacing = app->GetCurrentImageData()->GetReferenceSpaceSpacing();
+    Vector3d  image_extent = element_product(to_double(ref->GetSize()), spacing);
     Vector3d  image_center_nifti =
-      main->TransformVoxelCIndexToNIFTICoordinates(to_double(main->GetSize()) / 2.0);
+      ref->TransformVoxelCIndexToNIFTICoordinates(to_double(ref->GetSize()) / 2.0);
     Vector3d ctr, dim;
 
     // Set what to focus on
@@ -612,7 +612,8 @@ Generic3DRenderer::UpdateCamera(bool reset)
       case Generic3DModel::FOCAL_POINT_ACTIVE_MESH_LAYER_CENTER:
       {
         auto layer = m_Model->GetMeshLayers()->GetLayer(m_Model->GetMeshLayers()->GetActiveLayerId());
-        auto *assembly = (layer && layer->IsInitialized()) ? layer->GetMeshAssembly(main->GetTimePointIndex()) : nullptr;
+        auto tp = app->GetCursorTimePoint();
+        auto *assembly = (layer && layer->IsInitialized()) ? layer->GetMeshAssembly(tp) : nullptr;
         std::array<double, 6> bounds;
         if (assembly && assembly->GetCombinedBounds(bounds.data()))
         {

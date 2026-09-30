@@ -60,7 +60,7 @@ SnakeModeRenderer::DrawBubbles(AbstractRenderContext *context)
     int iid = m_Model->GetSliceDirectionInImageSpace();
 
     // Get the other essentials from the parent
-    Vector3d scaling = m_Model->GetSliceSpacing();
+    Vector3d scaling = m_Model->GetReferenceSpaceSpacing();
 
     // Draw each bubble
     for (int i = 0; i < numBubbles; i++)

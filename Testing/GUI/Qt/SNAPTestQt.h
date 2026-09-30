@@ -87,6 +87,31 @@ public slots:
   // Select an item in a combo box
   void comboBoxSelect(QObject *widget, QString itemText);
 
+  // Thread-safe property/method access (marshaled onto the GUI thread).
+  // callMethod/callChildMethod are non-blocking by default (a method could
+  // open a nested modal dialog); pass block=true when you know it won't.
+  QVariant getProperty(QObject *obj, QString name);
+  void setProperty(QObject *obj, QString name, QVariant value);
+  void callMethod(QObject *obj, QString method, QVariantList args = QVariantList(), bool block = false);
+
+  // Same, but for a child found by name (avoids a throwaway findChild var)
+  QVariant getChildProperty(QObject *parent, QString childName, QString propName);
+  void setChildProperty(QObject *parent, QString childName, QString propName, QVariant value);
+  void callChildMethod(QObject *parent, QString childName, QString method,
+                        QVariantList args = QVariantList(), bool block = false);
+
+  // click/toggle are just callMethod for the two most commonly called slots
+  void click(QObject *obj, bool block = false);
+  void clickChild(QObject *parent, QString childName, bool block = false);
+  void toggle(QObject *obj, bool block = false);
+  void close(QObject *obj, bool block = false);
+  void closeChild(QObject *parent, QString childName, bool block = false);
+
+  // validateProperty/validateChildProperty fold a getProperty into validateValue
+  void validateProperty(QObject *obj, QString name, QVariant expected, double precision = -1.0);
+  void validateChildProperty(QObject *parent, QString childName, QString propName,
+                              QVariant expected, double precision = -1.0);
+
   // Return the contents of an item in a table
   QVariant tableItemText(QObject *table, int row, int col);
 
@@ -104,9 +129,8 @@ public slots:
 
   void testFailed(QString reason);
 
-  void validateValue(QVariant v1, QVariant v2);
-
-  void validateFloatValue(double v1, double v2, double precision);
+  // precision < 0 means exact comparison; precision >= 0 means numeric comparison within tolerance
+  void validateValue(QVariant v1, QVariant v2, double precision = -1.0);
 
   void postMouseEvent(QObject *widget, double rel_x, double rel_y, QString eventType, QString button);
 

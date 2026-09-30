@@ -11,10 +11,26 @@ unsigned long Rebroadcaster
               itk::Object *target, const itk::EventObject &targetEvent,
               EventBucket *bucket)
 {
-  // TODO: for now, we allow the user to call this method twice with the same
-  // input without checking if the rebroadcast has already been set up. This
-  // might cause some issues if users are not careful.
+  // Deduplication: if an identical (source, sourceEvent, target, targetEvent)
+  // association already exists, return the existing tag rather than creating a
+  // duplicate. This prevents unbounded accumulation in the static dispatch maps
+  // when Rebroadcast() is called more than once with the same arguments (e.g.
+  // when a model's Initialize() is invoked repeatedly on the same object pair).
+  const char *srcEvtName = sourceEvent.GetEventName();
+  const char *tgtEvtName = targetEvent.GetEventName();
+  if(m_SourceMap.count(source))
+    {
+    for(Association *a : m_SourceMap[source])
+      {
+      if(a->m_Target == target &&
+         strcmp(a->m_SourceEventName, srcEvtName) == 0 &&
+         strcmp(a->m_TargetEvent->GetEventName(), tgtEvtName) == 0)
+        return a->m_SourceTag;
+      }
+    }
+
   Association *assoc = new Association(source, target, targetEvent);
+  assoc->m_SourceEventName = srcEvtName;
 
   // Add listeners to the source object, unless the source event is a delete
   // event, in which case, we already are going to register for it in order
@@ -185,6 +201,7 @@ Rebroadcaster::Association::Association(
 
   m_SourceObjectName = source->GetNameOfClass();
   m_TargetObjectName = target->GetNameOfClass();
+  m_SourceEventName = nullptr;
 
   // Are we refiring the source event or firing the target event?
   m_RefireSource = Rebroadcaster::RefireEvent().CheckEvent(m_TargetEvent);

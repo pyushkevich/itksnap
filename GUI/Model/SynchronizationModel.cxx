@@ -1,4 +1,5 @@
 #include "SynchronizationModel.h"
+#include "SNAPEvents.h"
 #include "GlobalUIModel.h"
 #include "IRISApplication.h"
 #include "SystemInterface.h"
@@ -10,6 +11,11 @@
 #include "Generic3DRenderer.h"
 #include "IPCHandler.h"
 #include <chrono>
+#include <itksys/SystemTools.hxx>
+
+using std::cout;
+using std::cerr;
+using std::endl;
 
 /** Structure passed on to IPC */
 struct IPCMessage
@@ -28,9 +34,12 @@ struct IPCMessage
   CameraState camera;
 
   // Version of the data structure
-  enum VersionEnum { VERSION = 0x1005 };
+  enum VersionEnum { VERSION = 0x1006 };
 };
 
+
+size_t SynchronizationModel::GetIPCMessageSize()    { return sizeof(IPCMessage); }
+short  SynchronizationModel::GetIPCMessageVersion() { return (short)IPCMessage::VERSION; }
 
 SynchronizationModel::SynchronizationModel()
 {
@@ -111,6 +120,14 @@ void
 SynchronizationModel::SetSystemInterface(AbstractSharedMemorySystemInterface *si)
 {
   m_IPCHandler = new IPCHandler(si);
+
+  // Attach and claim a slot immediately so we appear in other windows' Window
+  // menus from startup, before any image is loaded or any event fires.
+  auto status = m_IPCHandler->Attach(m_SystemInterface->GetUserPreferencesFileName(),
+                                     (short)IPCMessage::VERSION,
+                                     sizeof(IPCMessage));
+  if (status != IPCHandler::IPC_ERROR)
+    m_IPCHandler->ClaimSlot("ITK-SNAP");
 }
 
 void
@@ -159,47 +176,54 @@ SynchronizationModel::OnUpdate()
          << "    can_broadcast=" << (m_CanBroadcast ? 1 : 0) << endl;
   }
 
-  // If we are not participating in sync, or there is no main image, we should make sure that
-  // we are detached from the shared memory and not proceed further.
-  if (!do_sync || !have_main)
+  // Always attach to IPC so this instance appears in other windows' Window
+  // menus even before any image is loaded. Sync messages are only read/written
+  // when have_main && do_sync (below), but the directory slot is maintained
+  // unconditionally.
+  if (!m_IPCHandler->IsAttached())
   {
-    if (m_IPCHandler->IsAttached())
+    auto status = m_IPCHandler->Attach(m_SystemInterface->GetUserPreferencesFileName(),
+                                       (short)IPCMessage::VERSION,
+                                       sizeof(IPCMessage));
+
+    if (m_DebugSync)
     {
-      if (m_DebugSync)
-        cout << "  *Detaching from IPC*" << endl;
-      m_IPCHandler->Detach();
+      cout << "  *Attaching to IPC*, return status: "
+           << (status == IPCHandler::IPC_ATTACHED
+                 ? "IPC_ATTACHED"
+                 : (status == IPCHandler::IPC_CREATED ? "IPC_CREATED" : "IPC_ERROR"))
+           << endl;
     }
 
-    return;
-  }
-
-  // Behavior depends greatly on whether the main image has been loaded or not
-  if (bc_main_update || bc_sync_state_changed)
-  {
-    if (!m_IPCHandler->IsAttached())
+    if (status != IPCHandler::IPC_ERROR)
     {
-      // Main image has just been loaded. We should attach to the shared memory and
-      // read the shared memory state if it exists.
-      auto status = m_IPCHandler->Attach(m_SystemInterface->GetUserPreferencesFileName(),
-                                         (short)IPCMessage::VERSION,
-                                         sizeof(IPCMessage));
+      // Claim a directory slot with the current window title.
+      std::string title = have_main
+        ? itksys::SystemTools::GetFilenameName(
+            app->GetCurrentImageData()->GetMain()->GetFileName())
+        : "ITK-SNAP";
+      m_IPCHandler->ClaimSlot(title.c_str());
 
-      if (m_DebugSync)
-      {
-        cout << "  *Attaching to IPC*, return status: "
-             << (status == IPCHandler::IPC_ATTACHED
-                   ? "IPC_ATTACHED"
-                   : (status == IPCHandler::IPC_CREATED ? "IPC_CREATED" : "IPC_ERROR"))
-             << endl;
-      }
-
-      // If we attached to an existing session, then update from that session.
-      if (status == IPCHandler::IPC_ATTACHED)
-      {
+      // If we joined an existing sync session, read its state immediately.
+      if (status == IPCHandler::IPC_ATTACHED && have_main && do_sync)
         ReadIPCState(false);
-      }
     }
   }
+
+  // Update the slot title when the main image changes.
+  if (bc_main_update && m_IPCHandler->IsAttached())
+  {
+    std::string title = have_main
+      ? itksys::SystemTools::GetFilenameName(
+          app->GetCurrentImageData()->GetMain()->GetFileName())
+      : "ITK-SNAP";
+    m_IPCHandler->UpdateSlotTitle(title.c_str());
+  }
+
+  // If sync is disabled or no image is loaded, don't broadcast or read
+  // sync messages — but stay attached for directory purposes.
+  if (!do_sync || !have_main)
+    return;
 
   // If we reached this point, either there has not been a change in main image and
   // not a change in sync state; or a main image has been loaded, but shared memory
@@ -229,7 +253,7 @@ SynchronizationModel::OnUpdate()
   if (bc_cursor)
   {
     // Map the cursor to NIFTI coordinates
-    ImageWrapperBase *iw = app->GetCurrentImageData()->GetMain();
+    ImageWrapperBase *iw = app->GetCurrentImageData()->GetReferenceSpaceWrapper();
 
     // Get the NIFTI coordinate of the current cursor position
     auto cp = app->GetCursorPosition();
@@ -326,14 +350,48 @@ bool SynchronizationModel
 
 void SynchronizationModel::SetWarpLayerValue(unsigned long value)
 {
-  // Set the layer id
   m_WarpLayerId = value;
+}
+
+void
+SynchronizationModel::UpdateWindowTitle(const std::string &title)
+{
+  if (m_IPCHandler && m_IPCHandler->IsAttached())
+    m_IPCHandler->UpdateSlotTitle(title.c_str());
+}
+
+std::vector<std::pair<long, std::string>>
+SynchronizationModel::GetRunningInstances()
+{
+  if (m_IPCHandler && m_IPCHandler->IsAttached())
+    return m_IPCHandler->ReadDirectory();
+  return {};
+}
+
+void
+SynchronizationModel::SendDropToInstance(long pid, const std::string &filename)
+{
+  if (m_IPCHandler && m_IPCHandler->IsAttached())
+    m_IPCHandler->WriteDropRequest(pid, filename.c_str());
 }
 
 
 void
 SynchronizationModel::ReadIPCState(bool only_read_new)
 {
+  // Check for an incoming drop request unconditionally — it must be cleared
+  // from shared memory regardless of whether an image is loaded or sync is on,
+  // or it will be re-triggered the next time the early-return condition changes.
+  if (m_IPCHandler && m_IPCHandler->IsAttached())
+  {
+    std::string drop;
+    if (m_IPCHandler->ReadDropRequest(drop))
+    {
+      m_PendingDropFilename = drop;
+      InvokeEvent(IPCDropEvent());
+    }
+  }
+
   IRISApplication *app = m_Parent->GetDriver();
   if (!app->IsMainImageLoaded() || !m_SyncEnabledModel->GetValue())
     return;
@@ -363,21 +421,22 @@ SynchronizationModel::ReadIPCState(bool only_read_new)
     {
       // Map the cursor position to the image coordinates
       GenericImageData *id = app->GetCurrentImageData();
-      Vector3d vox = id->GetMain()->TransformNIFTICoordinatesToVoxelCIndex(message.cursor);
+      Vector3d vox = id->GetReferenceSpaceWrapper()->TransformNIFTICoordinatesToVoxelCIndex(message.cursor);
 
       // Round the cursor to integer value
-      itk::Index<3> pos;
-      Vector3ui     vpos;
-      pos[0] = vpos[0] = (unsigned int)(vox[0] + 0.5);
-      pos[1] = vpos[1] = (unsigned int)(vox[1] + 0.5);
-      pos[2] = vpos[2] = (unsigned int)(vox[2] + 0.5);
+      itk::Index<3> pos = { (int) std::round(vox[0]), (int) std::round(vox[1]), (int) std::round(vox[2]) };
+      Vector3i vpos(pos);
 
       // Check if the voxel position is inside the image region
-      if (vpos != app->GetCursorPosition() && id->GetImageRegion().IsInside(pos))
+      if (vpos != app->GetCursorPosition())
       {
-        app->SetCursorPosition(vpos);
-        if (m_DebugSync)
-          cout << "  Setting cursor position to " << vpos << " from IPC" << endl;
+        auto fe_region = id->GetFullExtentImageRegion();
+        if (fe_region.IsInside(pos))
+        {
+          app->SetCursorPosition(vpos);
+          if (m_DebugSync)
+            cout << "  Setting cursor position to " << vpos << " from IPC" << endl;
+        }
       }
     }
 

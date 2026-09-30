@@ -30,6 +30,7 @@ class DistributedSegmentationModel;
 class EventBucket;
 class QAbstractItemView;
 class QComboBox;
+class QShowEvent;
 class DownloadTicketDialog;
 
 
@@ -120,6 +121,9 @@ private slots:
 
   void on_btnOpenSource_clicked();
 
+protected:
+  void showEvent(QShowEvent *event) override;
+
 private:
   Ui::DistributedSegmentationDialog *ui;
 
@@ -129,6 +133,9 @@ private:
   // A timer that updates the ticket listing
   QTimer *m_TicketDetailRefreshTimer;
   QTimer *m_TicketListingRefreshTimer;
+
+  // Whether the dialog has been shown before - used to decide the initial tab
+  bool m_FirstShow = true;
 
   void LaunchTicketListingRefresh();
   void LaunchTicketDetailRefresh();

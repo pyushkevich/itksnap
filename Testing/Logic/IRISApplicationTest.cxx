@@ -31,6 +31,11 @@ public:
     return std::string(".itksnap.test");
     }
 
+  virtual std::string GetTempDirectory()
+    {
+    return std::string("/tmp");
+    }
+
   virtual std::string EncodeServerURL(const std::string &url)
     {
     return url;

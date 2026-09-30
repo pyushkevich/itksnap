@@ -57,10 +57,9 @@ public slots:
 
   virtual void onModelUpdate(const EventBucket &bucket);
 
-  void layerSelected(bool);
-
-  void onContrastInspectorRequested();
-  void onColorMapInspectorRequested();
+  void layerSelected(bool, LayerInspectorRowDelegate *wsel);
+  void onContrastInspectorRequested(LayerInspectorRowDelegate *wsel);
+  void onColorMapInspectorRequested(LayerInspectorRowDelegate *wsel);
 
   void advanceTab();
 

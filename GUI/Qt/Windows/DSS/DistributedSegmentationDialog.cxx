@@ -89,6 +89,7 @@ public:
     // Set data for the items
     items[0]->setData(QVariant((qlonglong) status.id), Qt::DisplayRole | Qt::EditRole);
     items[1]->setText(from_utf8(status.service_name));
+    items[1]->setToolTip(from_utf8(status.service_name));
     items[2]->setText(from_utf8(dss_model::ticket_status_strings[status.status]));
 
     // Set flags on all items
@@ -292,6 +293,22 @@ DistributedSegmentationDialog::~DistributedSegmentationDialog()
   delete ui;
 }
 
+void DistributedSegmentationDialog::showEvent(QShowEvent *event)
+{
+  QDialog::showEvent(event);
+
+  if(m_Model)
+    {
+    bool authenticated = m_Model->CheckState(DistributedSegmentationModel::UIF_AUTHENTICATED);
+    if(!authenticated)
+      ui->tabWidget->setCurrentWidget(ui->tabConfigure);
+    else if(m_FirstShow)
+      ui->tabWidget->setCurrentWidget(ui->tabSubmit);
+    }
+
+  m_FirstShow = false;
+}
+
 
 void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model)
 {
@@ -332,6 +349,7 @@ void DistributedSegmentationDialog::SetModel(DistributedSegmentationModel *model
 
   // Ticket number
   makeDomainlessCoupling(ui->outTicketId, m_Model->GetTicketListModel());
+  makeCoupling(ui->outServiceName, m_Model->GetSelectedTicketServiceNameModel());
 
   // Local workspace
   makeCoupling(ui->outTicketWorkspace, m_Model->GetSelectedTicketLocalWorkspaceModel());

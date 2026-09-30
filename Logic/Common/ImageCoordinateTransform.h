@@ -39,6 +39,7 @@
 #include <vnl/vnl_matrix_fixed.h>
 #include "itkObjectFactory.h"
 #include "itkSmartPointer.h"
+#include "itkImageRegion.h"
 
 /**
  * \class ImageCoordinateTransform
@@ -103,6 +104,9 @@ public:
 
   /** Apply to a size vector */
   Vector3ui TransformSize(const Vector3ui &xSize) const;
+
+  /** Apply to a region */
+  itk::ImageRegion<3> TransformRegion(const itk::ImageRegion<3> &region);
 
   /** Get the homogeneous (4x4) transform matrix */
   HomogMatrixType ComputeHomogeneousMatrix() const;

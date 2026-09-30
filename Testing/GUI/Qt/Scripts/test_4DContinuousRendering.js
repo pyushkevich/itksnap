@@ -38,23 +38,22 @@ var layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
 
 // Select the 4D Property Group
 var grp4D = engine.findChild(mainwin, "grp4DProperties");
-if(!grp4D.visible)
+if(!engine.getProperty(grp4D, "visible"))
     engine.testFailed("4D Property Group was not shown");
 
 var btnReplay = engine.findChild(grp4D, "btn4DReplay");
-btnReplay.click();
+engine.click(btnReplay);
 engine.sleep(2000);
-btnReplay.click();
+engine.click(btnReplay);
 
-engine.findChild(grp4D, "in4DReplayInterval").text = "200"
-btnReplay.click();
+engine.setChildProperty(grp4D, "in4DReplayInterval", "text", "200");
+engine.click(btnReplay);
 engine.sleep(3000);
-btnReplay.click();
+engine.click(btnReplay);
 
-engine.findChild(grp4D, "in4DReplayInterval").text = "20"
-btnReplay.click();
+engine.setChildProperty(grp4D, "in4DReplayInterval", "text", "20");
+engine.click(btnReplay);
 engine.sleep(2000);
-btnReplay.click();
-
+engine.click(btnReplay);
 
 

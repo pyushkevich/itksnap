@@ -46,6 +46,15 @@ public:
   virtual bool notify(QObject *object, QEvent *event) override;
   virtual bool event(QEvent *event) override;
 
+  /**
+   * Resolve an itksnap-* URL to the underlying file/remote URL that
+   * LoadDroppedFile expects.  Strips the "itksnap-" prefix so that
+   *   itksnap-sftp://host/path  →  sftp://host/path
+   *   itksnap-scp://host/path   →  scp://host/path
+   * Plain file paths and other schemes are returned unchanged.
+   */
+  static QString resolveUrl(const QString &url);
+
 public slots:
 
   void quitWithReturnCode(int rc);

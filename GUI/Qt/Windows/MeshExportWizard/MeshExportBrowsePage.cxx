@@ -36,28 +36,8 @@ void MeshExportBrowsePage::SetModel(MeshExportModel *model)
 
 void MeshExportBrowsePage::initializePage()
 {
-  // Filter string (generate by hand...)
-  QString filter;
-
-  // Get the domain
-  MeshExportModel::FileFormat dummy;
-  MeshExportModel::FileFormatDomain domain;
-  m_Model->GetExportFormatModel()->GetValueAndDomain(dummy, &domain);
-
-  if(m_Model->GetSaveMode() == MeshExportModel::SAVE_SCENE)
-    {
-		filter = QString("%1 (.vtk);; %2 (.vrml);; %3 (.stl)")
-        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_VTK]))
-				.arg(from_utf8(domain[GuidedMeshIO::FORMAT_VRML]))
-				.arg(from_utf8(domain[GuidedMeshIO::FORMAT_STL]));
-    }
-  else
-    {
-    filter = QString("%1 (.vtk);; %2 (.stl);; %3 (.byu .y)")
-        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_VTK]))
-        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_STL]))
-        .arg(from_utf8(domain[GuidedMeshIO::FORMAT_BYU]));
-    }
+  // Build filter string from the model (single source of truth)
+  QString filter = from_utf8(m_Model->GetFileDialogFilter());
 
   // Create the file panel
   ui->filePanel->initializeForSaveFile(
@@ -65,7 +45,7 @@ void MeshExportBrowsePage::initializePage()
         "Mesh file name:",
         from_utf8(m_Model->GetHistoryName()),
         filter, false,
-        QString(), from_utf8(domain[GuidedMeshIO::FORMAT_VTK]));
+        QString(), QString("VTK PolyData File"));
 }
 
 bool MeshExportBrowsePage::validatePage()

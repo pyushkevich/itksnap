@@ -10,7 +10,7 @@ engine.trigger("actionLayerInspector");
 //=== Select a specific overlay
 let layerdialog = engine.findChild(mainwin,"dlgLayerInspector");
 let rowdelegate = engine.findChild(layerdialog, "wgtRowDelegate_0000");
-rowdelegate.setSelected(true);
+engine.setProperty(rowdelegate, "selected", true);
 
 //=== trigger reload
 engine.trigger("actionReloadFromFile", rowdelegate);
@@ -22,6 +22,6 @@ engine.invoke(layerdialog, "close");
 var grp4D = engine.findChild(mainwin, "grp4DProperties");
 
 var btnReplay = engine.findChild(grp4D, "btn4DReplay");
-btnReplay.click();
+engine.click(btnReplay);
 engine.sleep(1000);
-btnReplay.click();
+engine.click(btnReplay);

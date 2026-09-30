@@ -78,6 +78,8 @@ private slots:
   void on_btnLoadAdditionalSegmentation_clicked();
 
 private:
+  void UpdateSendToWindowMenu();
+
   Ui::DropActionDialog *ui;
   GlobalUIModel *m_Model;
 

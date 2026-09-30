@@ -52,7 +52,6 @@ protected:
 
   QString m_PasswordCallbackValue;
   bool m_PasswordCallbackAbort;
-  QEventLoop m_PasswordCallbackLoop;
 
   bool m_Terminate = false;
   QMutex m_TerminateMutex;

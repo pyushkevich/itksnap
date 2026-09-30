@@ -2,6 +2,8 @@
 #include <sstream>
 #include <fstream>
 #include <cstdarg>
+#include <algorithm>
+#include <cctype>
 #include "IRISException.h"
 #include "itksys/SystemTools.hxx"
 #include "itksys/MD5.h"
@@ -19,19 +21,19 @@ namespace RESTClient_internal
 
 template <typename ServerTraits>
 int
-progress_callback(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow)
+progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
   long bytes_total = dltotal + ultotal;
   long bytes_done = dlnow + ulnow;
   // std::cout << "progress callback " << bytes_done << "," << bytes_total << std::endl;
 
-  // Sometimes this is called with zeros
-  if (bytes_total == 0)
-    return 0;
+  // Sometimes this is called with zeros, which is fine, we should still let the GUI know
+  // so it refreshes at least.
+  double progress = (bytes_total == 0) ? std::nan("nan") : bytes_done * 1.0 / bytes_total;
 
   typedef std::pair<void *, typename RESTClient<ServerTraits>::ProgressCallbackFunction> CallbackInfo;
   CallbackInfo *cbi = static_cast<CallbackInfo *>(clientp);
-  cbi->second(cbi->first, bytes_done * 1.0 / bytes_total);
+  cbi->second(cbi->first, bytes_done, bytes_total);
   return 0;
 }
 
@@ -80,6 +82,9 @@ RESTSharedData<ServerTraits>::~RESTSharedData()
 template <typename ServerTraits>
 RESTClient<ServerTraits>::RESTClient(SharedData *sd)
 {
+  // Initialize the multi-handle
+  m_CurlMulti = curl_multi_init();
+
   // Initialize CURL
   m_Curl = curl_easy_init();
 
@@ -95,6 +100,10 @@ RESTClient<ServerTraits>::RESTClient(SharedData *sd)
   m_ErrorBuffer[0] = 0;
   curl_easy_setopt(m_Curl, CURLOPT_ERRORBUFFER, m_ErrorBuffer);
 
+  // Bound the TCP handshake so background threads that hold m_Mutex never block
+  // the main thread indefinitely when a server is unreachable.
+  curl_easy_setopt(m_Curl, CURLOPT_CONNECTTIMEOUT, 10L);
+
   m_UploadMessageBuffer[0] = 0;
   m_MessageBuffer[0] = 0;
   m_OutputFile = NULL;
@@ -108,6 +117,7 @@ template <typename ServerTraits>
 RESTClient<ServerTraits>::~RESTClient()
 {
   curl_easy_cleanup(m_Curl);
+  curl_multi_cleanup(m_CurlMulti);
   delete m_ErrorBuffer;
 }
 
@@ -116,6 +126,14 @@ void
 RESTClient<ServerTraits>::SetVerbose(bool verbose)
 {
   curl_easy_setopt(m_Curl, CURLOPT_VERBOSE, (long)verbose);
+}
+
+template <typename ServerTraits>
+void
+RESTClient<ServerTraits>::SetFollowRedirects(bool follow)
+{
+  m_FollowRedirects = follow;
+  curl_easy_setopt(m_Curl, CURLOPT_FOLLOWLOCATION, follow ? 1L : 0L);
 }
 
 template <typename ServerTraits>
@@ -135,37 +153,55 @@ RESTClient<ServerTraits>::SetupCookies(bool receive_cookie_mode)
                         receive_cookie_mode);
 }
 
-template <typename ServerTraits>
-bool
-RESTClient<ServerTraits>::Authenticate(const char *token)
+template <class ServerTraits>
+void
+RESTClient<ServerTraits>::CurlMultiPerform()
 {
-  // Create and perform the request
-  ostringstream o_url;
-  o_url << GetServerURL() << "/api/login";
-  curl_easy_setopt(m_Curl, CURLOPT_URL, o_url.str().c_str());
+  // Add the CURL easy handle to the multi-handle
+  curl_multi_add_handle(m_CurlMulti, m_Curl);
 
-  // Data to post
-  char post_buffer[1024];
-  snprintf(post_buffer, sizeof(post_buffer), "token=%s", token);
-  curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_buffer);
+  int still_running;
 
-  // Set up the cookie jar to receive cookies
-  SetupCookies(true);
+  // Keep track of the last time we called the callback
+  auto callback_time = std::chrono::steady_clock::now();
+  do
+  {
+    CURLMcode mc = curl_multi_perform(m_CurlMulti, &still_running);
+    if (mc)
+      throw IRISException("CURL library error: %s\n%s", curl_multi_strerror(mc), m_ErrorBuffer);
 
-  // Capture output
-  m_Output.clear();
-  curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
-  curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
+    if (!mc && still_running)
+      /* wait for activity, timeout or "nothing" */
+      mc = curl_multi_poll(m_CurlMulti, NULL, 0, 50, NULL);
 
-  // Make request
-  CURLcode res = curl_easy_perform(m_Curl);
+    if (mc)
+      throw IRISException("CURL library error: %s\n%s", curl_multi_strerror(mc), m_ErrorBuffer);
 
-  if (res != CURLE_OK)
-    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
+    // Make a callback at this time interval for smooth behavior
+    auto now = std::chrono::steady_clock::now();
+    if (m_CallbackInfo.first &&
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - callback_time).count() >= 50)
+    {
+      callback_time = now;
+      m_CallbackInfo.second(m_CallbackInfo.first, 0, 0);
+    }
 
-  // Return success or failure
-  string success_pattern = "logged in as ";
-  return m_Output.compare(0, success_pattern.length(), success_pattern) == 0;
+  } while (still_running); /* if there are still transfers, loop */
+
+  // Read the messages from the CURL handle that completed
+  struct CURLMsg *m;
+  do
+  {
+    int msgq = 0;
+    m = curl_multi_info_read(m_CurlMulti, &msgq);
+    if (m && (m->msg == CURLMSG_DONE))
+    {
+      CURL *e = m->easy_handle;
+      if(m->data.result != CURLE_OK)
+        throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(m->data.result), m_ErrorBuffer);
+      curl_multi_remove_handle(m_CurlMulti, e);
+    }
+  } while (m);
 }
 
 template <typename ServerTraits>
@@ -267,7 +303,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
     url_filled = std::string(url_buffer);
 
   // The URL to post to
-  string url = this->GetServerURL() + "/" + url_filled;
+  string url = this->MakeFullURL(url_filled);
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
@@ -280,7 +316,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   // Capture output
   m_Output.clear();
 
-  // If there is no output file, use the default callbacl
+  // If there is no output file, use the default callback
   if (!m_OutputFile)
   {
     curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
@@ -290,23 +326,39 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   {
     curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteToFileCallback);
     curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, m_OutputFile);
-
-    // Set the callback functions
-    if (m_CallbackInfo.first)
-    {
-      curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
-      curl_easy_setopt(m_Curl, CURLOPT_PROGRESSDATA, &m_CallbackInfo);
-      curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
-      curl_easy_setopt(m_Curl, CURLOPT_VERBOSE, 1L);
-    }
   }
 
-  // Make request
-  // std::cout << "curl request to: " << url << " with data " << post_filled << std::endl;
-  CURLcode res = curl_easy_perform(m_Curl);
+  // Set the callback function for progress
+  if (m_CallbackInfo.first)
+  {
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
+    curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
+  }
 
-  if (res != CURLE_OK)
-    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
+  // Capture response headers
+  m_ResponseHeaders.clear();
+  curl_easy_setopt(m_Curl, CURLOPT_HEADERFUNCTION, RESTClient::HeaderCallback);
+  curl_easy_setopt(m_Curl, CURLOPT_HEADERDATA, &m_ResponseHeaders);
+
+  // Apply any extra request headers (e.g. If-None-Match for conditional GET)
+  curl_slist *extra_slist = nullptr;
+  for (auto &kv : m_ExtraRequestHeaders)
+    {
+    std::string h = kv.first + ": " + kv.second;
+    extra_slist = curl_slist_append(extra_slist, h.c_str());
+    }
+  if (extra_slist)
+    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, extra_slist);
+
+  // Perform the operation - this will throw exception on error
+  CurlMultiPerform();
+
+  if (extra_slist)
+    {
+    curl_slist_free_all(extra_slist);
+    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, nullptr);
+    }
 
   // Capture the response code
   m_HTTPCode = 0L;
@@ -324,6 +376,13 @@ RESTClient<ServerTraits>::SetProgressCallback(void *cb_data, ProgressCallbackFun
 }
 
 template <class ServerTraits>
+void
+RESTClient<ServerTraits>::RemoveProgressCallback()
+{
+  m_CallbackInfo = make_pair(nullptr, nullptr);
+}
+
+template <class ServerTraits>
 bool
 RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *data, ...)
 {
@@ -335,7 +394,7 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   va_end(args);
 
   // The URL to post to
-  string url = this->GetServerURL() + "/" + url_buffer;
+  string url = this->MakeFullURL(url_buffer);
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
@@ -373,16 +432,19 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   // Set the callback functions
   if (m_CallbackInfo.first)
   {
-    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
-    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSDATA, &m_CallbackInfo);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
     curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
   }
 
   // Make request
+  /*
   CURLcode res = curl_easy_perform(m_Curl);
 
   if (res != CURLE_OK)
     throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
+  */
+  CurlMultiPerform();
 
   // Get the upload statistics
   double upload_size, upload_time;
@@ -419,7 +481,7 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   vsnprintf(url_buffer, 4096, rel_url, args);
 
   // The URL to post to
-  string url = this->GetServerURL() + "/" + url_buffer;
+  string url = this->MakeFullURL(url_buffer);
   curl_easy_setopt(m_Curl, CURLOPT_URL, url.c_str());
 
   // The cookie JAR
@@ -480,16 +542,19 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   // Set the callback functions
   if (m_CallbackInfo.first)
   {
-    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
-    curl_easy_setopt(m_Curl, CURLOPT_PROGRESSDATA, &m_CallbackInfo);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
+    curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
     curl_easy_setopt(m_Curl, CURLOPT_NOPROGRESS, 0);
   }
 
   // Make request
+  /*
   CURLcode res = curl_easy_perform(m_Curl);
 
   if (res != CURLE_OK)
     throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
+  */
+  CurlMultiPerform();
 
   // Get the upload statistics
   double upload_size, upload_time;
@@ -569,21 +634,70 @@ RESTClient<ServerTraits>::GetUploadStatistics()
 
 template <typename ServerTraits>
 string
-RESTClient<ServerTraits>::GetDataDirectory()
+RESTClient<ServerTraits>::GetServerURL()
 {
-  // Compute the platform-independent home directory
-  vector<string> split_path;
-  SystemTools::SplitPath(ServerTraits::DirectoryPrefix, split_path, true);
-  string ddir = SystemTools::JoinPath(split_path);
-  SystemTools::MakeDirectory(ddir.c_str());
-  return ddir;
+  return m_Traits.GetServerURL();
 }
 
 template <typename ServerTraits>
 string
-RESTClient<ServerTraits>::GetServerURL()
+RESTClient<ServerTraits>::MakeFullURL(const std::string &rel_url)
 {
-  return m_Traits.GetServerURL();
+  string base = m_Traits.GetServerURL();
+  return base.empty() ? rel_url : base + "/" + rel_url;
+}
+
+template <typename ServerTraits>
+void
+RESTClient<ServerTraits>::SetRequestHeader(const char *name, const char *value)
+{
+  m_ExtraRequestHeaders[name] = value;
+}
+
+template <typename ServerTraits>
+void
+RESTClient<ServerTraits>::ClearRequestHeaders()
+{
+  m_ExtraRequestHeaders.clear();
+}
+
+template <typename ServerTraits>
+std::string
+RESTClient<ServerTraits>::GetResponseHeader(const char *name) const
+{
+  std::string key(name);
+  std::transform(key.begin(), key.end(), key.begin(),
+                 [](unsigned char c){ return std::tolower(c); });
+  auto it = m_ResponseHeaders.find(key);
+  return it != m_ResponseHeaders.end() ? it->second : "";
+}
+
+template <typename ServerTraits>
+size_t
+RESTClient<ServerTraits>::HeaderCallback(char *buffer, size_t size, size_t nitems, void *userdata)
+{
+  auto *headers = static_cast<std::map<std::string, std::string> *>(userdata);
+  std::string line(buffer, size * nitems);
+
+  auto colon = line.find(':');
+  if (colon != std::string::npos)
+    {
+    std::string name  = line.substr(0, colon);
+    std::string value = line.substr(colon + 1);
+
+    auto trim = [](std::string &s) {
+      auto f = s.find_first_not_of(" \t\r\n");
+      auto l = s.find_last_not_of(" \t\r\n");
+      s = (f == std::string::npos) ? "" : s.substr(f, l - f + 1);
+    };
+    trim(name);
+    trim(value);
+    std::transform(name.begin(), name.end(), name.begin(),
+                   [](unsigned char c){ return std::tolower(c); });
+    (*headers)[name] = value;
+    }
+
+  return size * nitems;
 }
 
 template <typename ServerTraits>
@@ -705,11 +819,25 @@ REST_DebugCallback(void *handle, curl_infotype type, char *data, size_t size, vo
   return 0;
 }
 
+template class RESTClient<GenericServerTraits>;
 template class RESTClient<DSSServerTraits>;
 template class RESTClient<DLSServerTraits>;
 
+template class RESTSharedData<GenericServerTraits>;
 template class RESTSharedData<DSSServerTraits>;
 template class RESTSharedData<DLSServerTraits>;
+
+void
+GenericServerTraits::SetupCookies(void *share, void *handle, const char *url, bool receive_cookie_mode)
+{
+  if (share)
+  {
+    if (receive_cookie_mode)
+      curl_easy_setopt(handle, CURLOPT_COOKIEFILE, "");
+    else
+      curl_easy_setopt(handle, CURLOPT_COOKIEJAR, "");
+  }
+}
 
 void
 DSSServerTraits::SetServerURL(const char *baseurl)
@@ -812,3 +940,36 @@ DLSServerTraits::GetServerURL()
 {
   return m_ServerURL;
 }
+
+bool
+DSSRESTClient::Authenticate(const char *token)
+{
+  // Create and perform the request
+  ostringstream o_url;
+  o_url << MakeFullURL("api/login");
+  curl_easy_setopt(m_Curl, CURLOPT_URL, o_url.str().c_str());
+
+         // Data to post
+  char post_buffer[1024];
+  snprintf(post_buffer, sizeof(post_buffer), "token=%s", token);
+  curl_easy_setopt(m_Curl, CURLOPT_POSTFIELDS, post_buffer);
+
+         // Set up the cookie jar to receive cookies
+  SetupCookies(true);
+
+         // Capture output
+  m_Output.clear();
+  curl_easy_setopt(m_Curl, CURLOPT_WRITEFUNCTION, RESTClient::WriteCallback);
+  curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
+
+         // Make request
+  CURLcode res = curl_easy_perform(m_Curl);
+
+  if (res != CURLE_OK)
+    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(res), m_ErrorBuffer);
+
+         // Return success or failure
+  string success_pattern = "logged in as ";
+  return m_Output.compare(0, success_pattern.length(), success_pattern) == 0;
+}
+

@@ -73,7 +73,7 @@ public:
     FORMAT_ECHO_CARTESIAN_DICOM, // A Echocardiography Cartesian DICOM
     FORMAT_GE4, FORMAT_GE5, FORMAT_GIPL,
     FORMAT_MHA, FORMAT_MINC, FORMAT_NIFTI, FORMAT_NRRD_SEQ, FORMAT_NRRD, FORMAT_RAW, FORMAT_SIEMENS,
-    FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_GENERIC_ITK,
+    FORMAT_VOXBO_CUB, FORMAT_VTK, FORMAT_VTI, FORMAT_GENERIC_ITK,
     FORMAT_COUNT};
 
   enum RawPixelType {
@@ -322,6 +322,10 @@ protected:
 
   /** Templated function that reads a scalar image in its native datatype */
   template <typename TScalar> void DoSaveNative(const char *fname, Registry &folder);
+
+  /** Write a 4D image as an NRRD volume sequence (.seq.nrrd) */
+  template <typename TImageType>
+  void SaveNrrdSequence(const char *fname, TImageType *image);
 
   /** Templated function that computes an MD5 hash from the stored image */
   template <typename TScalar> std::string DoGetNativeMD5Hash();

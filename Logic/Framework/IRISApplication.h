@@ -47,10 +47,14 @@
 #include "SystemInterface.h"
 #include "UndoDataManager.h"
 #include "SNAPEvents.h"
+#include "StdoutProgressDelegate.h"
+#include "StdoutSSHAuthDelegate.h"
+#include "ImageIORemote.h"
 
 // #include "itkImage.h"
 
 // Forward reference to the classes pointed at
+class SSHConnectionPool;
 class GenericImageData;
 class IRISException;
 class IRISImageData;
@@ -157,7 +161,7 @@ public:
   FIRES(CursorUpdateEvent)
   FIRES(CursorTimePointUpdateEvent)
   FIRES(MainImageDimensionsChangeEvent)
-  FIRES(MainImagePoseChangeEvent)
+  FIRES(ReferenceGeometryChangeEvent)
   FIRES(LayerChangeEvent)
   FIRES(SegmentationChangeEvent)
   FIRES(SpeedImageChangedEvent)
@@ -473,17 +477,15 @@ public:
   irisGetMacro(HistoryManager, HistoryManager *)
 
   /**
-   * Set the current cursor position.  This will cause all the active image
-   * wrappers to update their current slice numbers. By default, the method
-   * does nothing if the passed in cursor position is the same as the current
-   * cursor position. When force is true, the cursor position is set regardless.
+   * Set the current cursor position in the voxel grid of the active segmentation
+   * layer. The cursor position is propagated to all layers.
    */
-  void SetCursorPosition(const Vector3ui cursor, bool force = false);
+  void SetCursorPosition(const Vector3i cursor, bool force = false);
 
   /**
    * Get the cursor position
    */
-  Vector3ui GetCursorPosition() const;
+  Vector3i GetCursorPosition() const;
 
   /**
    * Set the current cursor time point. Like setting the cursor position, but
@@ -597,11 +599,16 @@ public:
   /**
     Apply a binary drawing performed on an orthogonal slice to the
     main segmentation.
+
+    The flag additive, if true, means that only positive pixels in the drawing
+    are considered, and are added to the 3D segmentation. If false, negative pixels
+    in the drawing will be used to clear pixels in the segmentation if they have the
+    current draw-over label.
     */
   unsigned int UpdateSegmentationWithSliceDrawing(
       SliceBinaryImageType *drawing,
       const ImageCoordinateTransform *xfmSliceToImage,
-      double zSlice,
+      double zSlice, bool additive,
       const std::string &undoTitle);
 
   /**
@@ -654,7 +661,28 @@ public:
   /**
    * Open an existing project.
    */
-  void OpenProject(const std::string &proj_file, IRISWarningList &warn);
+  void OpenWorkspace(const std::string &proj_file, IRISWarningList &warn);
+
+  /**
+   * Set a delegate that receives progress notifications during remote image
+   * downloads (scp://, sftp:// URLs). Pass nullptr to disable GUI reporting.
+   */
+  irisGetSetMacro(ProgressDelegate, AbstractProgressDelegate *)
+
+  /**
+   * Set a delegate that handles SSH authentication prompts (password /
+   * passphrase dialogs) when public-key auth fails for remote URLs.
+   * Pass nullptr to disable interactive prompting.
+   */
+  irisGetSetMacro(SSHAuthDelegate, AbstractSSHAuthDelegate *)
+
+  /**
+   * Return a RemoteIOContext populated from this application's current progress
+   * delegate, SSH connection pool, SSH auth delegate, and remote cache settings.
+   * Pass the result to GuidedMeshIO::SetContext() or MeshWrapperBase::LoadFromRegistry()
+   * so that remote downloads in those subsystems get progress reporting and caching.
+   */
+  RemoteIOContext GetRemoteIOContext() const;
 
   /**
    * Get Moved File Path from the absolute file path in the original project file
@@ -715,9 +743,6 @@ protected:
 
   IRISApplication();
   virtual ~IRISApplication();
-
-  // Map cursor from one image data to another
-  void TransferCursor(GenericImageData *source, GenericImageData *target);
 
   // Image data objects
   GenericImageData *m_CurrentImageData;
@@ -799,6 +824,25 @@ protected:
 
   // Color map preset manager
   SmartPtr<ColorMapPresetManager> m_ColorMapPresetManager;
+
+  // Active SSH connection pool, set during a remote workspace load so that
+  // all image downloads within the same batch share already-authenticated
+  // sessions, avoiding repeated SSH handshakes.  Null at all other times.
+  SmartPtr<SSHConnectionPool> m_ActiveConnectionPool;
+
+  // Default progress delegate: renders tasks to stdout.  GUI layers replace
+  // this with a Qt delegate and restore it afterwards via SetProgressDelegate.
+  // m_DefaultProgressDelegate must be declared before m_ProgressDelegate so
+  // the in-class initialiser below is valid.
+  StdoutProgressDelegate    m_DefaultProgressDelegate;
+  AbstractProgressDelegate *m_ProgressDelegate = &m_DefaultProgressDelegate;
+
+  // Optional delegate for SSH credential prompts. When set, password and
+  // passphrase dialogs are shown when public-key auth fails.
+  // Default SSH auth delegate: reads credentials from the terminal.
+  // Must be declared before m_SSHAuthDelegate for the initialiser below.
+  StdoutSSHAuthDelegate    m_DefaultSSHAuthDelegate;
+  AbstractSSHAuthDelegate *m_SSHAuthDelegate = &m_DefaultSSHAuthDelegate;
 
   // The currently hooked up preprocessing filter preview wrapper
   PreprocessingMode m_PreprocessingMode;

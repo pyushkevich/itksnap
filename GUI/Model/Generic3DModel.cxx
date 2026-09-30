@@ -57,6 +57,9 @@ Generic3DModel::Generic3DModel()
 
   // Reset clear time
   m_ClearTime = 0;
+
+  // Initialize mesh-update flag
+  m_MeshUpdating = false;
 }
 
 
@@ -205,7 +208,7 @@ void Generic3DModel::ExportMesh(const MeshExportSettings &settings)
     // TODO: temporarily commented, needs to be fixed!
     vtkSmartPointer<vtkVRMLExporter> exporter = vtkSmartPointer<vtkVRMLExporter>::New();
     exporter->SetFileName(settings.GetMeshFileName().c_str());
-    exporter->SetInput(m_Renderer->GetRenderWindow());
+    exporter->SetRenderWindow(m_Renderer->GetRenderWindow());
     exporter->Update();
     return;
     }
@@ -249,9 +252,9 @@ void Generic3DModel::OnImageGeometryUpdate()
   // Update the world matrix and other stored variables
   if(m_Driver->IsMainImageLoaded())
     {
-    ImageWrapperBase *main = m_Driver->GetCurrentImageData()->GetMain();
-    m_WorldMatrix = main->GetNiftiSform();
-    m_WorldMatrixInverse = main->GetNiftiInvSform();
+    ImageWrapperBase *ref = m_Driver->GetCurrentImageData()->GetReferenceSpaceWrapper();
+    m_WorldMatrix = ref->GetNiftiSform();
+    m_WorldMatrixInverse = ref->GetNiftiInvSform();
     }
   else
     {
@@ -546,12 +549,10 @@ bool Generic3DModel::PickSegmentationVoxelUnderMouse(int px, int py)
   Vector3i hit;
   if(this->IntersectSegmentation(px, py, hit))
     {
-    Vector3ui cursor = to_unsigned_int(hit);
-
-    itk::ImageRegion<3> region = m_Driver->GetCurrentImageData()->GetImageRegion();
-    if(region.IsInside(to_itkIndex(cursor)))
+    itk::ImageRegion<3> region = m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion();
+    if(region.IsInside(to_itkIndex(hit)))
       {
-      m_Driver->SetCursorPosition(cursor);
+      m_Driver->SetCursorPosition(hit);
       return true;
       }
     }
@@ -565,7 +566,7 @@ bool Generic3DModel::SpraySegmentationVoxelUnderMouse(int px, int py)
   Vector3i hit;
   if(this->IntersectSegmentation(px, py, hit))
     {
-    itk::ImageRegion<3> region = m_Driver->GetCurrentImageData()->GetImageRegion();
+    itk::ImageRegion<3> region = m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion();
     if(region.IsInside(to_itkIndex(hit)))
       {
       m_SprayPoints->GetPoints()->InsertNextPoint(hit[0], hit[1], hit[2]);

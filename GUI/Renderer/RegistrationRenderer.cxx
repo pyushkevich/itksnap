@@ -19,14 +19,14 @@ void RegistrationRenderer::DrawRotationWidget(AbstractRenderContext *context, do
   double radius = m_Model->GetRotationWidgetRadius();
 
   // Get the center of rotation
-  Vector3ui rot_ctr_image = m_Model->GetRegistrationModel()->GetRotationCenter();
+  Vector3i rot_ctr_image = m_Model->GetRegistrationModel()->GetRotationCenter();
 
   // Map the center of rotation into the slice coordinates
   Vector3d rot_ctr_slice = slice_model->MapImageToSlice(to_double(rot_ctr_image));
 
   // Get the scale parameters
-  double sx = 0.5 * radius / slice_model->GetSliceSpacing()[0];
-  double sy = 0.5 * radius / slice_model->GetSliceSpacing()[1];
+  double sx = 0.5 * radius / slice_model->GetReferenceSpaceSpacing()[0];
+  double sy = 0.5 * radius / slice_model->GetReferenceSpaceSpacing()[1];
 
   // Create a rotation widget first time
   if(!m_RotatorPath)

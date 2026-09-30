@@ -44,6 +44,7 @@
 #define __GuidedMeshIO_h_
 
 #include "Registry.h"
+#include "ImageIORemote.h"
 #include <set>
 
 class vtkPolyData;
@@ -94,6 +95,10 @@ public:
   void LoadMesh(const char *FileName, FileFormat format,
                 SmartPtr<MeshWrapperBase> wrapper, unsigned int tp, LabelType id);
 
+  /** Attach remote download context so that LoadMesh shows progress and
+   *  reuses SSH sessions when the file is a remote URL. */
+  void SetContext(const RemoteIOContext &ctx) { m_Context = ctx; }
+
   /** Get the error message if the IO is not successful */
   std::string GetErrorMessage() const;
 
@@ -117,6 +122,8 @@ public:
 protected:
   /** Registry mappings for these enums */
   static RegistryEnumMap<FileFormat> m_EnumFileFormat;
+
+  RemoteIOContext m_Context;
 
   // Error message for unsucessful IO
   std::string m_ErrorMessage;

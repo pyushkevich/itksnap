@@ -60,6 +60,13 @@ public:
   /** Get the file format corresponding to a name */
   FileFormat GetFileFormatByName(const std::string &name) const;
 
+  /**
+   * Build a Qt file-dialog filter string from the current format domain.
+   * Extensions are looked up from GuidedMeshIO::m_MeshFormatDescriptorMap so
+   * that the Qt layer never needs to hard-code format details.
+   */
+  std::string GetFileDialogFilter() const;
+
 protected:
 
   MeshExportModel();

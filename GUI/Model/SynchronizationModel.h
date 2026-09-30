@@ -3,6 +3,9 @@
 
 #include "PropertyModel.h"
 #include <itkCommand.h>
+#include <string>
+#include <vector>
+#include <utility>
 
 class GlobalUIModel;
 class SystemInterface;
@@ -23,8 +26,27 @@ public:
   /** Pass a system object that is used to make IPC calls */
   void SetSystemInterface(AbstractSharedMemorySystemInterface *si);
 
+  /** Size and version of the IPC message payload, for use before the model is created. */
+  static size_t GetIPCMessageSize();
+  static short  GetIPCMessageVersion();
+
   /** Force detach - do this in a crash */
   void ForceDetach();
+
+  /** Update the window title stored in the IPC instance directory slot. */
+  void UpdateWindowTitle(const std::string &title);
+
+  /**
+   * Return {pid, title} for all live ITK-SNAP instances visible in the
+   * instance directory (including this process).
+   */
+  std::vector<std::pair<long, std::string>> GetRunningInstances();
+
+  /** Send a file/URL drop request to another running ITK-SNAP instance. */
+  void SendDropToInstance(long pid, const std::string &filename);
+
+  /** Filename/URL from the most recently received IPC drop request. */
+  irisGetMacro(PendingDropFilename, std::string)
 
   /** Models controlling sync state */
   irisSimplePropertyAccessMacro(SyncEnabled, bool)
@@ -77,6 +99,8 @@ protected:
 
   bool m_CanBroadcast;
   bool m_DebugSync = false;
+
+  std::string m_PendingDropFilename;
 };
 
 #endif // SYNCHRONIZATIONMODEL_H

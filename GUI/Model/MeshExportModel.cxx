@@ -29,6 +29,7 @@ MeshExportModel::MeshExportModel()
   m_FormatRegExp[GuidedMeshIO::FORMAT_STL] = ".*\\.stl$";
   m_FormatRegExp[GuidedMeshIO::FORMAT_BYU] = ".*\\.(byu|y)$";
   m_FormatRegExp[GuidedMeshIO::FORMAT_VRML] = ".*\\.vrml$";
+  m_FormatRegExp[GuidedMeshIO::FORMAT_VTP] = ".*\\.vtp$";
 }
 
 
@@ -107,6 +108,32 @@ void MeshExportModel::SaveMesh()
         this->GetHistoryName(), m_ExportFileName, true);
 }
 
+std::string MeshExportModel::GetFileDialogFilter() const
+{
+  FileFormat dummy;
+  FileFormatDomain domain;
+  m_ExportFormatModel->GetValueAndDomain(dummy, &domain);
+
+  std::string filter;
+  for(auto &kv : domain)
+    {
+    const auto &desc_it = GuidedMeshIO::m_MeshFormatDescriptorMap.find(kv.first);
+    if(desc_it == GuidedMeshIO::m_MeshFormatDescriptorMap.end())
+      continue;
+
+    std::string exts;
+    for(const auto &ext : desc_it->second.extensions)
+      {
+      if(!exts.empty()) exts += " ";
+      exts += ext;
+      }
+
+    if(!filter.empty()) filter += ";; ";
+    filter += kv.second + " (" + exts + ")";
+    }
+  return filter;
+}
+
 MeshExportModel::FileFormat MeshExportModel::GetFileFormatByName(const std::string &name) const
 {
   FileFormatDomain dom;
@@ -131,12 +158,14 @@ void MeshExportModel::UpdateFormatDomain()
     format_domain[GuidedMeshIO::FORMAT_VTK] = "VTK PolyData File";
 		format_domain[GuidedMeshIO::FORMAT_VRML] = "VRML 2.0 File";
 		format_domain[GuidedMeshIO::FORMAT_STL] = "STL Mesh File";
+    format_domain[GuidedMeshIO::FORMAT_VTP] = "VTP XML PolyData File";
     }
   else
     {
     format_domain[GuidedMeshIO::FORMAT_VTK] = "VTK PolyData File";
     format_domain[GuidedMeshIO::FORMAT_STL] = "STL Mesh File";
     format_domain[GuidedMeshIO::FORMAT_BYU] = "BYU Mesh File";
+    format_domain[GuidedMeshIO::FORMAT_VTP] = "VTP XML PolyData File";
     }
 
   m_ExportFormatModel->SetDomain(format_domain);

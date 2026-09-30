@@ -13,7 +13,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 cmake_policy(SET CMP0026 NEW)
 cmake_policy(SET CMP0077 NEW)
-cmake_policy(SET CMP0080 OLD)
 
 #--------------------------------------------------------------------------------
 # PROJECT DEFINITION
@@ -93,13 +92,13 @@ ENDIF()
 
 # These four fields should be modified when versions change
 SET(SNAP_VERSION_MAJOR 4)
-SET(SNAP_VERSION_MINOR 4)
+SET(SNAP_VERSION_MINOR 6)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "-beta2")
+SET(SNAP_VERSION_QUALIFIER "-alpha.3")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20250820")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "August 20, 2025")
+SET(SNAP_VERSION_RELEASE_DATE "20260901")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Sep 01, 2026")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -222,6 +221,8 @@ CONFIGURE_FILE(
 SET(LOGIC_CXX
   ${SNAP_BINARY_DIR}/SNAPCommon.cxx
   Common/AbstractModel.cxx
+  Common/StdoutProgressDelegate.cxx
+  Common/StdoutSSHAuthDelegate.cxx
   Common/AbstractPropertyContainerModel.cxx
   Common/AffineTransformHelper.cxx
   Common/ColorLabelPropertyModel.cxx
@@ -267,7 +268,13 @@ SET(LOGIC_CXX
   Logic/ImageWrapper/ImageWrapperBase.cxx
   Logic/ImageWrapper/ImageWrapper.cxx
   Logic/ImageWrapper/LabelImageWrapper.cxx
+  Logic/ImageWrapper/FlywheelRemoteImageSource.cxx
   Logic/ImageWrapper/GuidedNativeImageIO.cxx
+  Logic/ImageWrapper/ImageIORemote.cxx
+  Logic/ImageWrapper/RemoteFileCache.cxx
+  Logic/ImageWrapper/RemoteResourceSettings.cxx
+  Logic/ImageWrapper/SSHConnectionPool.cxx
+  Logic/ImageWrapper/VTIImageIO.cxx
   Logic/ImageWrapper/MultiChannelDisplayMode.cxx
   Logic/ImageWrapper/MeshDisplayMappingPolicy.cxx
   Logic/ImageWrapper/ScalarImageHistogram.cxx
@@ -317,7 +324,12 @@ SET(LOGIC_CXX
 SET(LOGIC_HEADERS
   ${SNAP_BINARY_DIR}/GPUSettings.h
   Common/AbstractModel.h
+  Common/AbstractProgressDelegate.h
   Common/AbstractPropertyContainerModel.h
+  Common/AbstractSSHAuthDelegate.h
+  Common/StdoutProgressDelegate.h
+  Common/StdoutSSHAuthDelegate.h
+  Common/AbstractSSHAuthDelegate.h
   Common/AffineTransformHelper.h
   Common/ColorLabelPropertyModel.h
   Common/CommandLineArgumentParser.h
@@ -386,7 +398,12 @@ SET(LOGIC_HEADERS
   Logic/Framework/UndoDataManager.h
   Logic/Framework/UndoDataManager.txx
   Logic/ImageWrapper/DisplayMappingPolicy.h
+  Logic/ImageWrapper/FlywheelRemoteImageSource.h
   Logic/ImageWrapper/GuidedNativeImageIO.h
+  Logic/ImageWrapper/ImageIORemote.h
+  Logic/ImageWrapper/RemoteFileCache.h
+  Logic/ImageWrapper/RemoteResourceSettings.h
+  Logic/ImageWrapper/VTIImageIO.h
   Logic/ImageWrapper/ImageWrapper.h
   Logic/ImageWrapper/ImageWrapperBase.h
   Logic/ImageWrapper/ImageWrapperTraits.h
@@ -398,6 +415,7 @@ SET(LOGIC_HEADERS
   Logic/ImageWrapper/MeshDisplayMappingPolicy.h
   Logic/ImageWrapper/VectorToScalarImageAccessor.h
   Logic/ImageWrapper/WrapperBase.h
+  Logic/ImageWrapper/SSHConnectionPool.h
   Logic/RLEImage/RLEImage.h
   Logic/RLEImage/RLEImage.txx
   Logic/RLEImage/RLEImageConstIterator.h
@@ -681,6 +699,9 @@ SET(UI_QT_CXX
   GUI/Qt/Components/GeneralLayerInspector.cxx
   GUI/Qt/Components/PaintbrushToolPanel.cxx
   GUI/Qt/Components/PolygonToolPanel.cxx
+  GUI/Qt/Components/ProgressReportDialog.cxx
+  GUI/Qt/Components/ProgressReportWidget.cxx
+  GUI/Qt/Components/QtSSHAuthDelegate.cxx
   GUI/Qt/Components/QActionButton.cxx
   GUI/Qt/Components/QColorButtonWidget.cxx
   GUI/Qt/Components/QDoubleSlider.cxx
@@ -790,6 +811,9 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/GeneralLayerInspector.h
   GUI/Qt/Components/PaintbrushToolPanel.h
   GUI/Qt/Components/PolygonToolPanel.h
+  GUI/Qt/Components/ProgressReportDialog.h
+  GUI/Qt/Components/ProgressReportWidget.h
+  GUI/Qt/Components/QtSSHAuthDelegate.h
   GUI/Qt/Components/QActionButton.h
   GUI/Qt/Components/QColorButtonWidget.h
   GUI/Qt/Components/QDoubleSlider.h
@@ -876,6 +900,7 @@ SET(UI_NONMOC_HEADERS
   GUI/Qt/Components/ProcessEventsITKCommand.h
   GUI/Qt/Components/QPainterRenderContext.h
   GUI/Qt/Components/QtCursorOverride.h
+  GUI/Qt/Components/QtProgressDelegate.h
   GUI/Qt/Components/QtFrameBufferOpenGLWidget.h
   GUI/Qt/Components/QtRendererPlatformSupport.h
   GUI/Qt/Components/QtReporterDelegates.h
@@ -1305,8 +1330,10 @@ SET(GUI_TESTS
   MeshImport
   MeshWorkspace
   SegmentationMesh
+  4DReplayWithMeshUpdate
   VolumeRendering
   Reloading
+  SegmentationSwitching
   4DToMC
   MCTo4D
   DeformationGrid
@@ -1397,6 +1424,55 @@ TARGET_LINK_LIBRARIES(logic_api_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(logic_api_test PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME IRISApplicationTest COMMAND logic_api_test)
+
+ADD_EXECUTABLE(remote_image_load_test
+    Testing/Logic/RemoteImageLoadTest.cxx)
+TARGET_LINK_LIBRARIES(remote_image_load_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(remote_image_load_test PUBLIC ${SNAP_INCLUDE_DIRS})
+
+# Base URL for GitHub raw content used by the remote tests below.
+set(GITHUB_TESTDATA_URL
+  "itksnap-https://raw.githubusercontent.com/pyushkevich/itksnap/refs/heads/master/Testing/TestData")
+
+# Test: load a single image over HTTPS and compare against the local copy.
+add_test(NAME RemoteImageLoadTest_SingleImage
+  COMMAND remote_image_load_test
+    --regression-test -g
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
+    "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
+
+# Test: load a workspace that includes a standalone mesh layer over HTTPS
+# and verify both the image layers and the mesh layer count match local.
+add_test(NAME RemoteImageLoadTest_WorkspaceWithMesh
+  COMMAND remote_image_load_test
+    --regression-test -w
+    "${GITHUB_TESTDATA_URL}/MRIcrop-with-mesh.itksnap"
+    "${TESTDATA_DIR}/MRIcrop-with-mesh.itksnap")
+
+# Test: cache behaviour — clear the cache, download a file, verify the cache
+# is populated with ETag/Last-Modified tokens, download again, and confirm
+# the file was not re-written (304 conditional-GET hit).
+add_test(NAME RemoteImageLoadTest_Cache
+  COMMAND remote_image_load_test
+    --test-cache
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
+
+# Remote tests require network access; tag them so CI can skip them easily.
+set_tests_properties(
+  RemoteImageLoadTest_SingleImage
+  RemoteImageLoadTest_WorkspaceWithMesh
+  RemoteImageLoadTest_Cache
+  PROPERTIES
+    LABELS "Remote"
+    TIMEOUT 120)
+
+# Test: large-image size guard throws IRISException instead of crashing with SIGBUS
+ADD_EXECUTABLE(TestLargeImageCheck
+    Testing/Logic/TestLargeImageCheck.cxx)
+TARGET_LINK_LIBRARIES(TestLargeImageCheck ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestLargeImageCheck PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestLargeImageCheck COMMAND TestLargeImageCheck ${TEMP})
 
 # Set up a test for each GUI test
 FOREACH(GUI_TEST ${GUI_TESTS})
@@ -1700,6 +1776,21 @@ ELSEIF(WIN32)
         "ExecWait '\\\"$INSTDIR\\\\bin\\\\${VCREDIST_NAME}\\\" /passive'")
     ENDIF(VCREDIST_EXE)
   ENDIF(MSVC_VERSION GREATER 1399)
+
+  # Register itksnap-sftp://, itksnap-scp://, itksnap-https://, itksnap-http://, and itksnap-fw://
+  # as URL scheme handlers so that tools and web pages can open remote files
+  # directly in ITK-SNAP.
+  foreach(_scheme itksnap-sftp itksnap-scp itksnap-https itksnap-http itksnap-fw)
+    STRING(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+      WriteRegStr HKCR '${_scheme}' '' 'URL: ITK-SNAP ${_scheme}'
+      WriteRegStr HKCR '${_scheme}' 'URL Protocol' ''
+      WriteRegStr HKCR '${_scheme}\\\\DefaultIcon' '' '$INSTDIR\\\\bin\\\\ITK-SNAP.exe,0'
+      WriteRegStr HKCR '${_scheme}\\\\shell\\\\open\\\\command' '' '$INSTDIR\\\\bin\\\\ITK-SNAP.exe --url \\\"%1\\\"'
+      ")
+    STRING(APPEND CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+      DeleteRegKey HKCR '${_scheme}'
+      ")
+  endforeach()
 
   # Try setting the MSVC environment so we can debug from MSVC
   set_target_properties(ITK-SNAP PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:ITK-SNAP>"

@@ -30,14 +30,14 @@ QDoubleSliderWithEditor::~QDoubleSliderWithEditor()
 
 void QDoubleSliderWithEditor::setValue(double newval)
 {
-  // Set the value in the spinbox
-  if(newval != ui->spinbox->value())
+  double tol = 1e-6 * (ui->slider->maximum() - ui->slider->minimum());
+
+  // Set the value in the spinbox. Let spinnerValueChanged() do the sync +
+  // emit, so setValue() notifies like a real Q_PROPERTY WRITE should.
+  if(std::fabs(newval - ui->spinbox->value()) > tol)
     {
-    m_IgnoreSpinnerEvent = true;
     ui->spinbox->setValue(newval);
     ui->spinbox->setSpecialValueText("");
-    m_IgnoreSpinnerEvent = false;
-    this->updateSliderFromSpinner();
     }
 }
 
@@ -57,7 +57,8 @@ void QDoubleSliderWithEditor::updateSliderFromSpinner()
   int vs = (int) (ui->slider->maximum() * r);
 
   m_IgnoreSliderEvent = true;
-  if(vs != ui->slider->value())
+  double tol = 1e-6 * (ui->slider->maximum() - ui->slider->minimum());
+  if(std::fabs(vs - ui->slider->value()) > tol)
     ui->slider->setValue(vs);
   m_IgnoreSliderEvent = false;
 }

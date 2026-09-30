@@ -53,7 +53,7 @@ QVariant VoxelIntensityQTableModel::data(const QModelIndex &index, int role) con
     else
       {
       // Get the cursor position
-      Vector3ui cursor = m_Model->GetDriver()->GetCursorPosition();
+      Vector3i cursor = m_Model->GetDriver()->GetCursorPosition();
 
       // TODO: do we want to use a tree model here to represent multi-channel
       // images? For the time being, we can list all of the components, but

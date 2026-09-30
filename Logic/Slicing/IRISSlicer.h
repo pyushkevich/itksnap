@@ -95,9 +95,9 @@ public:
   typedef itk::ImageRegionIteratorWithIndex<OutputImageType>  SimpleOutputIteratorType;
   typedef itk::ImageLinearIteratorWithIndex<OutputImageType> OutputIteratorType;
 
-  /** Set the current slice index */
-  itkSetMacro(SliceIndex,unsigned int);
-  itkGetMacro(SliceIndex,unsigned int);
+  /** Set the current slice index. Slice index may be outside of the image */
+  itkSetMacro(SliceIndex, int);
+  itkGetMacro(SliceIndex, int);
 
   /** Set the image axis along which the subsequent slices lie */
   itkSetMacro(SliceDirectionImageAxis,unsigned int);
@@ -175,7 +175,7 @@ private:
   void operator=(const Self&); //purposely not implemented
 
   // Current slice in each of the dimensions
-  unsigned int m_SliceIndex;
+  int m_SliceIndex;
 
   // Image axis corresponding to the slice direction
   unsigned int m_SliceDirectionImageAxis;
@@ -243,8 +243,8 @@ public:
   typedef itk::ImageLinearIteratorWithIndex<OutputImageType> OutputIteratorType;
 
   /** Set the current slice index */
-  itkSetMacro(SliceIndex, unsigned int);
-  itkGetMacro(SliceIndex, unsigned int);
+  itkSetMacro(SliceIndex, int);
+  itkGetMacro(SliceIndex, int);
 
   /** Set the image axis along which the subsequent slices lie */
   itkSetMacro(SliceDirectionImageAxis, unsigned int);
@@ -342,7 +342,7 @@ private:
   void operator=(const Self&); //purposely not implemented
 
   // Current slice in each of the dimensions
-  unsigned int m_SliceIndex;
+  int m_SliceIndex;
 
   // Image axis corresponding to the slice direction
   unsigned int m_SliceDirectionImageAxis;

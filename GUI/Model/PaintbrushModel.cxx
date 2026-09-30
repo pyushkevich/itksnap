@@ -23,7 +23,7 @@ Vector3d
 PaintbrushModel::ComputeOffset()
 {
   // Get the paintbrush properties
-  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+  PaintbrushSettings pbs = GetEffectivePaintbrushSettings();
 
   Vector3d offset(0.0);
   if (fmod(pbs.radius, 1.0) == 0)
@@ -53,9 +53,13 @@ PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
 
   // Make sure that the cross-hairs position is within bounds by clamping
   // it to image dimensions
-  Vector3i xSize = to_int(m_Parent->GetDriver()->GetCurrentImageData()->GetVolumeExtents());
+  auto seg_region = m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceImageRegion();
+  auto newpos = xCrossInteger.clamp(seg_region.GetIndex(), seg_region.GetUpperIndex());
 
+  /*
+  Vector3i xSize = to_int(m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize());
   Vector3ui newpos = to_unsigned_int(xCrossInteger.clamp(Vector3i(0), xSize - Vector3i(1)));
+  */
 
   if (newpos != m_MousePosition || m_MouseInside == false)
   {
@@ -68,7 +72,7 @@ PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
 bool
 PaintbrushModel::HasMainImageTransformed()
 {
-  return !m_Parent->GetDriver()->GetMainImage()->ImageSpaceMatchesReferenceSpace();
+  return m_Parent->GetDriver()->GetCurrentImageData()->IsFreeRotation();
 }
 
 bool
@@ -87,7 +91,7 @@ PaintbrushModel::TestInside(const Vector3d &x, const PaintbrushSettings &ps)
   Vector3d xTest = x;
   if (ps.isotropic)
   {
-    const Vector3d &spacing = m_Parent->GetSliceSpacing();
+    const Vector3d &spacing = m_Parent->GetReferenceSpaceSpacing();
     double          xMinVoxelDim = spacing.min_value();
     xTest(0) *= spacing(0) / xMinVoxelDim;
     xTest(1) *= spacing(1) / xMinVoxelDim;
@@ -148,11 +152,14 @@ PaintbrushModel ::ProcessDragEvent(const Vector3d &xSlice,
                                    double          pixelsMoved,
                                    bool            release)
 {
-  IRISApplication   *driver = m_Parent->GetDriver();
-  PaintbrushSettings pbs = driver->GetGlobalState()->GetPaintbrushSettings();
+  PaintbrushSettings pbs = GetEffectivePaintbrushSettings();
 
   if (m_IsEngaged)
   {
+    // To avoid reentry on mouse movement, clear m_IsEngaged before calling processing task
+    if(release)
+      m_IsEngaged = false;
+
     // The behavior is different for 'fast' regular brushes and adaptive brush. For the
     // adaptive brush, dragging is disabled.
     if (pbs.smart_mode != PAINTBRUSH_WATERSHED || m_ReverseMode)
@@ -171,6 +178,10 @@ PaintbrushModel ::ProcessDragEvent(const Vector3d &xSlice,
           ComputeMousePosition(X);
           ApplyBrush(m_ReverseMode, true, i == nSteps-1 ? release : false);
         }
+        // After interpolation loop, cursor is left at m_LastApplyX (old position).
+        // Reset cursor to the actual current mouse position so it doesn't visually
+        // lag behind the drawn stroke.
+        ComputeMousePosition(xSlice);
       }
       else
       {
@@ -190,8 +201,6 @@ PaintbrushModel ::ProcessDragEvent(const Vector3d &xSlice,
     {
       // Commit the drawing
       CommitDrawing();
-
-      m_IsEngaged = false;
       m_ContextLayerId = (unsigned long)-1;
     }
 
@@ -234,8 +243,7 @@ PaintbrushModel::CommitDrawing()
   {
     // Get the model
     auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
-    auto *img =
-      m_Parent->GetDriver()->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
+    auto *img = m_Parent->GetDriver()->GetCurrentImageData()->GetMain();
 
     // Undo the drawing we just did. But there is a chance that the drawing produced nothing in
     // which case for now we just ignore it
@@ -248,11 +256,16 @@ PaintbrushModel::CommitDrawing()
     seg->Undo();
     auto &commit = seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
 
-    // If only one delta, then treat it as a point interaction
+    // Get the remote model properties
+    auto dl_model_props = model->GetRemotePipelines()[pbs.dl_pipeline_id];
+
+    // If only one delta, then treat it as a point interaction; also treat as point interaction if the model
+    // does not support scribble interactions, although in this case, we might want to consider sending a
+    // multi-point interaction
     bool rc = false;
-    if(commit.GetDeltas().size() == 1 && m_MouseInside)
+    if((commit.GetDeltas().size() == 1 && m_MouseInside) || !dl_model_props.supports_scribble)
     {
-      rc = model->PerformPointInteraction(img, m_MousePosition, m_ReverseMode);
+      rc = model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, m_ReverseMode);
     }
     else if(commit.GetDeltas().size() > 1)
     {
@@ -262,7 +275,8 @@ PaintbrushModel::CommitDrawing()
       auto *img_delta = const_cast<LabelImageWrapper::ImageType *>(w_delta->GetImage());
       auto counts = seg->GenerateImageForRedo(commit, img_delta, gs->GetDrawingColorLabel());
       w_delta->PixelsModified();
-      model->PerformScribbleInteraction(img, w_delta, counts.n_background > counts.n_foreground);
+
+      model->PerformScribbleInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
     }
 
   }
@@ -306,7 +320,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
   DrawOverFilter drawover = gs->GetDrawOverFilter();
 
   // Get the paintbrush properties
-  PaintbrushSettings pbs = gs->GetPaintbrushSettings();
+  PaintbrushSettings pbs = GetEffectivePaintbrushSettings();
 
   // Whether watershed filter is used (adaptive brush)
   bool flagWatershed = (pbs.smart_mode == PAINTBRUSH_WATERSHED && (!reverse_mode) && (!dragging));
@@ -410,23 +424,36 @@ PaintbrushModel::ApplyBrushDeepLearning(bool reverse_mode)
 {
   // Get the model
   auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
+  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
   auto *img =
     m_Parent->GetDriver()->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
 
   // Handle the point interaction
   if (m_MouseInside)
   {
-    return model->PerformPointInteraction(img, m_MousePosition, reverse_mode);
+    return model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, reverse_mode);
   }
 
   return false;
+}
+
+PaintbrushSettings
+PaintbrushModel::GetEffectivePaintbrushSettings()
+{
+  // Get the settings from global state
+  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+
+  // Override the brush width when using deep learning mode
+  pbs.radius = (pbs.smart_mode == PAINTBRUSH_DLS) ? 0.5 : pbs.radius;
+
+  return pbs;
 }
 
 
 Vector3d
 PaintbrushModel::GetCenterOfPaintbrushInSliceSpace()
 {
-  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
+  PaintbrushSettings pbs = GetEffectivePaintbrushSettings();
 
   if (fmod(pbs.radius, 1.0) == 0)
     return m_Parent->MapImageToSlice(to_double(m_MousePosition));

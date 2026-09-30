@@ -28,6 +28,10 @@
 #include "SNAPQApplication.h"
 #include <QFileOpenEvent>
 #include <QUrl>
+#include <QUrlQuery>
+#include <QFile>
+#include <QDir>
+#include <QDebug>
 
 SNAPQApplication
 ::SNAPQApplication(int &argc, char **argv)
@@ -58,13 +62,54 @@ SNAPQApplication::notify(QObject *object, QEvent *event)
   return QApplication::notify(object, event);
 }
 
+QString SNAPQApplication::resolveUrl(const QString &rawUrl)
+{
+  QUrl url(rawUrl);
+  if(url.scheme().startsWith("itksnap-"))
+    {
+    // itksnap-sftp://host/path  →  sftp://host/path
+    // itksnap-scp://host/path   →  scp://host/path
+    QString protocol = url.scheme().mid(8); // strip "itksnap-"
+    return protocol + "://" + url.authority() + url.path();
+    }
+  else if(url.scheme() == "file" || url.scheme().isEmpty())
+    {
+    return url.toLocalFile();
+    }
+  else
+    {
+    // sftp://, scp://, or any other remote URL — pass through as-is
+    return rawUrl;
+    }
+}
+
 bool SNAPQApplication::event(QEvent *event)
 {
-  // Handle file drops
+  // ---- TEMP DIAGNOSTIC: log every FileOpen event to ~/itksnap-url-debug.log ----
+  if (event->type() == QEvent::FileOpen)
+    {
+    QFileOpenEvent *oe = static_cast<QFileOpenEvent *>(event);
+    QString dbg = QString("[%1] FileOpen: url='%2' file='%3' mainWindow=%4 secsSinceStart=%5")
+                    .arg(QTime::currentTime().toString("HH:mm:ss.zzz"))
+                    .arg(oe->url().toString())
+                    .arg(oe->file())
+                    .arg(m_MainWindow ? "SET" : "NULL")
+                    .arg(m_StartupTime.isValid() ? m_StartupTime.secsTo(QTime::currentTime()) : -999);
+    qWarning().noquote() << dbg;
+    QFile logf(QDir::homePath() + "/itksnap-url-debug.log");
+    if (logf.open(QIODevice::Append | QIODevice::Text))
+      { logf.write(dbg.toUtf8()); logf.write("\n"); logf.close(); }
+    }
+  // ---- END TEMP DIAGNOSTIC ----
+
+  // Handle file drops and URL scheme activations (itksnap-sftp://, etc.)
   if (event->type() == QEvent::FileOpen && m_MainWindow)
     {
     QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
-    QString file = openEvent->url().path();
+    QString file = resolveUrl(openEvent->url().toString());
+
+    if(file.isEmpty())
+      return true;
 
     // MacOS bug - we get these open document events automatically generated
     // from command-line parameters, and I have no idea why. To avoid this,
@@ -85,7 +130,7 @@ bool SNAPQApplication::event(QEvent *event)
 
     // Ok, we passed the check, now it's safe to actually open the file
     m_MainWindow->raise();
-    m_MainWindow->LoadDroppedFile(file);
+    m_MainWindow->LoadDroppedFile(file, false);
     return true;
     }
 

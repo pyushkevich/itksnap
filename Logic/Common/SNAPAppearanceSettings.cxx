@@ -30,6 +30,7 @@ const int
 SNAPAppearanceSettings
 ::m_Applicable[SNAPAppearanceSettings::ELEMENT_COUNT][OpenGLAppearanceElement::FEATURE_COUNT] = {
     { 1, 1, 1, 0, 1 },    // Crosshairs
+    { 1, 1, 1, 0, 1 },    // OOB Crosshairs
     { 1, 0, 0, 1, 1 },    // Markers
     { 1, 1, 1, 0, 0 },    // ROI
     { 1, 1, 1, 0, 0 },    // ROI_BOX_ACTIVE
@@ -76,6 +77,14 @@ SNAPAppearanceSettings
   elt = m_DefaultElementSettings[CROSSHAIRS];
   elt->SetColor(Vector3d(0.3, 0.3, 1.0));
   elt->SetAlpha(0.75);
+  elt->SetLineThickness(1.5);
+  elt->SetLineType(vtkPen::DASH_LINE);
+  elt->SetVisibilityFlag(true);
+
+  // Crosshairs outside of the segmentation bounds
+  elt = m_DefaultElementSettings[CROSSHAIRS_OOB];
+  elt->SetColor(Vector3d(0.25, 0.25, 1.0));
+  elt->SetAlpha(0.65);
   elt->SetLineThickness(1.5);
   elt->SetLineType(vtkPen::DASH_LINE);
   elt->SetVisibilityFlag(true);
@@ -272,6 +281,7 @@ SNAPAppearanceSettings
 
 const char *SNAPAppearanceSettings ::m_ElementNames[SNAPAppearanceSettings::ELEMENT_COUNT] = {
   "CROSSHAIRS",
+  "CROSSHAIRS_OOB",
   "MARKERS",
   "ROI_BOX",
   "ROI_BOX_ACTIVE",

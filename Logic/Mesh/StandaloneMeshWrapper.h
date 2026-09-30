@@ -46,7 +46,8 @@ public:
 
   /** Build the layer from registry */
   virtual void LoadFromRegistry(Registry &folder, std::string &orig_dir,
-                                std::string &crnt_dir, unsigned int nT) override;
+                                std::string &crnt_dir, unsigned int nT,
+                                const RemoteIOContext &ctx = RemoteIOContext()) override;
 
   /** Get the latest modified time from this object and objects that it holds */
   virtual itk::ModifiedTimeType GetDeepMTime() const override;

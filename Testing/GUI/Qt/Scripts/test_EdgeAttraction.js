@@ -18,81 +18,81 @@ enterSnakeMode(10, 30, 30, 32, 32, 32);
 var snakepanel = engine.findChild(mainwin,"SnakeWizardPanel");
 var combo = engine.findChild(snakepanel,"inPreprocessMode");
 var index = engine.findItemRow(combo,"Edge Attraction");
-combo.setCurrentIndex(index);
+engine.callMethod(combo, "setCurrentIndex", [index]);
 
 //=== Open edge parameters window
-engine.findChild(snakepanel,"btnEdgeDetail").click();
+engine.clickChild(snakepanel, "btnEdgeDetail");
 var win_speed = engine.findChild(snakepanel, "dlgSpeedParameters");
 
 //=== Set edge parameters
-engine.findChild(win_speed,"inEdgeSmoothing").value = 0.4;
-engine.findChild(win_speed,"inEdgeKappa").value = 0.03;
-engine.findChild(win_speed,"inEdgeExponent").value = 3.5;
+engine.setChildProperty(win_speed, "inEdgeSmoothing", "value", 0.4);
+engine.setChildProperty(win_speed, "inEdgeKappa", "value", 0.03);
+engine.setChildProperty(win_speed, "inEdgeExponent", "value", 3.5);
 
 //=== Close the edge parameter window
-engine.findChild(win_speed,"btnClose").click();
+engine.clickChild(win_speed, "btnClose");
 
 //=== Validating speed image
 setCursor(19, 27, 17);
-engine.validateFloatValue(readVoxelIntensity(1), 0.593, 0.001);
+engine.validateValue(readVoxelIntensity(1), 0.593, 0.001);
 
 //=== Go to bubble mode
-engine.findChild(snakepanel,"btnNextPreproc").click();
+engine.clickChild(snakepanel, "btnNextPreproc");
 engine.sleep(1000);
 
 //=== Add a bubble
 setCursor(25, 9, 24);
-engine.findChild(snakepanel,"inBubbleRadius").value=2;
-engine.findChild(snakepanel,"btnAddBubble").click();
+engine.setChildProperty(snakepanel, "inBubbleRadius", "value", 2.0);
+engine.clickChild(snakepanel, "btnAddBubble");
 
 //=== Go to snake mode
-engine.findChild(snakepanel,"btnBubbleNext").click();
+engine.clickChild(snakepanel, "btnBubbleNext");
 engine.sleep(1000);
 
 //=== Validating level set image
-engine.validateFloatValue(readVoxelIntensity(2), -2.289, 0.1);
+engine.validateValue(readVoxelIntensity(2), -2.289, 0.1);
 
 //=== Make sure there is no crash on reinitialization
-engine.findChild(snakepanel,"btnEvolutionBack").click();
+engine.clickChild(snakepanel, "btnEvolutionBack");
 engine.sleep(1000);
-engine.findChild(snakepanel,"btnBubbleNext").click();
+engine.clickChild(snakepanel, "btnBubbleNext");
 engine.sleep(1000);
 
 //=== Revalidating level set image
-engine.validateFloatValue(readVoxelIntensity(2), -2.289, 0.1);
+engine.validateValue(readVoxelIntensity(2), -2.289, 0.1);
 
 //=== Set step size
-engine.findChild(snakepanel,"inStepSize").value = 10;
+engine.setChildProperty(snakepanel, "inStepSize", "value", 10);
 
 //=== Open evolution parameters dialog
-engine.findChild(snakepanel,"btnEvolutionParameters").click();
+engine.clickChild(snakepanel, "btnEvolutionParameters");
 var win_param = engine.findChild(snakepanel, "dlgSnakeParameters");
 
 //=== Set forces to desired values
-engine.findChild(win_param, "btnRestore").click();
-engine.findChild(win_param, "btnClose").click();
+engine.clickChild(win_param, "btnRestore");
+engine.clickChild(win_param, "btnClose");
 
 //=== Run snake ten iter
 for(i = 0; i < 10; i++)
-  engine.findChild(snakepanel,"btnSingleStep").click();
+  engine.clickChild(snakepanel, "btnSingleStep");
 
 //=== Validating level set image
 setCursor(20, 9, 28);
-engine.validateFloatValue(readVoxelIntensity(2), -0.4784, 0.1);
+engine.validateValue(readVoxelIntensity(2), -0.4784, 0.1);
 
 //=== Rewind and try again
-engine.findChild(snakepanel,"btnRewind").click();
+engine.clickChild(snakepanel, "btnRewind");
 
 //=== Run snake ten iter again
 for(i = 0; i < 10; i++)
-  engine.findChild(snakepanel,"btnSingleStep").click();
+  engine.clickChild(snakepanel, "btnSingleStep");
 
 //=== Validating level set image
-engine.validateFloatValue(readVoxelIntensity(2), -0.4784, 0.1);
+engine.validateValue(readVoxelIntensity(2), -0.4784, 0.1);
 
 //=== Finish snake mode
-engine.findChild(snakepanel,"btnEvolutionNext").click();
+engine.clickChild(snakepanel, "btnEvolutionNext");
 
 //=== Validate segmentation
-value = engine.findChild(mainwin, "outLabelId").value;
+value = engine.getChildProperty(mainwin, "outLabelId", "value");
 engine.validateValue(value, 1);

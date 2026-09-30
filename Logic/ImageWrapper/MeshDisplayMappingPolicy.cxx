@@ -134,7 +134,7 @@ MeshDisplayMappingPolicy::SetMesh(MeshWrapperBase *mesh_wrapper)
   m_Wrapper = mesh_wrapper;
 
   // Lookup Table
-  m_LookupTable = vtkLookupTable::New();
+  m_LookupTable = vtkSmartPointer<vtkLookupTable>::New();
 
   // Color Map
   auto cMap = ColorMap::New();

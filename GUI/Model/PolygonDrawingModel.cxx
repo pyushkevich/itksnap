@@ -637,8 +637,8 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
 
   // Allocate the polygon to match current image size. This will only
   // allocate new memory if the slice size changed
-  itk::Size<2> sz = { { (itk::SizeValueType)m_Parent->GetSliceSize()[0],
-                        (itk::SizeValueType)m_Parent->GetSliceSize()[1] } };
+  itk::Size<2> sz = { { (itk::SizeValueType)m_Parent->GetReferenceSpaceSize()[0],
+                        (itk::SizeValueType)m_Parent->GetReferenceSpaceSize()[1] } };
   m_PolygonSlice->SetRegions(sz);
   m_PolygonSlice->Allocate();
 
@@ -716,7 +716,8 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
       // Catch exceptions from the deep learning model
       try
       {
-        dlm->PerformLassoInteraction(img, w_delta, counts.n_background > counts.n_foreground);
+        // TODO: set up the model dropdown!
+        dlm->PerformLassoInteraction("nnInteractive", img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
 
         // Store the correct undo point
         driver->GetSelectedSegmentationLayer()->StoreUndoPoint("nnInteractive Lasso operation");

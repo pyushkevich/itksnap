@@ -65,7 +65,7 @@ LevelSetMeshAssembly
 {
   bool ret = this->GetMTime() < m_Image->GetMTime();
 
-  if (m_MeshOptions && m_MeshOptions->GetMTime() >= this->GetMTime())
+  if (m_MeshOptions && m_MeshOptions->GetMTime() > this->GetMTime())
     ret = true;
 
   return ret;
@@ -178,7 +178,8 @@ LevelSetMeshWrapper
 
 void
 LevelSetMeshWrapper
-::LoadFromRegistry(Registry &, std::string &, std::string &, unsigned int)
+::LoadFromRegistry(Registry &, std::string &, std::string &, unsigned int,
+                   const RemoteIOContext &)
 {
 
 }

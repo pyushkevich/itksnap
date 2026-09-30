@@ -128,8 +128,7 @@ SegmentationStatistics
   this->RecordRunLength(ngray, layers, region, runStart, runLength, cachedEntry);
 
   // Compute the size of a voxel, in mm^3
-  const double *spacing = 
-    id->GetMain()->GetImageBase()->GetSpacing().GetDataPointer();
+  const double *spacing = id->GetReferenceSpace()->GetSpacing().GetDataPointer();
   double volVoxel = spacing[0] * spacing[1] * spacing[2];
   
   // Compute the mean and standard deviation

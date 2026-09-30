@@ -2,6 +2,7 @@
 #include "MeshDisplayMappingPolicy.h"
 #include "Rebroadcaster.h"
 #include "IRISApplication.h"
+#include "ImageIORemote.h"
 #include "IRISException.h"
 #include <vtkCleanPolyData.h>
 #include <vtkPointData.h>
@@ -362,19 +363,6 @@ MeshWrapperBase::GetMeshAssembly(unsigned int timepoint)
 }
 
 void
-MeshWrapperBase::SetFileName(const std::string &name)
-{
-  if(m_FileName == name)
-    return;
-
-  m_FileName = name;
-  m_FileNameShort = itksys::SystemTools::GetFilenameWithoutExtension(
-        itksys::SystemTools::GetFilenameName(name));
-  this->Modified();
-  this->InvokeEvent(WrapperMetadataChangeEvent());
-}
-
-void
 MeshWrapperBase
 ::SetFileName(const char *filename, unsigned int tp, LabelType id)
 {
@@ -397,34 +385,6 @@ MeshWrapperBase::GetTDigest()
 {
   auto prop = GetActiveDataArrayProperty();
   return prop->GetTDigest();
-}
-
-void
-MeshWrapperBase::SetCustomNickname(const std::string &nickname)
-{
-  if(m_CustomNickname == nickname || (m_CustomNickname.empty() && nickname == m_FileNameShort))
-    return;
-
-  // Make sure the nickname is real
-  if(nickname == m_FileNameShort)
-    m_CustomNickname.clear();
-  else
-    m_CustomNickname = nickname;
-
-  this->Modified();
-  this->InvokeEvent(WrapperMetadataChangeEvent());
-}
-
-const std::string&
-MeshWrapperBase::GetNickname() const
-{
-  if(m_CustomNickname.length())
-    return m_CustomNickname;
-
-  else if(m_FileName.length())
-    return m_FileNameShort;
-
-  else return m_DefaultNickname;
 }
 
 SmartPtr<MeshLayerDataArrayProperty>
@@ -597,9 +557,10 @@ MeshWrapperBase::GetDeepMTime() const
 void
 MeshWrapperBase
 ::LoadFromRegistry(Registry &folder, std::string &orig_dir, std::string &crnt_dir,
-                   unsigned int nT)
+                   unsigned int nT, const RemoteIOContext &ctx)
 {
   GuidedMeshIO io;
+  io.SetContext(ctx);
   bool moved = (orig_dir.compare(crnt_dir) != 0);
 
   // Load nicknames and tags
@@ -637,6 +598,8 @@ MeshWrapperBase
       if (!fnSet)
         {
         this->SetFileName(poly_file_full);
+        if (IsRemoteImageURL(poly_file_full))
+          this->SetRemoteURL(poly_file_full);
         fnSet = true;
         }
 

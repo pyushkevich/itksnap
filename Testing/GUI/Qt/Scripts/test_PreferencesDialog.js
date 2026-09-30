@@ -14,10 +14,10 @@ var btnASC = engine.findChild(prefDialog, "btnASC");
 var btnSAC = engine.findChild(prefDialog, "btnSAC");
 
 //=== Toggle ASC
-btnASC.toggle();
+engine.toggle(btnASC);
 
 //=== Toggle SAC
-btnSAC.toggle();
+engine.toggle(btnSAC);
 
 var btnAP = engine.findChild(prefDialog, "radio_sagittal_ap");
 var btnPA = engine.findChild(prefDialog, "radio_sagittal_pa");
@@ -25,16 +25,15 @@ var btnRL = engine.findChild(prefDialog, "radio_axial_rl");
 var btnLR = engine.findChild(prefDialog, "radio_axial_lr");
 
 //=== Toggle AP
-btnAP.toggle();
+engine.toggle(btnAP);
 
 //=== Toggle PA
-btnPA.toggle();
+engine.toggle(btnPA);
 
 //=== Toggle RL
-btnRL.toggle();
+engine.toggle(btnRL);
 
 //=== Toggle LR
-btnLR.toggle();
-
+engine.toggle(btnLR);
 
 

@@ -5,6 +5,7 @@
 #include "PropertyModel.h"
 #include "vtkSmartPointer.h"
 #include "SNAPEvents.h"
+#include <atomic>
 #include <mutex>
 
 class GlobalUIModel;
@@ -100,6 +101,9 @@ public:
 
   // Reentrant function to check if mesh is being constructed in another thread
   bool IsMeshUpdating();
+
+  // Set the mesh-updating flag (call from main thread before launching background task)
+  void SetMeshUpdating(bool v) { m_MeshUpdating = v; }
 
   // Accept the current drawing operation
   bool AcceptAction();
@@ -218,8 +222,9 @@ protected:
   SmartPtr<AbstractSimpleBooleanProperty> m_ColorBarVisibleModel;
   bool GetColorBarVisibleValue(bool &value);
 
-  // Is the mesh updating
-  bool m_MeshUpdating;
+  // Is the mesh updating (atomic so it can be safely read from the main thread
+  // while the mesh-compute background thread holds m_Mutex)
+  std::atomic<bool> m_MeshUpdating;
 
   // Time of the last mesh clear operation
   unsigned long m_ClearTime;

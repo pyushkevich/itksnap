@@ -153,6 +153,13 @@ public:
   void InitializeSlice(GenericImageData *data);
 
   /**
+   * Refresh full extent region/optimal zoom without touching current view.
+   * Used for registration transform updates, which fire the same event as
+   * dimension changes but should not yank the user's zoom/position around.
+   */
+  void RefreshFullExtentRegion();
+
+  /**
    * Reset the view parameters of the window (zoom, view position) to
    * defaults
    */
@@ -202,6 +209,11 @@ public:
   Vector3d MapSliceToImagePhysical(const Vector3d &xSlice);
 
   /**
+   * Map a point in image physical coordinates to a point in slice coordinates
+   */
+  Vector3d MapImagePhysicalToSlice(const Vector3d &xSlice);
+
+  /**
    * Map a point in image coordinates to slice coordinates
    */
   Vector3d MapImageToSlice(const Vector3d &xImage);
@@ -248,9 +260,6 @@ public:
   size_t GetSliceDirectionInImageSpace()
     { return m_ImageAxes[2]; }
 
-  /** Reset the view position to center of the image */
-  void ResetViewPosition ();
-
   /** Return the offset from the center of the viewport to the cursor position
    * in slice units (#voxels * spacing). This is used to synchronize panning
    * across SNAP sessions */
@@ -286,7 +295,10 @@ public:
   void ComputeOptimalZoom();
 
   /** Compute the optimal zoom (best fit) */
-  irisGetMacro(OptimalZoom,double)
+  irisGetMacro(OptimalZoom, double)
+
+  /** Compute the optimal zoom (best fit) */
+  irisGetMacro(OptimalZoomFullExtent, double)
 
   /** Set the zoom management flag */
   irisSetMacro(ManagedZoom,bool)
@@ -298,13 +310,19 @@ public:
   irisGetMacro(ViewPosition, Vector2d)
 
   /** Get the slice spacing in the display space orientation */
-  irisGetMacro(SliceSpacing,Vector3d)
+  virtual Vector3d GetReferenceSpaceSpacing() const;
 
-  /** Get the slice spacing in the display space orientation */
-  irisGetMacro(SliceSize,Vector3i)
+  /** Get the size of the reference space region */
+  virtual Vector3i GetReferenceSpaceSize() const;
 
-  /** Get the corners of the rectangle in slice coordinates */
-  std::pair<Vector2d, Vector2d> GetSliceCorners() const;
+  /** Get the reference space region in local coordinate frame */
+  irisGetMacro(FullExtentRegion, itk::ImageRegion<3>);
+
+  /** Get the full extent region in local coordinate frame */
+  irisGetMacro(ReferenceSpaceRegion, itk::ImageRegion<3>);
+
+  /** Get the corners of the reference space rectangle in slice coordinates */
+  std::pair<Vector2d, Vector2d> GetReferenceSpaceCorners() const;
 
   /** The id (slice direction) of this slice model */
   irisGetMacro(Id, int)
@@ -368,9 +386,6 @@ public:
 
   /** Get the layer in a given tile, when using tiled views */
   ImageWrapperBase *GetLayerForNthTile(int row, int col);
-
-  /** Compute the canvas size needed to display slice at current zoom factor */
-  Vector2i GetOptimalCanvasSize();
 
   /** This method computes the thumbnail properties (size, zoom) */
   void ComputeThumbnailProperties();
@@ -450,25 +465,38 @@ protected:
   // The transform from display coordinates to patient coordinates
   SmartPtr<ImageCoordinateTransform> m_DisplayToAnatomyTransform;
 
-  // Dimensions of the current slice (the third component is the size
-  // of the image in the slice direction)
-  Vector3i m_SliceSize;
+  // Reference space region in the display coordinate orientation, i.e.,
+  // x is display left/right, y is display down/up, z is display slice direction
+  itk::ImageRegion<3> m_ReferenceSpaceRegion;
+
+  // Full scene extent region in the display coordinate orientation
+  itk::ImageRegion<3> m_FullExtentRegion;
 
   // Pixel dimensions for the slice.  (the third component is the pixel
   // width in the slice direction)
-  Vector3d m_SliceSpacing;
+  Vector3d m_RefSpaceSpacing;
 
-  // Position of visible window in slice space coordinates
+  // Position of visible window center in slice space coordinates
   Vector2d m_ViewPosition;
 
+  // Position of the visible window center in world coordinates, stored in
+  // order to minimize workspace jerking when the reference space changes
+  Vector3d m_ViewPositionInWorldSpace;
+
+  // Compute the view position in world space
+  void UpdateViewPositionInWorldSpace();
+
+  // Set view position based on currently stored world space position
+  void RestoreViewPositionInWorldSpace();
+
   // The view position where the slice wants to be
-  Vector2d m_OptimalViewPosition;
+  Vector2d m_OptimalViewPosition, m_OptimalViewPositionFullExtent;
 
   // The number of screen pixels per mm of image
   double m_ViewZoom;
 
   // The zoom level at which the slice fits snugly into the window
-  double m_OptimalZoom;
+  double m_OptimalZoom, m_OptimalZoomFullExtent;
 
   // Flag indicating whether the window's zooming is managed externally
   // by the SliceWindowCoordinator
@@ -507,6 +535,9 @@ protected:
   bool GetSliceIndexTextValue(std::string &value);
 
   SmartPtr<DeformationGridModel> m_DeformationGridModel;
+
+  /** Computes the zoom that gives the best fit for the window */
+  std::tuple<double, Vector2d> ComputeOptimalZoomInternal(const itk::ImageRegion<3> &region);
 
   /** Update the state of the viewport based on current layout settings */
   void UpdateViewportLayout();

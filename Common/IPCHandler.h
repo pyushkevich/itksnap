@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <set>
 #include <string>
+#include <vector>
+#include <utility>
 
 class AbstractSharedMemorySystemInterface
 {
@@ -19,7 +21,25 @@ public:
   virtual bool Lock() = 0;
   virtual bool Unlock() = 0;
   virtual int GetProcessID() = 0;
+  virtual size_t GetSize() = 0;
 };
+
+/** One slot in the instance directory — one entry per running ITK-SNAP window. */
+struct IPCDirectoryEntry
+{
+  long pid;              // 0 = empty slot
+  char title[256];       // human-readable window title (main image filename)
+  long pending_drop_id;  // incremented by sender on each write; 0 = never written
+  char pending_drop[2048]; // filename or URL to open, UTF-8, null-terminated
+};
+
+static const int IPC_MAX_INSTANCES = 16;
+
+struct IPCDirectory
+{
+  IPCDirectoryEntry entries[IPC_MAX_INSTANCES];
+};
+
 
 /**
  * Base class for IPCHandler. This class contains the definitions of the
@@ -67,6 +87,24 @@ public:
   /** Get the PID of last sender */
   long GetLastMessageSenderProcessID() { return m_LastSender; }
 
+  /** Claim a slot in the instance directory, writing our PID and title. */
+  void ClaimSlot(const char *title);
+
+  /** Update the title in our already-claimed slot. */
+  void UpdateSlotTitle(const char *title);
+
+  /** Release our slot (called from Detach, including crash path). */
+  void ReleaseSlot();
+
+  /** Return {pid, title} for all live instances (excluding ourselves). */
+  std::vector<std::pair<long, std::string>> ReadDirectory();
+
+  /** Write a file/URL into target's pending_drop field. */
+  void WriteDropRequest(long target_pid, const char *filename);
+
+  /** Read and clear our own pending_drop field. Returns true if a new request was found. */
+  bool ReadDropRequest(std::string &out);
+
 protected:
 
   struct Header
@@ -95,12 +133,18 @@ protected:
   static const short IPC_VERSION;
 
   // Process ID and other values used by IPC
-  long m_ProcessID, m_MessageID, m_LastSender, m_LastReceivedMessageID;
+  long m_ProcessID, m_MessageID, m_LastSender, m_LastReceivedMessageID, m_LastDropId;
 
   bool IsProcessRunning(int pid);
 
   // List of known process ids, with status (0 = alive, -1 = dead)
   std::set<long> m_KnownDeadPIDs;
+
+  // Pointer into shared memory where the directory lives (after Header+message)
+  IPCDirectory *m_Directory = nullptr;
+  bool          m_DirectoryAvailable = false;
+
+  IPCDirectory *GetDirectory();
 };
 
 

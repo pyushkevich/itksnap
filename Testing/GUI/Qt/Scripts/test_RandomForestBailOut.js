@@ -11,17 +11,17 @@ enterSnakeModeFullROI();
 var snakepanel = engine.findChild(mainwin,"SnakeWizardPanel");
 var combo = engine.findChild(snakepanel,"inPreprocessMode");
 var index = engine.findItemRow(combo,"Classification");
-combo.setCurrentIndex(index);
+engine.callMethod(combo, "setCurrentIndex", [index]);
 
 //=== Show just the axial view
-engine.findChild(mainwin, "btnAxial").click();
+engine.clickChild(mainwin, "btnAxial");
 
 // Get the axial panel
 var panel0 = engine.findChild(mainwin,"panel0");
 var sliceView0 = engine.findChild(panel0,"sliceView");
 
 //=== Enter paintbrush mode
-engine.findChild(mainwin,"actionPaintbrush").trigger();
+engine.trigger("actionPaintbrush");
 
 //=== Paint with foreground label
 setForegroundLabel("Label 1");
@@ -39,8 +39,8 @@ setCursor(26,28,13);
 engine.postKeyEvent(sliceView0, "Space");
 
 //=== Perform classification
-engine.findChild(snakepanel,"btnClassifyTrain").click();
+engine.clickChild(snakepanel, "btnClassifyTrain");
 
 //=== Cancel segmentation
-engine.findChild(snakepanel, "btnCancel").click();
+engine.clickChild(snakepanel, "btnCancel");
 engine.sleep(1000)

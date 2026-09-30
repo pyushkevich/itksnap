@@ -61,7 +61,6 @@ using namespace std;
 using itksys::SystemTools;
 using itksys::RegularExpression;
 using itksys::Directory;
-using DSSRESTClient = RESTClient<DSSServerTraits>;
 
 #ifdef WIN32
 

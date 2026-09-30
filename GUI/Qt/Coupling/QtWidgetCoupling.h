@@ -504,6 +504,11 @@ public:
     setObjectName(QString("CouplingHelper:%1").arg(widget->objectName()));
   }
 
+  ~QtCouplingHelper()
+  {
+    delete m_DataMapping;
+  }
+
 public slots:
   void onUserModification()
   {

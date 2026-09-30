@@ -88,6 +88,13 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling((QAbstractButton *)ui->btnVisible, m_Model->GetLayerVisibilityModel());
 
   makeCoupling(ui->outFilename, m_Model->GetFilenameModel());
+  makeCoupling(ui->outRemoteURL, m_Model->GetRemoteURLModel());
+  activateOnFlag(ui->outRemoteURL, m_Model,
+                 LayerGeneralPropertiesModel::UIF_HAS_REMOTE_URL,
+                 QtWidgetActivator::HideInactive);
+  activateOnFlag(ui->lblRemoteURL, m_Model,
+                 LayerGeneralPropertiesModel::UIF_HAS_REMOTE_URL,
+                 QtWidgetActivator::HideInactive);
   makeCoupling(ui->inNickname, m_Model->GetNicknameModel());
 
   makeCoupling(ui->tagsWidget, m_Model->GetTagsModel());

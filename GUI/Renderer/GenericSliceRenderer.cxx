@@ -330,11 +330,13 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
   auto        *ml = m_Model->GetImageData()->GetMeshLayers();
   unsigned int tp = m_Model->GetDriver()->GetCursorTimePoint();
   auto         index = DisplaySliceIndex(m_Model->GetId(), DISPLAY_SLICE_MAIN);
-  auto        *main_image = m_Model->GetDriver()->GetMainImage();
+  auto        *ref_space = m_Model->GetImageData()->GetReferenceSpaceWrapper();
 
-  // Get the key to access the stored path from the layer
+  // Get the key to access the stored path from the layer.
+  // Include the timepoint in the key so each tp gets its own cached contour,
+  // and switching back to a previous tp correctly reuses that tp's cached contour.
   static const char *key_path[] = { "MeshSliceViewPath_0", "MeshSliceViewPath_1", "MeshSliceViewPath_2" };
-  auto layer_key = key_path[m_Model->GetId()];
+  std::string layer_key = std::string(key_path[m_Model->GetId()]) + "_tp" + std::to_string(tp);
 
   SNAPAppearanceSettings *as = m_Model->GetParentUI()->GetAppearanceSettings();
   const auto             &eltMesh = as->GetUIElement(SNAPAppearanceSettings::MESH_OUTLINE);
@@ -386,7 +388,7 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
           for(int i = 3; i >= 0; i--)
           {
             Vector3d p_ras = Id.get_column(i).extract(3);
-            Vector3d p_itk = main_image->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
+            Vector3d p_itk = ref_space->TransformNIFTICoordinatesToVoxelCIndex(p_ras);
             p_itk += 0.5;
             Vector3d p_slice = m_Model->MapImageToSlice(p_itk);
             auto Qi = Id.get_column(i);
@@ -394,7 +396,7 @@ GenericSliceRenderer::RenderMeshes(AbstractRenderContext *context)
             Q.set_column(i, Qi);
           }
 
-          vnl_matrix_fixed<double, 4, 4> inv_sform = main_image->GetNiftiInvSform();
+          vnl_matrix_fixed<double, 4, 4> inv_sform = ref_space->GetNiftiInvSform();
           vnl_matrix_fixed<double, 4, 4> vox_offset;
           vox_offset.set_identity();
           for (unsigned int i = 0; i < 3; i++)
@@ -494,7 +496,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
 
   // Adjust the view matrix so that we can point in slice coordinates
   auto v_pos = m_Model->GetViewPosition();
-  auto spacing = m_Model->GetSliceSpacing();
+  auto spacing = m_Model->GetReferenceSpaceSpacing();
 
   // Get the dimensions of a non-thumbnail viewport
   Vector2ui vp_pos, vp_size;
@@ -611,7 +613,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
   if (as->GetOverallVisibility())
   {
     // Should we render the zoom thumbnail?
-    if (id->IsMainLoaded() && m_Model->IsThumbnailOn())
+    if (id->IsMainLoaded() && m_Model->IsThumbnailOn() && m_Model->GetViewportLayout().vpList.size() > 0)
     {
       // Draw the zoom thumbnail
       auto *eltThumb = as->GetUIElement(SNAPAppearanceSettings::ZOOM_THUMBNAIL);
@@ -623,7 +625,7 @@ GenericSliceRenderer::Render(AbstractRenderContext *context)
         auto   xy = m_Model->GetZoomThumbnailPosition();
         auto   wh = m_Model->GetZoomThumbnailSize();
         double tZoom = m_Model->GetThumbnailZoom();
-        double w_main = m_Model->GetSliceSize()[0], h_main = m_Model->GetSliceSize()[1];
+        double w_main = m_Model->GetReferenceSpaceSize()[0], h_main = m_Model->GetReferenceSpaceSize()[1];
 
         // Set up the zoom thumbnail viewport
         context->PushMatrix();

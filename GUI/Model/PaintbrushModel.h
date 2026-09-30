@@ -16,7 +16,7 @@ public:
 
   itkEventMacro(PaintbrushMovedEvent, IRISEvent)
 
-    irisGetSetMacro(Parent, GenericSliceModel *)
+  irisGetSetMacro(Parent, GenericSliceModel *)
 
   irisIsMacro(MouseInside)
 
@@ -51,7 +51,7 @@ protected:
   bool m_ReverseMode;
 
   // Mouse position in voxel coordinates
-  Vector3ui m_MousePosition;
+  Vector3i  m_MousePosition;
   bool      m_MouseInside;
 
   // Mouse position in slice coordinates from which we need to draw the
@@ -74,6 +74,10 @@ protected:
   void CommitDrawing();
 
   bool ApplyBrushDeepLearning(bool reverse_mode);
+
+  // Get the effective paintbrush settings, which may differ from the global ones
+  // depending on deep learning mode
+  PaintbrushSettings GetEffectivePaintbrushSettings();
 
   GenericSliceModel      *m_Parent;
   BrushWatershedPipeline *m_Watershed;

@@ -6,8 +6,8 @@
   Date:      $Date: 2007/12/30 04:05:12 $
   Version:   $Revision: 1.2 $
   Copyright (c) 2007 Paul A. Yushkevich
-  
-  This file is part of ITK-SNAP 
+
+  This file is part of ITK-SNAP
 
   ITK-SNAP is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
- 
+
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -29,7 +29,7 @@
 
   This software is distributed WITHOUT ANY WARRANTY; without even
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-  PURPOSE.  See the above copyright notices for more information. 
+  PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 #ifndef __IRISVectorTypesToITKConversion_h_
@@ -45,13 +45,13 @@
 /**
  * Convert a VectorNi to itk::Size
  */
-template <class T, unsigned int VSize> 
-inline itk::Size<VSize> 
-to_itkSize(const vnl_vector_fixed<T,VSize> &x)
+template <class T, unsigned int VSize>
+inline itk::Size<VSize>
+to_itkSize(const vnl_vector_fixed<T, VSize> &x)
 {
   itk::Size<VSize> z;
 
-  for(unsigned int i=0;i<VSize;i++)
+  for (unsigned int i = 0; i < VSize; i++)
     z[i] = static_cast<unsigned long>(x(i));
 
   return z;
@@ -60,25 +60,25 @@ to_itkSize(const vnl_vector_fixed<T,VSize> &x)
 /**
  * Convert a VectorNi to itk::Size
  */
-template <class T, unsigned int VSize> 
-inline itk::Index<VSize> 
-to_itkIndex(const vnl_vector_fixed<T,VSize> &x)
+template <class T, unsigned int VSize>
+inline itk::Index<VSize>
+to_itkIndex(const vnl_vector_fixed<T, VSize> &x)
 {
   itk::Index<VSize> z;
 
-  for(unsigned int i=0;i<VSize;i++)
-    z[i] = static_cast<unsigned long>(x(i));
+  for (unsigned int i = 0; i < VSize; i++)
+    z[i] = static_cast<long>(x(i));
 
   return z;
 }
 
 template <class T, unsigned int VSize>
 inline itk::ContinuousIndex<double, VSize>
-to_itkContinuousIndex(const vnl_vector_fixed<T,VSize> &x)
+to_itkContinuousIndex(const vnl_vector_fixed<T, VSize> &x)
 {
   itk::ContinuousIndex<double, VSize> z;
 
-  for(unsigned int i=0;i<VSize;i++)
+  for (unsigned int i = 0; i < VSize; i++)
     z[i] = static_cast<double>(x(i));
 
   return z;
@@ -86,11 +86,11 @@ to_itkContinuousIndex(const vnl_vector_fixed<T,VSize> &x)
 
 template <class T, unsigned int VSize>
 inline itk::Point<double, VSize>
-to_itkPoint(const vnl_vector_fixed<T,VSize> &x)
+to_itkPoint(const vnl_vector_fixed<T, VSize> &x)
 {
   itk::Point<double, VSize> z;
 
-  for(unsigned int i=0;i<VSize;i++)
+  for (unsigned int i = 0; i < VSize; i++)
     z[i] = static_cast<double>(x(i));
 
   return z;

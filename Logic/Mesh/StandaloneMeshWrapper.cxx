@@ -101,10 +101,11 @@ void
 StandaloneMeshWrapper ::LoadFromRegistry(Registry    &folder,
                                          std::string &orig_dir,
                                          std::string &crnt_dir,
-                                         unsigned int nT)
+                                         unsigned int nT,
+                                         const RemoteIOContext &ctx)
 {
   Superclass::LoadFromRegistry(
-    folder, orig_dir, crnt_dir, nT); // Load basic structures using parent method
+    folder, orig_dir, crnt_dir, nT, ctx); // Load basic structures using parent method
 
   auto         folder_data = folder.Folder("DataArrayProperties");
   unsigned int array_id = 0;
