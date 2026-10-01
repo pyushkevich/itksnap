@@ -1929,6 +1929,14 @@ TARGET_LINK_LIBRARIES(Test_OrientationWidget
 
 TARGET_INCLUDE_DIRECTORIES(Test_OrientationWidget PUBLIC ${SNAP_INCLUDE_DIRS})
 
+# Test: the 3D view follows image free rotation (#229)
+ADD_EXECUTABLE(FreeRotation3DTest
+    Testing/GUI/Model/FreeRotation3DTest.cxx)
+TARGET_LINK_LIBRARIES(FreeRotation3DTest ${SNAP_EXTERNAL_LIBS} itksnapui_model itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(FreeRotation3DTest PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME FreeRotation3D COMMAND FreeRotation3DTest ${TEMP})
+
 # SSH tunnel test
 SET(SSH_TUNNEL_TEST_CXX
   Testing/GUI/Qt/SSHTunnelTest/main.cxx
