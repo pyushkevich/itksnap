@@ -61,7 +61,6 @@
 #include <vtkPiecewiseFunction.h>
 #include <IntensityCurveInterface.h>
 #include <ColorMap.h>
-#include <AffineTransformHelper.h>
 #include <itkTransform.h>
 
 #include <vnl/vnl_cross.h>
@@ -879,15 +878,11 @@ void
 Generic3DRenderer::UpdateVolumeTransform(ImageWrapperBase *layer, VolumeAssembly *va)
 {
   auto *sw = layer->GetDefaultScalarRepresentation();
-  auto  dir = sw->GetImageBase()->GetDirection().GetVnlMatrix().as_matrix();
-  auto  spc = sw->GetImageBase()->GetSpacing().GetVnlVector();
-  auto  org = sw->GetImageBase()->GetOrigin().GetVnlVector();
 
-  // Transform applied to the volume is the product of the registration matrix and the
-  // image to physical transform
-  vnl_matrix_fixed<double, 4, 4> vtk2nii =
-    AffineTransformHelper::GetRASMatrix(sw->GetITKTransform()) *
-    ImageWrapperBase::ConstructVTKtoNiftiTransform(dir, org, spc);
+  // Transform applied to the volume is the image to physical transform, followed by
+  // the map from the image's physical space to where it is displayed, which is the
+  // inverse of the registration matrix
+  vnl_matrix_fixed<double, 4, 4> vtk2nii = m_Model->GetVolumeToWorldMatrix(layer);
 
   vtkNew<vtkMatrix4x4> tran;
   tran->DeepCopy(vtk2nii.data_block());

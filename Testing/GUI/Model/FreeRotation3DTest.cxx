@@ -11,6 +11,7 @@
 //   - Mesh: the matrices that place the cube's mesh in the 3D view, and a
 //     copy of it loaded from a file, put them on the cube.
 //   - Outline: the slice views cut the loaded mesh where the cube is shown.
+//   - Volume: volume rendering places the cube where the slice views do.
 //   - Scalpel: a cut plane through the displayed cube relabels the voxels
 //     that the slice views show on its far side.
 //
@@ -351,6 +352,19 @@ int main(int argc, char *argv[])
     check(max_from_center < 6.0,
           "the cut surrounds the displayed cube center (farthest point "
             + std::to_string(max_from_center) + " mm)");
+
+    // Volume. The main image is volume rendered in VTK coordinates (origin
+    // and spacing, no direction). The cube center there must be placed on
+    // the displayed cube.
+    std::cout << "Volume" << std::endl;
+    auto    *vol_image = main->GetDefaultScalarRepresentation()->GetImageBase();
+    Vector3d x_vtk;
+    for (unsigned int d = 0; d < 3; d++)
+      x_vtk[d] = vol_image->GetOrigin()[d] + CUBE_CENTER[d] * vol_image->GetSpacing()[d];
+    Vector3d w_volume = affine_transform_point(model3d->GetVolumeToWorldMatrix(main), x_vtk);
+    check(Distance(w_volume, w_cube) < 1.0e-4,
+          "the volume rendering shows the cube center on the cube (off by "
+            + std::to_string(Distance(w_volume, w_cube)) + " mm)");
 
     // Scalpel. Cut with an oblique plane through the displayed cube center.
     // The cube voxels that the slice views show on the far side of the plane

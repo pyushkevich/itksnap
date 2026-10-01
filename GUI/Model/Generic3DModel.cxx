@@ -181,6 +181,19 @@ Generic3DModel::Mat4d Generic3DModel::GetImageVoxelToWorldMatrix(ImageWrapperBas
   return layer->GetImageToReferenceNiftiTransform() * vox2nii;
 }
 
+Generic3DModel::Mat4d Generic3DModel::GetVolumeToWorldMatrix(ImageWrapperBase *layer)
+{
+  // A layer is volume rendered from its default scalar image, in VTK coordinates
+  // (origin and spacing, no direction). Map those to NIFTI coordinates in the
+  // image's own physical space, and from there to where the image is displayed.
+  auto  *sw = layer->GetDefaultScalarRepresentation();
+  auto  *image = sw->GetImageBase();
+  Mat4d  vtk2nii = ImageWrapperBase::ConstructVTKtoNiftiTransform(image->GetDirection().GetVnlMatrix().as_matrix(),
+                                                                  image->GetOrigin().GetVnlVector(),
+                                                                  image->GetSpacing().GetVnlVector());
+  return sw->GetImageToReferenceNiftiTransform() * vtk2nii;
+}
+
 int Generic3DModel::RelabelSegmentationWithCutPlane(const Vector3d &x_world, const Vector3d &n_world)
 {
   // Map the plane into the voxel coordinates of the segmentation

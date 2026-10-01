@@ -163,6 +163,11 @@ public:
   // so that the 3D view shows the layer where the slice views show it.
   Mat4d GetImageVoxelToWorldMatrix(ImageWrapperBase *layer);
 
+  // Get the transform from the VTK coordinates in which a layer is volume rendered
+  // to world coordinates. Like GetImageVoxelToWorldMatrix, it follows the layer's
+  // registration or free rotation.
+  Mat4d GetVolumeToWorldMatrix(ImageWrapperBase *layer);
+
   // Get the center of rotation for the 3D window
   Vector3d GetCenterOfRotation();
 
