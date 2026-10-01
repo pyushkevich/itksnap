@@ -26,6 +26,9 @@ protected:
   // Paintbrush settings corresponding to the current walk
   PaintbrushSettings m_CachedBrushSettings;
 
+  // The spacing of the reference space for which cached settings were computed
+  Vector3d m_CachedReferenceSpaceSpacing;
+
   AbstractRenderContext::Path2DPtr m_BrushOutlinePath;
   AbstractRenderContext::VertexVector m_BrushOutline;
   PaintbrushModel *m_Model;

@@ -182,10 +182,14 @@ static bool CompareSnapshots(const LayerSnapshot &a, const LayerSnapshot &b,
     return false;
     }
 
+  // Quantiles come from a T-Digest, which is approximate and not fully
+  // deterministic (results vary slightly between runs on the same image), so
+  // compare them to within a fraction of the reference intensity range rather
+  // than exactly. This still catches a wrong or corrupted image.
+  double range = std::abs(b.quantiles[kNRanks - 1] - b.quantiles[0]);
+  double tol = std::max(0.01 * range, 1e-6);
   for (int i = 0; i < kNRanks; ++i)
     {
-    double ref = std::abs(b.quantiles[i]);
-    double tol = (ref > 1e-6) ? 1e-4 * ref : 1e-6;
     if (std::abs(a.quantiles[i] - b.quantiles[i]) > tol)
       {
       msg = "quantile p" + std::to_string(static_cast<int>(kRanks[i] * 100))

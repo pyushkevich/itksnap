@@ -143,6 +143,13 @@ public:
   virtual void DrawPoint(double x, double y) = 0;
   virtual void DrawEllipse(double x, double y, double rx, double ry) = 0;
 
+  // Clipping. Coordinates are in the same (logical) space as the drawing
+  // calls above. ClearClip() removes any clip set by either method below.
+  virtual void SetClipRect(double x, double y, double w, double h) = 0;
+  virtual void SetClipRectWithHole(double x, double y, double w, double h,
+                                    double hole_x, double hole_y, double hole_w, double hole_h) = 0;
+  virtual void ClearClip() = 0;
+
   // Text functions
   virtual void SetFont(const FontInfo &fi) = 0;
   virtual int TextWidth(const std::string &str) = 0;

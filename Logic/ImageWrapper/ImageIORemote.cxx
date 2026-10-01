@@ -5,7 +5,6 @@
 #include "RemoteFileCache.h"
 #include "RESTClient.h"
 #include "SSHConnectionPool.h"
-#include "SSHTunnel.h"
 #include "SystemInterface.h"
 #include "UIReporterDelegates.h"
 #include <itksys/SystemTools.hxx>
@@ -114,88 +113,19 @@ SCPRemoteImageSource::Download(const std::string &url)
   if (basename.empty())
     throw IRISException("SCPRemoteImageSource: URL path ends in a directory, not a file: %s", url.c_str());
 
-  // Callback data bundles the last error string and the optional auth delegate.
-  struct SessionCBData
-  {
-    std::string              error;
-    AbstractSSHAuthDelegate *authDelegate = nullptr;
-    // Mutable username: may be filled in by PromptForUsernameAndPassword when
-    // no username is present in the URL.
-    std::string             &username;
-  };
-  SessionCBData cbdata{std::string{}, m_AuthDelegate, username};
-
-  auto session_cb = [](SSHTunnel::CallbackType type,
-                       SSHTunnel::CallbackInfo  info,
-                       void                    *data) -> SSHTunnel::CallbackResponse
-  {
-    auto &d = *static_cast<SessionCBData *>(data);
-    switch (type)
-    {
-      case SSHTunnel::CB_ERROR:
-        d.error = std::get<SSHTunnel::ErrorInfo>(info).error_message;
-        break;
-
-      case SSHTunnel::CB_PROMPT_PASSWORD:
-      {
-        auto &pi = std::get<SSHTunnel::PromptPasswordInfo>(info);
-        std::string pw;
-        if (pi.username.empty())
-          {
-          // No username from URL or SSH config — ask for both
-          std::string user;
-          if (!d.authDelegate->PromptForUsernameAndPassword(pi.server, pi.error_message, user, pw))
-            return {1, ""}; // cancelled
-          d.username = user;
-          }
-        else
-          {
-          if (!d.authDelegate->PromptForPassword(pi.server, pi.username, pi.error_message, pw))
-            return {1, ""}; // cancelled
-          }
-        return {0, pw};
-      }
-
-      case SSHTunnel::CB_PROMPT_PASSKEY:
-      {
-        auto &pi = std::get<SSHTunnel::PromptPasskeyInfo>(info);
-        std::string pp;
-        if (!d.authDelegate->PromptForPassphrase(pi.keyfile, pi.error_message, pp))
-          return {1, ""}; // cancelled
-        return {0, pp};
-      }
-
-      default:
-        break;
-    }
-    return {0, ""};
-  };
-
-  // Acquire an authenticated SSH + SFTP session.  Two paths:
   // Acquire an authenticated SSH + SFTP session via the connection pool.
   // When no external pool was provided (single-file download) we create a
   // temporary one that lives for the duration of this call; its destructor
   // calls CloseAll(), disconnecting and freeing the session automatically.
+  // Any passwords/passphrases are requested through m_AuthDelegate between
+  // connection attempts; failures throw with the specific SSH error.
   SmartPtr<SSHConnectionPool> tmp_pool;
   if (!m_ConnectionPool)
     tmp_pool = SSHConnectionPool::New();
 
   SSHConnectionPool *pool = m_ConnectionPool ? m_ConnectionPool : tmp_pool.GetPointer();
 
-  SSHConnectionPool::SessionPair pair;
-  try
-    {
-    pair = pool->GetOrCreate(host, username, session_cb, &cbdata, port);
-    }
-  catch (IRISException &)
-    {
-    // Re-throw with the specific SSH error captured by the callback, which is
-    // more informative than the generic pool-level message.
-    if (!cbdata.error.empty())
-      throw IRISException("SSH connection to %s failed: %s",
-                          host.c_str(), cbdata.error.c_str());
-    throw;
-    }
+  SSHConnectionPool::SessionPair pair = pool->GetOrCreate(host, username, m_AuthDelegate, port);
 
   ssh_session  session = pair.ssh;
   sftp_session sftp    = pair.sftp;

@@ -60,6 +60,8 @@
 #include <QFileInfo>
 #include "IRISImageData.h"
 #include "IPCHandler.h"
+#include "SSHConnector.h"
+#include <itksys/SystemTools.hxx>
 
 
 using namespace std;
@@ -333,6 +335,9 @@ usage(const char *progname)
   cout << "   --opengl MAJOR MINOR : Set the OpenGL major and minor version. Experimental." << endl;
   cout << "   --testgl             : Diagnose OpenGL/VTK issues." << endl;
   cout << "   --test-url URL       : Test opening image via URL." << endl;
+  cout << "   --ssh-config FILE    : Read SSH settings (hosts, ProxyJump, keys, known_hosts) from" << endl;
+  cout << "                        :   FILE instead of ~/.ssh/config. Not passed on to an already" << endl;
+  cout << "                        :   running ITK-SNAP when --url forwards to it." << endl;
   cout << "   --url URL            : Open URL/file (from OS URL-scheme handler); forwards to a" << endl;
   cout << "                        :   running ITK-SNAP window if one exists (images only)." << endl;
   cout << "Platform-Specific Options:" << endl;
@@ -391,6 +396,9 @@ public:
 
   // URL to test opening
   std::string testUrl;
+
+  // SSH config file to use instead of ~/.ssh/config (testing)
+  std::string fnSSHConfig;
 
   // URL/file from OS URL-scheme handler (--url); triggers single-instance forwarding
   std::string fnUrl;
@@ -552,6 +560,8 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--testgl", 0);
 
   parser.AddOption("--test-url", 1);
+
+  parser.AddOption("--ssh-config", 1);
 
   parser.AddOption("--url", 1);
 
@@ -767,6 +777,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   if (parseResult.IsOptionPresent("--test-url"))
     argdata.testUrl = parseResult.GetOptionParameter("--test-url");
+
+  if (parseResult.IsOptionPresent("--ssh-config"))
+    argdata.fnSSHConfig = DecodeFilename(parseResult.GetOptionParameter("--ssh-config"));
 
   if (parseResult.IsOptionPresent("--url"))
     argdata.fnUrl = DecodeFileOrUrl(parseResult.GetOptionParameter("--url"));
@@ -1165,6 +1178,15 @@ main(int argc, char *argv[])
   {
     itk::MultiThreaderBase::SetGlobalDefaultNumberOfThreads(argdata.nThreads);
     itk::MultiThreaderBase::SetGlobalMaximumNumberOfThreads(argdata.nThreads);
+  }
+
+  // Custom SSH config file, used for all SSH connections (remote images, DLS)
+  if (argdata.fnSSHConfig.size())
+  {
+    std::string sshconfig = itksys::SystemTools::CollapseFullPath(argdata.fnSSHConfig);
+    if (!itksys::SystemTools::FileExists(sshconfig, true))
+      cerr << "Warning: SSH config file " << sshconfig << " does not exist" << endl;
+    SSHConnector::SetDefaultConfigFile(sshconfig);
   }
 
   // VTK verbosity

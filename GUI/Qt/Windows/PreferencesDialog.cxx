@@ -55,7 +55,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
   QStandardItem *itemSliceViews = append_category_item(model->invisibleRootItem(), tr("Slice Views"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::BACKGROUND_2D, tr("Background"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::CROSSHAIRS, tr("Crosshair"));
-  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::CROSSHAIRS_OOB, tr("Crosshair (outside segmentation)"));
+  append_appearance_item(itemSliceViews, SNAPAppearanceSettings::REFERENCE_SPACE_BOUNDS, tr("Segmentation bounds"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::RULER, tr("Rulers"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::MARKERS, tr("Anatomic Markers"));
   append_appearance_item(itemSliceViews, SNAPAppearanceSettings::ROI_BOX, tr("ROI Edges"));

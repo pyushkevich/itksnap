@@ -227,6 +227,13 @@ public:
   RegionType GetFullExtentImageRegion();
 
   /**
+   * Get the bounding box of a layer's voxel grid in the voxel coordinates of
+   * the reference space (i.e., after mapping all eight corners of the layer's
+   * extent through the physical and registration transforms).
+   */
+  RegionType GetLayerRegionInReferenceSpace(ImageWrapperBase *layer);
+
+  /**
    * Set the main image. The main image is the anatomical image that defines
    * the coordinate space of all other images in a SNAP session. It is the
    * image in which structures are traced. The main image can have multiple
@@ -502,6 +509,16 @@ protected:
 
   // Compare geometry between two wrappers
   static bool IsSameGeometry(ImageWrapperBase *wrapper1, ImageWrapperBase *wrapper2);
+
+  // Flag used for caching full extent region
+  bool m_FullExtentRegionCacheValid = false;
+
+  // Cached full extent region
+  RegionType m_FullExtentRegionCache;
+
+  // Callback used for flagging full extent geometry as dirty
+  using RebroadcastCallbackType = std::function<void(const itk::Object *, const itk::EventObject &)>;
+  RebroadcastCallbackType m_FullExtentCacheCallback;
 
   // Storage of all mesh layers
   SmartPtr<ImageMeshLayers> m_MeshLayers;

@@ -82,12 +82,8 @@ public:
   PropertyModelToWidgetDataMapping(
       TWidgetPtr w, ModelType *model,
       WidgetValueTraits valueTraits, WidgetDomainTraits domainTraits)
-    : m_Widget(w), m_Model(model), m_Updating(false),
-      m_ValueTraits(valueTraits), m_DomainTraits(domainTraits),
-      m_CachedValueAvailable(false),
-      m_CachedDomainAvailable(false),
-      m_AllowUpdateInInvalidState(false),
-      m_LastBucketMTime(0) {}
+    : m_Widget(w), m_Model(model),
+      m_ValueTraits(valueTraits), m_DomainTraits(domainTraits) {}
 
   /** 
    * Called the first time the widget is coupled to the model in order to
@@ -127,32 +123,47 @@ public:
    */
   void UpdateModelFromWidget()
   {
-    if(!m_Updating)
-      {
+    if (!m_Updating)
+    {
       AtomicType user_value = m_ValueTraits.GetValue(m_Widget);
       AtomicType model_value;
+      bool       model_valid;
 
       // Get the current value and status from the model
-      // TODO: this information could be cached, and dirtied in the case of
-      // an event. Currently, we are doing a lot of unnecessary accesses to
-      // the model just to check hte validity and current value of th model
-      bool valid = m_Model->GetValueAndDomain(model_value, NULL);
+      // bool valid = m_Model->GetValueAndDomain(model_value, NULL);
+      if (m_CachedValidityAvailable)
+      {
+        model_valid = m_CachedValidityValue;
+        if (model_valid)
+        {
+          if (m_CachedValueAvailable)
+          {
+            model_value = m_CachedWidgetValue;
+          }
+          else
+          {
+            model_valid = m_Model->GetValueAndDomain(model_value, NULL);
+          }
+        }
+      }
+      else
+      {
+        model_valid = m_Model->GetValueAndDomain(model_value, NULL);
+      }
 
       // Note: if the model reports that the value is invalid, we are not
       // allowing the user to mess with the value. This may have some odd
       // consequences. We need to investigate.
-      if((valid && model_value != user_value)
-         || (!valid && m_AllowUpdateInInvalidState))
-        {
+      if ((model_valid && model_value != user_value) || (!model_valid && m_AllowUpdateInInvalidState))
+      {
         m_Model->SetValue(user_value);
         m_CachedWidgetValue = user_value;
         m_CachedValueAvailable = true;
-        }
       }
+    }
   }
 
 protected:
-
   void DoUpdateWidgetFromModel(bool flagDomainChange, bool flagDomainDescriptionChange)
   {
     m_Updating = true;
@@ -163,22 +174,22 @@ protected:
     // The domain should only be updated in the bucket contains the range
     // event (the target range has been modified)
     DomainType *domptr = NULL;
-    if(flagDomainChange || flagDomainDescriptionChange)
-      {
+    if (flagDomainChange || flagDomainDescriptionChange)
+    {
       m_DomainTemp = m_DomainTraits.GetDomain(m_Widget);
       domptr = &m_DomainTemp;
-      }
+    }
 
     // Obtain the value from the model
-    if(m_Model->GetValueAndDomain(value, domptr))
-      {
+    if (m_Model->GetValueAndDomain(value, domptr))
+    {
       // Update the domain if necessary. The updates to the domain never come
       // in response to the user interaction with m_Widget, so it's safe to
       // just call SetDomain without first checking if the change is 'real'.
-      if(flagDomainChange)
+      if (flagDomainChange)
+      {
+        if (!m_CachedDomainAvailable || m_CachedWidgetDomain != m_DomainTemp)
         {
-        if(!m_CachedDomainAvailable || m_CachedWidgetDomain != m_DomainTemp)
-          {
           m_DomainTraits.SetDomain(m_Widget, m_DomainTemp);
 
           // Once the domain changes, the current cached value can no longer be
@@ -186,31 +197,36 @@ protected:
           m_CachedValueAvailable = false;
 
           // Cache the domain if it is atomic (supports comparison operator)
-          if(m_DomainTemp.isAtomic())
-            {
+          if (m_DomainTemp.isAtomic())
+          {
             m_CachedWidgetDomain = m_DomainTemp;
             m_CachedDomainAvailable = true;
-            }
           }
         }
-      else if(flagDomainDescriptionChange)
-        {
+      }
+      else if (flagDomainDescriptionChange)
+      {
         m_DomainTraits.UpdateDomainDescription(m_Widget, m_DomainTemp);
-        }
+      }
 
       // Before setting the value, we should check it against the cached value
-      if(!m_CachedValueAvailable || m_CachedWidgetValue != value)
-        {
+      if (!m_CachedValueAvailable || m_CachedWidgetValue != value)
+      {
         m_ValueTraits.SetValue(m_Widget, value);
         m_CachedWidgetValue = value;
         m_CachedValueAvailable = true;
-        }
       }
+
+      m_CachedValidityValue = true;
+    }
     else
-      {
+    {
       m_ValueTraits.SetValueToNull(m_Widget);
       m_CachedValueAvailable = false;
-      }
+      m_CachedValidityValue = false;
+    }
+
+    m_CachedValidityAvailable = true;
 
     m_Updating = false;
   }
@@ -219,12 +235,12 @@ private:
 
   TWidgetPtr m_Widget;
   ModelType *m_Model;
-  bool m_Updating;
+  bool m_Updating = false;
   WidgetValueTraits m_ValueTraits;
   WidgetDomainTraits m_DomainTraits;
 
   // Whether the user can update the model when it is in invalid state
-  bool m_AllowUpdateInInvalidState;
+  bool m_AllowUpdateInInvalidState = false;
 
   // A specific property of the widget that should be toggled when the model
   // is in NULL state (visible/enabled)
@@ -239,13 +255,18 @@ private:
   // model has been updated in response to the widget.
   AtomicType m_CachedWidgetValue;
 
+  // Cache last known validity value
+  bool m_CachedValidityValue;
+
   // Whether or not the cached value can be used
-  bool m_CachedValueAvailable, m_CachedDomainAvailable;
+  bool m_CachedValidityAvailable = false;
+  bool m_CachedValueAvailable = false;
+  bool m_CachedDomainAvailable = false;
 
   // The last bucked ID handled by this widget. This is used to protect against
   // updates being invoked twice with the same event bucket (seems like some
   // sort of a Qt weirdness)
-  unsigned long m_LastBucketMTime;
+  unsigned long m_LastBucketMTime = 0ul;
 };
 
 

@@ -7,6 +7,7 @@
 #include "SegmentationUpdateIterator.h"
 #include "BrushWatershedPipeline.hxx"
 #include "DeepLearningSegmentationModel.h"
+#include "IRISException.h"
 
 
 PaintbrushModel::PaintbrushModel()
@@ -35,6 +36,19 @@ PaintbrushModel::ComputeOffset()
   return offset;
 }
 
+bool
+PaintbrushModel::IsSliceInReferenceSpace(const Vector3i &xImage)
+{
+  // A position is on a valid slice iff clamping it to the reference space
+  // does not move it along the slice-normal axis (reuses the same clamp()
+  // call already trusted for in-plane bounds, instead of a separate
+  // hand-rolled range check).
+  auto seg_region = m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceImageRegion();
+  auto clamped = xImage.clamp(seg_region.GetIndex(), seg_region.GetUpperIndex());
+  int  axis = (int) m_Parent->GetSliceDirectionInImageSpace();
+  return clamped[axis] == xImage[axis];
+}
+
 void
 PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
 {
@@ -56,10 +70,18 @@ PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
   auto seg_region = m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceImageRegion();
   auto newpos = xCrossInteger.clamp(seg_region.GetIndex(), seg_region.GetUpperIndex());
 
-  /*
-  Vector3i xSize = to_int(m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSize());
-  Vector3ui newpos = to_unsigned_int(xCrossInteger.clamp(Vector3i(0), xSize - Vector3i(1)));
-  */
+  // If the current slice is outside the reference space, there is nowhere
+  // valid to paint - hide the brush instead of using the clamped (wrong) slice
+  int axis = (int) m_Parent->GetSliceDirectionInImageSpace();
+  if (newpos[axis] != xCrossInteger[axis])
+  {
+    if (m_MouseInside)
+    {
+      m_MouseInside = false;
+      InvokeEvent(PaintbrushMovedEvent());
+    }
+    return;
+  }
 
   if (newpos != m_MousePosition || m_MouseInside == false)
   {
@@ -125,6 +147,16 @@ PaintbrushModel ::ProcessPushEvent(const Vector3d &xSlice, const Vector2ui &grid
 
     // Compute the mouse position
     ComputeMousePosition(xSlice);
+
+    // The current slice may be outside the reference space (e.g. the active
+    // segmentation defines a reference space that doesn't cover this slice)
+    if (!m_MouseInside)
+    {
+      m_IsEngaged = false;
+      throw IRISWarning("Warning: Cannot paint here."
+                         "The current slice is outside the bounds of the "
+                         "segmentation image, so this location cannot be painted.");
+    }
 
     // Check if the right button was pressed
     ApplyBrush(reverse_mode, false, false);
@@ -295,7 +327,15 @@ PaintbrushModel::AcceptAtCursor()
 {
   IRISApplication *driver = m_Parent->GetDriver();
 
-  m_MousePosition = m_Parent->GetDriver()->GetCursorPosition();
+  Vector3i cursor = driver->GetCursorPosition();
+  if (!IsSliceInReferenceSpace(cursor))
+  {
+    throw IRISWarning("Warning: Cannot paint here."
+                       "The current slice is outside the bounds of the "
+                       "segmentation image, so this location cannot be painted.");
+  }
+
+  m_MousePosition = cursor;
   m_MouseInside = true;
   ApplyBrush(false, true, true);
   CommitDrawing();
@@ -304,6 +344,13 @@ PaintbrushModel::AcceptAtCursor()
 bool
 PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
 {
+  // The slice may have moved outside the reference space mid-drag; in that
+  // case ComputeMousePosition() already cleared m_MouseInside. Silently skip
+  // painting here rather than clamping to the nearest valid slice (the
+  // initial push already warns about this - see ProcessPushEvent)
+  if (!m_MouseInside)
+    return false;
+
   if (HasMainImageTransformed())
     return ApplyBrushByPolygonRasterization(reverse_mode, dragging);
 

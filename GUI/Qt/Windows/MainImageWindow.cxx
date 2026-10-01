@@ -1817,7 +1817,7 @@ void MainImageWindow::on_actionReorient_Image_triggered()
 void MainImageWindow::on_actionZoomToFitInAllViews_triggered()
 {
   // Reset the common zoom factor
-  m_Model->GetSliceCoordinator()->ResetViewToFitInAllWindows();
+  m_Model->GetSliceCoordinator()->CycleViewToFitInAllWindows();
 }
 
 void MainImageWindow::on_actionCenter_on_Cursor_triggered()

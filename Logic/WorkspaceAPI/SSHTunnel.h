@@ -10,7 +10,8 @@
  * A streamlined SSH tunnel that uses just a single static function to run a ssh
  * tunnel in a loop. All communication with the caller is done using a callback
  * function, which can be used to report errors to the user and to terminate the
- * tunnel.
+ * tunnel. The SSH session itself is opened (and authenticated) by the caller,
+ * typically with OpenSSHSession() from SSHLogin.h.
  */
 class SSHTunnel
 {
@@ -21,8 +22,6 @@ public:
     CB_ERROR,               // Error
     CB_WARNING,             // Warning
     CB_READY,               // Tunnel is ready, returns bound hostname/port
-    CB_PROMPT_PASSWORD,     // Prompt for password
-    CB_PROMPT_PASSKEY,      // Prompt for passkey
     CB_TERMINATION_CHECK    // Check whether the tunnel should be terminated
   };
 
@@ -35,19 +34,6 @@ public:
     std::string error_message;
   };
 
-  struct PromptPasswordInfo
-  {
-    std::string server;
-    std::string username;
-    std::string error_message;
-  };
-
-  struct PromptPasskeyInfo
-  {
-    std::string keyfile;
-    std::string error_message;
-  };
-
   struct ReadyInfo
   {
     std::string hostname;
@@ -55,35 +41,23 @@ public:
   };
 
   // Union of different info structures
-  using CallbackInfo = std::variant<ErrorInfo, PromptPasswordInfo, PromptPasskeyInfo, ReadyInfo>;
+  using CallbackInfo = std::variant<ErrorInfo, ReadyInfo>;
 
   /** A response from the callback - integer code and optional text response */
   using CallbackResponse = std::pair<int, std::string>;
   using Callback = CallbackResponse (*) (CallbackType, CallbackInfo, void *);
 
   /**
-   * Open and authenticate an SSH session to @p remote_host.  Tries public-key
-   * auth first (auto-detecting keys from ~/.ssh); falls back to password via
-   * CB_PROMPT_PASSWORD callback.  Returns the authenticated ssh_session on
-   * success.  On failure, fires CB_ERROR and returns nullptr.  The caller
-   * owns the returned session and must disconnect and free it when done.
+   * Run an SSH tunnel over an already authenticated @p session, forwarding a
+   * local port to @p remote_host:@p remote_port as seen from the SSH server.
+   * With @p remote_host == nullptr, forwards to the SSH server itself (using
+   * its HostName from ~/.ssh/config, so that host aliases work).
+   * Takes ownership of @p session and frees it on return. Runs until the
+   * callback requests termination (CB_TERMINATION_CHECK) or an error occurs.
    */
-  static ssh_session OpenSession(const char *remote_host,
-                                 const char *username,
-                                 const char *keyfile,
-                                 Callback    callback,
-                                 void       *callback_data,
-                                 bool        verbose = false,
-                                 int         port    = 0);
-
-  /**
-   * Initialize and run SSH tunnel. Establishes the connection and runs it in a loop.
-   * Communication with caller is established through callbacks.
-   */
-  static int run(const char *remote_host,
+  static int run(ssh_session session,
+                 const char *remote_host,
                  int         remote_port,
-                 const char *username,
-                 const char *keyfile,
                  Callback    callback,
                  void       *callback_data,
                  bool        verbose = false);

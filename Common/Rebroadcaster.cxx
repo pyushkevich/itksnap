@@ -6,10 +6,11 @@
 Rebroadcaster::DispatchMap Rebroadcaster::m_SourceMap;
 Rebroadcaster::DispatchMap Rebroadcaster::m_TargetMap;
 
-unsigned long Rebroadcaster
-::Rebroadcast(itk::Object *source, const itk::EventObject &sourceEvent,
-              itk::Object *target, const itk::EventObject &targetEvent,
-              EventBucket *bucket)
+unsigned long Rebroadcaster ::Rebroadcast(itk::Object            *source,
+                                          const itk::EventObject &sourceEvent,
+                                          itk::Object            *target,
+                                          const itk::EventObject &targetEvent,
+                                          UserCallbackType        callback)
 {
   // Deduplication: if an identical (source, sourceEvent, target, targetEvent)
   // association already exists, return the existing tag rather than creating a
@@ -43,7 +44,7 @@ unsigned long Rebroadcaster
     }
 
   // Pass the bucket pointer
-  assoc->m_Bucket = bucket;
+  assoc->m_UserCallback = callback;
 
 #ifdef SNAP_DEBUG_EVENTS
   if(flag_snap_debug_events)
@@ -96,14 +97,15 @@ unsigned long Rebroadcaster
   return assoc->m_SourceTag;
 }
 
-unsigned long Rebroadcaster
-::RebroadcastAsSourceEvent(
-    itk::Object *source, const itk::EventObject &sourceEvent,
-    itk::Object *target, EventBucket *bucket)
+unsigned long
+Rebroadcaster ::RebroadcastAsSourceEvent(itk::Object            *source,
+                                         const itk::EventObject &sourceEvent,
+                                         itk::Object            *target,
+                                         UserCallbackType        callback)
 {
   // We just call the main rebroadcast method with RefireEvent() to indicate
   // that the source event should be refired
-  return Rebroadcast(source, sourceEvent, target, RefireEvent(), bucket);
+  return Rebroadcast(source, sourceEvent, target, RefireEvent(), callback);
 }
 
 void Rebroadcaster::DeleteTargetCallback(
@@ -196,7 +198,7 @@ Rebroadcaster::Association::Association(
   m_Source = source;
   m_Target = target;
   m_TargetEvent = targetEvent.MakeObject();
-  m_Bucket = NULL;
+  m_UserCallback = nullptr;
   m_SourceTag = 0;
 
   m_SourceObjectName = source->GetNameOfClass();
@@ -241,8 +243,8 @@ void Rebroadcaster::Association::ConstCallback(const itk::Object *source, const 
   m_Target->InvokeEvent(*firedEvent);
 
   // If there is a bucket, record in it
-  if(m_Bucket)
-    m_Bucket->PutEvent(evt, source);
+  if(m_UserCallback)
+    m_UserCallback(source, evt);
 }
 
 

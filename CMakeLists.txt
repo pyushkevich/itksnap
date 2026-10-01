@@ -316,6 +316,8 @@ SET(LOGIC_CXX
   Logic/WorkspaceAPI/CSVParser.cxx
   Logic/WorkspaceAPI/FormattedTable.cxx
   Logic/WorkspaceAPI/RESTClient.cxx
+  Logic/WorkspaceAPI/SSHConnector.cxx
+  Logic/WorkspaceAPI/SSHLogin.cxx
   Logic/WorkspaceAPI/SSHTunnel.cxx
   Logic/WorkspaceAPI/WorkspaceAPI.cxx
 )
@@ -497,6 +499,8 @@ SET(LOGIC_HEADERS
   Logic/WorkspaceAPI/CSVParser.h
   Logic/WorkspaceAPI/FormattedTable.h
   Logic/WorkspaceAPI/RESTClient.h
+  Logic/WorkspaceAPI/SSHConnector.h
+  Logic/WorkspaceAPI/SSHLogin.h
   Logic/WorkspaceAPI/SSHTunnel.h
   Logic/WorkspaceAPI/WorkspaceAPI.h
   Common/ITKBinaryWeightedAverage/itkBWAfilter.h
@@ -1337,6 +1341,7 @@ SET(GUI_TESTS
   4DToMC
   MCTo4D
   DeformationGrid
+  ZoomToFitCycle
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")

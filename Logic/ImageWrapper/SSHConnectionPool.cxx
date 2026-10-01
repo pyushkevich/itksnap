@@ -1,4 +1,5 @@
 #include "SSHConnectionPool.h"
+#include "SSHLogin.h"
 #include <libssh/libssh.h>
 #include <libssh/sftp.h>
 
@@ -43,11 +44,10 @@ SSHConnectionPool::MakeSFTPSession(ssh_session session)
 
 
 SSHConnectionPool::SessionPair
-SSHConnectionPool::GetOrCreate(const std::string   &host,
-                               const std::string   &username,
-                               SSHTunnel::Callback  callback,
-                               void                *callback_data,
-                               int                  port)
+SSHConnectionPool::GetOrCreate(const std::string       &host,
+                               const std::string       &username,
+                               AbstractSSHAuthDelegate *auth,
+                               int                      port)
 {
   // Build cache key: include port when non-default so that connections to the
   // same host on different ports are cached separately.
@@ -69,18 +69,13 @@ SSHConnectionPool::GetOrCreate(const std::string   &host,
     m_Sessions.erase(it);
     }
 
-  // Cache miss: establish a fresh authenticated SSH session
-  ssh_session ssh = SSHTunnel::OpenSession(
-      host.c_str(),
-      username.empty() ? nullptr : username.c_str(),
-      nullptr,        // keyfile: auto-detect from ~/.ssh
-      callback,
-      callback_data,
-      false,          // verbose
-      port);
-
-  if (!ssh)
-    throw IRISException("SSHConnectionPool: cannot connect to %s", host.c_str());
+  // Cache miss: establish a fresh authenticated SSH session. Throws an
+  // IRISException carrying the specific SSH error on failure or cancel.
+  SSHConnectParams params;
+  params.host     = host;
+  params.username = username;
+  params.port     = port;
+  ssh_session ssh = OpenSSHSession(params, auth);
 
   // Initialise the SFTP subsystem on top of the authenticated session.
   // MakeSFTPSession uses sftp_new_channel() with explicit channel steps for

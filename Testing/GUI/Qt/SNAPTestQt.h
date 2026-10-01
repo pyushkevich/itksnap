@@ -121,6 +121,15 @@ public slots:
   // Find the index of an item in a widget (combo, list)
   QVariant findItemColumn(QObject *container, QVariant text);
 
+  // Save an image of the current window to filename: the active modal dialog
+  // if there is one, else the active window, else the main window. Relative
+  // filenames are resolved against the current directory and missing
+  // directories are created. Returns the absolute path of the saved file.
+  QString screenshot(QString filename);
+
+  // Same, but of a specific widget (a whole window or any child widget)
+  QString screenshot(QString filename, QObject *widget);
+
   void print(QString text);
 
   void printChildren(QObject *parent);
@@ -168,6 +177,7 @@ protected:
 
   // Helper functions
   QModelIndex findItem(QObject *container, QVariant text);
+  QString screenshotInternal(QString filename, QObject *target, bool explicit_target);
   void printChildrenRecursive(QObject *parent, QString offset, const char *className=NULL);
 };
 
