@@ -225,6 +225,7 @@ public:
   void SetLocalServerDelegate(AbstractLocalDeepLearningServerDelegate *delegate);
 
   void SetParentModel(GlobalUIModel *parent);
+  GlobalUIModel *GetParentModel() const { return m_ParentModel; }
 
   /** Property model referring to the currently selected server */
   irisGenericPropertyAccessMacro(Server, int, ServerDomain)

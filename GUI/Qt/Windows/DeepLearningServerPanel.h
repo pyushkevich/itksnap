@@ -48,8 +48,6 @@ private slots:
 
   void onSSHTunnelDestroyed(QObject *obj);
 
-  void onSSHTunnelPasswordPrompt(SSHTunnel::PromptPasswordInfo pinfo);
-
   void onServerEditorFinished(int accepted);
 
   void on_btnNew_clicked();
@@ -63,8 +61,6 @@ private slots:
 signals:
 
   void launchSSHTunnel();
-
-  void sshPasswordEntered(QString password, bool abort);
 
 private:
   Ui::DeepLearningServerPanel *ui;

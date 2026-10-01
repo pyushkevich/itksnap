@@ -8,9 +8,12 @@
  * IRISApplication so that the Logic layer can request credentials without
  * taking a direct Qt dependency.
  *
- * All methods block until the user responds or cancels.  They are called
- * from whatever thread invokes RemoteImageSource::Download() — currently
- * always the main thread, so a blocking Qt dialog is safe.
+ * All methods block until the user responds or cancels.  They are called by
+ * OpenSSHSession() (SSHLogin.h) between connection attempts, on whatever
+ * thread is opening the session: the main thread for remote image downloads,
+ * a worker thread for the DLS SSH tunnel.  GUI implementations must therefore
+ * marshal their dialogs to the GUI thread (see QtSSHAuthDelegate).  They are
+ * never called from inside libssh callbacks.
  */
 class AbstractSSHAuthDelegate
 {

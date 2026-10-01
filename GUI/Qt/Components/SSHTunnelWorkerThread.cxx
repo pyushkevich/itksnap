@@ -1,17 +1,11 @@
 #include "SSHTunnelWorkerThread.h"
+#include "IRISException.h"
+#include "SSHLogin.h"
 #include <QDebug>
 
 SSHTunnelWorkerThread::~SSHTunnelWorkerThread()
 {
   qDebug() << "Destructor SSHTunnelWorkerThread " << this;
-}
-
-void
-SSHTunnelWorkerThread::passwordResponse(QString password, bool abort)
-{
-  m_PasswordCallbackValue = password;
-  m_PasswordCallbackAbort = abort;
-  emit promptCompleted();
 }
 
 void
@@ -25,11 +19,29 @@ SSHTunnelWorkerThread::terminate()
 void
 SSHTunnelWorkerThread::run()
 {
-  // Run the tunnel loop
-  int rc = SSHTunnel::run(m_Hostname.toUtf8(),
+  // Open an authenticated session. Any prompts go through the auth delegate,
+  // between connection attempts, never from inside libssh.
+  SSHConnectParams params;
+  params.host = m_Hostname.toStdString();
+  params.username = m_SSHUserName.toStdString();
+  params.keyfile = m_SSHPrivateKeyFile.toStdString();
+
+  ssh_session session = nullptr;
+  try
+  {
+    session = OpenSSHSession(params, m_AuthDelegate);
+  }
+  catch (IRISException &exc)
+  {
+    qCritical() << "ERROR: " << exc.what();
+    emit tunnelError(QString::fromUtf8(exc.what()));
+    return;
+  }
+
+  // Run the tunnel loop; it takes ownership of the session
+  int rc = SSHTunnel::run(session,
+                          nullptr, // the SSH server itself
                           m_RemotePort,
-                          m_SSHUserName.toUtf8(),
-                          m_SSHPrivateKeyFile.toUtf8(),
                           &SSHTunnelWorkerThread::static_callback,
                           this);
 
@@ -37,28 +49,8 @@ SSHTunnelWorkerThread::run()
 }
 
 SSHTunnel::CallbackResponse
-SSHTunnelWorkerThread::prompt(CallbackType ctype, CallbackInfo info)
-{
-  // Create an event loop
-  QEventLoop loop;
-  QObject::connect(this, &SSHTunnelWorkerThread::promptCompleted, &loop, &QEventLoop::quit);
-
-  // Ask for input; here we need to block until the input has been provided
-  if(ctype == SSHTunnel::CB_PROMPT_PASSWORD)
-    emit tunnelPasswordPrompt(std::get<SSHTunnel::PromptPasswordInfo>(info));
-  loop.exec();
-
-  // Don't store password in memory!
-  QString ptemp = m_PasswordCallbackValue;
-  m_PasswordCallbackValue = QString();
-  return std::make_pair(m_PasswordCallbackAbort ? 1 : 0, ptemp.toStdString());
-}
-
-
-SSHTunnel::CallbackResponse
 SSHTunnelWorkerThread::callback(CallbackType ctype, CallbackInfo info)
 {
-  QString ptemp;
   switch (ctype)
   {
     case SSHTunnel::CB_ERROR:
@@ -81,11 +73,6 @@ SSHTunnelWorkerThread::callback(CallbackType ctype, CallbackInfo info)
       emit tunnelReady(ready_info.local_port);
       qInfo() << "TUNNEL RUNNING ON HOST " << ready_info.hostname << " PORT " << ready_info.local_port;
       break;
-    }
-    case SSHTunnel::CB_PROMPT_PASSWORD:
-    case SSHTunnel::CB_PROMPT_PASSKEY:
-    {
-      return prompt(ctype, info);
     }
     case SSHTunnel::CB_TERMINATION_CHECK:
     {

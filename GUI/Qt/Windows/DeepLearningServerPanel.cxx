@@ -8,6 +8,7 @@
 #include "QtWidgetActivator.h"
 #include "QtLocalDeepLearningServerDelegate.h"
 #include "GlobalUIModel.h"
+#include "IRISApplication.h"
 #include <QtConcurrent>
 #include <QtCore>
 
@@ -164,15 +165,14 @@ DeepLearningServerPanel::setupSSHTunnel()
                               QString::fromStdString(p->GetHostname()),
                               p->GetPort(),
                               QString::fromStdString(p->GetSSHUsername()),
-                              QString::fromStdString(p->GetSSHPrivateKeyFile()));
+                              QString::fromStdString(p->GetSSHPrivateKeyFile()),
+                              m_Model->GetParentModel()->GetDriver()->GetSSHAuthDelegate());
 
   // Listen to events on the thread
   connect(m_SSHTunnelWorkerThread, &QThread::finished, m_SSHTunnelWorkerThread, &QObject::deleteLater);
   connect(m_SSHTunnelWorkerThread, &QObject::destroyed, this, &DeepLearningServerPanel::onSSHTunnelDestroyed);
   connect(m_SSHTunnelWorkerThread, &SSHTunnelWorkerThread::tunnelError, this, &DeepLearningServerPanel::onSSHTunnelCreationFailed);
   connect(m_SSHTunnelWorkerThread, &SSHTunnelWorkerThread::tunnelReady, this, &DeepLearningServerPanel::onSSHTunnelCreated);
-  connect(m_SSHTunnelWorkerThread, &SSHTunnelWorkerThread::tunnelPasswordPrompt, this, &DeepLearningServerPanel::onSSHTunnelPasswordPrompt);
-  connect(this, &DeepLearningServerPanel::sshPasswordEntered, m_SSHTunnelWorkerThread, &SSHTunnelWorkerThread::passwordResponse);
 
   // The status is now "establishing tunnel"
   m_Model->SetTunnelStatus(dls_model::TunnelStatus(dls_model::TUNNEL_ESTABLISHING));
@@ -213,28 +213,6 @@ DeepLearningServerPanel::onSSHTunnelDestroyed(QObject *obj)
   if(obj == m_SSHTunnelWorkerThread)
     m_SSHTunnelWorkerThread = nullptr;
 }
-
-void
-DeepLearningServerPanel::onSSHTunnelPasswordPrompt(SSHTunnel::PromptPasswordInfo pinfo)
-{
-  bool is_ok;
-
-  QString error = pinfo.error_message.size()
-                    ? QString("Error: %1\n\n").arg(pinfo.error_message.c_str())
-                    : QString();
-
-  QString password =
-    QInputDialog::getText(this,
-                          QString("Password requested"),
-                          QString("%1SSH server %2 requires password for user %3")
-                            .arg(error, pinfo.server.c_str(), pinfo.username.c_str()),
-                          QLineEdit::Password,
-                          QString(),
-                          &is_ok);
-
-  emit(sshPasswordEntered(password, !is_ok));
-}
-
 
 void
 DeepLearningServerPanel::onModelUpdate(const EventBucket &bucket)
