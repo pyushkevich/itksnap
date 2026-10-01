@@ -227,6 +227,13 @@ public:
   RegionType GetFullExtentImageRegion();
 
   /**
+   * Get the bounding box of a layer's voxel grid in the voxel coordinates of
+   * the reference space (i.e., after mapping all eight corners of the layer's
+   * extent through the physical and registration transforms).
+   */
+  RegionType GetLayerRegionInReferenceSpace(ImageWrapperBase *layer);
+
+  /**
    * Set the main image. The main image is the anatomical image that defines
    * the coordinate space of all other images in a SNAP session. It is the
    * image in which structures are traced. The main image can have multiple

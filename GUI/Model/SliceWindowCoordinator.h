@@ -103,15 +103,27 @@ public:
   void SetZoomPercentageInLogicalPixelsInAllWindows(double x);
 
   /** Reset the zoom in all windows to an optimal value, ie, such a zoom
-   * that the image fits into each of the windows.  Depending on whether 
-   * the zoom is linked or not, this will either zoom each slice as much
-   * as possible, or zoom the largest of the 3 slices as much as possible */
+   * that each window's current fit target (see ZoomFitTarget) fits into it.
+   * Depending on whether the zoom is linked or not, this will either zoom
+   * each slice as much as possible, or zoom the largest of the 3 slices as
+   * much as possible */
   void ResetViewToFitInAllWindows();
 
-  /** Reset the zoom in one window to optimal value.  When linked zoom is
-   * maintained, this has the same effect as ResetViewToFitInAllWindows, 
-   * and if not, it only affects the given window */
+  /** Reset the view in all windows for the "zoom to fit in all views"
+   * action. All windows share a fit target, which advances to the next
+   * target (scene, main image, segmentation) that looks different in at
+   * least one visible window, provided all visible windows are still at the
+   * last fit; otherwise the last fit is re-applied */
+  void CycleViewToFitInAllWindows();
+
+  /** Reset the zoom in one window to optimal value, for the window's "zoom
+   * to fit" button. Advances that window's fit target, like
+   * CycleViewToFitInAllWindows does for all windows. When linked zoom is
+   * maintained, the zoom is also applied to the other windows */
   void ResetViewToFitInOneWindow(unsigned int window);
+
+  /** Make the whole scene the fit target again (e.g. for a new main image) */
+  void ResetFitTargets();
 
   /** Update zoom by a specified factor in a window */
   void ZoomInOrOutInOneWindow(unsigned int window, double factor);
@@ -181,8 +193,13 @@ protected:
   /** Method that sets all the zooms to a common value */
   void SetCommonZoomToSmallestWindowZoom();
 
-  /** Compute the smallest of the optimal zoom levels of the slice views */
-  double ComputeSmallestOptimalZoomLevel();
+  /** Compute the smallest of the optimal zoom levels of the visible slice
+   * views for the given fit target. FIT_TARGET_COUNT means each window's own
+   * current fit target */
+  double ComputeSmallestOptimalZoomLevel(ZoomFitTarget target = FIT_SCENE);
+
+  /** The fit target shared by all windows for CycleViewToFitInAllWindows */
+  ZoomFitTarget m_AllViewsFitTarget = FIT_SCENE;
 
   // Child model governing linked zoom properties
   SmartPtr<AbstractRangedDoubleProperty> m_CommonZoomFactorModel;

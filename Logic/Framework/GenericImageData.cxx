@@ -151,6 +151,40 @@ void expand_region(itk::ImageRegion<VDim> &target, const itk::ContinuousIndex<do
 }
 
 GenericImageData::RegionType
+GenericImageData::GetLayerRegionInReferenceSpace(ImageWrapperBase *layer)
+{
+  auto *ref = this->GetReferenceSpaceWrapper();
+  auto *tran_ref = ref->GetITKTransform();
+  auto *tran_layer = layer->GetITKTransform();
+
+  // Extents of the region box
+  Vector3d ext_layer[] = {
+    to_double(layer->GetBufferedRegion().GetIndex()) - 0.4999,
+    to_double(layer->GetBufferedRegion().GetUpperIndex()) + 0.4999
+  };
+
+  // Map the eight corners of the region box into reference space
+  RegionType rgn_layer_ref_space;
+  for(unsigned int corner = 0; corner < 8; ++corner)
+  {
+    Vector3d corner_point = { ext_layer[(corner & 1) ? 1 : 0][0],
+                              ext_layer[(corner & 2) ? 1 : 0][1],
+                              ext_layer[(corner & 4) ? 1 : 0][2] };
+
+    // Transform the corner point to reference space
+    auto idx_layer = to_itkContinuousIndex(corner_point);
+    auto pt_lps = layer->GetImageBase()->TransformContinuousIndexToPhysicalPoint<double>(idx_layer);
+    auto pt_lps_tt = tran_ref->TransformPoint( tran_layer->GetInverseTransform()->TransformPoint(pt_lps) );
+    auto ci_ref = ref->GetImageBase()->TransformPhysicalPointToContinuousIndex<double>(pt_lps_tt);
+
+    // Expand region to include this point
+    expand_region(rgn_layer_ref_space, ci_ref);
+  }
+
+  return rgn_layer_ref_space;
+}
+
+GenericImageData::RegionType
 GenericImageData::GetFullExtentImageRegion()
 {
   // Use cache when possible
@@ -158,39 +192,13 @@ GenericImageData::GetFullExtentImageRegion()
     return m_FullExtentRegionCache;
 
   // Start with the reference image itself
-  auto *ref = this->GetReferenceSpaceWrapper();
-  auto tran_ref = ref->GetITKTransform();
-  auto  region = ref->GetBufferedRegion();
+  auto  region = this->GetReferenceSpaceWrapper()->GetBufferedRegion();
 
   // Iterate over layers
   for (LayerIterator it = this->GetLayers(ALL_ROLES); !it.IsAtEnd(); ++it)
   {
-    auto *layer = it.GetLayer();
-    auto *tran_layer = layer->GetITKTransform();
-
-    // Extents of the region box
-    Vector3d ext_layer[] = {
-      to_double(layer->GetBufferedRegion().GetIndex()) - 0.4999,
-      to_double(layer->GetBufferedRegion().GetUpperIndex()) + 0.4999
-    };
-
-    // Map the eight corners of the region box into reference space
-    itk::ImageRegion<3> rgn_layer_ref_space;
-    for(unsigned int corner = 0; corner < 8; ++corner)
-    {
-      Vector3d corner_point = { ext_layer[(corner & 1) ? 1 : 0][0],
-                                ext_layer[(corner & 2) ? 1 : 0][1],
-                                ext_layer[(corner & 4) ? 1 : 0][2] };
-
-      // Transform the corner point to reference space
-      auto idx_layer = to_itkContinuousIndex(corner_point);
-      auto pt_lps = layer->GetImageBase()->TransformContinuousIndexToPhysicalPoint<double>(idx_layer);
-      auto pt_lps_tt = tran_ref->TransformPoint( tran_layer->GetInverseTransform()->TransformPoint(pt_lps) );
-      auto ci_ref = ref->GetImageBase()->TransformPhysicalPointToContinuousIndex<double>(pt_lps_tt);
-
-      // Expand region to include this point
-      expand_region(rgn_layer_ref_space, ci_ref);
-    }
+    // Extents of the layer in reference space voxel units
+    auto rgn_layer_ref_space = this->GetLayerRegionInReferenceSpace(it.GetLayer());
 
     // Check if the extents overlap
     bool overlap = true;

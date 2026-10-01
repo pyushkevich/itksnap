@@ -31,6 +31,8 @@
 #include <ImageCoordinateTransform.h>
 #include <SNAPEvents.h>
 #include <string>
+#include <array>
+#include <vector>
 #include "AbstractModel.h"
 #include "ImageWrapper.h"
 #include "UIReporterDelegates.h"
@@ -73,6 +75,43 @@ public:
 
   // List of subviewports
   std::vector<SubViewport> vpList;
+};
+
+/**
+ * What "zoom to fit" frames in a slice view. The main image, the active
+ * segmentation (which defines the reference space) and the overlays may live
+ * on different voxel grids, so each gives a different fit.
+ */
+enum ZoomFitTarget
+{
+  FIT_SCENE = 0,     // union of all loaded layers (full extent)
+  FIT_MAIN_IMAGE,    // the main image
+  FIT_SEGMENTATION,  // the active segmentation, i.e., the reference space
+  FIT_TARGET_COUNT
+};
+
+/**
+ * Zoom and view position at which a region fits snugly into a slice view
+ */
+struct OptimalViewParameters
+{
+  // The region being fitted, in slice coordinates
+  itk::ImageRegion<3> region;
+
+  // Number of screen pixels per mm at which the region fits
+  double zoom = 0.0;
+
+  // View center (in slice coordinates scaled by spacing) at which it fits
+  Vector2d position = Vector2d(0.0);
+
+  // Whether two fits frame the same in-plane rectangle (and thus look the same)
+  bool SameInPlane(const OptimalViewParameters &o) const
+  {
+    for (unsigned int i = 0; i < 2; i++)
+      if (region.GetIndex(i) != o.region.GetIndex(i) || region.GetSize(i) != o.region.GetSize(i))
+        return false;
+    return true;
+  }
 };
 
 /**
@@ -160,10 +199,37 @@ public:
   void RefreshFullExtentRegion();
 
   /**
-   * Reset the view parameters of the window (zoom, view position) to
-   * defaults
+   * Reset the view parameters of the window (zoom, view position) so that
+   * the given target fits in the window, and remember it as the fit target
    */
-  virtual void ResetViewToFit();
+  virtual void ResetViewToFit(ZoomFitTarget target);
+
+  /** Re-apply the fit for the current fit target */
+  virtual void ResetViewToFit() { this->ResetViewToFit(m_FitTarget); }
+
+  /** Whether the view still shows the last fit, i.e., it has not been zoomed
+   * or panned since the last ResetViewToFit() */
+  irisGetMacro(ViewIsFit, bool)
+
+  /** Mark the view as showing the fit for its fit target. Used by the slice
+   * coordinator after it applies a common (linked) zoom to a fitted view */
+  void MarkViewAsFit() { m_ViewIsFit = true; }
+
+  /**
+   * The targets that give distinct fits in this view, in cycling order. A
+   * target whose in-plane region equals that of an earlier one is skipped.
+   */
+  std::vector<ZoomFitTarget> GetDistinctFitTargets() const;
+
+  /**
+   * The target that the next "zoom to fit" should apply: the one after the
+   * current fit target if the view is still exactly at that fit, otherwise
+   * the current fit target again (re-fit after the user zoomed or panned)
+   */
+  ZoomFitTarget GetNextFitTarget() const;
+
+  /** The last fit target applied */
+  irisGetSetMacro(FitTarget, ZoomFitTarget)
 
   /**
    * Map a point in window coordinates to a point in slice coordinates
@@ -294,11 +360,14 @@ public:
   /** Computes the zoom that gives the best fit for the window */
   void ComputeOptimalZoom();
 
-  /** Compute the optimal zoom (best fit) */
-  irisGetMacro(OptimalZoom, double)
+  /** Optimal zoom/position (best fit) for a given target */
+  const OptimalViewParameters &GetOptimalView(ZoomFitTarget target) const
+  {
+    return m_OptimalViews[target];
+  }
 
-  /** Compute the optimal zoom (best fit) */
-  irisGetMacro(OptimalZoomFullExtent, double)
+  /** Optimal zoom (best fit) of the reference space, i.e., active segmentation */
+  double GetOptimalZoom() const { return m_OptimalViews[FIT_SEGMENTATION].zoom; }
 
   /** Set the zoom management flag */
   irisSetMacro(ManagedZoom,bool)
@@ -472,6 +541,9 @@ protected:
   // Full scene extent region in the display coordinate orientation
   itk::ImageRegion<3> m_FullExtentRegion;
 
+  // Main image region in the display coordinate orientation
+  itk::ImageRegion<3> m_MainImageRegion;
+
   // Pixel dimensions for the slice.  (the third component is the pixel
   // width in the slice direction)
   Vector3d m_RefSpaceSpacing;
@@ -489,14 +561,22 @@ protected:
   // Set view position based on currently stored world space position
   void RestoreViewPositionInWorldSpace();
 
-  // The view position where the slice wants to be
-  Vector2d m_OptimalViewPosition, m_OptimalViewPositionFullExtent;
-
   // The number of screen pixels per mm of image
   double m_ViewZoom;
 
-  // The zoom level at which the slice fits snugly into the window
-  double m_OptimalZoom, m_OptimalZoomFullExtent;
+  // Zoom and view position at which each fit target fits snugly in the window
+  std::array<OptimalViewParameters, FIT_TARGET_COUNT> m_OptimalViews;
+
+  // The last fit target applied by "zoom to fit"
+  ZoomFitTarget m_FitTarget = FIT_SCENE;
+
+  // Whether the view has not been zoomed or panned since the last fit. This
+  // is tracked explicitly rather than by comparing zoom levels, because the
+  // optimal zoom levels get recomputed (e.g. on resize) after a fit
+  bool m_ViewIsFit = false;
+
+  // Compute the main image region in slice coordinates
+  void UpdateMainImageRegion();
 
   // Flag indicating whether the window's zooming is managed externally
   // by the SliceWindowCoordinator

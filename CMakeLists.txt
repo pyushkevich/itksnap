@@ -1341,6 +1341,7 @@ SET(GUI_TESTS
   4DToMC
   MCTo4D
   DeformationGrid
+  ZoomToFitCycle
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
