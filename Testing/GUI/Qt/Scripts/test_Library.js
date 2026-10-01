@@ -225,3 +225,15 @@ function updateMeshAndCheck()
     engine.sleep(3000);
     engine.validateProperty(btn, "enabled", false);
 }
+function takeScreenshot(filename, widget)
+{
+    // Save a screenshot of the current window (the active dialog, if any, else
+    // the main window), or of a specific widget, to filename (e.g. a .png).
+    // Relative paths are resolved against the current directory. Pauses first
+    // so that pending updates are drawn. Returns the saved file's path.
+    engine.sleep(250);
+    var path = (widget === undefined) ? engine.screenshot(filename)
+                                      : engine.screenshot(filename, widget);
+    engine.print("Saved screenshot: " + path);
+    return path;
+}

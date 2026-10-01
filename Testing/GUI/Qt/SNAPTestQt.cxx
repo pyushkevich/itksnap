@@ -19,6 +19,7 @@
 #include <SNAPQApplication.h>
 #include <QDeadlineTimer>
 #include <QMetaMethod>
+#include <QPixmap>
 
 
 #include "SNAPQtCommon.h"
@@ -287,6 +288,65 @@ QVariant SNAPTestQt::findItemColumn(QObject *container, QVariant text)
   return QVariant();
 }
 
+
+QString SNAPTestQt::screenshot(QString filename)
+{
+  return screenshotInternal(filename, nullptr, false);
+}
+
+QString SNAPTestQt::screenshot(QString filename, QObject *widget)
+{
+  return screenshotInternal(filename, widget, true);
+}
+
+QString SNAPTestQt::screenshotInternal(QString filename, QObject *target, bool explicit_target)
+{
+  QString path = QFileInfo(filename).absoluteFilePath();
+  QString error;
+
+  // Widgets may only be touched on the GUI thread; the script runs on a worker
+  QMetaObject::invokeMethod(m_Parent, [&]() {
+      QWidget *w = nullptr;
+      if(explicit_target)
+        {
+        w = qobject_cast<QWidget *>(target);
+        if(!w)
+          {
+          error = QString("screenshot target is %1").arg(target ? "not a widget" : "null");
+          return;
+          }
+        }
+      else
+        {
+        w = QApplication::activeModalWidget();
+        if(!w)
+          w = QApplication::activeWindow();
+        if(!w)
+          w = m_Parent;
+        }
+
+      if(!w->isVisible())
+        {
+        error = QString("screenshot target %1 is not visible").arg(w->objectName());
+        return;
+        }
+
+      // grab() renders the widget (OpenGL/VTK children included) offscreen,
+      // so overlapping windows and screen capture permissions do not matter
+      QDir().mkpath(QFileInfo(path).absolutePath());
+      if(!w->grab().save(path))
+        error = QString("unable to save screenshot to %1").arg(path);
+    }, Qt::BlockingQueuedConnection);
+
+  if(error.size())
+    {
+    qWarning() << error;
+    m_ScriptEngine->throwError(QJSValue::GenericError, error);
+    return QString();
+    }
+
+  return path;
+}
 
 void SNAPTestQt::print(QString text)
 {
