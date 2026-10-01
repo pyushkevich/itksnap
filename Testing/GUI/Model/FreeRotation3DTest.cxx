@@ -10,6 +10,7 @@
 //     cursor on the cube.
 //   - Mesh: the matrices that place the cube's mesh in the 3D view, and a
 //     copy of it loaded from a file, put them on the cube.
+//   - Outline: the slice views cut the loaded mesh where the cube is shown.
 //   - Scalpel: a cut plane through the displayed cube relabels the voxels
 //     that the slice views show on its far side.
 //
@@ -40,6 +41,7 @@
 #include <vtkPolyData.h>
 #include <vtkPoints.h>
 #include <vtkNew.h>
+#include <vtkDataArraySelection.h>
 #include <vtkPolyDataWriter.h>
 #include <vnl/vnl_math.h>
 #include <iostream>
@@ -322,6 +324,33 @@ int main(int argc, char *argv[])
     check(Distance(loaded_center_world, w_cube) < 1.0,
           "the loaded mesh is displayed on the cube (off by " + std::to_string(Distance(loaded_center_world, w_cube))
             + " mm)");
+
+    // Outline. The slice views outline loaded meshes where the slice plane
+    // cuts them. Cut the loaded mesh with an axial plane through the
+    // displayed cube center; the cut, drawn through the mesh's matrix as the
+    // slice views draw it, must lie in that plane and around the center.
+    std::cout << "Outline" << std::endl;
+    auto slice_geometry = itk::Image<unsigned char, 3>::New();
+    slice_geometry->SetOrigin(p_ref);
+    DisplaySliceIndex slice_index(0, DISPLAY_SLICE_MAIN);
+    loaded->SetDisplayViewportGeometry(slice_index, slice_geometry);
+    vtkPolyData *cut = loaded->GetIntersectionWithSlicePlane(0, 0, slice_index, false, loaded_to_ref);
+
+    vtkIdType n_points = cut ? cut->GetNumberOfPoints() : 0;
+    double    max_off_plane = 0.0, max_from_center = 0.0;
+    for (vtkIdType i = 0; i < n_points; i++)
+    {
+      Vector3d x(cut->GetPoint(i));
+      Vector3d x_world = affine_transform_point(loaded_to_ref, x);
+      max_off_plane = std::max(max_off_plane, std::fabs(x_world[2] - w_cube[2]));
+      max_from_center = std::max(max_from_center, Distance(x_world, w_cube));
+    }
+    check(n_points > 0, "the slice plane through the displayed cube cuts the mesh");
+    check(max_off_plane < 1.0e-3,
+          "the cut lies in the slice plane (farthest point off it by " + std::to_string(max_off_plane) + " mm)");
+    check(max_from_center < 6.0,
+          "the cut surrounds the displayed cube center (farthest point "
+            + std::to_string(max_from_center) + " mm)");
 
     // Scalpel. Cut with an oblique plane through the displayed cube center.
     // The cube voxels that the slice views show on the far side of the plane
