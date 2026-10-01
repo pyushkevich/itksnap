@@ -61,14 +61,16 @@ CrosshairsRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
     // Get the cursor position on the slice
     Vector3d pos = m_Model->MapImageToSlice(xCursorImage);
 
-    // Upper and lower bounds to which the crosshairs are drawn
+    // Upper and lower bounds to which the crosshairs are drawn. In slice
+    // coordinates voxel i spans [i, i+1], so the upper bound is index + size
+    // (not ITK's GetUpperIndex(), which is the index of the last voxel)
     Vector3i lower_ref(m_Model->GetReferenceSpaceRegion().GetIndex());
-    Vector3i upper_ref(m_Model->GetReferenceSpaceRegion().GetUpperIndex());
+    Vector3i upper_ref = lower_ref + Vector3i(m_Model->GetReferenceSpaceRegion().GetSize());
     Vector3i lower_fe(m_Model->GetFullExtentRegion().GetIndex());
-    Vector3i upper_fe(m_Model->GetFullExtentRegion().GetUpperIndex());
+    Vector3i upper_fe = lower_fe + Vector3i(m_Model->GetFullExtentRegion().GetSize());
 
     // Check if the slice is inside of the segmentation box
-    bool z_in_range = (pos[2] >= lower_ref[2] && pos[2] <= upper_ref[2]);
+    bool z_in_range = (pos[2] >= lower_ref[2] && pos[2] < upper_ref[2]);
 
     // Reference extent rectangle
     double rx0 = lower_ref[0], ry0 = lower_ref[1];
