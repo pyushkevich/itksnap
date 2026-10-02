@@ -142,9 +142,12 @@ void expand_region(itk::ImageRegion<VDim> &target, const itk::ContinuousIndex<do
     // index - 0.5 >= x ==> index >= x + 0.5 ==> index = floor(x + 0.5)
     // upper_index + 0.5 <= x ==> upper_index <= x - 0.5 ==> upper_index = ceil(x - 0.5)
     double xi = x[i];
-    long x_lo = (long) std::floor(xi + 0.5), x_hi = (long) std::ceil(xi - 0.5);
-    long t_lo = is_empty ? x_lo : std::min(i_lo[i], x_lo);
-    long t_hi = is_empty ? x_hi : std::max(i_hi[i], x_hi);
+    // Use ITK's index type (long long on Windows, where long is 32-bit) so
+    // that std::min/max see matching argument types
+    using IndexValueType = itk::IndexValueType;
+    IndexValueType x_lo = (IndexValueType) std::floor(xi + 0.5), x_hi = (IndexValueType) std::ceil(xi - 0.5);
+    IndexValueType t_lo = is_empty ? x_lo : std::min(i_lo[i], x_lo);
+    IndexValueType t_hi = is_empty ? x_hi : std::max(i_hi[i], x_hi);
     target.SetIndex(i, t_lo);
     target.SetSize(i, t_hi - t_lo + 1);
   }
