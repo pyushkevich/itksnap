@@ -1436,7 +1436,16 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
 
 void MainImageWindow::dropEvent(QDropEvent *event)
 {
-  QUrl url = event->mimeData()->urls().first();
+  // The data of the drop is not guaranteed to match the drag that was
+  // accepted in dragEnterEvent, so check for a URL again
+  const QList<QUrl> urls = event->mimeData()->urls();
+  if (urls.isEmpty())
+  {
+    event->ignore();
+    return;
+  }
+
+  QUrl url = urls.first();
   qDebug() << "DROP EVENT: " << url;
 
 #if defined(__APPLE__) && QT_VERSION >= 0x050000
