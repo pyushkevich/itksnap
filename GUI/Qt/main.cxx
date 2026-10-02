@@ -13,6 +13,7 @@
 #include "QtIPCManager.h"
 #include "QtCursorOverride.h"
 #include "QtReporterDelegates.h"
+#include "QtTranslationLocale.h"
 #include "SNAPQtCommon.h"
 #include "SNAPTestQt.h"
 
@@ -1366,6 +1367,17 @@ main(int argc, char *argv[])
     {
       QLocale::setDefault(QLocale(QLocale::Chinese, QLocale::China));
       locale = QLocale();
+    }
+
+    // Unless a language was given on the command line, choose the translation
+    // from the user's preferred UI languages. The default locale can instead
+    // follow the region, e.g., German for an English speaker in Germany (#210)
+    if (argdata.gui_language.empty())
+    {
+      locale = SelectTranslationLocale(GetPreferredUILanguages(), [](const QLocale &l) {
+        QTranslator probe;
+        return probe.load(l, "itksnap", "_", ":/i18n");
+      });
     }
 
     QTranslator translator;
