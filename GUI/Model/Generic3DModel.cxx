@@ -78,6 +78,10 @@ void Generic3DModel::Initialize(GlobalUIModel *parent)
   // Listen to the layer change events
   Rebroadcast(m_Driver, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
 
+  // The reference space (the active segmentation) may change without the main
+  // image changing, e.g. when switching to a segmentation on a different grid
+  Rebroadcast(m_Driver, ReferenceSpaceGeometryChangeEvent(), ModelUpdateEvent());
+
   // Listen to segmentation change events
   Rebroadcast(m_Driver, SegmentationChangeEvent(), StateMachineChangeEvent());
   Rebroadcast(m_Driver, LevelSetImageChangeEvent(), StateMachineChangeEvent());
@@ -243,6 +247,13 @@ void Generic3DModel::OnUpdate()
     m_SprayPoints->Modified();
 
     // The geometry has changed
+    this->OnImageGeometryUpdate();
+    }
+
+  // The reference space changed: the voxel-to-world matrix must follow it,
+  // since cursor positions and picking are in reference space voxel units
+  else if(m_EventBucket->HasEvent(ReferenceSpaceGeometryChangeEvent()))
+    {
     this->OnImageGeometryUpdate();
     }
 }

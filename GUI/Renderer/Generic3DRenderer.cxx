@@ -200,6 +200,8 @@ Generic3DRenderer::SetModel(Generic3DModel *model)
 
   // Respond to changes in image dimension - these require big updates
   Rebroadcast(app, MainImageDimensionsChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(app, ReferenceSpaceGeometryChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(app, LayerChangeEvent(), ModelUpdateEvent());
 
   // Respond to changes to the segmentation. These are ignored unless we are
   // in continous update mode, in which case the renderers are rebuilt
@@ -376,6 +378,10 @@ Generic3DRenderer::UpdateAxisRendering()
     Vector3i cursor = app->GetCursorPosition();
     Vector3ui dims = app->GetCurrentImageData()->GetReferenceSpaceImageRegion().GetSize();
 
+    // Like in the 2D views, the crosshairs span the full extent of all loaded
+    // layers (in reference space voxel units, where voxel i spans i +/- 0.5)
+    auto fe = app->GetCurrentImageData()->GetFullExtentImageRegion();
+
     // Get the axis appearance properties
     OpenGLAppearanceElement *axisapp = as->GetUIElement(SNAPAppearanceSettings::CROSSHAIRS_3D);
 
@@ -390,8 +396,8 @@ Generic3DRenderer::UpdateAxisRendering()
 
       // Update the cursor position
       Vector3d p1 = to_double(cursor), p2 = to_double(cursor);
-      p1[i] = 0;
-      p2[i] = dims[i];
+      p1[i] = fe.GetIndex(i) - 0.5;
+      p2[i] = fe.GetIndex(i) + (double) fe.GetSize(i) - 0.5;
       m_AxisLineSource[i]->SetPoint1(p1.data_block());
       m_AxisLineSource[i]->SetPoint2(p2.data_block());
       m_AxisLineSource[i]->Update();
@@ -414,7 +420,7 @@ Generic3DRenderer::UpdateAxisRendering()
     }
 
     // Also update the image cube
-    m_ImageCubeSource->SetBounds(0, dims[0], 0, dims[1], 0, dims[2]);
+    m_ImageCubeSource->SetBounds(-0.5, dims[0] - 0.5, -0.5, dims[1] - 0.5, -0.5, dims[2] - 0.5);
     m_ImageCubeTransform->SetTransform(tran);
     m_ImageCubeTransform->Update();
     m_ImageCubeTransform->GetOutput()->ComputeBounds();
@@ -980,6 +986,11 @@ Generic3DRenderer::OnUpdate()
 
   // Define a bunch of local flags to make this code easier to read
   bool main_changed = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
+  bool ref_space_changed = m_EventBucket->HasEvent(ReferenceSpaceGeometryChangeEvent());
+
+  // Layers added/removed/moved change the full extent spanned by the axes
+  bool extent_changed = m_EventBucket->HasEvent(LayerChangeEvent()) ||
+                        m_EventBucket->HasEvent(WrapperPhysicalExtentsChangeEvent());
   bool labels_props_changed = m_EventBucket->HasEvent(SegmentationLabelChangeEvent());
   bool cursor_moved = m_EventBucket->HasEvent(CursorUpdateEvent());
   bool active_label_changed =
@@ -1056,8 +1067,8 @@ Generic3DRenderer::OnUpdate()
     need_render = true;
   }
 
-  // Deal with axes
-  if (main_changed || cursor_moved)
+  // Deal with axes (drawn in reference space voxel units)
+  if (main_changed || ref_space_changed || extent_changed || cursor_moved)
   {
     UpdateAxisRendering();
     need_render = true;
@@ -1082,14 +1093,15 @@ Generic3DRenderer::OnUpdate()
     need_render = true;
   }
 
-  else if (cursor_moved || (mesh_content_updated && focal_point_active_mesh_layer_center))
+  else if (cursor_moved || ref_space_changed ||
+           (mesh_content_updated && focal_point_active_mesh_layer_center))
   {
     UpdateCamera(false);
     need_render = true;
   }
 
   // Deal with the spray paint appearance and shape
-  if (main_changed || labels_props_changed || active_label_changed)
+  if (main_changed || ref_space_changed || labels_props_changed || active_label_changed)
   {
     UpdateSprayGlyphAppearanceAndShape();
     UpdateScalpelPlaneAppearance();
