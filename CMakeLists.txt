@@ -1117,9 +1117,12 @@ IF( MSVC )
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF( MSVC )
   
-IF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio" )
+# Keep windows.h (pulled in e.g. by libssh via winsock2.h) from defining min
+# and max macros, which break std::min/max and VNL. Needed for all Windows
+# generators, including Ninja (used in CI), not just Visual Studio/NMake
+IF( WIN32 )
   ADD_DEFINITIONS(-DNOMINMAX)
-ENDIF( CMAKE_GENERATOR MATCHES "^NMake" OR CMAKE_GENERATOR MATCHES "^Visual Studio" )
+ENDIF( WIN32 )
 
 #--------------------------------------------------------------------------------
 # Define External Libraries
