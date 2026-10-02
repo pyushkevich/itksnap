@@ -14,6 +14,16 @@
 #  define SSHCONNECTOR_SHUT_RDWR SHUT_RDWR
 #endif
 
+// libssh connects through ProxyJump hosts itself, calling back into the
+// application for each hop, only from version 0.11. Older versions turn a
+// ProxyJump directive into a ProxyCommand that runs the system ssh binary,
+// so jump hosts still work, but there is nothing for us to hook into.
+#if LIBSSH_VERSION_INT >= SSH_VERSION_INT(0, 11, 0)
+#  define SSHCONNECTOR_PROXYJUMP_CALLBACKS 1
+#else
+#  define SSHCONNECTOR_PROXYJUMP_CALLBACKS 0
+#endif
+
 namespace
 {
 
@@ -148,7 +158,9 @@ struct SSHConnector::JumpBlock
   struct Hop
   {
     JumpBlock                *block = nullptr;
+#if SSHCONNECTOR_PROXYJUMP_CALLBACKS
     ssh_jump_callbacks_struct jump_cb{};
+#endif
     ssh_callbacks_struct      session_cb{};
     PassphraseState           passphrase;
 
@@ -413,11 +425,13 @@ SSHConnector::Connect(const SSHCredentials &creds, const std::string &user)
   for (auto &hop : m_JumpBlock->hops)
   {
     hop.block = m_JumpBlock.get();
+#if SSHCONNECTOR_PROXYJUMP_CALLBACKS
     hop.jump_cb.userdata = &hop;
     hop.jump_cb.before_connection = &JumpBlock::BeforeConnection;
     hop.jump_cb.verify_knownhost = &JumpBlock::VerifyKnownHost;
     hop.jump_cb.authenticate = &JumpBlock::Authenticate;
     ssh_options_set(m_Session, SSH_OPTIONS_PROXYJUMP_CB_LIST_APPEND, &hop.jump_cb);
+#endif
   }
 
   int rc_connect = ssh_connect(m_Session);
