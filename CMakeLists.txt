@@ -1284,6 +1284,14 @@ IF(WIN32)
   # Add the .rc file
   SET(SNAP_MAIN_SRC ${SNAP_MAIN_SRC} ${SNAP_SOURCE_DIR}/Utilities/Win32/itksnap.rc)
 
+  # Application manifest, which requests the UTF-8 process code page so that non-ASCII paths
+  # in argv and in narrow Win32 API calls are decoded as UTF-8. MSVC passes .manifest sources
+  # to the linker.
+  IF(MSVC)
+    SET(SNAP_WIN32_MANIFEST ${SNAP_SOURCE_DIR}/Utilities/Win32/itksnap.manifest)
+    SET(SNAP_MAIN_SRC ${SNAP_MAIN_SRC} ${SNAP_WIN32_MANIFEST})
+  ENDIF(MSVC)
+
 ENDIF(WIN32)
 
 
@@ -1432,6 +1440,14 @@ TARGET_LINK_LIBRARIES(logic_api_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(logic_api_test PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME IRISApplicationTest COMMAND logic_api_test)
+
+# Needs the same manifest as the main executable to get the UTF-8 process code page
+ADD_EXECUTABLE(nonascii_path_test
+    Testing/Logic/NonAsciiPathTest.cxx ${SNAP_WIN32_MANIFEST})
+TARGET_LINK_LIBRARIES(nonascii_path_test ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(nonascii_path_test PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME NonAsciiPathTest COMMAND nonascii_path_test ${TEMP})
 
 ADD_EXECUTABLE(remote_image_load_test
     Testing/Logic/RemoteImageLoadTest.cxx)

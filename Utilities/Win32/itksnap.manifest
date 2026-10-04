@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <!--
+    Sets the process code page to UTF-8 (Windows 10 1903+). ITK-SNAP keeps paths in UTF-8
+    std::strings, and this makes everything that uses the process code page agree with that:
+    argv (non-ASCII paths on the command line), getenv, and the narrow "A" Win32 API, such as
+    GetLongPathNameA in DecodeFilename(). Keep this minimal: in particular, a dpiAware entry
+    would take precedence over the DPI awareness that Qt sets at run time.
+  -->
+  <application xmlns="urn:schemas-microsoft-com:asm.v3">
+    <windowsSettings>
+      <activeCodePage xmlns="http://schemas.microsoft.com/SMI/2019/WindowsSettings">UTF-8</activeCodePage>
+    </windowsSettings>
+  </application>
+</assembly>
