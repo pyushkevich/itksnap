@@ -24,6 +24,8 @@ struct DicomFile
 	// sorting functions
 	static bool CompareByInstanceNumber(const DicomFile &left, const DicomFile &right)
 	{ return left.m_InstanceNumber < right.m_InstanceNumber; }
+	static bool CompareBySliceLocation(const DicomFile &left, const DicomFile &right)
+	{ return left.m_SliceLocation > right.m_SliceLocation; }
 
   // members
   std::string m_Filename;
