@@ -1358,6 +1358,10 @@ ADD_EXECUTABLE(testRLE Testing/Logic/testRLE.cxx)
 TARGET_LINK_LIBRARIES(testRLE ${ITK_LIBRARIES})
 TARGET_INCLUDE_DIRECTORIES(testRLE PUBLIC ${SNAP_INCLUDE_DIRS})
 
+ADD_EXECUTABLE(TestRLECleanUp Testing/Logic/TestRLECleanUp.cxx)
+TARGET_LINK_LIBRARIES(TestRLECleanUp ${ITK_LIBRARIES})
+TARGET_INCLUDE_DIRECTORIES(TestRLECleanUp PUBLIC ${SNAP_INCLUDE_DIRS})
+
 ADD_EXECUTABLE(testTDigest Testing/Logic/TestTDigest.cxx)
 TARGET_LINK_LIBRARIES(testTDigest ${ITK_LIBRARIES})
 TARGET_INCLUDE_DIRECTORIES(testTDigest PUBLIC ${SNAP_INCLUDE_DIRS})
@@ -1424,6 +1428,8 @@ add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
 )
 
 add_test(NAME TDigestTest COMMAND testTDigest ${TESTDATA_DIR}/tdigest_test.nii.gz 0.98)
+
+add_test(NAME RLECleanUpTest COMMAND TestRLECleanUp)
 
 # This test basically checks whether we can build using the logic library onlu
 ADD_EXECUTABLE(logic_api_test
