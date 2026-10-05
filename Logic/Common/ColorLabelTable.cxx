@@ -74,8 +74,7 @@ ColorLabelTable
 ::ValidateFile(const char *file) const
 {
   // Create a stream for reading the file
-  ifstream fin(file);
-  string line1, line2;
+  ifstream fin(file, ios::binary);
 
   if(!fin.good())
     {
@@ -83,13 +82,37 @@ ColorLabelTable
       __FILE__, __LINE__,"File does not exist or can not be opened");
     }
 
-  // read first 2 lines
-  std::getline(fin,line1);
-  std::getline(fin,line2);
+  // Only look at the beginning of the file, since this is also called on
+  // dropped image files, which can be large and binary
+  char buffer[4096];
+  fin.read(buffer, sizeof(buffer));
+  IRISIStringStream iss(string(buffer, fin.gcount()));
 
-  // only validate header for now
-  if (std::strcmp(line2.c_str(), m_FileHeader) == 0)
-    return true;
+  string line;
+  while(std::getline(iss, line))
+    {
+    // Tolerate Windows line endings and trailing whitespace
+    line.erase(line.find_last_not_of(" \t\r") + 1);
+    if(line.length() == 0)
+      continue;
+
+    // A file with the header in its leading comments is a label file
+    if(line[0] == '#')
+      {
+      if(line == m_FileHeader)
+        return true;
+      continue;
+      }
+
+    // Otherwise the first entry decides: it must read as
+    // "IDX -R- -G- -B- -A-- VIS MSH LABEL"
+    IRISIStringStream entry(line);
+    LabelType idx;
+    int red, green, blue, visible, mesh;
+    float alpha;
+    entry >> idx >> red >> green >> blue >> alpha >> visible >> mesh;
+    return !entry.fail() && line.find('\"') != string::npos;
+    }
 
   return false;
 }
@@ -121,6 +144,10 @@ ColorLabelTable
     {
     // Read the line into a string
     std::getline(fin,line);
+
+    // Tolerate Windows line endings
+    if(line.length() && line[line.length() - 1] == '\r')
+      line.erase(line.length() - 1);
 
     // Check if the line is a comment or a blank line
     if(line[0] == '#' || line.length() == 0)
