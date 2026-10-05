@@ -157,6 +157,14 @@ int usage(int rc)
   cout << "                                      'instance_id' is a unique identifier within the provider" << endl;
   cout << "                                      if 'timeout' specified, command will halt until a ticket " << endl;
   cout << "                                      can be claimed or 'timeout' seconds pass." << endl;
+  cout << "  -dssp-services-available <service_hash_list> [timeout]" << endl;
+  cout << "                                    : List the services in 'service_hash_list' that have tickets waiting," << endl;
+  cout << "                                      without claiming anything (e.g. to acquire a GPU before claiming)." << endl;
+  cout << "                                      Prints service hash, name and number of ready tickets, in the order" << endl;
+  cout << "                                      in which -dssp-services-claim would claim them. Nothing is reserved:" << endl;
+  cout << "                                      a later claim may still find no ticket. Exits with code 1 if no" << endl;
+  cout << "                                      tickets are available. If 'timeout' specified, waits until tickets" << endl;
+  cout << "                                      are available or 'timeout' seconds pass. Requires DSS server 0.2.0+." << endl;
   cout << "  -dssp-tickets-download <id> <dir> : Download the files for claimed ticket id to dir" << endl;
   cout << "  -dssp-tickets-fail <id> <msg>     : Mark the ticket as failed with provided message" << endl;
   cout << "  -dssp-tickets-success <id>        : Mark the ticket as successfully completed " << endl;
@@ -1026,6 +1034,49 @@ int main(int argc, char *argv[])
             {
             tnow += 30;
             sleep(30);
+            }
+          }
+        }
+      else if(arg == "-dssp-services-available")
+        {
+        string service_githash = cl.read_string();
+        long timeout = cl.command_arg_count() > 0 ? cl.read_integer() : 0L;
+        long tnow = 0, twait = 30;
+
+        while(true)
+          {
+          // Ask which of the services have ready tickets, without claiming any
+          DSSRESTClient rc;
+          if(!rc.Post("api/pro/services/available", "services=%s", service_githash.c_str()))
+            {
+            if(rc.GetHTTPCode() == 404)
+              throw IRISException("Error checking for available tickets: this DSS server does not "
+                                  "support it (requires itksnap-dss-server 0.2.0 or later)");
+            throw IRISException("Error checking for available tickets for services %s: %s",
+                                service_githash.c_str(), rc.GetResponseText());
+            }
+
+          // The output is a headerless table with one row per service that has
+          // ready tickets (service hash, service name, number of ready tickets),
+          // in the order in which they would be claimed. It is empty if no
+          // service has tickets waiting.
+          FormattedTable ft;
+          ft.ParseCSV(rc.GetOutput());
+
+          if(ft.Rows() > 0)
+            {
+            ft.Print(cout, prefix);
+            break;
+            }
+          else if(tnow + twait > timeout)
+            {
+            cerr << (timeout > 0 ? "Timed out waiting for available tickets" : "No tickets available") << endl;
+            exit(1);
+            }
+          else
+            {
+            tnow += twait;
+            sleep(twait);
             }
           }
         }
