@@ -1900,6 +1900,11 @@ CONFIGURE_FILE(
 FIND_PROGRAM(SCP_PROGRAM NAMES scp DOC "Location of the scp program (optional)")
 MARK_AS_ADVANCED(SCP_PROGRAM)
 
+# sftp is used to create the destination folder before uploading, since the
+# SourceForge file release server offers no shell and scp cannot create it
+FIND_PROGRAM(SFTP_PROGRAM NAMES sftp DOC "Location of the sftp program (optional)")
+MARK_AS_ADVANCED(SFTP_PROGRAM)
+
 SET(SCP_ARGUMENTS "-v" CACHE STRING "Optional arguments to the scp command for uploads to SourceForge")
 MARK_AS_ADVANCED(SCP_ARGUMENTS)
 
@@ -1910,31 +1915,33 @@ SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NA
 SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 SET(RELEASE_TARGET "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
-SET(SCP_ROOT "frs.sourceforge.net:/home/frs/project/itk-snap/itk-snap")
+SET(SCP_HOST "frs.sourceforge.net")
+SET(SCP_ROOT_DIR "/home/frs/project/itk-snap/itk-snap")
+SET(SCP_ROOT "${SCP_HOST}:${SCP_ROOT_DIR}")
 
 #--------------------------------------------------------------------------------
 # Create targets
 
-ADD_CUSTOM_TARGET(itksnap_upload_nightly
-  VERBATIM COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
-  ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Nightly/${NIGHTLY_TARGET}
-  DEPENDS ${CPACK_TARGET}
-  WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${NIGHTLY_TARGET}")
+# Add a target that uploads the package to SCP_ROOT/subdir/dest_name, first
+# creating SCP_ROOT/subdir if it does not exist. In an sftp batch file, the
+# leading '-' makes sftp ignore the error from mkdir if the folder exists.
+FUNCTION(SNAP_ADD_UPLOAD_TARGET target subdir dest_name)
+  SET(batch_file "${SNAP_BINARY_DIR}/${target}_mkdir.sftp")
+  FILE(WRITE "${batch_file}" "-mkdir \"${SCP_ROOT_DIR}/${subdir}\"\n")
+  ADD_CUSTOM_TARGET(${target}
+    VERBATIM
+    COMMAND "${SFTP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS} -b "${batch_file}"
+      ${SCP_USERNAME},itk-snap@${SCP_HOST}
+    COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
+      ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/${subdir}/${dest_name}
+    DEPENDS ${CPACK_TARGET}
+    WORKING_DIRECTORY ${SNAP_BINARY_DIR}
+    COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${subdir}/${dest_name}")
+ENDFUNCTION()
 
-ADD_CUSTOM_TARGET(itksnap_upload_experimental
-  VERBATIM COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
-    ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/Experimental/${EXPERIMENTAL_TARGET}
-  DEPENDS ${CPACK_TARGET}
-  WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${EXPERIMENTAL_TARGET}")
-
-ADD_CUSTOM_TARGET(itksnap_upload_release
-  VERBATIM COMMAND "${SCP_PROGRAM}" -o BatchMode=yes ${SCP_ARGUMENTS}
-    ${CPACK_PACKAGE_FILE_NAME_WEXT} ${SCP_USERNAME},itk-snap@${SCP_ROOT}/${SNAP_VERSION_FULL}/${RELEASE_TARGET}
-  DEPENDS ${CPACK_TARGET}
-  WORKING_DIRECTORY ${SNAP_BINARY_DIR}
-  COMMENT "Uploading package ${CPACK_PACKAGE_FILE_NAME_WEXT} to SourceForge.net as ${RELEASE_TARGET}")
+SNAP_ADD_UPLOAD_TARGET(itksnap_upload_nightly Nightly ${NIGHTLY_TARGET})
+SNAP_ADD_UPLOAD_TARGET(itksnap_upload_experimental Experimental ${EXPERIMENTAL_TARGET})
+SNAP_ADD_UPLOAD_TARGET(itksnap_upload_release ${SNAP_VERSION_FULL} ${RELEASE_TARGET})
 
 
 #--------------------------------------------------------------------------------
