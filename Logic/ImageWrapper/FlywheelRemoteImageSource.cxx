@@ -274,9 +274,16 @@ std::string DownloadDirect(const std::string         &server,
 
   std::string ticketed_url = download_url + "?ticket=" + ticket;
 
+  // The filename comes from the URL, so after decoding it may contain path
+  // separators (e.g. "..%2F..%2Fx"). Keep only the last path component so the
+  // download cannot be written outside of the temporary directory.
+  std::string local_name = itksys::SystemTools::GetFilenameName(UrlDecode(filename));
+  if (local_name.empty() || local_name == "." || local_name == "..")
+    throw IRISException("Flywheel: invalid file name '%s' in URL", filename.c_str());
+
   // Stream to a local temp file, following the S3 redirect transparently.
   std::string tmpdir = MakeFWTempDir();
-  std::string dest   = tmpdir + "/" + UrlDecode(filename);
+  std::string dest   = tmpdir + "/" + local_name;
 
   FILE *outfile = fopen(dest.c_str(), "wb");
   if (!outfile)
