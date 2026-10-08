@@ -127,9 +127,11 @@ fw://example.flywheel.io/find/pennbrain/StudyABC/sub-01/ses-01/acquisitions/T1w/
 ```
 
 **Authentication**: ITK-SNAP looks for an API key in `~/.fw/config.yml`
-(written by the Flywheel CLI — run `fw login` to populate it). If the file is
-absent or no key matches the target server, a dialog prompts for the key. The
-key may be in `host:secret` or bare `secret` format; both are accepted.
+(written by the Flywheel CLI — run `fw login` to populate it). Only a key in
+`host:secret` format whose host matches the target server is used; the
+`default_profile` key is never sent to a different server. If the file is
+absent or no key matches, a dialog prompts for the key, which may be in
+`host:secret` or bare `secret` format.
 API keys are cached in memory for the session; a `401` response clears the
 cache and shows an error asking the user to retry.
 

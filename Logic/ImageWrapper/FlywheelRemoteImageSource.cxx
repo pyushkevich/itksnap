@@ -91,11 +91,12 @@ std::string MakeBearerHeader(const std::string &api_key)
   return "Bearer " + secret;
 }
 
-// Read the Flywheel API key for @p server from ~/.fw/config.yml.
-// Lookup order:
-//   1. First profile whose api_key starts with "server:" (multi-instance match).
-//   2. Profile named by default_profile (single-instance fallback).
-// Returns "" when the file is absent or no matching key is found.
+// Read the Flywheel API key for @p server from ~/.fw/config.yml. Only a key
+// whose "host:" prefix matches @p server is returned. The default profile is
+// deliberately not used as a fallback: the server name comes from the URL,
+// which may arrive from a web link, and a key must never be sent to a host it
+// was not issued for. Returns "" when the file is absent or no key matches,
+// in which case the caller prompts for a key.
 std::string LoadAPIKeyFromFWConfig(const std::string &server)
 {
   const char *home = getenv("HOME");
@@ -123,50 +124,19 @@ std::string LoadAPIKeyFromFWConfig(const std::string &server)
     return (end == std::string::npos) ? std::string() : v.substr(0, end + 1);
   };
 
-  std::string default_profile;
-  std::string current_name, current_key;
-  std::string server_match_key;
-  std::vector<std::pair<std::string, std::string>> profiles;
   std::string prefix = server + ":";
-
-  auto commit = [&]() {
-    if (server_match_key.empty() && !current_key.empty()
-        && current_key.size() >= prefix.size()
-        && current_key.substr(0, prefix.size()) == prefix)
-      server_match_key = current_key;
-    if (!current_name.empty() && !current_key.empty())
-      profiles.push_back({current_name, current_key});
-    current_name.clear();
-    current_key.clear();
-  };
 
   std::string line;
   while (std::getline(f, line))
     {
     std::string t = trim(line);
-    std::string v;
-
-    if ((v = value_of(t, "default_profile:")) != "")
-      { default_profile = v; continue; }
-
     if (t.size() >= 2 && t.substr(0, 2) == "- ")
-      {
-      commit();
       t = trim(t.substr(2));
-      }
 
-    if ((v = value_of(t, "name:")) != "")    current_name = v;
-    if ((v = value_of(t, "api_key:")) != "") current_key  = v;
+    std::string v = value_of(t, "api_key:");
+    if (v.size() > prefix.size() && v.substr(0, prefix.size()) == prefix)
+      return v;
     }
-  commit();
-
-  if (!server_match_key.empty())
-    return server_match_key;
-
-  if (!default_profile.empty())
-    for (auto &p : profiles)
-      if (p.first == default_profile)
-        return p.second;
 
   return "";
 }
