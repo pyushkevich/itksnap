@@ -72,6 +72,9 @@ void PaintbrushSettingsModel::SetParentModel(GlobalUIModel *parent)
 
   Rebroadcast(m_ParentModel->GetDriver(), WrapperDisplayMappingChangeEvent(), StateMachineChangeEvent());
 
+  // Whether the adaptive brush is available depends on the reference space
+  Rebroadcast(m_ParentModel->GetDriver(), ReferenceSpaceGeometryChangeEvent(), StateMachineChangeEvent());
+
   // For the maximum size, we just need the size model to be updated, no custom code
   m_BrushSizeModel->RebroadcastFromSourceProperty(dbs->GetPaintbrushDefaultMaximumSizeModel());
 
@@ -109,14 +112,17 @@ PaintbrushSettingsModel
   if (!m_ParentModel->GetDriver()->IsMainImageLoaded())
     return false;
 
-  bool free_rotation = m_ParentModel->GetDriver()->GetCurrentImageData()->IsFreeRotation();
+  GenericImageData *gid = m_ParentModel->GetDriver()->GetCurrentImageData();
+  bool free_rotation = gid->IsFreeRotation();
 
   switch(state)
     {
     case UIF_VOLUMETRIC_OK:
       return !free_rotation;
     case UIF_ADAPTIVE_OK:
-      return !free_rotation;
+      // The adaptive brush works on the voxels of the image, so it needs the
+      // image to be on the same grid as the active segmentation
+      return !free_rotation && gid->GetMain()->ImageSpaceMatchesReferenceSpace();
     case UIF_DEEPLEARNING_OK:
       return !free_rotation;
     default:

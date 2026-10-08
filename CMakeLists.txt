@@ -1355,6 +1355,7 @@ SET(GUI_TESTS
   ZoomToFitCycle
   SnakeROIPanel
   ReloadSegmentation
+  AdaptiveBrush
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")

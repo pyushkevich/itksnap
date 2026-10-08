@@ -161,3 +161,15 @@ engine.validateChildProperty(roipanel, "inIndexZ", "value", 1);
 engine.validateChildProperty(roipanel, "inSizeX", "value", parseInt(infoR.dimX));
 engine.validateChildProperty(roipanel, "inSizeY", "value", parseInt(infoR.dimY));
 engine.validateChildProperty(roipanel, "inSizeZ", "value", parseInt(infoR.dimZ));
+
+//=== The adaptive (watershed) brush works on the image's voxels, so it is only
+//=== available when the image is on the active segmentation's grid. hippo-R
+//=== (0.4mm) is not; blank segmentation A (main image grid) is.
+engine.trigger("actionPaintbrush");
+engine.sleep(500);
+var btnAdaptive = engine.findChild(mainwin, "btnWatershed");
+engine.validateProperty(btnAdaptive, "enabled", false);
+
+engine.trigger("actionActivateNextSegmentationLayer");  // hippo-R -> A
+engine.sleep(1000);
+engine.validateProperty(btnAdaptive, "enabled", true);
