@@ -35,6 +35,10 @@ struct SSHCredentials
   std::map<std::string, std::string> jump_passphrases;
   std::set<std::string>              jump_passphrases_declined;
 
+  // Fingerprint of a previously unknown target host key that the user has
+  // agreed to trust; it is recorded in known_hosts if it matches the server
+  std::string                        accepted_host_key;
+
   /** Overwrite all secrets before the strings are released */
   void Clear();
 };
@@ -64,6 +68,8 @@ public:
     NEED_PASSPHRASE,      // passphrase for key GetPromptKey()
     NEED_JUMP_PASSWORD,   // as above, for jump host GetPromptHost()
     NEED_JUMP_PASSPHRASE, // as above, for jump host GetPromptHost()
+    NEED_HOST_KEY_CONFIRM, // target host key not in known_hosts; the user must
+                           // confirm GetHostKeyFingerprint() before connecting
     CONNECT_ERROR         // fatal; see GetError()
   };
 
@@ -80,6 +86,11 @@ public:
   const std::string &GetPromptHost() const { return m_PromptHost; }
   const std::string &GetPromptUser() const { return m_PromptUser; }
   const std::string &GetPromptKey() const { return m_PromptKey; }
+
+  /** Type (e.g. "ssh-ed25519") and SHA256 fingerprint of the target host key,
+   *  set when Attempt() returns NEED_HOST_KEY_CONFIRM */
+  const std::string &GetHostKeyType() const { return m_HostKeyType; }
+  const std::string &GetHostKeyFingerprint() const { return m_HostKeyFingerprint; }
 
   /** Error from the last attempt, suitable for showing next to a prompt */
   const std::string &GetError() const { return m_Error; }
@@ -132,8 +143,10 @@ private:
   std::string m_LastPassphraseTried;
 
   std::string m_PromptHost, m_PromptUser, m_PromptKey, m_Error;
+  std::string m_HostKeyType, m_HostKeyFingerprint;
 
   Status Connect(const SSHCredentials &creds, const std::string &user);
+  Status VerifyHostKey(const SSHCredentials &creds);
   Status Authenticate(const SSHCredentials &creds);
   void   Disconnect();
   void   DisposeJumpBlock(bool connected);

@@ -472,6 +472,14 @@ SSHConnector::Connect(const SSHCredentials &creds, const std::string &user)
 
   DisposeJumpBlock(true);
 
+  // Check the target's host key before sending it any credentials
+  Status hk_status = VerifyHostKey(creds);
+  if (hk_status != OK)
+  {
+    Disconnect();
+    return hk_status;
+  }
+
   m_ConnectedUser = GetOption(m_Session, SSH_OPTIONS_USER);
   m_PromptUser = m_ConnectedUser;
   m_NeedReconnect = false;
@@ -479,6 +487,75 @@ SSHConnector::Connect(const SSHCredentials &creds, const std::string &user)
   m_KeyNeedsPassphrase = false;
   m_PassphraseRejected = false;
   m_LastPassphraseTried.clear();
+  return OK;
+}
+
+SSHConnector::Status
+SSHConnector::VerifyHostKey(const SSHCredentials &creds)
+{
+  m_PromptHost = m_Params.host;
+  m_HostKeyType.clear();
+  m_HostKeyFingerprint.clear();
+
+  enum ssh_known_hosts_e state = ssh_session_is_known_server(m_Session);
+  if (state == SSH_KNOWN_HOSTS_OK)
+    return OK;
+
+  if (state == SSH_KNOWN_HOSTS_CHANGED || state == SSH_KNOWN_HOSTS_OTHER)
+  {
+    m_Error = "The host key of " + m_Params.host +
+              " does not match the key recorded in ~/.ssh/known_hosts. Someone may be "
+              "intercepting the connection. If the server's key was changed on purpose, "
+              "remove the old key (ssh-keygen -R " + m_Params.host + ") and try again.";
+    return CONNECT_ERROR;
+  }
+
+  if (state == SSH_KNOWN_HOSTS_ERROR)
+  {
+    m_Error = std::string("Error checking the host key: ") + ssh_get_error(m_Session);
+    return CONNECT_ERROR;
+  }
+
+  // The host is not known yet (SSH_KNOWN_HOSTS_UNKNOWN / NOT_FOUND). Compute the
+  // fingerprint so the caller can ask the user whether to trust it.
+  ssh_key        srv_key = nullptr;
+  unsigned char *hash = nullptr;
+  size_t         hash_len = 0;
+  if (ssh_get_server_publickey(m_Session, &srv_key) != SSH_OK)
+  {
+    m_Error = std::string("Error getting the host key: ") + ssh_get_error(m_Session);
+    return CONNECT_ERROR;
+  }
+  m_HostKeyType = ssh_key_type_to_char(ssh_key_type(srv_key));
+  int rc_hash = ssh_get_publickey_hash(srv_key, SSH_PUBLICKEY_HASH_SHA256, &hash, &hash_len);
+  ssh_key_free(srv_key);
+  if (rc_hash != SSH_OK)
+  {
+    m_Error = "Error computing the host key fingerprint";
+    return CONNECT_ERROR;
+  }
+  char *fp = ssh_get_fingerprint_hash(SSH_PUBLICKEY_HASH_SHA256, hash, hash_len);
+  ssh_clean_pubkey_hash(&hash);
+  if (!fp)
+  {
+    m_Error = "Error computing the host key fingerprint";
+    return CONNECT_ERROR;
+  }
+  m_HostKeyFingerprint = fp;
+  ssh_string_free_char(fp);
+
+  // Ask the caller to confirm, unless the user already accepted this key
+  if (creds.accepted_host_key != m_HostKeyFingerprint)
+    return NEED_HOST_KEY_CONFIRM;
+
+  // Remember the key, as the ssh command does. Failing to write known_hosts
+  // is not fatal - the user will just be asked again next time.
+  if (ssh_session_update_known_hosts(m_Session) != SSH_OK)
+    std::cerr << "Warning: could not record the host key of " << m_Params.host
+              << " in known_hosts: " << ssh_get_error(m_Session) << std::endl;
+  else if (m_Params.verbose)
+    std::cout << "Added the host key of " << m_Params.host << " to known_hosts" << std::endl;
+
   return OK;
 }
 

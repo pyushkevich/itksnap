@@ -42,6 +42,13 @@ OpenSSHSession(const SSHConnectParams &params, AbstractSSHAuthDelegate *auth)
 
     switch (status)
     {
+      case SSHConnector::NEED_HOST_KEY_CONFIRM:
+        if (!auth->ConfirmHostKey(
+              host, connector.GetHostKeyType(), connector.GetHostKeyFingerprint()))
+          throw cancel("host key not trusted");
+        creds.accepted_host_key = connector.GetHostKeyFingerprint();
+        break;
+
       case SSHConnector::NEED_PASSWORD:
         if (!connector.HasConfiguredUsername() && creds.username.empty())
         {
