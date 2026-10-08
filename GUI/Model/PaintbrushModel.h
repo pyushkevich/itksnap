@@ -70,11 +70,6 @@ protected:
   Vector3d ComputeOffset();
   void     ComputeMousePosition(const Vector3d &xSlice);
 
-  // Whether a given image-space position lies on a slice (along the current
-  // view's slice direction) that falls within the reference space's bounds.
-  // Painting is only possible when this holds.
-  bool IsSliceInReferenceSpace(const Vector3i &xImage);
-
   bool ApplyBrush(bool reverse_mode, bool dragging, bool release);
   void CommitDrawing();
 

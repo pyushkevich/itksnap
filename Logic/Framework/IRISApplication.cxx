@@ -587,13 +587,15 @@ IRISApplication ::UpdateSegmentationWithSliceDrawing(IRISApplication::SliceBinar
   corners[3][0] = r_draw.GetUpperIndex()[0];
   corners[3][1] = r_draw.GetUpperIndex()[1];
 
-  // Compute 3D extents of the region
-  Vector3ui pos_min, pos_max;
+  // Compute 3D extents of the region. The indices are signed because the
+  // slice being drawn on may lie outside of the segmentation image.
+  Vector3i pos_min, pos_max;
   for (int i = 0; i < 4; i++)
   {
     // Get the 3D coordinate of the corner
-    Vector3ui idxVol = to_unsigned_int(
-      xfmSliceToImage->TransformPoint(Vector3d(corners[i][0] + 0.5, corners[i][1] + 0.5, zSlice)));
+    Vector3d xVol =
+      xfmSliceToImage->TransformPoint(Vector3d(corners[i][0] + 0.5, corners[i][1] + 0.5, zSlice));
+    Vector3i idxVol((int)std::floor(xVol[0]), (int)std::floor(xVol[1]), (int)std::floor(xVol[2]));
 
     if (i == 0)
     {
@@ -616,7 +618,11 @@ IRISApplication ::UpdateSegmentationWithSliceDrawing(IRISApplication::SliceBinar
   LabelImageType::RegionType r_vol;
   r_vol.SetIndex(to_itkIndex(pos_min));
   r_vol.SetUpperIndex(to_itkIndex(pos_max));
-  r_vol.Crop(this->GetSelectedSegmentationLayer()->GetBufferedRegion());
+
+  // Crop() leaves the region unchanged if it does not overlap the
+  // segmentation, so in that case there is nothing to paint
+  if (!r_vol.Crop(this->GetSelectedSegmentationLayer()->GetBufferedRegion()))
+    return 0;
 
   // Create an iterator for painting
   SegmentationUpdateIterator itVol(this->GetSelectedSegmentationLayer(),
