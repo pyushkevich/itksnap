@@ -1316,9 +1316,17 @@ qt_add_translations(
 ENABLE_TESTING()
 
 # Acceleration factor for GUI tests
-SET(SNAP_GUI_TEST_ACCEL "1.0" CACHE STRING 
+SET(SNAP_GUI_TEST_ACCEL "1.0" CACHE STRING
     "Acceleration factor for GUI tests, use <1 on VMS and slow machines")
 MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
+
+# Qt platform plugin for GUI tests (sets QT_QPA_PLATFORM). Empty means the
+# default platform, which shows windows on the desktop. Use "offscreen" to run
+# the GUI tests without any windows, so the desktop stays usable while they run.
+SET(SNAP_GUI_TEST_QT_PLATFORM "" CACHE STRING
+    "Qt platform for GUI tests (e.g. offscreen); empty for the default platform")
+SET_PROPERTY(CACHE SNAP_GUI_TEST_QT_PLATFORM PROPERTY STRINGS "" offscreen minimal)
+MARK_AS_ADVANCED(SNAP_GUI_TEST_QT_PLATFORM)
 
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
@@ -1523,6 +1531,11 @@ FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
     SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT PATH="${QT_BINARY_DIR_NATIVE}:$ENV{PATH}")
   ENDIF(WIN32)
   SET_PROPERTY(TEST ${GUI_TEST} PROPERTY TIMEOUT 180)
+
+  # Optionally run without windows (see SNAP_GUI_TEST_QT_PLATFORM)
+  IF(SNAP_GUI_TEST_QT_PLATFORM)
+    SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT QT_QPA_PLATFORM=${SNAP_GUI_TEST_QT_PLATFORM})
+  ENDIF()
 
 ENDFUNCTION()
 
