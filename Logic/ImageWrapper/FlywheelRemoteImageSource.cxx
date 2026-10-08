@@ -177,7 +177,7 @@ std::string APIGet(const std::string &url, const std::string &api_key, long &htt
 {
   RESTClient<> client;
   client.SetRequestHeader("Authorization", MakeBearerHeader(api_key).c_str());
-  client.Get(url.c_str());
+  client.Get("%s", url.c_str());
   http_code = client.GetHTTPCode();
   const char *out = client.GetOutput();
   return out ? std::string(out) : std::string();
@@ -333,7 +333,7 @@ std::string DownloadDirect(const std::string         &server,
       (*cb)(done, total);
       });
 
-  dl_client.Get(ticketed_url.c_str());
+  dl_client.Get("%s", ticketed_url.c_str());
   fclose(outfile);
 
   long code = dl_client.GetHTTPCode();

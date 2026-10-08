@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <algorithm>
 #include <cctype>
+#include <vector>
 #include "IRISException.h"
 #include "itksys/SystemTools.hxx"
 #include "itksys/MD5.h"
@@ -35,6 +36,26 @@ progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_
   CallbackInfo *cbi = static_cast<CallbackInfo *>(clientp);
   cbi->second(cbi->first, bytes_done, bytes_total);
   return 0;
+}
+
+// Expand a printf-style pattern into a string of whatever length is needed.
+// The va_list is copied, so the caller's args can still be used afterwards.
+std::string
+format_va(const char *pattern, std::va_list args)
+{
+  std::va_list args_size;
+  va_copy(args_size, args);
+  int n = vsnprintf(nullptr, 0, pattern, args_size);
+  va_end(args_size);
+  if (n < 0)
+    throw IRISException("Error formatting REST request '%s'", pattern);
+
+  std::vector<char> buffer(n + 1);
+  std::va_list args_fill;
+  va_copy(args_fill, args);
+  vsnprintf(buffer.data(), buffer.size(), pattern, args_fill);
+  va_end(args_fill);
+  return std::string(buffer.data(), n);
 }
 
 void mutex_lock(CURL *handle, curl_lock_data data, curl_lock_access access, void *clientp)
@@ -244,12 +265,12 @@ template <typename ServerTraits>
 bool
 RESTClient<ServerTraits>::GetVA(const char *rel_url, std::va_list args)
 {
-  // Expand the URL
-  char url_buffer[4096];
-  vsnprintf(url_buffer, 4096, rel_url, args);
+  // Expand the URL. It is passed on to Post as an argument, not as a
+  // pattern, so that '%' characters in the expanded URL are left alone
+  std::string url = RESTClient_internal::format_va(rel_url, args);
 
   // Use the same code as POST, but with null string
-  return this->Post(url_buffer, NULL);
+  return this->Post("%s", NULL, url.c_str());
 }
 
 template <typename ServerTraits>
@@ -287,8 +308,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
                                 : std::string(rel_url);
 
   // Expand the URL
-  char url_buffer[4096];
-  vsnprintf(url_buffer, 4096, joint_pattern.c_str(), args);
+  std::string url_buffer = RESTClient_internal::format_va(joint_pattern.c_str(), args);
 
   // Split into url and post sections
   std::string url_filled, post_filled;
@@ -389,8 +409,7 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   // Expand the URL
   std::va_list args;
   va_start(args, data);
-  char url_buffer[4096];
-  vsnprintf(url_buffer, 4096, rel_url, args);
+  std::string url_buffer = RESTClient_internal::format_va(rel_url, args);
   va_end(args);
 
   // The URL to post to
@@ -477,8 +496,7 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   // Expand the URL
   std::va_list args;
   va_start(args, extra_fields);
-  char url_buffer[4096];
-  vsnprintf(url_buffer, 4096, rel_url, args);
+  std::string url_buffer = RESTClient_internal::format_va(rel_url, args);
 
   // The URL to post to
   string url = this->MakeFullURL(url_buffer);
