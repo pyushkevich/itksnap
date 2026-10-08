@@ -1353,6 +1353,7 @@ SET(GUI_TESTS
   MCTo4D
   DeformationGrid
   ZoomToFitCycle
+  SnakeROIPanel
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")

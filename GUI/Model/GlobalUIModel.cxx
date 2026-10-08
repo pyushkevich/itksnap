@@ -751,8 +751,9 @@ bool GlobalUIModel::GetSnakeROIIndexValueAndRange(
     value[i] = roiSystem.GetIndex()[i] + 1;
     if(range)
       {
+      // The index is shown 1-based, so the last voxel is imsize
       range->Minimum[i] = 1;
-      range->Maximum[i] = imsize[i] - 1;
+      range->Maximum[i] = imsize[i];
       range->StepSize[i] = 1;
       }
     }
@@ -770,11 +771,14 @@ void GlobalUIModel::SetSnakeROIIndexValue(Vector3ui value)
   GlobalState::RegionType roi =
       m_Driver->GetGlobalState()->GetSegmentationROI();
 
-  // Index changed, clamp the size
+  // Index changed (shown 1-based): keep the size, but shrink it if the ROI
+  // would no longer fit in the image
   for(int i = 0; i < 3; i++)
     {
-    roi.SetIndex(i, value[i] - 1);
-    roi.SetSize(i, std::min(value[i], imsize[i] - value[i]));
+    unsigned int idx = std::min(std::max(value[i], 1u), imsize[i]) - 1;
+    unsigned int max_size = imsize[i] - idx;
+    roi.SetIndex(i, idx);
+    roi.SetSize(i, std::max(1u, std::min((unsigned int) roi.GetSize(i), max_size)));
     }
 
   m_Driver->GetGlobalState()->SetSegmentationROI(roi);
@@ -820,12 +824,14 @@ void GlobalUIModel::SetSnakeROISizeValue(Vector3ui value)
   GlobalState::RegionType roi =
       m_Driver->GetGlobalState()->GetSegmentationROI();
 
-  // Size changed, clamp the index
+  // Size changed: keep the index, but move it back if the ROI would extend
+  // past the edge of the image
   for(int i = 0; i < 3; i++)
     {
-    roi.SetSize(i, value[i]);
-    if(value[i] + roi.GetIndex(i) > imsize[i])
-      roi.SetIndex(i, imsize[i] - value[1]);
+    unsigned int size = std::min(std::max(value[i], 1u), imsize[i]);
+    roi.SetSize(i, size);
+    if(size + roi.GetIndex(i) > imsize[i])
+      roi.SetIndex(i, imsize[i] - size);
     }
 
   m_Driver->GetGlobalState()->SetSegmentationROI(roi);
