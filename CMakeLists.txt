@@ -1499,11 +1499,12 @@ TARGET_INCLUDE_DIRECTORIES(TestNrrdSequenceIO PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestNrrdSequenceIO COMMAND TestNrrdSequenceIO ${TEMP})
 
-# Set up a test for each GUI test
-FOREACH(GUI_TEST ${GUI_TESTS})
+# Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
+# are passed on to ITK-SNAP, e.g. images to load from the command line.
+FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
 
   # Add the test
-  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_BUNDLE_NAME} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en)
+  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_BUNDLE_NAME} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en ${ARGN})
 
   # Set the environment for the test to include Qt
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
@@ -1515,7 +1516,21 @@ FOREACH(GUI_TEST ${GUI_TESTS})
   ENDIF(WIN32)
   SET_PROPERTY(TEST ${GUI_TEST} PROPERTY TIMEOUT 180)
 
+ENDFUNCTION()
+
+# Set up a test for each GUI test
+FOREACH(GUI_TEST ${GUI_TESTS})
+  ADD_SNAP_GUI_TEST(${GUI_TEST})
 ENDFOREACH(GUI_TEST)
+
+# GUI tests that open data from URLs given on the command line, as a browser
+# link would. These require network access and are labelled "Remote".
+ADD_SNAP_GUI_TEST(RemoteSaveLayer
+  -g "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
+  -s "${GITHUB_TESTDATA_URL}/MRIcrop-seg.gipl.gz")
+ADD_SNAP_GUI_TEST(RemoteSaveWorkspace
+  -w "${GITHUB_TESTDATA_URL}/MRIcrop-with-mesh.itksnap")
+SET_TESTS_PROPERTIES(RemoteSaveLayer RemoteSaveWorkspace PROPERTIES LABELS "Remote")
 
 # Orientation widget test
 SET(TEST_ORIENTATION_WIDGET_HEADERS

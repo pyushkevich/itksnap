@@ -225,6 +225,20 @@ function updateMeshAndCheck()
     engine.sleep(3000);
     engine.validateProperty(btn, "enabled", false);
 }
+function waitForMainImage(timeout_sec = 60)
+{
+    // For tests where ITK-SNAP was started with images on the command line
+    // (e.g. URLs that are downloaded after the event loop starts): wait until
+    // the main image has been loaded, i.e. saving a segmentation is possible
+    var action = engine.findChild(mainwin, "actionSaveSegmentation");
+    for (var i = 0; i < timeout_sec * 2; i++)
+    {
+        if (engine.getProperty(action, "enabled"))
+            return;
+        engine.sleep(500);
+    }
+    engine.testFailed("Timed out waiting for the main image to load");
+}
 function takeScreenshot(filename, widget)
 {
     // Save a screenshot of the current window (the active dialog, if any, else
