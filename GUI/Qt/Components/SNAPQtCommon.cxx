@@ -587,11 +587,13 @@ QString GetFileDialogPath(GlobalUIModel *model, const char *HistoryName)
      g_CategoryToLastPathMap.find(HistoryName) != g_CategoryToLastPathMap.end())
     return g_CategoryToLastPathMap[HistoryName].absolutePath();
 
-  // Is there a main image loaded
+  // Is there a main image loaded? Its directory is only useful if it is a
+  // local file, not a URL (which QFileInfo would turn into a bogus path)
   if(model->GetDriver()->IsMainImageLoaded())
     {
-    QString fn = from_utf8(model->GetDriver()->GetCurrentImageData()->GetMain()->GetFileName());
-    return QFileInfo(fn).absolutePath();
+    std::string fn = model->GetDriver()->GetCurrentImageData()->GetMain()->GetFileName();
+    if(!IsRemoteImageURL(fn))
+      return QFileInfo(from_utf8(fn)).absolutePath();
     }
 
   // Use the initial directory
