@@ -977,6 +977,13 @@ DeepLearningSegmentationModel::UpdateSegmentation(const std::string &model_id,
     auto &model_metadata = GetRemoteModelMetadata(model_id);
     if(model_metadata.dimensions == 3)
     {
+      // Check that the size of raw data matches the buffer size, otherwise the
+      // iteration below would read past the end of the result
+      if(result_raw.size() != expected_size)
+        throw IRISException("DLS server returned segmentation that does not match the size of "
+                            "the image (%zu voxels received, %zu expected)",
+                            result_raw.size(), expected_size);
+
       // Create an ITK image of the segmentation for this label
       using ImageType = itk::Image<char, 3>;
       ImageType::Pointer result_img = ImageType::New();
