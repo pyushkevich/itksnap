@@ -88,3 +88,34 @@ engine.sleep(500);
 engine.validateChildProperty(mainwin, "outLabelText", "text", "hippo-L");
 
 updateMeshAndCheck();
+
+//=== Record where this cursor position lands in hippo-R's grid: switching
+//=== layers carries the cursor over in physical (RAS) space
+engine.trigger("actionActivatePreviousSegmentationLayer");
+engine.sleep(500);
+var curInR = {
+    x: engine.getChildProperty(mainwin, "inCursorX", "value"),
+    y: engine.getChildProperty(mainwin, "inCursorY", "value"),
+    z: engine.getChildProperty(mainwin, "inCursorZ", "value")
+};
+engine.trigger("actionActivateNextSegmentationLayer");
+engine.sleep(500);
+engine.validateChildProperty(mainwin, "outLabelText", "text", "hippo-L");
+
+//=== Close the active segmentation (hippo-L). hippo-R should become active,
+//=== with the cursor carried over to the same physical position
+engine.trigger("actionClearActive");
+engine.sleep(500);
+
+engine.validateChildProperty(mainwin, "inCursorX", "maximum", maxR.x);
+engine.validateChildProperty(mainwin, "inCursorY", "maximum", maxR.y);
+engine.validateChildProperty(mainwin, "inCursorZ", "maximum", maxR.z);
+
+engine.validateChildProperty(mainwin, "inCursorX", "value", curInR.x);
+engine.validateChildProperty(mainwin, "inCursorY", "value", curInR.y);
+engine.validateChildProperty(mainwin, "inCursorZ", "value", curInR.z);
+
+//=== hippo-R is still usable after the switch
+setCursor(31, 62, 40);  // centroid of the hippo-R label mask
+engine.sleep(500);
+engine.validateChildProperty(mainwin, "outLabelText", "text", "hippo-R");
