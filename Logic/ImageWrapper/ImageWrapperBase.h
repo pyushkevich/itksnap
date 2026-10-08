@@ -321,10 +321,13 @@ public:
 
   /**
    * Extract a 3d region of interest from all time points in the image wrapper,
-   * as a new wrapper of the same type
+   * as a new wrapper of the same type. The region is in the voxel space of
+   * target_space, or of the reference space if target_space is null; the image
+   * is resampled onto that space if it is not already in it.
    */
   virtual SmartPtr<ImageWrapperBase> ExtractROI4D(
-      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const = 0;
+      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand,
+      ImageBaseType *target_space = nullptr) const = 0;
 
   /** Transform a voxel index into a spatial position */
   virtual Vector3d TransformVoxelIndexToLPSCoordinates(const Vector3i &iVoxel) const = 0;

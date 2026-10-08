@@ -28,6 +28,7 @@
         <file>Scripts/test_SnakeROIPanel.js</file>
         <file>Scripts/test_ReloadSegmentation.js</file>
         <file>Scripts/test_AdaptiveBrush.js</file>
+        <file>Scripts/test_RegistrationReslice.js</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

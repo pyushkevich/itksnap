@@ -275,6 +275,7 @@ void RegistrationDialog::on_btnReslice_clicked()
 {
   // Prompt the user for the kind of reslicing to do
   QDialog *dialog = new QDialog(this);
+  dialog->setObjectName("dlgResliceOptions");
   QFormLayout *lo = new QFormLayout();
 
   dialog->setWindowTitle(tr("Reslicing Options - ITK-SNAP"));

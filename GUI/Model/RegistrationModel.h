@@ -105,8 +105,12 @@ public:
   /** Get a pointer to the selected moving wrapper, or NULL if none selected */
   ImageWrapperBase *GetMovingLayerWrapper() const;
 
-  /** Get the center of rotation, in voxel units of the main image */
-  irisGetMacro(RotationCenter, Vector3i)
+  /**
+   * Get the center of rotation, in voxel units of the reference space. It is
+   * stored as a physical point, so it stays at the same anatomical location
+   * when the reference space (the active segmentation) changes.
+   */
+  Vector3i GetRotationCenter() const;
 
   // Automatic registration parameter domains
   typedef SimpleItemSetDomain<int, std::string> ResolutionLevelDomain;
@@ -289,8 +293,9 @@ protected:
   // The current cached manual parameters
   TransformManualParameters m_ManualParam;
 
-  // Current center of rotation - should be initialized to the center when new image is loaded
-  Vector3i m_RotationCenter;
+  // Current center of rotation, as a physical (LPS) point - should be
+  // initialized to the center of the image when a new main image is loaded
+  itk::Point<double, 3> m_RotationCenter;
 
   // Callback for when the transform being computed by auto-registration is modified
   void IterationCallback(const itk::Object *object, const itk::EventObject &event);

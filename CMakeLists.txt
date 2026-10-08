@@ -1356,6 +1356,7 @@ SET(GUI_TESTS
   SnakeROIPanel
   ReloadSegmentation
   AdaptiveBrush
+  RegistrationReslice
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")

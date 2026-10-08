@@ -2736,9 +2736,10 @@ template<class TTraits>
 SmartPtr<ImageWrapperBase>
 ImageWrapper<TTraits>
 ::ExtractROI4D(const SNAPSegmentationROISettings &roi,
-             itk::Command *progressCommand) const
+             itk::Command *progressCommand,
+             ImageBaseType *target_space) const
 {
-  Image4DPointer newImage = this->DeepCopyRegion4D(roi, progressCommand);
+  Image4DPointer newImage = this->DeepCopyRegion4D(roi, progressCommand, target_space);
 
   // Initialize the new wrapper
   typedef typename TTraits::WrapperType WrapperType;
@@ -2789,11 +2790,18 @@ template<class TTraits>
 typename ImageWrapper<TTraits>::Image4DPointer
 ImageWrapper<TTraits>
 ::DeepCopyRegion4D(const SNAPSegmentationROISettings &roi,
-                 itk::Command *progressCommand) const
+                 itk::Command *progressCommand,
+                 ImageBaseType *target_space) const
 {
-  // If the image in this wrapper is not the same as the reference space,
-  // we must force resampling to occur
-  bool force_resampling = !this->IsSlicingOrthogonal();
+  // The space whose voxels the ROI refers to: the reference space unless
+  // another one is given
+  ImageBaseType *refspace = target_space ? target_space : m_ReferenceSpace.GetPointer();
+
+  // If the image in this wrapper is not in that space (taking its transform
+  // into account), we must force resampling to occur
+  bool force_resampling = (refspace != m_ReferenceSpace.GetPointer())
+                            ? !CanOrthogonalSlicingBeUsed(m_Image, refspace, m_AffineTransform)
+                            : !this->IsSlicingOrthogonal();
 
   Image4DPointer outImg = Image4DType::New();
   const unsigned int nT = this->GetNumberOfTimePoints();
@@ -2832,7 +2840,7 @@ ImageWrapper<TTraits>
   for (unsigned int t = 0u; t < nT; ++t)
     {
     tpImg = this->GetImageByTimePoint(t);
-    tpResliced = Specialization::CopyRegion(tpImg, m_ReferenceSpace, this->GetITKTransform(),
+    tpResliced = Specialization::CopyRegion(tpImg, refspace, this->GetITKTransform(),
                                          roi, force_resampling, TPCommand[t]);
 
     // Element-wise copy (not memcpy!) - ElementType may be a non-trivially
