@@ -366,9 +366,10 @@ public:
 
   /**
    * Set the cursor (crosshairs) position, in pixel coordinates relative to the
-   * active segmentation layer.
+   * active segmentation layer. All layers not yet at this position are updated.
+   * CursorUpdateEvent is fired if any layer changed, or always if force is set.
    */
-  virtual void SetCursorPosition(const Vector3i &crosshairs);
+  virtual void SetCursorPosition(const Vector3i &crosshairs, bool force = false);
 
   /**
    * Get the time point selected

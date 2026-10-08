@@ -832,7 +832,7 @@ void
 IRISApplication ::SetCursorPosition(const Vector3i cursor, bool force)
 {
   // Cursor position is handled through ImageData
-  this->GetCurrentImageData()->SetCursorPosition(cursor);
+  this->GetCurrentImageData()->SetCursorPosition(cursor, force);
 }
 
 Vector3i

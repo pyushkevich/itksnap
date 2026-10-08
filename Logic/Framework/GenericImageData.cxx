@@ -840,7 +840,7 @@ GenericImageData::SetCursorPositionRAS(const Vector3d &crosshairs_ras)
 
 void
 GenericImageData
-::SetCursorPosition(const Vector3i &crosshairs)
+::SetCursorPosition(const Vector3i &crosshairs, bool force)
 {
   auto idx_ch = to_itkIndex(crosshairs);
 
@@ -848,17 +848,23 @@ GenericImageData
   itkAssertOrThrowMacro(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized(),
                         "Active segmentation not initialized in GenericImageData::SetCrosshairs");
 
-  // Ignore if the crosshair is already set
-  if(m_ActiveSegmentationWrapper->GetSliceIndex() == idx_ch)
-    return;
-
-  // Set crosshairs in all wrappers
+  // Set crosshairs in all wrappers that do not have them yet. This is checked
+  // per layer, not just for the active segmentation, because a layer that was
+  // just added (or whose reference space just changed) may not be in sync.
+  bool changed = false;
   for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
-    if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
-      lit.GetLayer()->SetSliceIndex(idx_ch);
+    {
+    ImageWrapperBase *layer = lit.GetLayer();
+    if(layer && layer->IsInitialized() && layer->GetSliceIndex() != idx_ch)
+      {
+      layer->SetSliceIndex(idx_ch);
+      changed = true;
+      }
+    }
 
   // Fire a cursor update event
-  InvokeEvent(CursorUpdateEvent());
+  if(changed || force)
+    InvokeEvent(CursorUpdateEvent());
 }
 
 unsigned int
@@ -1132,7 +1138,12 @@ void GenericImageData::PushBackImageWrapper(LayerRole role,
 
   // Rebroadcast the wrapper-related events as our own events
   Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this, m_FullExtentCacheCallback);
-  
+
+  // A new layer starts out at slice index zero, so give it the current cursor
+  // position. Otherwise it shows the wrong slice until the cursor is moved.
+  if(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized())
+    this->SetCursorPosition(this->GetCursorPosition());
+
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
 
