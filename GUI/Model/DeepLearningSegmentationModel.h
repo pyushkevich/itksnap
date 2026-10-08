@@ -389,6 +389,11 @@ protected:
   using LabelSelection = int;
   LabelSelection m_LabelState = -1;
 
+  // Set while a point/scribble/lasso interaction is running on the GUI thread.
+  // The progress display processes events while waiting for the server, so a
+  // new interaction can be requested before the previous one returns.
+  bool m_InteractionInProgress = false;
+
   bool GetServerValueAndRange(int &value, ServerDomain *domain);
   void SetServerValue(int value);
   bool GetServerIsConfiguredValue(bool &value);

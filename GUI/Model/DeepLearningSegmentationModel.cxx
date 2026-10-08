@@ -21,6 +21,14 @@ const char *DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION = "0.1.2";
 
 typedef std::chrono::high_resolution_clock Clock;
 
+// Sets a flag for its lifetime, so that the flag is cleared even if an
+// exception is thrown
+struct InteractionInProgressGuard
+{
+  bool &flag;
+  explicit InteractionInProgressGuard(bool &f) : flag(f) { flag = true; }
+  ~InteractionInProgressGuard() { flag = false; }
+};
 
 #if defined(ITKZLIB) && !defined(ITK_USE_SYSTEM_ZLIB)
 #include "itk_zlib.h"
@@ -1082,6 +1090,13 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
                                                        Vector3i          pos,
                                                        bool              reverse)
 {
+  // A click made while a previous interaction is still waiting for the server
+  // would re-enter this method on the same thread and deadlock on m_Mutex, so
+  // it is ignored instead
+  if (m_InteractionInProgress)
+    return false;
+  InteractionInProgressGuard busy(m_InteractionInProgress);
+
   // Update the source image
   this->SetSourceImage(model_id, layer, axis);
 
@@ -1149,6 +1164,11 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
                                                                  LabelImageWrapper *seg,
                                                                  bool               reverse)
 {
+  // Ignore re-entrant requests; see PerformPointInteraction
+  if (m_InteractionInProgress)
+    return false;
+  InteractionInProgressGuard busy(m_InteractionInProgress);
+
   // Update the source image
   this->SetSourceImage(model_id, layer, axis);
 
