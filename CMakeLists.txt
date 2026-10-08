@@ -1499,6 +1499,14 @@ TARGET_INCLUDE_DIRECTORIES(TestNrrdSequenceIO PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestNrrdSequenceIO COMMAND TestNrrdSequenceIO ${TEMP})
 
+# Test: VTK XML image (.vti) IO handles orientation, extents and arrays
+ADD_EXECUTABLE(TestVTIImageIO
+    Testing/Logic/TestVTIImageIO.cxx)
+TARGET_LINK_LIBRARIES(TestVTIImageIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestVTIImageIO PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestVTIImageIO COMMAND TestVTIImageIO ${TEMP})
+
 # Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
 # are passed on to ITK-SNAP, e.g. images to load from the command line.
 FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
