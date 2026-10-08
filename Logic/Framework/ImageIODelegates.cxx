@@ -539,16 +539,22 @@ ReloadSegmentationWrapperDelegate
 
 
   auto labelImage = m_Driver->GetIRISImageData()->CompressSegmentation(m_IO);
+
+  // If this is the active segmentation, the other layers refer to its image as
+  // their reference space through weak pointers. Keep the old image alive until
+  // they have been pointed at the new one, or they would read freed memory.
+  SmartPtr<itk::ImageBase<3>> old_image = labelWrapper->GetImageBase();
   labelWrapper->SetImage4D(labelImage);
 
-
-  // This line takes care of stale pointers to reference_space in image wrappers
+  // Point all layers at the (possibly new) reference space. This is needed for
+  // an inactive segmentation too, since SetImage4D makes the reloaded layer its
+  // own reference space.
   // TODO: all this reload logic should sit inside of GenericImageData
+  m_Driver->GetCurrentImageData()->OnSegmentationReload();
+  old_image = nullptr;
+
   if(m_Wrapper == m_Driver->GetCurrentImageData()->GetActiveSegmentationLayer())
-  {
-    m_Driver->GetCurrentImageData()->OnActiveSegmentationReload();
     m_Driver->GetCurrentImageData()->SetCursorPositionRAS(cursor);
-  }
 
   m_Driver->InvokeEvent(LayerChangeEvent()); // important, to trigger renderer rebuild assemblies
 }

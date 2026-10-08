@@ -316,8 +316,9 @@ public:
   void UnloadOverlayLast();
   void UnloadOverlay(ImageWrapperBase *overlay);
 
-  /** React when an image is reloaded from disk */
-  void OnActiveSegmentationReload();
+  /** React when a segmentation is reloaded from disk: point all layers at the
+   *  current reference space (the reloaded image may have replaced it) */
+  void OnSegmentationReload();
 
   /**
    * Unload a specific mesh layer

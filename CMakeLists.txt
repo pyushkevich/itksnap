@@ -1354,6 +1354,7 @@ SET(GUI_TESTS
   DeformationGrid
   ZoomToFitCycle
   SnakeROIPanel
+  ReloadSegmentation
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")

@@ -554,7 +554,7 @@ void GenericImageData
 }
 
 void
-GenericImageData::OnActiveSegmentationReload()
+GenericImageData::OnSegmentationReload()
 {
   this->UpdateReferenceImageInAllLayers();
 }

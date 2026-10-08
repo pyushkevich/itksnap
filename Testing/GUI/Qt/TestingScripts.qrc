@@ -26,6 +26,7 @@
         <file>Scripts/test_RemoteSaveLayer.js</file>
         <file>Scripts/test_RemoteSaveWorkspace.js</file>
         <file>Scripts/test_SnakeROIPanel.js</file>
+        <file>Scripts/test_ReloadSegmentation.js</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>
