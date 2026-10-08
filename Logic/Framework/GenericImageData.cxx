@@ -523,6 +523,13 @@ GenericImageData
   if(checkSpace)
     overlay->CopyImageCoordinateTransform(m_MainImageWrapper);
 
+  // The overlay must be displayed in the current reference space (the active
+  // segmentation). A wrapper created from an image (e.g. a resliced image) is
+  // its own reference space, and would otherwise be drawn as if its voxels
+  // were those of the reference space.
+  if(this->GetReferenceSpace() && overlay->GetReferenceSpace() != this->GetReferenceSpace())
+    overlay->SetReferenceSpace(this->GetReferenceSpace());
+
   // Add to the overlay wrapper list
   PushBackImageWrapper(OVERLAY_ROLE, overlay);
 }
