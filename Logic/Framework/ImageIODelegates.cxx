@@ -360,13 +360,21 @@ void DefaultSaveImageDelegate
 ::SaveImage(const std::string &fname, GuidedNativeImageIO *io,
             Registry &reg, IRISWarningList &wl)
 {
+  // Images can be loaded from remote URLs, but not saved to them
+  if (IsRemoteImageURL(fname))
+    throw IRISException("Images cannot be saved to a remote location (%s). "
+                        "Please save the image to a local file instead.",
+                        fname.c_str());
+
   try
     {
     m_SaveSuccessful = false;
     m_Wrapper->WriteToFile(fname.c_str(), reg);
     m_SaveSuccessful = true;
 
+    // The layer now comes from a local file, not from its original URL
     m_Wrapper->SetFileName(fname);
+    m_Wrapper->SetRemoteURL(std::string());
     for(std::list<std::string>::const_iterator it = m_HistoryNames.begin();
         it != m_HistoryNames.end(); ++it)
       {

@@ -118,6 +118,7 @@ static void PrintUsage(const char *prog)
   std::cerr << "  " << prog << " --regression-test -g <remote-url> <local-ref>  compare remote/local image" << std::endl;
   std::cerr << "  " << prog << " --regression-test -w <remote-url> <local-ref>  compare remote/local workspace" << std::endl;
   std::cerr << "  " << prog << " --test-cache <remote-url>  verify cache fill and conditional-GET hit" << std::endl;
+  std::cerr << "  " << prog << " --test-save-workspace <remote-url> <temp-dir>  save/reopen a workspace with a remote layer" << std::endl;
 }
 
 
@@ -478,6 +479,98 @@ static int TestCache(const std::string &url)
 
 
 // -----------------------------------------------------------------------
+//  --test-save-workspace
+//
+//  Load an image from a remote URL, save a local workspace, and check that
+//  the workspace refers to the image by its URL (not by a mangled local
+//  path or the cache/temp file), that it can be reopened with the same data,
+//  and that saving a workspace to a remote URL is refused.
+// -----------------------------------------------------------------------
+
+static int TestSaveWorkspace(const std::string &url, const std::string &tempdir)
+{
+  std::string ws_file = tempdir + "/RemoteImageLoadTest_SaveWorkspace.itksnap";
+  itksys::SystemTools::MakeDirectory(tempdir);
+  IRISWarningList warnings;
+
+  // Load the remote image and save a workspace
+  std::vector<LayerSnapshot> snaps1;
+  try
+    {
+    IRISApplication::Pointer app1 = MakeApp();
+    app1->OpenImage(url.c_str(), MAIN_ROLE, warnings);
+    snaps1 = SnapshotAllLayers(app1);
+    app1->SaveProject(ws_file);
+
+    // Saving to a remote location must fail cleanly
+    bool threw = false;
+    try
+      {
+      app1->SaveProject(url + ".itksnap");
+      }
+    catch (IRISException &)
+      {
+      threw = true;
+      }
+    if (!threw)
+      {
+      std::cerr << "FAIL: saving a workspace to a remote URL did not throw" << std::endl;
+      return 1;
+      }
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: could not load image / save workspace: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  // The main layer must be stored by its URL
+  Registry reg;
+  reg.ReadFromXMLFile(ws_file.c_str());
+  std::string stored = reg["Layers.Layer[000].AbsolutePath"][""];
+  if (stored != url)
+    {
+    std::cerr << "FAIL: workspace stores '" << stored << "', expected '" << url << "'" << std::endl;
+    return 1;
+    }
+
+  // Reopen the workspace and compare the data
+  std::vector<LayerSnapshot> snaps2;
+  try
+    {
+    IRISApplication::Pointer app2 = MakeApp();
+    app2->OpenWorkspace(ws_file, warnings);
+    snaps2 = SnapshotAllLayers(app2);
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: could not reopen saved workspace: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  if (snaps1.size() != snaps2.size())
+    {
+    std::cerr << "FAIL: reopened workspace has " << snaps2.size() << " layers, expected "
+              << snaps1.size() << std::endl;
+    return 1;
+    }
+  for (size_t i = 0; i < snaps1.size(); ++i)
+    {
+    std::string msg;
+    if (!CompareSnapshots(snaps1[i], snaps2[i], msg))
+      {
+      std::cerr << "FAIL: layer " << i << " differs after reopening: " << msg << std::endl;
+      return 1;
+      }
+    }
+
+  itksys::SystemTools::RemoveFile(ws_file);
+  std::cout << "PASS: workspace with a remote layer saved and reopened" << std::endl;
+  return 0;
+}
+
+
+// -----------------------------------------------------------------------
 //  main
 // -----------------------------------------------------------------------
 
@@ -528,6 +621,18 @@ int main(int argc, char *argv[])
       }
     std::string url = ResolveITKSnapURL(argv[2]);
     return TestCache(url);
+    }
+
+  // ── --test-save-workspace ────────────────────────────────────────────
+  if (cmd == "--test-save-workspace")
+    {
+    if (argc < 4)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    std::string url = ResolveITKSnapURL(argv[2]);
+    return TestSaveWorkspace(url, argv[3]);
     }
 
   // ── Legacy: -g / -w ─────────────────────────────────────────────────

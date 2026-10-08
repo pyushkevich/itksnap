@@ -2128,8 +2128,11 @@ IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string proj_fi
     if (!filename || strlen(filename) == 0)
       continue;
 
-    // Get the full name of the image file
-    std::string layer_file_full = itksys::SystemTools::CollapseFullPath(filename);
+    // Get the full name of the image file. Layers loaded from a remote URL
+    // keep the URL, which CollapseFullPath would turn into a bogus local path
+    std::string layer_file_full = IsRemoteImageURL(filename)
+                                    ? std::string(filename)
+                                    : itksys::SystemTools::CollapseFullPath(filename);
 
     // Create a folder for this layer
     Registry &folder = preg.Folder(Registry::Key("Layers.Layer[%03d]", i++));
@@ -2177,6 +2180,12 @@ IRISApplication::SaveProject(const std::string &proj_file)
     "as long as the relative location of the images to the project file is \n"
     "the same. Do not modify the SaveLocation entry, or this will not work.\n";
 
+  // Workspaces can be opened from remote URLs, but not saved to them
+  if (IsRemoteImageURL(proj_file))
+    throw IRISException("Workspaces cannot be saved to a remote location (%s). "
+                        "Please save the workspace to a local file instead.",
+                        proj_file.c_str());
+
   // Get the full name of the project file
   std::string proj_file_full = itksys::SystemTools::CollapseFullPath(proj_file.c_str());
 
@@ -2222,7 +2231,15 @@ IRISApplication ::GetMovedFilePath(std::string &project_dir_orig,
   string relative_path;
 
   // Test the simple thing: is the project location included in the file path
-  if (original_file_path.compare(0, project_dir_orig.length(), project_dir_orig) == 0)
+  bool under_project_dir =
+    original_file_path.compare(0, project_dir_orig.length(), project_dir_orig) == 0;
+
+  // A remote layer that is not stored alongside the workspace is referenced
+  // by its URL, which stays valid wherever the workspace is moved
+  if (!under_project_dir && IsRemoteImageURL(original_file_path))
+    return ret;
+
+  if (under_project_dir)
   {
     // Get the balance of the path
     relative_path = original_file_path.substr(project_dir_orig.length());

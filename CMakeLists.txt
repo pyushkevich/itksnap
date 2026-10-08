@@ -1465,11 +1465,20 @@ add_test(NAME RemoteImageLoadTest_Cache
     --test-cache
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
 
+# Test: save a workspace containing a layer loaded from a URL, check that the
+# URL is stored as-is, and reopen it.
+add_test(NAME RemoteImageLoadTest_SaveWorkspace
+  COMMAND remote_image_load_test
+    --test-save-workspace
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
+    ${TEMP})
+
 # Remote tests require network access; tag them so CI can skip them easily.
 set_tests_properties(
   RemoteImageLoadTest_SingleImage
   RemoteImageLoadTest_WorkspaceWithMesh
   RemoteImageLoadTest_Cache
+  RemoteImageLoadTest_SaveWorkspace
   PROPERTIES
     LABELS "Remote"
     TIMEOUT 120)
