@@ -1482,6 +1482,14 @@ TARGET_INCLUDE_DIRECTORIES(TestLargeImageCheck PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestLargeImageCheck COMMAND TestLargeImageCheck ${TEMP})
 
+# Test: NRRD sequence (.seq.nrrd) export round-trips geometry and voxel values
+ADD_EXECUTABLE(TestNrrdSequenceIO
+    Testing/Logic/TestNrrdSequenceIO.cxx)
+TARGET_LINK_LIBRARIES(TestNrrdSequenceIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestNrrdSequenceIO PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestNrrdSequenceIO COMMAND TestNrrdSequenceIO ${TEMP})
+
 # Set up a test for each GUI test
 FOREACH(GUI_TEST ${GUI_TESTS})
 
