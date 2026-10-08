@@ -797,9 +797,12 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
 
   // Generate a hash that describes the parameters of the image or image region that we
   // would be sending to the server, without actually generating the image (not to waste
-  // time).
+  // time). Clicks and results are on the grid of the active segmentation (the reference
+  // space), so the image sent depends on it too.
+  auto *ref_wrapper = driver->GetCurrentImageData()->GetReferenceSpaceWrapper();
   size_t rview_hash = std::hash<unsigned long>{}(actual_layer->GetUniqueId());
   rview_hash ^= std::hash<unsigned int>{}(actual_layer->GetTimePointIndex());
+  rview_hash ^= std::hash<unsigned long>{}(ref_wrapper->GetUniqueId()) << 1;
   if(model_metadata.dimensions == 2)
   {
     auto zpos = layer->MapImageCIndexToSliceCIndex(axis, to_double(driver->GetCursorPosition()))[2];
@@ -823,22 +826,55 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
     // What we send to the server depends on image dimensionality
     if(model_metadata.dimensions == 3)
     {
-      // Send complete image content. Check if the model accepts multi-dimensional content
-      if(actual_layer->IsScalar())
+      // The server works in the voxel space of the image we send, while the clicks we
+      // send and the segmentation it returns are on the grid of the active segmentation
+      // (the reference space). If the image is on a different grid, send a copy of it
+      // resampled onto the reference space.
+      SmartPtr<ImageWrapperBase> resampled;
+      ImageWrapperBase *src_layer = actual_layer;
+
+      // Resampling works on concrete images, so a scalar representation (e.g. one
+      // channel of a multi-channel image) is resampled via the image it belongs to
+      ImageWrapperBase *concrete =
+        actual_layer->GetParentWrapper() ? actual_layer->GetParentWrapper() : actual_layer;
+      if(!concrete->ImageSpaceMatchesReferenceSpace())
       {
-        auto *fsrc = actual_layer->CreateCastToFloatVectorPipeline("DLSExport");
+        SNAPSegmentationROISettings roi;
+        roi.SetROI(driver->GetCurrentImageData()->GetReferenceSpaceImageRegion());
+        roi.SetInterpolationMethod(TRILINEAR);
+        resampled = concrete->ExtractROI(roi, nullptr);
+        src_layer = resampled;
+
+        // Pick the same scalar representation from the resampled image
+        if(concrete != actual_layer)
+        {
+          auto *vec_concrete = dynamic_cast<VectorImageWrapperBase *>(concrete);
+          auto *vec_resampled = dynamic_cast<VectorImageWrapperBase *>(resampled.GetPointer());
+          ScalarRepresentation rep_type;
+          int rep_index;
+          if(!vec_concrete || !vec_resampled ||
+             !vec_concrete->FindScalarRepresentation(actual_layer, rep_type, rep_index))
+            throw IRISException("Unable to resample the image for the DLS server");
+          src_layer = vec_resampled->GetScalarRepresentation(rep_type, rep_index);
+        }
+      }
+
+      // Send complete image content. Check if the model accepts multi-dimensional content
+      if(src_layer->IsScalar())
+      {
+        auto *fsrc = src_layer->CreateCastToFloatVectorPipeline("DLSExport");
         t1 = Clock::now();
         EncodeImage(mpd, fsrc, gzip_buffer);
         t2 = Clock::now();
       }
       else
       {
-        auto *fsrc = actual_layer->CreateCastToFloatPipeline("DLSExport");
+        auto *fsrc = src_layer->CreateCastToFloatPipeline("DLSExport");
         t1 = Clock::now();
         EncodeImage(mpd, fsrc, gzip_buffer);
         t2 = Clock::now();
       }
-      actual_layer->ReleaseInternalPipeline("DLSExport");
+      src_layer->ReleaseInternalPipeline("DLSExport");
     }
     else if(model_metadata.dimensions == 2)
     {
