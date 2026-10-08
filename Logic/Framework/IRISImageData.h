@@ -51,6 +51,11 @@ protected:
 
   IRISImageData();
   virtual ~IRISImageData();
+
+  // Also resets the segmentation ROI (used to enter snake mode) when the
+  // reference space geometry changes, since it is stored in reference space
+  // voxel coordinates
+  void UpdateActiveSegmentation(LabelImageWrapper *wrapper) override;
 };
 
 #endif
