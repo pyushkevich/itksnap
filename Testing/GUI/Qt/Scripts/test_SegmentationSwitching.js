@@ -119,3 +119,18 @@ engine.validateChildProperty(mainwin, "inCursorZ", "value", curInR.z);
 setCursor(31, 62, 40);  // centroid of the hippo-R label mask
 engine.sleep(500);
 engine.validateChildProperty(mainwin, "outLabelText", "text", "hippo-R");
+
+//=== Switching between two segmentations with the SAME geometry must also
+//=== notify the 3D view. Add two blank segmentations (A, then B), build the
+//=== mesh for B only, then switch back to A: A has no mesh yet, so the 3D
+//=== 'Update' button must become enabled again.
+engine.trigger("actionAddSegmentation_New");   // blank A
+engine.sleep(500);
+engine.trigger("actionAddSegmentation_New");   // blank B
+engine.sleep(500);
+updateMeshAndCheck();
+
+engine.trigger("actionActivatePreviousSegmentationLayer");  // back to A
+engine.sleep(1000);
+engine.validateChildProperty(mainwin, "btnUpdateMesh", "enabled", true);
+updateMeshAndCheck();
