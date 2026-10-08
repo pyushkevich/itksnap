@@ -1437,7 +1437,6 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
 void MainImageWindow::dropEvent(QDropEvent *event)
 {
   QUrl url = event->mimeData()->urls().first();
-  qDebug() << "DROP EVENT: " << url;
 
 #if defined(__APPLE__) && QT_VERSION >= 0x050000
   // TODO: this is a Yosemite bug fix - bug https://bugreports.qt.io/browse/QTBUG-40449

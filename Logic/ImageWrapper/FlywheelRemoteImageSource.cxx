@@ -321,7 +321,7 @@ std::string DownloadDirect(const std::string         &server,
     return cached.local_path;
     }
   if (code != 200)
-    throw IRISException("Flywheel: HTTP %ld downloading %s", code, ticketed_url.c_str());
+    throw IRISException("Flywheel: HTTP %ld downloading %s", code, download_url.c_str());
 
   if (file_cache)
     return file_cache->StoreHTTP(cache_url, dest,

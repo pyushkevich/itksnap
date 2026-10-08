@@ -1141,7 +1141,6 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
                  reverse ? "false" : "true");
   }
   cli.RemoveProgressCallback();
-  std::cout << "*** COMPLETED POINT INTERACTION ***" << std::endl;
 
   if(!rc)
   {

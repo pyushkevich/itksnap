@@ -367,10 +367,6 @@ IPCHandler::ReadDropRequest(std::string &out)
       if (dir->entries[i].pending_drop_id != m_LastDropId &&
           dir->entries[i].pending_drop[0] != '\0')
       {
-        std::cout << "PID=" << m_ProcessID
-                  << " pending_drop_id=" << dir->entries[i].pending_drop_id
-                  << " pending_drop=\"" << dir->entries[i].pending_drop << "\""
-                  << std::endl;
         out = std::string(dir->entries[i].pending_drop);
         m_LastDropId = dir->entries[i].pending_drop_id;
         dir->entries[i].pending_drop[0] = '\0';

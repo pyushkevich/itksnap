@@ -146,7 +146,6 @@ ProgressReportWidget::fadeIn()
     return;
   }
 
-  qDebug() << QDateTime::currentDateTime() << ": showing progress report widget";
   setVisible(true);
   double op = eff->opacity();
   eff->setEnabled(true);
