@@ -12,8 +12,10 @@ class vtkImageData;
  *
  * Uses vtkXMLImageDataReader/Writer internally so that .vti files can
  * be read and written through ITK's standard image-file pipeline.
- * Direction cosines are set to identity because vtkImageData does not
- * store them.
+ * Direction cosines are read and written via vtkImageData's direction
+ * matrix (VTK 9 and later). The voxel data are taken from the active
+ * point scalars, or from the first point data array if none is active.
+ * Only 2D and 3D images can be written.
  */
 class VTIImageIO : public itk::ImageIOBase
 {
@@ -37,6 +39,9 @@ protected:
 private:
   // Cached after ReadImageInformation to avoid reading the file twice
   vtkSmartPointer<vtkImageData> m_CachedImage;
+
+  // Read the file into m_CachedImage, checking that it has voxel data
+  void ReadAndCacheImage();
 };
 
 #endif // __VTIImageIO_h_

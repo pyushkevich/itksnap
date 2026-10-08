@@ -21,6 +21,14 @@ const char *DeepLearningSegmentationModel::MINIMUM_SERVER_VERSION = "0.1.2";
 
 typedef std::chrono::high_resolution_clock Clock;
 
+// Sets a flag for its lifetime, so that the flag is cleared even if an
+// exception is thrown
+struct InteractionInProgressGuard
+{
+  bool &flag;
+  explicit InteractionInProgressGuard(bool &f) : flag(f) { flag = true; }
+  ~InteractionInProgressGuard() { flag = false; }
+};
 
 #if defined(ITKZLIB) && !defined(ITK_USE_SYSTEM_ZLIB)
 #include "itk_zlib.h"
@@ -977,6 +985,13 @@ DeepLearningSegmentationModel::UpdateSegmentation(const std::string &model_id,
     auto &model_metadata = GetRemoteModelMetadata(model_id);
     if(model_metadata.dimensions == 3)
     {
+      // Check that the size of raw data matches the buffer size, otherwise the
+      // iteration below would read past the end of the result
+      if(result_raw.size() != expected_size)
+        throw IRISException("DLS server returned segmentation that does not match the size of "
+                            "the image (%zu voxels received, %zu expected)",
+                            result_raw.size(), expected_size);
+
       // Create an ITK image of the segmentation for this label
       using ImageType = itk::Image<char, 3>;
       ImageType::Pointer result_img = ImageType::New();
@@ -1075,6 +1090,13 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
                                                        Vector3i          pos,
                                                        bool              reverse)
 {
+  // A click made while a previous interaction is still waiting for the server
+  // would re-enter this method on the same thread and deadlock on m_Mutex, so
+  // it is ignored instead
+  if (m_InteractionInProgress)
+    return false;
+  InteractionInProgressGuard busy(m_InteractionInProgress);
+
   // Update the source image
   this->SetSourceImage(model_id, layer, axis);
 
@@ -1119,7 +1141,6 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
                  reverse ? "false" : "true");
   }
   cli.RemoveProgressCallback();
-  std::cout << "*** COMPLETED POINT INTERACTION ***" << std::endl;
 
   if(!rc)
   {
@@ -1142,6 +1163,11 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
                                                                  LabelImageWrapper *seg,
                                                                  bool               reverse)
 {
+  // Ignore re-entrant requests; see PerformPointInteraction
+  if (m_InteractionInProgress)
+    return false;
+  InteractionInProgressGuard busy(m_InteractionInProgress);
+
   // Update the source image
   this->SetSourceImage(model_id, layer, axis);
 

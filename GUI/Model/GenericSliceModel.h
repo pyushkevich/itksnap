@@ -326,6 +326,14 @@ public:
   size_t GetSliceDirectionInImageSpace()
     { return m_ImageAxes[2]; }
 
+  /**
+   * Whether a given image-space position lies on a slice (along this view's
+   * slice direction) that falls within the reference space's bounds. The
+   * cursor may be outside of the reference space (i.e. the active
+   * segmentation), and drawing tools can only be applied when this holds.
+   */
+  bool IsSliceInReferenceSpace(const Vector3i &xImage);
+
   /** Return the offset from the center of the viewport to the cursor position
    * in slice units (#voxels * spacing). This is used to synchronize panning
    * across SNAP sessions */

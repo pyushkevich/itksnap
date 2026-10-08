@@ -1465,11 +1465,20 @@ add_test(NAME RemoteImageLoadTest_Cache
     --test-cache
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
 
+# Test: save a workspace containing a layer loaded from a URL, check that the
+# URL is stored as-is, and reopen it.
+add_test(NAME RemoteImageLoadTest_SaveWorkspace
+  COMMAND remote_image_load_test
+    --test-save-workspace
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
+    ${TEMP})
+
 # Remote tests require network access; tag them so CI can skip them easily.
 set_tests_properties(
   RemoteImageLoadTest_SingleImage
   RemoteImageLoadTest_WorkspaceWithMesh
   RemoteImageLoadTest_Cache
+  RemoteImageLoadTest_SaveWorkspace
   PROPERTIES
     LABELS "Remote"
     TIMEOUT 120)
@@ -1482,11 +1491,28 @@ TARGET_INCLUDE_DIRECTORIES(TestLargeImageCheck PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestLargeImageCheck COMMAND TestLargeImageCheck ${TEMP})
 
-# Set up a test for each GUI test
-FOREACH(GUI_TEST ${GUI_TESTS})
+# Test: NRRD sequence (.seq.nrrd) export round-trips geometry and voxel values
+ADD_EXECUTABLE(TestNrrdSequenceIO
+    Testing/Logic/TestNrrdSequenceIO.cxx)
+TARGET_LINK_LIBRARIES(TestNrrdSequenceIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestNrrdSequenceIO PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestNrrdSequenceIO COMMAND TestNrrdSequenceIO ${TEMP})
+
+# Test: VTK XML image (.vti) IO handles orientation, extents and arrays
+ADD_EXECUTABLE(TestVTIImageIO
+    Testing/Logic/TestVTIImageIO.cxx)
+TARGET_LINK_LIBRARIES(TestVTIImageIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestVTIImageIO PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestVTIImageIO COMMAND TestVTIImageIO ${TEMP})
+
+# Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
+# are passed on to ITK-SNAP, e.g. images to load from the command line.
+FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
 
   # Add the test
-  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_BUNDLE_NAME} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en)
+  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_BUNDLE_NAME} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en ${ARGN})
 
   # Set the environment for the test to include Qt
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
@@ -1498,7 +1524,21 @@ FOREACH(GUI_TEST ${GUI_TESTS})
   ENDIF(WIN32)
   SET_PROPERTY(TEST ${GUI_TEST} PROPERTY TIMEOUT 180)
 
+ENDFUNCTION()
+
+# Set up a test for each GUI test
+FOREACH(GUI_TEST ${GUI_TESTS})
+  ADD_SNAP_GUI_TEST(${GUI_TEST})
 ENDFOREACH(GUI_TEST)
+
+# GUI tests that open data from URLs given on the command line, as a browser
+# link would. These require network access and are labelled "Remote".
+ADD_SNAP_GUI_TEST(RemoteSaveLayer
+  -g "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
+  -s "${GITHUB_TESTDATA_URL}/MRIcrop-seg.gipl.gz")
+ADD_SNAP_GUI_TEST(RemoteSaveWorkspace
+  -w "${GITHUB_TESTDATA_URL}/MRIcrop-with-mesh.itksnap")
+SET_TESTS_PROPERTIES(RemoteSaveLayer RemoteSaveWorkspace PROPERTIES LABELS "Remote")
 
 # Orientation widget test
 SET(TEST_ORIENTATION_WIDGET_HEADERS

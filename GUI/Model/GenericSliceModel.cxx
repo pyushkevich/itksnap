@@ -747,6 +747,19 @@ GenericSliceModel::GetReferenceSpaceSize() const
   return Vector3i(m_ReferenceSpaceRegion.GetSize());
 }
 
+bool
+GenericSliceModel::IsSliceInReferenceSpace(const Vector3i &xImage)
+{
+  // A position is on a valid slice iff clamping it to the reference space
+  // does not move it along the slice-normal axis (reuses the same clamp()
+  // call already trusted for in-plane bounds, instead of a separate
+  // hand-rolled range check).
+  auto seg_region = m_Driver->GetCurrentImageData()->GetReferenceSpaceImageRegion();
+  auto clamped = xImage.clamp(seg_region.GetIndex(), seg_region.GetUpperIndex());
+  int  axis = (int) this->GetSliceDirectionInImageSpace();
+  return clamped[axis] == xImage[axis];
+}
+
 std::pair<Vector2d, Vector2d> GenericSliceModel::GetReferenceSpaceCorners() const
 {
   Vector2d c0(0.0, 0.0);

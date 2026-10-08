@@ -23,6 +23,8 @@
         <file>Scripts/test_4DToMC.js</file>
         <file>Scripts/test_MCTo4D.js</file>
         <file>Scripts/test_DeformationGrid.js</file>
+        <file>Scripts/test_RemoteSaveLayer.js</file>
+        <file>Scripts/test_RemoteSaveWorkspace.js</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

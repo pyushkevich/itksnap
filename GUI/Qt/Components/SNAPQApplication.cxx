@@ -29,8 +29,6 @@
 #include <QFileOpenEvent>
 #include <QUrl>
 #include <QUrlQuery>
-#include <QFile>
-#include <QDir>
 #include <QDebug>
 
 SNAPQApplication
@@ -85,23 +83,6 @@ QString SNAPQApplication::resolveUrl(const QString &rawUrl)
 
 bool SNAPQApplication::event(QEvent *event)
 {
-  // ---- TEMP DIAGNOSTIC: log every FileOpen event to ~/itksnap-url-debug.log ----
-  if (event->type() == QEvent::FileOpen)
-    {
-    QFileOpenEvent *oe = static_cast<QFileOpenEvent *>(event);
-    QString dbg = QString("[%1] FileOpen: url='%2' file='%3' mainWindow=%4 secsSinceStart=%5")
-                    .arg(QTime::currentTime().toString("HH:mm:ss.zzz"))
-                    .arg(oe->url().toString())
-                    .arg(oe->file())
-                    .arg(m_MainWindow ? "SET" : "NULL")
-                    .arg(m_StartupTime.isValid() ? m_StartupTime.secsTo(QTime::currentTime()) : -999);
-    qWarning().noquote() << dbg;
-    QFile logf(QDir::homePath() + "/itksnap-url-debug.log");
-    if (logf.open(QIODevice::Append | QIODevice::Text))
-      { logf.write(dbg.toUtf8()); logf.write("\n"); logf.close(); }
-    }
-  // ---- END TEMP DIAGNOSTIC ----
-
   // Handle file drops and URL scheme activations (itksnap-sftp://, etc.)
   if (event->type() == QEvent::FileOpen && m_MainWindow)
     {

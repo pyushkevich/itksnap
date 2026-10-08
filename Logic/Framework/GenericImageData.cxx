@@ -724,12 +724,36 @@ LabelImageWrapper *GenericImageData::AddBlankSegmentation(bool make_active)
 void GenericImageData
 ::UnloadSegmentation(ImageWrapperBase *seg)
 {
+  // Callers may only hold a raw pointer, so keep the wrapper alive until we
+  // are done with it
+  SmartPtr<ImageWrapperBase> seg_hold = seg;
+
+  // If the active segmentation is being removed, make another segmentation
+  // active first (adding a blank one if this is the last), so that the cursor
+  // carries over to the new reference space and the reference space is never
+  // a wrapper that has already been removed
+  if(m_ActiveSegmentationWrapper == seg)
+  {
+    LabelImageWrapper *next = nullptr;
+    for(auto &wrapper : m_Wrappers[LABEL_ROLE])
+    {
+      if(wrapper.GetPointer() != seg)
+      {
+        next = dynamic_cast<LabelImageWrapper *>(wrapper.GetPointer());
+        break;
+      }
+    }
+
+    if(next)
+      this->SetActiveSegmentationLayerInternal(next);
+    else if(this->IsMainLoaded())
+      this->AddBlankSegmentation(true);
+    else
+      this->SetActiveSegmentationLayerInternal(nullptr);
+  }
+
   // Erase the segmentation image
   this->RemoveImageWrapper(LABEL_ROLE, seg);
-
-  // Clear the active segmentation wrapper
-  if(m_ActiveSegmentationWrapper == seg)
-    UpdateActiveSegmentation(nullptr);
 
   // If we have a main image, we must have at least one segmentation and
   // at least one active segmentation.
@@ -748,7 +772,9 @@ GenericImageData::UnloadAllSegmentations()
   // The main image must be loaded
   assert(this->IsMainLoaded());
 
-  // Unload all segmentations
+  // Unload all segmentations. The active segmentation is cleared first, so it
+  // never refers to a removed wrapper. The cursor is deliberately not carried
+  // over: this is also called when a new main image is loaded.
   SetActiveSegmentationLayerInternal(nullptr);
   this->RemoveAllWrappers(LABEL_ROLE);
 

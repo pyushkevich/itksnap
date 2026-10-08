@@ -1554,6 +1554,28 @@ GuidedNativeImageIO
 {
   using TNative = typename TImageType::InternalPixelType;
 
+  // The writer below handles one scalar per voxel. Multi-component images
+  // would need an extra vector axis, which is not supported yet.
+  if (image->GetNumberOfComponentsPerPixel() != 1)
+    throw IRISException("Error: multi-component images cannot be saved in the "
+                        "NRRD sequence (.seq.nrrd) format.");
+
+  // Map C++ type to NRRD type keyword. Plain char holds ITK's CHAR component
+  // type, which is signed, regardless of the platform's char signedness.
+  const char *nrrdType = nullptr;
+  if      (std::is_same<TNative, char>::value)           nrrdType = "int8";
+  else if (std::is_same<TNative, signed char>::value)    nrrdType = "int8";
+  else if (std::is_same<TNative, unsigned char>::value)  nrrdType = "uint8";
+  else if (std::is_same<TNative, short>::value)          nrrdType = "int16";
+  else if (std::is_same<TNative, unsigned short>::value) nrrdType = "uint16";
+  else if (std::is_same<TNative, int>::value)            nrrdType = "int32";
+  else if (std::is_same<TNative, unsigned int>::value)   nrrdType = "uint32";
+  else if (std::is_same<TNative, float>::value)          nrrdType = "float";
+  else if (std::is_same<TNative, double>::value)         nrrdType = "double";
+  else
+    throw IRISException("Error: unsupported pixel type for the NRRD sequence "
+                        "(.seq.nrrd) format.");
+
   // Get image geometry
   auto size      = image->GetLargestPossibleRegion().GetSize();
   auto spacing   = image->GetSpacing();
@@ -1573,17 +1595,6 @@ GuidedNativeImageIO
   for (long t = 0; t < T; ++t)
     for (long j = 0; j < nSpatial; ++j)
       bufNRRD[(size_t)(j * T + t)] = buf4D[t * nSpatial + j];
-
-  // Map C++ type to NRRD type keyword
-  const char *nrrdType = "int16";
-  if      (std::is_same<TNative, signed char>::value)    nrrdType = "int8";
-  else if (std::is_same<TNative, unsigned char>::value)  nrrdType = "uint8";
-  else if (std::is_same<TNative, short>::value)          nrrdType = "int16";
-  else if (std::is_same<TNative, unsigned short>::value) nrrdType = "uint16";
-  else if (std::is_same<TNative, int>::value)            nrrdType = "int32";
-  else if (std::is_same<TNative, unsigned int>::value)   nrrdType = "uint32";
-  else if (std::is_same<TNative, float>::value)          nrrdType = "float";
-  else if (std::is_same<TNative, double>::value)         nrrdType = "double";
 
   // Detect system endianness
   union { uint16_t i; uint8_t c[2]; } bint = {0x0102};
@@ -1620,10 +1631,12 @@ GuidedNativeImageIO
   f << "dimension: 4\n";
   f << "space: left-posterior-superior\n";
   f << "sizes: " << T << " " << X << " " << Y << " " << Z << "\n";
+
+  // The direction of image axis i is column i of the ITK direction matrix
   f << "space directions: none "
-    << fmt3(spacing[0]*direction[0][0], spacing[0]*direction[0][1], spacing[0]*direction[0][2]) << " "
-    << fmt3(spacing[1]*direction[1][0], spacing[1]*direction[1][1], spacing[1]*direction[1][2]) << " "
-    << fmt3(spacing[2]*direction[2][0], spacing[2]*direction[2][1], spacing[2]*direction[2][2]) << "\n";
+    << fmt3(spacing[0]*direction[0][0], spacing[0]*direction[1][0], spacing[0]*direction[2][0]) << " "
+    << fmt3(spacing[1]*direction[0][1], spacing[1]*direction[1][1], spacing[1]*direction[2][1]) << " "
+    << fmt3(spacing[2]*direction[0][2], spacing[2]*direction[1][2], spacing[2]*direction[2][2]) << "\n";
   f << "kinds: list domain domain domain\n";
   f << "endian: " << endian << "\n";
   f << "encoding: raw\n";

@@ -257,7 +257,7 @@ HTTPRemoteImageSource::Download(const std::string &url)
       client.SetRequestHeader("If-Modified-Since", cached.last_modified.c_str());
     }
 
-  client.Get(url.c_str());
+  client.Get("%s", url.c_str());
   fclose(outfile);
 
   long code = client.GetHTTPCode();

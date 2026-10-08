@@ -635,6 +635,18 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
 {
   assert(m_State == EDITING_STATE);
 
+  // The current slice may be outside of the segmentation image, in which case
+  // there is nothing to draw into. Keep the polygon so that the user can move
+  // to a slice inside the segmentation and accept it there.
+  if (!m_Parent->IsSliceInReferenceSpace(m_Parent->GetDriver()->GetCursorPosition()))
+  {
+    warnings.push_back(IRISWarning("Warning: Cannot draw here."
+                                   "The current slice is outside the bounds of the "
+                                   "segmentation image, so the polygon cannot be "
+                                   "applied to it."));
+    return;
+  }
+
   // Allocate the polygon to match current image size. This will only
   // allocate new memory if the slice size changed
   itk::Size<2> sz = { { (itk::SizeValueType)m_Parent->GetReferenceSpaceSize()[0],

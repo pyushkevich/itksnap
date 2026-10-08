@@ -8,6 +8,7 @@
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QString>
 #include <QThread>
 #include <QVBoxLayout>
@@ -114,6 +115,33 @@ QtSSHAuthDelegate::PromptForUsernameAndPassword(const std::string &host,
     username = userEdit->text().toStdString();
     password = passEdit->text().toStdString();
     result = true;
+  });
+  return result;
+}
+
+bool
+QtSSHAuthDelegate::ConfirmHostKey(const std::string &host,
+                                  const std::string &key_type,
+                                  const std::string &fingerprint)
+{
+  bool result = false;
+  RunOnMainThread([&]
+  {
+    QMessageBox box(m_Parent);
+    box.setWindowTitle(tr("Unknown SSH Host"));
+    box.setIcon(QMessageBox::Warning);
+    box.setTextFormat(Qt::RichText);
+    box.setText(tr("The authenticity of host <b>%1</b> cannot be established.")
+                  .arg(QString::fromStdString(host).toHtmlEscaped()));
+    box.setInformativeText(
+      tr("The %1 key fingerprint is:<br><tt>%2</tt><br><br>"
+         "If you are not sure that this is the right server, contact its administrator "
+         "before connecting. Do you want to trust this host and continue?")
+        .arg(QString::fromStdString(key_type).toHtmlEscaped(),
+             QString::fromStdString(fingerprint).toHtmlEscaped()));
+    box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    box.setDefaultButton(QMessageBox::No);
+    result = (box.exec() == QMessageBox::Yes);
   });
   return result;
 }

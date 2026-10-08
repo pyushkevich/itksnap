@@ -36,19 +36,6 @@ PaintbrushModel::ComputeOffset()
   return offset;
 }
 
-bool
-PaintbrushModel::IsSliceInReferenceSpace(const Vector3i &xImage)
-{
-  // A position is on a valid slice iff clamping it to the reference space
-  // does not move it along the slice-normal axis (reuses the same clamp()
-  // call already trusted for in-plane bounds, instead of a separate
-  // hand-rolled range check).
-  auto seg_region = m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceImageRegion();
-  auto clamped = xImage.clamp(seg_region.GetIndex(), seg_region.GetUpperIndex());
-  int  axis = (int) m_Parent->GetSliceDirectionInImageSpace();
-  return clamped[axis] == xImage[axis];
-}
-
 void
 PaintbrushModel::ComputeMousePosition(const Vector3d &xSlice)
 {
@@ -328,7 +315,7 @@ PaintbrushModel::AcceptAtCursor()
   IRISApplication *driver = m_Parent->GetDriver();
 
   Vector3i cursor = driver->GetCursorPosition();
-  if (!IsSliceInReferenceSpace(cursor))
+  if (!m_Parent->IsSliceInReferenceSpace(cursor))
   {
     throw IRISWarning("Warning: Cannot paint here."
                        "The current slice is outside the bounds of the "

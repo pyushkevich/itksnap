@@ -35,6 +35,10 @@ public:
                                     std::string       &username,
                                     std::string       &password) override;
 
+  bool ConfirmHostKey(const std::string &host,
+                      const std::string &key_type,
+                      const std::string &fingerprint) override;
+
   bool PromptForAPIKey(const std::string &server,
                        const std::string &prompt,
                        std::string       &api_key) override;

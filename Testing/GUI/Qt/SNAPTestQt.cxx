@@ -58,6 +58,10 @@ SNAPTestQt::SNAPTestQt(MainImageWindow *win,
 
   // Assign the data directory to the script engine
   m_ScriptEngine->globalObject().setProperty("datadir", from_utf8(datadir));
+
+  // A writable directory for files that tests save (the data directory may
+  // be read-only, e.g. a source checkout)
+  m_ScriptEngine->globalObject().setProperty("tempdir", QDir::tempPath());
 }
 
 SNAPTestQt::~SNAPTestQt()

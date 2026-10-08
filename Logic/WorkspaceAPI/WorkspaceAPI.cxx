@@ -11,6 +11,15 @@
 #include "RESTClient.h"
 #include "itkCommand.h"
 #include "GuidedMeshIO.h"
+#include "ImageIORemote.h"
+
+// The path of a layer as stored in the workspace. Remote URLs are kept as
+// they are, since CollapseFullPath would turn them into bogus local paths.
+static std::string AbsoluteLayerPath(const std::string &filename)
+{
+  return IsRemoteImageURL(filename) ? filename
+                                    : itksys::SystemTools::CollapseFullPath(filename);
+}
 
 using namespace std;
 using itksys::SystemTools;
@@ -812,7 +821,7 @@ string WorkspaceAPI::AddLayer(string role, const string &filename)
   Registry &folder = m_Registry.Folder(key);
 
   // Add the filename and role
-  folder["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
+  folder["AbsolutePath"] << AbsoluteLayerPath(filename);
   folder["Role"] << role;
 
   // If the role is 'main' then we need to write the dimensions of the image into projectmetadata
@@ -835,7 +844,7 @@ string WorkspaceAPI::SetLayer(string role, const string &filename)
   folder.Clear();
 
   // Add the filename and role
-  folder["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
+  folder["AbsolutePath"] << AbsoluteLayerPath(filename);
   folder["Role"] << role;
 
   // If the role is 'main' then we need to write the dimensions of the image into projectmetadata
@@ -872,7 +881,7 @@ string WorkspaceAPI::AddMeshLayer(const string &filename, unsigned int tp)
 
   // Add the filename
   Registry &polyData = newTP.Folder("PolyData[000]"); // this method only support 1 poly
-  polyData["AbsolutePath"] << SystemTools::CollapseFullPath(filename);
+  polyData["AbsolutePath"] << AbsoluteLayerPath(filename);
 
   // Add format string from file extension
   size_t dotInd = filename.find_last_of(".");
