@@ -291,9 +291,12 @@ public:
   Vector3d GetCursorPositionInSliceCoordinates();
 
   /**
-   * Get the slice index for this window
+   * Get the slice index for this window. This is the cursor position along
+   * the slice axis, in reference space voxels. It can be negative, or not
+   * less than GetNumberOfSlices(), when the cursor is in a part of the scene
+   * that lies outside of the reference space.
    */
-  unsigned int GetSliceIndex();
+  int GetSliceIndex();
 
   /**
    * Get the model that handles slice index information
@@ -315,7 +318,7 @@ public:
    * Set the index of the slice in the current view. This method will
    * update the cursor in the IRISApplication object
    */
-  void UpdateSliceIndex(unsigned int newIndex);
+  void UpdateSliceIndex(int newIndex);
 
   /**
    * Get the number of slices available in this view

@@ -1353,6 +1353,7 @@ SET(GUI_TESTS
   VolumeRendering
   Reloading
   SegmentationSwitching
+  SliceIndexRange
   4DToMC
   MCTo4D
   DeformationGrid

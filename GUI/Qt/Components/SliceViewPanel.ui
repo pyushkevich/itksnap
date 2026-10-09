@@ -854,6 +854,9 @@ font-size:11px;
         <property name="styleSheet">
          <string notr="true">font-size:11px;</string>
         </property>
+        <property name="toolTip">
+         <string>&lt;p&gt;Current slice and number of slices in the voxel grid of the active segmentation.&lt;/p&gt;&lt;p&gt;When other images extend beyond the active segmentation, you can move the cursor outside of its grid. The slice number can then be zero or negative, or greater than the number of slices.&lt;/p&gt;</string>
+        </property>
         <property name="text">
          <string>TextLabel</string>
         </property>

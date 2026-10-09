@@ -108,6 +108,17 @@ void GenericSliceModel::Initialize(GlobalUIModel *model, int index)
   // Listen to cursor update events and rebroadcast them for the child model
   m_SliceIndexModel->Rebroadcast(m_Driver, CursorUpdateEvent(), ValueChangedEvent());
 
+  // The range of the slice index is the extent of the scene, which changes
+  // with the reference space (active segmentation) and with the layers. The
+  // slice text depends on the same things.
+  m_SliceIndexModel->Rebroadcast(m_Driver, ReferenceSpaceGeometryChangeEvent(), DomainChangedEvent());
+  m_SliceIndexModel->Rebroadcast(m_Driver, LayerChangeEvent(), DomainChangedEvent());
+  m_SliceIndexModel->Rebroadcast(m_Driver, WrapperPhysicalExtentsChangeEvent(), DomainChangedEvent());
+  m_SliceIndexTextModel->Rebroadcast(m_Driver, CursorUpdateEvent(), ValueChangedEvent());
+  m_SliceIndexTextModel->Rebroadcast(m_Driver, ReferenceSpaceGeometryChangeEvent(), ValueChangedEvent());
+  m_SliceIndexTextModel->Rebroadcast(m_Driver, LayerChangeEvent(), ValueChangedEvent());
+  m_SliceIndexTextModel->Rebroadcast(m_Driver, WrapperPhysicalExtentsChangeEvent(), ValueChangedEvent());
+
   // Also rebroadcast the cursor change events as a model update event
   Rebroadcast(m_Driver, CursorUpdateEvent(), ModelUpdateEvent());
 
@@ -664,14 +675,14 @@ Vector3d GenericSliceModel::GetCursorPositionInSliceCoordinates()
   return cursorDisplaySpace;
 }
 
-unsigned int GenericSliceModel::GetSliceIndex()
+int GenericSliceModel::GetSliceIndex()
 {
   Vector3i cursorImageSpace = m_Driver->GetCursorPosition();
   return cursorImageSpace[m_ImageAxes[2]];
 }
 
 
-void GenericSliceModel::UpdateSliceIndex(unsigned int newIndex)
+void GenericSliceModel::UpdateSliceIndex(int newIndex)
 {
   Vector3i cursorImageSpace = m_Driver->GetCursorPosition();
   cursorImageSpace[m_ImageAxes[2]] = newIndex;
@@ -906,7 +917,14 @@ bool GenericSliceModel
   value = this->GetSliceIndex();
   if(domain)
     {
-    domain->Set(this->m_FullExtentRegion.GetIndex(2), this->m_FullExtentRegion.GetIndex(2) + this->m_FullExtentRegion.GetSize(2) - 1, 1);
+    // The slice index is a reference space voxel index, so its range is
+    // taken from the full extent region in reference space voxels. The
+    // display space region m_FullExtentRegion cannot be used here, because
+    // it is flipped along the slice axis in some views.
+    auto fe_region = m_ImageData->GetFullExtentImageRegion();
+    int axis = m_ImageAxes[2];
+    int lo = fe_region.GetIndex(axis);
+    domain->Set(lo, lo + (int) fe_region.GetSize(axis) - 1, 1);
     }
   return true;
 }
@@ -977,6 +995,9 @@ bool GenericSliceModel::GetSliceIndexTextValue(std::string &value)
   if(!m_Driver->IsMainImageLoaded())
     return false;
 
+  // The slice number and number of slices are relative to the reference
+  // space (active segmentation). When the scene extends beyond it, the slice
+  // number can be outside of 1..n (e.g., "-19 of 50").
   int pos = this->GetSliceIndex(), n = this->GetNumberOfSlices();
   std::ostringstream oss;
   oss << (pos + 1) << " of " << n;
@@ -1316,7 +1337,7 @@ Vector3d GenericSliceModel::ComputeGridPosition(
     Vector3d xSlice;
     xSlice[0] = slice_index[0] + 0.5;
     xSlice[1] = slice_index[1] + 0.5;
-    xSlice[2] = this->GetSliceIndex();
+    xSlice[2] = this->GetCursorPositionInSliceCoordinates()[2];
 
     // For orthogonal slicing, the input coordinates are in units of image voxels
     xPhys = this->MapSliceToImagePhysical(xSlice);
