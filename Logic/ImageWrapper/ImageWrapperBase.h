@@ -32,7 +32,7 @@ class Registry;
 class vtkImageImport;
 struct IRISDisplayGeometry;
 class TDigestDataObject;
-
+class ImageLabelIntegratorBase;
 
 template <unsigned int VDim> class MetaDataAccess;
 
@@ -418,13 +418,15 @@ public:
   /** Return componentwise maximum cast to double, after mapping to native range */
   virtual double GetImageMaxNative() = 0;
 
-  /** Compute statistics over a run of voxels in the image starting at the index
-   * startIdx. Appends the statistics to a running sum and sum of squared. The
-   * statistics are returned in internal (not native mapped) format */
-  virtual void GetRunLengthIntensityStatistics(
-      const itk::ImageRegion<3> &region,
-      const itk::Index<3> &startIdx, long runlength,
-      double *out_nvalid, double *out_sum, double *out_sumsq) const = 0;
+  /**
+   * Return a smart pointer to an image label integrator that can be used
+   * to compute label statistics over the image. The runs of voxels passed to
+   * the integrator are given as indices into label_space (typically the
+   * segmentation whose statistics are computed), or into the reference space
+   * if label_space is null.
+   */
+  virtual SmartPtr<ImageLabelIntegratorBase> GetLabelIntegrator(
+      ImageBaseType *label_space = nullptr) const = 0;
 
   /**
    * Get current interpolation mode

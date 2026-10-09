@@ -754,6 +754,13 @@ public:
   /** Get the format of the image for display */
   virtual std::string GetPixelFormatDescription() override;
 
+  /**
+   * Return a smart pointer to an image label integrator that can be used
+   * to compute label statistics over the image. Run indices refer to
+   * label_space, or to the reference space if it is null.
+   */
+  virtual SmartPtr<ImageLabelIntegratorBase> GetLabelIntegrator(
+      ImageBaseType *label_space = nullptr) const override;
 
 protected:
 

@@ -176,42 +176,6 @@ UnaryFunctorImageToSingleComponentVectorImageFilter<TInputImage, TOutputImage, T
 
 #endif // __DELETE_THIS_CODE_
 
-/** Compute statistics over a run of voxels in the image starting at the index
- * startIdx. Appends the statistics to a running sum and sum of squared. The
- * statistics are returned in internal (not native mapped) format */
-template<class TTraits>
-void
-ScalarImageWrapper<TTraits>
-::GetRunLengthIntensityStatistics(
-    const itk::ImageRegion<3> &region,
-    const itk::Index<3> &startIdx, long runlength,
-    double *out_nvalid, double *out_sum, double *out_sumsq) const
-{
-  if(this->IsSlicingOrthogonal())
-    {
-    ConstIterator it(this->m_Image, region);
-    it.SetIndex(startIdx);
-
-    // Perform the integration
-    for(long q = 0; q < runlength; q++, ++it)
-      {
-      double p = (double) it.Get();
-      if(!std::isnan(p))
-        {
-        *out_nvalid += 1.0;
-        *out_sum += p;
-        *out_sumsq += p * p;
-        }
-      }
-    }
-  else
-    {
-    // TODO: implement non-orthogonal statistics
-    *out_sum += nan("");
-    *out_sumsq += nan("");
-    }
-}
-
 /**
   Get the RGBA apperance of the voxel at the intersection of the three
   display slices.

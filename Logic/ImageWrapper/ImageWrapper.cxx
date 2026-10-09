@@ -71,6 +71,8 @@
 #include "RLEImageRegionConstIterator.h"
 #include "TDigestImageFilter.h"
 #include "AllPurposeProgressAccumulator.h"
+#include "ImageLabelIntegrator.h"
+
 
 #include <vnl/vnl_inverse.h>
 #include <iostream>
@@ -3208,6 +3210,27 @@ ImageWrapper<TTraits>::CreateCastToConcreteImagePipeline() const
   IdentityInternalToNativeIntensityMapping dummy_mapping;
   return Specialization::CreatePipeline(this->m_Image, dummy_mapping);
 }
+
+
+template <class TTraits>
+SmartPtr<ImageLabelIntegratorBase>
+ImageWrapper<TTraits>::GetLabelIntegrator(ImageBaseType *label_space) const
+{
+  using InterpolateWorker = DefaultNonOrthogonalSlicerWorkerTraits<ImageType, SliceType>;
+  using IntegratorType = NonOrthogonalImageLabelIntegrator<ImageType, SliceType, InterpolateWorker>;
+  SmartPtr<IntegratorType> integrator = IntegratorType::New();
+  integrator->SetInputImage(this->m_Image);
+
+  // The run indices are mapped to physical points through label_space. The
+  // transform maps physical points to this image, whatever grid they came from.
+  integrator->SetReferenceImage(label_space ? label_space : this->GetReferenceSpace());
+  integrator->SetTransform(this->GetITKTransform());
+  integrator->Initialize();
+
+  SmartPtr<ImageLabelIntegratorBase> base_integrator = integrator.GetPointer();
+  return base_integrator;
+}
+
 
 // --------------------------------------------
 // Explicit template instantiation

@@ -491,10 +491,14 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IntensityCurveInterface.h
   Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/ColorLookupTable.h
+  Logic/Slicing/ImageLabelIntegrator.h
+  Logic/Slicing/ImageLabelIntegrator.txx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
   Logic/Slicing/NonOrthogonalSlicer.h
   Logic/Slicing/NonOrthogonalSlicer.txx
+  Logic/Slicing/NonOrthogonalSlicerWorkerTraits.h
+  Logic/Slicing/NonOrthogonalSlicerWorkerTraits.txx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.h
   Logic/WorkspaceAPI/CSVParser.h
   Logic/WorkspaceAPI/FormattedTable.h
@@ -1518,6 +1522,15 @@ TARGET_LINK_LIBRARIES(TestVTIImageIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(TestVTIImageIO PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestVTIImageIO COMMAND TestVTIImageIO ${TEMP})
+
+# Test: segmentation statistics with upsampled segmentations and rotated overlays
+ADD_EXECUTABLE(TestSegmentationStatistics
+    Testing/Logic/TestSegmentationStatistics.cxx)
+TARGET_LINK_LIBRARIES(TestSegmentationStatistics ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestSegmentationStatistics PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestSegmentationStatistics
+  COMMAND TestSegmentationStatistics ${TESTDATA_DIR} ${TEMP})
 
 # Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
 # are passed on to ITK-SNAP, e.g. images to load from the command line.
