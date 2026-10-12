@@ -70,7 +70,7 @@ SynchronizationModel::SynchronizationModel()
 
 SynchronizationModel::~SynchronizationModel()
 {
-  if (m_DebugSync)
+  if (m_DebugSync && m_IPCHandler)
   {
     auto now = std::chrono::system_clock::now();
     auto now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -133,7 +133,7 @@ SynchronizationModel::SetSystemInterface(AbstractSharedMemorySystemInterface *si
 void
 SynchronizationModel::ForceDetach()
 {
-  if (m_DebugSync)
+  if (m_DebugSync && m_IPCHandler)
   {
     auto now = std::chrono::system_clock::now();
     auto now_time_t = std::chrono::system_clock::to_time_t(now);
@@ -154,6 +154,11 @@ SynchronizationModel::ForceDetach()
 void
 SynchronizationModel::OnUpdate()
 {
+  // There is nothing to synchronize without interprocess communication (it
+  // is turned off in GUI tests)
+  if (!m_IPCHandler)
+    return;
+
   IRISApplication *app = m_Parent->GetDriver();
   bool             bc_main_update = m_EventBucket->HasEvent(MainImageDimensionsChangeEvent());
   bool bc_sync_state_changed = m_EventBucket->HasEvent(ValueChangedEvent(), m_SyncEnabledModel);
@@ -393,7 +398,7 @@ SynchronizationModel::ReadIPCState(bool only_read_new)
   }
 
   IRISApplication *app = m_Parent->GetDriver();
-  if (!app->IsMainImageLoaded() || !m_SyncEnabledModel->GetValue())
+  if (!m_IPCHandler || !app->IsMainImageLoaded() || !m_SyncEnabledModel->GetValue())
     return;
 
   // Read the IPC message

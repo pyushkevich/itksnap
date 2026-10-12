@@ -330,6 +330,7 @@ usage(const char *progname)
   cout << "   --test TESTID        : Execute a test. " << endl;
   cout << "   --testdir DIR        : Set the root directory for tests. " << endl;
   cout << "   --testacc factor     : Adjust the interval between test commands by factor (e.g., 0.5). " << endl;
+  cout << "   --test-ipc           : Let a test communicate with other ITK-SNAP instances (off by default). " << endl;
   cout << "   --css file           : Read stylesheet from file." << endl;
   cout << "   --opengl MAJOR MINOR : Set the OpenGL major and minor version. Experimental." << endl;
   cout << "   --testgl             : Diagnose OpenGL/VTK issues." << endl;
@@ -367,6 +368,7 @@ public:
   double                   xZoomFactor = 0.0;
   bool                     flagDebugEvents = false;
   bool                     flagDebugSync = false;
+  bool                     flagTestIPC = false;
 
   // Whether the console-based application should not fork
   bool flagNoFork = false;
@@ -524,6 +526,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   parser.AddOption("--debug-events", 0);
   parser.AddOption("--debug-sync", 0);
+  parser.AddOption("--test-ipc", 0);
 
   parser.AddOption("--no-fork", 0);
   parser.AddOption("--console", 0);
@@ -604,6 +607,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   if (parseResult.IsOptionPresent("--debug-sync"))
     argdata.flagDebugSync = true;
+
+  if (parseResult.IsOptionPresent("--test-ipc"))
+    argdata.flagTestIPC = true;
 
   // Initial directory
   if (parseResult.IsOptionPresent("--cwd"))
@@ -1305,8 +1311,11 @@ main(int argc, char *argv[])
     SmartPtr<GlobalUIModel> gui = GlobalUIModel::New();
     IRISApplication        *driver = gui->GetDriver();
 
-    // Pass the shared memory interface to its model
-    gui->GetSynchronizationModel()->SetSystemInterface(&siSharedMem);
+    // Pass the shared memory interface to its model. Tests run without it
+    // unless they ask for it: otherwise test instances running at the same
+    // time (or the user's own ITK-SNAP windows) move each other's cursors
+    if (argdata.xTestId.empty() || argdata.flagTestIPC)
+      gui->GetSynchronizationModel()->SetSystemInterface(&siSharedMem);
     gui->GetSynchronizationModel()->SetDebugSync(argdata.flagDebugSync);
 
     // Set the initial directory. The fallthough is to set to the user's home
