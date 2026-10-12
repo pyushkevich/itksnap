@@ -1534,6 +1534,14 @@ TARGET_INCLUDE_DIRECTORIES(TestIRISSlicerPreview PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestIRISSlicerPreview COMMAND TestIRISSlicerPreview)
 
+# Test: rebroadcasting events between objects
+ADD_EXECUTABLE(TestRebroadcaster
+    Testing/Logic/TestRebroadcaster.cxx)
+TARGET_LINK_LIBRARIES(TestRebroadcaster ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestRebroadcaster PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestRebroadcaster COMMAND TestRebroadcaster)
+
 # Test: checks when loading segmentations (overlap, single time point in 4D)
 ADD_EXECUTABLE(TestSegmentationLoadChecks
     Testing/Logic/TestSegmentationLoadChecks.cxx)

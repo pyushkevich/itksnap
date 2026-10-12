@@ -21,12 +21,25 @@ unsigned long Rebroadcaster ::Rebroadcast(itk::Object            *source,
   const char *tgtEvtName = targetEvent.GetEventName();
   if(m_SourceMap.count(source))
     {
-    for(Association *a : m_SourceMap[source])
+    AssociationList &l = m_SourceMap[source];
+    for(AssociationIterator it = l.begin(); it != l.end(); ++it)
       {
+      Association *a = *it;
       if(a->m_Target == target &&
          strcmp(a->m_SourceEventName, srcEvtName) == 0 &&
          strcmp(a->m_TargetEvent->GetEventName(), tgtEvtName) == 0)
         {
+        // If the observer has been removed from the source behind our back
+        // (RemoveObserver instead of StopRebroadcasting), the association is
+        // stale: discard it and create a new one below
+        if(!a->m_IsForDeleteEvent && !source->GetCommand(a->m_SourceTag))
+          {
+          m_TargetMap[a->m_Target].remove(a);
+          l.erase(it);
+          delete a;
+          break;
+          }
+
         // Callbacks (std::function) cannot be compared, so they are not part
         // of the key. If the existing association has no callback, it adopts
         // the new one, so that the callback is not silently lost.
@@ -115,6 +128,31 @@ Rebroadcaster ::RebroadcastAsSourceEvent(itk::Object            *source,
   return Rebroadcast(source, sourceEvent, target, RefireEvent(), callback);
 }
 
+void Rebroadcaster::StopRebroadcasting(itk::Object *source, unsigned long tag)
+{
+  DispatchMap::iterator itmap = m_SourceMap.find(source);
+  if(itmap == m_SourceMap.end())
+    return;
+
+  AssociationList &l = itmap->second;
+  for(AssociationIterator it = l.begin(); it != l.end(); ++it)
+    {
+    Association *assoc = *it;
+    if(!assoc->m_IsForDeleteEvent && assoc->m_SourceTag == tag)
+      {
+      source->RemoveObserver(tag);
+      m_TargetMap[assoc->m_Target].remove(assoc);
+      l.erase(it);
+      delete assoc;
+      return;
+      }
+    }
+
+  // Note: the (possibly now empty) entries for the source and target stay in
+  // the maps. They record that a delete observer has been added to these
+  // objects, and are removed when the objects are deleted.
+}
+
 void Rebroadcaster::DeleteTargetCallback(
     itk::Object *target, const itk::EventObject &evt, void *cd)
 {
@@ -143,7 +181,9 @@ void Rebroadcaster::DeleteTargetConstCallback(
     if(target != assoc->m_Source)
       assoc->m_Source->RemoveObserver(assoc->m_SourceTag);
 
-    // Remove the association from the source's list
+    // Remove the association from the source's list. The source's entry is
+    // kept even if it becomes empty, since it records that a delete observer
+    // has been added to the source
     m_SourceMap[assoc->m_Source].remove(assoc);
 
     // Delete the association
