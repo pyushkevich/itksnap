@@ -2,6 +2,7 @@
 #include "ImageIORemote.h"
 #include "MeshImportModel.h"
 #include "ProgressReportDialog.h"
+#include <QPointer>
 #include "SNAPQApplication.h"
 #include "MainImageWindow.h"
 #include "ImageIODelegates.h"
@@ -883,6 +884,9 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
       else
         mainwin->LoadDroppedFile(qurl, false);
     }
+    catch (IRISUserCancelException &)
+    {
+    }
     catch (std::exception &exc)
     {
       ReportNonLethalException(
@@ -902,6 +906,9 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
       QString resolved = SNAPQApplication::resolveUrl(QString::fromStdString(argdata.testUrl));
       mainwin->LoadDroppedFile(resolved, true);
     }
+    catch (IRISUserCancelException &)
+    {
+    }
     catch (std::exception &exc)
     {
       ReportNonLethalException(
@@ -917,7 +924,7 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
   // can see download/IO progress and cannot interact with the uninitialized UI.
   bool hasFiles = argdata.fnWorkspace.size() || argdata.fnMain.size();
   AbstractProgressDelegate *savedDelegate = driver->GetProgressDelegate();
-  ProgressReportDialog *progressDlg = nullptr;
+  QPointer<ProgressReportDialog> progressDlg;
   if (hasFiles)
   {
     QString title = argdata.fnWorkspace.size()
@@ -934,6 +941,10 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
     try
     {
       driver->OpenWorkspace(argdata.fnWorkspace, warnings);
+    }
+    catch (IRISUserCancelException &)
+    {
+      // The user canceled loading, there is nothing to report
     }
     catch (std::exception &exc)
     {
@@ -963,6 +974,9 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
               driver->OpenImage(current_seg.c_str(), LABEL_ROLE, warnings, nullptr, nullptr, i > 0);
             }
           }
+          catch (IRISUserCancelException &)
+          {
+          }
           catch (std::exception &exc)
           {
             ReportNonLethalException(
@@ -982,6 +996,9 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
               current_overlay = argdata.fnOverlay[i];
               driver->OpenImage(current_overlay.c_str(), OVERLAY_ROLE, warnings);
             }
+          }
+          catch (IRISUserCancelException &)
+          {
           }
           catch (std::exception &exc)
           {
@@ -1018,6 +1035,10 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
               QCoreApplication::translate("main", "Failed to load mesh %1").arg(from_utf8(current_mesh)));
           }
         }
+      }
+      catch (IRISUserCancelException &)
+      {
+        // The user canceled loading, there is nothing to report
       }
       catch (std::exception &exc)
       {
@@ -1057,6 +1078,7 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
     driver->SetProgressDelegate(savedDelegate);
     if (progressDlg->isVisible())
       progressDlg->done(0);
+    progressDlg->deleteLater();
   }
 }
 

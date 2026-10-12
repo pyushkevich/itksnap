@@ -43,6 +43,7 @@
 #include "SnakeWizardPanel.h"
 #include "LatentITKEventNotifier.h"
 #include <QProgressDialog>
+#include <QPointer>
 #include "QtReporterDelegates.h"
 #include "SliceWindowCoordinator.h"
 #include "HistoryQListModel.h"
@@ -1716,7 +1717,10 @@ void MainImageWindow::LoadProject(const QString &file)
   auto *driver = m_Model->GetDriver();
   AbstractProgressDelegate *savedDelegate = driver->GetProgressDelegate();
 
-  ProgressReportDialog *progressDlg = new ProgressReportDialog(tr("Opening workspace..."), this);
+  // The dialog closes itself when the last task is done, but it is only
+  // deleted here, after the driver no longer uses its progress delegate
+  QPointer<ProgressReportDialog> progressDlg =
+    new ProgressReportDialog(tr("Opening workspace..."), this);
   driver->SetProgressDelegate(progressDlg->GetDelegate());
   progressDlg->open();
 
@@ -1726,6 +1730,10 @@ void MainImageWindow::LoadProject(const QString &file)
     IRISWarningList warnings;
     driver->OpenWorkspace(to_utf8(file), warnings);
     }
+  catch(IRISUserCancelException &)
+    {
+    // The user canceled loading, there is nothing to report
+    }
   catch(exception &exc)
     {
     ReportNonLethalException(this, exc, tr("Error Opening Project"),
@@ -1733,8 +1741,12 @@ void MainImageWindow::LoadProject(const QString &file)
     }
 
   driver->SetProgressDelegate(savedDelegate);
-  if (progressDlg->isVisible())
-    progressDlg->done(0);
+  if (progressDlg)
+    {
+    if (progressDlg->isVisible())
+      progressDlg->done(0);
+    progressDlg->deleteLater();
+    }
 }
 
 void MainImageWindow::LoadProjectInNewInstance(const QString &file)

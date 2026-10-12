@@ -18,12 +18,17 @@ class QTimer;
  * Typical call-site pattern:
  *
  *   AbstractProgressDelegate *saved = driver->GetProgressDelegate();
- *   ProgressReportDialog *dlg = new ProgressReportDialog("Opening...", mainwin);
+ *   QPointer<ProgressReportDialog> dlg = new ProgressReportDialog("Opening...", mainwin);
  *   driver->SetProgressDelegate(dlg->GetDelegate());
  *   dlg->open();                         // window-modal, non-blocking
  *   driver->OpenProject(file, warnings); // processEvents keeps dlg alive
  *   driver->SetProgressDelegate(saved);
- *   // dlg has already closed itself, or will close on the next event loop tick
+ *   if(dlg->isVisible())
+ *     dlg->done(0);                      // in case it has not closed itself
+ *   dlg->deleteLater();                  // closing does not delete it
+ *
+ * Catch IRISUserCancelException separately: it means the user canceled, and
+ * should not be reported as an error.
  */
 class ProgressReportDialog : public QDialog
 {

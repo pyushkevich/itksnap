@@ -141,7 +141,9 @@ public:
   /** Save the project (interactively or not) */
   bool SaveWorkspace(bool interactive);
 
-  // TODO: remove this, meant to be temporary for testing
+  /** The progress widget shown over the main window, for reporting the
+   * progress of operations that do not block the user interface (such as
+   * deep learning interactions) */
   ProgressReportWidget *GetProgressWidget() const { return m_ProgressFader; }
 
 public slots:
