@@ -529,6 +529,10 @@ DeepLearningSegmentationModel::StartLocalServerIfNeeded()
   }
 }
 
+// Parse the numeric parts of a version string, e.g., "0.1.4" -> {0, 1, 4}.
+// Trailing non-digits in a part are ignored, and parsing stops at the first
+// part that does not start with a digit, so that development and pre-release
+// versions ("0.1.4.dev1", "0.2.0rc1") are accepted.
 static std::vector<int>
 parse_version(const std::string &v)
 {
@@ -537,7 +541,12 @@ parse_version(const std::string &v)
   std::string       item;
   while (std::getline(ss, item, '.'))
   {
-    parts.push_back(std::stoi(item));
+    size_t n_digits = 0;
+    while (n_digits < item.size() && isdigit((unsigned char) item[n_digits]))
+      n_digits++;
+    if (n_digits == 0 || n_digits > 9)
+      break;
+    parts.push_back(std::stoi(item.substr(0, n_digits)));
   }
   return parts;
 }
@@ -617,7 +626,17 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
       {
         Json::Reader json_reader;
         Json::Value  root;
-        if (json_reader.parse(cli.GetOutput(), root, false))
+        bool         has_version = json_reader.parse(cli.GetOutput(), root, false) &&
+                           root.isObject() && root["version"].isString() &&
+                           parse_version(root["version"].asString()).size() > 0;
+        if (!has_version)
+        {
+          // Something answered, but it is not a server we can talk to
+          response.status = dls_model::NETWORK_NOT_CONNECTED;
+          response.message = "the server did not report a valid version number. "
+                             "Is this an ITK-SNAP deep learning server?";
+        }
+        else
         {
           // Check the version against minimum version
           auto version = root["version"].asString();
@@ -632,12 +651,12 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
             response.message = version;
           }
         }
-        else
-          throw IRISException("Server did not provide version number");
       }
     }
-    catch (IRISException &exc)
+    catch (std::exception &exc)
     {
+      // This runs on a worker thread, so no exception may escape. This also
+      // catches errors from the JSON library and the standard library.
       // TODO: this is a bad workaround the fact that we don't know when the local
       response.status = dls_model::NETWORK_NOT_CONNECTED;
       response.message = exc.what();
