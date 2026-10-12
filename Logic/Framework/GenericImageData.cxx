@@ -607,12 +607,6 @@ GenericImageData
   // Disconnect from the pipeline right away
   imgLabel->DisconnectPipeline();
 
-  // The header of the label image is made to match that of the grey image
-  // TODO: this old behavior should now be obsolete, but we might want to warn user
-  // imgLabel->SetOrigin(this->GetMain()->GetImage4DBase()->GetOrigin());
-  // imgLabel->SetSpacing(this->GetMain()->GetImage4DBase()->GetSpacing());
-  // imgLabel->SetDirection(this->GetMain()->GetImage4DBase()->GetDirection());
-
   // Return the image
   return imgLabel;
 }

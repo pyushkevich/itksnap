@@ -1533,6 +1533,15 @@ TARGET_INCLUDE_DIRECTORIES(TestIRISSlicerPreview PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestIRISSlicerPreview COMMAND TestIRISSlicerPreview)
 
+# Test: checks when loading segmentations (overlap, single time point in 4D)
+ADD_EXECUTABLE(TestSegmentationLoadChecks
+    Testing/Logic/TestSegmentationLoadChecks.cxx)
+TARGET_LINK_LIBRARIES(TestSegmentationLoadChecks ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestSegmentationLoadChecks PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestSegmentationLoadChecks
+  COMMAND TestSegmentationLoadChecks ${TESTDATA_DIR} ${TEMP})
+
 # Test: segmentation statistics with upsampled segmentations and rotated overlays
 ADD_EXECUTABLE(TestSegmentationStatistics
     Testing/Logic/TestSegmentationStatistics.cxx)
