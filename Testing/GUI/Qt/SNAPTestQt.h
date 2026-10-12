@@ -180,6 +180,8 @@ protected:
   MainImageWindow *m_Parent;
 
   // Helper functions
+  bool checkObject(QObject *obj, QString what);
+  QObject *findRequiredChild(QObject *parent, QString child);
   QModelIndex findItem(QObject *container, QVariant text);
   QString screenshotInternal(QString filename, QObject *target, bool explicit_target);
   void printChildrenRecursive(QObject *parent, QString offset, const char *className=NULL);
