@@ -1346,6 +1346,7 @@ SET(GUI_TESTS
   RegionCompetition
   RandomForest
   RandomForestBailOut
+  SnakeClassificationNavigation
   MeshImport
   MeshWorkspace
   SegmentationMesh
@@ -1523,6 +1524,14 @@ TARGET_LINK_LIBRARIES(TestVTIImageIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(TestVTIImageIO PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestVTIImageIO COMMAND TestVTIImageIO ${TEMP})
+
+# Test: slicing from preview pipelines that only buffer the requested slice
+ADD_EXECUTABLE(TestIRISSlicerPreview
+    Testing/Logic/TestIRISSlicerPreview.cxx)
+TARGET_LINK_LIBRARIES(TestIRISSlicerPreview ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestIRISSlicerPreview PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestIRISSlicerPreview COMMAND TestIRISSlicerPreview)
 
 # Test: segmentation statistics with upsampled segmentations and rotated overlays
 ADD_EXECUTABLE(TestSegmentationStatistics

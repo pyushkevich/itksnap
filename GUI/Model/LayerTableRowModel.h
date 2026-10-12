@@ -127,7 +127,7 @@ public:
 
 protected:
   AbstractLayerTableRowModel();
-  virtual ~AbstractLayerTableRowModel() {}
+  virtual ~AbstractLayerTableRowModel();
 
   // ------------------------------------------
   //  Begin virtual methods implementation
@@ -158,6 +158,13 @@ protected:
   // Called when m_Layer fires itk::DeleteEvent; subclasses override to null
   // their own typed layer pointers.
   virtual void OnLayerDeleted() {}
+
+  // Observer of the layer's itk::DeleteEvent. The layer pointers must be
+  // cleared as soon as the layer is deleted, not when the event bucket is
+  // processed later, because widgets may access the layer through this
+  // model before then.
+  void LayerDeleteCallback();
+  unsigned long m_LayerDeleteObserverTag = 0;
 
   // Generic image data object in which this layer lives.
   GenericImageData *m_ImageData;

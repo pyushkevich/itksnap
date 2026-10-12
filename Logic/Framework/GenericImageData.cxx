@@ -200,6 +200,11 @@ GenericImageData::GetFullExtentImageRegion()
   // Iterate over layers
   for (LayerIterator it = this->GetLayers(ALL_ROLES); !it.IsAtEnd(); ++it)
   {
+    // Skip layers without image data, e.g., the level set image in SNAP mode
+    // before (or after going back from) the evolution step
+    if (!it.GetLayer()->IsInitialized())
+      continue;
+
     // Extents of the layer in reference space voxel units
     auto rgn_layer_ref_space = this->GetLayerRegionInReferenceSpace(it.GetLayer());
 

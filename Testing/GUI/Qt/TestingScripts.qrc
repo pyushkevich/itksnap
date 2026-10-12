@@ -4,6 +4,7 @@
         <file>Scripts/test_ProbeIntensity.js</file>
         <file>Scripts/test_RegionCompetition.js</file>
         <file>Scripts/test_RandomForest.js</file>
+        <file>Scripts/test_SnakeClassificationNavigation.js</file>
         <file>Scripts/test_Workspace.js</file>
         <file>Scripts/test_DiffSpace.js</file>
         <file>Scripts/test_EdgeAttraction.js</file>
