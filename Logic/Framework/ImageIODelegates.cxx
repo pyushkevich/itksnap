@@ -490,9 +490,6 @@ ReloadAnatomicWrapperDelegate
 
   auto *aw = dynamic_cast<WrapperType*>(m_Wrapper.GetPointer());
 
-  // Get the current cursor position before reload
-  auto cursor = m_Driver->GetCurrentImageData()->GetCursorPositionRAS();
-
   if (!aw)
     {
     std::ostringstream oss;

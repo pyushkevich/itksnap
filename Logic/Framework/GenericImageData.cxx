@@ -102,7 +102,7 @@ Vector3d
 GenericImageData
 ::GetReferenceSpaceOrigin()
 {
-  return this->GetReferenceSpace()->GetSpacing().GetVnlVector();
+  return this->GetReferenceSpace()->GetOrigin().GetVnlVector();
 }
 
 template<unsigned int VDim>
@@ -1119,7 +1119,7 @@ GenericImageData::GetActiveSegmentationLayer()
 }
 
 void
-GenericImageData::SetActiveSegmentationLayer(unsigned int unique_id)
+GenericImageData::SetActiveSegmentationLayer(unsigned long unique_id)
 {
   for(auto &wrapper : m_Wrappers[LABEL_ROLE])
   {
@@ -1130,7 +1130,9 @@ GenericImageData::SetActiveSegmentationLayer(unsigned int unique_id)
     }
   }
 
-  this->SetActiveSegmentationLayerInternal(nullptr);
+  // An unknown id (e.g., of a layer that has since been removed) leaves the
+  // current active segmentation in place. Clearing it would leave the layers
+  // without a reference space.
 }
 
 void GenericImageData::SetActiveSegmentationLayerInternal(LabelImageWrapper *layer)

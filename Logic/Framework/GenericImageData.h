@@ -268,9 +268,10 @@ public:
 
   /**
    * Set which segmentation layer is active. The layer should already
-   * have been added to the list of segmentation layers.
+   * have been added to the list of segmentation layers. If there is no
+   * segmentation layer with this id, the active segmentation is unchanged.
    */
-  void SetActiveSegmentationLayer(unsigned int unique_id);
+  void SetActiveSegmentationLayer(unsigned long unique_id);
 
   /**
    * Add a secondary segmentation image without overriding the main one
