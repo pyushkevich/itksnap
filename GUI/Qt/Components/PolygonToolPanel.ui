@@ -287,11 +287,6 @@ p, li { white-space: pre-wrap; }
            <property name="styleSheet">
             <string notr="true"/>
            </property>
-           <item>
-            <property name="text">
-             <string>nnInteractive</string>
-            </property>
-           </item>
           </widget>
          </item>
          <item row="1" column="1">

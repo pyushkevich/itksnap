@@ -725,14 +725,21 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
       auto *dlm = this->GetParent()->GetParentUI()->GetDeepLearningSegmentationModel();
       auto *img = driver->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
 
+      // The pipeline selected in the polygon tool panel
+      std::string model_id = ps->GetEffectiveDeepLearningPipeline();
+
       // Catch exceptions from the deep learning model
       try
       {
-        // TODO: set up the model dropdown!
-        dlm->PerformLassoInteraction("nnInteractive", img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
+        if (model_id.empty())
+          throw IRISException("Deep learning lasso not available. "
+                              "None of the models on the deep learning server supports "
+                              "lasso interactions.");
+
+        dlm->PerformLassoInteraction(model_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
 
         // Store the correct undo point
-        driver->GetSelectedSegmentationLayer()->StoreUndoPoint("nnInteractive Lasso operation");
+        driver->GetSelectedSegmentationLayer()->StoreUndoPoint("Deep learning lasso operation");
         driver->RecordCurrentLabelUse();
         driver->InvokeEvent(SegmentationChangeEvent());
       }

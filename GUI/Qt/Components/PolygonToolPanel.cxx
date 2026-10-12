@@ -7,6 +7,7 @@
 #include "GlobalUIModel.h"
 
 #include "QtCheckBoxCoupling.h"
+#include "QtComboBoxCoupling.h"
 #include "QtSpinBoxCoupling.h"
 #include "QtSliderCoupling.h"
 #include "QtRadioButtonCoupling.h"
@@ -73,6 +74,11 @@ void PolygonToolPanel::SetModel(GlobalUIModel *model)
   // Connect with the deep learning model
   auto *dls = m_Model->GetDeepLearningSegmentationModel();
   makeCoupling(ui->outDLStatus, dls->GetServerStatusModel(), MiniConnectionStatusQLabelValueTraits());
+
+  // The models that support lasso interactions; the list is deactivated when
+  // there are none (e.g., not connected)
+  QtCouplingOptions opts_dl(QtCouplingOptions::DEACTIVATE_WHEN_INVALID);
+  makeCoupling(ui->inDLModel, m_Model->GetPolygonSettingsModel()->GetDeepLearningPipelineModel(), opts_dl);
 }
 
 void

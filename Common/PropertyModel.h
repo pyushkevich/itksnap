@@ -32,6 +32,7 @@
 #include "AbstractModel.h"
 #include "TagList.h"
 #include <map>
+#include <vector>
 
 /**
   This class represents the range information associated with a numeric
@@ -315,6 +316,62 @@ public:
   // atomic domains to determine if they are the same or different. Domains
   // that store references to external objects are not atomic.
   virtual bool isAtomic() { return true; }
+};
+
+/**
+  Like SimpleItemSetDomain, but the items are kept in the order in which they
+  are added rather than sorted by value. This is useful when the order is
+  meaningful, e.g., a list of models in the order given by a server.
+  */
+template<class TVal, class TDesc>
+class OrderedItemSetDomain : public
+    AbstractItemSetDomain<TVal, TDesc,
+                          typename std::vector<std::pair<TVal, TDesc> >::const_iterator>
+{
+public:
+  typedef std::vector<std::pair<TVal, TDesc> > ListType;
+  typedef typename ListType::const_iterator const_iterator;
+  typedef OrderedItemSetDomain<TVal, TDesc> Self;
+
+  const_iterator begin() const
+    { return m_List.begin(); }
+
+  const_iterator end() const
+    { return m_List.end(); }
+
+  const_iterator find(const TVal &value) const
+    {
+    for(const_iterator it = m_List.begin(); it != m_List.end(); ++it)
+      if(it->first == value)
+        return it;
+    return m_List.end();
+    }
+
+  TVal GetValue(const const_iterator &it) const
+    { return it->first; }
+
+  TDesc GetDescription(const const_iterator &it) const
+    { return it->second; }
+
+  void clear()
+    { m_List.clear(); }
+
+  void push_back(const TVal &value, const TDesc &desc)
+    { m_List.push_back(std::make_pair(value, desc)); }
+
+  unsigned int size() const
+    { return m_List.size(); }
+
+  virtual bool operator == (const Self &cmp) const
+    { return m_List == cmp.m_List; }
+
+  virtual bool operator != (const Self &cmp) const
+    { return m_List != cmp.m_List; }
+
+  virtual bool isAtomic() { return true; }
+
+protected:
+  ListType m_List;
 };
 
 /**

@@ -229,14 +229,15 @@ PaintbrushSettingsModel::GetDeepLearningPipelineValueAndRange(std::string       
   if(!dlm->GetIsActive())
     return false;
 
-  // Get the list of available deep learning models that we can use
+  // Get the list of available deep learning models that we can use, in the
+  // order listed by the server (the first one is the default)
   DeepLearningPipelineDomain usable_pipelines;
   auto pipelines = dlm->GetRemotePipelines();
-  for(auto it : pipelines)
+  for(auto &id : dlm->GetRemotePipelineIdsInServerOrder())
   {
-    if(it.second.supports_point || it.second.supports_scribble)
+    if(pipelines[id].supports_point || pipelines[id].supports_scribble)
     {
-      usable_pipelines[it.first] = it.first;
+      usable_pipelines.push_back(id, id);
     }
   }
 

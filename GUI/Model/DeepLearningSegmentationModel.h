@@ -89,6 +89,10 @@ struct RemoteModelMetadata
 {
   int dimensions = 0;
   std::set<unsigned int> channels;
+
+  // Position of the model in the list returned by the server. Models are
+  // listed in this order, and the first one is the default.
+  int order = 0;
   bool supports_point = false, supports_box = false, supports_lasso = false, supports_scribble = false;
 
   // Check if the given number of channels is supported by the model
@@ -292,6 +296,9 @@ public:
 
   /** Get available models on the server */
   std::map<std::string, dls_model::RemoteModelMetadata> GetRemotePipelines();
+
+  /** Get the ids of the available models, in the order listed by the server */
+  std::vector<std::string> GetRemotePipelineIdsInServerOrder();
 
   /** Select the segmentation layer for AI operations, specifying which model to use */
   void SetSourceImage(const std::string &model_id, ImageWrapperBase *layer, unsigned int axis);

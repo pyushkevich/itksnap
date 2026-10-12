@@ -14,6 +14,7 @@
 #include <chrono>
 #include <regex>
 #include <functional>
+#include <cstring>
 #include "itksys/MD5.h"
 
 // Minimum server version
@@ -683,9 +684,11 @@ DeepLearningSegmentationModel::GetRemotePipelines()
       if(json_reader.parse(cli.GetOutput(), root, false))
       {
         const Json::Value models_list = root["models"];
+        int order = 0;
         for(auto m : models_list)
         {
           dls_model::RemoteModelMetadata md;
+          md.order = order++;
 
           // Read model id
           auto model_id = m["id"].asString();
@@ -725,6 +728,20 @@ DeepLearningSegmentationModel::GetRemotePipelines()
     }
   }
   return m_RemoteModelMetadata;
+}
+
+std::vector<std::string>
+DeepLearningSegmentationModel::GetRemotePipelineIdsInServerOrder()
+{
+  auto pipelines = this->GetRemotePipelines();
+  std::vector<std::string> ids;
+  for(auto &it : pipelines)
+    ids.push_back(it.first);
+
+  std::stable_sort(ids.begin(), ids.end(), [&pipelines](const std::string &a, const std::string &b) {
+    return pipelines[a].order < pipelines[b].order;
+  });
+  return ids;
 }
 
 void
@@ -1188,7 +1205,7 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
             << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << " ms "
             << std::endl;
 
-  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), "nnInteractive point interaction");
+  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), "Deep learning point interaction");
 }
 
 bool
@@ -1203,6 +1220,12 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
   if (m_InteractionInProgress)
     return false;
   InteractionInProgressGuard busy(m_InteractionInProgress);
+
+  // Scribble and lasso interactions send the whole 3D segmentation, which
+  // only makes sense for 3D models
+  if (this->GetRemoteModelMetadata(model_id).dimensions != 3)
+    throw IRISException("The deep learning model %s does not support this interaction, "
+                        "because it is not a 3D model.", model_id.c_str());
 
   // Update the source image
   this->SetSourceImage(model_id, layer, axis);
@@ -1246,7 +1269,9 @@ DeepLearningSegmentationModel::PerformScribbleOrLassoInteraction(const char     
             << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << " ms "
             << std::endl;
 
-  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), "nnInteractive scribble interaction");
+  const char *commit_name = strstr(target_url, "lasso") ? "Deep learning lasso interaction"
+                                                       : "Deep learning scribble interaction";
+  return this->UpdateSegmentation(model_id, axis, cli.GetOutput(), commit_name);
 }
 
 const dls_model::RemoteModelMetadata &

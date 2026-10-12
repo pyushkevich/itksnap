@@ -41,7 +41,7 @@ public:
   irisRangedPropertyAccessMacro(ThresholdLevel, double)
   irisRangedPropertyAccessMacro(SmoothingIterations, int)
 
-  using DeepLearningPipelineDomain = SimpleItemSetDomain<std::string, std::string>;
+  using DeepLearningPipelineDomain = OrderedItemSetDomain<std::string, std::string>;
   irisGenericPropertyAccessMacro(DeepLearningPipeline, std::string, DeepLearningPipelineDomain);
 
 protected:
