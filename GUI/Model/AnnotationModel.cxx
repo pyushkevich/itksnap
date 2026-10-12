@@ -11,6 +11,17 @@ void AnnotationModel::SetParent(GenericSliceModel *model)
   m_Parent = model;
   Rebroadcast(m_Parent->GetDriver()->GetGlobalState()->GetAnnotationModeModel(),
               ValueChangedEvent(), ModelUpdateEvent());
+
+  // Which annotations are in this view and on this slice depends on the
+  // annotations themselves (loaded from a file or with a workspace), on the
+  // reference space (the active segmentation) and on the cursor. Update the
+  // UI state flags (e.g., for the next/previous annotation buttons) when
+  // these change.
+  IRISApplication *driver = m_Parent->GetDriver();
+  Rebroadcast(driver, AnnotationChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(driver, LayerChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(driver, ReferenceSpaceGeometryChangeEvent(), ModelUpdateEvent());
+  Rebroadcast(driver, CursorUpdateEvent(), ModelUpdateEvent());
 }
 
 double AnnotationModel::GetLineLength(const Vector3d &xSliceA, const Vector3d &xSliceB)
@@ -46,10 +57,10 @@ double AnnotationModel::GetAngleWithCurrentLine(const annot::LineSegmentAnnotati
 
   // Process the annotation
   Vector2d v2 = m_Parent->MapSliceToPhysicalWindow(
-                  m_Parent->MapImageToSlice(lsa->GetSegment().first))
+                  m_Parent->MapMainImageToSlice(lsa->GetSegment().first))
                 -
                 m_Parent->MapSliceToPhysicalWindow(
-                  m_Parent->MapImageToSlice(lsa->GetSegment().second));
+                  m_Parent->MapMainImageToSlice(lsa->GetSegment().second));
   v2 /= sqrt(v2[0]*v2[0] + v2[1]*v2[1]);
 
   // Compute the dot product and no need for the third components that are zeros
@@ -84,9 +95,9 @@ void AnnotationModel::AdjustAngleToRoundDegree(LineSegment &line, int n_degrees)
       {
       // Normalize the annotated line
       Vector2d q1 = m_Parent->MapSliceToPhysicalWindow(
-                      m_Parent->MapImageToSlice(lsa->GetSegment().first));
+                      m_Parent->MapMainImageToSlice(lsa->GetSegment().first));
       Vector2d q2 = m_Parent->MapSliceToPhysicalWindow(
-                      m_Parent->MapImageToSlice(lsa->GetSegment().second));
+                      m_Parent->MapMainImageToSlice(lsa->GetSegment().second));
 
       // Get the phase of the line
       double q_phase = atan2(q2[1] - q1[1], q2[0] - q1[0]) * 180.0 / vnl_math::pi;
@@ -118,8 +129,8 @@ Vector3d AnnotationModel::GetAnnotationCenter(const AbstractAnnotation *annot)
   const annot::LineSegmentAnnotation *lsa = dynamic_cast<const annot::LineSegmentAnnotation *>(annot);
   if(lsa)
     {
-    return (m_Parent->MapImageToSlice(lsa->GetSegment().first)
-            + m_Parent->MapImageToSlice(lsa->GetSegment().second)) * 0.5;
+    return (m_Parent->MapMainImageToSlice(lsa->GetSegment().first)
+            + m_Parent->MapMainImageToSlice(lsa->GetSegment().second)) * 0.5;
     }
 
 
@@ -167,9 +178,43 @@ ImageAnnotationData *AnnotationModel::GetAnnotations() const
 
 bool AnnotationModel::IsAnnotationVisible(const AnnotationModel::AbstractAnnotation *annot) const
 {
-  return annot->IsVisible(
-        m_Parent->GetSliceDirectionInImageSpace(),
-        m_Parent->GetSliceIndex());
+  if(!this->IsAnnotationInViewPlane(annot))
+    return false;
+
+  if(!annot->GetVisibleInAllSlices() &&
+     this->GetAnnotationSliceIndex(annot) != m_Parent->GetSliceIndex())
+    return false;
+
+  return true;
+}
+
+int AnnotationModel::GetViewPlaneInMainImage() const
+{
+  // Step one slice along the view normal and see which main image axis
+  // changes the most. If the main image is the reference space, this is the
+  // slice direction in image space.
+  Vector3d c = m_Parent->GetCursorPositionInSliceCoordinates();
+  Vector3d d = m_Parent->MapSliceToMainImage(c + Vector3d(0.0, 0.0, 1.0))
+               - m_Parent->MapSliceToMainImage(c);
+
+  int best = 0;
+  for(int i = 1; i < 3; i++)
+    if(fabs(d[i]) > fabs(d[best]))
+      best = i;
+  return best;
+}
+
+bool AnnotationModel::IsAnnotationInViewPlane(const AbstractAnnotation *annot) const
+{
+  return annot->GetVisibleInAllPlanes() || annot->GetPlane() == this->GetViewPlaneInMainImage();
+}
+
+int AnnotationModel::GetAnnotationSliceIndex(const AbstractAnnotation *annot) const
+{
+  // Find the reference space voxel that contains the annotation's anchor point
+  Vector3d anchor = annot->GetAnchorPoint(annot->GetPlane());
+  Vector3d xRef = m_Parent->MapSliceToImage(m_Parent->MapMainImageToSlice(anchor));
+  return (int) floor(xRef[m_Parent->GetSliceDirectionInImageSpace()]);
 }
 
 double AnnotationModel
@@ -181,8 +226,8 @@ double AnnotationModel
   if(lsa)
     {
     const annot::LineSegment &seg = lsa->GetSegment();
-    Vector3d s1 = m_Parent->MapImageToSlice(seg.first);
-    Vector3d s2 = m_Parent->MapImageToSlice(seg.second);
+    Vector3d s1 = m_Parent->MapMainImageToSlice(seg.first);
+    Vector3d s2 = m_Parent->MapMainImageToSlice(seg.second);
     return GetDistanceToLine(s1, s2, point);
     }
 
@@ -332,8 +377,8 @@ bool AnnotationModel::ProcessMoveEvent(const Vector3d &xSlice, bool shift_mod, b
     {
 
     // Compute the amount to move the annotation by
-    Vector3d p_last = m_Parent->MapSliceToImage(m_DragLast);
-    Vector3d p_now = m_Parent->MapSliceToImage(xSlice);
+    Vector3d p_last = m_Parent->MapSliceToMainImage(m_DragLast);
+    Vector3d p_now = m_Parent->MapSliceToMainImage(xSlice);
     Vector3d p_delta = p_now - p_last;
 
     // Process the move command on selected annotations
@@ -396,14 +441,19 @@ void AnnotationModel::AcceptLine()
 
   if(this->GetAnnotationMode() == ANNOTATION_RULER)
     {
-    // Create the line in image space
+    // Create the line in main image voxel space. Line segments are planar,
+    // i.e., both points have the same coordinate along the plane axis. This
+    // holds exactly unless the main image is oblique to the reference space.
+    int plane = this->GetViewPlaneInMainImage();
     annot::LineSegment ls = std::make_pair(
-                              m_Parent->MapSliceToImage(m_CurrentLine.first),
-                              m_Parent->MapSliceToImage(m_CurrentLine.second));
+                              m_Parent->MapSliceToMainImage(m_CurrentLine.first),
+                              m_Parent->MapSliceToMainImage(m_CurrentLine.second));
+    ls.second[plane] = ls.first[plane];
+
     // Add the line
     SmartPtr<annot::LineSegmentAnnotation> lsa = annot::LineSegmentAnnotation::New();
     lsa->SetSegment(ls);
-    lsa->SetPlane(m_Parent->GetSliceDirectionInImageSpace());
+    lsa->SetPlane(plane);
     lsa->SetVisibleInAllPlanes(false);
     lsa->SetVisibleInAllSlices(false);
     lsa->SetColor(m_Parent->GetParentUI()->GetGlobalState()->GetAnnotationColor());
@@ -420,7 +470,7 @@ void AnnotationModel::AcceptLine()
     // Create the line in image space
     annot::Landmark lm;
     lm.Text = this->GetCurrentAnnotationText();
-    lm.Pos = m_Parent->MapSliceToImage(m_CurrentLine.first);
+    lm.Pos = m_Parent->MapSliceToMainImage(m_CurrentLine.first);
 
     // Set the default offset. The default offset corresponds to 5 screen pixels
     // to the top right. We need to map this into image units
@@ -433,7 +483,7 @@ void AnnotationModel::AcceptLine()
     // Add the line
     SmartPtr<annot::LandmarkAnnotation> lma = annot::LandmarkAnnotation::New();
     lma->SetLandmark(lm);
-    lma->SetPlane(m_Parent->GetSliceDirectionInImageSpace());
+    lma->SetPlane(this->GetViewPlaneInMainImage());
     lma->SetVisibleInAllPlanes(false);
     lma->SetVisibleInAllSlices(false);
     lma->SetColor(m_Parent->GetParentUI()->GetGlobalState()->GetAnnotationColor());
@@ -518,7 +568,7 @@ AnnotationModel::GetAnnotationCount(bool filter_selected, bool filter_visible) c
       it != adata->GetAnnotations().end(); it++)
     {
     AbstractAnnotation *a = *it;
-    if(a->GetPlane() == m_Parent->GetSliceDirectionInImageSpace()
+    if(a->GetPlane() == this->GetViewPlaneInMainImage()
        && (!filter_selected || a->GetSelected())
        && (!filter_visible || this->IsAnnotationVisible(a)))
       {
@@ -558,11 +608,11 @@ void AnnotationModel::GoToNextOrPrevAnnotation(int direction)
       it != adata->GetAnnotations().end(); ++it)
     {
     AbstractAnnotation *a = *it;
-    if(a->IsVisible(m_Parent->GetSliceDirectionInImageSpace()))
+    if(this->IsAnnotationInViewPlane(a))
       {
       // Create a pair for the current annotation
-      Vector3d ank_img = a->GetAnchorPoint(m_Parent->GetSliceDirectionInImageSpace());
-      Vector3d ank_slice = m_Parent->MapImageToSlice(ank_img);
+      Vector3d ank_img = a->GetAnchorPoint(a->GetPlane());
+      Vector3d ank_slice = m_Parent->MapMainImageToSlice(ank_img);
 
       long hash = ank_slice[2] * 100000000l + ank_slice[1] * 10000l + ank_slice[0];
 
@@ -616,7 +666,7 @@ void AnnotationModel::GoToNextOrPrevAnnotation(int direction)
       {
       // Start from the beginning and find something on the current slice or after it
       for(AnnotIter it = annot_list.begin(); it!=annot_list.end(); ++it)
-        if(it->second->GetSliceIndex(m_Parent->GetSliceDirectionInImageSpace()) >=
+        if(this->GetAnnotationSliceIndex(it->second) >=
            m_Parent->GetSliceIndex())
           {
           selected = it->second;
@@ -630,7 +680,7 @@ void AnnotationModel::GoToNextOrPrevAnnotation(int direction)
       {
       // Start from the beginning and find something on the current slice or after it
       for(AnnotRevIter it = annot_list.rbegin(); it!=annot_list.rend(); --it)
-        if(it->second->GetSliceIndex(m_Parent->GetSliceDirectionInImageSpace()) <=
+        if(this->GetAnnotationSliceIndex(it->second) <=
            m_Parent->GetSliceIndex())
           {
           selected = it->second;
@@ -657,7 +707,7 @@ void AnnotationModel::GoToNextOrPrevAnnotation(int direction)
 
     // Go to its plane
     Vector3i cursor = m_Parent->GetDriver()->GetCursorPosition();
-    cursor[m_Parent->GetSliceDirectionInImageSpace()] = selected->GetSliceIndex(m_Parent->GetSliceDirectionInImageSpace());
+    cursor[m_Parent->GetSliceDirectionInImageSpace()] = this->GetAnnotationSliceIndex(selected);
     m_Parent->GetDriver()->SetCursorPosition(cursor);
     }
 
@@ -686,11 +736,18 @@ void AnnotationModel::MoveAnnotationHandle(AnnotationModel::AbstractAnnotation *
       dynamic_cast<annot::LineSegmentAnnotation *>(ann);
   if(lsa)
     {
+    // Keep the line planar (see AcceptLine)
     annot::LineSegment ls = lsa->GetSegment();
     if(handle == 0)
+      {
       ls.first += deltaPhys;
+      ls.first[lsa->GetPlane()] = ls.second[lsa->GetPlane()];
+      }
     else if(handle == 1)
+      {
       ls.second += deltaPhys;
+      ls.second[lsa->GetPlane()] = ls.first[lsa->GetPlane()];
+      }
     lsa->SetSegment(ls);
     }
 
@@ -706,12 +763,12 @@ void AnnotationModel::MoveAnnotationHandle(AnnotationModel::AbstractAnnotation *
       }
     else if(handle == 1)
       {
-      Vector3d headXSlice = m_Parent->MapImageToSlice(lm.Pos);
+      Vector3d headXSlice = m_Parent->MapMainImageToSlice(lm.Pos);
       Vector3d tailXSlice = m_Parent->MapPhysicalWindowToSlice(
             m_Parent->MapSliceToPhysicalWindow(headXSlice) + lm.Offset);
-      Vector3d tailXImage = m_Parent->MapSliceToImage(tailXSlice);
+      Vector3d tailXImage = m_Parent->MapSliceToMainImage(tailXSlice);
       Vector3d tailXImageMoved = tailXImage + deltaPhys;
-      Vector3d tailXSliceMoved = m_Parent->MapImageToSlice(tailXImageMoved);
+      Vector3d tailXSliceMoved = m_Parent->MapMainImageToSlice(tailXImageMoved);
       Vector2d tailXPhysWinMoved = m_Parent->MapSliceToPhysicalWindow(tailXSliceMoved);
       lm.Offset = tailXPhysWinMoved - m_Parent->MapSliceToPhysicalWindow(headXSlice);
       }
@@ -802,8 +859,8 @@ AnnotationModel::GetSelectedHandleUnderCusror(const Vector3d &xSlice, int &out_h
       if(lsa)
         {
         // Draw the line
-        Vector3d p1 = m_Parent->MapImageToSlice(lsa->GetSegment().first);
-        Vector3d p2 = m_Parent->MapImageToSlice(lsa->GetSegment().second);
+        Vector3d p1 = m_Parent->MapMainImageToSlice(lsa->GetSegment().first);
+        Vector3d p2 = m_Parent->MapMainImageToSlice(lsa->GetSegment().second);
 
         // Test if either of these points is close to the cursor
         if(this->TestPointInClickRadius(xSlice, p1, 5))
@@ -868,7 +925,7 @@ void AnnotationModel::GetLandmarkArrowPoints(const annot::Landmark &lm,
                                              Vector3d &outHeadXSlice, Vector3d &outTailXSlice)
 {
   // Get the head coordinates in slice units
-  outHeadXSlice = m_Parent->MapImageToSlice(lm.Pos);
+  outHeadXSlice = m_Parent->MapMainImageToSlice(lm.Pos);
 
   // Get the tail coordinate in slice units
   outTailXSlice = m_Parent->MapPhysicalWindowToSlice(

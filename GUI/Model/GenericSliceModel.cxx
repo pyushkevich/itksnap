@@ -458,6 +458,35 @@ Vector3d GenericSliceModel::MapImageToSlice(const Vector3d &xImage)
   return  m_ImageToDisplayTransform->TransformPoint(xImage);
 }
 
+Vector3d GenericSliceModel::MapMainImageToSlice(const Vector3d &xMain)
+{
+  // Map main image voxel coordinates to reference space voxel coordinates.
+  // The continuous index has voxel centers at integers, hence the shift.
+  itk::ContinuousIndex<double, 3> ci_main, ci_ref;
+  for(unsigned int i = 0; i < 3; i++)
+    ci_main[i] = xMain[i] - 0.5;
+  m_Driver->GetCurrentImageData()->GetMain()->TransformWrappedImageCIndexToReferenceCIndex(ci_main, ci_ref);
+
+  Vector3d xRef;
+  for(unsigned int i = 0; i < 3; i++)
+    xRef[i] = ci_ref[i] + 0.5;
+  return this->MapImageToSlice(xRef);
+}
+
+Vector3d GenericSliceModel::MapSliceToMainImage(const Vector3d &xSlice)
+{
+  Vector3d xRef = this->MapSliceToImage(xSlice);
+  itk::ContinuousIndex<double, 3> ci_main, ci_ref;
+  for(unsigned int i = 0; i < 3; i++)
+    ci_ref[i] = xRef[i] - 0.5;
+  m_Driver->GetCurrentImageData()->GetMain()->TransformReferenceCIndexToWrappedImageCIndex(ci_ref, ci_main);
+
+  Vector3d xMain;
+  for(unsigned int i = 0; i < 3; i++)
+    xMain[i] = ci_main[i] + 0.5;
+  return xMain;
+}
+
 Vector2d GenericSliceModel::MapSliceToWindow(const Vector3d &xSlice)
 {
   assert(IsSliceInitialized());

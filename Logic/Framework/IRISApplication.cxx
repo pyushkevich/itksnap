@@ -2507,6 +2507,8 @@ IRISApplication::LoadAnnotations(const char *filename)
   m_CurrentImageData->GetAnnotations()->LoadAnnotations(reg);
 
   m_SystemInterface->GetHistoryManager()->UpdateHistory("Annotations", filename, true);
+
+  InvokeEvent(AnnotationChangeEvent());
 }
 
 

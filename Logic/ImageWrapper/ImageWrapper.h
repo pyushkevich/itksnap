@@ -314,6 +314,9 @@ public:
   virtual void TransformReferenceCIndexToWrappedImageCIndex(
       const itk::ContinuousIndex<double, 3> &ref_index, itk::ContinuousIndex<double, 3> &img_index) const override;
 
+  virtual void TransformWrappedImageCIndexToReferenceCIndex(
+      const itk::ContinuousIndex<double, 3> &img_index, itk::ContinuousIndex<double, 3> &ref_index) const override;
+
   virtual bool ImageSpaceMatchesReferenceSpace() const override;
 
   /** Get the NIFTI s-form matrix for this image */

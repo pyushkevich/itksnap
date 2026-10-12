@@ -358,6 +358,15 @@ public:
     const itk::ContinuousIndex<double, 3> &ref_index,
     itk::ContinuousIndex<double, 3>       &img_index) const = 0;
 
+  /**
+   * The inverse of TransformReferenceCIndexToWrappedImageCIndex: transform a
+   * continuous index in the voxel space of the wrapped image to a continuous
+   * index in the reference space.
+   */
+  virtual void TransformWrappedImageCIndexToReferenceCIndex(
+    const itk::ContinuousIndex<double, 3> &img_index,
+    itk::ContinuousIndex<double, 3>       &ref_index) const = 0;
+
   /** Get the NIFTI s-form matrix for this image */
   irisVirtualGetMacro(NiftiSform, TransformType)
 

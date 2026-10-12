@@ -1355,6 +1355,7 @@ SET(GUI_TESTS
   Reloading
   SegmentationSwitching
   SliceIndexRange
+  AnnotationReferenceSpace
   4DToMC
   MCTo4D
   DeformationGrid
@@ -1606,6 +1607,7 @@ SET_TESTS_PROPERTIES(WorkspaceToolSetActiveSeg PROPERTIES
 ADD_SNAP_GUI_TEST(WorkspaceActiveSegmentation -w "${WT_ACTIVE_SEG_WORKSPACE}")
 SET_TESTS_PROPERTIES(WorkspaceActiveSegmentation PROPERTIES
   FIXTURES_REQUIRED WorkspaceActiveSegmentationData)
+
 
 # Orientation widget test
 SET(TEST_ORIENTATION_WIDGET_HEADERS

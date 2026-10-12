@@ -285,6 +285,17 @@ public:
   Vector3d MapImageToSlice(const Vector3d &xImage);
 
   /**
+   * Map a point in the voxel coordinates of the main image to slice
+   * coordinates, and back. "Image coordinates" in MapImageToSlice are the
+   * voxel coordinates of the reference space (the active segmentation),
+   * which may be a different grid. These methods are used for annotations,
+   * which are stored in main image voxel coordinates. Both use the same
+   * convention as MapImageToSlice, i.e., voxel k spans [k, k+1).
+   */
+  Vector3d MapMainImageToSlice(const Vector3d &xMain);
+  Vector3d MapSliceToMainImage(const Vector3d &xSlice);
+
+  /**
    * Get the cursor position in slice coordinates, shifted to the center
    * of the voxel
    */

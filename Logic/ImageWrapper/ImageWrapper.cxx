@@ -1274,6 +1274,38 @@ ImageWrapper<TTraits>
 }
 
 template<class TTraits>
+void
+ImageWrapper<TTraits>
+::TransformWrappedImageCIndexToReferenceCIndex(
+    const itk::ContinuousIndex<double, 3> &img_index, itk::ContinuousIndex<double, 3> &ref_index) const
+{
+  // See TransformReferenceCIndexToWrappedImageCIndex for why the parent is used
+  if(m_ParentWrapper)
+    {
+    m_ParentWrapper->TransformWrappedImageCIndexToReferenceCIndex(img_index, ref_index);
+    }
+  else if(m_ImageSpaceMatchesReferenceSpace)
+    {
+    for(unsigned int i = 0; i < 3; i++)
+      ref_index[i] = img_index[i];
+    }
+  else
+    {
+    // Map the index to the physical space of the wrapped image
+    itk::Point<double, 3> x_phys_img, x_phys_ref;
+    m_ImageBase->TransformContinuousIndexToPhysicalPoint(img_index, x_phys_img);
+
+    // Apply the inverse of the transform (which maps reference space to image space)
+    auto inverse = m_AffineTransform->GetInverseTransform();
+    itkAssertOrThrowMacro(inverse, "Image transform is not invertible");
+    x_phys_ref = inverse->TransformPoint(x_phys_img);
+
+    // Map the coordinate into reference space voxels
+    m_ReferenceSpace->TransformPhysicalPointToContinuousIndex(x_phys_ref, ref_index);
+    }
+}
+
+template<class TTraits>
 bool ImageWrapper<TTraits>
 ::ImageSpaceMatchesReferenceSpace() const
 {
