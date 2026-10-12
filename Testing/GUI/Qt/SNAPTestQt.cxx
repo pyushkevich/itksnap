@@ -91,6 +91,21 @@ SNAPTestQt::LaunchTest(std::string test)
   m_Worker->start();
 }
 
+// The script runs on a worker thread, but widgets and item models may only
+// be accessed on the GUI thread (while the GUI thread changes the widget
+// tree, a lookup from the worker thread can crash). Run f on the GUI thread
+// and wait for its result.
+template <class F>
+static auto RunOnGuiThread(F f) -> decltype(f())
+{
+  if(QThread::currentThread() == qApp->thread())
+    return f();
+
+  decltype(f()) result{};
+  QMetaObject::invokeMethod(qApp, [&]() { result = f(); }, Qt::BlockingQueuedConnection);
+  return result;
+}
+
 // Engine calls on a null object (e.g., a widget that was not found because
 // its name is misspelled or a dialog did not open) fail the test with a
 // script error, instead of crashing the application
@@ -108,7 +123,7 @@ QObject *SNAPTestQt::findRequiredChild(QObject *parent, QString child)
   if(!checkObject(parent, QString("Parent of child %1 is null").arg(child)))
     return nullptr;
 
-  QObject *obj = parent->findChild<QObject *>(child);
+  QObject *obj = RunOnGuiThread([&]() { return parent->findChild<QObject *>(child); });
   checkObject(obj, QString("Child %1 not found").arg(child));
   return obj;
 }
@@ -118,7 +133,7 @@ QObject *SNAPTestQt::findChild(QObject *parent, QString child)
   if(!checkObject(parent, QString("findChild(%1) called on a null parent").arg(child)))
     return nullptr;
 
-  return parent->findChild<QObject *>(child);
+  return RunOnGuiThread([&]() { return parent->findChild<QObject *>(child); });
 }
 
 QObject *SNAPTestQt::findVisibleChild(QObject *parent, QString child)
@@ -126,57 +141,62 @@ QObject *SNAPTestQt::findVisibleChild(QObject *parent, QString child)
   if(!checkObject(parent, QString("findVisibleChild(%1) called on a null parent").arg(child)))
     return nullptr;
 
-  foreach(QWidget *w, parent->findChildren<QWidget *>(child))
-    if(w->isVisible())
-      return w;
-
-  return NULL;
+  return RunOnGuiThread([&]() -> QObject * {
+    foreach(QWidget *w, parent->findChildren<QWidget *>(child))
+      if(w->isVisible())
+        return w;
+    return nullptr;
+  });
 }
 
 QWidget *SNAPTestQt::findWidget(QString widgetName)
 {
-  foreach(QWidget *w, QApplication::allWidgets())
-    if(w->objectName() == widgetName)
-      return w;
-
-  return NULL;
+  return RunOnGuiThread([&]() -> QWidget * {
+    foreach(QWidget *w, QApplication::allWidgets())
+      if(w->objectName() == widgetName)
+        return w;
+    return nullptr;
+  });
 }
 
 
 QVariant SNAPTestQt::tableItemText(QObject *table, int row, int col)
 {
-  QAbstractItemView *view = dynamic_cast<QAbstractItemView *>(table);
-  if(view)
-    {
-    QAbstractItemModel *model = view->model();
-    return model->data(model->index(row, col));
-    }
-
-  return QVariant();
+  return RunOnGuiThread([&]() -> QVariant {
+    QAbstractItemView *view = dynamic_cast<QAbstractItemView *>(table);
+    if(view)
+      {
+      QAbstractItemModel *model = view->model();
+      return model->data(model->index(row, col));
+      }
+    return QVariant();
+  });
 }
 
 
 QModelIndex SNAPTestQt::findItem(QObject *container, QVariant text)
 {
-  QAbstractItemModel *model = NULL;
+  return RunOnGuiThread([&]() -> QModelIndex {
+    QAbstractItemModel *model = NULL;
 
-  // Is it a combo box?
-  if(QComboBox *combo = dynamic_cast<QComboBox *>(container))
-    model = combo->model();
+    // Is it a combo box?
+    if(QComboBox *combo = dynamic_cast<QComboBox *>(container))
+      model = combo->model();
 
-  // Is it an item view?
-  else if(QAbstractItemView *itemview = dynamic_cast<QAbstractItemView *>(container))
-    model = itemview->model();
+    // Is it an item view?
+    else if(QAbstractItemView *itemview = dynamic_cast<QAbstractItemView *>(container))
+      model = itemview->model();
 
-  // Find the item
-  if(model)
-    {
-    QModelIndexList found = model->match(model->index(0,0),Qt::DisplayRole,text);
-    if(found.size())
-      return found.at(0);
-    }
+    // Find the item
+    if(model)
+      {
+      QModelIndexList found = model->match(model->index(0,0),Qt::DisplayRole,text);
+      if(found.size())
+        return found.at(0);
+      }
 
-  return QModelIndex();
+    return QModelIndex();
+  });
 }
 
 void SNAPTestQt::invoke(QObject *object, QString slot)
