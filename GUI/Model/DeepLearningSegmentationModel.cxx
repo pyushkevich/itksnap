@@ -378,6 +378,9 @@ DeepLearningSegmentationModel::ResetConnection()
   // Reset the proxy URL
   SetProxyURL(std::string());
 
+  // Forget the models listed by the previous server
+  m_RemoteModelMetadata.clear();
+
   // Reset the statuses to default state
   SetNetworkStatus(dls_model::NetworkStatus());
   SetTunnelStatus(dls_model::TunnelStatus());
@@ -584,13 +587,14 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
 {
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
-  dls_model::NetworkStatus response;
+  StatusCheck result;
+  dls_model::NetworkStatus &response = result.status;
   auto *sp = this->GetServerProperties();
 
   // Check if URL has been set
   if (!sp)
   {
-    return std::make_pair(std::string(), response);
+    return result;
   }
 
   // Check if the proxy has been set up for an SSH connection
@@ -642,6 +646,9 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
           auto version = root["version"].asString();
           if(version_meets_min(version, MINIMUM_SERVER_VERSION))
           {
+            // Get the list of models here, so that the GUI thread never has
+            // to wait on the network for it
+            result.pipelines = FetchRemotePipelines(cli);
             response.status = dls_model::NETWORK_CONNECTED_COMPATIBLE;
             response.message = version;
           }
@@ -660,93 +667,88 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
       // TODO: this is a bad workaround the fact that we don't know when the local
       response.status = dls_model::NETWORK_NOT_CONNECTED;
       response.message = exc.what();
+      result.pipelines.clear();
     }
   }
 
-  return std::make_pair(sp->GetHash(), response);
+  result.hash = sp->GetHash();
+  return result;
 }
 
 void
 DeepLearningSegmentationModel::ApplyStatusCheckResponse(const StatusCheck &result)
 {
   std::string hash = m_ServerIndex < 0 ? std::string() : m_ServerProperties[m_ServerIndex]->GetHash();
-  if(hash == result.first)
-    this->SetNetworkStatus(result.second);
+  if(hash != result.hash)
+    return;
 
+  // Update the list of models before the status, so that listeners of the
+  // status see the current list
+  bool pipelines_changed = (m_RemoteModelMetadata != result.pipelines);
+  m_RemoteModelMetadata = result.pipelines;
+
+  if(this->GetNetworkStatus() != result.status)
+    this->SetNetworkStatus(result.status);
+  else if(pipelines_changed)
+    m_NetworkStatusModel->InvokeEvent(ValueChangedEvent());
 }
 
 std::map<std::string, dls_model::RemoteModelMetadata>
 DeepLearningSegmentationModel::GetRemotePipelines()
 {
-  // This lock code prevents a race condition
-  std::unique_lock<std::mutex> guard(m_Mutex, std::try_to_lock);
-  if(!guard.owns_lock())
-    return m_RemoteModelMetadata;
-
   if(this->GetServerStatus().status != dls_model::CONN_CONNECTED)
-  {
-    m_RemoteModelMetadata.clear();
-    return m_RemoteModelMetadata;
-  }
+    return std::map<std::string, dls_model::RemoteModelMetadata>();
 
-  if(m_RemoteModelMetadata.empty())
-  {
-    try
-    {
-      RESTClientType cli(m_RESTSharedData);
-      cli.SetServerURL(GetActualServerURL().c_str());
-      if(!cli.Get("v2/models"))
-        throw IRISException("Error requesting list of models from DLS server: %s", cli.GetErrorString());
-
-      Json::Reader json_reader;
-      Json::Value root;
-      if(json_reader.parse(cli.GetOutput(), root, false))
-      {
-        const Json::Value models_list = root["models"];
-        int order = 0;
-        for(auto m : models_list)
-        {
-          dls_model::RemoteModelMetadata md;
-          md.order = order++;
-
-          // Read model id
-          auto model_id = m["id"].asString();
-
-          // Read model dimensionality
-          md.dimensions = m["dimensions"].asInt();
-
-          // Read number of channels supported
-          for(auto chan : m["channels"])
-          {
-            int nchan = chan.asInt();
-            md.channels.insert(nchan);
-          }
-
-          for(auto inter : m["interactions"])
-          {
-            auto itype = inter.asString();
-            if(itype == "point")
-              md.supports_point = true;
-            if(itype == "box")
-              md.supports_box = true;
-            if(itype == "lasso")
-              md.supports_lasso = true;
-            if(itype == "scribble")
-              md.supports_scribble = true;
-          }
-          m_RemoteModelMetadata[model_id] = md;
-        }
-      }
-      else
-        throw IRISException("Error requesting list of models from DLS server; unexpected return value: '%s'", cli.GetOutput());
-    }
-    catch(std::exception &exc)
-    {
-      m_RemoteModelMetadata.clear();
-      throw IRISException("Error requesting list of models from DLS server: %s", exc.what());
-    }
-  }
   return m_RemoteModelMetadata;
+}
+
+std::map<std::string, dls_model::RemoteModelMetadata>
+DeepLearningSegmentationModel::FetchRemotePipelines(RESTClientType &cli)
+{
+  std::map<std::string, dls_model::RemoteModelMetadata> pipelines;
+  if(!cli.Get("v2/models"))
+    throw IRISException("Error requesting list of models from DLS server: %s", cli.GetErrorString());
+
+  Json::Reader json_reader;
+  Json::Value root;
+  if(!json_reader.parse(cli.GetOutput(), root, false) || !root.isObject())
+    throw IRISException("Error requesting list of models from DLS server; unexpected return value: '%s'", cli.GetOutput());
+
+  const Json::Value models_list = root["models"];
+  int order = 0;
+  for(auto m : models_list)
+  {
+    dls_model::RemoteModelMetadata md;
+    md.order = order++;
+
+    // Read model id
+    auto model_id = m["id"].asString();
+
+    // Read model dimensionality
+    md.dimensions = m["dimensions"].asInt();
+
+    // Read number of channels supported
+    for(auto chan : m["channels"])
+    {
+      int nchan = chan.asInt();
+      md.channels.insert(nchan);
+    }
+
+    for(auto inter : m["interactions"])
+    {
+      auto itype = inter.asString();
+      if(itype == "point")
+        md.supports_point = true;
+      if(itype == "box")
+        md.supports_box = true;
+      if(itype == "lasso")
+        md.supports_lasso = true;
+      if(itype == "scribble")
+        md.supports_scribble = true;
+    }
+    pipelines[model_id] = md;
+  }
+  return pipelines;
 }
 
 std::vector<std::string>

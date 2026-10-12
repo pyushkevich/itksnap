@@ -7,6 +7,7 @@
 #include "SegmentationUpdateIterator.h"
 #include "BrushWatershedPipeline.hxx"
 #include "DeepLearningSegmentationModel.h"
+#include "PaintbrushSettingsModel.h"
 #include "IRISException.h"
 
 
@@ -278,7 +279,9 @@ PaintbrushModel::CommitDrawing()
     auto &commit = seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
 
     // Get the remote model properties
-    auto dl_model_props = model->GetRemotePipelines()[pbs.dl_pipeline_id];
+    std::string pipeline_id =
+      m_Parent->GetParentUI()->GetPaintbrushSettingsModel()->GetEffectiveDeepLearningPipeline();
+    auto dl_model_props = model->GetRemotePipelines()[pipeline_id];
 
     // If only one delta, then treat it as a point interaction; also treat as point interaction if the model
     // does not support scribble interactions, although in this case, we might want to consider sending a
@@ -286,7 +289,7 @@ PaintbrushModel::CommitDrawing()
     bool rc = false;
     if((commit.GetDeltas().size() == 1 && m_MouseInside) || !dl_model_props.supports_scribble)
     {
-      rc = model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, m_ReverseMode);
+      rc = model->PerformPointInteraction(pipeline_id, img, m_Parent->GetId(), m_MousePosition, m_ReverseMode);
     }
     else if(commit.GetDeltas().size() > 1)
     {
@@ -297,7 +300,7 @@ PaintbrushModel::CommitDrawing()
       auto counts = seg->GenerateImageForRedo(commit, img_delta, gs->GetDrawingColorLabel());
       w_delta->PixelsModified();
 
-      model->PerformScribbleInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
+      model->PerformScribbleInteraction(pipeline_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
     }
 
   }

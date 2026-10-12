@@ -83,13 +83,14 @@ void PolygonSettingsModel::LoadFromRegistry(Registry &folder)
 {
   this->SetFreehandSegmentLength(folder["SegmentLength"][8]);
   this->SetFreehandIsPiecewise(folder["IsPiecewise"][true]);
-
+  m_DeepLearningPipelineId = folder["DeepLearningPipeline"][""];
 }
 
 void PolygonSettingsModel::SaveToRegistry(Registry &folder)
 {
   folder["IsPiecewise"] << this->GetFreehandIsPiecewise();
   folder["SegmentLength"] << this->GetFreehandSegmentLength();
+  folder["DeepLearningPipeline"] << m_DeepLearningPipelineId;
 }
 
 PolygonSettingsModel::PolygonSettingsModel()

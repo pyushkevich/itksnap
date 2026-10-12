@@ -618,6 +618,11 @@ void GlobalUIModel::LoadUserPreferences()
   m_PolygonSettingsModel->LoadFromRegistry(
         si->Folder("UserInterface.PolygonSettings"));
 
+  // Read the paintbrush properties (only the deep learning model is remembered)
+  PaintbrushSettings pbs = m_Driver->GetGlobalState()->GetPaintbrushSettings();
+  pbs.dl_pipeline_id = si->Folder("UserInterface.PaintbrushSettings")["DeepLearningPipeline"][""];
+  m_Driver->GetGlobalState()->SetPaintbrushSettings(pbs);
+
   // Read the DSS-related preferences
   m_DistributedSegmentationModel->LoadPreferences(
         si->Folder("DistributedSegmentationSystem"));
@@ -651,9 +656,13 @@ void GlobalUIModel::SaveUserPreferences()
   m_Driver->GetGlobalState()->GetMeshOptions()->WriteToRegistry(
         si->Folder("View3D.MeshOptions"));
 
-  // Read the Polygon properties
+  // Write the Polygon properties
   m_PolygonSettingsModel->SaveToRegistry(
         si->Folder("UserInterface.PolygonSettings"));
+
+  // Write the paintbrush properties
+  si->Folder("UserInterface.PaintbrushSettings")["DeepLearningPipeline"]
+    << m_Driver->GetGlobalState()->GetPaintbrushSettings().dl_pipeline_id;
 
   // Write the DSS-related preferences
   m_DistributedSegmentationModel->SavePreferences(

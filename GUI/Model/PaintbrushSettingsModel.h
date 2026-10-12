@@ -44,6 +44,12 @@ public:
   using DeepLearningPipelineDomain = OrderedItemSetDomain<std::string, std::string>;
   irisGenericPropertyAccessMacro(DeepLearningPipeline, std::string, DeepLearningPipelineDomain);
 
+  /**
+   * The deep learning pipeline to use: the selected one if the server offers
+   * it, otherwise the first suitable one listed by the server. Empty if none.
+   */
+  std::string GetEffectiveDeepLearningPipeline();
+
 protected:
 
   PaintbrushSettingsModel();

@@ -100,6 +100,13 @@ struct RemoteModelMetadata
   {
     return channels.empty() || channels.find(k) != channels.end();
   }
+
+  bool operator==(const RemoteModelMetadata &o) const
+  {
+    return dimensions == o.dimensions && channels == o.channels && order == o.order &&
+           supports_point == o.supports_point && supports_box == o.supports_box &&
+           supports_lasso == o.supports_lasso && supports_scribble == o.supports_scribble;
+  }
 };
 
 /** Structure representing image data that has been sent to the remote server */
@@ -276,8 +283,17 @@ public:
   /** Delete the selected server */
   void DeleteCurrentServer();
 
-  /** Status check: includes a hash of the server for which the check was issued and status */
-  using StatusCheck = std::pair<std::string, dls_model::NetworkStatus>;
+  /**
+   * Result of a status check: includes a hash of the server for which the check
+   * was issued, the status, and the list of models on the server (only fetched
+   * when the server is connected and compatible)
+   */
+  struct StatusCheck
+  {
+    std::string hash;
+    dls_model::NetworkStatus status;
+    std::map<std::string, dls_model::RemoteModelMetadata> pipelines;
+  };
 
   /**
    * Start local server, if applicable. If the selected server is local, this will start
@@ -294,7 +310,10 @@ public:
   /** Progress for server interactions */
   irisRangedPropertyAccessMacro(ServerProgress, double)
 
-  /** Get available models on the server */
+  /**
+   * Get available models on the server. This does not access the network: the
+   * list is fetched by AsyncCheckStatus() and is empty unless connected.
+   */
   std::map<std::string, dls_model::RemoteModelMetadata> GetRemotePipelines();
 
   /** Get the ids of the available models, in the order listed by the server */
@@ -369,8 +388,12 @@ protected:
 
   bool GetServerStatusValue(dls_model::ConnectionStatus &value);
 
-  // List of models supported by the current server
+  // List of models supported by the current server. Only accessed on the GUI
+  // thread; filled in from the results of AsyncCheckStatus()
   std::map<std::string, dls_model::RemoteModelMetadata> m_RemoteModelMetadata;
+
+  // Request the list of models from the server (called from AsyncCheckStatus)
+  std::map<std::string, dls_model::RemoteModelMetadata> FetchRemotePipelines(RESTClient<DLSServerTraits> &cli);
 
   // Current progress
   SmartPtr<ConcreteRangedDoubleProperty> m_ServerProgressModel;

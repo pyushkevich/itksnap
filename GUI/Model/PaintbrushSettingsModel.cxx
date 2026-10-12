@@ -220,41 +220,51 @@ PaintbrushSettingsModel::GetDeepLearningModeValue(bool &value)
   return true;
 }
 
+// Get the deep learning models usable with the paintbrush, in the order listed
+// by the server (the first one is the default). Uses the list cached by the
+// deep learning model, so there is no network access here.
+static PaintbrushSettingsModel::DeepLearningPipelineDomain
+GetUsablePaintbrushPipelines(DeepLearningSegmentationModel *dlm)
+{
+  PaintbrushSettingsModel::DeepLearningPipelineDomain usable_pipelines;
+  if(!dlm->GetIsActive())
+    return usable_pipelines;
+
+  auto pipelines = dlm->GetRemotePipelines();
+  for(auto &id : dlm->GetRemotePipelineIdsInServerOrder())
+    if(pipelines[id].supports_point || pipelines[id].supports_scribble)
+      usable_pipelines.push_back(id, id);
+
+  return usable_pipelines;
+}
+
+std::string
+PaintbrushSettingsModel::GetEffectiveDeepLearningPipeline()
+{
+  auto usable_pipelines =
+    GetUsablePaintbrushPipelines(m_ParentModel->GetDeepLearningSegmentationModel());
+  if(usable_pipelines.size() == 0)
+    return std::string();
+
+  // The selected pipeline is kept even when the server does not offer it, so
+  // that it is used again when connecting to a server that does
+  std::string selected = GetPaintbrushSettings().dl_pipeline_id;
+  if(usable_pipelines.find(selected) != usable_pipelines.end())
+    return selected;
+
+  return usable_pipelines.begin()->first;
+}
+
 bool
 PaintbrushSettingsModel::GetDeepLearningPipelineValueAndRange(std::string                &value,
                                                               DeepLearningPipelineDomain *range)
 {
-  // The deep learning model must be active
-  auto *dlm = m_ParentModel->GetDeepLearningSegmentationModel();
-  if(!dlm->GetIsActive())
-    return false;
-
-  // Get the list of available deep learning models that we can use, in the
-  // order listed by the server (the first one is the default)
-  DeepLearningPipelineDomain usable_pipelines;
-  auto pipelines = dlm->GetRemotePipelines();
-  for(auto &id : dlm->GetRemotePipelineIdsInServerOrder())
-  {
-    if(pipelines[id].supports_point || pipelines[id].supports_scribble)
-    {
-      usable_pipelines.push_back(id, id);
-    }
-  }
-
-  // If none found, bail
+  auto usable_pipelines =
+    GetUsablePaintbrushPipelines(m_ParentModel->GetDeepLearningSegmentationModel());
   if(usable_pipelines.size() == 0)
     return false;
 
-  // Check if the currently set pipeline is in the list
-  PaintbrushSettings pbs = GetPaintbrushSettings();
-  if(usable_pipelines.find(pbs.dl_pipeline_id) == usable_pipelines.end())
-  {
-    pbs.dl_pipeline_id = usable_pipelines.begin()->first;
-    SetPaintbrushSettings(pbs);
-  }
-
-  // Return the pipeline and its domain
-  value = pbs.dl_pipeline_id;
+  value = GetEffectiveDeepLearningPipeline();
   if(range)
     *range = usable_pipelines;
 
