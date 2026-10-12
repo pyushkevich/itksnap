@@ -386,6 +386,9 @@ bool
 SystemInterface
 ::FindRegistryAssociatedWithFile(const char *file, Registry &registry)
 {
+  if(!m_ImageAssociationsEnabled)
+    return false;
+
   // Find the code previously associated with that file
   string code = this->FindUniqueCodeForFile(file, false);
 
@@ -580,6 +583,9 @@ bool
 SystemInterface
 ::AssociateRegistryWithFile(const char *file, Registry &registry)
 {
+  if(!m_ImageAssociationsEnabled)
+    return false;
+
   // Get the unique code
   string code = FindUniqueCodeForFile(file, true);
   

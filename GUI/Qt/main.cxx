@@ -1453,6 +1453,10 @@ main(int argc, char *argv[])
     // Do the test
     if (ui_testing)
     {
+      // Tests should not depend on, or change, the settings remembered for
+      // each image file from earlier sessions
+      gui->GetDriver()->GetSystemInterface()->SetImageAssociationsEnabled(false);
+
       testingEngine = new SNAPTestQt(mainwin, argdata.fnTestDir, argdata.xTestAccel);
       testingEngine->LaunchTest(argdata.xTestId);
     }
