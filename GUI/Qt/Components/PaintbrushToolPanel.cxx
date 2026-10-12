@@ -102,6 +102,11 @@ void PaintbrushToolPanel::SetModel(PaintbrushSettingsModel *model)
   activateOnFlag(ui->btnWatershed, m_Model,
                  PaintbrushSettingsModel::UIF_ADAPTIVE_OK);
 
+  // Deep learning interactions are along the slice axes of the image, so
+  // they are not available in free rotation mode
+  activateOnFlag(ui->btnDeepLearning, m_Model,
+                 PaintbrushSettingsModel::UIF_DEEPLEARNING_OK);
+
   // Listen to changes in smart mode, to display a popup
   connectITK(m_Model->GetPaintbrushSmartModeModel(), ValueChangedEvent());
 

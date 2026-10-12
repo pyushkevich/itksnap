@@ -257,8 +257,10 @@ PaintbrushModel::CommitDrawing()
   PaintbrushSettings pbs = gs->GetPaintbrushSettings();
   LabelImageWrapper *seg = driver->GetSelectedSegmentationLayer();
 
-  // Handle the deep learning case
-  if (pbs.smart_mode == PAINTBRUSH_DLS)
+  // Handle the deep learning case. Deep learning interactions are along the
+  // slice axes, so in free rotation mode the stroke is kept as drawn (the
+  // deep learning mode button is disabled in this case)
+  if (pbs.smart_mode == PAINTBRUSH_DLS && !HasMainImageTransformed())
   {
     // Get the model
     auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
@@ -461,24 +463,6 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
 
   // Changes were made
   return true;
-}
-
-bool
-PaintbrushModel::ApplyBrushDeepLearning(bool reverse_mode)
-{
-  // Get the model
-  auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
-  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
-  auto *img =
-    m_Parent->GetDriver()->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
-
-  // Handle the point interaction
-  if (m_MouseInside)
-  {
-    return model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, reverse_mode);
-  }
-
-  return false;
 }
 
 PaintbrushSettings
