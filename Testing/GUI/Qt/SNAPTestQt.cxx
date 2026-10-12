@@ -96,6 +96,15 @@ QObject *SNAPTestQt::findChild(QObject *parent, QString child)
   return parent->findChild<QObject *>(child);
 }
 
+QObject *SNAPTestQt::findVisibleChild(QObject *parent, QString child)
+{
+  foreach(QWidget *w, parent->findChildren<QWidget *>(child))
+    if(w->isVisible())
+      return w;
+
+  return NULL;
+}
+
 QWidget *SNAPTestQt::findWidget(QString widgetName)
 {
   foreach(QWidget *w, QApplication::allWidgets())

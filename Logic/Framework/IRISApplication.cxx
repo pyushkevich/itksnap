@@ -2146,6 +2146,12 @@ IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string proj_fi
     // Save the metadata associated with the layer
     SaveMetaDataAssociatedWithLayer(layer, it.GetRole(), &folder);
 
+    // Mark the active segmentation, which defines the reference space. This
+    // is a per-layer flag so that it stays with the layer when itksnap-wt
+    // adds, removes or reorders layers.
+    if (it.GetRole() == LABEL_ROLE && layer == GetCurrentImageData()->GetActiveSegmentationLayer())
+      folder["ActiveSegmentation"] << true;
+
     // Save the layer transform - relevant only for overlays
     if (it.GetRole() == OVERLAY_ROLE)
     {
@@ -2337,6 +2343,7 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
   std::string key;
   bool        main_loaded = false;
   int         n_segs_loaded = 0;
+  unsigned long active_seg_id = 0;
   for (int i = 0; preg.HasFolder(key = Registry::Key("Layers.Layer[%03d]", i)); i++)
   {
     // Get the key for the next image
@@ -2393,6 +2400,14 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
     else if (role == LABEL_ROLE)
     {
       n_segs_loaded++;
+
+      // Remember the layer marked as the active segmentation. The layer that
+      // was just loaded is the last segmentation layer.
+      if (folder["ActiveSegmentation"][false])
+      {
+        for (LayerIterator it = m_CurrentImageData->GetLayers(LABEL_ROLE); !it.IsAtEnd(); ++it)
+          active_seg_id = it.GetLayer()->GetUniqueId();
+      }
     }
   }
 
@@ -2406,11 +2421,13 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
   // Set the selected layer in the GUI to be the main image
   m_GlobalState->SetSelectedLayerInspectorLayerId(m_CurrentImageData->GetMain()->GetUniqueId());
 
-  // Set the selected segmentation layer to be the first one. Go through
+  // Select the segmentation that was active when the workspace was saved, or
+  // the first one for workspaces that do not record it. Go through
   // GlobalState (not GenericImageData directly) so the ValueChangedEvent
   // fires and the GUI picks up the correction.
-  m_GlobalState->SetSelectedSegmentationLayerId(
-    m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId());
+  if (!active_seg_id)
+    active_seg_id = m_CurrentImageData->GetFirstSegmentationLayer()->GetUniqueId();
+  m_GlobalState->SetSelectedSegmentationLayerId(active_seg_id);
 
   // Save the project filename (proj_file_full is the remote URL for remote
   // workspaces, or the collapsed local path for local ones)

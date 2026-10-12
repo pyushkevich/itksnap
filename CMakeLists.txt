@@ -1580,6 +1580,24 @@ ADD_SNAP_GUI_TEST(RemoteSaveWorkspace
   -w "${GITHUB_TESTDATA_URL}/MRIcrop-with-mesh.itksnap")
 SET_TESTS_PROPERTIES(RemoteSaveLayer RemoteSaveWorkspace PROPERTIES LABELS "Remote")
 
+# Workspace with two segmentations, the last of which is marked as active by
+# itksnap-wt; the GUI test checks that it opens with that segmentation active
+SET(WT_ACTIVE_SEG_WORKSPACE "${TEMP}/WorkspaceActiveSegmentation_wt.itksnap")
+ADD_TEST(NAME WorkspaceToolSetActiveSeg
+  COMMAND itksnap-wt
+    -layers-set-main "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz"
+    -layers-add-seg "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz"
+    -layers-add-seg "${TESTDATA_DIR}/MRIcrop-seg-hippoR-04mm.nii.gz"
+    -layers-pick 1 -props-set-active-seg
+    -layers-pick 2 -props-set-active-seg
+    -o "${WT_ACTIVE_SEG_WORKSPACE}")
+SET_TESTS_PROPERTIES(WorkspaceToolSetActiveSeg PROPERTIES
+  FIXTURES_SETUP WorkspaceActiveSegmentationData)
+
+ADD_SNAP_GUI_TEST(WorkspaceActiveSegmentation -w "${WT_ACTIVE_SEG_WORKSPACE}")
+SET_TESTS_PROPERTIES(WorkspaceActiveSegmentation PROPERTIES
+  FIXTURES_REQUIRED WorkspaceActiveSegmentationData)
+
 # Orientation widget test
 SET(TEST_ORIENTATION_WIDGET_HEADERS
   GUI/Renderer/OrientationWidget/Test_OrientationWidget/OrientationWidgetGUI.h
