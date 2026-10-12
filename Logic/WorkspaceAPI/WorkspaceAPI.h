@@ -212,6 +212,12 @@ public:
   /** Set layer nickname */
   void SetLayerColormapPreset(const std::string &layer_key, const std::string &value);
 
+  /**
+   * Make a segmentation layer the active segmentation, i.e., the one that is
+   * selected (and defines the reference space) when the workspace is opened
+   */
+  void SetActiveSegmentationLayer(const std::string &layer_key);
+
   /** Rename the layer on disk and in the project */
   void RenameLayer(const std::string &layer_key, const std::string &new_filename, bool force = false);
 

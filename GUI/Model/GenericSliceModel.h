@@ -285,15 +285,29 @@ public:
   Vector3d MapImageToSlice(const Vector3d &xImage);
 
   /**
+   * Map a point in the voxel coordinates of the main image to slice
+   * coordinates, and back. "Image coordinates" in MapImageToSlice are the
+   * voxel coordinates of the reference space (the active segmentation),
+   * which may be a different grid. These methods are used for annotations,
+   * which are stored in main image voxel coordinates. Both use the same
+   * convention as MapImageToSlice, i.e., voxel k spans [k, k+1).
+   */
+  Vector3d MapMainImageToSlice(const Vector3d &xMain);
+  Vector3d MapSliceToMainImage(const Vector3d &xSlice);
+
+  /**
    * Get the cursor position in slice coordinates, shifted to the center
    * of the voxel
    */
   Vector3d GetCursorPositionInSliceCoordinates();
 
   /**
-   * Get the slice index for this window
+   * Get the slice index for this window. This is the cursor position along
+   * the slice axis, in reference space voxels. It can be negative, or not
+   * less than GetNumberOfSlices(), when the cursor is in a part of the scene
+   * that lies outside of the reference space.
    */
-  unsigned int GetSliceIndex();
+  int GetSliceIndex();
 
   /**
    * Get the model that handles slice index information
@@ -315,7 +329,7 @@ public:
    * Set the index of the slice in the current view. This method will
    * update the cursor in the IRISApplication object
    */
-  void UpdateSliceIndex(unsigned int newIndex);
+  void UpdateSliceIndex(int newIndex);
 
   /**
    * Get the number of slices available in this view

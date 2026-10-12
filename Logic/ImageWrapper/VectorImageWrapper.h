@@ -145,14 +145,6 @@ public:
     return this->m_Image4D->GetNumberOfComponentsPerPixel();
   }
 
-  /** Compute statistics over a run of voxels in the image starting at the index
-   * startIdx. Appends the statistics to a running sum and sum of squared. The
-   * statistics are returned in internal (not native mapped) format */
-  virtual void GetRunLengthIntensityStatistics(
-      const itk::ImageRegion<3> &region,
-      const itk::Index<3> &startIdx, long runlength,
-      double *out_nvalid, double *out_sum, double *out_sumsq) const override;
-
   /**
    * This method returns a vector of values for the voxel under the cursor.
    * This is the natural value or set of values that should be displayed to

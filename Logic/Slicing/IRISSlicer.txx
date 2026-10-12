@@ -248,8 +248,14 @@ IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
   // Get the image dimensions
   typename InputImageType::SizeType szVol = inputPtr->GetBufferedRegion().GetSize();
 
-  // Bail out if slice index is out of range
-  if (m_SliceIndex < 0 || m_SliceIndex >= szVol[m_SliceDirectionImageAxis])
+  // Position of the slice in the buffered region. The main input buffers the
+  // whole volume, but a preview input may only buffer the requested slice.
+  long sliceInBuffer =
+    m_SliceIndex - inputPtr->GetBufferedRegion().GetIndex(m_SliceDirectionImageAxis);
+
+  // Bail out if slice index is out of range, e.g., when the cursor is outside
+  // of this image
+  if (sliceInBuffer < 0 || sliceInBuffer >= (long) szVol[m_SliceDirectionImageAxis])
   {
     typename OutputImageType::PixelType zero{};
     itk::NumericTraits<typename OutputImageType::PixelType>::SetLength(zero, outputPtr->GetNumberOfComponentsPerPixel());
@@ -287,8 +293,7 @@ IRISSlicer<TInputImage, TOutputImage, TPreviewImage>
     m_PixelTraverseForward ? 0 : szVol[m_PixelDirectionImageAxis] - 1;
   xStartVoxel[m_LineDirectionImageAxis] =
     m_LineTraverseForward ? 0 : szVol[m_LineDirectionImageAxis] - 1;
-  xStartVoxel[m_SliceDirectionImageAxis] =
-    szVol[m_SliceDirectionImageAxis] == 1 ? 0 : m_SliceIndex;
+  xStartVoxel[m_SliceDirectionImageAxis] = sliceInBuffer;
 
   // Get the offset of the first voxel. As pointed out by Roman Grothausmann, the VNL
   // dot product causes overflow so we compute directly.

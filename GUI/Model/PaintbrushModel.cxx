@@ -359,6 +359,21 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
   // Whether watershed filter is used (adaptive brush)
   bool flagWatershed = (pbs.smart_mode == PAINTBRUSH_WATERSHED && (!reverse_mode) && (!dragging));
 
+  // The watersheds are computed on the voxels of an image layer, which must be
+  // on the same grid as the segmentation. Use the layer being painted on if it
+  // is, else the main image. If neither is (e.g. the active segmentation has a
+  // different geometry), paint with the plain brush instead.
+  ImageWrapperBase *watershed_layer = nullptr;
+  if (flagWatershed)
+  {
+    watershed_layer = gid->FindLayer(m_ContextLayerId, false);
+    if (!watershed_layer || !watershed_layer->ImageSpaceMatchesReferenceSpace())
+      watershed_layer = gid->GetMain();
+    if (!watershed_layer->ImageSpaceMatchesReferenceSpace())
+      watershed_layer = nullptr;
+    flagWatershed = (watershed_layer != nullptr);
+  }
+
   // Define a region of interest
   LabelImageWrapper::ImageType::RegionType xTestRegion;
   for (size_t i = 0; i < 3; i++)
@@ -383,15 +398,10 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
   // Special code for Watershed brush
   if (flagWatershed)
   {
-    // Get the currently engaged layer
-    ImageWrapperBase *context_layer = gid->FindLayer(m_ContextLayerId, false);
-    if (!context_layer)
-      context_layer = gid->GetMain();
-
-    // Obtain a cast to float pipeline from the layer
+    // Obtain a cast to float pipeline from the layer chosen above
     // TODO: this causes repeated memory allocation - should probably create when entering mode
     auto *img_source =
-      context_layer->CreateCastToFloatPipeline("WatershedBrush", this->m_Parent->GetId());
+      watershed_layer->CreateCastToFloatPipeline("WatershedBrush", this->m_Parent->GetId());
 
     // Precompute the watersheds
     m_Watershed->PrecomputeWatersheds(img_source,
@@ -403,7 +413,7 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
     m_Watershed->RecomputeWatersheds(pbs.watershed.level);
 
     // Release the casting pipeline
-    context_layer->ReleaseInternalPipeline("WatershedBrush", this->m_Parent->GetId());
+    watershed_layer->ReleaseInternalPipeline("WatershedBrush", this->m_Parent->GetId());
   }
 
   // Shift vector (different depending on whether the brush has odd/even diameter

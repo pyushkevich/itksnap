@@ -491,10 +491,14 @@ SET(LOGIC_HEADERS
   Logic/Slicing/IntensityCurveInterface.h
   Logic/Slicing/IntensityCurveVTK.h
   Logic/Slicing/ColorLookupTable.h
+  Logic/Slicing/ImageLabelIntegrator.h
+  Logic/Slicing/ImageLabelIntegrator.txx
   Logic/Slicing/IntensityToColorLookupTableImageFilter.h
   Logic/Slicing/LookupTableIntensityMappingFilter.h
   Logic/Slicing/NonOrthogonalSlicer.h
   Logic/Slicing/NonOrthogonalSlicer.txx
+  Logic/Slicing/NonOrthogonalSlicerWorkerTraits.h
+  Logic/Slicing/NonOrthogonalSlicerWorkerTraits.txx
   Logic/Slicing/RGBALookupTableIntensityMappingFilter.h
   Logic/WorkspaceAPI/CSVParser.h
   Logic/WorkspaceAPI/FormattedTable.h
@@ -1316,9 +1320,17 @@ qt_add_translations(
 ENABLE_TESTING()
 
 # Acceleration factor for GUI tests
-SET(SNAP_GUI_TEST_ACCEL "1.0" CACHE STRING 
+SET(SNAP_GUI_TEST_ACCEL "1.0" CACHE STRING
     "Acceleration factor for GUI tests, use <1 on VMS and slow machines")
 MARK_AS_ADVANCED(SNAP_GUI_TEST_ACCEL)
+
+# Qt platform plugin for GUI tests (sets QT_QPA_PLATFORM). Empty means the
+# default platform, which shows windows on the desktop. Use "offscreen" to run
+# the GUI tests without any windows, so the desktop stays usable while they run.
+SET(SNAP_GUI_TEST_QT_PLATFORM "" CACHE STRING
+    "Qt platform for GUI tests (e.g. offscreen); empty for the default platform")
+SET_PROPERTY(CACHE SNAP_GUI_TEST_QT_PLATFORM PROPERTY STRINGS "" offscreen minimal)
+MARK_AS_ADVANCED(SNAP_GUI_TEST_QT_PLATFORM)
 
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
@@ -1334,6 +1346,7 @@ SET(GUI_TESTS
   RegionCompetition
   RandomForest
   RandomForestBailOut
+  SnakeClassificationNavigation
   MeshImport
   MeshWorkspace
   SegmentationMesh
@@ -1341,10 +1354,16 @@ SET(GUI_TESTS
   VolumeRendering
   Reloading
   SegmentationSwitching
+  SliceIndexRange
+  AnnotationReferenceSpace
   4DToMC
   MCTo4D
   DeformationGrid
   ZoomToFitCycle
+  SnakeROIPanel
+  ReloadSegmentation
+  AdaptiveBrush
+  RegistrationReslice
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
@@ -1507,6 +1526,32 @@ TARGET_INCLUDE_DIRECTORIES(TestVTIImageIO PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestVTIImageIO COMMAND TestVTIImageIO ${TEMP})
 
+# Test: slicing from preview pipelines that only buffer the requested slice
+ADD_EXECUTABLE(TestIRISSlicerPreview
+    Testing/Logic/TestIRISSlicerPreview.cxx)
+TARGET_LINK_LIBRARIES(TestIRISSlicerPreview ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestIRISSlicerPreview PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestIRISSlicerPreview COMMAND TestIRISSlicerPreview)
+
+# Test: checks when loading segmentations (overlap, single time point in 4D)
+ADD_EXECUTABLE(TestSegmentationLoadChecks
+    Testing/Logic/TestSegmentationLoadChecks.cxx)
+TARGET_LINK_LIBRARIES(TestSegmentationLoadChecks ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestSegmentationLoadChecks PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestSegmentationLoadChecks
+  COMMAND TestSegmentationLoadChecks ${TESTDATA_DIR} ${TEMP})
+
+# Test: segmentation statistics with upsampled segmentations and rotated overlays
+ADD_EXECUTABLE(TestSegmentationStatistics
+    Testing/Logic/TestSegmentationStatistics.cxx)
+TARGET_LINK_LIBRARIES(TestSegmentationStatistics ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestSegmentationStatistics PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestSegmentationStatistics
+  COMMAND TestSegmentationStatistics ${TESTDATA_DIR} ${TEMP})
+
 # Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
 # are passed on to ITK-SNAP, e.g. images to load from the command line.
 FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
@@ -1524,6 +1569,11 @@ FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
   ENDIF(WIN32)
   SET_PROPERTY(TEST ${GUI_TEST} PROPERTY TIMEOUT 180)
 
+  # Optionally run without windows (see SNAP_GUI_TEST_QT_PLATFORM)
+  IF(SNAP_GUI_TEST_QT_PLATFORM)
+    SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT QT_QPA_PLATFORM=${SNAP_GUI_TEST_QT_PLATFORM})
+  ENDIF()
+
 ENDFUNCTION()
 
 # Set up a test for each GUI test
@@ -1539,6 +1589,25 @@ ADD_SNAP_GUI_TEST(RemoteSaveLayer
 ADD_SNAP_GUI_TEST(RemoteSaveWorkspace
   -w "${GITHUB_TESTDATA_URL}/MRIcrop-with-mesh.itksnap")
 SET_TESTS_PROPERTIES(RemoteSaveLayer RemoteSaveWorkspace PROPERTIES LABELS "Remote")
+
+# Workspace with two segmentations, the last of which is marked as active by
+# itksnap-wt; the GUI test checks that it opens with that segmentation active
+SET(WT_ACTIVE_SEG_WORKSPACE "${TEMP}/WorkspaceActiveSegmentation_wt.itksnap")
+ADD_TEST(NAME WorkspaceToolSetActiveSeg
+  COMMAND itksnap-wt
+    -layers-set-main "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz"
+    -layers-add-seg "${TESTDATA_DIR}/MRIcrop-seg.gipl.gz"
+    -layers-add-seg "${TESTDATA_DIR}/MRIcrop-seg-hippoR-04mm.nii.gz"
+    -layers-pick 1 -props-set-active-seg
+    -layers-pick 2 -props-set-active-seg
+    -o "${WT_ACTIVE_SEG_WORKSPACE}")
+SET_TESTS_PROPERTIES(WorkspaceToolSetActiveSeg PROPERTIES
+  FIXTURES_SETUP WorkspaceActiveSegmentationData)
+
+ADD_SNAP_GUI_TEST(WorkspaceActiveSegmentation -w "${WT_ACTIVE_SEG_WORKSPACE}")
+SET_TESTS_PROPERTIES(WorkspaceActiveSegmentation PROPERTIES
+  FIXTURES_REQUIRED WorkspaceActiveSegmentationData)
+
 
 # Orientation widget test
 SET(TEST_ORIENTATION_WIDGET_HEADERS

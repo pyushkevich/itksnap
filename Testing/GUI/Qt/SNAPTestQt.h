@@ -75,6 +75,10 @@ public slots:
   // Find a child of an object visible to the script
   QObject *findChild(QObject *parent, QString child);
 
+  // Find a visible child widget by name. Use this for dialogs that are kept
+  // after being closed, so that a hidden earlier instance is not returned.
+  QObject *findVisibleChild(QObject *parent, QString child);
+
   // Find a widget by name globally
   QWidget *findWidget(QString widgetName);
 
@@ -176,6 +180,8 @@ protected:
   MainImageWindow *m_Parent;
 
   // Helper functions
+  bool checkObject(QObject *obj, QString what);
+  QObject *findRequiredChild(QObject *parent, QString child);
   QModelIndex findItem(QObject *container, QVariant text);
   QString screenshotInternal(QString filename, QObject *target, bool explicit_target);
   void printChildrenRecursive(QObject *parent, QString offset, const char *className=NULL);

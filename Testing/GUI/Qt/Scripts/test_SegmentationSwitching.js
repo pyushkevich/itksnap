@@ -134,3 +134,42 @@ engine.trigger("actionActivatePreviousSegmentationLayer");  // back to A
 engine.sleep(1000);
 engine.validateChildProperty(mainwin, "btnUpdateMesh", "enabled", true);
 updateMeshAndCheck();
+
+//=== The snake ROI is stored in reference space voxels, so it must be reset
+//=== when switching to a segmentation with a different geometry. Set a small
+//=== ROI on A (main image grid), then switch to hippo-R (0.4mm grid).
+engine.trigger("actionSnake");
+engine.sleep(500);
+var roipanel = engine.findChild(mainwin, "pageSnakeTool");
+engine.setChildProperty(roipanel, "inIndexX", "value", 2);
+engine.setChildProperty(roipanel, "inIndexY", "value", 2);
+engine.setChildProperty(roipanel, "inIndexZ", "value", 2);
+engine.setChildProperty(roipanel, "inSizeX", "value", 3);
+engine.setChildProperty(roipanel, "inSizeY", "value", 3);
+engine.setChildProperty(roipanel, "inSizeZ", "value", 3);
+engine.sleep(500);
+
+engine.trigger("actionActivatePreviousSegmentationLayer");  // A -> hippo-R
+engine.sleep(1000);
+engine.validateChildProperty(mainwin, "inCursorX", "maximum", maxR.x);
+
+// (the ROI panel shows 1-based voxel indices)
+engine.validateChildProperty(roipanel, "inIndexX", "value", 1);
+engine.validateChildProperty(roipanel, "inIndexY", "value", 1);
+engine.validateChildProperty(roipanel, "inIndexZ", "value", 1);
+// (the size is that of hippo-R itself, as reported by the Layer Inspector)
+engine.validateChildProperty(roipanel, "inSizeX", "value", parseInt(infoR.dimX));
+engine.validateChildProperty(roipanel, "inSizeY", "value", parseInt(infoR.dimY));
+engine.validateChildProperty(roipanel, "inSizeZ", "value", parseInt(infoR.dimZ));
+
+//=== The adaptive (watershed) brush works on the image's voxels, so it is only
+//=== available when the image is on the active segmentation's grid. hippo-R
+//=== (0.4mm) is not; blank segmentation A (main image grid) is.
+engine.trigger("actionPaintbrush");
+engine.sleep(500);
+var btnAdaptive = engine.findChild(mainwin, "btnWatershed");
+engine.validateProperty(btnAdaptive, "enabled", false);
+
+engine.trigger("actionActivateNextSegmentationLayer");  // hippo-R -> A
+engine.sleep(1000);
+engine.validateProperty(btnAdaptive, "enabled", true);

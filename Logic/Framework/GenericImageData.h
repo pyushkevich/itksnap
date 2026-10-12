@@ -268,9 +268,10 @@ public:
 
   /**
    * Set which segmentation layer is active. The layer should already
-   * have been added to the list of segmentation layers.
+   * have been added to the list of segmentation layers. If there is no
+   * segmentation layer with this id, the active segmentation is unchanged.
    */
-  void SetActiveSegmentationLayer(unsigned int unique_id);
+  void SetActiveSegmentationLayer(unsigned long unique_id);
 
   /**
    * Add a secondary segmentation image without overriding the main one
@@ -316,8 +317,9 @@ public:
   void UnloadOverlayLast();
   void UnloadOverlay(ImageWrapperBase *overlay);
 
-  /** React when an image is reloaded from disk */
-  void OnActiveSegmentationReload();
+  /** React when a segmentation is reloaded from disk: point all layers at the
+   *  current reference space (the reloaded image may have replaced it) */
+  void OnSegmentationReload();
 
   /**
    * Unload a specific mesh layer
@@ -365,9 +367,10 @@ public:
 
   /**
    * Set the cursor (crosshairs) position, in pixel coordinates relative to the
-   * active segmentation layer.
+   * active segmentation layer. All layers not yet at this position are updated.
+   * CursorUpdateEvent is fired if any layer changed, or always if force is set.
    */
-  virtual void SetCursorPosition(const Vector3i &crosshairs);
+  virtual void SetCursorPosition(const Vector3i &crosshairs, bool force = false);
 
   /**
    * Get the time point selected

@@ -6,6 +6,8 @@
 #include "ImageWrapperTraits.h"
 #include <itkImageIOBase.h>
 #include <itkImageBase.h>
+#include <cmath>
+#include <limits>
 
 
 /* =============================
@@ -164,6 +166,45 @@ LoadSegmentationImageDelegate
     }
 }
 
+// Check a single time point segmentation that is loaded into the current time
+// point of an existing (4D) segmentation layer
+static void
+ValidateImageForTimePoint(itk::ImageBase<4> *native, itk::ImageBase<3> *target, IRISWarningList &wl)
+{
+  auto sz_native = native->GetLargestPossibleRegion().GetSize();
+  auto sz_target = target->GetLargestPossibleRegion().GetSize();
+  for (unsigned int i = 0; i < 3; i++)
+  {
+    if (sz_native[i] != sz_target[i])
+      throw IRISException("Error: Mismatched dimensions. "
+                          "The segmentation image you loaded has a single time point, so it "
+                          "replaces the current time point of the selected segmentation. Its "
+                          "dimensions (%d x %d x %d) must match those of the selected "
+                          "segmentation (%d x %d x %d).",
+                          (int)sz_native[0], (int)sz_native[1], (int)sz_native[2],
+                          (int)sz_target[0], (int)sz_target[1], (int)sz_target[2]);
+  }
+
+  bool match = true;
+  for (unsigned int i = 0; i < 3; i++)
+  {
+    if (fabs(native->GetSpacing()[i] - target->GetSpacing()[i]) > 1.0e-6 * target->GetSpacing()[i] ||
+        fabs(native->GetOrigin()[i] - target->GetOrigin()[i]) > 1.0e-4)
+      match = false;
+    for (unsigned int j = 0; j < 3; j++)
+      if (fabs(native->GetDirection()(i, j) - target->GetDirection()(i, j)) > 1.0e-4)
+        match = false;
+  }
+
+  if (!match)
+    wl.push_back(
+      IRISWarning("Warning: Header Mismatch."
+                  "The segmentation image you loaded has a single time point, so it replaces the "
+                  "current time point of the selected segmentation. It has the same dimensions, "
+                  "but a different spacing, origin or orientation. Its voxels have been placed "
+                  "on the grid of the selected segmentation, and its own header was ignored."));
+}
+
 void
 LoadSegmentationImageDelegate ::ValidateImage(GuidedNativeImageIO *io, IRISWarningList &wl)
 {
@@ -171,6 +212,18 @@ LoadSegmentationImageDelegate ::ValidateImage(GuidedNativeImageIO *io, IRISWarni
   GenericImageData  *id = m_Driver->GetCurrentImageData();
   itk::ImageBase<4> *main = id->GetMain()->GetImage4DBase();
   itk::ImageBase<4> *native = io->GetNativeImage();
+
+  // A single time point loaded into a 4D workspace replaces the current time
+  // point of the selected segmentation, voxel for voxel. It must match the
+  // size of that segmentation (not of the main image), and its own header is
+  // not used.
+  LabelImageWrapper *target_seg = m_Driver->GetSelectedSegmentationLayer();
+  if (!m_Driver->IsSnakeModeActive() && id->GetNumberOfTimePoints() > 1 &&
+      native->GetLargestPossibleRegion().GetSize()[3] == 1 && target_seg)
+  {
+    ValidateImageForTimePoint(native, target_seg->GetImageBase(), wl);
+    return;
+  }
 
   // Check the header properties
   // Check if there is a discrepancy in the header fields. This will not
@@ -244,25 +297,49 @@ LoadSegmentationImageDelegate ::ValidateImage(GuidedNativeImageIO *io, IRISWarni
                   object.c_str()));
   }
 
-  // Check the overlap volume of the image and segmentation. If overlap volume is zero
-  // issue a warning. TODO: this requires some geometry code, for now we can do a very
-  // simple check if the center of main is outside of segmentation and center of
-  // segmentation is outside of main, issue a warning
-  typename itk::ContinuousIndex<double, 4> idx_main_ctr, idx_seg_ctr;
-  typename itk::Index<4> idx_seg_in_main, idx_main_in_seg;
-  itk::Point<double, 4> ctr_main, ctr_seg;
-  for (unsigned int i = 0; i < 4; i++)
+  // Check whether the image and segmentation overlap at all, and warn if not.
+  // The box covered by the segmentation's voxels is mapped into the main image
+  // voxel space, and its bounding box is compared with the main image's box.
+  // For oblique images, the bounding box is larger than the segmentation, so
+  // this only warns when there is clearly no overlap.
+  const auto &rgn_main = main->GetLargestPossibleRegion();
+  const auto &rgn_seg = native->GetLargestPossibleRegion();
+  double bb_lo[3], bb_hi[3];
+  for (unsigned int d = 0; d < 3; d++)
   {
-    idx_main_ctr[i] = main->GetLargestPossibleRegion().GetIndex()[i] + main->GetLargestPossibleRegion().GetSize()[i] * 0.5;
-    idx_seg_ctr[i] = native->GetLargestPossibleRegion().GetIndex()[i] + native->GetLargestPossibleRegion().GetSize()[i] * 0.5;
+    bb_lo[d] = std::numeric_limits<double>::max();
+    bb_hi[d] = -std::numeric_limits<double>::max();
   }
-  main->TransformContinuousIndexToPhysicalPoint(idx_main_ctr, ctr_main);
-  native->TransformContinuousIndexToPhysicalPoint(idx_seg_ctr, ctr_seg);
-  main->TransformPhysicalPointToIndex(ctr_seg, idx_seg_in_main);
-  native->TransformPhysicalPointToIndex(ctr_main, idx_main_in_seg);
 
-  if (!main->GetLargestPossibleRegion().IsInside(idx_seg_in_main) &&
-      !native->GetLargestPossibleRegion().IsInside(idx_main_in_seg))
+  for (unsigned int corner = 0; corner < 8; corner++)
+  {
+    itk::ContinuousIndex<double, 4> cix_seg, cix_main;
+    for (unsigned int d = 0; d < 3; d++)
+    {
+      cix_seg[d] = rgn_seg.GetIndex(d) - 0.5 + ((corner & (1 << d)) ? rgn_seg.GetSize(d) : 0);
+    }
+    cix_seg[3] = rgn_seg.GetIndex(3);
+
+    itk::Point<double, 4> pt;
+    native->TransformContinuousIndexToPhysicalPoint(cix_seg, pt);
+    main->TransformPhysicalPointToContinuousIndex(pt, cix_main);
+    for (unsigned int d = 0; d < 3; d++)
+    {
+      bb_lo[d] = std::min(bb_lo[d], cix_main[d]);
+      bb_hi[d] = std::max(bb_hi[d], cix_main[d]);
+    }
+  }
+
+  bool overlap = true;
+  for (unsigned int d = 0; d < 3; d++)
+  {
+    double main_lo = rgn_main.GetIndex(d) - 0.5;
+    double main_hi = rgn_main.GetIndex(d) + rgn_main.GetSize(d) - 0.5;
+    if (bb_hi[d] <= main_lo || bb_lo[d] >= main_hi)
+      overlap = false;
+  }
+
+  if (!overlap)
   {
     wl.push_back(
       IRISWarning("Warning: Segmentation and main image do not overlap."
@@ -490,9 +567,6 @@ ReloadAnatomicWrapperDelegate
 
   auto *aw = dynamic_cast<WrapperType*>(m_Wrapper.GetPointer());
 
-  // Get the current cursor position before reload
-  auto cursor = m_Driver->GetCurrentImageData()->GetCursorPositionRAS();
-
   if (!aw)
     {
     std::ostringstream oss;
@@ -539,16 +613,22 @@ ReloadSegmentationWrapperDelegate
 
 
   auto labelImage = m_Driver->GetIRISImageData()->CompressSegmentation(m_IO);
+
+  // If this is the active segmentation, the other layers refer to its image as
+  // their reference space through weak pointers. Keep the old image alive until
+  // they have been pointed at the new one, or they would read freed memory.
+  SmartPtr<itk::ImageBase<3>> old_image = labelWrapper->GetImageBase();
   labelWrapper->SetImage4D(labelImage);
 
-
-  // This line takes care of stale pointers to reference_space in image wrappers
+  // Point all layers at the (possibly new) reference space. This is needed for
+  // an inactive segmentation too, since SetImage4D makes the reloaded layer its
+  // own reference space.
   // TODO: all this reload logic should sit inside of GenericImageData
+  m_Driver->GetCurrentImageData()->OnSegmentationReload();
+  old_image = nullptr;
+
   if(m_Wrapper == m_Driver->GetCurrentImageData()->GetActiveSegmentationLayer())
-  {
-    m_Driver->GetCurrentImageData()->OnActiveSegmentationReload();
     m_Driver->GetCurrentImageData()->SetCursorPositionRAS(cursor);
-  }
 
   m_Driver->InvokeEvent(LayerChangeEvent()); // important, to trigger renderer rebuild assemblies
 }

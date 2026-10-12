@@ -912,6 +912,21 @@ void WorkspaceAPI::SetLayerNickname(const string &layer_key, const string &value
   GetLayerFolder(layer_key)[target_key] << value;
 }
 
+void WorkspaceAPI::SetActiveSegmentationLayer(const string &layer_key)
+{
+  if(!IsKeyValidLayer(layer_key))
+    throw IRISException("Invalid layer key %s", layer_key.c_str());
+
+  if(GetLayerFolder(layer_key)["Role"][""] != std::string("SegmentationRole"))
+    throw IRISException("Layer %s is not a segmentation layer", layer_key.c_str());
+
+  // Only one layer may be marked as the active segmentation
+  for(int i = 0; i < this->GetNumberOfLayers(); i++)
+    GetLayerFolder(i).RemoveKeys("ActiveSegmentation");
+
+  GetLayerFolder(layer_key)["ActiveSegmentation"] << true;
+}
+
 void WorkspaceAPI::SetLayerColormapPreset(const string &layer_key, const string &value)
 {
   GetLayerFolder(layer_key)["LayerMetaData.DisplayMapping.ColorMap.Preset"] << value;

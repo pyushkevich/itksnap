@@ -168,6 +168,21 @@ protected:
   // Apply move command to annotation handle
   void MoveAnnotationHandle(AbstractAnnotation *ann, int handle, const Vector3d &deltaPhys);
 
+  // Annotations are stored in main image voxel coordinates, while the slice
+  // is a slice of the reference space (the active segmentation), which may
+  // be a different grid. These helpers relate the two.
+
+  // The main image axis that is closest to the normal of this view. This is
+  // the plane assigned to annotations created in this view.
+  int GetViewPlaneInMainImage() const;
+
+  // Whether an annotation belongs to the plane of this view
+  bool IsAnnotationInViewPlane(const AbstractAnnotation *annot) const;
+
+  // The reference space slice index (as returned by GenericSliceModel::
+  // GetSliceIndex) on which an annotation lies in this view
+  int GetAnnotationSliceIndex(const AbstractAnnotation *annot) const;
+
   // Landmark editor: text
   SmartPtr<AbstractSimpleStringProperty> m_SelectedLandmarkTextModel;
   bool GetSelectedLandmarkTextValue(std::string &value);

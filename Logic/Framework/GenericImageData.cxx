@@ -102,7 +102,7 @@ Vector3d
 GenericImageData
 ::GetReferenceSpaceOrigin()
 {
-  return this->GetReferenceSpace()->GetSpacing().GetVnlVector();
+  return this->GetReferenceSpace()->GetOrigin().GetVnlVector();
 }
 
 template<unsigned int VDim>
@@ -200,6 +200,11 @@ GenericImageData::GetFullExtentImageRegion()
   // Iterate over layers
   for (LayerIterator it = this->GetLayers(ALL_ROLES); !it.IsAtEnd(); ++it)
   {
+    // Skip layers without image data, e.g., the level set image in SNAP mode
+    // before (or after going back from) the evolution step
+    if (!it.GetLayer()->IsInitialized())
+      continue;
+
     // Extents of the layer in reference space voxel units
     auto rgn_layer_ref_space = this->GetLayerRegionInReferenceSpace(it.GetLayer());
 
@@ -523,6 +528,13 @@ GenericImageData
   if(checkSpace)
     overlay->CopyImageCoordinateTransform(m_MainImageWrapper);
 
+  // The overlay must be displayed in the current reference space (the active
+  // segmentation). A wrapper created from an image (e.g. a resliced image) is
+  // its own reference space, and would otherwise be drawn as if its voxels
+  // were those of the reference space.
+  if(this->GetReferenceSpace() && overlay->GetReferenceSpace() != this->GetReferenceSpace())
+    overlay->SetReferenceSpace(this->GetReferenceSpace());
+
   // Add to the overlay wrapper list
   PushBackImageWrapper(OVERLAY_ROLE, overlay);
 }
@@ -554,7 +566,7 @@ void GenericImageData
 }
 
 void
-GenericImageData::OnActiveSegmentationReload()
+GenericImageData::OnSegmentationReload()
 {
   this->UpdateReferenceImageInAllLayers();
 }
@@ -594,12 +606,6 @@ GenericImageData
 
   // Disconnect from the pipeline right away
   imgLabel->DisconnectPipeline();
-
-  // The header of the label image is made to match that of the grey image
-  // TODO: this old behavior should now be obsolete, but we might want to warn user
-  // imgLabel->SetOrigin(this->GetMain()->GetImage4DBase()->GetOrigin());
-  // imgLabel->SetSpacing(this->GetMain()->GetImage4DBase()->GetSpacing());
-  // imgLabel->SetDirection(this->GetMain()->GetImage4DBase()->GetDirection());
 
   // Return the image
   return imgLabel;
@@ -840,7 +846,7 @@ GenericImageData::SetCursorPositionRAS(const Vector3d &crosshairs_ras)
 
 void
 GenericImageData
-::SetCursorPosition(const Vector3i &crosshairs)
+::SetCursorPosition(const Vector3i &crosshairs, bool force)
 {
   auto idx_ch = to_itkIndex(crosshairs);
 
@@ -848,17 +854,23 @@ GenericImageData
   itkAssertOrThrowMacro(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized(),
                         "Active segmentation not initialized in GenericImageData::SetCrosshairs");
 
-  // Ignore if the crosshair is already set
-  if(m_ActiveSegmentationWrapper->GetSliceIndex() == idx_ch)
-    return;
-
-  // Set crosshairs in all wrappers
+  // Set crosshairs in all wrappers that do not have them yet. This is checked
+  // per layer, not just for the active segmentation, because a layer that was
+  // just added (or whose reference space just changed) may not be in sync.
+  bool changed = false;
   for(LayerIterator lit(this); !lit.IsAtEnd(); ++lit)
-    if(lit.GetLayer() && lit.GetLayer()->IsInitialized())
-      lit.GetLayer()->SetSliceIndex(idx_ch);
+    {
+    ImageWrapperBase *layer = lit.GetLayer();
+    if(layer && layer->IsInitialized() && layer->GetSliceIndex() != idx_ch)
+      {
+      layer->SetSliceIndex(idx_ch);
+      changed = true;
+      }
+    }
 
   // Fire a cursor update event
-  InvokeEvent(CursorUpdateEvent());
+  if(changed || force)
+    InvokeEvent(CursorUpdateEvent());
 }
 
 unsigned int
@@ -1101,7 +1113,7 @@ GenericImageData::GetActiveSegmentationLayer()
 }
 
 void
-GenericImageData::SetActiveSegmentationLayer(unsigned int unique_id)
+GenericImageData::SetActiveSegmentationLayer(unsigned long unique_id)
 {
   for(auto &wrapper : m_Wrappers[LABEL_ROLE])
   {
@@ -1112,7 +1124,9 @@ GenericImageData::SetActiveSegmentationLayer(unsigned int unique_id)
     }
   }
 
-  this->SetActiveSegmentationLayerInternal(nullptr);
+  // An unknown id (e.g., of a layer that has since been removed) leaves the
+  // current active segmentation in place. Clearing it would leave the layers
+  // without a reference space.
 }
 
 void GenericImageData::SetActiveSegmentationLayerInternal(LabelImageWrapper *layer)
@@ -1132,7 +1146,12 @@ void GenericImageData::PushBackImageWrapper(LayerRole role,
 
   // Rebroadcast the wrapper-related events as our own events
   Rebroadcaster::RebroadcastAsSourceEvent(wrapper, WrapperChangeEvent(), this, m_FullExtentCacheCallback);
-  
+
+  // A new layer starts out at slice index zero, so give it the current cursor
+  // position. Otherwise it shows the wrong slice until the cursor is moved.
+  if(m_ActiveSegmentationWrapper && m_ActiveSegmentationWrapper->IsInitialized())
+    this->SetCursorPosition(this->GetCursorPosition());
+
   // Fire the layer change event
   this->InvokeEvent(LayerChangeEvent());
 

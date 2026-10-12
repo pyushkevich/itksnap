@@ -91,9 +91,46 @@ SNAPTestQt::LaunchTest(std::string test)
   m_Worker->start();
 }
 
+// Engine calls on a null object (e.g., a widget that was not found because
+// its name is misspelled or a dialog did not open) fail the test with a
+// script error, instead of crashing the application
+bool SNAPTestQt::checkObject(QObject *obj, QString what)
+{
+  if(obj)
+    return true;
+
+  m_ScriptEngine->throwError(QJSValue::ReferenceError, what);
+  return false;
+}
+
+QObject *SNAPTestQt::findRequiredChild(QObject *parent, QString child)
+{
+  if(!checkObject(parent, QString("Parent of child %1 is null").arg(child)))
+    return nullptr;
+
+  QObject *obj = parent->findChild<QObject *>(child);
+  checkObject(obj, QString("Child %1 not found").arg(child));
+  return obj;
+}
+
 QObject *SNAPTestQt::findChild(QObject *parent, QString child)
 {
+  if(!checkObject(parent, QString("findChild(%1) called on a null parent").arg(child)))
+    return nullptr;
+
   return parent->findChild<QObject *>(child);
+}
+
+QObject *SNAPTestQt::findVisibleChild(QObject *parent, QString child)
+{
+  if(!checkObject(parent, QString("findVisibleChild(%1) called on a null parent").arg(child)))
+    return nullptr;
+
+  foreach(QWidget *w, parent->findChildren<QWidget *>(child))
+    if(w->isVisible())
+      return w;
+
+  return NULL;
 }
 
 QWidget *SNAPTestQt::findWidget(QString widgetName)
@@ -161,8 +198,11 @@ void SNAPTestQt::comboBoxSelect(QObject *widget, QString itemText)
 {
   auto *combo = dynamic_cast<QComboBox *>(widget);
   if(!combo)
+    {
     m_ScriptEngine->throwError(QJSValue::ReferenceError,
                                QString("comboBoxSelect target not a combo box"));
+    return;
+    }
 
   int row = findItemRow(widget, itemText).toInt();
   setProperty(widget, "currentIndex", row);
@@ -173,6 +213,9 @@ void SNAPTestQt::comboBoxSelect(QObject *widget, QString itemText)
 QVariant SNAPTestQt::getProperty(QObject *obj, QString name)
 {
   QVariant result;
+  if(!checkObject(obj, QString("getProperty(%1) called on a null object").arg(name)))
+    return result;
+
   QByteArray prop = name.toUtf8();
   QMetaObject::invokeMethod(obj, [obj, prop, &result]() {
       result = obj->property(prop.constData());
@@ -182,6 +225,9 @@ QVariant SNAPTestQt::getProperty(QObject *obj, QString name)
 
 void SNAPTestQt::setProperty(QObject *obj, QString name, QVariant value)
 {
+  if(!checkObject(obj, QString("setProperty(%1) called on a null object").arg(name)))
+    return;
+
   QByteArray prop = name.toUtf8();
   QMetaObject::invokeMethod(obj, [obj, prop, value]() {
       obj->setProperty(prop.constData(), value);
@@ -195,6 +241,9 @@ void SNAPTestQt::setProperty(QObject *obj, QString name, QVariant value)
 // the target actually declares works, not just a hardcoded set.
 void SNAPTestQt::callMethod(QObject *obj, QString method, QVariantList args, bool block)
 {
+  if(!checkObject(obj, QString("Method %1 called on a null object").arg(method)))
+    return;
+
   Qt::ConnectionType ct = block ? Qt::BlockingQueuedConnection : Qt::QueuedConnection;
   const QMetaObject *mo = obj->metaObject();
   QByteArray name = method.toUtf8();
@@ -224,17 +273,26 @@ void SNAPTestQt::callMethod(QObject *obj, QString method, QVariantList args, boo
 
 QVariant SNAPTestQt::getChildProperty(QObject *parent, QString childName, QString propName)
 {
-  return getProperty(findChild(parent, childName), propName);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return QVariant();
+  return getProperty(child, propName);
 }
 
 void SNAPTestQt::setChildProperty(QObject *parent, QString childName, QString propName, QVariant value)
 {
-  setProperty(findChild(parent, childName), propName, value);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  setProperty(child, propName, value);
 }
 
 void SNAPTestQt::callChildMethod(QObject *parent, QString childName, QString method, QVariantList args, bool block)
 {
-  callMethod(findChild(parent, childName), method, args, block);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  callMethod(child, method, args, block);
 }
 
 void SNAPTestQt::click(QObject *obj, bool block)
@@ -244,7 +302,10 @@ void SNAPTestQt::click(QObject *obj, bool block)
 
 void SNAPTestQt::clickChild(QObject *parent, QString childName, bool block)
 {
-  click(findChild(parent, childName), block);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  click(child, block);
 }
 
 void SNAPTestQt::toggle(QObject *obj, bool block)
@@ -259,7 +320,10 @@ void SNAPTestQt::close(QObject *obj, bool block)
 
 void SNAPTestQt::closeChild(QObject *parent, QString childName, bool block)
 {
-  close(findChild(parent, childName), block);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  close(child, block);
 }
 
 void SNAPTestQt::validateProperty(QObject *obj, QString name, QVariant expected, double precision)
@@ -270,7 +334,10 @@ void SNAPTestQt::validateProperty(QObject *obj, QString name, QVariant expected,
 void SNAPTestQt::validateChildProperty(QObject *parent, QString childName, QString propName,
                                         QVariant expected, double precision)
 {
-  validateValue(getChildProperty(parent, childName, propName), expected, precision);
+  QObject *child = findRequiredChild(parent, childName);
+  if(!child)
+    return;
+  validateValue(getProperty(child, propName), expected, precision);
 }
 
 
@@ -468,6 +535,9 @@ void SNAPTestQt::testFailed(QString reason)
 
 void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QString eventType, QString button)
 {
+  if(!checkObject(object, QString("postMouseEvent called on a null object")))
+    return;
+
   // Special case handlers
   if(eventType == "click")
     {
@@ -504,6 +574,9 @@ void SNAPTestQt::postMouseEvent(QObject *object, double rel_x, double rel_y, QSt
 
 void SNAPTestQt::postKeyEvent(QObject *object, QString key)
 {
+  if(!checkObject(object, QString("postKeyEvent(%1) called on a null object").arg(key)))
+    return;
+
   // We need the code to run in the main thread
   QMetaObject::invokeMethod(
     this, "postKeyEventInternal", Qt::QueuedConnection, Q_ARG(QObject *, object), Q_ARG(QString, key));

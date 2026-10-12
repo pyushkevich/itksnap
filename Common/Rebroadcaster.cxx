@@ -26,7 +26,14 @@ unsigned long Rebroadcaster ::Rebroadcast(itk::Object            *source,
       if(a->m_Target == target &&
          strcmp(a->m_SourceEventName, srcEvtName) == 0 &&
          strcmp(a->m_TargetEvent->GetEventName(), tgtEvtName) == 0)
+        {
+        // Callbacks (std::function) cannot be compared, so they are not part
+        // of the key. If the existing association has no callback, it adopts
+        // the new one, so that the callback is not silently lost.
+        if(callback && !a->m_UserCallback)
+          a->m_UserCallback = callback;
         return a->m_SourceTag;
+        }
       }
     }
 
@@ -239,12 +246,12 @@ void Rebroadcaster::Association::ConstCallback(const itk::Object *source, const 
     }
 #endif // SNAP_DEBUG_EVENTS
 
-  // Rebroadcast the target event
-  m_Target->InvokeEvent(*firedEvent);
-
   // If there is a bucket, record in it
   if(m_UserCallback)
     m_UserCallback(source, evt);
+
+  // Rebroadcast the target event
+  m_Target->InvokeEvent(*firedEvent);
 }
 
 

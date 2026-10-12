@@ -181,9 +181,13 @@ protected:
 /**
  * This class describes a collection of image annotations
  *
- * Image annotations are defined in voxel coordinate space. This helps keep the
- * annotations in place when header information changes. It also makes the internal
- * logic simpler.
+ * Image annotations are defined in the voxel coordinate space of the main image
+ * (voxel k spans [k, k+1)). This helps keep the annotations in place when header
+ * information changes. It also makes the internal logic simpler. The reference
+ * space used for display (the active segmentation) may be a different grid, so
+ * the GUI maps between the two (see GenericSliceModel::MapMainImageToSlice).
+ * The plane of an annotation is an axis of the main image, and the points of a
+ * line segment have the same coordinate along that axis.
  */
 class ImageAnnotationData : public itk::DataObject
 {

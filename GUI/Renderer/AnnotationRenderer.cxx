@@ -172,8 +172,8 @@ AnnotationRenderer::RenderOverTiledLayer(AbstractRenderContext *context,
       if (lsa)
       {
         // Draw the line
-        Vector3d p1 = parentModel->MapImageToSlice(lsa->GetSegment().first);
-        Vector3d p2 = parentModel->MapImageToSlice(lsa->GetSegment().second);
+        Vector3d p1 = parentModel->MapMainImageToSlice(lsa->GetSegment().first);
+        Vector3d p2 = parentModel->MapMainImageToSlice(lsa->GetSegment().second);
 
         Vector3d color = lsa->GetColor();
         context->SetPenColor(color, alpha);

@@ -36,9 +36,13 @@
 #include "GenericImageData.h"
 #include "IRISApplication.h"
 #include "ImageCollectionConstIteratorWithIndex.h"
+#include "ImageLabelIntegrator.h"
+#include "RLEImageRegionIterator.h"
 
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
+#include <cmath>
 
 
 using namespace std;
@@ -55,8 +59,16 @@ SegmentationStatistics
   // Get the selected segmentation layer
   LabelImageWrapper *seg = app->GetSelectedSegmentationLayer();
 
+  // Runs of voxels are taken from this segmentation, so their indices are in
+  // its own grid. Everything below uses that grid, so the statistics do not
+  // depend on which layer currently defines the reference space.
+  auto *seg_space = seg->GetImageBase();
+
   // A list of image sources
   vector<ScalarImageWrapperBase *> layers;
+
+  // A list of integrators that compute statistics for each image
+  vector<ImageLabelIntegratorPointer> integrators;
 
   // Clear the list of column names
   m_ImageStatisticsColumnNames.clear();
@@ -68,6 +80,7 @@ SegmentationStatistics
     if(lscalar)
       {
       m_ImageStatisticsColumnNames.push_back(lscalar->GetNickname());
+      integrators.push_back(lscalar->GetLabelIntegrator(seg_space));
       layers.push_back(lscalar);
       }
     else
@@ -80,8 +93,10 @@ SegmentationStatistics
         if(lvector->GetNumberOfComponents() > 1)
           oss << " [" << j << "]";
         m_ImageStatisticsColumnNames.push_back(oss.str());
-        layers.push_back(lvector->GetScalarRepresentation(
-              SCALAR_REP_COMPONENT, j));
+
+        lscalar = lvector->GetScalarRepresentation(SCALAR_REP_COMPONENT, j);
+        integrators.push_back(lscalar->GetLabelIntegrator(seg_space));
+        layers.push_back(lscalar);
         }
       }
     }
@@ -93,42 +108,42 @@ SegmentationStatistics
   m_Stats.clear();
 
   // Start the label image iteration
-  LabelImageWrapper::ConstIterator itLabel = seg->GetImageConstIterator();
-  itk::ImageRegion<3> region = itLabel.GetRegion();
+  using LabelImageType = LabelImageWrapper::ImageType;
+  using RLLineIter = itk::ImageRegionConstIterator<LabelImageType::BufferType>;
+  RLLineIter itLabel(seg->GetImage()->GetBuffer(), seg->GetImage()->GetBuffer()->GetBufferedRegion());
 
-  // Cache the entry to avoid many calls to std::map
-  LabelType runLabel = 0;
-  Entry *cachedEntry = &m_Stats[runLabel];
-  cachedEntry->resize(ngray);
-  itk::Index<3> runStart = itLabel.GetIndex();
-  long runLength = 0;
+  // Iterate over the run lines and collect image statistics under each label
+  itk::Index<3> runStart;
+  for (; !itLabel.IsAtEnd(); ++itLabel)
+  {
+    // Index of the start of the line
+    runStart[0] = seg->GetImage()->GetBufferedRegion().GetIndex(0);
+    for(unsigned int i = 1; i < 3; i++)
+      runStart[i] = itLabel.GetIndex()[i-1];
 
-  // Aggregate the statistical data
-  for( ; !itLabel.IsAtEnd(); ++itLabel, ++runLength)
+    // Get the RLE line
+    const LabelImageType::RLLine &line = itLabel.Value();
+    for (unsigned int i = 0; i < line.size(); i++)
     {
-    // Get the label and the corresponding entry (use cache to reduce time wasted in std::map)
-    LabelType label = itLabel.Value();
-    if(label != runLabel)
+      LabelType label = line[i].second;
+
+      auto &label_entry = m_Stats[label];
+      if(label_entry.count == 0)
+        label_entry.resize(ngray);
+
+      for(size_t j = 0; j < ngray; j++)
       {
-      // Record the statistics from the last run
-      this->RecordRunLength(ngray, layers, region, runStart, runLength, cachedEntry);
-
-      // Change the cached entry
-      runLabel = label;
-      cachedEntry = &m_Stats[runLabel];
-      if(cachedEntry->count == 0)
-        cachedEntry->resize(ngray);
-
-      runStart = itLabel.GetIndex();
-      runLength = 0;
+        integrators[j]->GetRunLengthIntensityStatistics(
+          runStart, line[i].first, label_entry.nvalid[j], label_entry.sum[j], label_entry.sumsq[j]);
       }
-    }
 
-  // Record the statistics from the last run
-  this->RecordRunLength(ngray, layers, region, runStart, runLength, cachedEntry);
+      runStart[0] += line[i].first;
+      label_entry.count += line[i].first;
+    }
+  }
 
   // Compute the size of a voxel, in mm^3
-  const double *spacing = id->GetReferenceSpace()->GetSpacing().GetDataPointer();
+  const double *spacing = seg_space->GetSpacing().GetDataPointer();
   double volVoxel = spacing[0] * spacing[1] * spacing[2];
   
   // Compute the mean and standard deviation
@@ -137,9 +152,24 @@ SegmentationStatistics
     Entry &entry = it->second;
     for(size_t j = 0; j < ngray; j++)
       {
-      // Map to native format
-      double mean = entry.sum[j] / entry.nvalid[j];
-      double stdev = sqrt((entry.sumsq[j] - entry.sum[j] * mean) / (entry.nvalid[j] - 1));
+      // The number of valid samples is fractional when samples fall on the
+      // border of the image, and close to zero when a label lies (almost)
+      // entirely outside of the image. In that case there is no meaningful
+      // mean or standard deviation, and they are reported as NaN (n/a).
+      double n = entry.nvalid[j];
+      double mean = nan(""), stdev = nan("");
+      if(n > 1e-6)
+        {
+        mean = entry.sum[j] / n;
+
+        // The sample standard deviation needs more than one sample. Rounding
+        // can make the sum of squared deviations slightly negative.
+        if(n > 1.0)
+          {
+          double ss = std::max(0.0, entry.sumsq[j] - entry.sum[j] * mean);
+          stdev = sqrt(ss / (n - 1.0));
+          }
+        }
 
       // Map with scale and shift
       entry.mean[j] = layers[j]->GetNativeIntensityMapping()->MapInternalToNative(mean);
@@ -149,24 +179,6 @@ SegmentationStatistics
       }
     entry.volume_mm3 = entry.count * volVoxel;
     }
-}
-
-void SegmentationStatistics
-::RecordRunLength(size_t ngray, vector<ScalarImageWrapperBase *> &layers,
-                  itk::ImageRegion<3> &region, itk::Index<3> &runStart,
-                  long runLength, Entry *cachedEntry)
-{
-  // Record the statistics from the last run
-  for(size_t j = 0; j < ngray; j++)
-    {
-    layers[j]->GetRunLengthIntensityStatistics(
-          region, runStart, runLength,
-          cachedEntry->nvalid.data_block() + j,
-          cachedEntry->sum.data_block() + j,
-          cachedEntry->sumsq.data_block() + j);
-    }
-
-  cachedEntry->count += runLength;
 }
 
 void SegmentationStatistics

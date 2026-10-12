@@ -35,6 +35,29 @@ function openMainImage(name)
     engine.sleep(1000);
 }
 
+function openOverlay(name)
+{
+    //=== Opening 'Add Image' (overlay) Dialog
+    engine.trigger("actionAdd_Overlay");
+    engine.sleep(2000);
+
+    //=== Entering Filename
+    var dialog = engine.findChild(mainwin, "wizImageIO");
+    engine.setChildProperty(dialog, "inFilename", "text", datadir + "/" + name);
+
+    //=== Pressing the 'next' button (this loads the image)
+    engine.clickChild(dialog, "qt_wizard_commit");
+    engine.sleep(1000);
+
+    //=== Keeping the default on the 'How should the image be displayed' page
+    engine.invoke(dialog, "next");
+    engine.sleep(1000);
+
+    //=== Pressing the 'finish' button
+    engine.clickChild(dialog, "qt_wizard_finish");
+    engine.sleep(1000);
+}
+
 function openMesh(name)
 {
     //=== Opening 'Open Mesh' Dialog

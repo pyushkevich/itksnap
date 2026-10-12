@@ -110,6 +110,7 @@ int usage(int rc)
   cout << "                                      Command will print out added polydata id if succeed." << endl;
   cout << "  -props-rename-file                : Rename the picked layer on disk and in workspace" << endl;
   cout << "  -props-set-nickname <name>        : Set the nickname of the selected layer" << endl;
+  cout << "  -props-set-active-seg             : Make the picked segmentation layer the active one" << endl;
   cout << "  -props-set-colormap <preset>      : Set colormap to a given system preset" << endl;
   cout << "  -props-set-contrast <map_spec>    : Set the contrast mapping specification" << endl;
   cout << "  -props-set-mcd <mcd_spec>         : Set the multi-component display mode (see below)" << endl;
@@ -642,6 +643,11 @@ int main(int argc, char *argv[])
       else if(arg == "-props-set-nickname" || arg == "-psn")
         {
         ws.SetLayerNickname(layer_folder, cl.read_string());
+        }
+
+      else if(arg == "-props-set-active-seg" || arg == "-psas")
+        {
+        ws.SetActiveSegmentationLayer(layer_folder);
         }
 
       else if(arg == "-props-set-colormap")

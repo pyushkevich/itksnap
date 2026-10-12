@@ -314,6 +314,9 @@ public:
   virtual void TransformReferenceCIndexToWrappedImageCIndex(
       const itk::ContinuousIndex<double, 3> &ref_index, itk::ContinuousIndex<double, 3> &img_index) const override;
 
+  virtual void TransformWrappedImageCIndexToReferenceCIndex(
+      const itk::ContinuousIndex<double, 3> &img_index, itk::ContinuousIndex<double, 3> &ref_index) const override;
+
   virtual bool ImageSpaceMatchesReferenceSpace() const override;
 
   /** Get the NIFTI s-form matrix for this image */
@@ -552,7 +555,8 @@ public:
    * as a new wrapper of the same type
    */
   virtual SmartPtr<ImageWrapperBase> ExtractROI4D(
-      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const override;
+      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand,
+      ImageBaseType *target_space = nullptr) const override;
 
 
   /**
@@ -566,10 +570,12 @@ public:
   /**
    * This method is used to perform a deep copy of a 3D region of each time points
    * of this image into another 4D image, potentially resampling the region to use a
-   * different voxel size
+   * different voxel size. The region is in the voxel space of target_space, or of
+   * the reference space if target_space is null.
    */
   virtual Image4DPointer DeepCopyRegion4D(const SNAPSegmentationROISettings &roi,
-                              itk::Command *progressCommand = NULL) const;
+                              itk::Command *progressCommand = NULL,
+                              ImageBaseType *target_space = nullptr) const;
 
 
   /**
@@ -751,6 +757,13 @@ public:
   /** Get the format of the image for display */
   virtual std::string GetPixelFormatDescription() override;
 
+  /**
+   * Return a smart pointer to an image label integrator that can be used
+   * to compute label statistics over the image. Run indices refer to
+   * label_space, or to the reference space if it is null.
+   */
+  virtual SmartPtr<ImageLabelIntegratorBase> GetLabelIntegrator(
+      ImageBaseType *label_space = nullptr) const override;
 
 protected:
 

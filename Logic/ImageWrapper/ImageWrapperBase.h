@@ -32,7 +32,7 @@ class Registry;
 class vtkImageImport;
 struct IRISDisplayGeometry;
 class TDigestDataObject;
-
+class ImageLabelIntegratorBase;
 
 template <unsigned int VDim> class MetaDataAccess;
 
@@ -321,10 +321,13 @@ public:
 
   /**
    * Extract a 3d region of interest from all time points in the image wrapper,
-   * as a new wrapper of the same type
+   * as a new wrapper of the same type. The region is in the voxel space of
+   * target_space, or of the reference space if target_space is null; the image
+   * is resampled onto that space if it is not already in it.
    */
   virtual SmartPtr<ImageWrapperBase> ExtractROI4D(
-      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand) const = 0;
+      const SNAPSegmentationROISettings &roi, itk::Command *progressCommand,
+      ImageBaseType *target_space = nullptr) const = 0;
 
   /** Transform a voxel index into a spatial position */
   virtual Vector3d TransformVoxelIndexToLPSCoordinates(const Vector3i &iVoxel) const = 0;
@@ -354,6 +357,15 @@ public:
   virtual void TransformReferenceCIndexToWrappedImageCIndex(
     const itk::ContinuousIndex<double, 3> &ref_index,
     itk::ContinuousIndex<double, 3>       &img_index) const = 0;
+
+  /**
+   * The inverse of TransformReferenceCIndexToWrappedImageCIndex: transform a
+   * continuous index in the voxel space of the wrapped image to a continuous
+   * index in the reference space.
+   */
+  virtual void TransformWrappedImageCIndexToReferenceCIndex(
+    const itk::ContinuousIndex<double, 3> &img_index,
+    itk::ContinuousIndex<double, 3>       &ref_index) const = 0;
 
   /** Get the NIFTI s-form matrix for this image */
   irisVirtualGetMacro(NiftiSform, TransformType)
@@ -415,13 +427,15 @@ public:
   /** Return componentwise maximum cast to double, after mapping to native range */
   virtual double GetImageMaxNative() = 0;
 
-  /** Compute statistics over a run of voxels in the image starting at the index
-   * startIdx. Appends the statistics to a running sum and sum of squared. The
-   * statistics are returned in internal (not native mapped) format */
-  virtual void GetRunLengthIntensityStatistics(
-      const itk::ImageRegion<3> &region,
-      const itk::Index<3> &startIdx, long runlength,
-      double *out_nvalid, double *out_sum, double *out_sumsq) const = 0;
+  /**
+   * Return a smart pointer to an image label integrator that can be used
+   * to compute label statistics over the image. The runs of voxels passed to
+   * the integrator are given as indices into label_space (typically the
+   * segmentation whose statistics are computed), or into the reference space
+   * if label_space is null.
+   */
+  virtual SmartPtr<ImageLabelIntegratorBase> GetLabelIntegrator(
+      ImageBaseType *label_space = nullptr) const = 0;
 
   /**
    * Get current interpolation mode
