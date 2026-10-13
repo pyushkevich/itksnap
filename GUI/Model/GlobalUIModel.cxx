@@ -959,8 +959,8 @@ std::string GlobalUIModel::GenerateScreenshotFilename()
     return "snapshot0001.png";
 
   // Count how many digits there are at the end of the filename
-  std::string noext =
-    itksys::SystemTools::GetFilenameWithoutExtension(last);
+  std::string noext = StripFilenameExtension(last);
+  std::string extn = itksys::SystemTools::GetFilenameName(last).substr(noext.length());
   unsigned int digits = 0;
   for(int i = noext.length() - 1; i >= 0; i--)
     {
@@ -984,7 +984,7 @@ std::string GlobalUIModel::GenerateScreenshotFilename()
   oss << "/";
   oss << noext.substr(0, noext.length() - digits);
   oss << std::setw(digits) << std::setfill('0') << (num + 1);
-  oss << itksys::SystemTools::GetFilenameExtension(last);
+  oss << extn;
   return oss.str();
 }
 

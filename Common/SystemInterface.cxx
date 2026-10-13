@@ -866,3 +866,52 @@ long get_system_time_ms()
   return millis;
 #endif
 }
+
+// Remove the last extension of name if accept() approves it (it is passed
+// the extension without the period); returns true if removed
+static bool StripOneExtension(std::string &name, bool (*accept)(const std::string &))
+{
+  size_t dot = name.rfind('.');
+  if (dot == std::string::npos || dot == 0)
+    return false;
+  std::string ext = name.substr(dot + 1);
+  if (!accept(ext))
+    return false;
+  name.erase(dot);
+  return true;
+}
+
+static std::string ToLower(std::string s)
+{
+  std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
+  return s;
+}
+
+std::string StripFilenameExtension(const std::string &filename)
+{
+  std::string name = itksys::SystemTools::GetFilenameName(filename);
+
+  // Compression suffix
+  StripOneExtension(name, [](const std::string &ext) {
+    std::string e = ToLower(ext);
+    return e == "gz" || e == "bz2";
+  });
+
+  // The actual extension
+  std::string base = name;
+  bool stripped = StripOneExtension(name, [](const std::string &ext) {
+    if (ext.empty() || ext.size() > 7 || !std::isalpha((unsigned char)ext[0]))
+      return false;
+    return std::all_of(ext.begin(), ext.end(), [](unsigned char c) { return std::isalnum(c); });
+  });
+
+  // Two-part extensions such as .seq.nrrd
+  if (stripped)
+  {
+    std::string ext = ToLower(base.substr(name.size() + 1));
+    if (ext == "nrrd" || ext == "nhdr")
+      StripOneExtension(name, [](const std::string &e) { return ToLower(e) == "seq"; });
+  }
+
+  return name;
+}

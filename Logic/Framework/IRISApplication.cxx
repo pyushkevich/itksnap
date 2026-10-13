@@ -1183,8 +1183,8 @@ IRISApplication ::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Co
     // Take apart the filename
     std::string full = itksys::SystemTools::CollapseFullPath(sets.GetMeshFileName().c_str());
     std::string path = itksys::SystemTools::GetFilenamePath(full.c_str());
-    std::string file = itksys::SystemTools::GetFilenameWithoutExtension(full.c_str());
-    std::string extn = itksys::SystemTools::GetFilenameExtension(full.c_str());
+    std::string file = StripFilenameExtension(full);
+    std::string extn = itksys::SystemTools::GetFilenameName(full).substr(file.length());
     std::string prefix = file;
 
     // Are the last 5 characters of the filename numeric?

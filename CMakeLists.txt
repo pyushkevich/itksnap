@@ -1568,6 +1568,14 @@ TARGET_INCLUDE_DIRECTORIES(TestSegmentationLoadChecks PUBLIC ${SNAP_INCLUDE_DIRS
 add_test(NAME TestSegmentationLoadChecks
   COMMAND TestSegmentationLoadChecks ${TESTDATA_DIR} ${TEMP})
 
+# Test: layer nicknames from filenames with periods and compound extensions
+ADD_EXECUTABLE(TestStripFilenameExtension
+    Testing/Logic/TestStripFilenameExtension.cxx)
+TARGET_LINK_LIBRARIES(TestStripFilenameExtension ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestStripFilenameExtension PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestStripFilenameExtension COMMAND TestStripFilenameExtension)
+
 # Test: segmentation statistics with upsampled segmentations and rotated overlays
 ADD_EXECUTABLE(TestSegmentationStatistics
     Testing/Logic/TestSegmentationStatistics.cxx)

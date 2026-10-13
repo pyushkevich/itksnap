@@ -1158,7 +1158,7 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace,
     string fn_layer = wsexp.GetLayerActualPath(f_layer);
 
     // Get the current layer base filename
-    string fn_layer_basename = SystemTools::GetFilenameWithoutExtension(fn_layer);
+    string fn_layer_basename = StripFilenameExtension(fn_layer);
 
     // The IO hints for the file
     Registry io_hints, *layer_io_hints;
