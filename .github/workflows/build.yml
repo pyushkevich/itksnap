@@ -55,7 +55,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04,macos-15-intel,macos-15,windows-2022]
+        # Intel and ARM builds for each platform
+        os: [ubuntu-22.04,ubuntu-22.04-arm,macos-15-intel,macos-15,windows-2022,windows-11-arm]
         itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.5.2' ]
         qt_ver: [ '6.9.3' ]
@@ -63,6 +64,10 @@ jobs:
           - os: ubuntu-22.04
             qt_host: linux
             qt_arch: linux_gcc_64
+            ctest_cmd: xvfb-run -a ctest
+          - os: ubuntu-22.04-arm
+            qt_host: linux_arm64
+            qt_arch: linux_gcc_arm64
             ctest_cmd: xvfb-run -a ctest
           - os: macos-15-intel
             qt_host: mac
@@ -75,6 +80,15 @@ jobs:
           - os: windows-2022
             qt_host: windows
             qt_arch: win64_msvc2022_64
+            msvc_arch: x64
+            vcpkg_triplet: x64-windows-release
+            ctest_cmd: ctest
+          # vcpkg has no release-only triplet for arm64, so it builds debug and release
+          - os: windows-11-arm
+            qt_host: windows_arm64
+            qt_arch: win64_msvc2022_arm64
+            msvc_arch: arm64
+            vcpkg_triplet: arm64-windows
             ctest_cmd: ctest
 
     steps:
@@ -83,6 +97,8 @@ jobs:
       - name: Select MSVC 2019/2022
         uses: ilammy/msvc-dev-cmd@v1
         if: ${{ runner.os == 'Windows' }}
+        with:
+          arch: ${{ matrix.msvc_arch }}
 
       # Setup ninja
       - name: Setup Ninja
@@ -93,7 +109,7 @@ jobs:
       - name: Install System Packages
         uses: ConorMacBride/install-package@v1
         with:
-          apt: libcurl4-openssl-dev libssh-dev
+          apt: libcurl4-openssl-dev libssh-dev xvfb
           choco: nsis
 
       # Install curl and libssh on Windows
@@ -103,7 +119,7 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         with:
           pkgs: curl libssh zlib 
-          triplet: x64-windows-release
+          triplet: ${{ matrix.vcpkg_triplet }}
           token: ${{ github.token }}
           github-binarycache: false
     
@@ -294,8 +310,8 @@ jobs:
             CMAKE_BUILD_TYPE=Release
             DO_UPLOAD=ON
             SITE=github-runner-${{ matrix.os }}
-            ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
-            ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
+            ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/{1}/lib/libcurl.lib', github.workspace, matrix.vcpkg_triplet) || '' }}
+            ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/{1}/include', github.workspace, matrix.vcpkg_triplet) || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'MacOS' && format('CMAKE_OSX_DEPLOYMENT_TARGET={0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
@@ -371,7 +387,7 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         shell: bash
         run: |
-          echo "${{github.workspace}}/vcpkg/installed/x64-windows-release/bin" >> $GITHUB_PATH
+          echo "${{github.workspace}}/vcpkg/installed/${{ matrix.vcpkg_triplet }}/bin" >> $GITHUB_PATH
 
       # On MacOS, setup keychain for application signing
       # The notarization keys are from https://appstoreconnect.apple.com/access/integrations/api
@@ -423,8 +439,11 @@ jobs:
           name: ${{steps.package_itksnap.outputs.package_file}}
           path: ${{github.workspace}}/itksnap/build/${{steps.package_itksnap.outputs.package_file}}
 
+      # The upload normally takes under a minute. The step timeout and the ssh keepalive
+      # settings below keep a stalled connection from hanging the job until GitHub's 6-hour limit.
       - name: Upload to sourceforge
         if: ${{ env.SKIP_PACKAGING != 'true' }}
+        timeout-minutes: 15
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         env:
@@ -439,23 +458,15 @@ jobs:
           echo "StrictHostKeyChecking=no" >> $HOME/.ssh/config
           echo "BatchMode=yes" >> $HOME/.ssh/config
           echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
-          # TEMPORARY: profile this configure, which takes several minutes on macOS after cpack.
-          # The SourceForge user name is removed from the trace before it is uploaded.
-          cmake -DSCP_USERNAME=$USER --profiling-format=google-trace --profiling-output=cmake-trace-raw.json .
-          sed "s/$USER/SCP_USER/g" cmake-trace-raw.json > cmake-trace.json && rm -f cmake-trace-raw.json
+          echo "ConnectTimeout=30" >> $HOME/.ssh/config
+          echo "ServerAliveInterval=15" >> $HOME/.ssh/config
+          echo "ServerAliveCountMax=4" >> $HOME/.ssh/config
+          cmake -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
-
-      # TEMPORARY: keep the configure profile from the step above
-      - name: Upload configure profile
-        if: ${{ always() && runner.os == 'MacOS' && env.SKIP_PACKAGING != 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cmake-trace-${{ matrix.os }}
-          path: ${{github.workspace}}/itksnap/build/cmake-trace.json
-          if-no-files-found: ignore
 
       - name: Upload named release to sourceforge
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_release && !inputs.skip_packaging }}
+        timeout-minutes: 15
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         run: |

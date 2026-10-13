@@ -1301,6 +1301,12 @@ TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} PRIVATE ${SNAP_INTERNAL_LIBS} ${SNAP_E
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# ITK-SNAP has no QML files: Qt6::Qml is only used for QJSEngine in the GUI test
+# engine. Without this, Qt runs qmlimportscanner over the whole source tree at the
+# end of every configure, including a build directory placed inside it. In CI,
+# after cpack, that took several minutes per configure on macOS.
+set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES QT_QML_MODULE_NO_IMPORT_SCAN TRUE)
+
 #--------------------------------------------------------------------------------
 # QT Internationalization
 #--------------------------------------------------------------------------------
@@ -1727,9 +1733,14 @@ INCLUDE(CTest)
 # Copy and configure the program data directory
 #--------------------------------------------------------------------------------
 
-# All program files - use recursive globbing
-FILE(GLOB_RECURSE SNAP_PROGRAM_DATA_FILES 
-  ProgramData "*.txt" "*.html" "*.gif" "*.png" "*.img.gz" "*.hdr")
+# All program files - use recursive globbing. The patterns must include the
+# ProgramData directory; on their own they match the whole source tree,
+# including a build directory placed inside it.
+SET(SNAP_PROGRAM_DATA_DIR ${SNAP_SOURCE_DIR}/ProgramData)
+FILE(GLOB_RECURSE SNAP_PROGRAM_DATA_FILES
+  ${SNAP_PROGRAM_DATA_DIR}/*.txt ${SNAP_PROGRAM_DATA_DIR}/*.html
+  ${SNAP_PROGRAM_DATA_DIR}/*.gif ${SNAP_PROGRAM_DATA_DIR}/*.png
+  ${SNAP_PROGRAM_DATA_DIR}/*.img.gz ${SNAP_PROGRAM_DATA_DIR}/*.hdr)
 
 # Copy documentation from the source tree to the build tree
 FOREACH(DATAFILE ${SNAP_PROGRAM_DATA_FILES})
