@@ -76,6 +76,32 @@ constexpr long DOWNLOAD_STALL_TIMEOUT_SEC = 60;
 
 
 /**
+ * A new, unique temp directory for one download. Unless Keep() is called, it
+ * is deleted with its contents when this object goes out of scope, so that a
+ * download that fails or is cancelled leaves no partial file behind.
+ */
+class DownloadTempDir
+{
+public:
+  /** Create the directory under the system temp directory. Throws on failure. */
+  explicit DownloadTempDir(const char *prefix);
+  ~DownloadTempDir();
+
+  DownloadTempDir(const DownloadTempDir &) = delete;
+  DownloadTempDir &operator=(const DownloadTempDir &) = delete;
+
+  const std::string &GetPath() const { return m_Path; }
+
+  /** Do not delete the directory; returns its path. */
+  const std::string &Keep() { m_Keep = true; return m_Path; }
+
+private:
+  std::string m_Path;
+  bool        m_Keep = false;
+};
+
+
+/**
  * Abstract base class for remote image source handlers. Each subclass
  * implements downloading for one URL scheme (scp://, https://, fw://, …).
  *
@@ -93,10 +119,19 @@ public:
    * inside the temp directory preserves the original remote basename so
    * that ITK format-detection by extension continues to work.
    *
-   * Cleanup of the temp directory is left to the OS for now.
-   * Throws IRISException on failure.
+   * When a file cache is attached, the returned file may instead be in the
+   * cache. Otherwise GetTemporaryDirectory() names the temp directory, which
+   * the caller must delete once it is done with the file. On failure or
+   * cancellation nothing is left behind. Throws IRISException on failure.
    */
   virtual std::string Download(const std::string &url) = 0;
+
+  /**
+   * After Download(): the temp directory holding the returned file, or ""
+   * when the file is in the cache. The caller owns this directory.
+   */
+  const std::string &GetTemporaryDirectory() const
+    { return m_TemporaryDirectory; }
 
   /** Attach an optional progress callback invoked during Download().
    *  Pass an empty std::function to clear an existing callback. */
@@ -143,6 +178,7 @@ protected:
   SSHConnectionPool        *m_ConnectionPool = nullptr;
   AbstractSSHAuthDelegate  *m_AuthDelegate   = nullptr;
   RemoteFileCache          *m_FileCache      = nullptr;
+  std::string               m_TemporaryDirectory;
 };
 
 
@@ -205,16 +241,45 @@ std::string ResolveITKSnapURL(const std::string &url);
 SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url);
 
 /**
- * Download a remote file to a local temp directory and return the local path.
+ * A local copy of a remote file, returned by DownloadRemoteFile(). A file in
+ * the persistent cache is kept. A file in a temp directory (no cache,
+ * DeleteAfterDownload set, or the cache could not store it) is deleted with
+ * its directory when this object is destroyed, so keep the object alive
+ * until the file has been read.
+ */
+class RemoteDownload
+{
+public:
+  RemoteDownload() = default;
+  RemoteDownload(std::string path, std::string temp_dir);
+  ~RemoteDownload();
+
+  RemoteDownload(RemoteDownload &&other) noexcept;
+  RemoteDownload &operator=(RemoteDownload &&other) noexcept;
+  RemoteDownload(const RemoteDownload &) = delete;
+  RemoteDownload &operator=(const RemoteDownload &) = delete;
+
+  /** Local path of the file. */
+  const std::string &GetPath() const { return m_Path; }
+
+private:
+  void DeleteTemporaryFile();
+
+  std::string m_Path;
+  std::string m_TempDir;
+};
+
+/**
+ * Download a remote file and return its local copy.
  * This is the one-stop helper: it creates the appropriate RemoteImageSource,
  * applies all fields from @p ctx (connection pool, auth delegate, file cache,
  * and a ProgressTaskGuard wrapping ctx.progressDelegate), and calls Download().
  *
  * @p title  Label shown in the progress bar; defaults to the URL basename.
  */
-std::string DownloadRemoteFile(const std::string &url,
-                               const RemoteIOContext &ctx,
-                               const char *title = nullptr);
+RemoteDownload DownloadRemoteFile(const std::string &url,
+                                  const RemoteIOContext &ctx,
+                                  const char *title = nullptr);
 
 
 

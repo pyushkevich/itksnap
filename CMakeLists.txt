@@ -1525,6 +1525,14 @@ TARGET_INCLUDE_DIRECTORIES(TestNrrdSequenceIO PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestNrrdSequenceIO COMMAND TestNrrdSequenceIO ${TEMP})
 
+# Test: remote file cache stores, evicts and locks its metadata correctly
+ADD_EXECUTABLE(TestRemoteFileCache
+    Testing/Logic/TestRemoteFileCache.cxx)
+TARGET_LINK_LIBRARIES(TestRemoteFileCache ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestRemoteFileCache PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestRemoteFileCache COMMAND TestRemoteFileCache ${TEMP})
+
 # Test: VTK XML image (.vti) IO handles orientation, extents and arrays
 ADD_EXECUTABLE(TestVTIImageIO
     Testing/Logic/TestVTIImageIO.cxx)

@@ -502,7 +502,9 @@ static int TestCancel(const std::string &url)
     });
     try
       {
-      src->Download(url);
+      // Delete the downloaded file again
+      std::string path = src->Download(url);
+      RemoteDownload dl(path, src->GetTemporaryDirectory());
       return 1;
       }
     catch (IRISUserCancelException &)

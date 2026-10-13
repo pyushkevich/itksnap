@@ -1824,12 +1824,15 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
   // If fname is a remote URL, download it to a temp file first and work with
   // the local copy from here on.  The original URL is stamped onto the layer
   // at the end so the rest of the application can see where the image came from.
+  // A temporary download is deleted when this function returns.
   std::string remote_url;
   std::string local_fname = fname;
+  RemoteDownload download;
   if (IsRemoteImageURL(fname))
     {
     remote_url = fname;
-    local_fname = DownloadRemoteFile(fname, GetRemoteIOContext());
+    download = DownloadRemoteFile(fname, GetRemoteIOContext());
+    local_fname = download.GetPath();
     fname = local_fname.c_str();
     }
 
@@ -2305,13 +2308,17 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
     ~PoolCleaner() { pool = nullptr; }
   } pool_cleaner{m_ActiveConnectionPool};
 
-  std::string local_proj_file = proj_file;
-  if (IsRemoteImageURL(proj_file))
-    local_proj_file = DownloadRemoteFile(proj_file, GetRemoteIOContext());
-
   // Load the registry file
   Registry preg;
-  preg.ReadFromXMLFile(local_proj_file.c_str());
+  if (IsRemoteImageURL(proj_file))
+    {
+    RemoteDownload download = DownloadRemoteFile(proj_file, GetRemoteIOContext());
+    preg.ReadFromXMLFile(download.GetPath().c_str());
+    }
+  else
+    {
+    preg.ReadFromXMLFile(proj_file.c_str());
+    }
 
   // project_dir: for a remote workspace use the parent directory of the
   // original URL (e.g. "scp://user@host/data") so the moved-path rebase

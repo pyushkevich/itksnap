@@ -171,9 +171,13 @@ GuidedMeshIO::LoadMesh(const char *FileName, FileFormat format,
   // directory first, then load from the local copy.  The caller (MeshWrapperBase)
   // already stores the remote URL as the wrapper's filename, so remote awareness
   // is preserved without any additional bookkeeping here.
+  RemoteDownload download;
   std::string local_filename = FileName;
   if (IsRemoteImageURL(FileName))
-    local_filename = DownloadRemoteFile(FileName, m_Context);
+    {
+    download = DownloadRemoteFile(FileName, m_Context);
+    local_filename = download.GetPath();
+    }
 
   // Using the factory method to get a delegate
   AbstractMeshIODelegate *ioDelegate = AbstractMeshIODelegate::GetDelegate(format);
