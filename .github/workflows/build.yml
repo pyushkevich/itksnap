@@ -89,10 +89,10 @@ jobs:
         uses: seanmiddleditch/gha-setup-ninja@master
 
       # Install system packages
+      # On macOS, libssh is built from source instead (see "Build libssh on MacOS" below)
       - name: Install System Packages
         uses: ConorMacBride/install-package@v1
         with:
-          brew: libssh
           apt: libcurl4-openssl-dev libssh-dev
           choco: nsis
 
@@ -248,6 +248,35 @@ jobs:
         continue-on-error: true
         run: git fetch
 
+      # On macOS, build libssh and OpenSSL from source rather than installing them with Homebrew.
+      # Homebrew's libraries are built for the runner's macOS version (15.0), not for
+      # MACOS_DEPLOYMENT_TARGET, and they are bundled into the package, so the package would not
+      # run on older macOS versions that it claims to support. Also, Homebrew no longer provides
+      # bottles for Intel Macs, so "brew install libssh" built CMake, OpenSSL and libssh from
+      # source on every Intel run (about 40 minutes). The script pins the versions and checksums;
+      # the result is cached (a few MB) and rebuilt only when the script changes.
+      - name: Restore libssh Cache
+        id: cache-libssh
+        if: ${{ runner.os == 'MacOS' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{github.workspace}}/libssh
+          key: ${{ matrix.os }}-libssh-${{ hashFiles('itksnap/Utilities/MacOS/build_libssh.sh') }}-osx${{ env.MACOS_DEPLOYMENT_TARGET }}
+
+      - name: Build libssh on MacOS
+        if: ${{ runner.os == 'MacOS' && steps.cache-libssh.outputs.cache-hit != 'true' }}
+        shell: bash
+        env:
+          MACOSX_DEPLOYMENT_TARGET: ${{ env.MACOS_DEPLOYMENT_TARGET }}
+        run: itksnap/Utilities/MacOS/build_libssh.sh ${{github.workspace}}/libssh
+
+      - name: Cache libssh
+        if: ${{ runner.os == 'MacOS' && steps.cache-libssh.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/libssh
+          key: ${{ matrix.os }}-libssh-${{ hashFiles('itksnap/Utilities/MacOS/build_libssh.sh') }}-osx${{ env.MACOS_DEPLOYMENT_TARGET }}
+
       # Configure ITK-SNAP
       # Note: /FORCE:MULTIPLE is a temporary fix for ITK issues in 5.4.0
       - name: Configure ITK-SNAP
@@ -270,6 +299,7 @@ jobs:
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'MacOS' && format('CMAKE_OSX_DEPLOYMENT_TARGET={0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
+            ${{ runner.os == 'MacOS' && format('CMAKE_PREFIX_PATH={0}/libssh', github.workspace) || '' }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
