@@ -32,7 +32,11 @@ public:
    */
   void Initialize(TInputPixel image_min, TInputPixel image_max, double t0, double t1);
 
-  /** Map an intensity value from the image to the display type, no range check for char/short */
+  /**
+   * Map an intensity value from the image to the display type. For char/short
+   * the LUT spans the image range, but resliced data can still fall outside of
+   * it (e.g., interpolation between the image edge and the zero background)
+   */
   inline TDisplayPixel MapIntensityToDisplay(const TInputPixel &x) const
     {
     if constexpr(std::is_floating_point<TInputPixel>::value)
@@ -48,7 +52,12 @@ public:
       }
     else
       {
-      return m_LUT[x - m_StartValue];
+      if(x < m_StartValue)
+        return m_ColorBelow;
+      else if(x > m_EndValue)
+        return m_ColorAbove;
+      else
+        return m_LUT[x - m_StartValue];
       }
     }
 
