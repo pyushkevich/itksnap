@@ -439,8 +439,20 @@ jobs:
           echo "StrictHostKeyChecking=no" >> $HOME/.ssh/config
           echo "BatchMode=yes" >> $HOME/.ssh/config
           echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
-          cmake -DSCP_USERNAME=$USER .
+          # TEMPORARY: profile this configure, which takes several minutes on macOS after cpack.
+          # The SourceForge user name is removed from the trace before it is uploaded.
+          cmake -DSCP_USERNAME=$USER --profiling-format=google-trace --profiling-output=cmake-trace-raw.json .
+          sed "s/$USER/SCP_USER/g" cmake-trace-raw.json > cmake-trace.json && rm -f cmake-trace-raw.json
           cmake --build . --target itksnap_upload_experimental
+
+      # TEMPORARY: keep the configure profile from the step above
+      - name: Upload configure profile
+        if: ${{ always() && runner.os == 'MacOS' && env.SKIP_PACKAGING != 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake-trace-${{ matrix.os }}
+          path: ${{github.workspace}}/itksnap/build/cmake-trace.json
+          if-no-files-found: ignore
 
       - name: Upload named release to sourceforge
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_release && !inputs.skip_packaging }}
