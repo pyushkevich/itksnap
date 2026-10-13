@@ -1474,6 +1474,15 @@ add_test(NAME RemoteImageLoadTest_SingleImage
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
     "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
 
+# Test: a percent-encoded URL (here the "." of the extension, %2E). The URL
+# must not be used as a printf format (where %2E is a conversion), and the
+# downloaded file must get the decoded name so the format is detected.
+add_test(NAME RemoteImageLoadTest_EncodedURL
+  COMMAND remote_image_load_test
+    --regression-test -g
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl%2Egz"
+    "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
+
 # Test: load a workspace that includes a standalone mesh layer over HTTPS
 # and verify both the image layers and the mesh layer count match local.
 add_test(NAME RemoteImageLoadTest_WorkspaceWithMesh
@@ -1517,6 +1526,7 @@ add_test(NAME RemoteImageLoadTest_Cancel
 # Remote tests require network access; tag them so CI can skip them easily.
 set_tests_properties(
   RemoteImageLoadTest_SingleImage
+  RemoteImageLoadTest_EncodedURL
   RemoteImageLoadTest_WorkspaceWithMesh
   RemoteImageLoadTest_Cache
   RemoteImageLoadTest_SaveWorkspace

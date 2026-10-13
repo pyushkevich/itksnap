@@ -265,12 +265,14 @@ HTTPRemoteImageSource::Download(const std::string &url)
 {
   m_TemporaryDirectory.clear();
 
-  std::string basename = itksys::SystemTools::GetFilenameName(url);
-  // Strip any query string from the basename so extension detection works.
-  auto qmark = basename.find('?');
-  if (qmark != std::string::npos)
-    basename = basename.substr(0, qmark);
-  if (basename.empty())
+  // The local filename is the decoded last path component, without the query
+  // string, so that extension detection works (e.g. "scan%20T1.nii.gz" is
+  // saved as "scan T1.nii.gz"). Taking the filename again after decoding
+  // drops any directory that an encoded "/" (%2F) would add.
+  std::string url_path = url.substr(0, url.find_first_of("?#"));
+  std::string basename = itksys::SystemTools::GetFilenameName(
+    UrlDecode(itksys::SystemTools::GetFilenameName(url_path)));
+  if (basename.empty() || basename == "." || basename == "..")
     throw IRISException("HTTPRemoteImageSource: cannot determine filename from URL: %s", url.c_str());
 
   // Cache lookup: if we have a cached copy with validation tokens, we can do
