@@ -1305,7 +1305,7 @@ set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH
 # QT Internationalization
 #--------------------------------------------------------------------------------
 
-set(QT_I18N_TRANSLATED_LANGUAGES de es zh_CN)
+set(QT_I18N_TRANSLATED_LANGUAGES de es zh_CN ja fr pt_BR)
 string(JOIN " " QT_I18N_TRANSLATED_LANGUAGES_STRING ${QT_I18N_TRANSLATED_LANGUAGES})
 # The Logic and Model libraries, which cannot use Qt, are scanned for strings
 # marked with SNAP_TRANSLATE_NOOP (progress task titles) or passed to
