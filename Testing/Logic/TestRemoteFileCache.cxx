@@ -90,9 +90,12 @@ static void TestEviction(RemoteResourceSettings *settings)
   cache.Initialize(app_dir, settings);
   settings->SetMaxCacheSizeMB(1);
 
+  // Entries stored within the same second are evicted in key order, which
+  // depends on the platform's std::hash. Size a and b so that evicting either
+  // one alone does not bring the cache within the limit.
   const size_t kb = 1024;
-  std::string a = cache.Store("http://h/a.nii", MakeDownload("ea", "a.nii", 100), 0, 0);
-  std::string b = cache.Store("http://h/b.nii", MakeDownload("eb", "b.nii", 600 * kb), 0, 0);
+  std::string a = cache.Store("http://h/a.nii", MakeDownload("ea", "a.nii", 500 * kb), 0, 0);
+  std::string b = cache.Store("http://h/b.nii", MakeDownload("eb", "b.nii", 500 * kb), 0, 0);
   CHECK(cache.GetNumberOfEntries() == 2, "two entries within the limit are kept");
 
   std::string c = cache.Store("http://h/c.nii", MakeDownload("ec", "c.nii", 600 * kb), 0, 0);
