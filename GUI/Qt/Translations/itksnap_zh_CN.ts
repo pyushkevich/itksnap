@@ -266,97 +266,97 @@
 <context>
     <name>ColorMap</name>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="641" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="664" />
         <source>Grayscale</source>
         <translation>灰度</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="642" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="665" />
         <source>Jet</source>
         <translation>Jet</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="643" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="666" />
         <source>Hot</source>
         <translation>热力图</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="644" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="667" />
         <source>Cool</source>
         <translation>冷色图</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="645" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="668" />
         <source>Black to red</source>
         <translation>黑到红</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="646" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="669" />
         <source>Black to green</source>
         <translation>黑到绿</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="647" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="670" />
         <source>Black to blue</source>
         <translation>黑到蓝</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="648" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="671" />
         <source>Spring</source>
         <translation>春季</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="649" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="672" />
         <source>Summer</source>
         <translation>夏季</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="650" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="673" />
         <source>Autumn</source>
         <translation>秋季</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="651" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="674" />
         <source>Winter</source>
         <translation>冬季</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="652" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="675" />
         <source>Copper</source>
         <translation>古铜色</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="653" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="676" />
         <source>HSV</source>
         <translation>HSV</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="654" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="677" />
         <source>Blue to white to red</source>
         <translation>蓝到白到红</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="655" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="678" />
         <source>Red to white to blue</source>
         <translation>红到白到蓝</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="656" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="679" />
         <source>Speed image (blue to black to white)</source>
         <translation>速度图（蓝-黑-白）</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="657" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="680" />
         <source>Speed image (semi-transparent overlay)</source>
         <translation>速度图（半透明叠加）</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="658" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="681" />
         <source>Level set image</source>
         <translation>水平集图像</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="659" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="682" />
         <source>Custom</source>
         <translation>自定义</translation>
     </message>
@@ -742,73 +742,73 @@ p, li { white-space: pre-wrap; }
     <name>CursorInspector</name>
     <message>
         <location filename="../Components/CursorInspector.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="291" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="292" />
         <source>Form</source>
         <translation>表单</translation>
     </message>
     <message>
         <location filename="../Components/CursorInspector.ui" line="82" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="292" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="293" />
         <source>Cursor position (x,y,z):</source>
         <translation>光标位置 (x,y,z):</translation>
     </message>
     <message>
         <location filename="../Components/CursorInspector.ui" line="106" />
         <location filename="../Components/CursorInspector.ui" line="219" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="294" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="304" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="295" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="305" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Cursor X coordinate&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The X coordinate of the 3D cursor, in the image coordinate system (corresponds to columns of voxels). The first column has index 1 (one-based indexing).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;光标 X 坐标&lt;/span&gt;&lt;/p&gt;&lt;p&gt;3D 光标在图像坐标系中的 X 坐标（对应体素的列）。第一列的索引为 1（从1开始计数）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/CursorInspector.ui" line="134" />
         <location filename="../Components/CursorInspector.ui" line="247" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="297" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="307" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="298" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="308" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Cursor Y coordinate&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The Y coordinate of the 3D cursor, in the image coordinate system (corresponds to rows of voxels). The first row has index 1 (one-based indexing).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;光标 Y 坐标&lt;/span&gt;&lt;/p&gt;&lt;p&gt;3D 光标在图像坐标系中的 Y 坐标（对应体素的行）。第一行的索引为 1（从1开始计数）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/CursorInspector.ui" line="156" />
         <location filename="../Components/CursorInspector.ui" line="269" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="300" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="310" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="301" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="311" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Cursor Z coordinate&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The Z coordinate of the 3D cursor, in the image coordinate system (corresponds to slices of voxels). The first slice has index 1 (one-based indexing).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;光标 Z 坐标&lt;/span&gt;&lt;/p&gt;&lt;p&gt;3D 光标在图像坐标系中的 Z 坐标（对应体素的切片）。第一切片的索引为 1（从1开始计数）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/CursorInspector.ui" line="195" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="302" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="303" />
         <source>Cursor position (x,y,z,t):</source>
         <translation>光标位置 (x,y,z,t):</translation>
     </message>
     <message>
         <location filename="../Components/CursorInspector.ui" line="291" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="313" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="314" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Cursor time (T) coordinate&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The selected time point in a four-dimensional image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;光标 时间 (T) 坐标&lt;/span&gt;&lt;/p&gt;&lt;p&gt;四维图像中选择的时间点。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/CursorInspector.ui" line="331" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="315" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="316" />
         <source>Intensity under cursor:</source>
         <translation>光标下的灰度值:</translation>
     </message>
     <message>
-        <location filename="../Components/CursorInspector.ui" line="413" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="316" />
+        <location filename="../Components/CursorInspector.ui" line="416" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="317" />
         <source>Label under cursor:</source>
         <translation>光标下的标签:</translation>
     </message>
     <message>
-        <location filename="../Components/CursorInspector.ui" line="437" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="318" />
+        <location filename="../Components/CursorInspector.ui" line="440" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="319" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Index of label under cursor&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This shows the numerical value of the segmentation label under the cursor. When you save the segmentation as an image, these values are stored in the voxels of the saved image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;光标下标签的索引&lt;/span&gt;&lt;/p&gt;&lt;p&gt;显示光标下分割标签的数值。保存分割图像时，这些值会存储在图像的体素中。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/CursorInspector.ui" line="459" />
-        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="321" />
+        <location filename="../Components/CursorInspector.ui" line="462" />
+        <location filename="../../../../xc64dbg/ui_CursorInspector.h" line="322" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Name of label under cursor&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This shows the name assigned to the segmentation label under the cursor. Use the label editor to modify label names.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;光标下标签的名称&lt;/span&gt;&lt;/p&gt;&lt;p&gt;显示分配给光标下分割标签的名称。使用标签编辑器修改标签名称。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -821,6 +821,64 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/CursorInspector.cxx" line="81" />
         <source>Intensity</source>
         <translation>灰度值</translation>
+    </message>
+</context>
+<context>
+    <name>DLSConnectionStatusText</name>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="31" />
+        <source>Server not configured</source>
+        <translation>服务器未配置</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="34" />
+        <source>Opening tunnel to SSH server ...</source>
+        <translation>正在打开到SSH服务器的隧道...</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="37" />
+        <source>SSH tunnel failure: %1</source>
+        <translation>SSH隧道失败：%1</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="40" />
+        <source>Establishing connection ...</source>
+        <translation>正在建立连接...</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="43" />
+        <source>Not connected: %1</source>
+        <translation>未连接：%1</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="46" />
+        <source>Starting local server ...</source>
+        <translation>正在启动本地服务器...</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="49" />
+        <source>Failed to start local server.</source>
+        <translation>启动本地服务器失败。</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="54" />
+        <source>Server version %1 is too old; %2+ required</source>
+        <translation>服务器版本%1过旧；需要%2及以上版本</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="60" />
+        <source>Connected, server version: %1</source>
+        <translation>已连接，服务器版本：%1</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="63" />
+        <source>Unknown status</source>
+        <translation>未知状态</translation>
+    </message>
+    <message>
+        <location filename="../Components/DeepLearningConnectionStatusCouplingTraits.h" line="87" />
+        <source>Deep learning server status: %1</source>
+        <translation>深度学习服务器状态：%1</translation>
     </message>
 </context>
 <context>
@@ -1025,7 +1083,7 @@ p, li { white-space: pre-wrap; }
         <translation>这是安装运行ITK-SNAP深度学习扩展服务器所需Python包的位置。</translation>
     </message>
     <message>
-        <location filename="../Windows/DeepLearningServerEditor.cxx" line="411" />
+        <location filename="../Windows/DeepLearningServerEditor.cxx" line="412" />
         <source>Select Python Interpreter</source>
         <translation>选择 Python 解释器</translation>
     </message>
@@ -1105,7 +1163,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <translation>状态：</translation>
     </message>
     <message>
-        <location filename="../Windows/DeepLearningServerPanel.cxx" line="331" />
+        <location filename="../Windows/DeepLearningServerPanel.cxx" line="334" />
         <source>Deep Learning Extension Server Configuration</source>
         <translation>深度学习扩展服务器配置</translation>
     </message>
@@ -1215,317 +1273,323 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
     <name>DistributedSegmentationDialog</name>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="547" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="568" />
         <source>ITK-SNAP Distributed Segmentation Service</source>
         <translation>ITK-SNAP 分布式分割服务</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="24" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="565" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="586" />
         <source>Connect</source>
         <translation>连接</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="39" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="548" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="569" />
         <source>Server URL:</source>
         <translation>服务器 URL:</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="81" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="550" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="571" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use this button to login on the DSS website. After you log in, you will be provided with a one-time login token. Copy and paste that token to the text box on the left.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;使用此按钮登录 DSS 网站。登录后，您将获得一次性登录令牌。将该令牌复制并粘贴到左侧文本框中。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="84" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="552" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="573" />
         <source>Get Token</source>
         <translation>获取令牌</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="99" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="553" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="574" />
         <source>ITK-SNAP Distributed Segmentation Services (DSS)</source>
         <translation>ITK-SNAP 分布式分割服务（DSS）</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="128" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="555" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="576" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;To login for the first time, you need to obtain a one-time login token from the DSS website.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;首次登录需从 DSS 网站获取一次性登录令牌。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="145" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="557" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="578" />
         <source>DSS is a web-based framework for connecting developers of medical image analysis algorithms to their users. Users send images to the server, and algorithm providers download these images, process them, and upload the results for users to retrieve.</source>
         <translation>DSS 是一个基于网络的框架，用于连接医学图像分析算法开发者与用户。用户将图像发送至服务器，算法提供者下载图像、处理后，上传结果供用户获取。</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="168" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="558" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="579" />
         <source>Server Status:</source>
         <translation>服务器状态:</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="178" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="559" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="580" />
         <source>Login Token:</source>
         <translation>登录令牌:</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="191" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="560" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="581" />
         <source>Not connected</source>
         <translation>未连接</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="214" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="562" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="583" />
         <source>When you press this button, a browser will open and take you to the login page for the selected server. Once logged in, paste your authentication token into the text box on the left.</source>
         <translation>点击此按钮将打开浏览器，进入所选服务器的登录页面。登录后，将认证令牌粘贴到左侧文本框。</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="217" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="564" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="585" />
         <source>Manage...</source>
         <translation>管理...</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="244" />
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="380" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="573" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="575" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="386" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="594" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="596" />
         <source>Submit</source>
         <translation>提交</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="258" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="566" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="587" />
         <source>Description</source>
         <translation>描述</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="284" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="567" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="575" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="588" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="600" />
         <source>Service:</source>
         <translation>服务:</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="307" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="569" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="590" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;View detailed information about the available services and their status in an external web page.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;在外部网页查看可用服务及其状态的详细信息。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="310" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="571" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="592" />
         <source>View Services</source>
         <translation>查看服务</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="357" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="572" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="363" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="593" />
         <source>Assign tags to images and other objects:</source>
         <translation>为图像及其他对象分配标签:</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="387" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="574" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="393" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="595" />
         <source>Reset Form</source>
         <translation>重置表单</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="398" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="592" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="404" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="614" />
         <source>Results</source>
         <translation>结果</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="494" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="576" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="468" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="597" />
+        <source>Ticket:</source>
+        <translation>工单：</translation>
+    </message>
+    <message>
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="582" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="601" />
         <source>Logs:</source>
         <translation>日志:</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="522" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="578" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="735" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="605" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The workspace file that was used to create this ticket. This information is only available for tickets that were created this computer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;用于创建此工单的工作区文件。此信息仅对本机创建的工单可用。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="532" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="580" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="745" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="607" />
         <source>Source:</source>
         <translation>来源:</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="539" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="581" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="752" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="608" />
         <source>Saved as:</source>
         <translation>保存为:</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="546" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="583" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="759" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="610" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If you have already downloaded this ticket, the location of the downloaded workspace is shown here.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;如果您已下载此工单，此处显示下载的工作区位置。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="556" />
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="570" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="585" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="586" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="769" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="783" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="612" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="613" />
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="609" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="587" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="497" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="598" />
         <source>Download</source>
         <translation>下载</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="619" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="588" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="507" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="599" />
         <source>Delete</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="642" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="589" />
         <source>Ticket Id:</source>
-        <translation>工单编号:</translation>
+        <translation type="vanished">工单编号:</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="720" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="590" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="628" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="602" />
         <source>Progress:</source>
         <translation>进度:</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="750" />
-        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="591" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.ui" line="658" />
+        <location filename="../../../../xc64dbg/ui_DistributedSegmentationDialog.h" line="603" />
         <source>Queue Position:</source>
         <translation>队列位置:</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="187" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="188" />
         <source>Not Connected</source>
         <translation>未连接</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="191" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="192" />
         <source>Connected but Not Logged In</source>
         <translation>已连接但未登录</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="195" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="196" />
         <source>Logged in as %1</source>
         <translation>以 %1 身份登录</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="214" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="215" />
         <source>Ticket %1</source>
         <translation>票据 %1</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="216" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="217" />
         <source>Selected Ticket</source>
         <translation>选定的票据</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="230" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="231" />
         <source>Tag</source>
         <translation>标签</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="230" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="231" />
         <source>Type</source>
         <translation>类型</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="230" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="231" />
         <source>Required</source>
         <translation>必填</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="230" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="231" />
         <source>Target Object</source>
         <translation>目标对象</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="248" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="249" />
         <source>Ticket</source>
         <translation>票据</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="248" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="249" />
         <source>Service</source>
         <translation>服务</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="248" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="249" />
         <source>Status</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="266" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="267" />
         <source>Time</source>
         <translation>时间</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="266" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="267" />
         <source>Message</source>
         <translation>消息</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="266" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="267" />
         <source>Att</source>
         <translation>附件</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="539" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="557" />
         <source>Uploading workspace...</source>
         <translation>上传工作区中...</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="562" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="580" />
         <source>Failed to submit workspace</source>
         <translation>提交工作区失败</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="579" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="597" />
         <source>Downloading workspace...</source>
         <translation>下载工作区中...</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="615" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="633" />
         <source>Failed to download workspace</source>
         <translation>下载工作区失败</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="768" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="786" />
         <source>Failed to delete selected ticket</source>
         <translation>删除所选票据失败</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="790" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="808" />
         <source>Edit Server List</source>
         <translation>编辑服务器列表</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="791" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="809" />
         <source>Enter additional server URLs on separate lines below:</source>
         <translation>在下面单独行输入额外的服务器URL：</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="828" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="846" />
         <source>Invalid server URL</source>
         <translation>无效的服务器网址</translation>
     </message>
     <message>
-        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="829" />
+        <location filename="../Windows/DSS/DistributedSegmentationDialog.cxx" line="847" />
         <source>%1 is not a valid URL.</source>
         <translation>%1 不是有效的URL。</translation>
     </message>
@@ -1567,127 +1631,147 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
     <name>DropActionDialog</name>
     <message>
         <location filename="../Windows/DropActionDialog.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="181" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="189" />
         <source>Open Document - ITK-SNAP</source>
         <translation>打开文档 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="32" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="182" />
+        <location filename="../Windows/DropActionDialog.ui" line="35" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="190" />
         <source>TextLabel</source>
         <translation>文本标签</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="49" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="183" />
+        <location filename="../Windows/DropActionDialog.ui" line="52" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="191" />
         <source>What should ITK-SNAP do with this image?</source>
         <translation>ITK-SNAP 应如何处理此图像？</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="72" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="184" />
+        <location filename="../Windows/DropActionDialog.ui" line="75" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="192" />
         <source>Open it in the current window</source>
         <translation>在当前窗口打开</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="90" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="186" />
+        <location filename="../Windows/DropActionDialog.ui" line="93" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="194" />
         <source>This will load the dropped image alongside the images currently open in this ITK-SNAP window </source>
         <translation>这将加载放入的图像，与当前 ITK-SNAP 窗口中已打开的图像并列显示 </translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="93" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="188" />
+        <location filename="../Windows/DropActionDialog.ui" line="96" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="196" />
         <source>Load as Additional Image</source>
         <translation>加载为附加图像</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="112" />
-        <location filename="../Windows/DropActionDialog.ui" line="156" />
-        <location filename="../Windows/DropActionDialog.cxx" line="79" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="190" />
+        <location filename="../Windows/DropActionDialog.ui" line="115" />
+        <location filename="../Windows/DropActionDialog.ui" line="159" />
+        <location filename="../Windows/DropActionDialog.cxx" line="93" />
         <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="198" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="206" />
         <source>This will replace the current segmentation image with the dropped image.</source>
         <translation>这将用放入的图像替换当前的分割图像。</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="115" />
-        <location filename="../Windows/DropActionDialog.cxx" line="78" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="192" />
+        <location filename="../Windows/DropActionDialog.ui" line="118" />
+        <location filename="../Windows/DropActionDialog.cxx" line="92" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="200" />
         <source>Load as Segmentation</source>
         <translation>加载为分割图像</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="134" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="194" />
+        <location filename="../Windows/DropActionDialog.ui" line="137" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="202" />
         <source>This will close all images currently open in this ITK-SNAP window and load the new image as the main image.</source>
         <translation>这将关闭当前 ITK-SNAP 窗口中所有打开的图像，并将新图像作为主图像加载。</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="137" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="196" />
+        <location filename="../Windows/DropActionDialog.ui" line="140" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="204" />
         <source>Load as Main Image</source>
         <translation>加载为主图像</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="159" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="200" />
+        <location filename="../Windows/DropActionDialog.ui" line="162" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="208" />
         <source>Load as Additional Segmentation</source>
         <translation>加载为附加分割</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="166" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="201" />
+        <location filename="../Windows/DropActionDialog.ui" line="169" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="209" />
         <source>Load as a new Mesh Layer</source>
         <translation>加载为新网格层</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="173" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="202" />
+        <location filename="../Windows/DropActionDialog.ui" line="176" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="210" />
         <source>Load as Mesh to a Time Point</source>
         <translation>加载为指定时间点的网格</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="199" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="203" />
-        <source>Open it in a new ITK-SNAP window</source>
-        <translation>在新 ITK-SNAP 窗口中打开</translation>
+        <location filename="../Windows/DropActionDialog.ui" line="202" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="211" />
+        <source>Open it in another ITK-SNAP window</source>
+        <translation>在另一个 ITK-SNAP 窗口中打开</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="217" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="205" />
+        <location filename="../Windows/DropActionDialog.ui" line="223" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="215" />
+        <source>Open in New Window</source>
+        <translation>在新窗口中打开</translation>
+    </message>
+    <message>
+        <location filename="../Windows/DropActionDialog.ui" line="242" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="217" />
+        <source>Send to another running ITK-SNAP window</source>
+        <translation>发送到另一个正在运行的 ITK-SNAP 窗口</translation>
+    </message>
+    <message>
+        <location filename="../Windows/DropActionDialog.ui" line="245" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="219" />
+        <source>Send to Other Window</source>
+        <translation>发送到其它窗口</translation>
+    </message>
+    <message>
+        <source>Open it in a new ITK-SNAP window</source>
+        <translation type="vanished">在新 ITK-SNAP 窗口中打开</translation>
+    </message>
+    <message>
+        <location filename="../Windows/DropActionDialog.ui" line="220" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="213" />
         <source>This will open a new ITK-SNAP window and open the dropped image as the main image</source>
         <translation>这将打开一个新的 ITK-SNAP 窗口，并将放入的图像作为主图像打开</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="220" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="207" />
         <source>Open in New ITK-SNAP</source>
-        <translation>在新 ITK-SNAP 中打开</translation>
+        <translation type="vanished">在新 ITK-SNAP 中打开</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.ui" line="272" />
-        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="208" />
+        <location filename="../Windows/DropActionDialog.ui" line="290" />
+        <location filename="../../../../xc64dbg/ui_DropActionDialog.h" line="220" />
         <source>Cancel</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.cxx" line="83" />
+        <location filename="../Windows/DropActionDialog.cxx" line="97" />
         <source>Load as Segmentation in Time Point</source>
         <translation>作为当前时间点的分割加载</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.cxx" line="84" />
+        <location filename="../Windows/DropActionDialog.cxx" line="98" />
         <source>This will replace the segmentation in current time point</source>
         <translation>这将替换当前时间点的分割</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.cxx" line="268" />
+        <location filename="../Windows/DropActionDialog.cxx" line="320" />
         <source>Failed to launch new ITK-SNAP instance</source>
         <translation>无法启动新的 ITK-SNAP 实例</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.cxx" line="348" />
+        <location filename="../Windows/DropActionDialog.cxx" line="403" />
         <source>Failed to load image %1</source>
         <translation>加载图像 %1 失败</translation>
     </message>
@@ -1766,255 +1850,267 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
     <name>GeneralLayerInspector</name>
     <message>
         <location filename="../Components/GeneralLayerInspector.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="633" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="649" />
         <source>Form</source>
         <translation>表单</translation>
     </message>
     <message>
         <location filename="../Components/GeneralLayerInspector.ui" line="77" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="634" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="650" />
         <source>General Image Layer Properties:</source>
         <translation>通用图层属性:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="101" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="636" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="104" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="652" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This is the filename from which the image was loaded. This is a read-only field.  However, you can save the image to a different file using this dialog.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;这是加载图像的文件名，只读字段。但您可以使用此对话框将图像另存为不同文件。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="111" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="638" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="114" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="654" />
         <source>Filename:</source>
         <translation>文件名:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="118" />
-        <location filename="../Components/GeneralLayerInspector.ui" line="861" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="639" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="703" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="121" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="655" />
+        <source>Remote URL:</source>
+        <translation>远程URL：</translation>
+    </message>
+    <message>
+        <location filename="../Components/GeneralLayerInspector.ui" line="131" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="657" />
+        <source>The original remote URL from which this layer was loaded.</source>
+        <translation>加载此图层的原始远程URL。</translation>
+    </message>
+    <message>
+        <location filename="../Components/GeneralLayerInspector.ui" line="141" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="884" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="659" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="723" />
         <source>Nickname:</source>
         <translation>昵称:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="125" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="641" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="148" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="661" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Edit this field to assign a short nickname to this image. This information can be saved in the workspace. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;编辑此项为图像指定简短昵称。此信息可保存在工作区。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="132" />
-        <location filename="../Components/GeneralLayerInspector.ui" line="868" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="643" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="704" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="155" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="891" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="663" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="724" />
         <source>Tags:</source>
         <translation>标签:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="142" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="645" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="165" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="665" />
         <source>One or more textual tags can be assigned to an image layer. Tags are not used directly by ITK-SNAP but may be used to inform other software of the meaning of different layers. Type in words separated by commas to create tags. </source>
         <translation>可为图像层分配一个或多个文本标签。标签不直接被ITK-SNAP使用，但可用于告知其他软件不同层的含义。输入逗号分隔的词作为标签。 </translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="160" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="647" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="183" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="667" />
         <source>How to Display this Image Layer:</source>
         <translation>如何显示此图层:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="211" />
-        <location filename="../Components/GeneralLayerInspector.ui" line="227" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="649" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="653" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="234" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="250" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="669" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="673" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adjust the opacity of the image when it is displayed as a semi-transparent overlay.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;调整图像作为半透明覆盖时的不透明度。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="217" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="651" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="240" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="671" />
         <source>%</source>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="252" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="656" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="275" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="676" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle the visibility of the image when it is displayed as a semi-transparent overlay.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;切换图像作为半透明覆盖时的可见性。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="255" />
-        <location filename="../Components/GeneralLayerInspector.ui" line="605" />
-        <location filename="../Components/GeneralLayerInspector.ui" line="754" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="658" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="692" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="699" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="278" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="628" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="777" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="678" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="712" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="719" />
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="312" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="660" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="335" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="680" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;Display this image side by side with the main image.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;This optoin is best suited for anatomical images, e.g., when displaying T1-weighted and T2-weighted MRI scans of the same subject.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;与主图像并排显示此图像。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;此选项适用于解剖图像，如显示同一受试者的T1加权和T2加权MRI扫描。&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="315" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="662" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="338" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="682" />
         <source>Separate image</source>
         <translation>独立图像</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="350" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="664" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="373" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="684" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;Display this image as a semi-transparent overlay over other images.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;This option is best for statistical maps. You can control the overall opacity of the overlay in this window, or customize the color map for partial opacity effects. &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;将此图像作为半透明覆盖显示在其他图像之上。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;此选项适用于统计图。您可在此窗口控制覆盖图整体不透明度，或自定义颜色映射以实现部分透明效果。 &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="353" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="666" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="376" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="686" />
         <source>Semi-transparent overlay</source>
         <translation>半透明覆盖层</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="410" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="668" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="433" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="688" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;Place this image layer earlier in the workspace. This affects the order in which the layers are layed out and rendered. The order is most important when more than one semi-transparent overlay is loaded.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;将此图像层放置在工作区靠前位置，影响图层布局和渲染顺序。当加载多个半透明覆盖层时，顺序尤为重要。&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="413" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="670" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="436" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="690" />
         <source>Move up</source>
         <translation>上移</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="433" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="672" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="456" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="692" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;Place this image layer later in the workspace. This affects the order in which the layers are layed out and rendered. The order is most important when more than one semi-transparent overlay is loaded.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-size:11pt;"&gt;将此图像层放置在工作区靠后位置，影响图层布局和渲染顺序。当加载多个半透明覆盖层时，顺序尤为重要。&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="436" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="674" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="459" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="694" />
         <source>Move down</source>
         <translation>下移</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="459" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="675" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="482" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="695" />
         <source>Display as:</source>
         <translation>显示为:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="482" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="676" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="505" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="696" />
         <source>Display order:</source>
         <translation>显示顺序:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="495" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="677" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="518" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="697" />
         <source>Overlay opacity:</source>
         <translation>覆盖不透明度:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="508" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="678" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="531" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="698" />
         <source>How to Visualize Multiple Image Components:</source>
         <translation>如何显示多个图像分支（通道）:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="532" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="679" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="555" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="699" />
         <source>Display mode:</source>
         <translation>显示模式:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="539" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="681" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="562" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="701" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Multi-component images have more than one value for each voxel. These values may represent measurements taken at different time points, different chromatic components, etc. ITK-SNAP offers multiple ways to visualize this multi-dimensional information. You can choose to visualize just one component, or a summary function of the components, such as magnitude, average, or maximum. In the special case of three-component images, the components can be rendered as red, green and blue channels (RGB).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;多通道图像中每个体素包含多个数值，可能表示不同时间点、不同色彩成分等度量。ITK-SNAP提供多种方式展示此多维信息。您可选择显示单一通道，或通道的汇总函数，如幅值、平均或最大值。三通道图像可渲染为红绿蓝通道（RGB）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="579" />
-        <location filename="../Components/GeneralLayerInspector.ui" line="586" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="684" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="687" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="602" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="609" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="704" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="707" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the image component to visualize.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;选择要显示的图像分量。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="602" />
-        <location filename="../Components/GeneralLayerInspector.ui" line="751" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="690" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="697" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="625" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="774" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="710" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="717" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle animation mode.&lt;/p&gt;&lt;p&gt;When enabled, the display will automatically loop over the image components at one-second intervals.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;切换动画模式。&lt;/p&gt;&lt;p&gt;启用时，显示将自动以每秒一帧循环切换图像通道。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="634" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="693" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="657" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="713" />
         <source>Component:</source>
         <translation>分支（通道）:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="644" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="694" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="667" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="714" />
         <source>4D Image Properties:</source>
         <translation>4D图像属性:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="697" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="695" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="720" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="715" />
         <source>Time Point: </source>
         <translation>时间点: </translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="784" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="700" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="807" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="720" />
         <source>Frame Time:</source>
         <translation>帧时间:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="807" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="701" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="830" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="721" />
         <source>ms</source>
         <translation>毫秒</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="819" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="702" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="842" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="722" />
         <source>Properties for Time Point 100:</source>
         <translation>时间点100的属性:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="887" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="705" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="910" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="725" />
         <source>How to Display Mesh Layer</source>
         <translation>网格层显示方式</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="921" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="706" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="944" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="726" />
         <source>Vector Display Mode:</source>
         <translation>矢量显示模式:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="928" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="707" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="951" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="727" />
         <source>Solid Color:</source>
         <translation>纯色:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="962" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="708" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="985" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="728" />
         <source>Active Data Array:</source>
         <translation>激活数据数组:</translation>
     </message>
     <message>
-        <location filename="../Components/GeneralLayerInspector.ui" line="969" />
-        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="709" />
+        <location filename="../Components/GeneralLayerInspector.ui" line="992" />
+        <location filename="../../../../xc64dbg/ui_GeneralLayerInspector.h" line="729" />
         <source>Opacity in Slice Views:</source>
         <translation>切片视图不透明度:</translation>
     </message>
@@ -2053,12 +2149,12 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
 <context>
     <name>ImageIOWizard</name>
     <message>
-        <location filename="../Windows/ImageIOWizard.cxx" line="874" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="873" />
         <source>Open Image - ITK-SNAP</source>
         <translation>打开图像 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/ImageIOWizard.cxx" line="876" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="875" />
         <source>Save Image - ITK-SNAP</source>
         <translation>保存图像 - ITK-SNAP</translation>
     </message>
@@ -2864,10 +2960,15 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>LayerInspectorDialog</name>
     <message>
-        <location filename="../Windows/LayerInspectorDialog.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorDialog.h" line="187" />
         <source>Image Layer Inspector - ITK-SNAP</source>
-        <translation>图层检查器 - ITK-SNAP</translation>
+        <translation type="vanished">图层检查器 - ITK-SNAP</translation>
+    </message>
+    <message>
+        <location filename="../Windows/LayerInspectorDialog.ui" line="14" />
+        <location filename="../Windows/LayerInspectorDialog.cxx" line="416" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorDialog.h" line="187" />
+        <source>ITK-SNAP Layer Inspector</source>
+        <translation>ITK-SNAP 图层检查器</translation>
     </message>
     <message>
         <location filename="../Windows/LayerInspectorDialog.ui" line="164" />
@@ -2942,252 +3043,257 @@ p, li { white-space: pre-wrap; }
         <translation>Ctrl+Shift+G</translation>
     </message>
     <message>
-        <location filename="../Windows/LayerInspectorDialog.cxx" line="237" />
+        <location filename="../Windows/LayerInspectorDialog.cxx" line="235" />
         <source>Main Image</source>
         <translation>主图像</translation>
     </message>
     <message>
-        <location filename="../Windows/LayerInspectorDialog.cxx" line="238" />
+        <location filename="../Windows/LayerInspectorDialog.cxx" line="236" />
         <source>Additional Images</source>
         <translation>附加图像</translation>
     </message>
     <message>
-        <location filename="../Windows/LayerInspectorDialog.cxx" line="239" />
+        <location filename="../Windows/LayerInspectorDialog.cxx" line="237" />
         <source>Snake Mode Layers</source>
         <translation>蛇形模式层</translation>
     </message>
     <message>
-        <location filename="../Windows/LayerInspectorDialog.cxx" line="240" />
+        <location filename="../Windows/LayerInspectorDialog.cxx" line="238" />
         <source>Segmentation Layers</source>
         <translation>分割层</translation>
     </message>
     <message>
-        <location filename="../Windows/LayerInspectorDialog.cxx" line="335" />
+        <location filename="../Windows/LayerInspectorDialog.cxx" line="341" />
         <source>Mesh Layers</source>
         <translation>网格层</translation>
+    </message>
+    <message>
+        <location filename="../Windows/LayerInspectorDialog.cxx" line="412" />
+        <source>%1 - ITK-SNAP Layer Inspector</source>
+        <translation>%1 - ITK-SNAP 图层检查器</translation>
     </message>
 </context>
 <context>
     <name>LayerInspectorRowDelegate</name>
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.ui" line="26" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="333" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="336" />
         <source>Form</source>
         <translation>表单</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="138" />
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="436" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="390" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="409" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="132" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="430" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="393" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="412" />
         <source>TextLabel</source>
         <translation>文本标签</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="170" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="392" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="164" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="395" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show a context menu of commands for this image layer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;显示此图像层的命令上下文菜单。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="176" />
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="230" />
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="288" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="394" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="398" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="402" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="170" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="224" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="282" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="397" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="401" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="405" />
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="224" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="396" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="218" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="399" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&amp;quot;Pin&amp;quot; or &amp;quot;unpin&amp;quot; the image layer. When an image layer is pinned, it is rendered as an overlay on top of other images. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;“固定”或“取消固定”图层。固定的图层将作为覆盖层显示在其他图像之上。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="279" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="400" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="273" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="403" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle between making the image layer visible or invisible.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;切换图层的可见性。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="327" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="404" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="321" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="407" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Change the opacity of the image layer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;调整图层的不透明度。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="429" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="407" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="423" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="410" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Indicates what aspect of a multi-component image layer is displayed (e.g., a particular component, magnitude of components, etc.).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;指示多组件图层显示的内容（例如，特定组件、组件的幅值等）。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="452" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="334" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="446" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="337" />
         <source>Save...</source>
         <translation>保存...</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="455" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="336" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="449" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="339" />
         <source>Save Image to File</source>
         <translation>图像另存为文件</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="464" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="338" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="458" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="341" />
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="467" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="340" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="461" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="343" />
         <source>Close (unload) the selected image layer</source>
         <translation>关闭（卸载）选定的图像层</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="476" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="342" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="470" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="345" />
         <source>Auto Adjust Contrast</source>
         <translation>自动调整对比度</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="479" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="344" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="473" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="347" />
         <source>Adjust contrast of the image layer automatically for optimal visualization</source>
         <translation>自动调整图像层对比度以获得最佳显示效果</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="484" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="346" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="478" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="349" />
         <source>Generate texture features</source>
         <translation>生成纹理特征</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="487" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="348" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="481" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="351" />
         <source>Create texture features derived from this image</source>
         <translation>基于此图像创建纹理特征</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="497" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="350" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="491" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="353" />
         <source>Display as overlay</source>
         <translation>作为覆盖层显示</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="500" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="352" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="494" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="355" />
         <source>Display the layer as a semi-transparent overlay on top of other image layers</source>
         <translation>以半透明覆盖层显示在其他图层之上</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="509" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="354" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="503" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="357" />
         <source>Display as base layer</source>
         <translation>作为基础层显示</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="512" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="356" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="506" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="359" />
         <source>Display the layer side by side with other layers</source>
         <translation>与其他图层并排显示</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="517" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="358" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="511" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="361" />
         <source>Contrast Inspector ...</source>
         <translation>对比度检查器...</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="520" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="360" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="514" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="363" />
         <source>Open the contrast inspector to adjust image contrast for this layer</source>
         <translation>打开对比度检查器，调整此图层的图像对比度</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="525" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="362" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="519" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="365" />
         <source>Color Map Inspector ...</source>
         <translation>颜色映射检查器...</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="528" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="364" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="522" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="367" />
         <source>Open the color map editor for this layer</source>
         <translation>打开此图层的颜色映射编辑器</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="536" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="366" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="530" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="369" />
         <source>Enable</source>
         <translation>启用</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="539" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="368" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="533" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="371" />
         <source>Enable volume rendering of this layer</source>
         <translation>启用此层的体积渲染</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="544" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="370" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="538" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="373" />
         <source>Reload as a Multi-Component Image</source>
         <translation>作为多组件图像重新加载</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="547" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="372" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="541" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="375" />
         <source>Reload a 4d main image as a multi-component image</source>
         <translation>将四维主图像重新加载为多组件图像</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="555" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="374" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="549" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="377" />
         <source>Reload as a 4D Image</source>
         <translation>作为四维图像重新加载</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="558" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="376" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="552" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="379" />
         <source>Reload a multi-component image as a 4D image</source>
         <translation>将多组件图像重新加载为四维图像</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="566" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="378" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="560" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="381" />
         <source>Reload from File</source>
         <translation>从文件重新加载</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="569" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="380" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="563" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="383" />
         <source>Reload image data from the disk</source>
         <translation>从磁盘重新加载图像数据</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="577" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="382" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="571" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="385" />
         <source>Reveal in File Browser</source>
         <translation>在文件浏览器中显示</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="580" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="384" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="574" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="387" />
         <source>Reveal the image file in the file system view</source>
         <translation>在文件系统视图中显示图像文件</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="588" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="386" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="582" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="389" />
         <source>Mesh Color...</source>
         <translation>网格颜色...</translation>
     </message>
     <message>
-        <location filename="../Components/LayerInspectorRowDelegate.ui" line="591" />
-        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="388" />
+        <location filename="../Components/LayerInspectorRowDelegate.ui" line="585" />
+        <location filename="../../../../xc64dbg/ui_LayerInspectorRowDelegate.h" line="391" />
         <source>Select solid color for the mesh</source>
         <translation>选择网格的纯色</translation>
     </message>
@@ -3210,6 +3316,11 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/LayerInspectorRowDelegate.cxx" line="102" />
         <source>Multi-Component Display</source>
         <translation>多组件显示</translation>
+    </message>
+    <message>
+        <location filename="../Components/LayerInspectorRowDelegate.cxx" line="115" />
+        <source>Opacity: </source>
+        <translation>不透明度： </translation>
     </message>
     <message>
         <location filename="../Components/LayerInspectorRowDelegate.cxx" line="119" />
@@ -3359,6 +3470,21 @@ p, li { white-space: pre-wrap; }
         <location filename="../../../../xc64dbg/ui_LoadTransformationDialog.h" line="95" />
         <source>Inverse</source>
         <translation>逆变换</translation>
+    </message>
+    <message>
+        <location filename="../Windows/LoadTransformationDialog.cxx" line="36" />
+        <source>Transform File</source>
+        <translation>变换文件</translation>
+    </message>
+    <message>
+        <location filename="../Windows/LoadTransformationDialog.cxx" line="37" />
+        <source>ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)</source>
+        <translation>ITK 变换文件 (*.txt)；；Convert3D 变换文件 (*.mat)</translation>
+    </message>
+    <message>
+        <location filename="../Windows/LoadTransformationDialog.cxx" line="39" />
+        <source>Open Transform - ITK-SNAP</source>
+        <translation>打开变换 - ITK-SNAP</translation>
     </message>
 </context>
 <context>
@@ -3538,25 +3664,25 @@ p, li { white-space: pre-wrap; }
     <name>MainImageWindow</name>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1108" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1112" />
         <source>MainWindow</source>
         <translation>主窗口</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="162" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1596" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1600" />
         <source>Getting Started</source>
         <translation>入门指南</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="229" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1582" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1586" />
         <source>Getting started with ITK-SNAP Version 4</source>
         <translation>开始使用 ITK-SNAP 4 版</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="265" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1583" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1587" />
         <source>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;meta charset="utf-8" /&gt;&lt;style type="text/css"&gt;
 p, li { white-space: pre-wrap; }
@@ -3578,2007 +3704,2029 @@ li.checked::marker { content: "\2612"; }
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="290" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1597" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1601" />
         <source>Recent Images</source>
         <translation>最近的图像</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="315" />
         <location filename="../Windows/MainImageWindow.ui" line="738" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1598" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1632" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1602" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1636" />
         <source>Recent Workspaces</source>
         <translation>最近的工作区</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="365" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1599" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1603" />
         <source>Open Image ...</source>
         <translation>打开图像...</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="372" />
-        <location filename="../Windows/MainImageWindow.ui" line="1343" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1364" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1600" />
+        <location filename="../Windows/MainImageWindow.ui" line="1349" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1368" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1604" />
         <source>Open Workspace ...</source>
         <translation>打开工作区...</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="396" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1601" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1605" />
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="400" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1602" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1606" />
         <source>Recent Main Images</source>
         <translation>最近主图像</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="410" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1603" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1607" />
         <source>Recent Added Images</source>
         <translation>最近添加图像</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="420" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1604" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1608" />
         <source>Save Image</source>
         <translation>保存图像</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="430" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1605" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1609" />
         <source>Export</source>
         <translation>导出</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="434" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1606" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1610" />
         <source>Image Slice</source>
         <translation>图像切片</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="442" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1607" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1611" />
         <source>Screenshot</source>
         <translation>屏幕截图</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="450" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1608" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1612" />
         <source>Screenshot Series</source>
         <translation>屏幕截图序列</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="462" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1609" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1613" />
         <source>Add Another DICOM Series</source>
         <translation>添加另一DICOM序列</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="491" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1610" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1614" />
         <source>Segmentation</source>
         <translation>分割</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="495" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1611" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1615" />
         <source>Appearance</source>
         <translation>外观</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="504" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1612" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1616" />
         <source>Recent Segmentations</source>
         <translation>最近分割</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="514" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1613" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1617" />
         <source>Add Another Segmentation</source>
         <translation>添加另一分割</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="518" />
         <location filename="../Windows/MainImageWindow.ui" line="537" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1614" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1616" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1618" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1620" />
         <source>Recent</source>
         <translation>最近</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="533" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1615" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1619" />
         <source>Label Definitions</source>
         <translation>标签定义</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="578" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1617" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1621" />
         <source>Tools</source>
         <translation>工具</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="582" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1618" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1622" />
         <source>Active Main Tool</source>
         <translation>激活主工具</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="593" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1619" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1623" />
         <source>Active 3D Tool</source>
         <translation>激活3D工具</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="602" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1620" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1624" />
         <source>Image Contrast</source>
         <translation>图像对比度</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="632" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1621" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1625" />
         <source>Edit</source>
         <translation>编辑</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="636" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1622" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1626" />
         <source>Foreground Label</source>
         <translation>前景标签</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="643" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1623" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1627" />
         <source>Background Label</source>
         <translation>背景标签</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="650" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1624" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1628" />
         <source>Slice Annotations</source>
         <translation>切片注释</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="659" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1625" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1629" />
         <source>Zoom</source>
         <translation>缩放</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="671" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1626" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1630" />
         <source>Layers</source>
         <translation>图层</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="687" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1627" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1631" />
         <source>Views</source>
         <translation>视图</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="695" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1628" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1632" />
         <source>3D Panel</source>
         <translation>3D 面板</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="701" />
-        <location filename="../Windows/MainImageWindow.ui" line="1807" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1547" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1629" />
+        <location filename="../Windows/MainImageWindow.ui" line="1813" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1551" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1633" />
         <source>4D Display</source>
         <translation>4D 显示</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="723" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1630" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1634" />
         <source>Help</source>
         <translation>帮助</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="734" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1631" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1635" />
         <source>Workspace</source>
         <translation>工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="761" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1109" />
+        <location filename="../Windows/MainImageWindow.ui" line="754" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1637" />
+        <source>Window</source>
+        <translation>窗口</translation>
+    </message>
+    <message>
+        <location filename="../Windows/MainImageWindow.ui" line="767" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1113" />
         <source>Open Main Image ...</source>
         <translation>打开主图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="764" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1111" />
+        <location filename="../Windows/MainImageWindow.ui" line="770" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1115" />
         <source>Open the main anatomy image that you wish to display or segment</source>
         <translation>打开您希望显示或分割的主解剖图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="767" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1114" />
+        <location filename="../Windows/MainImageWindow.ui" line="773" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1118" />
         <source>Ctrl+G</source>
         <translation>Ctrl+G</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="772" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1116" />
+        <location filename="../Windows/MainImageWindow.ui" line="778" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1120" />
         <source>Quit</source>
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="775" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1118" />
+        <location filename="../Windows/MainImageWindow.ui" line="781" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1122" />
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="780" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1120" />
+        <location filename="../Windows/MainImageWindow.ui" line="786" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1124" />
         <source>Open Segmentation ...</source>
         <translation>打开分割...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="783" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1122" />
+        <location filename="../Windows/MainImageWindow.ui" line="789" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1126" />
         <source>Load the segmentation image from disk</source>
         <translation>从磁盘加载分割图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="786" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1125" />
+        <location filename="../Windows/MainImageWindow.ui" line="792" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1129" />
         <source>Ctrl+O</source>
         <translation>Ctrl+O</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="791" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1127" />
+        <location filename="../Windows/MainImageWindow.ui" line="797" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1131" />
         <source>Main Image ...</source>
         <translation>主图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="794" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1129" />
+        <location filename="../Windows/MainImageWindow.ui" line="800" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1133" />
         <source>Main Image</source>
         <translation>主图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="799" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1131" />
+        <location filename="../Windows/MainImageWindow.ui" line="805" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1135" />
         <source>Speed Image ...</source>
         <translation>速度图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="802" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1133" />
+        <location filename="../Windows/MainImageWindow.ui" line="808" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1137" />
         <source>Save the Speed Image in Active Contour Mode</source>
         <translation>在活动轮廓模式下保存速度图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="807" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1135" />
+        <location filename="../Windows/MainImageWindow.ui" line="813" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1139" />
         <source>Level Set Image ...</source>
         <translation>水平集图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="810" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1137" />
+        <location filename="../Windows/MainImageWindow.ui" line="816" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1141" />
         <source>Save level set image in active snake mode</source>
         <translation>在活动轮廓（Snake）模式下保存水平集图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="815" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1139" />
+        <location filename="../Windows/MainImageWindow.ui" line="821" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1143" />
         <source>Main Image (Region of Interest) ...</source>
         <translation>主图像（感兴趣区域）...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="818" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1141" />
+        <location filename="../Windows/MainImageWindow.ui" line="824" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1145" />
         <source>Save the region of interest selected for active contour segmentation</source>
         <translation>保存选定用于活动轮廓分割的感兴趣区域</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="823" />
-        <location filename="../Windows/MainImageWindow.ui" line="991" />
-        <location filename="../Windows/MainImageWindow.ui" line="1364" />
-        <location filename="../Windows/MainImageWindow.ui" line="1552" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1143" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1227" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1373" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1449" />
+        <location filename="../Windows/MainImageWindow.ui" line="829" />
+        <location filename="../Windows/MainImageWindow.ui" line="997" />
+        <location filename="../Windows/MainImageWindow.ui" line="1370" />
+        <location filename="../Windows/MainImageWindow.ui" line="1558" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1147" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1231" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1377" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1453" />
         <source>Recent 1</source>
         <translation>最近 1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="826" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1145" />
+        <location filename="../Windows/MainImageWindow.ui" line="832" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1149" />
         <source>Ctrl+1</source>
         <translation>Ctrl+1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="831" />
-        <location filename="../Windows/MainImageWindow.ui" line="996" />
-        <location filename="../Windows/MainImageWindow.ui" line="1369" />
-        <location filename="../Windows/MainImageWindow.ui" line="1557" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1147" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1228" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1374" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1450" />
+        <location filename="../Windows/MainImageWindow.ui" line="837" />
+        <location filename="../Windows/MainImageWindow.ui" line="1002" />
+        <location filename="../Windows/MainImageWindow.ui" line="1375" />
+        <location filename="../Windows/MainImageWindow.ui" line="1563" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1151" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1232" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1378" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1454" />
         <source>Recent 2</source>
         <translation>最近 2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="834" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1149" />
+        <location filename="../Windows/MainImageWindow.ui" line="840" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1153" />
         <source>Ctrl+2</source>
         <translation>Ctrl+2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="839" />
-        <location filename="../Windows/MainImageWindow.ui" line="1001" />
-        <location filename="../Windows/MainImageWindow.ui" line="1374" />
-        <location filename="../Windows/MainImageWindow.ui" line="1562" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1151" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1229" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1375" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1451" />
+        <location filename="../Windows/MainImageWindow.ui" line="845" />
+        <location filename="../Windows/MainImageWindow.ui" line="1007" />
+        <location filename="../Windows/MainImageWindow.ui" line="1380" />
+        <location filename="../Windows/MainImageWindow.ui" line="1568" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1155" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1233" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1379" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1455" />
         <source>Recent 3</source>
         <translation>最近 3</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="842" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1153" />
+        <location filename="../Windows/MainImageWindow.ui" line="848" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1157" />
         <source>Ctrl+3</source>
         <translation>Ctrl+3</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="847" />
-        <location filename="../Windows/MainImageWindow.ui" line="1006" />
-        <location filename="../Windows/MainImageWindow.ui" line="1379" />
-        <location filename="../Windows/MainImageWindow.ui" line="1567" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1155" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1230" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1376" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1452" />
+        <location filename="../Windows/MainImageWindow.ui" line="853" />
+        <location filename="../Windows/MainImageWindow.ui" line="1012" />
+        <location filename="../Windows/MainImageWindow.ui" line="1385" />
+        <location filename="../Windows/MainImageWindow.ui" line="1573" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1159" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1234" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1380" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1456" />
         <source>Recent 4</source>
         <translation>最近 4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="850" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1157" />
+        <location filename="../Windows/MainImageWindow.ui" line="856" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1161" />
         <source>Ctrl+4</source>
         <translation>Ctrl+4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="855" />
-        <location filename="../Windows/MainImageWindow.ui" line="1359" />
-        <location filename="../Windows/MainImageWindow.ui" line="1384" />
-        <location filename="../Windows/MainImageWindow.ui" line="1572" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1159" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1372" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1377" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1453" />
+        <location filename="../Windows/MainImageWindow.ui" line="861" />
+        <location filename="../Windows/MainImageWindow.ui" line="1365" />
+        <location filename="../Windows/MainImageWindow.ui" line="1390" />
+        <location filename="../Windows/MainImageWindow.ui" line="1578" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1163" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1376" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1381" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1457" />
         <source>Recent 5</source>
         <translation>最近 5</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="858" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1161" />
+        <location filename="../Windows/MainImageWindow.ui" line="864" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1165" />
         <source>Ctrl+5</source>
         <translation>Ctrl+5</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="863" />
-        <location filename="../Windows/MainImageWindow.ui" line="1011" />
-        <location filename="../Windows/MainImageWindow.ui" line="1404" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1163" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1231" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1381" />
+        <location filename="../Windows/MainImageWindow.ui" line="869" />
+        <location filename="../Windows/MainImageWindow.ui" line="1017" />
+        <location filename="../Windows/MainImageWindow.ui" line="1410" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1167" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1235" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1385" />
         <source>Axial</source>
         <translation>轴向</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="866" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1165" />
+        <location filename="../Windows/MainImageWindow.ui" line="872" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1169" />
         <source>Export axial image slice as an image</source>
         <translation>导出轴向图像切片为图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="871" />
-        <location filename="../Windows/MainImageWindow.ui" line="1019" />
-        <location filename="../Windows/MainImageWindow.ui" line="1412" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1167" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1235" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1385" />
+        <location filename="../Windows/MainImageWindow.ui" line="877" />
+        <location filename="../Windows/MainImageWindow.ui" line="1025" />
+        <location filename="../Windows/MainImageWindow.ui" line="1418" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1171" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1239" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1389" />
         <source>Coronal</source>
         <translation>冠状面</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="874" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1169" />
+        <location filename="../Windows/MainImageWindow.ui" line="880" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1173" />
         <source>Export coronal image slice as an image</source>
         <translation>导出冠状面图像切片为图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="879" />
-        <location filename="../Windows/MainImageWindow.ui" line="1027" />
-        <location filename="../Windows/MainImageWindow.ui" line="1420" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1171" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1239" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1389" />
+        <location filename="../Windows/MainImageWindow.ui" line="885" />
+        <location filename="../Windows/MainImageWindow.ui" line="1033" />
+        <location filename="../Windows/MainImageWindow.ui" line="1426" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1175" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1243" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1393" />
         <source>Sagittal</source>
         <translation>矢状面</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="882" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1173" />
+        <location filename="../Windows/MainImageWindow.ui" line="888" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1177" />
         <source>Export sagittal image slice as an image</source>
         <translation>导出矢状面图像切片为图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="887" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1175" />
+        <location filename="../Windows/MainImageWindow.ui" line="893" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1179" />
         <source>Close All Images</source>
         <translation>关闭所有图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="890" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1177" />
+        <location filename="../Windows/MainImageWindow.ui" line="896" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1181" />
         <source>Ctrl+Shift+W</source>
         <translation>Ctrl+Shift+W</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="895" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1142" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1179" />
+        <location filename="../Windows/MainImageWindow.ui" line="901" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1185" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1183" />
         <source>Unload All Segmentations</source>
         <translation>卸载所有分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="900" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1180" />
+        <location filename="../Windows/MainImageWindow.ui" line="906" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1184" />
         <source>Add Another Image ...</source>
         <translation>添加另一图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="903" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1182" />
+        <location filename="../Windows/MainImageWindow.ui" line="909" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1186" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load an image to display alongside the main image. The dimensions of this image must match those of the main image. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;加载一幅与主图像一起显示的图像。该图像的尺寸必须与主图像匹配。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="906" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1185" />
+        <location filename="../Windows/MainImageWindow.ui" line="912" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1189" />
         <source>Ctrl+Shift+G</source>
         <translation>Ctrl+Shift+G</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="911" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1187" />
+        <location filename="../Windows/MainImageWindow.ui" line="917" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1191" />
         <source>Contrast Adjustment...</source>
         <translation>对比度调整...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="914" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1189" />
+        <location filename="../Windows/MainImageWindow.ui" line="920" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1193" />
         <source>Adjust image contrast</source>
         <translation>调整图像对比度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="923" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1191" />
+        <location filename="../Windows/MainImageWindow.ui" line="929" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1195" />
         <source>Label Editor...</source>
         <translation>标签编辑器...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="926" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1193" />
+        <location filename="../Windows/MainImageWindow.ui" line="932" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1197" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Label Editor (⌘L)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Opens the label editor, where you can edit segmentation labels.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;标签编辑器 (⌘L)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;打开标签编辑器，可编辑分割标签。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="929" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1196" />
+        <location filename="../Windows/MainImageWindow.ui" line="935" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1200" />
         <source>Ctrl+L</source>
         <translation>Ctrl+L</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="934" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1198" />
+        <location filename="../Windows/MainImageWindow.ui" line="940" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1202" />
         <source>Reorient Image...</source>
         <translation>重定向图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="939" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1199" />
+        <location filename="../Windows/MainImageWindow.ui" line="945" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1203" />
         <source>Zoom to Fit in All Views</source>
         <translation>全部视图缩放以适应</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="942" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1201" />
+        <location filename="../Windows/MainImageWindow.ui" line="948" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1205" />
         <source>Reset the zoom factor in all views to fit</source>
         <translation>重置所有视图缩放比例以适应显示</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="945" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1204" />
+        <location filename="../Windows/MainImageWindow.ui" line="951" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1208" />
         <source>Ctrl+F</source>
         <translation>Ctrl+F</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="950" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1206" />
+        <location filename="../Windows/MainImageWindow.ui" line="956" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1210" />
         <source>Center All Views on Cursor</source>
         <translation>将所有视图中心对准光标</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="953" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1208" />
+        <location filename="../Windows/MainImageWindow.ui" line="959" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1212" />
         <source>Center each slice view on the cursor position</source>
         <translation>使每个切片视图居中于光标位置</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="956" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1211" />
+        <location filename="../Windows/MainImageWindow.ui" line="962" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1215" />
         <source>C</source>
         <translation>C</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="965" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1213" />
+        <location filename="../Windows/MainImageWindow.ui" line="971" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1217" />
         <source>Undo</source>
         <translation>撤销</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="968" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1215" />
+        <location filename="../Windows/MainImageWindow.ui" line="974" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1219" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Undo (⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Undo the last modification to the segmentation image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;撤销 (⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;撤销对分割图像的最后更改。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="971" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1218" />
+        <location filename="../Windows/MainImageWindow.ui" line="977" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1222" />
         <source>Ctrl+Z</source>
         <translation>Ctrl+Z</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="980" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1220" />
+        <location filename="../Windows/MainImageWindow.ui" line="986" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1224" />
         <source>Redo</source>
         <translation>重做</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="983" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1222" />
+        <location filename="../Windows/MainImageWindow.ui" line="989" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1226" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Redo (⇧⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Redo the last modification to the segmentation image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;重做 (⇧⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;重做对分割图像的最后更改。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="986" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1225" />
+        <location filename="../Windows/MainImageWindow.ui" line="992" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1229" />
         <source>Ctrl+Shift+Z</source>
         <translation>Ctrl+Shift+Z</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1014" />
-        <location filename="../Windows/MainImageWindow.ui" line="1022" />
-        <location filename="../Windows/MainImageWindow.ui" line="1030" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1233" />
+        <location filename="../Windows/MainImageWindow.ui" line="1020" />
+        <location filename="../Windows/MainImageWindow.ui" line="1028" />
+        <location filename="../Windows/MainImageWindow.ui" line="1036" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1237" />
         <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1241" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1245" />
         <source>Export a screenshot of the axial view as an image</source>
         <translation>导出轴向视图的屏幕截图为图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1035" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1135" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1243" />
+        <location filename="../Windows/MainImageWindow.ui" line="1041" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1178" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1247" />
         <source>Save as...</source>
         <translation>另存为...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1040" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1244" />
+        <location filename="../Windows/MainImageWindow.ui" line="1046" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1248" />
         <source>Export as Surface Mesh...</source>
         <translation>导出为表面网格...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1045" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1245" />
+        <location filename="../Windows/MainImageWindow.ui" line="1051" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1249" />
         <source>Import Label Descriptions...</source>
         <translation>导入标签描述...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1050" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1246" />
+        <location filename="../Windows/MainImageWindow.ui" line="1056" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1250" />
         <source>Export Label Descriptions...</source>
         <translation>导出标签描述...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1055" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1247" />
+        <location filename="../Windows/MainImageWindow.ui" line="1061" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1251" />
         <source>Volumes and Statistics...</source>
         <translation>体积和统计...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1063" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1248" />
+        <location filename="../Windows/MainImageWindow.ui" line="1069" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1252" />
         <source>Toggle Visibility</source>
         <translation>切换可见性</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1066" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1250" />
+        <location filename="../Windows/MainImageWindow.ui" line="1072" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1254" />
         <source>S</source>
         <translation>S</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1071" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1252" />
+        <location filename="../Windows/MainImageWindow.ui" line="1077" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1256" />
         <source>Increase Opacity</source>
         <translation>增加不透明度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1074" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1254" />
+        <location filename="../Windows/MainImageWindow.ui" line="1080" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1258" />
         <source>D</source>
         <translation>D</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1079" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1256" />
+        <location filename="../Windows/MainImageWindow.ui" line="1085" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1260" />
         <source>Decrease Opacity</source>
         <translation>降低不透明度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1082" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1258" />
+        <location filename="../Windows/MainImageWindow.ui" line="1088" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1262" />
         <source>A</source>
         <translation>A</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1087" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1260" />
+        <location filename="../Windows/MainImageWindow.ui" line="1093" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1264" />
         <source>Color Map Editor...</source>
         <translation>色彩图编辑器...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1092" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1261" />
+        <location filename="../Windows/MainImageWindow.ui" line="1098" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1265" />
         <source>Image Information...</source>
         <translation>图像信息...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1097" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1262" />
+        <location filename="../Windows/MainImageWindow.ui" line="1103" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1266" />
         <source>Close Image XXX</source>
         <translation>关闭图像 XXX</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1100" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1264" />
+        <location filename="../Windows/MainImageWindow.ui" line="1106" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1268" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unload the last image layer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;卸载最后一个图层&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1103" />
-        <location filename="../Windows/MainImageWindow.ui" line="1641" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1267" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1487" />
+        <location filename="../Windows/MainImageWindow.ui" line="1109" />
+        <location filename="../Windows/MainImageWindow.ui" line="1647" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1271" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1491" />
         <source>Ctrl+W</source>
         <translation>Ctrl+W</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1108" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1269" />
+        <location filename="../Windows/MainImageWindow.ui" line="1114" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1273" />
         <source>Unload all additional image layers</source>
         <translation>卸载所有附加图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1111" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1271" />
+        <location filename="../Windows/MainImageWindow.ui" line="1117" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1275" />
         <source>Remove all overlays from the current workspace. Only the main image will remain open.</source>
         <translation>从当前工作区移除所有叠加层，只有主图像保持打开状态。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1120" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1273" />
+        <location filename="../Windows/MainImageWindow.ui" line="1126" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1277" />
         <source>Layer Inspector...</source>
         <translation>图层检查器...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1123" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1275" />
+        <location filename="../Windows/MainImageWindow.ui" line="1129" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1279" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Layer Inspector (⌘I)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Opens the layer inspector window, which lists loaded image layers and can be used used to adjust their display properties.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;图层检查器 (⌘I)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;打开图层检查器窗口，列出载入的图像层并可用于调整其显示属性。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1126" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1278" />
+        <location filename="../Windows/MainImageWindow.ui" line="1132" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1282" />
         <source>Ctrl+I</source>
         <translation>Ctrl+I</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1141" />
-        <location filename="../Windows/MainImageWindow.ui" line="1144" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1280" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1282" />
+        <location filename="../Windows/MainImageWindow.ui" line="1147" />
+        <location filename="../Windows/MainImageWindow.ui" line="1150" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1284" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1286" />
         <source>Crosshair Tool</source>
         <translation>十字线工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1147" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1285" />
+        <location filename="../Windows/MainImageWindow.ui" line="1153" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1289" />
         <source>1</source>
         <translation>1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1159" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1287" />
+        <location filename="../Windows/MainImageWindow.ui" line="1165" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1291" />
         <source>Zoom/Pan Mode</source>
         <translation>缩放/平移模式</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1162" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1289" />
+        <location filename="../Windows/MainImageWindow.ui" line="1168" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1293" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Zoom/Pan Mode (2)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Use the mouse to zoom in and out of the image, and to pan around when the image is zoomed in. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to pan around the image&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;缩放/平移模式 (2)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;使用鼠标缩放图像，并在放大时平移图像。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动以平移图像&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动以放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1165" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1293" />
+        <location filename="../Windows/MainImageWindow.ui" line="1171" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1297" />
         <source>2</source>
         <translation>2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1177" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1295" />
+        <location filename="../Windows/MainImageWindow.ui" line="1183" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1299" />
         <source>Polygon Drawing Mode</source>
         <translation>多边形绘制模式</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1180" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1297" />
+        <location filename="../Windows/MainImageWindow.ui" line="1186" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1301" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Polygon Drawing Mode (3)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Add points to the polygon and edit completed polygon&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;多边形绘制模式 (3)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于在三个正交图像切片中绘制和填充多边形以进行手动分割。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;添加多边形顶点并编辑完成的多边形&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动以放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1183" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1301" />
+        <location filename="../Windows/MainImageWindow.ui" line="1189" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1305" />
         <source>3</source>
         <translation>3</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1195" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1303" />
+        <location filename="../Windows/MainImageWindow.ui" line="1201" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1307" />
         <source>Paintbrush Mode</source>
         <translation>画笔模式</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1198" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1305" />
+        <location filename="../Windows/MainImageWindow.ui" line="1204" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1309" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Paintbrush Mode (4)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to perform manual segmentation by drawing with a paintbrush-like tool. Different brush shapes are available, including an adaptive brush that adjusts itself to the image data. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Paint with foreground label&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Paint with background label&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;画笔模式 (4)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;使用类似画笔的工具进行手动分割。提供多种画笔形状，包括根据图像数据自动调整的自适应画笔。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;使用前景标签绘画&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;使用背景标签绘画&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1201" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1309" />
+        <location filename="../Windows/MainImageWindow.ui" line="1207" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1313" />
         <source>4</source>
         <translation>4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1213" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1311" />
+        <location filename="../Windows/MainImageWindow.ui" line="1219" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1315" />
         <source>Active Contour Segmentation Mode</source>
         <translation>活动轮廓分割模式</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1216" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1313" />
+        <location filename="../Windows/MainImageWindow.ui" line="1222" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1317" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Active Contour (aka &amp;quot;Snake&amp;quot;) Segmentation Mode (5)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to select the region of interest for semi-automatic active contour segmentation and start the semi-automatic segmentation wizard.&lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Adjust the boundaries of the region of interest&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out of the image&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;活动轮廓（即“蛇形”）分割模式（5）&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于选择半自动活动轮廓分割的感兴趣区域并启动半自动分割向导。&lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;调整感兴趣区域边界&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动以放大/缩小图像&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1219" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1317" />
+        <location filename="../Windows/MainImageWindow.ui" line="1225" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1321" />
         <source>5</source>
         <translation>5</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1224" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1134" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1319" />
+        <location filename="../Windows/MainImageWindow.ui" line="1230" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1177" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1323" />
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1227" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1321" />
+        <location filename="../Windows/MainImageWindow.ui" line="1233" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1325" />
         <source>Ctrl+S</source>
         <translation>Ctrl+S</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1239" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1323" />
+        <location filename="../Windows/MainImageWindow.ui" line="1245" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1327" />
         <source>3D Trackball Tool</source>
         <translation>3D 轨迹球工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1242" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1325" />
+        <location filename="../Windows/MainImageWindow.ui" line="1248" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1329" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;3D Trackball Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to manipulate the viewpoint in the 3D window. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to rotate the camera&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;⇧&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to pan the camera.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;3D 轨迹球模式&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于操控3D窗口中的视点。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动旋转视角&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;⇧&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动平移视角。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1254" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1328" />
+        <location filename="../Windows/MainImageWindow.ui" line="1260" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1332" />
         <source>3D Crosshair Tool</source>
         <translation>3D 十字线工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1257" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1330" />
+        <location filename="../Windows/MainImageWindow.ui" line="1263" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1334" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;3D Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to place the linked 3D cursor on one of the surfaces rendered in the 3D window. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Click on a surface to place 3D cursor&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;3D 十字线模式&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于在3D窗口渲染的表面上放置关联的3D光标。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;点击表面以放置3D光标&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1269" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1332" />
+        <location filename="../Windows/MainImageWindow.ui" line="1275" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1336" />
         <source>3D Scalpel Tool</source>
         <translation>3D 手术刀工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1272" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1334" />
+        <location filename="../Windows/MainImageWindow.ui" line="1278" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1338" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Scalpel Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to relabel parts of the 3D scene with a cutplane. Voxels on one side of the cutplane will be assigned the current foreground label. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Click once to start cutplane drawing. Click again in a different location to finish. Then hold and drag cutplane 3D widget to rotate.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"/&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;手术刀模式&lt;/span&gt;&lt;/p&gt;&lt;p&gt;使用切割平面重新标记3D场景的部分区域。切割平面一侧的体素将被赋予当前前景标签。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;单击开始绘制切割平面。再次单击另一个位置完成。然后按住并拖动3D切割平面控件旋转。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1284" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1337" />
+        <location filename="../Windows/MainImageWindow.ui" line="1290" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1341" />
         <source>3D Spray Paint Tool</source>
         <translation>3D 喷漆工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1287" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1339" />
+        <location filename="../Windows/MainImageWindow.ui" line="1293" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1343" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Spray Paint Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to add voxels to the surfaces of existing segmentations. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Press and hold to apply spray paint. &lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"/&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;喷漆模式&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于向现有分割表面添加体素。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住以喷涂。 &lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1292" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1342" />
+        <location filename="../Windows/MainImageWindow.ui" line="1298" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1346" />
         <source>Toggle Overlay Visibility</source>
         <translation>切换叠加层可见性</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1295" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1343" />
+        <location filename="../Windows/MainImageWindow.ui" line="1301" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1347" />
         <source>Toggle Visibility of Sticky Layers</source>
         <translation>切换固定图层可见性</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1298" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1345" />
+        <location filename="../Windows/MainImageWindow.ui" line="1304" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1349" />
         <source>Toggle Visibility (All)</source>
         <translation>切换所有可见性</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1301" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1348" />
+        <location filename="../Windows/MainImageWindow.ui" line="1307" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1352" />
         <source>W</source>
         <translation>W</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1306" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1350" />
+        <location filename="../Windows/MainImageWindow.ui" line="1312" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1354" />
         <source>Increase Overlay Opacity</source>
         <translation>增加叠加层不透明度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1309" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1352" />
+        <location filename="../Windows/MainImageWindow.ui" line="1315" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1356" />
         <source>E</source>
         <translation>E</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1314" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1354" />
+        <location filename="../Windows/MainImageWindow.ui" line="1320" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1358" />
         <source>Decrease Overlay Opacity</source>
         <translation>降低叠加层不透明度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1317" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1356" />
+        <location filename="../Windows/MainImageWindow.ui" line="1323" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1360" />
         <source>Q</source>
         <translation>Q</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1322" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1358" />
+        <location filename="../Windows/MainImageWindow.ui" line="1328" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1362" />
         <source>About ITK-SNAP</source>
         <translation>关于 ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1330" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1359" />
+        <location filename="../Windows/MainImageWindow.ui" line="1336" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1363" />
         <source>Preferences ...</source>
         <translation>首选项...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1335" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1168" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1360" />
+        <location filename="../Windows/MainImageWindow.ui" line="1341" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1211" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1364" />
         <source>Save Workspace ...</source>
         <translation>保存工作区...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1338" />
-        <location filename="../Windows/MainImageWindow.ui" line="1354" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1362" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1370" />
+        <location filename="../Windows/MainImageWindow.ui" line="1344" />
+        <location filename="../Windows/MainImageWindow.ui" line="1360" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1366" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1374" />
         <source>Save the current workspace, including open image layers and associated settings and parameters</source>
         <translation>保存当前工作区，包括打开的图像层及相关设置和参数</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1346" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1366" />
+        <location filename="../Windows/MainImageWindow.ui" line="1352" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1370" />
         <source>Open a workspace containing multiple image layers and associated settings and parameters</source>
         <translation>打开包含多个图像层及相关设置和参数的工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1351" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1368" />
+        <location filename="../Windows/MainImageWindow.ui" line="1357" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1372" />
         <source>Save Workspace As ...</source>
         <translation>工作区另存为...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1389" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1378" />
+        <location filename="../Windows/MainImageWindow.ui" line="1395" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1382" />
         <source>Open ...</source>
         <translation>打开...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1394" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1379" />
+        <location filename="../Windows/MainImageWindow.ui" line="1400" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1383" />
         <source>Save ...</source>
         <translation>保存...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1399" />
-        <location filename="../Windows/MainImageWindow.ui" line="1863" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1380" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1568" />
+        <location filename="../Windows/MainImageWindow.ui" line="1405" />
+        <location filename="../Windows/MainImageWindow.ui" line="1869" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1384" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1572" />
         <source>Reset to Defaults</source>
         <translation>恢复默认设置</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1407" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1383" />
+        <location filename="../Windows/MainImageWindow.ui" line="1413" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1387" />
         <source>Iterate through all the slices in the axial view and save as a series of PNG image files.</source>
         <translation>遍历轴向视图所有切片并保存为PNG图像序列。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1415" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1387" />
+        <location filename="../Windows/MainImageWindow.ui" line="1421" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1391" />
         <source>Iterate through all the slices in the coronal view and save as a series of PNG image files.</source>
         <translation>遍历冠状面视图所有切片并保存为PNG图像序列。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1423" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1391" />
+        <location filename="../Windows/MainImageWindow.ui" line="1429" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1395" />
         <source>Iterate through all the slices in the sagittal view and save as a series of PNG image files.</source>
         <translation>遍历矢状面视图所有切片并保存为PNG图像序列。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1428" />
-        <location filename="../Windows/MainImageWindow.ui" line="1444" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1393" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1401" />
+        <location filename="../Windows/MainImageWindow.ui" line="1434" />
+        <location filename="../Windows/MainImageWindow.ui" line="1450" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1397" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1405" />
         <source>Previous</source>
         <translation>上一个</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1431" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1395" />
+        <location filename="../Windows/MainImageWindow.ui" line="1437" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1399" />
         <source>&lt;</source>
         <translation />
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1436" />
-        <location filename="../Windows/MainImageWindow.ui" line="1452" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1397" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1405" />
+        <location filename="../Windows/MainImageWindow.ui" line="1442" />
+        <location filename="../Windows/MainImageWindow.ui" line="1458" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1401" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1409" />
         <source>Next</source>
         <translation>下一个</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1439" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1399" />
+        <location filename="../Windows/MainImageWindow.ui" line="1445" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1403" />
         <source>&gt;</source>
         <translation>&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1447" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1403" />
+        <location filename="../Windows/MainImageWindow.ui" line="1453" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1407" />
         <source>Ctrl+Shift+,</source>
         <translation>Ctrl+Shift+,</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1455" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1407" />
+        <location filename="../Windows/MainImageWindow.ui" line="1461" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1411" />
         <source>Ctrl+Shift+.</source>
         <translation>Ctrl+Shift+.</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1460" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1409" />
+        <location filename="../Windows/MainImageWindow.ui" line="1466" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1413" />
         <source>Toggle All Annotations</source>
         <translation>切换所有标注</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1463" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1411" />
+        <location filename="../Windows/MainImageWindow.ui" line="1469" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1415" />
         <source>X</source>
         <translation>X</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1468" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1413" />
+        <location filename="../Windows/MainImageWindow.ui" line="1474" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1417" />
         <source>Toggle Crosshair</source>
         <translation>切换十字线</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1471" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1415" />
+        <location filename="../Windows/MainImageWindow.ui" line="1477" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1419" />
         <source>Shift+X</source>
         <translation>Shift+X</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1476" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1417" />
+        <location filename="../Windows/MainImageWindow.ui" line="1482" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1421" />
         <source>Annotation Preferences...</source>
         <translation>标注首选项...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1481" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1418" />
+        <location filename="../Windows/MainImageWindow.ui" line="1487" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1422" />
         <source>Auto-Adjust Contrast (all layers)</source>
         <translation>自动调整对比度（所有图层）</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1484" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1420" />
+        <location filename="../Windows/MainImageWindow.ui" line="1490" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1424" />
         <source>Automatically adjust contrast in the main image and all overlays</source>
         <translation>自动调整主图像及所有叠加层的对比度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1487" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1423" />
+        <location filename="../Windows/MainImageWindow.ui" line="1493" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1427" />
         <source>Ctrl+J</source>
         <translation>Ctrl+J</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1492" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1425" />
+        <location filename="../Windows/MainImageWindow.ui" line="1498" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1429" />
         <source>Reset Contrast (all layers)</source>
         <translation>重置对比度（所有图层）</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1495" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1427" />
+        <location filename="../Windows/MainImageWindow.ui" line="1501" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1431" />
         <source>Ctrl+Shift+J</source>
         <translation>Ctrl+Shift+J</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1500" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1429" />
+        <location filename="../Windows/MainImageWindow.ui" line="1506" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1433" />
         <source>Ha</source>
         <translation>Ha</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1505" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1430" />
+        <location filename="../Windows/MainImageWindow.ui" line="1511" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1434" />
         <source>Zoom to Actual Size x1</source>
         <translation>缩放到实际大小 x1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1508" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1432" />
+        <location filename="../Windows/MainImageWindow.ui" line="1514" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1436" />
         <source>Ctrl+Shift+F, 1</source>
         <translation>Ctrl+Shift+F, 1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1513" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1434" />
+        <location filename="../Windows/MainImageWindow.ui" line="1519" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1438" />
         <source>Zoom to Actual Size x2</source>
         <translation>缩放到实际大小 x2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1516" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1436" />
+        <location filename="../Windows/MainImageWindow.ui" line="1522" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1440" />
         <source>Ctrl+Shift+F, 2</source>
         <translation>Ctrl+Shift+F, 2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1521" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1438" />
+        <location filename="../Windows/MainImageWindow.ui" line="1527" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1442" />
         <source>Zoom to Actual Size x4</source>
         <translation>缩放到实际大小 x4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1524" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1440" />
+        <location filename="../Windows/MainImageWindow.ui" line="1530" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1444" />
         <source>Ctrl+Shift+F, 4</source>
         <translation>Ctrl+Shift+F, 4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1529" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1442" />
+        <location filename="../Windows/MainImageWindow.ui" line="1535" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1446" />
         <source>Check for Software Updates ...</source>
         <translation>检查软件更新...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1534" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1443" />
+        <location filename="../Windows/MainImageWindow.ui" line="1540" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1447" />
         <source>Documentation Home ...</source>
         <translation>文档主页...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1539" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1444" />
+        <location filename="../Windows/MainImageWindow.ui" line="1545" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1448" />
         <source>New ITK-SNAP Window</source>
         <translation>新建 ITK-SNAP 窗口</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1544" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1445" />
+        <location filename="../Windows/MainImageWindow.ui" line="1550" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1449" />
         <source>Coregister Overlay ...</source>
         <translation>配准叠加层...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1547" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1447" />
+        <location filename="../Windows/MainImageWindow.ui" line="1553" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1451" />
         <source>Co-register an image with the main image currently loaded into ITK-SNAP</source>
         <translation>将图像与当前加载到 ITK-SNAP 的主图像配准</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1584" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1454" />
+        <location filename="../Windows/MainImageWindow.ui" line="1590" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1458" />
         <source>Annotation Tool</source>
         <translation>标注工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1587" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1456" />
+        <location filename="../Windows/MainImageWindow.ui" line="1593" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1460" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Annotation Mode (6)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to draw annotations (lines, text) on image slices and to measure distance and angles between points in a slice. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Use to draw and manipulate annotations&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;注释模式 (6)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于在图像切片上绘制注释（线条、文本）及测量点间距离和角度。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;用于绘制和操作注释&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1590" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1460" />
+        <location filename="../Windows/MainImageWindow.ui" line="1596" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1464" />
         <source>6</source>
         <translation>6</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1595" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1462" />
+        <location filename="../Windows/MainImageWindow.ui" line="1601" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1466" />
         <source>Thumbnail Layout</source>
         <translation>缩略图布局</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1598" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1464" />
+        <location filename="../Windows/MainImageWindow.ui" line="1604" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1468" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle between thumbnail and tiled layouts.&lt;/p&gt;&lt;p&gt;In &lt;span style=" font-weight:600;"&gt;thumbnail&lt;/span&gt; layout, one image layer occupies most of the available screen space, and other loaded image layers are shown as thumbnails. In &lt;span style=" font-weight:600;"&gt;tiled&lt;/span&gt; layout, multiple image layers are shown side by side. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;切换缩略图和平铺布局。&lt;/p&gt;&lt;p&gt;在 &lt;span style=" font-weight:600;"&gt;缩略图&lt;/span&gt; 布局中，一个图像层占据大部分可用屏幕空间，其他加载的图像层显示为缩略图。在 &lt;span style=" font-weight:600;"&gt;平铺&lt;/span&gt; 布局中，多个图像层并排显示。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1601" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1467" />
+        <location filename="../Windows/MainImageWindow.ui" line="1607" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1471" />
         <source>\</source>
         <translation>\</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1606" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1469" />
+        <location filename="../Windows/MainImageWindow.ui" line="1612" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1473" />
         <source>Activate Next Layer</source>
         <translation>激活下一图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1609" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1471" />
+        <location filename="../Windows/MainImageWindow.ui" line="1615" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1475" />
         <source>]</source>
         <translation>]</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1614" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1473" />
+        <location filename="../Windows/MainImageWindow.ui" line="1620" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1477" />
         <source>Activate Previous Layer</source>
         <translation>激活上一图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1617" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1475" />
+        <location filename="../Windows/MainImageWindow.ui" line="1623" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1479" />
         <source>[</source>
         <translation>[</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1622" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1477" />
+        <location filename="../Windows/MainImageWindow.ui" line="1628" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1481" />
         <source>Interpolate Labels...</source>
         <translation>标签插值...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1627" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1478" />
+        <location filename="../Windows/MainImageWindow.ui" line="1633" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1482" />
         <source>Image Registration...</source>
         <translation>图像配准...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1630" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1480" />
+        <location filename="../Windows/MainImageWindow.ui" line="1636" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1484" />
         <source>Perform image registration</source>
         <translation>执行图像配准</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1633" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1483" />
+        <location filename="../Windows/MainImageWindow.ui" line="1639" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1487" />
         <source>Ctrl+R</source>
         <translation>Ctrl+R</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1638" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1485" />
+        <location filename="../Windows/MainImageWindow.ui" line="1644" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1489" />
         <source>Close Window</source>
         <translation>关闭窗口</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1646" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1489" />
+        <location filename="../Windows/MainImageWindow.ui" line="1652" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1493" />
         <source>Dummy</source>
         <translation>占位符</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1654" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1490" />
+        <location filename="../Windows/MainImageWindow.ui" line="1660" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1494" />
         <source>Main Control Panel</source>
         <translation>主控制面板</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1659" />
-        <location filename="../Windows/MainImageWindow.ui" line="1716" />
-        <location filename="../Windows/MainImageWindow.ui" line="1719" />
-        <location filename="../Windows/MainImageWindow.ui" line="1878" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1491" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1512" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1514" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1571" />
+        <location filename="../Windows/MainImageWindow.ui" line="1665" />
+        <location filename="../Windows/MainImageWindow.ui" line="1722" />
+        <location filename="../Windows/MainImageWindow.ui" line="1725" />
+        <location filename="../Windows/MainImageWindow.ui" line="1884" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1495" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1516" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1518" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1575" />
         <source>Recent1</source>
         <translation>最近1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1664" />
-        <location filename="../Windows/MainImageWindow.ui" line="1724" />
-        <location filename="../Windows/MainImageWindow.ui" line="1883" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1492" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1516" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1572" />
+        <location filename="../Windows/MainImageWindow.ui" line="1670" />
+        <location filename="../Windows/MainImageWindow.ui" line="1730" />
+        <location filename="../Windows/MainImageWindow.ui" line="1889" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1496" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1520" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1576" />
         <source>Recent2</source>
         <translation>最近2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1669" />
-        <location filename="../Windows/MainImageWindow.ui" line="1729" />
-        <location filename="../Windows/MainImageWindow.ui" line="1888" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1493" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1517" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1573" />
+        <location filename="../Windows/MainImageWindow.ui" line="1675" />
+        <location filename="../Windows/MainImageWindow.ui" line="1735" />
+        <location filename="../Windows/MainImageWindow.ui" line="1894" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1497" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1521" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1577" />
         <source>Recent3</source>
         <translation>最近3</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1674" />
-        <location filename="../Windows/MainImageWindow.ui" line="1734" />
-        <location filename="../Windows/MainImageWindow.ui" line="1893" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1494" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1518" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1574" />
+        <location filename="../Windows/MainImageWindow.ui" line="1680" />
+        <location filename="../Windows/MainImageWindow.ui" line="1740" />
+        <location filename="../Windows/MainImageWindow.ui" line="1899" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1498" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1522" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1578" />
         <source>Recent4</source>
         <translation>最近4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1679" />
-        <location filename="../Windows/MainImageWindow.ui" line="1739" />
-        <location filename="../Windows/MainImageWindow.ui" line="1898" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1495" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1519" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1575" />
+        <location filename="../Windows/MainImageWindow.ui" line="1685" />
+        <location filename="../Windows/MainImageWindow.ui" line="1745" />
+        <location filename="../Windows/MainImageWindow.ui" line="1904" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1499" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1523" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1579" />
         <source>Recent5</source>
         <translation>最近5</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1684" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1496" />
+        <location filename="../Windows/MainImageWindow.ui" line="1690" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1500" />
         <source>Activate Next Segmentation Layer</source>
         <translation>激活下一分割图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1687" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1498" />
+        <location filename="../Windows/MainImageWindow.ui" line="1693" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1502" />
         <source>}</source>
         <translation>}</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1692" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1500" />
+        <location filename="../Windows/MainImageWindow.ui" line="1698" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1504" />
         <source>Activate Previous Segmentation Layer</source>
         <translation>激活上一分割图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1695" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1502" />
+        <location filename="../Windows/MainImageWindow.ui" line="1701" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1506" />
         <source>{</source>
         <translation>{</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1700" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1504" />
+        <location filename="../Windows/MainImageWindow.ui" line="1706" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1508" />
         <source>Open...</source>
         <translation>打开...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1703" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1506" />
+        <location filename="../Windows/MainImageWindow.ui" line="1709" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1510" />
         <source>Add existing segmentation image to the workspace</source>
         <translation>将现有分割图像添加到工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1708" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1508" />
+        <location filename="../Windows/MainImageWindow.ui" line="1714" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1512" />
         <source>New</source>
         <translation>新建</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1711" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1510" />
+        <location filename="../Windows/MainImageWindow.ui" line="1717" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1514" />
         <source>Add another blank segmentation to the current workspace</source>
         <translation>向当前工作区添加另一个空白分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1744" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1147" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1520" />
+        <location filename="../Windows/MainImageWindow.ui" line="1750" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1190" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1524" />
         <source>Unload Active Segmentation</source>
         <translation>卸载当前活动分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1747" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1522" />
+        <location filename="../Windows/MainImageWindow.ui" line="1753" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1526" />
         <source>Unload the segmentation that is currently being edited</source>
         <translation>卸载当前正在编辑的分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1752" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1524" />
+        <location filename="../Windows/MainImageWindow.ui" line="1758" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1528" />
         <source>Install Command-Line Tools ...</source>
         <translation>安装命令行工具...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1757" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1525" />
+        <location filename="../Windows/MainImageWindow.ui" line="1763" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1529" />
         <source>Distributed Segmentation Service...</source>
         <translation>分布式分割服务...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1760" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1527" />
+        <location filename="../Windows/MainImageWindow.ui" line="1766" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1531" />
         <source>Send images to external server for automated segmentation</source>
         <translation>将图像发送到外部服务器进行自动分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1763" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1530" />
+        <location filename="../Windows/MainImageWindow.ui" line="1769" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1534" />
         <source>Ctrl+D</source>
         <translation>Ctrl+D</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1768" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1532" />
+        <location filename="../Windows/MainImageWindow.ui" line="1774" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1536" />
         <source>Next Display Layout</source>
         <translation>下一个显示布局</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1771" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1534" />
+        <location filename="../Windows/MainImageWindow.ui" line="1777" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1538" />
         <source>|</source>
         <translation>|</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1776" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1536" />
+        <location filename="../Windows/MainImageWindow.ui" line="1782" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1540" />
         <source>Smooth Labels...</source>
         <translation>平滑标签...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1781" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1537" />
+        <location filename="../Windows/MainImageWindow.ui" line="1787" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1541" />
         <source>Add a Mesh ...</source>
         <translation>添加网格...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1786" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1538" />
+        <location filename="../Windows/MainImageWindow.ui" line="1792" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1542" />
         <source>Add Mesh Series ...</source>
         <translation>添加网格序列...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1791" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1539" />
+        <location filename="../Windows/MainImageWindow.ui" line="1797" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1543" />
         <source>Toggle Volume Rendering</source>
         <translation>切换体渲染</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1794" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1541" />
+        <location filename="../Windows/MainImageWindow.ui" line="1800" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1545" />
         <source>V</source>
         <translation>V</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1799" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1543" />
+        <location filename="../Windows/MainImageWindow.ui" line="1805" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1547" />
         <source>Save 3D Segmentation in Current Time Point...</source>
         <translation>保存当前时间点的3D分割...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1802" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1545" />
+        <location filename="../Windows/MainImageWindow.ui" line="1808" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1549" />
         <source>Save Time Point as 3D Segmentation</source>
         <translation>保存时间点为3D分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1812" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1548" />
+        <location filename="../Windows/MainImageWindow.ui" line="1818" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1552" />
         <source>Toggle 4D Replay</source>
         <translation>切换4D回放</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1815" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1550" />
+        <location filename="../Windows/MainImageWindow.ui" line="1821" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1554" />
         <source>Ctrl+Shift+P</source>
         <translation>Ctrl+Shift+P</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1825" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1552" />
+        <location filename="../Windows/MainImageWindow.ui" line="1831" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1556" />
         <source>Swap Foreground/Background</source>
         <translation>交换前景/背景</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1828" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1554" />
+        <location filename="../Windows/MainImageWindow.ui" line="1834" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1558" />
         <source>Swap Foreground/Background Labels</source>
         <translation>交换前景/背景标签</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1831" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1557" />
+        <location filename="../Windows/MainImageWindow.ui" line="1837" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1561" />
         <source>Ctrl+Shift+L</source>
         <translation>Ctrl+Shift+L</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1839" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1559" />
+        <location filename="../Windows/MainImageWindow.ui" line="1845" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1563" />
         <source>Continuous Update 3D View</source>
         <translation>3D视图连续更新</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1842" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1561" />
+        <location filename="../Windows/MainImageWindow.ui" line="1848" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1565" />
         <source>Toggle on/off continuous update in the 3D View</source>
         <translation>切换3D视图中的连续更新开关</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1845" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1564" />
+        <location filename="../Windows/MainImageWindow.ui" line="1851" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1568" />
         <source>Ctrl+Shift+U</source>
         <translation>Ctrl+Shift+U</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1853" />
-        <location filename="../Windows/MainImageWindow.ui" line="1868" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1566" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1569" />
+        <location filename="../Windows/MainImageWindow.ui" line="1859" />
+        <location filename="../Windows/MainImageWindow.ui" line="1874" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1570" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1573" />
         <source>Import...</source>
         <translation>导入...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1858" />
-        <location filename="../Windows/MainImageWindow.ui" line="1873" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1567" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1570" />
+        <location filename="../Windows/MainImageWindow.ui" line="1864" />
+        <location filename="../Windows/MainImageWindow.ui" line="1879" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1571" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1574" />
         <source>Export...</source>
         <translation>导出...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1903" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1576" />
+        <location filename="../Windows/MainImageWindow.ui" line="1909" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1580" />
         <source>Reload Active Segmentation from File</source>
         <translation>从文件重新加载活动分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1906" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1578" />
+        <location filename="../Windows/MainImageWindow.ui" line="1912" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1582" />
         <source>Ctrl+Shift+R</source>
         <translation>Ctrl+Shift+R</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1911" />
-        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1580" />
+        <location filename="../Windows/MainImageWindow.ui" line="1917" />
+        <location filename="../../../../xc64dbg/ui_MainImageWindow.h" line="1584" />
         <source>Image Free Rotation...</source>
         <translation>图像自由旋转...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="235" />
+        <location filename="../Windows/MainImageWindow.cxx" line="243" />
         <source>ITK-SNAP Toolbox</source>
         <translation>ITK-SNAP 工具箱</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="328" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1113" />
+        <location filename="../Windows/MainImageWindow.cxx" line="340" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1152" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2627" />
         <source>ITK-SNAP</source>
         <translation>ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="374" />
+        <location filename="../Windows/MainImageWindow.cxx" line="386" />
         <source>Crosshair Mode (1)</source>
         <translation>十字线模式 (1)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="375" />
+        <location filename="../Windows/MainImageWindow.cxx" line="387" />
         <source>Used to position the 3D cursor in the three orthogonal image slices.</source>
         <translation>用于在三个正交图像切片中定位3D光标。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="376" />
+        <location filename="../Windows/MainImageWindow.cxx" line="388" />
         <source>&lt;b&gt;Place and move the 3D cursor&lt;/b&gt;</source>
         <translation>&lt;b&gt;放置并移动3D光标&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="377" />
-        <location filename="../Windows/MainImageWindow.cxx" line="397" />
-        <location filename="../Windows/MainImageWindow.cxx" line="424" />
-        <location filename="../Windows/MainImageWindow.cxx" line="435" />
+        <location filename="../Windows/MainImageWindow.cxx" line="389" />
+        <location filename="../Windows/MainImageWindow.cxx" line="409" />
+        <location filename="../Windows/MainImageWindow.cxx" line="436" />
+        <location filename="../Windows/MainImageWindow.cxx" line="447" />
         <source>Zoom in and out (hold &amp; drag)</source>
         <translation>放大和缩小（按住拖动）</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="378" />
+        <location filename="../Windows/MainImageWindow.cxx" line="390" />
         <source>Pan (hold &amp; drag)</source>
         <translation>平移（按住拖动）</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="379" />
+        <location filename="../Windows/MainImageWindow.cxx" line="391" />
         <source>Go to next/previous image slice</source>
         <translation>转到下一张/上一张图像切片</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="381" />
+        <location filename="../Windows/MainImageWindow.cxx" line="393" />
         <source>Go to next/previous image component</source>
         <translation>转到下一图像组件/上一图像组件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="384" />
+        <location filename="../Windows/MainImageWindow.cxx" line="396" />
         <source>Zoom/Pan Mode (2)</source>
         <translation>缩放/平移模式 (2)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="385" />
+        <location filename="../Windows/MainImageWindow.cxx" line="397" />
         <source>Used to zoom into the image and to pan around when zoomed in.</source>
         <translation>用于放大图像和放大时平移浏览。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="386" />
+        <location filename="../Windows/MainImageWindow.cxx" line="398" />
         <source>&lt;b&gt;Pan (hold &amp; drag)&lt;/b&gt;</source>
         <translation>&lt;b&gt;平移（按住拖动）&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="387" />
+        <location filename="../Windows/MainImageWindow.cxx" line="399" />
         <source>&lt;b&gt;Zoom in and out (hold &amp; drag)&lt;/b&gt;</source>
         <translation>&lt;b&gt;放大和缩小（按住拖动）&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="388" />
-        <location filename="../Windows/MainImageWindow.cxx" line="398" />
-        <location filename="../Windows/MainImageWindow.cxx" line="412" />
-        <location filename="../Windows/MainImageWindow.cxx" line="425" />
-        <location filename="../Windows/MainImageWindow.cxx" line="436" />
+        <location filename="../Windows/MainImageWindow.cxx" line="400" />
+        <location filename="../Windows/MainImageWindow.cxx" line="410" />
+        <location filename="../Windows/MainImageWindow.cxx" line="424" />
+        <location filename="../Windows/MainImageWindow.cxx" line="437" />
+        <location filename="../Windows/MainImageWindow.cxx" line="448" />
         <source>Place and move the 3D cursor</source>
         <translation>放置并移动3D光标</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="389" />
-        <location filename="../Windows/MainImageWindow.cxx" line="399" />
-        <location filename="../Windows/MainImageWindow.cxx" line="413" />
-        <location filename="../Windows/MainImageWindow.cxx" line="426" />
-        <location filename="../Windows/MainImageWindow.cxx" line="437" />
+        <location filename="../Windows/MainImageWindow.cxx" line="401" />
+        <location filename="../Windows/MainImageWindow.cxx" line="411" />
+        <location filename="../Windows/MainImageWindow.cxx" line="425" />
+        <location filename="../Windows/MainImageWindow.cxx" line="438" />
+        <location filename="../Windows/MainImageWindow.cxx" line="449" />
         <source>Scroll through image slices</source>
         <translation>滚动浏览图像切片</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="390" />
-        <location filename="../Windows/MainImageWindow.cxx" line="401" />
-        <location filename="../Windows/MainImageWindow.cxx" line="415" />
+        <location filename="../Windows/MainImageWindow.cxx" line="402" />
+        <location filename="../Windows/MainImageWindow.cxx" line="413" />
         <location filename="../Windows/MainImageWindow.cxx" line="427" />
-        <location filename="../Windows/MainImageWindow.cxx" line="438" />
+        <location filename="../Windows/MainImageWindow.cxx" line="439" />
+        <location filename="../Windows/MainImageWindow.cxx" line="450" />
         <source>Scroll through image components</source>
         <translation>滚动浏览图像组件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="394" />
+        <location filename="../Windows/MainImageWindow.cxx" line="406" />
         <source>Polygon Mode (3)</source>
         <translation>多边形模式 (3)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="394" />
+        <location filename="../Windows/MainImageWindow.cxx" line="406" />
         <source>Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices.</source>
         <translation>用于在三个正交图像切片中通过绘制和填充多边形进行手动分割。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="396" />
+        <location filename="../Windows/MainImageWindow.cxx" line="408" />
         <source>&lt;b&gt;Add points to the polygon and edit the completed polygon&lt;/b&gt;</source>
         <translation>&lt;b&gt;添加多边形顶点并编辑已完成的多边形&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="405" />
+        <location filename="../Windows/MainImageWindow.cxx" line="417" />
         <source>Paintbrush Mode (4)</source>
         <translation>画笔模式 (4)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="406" />
+        <location filename="../Windows/MainImageWindow.cxx" line="418" />
         <source>Used to perform manual segmentation by drawing with a paintbrush-like tool. Different brush shapes are available, including an adaptive brush that adjusts itself to the image data.</source>
         <translation>使用类似画笔的工具进行手动分割。提供多种画笔形状，包括根据图像数据自适应调整的画笔。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="409" />
+        <location filename="../Windows/MainImageWindow.cxx" line="421" />
         <source>&lt;b&gt;Paint with the active label&lt;/b&gt;</source>
         <translation>&lt;b&gt;使用当前标签绘制&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="411" />
+        <location filename="../Windows/MainImageWindow.cxx" line="423" />
         <source>&lt;b&gt;Erase voxels painted with the active label&lt;/b&gt;</source>
         <translation>&lt;b&gt;擦除使用当前标签绘制的体素&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="419" />
+        <location filename="../Windows/MainImageWindow.cxx" line="431" />
         <source>Active Contour (aka "Snake") Segmentation Mode (5)</source>
         <translation>主动轮廓（又名“蛇”）分割模式 (5)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="420" />
+        <location filename="../Windows/MainImageWindow.cxx" line="432" />
         <source>Used to select the region of interest for semi-automatic active contour segmentation and start the semi-automatic segmentation wizard.</source>
         <translation>用于选择半自动主动轮廓分割的感兴趣区域并启动半自动分割向导。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="423" />
+        <location filename="../Windows/MainImageWindow.cxx" line="435" />
         <source>&lt;b&gt;Adjust the boundaries of the region of interest&lt;/b&gt;</source>
         <translation>&lt;b&gt;调整感兴趣区域的边界&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="431" />
+        <location filename="../Windows/MainImageWindow.cxx" line="443" />
         <source>Image Annotation Mode (6)</source>
         <translation>图像标注模式 (6)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="432" />
+        <location filename="../Windows/MainImageWindow.cxx" line="444" />
         <source>Used to draw annotations (lines, text) on image slices and to measure distances and angles between points in a slice.</source>
         <translation>用于在图像切片上绘制标注（线条、文本）并测量切片中点之间的距离和角度。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="434" />
+        <location filename="../Windows/MainImageWindow.cxx" line="446" />
         <source>&lt;b&gt;Draw and edit annotations&lt;/b&gt;</source>
         <translation>&lt;b&gt;绘制并编辑标注&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="912" />
+        <location filename="../Windows/MainImageWindow.cxx" line="706" />
+        <source>(no windows)</source>
+        <translation>（无窗口）</translation>
+    </message>
+    <message>
+        <location filename="../Windows/MainImageWindow.cxx" line="951" />
         <source>Enter Thumbnail Layout</source>
         <translation>进入缩略图布局</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="917" />
+        <location filename="../Windows/MainImageWindow.cxx" line="956" />
         <source>Enter Tiled Layout</source>
         <translation>进入平铺布局</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="933" />
+        <location filename="../Windows/MainImageWindow.cxx" line="972" />
         <source>Close image "%1"</source>
         <translation>关闭图像“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="939" />
+        <location filename="../Windows/MainImageWindow.cxx" line="978" />
         <source>Close selected image</source>
         <translation>关闭选定图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1101" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1140" />
         <source>%1 - ITK-SNAP</source>
         <translation>%1 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1105" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1144" />
         <source>%1 - %2 - ITK-SNAP</source>
         <translation>%1 - %2 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1109" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1148" />
         <source>%1 - New Segmentation - ITK-SNAP</source>
         <translation>%1 - 新分割 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1119" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1162" />
         <source>Save "%1"</source>
         <translation>保存“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1120" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1163" />
         <source>Save "%1" as...</source>
         <translation>“%1”另存为...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1122" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1165" />
         <source>Reload "%1" from File</source>
         <translation>从文件重新加载“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1127" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1170" />
         <source>Save 4D Segmentation Image ...</source>
         <translation>保存4D分割图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1127" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1170" />
         <source>Save Segmentation Image ...</source>
         <translation>保存分割图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1145" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1188" />
         <source>Unload "%1"</source>
         <translation>卸载“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1151" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1194" />
         <source>Unload Segmentation</source>
         <translation>卸载分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1164" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1207" />
         <source>Save Workspace "%1"</source>
         <translation>保存工作区“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2745" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1725" />
+        <source>Opening workspace...</source>
+        <translation>正在打开工作区……</translation>
+    </message>
+    <message>
+        <location filename="../Windows/MainImageWindow.cxx" line="2620" />
+        <source>No other windows open</source>
+        <translation>无其他窗口打开</translation>
+    </message>
+    <message>
+        <location filename="../Windows/MainImageWindow.cxx" line="2924" />
         <source>Error reloading image from file</source>
         <translation>从文件重新加载图像时出错</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="247" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1273" />
+        <location filename="../Windows/MainImageWindow.cxx" line="255" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1316" />
         <source>Segment 3D</source>
         <translation>三维分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="134" />
+        <location filename="../Windows/MainImageWindow.cxx" line="142" />
         <source>left_click</source>
         <translation>左键点击</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="136" />
+        <location filename="../Windows/MainImageWindow.cxx" line="144" />
         <source>right_click</source>
         <translation>右键点击</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="138" />
+        <location filename="../Windows/MainImageWindow.cxx" line="146" />
         <source>scrolling</source>
         <translation>滚动</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1367" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1431" />
         <source>File Dropping Error</source>
         <translation>文件拖放错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1367" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1431" />
         <source>Failed to load file %1</source>
         <translation>加载文件 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1499" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1542" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1577" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1563" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1607" />
         <location filename="../Windows/MainImageWindow.cxx" line="1643" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1709" />
         <source>Image IO Error</source>
         <translation>图像IO错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1500" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1564" />
         <source>Failed to load image %1</source>
         <translation>加载图像 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1543" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1644" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1608" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1710" />
         <source>Failed to load overlay image %1</source>
         <translation>加载叠加图像 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1578" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1644" />
         <source>Failed to load segmentation image %1</source>
         <translation>加载分割图像 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1608" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1674" />
         <source>Label Definitions IO Error</source>
         <translation>标签定义IO错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1609" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1675" />
         <source>Failed to load label definitions from file</source>
         <translation>从文件加载标签定义失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1665" />
-        <location filename="../Windows/MainImageWindow.cxx" line="2217" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1741" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2307" />
         <source>Error Opening Project</source>
         <translation>打开项目错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1666" />
-        <location filename="../Windows/MainImageWindow.cxx" line="2218" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1742" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2308" />
         <source>Failed to open project %1</source>
         <translation>打开项目 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1681" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1765" />
         <source>Failed to open workspace in new ITK-SNAP window</source>
         <translation>无法在新的 ITK-SNAP 窗口中打开工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1989" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2079" />
         <source>Open Label Descriptions - ITK-SNAP</source>
         <translation>打开标签描述 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1990" />
-        <location filename="../Windows/MainImageWindow.cxx" line="2004" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2080" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2094" />
         <source>Label Description File</source>
         <translation>标签描述文件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2003" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2093" />
         <source>Save Label Descriptions - ITK-SNAP</source>
         <translation>保存标签描述 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2018" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2108" />
         <source>Label Description IO Error</source>
         <translation>标签描述IO错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2019" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2109" />
         <source>Failed to save label descriptions</source>
         <translation>保存标签描述失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2195" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2285" />
         <source>Open Workspace</source>
         <translation>打开工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2196" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2286" />
         <source>Workspace File</source>
         <translation>工作区文件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2196" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2286" />
         <source>ITK-SNAP Workspace Files (*.itksnap)</source>
         <translation>ITK-SNAP工作区文件 (*.itksnap)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2266" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2356" />
         <source>Save Slice - ITK-SNAP</source>
         <translation>保存切片 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2267" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2357" />
         <source>Slice Image File</source>
         <translation>切片图像文件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2268" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2358" />
         <source>PNG Image (*.png);;TIFF Image (*.tiff *.tif);;JPEG Image (*.jpg *.jpeg)</source>
         <translation>PNG图像 (*.png);;TIFF图像 (*.tiff *.tif);;JPEG图像 (*.jpg *.jpeg)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2372" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2462" />
         <source>Open Download Page</source>
         <translation>打开下载页面</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2373" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2463" />
         <source>Not Now</source>
         <translation>暂不操作</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2375" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2465" />
         <source>A newer ITK-SNAP version (%1) is available.</source>
         <translation>有新版本的 ITK-SNAP (%1) 可用。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2376" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2466" />
         <source>Do you want to download the latest version?</source>
         <translation>您想下载最新版本吗？</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2377" />
-        <location filename="../Windows/MainImageWindow.cxx" line="2387" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2467" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2477" />
         <source>ITK-SNAP Update Check</source>
         <translation>ITK-SNAP 更新检查</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2388" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2478" />
         <source>Your version of ITK-SNAP is up to date!</source>
         <translation>您的 ITK-SNAP 版本是最新的！</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2394" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2484" />
         <source>ITK-SNAP Update Check Failed</source>
         <translation>ITK-SNAP 更新检查失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2395" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2485" />
         <source>Could not connect to server. Go to itksnap.org to check if a new version is available.</source>
         <translation>无法连接服务器。请访问 itksnap.org 检查是否有新版本。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2410" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2500" />
         <source>Allow Automatic Update Checks?</source>
         <translation>允许自动更新检查？</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2411" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2501" />
         <source>ITK-SNAP can check for software updates automatically.
 Do you want to enable this feature?</source>
         <translation>ITK-SNAP 可以自动检查软件更新。
 您想启用此功能吗？</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2566" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2745" />
         <source>Registration</source>
         <translation>配准</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2577" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2756" />
         <source>Free Rotation</source>
         <translation>自由旋转</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2644" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2823" />
         <source>&lt;p&gt;ITK-SNAP is packaged with several useful command-line programs. Visit &lt;a href='http://itksnap.org/cmdl'&gt;http://itksnap.org/cmdl&lt;/a&gt; for a listing of these tools. &lt;/p&gt;&lt;p&gt;To create links to these programs in &lt;b&gt;/usr/local/bin&lt;/b&gt;, execute the following command in the Terminal App:&lt;/p&gt;&lt;code&gt; sudo %1 &lt;/code&gt;&lt;p&gt;To create links in another directory 'my_directory', execute &lt;/p&gt;&lt;code&gt; sudo %1 my_directory &lt;/code&gt;&lt;p&gt;To enable the tools for a single session, enter this command into the Terminal window:&lt;/p&gt;&lt;code&gt; export PATH=%2:$PATH &lt;/code&gt;</source>
         <translation>&lt;p&gt;ITK-SNAP 附带多个实用命令行程序。访问 &lt;a href="http://itksnap.org/cmdl"&gt;http://itksnap.org/cmdl&lt;/a&gt; 查看这些工具列表。 &lt;/p&gt;&lt;p&gt;要在以下位置创建这些程序的链接： &lt;b&gt;/usr/local/bin&lt;/b&gt;，请在终端中执行以下命令：&lt;/p&gt;&lt;code&gt; sudo %1 &lt;/code&gt;&lt;p&gt;要在另一个目录 'my_directory' 中创建链接，请执行 &lt;/p&gt;&lt;code&gt; sudo %1 my_directory &lt;/code&gt;&lt;p&gt;要在单次会话中启用这些工具，请在终端窗口中输入以下命令：&lt;/p&gt;&lt;code&gt; export PATH=%2:$PATH &lt;/code&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2659" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2838" />
         <source>How to Install ITK-SNAP Command Line Tools</source>
         <translation>如何安装 ITK-SNAP 命令行工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2661" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2840" />
         <source>Install Command Line Tools -- ITK-SNAP</source>
         <translation>安装命令行工具 -- ITK-SNAP</translation>
     </message>
@@ -5704,9 +5852,19 @@ Do you want to enable this feature?</source>
         <translation>网格导入向导</translation>
     </message>
     <message>
-        <location filename="../Windows/MeshImportWizard/MeshImportWizard.cxx" line="41" />
+        <location filename="../Windows/MeshImportWizard/MeshImportWizard.cxx" line="40" />
         <source>Load file into a new mesh layer?</source>
         <translation>将文件加载到新的网格图层？</translation>
+    </message>
+    <message>
+        <location filename="../Windows/MeshImportWizard/MeshImportWizard.cxx" line="42" />
+        <source>The mesh will be loaded to the current time point (%1) in a new layer.</source>
+        <translation>网格将载入新图层，位于当前时间点 (%1)。</translation>
+    </message>
+    <message>
+        <location filename="../Windows/MeshImportWizard/MeshImportWizard.cxx" line="55" />
+        <source>Load mesh file to the current time point (%1)?</source>
+        <translation>要将网格文件载入当前时间点 (%1) 吗？</translation>
     </message>
 </context>
 <context>
@@ -5773,291 +5931,309 @@ Do you want to enable this feature?</source>
     <name>PaintbrushToolPanel</name>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="449" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="461" />
         <source>Form</source>
         <translation>形状</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="61" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="472" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="484" />
         <source>Brush Shape:</source>
         <translation>画笔形状:</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="92" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="474" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="486" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Square brush shape&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;方形画笔形状&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="95" />
         <location filename="../Components/PaintbrushToolPanel.ui" line="191" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="476" />
         <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="488" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="500" />
         <source>square</source>
         <translation>方形</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="102" />
         <location filename="../Components/PaintbrushToolPanel.ui" line="198" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="478" />
         <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="490" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="502" />
         <source>Ctrl+S</source>
         <translation>Ctrl+S</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="121" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="481" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="493" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Round brush shape&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;圆形画笔形状&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="124" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="483" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="495" />
         <source>round</source>
         <translation>圆形</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="157" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="484" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="496" />
         <source>Brush Mode:</source>
         <translation>画笔模式:</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="188" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="486" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="498" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Manual drawing&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;手动绘制&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="217" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="493" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="505" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Adaptive brush&lt;/span&gt;&lt;/p&gt;&lt;p&gt;The brush adjusts itself to follow image boundaries.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;自适应画笔&lt;/span&gt;&lt;/p&gt;&lt;p&gt;画笔会自动调整以贴合图像边界。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="220" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="495" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="507" />
         <source>adaptive</source>
         <translation>自适应</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="243" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="497" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="509" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;AI-Based Smart Brush&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=" font-weight:400;"&gt;Brushstrokes are converted to 3D segmentations using deep learning algorithm. This mode requires installing additional Python extensions on a computer with an NVidia GPU.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;基于人工智能的智能画笔&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;span style=" font-weight:400;"&gt;画笔笔触通过深度学习算法转换为三维分割。此模式需要在配备NVidia显卡的电脑上安装额外的Python扩展。&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="249" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="499" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="511" />
         <source>AI</source>
         <translation>AI</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="297" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="500" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="512" />
         <source>Brush Size:</source>
         <translation>画笔大小:</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="325" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="502" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="514" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Brush Size (+, - keys)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust the radius of the paintbrush. However, in AI mode, the paintbrush radius is always 1.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;画笔大小（+，- 键）&lt;/span&gt;&lt;/p&gt;&lt;p&gt;调整画笔半径。但在AI模式下，画笔半径始终为1。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="332" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="505" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="517" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Brush Size (+, - keys)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Adjust the radius of the paintbrush.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;画笔大小 (+, - 键)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;调整画笔半径。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="361" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="507" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="519" />
         <source>Brush Options:</source>
         <translation>画笔选项:</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="391" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="509" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="521" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Toggle isotropic brush mode (⇧⌘B, I)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;This option is relevant for images with anisotropic voxels (voxels with different x,y and z dimensions). When checked, the physical dimensions of the brush are kept as close to equal as possible. When not checked, the brush size is K x K voxels, regardless of the dimensions of the voxel.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;切换各向同性画笔模式 (⇧⌘B, I)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;此选项适用于体素各向异性的图像（体素在 x、y、z 方向尺寸不同）。勾选时，画笔的物理尺寸尽量保持均等。未勾选时，画笔大小为 K x K 体素，不考虑体素尺寸。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="394" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="511" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="523" />
         <source>Isotropic</source>
         <translation>各向同性</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="397" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="513" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="525" />
         <source>Ctrl+Shift+B, I</source>
         <translation>Ctrl+Shift+B, I</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="404" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="516" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="528" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Toggle cursor chasing mode (⇧⌘B, C)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;When checked, at the end of each paintbrush stroke, the position of the 3D image cursor is reset to the endpoint of the stroke.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;切换光标追踪模式 (⇧⌘B, C)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;勾选时，每次绘制结束后，3D 图像光标位置重置到绘制终点。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="407" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="518" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="530" />
         <source>Cursor chases brush</source>
         <translation>光标追踪画笔</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="410" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="520" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="532" />
         <source>Ctrl+Shift+B, C</source>
         <translation>Ctrl+Shift+B, C</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="417" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="523" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="535" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Toggle 3D brush mode (⇧⌘B, V)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;When checked, the brush is applied in all three dimensions: a rectangular brush creates a cube in the segmentation, and a round brush creates a sphere.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;切换三维画笔模式 (⇧⌘B, V)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;勾选时，画笔应用于所有三个维度：矩形画笔生成立方体分割，圆形画笔生成球体分割。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="420" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="525" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="537" />
         <source>3D brush</source>
         <translation>三维画笔</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="423" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="527" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="539" />
         <source>Ctrl+Shift+B, V</source>
         <translation>Ctrl+Shift+B, V</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="474" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="529" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="541" />
         <source>Adaptive Algorithm:</source>
         <translation>自适应算法:</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="502" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="530" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="542" />
         <source>Granularity:</source>
         <translation>粒度:</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="512" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="532" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="544" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Adaptive brush granularity (^+,^-)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Lower values of this parameter lead to oversegmentation, while higher values lead to undersegmentation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;自适应画笔粒度 (^+,^-)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;此参数值越低，分割越细；值越高，分割越粗。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="519" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="534" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="546" />
         <source>Smoothness:</source>
         <translation>平滑度:</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="529" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="536" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="548" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Adaptive brush smoothness (⌥+,⌥-)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Larger values of this parameter produce smoother segments.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;自适应画笔平滑度 (⌥+,⌥-)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;此参数值越大，分割边界越平滑。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PaintbrushToolPanel.ui" line="585" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="538" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="550" />
         <source>AI-Based Smart Brush:</source>
         <translation>基于人工智能的智能画笔:</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="638" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="539" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="658" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="559" />
         <source>nnInteractive</source>
         <translation>nnInteractive</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="652" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="542" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="639" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="557" />
         <source>Configure the deep learning extension</source>
         <translation>配置深度学习扩展</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="667" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="544" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="610" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="551" />
         <source>Model:</source>
         <translation>模型:</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="674" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="546" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="617" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="553" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:700;"&gt;Status of the deep learning extensions server.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;●: Checking status&lt;/p&gt;&lt;p&gt;&lt;span style=" color:#941100;"&gt;●&lt;/span&gt;: Connection Error&lt;/p&gt;&lt;p&gt;&lt;span style=" color:#008f00;"&gt;●&lt;/span&gt;: Connected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:700;"&gt;深度学习扩展服务器状态。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;●：检测状态中&lt;/p&gt;&lt;p&gt;&lt;span style=" color:#941100;"&gt;●&lt;/span&gt;：连接错误&lt;/p&gt;&lt;p&gt;&lt;span style=" color:#008f00;"&gt;●&lt;/span&gt;：已连接&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="680" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="548" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="623" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="555" />
         <source>●</source>
         <translation>●</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="709" />
-        <location filename="../Components/PaintbrushToolPanel.ui" line="717" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="450" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="454" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="706" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="561" />
+        <source>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;meta charset="utf-8" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: "\2610"; }
+li.checked::marker { content: "\2612"; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'.AppleSystemUIFont'; font-size:9pt; font-weight:400; font-style:normal;"&gt;
+&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;"&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1"&gt;&lt;/meta&gt;&lt;meta charset="utf-8"&gt;&lt;/meta&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: "\2610"; }
+li.checked::marker { content: "\2612"; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'.AppleSystemUIFont'; font-size:9pt; font-weight:400; font-style:normal;"&gt;&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;"&gt;&lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <location filename="../Components/PaintbrushToolPanel.ui" line="739" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="747" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="462" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="466" />
         <source>Increase Brush Size</source>
         <translation>增大画笔大小</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="712" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="452" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="742" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="464" />
         <source>+</source>
         <translation>+</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="720" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="456" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="750" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="468" />
         <source>-</source>
         <translation>-</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="725" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="458" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="755" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="470" />
         <source>GranularityIncrease</source>
         <translation>增加粒度</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="730" />
-        <location filename="../Components/PaintbrushToolPanel.ui" line="733" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="459" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="461" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="760" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="763" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="471" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="473" />
         <source>GranularityDecrease</source>
         <translation>减少粒度</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="738" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="463" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="768" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="475" />
         <source>SmoothnessIncrease</source>
         <translation>增加平滑度</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="741" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="465" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="771" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="477" />
         <source>Alt+Tab</source>
         <translation>Alt+Tab</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="746" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="467" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="776" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="479" />
         <source>SmoothnessDecrease</source>
         <translation>减少平滑度</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="751" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="468" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="781" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="480" />
         <source>BrushStyle</source>
         <translation>画笔样式</translation>
     </message>
     <message>
-        <location filename="../Components/PaintbrushToolPanel.ui" line="754" />
-        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="470" />
+        <location filename="../Components/PaintbrushToolPanel.ui" line="784" />
+        <location filename="../../../../xc64dbg/ui_PaintbrushToolPanel.h" line="482" />
         <source>Ctrl+B</source>
         <translation>Ctrl+B</translation>
     </message>
@@ -6066,37 +6242,37 @@ Do you want to enable this feature?</source>
     <name>PolygonToolPanel</name>
     <message>
         <location filename="../Components/PolygonToolPanel.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="248" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="247" />
         <source>Form</source>
         <translation>表单</translation>
     </message>
     <message>
         <location filename="../Components/PolygonToolPanel.ui" line="42" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="249" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="248" />
         <source>Freehand drawing style:</source>
         <translation>自由绘制风格：</translation>
     </message>
     <message>
         <location filename="../Components/PolygonToolPanel.ui" line="72" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="250" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="249" />
         <source>Smooth curve</source>
         <translation>平滑曲线</translation>
     </message>
     <message>
         <location filename="../Components/PolygonToolPanel.ui" line="82" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="251" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="250" />
         <source>Polygon</source>
         <translation>多边形</translation>
     </message>
     <message>
         <location filename="../Components/PolygonToolPanel.ui" line="110" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="252" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="251" />
         <source>Segment length:</source>
         <translation>段长度：</translation>
     </message>
     <message>
         <location filename="../Components/PolygonToolPanel.ui" line="132" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="254" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="253" />
         <source>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;style type="text/css"&gt;
 p, li { white-space: pre-wrap; }
@@ -6113,50 +6289,48 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Components/PolygonToolPanel.ui" line="183" />
         <location filename="../Components/PolygonToolPanel.ui" line="193" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="266" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="270" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="265" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="269" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When enabled, polygon drawing operations are inverted, i.e., the outside of the polygon is filled with the active label.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;启用时，多边形绘制操作反转，即多边形外部填充为活动标签。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/PolygonToolPanel.ui" line="186" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="268" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="267" />
         <source>Invert polygon</source>
         <translation>反转多边形</translation>
     </message>
     <message>
         <location filename="../Components/PolygonToolPanel.ui" line="196" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="272" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="271" />
         <source>AI mode</source>
         <translation>AI模式</translation>
     </message>
     <message>
-        <location filename="../Components/PolygonToolPanel.ui" line="292" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="273" />
         <source>nnInteractive</source>
-        <translation>nnInteractive</translation>
+        <translation type="vanished">nnInteractive</translation>
     </message>
     <message>
-        <location filename="../Components/PolygonToolPanel.ui" line="306" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="276" />
+        <location filename="../Components/PolygonToolPanel.ui" line="301" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="273" />
         <source>Configure the deep learning extension</source>
         <translation>配置深度学习扩展</translation>
     </message>
     <message>
-        <location filename="../Components/PolygonToolPanel.ui" line="321" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="278" />
+        <location filename="../Components/PolygonToolPanel.ui" line="316" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="275" />
         <source>Model:</source>
         <translation>模型：</translation>
     </message>
     <message>
-        <location filename="../Components/PolygonToolPanel.ui" line="328" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="280" />
+        <location filename="../Components/PolygonToolPanel.ui" line="323" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="277" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:700;"&gt;Status of the deep learning extensions server.&lt;/span&gt;&lt;/p&gt;&lt;p&gt;●: Checking status&lt;/p&gt;&lt;p&gt;&lt;span style=" color:#941100;"&gt;●&lt;/span&gt;: Connection Error&lt;/p&gt;&lt;p&gt;&lt;span style=" color:#008f00;"&gt;●&lt;/span&gt;: Connected&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:700;"&gt;深度学习扩展服务器状态。&lt;/span&gt;&lt;/p&gt;&lt;p&gt;●：检查状态&lt;/p&gt;&lt;p&gt;&lt;span style=" color:#941100;"&gt;●&lt;/span&gt;：连接错误&lt;/p&gt;&lt;p&gt;&lt;span style=" color:#008f00;"&gt;●&lt;/span&gt;：已连接&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/PolygonToolPanel.ui" line="334" />
-        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="282" />
+        <location filename="../Components/PolygonToolPanel.ui" line="329" />
+        <location filename="../../../../xc64dbg/ui_PolygonToolPanel.h" line="279" />
         <source>●</source>
         <translation>●</translation>
     </message>
@@ -6165,484 +6339,496 @@ p, li { white-space: pre-wrap; }
     <name>PreferencesDialog</name>
     <message>
         <location filename="../Windows/PreferencesDialog.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1276" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1282" />
         <source>Preferences - ITK-SNAP</source>
         <translation>首选项 - ITK-SNAP</translation>
     </message>
     <message>
         <location filename="../Windows/PreferencesDialog.ui" line="54" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1289" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1299" />
         <source>Default Behavior</source>
         <translation>默认行为</translation>
     </message>
     <message>
         <location filename="../Windows/PreferencesDialog.ui" line="60" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1279" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1285" />
         <source>When this option is checked, image contrast will be adjusted automatically based on the image histogram whenever a new image is loaded into ITK-SNAP.</source>
         <translation>选中此选项时，每当加载新图像时，图像对比度将根据图像直方图自动调整。</translation>
     </message>
     <message>
         <location filename="../Windows/PreferencesDialog.ui" line="63" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1281" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1287" />
         <source>Automatically adjust contrast when loading images</source>
         <translation>加载图像时自动调整对比度</translation>
     </message>
     <message>
         <location filename="../Windows/PreferencesDialog.ui" line="70" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1282" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1289" />
+        <source>When this option is checked, extensions will be stripped from image and mesh filenames in most inspectors</source>
+        <translation>选中此选项后，大多数查看器将去除图像和网格文件名的扩展名</translation>
+    </message>
+    <message>
+        <location filename="../Windows/PreferencesDialog.ui" line="73" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1291" />
+        <source>Hide image and mesh file extensions</source>
+        <translation>隐藏图像和网格文件扩展名</translation>
+    </message>
+    <message>
+        <location filename="../Windows/PreferencesDialog.ui" line="80" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1292" />
         <source>Maintain same zoom factor in all slices ("linked zoom")</source>
         <translation>所有切片保持相同缩放比例（“联动缩放”）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="77" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1283" />
+        <location filename="../Windows/PreferencesDialog.ui" line="87" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1293" />
         <source>Automatically update 3D mesh in a background process</source>
         <translation>在后台自动更新3D网格</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="84" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1284" />
+        <location filename="../Windows/PreferencesDialog.ui" line="94" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1294" />
         <source>Synchronize view between multiple ITK-SNAP sessions</source>
         <translation>多个 ITK-SNAP 会话视图同步</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="122" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1286" />
+        <location filename="../Windows/PreferencesDialog.ui" line="132" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1296" />
         <source>Cursor position</source>
         <translation>光标位置</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="129" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1287" />
+        <location filename="../Windows/PreferencesDialog.ui" line="139" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1297" />
         <source>Zoom</source>
         <translation>缩放</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="136" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1288" />
+        <location filename="../Windows/PreferencesDialog.ui" line="146" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1298" />
         <source>Pan</source>
         <translation>平移</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="160" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1291" />
+        <location filename="../Windows/PreferencesDialog.ui" line="170" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1301" />
         <source>Permissions</source>
         <translation>权限</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="166" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1290" />
+        <location filename="../Windows/PreferencesDialog.ui" line="176" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1300" />
         <source>Allow ITK-SNAP to check for updates periodically</source>
         <translation>允许 ITK-SNAP 定期检查更新</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="210" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1302" />
+        <location filename="../Windows/PreferencesDialog.ui" line="220" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1312" />
         <source>Display</source>
         <translation>显示</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="219" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1292" />
+        <location filename="../Windows/PreferencesDialog.ui" line="229" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1302" />
         <source>Anatomic image display:</source>
         <translation>解剖图像显示：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="234" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1293" />
+        <location filename="../Windows/PreferencesDialog.ui" line="244" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1303" />
         <source>Interpolation mode:</source>
         <translation>插值模式：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="244" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1294" />
+        <location filename="../Windows/PreferencesDialog.ui" line="254" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1304" />
         <source>Default layout for multiple images:</source>
         <translation>多图默认布局：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="251" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1295" />
+        <location filename="../Windows/PreferencesDialog.ui" line="261" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1305" />
         <source>Default color map for overlayed images:</source>
         <translation>叠加图像默认颜色映射：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="267" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1296" />
+        <location filename="../Windows/PreferencesDialog.ui" line="277" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1306" />
         <source>Zoom Thumbnail:</source>
         <translation>缩放缩略图：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="273" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1297" />
+        <location filename="../Windows/PreferencesDialog.ui" line="283" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1307" />
         <source>Show thumbnail when the slice does not fit in window</source>
         <translation>切片不适合窗口时显示缩略图</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="295" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1298" />
+        <location filename="../Windows/PreferencesDialog.ui" line="305" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1308" />
         <source>Thumbnail size, relative to slice:</source>
         <translation>缩略图大小，相对于切片：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="308" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1299" />
+        <location filename="../Windows/PreferencesDialog.ui" line="318" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1309" />
         <source>%</source>
         <translation>%</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="321" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1300" />
+        <location filename="../Windows/PreferencesDialog.ui" line="331" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1310" />
         <source> px</source>
         <translation> 像素</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="328" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1301" />
+        <location filename="../Windows/PreferencesDialog.ui" line="338" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1311" />
         <source>Maximum thumbnail size:</source>
         <translation>最大缩略图大小：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="355" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1327" />
+        <location filename="../Windows/PreferencesDialog.ui" line="365" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1337" />
         <source>Layout</source>
         <translation>布局</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="376" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1303" />
+        <location filename="../Windows/PreferencesDialog.ui" line="386" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1313" />
         <source>Current screen layout:</source>
         <translation>当前屏幕布局：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="489" />
-        <location filename="../Windows/PreferencesDialog.cxx" line="66" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1306" />
+        <location filename="../Windows/PreferencesDialog.ui" line="499" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="67" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1316" />
         <source>3D View</source>
         <translation>3D视图</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="580" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1308" />
+        <location filename="../Windows/PreferencesDialog.ui" line="590" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1318" />
         <source>Available Layouts:</source>
         <translation>可用布局：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="586" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1309" />
+        <location filename="../Windows/PreferencesDialog.ui" line="596" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1319" />
         <source>ASC</source>
         <translation>ASC</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="593" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1310" />
+        <location filename="../Windows/PreferencesDialog.ui" line="603" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1320" />
         <source>CAS</source>
         <translation>CAS</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="600" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1311" />
+        <location filename="../Windows/PreferencesDialog.ui" line="610" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1321" />
         <source>SAC</source>
         <translation>SAC</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="607" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1312" />
+        <location filename="../Windows/PreferencesDialog.ui" line="617" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1322" />
         <source>ACS</source>
         <translation>ACS</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="614" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1313" />
+        <location filename="../Windows/PreferencesDialog.ui" line="624" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1323" />
         <source>SCA</source>
         <translation>SCA</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="621" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1314" />
+        <location filename="../Windows/PreferencesDialog.ui" line="631" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1324" />
         <source>CSA</source>
         <translation>CSA</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="649" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1315" />
+        <location filename="../Windows/PreferencesDialog.ui" line="659" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1325" />
         <source>On the Axial and Coronal views</source>
         <translation>在轴位和冠状位视图上</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="708" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1317" />
+        <location filename="../Windows/PreferencesDialog.ui" line="718" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1327" />
         <source>Display patient's left on the right</source>
         <translation>患者左侧显示在右侧</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="781" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1319" />
+        <location filename="../Windows/PreferencesDialog.ui" line="791" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1329" />
         <source>Display patient's left on the left</source>
         <translation>患者左侧显示在左侧</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="824" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1320" />
+        <location filename="../Windows/PreferencesDialog.ui" line="834" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1330" />
         <source>On the Sagittal view</source>
         <translation>在矢状位视图上</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="859" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1321" />
+        <location filename="../Windows/PreferencesDialog.ui" line="869" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1331" />
         <source>Display patient's anterior on the right</source>
         <translation>患者前侧显示在右侧</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="921" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1323" />
+        <location filename="../Windows/PreferencesDialog.ui" line="931" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1333" />
         <source>Display patient's anterior on the left</source>
         <translation>患者前侧显示在左侧</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="969" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1325" />
+        <location filename="../Windows/PreferencesDialog.ui" line="979" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1335" />
         <source>Additional options:</source>
         <translation>附加选项：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="975" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1326" />
+        <location filename="../Windows/PreferencesDialog.ui" line="985" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1336" />
         <source>Remind me about checked options</source>
         <translation>提醒我有关已选选项</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1012" />
-        <location filename="../Windows/PreferencesDialog.ui" line="1804" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1344" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1377" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1022" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1814" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1354" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1387" />
         <source>Appearance</source>
         <translation>外观</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1018" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1328" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1028" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1338" />
         <source>Visual elements:</source>
         <translation>视觉元素：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1037" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1329" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1047" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1339" />
         <source>Appearance:</source>
         <translation>外观：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1064" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1330" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1074" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1340" />
         <source>Visible</source>
         <translation>可见</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1087" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1331" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1097" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1341" />
         <source>Color:</source>
         <translation>颜色：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1100" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1332" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1110" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1342" />
         <source>Opacity:</source>
         <translation>不透明度：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1136" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1333" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1146" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1343" />
         <source>Line thickness:</source>
         <translation>线条粗细：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1156" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1334" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1166" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1344" />
         <source>Line type:</source>
         <translation>线型：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1182" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1335" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1192" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1345" />
         <source>Font size:</source>
         <translation>字体大小：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1208" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1337" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1218" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1347" />
         <source>Resets the appearance of the selected visual elements to its default</source>
         <translation>将选定视觉元素的外观重置为默认</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1211" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1339" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1221" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1349" />
         <source>Reset</source>
         <translation>重置</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1218" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1341" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1228" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1351" />
         <source>Resets the appearance of all visual elements to their defaults</source>
         <translation>将所有视觉元素的外观重置为默认</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1221" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1343" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1231" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1353" />
         <source>Reset All</source>
         <translation>全部重置</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1258" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1357" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1268" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1367" />
         <source>Smoothing</source>
         <translation>平滑</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1267" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1345" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1277" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1355" />
         <source>Gaussian image smoothing (slow, improves display quality)</source>
         <translation>高斯图像平滑（较慢，提升显示质量）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1295" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1347" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1305" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1357" />
         <source>Standard deviation:</source>
         <translation>标准差：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1318" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1348" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1328" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1358" />
         <source>Approximation error max:</source>
         <translation>最大近似误差：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1360" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1349" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1370" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1359" />
         <source>Laplacian mesh smoothing (slow, improves mesh quality)</source>
         <translation>拉普拉斯网格平滑（较慢，提升网格质量）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1391" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1351" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1401" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1361" />
         <source>Convergence:</source>
         <translation>收敛性：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1418" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1352" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1428" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1362" />
         <source>Iterations:</source>
         <translation>迭代次数：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1431" />
-        <location filename="../Windows/PreferencesDialog.ui" line="1606" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1353" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1362" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1441" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1616" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1363" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1372" />
         <source>Feature angle:</source>
         <translation>特征角度：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1458" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1354" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1468" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1364" />
         <source>Relaxation:</source>
         <translation>松弛度：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1484" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1355" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1494" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1365" />
         <source>Feature edge smoothing</source>
         <translation>特征边缘平滑</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1491" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1356" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1501" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1366" />
         <source>Boundary smoothing</source>
         <translation>边界平滑</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1523" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1364" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1533" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1374" />
         <source>Decimation</source>
         <translation>网格简化</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1529" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1358" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1539" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1368" />
         <source>Decimate mesh (reduces number of polygons)</source>
         <translation>简化网格（减少多边形数量）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1563" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1360" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1573" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1370" />
         <source>Target reduction:</source>
         <translation>目标简化比例：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1580" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1361" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1590" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1371" />
         <source>Maximum error:</source>
         <translation>最大误差：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1642" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1363" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1652" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1373" />
         <source>Preserve topology</source>
         <translation>保持拓扑结构</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1692" />
-        <location filename="../Windows/PreferencesDialog.cxx" line="63" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1368" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1702" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="64" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1378" />
         <source>Paintbrush</source>
         <translation>画笔</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1698" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1365" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1708" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1375" />
         <source>Paintbrush size control defaults:</source>
         <translation>画笔大小控制默认值：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1717" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1366" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1727" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1376" />
         <source>Initial size:</source>
         <translation>初始大小：</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1743" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1367" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1753" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1377" />
         <source>Maximum size:</source>
         <translation>最大大小：</translation>
     </message>
     <message>
         <location filename="../Windows/PreferencesDialog.ui" line="24" />
-        <location filename="../Windows/PreferencesDialog.ui" line="1794" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1277" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1373" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1804" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1283" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1383" />
         <source>General</source>
         <translation>通用</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1799" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1809" />
         <location filename="../Windows/PreferencesDialog.cxx" line="55" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1375" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1385" />
         <source>Slice Views</source>
         <translation>切片视图</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1809" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1379" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1819" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1389" />
         <source>3D Rendering</source>
         <translation>3D渲染</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1814" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1381" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1824" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1391" />
         <source>Tools</source>
         <translation>工具</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.ui" line="1819" />
-        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1383" />
+        <location filename="../Windows/PreferencesDialog.ui" line="1829" />
+        <location filename="../../../../xc64dbg/ui_PreferencesDialog.h" line="1393" />
         <source>AI Extensions</source>
         <translation>AI扩展</translation>
     </message>
@@ -6668,136 +6854,169 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../Windows/PreferencesDialog.cxx" line="56" />
-        <location filename="../Windows/PreferencesDialog.cxx" line="67" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="68" />
         <source>Background</source>
         <translation>背景</translation>
     </message>
     <message>
         <location filename="../Windows/PreferencesDialog.cxx" line="57" />
-        <location filename="../Windows/PreferencesDialog.cxx" line="68" />
-        <location filename="../Windows/PreferencesDialog.cxx" line="74" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="69" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="75" />
         <source>Crosshair</source>
         <translation>十字线</translation>
     </message>
     <message>
         <location filename="../Windows/PreferencesDialog.cxx" line="58" />
+        <source>Segmentation bounds</source>
+        <translation>分割范围</translation>
+    </message>
+    <message>
+        <location filename="../Windows/PreferencesDialog.cxx" line="59" />
         <source>Rulers</source>
         <translation>标尺</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="59" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="60" />
         <source>Anatomic Markers</source>
         <translation>解剖标记</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="60" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="61" />
         <source>ROI Edges</source>
         <translation>感兴趣区边缘</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="62" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="63" />
         <source>ROI Edges (selected)</source>
         <translation>感兴趣区边缘（选中）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="64" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="65" />
         <source>Deformation Grid</source>
         <translation>形变网格</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="69" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="70" />
         <source>Mesh Outline</source>
         <translation>网格轮廓</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="71" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="72" />
         <source>Zoom Thumbnail</source>
         <translation>缩略图（放大）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="72" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="73" />
         <source>Thumbnail</source>
         <translation>缩略图</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="73" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="74" />
         <source>Current Viewport Outline</source>
         <translation>当前视口轮廓</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="76" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="77" />
         <source>Polygon Tool</source>
         <translation>多边形工具</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="77" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="78" />
         <source>Outline (drawing)</source>
         <translation>轮廓（绘制中）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="78" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="79" />
         <source>Completion line</source>
         <translation>完成线</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="79" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="80" />
         <source>Outline (editing)</source>
         <translation>轮廓（编辑中）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="81" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="82" />
         <source>Outline (editing, selected)</source>
         <translation>轮廓（编辑中，选中）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="83" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="84" />
         <source>Registration Tool</source>
         <translation>配准工具</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="84" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="85" />
         <source>Registration Widgets</source>
         <translation>配准控件</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="86" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="87" />
         <source>Registration Widgets (active)</source>
         <translation>配准控件（激活）</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="87" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="88" />
         <source>Registration Grid Lines</source>
         <translation>配准网格线</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="188" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="190" />
         <source>No Line</source>
         <translation>无线条</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="189" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="191" />
         <source>Solid Line</source>
         <translation>实线</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="190" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="192" />
         <source>Dashed Line</source>
         <translation>虚线</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="191" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="193" />
         <source>Dotted Line</source>
         <translation>点线</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="192" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="194" />
         <source>Dash-Dot Line</source>
         <translation>划点线</translation>
     </message>
     <message>
-        <location filename="../Windows/PreferencesDialog.cxx" line="193" />
+        <location filename="../Windows/PreferencesDialog.cxx" line="195" />
         <source>Dash-Dot-Dot Line</source>
         <translation>划点点线</translation>
+    </message>
+</context>
+<context>
+    <name>ProgressTask</name>
+    <message>
+        <location filename="../../Model/DeepLearningSegmentationModel.cxx" line="800" />
+        <source>Ending prior session</source>
+        <translation>结束先前会话</translation>
+    </message>
+    <message>
+        <location filename="../../Model/DeepLearningSegmentationModel.cxx" line="811" />
+        <source>Creating DLS session</source>
+        <translation>创建DLS会话</translation>
+    </message>
+    <message>
+        <location filename="../../Model/DeepLearningSegmentationModel.cxx" line="871" />
+        <source>Uploading image to DLS</source>
+        <translation>正在上传图像到DLS</translation>
+    </message>
+    <message>
+        <location filename="../../Model/DeepLearningSegmentationModel.cxx" line="1210" />
+        <source>Performing point interaction</source>
+        <translation>执行点交互</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/ImageWrapper/ImageIORemote.cxx" line="390" />
+        <source>Downloading %1</source>
+        <translation>正在下载 %1</translation>
     </message>
 </context>
 <context>
@@ -6858,6 +7077,82 @@ p, li { white-space: pre-wrap; }
     </message>
 </context>
 <context>
+    <name>QtProgressReporterDelegate</name>
+    <message>
+        <location filename="../Components/QtReporterDelegates.cxx" line="239" />
+        <source>ITK-SNAP progress</source>
+        <translation>ITK-SNAP 进度</translation>
+    </message>
+</context>
+<context>
+    <name>QtSSHAuthDelegate</name>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="39" />
+        <source>Password for &lt;b&gt;%1@%2&lt;/b&gt;</source>
+        <translation>密码 &lt;b&gt;%1@%2&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="42" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="64" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="92" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="161" />
+        <source>&lt;br&gt;&lt;small style='color:red'&gt;%1&lt;/small&gt;</source>
+        <translation>&lt;br&gt;&lt;small style="color:red"&gt;%1&lt;/small&gt;</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="45" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="67" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="85" />
+        <source>SSH Authentication</source>
+        <translation>SSH 认证</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="61" />
+        <source>Passphrase for key &lt;b&gt;%1&lt;/b&gt;</source>
+        <translation>密钥密码短语 &lt;b&gt;%1&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="90" />
+        <source>Enter credentials for &lt;b&gt;%1&lt;/b&gt;</source>
+        <translation>输入以下账户信息 &lt;b&gt;%1&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="102" />
+        <source>Username:</source>
+        <translation>用户名：</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="103" />
+        <source>Password:</source>
+        <translation>密码：</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="131" />
+        <source>Unknown SSH Host</source>
+        <translation>未知的 SSH 主机</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="134" />
+        <source>The authenticity of host &lt;b&gt;%1&lt;/b&gt; cannot be established.</source>
+        <translation>主机的真实性 &lt;b&gt;%1&lt;/b&gt; 无法确定。</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="137" />
+        <source>The %1 key fingerprint is:&lt;br&gt;&lt;tt&gt;%2&lt;/tt&gt;&lt;br&gt;&lt;br&gt;If you are not sure that this is the right server, contact its administrator before connecting. Do you want to trust this host and continue?</source>
+        <translation>%1 的密钥指纹为：&lt;br&gt;&lt;tt&gt;%2&lt;/tt&gt;&lt;br&gt;&lt;br&gt;如果您不确定这是否正确的服务器，请在连接前联系管理员。是否信任该主机并继续？</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="158" />
+        <source>API key for &lt;b&gt;%1&lt;/b&gt;:</source>
+        <translation>API 密钥： &lt;b&gt;%1&lt;/b&gt;：</translation>
+    </message>
+    <message>
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="165" />
+        <source>Flywheel Authentication</source>
+        <translation>Flywheel 验证</translation>
+    </message>
+</context>
+<context>
     <name>QtWarningDialog</name>
     <message>
         <location filename="../Components/QtWarningDialog.ui" line="20" />
@@ -6888,118 +7183,123 @@ p, li { white-space: pre-wrap; }
     <name>RecentHistoryItemsView</name>
     <message>
         <location filename="../Components/RecentHistoryItemsView.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_RecentHistoryItemsView.h" line="131" />
+        <location filename="../../../../xc64dbg/ui_RecentHistoryItemsView.h" line="132" />
         <source>Form</source>
         <translation>表单</translation>
+    </message>
+    <message>
+        <location filename="../Components/RecentHistoryItemsView.cxx" line="51" />
+        <source>Remove from recent image list</source>
+        <translation>从最近图像列表中移除</translation>
     </message>
 </context>
 <context>
     <name>RegistrationDialog</name>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="20" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="704" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="705" />
         <source>Dialog</source>
         <translation>对话框</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="88" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="717" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="718" />
         <source>Perform rigid or affine registration between the main image and one of the additional image layers.</source>
         <translation>在主图像与一个附加图像层之间执行刚性或仿射配准。</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="131" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="718" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="719" />
         <source>View the main image and perform segmentation from arbitrary oblique viewing angles. Some segmentation functionality is disabled in this mode.</source>
         <translation>从任意斜视角查看主图像并进行分割。此模式下部分分割功能被禁用。</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="160" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="719" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="720" />
         <source>Moving image layer:</source>
         <translation>移动图像层：</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="199" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="739" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="740" />
         <source>Automatic</source>
         <translation>自动</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="214" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="720" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="721" />
         <source>Transformation model:</source>
         <translation>变换模型：</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="224" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="721" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="722" />
         <source>Image similarity metric:</source>
         <translation>图像相似度度量：</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="234" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="723" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="724" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When this is checked, the current segmentation in ITK-SNAP will be used as a mask  for the registration. This means that the similarity between the main image and the moving image layer will only be computed at the voxels assigned a segmentation label.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;勾选后，当前ITK-SNAP分割结果将作为配准掩膜。相似度只在被赋予分割标签的体素计算。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="240" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="725" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="726" />
         <source>Use segmentation as mask</source>
         <translation>使用分割作为掩膜</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="272" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="726" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="727" />
         <source>Multi-resolution schedule:</source>
         <translation>多分辨率方案：</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="299" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="727" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="728" />
         <source>Coarsest level:</source>
         <translation>最粗层级：</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="306" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="728" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="729" />
         <source>Finest level:</source>
         <translation>最细层级：</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="319" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="730" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="731" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the zoom factor used for the &lt;span style=" font-weight:600;"&gt;first&lt;/span&gt; stage of automatic segmentation. We recommend &lt;span style=" font-weight:600;"&gt;8x&lt;/span&gt; for images on the scale of 256x256x256. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;设置自动分割首个 &lt;span style=" font-weight:600;"&gt;阶段&lt;/span&gt; 的缩放因子。建议使用 &lt;span style=" font-weight:600;"&gt;8倍&lt;/span&gt; 适用于尺寸为256x256x256的图像。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="332" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="733" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="734" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Set the zoom factor used for the &lt;span style=" font-weight:600;"&gt;last&lt;/span&gt; stage of automatic segmentation. We recommend &lt;span style=" font-weight:600;"&gt;4x&lt;/span&gt; for images on the scale of 256x256x256. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;设置自动分割最后 &lt;span style=" font-weight:600;"&gt;阶段&lt;/span&gt; 的缩放因子。建议使用 &lt;span style=" font-weight:600;"&gt;4倍&lt;/span&gt; 适用于尺寸为256x256x256的图像。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="358" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="736" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="737" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run automatic registration&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;运行自动配准&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="361" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="738" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="739" />
         <source>Run Registration</source>
         <translation>执行配准</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="461" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="768" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="769" />
         <source>Manual</source>
         <translation>手动</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="481" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="740" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="741" />
         <source>Rotation (Euler angles):</source>
         <translation>旋转（欧拉角）：</translation>
     </message>
@@ -7007,9 +7307,9 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="523" />
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="648" />
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="814" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="741" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="745" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="751" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="742" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="746" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="752" />
         <source>x:</source>
         <translation>x：</translation>
     </message>
@@ -7017,9 +7317,9 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="547" />
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="672" />
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="797" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="742" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="746" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="750" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="743" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="747" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="751" />
         <source>y:</source>
         <translation>y：</translation>
     </message>
@@ -7027,27 +7327,27 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="571" />
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="696" />
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="773" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="743" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="747" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="749" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="744" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="748" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="750" />
         <source>z:</source>
         <translation>z：</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="606" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="744" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="745" />
         <source>Translation (mm):</source>
         <translation>平移（毫米）：</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="731" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="748" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="749" />
         <source>Scaling:</source>
         <translation>缩放：</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="845" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="753" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="754" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flip across x-axis&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;绕x轴翻转&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
@@ -7057,101 +7357,101 @@ p, li { white-space: pre-wrap; }
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="890" />
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="986" />
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="1000" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="755" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="759" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="763" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="772" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="776" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="756" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="760" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="764" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="773" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="777" />
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="866" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="757" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="758" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flip across y-axis&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;绕y轴翻转&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="887" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="761" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="762" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Flip across z-axis&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;绕z轴翻转&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="914" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="764" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="765" />
         <source>Interactive Tool</source>
         <translation>交互工具</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="927" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="765" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="766" />
         <source>Reset to Identity</source>
         <translation>重置为单位变换</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="934" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="766" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="767" />
         <source>Set Center of Rotation</source>
         <translation>设置旋转中心</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="941" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="767" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="768" />
         <source>Match by ...</source>
         <translation>匹配方式...</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="983" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="770" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="771" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load transformation from file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;从文件加载变换&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="997" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="774" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="775" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Save transformation to file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;保存变换到文件&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="1027" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="778" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="779" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reslice the moving image into the space of the main image&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;将移动图像重切片至主图像空间&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="1064" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="705" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="706" />
         <source>Image Centers</source>
         <translation>图像中心</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="1067" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="707" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="708" />
         <source>Aligns the center voxel of the moving image with the center voxel of the fixed image</source>
         <translation>将移动图像中心体素与固定图像中心体素对齐</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="1072" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="709" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="710" />
         <source>Centers of Mass</source>
         <translation>质心</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="1075" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="711" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="712" />
         <source>Aligns the center of mass of the moving image with the center of mass of the fixed image</source>
         <translation>将移动图像质心与固定图像质心对齐</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="1080" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="713" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="714" />
         <source>Moments of Inertia</source>
         <translation>惯性矩</translation>
     </message>
     <message>
         <location filename="../Windows/Registration/RegistrationDialog.ui" line="1083" />
-        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="715" />
+        <location filename="../../../../xc64dbg/ui_RegistrationDialog.h" line="716" />
         <source>Aligns the centers of mass and the second moments of inertia tensors between fixed and moving images. This involves rotation, translation and flipping.</source>
         <translation>对齐质心及固定与移动图像的二阶惯性矩张量，包含旋转、平移和翻转。</translation>
     </message>
@@ -7212,27 +7512,27 @@ p, li { white-space: pre-wrap; }
         <translation>保存变换文件失败</translation>
     </message>
     <message>
-        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="280" />
+        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="281" />
         <source>Reslicing Options - ITK-SNAP</source>
         <translation>重切片选项 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="284" />
+        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="285" />
         <source>Nearest Neighbor</source>
         <translation>最近邻</translation>
     </message>
     <message>
-        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="285" />
+        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="286" />
         <source>Linear</source>
         <translation>线性</translation>
     </message>
     <message>
-        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="287" />
+        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="288" />
         <source>&amp;Interpolation:</source>
         <translation />
     </message>
     <message>
-        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="300" />
+        <location filename="../Windows/Registration/RegistrationDialog.cxx" line="301" />
         <source>The resliced image will be created as an addtional
 image layer. You can save the resliced image using
 the context menu.</source>
@@ -7514,17 +7814,17 @@ the context menu.</source>
 <context>
     <name>SNAPQtCommon</name>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="230" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="232" />
         <source>All visible labels</source>
         <translation>所有可见标签</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="234" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="236" />
         <source>All labels</source>
         <translation>所有标签</translation>
     </message>
     <message>
-        <location filename="../Components/SNAPQtCommon.cxx" line="289" />
+        <location filename="../Components/SNAPQtCommon.cxx" line="291" />
         <source>&lt;html&gt;&lt;body&gt;Set active label to &lt;span style=" font-weight:600;"&gt;%1&lt;/span&gt;  and the paint over mask to &lt;span style=" font-weight:600;"&gt;%2&lt;/span&gt;.</source>
         <translation>&lt;html&gt;&lt;body&gt;设置活动标签为 &lt;span style=" font-weight:600;"&gt;%1&lt;/span&gt;  并将覆盖掩码设置为 &lt;span style=" font-weight:600;"&gt;%2&lt;/span&gt;。</translation>
     </message>
@@ -7596,13 +7896,13 @@ the context menu.</source>
     <name>SaveModifiedLayersDialog</name>
     <message>
         <location filename="../Windows/SaveModifiedLayersDialog.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_SaveModifiedLayersDialog.h" line="70" />
+        <location filename="../../../../xc64dbg/ui_SaveModifiedLayersDialog.h" line="72" />
         <source>Save Changes - ITK-SNAP</source>
         <translation>保存更改 - ITK-SNAP</translation>
     </message>
     <message>
         <location filename="../Windows/SaveModifiedLayersDialog.ui" line="20" />
-        <location filename="../../../../xc64dbg/ui_SaveModifiedLayersDialog.h" line="71" />
+        <location filename="../../../../xc64dbg/ui_SaveModifiedLayersDialog.h" line="73" />
         <source>The following image layers have unsaved changes:</source>
         <translation>以下图像层有未保存的更改：</translation>
     </message>
@@ -7660,7 +7960,7 @@ the context menu.</source>
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="305" />
-        <location filename="../Components/SliceViewPanel.ui" line="914" />
+        <location filename="../Components/SliceViewPanel.ui" line="917" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="536" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="667" />
         <source>complete</source>
@@ -7678,7 +7978,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="335" />
-        <location filename="../Components/SliceViewPanel.ui" line="932" />
+        <location filename="../Components/SliceViewPanel.ui" line="935" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="544" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="671" />
         <source>undo last point</source>
@@ -7698,9 +7998,9 @@ p, li { white-space: pre-wrap; }
         <location filename="../Components/SliceViewPanel.ui" line="359" />
         <location filename="../Components/SliceViewPanel.ui" line="501" />
         <location filename="../Components/SliceViewPanel.ui" line="580" />
-        <location filename="../Components/SliceViewPanel.ui" line="950" />
-        <location filename="../Components/SliceViewPanel.ui" line="1004" />
-        <location filename="../Components/SliceViewPanel.ui" line="1088" />
+        <location filename="../Components/SliceViewPanel.ui" line="953" />
+        <location filename="../Components/SliceViewPanel.ui" line="1007" />
+        <location filename="../Components/SliceViewPanel.ui" line="1091" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="552" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="576" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="610" />
@@ -7713,8 +8013,8 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="417" />
         <location filename="../Components/SliceViewPanel.ui" line="559" />
-        <location filename="../Components/SliceViewPanel.ui" line="878" />
-        <location filename="../Components/SliceViewPanel.ui" line="1070" />
+        <location filename="../Components/SliceViewPanel.ui" line="881" />
+        <location filename="../Components/SliceViewPanel.ui" line="1073" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="520" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="602" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="679" />
@@ -7735,7 +8035,7 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="447" />
         <location filename="../Components/SliceViewPanel.ui" line="776" />
-        <location filename="../Components/SliceViewPanel.ui" line="1124" />
+        <location filename="../Components/SliceViewPanel.ui" line="1127" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="626" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="683" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="716" />
@@ -7754,7 +8054,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="477" />
-        <location filename="../Components/SliceViewPanel.ui" line="986" />
+        <location filename="../Components/SliceViewPanel.ui" line="989" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="568" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="687" />
         <source>split</source>
@@ -7771,13 +8071,13 @@ p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'Helvetica'; font-size:11px; font-weight:400; font-style:normal;"&gt;&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;删除整个多边形，重新绘制新的&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1157" />
+        <location filename="../Components/SliceViewPanel.ui" line="1160" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="639" />
         <source>previous</source>
         <translation>上一个</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1142" />
+        <location filename="../Components/SliceViewPanel.ui" line="1145" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="634" />
         <source>next</source>
         <translation>下一个</translation>
@@ -7838,7 +8138,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="696" />
-        <location filename="../Components/SliceViewPanel.ui" line="1106" />
+        <location filename="../Components/SliceViewPanel.ui" line="1109" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="618" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="708" />
         <source>select all</source>
@@ -7846,7 +8146,7 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="736" />
-        <location filename="../Components/SliceViewPanel.ui" line="1172" />
+        <location filename="../Components/SliceViewPanel.ui" line="1175" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="644" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="712" />
         <source>edit...</source>
@@ -7872,28 +8172,34 @@ p, li { white-space: pre-wrap; }
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="858" />
-        <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="721" />
+        <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="722" />
+        <source>&lt;p&gt;Current slice and number of slices in the voxel grid of the active segmentation.&lt;/p&gt;&lt;p&gt;When other images extend beyond the active segmentation, you can move the cursor outside of its grid. The slice number can then be zero or negative, or greater than the number of slices.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;当前切片及活动分割的体素网格中的切片数量。&lt;/p&gt;&lt;p&gt;当其他图像超出活动分割范围时，您可以将光标移到其网格之外。此时切片编号可能为零、负值或大于切片总数。&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="../Components/SliceViewPanel.ui" line="861" />
+        <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="724" />
         <source>TextLabel</source>
         <translation>文本标签</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="875" />
-        <location filename="../Components/SliceViewPanel.ui" line="1067" />
+        <location filename="../Components/SliceViewPanel.ui" line="878" />
+        <location filename="../Components/SliceViewPanel.ui" line="1070" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="519" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="601" />
         <source>Accept Polygon</source>
         <translation>接受多边形</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="881" />
+        <location filename="../Components/SliceViewPanel.ui" line="884" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="522" />
         <source>Incorporates the polygon into the segmentation.</source>
         <translation>将多边形合并到分割中。</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="884" />
-        <location filename="../Components/SliceViewPanel.ui" line="920" />
-        <location filename="../Components/SliceViewPanel.ui" line="1076" />
+        <location filename="../Components/SliceViewPanel.ui" line="887" />
+        <location filename="../Components/SliceViewPanel.ui" line="923" />
+        <location filename="../Components/SliceViewPanel.ui" line="1079" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="525" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="541" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="607" />
@@ -7901,79 +8207,79 @@ p, li { white-space: pre-wrap; }
         <translation>回车</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="893" />
+        <location filename="../Components/SliceViewPanel.ui" line="896" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="527" />
         <source>Paste Last Polygon</source>
         <translation>粘贴上一个多边形</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="896" />
+        <location filename="../Components/SliceViewPanel.ui" line="899" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="528" />
         <source>paste last polygon</source>
         <translation>粘贴上个多边形</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="899" />
+        <location filename="../Components/SliceViewPanel.ui" line="902" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="530" />
         <source>Pastes the last polygon that you have accepted in this slice view. You can then move the vertices in the pasted polygon to fit image data. This can be more efficient than drawing a new polygon when performing segmentation across multiple slices.</source>
         <translation>粘贴您在此切片视图中接受的最后一个多边形。之后可以移动粘贴多边形的顶点以适合图像数据。进行多切片分割时，这比重新绘制新多边形更高效。</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="902" />
+        <location filename="../Components/SliceViewPanel.ui" line="905" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="533" />
         <source>Ctrl+V</source>
         <translation>Ctrl+V</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="911" />
+        <location filename="../Components/SliceViewPanel.ui" line="914" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="535" />
         <source>Complete Polygon and Edit</source>
         <translation>完成多边形并编辑</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="917" />
+        <location filename="../Components/SliceViewPanel.ui" line="920" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="538" />
         <source>Finishes drawing the polygon by connecting the last point to the first. The window will enter "editing" mode, where you can modify the polygon.</source>
         <translation>通过连接最后一点和第一点完成多边形绘制。窗口将进入“编辑”模式，您可以修改多边形。</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="929" />
+        <location filename="../Components/SliceViewPanel.ui" line="932" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="543" />
         <source>Undo Last Point</source>
         <translation>撤销最后一点</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="935" />
+        <location filename="../Components/SliceViewPanel.ui" line="938" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="546" />
         <source>Deletes the last point added to the polygon</source>
         <translation>删除多边形中最后添加的点</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="938" />
-        <location filename="../Components/SliceViewPanel.ui" line="1130" />
+        <location filename="../Components/SliceViewPanel.ui" line="941" />
+        <location filename="../Components/SliceViewPanel.ui" line="1133" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="549" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="631" />
         <source>Backspace</source>
         <translation>退格键</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="947" />
+        <location filename="../Components/SliceViewPanel.ui" line="950" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="551" />
         <source>Clear Drawing</source>
         <translation>清除绘制</translation>
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="356" />
-        <location filename="../Components/SliceViewPanel.ui" line="953" />
+        <location filename="../Components/SliceViewPanel.ui" line="956" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="554" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="673" />
         <source>Clears the current polygon so you can start drawing from scratch</source>
         <translation>清除当前多边形，重新开始绘制</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="956" />
-        <location filename="../Components/SliceViewPanel.ui" line="1010" />
-        <location filename="../Components/SliceViewPanel.ui" line="1094" />
+        <location filename="../Components/SliceViewPanel.ui" line="959" />
+        <location filename="../Components/SliceViewPanel.ui" line="1013" />
+        <location filename="../Components/SliceViewPanel.ui" line="1097" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="557" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="581" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="615" />
@@ -7981,202 +8287,202 @@ p, li { white-space: pre-wrap; }
         <translation>Esc</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="965" />
+        <location filename="../Components/SliceViewPanel.ui" line="968" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="559" />
         <source>Trim Selected Vertices</source>
         <translation>修剪选定顶点</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="968" />
+        <location filename="../Components/SliceViewPanel.ui" line="971" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="560" />
         <source>trim</source>
         <translation>修剪</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="971" />
+        <location filename="../Components/SliceViewPanel.ui" line="974" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="562" />
         <source>Deletes the selected vertices in the polygon</source>
         <translation>删除多边形中选定的顶点</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="974" />
+        <location filename="../Components/SliceViewPanel.ui" line="977" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="565" />
         <source>-</source>
         <translation>-</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="983" />
+        <location filename="../Components/SliceViewPanel.ui" line="986" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="567" />
         <source>Split Selected Edges</source>
         <translation>拆分选定边</translation>
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="474" />
-        <location filename="../Components/SliceViewPanel.ui" line="989" />
+        <location filename="../Components/SliceViewPanel.ui" line="992" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="570" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="685" />
         <source>Splits each selected edge in the polygon by inserting a new vertex in the middle</source>
         <translation>将多边形中每条选定边拆分，在中间插入新顶点</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="992" />
+        <location filename="../Components/SliceViewPanel.ui" line="995" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="573" />
         <source>+</source>
         <translation>+</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1001" />
+        <location filename="../Components/SliceViewPanel.ui" line="1004" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="575" />
         <source>Clear Polygon</source>
         <translation>清除多边形</translation>
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="498" />
-        <location filename="../Components/SliceViewPanel.ui" line="1007" />
+        <location filename="../Components/SliceViewPanel.ui" line="1010" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="578" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="689" />
         <source>Deletes the entire polygon, so you can draw a new one from scratch</source>
         <translation>删除整个多边形，重新绘制新的</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1019" />
+        <location filename="../Components/SliceViewPanel.ui" line="1022" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="583" />
         <source>Complete Polygon and Accept</source>
         <translation>完成多边形并接受</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1022" />
+        <location filename="../Components/SliceViewPanel.ui" line="1025" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="585" />
         <source>Finishes drawing the polygon by connecting the last point to the first, then incorporates the polygon into the segmentation. This bypasses the editing mode.</source>
         <translation>通过连接最后一点和第一点完成多边形绘制，然后将多边形合并到分割中。跳过编辑模式。</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1025" />
+        <location filename="../Components/SliceViewPanel.ui" line="1028" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="588" />
         <source>Ctrl+Return</source>
         <translation>Ctrl+回车</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1034" />
+        <location filename="../Components/SliceViewPanel.ui" line="1037" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="590" />
         <source>Zoom In</source>
         <translation>放大</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1037" />
+        <location filename="../Components/SliceViewPanel.ui" line="1040" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="592" />
         <source>Ctrl+Up</source>
         <translation>Ctrl+向上</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1049" />
         <location filename="../Components/SliceViewPanel.ui" line="1052" />
+        <location filename="../Components/SliceViewPanel.ui" line="1055" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="594" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="596" />
         <source>Zoom Out</source>
         <translation>缩小</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1055" />
+        <location filename="../Components/SliceViewPanel.ui" line="1058" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="599" />
         <source>Ctrl+Down</source>
         <translation>Ctrl+向下</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1073" />
+        <location filename="../Components/SliceViewPanel.ui" line="1076" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="604" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add the current line measurement to the annotation.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;将当前线段测量添加到标注。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1085" />
+        <location filename="../Components/SliceViewPanel.ui" line="1088" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="609" />
         <source>Clear measurement</source>
         <translation>清除测量</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1091" />
+        <location filename="../Components/SliceViewPanel.ui" line="1094" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="612" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Cancels the current measurement&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;取消当前测量&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="693" />
-        <location filename="../Components/SliceViewPanel.ui" line="1103" />
+        <location filename="../Components/SliceViewPanel.ui" line="1106" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="617" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="706" />
         <source>Select all annotations</source>
         <translation>全选标注</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1109" />
+        <location filename="../Components/SliceViewPanel.ui" line="1112" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="620" />
         <source>Select all annotations on the current slice</source>
         <translation>选择当前切片上的所有标注</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1112" />
+        <location filename="../Components/SliceViewPanel.ui" line="1115" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="623" />
         <source>Ctrl+A</source>
         <translation>Ctrl+A</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1121" />
+        <location filename="../Components/SliceViewPanel.ui" line="1124" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="625" />
         <source>Delete selected annotations</source>
         <translation>删除选中的标注</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1127" />
+        <location filename="../Components/SliceViewPanel.ui" line="1130" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="628" />
         <source>Delete selected annotations on this slice</source>
         <translation>删除本切片中选中的标注</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1139" />
+        <location filename="../Components/SliceViewPanel.ui" line="1142" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="633" />
         <source>Next annotation</source>
         <translation>下一个标注</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1145" />
+        <location filename="../Components/SliceViewPanel.ui" line="1148" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="636" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the next annotation. Use this to cycle through the annotations in this slice view in forward order.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;选择下一个标注。用于按顺序遍历此切片视图中的标注。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1154" />
+        <location filename="../Components/SliceViewPanel.ui" line="1157" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="638" />
         <source>Previous annotation</source>
         <translation>上一个标注</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1160" />
+        <location filename="../Components/SliceViewPanel.ui" line="1163" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="641" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select the previous annotation. Use this to cycle through the annotations in this slice view in reverse order.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;选择上一个标注。用于逆序遍历此切片视图中的标注。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Components/SliceViewPanel.ui" line="733" />
-        <location filename="../Components/SliceViewPanel.ui" line="1169" />
+        <location filename="../Components/SliceViewPanel.ui" line="1172" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="643" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="710" />
         <source>Edit selected annotation</source>
         <translation>编辑选中的标注</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.ui" line="1175" />
+        <location filename="../Components/SliceViewPanel.ui" line="1178" />
         <location filename="../../../../xc64dbg/ui_SliceViewPanel.h" line="646" />
         <source>Change selected annotation properties</source>
         <translation>修改选中标注属性</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.cxx" line="592" />
+        <location filename="../Components/SliceViewPanel.cxx" line="593" />
         <source>Restore the four-panel display configuration</source>
         <translation>恢复四面板显示配置</translation>
     </message>
     <message>
-        <location filename="../Components/SliceViewPanel.cxx" line="596" />
+        <location filename="../Components/SliceViewPanel.cxx" line="597" />
         <source>Expand this view to occupy the entire window</source>
         <translation>展开此视图以占据整个窗口</translation>
     </message>
@@ -9125,97 +9431,97 @@ competition</source>
     <name>SpeedImageDialog</name>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1027" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1028" />
         <source>Speed Image Generation - ITK-SNAP</source>
         <translation>速度图像生成 - ITK-SNAP</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="62" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1038" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1039" />
         <source>Thresholding</source>
         <translation>阈值</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="104" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1028" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1029" />
         <source>Threshold direction:</source>
         <translation>阈值方向：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="135" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1029" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1030" />
         <source>Two-sided</source>
         <translation>双阈值</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="152" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1030" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1031" />
         <source>Lower only</source>
         <translation>仅下阈值</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="169" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1031" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1032" />
         <source>Upper only</source>
         <translation>仅上阈值</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="292" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1032" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1033" />
         <source>&amp;Lower threshold:</source>
         <translation>下阈值(&amp;L)：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="309" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1033" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1034" />
         <source>&amp;Upper threshold:</source>
         <translation>上阈值(&amp;U)：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="326" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1034" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1035" />
         <source>&amp;Smoothness:</source>
         <translation />
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="367" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1035" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1036" />
         <source>Image to threshold:</source>
         <translation>待阈值化图像：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="377" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1036" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1037" />
         <source>Component:</source>
         <translation>分量（通道）：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="433" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1037" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1038" />
         <source>Thresholding function:</source>
         <translation>阈值函数：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="492" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1067" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1068" />
         <source>Classification</source>
         <translation>分类</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="501" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1039" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1040" />
         <source>Additional features:</source>
         <translation>附加特征：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="553" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1040" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1041" />
         <source>Inculde the voxels' coordinates as features</source>
         <translation>包含体素坐标作为特征</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="564" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1041" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1042" />
         <source>Allows you to provide geometrical hints to the segmentation, for example avoiding leaking into a certain region</source>
         <translation>允许为分割提供几何提示，例如避免渗入特定区域</translation>
     </message>
@@ -9223,215 +9529,215 @@ competition</source>
         <location filename="../Windows/SpeedImageDialog.ui" line="583" />
         <location filename="../Windows/SpeedImageDialog.ui" line="620" />
         <location filename="../Windows/SpeedImageDialog.ui" line="656" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1043" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1048" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1052" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1044" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1049" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1053" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The radius of the neighborhood used to produce additional features. When set to 1, the neighborhood size is 3x3x3 voxels. When set to 2, the neighborhood is 5x5x5 voxels, and so on.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;用于生成附加特征的邻域半径。设为1时，邻域大小为3x3x3体素；设为2时，邻域为5x5x5体素，依此类推。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="590" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1045" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1046" />
         <source>Patch radius:</source>
         <translation>邻域半径：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="601" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1046" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1047" />
         <source>Neighboring intensity values around each voxel are included as additional features. Can help you segment images with rich texture or complex patterns, but classification will be slower</source>
         <translation>包含每个体素周围邻域的灰度值作为附加特征，有助于分割丰富纹理或复杂模式的图像，但分类速度较慢</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="643" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1050" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1051" />
         <source>Use patches for classification</source>
         <translation>使用邻域分类</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="679" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1055" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1056" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use these controls to set the size of the patch. Patches are symmetrical around a voxel and have dimensions that are odd, e.g., 1x1x1, 5x5x5, 3x3x1. The size of the patch is equal to one plus twice the patch radius. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;使用这些控件设置邻域大小。邻域围绕体素对称，尺寸为奇数，如1x1x1、5x5x5、3x3x1。大小等于1加两倍邻域半径。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="698" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1058" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1059" />
         <source>Random forest classifier settings:</source>
         <translation>随机森林分类器设置：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="750" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1059" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1060" />
         <source>Boost the contribution of the foreground class to the speed image</source>
         <translation>增强前景类对速度图的贡献</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="763" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1060" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1061" />
         <source>Number of trees:</source>
         <translation>树的数量：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="803" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1061" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1062" />
         <source>More trees produce more accurate classification at the cost of more time.</source>
         <translation>树越多，分类越准确，但耗时越长。</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="826" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1062" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1063" />
         <source>Classifier bias:</source>
         <translation>分类器偏置：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="833" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1063" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1064" />
         <source>Tree depth:</source>
         <translation>树深度：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="856" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1064" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1065" />
         <source>Increase when there are many features and complex patterns to be learned</source>
         <translation>当特征多且模式复杂时增加深度</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="904" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1065" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1066" />
         <source>Load samples ...</source>
         <translation>加载样本...</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="911" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1066" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1067" />
         <source>Save samples ...</source>
         <translation>保存样本...</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="922" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1077" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1078" />
         <source>Clustering</source>
         <translation>聚类</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="961" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1068" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1069" />
         <source>Number of clusters:</source>
         <translation>聚类数：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1000" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1069" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1070" />
         <source>Samples:</source>
         <translation>样本：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1048" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1070" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1071" />
         <source>Table of clusters:</source>
         <translation>聚类表：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1111" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1071" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1072" />
         <source>Reinitialize</source>
         <translation>重新初始化</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1122" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1072" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1073" />
         <source>Iterate x1</source>
         <translation>迭代 x1</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1133" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1073" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1074" />
         <source>Iterate x10</source>
         <translation>迭代 x10</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1176" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1074" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1075" />
         <source>Cluster probability density plot:</source>
         <translation>聚类概率密度图：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1266" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1075" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1076" />
         <source>X axis:</source>
         <translation>X轴：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1308" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1076" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1077" />
         <source>Y axis:</source>
         <translation>Y轴：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1344" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1082" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1083" />
         <source>Edge Attraction</source>
         <translation>边缘吸引</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1397" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1078" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1079" />
         <source>Edge transformation exponent:</source>
         <translation>边缘变换指数：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1420" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1079" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1080" />
         <source>Scale of Gaussian blurring:</source>
         <translation>高斯模糊的尺度：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1456" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1080" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1081" />
         <source>Edge transformation contrast:</source>
         <translation>边缘变换对比度：</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1463" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1081" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1082" />
         <source>Transformation from edge strength to speed value</source>
         <translation>从边缘强度到速度值的变换</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1600" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1084" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1085" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When selected, the speed image is computed on the fly&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;选中时，速度图像实时计算&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1603" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1086" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1087" />
         <source>Live Preview</source>
         <translation>实时预览</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1631" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1088" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1089" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Display the speed image as a non-transparent image with negative values in blue and positive values in white.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;以不透明图像显示速度图，负值为蓝色，正值为白色。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1634" />
         <location filename="../Windows/SpeedImageDialog.ui" line="1657" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1090" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1094" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1091" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1095" />
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1654" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1092" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1093" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Display the speed image as a semi-transparent overlay, with positive values in red, negative values transparent.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;以半透明叠加显示速度图，正值为红色，负值透明。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="../Windows/SpeedImageDialog.ui" line="1708" />
-        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1095" />
+        <location filename="../../../../xc64dbg/ui_SpeedImageDialog.h" line="1096" />
         <source>Close</source>
         <translation>关闭</translation>
     </message>
@@ -9439,28 +9745,28 @@ competition</source>
 <context>
     <name>SplashPanel</name>
     <message>
-        <location filename="../Windows/SplashPanel.ui" line="14" />
-        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="102" />
+        <location filename="../Windows/SplashPanel.ui" line="26" />
+        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="104" />
         <source>Form</source>
         <translation>表单</translation>
     </message>
     <message>
-        <location filename="../Windows/SplashPanel.ui" line="52" />
-        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="103" />
+        <location filename="../Windows/SplashPanel.ui" line="64" />
+        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="105" />
         <source>ITK-SNAP</source>
         <translation>ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/SplashPanel.ui" line="79" />
-        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="104" />
+        <location filename="../Windows/SplashPanel.ui" line="91" />
+        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="106" />
         <source>Version X.X.X
 Jan 12, 2013</source>
         <translation>版本 X.X.X
 2013年1月12日</translation>
     </message>
     <message>
-        <location filename="../Windows/SplashPanel.ui" line="110" />
-        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="106" />
+        <location filename="../Windows/SplashPanel.ui" line="122" />
+        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="108" />
         <source>Copyright (C) 1998-2022
 Paul A. Yushkevich 
 Guido Gerig 
@@ -9473,8 +9779,8 @@ Alison M. Pouch
 Jilei Hao</translation>
     </message>
     <message>
-        <location filename="../Windows/SplashPanel.ui" line="141" />
-        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="111" />
+        <location filename="../Windows/SplashPanel.ui" line="153" />
+        <location filename="../../../../xc64dbg/ui_SplashPanel.h" line="113" />
         <source>Supported by grants R01 EB014346, R01 EB017255, R03 EB008200, and PO 467-MZ-202446-1 from the 
 US National Insitutes of Health
  and grant CZI EOSS2 2020-219012 from the Chan-Zuckerberg Initiative</source>
@@ -9515,54 +9821,54 @@ US National Insitutes of Health
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="58" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="64" />
         <source>Label Name</source>
         <translation>标签名称</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="58" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="64" />
         <source>Voxel Count</source>
         <translation>体素数</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="58" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="64" />
         <source>Volume (mm3)</source>
         <translation>体积 (立方毫米)</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="64" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="70" />
         <source>Intensity Mean %1 SD
 (%2)</source>
         <translation>灰度均值 %1 标准差
 (%2)</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="69" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="75" />
         <source>Mean intensity and standard deviation for layer %1</source>
         <translation>第 %1 层的平均灰度和标准差</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="137" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="143" />
         <source>Export Volumes and Statistics - ITK-SNAP</source>
         <translation>导出体积和统计 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="138" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="144" />
         <source>Volumes and Statistics File</source>
         <translation>体积与统计文件</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="139" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="145" />
         <source>Text Files (%1);; Comma Separated Value Files (%2)</source>
         <translation>文本文件 (%1);; 逗号分隔值文件 (%2)</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="163" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="169" />
         <source>Volume and Statistics IO Error</source>
         <translation>体积与统计输入输出错误</translation>
     </message>
     <message>
-        <location filename="../Windows/StatisticsDialog.cxx" line="164" />
+        <location filename="../Windows/StatisticsDialog.cxx" line="170" />
         <source>Failed to export volumes and statistics</source>
         <translation>导出体积和统计失败</translation>
     </message>
@@ -9911,84 +10217,84 @@ ITK-SNAP 窗口共享状态</translation>
         <translation>展开3D视图以占满整个窗口</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="348" />
+        <location filename="../Components/ViewPanel3D.cxx" line="355" />
         <source>No voxels were updated</source>
         <translation>无体素被更新</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="349" />
+        <location filename="../Components/ViewPanel3D.cxx" line="356" />
         <source>The 3D operation did not update any voxels in the segmentation. Check that the foreground and background labels are selected correctly.</source>
         <translation>3D操作未更新分割中的任何体素。请检查前景和背景标签是否正确选择。</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="424" />
+        <location filename="../Components/ViewPanel3D.cxx" line="434" />
         <source>JSON error: %1: expected an array of %2 numbers</source>
         <translation>JSON 错误：%1：预期为包含 %2 个数字的数组</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="444" />
+        <location filename="../Components/ViewPanel3D.cxx" line="454" />
         <source>JSON error: %1: expected a number</source>
         <translation>JSON 错误：%1：预期为数字</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="455" />
+        <location filename="../Components/ViewPanel3D.cxx" line="465" />
         <source>JSON error: %1: expected a boolean</source>
         <translation>JSON 错误：%1：预期为布尔值</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="478" />
+        <location filename="../Components/ViewPanel3D.cxx" line="488" />
         <source>JSON error %1</source>
         <translation>JSON 错误 %1</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="483" />
+        <location filename="../Components/ViewPanel3D.cxx" line="493" />
         <source>JSON error: 'file_type' field is missing or malformed</source>
         <translation>JSON 错误：缺失或格式错误的“file_type”字段</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="486" />
+        <location filename="../Components/ViewPanel3D.cxx" line="496" />
         <source>JSON error: 'version' field is missing</source>
         <translation>JSON 错误：缺失“version”字段</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="489" />
+        <location filename="../Components/ViewPanel3D.cxx" line="499" />
         <source>JSON error: 'camera' field is missing or not an object</source>
         <translation>JSON 错误：缺失或非对象的“camera”字段</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="510" />
+        <location filename="../Components/ViewPanel3D.cxx" line="520" />
         <source>Import camera viewpoint error</source>
         <translation>导入相机视角错误</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="557" />
+        <location filename="../Components/ViewPanel3D.cxx" line="567" />
         <source>Export camera viewpoint error</source>
         <translation>导出相机视角错误</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="558" />
+        <location filename="../Components/ViewPanel3D.cxx" line="568" />
         <source>I/O error: %1</source>
         <translation>输入/输出错误：%1</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="570" />
+        <location filename="../Components/ViewPanel3D.cxx" line="580" />
         <source>Load Camera Viewpoint - ITK-SNAP</source>
         <translation>加载相机视角 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="571" />
-        <location filename="../Components/ViewPanel3D.cxx" line="585" />
+        <location filename="../Components/ViewPanel3D.cxx" line="581" />
+        <location filename="../Components/ViewPanel3D.cxx" line="595" />
         <source>Camera Viewpoint JSON File</source>
         <translation>相机视角 JSON 文件</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="572" />
-        <location filename="../Components/ViewPanel3D.cxx" line="586" />
+        <location filename="../Components/ViewPanel3D.cxx" line="582" />
+        <location filename="../Components/ViewPanel3D.cxx" line="596" />
         <source>Camera Files (%1)</source>
         <translation>相机文件 (%1)</translation>
     </message>
     <message>
-        <location filename="../Components/ViewPanel3D.cxx" line="584" />
+        <location filename="../Components/ViewPanel3D.cxx" line="594" />
         <source>Save Camera Viewpoint - ITK-SNAP</source>
         <translation>保存相机视角 - ITK-SNAP</translation>
     </message>
@@ -10118,12 +10424,14 @@ ITK-SNAP 窗口共享状态</translation>
 <context>
     <name>imageiowiz::ImageIOProgressDialog</name>
     <message>
-        <location filename="../Windows/ImageIOWizard.cxx" line="813" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="812" />
+        <location filename="../Windows/ImageIOWizard.h" line="187" />
         <source>Saving Image...</source>
         <translation>正在保存图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/ImageIOWizard.cxx" line="815" />
+        <location filename="../Windows/ImageIOWizard.cxx" line="814" />
+        <location filename="../Windows/ImageIOWizard.h" line="192" />
         <source>Reading Image...</source>
         <translation>正在读取图像...</translation>
     </message>
@@ -10331,98 +10639,120 @@ ITK-SNAP 窗口共享状态</translation>
 <context>
     <name>main</name>
     <message>
-        <location filename="../main.cxx" line="226" />
+        <location filename="../main.cxx" line="231" />
         <source>ITK-SNAP crashed due to an unexpected error. Your unsaved segmentations have been saved to folder '%1'</source>
         <translation>ITK-SNAP 由于意外错误崩溃。您未保存的分割已保存到文件夹 '%1'</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="230" />
+        <location filename="../main.cxx" line="235" />
         <source>Crash Recovery</source>
         <translation>崩溃恢复</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="233" />
+        <location filename="../main.cxx" line="238" />
         <source>Open Folder</source>
         <translation>打开文件夹</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="236" />
+        <location filename="../main.cxx" line="241" />
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="248" />
+        <location filename="../main.cxx" line="253" />
         <source>Error</source>
         <translation>错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="248" />
+        <location filename="../main.cxx" line="253" />
         <source>Failed to open the folder: %1</source>
         <translation>无法打开文件夹：%1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1124" />
+        <location filename="../main.cxx" line="961" />
         <source>Workspace Error</source>
         <translation>工作区错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1125" />
+        <location filename="../main.cxx" line="962" />
         <source>Failed to load workspace %1</source>
         <translation>无法加载工作区 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1159" />
-        <location filename="../main.cxx" line="1220" />
+        <location filename="../main.cxx" line="902" />
+        <location filename="../main.cxx" line="924" />
+        <location filename="../main.cxx" line="992" />
+        <location filename="../main.cxx" line="1055" />
         <source>Image IO Error</source>
         <translation>图像输入输出错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1160" />
+        <location filename="../main.cxx" line="903" />
+        <source>Failed to open %1</source>
+        <translation>无法打开 %1</translation>
+    </message>
+    <message>
+        <location filename="../main.cxx" line="925" />
+        <source>Failed to load image from URL %1</source>
+        <translation>无法从 URL %1 加载图像</translation>
+    </message>
+    <message>
+        <location filename="../main.cxx" line="939" />
+        <source>Opening workspace...</source>
+        <translation>正在打开工作区...</translation>
+    </message>
+    <message>
+        <location filename="../main.cxx" line="940" />
+        <source>Loading images...</source>
+        <translation>正在加载图像...</translation>
+    </message>
+    <message>
+        <location filename="../main.cxx" line="993" />
         <source>Failed to load segmentation %1</source>
         <translation>无法加载分割 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1181" />
+        <location filename="../main.cxx" line="1015" />
         <source>Overlay IO Error</source>
         <translation>叠加输入输出错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1182" />
+        <location filename="../main.cxx" line="1016" />
         <source>Failed to load overlay %1</source>
         <translation>无法加载叠加 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1211" />
+        <location filename="../main.cxx" line="1042" />
         <source>Mesh IO Error</source>
         <translation>网格输入输出错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1212" />
+        <location filename="../main.cxx" line="1043" />
         <source>Failed to load mesh %1</source>
         <translation>无法加载网格 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1221" />
+        <location filename="../main.cxx" line="1056" />
         <source>Failed to load image %1</source>
         <translation>无法加载图像 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1237" />
+        <location filename="../main.cxx" line="1070" />
         <source>Label Description IO Error</source>
         <translation>标签描述输入输出错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1238" />
+        <location filename="../main.cxx" line="1071" />
         <source>Failed to load labels from %1</source>
         <translation>无法从 %1 加载标签</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1381" />
+        <location filename="../main.cxx" line="1573" />
         <source>ITK-SNAP failed to start</source>
         <translation>ITK-SNAP 启动失败</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1381" />
+        <location filename="../main.cxx" line="1573" />
         <source>Exception occurred during ITK-SNAP startup</source>
         <translation>ITK-SNAP 启动时发生异常</translation>
     </message>
