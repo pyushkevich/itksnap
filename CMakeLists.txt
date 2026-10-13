@@ -329,9 +329,6 @@ SET(LOGIC_HEADERS
   Common/AbstractProgressDelegate.h
   Common/AbstractPropertyContainerModel.h
   Common/AbstractSSHAuthDelegate.h
-  Common/StdoutProgressDelegate.h
-  Common/StdoutSSHAuthDelegate.h
-  Common/AbstractSSHAuthDelegate.h
   Common/AffineTransformHelper.h
   Common/ColorLabelPropertyModel.h
   Common/CommandLineArgumentParser.h
@@ -366,6 +363,8 @@ SET(LOGIC_HEADERS
   Common/SNAPCommon.h
   Common/SNAPExportITKToVTK.h
   Common/SNAPEvents.h
+  Common/StdoutProgressDelegate.h
+  Common/StdoutSSHAuthDelegate.h
   Common/SystemInterface.h
   Common/TagList.h
   Logic/Common/BrushWatershedPipeline.hxx
@@ -1343,7 +1342,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_QT_PLATFORM)
 SET(GUI_TESTS
   Workspace
   NaNs
-  4DContinuousRenderingD
+  4DContinuousRendering
   DiffSpace
   EdgeAttraction
   EchoCartesianDicomLoading
