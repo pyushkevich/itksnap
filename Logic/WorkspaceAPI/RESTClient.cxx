@@ -24,18 +24,14 @@ template <typename ServerTraits>
 int
 progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
 {
-  long bytes_total = dltotal + ultotal;
-  long bytes_done = dlnow + ulnow;
-  // std::cout << "progress callback " << bytes_done << "," << bytes_total << std::endl;
-
   // Sometimes this is called with zeros, which is fine, we should still let the GUI know
   // so it refreshes at least.
-  double progress = (bytes_total == 0) ? std::nan("nan") : bytes_done * 1.0 / bytes_total;
+  auto *cbi = static_cast<typename RESTClient<ServerTraits>::ProgressCallbackInfo *>(clientp);
+  cbi->total = dltotal + ultotal;
+  cbi->done = dlnow + ulnow;
 
-  typedef std::pair<void *, typename RESTClient<ServerTraits>::ProgressCallbackFunction> CallbackInfo;
-  CallbackInfo *cbi = static_cast<CallbackInfo *>(clientp);
-  cbi->second(cbi->first, bytes_done, bytes_total);
-  return 0;
+  // A non-zero return value makes CURL abort with CURLE_ABORTED_BY_CALLBACK
+  return cbi->fn(cbi->data, cbi->done, cbi->total) ? 0 : 1;
 }
 
 // Expand a printf-style pattern into a string of whatever length is needed.
@@ -130,8 +126,6 @@ RESTClient<ServerTraits>::RESTClient(SharedData *sd)
   m_OutputFile = NULL;
   m_ReceiveCookieMode = false;
 
-  m_CallbackInfo.first = NULL;
-  m_CallbackInfo.second = NULL;
 }
 
 template <typename ServerTraits>
@@ -183,46 +177,60 @@ RESTClient<ServerTraits>::CurlMultiPerform()
 
   int still_running;
 
+  // Start each transfer with no progress
+  m_CallbackInfo.done = m_CallbackInfo.total = 0;
+
   // Keep track of the last time we called the callback
   auto callback_time = std::chrono::steady_clock::now();
   do
   {
     CURLMcode mc = curl_multi_perform(m_CurlMulti, &still_running);
-    if (mc)
-      throw IRISException("CURL library error: %s\n%s", curl_multi_strerror(mc), m_ErrorBuffer);
 
     if (!mc && still_running)
       /* wait for activity, timeout or "nothing" */
       mc = curl_multi_poll(m_CurlMulti, NULL, 0, 50, NULL);
 
     if (mc)
+    {
+      curl_multi_remove_handle(m_CurlMulti, m_Curl);
       throw IRISException("CURL library error: %s\n%s", curl_multi_strerror(mc), m_ErrorBuffer);
+    }
 
-    // Make a callback at this time interval for smooth behavior
+    // Make a callback at this time interval for smooth behavior, even when CURL
+    // reports nothing (e.g., while the server computes a response). Repeat the
+    // last progress CURL reported, so that the progress shown does not jump.
     auto now = std::chrono::steady_clock::now();
-    if (m_CallbackInfo.first &&
+    if (m_CallbackInfo.fn &&
         std::chrono::duration_cast<std::chrono::milliseconds>(now - callback_time).count() >= 50)
     {
       callback_time = now;
-      m_CallbackInfo.second(m_CallbackInfo.first, 0, 0);
+      if (!m_CallbackInfo.fn(m_CallbackInfo.data, m_CallbackInfo.done, m_CallbackInfo.total))
+      {
+        curl_multi_remove_handle(m_CurlMulti, m_Curl);
+        throw IRISUserCancelException("Transfer cancelled by user");
+      }
     }
 
   } while (still_running); /* if there are still transfers, loop */
 
   // Read the messages from the CURL handle that completed
+  CURLcode result = CURLE_OK;
   struct CURLMsg *m;
   do
   {
     int msgq = 0;
     m = curl_multi_info_read(m_CurlMulti, &msgq);
     if (m && (m->msg == CURLMSG_DONE))
-    {
-      CURL *e = m->easy_handle;
-      if(m->data.result != CURLE_OK)
-        throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(m->data.result), m_ErrorBuffer);
-      curl_multi_remove_handle(m_CurlMulti, e);
-    }
+      result = m->data.result;
   } while (m);
+
+  // Detach the handle before throwing, so that the client can be used again
+  curl_multi_remove_handle(m_CurlMulti, m_Curl);
+
+  if (result == CURLE_ABORTED_BY_CALLBACK)
+    throw IRISUserCancelException("Transfer cancelled by user");
+  else if (result != CURLE_OK)
+    throw IRISException("CURL library error: %s\n%s", curl_easy_strerror(result), m_ErrorBuffer);
 }
 
 template <typename ServerTraits>
@@ -349,7 +357,7 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   }
 
   // Set the callback function for progress
-  if (m_CallbackInfo.first)
+  if (m_CallbackInfo.fn)
   {
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
@@ -392,14 +400,25 @@ template <typename ServerTraits>
 void
 RESTClient<ServerTraits>::SetProgressCallback(void *cb_data, ProgressCallbackFunction fn)
 {
-  m_CallbackInfo = make_pair(cb_data, fn);
+  m_CallbackInfo = ProgressCallbackInfo();
+  m_CallbackInfo.data = cb_data;
+  m_CallbackInfo.fn = fn;
 }
 
 template <class ServerTraits>
 void
 RESTClient<ServerTraits>::RemoveProgressCallback()
 {
-  m_CallbackInfo = make_pair(nullptr, nullptr);
+  m_CallbackInfo = ProgressCallbackInfo();
+}
+
+template <class ServerTraits>
+void
+RESTClient<ServerTraits>::SetStallTimeout(long seconds)
+{
+  // Abort when fewer than 1 byte per second are transferred for this long
+  curl_easy_setopt(m_Curl, CURLOPT_LOW_SPEED_LIMIT, seconds > 0 ? 1L : 0L);
+  curl_easy_setopt(m_Curl, CURLOPT_LOW_SPEED_TIME, seconds > 0 ? seconds : 0L);
 }
 
 template <class ServerTraits>
@@ -449,7 +468,7 @@ RESTClient<ServerTraits>::PostMultipart(const char *rel_url, RESTMultipartData *
   curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
 
   // Set the callback functions
-  if (m_CallbackInfo.first)
+  if (m_CallbackInfo.fn)
   {
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);
@@ -558,7 +577,7 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   curl_easy_setopt(m_Curl, CURLOPT_WRITEDATA, &m_Output);
 
   // Set the callback functions
-  if (m_CallbackInfo.first)
+  if (m_CallbackInfo.fn)
   {
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFOFUNCTION, RESTClient_internal::progress_callback<ServerTraits>);
     curl_easy_setopt(m_Curl, CURLOPT_XFERINFODATA, &m_CallbackInfo);

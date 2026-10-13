@@ -72,13 +72,17 @@ public:
       guard->m_Cancelled |= !guard->m_Delegate->UpdateProgress(guard->m_TaskId, progress);
   }
 
-  static void ProgressCallback(void *source, std::size_t done, std::size_t total)
+  /** Callback for REST transfers. Returns false once the user has cancelled. */
+  static bool ProgressCallback(void *source, std::size_t done, std::size_t total)
   {
     auto *guard = static_cast<ProgressTaskGuard *>(source);
-    if (guard && guard->m_Delegate)
+    if (!guard)
+      return true;
+    if (guard->m_Delegate)
       guard->m_Cancelled |= !guard->m_Delegate->UpdateProgress(
         guard->m_TaskId,
         total > 0 ? static_cast<double>(done) / total : std::numeric_limits<double>::quiet_NaN());
+    return !guard->m_Cancelled;
   }
 
   bool UpdateProgress(double percent)

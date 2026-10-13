@@ -1492,12 +1492,19 @@ add_test(NAME RemoteImageLoadTest_SaveWorkspace
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
     ${TEMP})
 
+# Test: cancelling an HTTP download from the progress callback stops it
+add_test(NAME RemoteImageLoadTest_Cancel
+  COMMAND remote_image_load_test
+    --test-cancel
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
+
 # Remote tests require network access; tag them so CI can skip them easily.
 set_tests_properties(
   RemoteImageLoadTest_SingleImage
   RemoteImageLoadTest_WorkspaceWithMesh
   RemoteImageLoadTest_Cache
   RemoteImageLoadTest_SaveWorkspace
+  RemoteImageLoadTest_Cancel
   PROPERTIES
     LABELS "Remote"
     TIMEOUT 120)

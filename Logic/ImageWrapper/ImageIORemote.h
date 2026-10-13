@@ -68,6 +68,12 @@ using DownloadProgressCallback =
     std::function<bool(std::size_t bytes_done,
                        std::size_t bytes_total)>;
 
+/**
+ * HTTP downloads that receive no data for this many seconds are aborted, so
+ * that a stalled connection does not hang the load forever.
+ */
+constexpr long DOWNLOAD_STALL_TIMEOUT_SEC = 60;
+
 
 /**
  * Abstract base class for remote image source handlers. Each subclass

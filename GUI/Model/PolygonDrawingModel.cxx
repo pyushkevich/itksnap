@@ -746,6 +746,10 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
         driver->RecordCurrentLabelUse();
         driver->InvokeEvent(SegmentationChangeEvent());
       }
+      catch(IRISUserCancelException &)
+      {
+        // The user cancelled the request; the polygon is not applied
+      }
       catch(IRISException &exc)
       {
         warnings.push_back((IRISWarning(exc.what())));

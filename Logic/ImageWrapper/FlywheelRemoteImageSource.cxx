@@ -301,13 +301,14 @@ std::string DownloadDirect(const std::string         &server,
       dl_client.SetRequestHeader("If-Modified-Since", cached.last_modified.c_str());
     }
 
+  dl_client.SetStallTimeout(DOWNLOAD_STALL_TIMEOUT_SEC);
   if (progress_cb && *progress_cb)
     dl_client.SetProgressCallback(
       progress_cb,
-      [](void *data, size_t done, size_t total)
+      [](void *data, size_t done, size_t total) -> bool
       {
       auto *cb = static_cast<DownloadProgressCallback *>(data);
-      (*cb)(done, total);
+      return (*cb)(done, total);
       });
 
   dl_client.Get("%s", ticketed_url.c_str());

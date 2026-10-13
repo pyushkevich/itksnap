@@ -462,10 +462,11 @@ void AllPurposeProgressAccumulator::GenericProgressCallback(void *source, double
   GenericProgressSource::callback(source, progress);
 }
 
-void AllPurposeProgressAccumulator::GenericProgressCallback(void *source, size_t done, size_t total)
+bool AllPurposeProgressAccumulator::GenericProgressCallback(void *source, size_t done, size_t total)
 {
   GenericProgressSource::callback(
     source, total > 0 ? static_cast<double>(done) / total : std::numeric_limits<double>::quiet_NaN());
+  return true;
 }
 
 void

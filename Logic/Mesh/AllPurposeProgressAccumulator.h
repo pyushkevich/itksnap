@@ -148,8 +148,9 @@ public:
   /** Generic callback function for generic sources */
   static void GenericProgressCallback(void *source, double progress);
 
-  /** Generic callback function for generic sources */
-  static void GenericProgressCallback(void *source, size_t done, size_t total);
+  /** Generic callback function for generic sources (REST transfers). Always
+   *  returns true, since these sources cannot be cancelled. */
+  static bool GenericProgressCallback(void *source, size_t done, size_t total);
 
   /**
    * Register a generic source. This source will communicate its progress
