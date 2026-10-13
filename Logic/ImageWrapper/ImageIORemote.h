@@ -275,7 +275,7 @@ private:
  * applies all fields from @p ctx (connection pool, auth delegate, file cache,
  * and a ProgressTaskGuard wrapping ctx.progressDelegate), and calls Download().
  *
- * @p title  Label shown in the progress bar; defaults to the URL basename.
+ * @p title  Label shown in the progress bar; defaults to "Downloading <basename>".
  */
 RemoteDownload DownloadRemoteFile(const std::string &url,
                                   const RemoteIOContext &ctx,

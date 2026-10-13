@@ -388,7 +388,7 @@ DownloadRemoteFile(const std::string &url,
 
   std::string label = title
     ? std::string(title)
-    : itksys::SystemTools::GetFilenameName(url);
+    : "Downloading " + UrlDecode(itksys::SystemTools::GetFilenameName(url));
 
   ProgressTaskGuard guard(ctx.progressDelegate, label.c_str(), true);
   src->SetProgressCallback([&guard](std::size_t done, std::size_t total) {

@@ -118,10 +118,23 @@ std::string LoadAPIKeyFromFWConfig(const std::string &server)
 
 // Execute a GET against the Flywheel REST API with the given API key.
 // Returns the response body; sets http_code.
-std::string APIGet(const std::string &url, const std::string &api_key, long &http_code)
+// @p progress_cb  The download's progress callback, if any. It is called with
+//                 an unknown size while the request runs, so that the GUI
+//                 stays responsive and the user can cancel; the size of the
+//                 API response itself is not the file's progress.
+std::string APIGet(const std::string &url, const std::string &api_key, long &http_code,
+                   DownloadProgressCallback *progress_cb)
 {
   RESTClient<> client;
   client.SetRequestHeader("Authorization", MakeBearerHeader(api_key).c_str());
+  if (progress_cb && *progress_cb)
+    client.SetProgressCallback(
+      progress_cb,
+      [](void *data, size_t, size_t) -> bool
+      {
+      auto *cb = static_cast<DownloadProgressCallback *>(data);
+      return (*cb)(0, 0);
+      });
   client.Get("%s", url.c_str());
   http_code = client.GetHTTPCode();
   const char *out = client.GetOutput();
@@ -168,7 +181,8 @@ std::string ResolveLevel(const std::string &list_url,
                          const std::string &label,
                          const std::string &item_type,
                          const std::string &parent_name,
-                         const std::string &server)
+                         const std::string &server,
+                         DownloadProgressCallback *progress_cb)
 {
   std::string cache_key = list_url + "|" + label;
   {
@@ -179,7 +193,7 @@ std::string ResolveLevel(const std::string &list_url,
   }
 
   long code = 0;
-  std::string body = APIGet(list_url, api_key, code);
+  std::string body = APIGet(list_url, api_key, code, progress_cb);
 
   if (code == 401)
     {
@@ -228,7 +242,7 @@ std::string DownloadDirect(const std::string         &server,
   // Request a short-lived download ticket so the Authorization header is never
   // forwarded when Flywheel redirects to its pre-signed S3 URL.
   long ticket_code = 0;
-  std::string ticket_body = APIGet(download_url + "?ticket=", api_key, ticket_code);
+  std::string ticket_body = APIGet(download_url + "?ticket=", api_key, ticket_code, progress_cb);
 
   if (ticket_code == 401)
     {
@@ -340,19 +354,19 @@ std::string DownloadByFind(const std::string               &server,
 
   std::string project_id =
     ResolveLevel(base + "/api/groups/" + group + "/projects",
-                 api_key, project, "project", group, server);
+                 api_key, project, "project", group, server, progress_cb);
 
   std::string subject_id =
     ResolveLevel(base + "/api/projects/" + project_id + "/subjects",
-                 api_key, subject, "subject", project, server);
+                 api_key, subject, "subject", project, server, progress_cb);
 
   std::string session_id =
     ResolveLevel(base + "/api/subjects/" + subject_id + "/sessions",
-                 api_key, session, "session", subject, server);
+                 api_key, session, "session", subject, server, progress_cb);
 
   std::string container_id =
     ResolveLevel(base + "/api/sessions/" + session_id + "/" + ctype,
-                 api_key, label, ctype_singular, session, server);
+                 api_key, label, ctype_singular, session, server, progress_cb);
 
   return DownloadDirect(server, ctype, container_id, filename,
                         api_key, cache_url, file_cache, progress_cb, temp_dir);
