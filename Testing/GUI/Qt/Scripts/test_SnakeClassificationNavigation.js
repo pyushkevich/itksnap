@@ -21,15 +21,16 @@ engine.postKeyEvent(canvas, "Space");
 setForegroundLabel("Label 2");
 setCursor(50, 70, 30);
 engine.postKeyEvent(canvas, "Space");
-engine.clickChild(snakepanel, "btnClassifyTrain");
+engine.clickChild(snakepanel, "btnClassifyTrain", true);
 engine.sleep(1000);
 
-//=== Go to the evolution stage with a bubble
-engine.clickChild(snakepanel, "btnNextPreproc");
+//=== Go to the evolution stage with a bubble. The long steps block, so that
+//=== later clicks are not processed by the progress dialog while they run
+engine.clickChild(snakepanel, "btnNextPreproc", true);
 engine.sleep(1000);
 engine.clickChild(snakepanel, "btnAddBubble");
 engine.sleep(500);
-engine.clickChild(snakepanel, "btnBubbleNext");
+engine.clickChild(snakepanel, "btnBubbleNext", true);
 engine.sleep(1000);
 
 //=== Go back twice, to the presegmentation stage (crashed: the level set
