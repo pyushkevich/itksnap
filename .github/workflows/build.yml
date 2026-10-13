@@ -333,7 +333,10 @@ jobs:
         continue-on-error: true
         run: |
           ${{ matrix.ctest_cmd }} -VV -D ExperimentalStart
-          ${{ matrix.ctest_cmd }} -V -D ExperimentalUpdate
+          # The update step only records the git revision for CDash. In pull requests its
+          # "git fetch" fails (on the greedy submodule of the merge commit), which used to stop
+          # this step before anything was configured or built.
+          ${{ matrix.ctest_cmd }} -V -D ExperimentalUpdate || echo "ExperimentalUpdate failed; continuing"
           ${{ matrix.ctest_cmd }} -V -D ExperimentalConfigure
           ${{ matrix.ctest_cmd }} -V -D ExperimentalBuild
 
@@ -482,7 +485,8 @@ jobs:
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
           rm -rf $HOME/.ssh/sfkey.pub $HOME/.ssh/sfkey
-          ${{ runner.os == 'MacOS' && 'security delete-keychain build.keychain' || 'echo na' }}          
+          # The keychain only exists when packaging ran (not in pull requests)
+          ${{ runner.os == 'MacOS' && 'security delete-keychain build.keychain || true' || 'echo na' }}
         
       
 
