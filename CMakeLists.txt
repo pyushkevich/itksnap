@@ -1450,6 +1450,15 @@ add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
 
 add_test(NAME TDigestTest COMMAND testTDigest ${TESTDATA_DIR}/tdigest_test.nii.gz 0.98)
 
+# RLE image (segmentation storage): slicing along every axis permutation and
+# direction, and conversion to and from itk::Image, on a full-size and on a
+# cropped segmentation
+add_test(NAME RLEImageTest COMMAND testRLE ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz)
+add_test(NAME RLEImageTestCropped COMMAND testRLE ${TESTDATA_DIR}/MRIcrop-seg-hippoR-04mm.nii.gz)
+
+# ITK's iterator tests, run on RLE images
+add_test(NAME RLEIteratorTests COMMAND iteratorTests)
+
 # This test basically checks whether we can build using the logic library onlu
 ADD_EXECUTABLE(logic_api_test
     Testing/Logic/IRISApplicationTest.cxx)
@@ -1608,6 +1617,15 @@ TARGET_INCLUDE_DIRECTORIES(TestSegmentationStatistics PUBLIC ${SNAP_INCLUDE_DIRS
 
 add_test(NAME TestSegmentationStatistics
   COMMAND TestSegmentationStatistics ${TESTDATA_DIR} ${TEMP})
+
+# Undo and redo of segmentation edits, per segmentation and per time point
+ADD_EXECUTABLE(TestUndoRedo
+    Testing/Logic/TestUndoRedo.cxx)
+TARGET_LINK_LIBRARIES(TestUndoRedo ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestUndoRedo PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestUndoRedo
+  COMMAND TestUndoRedo ${TESTDATA_DIR} ${TEMP})
 
 # Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
 # are passed on to ITK-SNAP, e.g. images to load from the command line.
