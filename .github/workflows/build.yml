@@ -56,7 +56,7 @@ jobs:
       fail-fast: false
       matrix:
         # Intel and ARM builds for each platform
-        os: [ubuntu-22.04,ubuntu-22.04-arm,macos-15-intel,macos-15,windows-2022,windows-11-arm]
+        os: [ubuntu-22.04,ubuntu-24.04-arm,macos-15-intel,macos-15,windows-2022,windows-11-arm]
         itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.5.2' ]
         qt_ver: [ '6.9.3' ]
@@ -65,7 +65,9 @@ jobs:
             qt_host: linux
             qt_arch: linux_gcc_64
             ctest_cmd: xvfb-run -a ctest
-          - os: ubuntu-22.04-arm
+          # Qt's arm64 Linux binaries require glibc 2.38, so this cannot be 22.04. The x64
+          # build stays on 22.04 so that its package runs on Ubuntu 22.04 and Debian 12.
+          - os: ubuntu-24.04-arm
             qt_host: linux_arm64
             qt_arch: linux_gcc_arm64
             ctest_cmd: xvfb-run -a ctest
@@ -112,16 +114,18 @@ jobs:
           apt: libcurl4-openssl-dev libssh-dev xvfb
           choco: nsis
 
-      # Install curl and libssh on Windows
+      # Install curl and libssh on Windows. The action caches the built packages, keyed by the
+      # package versions. (v6 cached with pat-s/always-upload-cache@v3, which uses GitHub's
+      # retired cache service and failed with "Cache service responded with 400", so every run
+      # rebuilt curl, libssh, zlib and OpenSSL: 5 minutes on x64, 11 on arm64.)
       - name: Install libcurl on Windows
-        uses: johnwason/vcpkg-action@v6
+        uses: johnwason/vcpkg-action@v8
         id: vcpkg
         if: ${{ runner.os == 'Windows' }}
         with:
-          pkgs: curl libssh zlib 
+          pkgs: curl libssh zlib
           triplet: ${{ matrix.vcpkg_triplet }}
           token: ${{ github.token }}
-          github-binarycache: false
     
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
