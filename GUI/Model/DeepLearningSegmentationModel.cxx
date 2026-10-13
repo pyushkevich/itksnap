@@ -582,23 +582,37 @@ version_meets_min(const std::string &version, const std::string &min_required)
 }
 
 
+DeepLearningSegmentationModel::StatusCheckRequest
+DeepLearningSegmentationModel::GetStatusCheckRequest()
+{
+  StatusCheckRequest request;
+  auto *sp = this->GetServerProperties();
+  if (sp)
+  {
+    request.has_server = true;
+    request.hash = sp->GetHash();
+    request.tunnel_missing = sp->GetUseSSHTunnel() && GetProxyURL().empty();
+    request.url = GetActualServerURL();
+  }
+  return request;
+}
+
 DeepLearningSegmentationModel::StatusCheck
-DeepLearningSegmentationModel::AsyncCheckStatus()
+DeepLearningSegmentationModel::AsyncCheckStatus(const StatusCheckRequest &request)
 {
   std::lock_guard<std::mutex> guard(m_Mutex); // Prevent two threads doing IO at once
 
   StatusCheck result;
   dls_model::NetworkStatus &response = result.status;
-  auto *sp = this->GetServerProperties();
 
   // Check if URL has been set
-  if (!sp)
+  if (!request.has_server)
   {
     return result;
   }
 
   // Check if the proxy has been set up for an SSH connection
-  if (sp->GetUseSSHTunnel() && GetProxyURL().size() == 0)
+  if (request.tunnel_missing)
   {
     response.status = dls_model::NETWORK_NOT_CONNECTED;
     response.message = "SSH tunnel has not been configured";
@@ -608,7 +622,7 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
     try
     {
       RESTClientType cli(m_RESTSharedData);
-      std::string url = GetActualServerURL();
+      const std::string &url = request.url;
       cli.SetServerURL(url.c_str());
       bool status = cli.Get("status");
       if (!status)
@@ -671,7 +685,7 @@ DeepLearningSegmentationModel::AsyncCheckStatus()
     }
   }
 
-  result.hash = sp->GetHash();
+  result.hash = request.hash;
   return result;
 }
 

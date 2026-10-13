@@ -301,8 +301,27 @@ public:
    */
   void StartLocalServerIfNeeded();
 
-  /** Static function that runs asynchronously to perform server authentication */
-  StatusCheck AsyncCheckStatus();
+  /**
+   * Everything a status check needs to know about the current server. It is
+   * captured on the GUI thread by GetStatusCheckRequest(), so that the status
+   * check itself never reads model state that the GUI thread may be changing
+   */
+  struct StatusCheckRequest
+  {
+    bool        has_server = false;
+    std::string hash;
+    std::string url;
+    bool        tunnel_missing = false;
+  };
+
+  /** Capture the request for a status check. Call on the GUI thread. */
+  StatusCheckRequest GetStatusCheckRequest();
+
+  /**
+   * Perform a status check, including fetching the list of models. Runs on a
+   * worker thread; it only uses the request and the REST connection objects.
+   */
+  StatusCheck AsyncCheckStatus(const StatusCheckRequest &request);
 
   /** Apply the results of async server authentication to the model */
   void ApplyStatusCheckResponse(const StatusCheck &result);
