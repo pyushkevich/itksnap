@@ -18,6 +18,8 @@
  */
 class QtSSHAuthDelegate : public QObject, public AbstractSSHAuthDelegate
 {
+  Q_OBJECT
+
 public:
   explicit QtSSHAuthDelegate(QWidget *parent = nullptr);
 

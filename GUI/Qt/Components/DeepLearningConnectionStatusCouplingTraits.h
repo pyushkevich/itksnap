@@ -7,12 +7,24 @@
 #include <QCoreApplication>
 
 /**
- * Traits for mapping status codes to a label
+ * The color and text that describe a DLS connection status. A class so that
+ * lupdate finds the tr() calls (it does not see calls to a local lambda).
  */
+class DLSConnectionStatusText
+{
+  Q_DECLARE_TR_FUNCTIONS(DLSConnectionStatusText)
+
+public:
+  static std::pair<QString, QString> Get(dls_model::ConnectionStatus value);
+};
+
 inline std::pair<QString, QString> GetDLSConnectionStatusColorAndText(dls_model::ConnectionStatus value)
 {
-  auto tr = [](auto a) { return QCoreApplication::translate("DeepLearningSegmentationModel", a); };
+  return DLSConnectionStatusText::Get(value);
+}
 
+inline std::pair<QString, QString> DLSConnectionStatusText::Get(dls_model::ConnectionStatus value)
+{
   switch (value.status)
   {
     case dls_model::CONN_NO_SERVER:
@@ -45,10 +57,10 @@ inline std::pair<QString, QString> GetDLSConnectionStatusColorAndText(dls_model:
       };
 
     case dls_model::CONN_CONNECTED:
-      return { "darkgreen", QString("Connected, server version: %1").arg(QString::fromStdString(value.message)) };
+      return { "darkgreen", tr("Connected, server version: %1").arg(QString::fromStdString(value.message)) };
 
     default:
-      return { "gray", "Unknown status" };
+      return { "gray", tr("Unknown status") };
   }
 };
 
@@ -72,7 +84,7 @@ public:
     QString color, text;
     std::tie(color, text) = GetDLSConnectionStatusColorAndText(value);
     w->setStyleSheet(QString("QLabel { color: %1; font-weight: bold; opacity: 0.5; }").arg(color));
-    w->setToolTip(QString("Deep learning server status: %1").arg(text));
+    w->setToolTip(DLSConnectionStatusText::tr("Deep learning server status: %1").arg(text));
   }
 };
 

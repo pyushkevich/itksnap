@@ -1308,11 +1308,14 @@ set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH
 
 set(QT_I18N_TRANSLATED_LANGUAGES de es zh_CN)
 string(JOIN " " QT_I18N_TRANSLATED_LANGUAGES_STRING ${QT_I18N_TRANSLATED_LANGUAGES})
+# The Logic and Model libraries are scanned for strings marked with
+# SNAP_TRANSLATE_NOOP (e.g. progress task titles), since they cannot use Qt
 qt_add_translations(
   TARGETS ${SNAP_BUNDLE_NAME}
-  SOURCE_TARGETS itksnapui_qt ${SNAP_BUNDLE_NAME}
+  SOURCE_TARGETS itksnapui_qt itksnapui_model itksnaplogic ${SNAP_BUNDLE_NAME}
   TS_FILE_DIR GUI/Qt/Translations
   TS_FILE_BASE itksnap
+  LUPDATE_OPTIONS -tr-function-alias QT_TRANSLATE_NOOP+=SNAP_TRANSLATE_NOOP
 )
 
 #--------------------------------------------------------------------------------

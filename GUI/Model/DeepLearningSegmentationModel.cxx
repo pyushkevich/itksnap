@@ -796,7 +796,8 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
   // If there is an active session and the user wants to use a new model, release active session
   if(m_ActiveSession.size() && m_ActiveSessionModel != model_id)
   {
-    ProgressTaskGuard task_tracker(m_ProgressDelegate, "Ending prior session");
+    ProgressTaskGuard task_tracker(m_ProgressDelegate,
+                                   SNAP_TRANSLATE_NOOP("ProgressTask", "Ending prior session"));
     cli.Get("v2/end_session/%s", m_ActiveSession.c_str());
     m_ActiveSession.clear();
     m_ActiveSessionModel.clear();
@@ -806,7 +807,8 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
   // Check if we have an open session with the server, if not establish it
   if(m_ActiveSession.size() == 0)
   {
-    ProgressTaskGuard task_tracker(m_ProgressDelegate, "Creating DLS session");
+    ProgressTaskGuard task_tracker(m_ProgressDelegate,
+                                   SNAP_TRANSLATE_NOOP("ProgressTask", "Creating DLS session"));
     cli.SetProgressCallback(&task_tracker, &ProgressTaskGuard::ProgressCallback);
     Clock::time_point t0, t1;
     t0 = Clock::now();
@@ -865,7 +867,8 @@ DeepLearningSegmentationModel::SetSourceImage(const std::string &model_id, Image
   // If the parameters changed, we need to send the image to the server
   if(rview_hash != m_RemoteImageViewHash)
   {
-    ProgressTaskGuard task_tracker(m_ProgressDelegate, "Uploading image to DLS", true);
+    ProgressTaskGuard task_tracker(
+      m_ProgressDelegate, SNAP_TRANSLATE_NOOP("ProgressTask", "Uploading image to DLS"), true);
 
     // Keep track of elapsed time
     Clock::time_point t0, t1, t2, t3, t4, t5;
@@ -1203,7 +1206,8 @@ DeepLearningSegmentationModel::PerformPointInteraction(std::string       model_i
   cli.SetServerURL(GetActualServerURL().c_str());
 
   // Start a task tracker
-  ProgressTaskGuard task_tracker(m_ProgressDelegate, "Performing point interaction");
+  ProgressTaskGuard task_tracker(m_ProgressDelegate,
+                                 SNAP_TRANSLATE_NOOP("ProgressTask", "Performing point interaction"));
   cli.SetProgressCallback(&task_tracker, &ProgressTaskGuard::ProgressCallback);
 
   // What's the dimensionality of our model?

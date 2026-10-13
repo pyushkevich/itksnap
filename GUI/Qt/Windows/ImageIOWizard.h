@@ -184,12 +184,12 @@ public:
 	void SetSaveMode()
 	{
 		m_SaveMode = true;
-		this->setLabelText("Saving Image...");
+		this->setLabelText(tr("Saving Image..."));
 	}
 	void SetReadMode()
 	{
 		m_SaveMode = false;
-		this->setLabelText("Reading Image...");
+		this->setLabelText(tr("Reading Image..."));
 	} // default
 
 	void display();

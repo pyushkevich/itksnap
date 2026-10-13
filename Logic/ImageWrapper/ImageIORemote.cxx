@@ -386,11 +386,11 @@ DownloadRemoteFile(const std::string &url,
     src->SetFileCache(&file_cache);
     }
 
-  std::string label = title
-    ? std::string(title)
-    : "Downloading " + UrlDecode(itksys::SystemTools::GetFilenameName(url));
+  if (!title)
+    title = SNAP_TRANSLATE_NOOP("ProgressTask", "Downloading %1");
+  std::string filename = UrlDecode(itksys::SystemTools::GetFilenameName(url));
 
-  ProgressTaskGuard guard(ctx.progressDelegate, label.c_str(), true);
+  ProgressTaskGuard guard(ctx.progressDelegate, title, true, filename);
   src->SetProgressCallback([&guard](std::size_t done, std::size_t total) {
     return guard.UpdateProgress(done, total);
   });

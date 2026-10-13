@@ -112,7 +112,7 @@ LayerInspectorRowDelegate::LayerInspectorRowDelegate(QWidget *parent) :
   m_OverlayOpacitySlider->setOrientation(Qt::Horizontal);
   m_OverlayOpacitySliderAction = new WidgetWithLabelAction(this);
   m_OverlayOpacitySliderAction->setWidget(m_OverlayOpacitySlider);
-  m_OverlayOpacitySliderAction->setLabelText("Opacity: ");
+  m_OverlayOpacitySliderAction->setLabelText(tr("Opacity: "));
   m_PopupMenu->addAction(m_OverlayOpacitySliderAction);
 
   // Create a menu listing the loaded overlays
@@ -799,8 +799,7 @@ on_actionReloadAs4D_triggered()
 }
 
 void
-LayerInspectorRowDelegate
-::on_actionReloadFromFile_triggered()
+LayerInspectorRowDelegate::on_actionReloadFromFile_triggered()
 {
   IRISWarningList wl;
   try

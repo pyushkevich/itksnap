@@ -26,18 +26,17 @@ LoadTransformationDialog::~LoadTransformationDialog()
 }
 
 LoadTransformationDialog::QueryResult
-LoadTransformationDialog
-::showDialog(QWidget *parent, GlobalUIModel *model)
+LoadTransformationDialog::showDialog(QWidget *parent, GlobalUIModel *model)
 {
   QueryResult result;
 
   // Configure the dialog
   LoadTransformationDialog *dialog = new LoadTransformationDialog(parent);
   dialog->ui->filePanel->
-      initializeForOpenFile(model, "Transform File", "AffineTransform",
-                            "ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)",
+      initializeForOpenFile(model, tr("Transform File"), "AffineTransform",
+                            tr("ITK Transform Files (*.txt);; Convert3D Transform Files (*.mat)"),
                             QString());
-  dialog->setWindowTitle("Open Transform - ITK-SNAP");
+  dialog->setWindowTitle(tr("Open Transform - ITK-SNAP"));
 
   // Launch the dialog
   if(dialog->exec() == QDialog::Accepted)
