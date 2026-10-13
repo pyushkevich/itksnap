@@ -46,6 +46,10 @@ jobs:
   build_itksnap:
     name: Build and Package ITK-SNAP on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      # Needed to delete older ITK-SNAP build caches
+      actions: write
     env:
       SKIP_PACKAGING: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/claude/')) || (github.event_name == 'workflow_dispatch' && inputs.skip_packaging == 'true') }}
     strategy:
@@ -216,14 +220,16 @@ jobs:
           key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
      
       # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
-      # because only the updated files should require rebuilding
+      # because only the updated files should require rebuilding. Only master builds are cached
+      # (see "Cache ITK-SNAP build directory"), and any branch can restore the latest one.
       - name: Restore ITK-SNAP Cache (optional)
         id: cache-restore-itksnap
         uses: actions/cache/restore@v4
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
         with:
           path: ${{github.workspace}}/itksnap
-          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
+          key: ${{ matrix.os }}-itksnap-build-master-
+          restore-keys: ${{ matrix.os }}-itksnap-build-master-
 
       # Checkout ITK-SNAP code
       - name: Checkout code
@@ -302,13 +308,33 @@ jobs:
         if: ${{ steps.ctest-config.outcome != 'success' || steps.ctest-submit.outcome != 'success' }}
         run: exit -1          
 
-      # Cache the ITK-SNAP build
+      # Cache the ITK-SNAP build, for master only: each entry is about 400 MB, and saving one
+      # for every branch and pull request filled the repository's 10 GB cache. Caches can't be
+      # overwritten, so each run saves a new entry and then deletes the older ones.
       - name: Cache ITK-SNAP build directory
-        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
+        if: ${{ github.ref == 'refs/heads/master' }}
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/itksnap
-          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
+          key: ${{ matrix.os }}-itksnap-build-master-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Remove older ITK-SNAP build caches
+        if: ${{ github.ref == 'refs/heads/master' }}
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREFIX: ${{ matrix.os }}-itksnap-build-master-
+          KEEP: ${{ matrix.os }}-itksnap-build-master-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/caches?key=$PREFIX&ref=refs/heads/master&per_page=100" \
+              --jq '.actions_caches[].key' |
+            while read -r key; do
+              if [ "$key" != "$KEEP" ]; then
+                echo "Deleting cache $key"
+                gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/caches?key=$key&ref=refs/heads/master"
+              fi
+            done
 
       # Add libcurl.dll to PATH on windows
       - name: Append directory with libcurl.dll to PATH
