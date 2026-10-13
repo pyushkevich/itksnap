@@ -238,6 +238,10 @@ HTTPRemoteImageSource::Download(const std::string &url)
   client.SetOutputFile(outfile);
   client.SetStallTimeout(DOWNLOAD_STALL_TIMEOUT_SEC);
 
+  // Follow redirects (moved files, share links). The cache entry is still
+  // keyed by the original URL.
+  client.SetFollowRedirects(true);
+
   if (m_ProgressCallback)
     {
     client.SetProgressCallback(

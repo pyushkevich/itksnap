@@ -149,6 +149,9 @@ RESTClient<ServerTraits>::SetFollowRedirects(bool follow)
 {
   m_FollowRedirects = follow;
   curl_easy_setopt(m_Curl, CURLOPT_FOLLOWLOCATION, follow ? 1L : 0L);
+
+  // Guard against redirect loops (older CURL versions follow without limit)
+  curl_easy_setopt(m_Curl, CURLOPT_MAXREDIRS, 10L);
 }
 
 template <typename ServerTraits>
@@ -715,6 +718,14 @@ RESTClient<ServerTraits>::HeaderCallback(char *buffer, size_t size, size_t nitem
 {
   auto *headers = static_cast<std::map<std::string, std::string> *>(userdata);
   std::string line(buffer, size * nitems);
+
+  // A status line starts a new response. When redirects are followed, CURL
+  // passes the headers of every response, so keep only those of the last one
+  if (line.compare(0, 5, "HTTP/") == 0)
+    {
+    headers->clear();
+    return size * nitems;
+    }
 
   auto colon = line.find(':');
   if (colon != std::string::npos)
