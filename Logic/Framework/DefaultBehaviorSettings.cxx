@@ -13,6 +13,7 @@ DefaultBehaviorSettings::DefaultBehaviorSettings()
   m_SyncPanModel = NewSimpleProperty("SyncPan", true);
 
   m_AutoContrastModel = NewSimpleProperty("AutoContrast", false);
+  m_HideFileExtensionsModel = NewSimpleProperty("HideFileExtensions", true);
 
   // Permissions
   RegistryEnumMap<UpdateCheckingPermission> remUpdate;

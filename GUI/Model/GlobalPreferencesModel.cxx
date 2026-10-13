@@ -4,6 +4,7 @@
 #include "GlobalUIModel.h"
 #include "GlobalState.h"
 #include "DefaultBehaviorSettings.h"
+#include "IRISApplication.h"
 
 GlobalPreferencesModel::GlobalPreferencesModel()
 {
@@ -160,6 +161,7 @@ void GlobalPreferencesModel::ApplyPreferences()
 
   // Default behaviors
   gs->GetDefaultBehaviorSettings()->DeepCopy(m_DefaultBehaviorSettings);
+  m_ParentModel->GetDriver()->UpdateHideFileExtensions();
 
   // Global display prefs
   m_ParentModel->SetGlobalDisplaySettings(m_GlobalDisplaySettings);

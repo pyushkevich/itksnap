@@ -587,6 +587,7 @@ void GlobalUIModel::LoadUserPreferences()
   // Read the default behaviors
   dbs->ReadFromRegistry(
         si->Folder("UserInterface.DefaultBehavior"));
+  m_Driver->UpdateHideFileExtensions();
 
   // Read the global display properties and apply them
   SmartPtr<GlobalDisplaySettings> temp_gds = GlobalDisplaySettings::New();

@@ -1545,6 +1545,28 @@ IRISApplication ::AddDerivedOverlayImage(const ImageWrapperBase *sourceLayer,
 }
 
 void
+IRISApplication::UpdateHideFileExtensions()
+{
+  bool hide = m_GlobalState->GetDefaultBehaviorSettings()->GetHideFileExtensions();
+  if (hide == WrapperBase::GetHideFileExtensions())
+    return;
+
+  WrapperBase::SetHideFileExtensions(hide);
+
+  // Tell the views that the nicknames of all layers may have changed
+  GenericImageData *data[] = { m_IRISImageData, m_SNAPImageData };
+  for (GenericImageData *gid : data)
+  {
+    if (!gid)
+      continue;
+    for (LayerIterator it(gid); !it.IsAtEnd(); ++it)
+      it.GetLayer()->NotifyNicknameChanged();
+    for (MeshLayerIterator it(gid->GetMeshLayers()); !it.IsAtEnd(); ++it)
+      it.GetLayer()->NotifyNicknameChanged();
+  }
+}
+
+void
 IRISApplication ::AutoContrastLayerOnLoad(ImageWrapperBase *layer)
 {
   // Get a pointer to the policy for this layer

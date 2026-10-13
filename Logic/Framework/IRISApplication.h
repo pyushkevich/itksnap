@@ -693,6 +693,12 @@ public:
   bool GetRemoteCacheEnabled() const { return m_RemoteCacheEnabled; }
 
   /**
+   * Apply the HideFileExtensions default behavior setting to the nicknames of
+   * all layers. Call after the preferences are read or changed.
+   */
+  void UpdateHideFileExtensions();
+
+  /**
    * Get Moved File Path from the absolute file path in the original project file
    */
   static std::string GetMovedFilePath(std::string &project_dir_orig, std::string &project_dir_crnt,

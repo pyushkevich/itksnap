@@ -116,6 +116,7 @@ PreferencesDialog::SetModel(GlobalPreferencesModel *model)
   makeCoupling(ui->chkSyncPan, dbs->GetSyncPanModel());
   makeCoupling(ui->chkCheckForUpdates, m_Model->GetCheckForUpdateModel());
   makeCoupling(ui->chkAutoContrast, dbs->GetAutoContrastModel());
+  makeCoupling(ui->chkHideFileExtensions, dbs->GetHideFileExtensionsModel());
 
   // Hook up the display layout properties
   GlobalDisplaySettings *gds = m_Model->GetGlobalDisplaySettings();
