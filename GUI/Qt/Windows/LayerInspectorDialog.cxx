@@ -15,6 +15,7 @@
 #include "LayerGeneralPropertiesModel.h"
 #include "SNAPQtCommon.h"
 #include "LayerInspectorRowDelegate.h"
+#include "ElidedTextWidgets.h"
 #include "QGroupBox"
 #include "QComboBox"
 #include "QToolBar"
@@ -39,6 +40,9 @@ LayerInspectorDialog::LayerInspectorDialog(QWidget *parent) :
 
   // Give the dialog a name for scripting
   this->setObjectName("dlgLayerInspector");
+
+  // Sets the window title, with the layer name elided to fit
+  m_TitleElider = new WindowTitleElider(this);
 
   // Create a toolbar under the layer list
   QToolBar *tb = new QToolBar(this);
@@ -390,6 +394,26 @@ void LayerInspectorDialog::onModelUpdate(const EventBucket &bucket)
     {
     this->UpdateLayerLayoutAction();
     }
+
+  // The selected layer may have been renamed
+  if(bucket.HasEvent(LayerChangeEvent()) || bucket.HasEvent(WrapperMetadataChangeEvent()))
+    {
+    this->UpdateWindowTitle();
+    }
+}
+
+void LayerInspectorDialog::UpdateWindowTitle()
+{
+  foreach(LayerInspectorRowDelegate *w, m_Delegates)
+    {
+    if(w->selected() && w->GetLayer())
+      {
+      QString name = from_utf8(w->GetLayer()->GetNickname());
+      m_TitleElider->setTitle(tr("%1 - ITK-SNAP Layer Inspector"), { name });
+      return;
+      }
+    }
+  m_TitleElider->setTitle(tr("ITK-SNAP Layer Inspector"));
 }
 
 void LayerInspectorDialog::layerSelected(bool flag, LayerInspectorRowDelegate *wsel)
@@ -419,6 +443,8 @@ void LayerInspectorDialog::layerSelected(bool flag, LayerInspectorRowDelegate *w
 
     // Put this layer's actions on the menu
     m_SaveSelectedButton->setDefaultAction(wsel->saveAction());
+
+    this->UpdateWindowTitle();
     }
 
 

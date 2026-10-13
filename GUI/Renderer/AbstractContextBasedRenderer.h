@@ -153,6 +153,10 @@ public:
   // Text functions
   virtual void SetFont(const FontInfo &fi) = 0;
   virtual int TextWidth(const std::string &str) = 0;
+
+  // Shorten str to at most width pixels in the current font, replacing the
+  // middle with an ellipsis; str is returned unchanged if it fits
+  virtual std::string MiddleElideText(const std::string &str, int width) = 0;
   virtual void DrawText(const std::string &str) = 0;
   virtual void DrawText(const std::string &text,
                         double             x,

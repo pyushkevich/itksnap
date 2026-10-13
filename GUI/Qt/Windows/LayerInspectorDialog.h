@@ -14,6 +14,7 @@ class QToolButton;
 class QMenu;
 class QAction;
 class QEvent;
+class WindowTitleElider;
 
 namespace Ui {
     class LayerInspectorDialog;
@@ -88,11 +89,17 @@ private:
   void SetActiveLayer(WrapperBase *layer);
   void UpdateLayerLayoutAction();
 
+  // Show the nickname of the selected layer in the window title
+  void UpdateWindowTitle();
+
   // Tool bar buttons that use actions from the selected layer widgets
   QToolButton *m_SaveSelectedButton;
 
   // List of layer delegate widgets
   QList<LayerInspectorRowDelegate *> m_Delegates;
+
+  // Elides the layer name in the window title
+  WindowTitleElider *m_TitleElider;
 };
 
 #endif // LAYERINSPECTORDIALOG_H

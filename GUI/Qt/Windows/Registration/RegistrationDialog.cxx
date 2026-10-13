@@ -60,7 +60,7 @@ void RegistrationDialog::SetModel(RegistrationModel *model)
   makePagedWidgetCoupling(ui->stackFreeRotationMode, m_Model->GetFreeRotationModeModel(),
                           free_rotation_page_map);
 
-  makeCoupling(ui->inMovingLayer, m_Model->GetMovingLayerModel());
+  makeCoupling((QComboBox *)ui->inMovingLayer,m_Model->GetMovingLayerModel());
 
   // Manual page couplings
   makeCoupling((QAbstractButton *) ui->btnInteractiveTool, m_Model->GetInteractiveToolModel());

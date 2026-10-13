@@ -169,34 +169,17 @@ SliceWindowDecorationRenderer::DrawNicknames(AbstractRenderContext *context)
   auto  font_info = rps->MakeFont(elt->GetFontSize(), AbstractRendererPlatformSupport::SANS);
   context->SetFont(font_info);
 
-  // Place to keep the strings
+  // Get the strings, with long nicknames elided to fit
   std::list<std::list<std::string>> disp_names;
-
-  // Find the longest nickname
-  int maxwidth = 0;
   for (int i = 0; i < nrows; i++)
   {
     for (int j = 0; j < ncols; j++)
     {
-      // Define the ROI for this label
       ImageWrapperBase *layer = m_Model->GetLayerForNthTile(i, j);
       if (layer)
-      {
-        disp_names.push_back(this->GetDisplayText(layer));
-        for (auto it : disp_names.back())
-        {
-          int fw = context->TextWidth(it);
-          // int fw = rps->MeasureTextWidth(it.c_str(), font_info) / GetVPPR();
-          if (fw > maxwidth)
-            maxwidth = fw;
-        }
-      }
+        disp_names.push_back(this->GetDisplayText(layer, context, max_allowed_width));
     }
   }
-
-  // Adjust the font size
-  if (maxwidth > max_allowed_width)
-    font_info.pixel_size = (int)(font_info.pixel_size * max_allowed_width / maxwidth);
 
   // Draw each nickname
   auto it_disp_names = disp_names.begin();
@@ -266,34 +249,37 @@ SliceWindowDecorationRenderer::DrawNicknames(AbstractRenderContext *context)
 }
 
 std::list<std::string>
-SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase *layer)
+SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase      *layer,
+                                              AbstractRenderContext *context,
+                                              int                    max_width)
 {
   // Lines to be returned
   std::list<std::string> lines;
   int                    nc = layer->GetNumberOfComponents();
 
-  // Get the nickname of the layer itself - this is the first line
-  std::string nickname = CapStringLength(layer->GetNickname(), nc > 1 ? 20 : 28);
+  // The first line is the nickname of the layer followed by the component and
+  // time point. Only the nickname is shortened if the line is too long.
+  std::string suffix;
   if (nc > 1)
   {
     AbstractMultiChannelDisplayMappingPolicy *policy =
       static_cast<AbstractMultiChannelDisplayMappingPolicy *>(layer->GetDisplayMapping());
     MultiChannelDisplayMode mode = policy->GetDisplayMode();
     if (mode.UseRGB)
-      nickname += " [RGB]";
+      suffix += " [RGB]";
     else if (mode.RenderAsGrid)
-      nickname += " [Grid]";
+      suffix += " [Grid]";
     else if (mode.SelectedScalarRep == SCALAR_REP_MAGNITUDE)
-      nickname += " [Mag]";
+      suffix += " [Mag]";
     else if (mode.SelectedScalarRep == SCALAR_REP_MAX)
-      nickname += " [Max]";
+      suffix += " [Max]";
     else if (mode.SelectedScalarRep == SCALAR_REP_AVERAGE)
-      nickname += " [Avg]";
+      suffix += " [Avg]";
     else
     {
       std::ostringstream oss;
       oss << " [" << mode.SelectedComponent + 1 << "/" << nc << "]";
-      nickname += oss.str();
+      suffix += oss.str();
     }
   }
 
@@ -311,28 +297,19 @@ SliceWindowDecorationRenderer::GetDisplayText(ImageWrapperBase *layer)
     std::ostringstream oss;
     oss << " [" << tpn << layer->GetTimePointIndex() + 1 << "/" << layer->GetNumberOfTimePoints()
         << "]";
-    nickname += oss.str();
+    suffix += oss.str();
   }
 
-  lines.push_back(nickname);
+  int name_width = std::max(max_width - context->TextWidth(suffix), 0);
+  lines.push_back(context->MiddleElideText(layer->GetNickname(), name_width) + suffix);
 
   // Get the nickname of the segmentation if there are multiple segmentations
   IRISApplication *app = m_Model->GetDriver();
   if (app->GetCurrentImageData()->GetNumberOfLayers(LABEL_ROLE) > 1)
-    lines.push_back(CapStringLength(app->GetSelectedSegmentationLayer()->GetNickname(), 28));
+    lines.push_back(
+      context->MiddleElideText(app->GetSelectedSegmentationLayer()->GetNickname(), max_width));
 
   return lines;
-}
-
-std::string
-SliceWindowDecorationRenderer::CapStringLength(const std::string &str, size_t max_size)
-{
-  if (str.size() <= max_size)
-    return str;
-
-  std::string strout = str.substr(0, max_size - 1);
-  strout += "\u2026";
-  return strout;
 }
 
 void

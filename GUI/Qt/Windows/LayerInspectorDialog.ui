@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Image Layer Inspector - ITK-SNAP</string>
+   <string>ITK-SNAP Layer Inspector</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">

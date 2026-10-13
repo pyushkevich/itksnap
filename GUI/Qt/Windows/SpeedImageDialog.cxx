@@ -91,7 +91,7 @@ void SpeedImageDialog::SetModel(SnakeWizardModel *model)
 
   makeRadioGroupCoupling(ui->grpThresholdMode, model->GetThresholdModeModel());
 
-  makeCoupling(ui->inThresholdImage, model->GetThresholdActiveLayerModel());
+  makeCoupling((QComboBox *)ui->inThresholdImage,model->GetThresholdActiveLayerModel());
   makeCoupling(ui->inThresholdComponent, model->GetThresholdActiveScalarRepModel());
 
   // Couple the edge preprocessing widgets

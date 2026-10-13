@@ -87,8 +87,8 @@ void GeneralLayerInspector::SetModel(LayerGeneralPropertiesModel *model)
   makeCoupling(ui->inOpacityValue, m_Model->GetLayerOpacityModel());
   makeCoupling((QAbstractButton *)ui->btnVisible, m_Model->GetLayerVisibilityModel());
 
-  makeCoupling(ui->outFilename, m_Model->GetFilenameModel());
-  makeCoupling(ui->outRemoteURL, m_Model->GetRemoteURLModel());
+  makeCoupling((QLineEdit *)ui->outFilename, m_Model->GetFilenameModel());
+  makeCoupling((QLineEdit *)ui->outRemoteURL,m_Model->GetRemoteURLModel());
   activateOnFlag(ui->outRemoteURL, m_Model,
                  LayerGeneralPropertiesModel::UIF_HAS_REMOTE_URL,
                  QtWidgetActivator::HideInactive);

@@ -32,6 +32,7 @@
 #include "SNAPCommon.h"
 
 class SliceViewPanel;
+class WindowTitleElider;
 class GlobalUIModel;
 class QDockWidget;
 class SnakeWizardPanel;
@@ -453,6 +454,9 @@ private:
   ReorientImageDialog *m_ReorientImageDialog;
 
   DropActionDialog *m_DropDialog;
+
+  // Sets the window title, with long filenames elided to fit
+  WindowTitleElider *m_TitleElider;
 
   QtProgressReporterDelegate *m_ProgressReporterDelegate;
 

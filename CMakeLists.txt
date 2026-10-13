@@ -695,6 +695,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/DarkModeToolbar.cxx
   GUI/Qt/Components/DisplayLayoutInspector.cxx
   GUI/Qt/Components/DICOMListingTable.cxx
+  GUI/Qt/Components/ElidedTextWidgets.cxx
   GUI/Qt/Components/FileChooserPanelWithHistory.cxx
   GUI/Qt/Components/HistoryQListModel.cxx
   GUI/Qt/Components/ImageInfoInspector.cxx
@@ -807,6 +808,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/DarkModeToolbar.h
   GUI/Qt/Components/DICOMListingTable.h
   GUI/Qt/Components/DisplayLayoutInspector.h
+  GUI/Qt/Components/ElidedTextWidgets.h
   GUI/Qt/Components/FileChooserPanelWithHistory.h
   GUI/Qt/Components/HistoryQListModel.h
   GUI/Qt/Components/ImageInfoInspector.h

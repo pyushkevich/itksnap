@@ -162,7 +162,7 @@ color: dimgray;</string>
        </widget>
       </item>
       <item>
-       <widget class="QComboBox" name="inMovingLayer"/>
+       <widget class="ElidedComboBox" name="inMovingLayer"/>
       </item>
      </layout>
     </widget>
@@ -1089,6 +1089,11 @@ QComboBox {
    <class>QDoubleSlider</class>
    <extends>QSlider</extends>
    <header location="global">QDoubleSlider.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ElidedComboBox</class>
+   <extends>QComboBox</extends>
+   <header location="global">ElidedTextWidgets.h</header>
   </customwidget>
  </customwidgets>
  <resources>
