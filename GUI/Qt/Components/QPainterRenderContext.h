@@ -798,6 +798,12 @@ public:
     return painter.fontMetrics().horizontalAdvance(QString::fromUtf8(str.c_str()));
   }
 
+  virtual std::string MiddleElideText(const std::string &str, int width) override
+  {
+    QString text = QString::fromUtf8(str.c_str());
+    return painter.fontMetrics().elidedText(text, Qt::ElideMiddle, width).toStdString();
+  }
+
   virtual void DrawText(const std::string &str) override
   {
     painter.setFont(QFont("Arial", 30));

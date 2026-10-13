@@ -3,6 +3,8 @@
 
 unsigned long GlobalImageWrapperIndex = 0ul;
 
+bool WrapperBase::s_HideFileExtensions = true;
+
 WrapperBase::WrapperBase()
 {
   m_UniqueId = ++GlobalImageWrapperIndex;
@@ -14,10 +16,16 @@ void
 WrapperBase::SetFileName(const std::string &name)
 {
   m_FileName = name;
-  m_FileNameShort = itksys::SystemTools::GetFilenameWithoutExtension(
-        itksys::SystemTools::GetFilenameName(name));
+  m_FileNameShort = itksys::SystemTools::GetFilenameName(name);
+  m_FileNameNoExt = StripFilenameExtension(name);
   this->Modified();
   this->InvokeEvent(WrapperMetadataChangeEvent());
+}
+
+const std::string &
+WrapperBase::GetFileNickname() const
+{
+  return s_HideFileExtensions ? m_FileNameNoExt : m_FileNameShort;
 }
 
 const std::string &
@@ -26,18 +34,26 @@ WrapperBase::GetNickname() const
   if (m_CustomNickname.length())
     return m_CustomNickname;
   else if (m_FileName.length())
-    return m_FileNameShort;
+    return GetFileNickname();
   else
     return m_DefaultNickname;
 }
 
 void
+WrapperBase::NotifyNicknameChanged()
+{
+  this->Modified();
+  this->InvokeEvent(WrapperMetadataChangeEvent());
+}
+
+void
 WrapperBase::SetCustomNickname(const std::string &nickname)
 {
-  if (m_CustomNickname == nickname || (m_CustomNickname.empty() && nickname == m_FileNameShort))
+  const std::string &file_nickname = GetFileNickname();
+  if (m_CustomNickname == nickname || (m_CustomNickname.empty() && nickname == file_nickname))
     return;
 
-  if (nickname == m_FileNameShort)
+  if (nickname == file_nickname)
     m_CustomNickname.clear();
   else
     m_CustomNickname = nickname;

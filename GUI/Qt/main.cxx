@@ -339,6 +339,9 @@ usage(const char *progname)
   cout << "   --ssh-config FILE    : Read SSH settings (hosts, ProxyJump, keys, known_hosts) from" << endl;
   cout << "                        :   FILE instead of ~/.ssh/config. Not passed on to an already" << endl;
   cout << "                        :   running ITK-SNAP when --url forwards to it." << endl;
+  cout << "   --no-cache           : Do not use the cache for remote downloads; download every" << endl;
+  cout << "                        :   remote file again. Not passed on to an already running" << endl;
+  cout << "                        :   ITK-SNAP when --url forwards to it." << endl;
   cout << "   --url URL            : Open URL/file (from OS URL-scheme handler); forwards to a" << endl;
   cout << "                        :   running ITK-SNAP window if one exists (images only)." << endl;
   cout << "Platform-Specific Options:" << endl;
@@ -370,6 +373,7 @@ public:
   bool                     flagDebugEvents = false;
   bool                     flagDebugSync = false;
   bool                     flagTestIPC = false;
+  bool                     flagNoCache = false;
 
   // Whether the console-based application should not fork
   bool flagNoFork = false;
@@ -528,6 +532,7 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   parser.AddOption("--debug-events", 0);
   parser.AddOption("--debug-sync", 0);
   parser.AddOption("--test-ipc", 0);
+  parser.AddOption("--no-cache", 0);
 
   parser.AddOption("--no-fork", 0);
   parser.AddOption("--console", 0);
@@ -608,6 +613,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
 
   if (parseResult.IsOptionPresent("--debug-sync"))
     argdata.flagDebugSync = true;
+
+  if (parseResult.IsOptionPresent("--no-cache"))
+    argdata.flagNoCache = true;
 
   if (parseResult.IsOptionPresent("--test-ipc"))
     argdata.flagTestIPC = true;
@@ -1339,6 +1347,9 @@ main(int argc, char *argv[])
     if (argdata.xTestId.empty() || argdata.flagTestIPC)
       gui->GetSynchronizationModel()->SetSystemInterface(&siSharedMem);
     gui->GetSynchronizationModel()->SetDebugSync(argdata.flagDebugSync);
+
+    // Optionally download remote files without the cache
+    driver->SetRemoteCacheEnabled(!argdata.flagNoCache);
 
     // Set the initial directory. The fallthough is to set to the user's home
     // directory

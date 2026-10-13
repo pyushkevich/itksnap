@@ -385,8 +385,12 @@ LoadSegmentationImageDelegate ::CanLoadOverwriteUnsavedChanges(GuidedNativeImage
     // TODO: this causes a crash with remote workspaces. I am not sure why this
     // check is performed here for 4D images but not for 3D. For now, I am adding
     // code to download the segmentation image before calling peekheader
+    RemoteDownload download;
     if (IsRemoteImageURL(filename))
-      filename = DownloadRemoteFile(filename, this->m_Driver->GetRemoteIOContext());
+      {
+      download = DownloadRemoteFile(filename, this->m_Driver->GetRemoteIOContext());
+      filename = download.GetPath();
+      }
 
     auto header = io->PeekHeader(filename);
     auto nDimIncoming = header->GetNumberOfDimensions();

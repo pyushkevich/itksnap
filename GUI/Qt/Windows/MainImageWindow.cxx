@@ -74,6 +74,7 @@
 #include <LabelEditorDialog.h>
 #include <ReorientImageDialog.h>
 #include <DropActionDialog.h>
+#include <ElidedTextWidgets.h>
 #include <PreferencesDialog.h>
 #include "SaveModifiedLayersDialog.h"
 #include <InterpolateLabelsDialog.h>
@@ -335,7 +336,8 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
   m_Progress->reset();
 
   // Set title
-  this->setWindowTitle(tr("ITK-SNAP"));
+  m_TitleElider = new WindowTitleElider(this);
+  m_TitleElider->setTitle(tr("ITK-SNAP"));
 
   // We accept drop events
   setAcceptDrops(true);
@@ -1131,28 +1133,28 @@ void MainImageWindow::UpdateWindowTitle()
   if(m_Model->GetGlobalState()->GetProjectFilename().length())
     projfile = QFileInfo(from_utf8(m_Model->GetGlobalState()->GetProjectFilename())).fileName();
 
-  // Set up the window title
+  // Set up the window title. Long filenames are elided in the middle.
   if(projfile.length())
     {
     // If a project has multiple layers, we should indicate which segmentation image is being viewed
-    this->setWindowTitle(tr("%1 - ITK-SNAP").arg(projfile));
+    m_TitleElider->setTitle(tr("%1 - ITK-SNAP"), { projfile });
     }
   else if(mainfile.length() && segfile.length())
     {
-    this->setWindowTitle(tr("%1 - %2 - ITK-SNAP").arg(mainfile).arg(segfile));
+    m_TitleElider->setTitle(tr("%1 - %2 - ITK-SNAP"), { mainfile, segfile });
     }
   else if(mainfile.length())
     {
-    this->setWindowTitle(tr("%1 - New Segmentation - ITK-SNAP").arg(mainfile));
+    m_TitleElider->setTitle(tr("%1 - New Segmentation - ITK-SNAP"), { mainfile });
     }
   else
     {
-    this->setWindowTitle(tr("ITK-SNAP"));
+    m_TitleElider->setTitle(tr("ITK-SNAP"));
     }
 
-  // Update the IPC instance directory slot with the new title
+  // Update the IPC instance directory slot with the full title
   m_Model->GetSynchronizationModel()->UpdateWindowTitle(
-    this->windowTitle().toStdString());
+    m_TitleElider->fullTitle().toStdString());
 
   // Set up the save segmentation menu items
   if(segfile.length())

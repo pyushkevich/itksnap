@@ -695,6 +695,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/DarkModeToolbar.cxx
   GUI/Qt/Components/DisplayLayoutInspector.cxx
   GUI/Qt/Components/DICOMListingTable.cxx
+  GUI/Qt/Components/ElidedTextWidgets.cxx
   GUI/Qt/Components/FileChooserPanelWithHistory.cxx
   GUI/Qt/Components/HistoryQListModel.cxx
   GUI/Qt/Components/ImageInfoInspector.cxx
@@ -807,6 +808,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/DarkModeToolbar.h
   GUI/Qt/Components/DICOMListingTable.h
   GUI/Qt/Components/DisplayLayoutInspector.h
+  GUI/Qt/Components/ElidedTextWidgets.h
   GUI/Qt/Components/FileChooserPanelWithHistory.h
   GUI/Qt/Components/HistoryQListModel.h
   GUI/Qt/Components/ImageInfoInspector.h
@@ -1502,12 +1504,19 @@ add_test(NAME RemoteImageLoadTest_SaveWorkspace
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
     ${TEMP})
 
+# Test: cancelling an HTTP download from the progress callback stops it
+add_test(NAME RemoteImageLoadTest_Cancel
+  COMMAND remote_image_load_test
+    --test-cancel
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
+
 # Remote tests require network access; tag them so CI can skip them easily.
 set_tests_properties(
   RemoteImageLoadTest_SingleImage
   RemoteImageLoadTest_WorkspaceWithMesh
   RemoteImageLoadTest_Cache
   RemoteImageLoadTest_SaveWorkspace
+  RemoteImageLoadTest_Cancel
   PROPERTIES
     LABELS "Remote"
     TIMEOUT 120)
@@ -1527,6 +1536,14 @@ TARGET_LINK_LIBRARIES(TestNrrdSequenceIO ${SNAP_EXTERNAL_LIBS} itksnaplogic)
 TARGET_INCLUDE_DIRECTORIES(TestNrrdSequenceIO PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestNrrdSequenceIO COMMAND TestNrrdSequenceIO ${TEMP})
+
+# Test: remote file cache stores, evicts and locks its metadata correctly
+ADD_EXECUTABLE(TestRemoteFileCache
+    Testing/Logic/TestRemoteFileCache.cxx)
+TARGET_LINK_LIBRARIES(TestRemoteFileCache ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestRemoteFileCache PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestRemoteFileCache COMMAND TestRemoteFileCache ${TEMP})
 
 # Test: VTK XML image (.vti) IO handles orientation, extents and arrays
 ADD_EXECUTABLE(TestVTIImageIO
@@ -1560,6 +1577,14 @@ TARGET_INCLUDE_DIRECTORIES(TestSegmentationLoadChecks PUBLIC ${SNAP_INCLUDE_DIRS
 
 add_test(NAME TestSegmentationLoadChecks
   COMMAND TestSegmentationLoadChecks ${TESTDATA_DIR} ${TEMP})
+
+# Test: layer nicknames from filenames with periods and compound extensions
+ADD_EXECUTABLE(TestStripFilenameExtension
+    Testing/Logic/TestStripFilenameExtension.cxx)
+TARGET_LINK_LIBRARIES(TestStripFilenameExtension ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestStripFilenameExtension PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestStripFilenameExtension COMMAND TestStripFilenameExtension)
 
 # Test: segmentation statistics with upsampled segmentations and rotated overlays
 ADD_EXECUTABLE(TestSegmentationStatistics

@@ -11,6 +11,7 @@
 #include <libssh/sftp.h>
 #include <fcntl.h>
 #include <fstream>
+#include <memory>
 #include <vector>
 #include <cstring>
 
@@ -26,34 +27,6 @@
 // -----------------------------------------------------------------------
 namespace {
 
-/** Create a fresh unique temp directory under the platform temp location. */
-std::string MakeTempDir()
-{
-  std::string base = SystemInterface::GetSystemInfoDelegate()->GetTempDirectory();
-  if (base.empty())
-    throw IRISException("SystemInfoDelegate::GetTempDirectory() returned an empty path");
-
-#ifdef _WIN32
-  char name[MAX_PATH + 1] = "";
-  if (!GetTempFileNameA(base.c_str(), "itksnap_remote", 0, name))
-    throw IRISException("Cannot generate temp filename for remote image in: %s", base.c_str());
-
-  std::string dir = std::string(name) + "_d";
-  DeleteFileA(name);
-  if (!CreateDirectoryA(dir.c_str(), nullptr))
-    throw IRISException("Cannot create temp directory: %s", dir.c_str());
-  return dir;
-#else
-  std::string tmpl = base + "/itksnap_remote_XXXXXX";
-  std::vector<char> buf(tmpl.begin(), tmpl.end());
-  buf.push_back('\0');
-  char *dir = mkdtemp(buf.data());
-  if (!dir)
-    throw IRISException("Cannot create temp directory under: %s", base.c_str());
-  return dir;
-#endif
-}
-
 /** RAII wrapper: closes an sftp_file on scope exit. */
 struct SFTPFileGuard {
   sftp_file f;
@@ -64,12 +37,86 @@ struct SFTPFileGuard {
 
 
 // -----------------------------------------------------------------------
+//  DownloadTempDir, RemoteDownload
+// -----------------------------------------------------------------------
+
+DownloadTempDir::DownloadTempDir(const char *prefix)
+{
+  std::string base = SystemInterface::GetSystemInfoDelegate()->GetTempDirectory();
+  if (base.empty())
+    throw IRISException("SystemInfoDelegate::GetTempDirectory() returned an empty path");
+
+#ifdef _WIN32
+  char name[MAX_PATH + 1] = "";
+  if (!GetTempFileNameA(base.c_str(), prefix, 0, name))
+    throw IRISException("Cannot generate temp filename for remote image in: %s", base.c_str());
+
+  std::string dir = std::string(name) + "_d";
+  DeleteFileA(name);
+  if (!CreateDirectoryA(dir.c_str(), nullptr))
+    throw IRISException("Cannot create temp directory: %s", dir.c_str());
+  m_Path = dir;
+#else
+  std::string tmpl = base + "/" + prefix + "_XXXXXX";
+  std::vector<char> buf(tmpl.begin(), tmpl.end());
+  buf.push_back('\0');
+  char *dir = mkdtemp(buf.data());
+  if (!dir)
+    throw IRISException("Cannot create temp directory under: %s", base.c_str());
+  m_Path = dir;
+#endif
+}
+
+DownloadTempDir::~DownloadTempDir()
+{
+  if (!m_Keep)
+    itksys::SystemTools::RemoveADirectory(m_Path);
+}
+
+RemoteDownload::RemoteDownload(std::string path, std::string temp_dir)
+  : m_Path(std::move(path)), m_TempDir(std::move(temp_dir))
+{}
+
+RemoteDownload::~RemoteDownload()
+{
+  DeleteTemporaryFile();
+}
+
+RemoteDownload::RemoteDownload(RemoteDownload &&other) noexcept
+  : m_Path(std::move(other.m_Path)), m_TempDir(std::move(other.m_TempDir))
+{
+  other.m_TempDir.clear();
+}
+
+RemoteDownload &RemoteDownload::operator=(RemoteDownload &&other) noexcept
+{
+  if (this != &other)
+    {
+    DeleteTemporaryFile();
+    m_Path    = std::move(other.m_Path);
+    m_TempDir = std::move(other.m_TempDir);
+    other.m_TempDir.clear();
+    }
+  return *this;
+}
+
+void RemoteDownload::DeleteTemporaryFile()
+{
+  if (!m_TempDir.empty())
+    itksys::SystemTools::RemoveADirectory(m_TempDir);
+  m_TempDir.clear();
+}
+
+
+// -----------------------------------------------------------------------
 //  SCPRemoteImageSource
 // -----------------------------------------------------------------------
 
 std::string
 SCPRemoteImageSource::Download(const std::string &url)
 {
+  m_TemporaryDirectory.clear();
+
   // Expected form:  scp://[user@]host/path  or  sftp://[user@]host/path
   std::size_t scheme_len = 0;
   if (url.substr(0, 6) == "scp://")       scheme_len = 6;
@@ -161,9 +208,10 @@ SCPRemoteImageSource::Download(const std::string &url)
 
   SFTPFileGuard file_guard{remote_file};
 
-  // Create local temp directory and destination path
-  std::string tmpdir = MakeTempDir();
-  std::string dest   = tmpdir + "/" + basename;
+  // Create local temp directory and destination path. The directory, with any
+  // partial file, is removed if the download fails or is cancelled.
+  DownloadTempDir tmpdir("itksnap_remote");
+  std::string dest = tmpdir.GetPath() + "/" + basename;
 
   std::ofstream outfile(dest, std::ios::binary);
   if (!outfile)
@@ -197,12 +245,14 @@ SCPRemoteImageSource::Download(const std::string &url)
     ReportProgress(bytes_read, bytes_read);
 
   outfile.close();
+  if (!outfile)
+    throw IRISException("SCPRemoteImageSource: Write error to '%s'", dest.c_str());
 
-  // Store in cache (may copy file to cache dir; returns final path to use).
-  if (m_FileCache)
-    return m_FileCache->Store(url, dest, attr_size, attr_mtime);
-
-  return dest;
+  // Store in cache (moves the file to the cache dir; returns final path to use).
+  std::string path = m_FileCache ? m_FileCache->Store(url, dest, attr_size, attr_mtime) : dest;
+  if (path == dest)
+    m_TemporaryDirectory = tmpdir.Keep();
+  return path;
 }
 
 
@@ -213,6 +263,8 @@ SCPRemoteImageSource::Download(const std::string &url)
 std::string
 HTTPRemoteImageSource::Download(const std::string &url)
 {
+  m_TemporaryDirectory.clear();
+
   std::string basename = itksys::SystemTools::GetFilenameName(url);
   // Strip any query string from the basename so extension detection works.
   auto qmark = basename.find('?');
@@ -227,24 +279,31 @@ HTTPRemoteImageSource::Download(const std::string &url)
   if (m_FileCache)
     cached = m_FileCache->LookupHTTP(url);
 
-  std::string tmpdir = MakeTempDir();
-  std::string dest   = tmpdir + "/" + basename;
+  // The temp directory, with any partial file, is removed if the download
+  // fails or is cancelled. The file is closed first.
+  DownloadTempDir tmpdir("itksnap_remote");
+  std::string dest = tmpdir.GetPath() + "/" + basename;
 
-  FILE *outfile = fopen(dest.c_str(), "wb");
+  std::unique_ptr<FILE, int (*)(FILE *)> outfile(fopen(dest.c_str(), "wb"), fclose);
   if (!outfile)
     throw IRISException("HTTPRemoteImageSource: cannot create local file '%s'", dest.c_str());
 
   RESTClient<> client;
-  client.SetOutputFile(outfile);
+  client.SetOutputFile(outfile.get());
+  client.SetStallTimeout(DOWNLOAD_STALL_TIMEOUT_SEC);
+
+  // Follow redirects (moved files, share links). The cache entry is still
+  // keyed by the original URL.
+  client.SetFollowRedirects(true);
 
   if (m_ProgressCallback)
     {
     client.SetProgressCallback(
       &m_ProgressCallback,
-      [](void *data, size_t done, size_t total)
+      [](void *data, size_t done, size_t total) -> bool
       {
         auto *cb = static_cast<DownloadProgressCallback *>(data);
-        (*cb)(done, total);
+        return (*cb)(done, total);
       });
     }
 
@@ -258,27 +317,27 @@ HTTPRemoteImageSource::Download(const std::string &url)
     }
 
   client.Get("%s", url.c_str());
-  fclose(outfile);
+  if (fclose(outfile.release()) != 0)
+    throw IRISException("HTTPRemoteImageSource: write error to '%s'", dest.c_str());
 
   long code = client.GetHTTPCode();
 
+  // Cached copy is still valid — the empty temp file is discarded.
   if (code == 304)
-    {
-    // Cached copy is still valid — discard the empty temp file and use cache.
-    itksys::SystemTools::RemoveADirectory(tmpdir);
     return cached.local_path;
-    }
 
   if (code != 200)
     throw IRISException("HTTPRemoteImageSource: HTTP %ld downloading %s", code, url.c_str());
 
   // Store the downloaded file in cache along with any HTTP validation tokens.
-  if (m_FileCache)
-    return m_FileCache->StoreHTTP(url, dest,
-                                  client.GetResponseHeader("etag"),
-                                  client.GetResponseHeader("last-modified"));
-
-  return dest;
+  std::string path = m_FileCache
+    ? m_FileCache->StoreHTTP(url, dest,
+                             client.GetResponseHeader("etag"),
+                             client.GetResponseHeader("last-modified"))
+    : dest;
+  if (path == dest)
+    m_TemporaryDirectory = tmpdir.Keep();
+  return path;
 }
 
 
@@ -308,7 +367,7 @@ SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url)
   throw IRISException("No remote image handler for URL: %s", url.c_str());
 }
 
-std::string
+RemoteDownload
 DownloadRemoteFile(const std::string &url,
                    const RemoteIOContext &ctx,
                    const char *title)
@@ -329,12 +388,13 @@ DownloadRemoteFile(const std::string &url,
 
   std::string label = title
     ? std::string(title)
-    : itksys::SystemTools::GetFilenameName(url);
+    : "Downloading " + UrlDecode(itksys::SystemTools::GetFilenameName(url));
 
   ProgressTaskGuard guard(ctx.progressDelegate, label.c_str(), true);
   src->SetProgressCallback([&guard](std::size_t done, std::size_t total) {
     return guard.UpdateProgress(done, total);
   });
 
-  return src->Download(url);
+  std::string path = src->Download(url);
+  return RemoteDownload(path, src->GetTemporaryDirectory());
 }

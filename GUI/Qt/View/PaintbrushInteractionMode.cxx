@@ -35,6 +35,10 @@ PaintbrushInteractionMode::mousePressEvent(QMouseEvent *ev)
         ev->accept();
     }
   }
+  catch (IRISUserCancelException &)
+  {
+    // The user cancelled a deep learning request; nothing to report
+  }
   catch (IRISException &exc)
   {
     QtWarningDialog::show({ IRISWarning(exc.what()) });
@@ -60,6 +64,10 @@ PaintbrushInteractionMode::mouseMoveEvent(QMouseEvent *ev)
         ev->accept();
     }
   }
+  catch (IRISUserCancelException &)
+  {
+    // The user cancelled a deep learning request; nothing to report
+  }
   catch (IRISException &exc)
   {
     QtWarningDialog::show({ IRISWarning(exc.what()) });
@@ -75,6 +83,10 @@ PaintbrushInteractionMode::mouseReleaseEvent(QMouseEvent *ev)
     {
       ev->accept();
     }
+  }
+  catch (IRISUserCancelException &)
+  {
+    // The user cancelled a deep learning request; nothing to report
   }
   catch (IRISException &exc)
   {
@@ -104,6 +116,9 @@ PaintbrushInteractionMode::keyPressEvent(QKeyEvent *ev)
     try
     {
       m_Model->AcceptAtCursor();
+    }
+    catch (IRISUserCancelException &)
+    {
     }
     catch (IRISException &exc)
     {

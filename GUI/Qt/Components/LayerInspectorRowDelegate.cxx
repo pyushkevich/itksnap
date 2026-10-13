@@ -173,7 +173,7 @@ void LayerInspectorRowDelegate::SetModel(AbstractLayerTableRowModel *model)
   m_Model = model;
 
   makeCoupling(ui->inLayerOpacity, model->GetLayerOpacityModel());
-  makeCoupling(ui->outLayerNickname, model->GetNicknameModel());
+  makeCoupling((QLabel *)ui->outLayerNickname,model->GetNicknameModel());
 
   makeCoupling(m_OverlayOpacitySlider, model->GetLayerOpacityModel());
   makeCoupling((QAbstractButton *) ui->btnVisible, model->GetVisibilityToggleModel());

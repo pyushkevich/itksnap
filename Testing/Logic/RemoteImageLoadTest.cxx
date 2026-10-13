@@ -119,6 +119,7 @@ static void PrintUsage(const char *prog)
   std::cerr << "  " << prog << " --regression-test -w <remote-url> <local-ref>  compare remote/local workspace" << std::endl;
   std::cerr << "  " << prog << " --test-cache <remote-url>  verify cache fill and conditional-GET hit" << std::endl;
   std::cerr << "  " << prog << " --test-save-workspace <remote-url> <temp-dir>  save/reopen a workspace with a remote layer" << std::endl;
+  std::cerr << "  " << prog << " --test-cancel <remote-url>  cancel an HTTP download from the progress callback" << std::endl;
 }
 
 
@@ -480,6 +481,83 @@ static int TestCache(const std::string &url)
 
 
 // -----------------------------------------------------------------------
+//  --test-cancel
+//
+//  Download a file over HTTP(S) without the cache, cancelling from the
+//  progress callback. The download must stop with IRISUserCancelException,
+//  both when cancelled right away and once data has started to arrive. A
+//  download that is not cancelled must still succeed.
+// -----------------------------------------------------------------------
+
+static int TestCancel(const std::string &url)
+{
+  // Download with a callback that cancels once at least min_bytes arrived.
+  // Returns 0 if cancelled, 1 if it completed, 2 on another error.
+  auto download = [&url](std::size_t min_bytes, bool cancel, int &n_calls) -> int
+  {
+    n_calls = 0;
+    SmartPtr<RemoteImageSource> src = CreateRemoteImageSource(url);
+    src->SetProgressCallback([&](std::size_t done, std::size_t) {
+      n_calls++;
+      return !(cancel && done >= min_bytes);
+    });
+    try
+      {
+      // Delete the downloaded file again
+      std::string path = src->Download(url);
+      RemoteDownload dl(path, src->GetTemporaryDirectory());
+      return 1;
+      }
+    catch (IRISUserCancelException &)
+      {
+      return 0;
+      }
+    catch (std::exception &e)
+      {
+      std::cerr << "  error: " << e.what() << std::endl;
+      return 2;
+      }
+  };
+
+  int n_calls = 0;
+  int rc = download(0, true, n_calls);
+  if (rc != 0)
+    {
+    std::cerr << "FAIL: download cancelled at the first callback was not cancelled (rc="
+              << rc << ")" << std::endl;
+    return 1;
+    }
+  if (n_calls != 1)
+    {
+    std::cerr << "FAIL: callback was called " << n_calls << " times after cancelling" << std::endl;
+    return 1;
+    }
+  std::cout << "PASS: download cancelled at the first progress callback" << std::endl;
+
+  rc = download(1, true, n_calls);
+  if (rc == 0)
+    std::cout << "PASS: download cancelled after data started to arrive" << std::endl;
+  else if (rc == 1)
+    std::cout << "SKIP: download finished before any partial progress was reported" << std::endl;
+  else
+    {
+    std::cerr << "FAIL: unexpected error when cancelling mid-download" << std::endl;
+    return 1;
+    }
+
+  rc = download(0, false, n_calls);
+  if (rc != 1)
+    {
+    std::cerr << "FAIL: download without cancelling did not complete" << std::endl;
+    return 1;
+    }
+  std::cout << "PASS: download without cancelling completed (" << n_calls
+            << " progress callbacks)" << std::endl;
+  return 0;
+}
+
+
+// -----------------------------------------------------------------------
 //  --test-save-workspace
 //
 //  Load an image from a remote URL, save a local workspace, and check that
@@ -622,6 +700,18 @@ int main(int argc, char *argv[])
       }
     std::string url = ResolveITKSnapURL(argv[2]);
     return TestCache(url);
+    }
+
+  // ── --test-cancel ────────────────────────────────────────────────────
+  if (cmd == "--test-cancel")
+    {
+    if (argc < 3)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    std::string url = ResolveITKSnapURL(argv[2]);
+    return TestCancel(url);
     }
 
   // ── --test-save-workspace ────────────────────────────────────────────

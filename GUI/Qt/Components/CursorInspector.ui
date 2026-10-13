@@ -380,7 +380,10 @@ font-size: 11px;
       </size>
      </property>
      <property name="textElideMode">
-      <enum>Qt::TextElideMode::ElideRight</enum>
+      <enum>Qt::TextElideMode::ElideMiddle</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
      </property>
      <attribute name="horizontalHeaderMinimumSectionSize">
       <number>48</number>

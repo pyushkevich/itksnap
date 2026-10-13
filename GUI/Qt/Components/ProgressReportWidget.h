@@ -40,7 +40,7 @@ class ProgressTaskWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit ProgressTaskWidget(const QString &label, bool reportsProgress, QWidget *parent = nullptr);
+  explicit ProgressTaskWidget(const QString &label, QWidget *parent = nullptr);
 
   void setLabel(const QString &txt);
   void showProgress(int pct);
@@ -55,6 +55,8 @@ signals:
   void cancelRequested();
 
 private:
+  static constexpr int MAX_LABEL_WIDTH = 240; // pixels
+
   QLabel       *textLabel;
   QProgressBar *progressBar;
   Spinner      *spinner;

@@ -1183,8 +1183,8 @@ IRISApplication ::ExportSegmentationMesh(const MeshExportSettings &sets, itk::Co
     // Take apart the filename
     std::string full = itksys::SystemTools::CollapseFullPath(sets.GetMeshFileName().c_str());
     std::string path = itksys::SystemTools::GetFilenamePath(full.c_str());
-    std::string file = itksys::SystemTools::GetFilenameWithoutExtension(full.c_str());
-    std::string extn = itksys::SystemTools::GetFilenameExtension(full.c_str());
+    std::string file = StripFilenameExtension(full);
+    std::string extn = itksys::SystemTools::GetFilenameName(full).substr(file.length());
     std::string prefix = file;
 
     // Are the last 5 characters of the filename numeric?
@@ -1545,6 +1545,28 @@ IRISApplication ::AddDerivedOverlayImage(const ImageWrapperBase *sourceLayer,
 }
 
 void
+IRISApplication::UpdateHideFileExtensions()
+{
+  bool hide = m_GlobalState->GetDefaultBehaviorSettings()->GetHideFileExtensions();
+  if (hide == WrapperBase::GetHideFileExtensions())
+    return;
+
+  WrapperBase::SetHideFileExtensions(hide);
+
+  // Tell the views that the nicknames of all layers may have changed
+  GenericImageData *data[] = { m_IRISImageData, m_SNAPImageData };
+  for (GenericImageData *gid : data)
+  {
+    if (!gid)
+      continue;
+    for (LayerIterator it(gid); !it.IsAtEnd(); ++it)
+      it.GetLayer()->NotifyNicknameChanged();
+    for (MeshLayerIterator it(gid->GetMeshLayers()); !it.IsAtEnd(); ++it)
+      it.GetLayer()->NotifyNicknameChanged();
+  }
+}
+
+void
 IRISApplication ::AutoContrastLayerOnLoad(ImageWrapperBase *layer)
 {
   // Get a pointer to the policy for this layer
@@ -1824,12 +1846,15 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
   // If fname is a remote URL, download it to a temp file first and work with
   // the local copy from here on.  The original URL is stamped onto the layer
   // at the end so the rest of the application can see where the image came from.
+  // A temporary download is deleted when this function returns.
   std::string remote_url;
   std::string local_fname = fname;
+  RemoteDownload download;
   if (IsRemoteImageURL(fname))
     {
     remote_url = fname;
-    local_fname = DownloadRemoteFile(fname, GetRemoteIOContext());
+    download = DownloadRemoteFile(fname, GetRemoteIOContext());
+    local_fname = download.GetPath();
     fname = local_fname.c_str();
     }
 
@@ -2221,8 +2246,11 @@ IRISApplication::GetRemoteIOContext() const
   ctx.progressDelegate = m_ProgressDelegate;
   ctx.connectionPool   = m_ActiveConnectionPool.GetPointer();
   ctx.authDelegate     = m_SSHAuthDelegate;
-  ctx.appDataDir       = m_SystemInterface->GetApplicationDataDirectory();
   ctx.remoteSettings   = m_GlobalState->GetRemoteResourceSettings();
+
+  // Without the data directory, DownloadRemoteFile() does not use the cache
+  if (m_RemoteCacheEnabled)
+    ctx.appDataDir = m_SystemInterface->GetApplicationDataDirectory();
   return ctx;
 }
 
@@ -2305,13 +2333,17 @@ IRISApplication::OpenWorkspace(const std::string &proj_file, IRISWarningList &wa
     ~PoolCleaner() { pool = nullptr; }
   } pool_cleaner{m_ActiveConnectionPool};
 
-  std::string local_proj_file = proj_file;
-  if (IsRemoteImageURL(proj_file))
-    local_proj_file = DownloadRemoteFile(proj_file, GetRemoteIOContext());
-
   // Load the registry file
   Registry preg;
-  preg.ReadFromXMLFile(local_proj_file.c_str());
+  if (IsRemoteImageURL(proj_file))
+    {
+    RemoteDownload download = DownloadRemoteFile(proj_file, GetRemoteIOContext());
+    preg.ReadFromXMLFile(download.GetPath().c_str());
+    }
+  else
+    {
+    preg.ReadFromXMLFile(proj_file.c_str());
+    }
 
   // project_dir: for a remote workspace use the parent directory of the
   // original URL (e.g. "scp://user@host/data") so the moved-path rebase

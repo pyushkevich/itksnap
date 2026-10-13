@@ -83,19 +83,14 @@ CursorInspector::CursorInspector(QWidget *parent) :
 
   ui->tableVoxelUnderCursor->setModel(m_CurrentVoxelItemModel);
   ui->tableVoxelUnderCursor->setAlternatingRowColors(true);
-  ui->tableVoxelUnderCursor->setFixedWidth(160);
+  ui->tableVoxelUnderCursor->setMinimumWidth(160);
   ui->tableVoxelUnderCursor->setFixedHeight(120);
   ui->tableVoxelUnderCursor->setContextMenuPolicy(Qt::CustomContextMenu);
 
-#if QT_VERSION >= 0x050000
-  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Interactive);
-  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-#else
-  ui->tableVoxelUnderCursor->horizontalHeader()->setResizeMode(0, QHeaderView::Interactive);
-  ui->tableVoxelUnderCursor->horizontalHeader()->setResizeMode(1, QHeaderView::Stretch);
-#endif
-  ui->tableVoxelUnderCursor->setColumnWidth(0, 92);
-  // ui->tableVoxelUnderCursor->setColumnWidth(1, 68);
+  // The intensity column is as wide as its values, and the layer column, whose
+  // long names are elided, gets the rest
+  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+  ui->tableVoxelUnderCursor->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 
   // Hook up the context menu
   connect(ui->tableVoxelUnderCursor, SIGNAL(customContextMenuRequested(QPoint)),

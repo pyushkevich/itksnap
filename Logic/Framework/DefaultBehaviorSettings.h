@@ -22,6 +22,9 @@ public:
   irisSimplePropertyAccessMacro(SyncPan, bool)
   irisSimplePropertyAccessMacro(AutoContrast, bool)
 
+  // Whether layer nicknames derived from filenames omit the file extension
+  irisSimplePropertyAccessMacro(HideFileExtensions, bool)
+
   // Permissions
   enum UpdateCheckingPermission
   {
@@ -58,6 +61,7 @@ protected:
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncZoomModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_SyncPanModel;
   SmartPtr<ConcreteSimpleBooleanProperty> m_AutoContrastModel;
+  SmartPtr<ConcreteSimpleBooleanProperty> m_HideFileExtensionsModel;
 
   // Permissions
   SmartPtr<ConcretePropertyModel<UpdateCheckingPermission>> m_CheckForUpdatesModel;

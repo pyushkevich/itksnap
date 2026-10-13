@@ -12,6 +12,7 @@
 #include <QClipboard>
 #include <SNAPQtCommon.h>
 #include <QtCursorOverride.h>
+#include <ElidedTextWidgets.h>
 #include <SimpleFileDialogWithHistory.h>
 
 StatisticsDialog::StatisticsDialog(QWidget *parent) :
@@ -21,6 +22,11 @@ StatisticsDialog::StatisticsDialog(QWidget *parent) :
   ui->setupUi(this);
   this->setObjectName("dlgStatistics");
   m_ItemModel = new QStandardItemModel(this);
+
+  // Elide long layer names in the column titles
+  auto *header = new ElidedHeaderView(Qt::Horizontal, ui->tvVolumes);
+  header->setStretchLastSection(ui->tvVolumes->horizontalHeader()->stretchLastSection());
+  ui->tvVolumes->setHorizontalHeader(header);
   ui->tvVolumes->setModel(m_ItemModel);
   m_Stats = new SegmentationStatistics();
 }

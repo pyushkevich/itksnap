@@ -203,7 +203,7 @@ ITK-SNAP windows</string>
        <number>0</number>
       </property>
       <item>
-       <widget class="QComboBox" name="inWarpLayer"/>
+       <widget class="ElidedComboBox" name="inWarpLayer"/>
       </item>
      </layout>
     </widget>
@@ -231,6 +231,13 @@ ITK-SNAP windows</string>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ElidedComboBox</class>
+   <extends>QComboBox</extends>
+   <header location="global">ElidedTextWidgets.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

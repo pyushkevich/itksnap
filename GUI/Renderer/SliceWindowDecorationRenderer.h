@@ -25,8 +25,9 @@ protected:
   void DrawRuler(AbstractRenderContext *context);
   void DrawNicknames(AbstractRenderContext *context);
   void DrawOrientationLabels(AbstractRenderContext *context);
-  std::list<std::string> GetDisplayText(ImageWrapperBase *layer);
-  std::string        CapStringLength(const std::string &str, size_t max_size);
+  std::list<std::string> GetDisplayText(ImageWrapperBase      *layer,
+                                        AbstractRenderContext *context,
+                                        int                    max_width);
 
   GenericSliceModel *m_Model;
 };

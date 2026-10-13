@@ -43,6 +43,17 @@ public:
   virtual const std::string &GetCustomNickname() const { return m_CustomNickname; }
   virtual void SetCustomNickname(const std::string &nickname);
 
+  /**
+   * Whether the nickname derived from the filename omits the extension
+   * (default). This is a user preference shared by all wrappers; after
+   * changing it, call NotifyNicknameChanged() on existing wrappers.
+   */
+  static void SetHideFileExtensions(bool value) { s_HideFileExtensions = value; }
+  static bool GetHideFileExtensions() { return s_HideFileExtensions; }
+
+  /** Fire the event that tells views the nickname may have changed */
+  void NotifyNicknameChanged();
+
   /** Fallback nickname - shown if no filename and no custom nickname set. */
   irisGetSetMacro(DefaultNickname, const std::string &)
 
@@ -120,7 +131,13 @@ protected:
 
   unsigned long m_UniqueId;
 
-  std::string m_FileName, m_FileNameShort;
+  // The filename without the directory, with and without the extension
+  std::string m_FileName, m_FileNameShort, m_FileNameNoExt;
+
+  // The nickname derived from the filename (one of the above)
+  const std::string &GetFileNickname() const;
+
+  static bool s_HideFileExtensions;
   std::string m_DefaultNickname, m_CustomNickname;
   TagList m_Tags;
   bool m_Initialized;

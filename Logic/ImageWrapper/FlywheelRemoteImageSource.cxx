@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <vector>
 #include <cstdio>
@@ -52,32 +53,6 @@ void ClearCachedAPIKey(const std::string &server)
 {
   std::lock_guard<std::mutex> lock(g_APIKeyMutex);
   g_APIKeyCache.erase(server);
-}
-
-std::string MakeFWTempDir()
-{
-  std::string base = SystemInterface::GetSystemInfoDelegate()->GetTempDirectory();
-  if (base.empty())
-    throw IRISException("SystemInfoDelegate::GetTempDirectory() returned an empty path");
-
-#ifdef _WIN32
-  char name[MAX_PATH + 1] = "";
-  if (!GetTempFileNameA(base.c_str(), "itksnap_fw", 0, name))
-    throw IRISException("Cannot generate temp filename for Flywheel download in: %s", base.c_str());
-  std::string dir = std::string(name) + "_d";
-  DeleteFileA(name);
-  if (!CreateDirectoryA(dir.c_str(), nullptr))
-    throw IRISException("Cannot create temp directory: %s", dir.c_str());
-  return dir;
-#else
-  std::string tmpl = base + "/itksnap_fw_XXXXXX";
-  std::vector<char> buf(tmpl.begin(), tmpl.end());
-  buf.push_back('\0');
-  char *dir = mkdtemp(buf.data());
-  if (!dir)
-    throw IRISException("Cannot create temp directory under: %s", base.c_str());
-  return dir;
-#endif
 }
 
 // Flywheel API keys are displayed as "host:secret" in the UI and by the Python
@@ -143,10 +118,23 @@ std::string LoadAPIKeyFromFWConfig(const std::string &server)
 
 // Execute a GET against the Flywheel REST API with the given API key.
 // Returns the response body; sets http_code.
-std::string APIGet(const std::string &url, const std::string &api_key, long &http_code)
+// @p progress_cb  The download's progress callback, if any. It is called with
+//                 an unknown size while the request runs, so that the GUI
+//                 stays responsive and the user can cancel; the size of the
+//                 API response itself is not the file's progress.
+std::string APIGet(const std::string &url, const std::string &api_key, long &http_code,
+                   DownloadProgressCallback *progress_cb)
 {
   RESTClient<> client;
   client.SetRequestHeader("Authorization", MakeBearerHeader(api_key).c_str());
+  if (progress_cb && *progress_cb)
+    client.SetProgressCallback(
+      progress_cb,
+      [](void *data, size_t, size_t) -> bool
+      {
+      auto *cb = static_cast<DownloadProgressCallback *>(data);
+      return (*cb)(0, 0);
+      });
   client.Get("%s", url.c_str());
   http_code = client.GetHTTPCode();
   const char *out = client.GetOutput();
@@ -193,7 +181,8 @@ std::string ResolveLevel(const std::string &list_url,
                          const std::string &label,
                          const std::string &item_type,
                          const std::string &parent_name,
-                         const std::string &server)
+                         const std::string &server,
+                         DownloadProgressCallback *progress_cb)
 {
   std::string cache_key = list_url + "|" + label;
   {
@@ -204,7 +193,7 @@ std::string ResolveLevel(const std::string &list_url,
   }
 
   long code = 0;
-  std::string body = APIGet(list_url, api_key, code);
+  std::string body = APIGet(list_url, api_key, code, progress_cb);
 
   if (code == 401)
     {
@@ -229,6 +218,8 @@ std::string ResolveLevel(const std::string &list_url,
 // Ticket-based download from /api/{container_type}/{container_id}/files/{filename}.
 // Works for both "acquisitions" and "analyses".
 // @p cache_url  The original fw:// URL used as the cache key.
+// @p temp_dir   Set to the temp directory holding the returned file when it
+//               is not in the cache; the caller owns that directory.
 std::string DownloadDirect(const std::string         &server,
                            const std::string         &container_type,
                            const std::string         &container_id,
@@ -236,7 +227,8 @@ std::string DownloadDirect(const std::string         &server,
                            const std::string         &api_key,
                            const std::string         &cache_url,
                            RemoteFileCache           *file_cache,
-                           DownloadProgressCallback  *progress_cb)
+                           DownloadProgressCallback  *progress_cb,
+                           std::string               &temp_dir)
 {
   std::string base         = "https://" + server;
   std::string download_url = base + "/api/" + container_type + "/"
@@ -250,7 +242,7 @@ std::string DownloadDirect(const std::string         &server,
   // Request a short-lived download ticket so the Authorization header is never
   // forwarded when Flywheel redirects to its pre-signed S3 URL.
   long ticket_code = 0;
-  std::string ticket_body = APIGet(download_url + "?ticket=", api_key, ticket_code);
+  std::string ticket_body = APIGet(download_url + "?ticket=", api_key, ticket_code, progress_cb);
 
   if (ticket_code == 401)
     {
@@ -282,16 +274,18 @@ std::string DownloadDirect(const std::string         &server,
     throw IRISException("Flywheel: invalid file name '%s' in URL", filename.c_str());
 
   // Stream to a local temp file, following the S3 redirect transparently.
-  std::string tmpdir = MakeFWTempDir();
-  std::string dest   = tmpdir + "/" + local_name;
+  // The temp directory, with any partial file, is removed if the download
+  // fails or is cancelled. The file is closed first.
+  DownloadTempDir tmpdir("itksnap_fw");
+  std::string dest = tmpdir.GetPath() + "/" + local_name;
 
-  FILE *outfile = fopen(dest.c_str(), "wb");
+  std::unique_ptr<FILE, int (*)(FILE *)> outfile(fopen(dest.c_str(), "wb"), fclose);
   if (!outfile)
     throw IRISException("Flywheel: cannot create local file '%s'", dest.c_str());
 
   RESTClient<> dl_client;
   dl_client.SetFollowRedirects(true);
-  dl_client.SetOutputFile(outfile);
+  dl_client.SetOutputFile(outfile.get());
 
   if (!cached.local_path.empty())
     {
@@ -301,33 +295,35 @@ std::string DownloadDirect(const std::string         &server,
       dl_client.SetRequestHeader("If-Modified-Since", cached.last_modified.c_str());
     }
 
+  dl_client.SetStallTimeout(DOWNLOAD_STALL_TIMEOUT_SEC);
   if (progress_cb && *progress_cb)
     dl_client.SetProgressCallback(
       progress_cb,
-      [](void *data, size_t done, size_t total)
+      [](void *data, size_t done, size_t total) -> bool
       {
       auto *cb = static_cast<DownloadProgressCallback *>(data);
-      (*cb)(done, total);
+      return (*cb)(done, total);
       });
 
   dl_client.Get("%s", ticketed_url.c_str());
-  fclose(outfile);
+  if (fclose(outfile.release()) != 0)
+    throw IRISException("Flywheel: write error to '%s'", dest.c_str());
 
   long code = dl_client.GetHTTPCode();
 
   if (code == 304)
-    {
-    itksys::SystemTools::RemoveADirectory(tmpdir);
     return cached.local_path;
-    }
   if (code != 200)
     throw IRISException("Flywheel: HTTP %ld downloading %s", code, download_url.c_str());
 
-  if (file_cache)
-    return file_cache->StoreHTTP(cache_url, dest,
-                                 dl_client.GetResponseHeader("etag"),
-                                 dl_client.GetResponseHeader("last-modified"));
-  return dest;
+  std::string path = file_cache
+    ? file_cache->StoreHTTP(cache_url, dest,
+                            dl_client.GetResponseHeader("etag"),
+                            dl_client.GetResponseHeader("last-modified"))
+    : dest;
+  if (path == dest)
+    temp_dir = tmpdir.Keep();
+  return path;
 }
 
 // Label-based discovery: resolve group/project/subject/session/container by
@@ -341,7 +337,8 @@ std::string DownloadByFind(const std::string               &server,
                            const std::string               &api_key,
                            const std::string               &cache_url,
                            RemoteFileCache                 *file_cache,
-                           DownloadProgressCallback        *progress_cb)
+                           DownloadProgressCallback        *progress_cb,
+                           std::string                     &temp_dir)
 {
   std::string base             = "https://" + server;
   std::string group            = UrlDecode(parts[1]);
@@ -357,22 +354,22 @@ std::string DownloadByFind(const std::string               &server,
 
   std::string project_id =
     ResolveLevel(base + "/api/groups/" + group + "/projects",
-                 api_key, project, "project", group, server);
+                 api_key, project, "project", group, server, progress_cb);
 
   std::string subject_id =
     ResolveLevel(base + "/api/projects/" + project_id + "/subjects",
-                 api_key, subject, "subject", project, server);
+                 api_key, subject, "subject", project, server, progress_cb);
 
   std::string session_id =
     ResolveLevel(base + "/api/subjects/" + subject_id + "/sessions",
-                 api_key, session, "session", subject, server);
+                 api_key, session, "session", subject, server, progress_cb);
 
   std::string container_id =
     ResolveLevel(base + "/api/sessions/" + session_id + "/" + ctype,
-                 api_key, label, ctype_singular, session, server);
+                 api_key, label, ctype_singular, session, server, progress_cb);
 
   return DownloadDirect(server, ctype, container_id, filename,
-                        api_key, cache_url, file_cache, progress_cb);
+                        api_key, cache_url, file_cache, progress_cb, temp_dir);
 }
 
 } // anonymous namespace
@@ -385,6 +382,8 @@ std::string DownloadByFind(const std::string               &server,
 std::string
 FlywheelRemoteImageSource::Download(const std::string &url)
 {
+  m_TemporaryDirectory.clear();
+
   // ---- 1. Parse: strip fw:// and split into server + path segments ----
   if (url.substr(0, 5) != "fw://")
     throw IRISException("FlywheelRemoteImageSource: URL must start with fw://: %s",
@@ -441,11 +440,12 @@ FlywheelRemoteImageSource::Download(const std::string &url)
 
   if (is_direct)
     return DownloadDirect(server, parts[0], parts[1], parts[3],
-                          api_key, url, m_FileCache, &m_ProgressCallback);
+                          api_key, url, m_FileCache, &m_ProgressCallback,
+                          m_TemporaryDirectory);
 
   if (is_find)
     return DownloadByFind(server, parts, api_key, url,
-                          m_FileCache, &m_ProgressCallback);
+                          m_FileCache, &m_ProgressCallback, m_TemporaryDirectory);
 
   throw IRISException(
     "Flywheel: unrecognised URL format: %s\n"
