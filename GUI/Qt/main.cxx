@@ -1333,6 +1333,60 @@ main(int argc, char *argv[])
   // Create the global UI
   try
   {
+    // Set the locale from the command line argument
+    if (argdata.gui_language.size())
+    {
+      QLocale::setDefault(QLocale(argdata.gui_language.c_str()));
+      qDebug() << "ITK-SNAP using locale:" << QLocale().name();
+    }
+
+    // Adjust the locale for discrepancy between zh_CN and zh-Hans_US codes that
+    // are used on MacOS
+    QLocale locale;
+    if(locale.language() == QLocale::Chinese && locale.script() == QLocale::SimplifiedChineseScript)
+    {
+      QLocale::setDefault(QLocale(QLocale::Chinese, QLocale::China));
+      locale = QLocale();
+    }
+
+    QTranslator translator;
+    if(translator.load(locale, "itksnap", "_", ":/i18n"))
+    {
+      qDebug() << "Loaded translator for locale" << locale.name();
+      QCoreApplication::installTranslator(&translator);
+    }
+    else
+    {
+      qDebug() << "Failed to load translator for locale" << locale.name();
+    }
+
+    QTranslator translator_sys;
+    QString translator_sys_path = QLibraryInfo::path(QLibraryInfo::TranslationsPath);
+#ifdef Q_OS_MACOS
+    // Handle problem where Qt looks for the translations in the wrong place
+    if(translator_sys_path.endsWith("Contents/translations"))
+    {
+      translator_sys_path = translator_sys_path.replace("Contents/translations","Contents/Resources/translations");
+    }
+#endif
+    if (translator_sys.load(locale, "qt", "_", translator_sys_path))
+    {
+      qDebug() << "Loaded qtbase translator for locale" << locale.name();
+      QCoreApplication::installTranslator(&translator_sys);
+    }
+    else
+    {
+      qDebug() << "Failed to load qtbase translator for locale" << locale.name();
+      qDebug() << "  Search paths considered: " << translator_sys_path;
+    }
+
+    // Translate strings from the Logic and Model layers (default layer
+    // nicknames and label names) with the translators installed above. This
+    // has to happen before creating GlobalUIModel, which creates the labels.
+    SetSNAPTranslator([](const char *context, const char *text) {
+      return QCoreApplication::translate(context, text).toStdString();
+    });
+
     // Provide string translation sources to non-GUI code that needs them
     // This has to happen before creating GlobalUIModel
     ColorMap::SetColorMapPresetNameSource(QtColorMapPresetHelper::GetColorMapPresetNameSource());
@@ -1382,53 +1436,6 @@ main(int argc, char *argv[])
 
     // Load the user preferences
     gui->LoadUserPreferences();
-
-    // Set the locale from the command line argument
-    if (argdata.gui_language.size())
-    {
-      QLocale::setDefault(QLocale(argdata.gui_language.c_str()));
-      qDebug() << "ITK-SNAP using locale:" << QLocale().name();
-    }
-
-    // Adjust the locale for discrepancy between zh_CN and zh-Hans_US codes that
-    // are used on MacOS
-    QLocale locale;
-    if(locale.language() == QLocale::Chinese && locale.script() == QLocale::SimplifiedChineseScript)
-    {
-      QLocale::setDefault(QLocale(QLocale::Chinese, QLocale::China));
-      locale = QLocale();
-    }
-
-    QTranslator translator;
-    if(translator.load(locale, "itksnap", "_", ":/i18n"))
-    {
-      qDebug() << "Loaded translator for locale" << locale.name();
-      QCoreApplication::installTranslator(&translator);
-    }
-    else
-    {
-      qDebug() << "Failed to load translator for locale" << locale.name();
-    }
-
-    QTranslator translator_sys;
-    QString translator_sys_path = QLibraryInfo::path(QLibraryInfo::TranslationsPath);
-#ifdef Q_OS_MACOS
-    // Handle problem where Qt looks for the translations in the wrong place
-    if(translator_sys_path.endsWith("Contents/translations"))
-    {
-      translator_sys_path = translator_sys_path.replace("Contents/translations","Contents/Resources/translations");
-    }
-#endif
-    if (translator_sys.load(locale, "qt", "_", translator_sys_path))
-    {
-      qDebug() << "Loaded qtbase translator for locale" << locale.name();
-      QCoreApplication::installTranslator(&translator_sys);
-    }
-    else
-    {
-      qDebug() << "Failed to load qtbase translator for locale" << locale.name();
-      qDebug() << "  Search paths considered: " << translator_sys_path;
-    }
 
     // Create the main window
     MainImageWindow *mainwin = new MainImageWindow();

@@ -200,6 +200,18 @@ long get_system_time_ms();
   */
 std::string StripFilenameExtension(const std::string &filename);
 
+/**
+  Translate a user-visible string in Logic and Model code, which cannot use
+  Qt. The GUI installs a translator with SetSNAPTranslator at startup;
+  without one the text is returned unchanged. lupdate extracts the calls
+  (SNAPTranslate is declared to it as an alias of QCoreApplication::translate),
+  so both arguments must be string literals. Defined in SystemInterface.cxx
+  */
+std::string SNAPTranslate(const char *context, const char *text);
+
+typedef std::string (*SNAPTranslatorFunction)(const char *context, const char *text);
+void SetSNAPTranslator(SNAPTranslatorFunction translator);
+
 
 /**
   A child class around itk::SmartPointer. It's main purpose is to allow Qt

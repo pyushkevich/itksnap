@@ -1169,6 +1169,57 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
     </message>
 </context>
 <context>
+    <name>DefaultLabel</name>
+    <message>
+        <location filename="../../../Logic/Common/ColorLabelTable.cxx" line="425" />
+        <source>Clear Label</source>
+        <translation>清除标签</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Common/ColorLabelTable.cxx" line="439" />
+        <source>Label %1</source>
+        <translation>标签 %1</translation>
+    </message>
+</context>
+<context>
+    <name>DefaultNickname</name>
+    <message>
+        <location filename="../../Model/LayerTableRowModel.cxx" line="564" />
+        <source>Textures</source>
+        <translation>纹理</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1292" />
+        <source>Main Image</source>
+        <translation>主图像</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1295" />
+        <source>Additional Image</source>
+        <translation>附加图像</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1298" />
+        <source>Segmentation Image</source>
+        <translation>分割图像</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/SNAPImageData.cxx" line="109" />
+        <source>Speed Image</source>
+        <translation>速度图像</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/SNAPImageData.cxx" line="175" />
+        <source>Evolving Contour</source>
+        <translation>演变轮廓</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Mesh/SegmentationMeshWrapper.h" line="73" />
+        <source>Mesh-</source>
+        <translation>网格-</translation>
+    </message>
+</context>
+<context>
     <name>DisplayLayoutInspector</name>
     <message>
         <location filename="../Components/DisplayLayoutInspector.ui" line="14" />
@@ -10747,12 +10798,12 @@ ITK-SNAP 窗口共享状态</translation>
         <translation>无法从 %1 加载标签</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1573" />
+        <location filename="../main.cxx" line="1580" />
         <source>ITK-SNAP failed to start</source>
         <translation>ITK-SNAP 启动失败</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1573" />
+        <location filename="../main.cxx" line="1580" />
         <source>Exception occurred during ITK-SNAP startup</source>
         <translation>ITK-SNAP 启动时发生异常</translation>
     </message>

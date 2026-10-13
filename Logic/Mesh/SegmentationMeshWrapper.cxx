@@ -77,7 +77,7 @@ SegmentationMeshWrapper::Initialize(LabelImageWrapper *segImg, MeshOptions *mesh
 
   // Set Default nickname
   std::ostringstream oss;
-	oss << m_NicknamePrefix << segImg->GetNickname();
+	oss << GetNicknamePrefix() << segImg->GetNickname();
   SetDefaultNickname(oss.str());
 
 	auto metaCallback = SegmentationMetadataUpdateCallback::New();

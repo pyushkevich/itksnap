@@ -68,8 +68,9 @@ public:
   /** Add a new blank segmentation mesh assembly to the assembly map*/
   void CreateNewAssembly(unsigned int timepoint);
 
-	const char* GetNicknamePrefix() const
-	{ return m_NicknamePrefix; }
+	/** Prefix of the nickname, followed by the segmentation's nickname */
+	std::string GetNicknamePrefix() const
+	{ return SNAPTranslate("DefaultNickname", "Mesh-"); }
 
   unsigned long GetAssemblyMTime(unsigned int tp);
 
@@ -82,8 +83,6 @@ protected:
   SmartPtr<LabelImageWrapper> m_ImagePointer;
 
   SmartPtr<MeshOptions> m_MeshOptions;
-
-	const char* m_NicknamePrefix = "Mesh-";
 };
 
 /**

@@ -1169,6 +1169,57 @@ Bitte folgen Sie der &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&g
     </message>
 </context>
 <context>
+    <name>DefaultLabel</name>
+    <message>
+        <location filename="../../../Logic/Common/ColorLabelTable.cxx" line="425" />
+        <source>Clear Label</source>
+        <translation>Label löschen</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Common/ColorLabelTable.cxx" line="439" />
+        <source>Label %1</source>
+        <translation>Label %1</translation>
+    </message>
+</context>
+<context>
+    <name>DefaultNickname</name>
+    <message>
+        <location filename="../../Model/LayerTableRowModel.cxx" line="564" />
+        <source>Textures</source>
+        <translation>Texturen</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1292" />
+        <source>Main Image</source>
+        <translation>Hauptbild</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1295" />
+        <source>Additional Image</source>
+        <translation>Zusätzliches Bild</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1298" />
+        <source>Segmentation Image</source>
+        <translation>Segmentierungsbild</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/SNAPImageData.cxx" line="109" />
+        <source>Speed Image</source>
+        <translation>Geschwindigkeitsbild</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Framework/SNAPImageData.cxx" line="175" />
+        <source>Evolving Contour</source>
+        <translation>Sich entwickelnde Kontur</translation>
+    </message>
+    <message>
+        <location filename="../../../Logic/Mesh/SegmentationMeshWrapper.h" line="73" />
+        <source>Mesh-</source>
+        <translation>Netz-</translation>
+    </message>
+</context>
+<context>
     <name>DisplayLayoutInspector</name>
     <message>
         <location filename="../Components/DisplayLayoutInspector.ui" line="14" />
@@ -10711,12 +10762,12 @@ ITK-SNAP-Fenstern teilen</translation>
         <translation>Beschriftungen von %1 konnten nicht geladen werden</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1573" />
+        <location filename="../main.cxx" line="1580" />
         <source>ITK-SNAP failed to start</source>
         <translation>ITK-SNAP konnte nicht gestartet werden</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1573" />
+        <location filename="../main.cxx" line="1580" />
         <source>Exception occurred during ITK-SNAP startup</source>
         <translation>Ausnahmefehler beim Start von ITK-SNAP aufgetreten</translation>
     </message>

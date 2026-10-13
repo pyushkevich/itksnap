@@ -422,7 +422,7 @@ ColorLabel ColorLabelTable::GetDefaultColorLabel(LabelType id)
     // deflab.SetValid(true);
     deflab.SetVisible(false);
     deflab.SetVisibleIn3D(false);
-    deflab.SetLabel("Clear Label");
+    deflab.SetLabel(SNAPTranslate("DefaultLabel", "Clear Label").c_str());
     }
   else
     {
@@ -435,9 +435,12 @@ ColorLabel ColorLabelTable::GetDefaultColorLabel(LabelType id)
     deflab.SetVisible(true);
     deflab.SetVisibleIn3D(true);
 
-    IRISOStringStream sout;
-    sout << "Label " << id;
-    deflab.SetLabel(sout.str().c_str());
+    // The name format, e.g. "Label %1", in the user's language
+    std::string name = SNAPTranslate("DefaultLabel", "Label %1");
+    size_t      pos = name.find("%1");
+    if (pos != std::string::npos)
+      name.replace(pos, 2, std::to_string(id));
+    deflab.SetLabel(name.c_str());
     }
 
   return deflab;
