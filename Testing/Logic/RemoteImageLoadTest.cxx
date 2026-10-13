@@ -335,8 +335,11 @@ static int RegressionTest(const std::string &flag,
 
 static int TestCache(const std::string &url)
 {
-  // Derive the cache paths from the same data directory the app would use.
-  std::string data_dir  = ".itksnap_test";
+  // Derive the cache paths from the same data directory the app uses. This is
+  // only the delegate's location on macOS; on Windows it comes from APPDATA
+  // and on Linux from HOME, which CMake points at the build directory
+  auto app1 = MakeApp();
+  std::string data_dir  = app1->GetSystemInterface()->GetApplicationDataDirectory();
   std::string cache_dir = data_dir + "/Cache";
   std::string meta_path = data_dir + "/CacheMetadata.xml";
 
@@ -355,8 +358,6 @@ static int TestCache(const std::string &url)
   std::cout << "First download: " << url << std::endl;
 
   IRISWarningList warnings;
-  auto app1 = MakeApp();
-
   try
     {
     app1->OpenImage(url.c_str(), MAIN_ROLE, warnings);

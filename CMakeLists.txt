@@ -1486,6 +1486,16 @@ add_test(NAME RemoteImageLoadTest_Cache
     --test-cache
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
 
+# The test clears the cache, so keep the application data directory (which
+# comes from APPDATA on Windows and HOME on Linux) out of the user's profile
+set(CACHE_TEST_HOME "${CMAKE_CURRENT_BINARY_DIR}/Testing/CacheTestHome")
+file(MAKE_DIRECTORY ${CACHE_TEST_HOME})
+IF(WIN32)
+  set_tests_properties(RemoteImageLoadTest_Cache PROPERTIES ENVIRONMENT "APPDATA=${CACHE_TEST_HOME}")
+ELSEIF(NOT APPLE)
+  set_tests_properties(RemoteImageLoadTest_Cache PROPERTIES ENVIRONMENT "HOME=${CACHE_TEST_HOME}")
+ENDIF()
+
 # Test: save a workspace containing a layer loaded from a URL, check that the
 # URL is stored as-is, and reopen it.
 add_test(NAME RemoteImageLoadTest_SaveWorkspace
@@ -1595,11 +1605,12 @@ FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
   # Set the environment for the test to include Qt
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
 
-  IF(WIN32)
+  # On Windows with CMake >= 3.22, PATH is set for all tests further below
+  IF(WIN32 AND CMAKE_VERSION VERSION_LESS 3.22)
     SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT PATH=${QT_BINARY_DIR_NATIVE})
-  ELSE(WIN32)
+  ELSEIF(NOT WIN32)
     SET_PROPERTY(TEST ${GUI_TEST} APPEND PROPERTY ENVIRONMENT PATH="${QT_BINARY_DIR_NATIVE}:$ENV{PATH}")
-  ENDIF(WIN32)
+  ENDIF()
   SET_PROPERTY(TEST ${GUI_TEST} PROPERTY TIMEOUT 180)
 
   # Optionally run without windows (see SNAP_GUI_TEST_QT_PLATFORM)
@@ -1640,6 +1651,16 @@ SET_TESTS_PROPERTIES(WorkspaceToolSetActiveSeg PROPERTIES
 ADD_SNAP_GUI_TEST(WorkspaceActiveSegmentation -w "${WT_ACTIVE_SEG_WORKSPACE}")
 SET_TESTS_PROPERTIES(WorkspaceActiveSegmentation PROPERTIES
   FIXTURES_REQUIRED WorkspaceActiveSegmentationData)
+
+# On Windows, let every test find the Qt and VTK DLLs by prepending their
+# directories to the inherited PATH (this must follow all ADD_TEST calls)
+IF(WIN32 AND NOT CMAKE_VERSION VERSION_LESS 3.22)
+  FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
+  GET_PROPERTY(SNAP_ALL_TESTS DIRECTORY PROPERTY TESTS)
+  SET_PROPERTY(TEST ${SNAP_ALL_TESTS} APPEND PROPERTY ENVIRONMENT_MODIFICATION
+    "PATH=path_list_prepend:${QT_BINARY_DIR_NATIVE}"
+    "PATH=path_list_prepend:$<TARGET_FILE_DIR:VTK::CommonCore>")
+ENDIF()
 
 
 # Orientation widget test

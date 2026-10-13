@@ -35,7 +35,7 @@ LookupTableIntensityMappingFilter<TInputImage, TOutputImage>
   // TODO: fix this.
   bool zero_out_of_range = !lut->CheckRange(0);
 
-  // Perform the intensity mapping using the LUT (no bounds checking!)
+  // Perform the intensity mapping using the LUT
   while( !inputIt.IsAtEnd() )
     {
     // Get the input intensity
