@@ -702,14 +702,17 @@ PolygonDrawingModel ::AcceptPolygon(std::vector<IRISWarning> &warnings)
     }
 
     auto *ps = this->m_Parent->GetParentUI()->GetPolygonSettingsModel();
-    if (ps->GetDeepLearningMode())
+    // The lasso sent to the server is the set of voxels the polygon changed, so
+    // there is nothing to send if it changed none. In that case no undo point
+    // is created either, and calling Undo() would revert the previous edit
+    IRISApplication   *driver = m_Parent->GetDriver();
+    LabelImageWrapper *seg = driver->GetSelectedSegmentationLayer();
+    if (ps->GetDeepLearningMode() && nUpdates > 0 &&
+        seg->StoreUndoPoint("Temporary undo point"))
     {
-      IRISApplication   *driver = m_Parent->GetDriver();
-      GlobalState       *gs = driver->GetGlobalState();
-      LabelImageWrapper *seg = driver->GetSelectedSegmentationLayer();
+      GlobalState *gs = driver->GetGlobalState();
 
       // Undo the drawing we just did
-      seg->StoreUndoPoint("Temporary undo point");
       seg->Undo();
       auto &commit =
         seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
