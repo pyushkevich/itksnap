@@ -867,6 +867,18 @@ long get_system_time_ms()
 #endif
 }
 
+static SNAPTranslatorFunction g_SNAPTranslator = nullptr;
+
+void SetSNAPTranslator(SNAPTranslatorFunction translator)
+{
+  g_SNAPTranslator = translator;
+}
+
+std::string SNAPTranslate(const char *context, const char *text)
+{
+  return g_SNAPTranslator ? g_SNAPTranslator(context, text) : std::string(text);
+}
+
 // Remove the last extension of name if accept() approves it (it is passed
 // the extension without the period); returns true if removed
 static bool StripOneExtension(std::string &name, bool (*accept)(const std::string &))

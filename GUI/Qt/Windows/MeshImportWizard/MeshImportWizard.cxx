@@ -34,16 +34,12 @@ MeshImportWizard::~MeshImportWizard()
 }
 
 QMessageBox *
-MeshImportWizard
-::CreateLoadToNewLayerMessageBox(QWidget *parent, unsigned int displayTP)
+MeshImportWizard::CreateLoadToNewLayerMessageBox(QWidget *parent, unsigned int displayTP)
 {
   QMessageBox *msgBox = new QMessageBox(parent);
   msgBox->setText(tr("Load file into a new mesh layer?"));
-  std::ostringstream oss;
-  oss << "The mesh will be loaded to the current time point ("
-      << displayTP
-      << ") in a new layer.";
-  msgBox->setInformativeText(oss.str().c_str());
+  msgBox->setInformativeText(
+    tr("The mesh will be loaded to the current time point (%1) in a new layer.").arg(displayTP));
   msgBox->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
   msgBox->setDefaultButton(QMessageBox::Ok);
   // for testing purpose
@@ -53,13 +49,10 @@ MeshImportWizard
 }
 
 QMessageBox *
-MeshImportWizard
-::CreateLoadToTimePointMessageBox(QWidget *parent, unsigned int displayTP)
+MeshImportWizard::CreateLoadToTimePointMessageBox(QWidget *parent, unsigned int displayTP)
 {
   QMessageBox *msgBox = new QMessageBox(parent);
-  std::ostringstream oss;
-  oss << "Load mesh file to the current time point (" << displayTP << ")?";
-  msgBox->setText(oss.str().c_str());
+  msgBox->setText(tr("Load mesh file to the current time point (%1)?").arg(displayTP));
   msgBox->setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
   msgBox->setDefaultButton(QMessageBox::Ok);
   // for testing purpose

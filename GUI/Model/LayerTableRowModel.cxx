@@ -561,7 +561,7 @@ ImageLayerTableRowModel::GenerateTextureFeatures()
     // Create a new image wrapper
     SmartPtr<TextureWrapperType> newWrapper = TextureWrapperType::New();
     newWrapper->InitializeToWrapper(m_ImageLayer, updim->GetOutput());
-    newWrapper->SetDefaultNickname("Textures");
+    newWrapper->SetDefaultNickname(SNAPTranslate("DefaultNickname", "Textures"));
     this->GetParentModel()->GetDriver()->AddDerivedOverlayImage(m_ImageLayer, newWrapper, false);
 
     // Release the cast pipeline

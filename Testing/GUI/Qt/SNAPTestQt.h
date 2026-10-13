@@ -46,7 +46,8 @@ protected:
   // Acceleration factor
   double m_Acceleration;
 
-  void readScript(QString script_url, QString &script);
+  // Read a script and the scripts it includes; false if one cannot be read
+  bool readScript(QString script_url, QString &script);
 
 };
 

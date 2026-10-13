@@ -795,8 +795,7 @@ bool RawPage::validatePage()
   return true;
 }
 
-ImageIOProgressDialog
-::ImageIOProgressDialog(QWidget *parent)
+ImageIOProgressDialog::ImageIOProgressDialog(QWidget *parent)
 	: QProgressDialog(parent)
 {
 	this->setObjectName("progressDialogImageIO");

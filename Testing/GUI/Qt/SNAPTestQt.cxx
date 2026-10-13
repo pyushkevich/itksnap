@@ -656,14 +656,16 @@ void TestWorker::wait(unsigned int msec)
   msleep(msec);
 }
 
-void TestWorker::readScript(QString script_url, QString &script)
+bool TestWorker::readScript(QString script_url, QString &script)
 {
-  // Find the script file corresponding to the test
+  // Find the script file corresponding to the test. A missing script must fail
+  // the test: otherwise a test whose script is misnamed or not in
+  // TestingScripts.qrc runs nothing and passes.
   QFile file(script_url);
   if(!file.open(QIODevice::ReadOnly))
     {
     qWarning() << QString("Unable to read test script %1").arg(script_url);
-    SNAPTestQt::application_exit(SNAPTestQt::NO_SUCH_TEST);
+    return false;
     }
 
   // Read the script
@@ -694,7 +696,8 @@ void TestWorker::readScript(QString script_url, QString &script)
 
       qDebug() << "Including : " << child_url;
 
-      this->readScript(child_url, script);
+      if(!this->readScript(child_url, script))
+        return false;
       line = "";
       }
 
@@ -704,6 +707,7 @@ void TestWorker::readScript(QString script_url, QString &script)
 
   // Close the file
   file.close();
+  return true;
 }
 
 void TestWorker::source(QString script_url)
@@ -716,7 +720,11 @@ void TestWorker::source(QString script_url)
   qDebug() << "Running test: " << script_url;
 
   QString script;
-  this->readScript(script_url, script);
+  if(!this->readScript(script_url, script))
+    {
+    SNAPTestQt::application_exit(SNAPTestQt::NO_SUCH_TEST);
+    return;
+    }
 
   // Execute it
   QJSValue rc = m_Engine->evaluate(script);

@@ -1,4 +1,67 @@
-# ITK-SNAP Release Notes - Version 4.4
+# ITK-SNAP Release Notes - Version 4.6
+
+## Version 4.6.0 (in development)
+
+### New Features
+
+- Open images, meshes and workspaces directly from remote locations:
+  - `scp://` and `sftp://` URLs load files over SSH, with password and key passphrase prompts and ProxyJump (jump host) support
+  - `http://` and `https://` URLs load publicly accessible files
+  - `fw://` URLs load files from [Flywheel](https://flywheel.io), using the API key from the Flywheel CLI
+  - Clickable `itksnap-sftp://`, `itksnap-scp://`, `itksnap-http(s)://` and `itksnap-fw://` links open ITK-SNAP from a web browser (registered by the Windows installer and the macOS application bundle)
+  - Downloaded files are kept in a local cache, so reopening a remote file is fast
+  - The [ITK-SNAP Launcher extension for VS Code](https://marketplace.visualstudio.com/items?itemName=pyushkevich.itksnap-launcher) opens images and workspaces from VS Code in ITK-SNAP, including files on remote machines that VS Code is connected to
+  - See `Documentation/Developer/RemoteURLs.md` for the URL formats
+- Several ITK-SNAP windows work together:
+  - The new Window menu lists all running ITK-SNAP instances
+  - A dropped file can be sent to another ITK-SNAP window
+  - An image link opened from the browser goes to the running ITK-SNAP window instead of starting a new one
+- The active segmentation now defines the display space. Segmentations whose resolution, extent or orientation differ from the main image are shown, edited and saved on their own grid:
+  - For example, some newer DLS pipelines produce segmentations at a higher resolution than the input image; these can now be loaded and edited at their full resolution
+  - A box shows the bounds of the active segmentation, and the cursor can be placed outside it
+  - "Zoom to fit" cycles between the whole scene, the main image and the segmentation
+  - The active segmentation is saved in the workspace
+- Deep learning segmentation (DLS):
+  - SAM2 support, and a choice of model for the paintbrush and the polygon (lasso) tools; the chosen model is remembered
+  - Images are sent to the server on the grid of the active segmentation
+- Progress of long operations (downloads, image loading, DLS requests) is shown in the main window, and most can be cancelled with the X button
+- New file formats: VTK XML images (`.vti`) and meshes (`.vtp`), and export of 4D images as NRRD volume sequences (`.seq.nrrd`)
+- A clear error message instead of a crash when an image is too large for the available memory
+- Long filenames and layer names are shortened in the middle, so that both their start and their end stay visible; layer nicknames keep periods in the filename (e.g. `T1_0.8mm.nii.gz` is now `T1_0.8mm`, not `T1_0`). A new preference shows file extensions in layer nicknames.
+- The Layer Inspector title shows the selected layer
+- New user interface languages: French, Japanese and Brazilian Portuguese. The German, Spanish and Chinese (Simplified) translations are updated for the new features, and default layer and label names are now translated too. The language follows the system settings, or can be chosen with `--lang` (e.g. `--lang fr`)
+
+### Security
+
+- Remote URLs were used as `printf` format strings in the network code. A URL containing `%` sequences could corrupt memory or crash ITK-SNAP. URLs are now always passed as data.
+- When no Flywheel profile matched the server in a `fw://` URL, the API key of the default profile was sent to that server. The key is now only sent to the host it belongs to.
+- The SSH host key of the target server was never verified (only jump hosts were checked), so a `itksnap-scp://` link could connect to an impersonated server. ITK-SNAP now asks before connecting to an unknown host and refuses a host whose key has changed.
+- A Flywheel file name containing `../` could write outside the download folder.
+
+### Bug Fixes
+
+- Fixed crashes when closing or reloading the active segmentation, and in snake mode classification
+- Fixed polygon drawing on slices outside the segmentation, and the adaptive brush on segmentations with a different grid
+- Fixed the slice slider range and slice numbers when the scene extends beyond the active segmentation
+- Fixed segmentation statistics, registration reslicing, annotations and the snake ROI when the segmentation grid differs from the main image
+- Fixed `.seq.nrrd` export writing transposed orientation and the wrong data type for 8-bit images
+- Fixed the VTI reader and writer for images with an origin, extent or direction, and for unsupported data
+- Fixed DLS: an empty stroke undid the previous edit, clicks during a running request could hang ITK-SNAP, and 3D results were not size-checked
+- Fixed saving workspaces that contain layers loaded from URLs
+- Remote downloads follow HTTP redirects, can be cancelled, are aborted when the connection stalls, and leave no temporary files behind
+- Fixed the remote file cache when several ITK-SNAP windows use it at once
+- Fixed a hang when opening some DICOM files, and memory leaks in mesh and layer handling
+- Various other fixes (see GitHub)
+
+### Programmatic Improvements
+
+- Unified progress reporting and cancellation (`AbstractProgressDelegate`) and SSH authentication (`AbstractSSHAuthDelegate`) across the logic layer
+- `RESTClient` supports generic HTTPS servers, redirects and cancellation
+- New `itksnap-wt` commands, including `-dssp-services-available` and `-props-set-active-seg`
+- New command-line options: `--url` (open a URL in the running ITK-SNAP window) and `--no-cache` (download remote files without the cache)
+- Many new regression tests, including remote IO, the remote file cache and GUI tests for remote saving and segmentation reference spaces; GUI tests can run offscreen (`SNAP_GUI_TEST_QT_PLATFORM`)
+- Developer documentation: contributing guide, governance, code of conduct and developer guide
+- Upgraded dependencies: VTK 9.5.2, Qt 6.9.3
 
 ## Version 4.4.0
 

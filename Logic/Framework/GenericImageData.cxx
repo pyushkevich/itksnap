@@ -1284,18 +1284,18 @@ std::string GenericImageData::GenerateNickname(LayerRole role)
   if(m_NicknameCounter.find(role) != m_NicknameCounter.end())
     count = m_NicknameCounter[role];
 
-  // Get the basename for the nickname
+  // Get the basename for the nickname, in the user's language
   std::string name;
   switch(role)
     {
     case MAIN_ROLE:
-      name = "Main Image";
+      name = SNAPTranslate("DefaultNickname", "Main Image");
       break;
     case OVERLAY_ROLE:
-      name = "Additional Image";
+      name = SNAPTranslate("DefaultNickname", "Additional Image");
       break;
     case LABEL_ROLE:
-      name = "Segmentation Image";
+      name = SNAPTranslate("DefaultNickname", "Segmentation Image");
       break;
     default:
       name = "Undefined";

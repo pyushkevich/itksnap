@@ -94,11 +94,11 @@ ENDIF()
 SET(SNAP_VERSION_MAJOR 4)
 SET(SNAP_VERSION_MINOR 6)
 SET(SNAP_VERSION_PATCH 0)
-SET(SNAP_VERSION_QUALIFIER "-alpha.3")
+SET(SNAP_VERSION_QUALIFIER "-alpha.4")
 
 # These fields should also be modified each time
-SET(SNAP_VERSION_RELEASE_DATE "20260901")
-SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Sep 01, 2026")
+SET(SNAP_VERSION_RELEASE_DATE "20261013")
+SET(SNAP_VERSION_RELEASE_DATE_FORMATTED "Oct 13, 2026")
 
 # This field should only change when the format of the settings files changes
 # in a non backwards-compatible way
@@ -329,9 +329,6 @@ SET(LOGIC_HEADERS
   Common/AbstractProgressDelegate.h
   Common/AbstractPropertyContainerModel.h
   Common/AbstractSSHAuthDelegate.h
-  Common/StdoutProgressDelegate.h
-  Common/StdoutSSHAuthDelegate.h
-  Common/AbstractSSHAuthDelegate.h
   Common/AffineTransformHelper.h
   Common/ColorLabelPropertyModel.h
   Common/CommandLineArgumentParser.h
@@ -366,6 +363,8 @@ SET(LOGIC_HEADERS
   Common/SNAPCommon.h
   Common/SNAPExportITKToVTK.h
   Common/SNAPEvents.h
+  Common/StdoutProgressDelegate.h
+  Common/StdoutSSHAuthDelegate.h
   Common/SystemInterface.h
   Common/TagList.h
   Logic/Common/BrushWatershedPipeline.hxx
@@ -1306,13 +1305,18 @@ set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH
 # QT Internationalization
 #--------------------------------------------------------------------------------
 
-set(QT_I18N_TRANSLATED_LANGUAGES de es zh_CN)
+set(QT_I18N_TRANSLATED_LANGUAGES de es zh_CN ja fr pt_BR)
 string(JOIN " " QT_I18N_TRANSLATED_LANGUAGES_STRING ${QT_I18N_TRANSLATED_LANGUAGES})
+# The Logic and Model libraries, which cannot use Qt, are scanned for strings
+# marked with SNAP_TRANSLATE_NOOP (progress task titles) or passed to
+# SNAPTranslate (default layer nicknames)
 qt_add_translations(
   TARGETS ${SNAP_BUNDLE_NAME}
-  SOURCE_TARGETS itksnapui_qt ${SNAP_BUNDLE_NAME}
+  SOURCE_TARGETS itksnapui_qt itksnapui_model itksnaplogic ${SNAP_BUNDLE_NAME}
   TS_FILE_DIR GUI/Qt/Translations
   TS_FILE_BASE itksnap
+  LUPDATE_OPTIONS
+    -tr-function-alias QT_TRANSLATE_NOOP+=SNAP_TRANSLATE_NOOP,translate+=SNAPTranslate
 )
 
 #--------------------------------------------------------------------------------
@@ -1338,7 +1342,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_QT_PLATFORM)
 SET(GUI_TESTS
   Workspace
   NaNs
-  4DContinuousRenderingD
+  4DContinuousRendering
   DiffSpace
   EdgeAttraction
   EchoCartesianDicomLoading
@@ -1470,6 +1474,15 @@ add_test(NAME RemoteImageLoadTest_SingleImage
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz"
     "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
 
+# Test: a percent-encoded URL (here the "." of the extension, %2E). The URL
+# must not be used as a printf format (where %2E is a conversion), and the
+# downloaded file must get the decoded name so the format is detected.
+add_test(NAME RemoteImageLoadTest_EncodedURL
+  COMMAND remote_image_load_test
+    --regression-test -g
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl%2Egz"
+    "${TESTDATA_DIR}/MRIcrop-orig.gipl.gz")
+
 # Test: load a workspace that includes a standalone mesh layer over HTTPS
 # and verify both the image layers and the mesh layer count match local.
 add_test(NAME RemoteImageLoadTest_WorkspaceWithMesh
@@ -1513,6 +1526,7 @@ add_test(NAME RemoteImageLoadTest_Cancel
 # Remote tests require network access; tag them so CI can skip them easily.
 set_tests_properties(
   RemoteImageLoadTest_SingleImage
+  RemoteImageLoadTest_EncodedURL
   RemoteImageLoadTest_WorkspaceWithMesh
   RemoteImageLoadTest_Cache
   RemoteImageLoadTest_SaveWorkspace
