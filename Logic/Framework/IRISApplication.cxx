@@ -2224,8 +2224,11 @@ IRISApplication::GetRemoteIOContext() const
   ctx.progressDelegate = m_ProgressDelegate;
   ctx.connectionPool   = m_ActiveConnectionPool.GetPointer();
   ctx.authDelegate     = m_SSHAuthDelegate;
-  ctx.appDataDir       = m_SystemInterface->GetApplicationDataDirectory();
   ctx.remoteSettings   = m_GlobalState->GetRemoteResourceSettings();
+
+  // Without the data directory, DownloadRemoteFile() does not use the cache
+  if (m_RemoteCacheEnabled)
+    ctx.appDataDir = m_SystemInterface->GetApplicationDataDirectory();
   return ctx;
 }
 

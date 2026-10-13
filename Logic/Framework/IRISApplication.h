@@ -685,6 +685,14 @@ public:
   RemoteIOContext GetRemoteIOContext() const;
 
   /**
+   * Enable or disable the persistent cache for remote downloads (on by
+   * default). When disabled, every remote file is downloaded again to a temp
+   * directory that is deleted after loading. Not saved in the preferences.
+   */
+  void SetRemoteCacheEnabled(bool enabled) { m_RemoteCacheEnabled = enabled; }
+  bool GetRemoteCacheEnabled() const { return m_RemoteCacheEnabled; }
+
+  /**
    * Get Moved File Path from the absolute file path in the original project file
    */
   static std::string GetMovedFilePath(std::string &project_dir_orig, std::string &project_dir_crnt,
@@ -829,6 +837,9 @@ protected:
   // all image downloads within the same batch share already-authenticated
   // sessions, avoiding repeated SSH handshakes.  Null at all other times.
   SmartPtr<SSHConnectionPool> m_ActiveConnectionPool;
+
+  // Whether remote downloads use the persistent file cache
+  bool m_RemoteCacheEnabled = true;
 
   // Default progress delegate: renders tasks to stdout.  GUI layers replace
   // this with a Qt delegate and restore it afterwards via SetProgressDelegate.
