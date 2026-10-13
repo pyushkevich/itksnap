@@ -256,6 +256,12 @@ public:
   /** Set the file format in a registry */
   static void SetPixelType(Registry &folder, RawPixelType type);
 
+  /**
+   * Memory currently available to load an image (free plus reclaimable), as
+   * reported by the OS, in bytes. Returns 0 if it cannot be determined.
+   */
+  static size_t GetAvailableMemory();
+
   /** Output for ParseDicomDirectory */
   typedef std::vector<Registry> RegistryArray;
 
@@ -316,6 +322,14 @@ protected:
 
   /** Templated function to create RAW image IO */
   template <typename TRaw> void CreateRawImageIO(Registry &folder);
+
+  /**
+   * Throw an IRISException if the image described by m_IOBase, times nFiles
+   * (for a DICOM series, where m_IOBase describes one file), does not fit in
+   * available memory. Call before allocating, since a failed allocation can
+   * crash (SIGBUS) without an error.
+   */
+  void CheckImageFitsInMemory(size_t nFiles = 1);
 
   /** Templated function that reads a scalar image in its native datatype */
 	template <typename TScalar> void DoReadNative(const char *fname, Registry &folder, itk::Command *ProgressCmd = nullptr);

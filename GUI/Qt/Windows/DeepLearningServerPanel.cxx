@@ -93,8 +93,18 @@ DeepLearningServerPanel::DeepLearningServerPanel(QWidget *parent)
 
 DeepLearningServerPanel::~DeepLearningServerPanel()
 {
-  delete ui;
   m_StatusCheckTimer->stop();
+
+  // A status check still running uses the model, which may be deleted soon
+  // after this panel (at application exit). Wait for it; this is bounded by
+  // the connection timeout.
+  if (m_StatusCheckWatcher)
+  {
+    disconnect(m_StatusCheckWatcher, nullptr, this, nullptr);
+    m_StatusCheckWatcher->waitForFinished();
+  }
+
+  delete ui;
   removeSSHTunnel();
 }
 
@@ -259,31 +269,46 @@ void DeepLearningServerPanel::checkServerStatus()
       m_Model->GetServerProperties()->GetUseSSHTunnel() && m_Model->GetProxyURL().empty())
     return;
 
-  // The server has changed. We should launch a separate job to connect to the
-  // server, get the list of services, and update the status.
-  using StatusCheck = DeepLearningSegmentationModel::StatusCheck;
-  QFuture<StatusCheck> future =
-    QtConcurrent::run([this]() -> StatusCheck { return m_Model->AsyncCheckStatus(); });
+  // Only one check runs at a time. If one is still running (e.g., waiting on a
+  // network timeout), run another as soon as it finishes, since the server
+  // may have changed in the meantime
+  if (m_StatusCheckWatcher)
+  {
+    m_StatusCheckPending = true;
+    return;
+  }
+  m_StatusCheckPending = false;
 
-  QFutureWatcher<StatusCheck> *watcher = new QFutureWatcher<StatusCheck>();
-  connect(watcher, SIGNAL(finished()), this, SLOT(updateServerStatus()));
-  connect(this, &QObject::destroyed, watcher, &QFutureWatcherBase::cancel);
-  watcher->setFuture(future);
+  // Launch a separate job to connect to the server, get the list of services,
+  // and update the status. The job gets a copy of everything it needs to know
+  // about the server, and does not use the panel.
+  using StatusCheck = DeepLearningSegmentationModel::StatusCheck;
+  DeepLearningSegmentationModel *model = m_Model;
+  auto request = m_Model->GetStatusCheckRequest();
+  QFuture<StatusCheck> future =
+    QtConcurrent::run([model, request]() -> StatusCheck { return model->AsyncCheckStatus(request); });
+
+  m_StatusCheckWatcher = new QFutureWatcher<StatusCheck>(this);
+  connect(m_StatusCheckWatcher, SIGNAL(finished()), this, SLOT(updateServerStatus()));
+  m_StatusCheckWatcher->setFuture(future);
 }
 
 void DeepLearningServerPanel::updateServerStatus()
 {
-  using StatusCheck = DeepLearningSegmentationModel::StatusCheck;
-  QFutureWatcher<StatusCheck> *watcher = dynamic_cast<QFutureWatcher<StatusCheck> *>(this->sender());
-  if(watcher->isCanceled())
-    qDebug() << "Canceled watcher triggered signal";
+  if (!m_StatusCheckWatcher)
+    return;
 
-  m_Model->ApplyStatusCheckResponse(watcher->result());
-  delete watcher;
+  // Results for a server that is no longer selected are ignored by the model
+  m_Model->ApplyStatusCheckResponse(m_StatusCheckWatcher->result());
+  m_StatusCheckWatcher->deleteLater();
+  m_StatusCheckWatcher = nullptr;
 
-  // Schedule another status check
-  // TODO: this can cause more than one status check per second
-  m_StatusCheckTimer->start(STATUS_CHECK_FREQUENCY_MS);
+  // Run a check that was requested while this one was running, otherwise
+  // schedule the next periodic check
+  if (m_StatusCheckPending)
+    checkServerStatus();
+  else
+    m_StatusCheckTimer->start(STATUS_CHECK_FREQUENCY_MS);
 }
 
 

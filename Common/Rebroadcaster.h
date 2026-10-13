@@ -24,7 +24,10 @@ class EventBucket;
  *
  * Later on, if we want to stop rebroadcasting, we can use the tag to stop:
  *
- * Rebroadcaster::StopRebroadcasting(tag);
+ * Rebroadcaster::StopRebroadcasting(a1.worker, tag);
+ *
+ * Do not remove the observer from the source object directly (using the tag
+ * with RemoveObserver), because the rebroadcaster would not know about it.
  *
  * The class handles object destruction gracefully. As soon as one of the classes
  * fires a itk::DeleteEvent(), the rebroadcasting stops.
@@ -67,6 +70,12 @@ public:
                                                 const itk::EventObject &sourceEvent,
                                                 itk::Object            *target,
                                                 UserCallbackType        callback = nullptr);
+
+  /**
+   * Stop rebroadcasting events from the source object. The tag is the value
+   * returned by Rebroadcast() or RebroadcastAsSourceEvent() for this source.
+   */
+  static void StopRebroadcasting(itk::Object *source, unsigned long tag);
 
 protected:
 

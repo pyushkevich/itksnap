@@ -279,31 +279,32 @@ void Generic3DModel::UpdateSegmentationMesh(itk::Command *progressCmd)
   // Prevent concurrent access to this method
   std::lock_guard<std::mutex> guard(m_Mutex);
 
+  // The flag is cleared however this method exits. A flag left set by an
+  // exception would stall mesh updates (e.g., 4D replay) for good
+  struct MeshUpdatingGuard
+  {
+    std::atomic<bool> &flag;
+    MeshUpdatingGuard(std::atomic<bool> &f) : flag(f) { flag = true; }
+    ~MeshUpdatingGuard() { flag = false; }
+  };
+
   try
   {
     // Generate all the mesh objects
-    m_MeshUpdating = true;
+    MeshUpdatingGuard updating(m_MeshUpdating);
 
     // Check if snake mode is active and get mode specific image data
     GenericImageData *imgData = m_Driver->GetCurrentImageData();
 
     // Update Mesh Layer
     imgData->GetMeshLayers()->UpdateActiveMeshLayer(progressCmd);
-
-    m_MeshUpdating = false;
-
-    InvokeEvent(ModelUpdateEvent());
   }
   catch(std::bad_alloc &)
   {
-    m_MeshUpdating = false;
     throw IRISException("Out of memory during mesh computation");
   }
-  catch(IRISException & IRISexc)
-  {
-    m_MeshUpdating = false;
-    throw IRISexc;
-  }
+
+  InvokeEvent(ModelUpdateEvent());
 }
 
 bool Generic3DModel::IsMeshUpdating()

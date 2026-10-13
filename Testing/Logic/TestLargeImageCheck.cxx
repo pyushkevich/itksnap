@@ -5,8 +5,9 @@
  * load an image whose declared size exceeds available system memory, instead of
  * crashing with SIGBUS.
  *
- * The test writes a minimal 352-byte NIfTI-1 header that declares a
- * 2000 x 2000 x 2000 float32 volume (~32 GB uncompressed). The size guard in
+ * The test writes a minimal 352-byte NIfTI-1 header that declares a float32
+ * cube about twice the size of the memory the OS reports as available (so the
+ * test also works on machines with lots of RAM). The size guard in
  * ReadNativeImageData() must fire before image->Allocate() is called, so the
  * actual file on disk doesn't need to contain any image data.
  */
@@ -17,7 +18,9 @@
 
 #include "itksys/SystemTools.hxx"
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
@@ -110,8 +113,8 @@ static void WriteLargeNiftiHeader(const std::string &path,
 /**
  * TestOversizedImageThrows
  *
- * Creates a NIfTI header declaring 2000³ × float32 ≈ 32 GB.
- * Expects ReadNativeImageData() to throw IRISException before allocating.
+ * Creates a NIfTI header declaring a float32 cube of about twice the available
+ * memory. Expects ReadNativeImageData() to throw IRISException before allocating.
  */
 static bool TestOversizedImageThrows(const std::string &tempDir)
 {
@@ -119,9 +122,16 @@ static bool TestOversizedImageThrows(const std::string &tempDir)
 
   std::string tmpFile = tempDir + "/oversized_test.nii";
 
-  // 2000^3 * 4 bytes = 32,000,000,000 bytes (~32 GB) — exceeds any machine's
-  // available RAM, so the guard must always trigger.
-  WriteLargeNiftiHeader(tmpFile, 2000, 2000, 2000);
+  // Twice the available memory (or 8 GB, if it cannot be determined; the
+  // guard then uses a 4 GB limit). NIfTI-1 dimensions are int16, so the side
+  // of the cube is capped at 32767 (~140 TB), more than any machine has.
+  size_t available = GuidedNativeImageIO::GetAvailableMemory();
+  double target_bytes = available ? 2.0 * available : 8.0 * (1ULL << 30);
+  double side = std::ceil(std::cbrt(target_bytes / sizeof(float)));
+  int16_t n = static_cast<int16_t>(std::min(side, 32767.0));
+  std::cout << "(available " << available / (1024.0 * 1024.0 * 1024.0)
+            << " GB, testing " << n << "^3 float) " << std::flush;
+  WriteLargeNiftiHeader(tmpFile, n, n, n);
 
   Registry hints;
   GuidedNativeImageIO::Pointer io = GuidedNativeImageIO::New();

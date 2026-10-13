@@ -55,8 +55,10 @@ public:
    * update, and the second parameter is the delta to be applied. The delta
    * can be NULL. All deltas previously submitted with StoreIntermediateUndoDelta
    * and the delta passed in to this method will be commited to this undo point.
+   * Returns false if the deltas contain no changes, in which case no undo
+   * point is created.
    */
-  void StoreUndoPoint(const char *text, UndoManagerDelta *delta = NULL);
+  bool StoreUndoPoint(const char *text, UndoManagerDelta *delta = NULL);
 
   /** Clear all undo points */
   void ClearUndoPoints();

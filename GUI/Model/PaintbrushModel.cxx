@@ -7,6 +7,7 @@
 #include "SegmentationUpdateIterator.h"
 #include "BrushWatershedPipeline.hxx"
 #include "DeepLearningSegmentationModel.h"
+#include "PaintbrushSettingsModel.h"
 #include "IRISException.h"
 
 
@@ -257,45 +258,49 @@ PaintbrushModel::CommitDrawing()
   PaintbrushSettings pbs = gs->GetPaintbrushSettings();
   LabelImageWrapper *seg = driver->GetSelectedSegmentationLayer();
 
-  // Handle the deep learning case
-  if (pbs.smart_mode == PAINTBRUSH_DLS)
+  // Handle the deep learning case. Deep learning interactions are along the
+  // slice axes, so in free rotation mode the stroke is kept as drawn (the
+  // deep learning mode button is disabled in this case)
+  if (pbs.smart_mode == PAINTBRUSH_DLS && !HasMainImageTransformed())
   {
     // Get the model
     auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
     auto *img = m_Parent->GetDriver()->GetCurrentImageData()->GetMain();
 
-    // Undo the drawing we just did. But there is a chance that the drawing produced nothing in
-    // which case for now we just ignore it
-    seg->StoreUndoPoint("Temporary undo point");
-    if(!seg->IsUndoPossible())
+    // Undo the drawing we just did. The drawing may have changed nothing (e.g.,
+    // a click on voxels that already have the drawing label), in which case no
+    // undo point is created and there is nothing to undo
+    const LabelImageWrapper::UndoDataManagerCommitType *commit = nullptr;
+    if (seg->StoreUndoPoint("Temporary undo point"))
     {
-      return;
+      seg->Undo();
+      commit = &seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
     }
-
-    seg->Undo();
-    auto &commit = seg->GetUndoManager()->PeekCommit(seg->GetUndoManager()->GetNumberOfCommits() - 1);
+    size_t n_deltas = commit ? commit->GetDeltas().size() : 0;
 
     // Get the remote model properties
-    auto dl_model_props = model->GetRemotePipelines()[pbs.dl_pipeline_id];
+    std::string pipeline_id =
+      m_Parent->GetParentUI()->GetPaintbrushSettingsModel()->GetEffectiveDeepLearningPipeline();
+    auto dl_model_props = model->GetRemotePipelines()[pipeline_id];
 
     // If only one delta, then treat it as a point interaction; also treat as point interaction if the model
     // does not support scribble interactions, although in this case, we might want to consider sending a
     // multi-point interaction
     bool rc = false;
-    if((commit.GetDeltas().size() == 1 && m_MouseInside) || !dl_model_props.supports_scribble)
+    if((n_deltas <= 1 && m_MouseInside) || !dl_model_props.supports_scribble)
     {
-      rc = model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, m_ReverseMode);
+      rc = model->PerformPointInteraction(pipeline_id, img, m_Parent->GetId(), m_MousePosition, m_ReverseMode);
     }
-    else if(commit.GetDeltas().size() > 1)
+    else if(n_deltas > 1)
     {
       // Compute the image corresponding to the last drawing
       SmartPtr<LabelImageWrapper> w_delta = LabelImageWrapper::New();
       w_delta->InitializeToWrapper(seg, (LabelType) 0);
       auto *img_delta = const_cast<LabelImageWrapper::ImageType *>(w_delta->GetImage());
-      auto counts = seg->GenerateImageForRedo(commit, img_delta, gs->GetDrawingColorLabel());
+      auto counts = seg->GenerateImageForRedo(*commit, img_delta, gs->GetDrawingColorLabel());
       w_delta->PixelsModified();
 
-      model->PerformScribbleInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
+      model->PerformScribbleInteraction(pipeline_id, img, m_Parent->GetId(), w_delta, counts.n_background > counts.n_foreground);
     }
 
   }
@@ -461,24 +466,6 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
 
   // Changes were made
   return true;
-}
-
-bool
-PaintbrushModel::ApplyBrushDeepLearning(bool reverse_mode)
-{
-  // Get the model
-  auto *model = m_Parent->GetParentUI()->GetDeepLearningSegmentationModel();
-  PaintbrushSettings pbs = m_Parent->GetDriver()->GetGlobalState()->GetPaintbrushSettings();
-  auto *img =
-    m_Parent->GetDriver()->GetCurrentImageData()->GetMain()->GetDefaultScalarRepresentation();
-
-  // Handle the point interaction
-  if (m_MouseInside)
-  {
-    return model->PerformPointInteraction(pbs.dl_pipeline_id, img, m_Parent->GetId(), m_MousePosition, reverse_mode);
-  }
-
-  return false;
 }
 
 PaintbrushSettings

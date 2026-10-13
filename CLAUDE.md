@@ -117,21 +117,15 @@ Whenever a new header file is added to the source tree it must also be added to 
 
 Within each list, entries are sorted alphabetically by path. The `.cxx` source files are registered in separate `SET(...)` blocks (`SNAP_CXX`, `UI_QT_CXX`, etc.) that are already nearby in the file.
 
-## Known Issues: DLS Threading Race Conditions
+## DLS Threading
 
-The Deep Learning Segmentation (DLS) subsystem (`GUI/Model/DeepLearningSegmentationModel.{h,cxx}`, `GUI/Qt/Windows/DeepLearningServerPanel.cxx`) has several known threading issues that have not yet been fixed.
+The Deep Learning Segmentation (DLS) subsystem (`GUI/Model/DeepLearningSegmentationModel.{h,cxx}`, `GUI/Qt/Windows/DeepLearningServerPanel.cxx`) checks the server status on a `QtConcurrent` worker thread every 10 s. Everything else (interactions, pipeline lists) runs on the GUI thread. The rules:
 
-**Immediate bug (GUI freeze on unreachable server):** `AsyncCheckStatus()` holds `m_Mutex` while blocking on an HTTP timeout. `GetRemotePipelines()` acquires the same mutex unconditionally at the top of the function — before checking whether the server is even connected. This blocks the GUI thread. Fix: move the `std::lock_guard` in `GetRemotePipelines()` (line 721 of the `.cxx`) to after the `GetServerStatus() != CONN_CONNECTED` early-exit check, so the mutex is never acquired when there is nothing to fetch. Note: this only fixes the initial-connection case; the periodic re-check (timer, 10 s) leaves the same hole open because status is still `CONN_CONNECTED` at that point — a `try_lock` or the async-pipeline-fetch approach (piggybacking on `AsyncCheckStatus`) is needed for a complete fix.
-
-**Additional races identified but not yet fixed:**
-
-1. `m_ServerIndex` and `m_ServerProperties` are written on the GUI thread without `m_Mutex`, but read by the background thread inside `AsyncCheckStatus()` under the mutex. The mutex only serializes REST I/O; it does not protect against concurrent GUI-thread writes to model state. Changing or deleting a server while a status check is timing out can produce torn reads.
-
-2. `checkServerStatus()` has no guard against being called while a prior check is still running (timer, reconnect button, SSH tunnel callback, and `onModelUpdate` can all fire close together). New `QtConcurrent` tasks queue behind the mutex and run sequentially; multiple `updateServerStatus()` calls result, each restarting the timer. The existing `// TODO` comment at `DeepLearningServerPanel.cxx:307` notes this.
-
-3. The `QtConcurrent` lambda in `checkServerStatus()` captures `this` (the panel) and calls `m_Model`. `QFutureWatcher::cancel()` marks the future canceled but does not stop an already-running task. If the panel is destroyed while a task is blocked on a network timeout, the task will dereference dangling pointers when the timeout eventually fires — a silent use-after-free.
-
-4. `m_LocalPortNumber` is written by `StartLocalServerIfNeeded()` on the GUI thread without the mutex, and read by `GetActualServerURL()` on the background thread under it — a technical data race on a primitive, though the write happens before the task is dispatched so the practical window is narrow.
+- **The worker uses only a snapshot.** `GetStatusCheckRequest()` runs on the GUI thread and captures the server hash, the actual URL (local port, SSH proxy or remote) and whether the SSH tunnel is missing. `AsyncCheckStatus(request)` uses only that request, `m_RESTSharedData` and `m_Mutex`. It never reads `m_ServerIndex`, `m_ServerProperties`, `m_LocalPortNumber` or the proxy URL.
+- **Results are applied on the GUI thread.** `ApplyStatusCheckResponse` drops a result whose hash no longer matches the selected server. The model list is fetched inside the status check, so `GetRemotePipelines()` returns cached data and never touches the network or the mutex.
+- **One check at a time.** The panel keeps a single `m_StatusCheckWatcher`. A check requested while one is running sets `m_StatusCheckPending` and runs as soon as the first finishes.
+- **The panel outlives its check.** The worker lambda captures the model and the request, not the panel. The panel destructor waits for a check still running, because the model is deleted soon after the panel at application exit. That wait is bounded by the 10 s connection timeout.
+- `m_Mutex` only serializes REST I/O. Interactions run on the GUI thread while holding it, and `processEvents()` in the progress dialog can re-enter them; `m_InteractionInProgress` guards against that.
 
 ## Common Patterns
 

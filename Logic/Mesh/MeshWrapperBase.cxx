@@ -404,7 +404,7 @@ MeshWrapperBase::SetActiveMeshLayerDataPropertyId(int id)
   if (m_CombinedDataPropertyMap.count(m_ActiveDataPropertyId))
   {
     auto oldprop = m_CombinedDataPropertyMap[m_ActiveDataPropertyId];
-    oldprop->RemoveObserver(m_ActiveMeshDataPropertyObserverTag);
+    Rebroadcaster::StopRebroadcasting(oldprop, m_ActiveMeshDataPropertyObserverTag);
   }
 
   // Assign property - or -1 if none (solid color)

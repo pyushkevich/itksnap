@@ -84,7 +84,7 @@ void LabelImageWrapper::StoreIntermediateUndoDelta(UndoManagerDelta *delta)
   um->AddDeltaToStaging(delta);
 }
 
-void LabelImageWrapper::StoreUndoPoint(const char *text, UndoManagerDelta *delta)
+bool LabelImageWrapper::StoreUndoPoint(const char *text, UndoManagerDelta *delta)
 {
   UndoManagerType *um = m_TimePointUndoManagers[m_TimePointIndex];
 
@@ -93,7 +93,7 @@ void LabelImageWrapper::StoreUndoPoint(const char *text, UndoManagerDelta *delta
     um->AddDeltaToStaging(delta);
 
   // Commit the deltas
-  um->CommitStaging(text);
+  return um->CommitStaging(text) > 0;
 }
 
 void LabelImageWrapper::ClearUndoPoints()

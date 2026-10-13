@@ -89,12 +89,23 @@ struct RemoteModelMetadata
 {
   int dimensions = 0;
   std::set<unsigned int> channels;
+
+  // Position of the model in the list returned by the server. Models are
+  // listed in this order, and the first one is the default.
+  int order = 0;
   bool supports_point = false, supports_box = false, supports_lasso = false, supports_scribble = false;
 
   // Check if the given number of channels is supported by the model
   bool supports_channels(unsigned int k) const
   {
     return channels.empty() || channels.find(k) != channels.end();
+  }
+
+  bool operator==(const RemoteModelMetadata &o) const
+  {
+    return dimensions == o.dimensions && channels == o.channels && order == o.order &&
+           supports_point == o.supports_point && supports_box == o.supports_box &&
+           supports_lasso == o.supports_lasso && supports_scribble == o.supports_scribble;
   }
 };
 
@@ -272,8 +283,17 @@ public:
   /** Delete the selected server */
   void DeleteCurrentServer();
 
-  /** Status check: includes a hash of the server for which the check was issued and status */
-  using StatusCheck = std::pair<std::string, dls_model::NetworkStatus>;
+  /**
+   * Result of a status check: includes a hash of the server for which the check
+   * was issued, the status, and the list of models on the server (only fetched
+   * when the server is connected and compatible)
+   */
+  struct StatusCheck
+  {
+    std::string hash;
+    dls_model::NetworkStatus status;
+    std::map<std::string, dls_model::RemoteModelMetadata> pipelines;
+  };
 
   /**
    * Start local server, if applicable. If the selected server is local, this will start
@@ -281,8 +301,27 @@ public:
    */
   void StartLocalServerIfNeeded();
 
-  /** Static function that runs asynchronously to perform server authentication */
-  StatusCheck AsyncCheckStatus();
+  /**
+   * Everything a status check needs to know about the current server. It is
+   * captured on the GUI thread by GetStatusCheckRequest(), so that the status
+   * check itself never reads model state that the GUI thread may be changing
+   */
+  struct StatusCheckRequest
+  {
+    bool        has_server = false;
+    std::string hash;
+    std::string url;
+    bool        tunnel_missing = false;
+  };
+
+  /** Capture the request for a status check. Call on the GUI thread. */
+  StatusCheckRequest GetStatusCheckRequest();
+
+  /**
+   * Perform a status check, including fetching the list of models. Runs on a
+   * worker thread; it only uses the request and the REST connection objects.
+   */
+  StatusCheck AsyncCheckStatus(const StatusCheckRequest &request);
 
   /** Apply the results of async server authentication to the model */
   void ApplyStatusCheckResponse(const StatusCheck &result);
@@ -290,8 +329,14 @@ public:
   /** Progress for server interactions */
   irisRangedPropertyAccessMacro(ServerProgress, double)
 
-  /** Get available models on the server */
+  /**
+   * Get available models on the server. This does not access the network: the
+   * list is fetched by AsyncCheckStatus() and is empty unless connected.
+   */
   std::map<std::string, dls_model::RemoteModelMetadata> GetRemotePipelines();
+
+  /** Get the ids of the available models, in the order listed by the server */
+  std::vector<std::string> GetRemotePipelineIdsInServerOrder();
 
   /** Select the segmentation layer for AI operations, specifying which model to use */
   void SetSourceImage(const std::string &model_id, ImageWrapperBase *layer, unsigned int axis);
@@ -362,8 +407,12 @@ protected:
 
   bool GetServerStatusValue(dls_model::ConnectionStatus &value);
 
-  // List of models supported by the current server
+  // List of models supported by the current server. Only accessed on the GUI
+  // thread; filled in from the results of AsyncCheckStatus()
   std::map<std::string, dls_model::RemoteModelMetadata> m_RemoteModelMetadata;
+
+  // Request the list of models from the server (called from AsyncCheckStatus)
+  std::map<std::string, dls_model::RemoteModelMetadata> FetchRemotePipelines(RESTClient<DLSServerTraits> &cli);
 
   // Current progress
   SmartPtr<ConcreteRangedDoubleProperty> m_ServerProgressModel;

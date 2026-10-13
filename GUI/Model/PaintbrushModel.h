@@ -73,8 +73,6 @@ protected:
   bool ApplyBrush(bool reverse_mode, bool dragging, bool release);
   void CommitDrawing();
 
-  bool ApplyBrushDeepLearning(bool reverse_mode);
-
   // Get the effective paintbrush settings, which may differ from the global ones
   // depending on deep learning mode
   PaintbrushSettings GetEffectivePaintbrushSettings();

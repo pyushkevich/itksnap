@@ -990,6 +990,64 @@ GuidedNativeImageIO
 }
 
 
+size_t
+GuidedNativeImageIO::GetAvailableMemory()
+{
+  size_t availableRAM = 0;
+#if defined(__APPLE__)
+  mach_port_t host = mach_host_self();
+  vm_size_t pageSize = 0;
+  host_page_size(host, &pageSize);
+  vm_statistics64_data_t vmStats;
+  mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+  if(host_statistics64(host, HOST_VM_INFO64,
+                       reinterpret_cast<host_info64_t>(&vmStats),
+                       &count) == KERN_SUCCESS)
+    availableRAM = static_cast<size_t>(vmStats.free_count +
+                                       vmStats.inactive_count) * pageSize;
+#elif defined(__linux__)
+  std::ifstream meminfo("/proc/meminfo");
+  std::string key; size_t val;
+  while(meminfo >> key >> val)
+    if(key == "MemAvailable:") { availableRAM = val * 1024; break; }
+#elif defined(_WIN32)
+  MEMORYSTATUSEX ms; ms.dwLength = sizeof(ms);
+  if(GlobalMemoryStatusEx(&ms))
+    availableRAM = static_cast<size_t>(ms.ullAvailPhys);
+#endif
+  return availableRAM;
+}
+
+void
+GuidedNativeImageIO::CheckImageFitsInMemory(size_t nFiles)
+{
+  // Compute image size in bytes directly from IO dimensions (more reliable than
+  // GetImageSizeInBytes() which may return 0 before data is read).
+  size_t imageBytes = m_IOBase->GetComponentSize();
+  for(unsigned int i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
+    imageBytes *= m_IOBase->GetDimensions(i);
+  imageBytes *= m_IOBase->GetNumberOfComponents();
+  imageBytes *= nFiles;
+
+  // Use 90% of available RAM as the safe limit so the OS and other processes
+  // still have breathing room. Fall back to 4 GB if query fails.
+  size_t availableRAM = GetAvailableMemory();
+  size_t safeLimit = availableRAM
+    ? static_cast<size_t>(0.90 * static_cast<double>(availableRAM))
+    : (4ULL << 30);
+  if(imageBytes > safeLimit)
+    {
+    double imageSizeGB  = imageBytes   / (1024.0 * 1024.0 * 1024.0);
+    double availableGB  = availableRAM / (1024.0 * 1024.0 * 1024.0);
+    throw IRISException(
+      "Image is too large to load into memory. "
+      "The image requires %.1f GB of RAM, but only %.1f GB is currently "
+      "available on this machine. Close other applications or use a "
+      "machine with more memory.",
+      imageSizeGB, availableGB);
+    }
+}
+
 template<class TScalar>
 void
 GuidedNativeImageIO
@@ -1008,6 +1066,9 @@ GuidedNativeImageIO
   // There is a special handler for the DICOM case!
   if(m_FileFormat == FORMAT_DICOM_DIR && m_DICOMFiles.size() > 1)
     {
+    // The header describes the first file only; the series has one per file
+    CheckImageFitsInMemory(m_DICOMFiles.size());
+
     // Filter for increasing dimensionality
     typedef IncreaseDimensionImageFilter<GreyImageType, GreyImage4DType> UpDimFilter;
 
@@ -1103,6 +1164,8 @@ GuidedNativeImageIO
     } 
 	else if (m_FileFormat == FORMAT_DICOM_DIR_4DCTA)
 		{
+    CheckImageFitsInMemory(m_DICOMFiles.size());
+
 		typename SeriesReaderType::Pointer reader = SeriesReaderType::New();
 		reader->SetImageIO(m_IOBase);
 
@@ -1398,62 +1461,8 @@ GuidedNativeImageIO
 
     UpdateImageHeader<NativeImageType>(image);
 
-    // Guard against SIGBUS / OOM: check that the image fits within currently available
-    // memory before calling Allocate(), which would otherwise crash without any error.
-    {
-    // Compute image size in bytes directly from IO dimensions (more reliable than
-    // GetImageSizeInBytes() which may return 0 before data is read).
-    size_t imageBytes = m_IOBase->GetComponentSize();
-    for(unsigned int i = 0; i < m_IOBase->GetNumberOfDimensions(); i++)
-      imageBytes *= m_IOBase->GetDimensions(i);
-    imageBytes *= m_IOBase->GetNumberOfComponents();
-
-    // Query currently available (free + reclaimable) memory from the OS.
-    size_t availableRAM = 0;
-#if defined(__APPLE__)
-    {
-    mach_port_t host = mach_host_self();
-    vm_size_t pageSize = 0;
-    host_page_size(host, &pageSize);
-    vm_statistics64_data_t vmStats;
-    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
-    if(host_statistics64(host, HOST_VM_INFO64,
-                         reinterpret_cast<host_info64_t>(&vmStats),
-                         &count) == KERN_SUCCESS)
-      availableRAM = static_cast<size_t>(vmStats.free_count +
-                                         vmStats.inactive_count) * pageSize;
-    }
-#elif defined(__linux__)
-    {
-    std::ifstream meminfo("/proc/meminfo");
-    std::string key; size_t val;
-    while(meminfo >> key >> val)
-      if(key == "MemAvailable:") { availableRAM = val * 1024; break; }
-    }
-#elif defined(_WIN32)
-    {
-    MEMORYSTATUSEX ms; ms.dwLength = sizeof(ms);
-    if(GlobalMemoryStatusEx(&ms))
-      availableRAM = static_cast<size_t>(ms.ullAvailPhys);
-    }
-#endif
-    // Use 90% of available RAM as the safe limit so the OS and other processes
-    // still have breathing room. Fall back to 4 GB if query fails.
-    size_t safeLimit = availableRAM
-      ? static_cast<size_t>(0.90 * static_cast<double>(availableRAM))
-      : (4ULL << 30);
-    if(imageBytes > safeLimit)
-      {
-      double imageSizeGB  = imageBytes   / (1024.0 * 1024.0 * 1024.0);
-      double availableGB  = availableRAM / (1024.0 * 1024.0 * 1024.0);
-      throw IRISException(
-        "Image is too large to load into memory. "
-        "The image requires %.1f GB of RAM, but only %.1f GB is currently "
-        "available on this machine. Close other applications or use a "
-        "machine with more memory.",
-        imageSizeGB, availableGB);
-      }
-    }
+    // Guard against SIGBUS / OOM before calling Allocate()
+    CheckImageFitsInMemory();
 
     image->Allocate();
 
