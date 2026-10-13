@@ -1741,6 +1741,12 @@ FOREACH(DATAFILE ${SNAP_PROGRAM_DATA_FILES})
 ENDFOREACH(DATAFILE)
 
 #--------------------------------------------------------------------------------
+# Workspace tool (itksnap-wt). This is added before the packaging section so that
+# it is installed before the Qt deployment script runs (see below).
+#--------------------------------------------------------------------------------
+ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
+
+#--------------------------------------------------------------------------------
 # INSTALLATION AND PACKAGING SECTION
 #--------------------------------------------------------------------------------
 
@@ -1846,12 +1852,19 @@ IF(APPLE)
   # Use Qt deployment script to take care of plugins
   set(executable_path "../../../${SNAP_BUNDLE_NAME}.app")
 
+  # Command-line tools in Contents/bin that link non-system libraries (libssh from
+  # Homebrew). macdeployqt points them at the copies in Contents/Frameworks; otherwise
+  # they would load the libraries from the build machine. Paths are relative to the
+  # install prefix (Contents/Resources).
+  set(deploy_cli_exes "../bin/itksnap-wt")
+
   qt_generate_deploy_script(
       TARGET ${SNAP_BUNDLE_NAME}
       OUTPUT_SCRIPT deploy_script
       CONTENT "
   qt_deploy_runtime_dependencies(
       EXECUTABLE \"${executable_path}\"
+      ADDITIONAL_EXECUTABLES ${deploy_cli_exes}
       GENERATE_QT_CONF
   )
   qt_deploy_translations(
@@ -2124,12 +2137,6 @@ SNAP_ADD_UPLOAD_TARGET(itksnap_upload_release ${SNAP_VERSION_FULL} ${RELEASE_TAR
 #--------------------------------------------------------------------------------
 # Set up package target
 include(CPack)
-
-#--------------------------------------------------------------------------------
-# ALFABIS utilities (experimental)
-#--------------------------------------------------------------------------------
-# Workspace tool is automatically included
-ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
 
 
 #--------------------------------------------------------------------------------
