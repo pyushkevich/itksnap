@@ -60,7 +60,7 @@ the same. Do not modify the SaveLocation entry, or this will not work.
         <entry key="RemappingSteepness" value="0.04" />
         <folder key="Files" >
           <folder key="Grey" >
-            <entry key="Dimensions" value="56 52 56" />
+            <entry key="Dimensions" value="28 28 24" />
             <entry key="Orientation" value="LPS" />
           </folder>
         </folder>
@@ -68,19 +68,19 @@ the same. Do not modify the SaveLocation entry, or this will not work.
           <entry key="SliceViewLayerLayout" value="Stacked" />
           <folder key="BoundingBox" >
             <entry key="InterpolationMethod" value="Nearest" />
-            <entry key="ResampleDimensions" value="56 52 56" />
+            <entry key="ResampleDimensions" value="28 28 24" />
             <entry key="SeedWithCurrentSegmentation" value="0" />
             <folder key="ROIBox[0]" >
               <entry key="Index" value="0" />
-              <entry key="Size" value="56" />
+              <entry key="Size" value="28" />
             </folder>
             <folder key="ROIBox[1]" >
               <entry key="Index" value="0" />
-              <entry key="Size" value="52" />
+              <entry key="Size" value="28" />
             </folder>
             <folder key="ROIBox[2]" >
               <entry key="Index" value="0" />
-              <entry key="Size" value="56" />
+              <entry key="Size" value="24" />
             </folder>
           </folder>
           <folder key="DisplayMapping" >
