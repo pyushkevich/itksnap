@@ -215,8 +215,16 @@ std::string ResolveLevel(const std::string &list_url,
   return id;
 }
 
+// Container types that expose /api/<type>/<id>/files/<name>.
+bool IsDirectContainerType(const std::string &t)
+{
+  return t == "acquisitions" || t == "analyses"
+      || t == "sessions"     || t == "subjects" || t == "projects";
+}
+
 // Ticket-based download from /api/{container_type}/{container_id}/files/{filename}.
-// Works for both "acquisitions" and "analyses".
+// Works for any container that exposes /files: acquisitions, analyses,
+// sessions, subjects, projects.
 // @p cache_url  The original fw:// URL used as the cache key.
 // @p temp_dir   Set to the temp directory holding the returned file when it
 //               is not in the cache; the caller owns that directory.
@@ -406,7 +414,40 @@ FlywheelRemoteImageSource::Download(const std::string &url)
       parts.push_back(seg);
   }
 
-  // ---- 2. Get or prompt for API key ----
+  // ---- 2. Dispatch on URL form ----
+  //
+  //  Direct:  fw://server/<type>/<id>/files/<file>          (parts.size()==4)
+  //           <type> is acquisitions, analyses, sessions, subjects or projects
+  //
+  //  Find:    fw://server/find/<group>/<project>/<subject>/<session>/
+  //                       acquisitions|analyses/<label>/files/<file>
+  //                                                         (parts.size()==9)
+
+  bool is_direct = parts.size() == 4
+                   && parts[2] == "files"
+                   && IsDirectContainerType(parts[0]);
+
+  bool is_find   = parts.size() == 9
+                   && parts[0] == "find"
+                   && (parts[5] == "acquisitions" || parts[5] == "analyses")
+                   && parts[7] == "files";
+
+  // Validate the URL form before authenticating so a bad link fails fast and
+  // never opens the API key dialog.
+  if (!is_direct && !is_find)
+    throw IRISException(
+      "Flywheel: unrecognised URL format: %s\n"
+      "Valid forms:\n"
+      "  fw://server/acquisitions/<id>/files/<file>\n"
+      "  fw://server/analyses/<id>/files/<file>\n"
+      "  fw://server/sessions/<id>/files/<file>\n"
+      "  fw://server/subjects/<id>/files/<file>\n"
+      "  fw://server/projects/<id>/files/<file>\n"
+      "  fw://server/find/<group>/<project>/<subject>/<session>/acquisitions/<label>/files/<file>\n"
+      "  fw://server/find/<group>/<project>/<subject>/<session>/analyses/<label>/files/<file>",
+      url.c_str());
+
+  // ---- 3. Get or prompt for API key ----
   std::string api_key = GetCachedAPIKey(server);
   if (api_key.empty())
     {
@@ -420,39 +461,11 @@ FlywheelRemoteImageSource::Download(const std::string &url)
     SetCachedAPIKey(server, api_key);
     }
 
-  // ---- 3. Dispatch on URL form ----
-  //
-  //  Direct:  fw://server/acquisitions/<id>/files/<file>   (parts.size()==4)
-  //           fw://server/analyses/<id>/files/<file>        (parts.size()==4)
-  //
-  //  Find:    fw://server/find/<group>/<project>/<subject>/<session>/
-  //                       acquisitions|analyses/<label>/files/<file>
-  //                                                         (parts.size()==9)
-
-  bool is_direct = parts.size() == 4
-                   && parts[2] == "files"
-                   && (parts[0] == "acquisitions" || parts[0] == "analyses");
-
-  bool is_find   = parts.size() == 9
-                   && parts[0] == "find"
-                   && (parts[5] == "acquisitions" || parts[5] == "analyses")
-                   && parts[7] == "files";
-
   if (is_direct)
     return DownloadDirect(server, parts[0], parts[1], parts[3],
                           api_key, url, m_FileCache, &m_ProgressCallback,
                           m_TemporaryDirectory);
 
-  if (is_find)
-    return DownloadByFind(server, parts, api_key, url,
-                          m_FileCache, &m_ProgressCallback, m_TemporaryDirectory);
-
-  throw IRISException(
-    "Flywheel: unrecognised URL format: %s\n"
-    "Valid forms:\n"
-    "  fw://server/acquisitions/<id>/files/<file>\n"
-    "  fw://server/analyses/<id>/files/<file>\n"
-    "  fw://server/find/<group>/<project>/<subject>/<session>/acquisitions/<label>/files/<file>\n"
-    "  fw://server/find/<group>/<project>/<subject>/<session>/analyses/<label>/files/<file>",
-    url.c_str());
+  return DownloadByFind(server, parts, api_key, url,
+                        m_FileCache, &m_ProgressCallback, m_TemporaryDirectory);
 }
