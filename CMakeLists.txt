@@ -1387,6 +1387,7 @@ SET(GUI_TESTS
   ReloadSegmentation
   AdaptiveBrush
   RegistrationReslice
+  Large2DImages
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")

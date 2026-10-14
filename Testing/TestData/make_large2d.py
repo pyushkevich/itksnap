@@ -8,13 +8,12 @@ each overlay holds 255 minus the main image, so main + overlay = 255 wherever
 both are sampled correctly. The block pattern keeps the files a few KB.
 The Logic test TestLarge2DSlicing makes more overlay geometries in memory.
 
-Usage: make_large2d.py <output_dir>   (needs numpy, SimpleITK and Pillow)
+Usage: make_large2d.py <output_dir>   (needs numpy and SimpleITK)
 """
 import os
 import sys
 import numpy as np
 import SimpleITK as sitk
-from PIL import Image
 
 # Wider than 1024, so slicing is non-orthogonal; kept small for file size
 NX, NY = 1280, 640
@@ -63,9 +62,13 @@ def main(outdir):
     write(crop, os.path.join(outdir, "large2d_seg_crop.nii.gz"),
           origin=(ORIGIN[0] + 384 * SPACING[0], ORIGIN[1] + 160 * SPACING[1], ORIGIN[2]))
 
-    # RGB PNG (issue #200: large 2D color images did not render)
+    # Three-component (RGB) image (issue #200: large 2D multicomponent images did
+    # not render). ITK-SNAP does not read PNG, so this is a NIfTI vector image.
     rgb = np.stack([m, 255 - m, (m // 2 + 64).astype(np.uint8)], axis=-1)
-    Image.fromarray(rgb, "RGB").save(os.path.join(outdir, "large2d_rgb.png"), optimize=True)
+    img = sitk.GetImageFromArray(rgb[np.newaxis, :, :, :], isVector=True)
+    img.SetSpacing(SPACING)
+    img.SetOrigin(ORIGIN)
+    sitk.WriteImage(img, os.path.join(outdir, "large2d_rgb.nii.gz"), useCompression=True)
 
 
 if __name__ == "__main__":
