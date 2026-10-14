@@ -162,29 +162,40 @@ ENDIF( BUILD_OUTSIDE_INSIGHT_APPLICATIONS )
 # *** THIS CODE MUST APPEAR BEFORE CALLING CONFIGURE_FILE on SNAPCommon.cxx ***
 #--------------------------------------------------------------------------------
 
-SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}-${SNAP_VERSION_RELEASE_DATE}")
-IF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
-  EXEC_PROGRAM(uname ARGS "-m" OUTPUT_VARIABLE CMAKE_SYSTEM_PROCESSOR)
-ENDIF (CMAKE_SYSTEM_PROCESSOR MATCHES "unknown")
-IF(NOT DEFINED CPACK_SYSTEM_NAME)
-  SET(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
-ENDIF(NOT DEFINED CPACK_SYSTEM_NAME)
-IF(${CPACK_SYSTEM_NAME} MATCHES Windows)
-  IF(CMAKE_CL_64)
-    SET(CPACK_SYSTEM_NAME win64-${CMAKE_SYSTEM_PROCESSOR})
-  ELSE(CMAKE_CL_64)
-    SET(CPACK_SYSTEM_NAME win32-${CMAKE_SYSTEM_PROCESSOR})
-  ENDIF(CMAKE_CL_64)
-ENDIF(${CPACK_SYSTEM_NAME} MATCHES Windows)
+SET(CPACK_SOURCE_PACKAGE_FILE_NAME "itksnap-${SNAP_VERSION_FULL}")
 
-# For Apple, we need to base the filename on the architecture
-IF(CMAKE_SYSTEM_NAME MATCHES Darwin AND CMAKE_OSX_ARCHITECTURES)
-  LIST(LENGTH CMAKE_OSX_ARCHITECTURES _length)
-  IF(_length GREATER 1)
-    SET(CPACK_SYSTEM_NAME Darwin-Universal)
+# The system part of the package name is <os>-<arch>, e.g. windows-x64,
+# macos-arm64, linux-arm64. Each platform names the same architecture
+# differently (AMD64, x86_64; ARM64, arm64, aarch64), so map them to the
+# names that users know.
+IF(NOT DEFINED CPACK_SYSTEM_NAME)
+  IF(WIN32)
+    SET(_snap_os windows)
+  ELSEIF(APPLE)
+    SET(_snap_os macos)
   ELSE()
-    SET(CPACK_SYSTEM_NAME Darwin-${CMAKE_OSX_ARCHITECTURES})
+    STRING(TOLOWER "${CMAKE_SYSTEM_NAME}" _snap_os)
   ENDIF()
+
+  SET(_snap_arch ${CMAKE_SYSTEM_PROCESSOR})
+  IF(APPLE AND CMAKE_OSX_ARCHITECTURES)
+    LIST(LENGTH CMAKE_OSX_ARCHITECTURES _length)
+    IF(_length GREATER 1)
+      SET(_snap_arch universal)
+    ELSE()
+      SET(_snap_arch ${CMAKE_OSX_ARCHITECTURES})
+    ENDIF()
+  ENDIF()
+  STRING(TOLOWER "${_snap_arch}" _snap_arch)
+  IF(_snap_arch MATCHES "^(amd64|x86_64|x64)$")
+    SET(_snap_arch x64)
+  ELSEIF(_snap_arch MATCHES "^(arm64|aarch64)$")
+    SET(_snap_arch arm64)
+  ELSEIF(_snap_arch MATCHES "^(x86|i[3-6]86)$")
+    SET(_snap_arch x86)
+  ENDIF()
+
+  SET(CPACK_SYSTEM_NAME ${_snap_os}-${_snap_arch})
 ENDIF()
 
 # If this is an OSMESA enabled build, add that to the name
@@ -2112,8 +2123,18 @@ MARK_AS_ADVANCED(SCP_ARGUMENTS)
 SET(SCP_USERNAME "" CACHE STRING "SourceForge.net account id for uploads")
 MARK_AS_ADVANCED(SCP_USERNAME)
 
-SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
-SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_VERSION_GIT_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+# The branch in nightly and experimental package names. A pull request build
+# checks out a merge commit with no branch ("HEAD"), so GitHub's name for the
+# pull request branch is used instead. A "/" would make the upload path a
+# folder that does not exist.
+SET(SNAP_PACKAGE_BRANCH "${SNAP_VERSION_GIT_BRANCH}")
+IF(NOT "$ENV{GITHUB_HEAD_REF}" STREQUAL "")
+  SET(SNAP_PACKAGE_BRANCH "$ENV{GITHUB_HEAD_REF}")
+ENDIF()
+STRING(REPLACE "/" "-" SNAP_PACKAGE_BRANCH "${SNAP_PACKAGE_BRANCH}")
+
+SET(NIGHTLY_TARGET "itksnap-nightly-${SNAP_PACKAGE_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
+SET(EXPERIMENTAL_TARGET "itksnap-experimental-${SNAP_PACKAGE_BRANCH}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 SET(RELEASE_TARGET "${CPACK_SOURCE_PACKAGE_FILE_NAME}-${CPACK_SYSTEM_NAME}.${CPACK_EXTENSION}")
 
 SET(SCP_HOST "frs.sourceforge.net")

@@ -57,7 +57,10 @@ jobs:
       matrix:
         # Intel and ARM builds for each platform
         os: [ubuntu-22.04,ubuntu-24.04-arm,macos-15-intel,macos-15,windows-2022,windows-11-arm]
-        itk_ver: [ 'v5.4.0' ]
+        # ITK before 5.4.6 does not compile for Windows arm64: GDCM's gdcmFilename.cxx includes
+        # windows.h inside namespace gdcm, which breaks the inline _Interlocked* functions
+        # that the Windows SDK defines on arm64
+        itk_ver: [ 'v5.4.7' ]
         vtk_ver: [ '9.5.2' ]
         qt_ver: [ '6.9.3' ]
         include:
@@ -333,9 +336,21 @@ jobs:
         continue-on-error: true
         run: |
           ${{ matrix.ctest_cmd }} -VV -D ExperimentalStart
-          ${{ matrix.ctest_cmd }} -V -D ExperimentalUpdate
+          # The update step only records the git revision for CDash. In pull requests its
+          # "git fetch" fails (on the greedy submodule of the merge commit), which used to stop
+          # this step before anything was configured or built.
+          ${{ matrix.ctest_cmd }} -V -D ExperimentalUpdate || echo "ExperimentalUpdate failed; continuing"
           ${{ matrix.ctest_cmd }} -V -D ExperimentalConfigure
           ${{ matrix.ctest_cmd }} -V -D ExperimentalBuild
+          # ExperimentalBuild exits with 0 even when there are compile errors, so check the
+          # report it writes. Failing here (continue-on-error) still lets the tests and the
+          # CDash submit run; the Gatekeeper then fails the job before caching and packaging.
+          TAG=$(head -n 1 Testing/TAG)
+          N_ERRORS=$(grep -c "<Error>" "Testing/$TAG/Build.xml" || true)
+          if [ "$N_ERRORS" != "0" ]; then
+            echo "::error::ITK-SNAP build had $N_ERRORS error(s)"
+            exit 1
+          fi
 
       - name: ITK-SNAP Dashboard -- Test
         id: ctest-test
@@ -344,7 +359,8 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
-          ${{ matrix.ctest_cmd }} -D ExperimentalTest
+          # Print the output of failing tests, which CDash shows but the log otherwise doesn't
+          ${{ matrix.ctest_cmd }} -D ExperimentalTest --output-on-failure
 
       - name: ITK-SNAP Dashboard -- Submit
         id: ctest-submit
@@ -482,7 +498,8 @@ jobs:
         working-directory: ${{github.workspace}}/itksnap/build
         run: |
           rm -rf $HOME/.ssh/sfkey.pub $HOME/.ssh/sfkey
-          ${{ runner.os == 'MacOS' && 'security delete-keychain build.keychain' || 'echo na' }}          
+          # The keychain only exists when packaging ran (not in pull requests)
+          ${{ runner.os == 'MacOS' && 'security delete-keychain build.keychain || true' || 'echo na' }}
         
       
 
