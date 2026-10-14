@@ -408,14 +408,23 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
     auto *img_source =
       watershed_layer->CreateCastToFloatPipeline("WatershedBrush", this->m_Parent->GetId());
 
-    // Precompute the watersheds
-    m_Watershed->PrecomputeWatersheds(img_source,
-                                      driver->GetSelectedSegmentationLayer()->GetImage(),
-                                      xTestRegion,
-                                      to_itkIndex(m_MousePosition),
-                                      pbs.watershed.smooth_iterations);
+    // Precompute the watersheds. ITK's watershed filter throws when the region
+    // has a single basin (e.g., the image is constant under the brush). Such a
+    // region is all one watershed, so paint the whole brush.
+    try
+    {
+      m_Watershed->PrecomputeWatersheds(img_source,
+                                        driver->GetSelectedSegmentationLayer()->GetImage(),
+                                        xTestRegion,
+                                        to_itkIndex(m_MousePosition),
+                                        pbs.watershed.smooth_iterations);
 
-    m_Watershed->RecomputeWatersheds(pbs.watershed.level);
+      m_Watershed->RecomputeWatersheds(pbs.watershed.level);
+    }
+    catch (itk::ExceptionObject &)
+    {
+      flagWatershed = false;
+    }
 
     // Release the casting pipeline
     watershed_layer->ReleaseInternalPipeline("WatershedBrush", this->m_Parent->GetId());
