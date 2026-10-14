@@ -372,9 +372,9 @@ PaintbrushModel::ApplyBrush(bool reverse_mode, bool dragging, bool release)
   if (flagWatershed)
   {
     watershed_layer = gid->FindLayer(m_ContextLayerId, false);
-    if (!watershed_layer || !watershed_layer->ImageSpaceMatchesReferenceSpace())
+    if (!watershed_layer || !watershed_layer->ImageGridMatchesReferenceSpace())
       watershed_layer = gid->GetMain();
-    if (!watershed_layer->ImageSpaceMatchesReferenceSpace())
+    if (!watershed_layer->ImageGridMatchesReferenceSpace())
       watershed_layer = nullptr;
     flagWatershed = (watershed_layer != nullptr);
   }

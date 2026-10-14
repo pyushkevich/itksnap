@@ -319,6 +319,8 @@ public:
 
   virtual bool ImageSpaceMatchesReferenceSpace() const override;
 
+  virtual bool ImageGridMatchesReferenceSpace() const override;
+
   /** Get the NIFTI s-form matrix for this image */
   irisGetMacroWithOverride(NiftiSform, TransformType)
 
@@ -828,6 +830,12 @@ protected:
   bool m_ImageSpaceMatchesReferenceSpace;
 
   /**
+   * A flag indicating whether the image is on the voxel grid of the reference
+   * space (same geometry, identity transform), regardless of its size
+   */
+  bool m_ImageGridMatchesReferenceSpace = false;
+
+  /**
    * The affine transform between the reference space and the image. This transform
    * is manipulated during image registration
    */
@@ -944,6 +952,9 @@ protected:
   mutable vnl_vector<ComponentType> m_IntensitySamplingArray;
 
   // Check if the orthogonal slicer can be used for the given image, ref space and transform
+  static bool IsOnReferenceGrid(
+      ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform);
+
   static bool CanOrthogonalSlicingBeUsed(
       ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform);
 
