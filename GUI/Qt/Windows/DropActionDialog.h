@@ -2,6 +2,7 @@
 #define DROPACTIONDIALOG_H
 
 #include <QDialog>
+#include <exception>
 
 class GlobalUIModel;
 class AbstractOpenImageDelegate;
@@ -79,6 +80,15 @@ private slots:
 
 private:
   void UpdateSendToWindowMenu();
+
+  /**
+   * Hide the dialog before loading. While this modal dialog is open, the
+   * progress widget does not show, so a download would show no progress.
+   */
+  void HideWhileLoading();
+
+  /** Report a failed load, and show the dialog again to try another option */
+  void ShowLoadError(const QString &text, const std::exception &exc);
 
   Ui::DropActionDialog *ui;
   GlobalUIModel *m_Model;

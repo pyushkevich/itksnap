@@ -1645,11 +1645,17 @@ add_test(NAME TestMovedWorkspace
   COMMAND TestMovedWorkspace ${TESTDATA_DIR} ${TEMP})
 
 # Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
-# are passed on to ITK-SNAP, e.g. images to load from the command line.
+# are passed on to ITK-SNAP, e.g. images to load from the command line. When
+# SNAP_GUI_TEST_LAUNCHER is set, ITK-SNAP is run through that command.
 FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
 
   # Add the test
-  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_BUNDLE_NAME} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en ${ARGN})
+  IF(SNAP_GUI_TEST_LAUNCHER)
+    SET(snap_exe $<TARGET_FILE:${SNAP_BUNDLE_NAME}>)
+  ELSE()
+    SET(snap_exe ${SNAP_BUNDLE_NAME})
+  ENDIF()
+  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_GUI_TEST_LAUNCHER} ${snap_exe} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en ${ARGN})
 
   # Set the environment for the test to include Qt
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
@@ -1682,6 +1688,16 @@ ADD_SNAP_GUI_TEST(RemoteSaveLayer
 ADD_SNAP_GUI_TEST(RemoteSaveWorkspace
   -w "${GITHUB_TESTDATA_URL}/MRIcrop-with-mesh.itksnap")
 SET_TESTS_PROPERTIES(RemoteSaveLayer RemoteSaveWorkspace PROPERTIES LABELS "Remote")
+
+# Progress shown for a URL loaded from the drop dialog. serve_slowly.py serves
+# the test data on a local port, slowly enough to watch the download.
+FIND_PACKAGE(Python3 COMPONENTS Interpreter QUIET)
+IF(Python3_Interpreter_FOUND)
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8917 6 --)
+  ADD_SNAP_GUI_TEST(DropRemoteProgress)
+  UNSET(SNAP_GUI_TEST_LAUNCHER)
+ENDIF()
 
 # Workspace with two segmentations, the last of which is marked as active by
 # itksnap-wt; the GUI test checks that it opens with that segmentation active
