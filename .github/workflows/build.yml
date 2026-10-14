@@ -359,7 +359,8 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
-          ${{ matrix.ctest_cmd }} -D ExperimentalTest
+          # Print the output of failing tests, which CDash shows but the log otherwise doesn't
+          ${{ matrix.ctest_cmd }} -D ExperimentalTest --output-on-failure
 
       - name: ITK-SNAP Dashboard -- Submit
         id: ctest-submit
