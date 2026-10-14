@@ -2264,9 +2264,15 @@ IRISApplication ::GetMovedFilePath(std::string &project_dir_orig,
   // Get the relative path of the layer wrt project
   string relative_path;
 
-  // Test the simple thing: is the project location included in the file path
+  // Test the simple thing: is the project location included in the file path.
+  // The prefix must end at a separator, or a file in "/data/proj_data" would
+  // be taken to be in "/data/proj".
+  size_t n_dir = project_dir_orig.length();
   bool under_project_dir =
-    original_file_path.compare(0, project_dir_orig.length(), project_dir_orig) == 0;
+    n_dir > 0 && original_file_path.compare(0, n_dir, project_dir_orig) == 0 &&
+    (original_file_path.length() == n_dir || project_dir_orig.back() == '/' ||
+     project_dir_orig.back() == '\\' || original_file_path[n_dir] == '/' ||
+     original_file_path[n_dir] == '\\');
 
   // A remote layer that is not stored alongside the workspace is referenced
   // by its URL, which stays valid wherever the workspace is moved

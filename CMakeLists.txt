@@ -1635,6 +1635,15 @@ TARGET_INCLUDE_DIRECTORIES(TestUndoRedo PUBLIC ${SNAP_INCLUDE_DIRS})
 add_test(NAME TestUndoRedo
   COMMAND TestUndoRedo ${TESTDATA_DIR} ${TEMP})
 
+# Opening a workspace after it was copied or moved with its images
+ADD_EXECUTABLE(TestMovedWorkspace
+    Testing/Logic/TestMovedWorkspace.cxx)
+TARGET_LINK_LIBRARIES(TestMovedWorkspace ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestMovedWorkspace PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestMovedWorkspace
+  COMMAND TestMovedWorkspace ${TESTDATA_DIR} ${TEMP})
+
 # Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
 # are passed on to ITK-SNAP, e.g. images to load from the command line.
 FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)

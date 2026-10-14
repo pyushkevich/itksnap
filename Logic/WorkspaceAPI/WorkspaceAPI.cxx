@@ -12,6 +12,7 @@
 #include "itkCommand.h"
 #include "GuidedMeshIO.h"
 #include "ImageIORemote.h"
+#include "IRISApplication.h"
 
 // The path of a layer as stored in the workspace. Remote URLs are kept as
 // they are, since CollapseFullPath would turn them into bogus local paths.
@@ -177,41 +178,16 @@ bool WorkspaceAPI::IsKeyValidMeshLayer(const std::string &key)
   return true;
 }
 
-// TODO: merge with IRISApplication
 string WorkspaceAPI::GetLayerActualPath(Registry &folder)
 {
   // Get the filenames for the layer
   string layer_file_full = folder["AbsolutePath"][""];
 
-  // If the project has moved, try finding a relative location
+  // If the project has moved, try finding a relative location, the same way
+  // ITK-SNAP does when it opens the workspace
   if(m_Moved)
-    {
-    // Get the relative path of the layer wrt project
-    string relative_path;
-
-    // Test the simple thing: is the project location included in the file path
-    if(layer_file_full.compare(0, m_WorkspaceSavedDir.length(), m_WorkspaceSavedDir) == 0)
-      {
-      // Get the balance of the path
-      relative_path = layer_file_full.substr(m_WorkspaceSavedDir.length());
-
-      // Strip the leading slashes
-      SystemTools::ConvertToUnixSlashes(relative_path);
-      relative_path = relative_path.substr(relative_path.find_first_not_of('/'));
-      }
-    else
-      {
-      // Fallback: use relative path mechanism
-      relative_path = SystemTools::RelativePath(
-                                   m_WorkspaceSavedDir.c_str(), layer_file_full.c_str());
-      }
-
-    string moved_file_full = SystemTools::CollapseFullPath(
-                               relative_path.c_str(), m_WorkspaceFileDir.c_str());
-
-    if(SystemTools::FileExists(moved_file_full.c_str(), true))
-      layer_file_full = moved_file_full;
-    }
+    layer_file_full = IRISApplication::GetMovedFilePath(
+          m_WorkspaceSavedDir, m_WorkspaceFileDir, layer_file_full);
 
   // Return the file - no guarantee that it exists...
   return layer_file_full;
