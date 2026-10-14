@@ -57,10 +57,20 @@ DefaultNonOrthogonalSlicerWorkerTraits<TInputImage, TOutputImage>
       ? m_Interpolator.InterpolateNearestNeighbor(cix,  m_Buffer)
       : m_Interpolator.Interpolate(cix, m_Buffer);
 
-  if(status == Interpolator::INSIDE || status == Interpolator::BORDER)
+  double mask;
+  if(status == Interpolator::INSIDE)
     {
     for(int k = 0; k < m_NumComponents; k++)
       *(*out_ptr)++ = static_cast<OutputComponentType>(m_Buffer[k]);
+    }
+  else if(status == Interpolator::BORDER && (mask = m_Interpolator.GetMask()) > 0.0)
+    {
+    // On the border, the interpolated value is the weighted sum over the voxels
+    // inside the image, so divide by the sum of their weights (the mask). This
+    // keeps the value of the edge voxels up to the edge of the image, and is what
+    // shows a 2D image whose plane is not exactly on the slice at its own values.
+    for(int k = 0; k < m_NumComponents; k++)
+      *(*out_ptr)++ = static_cast<OutputComponentType>(m_Buffer[k] / mask);
     }
   else
     {
@@ -167,8 +177,13 @@ DefaultNonOrthogonalSlicerWorkerTraits<
       ? m_Interpolator.InterpolateNearestNeighbor(cix, &m_BufferValue)
       : m_Interpolator.Interpolate(cix, &m_BufferValue);
 
-  if(status == Interpolator::INSIDE || status == Interpolator::BORDER)
+  // On the border, divide by the sum of the weights of the voxels inside the
+  // image (see the scalar version above)
+  double mask;
+  if(status == Interpolator::INSIDE)
     *(*out_ptr)++ = static_cast<OutputComponentType>(m_BufferValue);
+  else if(status == Interpolator::BORDER && (mask = m_Interpolator.GetMask()) > 0.0)
+    *(*out_ptr)++ = static_cast<OutputComponentType>(m_BufferValue / mask);
   else
     *(*out_ptr)++ = 0;
 }
@@ -254,11 +269,19 @@ DefaultNonOrthogonalSlicerWorkerTraits<
 
   const typename InternalImageType::PixelType &vpref = m_VectorPixel;
 
-  if(status == Interpolator::INSIDE || status == Interpolator::BORDER)
+  // On the border, divide by the sum of the weights of the voxels inside the
+  // image (see the scalar version above)
+  double mask = 0.0;
+  if(status == Interpolator::INSIDE ||
+     (status == Interpolator::BORDER && (mask = m_Interpolator.GetMask()) > 0.0))
     {
     // Cast to the vector pixel type
-    for(int i = 0; i < m_NumComponents; i++)
-      m_VectorPixel[i] = static_cast<OutputComponentType>(m_Buffer[i]);
+    if(status == Interpolator::INSIDE)
+      for(int i = 0; i < m_NumComponents; i++)
+        m_VectorPixel[i] = static_cast<OutputComponentType>(m_Buffer[i]);
+    else
+      for(int i = 0; i < m_NumComponents; i++)
+        m_VectorPixel[i] = static_cast<OutputComponentType>(m_Buffer[i] / mask);
 
     // Apply the accessor
     *(*out_ptr)++ =
