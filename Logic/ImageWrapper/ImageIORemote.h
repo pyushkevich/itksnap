@@ -234,6 +234,28 @@ bool IsRemoteImageURL(const std::string &path);
  */
 std::string ResolveITKSnapURL(const std::string &url);
 
+/** The parts of an scp:// or sftp:// URL */
+struct SCPURL
+{
+  std::string username;   // decoded; empty if the URL has no user@
+  std::string host;
+  int         port = 0;   // 0 if the URL has no :port
+  std::string path;       // decoded absolute path on the server
+};
+
+/**
+ * Parse scp://[user@]host[:port]/path or sftp://..., throwing IRISException
+ * if the URL is malformed (wrong scheme, no path, invalid port).
+ */
+SCPURL ParseSCPURL(const std::string &url);
+
+/**
+ * The local filename for a downloaded URL: the decoded last path component,
+ * without any ?query or #fragment. Throws IRISException if there is none
+ * (e.g., the URL ends in "/" or "..").
+ */
+std::string RemoteFilenameFromURL(const std::string &url);
+
 /**
  * Factory: create the RemoteImageSource appropriate for the scheme in @p url.
  * Throws IRISException for unrecognised schemes.

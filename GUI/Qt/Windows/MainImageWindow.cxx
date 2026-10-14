@@ -329,6 +329,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Set up the advanced progress reporter
   m_ProgressFader = new ProgressReportWidget(this);
+  m_ProgressFader->setObjectName("progressReport");
 
   // Create the delegate to pass in to the model
   m_ProgressReporterDelegate = new QtProgressReporterDelegate();

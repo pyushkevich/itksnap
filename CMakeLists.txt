@@ -1456,6 +1456,15 @@ add_test(NAME SlicingPerformanceTestZ150 COMMAND itkTestDriver
 
 add_test(NAME TDigestTest COMMAND testTDigest ${TESTDATA_DIR}/tdigest_test.nii.gz 0.98)
 
+# RLE image (segmentation storage): slicing along every axis permutation and
+# direction, and conversion to and from itk::Image, on a full-size and on a
+# cropped segmentation
+add_test(NAME RLEImageTest COMMAND testRLE ${TESTDATA_DIR}/MRIcrop-seg.gipl.gz)
+add_test(NAME RLEImageTestCropped COMMAND testRLE ${TESTDATA_DIR}/MRIcrop-seg-hippoR-04mm.nii.gz)
+
+# ITK's iterator tests, run on RLE images
+add_test(NAME RLEIteratorTests COMMAND iteratorTests)
+
 # This test basically checks whether we can build using the logic library onlu
 ADD_EXECUTABLE(logic_api_test
     Testing/Logic/IRISApplicationTest.cxx)
@@ -1615,12 +1624,44 @@ TARGET_INCLUDE_DIRECTORIES(TestSegmentationStatistics PUBLIC ${SNAP_INCLUDE_DIRS
 add_test(NAME TestSegmentationStatistics
   COMMAND TestSegmentationStatistics ${TESTDATA_DIR} ${TEMP})
 
+# Parsing of remote URLs (no network access)
+ADD_EXECUTABLE(TestRemoteURLs
+    Testing/Logic/TestRemoteURLs.cxx)
+TARGET_LINK_LIBRARIES(TestRemoteURLs ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestRemoteURLs PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestRemoteURLs COMMAND TestRemoteURLs)
+
+# Undo and redo of segmentation edits, per segmentation and per time point
+ADD_EXECUTABLE(TestUndoRedo
+    Testing/Logic/TestUndoRedo.cxx)
+TARGET_LINK_LIBRARIES(TestUndoRedo ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestUndoRedo PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestUndoRedo
+  COMMAND TestUndoRedo ${TESTDATA_DIR} ${TEMP})
+
+# Opening a workspace after it was copied or moved with its images
+ADD_EXECUTABLE(TestMovedWorkspace
+    Testing/Logic/TestMovedWorkspace.cxx)
+TARGET_LINK_LIBRARIES(TestMovedWorkspace ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestMovedWorkspace PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestMovedWorkspace
+  COMMAND TestMovedWorkspace ${TESTDATA_DIR} ${TEMP})
+
 # Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
-# are passed on to ITK-SNAP, e.g. images to load from the command line.
+# are passed on to ITK-SNAP, e.g. images to load from the command line. When
+# SNAP_GUI_TEST_LAUNCHER is set, ITK-SNAP is run through that command.
 FUNCTION(ADD_SNAP_GUI_TEST GUI_TEST)
 
   # Add the test
-  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_BUNDLE_NAME} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en ${ARGN})
+  IF(SNAP_GUI_TEST_LAUNCHER)
+    SET(snap_exe $<TARGET_FILE:${SNAP_BUNDLE_NAME}>)
+  ELSE()
+    SET(snap_exe ${SNAP_BUNDLE_NAME})
+  ENDIF()
+  ADD_TEST(NAME ${GUI_TEST} COMMAND ${SNAP_GUI_TEST_LAUNCHER} ${snap_exe} --test ${GUI_TEST} --testacc ${SNAP_GUI_TEST_ACCEL} --testdir "${TESTDATA_DIR}" --lang en ${ARGN})
 
   # Set the environment for the test to include Qt
   FILE(TO_NATIVE_PATH ${QT_BINARY_DIR} QT_BINARY_DIR_NATIVE)
@@ -1653,6 +1694,16 @@ ADD_SNAP_GUI_TEST(RemoteSaveLayer
 ADD_SNAP_GUI_TEST(RemoteSaveWorkspace
   -w "${GITHUB_TESTDATA_URL}/MRIcrop-with-mesh.itksnap")
 SET_TESTS_PROPERTIES(RemoteSaveLayer RemoteSaveWorkspace PROPERTIES LABELS "Remote")
+
+# Progress shown for a URL loaded from the drop dialog. serve_slowly.py serves
+# the test data on a local port, slowly enough to watch the download.
+FIND_PACKAGE(Python3 COMPONENTS Interpreter QUIET)
+IF(Python3_Interpreter_FOUND)
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8917 6 --)
+  ADD_SNAP_GUI_TEST(DropRemoteProgress)
+  UNSET(SNAP_GUI_TEST_LAUNCHER)
+ENDIF()
 
 # Workspace with two segmentations, the last of which is marked as active by
 # itksnap-wt; the GUI test checks that it opens with that segmentation active
