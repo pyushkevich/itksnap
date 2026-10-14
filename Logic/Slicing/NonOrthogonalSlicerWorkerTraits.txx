@@ -341,10 +341,11 @@ DefaultNonOrthogonalSlicerWorkerTraits<RLEImage<TPixel, Dimension, TCounter>, TO
 ::ProcessVoxel(double *cix, bool itkNotUsed(use_nn), OutputComponentType **out_ptr)
 {
   // We simply have to round cix to the closest index, check if it's inside the buffer
-  // and call GetPixel(). There is not a faster way
+  // and call GetPixel(). There is not a faster way. Round with floor: a cast
+  // truncates toward zero, which maps the voxel before the first (-1) to 0.
   itk::Index<Dimension> idx;
   for(unsigned int k = 0; k < Dimension; k++)
-    idx[k] = (int)(cix[k] + 0.5);
+    idx[k] = (int) std::floor(cix[k] + 0.5);
 
   if(m_Image->GetBufferedRegion().IsInside(idx))
     {
@@ -366,7 +367,7 @@ DefaultNonOrthogonalSlicerWorkerTraits<RLEImage<TPixel, Dimension, TCounter>, TO
   // image do not contribute.
   itk::Index<Dimension> idx;
   for(unsigned int k = 0; k < Dimension; k++)
-    idx[k] = (int)(cix[k] + 0.5);
+    idx[k] = (int) std::floor(cix[k] + 0.5);
 
   if(m_Image->GetBufferedRegion().IsInside(idx))
     {
