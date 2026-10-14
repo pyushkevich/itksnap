@@ -46,12 +46,17 @@ jobs:
   build_itksnap:
     name: Build and Package ITK-SNAP on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      # Needed to delete older ITK-SNAP build caches
+      actions: write
     env:
       SKIP_PACKAGING: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/claude/')) || (github.event_name == 'workflow_dispatch' && inputs.skip_packaging == 'true') }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04,macos-15-intel,macos-15,windows-2022]
+        # Intel and ARM builds for each platform
+        os: [ubuntu-22.04,ubuntu-24.04-arm,macos-15-intel,macos-15,windows-2022,windows-11-arm]
         itk_ver: [ 'v5.4.0' ]
         vtk_ver: [ '9.5.2' ]
         qt_ver: [ '6.9.3' ]
@@ -59,6 +64,12 @@ jobs:
           - os: ubuntu-22.04
             qt_host: linux
             qt_arch: linux_gcc_64
+            ctest_cmd: xvfb-run -a ctest
+          # Qt's arm64 Linux binaries require glibc 2.38, so this cannot be 22.04. The x64
+          # build stays on 22.04 so that its package runs on Ubuntu 22.04 and Debian 12.
+          - os: ubuntu-24.04-arm
+            qt_host: linux_arm64
+            qt_arch: linux_gcc_arm64
             ctest_cmd: xvfb-run -a ctest
           - os: macos-15-intel
             qt_host: mac
@@ -71,6 +82,15 @@ jobs:
           - os: windows-2022
             qt_host: windows
             qt_arch: win64_msvc2022_64
+            msvc_arch: x64
+            vcpkg_triplet: x64-windows-release
+            ctest_cmd: ctest
+          # vcpkg has no release-only triplet for arm64, so it builds debug and release
+          - os: windows-11-arm
+            qt_host: windows_arm64
+            qt_arch: win64_msvc2022_arm64
+            msvc_arch: arm64
+            vcpkg_triplet: arm64-windows
             ctest_cmd: ctest
 
     steps:
@@ -79,29 +99,33 @@ jobs:
       - name: Select MSVC 2019/2022
         uses: ilammy/msvc-dev-cmd@v1
         if: ${{ runner.os == 'Windows' }}
+        with:
+          arch: ${{ matrix.msvc_arch }}
 
       # Setup ninja
       - name: Setup Ninja
         uses: seanmiddleditch/gha-setup-ninja@master
 
       # Install system packages
+      # On macOS, libssh is built from source instead (see "Build libssh on MacOS" below)
       - name: Install System Packages
         uses: ConorMacBride/install-package@v1
         with:
-          brew: libssh
-          apt: libcurl4-openssl-dev libssh-dev
+          apt: libcurl4-openssl-dev libssh-dev xvfb
           choco: nsis
 
-      # Install curl and libssh on Windows
+      # Install curl and libssh on Windows. The action caches the built packages, keyed by the
+      # package versions. (v6 cached with pat-s/always-upload-cache@v3, which uses GitHub's
+      # retired cache service and failed with "Cache service responded with 400", so every run
+      # rebuilt curl, libssh, zlib and OpenSSL: 5 minutes on x64, 11 on arm64.)
       - name: Install libcurl on Windows
-        uses: johnwason/vcpkg-action@v6
+        uses: johnwason/vcpkg-action@v8
         id: vcpkg
         if: ${{ runner.os == 'Windows' }}
         with:
-          pkgs: curl libssh zlib 
-          triplet: x64-windows-release
+          pkgs: curl libssh zlib
+          triplet: ${{ matrix.vcpkg_triplet }}
           token: ${{ github.token }}
-          github-binarycache: false
     
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -216,14 +240,16 @@ jobs:
           key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
      
       # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
-      # because only the updated files should require rebuilding
+      # because only the updated files should require rebuilding. Only master builds are cached
+      # (see "Cache ITK-SNAP build directory"), and any branch can restore the latest one.
       - name: Restore ITK-SNAP Cache (optional)
         id: cache-restore-itksnap
         uses: actions/cache/restore@v4
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
         with:
           path: ${{github.workspace}}/itksnap
-          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
+          key: ${{ matrix.os }}-itksnap-build-master-
+          restore-keys: ${{ matrix.os }}-itksnap-build-master-
 
       # Checkout ITK-SNAP code
       - name: Checkout code
@@ -242,6 +268,35 @@ jobs:
         continue-on-error: true
         run: git fetch
 
+      # On macOS, build libssh and OpenSSL from source rather than installing them with Homebrew.
+      # Homebrew's libraries are built for the runner's macOS version (15.0), not for
+      # MACOS_DEPLOYMENT_TARGET, and they are bundled into the package, so the package would not
+      # run on older macOS versions that it claims to support. Also, Homebrew no longer provides
+      # bottles for Intel Macs, so "brew install libssh" built CMake, OpenSSL and libssh from
+      # source on every Intel run (about 40 minutes). The script pins the versions and checksums;
+      # the result is cached (a few MB) and rebuilt only when the script changes.
+      - name: Restore libssh Cache
+        id: cache-libssh
+        if: ${{ runner.os == 'MacOS' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{github.workspace}}/libssh
+          key: ${{ matrix.os }}-libssh-${{ hashFiles('itksnap/Utilities/MacOS/build_libssh.sh') }}-osx${{ env.MACOS_DEPLOYMENT_TARGET }}
+
+      - name: Build libssh on MacOS
+        if: ${{ runner.os == 'MacOS' && steps.cache-libssh.outputs.cache-hit != 'true' }}
+        shell: bash
+        env:
+          MACOSX_DEPLOYMENT_TARGET: ${{ env.MACOS_DEPLOYMENT_TARGET }}
+        run: itksnap/Utilities/MacOS/build_libssh.sh ${{github.workspace}}/libssh
+
+      - name: Cache libssh
+        if: ${{ runner.os == 'MacOS' && steps.cache-libssh.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v4
+        with:
+          path: ${{github.workspace}}/libssh
+          key: ${{ matrix.os }}-libssh-${{ hashFiles('itksnap/Utilities/MacOS/build_libssh.sh') }}-osx${{ env.MACOS_DEPLOYMENT_TARGET }}
+
       # Configure ITK-SNAP
       # Note: /FORCE:MULTIPLE is a temporary fix for ITK issues in 5.4.0
       - name: Configure ITK-SNAP
@@ -259,11 +314,12 @@ jobs:
             CMAKE_BUILD_TYPE=Release
             DO_UPLOAD=ON
             SITE=github-runner-${{ matrix.os }}
-            ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/x64-windows-release/lib/libcurl.lib', github.workspace) || '' }}
-            ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/x64-windows-release/include', github.workspace) || '' }}
+            ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/{1}/lib/libcurl.lib', github.workspace, matrix.vcpkg_triplet) || '' }}
+            ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/{1}/include', github.workspace, matrix.vcpkg_triplet) || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'MacOS' && format('CMAKE_OSX_DEPLOYMENT_TARGET={0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
+            ${{ runner.os == 'MacOS' && format('CMAKE_PREFIX_PATH={0}/libssh', github.workspace) || '' }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -302,20 +358,40 @@ jobs:
         if: ${{ steps.ctest-config.outcome != 'success' || steps.ctest-submit.outcome != 'success' }}
         run: exit -1          
 
-      # Cache the ITK-SNAP build
+      # Cache the ITK-SNAP build, for master only: each entry is about 400 MB, and saving one
+      # for every branch and pull request filled the repository's 10 GB cache. Caches can't be
+      # overwritten, so each run saves a new entry and then deletes the older ones.
       - name: Cache ITK-SNAP build directory
-        if: steps.cache-restore-itksnap.outputs.cache-hit != 'true'
+        if: ${{ github.ref == 'refs/heads/master' }}
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/itksnap
-          key: ${{ matrix.os }}-itksnap-build-${{ github.ref }}
+          key: ${{ matrix.os }}-itksnap-build-master-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Remove older ITK-SNAP build caches
+        if: ${{ github.ref == 'refs/heads/master' }}
+        continue-on-error: true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PREFIX: ${{ matrix.os }}-itksnap-build-master-
+          KEEP: ${{ matrix.os }}-itksnap-build-master-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/caches?key=$PREFIX&ref=refs/heads/master&per_page=100" \
+              --jq '.actions_caches[].key' |
+            while read -r key; do
+              if [ "$key" != "$KEEP" ]; then
+                echo "Deleting cache $key"
+                gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/caches?key=$key&ref=refs/heads/master"
+              fi
+            done
 
       # Add libcurl.dll to PATH on windows
       - name: Append directory with libcurl.dll to PATH
         if: ${{ runner.os == 'Windows' }}
         shell: bash
         run: |
-          echo "${{github.workspace}}/vcpkg/installed/x64-windows-release/bin" >> $GITHUB_PATH
+          echo "${{github.workspace}}/vcpkg/installed/${{ matrix.vcpkg_triplet }}/bin" >> $GITHUB_PATH
 
       # On MacOS, setup keychain for application signing
       # The notarization keys are from https://appstoreconnect.apple.com/access/integrations/api
@@ -367,8 +443,11 @@ jobs:
           name: ${{steps.package_itksnap.outputs.package_file}}
           path: ${{github.workspace}}/itksnap/build/${{steps.package_itksnap.outputs.package_file}}
 
+      # The upload normally takes under a minute. The step timeout and the ssh keepalive
+      # settings below keep a stalled connection from hanging the job until GitHub's 6-hour limit.
       - name: Upload to sourceforge
         if: ${{ env.SKIP_PACKAGING != 'true' }}
+        timeout-minutes: 15
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         env:
@@ -383,11 +462,15 @@ jobs:
           echo "StrictHostKeyChecking=no" >> $HOME/.ssh/config
           echo "BatchMode=yes" >> $HOME/.ssh/config
           echo "IdentityFile=~/.ssh/sfkey" >> $HOME/.ssh/config
+          echo "ConnectTimeout=30" >> $HOME/.ssh/config
+          echo "ServerAliveInterval=15" >> $HOME/.ssh/config
+          echo "ServerAliveCountMax=4" >> $HOME/.ssh/config
           cmake -DSCP_USERNAME=$USER .
           cmake --build . --target itksnap_upload_experimental
 
       - name: Upload named release to sourceforge
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.upload_release && !inputs.skip_packaging }}
+        timeout-minutes: 15
         working-directory: ${{github.workspace}}/itksnap/build
         shell: bash
         run: |

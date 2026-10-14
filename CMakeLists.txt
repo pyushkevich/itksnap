@@ -1301,6 +1301,12 @@ TARGET_LINK_LIBRARIES(${SNAP_BUNDLE_NAME} PRIVATE ${SNAP_INTERNAL_LIBS} ${SNAP_E
 TARGET_INCLUDE_DIRECTORIES(${SNAP_BUNDLE_NAME} PUBLIC ${SNAP_INCLUDE_DIRS})
 set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+# ITK-SNAP has no QML files: Qt6::Qml is only used for QJSEngine in the GUI test
+# engine. Without this, Qt runs qmlimportscanner over the whole source tree at the
+# end of every configure, including a build directory placed inside it. In CI,
+# after cpack, that took several minutes per configure on macOS.
+set_target_properties(${SNAP_BUNDLE_NAME} PROPERTIES QT_QML_MODULE_NO_IMPORT_SCAN TRUE)
+
 #--------------------------------------------------------------------------------
 # QT Internationalization
 #--------------------------------------------------------------------------------
@@ -1727,9 +1733,14 @@ INCLUDE(CTest)
 # Copy and configure the program data directory
 #--------------------------------------------------------------------------------
 
-# All program files - use recursive globbing
-FILE(GLOB_RECURSE SNAP_PROGRAM_DATA_FILES 
-  ProgramData "*.txt" "*.html" "*.gif" "*.png" "*.img.gz" "*.hdr")
+# All program files - use recursive globbing. The patterns must include the
+# ProgramData directory; on their own they match the whole source tree,
+# including a build directory placed inside it.
+SET(SNAP_PROGRAM_DATA_DIR ${SNAP_SOURCE_DIR}/ProgramData)
+FILE(GLOB_RECURSE SNAP_PROGRAM_DATA_FILES
+  ${SNAP_PROGRAM_DATA_DIR}/*.txt ${SNAP_PROGRAM_DATA_DIR}/*.html
+  ${SNAP_PROGRAM_DATA_DIR}/*.gif ${SNAP_PROGRAM_DATA_DIR}/*.png
+  ${SNAP_PROGRAM_DATA_DIR}/*.img.gz ${SNAP_PROGRAM_DATA_DIR}/*.hdr)
 
 # Copy documentation from the source tree to the build tree
 FOREACH(DATAFILE ${SNAP_PROGRAM_DATA_FILES})
@@ -1739,6 +1750,12 @@ FOREACH(DATAFILE ${SNAP_PROGRAM_DATA_FILES})
     ${SNAP_BINARY_DIR}/${SHORTNAME}
    COPYONLY)
 ENDFOREACH(DATAFILE)
+
+#--------------------------------------------------------------------------------
+# Workspace tool (itksnap-wt). This is added before the packaging section so that
+# it is installed before the Qt deployment script runs (see below).
+#--------------------------------------------------------------------------------
+ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
 
 #--------------------------------------------------------------------------------
 # INSTALLATION AND PACKAGING SECTION
@@ -1846,12 +1863,19 @@ IF(APPLE)
   # Use Qt deployment script to take care of plugins
   set(executable_path "../../../${SNAP_BUNDLE_NAME}.app")
 
+  # Command-line tools in Contents/bin that link non-system libraries (libssh from
+  # Homebrew). macdeployqt points them at the copies in Contents/Frameworks; otherwise
+  # they would load the libraries from the build machine. Paths are relative to the
+  # install prefix (Contents/Resources).
+  set(deploy_cli_exes "../bin/itksnap-wt")
+
   qt_generate_deploy_script(
       TARGET ${SNAP_BUNDLE_NAME}
       OUTPUT_SCRIPT deploy_script
       CONTENT "
   qt_deploy_runtime_dependencies(
       EXECUTABLE \"${executable_path}\"
+      ADDITIONAL_EXECUTABLES ${deploy_cli_exes}
       GENERATE_QT_CONF
   )
   qt_deploy_translations(
@@ -2124,12 +2148,6 @@ SNAP_ADD_UPLOAD_TARGET(itksnap_upload_release ${SNAP_VERSION_FULL} ${RELEASE_TAR
 #--------------------------------------------------------------------------------
 # Set up package target
 include(CPack)
-
-#--------------------------------------------------------------------------------
-# ALFABIS utilities (experimental)
-#--------------------------------------------------------------------------------
-# Workspace tool is automatically included
-ADD_SUBDIRECTORY(${SNAP_SOURCE_DIR}/Utilities/Workspace)
 
 
 #--------------------------------------------------------------------------------
