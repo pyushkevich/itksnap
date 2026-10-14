@@ -1312,6 +1312,26 @@ bool ImageWrapper<TTraits>
   return m_ImageSpaceMatchesReferenceSpace;
 }
 
+template<class TTraits>
+bool
+ImageWrapper<TTraits>
+::ImageGridMatchesReferenceSpace() const
+{
+  return m_ImageGridMatchesReferenceSpace;
+}
+
+template<class TTraits>
+bool
+ImageWrapper<TTraits>
+::IsOnReferenceGrid(
+    ImageType *image, ImageBaseType *referenceSpace, ITKTransformType *transform)
+{
+  // The images must have the same geometry and the transform must be identity
+  double tol = 1e-5;
+  return ImageWrapperBase::IsSameGeometry(image, referenceSpace, tol) &&
+         AffineTransformHelper::IsIdentity(transform);
+}
+
 
 template<class TTraits>
 void
@@ -1345,20 +1365,13 @@ ImageWrapper<TTraits>
   // do not use orthogonal slicing
   const int max_ortho_dim = 1024;
 
-  // Check if the images have same dimensions
-  double tol = 1e-5;
-  bool same_geom = ImageWrapperBase::IsSameGeometry(image, referenceSpace, tol);
-
-  // Use helper class to check for identity
-  bool is_identity = AffineTransformHelper::IsIdentity(transform);
-
   // Check if any of the image dimensions are above the max
   bool is_large = false;
   for(unsigned int d = 0; d < 3; d++)
     if(image->GetBufferedRegion().GetSize()[d] > max_ortho_dim)
       is_large = true;
 
-  return same_geom && is_identity && (!is_large);
+  return !is_large && IsOnReferenceGrid(image, referenceSpace, transform);
 }
 
 template<class TTraits>
@@ -1624,7 +1637,9 @@ ImageWrapper<TTraits>
     this->UpdateNiftiTransforms();
     }
 
-  // Update the reference space identity flag
+  // Update the reference space identity flags
+  m_ImageGridMatchesReferenceSpace =
+      IsOnReferenceGrid(m_Image, m_ReferenceSpace, m_AffineTransform);
   m_ImageSpaceMatchesReferenceSpace =
       CanOrthogonalSlicingBeUsed(m_Image, m_ReferenceSpace, m_AffineTransform);
 

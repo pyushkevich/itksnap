@@ -410,10 +410,20 @@ public:
       bool map_to_native, vnl_vector<double> &out) const = 0;
 
   /**
-   * Does the image match the reference space? If true, the wrapped image and the
-   * reference image have the same 3D geometry (size, origin, spacing, direction).
+   * Is the image sliced orthogonally, i.e., does it 'live' in the reference
+   * space? True if ImageGridMatchesReferenceSpace() and the image is not too
+   * large for orthogonal slicing (no dimension over 1024 voxels).
    */
   virtual bool ImageSpaceMatchesReferenceSpace() const = 0;
+
+  /**
+   * Is the image on the voxel grid of the reference space? True if the wrapped
+   * image and the reference image have the same 3D geometry (size, origin,
+   * spacing, direction) and the transform is identity, so that reference space
+   * voxels are image voxels. Unlike ImageSpaceMatchesReferenceSpace(), this
+   * does not depend on the size of the image.
+   */
+  virtual bool ImageGridMatchesReferenceSpace() const = 0;
 
   /** Return componentwise minimum cast to double, without mapping to native range */
   virtual double GetImageMinAsDouble() = 0;

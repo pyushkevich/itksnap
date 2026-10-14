@@ -1387,6 +1387,7 @@ SET(GUI_TESTS
   ReloadSegmentation
   AdaptiveBrush
   RegistrationReslice
+  Large2DImages
 )
 
 SET(TESTDATA_DIR "${SNAP_SOURCE_DIR}/Testing/TestData")
@@ -1660,6 +1661,15 @@ TARGET_INCLUDE_DIRECTORIES(TestMovedWorkspace PUBLIC ${SNAP_INCLUDE_DIRS})
 
 add_test(NAME TestMovedWorkspace
   COMMAND TestMovedWorkspace ${TESTDATA_DIR} ${TEMP})
+
+# Sampling of large 2D images (non-orthogonal slicing), with overlays and segmentations
+ADD_EXECUTABLE(TestLarge2DSlicing
+    Testing/Logic/TestLarge2DSlicing.cxx)
+TARGET_LINK_LIBRARIES(TestLarge2DSlicing ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestLarge2DSlicing PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestLarge2DSlicing
+  COMMAND TestLarge2DSlicing ${TESTDATA_DIR} ${TEMP})
 
 # Add a GUI test that runs the script test_<GUI_TEST>.js. Any extra arguments
 # are passed on to ITK-SNAP, e.g. images to load from the command line. When

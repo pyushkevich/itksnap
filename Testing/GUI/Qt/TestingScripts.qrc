@@ -35,6 +35,7 @@
         <file>Scripts/test_ReloadSegmentation.js</file>
         <file>Scripts/test_AdaptiveBrush.js</file>
         <file>Scripts/test_RegistrationReslice.js</file>
+        <file>Scripts/test_Large2DImages.js</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>
