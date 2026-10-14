@@ -43,8 +43,14 @@ public:
   bool TestInside(const Vector2d &x, const PaintbrushSettings &ps);
   bool TestInside(const Vector3d &x, const PaintbrushSettings &ps);
 
-  // Getter and Setter for brush points
-  irisGetSetMacro(BrushPoints, std::vector<Vector2d>)
+  /**
+   * The outline of the brush in slice coordinates, relative to the center of
+   * the brush (GetCenterOfPaintbrushInSliceSpace). It is computed from the
+   * brush settings and the reference space spacing, and recomputed when these
+   * change. It is drawn by the renderer, and painted when the main image is
+   * transformed (non-orthogonal slicing).
+   */
+  const std::vector<Vector2d> &GetBrushOutline();
 
 protected:
   // Whether we are inverting the paintbrush when drawing
@@ -80,8 +86,13 @@ protected:
   GenericSliceModel      *m_Parent;
   BrushWatershedPipeline *m_Watershed;
 
-  // Stores the brush points built by the renderer
-  std::vector<Vector2d> m_BrushPoints;
+  // The brush outline, and the settings and spacing it was computed for
+  std::vector<Vector2d> m_BrushOutline;
+  PaintbrushSettings    m_BrushOutlineSettings;
+  Vector3d              m_BrushOutlineSpacing;
+
+  // Append a vertex to the outline, skipping duplicate and collinear points
+  void InsertWithCollinearCheck(const Vector2d &head);
 
   // Apply brush logic if main is transformed
   // Returns true if changes were made

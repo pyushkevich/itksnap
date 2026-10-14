@@ -496,7 +496,7 @@ bool
 PaintbrushModel ::ApplyBrushByPolygonRasterization(bool reverse_mode, bool dragging)
 {
   // build 2d vertices
-  std::vector<Vector2d> vts2d = m_BrushPoints;
+  std::vector<Vector2d> vts2d = GetBrushOutline();
   Vector3d              ctr = GetCenterOfPaintbrushInSliceSpace();
 
   for (auto &v : vts2d)
@@ -509,4 +509,127 @@ PaintbrushModel ::ApplyBrushByPolygonRasterization(bool reverse_mode, bool dragg
   m_Parent->Voxelize2DPolygonToSegmentationSlice(
     vts2d, "Oblique Paintbrush Update", false, reverse_mode);
   return true;
+}
+
+void
+PaintbrushModel::InsertWithCollinearCheck(const Vector2d &head)
+{
+  Vector2d      a, b;
+  int           n = m_BrushOutline.size();
+
+  // Do not insert the same point twice
+  if (n > 0)
+  {
+    b = m_BrushOutline[n - 1];
+    if (fabs(b[0] - head[0]) < 1e-4 && fabs(b[1] - head[1]) < 1e-4)
+      return;
+
+    // Do not insert collinear points
+    if (n > 1)
+    {
+      a = m_BrushOutline[n - 2];
+      double v = (b[0] - a[0]) * (head[1] - a[1]) - (b[1] - a[1]) * (head[0] - a[0]);
+      if (fabs(v) < 1.e-4)
+      {
+        m_BrushOutline[n - 1] = head;
+        return;
+      }
+    }
+  }
+
+  // Safe to append point
+  m_BrushOutline.push_back(head);
+}
+
+const std::vector<Vector2d> &
+PaintbrushModel::GetBrushOutline()
+{
+  // Get the current properties
+  PaintbrushSettings ps = GetEffectivePaintbrushSettings();
+  Vector3d           spref = m_Parent->GetDriver()->GetCurrentImageData()->GetReferenceSpaceSpacing();
+
+  // Check if the cached outline can be used
+  if (m_BrushOutline.size() && spref == m_BrushOutlineSpacing &&
+      ps.radius == m_BrushOutlineSettings.radius && ps.isotropic == m_BrushOutlineSettings.isotropic &&
+      ps.shape == m_BrushOutlineSettings.shape && ps.volumetric == m_BrushOutlineSettings.volumetric)
+    return m_BrushOutline;
+
+  // Cache the current settings
+  m_BrushOutlineSettings = ps;
+  m_BrushOutlineSpacing = spref;
+
+  // Create the new walk
+  m_BrushOutline.clear();
+
+  // This is a simple 2D marching algorithm. At any given state of the
+  // marching, there is a 'tail' and a 'head' of an arrow. To the right
+  // of the arrow is a voxel that's inside the brush and to the left a
+  // voxel that's outside. Depending on the two voxels that are
+  // ahead of the arrow to the left and right (in in, in out, out out)
+  // at the next step the arrow turns right, continues straight or turns
+  // left. This goes on until convergence
+
+  // Initialize the marching. This requires constructing the first arrow
+  // and marching it to the left until it is between out and in voxels.
+  // If the brush has even diameter, the arrow is from (0,0) to (1,0). If
+  // the brush has odd diameter (center at voxel center) then the arrow
+  // is from (-0.5, -0.5) to (-0.5, 0.5)
+  Vector2d xTail, xHead;
+  if (fmod(ps.radius, 1.0) == 0)
+  {
+    xTail = Vector2d(0.0, 0.0);
+    xHead = Vector2d(0.0, 1.0);
+  }
+  else
+  {
+    xTail = Vector2d(-0.5, -0.5);
+    xHead = Vector2d(-0.5, 0.5);
+  }
+
+  // Shift the arrow to the left until it is in position
+  while (TestInside(Vector2d(xTail(0) - 0.5, xTail(1) + 0.5), ps))
+  {
+    xTail(0) -= 1.0;
+    xHead(0) -= 1.0;
+  }
+
+  // Record the starting point, which is the current tail. Once the head
+  // returns to the starting point, the loop is done
+  Vector2d xStart = xTail;
+
+  // Add the first vertex
+  InsertWithCollinearCheck(xStart);
+
+  // Do the loop
+  size_t n = 0;
+  while ((xHead - xStart).squared_magnitude() > 0.01 && (++n) < 10000)
+  {
+    // Add the current head to the loop
+    InsertWithCollinearCheck(xHead);
+
+    // Check the voxels ahead to the right and left
+    Vector2d xStep = xHead - xTail;
+    Vector2d xLeft(-xStep(1), xStep(0));
+    Vector2d xRight(xStep(1), -xStep(0));
+    bool     il = TestInside(xHead + 0.5 * (xStep + xLeft), ps);
+    bool     ir = TestInside(xHead + 0.5 * (xStep + xRight), ps);
+
+    // Update the tail
+    xTail = xHead;
+
+    // Decide which way to go
+    if (il && ir)
+      xHead += xLeft;
+    else if (!il && ir)
+      xHead += xStep;
+    else if (!il && !ir)
+      xHead += xRight;
+    else
+      assert(0);
+  }
+
+  // Add the last vertex
+  InsertWithCollinearCheck(xStart);
+
+  return m_BrushOutline;
 }
