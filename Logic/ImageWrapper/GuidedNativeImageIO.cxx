@@ -625,7 +625,8 @@ GuidedNativeImageIO
 				}
 			catch (const std::exception &e)
 				{
-				std::cerr << e.what() << std::endl;
+				throw IRISException("Error: Can not read voxel spacing from 4D Echocardiography "
+				                    "DICOM file '%s' (%s).", FileName, e.what());
 				}
 
 			// Set to 4d
@@ -656,7 +657,8 @@ GuidedNativeImageIO
 				}
 			catch (std::exception &e)
 				{
-				std::cerr << e.what() << std::endl;
+				throw IRISException("Error: Can not read image dimensions from 4D Echocardiography "
+				                    "DICOM file '%s' (%s).", FileName, e.what());
 				}
 
 			for (unsigned int i = 0; i < 4; ++i)
@@ -668,6 +670,11 @@ GuidedNativeImageIO
 			m_IOBase->SetComponentType(itk::IOComponentEnum::UCHAR);
 
 			ecdHeaderProgSrc->AddProgress(0.2);
+			}
+		else
+			{
+			throw IRISException("Error: Can not read 4D Echocardiography DICOM file '%s'. "
+			                    "The file may be damaged or truncated.", FileName);
 			}
     }
   else
@@ -1296,18 +1303,21 @@ GuidedNativeImageIO
 
 		// Only read the data tag
 		if (!ecd_data_reader.ReadSelectedTags(tSet))
-			std::cerr << "Can not read:" << FileName << std::endl;
+			throw IRISException("Error: Can not read 4D Echocardiography DICOM file '%s'. "
+			                    "The file may be damaged or truncated.", FileName);
 		else
 			{
 			ecdProgSrc->AddProgress(0.3);
 			gdcm::DataSet &ds = ecd_data_reader.GetFile().GetDataSet();
 
 			if (!ds.FindDataElement(data))
-				std::cerr << "data element not found!" << std::endl;
+				throw IRISException("Error: 4D Echocardiography DICOM file '%s' "
+				                    "has no pixel data.", FileName);
 
 			const gdcm::DataElement &de = ds.GetDataElement(data);
 			if (de.IsEmpty())
-				std::cerr << "data element is empty!" << std::endl;
+				throw IRISException("Error: 4D Echocardiography DICOM file '%s' "
+				                    "has empty pixel data.", FileName);
 
 			for (unsigned int i = 0; i < 4; ++i)
 				{
@@ -1321,6 +1331,11 @@ GuidedNativeImageIO
 			unsigned long len = ecd_dim[0] * ecd_dim[1] * ecd_dim[2] * ecd_dim[3];
 
 			const gdcm::ByteValue *bv = de.GetByteValue();
+			if (!bv || bv->GetLength() < len * sizeof(TScalar))
+				throw IRISException("Error: Pixel data in 4D Echocardiography DICOM file '%s' "
+				                    "is truncated (%lu bytes, expected %lu).", FileName,
+				                    bv ? (unsigned long) bv->GetLength() : 0UL,
+				                    (unsigned long)(len * sizeof(TScalar)));
 
 			// Start loading image
 			typename NativeImageType::Pointer ecd_image = NativeImageType::New();
@@ -1341,8 +1356,8 @@ GuidedNativeImageIO
 			ecdProgSrc->AddProgress(0.1);
 
 			// -- Extract the buffer from file
-			char *ecd_buffer = (char*)malloc(len);
-			bv->GetBuffer(ecd_buffer, len);
+			char *ecd_buffer = (char*)malloc(len * sizeof(TScalar));
+			bv->GetBuffer(ecd_buffer, len * sizeof(TScalar));
 
 			// -- Pass buffer into ecd_image
 			typedef typename NativeImageType::PixelContainer PixConType;
