@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cctype>
 #include <vector>
+#include <chrono>
+#include <thread>
 #include "IRISException.h"
 #include "itksys/SystemTools.hxx"
 #include "itksys/MD5.h"
@@ -190,8 +192,19 @@ RESTClient<ServerTraits>::CurlMultiPerform()
     CURLMcode mc = curl_multi_perform(m_CurlMulti, &still_running);
 
     if (!mc && still_running)
+    {
       /* wait for activity, timeout or "nothing" */
+#if LIBCURL_VERSION_NUM >= 0x074200
       mc = curl_multi_poll(m_CurlMulti, NULL, 0, 50, NULL);
+#else
+      // curl_multi_poll is new in curl 7.66 (Rocky/RHEL 8 has 7.61). curl_multi_wait
+      // returns at once when there is nothing to wait on, so sleep instead.
+      int numfds = 0;
+      mc = curl_multi_wait(m_CurlMulti, NULL, 0, 50, &numfds);
+      if (!mc && numfds == 0)
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+#endif
+    }
 
     if (mc)
     {

@@ -42,21 +42,31 @@ on:
 env:
   MACOS_DEPLOYMENT_TARGET: '14.0'
 
+# A new push to a branch or pull request cancels the run still going for it. Runs on master
+# and manual runs (which may upload a release) are never cancelled: each gets its own group.
+concurrency:
+  group: ${{ github.workflow }}-${{ (github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch') && github.run_id || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build_itksnap:
-    name: Build and Package ITK-SNAP on ${{ matrix.os }}
+    name: Build and Package ITK-SNAP on ${{ matrix.platform || matrix.os }}
     runs-on: ${{ matrix.os }}
+    # Linux x64 builds in a Rocky Linux 8 container (see the matrix below)
+    container: ${{ matrix.container }}
     permissions:
       contents: read
       # Needed to delete older ITK-SNAP build caches
       actions: write
     env:
+      # Names the platform in cache keys and on CDash: the runner, or the container's distro
+      PLATFORM: ${{ matrix.platform || matrix.os }}
       SKIP_PACKAGING: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/claude/')) || (github.event_name == 'workflow_dispatch' && inputs.skip_packaging == 'true') }}
     strategy:
       fail-fast: false
       matrix:
         # Intel and ARM builds for each platform
-        os: [ubuntu-22.04,ubuntu-24.04-arm,macos-15-intel,macos-15,windows-2022,windows-11-arm]
+        os: [ubuntu-24.04,ubuntu-24.04-arm,macos-15-intel,macos-15,windows-2022,windows-11-arm]
         # ITK before 5.4.6 does not compile for Windows arm64: GDCM's gdcmFilename.cxx includes
         # windows.h inside namespace gdcm, which breaks the inline _Interlocked* functions
         # that the Windows SDK defines on arm64
@@ -64,12 +74,16 @@ jobs:
         vtk_ver: [ '9.5.2' ]
         qt_ver: [ '6.9.3' ]
         include:
-          - os: ubuntu-22.04
+          # The x64 Linux build runs in a Rocky Linux 8 container, so that its package needs
+          # only glibc 2.28 (RHEL/Rocky 8, Debian 10, Ubuntu 18.10 and newer). Qt's x64 binaries
+          # are built on RHEL 8, so they run there too.
+          - os: ubuntu-24.04
+            platform: rocky8
+            container: rockylinux:8
             qt_host: linux
             qt_arch: linux_gcc_64
             ctest_cmd: xvfb-run -a ctest
-          # Qt's arm64 Linux binaries require glibc 2.38, so this cannot be 22.04. The x64
-          # build stays on 22.04 so that its package runs on Ubuntu 22.04 and Debian 12.
+          # Qt's arm64 Linux binaries require glibc 2.38, so this one can't use an older distro
           - os: ubuntu-24.04-arm
             qt_host: linux_arm64
             qt_arch: linux_gcc_arm64
@@ -98,6 +112,36 @@ jobs:
 
     steps:
 
+      # Install the tools and libraries in the Rocky Linux container. The stock gcc 8 is too
+      # old for VTK 9.5, so the build uses gcc-toolset-13; its libstdc++ is linked so that the
+      # binaries need only the system's libstdc++. Python 3.11 is for aqtinstall (Qt).
+      - name: Prepare Rocky Linux container
+        if: ${{ matrix.container }}
+        shell: bash
+        run: |
+          dnf -y install dnf-plugins-core epel-release
+          dnf config-manager --set-enabled powertools
+          dnf config-manager --add-repo https://cli.github.com/packages/rpm/gh-cli.repo
+          dnf -y install gcc-toolset-13 git cmake ninja-build python3.11 python3.11-pip \
+            libcurl-devel libssh-devel openssl-devel zlib-devel \
+            mesa-libGL-devel mesa-libEGL-devel mesa-dri-drivers libX11-devel libXt-devel \
+            libXext-devel libxkbcommon-devel libxkbcommon-x11 fontconfig-devel freetype-devel \
+            xcb-util-cursor xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
+            dbus-libs glib2 xorg-x11-server-Xvfb xorg-x11-xauth which file findutils \
+            jq zstd tar gzip unzip openssh-clients gh
+          alternatives --set python3 /usr/bin/python3.11
+          # The container runs as root, but the workspace belongs to the runner user
+          git config --global --add safe.directory '*'
+          echo "/opt/rh/gcc-toolset-13/root/usr/bin" >> $GITHUB_PATH
+          echo "CC=/opt/rh/gcc-toolset-13/root/usr/bin/gcc" >> $GITHUB_ENV
+          echo "CXX=/opt/rh/gcc-toolset-13/root/usr/bin/g++" >> $GITHUB_ENV
+          # github.workspace is the path on the host. Inputs that start with it are mapped into
+          # the container, but CMake options like ITK_DIR=... are not, so those use env.WS.
+          echo "WS=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          # ssh reads ~/.ssh from the home directory in /etc/passwd (/root), not from $HOME
+          # (/github/home), where the SourceForge upload step puts its key and config
+          mkdir -p $HOME/.ssh && chmod 700 $HOME/.ssh && ln -sfn $HOME/.ssh /root/.ssh
+
       # Select MSVC tools on windows
       - name: Select MSVC 2019/2022
         uses: ilammy/msvc-dev-cmd@v1
@@ -107,11 +151,13 @@ jobs:
 
       # Setup ninja
       - name: Setup Ninja
+        if: ${{ !matrix.container }}
         uses: seanmiddleditch/gha-setup-ninja@master
 
       # Install system packages
       # On macOS, libssh is built from source instead (see "Build libssh on MacOS" below)
       - name: Install System Packages
+        if: ${{ !matrix.container }}
         uses: ConorMacBride/install-package@v1
         with:
           apt: libcurl4-openssl-dev libssh-dev xvfb
@@ -144,6 +190,10 @@ jobs:
           arch: ${{ matrix.qt_arch }}
           cache: true
           extra: '--timeout 60'
+          # The container installs Python 3.11 and Qt's dependencies itself: actions/setup-python's
+          # builds are for Ubuntu, and the action installs the dependencies with apt-get
+          setup-python: ${{ !matrix.container }}
+          install-deps: ${{ !matrix.container }}
 
       # Use cached VTK build if available
       - name: Restore VTK Cache
@@ -151,7 +201,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/vtk/install
-          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
+          key: ${{ env.PLATFORM }}-vtk-${{ matrix.vtk_ver }}${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
 
       # Check out VTK
       - name: Checkout VTK
@@ -182,7 +232,7 @@ jobs:
             VTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO
             VTK_MODULE_ENABLE_VTK_RenderingExternal:STRING=WANT
             CMAKE_BUILD_TYPE=Release
-            CMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk/install
+            CMAKE_INSTALL_PREFIX=${{ env.WS || github.workspace }}/vtk/install
             ${{ runner.os == 'Windows' && 'VTK_SMP_ENABLE_STDTHREAD=OFF' || '' }}
             ${{ runner.os == 'MacOS' && format('CMAKE_OSX_DEPLOYMENT_TARGET={0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
      
@@ -192,7 +242,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/vtk/install
-          key: ${{ matrix.os }}-vtk-${{ matrix.vtk_ver }}${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
+          key: ${{ env.PLATFORM }}-vtk-${{ matrix.vtk_ver }}${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
 
       # Use cached ITK build if available. Unfortunately ITK make install fails to 
       # install one file, vnl_vector_ref.hxx so instead of caching the install dir
@@ -202,7 +252,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/itk
-          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
+          key: ${{ env.PLATFORM }}-itk-${{ matrix.itk_ver }}-build${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
 
       # Check out ITK
       - name: Checkout ITK
@@ -230,7 +280,7 @@ jobs:
             BUILD_EXAMPLES:BOOL=FALSE
             Module_MorphologicalContourInterpolation:BOOL=TRUE
             CMAKE_BUILD_TYPE=Release
-            CMAKE_INSTALL_PREFIX=${{github.workspace}}/itk/install
+            CMAKE_INSTALL_PREFIX=${{ env.WS || github.workspace }}/itk/install
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_SHARED_FLAGS=/FORCE:MULTIPLE' || '' }}
             ${{ runner.os == 'MacOS' && format('CMAKE_OSX_DEPLOYMENT_TARGET={0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
@@ -240,7 +290,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/itk
-          key: ${{ matrix.os }}-itk-${{ matrix.itk_ver }}-build${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
+          key: ${{ env.PLATFORM }}-itk-${{ matrix.itk_ver }}-build${{ runner.os == 'MacOS' && format('-osx{0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
      
       # Restore ITK-SNAP cache if requested by the user. This should allow us to create faster builds
       # because only the updated files should require rebuilding. Only master builds are cached
@@ -251,8 +301,8 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cached_itksnap_build }}
         with:
           path: ${{github.workspace}}/itksnap
-          key: ${{ matrix.os }}-itksnap-build-master-
-          restore-keys: ${{ matrix.os }}-itksnap-build-master-
+          key: ${{ env.PLATFORM }}-itksnap-build-master-
+          restore-keys: ${{ env.PLATFORM }}-itksnap-build-master-
 
       # Checkout ITK-SNAP code
       - name: Checkout code
@@ -284,7 +334,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{github.workspace}}/libssh
-          key: ${{ matrix.os }}-libssh-${{ hashFiles('itksnap/Utilities/MacOS/build_libssh.sh') }}-osx${{ env.MACOS_DEPLOYMENT_TARGET }}
+          key: ${{ env.PLATFORM }}-libssh-${{ hashFiles('itksnap/Utilities/MacOS/build_libssh.sh') }}-osx${{ env.MACOS_DEPLOYMENT_TARGET }}
 
       - name: Build libssh on MacOS
         if: ${{ runner.os == 'MacOS' && steps.cache-libssh.outputs.cache-hit != 'true' }}
@@ -298,9 +348,9 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/libssh
-          key: ${{ matrix.os }}-libssh-${{ hashFiles('itksnap/Utilities/MacOS/build_libssh.sh') }}-osx${{ env.MACOS_DEPLOYMENT_TARGET }}
+          key: ${{ env.PLATFORM }}-libssh-${{ hashFiles('itksnap/Utilities/MacOS/build_libssh.sh') }}-osx${{ env.MACOS_DEPLOYMENT_TARGET }}
 
-      # Configure ITK-SNAP
+      # Configure ITK-SNAP. On Rocky Linux, VTK installs its libraries in lib64.
       # Note: /FORCE:MULTIPLE is a temporary fix for ITK issues in 5.4.0
       - name: Configure ITK-SNAP
         uses: threeal/cmake-action@v2.0.0
@@ -312,11 +362,11 @@ jobs:
           run-build: false
           args: ${{ runner.os == 'Windows' && steps.vcpkg.outputs.vcpkg-cmake-config || '' }} 
           options: |
-            ITK_DIR=${{github.workspace}}/itk/build
-            VTK_DIR=${{github.workspace}}/vtk/install/lib/cmake/vtk-9.5
+            ITK_DIR=${{ env.WS || github.workspace }}/itk/build
+            VTK_DIR=${{ env.WS || github.workspace }}/vtk/install/${{ matrix.container && 'lib64' || 'lib' }}/cmake/vtk-9.5
             CMAKE_BUILD_TYPE=Release
             DO_UPLOAD=ON
-            SITE=github-runner-${{ matrix.os }}
+            SITE=github-runner-${{ env.PLATFORM }}
             ${{ runner.os == 'Windows' && format('CURL_LIBRARY={0}/vcpkg/installed/{1}/lib/libcurl.lib', github.workspace, matrix.vcpkg_triplet) || '' }}
             ${{ runner.os == 'Windows' && format('CURL_INCLUDE_DIR={0}/vcpkg/installed/{1}/include', github.workspace, matrix.vcpkg_triplet) || '' }}
             ${{ runner.os == 'Windows' && 'CMAKE_EXE_LINKER_FLAGS=/FORCE:MULTIPLE' || '' }}
@@ -382,7 +432,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{github.workspace}}/itksnap
-          key: ${{ matrix.os }}-itksnap-build-master-${{ github.run_id }}-${{ github.run_attempt }}
+          key: ${{ env.PLATFORM }}-itksnap-build-master-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Remove older ITK-SNAP build caches
         if: ${{ github.ref == 'refs/heads/master' }}
@@ -390,8 +440,8 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          PREFIX: ${{ matrix.os }}-itksnap-build-master-
-          KEEP: ${{ matrix.os }}-itksnap-build-master-${{ github.run_id }}-${{ github.run_attempt }}
+          PREFIX: ${{ env.PLATFORM }}-itksnap-build-master-
+          KEEP: ${{ env.PLATFORM }}-itksnap-build-master-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/actions/caches?key=$PREFIX&ref=refs/heads/master&per_page=100" \
               --jq '.actions_caches[].key' |
