@@ -342,6 +342,15 @@ jobs:
           ${{ matrix.ctest_cmd }} -V -D ExperimentalUpdate || echo "ExperimentalUpdate failed; continuing"
           ${{ matrix.ctest_cmd }} -V -D ExperimentalConfigure
           ${{ matrix.ctest_cmd }} -V -D ExperimentalBuild
+          # ExperimentalBuild exits with 0 even when there are compile errors, so check the
+          # report it writes. Failing here (continue-on-error) still lets the tests and the
+          # CDash submit run; the Gatekeeper then fails the job before caching and packaging.
+          TAG=$(head -n 1 Testing/TAG)
+          N_ERRORS=$(grep -c "<Error>" "Testing/$TAG/Build.xml" || true)
+          if [ "$N_ERRORS" != "0" ]; then
+            echo "::error::ITK-SNAP build had $N_ERRORS error(s)"
+            exit 1
+          fi
 
       - name: ITK-SNAP Dashboard -- Test
         id: ctest-test
