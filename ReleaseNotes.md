@@ -7,7 +7,7 @@
 - Open images, meshes and workspaces directly from remote locations:
   - `scp://` and `sftp://` URLs load files over SSH, with password and key passphrase prompts and ProxyJump (jump host) support
   - `http://` and `https://` URLs load publicly accessible files
-  - `fw://` URLs load files from [Flywheel](https://flywheel.io), using the API key from the Flywheel CLI
+  - `fw://` URLs load files from [Flywheel](https://flywheel.io) acquisitions, analyses, sessions, subjects and projects, using the API key from the Flywheel CLI
   - Clickable `itksnap-sftp://`, `itksnap-scp://`, `itksnap-http(s)://` and `itksnap-fw://` links open ITK-SNAP from a web browser (registered by the Windows installer and the macOS application bundle)
   - Downloaded files are kept in a local cache, so reopening a remote file is fast
   - The [ITK-SNAP Launcher extension for VS Code](https://marketplace.visualstudio.com/items?itemName=pyushkevich.itksnap-launcher) opens images and workspaces from VS Code in ITK-SNAP, including files on remote machines that VS Code is connected to

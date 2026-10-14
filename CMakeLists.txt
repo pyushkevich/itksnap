@@ -1535,6 +1535,32 @@ set_tests_properties(
     LABELS "Remote"
     TIMEOUT 120)
 
+# Test: offline check of the fw:// URL grammar. No network, no API key. HOME
+# (or APPDATA on Windows) is pointed at an empty directory, the same trick as
+# the cache test above, so a developer's ~/.fw/config.yml is not read and valid
+# forms stop at the absent key prompt. No Remote label since it runs offline.
+add_test(NAME RemoteImageLoadTest_FlywheelURLForms
+  COMMAND remote_image_load_test --test-fw-url-forms)
+set(FW_URLFORMS_HOME "${CMAKE_CURRENT_BINARY_DIR}/Testing/FlywheelURLFormsHome")
+file(MAKE_DIRECTORY ${FW_URLFORMS_HOME})
+IF(WIN32)
+  set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES ENVIRONMENT "APPDATA=${FW_URLFORMS_HOME}")
+ELSE()
+  set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES ENVIRONMENT "HOME=${FW_URLFORMS_HOME}")
+ENDIF()
+set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES TIMEOUT 60)
+
+# Opt in live test against a real Flywheel site. Registered only when
+# FLYWHEEL_TEST_URL (and FLYWHEEL_TEST_REF for the local reference) are set at
+# configure time. The API key comes from ~/.fw/config.yml as in normal use.
+if(FLYWHEEL_TEST_URL)
+  add_test(NAME RemoteImageLoadTest_FlywheelSession
+    COMMAND remote_image_load_test --regression-test -g
+      "${FLYWHEEL_TEST_URL}" "${FLYWHEEL_TEST_REF}")
+  set_tests_properties(RemoteImageLoadTest_FlywheelSession
+    PROPERTIES LABELS "Remote;Flywheel" TIMEOUT 120)
+endif()
+
 # Test: large-image size guard throws IRISException instead of crashing with SIGBUS
 ADD_EXECUTABLE(TestLargeImageCheck
     Testing/Logic/TestLargeImageCheck.cxx)
