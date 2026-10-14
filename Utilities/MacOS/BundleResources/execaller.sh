@@ -14,7 +14,7 @@ if [ -z "$ITKSNAP_APP_DIR" ]
 then
  	myDir="`dirname "$0"`"
 	myAppDir="$myDir/../Applications"
-	for i in ~/Applications $myDir $myAppDir /Applications; do
+	for i in "$HOME/Applications" "$myDir" "$myAppDir" /Applications; do
     if [ -x "$i/ITK-SNAP.app" ]; then
 			ITKSNAP_APP_DIR="$i"
 			break
@@ -33,7 +33,7 @@ fi
 binary="$ITKSNAP_APP_DIR/ITK-SNAP.app/Contents/@EXENAME@"
 
 # Call the binary
-exec $binary @EXEOPTS@ ${1:+"$@"}
+exec "$binary" @EXEOPTS@ ${1:+"$@"}
 
 
 
