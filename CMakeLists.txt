@@ -1618,6 +1618,14 @@ TARGET_INCLUDE_DIRECTORIES(TestSegmentationStatistics PUBLIC ${SNAP_INCLUDE_DIRS
 add_test(NAME TestSegmentationStatistics
   COMMAND TestSegmentationStatistics ${TESTDATA_DIR} ${TEMP})
 
+# Parsing of remote URLs (no network access)
+ADD_EXECUTABLE(TestRemoteURLs
+    Testing/Logic/TestRemoteURLs.cxx)
+TARGET_LINK_LIBRARIES(TestRemoteURLs ${SNAP_EXTERNAL_LIBS} itksnaplogic)
+TARGET_INCLUDE_DIRECTORIES(TestRemoteURLs PUBLIC ${SNAP_INCLUDE_DIRS})
+
+add_test(NAME TestRemoteURLs COMMAND TestRemoteURLs)
+
 # Undo and redo of segmentation edits, per segmentation and per time point
 ADD_EXECUTABLE(TestUndoRedo
     Testing/Logic/TestUndoRedo.cxx)
