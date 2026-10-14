@@ -178,6 +178,26 @@ bool WorkspaceAPI::IsKeyValidMeshLayer(const std::string &key)
   return true;
 }
 
+void WorkspaceAPI::ReadLayerImage(GuidedNativeImageIO *io, const string &filename,
+                                  Registry &hints, bool header_only) const
+{
+  // A layer loaded from a URL keeps the URL in the workspace. Download it
+  // (or find it in the cache) and read the local copy, which is deleted
+  // after reading unless it is in the cache
+  RemoteDownload download;
+  string local = filename;
+  if(IsRemoteImageURL(filename))
+    {
+    download = DownloadRemoteFile(filename, m_RemoteIOContext);
+    local = download.GetPath();
+    }
+
+  if(header_only)
+    io->ReadNativeImageHeader(local.c_str(), hints);
+  else
+    io->ReadNativeImage(local.c_str(), hints);
+}
+
 string WorkspaceAPI::GetLayerActualPath(Registry &folder)
 {
   // Get the filenames for the layer
@@ -766,7 +786,7 @@ void WorkspaceAPI::UpdateMainLayerFieldsFromImage(Registry &main_layer_folder)
   // TODO: there has to be a way to supply some hints!
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
   Registry hints;
-	io->ReadNativeImageHeader(filename.c_str(), hints);
+  ReadLayerImage(io, filename, hints, true);
   Vector3i dims(0);
   for(int k = 0; k < io->GetIOBase()->GetNumberOfDimensions(); k++)
     dims[k] = io->GetIOBase()->GetDimensions(k);
@@ -948,7 +968,7 @@ void WorkspaceAPI::RenameLayer(const string &layer_key, const string &new_filena
   SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
   // Load the header of the image and the image data
-  io->ReadNativeImage(fn_layer.c_str(), io_hints);
+  ReadLayerImage(io, fn_layer, io_hints);
 
   // Save the layer as nee image. Since we are saving as a NIFTI, we don't need to
   // provide any hints
@@ -1134,7 +1154,8 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace,
     string fn_layer = wsexp.GetLayerActualPath(f_layer);
 
     // Get the current layer base filename
-    string fn_layer_basename = StripFilenameExtension(fn_layer);
+    string fn_layer_basename = StripFilenameExtension(
+          IsRemoteImageURL(fn_layer) ? RemoteFilenameFromURL(fn_layer) : fn_layer);
 
     // The IO hints for the file
     Registry io_hints, *layer_io_hints;
@@ -1145,7 +1166,7 @@ void WorkspaceAPI::ExportWorkspace(const char *new_workspace,
     SmartPtr<GuidedNativeImageIO> io = GuidedNativeImageIO::New();
 
     // Load the header of the image and the image data
-    io->ReadNativeImage(fn_layer.c_str(), io_hints);
+    ReadLayerImage(io, fn_layer, io_hints);
 
     // Report progress
     progress->AddProgress(0.5);

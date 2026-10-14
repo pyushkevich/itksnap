@@ -9,6 +9,7 @@
 #include "UIReporterDelegates.h"
 #include "LayerIterator.h"
 #include "TDigestImageFilter.h"
+#include "WorkspaceAPI.h"
 #include <itksys/SystemTools.hxx>
 #include <iostream>
 #include <cstdlib>
@@ -563,7 +564,8 @@ static int TestCancel(const std::string &url)
 //  Load an image from a remote URL, save a local workspace, and check that
 //  the workspace refers to the image by its URL (not by a mangled local
 //  path or the cache/temp file), that it can be reopened with the same data,
-//  and that saving a workspace to a remote URL is refused.
+//  that it can be exported (as for an upload to the distributed segmentation
+//  service), and that saving a workspace to a remote URL is refused.
 // -----------------------------------------------------------------------
 
 static int TestSaveWorkspace(const std::string &url, const std::string &tempdir)
@@ -643,8 +645,61 @@ static int TestSaveWorkspace(const std::string &url, const std::string &tempdir)
       }
     }
 
+  // Export the workspace, as the distributed segmentation service does
+  // before uploading it: the remote layer must be downloaded and saved as a
+  // local file, and the export must open with the same data
+  std::string export_dir = tempdir + "/RemoteImageLoadTest_Export";
+  std::string export_file = export_dir + "/exported.itksnap";
+  itksys::SystemTools::RemoveADirectory(export_dir);
+  itksys::SystemTools::MakeDirectory(export_dir);
+  std::vector<LayerSnapshot> snaps3;
+  try
+    {
+    WorkspaceAPI ws;
+    ws.ReadFromXMLFile(ws_file.c_str());
+    ws.ExportWorkspace(export_file.c_str());
+
+    WorkspaceAPI exported;
+    exported.ReadFromXMLFile(export_file.c_str());
+    for (int i = 0; i < exported.GetNumberOfLayers(); i++)
+      {
+      std::string path = exported.GetLayerActualPath(exported.GetLayerFolder(i));
+      if (IsRemoteImageURL(path) || !itksys::SystemTools::FileExists(path))
+        {
+        std::cerr << "FAIL: exported layer " << i << " is not a local file: " << path << std::endl;
+        return 1;
+        }
+      }
+
+    IRISApplication::Pointer app3 = MakeApp();
+    app3->OpenWorkspace(export_file, warnings);
+    snaps3 = SnapshotAllLayers(app3);
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: could not export the workspace: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  for (size_t i = 0; i < snaps1.size() && i < snaps3.size(); ++i)
+    {
+    std::string msg;
+    if (!CompareSnapshots(snaps1[i], snaps3[i], msg))
+      {
+      std::cerr << "FAIL: layer " << i << " differs after exporting: " << msg << std::endl;
+      return 1;
+      }
+    }
+  if (snaps1.size() != snaps3.size())
+    {
+    std::cerr << "FAIL: exported workspace has " << snaps3.size() << " layers, expected "
+              << snaps1.size() << std::endl;
+    return 1;
+    }
+
   itksys::SystemTools::RemoveFile(ws_file);
-  std::cout << "PASS: workspace with a remote layer saved and reopened" << std::endl;
+  itksys::SystemTools::RemoveADirectory(export_dir);
+  std::cout << "PASS: workspace with a remote layer saved, reopened and exported" << std::endl;
   return 0;
 }
 
