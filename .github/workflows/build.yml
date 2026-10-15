@@ -420,9 +420,11 @@ jobs:
         run: |
           ${{ matrix.ctest_cmd }} -D ExperimentalSubmit
 
+      # Fail the job if the configure or build failed, or the CDash submit failed. Failing
+      # tests don't stop the job (some are allowed to fail); they are reported on CDash.
       - name: ITK-SNAP Dashboard -- Gatekeeper
         if: ${{ steps.ctest-config.outcome != 'success' || steps.ctest-submit.outcome != 'success' }}
-        run: exit -1          
+        run: exit -1
 
       # Cache the ITK-SNAP build, for master only: each entry is about 400 MB, and saving one
       # for every branch and pull request filled the repository's 10 GB cache. Caches can't be
@@ -545,7 +547,7 @@ jobs:
       - name: Cleanup secrets
         if: ${{ always() }}
         shell: bash
-        working-directory: ${{github.workspace}}/itksnap/build
+        # No working-directory: the build directory doesn't exist when an early step failed
         run: |
           rm -rf $HOME/.ssh/sfkey.pub $HOME/.ssh/sfkey
           # The keychain only exists when packaging ran (not in pull requests)
