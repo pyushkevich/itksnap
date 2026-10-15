@@ -1585,19 +1585,17 @@ set_tests_properties(
     TIMEOUT 120)
 
 # Test: offline check of the fw:// URL grammar. No network, no API key. HOME
-# (or APPDATA on Windows) is pointed at an empty directory, the same trick as
-# the cache test above, so a developer's ~/.fw/config.yml is not read and valid
-# forms stop at the absent key prompt. No Remote label since it runs offline.
+# is pointed at an empty directory so a developer's ~/.fw/config.yml is not
+# read and valid forms stop at the absent key prompt. The key lookup reads HOME
+# before USERPROFILE on Windows too, so this works on every platform. No Remote
+# label since it runs offline.
 add_test(NAME RemoteImageLoadTest_FlywheelURLForms
   COMMAND remote_image_load_test --test-fw-url-forms)
 set(FW_URLFORMS_HOME "${CMAKE_CURRENT_BINARY_DIR}/Testing/FlywheelURLFormsHome")
 file(MAKE_DIRECTORY ${FW_URLFORMS_HOME})
-IF(WIN32)
-  set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES ENVIRONMENT "APPDATA=${FW_URLFORMS_HOME}")
-ELSE()
-  set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES ENVIRONMENT "HOME=${FW_URLFORMS_HOME}")
-ENDIF()
-set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES TIMEOUT 60)
+set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES
+  ENVIRONMENT "HOME=${FW_URLFORMS_HOME}"
+  TIMEOUT 60)
 
 # Test: large-image size guard throws IRISException instead of crashing with SIGBUS
 ADD_EXECUTABLE(TestLargeImageCheck
