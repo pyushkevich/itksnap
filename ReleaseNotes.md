@@ -7,7 +7,7 @@
 - Open images, meshes and workspaces directly from remote locations:
   - `scp://` and `sftp://` URLs load files over SSH, with password and key passphrase prompts and ProxyJump (jump host) support
   - `http://` and `https://` URLs load publicly accessible files
-  - `fw://` URLs load files from [Flywheel](https://flywheel.io), using the API key from the Flywheel CLI
+  - `fw://` URLs load files from [Flywheel](https://flywheel.io) projects, subjects, sessions, acquisitions and analyses using the API key from the Flywheel CLI
   - Clickable `itksnap-sftp://`, `itksnap-scp://`, `itksnap-http(s)://` and `itksnap-fw://` links open ITK-SNAP from a web browser (registered by the Windows installer and the macOS application bundle)
   - Downloaded files are kept in a local cache, so reopening a remote file is fast
   - Remote images and workspaces appear in the recent-file lists, marked with a badge on the startup page, and their display settings are remembered like those of local files

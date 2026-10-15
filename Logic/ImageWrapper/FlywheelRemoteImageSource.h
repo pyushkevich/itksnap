@@ -4,15 +4,21 @@
 #include "ImageIORemote.h"
 
 /**
- * Flywheel.io remote image source.  Handles URLs of the form
- *   fw://host/group/project/subject/session/acquisition/filename.nii.gz
+ * Flywheel.io remote image source.  Handles two fw:// URL forms:
  *
- * The group label is used directly as the Flywheel group ID (Flywheel groups
- * use human-readable string IDs).  Project, subject, session, and acquisition
- * are resolved by matching their "label" field via REST API calls.
+ *   Direct (ID based):
+ *     fw://host/<type>/<id>/files/<filename>
+ *     where <type> is acquisitions, analyses, sessions, subjects or projects.
+ *
+ *   Label based (find):
+ *     fw://host/find/<group>/<project>/<subject>/<session>/<type>/<label>/files/<filename>
+ *     where <type> is acquisitions or analyses. Each label is resolved to an
+ *     ID by matching its "label" field via REST API calls.
  *
  * Authentication uses an API key supplied via AbstractSSHAuthDelegate::PromptForAPIKey().
  * The key is cached in memory for the lifetime of the process (per server).
+ *
+ * See Documentation/Developer/RemoteURLs.md for the full description.
  */
 class FlywheelRemoteImageSource : public RemoteImageSource
 {
