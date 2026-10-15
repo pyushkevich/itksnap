@@ -2,6 +2,7 @@
 #include "GenericImageData.h"
 #include "ImageIODelegates.h"
 #include "ImageIORemote.h"
+#include "FlywheelRemoteImageSource.h"
 #include "GlobalState.h"
 #include "ImageMeshLayers.h"
 #include "RemoteFileCache.h"
@@ -124,6 +125,7 @@ static void PrintUsage(const char *prog)
   std::cerr << "  " << prog << " --test-save-workspace <remote-url> <temp-dir>  save/reopen a workspace with a remote layer" << std::endl;
   std::cerr << "  " << prog << " --test-cancel <remote-url>  cancel an HTTP download from the progress callback" << std::endl;
   std::cerr << "  " << prog << " --test-url-keys <remote-url>  history and per-image settings use the URL" << std::endl;
+  std::cerr << "  " << prog << " --test-fw-url-forms  check the fw:// URL grammar offline" << std::endl;
 }
 
 
@@ -781,6 +783,71 @@ static int TestURLKeys(const std::string &url)
 
 
 // -----------------------------------------------------------------------
+//  --test-fw-url-forms
+//
+//  Offline check of the fw:// URL grammar in FlywheelRemoteImageSource. No
+//  network and no API key. With no auth delegate set and HOME pointed at an
+//  empty directory, a syntactically valid form passes validation and reaches
+//  the key step, where it throws IRISUserCancelException because nothing can
+//  supply a key; a bad form is rejected earlier with IRISException. The
+//  exception thrown thus reveals which branch the parser took.
+// -----------------------------------------------------------------------
+
+static int TestFlywheelURLForms()
+{
+  struct Case { const char *url; const char *expect; };
+  const Case cases[] = {
+    { "fw://h/sessions/abc/files/x.nii.gz",       "cancel" },
+    { "fw://h/subjects/abc/files/x.nii.gz",       "cancel" },
+    { "fw://h/projects/abc/files/x.nii.gz",       "cancel" },
+    { "fw://h/acquisitions/abc/files/x.nii.gz",   "cancel" },
+    { "fw://h/analyses/abc/files/x.nii.gz",       "cancel" },
+    { "fw://h/groups/abc/files/x.nii.gz",         "unrecognised" },
+    { "fw://h/sessions/abc/x.nii.gz",             "unrecognised" },
+    { "fw://h/find/g/p/s/ses/sessions/l/files/x", "unrecognised" },
+    { "fw://h",                                   "malformed" },
+  };
+
+  int failures = 0;
+  for (const auto &c : cases)
+    {
+    std::string got;
+    std::string message;
+    try
+      {
+      FlywheelRemoteImageSource::New()->Download(c.url);
+      got = "none";
+      }
+    catch (IRISUserCancelException &)
+      {
+      got = "cancel";
+      }
+    catch (IRISException &e)
+      {
+      message = e.what();
+      if (message.find("unrecognised URL format") != std::string::npos)
+        got = "unrecognised";
+      else if (message.find("malformed URL") != std::string::npos)
+        got = "malformed";
+      else
+        got = "other";
+      }
+
+    bool ok = (got == c.expect);
+    std::cout << (ok ? "PASS" : "FAIL") << ": " << c.url
+              << "  expected " << c.expect << ", got " << got;
+    if (!ok && !message.empty())
+      std::cout << " (" << message << ")";
+    std::cout << std::endl;
+    if (!ok)
+      failures++;
+    }
+
+  return failures == 0 ? 0 : 1;
+}
+
+
+// -----------------------------------------------------------------------
 //  main
 // -----------------------------------------------------------------------
 
@@ -868,6 +935,10 @@ int main(int argc, char *argv[])
     std::string url = ResolveITKSnapURL(argv[2]);
     return TestURLKeys(url);
     }
+
+  // ── --test-fw-url-forms ──────────────────────────────────────────────
+  if (cmd == "--test-fw-url-forms")
+    return TestFlywheelURLForms();
 
   // ── Legacy: -g / -w ─────────────────────────────────────────────────
   if (argc < 3)
