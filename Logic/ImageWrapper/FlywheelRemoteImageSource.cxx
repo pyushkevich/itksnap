@@ -353,7 +353,7 @@ std::string DownloadByFind(const std::string               &server,
   std::string ctype_singular = (ctype == "analyses") ? "analysis" : "acquisition";
 
   std::string project_id =
-    ResolveLevel(base + "/api/groups/" + group + "/projects",
+    ResolveLevel(base + "/api/groups/" + UrlEncodePathSegment(group) + "/projects",
                  api_key, project, "project", group, server, progress_cb);
 
   std::string subject_id =

@@ -1358,6 +1358,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_QT_PLATFORM)
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
+  CloseWithMouseEvent
   NaNs
   4DContinuousRendering
   DiffSpace
@@ -1526,15 +1527,32 @@ add_test(NAME RemoteImageLoadTest_Cache
     --test-cache
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
 
-# The test clears the cache, so keep the application data directory (which
-# comes from APPDATA on Windows and HOME on Linux) out of the user's profile
-set(CACHE_TEST_HOME "${CMAKE_CURRENT_BINARY_DIR}/Testing/CacheTestHome")
-file(MAKE_DIRECTORY ${CACHE_TEST_HOME})
-IF(WIN32)
-  set_tests_properties(RemoteImageLoadTest_Cache PROPERTIES ENVIRONMENT "APPDATA=${CACHE_TEST_HOME}")
-ELSEIF(NOT APPLE)
-  set_tests_properties(RemoteImageLoadTest_Cache PROPERTIES ENVIRONMENT "HOME=${CACHE_TEST_HOME}")
-ENDIF()
+# The test clears the cache, so it gets an application data directory of its
+# own (see below).
+
+# Test: the history and the per-image settings of an image loaded from a URL
+# use the URL, so the settings come back when it is opened again.
+add_test(NAME RemoteImageLoadTest_URLKeys
+  COMMAND remote_image_load_test
+    --test-url-keys
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz?x=1")
+
+# These tests clear the cache or write settings, so each gets its own
+# application data directory, away from the user's profile and from the other
+# remote tests running in parallel. The directory comes from APPDATA on
+# Windows and HOME on Linux; on macOS the test's delegate puts it in the
+# working directory.
+foreach(_test RemoteImageLoadTest_Cache RemoteImageLoadTest_URLKeys)
+  set(_home "${CMAKE_CURRENT_BINARY_DIR}/Testing/${_test}_Home")
+  file(MAKE_DIRECTORY ${_home})
+  IF(WIN32)
+    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "APPDATA=${_home}")
+  ELSEIF(APPLE)
+    set_tests_properties(${_test} PROPERTIES WORKING_DIRECTORY "${_home}")
+  ELSE()
+    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "HOME=${_home}")
+  ENDIF()
+endforeach()
 
 # Test: save a workspace containing a layer loaded from a URL, check that the
 # URL is stored as-is, and reopen it.
@@ -1558,6 +1576,7 @@ set_tests_properties(
   RemoteImageLoadTest_Cache
   RemoteImageLoadTest_SaveWorkspace
   RemoteImageLoadTest_Cancel
+  RemoteImageLoadTest_URLKeys
   PROPERTIES
     LABELS "Remote"
     TIMEOUT 120)
@@ -1723,6 +1742,31 @@ IF(Python3_Interpreter_FOUND)
   SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8917 6 --)
   ADD_SNAP_GUI_TEST(DropRemoteProgress)
+
+  # A URL opened as macOS opens a browser link (a file open event, sent by
+  # --test-url). The server refuses the image unless its query arrives intact;
+  # the workspace URL has a query, so it does not end in .itksnap
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8918 0
+    --require-query "token=a%2Fb&x=1" --)
+  ADD_SNAP_GUI_TEST(OpenURLEventImage
+    --test-url "itksnap-http://127.0.0.1:8918/MRIcrop-orig.gipl.gz?token=a%2Fb&x=1#frag")
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8919 0 --)
+  ADD_SNAP_GUI_TEST(OpenURLEventWorkspace
+    --test-url "itksnap-http://127.0.0.1:8919/MRIcrop-with-mesh.itksnap?token=abc")
+
+  # A workspace URL given with --url, as the URL handler on Windows and Linux
+  # passes it, opens with the progress dialog showing during the download
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8920 6 --)
+  ADD_SNAP_GUI_TEST(URLWorkspaceProgress
+    --url "itksnap-http://127.0.0.1:8920/MRIcrop-with-mesh.itksnap")
+
+  # The sample dataset links on the Getting Started page open in the window
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8921 0 --)
+  ADD_SNAP_GUI_TEST(GettingStartedLinks)
   UNSET(SNAP_GUI_TEST_LAUNCHER)
 ENDIF()
 

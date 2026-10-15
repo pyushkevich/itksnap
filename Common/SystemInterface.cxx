@@ -49,6 +49,7 @@
 #include "UIReporterDelegates.h"
 #include <itksys/Directory.hxx>
 #include <itksys/SystemTools.hxx>
+#include "ImageIORemote.h"
 #include "itkVoxBoCUBImageIOFactory.h"
 #include <algorithm>
 #include <ctime>
@@ -336,11 +337,11 @@ std::string
 SystemInterface
 ::FindUniqueCodeForFile(const char *file, bool generate_if_not_found)
 {
-  // Convert the filename to absolute path
-  string path = SystemTools::CollapseFullPath(file);
-
-  // Convert to unix slashes for consistency
-  SystemTools::ConvertToUnixSlashes(path);
+  // Convert the filename to absolute path, with unix slashes for consistency.
+  // URLs are used as they are
+  string path = CollapseFullPathOrURL(file);
+  if(!IsRemoteImageURL(path))
+    SystemTools::ConvertToUnixSlashes(path);
 
   // Encode the filename as ASCII
   path = EncodeFilename(path);

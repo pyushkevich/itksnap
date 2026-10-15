@@ -178,6 +178,9 @@ private slots:
 
   void onActiveChanged();
 
+  // A link on the Getting Started page was clicked
+  void on_brsGettingStarted_anchorClicked(const QUrl &url);
+
   void on_actionQuit_triggered();
 
   void on_actionLoad_from_Image_triggered();

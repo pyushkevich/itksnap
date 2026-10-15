@@ -36,6 +36,7 @@
 #include "IRISException.h"
 #include "SNAPCommon.h"
 #include "SNAPRegistryIO.h"
+#include "ImageIORemote.h"
 #include "ImageCoordinateGeometry.h"
 
 #include "itkImage.h"
@@ -2273,7 +2274,15 @@ GuidedNativeImageIO::GuessFormatForFileName(
     // formats are well defined by their extension.
     }
 
-  // The rest of this method checks by extension
+  // The rest of this method checks by extension. For a URL, the extension is
+  // that of the file it downloads to, without any ?query or #fragment
+  std::string fname_ext = fname;
+  if(IsRemoteImageURL(fname))
+    {
+    try { fname_ext = RemoteFilenameFromURL(fname); }
+    catch(IRISException &) {}
+    }
+
   for(unsigned int i = 0; i < FORMAT_COUNT; i++)
     {
     // Get the format descriptor
@@ -2281,7 +2290,7 @@ GuidedNativeImageIO::GuessFormatForFileName(
     FileFormatDescriptor fd = GetFileFormatDescriptor(fmt);
 
     // Check if there is a filename match
-    if(fd.TestFilename(fname))
+    if(fd.TestFilename(fname_ext))
       {
       return fmt;
       }

@@ -118,6 +118,14 @@ void DropActionDialog::UpdateSendToWindowMenu()
     if (p.first != myPid)
       peers.push_back(p);
 
+  // Remove the menu made for the last dropped file. The button does not own
+  // its menu, and the dialog is kept, so each drop would add another one
+  if (QMenu *old = ui->btnSendToWindow->menu())
+  {
+    ui->btnSendToWindow->setMenu(nullptr);
+    old->deleteLater();
+  }
+
   if (peers.empty())
   {
     ui->btnSendToWindow->hide();
@@ -285,7 +293,7 @@ void DropActionDialog::on_btnLoadSegmentation_clicked()
   auto io = GuidedNativeImageIO::New();
 
   // if incoming load can overwrite unsaved changes, prompt user for saving.
-  // The check reads the image header, which downloads a remote image.
+  // The check may read the header of a local image.
   HideWhileLoading();
   try
     {

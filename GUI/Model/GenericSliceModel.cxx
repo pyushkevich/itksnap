@@ -316,6 +316,12 @@ GenericSliceModel::RestoreViewPositionInWorldSpace()
   m_ViewPosition[1] = xVPSlice[1] * m_RefSpaceSpacing[1];
 }
 
+bool
+GenericSliceModel::IsSliceInitialized() const
+{
+  return m_SliceInitialized && m_Driver && m_Driver->IsMainImageLoaded();
+}
+
 void
 GenericSliceModel
 ::InitializeSlice(GenericImageData *imageData)

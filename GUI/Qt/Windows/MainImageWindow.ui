@@ -252,12 +252,19 @@ font-size: 13px;</string>
                   <set>QTextEdit::AutoFormattingFlag::AutoBulletList</set>
                  </property>
                  <property name="markdown">
-                  <string notr="true">- Browse 
+                  <string notr="true">- Browse the 
   [online documentation and tutorials](http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP4)
   
-- Download 
+- Open a sample dataset from the web (see the
+  [licenses](https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data)):
+  - [Brain MRI with segmentation (cropped)](itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/mri_tutorial/mri_tutorial.itksnap)
+  - [Brain diffusion MRI with FA, trace and color direction maps](itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/brain_diffusion_mri/diffusion.itksnap)
+  - [Multi-modal brain tumor MRI with segmentation (BRATS 2012)](itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/brain_tumor_mri/BRATS_HG0015.itksnap)
+  - [High-resolution hippocampus MRI with segmentation](itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/dss_ashs_test/ashs_test.itksnap)
+  - [4D aortic valve ultrasound with segmentation (98 MB)](itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/govalve_root/govalve_root.itksnap)
+- Download these and other 
   [sample datasets](http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data) 
-- Connect to the 
+- Connect with the 
   [ITK-SNAP community](http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists)
 </string>
                  </property>
@@ -271,12 +278,22 @@ li.checked::marker { content: &quot;\2612&quot;; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'.AppleSystemUIFont'; font-size:13px; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;
-&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:12px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Browse &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP4&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;online documentation and tutorials&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
-&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:10px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Download &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;sample datasets&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
-&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:10px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Connect to the &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;ITK-SNAP community&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:12px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Browse the &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP4&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;online documentation and tutorials&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:10px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Open a sample dataset from the web (see the &lt;a href=&quot;https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;licenses&lt;/span&gt;&lt;/a&gt;):
+&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;&quot;&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/mri_tutorial/mri_tutorial.itksnap&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;Brain MRI with segmentation (cropped)&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/brain_diffusion_mri/diffusion.itksnap&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;Brain diffusion MRI with FA, trace and color direction maps&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/brain_tumor_mri/BRATS_HG0015.itksnap&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;Multi-modal brain tumor MRI with segmentation (BRATS 2012)&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/dss_ashs_test/ashs_test.itksnap&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;High-resolution hippocampus MRI with segmentation&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;a href=&quot;itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/govalve_root/govalve_root.itksnap&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;4D aortic valve ultrasound with segmentation (98 MB)&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:10px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Download these and other &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;sample datasets&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
+&lt;li style=&quot; font-size:14px;&quot; style=&quot; margin-top:10px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Connect with the &lt;a href=&quot;http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#094fd1;&quot;&gt;ITK-SNAP community&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</string>
                  </property>
                  <property name="openExternalLinks">
-                  <bool>true</bool>
+                  <bool>false</bool>
+                 </property>
+                 <property name="openLinks">
+                  <bool>false</bool>
                  </property>
                 </widget>
                </item>
@@ -388,7 +405,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
      <x>0</x>
      <y>0</y>
      <width>907</width>
-     <height>37</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
