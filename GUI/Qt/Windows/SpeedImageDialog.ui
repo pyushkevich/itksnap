@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>512</width>
+    <width>498</width>
     <height>560</height>
    </rect>
   </property>
@@ -550,7 +550,7 @@ QGroupBox &gt; QGroupBox {
              <item row="3" column="0" colspan="8">
               <widget class="QCheckBox" name="inClassifyUseCoordinates">
                <property name="text">
-                <string>Inculde the voxels' coordinates as features</string>
+                <string>Include the voxels' coordinates as features</string>
                </property>
               </widget>
              </item>
@@ -587,7 +587,7 @@ color: rgb(108,108,108);</string>
              <item row="2" column="2">
               <widget class="QLabel" name="label_26">
                <property name="text">
-                <string>Patch radius:</string>
+                <string>Neighborhood radius:</string>
                </property>
               </widget>
              </item>
@@ -640,7 +640,7 @@ color: rgb(108,108,108);</string>
              <item row="0" column="0" colspan="8">
               <widget class="QCheckBox" name="inClassifyUsePatch">
                <property name="text">
-                <string>Use patches for classification</string>
+                <string>Include intensities of neighboring voxels as features:</string>
                </property>
               </widget>
              </item>
@@ -657,26 +657,10 @@ color: rgb(108,108,108);</string>
                </property>
               </widget>
              </item>
-             <item row="2" column="1">
-              <spacer name="horizontalSpacer_8">
-               <property name="orientation">
-                <enum>Qt::Orientation::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::Policy::Fixed</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>50</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
              <item row="2" column="6">
               <widget class="QLabel" name="label_27">
                <property name="toolTip">
-                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use these controls to set the size of the patch. Patches are symmetrical around a voxel and have dimensions that are odd, e.g., 1x1x1, 5x5x5, 3x3x1. The size of the patch is equal to one plus twice the patch radius. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use these controls to set the size of the neighborhood. A neighborhood of radius 1 contains 3x3x3=27 voxels.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
                <property name="text">
                 <string/>
