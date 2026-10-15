@@ -32,6 +32,31 @@ inline std::string UrlDecode(const std::string &s)
   return out;
 }
 
+/** Percent-encode text for use as one URL path segment: everything except
+ *  the unreserved characters (letters, digits, '-', '.', '_', '~') is
+ *  encoded, including '/', so the text cannot add path components. */
+inline std::string UrlEncodePathSegment(const std::string &s)
+{
+  static const char *hex = "0123456789ABCDEF";
+  std::string out;
+  out.reserve(s.size());
+  for (unsigned char c : s)
+    {
+    // ASCII ranges, not isalnum(), which depends on the locale
+    bool unreserved = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+                      (c >= '0' && c <= '9') || c == '-' || c == '.' || c == '_' || c == '~';
+    if (unreserved)
+      out += static_cast<char>(c);
+    else
+      {
+      out += '%';
+      out += hex[c >> 4];
+      out += hex[c & 15];
+      }
+    }
+  return out;
+}
+
 // Forward declarations — full types only needed in .cxx files that use them.
 class SSHConnectionPool;
 class AbstractSSHAuthDelegate;

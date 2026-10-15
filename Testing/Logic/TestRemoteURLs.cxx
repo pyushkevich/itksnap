@@ -81,6 +81,12 @@ int main()
   CheckEqual(UrlDecode("%zz"), "%zz", "invalid escape");
   CheckEqual(UrlDecode("%C3%A9"), "\xC3\xA9", "UTF-8 bytes");
 
+  std::cout << "UrlEncodePathSegment:" << std::endl;
+  CheckEqual(UrlEncodePathSegment("my-Group_1.x~"), "my-Group_1.x~", "unreserved characters kept");
+  CheckEqual(UrlEncodePathSegment("my group/a?b#c&d%"), "my%20group%2Fa%3Fb%23c%26d%25", "reserved characters encoded");
+  CheckEqual(UrlEncodePathSegment("\xC3\xA9"), "%C3%A9", "UTF-8 bytes");
+  CheckEqual(UrlDecode(UrlEncodePathSegment("a b/c%d")), "a b/c%d", "round trip");
+
   // ── 3. Source for each scheme ─────────────────────────────────────────
   std::cout << "CreateRemoteImageSource:" << std::endl;
   CheckEqual(SourceFor("scp://h/f.nii"), "SCPRemoteImageSource", "scp");

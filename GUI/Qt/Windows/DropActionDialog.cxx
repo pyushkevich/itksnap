@@ -118,6 +118,14 @@ void DropActionDialog::UpdateSendToWindowMenu()
     if (p.first != myPid)
       peers.push_back(p);
 
+  // Remove the menu made for the last dropped file. The button does not own
+  // its menu, and the dialog is kept, so each drop would add another one
+  if (QMenu *old = ui->btnSendToWindow->menu())
+  {
+    ui->btnSendToWindow->setMenu(nullptr);
+    old->deleteLater();
+  }
+
   if (peers.empty())
   {
     ui->btnSendToWindow->hide();

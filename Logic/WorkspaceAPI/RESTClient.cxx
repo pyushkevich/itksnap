@@ -69,6 +69,31 @@ void mutex_unlock(CURL *handle, curl_lock_data data, curl_lock_access access, vo
 }
 
 
+// Frees a request's header list and form data when the request is done,
+// also when it throws. The options are cleared first, since the curl handle
+// is reused and must not keep pointers to the freed lists.
+struct CurlRequestLists
+{
+  CURL *curl;
+  curl_slist *headers = nullptr;
+  curl_httppost *form = nullptr;
+
+  CurlRequestLists(CURL *c) : curl(c) {}
+  ~CurlRequestLists()
+  {
+    if (headers)
+      {
+      curl_easy_setopt(curl, CURLOPT_HTTPHEADER, nullptr);
+      curl_slist_free_all(headers);
+      }
+    if (form)
+      {
+      curl_easy_setopt(curl, CURLOPT_HTTPPOST, nullptr);
+      curl_formfree(form);
+      }
+  }
+};
+
 } // namespace RESTClient_internal
 
 using namespace std;
@@ -135,7 +160,7 @@ RESTClient<ServerTraits>::~RESTClient()
 {
   curl_easy_cleanup(m_Curl);
   curl_multi_cleanup(m_CurlMulti);
-  delete m_ErrorBuffer;
+  delete[] m_ErrorBuffer;
 }
 
 template <typename ServerTraits>
@@ -385,24 +410,19 @@ RESTClient<ServerTraits>::PostVA(const char *rel_url, const char *post_string, s
   curl_easy_setopt(m_Curl, CURLOPT_HEADERFUNCTION, RESTClient::HeaderCallback);
   curl_easy_setopt(m_Curl, CURLOPT_HEADERDATA, &m_ResponseHeaders);
 
-  // Apply any extra request headers (e.g. If-None-Match for conditional GET)
-  curl_slist *extra_slist = nullptr;
+  // Apply any extra request headers (e.g. If-None-Match for conditional GET).
+  // The list is freed when this function returns or throws
+  RESTClient_internal::CurlRequestLists lists(m_Curl);
   for (auto &kv : m_ExtraRequestHeaders)
     {
     std::string h = kv.first + ": " + kv.second;
-    extra_slist = curl_slist_append(extra_slist, h.c_str());
+    lists.headers = curl_slist_append(lists.headers, h.c_str());
     }
-  if (extra_slist)
-    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, extra_slist);
+  if (lists.headers)
+    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, lists.headers);
 
   // Perform the operation - this will throw exception on error
   CurlMultiPerform();
-
-  if (extra_slist)
-    {
-    curl_slist_free_all(extra_slist);
-    curl_easy_setopt(m_Curl, CURLOPT_HTTPHEADER, nullptr);
-    }
 
   // Capture the response code
   m_HTTPCode = 0L;
@@ -544,10 +564,12 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
   string fn_full_path = SystemTools::CollapseFullPath(filename);
   string fn_name = SystemTools::GetFilenameName(filename);
 
-  // Use the multi-part (-F) commands
-  struct curl_httppost *formpost = NULL;
+  // Use the multi-part (-F) commands. The form and header list are freed
+  // when this function returns or throws
+  RESTClient_internal::CurlRequestLists lists(m_Curl);
+  struct curl_httppost *&formpost = lists.form;
   struct curl_httppost *lastptr = NULL;
-  struct curl_slist    *headerlist = NULL;
+  struct curl_slist    *&headerlist = lists.headers;
   static const char     buf[] = "Expect:";
 
   /* Fill in the file upload field */
@@ -619,11 +641,6 @@ RESTClient<ServerTraits>::UploadFile(const char              *rel_url,
            upload_size / 1.0e6,
            upload_time);
 
-  /* then cleanup the formpost chain */
-  curl_formfree(formpost);
-
-  /* free slist */
-  curl_slist_free_all(headerlist);
 
   // Capture the response code
   m_HTTPCode = 0L;

@@ -96,7 +96,11 @@ public:
   /** Release our slot (called from Detach, including crash path). */
   void ReleaseSlot();
 
-  /** Return {pid, title} for all live instances (excluding ourselves). */
+  /**
+   * Return {pid, title} for all live instances, including this one if it has
+   * claimed a slot. Callers that want only the other instances filter out
+   * their own PID (the Window menu lists this window too, checked).
+   */
   std::vector<std::pair<long, std::string>> ReadDirectory();
 
   /** Write a file/URL into target's pending_drop field. */
