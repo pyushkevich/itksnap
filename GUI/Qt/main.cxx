@@ -402,17 +402,19 @@ std::string
 DecodeFilename(const std::string &in_string)
 {
 #ifdef WIN32
-  int bufsize = GetLongPathNameA(in_string.c_str(), NULL, 0);
+  // Expand short (8.3) names. This fails for a path that doesn't exist; the
+  // path is then returned as is, so that loading it reports the missing file
+  // instead of the exception ending the process before main() can catch it.
+  DWORD bufsize = GetLongPathNameA(in_string.c_str(), NULL, 0);
   if (bufsize == 0)
-    throw IRISException("Unable to decode parameter %s", in_string.c_str());
+    return in_string;
 
-  char *buffer = new char[bufsize];
-  int   rc = GetLongPathNameA(in_string.c_str(), buffer, bufsize);
+  std::vector<char> buffer(bufsize);
+  DWORD rc = GetLongPathNameA(in_string.c_str(), buffer.data(), bufsize);
+  if (rc == 0 || rc >= bufsize)
+    return in_string;
 
-  if (rc == 0)
-    throw IRISException("Unable to decode parameter %s", in_string.c_str());
-
-  return std::string(buffer);
+  return std::string(buffer.data(), rc);
 
 #else
   return in_string;
@@ -1155,8 +1157,10 @@ main(int argc, char *argv[])
   Q_INIT_RESOURCE(TestingScripts);
 
 
-  // Reset the locale to posix to avoid weird issues with NRRD files
-  std::setlocale(LC_NUMERIC, "POSIX");
+  // Use '.' as the decimal separator, which NRRD headers need (NrrdIO reads
+  // them with sscanf). This must be "C": the Windows CRT doesn't know "POSIX"
+  // and would keep the user's decimal comma from the ".UTF8" locale above.
+  std::setlocale(LC_NUMERIC, "C");
 
   // Force use of native OpenGL, since all of our functions and VTK use native
   // and cannot use ANGLE

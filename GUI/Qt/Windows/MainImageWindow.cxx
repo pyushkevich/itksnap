@@ -1455,7 +1455,13 @@ void MainImageWindow::on_brsGettingStarted_anchorClicked(const QUrl &url)
 
 void MainImageWindow::dropEvent(QDropEvent *event)
 {
-  QUrl url = event->mimeData()->urls().first();
+  // Some platforms deliver a drop without the URL list that dragEnterEvent
+  // accepted
+  QList<QUrl> urls = event->mimeData()->urls();
+  if (urls.isEmpty())
+    return;
+
+  QUrl url = urls.first();
 
 #if defined(__APPLE__) && QT_VERSION >= 0x050000
   // TODO: this is a Yosemite bug fix - bug https://bugreports.qt.io/browse/QTBUG-40449
