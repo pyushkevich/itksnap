@@ -9,6 +9,8 @@
         <file>Scripts/test_Workspace.js</file>
         <file>Scripts/test_DiffSpace.js</file>
         <file>Scripts/test_DropRemoteProgress.js</file>
+        <file>Scripts/test_OpenURLEventImage.js</file>
+        <file>Scripts/test_OpenURLEventWorkspace.js</file>
         <file>Scripts/test_EdgeAttraction.js</file>
         <file>Scripts/test_4DContinuousRendering.js</file>
         <file>Scripts/test_4DReplayWithMeshUpdate.js</file>

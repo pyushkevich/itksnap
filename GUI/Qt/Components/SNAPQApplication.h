@@ -51,7 +51,9 @@ public:
    * LoadDroppedFile expects.  Strips the "itksnap-" prefix so that
    *   itksnap-sftp://host/path  →  sftp://host/path
    *   itksnap-scp://host/path   →  scp://host/path
-   * Plain file paths and other schemes are returned unchanged.
+   * as ResolveITKSnapURL does for --url, keeping the query, fragment and
+   * percent-encoding unchanged. file:// URLs become local paths. Plain file
+   * paths and other schemes are returned unchanged.
    */
   static QString resolveUrl(const QString &url);
 

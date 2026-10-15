@@ -1,15 +1,18 @@
 // Test: parsing of remote URLs, without any network access.
 //
-//   1. IsRemoteImageURL and ResolveITKSnapURL (the itksnap-* browser schemes)
+//   1. IsRemoteImageURL, ResolveITKSnapURL (the itksnap-* browser schemes) and
+//      HasWorkspaceExtension
 //   2. UrlDecode
 //   3. CreateRemoteImageSource picks the source for each scheme
 //   4. ParseSCPURL: user, encoded user, port, path; malformed URLs
 //   5. RemoteFilenameFromURL: query, fragment, encoded characters, and URLs
 //      without a filename
+//   6. GuessFormatForFileName on URLs with a query, fragment or encoded dot
 //
 // Usage: TestRemoteURLs
 #include "ImageIORemote.h"
 #include "IRISException.h"
+#include "GuidedNativeImageIO.h"
 #include <iostream>
 #include <string>
 
@@ -59,6 +62,12 @@ int main()
   CheckEqual(ResolveITKSnapURL("itksnap-fw://server/group/project"), "fw://server/group/project", "itksnap-fw");
   CheckEqual(ResolveITKSnapURL("https://h/f.nii.gz"), "https://h/f.nii.gz", "plain URL unchanged");
   CheckEqual(ResolveITKSnapURL("/data/itksnap-x.nii"), "/data/itksnap-x.nii", "local path unchanged");
+  Check(HasWorkspaceExtension("https://h/a/study.itksnap"), "workspace URL");
+  Check(HasWorkspaceExtension("https://h/a/study.ITKSNAP?token=x#y"), "workspace URL with query and fragment");
+  Check(!HasWorkspaceExtension("https://h/a/img.nii.gz?f=study.itksnap"), "image URL with .itksnap in the query");
+  Check(HasWorkspaceExtension("/data/study.itksnap"), "local workspace");
+  Check(!HasWorkspaceExtension("/data/img.nii.gz"), "local image");
+  Check(!HasWorkspaceExtension("itksnap"), "short name");
 
   // ── 2. Percent decoding ───────────────────────────────────────────────
   std::cout << "UrlDecode:" << std::endl;
@@ -113,6 +122,15 @@ int main()
   Check(Throws([] { RemoteFilenameFromURL("https://h/data/.."); }), "'..' is an error");
   Check(Throws([] { RemoteFilenameFromURL("https://h/data/%2E%2E"); }), "encoded '..' is an error");
   Check(Throws([] { RemoteFilenameFromURL("https://h/data/?x=1"); }), "query with no filename is an error");
+
+  // ── 6. Image format guessed from a URL ────────────────────────────────
+  std::cout << "GuessFormatForFileName:" << std::endl;
+  auto guess = [](const std::string &f) { return GuidedNativeImageIO::GuessFormatForFileName(f, false); };
+  Check(guess("https://h/img.nii.gz?token=a%2Fb&x=1#frag") == GuidedNativeImageIO::FORMAT_NIFTI,
+        "NIfTI URL with query and fragment");
+  Check(guess("https://h/MRIcrop-orig.gipl%2Egz") == GuidedNativeImageIO::FORMAT_GIPL, "GIPL URL with encoded dot");
+  Check(guess("/data/img.nii.gz") == GuidedNativeImageIO::FORMAT_NIFTI, "local NIfTI");
+  Check(guess("https://h/data/") == GuidedNativeImageIO::FORMAT_COUNT, "URL with no filename");
 
   std::cout << (n_failures ? "FAILED: " : "PASSED: ") << n_failures << " failure(s)" << std::endl;
   return n_failures ? 1 : 0;

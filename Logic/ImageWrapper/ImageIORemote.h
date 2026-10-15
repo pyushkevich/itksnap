@@ -234,6 +234,13 @@ bool IsRemoteImageURL(const std::string &path);
  */
 std::string ResolveITKSnapURL(const std::string &url);
 
+/**
+ * Whether a file name or URL has the workspace extension (.itksnap, any case).
+ * For remote URLs the query and fragment are ignored, so that
+ * https://host/study.itksnap?token=abc counts as a workspace.
+ */
+bool HasWorkspaceExtension(const std::string &path_or_url);
+
 /** The parts of an scp:// or sftp:// URL */
 struct SCPURL
 {

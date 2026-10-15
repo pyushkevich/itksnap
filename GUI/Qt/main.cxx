@@ -335,7 +335,8 @@ usage(const char *progname)
   cout << "   --css file           : Read stylesheet from file." << endl;
   cout << "   --opengl MAJOR MINOR : Set the OpenGL major and minor version. Experimental." << endl;
   cout << "   --testgl             : Diagnose OpenGL/VTK issues." << endl;
-  cout << "   --test-url URL       : Test opening image via URL." << endl;
+  cout << "   --test-url URL       : Open an itksnap-* URL as macOS does for a browser link" << endl;
+  cout << "                        :   (a file open event). For testing." << endl;
   cout << "   --ssh-config FILE    : Read SSH settings (hosts, ProxyJump, keys, known_hosts) from" << endl;
   cout << "                        :   FILE instead of ~/.ssh/config. Not passed on to an already" << endl;
   cout << "                        :   running ITK-SNAP when --url forwards to it." << endl;
@@ -840,9 +841,7 @@ TryForwardURLToExistingInstance(const std::string &url)
   // Workspaces should always open in a new window — detect by extension.
   // For local files we could call IsProjectFile() but extension check
   // covers all practical cases and avoids the need for a full IRISApplication.
-  QString qurl = QString::fromStdString(url);
-  bool isWorkspace = qurl.endsWith(".itksnap", Qt::CaseInsensitive);
-  if (isWorkspace)
+  if (HasWorkspaceExtension(url))
     return false;
 
   // Attach to the shared-memory segment (key is hardcoded inside IPCHandler).
@@ -884,7 +883,7 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
   if (argdata.fnUrl.size())
   {
     QString qurl = QString::fromStdString(argdata.fnUrl);
-    bool isWorkspace = qurl.endsWith(".itksnap", Qt::CaseInsensitive);
+    bool isWorkspace = HasWorkspaceExtension(argdata.fnUrl);
     try
     {
       if (isWorkspace)
@@ -905,26 +904,12 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
     return;
   }
 
-  // Handle special case of test URL
+  // Handle special case of test URL: open it as macOS opens a URL from a
+  // browser link, by sending the application a file open event
   if(argdata.testUrl.size())
   {
-    try
-    {
-      // Resolve itksnap-* URLs to their underlying protocol before loading
-      QString resolved = SNAPQApplication::resolveUrl(QString::fromStdString(argdata.testUrl));
-      mainwin->LoadDroppedFile(resolved, true);
-    }
-    catch (IRISUserCancelException &)
-    {
-    }
-    catch (std::exception &exc)
-    {
-      ReportNonLethalException(
-        mainwin, exc,
-        QCoreApplication::translate("main", "Image IO Error"),
-        QCoreApplication::translate("main", "Failed to load image from URL %1").arg(from_utf8(argdata.testUrl)));
-    }
-
+    QCoreApplication::postEvent(
+      qApp, new QFileOpenEvent(QUrl(from_utf8(argdata.testUrl))));
     return;
   }
 

@@ -1372,9 +1372,9 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
     std::string filename = to_utf8(file);
     // Check if the dropped file is a project. For remote URLs (scp://, sftp://)
     // IsProjectFile cannot read the file content, so we fall back to checking
-    // the .itksnap extension
+    // the .itksnap extension (ignoring any query or fragment)
     bool isRemote = IsRemoteImageURL(filename);
-    bool isProject = (isRemote && file.endsWith(".itksnap", Qt::CaseInsensitive)) ||
+    bool isProject = (isRemote && HasWorkspaceExtension(filename)) ||
                      (!isRemote && d->IsProjectFile(filename.c_str()));
 
     if (isProject)

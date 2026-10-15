@@ -314,6 +314,21 @@ std::string ResolveITKSnapURL(const std::string &url)
   return url;
 }
 
+bool HasWorkspaceExtension(const std::string &path_or_url)
+{
+  std::string path = path_or_url;
+  if (IsRemoteImageURL(path))
+    path = path.substr(0, path.find_first_of("?#"));
+
+  const std::string ext = ".itksnap";
+  if (path.size() < ext.size())
+    return false;
+  for (std::size_t i = 0; i < ext.size(); i++)
+    if (std::tolower((unsigned char) path[path.size() - ext.size() + i]) != ext[i])
+      return false;
+  return true;
+}
+
 SCPURL ParseSCPURL(const std::string &url)
 {
   // Expected form:  scp://[user@]host[:port]/path  or  sftp://...
@@ -412,7 +427,8 @@ DownloadRemoteFile(const std::string &url,
 
   if (!title)
     title = SNAP_TRANSLATE_NOOP("ProgressTask", "Downloading %1");
-  std::string filename = UrlDecode(itksys::SystemTools::GetFilenameName(url));
+  std::string filename = UrlDecode(
+    itksys::SystemTools::GetFilenameName(url.substr(0, url.find_first_of("?#"))));
 
   ProgressTaskGuard guard(ctx.progressDelegate, title, true, filename);
   src->SetProgressCallback([&guard](std::size_t done, std::size_t total) {

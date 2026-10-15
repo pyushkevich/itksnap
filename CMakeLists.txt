@@ -1723,6 +1723,19 @@ IF(Python3_Interpreter_FOUND)
   SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8917 6 --)
   ADD_SNAP_GUI_TEST(DropRemoteProgress)
+
+  # A URL opened as macOS opens a browser link (a file open event, sent by
+  # --test-url). The server refuses the image unless its query arrives intact;
+  # the workspace URL has a query, so it does not end in .itksnap
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8918 0
+    --require-query "token=a%2Fb&x=1" --)
+  ADD_SNAP_GUI_TEST(OpenURLEventImage
+    --test-url "itksnap-http://127.0.0.1:8918/MRIcrop-orig.gipl.gz?token=a%2Fb&x=1#frag")
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8919 0 --)
+  ADD_SNAP_GUI_TEST(OpenURLEventWorkspace
+    --test-url "itksnap-http://127.0.0.1:8919/MRIcrop-with-mesh.itksnap?token=abc")
   UNSET(SNAP_GUI_TEST_LAUNCHER)
 ENDIF()
 
