@@ -1358,6 +1358,7 @@ MARK_AS_ADVANCED(SNAP_GUI_TEST_QT_PLATFORM)
 # The list of Qt animated GUI tests
 SET(GUI_TESTS
   Workspace
+  CloseWithMouseEvent
   NaNs
   4DContinuousRendering
   DiffSpace
