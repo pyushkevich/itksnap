@@ -1754,6 +1754,13 @@ IF(Python3_Interpreter_FOUND)
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8919 0 --)
   ADD_SNAP_GUI_TEST(OpenURLEventWorkspace
     --test-url "itksnap-http://127.0.0.1:8919/MRIcrop-with-mesh.itksnap?token=abc")
+
+  # A workspace URL given with --url, as the URL handler on Windows and Linux
+  # passes it, opens with the progress dialog showing during the download
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8920 6 --)
+  ADD_SNAP_GUI_TEST(URLWorkspaceProgress
+    --url "itksnap-http://127.0.0.1:8920/MRIcrop-with-mesh.itksnap")
   UNSET(SNAP_GUI_TEST_LAUNCHER)
 ENDIF()
 

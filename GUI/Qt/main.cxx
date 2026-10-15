@@ -878,29 +878,13 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
 
   // Handle --url: forwarding to an existing instance was already attempted in
   // main(); if we get here, this IS the first/only instance, so open it now.
-  // Workspaces go through OpenProject; images go through LoadDroppedFile (same
-  // path as the Mac FileOpenEvent handler) so the drop dialog appears if needed.
+  // This goes through LoadDroppedFile, the same path as the Mac FileOpenEvent
+  // handler: with no image loaded yet, a workspace is opened by LoadProject
+  // and an image by the drop dialog, both of which show the download progress
+  // and report errors themselves.
   if (argdata.fnUrl.size())
   {
-    QString qurl = QString::fromStdString(argdata.fnUrl);
-    bool isWorkspace = HasWorkspaceExtension(argdata.fnUrl);
-    try
-    {
-      if (isWorkspace)
-        driver->OpenWorkspace(argdata.fnUrl, warnings);
-      else
-        mainwin->LoadDroppedFile(qurl, false);
-    }
-    catch (IRISUserCancelException &)
-    {
-    }
-    catch (std::exception &exc)
-    {
-      ReportNonLethalException(
-        mainwin, exc,
-        QCoreApplication::translate("main", "Image IO Error"),
-        QCoreApplication::translate("main", "Failed to open %1").arg(qurl));
-    }
+    mainwin->LoadDroppedFile(from_utf8(argdata.fnUrl), false);
     return;
   }
 

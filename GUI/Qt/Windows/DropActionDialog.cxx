@@ -285,7 +285,7 @@ void DropActionDialog::on_btnLoadSegmentation_clicked()
   auto io = GuidedNativeImageIO::New();
 
   // if incoming load can overwrite unsaved changes, prompt user for saving.
-  // The check reads the image header, which downloads a remote image.
+  // The check may read the header of a local image.
   HideWhileLoading();
   try
     {
