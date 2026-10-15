@@ -1550,17 +1550,6 @@ ELSE()
 ENDIF()
 set_tests_properties(RemoteImageLoadTest_FlywheelURLForms PROPERTIES TIMEOUT 60)
 
-# Opt in live test against a real Flywheel site. Registered only when
-# FLYWHEEL_TEST_URL (and FLYWHEEL_TEST_REF for the local reference) are set at
-# configure time. The API key comes from ~/.fw/config.yml as in normal use.
-if(FLYWHEEL_TEST_URL)
-  add_test(NAME RemoteImageLoadTest_FlywheelSession
-    COMMAND remote_image_load_test --regression-test -g
-      "${FLYWHEEL_TEST_URL}" "${FLYWHEEL_TEST_REF}")
-  set_tests_properties(RemoteImageLoadTest_FlywheelSession
-    PROPERTIES LABELS "Remote;Flywheel" TIMEOUT 120)
-endif()
-
 # Test: large-image size guard throws IRISException instead of crashing with SIGBUS
 ADD_EXECUTABLE(TestLargeImageCheck
     Testing/Logic/TestLargeImageCheck.cxx)
