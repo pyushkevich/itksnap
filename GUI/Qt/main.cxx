@@ -15,6 +15,7 @@
 #include "QtReporterDelegates.h"
 #include "SNAPQtCommon.h"
 #include "SNAPTestQt.h"
+#include "SegmentationAutosave.h"
 
 #include "GenericSliceModel.h"
 #include "SynchronizationModel.h"
@@ -54,7 +55,6 @@
 #include <vtkLogger.h>
 #include <QHBoxLayout>
 #include <QPushButton>
-#include <QStandardPaths>
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QFileInfo>
@@ -132,86 +132,30 @@ printBacktrace()
 
 
 
-QString
-BackupSegmentationToEmergencyFile()
+void
+test_terminate_handler()
 {
+  SNAPQApplication *app = dynamic_cast<SNAPQApplication *>(QCoreApplication::instance());
+  MainImageWindow  *mwin = app ? app->mainWindow() : nullptr;
+
+  // Save the latest state of the segmentations with unsaved changes. This uses
+  // the autosave folder, which then becomes the recovery folder.
+  QString backup_dir;
   try
   {
-    SNAPQApplication *app = dynamic_cast<SNAPQApplication *>(QCoreApplication::instance());
-    MainImageWindow  *mwin = app ? app->mainWindow() : nullptr;
-    IRISApplication  *driver = mwin ? mwin->GetModel()->GetDriver() : nullptr;
-    std::list<ImageWrapperBase *> unsaved;
-    if (driver)
-    {
-      for (LayerIterator it = driver->GetIRISImageData()->GetLayers(LABEL_ROLE); !it.IsAtEnd(); ++it)
-      {
-        if (it.GetLayer()->HasUnsavedChanges())
-          unsaved.push_back(it.GetLayer());
-      }
-    }
-
-    if (unsaved.size())
-    {
-      // Get a system-appropriate directory for cache or application data
-      QString backupDirPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-      if (backupDirPath.isEmpty())
-      {
-        qWarning() << "Failed to determine a writable location for application data.";
-        return QString();
-      }
-
-      // Append application name to create a specific directory
-      QDir backupDir(backupDirPath);
-      if (!backupDir.mkpath("CrashRecovery"))
-      {
-        qWarning() << "Failed to create backup directory:" << backupDirPath;
-        return QString();
-      }
-
-      backupDir.cd("CrashRecovery");
-
-      // Create a unique backup file name with timestamp
-      QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_HHmmss");
-      QString backupDirName = QString("Recovery_%1").arg(timestamp);
-      backupDir.mkpath(backupDirName);
-      backupDir.cd(backupDirName);
-
-      // Loop over the segmentation files and save them
-      GenericImageData     *id = driver->GetIRISImageData();
-      std::set<std::string> saved_files;
-      unsigned int          layer_number = 0;
-      for (auto *layer : unsaved)
-      {
-        char buffer[256];
-        snprintf(buffer, 256, "segmentation_backup_layer_%03d.nii.gz", ++layer_number);
-        QString  fn = QString::fromUtf8(buffer);
-        QString  backupFilePath = backupDir.filePath(fn);
-        Registry dummy;
-        layer->WriteToFile(backupFilePath.toUtf8(), dummy);
-      }
-
-      // Show a message dialog
-      qCritical() << "Crash recovery backup files written to: " << backupDir.absolutePath();
-      return backupDir.absolutePath();
-    }
+    SegmentationAutosave *autosave =
+      mwin ? mwin->findChild<SegmentationAutosave *>("segmentationAutosave") : nullptr;
+    if (autosave)
+      backup_dir = autosave->SaveForCrash();
+    if (backup_dir.size())
+      qCritical() << "Crash recovery backup files written to: " << backup_dir;
   }
   catch (...)
   {
     qCritical() << "Exception raised trying to save emergency backup";
   }
 
-  return QString();
-}
-
-void
-test_terminate_handler()
-{
-  // Save backup file
-  QString backup_dir = BackupSegmentationToEmergencyFile();
-
   // Detach synchronization - otherwise a stale state is left
-  SNAPQApplication *app = dynamic_cast<SNAPQApplication *>(QCoreApplication::instance());
-  MainImageWindow  *mwin = app ? app->mainWindow() : nullptr;
   GlobalUIModel *model = mwin ? mwin->GetModel() : nullptr;
   if(model)
     model->GetSynchronizationModel()->ForceDetach();
@@ -320,6 +264,8 @@ usage(const char *progname)
   cout << "   -z FACTOR            : Specify initial zoom in screen pixels/mm" << endl;
   cout << "   --cwd PATH           : Start with PATH as the initial directory" << endl;
   cout << "   --threads N          : Limit maximum number of CPU cores used to N." << endl;
+  cout << "   --autosave SECONDS   : Autosave unsaved segmentations for crash recovery every" << endl;
+  cout << "                        :   SECONDS seconds (default 300; 0 turns autosave off)" << endl;
   cout << "   --scale N            : Scale all GUI elements by factor of N (e.g., 2)." << endl;
   cout << "   --geometry WxH+X+Y   : Initial geometry of the main window." << endl;
   cout << "   --lang <code>        : Set the language for the GUI to ISO 639-1 language code like 'es' or 'cn'" << endl;
@@ -335,7 +281,8 @@ usage(const char *progname)
   cout << "   --css file           : Read stylesheet from file." << endl;
   cout << "   --opengl MAJOR MINOR : Set the OpenGL major and minor version. Experimental." << endl;
   cout << "   --testgl             : Diagnose OpenGL/VTK issues." << endl;
-  cout << "   --test-url URL       : Test opening image via URL." << endl;
+  cout << "   --test-url URL       : Open an itksnap-* URL as macOS does for a browser link" << endl;
+  cout << "                        :   (a file open event). For testing." << endl;
   cout << "   --ssh-config FILE    : Read SSH settings (hosts, ProxyJump, keys, known_hosts) from" << endl;
   cout << "                        :   FILE instead of ~/.ssh/config. Not passed on to an already" << endl;
   cout << "                        :   running ITK-SNAP when --url forwards to it." << endl;
@@ -410,6 +357,9 @@ public:
 
   // Number of threads
   int nThreads = 0;
+
+  // Autosave interval in seconds (-1: the default)
+  int nAutosaveInterval = -1;
 
   // GUI scaling
   int nDevicePixelRatio = 0;
@@ -544,6 +494,9 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   // Restrict number of threads
   // TODO: use and document this
   parser.AddOption("--threads", 1);
+
+  // Autosave interval
+  parser.AddOption("--autosave", 1);
 
   // Current working directory
   parser.AddOption("--cwd", 1);
@@ -798,6 +751,10 @@ parse(int argc, char *argv[], CommandLineRequest &argdata)
   if (parseResult.IsOptionPresent("--threads"))
     argdata.nThreads = atoi(parseResult.GetOptionParameter("--threads"));
 
+  // Autosave interval
+  if (parseResult.IsOptionPresent("--autosave"))
+    argdata.nAutosaveInterval = std::max(0, atoi(parseResult.GetOptionParameter("--autosave")));
+
   // Number of threads
   if (parseResult.IsOptionPresent("--scale"))
     argdata.nDevicePixelRatio = atoi(parseResult.GetOptionParameter("--scale"));
@@ -840,9 +797,7 @@ TryForwardURLToExistingInstance(const std::string &url)
   // Workspaces should always open in a new window — detect by extension.
   // For local files we could call IsProjectFile() but extension check
   // covers all practical cases and avoids the need for a full IRISApplication.
-  QString qurl = QString::fromStdString(url);
-  bool isWorkspace = qurl.endsWith(".itksnap", Qt::CaseInsensitive);
-  if (isWorkspace)
+  if (HasWorkspaceExtension(url))
     return false;
 
   // Attach to the shared-memory segment (key is hardcoded inside IPCHandler).
@@ -879,52 +834,22 @@ LoadCommandLineImages(MainImageWindow *mainwin, GlobalUIModel *gui,
 
   // Handle --url: forwarding to an existing instance was already attempted in
   // main(); if we get here, this IS the first/only instance, so open it now.
-  // Workspaces go through OpenProject; images go through LoadDroppedFile (same
-  // path as the Mac FileOpenEvent handler) so the drop dialog appears if needed.
+  // This goes through LoadDroppedFile, the same path as the Mac FileOpenEvent
+  // handler: with no image loaded yet, a workspace is opened by LoadProject
+  // and an image by the drop dialog, both of which show the download progress
+  // and report errors themselves.
   if (argdata.fnUrl.size())
   {
-    QString qurl = QString::fromStdString(argdata.fnUrl);
-    bool isWorkspace = qurl.endsWith(".itksnap", Qt::CaseInsensitive);
-    try
-    {
-      if (isWorkspace)
-        driver->OpenWorkspace(argdata.fnUrl, warnings);
-      else
-        mainwin->LoadDroppedFile(qurl, false);
-    }
-    catch (IRISUserCancelException &)
-    {
-    }
-    catch (std::exception &exc)
-    {
-      ReportNonLethalException(
-        mainwin, exc,
-        QCoreApplication::translate("main", "Image IO Error"),
-        QCoreApplication::translate("main", "Failed to open %1").arg(qurl));
-    }
+    mainwin->LoadDroppedFile(from_utf8(argdata.fnUrl), false);
     return;
   }
 
-  // Handle special case of test URL
+  // Handle special case of test URL: open it as macOS opens a URL from a
+  // browser link, by sending the application a file open event
   if(argdata.testUrl.size())
   {
-    try
-    {
-      // Resolve itksnap-* URLs to their underlying protocol before loading
-      QString resolved = SNAPQApplication::resolveUrl(QString::fromStdString(argdata.testUrl));
-      mainwin->LoadDroppedFile(resolved, true);
-    }
-    catch (IRISUserCancelException &)
-    {
-    }
-    catch (std::exception &exc)
-    {
-      ReportNonLethalException(
-        mainwin, exc,
-        QCoreApplication::translate("main", "Image IO Error"),
-        QCoreApplication::translate("main", "Failed to load image from URL %1").arg(from_utf8(argdata.testUrl)));
-    }
-
+    QCoreApplication::postEvent(
+      qApp, new QFileOpenEvent(QUrl(from_utf8(argdata.testUrl))));
     return;
   }
 
@@ -1495,6 +1420,16 @@ main(int argc, char *argv[])
       std::set_terminate(test_terminate_handler);
     }
 
+    // Autosave segmentations with unsaved changes, for recovery after a crash.
+    // In test mode it runs only when --autosave is given or the test calls it.
+    SegmentationAutosave *autosave = new SegmentationAutosave(gui, mainwin);
+    if (!ui_testing)
+      SegmentationAutosave::ReportRecoveredSessions(mainwin);
+    if (argdata.nAutosaveInterval >= 0)
+      autosave->Start(argdata.nAutosaveInterval);
+    else if (!ui_testing)
+      autosave->Start(SegmentationAutosave::DefaultInterval);
+
     // Assign the main window to the application. We do this right before
     // starting the event loop.
     app.setMainWindow(mainwin);
@@ -1548,7 +1483,11 @@ main(int argc, char *argv[])
     }
     catch (std::exception &exc)
     {
-      test_terminate_handler();
+      // In test mode, fail the test rather than show the crash dialog
+      if (ui_testing)
+        std::cerr << "Uncaught exception: " << exc.what() << std::endl;
+      else
+        test_terminate_handler();
       rc = -1;
     }
 
@@ -1560,7 +1499,9 @@ main(int argc, char *argv[])
     // Unload the main image before all the destructors start firing
     driver->UnloadMainImage();
 
-    // Get rid of the main window while the model is still alive
+    // Get rid of the main window while the model is still alive. The crash
+    // handler must not find it after this.
+    app.setMainWindow(nullptr);
     delete mainwin;
 
     // Destroy the model after the GUI is destroyed

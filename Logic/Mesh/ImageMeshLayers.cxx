@@ -137,6 +137,11 @@ ImageMeshLayers
     // if failed, check constructor why m_isSNAP is true
     assert(snap);
 
+    // Before the level set is initialized there is nothing to mesh
+    // (see IsActiveMeshLayerDirty)
+    if (!snap->IsSnakeLoaded())
+      return 1;
+
     auto lsImg = snap->GetSnake();
 
     if (m_ImageToMeshMap.count(lsImg->GetUniqueId()))

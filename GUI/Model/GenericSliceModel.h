@@ -436,8 +436,13 @@ public:
    */
   bool IsTiling() const;
 
-  /** Has the slice model been initialized with image data? */
-  irisIsMacro(SliceInitialized)
+  /**
+   * Has the slice model been initialized with image data? This is false as
+   * soon as the main image is unloaded: the model only processes the events
+   * about it later, and until then the slice views can still get mouse and
+   * paint events, which must not read the cursor of the unloaded data.
+   */
+  bool IsSliceInitialized() const;
 
   irisGetMacro(ParentUI, GlobalUIModel *)
   irisGetMacro(Driver, IRISApplication *)

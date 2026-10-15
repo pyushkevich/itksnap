@@ -468,7 +468,7 @@ IRISApplication::UpdateSNAPSegmentationImage(GuidedNativeImageIO *io)
   LabelImageWrapper *snap_seg = m_CurrentImageData->SetSegmentationImage(io, false, true);
 
   // Update filenames
-  snap_seg->SetFileName(io->GetFileNameOfNativeImage());
+  snap_seg->SetFileName(io->GetSourceFileName());
 
   // Set the loaded labels as valid
   this->SetColorLabelsInSegmentationAsValid(snap_seg);
@@ -523,7 +523,7 @@ IRISApplication ::UpdateIRISSegmentationImage(GuidedNativeImageIO *io,
 
   // Update the history
   m_SystemInterface->GetHistoryManager()->UpdateHistory(
-    "LabelImage", io->GetFileNameOfNativeImage(), true);
+    "LabelImage", io->GetSourceFileName(), true);
 
   // Update the color label table with the segmentation values in the current segmentation
   // Iterate over the RLEs in the label image
@@ -1480,10 +1480,10 @@ IRISApplication ::AddIRISOverlayImage(GuidedNativeImageIO *io, Registry *metadat
   // Set the filename of the overlay
   // TODO: this is cumbersome, could we just initialize the wrapper from the
   // GuidedNativeImageIO without passing all this junk around?
-  layer->SetFileName(io->GetFileNameOfNativeImage());
+  layer->SetFileName(io->GetSourceFileName());
 
   // Add the overlay to the history
-  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), true);
+  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetSourceFileName(), true);
 
   // Apply the default color map for overlays
   std::string deflt_preset = m_GlobalState->GetDefaultBehaviorSettings()->GetOverlayColorMapPreset();
@@ -1614,7 +1614,7 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   ImageWrapperBase *layer = m_IRISImageData->GetMain();
 
   // Set the filename and nickname of the image wrapper
-  layer->SetFileName(io->GetFileNameOfNativeImage());
+  layer->SetFileName(io->GetSourceFileName());
 
   // Initialize the color label table to defaults
   m_ColorLabelTable->InitializeToDefaults();
@@ -1626,8 +1626,8 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   CreateSegmentationSettings(layer, MAIN_ROLE);
 
   // Update the system's history list
-  m_HistoryManager->UpdateHistory("MainImage", io->GetFileNameOfNativeImage(), false);
-  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetFileNameOfNativeImage(), false);
+  m_HistoryManager->UpdateHistory("MainImage", io->GetSourceFileName(), false);
+  m_HistoryManager->UpdateHistory("AnatomicImage", io->GetSourceFileName(), false);
 
   // Reset the segmentation ROI
   m_GlobalState->SetSegmentationROI(m_IRISImageData->GetReferenceSpace()->GetBufferedRegion());
@@ -1651,7 +1651,7 @@ IRISApplication ::UpdateIRISMainImage(GuidedNativeImageIO *io, Registry *metadat
   // Save the thumbnail for the current image. This ensures that a thumbnail
   // is created even if the application crashes or is killed.
   ImageWrapperBase::DisplaySlicePointer thumbnail = layer->MakeThumbnail(128);
-  m_SystemInterface->WriteThumbnail(io->GetFileNameOfNativeImage().c_str(), thumbnail);
+  m_SystemInterface->WriteThumbnail(io->GetSourceFileName().c_str(), thumbnail);
 
   // We also want to reset the label history at this point, as these are
   // very different labels
@@ -1861,8 +1861,10 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
   // When hints are not provided, we load them using the association system
   if (!ioHints)
   {
-    // Load the settings associated with this file
-    m_SystemInterface->FindRegistryAssociatedWithFile(fname, regAssoc);
+    // Load the settings associated with this file (with the URL, for a
+    // remote image, not with the downloaded copy)
+    m_SystemInterface->FindRegistryAssociatedWithFile(
+      remote_url.empty() ? fname : remote_url.c_str(), regAssoc);
 
     // Get the folder dealing with grey image properties
     ioHints = &regAssoc.Folder("Files.Grey");
@@ -1873,6 +1875,10 @@ IRISApplication ::OpenImageViaDelegate(const char                      *fname,
 
   // Configure io using delegate
   del->ConfigureImageIO(io);
+
+  // A remote image is known by its URL: layer names, the history and the
+  // per-image settings use it instead of the path of the downloaded copy
+  io->SetSourceURL(remote_url);
 
   // Load the header of the image
   io->ReadNativeImageHeader(fname, *ioHints, headerProgCmd);
@@ -2155,9 +2161,7 @@ IRISApplication::SaveProjectToRegistry(Registry &preg, const std::string proj_fi
 
     // Get the full name of the image file. Layers loaded from a remote URL
     // keep the URL, which CollapseFullPath would turn into a bogus local path
-    std::string layer_file_full = IsRemoteImageURL(filename)
-                                    ? std::string(filename)
-                                    : itksys::SystemTools::CollapseFullPath(filename);
+    std::string layer_file_full = CollapseFullPathOrURL(filename);
 
     // Create a folder for this layer
     Registry &folder = preg.Folder(Registry::Key("Layers.Layer[%03d]", i++));
@@ -2264,9 +2268,15 @@ IRISApplication ::GetMovedFilePath(std::string &project_dir_orig,
   // Get the relative path of the layer wrt project
   string relative_path;
 
-  // Test the simple thing: is the project location included in the file path
+  // Test the simple thing: is the project location included in the file path.
+  // The prefix must end at a separator, or a file in "/data/proj_data" would
+  // be taken to be in "/data/proj".
+  size_t n_dir = project_dir_orig.length();
   bool under_project_dir =
-    original_file_path.compare(0, project_dir_orig.length(), project_dir_orig) == 0;
+    n_dir > 0 && original_file_path.compare(0, n_dir, project_dir_orig) == 0 &&
+    (original_file_path.length() == n_dir || project_dir_orig.back() == '/' ||
+     project_dir_orig.back() == '\\' || original_file_path[n_dir] == '/' ||
+     original_file_path[n_dir] == '\\');
 
   // A remote layer that is not stored alongside the workspace is referenced
   // by its URL, which stays valid wherever the workspace is moved

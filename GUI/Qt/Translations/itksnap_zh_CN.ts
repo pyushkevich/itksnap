@@ -1189,17 +1189,17 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <translation>纹理</translation>
     </message>
     <message>
-        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1292" />
+        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1297" />
         <source>Main Image</source>
         <translation>主图像</translation>
     </message>
     <message>
-        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1295" />
+        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1300" />
         <source>Additional Image</source>
         <translation>附加图像</translation>
     </message>
     <message>
-        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1298" />
+        <location filename="../../../Logic/Framework/GenericImageData.cxx" line="1303" />
         <source>Segmentation Image</source>
         <translation>分割图像</translation>
     </message>
@@ -1719,7 +1719,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
     <message>
         <location filename="../Windows/DropActionDialog.ui" line="115" />
         <location filename="../Windows/DropActionDialog.ui" line="159" />
-        <location filename="../Windows/DropActionDialog.cxx" line="93" />
+        <location filename="../Windows/DropActionDialog.cxx" line="94" />
         <location filename="../../../../xc64rel/ui_DropActionDialog.h" line="198" />
         <location filename="../../../../xc64rel/ui_DropActionDialog.h" line="206" />
         <source>This will replace the current segmentation image with the dropped image.</source>
@@ -1727,7 +1727,7 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
     </message>
     <message>
         <location filename="../Windows/DropActionDialog.ui" line="118" />
-        <location filename="../Windows/DropActionDialog.cxx" line="92" />
+        <location filename="../Windows/DropActionDialog.cxx" line="93" />
         <location filename="../../../../xc64rel/ui_DropActionDialog.h" line="200" />
         <source>Load as Segmentation</source>
         <translation>加载为分割图像</translation>
@@ -1807,22 +1807,23 @@ Please follow &lt;a href="https://itksnap-dls.readthedocs.io/en/latest"&gt;onlin
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.cxx" line="97" />
+        <location filename="../Windows/DropActionDialog.cxx" line="98" />
         <source>Load as Segmentation in Time Point</source>
         <translation>作为当前时间点的分割加载</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.cxx" line="98" />
+        <location filename="../Windows/DropActionDialog.cxx" line="99" />
         <source>This will replace the segmentation in current time point</source>
         <translation>这将替换当前时间点的分割</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.cxx" line="320" />
+        <location filename="../Windows/DropActionDialog.cxx" line="349" />
         <source>Failed to launch new ITK-SNAP instance</source>
         <translation>无法启动新的 ITK-SNAP 实例</translation>
     </message>
     <message>
-        <location filename="../Windows/DropActionDialog.cxx" line="403" />
+        <location filename="../Windows/DropActionDialog.cxx" line="314" />
+        <location filename="../Windows/DropActionDialog.cxx" line="423" />
         <source>Failed to load image %1</source>
         <translation>加载图像 %1 失败</translation>
     </message>
@@ -3715,25 +3716,23 @@ p, li { white-space: pre-wrap; }
     <name>MainImageWindow</name>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="14" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1112" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1121" />
         <source>MainWindow</source>
         <translation>主窗口</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="162" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1600" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1619" />
         <source>Getting Started</source>
         <translation>入门指南</translation>
     </message>
     <message>
         <location filename="../Windows/MainImageWindow.ui" line="229" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1586" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1595" />
         <source>Getting started with ITK-SNAP Version 4</source>
         <translation>开始使用 ITK-SNAP 4 版</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="265" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1587" />
         <source>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;meta charset="utf-8" /&gt;&lt;style type="text/css"&gt;
 p, li { white-space: pre-wrap; }
@@ -3746,7 +3745,7 @@ li.checked::marker { content: "\2612"; }
 &lt;li style=" font-size:14px;" style=" margin-top:12px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Browse &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP4"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;online documentation and tutorials&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
 &lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Download &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;sample datasets&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
 &lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Connect to the &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;ITK-SNAP community&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation>&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1"&gt;&lt;/meta&gt;&lt;meta charset="utf-8"&gt;&lt;/meta&gt;&lt;style type="text/css"&gt;
+        <translation type="vanished">&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1"&gt;&lt;/meta&gt;&lt;meta charset="utf-8"&gt;&lt;/meta&gt;&lt;style type="text/css"&gt;
 p, li { white-space: pre-wrap; }
 hr { height: 1px; border-width: 0; }
 li.unchecked::marker { content: "\2610"; }
@@ -3754,2030 +3753,2060 @@ li.checked::marker { content: "\2612"; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'.AppleSystemUIFont'; font-size:13px; font-weight:400; font-style:normal;"&gt;&lt;p style="-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14px;"&gt;&lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;"&gt;&lt;li style=" font-size:14px;" style=" margin-top:12px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;浏览 &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP4"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;在线文档和教程&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;下载 &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;示例数据集&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;连接到 &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;ITK-SNAP 社区&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="290" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1601" />
+        <location filename="../Windows/MainImageWindow.ui" line="272" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1596" />
+        <source>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd"&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1" /&gt;&lt;meta charset="utf-8" /&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: "\2610"; }
+li.checked::marker { content: "\2612"; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'.AppleSystemUIFont'; font-size:13px; font-weight:400; font-style:normal;"&gt;
+&lt;p style="-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14px;"&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;"&gt;
+&lt;li style=" font-size:14px;" style=" margin-top:12px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Browse the &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP4"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;online documentation and tutorials&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
+&lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Open a sample dataset from the web (see the &lt;a href="https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;licenses&lt;/span&gt;&lt;/a&gt;):
+&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;"&gt;
+&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/mri_tutorial/mri_tutorial.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;Brain MRI with segmentation (cropped)&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/brain_diffusion_mri/diffusion.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;Brain diffusion MRI with FA, trace and color direction maps&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/brain_tumor_mri/BRATS_HG0015.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;Multi-modal brain tumor MRI with segmentation (BRATS 2012)&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/dss_ashs_test/ashs_test.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;High-resolution hippocampus MRI with segmentation&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;
+&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/govalve_root/govalve_root.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;4D aortic valve ultrasound with segmentation (98 MB)&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;
+&lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Download these and other &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;sample datasets&lt;/span&gt;&lt;/a&gt; &lt;/li&gt;
+&lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;Connect with the &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;ITK-SNAP community&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</source>
+        <translation>&lt;html&gt;&lt;head&gt;&lt;meta name="qrichtext" content="1"&gt;&lt;/meta&gt;&lt;meta charset="utf-8"&gt;&lt;/meta&gt;&lt;style type="text/css"&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: "\2610"; }
+li.checked::marker { content: "\2612"; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=" font-family:'.AppleSystemUIFont'; font-size:13px; font-weight:400; font-style:normal;"&gt;&lt;p style="-qt-paragraph-type:empty; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:14px;"&gt;&lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;"&gt;&lt;li style=" font-size:14px;" style=" margin-top:12px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;浏览 &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=Documentation.SNAP4"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;在线文档和教程&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;从网络打开示例数据集（参见 &lt;a href="https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;许可协议&lt;/span&gt;&lt;/a&gt;）:
+&lt;ul style="margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 2;"&gt;&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/mri_tutorial/mri_tutorial.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;带分割的脑部MRI（裁剪）&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/brain_diffusion_mri/diffusion.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;带有FA、轨迹和颜色方向图的脑扩散MRI&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/brain_tumor_mri/BRATS_HG0015.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;多模态脑肿瘤MRI及分割（BRATS 2012）&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/dss_ashs_test/ashs_test.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;高分辨率海马MRI及分割&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;li style=" font-size:14px;" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;&lt;a href="itksnap-https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data/resolve/main/govalve_root/govalve_root.itksnap"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;4D主动脉瓣超声及分割（98 MB）&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:10px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;下载这些和其他 &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=Downloads.Data"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;示例数据集&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;li style=" font-size:14px;" style=" margin-top:10px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;"&gt;加入 &lt;a href="http://www.itksnap.org/pmwiki/pmwiki.php?n=MailingLists.MailingLists"&gt;&lt;span style=" text-decoration: underline; color:#094fd1;"&gt;ITK-SNAP社区&lt;/span&gt;&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+    </message>
+    <message>
+        <location filename="../Windows/MainImageWindow.ui" line="307" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1620" />
         <source>Recent Images</source>
         <translation>最近的图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="315" />
-        <location filename="../Windows/MainImageWindow.ui" line="738" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1602" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1636" />
+        <location filename="../Windows/MainImageWindow.ui" line="332" />
+        <location filename="../Windows/MainImageWindow.ui" line="755" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1621" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1655" />
         <source>Recent Workspaces</source>
         <translation>最近的工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="365" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1603" />
+        <location filename="../Windows/MainImageWindow.ui" line="382" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1622" />
         <source>Open Image ...</source>
         <translation>打开图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="372" />
-        <location filename="../Windows/MainImageWindow.ui" line="1349" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1368" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1604" />
+        <location filename="../Windows/MainImageWindow.ui" line="389" />
+        <location filename="../Windows/MainImageWindow.ui" line="1366" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1377" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1623" />
         <source>Open Workspace ...</source>
         <translation>打开工作区...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="396" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1605" />
+        <location filename="../Windows/MainImageWindow.ui" line="413" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1624" />
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="400" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1606" />
+        <location filename="../Windows/MainImageWindow.ui" line="417" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1625" />
         <source>Recent Main Images</source>
         <translation>最近主图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="410" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1607" />
+        <location filename="../Windows/MainImageWindow.ui" line="427" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1626" />
         <source>Recent Added Images</source>
         <translation>最近添加图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="420" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1608" />
+        <location filename="../Windows/MainImageWindow.ui" line="437" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1627" />
         <source>Save Image</source>
         <translation>保存图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="430" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1609" />
+        <location filename="../Windows/MainImageWindow.ui" line="447" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1628" />
         <source>Export</source>
         <translation>导出</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="434" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1610" />
+        <location filename="../Windows/MainImageWindow.ui" line="451" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1629" />
         <source>Image Slice</source>
         <translation>图像切片</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="442" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1611" />
+        <location filename="../Windows/MainImageWindow.ui" line="459" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1630" />
         <source>Screenshot</source>
         <translation>屏幕截图</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="450" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1612" />
+        <location filename="../Windows/MainImageWindow.ui" line="467" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1631" />
         <source>Screenshot Series</source>
         <translation>屏幕截图序列</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="462" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1613" />
+        <location filename="../Windows/MainImageWindow.ui" line="479" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1632" />
         <source>Add Another DICOM Series</source>
         <translation>添加另一DICOM序列</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="491" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1614" />
+        <location filename="../Windows/MainImageWindow.ui" line="508" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1633" />
         <source>Segmentation</source>
         <translation>分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="495" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1615" />
+        <location filename="../Windows/MainImageWindow.ui" line="512" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1634" />
         <source>Appearance</source>
         <translation>外观</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="504" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1616" />
+        <location filename="../Windows/MainImageWindow.ui" line="521" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1635" />
         <source>Recent Segmentations</source>
         <translation>最近分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="514" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1617" />
+        <location filename="../Windows/MainImageWindow.ui" line="531" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1636" />
         <source>Add Another Segmentation</source>
         <translation>添加另一分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="518" />
-        <location filename="../Windows/MainImageWindow.ui" line="537" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1618" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1620" />
+        <location filename="../Windows/MainImageWindow.ui" line="535" />
+        <location filename="../Windows/MainImageWindow.ui" line="554" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1637" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1639" />
         <source>Recent</source>
         <translation>最近</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="533" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1619" />
+        <location filename="../Windows/MainImageWindow.ui" line="550" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1638" />
         <source>Label Definitions</source>
         <translation>标签定义</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="578" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1621" />
+        <location filename="../Windows/MainImageWindow.ui" line="595" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1640" />
         <source>Tools</source>
         <translation>工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="582" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1622" />
+        <location filename="../Windows/MainImageWindow.ui" line="599" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1641" />
         <source>Active Main Tool</source>
         <translation>激活主工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="593" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1623" />
+        <location filename="../Windows/MainImageWindow.ui" line="610" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1642" />
         <source>Active 3D Tool</source>
         <translation>激活3D工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="602" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1624" />
+        <location filename="../Windows/MainImageWindow.ui" line="619" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1643" />
         <source>Image Contrast</source>
         <translation>图像对比度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="632" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1625" />
+        <location filename="../Windows/MainImageWindow.ui" line="649" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1644" />
         <source>Edit</source>
         <translation>编辑</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="636" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1626" />
+        <location filename="../Windows/MainImageWindow.ui" line="653" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1645" />
         <source>Foreground Label</source>
         <translation>前景标签</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="643" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1627" />
+        <location filename="../Windows/MainImageWindow.ui" line="660" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1646" />
         <source>Background Label</source>
         <translation>背景标签</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="650" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1628" />
+        <location filename="../Windows/MainImageWindow.ui" line="667" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1647" />
         <source>Slice Annotations</source>
         <translation>切片注释</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="659" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1629" />
+        <location filename="../Windows/MainImageWindow.ui" line="676" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1648" />
         <source>Zoom</source>
         <translation>缩放</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="671" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1630" />
+        <location filename="../Windows/MainImageWindow.ui" line="688" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1649" />
         <source>Layers</source>
         <translation>图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="687" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1631" />
+        <location filename="../Windows/MainImageWindow.ui" line="704" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1650" />
         <source>Views</source>
         <translation>视图</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="695" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1632" />
+        <location filename="../Windows/MainImageWindow.ui" line="712" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1651" />
         <source>3D Panel</source>
         <translation>3D 面板</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="701" />
-        <location filename="../Windows/MainImageWindow.ui" line="1813" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1551" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1633" />
+        <location filename="../Windows/MainImageWindow.ui" line="718" />
+        <location filename="../Windows/MainImageWindow.ui" line="1830" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1560" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1652" />
         <source>4D Display</source>
         <translation>4D 显示</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="723" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1634" />
+        <location filename="../Windows/MainImageWindow.ui" line="740" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1653" />
         <source>Help</source>
         <translation>帮助</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="734" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1635" />
+        <location filename="../Windows/MainImageWindow.ui" line="751" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1654" />
         <source>Workspace</source>
         <translation>工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="754" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1637" />
+        <location filename="../Windows/MainImageWindow.ui" line="771" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1656" />
         <source>Window</source>
         <translation>窗口</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="767" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1113" />
+        <location filename="../Windows/MainImageWindow.ui" line="784" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1122" />
         <source>Open Main Image ...</source>
         <translation>打开主图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="770" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1115" />
+        <location filename="../Windows/MainImageWindow.ui" line="787" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1124" />
         <source>Open the main anatomy image that you wish to display or segment</source>
         <translation>打开您希望显示或分割的主解剖图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="773" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1118" />
+        <location filename="../Windows/MainImageWindow.ui" line="790" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1127" />
         <source>Ctrl+G</source>
         <translation>Ctrl+G</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="778" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1120" />
+        <location filename="../Windows/MainImageWindow.ui" line="795" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1129" />
         <source>Quit</source>
         <translation>退出</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="781" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1122" />
+        <location filename="../Windows/MainImageWindow.ui" line="798" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1131" />
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="786" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1124" />
+        <location filename="../Windows/MainImageWindow.ui" line="803" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1133" />
         <source>Open Segmentation ...</source>
         <translation>打开分割...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="789" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1126" />
+        <location filename="../Windows/MainImageWindow.ui" line="806" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1135" />
         <source>Load the segmentation image from disk</source>
         <translation>从磁盘加载分割图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="792" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1129" />
+        <location filename="../Windows/MainImageWindow.ui" line="809" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1138" />
         <source>Ctrl+O</source>
         <translation>Ctrl+O</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="797" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1131" />
+        <location filename="../Windows/MainImageWindow.ui" line="814" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1140" />
         <source>Main Image ...</source>
         <translation>主图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="800" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1133" />
+        <location filename="../Windows/MainImageWindow.ui" line="817" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1142" />
         <source>Main Image</source>
         <translation>主图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="805" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1135" />
+        <location filename="../Windows/MainImageWindow.ui" line="822" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1144" />
         <source>Speed Image ...</source>
         <translation>速度图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="808" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1137" />
+        <location filename="../Windows/MainImageWindow.ui" line="825" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1146" />
         <source>Save the Speed Image in Active Contour Mode</source>
         <translation>在活动轮廓模式下保存速度图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="813" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1139" />
+        <location filename="../Windows/MainImageWindow.ui" line="830" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1148" />
         <source>Level Set Image ...</source>
         <translation>水平集图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="816" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1141" />
+        <location filename="../Windows/MainImageWindow.ui" line="833" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1150" />
         <source>Save level set image in active snake mode</source>
         <translation>在活动轮廓（Snake）模式下保存水平集图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="821" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1143" />
+        <location filename="../Windows/MainImageWindow.ui" line="838" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1152" />
         <source>Main Image (Region of Interest) ...</source>
         <translation>主图像（感兴趣区域）...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="824" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1145" />
+        <location filename="../Windows/MainImageWindow.ui" line="841" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1154" />
         <source>Save the region of interest selected for active contour segmentation</source>
         <translation>保存选定用于活动轮廓分割的感兴趣区域</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="829" />
-        <location filename="../Windows/MainImageWindow.ui" line="997" />
-        <location filename="../Windows/MainImageWindow.ui" line="1370" />
-        <location filename="../Windows/MainImageWindow.ui" line="1558" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1147" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1231" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1377" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1453" />
+        <location filename="../Windows/MainImageWindow.ui" line="846" />
+        <location filename="../Windows/MainImageWindow.ui" line="1014" />
+        <location filename="../Windows/MainImageWindow.ui" line="1387" />
+        <location filename="../Windows/MainImageWindow.ui" line="1575" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1156" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1240" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1386" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1462" />
         <source>Recent 1</source>
         <translation>最近 1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="832" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1149" />
+        <location filename="../Windows/MainImageWindow.ui" line="849" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1158" />
         <source>Ctrl+1</source>
         <translation>Ctrl+1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="837" />
-        <location filename="../Windows/MainImageWindow.ui" line="1002" />
-        <location filename="../Windows/MainImageWindow.ui" line="1375" />
-        <location filename="../Windows/MainImageWindow.ui" line="1563" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1151" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1232" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1378" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1454" />
+        <location filename="../Windows/MainImageWindow.ui" line="854" />
+        <location filename="../Windows/MainImageWindow.ui" line="1019" />
+        <location filename="../Windows/MainImageWindow.ui" line="1392" />
+        <location filename="../Windows/MainImageWindow.ui" line="1580" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1160" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1241" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1387" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1463" />
         <source>Recent 2</source>
         <translation>最近 2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="840" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1153" />
+        <location filename="../Windows/MainImageWindow.ui" line="857" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1162" />
         <source>Ctrl+2</source>
         <translation>Ctrl+2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="845" />
-        <location filename="../Windows/MainImageWindow.ui" line="1007" />
-        <location filename="../Windows/MainImageWindow.ui" line="1380" />
-        <location filename="../Windows/MainImageWindow.ui" line="1568" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1155" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1233" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1379" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1455" />
+        <location filename="../Windows/MainImageWindow.ui" line="862" />
+        <location filename="../Windows/MainImageWindow.ui" line="1024" />
+        <location filename="../Windows/MainImageWindow.ui" line="1397" />
+        <location filename="../Windows/MainImageWindow.ui" line="1585" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1164" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1242" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1388" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1464" />
         <source>Recent 3</source>
         <translation>最近 3</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="848" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1157" />
+        <location filename="../Windows/MainImageWindow.ui" line="865" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1166" />
         <source>Ctrl+3</source>
         <translation>Ctrl+3</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="853" />
-        <location filename="../Windows/MainImageWindow.ui" line="1012" />
-        <location filename="../Windows/MainImageWindow.ui" line="1385" />
-        <location filename="../Windows/MainImageWindow.ui" line="1573" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1159" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1234" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1380" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1456" />
+        <location filename="../Windows/MainImageWindow.ui" line="870" />
+        <location filename="../Windows/MainImageWindow.ui" line="1029" />
+        <location filename="../Windows/MainImageWindow.ui" line="1402" />
+        <location filename="../Windows/MainImageWindow.ui" line="1590" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1168" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1243" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1389" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1465" />
         <source>Recent 4</source>
         <translation>最近 4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="856" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1161" />
+        <location filename="../Windows/MainImageWindow.ui" line="873" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1170" />
         <source>Ctrl+4</source>
         <translation>Ctrl+4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="861" />
-        <location filename="../Windows/MainImageWindow.ui" line="1365" />
-        <location filename="../Windows/MainImageWindow.ui" line="1390" />
-        <location filename="../Windows/MainImageWindow.ui" line="1578" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1163" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1376" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1381" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1457" />
+        <location filename="../Windows/MainImageWindow.ui" line="878" />
+        <location filename="../Windows/MainImageWindow.ui" line="1382" />
+        <location filename="../Windows/MainImageWindow.ui" line="1407" />
+        <location filename="../Windows/MainImageWindow.ui" line="1595" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1172" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1385" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1390" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1466" />
         <source>Recent 5</source>
         <translation>最近 5</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="864" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1165" />
+        <location filename="../Windows/MainImageWindow.ui" line="881" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1174" />
         <source>Ctrl+5</source>
         <translation>Ctrl+5</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="869" />
-        <location filename="../Windows/MainImageWindow.ui" line="1017" />
-        <location filename="../Windows/MainImageWindow.ui" line="1410" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1167" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1235" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1385" />
+        <location filename="../Windows/MainImageWindow.ui" line="886" />
+        <location filename="../Windows/MainImageWindow.ui" line="1034" />
+        <location filename="../Windows/MainImageWindow.ui" line="1427" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1176" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1244" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1394" />
         <source>Axial</source>
         <translation>轴向</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="872" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1169" />
+        <location filename="../Windows/MainImageWindow.ui" line="889" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1178" />
         <source>Export axial image slice as an image</source>
         <translation>导出轴向图像切片为图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="877" />
-        <location filename="../Windows/MainImageWindow.ui" line="1025" />
-        <location filename="../Windows/MainImageWindow.ui" line="1418" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1171" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1239" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1389" />
+        <location filename="../Windows/MainImageWindow.ui" line="894" />
+        <location filename="../Windows/MainImageWindow.ui" line="1042" />
+        <location filename="../Windows/MainImageWindow.ui" line="1435" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1180" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1248" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1398" />
         <source>Coronal</source>
         <translation>冠状面</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="880" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1173" />
+        <location filename="../Windows/MainImageWindow.ui" line="897" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1182" />
         <source>Export coronal image slice as an image</source>
         <translation>导出冠状面图像切片为图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="885" />
-        <location filename="../Windows/MainImageWindow.ui" line="1033" />
-        <location filename="../Windows/MainImageWindow.ui" line="1426" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1175" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1243" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1393" />
+        <location filename="../Windows/MainImageWindow.ui" line="902" />
+        <location filename="../Windows/MainImageWindow.ui" line="1050" />
+        <location filename="../Windows/MainImageWindow.ui" line="1443" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1184" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1252" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1402" />
         <source>Sagittal</source>
         <translation>矢状面</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="888" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1177" />
+        <location filename="../Windows/MainImageWindow.ui" line="905" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1186" />
         <source>Export sagittal image slice as an image</source>
         <translation>导出矢状面图像切片为图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="893" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1179" />
+        <location filename="../Windows/MainImageWindow.ui" line="910" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1188" />
         <source>Close All Images</source>
         <translation>关闭所有图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="896" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1181" />
+        <location filename="../Windows/MainImageWindow.ui" line="913" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1190" />
         <source>Ctrl+Shift+W</source>
         <translation>Ctrl+Shift+W</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="901" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1185" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1183" />
+        <location filename="../Windows/MainImageWindow.ui" line="918" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1191" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1192" />
         <source>Unload All Segmentations</source>
         <translation>卸载所有分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="906" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1184" />
+        <location filename="../Windows/MainImageWindow.ui" line="923" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1193" />
         <source>Add Another Image ...</source>
         <translation>添加另一图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="909" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1186" />
+        <location filename="../Windows/MainImageWindow.ui" line="926" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1195" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Load an image to display alongside the main image. The dimensions of this image must match those of the main image. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;加载一幅与主图像一起显示的图像。该图像的尺寸必须与主图像匹配。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="912" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1189" />
+        <location filename="../Windows/MainImageWindow.ui" line="929" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1198" />
         <source>Ctrl+Shift+G</source>
         <translation>Ctrl+Shift+G</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="917" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1191" />
+        <location filename="../Windows/MainImageWindow.ui" line="934" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1200" />
         <source>Contrast Adjustment...</source>
         <translation>对比度调整...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="920" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1193" />
+        <location filename="../Windows/MainImageWindow.ui" line="937" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1202" />
         <source>Adjust image contrast</source>
         <translation>调整图像对比度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="929" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1195" />
+        <location filename="../Windows/MainImageWindow.ui" line="946" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1204" />
         <source>Label Editor...</source>
         <translation>标签编辑器...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="932" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1197" />
+        <location filename="../Windows/MainImageWindow.ui" line="949" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1206" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Label Editor (⌘L)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Opens the label editor, where you can edit segmentation labels.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;标签编辑器 (⌘L)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;打开标签编辑器，可编辑分割标签。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="935" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1200" />
+        <location filename="../Windows/MainImageWindow.ui" line="952" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1209" />
         <source>Ctrl+L</source>
         <translation>Ctrl+L</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="940" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1202" />
+        <location filename="../Windows/MainImageWindow.ui" line="957" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1211" />
         <source>Reorient Image...</source>
         <translation>重定向图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="945" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1203" />
+        <location filename="../Windows/MainImageWindow.ui" line="962" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1212" />
         <source>Zoom to Fit in All Views</source>
         <translation>全部视图缩放以适应</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="948" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1205" />
+        <location filename="../Windows/MainImageWindow.ui" line="965" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1214" />
         <source>Reset the zoom factor in all views to fit</source>
         <translation>重置所有视图缩放比例以适应显示</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="951" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1208" />
+        <location filename="../Windows/MainImageWindow.ui" line="968" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1217" />
         <source>Ctrl+F</source>
         <translation>Ctrl+F</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="956" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1210" />
+        <location filename="../Windows/MainImageWindow.ui" line="973" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1219" />
         <source>Center All Views on Cursor</source>
         <translation>将所有视图中心对准光标</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="959" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1212" />
+        <location filename="../Windows/MainImageWindow.ui" line="976" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1221" />
         <source>Center each slice view on the cursor position</source>
         <translation>使每个切片视图居中于光标位置</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="962" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1215" />
+        <location filename="../Windows/MainImageWindow.ui" line="979" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1224" />
         <source>C</source>
         <translation>C</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="971" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1217" />
+        <location filename="../Windows/MainImageWindow.ui" line="988" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1226" />
         <source>Undo</source>
         <translation>撤销</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="974" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1219" />
+        <location filename="../Windows/MainImageWindow.ui" line="991" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1228" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Undo (⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Undo the last modification to the segmentation image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;撤销 (⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;撤销对分割图像的最后更改。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="977" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1222" />
+        <location filename="../Windows/MainImageWindow.ui" line="994" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1231" />
         <source>Ctrl+Z</source>
         <translation>Ctrl+Z</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="986" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1224" />
+        <location filename="../Windows/MainImageWindow.ui" line="1003" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1233" />
         <source>Redo</source>
         <translation>重做</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="989" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1226" />
+        <location filename="../Windows/MainImageWindow.ui" line="1006" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1235" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Redo (⇧⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Redo the last modification to the segmentation image.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;重做 (⇧⌘Z)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;重做对分割图像的最后更改。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="992" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1229" />
+        <location filename="../Windows/MainImageWindow.ui" line="1009" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1238" />
         <source>Ctrl+Shift+Z</source>
         <translation>Ctrl+Shift+Z</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1020" />
-        <location filename="../Windows/MainImageWindow.ui" line="1028" />
-        <location filename="../Windows/MainImageWindow.ui" line="1036" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1237" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1241" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1245" />
+        <location filename="../Windows/MainImageWindow.ui" line="1037" />
+        <location filename="../Windows/MainImageWindow.ui" line="1045" />
+        <location filename="../Windows/MainImageWindow.ui" line="1053" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1246" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1250" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1254" />
         <source>Export a screenshot of the axial view as an image</source>
         <translation>导出轴向视图的屏幕截图为图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1041" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1178" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1247" />
+        <location filename="../Windows/MainImageWindow.ui" line="1058" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1184" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1256" />
         <source>Save as...</source>
         <translation>另存为...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1046" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1248" />
+        <location filename="../Windows/MainImageWindow.ui" line="1063" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1257" />
         <source>Export as Surface Mesh...</source>
         <translation>导出为表面网格...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1051" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1249" />
+        <location filename="../Windows/MainImageWindow.ui" line="1068" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1258" />
         <source>Import Label Descriptions...</source>
         <translation>导入标签描述...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1056" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1250" />
+        <location filename="../Windows/MainImageWindow.ui" line="1073" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1259" />
         <source>Export Label Descriptions...</source>
         <translation>导出标签描述...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1061" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1251" />
+        <location filename="../Windows/MainImageWindow.ui" line="1078" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1260" />
         <source>Volumes and Statistics...</source>
         <translation>体积和统计...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1069" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1252" />
+        <location filename="../Windows/MainImageWindow.ui" line="1086" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1261" />
         <source>Toggle Visibility</source>
         <translation>切换可见性</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1072" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1254" />
+        <location filename="../Windows/MainImageWindow.ui" line="1089" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1263" />
         <source>S</source>
         <translation>S</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1077" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1256" />
+        <location filename="../Windows/MainImageWindow.ui" line="1094" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1265" />
         <source>Increase Opacity</source>
         <translation>增加不透明度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1080" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1258" />
+        <location filename="../Windows/MainImageWindow.ui" line="1097" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1267" />
         <source>D</source>
         <translation>D</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1085" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1260" />
+        <location filename="../Windows/MainImageWindow.ui" line="1102" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1269" />
         <source>Decrease Opacity</source>
         <translation>降低不透明度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1088" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1262" />
+        <location filename="../Windows/MainImageWindow.ui" line="1105" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1271" />
         <source>A</source>
         <translation>A</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1093" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1264" />
+        <location filename="../Windows/MainImageWindow.ui" line="1110" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1273" />
         <source>Color Map Editor...</source>
         <translation>色彩图编辑器...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1098" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1265" />
+        <location filename="../Windows/MainImageWindow.ui" line="1115" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1274" />
         <source>Image Information...</source>
         <translation>图像信息...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1103" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1266" />
+        <location filename="../Windows/MainImageWindow.ui" line="1120" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1275" />
         <source>Close Image XXX</source>
         <translation>关闭图像 XXX</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1106" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1268" />
+        <location filename="../Windows/MainImageWindow.ui" line="1123" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1277" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Unload the last image layer&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;卸载最后一个图层&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1109" />
-        <location filename="../Windows/MainImageWindow.ui" line="1647" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1271" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1491" />
+        <location filename="../Windows/MainImageWindow.ui" line="1126" />
+        <location filename="../Windows/MainImageWindow.ui" line="1664" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1280" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1500" />
         <source>Ctrl+W</source>
         <translation>Ctrl+W</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1114" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1273" />
+        <location filename="../Windows/MainImageWindow.ui" line="1131" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1282" />
         <source>Unload all additional image layers</source>
         <translation>卸载所有附加图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1117" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1275" />
+        <location filename="../Windows/MainImageWindow.ui" line="1134" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1284" />
         <source>Remove all overlays from the current workspace. Only the main image will remain open.</source>
         <translation>从当前工作区移除所有叠加层，只有主图像保持打开状态。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1126" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1277" />
+        <location filename="../Windows/MainImageWindow.ui" line="1143" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1286" />
         <source>Layer Inspector...</source>
         <translation>图层检查器...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1129" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1279" />
+        <location filename="../Windows/MainImageWindow.ui" line="1146" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1288" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Layer Inspector (⌘I)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Opens the layer inspector window, which lists loaded image layers and can be used used to adjust their display properties.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;图层检查器 (⌘I)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;打开图层检查器窗口，列出载入的图像层并可用于调整其显示属性。&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1132" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1282" />
+        <location filename="../Windows/MainImageWindow.ui" line="1149" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1291" />
         <source>Ctrl+I</source>
         <translation>Ctrl+I</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1147" />
-        <location filename="../Windows/MainImageWindow.ui" line="1150" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1284" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1286" />
+        <location filename="../Windows/MainImageWindow.ui" line="1164" />
+        <location filename="../Windows/MainImageWindow.ui" line="1167" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1293" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1295" />
         <source>Crosshair Tool</source>
         <translation>十字线工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1153" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1289" />
+        <location filename="../Windows/MainImageWindow.ui" line="1170" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1298" />
         <source>1</source>
         <translation>1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1165" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1291" />
+        <location filename="../Windows/MainImageWindow.ui" line="1182" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1300" />
         <source>Zoom/Pan Mode</source>
         <translation>缩放/平移模式</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1168" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1293" />
+        <location filename="../Windows/MainImageWindow.ui" line="1185" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1302" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Zoom/Pan Mode (2)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Use the mouse to zoom in and out of the image, and to pan around when the image is zoomed in. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to pan around the image&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;缩放/平移模式 (2)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;使用鼠标缩放图像，并在放大时平移图像。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动以平移图像&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动以放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1171" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1297" />
+        <location filename="../Windows/MainImageWindow.ui" line="1188" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1306" />
         <source>2</source>
         <translation>2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1183" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1299" />
+        <location filename="../Windows/MainImageWindow.ui" line="1200" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1308" />
         <source>Polygon Drawing Mode</source>
         <translation>多边形绘制模式</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1186" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1301" />
+        <location filename="../Windows/MainImageWindow.ui" line="1203" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1310" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Polygon Drawing Mode (3)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Add points to the polygon and edit completed polygon&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;多边形绘制模式 (3)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于在三个正交图像切片中绘制和填充多边形以进行手动分割。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;添加多边形顶点并编辑完成的多边形&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动以放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1189" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1305" />
+        <location filename="../Windows/MainImageWindow.ui" line="1206" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1314" />
         <source>3</source>
         <translation>3</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1201" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1307" />
+        <location filename="../Windows/MainImageWindow.ui" line="1218" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1316" />
         <source>Paintbrush Mode</source>
         <translation>画笔模式</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1204" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1309" />
+        <location filename="../Windows/MainImageWindow.ui" line="1221" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1318" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Paintbrush Mode (4)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to perform manual segmentation by drawing with a paintbrush-like tool. Different brush shapes are available, including an adaptive brush that adjusts itself to the image data. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Paint with foreground label&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Paint with background label&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;画笔模式 (4)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;使用类似画笔的工具进行手动分割。提供多种画笔形状，包括根据图像数据自动调整的自适应画笔。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;使用前景标签绘画&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;使用背景标签绘画&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1207" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1313" />
+        <location filename="../Windows/MainImageWindow.ui" line="1224" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1322" />
         <source>4</source>
         <translation>4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1219" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1315" />
+        <location filename="../Windows/MainImageWindow.ui" line="1236" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1324" />
         <source>Active Contour Segmentation Mode</source>
         <translation>活动轮廓分割模式</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1222" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1317" />
+        <location filename="../Windows/MainImageWindow.ui" line="1239" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1326" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Active Contour (aka &amp;quot;Snake&amp;quot;) Segmentation Mode (5)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to select the region of interest for semi-automatic active contour segmentation and start the semi-automatic segmentation wizard.&lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Adjust the boundaries of the region of interest&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out of the image&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;活动轮廓（即“蛇形”）分割模式（5）&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于选择半自动活动轮廓分割的感兴趣区域并启动半自动分割向导。&lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;调整感兴趣区域边界&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动以放大/缩小图像&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1225" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1321" />
+        <location filename="../Windows/MainImageWindow.ui" line="1242" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1330" />
         <source>5</source>
         <translation>5</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1230" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1177" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1323" />
+        <location filename="../Windows/MainImageWindow.ui" line="1247" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1183" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1332" />
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1233" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1325" />
+        <location filename="../Windows/MainImageWindow.ui" line="1250" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1334" />
         <source>Ctrl+S</source>
         <translation>Ctrl+S</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1245" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1327" />
+        <location filename="../Windows/MainImageWindow.ui" line="1262" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1336" />
         <source>3D Trackball Tool</source>
         <translation>3D 轨迹球工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1248" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1329" />
+        <location filename="../Windows/MainImageWindow.ui" line="1265" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1338" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;3D Trackball Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to manipulate the viewpoint in the 3D window. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to rotate the camera&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;⇧&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to pan the camera.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;3D 轨迹球模式&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于操控3D窗口中的视点。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动旋转视角&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;⇧&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动平移视角。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1260" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1332" />
+        <location filename="../Windows/MainImageWindow.ui" line="1277" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1341" />
         <source>3D Crosshair Tool</source>
         <translation>3D 十字线工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1263" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1334" />
+        <location filename="../Windows/MainImageWindow.ui" line="1280" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1343" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;3D Crosshair Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to place the linked 3D cursor on one of the surfaces rendered in the 3D window. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Click on a surface to place 3D cursor&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;3D 十字线模式&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于在3D窗口渲染的表面上放置关联的3D光标。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;点击表面以放置3D光标&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1275" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1336" />
+        <location filename="../Windows/MainImageWindow.ui" line="1292" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1345" />
         <source>3D Scalpel Tool</source>
         <translation>3D 手术刀工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1278" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1338" />
+        <location filename="../Windows/MainImageWindow.ui" line="1295" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1347" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Scalpel Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to relabel parts of the 3D scene with a cutplane. Voxels on one side of the cutplane will be assigned the current foreground label. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Click once to start cutplane drawing. Click again in a different location to finish. Then hold and drag cutplane 3D widget to rotate.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"/&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;手术刀模式&lt;/span&gt;&lt;/p&gt;&lt;p&gt;使用切割平面重新标记3D场景的部分区域。切割平面一侧的体素将被赋予当前前景标签。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;单击开始绘制切割平面。再次单击另一个位置完成。然后按住并拖动3D切割平面控件旋转。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1290" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1341" />
+        <location filename="../Windows/MainImageWindow.ui" line="1307" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1350" />
         <source>3D Spray Paint Tool</source>
         <translation>3D 喷漆工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1293" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1343" />
+        <location filename="../Windows/MainImageWindow.ui" line="1310" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1352" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Spray Paint Mode&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to add voxels to the surfaces of existing segmentations. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Press and hold to apply spray paint. &lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"/&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"/&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;喷漆模式&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于向现有分割表面添加体素。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住以喷涂。 &lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1298" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1346" />
+        <location filename="../Windows/MainImageWindow.ui" line="1315" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1355" />
         <source>Toggle Overlay Visibility</source>
         <translation>切换叠加层可见性</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1301" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1347" />
+        <location filename="../Windows/MainImageWindow.ui" line="1318" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1356" />
         <source>Toggle Visibility of Sticky Layers</source>
         <translation>切换固定图层可见性</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1304" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1349" />
+        <location filename="../Windows/MainImageWindow.ui" line="1321" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1358" />
         <source>Toggle Visibility (All)</source>
         <translation>切换所有可见性</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1307" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1352" />
+        <location filename="../Windows/MainImageWindow.ui" line="1324" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1361" />
         <source>W</source>
         <translation>W</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1312" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1354" />
+        <location filename="../Windows/MainImageWindow.ui" line="1329" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1363" />
         <source>Increase Overlay Opacity</source>
         <translation>增加叠加层不透明度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1315" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1356" />
+        <location filename="../Windows/MainImageWindow.ui" line="1332" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1365" />
         <source>E</source>
         <translation>E</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1320" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1358" />
+        <location filename="../Windows/MainImageWindow.ui" line="1337" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1367" />
         <source>Decrease Overlay Opacity</source>
         <translation>降低叠加层不透明度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1323" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1360" />
+        <location filename="../Windows/MainImageWindow.ui" line="1340" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1369" />
         <source>Q</source>
         <translation>Q</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1328" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1362" />
+        <location filename="../Windows/MainImageWindow.ui" line="1345" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1371" />
         <source>About ITK-SNAP</source>
         <translation>关于 ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1336" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1363" />
+        <location filename="../Windows/MainImageWindow.ui" line="1353" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1372" />
         <source>Preferences ...</source>
         <translation>首选项...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1341" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1211" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1364" />
+        <location filename="../Windows/MainImageWindow.ui" line="1358" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1217" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1373" />
         <source>Save Workspace ...</source>
         <translation>保存工作区...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1344" />
-        <location filename="../Windows/MainImageWindow.ui" line="1360" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1366" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1374" />
+        <location filename="../Windows/MainImageWindow.ui" line="1361" />
+        <location filename="../Windows/MainImageWindow.ui" line="1377" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1375" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1383" />
         <source>Save the current workspace, including open image layers and associated settings and parameters</source>
         <translation>保存当前工作区，包括打开的图像层及相关设置和参数</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1352" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1370" />
+        <location filename="../Windows/MainImageWindow.ui" line="1369" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1379" />
         <source>Open a workspace containing multiple image layers and associated settings and parameters</source>
         <translation>打开包含多个图像层及相关设置和参数的工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1357" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1372" />
+        <location filename="../Windows/MainImageWindow.ui" line="1374" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1381" />
         <source>Save Workspace As ...</source>
         <translation>工作区另存为...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1395" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1382" />
+        <location filename="../Windows/MainImageWindow.ui" line="1412" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1391" />
         <source>Open ...</source>
         <translation>打开...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1400" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1383" />
+        <location filename="../Windows/MainImageWindow.ui" line="1417" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1392" />
         <source>Save ...</source>
         <translation>保存...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1405" />
-        <location filename="../Windows/MainImageWindow.ui" line="1869" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1384" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1572" />
+        <location filename="../Windows/MainImageWindow.ui" line="1422" />
+        <location filename="../Windows/MainImageWindow.ui" line="1886" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1393" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1581" />
         <source>Reset to Defaults</source>
         <translation>恢复默认设置</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1413" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1387" />
+        <location filename="../Windows/MainImageWindow.ui" line="1430" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1396" />
         <source>Iterate through all the slices in the axial view and save as a series of PNG image files.</source>
         <translation>遍历轴向视图所有切片并保存为PNG图像序列。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1421" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1391" />
+        <location filename="../Windows/MainImageWindow.ui" line="1438" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1400" />
         <source>Iterate through all the slices in the coronal view and save as a series of PNG image files.</source>
         <translation>遍历冠状面视图所有切片并保存为PNG图像序列。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1429" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1395" />
+        <location filename="../Windows/MainImageWindow.ui" line="1446" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1404" />
         <source>Iterate through all the slices in the sagittal view and save as a series of PNG image files.</source>
         <translation>遍历矢状面视图所有切片并保存为PNG图像序列。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1434" />
-        <location filename="../Windows/MainImageWindow.ui" line="1450" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1397" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1405" />
+        <location filename="../Windows/MainImageWindow.ui" line="1451" />
+        <location filename="../Windows/MainImageWindow.ui" line="1467" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1406" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1414" />
         <source>Previous</source>
         <translation>上一个</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1437" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1399" />
+        <location filename="../Windows/MainImageWindow.ui" line="1454" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1408" />
         <source>&lt;</source>
         <translation />
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1442" />
-        <location filename="../Windows/MainImageWindow.ui" line="1458" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1401" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1409" />
+        <location filename="../Windows/MainImageWindow.ui" line="1459" />
+        <location filename="../Windows/MainImageWindow.ui" line="1475" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1410" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1418" />
         <source>Next</source>
         <translation>下一个</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1445" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1403" />
+        <location filename="../Windows/MainImageWindow.ui" line="1462" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1412" />
         <source>&gt;</source>
         <translation>&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1453" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1407" />
+        <location filename="../Windows/MainImageWindow.ui" line="1470" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1416" />
         <source>Ctrl+Shift+,</source>
         <translation>Ctrl+Shift+,</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1461" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1411" />
+        <location filename="../Windows/MainImageWindow.ui" line="1478" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1420" />
         <source>Ctrl+Shift+.</source>
         <translation>Ctrl+Shift+.</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1466" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1413" />
+        <location filename="../Windows/MainImageWindow.ui" line="1483" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1422" />
         <source>Toggle All Annotations</source>
         <translation>切换所有标注</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1469" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1415" />
+        <location filename="../Windows/MainImageWindow.ui" line="1486" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1424" />
         <source>X</source>
         <translation>X</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1474" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1417" />
+        <location filename="../Windows/MainImageWindow.ui" line="1491" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1426" />
         <source>Toggle Crosshair</source>
         <translation>切换十字线</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1477" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1419" />
+        <location filename="../Windows/MainImageWindow.ui" line="1494" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1428" />
         <source>Shift+X</source>
         <translation>Shift+X</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1482" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1421" />
+        <location filename="../Windows/MainImageWindow.ui" line="1499" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1430" />
         <source>Annotation Preferences...</source>
         <translation>标注首选项...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1487" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1422" />
+        <location filename="../Windows/MainImageWindow.ui" line="1504" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1431" />
         <source>Auto-Adjust Contrast (all layers)</source>
         <translation>自动调整对比度（所有图层）</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1490" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1424" />
+        <location filename="../Windows/MainImageWindow.ui" line="1507" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1433" />
         <source>Automatically adjust contrast in the main image and all overlays</source>
         <translation>自动调整主图像及所有叠加层的对比度</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1493" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1427" />
+        <location filename="../Windows/MainImageWindow.ui" line="1510" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1436" />
         <source>Ctrl+J</source>
         <translation>Ctrl+J</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1498" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1429" />
+        <location filename="../Windows/MainImageWindow.ui" line="1515" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1438" />
         <source>Reset Contrast (all layers)</source>
         <translation>重置对比度（所有图层）</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1501" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1431" />
+        <location filename="../Windows/MainImageWindow.ui" line="1518" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1440" />
         <source>Ctrl+Shift+J</source>
         <translation>Ctrl+Shift+J</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1506" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1433" />
+        <location filename="../Windows/MainImageWindow.ui" line="1523" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1442" />
         <source>Ha</source>
         <translation>Ha</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1511" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1434" />
+        <location filename="../Windows/MainImageWindow.ui" line="1528" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1443" />
         <source>Zoom to Actual Size x1</source>
         <translation>缩放到实际大小 x1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1514" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1436" />
+        <location filename="../Windows/MainImageWindow.ui" line="1531" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1445" />
         <source>Ctrl+Shift+F, 1</source>
         <translation>Ctrl+Shift+F, 1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1519" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1438" />
+        <location filename="../Windows/MainImageWindow.ui" line="1536" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1447" />
         <source>Zoom to Actual Size x2</source>
         <translation>缩放到实际大小 x2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1522" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1440" />
+        <location filename="../Windows/MainImageWindow.ui" line="1539" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1449" />
         <source>Ctrl+Shift+F, 2</source>
         <translation>Ctrl+Shift+F, 2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1527" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1442" />
+        <location filename="../Windows/MainImageWindow.ui" line="1544" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1451" />
         <source>Zoom to Actual Size x4</source>
         <translation>缩放到实际大小 x4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1530" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1444" />
+        <location filename="../Windows/MainImageWindow.ui" line="1547" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1453" />
         <source>Ctrl+Shift+F, 4</source>
         <translation>Ctrl+Shift+F, 4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1535" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1446" />
+        <location filename="../Windows/MainImageWindow.ui" line="1552" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1455" />
         <source>Check for Software Updates ...</source>
         <translation>检查软件更新...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1540" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1447" />
+        <location filename="../Windows/MainImageWindow.ui" line="1557" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1456" />
         <source>Documentation Home ...</source>
         <translation>文档主页...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1545" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1448" />
+        <location filename="../Windows/MainImageWindow.ui" line="1562" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1457" />
         <source>New ITK-SNAP Window</source>
         <translation>新建 ITK-SNAP 窗口</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1550" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1449" />
+        <location filename="../Windows/MainImageWindow.ui" line="1567" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1458" />
         <source>Coregister Overlay ...</source>
         <translation>配准叠加层...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1553" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1451" />
+        <location filename="../Windows/MainImageWindow.ui" line="1570" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1460" />
         <source>Co-register an image with the main image currently loaded into ITK-SNAP</source>
         <translation>将图像与当前加载到 ITK-SNAP 的主图像配准</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1590" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1458" />
+        <location filename="../Windows/MainImageWindow.ui" line="1607" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1467" />
         <source>Annotation Tool</source>
         <translation>标注工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1593" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1460" />
+        <location filename="../Windows/MainImageWindow.ui" line="1610" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1469" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;Annotation Mode (6)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Used to draw annotations (lines, text) on image slices and to measure distance and angles between points in a slice. &lt;br/&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Use to draw and manipulate annotations&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Hold and drag to zoom in / zoom out.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"/&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;Scroll through image slices.&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;&lt;span style=" font-weight:600;"&gt;注释模式 (6)&lt;/span&gt;&lt;/p&gt;&lt;p&gt;用于在图像切片上绘制注释（线条、文本）及测量点间距离和角度。 &lt;br&gt;&lt;/br&gt;&lt;/p&gt;&lt;table border="0" style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px;" cellspacing="2" cellpadding="0"&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_left_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;用于绘制和操作注释&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_right_click_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;按住并拖动放大/缩小。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;&lt;img src=":/root/icons8_mouse_scrolling_16.png"&gt;&lt;/img&gt;&lt;/p&gt;&lt;/td&gt;&lt;td style=" padding-left:5; padding-right:5; padding-top:0; padding-bottom:0;"&gt;&lt;p&gt;滚动浏览图像切片。&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1596" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1464" />
+        <location filename="../Windows/MainImageWindow.ui" line="1613" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1473" />
         <source>6</source>
         <translation>6</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1601" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1466" />
+        <location filename="../Windows/MainImageWindow.ui" line="1618" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1475" />
         <source>Thumbnail Layout</source>
         <translation>缩略图布局</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1604" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1468" />
+        <location filename="../Windows/MainImageWindow.ui" line="1621" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1477" />
         <source>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle between thumbnail and tiled layouts.&lt;/p&gt;&lt;p&gt;In &lt;span style=" font-weight:600;"&gt;thumbnail&lt;/span&gt; layout, one image layer occupies most of the available screen space, and other loaded image layers are shown as thumbnails. In &lt;span style=" font-weight:600;"&gt;tiled&lt;/span&gt; layout, multiple image layers are shown side by side. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;head&gt;&lt;/head&gt;&lt;body&gt;&lt;p&gt;切换缩略图和平铺布局。&lt;/p&gt;&lt;p&gt;在 &lt;span style=" font-weight:600;"&gt;缩略图&lt;/span&gt; 布局中，一个图像层占据大部分可用屏幕空间，其他加载的图像层显示为缩略图。在 &lt;span style=" font-weight:600;"&gt;平铺&lt;/span&gt; 布局中，多个图像层并排显示。 &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1607" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1471" />
+        <location filename="../Windows/MainImageWindow.ui" line="1624" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1480" />
         <source>\</source>
         <translation>\</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1612" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1473" />
+        <location filename="../Windows/MainImageWindow.ui" line="1629" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1482" />
         <source>Activate Next Layer</source>
         <translation>激活下一图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1615" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1475" />
+        <location filename="../Windows/MainImageWindow.ui" line="1632" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1484" />
         <source>]</source>
         <translation>]</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1620" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1477" />
+        <location filename="../Windows/MainImageWindow.ui" line="1637" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1486" />
         <source>Activate Previous Layer</source>
         <translation>激活上一图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1623" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1479" />
+        <location filename="../Windows/MainImageWindow.ui" line="1640" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1488" />
         <source>[</source>
         <translation>[</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1628" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1481" />
+        <location filename="../Windows/MainImageWindow.ui" line="1645" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1490" />
         <source>Interpolate Labels...</source>
         <translation>标签插值...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1633" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1482" />
+        <location filename="../Windows/MainImageWindow.ui" line="1650" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1491" />
         <source>Image Registration...</source>
         <translation>图像配准...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1636" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1484" />
+        <location filename="../Windows/MainImageWindow.ui" line="1653" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1493" />
         <source>Perform image registration</source>
         <translation>执行图像配准</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1639" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1487" />
+        <location filename="../Windows/MainImageWindow.ui" line="1656" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1496" />
         <source>Ctrl+R</source>
         <translation>Ctrl+R</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1644" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1489" />
+        <location filename="../Windows/MainImageWindow.ui" line="1661" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1498" />
         <source>Close Window</source>
         <translation>关闭窗口</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1652" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1493" />
+        <location filename="../Windows/MainImageWindow.ui" line="1669" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1502" />
         <source>Dummy</source>
         <translation>占位符</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1660" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1494" />
+        <location filename="../Windows/MainImageWindow.ui" line="1677" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1503" />
         <source>Main Control Panel</source>
         <translation>主控制面板</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1665" />
-        <location filename="../Windows/MainImageWindow.ui" line="1722" />
-        <location filename="../Windows/MainImageWindow.ui" line="1725" />
-        <location filename="../Windows/MainImageWindow.ui" line="1884" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1495" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1516" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1518" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1575" />
+        <location filename="../Windows/MainImageWindow.ui" line="1682" />
+        <location filename="../Windows/MainImageWindow.ui" line="1739" />
+        <location filename="../Windows/MainImageWindow.ui" line="1742" />
+        <location filename="../Windows/MainImageWindow.ui" line="1901" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1504" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1525" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1527" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1584" />
         <source>Recent1</source>
         <translation>最近1</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1670" />
-        <location filename="../Windows/MainImageWindow.ui" line="1730" />
-        <location filename="../Windows/MainImageWindow.ui" line="1889" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1496" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1520" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1576" />
+        <location filename="../Windows/MainImageWindow.ui" line="1687" />
+        <location filename="../Windows/MainImageWindow.ui" line="1747" />
+        <location filename="../Windows/MainImageWindow.ui" line="1906" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1505" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1529" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1585" />
         <source>Recent2</source>
         <translation>最近2</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1675" />
-        <location filename="../Windows/MainImageWindow.ui" line="1735" />
-        <location filename="../Windows/MainImageWindow.ui" line="1894" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1497" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1521" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1577" />
+        <location filename="../Windows/MainImageWindow.ui" line="1692" />
+        <location filename="../Windows/MainImageWindow.ui" line="1752" />
+        <location filename="../Windows/MainImageWindow.ui" line="1911" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1506" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1530" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1586" />
         <source>Recent3</source>
         <translation>最近3</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1680" />
-        <location filename="../Windows/MainImageWindow.ui" line="1740" />
-        <location filename="../Windows/MainImageWindow.ui" line="1899" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1498" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1522" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1578" />
+        <location filename="../Windows/MainImageWindow.ui" line="1697" />
+        <location filename="../Windows/MainImageWindow.ui" line="1757" />
+        <location filename="../Windows/MainImageWindow.ui" line="1916" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1507" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1531" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1587" />
         <source>Recent4</source>
         <translation>最近4</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1685" />
-        <location filename="../Windows/MainImageWindow.ui" line="1745" />
-        <location filename="../Windows/MainImageWindow.ui" line="1904" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1499" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1523" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1579" />
+        <location filename="../Windows/MainImageWindow.ui" line="1702" />
+        <location filename="../Windows/MainImageWindow.ui" line="1762" />
+        <location filename="../Windows/MainImageWindow.ui" line="1921" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1508" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1532" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1588" />
         <source>Recent5</source>
         <translation>最近5</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1690" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1500" />
+        <location filename="../Windows/MainImageWindow.ui" line="1707" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1509" />
         <source>Activate Next Segmentation Layer</source>
         <translation>激活下一分割图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1693" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1502" />
+        <location filename="../Windows/MainImageWindow.ui" line="1710" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1511" />
         <source>}</source>
         <translation>}</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1698" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1504" />
+        <location filename="../Windows/MainImageWindow.ui" line="1715" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1513" />
         <source>Activate Previous Segmentation Layer</source>
         <translation>激活上一分割图层</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1701" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1506" />
+        <location filename="../Windows/MainImageWindow.ui" line="1718" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1515" />
         <source>{</source>
         <translation>{</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1706" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1508" />
+        <location filename="../Windows/MainImageWindow.ui" line="1723" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1517" />
         <source>Open...</source>
         <translation>打开...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1709" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1510" />
+        <location filename="../Windows/MainImageWindow.ui" line="1726" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1519" />
         <source>Add existing segmentation image to the workspace</source>
         <translation>将现有分割图像添加到工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1714" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1512" />
+        <location filename="../Windows/MainImageWindow.ui" line="1731" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1521" />
         <source>New</source>
         <translation>新建</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1717" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1514" />
+        <location filename="../Windows/MainImageWindow.ui" line="1734" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1523" />
         <source>Add another blank segmentation to the current workspace</source>
         <translation>向当前工作区添加另一个空白分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1750" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1190" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1524" />
+        <location filename="../Windows/MainImageWindow.ui" line="1767" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1196" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1533" />
         <source>Unload Active Segmentation</source>
         <translation>卸载当前活动分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1753" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1526" />
+        <location filename="../Windows/MainImageWindow.ui" line="1770" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1535" />
         <source>Unload the segmentation that is currently being edited</source>
         <translation>卸载当前正在编辑的分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1758" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1528" />
+        <location filename="../Windows/MainImageWindow.ui" line="1775" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1537" />
         <source>Install Command-Line Tools ...</source>
         <translation>安装命令行工具...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1763" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1529" />
+        <location filename="../Windows/MainImageWindow.ui" line="1780" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1538" />
         <source>Distributed Segmentation Service...</source>
         <translation>分布式分割服务...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1766" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1531" />
+        <location filename="../Windows/MainImageWindow.ui" line="1783" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1540" />
         <source>Send images to external server for automated segmentation</source>
         <translation>将图像发送到外部服务器进行自动分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1769" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1534" />
+        <location filename="../Windows/MainImageWindow.ui" line="1786" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1543" />
         <source>Ctrl+D</source>
         <translation>Ctrl+D</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1774" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1536" />
+        <location filename="../Windows/MainImageWindow.ui" line="1791" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1545" />
         <source>Next Display Layout</source>
         <translation>下一个显示布局</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1777" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1538" />
+        <location filename="../Windows/MainImageWindow.ui" line="1794" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1547" />
         <source>|</source>
         <translation>|</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1782" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1540" />
+        <location filename="../Windows/MainImageWindow.ui" line="1799" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1549" />
         <source>Smooth Labels...</source>
         <translation>平滑标签...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1787" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1541" />
+        <location filename="../Windows/MainImageWindow.ui" line="1804" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1550" />
         <source>Add a Mesh ...</source>
         <translation>添加网格...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1792" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1542" />
+        <location filename="../Windows/MainImageWindow.ui" line="1809" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1551" />
         <source>Add Mesh Series ...</source>
         <translation>添加网格序列...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1797" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1543" />
+        <location filename="../Windows/MainImageWindow.ui" line="1814" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1552" />
         <source>Toggle Volume Rendering</source>
         <translation>切换体渲染</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1800" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1545" />
+        <location filename="../Windows/MainImageWindow.ui" line="1817" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1554" />
         <source>V</source>
         <translation>V</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1805" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1547" />
+        <location filename="../Windows/MainImageWindow.ui" line="1822" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1556" />
         <source>Save 3D Segmentation in Current Time Point...</source>
         <translation>保存当前时间点的3D分割...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1808" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1549" />
+        <location filename="../Windows/MainImageWindow.ui" line="1825" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1558" />
         <source>Save Time Point as 3D Segmentation</source>
         <translation>保存时间点为3D分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1818" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1552" />
+        <location filename="../Windows/MainImageWindow.ui" line="1835" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1561" />
         <source>Toggle 4D Replay</source>
         <translation>切换4D回放</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1821" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1554" />
+        <location filename="../Windows/MainImageWindow.ui" line="1838" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1563" />
         <source>Ctrl+Shift+P</source>
         <translation>Ctrl+Shift+P</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1831" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1556" />
+        <location filename="../Windows/MainImageWindow.ui" line="1848" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1565" />
         <source>Swap Foreground/Background</source>
         <translation>交换前景/背景</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1834" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1558" />
+        <location filename="../Windows/MainImageWindow.ui" line="1851" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1567" />
         <source>Swap Foreground/Background Labels</source>
         <translation>交换前景/背景标签</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1837" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1561" />
+        <location filename="../Windows/MainImageWindow.ui" line="1854" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1570" />
         <source>Ctrl+Shift+L</source>
         <translation>Ctrl+Shift+L</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1845" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1563" />
+        <location filename="../Windows/MainImageWindow.ui" line="1862" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1572" />
         <source>Continuous Update 3D View</source>
         <translation>3D视图连续更新</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1848" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1565" />
+        <location filename="../Windows/MainImageWindow.ui" line="1865" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1574" />
         <source>Toggle on/off continuous update in the 3D View</source>
         <translation>切换3D视图中的连续更新开关</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1851" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1568" />
+        <location filename="../Windows/MainImageWindow.ui" line="1868" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1577" />
         <source>Ctrl+Shift+U</source>
         <translation>Ctrl+Shift+U</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1859" />
-        <location filename="../Windows/MainImageWindow.ui" line="1874" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1570" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1573" />
+        <location filename="../Windows/MainImageWindow.ui" line="1876" />
+        <location filename="../Windows/MainImageWindow.ui" line="1891" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1579" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1582" />
         <source>Import...</source>
         <translation>导入...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1864" />
-        <location filename="../Windows/MainImageWindow.ui" line="1879" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1571" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1574" />
+        <location filename="../Windows/MainImageWindow.ui" line="1881" />
+        <location filename="../Windows/MainImageWindow.ui" line="1896" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1580" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1583" />
         <source>Export...</source>
         <translation>导出...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1909" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1580" />
+        <location filename="../Windows/MainImageWindow.ui" line="1926" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1589" />
         <source>Reload Active Segmentation from File</source>
         <translation>从文件重新加载活动分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1912" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1582" />
+        <location filename="../Windows/MainImageWindow.ui" line="1929" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1591" />
         <source>Ctrl+Shift+R</source>
         <translation>Ctrl+Shift+R</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.ui" line="1917" />
-        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1584" />
+        <location filename="../Windows/MainImageWindow.ui" line="1934" />
+        <location filename="../../../../xc64rel/ui_MainImageWindow.h" line="1593" />
         <source>Image Free Rotation...</source>
         <translation>图像自由旋转...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="243" />
+        <location filename="../Windows/MainImageWindow.cxx" line="244" />
         <source>ITK-SNAP Toolbox</source>
         <translation>ITK-SNAP 工具箱</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="340" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1152" />
-        <location filename="../Windows/MainImageWindow.cxx" line="2627" />
+        <location filename="../Windows/MainImageWindow.cxx" line="342" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1158" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2643" />
         <source>ITK-SNAP</source>
         <translation>ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="386" />
+        <location filename="../Windows/MainImageWindow.cxx" line="388" />
         <source>Crosshair Mode (1)</source>
         <translation>十字线模式 (1)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="387" />
+        <location filename="../Windows/MainImageWindow.cxx" line="389" />
         <source>Used to position the 3D cursor in the three orthogonal image slices.</source>
         <translation>用于在三个正交图像切片中定位3D光标。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="388" />
+        <location filename="../Windows/MainImageWindow.cxx" line="390" />
         <source>&lt;b&gt;Place and move the 3D cursor&lt;/b&gt;</source>
         <translation>&lt;b&gt;放置并移动3D光标&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="389" />
-        <location filename="../Windows/MainImageWindow.cxx" line="409" />
-        <location filename="../Windows/MainImageWindow.cxx" line="436" />
-        <location filename="../Windows/MainImageWindow.cxx" line="447" />
+        <location filename="../Windows/MainImageWindow.cxx" line="391" />
+        <location filename="../Windows/MainImageWindow.cxx" line="411" />
+        <location filename="../Windows/MainImageWindow.cxx" line="438" />
+        <location filename="../Windows/MainImageWindow.cxx" line="449" />
         <source>Zoom in and out (hold &amp; drag)</source>
         <translation>放大和缩小（按住拖动）</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="390" />
+        <location filename="../Windows/MainImageWindow.cxx" line="392" />
         <source>Pan (hold &amp; drag)</source>
         <translation>平移（按住拖动）</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="391" />
+        <location filename="../Windows/MainImageWindow.cxx" line="393" />
         <source>Go to next/previous image slice</source>
         <translation>转到下一张/上一张图像切片</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="393" />
+        <location filename="../Windows/MainImageWindow.cxx" line="395" />
         <source>Go to next/previous image component</source>
         <translation>转到下一图像组件/上一图像组件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="396" />
+        <location filename="../Windows/MainImageWindow.cxx" line="398" />
         <source>Zoom/Pan Mode (2)</source>
         <translation>缩放/平移模式 (2)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="397" />
+        <location filename="../Windows/MainImageWindow.cxx" line="399" />
         <source>Used to zoom into the image and to pan around when zoomed in.</source>
         <translation>用于放大图像和放大时平移浏览。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="398" />
+        <location filename="../Windows/MainImageWindow.cxx" line="400" />
         <source>&lt;b&gt;Pan (hold &amp; drag)&lt;/b&gt;</source>
         <translation>&lt;b&gt;平移（按住拖动）&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="399" />
+        <location filename="../Windows/MainImageWindow.cxx" line="401" />
         <source>&lt;b&gt;Zoom in and out (hold &amp; drag)&lt;/b&gt;</source>
         <translation>&lt;b&gt;放大和缩小（按住拖动）&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="400" />
-        <location filename="../Windows/MainImageWindow.cxx" line="410" />
-        <location filename="../Windows/MainImageWindow.cxx" line="424" />
-        <location filename="../Windows/MainImageWindow.cxx" line="437" />
-        <location filename="../Windows/MainImageWindow.cxx" line="448" />
+        <location filename="../Windows/MainImageWindow.cxx" line="402" />
+        <location filename="../Windows/MainImageWindow.cxx" line="412" />
+        <location filename="../Windows/MainImageWindow.cxx" line="426" />
+        <location filename="../Windows/MainImageWindow.cxx" line="439" />
+        <location filename="../Windows/MainImageWindow.cxx" line="450" />
         <source>Place and move the 3D cursor</source>
         <translation>放置并移动3D光标</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="401" />
-        <location filename="../Windows/MainImageWindow.cxx" line="411" />
-        <location filename="../Windows/MainImageWindow.cxx" line="425" />
-        <location filename="../Windows/MainImageWindow.cxx" line="438" />
-        <location filename="../Windows/MainImageWindow.cxx" line="449" />
+        <location filename="../Windows/MainImageWindow.cxx" line="403" />
+        <location filename="../Windows/MainImageWindow.cxx" line="413" />
+        <location filename="../Windows/MainImageWindow.cxx" line="427" />
+        <location filename="../Windows/MainImageWindow.cxx" line="440" />
+        <location filename="../Windows/MainImageWindow.cxx" line="451" />
         <source>Scroll through image slices</source>
         <translation>滚动浏览图像切片</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="402" />
-        <location filename="../Windows/MainImageWindow.cxx" line="413" />
-        <location filename="../Windows/MainImageWindow.cxx" line="427" />
-        <location filename="../Windows/MainImageWindow.cxx" line="439" />
-        <location filename="../Windows/MainImageWindow.cxx" line="450" />
+        <location filename="../Windows/MainImageWindow.cxx" line="404" />
+        <location filename="../Windows/MainImageWindow.cxx" line="415" />
+        <location filename="../Windows/MainImageWindow.cxx" line="429" />
+        <location filename="../Windows/MainImageWindow.cxx" line="441" />
+        <location filename="../Windows/MainImageWindow.cxx" line="452" />
         <source>Scroll through image components</source>
         <translation>滚动浏览图像组件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="406" />
+        <location filename="../Windows/MainImageWindow.cxx" line="408" />
         <source>Polygon Mode (3)</source>
         <translation>多边形模式 (3)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="406" />
+        <location filename="../Windows/MainImageWindow.cxx" line="408" />
         <source>Used to perform manual segmentation by drawing and filling polygons in the three orthogonal image slices.</source>
         <translation>用于在三个正交图像切片中通过绘制和填充多边形进行手动分割。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="408" />
+        <location filename="../Windows/MainImageWindow.cxx" line="410" />
         <source>&lt;b&gt;Add points to the polygon and edit the completed polygon&lt;/b&gt;</source>
         <translation>&lt;b&gt;添加多边形顶点并编辑已完成的多边形&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="417" />
+        <location filename="../Windows/MainImageWindow.cxx" line="419" />
         <source>Paintbrush Mode (4)</source>
         <translation>画笔模式 (4)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="418" />
+        <location filename="../Windows/MainImageWindow.cxx" line="420" />
         <source>Used to perform manual segmentation by drawing with a paintbrush-like tool. Different brush shapes are available, including an adaptive brush that adjusts itself to the image data.</source>
         <translation>使用类似画笔的工具进行手动分割。提供多种画笔形状，包括根据图像数据自适应调整的画笔。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="421" />
+        <location filename="../Windows/MainImageWindow.cxx" line="423" />
         <source>&lt;b&gt;Paint with the active label&lt;/b&gt;</source>
         <translation>&lt;b&gt;使用当前标签绘制&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="423" />
+        <location filename="../Windows/MainImageWindow.cxx" line="425" />
         <source>&lt;b&gt;Erase voxels painted with the active label&lt;/b&gt;</source>
         <translation>&lt;b&gt;擦除使用当前标签绘制的体素&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="431" />
+        <location filename="../Windows/MainImageWindow.cxx" line="433" />
         <source>Active Contour (aka "Snake") Segmentation Mode (5)</source>
         <translation>主动轮廓（又名“蛇”）分割模式 (5)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="432" />
+        <location filename="../Windows/MainImageWindow.cxx" line="434" />
         <source>Used to select the region of interest for semi-automatic active contour segmentation and start the semi-automatic segmentation wizard.</source>
         <translation>用于选择半自动主动轮廓分割的感兴趣区域并启动半自动分割向导。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="435" />
+        <location filename="../Windows/MainImageWindow.cxx" line="437" />
         <source>&lt;b&gt;Adjust the boundaries of the region of interest&lt;/b&gt;</source>
         <translation>&lt;b&gt;调整感兴趣区域的边界&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="443" />
+        <location filename="../Windows/MainImageWindow.cxx" line="445" />
         <source>Image Annotation Mode (6)</source>
         <translation>图像标注模式 (6)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="444" />
+        <location filename="../Windows/MainImageWindow.cxx" line="446" />
         <source>Used to draw annotations (lines, text) on image slices and to measure distances and angles between points in a slice.</source>
         <translation>用于在图像切片上绘制标注（线条、文本）并测量切片中点之间的距离和角度。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="446" />
+        <location filename="../Windows/MainImageWindow.cxx" line="448" />
         <source>&lt;b&gt;Draw and edit annotations&lt;/b&gt;</source>
         <translation>&lt;b&gt;绘制并编辑标注&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="706" />
+        <location filename="../Windows/MainImageWindow.cxx" line="708" />
         <source>(no windows)</source>
         <translation>（无窗口）</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="951" />
+        <location filename="../Windows/MainImageWindow.cxx" line="953" />
         <source>Enter Thumbnail Layout</source>
         <translation>进入缩略图布局</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="956" />
+        <location filename="../Windows/MainImageWindow.cxx" line="958" />
         <source>Enter Tiled Layout</source>
         <translation>进入平铺布局</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="972" />
+        <location filename="../Windows/MainImageWindow.cxx" line="974" />
         <source>Close image "%1"</source>
         <translation>关闭图像“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="978" />
+        <location filename="../Windows/MainImageWindow.cxx" line="980" />
         <source>Close selected image</source>
         <translation>关闭选定图像</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1140" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1146" />
         <source>%1 - ITK-SNAP</source>
         <translation>%1 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1144" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1150" />
         <source>%1 - %2 - ITK-SNAP</source>
         <translation>%1 - %2 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1148" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1154" />
         <source>%1 - New Segmentation - ITK-SNAP</source>
         <translation>%1 - 新分割 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1162" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1168" />
         <source>Save "%1"</source>
         <translation>保存“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1163" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1169" />
         <source>Save "%1" as...</source>
         <translation>“%1”另存为...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1165" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1171" />
         <source>Reload "%1" from File</source>
         <translation>从文件重新加载“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1170" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1176" />
         <source>Save 4D Segmentation Image ...</source>
         <translation>保存4D分割图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1170" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1176" />
         <source>Save Segmentation Image ...</source>
         <translation>保存分割图像...</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1188" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1194" />
         <source>Unload "%1"</source>
         <translation>卸载“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1194" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1200" />
         <source>Unload Segmentation</source>
         <translation>卸载分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1207" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1213" />
         <source>Save Workspace "%1"</source>
         <translation>保存工作区“%1”</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1725" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1741" />
         <source>Opening workspace...</source>
         <translation>正在打开工作区……</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2620" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2636" />
         <source>No other windows open</source>
         <translation>无其他窗口打开</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2924" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2940" />
         <source>Error reloading image from file</source>
         <translation>从文件重新加载图像时出错</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="255" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1316" />
+        <location filename="../Windows/MainImageWindow.cxx" line="256" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1322" />
         <source>Segment 3D</source>
         <translation>三维分割</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="142" />
+        <location filename="../Windows/MainImageWindow.cxx" line="143" />
         <source>left_click</source>
         <translation>左键点击</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="144" />
+        <location filename="../Windows/MainImageWindow.cxx" line="145" />
         <source>right_click</source>
         <translation>右键点击</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="146" />
+        <location filename="../Windows/MainImageWindow.cxx" line="147" />
         <source>scrolling</source>
         <translation>滚动</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1431" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1437" />
         <source>File Dropping Error</source>
         <translation>文件拖放错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1431" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1437" />
         <source>Failed to load file %1</source>
         <translation>加载文件 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1563" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1607" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1643" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1709" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1579" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1623" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1659" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1725" />
         <source>Image IO Error</source>
         <translation>图像IO错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1564" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1580" />
         <source>Failed to load image %1</source>
         <translation>加载图像 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1608" />
-        <location filename="../Windows/MainImageWindow.cxx" line="1710" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1624" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1726" />
         <source>Failed to load overlay image %1</source>
         <translation>加载叠加图像 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1644" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1660" />
         <source>Failed to load segmentation image %1</source>
         <translation>加载分割图像 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1674" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1690" />
         <source>Label Definitions IO Error</source>
         <translation>标签定义IO错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1675" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1691" />
         <source>Failed to load label definitions from file</source>
         <translation>从文件加载标签定义失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1741" />
-        <location filename="../Windows/MainImageWindow.cxx" line="2307" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1757" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2323" />
         <source>Error Opening Project</source>
         <translation>打开项目错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1742" />
-        <location filename="../Windows/MainImageWindow.cxx" line="2308" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1758" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2324" />
         <source>Failed to open project %1</source>
         <translation>打开项目 %1 失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="1765" />
+        <location filename="../Windows/MainImageWindow.cxx" line="1781" />
         <source>Failed to open workspace in new ITK-SNAP window</source>
         <translation>无法在新的 ITK-SNAP 窗口中打开工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2079" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2095" />
         <source>Open Label Descriptions - ITK-SNAP</source>
         <translation>打开标签描述 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2080" />
-        <location filename="../Windows/MainImageWindow.cxx" line="2094" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2096" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2110" />
         <source>Label Description File</source>
         <translation>标签描述文件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2093" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2109" />
         <source>Save Label Descriptions - ITK-SNAP</source>
         <translation>保存标签描述 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2108" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2124" />
         <source>Label Description IO Error</source>
         <translation>标签描述IO错误</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2109" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2125" />
         <source>Failed to save label descriptions</source>
         <translation>保存标签描述失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2285" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2301" />
         <source>Open Workspace</source>
         <translation>打开工作区</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2286" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2302" />
         <source>Workspace File</source>
         <translation>工作区文件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2286" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2302" />
         <source>ITK-SNAP Workspace Files (*.itksnap)</source>
         <translation>ITK-SNAP工作区文件 (*.itksnap)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2356" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2372" />
         <source>Save Slice - ITK-SNAP</source>
         <translation>保存切片 - ITK-SNAP</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2357" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2373" />
         <source>Slice Image File</source>
         <translation>切片图像文件</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2358" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2374" />
         <source>PNG Image (*.png);;TIFF Image (*.tiff *.tif);;JPEG Image (*.jpg *.jpeg)</source>
         <translation>PNG图像 (*.png);;TIFF图像 (*.tiff *.tif);;JPEG图像 (*.jpg *.jpeg)</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2462" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2478" />
         <source>Open Download Page</source>
         <translation>打开下载页面</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2463" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2479" />
         <source>Not Now</source>
         <translation>暂不操作</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2465" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2481" />
         <source>A newer ITK-SNAP version (%1) is available.</source>
         <translation>有新版本的 ITK-SNAP (%1) 可用。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2466" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2482" />
         <source>Do you want to download the latest version?</source>
         <translation>您想下载最新版本吗？</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2467" />
-        <location filename="../Windows/MainImageWindow.cxx" line="2477" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2483" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2493" />
         <source>ITK-SNAP Update Check</source>
         <translation>ITK-SNAP 更新检查</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2478" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2494" />
         <source>Your version of ITK-SNAP is up to date!</source>
         <translation>您的 ITK-SNAP 版本是最新的！</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2484" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2500" />
         <source>ITK-SNAP Update Check Failed</source>
         <translation>ITK-SNAP 更新检查失败</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2485" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2501" />
         <source>Could not connect to server. Go to itksnap.org to check if a new version is available.</source>
         <translation>无法连接服务器。请访问 itksnap.org 检查是否有新版本。</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2500" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2516" />
         <source>Allow Automatic Update Checks?</source>
         <translation>允许自动更新检查？</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2501" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2517" />
         <source>ITK-SNAP can check for software updates automatically.
 Do you want to enable this feature?</source>
         <translation>ITK-SNAP 可以自动检查软件更新。
 您想启用此功能吗？</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2745" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2761" />
         <source>Registration</source>
         <translation>配准</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2756" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2772" />
         <source>Free Rotation</source>
         <translation>自由旋转</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2823" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2839" />
         <source>&lt;p&gt;ITK-SNAP is packaged with several useful command-line programs. Visit &lt;a href='http://itksnap.org/cmdl'&gt;http://itksnap.org/cmdl&lt;/a&gt; for a listing of these tools. &lt;/p&gt;&lt;p&gt;To create links to these programs in &lt;b&gt;/usr/local/bin&lt;/b&gt;, execute the following command in the Terminal App:&lt;/p&gt;&lt;code&gt; sudo %1 &lt;/code&gt;&lt;p&gt;To create links in another directory 'my_directory', execute &lt;/p&gt;&lt;code&gt; sudo %1 my_directory &lt;/code&gt;&lt;p&gt;To enable the tools for a single session, enter this command into the Terminal window:&lt;/p&gt;&lt;code&gt; export PATH=%2:$PATH &lt;/code&gt;</source>
         <translation>&lt;p&gt;ITK-SNAP 附带多个实用命令行程序。访问 &lt;a href="http://itksnap.org/cmdl"&gt;http://itksnap.org/cmdl&lt;/a&gt; 查看这些工具列表。 &lt;/p&gt;&lt;p&gt;要在以下位置创建这些程序的链接： &lt;b&gt;/usr/local/bin&lt;/b&gt;，请在终端中执行以下命令：&lt;/p&gt;&lt;code&gt; sudo %1 &lt;/code&gt;&lt;p&gt;要在另一个目录 'my_directory' 中创建链接，请执行 &lt;/p&gt;&lt;code&gt; sudo %1 my_directory &lt;/code&gt;&lt;p&gt;要在单次会话中启用这些工具，请在终端窗口中输入以下命令：&lt;/p&gt;&lt;code&gt; export PATH=%2:$PATH &lt;/code&gt;</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2838" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2854" />
         <source>How to Install ITK-SNAP Command Line Tools</source>
         <translation>如何安装 ITK-SNAP 命令行工具</translation>
     </message>
     <message>
-        <location filename="../Windows/MainImageWindow.cxx" line="2840" />
+        <location filename="../Windows/MainImageWindow.cxx" line="2856" />
         <source>Install Command Line Tools -- ITK-SNAP</source>
         <translation>安装命令行工具 -- ITK-SNAP</translation>
     </message>
@@ -7065,7 +7094,7 @@ p, li { white-space: pre-wrap; }
         <translation>执行点交互</translation>
     </message>
     <message>
-        <location filename="../../../Logic/ImageWrapper/ImageIORemote.cxx" line="390" />
+        <location filename="../../../Logic/ImageWrapper/ImageIORemote.cxx" line="436" />
         <source>Downloading %1</source>
         <translation>正在下载 %1</translation>
     </message>
@@ -7138,67 +7167,67 @@ p, li { white-space: pre-wrap; }
 <context>
     <name>QtSSHAuthDelegate</name>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="39" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="47" />
         <source>Password for &lt;b&gt;%1@%2&lt;/b&gt;</source>
         <translation>密码 &lt;b&gt;%1@%2&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="42" />
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="64" />
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="92" />
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="161" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="50" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="72" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="100" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="168" />
         <source>&lt;br&gt;&lt;small style='color:red'&gt;%1&lt;/small&gt;</source>
         <translation>&lt;br&gt;&lt;small style="color:red"&gt;%1&lt;/small&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="45" />
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="67" />
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="85" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="53" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="75" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="93" />
         <source>SSH Authentication</source>
         <translation>SSH 认证</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="61" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="69" />
         <source>Passphrase for key &lt;b&gt;%1&lt;/b&gt;</source>
         <translation>密钥密码短语 &lt;b&gt;%1&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="90" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="98" />
         <source>Enter credentials for &lt;b&gt;%1&lt;/b&gt;</source>
         <translation>输入以下账户信息 &lt;b&gt;%1&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="102" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="110" />
         <source>Username:</source>
         <translation>用户名：</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="103" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="111" />
         <source>Password:</source>
         <translation>密码：</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="131" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="139" />
         <source>Unknown SSH Host</source>
         <translation>未知的 SSH 主机</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="134" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="142" />
         <source>The authenticity of host &lt;b&gt;%1&lt;/b&gt; cannot be established.</source>
         <translation>主机的真实性 &lt;b&gt;%1&lt;/b&gt; 无法确定。</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="137" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="145" />
         <source>The %1 key fingerprint is:&lt;br&gt;&lt;tt&gt;%2&lt;/tt&gt;&lt;br&gt;&lt;br&gt;If you are not sure that this is the right server, contact its administrator before connecting. Do you want to trust this host and continue?</source>
         <translation>%1 的密钥指纹为：&lt;br&gt;&lt;tt&gt;%2&lt;/tt&gt;&lt;br&gt;&lt;br&gt;如果您不确定这是否正确的服务器，请在连接前联系管理员。是否信任该主机并继续？</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="158" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="165" />
         <source>API key for &lt;b&gt;%1&lt;/b&gt;:</source>
         <translation>API 密钥： &lt;b&gt;%1&lt;/b&gt;：</translation>
     </message>
     <message>
-        <location filename="../Components/QtSSHAuthDelegate.cxx" line="165" />
+        <location filename="../Components/QtSSHAuthDelegate.cxx" line="171" />
         <source>Flywheel Authentication</source>
         <translation>Flywheel 验证</translation>
     </message>
@@ -10720,90 +10749,86 @@ ITK-SNAP 窗口共享状态</translation>
         <translation>无法打开文件夹：%1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="961" />
+        <location filename="../main.cxx" line="930" />
         <source>Workspace Error</source>
         <translation>工作区错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="962" />
+        <location filename="../main.cxx" line="931" />
         <source>Failed to load workspace %1</source>
         <translation>无法加载工作区 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="902" />
-        <location filename="../main.cxx" line="924" />
-        <location filename="../main.cxx" line="992" />
-        <location filename="../main.cxx" line="1055" />
+        <location filename="../main.cxx" line="961" />
+        <location filename="../main.cxx" line="1024" />
         <source>Image IO Error</source>
         <translation>图像输入输出错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="903" />
         <source>Failed to open %1</source>
-        <translation>无法打开 %1</translation>
+        <translation type="vanished">无法打开 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="925" />
         <source>Failed to load image from URL %1</source>
-        <translation>无法从 URL %1 加载图像</translation>
+        <translation type="vanished">无法从 URL %1 加载图像</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="939" />
+        <location filename="../main.cxx" line="908" />
         <source>Opening workspace...</source>
         <translation>正在打开工作区...</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="940" />
+        <location filename="../main.cxx" line="909" />
         <source>Loading images...</source>
         <translation>正在加载图像...</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="993" />
+        <location filename="../main.cxx" line="962" />
         <source>Failed to load segmentation %1</source>
         <translation>无法加载分割 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1015" />
+        <location filename="../main.cxx" line="984" />
         <source>Overlay IO Error</source>
         <translation>叠加输入输出错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1016" />
+        <location filename="../main.cxx" line="985" />
         <source>Failed to load overlay %1</source>
         <translation>无法加载叠加 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1042" />
+        <location filename="../main.cxx" line="1011" />
         <source>Mesh IO Error</source>
         <translation>网格输入输出错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1043" />
+        <location filename="../main.cxx" line="1012" />
         <source>Failed to load mesh %1</source>
         <translation>无法加载网格 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1056" />
+        <location filename="../main.cxx" line="1025" />
         <source>Failed to load image %1</source>
         <translation>无法加载图像 %1</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1070" />
+        <location filename="../main.cxx" line="1039" />
         <source>Label Description IO Error</source>
         <translation>标签描述输入输出错误</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1071" />
+        <location filename="../main.cxx" line="1040" />
         <source>Failed to load labels from %1</source>
         <translation>无法从 %1 加载标签</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1580" />
+        <location filename="../main.cxx" line="1549" />
         <source>ITK-SNAP failed to start</source>
         <translation>ITK-SNAP 启动失败</translation>
     </message>
     <message>
-        <location filename="../main.cxx" line="1580" />
+        <location filename="../main.cxx" line="1549" />
         <source>Exception occurred during ITK-SNAP startup</source>
         <translation>ITK-SNAP 启动时发生异常</translation>
     </message>

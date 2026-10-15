@@ -6,6 +6,7 @@
 #include "SnakeWizardModel.h"
 #include "QtCursorOverride.h"
 #include "QtComboBoxCoupling.h"
+#include "QtCheckBoxCoupling.h"
 #include "QtWidgetActivator.h"
 #include "QtDoubleSliderWithEditorCoupling.h"
 #include <QtAbstractItemViewCoupling.h>
@@ -339,6 +340,9 @@ SnakeWizardPanel::SetModel(GlobalUIModel *model)
                        m_Model->GetClassifierLabelForegroundModel(),
                        SingleColumnColorLabelToQSIMCouplingRowTraits());
 
+  // Couple the classifier checkboxes
+  makeCoupling(ui->chkClassifyUsePatches, m_Model->GetClassifierUsePatchModel());
+  makeCoupling(ui->chkClassifyUseCoords, m_Model->GetClassifierUseCoordinatesModel());
 
   // Couple the edge preprocessing controls
   makeCoupling(ui->inEdgeScale, m_Model->GetEdgePreprocessingSigmaModel());

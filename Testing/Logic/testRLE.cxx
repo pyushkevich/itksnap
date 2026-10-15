@@ -57,6 +57,9 @@ inline char axisToLetter(unsigned axis)
         return '?';
 }
 
+// Number of comparisons that found differences
+static int nFailures = 0;
+
 //invokes IRISSlicer<itk> and IRISSlicer<rle> and compares results
 void testIRISSlicer(shortRLEImage::Pointer rleImage, Seg3DImageType::Pointer itkImage,
     unsigned sliceIndex, unsigned sliceAxis, unsigned lineAxis, unsigned pixelAxis,
@@ -102,8 +105,10 @@ void testIRISSlicer(shortRLEImage::Pointer rleImage, Seg3DImageType::Pointer itk
     diff->SetValidInput(sliceITK);
     diff->SetTestInput(sliceRLE);
     diff->UpdateLargestPossibleRegion();
-    std::cout << "Number of pixels with difference: " << 
+    std::cout << "Number of pixels with difference: " <<
         diff->GetNumberOfPixelsWithDifferences() << std::endl << std::endl;
+    if (diff->GetNumberOfPixelsWithDifferences() > 0)
+        nFailures++;
 }
 
 //test all 4 combinations of bool parameters (lineForward and pixelForward)
@@ -118,6 +123,12 @@ void test4bools(shortRLEImage::Pointer rleImage, Seg3DImageType::Pointer itkImag
 
 int main(int argc, char* argv[])
 {
+    if (argc < 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " segmentation_image" << std::endl;
+        return EXIT_FAILURE;
+    }
+
     itk::TimeProbe tp;
     std::cout << "Loading image: "; tp.Start();
     Seg3DImageType::Pointer inImage = loadImage(argv[1]);
@@ -140,6 +151,24 @@ int main(int argc, char* argv[])
     test4bools(test, inImage, inImage->GetBufferedRegion().GetSize(1) / 2, 1, 0, 2);
     test4bools(test, inImage, inImage->GetBufferedRegion().GetSize(0) / 2, 0, 2, 1);
     test4bools(test, inImage, inImage->GetBufferedRegion().GetSize(0) / 2, 0, 1, 2);
-    std::cout << "All tests finished!";
-    getchar();
+
+    // Convert back from RLE and compare the whole volume
+    typedef itk::RegionOfInterestImageFilter<shortRLEImage, Seg3DImageType> outConverterType;
+    outConverterType::Pointer outConv = outConverterType::New();
+    outConv->SetInput(test);
+    outConv->SetRegionOfInterest(test->GetLargestPossibleRegion());
+    outConv->Update();
+
+    typedef itk::Testing::ComparisonImageFilter< Seg3DImageType, Seg3DImageType > Diff3DType;
+    Diff3DType::Pointer diff3D = Diff3DType::New();
+    diff3D->SetValidInput(inImage);
+    diff3D->SetTestInput(outConv->GetOutput());
+    diff3D->UpdateLargestPossibleRegion();
+    std::cout << "RLE->itk round trip, pixels with difference: "
+        << diff3D->GetNumberOfPixelsWithDifferences() << std::endl;
+    if (diff3D->GetNumberOfPixelsWithDifferences() > 0)
+        nFailures++;
+
+    std::cout << "All tests finished, " << nFailures << " comparison(s) with differences" << std::endl;
+    return nFailures == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }

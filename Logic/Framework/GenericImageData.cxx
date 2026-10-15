@@ -49,6 +49,7 @@
 #include "TimePointProperties.h"
 #include "ImageMeshLayers.h"
 #include "itkTransform.h"
+#include "AffineTransformHelper.h"
 
 // System includes
 #include <iostream>
@@ -487,8 +488,12 @@ GenericImageData::GetReferenceSpaceWrapper() const
 bool
 GenericImageData::IsFreeRotation() const
 {
-  // TODO: I am not sure this is right...
-  return !GetReferenceSpaceWrapper()->ImageSpaceMatchesReferenceSpace();
+  // The layer that defines the reference space (the active segmentation) is
+  // only transformed in free rotation mode of registration, when the main
+  // image and the segmentations are rotated together. Do not use
+  // ImageSpaceMatchesReferenceSpace() here: it is also false for an image that
+  // is too large for orthogonal slicing, which is not rotated.
+  return !AffineTransformHelper::IsIdentity(GetReferenceSpaceWrapper()->GetITKTransform());
 }
 
 void GenericImageData::AddOverlay(ImageWrapperBase *new_layer)
@@ -658,7 +663,7 @@ GenericImageData
   this->ConfigureSegmentationInternal(seg_wrapper);
 
   // Update filenames
-  seg_wrapper->SetFileName(io->GetFileNameOfNativeImage());
+  seg_wrapper->SetFileName(io->GetSourceFileName());
 
   // Add the segmentation image to the list of segmentation wrappers
   PushBackImageWrapper(LABEL_ROLE, seg_wrapper);

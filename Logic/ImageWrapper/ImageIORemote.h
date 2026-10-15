@@ -32,6 +32,31 @@ inline std::string UrlDecode(const std::string &s)
   return out;
 }
 
+/** Percent-encode text for use as one URL path segment: everything except
+ *  the unreserved characters (letters, digits, '-', '.', '_', '~') is
+ *  encoded, including '/', so the text cannot add path components. */
+inline std::string UrlEncodePathSegment(const std::string &s)
+{
+  static const char *hex = "0123456789ABCDEF";
+  std::string out;
+  out.reserve(s.size());
+  for (unsigned char c : s)
+    {
+    // ASCII ranges, not isalnum(), which depends on the locale
+    bool unreserved = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+                      (c >= '0' && c <= '9') || c == '-' || c == '.' || c == '_' || c == '~';
+    if (unreserved)
+      out += static_cast<char>(c);
+    else
+      {
+      out += '%';
+      out += hex[c >> 4];
+      out += hex[c & 15];
+      }
+    }
+  return out;
+}
+
 // Forward declarations — full types only needed in .cxx files that use them.
 class SSHConnectionPool;
 class AbstractSSHAuthDelegate;
@@ -233,6 +258,42 @@ bool IsRemoteImageURL(const std::string &path);
  *   /local/path               →  /local/path        (unchanged)
  */
 std::string ResolveITKSnapURL(const std::string &url);
+
+/**
+ * Whether a file name or URL has the workspace extension (.itksnap, any case).
+ * For remote URLs the query and fragment are ignored, so that
+ * https://host/study.itksnap?token=abc counts as a workspace.
+ */
+bool HasWorkspaceExtension(const std::string &path_or_url);
+
+/**
+ * The absolute form of a file name, as CollapseFullPath gives it. Remote URLs
+ * are returned unchanged, since CollapseFullPath would turn them into bogus
+ * local paths (e.g. "https://h/a" into "<cwd>/https:/h/a").
+ */
+std::string CollapseFullPathOrURL(const std::string &path_or_url);
+
+/** The parts of an scp:// or sftp:// URL */
+struct SCPURL
+{
+  std::string username;   // decoded; empty if the URL has no user@
+  std::string host;
+  int         port = 0;   // 0 if the URL has no :port
+  std::string path;       // decoded absolute path on the server
+};
+
+/**
+ * Parse scp://[user@]host[:port]/path or sftp://..., throwing IRISException
+ * if the URL is malformed (wrong scheme, no path, invalid port).
+ */
+SCPURL ParseSCPURL(const std::string &url);
+
+/**
+ * The local filename for a downloaded URL: the decoded last path component,
+ * without any ?query or #fragment. Throws IRISException if there is none
+ * (e.g., the URL ends in "/" or "..").
+ */
+std::string RemoteFilenameFromURL(const std::string &url);
 
 /**
  * Factory: create the RemoteImageSource appropriate for the scheme in @p url.

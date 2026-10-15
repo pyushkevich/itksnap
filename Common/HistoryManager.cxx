@@ -2,6 +2,7 @@
 #include "SystemInterface.h"
 #include "Registry.h"
 #include "itksys/SystemTools.hxx"
+#include "ImageIORemote.h"
 #include <algorithm>
 
 const unsigned int HistoryManager::HISTORY_SIZE_LOCAL = 5;
@@ -112,8 +113,8 @@ void HistoryManager::UpdateHistory(
     const std::string &filename,
     bool make_local)
 {
-  // Create a string for the new file
-  std::string fullpath = itksys::SystemTools::CollapseFullPath(filename.c_str());
+  // Create a string for the new file (URLs are kept as they are)
+  std::string fullpath = CollapseFullPathOrURL(filename);
 
   // Get the current history registry
   UpdateHistoryList(GetHistory(category, m_GlobalHistory), fullpath, HISTORY_SIZE_GLOBAL);

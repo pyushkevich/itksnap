@@ -175,6 +175,19 @@ public:
   std::string GetFileNameOfNativeImage() const
     { return m_NativeFileName; }
 
+  /**
+   * The name the image is known by: the URL it was downloaded from, if one
+   * was set with SetSourceURL, or else the file it was read from. Layer file
+   * names, the history and per-image settings use this name, so that they
+   * refer to the URL and not to the downloaded copy.
+   */
+  std::string GetSourceFileName() const
+    { return m_SourceURL.size() ? m_SourceURL : m_NativeFileName; }
+
+  /** Set the URL that the file being read was downloaded from */
+  void SetSourceURL(const std::string &url)
+    { m_SourceURL = url; }
+
   unsigned long GetFileSizeOfNativeImage() const
     { return m_NativeSizeInBytes; }
 
@@ -423,7 +436,7 @@ protected:
   itk::IOComponentEnum m_NativeType;
   size_t m_NativeComponents;
   unsigned long m_NativeSizeInBytes;
-  std::string m_NativeTypeString, m_NativeFileName;
+  std::string m_NativeTypeString, m_NativeFileName, m_SourceURL;
   std::string m_NativeNickname;
   IOBase::ByteOrder m_NativeByteOrder;
 

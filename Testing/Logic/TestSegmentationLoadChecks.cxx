@@ -7,6 +7,10 @@
 //      current time point of the selected segmentation, so its size must match
 //      that segmentation (error otherwise), and a different header produces a
 //      warning that it is ignored.
+//   3. Whether loading a segmentation into a 4D workspace can overwrite
+//      unsaved changes. The answer depends on the incoming image only when
+//      all the changes are in other time points; a remote image is never
+//      downloaded for the check (it used to be, and then again to load it).
 //
 // Usage: TestSegmentationLoadChecks <testdata_dir> <temp_dir>
 
@@ -196,6 +200,43 @@ int main(int argc, char *argv[])
     wl = LoadSeg(app4d, data_dir + "/MRIcrop-seg.gipl.gz", error);
     Check(error.find("Mismatched dimensions") != std::string::npos,
           "different size: mismatched dimensions error (got: " + error + ")");
+
+    // ── 3. Can a load overwrite unsaved changes in a 4D workspace? ───────
+    std::cout << "Unsaved changes in a 4D workspace:" << std::endl;
+    auto appUC = IRISApplication::New();
+    appUC->OpenImage((data_dir + "/img4d_11f.nii.gz").c_str(), MAIN_ROLE, wl);
+    appUC->OpenImage((data_dir + "/seg4d_11f.nii.gz").c_str(), LABEL_ROLE, wl);
+    auto del = LoadSegmentationImageDelegate::New();
+    del->Initialize(appUC);
+    std::string fn_4d = data_dir + "/seg4d_11f.nii.gz";
+
+    // Nothing listens on port 9, so a download attempt would throw
+    std::string url = "http://127.0.0.1:9/seg.nii.gz";
+    auto canOverwrite = [&](const std::string &fn) {
+      // A new IO object for each file, as the callers use: PeekHeader caches
+      auto io = GuidedNativeImageIO::New();
+      try { return del->CanLoadOverwriteUnsavedChanges(io, fn) ? 1 : 0; }
+      catch(std::exception &exc) { std::cout << "  (" << exc.what() << ")" << std::endl; return -1; }
+    };
+
+    appUC->SetCursorTimePoint(5);
+    Check(canOverwrite(url) == 0, "no unsaved changes: no prompt, remote image not downloaded");
+    Check(canOverwrite(fn_4d) == 0, "no unsaved changes: no prompt for a 4D image");
+
+    // Unsaved changes in time point 2 only, cursor at time point 5
+    appUC->SetCursorTimePoint(2);
+    size_t n_relabeled = appUC->ReplaceLabel(7, 1);
+    Check(n_relabeled > 0 && appUC->GetSelectedSegmentationLayer()->HasUnsavedChanges(2),
+          "relabeling time point 2 leaves unsaved changes there");
+    appUC->SetCursorTimePoint(5);
+    Check(canOverwrite(fn_tp) == 0, "changes in another time point, 3D image: no prompt");
+    Check(canOverwrite(fn_4d) == 1, "changes in another time point, 4D image: prompt");
+    Check(canOverwrite(url) == 1, "changes in another time point, remote image: prompt without downloading");
+
+    // Unsaved changes in the current time point
+    appUC->SetCursorTimePoint(2);
+    Check(canOverwrite(fn_tp) == 1, "changes in the current time point, 3D image: prompt");
+    Check(canOverwrite(url) == 1, "changes in the current time point, remote image: prompt without downloading");
     }
   catch(std::exception &exc)
     {

@@ -442,6 +442,10 @@ void DistributedSegmentationModel::SubmitWorkspace(ProgressReporterDelegate *pde
   WorkspaceAPI ws;
   ws.ReadFromXMLFile(m_Parent->GetGlobalState()->GetProjectFilename().c_str());
 
+  // Layers loaded from a URL are referenced by the URL, and are downloaded
+  // for the upload; usually they come from the cache
+  ws.SetRemoteIOContext(m_Parent->GetDriver()->GetRemoteIOContext());
+
   // Create a command that reports accumulated progress
   SmartPtr<itk::Command> cmd = pdel->CreateCommand();
 

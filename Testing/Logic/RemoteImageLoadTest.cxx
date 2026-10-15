@@ -10,6 +10,9 @@
 #include "UIReporterDelegates.h"
 #include "LayerIterator.h"
 #include "TDigestImageFilter.h"
+#include "WorkspaceAPI.h"
+#include "HistoryManager.h"
+#include "SystemInterface.h"
 #include <itksys/SystemTools.hxx>
 #include <iostream>
 #include <cstdlib>
@@ -121,6 +124,7 @@ static void PrintUsage(const char *prog)
   std::cerr << "  " << prog << " --test-cache <remote-url>  verify cache fill and conditional-GET hit" << std::endl;
   std::cerr << "  " << prog << " --test-save-workspace <remote-url> <temp-dir>  save/reopen a workspace with a remote layer" << std::endl;
   std::cerr << "  " << prog << " --test-cancel <remote-url>  cancel an HTTP download from the progress callback" << std::endl;
+  std::cerr << "  " << prog << " --test-url-keys <remote-url>  history and per-image settings use the URL" << std::endl;
   std::cerr << "  " << prog << " --test-fw-url-forms  check the fw:// URL grammar offline" << std::endl;
 }
 
@@ -337,9 +341,9 @@ static int RegressionTest(const std::string &flag,
 
 static int TestCache(const std::string &url)
 {
-  // Derive the cache paths from the same data directory the app uses. This is
-  // only the delegate's location on macOS; on Windows it comes from APPDATA
-  // and on Linux from HOME, which CMake points at the build directory
+  // Derive the cache paths from the same data directory the app uses. CMake
+  // gives this test a directory of its own: on macOS the delegate's location
+  // in the working directory, on Windows APPDATA and on Linux HOME
   auto app1 = MakeApp();
   std::string data_dir  = app1->GetSystemInterface()->GetApplicationDataDirectory();
   std::string cache_dir = data_dir + "/Cache";
@@ -565,7 +569,8 @@ static int TestCancel(const std::string &url)
 //  Load an image from a remote URL, save a local workspace, and check that
 //  the workspace refers to the image by its URL (not by a mangled local
 //  path or the cache/temp file), that it can be reopened with the same data,
-//  and that saving a workspace to a remote URL is refused.
+//  that it can be exported (as for an upload to the distributed segmentation
+//  service), and that saving a workspace to a remote URL is refused.
 // -----------------------------------------------------------------------
 
 static int TestSaveWorkspace(const std::string &url, const std::string &tempdir)
@@ -645,8 +650,134 @@ static int TestSaveWorkspace(const std::string &url, const std::string &tempdir)
       }
     }
 
+  // Export the workspace, as the distributed segmentation service does
+  // before uploading it: the remote layer must be downloaded and saved as a
+  // local file, and the export must open with the same data
+  std::string export_dir = tempdir + "/RemoteImageLoadTest_Export";
+  std::string export_file = export_dir + "/exported.itksnap";
+  itksys::SystemTools::RemoveADirectory(export_dir);
+  itksys::SystemTools::MakeDirectory(export_dir);
+  std::vector<LayerSnapshot> snaps3;
+  try
+    {
+    WorkspaceAPI ws;
+    ws.ReadFromXMLFile(ws_file.c_str());
+    ws.ExportWorkspace(export_file.c_str());
+
+    WorkspaceAPI exported;
+    exported.ReadFromXMLFile(export_file.c_str());
+    for (int i = 0; i < exported.GetNumberOfLayers(); i++)
+      {
+      std::string path = exported.GetLayerActualPath(exported.GetLayerFolder(i));
+      if (IsRemoteImageURL(path) || !itksys::SystemTools::FileExists(path))
+        {
+        std::cerr << "FAIL: exported layer " << i << " is not a local file: " << path << std::endl;
+        return 1;
+        }
+      }
+
+    IRISApplication::Pointer app3 = MakeApp();
+    app3->OpenWorkspace(export_file, warnings);
+    snaps3 = SnapshotAllLayers(app3);
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: could not export the workspace: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  for (size_t i = 0; i < snaps1.size() && i < snaps3.size(); ++i)
+    {
+    std::string msg;
+    if (!CompareSnapshots(snaps1[i], snaps3[i], msg))
+      {
+      std::cerr << "FAIL: layer " << i << " differs after exporting: " << msg << std::endl;
+      return 1;
+      }
+    }
+  if (snaps1.size() != snaps3.size())
+    {
+    std::cerr << "FAIL: exported workspace has " << snaps3.size() << " layers, expected "
+              << snaps1.size() << std::endl;
+    return 1;
+    }
+
   itksys::SystemTools::RemoveFile(ws_file);
-  std::cout << "PASS: workspace with a remote layer saved and reopened" << std::endl;
+  itksys::SystemTools::RemoveADirectory(export_dir);
+  std::cout << "PASS: workspace with a remote layer saved, reopened and exported" << std::endl;
+  return 0;
+}
+
+
+// -----------------------------------------------------------------------
+//  --test-url-keys
+// -----------------------------------------------------------------------
+
+// A remote image is known by its URL, not by the path of the downloaded copy:
+// the layer name, the recent-image history and the per-image settings
+// (display settings, tags, IO hints) all use the URL. The settings saved when
+// the image is closed must come back when it is opened again.
+static int TestURLKeys(const std::string &url)
+{
+  IRISWarningList warnings;
+  try
+    {
+    IRISApplication::Pointer app = MakeApp();
+    HistoryManager *hm = app->GetHistoryManager();
+
+    // Open the image and tag it
+    app->OpenImage(url.c_str(), MAIN_ROLE, warnings);
+    ImageWrapperBase *layer = app->GetCurrentImageData()->GetMain();
+    std::cout << "Layer file name: " << layer->GetFileName() << std::endl;
+    if (url != layer->GetFileName())
+      {
+      std::cerr << "FAIL: the layer file name is not the URL" << std::endl;
+      return 1;
+      }
+
+    // The history holds the URL, not the downloaded copy
+    for (const char *cat : { "MainImage", "AnatomicImage" })
+      {
+      HistoryManager::HistoryListType hist = hm->GetGlobalHistory(cat);
+      std::string last = hist.size() ? hist.back() : std::string();
+      std::cout << "Last " << cat << " history entry: " << last << std::endl;
+      if (last != url)
+        {
+        std::cerr << "FAIL: the " << cat << " history does not end with the URL" << std::endl;
+        return 1;
+        }
+      }
+
+    TagList tags;
+    tags.push_back("url-keys-test");
+    layer->SetTags(tags);
+
+    // Closing the image saves its settings, under the URL
+    app->UnloadMainImage();
+    Registry assoc;
+    if (!app->GetSystemInterface()->FindRegistryAssociatedWithFile(url.c_str(), assoc))
+      {
+      std::cerr << "FAIL: no settings associated with the URL" << std::endl;
+      return 1;
+      }
+
+    // Opening it again restores them
+    app->OpenImage(url.c_str(), MAIN_ROLE, warnings);
+    TagList restored = app->GetCurrentImageData()->GetMain()->GetTags();
+    std::cout << "Tags after reopening: " << restored.size() << std::endl;
+    if (restored.size() != 1 || restored.front() != "url-keys-test")
+      {
+      std::cerr << "FAIL: the image's settings were not restored when it was reopened" << std::endl;
+      return 1;
+      }
+    }
+  catch (std::exception &exc)
+    {
+    std::cerr << "FAIL: " << exc.what() << std::endl;
+    return 1;
+    }
+
+  std::cout << "PASS: history and per-image settings use the URL" << std::endl;
   return 0;
 }
 
@@ -791,6 +922,18 @@ int main(int argc, char *argv[])
       }
     std::string url = ResolveITKSnapURL(argv[2]);
     return TestSaveWorkspace(url, argv[3]);
+    }
+
+  // ── --test-url-keys ──────────────────────────────────────────────────
+  if (cmd == "--test-url-keys")
+    {
+    if (argc < 3)
+      {
+      PrintUsage(argv[0]);
+      return 1;
+      }
+    std::string url = ResolveITKSnapURL(argv[2]);
+    return TestURLKeys(url);
     }
 
   // ── --test-fw-url-forms ──────────────────────────────────────────────

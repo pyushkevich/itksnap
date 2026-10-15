@@ -10,6 +10,7 @@
   - `fw://` URLs load files from [Flywheel](https://flywheel.io) projects, subjects, sessions, acquisitions and analyses using the API key from the Flywheel CLI
   - Clickable `itksnap-sftp://`, `itksnap-scp://`, `itksnap-http(s)://` and `itksnap-fw://` links open ITK-SNAP from a web browser (registered by the Windows installer and the macOS application bundle)
   - Downloaded files are kept in a local cache, so reopening a remote file is fast
+  - Remote images and workspaces appear in the recent-file lists, marked with a badge on the startup page, and their display settings are remembered like those of local files
   - The [ITK-SNAP Launcher extension for VS Code](https://marketplace.visualstudio.com/items?itemName=pyushkevich.itksnap-launcher) opens images and workspaces from VS Code in ITK-SNAP, including files on remote machines that VS Code is connected to
   - See `Documentation/Developer/RemoteURLs.md` for the URL formats
 - Several ITK-SNAP windows work together:
@@ -24,6 +25,9 @@
 - Deep learning segmentation (DLS):
   - SAM2 support, and a choice of model for the paintbrush and the polygon (lasso) tools; the chosen model is remembered
   - Images are sent to the server on the grid of the active segmentation
+- Crash recovery: segmentations with unsaved changes are autosaved every 5 minutes (`--autosave SECONDS` changes the interval; 0 turns it off). After a crash of any kind, the next launch tells you where the recovered files are. The autosave runs in the background and doesn't mark the segmentation as saved.
+- The Getting Started page links to sample datasets ([on Hugging Face](https://huggingface.co/datasets/upennpatchlab/itksnap_sample_data)), which open in the current window
+- The snake (active contour) wizard panel now has the classifier's neighborhood and coordinate feature options, which were only in the speed image dialog before
 - Progress of long operations (downloads, image loading, DLS requests) is shown in the main window, and most can be cancelled with the X button
 - New file formats: VTK XML images (`.vti`) and meshes (`.vtp`), and export of 4D images as NRRD volume sequences (`.seq.nrrd`)
 - A clear error message instead of a crash when an image is too large for the available memory
@@ -41,16 +45,27 @@
 ### Bug Fixes
 
 - Fixed crashes when closing or reloading the active segmentation, and in snake mode classification
+- Fixed a crash on a mouse click in a slice view right after closing an image (e.g. with Cmd-W)
+- Fixed the snake ROI index and size boxes, which changed the size on every axis when the index was edited
+- Fixed an error when pressing Update in the 3D view in snake mode before the contour was initialized
 - Fixed polygon drawing on slices outside the segmentation, and the adaptive brush on segmentations with a different grid
 - Fixed the slice slider range and slice numbers when the scene extends beyond the active segmentation
 - Fixed segmentation statistics, registration reslicing, annotations and the snake ROI when the segmentation grid differs from the main image
+- Large images (over 1024 voxels in any direction), including large 2D images:
+  - 2D overlays slightly off the slice were shown and probed too dark, and the edges of obliquely sliced images faded
+  - Segmentations on another grid showed labels one voxel past their lower edges
+  - The volumetric, adaptive and DLS brushes were disabled, and the paintbrush painted polygons
+  - The adaptive brush crashed on a region with a single watershed, such as a constant region
 - Fixed `.seq.nrrd` export writing transposed orientation and the wrong data type for 8-bit images
 - Fixed the VTI reader and writer for images with an origin, extent or direction, and for unsupported data
 - Fixed DLS: an empty stroke undid the previous edit, clicks during a running request could hang ITK-SNAP, and 3D results were not size-checked
 - Fixed saving workspaces that contain layers loaded from URLs
+- On macOS, `itksnap-*` links with a query or encoded characters (such as spaces) now open the right file; opening a workspace link shows its download progress, and the file is downloaded only once
+- Host names and server messages in SSH dialogs are shown as plain text
 - Remote downloads follow HTTP redirects, can be cancelled, are aborted when the connection stalls, and leave no temporary files behind
 - Fixed the remote file cache when several ITK-SNAP windows use it at once
-- Fixed a hang when opening some DICOM files, and memory leaks in mesh and layer handling
+- Fixed a hang when opening some DICOM files, and memory leaks in mesh and layer handling and the network code
+- A 4D echocardiography DICOM file that can't be read shows an error instead of crashing
 - Various other fixes (see GitHub)
 
 ### Programmatic Improvements
@@ -58,8 +73,8 @@
 - Unified progress reporting and cancellation (`AbstractProgressDelegate`) and SSH authentication (`AbstractSSHAuthDelegate`) across the logic layer
 - `RESTClient` supports generic HTTPS servers, redirects and cancellation
 - New `itksnap-wt` commands, including `-dssp-services-available` and `-props-set-active-seg`
-- New command-line options: `--url` (open a URL in the running ITK-SNAP window) and `--no-cache` (download remote files without the cache)
-- Many new regression tests, including remote IO, the remote file cache and GUI tests for remote saving and segmentation reference spaces; GUI tests can run offscreen (`SNAP_GUI_TEST_QT_PLATFORM`)
+- New command-line options: `--url` (open a URL in the running ITK-SNAP window), `--no-cache` (download remote files without the cache) and `--autosave SECONDS` (the crash-recovery autosave interval)
+- Many new regression tests, including remote IO, the remote file cache, large 2D images, the snake ROI panel, autosave, and GUI tests for remote saving and segmentation reference spaces; GUI tests can run offscreen (`SNAP_GUI_TEST_QT_PLATFORM`)
 - Developer documentation: contributing guide, governance, code of conduct and developer guide
 - Upgraded dependencies: VTK 9.5.2, Qt 6.9.3
 

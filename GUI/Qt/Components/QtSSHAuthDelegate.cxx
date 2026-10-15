@@ -12,6 +12,14 @@
 #include <QString>
 #include <QThread>
 #include <QVBoxLayout>
+
+// Text from the URL, the SSH config or the server, escaped for the rich text
+// labels below, so that a host name like "<img src=...>" is shown as typed
+static QString html(const std::string &text)
+{
+  return QString::fromStdString(text).toHtmlEscaped();
+}
+
 QtSSHAuthDelegate::QtSSHAuthDelegate(QWidget *parent)
   : QObject(parent)
   , m_Parent(parent)
@@ -36,10 +44,10 @@ QtSSHAuthDelegate::PromptForPassword(const std::string &host,
   RunOnMainThread([&]
   {
     QString labelText =
-      tr("Password for <b>%1@%2</b>").arg(QString::fromStdString(username), QString::fromStdString(host));
+      tr("Password for <b>%1@%2</b>").arg(html(username), html(host));
 
     if (!prompt.empty())
-      labelText += tr("<br><small style='color:red'>%1</small>").arg(QString::fromStdString(prompt));
+      labelText += tr("<br><small style='color:red'>%1</small>").arg(html(prompt));
 
     QString pw = QInputDialog::getText(
       m_Parent, tr("SSH Authentication"), labelText, QLineEdit::Password, QString(), &ok);
@@ -58,10 +66,10 @@ QtSSHAuthDelegate::PromptForPassphrase(const std::string &keyfile,
   bool ok = false;
   RunOnMainThread([&]
   {
-    QString labelText = tr("Passphrase for key <b>%1</b>").arg(QString::fromStdString(keyfile));
+    QString labelText = tr("Passphrase for key <b>%1</b>").arg(html(keyfile));
 
     if (!prompt.empty())
-      labelText += tr("<br><small style='color:red'>%1</small>").arg(QString::fromStdString(prompt));
+      labelText += tr("<br><small style='color:red'>%1</small>").arg(html(prompt));
 
     QString pp = QInputDialog::getText(
       m_Parent, tr("SSH Authentication"), labelText, QLineEdit::Password, QString(), &ok);
@@ -87,9 +95,9 @@ QtSSHAuthDelegate::PromptForUsernameAndPassword(const std::string &host,
 
     auto *layout = new QVBoxLayout(&dlg);
 
-    QString labelText = tr("Enter credentials for <b>%1</b>").arg(QString::fromStdString(host));
+    QString labelText = tr("Enter credentials for <b>%1</b>").arg(html(host));
     if (!prompt.empty())
-      labelText += tr("<br><small style='color:red'>%1</small>").arg(QString::fromStdString(prompt));
+      labelText += tr("<br><small style='color:red'>%1</small>").arg(html(prompt));
 
     auto *topLabel = new QLabel(labelText, &dlg);
     topLabel->setTextFormat(Qt::RichText);
@@ -132,13 +140,12 @@ QtSSHAuthDelegate::ConfirmHostKey(const std::string &host,
     box.setIcon(QMessageBox::Warning);
     box.setTextFormat(Qt::RichText);
     box.setText(tr("The authenticity of host <b>%1</b> cannot be established.")
-                  .arg(QString::fromStdString(host).toHtmlEscaped()));
+                  .arg(html(host)));
     box.setInformativeText(
       tr("The %1 key fingerprint is:<br><tt>%2</tt><br><br>"
          "If you are not sure that this is the right server, contact its administrator "
          "before connecting. Do you want to trust this host and continue?")
-        .arg(QString::fromStdString(key_type).toHtmlEscaped(),
-             QString::fromStdString(fingerprint).toHtmlEscaped()));
+        .arg(html(key_type), html(fingerprint)));
     box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     box.setDefaultButton(QMessageBox::No);
     result = (box.exec() == QMessageBox::Yes);
@@ -155,11 +162,10 @@ QtSSHAuthDelegate::PromptForAPIKey(const std::string &server,
   RunOnMainThread([&]
   {
     QString labelText =
-      tr("API key for <b>%1</b>:").arg(QString::fromStdString(server));
+      tr("API key for <b>%1</b>:").arg(html(server));
 
     if (!prompt.empty())
-      labelText += tr("<br><small style='color:red'>%1</small>").arg(
-        QString::fromStdString(prompt));
+      labelText += tr("<br><small style='color:red'>%1</small>").arg(html(prompt));
 
     QString key = QInputDialog::getText(
       m_Parent, tr("Flywheel Authentication"), labelText,

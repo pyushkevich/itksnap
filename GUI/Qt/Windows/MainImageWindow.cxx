@@ -82,6 +82,7 @@
 #include "RegistrationDialog.h"
 #include "DistributedSegmentationDialog.h"
 #include "ImageIORemote.h"
+#include "SNAPQApplication.h"
 
 #include <QAbstractListModel>
 #include <QItemDelegate>
@@ -329,6 +330,7 @@ MainImageWindow::MainImageWindow(QWidget *parent) :
 
   // Set up the advanced progress reporter
   m_ProgressFader = new ProgressReportWidget(this);
+  m_ProgressFader->setObjectName("progressReport");
 
   // Create the delegate to pass in to the model
   m_ProgressReporterDelegate = new QtProgressReporterDelegate();
@@ -1079,8 +1081,12 @@ void MainImageWindow::CreateRecentMenu(
   // Create an action for each recent item
   for(int i = 0; i < recent.size(); i++)
     {
-    // Create an action for this file
-    QAction *action = submenu->addAction(from_utf8(recent[i]));
+    // Create an action for this file. The file name is kept in the action's
+    // data; in the text, '&' (common in URLs) is escaped so it is not shown
+    // as a shortcut marker
+    QString file = from_utf8(recent[i]);
+    QAction *action = submenu->addAction(QString(file).replace("&", "&&"));
+    action->setData(file);
     if(use_shortcut && i < 10)
       action->setShortcut(QKeySequence(shortcut_modifier + Qt::Key_1 + i));
     connect(action, SIGNAL(triggered(bool)), this, slot);
@@ -1371,9 +1377,9 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
     std::string filename = to_utf8(file);
     // Check if the dropped file is a project. For remote URLs (scp://, sftp://)
     // IsProjectFile cannot read the file content, so we fall back to checking
-    // the .itksnap extension
+    // the .itksnap extension (ignoring any query or fragment)
     bool isRemote = IsRemoteImageURL(filename);
-    bool isProject = (isRemote && file.endsWith(".itksnap", Qt::CaseInsensitive)) ||
+    bool isProject = (isRemote && HasWorkspaceExtension(filename)) ||
                      (!isRemote && d->IsProjectFile(filename.c_str()));
 
     if (isProject)
@@ -1430,6 +1436,16 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
     ReportNonLethalException(
       this, exc, tr("File Dropping Error"), tr("Failed to load file %1").arg(file));
   }
+}
+
+void MainImageWindow::on_brsGettingStarted_anchorClicked(const QUrl &url)
+{
+  // itksnap-* links (the sample datasets) are opened in this window, as a
+  // file dropped on it would be. Other links are opened in the web browser
+  if (url.scheme().startsWith("itksnap-"))
+    LoadDroppedFile(SNAPQApplication::resolveUrl(url.toString(QUrl::FullyEncoded)), true);
+  else
+    QDesktopServices::openUrl(url);
 }
 
 #ifdef __APPLE__
@@ -1570,7 +1586,7 @@ void MainImageWindow::LoadRecentActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadMainImage(file);
 }
 
@@ -1578,7 +1594,7 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
 
 	// Show a progress dialog
 	using namespace imageiowiz;
@@ -1650,7 +1666,7 @@ void MainImageWindow::LoadRecentSegmentationActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadRecentSegmentation(file, false);
 }
 
@@ -1658,7 +1674,7 @@ void MainImageWindow::LoadAnotherRecentSegmentationActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadRecentSegmentation(file, true);
 }
 
@@ -1680,7 +1696,7 @@ void MainImageWindow::LoadRecentLabelDefinitionsTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadLabelDefinitions(file);
 }
 
@@ -1796,7 +1812,7 @@ void MainImageWindow::LoadRecentProjectActionTriggered()
 
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadProject(file);
 }
 

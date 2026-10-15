@@ -15,8 +15,11 @@
 #include <SNAPQtCommon.h>
 #include <QPixmapCache>
 #include <QFileInfo>
+#include "ImageIORemote.h"
 #include <QIcon>
 #include <QTimer>
+#include <QPainter>
+#include <QApplication>
 
 HistoryQListModel::HistoryQListModel(QObject *parent) :
   QStandardItemModel(parent)
@@ -32,8 +35,15 @@ void HistoryQListItem::setItem(
     GlobalUIModel *model,
     const QString &history_entry)
 {
-  // Set the name to the short name
+  // Set the name to the short name. For a URL, this is the name of the file
+  // it downloads, without any query or fragment
   QString short_name = QFileInfo(history_entry).fileName();
+  m_IsRemote = IsRemoteImageURL(to_utf8(history_entry));
+  if(m_IsRemote)
+    {
+    try { short_name = from_utf8(RemoteFilenameFromURL(to_utf8(history_entry))); }
+    catch(IRISException &) {}
+    }
   this->setText(short_name);
 
   // Set the filename
@@ -41,7 +51,7 @@ void HistoryQListItem::setItem(
   this->setData(history_entry, Qt::UserRole);
   QPixmap dummy(128, 128);
   dummy.fill(Qt::black);
-  this->setIcon(QIcon(dummy));
+  this->setThumbnail(dummy);
 
   // At the moment, these are hard-coded
   this->setSizeHint(QSize(188,144));
@@ -66,7 +76,7 @@ void HistoryQListItem::onTimer()
 
   QPixmap pixmap;
   if(QPixmapCache::find(key, &pixmap))
-    this->setIcon(QIcon(pixmap));
+    this->setThumbnail(pixmap);
   else
     {
     try
@@ -94,17 +104,42 @@ void HistoryQListItem::onTimer()
         } */
 
       QPixmap load_pixmap(m_IconFilename);
-      this->setIcon(QIcon(load_pixmap));
+      this->setThumbnail(load_pixmap);
       QPixmapCache::insert(key, load_pixmap);
       }
     catch(itk::ExceptionObject &)
       {
       QPixmap dummy(128, 128);
       dummy.fill(Qt::black);
-      this->setIcon(QIcon(dummy));
+      this->setThumbnail(dummy);
       QPixmapCache::insert(key, dummy);
       }
     }
+}
+
+void HistoryQListItem::setThumbnail(const QPixmap &thumbnail)
+{
+  if(!m_IsRemote)
+    {
+    this->setIcon(QIcon(thumbnail));
+    return;
+    }
+
+  // Draw the remote badge in the top left corner. The result is made at the
+  // screen's pixel ratio, so that the badge stays sharp on high-DPI screens
+  qreal dpr = qApp->devicePixelRatio();
+  QSize size = thumbnail.deviceIndependentSize().toSize();
+  QPixmap badged(size * dpr);
+  badged.setDevicePixelRatio(dpr);
+  badged.fill(Qt::transparent);
+
+  QPainter p(&badged);
+  p.setRenderHint(QPainter::SmoothPixmapTransform);
+  p.drawPixmap(QRect(QPoint(0, 0), size), thumbnail);
+  p.drawPixmap(QRect(4, 4, 20, 20), QPixmap(":/root/remote_badge_20.png"));
+  p.end();
+
+  this->setIcon(QIcon(badged));
 }
 
 void HistoryQListModel::rebuildModel()

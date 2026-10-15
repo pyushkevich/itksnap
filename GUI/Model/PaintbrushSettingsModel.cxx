@@ -122,7 +122,7 @@ PaintbrushSettingsModel
     case UIF_ADAPTIVE_OK:
       // The adaptive brush works on the voxels of the image, so it needs the
       // image to be on the same grid as the active segmentation
-      return !free_rotation && gid->GetMain()->ImageSpaceMatchesReferenceSpace();
+      return !free_rotation && gid->GetMain()->ImageGridMatchesReferenceSpace();
     case UIF_DEEPLEARNING_OK:
       return !free_rotation;
     default:

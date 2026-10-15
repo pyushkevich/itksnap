@@ -117,47 +117,13 @@ SCPRemoteImageSource::Download(const std::string &url)
 {
   m_TemporaryDirectory.clear();
 
-  // Expected form:  scp://[user@]host/path  or  sftp://[user@]host/path
-  std::size_t scheme_len = 0;
-  if (url.substr(0, 6) == "scp://")       scheme_len = 6;
-  else if (url.substr(0, 7) == "sftp://") scheme_len = 7;
-  else
-    throw IRISException("SCPRemoteImageSource: URL must start with scp:// or sftp://: %s", url.c_str());
-
-  std::string rest = url.substr(scheme_len);   // "[user@]host/path"
-
-  auto slash = rest.find('/');
-  if (slash == std::string::npos)
-    throw IRISException("SCPRemoteImageSource: malformed URL (no path after host): %s", url.c_str());
-
-  std::string hostpart   = rest.substr(0, slash);   // "user@host" or "host"
-  std::string remotepath = UrlDecode(rest.substr(slash)); // "/absolute/path/to/file.ext"
-
-  // Split optional user@ from host
-  std::string host, username;
-  auto at = hostpart.rfind('@');
-  if (at != std::string::npos)
-  {
-    username = UrlDecode(hostpart.substr(0, at));
-    host     = hostpart.substr(at + 1);
-  }
-  else
-  {
-    host = hostpart;
-  }
-
-  // Split optional :port from host (e.g. "localhost:2222")
-  int port = 0;
-  auto colon = host.find(':');
-  if (colon != std::string::npos)
-  {
-    try { port = std::stoi(host.substr(colon + 1)); } catch (...) {}
-    host = host.substr(0, colon);
-  }
+  SCPURL parsed = ParseSCPURL(url);
+  const std::string &host = parsed.host, &username = parsed.username, &remotepath = parsed.path;
+  int port = parsed.port;
 
   // Preserve the original basename so ITK extension detection works.
   std::string basename = itksys::SystemTools::GetFilenameName(remotepath);
-  if (basename.empty())
+  if (basename.empty() || basename == "." || basename == "..")
     throw IRISException("SCPRemoteImageSource: URL path ends in a directory, not a file: %s", url.c_str());
 
   // Acquire an authenticated SSH + SFTP session via the connection pool.
@@ -265,15 +231,8 @@ HTTPRemoteImageSource::Download(const std::string &url)
 {
   m_TemporaryDirectory.clear();
 
-  // The local filename is the decoded last path component, without the query
-  // string, so that extension detection works (e.g. "scan%20T1.nii.gz" is
-  // saved as "scan T1.nii.gz"). Taking the filename again after decoding
-  // drops any directory that an encoded "/" (%2F) would add.
-  std::string url_path = url.substr(0, url.find_first_of("?#"));
-  std::string basename = itksys::SystemTools::GetFilenameName(
-    UrlDecode(itksys::SystemTools::GetFilenameName(url_path)));
-  if (basename.empty() || basename == "." || basename == "..")
-    throw IRISException("HTTPRemoteImageSource: cannot determine filename from URL: %s", url.c_str());
+  // The local filename keeps the extension, so that ITK can detect the format
+  std::string basename = RemoteFilenameFromURL(url);
 
   // Cache lookup: if we have a cached copy with validation tokens, we can do
   // a conditional GET to avoid a full re-download.
@@ -355,6 +314,91 @@ std::string ResolveITKSnapURL(const std::string &url)
   return url;
 }
 
+bool HasWorkspaceExtension(const std::string &path_or_url)
+{
+  std::string path = path_or_url;
+  if (IsRemoteImageURL(path))
+    path = path.substr(0, path.find_first_of("?#"));
+
+  const std::string ext = ".itksnap";
+  if (path.size() < ext.size())
+    return false;
+  for (std::size_t i = 0; i < ext.size(); i++)
+    if (std::tolower((unsigned char) path[path.size() - ext.size() + i]) != ext[i])
+      return false;
+  return true;
+}
+
+std::string CollapseFullPathOrURL(const std::string &path_or_url)
+{
+  return IsRemoteImageURL(path_or_url)
+           ? path_or_url
+           : itksys::SystemTools::CollapseFullPath(path_or_url);
+}
+
+SCPURL ParseSCPURL(const std::string &url)
+{
+  // Expected form:  scp://[user@]host[:port]/path  or  sftp://...
+  std::size_t scheme_len = 0;
+  if (url.substr(0, 6) == "scp://")       scheme_len = 6;
+  else if (url.substr(0, 7) == "sftp://") scheme_len = 7;
+  else
+    throw IRISException("SCPRemoteImageSource: URL must start with scp:// or sftp://: %s", url.c_str());
+
+  std::string rest = url.substr(scheme_len);   // "[user@]host[:port]/path"
+
+  auto slash = rest.find('/');
+  if (slash == std::string::npos)
+    throw IRISException("SCPRemoteImageSource: malformed URL (no path after host): %s", url.c_str());
+
+  SCPURL parsed;
+  std::string hostpart = rest.substr(0, slash);   // "user@host" or "host"
+  parsed.path = UrlDecode(rest.substr(slash));    // "/absolute/path/to/file.ext"
+
+  // Split optional user@ from host
+  auto at = hostpart.rfind('@');
+  if (at != std::string::npos)
+    {
+    parsed.username = UrlDecode(hostpart.substr(0, at));
+    parsed.host     = hostpart.substr(at + 1);
+    }
+  else
+    {
+    parsed.host = hostpart;
+    }
+
+  // Split optional :port from host (e.g. "localhost:2222")
+  auto colon = parsed.host.find(':');
+  if (colon != std::string::npos)
+    {
+    std::string port_str = parsed.host.substr(colon + 1);
+    char *end = nullptr;
+    long port = std::strtol(port_str.c_str(), &end, 10);
+    if (port_str.empty() || *end != '\0' || port < 1 || port > 65535)
+      throw IRISException("SCPRemoteImageSource: invalid port in URL: %s", url.c_str());
+    parsed.port = static_cast<int>(port);
+    parsed.host = parsed.host.substr(0, colon);
+    }
+
+  if (parsed.host.empty())
+    throw IRISException("SCPRemoteImageSource: malformed URL (no host): %s", url.c_str());
+
+  return parsed;
+}
+
+std::string RemoteFilenameFromURL(const std::string &url)
+{
+  // Decode the last path component without the query string, e.g.
+  // "scan%20T1.nii.gz?token=x" gives "scan T1.nii.gz". Taking the filename
+  // again after decoding drops any directory that an encoded "/" (%2F) adds.
+  std::string url_path = url.substr(0, url.find_first_of("?#"));
+  std::string basename = itksys::SystemTools::GetFilenameName(
+    UrlDecode(itksys::SystemTools::GetFilenameName(url_path)));
+  if (basename.empty() || basename == "." || basename == "..")
+    throw IRISException("Cannot determine the filename from URL: %s", url.c_str());
+  return basename;
+}
+
 SmartPtr<RemoteImageSource> CreateRemoteImageSource(const std::string &url)
 {
   if (url.substr(0, 6) == "scp://" || url.substr(0, 7) == "sftp://")
@@ -390,7 +434,8 @@ DownloadRemoteFile(const std::string &url,
 
   if (!title)
     title = SNAP_TRANSLATE_NOOP("ProgressTask", "Downloading %1");
-  std::string filename = UrlDecode(itksys::SystemTools::GetFilenameName(url));
+  std::string filename = UrlDecode(
+    itksys::SystemTools::GetFilenameName(url.substr(0, url.find_first_of("?#"))));
 
   ProgressTaskGuard guard(ctx.progressDelegate, title, true, filename);
   src->SetProgressCallback([&guard](std::size_t done, std::size_t total) {
