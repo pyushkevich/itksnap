@@ -744,6 +744,7 @@ SET(UI_QT_CXX
   GUI/Qt/Components/SNAPQApplication.cxx
   GUI/Qt/Components/SNAPQtCommon.cxx
   GUI/Qt/Components/SNAPQtCommonTranslations.cxx
+  GUI/Qt/Components/SegmentationAutosave.cxx
   GUI/Qt/Components/SliceViewPanel.cxx
   GUI/Qt/Components/SSHTunnelWorkerThread.cxx
   GUI/Qt/Components/SynchronizationInspector.cxx
@@ -851,6 +852,7 @@ SET(UI_MOC_HEADERS
   GUI/Qt/Components/SNAPComponent.h
   GUI/Qt/Components/SNAPToolbar.h
   GUI/Qt/Components/SNAPQApplication.h
+  GUI/Qt/Components/SegmentationAutosave.h
   GUI/Qt/Components/SliceViewPanel.h
   GUI/Qt/Components/SNAPQtCommonTranslations.h
   GUI/Qt/Components/SSHTunnelWorkerThread.h
@@ -1378,6 +1380,7 @@ SET(GUI_TESTS
   VolumeRendering
   Reloading
   SegmentationSwitching
+  SegmentationAutosave
   SliceIndexRange
   AnnotationReferenceSpace
   4DToMC

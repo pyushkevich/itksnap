@@ -27,6 +27,7 @@
         <file>Scripts/test_NaNs.js</file>
         <file>Scripts/test_Reloading.js</file>
         <file>Scripts/test_SegmentationSwitching.js</file>
+        <file>Scripts/test_SegmentationAutosave.js</file>
         <file>Scripts/test_WorkspaceActiveSegmentation.js</file>
         <file>Scripts/test_AnnotationReferenceSpace.js</file>
         <file>Scripts/test_SliceIndexRange.js</file>
