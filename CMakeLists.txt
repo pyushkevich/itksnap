@@ -1526,15 +1526,32 @@ add_test(NAME RemoteImageLoadTest_Cache
     --test-cache
     "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz")
 
-# The test clears the cache, so keep the application data directory (which
-# comes from APPDATA on Windows and HOME on Linux) out of the user's profile
-set(CACHE_TEST_HOME "${CMAKE_CURRENT_BINARY_DIR}/Testing/CacheTestHome")
-file(MAKE_DIRECTORY ${CACHE_TEST_HOME})
-IF(WIN32)
-  set_tests_properties(RemoteImageLoadTest_Cache PROPERTIES ENVIRONMENT "APPDATA=${CACHE_TEST_HOME}")
-ELSEIF(NOT APPLE)
-  set_tests_properties(RemoteImageLoadTest_Cache PROPERTIES ENVIRONMENT "HOME=${CACHE_TEST_HOME}")
-ENDIF()
+# The test clears the cache, so it gets an application data directory of its
+# own (see below).
+
+# Test: the history and the per-image settings of an image loaded from a URL
+# use the URL, so the settings come back when it is opened again.
+add_test(NAME RemoteImageLoadTest_URLKeys
+  COMMAND remote_image_load_test
+    --test-url-keys
+    "${GITHUB_TESTDATA_URL}/MRIcrop-orig.gipl.gz?x=1")
+
+# These tests clear the cache or write settings, so each gets its own
+# application data directory, away from the user's profile and from the other
+# remote tests running in parallel. The directory comes from APPDATA on
+# Windows and HOME on Linux; on macOS the test's delegate puts it in the
+# working directory.
+foreach(_test RemoteImageLoadTest_Cache RemoteImageLoadTest_URLKeys)
+  set(_home "${CMAKE_CURRENT_BINARY_DIR}/Testing/${_test}_Home")
+  file(MAKE_DIRECTORY ${_home})
+  IF(WIN32)
+    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "APPDATA=${_home}")
+  ELSEIF(APPLE)
+    set_tests_properties(${_test} PROPERTIES WORKING_DIRECTORY "${_home}")
+  ELSE()
+    set_tests_properties(${_test} PROPERTIES ENVIRONMENT "HOME=${_home}")
+  ENDIF()
+endforeach()
 
 # Test: save a workspace containing a layer loaded from a URL, check that the
 # URL is stored as-is, and reopen it.
@@ -1558,6 +1575,7 @@ set_tests_properties(
   RemoteImageLoadTest_Cache
   RemoteImageLoadTest_SaveWorkspace
   RemoteImageLoadTest_Cancel
+  RemoteImageLoadTest_URLKeys
   PROPERTIES
     LABELS "Remote"
     TIMEOUT 120)

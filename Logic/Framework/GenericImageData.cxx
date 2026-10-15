@@ -663,7 +663,7 @@ GenericImageData
   this->ConfigureSegmentationInternal(seg_wrapper);
 
   // Update filenames
-  seg_wrapper->SetFileName(io->GetFileNameOfNativeImage());
+  seg_wrapper->SetFileName(io->GetSourceFileName());
 
   // Add the segmentation image to the list of segmentation wrappers
   PushBackImageWrapper(LABEL_ROLE, seg_wrapper);

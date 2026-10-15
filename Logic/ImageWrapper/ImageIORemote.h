@@ -241,6 +241,13 @@ std::string ResolveITKSnapURL(const std::string &url);
  */
 bool HasWorkspaceExtension(const std::string &path_or_url);
 
+/**
+ * The absolute form of a file name, as CollapseFullPath gives it. Remote URLs
+ * are returned unchanged, since CollapseFullPath would turn them into bogus
+ * local paths (e.g. "https://h/a" into "<cwd>/https:/h/a").
+ */
+std::string CollapseFullPathOrURL(const std::string &path_or_url);
+
 /** The parts of an scp:// or sftp:// URL */
 struct SCPURL
 {

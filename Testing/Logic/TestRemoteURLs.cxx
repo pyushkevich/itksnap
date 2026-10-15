@@ -1,7 +1,7 @@
 // Test: parsing of remote URLs, without any network access.
 //
 //   1. IsRemoteImageURL, ResolveITKSnapURL (the itksnap-* browser schemes) and
-//      HasWorkspaceExtension
+//      HasWorkspaceExtension, CollapseFullPathOrURL
 //   2. UrlDecode
 //   3. CreateRemoteImageSource picks the source for each scheme
 //   4. ParseSCPURL: user, encoded user, port, path; malformed URLs
@@ -68,6 +68,8 @@ int main()
   Check(HasWorkspaceExtension("/data/study.itksnap"), "local workspace");
   Check(!HasWorkspaceExtension("/data/img.nii.gz"), "local image");
   Check(!HasWorkspaceExtension("itksnap"), "short name");
+  CheckEqual(CollapseFullPathOrURL("https://h/a/../b.nii.gz?x=1"), "https://h/a/../b.nii.gz?x=1", "URL not collapsed");
+  CheckEqual(CollapseFullPathOrURL("/data/a/../b.nii.gz"), "/data/b.nii.gz", "local path collapsed");
 
   // ── 2. Percent decoding ───────────────────────────────────────────────
   std::cout << "UrlDecode:" << std::endl;

@@ -1080,8 +1080,12 @@ void MainImageWindow::CreateRecentMenu(
   // Create an action for each recent item
   for(int i = 0; i < recent.size(); i++)
     {
-    // Create an action for this file
-    QAction *action = submenu->addAction(from_utf8(recent[i]));
+    // Create an action for this file. The file name is kept in the action's
+    // data; in the text, '&' (common in URLs) is escaped so it is not shown
+    // as a shortcut marker
+    QString file = from_utf8(recent[i]);
+    QAction *action = submenu->addAction(QString(file).replace("&", "&&"));
+    action->setData(file);
     if(use_shortcut && i < 10)
       action->setShortcut(QKeySequence(shortcut_modifier + Qt::Key_1 + i));
     connect(action, SIGNAL(triggered(bool)), this, slot);
@@ -1571,7 +1575,7 @@ void MainImageWindow::LoadRecentActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadMainImage(file);
 }
 
@@ -1579,7 +1583,7 @@ void MainImageWindow::LoadRecentOverlayActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
 
 	// Show a progress dialog
 	using namespace imageiowiz;
@@ -1651,7 +1655,7 @@ void MainImageWindow::LoadRecentSegmentationActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadRecentSegmentation(file, false);
 }
 
@@ -1659,7 +1663,7 @@ void MainImageWindow::LoadAnotherRecentSegmentationActionTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadRecentSegmentation(file, true);
 }
 
@@ -1681,7 +1685,7 @@ void MainImageWindow::LoadRecentLabelDefinitionsTriggered()
 {
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadLabelDefinitions(file);
 }
 
@@ -1797,7 +1801,7 @@ void MainImageWindow::LoadRecentProjectActionTriggered()
 
   // Get the filename that wants to be loaded
   QAction *action = qobject_cast<QAction *>(sender());
-  QString file = action->text();
+  QString file = action->data().toString();
   LoadProject(file);
 }
 

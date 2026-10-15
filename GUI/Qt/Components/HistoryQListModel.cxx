@@ -15,6 +15,7 @@
 #include <SNAPQtCommon.h>
 #include <QPixmapCache>
 #include <QFileInfo>
+#include "ImageIORemote.h"
 #include <QIcon>
 #include <QTimer>
 
@@ -32,8 +33,14 @@ void HistoryQListItem::setItem(
     GlobalUIModel *model,
     const QString &history_entry)
 {
-  // Set the name to the short name
+  // Set the name to the short name. For a URL, this is the name of the file
+  // it downloads, without any query or fragment
   QString short_name = QFileInfo(history_entry).fileName();
+  if(IsRemoteImageURL(to_utf8(history_entry)))
+    {
+    try { short_name = from_utf8(RemoteFilenameFromURL(to_utf8(history_entry))); }
+    catch(IRISException &) {}
+    }
   this->setText(short_name);
 
   // Set the filename

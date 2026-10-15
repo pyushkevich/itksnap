@@ -329,6 +329,13 @@ bool HasWorkspaceExtension(const std::string &path_or_url)
   return true;
 }
 
+std::string CollapseFullPathOrURL(const std::string &path_or_url)
+{
+  return IsRemoteImageURL(path_or_url)
+           ? path_or_url
+           : itksys::SystemTools::CollapseFullPath(path_or_url);
+}
+
 SCPURL ParseSCPURL(const std::string &url)
 {
   // Expected form:  scp://[user@]host[:port]/path  or  sftp://...

@@ -18,8 +18,7 @@
 // they are, since CollapseFullPath would turn them into bogus local paths.
 static std::string AbsoluteLayerPath(const std::string &filename)
 {
-  return IsRemoteImageURL(filename) ? filename
-                                    : itksys::SystemTools::CollapseFullPath(filename);
+  return CollapseFullPathOrURL(filename);
 }
 
 using namespace std;
