@@ -82,6 +82,7 @@
 #include "RegistrationDialog.h"
 #include "DistributedSegmentationDialog.h"
 #include "ImageIORemote.h"
+#include "SNAPQApplication.h"
 
 #include <QAbstractListModel>
 #include <QItemDelegate>
@@ -1435,6 +1436,16 @@ MainImageWindow::LoadDroppedFile(QString file, bool dragged_to_window)
     ReportNonLethalException(
       this, exc, tr("File Dropping Error"), tr("Failed to load file %1").arg(file));
   }
+}
+
+void MainImageWindow::on_brsGettingStarted_anchorClicked(const QUrl &url)
+{
+  // itksnap-* links (the sample datasets) are opened in this window, as a
+  // file dropped on it would be. Other links are opened in the web browser
+  if (url.scheme().startsWith("itksnap-"))
+    LoadDroppedFile(SNAPQApplication::resolveUrl(url.toString(QUrl::FullyEncoded)), true);
+  else
+    QDesktopServices::openUrl(url);
 }
 
 #ifdef __APPLE__

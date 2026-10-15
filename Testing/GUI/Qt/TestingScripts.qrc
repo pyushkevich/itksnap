@@ -12,6 +12,7 @@
         <file>Scripts/test_OpenURLEventImage.js</file>
         <file>Scripts/test_OpenURLEventWorkspace.js</file>
         <file>Scripts/test_URLWorkspaceProgress.js</file>
+        <file>Scripts/test_GettingStartedLinks.js</file>
         <file>Scripts/test_EdgeAttraction.js</file>
         <file>Scripts/test_4DContinuousRendering.js</file>
         <file>Scripts/test_4DReplayWithMeshUpdate.js</file>

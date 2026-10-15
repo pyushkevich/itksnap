@@ -1761,6 +1761,11 @@ IF(Python3_Interpreter_FOUND)
     ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8920 6 --)
   ADD_SNAP_GUI_TEST(URLWorkspaceProgress
     --url "itksnap-http://127.0.0.1:8920/MRIcrop-with-mesh.itksnap")
+
+  # The sample dataset links on the Getting Started page open in the window
+  SET(SNAP_GUI_TEST_LAUNCHER ${Python3_EXECUTABLE}
+    ${SNAP_SOURCE_DIR}/Testing/GUI/Qt/serve_slowly.py ${TESTDATA_DIR} 8921 0 --)
+  ADD_SNAP_GUI_TEST(GettingStartedLinks)
   UNSET(SNAP_GUI_TEST_LAUNCHER)
 ENDIF()
 
