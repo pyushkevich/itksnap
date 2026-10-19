@@ -5,12 +5,12 @@ on:
     inputs:
       debug_enabled:
         type: boolean
-        description: 'Enable tmate debugging'
+        description: 'Open an SSH debug session (upterm) before the build'
         required: false
         default: false
       debug_preqt_enabled:
         type: boolean
-        description: 'Enable tmate debugging before Qt install'
+        description: 'Open an SSH debug session (upterm) before the Qt install'
         required: false
         default: false
       use_cached_itksnap_build:
@@ -176,9 +176,14 @@ jobs:
           triplet: ${{ matrix.vcpkg_triplet }}
           token: ${{ github.token }}
     
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      # The SSH command is printed in the step log. Only the user who started the run can
+      # join, with an SSH key from their GitHub profile. To resume the job, exit the shell
+      # or run "touch $GITHUB_WORKSPACE/continue".
+      - name: Setup upterm session
+        uses: owenthereal/action-upterm@v2
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_preqt_enabled }}
+        with:
+          limit-access-to-actor: true
 
       # Install Qt
       - name: Install Qt on Ubuntu
@@ -374,9 +379,14 @@ jobs:
             ${{ runner.os == 'MacOS' && format('CMAKE_OSX_DEPLOYMENT_TARGET={0}', env.MACOS_DEPLOYMENT_TARGET) || '' }}
             ${{ runner.os == 'MacOS' && format('CMAKE_PREFIX_PATH={0}/libssh', github.workspace) || '' }}
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      # The SSH command is printed in the step log. Only the user who started the run can
+      # join, with an SSH key from their GitHub profile. To resume the job, exit the shell
+      # or run "touch $GITHUB_WORKSPACE/continue".
+      - name: Setup upterm session
+        uses: owenthereal/action-upterm@v2
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          limit-access-to-actor: true
 
       # Build ITK-SNAP using CDash
       - name: ITK-SNAP Dashboard -- Configure and Build
