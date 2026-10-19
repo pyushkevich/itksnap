@@ -412,6 +412,24 @@ jobs:
             exit 1
           fi
 
+      # The windows-2022 runner has no GPU, so Qt falls back to its opengl32sw.dll (Mesa 11.2,
+      # OpenGL 3.0). VTK needs 3.2: drawing the scalar bar of a mesh calls glTexBuffer through a
+      # null pointer, which crashed the mesh tests. Use a current Mesa (OpenGL 4.5) for the tests.
+      # It is loaded through QT_OPENGL_DLL, not copied next to ITK-SNAP.exe, because the install
+      # rules would then package it as a runtime dependency.
+      - name: Install Mesa OpenGL for the Windows x64 tests
+        if: ${{ matrix.os == 'windows-2022' && (github.event_name != 'workflow_dispatch' || !inputs.skip_testing) }}
+        shell: bash
+        run: |
+          MESA_VER=26.2.4
+          MESA_SHA256=351fc8c8b695878ffb3eaa044b3ead08672a48b1a045e3c3e3975811df0f6695
+          mkdir -p "${{github.workspace}}/mesa" && cd "${{github.workspace}}/mesa"
+          curl -sSfL -o mesa.7z "https://github.com/pal1000/mesa-dist-win/releases/download/${MESA_VER}/mesa3d-${MESA_VER}-release-msvc.7z"
+          echo "${MESA_SHA256}  mesa.7z" | sha256sum -c -
+          7z e -y -bd mesa.7z x64/opengl32.dll x64/libgallium_wgl.dll > /dev/null
+          rm mesa.7z
+          echo "MESA_DIR=$(cygpath -w "$PWD")" >> $GITHUB_ENV
+
       - name: ITK-SNAP Dashboard -- Test
         id: ctest-test
         if: ${{ github.event_name != 'workflow_dispatch' || !inputs.skip_testing }}
@@ -419,6 +437,11 @@ jobs:
         shell: bash
         continue-on-error: true
         run: |
+          # Use the Mesa OpenGL installed above, if any (set only here, not for later steps)
+          if [ -n "$MESA_DIR" ]; then
+            export QT_OPENGL=software QT_OPENGL_DLL="$MESA_DIR\\opengl32.dll"
+            export PATH="$(cygpath -u "$MESA_DIR"):$PATH"
+          fi
           # Print the output of failing tests, which CDash shows but the log otherwise doesn't
           ${{ matrix.ctest_cmd }} -D ExperimentalTest --output-on-failure
 
